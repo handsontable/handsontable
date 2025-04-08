@@ -44,6 +44,12 @@ The password cell type behaves like a text cell, the only difference being that 
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example -->
+
+:::
+
 ## Fixed hash length
 
 By default, every hash has a length equal to the length of its corresponding value. Use option `hashLength` to set a fixed hash length.
@@ -70,6 +76,12 @@ By default, every hash has a length equal to the length of its corresponding val
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example -->
+
+:::
+
 ## Custom hash symbol
 
 By default, every hash consists of asterisks `*`. Use the option `hashSymbol` to set a custom hash symbol. You can use any character, entity, or even HTML. Note that you can't change the symbol used by the input field due to browser limitations.
@@ -93,6 +105,12 @@ By default, every hash consists of asterisks `*`. Use the option `hashSymbol` to
 @[code](@/content/guides/cell-types/password-cell-type/react/example3.tsx)
 
 :::
+
+:::
+
+::: only-for angular
+
+<!-- TODO: angular example -->
 
 :::
 

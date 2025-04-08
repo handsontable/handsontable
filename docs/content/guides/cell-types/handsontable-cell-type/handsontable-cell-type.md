@@ -62,6 +62,12 @@ While HOT-in-HOT is opened, the text field above the HOT-in-HOT remains focused 
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example -->
+
+:::
+
 ## Related articles
 
 ### Related guides

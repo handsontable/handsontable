@@ -48,6 +48,12 @@ The select editor should be considered an example of how to write editors rather
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example -->
+
+:::
+
 ## Related articles
 
 ### Related guides

@@ -26,16 +26,16 @@ Use Handsontable with plain JavaScript, TypeScript, or your favorite framework. 
 
 <div class="boxes-list gray small col3">
 
-- <i class="ico i-react"></i> 
-[React](@/react/guides/getting-started/installation/installation.md)
-- <i class="ico i-javascript"></i> 
-[JavaScript](@/guides/getting-started/installation/installation.md)
-- <i class="ico i-angular"></i> 
-[Angular](@/guides/integrate-with-angular/angular-installation/angular-installation.md)
-- <i class="ico i-vue"></i> 
-[Vue 2](@/guides/integrate-with-vue/vue-installation/vue-installation.md)
-- <i class="ico i-vue"></i> 
-[Vue 3](@/guides/integrate-with-vue3/vue3-installation/vue3-installation.md)
+- <i class="ico i-react"></i>
+  [React](@/react/guides/getting-started/installation/installation.md)
+- <i class="ico i-javascript"></i>
+  [JavaScript](@/guides/getting-started/installation/installation.md)
+- <i class="ico i-angular"></i>
+  [Angular](@/angular/guides/getting-started/installation/installation.md)
+- <i class="ico i-vue"></i>
+  [Vue 2](@/guides/integrate-with-vue/vue-installation/vue-installation.md)
+- <i class="ico i-vue"></i>
+  [Vue 3](@/guides/integrate-with-vue3/vue3-installation/vue3-installation.md)
 
 </div>
 
@@ -44,7 +44,7 @@ Use Handsontable with plain JavaScript, TypeScript, or your favorite framework. 
 <div class="boxes-list gray col3">
 
 - [Next.js](https://stackblitz.com/edit/stackblitz-starters-wp9wzrnb?file=README.md)
-- [Astro](https://stackblitz.com/edit/withastro-astro-nabzqba4?file=README.md) 
+- [Astro](https://stackblitz.com/edit/withastro-astro-nabzqba4?file=README.md)
 - [Remix](https://stackblitz.com/edit/remix-run-remix-owyjdkt5?file=README.md)
 - [Nuxt](https://stackblitz.com/edit/nuxt-starter-ljnxhaxa?file=README.md)
 
@@ -81,6 +81,7 @@ Handsontable's built-in features make it a perfect fit for applications across d
 ## Join our Community 🙌
 
 You are welcome to join our GitHub community. Discuss new releases, propose features, and report bugs on:
+
 - [GitHub Discussions](https://github.com/handsontable/handsontable/discussions)
 - [Developers' forum](https://forum.handsontable.com/)
 - [X](https://x.com/handsontable)

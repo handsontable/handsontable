@@ -52,6 +52,12 @@ Click on the column names to sort them.
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example -->
+
+:::
+
 ## Use the numeric cell type
 
 To use the numeric cell type, set the [`type`](@/api/options.md#type) option to `'numeric'`:
@@ -102,6 +108,37 @@ cell={[{
 
 :::
 
+::: only-for angular
+
+```ts
+// set the numeric cell type for each cell of the entire grid
+settings1 = {
+  type: "numeric",
+};
+
+// set the numeric cell type for each cell of a single column
+settings2 = {
+  columns: [
+    {
+      type: "numeric",
+    },
+  ],
+};
+
+// set the numeric cell type for a single cell
+settings3 = {
+  cell: [
+    {
+      row: 0,
+      col: 0,
+      type: "numeric",
+    },
+  ],
+};
+```
+
+:::
+
 Mind that Handsontable doesn't parse strings to numbers. In your data source, make sure to store
 numeric cell values as numbers, not as strings.
 
@@ -136,6 +173,12 @@ In the following demo, columns **Price in Japan** and **Price in Turkey** use tw
 @[code](@/content/guides/cell-types/numeric-cell-type/react/example3.tsx)
 
 :::
+
+:::
+
+::: only-for angular
+
+<!-- TODO: angular example -->
 
 :::
 

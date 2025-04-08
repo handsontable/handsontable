@@ -6,15 +6,15 @@ description: Run your code before or after specific data grid actions, using Han
 permalink: /events-and-hooks
 canonicalUrl: /events-and-hooks
 tags:
-- callback
-- hook
-- event
-- middleware
-- modify
-- after
-- before
-- events
-- hooks
+  - callback
+  - hook
+  - event
+  - middleware
+  - modify
+  - after
+  - before
+  - events
+  - hooks
 react:
   id: d966se98
   metaTitle: Events and hooks - React Data Grid | Handsontable
@@ -39,9 +39,11 @@ If you only react to emitted hooks and forget about all their other features, yo
 ::: only-for react
 
 ```jsx
-<HotTable afterCreateRow={(row, amount) => {
-  console.log(`${amount} row(s) were created, starting at index ${row}`);
-}}/>
+<HotTable
+  afterCreateRow={(row, amount) => {
+    console.log(`${amount} row(s) were created, starting at index ${row}`);
+  }}
+/>
 ```
 
 :::
@@ -49,9 +51,19 @@ If you only react to emitted hooks and forget about all their other features, yo
 ::: only-for javascript
 
 ```js
-hot.addHook('afterCreateRow', (row, amount) => {
+hot.addHook("afterCreateRow", (row, amount) => {
   console.log(`${amount} row(s) were created, starting at index ${row}`);
-})
+});
+```
+
+:::
+
+::: only-for angular
+
+```ts
+hotTable.hotInstance.addHook("afterCreateRow", (row, amount) => {
+  console.log(`${amount} row(s) were created, starting at index ${row}`);
+});
 ```
 
 :::
@@ -63,11 +75,13 @@ Middleware is a concept known in the JavaScript world from Node.js frameworks su
 ::: only-for react
 
 ```jsx
-<HotTable modifyColWidth={(width, column) => {
+<HotTable
+  modifyColWidth={(width, column) => {
     if (column > 10) {
       return 150;
     }
-}}/>
+  }}
+/>
 ```
 
 :::
@@ -75,11 +89,31 @@ Middleware is a concept known in the JavaScript world from Node.js frameworks su
 ::: only-for javascript
 
 ```js
-hot.addHook('modifyColWidth', (width, column) => {
+hot.addHook("modifyColWidth", (width, column) => {
   if (column > 10) {
     return 150;
   }
-})
+});
+```
+
+:::
+
+::: only-for angular
+
+```ts
+import { GridSettings } from "@handsontable/angular-wrapper";
+
+gridSettings: GridSettings = {
+  modifyColWidth: (width, column) => {
+    if (column > 10) {
+      return 150;
+    }
+  },
+};
+```
+
+```html
+<hot-table [settings]="gridSettings" />
 ```
 
 :::
@@ -102,7 +136,8 @@ A great example for this is our integration with HyperFormula engine where creat
     if (!hyperFormula.isItPossibleToAddRows(0, [row, amount])) {
       return false;
     }
-}}/>
+  }}
+/>
 ```
 
 :::
@@ -110,11 +145,31 @@ A great example for this is our integration with HyperFormula engine where creat
 ::: only-for javascript
 
 ```js
-hot.addHook('beforeCreateRow', (row, amount) => {
+hot.addHook("beforeCreateRow", (row, amount) => {
   if (!hyperFormula.isItPossibleToAddRows(0, [row, amount])) {
     return false;
   }
-})
+});
+```
+
+:::
+
+::: only-for angular
+
+```ts
+import { GridSettings } from "@handsontable/angular-wrapper";
+
+gridSettings: GridSettings = {
+  beforeCreateRow: (row, amount) => {
+    if (!hyperFormula.isItPossibleToAddRows(0, [row, amount])) {
+      return false;
+    }
+  },
+};
+```
+
+```html
+<hot-table [settings]="gridSettings" />
 ```
 
 :::
@@ -135,6 +190,12 @@ The first argument may be modified and passed on through the Handsontable hooks 
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example -->
+
+:::
+
 ## All available Handsontable hooks example
 
 Note that some callbacks are checked on this page by default.
@@ -147,38 +208,44 @@ Note that some callbacks are checked on this page by default.
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example, above code should be only for js and react -->
+
+:::
+
 ## Definition for `source` argument
 
 It's worth mentioning that some Handsontable hooks are triggered from the Handsontable core and some from the plugins. In some situations, it is helpful to know what triggered the callback. Did Handsontable trigger it, or was it triggered by external code or a user action? That's why in crucial hooks, Handsontable delivers `source` as an argument informing you who triggered the action and providing detailed information about the source. Using the information retrieved in the `source`, you can create additional conditions.
 
 `source` argument is optional. It takes the following values:
 
-| Value                                              | Description                                                                                                                                                                                                            |
-| -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Value                                              | Description                                                                                                                                                                                                                                                                              |
+| -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `auto`                                             | Action triggered by Handsontable, and the reason for it is related directly to the settings applied to Handsontable. For example, [`afterCreateRow`](@/api/hooks.md#aftercreaterow) will be fired with this when [`minSpareRows`](@/api/options.md#minsparerows) will be greater than 0. |
-| `edit`                                             | Action triggered by Handsontable after the data has been changed, e.g., after an edit or using `setData*` methods.                                                                                                     |
-| `loadData`                                         | Action triggered by Handsontable after the [`loadData`](@/api/core.md#loaddata) method has been called with the [`data`](@/api/options.md#data) property.
-| `updateData`                                         | Action triggered by Handsontable after the [`updateData`](@/api/core.md#updatedata) method has been called; e.g., before or after a data change.                                                                                                     |
-| `populateFromArray`                                | Action triggered by Handsontable after requesting for populating data.                                                                                                                                                 |
-| `spliceCol`                                        | Action triggered by Handsontable after the column data splicing has been done.                                                                                                                                         |
-| `spliceRow`                                        | Action triggered by Handsontable after the row data splicing has been done.                                                                                                                                            |
-| `timeValidate`                                     | Action triggered by Handsontable after the time validator has been called, e.g., after an edit.                                                                                                                        |
-| `dateValidate`                                     | Action triggered by Handsontable after the date validator has been called, e.g., after an edit.                                                                                                                        |
-| `validateCells`                                    | Action triggered by Handsontable after the validation process has been triggered.                                                                                                                                      |
-| [`Autofill.fill`](@/api/autofill.md)               | Action triggered by the AutoFill plugin.                                                                                                                                                                               |
-| [`ContextMenu.clearColumns`](@/api/contextMenu.md) | Action triggered by the ContextMenu plugin after the "Clear column" has been clicked.                                                                                                                                  |
-| [`ContextMenu.columnLeft`](@/api/contextMenu.md)   | Action triggered by the ContextMenu plugin after the "Insert column left" has been clicked.                                                                                                                            |
-| [`ContextMenu.columnRight`](@/api/contextMenu.md)  | Action triggered by the ContextMenu plugin after the "Insert column right" has been clicked.                                                                                                                           |
-| [`ContextMenu.removeColumn`](@/api/contextMenu.md) | Action triggered by the ContextMenu plugin after the "Remove column" has been clicked.                                                                                                                                 |
-| [`ContextMenu.removeRow`](@/api/contextMenu.md)    | Action triggered by the ContextMenu plugin after the "Remove Row" has been clicked.                                                                                                                                    |
-| [`ContextMenu.rowAbove`](@/api/contextMenu.md)     | Action triggered by the ContextMenu plugin after the "Insert row above" has been clicked.                                                                                                                              |
-| [`ContextMenu.rowBelow`](@/api/contextMenu.md)     | Action triggered by the ContextMenu plugin after the "Insert row below" has been clicked.                                                                                                                              |
-| [`CopyPaste.paste`](@/api/copyPaste.md)            | Action triggered by the CopyPaste plugin after the value has been pasted.                                                                                                                                              |
-| `MergeCells`                            | Action triggered by the MergeCells plugin when clearing the merged cells' underlying cells. |
-| [`UndoRedo.redo`](@/api/undoRedo.md)               | Action triggered by the UndoRedo plugin after the change has been redone.                                                                                                                                              |
-| [`UndoRedo.undo`](@/api/undoRedo.md)               | Action triggered by the UndoRedo plugin after the change has been undone.                                                                                                                                              |
-| [`ColumnSummary.set`](@/api/columnSummary.md)      | Action triggered by the ColumnSummary plugin after the calculation has been done.                                                                                                                                      |
-| [`ColumnSummary.reset`](@/api/columnSummary.md)    | Action triggered by the ColumnSummary plugin after the calculation has been reset.                                                                                                                                     |
+| `edit`                                             | Action triggered by Handsontable after the data has been changed, e.g., after an edit or using `setData*` methods.                                                                                                                                                                       |
+| `loadData`                                         | Action triggered by Handsontable after the [`loadData`](@/api/core.md#loaddata) method has been called with the [`data`](@/api/options.md#data) property.                                                                                                                                |
+| `updateData`                                       | Action triggered by Handsontable after the [`updateData`](@/api/core.md#updatedata) method has been called; e.g., before or after a data change.                                                                                                                                         |
+| `populateFromArray`                                | Action triggered by Handsontable after requesting for populating data.                                                                                                                                                                                                                   |
+| `spliceCol`                                        | Action triggered by Handsontable after the column data splicing has been done.                                                                                                                                                                                                           |
+| `spliceRow`                                        | Action triggered by Handsontable after the row data splicing has been done.                                                                                                                                                                                                              |
+| `timeValidate`                                     | Action triggered by Handsontable after the time validator has been called, e.g., after an edit.                                                                                                                                                                                          |
+| `dateValidate`                                     | Action triggered by Handsontable after the date validator has been called, e.g., after an edit.                                                                                                                                                                                          |
+| `validateCells`                                    | Action triggered by Handsontable after the validation process has been triggered.                                                                                                                                                                                                        |
+| [`Autofill.fill`](@/api/autofill.md)               | Action triggered by the AutoFill plugin.                                                                                                                                                                                                                                                 |
+| [`ContextMenu.clearColumns`](@/api/contextMenu.md) | Action triggered by the ContextMenu plugin after the "Clear column" has been clicked.                                                                                                                                                                                                    |
+| [`ContextMenu.columnLeft`](@/api/contextMenu.md)   | Action triggered by the ContextMenu plugin after the "Insert column left" has been clicked.                                                                                                                                                                                              |
+| [`ContextMenu.columnRight`](@/api/contextMenu.md)  | Action triggered by the ContextMenu plugin after the "Insert column right" has been clicked.                                                                                                                                                                                             |
+| [`ContextMenu.removeColumn`](@/api/contextMenu.md) | Action triggered by the ContextMenu plugin after the "Remove column" has been clicked.                                                                                                                                                                                                   |
+| [`ContextMenu.removeRow`](@/api/contextMenu.md)    | Action triggered by the ContextMenu plugin after the "Remove Row" has been clicked.                                                                                                                                                                                                      |
+| [`ContextMenu.rowAbove`](@/api/contextMenu.md)     | Action triggered by the ContextMenu plugin after the "Insert row above" has been clicked.                                                                                                                                                                                                |
+| [`ContextMenu.rowBelow`](@/api/contextMenu.md)     | Action triggered by the ContextMenu plugin after the "Insert row below" has been clicked.                                                                                                                                                                                                |
+| [`CopyPaste.paste`](@/api/copyPaste.md)            | Action triggered by the CopyPaste plugin after the value has been pasted.                                                                                                                                                                                                                |
+| `MergeCells`                                       | Action triggered by the MergeCells plugin when clearing the merged cells' underlying cells.                                                                                                                                                                                              |
+| [`UndoRedo.redo`](@/api/undoRedo.md)               | Action triggered by the UndoRedo plugin after the change has been redone.                                                                                                                                                                                                                |
+| [`UndoRedo.undo`](@/api/undoRedo.md)               | Action triggered by the UndoRedo plugin after the change has been undone.                                                                                                                                                                                                                |
+| [`ColumnSummary.set`](@/api/columnSummary.md)      | Action triggered by the ColumnSummary plugin after the calculation has been done.                                                                                                                                                                                                        |
+| [`ColumnSummary.reset`](@/api/columnSummary.md)    | Action triggered by the ColumnSummary plugin after the calculation has been reset.                                                                                                                                                                                                       |
 
 List of callbacks that operate on the `source` parameter:
 
@@ -227,6 +294,12 @@ The following demo uses [`beforeKeyDown`](@/api/hooks.md#beforekeydown) callback
 @[code](@/content/guides/getting-started/events-and-hooks/react/example2.tsx)
 
 :::
+
+:::
+
+::: only-for angular
+
+<!-- TODO: angular example -->
 
 :::
 

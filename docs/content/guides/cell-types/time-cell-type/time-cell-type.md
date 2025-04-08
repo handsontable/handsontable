@@ -19,6 +19,7 @@ Use the time cell type to display, format, and validate values as times. The tim
 [[toc]]
 
 ## Usage
+
 To use the time cell type, set the `type: 'time'` option in the [`columns`](@/api/options.md#columns) array or the [`cells`](@/api/options.md#cells) function.
 The time cell uses [Moment.js](https://github.com/moment/moment) as the time formatter, therefore you must add the following required dependency:
 
@@ -56,6 +57,12 @@ By default, the values entered into the time-type column are not validated, so i
 @[code](@/content/guides/cell-types/time-cell-type/react/example1.tsx)
 
 :::
+
+:::
+
+::: only-for angular
+
+<!-- TODO: angular example -->
 
 :::
 

@@ -28,7 +28,7 @@ Cell merging happens on Handsontable's visual layer and doesn't affect your sour
 
 ## How to merge cells
 
-To enable the merge cells feature, set the [`mergeCells`](@/api/options.md#mergecells) option to  `true` or to an array.
+To enable the merge cells feature, set the [`mergeCells`](@/api/options.md#mergecells) option to `true` or to an array.
 
 To initialize Handsontable with predefined merged cells, provide merged cells details in form of an array:
 
@@ -41,6 +41,12 @@ To initialize Handsontable with predefined merged cells, provide merged cells de
 ::: only-for react
 
 `mergeCells={[{ row: 1, col: 1, rowspan: 2, colspan: 2 }]}`
+
+:::
+
+::: only-for angular
+
+`settings = { mergeCells:[{ row: 1, col: 1, rowspan: 2, colspan: 2 }]}`
 
 :::
 
@@ -63,6 +69,12 @@ To initialize Handsontable with predefined merged cells, provide merged cells de
 @[code](@/content/guides/cell-features/merge-cells/react/example1.tsx)
 
 :::
+
+:::
+
+::: only-for angular
+
+<!-- TODO: angular example -->
 
 :::
 
@@ -94,6 +106,19 @@ mergeCells={{
 
 :::
 
+::: only-for angular
+
+```ts
+settings = {
+  mergeCells: {
+    virtualized: true,
+    cells: [{ row: 1, col: 1, rowspan: 200, colspan: 2 }],
+  },
+};
+```
+
+:::
+
 The example below uses virtualized merged cells. It's also recommended to increase the buffer of rendered rows/columns to minimize the flickering effects.
 
 ::: only-for javascript
@@ -118,10 +143,16 @@ The example below uses virtualized merged cells. It's also recommended to increa
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example -->
+
+:::
+
 ## Related keyboard shortcuts
 
-| Windows                                | macOS                                  | Action                              |  Excel  | Sheets  |
-| -------------------------------------- | -------------------------------------- | ----------------------------------- | :-----: | :-----: |
+| Windows                              | macOS                                | Action                              |  Excel  | Sheets  |
+| ------------------------------------ | ------------------------------------ | ----------------------------------- | :-----: | :-----: |
 | <kbd>**Ctrl**</kbd>+<kbd>**M**</kbd> | <kbd>**Ctrl**</kbd>+<kbd>**M**</kbd> | Merge or unmerge the selected cells | &cross; | &cross; |
 
 ## Related API reference

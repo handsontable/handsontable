@@ -54,6 +54,12 @@ This is the default usage scenario where column data has a `true` or `false` val
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example -->
+
+:::
+
 ## Checkbox template
 
 If you want to use values other than `true` and `false`, you have to provide this information using [`checkedTemplate`](@/api/options.md#checkedtemplate) and [`uncheckedTemplate`](@/api/options.md#uncheckedtemplate). Handsontable will then update your data using the appropriate template.
@@ -77,6 +83,12 @@ If you want to use values other than `true` and `false`, you have to provide thi
 @[code](@/content/guides/cell-types/checkbox-cell-type/react/example2.tsx)
 
 :::
+
+:::
+
+::: only-for angular
+
+<!-- TODO: angular example -->
 
 :::
 
@@ -106,6 +118,12 @@ To add a label to the checkbox, use the [`label`](@/api/options.md#label) option
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example -->
+
+:::
+
 ## Related keyboard shortcuts
 
 | Windows                  | macOS                    | Action                        |  Excel  | Sheets  |
@@ -118,6 +136,7 @@ To add a label to the checkbox, use the [`label`](@/api/options.md#label) option
 ## Related articles
 
 ### Related guides
+
 - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
 
 ### Related API reference

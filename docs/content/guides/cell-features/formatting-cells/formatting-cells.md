@@ -53,6 +53,12 @@ In this example, we add a custom class `custom-cell` to the cell in the top left
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example -->
+
+:::
+
 ## Apply inline styles
 
 You can apply inline styles directly to the DOM element using its `style` property. You can use the [`renderer`](@/api/options.md#renderer) option to do that.
@@ -76,6 +82,12 @@ You can apply inline styles directly to the DOM element using its `style` proper
 @[code](@/content/guides/cell-features/formatting-cells/react/example2.tsx)
 
 :::
+
+:::
+
+::: only-for angular
+
+<!-- TODO: angular example -->
 
 :::
 
@@ -106,6 +118,12 @@ In the names of the API properties, the words `start` and `end` refer to the sta
 @[code](@/content/guides/cell-features/formatting-cells/react/example3.tsx)
 
 :::
+
+:::
+
+::: only-for angular
+
+<!-- TODO: angular example -->
 
 :::
 

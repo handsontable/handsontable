@@ -29,12 +29,12 @@ Set the [`comments`](@/api/options.md#comments) configuration option to `true` t
 ```js
 const hot = new Handsontable(container, {
   data: [
-    ['A1', 'B1', 'C1'],
-    ['A2', 'B2', 'C2'],
+    ["A1", "B1", "C1"],
+    ["A2", "B2", "C2"],
   ],
   comments: true,
   autoWrapRow: true,
-  autoWrapCol: true
+  autoWrapCol: true,
 });
 ```
 
@@ -45,11 +45,29 @@ const hot = new Handsontable(container, {
 ```jsx
 <HotTable
   data={[
-    ['A1', 'B1', 'C1'],
-    ['A2', 'B2', 'C2'],
+    ["A1", "B1", "C1"],
+    ["A2", "B2", "C2"],
   ]}
   comments={true}
 />
+```
+
+:::
+
+::: only-for angular
+
+```ts
+settings = {
+  data: [
+    ["A1", "B1", "C1"],
+    ["A2", "B2", "C2"],
+  ],
+  comments: true,
+};
+```
+
+```html
+<hot-table [settings]="settings" />
 ```
 
 :::
@@ -69,9 +87,7 @@ You can also pre-define comments for your table. Comments are stored in the tabl
 ::: only-for javascript
 
 ```js
-cell: [
-  { row: 1, col: 1, comment: { value: 'Hello world!' } }
-]
+cell: [{ row: 1, col: 1, comment: { value: "Hello world!" } }];
 ```
 
 :::
@@ -82,6 +98,16 @@ cell: [
 cell={[
   { row: 1, col: 1, comment: { value: 'Hello world!' } }
 ]}
+```
+
+:::
+
+::: only-for angular
+
+```ts
+settings = {
+  cell: [{ row: 1, col: 1, comment: { value: "Hello world!" } }],
+};
 ```
 
 :::
@@ -112,6 +138,12 @@ In this example, the comment "Hello world!" is added to the cell at `(1,1)`.
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example -->
+
+:::
+
 ## Make a comment read-only
 
 By default, all comments are editable. To change this, set the [`readOnly`](@/api/options.md#readonly) configuration option to `true` when adding a comment. This example makes the "Tesla" comment attached to a cell read-only, whereas the "Honda" comment attached to another cell is editable.
@@ -135,6 +167,12 @@ By default, all comments are editable. To change this, set the [`readOnly`](@/ap
 @[code](@/content/guides/cell-features/comments/react/example2.tsx)
 
 :::
+
+:::
+
+::: only-for angular
+
+<!-- TODO: angular example -->
 
 :::
 
@@ -164,6 +202,12 @@ To set the width and height of a comment box, use the [`style`](@/api/options.md
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example -->
+
+:::
+
 ## Set a delay for displaying comments
 
 To display comments after a pre-configured time delay, use the [`displayDelay`](@/api/options.md#comments) parameter.
@@ -187,6 +231,12 @@ To display comments after a pre-configured time delay, use the [`displayDelay`](
 @[code](@/content/guides/cell-features/comments/react/example4.tsx)
 
 :::
+
+:::
+
+::: only-for angular
+
+<!-- TODO: angular example -->
 
 :::
 

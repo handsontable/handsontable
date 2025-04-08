@@ -23,6 +23,7 @@ Use Handsontable's built-in cell types such as autocomplete, date, time, and mor
 There are three functions associated with every table cell: [`renderer`](@/api/options.md#renderer), [`editor`](@/api/options.md#editor), and optionally [`validator`](@/api/options.md#validator). These functions are mostly used all together as they are strongly connected.
 
 Example scenario - To store a date in a cell, you would:
+
 - Use a [`renderer`](@/api/options.md#renderer) to display the date using appropriate formatting `dd/mm/yyyy`, `yyyy-mm-dd`, etc.
 - Use an [`editor`](@/api/options.md#editor) that displays a calendar instead of the default text input, allowing the user to easily pick the right date.
 - Use a [`validator`](@/api/options.md#validator) to check if the value entered by a user is valid.
@@ -33,15 +34,16 @@ Cell type is represented by a string i.e. `"text"`, `"numeric"`, `"date"`. Each 
 - `Handsontable.editors.TextEditor`
 - `Handsontable.validators.NumericValidator`
 
-
 When Handsontable encounters a cell with the [`type`](@/api/options.md#type) option defined, it checks which cell functions this type refers to and uses them. For example, when setting the column type to `'password'`:
 
 ::: only-for javascript
 
 ```js
-columns: [{
-  type: 'password'
-}]
+columns: [
+  {
+    type: "password",
+  },
+];
 ```
 
 :::
@@ -52,6 +54,20 @@ columns: [{
 columns={[{
   type: 'password'
 }]}
+```
+
+:::
+
+::: only-for angular
+
+```ts
+settings = {
+  columns: [
+    {
+      type: "password",
+    },
+  ],
+};
 ```
 
 :::
@@ -82,6 +98,20 @@ columns={[{
 
 :::
 
+::: only-for angular
+
+```ts
+settings = {
+  columns: [
+    {
+      editor: Handsontable.editors.PasswordEditor
+      renderer: Handsontable.renderers.PasswordRenderer,
+      copyable: false,
+    },
+  ],
+};
+```
+
 ## Available cell types
 
 Handsontable comes with nine types:
@@ -104,11 +134,11 @@ The `text` cell type is the default type.
 A cell type is a predefined set of cell properties. Cell type defines which [`renderer`](@/api/options.md#renderer), [`editor`](@/api/options.md#editor) or [`validator`](@/api/options.md#validator) should be used for a cell. They can also define any different cell property that will be assumed for each matching cell:
 
 ```js
-Handsontable.cellTypes.registerCellType('custom', {
+Handsontable.cellTypes.registerCellType("custom", {
   renderer: Handsontable.renderers.TextRenderer,
-  className: 'my-cell',
+  className: "my-cell",
   readOnly: true,
-  myCustomProperty: 'foo'
+  myCustomProperty: "foo",
 });
 ```
 
@@ -117,9 +147,11 @@ When used in Handsontable settings:
 ::: only-for javascript
 
 ```js
-columns: [{
-  type: 'custom'
-}]
+columns: [
+  {
+    type: "custom",
+  },
+];
 ```
 
 :::
@@ -134,18 +166,34 @@ columns={[{
 
 :::
 
+::: only-for angular
+
+```ts
+settings = {
+  columns: [
+    {
+      type: "custom",
+    },
+  ],
+};
+```
+
+:::
+
 Is an equivalent to defining them all:
 
 ::: only-for javascript
 
 ```js
-columns: [{
-  editor: false,
-  renderer: Handsontable.renderers.TextRenderer,
-  className: 'my-cell',
-  readOnly: true,
-  myCustomProperty: 'foo'
-}]
+columns: [
+  {
+    editor: false,
+    renderer: Handsontable.renderers.TextRenderer,
+    className: "my-cell",
+    readOnly: true,
+    myCustomProperty: "foo",
+  },
+];
 ```
 
 :::
@@ -164,6 +212,24 @@ columns={[{
 
 :::
 
+::: only-for angular
+
+```ts
+settings = {
+  columns: [
+    {
+      editor: false,
+      renderer: Handsontable.renderers.TextRenderer,
+      className: "my-cell",
+      readOnly: true,
+      myCustomProperty: "foo",
+    },
+  ],
+};
+```
+
+:::
+
 ## Register custom cell type
 
 When you create a custom cell type, best practice is to assign it as an alias that will refer to this particular type definition.
@@ -178,7 +244,7 @@ To register your own alias use `Handsontable.cellTypes.registerCellType()` funct
 If you'd like to register `copyablePasswordType` under alias `copyable-password`, you need to call:
 
 ```js
-Handsontable.cellTypes.registerCellType('copyable-password', {
+Handsontable.cellTypes.registerCellType("copyable-password", {
   editor: copyablePasswordEditor,
   renderer: copyablePasswordRenderer,
 });
@@ -187,7 +253,7 @@ Handsontable.cellTypes.registerCellType('copyable-password', {
 Choose aliases wisely. If you register your cell type under name that is already registered, the target function will be overwritten:
 
 ```js
-Handsontable.cellTypes.registerCellType('password', {
+Handsontable.cellTypes.registerCellType("password", {
   editor: copyablePasswordEditor,
   renderer: copyablePasswordRenderer,
 });
@@ -199,15 +265,16 @@ Handsontable.cellTypes.registerCellType('password', {
 Unless you intentionally want to overwrite an existing alias, try to choose a unique name. Best practice is to prefix your aliases with a custom name to minimize the possibility of name collisions. This is especially important if you want to publish your cell type as you never know what aliases have been registered by a user who uses your cell type.
 
 ```js
-Handsontable.cellTypes.registerCellType('copyable-password', {
+Handsontable.cellTypes.registerCellType("copyable-password", {
   editor: copyablePasswordEditor,
   renderer: copyablePasswordRenderer,
 });
 ```
+
 Someone might already registered such alias. It would be better use a unique prefix:
 
 ```js
-Handsontable.cellTypes.registerCellType('my.copyable-password', {
+Handsontable.cellTypes.registerCellType("my.copyable-password", {
   editor: copyablePasswordEditor,
   renderer: copyablePasswordRenderer,
 });
@@ -218,7 +285,15 @@ To sum up, a well-prepared cell type object should look like this:
 ```js
 class MyEditor extends Handsontable.editors.TextEditor {}
 
-function customRenderer(instance, td, row, column, prop, value, cellProperties) {
+function customRenderer(
+  instance,
+  td,
+  row,
+  column,
+  prop,
+  value,
+  cellProperties
+) {
   // ...renderer logic
 }
 
@@ -228,17 +303,17 @@ function customValidator(query, callback) {
 }
 
 // Register an alias
-Handsontable.cellTypes.registerCellType('my.custom', {
+Handsontable.cellTypes.registerCellType("my.custom", {
   editor: MyEditor,
   renderer: customRenderer,
   validator: customValidator,
   // You can add additional options to the cell type
   // based on Handsontable settings
-  className: 'my-cell',
+  className: "my-cell",
   allowInvalid: true,
   // Or you can add custom properties which
   // will be accessible in `cellProperties`
-  myCustomCellState: 'complete',
+  myCustomCellState: "complete",
 });
 ```
 
@@ -250,9 +325,11 @@ The next step is to use the registered aliases to enable users to easily refer t
 
 ```js
 const hot = new Handsontable(container, {
-  columns: [{
-    type: 'my.custom'
-  }]
+  columns: [
+    {
+      type: "my.custom",
+    },
+  ],
 });
 ```
 
@@ -262,10 +339,30 @@ const hot = new Handsontable(container, {
 
 ```jsx
 <HotTable
-  columns={[{
-    type: 'my.custom'
-  }]}
+  columns={[
+    {
+      type: "my.custom",
+    },
+  ]}
 />
+```
+
+:::
+
+::: only-for angular
+
+```ts
+settings = {
+  columns: [
+    {
+      type: "my.custom",
+    },
+  ],
+};
+```
+
+```html
+<hot-table [settings]="settings" />
 ```
 
 :::
@@ -278,11 +375,13 @@ It is possible to define the [`type`](@/api/options.md#type) option together wit
 
 ```js
 const hot = new Handsontable(container, {
-  columns: [{
-    type: 'numeric',
-    // validator function defined elsewhere
-    validator: customValidator
-  }]
+  columns: [
+    {
+      type: "numeric",
+      // validator function defined elsewhere
+      validator: customValidator,
+    },
+  ],
 });
 ```
 
@@ -292,12 +391,34 @@ const hot = new Handsontable(container, {
 
 ```jsx
 <HotTable
-  columns={[{
-    type: 'numeric',
-    // validator function defined elsewhere
-    validator: customValidator
-  }]}
+  columns={[
+    {
+      type: "numeric",
+      // validator function defined elsewhere
+      validator: customValidator,
+    },
+  ]}
 />
+```
+
+:::
+
+::: only-for angular
+
+```ts
+settings = {
+  columns: [
+    {
+      type: "numeric",
+      // validator function defined elsewhere
+      validator: customValidator,
+    },
+  ],
+};
+```
+
+```html
+<hot-table [settings]="settings" />
 ```
 
 :::
@@ -308,11 +429,13 @@ We defined the[`type`](@/api/options.md#type) for all cells in a column to be `n
 
 ```js
 const hot = new Handsontable(container, {
-  columns: [{
-    renderer: Handsontable.renderers.TextRenderer,
-    editor: Handsontable.editors.TextEditor,
-    validator: customValidator
-  }]
+  columns: [
+    {
+      renderer: Handsontable.renderers.TextRenderer,
+      editor: Handsontable.editors.TextEditor,
+      validator: customValidator,
+    },
+  ],
 });
 ```
 
@@ -322,12 +445,34 @@ const hot = new Handsontable(container, {
 
 ```jsx
 <HotTable
-  columns={[{
-    renderer: Handsontable.renderers.TextRenderer,
-    editor: Handsontable.editors.TextEditor,
-    validator: customValidator
-  }]}
+  columns={[
+    {
+      renderer: Handsontable.renderers.TextRenderer,
+      editor: Handsontable.editors.TextEditor,
+      validator: customValidator,
+    },
+  ]}
 />
+```
+
+:::
+
+::: only-for angular
+
+```ts
+settings = {
+  columns: [
+    {
+      renderer: Handsontable.renderers.TextRenderer,
+      editor: Handsontable.editors.TextEditor,
+      validator: customValidator,
+    },
+  ],
+};
+```
+
+```html
+<hot-table [settings]="settings" />
 ```
 
 :::
@@ -340,9 +485,11 @@ There is one more way you can define the configuration using types:
 const hot = new Handsontable(container, {
   // validator function defined elsewhere
   validator: customValidator,
-  columns: [{
-    type: 'my.custom'
-  }]
+  columns: [
+    {
+      type: "my.custom",
+    },
+  ],
 });
 ```
 
@@ -353,10 +500,33 @@ const hot = new Handsontable(container, {
 ```jsx
 <HotTable
   validator={customValidator}
-  columns={[{
-    type: 'my.custom'
-  }]}
+  columns={[
+    {
+      type: "my.custom",
+    },
+  ]}
 />
+```
+
+:::
+
+::: only-for angular
+
+```ts
+settings = {
+  validator: customValidator,
+  columns: [
+    {
+      renderer: Handsontable.renderers.TextRenderer,
+      editor: Handsontable.editors.TextEditor,
+      validator: customValidator,
+    },
+  ],
+};
+```
+
+```html
+<hot-table [settings]="settings" />
 ```
 
 :::
@@ -382,15 +552,18 @@ function customValidator(query, callback) {
 }
 
 const hot = new Handsontable(container, {
-  columns: [{
-    renderer: Handsontable.renderers.PasswordRenderer,
-    editor: Handsontable.editors.PasswordEditor,
-    validator: undefined
-  }, {
-    renderer: Handsontable.renderers.TextRenderer,
-    editor: Handsontable.editors.TextEditor,
-    validator: customValidator
-  }]
+  columns: [
+    {
+      renderer: Handsontable.renderers.PasswordRenderer,
+      editor: Handsontable.editors.PasswordEditor,
+      validator: undefined,
+    },
+    {
+      renderer: Handsontable.renderers.TextRenderer,
+      editor: Handsontable.editors.TextEditor,
+      validator: customValidator,
+    },
+  ],
 });
 ```
 
@@ -405,17 +578,45 @@ function customValidator(query, callback) {
 }
 
 <HotTable
-  columns={[{
-    renderer: Handsontable.renderers.PasswordRenderer,
-    editor: Handsontable.editors.PasswordEditor,
-    validator: undefined
-  }, {
-    renderer: Handsontable.renderers.TextRenderer,
-    editor: Handsontable.editors.TextEditor,
-    validator: customValidator
-  },
+  columns={[
+    {
+      renderer: Handsontable.renderers.PasswordRenderer,
+      editor: Handsontable.editors.PasswordEditor,
+      validator: undefined,
+    },
+    {
+      renderer: Handsontable.renderers.TextRenderer,
+      editor: Handsontable.editors.TextEditor,
+      validator: customValidator,
+    },
   ]}
-/>
+/>;
+```
+
+:::
+
+::: only-for angular
+
+```ts
+function customValidator(query, callback) {
+  // ...validator logic
+  callback(/* Pass `true` or `false` */);
+}
+
+settings = {
+  validator: customValidator,
+  columns: [
+    {
+      renderer: Handsontable.renderers.TextRenderer,
+      editor: Handsontable.editors.TextEditor,
+      validator: customValidator,
+    },
+  ],
+};
+```
+
+```html
+<hot-table [settings]="settings" />
 ```
 
 :::
@@ -446,6 +647,11 @@ The example below shows some of the built-in cell types, i.e. combinations of ce
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example -->
+
+:::
 
 ## Empty cells
 
@@ -476,6 +682,12 @@ Please keep in mind that opening a cell with `undefined` and `null` values resul
 @[code](@/content/guides/cell-types/cell-type/react/example2.tsx)
 
 :::
+
+:::
+
+::: only-for angular
+
+<!-- TODO: angular example -->
 
 :::
 

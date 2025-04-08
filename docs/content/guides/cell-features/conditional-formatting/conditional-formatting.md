@@ -55,6 +55,12 @@ This demo shows how to use the cell type renderer feature to make some condition
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example -->
+
+:::
+
 ## Related articles
 
 ### Related guides

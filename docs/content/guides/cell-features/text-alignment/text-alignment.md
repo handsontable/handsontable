@@ -25,7 +25,7 @@ To initialize Handsontable with predefined horizontal and vertical alignment glo
 ::: only-for javascript
 
 ```js
-className: 'htCenter'
+className: "htCenter";
 ```
 
 :::
@@ -33,7 +33,15 @@ className: 'htCenter'
 ::: only-for react
 
 ```jsx
-className="htCenter"
+className = "htCenter";
+```
+
+:::
+
+::: only-for angular
+
+```ts
+settings = { className: "htCenter" };
 ```
 
 :::
@@ -70,6 +78,12 @@ The following code sample configures the grid to use `htCenter` and configures i
 @[code](@/content/guides/cell-features/text-alignment/react/example1.tsx)
 
 :::
+
+:::
+
+::: only-for angular
+
+<!-- TODO: angular example -->
 
 :::
 

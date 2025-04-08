@@ -32,9 +32,9 @@ If you use the paid version of Handsontable, pass the string of numbers delivere
 
 ```js
 const settings = {
-  licenseKey: '00000-00000-00000-00000-00000',
+  licenseKey: "00000-00000-00000-00000-00000",
   //... other options
-}
+};
 ```
 
 To use it with a framework, pass the string to a [`licenseKey`](@/api/options.md#licensekey) prop:
@@ -50,7 +50,10 @@ To use it with a framework, pass the string to a [`licenseKey`](@/api/options.md
 <code-block title="Angular">
 
 ```html
-<hot-table [settings]="settings" licenseKey="00000-00000-00000-00000-00000"></hot-table>
+<hot-table
+  [settings]="settings"
+  licenseKey="00000-00000-00000-00000-00000"
+></hot-table>
 ```
 
 </code-block>
@@ -80,17 +83,35 @@ To use it with a framework, pass the string to a [`licenseKey`](@/api/options.md
 
 :::
 
+::: only-for angular
+
+```ts
+import { GridSettings } from "@handsontable/angular-wrapper";
+
+gridSettings: GridSettings = {
+  licenseKey = "00000-00000-00000-00000-00000",
+};
+```
+
+```html
+<hot-table [settings]="gridSettings" />
+```
+
+or you can configure it in global object provided by [`HOT_GLOBAL_CONFIG`](@/guides/getting-started/installation/installation.md#configure-global-settings)
+
+:::
+
 ## Non-Commercial license
 
-If you use Handsontable for purposes not intended toward monetary compensation such as, but not limited to, teaching, academic research, evaluation, testing and experimentation, pass the string  `'non-commercial-and-evaluation'`.
+If you use Handsontable for purposes not intended toward monetary compensation such as, but not limited to, teaching, academic research, evaluation, testing and experimentation, pass the string `'non-commercial-and-evaluation'`.
 
 ::: only-for javascript
 
 ```js
 const settings = {
-  licenseKey: 'non-commercial-and-evaluation',
+  licenseKey: "non-commercial-and-evaluation",
   //... other options
-}
+};
 ```
 
 :::
@@ -98,12 +119,33 @@ const settings = {
 ::: only-for react
 
 ```jsx
-<HotTable 
+<HotTable
   autoWrapRow={true}
   autoWrapCol={true}
-  licenseKey="non-commercial-and-evaluation" />
+  licenseKey="non-commercial-and-evaluation"
+/>
 ```
 
+:::
+
+::: only-for angular
+
+```ts
+import {
+  GridSettings,
+  NON_COMMERCIAL_LICENSE,
+} from "@handsontable/angular-wrapper";
+
+gridSettings: GridSettings = {
+  licenseKey = NON_COMMERCIAL_LICENSE, // the value for this const is 'non-commercial-and-evaluation'
+};
+```
+
+```html
+<hot-table [settings]="gridSettings" />
+```
+
+or you can configure it in global object provided by [`HOT_GLOBAL_CONFIG`](@/guides/getting-started/installation/installation.md#configure-global-settings)
 :::
 
 ## The validation process
@@ -116,15 +158,15 @@ If your license key is missing, invalid, or expired, Handsontable will display a
 
 ### Missing license key
 
-_The license key for Handsontable is missing. Use your purchased key to activate the product. Alternatively, you can activate Handsontable to use for non-commercial purposes by passing the key: ‘non-commercial-and-evaluation’.  Read more about it in the documentation or contact us at `[email]`._
+_The license key for Handsontable is missing. Use your purchased key to activate the product. Alternatively, you can activate Handsontable to use for non-commercial purposes by passing the key: ‘non-commercial-and-evaluation’. Read more about it in the documentation or contact us at `[email]`._
 
 ### Invalid license key
 
-_The license key for Handsontable is invalid.  Read more on how to install it properly or contact us at `[email]`._
+_The license key for Handsontable is invalid. Read more on how to install it properly or contact us at `[email]`._
 
 ### Expired license key
 
-_The license key for Handsontable expired on `[expiration_date]`, and is not valid for the installed version `[handsontable_version]`.  Renew your license key or downgrade to a version released prior to `[expiration_dates]`. If you need any help, contact us at `[email]`._
+_The license key for Handsontable expired on `[expiration_date]`, and is not valid for the installed version `[handsontable_version]`. Renew your license key or downgrade to a version released prior to `[expiration_dates]`. If you need any help, contact us at `[email]`._
 
 ## Get a license key
 

@@ -29,7 +29,7 @@ Make specified cells read-only to protect them from unwanted changes but still a
 Disabling a cell makes the cell read-only or non-editable. Both have similar outcomes, with the following differences:
 
 | Read-only cell<br>`readOnly: true`                                           | Non-editable cell<br>`editor: false`                                       |
-|------------------------------------------------------------------------------| -------------------------------------------------------------------------- |
+| ---------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
 | Has an additional CSS class (`htDimmed`)                                     | Has no additional CSS class                                                |
 | Copy works, paste doesn't work                                               | Copy-paste works                                                           |
 | Drag-to-fill doesn't work                                                    | Drag-to-fill works                                                         |
@@ -61,6 +61,12 @@ You can make the entire grid read-only by setting [`readOnly`](@/api/options.md#
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example -->
+
+:::
+
 ## Read-only columns
 
 In many use cases, you will need to configure a certain column to be read-only. This column will be available for keyboard navigation and copying data (<kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**C**</kbd>). Editing and pasting data will be disabled.
@@ -89,6 +95,12 @@ To make a column read-only, declare it in the [`columns`](@/api/options.md#colum
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example -->
+
+:::
+
 ## Read-only specific cells
 
 This example makes cells that contain the word "Nissan" read-only. It forces all cells to be processed by the [`cells`](@/api/options.md#cells) function which will decide whether a cell's metadata should have the [`readOnly`](@/api/options.md#readonly) property set.
@@ -112,6 +124,12 @@ This example makes cells that contain the word "Nissan" read-only. It forces all
 @[code](@/content/guides/cell-features/disabled-cells/react/example2.tsx)
 
 :::
+
+:::
+
+::: only-for angular
+
+<!-- TODO: angular example -->
 
 :::
 
@@ -145,6 +163,12 @@ To make a column non-editable, declare it in the [`columns`](@/api/options.md#co
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example -->
+
+:::
+
 ## Non-editable specific cells
 
 The following example shows the table with non-editable cells containing the word "Nissan". This cell property is optional and you can easily set it in the Handsontable configuration.
@@ -168,6 +192,12 @@ The following example shows the table with non-editable cells containing the wor
 @[code](@/content/guides/cell-features/disabled-cells/react/example4.tsx)
 
 :::
+
+:::
+
+::: only-for angular
+
+<!-- TODO: angular example -->
 
 :::
 

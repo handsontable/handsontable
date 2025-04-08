@@ -7,6 +7,7 @@ const gettingStartedItems = [
   { path: 'guides/getting-started/configuration-options/configuration-options' },
   { path: 'guides/getting-started/grid-size/grid-size' },
   { path: 'guides/getting-started/react-methods/react-methods', onlyFor: ['react'] },
+  { path: 'guides/getting-started/angular-hot-instance/angular-hot-instance', onlyFor: ['angular'] },
   { path: 'guides/getting-started/events-and-hooks/events-and-hooks' },
   { path: 'guides/getting-started/license-key/license-key' },
   { path: 'guides/getting-started/react-redux/react-redux', onlyFor: ['react'] },

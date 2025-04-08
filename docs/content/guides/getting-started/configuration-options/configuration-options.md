@@ -29,18 +29,18 @@ Configure your grid down to each column, row, and cell, using various built-in o
 To apply configuration options, pass them as a second argument of the Handsontable constructor, using the object literal notation:
 
 ```js
-import Handsontable from 'handsontable';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
+import Handsontable from "handsontable";
+import "handsontable/styles/handsontable.css";
+import "handsontable/styles/ht-theme-main.css";
 
-const container = document.querySelector('#example');
+const container = document.querySelector("#example");
 const hot = new Handsontable(container, {
   // configuration options, in the object literal notation
   licenseKey: "non-commercial-and-evaluation",
   data: [
-    ['A1', 'B1', 'C1', 'D1'],
-    ['A2', 'B2', 'C2', 'D2'],
-    ['A3', 'B3', 'C3', 'D3'],
+    ["A1", "B1", "C1", "D1"],
+    ["A2", "B2", "C2", "D2"],
+    ["A3", "B3", "C3", "D3"],
   ],
   width: 400,
   height: 300,
@@ -66,9 +66,9 @@ To apply configuration options, pass them as individual props of the [`HotTable`
   autoWrapCol={true}
   licenseKey="non-commercial-and-evaluation"
   data={[
-    ['A1', 'B1', 'C1', 'D1'],
-    ['A2', 'B2', 'C2', 'D2'],
-    ['A3', 'B3', 'C3', 'D3'],
+    ["A1", "B1", "C1", "D1"],
+    ["A2", "B2", "C2", "D2"],
+    ["A3", "B3", "C3", "D3"],
   ]}
   width={400}
   height={300}
@@ -84,7 +84,41 @@ To apply configuration options, pass them as individual props of the [`HotTable`
 
 :::
 
+::: only-for angular
+
+To apply configuration options, pass them as `GridSettings` object to [`HotTableComponent`](@/guides/getting-started/installation/installation.md#use-the-hottable-component).
+
+```ts
+import { GridSettings } from "@handsontable/angular-wrapper";
+
+gridSettings: GridSettings = {
+  autoWrapRow: true,
+  autoWrapCol: true,
+  data: [
+    ["A1", "B1", "C1", "D1"],
+    ["A2", "B2", "C2", "D2"],
+    ["A3", "B3", "C3", "D3"],
+  ],
+  width: 400,
+  height: 300,
+  colHeaders: true,
+  rowHeaders: true,
+  customBorders: true,
+  dropdownMenu: true,
+  multiColumnSorting: true,
+  filters: true,
+  manualRowMove: true,
+};
+```
+
+```html
+<hot-table [settings]="gridSettings" />
+```
+
+:::
+
 Depending on your needs, you can apply configuration options to different elements of your grid, such as:
+
 - [The entire grid](#set-grid-options)
 - [Individual columns](#set-column-options)
 - [Individual rows](#set-row-options)
@@ -96,16 +130,19 @@ For the full list of available configuration options, see the [configuration opt
 ### Cascading configuration
 
 Handsontable's configuration cascades down:
+
 - From the top-level grid options ([`GlobalMeta`](https://github.com/handsontable/handsontable/blob/master/handsontable/src/dataMap/metaManager/metaLayers/globalMeta.js))
 - Through the mid-level column options ([`ColumnMeta`](https://github.com/handsontable/handsontable/blob/master/handsontable/src/dataMap/metaManager/metaLayers/columnMeta.js))
 - To the bottom-level cell options ([`CellMeta`](https://github.com/handsontable/handsontable/blob/master/handsontable/src/dataMap/metaManager/metaLayers/cellMeta.js))
 
 When you modify the mid-level column options (using the [`columns`](@/api/options.md#columns) option):
+
 - The options that you change overwrite the top-level grid options.
 - The options that you change cascade down to the bottom-level cell options.
 - Any unchanged options are inherited from the top-level grid options.
 
 When you modify the bottom-level cell options (using the [`cell`](@/api/options.md#cell) option):
+
 - The options that you change overwrite the top-level grid options.
 - The options that you change overwrite the mid-level column options.
 - Any unchanged options are inherited from the mid-level column options or the top-level grid options.
@@ -123,6 +160,7 @@ For more details on Handsontable's cascading configuration, see the [MetaManager
 ### Plugin options
 
 Configuration options can come from:
+
 - Handsontable's [Core](@/api/core.md)
 - Handsontable's [plugins](@/api/plugins.md)
 - Handsontable's [hooks](@/api/hooks.md)
@@ -132,8 +170,6 @@ If you use Handsontable through [modules](@/guides/tools-and-building/modules/mo
 To find out if an option comes from a plugin, check the `Category` label in the [configuration options' API reference](@/api/options.md).
 
 ## Set grid options
-
-
 
 ::: only-for javascript
 
@@ -147,6 +183,12 @@ To apply configuration options to the entire grid, pass your options as individu
 
 :::
 
+::: only-for angular
+
+To apply configuration options to the entire grid, pass your options as `GridSettings` object to [`HotTableComponent`](@/guides/getting-started/installation/installation.md#use-the-hottable-component).
+
+:::
+
 For example, to set the entire grid's [width](@/api/options.md#width) and [height](@/api/options.md#height):
 
 ::: only-for javascript
@@ -155,7 +197,7 @@ For example, to set the entire grid's [width](@/api/options.md#width) and [heigh
 const hot = new Handsontable(container, {
   // top-level grid options that apply to the entire grid
   width: 400,
-  height: 300
+  height: 300,
 });
 ```
 
@@ -169,11 +211,29 @@ const hot = new Handsontable(container, {
 
 :::
 
+::: only-for angular
+
+```ts
+import { GridSettings } from "@handsontable/angular-wrapper";
+
+gridSettings: GridSettings = {
+  width: 400,
+  height: 300,
+};
+```
+
+```html
+<hot-table [settings]="gridSettings" />
+```
+
+:::
+
 #### Example
 
 To configure each cell in the grid as read-only, apply the [`readOnly`](@/api/options.md#readonly) option as a top-level grid option.
 
 The top-level grid options cascade down:
+
 - To the mid-level column options
 - To the bottom-level cell options
 
@@ -201,23 +261,29 @@ As a result, each cell in the grid is read-only:
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example -->
+
+:::
+
 ## Set column options
 
 To apply configuration options to an individual column (or a range of columns), use the [`columns`](@/api/options.md#columns) option.
 
 ::: only-for javascript
 
-  ```js
-  const hot = new Handsontable(container, {
-    columns: [
-      {},
-      {},
-      // column options, apply to each cell of the third (by physical index) column
-      {
-        readOnly: true,
-      },
-    ],
-  });
+```js
+const hot = new Handsontable(container, {
+  columns: [
+    {},
+    {},
+    // column options, apply to each cell of the third (by physical index) column
+    {
+      readOnly: true,
+    },
+  ],
+});
 ```
 
 :::
@@ -227,19 +293,41 @@ To apply configuration options to an individual column (or a range of columns), 
 ```jsx
 <HotTable
   columns={[
-    {width: 100}, // column options for the first (by physical index) column
-    {width: 100}, // column options for the second (by physical index) column
-    {width: 100}, // column options for the third (by physical index) column
+    { width: 100 }, // column options for the first (by physical index) column
+    { width: 100 }, // column options for the second (by physical index) column
+    { width: 100 }, // column options for the third (by physical index) column
   ]}
 />
 ```
+
 Alternatively, you can use the [`HotColumn`](@/guides/columns/react-hot-column/react-hot-column.md) component to configure columns declaratively:
+
 ```jsx
 <HotTable>
-  <HotColumn width={100}/>
-  <HotColumn width={100}/>
-  <HotColumn width={100}/>
+  <HotColumn width={100} />
+  <HotColumn width={100} />
+  <HotColumn width={100} />
 </HotTable>
+```
+
+:::
+
+::: only-for angular
+
+```ts
+import { GridSettings } from "@handsontable/angular-wrapper";
+
+gridSettings: GridSettings = {
+  columns: [
+    { width: 100 }, // column options for the first (by physical index) column
+    { width: 100 }, // column options for the second (by physical index) column
+    { width: 100 }, // column options for the third (by physical index) column
+  ],
+};
+```
+
+```html
+<hot-table [settings]="gridSettings" />
 ```
 
 :::
@@ -251,6 +339,7 @@ In the example below, the [`columns`](@/api/options.md#columns) option is set to
 The function applies the [`readOnly: true`](@/api/options.md#readonly) option to each column that has a physical index of either `2` or `8`.
 
 The modified mid-level column options:
+
 - Overwrite the top-level grid options
 - Cascade down to the bottom-level cell options
 
@@ -278,6 +367,12 @@ As a result, each cell in the third and ninth columns is read-only:
 
 :::
 
+::: only-for angular
+
+<!-- TODO angular example -->
+
+:::
+
 ## Set row options
 
 To apply configuration options to an individual row (or a range of rows), use the [`cells`](@/api/options.md#cells) option.
@@ -286,11 +381,12 @@ Any options modified through [`cells`](@/api/options.md#cells) overwrite all oth
 
 ::: only-for javascript
 
- The function can take three arguments:<br>
+The function can take three arguments:<br>
+
 - `row`: a row coordinate (a physical index)
 - `col`: a column coordinate (a physical index)
 - `prop`: if your [`data`](@/api/options.md#data) is an [array of objects](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects), `prop` is a property name for a column's data source object.<br>
-If your [`data`](@/api/options.md#data) is an [array of arrays](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-arrays), `prop` is the same as `col`.
+  If your [`data`](@/api/options.md#data) is an [array of arrays](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-arrays), `prop` is the same as `col`.
 
 ```js
 const hot = new Handsontable(container, {
@@ -303,7 +399,7 @@ const hot = new Handsontable(container, {
         readOnly: true,
       };
     }
-  }
+  },
 });
 ```
 
@@ -320,16 +416,53 @@ The function can take three arguments:<br>
   column's data source object.<br>
   If your [`data`](@/api/options.md#data) is
   an [array of arrays](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-arrays), `prop` is the same as `col`.
+
 ```jsx
-<HotTable cells={(row, col, prop) => {
-  if (row === 1 || row === 4) {
-    return {
-      // row options, which apply to each cell of the second row
-      // and to each cell of the fifth row
-      readOnly: true,
-    };
-  }
-}}/>
+<HotTable
+  cells={(row, col, prop) => {
+    if (row === 1 || row === 4) {
+      return {
+        // row options, which apply to each cell of the second row
+        // and to each cell of the fifth row
+        readOnly: true,
+      };
+    }
+  }}
+/>
+```
+
+:::
+
+::: only-for angular
+
+The function can take three arguments:<br>
+
+- `row`: a row coordinate (a physical index)
+- `col`: a column coordinate (a physical index)
+- `prop`: if your [`data`](@/api/options.md#data) is
+  an [array of objects](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects), `prop` is a property name for a
+  column's data source object.<br>
+  If your [`data`](@/api/options.md#data) is
+  an [array of arrays](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-arrays), `prop` is the same as `col`.
+
+```ts
+import { GridSettings } from "@handsontable/angular-wrapper";
+
+gridSettings: GridSettings = {
+  cells: (row, col, prop) => {
+    if (row === 1 || row === 4) {
+      return {
+        // row options, which apply to each cell of the second row
+        // and to each cell of the fifth row
+        readOnly: true,
+      };
+    }
+  },
+};
+```
+
+```html
+<hot-table [settings]="gridSettings" />
 ```
 
 :::
@@ -362,6 +495,12 @@ Options modified through [`cells`](@/api/options.md#cells) overwrite all other o
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example-->
+
+:::
+
 ## Set cell options
 
 To apply configuration options to individual cells, use the [`cell`](@/api/options.md#cell) option.
@@ -382,7 +521,7 @@ const hot = new Handsontable(container, {
       row: 1,
       col: 1,
       readOnly: true,
-    }
+    },
   ],
   autoWrapRow: true,
   autoWrapCol: true,
@@ -394,19 +533,51 @@ const hot = new Handsontable(container, {
 ::: only-for react
 
 ```jsx
-<HotTable cell={[
-  { // bottom-level cell options overwrite the top-level grid options
-    // apply only to a cell with coordinates (0, 0)
-    row: 0,
-    col: 0,
-  },
-  {
-    // bottom-level cell options overwrite the top-level grid options
-    // apply only to a cell with coordinates (1, 1)
-    row: 1,
-    col: 1,
-  }
-]}/>
+<HotTable
+  cell={[
+    {
+      // bottom-level cell options overwrite the top-level grid options
+      // apply only to a cell with coordinates (0, 0)
+      row: 0,
+      col: 0,
+    },
+    {
+      // bottom-level cell options overwrite the top-level grid options
+      // apply only to a cell with coordinates (1, 1)
+      row: 1,
+      col: 1,
+    },
+  ]}
+/>
+```
+
+:::
+
+::: only-for angular
+
+```ts
+import { GridSettings } from "@handsontable/angular-wrapper";
+
+gridSettings: GridSettings = {
+  cell: [
+    {
+      // bottom-level cell options overwrite the top-level grid options
+      // apply only to a cell with coordinates (0, 0)
+      row: 0,
+      col: 0,
+    },
+    {
+      // bottom-level cell options overwrite the top-level grid options
+      // apply only to a cell with coordinates (1, 1)
+      row: 1,
+      col: 1,
+    },
+  ],
+};
+```
+
+```html
+<hot-table [settings]="gridSettings" />
 ```
 
 :::
@@ -416,6 +587,7 @@ const hot = new Handsontable(container, {
 In the example below, the [`cell`](@/api/options.md#cell) option sets cell `A1`(`0, 0`) and cell `B2`(`1, 1`) as [`readOnly`](@/api/options.md#readonly).
 
 The modified [`cell`](@/api/options.md#cell) options:
+
 - Overwrite the top-level grid options
 - Overwrite mid-level column options
 
@@ -441,11 +613,18 @@ The modified [`cell`](@/api/options.md#cell) options:
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example-->
+
+:::
+
 ### Read cell options
 
 When Handsontable is running, you can check a cell's current options, using the [`getCellMeta()`](@/api/core.md#getcellmeta) method.
 
 The [`getCellMeta()`](@/api/core.md#getcellmeta) method returns an object with:
+
 - All built-in options (stored in the [`CellMeta`](https://github.com/handsontable/handsontable/blob/master/handsontable/src/dataMap/metaManager/metaLayers/cellMeta.js) [prototype](https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Objects/Object_prototypes))
 - Any options you add
 
@@ -454,21 +633,21 @@ For example:
 ::: only-for javascript
 
 ```js
-import Handsontable from 'handsontable';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
+import Handsontable from "handsontable";
+import "handsontable/styles/handsontable.css";
+import "handsontable/styles/ht-theme-main.css";
 
-const container = document.querySelector('#example');
+const container = document.querySelector("#example");
 const hot = new Handsontable(container, {
   // top-level grid options that apply to the entire grid
   data: [
-    ['A1', 'B1', 'C1', 'D1'],
-    ['A2', 'B2', 'C2', 'D2'],
-    ['A3', 'B3', 'C3', 'D3'],
+    ["A1", "B1", "C1", "D1"],
+    ["A2", "B2", "C2", "D2"],
+    ["A3", "B3", "C3", "D3"],
   ],
-  licenseKey: 'non-commercial-and-evaluation',
-  width: 'auto',
-  height: 'auto',
+  licenseKey: "non-commercial-and-evaluation",
+  width: "auto",
+  height: "auto",
   rowHeaders: true,
   colHeaders: true,
   // in the top-level grid options, all cells are read-only
@@ -480,8 +659,8 @@ const hot = new Handsontable(container, {
       row: 1,
       col: 1,
       readOnly: true,
-    }
-  ]
+    },
+  ],
 });
 
 // for cell (0, 0), the `readOnly` option is the default (`false`)
@@ -504,10 +683,10 @@ hot.getCellMeta(1, 1).readOnly;
     {
       row: 1,
       col: 1,
-      readOnly: true
-    }
+      readOnly: true,
+    },
   ]}
-/>
+/>;
 
 // for cell (0, 0), the `readOnly` option is the default (`false`)
 // returns `false`
@@ -516,6 +695,39 @@ hot.getCellMeta(0, 0).readOnly;
 // for cell (1, 1), the `cell` option overwrote the default `readOnly` value
 // returns `true`
 hot.getCellMeta(1, 1).readOnly;
+```
+
+:::
+
+::: only-for angular
+
+```ts
+@ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
+
+import { GridSettings } from "@handsontable/angular-wrapper";
+
+// Consider the HotTable component with the `cell` option declared:
+gridSettings: GridSettings = {
+  cell: [
+    {
+      row: 1,
+      col: 1,
+      readOnly: true,
+    },
+  ]
+};
+
+// for cell (0, 0), the `readOnly` option is the default (`false`)
+// returns `false`
+hotTable.hotInstance.getCellMeta(0, 0).readOnly;
+
+// for cell (1, 1), the `cell` option overwrote the default `readOnly` value
+// returns `true`
+hotTable.hotInstance.getCellMeta(1, 1).readOnly;
+```
+
+```html
+<hot-table [settings]="gridSettings" />
 ```
 
 :::
@@ -529,21 +741,21 @@ For example:
 ::: only-for javascript
 
 ```js
-import Handsontable from 'handsontable';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
+import Handsontable from "handsontable";
+import "handsontable/styles/handsontable.css";
+import "handsontable/styles/ht-theme-main.css";
 
-const container = document.querySelector('#example');
+const container = document.querySelector("#example");
 const hot = new Handsontable(container, {
   // top-level grid options that apply to the entire grid
   data: [
-    ['A1', 'B1', 'C1', 'D1'],
-    ['A2', 'B2', 'C2', 'D2'],
-    ['A3', 'B3', 'C3', 'D3'],
+    ["A1", "B1", "C1", "D1"],
+    ["A2", "B2", "C2", "D2"],
+    ["A3", "B3", "C3", "D3"],
   ],
-  licenseKey: 'non-commercial-and-evaluation',
-  width: 'auto',
-  height: 'auto',
+  licenseKey: "non-commercial-and-evaluation",
+  width: "auto",
+  height: "auto",
   rowHeaders: true,
   colHeaders: true,
   // in the top-level grid options, all cells are read-only
@@ -555,8 +767,8 @@ const hot = new Handsontable(container, {
       row: 1,
       col: 1,
       readOnly: true,
-    }
-  ]
+    },
+  ],
 });
 
 // for cell (0, 0), the `readOnly` option is the default (`false`)
@@ -574,10 +786,41 @@ hot.getCellMeta(1, 1).readOnly;
 
 ```jsx
 // changes the `readOnly` option of cell (1, 1) back to `false`
-hot.setCellMeta(1, 1, 'readOnly', false);
+hot.setCellMeta(1, 1, "readOnly", false);
 
 // returns `false`
 hot.getCellMeta(1, 1).readOnly;
+```
+
+:::
+
+::: only-for angular
+
+```ts
+@ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
+
+import { GridSettings } from "@handsontable/angular-wrapper";
+
+// Consider the HotTable component with the `cell` option declared:
+gridSettings: GridSettings = {
+  cell: [
+    {
+      row: 1,
+      col: 1,
+      readOnly: true,
+    },
+  ]
+};
+
+// changes the `readOnly` option of cell (1, 1) back to `false`
+hotTable.hotInstance.setCellMeta(1, 1, "readOnly", false);
+
+// returns `false`
+hotTable.hotInstance.getCellMeta(1, 1).readOnly;
+```
+
+```html
+<hot-table [settings]="gridSettings" />
 ```
 
 :::
@@ -591,10 +834,11 @@ The [`cells`](@/api/options.md#cells) option overwrites all other options.
 ::: only-for javascript
 
 The function can take three arguments:<br>
-   - `row`: a row coordinate (a physical index)
-   - `col`: a column coordinate (a physical index)
-   - `prop`: if your [`data`](@/api/options.md#data) is an [array of objects](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects), `prop` is a property name for a column's data source object.<br>
-   If your [`data`](@/api/options.md#data) is an [array of arrays](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-arrays), `prop` is the same as `col`.
+
+- `row`: a row coordinate (a physical index)
+- `col`: a column coordinate (a physical index)
+- `prop`: if your [`data`](@/api/options.md#data) is an [array of objects](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects), `prop` is a property name for a column's data source object.<br>
+  If your [`data`](@/api/options.md#data) is an [array of arrays](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-arrays), `prop` is the same as `col`.
 
 ```js
 const hot = new Handsontable(container, {
@@ -604,7 +848,7 @@ const hot = new Handsontable(container, {
         readOnly: true,
       };
     }
-  }
+  },
 });
 ```
 
@@ -621,6 +865,7 @@ The function can take three arguments:<br>
   column's data source object.<br>
   If your [`data`](@/api/options.md#data) is
   an [array of arrays](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-arrays), `prop` is the same as `col`.
+
 ```jsx
 <HotTable
   cells={(row, col) => {
@@ -634,6 +879,39 @@ The function can take three arguments:<br>
 ```
 
 :::
+
+::: only-for angular
+
+The function can take three arguments:<br>
+
+- `row`: a row coordinate (a physical index)
+- `col`: a column coordinate (a physical index)
+- `prop`: if your [`data`](@/api/options.md#data) is
+  an [array of objects](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects), `prop` is a property name for a
+  column's data source object.<br>
+  If your [`data`](@/api/options.md#data) is
+  an [array of arrays](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-arrays), `prop` is the same as `col`.
+
+```ts
+import { GridSettings } from "@handsontable/angular-wrapper";
+
+gridSettings: GridSettings = {
+  cells: (row, col) => {
+    if ((row === 1 || row === 5) && col === 1) {
+      return {
+        readOnly: true,
+      };
+    }
+  },
+};
+```
+
+```html
+<hot-table [settings]="gridSettings" />
+```
+
+:::
+
 #### Example
 
 In the example below, the modified [`cells`](@/api/options.md#cells) options overwrite the top-level grid options.
@@ -661,7 +939,7 @@ hot.getCellMeta(0, 0).readOnly;
 hot.getCellMeta(1, 1).readOnly;
 
 // changes the `readOnly` option of cell (1, 1) back to `false`
-hot.setCellMeta(1, 1, 'readOnly', false);
+hot.setCellMeta(1, 1, "readOnly", false);
 
 // returns `false`
 hot.getCellMeta(1, 1).readOnly;
@@ -669,9 +947,16 @@ hot.getCellMeta(1, 1).readOnly;
 
 :::
 
+::: only-for react
+
+<!-- TODO: angular example-->
+
+:::
+
 ## Configuration example
 
 In the example below, some cells are read-only, and some cells are editable:
+
 - By default, all cells are read-only (as set in the top-level grid options).
 - For the first column, the mid-level column options overwrite the top-level grid options.<br>
   As a result, the first column cells are editable.
@@ -702,6 +987,11 @@ In the example below, some cells are read-only, and some cells are editable:
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example-->
+
+:::
 
 ## Related API reference
 

@@ -59,7 +59,9 @@ or
   height: '75%',
 }
 ```
+
 or
+
 ```js
 {
   width: 100,
@@ -72,15 +74,58 @@ or
 ::: only-for react
 
 ```jsx
-  <HotTable height={100} width={100} />
+<HotTable height={100} width={100} />
 ```
+
 or
+
 ```jsx
-  <HotTable height="75%" width="75%" />
+<HotTable height="75%" width="75%" />
 ```
+
 or
+
 ```jsx
-  <HotTable height="100px" width="100px" />
+<HotTable height="100px" width="100px" />
+```
+
+:::
+
+::: only-for angular
+
+```ts
+import { GridSettings } from "@handsontable/angular-wrapper";
+
+gridSettings: GridSettings = {
+  height: 100,
+  width: 100,
+};
+```
+
+or
+
+```ts
+import { GridSettings } from "@handsontable/angular-wrapper";
+
+gridSettings: GridSettings = {
+  height: "75%",
+  width: "75%",
+};
+```
+
+or
+
+```ts
+import { GridSettings } from "@handsontable/angular-wrapper";
+
+gridSettings: GridSettings = {
+  height: "100px",
+  width: "100px",
+};
+```
+
+```html
+<hot-table [settings]="gridSettings" />
 ```
 
 :::
@@ -116,7 +161,23 @@ You can easily overwrite this behaviour by returning `false` in the [`beforeRefr
 ::: only-for react
 
 ```jsx
-  <HotTable beforeRefreshDimensions={() => false} />
+<HotTable beforeRefreshDimensions={() => false} />
+```
+
+:::
+
+::: only-for angular
+
+```ts
+import { GridSettings } from "@handsontable/angular-wrapper";
+
+gridSettings: GridSettings = {
+  beforeRefreshDimensions: () => false,
+};
+```
+
+```html
+<hot-table [settings]="gridSettings" />
 ```
 
 :::
@@ -133,6 +194,18 @@ To use the Handsontable API, you'll need access to the Handsontable instance. Yo
 
 For more information, see the [Instance methods](@/guides/getting-started/react-methods/react-methods.md) page.
 
+:::
+
+:::
+
+::: only-for angular
+
+::: tip
+
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference
+to the `HotTableComponent`, and reading its `hotInstance` property.
+
+For more information, see the [Instance access](@/guides/getting-started/angular-hot-instance/angular-hot-instance.md) page.
 :::
 
 :::
@@ -165,6 +238,12 @@ You can listen for two hooks, [`beforeRefreshDimensions`](@/api/hooks.md#beforer
 @[code](@/content/guides/getting-started/grid-size/react/example.tsx)
 
 :::
+
+:::
+
+::: only-for angular
+
+<!-- TODO: angular example-->
 
 :::
 
