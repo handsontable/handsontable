@@ -271,8 +271,8 @@ describe('SelectEditor', () => {
     expect(editorOffset()).toEqual($(getCell(0, 4, true)).offset());
   });
 
-  it('should display and correctly reposition select editor while scrolling', (done) => {
-    const hot = handsontable({
+  it('should display and correctly reposition select editor while scrolling', async() => {
+    handsontable({
       width: 200,
       height: 200,
       data: Handsontable.helper.createSpreadsheetData(100, 100),
@@ -282,20 +282,18 @@ describe('SelectEditor', () => {
         }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, { editor: 'select' }
       ]
     });
-    const mainHolder = hot.view._wt.wtTable.holder;
 
     selectCell(0, 0);
     keyDownUp('enter');
 
-    mainHolder.scrollTop = 10;
-    mainHolder.scrollLeft = 20;
+    await sleep(10);
+    await scrollOverlay(topOverlay(), 10);
+    await scrollOverlay(inlineStartOverlay(), 20);
+
     const editorWrapper = $('.htSelectEditor');
 
-    setTimeout(() => {
-      expect(editorWrapper.css('top')).toEqual('-10px');
-      expect(editorWrapper.css('left')).toEqual('-20px');
-      done();
-    }, 200);
+    expect(editorWrapper.css('top')).toEqual('-10px');
+    expect(editorWrapper.css('left')).toEqual('-20px');
   });
 
   it('should not highlight the input element by browsers native selection', () => {

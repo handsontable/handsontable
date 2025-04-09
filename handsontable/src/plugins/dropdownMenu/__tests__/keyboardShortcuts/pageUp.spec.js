@@ -11,7 +11,7 @@ describe('DropdownMenu keyboard shortcut', () => {
   });
 
   describe('"PageUp"', () => {
-    it('should move the menu item selection to the first item that is visible in the browser viewport' +
+    it('should move the menu item selection to the first item that is visible in the browser viewport ' +
        'when there is no initial selection', async() => {
       handsontable({
         colHeaders: true,
@@ -27,13 +27,13 @@ describe('DropdownMenu keyboard shortcut', () => {
 
       expect(getPlugin('dropdownMenu').menu.getSelectedItem().name).toBe('Test item 1');
       expect(window.scrollY).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(25);
-        main.toBe(35);
-        horizon.toBe(43);
+        classic.toBe(1);
+        main.toBe(0);
+        horizon.toBe(0);
       });
     });
 
-    it('should move the menu item selection to the first item when the menu fits within the browser viewport' +
+    it('should move the menu item selection to the first item when the menu fits within the browser viewport ' +
        'and there is initial selection', () => {
       handsontable({
         colHeaders: true,

@@ -3,7 +3,7 @@ export const command = {
   callback(hot) {
     const { selection, rowIndexMapper } = hot;
     const { highlight, from, to } = hot.getSelectedRangeLast();
-    const isFocusHighlightedByHeader = highlight.isHeader() && hot.selection.isSelectedByRowHeader();
+    const isFocusHighlightedByHeader = highlight.isHeader() && selection.isSelectedByRowHeader();
 
     if (highlight.isCell() || isFocusHighlightedByHeader) {
       const row = rowIndexMapper.getNearestNotHiddenIndex(hot.countRows() - 1, -1);

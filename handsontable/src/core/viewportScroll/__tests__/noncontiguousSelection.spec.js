@@ -1,8 +1,11 @@
 describe('Non-contiguous selection scroll', () => {
   const id = 'testContainer';
+  let scrollIntoViewSpy;
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+
+    scrollIntoViewSpy = spyOn(Element.prototype, 'scrollIntoView');
   });
 
   afterEach(function() {
@@ -32,6 +35,12 @@ describe('Non-contiguous selection scroll', () => {
       await sleep(10);
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(51);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 3, true));
+      expect(scrollIntoViewSpy.calls.thisFor(1)).toBe(getCell(0, 5, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
     });
 
     it('should scroll the viewport after using API (selecting fully visible column to partially visible column)', async() => {
@@ -48,7 +57,14 @@ describe('Non-contiguous selection scroll', () => {
 
       selectCells([[0, 3], [0, 5]]);
 
+      await sleep(10);
+
       expect(inlineStartOverlay().getScrollPosition()).toBe(51);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 5, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
     });
 
     it('should not scroll the viewport after using API (selecting partially visible column to fully visible column)', async() => {
@@ -65,7 +81,14 @@ describe('Non-contiguous selection scroll', () => {
 
       selectCells([[0, 5], [0, 3]]);
 
+      await sleep(10);
+
       expect(inlineStartOverlay().getScrollPosition()).toBe(25);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 3, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
     });
   });
 
@@ -82,13 +105,19 @@ describe('Non-contiguous selection scroll', () => {
       // make sure that the `A1` cell is partially visible on the left side of the table
       await scrollOverlay(inlineStartOverlay(), 25);
 
-      simulateClick(getCell(0, 1));
+      simulateClick(getCell(0, 2));
       keyDown('control/meta');
       simulateClick(getCell(0, 0));
 
       await sleep(10);
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 2, true));
+      expect(scrollIntoViewSpy.calls.thisFor(1)).toBe(getCell(0, 0, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
     });
 
     it('should scroll the viewport after using API (selecting fully visible column to partially visible column)', async() => {
@@ -103,9 +132,16 @@ describe('Non-contiguous selection scroll', () => {
       // make sure that the `A1` cell is partially visible on the left side of the table
       await scrollOverlay(inlineStartOverlay(), 25);
 
-      selectCells([[0, 1], [0, 0]]);
+      selectCells([[0, 2], [0, 0]]);
+
+      await sleep(10);
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 0, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
     });
 
     it('should not scroll the viewport after using API (selecting partially visible column to fully visible column)', async() => {
@@ -120,9 +156,16 @@ describe('Non-contiguous selection scroll', () => {
       // make sure that the `A1` cell is partially visible on the left side of the table
       await scrollOverlay(inlineStartOverlay(), 25);
 
-      selectCells([[0, 0], [0, 1]]);
+      selectCells([[0, 0], [0, 2]]);
+
+      await sleep(10);
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(25);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 2, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
     });
   });
 
@@ -139,13 +182,19 @@ describe('Non-contiguous selection scroll', () => {
       // make sure that the `A1` cell is partially visible on the top side of the table
       await scrollOverlay(topOverlay(), 15);
 
-      simulateClick(getCell(1, 0));
+      simulateClick(getCell(2, 0));
       keyDown('control/meta');
       simulateClick(getCell(0, 0));
 
       await sleep(10);
 
       expect(topOverlay().getScrollPosition()).toBe(0);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(2, 0, true));
+      expect(scrollIntoViewSpy.calls.thisFor(1)).toBe(getCell(0, 0, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
     });
 
     it('should scroll the viewport after using API (selecting fully visible row to partially visible row)', async() => {
@@ -160,11 +209,16 @@ describe('Non-contiguous selection scroll', () => {
       // make sure that the `A1` cell is partially visible on the top side of the table
       await scrollOverlay(topOverlay(), 15);
 
-      selectCells([[1, 0], [0, 0]]);
+      selectCells([[2, 0], [0, 0]]);
 
       await sleep(10);
 
       expect(topOverlay().getScrollPosition()).toBe(0);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 0, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
     });
 
     it('should not scroll the viewport after using API (selecting partially visible row to fully visible row)', async() => {
@@ -179,9 +233,16 @@ describe('Non-contiguous selection scroll', () => {
       // make sure that the `A1` cell is partially visible on the top side of the table
       await scrollOverlay(topOverlay(), 15);
 
-      selectCells([[0, 0], [1, 0]]);
+      selectCells([[0, 0], [2, 0]]);
+
+      await sleep(10);
 
       expect(topOverlay().getScrollPosition()).toBe(15);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(2, 0, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
     });
   });
 
@@ -195,17 +256,19 @@ describe('Non-contiguous selection scroll', () => {
         colHeaders: true,
       });
 
-      expect(getLastFullyVisibleRow()).toBe(10);
-
-      await sleep(10);
-
       simulateClick(getCell(10, 0));
       keyDown('control/meta');
       simulateClick(getCell(11, 0));
 
       await sleep(10);
 
-      expect(getLastFullyVisibleRow()).toBe(11);
+      expect(topOverlay().getScrollPosition()).toBe(18);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(10, 0, true));
+      expect(scrollIntoViewSpy.calls.thisFor(1)).toBe(getCell(11, 0, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
     });
 
     it('should scroll the viewport after using API (selecting fully visible row to partially visible row)', async() => {
@@ -217,13 +280,16 @@ describe('Non-contiguous selection scroll', () => {
         colHeaders: true,
       });
 
-      expect(getLastFullyVisibleRow()).toBe(10);
-
       selectCells([[10, 0], [11, 0]]);
 
       await sleep(10);
 
-      expect(getLastFullyVisibleRow()).toBe(11);
+      expect(topOverlay().getScrollPosition()).toBe(18);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(11, 0, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
     });
 
     it('should scroll the viewport after using API (selecting partially visible row to fully visible row)', async() => {
@@ -238,12 +304,19 @@ describe('Non-contiguous selection scroll', () => {
       // make sure that the `A12` cell is partially visible on the bottom side of the table
       await scrollOverlay(topOverlay(), 5);
 
-      selectCells([[11, 0], [10, 0]]);
+      selectCells([[11, 0], [9, 0]]);
+
+      await sleep(10);
 
       expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(5);
-        main.toBe(65);
-        horizon.toBe(161);
+        main.toBe(36);
+        horizon.toBe(124);
+      });
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(9, 0, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
       });
     });
   });

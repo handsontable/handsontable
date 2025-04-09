@@ -456,14 +456,18 @@ describe('Selection navigation', () => {
 
       selectCell(13, 1);
 
+      await sleep(100);
+
       expect(hot.view.getFirstFullyVisibleRow()).toBe(9);
 
       keyDownUp('pageup');
+
       await sleep(100);
 
       expect(hot.view.getFirstFullyVisibleRow()).toBe(5);
 
       keyDownUp('pageup');
+
       await sleep(100);
 
       expect(hot.view.getFirstFullyVisibleRow()).toBe(0);
@@ -492,14 +496,18 @@ describe('Selection navigation', () => {
 
       selectCell(13, 1);
 
+      await sleep(100);
+
       expect(hot.view.getFirstFullyVisibleRow()).toBe(9);
 
       keyDownUp('pageup');
+
       await sleep(100);
 
       expect(hot.view.getFirstFullyVisibleRow()).toBe(5);
 
       keyDownUp('pageup');
+
       await sleep(100);
 
       expect(hot.view.getFirstFullyVisibleRow()).toBe(0);
@@ -528,14 +536,18 @@ describe('Selection navigation', () => {
 
       selectCell(13, 1);
 
+      await sleep(100);
+
       expect(hot.view.getFirstFullyVisibleRow()).toBe(9);
 
       keyDownUp('pageup');
+
       await sleep(100);
 
       expect(hot.view.getFirstFullyVisibleRow()).toBe(5);
 
       keyDownUp('pageup');
+
       await sleep(100);
 
       expect(hot.view.getFirstFullyVisibleRow()).toBe(0);

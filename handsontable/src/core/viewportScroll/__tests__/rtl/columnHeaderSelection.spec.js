@@ -1,9 +1,12 @@
 describe('Column header selection scroll (RTL mode)', () => {
   const id = 'testContainer';
+  let scrollIntoViewSpy;
 
   beforeEach(function() {
     $('html').attr('dir', 'rtl');
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+
+    scrollIntoViewSpy = spyOn(Element.prototype, 'scrollIntoView');
   });
 
   afterEach(function() {
@@ -33,6 +36,11 @@ describe('Column header selection scroll (RTL mode)', () => {
       await sleep(10);
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(51);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(-1, 5, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
     });
 
     it('should scroll the viewport after extending header selection with mouse and Shift key', async() => {
@@ -51,7 +59,15 @@ describe('Column header selection scroll (RTL mode)', () => {
       keyDown('shift');
       simulateClick(getCell(-1, 5));
 
+      await sleep(10);
+
       expect(inlineStartOverlay().getScrollPosition()).toBe(51);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(-1, 4, true));
+      expect(scrollIntoViewSpy.calls.thisFor(1)).toBe(getCell(-1, 5, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
     });
 
     it('should scroll the viewport after extending header selection with API and Shift key', async() => {
@@ -68,10 +84,17 @@ describe('Column header selection scroll (RTL mode)', () => {
 
       selectColumns(4);
       listen();
-      keyDown('shift');
-      keyDownUp('arrowleft');
+      keyDownUp(['shift', 'arrowleft']);
+
+      await sleep(10);
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(51);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(-1, 4, true));
+      expect(scrollIntoViewSpy.calls.thisFor(1)).toBe(getCell(-1, 5, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
     });
 
     it('should scroll the viewport after using API (selecting fully visible column to partially visible column)', async() => {
@@ -88,7 +111,14 @@ describe('Column header selection scroll (RTL mode)', () => {
 
       selectColumns(4, 5);
 
+      await sleep(10);
+
       expect(inlineStartOverlay().getScrollPosition()).toBe(51);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(-1, 5, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
     });
 
     it('should scroll the viewport after using API (selecting partially visible column to fully visible column)', async() => {
@@ -105,11 +135,18 @@ describe('Column header selection scroll (RTL mode)', () => {
 
       selectColumns(5, 4);
 
+      await sleep(10);
+
       expect(inlineStartOverlay().getScrollPosition()).toBe(51);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(-1, 5, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
     });
   });
 
-  describe('for partially visible cell on the right table\'s edge', () => {
+  describe('for partially visible cell on the right table\'s edge', async() => {
     it('should scroll the viewport after mouse click', async() => {
       handsontable({
         data: createSpreadsheetData(5, 10),
@@ -124,7 +161,14 @@ describe('Column header selection scroll (RTL mode)', () => {
 
       simulateClick(getCell(-1, 0));
 
+      await sleep(10);
+
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(-1, 0, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
     });
 
     it('should scroll the viewport after extending header selection with mouse and Shift key', async() => {
@@ -143,7 +187,15 @@ describe('Column header selection scroll (RTL mode)', () => {
       keyDown('shift');
       simulateClick(getCell(-1, 0));
 
+      await sleep(10);
+
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(-1, 1, true));
+      expect(scrollIntoViewSpy.calls.thisFor(1)).toBe(getCell(-1, 0, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
     });
 
     it('should scroll the viewport after extending header selection with API and Shift key', async() => {
@@ -160,10 +212,17 @@ describe('Column header selection scroll (RTL mode)', () => {
 
       selectColumns(1);
       listen();
-      keyDown('shift');
-      keyDownUp('arrowright');
+      keyDownUp(['shift', 'arrowright']);
+
+      await sleep(10);
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(-1, 1, true));
+      expect(scrollIntoViewSpy.calls.thisFor(1)).toBe(getCell(-1, 0, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
     });
 
     it('should scroll the viewport after using API (selecting fully visible column to partially visible column)', async() => {
@@ -180,7 +239,14 @@ describe('Column header selection scroll (RTL mode)', () => {
 
       selectColumns(1, 0);
 
+      await sleep(10);
+
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(-1, 0, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
     });
 
     it('should scroll the viewport after using API (selecting partially visible column to fully visible column)', async() => {
@@ -197,7 +263,14 @@ describe('Column header selection scroll (RTL mode)', () => {
 
       selectColumns(0, 1);
 
+      await sleep(10);
+
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(-1, 0, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
     });
   });
 
@@ -214,7 +287,14 @@ describe('Column header selection scroll (RTL mode)', () => {
 
     selectColumns(0, 9);
 
+    await sleep(10);
+
     expect(inlineStartOverlay().getScrollPosition()).toBe(0);
+    expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(-1, 0, true));
+    expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+      block: 'nearest',
+      inline: 'nearest',
+    });
   });
 
   it('should scroll the viewport to the focused cell when the selection is wider than table\'s viewport (last to first)', async() => {
@@ -230,6 +310,13 @@ describe('Column header selection scroll (RTL mode)', () => {
 
     selectColumns(9, 0);
 
+    await sleep(10);
+
     expect(inlineStartOverlay().getScrollPosition()).toBe(251);
+    expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(-1, 9, true));
+    expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+      block: 'nearest',
+      inline: 'nearest',
+    });
   });
 });

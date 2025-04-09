@@ -9,6 +9,6 @@ export const command = {
       row = -1;
     }
 
-    hot.selection.setRangeStart(hot._createCellCoords(row, col));
+    selection.setRangeStart(hot._createCellCoords(row, col));
   },
 };

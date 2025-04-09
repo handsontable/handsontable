@@ -1,3 +1,5 @@
+import { scrollWindowToCell, createScrollTargetCalculator } from '../utils';
+
 /**
  * Scroll strategy for non-contiguous selections.
  *
@@ -6,7 +8,16 @@
  */
 export function noncontiguousScrollStrategy(hot) {
   return (cellCoords) => {
-    hot.scrollViewportTo(cellCoords.toObject());
-    hot.scrollWindowToFocusedCell();
+    const scrollTargetCalc = createScrollTargetCalculator(hot);
+    const targetScroll = {
+      row: scrollTargetCalc.getComputedRowTarget(cellCoords),
+      col: scrollTargetCalc.getComputedColumnTarget(cellCoords),
+    };
+
+    hot.scrollViewportTo(targetScroll, () => {
+      const { row, col } = targetScroll;
+
+      scrollWindowToCell(hot.getCell(row, col, true));
+    });
   };
 }

@@ -129,6 +129,9 @@ describe('MergeCells open editor', () => {
       });
 
       selectCell(1, 90);
+
+      await sleep(10);
+
       keyDownUp('enter');
 
       await sleep(50);
@@ -155,6 +158,9 @@ describe('MergeCells open editor', () => {
       });
 
       selectCell(90, 1);
+
+      await sleep(10);
+
       keyDownUp('enter');
 
       await sleep(50);

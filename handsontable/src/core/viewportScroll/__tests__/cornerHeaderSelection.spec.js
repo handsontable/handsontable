@@ -29,6 +29,8 @@ describe('Corner selection scroll', () => {
 
     simulateClick(getCell(-1, -1));
 
+    await sleep(10);
+
     expect(inlineStartOverlay().getScrollPosition()).toBe(25);
     expect(topOverlay().getScrollPosition()).toBe(50);
     expect(scrollIntoViewSpy).not.toHaveBeenCalled();

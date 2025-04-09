@@ -1,9 +1,12 @@
 describe('Single selection scroll (RTL mode)', () => {
   const id = 'testContainer';
+  let scrollIntoViewSpy;
 
   beforeEach(function() {
     $('html').attr('dir', 'rtl');
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+
+    scrollIntoViewSpy = spyOn(Element.prototype, 'scrollIntoView');
   });
 
   afterEach(function() {
@@ -19,18 +22,19 @@ describe('Single selection scroll (RTL mode)', () => {
     it('should not scroll the viewport after mouse click', async() => {
       handsontable({
         data: createSpreadsheetData(5, 10),
-        width: 300,
+        width: 400,
         height: 300,
+        colWidths: 60,
         rowHeaders: true,
         colHeaders: true,
       });
 
-      // make sure that the `F1` cell is partially visible on the left side of the table
-      await scrollOverlay(inlineStartOverlay(), 25);
-
       simulateClick(getCell(0, 5));
 
-      expect(inlineStartOverlay().getScrollPosition()).toBe(25);
+      await sleep(10);
+
+      expect(inlineStartOverlay().getScrollPosition()).toBe(0);
+      expect(scrollIntoViewSpy).not.toHaveBeenCalled();
     });
 
     it('should scroll the viewport after double mouse click (cell editing)', async() => {
@@ -47,7 +51,14 @@ describe('Single selection scroll (RTL mode)', () => {
 
       mouseDoubleClick(getCell(0, 5));
 
+      await sleep(10);
+
       expect(inlineStartOverlay().getScrollPosition()).toBe(51);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 5, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
     });
 
     it('should scroll the viewport after navigating using ArrowLeft key', async() => {
@@ -65,7 +76,15 @@ describe('Single selection scroll (RTL mode)', () => {
       selectCell(0, 4);
       keyDownUp('arrowleft');
 
+      await sleep(10);
+
       expect(inlineStartOverlay().getScrollPosition()).toBe(51);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 4, true));
+      expect(scrollIntoViewSpy.calls.thisFor(1)).toBe(getCell(0, 5, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
     });
 
     it('should scroll the viewport after navigating through the column headers using ArrowLeft key', async() => {
@@ -84,7 +103,15 @@ describe('Single selection scroll (RTL mode)', () => {
       selectCell(-1, 4);
       keyDownUp('arrowleft');
 
+      await sleep(10);
+
       expect(inlineStartOverlay().getScrollPosition()).toBe(51);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(-1, 4, true));
+      expect(scrollIntoViewSpy.calls.thisFor(1)).toBe(getCell(-1, 5, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
     });
 
     it('should scroll the viewport after using API', async() => {
@@ -101,7 +128,14 @@ describe('Single selection scroll (RTL mode)', () => {
 
       selectCell(0, 5);
 
+      await sleep(10);
+
       expect(inlineStartOverlay().getScrollPosition()).toBe(51);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 5, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
     });
   });
 
@@ -123,6 +157,11 @@ describe('Single selection scroll (RTL mode)', () => {
       await sleep(10);
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 0, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
     });
 
     it('should scroll the viewport after double mouse click (cell editing)', async() => {
@@ -139,7 +178,14 @@ describe('Single selection scroll (RTL mode)', () => {
 
       mouseDoubleClick(getCell(0, 0));
 
+      await sleep(10);
+
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 0, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
     });
 
     it('should scroll the viewport after navigating using ArrowRight key', async() => {
@@ -157,7 +203,15 @@ describe('Single selection scroll (RTL mode)', () => {
       selectCell(0, 1);
       keyDownUp('arrowright');
 
+      await sleep(10);
+
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 1, true));
+      expect(scrollIntoViewSpy.calls.thisFor(1)).toBe(getCell(0, 0, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
     });
 
     it('should scroll the viewport after navigating through the column headers using ArrowRight key', async() => {
@@ -176,7 +230,15 @@ describe('Single selection scroll (RTL mode)', () => {
       selectCell(-1, 1);
       keyDownUp('arrowright');
 
+      await sleep(10);
+
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(-1, 1, true));
+      expect(scrollIntoViewSpy.calls.thisFor(1)).toBe(getCell(-1, 0, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
     });
 
     it('should scroll the viewport after using API', async() => {
@@ -193,7 +255,14 @@ describe('Single selection scroll (RTL mode)', () => {
 
       selectCell(0, 0);
 
+      await sleep(10);
+
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 0, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
     });
   });
 });

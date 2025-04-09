@@ -28,11 +28,10 @@ describe('DropdownMenu keyboard shortcut', () => {
       keyDownUp(keyboardShortcut);
 
       expect(getPlugin('dropdownMenu').menu.getSelectedItem().name).toBe('Test item 1');
-      // check if the viewport is scrolled to the top
       expect(window.scrollY).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(25);
-        main.toBe(35);
-        horizon.toBe(43);
+        classic.toBe(1);
+        main.toBe(0);
+        horizon.toBe(0);
       });
     });
 

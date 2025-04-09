@@ -26,13 +26,10 @@ describe('Single selection scroll', () => {
         colHeaders: true,
       });
 
-      expect(getLastFullyVisibleColumn()).toBe(4);
-
       simulateClick(getCell(0, 5));
 
       await sleep(10);
 
-      expect(getLastFullyVisibleColumn()).toBe(4);
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
       expect(scrollIntoViewSpy).not.toHaveBeenCalled();
     });

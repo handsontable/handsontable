@@ -270,7 +270,7 @@ export class MergeCells extends BasePlugin {
     this.hot._registerTimeout(() => {
       rowsToRefresh.forEach((rowElement) => {
         rowElement.style.background =
-          getStyle(rowElement, 'backgroundColor').replace(', 0.99)', ')');
+          getStyle(rowElement, 'backgroundColor')?.replace(', 0.99)', ')');
       });
     }, 1);
   }

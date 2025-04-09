@@ -97,7 +97,7 @@ describe('Multiple selection scroll', () => {
 
     it('should scroll the viewport after using API (selecting fully visible column to partially visible column)', async() => {
       handsontable({
-        data: createSpreadsheetData(5, 10),
+        data: createSpreadsheetData(5, 50),
         width: 300,
         height: 300,
         rowHeaders: true,
@@ -135,8 +135,8 @@ describe('Multiple selection scroll', () => {
 
       await sleep(10);
 
-      expect(inlineStartOverlay().getScrollPosition()).toBe(50);
-      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 4, true));
+      expect(inlineStartOverlay().getScrollPosition()).toBe(51);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 5, true));
       expect(scrollIntoViewSpy).toHaveBeenCalledWith({
         block: 'nearest',
         inline: 'nearest',
@@ -164,6 +164,12 @@ describe('Multiple selection scroll', () => {
       await sleep(10);
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 1, true));
+      expect(scrollIntoViewSpy.calls.thisFor(1)).toBe(getCell(0, 0, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
     });
 
     it('should scroll the viewport after navigating using ArrowLeft key', async() => {
@@ -181,7 +187,15 @@ describe('Multiple selection scroll', () => {
       selectCell(0, 1);
       keyDownUp(['shift', 'arrowleft']);
 
+      await sleep(10);
+
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 1, true));
+      expect(scrollIntoViewSpy.calls.thisFor(1)).toBe(getCell(0, 0, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
     });
 
     it('should not scroll the viewport after navigating through the column headers using ArrowLeft key', async() => {
@@ -200,7 +214,14 @@ describe('Multiple selection scroll', () => {
       selectCell(-1, 1);
       keyDownUp(['shift', 'arrowleft']);
 
+      await sleep(10);
+
       expect(inlineStartOverlay().getScrollPosition()).toBe(25);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(-1, 1, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
     });
 
     it('should scroll the viewport after using API (selecting fully visible column to partially visible column)', async() => {
@@ -217,10 +238,17 @@ describe('Multiple selection scroll', () => {
 
       selectCells([[0, 1, 0, 0]]);
 
+      await sleep(10);
+
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 0, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
     });
 
-    it('should not scroll the viewport after using API (selecting partially visible column to fully visible column)', async() => {
+    it('should scroll the viewport after using API (selecting partially visible column to fully visible column)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 10),
         width: 300,
@@ -234,7 +262,14 @@ describe('Multiple selection scroll', () => {
 
       selectCells([[0, 0, 0, 1]]);
 
-      expect(inlineStartOverlay().getScrollPosition()).toBe(25);
+      await sleep(10);
+
+      expect(inlineStartOverlay().getScrollPosition()).toBe(0);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 0, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
     });
   });
 
@@ -258,6 +293,12 @@ describe('Multiple selection scroll', () => {
       await sleep(10);
 
       expect(topOverlay().getScrollPosition()).toBe(0);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(1, 0, true));
+      expect(scrollIntoViewSpy.calls.thisFor(1)).toBe(getCell(0, 0, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
     });
 
     it('should scroll the viewport after navigating using ArrowUp key', async() => {
@@ -275,7 +316,15 @@ describe('Multiple selection scroll', () => {
       selectCell(1, 0);
       keyDownUp(['shift', 'arrowup']);
 
+      await sleep(10);
+
       expect(topOverlay().getScrollPosition()).toBe(0);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(1, 0, true));
+      expect(scrollIntoViewSpy.calls.thisFor(1)).toBe(getCell(0, 0, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
     });
 
     it('should not scroll the viewport after navigating through the row headers using ArrowUp key', async() => {
@@ -294,7 +343,14 @@ describe('Multiple selection scroll', () => {
       selectCell(1, -1);
       keyDownUp(['shift', 'arrowup']);
 
+      await sleep(10);
+
       expect(topOverlay().getScrollPosition()).toBe(15);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(1, -1, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
     });
 
     it('should scroll the viewport after using API (selecting fully visible row to partially visible row)', async() => {
@@ -314,6 +370,11 @@ describe('Multiple selection scroll', () => {
       await sleep(10);
 
       expect(topOverlay().getScrollPosition()).toBe(0);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 0, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
     });
 
     it('should not scroll the viewport after using API (selecting partially visible row to fully visible row)', async() => {
@@ -330,7 +391,14 @@ describe('Multiple selection scroll', () => {
 
       selectCells([[0, 0, 1, 0]]);
 
-      expect(topOverlay().getScrollPosition()).toBe(15);
+      await sleep(10);
+
+      expect(topOverlay().getScrollPosition()).toBe(0);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 0, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
     });
   });
 
@@ -344,18 +412,22 @@ describe('Multiple selection scroll', () => {
         colHeaders: true,
       });
 
-      expect(getLastFullyVisibleRow()).toBe(10);
-
       simulateClick(getCell(10, 0));
       keyDown('shift');
       simulateClick(getCell(11, 0));
 
       await sleep(10);
 
-      expect(getLastFullyVisibleRow()).toBe(11);
+      expect(topOverlay().getScrollPosition()).toBe(18);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(10, 0, true));
+      expect(scrollIntoViewSpy.calls.thisFor(1)).toBe(getCell(11, 0, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
     });
 
-    it('should scroll the viewport after navigating using ArrowDown key', () => {
+    it('should scroll the viewport after navigating using ArrowDown key', async() => {
       handsontable({
         data: createSpreadsheetData(20, 5),
         width: 300,
@@ -364,12 +436,18 @@ describe('Multiple selection scroll', () => {
         colHeaders: true,
       });
 
-      expect(getLastFullyVisibleRow()).toBe(10);
-
       selectCell(10, 0);
       keyDownUp(['shift', 'arrowdown']);
 
-      expect(getLastFullyVisibleRow()).toBe(11);
+      await sleep(10);
+
+      expect(topOverlay().getScrollPosition()).toBe(18);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(10, 0, true));
+      expect(scrollIntoViewSpy.calls.thisFor(1)).toBe(getCell(11, 0, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
     });
 
     it('should not scroll the viewport after navigating through the row headers using ArrowDown key', async() => {
@@ -388,10 +466,17 @@ describe('Multiple selection scroll', () => {
       selectCell(10, -1);
       keyDownUp(['shift', 'arrowdown']);
 
+      await sleep(10);
+
       expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(5);
         main.toBe(65);
         horizon.toBe(161);
+      });
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(10, -1, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
       });
     });
 
@@ -404,13 +489,16 @@ describe('Multiple selection scroll', () => {
         colHeaders: true,
       });
 
-      expect(getLastFullyVisibleRow()).toBe(10);
-
       selectCells([[10, 0, 11, 0]]);
 
       await sleep(10);
 
-      expect(getLastFullyVisibleRow()).toBe(11);
+      expect(topOverlay().getScrollPosition()).toBe(18);
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(11, 0, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
+      });
     });
 
     it('should scroll the viewport after using API (selecting partially visible row to fully visible row)', async() => {
@@ -427,10 +515,17 @@ describe('Multiple selection scroll', () => {
 
       selectCells([[11, 0, 10, 0]]);
 
+      await sleep(10);
+
       expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(18);
-        main.toBe(93);
-        horizon.toBe(197);
+        classic.toBe(19);
+        main.toBe(94);
+        horizon.toBe(198);
+      });
+      expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(11, 0, true));
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        block: 'nearest',
+        inline: 'nearest',
       });
     });
   });

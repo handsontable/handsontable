@@ -27,12 +27,7 @@ describe('ContextMenu keyboard shortcut', () => {
       keyDownUp(keyboardShortcut);
 
       expect(getPlugin('contextMenu').menu.getSelectedItem().name).toBe('Test item 1');
-      // check if the viewport is scrolled to the top
-      expect(window.scrollY).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(1);
-        main.toBe(10);
-        horizon.toBe(14);
-      });
+      expect(window.scrollY).toBe(1);
     });
 
     it('should move the menu item selection to the first active item', () => {

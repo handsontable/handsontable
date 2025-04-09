@@ -314,7 +314,7 @@ describe('MergeCells Selection', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it('should keep the highlight (area selection) on the virtualized merged cell after horizontal scroll', () => {
+  it('should keep the highlight (area selection) on the virtualized merged cell after horizontal scroll', async() => {
     handsontable({
       data: createSpreadsheetData(3, 30),
       width: 200,
@@ -330,7 +330,7 @@ describe('MergeCells Selection', () => {
 
     expect(`
       | 0             |
-      | 0 : 0 : 0 : 0 |
+      | 0 : 0 : 0 : A |
       |   :   :   :   |
     `).toBeMatchToSelectionPattern();
 
@@ -345,7 +345,7 @@ describe('MergeCells Selection', () => {
   });
 
   it.forTheme('classic')('should keep the highlight (area selection) on the virtualized merged cell ' +
-    'after vertical scroll', () => {
+    'after vertical scroll', async() => {
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
@@ -359,15 +359,10 @@ describe('MergeCells Selection', () => {
     getPlugin('mergeCells').merge(0, 0, 20, 0);
     selectCells([[20, 1, 0, 0]]);
 
+    await sleep(10);
+
     expect(`
       | 0 : 0 :   :   :   :   |
-      |   : 0 :   :   :   :   |
-      |   : 0 :   :   :   :   |
-      |   : 0 :   :   :   :   |
-      |   : 0 :   :   :   :   |
-      |   : 0 :   :   :   :   |
-      |   : 0 :   :   :   :   |
-      |   : 0 :   :   :   :   |
       |   : 0 :   :   :   :   |
     `).toBeMatchToSelectionPattern();
 
@@ -376,8 +371,6 @@ describe('MergeCells Selection', () => {
 
     expect(`
       | 0 : 0 :   :   :   :   |
-      |   : 0 :   :   :   :   |
-      |   : 0 :   :   :   :   |
       |   : A :   :   :   :   |
       |   :   :   :   :   :   |
       |   :   :   :   :   :   |
@@ -388,7 +381,7 @@ describe('MergeCells Selection', () => {
   });
 
   it.forTheme('main')('should keep the highlight (area selection) on the virtualized merged cell ' +
-    'after vertical scroll', () => {
+    'after vertical scroll', async() => {
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
@@ -402,15 +395,10 @@ describe('MergeCells Selection', () => {
     getPlugin('mergeCells').merge(0, 0, 20, 0);
     selectCells([[20, 1, 0, 0]]);
 
+    await sleep(10);
+
     expect(`
       | 0 : 0 :   :   :   :   |
-      |   : 0 :   :   :   :   |
-      |   : 0 :   :   :   :   |
-      |   : 0 :   :   :   :   |
-      |   : 0 :   :   :   :   |
-      |   : 0 :   :   :   :   |
-      |   : 0 :   :   :   :   |
-      |   : 0 :   :   :   :   |
       |   : 0 :   :   :   :   |
     `).toBeMatchToSelectionPattern();
 
@@ -419,8 +407,6 @@ describe('MergeCells Selection', () => {
 
     expect(`
       | 0 : 0 :   :   :   :   |
-      |   : 0 :   :   :   :   |
-      |   : 0 :   :   :   :   |
       |   : A :   :   :   :   |
       |   :   :   :   :   :   |
       |   :   :   :   :   :   |
@@ -431,7 +417,7 @@ describe('MergeCells Selection', () => {
   });
 
   it.forTheme('horizon')('should keep the highlight (area selection) on the virtualized merged cell ' +
-    'after vertical scroll', () => {
+    'after vertical scroll', async() => {
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
@@ -445,15 +431,10 @@ describe('MergeCells Selection', () => {
     getPlugin('mergeCells').merge(0, 0, 20, 0);
     selectCells([[20, 1, 0, 0]]);
 
+    await sleep(10);
+
     expect(`
       | 0 : 0 :   :   :   :   |
-      |   : 0 :   :   :   :   |
-      |   : 0 :   :   :   :   |
-      |   : 0 :   :   :   :   |
-      |   : 0 :   :   :   :   |
-      |   : 0 :   :   :   :   |
-      |   : 0 :   :   :   :   |
-      |   : 0 :   :   :   :   |
       |   : 0 :   :   :   :   |
     `).toBeMatchToSelectionPattern();
 
@@ -462,8 +443,6 @@ describe('MergeCells Selection', () => {
 
     expect(`
       | 0 : 0 :   :   :   :   |
-      |   : 0 :   :   :   :   |
-      |   : 0 :   :   :   :   |
       |   : A :   :   :   :   |
       |   :   :   :   :   :   |
       |   :   :   :   :   :   |
@@ -620,7 +599,7 @@ describe('MergeCells Selection', () => {
   });
 
   it.forTheme('main')('should keep focus selection on the high virtualized merged cell that ' +
-    'intersects the top overlay', () => {
+    'intersects the top overlay', async() => {
     // TODO: The test is tightly bound to this specific table height. Probably worth looking into it.
     handsontable({
       data: createSpreadsheetData(30, 3),

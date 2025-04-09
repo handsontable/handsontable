@@ -616,6 +616,8 @@ describe('TextEditor (RTL mode)', () => {
       setDataAtCell(2, 2, 'string\nstring\nstring');
       selectCell(2, 2);
 
+      await sleep(10);
+
       keyDown('enter');
       keyUp('enter');
       scrollViewportTo({ row: 49 });

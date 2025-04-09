@@ -9,12 +9,13 @@ import { scrollWindowToCell, createScrollTargetCalculator } from '../utils';
 export function multipleScrollStrategy(hot) {
   return (cellCoords) => {
     const scrollTargetCalc = createScrollTargetCalculator(hot);
-
-    hot.scrollViewportTo({
+    const targetScroll = {
       row: scrollTargetCalc.getComputedRowTarget(cellCoords),
       col: scrollTargetCalc.getComputedColumnTarget(cellCoords),
-    }, () => {
-      const { row, col } = cellCoords;
+    };
+
+    hot.scrollViewportTo(targetScroll, () => {
+      const { row, col } = targetScroll;
 
       scrollWindowToCell(hot.getCell(row, col, true));
     });

@@ -1,5 +1,10 @@
 import { isHTMLElement } from '../../helpers/dom/element';
 
+/**
+ * Scrolls the browser's viewport to the specified element.
+ *
+ * @param {HTMLElement} element The element to scroll.
+ */
 export function scrollWindowToCell(element) {
   if (isHTMLElement(element)) {
     element.scrollIntoView({
@@ -9,26 +14,39 @@ export function scrollWindowToCell(element) {
   }
 }
 
+/**
+ * Creates a scroll target calculator that calculates the target row and column best viewport
+ * scroll position based on the current selection.
+ *
+ * @param {Core} hotInstance The Handsontable instance.
+ * @returns {{ getComputedColumnTarget: Function, getComputedRowTarget: Function }}
+ */
 export function createScrollTargetCalculator(hotInstance) {
   const { selection, view } = hotInstance;
   const cellRange = hotInstance.getSelectedRangeLast();
   const source = selection.getSelectionSource();
 
-  const firstVisibleColumn = view.getFirstPartiallyVisibleColumn();
-  const lastVisibleColumn = view.getLastPartiallyVisibleColumn();
+  const firstVisibleColumn = view.getFirstFullyVisibleColumn();
+  const lastVisibleColumn = view.getLastFullyVisibleColumn();
   const selectionFirstColumn = cellRange.getTopStartCorner().col;
   const selectionLastColumn = cellRange.getBottomEndCorner().col;
   const isSelectionOutsideStartViewport = selectionFirstColumn <= firstVisibleColumn;
   const isSelectionOutsideEndViewport = selectionLastColumn >= lastVisibleColumn;
 
-  const firstVisibleRow = view.getFirstPartiallyVisibleRow();
-  const lastVisibleRow = view.getLastPartiallyVisibleRow();
+  const firstVisibleRow = view.getFirstFullyVisibleRow();
+  const lastVisibleRow = view.getLastFullyVisibleRow();
   const selectionFirstRow = cellRange.getTopStartCorner().row;
   const selectionLastRow = cellRange.getBottomEndCorner().row;
   const isSelectionOutsideTopViewport = selectionFirstRow <= firstVisibleRow;
   const isSelectionOutsideBottomViewport = selectionLastRow >= lastVisibleRow;
 
   return {
+    /**
+     * Calculates the target column for scrolling.
+     *
+     * @param {CellCoords} lastSelectionCoords The last selection coordinates.
+     * @returns {number}
+     */
     getComputedColumnTarget(lastSelectionCoords) {
       if (source === 'mouse' || source === 'keyboard') {
         // For mouse or keyboard selection, always scroll to the last column
@@ -57,6 +75,13 @@ export function createScrollTargetCalculator(hotInstance) {
       // For other cases, scroll to the column defined by the last selection coords
       return lastSelectionCoords.col;
     },
+
+    /**
+     * Calculates the target row for scrolling.
+     *
+     * @param {CellCoords} lastSelectionCoords The last selection coordinates.
+     * @returns {number}
+     */
     getComputedRowTarget(lastSelectionCoords) {
       if (source === 'mouse' || source === 'keyboard') {
         // For mouse or keyboard selection, always scroll to the last row
@@ -85,5 +110,5 @@ export function createScrollTargetCalculator(hotInstance) {
       // For other cases, scroll to the row defined by the last selection coords
       return lastSelectionCoords.row;
     },
-  }
+  };
 }

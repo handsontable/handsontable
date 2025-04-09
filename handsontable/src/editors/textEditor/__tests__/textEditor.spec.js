@@ -1069,12 +1069,9 @@ describe('TextEditor', () => {
     keyDownUp('enter');
     keyUp(['enter']);
 
-    const mainHolder = hot.view._wt.wtTable.holder;
-
-    mainHolder.scrollTop = 500;
-    mainHolder.scrollLeft = 500;
-
-    await sleep(200);
+    await sleep(10);
+    await scrollOverlay(topOverlay(), 500);
+    await scrollOverlay(inlineStartOverlay(), 500);
 
     expect(parseInt(hot.getActiveEditor().textareaParentStyle.opacity, 10)).toBe(0); // result of textEditor .close()
   });
@@ -1092,12 +1089,9 @@ describe('TextEditor', () => {
     keyDownUp('enter');
     keyUp(['enter']);
 
-    const mainHolder = hot.view._wt.wtTable.holder;
-
-    mainHolder.scrollTop = 150;
-    mainHolder.scrollLeft = 100;
-
-    await sleep(200);
+    await sleep(10);
+    await scrollOverlay(topOverlay(), 150);
+    await scrollOverlay(inlineStartOverlay(), 100);
 
     expect(parseInt(hot.getActiveEditor().textareaParentStyle.opacity, 10)).toBe(1);
     expect(parseInt(hot.getActiveEditor().textareaParentStyle.top, 10)).forThemes(({ classic, main, horizon }) => {
@@ -1121,6 +1115,8 @@ describe('TextEditor', () => {
 
     setDataAtCell(2, 2, 'string\nstring\nstring');
     selectCell(2, 2);
+
+    await sleep(10);
 
     keyDownUp('enter');
     keyUp(['enter']);
@@ -1803,7 +1799,7 @@ describe('TextEditor', () => {
     selectCells([[0, 3, 75, 3]]);
     listen();
 
-    expect(getCell(0, 3)).toBeNull();
+    expect(getCell(0, 3)).not.toBeNull();
 
     keyDownUp('F2');
 
@@ -1917,10 +1913,7 @@ describe('TextEditor', () => {
       height: 500,
     });
 
-    const $holder = $(hot.view._wt.wtTable.holder);
-
-    $holder.scrollTop(100);
-    $holder.scrollLeft(100);
+    await scrollOverlay(inlineStartOverlay(), 100);
 
     hot.render();
 

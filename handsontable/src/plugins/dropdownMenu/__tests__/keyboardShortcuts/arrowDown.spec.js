@@ -39,9 +39,9 @@ describe('DropdownMenu keyboard shortcut', () => {
 
       expect(getPlugin('dropdownMenu').menu.getSelectedItem().name).toBe('Test item 1');
       expect(window.scrollY).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(25);
-        main.toBe(35);
-        horizon.toBe(43);
+        classic.toBe(1);
+        main.toBe(0);
+        horizon.toBe(0);
       });
     });
 

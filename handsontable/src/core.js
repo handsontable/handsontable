@@ -4436,6 +4436,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * be positioned at the start or end of the viewport.
    * @param {boolean} [options.considerHiddenIndexes=true] If `true`, we handle visual indexes, otherwise we handle only indexes which
    * may be rendered when they are in the viewport (we don't consider hidden indexes as they aren't rendered).
+   * @param {Function} [callback] The callback function to call after the viewport is scrolled.
    * @returns {boolean} `true` if viewport was scrolled, `false` otherwise.
    */
   this.scrollViewportTo = function(options, callback) {
@@ -4461,7 +4462,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     let renderableRow = row;
     let renderableColumn = col;
 
-    if (callback) {
+    if (isFunction(callback)) {
       this.addHookOnce('afterScroll', callback);
     }
 
@@ -4500,16 +4501,19 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       isScrolled = instance.view.scrollViewportHorizontally(renderableColumn, options.horizontalSnap);
     }
 
-    if (isScrolled) {
-      this.view.render();
+    if (isFunction(callback)) {
+      if (isScrolled) {
+        // fast render triggers `afterScroll` hook
+        this.view.render();
+      } else {
+        this.removeHook('afterScroll', callback);
 
-    } else if (callback) {
-      this.removeHook('afterScroll', callback);
-      instance.rootWindow.queueMicrotask(() => {
-        if (!this.isDestroyed) {
-          callback();
-        }
-      });
+        instance.rootWindow.queueMicrotask(() => {
+          if (!this.isDestroyed) {
+            callback();
+          }
+        });
+      }
     }
 
     return isScrolled;
@@ -4522,62 +4526,31 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @fires Hooks#afterScroll
    * @function scrollToFocusedCell
-   * @param {Function} callback The callback function to call after the viewport is scrolled.
+   * @param {Function} [callback] The callback function to call after the viewport is scrolled.
    * @returns {boolean} `true` if the viewport was scrolled, `false` otherwise.
    */
-  this.scrollToFocusedCell = function(callback = () => {}) {
+  this.scrollToFocusedCell = function(callback) {
     if (!this.selection.isSelected()) {
       return false;
     }
 
-    this.addHookOnce('afterScroll', callback);
+    if (isFunction(callback)) {
+      this.addHookOnce('afterScroll', callback);
+    }
 
     const { highlight } = this.getSelectedRangeLast();
     const isScrolled = this.scrollViewportTo(highlight.toObject());
 
     if (isScrolled) {
+      // fast render triggers `afterScroll` hook
       this.view.render();
-    } else {
+
+    } else if (isFunction(callback)) {
       this.removeHook('afterScroll', callback);
       this._registerImmediate(() => callback());
     }
 
     return isScrolled;
-  };
-
-  /**
-   * Scrolls the window viewport to coordinates specified by the currently focused cell.
-   *
-   * @since 15.3.0
-   * @memberof Core#
-   * @function scrollWindowToFocusedCell
-   * @returns {boolean} `true` if the viewport was scrolled, `false` otherwise.
-   */
-  this.scrollWindowToFocusedCell = function() {
-    return;
-
-    if (!this.selection.isSelected()) {
-      return false;
-    }
-
-    const { row, col } = this.getSelectedRangeLast().highlight;
-    const focusedCell = this.getCell(row, col, true);
-
-    if (!focusedCell) {
-      return false;
-    }
-
-    const { scrollX, scrollY } = this.rootWindow;
-
-    console.log('focusedCell', focusedCell);
-    focusedCell.scrollIntoView({
-      block: 'nearest',
-      inline: 'nearest',
-    });
-
-    const { scrollX: newScrollX, scrollY: newScrollY } = this.rootWindow;
-
-    return scrollX !== newScrollX || scrollY !== newScrollY;
   };
 
   /**
