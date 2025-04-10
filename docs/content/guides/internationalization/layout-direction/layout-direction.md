@@ -72,6 +72,12 @@ To try out Handsontable's RTL support, check out the demo below:
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example -->
+
+:::
+
 ### Elements affected by layout direction
 
 Setting a different layout direction affects the behavior of the following areas of Handsontable:
@@ -131,6 +137,12 @@ In the example below, the RTL layout direction is inherited from a `dir` attribu
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example -->
+
+:::
+
 ### Set the layout direction to RTL
 
 You can render Handsontable from the right to the left, regardless of your HTML document's `dir` attribute.
@@ -157,6 +169,12 @@ and set it to `'rtl'`:
 @[code](@/content/guides/internationalization/layout-direction/react/example3.tsx)
 
 :::
+
+:::
+
+::: only-for angular
+
+<!-- TODO: angular example -->
 
 :::
 
@@ -189,6 +207,12 @@ and set it to `'ltr'`:
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example -->
+
+:::
+
 ## Set the horizontal text alignment
 
 You can apply different horizontal [text alignment](@/guides/cell-features/text-alignment/text-alignment.md) settings, overwriting the horizontal text alignment resulting from your grid's layout direction.
@@ -214,6 +238,12 @@ In the example below, some columns are explicitly aligned to the left, center, o
 @[code](@/content/guides/internationalization/layout-direction/react/example5.tsx)
 
 :::
+
+:::
+
+::: only-for angular
+
+<!-- TODO: angular example -->
 
 :::
 

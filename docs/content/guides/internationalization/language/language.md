@@ -41,78 +41,106 @@ To properly use the internationalization feature, you need to load the language 
 ::: only-for javascript
 
 1. **ES modules (ESM)**
-  ```js
-  import Handsontable from 'handsontable/base';
-  import { registerLanguageDictionary, deDE } from 'handsontable/i18n';
 
-  registerLanguageDictionary(deDE);
+```js
+import Handsontable from "handsontable/base";
+import { registerLanguageDictionary, deDE } from "handsontable/i18n";
 
-  const hot = new Handsontable(container, {
-    language: deDE.languageCode,
-  });
-  ```
+registerLanguageDictionary(deDE);
+
+const hot = new Handsontable(container, {
+  language: deDE.languageCode,
+});
+```
 
 2. **CommonJS (CJS)**
-  ```js
-  const Handsontable = require('handsontable/base').default;
-  const { registerLanguageDictionary, deDE } = require('handsontable/i18n');
 
-  registerLanguageDictionary(deDE);
+```js
+const Handsontable = require("handsontable/base").default;
+const { registerLanguageDictionary, deDE } = require("handsontable/i18n");
 
-  const hot = new Handsontable(container, {
-    language: deDE.languageCode,
-  });
-  ```
+registerLanguageDictionary(deDE);
+
+const hot = new Handsontable(container, {
+  language: deDE.languageCode,
+});
+```
 
 3. **Universal Module Definition (UMD)**
 
-  Languages included this way are ready to use immediately after loading the file. Each file contains a UMD loader that looks for `Handsontable` in a global/externals context. If `Handsontable` is available then it registers itself in the proper context.
-  ```html
-  <script type="text/javascript" src="dist/handsontable.full.js"></script>
-  <script type="text/javascript" src="dist/languages/de-DE.js"></script>
-  <script>
-    const hot = new Handsontable(container, {
-      language: 'de-DE',
-    });
-  </script>
-  ```
+Languages included this way are ready to use immediately after loading the file. Each file contains a UMD loader that looks for `Handsontable` in a global/externals context. If `Handsontable` is available then it registers itself in the proper context.
+
+```html
+<script type="text/javascript" src="dist/handsontable.full.js"></script>
+<script type="text/javascript" src="dist/languages/de-DE.js"></script>
+<script>
+  const hot = new Handsontable(container, {
+    language: "de-DE",
+  });
+</script>
+```
 
 :::
 
 ::: only-for react
 
 1. **ES modules (ESM)**
-  ```js
-  import Handsontable from 'handsontable/base';
-  import { HotTable } from '@handsontable/react-wrapper';
-  import { registerLanguageDictionary, deDE } from 'handsontable/i18n';
 
-  registerLanguageDictionary(deDE);
+```js
+import Handsontable from "handsontable/base";
+import { HotTable } from "@handsontable/react-wrapper";
+import { registerLanguageDictionary, deDE } from "handsontable/i18n";
 
-  const App = () => {
-    return (
-      <HotTable
-        language={deDE.languageCode}
-      />
-    );
-  };
-  ```
+registerLanguageDictionary(deDE);
+
+const App = () => {
+  return <HotTable language={deDE.languageCode} />;
+};
+```
 
 2. **CommonJS (CJS)**
-  ```js
-  const Handsontable = require('handsontable/base').default;
-  const { registerLanguageDictionary, deDE } = require('handsontable/i18n');
 
-  registerLanguageDictionary(deDE);
+```js
+const Handsontable = require("handsontable/base").default;
+const { registerLanguageDictionary, deDE } = require("handsontable/i18n");
 
-  const App = () => {
-    return (
-      <HotTable
-        language={deDE.languageCode}
-      />
-    );
+registerLanguageDictionary(deDE);
+
+const App = () => {
+  return <HotTable language={deDE.languageCode} />;
+};
+```
+
+:::
+
+::: only-for angular
+
+1. **ES modules (ESM)**
+
+```ts
+import { Component, ViewChild, AfterViewInit } from "@angular/core";
+import {
+  GridSettings,
+  HotTableComponent,
+  HotTableModule,
+} from "@handsontable/angular-wrapper";
+import { registerLanguageDictionary, deDE } from "handsontable/i18n";
+
+registerLanguageDictionary(deDE);
+
+@Component({
+  standalone: true,
+  imports: [HotTableModule],
+  template: ` <div class="ht-theme-main">
+    <hot-table [settings]="settings" />
+  </div>`,
+})
+export class Component {
+  settings: GridSettings = {
+    language: deDE.languageCode,
   };
-  ```
+}
+```
 
 :::
 
@@ -144,6 +172,12 @@ Language files were loaded after loading Handsontable.
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example -->
+
+:::
+
 ::: only-for react
 
 ::: example #example2 :react-languages
@@ -151,6 +185,12 @@ Language files were loaded after loading Handsontable.
 @[code](@/content/guides/internationalization/language/react/example2.jsx)
 
 :::
+
+:::
+
+::: only-for angular
+
+<!-- TODO: angular example -->
 
 :::
 
@@ -208,77 +248,71 @@ You can see a full template of a sample language at the bottom of this paragraph
 
 1. The file should start with a comment containing the translation **authors** (separated by commas, for example: _Authors: Chris Wick, John Kyle_), **"last updated" date** (in format: _mmm dd, yyyy_, for example: _Last updated: Jan 01, 2017_) and a **description.**
 
-    ```js
-    /**
+   ```js
+   /**
     * @preserve
     * Authors: Chris Wick, John Kyle
     * Last updated: Nov 15, 2017
     *
     * Description: Definition file for Spanish - Venezuela language-country.
     */
-    ```
+   ```
 
 2. Now, import the dictionary keys to be used in the translation.
 
-    ```js
-    import * as C from '../constants';
-    ```
+   ```js
+   import * as C from "../constants";
+   ```
 
 3. The language dictionary object should contain a `languageCode` key (in format: two lowercase letters, hyphen, two uppercase letters, for example: _languageCode: 'es-PY'_) which will determine the language code to be used in the language property in the `Handsontable` settings and dictionaries keys with their corresponding translations.
 
-    ```js
-    const dictionary = {
-      languageCode: 'es-VE',
-      [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Insertar fila arriba',
-      ...
-    }
-    ```
+   ```js
+   const dictionary = {
+     languageCode: 'es-VE',
+     [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Insertar fila arriba',
+     ...
+   }
+   ```
 
-4.  Lastly, place a default export of the created dictionary.
+4. Lastly, place a default export of the created dictionary.
 
-    ```js
-    export default dictionary;
-    ```
+   ```js
+   export default dictionary;
+   ```
 
-5.  A simple, sample language dictionary can look like the snippet below. The `/languages` and `/dist/languages` folders will be generated by the build process. Files from those localizations can be included as shown in [this section](#load-the-prepared-language-files). After loading them, you will be able to use the language. You can do it by changing the language setting of `Handsontable` to `es-VE`.
+5. A simple, sample language dictionary can look like the snippet below. The `/languages` and `/dist/languages` folders will be generated by the build process. Files from those localizations can be included as shown in [this section](#load-the-prepared-language-files). After loading them, you will be able to use the language. You can do it by changing the language setting of `Handsontable` to `es-VE`.
 
-    ```js
-    /**
+   ```js
+   /**
     * @preserve
     * Authors: Chris Wick, John Kyle
     * Last updated: Nov 15, 2017
     *
     * Description: Definition file for Spanish - Venezuela language-country.
     */
-    import * as C from '../constants';
+   import * as C from "../constants";
 
-    const dictionary = {
-      languageCode: 'es-VE',
-      [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Insertar fila arriba',
-    };
+   const dictionary = {
+     languageCode: "es-VE",
+     [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: "Insertar fila arriba",
+   };
 
-    export default dictionary;
-    ```
+   export default dictionary;
+   ```
 
-6.  Import already created file inside the `src/i18n/languages/index.js` file and export it like it's shown in the snippet below (keys in a alphabetical order).
+6. Import already created file inside the `src/i18n/languages/index.js` file and export it like it's shown in the snippet below (keys in a alphabetical order).
 
-    ```js {4,11}
-    import deCH from './de-CH';
-    import deDE from './de-DE';
-    import enUS from './en-US';
-    import esVE from './es-VE';
-    import plPL from './pl-PL';
+   ```js {4,11}
+   import deCH from "./de-CH";
+   import deDE from "./de-DE";
+   import enUS from "./en-US";
+   import esVE from "./es-VE";
+   import plPL from "./pl-PL";
 
-    export {
-      deCH,
-      deDE,
-      enUS,
-      esVE,
-      plPL
-    };
-    ```
+   export { deCH, deDE, enUS, esVE, plPL };
+   ```
 
-7.  Voilà! You've created a language which can be used just by you or shared with others. We wait for at least 5 positive feedback from users to accept a created [pull request](@/guides/tools-and-building/custom-builds/custom-builds.md).
+7. Voilà! You've created a language which can be used just by you or shared with others. We wait for at least 5 positive feedback from users to accept a created [pull request](@/guides/tools-and-building/custom-builds/custom-builds.md).
 
 ### Local language
 
@@ -288,9 +322,9 @@ You can register a language dictionary which is not a part of the `Handsontable`
 const C = Handsontable.languages.dictionaryKeys;
 
 Handsontable.languages.registerLanguageDictionary({
-  languageCode: 'morse',
+  languageCode: "morse",
   // Your translation in the Morse code
-  [C.FILTERS_BUTTONS_OK]: '--- -•-'
+  [C.FILTERS_BUTTONS_OK]: "--- -•-",
 });
 ```
 
@@ -299,12 +333,12 @@ Handsontable.languages.registerLanguageDictionary({
 You can register a language dictionary containing custom keys. These entries can be used like any other keys, so you're not limited to using our pre-defined constants (the ones that are present within `src/i18n/constants.js` file and may be accessed by `Handsontable.languages.dictionaryKeys` alias).
 
 ```js
-const enUSDictionary = Handsontable.languages.getLanguageDictionary('en-US');
+const enUSDictionary = Handsontable.languages.getLanguageDictionary("en-US");
 
-enUSDictionary.customKey = 'Hello world';
+enUSDictionary.customKey = "Hello world";
 
 Handsontable.languages.registerLanguageDictionary(enUSDictionary); // re-registration
-Handsontable.languages.getTranslatedPhrase('en-US', 'customKey'); // 'Hello world'
+Handsontable.languages.getTranslatedPhrase("en-US", "customKey"); // 'Hello world'
 ```
 
 ## Static Handsontable methods and properties

@@ -44,10 +44,22 @@ const hot = new Handsontable(obj, {
 ::: only-for react
 
 ```js
-<HotTable
-  colWidths={[50, 150, 45]}
-  rowHeights={[40, 40, 40, 40]}
-/>
+<HotTable colWidths={[50, 150, 45]} rowHeights={[40, 40, 40, 40]} />
+```
+
+:::
+
+::: only-for angular
+
+```ts
+settings = {
+  colWidths: [50, 150, 45],
+  rowHeights: [40, 40, 40, 40],
+};
+```
+
+```html
+<hot-table [settings]="settings"></hot-table>
 ```
 
 :::
@@ -55,6 +67,7 @@ const hot = new Handsontable(obj, {
 When taking this approach, make sure that the contents of your cells fit in your row and column sizes, or let the user change [column widths](@/guides/columns/column-width/column-width.md#adjust-the-column-width-manually) and [row heights](@/guides/rows/row-height/row-height.md#adjust-row-heights-manually) manually.
 
 Read more:
+
 - [Grid size](@/guides/getting-started/grid-size/grid-size.md)
 - [Column widths](@/guides/columns/column-width/column-width.md)
 - [Row heights](@/guides/rows/row-height/row-height.md)
@@ -93,16 +106,28 @@ For more information, see the [Instance methods](@/guides/getting-started/react-
 
 :::
 
+::: only-for angular
+
+::: tip
+
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+
+For more information, see the [Instance access](@/guides/getting-started/angular-hot-instance/angular-hot-instance.md) page.
+
+:::
+
+:::
+
 ```js
 hot.batch(() => {
-  hot.alter('insert_row_above', 5, 45);
-  hot.setDataAtCell(1, 1, 'x');
+  hot.alter("insert_row_above", 5, 45);
+  hot.setDataAtCell(1, 1, "x");
 
-  const filters = hot.getPlugin('filters');
+  const filters = hot.getPlugin("filters");
 
-  filters.addCondition(2, 'contains', ['3']);
+  filters.addCondition(2, "contains", ["3"]);
   filters.filter();
-  hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
+  hot.getPlugin("columnSorting").sort({ column: 1, sortOrder: "desc" });
   // The table cache will be recalculated and table render will be called once after executing the callback
 });
 ```

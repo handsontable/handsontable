@@ -69,12 +69,24 @@ For more information, see the [Instance methods](@/guides/getting-started/react-
 
 :::
 
+::: only-for angular
+
+::: tip
+
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+
+For more information, see the [Instance access](@/guides/getting-started/angular-hot-instance/angular-hot-instance.md) page.
+
+:::
+
+:::
+
 ```js
 // call the batch method on an instance
 hot.batch(() => {
   // run the operations as needed
-  hot.alter('insert_row_above', 5, 45);
-  hot.setDataAtCell(1, 1, 'x');
+  hot.alter("insert_row_above", 5, 45);
+  hot.setDataAtCell(1, 1, "x");
   hot.selectCell(0, 0);
   // the render is executed right after all of the operations are completed
 });
@@ -115,7 +127,7 @@ The term "rendering" refers directly to DOM rendering, and the term "execution" 
 Method names that are prefixed with `batch\*`, i.e., [`batch()`](@/api/core.md#batch), [`batchRender()`](@/api/core.md#batchrender), and [`batchExecution()`](@/api/core.md#batchexecution) are recommended to be used as the first choice if you don't need to batch async operations.
 Methods names that are prefixed with `suspend\*`, i.e., [`suspendRender()`](@/api/core.md#suspendrender) and [`suspendExecution()`](@/api/core.md#suspendexecution), are the second choice. These are useful when you need to batch async operations. Essentially they work the same way as `batch\*` methods, but the render has to be resumed manually.
 
-### batch* methods
+### batch\* methods
 
 #### batch
 
@@ -123,14 +135,14 @@ This method supsends both rendering and other operations. It is universal and es
 
 ```js
 hot.batch(() => {
-  hot.alter('insert_row_above', 5, 45);
-  hot.setDataAtCell(1, 1, 'x');
+  hot.alter("insert_row_above", 5, 45);
+  hot.setDataAtCell(1, 1, "x");
 
-  const filters = hot.getPlugin('filters');
+  const filters = hot.getPlugin("filters");
 
-  filters.addCondition(2, 'contains', ['3']);
+  filters.addCondition(2, "contains", ["3"]);
   filters.filter();
-  hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
+  hot.getPlugin("columnSorting").sort({ column: 1, sortOrder: "desc" });
   // The table cache will be recalculated, and table render will be called once after executing the callback
 });
 ```
@@ -141,8 +153,8 @@ The [`batchRender()`](@/api/core.md#batchrender) method is a callback function. 
 
 ```js
 hot.batchRender(() => {
-  hot.alter('insert_row_above', 5, 45);
-  hot.setDataAtCell(1, 1, 'x');
+  hot.alter("insert_row_above", 5, 45);
+  hot.setDataAtCell(1, 1, "x");
   // The table will be rendered once after executing the callback
 });
 ```
@@ -153,11 +165,11 @@ The [`batchExecution()`](@/api/core.md#batchexecution) is a callback function. E
 
 ```js
 hot.batchExecution(() => {
-  const filters = hot.getPlugin('filters');
+  const filters = hot.getPlugin("filters");
 
-  filters.addCondition(2, 'contains', ['3']);
+  filters.addCondition(2, "contains", ["3"]);
   filters.filter();
-  hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
+  hot.getPlugin("columnSorting").sort({ column: 1, sortOrder: "desc" });
   // The table cache will be recalculated once after executing the callback
 });
 ```
@@ -172,8 +184,8 @@ After suspending, resume the process with the [`resumeRender()`](@/api/core.md#r
 
 ```js
 hot.suspendRender(); // suspend rendering
-hot.alter('insert_row_above', 5, 45);
-hot.setDataAtCell(1, 1, 'x');
+hot.alter("insert_row_above", 5, 45);
+hot.setDataAtCell(1, 1, "x");
 hot.resumeRender(); // remember to resume rendering
 ```
 
@@ -183,11 +195,11 @@ To suspend the rendering process, you can call the [`suspendExecution()`](@/api/
 
 ```js
 hot.suspendExecution();
-const filters = hot.getPlugin('filters');
+const filters = hot.getPlugin("filters");
 
-filters.addCondition(2, 'contains', ['3']);
+filters.addCondition(2, "contains", ["3"]);
 filters.filter();
-hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
+hot.getPlugin("columnSorting").sort({ column: 1, sortOrder: "desc" });
 hot.resumeExecution(); // It updates the cache internally
 ```
 
@@ -215,6 +227,12 @@ The following examples show how much the [`batch()`](@/api/core.md#batch) method
 @[code](@/content/guides/optimization/batch-operations/react/example1.tsx)
 
 :::
+
+:::
+
+::: only-for angular
+
+<!-- TODO: angular example -->
 
 :::
 
