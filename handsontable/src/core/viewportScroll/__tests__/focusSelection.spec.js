@@ -35,7 +35,7 @@ describe('Focus selection scroll', () => {
     keyDownUp('enter');
     keyDownUp('enter'); // B4
 
-    await sleep(10);
+    await sleep(20);
 
     expect(topOverlay().getScrollPosition()).toBe(0);
     expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(-1, 1, true));
@@ -49,7 +49,7 @@ describe('Focus selection scroll', () => {
 
     keyDownUp('enter'); // B5
 
-    await sleep(10);
+    await sleep(20);
 
     expect(topOverlay().getScrollPosition()).toBe(getDefaultRowHeight() + 2);
     expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(4, 1, true));
@@ -62,7 +62,7 @@ describe('Focus selection scroll', () => {
 
     keyDownUp('enter'); // B6
 
-    await sleep(10);
+    await sleep(20);
 
     expect(topOverlay().getScrollPosition()).toBe((getDefaultRowHeight() * 2) + 2);
     expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(5, 1, true));
@@ -76,7 +76,7 @@ describe('Focus selection scroll', () => {
     keyDownUp(['shift', 'enter']); // B5
     keyDownUp(['shift', 'enter']); // B4
 
-    await sleep(10);
+    await sleep(20);
 
     expect(topOverlay().getScrollPosition()).toBe((getDefaultRowHeight() * 2) + 2);
     expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(3, 1, true));
@@ -89,7 +89,7 @@ describe('Focus selection scroll', () => {
 
     keyDownUp(['shift', 'enter']); // B3
 
-    await sleep(10);
+    await sleep(20);
 
     expect(topOverlay().getScrollPosition()).toBe(getDefaultRowHeight() * 2);
     expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(2, 1, true));
@@ -102,7 +102,7 @@ describe('Focus selection scroll', () => {
 
     keyDownUp(['shift', 'enter']); // B2
 
-    await sleep(10);
+    await sleep(20);
 
     expect(topOverlay().getScrollPosition()).toBe(getDefaultRowHeight());
     expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(1, 1, true));
@@ -115,7 +115,7 @@ describe('Focus selection scroll', () => {
 
     keyDownUp(['shift', 'enter']); // B1
 
-    await sleep(10);
+    await sleep(20);
 
     expect(topOverlay().getScrollPosition()).toBe(0);
     expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 1, true));
@@ -128,7 +128,7 @@ describe('Focus selection scroll', () => {
 
     keyDownUp(['shift', 'enter']); // B50
 
-    await sleep(10);
+    await sleep(20);
 
     expect(topOverlay().getScrollPosition()).toBe((getDefaultRowHeight() * 46) + 2);
     expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(49, 1, true));

@@ -4,6 +4,7 @@ import { ResizeObserverMock } from './__mocks__/resizeObserverMock';
 beforeAll(() => {
   window.IntersectionObserver = IntersectionObserverMock;
   window.ResizeObserver = ResizeObserverMock;
+  Element.prototype.scrollIntoView = jest.fn();
 });
 
 afterAll(() => {
