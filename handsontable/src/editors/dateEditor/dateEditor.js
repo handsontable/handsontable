@@ -2,7 +2,7 @@ import moment from 'moment';
 import Pikaday from '@handsontable/pikaday';
 import { EDITOR_STATE } from '../baseEditor';
 import { TextEditor } from '../textEditor';
-import { addClass, removeClass, hasClass, outerHeight, outerWidth } from '../../helpers/dom/element';
+import { addClass, hasClass, outerHeight, outerWidth } from '../../helpers/dom/element';
 import { deepExtend } from '../../helpers/object';
 import { isFunctionKey } from '../../helpers/unicode';
 import { isMobileBrowser } from '../../helpers/browser';
@@ -47,9 +47,7 @@ export class DateEditor extends TextEditor {
 
     this.hot.addHook('afterSetTheme', (themeName, firstRun) => {
       if (!firstRun) {
-        removeClass(this.datePicker, /ht-theme-.*/g);
-
-        addClass(this.datePicker, themeName);
+        this.close();
       }
     });
   }
@@ -71,12 +69,7 @@ export class DateEditor extends TextEditor {
 
     addClass(this.datePicker, 'htDatepickerHolder');
 
-    const themeClassName = this.hot.getCurrentThemeName();
-
-    removeClass(this.datePicker, /ht-theme-.*/g);
-    addClass(this.datePicker, themeClassName);
-
-    this.hot.rootDocument.body.appendChild(this.datePicker);
+    this.hot.rootPortalElement.appendChild(this.datePicker);
 
     /**
      * Prevent recognizing clicking on datepicker as clicking outside of table.

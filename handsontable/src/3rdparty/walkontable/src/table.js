@@ -130,7 +130,7 @@ class Table {
       rowUtils: this.rowUtils,
       columnUtils: this.columnUtils,
       cellRenderer: this.wtSettings.getSettingPure('cellRenderer'),
-      stylesHandler: this.dataAccessObject.stylesHandler,
+      stylesHandler: this.wtSettings.getSetting('getStylesHandler'),
     });
   }
 
@@ -243,9 +243,11 @@ class Table {
       holder.style.position = 'relative';
       holder.className = 'wtHolder';
 
-      setAttribute(holder, [
-        A11Y_TABINDEX(-1),
-      ]);
+      if (this.isMaster) {
+        setAttribute(holder, [
+          A11Y_TABINDEX(-1),
+        ]);
+      }
 
       if (parent) {
         // if TABLE is detached (e.g. in Jasmine test), it has no parentNode so we cannot attach holder to it
@@ -426,7 +428,7 @@ class Table {
   markIfOversizedColumnHeader(col) {
     const sourceColIndex = this.columnFilter.renderedToSource(col);
     let level = this.wtSettings.getSetting('columnHeaders').length;
-    const defaultRowHeight = this.dataAccessObject.stylesHandler.getDefaultRowHeight();
+    const defaultRowHeight = this.wtSettings.getSetting('getStylesHandler').getDefaultRowHeight();
     let previousColHeaderHeight;
     let currentHeader;
     let currentHeaderHeight;
@@ -756,9 +758,10 @@ class Table {
       return;
     }
     let rowCount = this.TBODY.childNodes.length;
-    const expectedTableHeight = rowCount * this.dataAccessObject.stylesHandler.getDefaultRowHeight();
+    const stylesHandler = this.wtSettings.getSetting('getStylesHandler');
+    const expectedTableHeight = rowCount * stylesHandler.getDefaultRowHeight();
     const actualTableHeight = innerHeight(this.TBODY) - 1;
-    const borderBoxSizing = this.wot.stylesHandler.areCellsBorderBox();
+    const borderBoxSizing = stylesHandler.areCellsBorderBox();
     const rowHeightFn = borderBoxSizing ? outerHeight : innerHeight;
     const borderCompensation = borderBoxSizing ? 0 : 1;
     const firstRowBorderCompensation = borderBoxSizing ? 1 : 0;
@@ -791,7 +794,7 @@ class Table {
 
       if (
         !previousRowHeight &&
-        this.dataAccessObject.stylesHandler.getDefaultRowHeight() < rowCurrentHeight - topBorderCompensation ||
+        stylesHandler.getDefaultRowHeight() < rowCurrentHeight - topBorderCompensation ||
         previousRowHeight < rowCurrentHeight
       ) {
         if (!borderBoxSizing) {

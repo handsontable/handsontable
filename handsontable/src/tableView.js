@@ -651,23 +651,23 @@ class TableView {
   }
 
   /**
-   * Retrieves the styles handler from the Walkontable instance.
+   * Retrieves the styles handler from the Handsontable instance.
    *
    * @returns {StylesHandler} The styles handler instance.
    */
   getStylesHandler() {
-    return this._wt.stylesHandler;
+    return this.hot.stylesHandler;
   }
 
   /**
    * Returns the default row height.
    *
-   * This method retrieves the default row height from the Walkontable styles handler.
+   * This method retrieves the default row height from the Handsontable instance styles handler.
    *
    * @returns {number} The default row height.
    */
   getDefaultRowHeight() {
-    return this._wt.stylesHandler.getDefaultRowHeight();
+    return this.hot.stylesHandler.getDefaultRowHeight();
   }
 
   /**
@@ -1224,6 +1224,9 @@ class TableView {
         const columnHeaderHeight = this.hot.runHooks('modifyColumnHeaderHeight');
 
         return this.settings.columnHeaderHeight || columnHeaderHeight;
+      },
+      getStylesHandler: () => {
+        return this.hot.stylesHandler;
       }
     };
 

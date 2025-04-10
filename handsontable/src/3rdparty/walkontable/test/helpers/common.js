@@ -105,10 +105,6 @@ export function walkontable(options, table) {
 
   currentSpec.wotInstance = new Walkontable.Core(options);
 
-  // Walkontable needs to have a theme initialized to properly render the table.
-  // (running `useTheme` without a theme name will use the classic theme)
-  currentSpec.wotInstance.stylesHandler.useTheme();
-
   return currentSpec.wotInstance;
 }
 

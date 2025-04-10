@@ -1,5 +1,5 @@
-import { addClass, hasClass, removeClass } from '../../../../helpers/dom/element';
-import { warn } from '../../../../helpers/console';
+import { hasClass } from '../helpers/dom/element';
+import { warn } from '../helpers/console';
 
 const CLASSIC_THEME_DEFAULT_HEIGHT = 23;
 
@@ -63,11 +63,12 @@ export class StylesHandler {
   /**
    * Initializes a new instance of the `StylesHandler` class.
    *
-   * @param {object} domBindings - The DOM bindings for the instance.
+   * @param {HTMLElement} rootElement - The root element of the instance.
+   * @param {Document} rootDocument - The root document of the instance.
    */
-  constructor(domBindings) {
-    this.#rootElement = domBindings.rootTable.parentElement.parentElement;
-    this.#rootDocument = domBindings.rootDocument;
+  constructor(rootElement, rootDocument) {
+    this.#rootElement = rootElement;
+    this.#rootDocument = rootDocument;
   }
 
   /**
@@ -172,7 +173,6 @@ Import the correct CSS files in order to use that theme.`);
       this.#themeName = themeName;
       this.#isClassicTheme = false;
 
-      this.#applyClassNames();
       this.#cacheStylesheetValues();
     }
   }
@@ -184,15 +184,6 @@ Import the correct CSS files in order to use that theme.`);
    */
   getThemeName() {
     return this.#themeName;
-  }
-
-  /**
-   * Removes the theme-related class names from the root element.
-   */
-  removeClassNames() {
-    if (hasClass(this.#rootElement, this.#themeName)) {
-      removeClass(this.#rootElement, this.#themeName);
-    }
   }
 
   /**
@@ -214,15 +205,6 @@ Import the correct CSS files in order to use that theme.`);
     }
 
     return lineHeightVarValue + (2 * verticalPaddingVarValue) + bottomBorderWidth;
-  }
-
-  /**
-   * Applies the necessary class names to the root element.
-   */
-  #applyClassNames() {
-    removeClass(this.#rootElement, /ht-theme-.*/g);
-
-    addClass(this.#rootElement, this.#themeName);
   }
 
   /**

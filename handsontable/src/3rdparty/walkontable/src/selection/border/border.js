@@ -223,7 +223,8 @@ class Border {
    * Create multiple selector handler for mobile devices.
    */
   createMultipleSelectorHandles() {
-    const { rootDocument, stylesHandler } = this.wot;
+    const { rootDocument, wtSettings } = this.wot;
+    const stylesHandler = wtSettings.getSetting('getStylesHandler');
     const cellMobileHandleSize = stylesHandler.getCSSVariableValue('cell-mobile-handle-size');
     const cellMobileHandleBorderRadius = stylesHandler.getCSSVariableValue('cell-mobile-handle-border-radius');
     const cellMobileHandleBackgroundColor = stylesHandler.getCSSVariableValue('cell-mobile-handle-background-color');
@@ -608,7 +609,7 @@ class Border {
         const toTdOffsetTop = trimToWindow ? toTD.getBoundingClientRect().top : toTD.offsetTop;
         const cornerBottomEdge = toTdOffsetTop + outerHeight(toTD) + (parseInt(this.cornerDefaultStyle.height, 10) / 2);
         const cornerOverlappingContainer = cornerBottomEdge >= innerHeight(trimmingContainer);
-        const isClassicTheme = this.wot.stylesHandler.isClassicTheme();
+        const isClassicTheme = this.wot.wtSettings.getSetting('getStylesHandler').isClassicTheme();
 
         if (cornerOverlappingContainer) {
           const cornerTopPosition = Math.floor(

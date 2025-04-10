@@ -168,7 +168,7 @@ export class Menu {
 
     this.hot.addHook('afterSetTheme', (themeName, firstRun) => {
       if (!firstRun) {
-        this.hotMenu?.useTheme(themeName);
+        this.close();
       }
     });
   }
@@ -692,7 +692,7 @@ export class Menu {
         addClass(container, className);
       }
 
-      this.options.container.appendChild(container);
+      this.hot.rootPortalElement.appendChild(container);
     }
 
     return container;
