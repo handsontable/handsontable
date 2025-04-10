@@ -4414,6 +4414,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *   col: 50,
    *   verticalSnap: 'bottom',
    *   horizontalSnap: 'end',
+   * }, () => {
+   *   // callback function executed after the viewport is scrolled
    * });
    * ```
    *

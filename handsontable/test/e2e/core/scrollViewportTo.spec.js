@@ -171,6 +171,58 @@ describe('Core.scrollViewportTo', () => {
     });
   });
 
+  it('should trigger the callback after viewport scroll', async() => {
+    handsontable({
+      data: createSpreadsheetData(50, 50),
+      width: 300,
+      height: 300,
+      rowHeaders: true,
+      colHeaders: true,
+    });
+
+    const callback = jasmine.createSpy('callback');
+
+    scrollViewportTo({ row: 25 }, () => callback());
+
+    await sleep(10);
+
+    expect(callback).toHaveBeenCalledTimes(1);
+
+    callback.calls.reset();
+
+    scrollViewportTo({ col: 25 }, () => callback());
+
+    await sleep(10);
+
+    expect(callback).toHaveBeenCalledTimes(1);
+
+    callback.calls.reset();
+
+    scrollViewportTo({ row: 0, col: 0 }, () => callback());
+
+    await sleep(10);
+
+    expect(callback).toHaveBeenCalledTimes(1);
+  });
+
+  it('should trigger the callback even if the viewport has not been moved', async() => {
+    handsontable({
+      data: createSpreadsheetData(50, 50),
+      width: 300,
+      height: 300,
+      rowHeaders: true,
+      colHeaders: true,
+    });
+
+    const callback = jasmine.createSpy('callback');
+
+    scrollViewportTo({ row: 0, col: 0 }, () => callback());
+
+    await sleep(10);
+
+    expect(callback).toHaveBeenCalledTimes(1);
+  });
+
   it('should scroll the viewport in such a way that the coordinates are glued to the bottom edge (manual snapping)', () => {
     const hot = handsontable({
       data: createSpreadsheetData(200, 100),
