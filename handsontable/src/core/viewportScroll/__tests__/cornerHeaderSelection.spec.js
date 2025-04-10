@@ -27,9 +27,7 @@ describe('Corner selection scroll', () => {
     await scrollOverlay(inlineStartOverlay(), 25);
     await scrollOverlay(topOverlay(), 50);
 
-    simulateClick(getCell(-1, -1));
-
-    await sleep(10);
+    await simulateClick(getCell(-1, -1));
 
     expect(inlineStartOverlay().getScrollPosition()).toBe(25);
     expect(topOverlay().getScrollPosition()).toBe(50);

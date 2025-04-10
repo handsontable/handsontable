@@ -31,11 +31,9 @@ describe('Multiple selection scroll (RTL mode)', () => {
       // make sure that the `F1` cell is partially visible on the left side of the table
       await scrollOverlay(inlineStartOverlay(), 25);
 
-      simulateClick(getCell(0, 4));
-      keyDown('shift');
-      simulateClick(getCell(0, 5));
-
-      await sleep(10);
+      await simulateClick(getCell(0, 4));
+      await keyDown('shift');
+      await simulateClick(getCell(0, 5));
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(51);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 4, true));
@@ -57,11 +55,8 @@ describe('Multiple selection scroll (RTL mode)', () => {
 
       // make sure that the `F1` cell is partially visible on the left side of the table
       await scrollOverlay(inlineStartOverlay(), 25);
-
-      selectCell(0, 4);
-      keyDownUp(['shift', 'arrowleft']);
-
-      await sleep(10);
+      await selectCell(0, 4);
+      await keyDownUp(['shift', 'arrowleft']);
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(51);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 4, true));
@@ -84,10 +79,7 @@ describe('Multiple selection scroll (RTL mode)', () => {
 
       // make sure that the `F1` cell is partially visible on the left side of the table
       await scrollOverlay(inlineStartOverlay(), 25);
-
-      selectCell(-1, 4);
-
-      await sleep(10);
+      await selectCell(-1, 4);
 
       scrollIntoViewSpy.calls.reset();
       keyDownUp(['shift', 'arrowleft']);
@@ -109,10 +101,7 @@ describe('Multiple selection scroll (RTL mode)', () => {
 
       // make sure that the `F1` cell is partially visible on the left side of the table
       await scrollOverlay(inlineStartOverlay(), 25);
-
-      selectCells([[0, 4, 0, 5]]);
-
-      await sleep(10);
+      await selectCells([[0, 4, 0, 5]]);
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(51);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 5, true));
@@ -133,10 +122,7 @@ describe('Multiple selection scroll (RTL mode)', () => {
 
       // make sure that the `F1` cell is partially visible on the left side of the table
       await scrollOverlay(inlineStartOverlay(), 25);
-
-      selectCells([[0, 5, 0, 4]]);
-
-      await sleep(10);
+      await selectCells([[0, 5, 0, 4]]);
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(51);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 5, true));
@@ -160,11 +146,9 @@ describe('Multiple selection scroll (RTL mode)', () => {
       // make sure that the `A1` cell is partially visible on the right side of the table
       await scrollOverlay(inlineStartOverlay(), 25);
 
-      simulateClick(getCell(0, 1));
-      keyDown('shift');
-      simulateClick(getCell(0, 0));
-
-      await sleep(10);
+      await simulateClick(getCell(0, 1));
+      await keyDown('shift');
+      await simulateClick(getCell(0, 0));
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 1, true));
@@ -186,11 +170,8 @@ describe('Multiple selection scroll (RTL mode)', () => {
 
       // make sure that the `A1` cell is partially visible on the right side of the table
       await scrollOverlay(inlineStartOverlay(), 25);
-
-      selectCell(0, 1);
-      keyDownUp(['shift', 'arrowright']);
-
-      await sleep(10);
+      await selectCell(0, 1);
+      await keyDownUp(['shift', 'arrowright']);
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 1, true));
@@ -213,11 +194,8 @@ describe('Multiple selection scroll (RTL mode)', () => {
 
       // make sure that the `A1` cell is partially visible on the right side of the table
       await scrollOverlay(inlineStartOverlay(), 25);
-
-      selectCell(-1, 1);
-      keyDownUp(['shift', 'arrowright']);
-
-      await sleep(10);
+      await selectCell(-1, 1);
+      await keyDownUp(['shift', 'arrowright']);
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(25);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(-1, 1, true));
@@ -238,10 +216,7 @@ describe('Multiple selection scroll (RTL mode)', () => {
 
       // make sure that the `A1` cell is partially visible on the right side of the table
       await scrollOverlay(inlineStartOverlay(), 25);
-
-      selectCells([[0, 1, 0, 0]]);
-
-      await sleep(10);
+      await selectCells([[0, 1, 0, 0]]);
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 0, true));
@@ -262,10 +237,7 @@ describe('Multiple selection scroll (RTL mode)', () => {
 
       // make sure that the `A1` cell is partially visible on the right side of the table
       await scrollOverlay(inlineStartOverlay(), 25);
-
-      selectCells([[0, 0, 0, 1]]);
-
-      await sleep(10);
+      await selectCells([[0, 0, 0, 1]]);
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 0, true));

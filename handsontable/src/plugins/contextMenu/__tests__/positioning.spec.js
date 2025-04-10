@@ -68,13 +68,14 @@ describe('ContextMenu', () => {
 
         const cell = hot.getCell(2, 2);
 
-        contextMenu(cell, hot);
+        setCurrentHotInstance(hot);
+
+        await contextMenu(cell, hot);
 
         const contextMenuElem = $(docOutside.body).find('.htContextMenu');
         const contextMenuOffset = contextMenuElem.offset();
         const { top: cellTop, left: cellLeft } = cell.getBoundingClientRect();
-        const { top: iframeTop, left: iframeLeft } = iframeInside.offset()
-        ;
+        const { top: iframeTop, left: iframeLeft } = iframeInside.offset();
         const cellOffsetTop = cellTop + iframeTop;
         const cellOffsetLeft = cellLeft + iframeLeft;
 

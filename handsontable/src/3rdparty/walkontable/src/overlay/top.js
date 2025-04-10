@@ -118,16 +118,21 @@ export class TopOverlay extends Overlay {
    * @returns {boolean}
    */
   setScrollPosition(pos) {
-    const rootWindow = this.domBindings.rootWindow;
+    const { rootWindow } = this.domBindings;
+    const scrollableElement = this.mainTableScrollableElement;
     let result = false;
 
-    if (this.mainTableScrollableElement === rootWindow && rootWindow.scrollY !== pos) {
-      rootWindow.scrollTo(getWindowScrollLeft(rootWindow), pos);
-      result = true;
+    if (scrollableElement === rootWindow && pos !== rootWindow.scrollY) {
+      const oldScrollX = rootWindow.scrollY;
 
-    } else if (this.mainTableScrollableElement.scrollTop !== pos) {
-      this.mainTableScrollableElement.scrollTop = pos;
-      result = true;
+      rootWindow.scrollTo(getWindowScrollLeft(rootWindow), pos);
+      result = oldScrollX !== rootWindow.scrollY;
+
+    } else if (pos !== scrollableElement.scrollTop) {
+      const oldScrollLeft = scrollableElement.scrollTop;
+
+      scrollableElement.scrollTop = pos;
+      result = oldScrollLeft !== scrollableElement.scrollTop;
     }
 
     return result;

@@ -27,10 +27,7 @@ describe('Row header selection scroll', () => {
 
       // make sure that the `A1` cell is partially visible on the top side of the table
       await scrollOverlay(topOverlay(), 15);
-
-      simulateClick(getCell(0, -1));
-
-      await sleep(10);
+      await simulateClick(getCell(0, -1));
 
       expect(topOverlay().getScrollPosition()).toBe(0);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, -1, true));
@@ -52,11 +49,9 @@ describe('Row header selection scroll', () => {
       // make sure that the `A1` cell is partially visible on the top side of the table
       await scrollOverlay(topOverlay(), 15);
 
-      simulateClick(getCell(1, -1));
-      keyDown('shift');
-      simulateClick(getCell(0, -1));
-
-      await sleep(10);
+      await simulateClick(getCell(1, -1));
+      await keyDown('shift');
+      await simulateClick(getCell(0, -1));
 
       expect(topOverlay().getScrollPosition()).toBe(0);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(1, -1, true));
@@ -76,14 +71,12 @@ describe('Row header selection scroll', () => {
         colHeaders: true,
       });
 
+      listen();
+
       // make sure that the `A1` cell is partially visible on the top side of the table
       await scrollOverlay(topOverlay(), 15);
-
-      selectRows(1);
-      listen();
-      keyDownUp(['shift', 'arrowup']);
-
-      await sleep(10);
+      await selectRows(1);
+      await keyDownUp(['shift', 'arrowup']);
 
       expect(topOverlay().getScrollPosition()).toBe(0);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(1, -1, true));
@@ -105,10 +98,7 @@ describe('Row header selection scroll', () => {
 
       // make sure that the `A1` cell is partially visible on the top side of the table
       await scrollOverlay(topOverlay(), 15);
-
-      selectRows(1, 0);
-
-      await sleep(10);
+      await selectRows(1, 0);
 
       expect(topOverlay().getScrollPosition()).toBe(0);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, -1, true));
@@ -129,10 +119,7 @@ describe('Row header selection scroll', () => {
 
       // make sure that the `A1` cell is partially visible on the top side of the table
       await scrollOverlay(topOverlay(), 15);
-
-      selectRows(0, 1);
-
-      await sleep(10);
+      await selectRows(0, 1);
 
       expect(topOverlay().getScrollPosition()).toBe(0);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, -1, true));
@@ -153,9 +140,7 @@ describe('Row header selection scroll', () => {
         colHeaders: true,
       });
 
-      simulateClick(getCell(11, -1));
-
-      await sleep(10);
+      await simulateClick(getCell(11, -1));
 
       expect(topOverlay().getScrollPosition()).toBe(18);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(11, -1, true));
@@ -174,11 +159,9 @@ describe('Row header selection scroll', () => {
         colHeaders: true,
       });
 
-      simulateClick(getCell(10, -1));
-      keyDown('shift');
-      simulateClick(getCell(11, -1));
-
-      await sleep(10);
+      await simulateClick(getCell(10, -1));
+      await keyDown('shift');
+      await simulateClick(getCell(11, -1));
 
       expect(topOverlay().getScrollPosition()).toBe(18);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(10, -1, true));
@@ -198,11 +181,10 @@ describe('Row header selection scroll', () => {
         colHeaders: true,
       });
 
-      selectRows(10);
       listen();
-      keyDownUp(['shift', 'arrowdown']);
 
-      await sleep(10);
+      await selectRows(10);
+      await keyDownUp(['shift', 'arrowdown']);
 
       expect(topOverlay().getScrollPosition()).toBe(18);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(10, -1, true));
@@ -222,9 +204,7 @@ describe('Row header selection scroll', () => {
         colHeaders: true,
       });
 
-      selectRows(10, 11);
-
-      await sleep(10);
+      await selectRows(10, 11);
 
       expect(topOverlay().getScrollPosition()).toBe(18);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(11, -1, true));
@@ -243,9 +223,7 @@ describe('Row header selection scroll', () => {
         colHeaders: true,
       });
 
-      selectRows(11, 10);
-
-      await sleep(10);
+      await selectRows(11, 10);
 
       expect(topOverlay().getScrollPosition()).toBe(18);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(11, -1, true));
@@ -266,10 +244,7 @@ describe('Row header selection scroll', () => {
     });
 
     await scrollOverlay(topOverlay(), getDefaultRowHeight() * 6);
-
-    selectRows(0, 19);
-
-    await sleep(10);
+    await selectRows(0, 19);
 
     expect(topOverlay().getScrollPosition()).toBe(0);
     expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, -1, true));
@@ -290,10 +265,7 @@ describe('Row header selection scroll', () => {
 
     // scroll to the middle of the table
     await scrollOverlay(topOverlay(), getDefaultRowHeight() * 6);
-
-    selectRows(19, 0);
-
-    await sleep(10);
+    await selectRows(19, 0);
 
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(202);

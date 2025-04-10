@@ -203,7 +203,7 @@ describe('Hook', () => {
       expect(topOverlay().getScrollPosition()).toBe(0);
     });
 
-    it('should not scroll the viewport when the returned value is not an integer', () => {
+    it('should not scroll the viewport when the returned value is not an integer', async() => {
       const beforeViewportScrollVertically = jasmine.createSpy('beforeViewportScrollVertically');
 
       handsontable({
@@ -217,31 +217,31 @@ describe('Hook', () => {
 
       beforeViewportScrollVertically.and.returnValue('foo');
 
-      expect(scrollViewportTo({ row: 90 })).toBe(false);
+      expect(await scrollViewportTo({ row: 90 })).toBe(false);
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
       expect(topOverlay().getScrollPosition()).toBe(0);
 
       beforeViewportScrollVertically.and.returnValue(1.5);
 
-      expect(scrollViewportTo({ row: 90 })).toBe(false);
+      expect(await scrollViewportTo({ row: 90 })).toBe(false);
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
       expect(topOverlay().getScrollPosition()).toBe(0);
 
       beforeViewportScrollVertically.and.returnValue(null);
 
-      expect(scrollViewportTo({ row: 90 })).toBe(false);
+      expect(await scrollViewportTo({ row: 90 })).toBe(false);
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
       expect(topOverlay().getScrollPosition()).toBe(0);
 
       beforeViewportScrollVertically.and.returnValue(-1);
 
-      expect(scrollViewportTo({ row: 90 })).toBe(false);
+      expect(await scrollViewportTo({ row: 90 })).toBe(false);
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
       expect(topOverlay().getScrollPosition()).toBe(0);
 
       beforeViewportScrollVertically.and.returnValue(100); // out of range
 
-      expect(scrollViewportTo({ row: 90 })).toBe(false);
+      expect(await scrollViewportTo({ row: 90 })).toBe(false);
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
       expect(topOverlay().getScrollPosition()).toBe(0);
     });

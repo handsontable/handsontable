@@ -30,12 +30,9 @@ describe('Non-contiguous selection scroll (RTL mode)', () => {
 
       // make sure that the `F1` cell is partially visible on the left side of the table
       await scrollOverlay(inlineStartOverlay(), 25);
-
-      simulateClick(getCell(0, 3));
-      keyDown('control/meta');
-      simulateClick(getCell(0, 5));
-
-      await sleep(10);
+      await simulateClick(getCell(0, 3));
+      await keyDown('control/meta');
+      await simulateClick(getCell(0, 5));
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(51);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 3, true));
@@ -57,10 +54,7 @@ describe('Non-contiguous selection scroll (RTL mode)', () => {
 
       // make sure that the `F1` cell is partially visible on the left side of the table
       await scrollOverlay(inlineStartOverlay(), 25);
-
-      selectCells([[0, 3], [0, 5]]);
-
-      await sleep(10);
+      await selectCells([[0, 3], [0, 5]]);
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(51);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 5, true));
@@ -81,10 +75,7 @@ describe('Non-contiguous selection scroll (RTL mode)', () => {
 
       // make sure that the `F1` cell is partially visible on the left side of the table
       await scrollOverlay(inlineStartOverlay(), 25);
-
-      selectCells([[0, 5], [0, 3]]);
-
-      await sleep(10);
+      await selectCells([[0, 5], [0, 3]]);
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(25);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 3, true));
@@ -108,11 +99,9 @@ describe('Non-contiguous selection scroll (RTL mode)', () => {
       // make sure that the `A1` cell is partially visible on the right side of the table
       await scrollOverlay(inlineStartOverlay(), 25);
 
-      simulateClick(getCell(0, 2));
-      keyDown('control/meta');
-      simulateClick(getCell(0, 0));
-
-      await sleep(10);
+      await simulateClick(getCell(0, 2));
+      await keyDown('control/meta');
+      await simulateClick(getCell(0, 0));
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 2, true));
@@ -134,10 +123,7 @@ describe('Non-contiguous selection scroll (RTL mode)', () => {
 
       // make sure that the `A1` cell is partially visible on the right side of the table
       await scrollOverlay(inlineStartOverlay(), 25);
-
-      selectCells([[0, 2], [0, 0]]);
-
-      await sleep(10);
+      await selectCells([[0, 2], [0, 0]]);
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 0, true));
@@ -158,10 +144,7 @@ describe('Non-contiguous selection scroll (RTL mode)', () => {
 
       // make sure that the `A1` cell is partially visible on the right side of the table
       await scrollOverlay(inlineStartOverlay(), 25);
-
-      selectCells([[0, 0], [0, 2]]);
-
-      await sleep(10);
+      await selectCells([[0, 0], [0, 2]]);
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(25);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 2, true));

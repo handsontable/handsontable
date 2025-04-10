@@ -29,11 +29,8 @@ describe('Horizontal scroll', () => {
 
     // make sure that the `I` column is partially visible
     await scrollOverlay(inlineStartOverlay(), 415);
-
     // select the `I` column
-    selectCell(0, 8);
-
-    await sleep(10);
+    await selectCell(0, 8);
 
     // expect that the viewport is scrolled to the beginning of the `I` column
     expect(inlineStartOverlay().getScrollPosition()).toBe(400);

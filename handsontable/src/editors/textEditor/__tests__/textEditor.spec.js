@@ -1385,28 +1385,28 @@ describe('TextEditor', () => {
     expect(isEditorVisible()).toBe(true);
   });
 
-  it('should not open editor after hitting any other printable character when header is highlighted', () => {
+  it('should not open editor after hitting any other printable character when header is highlighted', async() => {
     handsontable({
       rowHeaders: true,
       colHeaders: true,
       navigableHeaders: true,
     });
 
-    expect(selectCell(-1, 2)).toBe(true);
+    expect(await selectCell(-1, 2)).toBe(true);
     expect(isEditorVisible()).toBe(false);
 
     keyDownUp('z');
 
     expect(isEditorVisible()).toBe(false);
 
-    expect(selectCell(2, -1)).toBe(true);
+    expect(await selectCell(2, -1)).toBe(true);
     expect(isEditorVisible()).toBe(false);
 
     keyDownUp('1');
 
     expect(isEditorVisible()).toBe(false);
 
-    expect(selectCell(-1, -1)).toBe(true);
+    expect(await selectCell(-1, -1)).toBe(true);
     expect(isEditorVisible()).toBe(false);
 
     keyDownUp('.');

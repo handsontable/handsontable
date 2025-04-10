@@ -56,14 +56,13 @@ describe('DropdownMenu keyboard shortcut', () => {
         dropdownMenu: generateRandomDropdownMenuItems(200),
       });
 
-      dropdownMenu();
-      getPlugin('dropdownMenu').menu.getNavigator().toLastItem();
+      await dropdownMenu();
 
+      getPlugin('dropdownMenu').menu.getNavigator().toLastItem();
       window.scrollTo(0, document.documentElement.scrollHeight);
 
       await sleep(100);
-
-      keyDownUp('pageup');
+      await keyDownUp('pageup');
 
       const menuView = getPlugin('dropdownMenu').menu.hotMenu.view;
       let lastVisibleRow = 199;

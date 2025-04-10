@@ -988,12 +988,12 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 1,1']);
     });
 
-    it('should not deselect current selection when selectRows is called with negative values', () => {
+    it('should not deselect current selection when selectRows is called with negative values', async() => {
       handsontable({
         data: createSpreadsheetObjectData(4, 6),
       });
 
-      let wasSelected = selectCell(0, 0, 2, 2); // Initial selection.
+      let wasSelected = await selectCell(0, 0, 2, 2); // Initial selection.
 
       expect(`
         | A : 0 : 0 :   :   :   |
@@ -1031,7 +1031,7 @@ describe('Selection', () => {
       expect(wasSelected).toBe(false);
     });
 
-    it('should not deselect current selection when selectRows is called with negative values (navigableHeaders on, with headers)', () => {
+    it('should not deselect current selection when selectRows is called with negative values (navigableHeaders on, with headers)', async() => {
       handsontable({
         data: createSpreadsheetObjectData(4, 6),
         navigableHeaders: true,
@@ -1045,7 +1045,7 @@ describe('Selection', () => {
         },
       });
 
-      let wasSelected = selectCell(0, 0, 2, 2); // Initial selection.
+      let wasSelected = await selectCell(0, 0, 2, 2); // Initial selection.
 
       expect(`
         |   :   ║   :   :   :   :   :   |
@@ -1089,12 +1089,12 @@ describe('Selection', () => {
       expect(wasSelected).toBe(false);
     });
 
-    it('should not deselect current selection when selectRows is called with coordinates beyond the table data range', () => {
+    it('should not deselect current selection when selectRows is called with coordinates beyond the table data range', async() => {
       handsontable({
         data: createSpreadsheetObjectData(4, 3),
       });
 
-      let wasSelected = selectCell(0, 0, 2, 2); // Initial selection.
+      let wasSelected = await selectCell(0, 0, 2, 2); // Initial selection.
 
       expect(`
         | A : 0 : 0 |

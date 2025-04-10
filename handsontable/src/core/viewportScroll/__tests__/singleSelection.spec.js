@@ -26,9 +26,7 @@ describe('Single selection scroll', () => {
         colHeaders: true,
       });
 
-      simulateClick(getCell(0, 5));
-
-      await sleep(10);
+      await simulateClick(getCell(0, 5));
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
       expect(scrollIntoViewSpy).not.toHaveBeenCalled();
@@ -45,10 +43,7 @@ describe('Single selection scroll', () => {
 
       // make sure that the `F1` cell is partially visible on the right side of the table
       await scrollOverlay(inlineStartOverlay(), 25);
-
-      mouseDoubleClick(getCell(0, 5));
-
-      await sleep(10);
+      await mouseDoubleClick(getCell(0, 5));
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(51);
       expect(scrollIntoViewSpy).not.toHaveBeenCalled();
@@ -65,11 +60,8 @@ describe('Single selection scroll', () => {
 
       // make sure that the `F1` cell is partially visible on the right side of the table
       await scrollOverlay(inlineStartOverlay(), 25);
-
-      selectCell(0, 4);
-      keyDownUp('arrowright');
-
-      await sleep(10);
+      await selectCell(0, 4);
+      await keyDownUp('arrowright');
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(51);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 4, true));
@@ -92,11 +84,8 @@ describe('Single selection scroll', () => {
 
       // make sure that the `F1` cell is partially visible on the right side of the table
       await scrollOverlay(inlineStartOverlay(), 25);
-
-      selectCell(-1, 4);
-      keyDownUp('arrowright');
-
-      await sleep(10);
+      await selectCell(-1, 4);
+      await keyDownUp('arrowright');
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(51);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(-1, 4, true));
@@ -118,10 +107,7 @@ describe('Single selection scroll', () => {
 
       // make sure that the `F1` cell is partially visible on the right side of the table
       await scrollOverlay(inlineStartOverlay(), 25);
-
-      selectCell(0, 5);
-
-      await sleep(10);
+      await selectCell(0, 5);
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(51);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 5, true));
@@ -144,10 +130,7 @@ describe('Single selection scroll', () => {
 
       // make sure that the `A1` cell is partially visible on the left side of the table
       await scrollOverlay(inlineStartOverlay(), 25);
-
-      simulateClick(getCell(0, 0));
-
-      await sleep(10);
+      await simulateClick(getCell(0, 0));
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 0, true));
@@ -168,10 +151,7 @@ describe('Single selection scroll', () => {
 
       // make sure that the `A1` cell is partially visible on the left side of the table
       await scrollOverlay(inlineStartOverlay(), 25);
-
-      mouseDoubleClick(getCell(0, 0));
-
-      await sleep(10);
+      await mouseDoubleClick(getCell(0, 0));
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 0, true));
@@ -192,11 +172,8 @@ describe('Single selection scroll', () => {
 
       // make sure that the `A1` cell is partially visible on the left side of the table
       await scrollOverlay(inlineStartOverlay(), 25);
-
-      selectCell(0, 1);
-      keyDownUp('arrowleft');
-
-      await sleep(10);
+      await selectCell(0, 1);
+      await keyDownUp('arrowleft');
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 1, true));
@@ -219,11 +196,8 @@ describe('Single selection scroll', () => {
 
       // make sure that the `A1` cell is partially visible on the left side of the table
       await scrollOverlay(inlineStartOverlay(), 25);
-
-      selectCell(-1, 1);
-      keyDownUp('arrowleft');
-
-      await sleep(10);
+      await selectCell(-1, 1);
+      await keyDownUp('arrowleft');
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(-1, 1, true));
@@ -245,10 +219,7 @@ describe('Single selection scroll', () => {
 
       // make sure that the `A1` cell is partially visible on the left side of the table
       await scrollOverlay(inlineStartOverlay(), 25);
-
-      selectCell(0, 0);
-
-      await sleep(10);
+      await selectCell(0, 0);
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 0, true));
@@ -271,10 +242,7 @@ describe('Single selection scroll', () => {
 
       // make sure that the `A1` cell is partially visible on the top side of the table
       await scrollOverlay(topOverlay(), 15);
-
-      simulateClick(getCell(0, 0));
-
-      await sleep(10);
+      await simulateClick(getCell(0, 0));
 
       expect(topOverlay().getScrollPosition()).toBe(0);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 0, true));
@@ -295,10 +263,7 @@ describe('Single selection scroll', () => {
 
       // make sure that the `A1` cell is partially visible on the top side of the table
       await scrollOverlay(topOverlay(), 15);
-
-      mouseDoubleClick(getCell(0, 0));
-
-      await sleep(10);
+      await mouseDoubleClick(getCell(0, 0));
 
       expect(topOverlay().getScrollPosition()).toBe(0);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 0, true));
@@ -319,11 +284,8 @@ describe('Single selection scroll', () => {
 
       // make sure that the `A1` cell is partially visible on the top side of the table
       await scrollOverlay(topOverlay(), 15);
-
-      selectCell(1, 0);
-      keyDownUp('arrowup');
-
-      await sleep(10);
+      await selectCell(1, 0);
+      await keyDownUp('arrowup');
 
       expect(topOverlay().getScrollPosition()).toBe(0);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(1, 0, true));
@@ -346,11 +308,8 @@ describe('Single selection scroll', () => {
 
       // make sure that the `A1` cell is partially visible on the top side of the table
       await scrollOverlay(topOverlay(), 15);
-
-      selectCell(1, -1);
-      keyDownUp('arrowup');
-
-      await sleep(10);
+      await selectCell(1, -1);
+      await keyDownUp('arrowup');
 
       expect(topOverlay().getScrollPosition()).toBe(0);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(1, -1, true));
@@ -372,10 +331,7 @@ describe('Single selection scroll', () => {
 
       // make sure that the `A1` cell is partially visible on the top side of the table
       await scrollOverlay(topOverlay(), 15);
-
-      selectCell(0, 0);
-
-      await sleep(10);
+      await selectCell(0, 0);
 
       expect(topOverlay().getScrollPosition()).toBe(0);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(0, 0, true));
@@ -396,9 +352,7 @@ describe('Single selection scroll', () => {
         colHeaders: true,
       });
 
-      simulateClick(getCell(11, 0));
-
-      await sleep(10);
+      await simulateClick(getCell(11, 0));
 
       expect(topOverlay().getScrollPosition()).toBe(0);
       expect(scrollIntoViewSpy).not.toHaveBeenCalled();
@@ -413,9 +367,7 @@ describe('Single selection scroll', () => {
         colHeaders: true,
       });
 
-      mouseDoubleClick(getCell(11, 0));
-
-      await sleep(10);
+      await mouseDoubleClick(getCell(11, 0));
 
       expect(topOverlay().getScrollPosition()).toBe(13);
       expect(scrollIntoViewSpy).not.toHaveBeenCalled();
@@ -430,10 +382,8 @@ describe('Single selection scroll', () => {
         colHeaders: true,
       });
 
-      selectCell(10, 0);
-      keyDownUp('arrowdown');
-
-      await sleep(10);
+      await selectCell(10, 0);
+      await keyDownUp('arrowdown');
 
       expect(topOverlay().getScrollPosition()).toBe(18);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(10, 0, true));
@@ -454,10 +404,8 @@ describe('Single selection scroll', () => {
         navigableHeaders: true,
       });
 
-      selectCell(10, -1);
-      keyDownUp('arrowdown');
-
-      await sleep(10);
+      await selectCell(10, -1);
+      await keyDownUp('arrowdown');
 
       expect(topOverlay().getScrollPosition()).toBe(18);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(10, -1, true));
@@ -477,9 +425,7 @@ describe('Single selection scroll', () => {
         colHeaders: true,
       });
 
-      selectCell(11, 0);
-
-      await sleep(10);
+      await selectCell(11, 0);
 
       expect(topOverlay().getScrollPosition()).toBe(18);
       expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(11, 0, true));

@@ -201,7 +201,7 @@ describe('Hook', () => {
       expect(topOverlay().getScrollPosition()).toBe(0);
     });
 
-    it('should not scroll the viewport when the returned value is not an integer', () => {
+    it('should not scroll the viewport when the returned value is not an integer', async() => {
       const beforeViewportScrollHorizontally = jasmine.createSpy('beforeViewportScrollHorizontally');
 
       handsontable({
@@ -215,31 +215,31 @@ describe('Hook', () => {
 
       beforeViewportScrollHorizontally.and.returnValue('foo');
 
-      expect(scrollViewportTo({ col: 90 })).toBe(false);
+      expect(await scrollViewportTo({ col: 90 })).toBe(false);
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
       expect(topOverlay().getScrollPosition()).toBe(0);
 
       beforeViewportScrollHorizontally.and.returnValue(1.5);
 
-      expect(scrollViewportTo({ col: 90 })).toBe(false);
+      expect(await scrollViewportTo({ col: 90 })).toBe(false);
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
       expect(topOverlay().getScrollPosition()).toBe(0);
 
       beforeViewportScrollHorizontally.and.returnValue(null);
 
-      expect(scrollViewportTo({ col: 90 })).toBe(false);
+      expect(await scrollViewportTo({ col: 90 })).toBe(false);
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
       expect(topOverlay().getScrollPosition()).toBe(0);
 
       beforeViewportScrollHorizontally.and.returnValue(-1);
 
-      expect(scrollViewportTo({ col: 90 })).toBe(false);
+      expect(await scrollViewportTo({ col: 90 })).toBe(false);
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
       expect(topOverlay().getScrollPosition()).toBe(0);
 
       beforeViewportScrollHorizontally.and.returnValue(100); // out of range
 
-      expect(scrollViewportTo({ col: 90 })).toBe(false);
+      expect(await scrollViewportTo({ col: 90 })).toBe(false);
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
       expect(topOverlay().getScrollPosition()).toBe(0);
     });

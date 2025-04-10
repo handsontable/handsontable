@@ -128,7 +128,7 @@ describe('Core_listen', () => {
     $container2.remove();
   });
 
-  it('should unlisten after click outside an iframe', () => {
+  it('should unlisten after click outside an iframe', async() => {
     const $iframe = $('<iframe width="500px" height="300px"/>').appendTo(spec().$container);
     const doc = $iframe[0].contentDocument;
 
@@ -143,14 +143,16 @@ describe('Core_listen', () => {
 
     const $iframeContainer = $('<div/>').appendTo(doc.body);
     const $input = $('<input id="text"/>').appendTo(spec().$container);
-    const afterUnlisten = jasmine.createSpy();
+    const afterUnlisten = jasmine.createSpy('afterUnlisten');
 
     $iframeContainer.handsontable({
       afterUnlisten,
     });
 
-    simulateClick($iframeContainer.find('tr:eq(0) td:eq(0)'));
-    simulateClick(spec().$container.find('#text'));
+    setCurrentHotInstance($iframeContainer.handsontable('getInstance'));
+
+    await simulateClick($iframeContainer.find('tr:eq(0) td:eq(0)'));
+    await simulateClick(spec().$container.find('#text'));
 
     expect(afterUnlisten).toHaveBeenCalledOnceWith();
 

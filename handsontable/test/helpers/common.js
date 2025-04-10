@@ -1,3 +1,5 @@
+import { waitOnScroll } from './utils';
+
 const specContext = {};
 
 beforeEach(function() {
@@ -162,13 +164,13 @@ export const removeCellMeta = handsontableMethodFactory('removeCellMeta');
 export const removeHook = handsontableMethodFactory('removeHook');
 export const render = handsontableMethodFactory('render');
 export const runHooks = handsontableMethodFactory('runHooks');
-export const scrollToFocusedCell = handsontableMethodFactory('scrollToFocusedCell');
-export const scrollViewportTo = handsontableMethodFactory('scrollViewportTo');
-export const selectAll = handsontableMethodFactory('selectAll');
-export const selectCell = handsontableMethodFactory('selectCell');
-export const selectCells = handsontableMethodFactory('selectCells');
-export const selectColumns = handsontableMethodFactory('selectColumns');
-export const selectRows = handsontableMethodFactory('selectRows');
+export const scrollToFocusedCell = waitOnScroll(handsontableMethodFactory('scrollToFocusedCell'));
+export const scrollViewportTo = waitOnScroll(handsontableMethodFactory('scrollViewportTo'));
+export const selectAll = waitOnScroll(handsontableMethodFactory('selectAll'));
+export const selectCell = waitOnScroll(handsontableMethodFactory('selectCell'));
+export const selectCells = waitOnScroll(handsontableMethodFactory('selectCells'));
+export const selectColumns = waitOnScroll(handsontableMethodFactory('selectColumns'));
+export const selectRows = waitOnScroll(handsontableMethodFactory('selectRows'));
 export const setCellMeta = handsontableMethodFactory('setCellMeta');
 export const setDataAtCell = handsontableMethodFactory('setDataAtCell');
 export const setDataAtRowProp = handsontableMethodFactory('setDataAtRowProp');
@@ -251,7 +253,17 @@ export function spec() {
  * @returns {Handsontable} Returns the Handsontable instance.
  */
 export function hot() {
-  return spec().$container.data('handsontable');
+  return spec().hotInstance ?? spec().$container?.data('handsontable');
+}
+
+/**
+ * Sets the Handsontable instance as a main instance that will be used in
+ * the helper functions (`simulateClick`, `selectCell` etc).
+ *
+ * @param {Handsontable} hotInstance The Handsontable instance.
+ */
+export function setCurrentHotInstance(hotInstance) {
+  spec().hotInstance = hotInstance;
 }
 
 /**
@@ -531,7 +543,7 @@ export function getCorrespondingOverlay(cell, container) {
  * @param {HTMLElement} cell The cell element to check.
  * @param {Handsontable} [instance] The Handsontable instance.
  */
-export function contextMenu(cell, instance) {
+export const contextMenu = waitOnScroll((cell, instance) => {
   const hotInstance = instance || spec().$container.data('handsontable');
   let clickedCell = cell;
   let selected = hotInstance.getSelectedLast();
@@ -552,7 +564,7 @@ export function contextMenu(cell, instance) {
     clientX: cellOffset.left - Handsontable.dom.getWindowScrollLeft(hotInstance.rootWindow),
     clientY: cellOffset.top - Handsontable.dom.getWindowScrollTop(hotInstance.rootWindow),
   });
-}
+});
 
 /**
  * Opens and executes the context menu item action and closes the menu.
@@ -623,7 +635,7 @@ export function closeContextMenu() {
  *
  * @param {number|HTMLTableCellElement} [columnIndexOrCell=0] The column index or TD element under which the dropdown menu is triggered.
  */
-export function dropdownMenu(columnIndexOrCell = 0) {
+export const dropdownMenu = waitOnScroll((columnIndexOrCell = 0) => {
   let th = columnIndexOrCell;
 
   if (!(columnIndexOrCell instanceof HTMLTableCellElement)) {
@@ -639,7 +651,7 @@ export function dropdownMenu(columnIndexOrCell = 0) {
     $(button).simulate('mouseup');
     $(button).simulate('click');
   }
-}
+});
 
 /**
  * Opens and executes the dropdown menu item action and closes the menu.

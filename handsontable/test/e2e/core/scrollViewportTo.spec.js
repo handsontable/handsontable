@@ -23,7 +23,7 @@ describe('Core.scrollViewportTo', () => {
     });
 
     it('should scroll the viewport in such a way that the coordinates are glued to the bottom-end edge when ' +
-        'the previous viewport position was on the top-start (auto-snapping)', () => {
+        'the previous viewport position was on the top-start (auto-snapping)', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(200, 100),
         width: 300,
@@ -33,12 +33,10 @@ describe('Core.scrollViewportTo', () => {
         colHeaders: true,
       });
 
-      const result = scrollViewportTo({
+      const result = await scrollViewportTo({
         row: 150,
         col: 50,
       });
-
-      render();
 
       expect(result).toBe(true);
       expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).forThemes(({ classic, main, horizon }) => {
@@ -54,7 +52,7 @@ describe('Core.scrollViewportTo', () => {
     });
 
     it('should scroll the viewport in such a way that the coordinates are glued to the bottom-start edge when ' +
-       'the previous viewport position was on the top-end (auto-snapping)', () => {
+       'the previous viewport position was on the top-end (auto-snapping)', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(200, 100),
         width: 300,
@@ -65,19 +63,15 @@ describe('Core.scrollViewportTo', () => {
       });
 
       // move the table to the top-end viewport position
-      scrollViewportTo({
+      await scrollViewportTo({
         row: 0,
         col: 99,
       });
 
-      render();
-
-      const result = scrollViewportTo({
+      const result = await scrollViewportTo({
         row: 150,
         col: 50,
       });
-
-      render();
 
       expect(result).toBe(true);
       expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).forThemes(({ classic, main, horizon }) => {
@@ -93,7 +87,7 @@ describe('Core.scrollViewportTo', () => {
     });
 
     it('should scroll the viewport in such a way that the coordinates are glued to the top-start edge when ' +
-       'the previous viewport position was on the bottom-end (auto-snapping)', () => {
+       'the previous viewport position was on the bottom-end (auto-snapping)', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(200, 100),
         width: 300,
@@ -104,19 +98,15 @@ describe('Core.scrollViewportTo', () => {
       });
 
       // move the table to the bottom-end viewport position
-      scrollViewportTo({
+      await scrollViewportTo({
         row: 199,
         col: 99,
       });
 
-      render();
-
-      const result = scrollViewportTo({
+      const result = await scrollViewportTo({
         row: 150,
         col: 50,
       });
-
-      render();
 
       expect(result).toBe(true);
       expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).forThemes(({ classic, main, horizon }) => {
@@ -132,7 +122,7 @@ describe('Core.scrollViewportTo', () => {
     });
 
     it('should scroll the viewport in such a way that the coordinates are glued to the top-end edge when ' +
-       'the previous viewport position was on the bottom-start (auto-snapping)', () => {
+       'the previous viewport position was on the bottom-start (auto-snapping)', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(200, 100),
         width: 300,
@@ -143,19 +133,15 @@ describe('Core.scrollViewportTo', () => {
       });
 
       // move the table to the bottom-start viewport position
-      scrollViewportTo({
+      await scrollViewportTo({
         row: 199,
         col: 0,
       });
 
-      render();
-
-      const result = scrollViewportTo({
+      const result = await scrollViewportTo({
         row: 150,
         col: 50,
       });
-
-      render();
 
       expect(result).toBe(true);
       expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).forThemes(({ classic, main, horizon }) => {
@@ -182,25 +168,19 @@ describe('Core.scrollViewportTo', () => {
 
     const callback = jasmine.createSpy('callback');
 
-    scrollViewportTo({ row: 25 }, () => callback());
-
-    await sleep(10);
+    await scrollViewportTo({ row: 25 }, () => callback());
 
     expect(callback).toHaveBeenCalledTimes(1);
 
     callback.calls.reset();
 
-    scrollViewportTo({ col: 25 }, () => callback());
-
-    await sleep(10);
+    await scrollViewportTo({ col: 25 }, () => callback());
 
     expect(callback).toHaveBeenCalledTimes(1);
 
     callback.calls.reset();
 
-    scrollViewportTo({ row: 0, col: 0 }, () => callback());
-
-    await sleep(10);
+    await scrollViewportTo({ row: 0, col: 0 }, () => callback());
 
     expect(callback).toHaveBeenCalledTimes(1);
   });
@@ -216,14 +196,12 @@ describe('Core.scrollViewportTo', () => {
 
     const callback = jasmine.createSpy('callback');
 
-    scrollViewportTo({ row: 0, col: 0 }, () => callback());
-
-    await sleep(10);
+    await scrollViewportTo({ row: 0, col: 0 }, () => callback());
 
     expect(callback).toHaveBeenCalledTimes(1);
   });
 
-  it('should scroll the viewport in such a way that the coordinates are glued to the bottom edge (manual snapping)', () => {
+  it('should scroll the viewport in such a way that the coordinates are glued to the bottom edge (manual snapping)', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(200, 100),
       width: 300,
@@ -232,12 +210,10 @@ describe('Core.scrollViewportTo', () => {
       colHeaders: true,
     });
 
-    const result = scrollViewportTo({
+    const result = await scrollViewportTo({
       row: 150,
       verticalSnap: 'bottom',
     });
-
-    render();
 
     expect(result).toBe(true);
     expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(0);
@@ -248,7 +224,7 @@ describe('Core.scrollViewportTo', () => {
     });
   });
 
-  it('should scroll the viewport in such a way that the coordinates are glued to the top edge (manual snapping)', () => {
+  it('should scroll the viewport in such a way that the coordinates are glued to the top edge (manual snapping)', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(200, 100),
       width: 300,
@@ -257,12 +233,10 @@ describe('Core.scrollViewportTo', () => {
       colHeaders: true,
     });
 
-    const result = scrollViewportTo({
+    const result = await scrollViewportTo({
       row: 150,
       verticalSnap: 'top',
     });
-
-    render();
 
     expect(result).toBe(true);
     expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(0);
@@ -273,7 +247,7 @@ describe('Core.scrollViewportTo', () => {
     });
   });
 
-  it('should scroll the viewport in such a way that the coordinates are glued to the right edge (manual snapping)', () => {
+  it('should scroll the viewport in such a way that the coordinates are glued to the right edge (manual snapping)', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(200, 100),
       width: 300,
@@ -283,12 +257,10 @@ describe('Core.scrollViewportTo', () => {
       colHeaders: true,
     });
 
-    const result = scrollViewportTo({
+    const result = await scrollViewportTo({
       col: 50,
       horizontalSnap: 'end',
     });
-
-    render();
 
     expect(result).toBe(true);
     expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).forThemes(({ classic, main, horizon }) => {
@@ -299,7 +271,7 @@ describe('Core.scrollViewportTo', () => {
     expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(0);
   });
 
-  it('should scroll the viewport in such a way that the coordinates are glued to the left edge (manual snapping)', () => {
+  it('should scroll the viewport in such a way that the coordinates are glued to the left edge (manual snapping)', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(100, 100),
       width: 300,
@@ -309,12 +281,10 @@ describe('Core.scrollViewportTo', () => {
       colHeaders: true,
     });
 
-    const result = scrollViewportTo({
+    const result = await scrollViewportTo({
       col: 50,
       horizontalSnap: 'start',
     });
-
-    render();
 
     expect(result).toBe(true);
     expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).forThemes(({ classic, main, horizon }) => {
@@ -325,7 +295,7 @@ describe('Core.scrollViewportTo', () => {
     expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(0);
   });
 
-  it('should scroll the viewport to the last cell in the last row', () => {
+  it('should scroll the viewport to the last cell in the last row', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(100, 100),
       height: 300,
@@ -334,18 +304,16 @@ describe('Core.scrollViewportTo', () => {
       colHeaders: true
     });
 
-    scrollViewportTo({
+    await scrollViewportTo({
       row: 99,
       col: 99,
     });
-
-    render();
 
     expect(hot.view._wt.wtScroll.getLastVisibleColumn()).toBe(99);
     expect(hot.view._wt.wtScroll.getLastVisibleRow()).toBe(99);
   });
 
-  it('should scroll the viewport to the first cell in the first row', () => {
+  it('should scroll the viewport to the first cell in the first row', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(50, 50),
       height: 300,
@@ -355,19 +323,15 @@ describe('Core.scrollViewportTo', () => {
     });
 
     // move the table to the bottom-left viewport position
-    scrollViewportTo({
+    await scrollViewportTo({
       row: countRows() - 1,
       col: countCols() - 1,
     });
 
-    render();
-
-    scrollViewportTo({
+    await scrollViewportTo({
       row: 0,
       col: 0,
     });
-
-    render();
 
     expect(hot.view._wt.wtScroll.getFirstVisibleColumn()).toBe(0);
     expect(hot.view._wt.wtScroll.getFirstVisibleRow()).toBe(0);
@@ -382,20 +346,14 @@ describe('Core.scrollViewportTo', () => {
       colHeaders: true
     });
 
-    scrollViewportTo({
+    await scrollViewportTo({
       row: 50,
       col: 50,
     });
 
-    render();
-
-    scrollViewportTo({
+    await scrollViewportTo({
       row: 80,
     });
-
-    render();
-
-    await sleep(50);
 
     expect(hot.view._wt.wtScroll.getFirstVisibleColumn()).toBe(47);
     expect(hot.view._wt.wtScroll.getFirstVisibleRow()).toBe(70);
@@ -410,20 +368,14 @@ describe('Core.scrollViewportTo', () => {
       colHeaders: true
     });
 
-    scrollViewportTo({
+    await scrollViewportTo({
       row: 50,
       col: 50,
     });
 
-    render();
-
-    scrollViewportTo({
+    await scrollViewportTo({
       row: 80,
     });
-
-    render();
-
-    await sleep(50);
 
     expect(hot.view._wt.wtScroll.getFirstVisibleColumn()).toBe(47);
     expect(hot.view._wt.wtScroll.getFirstVisibleRow()).toBe(70);
@@ -438,26 +390,20 @@ describe('Core.scrollViewportTo', () => {
       colHeaders: true
     });
 
-    scrollViewportTo({
+    await scrollViewportTo({
       row: 50,
       col: 50,
     });
 
-    render();
-
-    scrollViewportTo({
+    await scrollViewportTo({
       row: 80,
     });
-
-    render();
-
-    await sleep(50);
 
     expect(hot.view._wt.wtScroll.getFirstVisibleColumn()).toBe(47);
     expect(hot.view._wt.wtScroll.getFirstVisibleRow()).toBe(70);
   });
 
-  it.forTheme('classic')('should scroll the viewport only vertically', () => {
+  it.forTheme('classic')('should scroll the viewport only vertically', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(100, 100),
       height: 300,
@@ -466,24 +412,20 @@ describe('Core.scrollViewportTo', () => {
       colHeaders: true
     });
 
-    scrollViewportTo({
+    await scrollViewportTo({
       row: 50,
       col: 50,
     });
 
-    render();
-
-    scrollViewportTo({
+    await scrollViewportTo({
       col: 80,
     });
-
-    render();
 
     expect(hot.view._wt.wtScroll.getFirstVisibleColumn()).toBe(77);
     expect(hot.view._wt.wtScroll.getFirstVisibleRow()).toBe(40);
   });
 
-  it.forTheme('main')('should scroll the viewport only vertically', () => {
+  it.forTheme('main')('should scroll the viewport only vertically', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(100, 100),
       height: 375,
@@ -492,24 +434,20 @@ describe('Core.scrollViewportTo', () => {
       colHeaders: true
     });
 
-    scrollViewportTo({
+    await scrollViewportTo({
       row: 50,
       col: 50,
     });
 
-    render();
-
-    scrollViewportTo({
+    await scrollViewportTo({
       col: 80,
     });
-
-    render();
 
     expect(hot.view._wt.wtScroll.getFirstVisibleColumn()).toBe(77);
     expect(hot.view._wt.wtScroll.getFirstVisibleRow()).toBe(40);
   });
 
-  it.forTheme('horizon')('should scroll the viewport only vertically', () => {
+  it.forTheme('horizon')('should scroll the viewport only vertically', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(100, 100),
       height: 478,
@@ -518,24 +456,20 @@ describe('Core.scrollViewportTo', () => {
       colHeaders: true
     });
 
-    scrollViewportTo({
+    await scrollViewportTo({
       row: 50,
       col: 50,
     });
 
-    render();
-
-    scrollViewportTo({
+    await scrollViewportTo({
       col: 80,
     });
-
-    render();
 
     expect(hot.view._wt.wtScroll.getFirstVisibleColumn()).toBe(77);
     expect(hot.view._wt.wtScroll.getFirstVisibleRow()).toBe(40);
   });
 
-  it('should scroll the viewport properly when there are hidden columns', () => {
+  it('should scroll the viewport properly when there are hidden columns', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(50, 50),
       width: 200,
@@ -550,19 +484,17 @@ describe('Core.scrollViewportTo', () => {
 
     render();
 
-    scrollViewportTo({
+    await scrollViewportTo({
       row: 0,
       col: 15,
       verticalSnap: 'top',
       horizontalSnap: 'start',
     });
 
-    render();
-
     expect(hot.view._wt.wtTable.getFirstVisibleColumn()).toBe(15 - 3); // 3 hidden, not rendered elements.
   });
 
-  it('should scroll the viewport properly when there are hidden rows', () => {
+  it('should scroll the viewport properly when there are hidden rows', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(50, 50),
       width: 200,
@@ -577,19 +509,17 @@ describe('Core.scrollViewportTo', () => {
 
     render();
 
-    scrollViewportTo({
+    await scrollViewportTo({
       row: 15,
       col: 0,
       verticalSnap: 'top',
       horizontalSnap: 'start',
     });
 
-    render();
-
     expect(hot.view._wt.wtTable.getFirstVisibleRow()).toBe(15 - 3); // 3 hidden, not rendered elements.
   });
 
-  it('should scroll viewport properly when there are hidden columns (row is not defined)', () => {
+  it('should scroll viewport properly when there are hidden columns (row is not defined)', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(50, 50),
       width: 200,
@@ -604,18 +534,16 @@ describe('Core.scrollViewportTo', () => {
 
     render();
 
-    scrollViewportTo({
+    await scrollViewportTo({
       col: 15,
       verticalSnap: 'top',
       horizontalSnap: 'start',
     });
 
-    render();
-
     expect(hot.view._wt.wtTable.getFirstVisibleColumn()).toBe(15 - 3); // 3 hidden, not rendered elements before.
   });
 
-  it('should scroll viewport properly when there are hidden rows (col is not defined)', () => {
+  it('should scroll viewport properly when there are hidden rows (col is not defined)', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(50, 50),
       width: 200,
@@ -630,18 +558,16 @@ describe('Core.scrollViewportTo', () => {
 
     render();
 
-    scrollViewportTo({
+    await scrollViewportTo({
       row: 15,
       verticalSnap: 'top',
       horizontalSnap: 'start',
     });
 
-    render();
-
     expect(hot.view._wt.wtTable.getFirstVisibleRow()).toBe(15 - 3); // 3 hidden, not rendered elements before.
   });
 
-  it('should scroll the viewport to the right side of the destination index when the column is hidden (based on visual indexes)', () => {
+  it('should scroll the viewport to the right side of the destination index when the column is hidden (based on visual indexes)', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(50, 50),
       width: 200,
@@ -658,56 +584,48 @@ describe('Core.scrollViewportTo', () => {
 
     render();
 
-    const scrollResult1 = scrollViewportTo({
+    const scrollResult1 = await scrollViewportTo({
       row: 0,
       col: 7,
       verticalSnap: 'top',
       horizontalSnap: 'start',
     });
 
-    render();
-
     expect(scrollResult1).toBe(true);
     expect(hot.view._wt.wtTable.getFirstVisibleColumn()).toBe(8 - 4); // 4 hidden, not rendered elements before.
 
-    const scrollResult2 = scrollViewportTo({
+    const scrollResult2 = await scrollViewportTo({
       row: 0,
       col: 15,
       verticalSnap: 'top',
       horizontalSnap: 'start',
     });
 
-    render();
-
     expect(scrollResult2).toBe(true);
     expect(hot.view._wt.wtTable.getFirstVisibleColumn()).toBe(16 - 5); // 5 hidden, not rendered elements before.
 
-    const scrollResult3 = scrollViewportTo({
+    const scrollResult3 = await scrollViewportTo({
       row: 0,
       col: 7,
       verticalSnap: 'top',
       horizontalSnap: 'start',
     });
 
-    render();
-
     expect(scrollResult3).toBe(true);
     expect(hot.view._wt.wtTable.getFirstVisibleColumn()).toBe(8 - 4); // 4 hidden, not rendered elements before.
 
-    const scrollResult4 = scrollViewportTo({
+    const scrollResult4 = await scrollViewportTo({
       row: 0,
       col: 0,
       verticalSnap: 'top',
       horizontalSnap: 'start',
     });
-
-    render();
 
     expect(scrollResult4).toBe(true);
     expect(hot.view._wt.wtTable.getFirstVisibleColumn()).toBe(3 - 3); // 3 hidden, not rendered elements before.
   });
 
-  it('should scroll the viewport to the bottom side of the destination index when the row is hidden (based on visual indexes)', () => {
+  it('should scroll the viewport to the bottom side of the destination index when the row is hidden (based on visual indexes)', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(50, 50),
       width: 200,
@@ -724,57 +642,49 @@ describe('Core.scrollViewportTo', () => {
 
     render();
 
-    const scrollResult1 = scrollViewportTo({
+    const scrollResult1 = await scrollViewportTo({
       row: 7,
       col: 0,
       verticalSnap: 'top',
       horizontalSnap: 'start',
     });
 
-    render();
-
     expect(scrollResult1).toBe(true);
     expect(hot.view._wt.wtTable.getFirstVisibleRow()).toBe(8 - 4); // 4 hidden, not rendered elements before.
 
-    const scrollResult2 = scrollViewportTo({
+    const scrollResult2 = await scrollViewportTo({
       row: 15,
       col: 0,
       verticalSnap: 'top',
       horizontalSnap: 'start',
     });
 
-    render();
-
     expect(scrollResult2).toBe(true);
     expect(hot.view._wt.wtTable.getFirstVisibleRow()).toBe(16 - 5); // 5 hidden, not rendered elements before.
 
-    const scrollResult3 = scrollViewportTo({
+    const scrollResult3 = await scrollViewportTo({
       row: 7,
       col: 0,
       verticalSnap: 'top',
       horizontalSnap: 'start',
     });
 
-    render();
-
     expect(scrollResult3).toBe(true);
     expect(hot.view._wt.wtTable.getFirstVisibleRow()).toBe(8 - 4); // 4 hidden, not rendered elements before.
 
-    const scrollResult4 = scrollViewportTo({
+    const scrollResult4 = await scrollViewportTo({
       row: 0,
       col: 0,
       verticalSnap: 'top',
       horizontalSnap: 'start',
     });
-
-    render();
 
     expect(scrollResult4).toBe(true);
     expect(hot.view._wt.wtTable.getFirstVisibleRow()).toBe(3 - 3); // 3 hidden, not rendered elements before.
   });
 
   it('should scroll the viewport to the left side of the destination index when the column is hidden and there are ' +
-    'no visible indexes on the right (based on visual indexes)', () => {
+    'no visible indexes on the right (based on visual indexes)', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(50, 20),
       width: 200,
@@ -796,45 +706,39 @@ describe('Core.scrollViewportTo', () => {
     render();
     hot.view._wt.wtOverlays.adjustElementsSize();
 
-    const scrollResult1 = scrollViewportTo({
+    const scrollResult1 = await scrollViewportTo({
       row: 0,
       col: 15,
       verticalSnap: 'top',
       horizontalSnap: 'start',
     });
 
-    render();
-
     expect(scrollResult1).toBe(true);
     expect(hot.view._wt.wtTable.getLastVisibleColumn()).toBe(14 - 4); // 5 hidden, not rendered elements before.
 
-    const scrollResult2 = scrollViewportTo({
+    const scrollResult2 = await scrollViewportTo({
       row: 0,
       col: 17,
       verticalSnap: 'top',
       horizontalSnap: 'start',
     });
 
-    render();
-
-    expect(scrollResult2).toBe(true);
+    expect(scrollResult2).toBe(false);
     expect(hot.view._wt.wtTable.getLastVisibleColumn()).toBe(14 - 4); // 4 hidden, not rendered elements before.
 
-    const scrollResult3 = scrollViewportTo({
+    const scrollResult3 = await scrollViewportTo({
       row: 0,
       col: 19,
       verticalSnap: 'top',
       horizontalSnap: 'start',
     });
 
-    render();
-
-    expect(scrollResult3).toBe(true);
+    expect(scrollResult3).toBe(false);
     expect(hot.view._wt.wtTable.getLastVisibleColumn()).toBe(14 - 4); // 4 hidden, not rendered elements before.
   });
 
   it('should scroll the viewport to the bottom side of the destination index when the row is hidden and there are ' +
-    'no visible indexes on the top (based on visual indexes)', () => {
+    'no visible indexes on the top (based on visual indexes)', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(25, 20),
       width: 200,
@@ -862,44 +766,38 @@ describe('Core.scrollViewportTo', () => {
     render();
     hot.view._wt.wtOverlays.adjustElementsSize();
 
-    const scrollResult1 = scrollViewportTo({
+    const scrollResult1 = await scrollViewportTo({
       row: 15,
       col: 0,
       verticalSnap: 'top',
       horizontalSnap: 'start',
     });
 
-    render();
-
     expect(scrollResult1).toBe(true);
     expect(hot.view._wt.wtTable.getLastVisibleRow()).toBe(14 - 4); // 5 hidden, not rendered elements before.
 
-    const scrollResult2 = scrollViewportTo({
+    const scrollResult2 = await scrollViewportTo({
       row: 17,
       col: 0,
       verticalSnap: 'top',
       horizontalSnap: 'start',
     });
 
-    render();
-
-    expect(scrollResult2).toBe(true);
+    expect(scrollResult2).toBe(false);
     expect(hot.view._wt.wtTable.getLastVisibleRow()).toBe(14 - 4); // 4 hidden, not rendered elements before.
 
-    const scrollResult3 = scrollViewportTo({
+    const scrollResult3 = await scrollViewportTo({
       row: 19,
       col: 0,
       verticalSnap: 'top',
       horizontalSnap: 'start',
     });
 
-    render();
-
-    expect(scrollResult3).toBe(true);
+    expect(scrollResult3).toBe(false);
     expect(hot.view._wt.wtTable.getLastVisibleRow()).toBe(14 - 4); // 4 hidden, not rendered elements before.
   });
 
-  it('should scroll the viewport to the the visual index destination when there are some hidden columns', () => {
+  it('should scroll the viewport to the the visual index destination when there are some hidden columns', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(50, 20),
       width: 200,
@@ -916,7 +814,7 @@ describe('Core.scrollViewportTo', () => {
 
     render();
 
-    const scrollResult1 = scrollViewportTo({
+    const scrollResult1 = await scrollViewportTo({
       row: 0,
       col: 2,
       verticalSnap: 'top',
@@ -924,12 +822,10 @@ describe('Core.scrollViewportTo', () => {
       considerHiddenIndexes: false,
     });
 
-    render();
-
     expect(scrollResult1).toBe(true);
     expect(hot.view._wt.wtTable.getFirstVisibleColumn()).toBe(2);
 
-    const scrollResult2 = scrollViewportTo({
+    const scrollResult2 = await scrollViewportTo({
       row: 0,
       col: 14,
       verticalSnap: 'top',
@@ -937,12 +833,10 @@ describe('Core.scrollViewportTo', () => {
       considerHiddenIndexes: false,
     });
 
-    render();
-
     expect(scrollResult2).toBe(true);
     expect(hot.view._wt.wtTable.getLastVisibleColumn()).toBe(14);
 
-    const scrollResult3 = scrollViewportTo({
+    const scrollResult3 = await scrollViewportTo({
       row: 0,
       col: 2,
       verticalSnap: 'top',
@@ -950,27 +844,23 @@ describe('Core.scrollViewportTo', () => {
       considerHiddenIndexes: false,
     });
 
-    render();
-
     expect(scrollResult3).toBe(true);
     expect(hot.view._wt.wtTable.getFirstVisibleColumn()).toBe(2);
 
-    const scrollResult4 = scrollViewportTo({
+    const scrollResult4 = await scrollViewportTo({
       row: 0,
       col: 0,
       verticalSnap: 'top',
       horizontalSnap: 'start',
       considerHiddenIndexes: false,
     });
-
-    render();
 
     expect(scrollResult4).toBe(true);
     expect(hot.view._wt.wtTable.getFirstVisibleColumn()).toBe(0);
   });
 
   it.forTheme('classic')('should scroll the viewport to the the visual index destination when ' +
-    'there are some hidden rows', () => {
+    'there are some hidden rows', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(25, 20),
       width: 200,
@@ -987,7 +877,7 @@ describe('Core.scrollViewportTo', () => {
 
     render();
 
-    const scrollResult1 = scrollViewportTo({
+    const scrollResult1 = await scrollViewportTo({
       row: 2,
       col: 0,
       verticalSnap: 'top',
@@ -995,12 +885,10 @@ describe('Core.scrollViewportTo', () => {
       considerHiddenIndexes: false,
     });
 
-    render();
-
     expect(scrollResult1).toBe(true);
     expect(hot.view._wt.wtTable.getFirstVisibleRow()).toBe(2);
 
-    const scrollResult2 = scrollViewportTo({
+    const scrollResult2 = await scrollViewportTo({
       row: 14,
       col: 0,
       verticalSnap: 'top',
@@ -1008,12 +896,10 @@ describe('Core.scrollViewportTo', () => {
       considerHiddenIndexes: false,
     });
 
-    render();
-
     expect(scrollResult2).toBe(true);
     expect(hot.view._wt.wtTable.getLastVisibleRow()).toBe(19);
 
-    const scrollResult3 = scrollViewportTo({
+    const scrollResult3 = await scrollViewportTo({
       row: 2,
       col: 0,
       verticalSnap: 'top',
@@ -1021,27 +907,23 @@ describe('Core.scrollViewportTo', () => {
       considerHiddenIndexes: false,
     });
 
-    render();
-
     expect(scrollResult3).toBe(true);
     expect(hot.view._wt.wtTable.getFirstVisibleRow()).toBe(2);
 
-    const scrollResult4 = scrollViewportTo({
+    const scrollResult4 = await scrollViewportTo({
       row: 0,
       col: 0,
       verticalSnap: 'top',
       horizontalSnap: 'start',
       considerHiddenIndexes: false,
     });
-
-    render();
 
     expect(scrollResult4).toBe(true);
     expect(hot.view._wt.wtTable.getFirstVisibleRow()).toBe(0);
   });
 
   it.forTheme('main')('should scroll the viewport to the the visual index destination when ' +
-    'there are some hidden rows', () => {
+    'there are some hidden rows', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(25, 20),
       width: 200,
@@ -1058,7 +940,7 @@ describe('Core.scrollViewportTo', () => {
 
     render();
 
-    const scrollResult1 = scrollViewportTo({
+    const scrollResult1 = await scrollViewportTo({
       row: 2,
       col: 0,
       verticalSnap: 'top',
@@ -1066,12 +948,10 @@ describe('Core.scrollViewportTo', () => {
       considerHiddenIndexes: false,
     });
 
-    render();
-
     expect(scrollResult1).toBe(true);
     expect(hot.view._wt.wtTable.getFirstVisibleRow()).toBe(2);
 
-    const scrollResult2 = scrollViewportTo({
+    const scrollResult2 = await scrollViewportTo({
       row: 14,
       col: 0,
       verticalSnap: 'top',
@@ -1079,12 +959,10 @@ describe('Core.scrollViewportTo', () => {
       considerHiddenIndexes: false,
     });
 
-    render();
-
     expect(scrollResult2).toBe(true);
     expect(hot.view._wt.wtTable.getLastVisibleRow()).toBe(19);
 
-    const scrollResult3 = scrollViewportTo({
+    const scrollResult3 = await scrollViewportTo({
       row: 2,
       col: 0,
       verticalSnap: 'top',
@@ -1092,12 +970,10 @@ describe('Core.scrollViewportTo', () => {
       considerHiddenIndexes: false,
     });
 
-    render();
-
     expect(scrollResult3).toBe(true);
     expect(hot.view._wt.wtTable.getFirstVisibleRow()).toBe(2);
 
-    const scrollResult4 = scrollViewportTo({
+    const scrollResult4 = await scrollViewportTo({
       row: 0,
       col: 0,
       verticalSnap: 'top',
@@ -1105,14 +981,12 @@ describe('Core.scrollViewportTo', () => {
       considerHiddenIndexes: false,
     });
 
-    render();
-
     expect(scrollResult4).toBe(true);
     expect(hot.view._wt.wtTable.getFirstVisibleRow()).toBe(0);
   });
 
   it.forTheme('horizon')('should scroll the viewport to the the visual index destination when ' +
-    'there are some hidden rows', () => {
+    'there are some hidden rows', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(25, 20),
       width: 200,
@@ -1129,7 +1003,7 @@ describe('Core.scrollViewportTo', () => {
 
     render();
 
-    const scrollResult1 = scrollViewportTo({
+    const scrollResult1 = await scrollViewportTo({
       row: 2,
       col: 0,
       verticalSnap: 'top',
@@ -1137,12 +1011,10 @@ describe('Core.scrollViewportTo', () => {
       considerHiddenIndexes: false,
     });
 
-    render();
-
     expect(scrollResult1).toBe(true);
     expect(hot.view._wt.wtTable.getFirstVisibleRow()).toBe(2);
 
-    const scrollResult2 = scrollViewportTo({
+    const scrollResult2 = await scrollViewportTo({
       row: 14,
       col: 0,
       verticalSnap: 'top',
@@ -1150,12 +1022,10 @@ describe('Core.scrollViewportTo', () => {
       considerHiddenIndexes: false,
     });
 
-    render();
-
     expect(scrollResult2).toBe(true);
     expect(hot.view._wt.wtTable.getLastVisibleRow()).toBe(19);
 
-    const scrollResult3 = scrollViewportTo({
+    const scrollResult3 = await scrollViewportTo({
       row: 2,
       col: 0,
       verticalSnap: 'top',
@@ -1163,12 +1033,10 @@ describe('Core.scrollViewportTo', () => {
       considerHiddenIndexes: false,
     });
 
-    render();
-
     expect(scrollResult3).toBe(true);
     expect(hot.view._wt.wtTable.getFirstVisibleRow()).toBe(2);
 
-    const scrollResult4 = scrollViewportTo({
+    const scrollResult4 = await scrollViewportTo({
       row: 0,
       col: 0,
       verticalSnap: 'top',
@@ -1176,13 +1044,11 @@ describe('Core.scrollViewportTo', () => {
       considerHiddenIndexes: false,
     });
 
-    render();
-
     expect(scrollResult4).toBe(true);
     expect(hot.view._wt.wtTable.getFirstVisibleRow()).toBe(0);
   });
 
-  it('should not scroll viewport when all columns are hidden (based on visual indexes)', () => {
+  it('should not scroll viewport when all columns are hidden (based on visual indexes)', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(10, 10),
       width: 200,
@@ -1192,32 +1058,28 @@ describe('Core.scrollViewportTo', () => {
     columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
     render();
 
-    const scrollResult1 = scrollViewportTo({
+    const scrollResult1 = await scrollViewportTo({
       row: 0,
       col: 0,
       verticalSnap: 'top',
       horizontalSnap: 'start',
     });
 
-    render();
-
     expect(scrollResult1).toBe(false);
     expect(hot.view._wt.wtTable.getFirstVisibleColumn()).toBe(-1);
 
-    const scrollResult2 = scrollViewportTo({
+    const scrollResult2 = await scrollViewportTo({
       row: 0,
       col: 5,
       verticalSnap: 'top',
       horizontalSnap: 'start',
     });
 
-    render();
-
     expect(scrollResult2).toBe(false);
     expect(hot.view._wt.wtTable.getFirstVisibleColumn()).toBe(-1);
   });
 
-  it('should not scroll viewport when all rows are hidden (based on visual indexes)', () => {
+  it('should not scroll viewport when all rows are hidden (based on visual indexes)', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(10, 10),
       width: 200,
@@ -1227,29 +1089,25 @@ describe('Core.scrollViewportTo', () => {
     rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
     render();
 
-    const scrollResult1 = scrollViewportTo({
+    const scrollResult1 = await scrollViewportTo({
       row: 0,
       col: 0,
     });
 
-    render();
-
     expect(scrollResult1).toBe(false);
     expect(hot.view._wt.wtTable.getFirstVisibleRow()).toBe(-1);
 
-    const scrollResult2 = scrollViewportTo({
+    const scrollResult2 = await scrollViewportTo({
       row: 5,
       col: 0,
     });
-
-    render();
 
     expect(scrollResult2).toBe(false);
     expect(hot.view._wt.wtTable.getFirstVisibleRow()).toBe(-1);
   });
 
   it('should scroll the viewport to the desired cell from the top-left position, ' +
-  '(the snapping set to "end") with the bottom/right border being visible', async() => {
+     '(the snapping set to "end") with the bottom/right border being visible', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(30, 30),
       colWidths: 50,
@@ -1260,34 +1118,31 @@ describe('Core.scrollViewportTo', () => {
       height: 200,
     });
 
-    hot.scrollViewportTo({
+    await scrollViewportTo({
       row: 15,
       col: 15,
       horizontalSnap: 'end',
       verticalSnap: 'bottom',
     });
-    await sleep(100);
 
     expect(document.elementsFromPoint(
       hot.rootElement.offsetWidth - Handsontable.dom.getScrollbarWidth() - 50,
       hot.rootElement.offsetHeight - Handsontable.dom.getScrollbarWidth() - 30
     )[0]).toEqual(hot.getCell(15, 15));
 
-    hot.scrollViewportTo({
+    await scrollViewportTo({
       row: 0,
       col: 0,
       horizontalSnap: 'start',
       verticalSnap: 'top',
     });
-    await sleep(100);
 
-    hot.scrollViewportTo({
+    await scrollViewportTo({
       row: 29,
       col: 29,
       horizontalSnap: 'end',
       verticalSnap: 'bottom',
     });
-    await sleep(100);
 
     expect(document.elementsFromPoint(
       hot.rootElement.offsetWidth - Handsontable.dom.getScrollbarWidth() - 50,
@@ -1296,7 +1151,7 @@ describe('Core.scrollViewportTo', () => {
   });
 
   describe('using backward-compatible arguments', () => {
-    it('should scroll the viewport using default snapping (top, start)', () => {
+    it('should scroll the viewport using default snapping (top, start)', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(50, 50),
         width: 200,
@@ -1305,12 +1160,12 @@ describe('Core.scrollViewportTo', () => {
 
       spyOn(hot.view, 'scrollViewport');
 
-      scrollViewportTo(40, 45);
+      await scrollViewportTo(40, 45);
 
       expect(hot.view.scrollViewport).toHaveBeenCalledWith(cellCoords(40, 45), 'start', 'top');
     });
 
-    it('should scroll the viewport using bottom snapping', () => {
+    it('should scroll the viewport using bottom snapping', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(50, 50),
         width: 200,
@@ -1319,12 +1174,12 @@ describe('Core.scrollViewportTo', () => {
 
       spyOn(hot.view, 'scrollViewport');
 
-      scrollViewportTo(40, 45, true, false);
+      await scrollViewportTo(40, 45, true, false);
 
       expect(hot.view.scrollViewport).toHaveBeenCalledWith(cellCoords(40, 45), 'start', 'bottom');
     });
 
-    it('should scroll the viewport using end (right) snapping', () => {
+    it('should scroll the viewport using end (right) snapping', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(50, 50),
         width: 200,
@@ -1333,7 +1188,7 @@ describe('Core.scrollViewportTo', () => {
 
       spyOn(hot.view, 'scrollViewport');
 
-      scrollViewportTo(40, 45, true, true);
+      await scrollViewportTo(40, 45, true, true);
 
       expect(hot.view.scrollViewport).toHaveBeenCalledWith(cellCoords(40, 45), 'end', 'bottom');
     });

@@ -48,19 +48,19 @@ describe('Selection', () => {
       ]);
     });
 
-    it('should not deselect current selection it is called with one argument', () => {
+    it('should not deselect current selection it is called with one argument', async() => {
       handsontable({
         data: createSpreadsheetObjectData(6, 4),
       });
 
-      const wasSelected = selectCells([[0, 0, 2, 2], [1, 1, 3, 3]]); // Initial selection.
+      const wasSelected = await selectCells([[0, 0, 2, 2], [1, 1, 3, 3]]); // Initial selection.
 
       expect(getSelected()).toEqual([[0, 0, 2, 2], [1, 1, 3, 3]]);
       expect(wasSelected).toBe(true);
 
       /* eslint-disable no-empty */
       try {
-        selectCells([[1]]);
+        await selectCells([[1]]);
       } catch (ex) {}
 
       expect(getSelectedRange()).toEqualCellRange([
@@ -382,14 +382,14 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: 2,2 to: 2,2']);
     });
 
-    it('should highlight non-contiguous cells (default selectionMode, navigableHeaders off)', () => {
+    it('should highlight non-contiguous cells (default selectionMode, navigableHeaders off)', async() => {
       handsontable({
         data: createSpreadsheetObjectData(6, 4),
         colHeaders: true,
         rowHeaders: true,
       });
 
-      expect(selectCells([
+      expect(await selectCells([
         [0, 0],
         [5, 1, 2, 2],
         [4, 3, 1, 2],
@@ -418,14 +418,14 @@ describe('Selection', () => {
       ]);
     });
 
-    it('should highlight non-contiguous cells (default selectionMode, navigableHeaders off) using props', () => {
+    it('should highlight non-contiguous cells (default selectionMode, navigableHeaders off) using props', async() => {
       handsontable({
         data: createSpreadsheetObjectData(6, 4),
         colHeaders: true,
         rowHeaders: true,
       });
 
-      expect(selectCells([
+      expect(await selectCells([
         [0, 0],
         [5, 'prop1', 2, 'prop2'],
         [4, 'prop3', 1, 'prop2'],
@@ -454,7 +454,7 @@ describe('Selection', () => {
       ]);
     });
 
-    it('should highlight non-contiguous cells (default selectionMode, multiple headers, navigableHeaders on)', () => {
+    it('should highlight non-contiguous cells (default selectionMode, multiple headers, navigableHeaders on)', async() => {
       handsontable({
         data: createSpreadsheetObjectData(6, 4),
         colHeaders: true,
@@ -470,7 +470,7 @@ describe('Selection', () => {
         },
       });
 
-      expect(selectCells([
+      expect(await selectCells([
         [0, 0],
         [5, 1, 2, 2],
         [4, 3, 1, 2],
@@ -1191,12 +1191,12 @@ describe('Selection', () => {
       ]);
     });
 
-    it('should not deselect current selection when it is called with negative values', () => {
+    it('should not deselect current selection when it is called with negative values', async() => {
       handsontable({
         data: createSpreadsheetObjectData(6, 4),
       });
 
-      let wasSelected = selectCells([[0, 0, 2, 2], [1, 1, 3, 3]]); // Initial selection.
+      let wasSelected = await selectCells([[0, 0, 2, 2], [1, 1, 3, 3]]); // Initial selection.
 
       expect(`
         | 0 : 0 : 0 :   |
@@ -1253,7 +1253,7 @@ describe('Selection', () => {
       expect(wasSelected).toBe(false);
     });
 
-    it('should not deselect current selection when it is called with negative values (navigableHeaders on, with headers)', () => {
+    it('should not deselect current selection when it is called with negative values (navigableHeaders on, with headers)', async() => {
       handsontable({
         data: createSpreadsheetObjectData(6, 4),
         navigableHeaders: true,
@@ -1269,7 +1269,7 @@ describe('Selection', () => {
         },
       });
 
-      let wasSelected = selectCells([[0, 0, 2, 2], [1, 1, 3, 3]]); // Initial selection.
+      let wasSelected = await selectCells([[0, 0, 2, 2], [1, 1, 3, 3]]); // Initial selection.
 
       expect(`
         |   :   :   ║   :   :   :   |
@@ -1334,12 +1334,12 @@ describe('Selection', () => {
       expect(wasSelected).toBe(false);
     });
 
-    it('should not deselect current selection when it is called with coordinates beyond the table data range', () => {
+    it('should not deselect current selection when it is called with coordinates beyond the table data range', async() => {
       handsontable({
         data: createSpreadsheetObjectData(6, 4),
       });
 
-      let wasSelected = selectCells([[0, 0, 2, 2], [1, 1, 3, 3]]); // Initial selection.
+      let wasSelected = await selectCells([[0, 0, 2, 2], [1, 1, 3, 3]]); // Initial selection.
 
       expect(`
         | 0 : 0 : 0 :   |
@@ -1396,7 +1396,7 @@ describe('Selection', () => {
       expect(wasSelected).toBe(false);
     });
 
-    it('should not deselect current selection when it is called with coordinates beyond the table data range (navigableHeaders on, with headers)', () => {
+    it('should not deselect current selection when it is called with coordinates beyond the table data range (navigableHeaders on, with headers)', async() => {
       handsontable({
         data: createSpreadsheetObjectData(6, 4),
         navigableHeaders: true,
@@ -1412,7 +1412,7 @@ describe('Selection', () => {
         },
       });
 
-      let wasSelected = selectCells([[0, 0, 2, 2], [1, 1, 3, 3]]); // Initial selection.
+      let wasSelected = await selectCells([[0, 0, 2, 2], [1, 1, 3, 3]]); // Initial selection.
 
       expect(`
         |   :   :   ║   :   :   :   |
@@ -1668,7 +1668,7 @@ describe('Selection', () => {
       expect(beforeSetRangeStartOnly.calls.argsFor(0)[0].col).toBe(2);
     });
 
-    it('should fire hooks with proper arguments when the non-contiguous selection is added', () => {
+    it('should fire hooks with proper arguments when the non-contiguous selection is added', async() => {
       const {
         afterSelection,
         afterSelectionByProp,
@@ -1700,7 +1700,7 @@ describe('Selection', () => {
         beforeSetRangeEnd,
       });
 
-      selectCells([[1, 2, 2, 4], [2, 1, 3, 2], [7, 7], [8, 4, 0, 4], [2, 4]]);
+      await selectCells([[1, 2, 2, 4], [2, 1, 3, 2], [7, 7], [8, 4, 0, 4], [2, 4]]);
 
       expect(afterSelection.calls.count()).toBe(5);
       expect(afterSelection.calls.argsFor(0)).toEqual([1, 2, 2, 4, jasmine.any(Object), 0]);

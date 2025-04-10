@@ -1092,12 +1092,12 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 1,1']);
     });
 
-    it('should not deselect current selection when selectColumns is called with negative values', () => {
+    it('should not deselect current selection when selectColumns is called with negative values', async() => {
       handsontable({
         data: createSpreadsheetObjectData(6, 4),
       });
 
-      let wasSelected = selectCell(0, 0, 2, 2); // Initial selection.
+      let wasSelected = await selectCell(0, 0, 2, 2); // Initial selection.
 
       expect(`
         | A : 0 : 0 :   |
@@ -1139,7 +1139,7 @@ describe('Selection', () => {
       expect(wasSelected).toBe(false);
     });
 
-    it('should not deselect current selection when selectColumns is called with negative values (navigableHeaders on, with headers)', () => {
+    it('should not deselect current selection when selectColumns is called with negative values (navigableHeaders on, with headers)', async() => {
       handsontable({
         data: createSpreadsheetObjectData(6, 4),
         navigableHeaders: true,
@@ -1153,7 +1153,7 @@ describe('Selection', () => {
         },
       });
 
-      let wasSelected = selectCell(0, 0, 2, 2); // Initial selection.
+      let wasSelected = await selectCell(0, 0, 2, 2); // Initial selection.
 
       expect(`
         |   :   ║   :   :   :   |
@@ -1201,12 +1201,12 @@ describe('Selection', () => {
       expect(wasSelected).toBe(false);
     });
 
-    it('should not deselect current selection when selectColumns is called with coordinates beyond the table data range', () => {
+    it('should not deselect current selection when selectColumns is called with coordinates beyond the table data range', async() => {
       handsontable({
         data: createSpreadsheetObjectData(3, 4),
       });
 
-      let wasSelected = selectCell(0, 0, 2, 2); // Initial selection.
+      let wasSelected = await selectCell(0, 0, 2, 2); // Initial selection.
 
       expect(`
         | A : 0 : 0 :   |
@@ -1242,12 +1242,12 @@ describe('Selection', () => {
       expect(wasSelected).toBe(false);
     });
 
-    it('should not deselect current selection when selectColumns is called with undefined column property', () => {
+    it('should not deselect current selection when selectColumns is called with undefined column property', async() => {
       handsontable({
         data: createSpreadsheetObjectData(6, 4),
       });
 
-      let wasSelected = selectCell(0, 0, 2, 2); // Initial selection.
+      let wasSelected = await selectCell(0, 0, 2, 2); // Initial selection.
 
       expect(`
         | A : 0 : 0 :   |

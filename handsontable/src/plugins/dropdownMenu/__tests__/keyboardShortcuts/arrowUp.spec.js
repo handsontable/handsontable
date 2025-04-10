@@ -30,19 +30,12 @@ describe('DropdownMenu keyboard shortcut', () => {
         dropdownMenu: generateRandomDropdownMenuItems(200),
       });
 
-      dropdownMenu();
-      keyDownUp('arrowup');
-
-      await sleep(100);
+      await dropdownMenu();
+      await keyDownUp('arrowup');
 
       expect(getPlugin('dropdownMenu').menu.getSelectedItem().name).toBe('Test item 200');
-      expect(document.documentElement.scrollHeight).forThemes(({ classic, main, horizon }) => {
-        const scrollHeight = window.scrollY + document.documentElement.clientHeight;
-
-        classic.toBe(scrollHeight + 2); // 2px border bottom of the menu
-        main.toBe(scrollHeight + 9); // 9px border bottom of the menu
-        horizon.toBe(scrollHeight + 12); // 12px border bottom of the menu
-      });
+      expect(document.documentElement.scrollHeight)
+        .toBe(window.scrollY + document.documentElement.clientHeight);
     });
 
     it('should move the menu item selection to the previous item (skipping `disableSelection` items)', () => {
