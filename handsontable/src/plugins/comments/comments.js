@@ -117,6 +117,59 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
  * commentsPlugin.removeComment();
  * ```
  * :::
+ *
+ * ::: only-for angular
+ * ```ts
+ * import { AfterViewInit, Component, ViewChild } from "@angular/core";
+ * import {
+ *   GridSettings,
+ *   HotTableModule,
+ *   HotTableComponent,
+ * } from "@handsontable/angular-wrapper";
+ *
+ * `@Component`({
+ *   selector: "app-example",
+ *   standalone: true,
+ *   imports: [HotTableModule],
+ *   template: ` <div class="ht-theme-main">
+ *     <hot-table [settings]="gridSettings" />
+ *   </div>`,
+ * })
+ * export class ExampleComponent implements AfterViewInit {
+ *   `@ViewChild`(HotTableComponent, { static: false })
+ *   readonly hotTable!: HotTableComponent;
+ *
+ *   readonly gridSettings = <GridSettings>{
+ *     data: this.getData(),
+ *     comments: true,
+ *     cell: [
+ *       { row: 1, col: 1, comment: { value: "Foo" } },
+ *       { row: 2, col: 2, comment: { value: "Bar" } },
+ *     ],
+ *   };
+ *
+ *   ngAfterViewInit(): void {
+ *     // Access to plugin instance:
+ *     const hot = this.hotTable.hotInstance;
+ *     const commentsPlugin = hot.getPlugin("comments");
+ *
+ *     // Manage comments programmatically:
+ *     commentsPlugin.setCommentAtCell(1, 6, "Comment contents");
+ *     commentsPlugin.showAtCell(1, 6);
+ *     commentsPlugin.removeCommentAtCell(1, 6);
+ *
+ *     // You can also set range once and use proper methods:
+ *     commentsPlugin.setRange({ from: { row: 1, col: 6 } });
+ *     commentsPlugin.setComment("Comment contents");
+ *     commentsPlugin.show();
+ *   }
+ *
+ *   private getData(): any[] {
+ *     // get some data
+ *   }
+ * }
+ * ```
+ * :::
  */
 export class Comments extends BasePlugin {
   static get PLUGIN_KEY() {

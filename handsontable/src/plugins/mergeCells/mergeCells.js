@@ -60,6 +60,24 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
  * />
  * ```
  * :::
+ *
+ * ::: only-for angular
+ * ```ts
+ * settings = {
+ *   data: getData(),
+ *   // Enable plugin
+ *   mergeCells: [
+ *     { row: 0, col: 3, rowspan: 3, colspan: 3 },
+ *     { row: 2, col: 6, rowspan: 2, colspan: 2 },
+ *     { row: 4, col: 8, rowspan: 3, colspan: 3 },
+ *   ],
+ * };
+ * ```
+ *
+ * ```html
+ * <hot-table [settings]="settings"></hot-table>
+ * ```
+ * :::
  */
 export class MergeCells extends BasePlugin {
   static get PLUGIN_KEY() {
