@@ -118,7 +118,7 @@ const App = () => {
 1. **ES modules (ESM)**
 
 ```ts
-import { Component, ViewChild, AfterViewInit } from "@angular/core";
+import { Component } from "@angular/core";
 import {
   GridSettings,
   HotTableComponent,
