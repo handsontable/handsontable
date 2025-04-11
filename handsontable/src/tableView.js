@@ -1225,7 +1225,7 @@ class TableView {
 
         return this.settings.columnHeaderHeight || columnHeaderHeight;
       },
-      getStylesHandler: () => {
+      stylesHandler: () => {
         return this.hot.stylesHandler;
       }
     };

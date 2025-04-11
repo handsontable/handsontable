@@ -130,7 +130,7 @@ class Table {
       rowUtils: this.rowUtils,
       columnUtils: this.columnUtils,
       cellRenderer: this.wtSettings.getSettingPure('cellRenderer'),
-      stylesHandler: this.wtSettings.getSetting('getStylesHandler'),
+      stylesHandler: this.wtSettings.getSetting('stylesHandler'),
     });
   }
 
@@ -428,7 +428,7 @@ class Table {
   markIfOversizedColumnHeader(col) {
     const sourceColIndex = this.columnFilter.renderedToSource(col);
     let level = this.wtSettings.getSetting('columnHeaders').length;
-    const defaultRowHeight = this.wtSettings.getSetting('getStylesHandler').getDefaultRowHeight();
+    const defaultRowHeight = this.wtSettings.getSetting('stylesHandler').getDefaultRowHeight();
     let previousColHeaderHeight;
     let currentHeader;
     let currentHeaderHeight;
@@ -758,7 +758,7 @@ class Table {
       return;
     }
     let rowCount = this.TBODY.childNodes.length;
-    const stylesHandler = this.wtSettings.getSetting('getStylesHandler');
+    const stylesHandler = this.wtSettings.getSetting('stylesHandler');
     const expectedTableHeight = rowCount * stylesHandler.getDefaultRowHeight();
     const actualTableHeight = innerHeight(this.TBODY) - 1;
     const borderBoxSizing = stylesHandler.areCellsBorderBox();

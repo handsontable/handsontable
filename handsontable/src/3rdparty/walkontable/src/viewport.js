@@ -348,7 +348,7 @@ class Viewport {
       viewportHeight: height,
       scrollOffset: pos,
       totalRows: wtSettings.getSetting('totalRows'),
-      defaultRowHeight: wtSettings.getSetting('getStylesHandler').getDefaultRowHeight(),
+      defaultRowHeight: wtSettings.getSetting('stylesHandler').getDefaultRowHeight(),
       rowHeightFn: sourceRow => wtTable.getRowHeight(sourceRow),
       overrideFn: wtSettings.getSettingPure('viewportRowCalculatorOverride'),
       horizontalScrollbarHeight: scrollbarHeight,

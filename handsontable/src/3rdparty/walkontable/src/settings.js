@@ -70,7 +70,7 @@ import { objectEach } from '../../../helpers/object';
  * @property {?Option} viewportRowCalculatorOverride Option `viewportRowCalculatorOverride`.
  * @property {?Option} viewportColumnRenderingThreshold Option `viewportColumnRenderingThreshold`.
  * @property {?Option} viewportRowRenderingThreshold Option `viewportRowRenderingThreshold`.
- * @property {?Option} getStylesHandler Option `getStylesHandler`.
+ * @property {?Option} stylesHandler Option `stylesHandler`.
  */
 
 /**
@@ -241,7 +241,7 @@ export default class Settings {
       headerClassName: null,
       rtlMode: false,
       ariaTags: true,
-      getStylesHandler: null,
+      stylesHandler: null,
     };
   }
 

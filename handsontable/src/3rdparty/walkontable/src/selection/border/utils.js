@@ -1,5 +1,5 @@
 export const getCornerStyle = (wot) => {
-  const stylesHandler = wot.wtSettings.getSetting('getStylesHandler');
+  const stylesHandler = wot.wtSettings.getSetting('stylesHandler');
 
   if (stylesHandler.isClassicTheme()) {
     return Object.freeze({

@@ -148,7 +148,7 @@ export class BottomOverlay extends Overlay {
    */
   sumCellSizes(from, to) {
     const { wtTable, wtSettings } = this.wot;
-    const defaultRowHeight = wtSettings.getSetting('getStylesHandler').getDefaultRowHeight();
+    const defaultRowHeight = wtSettings.getSetting('stylesHandler').getDefaultRowHeight();
 
     let row = from;
     let sum = 0;
