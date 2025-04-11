@@ -299,21 +299,21 @@ describe('i18n', () => {
   });
 
   describe('contextMenu translation', () => {
-    it('should translate contextMenu UI when setting existing language code at start', () => {
+    it('should translate contextMenu UI when setting existing language code at start', async() => {
       handsontable({
         language: POLISH_LANGUAGE_CODE,
         contextMenu: ['row_above']
       });
 
-      selectCell(0, 0);
-      contextMenu();
+      await selectCell(0, 0);
+      await contextMenu();
 
       const $contextMenuItem = $('.htContextMenu tbody td:not(.htSeparator)');
 
       expect($contextMenuItem.text()).toEqual(INSERT_ROW_ABOVE_IN_POLISH_LANGUAGE);
     });
 
-    it('should not change default contextMenu UI when trying to set not existing language code at start', () => {
+    it('should not change default contextMenu UI when trying to set not existing language code at start', async() => {
       spyOn(console, 'error'); // overriding console.error
 
       handsontable({
@@ -321,8 +321,8 @@ describe('i18n', () => {
         contextMenu: ['row_above']
       });
 
-      selectCell(0, 0);
-      contextMenu();
+      await selectCell(0, 0);
+      await contextMenu();
 
       const $contextMenuItem = $('.htContextMenu tbody td:not(.htSeparator)');
 
@@ -409,8 +409,8 @@ describe('i18n', () => {
         contextMenu: ['alignment']
       });
 
-      selectCell(0, 0);
-      contextMenu();
+      await selectCell(0, 0);
+      await contextMenu();
 
       const $menu = $('.htSubmenu');
 
@@ -423,7 +423,7 @@ describe('i18n', () => {
       expect($submenuItem.text()).toEqual(ALIGN_LEFT_IN_POLISH);
     });
 
-    it('should choose proper form of phrase when translating', () => {
+    it('should choose proper form of phrase when translating', async() => {
       const REMOVE_ROW_PLURAL_IN_DEFAULT_LANGUAGE = 'Remove rows';
       const REMOVE_COLUMN_PLURAL_IN_DEFAULT_LANGUAGE = 'Remove columns';
 
@@ -431,8 +431,8 @@ describe('i18n', () => {
         contextMenu: ['remove_row', 'remove_col']
       });
 
-      selectCell(0, 0, 2, 2);
-      contextMenu();
+      await selectCell(0, 0, 2, 2);
+      await contextMenu();
 
       const $removeRowItem = $('.htContextMenu').eq(0).find('tbody td:not(.htSeparator)').eq(0);
       const $removeColumnItem = $('.htContextMenu').eq(0).find('tbody td:not(.htSeparator)').eq(1);
@@ -441,7 +441,7 @@ describe('i18n', () => {
       expect($removeColumnItem.text()).toEqual(REMOVE_COLUMN_PLURAL_IN_DEFAULT_LANGUAGE);
     });
 
-    it('should translate item from enabled `freezeColumn` plugin when setting existing language code at start', () => {
+    it('should translate item from enabled `freezeColumn` plugin when setting existing language code at start', async() => {
       const FREEZE_COLUMN_IN_POLISH_LANGUAGE = 'Zablokuj kolumnę';
 
       handsontable({
@@ -450,15 +450,15 @@ describe('i18n', () => {
         language: POLISH_LANGUAGE_CODE,
       });
 
-      selectCell(0, 0);
-      contextMenu();
+      await selectCell(0, 0);
+      await contextMenu();
 
       const $freezeColumnMenuItem = $('.htContextMenu tbody td:not(.htSeparator)');
 
       expect($freezeColumnMenuItem.text()).toEqual(FREEZE_COLUMN_IN_POLISH_LANGUAGE);
     });
 
-    it('should translate item from enabled `comments` plugin when setting existing language code at start', () => {
+    it('should translate item from enabled `comments` plugin when setting existing language code at start', async() => {
       const ADD_COMMENT_IN_POLISH_LANGUAGE = 'Dodaj komentarz';
 
       handsontable({
@@ -467,15 +467,15 @@ describe('i18n', () => {
         language: POLISH_LANGUAGE_CODE,
       });
 
-      selectCell(0, 0);
-      contextMenu();
+      await selectCell(0, 0);
+      await contextMenu();
 
       const $addCommentMenuItem = $('.htContextMenu tbody td:not(.htSeparator)');
 
       expect($addCommentMenuItem.text()).toEqual(ADD_COMMENT_IN_POLISH_LANGUAGE);
     });
 
-    it('should translate item from enabled `customBorders` plugin when setting existing language code at start', () => {
+    it('should translate item from enabled `customBorders` plugin when setting existing language code at start', async() => {
       const BORDERS_IN_POLISH = 'Obramowanie';
 
       handsontable({
@@ -484,15 +484,15 @@ describe('i18n', () => {
         customBorders: true
       });
 
-      selectCell(0, 0);
-      contextMenu();
+      await selectCell(0, 0);
+      await contextMenu();
 
       const $bordersMenuItem = $('.htContextMenu tbody td:not(.htSeparator)');
 
       expect($bordersMenuItem.text()).toEqual(BORDERS_IN_POLISH);
     });
 
-    it('should translate item from enabled `mergeCells` plugin when setting existing language code at start', () => {
+    it('should translate item from enabled `mergeCells` plugin when setting existing language code at start', async() => {
       const MERGE_CELLS_IN_POLISH = 'Scal komórki';
 
       handsontable({
@@ -501,15 +501,15 @@ describe('i18n', () => {
         mergeCells: true
       });
 
-      selectCell(0, 0);
-      contextMenu();
+      await selectCell(0, 0);
+      await contextMenu();
 
       const $mergeCellsMenuItem = $('.htContextMenu tbody td:not(.htSeparator)');
 
       expect($mergeCellsMenuItem.text()).toEqual(MERGE_CELLS_IN_POLISH);
     });
 
-    it('should translate item from enabled `copyPaste` plugin when setting existing language code at start', () => {
+    it('should translate item from enabled `copyPaste` plugin when setting existing language code at start', async() => {
       const COPY_IN_POLISH = 'Kopiuj';
 
       handsontable({
@@ -518,8 +518,8 @@ describe('i18n', () => {
         copyPaste: true
       });
 
-      selectCell(0, 0);
-      contextMenu();
+      await selectCell(0, 0);
+      await contextMenu();
 
       const $copyMenuItem = $('.htContextMenu tbody td:not(.htSeparator)');
 

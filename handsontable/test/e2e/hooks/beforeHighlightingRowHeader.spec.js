@@ -95,7 +95,7 @@ describe('Hook', () => {
       ]);
     });
 
-    it('should forward the element highlighting to the another header element', () => {
+    it('should forward the element highlighting to the another header element', async() => {
       const headerRendererFactory = () => (index, TH) => {
         TH.innerHTML = '';
 
@@ -125,12 +125,12 @@ describe('Hook', () => {
         }
       });
 
-      selectCell(2, 4);
+      await selectCell(2, 4);
 
       expect(getInlineStartClone().find('tbody tr:nth(2) th:nth(2)').hasClass('ht__highlight')).toBeFalse();
       expect(getInlineStartClone().find('tbody tr:nth(4) th:nth(2)').hasClass('ht__highlight')).toBeTrue();
 
-      selectRows(3, 4);
+      await selectRows(3, 4);
 
       expect(getInlineStartClone().find('tbody tr:nth(3) th:nth(2)').hasClass('ht__active_highlight')).toBeFalse();
       expect(getInlineStartClone().find('tbody tr:nth(4) th:nth(2)').hasClass('ht__active_highlight')).toBeFalse();

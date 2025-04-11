@@ -68,7 +68,7 @@ describe('Hook', () => {
       expect(getDataAtCell(1, 1)).toBe('d');
     });
 
-    it('should drop change and close the autocomplete editor', () => {
+    it('should drop change and close the autocomplete editor', async() => {
       handsontable({
         data: [['a', 'b'], ['c', 'd']],
         columns: [
@@ -90,14 +90,14 @@ describe('Hook', () => {
 
       expect(getDataAtCell(0, 0)).toBe('a');
 
-      selectCell(0, 0);
-      keyDownUp('enter');
-      keyDownUp('enter');
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+      await keyDownUp('enter');
 
       expect(isEditorVisible()).toBe(false);
     });
 
-    it('should drop change and close the date editor', () => {
+    it('should drop change and close the date editor', async() => {
       handsontable({
         data: [['a', 'b'], ['c', 'd']],
         columns: [
@@ -120,14 +120,14 @@ describe('Hook', () => {
 
       expect(getDataAtCell(0, 0)).toBe('a');
 
-      selectCell(0, 0);
-      keyDownUp('enter');
-      keyDownUp('enter');
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+      await keyDownUp('enter');
 
       expect(isEditorVisible()).toBe(false);
     });
 
-    it('should drop change when allowInvalid is `false` without closing an editor (which has validator)', () => {
+    it('should drop change when allowInvalid is `false` without closing an editor (which has validator)', async() => {
       handsontable({
         data: [['a', 'b'], ['c', 'd']],
         columns: () => ({
@@ -141,14 +141,14 @@ describe('Hook', () => {
 
       expect(getDataAtCell(0, 0)).toBe('a');
 
-      selectCell(0, 0);
-      keyDownUp('enter');
-      keyDownUp('enter');
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+      await keyDownUp('enter');
 
       expect(isEditorVisible()).toBe(true);
     });
 
-    it('should not drop change when allowInvalid is `false` but close an editor (which has validator)', () => {
+    it('should not drop change when allowInvalid is `false` but close an editor (which has validator)', async() => {
       handsontable({
         data: [['a', 'b'], ['c', 'd']],
         columns: () => ({
@@ -162,15 +162,15 @@ describe('Hook', () => {
 
       expect(getDataAtCell(0, 0)).toBe('a');
 
-      selectCell(0, 0);
-      keyDownUp('enter');
-      keyDownUp('enter');
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+      await keyDownUp('enter');
 
       expect(isEditorVisible()).toBe(false);
     });
 
     using('keyboard key', ['delete', 'backspace'], (keyCode) => {
-      it('should trigger the hook with `null`', () => {
+      it('should trigger the hook with `null`', async() => {
         let called = false;
 
         handsontable({
@@ -182,8 +182,9 @@ describe('Hook', () => {
         });
 
         setDataAtCell(0, 0, 'test');
-        selectCell(0, 0);
-        keyDownUp([keyCode]);
+
+        await selectCell(0, 0);
+        await keyDownUp([keyCode]);
 
         expect(called).toBe(true);
       });

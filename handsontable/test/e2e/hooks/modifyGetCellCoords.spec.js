@@ -9,7 +9,7 @@ describe('Hook', () => {
   });
 
   describe('modifyGetCellCoords', () => {
-    it('should be fired before the editor is prepared', () => {
+    it('should be fired before the editor is prepared', async() => {
       const modifyGetCellCoords = jasmine.createSpy('modifyGetCellCoords');
 
       const hot = handsontable({
@@ -17,7 +17,8 @@ describe('Hook', () => {
         modifyGetCellCoords,
       });
 
-      selectCell(1, 2);
+      await selectCell(1, 2);
+
       spyOn(hot, 'getCell').and.returnValue(null);
 
       modifyGetCellCoords.calls.reset();
@@ -28,7 +29,7 @@ describe('Hook', () => {
       expect(modifyGetCellCoords).toHaveBeenCalledTimes(1);
     });
 
-    it('should be fired after the editor saves the value', () => {
+    it('should be fired after the editor saves the value', async() => {
       const modifyGetCellCoords = jasmine.createSpy('modifyGetCellCoords');
 
       const hot = handsontable({
@@ -36,7 +37,8 @@ describe('Hook', () => {
         modifyGetCellCoords,
       });
 
-      selectCell(1, 2);
+      await selectCell(1, 2);
+
       spyOn(hot, 'populateFromArray');
 
       modifyGetCellCoords.calls.reset();

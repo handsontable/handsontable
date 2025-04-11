@@ -175,7 +175,7 @@ describe('Core_dataSchema', () => {
       .toEqual(JSON.stringify({ id: null, name: { first: null, last: null }, cars: [{ brand: null }] }));
   });
 
-  it('should create new row from dataSchema', () => {
+  it('should create new row from dataSchema', async() => {
     handsontable({
       data: [],
       dataSchema: { id: null, name: { first: null, last: null }, address: null },
@@ -190,16 +190,19 @@ describe('Core_dataSchema', () => {
       ],
       minSpareRows: 1
     });
-    selectCell(0, 1);
 
-    keyDownUp('enter');
+    await selectCell(0, 1);
+    await keyDownUp('enter');
+
     keyProxy().val('Ted');
-    keyDownUp('enter');
+
+    await keyDownUp('enter');
+
     expect(getData()[0][1]).toEqual('Ted');
     expect(getSourceData()[0].name.first).toEqual('Ted');
   });
 
-  it('should create new row from dataSchema when columns is a function', () => {
+  it('should create new row from dataSchema when columns is a function', async() => {
     handsontable({
       data: [],
       dataSchema: { id: null, name: { first: null, last: null }, address: null },
@@ -229,16 +232,19 @@ describe('Core_dataSchema', () => {
       },
       minSpareRows: 1
     });
-    selectCell(0, 1);
 
-    keyDownUp('enter');
+    await selectCell(0, 1);
+    await keyDownUp('enter');
+
     keyProxy().val('Ted');
-    keyDownUp('enter');
+
+    await keyDownUp('enter');
+
     expect(getData()[0][1]).toEqual('Ted');
     expect(getSourceData()[0].name.first).toEqual('Ted');
   });
 
-  it('should create new row from dataSchema (functional)', () => {
+  it('should create new row from dataSchema (functional)', async() => {
     handsontable({
       data: [],
       dataSchema(index) {
@@ -262,16 +268,19 @@ describe('Core_dataSchema', () => {
       ],
       minSpareRows: 1
     });
-    selectCell(4, 1);
+
+    await selectCell(4, 1);
 
     expect(countRows()).toEqual(5);
-    keyDownUp('enter');
+
+    await keyDownUp('enter');
+
     keyProxy().val('Ted');
 
     // need it in next frame as long as HT is rendered in async
-    keyDownUp('enter');
+    await keyDownUp('enter');
     // need it in next frame as long as HT is rendered in async
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(getSourceData()[4].name.first).toEqual('Ted');
     expect(getSourceData()[4].id).toEqual(1004);
@@ -280,7 +289,7 @@ describe('Core_dataSchema', () => {
     expect(countRows()).toEqual(6); // row should be added by keepEmptyRows
   });
 
-  it('should create new row from dataSchema (functional) when columns is a function', () => {
+  it('should create new row from dataSchema (functional) when columns is a function', async() => {
     handsontable({
       data: [],
       dataSchema(index) {
@@ -319,16 +328,19 @@ describe('Core_dataSchema', () => {
       },
       minSpareRows: 1
     });
-    selectCell(4, 1);
+
+    await selectCell(4, 1);
 
     expect(countRows()).toEqual(5);
-    keyDownUp('enter');
+
+    await keyDownUp('enter');
+
     keyProxy().val('Ted');
 
     // need it in next frame as long as HT is rendered in async
-    keyDownUp('enter');
+    await keyDownUp('enter');
     // need it in next frame as long as HT is rendered in async
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(getSourceData()[4].name.first).toEqual('Ted');
     expect(getSourceData()[4].id).toEqual(1004);

@@ -187,7 +187,7 @@ describe('Core_keepEmptyRows', () => {
     expect(countCols()).toEqual(5);
   });
 
-  it('should create new row when last cell in last row is edited by autocomplete', (done) => {
+  it('should create new row when last cell in last row is edited by autocomplete', async() => {
     const data = [
       { id: 1, color: 'orange' }
     ];
@@ -213,19 +213,15 @@ describe('Core_keepEmptyRows', () => {
       ]
     });
 
-    selectCell(1, 1);
-    keyDownUp('enter');
+    await selectCell(1, 1);
+    await keyDownUp('enter');
+    await keyDownUp('arrowdown');
+    await keyDownUp('enter');
 
-    setTimeout(() => {
-      keyDownUp('arrowdown');
-      keyDownUp('enter');
-
-      expect(data.length).toEqual(3);
-      done();
-    }, 200);
+    expect(data.length).toEqual(3);
   });
 
-  it('should create new row when last cell in last row is edited by autocomplete when columns is a function', (done) => {
+  it('should create new row when last cell in last row is edited by autocomplete when columns is a function', async() => {
     const data = [
       { id: 1, color: 'orange' }
     ];
@@ -261,16 +257,12 @@ describe('Core_keepEmptyRows', () => {
       }
     });
 
-    selectCell(1, 1);
-    keyDownUp('enter');
+    await selectCell(1, 1);
+    await keyDownUp('enter');
+    await keyDownUp('arrowdown');
+    await keyDownUp('enter');
 
-    setTimeout(() => {
-      keyDownUp('arrowdown');
-      keyDownUp('enter');
-
-      expect(data.length).toEqual(3);
-      done();
-    }, 200);
+    expect(data.length).toEqual(3);
   });
 
   it('should not create more rows that maxRows', () => {

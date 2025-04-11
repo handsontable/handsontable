@@ -29,9 +29,8 @@ describe('Text Editor', () => {
 
     const cell = hot.getCell(0, 0);
 
-    selectCell(0, 0);
-
-    keyDownUp('enter');
+    await selectCell(0, 0);
+    await keyDownUp('enter');
 
     const editor = getActiveEditor();
 
@@ -54,9 +53,8 @@ describe('Text Editor', () => {
 
     hot.getCell(0, 0);
 
-    selectCell(0, 0);
-
-    keyDownUp('enter');
+    await selectCell(0, 0);
+    await keyDownUp('enter');
 
     const editor = getActiveEditor();
     const compStyle = getComputedStyle(editor.TEXTAREA);

@@ -42,7 +42,7 @@ describe('Core_render', () => {
     });
   });
 
-  it('render should update border dimensions', () => {
+  it('render should update border dimensions', async() => {
     const data = [
       ['a', 'b'],
       ['c', 'd']
@@ -56,7 +56,8 @@ describe('Core_render', () => {
       minSpareCols: 4
     });
 
-    selectCell(1, 1);
+    await selectCell(1, 1);
+
     data[1][1] = 'dddddddddddddddddddd';
     render();
 
@@ -242,7 +243,8 @@ describe('Core_render', () => {
     });
 
     renderer.calls.reset();
-    selectCell(0, 0);
+
+    await selectCell(0, 0);
 
     expect(renderer).toHaveBeenCalledTimes(0);
   });
@@ -260,7 +262,8 @@ describe('Core_render', () => {
     });
 
     renderer.calls.reset();
-    selectCell(0, 0);
+
+    await selectCell(0, 0);
 
     expect(renderer).toHaveBeenCalledTimes(0);
   });
@@ -274,8 +277,7 @@ describe('Core_render', () => {
       height: 200,
     });
 
-    selectCell(19, 19);
-    await sleep(50);
+    await selectCell(19, 19);
 
     expect(getMaster().find('tr:last td:last').text()).toBe('T20');
   });

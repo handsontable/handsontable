@@ -185,6 +185,8 @@ export const updateSettings = handsontableMethodFactory('updateSettings');
 export const useTheme = handsontableMethodFactory('useTheme');
 export const validateCell = handsontableMethodFactory('validateCell');
 export const validateCells = handsontableMethodFactory('validateCells');
+export const validateRows = handsontableMethodFactory('validateRows');
+export const validateColumns = handsontableMethodFactory('validateColumns');
 
 /**
  * @returns {number} Returns the default row height based on the current theme.

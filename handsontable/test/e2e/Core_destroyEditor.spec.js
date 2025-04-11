@@ -12,49 +12,52 @@ describe('Core_destroyEditor', () => {
     }
   });
 
-  it('editor should not be visible', () => {
+  it('editor should not be visible', async() => {
     handsontable();
-    selectCell(1, 1);
 
-    keyDownUp('enter');
+    await selectCell(1, 1);
+    await keyDownUp('enter');
+
     destroyEditor();
 
     expect(isEditorVisible()).toEqual(false);
   });
 
-  it('value should be saved', () => {
+  it('value should be saved', async() => {
     handsontable();
-    selectCell(1, 1);
 
-    keyDownUp('enter');
+    await selectCell(1, 1);
+    await keyDownUp('enter');
+
     keyProxy().val('Ted');
 
     destroyEditor();
     expect(getDataAtCell(1, 1)).toEqual('Ted');
   });
 
-  it('cell should be selected', () => {
+  it('cell should be selected', async() => {
     handsontable();
-    selectCell(1, 1);
 
-    keyDownUp('enter');
+    await selectCell(1, 1);
+    await keyDownUp('enter');
 
     destroyEditor();
     expect(getSelected()).toEqual([[1, 1, 1, 1]]);
   });
 
-  it('should revert original value when param set to true', () => {
+  it('should revert original value when param set to true', async() => {
     handsontable();
-    selectCell(1, 1);
 
-    keyDownUp('enter');
+    await selectCell(1, 1);
+    await keyDownUp('enter');
+
     keyProxy().val('Ted');
 
     destroyEditor(true);
     expect(getDataAtCell(1, 1)).toEqual(null);
   });
 
-  it('should not destroy editor on scroll', () => {
+  it('should not destroy editor on scroll', async() => {
     spec().$container.css({
       width: 200,
       height: 100
@@ -64,8 +67,8 @@ describe('Core_destroyEditor', () => {
       data: Handsontable.helper.createSpreadsheetData(20, 10)
     });
 
-    selectCell(0, 0);
-    keyDownUp('enter');
+    await selectCell(0, 0);
+    await keyDownUp('enter');
 
     const editor = $('.handsontableInputHolder');
 

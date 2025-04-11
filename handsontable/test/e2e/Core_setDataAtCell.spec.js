@@ -34,12 +34,12 @@ describe('Core_setDataAtCell', () => {
 
   const htmlText = 'Ben & Jerry\'s';
 
-  it('HTML special chars should be preserved in data map but escaped in DOM', () => {
+  it('HTML special chars should be preserved in data map but escaped in DOM', async() => {
     // https://github.com/handsontable/handsontable/issues/147
     handsontable();
     const td = setDataAtCell(0, 0, htmlText);
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
     $(td).simulate('dblclick');
     deselectCell();
@@ -50,17 +50,17 @@ describe('Core_setDataAtCell', () => {
   it('should correctly paste string that contains "quotes"', async() => {
     // https://github.com/handsontable/handsontable/issues/205
     handsontable({});
-    selectCell(0, 0);
-    triggerPaste('1\nThis is a "test" and a test\n2');
 
-    await sleep(200);
+    await selectCell(0, 0);
+
+    triggerPaste('1\nThis is a "test" and a test\n2');
 
     expect(getDataAtCell(0, 0)).toEqual('1');
     expect(getDataAtCell(1, 0)).toEqual('This is a "test" and a test');
     expect(getDataAtCell(2, 0)).toEqual('2');
   });
 
-  it('should correctly paste string when dataSchema is used', (done) => {
+  it('should correctly paste string when dataSchema is used', async() => {
     // https://github.com/handsontable/handsontable/issues/237
     handsontable({
       colHeaders: true,
@@ -70,15 +70,14 @@ describe('Core_setDataAtCell', () => {
         col3: null
       }
     });
-    selectCell(0, 0);
+
+    await selectCell(0, 0);
+
     triggerPaste('1\tTest\t2');
 
-    setTimeout(() => {
-      expect(getDataAtCell(0, 0)).toEqual('1');
-      expect(getDataAtCell(0, 1)).toEqual('Test');
-      expect(getDataAtCell(0, 2)).toEqual('2');
-      done();
-    }, 200);
+    expect(getDataAtCell(0, 0)).toEqual('1');
+    expect(getDataAtCell(0, 1)).toEqual('Test');
+    expect(getDataAtCell(0, 2)).toEqual('2');
   });
 
   it('should paste not more rows than maxRows', async() => {
@@ -87,32 +86,31 @@ describe('Core_setDataAtCell', () => {
       minRows: 5,
       maxRows: 10,
     });
-    selectCell(4, 0);
-    triggerPaste('1\n2\n3\n4\n5\n6\n7\n8\n9\n10');
 
-    await sleep(200);
+    await selectCell(4, 0);
+
+    triggerPaste('1\n2\n3\n4\n5\n6\n7\n8\n9\n10');
 
     expect(countRows()).toEqual(10);
     expect(getDataAtCell(9, 0)).toEqual('6');
   });
 
-  it('should paste not more cols than maxCols', (done) => {
+  it('should paste not more cols than maxCols', async() => {
     handsontable({
       minSpareCols: 1,
       minCols: 5,
       maxCols: 10,
     });
-    selectCell(0, 4);
+
+    await selectCell(0, 4);
+
     triggerPaste('1\t2\t3\t4\t5\t6\t7\t8\t9\t10');
 
-    setTimeout(() => {
-      expect(countCols()).toEqual(10);
-      expect(getDataAtCell(0, 9)).toEqual('6');
-      done();
-    }, 200);
+    expect(countCols()).toEqual(10);
+    expect(getDataAtCell(0, 9)).toEqual('6');
   });
 
-  it('should paste not more rows & cols than maxRows & maxCols', (done) => {
+  it('should paste not more rows & cols than maxRows & maxCols', async() => {
     handsontable({
       minSpareRows: 1,
       minSpareCols: 1,
@@ -121,19 +119,18 @@ describe('Core_setDataAtCell', () => {
       maxRows: 6,
       maxCols: 6,
     });
-    selectCell(4, 4);
+
+    await selectCell(4, 4);
+
     triggerPaste('1\t2\t3\n4\t5\t6\n7\t8\t9');
 
-    setTimeout(() => {
-      expect(countRows()).toEqual(6);
-      expect(countCols()).toEqual(6);
-      expect(getDataAtCell(5, 5)).toEqual('5');
-      done();
-    }, 200);
+    expect(countRows()).toEqual(6);
+    expect(countCols()).toEqual(6);
+    expect(getDataAtCell(5, 5)).toEqual('5');
   });
 
   // https://github.com/handsontable/handsontable/issues/250
-  it('should create new rows when pasting into grid with object data source', (done) => {
+  it('should create new rows when pasting into grid with object data source', async() => {
     handsontable({
       data: arrayOfNestedObjects(),
       colHeaders: true,
@@ -144,14 +141,13 @@ describe('Core_setDataAtCell', () => {
       ],
       minSpareRows: 1,
     });
-    selectCell(3, 0);
+
+    await selectCell(3, 0);
+
     triggerPaste('a\tb\tc\nd\te\tf\ng\th\ti');
 
-    setTimeout(() => {
-      expect(countRows()).toEqual(7);
-      expect(getDataAtCell(5, 2)).toEqual('i');
-      done();
-    }, 200);
+    expect(countRows()).toEqual(7);
+    expect(getDataAtCell(5, 2)).toEqual('i');
   });
 
   // https://handsontable.com/demo/datasources.html
@@ -299,7 +295,7 @@ describe('Core_setDataAtCell', () => {
     expect(getData()).toEqual([['bar', 1], ['b', 33], ['c', 3]]);
   });
 
-  it('should not throw an error when trying set data after selection on cell read-only', () => {
+  it('should not throw an error when trying set data after selection on cell read-only', async() => {
     let errors = 0;
 
     handsontable({
@@ -308,7 +304,8 @@ describe('Core_setDataAtCell', () => {
     });
 
     try {
-      selectCell(0, 0);
+      await selectCell(0, 0);
+
       setDataAtCell(0, 0, '333');
     } catch (e) {
       errors += 1;

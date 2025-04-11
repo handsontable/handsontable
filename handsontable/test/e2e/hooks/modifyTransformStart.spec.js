@@ -9,7 +9,7 @@ describe('Hook', () => {
   });
 
   describe('modifyTransformStart', () => {
-    it('should be fired after changing the coordinates using `transformStart` method only', () => {
+    it('should be fired after changing the coordinates using `transformStart` method only', async() => {
       const modifyTransformStart = jasmine.createSpy('modifyTransformStart');
 
       const hot = handsontable({
@@ -17,7 +17,8 @@ describe('Hook', () => {
         modifyTransformStart,
       });
 
-      selectCell(0, 0);
+      await selectCell(0, 0);
+
       hot.selection.transformStart(1, 2);
 
       expect(modifyTransformStart).toHaveBeenCalledWith(cellCoords(1, 2));

@@ -55,7 +55,7 @@ describe('Core.emptySelectedCells', () => {
     expect(getData()).toEqual(snapshot);
   });
 
-  it('should not make the cells empty when the focus points to the header', () => {
+  it('should not make the cells empty when the focus points to the header', async() => {
     const beforeChange = jasmine.createSpy('beforeChange');
 
     handsontable({
@@ -66,7 +66,8 @@ describe('Core.emptySelectedCells', () => {
       beforeChange,
     });
 
-    selectCell(-1, 1);
+    await selectCell(-1, 1);
+
     emptySelectedCells();
 
     expect(getData()).toEqual([

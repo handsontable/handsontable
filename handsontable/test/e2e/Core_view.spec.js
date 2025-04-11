@@ -12,28 +12,28 @@ describe('Core_view', () => {
     }
   });
 
-  it('should focus cell after viewport is scrolled using down arrow', () => {
+  it('should focus cell after viewport is scrolled using down arrow', async() => {
     spec().$container[0].style.width = '400px';
     spec().$container[0].style.height = '60px';
 
     handsontable({
       startRows: 20
     });
-    selectCell(0, 0);
 
-    keyDownUp('arrowdown');
-    keyDownUp('arrowdown');
-    keyDownUp('arrowdown');
-    keyDownUp('arrowdown');
+    await selectCell(0, 0);
+    await keyDownUp('arrowdown');
+    await keyDownUp('arrowdown');
+    await keyDownUp('arrowdown');
+    await keyDownUp('arrowdown');
 
     expect(getSelected()).toEqual([[4, 0, 4, 0]]);
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(isEditorVisible()).toEqual(true);
   });
 
-  it('should scroll viewport if selected cell is out of the viewport and renderAllRows is enabled', () => {
+  it('should scroll viewport if selected cell is out of the viewport and renderAllRows is enabled', async() => {
     spec().$container[0].style.width = '400px';
     spec().$container[0].style.height = '50px';
     spec().$container[0].style.overflow = 'hidden';
@@ -43,20 +43,20 @@ describe('Core_view', () => {
       renderAllRows: true,
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
     const scrollableElement = hot.view._wt.wtOverlays.topOverlay.mainTableScrollableElement;
     const initialScrollTop = scrollableElement.scrollTop;
 
-    keyDownUp('arrowdown');
-    keyDownUp('arrowdown');
-    keyDownUp('arrowdown');
-    keyDownUp('arrowdown');
+    await keyDownUp('arrowdown');
+    await keyDownUp('arrowdown');
+    await keyDownUp('arrowdown');
+    await keyDownUp('arrowdown');
 
     expect(scrollableElement.scrollTop).toBeGreaterThan(initialScrollTop);
   });
 
-  it('should not render "undefined" class name', () => {
+  it('should not render "undefined" class name', async() => {
     spec().$container[0].style.width = '501px';
     spec().$container[0].style.height = '100px';
     spec().$container[0].style.overflow = 'hidden';
@@ -69,7 +69,7 @@ describe('Core_view', () => {
       colHeaders: true,
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
     expect(spec().$container.find('.undefined').length).toBe(0);
   });
@@ -129,7 +129,7 @@ describe('Core_view', () => {
     expect(getSelected()).toEqual([[3, 0, 3, 0]]);
   });
 
-  it('should scroll viewport, respecting fixed rows', () => {
+  it('should scroll viewport, respecting fixed rows', async() => {
     spec().$container[0].style.width = '400px';
     spec().$container[0].style.height = '60px';
 
@@ -147,28 +147,27 @@ describe('Core_view', () => {
     expect(htCore.find('tr:eq(0) td:eq(1)').html()).toEqual('B1');
     expect(htCore.find('tr:eq(0) td:eq(2)').html()).toEqual('C1');
 
-    selectCell(0, 0);
-
-    keyDownUp('arrowdown');
-    keyDownUp('arrowdown');
-    keyDownUp('arrowdown');
-    keyDownUp('arrowdown');
+    await selectCell(0, 0);
+    await keyDownUp('arrowdown');
+    await keyDownUp('arrowdown');
+    await keyDownUp('arrowdown');
+    await keyDownUp('arrowdown');
 
     expect(hot.rootElement.querySelector('.wtHolder').scrollTop).toBeGreaterThan(scrollTop);
   });
 
-  it('should enable to change fixedRowsTop with updateSettings', () => {
+  it('should enable to change fixedRowsTop with updateSettings', async() => {
     spec().$container[0].style.width = '400px';
     spec().$container[0].style.height = '60px';
 
-    const HOT = handsontable({
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 9),
       fixedRowsTop: 1,
       width: 200,
       height: 100
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
     const htCore = getHtCore();
     const topClone = getTopClone();
@@ -181,15 +180,15 @@ describe('Core_view', () => {
     expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual('A3');
     expect(htCore.find('tr:eq(3) td:eq(0)').html()).toEqual('A4');
 
-    keyDownUp('arrowdown');
-    keyDownUp('arrowdown');
-    keyDownUp('arrowdown');
-    keyDownUp('arrowdown');
+    await keyDownUp('arrowdown');
+    await keyDownUp('arrowdown');
+    await keyDownUp('arrowdown');
+    await keyDownUp('arrowdown');
 
     expect(topClone.find('tr').length).toEqual(1);
     expect(topClone.find('tr:eq(0) td:eq(0)').html()).toEqual('A1');
 
-    HOT.updateSettings({
+    updateSettings({
       fixedRowsTop: 2
     });
 
@@ -203,7 +202,7 @@ describe('Core_view', () => {
     expect(htCore.find('tr:eq(3) td:eq(0)').html()).toEqual('A4');
   });
 
-  it('should scroll viewport, respecting fixed columns', () => {
+  it('should scroll viewport, respecting fixed columns', async() => {
     spec().$container[0].style.width = '200px';
     spec().$container[0].style.height = '100px';
 
@@ -224,28 +223,27 @@ describe('Core_view', () => {
     expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A2');
     expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual('A3');
 
-    selectCell(0, 3);
-
-    keyDownUp('arrowright');
-    keyDownUp('arrowright');
-    keyDownUp('arrowright');
-    keyDownUp('arrowright');
+    await selectCell(0, 3);
+    await keyDownUp('arrowright');
+    await keyDownUp('arrowright');
+    await keyDownUp('arrowright');
+    await keyDownUp('arrowright');
 
     expect(leftClone.find('tr:eq(0) td:eq(0)').html()).toEqual('A1');
     expect(leftClone.find('tr:eq(1) td:eq(0)').html()).toEqual('A2');
     expect(leftClone.find('tr:eq(2) td:eq(0)').html()).toEqual('A3');
   });
 
-  it('should enable to change fixedColumnsStart with updateSettings', () => {
+  it('should enable to change fixedColumnsStart with updateSettings', async() => {
     spec().$container[0].style.width = '200px';
     spec().$container[0].style.height = '100px';
 
-    const HOT = handsontable({
+    handsontable({
       data: Handsontable.helper.createSpreadsheetData(10, 9),
       fixedColumnsStart: 1
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
     const leftClone = spec().$container.find('.ht_clone_inline_start');
 
@@ -254,18 +252,18 @@ describe('Core_view', () => {
     expect(leftClone.find('tr:eq(1) td:eq(0)').html()).toEqual('A2');
     expect(leftClone.find('tr:eq(2) td:eq(0)').html()).toEqual('A3');
 
-    keyDownUp('arrowright');
-    keyDownUp('arrowright');
-    keyDownUp('arrowright');
-    keyDownUp('arrowright');
+    await keyDownUp('arrowright');
+    await keyDownUp('arrowright');
+    await keyDownUp('arrowright');
+    await keyDownUp('arrowright');
 
     expect(leftClone.find('tr:eq(0) td:eq(0)').html()).toEqual('A1');
     expect(leftClone.find('tr:eq(1) td:eq(0)').html()).toEqual('A2');
     expect(leftClone.find('tr:eq(2) td:eq(0)').html()).toEqual('A3');
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
-    HOT.updateSettings({
+    updateSettings({
       fixedColumnsStart: 2
     });
 
@@ -278,7 +276,7 @@ describe('Core_view', () => {
     expect(leftClone.find('tr:eq(2) td:eq(1)').html()).toEqual('B3');
   });
 
-  it('should scroll the viewport horizontally from the column header navigation', () => {
+  it('should scroll the viewport horizontally from the column header navigation', async() => {
     handsontable({
       data: createSpreadsheetData(10, 50),
       width: 200,
@@ -290,21 +288,20 @@ describe('Core_view', () => {
 
     const htCore = getHtCore();
 
-    selectCell(-1, 10);
-
-    keyDownUp('arrowleft');
-    keyDownUp('arrowleft');
-    keyDownUp('arrowleft');
-    keyDownUp('arrowleft');
-    keyDownUp('arrowleft');
-    keyDownUp('arrowleft');
+    await selectCell(-1, 10);
+    await keyDownUp('arrowleft');
+    await keyDownUp('arrowleft');
+    await keyDownUp('arrowleft');
+    await keyDownUp('arrowleft');
+    await keyDownUp('arrowleft');
+    await keyDownUp('arrowleft');
 
     expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('D1');
     expect(htCore.find('tr:eq(1) td:eq(1)').html()).toEqual('E1');
     expect(htCore.find('tr:eq(1) td:eq(2)').html()).toEqual('F1');
   });
 
-  it('should scroll the viewport to the first column when the highlight moves to cell from the row header', () => {
+  it('should scroll the viewport to the first column when the highlight moves to cell from the row header', async() => {
     handsontable({
       data: createSpreadsheetData(10, 50),
       width: 200,
@@ -316,17 +313,17 @@ describe('Core_view', () => {
 
     const htCore = getHtCore();
 
-    selectCell(1, 40);
-    selectCell(1, -1);
+    await selectCell(1, 40);
+    await selectCell(1, -1);
 
     expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('AH1');
 
-    keyDownUp('arrowright');
+    await keyDownUp('arrowright');
 
     expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A1');
   });
 
-  it('should scroll the viewport to the first column when the highlight moves to column header from the corner', () => {
+  it('should scroll the viewport to the first column when the highlight moves to column header from the corner', async() => {
     handsontable({
       data: createSpreadsheetData(10, 50),
       width: 200,
@@ -338,12 +335,12 @@ describe('Core_view', () => {
 
     const htCore = getHtCore();
 
-    selectCell(1, 40);
-    selectCell(-1, -1);
+    await selectCell(1, 40);
+    await selectCell(-1, -1);
 
     expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('AH1');
 
-    keyDownUp('arrowright');
+    await keyDownUp('arrowright');
 
     expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A1');
   });
@@ -360,16 +357,15 @@ describe('Core_view', () => {
 
     const htCore = getHtCore();
 
-    selectCell(10, -1);
-
-    keyDownUp('arrowup');
-    keyDownUp('arrowup');
-    keyDownUp('arrowup');
-    keyDownUp('arrowup');
-    keyDownUp('arrowup');
-    keyDownUp('arrowup');
-    keyDownUp('arrowup');
-    keyDownUp('arrowup');
+    await selectCell(10, -1);
+    await keyDownUp('arrowup');
+    await keyDownUp('arrowup');
+    await keyDownUp('arrowup');
+    await keyDownUp('arrowup');
+    await keyDownUp('arrowup');
+    await keyDownUp('arrowup');
+    await keyDownUp('arrowup');
+    await keyDownUp('arrowup');
 
     expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A2');
     expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual('A3');
@@ -388,16 +384,15 @@ describe('Core_view', () => {
 
     const htCore = getHtCore();
 
-    selectCell(10, -1);
-
-    keyDownUp('arrowup');
-    keyDownUp('arrowup');
-    keyDownUp('arrowup');
-    keyDownUp('arrowup');
-    keyDownUp('arrowup');
-    keyDownUp('arrowup');
-    keyDownUp('arrowup');
-    keyDownUp('arrowup');
+    await selectCell(10, -1);
+    await keyDownUp('arrowup');
+    await keyDownUp('arrowup');
+    await keyDownUp('arrowup');
+    await keyDownUp('arrowup');
+    await keyDownUp('arrowup');
+    await keyDownUp('arrowup');
+    await keyDownUp('arrowup');
+    await keyDownUp('arrowup');
 
     expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A2');
     expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual('A3');
@@ -416,16 +411,15 @@ describe('Core_view', () => {
 
     const htCore = getHtCore();
 
-    selectCell(10, -1);
-
-    keyDownUp('arrowup');
-    keyDownUp('arrowup');
-    keyDownUp('arrowup');
-    keyDownUp('arrowup');
-    keyDownUp('arrowup');
-    keyDownUp('arrowup');
-    keyDownUp('arrowup');
-    keyDownUp('arrowup');
+    await selectCell(10, -1);
+    await keyDownUp('arrowup');
+    await keyDownUp('arrowup');
+    await keyDownUp('arrowup');
+    await keyDownUp('arrowup');
+    await keyDownUp('arrowup');
+    await keyDownUp('arrowup');
+    await keyDownUp('arrowup');
+    await keyDownUp('arrowup');
 
     expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A2');
     expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual('A3');
@@ -433,7 +427,7 @@ describe('Core_view', () => {
   });
 
   it.forTheme('classic')('should scroll the viewport to the first row when the highlight moves ' +
-    'down to the cell from the column header', () => {
+    'down to the cell from the column header', async() => {
     handsontable({
       data: createSpreadsheetData(50, 10),
       width: 200,
@@ -445,18 +439,18 @@ describe('Core_view', () => {
 
     const htCore = getHtCore();
 
-    selectCell(40, 1);
-    selectCell(-1, 1);
+    await selectCell(40, 1);
+    await selectCell(-1, 1);
 
     expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A25');
 
-    keyDownUp('arrowdown');
+    await keyDownUp('arrowdown');
 
     expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A1');
   });
 
   it.forTheme('main')('should scroll the viewport to the first row when the highlight moves ' +
-    'down to the cell from the column header', () => {
+    'down to the cell from the column header', async() => {
     handsontable({
       data: createSpreadsheetData(50, 10),
       width: 200,
@@ -468,18 +462,18 @@ describe('Core_view', () => {
 
     const htCore = getHtCore();
 
-    selectCell(40, 1);
-    selectCell(-1, 1);
+    await selectCell(40, 1);
+    await selectCell(-1, 1);
 
     expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A25');
 
-    keyDownUp('arrowdown');
+    await keyDownUp('arrowdown');
 
     expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A1');
   });
 
   it.forTheme('horizon')('should scroll the viewport to the first row when the highlight moves ' +
-    'down to the cell from the column header', () => {
+    'down to the cell from the column header', async() => {
     handsontable({
       data: createSpreadsheetData(50, 10),
       width: 200,
@@ -491,18 +485,18 @@ describe('Core_view', () => {
 
     const htCore = getHtCore();
 
-    selectCell(40, 1);
-    selectCell(-1, 1);
+    await selectCell(40, 1);
+    await selectCell(-1, 1);
 
     expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A25');
 
-    keyDownUp('arrowdown');
+    await keyDownUp('arrowdown');
 
     expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A1');
   });
 
   it.forTheme('classic')('should scroll the viewport to the first row when the highlight moves ' +
-    'down to the row header from the corner', () => {
+    'down to the row header from the corner', async() => {
     handsontable({
       data: createSpreadsheetData(50, 10),
       width: 200,
@@ -514,18 +508,18 @@ describe('Core_view', () => {
 
     const htCore = getHtCore();
 
-    selectCell(40, 1);
-    selectCell(-1, -1);
+    await selectCell(40, 1);
+    await selectCell(-1, -1);
 
     expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A25');
 
-    keyDownUp('arrowdown');
+    await keyDownUp('arrowdown');
 
     expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A1');
   });
 
   it.forTheme('main')('should scroll the viewport to the first row when the highlight moves ' +
-    'down to the row header from the corner', () => {
+    'down to the row header from the corner', async() => {
     handsontable({
       data: createSpreadsheetData(50, 10),
       width: 200,
@@ -537,18 +531,18 @@ describe('Core_view', () => {
 
     const htCore = getHtCore();
 
-    selectCell(40, 1);
-    selectCell(-1, -1);
+    await selectCell(40, 1);
+    await selectCell(-1, -1);
 
     expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A25');
 
-    keyDownUp('arrowdown');
+    await keyDownUp('arrowdown');
 
     expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A1');
   });
 
   it.forTheme('horizon')('should scroll the viewport to the first row when the highlight moves ' +
-    'down to the row header from the corner', () => {
+    'down to the row header from the corner', async() => {
     handsontable({
       data: createSpreadsheetData(50, 10),
       width: 200,
@@ -560,17 +554,17 @@ describe('Core_view', () => {
 
     const htCore = getHtCore();
 
-    selectCell(40, 1);
-    selectCell(-1, -1);
+    await selectCell(40, 1);
+    await selectCell(-1, -1);
 
     expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A25');
 
-    keyDownUp('arrowdown');
+    await keyDownUp('arrowdown');
 
     expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A1');
   });
 
-  it('should not scroll viewport when last cell is clicked', () => {
+  it('should not scroll viewport when last cell is clicked', async() => {
     handsontable({
       startRows: 40
     });
@@ -580,11 +574,12 @@ describe('Core_view', () => {
     const lastScroll = $(window).scrollTop();
 
     render(); // renders synchronously so we don't have to put stuff in waits/runs
-    selectCell(39, 0);
+
+    await selectCell(39, 0);
 
     expect($(window).scrollTop()).toEqual(lastScroll);
 
-    keyDownUp('arrowright');
+    await keyDownUp('arrowright');
 
     expect(getSelected()).toEqual([[39, 1, 39, 1]]);
     expect($(window).scrollTop()).toEqual(lastScroll);

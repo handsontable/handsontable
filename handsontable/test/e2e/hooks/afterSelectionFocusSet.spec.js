@@ -13,7 +13,7 @@ describe('Hook', () => {
   });
 
   describe('afterSelectionFocusSet', () => {
-    it('should be fired with proper arguments when the focus is changed', () => {
+    it('should be fired with proper arguments when the focus is changed', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(10, 10),
         colHeaders: true,
@@ -22,7 +22,7 @@ describe('Hook', () => {
 
       const afterSelectionFocusSet = jasmine.createSpy('afterSelectionFocusSet');
 
-      selectCell(1, 1, 5, 5);
+      await selectCell(1, 1, 5, 5);
 
       addHook('afterSelectionFocusSet', afterSelectionFocusSet);
       hot.selection.setRangeFocus(hot._createCellCoords(2, 3));
@@ -61,7 +61,7 @@ describe('Hook', () => {
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
     });
 
-    it('should not be fired when single cell is selected', () => {
+    it('should not be fired when single cell is selected', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         colHeaders: true,
@@ -71,12 +71,13 @@ describe('Hook', () => {
       const afterSelectionFocusSet = jasmine.createSpy('afterSelectionFocusSet');
 
       addHook('afterSelectionFocusSet', afterSelectionFocusSet);
-      selectCell(1, 1);
+
+      await selectCell(1, 1);
 
       expect(afterSelectionFocusSet).not.toHaveBeenCalled();
     });
 
-    it('should not be fired when multiple cells are selected', () => {
+    it('should not be fired when multiple cells are selected', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         colHeaders: true,
@@ -86,7 +87,8 @@ describe('Hook', () => {
       const afterSelectionFocusSet = jasmine.createSpy('afterSelectionFocusSet');
 
       addHook('afterSelectionFocusSet', afterSelectionFocusSet);
-      selectCell(1, 1, 5, 5);
+
+      await selectCell(1, 1, 5, 5);
 
       expect(afterSelectionFocusSet).not.toHaveBeenCalled();
     });

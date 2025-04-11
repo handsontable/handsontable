@@ -13,29 +13,31 @@ describe('settings', () => {
       }
     });
 
-    it('should not create a new column after TAB hit', () => {
+    it('should not create a new column after TAB hit', async() => {
       handsontable({
         data: createSpreadsheetData(2, 5),
         minSpareCols: 1,
       });
 
-      selectCell(0, 5);
-      keyDownUp('tab');
+      await selectCell(0, 5);
+      await keyDownUp('tab');
 
       expect(countCols()).toBe(6);
       expect(getSelected()).toBeUndefined();
     });
 
-    it('should create a new column after ENTER hit', () => {
+    it('should create a new column after ENTER hit', async() => {
       handsontable({
         data: createSpreadsheetData(2, 5),
         minSpareCols: 1,
       });
 
-      selectCell(0, 5);
-      keyDownUp('enter');
+      await selectCell(0, 5);
+      await keyDownUp('enter');
+
       getActiveEditor().TEXTAREA.value = 'test';
-      keyDownUp('enter');
+
+      await keyDownUp('enter');
 
       expect(countCols()).toBe(7);
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,5 from: 1,5 to: 1,5']);

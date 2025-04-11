@@ -61,9 +61,9 @@ describe('MemoryLeakTest', () => {
           ],
         });
 
-        selectCell(0, 0);
-        keyDownUp('enter');
-        keyDownUp('enter');
+        await selectCell(0, 0);
+        await keyDownUp('enter');
+        await keyDownUp('enter');
 
         hot.destroy();
 

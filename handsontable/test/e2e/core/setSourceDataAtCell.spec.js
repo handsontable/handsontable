@@ -61,13 +61,13 @@ describe('Core.setSourceDataAtCell', () => {
     expect(hot.render).toHaveBeenCalled();
   });
 
-  it('should call "refreshValue" method of the active editor when new data is set', () => {
+  it('should call "refreshValue" method of the active editor when new data is set', async() => {
     const hot = handsontable({
       data: [[1, 2, 3], ['a', 'b', 'c']],
     });
 
-    selectCell(0, 1);
-    keyDownUp('enter');
+    await selectCell(0, 1);
+    await keyDownUp('enter');
 
     spyOn(hot.getActiveEditor(), 'refreshValue').and.callThrough();
 

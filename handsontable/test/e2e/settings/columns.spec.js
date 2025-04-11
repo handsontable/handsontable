@@ -162,7 +162,7 @@ describe('settings', () => {
       });
 
       describe('editors', () => {
-        it('should properly bind defined editors', () => {
+        it('should properly bind defined editors', async() => {
           handsontable({
             data: [
               ['Joe'],
@@ -175,8 +175,8 @@ describe('settings', () => {
             }
           });
 
-          selectCell(0, 0);
-          keyDownUp('enter');
+          await selectCell(0, 0);
+          await keyDownUp('enter');
 
           const editor = $('.handsontableInput');
 

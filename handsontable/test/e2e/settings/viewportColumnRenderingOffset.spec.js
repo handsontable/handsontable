@@ -13,7 +13,7 @@ describe('settings', () => {
   });
 
   describe('viewportColumnRenderingOffset', () => {
-    it('should be possible to change the size of the calculated rendered rows', () => {
+    it('should be possible to change the size of the calculated rendered rows', async() => {
       let calculator;
 
       handsontable({
@@ -26,7 +26,7 @@ describe('settings', () => {
         },
       });
 
-      selectCell(25, 25);
+      await selectCell(25, 25);
 
       expect(calculator.startColumn).toBe(24);
       expect(calculator.endColumn).toBe(25);

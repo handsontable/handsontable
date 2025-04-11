@@ -14,30 +14,34 @@ describe('settings', () => {
     });
 
     describe('in table settings layer', () => {
-      it('should trimmed out the whitespace after cell edit, if trimWhitespace is set to `true`', () => {
+      it('should trimmed out the whitespace after cell edit, if trimWhitespace is set to `true`', async() => {
         handsontable({
           data: createSpreadsheetData(3, 9),
           trimWhitespace: true
         });
 
-        selectCell(0, 2);
-        keyDownUp('enter');
+        await selectCell(0, 2);
+        await keyDownUp('enter');
+
         getActiveEditor().TEXTAREA.value = '       test    of    whitespace      ';
-        keyDownUp('enter');
+
+        await keyDownUp('enter');
 
         expect(getDataAtCell(0, 2)).toBe('test    of    whitespace');
       });
 
-      it('should not trimmed out the whitespace after cell edit, if trimWhitespace is set to `false`', () => {
+      it('should not trimmed out the whitespace after cell edit, if trimWhitespace is set to `false`', async() => {
         handsontable({
           data: createSpreadsheetData(3, 9),
           trimWhitespace: false
         });
 
-        selectCell(0, 2);
-        keyDownUp('enter');
+        await selectCell(0, 2);
+        await keyDownUp('enter');
+
         getActiveEditor().TEXTAREA.value = '       test    of    whitespace      ';
-        keyDownUp('enter');
+
+        await keyDownUp('enter');
 
         expect(getDataAtCell(0, 2)).toBe('       test    of    whitespace      ');
       });
@@ -66,7 +70,7 @@ describe('settings', () => {
     });
 
     describe('in column settings layer', () => {
-      it('should trimmed out the whitespace after cell edit, if trimWhitespace is set to `true`', () => {
+      it('should trimmed out the whitespace after cell edit, if trimWhitespace is set to `true`', async() => {
         handsontable({
           data: createSpreadsheetData(3, 9),
           trimWhitespace: false,
@@ -76,15 +80,17 @@ describe('settings', () => {
           ]
         });
 
-        selectCell(0, 1);
-        keyDownUp('enter');
+        await selectCell(0, 1);
+        await keyDownUp('enter');
+
         getActiveEditor().TEXTAREA.value = '       test    of    whitespace      ';
-        keyDownUp('enter');
+
+        await keyDownUp('enter');
 
         expect(getDataAtCell(0, 1)).toBe('test    of    whitespace');
       });
 
-      it('should not trimmed out the whitespace after cell edit, if trimWhitespace is set to `false`', () => {
+      it('should not trimmed out the whitespace after cell edit, if trimWhitespace is set to `false`', async() => {
         handsontable({
           data: createSpreadsheetData(3, 9),
           trimWhitespace: true,
@@ -94,10 +100,12 @@ describe('settings', () => {
           ]
         });
 
-        selectCell(0, 1);
-        keyDownUp('enter');
+        await selectCell(0, 1);
+        await keyDownUp('enter');
+
         getActiveEditor().TEXTAREA.value = '       test    of    whitespace      ';
-        keyDownUp('enter');
+
+        await keyDownUp('enter');
 
         expect(getDataAtCell(0, 1)).toBe('       test    of    whitespace      ');
       });
@@ -134,7 +142,7 @@ describe('settings', () => {
     });
 
     describe('in cell settings layer', () => {
-      it('should trimmed out the whitespace after cell edit, if trimWhitespace is set to `true`', () => {
+      it('should trimmed out the whitespace after cell edit, if trimWhitespace is set to `true`', async() => {
         handsontable({
           data: createSpreadsheetData(3, 9),
           trimWhitespace: false,
@@ -145,15 +153,17 @@ describe('settings', () => {
           }
         });
 
-        selectCell(0, 1);
-        keyDownUp('enter');
+        await selectCell(0, 1);
+        await keyDownUp('enter');
+
         getActiveEditor().TEXTAREA.value = '       test    of    whitespace      ';
-        keyDownUp('enter');
+
+        await keyDownUp('enter');
 
         expect(getDataAtCell(0, 1)).toBe('test    of    whitespace');
       });
 
-      it('should not trimmed out the whitespace after cell edit, if trimWhitespace is set to `false`', () => {
+      it('should not trimmed out the whitespace after cell edit, if trimWhitespace is set to `false`', async() => {
         handsontable({
           data: createSpreadsheetData(3, 9),
           trimWhitespace: true,
@@ -164,10 +174,12 @@ describe('settings', () => {
           }
         });
 
-        selectCell(0, 1);
-        keyDownUp('enter');
+        await selectCell(0, 1);
+        await keyDownUp('enter');
+
         getActiveEditor().TEXTAREA.value = '       test    of    whitespace      ';
-        keyDownUp('enter');
+
+        await keyDownUp('enter');
 
         expect(getDataAtCell(0, 1)).toBe('       test    of    whitespace      ');
       });

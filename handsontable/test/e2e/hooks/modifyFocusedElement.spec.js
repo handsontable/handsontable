@@ -10,7 +10,7 @@ describe('`modifyFocusedElement` hook', () => {
     }
   });
 
-  it('should trigger the hook with the correct arguments every time a cell is selected', () => {
+  it('should trigger the hook with the correct arguments every time a cell is selected', async() => {
     const hookSpy = jasmine.createSpy('modifyFocusedElementSpy');
 
     handsontable({
@@ -20,18 +20,18 @@ describe('`modifyFocusedElement` hook', () => {
       modifyFocusedElement: hookSpy
     });
 
-    selectCell(1, 1);
+    await selectCell(1, 1);
 
     expect(hookSpy).toHaveBeenCalledTimes(1);
     expect(hookSpy).toHaveBeenCalledWith(1, 1, getCell(1, 1, true));
 
-    selectCell(2, 2);
+    await selectCell(2, 2);
 
     expect(hookSpy).toHaveBeenCalledTimes(2);
     expect(hookSpy).toHaveBeenCalledWith(2, 2, getCell(2, 2, true));
   });
 
-  it('should trigger the hook with the correct arguments when the hidden cell is selected', () => {
+  it('should trigger the hook with the correct arguments when the hidden cell is selected', async() => {
     const hookSpy = jasmine.createSpy('modifyFocusedElementSpy');
 
     handsontable({
@@ -46,13 +46,13 @@ describe('`modifyFocusedElement` hook', () => {
     hidingMap.setValueAtIndex(1, true);
     render();
 
-    selectCell(1, 1);
+    await selectCell(1, 1);
 
     expect(hookSpy).toHaveBeenCalledTimes(1);
     expect(hookSpy).toHaveBeenCalledWith(1, 1, null);
   });
 
-  it('should allow modifying which element is being focused by returning an HTML element from the hook\'s callback', () => {
+  it('should allow modifying which element is being focused by returning an HTML element from the hook\'s callback', async() => {
     const dummyElement = document.createElement('DIV');
 
     dummyElement.setAttribute('tabindex', -1);
@@ -68,7 +68,7 @@ describe('`modifyFocusedElement` hook', () => {
       }
     });
 
-    selectCell(1, 1);
+    await selectCell(1, 1);
 
     expect(document.activeElement).toEqual(dummyElement);
 

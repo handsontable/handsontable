@@ -34,13 +34,13 @@ describe('Core.setDataAtCell', () => {
     expect(hot.view.render).toHaveBeenCalled();
   });
 
-  it('should call "refreshValue" method of the active editor when new data is set', () => {
+  it('should call "refreshValue" method of the active editor when new data is set', async() => {
     handsontable({
       data: [[1, 2, 3], ['a', 'b', 'c']],
     });
 
-    selectCell(0, 1);
-    keyDownUp('enter');
+    await selectCell(0, 1);
+    await keyDownUp('enter');
 
     spyOn(getActiveEditor(), 'refreshValue').and.callThrough();
 

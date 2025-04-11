@@ -13,16 +13,18 @@ describe('settings', () => {
       }
     });
 
-    it('should create a new row after ENTER hit', () => {
+    it('should create a new row after ENTER hit', async() => {
       handsontable({
         data: createSpreadsheetData(5, 2),
         minSpareRows: 1,
       });
 
-      selectCell(5, 0);
-      keyDownUp('enter');
+      await selectCell(5, 0);
+      await keyDownUp('enter');
+
       getActiveEditor().TEXTAREA.value = 'test';
-      keyDownUp('enter');
+
+      await keyDownUp('enter');
 
       expect(countRows()).toBe(7);
       expect(getSelectedRange()).toEqualCellRange(['highlight: 6,0 from: 6,0 to: 6,0']);

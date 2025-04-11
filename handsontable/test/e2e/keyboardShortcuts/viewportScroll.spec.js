@@ -282,11 +282,8 @@ describe('Core viewport scroll keyboard shortcuts', () => {
       rowIndexMapper().createAndRegisterIndexMap('my-trimming-map', 'trimming', true);
       render();
 
-      selectCell(-1, 25, -1, 25, false);
-
-      await sleep(100);
-
-      keyDownUp(['control/meta', 'backspace']);
+      await selectCell(-1, 25, -1, 25, false);
+      await keyDownUp(['control/meta', 'backspace']);
 
       expect(getCurrentScrollPosition()).toEqual({ x: 1100, y: 0 });
     });
@@ -304,11 +301,8 @@ describe('Core viewport scroll keyboard shortcuts', () => {
       rowIndexMapper().createAndRegisterIndexMap('my-trimming-map', 'hiding', true);
       render();
 
-      selectCell(-1, 25, -1, 25, false);
-
-      await sleep(100);
-
-      keyDownUp(['control/meta', 'backspace']);
+      await selectCell(-1, 25, -1, 25, false);
+      await keyDownUp(['control/meta', 'backspace']);
 
       expect(getCurrentScrollPosition()).toEqual({ x: 1100, y: 0 });
     });
@@ -354,11 +348,8 @@ describe('Core viewport scroll keyboard shortcuts', () => {
       columnIndexMapper().createAndRegisterIndexMap('my-trimming-map', 'trimming', true);
       render();
 
-      selectCell(50, -1, 50, -1, false);
-
-      await sleep(100);
-
-      keyDownUp(['control/meta', 'backspace']);
+      await selectCell(50, -1, 50, -1, false);
+      await keyDownUp(['control/meta', 'backspace']);
 
       expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ x: 0, y: 1035 });
@@ -380,11 +371,8 @@ describe('Core viewport scroll keyboard shortcuts', () => {
       columnIndexMapper().createAndRegisterIndexMap('my-trimming-map', 'hiding', true);
       render();
 
-      selectCell(50, -1, 50, -1, false);
-
-      await sleep(100);
-
-      keyDownUp(['control/meta', 'backspace']);
+      await selectCell(50, -1, 50, -1, false);
+      await keyDownUp(['control/meta', 'backspace']);
 
       expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ x: 0, y: 1035 });

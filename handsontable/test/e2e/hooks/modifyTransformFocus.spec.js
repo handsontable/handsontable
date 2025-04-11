@@ -9,7 +9,7 @@ describe('Hook', () => {
   });
 
   describe('modifyTransformFocus', () => {
-    it('should be fired after changing the coordinates using `transformFocus` method only', () => {
+    it('should be fired after changing the coordinates using `transformFocus` method only', async() => {
       const modifyTransformFocus = jasmine.createSpy('modifyTransformFocus');
 
       const hot = handsontable({
@@ -17,7 +17,8 @@ describe('Hook', () => {
         modifyTransformFocus,
       });
 
-      selectCell(0, 0, 3, 3);
+      await selectCell(0, 0, 3, 3);
+
       hot.selection.transformFocus(1, 2);
 
       expect(modifyTransformFocus).toHaveBeenCalledWith(cellCoords(1, 2));

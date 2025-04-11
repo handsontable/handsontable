@@ -152,7 +152,7 @@ describe('Core_datachange', () => {
     expect(event[3]).toEqual('test');
   });
 
-  it('source parameter should be `edit` when cell value is changed through editor', () => {
+  it('source parameter should be `edit` when cell value is changed through editor', async() => {
     const sources = [];
 
     handsontable({
@@ -163,11 +163,13 @@ describe('Core_datachange', () => {
         sources.push(source);
       }
     });
-    selectCell(0, 0);
 
-    keyDownUp('enter');
+    await selectCell(0, 0);
+    await keyDownUp('enter');
+
     document.activeElement.value = 'Ted';
-    keyDownUp('enter');
+
+    await keyDownUp('enter');
 
     expect(sources).toEqual(['loadData', 'edit']); // loadData is always the first source
   });

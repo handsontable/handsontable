@@ -29,7 +29,7 @@ describe('Core.getCellMeta', () => {
     expect(cellMeta.visualCol).toBe(1);
   });
 
-  it('should not allow manual editing of a read only cell', () => {
+  it('should not allow manual editing of a read only cell', async() => {
     let allCellsReadOnly = false;
 
     handsontable({
@@ -40,14 +40,14 @@ describe('Core.getCellMeta', () => {
     allCellsReadOnly = true;
 
     render(); // It triggers the table "slow render" cycle that clears the cell meta cache
-    selectCell(2, 2);
 
-    keyDownUp('enter');
+    await selectCell(2, 2);
+    await keyDownUp('enter');
 
     expect(isEditorVisible()).toBe(false);
   });
 
-  it('should allow manual editing of cell that is no longer read only', () => {
+  it('should allow manual editing of cell that is no longer read only', async() => {
     let allCellsReadOnly = true;
 
     handsontable({
@@ -58,14 +58,14 @@ describe('Core.getCellMeta', () => {
     allCellsReadOnly = false;
 
     render(); // It triggers the table "slow render" cycle that clears the cell meta cache
-    selectCell(2, 2);
 
-    keyDownUp('enter');
+    await selectCell(2, 2);
+    await keyDownUp('enter');
 
     expect(isEditorVisible()).toBe(true);
   });
 
-  it('should move the selection to the cell below, when hitting the ENTER key on a read-only cell', () => {
+  it('should move the selection to the cell below, when hitting the ENTER key on a read-only cell', async() => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3),
       cells() {
@@ -73,16 +73,16 @@ describe('Core.getCellMeta', () => {
       }
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
     expect(getCellMeta(0, 0).readOnly).toBe(true);
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(getSelected()).toEqual([[1, 0, 1, 0]]);
   });
 
-  it('should use default cell editor for a cell that has declared only cell renderer', () => {
+  it('should use default cell editor for a cell that has declared only cell renderer', async() => {
     handsontable({
       cells() {
         return {
@@ -96,9 +96,10 @@ describe('Core.getCellMeta', () => {
         };
       }
     });
-    selectCell(2, 2);
 
-    keyDownUp('enter');
+    await selectCell(2, 2);
+    await keyDownUp('enter');
+
     document.activeElement.value = 'new value';
     destroyEditor();
 

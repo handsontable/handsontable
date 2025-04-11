@@ -13,7 +13,7 @@ describe('Core data modification keyboard shortcuts', () => {
   });
 
   describe('"Ctrl/Cmd + Enter"', () => {
-    it('should not populate the cell value when the selection range includes less than 2 cells', () => {
+    it('should not populate the cell value when the selection range includes less than 2 cells', async() => {
       const afterChange = jasmine.createSpy('afterChange');
 
       handsontable({
@@ -22,8 +22,9 @@ describe('Core data modification keyboard shortcuts', () => {
       });
 
       afterChange.calls.reset(); // reset initial "afterChange" call after load data
-      selectCell(1, 1);
-      keyDownUp(['control/meta', 'enter']);
+
+      await selectCell(1, 1);
+      await keyDownUp(['control/meta', 'enter']);
 
       expect(getData()).toEqual(createSpreadsheetData(5, 5));
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 1,1']);
@@ -387,13 +388,13 @@ describe('Core data modification keyboard shortcuts', () => {
   });
 
   using('key', ['Delete', 'Backspace'], (pressedKey) => {
-    it('should make selected cell empty', () => {
+    it('should make selected cell empty', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
       });
 
-      selectCell(1, 1);
-      keyDownUp([pressedKey]);
+      await selectCell(1, 1);
+      await keyDownUp([pressedKey]);
 
       expect(getData()).toEqual([
         ['A1', 'B1', 'C1', 'D1', 'E1'],
@@ -438,7 +439,7 @@ describe('Core data modification keyboard shortcuts', () => {
       ]);
     });
 
-    it('should not make selected cells empty when header is focused', () => {
+    it('should not make selected cells empty when header is focused', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -446,8 +447,8 @@ describe('Core data modification keyboard shortcuts', () => {
         navigableHeaders: true,
       });
 
-      selectCell(-1, 1);
-      keyDownUp([pressedKey]);
+      await selectCell(-1, 1);
+      await keyDownUp([pressedKey]);
 
       expect(getData()).toEqual([
         ['A1', 'B1', 'C1', 'D1', 'E1'],

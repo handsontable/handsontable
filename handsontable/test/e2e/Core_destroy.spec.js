@@ -28,7 +28,7 @@ describe('Core_destroy', () => {
     $(document.documentElement).off('.copypaste'); // remove copypaste.js listeners, which are not removed by destroy (because copypaste is a singleton for whole page)
   });
 
-  it('should NOT remove events from document element and window for other Handsontable instances on the page', () => {
+  it('should NOT remove events from document element and window for other Handsontable instances on the page', async() => {
     // test based on Core_selectionSpec.js (should deselect currently selected cell)
     handsontable();
 
@@ -38,7 +38,7 @@ describe('Core_destroy', () => {
     $tmp.handsontable('destroy');
     $tmp.remove();
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
     $('html').simulate('mousedown');
 

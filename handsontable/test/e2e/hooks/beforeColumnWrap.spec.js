@@ -9,7 +9,7 @@ describe('Hook', () => {
   });
 
   describe('beforeColumnWrap', () => {
-    it('should be fired once after row wrapping', () => {
+    it('should be fired once after row wrapping', async() => {
       const beforeColumnWrap = jasmine.createSpy('beforeColumnWrap');
 
       handsontable({
@@ -18,8 +18,8 @@ describe('Hook', () => {
         beforeColumnWrap,
       });
 
-      selectCell(0, 0);
-      keyDownUp('arrowup');
+      await selectCell(0, 0);
+      await keyDownUp('arrowup');
 
       expect(beforeColumnWrap).toHaveBeenCalledTimes(1);
       expect(beforeColumnWrap).toHaveBeenCalledWith(
@@ -29,21 +29,22 @@ describe('Hook', () => {
       );
     });
 
-    it('should add new rows by default when `minSpareRows` is defined', () => {
+    it('should add new rows by default when `minSpareRows` is defined', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(3, 5),
         autoWrapCol: false,
         minSpareRows: 2,
       });
 
-      selectCell(4, 4);
+      await selectCell(4, 4);
+
       hot.selection.transformStart(1, 0, true);
 
       expect(countRows()).toBe(6);
       expect(countCols()).toBe(5);
     });
 
-    it('should prevent adding new rows when `minSpareRows` is defined and the action is interrupted', () => {
+    it('should prevent adding new rows when `minSpareRows` is defined and the action is interrupted', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(3, 5),
         autoWrapCol: false,
@@ -53,7 +54,8 @@ describe('Hook', () => {
         },
       });
 
-      selectCell(4, 4);
+      await selectCell(4, 4);
+
       hot.selection.transformStart(1, 0, true);
 
       expect(countRows()).toBe(5);

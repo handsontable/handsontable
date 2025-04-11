@@ -302,7 +302,7 @@ describe('Core_updateData', () => {
     expect(cellsSpy.calls.count() - afterInitCellsSpy).toBe(12);
   });
 
-  it('should remove grid rows if new data source has less of them', () => {
+  it('should remove grid rows if new data source has less of them', async() => {
     const data1 = [
       ['a'],
       ['b'],
@@ -328,14 +328,16 @@ describe('Core_updateData', () => {
     });
 
     updateData(data1);
-    selectCell(7, 0);
+
+    await selectCell(7, 0);
+
     updateData(data2);
 
     expect(countRows()).toBe(data2.length);
     expect(getSelected()).toEqual([[4, 0, 4, 0]]);
   });
 
-  it('should remove grid rows if new data source has less of them (with minSpareRows)', () => {
+  it('should remove grid rows if new data source has less of them (with minSpareRows)', async() => {
     const data1 = [
       ['a'],
       ['b'],
@@ -362,14 +364,16 @@ describe('Core_updateData', () => {
     });
 
     updateData(data1);
-    selectCell(8, 0);
+
+    await selectCell(8, 0);
+
     updateData(data2);
 
     expect(countRows()).toBe(6); // +1 because of minSpareRows
     expect(getSelected()).toEqual([[5, 0, 5, 0]]);
   });
 
-  it('loading empty data should remove all rows', () => {
+  it('loading empty data should remove all rows', async() => {
     const data1 = [
       ['a'],
       ['b'],
@@ -389,7 +393,9 @@ describe('Core_updateData', () => {
     });
 
     updateData(data1);
-    selectCell(7, 0);
+
+    await selectCell(7, 0);
+
     updateData(data2);
 
     expect(countRows()).toBe(0);

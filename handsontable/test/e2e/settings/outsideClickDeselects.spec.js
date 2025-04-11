@@ -13,7 +13,7 @@ describe('settings', () => {
       }
     });
 
-    it('should not deselect the currently selected cell after clicking on a scrollbar', () => {
+    it('should not deselect the currently selected cell after clicking on a scrollbar', async() => {
       const hot = handsontable({
         outsideClickDeselects: false,
         minRows: 20,
@@ -22,7 +22,7 @@ describe('settings', () => {
         height: 100
       });
 
-      selectCell(0, 0);
+      await selectCell(0, 0);
 
       const holderBoundingBox = hot.view._wt.wtTable.holder.getBoundingClientRect();
       const verticalScrollbarCoords = {
@@ -49,44 +49,48 @@ describe('settings', () => {
       expect(getSelected()).toEqual([[0, 0, 0, 0]]);
     });
 
-    it('should not deselect currently selected cell', () => {
+    it('should not deselect currently selected cell', async() => {
       handsontable({
         outsideClickDeselects: false
       });
-      selectCell(0, 0);
+
+      await selectCell(0, 0);
 
       $('html').simulate('mousedown');
 
       expect(getSelected()).toEqual([[0, 0, 0, 0]]);
     });
 
-    it('should not deselect currently selected cell (outsideClickDeselects as function)', () => {
+    it('should not deselect currently selected cell (outsideClickDeselects as function)', async() => {
       handsontable({
         outsideClickDeselects: () => false
       });
-      selectCell(0, 0);
+
+      await selectCell(0, 0);
 
       $('html').simulate('mousedown');
 
       expect(getSelected()).toEqual([[0, 0, 0, 0]]);
     });
 
-    it('should deselect currently selected cell', () => {
+    it('should deselect currently selected cell', async() => {
       handsontable({
         outsideClickDeselects: true
       });
-      selectCell(0, 0);
+
+      await selectCell(0, 0);
 
       $('html').simulate('mousedown');
 
       expect(getSelected()).toBeUndefined();
     });
 
-    it('should deselect currently selected cell (outsideClickDeselects as function)', () => {
+    it('should deselect currently selected cell (outsideClickDeselects as function)', async() => {
       handsontable({
         outsideClickDeselects: () => true
       });
-      selectCell(0, 0);
+
+      await selectCell(0, 0);
 
       $('html').simulate('mousedown');
 
@@ -99,10 +103,8 @@ describe('settings', () => {
       handsontable({
         outsideClickDeselects: true
       });
-      selectCell(0, 0);
 
-      // It is necessary to fire event simulation in the next event loop cycle due to the autofocus editable element in setImmediate function.
-      await sleep(0);
+      await selectCell(0, 0);
 
       textarea.simulate('mousedown');
       textarea.focus();
@@ -122,9 +124,8 @@ describe('settings', () => {
       handsontable({
         outsideClickDeselects: () => true
       });
-      selectCell(0, 0);
 
-      await sleep(0);
+      await selectCell(0, 0);
 
       textarea.simulate('mousedown');
       textarea.focus();
@@ -144,9 +145,8 @@ describe('settings', () => {
       handsontable({
         outsideClickDeselects: false
       });
-      selectCell(0, 0);
 
-      await sleep(0);
+      await selectCell(0, 0);
 
       textarea.simulate('mousedown');
       textarea.focus();
@@ -166,9 +166,8 @@ describe('settings', () => {
       handsontable({
         outsideClickDeselects: () => false
       });
-      selectCell(0, 0);
 
-      await sleep(0);
+      await selectCell(0, 0);
 
       textarea.simulate('mousedown');
       textarea.focus();
@@ -189,7 +188,8 @@ describe('settings', () => {
       handsontable({
         outsideClickDeselects: false
       });
-      selectCell(0, 0);
+
+      await selectCell(0, 0);
 
       textarea.focus();
       textarea.simulate('mousedown');
@@ -201,7 +201,7 @@ describe('settings', () => {
 
       const LETTER_A_KEY = 97;
 
-      keyDownUp('a');
+      await keyDownUp('a');
 
       // textarea should receive the event and be an active element
       expect(keyPressed).toEqual(LETTER_A_KEY);
@@ -211,9 +211,7 @@ describe('settings', () => {
       expect(getSelected()).toEqual([[0, 0, 0, 0]]);
       expect(getDataAtCell(0, 0)).toBeNull();
 
-      await sleep(50);
-
-      keyDownUp('a');
+      await keyDownUp('a');
 
       expect(getSelected()).toEqual([[0, 0, 0, 0]]);
       expect(getDataAtCell(0, 0)).toBeNull();
@@ -228,7 +226,8 @@ describe('settings', () => {
       handsontable({
         outsideClickDeselects: () => false
       });
-      selectCell(0, 0);
+
+      await selectCell(0, 0);
 
       textarea.focus();
       textarea.simulate('mousedown');
@@ -240,7 +239,7 @@ describe('settings', () => {
 
       const LETTER_A_KEY = 97;
 
-      keyDownUp('a');
+      await keyDownUp('a');
 
       // textarea should receive the event and be an active element
       expect(keyPressed).toEqual(LETTER_A_KEY);
@@ -250,9 +249,7 @@ describe('settings', () => {
       expect(getSelected()).toEqual([[0, 0, 0, 0]]);
       expect(getDataAtCell(0, 0)).toBeNull();
 
-      await sleep(50);
-
-      keyDownUp('a');
+      await keyDownUp('a');
 
       expect(getSelected()).toEqual([[0, 0, 0, 0]]);
       expect(getDataAtCell(0, 0)).toBeNull();
@@ -267,8 +264,10 @@ describe('settings', () => {
       handsontable({
         outsideClickDeselects: false
       });
-      selectCell(0, 0);
-      keyDownUp('enter');
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
       document.activeElement.value = 'Foo';
 
       textarea.focus();
@@ -281,7 +280,7 @@ describe('settings', () => {
 
       const LETTER_A_KEY = 97;
 
-      keyDownUp('a');
+      await keyDownUp('a');
 
       // textarea should receive the event and be an active element
       expect(keyPressed).toEqual(LETTER_A_KEY);
@@ -291,9 +290,7 @@ describe('settings', () => {
       expect(getSelected()).toEqual([[0, 0, 0, 0]]);
       expect(getDataAtCell(0, 0)).toEqual('Foo');
 
-      await sleep(50);
-
-      keyDownUp('a');
+      await keyDownUp('a');
 
       expect(getSelected()).toEqual([[0, 0, 0, 0]]);
       expect(getDataAtCell(0, 0)).toEqual('Foo');
@@ -308,8 +305,10 @@ describe('settings', () => {
       handsontable({
         outsideClickDeselects: () => false
       });
-      selectCell(0, 0);
-      keyDownUp('enter');
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
       document.activeElement.value = 'Foo';
 
       textarea.focus();
@@ -322,7 +321,7 @@ describe('settings', () => {
 
       const LETTER_A_KEY = 97;
 
-      keyDownUp('a');
+      await keyDownUp('a');
 
       // textarea should receive the event and be an active element
       expect(keyPressed).toEqual(LETTER_A_KEY);
@@ -332,9 +331,7 @@ describe('settings', () => {
       expect(getSelected()).toEqual([[0, 0, 0, 0]]);
       expect(getDataAtCell(0, 0)).toEqual('Foo');
 
-      await sleep(50);
-
-      keyDownUp('a');
+      await keyDownUp('a');
 
       expect(getSelected()).toEqual([[0, 0, 0, 0]]);
       expect(getDataAtCell(0, 0)).toEqual('Foo');
@@ -343,10 +340,11 @@ describe('settings', () => {
     });
 
     it('should not re-render all the rows when outsideClickDeselects is set as false and the user toggles the visibility' +
-    'of the table with an outside button (dev-handsontable#1610)', () => {
+    'of the table with an outside button (dev-handsontable#1610)', async() => {
       const onAfterRenderer = jasmine.createSpy('onAfterRenderer');
       const $externalButton = $('<button>test</button>').prependTo('body');
-      const hot = handsontable({
+
+      handsontable({
         data: Handsontable.helper.createSpreadsheetData(50, 1),
         rowHeaders: true,
         colHeaders: true,
@@ -359,11 +357,11 @@ describe('settings', () => {
         spec().$container.toggle();
       });
 
-      hot.selectCell(0, 0);
+      await selectCell(0, 0);
 
       $externalButton.simulate('click');
 
-      hot.addHook('afterRenderer', onAfterRenderer);
+      addHook('afterRenderer', onAfterRenderer);
 
       $externalButton.simulate('mousedown');
       $externalButton.simulate('mouseup');

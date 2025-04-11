@@ -13,7 +13,7 @@ describe('settings', () => {
   });
 
   describe('viewportRowRenderingOffset', () => {
-    it.forTheme('classic')('should be possible to change the size of the calculated rendered rows', () => {
+    it.forTheme('classic')('should be possible to change the size of the calculated rendered rows', async() => {
       let calculator;
 
       handsontable({
@@ -26,7 +26,7 @@ describe('settings', () => {
         },
       });
 
-      selectCell(25, 25);
+      await selectCell(25, 25);
 
       expect(calculator.startRow).toBe(22);
       expect(calculator.endRow).toBe(26);
@@ -37,7 +37,7 @@ describe('settings', () => {
       expect(calculator.endRow).toBe(36);
     });
 
-    it.forTheme('main')('should be possible to change the size of the calculated rendered rows', () => {
+    it.forTheme('main')('should be possible to change the size of the calculated rendered rows', async() => {
       let calculator;
 
       handsontable({
@@ -50,7 +50,7 @@ describe('settings', () => {
         },
       });
 
-      selectCell(25, 25);
+      await selectCell(25, 25);
 
       expect(calculator.startRow).toBe(22);
       expect(calculator.endRow).toBe(26);
@@ -61,7 +61,7 @@ describe('settings', () => {
       expect(calculator.endRow).toBe(36);
     });
 
-    it.forTheme('horizon')('should be possible to change the size of the calculated rendered rows', () => {
+    it.forTheme('horizon')('should be possible to change the size of the calculated rendered rows', async() => {
       let calculator;
 
       handsontable({
@@ -74,7 +74,7 @@ describe('settings', () => {
         },
       });
 
-      selectCell(25, 25);
+      await selectCell(25, 25);
 
       expect(calculator.startRow).toBe(22);
       expect(calculator.endRow).toBe(26);
