@@ -102,7 +102,7 @@ export function walkontable(options, table) {
   }
 
   options.table = table;
-
+  options.stylesHandler = createStylesHandler();
   currentSpec.wotInstance = new Walkontable.Core(options);
 
   return currentSpec.wotInstance;
@@ -348,6 +348,25 @@ export function createSelectionController(options = {}) {
         ...columnHighlightCtrl,
         ...customHighlightCtrl,
       ][Symbol.iterator]();
+    },
+  };
+}
+
+/**
+ * Creates the stylesHandler for the Walkontable to be used in the tests.
+ *
+ * @returns {object} Styles Handler.
+ */
+export function createStylesHandler() {
+  return {
+    getDefaultRowHeight() {
+      return 23;
+    },
+    isClassicTheme() {
+      return true;
+    },
+    areCellsBorderBox() {
+      return false;
     },
   };
 }
