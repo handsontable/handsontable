@@ -318,8 +318,9 @@ class Table {
       } else {
         this.tableOffset = this.dataAccessObject.parentTableOffset;
       }
-      const startRow = totalRows > 0 ? this.getFirstRenderedRow() : 0;
-      const startColumn = totalColumns > 0 ? this.getFirstRenderedColumn() : 0;
+
+      const startRow = Math.max(this.getFirstRenderedRow(), 0);
+      const startColumn = Math.max(this.getFirstRenderedColumn(), 0);
 
       this.rowFilter = new RowFilter(startRow, totalRows, columnHeadersCount);
       this.columnFilter = new ColumnFilter(startColumn, totalColumns, rowHeadersCount);
@@ -700,6 +701,11 @@ class Table {
     }
 
     const TR = cellElement.parentNode;
+
+    if (!TR) {
+      return null;
+    }
+
     const CONTAINER = TR.parentNode;
     let row = index(TR);
     let col = cellElement.cellIndex;

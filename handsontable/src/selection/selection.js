@@ -1281,11 +1281,14 @@ class Selection {
     });
 
     this.selectedRange.ranges.push(range);
-    this.highlight
-      .getFocus()
-      .add(highlight)
-      .commit()
-      .syncWith(range);
+
+    if (this.highlight.isEnabledFor(FOCUS_TYPE, this.selectedRange.current().highlight)) {
+      this.highlight
+        .getFocus()
+        .add(highlight)
+        .commit()
+        .syncWith(range);
+    }
 
     this.applyAndCommit(range);
   }

@@ -80,4 +80,27 @@ describe('`afterFilter` hook', () => {
     expect(plugin.exportConditions()).toEqual([]);
     expect(getData(0, 0, 0, 5)).toEqual([[1, 'Nannie Patel', 'Jenkinsville', '2014-01-29', 'green', 1261.6]]);
   });
+
+  it('should be possible to change the default selection after filter is applied', () => {
+    handsontable({
+      data: getDataForFilters(),
+      columns: getColumnsForFilters(),
+      dropdownMenu: true,
+      filters: true,
+      width: 500,
+      height: 300,
+      afterFilter() {
+        selectCells([[2, 2, 5, 5]]);
+      },
+    });
+
+    const plugin = getPlugin('filters');
+
+    plugin.addCondition(0, 'gt', [12]);
+    plugin.filter();
+
+    expect(getSelectedRange()).toEqualCellRange([
+      'highlight: 2,2 from: 2,2 to: 5,5',
+    ]);
+  });
 });

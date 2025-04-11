@@ -533,6 +533,22 @@ describe('Walkontable.CellRange', () => {
     });
   });
 
+  describe('normalize', () => {
+    it('should normalize all coords inside the range', () => {
+      const highlight = new Walkontable.CellCoords(-1, -2);
+      const from = new Walkontable.CellCoords(-1, 1);
+      const to = new Walkontable.CellCoords(2, -2);
+      const range = new Walkontable.CellRange(highlight, from, to);
+
+      const result = range.normalize();
+
+      expect(result).toBe(range);
+      expect(range.from).toEqual(new Walkontable.CellCoords(0, 1));
+      expect(range.to).toEqual(new Walkontable.CellCoords(2, 0));
+      expect(range.to).toEqual(new Walkontable.CellCoords(2, 0));
+    });
+  });
+
   describe('overlaps', () => {
     describe('positive', () => {
       /*

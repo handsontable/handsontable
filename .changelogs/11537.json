@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed `TypeError` error for AutoRowSize plugin",
+  "type": "fixed",
+  "issueOrPR": 11537,
+  "breaking": false,
+  "framework": "none"
+}

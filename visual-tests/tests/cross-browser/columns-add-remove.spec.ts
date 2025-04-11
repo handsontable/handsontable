@@ -15,8 +15,8 @@ test('Test columns add/remove', async({ goto, tablePage }) => {
   await tableBottom.waitFor();
 
   await selectColumnHeaderByNameAndOpenMenu('Industry', tableBottom);
-  await selectFromContextMenu('"Insert column left"');
+  await selectFromContextMenu('Insert column left');
   await selectColumnHeaderByNameAndOpenMenu('Industry', tableBottom);
-  await selectFromContextMenu('"Insert column right"');
+  await selectFromContextMenu('Insert column right');
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 });

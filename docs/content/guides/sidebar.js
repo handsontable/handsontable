@@ -14,7 +14,8 @@ const gettingStartedItems = [
 ];
 
 const stylingItems = [
-  { path: 'guides/styling/themes/themes' }
+  { path: 'guides/styling/themes/themes' },
+  { path: 'guides/styling/design-system/design-system' }
 ];
 
 const integrateWithAngularItems = [

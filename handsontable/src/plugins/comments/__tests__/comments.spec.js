@@ -1520,4 +1520,31 @@ describe('Comments', () => {
       expect(commentContainersLength).toEqual(0);
     });
   });
+
+  it('should be possible to write a comment using IME (#dev-2281)', async() => {
+    const hot = handsontable({
+      data: createSpreadsheetData(4, 4),
+      rowHeaders: true,
+      colHeaders: true,
+      comments: true,
+    });
+
+    selectCell(1, 1);
+    keyDownUp(['control', 'alt', 'm']);
+
+    await sleep(10);
+
+    const plugin = getPlugin('comments');
+    const event = new CompositionEvent('compositionstart', {
+      data: 'c'
+    });
+    const editorManager = hot._getEditorManager();
+
+    spyOn(editorManager, 'openEditor').and.callThrough();
+
+    // the comment is opened, start typing using IME events
+    plugin.getEditorInputElement().dispatchEvent(event);
+
+    expect(editorManager.openEditor).not.toHaveBeenCalled();
+  });
 });

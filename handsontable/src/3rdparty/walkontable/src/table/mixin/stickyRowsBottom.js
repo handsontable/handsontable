@@ -18,19 +18,13 @@ const stickyRowsBottom = {
    * @this Table
    */
   getFirstRenderedRow() {
-    const totalRows = this.wtSettings.getSetting('totalRows');
-    const fixedRowsBottom = this.wtSettings.getSetting('fixedRowsBottom');
-    const index = totalRows - fixedRowsBottom;
+    const allStickyRows = this.getRenderedRowsCount();
 
-    if (totalRows === 0 || fixedRowsBottom === 0) {
+    if (allStickyRows === 0) {
       return -1;
     }
 
-    if (index < 0) {
-      return 0;
-    }
-
-    return index;
+    return this.wtSettings.getSetting('totalRows') - allStickyRows;
   },
 
   /**
@@ -62,6 +56,12 @@ const stickyRowsBottom = {
    * @this Table
    */
   getLastRenderedRow() {
+    const allStickyRows = this.getRenderedRowsCount();
+
+    if (allStickyRows === 0) {
+      return -1;
+    }
+
     return this.wtSettings.getSetting('totalRows') - 1;
   },
 
@@ -94,9 +94,10 @@ const stickyRowsBottom = {
    * @this Table
    */
   getRenderedRowsCount() {
-    const totalRows = this.wtSettings.getSetting('totalRows');
-
-    return Math.min(this.wtSettings.getSetting('fixedRowsBottom'), totalRows);
+    return Math.min(
+      this.wtSettings.getSetting('totalRows'),
+      this.wtSettings.getSetting('fixedRowsBottom'),
+    );
   },
 
   /**

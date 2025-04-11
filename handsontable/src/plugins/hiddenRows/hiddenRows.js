@@ -195,9 +195,9 @@ export class HiddenRows extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    this.hot.rowIndexMapper.unregisterMap(this.pluginName);
-
     super.disablePlugin();
+
+    this.hot.rowIndexMapper.unregisterMap(this.pluginName);
     this.resetCellsMeta();
   }
 

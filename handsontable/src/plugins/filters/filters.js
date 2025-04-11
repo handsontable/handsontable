@@ -553,10 +553,10 @@ export class Filters extends BasePlugin {
    *
    * @returns {Array}
    */
-  /* eslint-enable jsdoc/require-description-complete-sentence */
   exportConditions() {
     return this.conditionCollection.exportAllConditions();
   }
+  /* eslint-enable jsdoc/require-description-complete-sentence */
 
   /**
    * Filters data based on added filter conditions.
@@ -577,39 +577,36 @@ export class Filters extends BasePlugin {
       this.#previousConditionStack
     );
 
-    if (allowFiltering !== false) {
-      if (needToFilter) {
-        const trimmedRows = [];
+    if (allowFiltering !== false && needToFilter) {
+      const trimmedRows = [];
 
-        this.hot.batchExecution(() => {
-          this.filtersRowsMap.clear();
-
-          visibleVisualRows = arrayMap(dataFilter.filter(), rowData => rowData.meta.visualRow);
-
-          const visibleVisualRowsAssertion = createArrayAssertion(visibleVisualRows);
-
-          rangeEach(this.hot.countSourceRows() - 1, (row) => {
-            if (!visibleVisualRowsAssertion(row)) {
-              trimmedRows.push(row);
-            }
-          });
-
-          arrayEach(trimmedRows, (physicalRow) => {
-            this.filtersRowsMap.setValueAtIndex(physicalRow, true);
-          });
-        }, true);
-
-        if (!navigableHeaders && !visibleVisualRows.length) {
-          this.hot.deselectCell();
-        }
-      } else {
+      this.hot.batchExecution(() => {
         this.filtersRowsMap.clear();
+
+        visibleVisualRows = arrayMap(dataFilter.filter(), rowData => rowData.meta.visualRow);
+
+        const visibleVisualRowsAssertion = createArrayAssertion(visibleVisualRows);
+
+        rangeEach(this.hot.countSourceRows() - 1, (row) => {
+          if (!visibleVisualRowsAssertion(row)) {
+            trimmedRows.push(row);
+          }
+        });
+
+        arrayEach(trimmedRows, (physicalRow) => {
+          this.filtersRowsMap.setValueAtIndex(physicalRow, true);
+        });
+      }, true);
+
+      if (!navigableHeaders && !visibleVisualRows.length) {
+        this.hot.deselectCell();
       }
 
       this.#previousConditionStack = this.exportConditions();
-      this.hot.runHooks('afterFilter', conditions);
-      this.hot.view.adjustElementsSize();
-      this.hot.render();
+
+    } else if (allowFiltering !== false && !needToFilter) {
+      this.#previousConditionStack = this.exportConditions();
+      this.filtersRowsMap.clear();
 
     } else {
       this.importConditions(this.#previousConditionStack);
@@ -620,6 +617,12 @@ export class Filters extends BasePlugin {
         navigableHeaders ? -1 : 0,
         this.hot.getSelectedRangeLast().highlight.col,
       );
+    }
+
+    if (allowFiltering !== false) {
+      this.hot.runHooks('afterFilter', conditions);
+      this.hot.view.adjustElementsSize();
+      this.hot.render();
     }
   }
 

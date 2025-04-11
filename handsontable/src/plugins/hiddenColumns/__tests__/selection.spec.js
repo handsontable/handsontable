@@ -778,6 +778,43 @@ describe('HiddenColumns', () => {
       | - ║   : 0 :   |
       `).toBeMatchToSelectionPattern();
     });
+
+    it('should regenerate the selection after hiding and showing columns it was in using `updateSettings`, ' +
+      'without throwing any errors (#dev-2293)', () => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        hiddenColumns: {
+          columns: []
+        },
+        rowHeaders: true,
+        colHeaders: true,
+      });
+
+      selectCell(0, 0);
+
+      let errorThrown = false;
+
+      try {
+        updateSettings({
+          hiddenColumns: {
+            columns: [0]
+          },
+        });
+
+        updateSettings({
+          hiddenColumns: {
+            columns: []
+          },
+        });
+
+      } catch (err) {
+        errorThrown = true;
+      }
+
+      expect(getSelected()).toEqual([[0, 0, 0, 0]]);
+      expect(getCell(0, 0, true)).toHaveClass('current');
+      expect(errorThrown).toBe(false);
+    });
   });
 
   describe('redrawing rendered selection when the selected range has been changed', () => {

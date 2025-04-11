@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed `hasVerticalScroll` and `hasHorizontalScroll` methods",
-  "type": "fixed",
-  "issueOrPR": 11455,
-  "breaking": false,
-  "framework": "none"
-}

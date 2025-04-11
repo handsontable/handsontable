@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed default (fallback) date format for Date editor",
-  "type": "fixed",
-  "issueOrPR": 11419,
-  "breaking": false,
-  "framework": "none"
-}

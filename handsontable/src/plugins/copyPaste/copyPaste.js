@@ -7,7 +7,8 @@ import {
   removeContentEditableFromElementAndDeselect,
   runWithSelectedContendEditableElement,
   makeElementContentEditableAndSelectItsContent,
-  isHTMLElement
+  isHTMLElement,
+  isInternalElement,
 } from '../../helpers/dom/element';
 import { isSafari } from '../../helpers/browser';
 import copyItem from './contextMenuItem/copy';
@@ -236,6 +237,8 @@ export class CopyPaste extends BasePlugin {
     this.addHook('afterSelection', (...args) => this.#onAfterSelection(...args));
     this.addHook('afterSelectionEnd', () => this.#onAfterSelectionEnd());
 
+    // Events are attached to the document, not the root table element - as it should,
+    // for Chrome 133 and lower to copy/paste/cut work properly (#dev-2277).
     this.eventManager.addEventListener(this.hot.rootDocument, 'copy', (...args) => this.onCopy(...args));
     this.eventManager.addEventListener(this.hot.rootDocument, 'cut', (...args) => this.onCut(...args));
     this.eventManager.addEventListener(this.hot.rootDocument, 'paste', (...args) => this.onPaste(...args));
@@ -625,17 +628,19 @@ export class CopyPaste extends BasePlugin {
    * @private
    */
   onCopy(event) {
+    const eventTarget = event.composedPath()[0];
     const focusedElement = this.hot.getFocusManager().getRefocusElement();
-    const isHotInput = event.target?.hasAttribute('data-hot-input');
-    const selectedCell = this.hot.getSelectedRangeLast()?.highlight;
-    const TD = selectedCell ? this.hot.getCell(selectedCell.row, selectedCell.col, true) : null;
+    const isHotInput = eventTarget?.hasAttribute('data-hot-input');
 
     if (
       !this.hot.isListening() && !this.#isTriggeredByCopy ||
       this.isEditorOpened() ||
-      isHTMLElement(event.target) && (
-        isHotInput && event.target !== focusedElement ||
-        !isHotInput && event.target !== this.hot.rootDocument.body && TD !== event.target
+      isHTMLElement(eventTarget) && (
+        (isHotInput && eventTarget !== focusedElement) ||
+        (
+          !isHotInput && eventTarget !== this.hot.rootDocument.body &&
+          !isInternalElement(eventTarget, this.hot.rootElement)
+        )
       )
     ) {
       return;
@@ -675,17 +680,19 @@ export class CopyPaste extends BasePlugin {
    * @private
    */
   onCut(event) {
+    const eventTarget = event.composedPath()[0];
     const focusedElement = this.hot.getFocusManager().getRefocusElement();
-    const isHotInput = event.target?.hasAttribute('data-hot-input');
-    const selectedCell = this.hot.getSelectedRangeLast()?.highlight;
-    const TD = selectedCell ? this.hot.getCell(selectedCell.row, selectedCell.col, true) : null;
+    const isHotInput = eventTarget?.hasAttribute('data-hot-input');
 
     if (
       !this.hot.isListening() && !this.#isTriggeredByCut ||
       this.isEditorOpened() ||
-      isHTMLElement(event.target) && (
-        isHotInput && event.target !== focusedElement ||
-        !isHotInput && event.target !== this.hot.rootDocument.body && TD !== event.target
+      isHTMLElement(eventTarget) && (
+        (isHotInput && eventTarget !== focusedElement) ||
+        (
+          !isHotInput && eventTarget !== this.hot.rootDocument.body &&
+          !isInternalElement(eventTarget, this.hot.rootElement)
+        )
       )
     ) {
       return;
@@ -723,18 +730,20 @@ export class CopyPaste extends BasePlugin {
    * @private
    */
   onPaste(event) {
+    const eventTarget = event.composedPath()[0];
     const focusedElement = this.hot.getFocusManager().getRefocusElement();
-    const isHotInput = event.target?.hasAttribute('data-hot-input');
-    const selectedCell = this.hot.getSelectedRangeLast()?.highlight;
-    const TD = selectedCell ? this.hot.getCell(selectedCell.row, selectedCell.col, true) : null;
+    const isHotInput = eventTarget?.hasAttribute('data-hot-input');
 
     if (
       !this.hot.isListening() ||
       this.isEditorOpened() ||
       !this.hot.getSelected() ||
-      isHTMLElement(event.target) && (
-        isHotInput && event.target !== focusedElement ||
-        !isHotInput && event.target !== this.hot.rootDocument.body && TD !== event.target
+      isHTMLElement(eventTarget) && (
+        (isHotInput && eventTarget !== focusedElement) ||
+        (
+          !isHotInput && eventTarget !== this.hot.rootDocument.body &&
+          !isInternalElement(eventTarget, this.hot.rootElement)
+        )
       )
     ) {
       return;

@@ -27,8 +27,8 @@
           <ExternalNavLinks/>
 
           <nav class="icons-nav">
-            <!--<ThemeSwitcher />-->
             <span class="news"><i class="ico i-bell"></i></span>
+            <ThemeSwitcher />
             <a href="https://github.com/handsontable/handsontable" class="github-stars" target="_blank">
               <i class="ico i-github"></i>
               <span v-if="stars">{{ stars }}</span>
@@ -53,7 +53,7 @@ import Logo from '@theme/components/Logo.vue';
 import SidebarButton from '@theme/components/SidebarButton.vue';
 import NavLinks from '@theme/components/NavLinks.vue';
 // import VersionsDropdown from '@theme/components/VersionsDropdown.vue';
-// import ThemeSwitcher from '@theme/components/ThemeSwitcher.vue';
+import ThemeSwitcher from '@theme/components/ThemeSwitcher.vue';
 import FrameworksDropdown from '@theme/components/FrameworksDropdown.vue';
 import ExternalNavLinks from '@theme/components/ExternalNavLinks.vue';
 import SidebarLinks from '@theme/components/SidebarLinks.vue';
@@ -67,7 +67,7 @@ export default {
     NavLinks,
     AlgoliaSearch,
     // VersionsDropdown,
-    // ThemeSwitcher,
+    ThemeSwitcher,
     ExternalNavLinks,
     SidebarLinks
   },

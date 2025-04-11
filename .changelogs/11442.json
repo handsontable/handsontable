@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fix cell text reading when imeFastEdit is enabled",
-  "type": "fixed",
-  "issueOrPR": 11442,
-  "breaking": false,
-  "framework": "none"
-}

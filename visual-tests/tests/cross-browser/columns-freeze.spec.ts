@@ -8,7 +8,7 @@ import {
 test('Test freezing', async({ goto, tablePage }) => {
   await goto('/cell-types-demo');
   await selectColumnHeaderByNameAndOpenMenu('Cost');
-  await selectFromContextMenu('"Freeze column"');
+  await selectFromContextMenu('Freeze column');
 
   await tablePage.mouse.wheel(500, 0);
   await tablePage.waitForTimeout(500);
