@@ -57,7 +57,7 @@ describe('DropdownEditor', () => {
     expect(editor.offset()).toEqual($(getCell(0, 0)).offset());
   });
 
-  it('should render an editor in specified position at cell 0, 0 when all headers are selected', () => {
+  it('should render an editor in specified position at cell 0, 0 when all headers are selected', async() => {
     handsontable({
       rowHeaders: true,
       colHeaders: true,
@@ -69,12 +69,13 @@ describe('DropdownEditor', () => {
       ],
     });
 
-    selectAll();
     listen();
+
+    await selectAll();
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDownUp('F2');
+    await keyDownUp('F2');
 
     expect(editor.offset()).toEqual($(getCell(0, 0)).offset());
   });

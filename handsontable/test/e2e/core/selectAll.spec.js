@@ -10,37 +10,41 @@ describe('Core.selectAll', () => {
     }
   });
 
-  it('should call the `selectAll` method of the Selection module internally', () => {
+  it('should call the `selectAll` method of the Selection module internally', async() => {
     const hot = handsontable({
       data: createSpreadsheetObjectData(5, 5),
     });
 
     spyOn(hot.selection, 'selectAll');
-    selectAll();
+
+    await selectAll();
 
     expect(hot.selection.selectAll).toHaveBeenCalledWith(true, true, undefined);
     expect(hot.selection.selectAll).toHaveBeenCalledTimes(1);
 
     hot.selection.selectAll.calls.reset();
-    selectAll(false);
+
+    await selectAll(false);
 
     expect(hot.selection.selectAll).toHaveBeenCalledWith(false, false, undefined);
     expect(hot.selection.selectAll).toHaveBeenCalledTimes(1);
 
     hot.selection.selectAll.calls.reset();
-    selectAll(true, false);
+
+    await selectAll(true, false);
 
     expect(hot.selection.selectAll).toHaveBeenCalledWith(true, false, undefined);
     expect(hot.selection.selectAll).toHaveBeenCalledTimes(1);
 
     hot.selection.selectAll.calls.reset();
-    selectAll(true, true, { focusPosition: { row: 1, col: 1 } });
+
+    await selectAll(true, true, { focusPosition: { row: 1, col: 1 } });
 
     expect(hot.selection.selectAll).toHaveBeenCalledWith(true, true, { focusPosition: { row: 1, col: 1 } });
     expect(hot.selection.selectAll).toHaveBeenCalledTimes(1);
   });
 
-  it('should not scroll the viewport when all cells without headers are selected', () => {
+  it('should not scroll the viewport when all cells without headers are selected', async() => {
     const scrollbarWidth = Handsontable.dom.getScrollbarWidth(); // normalize viewport size disregarding of the scrollbar size on any OS
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(15, 20),
@@ -51,12 +55,12 @@ describe('Core.selectAll', () => {
       rowHeaders: true,
     });
 
-    selectCells([[1, 1, 2, 2], [2, 2, 4, 4]]);
+    await selectCells([[1, 1, 2, 2], [2, 2, 4, 4]]);
 
     hot.view._wt.wtTable.holder.scrollTop = 150;
     hot.view._wt.wtTable.holder.scrollLeft = 150;
 
-    selectAll(false);
+    await selectAll(false);
 
     expect(`
       |   ║ - : - : - : - : - : - : - : - |
@@ -78,7 +82,7 @@ describe('Core.selectAll', () => {
     expect(hot.view._wt.wtTable.holder.scrollLeft).toBe(150);
   });
 
-  it('should not scroll the viewport when all cells with headers are selected', () => {
+  it('should not scroll the viewport when all cells with headers are selected', async() => {
     const scrollbarWidth = Handsontable.dom.getScrollbarWidth(); // normalize viewport size disregarding of the scrollbar size on any OS
     const hot = handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(15, 20),
@@ -89,12 +93,12 @@ describe('Core.selectAll', () => {
       rowHeaders: true,
     });
 
-    selectCells([[1, 1, 2, 2], [2, 2, 4, 4]]);
+    await selectCells([[1, 1, 2, 2], [2, 2, 4, 4]]);
 
     hot.view._wt.wtTable.holder.scrollTop = 150;
     hot.view._wt.wtTable.holder.scrollLeft = 150;
 
-    selectAll(true);
+    await selectAll(true);
 
     expect(`
       | * ║ * : * : * : * : * : * : * : * |

@@ -40,7 +40,7 @@ describe('ContextMenu', () => {
     });
 
     it('should NOT hide the entry for "Show column" in the context menu, when the selection contains an' +
-      ' entire column (including the header) or all cells (including all headers)', () => {
+      ' entire column (including the header) or all cells (including all headers)', async() => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
@@ -51,15 +51,15 @@ describe('ContextMenu', () => {
         }
       });
 
-      selectColumns(1);
-      contextMenu();
+      await selectColumns(1);
+      await contextMenu();
 
       let compatibleEntries = getShowColumnCMElement();
 
       expect(compatibleEntries.size()).toEqual(1);
 
-      selectAll(true);
-      contextMenu(getCell(-1, 1));
+      await selectAll(true);
+      await contextMenu(getCell(-1, 1));
 
       compatibleEntries = getShowColumnCMElement();
 

@@ -49,7 +49,7 @@ describe('CopyPaste', () => {
       ].join(''));
     });
 
-    it('should copy only cells to the clipboard when all cells and headers are selected', () => {
+    it('should copy only cells to the clipboard when all cells and headers are selected', async() => {
       handsontable({
         data: createSpreadsheetData(2, 2),
         rowHeaders: true,
@@ -69,7 +69,7 @@ describe('CopyPaste', () => {
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
-      selectAll();
+      await selectAll();
 
       plugin.copyCellsOnly();
       plugin.onCopy(copyEvent); // emulate native "copy" event

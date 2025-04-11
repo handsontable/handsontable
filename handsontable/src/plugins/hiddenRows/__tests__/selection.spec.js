@@ -430,7 +430,7 @@ describe('HiddenRows', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should select entire table after call selectAll if some rows are hidden', () => {
+    it('should select entire table after call selectAll if some rows are hidden', async() => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -440,7 +440,7 @@ describe('HiddenRows', () => {
         },
       });
 
-      selectAll();
+      await selectAll();
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,0 from: -1,-1 to: 4,4']);
       expect(`
@@ -452,7 +452,7 @@ describe('HiddenRows', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should select entire table after call selectAll if all of rows are hidden', () => {
+    it('should select entire table after call selectAll if all of rows are hidden', async() => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -462,7 +462,7 @@ describe('HiddenRows', () => {
         },
       });
 
-      selectAll();
+      await selectAll();
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: -1,-1 to: 4,4']);
       expect(`
@@ -1091,7 +1091,7 @@ describe('HiddenRows', () => {
         `).toBeMatchToSelectionPattern();
       });
 
-      it('selected cells (all of them)', () => {
+      it('selected cells (all of them)', async() => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(5, 5),
           rowHeaders: true,
@@ -1101,7 +1101,7 @@ describe('HiddenRows', () => {
           },
         });
 
-        selectAll();
+        await selectAll();
 
         getPlugin('hiddenRows').showRows([0, 1, 2, 3, 4]);
         render();
@@ -1248,7 +1248,7 @@ describe('HiddenRows', () => {
         `).toBeMatchToSelectionPattern();
       });
 
-      it('all selected cells', () => {
+      it('all selected cells', async() => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(5, 5),
           rowHeaders: true,
@@ -1256,7 +1256,7 @@ describe('HiddenRows', () => {
           hiddenRows: true,
         });
 
-        selectAll();
+        await selectAll();
 
         getPlugin('hiddenRows').hideRows([0, 1, 2, 3, 4]);
         render();

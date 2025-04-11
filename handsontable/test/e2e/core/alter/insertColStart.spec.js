@@ -531,14 +531,14 @@ describe('Core.alter', () => {
         }
       });
 
-      it('should keep the whole table selected when the new column is added', () => {
+      it('should keep the whole table selected when the new column is added', async() => {
         handsontable({
           data: createSpreadsheetData(3, 5),
           rowHeaders: true,
           colHeaders: true,
         });
 
-        selectAll();
+        await selectAll();
 
         if (htmlDir === 'rtl') {
           expect(`

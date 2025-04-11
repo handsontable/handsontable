@@ -608,7 +608,7 @@ describe('HiddenRows', () => {
           });
         });
 
-        it('should not preserve selection after hiding all rows', () => {
+        it('should not preserve selection after hiding all rows', async() => {
           handsontable({
             data: Handsontable.helper.createSpreadsheetData(10, 2),
             colHeaders: true,
@@ -619,7 +619,7 @@ describe('HiddenRows', () => {
             }
           });
 
-          selectAll();
+          await selectAll();
 
           getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_HIDE);
 

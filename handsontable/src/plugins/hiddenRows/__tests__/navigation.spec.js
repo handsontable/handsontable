@@ -13,7 +13,7 @@ describe('HiddenRows', () => {
   });
 
   describe('navigation', () => {
-    it('should not throw an error when all rows are hidden', () => {
+    it('should not throw an error when all rows are hidden', async() => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -23,8 +23,9 @@ describe('HiddenRows', () => {
         },
       });
 
-      selectAll();
       listen();
+
+      await selectAll();
 
       expect(() => keyDownUp('home')).not.toThrow();
       expect(() => keyDownUp(['control/meta', 'home'])).not.toThrow();

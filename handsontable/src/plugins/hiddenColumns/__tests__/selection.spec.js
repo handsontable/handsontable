@@ -491,7 +491,7 @@ describe('HiddenColumns', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should select entire table after call selectAll if some columns are hidden', () => {
+    it('should select entire table after call selectAll if some columns are hidden', async() => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -501,7 +501,7 @@ describe('HiddenColumns', () => {
         },
       });
 
-      selectAll();
+      await selectAll();
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: -1,-1 to: 4,4']);
       expect(`
@@ -515,7 +515,7 @@ describe('HiddenColumns', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should select entire table after call selectAll if all of columns are hidden', () => {
+    it('should select entire table after call selectAll if all of columns are hidden', async() => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -525,7 +525,7 @@ describe('HiddenColumns', () => {
         },
       });
 
-      selectAll();
+      await selectAll();
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: -1,-1 to: 4,4']);
       expect(`
@@ -1221,7 +1221,7 @@ describe('HiddenColumns', () => {
         `).toBeMatchToSelectionPattern();
       });
 
-      it('selected cells (all of them)', () => {
+      it('selected cells (all of them)', async() => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(5, 5),
           rowHeaders: true,
@@ -1231,7 +1231,7 @@ describe('HiddenColumns', () => {
           },
         });
 
-        selectAll();
+        await selectAll();
 
         getPlugin('hiddenColumns').showColumns([0, 1, 2, 3, 4]);
         render();
@@ -1384,7 +1384,7 @@ describe('HiddenColumns', () => {
         `).toBeMatchToSelectionPattern();
       });
 
-      it('all selected cells', () => {
+      it('all selected cells', async() => {
         handsontable({
           data: Handsontable.helper.createSpreadsheetData(5, 5),
           rowHeaders: true,
@@ -1392,7 +1392,7 @@ describe('HiddenColumns', () => {
           hiddenColumns: true,
         });
 
-        selectAll();
+        await selectAll();
 
         getPlugin('hiddenColumns').hideColumns([0, 1, 2, 3, 4]);
         render();

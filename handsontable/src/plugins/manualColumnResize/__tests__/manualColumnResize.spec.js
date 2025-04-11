@@ -995,7 +995,7 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 3)).toBe(50);
   });
 
-  it('should resize all columns after resize action when selected all cells', () => {
+  it('should resize all columns after resize action when selected all cells', async() => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3),
       rowHeaders: true,
@@ -1007,7 +1007,7 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 1)).toBe(50);
     expect(colWidth(spec().$container, 2)).toBe(50);
 
-    selectAll();
+    await selectAll();
 
     getTopClone().find('thead tr:eq(0) th:eq(2)').simulate('mouseover');
     const $resizer = spec().$container.find('.manualColumnResizer');

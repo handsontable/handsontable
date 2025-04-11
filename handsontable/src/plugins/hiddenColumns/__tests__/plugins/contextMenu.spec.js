@@ -567,7 +567,7 @@ describe('HiddenColumns', () => {
           });
         });
 
-        it('should not preserve selection after hiding all columns', () => {
+        it('should not preserve selection after hiding all columns', async() => {
           handsontable({
             data: Handsontable.helper.createSpreadsheetData(2, 10),
             rowHeaders: true,
@@ -578,7 +578,7 @@ describe('HiddenColumns', () => {
             }
           });
 
-          selectAll();
+          await selectAll();
 
           getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_HIDE);
 
@@ -731,7 +731,7 @@ describe('HiddenColumns', () => {
           `).toBeMatchToSelectionPattern();
         });
 
-        it('should unhide all columns when they had been hidden previously', () => {
+        it('should unhide all columns when they had been hidden previously', async() => {
           handsontable({
             data: Handsontable.helper.createSpreadsheetData(2, 5),
             rowHeaders: true,
@@ -755,8 +755,9 @@ describe('HiddenColumns', () => {
             .find('th')
             .eq(0);
 
-          selectAll();
-          contextMenu(header);
+          await selectAll();
+          await contextMenu(header);
+
           getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_SHOW);
 
           expect(spec().$container.find('tr:eq(0) th').length).toBe(6);

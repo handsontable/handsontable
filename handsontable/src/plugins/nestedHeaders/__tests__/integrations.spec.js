@@ -82,7 +82,7 @@ describe('Integration with other plugins', () => {
       spyOn(document, 'execCommand');
     });
 
-    it('should copy cells and all column nested headers to the clipboard', () => {
+    it('should copy cells and all column nested headers to the clipboard', async() => {
       handsontable({
         data: createSpreadsheetData(2, 4),
         rowHeaders: true,
@@ -103,7 +103,7 @@ describe('Integration with other plugins', () => {
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
-      selectAll();
+      await selectAll();
 
       plugin.copyWithAllColumnHeaders();
       plugin.onCopy(copyEvent); // emulate native "copy" event

@@ -77,14 +77,14 @@ describe('Core.emptySelectedCells', () => {
     expect(beforeChange).not.toHaveBeenCalled();
   });
 
-  it('should not throw an error when method is called when all headers are selected', () => {
+  it('should not throw an error when method is called when all headers are selected', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       rowHeaders: true,
       colHeaders: true,
     });
 
-    selectAll();
+    await selectAll();
 
     expect(() => {
       emptySelectedCells();

@@ -152,15 +152,16 @@ describe('CopyPaste', () => {
       expect(errors).toEqual(0);
     });
 
-    it('should not throw an error while pasting when headers are selected by corner click', () => {
-      const hot = handsontable({
+    it('should not throw an error while pasting when headers are selected by corner click', async() => {
+      handsontable({
         data: arrayOfArrays(),
         rowHeaders: true,
         colHeaders: true,
       });
 
-      selectAll();
-      hot.listen();
+      listen();
+
+      await selectAll();
 
       expect(() => {
         triggerPaste('Kia\tNissan\tToyota');

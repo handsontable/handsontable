@@ -37,7 +37,7 @@ describe('ContextMenu', () => {
     });
 
     it('should NOT hide the entry for "Hide row" in the context menu, when the selection contains an' +
-      ' entire row (including the header) or all cells (including all headers)', () => {
+      ' entire row (including the header) or all cells (including all headers)', async() => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetData(4, 4),
         contextMenu: true,
@@ -46,15 +46,15 @@ describe('ContextMenu', () => {
         hiddenRows: true
       });
 
-      selectRows(0);
-      contextMenu();
+      await selectRows(0);
+      await contextMenu();
 
       let compatibleEntries = getHideRowCMElement();
 
       expect(compatibleEntries.size()).toEqual(1);
 
-      selectAll(true);
-      contextMenu(getCell(0, -1));
+      await selectAll(true);
+      await contextMenu(getCell(0, -1));
 
       compatibleEntries = getHideRowCMElement();
 

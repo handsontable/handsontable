@@ -485,14 +485,14 @@ describe('Core.alter', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should keep the whole table selected when the new row is added', () => {
+    it('should keep the whole table selected when the new row is added', async() => {
       handsontable({
         data: createSpreadsheetData(3, 5),
         rowHeaders: true,
         colHeaders: true,
       });
 
-      selectAll();
+      await selectAll();
 
       expect(`
         | * ║ * : * : * : * : * |

@@ -33,7 +33,7 @@ describe('ContextMenu', () => {
         expect(menuItem.hasClass('htDisabled')).toBe(true);
       });
 
-      it('should disable the item when all cells are selected (using `selectAll` method)', () => {
+      it('should disable the item when all cells are selected (using `selectAll` method)', async() => {
         handsontable({
           data: createSpreadsheetData(5, 5),
           comments: true,
@@ -41,9 +41,9 @@ describe('ContextMenu', () => {
           contextMenu: true,
         });
 
-        selectCell(1, 1);
-        selectAll();
-        contextMenu(getCell(1, 1));
+        await selectCell(1, 1);
+        await selectAll();
+        await contextMenu(getCell(1, 1));
 
         const menuItem = $('.htContextMenu tbody tr td').filter(function() {
           return this.textContent === 'Delete comment';

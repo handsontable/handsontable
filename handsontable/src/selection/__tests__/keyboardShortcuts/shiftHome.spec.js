@@ -265,7 +265,7 @@ describe('Selection extending', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: 1,-1 to: 1,4']);
     });
 
-    it('should not change the selection when all cells are selected (triggered by corner click)', () => {
+    it('should not change the selection when all cells are selected (triggered by corner click)', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -273,9 +273,10 @@ describe('Selection extending', () => {
         startCols: 5
       });
 
-      selectAll();
       listen();
-      keyDownUp(['shift', 'home']);
+
+      await selectAll();
+      await keyDownUp(['shift', 'home']);
 
       expect(`
         | * ║ * : * : * : * : * |

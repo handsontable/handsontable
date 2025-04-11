@@ -168,7 +168,7 @@ describe('Selection extending (RTL mode)', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,3 from: -1,3 to: 4,0']);
     });
 
-    it('should not change the selection when all cells are selected (triggered by corner click)', () => {
+    it('should not change the selection when all cells are selected (triggered by corner click)', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -176,9 +176,10 @@ describe('Selection extending (RTL mode)', () => {
         startCols: 5
       });
 
-      selectAll();
       listen();
-      keyDownUp(['control/meta', 'shift', 'arrowright']);
+
+      await selectAll();
+      await keyDownUp(['control/meta', 'shift', 'arrowright']);
 
       expect(`
         | * : * : * : * : * ║ * |

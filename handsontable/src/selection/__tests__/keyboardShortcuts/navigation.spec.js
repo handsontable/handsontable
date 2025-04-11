@@ -12,15 +12,16 @@ describe('Selection navigation', () => {
     }
   });
 
-  it('should not throw an error when dataset is empty', () => {
+  it('should not throw an error when dataset is empty', async() => {
     handsontable({
       data: [],
       rowHeaders: true,
       colHeaders: true,
     });
 
-    selectAll();
     listen();
+
+    await selectAll();
 
     expect(() => keyDownUp('home')).not.toThrow();
     expect(() => keyDownUp(['control/meta', 'home'])).not.toThrow();

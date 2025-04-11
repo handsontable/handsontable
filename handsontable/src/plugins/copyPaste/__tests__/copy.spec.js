@@ -134,7 +134,7 @@ describe('CopyPaste', () => {
       expect(copyEvent.clipboardData.getData('text/plain')).toBe('');
     });
 
-    it('should copy special characters to the clipboard', () => {
+    it('should copy special characters to the clipboard', async() => {
       handsontable({
         colHeaders: ['!@#$%^&*()_+-={[', ']};:\'"\\|,<.>/?~&LTE'],
         data: [
@@ -145,7 +145,7 @@ describe('CopyPaste', () => {
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
-      selectAll();
+      await selectAll();
 
       plugin.copyWithColumnHeaders();
       plugin.onCopy(copyEvent); // emulate native "copy" event
@@ -162,7 +162,7 @@ describe('CopyPaste', () => {
       ].join(''));
     });
 
-    it('should copy text in quotes to the clipboard', () => {
+    it('should copy text in quotes to the clipboard', async() => {
       handsontable({
         colHeaders: ['{"test": "value"}'],
         data: [
@@ -175,7 +175,7 @@ describe('CopyPaste', () => {
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
-      selectAll();
+      await selectAll();
 
       plugin.copyWithColumnHeaders();
       plugin.onCopy(copyEvent); // emulate native "copy" event
@@ -194,7 +194,7 @@ describe('CopyPaste', () => {
       ].join(''));
     });
 
-    it('should copy 0 and false values to the clipboard', () => {
+    it('should copy 0 and false values to the clipboard', async() => {
       handsontable({
         colHeaders: ['', 0, false, undefined, null],
         data: [['', 0, false, undefined, null]],
@@ -203,7 +203,7 @@ describe('CopyPaste', () => {
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
-      selectAll();
+      await selectAll();
 
       plugin.copyWithColumnHeaders();
       plugin.onCopy(copyEvent); // emulate native "copy" event
@@ -220,7 +220,7 @@ describe('CopyPaste', () => {
       ].join(''));
     });
 
-    it('should handle spaces properly (creates Excel compatible HTML)', () => {
+    it('should handle spaces properly (creates Excel compatible HTML)', async() => {
       handsontable({
         colHeaders: ['a   b'],
         data: [
@@ -233,7 +233,7 @@ describe('CopyPaste', () => {
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
-      selectAll();
+      await selectAll();
 
       plugin.copyWithColumnHeaders();
       plugin.onCopy(copyEvent); // emulate native "copy" event

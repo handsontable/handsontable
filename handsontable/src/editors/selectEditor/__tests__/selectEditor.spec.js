@@ -36,15 +36,16 @@ describe('SelectEditor', () => {
     expect(editorWrapper.offset()).toEqual($(getCell(0, 0)).offset());
   });
 
-  it('should render an editor in specified position at cell 0, 0 when all headers are selected', () => {
+  it('should render an editor in specified position at cell 0, 0 when all headers are selected', async() => {
     handsontable({
       rowHeaders: true,
       colHeaders: true,
       columns: [{ editor: 'select' }, {}],
     });
 
-    selectAll();
     listen();
+
+    await selectAll();
 
     const editorWrapper = $('.htSelectEditor');
     const editor = $('.htSelectEditor').children('select');
@@ -55,7 +56,7 @@ describe('SelectEditor', () => {
     expect(editorWrapper.is(':visible')).toBe(false);
     expect(editor.is(':visible')).toBe(false);
 
-    keyDownUp('F2');
+    await keyDownUp('F2');
 
     expect(editorWrapper.is(':visible')).toBe(true);
     expect(editor.is(':visible')).toBe(true);

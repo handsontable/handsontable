@@ -92,7 +92,7 @@ describe('Core data modification keyboard shortcuts', () => {
       expect(afterChange).not.toHaveBeenCalled();
     });
 
-    it('should not populate the cell value when the focus highlight points to the corner', () => {
+    it('should not populate the cell value when the focus highlight points to the corner', async() => {
       const afterChange = jasmine.createSpy('afterChange');
 
       handsontable({
@@ -104,9 +104,10 @@ describe('Core data modification keyboard shortcuts', () => {
       });
 
       afterChange.calls.reset(); // reset initial "afterChange" call after load data
-      selectAll(true, true, { row: -1, col: -1 });
       listen();
-      keyDownUp(['control/meta', 'enter']);
+
+      await selectAll(true, true, { row: -1, col: -1 });
+      await keyDownUp(['control/meta', 'enter']);
 
       expect(getData()).toEqual(createSpreadsheetData(5, 5));
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,-1 from: -1,-1 to: 4,4']);
@@ -244,7 +245,7 @@ describe('Core data modification keyboard shortcuts', () => {
       ], 'edit');
     });
 
-    it('should populate the cell value to all cells when the selection is done by the corner click', () => {
+    it('should populate the cell value to all cells when the selection is done by the corner click', async() => {
       const afterChange = jasmine.createSpy('afterChange');
 
       handsontable({
@@ -255,9 +256,10 @@ describe('Core data modification keyboard shortcuts', () => {
       });
 
       afterChange.calls.reset(); // reset initial "afterChange" call after load data
-      selectAll();
       listen();
-      keyDownUp(['control/meta', 'enter']);
+
+      await selectAll();
+      await keyDownUp(['control/meta', 'enter']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: -1,-1 to: 2,2']);
       expect(afterChange).toHaveBeenCalledTimes(1);

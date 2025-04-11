@@ -1185,7 +1185,7 @@ describe('manualRowResize', () => {
     });
   });
 
-  it('should resize all rows after resize action when selected all cells', () => {
+  it('should resize all rows after resize action when selected all cells', async() => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(3, 3),
       rowHeaders: true,
@@ -1209,9 +1209,10 @@ describe('manualRowResize', () => {
       horizon.toBe(36);
     });
 
-    selectAll();
+    await selectAll();
 
     getInlineStartClone().find('tbody tr:eq(2) th:eq(0)').simulate('mouseover');
+
     const $resizer = spec().$container.find('.manualRowResizer');
     const resizerPosition = $resizer.position();
 

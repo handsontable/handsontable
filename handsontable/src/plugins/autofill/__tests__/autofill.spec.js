@@ -538,7 +538,7 @@ describe('AutoFill', () => {
     });
   });
 
-  it('should pass correct arguments to `afterAutofill`', () => {
+  it('should pass correct arguments to `afterAutofill`', async() => {
     const afterAutofill = jasmine.createSpy();
 
     handsontable({
@@ -551,7 +551,7 @@ describe('AutoFill', () => {
       afterAutofill
     });
 
-    selectAll();
+    await selectAll();
 
     const CellRange = getSelectedRangeLast().constructor;
 
@@ -559,7 +559,7 @@ describe('AutoFill', () => {
 
     const CellCoords = getCoords(getCell(0, 0)).constructor;
 
-    selectCell(0, 0, 0, 1);
+    await selectCell(0, 0, 0, 1);
 
     spec().$container.find('.wtBorder.corner').simulate('mousedown');
     spec().$container.find('tr:eq(1) td:eq(0)').simulate('mouseover');
@@ -608,7 +608,7 @@ describe('AutoFill', () => {
     );
   });
 
-  it('should detect custom input from `beforeAutofill` in `afterAutofill` arguments', () => {
+  it('should detect custom input from `beforeAutofill` in `afterAutofill` arguments', async() => {
     const afterAutofill = jasmine.createSpy();
 
     handsontable({
@@ -624,7 +624,7 @@ describe('AutoFill', () => {
       afterAutofill
     });
 
-    selectAll();
+    await selectAll();
 
     const CellRange = getSelectedRangeLast().constructor;
 
@@ -632,7 +632,7 @@ describe('AutoFill', () => {
 
     const CellCoords = getCoords(getCell(0, 0)).constructor;
 
-    selectCell(0, 0, 0, 1);
+    await selectCell(0, 0, 0, 1);
 
     spec().$container.find('.wtBorder.corner').simulate('mousedown');
     spec().$container.find('tr:eq(1) td:eq(0)').simulate('mouseover');
