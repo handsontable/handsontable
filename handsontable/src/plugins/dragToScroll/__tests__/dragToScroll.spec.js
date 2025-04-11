@@ -319,14 +319,12 @@ describe('DragToScroll', () => {
         colHeaders: true,
       });
 
-      scrollViewportTo({
+      await scrollViewportTo({
         row: 0,
         col: countCols() - 1,
         verticalSnap: 'top',
         horizontalSnap: 'start',
       });
-
-      await sleep(30);
 
       const $cell = $(getCell(0, 8));
       const $nextElement = $(document.body);
@@ -361,14 +359,12 @@ describe('DragToScroll', () => {
         colHeaders: true,
       });
 
-      scrollViewportTo({
+      await scrollViewportTo({
         row: 0,
         col: countCols() - 1,
         verticalSnap: 'top',
         horizontalSnap: 'start',
       });
-
-      await sleep(10);
 
       const $cell = $(getCell(0, 9));
       const $leftOverlayCell = $(getCell(0, 0));
@@ -402,14 +398,12 @@ describe('DragToScroll', () => {
         colHeaders: true,
       });
 
-      scrollViewportTo({
+      await scrollViewportTo({
         row: 0,
         col: countCols() - 1,
         verticalSnap: 'top',
         horizontalSnap: 'start',
       });
-
-      await sleep(10);
 
       const $cell = $(getCell(0, 9));
       const $nextCell = $(getCell(0, 8));
@@ -505,14 +499,12 @@ describe('DragToScroll', () => {
         colHeaders: true,
       });
 
-      scrollViewportTo({
+      await scrollViewportTo({
         row: countRows() - 1,
         col: 0,
         verticalSnap: 'bottom',
         horizontalSnap: 'start',
       });
-
-      await sleep(10);
 
       const $cell = $(getCell(8, 0));
       const $nextElement = $(document.body);
@@ -551,14 +543,12 @@ describe('DragToScroll', () => {
         colHeaders: true,
       });
 
-      scrollViewportTo({
+      await scrollViewportTo({
         row: countRows() - 1,
         col: 0,
         verticalSnap: 'bottom',
         horizontalSnap: 'start',
       });
-
-      await sleep(10);
 
       const $cell = $(getCell(9, 0));
       const $topOverlayCell = $(getCell(0, 0));
@@ -596,14 +586,12 @@ describe('DragToScroll', () => {
         colHeaders: true,
       });
 
-      scrollViewportTo({
+      await scrollViewportTo({
         row: countRows() - 1,
         col: 0,
         verticalSnap: 'bottom',
         horizontalSnap: 'start',
       });
-
-      await sleep(10);
 
       const $cell = $(getCell(9, 0));
       const $nextCell = $(getCell(8, 0));

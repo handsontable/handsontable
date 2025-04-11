@@ -60,14 +60,12 @@ describe('Core.getSelected', () => {
       width: 300
     });
 
-    scrollViewportTo({
+    await scrollViewportTo({
       row: 99,
       col: 99,
       verticalSnap: 'bottom',
       horizontalSnap: 'end',
     });
-
-    await sleep(100);
 
     const bottomClone = getBottomClone();
 

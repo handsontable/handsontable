@@ -381,14 +381,12 @@ describe('CollapsibleColumns API', () => {
         </tbody>
         `);
 
-      scrollViewportTo({
+      await scrollViewportTo({
         row: 0,
         col: 63,
         verticalSnap: 'top',
         horizontalSnap: 'start',
       });
-
-      await sleep(20);
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>

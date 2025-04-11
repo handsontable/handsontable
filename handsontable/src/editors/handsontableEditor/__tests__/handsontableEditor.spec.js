@@ -545,11 +545,9 @@ describe('HandsontableEditor', () => {
       }],
     });
 
-    selectCell(0, 0);
-    keyDownUp('enter');
-    scrollViewportTo({ row: 95 });
-
-    await sleep(100);
+    await selectCell(0, 0);
+    await keyDownUp('enter');
+    await scrollViewportTo({ row: 95 });
 
     expect(spy.test.calls.count()).toBe(0);
 

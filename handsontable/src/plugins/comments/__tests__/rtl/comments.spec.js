@@ -81,7 +81,7 @@ describe('Comments (RTL mode)', () => {
           comments: true,
         });
 
-        scrollViewportTo({
+        await scrollViewportTo({
           row: countRows() - 1,
           col: countCols() - 1,
           verticalSnap: 'top',
@@ -90,8 +90,6 @@ describe('Comments (RTL mode)', () => {
 
         const plugin = getPlugin('comments');
         const $editor = $(plugin.getEditorInputElement());
-
-        await sleep(10);
 
         plugin.showAtCell(countRows() - 10, countCols() - 10);
 
@@ -142,7 +140,7 @@ describe('Comments (RTL mode)', () => {
           height: 200,
         });
 
-        scrollViewportTo({
+        await scrollViewportTo({
           row: countRows() - 1,
           col: countCols() - 1,
           verticalSnap: 'top',
@@ -151,8 +149,6 @@ describe('Comments (RTL mode)', () => {
 
         const plugin = getPlugin('comments');
         const $editor = $(plugin.getEditorInputElement());
-
-        await sleep(10);
 
         plugin.showAtCell(countRows() - 10, countCols() - 10);
 
@@ -181,7 +177,7 @@ describe('Comments (RTL mode)', () => {
           comments: true,
         });
 
-        scrollViewportTo({
+        await scrollViewportTo({
           row: countRows() - 1,
           col: countCols() - 1,
           verticalSnap: 'top',
@@ -190,8 +186,6 @@ describe('Comments (RTL mode)', () => {
 
         const plugin = getPlugin('comments');
         const $editor = $(plugin.getEditorInputElement());
-
-        await sleep(10);
 
         plugin.showAtCell(countRows() - 5, countCols() - 2);
 
@@ -220,7 +214,7 @@ describe('Comments (RTL mode)', () => {
           comments: true,
         });
 
-        scrollViewportTo({
+        await scrollViewportTo({
           row: countRows() - 1,
           col: countCols() - 1,
           verticalSnap: 'top',
@@ -229,8 +223,6 @@ describe('Comments (RTL mode)', () => {
 
         const plugin = getPlugin('comments');
         const $editor = $(plugin.getEditorInputElement());
-
-        await sleep(10);
 
         plugin.showAtCell(countRows() - 2, countCols() - 2);
 
@@ -262,7 +254,7 @@ describe('Comments (RTL mode)', () => {
           comments: true,
         });
 
-        scrollViewportTo({
+        await scrollViewportTo({
           row: countRows() - 1,
           col: 0,
           verticalSnap: 'top',
@@ -271,8 +263,6 @@ describe('Comments (RTL mode)', () => {
 
         const plugin = getPlugin('comments');
         const $editor = $(plugin.getEditorInputElement());
-
-        await sleep(10);
 
         plugin.showAtCell(countRows() - 1, 0);
 

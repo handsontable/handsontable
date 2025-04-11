@@ -614,15 +614,11 @@ describe('TextEditor (RTL mode)', () => {
       });
 
       setDataAtCell(2, 2, 'string\nstring\nstring');
-      selectCell(2, 2);
 
-      await sleep(10);
-
-      keyDown('enter');
-      keyUp('enter');
-      scrollViewportTo({ row: 49 });
-
-      await sleep(100);
+      await selectCell(2, 2);
+      await keyDown('enter');
+      await keyUp('enter');
+      await scrollViewportTo({ row: 49 });
 
       expect(isEditorVisible()).toBe(false);
     });

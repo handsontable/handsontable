@@ -110,8 +110,11 @@ export function keyTriggerFactory(type, key, { extend, target, ime }) {
   $(target).simulate(type, ev);
 }
 
-export const keyDown = waitOnScroll(triggerKeys('keydown'));
-export const keyUp = waitOnScroll(triggerKeys('keyup'));
+const keyDownTrigger = triggerKeys('keydown');
+const keyUpTrigger = triggerKeys('keyup');
+
+export const keyDown = waitOnScroll(keyDownTrigger);
+export const keyUp = waitOnScroll(keyUpTrigger);
 
 /**
  * @param {string} type Event type.
@@ -158,8 +161,8 @@ function triggerKeys(type) {
  * @param {object} options Additional options which extends the event or change its behavior.
  */
 export const keyDownUp = waitOnScroll((keys, options) => {
-  keyDown(keys, options);
-  keyUp(keys, options);
+  keyDownTrigger(keys, options);
+  keyUpTrigger(keys, options);
 });
 
 /**

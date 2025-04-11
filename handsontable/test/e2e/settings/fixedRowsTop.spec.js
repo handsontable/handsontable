@@ -84,7 +84,7 @@ describe('settings', () => {
         expect(getInlineStartClone().height()).toBe(0);
       });
 
-      it('should not throw errors while scrolling vertically when fixed rows was set', (done) => {
+      it('should not throw errors while scrolling vertically when fixed rows was set', async() => {
         const spy = jasmine.createSpyObj('error', ['test']);
         const prevError = window.onerror;
 
@@ -102,21 +102,16 @@ describe('settings', () => {
           fixedRowsTop: 2
         });
 
-        setTimeout(() => {
-          scrollViewportTo({
-            row: 30,
-            col: 30,
-            verticalSnap: 'top',
-            horizontalSnap: 'start',
-          });
-        }, 100);
+        await scrollViewportTo({
+          row: 30,
+          col: 30,
+          verticalSnap: 'top',
+          horizontalSnap: 'start',
+        });
 
-        setTimeout(() => {
-          expect(spy.test.calls.count()).toBe(0);
+        expect(spy.test.calls.count()).toBe(0);
 
-          done();
-          window.onerror = prevError;
-        }, 200);
+        window.onerror = prevError;
       });
 
       it('should synchronize scroll with master table', async() => {

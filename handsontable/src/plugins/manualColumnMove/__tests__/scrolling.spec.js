@@ -90,14 +90,12 @@ describe('manualColumnMove', () => {
         manualColumnMove: true,
       });
 
-      scrollViewportTo({
+      await scrollViewportTo({
         row: 0,
         col: countCols() - 1,
         verticalSnap: 'top',
         horizontalSnap: 'start',
       });
-
-      await sleep(30);
 
       const columnHeader = $(getCell(-1, 8));
       const nextElement = $(document.body);
@@ -133,14 +131,12 @@ describe('manualColumnMove', () => {
         manualColumnMove: true,
       });
 
-      scrollViewportTo({
+      await scrollViewportTo({
         row: 0,
         col: countCols() - 1,
         verticalSnap: 'top',
         horizontalSnap: 'start',
       });
-
-      await sleep(10);
 
       const columnHeader = $(getCell(-1, 9));
       const leftOverlayColumnHeader = $(getCell(-1, 0));
@@ -178,9 +174,7 @@ describe('manualColumnMove', () => {
         }
       });
 
-      await sleep(10);
-
-      scrollViewportTo({
+      await scrollViewportTo({
         row: 0,
         col: countCols() - 1,
         verticalSnap: 'top',
@@ -220,14 +214,12 @@ describe('manualColumnMove', () => {
         manualColumnMove: true,
       });
 
-      scrollViewportTo({
+      await scrollViewportTo({
         row: 0,
         col: countCols() - 1,
         verticalSnap: 'top',
         horizontalSnap: 'start',
       });
-
-      await sleep(10);
 
       const columnHeader = $(getCell(-1, 9));
       const nextColumnHeader = $(getCell(-1, 8));

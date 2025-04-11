@@ -183,14 +183,12 @@ describe('manualRowMove', () => {
         colHeaders: true,
       });
 
-      scrollViewportTo({
+      await scrollViewportTo({
         row: 20,
         col: 0,
         verticalSnap: 'top',
         horizontalSnap: 'start',
       });
-
-      await sleep(100);
 
       const TH = $(getCell(22, -1));
 
@@ -215,14 +213,12 @@ describe('manualRowMove', () => {
         colHeaders: true,
       });
 
-      scrollViewportTo({
+      await scrollViewportTo({
         row: 20,
         col: 0,
         verticalSnap: 'top',
         horizontalSnap: 'start',
       });
-
-      await sleep(100);
 
       const TH = $(getCell(22, -1));
       const THNext = $(getCell(20, -1));
@@ -265,14 +261,12 @@ describe('manualRowMove', () => {
         colHeaders: true,
       });
 
-      scrollViewportTo({
+      await scrollViewportTo({
         row: 20,
         col: 0,
         verticalSnap: 'top',
         horizontalSnap: 'start',
       });
-
-      await sleep(100);
 
       const TH = $(getCell(20, -1));
       const THNext = $(getCell(22, -1));
@@ -312,14 +306,12 @@ describe('manualRowMove', () => {
         colHeaders: true,
       });
 
-      scrollViewportTo({
+      await scrollViewportTo({
         row: 20,
         col: 0,
         verticalSnap: 'top',
         horizontalSnap: 'start',
       });
-
-      await sleep(100);
 
       const TH = $(getCell(22, -1));
 
@@ -342,14 +334,12 @@ describe('manualRowMove', () => {
         colHeaders: true,
       });
 
-      scrollViewportTo({
+      await scrollViewportTo({
         row: 20,
         col: 0,
         verticalSnap: 'top',
         horizontalSnap: 'start',
       });
-
-      await sleep(100);
 
       const TH = $(getCell(26, -1));
       const THNext = $(getCell(24, -1));
@@ -390,14 +380,12 @@ describe('manualRowMove', () => {
         colHeaders: true,
       });
 
-      scrollViewportTo({
+      await scrollViewportTo({
         row: 20,
         col: 0,
         verticalSnap: 'top',
         horizontalSnap: 'start',
       });
-
-      await sleep(100);
 
       const TH = $(getCell(24, -1));
       const THNext = $(getCell(26, -1));

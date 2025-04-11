@@ -52,11 +52,15 @@ export function waitOnScroll(wrappedMethod) {
       };
 
       hot().addHookOnce('afterScroll', scrollCallback);
+
       result = wrappedMethod(...methodArgs);
 
       if (!isScrollCalled || isScrollCalled && !isScrollHappened) {
         hot().removeHook('afterScroll', scrollCallback);
         window.queueMicrotask(() => resolve(result));
+      } else {
+        // trigger fast render which will trigger the `afterScroll` event
+        hot().view.render();
       }
 
       wtScroll.scrollViewportHorizontally = origScrollViewportHorizontally;

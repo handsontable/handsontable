@@ -988,7 +988,7 @@ describe('Selection using mouse interaction', () => {
   });
 
   it.forTheme('classic')('should select the entire fixed column after column header is clicked, ' +
-    'after scroll horizontally', () => {
+    'after scroll horizontally', async() => {
     handsontable({
       width: 200,
       height: 100,
@@ -999,15 +999,12 @@ describe('Selection using mouse interaction', () => {
       fixedColumnsStart: 2
     });
 
-    render();
-    scrollViewportTo({
+    await scrollViewportTo({
       col: countCols() - 1,
       verticalSnap: 'top',
       horizontalSnap: 'start',
     });
-
-    spec().$container.find('.ht_master thead th:eq(2)').simulate('mousedown');
-    spec().$container.find('.ht_master thead th:eq(2)').simulate('mouseup');
+    await simulateClick(spec().$container.find('.ht_master thead th:eq(2)'));
 
     expect(getSelected()).toEqual([[-1, 1, 9, 1]]);
     expect(`
@@ -1019,11 +1016,15 @@ describe('Selection using mouse interaction', () => {
       | - ║   : 0 |   :   :   :   :   :   :   :   |
       | - ║   : 0 |   :   :   :   :   :   :   :   |
       | - ║   : 0 |   :   :   :   :   :   :   :   |
+      | - ║   : 0 |   :   :   :   :   :   :   :   |
+      | - ║   : 0 |   :   :   :   :   :   :   :   |
+      | - ║   : 0 |   :   :   :   :   :   :   :   |
+      | - ║   : 0 |   :   :   :   :   :   :   :   |
     `).toBeMatchToSelectionPattern();
   });
 
   it.forTheme('main')('should select the entire fixed column after column header is clicked, ' +
-    'after scroll horizontally', () => {
+    'after scroll horizontally', async() => {
     handsontable({
       width: 200,
       height: 126,
@@ -1034,15 +1035,12 @@ describe('Selection using mouse interaction', () => {
       fixedColumnsStart: 2
     });
 
-    render();
-    scrollViewportTo({
+    await scrollViewportTo({
       col: countCols() - 1,
       verticalSnap: 'top',
       horizontalSnap: 'start',
     });
-
-    spec().$container.find('.ht_master thead th:eq(2)').simulate('mousedown');
-    spec().$container.find('.ht_master thead th:eq(2)').simulate('mouseup');
+    await simulateClick(spec().$container.find('.ht_master thead th:eq(2)'));
 
     expect(getSelected()).toEqual([[-1, 1, 9, 1]]);
     expect(`
@@ -1054,11 +1052,15 @@ describe('Selection using mouse interaction', () => {
       | - ║   : 0 |   :   :   :   :   :   :   :   |
       | - ║   : 0 |   :   :   :   :   :   :   :   |
       | - ║   : 0 |   :   :   :   :   :   :   :   |
+      | - ║   : 0 |   :   :   :   :   :   :   :   |
+      | - ║   : 0 |   :   :   :   :   :   :   :   |
+      | - ║   : 0 |   :   :   :   :   :   :   :   |
+      | - ║   : 0 |   :   :   :   :   :   :   :   |
     `).toBeMatchToSelectionPattern();
   });
 
   it.forTheme('horizon')('should select the entire fixed column after column header is clicked, ' +
-    'after scroll horizontally', () => {
+    'after scroll horizontally', async() => {
     handsontable({
       width: 200,
       height: 161,
@@ -1069,21 +1071,22 @@ describe('Selection using mouse interaction', () => {
       fixedColumnsStart: 2
     });
 
-    render();
-    scrollViewportTo({
+    await scrollViewportTo({
       col: countCols() - 1,
       verticalSnap: 'top',
       horizontalSnap: 'start',
     });
-
-    spec().$container.find('.ht_master thead th:eq(2)').simulate('mousedown');
-    spec().$container.find('.ht_master thead th:eq(2)').simulate('mouseup');
+    await simulateClick(spec().$container.find('.ht_master thead th:eq(2)'));
 
     expect(getSelected()).toEqual([[-1, 1, 9, 1]]);
     expect(`
       |   ║   : * |   :   :   :   :   :   :   :   |
       |===:===:===:===:===:===:===:===:===:===:===|
       | - ║   : A |   :   :   :   :   :   :   :   |
+      | - ║   : 0 |   :   :   :   :   :   :   :   |
+      | - ║   : 0 |   :   :   :   :   :   :   :   |
+      | - ║   : 0 |   :   :   :   :   :   :   :   |
+      | - ║   : 0 |   :   :   :   :   :   :   :   |
       | - ║   : 0 |   :   :   :   :   :   :   :   |
       | - ║   : 0 |   :   :   :   :   :   :   :   |
       | - ║   : 0 |   :   :   :   :   :   :   :   |
@@ -1103,18 +1106,14 @@ describe('Selection using mouse interaction', () => {
       rowHeaders: true
     });
 
-    scrollViewportTo({
+    await scrollViewportTo({
       row: 10,
       col: 10,
       verticalSnap: 'top',
       horizontalSnap: 'start',
     });
+    await mouseDown(getCell(12, 11));
 
-    render();
-
-    await sleep(30);
-
-    mouseDown(getCell(12, 11));
     spec().$container.find('.ht_clone_top thead th:eq(6)').simulate('mouseover'); // Header `L`
 
     await sleep(30);
@@ -1157,18 +1156,14 @@ describe('Selection using mouse interaction', () => {
       rowHeaders: true
     });
 
-    scrollViewportTo({
+    await scrollViewportTo({
       row: 10,
       col: 10,
       verticalSnap: 'top',
       horizontalSnap: 'start',
     });
+    await mouseDown(getCell(12, 11));
 
-    render();
-
-    await sleep(30);
-
-    mouseDown(getCell(12, 11));
     spec().$container.find('.ht_clone_top thead th:eq(6)').simulate('mouseover'); // Header `L`
 
     await sleep(30);
@@ -1211,18 +1206,14 @@ describe('Selection using mouse interaction', () => {
       rowHeaders: true
     });
 
-    scrollViewportTo({
+    await scrollViewportTo({
       row: 10,
       col: 10,
       verticalSnap: 'top',
       horizontalSnap: 'start',
     });
+    await mouseDown(getCell(12, 11));
 
-    render();
-
-    await sleep(30);
-
-    mouseDown(getCell(12, 11));
     spec().$container.find('.ht_clone_top thead th:eq(6)').simulate('mouseover'); // Header `L`
 
     await sleep(30);
@@ -1265,17 +1256,14 @@ describe('Selection using mouse interaction', () => {
       rowHeaders: true
     });
 
-    scrollViewportTo({
+    await scrollViewportTo({
       row: 10,
       col: 10,
       verticalSnap: 'top',
       horizontalSnap: 'start',
     });
-    render();
+    await mouseDown(getCell(12, 11));
 
-    await sleep(30);
-
-    mouseDown(getCell(12, 11));
     spec().$container.find('.ht_clone_inline_start tbody th:eq(12)')
       .simulate('mouseover')
       .simulate('mouseup');
@@ -1320,17 +1308,14 @@ describe('Selection using mouse interaction', () => {
       rowHeaders: true
     });
 
-    scrollViewportTo({
+    await scrollViewportTo({
       row: 10,
       col: 10,
       verticalSnap: 'top',
       horizontalSnap: 'start',
     });
-    render();
+    await mouseDown(getCell(12, 11));
 
-    await sleep(30);
-
-    mouseDown(getCell(12, 11));
     spec().$container.find('.ht_clone_inline_start tbody th:eq(12)')
       .simulate('mouseover')
       .simulate('mouseup');
@@ -1375,17 +1360,14 @@ describe('Selection using mouse interaction', () => {
       rowHeaders: true
     });
 
-    scrollViewportTo({
+    await scrollViewportTo({
       row: 10,
       col: 10,
       verticalSnap: 'top',
       horizontalSnap: 'start',
     });
-    render();
+    await mouseDown(getCell(12, 11));
 
-    await sleep(30);
-
-    mouseDown(getCell(12, 11));
     spec().$container.find('.ht_clone_inline_start tbody th:eq(12)')
       .simulate('mouseover')
       .simulate('mouseup');

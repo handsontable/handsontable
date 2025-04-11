@@ -269,7 +269,7 @@ describe('Focus handling', () => {
 
       expect(document.activeElement).toEqual(document.body);
 
-      selectCell(2, 2);
+      await selectCell(2, 2);
 
       expect(document.activeElement).toEqual(getCell(
         getSelectedRangeLast().highlight.row,
@@ -308,11 +308,9 @@ describe('Focus handling', () => {
         imeFastEdit: true,
       });
 
-      selectColumns(0);
-      scrollViewportTo({ row: 99 });
-      selectColumns(90);
-
-      await sleep(50);
+      await selectColumns(0);
+      await scrollViewportTo({ row: 99 });
+      await selectColumns(90);
 
       expect(spy.test.calls.count()).toBe(0);
 

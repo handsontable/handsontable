@@ -897,7 +897,7 @@ describe('AutoColumnSize', () => {
     });
   });
 
-  it('should keep the viewport position unchanged after resetting all columns widths (#dev-1888)', () => {
+  it('should keep the viewport position unchanged after resetting all columns widths (#dev-1888)', async() => {
     handsontable({
       data: createSpreadsheetData(10, 50),
       width: 400,
@@ -907,7 +907,7 @@ describe('AutoColumnSize', () => {
       rowHeaders: true,
     });
 
-    scrollViewportTo(0, 49);
+    await scrollViewportTo(0, 49);
 
     expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(2217);
@@ -915,9 +915,10 @@ describe('AutoColumnSize', () => {
       horizon.toBe(2575);
     });
 
-    selectRows(2, 2);
     listen();
-    keyDownUp('delete');
+
+    await selectRows(2, 2);
+    await keyDownUp('delete');
 
     expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(2217);

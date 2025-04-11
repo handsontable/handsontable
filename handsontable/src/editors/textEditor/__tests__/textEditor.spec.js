@@ -1114,15 +1114,10 @@ describe('TextEditor', () => {
     });
 
     setDataAtCell(2, 2, 'string\nstring\nstring');
-    selectCell(2, 2);
-
-    await sleep(10);
-
-    keyDownUp('enter');
-    keyUp(['enter']);
-    scrollViewportTo({ row: 49 });
-
-    await sleep(100);
+    await selectCell(2, 2);
+    await keyDownUp('enter');
+    await keyUp(['enter']);
+    await scrollViewportTo({ row: 49 });
 
     expect(isEditorVisible()).toBe(false);
   });
@@ -2207,7 +2202,7 @@ describe('TextEditor', () => {
     expect(hot.getActiveEditor().TEXTAREA.value).toEqual('Ma\n\n\nserati');
   });
 
-  it('should be displayed and resized properly, so it doesn\'t exceed the viewport dimensions', () => {
+  it('should be displayed and resized properly, so it doesn\'t exceed the viewport dimensions', async() => {
     const data = [
       ['', '', '', '', ''],
       ['', 'The Dude abides. I don\'t know about you but I take comfort in that. ' +
@@ -2225,8 +2220,9 @@ describe('TextEditor', () => {
       minSpareCols: 20
     });
 
-    selectCell(1, 1);
-    keyDownUp('enter');
+    await selectCell(1, 1);
+    await sleep(10); // for some reason the sleep is needed here
+    await keyDownUp('enter');
 
     const $editorInput = $('.handsontableInput');
     const $editedCell = $(hot.getCell(1, 1));
@@ -2234,8 +2230,7 @@ describe('TextEditor', () => {
     expect($editorInput.outerWidth())
       .toEqual(hot.view._wt.wtTable.holder.clientWidth - $editedCell.position().left + 1);
 
-    scrollViewportTo({ col: 3 });
-    render();
+    await scrollViewportTo({ col: 3 });
 
     expect($editorInput.width() + $editorInput.offset().left)
       .toBeLessThan(hot.view._wt.wtTable.holder.clientWidth);

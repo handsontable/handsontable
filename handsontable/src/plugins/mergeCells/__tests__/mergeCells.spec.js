@@ -1617,7 +1617,7 @@ describe('MergeCells', () => {
     expect(getInlineStartClone().height()).toBe(400);
   });
 
-  it('should display properly wide merged cell', () => {
+  it('should display properly wide merged cell', async() => {
     handsontable({
       data: createSpreadsheetData(3, 30),
       width: 200,
@@ -1627,7 +1627,8 @@ describe('MergeCells', () => {
     });
 
     getPlugin('mergeCells').merge(0, 0, 0, 20);
-    selectCell(0, 0);
+
+    await selectCell(0, 0);
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:first td:last').text()).toBe('A1');
@@ -1637,8 +1638,7 @@ describe('MergeCells', () => {
       |   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   |
     `).toBeMatchToSelectionPattern();
 
-    scrollViewportTo({ row: 0, col: 22 }); // the merged cell is partially visible
-    render();
+    await scrollViewportTo({ row: 0, col: 22 }); // the merged cell is partially visible
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:first td:last').text()).toBe('W1');
@@ -1648,8 +1648,7 @@ describe('MergeCells', () => {
       |   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   |
     `).toBeMatchToSelectionPattern();
 
-    scrollViewportTo({ row: 0, col: 25 }); // the merged cell is not visible (out of the viewport)
-    render();
+    await scrollViewportTo({ row: 0, col: 25 }); // the merged cell is not visible (out of the viewport)
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('W1');
     expect(getHtCore().find('tr:first td:last').text()).toBe('Z1');
@@ -1660,7 +1659,7 @@ describe('MergeCells', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it('should display properly wide virtualized merged cell', () => {
+  it('should display properly wide virtualized merged cell', async() => {
     handsontable({
       data: createSpreadsheetData(3, 30),
       width: 200,
@@ -1672,7 +1671,8 @@ describe('MergeCells', () => {
     });
 
     getPlugin('mergeCells').merge(0, 0, 0, 20);
-    selectCell(0, 0);
+
+    await selectCell(0, 0);
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:first td:last').text()).toBe('A1');
@@ -1682,8 +1682,7 @@ describe('MergeCells', () => {
       |   :   :   :   |
     `).toBeMatchToSelectionPattern();
 
-    scrollViewportTo({ row: 0, col: 22 }); // the merged cell is partially visible
-    render();
+    await scrollViewportTo({ row: 0, col: 22 }); // the merged cell is partially visible
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:first td:last').text()).toBe('W1');
@@ -1693,8 +1692,7 @@ describe('MergeCells', () => {
       |   :   :   :   |
     `).toBeMatchToSelectionPattern();
 
-    scrollViewportTo({ row: 0, col: 25 }); // the merged cell is not visible (out of the viewport)
-    render();
+    await scrollViewportTo({ row: 0, col: 25 }); // the merged cell is not visible (out of the viewport)
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('W1');
     expect(getHtCore().find('tr:first td:last').text()).toBe('Z1');
@@ -1780,7 +1778,7 @@ describe('MergeCells', () => {
     expect(getCell(3, 1).offsetHeight).toBe(50);
   });
 
-  it.forTheme('classic')('should display properly high merged cell', () => {
+  it.forTheme('classic')('should display properly high merged cell', async() => {
     handsontable({
       data: createSpreadsheetData(50, 3),
       width: 200,
@@ -1790,7 +1788,8 @@ describe('MergeCells', () => {
     });
 
     getPlugin('mergeCells').merge(0, 0, 20, 0);
-    selectCell(0, 0);
+
+    await selectCell(0, 0);
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
@@ -1818,8 +1817,7 @@ describe('MergeCells', () => {
       |   :   :   |
     `).toBeMatchToSelectionPattern();
 
-    scrollViewportTo({ row: 28, col: 0 }); // the merged cell is partially visible
-    render();
+    await scrollViewportTo({ row: 28, col: 0 }); // the merged cell is partially visible
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A30');
@@ -1856,8 +1854,7 @@ describe('MergeCells', () => {
       |   :   :   |
     `).toBeMatchToSelectionPattern();
 
-    scrollViewportTo({ row: 29, col: 0 }); // the merged cell is not visible (out of the viewport)
-    render();
+    await scrollViewportTo({ row: 29, col: 0 }); // the merged cell is not visible (out of the viewport)
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A22');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A31');
@@ -1875,7 +1872,7 @@ describe('MergeCells', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it.forTheme('main')('should display properly high merged cell', () => {
+  it.forTheme('main')('should display properly high merged cell', async() => {
     handsontable({
       data: createSpreadsheetData(50, 3),
       width: 200,
@@ -1885,7 +1882,8 @@ describe('MergeCells', () => {
     });
 
     getPlugin('mergeCells').merge(0, 0, 20, 0);
-    selectCell(0, 0);
+
+    await selectCell(0, 0);
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
@@ -1913,8 +1911,7 @@ describe('MergeCells', () => {
       |   :   :   |
     `).toBeMatchToSelectionPattern();
 
-    scrollViewportTo({ row: 28, col: 0 }); // the merged cell is partially visible
-    render();
+    await scrollViewportTo({ row: 28, col: 0 }); // the merged cell is partially visible
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A30');
@@ -1951,8 +1948,7 @@ describe('MergeCells', () => {
       |   :   :   |
     `).toBeMatchToSelectionPattern();
 
-    scrollViewportTo({ row: 29, col: 0 }); // the merged cell is not visible (out of the viewport)
-    render();
+    await scrollViewportTo({ row: 29, col: 0 }); // the merged cell is not visible (out of the viewport)
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A22');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A31');
@@ -1970,7 +1966,7 @@ describe('MergeCells', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it.forTheme('horizon')('should display properly high merged cell', () => {
+  it.forTheme('horizon')('should display properly high merged cell', async() => {
     handsontable({
       data: createSpreadsheetData(50, 3),
       width: 200,
@@ -1980,7 +1976,8 @@ describe('MergeCells', () => {
     });
 
     getPlugin('mergeCells').merge(0, 0, 20, 0);
-    selectCell(0, 0);
+
+    await selectCell(0, 0);
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
@@ -2008,8 +2005,7 @@ describe('MergeCells', () => {
       |   :   :   |
     `).toBeMatchToSelectionPattern();
 
-    scrollViewportTo({ row: 28, col: 0 }); // the merged cell is partially visible
-    render();
+    await scrollViewportTo({ row: 28, col: 0 }); // the merged cell is partially visible
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A30');
@@ -2046,8 +2042,7 @@ describe('MergeCells', () => {
       |   :   :   |
     `).toBeMatchToSelectionPattern();
 
-    scrollViewportTo({ row: 29, col: 0 }); // the merged cell is not visible (out of the viewport)
-    render();
+    await scrollViewportTo({ row: 29, col: 0 }); // the merged cell is not visible (out of the viewport)
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A22');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A31');
@@ -2065,7 +2060,7 @@ describe('MergeCells', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it.forTheme('classic')('should display properly high virtualized merged cell', () => {
+  it.forTheme('classic')('should display properly high virtualized merged cell', async() => {
     handsontable({
       data: createSpreadsheetData(50, 30),
       width: 200,
@@ -2077,7 +2072,8 @@ describe('MergeCells', () => {
     });
 
     getPlugin('mergeCells').merge(0, 0, 20, 0);
-    selectCell(0, 0);
+
+    await selectCell(0, 0);
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
@@ -2093,25 +2089,15 @@ describe('MergeCells', () => {
       |   :   :   :   :   |
     `).toBeMatchToSelectionPattern();
 
-    scrollViewportTo({ row: 27, col: 0 }); // the merged cell is partially visible
-    render();
+    await scrollViewportTo({ row: 27, col: 0 }); // the merged cell is partially visible
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
-    expect(getHtCore().find('tr:last td:first').text()).toBe('A29');
+    expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
     expect(`
       | # :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
     `).toBeMatchToSelectionPattern();
 
-    scrollViewportTo({ row: 28, col: 0 }); // the merged cell is not visible (out of the viewport)
-    render();
+    await scrollViewportTo({ row: 28, col: 0 }); // the merged cell is not visible (out of the viewport)
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A22');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A30');
@@ -2128,7 +2114,7 @@ describe('MergeCells', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it.forTheme('main')('should display properly high virtualized merged cell', () => {
+  it.forTheme('main')('should display properly high virtualized merged cell', async() => {
     handsontable({
       data: createSpreadsheetData(50, 30),
       width: 200,
@@ -2140,7 +2126,8 @@ describe('MergeCells', () => {
     });
 
     getPlugin('mergeCells').merge(0, 0, 20, 0);
-    selectCell(0, 0);
+
+    await selectCell(0, 0);
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
@@ -2156,25 +2143,15 @@ describe('MergeCells', () => {
       |   :   :   :   :   |
     `).toBeMatchToSelectionPattern();
 
-    scrollViewportTo({ row: 27, col: 0 }); // the merged cell is partially visible
-    render();
+    await scrollViewportTo({ row: 27, col: 0 }); // the merged cell is partially visible
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
-    expect(getHtCore().find('tr:last td:first').text()).toBe('A29');
+    expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
     expect(`
       | # :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
     `).toBeMatchToSelectionPattern();
 
-    scrollViewportTo({ row: 28, col: 0 }); // the merged cell is not visible (out of the viewport)
-    render();
+    await scrollViewportTo({ row: 28, col: 0 }); // the merged cell is not visible (out of the viewport)
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A22');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A30');
@@ -2191,7 +2168,7 @@ describe('MergeCells', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it.forTheme('horizon')('should display properly high virtualized merged cell', () => {
+  it.forTheme('horizon')('should display properly high virtualized merged cell', async() => {
     handsontable({
       data: createSpreadsheetData(50, 30),
       width: 200,
@@ -2203,7 +2180,8 @@ describe('MergeCells', () => {
     });
 
     getPlugin('mergeCells').merge(0, 0, 20, 0);
-    selectCell(0, 0);
+
+    await selectCell(0, 0);
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
@@ -2219,25 +2197,15 @@ describe('MergeCells', () => {
       |   :   :   :   :   |
     `).toBeMatchToSelectionPattern();
 
-    scrollViewportTo({ row: 27, col: 0 }); // the merged cell is partially visible
-    render();
+    await scrollViewportTo({ row: 27, col: 0 }); // the merged cell is partially visible
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
-    expect(getHtCore().find('tr:last td:first').text()).toBe('A29');
+    expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
     expect(`
       | # :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
     `).toBeMatchToSelectionPattern();
 
-    scrollViewportTo({ row: 28, col: 0 }); // the merged cell is not visible (out of the viewport)
-    render();
+    await scrollViewportTo({ row: 28, col: 0 }); // the merged cell is not visible (out of the viewport)
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A22');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A30');

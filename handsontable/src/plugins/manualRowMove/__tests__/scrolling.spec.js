@@ -289,14 +289,12 @@ describe('manualRowMove', () => {
         manualRowMove: true,
       });
 
-      scrollViewportTo({
+      await scrollViewportTo({
         row: countRows() - 1,
         col: 0,
         verticalSnap: 'bottom',
         horizontalSnap: 'start',
       });
-
-      await sleep(10);
 
       const rowHeader = $(getCell(7, -1));
       const nextElement = $(document.body);
@@ -340,14 +338,12 @@ describe('manualRowMove', () => {
         manualRowMove: true,
       });
 
-      scrollViewportTo({
+      await scrollViewportTo({
         row: countRows() - 1,
         col: 0,
         verticalSnap: 'bottom',
         horizontalSnap: 'start',
       });
-
-      await sleep(10);
 
       const rowHeader = $(getCell(7, -1));
       const topOverlayLastRowHeader = $(getCell(1, -1));
@@ -393,14 +389,12 @@ describe('manualRowMove', () => {
         }
       });
 
-      scrollViewportTo({
+      await scrollViewportTo({
         row: countRows() - 1,
         col: 0,
         verticalSnap: 'bottom',
         horizontalSnap: 'start',
       });
-
-      await sleep(10);
 
       const rowHeader = $(getCell(7, -1));
       const topOverlayLastRowHeader = $(getCell(1, -1));
@@ -443,14 +437,12 @@ describe('manualRowMove', () => {
         manualRowMove: true,
       });
 
-      scrollViewportTo({
+      await scrollViewportTo({
         row: countRows() - 1,
         col: 0,
         verticalSnap: 'bottom',
         horizontalSnap: 'start',
       });
-
-      await sleep(10);
 
       const rowHeader = $(getCell(8, -1));
       const nextRowHeader = $(getCell(7, -1));

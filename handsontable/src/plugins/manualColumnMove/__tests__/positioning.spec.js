@@ -198,14 +198,12 @@ describe('manualColumnMove', () => {
           colHeaders: true,
         });
 
-        scrollViewportTo({
+        await scrollViewportTo({
           row: 0,
           col: 20,
           verticalSnap: 'top',
           horizontalSnap: 'start',
         });
-
-        await sleep(100);
 
         const TH = $(getCell(-1, 22));
 
@@ -231,14 +229,12 @@ describe('manualColumnMove', () => {
           colHeaders: true,
         });
 
-        scrollViewportTo({
+        await scrollViewportTo({
           row: 0,
           col: 20,
           verticalSnap: 'top',
           horizontalSnap: 'start',
         });
-
-        await sleep(100);
 
         const TH = $(getCell(-1, 22));
         const THNext = $(getCell(-1, 20));
@@ -282,14 +278,12 @@ describe('manualColumnMove', () => {
           colHeaders: true,
         });
 
-        scrollViewportTo({
+        await scrollViewportTo({
           row: 0,
           col: 20,
           verticalSnap: 'top',
           horizontalSnap: 'start',
         });
-
-        await sleep(100);
 
         const TH = $(getCell(-1, 20));
         const THNext = $(getCell(-1, 22));
@@ -330,14 +324,12 @@ describe('manualColumnMove', () => {
           colHeaders: true,
         });
 
-        scrollViewportTo({
+        await scrollViewportTo({
           row: 0,
           col: 20,
           verticalSnap: 'top',
           horizontalSnap: 'start',
         });
-
-        await sleep(100);
 
         const TH = $(getCell(-1, 22));
 
@@ -361,14 +353,12 @@ describe('manualColumnMove', () => {
           colHeaders: true,
         });
 
-        scrollViewportTo({
+        await scrollViewportTo({
           row: 0,
           col: 20,
           verticalSnap: 'top',
           horizontalSnap: 'start',
         });
-
-        await sleep(100);
 
         const TH = $(getCell(-1, 26));
         const THNext = $(getCell(-1, 24));
@@ -410,14 +400,12 @@ describe('manualColumnMove', () => {
           colHeaders: true,
         });
 
-        scrollViewportTo({
+        await scrollViewportTo({
           row: 0,
           col: 20,
           verticalSnap: 'top',
           horizontalSnap: 'start',
         });
-
-        await sleep(100);
 
         const TH = $(getCell(-1, 24));
         const THNext = $(getCell(-1, 26));

@@ -20,45 +20,45 @@ describe('Core viewport scroll keyboard shortcuts', () => {
   }
 
   describe('"Ctrl/Cmd + Backspace"', () => {
-    it('should not scroll the viewport when the focused cell is already in the viewport (focus is placed on the top-left position)', () => {
+    it('should not scroll the viewport when the focused cell is already in the viewport (focus is placed on the top-left position)', async() => {
       handsontable({
         data: createSpreadsheetData(100, 50),
-        width: 370,
-        height: 300,
+        colWidths: 60,
+        rowHeights: 60,
+        width: 400,
+        height: 400,
       });
 
-      selectCell(0, 0);
-      // move the viewport to position that the focused cell is partially visible
-      scrollViewportTo({
-        row: 12,
-        col: 7,
+      await selectCell(0, 0);
+      // move the viewport to position that the focused cell is partially visible on the top-left
+      await scrollViewportTo({
+        row: 6,
+        col: 6,
         verticalSnap: 'bottom',
         horizontalSnap: 'end',
       });
 
       const scrollPosition = getCurrentScrollPosition();
 
-      expect(scrollPosition).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual({ x: 45, y: 15 });
-        main.toEqual({ x: 57, y: 93 });
-        horizon.toEqual({ x: 121, y: 197 });
-      });
+      expect(scrollPosition).toEqual({ x: 35, y: 36 });
 
-      keyDownUp(['control/meta', 'backspace']);
+      await keyDownUp(['control/meta', 'backspace']);
 
       expect(getCurrentScrollPosition()).toEqual(scrollPosition);
     });
 
-    it('should not scroll the viewport when the focused cell is already in the viewport (focus is placed on the top-right position)', () => {
+    it('should not scroll the viewport when the focused cell is already in the viewport (focus is placed on the top-right position)', async() => {
       handsontable({
         data: createSpreadsheetData(100, 50),
-        width: 370,
-        height: 300,
+        colWidths: 60,
+        rowHeights: 60,
+        width: 400,
+        height: 400,
       });
 
-      selectCell(0, 7);
-      // move the viewport to position that the focused cell is partially visible
-      scrollViewportTo({
+      await selectCell(0, 6);
+      // move the viewport to position that the focused cell is partially visible on the top-right
+      await scrollViewportTo({
         row: 0,
         col: 0,
         verticalSnap: 'bottom',
@@ -74,16 +74,18 @@ describe('Core viewport scroll keyboard shortcuts', () => {
       expect(getCurrentScrollPosition()).toEqual(scrollPosition);
     });
 
-    it('should not scroll the viewport when the focused cell is already in the viewport (focus is placed on the bottom-right position)', () => {
+    it('should not scroll the viewport when the focused cell is already in the viewport (focus is placed on the bottom-right position)', async() => {
       handsontable({
         data: createSpreadsheetData(100, 50),
-        width: 370,
-        height: 300,
+        colWidths: 60,
+        rowHeights: 60,
+        width: 400,
+        height: 400,
       });
 
-      selectCell(12, 7);
-      // move the viewport to position that the focused cell is partially visible
-      scrollViewportTo({
+      await selectCell(6, 6);
+      // move the viewport to position that the focused cell is partially visible on the bottom-right
+      await scrollViewportTo({
         row: 0,
         col: 0,
         verticalSnap: 'bottom',
@@ -99,29 +101,27 @@ describe('Core viewport scroll keyboard shortcuts', () => {
       expect(getCurrentScrollPosition()).toEqual(scrollPosition);
     });
 
-    it('should not scroll the viewport when the focused cell is already in the viewport (focus is placed on the bottom-left position)', () => {
+    it('should not scroll the viewport when the focused cell is already in the viewport (focus is placed on the bottom-left position)', async() => {
       handsontable({
         data: createSpreadsheetData(100, 50),
-        width: 370,
-        height: 300,
+        colWidths: 60,
+        rowHeights: 60,
+        width: 400,
+        height: 400,
       });
 
-      selectCell(12, 0);
-      // move the viewport to position that the focused cell is partially visible
-      scrollViewportTo({
+      await selectCell(6, 0);
+      // move the viewport to position that the focused cell is partially visible on the bottom-left
+      await scrollViewportTo({
         row: 0,
-        col: 7,
+        col: 6,
         verticalSnap: 'bottom',
         horizontalSnap: 'end',
       });
 
       const scrollPosition = getCurrentScrollPosition();
 
-      expect(scrollPosition).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual({ x: 45, y: 0 });
-        main.toEqual({ x: 57, y: 0 });
-        horizon.toEqual({ x: 121, y: 0 });
-      });
+      expect(scrollPosition).toEqual({ x: 35, y: 0 });
 
       keyDownUp(['control/meta', 'backspace']);
 
@@ -135,17 +135,14 @@ describe('Core viewport scroll keyboard shortcuts', () => {
         height: 300,
       });
 
-      selectCell(90, 1);
-      scrollViewportTo({
+      await selectCell(90, 1);
+      await scrollViewportTo({
         row: 0,
         col: 0,
         verticalSnap: 'bottom',
         horizontalSnap: 'end',
       });
-
-      await sleep(100);
-
-      keyDownUp(['control/meta', 'backspace']);
+      await keyDownUp(['control/meta', 'backspace']);
 
       expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ x: 0, y: 1932 });
@@ -161,17 +158,14 @@ describe('Core viewport scroll keyboard shortcuts', () => {
         height: 300,
       });
 
-      selectCell(1, 40);
-      scrollViewportTo({
+      await selectCell(1, 40);
+      await scrollViewportTo({
         row: 0,
         col: 0,
         verticalSnap: 'bottom',
         horizontalSnap: 'end',
       });
-
-      await sleep(100);
-
-      keyDownUp(['control/meta', 'backspace']);
+      await keyDownUp(['control/meta', 'backspace']);
 
       expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ x: 1850, y: 0 });
@@ -187,17 +181,14 @@ describe('Core viewport scroll keyboard shortcuts', () => {
         height: 300,
       });
 
-      selectCell(1, 10);
-      scrollViewportTo({
+      await selectCell(1, 10);
+      await scrollViewportTo({
         row: 99,
         col: 49,
         verticalSnap: 'bottom',
         horizontalSnap: 'end',
       });
-
-      await sleep(100);
-
-      keyDownUp(['control/meta', 'backspace']);
+      await keyDownUp(['control/meta', 'backspace']);
 
       expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ x: 350, y: 0 });
@@ -236,17 +227,14 @@ describe('Core viewport scroll keyboard shortcuts', () => {
         height: 300,
       });
 
-      selectCell(50, 25);
-      scrollViewportTo({
+      await selectCell(50, 25);
+      await scrollViewportTo({
         row: 0,
         col: 0,
         verticalSnap: 'bottom',
         horizontalSnap: 'end',
       });
-
-      await sleep(100);
-
-      keyDownUp(['control/meta', 'backspace']);
+      await keyDownUp(['control/meta', 'backspace']);
 
       expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ x: 1100, y: 1012 });
@@ -265,17 +253,14 @@ describe('Core viewport scroll keyboard shortcuts', () => {
         navigableHeaders: true,
       });
 
-      selectCell(-1, 25);
-      scrollViewportTo({
+      await selectCell(-1, 25);
+      await scrollViewportTo({
         row: 90,
         col: 1,
         verticalSnap: 'bottom',
         horizontalSnap: 'end',
       });
-
-      await sleep(100);
-
-      keyDownUp(['control/meta', 'backspace']);
+      await keyDownUp(['control/meta', 'backspace']);
 
       expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ x: 1100, y: 1836 });
@@ -338,17 +323,14 @@ describe('Core viewport scroll keyboard shortcuts', () => {
         navigableHeaders: true,
       });
 
-      selectCell(50, -1);
-      scrollViewportTo({
+      await selectCell(50, -1);
+      await scrollViewportTo({
         row: 1,
         col: 40,
         verticalSnap: 'bottom',
         horizontalSnap: 'end',
       });
-
-      await sleep(100);
-
-      keyDownUp(['control/meta', 'backspace']);
+      await keyDownUp(['control/meta', 'backspace']);
 
       expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
         // 2050 column width - 320 viewport width + 15 scrollbar compensation + 1 header border compensation
@@ -421,15 +403,13 @@ describe('Core viewport scroll keyboard shortcuts', () => {
         navigableHeaders: true,
       });
 
-      selectCell(-1, -1);
-      scrollViewportTo({
+      await selectCell(-1, -1);
+      await scrollViewportTo({
         row: 50,
         col: 25,
         verticalSnap: 'bottom',
         horizontalSnap: 'end',
       });
-
-      await sleep(100);
 
       expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
         // 1300 column width - 320 viewport width + 15 scrollbar compensation + 1 header border compensation

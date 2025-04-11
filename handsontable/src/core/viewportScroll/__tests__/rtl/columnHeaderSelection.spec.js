@@ -133,7 +133,7 @@ describe('Column header selection scroll (RTL mode)', () => {
     });
   });
 
-  describe('for partially visible cell on the right table\'s edge', async() => {
+  describe('for partially visible cell on the right table\'s edge', () => {
     it('should scroll the viewport after mouse click', async() => {
       handsontable({
         data: createSpreadsheetData(5, 10),

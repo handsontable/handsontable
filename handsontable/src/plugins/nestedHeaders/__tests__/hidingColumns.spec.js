@@ -1091,7 +1091,7 @@ describe('NestedHeaders', () => {
       }
     });
 
-    it.forTheme('classic')('should render the setup properly after the table being scrolled', () => {
+    it.forTheme('classic')('should render the setup properly after the table being scrolled', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(10, 90),
         colHeaders: true,
@@ -1108,12 +1108,11 @@ describe('NestedHeaders', () => {
       hidingMap.setValueAtIndex(45, true); // Hide column that contains cells AT{n}
       hot.render();
 
-      scrollViewportTo({ // Scroll to column AP4
+      await scrollViewportTo({ // Scroll to column AP4
         col: 40,
         verticalSnap: 'top',
         horizontalSnap: 'start',
       });
-      render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -1193,12 +1192,11 @@ describe('NestedHeaders', () => {
       hidingMap.setValueAtIndex(57, true); // Hide column that contains cells BF{n}
       hot.render();
 
-      scrollViewportTo({ // Scroll to column BD4
+      await scrollViewportTo({ // Scroll to column BD4
         col: 55,
         verticalSnap: 'top',
         horizontalSnap: 'start',
       });
-      render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -1303,7 +1301,7 @@ describe('NestedHeaders', () => {
         `);
     });
 
-    it.forTheme('main')('should render the setup properly after the table being scrolled', () => {
+    it.forTheme('main')('should render the setup properly after the table being scrolled', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(10, 90),
         colHeaders: true,
@@ -1320,12 +1318,11 @@ describe('NestedHeaders', () => {
       hidingMap.setValueAtIndex(45, true); // Hide column that contains cells AT{n}
       hot.render();
 
-      scrollViewportTo({ // Scroll to column AP4
+      await scrollViewportTo({ // Scroll to column AP4
         col: 40,
         verticalSnap: 'top',
         horizontalSnap: 'start',
       });
-      render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -1405,12 +1402,11 @@ describe('NestedHeaders', () => {
       hidingMap.setValueAtIndex(57, true); // Hide column that contains cells BF{n}
       hot.render();
 
-      scrollViewportTo({ // Scroll to column BD4
+      await scrollViewportTo({ // Scroll to column BD4
         col: 55,
         verticalSnap: 'top',
         horizontalSnap: 'start',
       });
-      render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -1515,7 +1511,7 @@ describe('NestedHeaders', () => {
         `);
     });
 
-    it.forTheme('horizon')('should render the setup properly after the table being scrolled', () => {
+    it.forTheme('horizon')('should render the setup properly after the table being scrolled', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(10, 90),
         colHeaders: true,
@@ -1532,12 +1528,11 @@ describe('NestedHeaders', () => {
       hidingMap.setValueAtIndex(45, true); // Hide column that contains cells AT{n}
       hot.render();
 
-      scrollViewportTo({ // Scroll to column AP4
+      await scrollViewportTo({ // Scroll to column AP4
         col: 40,
         verticalSnap: 'top',
         horizontalSnap: 'start',
       });
-      render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -1617,12 +1612,11 @@ describe('NestedHeaders', () => {
       hidingMap.setValueAtIndex(57, true); // Hide column that contains cells BF{n}
       hot.render();
 
-      scrollViewportTo({ // Scroll to column BD4
+      await scrollViewportTo({ // Scroll to column BD4
         col: 55,
         verticalSnap: 'top',
         horizontalSnap: 'start',
       });
-      render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -2188,16 +2182,12 @@ describe('NestedHeaders', () => {
       hidingMap.setValues([true, true, true]);
       hot.render();
 
-      await sleep(200);
-
-      scrollViewportTo({
+      await scrollViewportTo({
         row: 0,
         col: 7,
         verticalSnap: 'top',
         horizontalSnap: 'start',
       });
-
-      await sleep(200);
 
       // Gets the topmost header around the middle of the table - checks if the widest parent headers are rendered
       // correctly.
@@ -2215,16 +2205,12 @@ describe('NestedHeaders', () => {
       hidingMap.setValues([true, true, true, true, true, true]);
       hot.render();
 
-      await sleep(200);
-
-      scrollViewportTo({
+      await scrollViewportTo({
         row: 0,
         col: 15,
         verticalSnap: 'top',
         horizontalSnap: 'start',
       });
-
-      await sleep(300);
 
       window.onerror = onErrorFn;
 

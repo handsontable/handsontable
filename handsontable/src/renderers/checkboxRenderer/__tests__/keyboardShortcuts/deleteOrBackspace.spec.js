@@ -93,15 +93,12 @@ describe('CheckboxRenderer', () => {
         ]
       });
 
-      selectCells([[1, 1, 3, 3]]);
-      scrollViewportTo({
+      await selectCells([[1, 1, 3, 3]]);
+      await scrollViewportTo({
         row: countRows() - 1,
         col: countCols() - 1,
       });
-
-      await sleep(20);
-
-      keyDownUp(key);
+      await keyDownUp(key);
 
       expect(getData(1, 1, 3, 3)).toEqual([
         [null, null, null],

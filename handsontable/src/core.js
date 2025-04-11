@@ -4509,12 +4509,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         this.view.render();
       } else {
         this.removeHook('afterScroll', callback);
-
-        instance.rootWindow.queueMicrotask(() => {
-          if (!this.isDestroyed) {
-            callback();
-          }
-        });
+        this._registerMicrotask(() => callback());
       }
     }
 
@@ -4549,7 +4544,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     } else if (isFunction(callback)) {
       this.removeHook('afterScroll', callback);
-      this._registerImmediate(() => callback());
+      this._registerMicrotask(() => callback());
     }
 
     return isScrolled;
@@ -5076,6 +5071,20 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this._clearImmediates = function() {
     arrayEach(this.immediates, (handler) => {
       clearImmediate(handler);
+    });
+  };
+
+  /**
+   * Registers a microtask callback.
+   *
+   * @param {Function} callback Function to be delayed in execution.
+   * @private
+   */
+  this._registerMicrotask = function(callback) {
+    this.rootWindow.queueMicrotask(() => {
+      if (!this.isDestroyed) {
+        callback();
+      }
     });
   };
 

@@ -166,12 +166,10 @@ describe('Cells-related a11y configuration', () => {
       gatherIndexes(getBottomInlineStartClone().get(0), indexes);
       verifyGatheredIndexes(indexes, 2, [1, 3]);
 
-      scrollViewportTo({
+      await scrollViewportTo({
         row: 49,
         col: 49
       });
-
-      await sleep(100);
 
       gatherIndexes(getMaster().get(0), indexes);
       verifyGatheredIndexes(indexes, countRenderedRows(), [51 - countRenderedCols(), 51]);
@@ -253,21 +251,17 @@ describe('Cells-related a11y configuration', () => {
 
       expect(countElementsWithAriaReadOnly(getMaster())).toEqual(countRenderedRows());
 
-      scrollViewportTo({
+      await scrollViewportTo({
         row: 49,
         col: 49
       });
 
-      await sleep(100);
-
       expect(countElementsWithAriaReadOnly(getMaster())).toEqual(0);
 
-      scrollViewportTo({
+      await scrollViewportTo({
         row: 49,
         col: 0
       });
-
-      await sleep(100);
 
       expect(countElementsWithAriaReadOnly(getMaster())).toEqual(countRenderedRows());
     });

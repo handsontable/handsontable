@@ -608,12 +608,11 @@ describe('NestedHeaders', () => {
         </tbody>
         `);
 
-      scrollViewportTo({
+      await scrollViewportTo({
         col: 40,
         verticalSnap: 'top',
         horizontalSnap: 'start',
       });
-      render();
 
       // scrolled
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
@@ -785,12 +784,11 @@ describe('NestedHeaders', () => {
         </tbody>
         `);
 
-      scrollViewportTo({
+      await scrollViewportTo({
         col: 40,
         verticalSnap: 'top',
         horizontalSnap: 'start',
       });
-      render();
 
       // scrolled
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
@@ -962,12 +960,11 @@ describe('NestedHeaders', () => {
         </tbody>
         `);
 
-      scrollViewportTo({
+      await scrollViewportTo({
         col: 40,
         verticalSnap: 'top',
         horizontalSnap: 'start',
       });
-      render();
 
       // scrolled
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`

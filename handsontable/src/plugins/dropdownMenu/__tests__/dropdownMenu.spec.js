@@ -954,9 +954,7 @@ describe('DropdownMenu', () => {
       dropdownMenu: true
     });
 
-    scrollViewportTo({ row: 0, col: 8 }); // make the column `G` partially visible
-
-    await sleep(10);
+    await scrollViewportTo({ row: 0, col: 8 }); // make the column `G` partially visible
 
     expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(651); // 900 column width - 250 viewport width + 1 header border compensation

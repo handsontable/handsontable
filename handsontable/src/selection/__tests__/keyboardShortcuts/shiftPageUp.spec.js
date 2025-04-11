@@ -302,34 +302,24 @@ describe('Selection extending', () => {
         startCols: 3
       });
 
-      selectCell(95, 1);
+      await selectCell(95, 1);
       // scroll the viewport in that way the cell highlight is in the middle of the table viewport
-      scrollViewportTo({
+      await scrollViewportTo({
         row: 99,
         col: 1,
         verticalSnap: 'top',
         horizontalSnap: 'start',
       });
 
-      await sleep(20);
-
-      keyDownUp(['shift', 'pageup']);
-
-      await sleep(20);
+      await keyDownUp(['shift', 'pageup']);
 
       expect(getSelectedRangeLast().to.row).toBe(hot.view.getFirstFullyVisibleRow() + 3);
 
-      await sleep(20);
-
-      keyDownUp(['shift', 'pageup']);
-
-      await sleep(20);
+      await keyDownUp(['shift', 'pageup']);
 
       expect(getSelectedRangeLast().to.row).toBe(hot.view.getFirstFullyVisibleRow() + 3);
 
-      keyDownUp(['shift', 'pageup']);
-
-      await sleep(20);
+      await keyDownUp(['shift', 'pageup']);
 
       expect(getSelectedRangeLast().to.row).toBe(hot.view.getFirstFullyVisibleRow() + 3);
     });
@@ -343,34 +333,24 @@ describe('Selection extending', () => {
         startCols: 3
       });
 
-      selectCell(95, 1);
+      await selectCell(95, 1);
       // scroll the viewport in that way the cell highlight is in the middle of the table viewport
-      scrollViewportTo({
+      await scrollViewportTo({
         row: 99,
         col: 1,
         verticalSnap: 'top',
         horizontalSnap: 'start',
       });
 
-      await sleep(20);
-
-      keyDownUp(['shift', 'pageup']);
-
-      await sleep(20);
+      await keyDownUp(['shift', 'pageup']);
 
       expect(getSelectedRangeLast().to.row).toBe(hot.view.getFirstFullyVisibleRow() + 3);
 
-      await sleep(20);
-
-      keyDownUp(['shift', 'pageup']);
-
-      await sleep(20);
+      await keyDownUp(['shift', 'pageup']);
 
       expect(getSelectedRangeLast().to.row).toBe(hot.view.getFirstFullyVisibleRow() + 3);
 
-      keyDownUp(['shift', 'pageup']);
-
-      await sleep(20);
+      await keyDownUp(['shift', 'pageup']);
 
       expect(getSelectedRangeLast().to.row).toBe(hot.view.getFirstFullyVisibleRow() + 3);
     });
@@ -384,34 +364,24 @@ describe('Selection extending', () => {
         startCols: 3
       });
 
-      selectCell(95, 1);
+      await selectCell(95, 1);
       // scroll the viewport in that way the cell highlight is in the middle of the table viewport
-      scrollViewportTo({
+      await scrollViewportTo({
         row: 99,
         col: 1,
         verticalSnap: 'top',
         horizontalSnap: 'start',
       });
 
-      await sleep(20);
-
-      keyDownUp(['shift', 'pageup']);
-
-      await sleep(20);
+      await keyDownUp(['shift', 'pageup']);
 
       expect(getSelectedRangeLast().to.row).toBe(hot.view.getFirstFullyVisibleRow() + 3);
 
-      await sleep(20);
-
-      keyDownUp(['shift', 'pageup']);
-
-      await sleep(20);
+      await keyDownUp(['shift', 'pageup']);
 
       expect(getSelectedRangeLast().to.row).toBe(hot.view.getFirstFullyVisibleRow() + 3);
 
-      keyDownUp(['shift', 'pageup']);
-
-      await sleep(20);
+      await keyDownUp(['shift', 'pageup']);
 
       expect(getSelectedRangeLast().to.row).toBe(hot.view.getFirstFullyVisibleRow() + 3);
     });

@@ -104,14 +104,12 @@ describe('settings', () => {
 
         await sleep(100);
 
-        scrollViewportTo({
+        await scrollViewportTo({
           row: 30,
           col: 30,
           verticalSnap: 'top',
           horizontalSnap: 'start',
         });
-
-        await sleep(100);
 
         expect(spy.test.calls.count()).toBe(0);
         window.onerror = prevError;

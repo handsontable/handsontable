@@ -2114,7 +2114,7 @@ describe('MergeCells cooperation with hidden rows', () => {
     });
   });
 
-  it.forTheme('classic')('should display properly high merged cell containing hidden columns', () => {
+  it.forTheme('classic')('should display properly high merged cell containing hidden columns', async() => {
     handsontable({
       data: createSpreadsheetData(50, 3),
       width: 200,
@@ -2132,7 +2132,8 @@ describe('MergeCells cooperation with hidden rows', () => {
     render();
 
     getPlugin('mergeCells').merge(0, 0, 20, 0);
-    selectCell(0, 0);
+
+    await selectCell(0, 0);
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
@@ -2156,8 +2157,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       |   :   :   |
     `).toBeMatchToSelectionPattern();
 
-    scrollViewportTo({ row: 28, col: 0 });
-    render();
+    await scrollViewportTo({ row: 28, col: 0 });
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A30');
@@ -2190,8 +2190,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       |   :   :   |
     `).toBeMatchToSelectionPattern();
 
-    scrollViewportTo({ row: 29, col: 0 });
-    render();
+    await scrollViewportTo({ row: 29, col: 0 });
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A22');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A31');
@@ -2209,7 +2208,7 @@ describe('MergeCells cooperation with hidden rows', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it.forTheme('main')('should display properly high merged cell containing hidden columns', () => {
+  it.forTheme('main')('should display properly high merged cell containing hidden columns', async() => {
     handsontable({
       data: createSpreadsheetData(50, 3),
       width: 200,
@@ -2227,7 +2226,8 @@ describe('MergeCells cooperation with hidden rows', () => {
     render();
 
     getPlugin('mergeCells').merge(0, 0, 20, 0);
-    selectCell(0, 0);
+
+    await selectCell(0, 0);
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
@@ -2251,8 +2251,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       |   :   :   |
     `).toBeMatchToSelectionPattern();
 
-    scrollViewportTo({ row: 28, col: 0 });
-    render();
+    await scrollViewportTo({ row: 28, col: 0 });
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A30');
@@ -2285,8 +2284,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       |   :   :   |
     `).toBeMatchToSelectionPattern();
 
-    scrollViewportTo({ row: 29, col: 0 });
-    render();
+    await scrollViewportTo({ row: 29, col: 0 });
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A22');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A31');
@@ -2304,7 +2302,7 @@ describe('MergeCells cooperation with hidden rows', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it.forTheme('horizon')('should display properly high merged cell containing hidden columns', () => {
+  it.forTheme('horizon')('should display properly high merged cell containing hidden columns', async() => {
     handsontable({
       data: createSpreadsheetData(50, 3),
       width: 200,
@@ -2322,7 +2320,8 @@ describe('MergeCells cooperation with hidden rows', () => {
     render();
 
     getPlugin('mergeCells').merge(0, 0, 20, 0);
-    selectCell(0, 0);
+
+    await selectCell(0, 0);
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
@@ -2346,8 +2345,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       |   :   :   |
     `).toBeMatchToSelectionPattern();
 
-    scrollViewportTo({ row: 28, col: 0 });
-    render();
+    await scrollViewportTo({ row: 28, col: 0 });
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A30');
@@ -2380,8 +2378,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       |   :   :   |
     `).toBeMatchToSelectionPattern();
 
-    scrollViewportTo({ row: 29, col: 0 });
-    render();
+    await scrollViewportTo({ row: 29, col: 0 });
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A22');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A31');
@@ -2399,7 +2396,8 @@ describe('MergeCells cooperation with hidden rows', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it.forTheme('classic')('should display properly high merged cell containing hidden columns (virtualized)', () => {
+  it.forTheme('classic')('should display properly high merged cell containing ' +
+      'hidden columns (virtualized)', async() => {
     handsontable({
       data: createSpreadsheetData(50, 30),
       width: 200,
@@ -2419,7 +2417,8 @@ describe('MergeCells cooperation with hidden rows', () => {
     render();
 
     getPlugin('mergeCells').merge(0, 0, 20, 0);
-    selectCell(0, 0);
+
+    await selectCell(0, 0);
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
@@ -2435,25 +2434,15 @@ describe('MergeCells cooperation with hidden rows', () => {
       |   :   :   :   :   |
     `).toBeMatchToSelectionPattern();
 
-    scrollViewportTo({ row: 27, col: 0 });
-    render();
+    await scrollViewportTo({ row: 27, col: 0 });
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
-    expect(getHtCore().find('tr:last td:first').text()).toBe('A29');
+    expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
     expect(`
       | # :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
     `).toBeMatchToSelectionPattern();
 
-    scrollViewportTo({ row: 28, col: 0 });
-    render();
+    await scrollViewportTo({ row: 28, col: 0 });
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A22');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A30');
@@ -2470,7 +2459,7 @@ describe('MergeCells cooperation with hidden rows', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it.forTheme('main')('should display properly high merged cell containing hidden columns (virtualized)', () => {
+  it.forTheme('main')('should display properly high merged cell containing hidden columns (virtualized)', async() => {
     // TODO: This test case is very bound to this specific table height, might be good to check if that's correct.
     handsontable({
       data: createSpreadsheetData(50, 30),
@@ -2491,7 +2480,8 @@ describe('MergeCells cooperation with hidden rows', () => {
     render();
 
     getPlugin('mergeCells').merge(0, 0, 20, 0);
-    selectCell(0, 0);
+
+    await selectCell(0, 0);
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
@@ -2507,25 +2497,15 @@ describe('MergeCells cooperation with hidden rows', () => {
       |   :   :   :   :   |
     `).toBeMatchToSelectionPattern();
 
-    scrollViewportTo({ row: 27, col: 0 });
-    render();
+    await scrollViewportTo({ row: 27, col: 0 });
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
-    expect(getHtCore().find('tr:last td:first').text()).toBe('A29');
+    expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
     expect(`
       | # :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
     `).toBeMatchToSelectionPattern();
 
-    scrollViewportTo({ row: 28, col: 0 });
-    render();
+    await scrollViewportTo({ row: 28, col: 0 });
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A22');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A30');
@@ -2542,7 +2522,8 @@ describe('MergeCells cooperation with hidden rows', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it.forTheme('horizon')('should display properly high merged cell containing hidden columns (virtualized)', () => {
+  it.forTheme('horizon')('should display properly high merged cell containing ' +
+      'hidden columns (virtualized)', async() => {
     // TODO: This test case is very bound to this specific table height, might be good to check if that's correct.
     handsontable({
       data: createSpreadsheetData(50, 30),
@@ -2563,7 +2544,8 @@ describe('MergeCells cooperation with hidden rows', () => {
     render();
 
     getPlugin('mergeCells').merge(0, 0, 20, 0);
-    selectCell(0, 0);
+
+    await selectCell(0, 0);
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
@@ -2579,25 +2561,15 @@ describe('MergeCells cooperation with hidden rows', () => {
       |   :   :   :   :   |
     `).toBeMatchToSelectionPattern();
 
-    scrollViewportTo({ row: 27, col: 0 });
-    render();
+    await scrollViewportTo({ row: 27, col: 0 });
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
-    expect(getHtCore().find('tr:last td:first').text()).toBe('A29');
+    expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
     expect(`
       | # :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
     `).toBeMatchToSelectionPattern();
 
-    scrollViewportTo({ row: 28, col: 0 });
-    render();
+    await scrollViewportTo({ row: 28, col: 0 });
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A22');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A30');

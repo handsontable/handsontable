@@ -51,19 +51,15 @@ describe('Comments keyboard shortcut', () => {
         comments: true,
       });
 
-      selectCell(400, 40);
-      scrollViewportTo({
+      await selectCell(400, 40);
+      await scrollViewportTo({
         row: 0,
         col: 0,
         verticalSnap: 'top',
         horizontalSnap: 'start',
       });
 
-      await sleep(10);
-
-      keyDownUp(['control', 'alt', 'm']);
-
-      await sleep(10);
+      await keyDownUp(['control', 'alt', 'm']);
 
       const plugin = getPlugin('comments');
       const editor = plugin.getEditorInputElement();

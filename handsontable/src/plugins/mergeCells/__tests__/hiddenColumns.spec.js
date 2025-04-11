@@ -2042,7 +2042,7 @@ describe('MergeCells cooperation with hidden columns', () => {
     });
   });
 
-  it('should display properly wide merged cell containing hidden columns', () => {
+  it('should display properly wide merged cell containing hidden columns', async() => {
     handsontable({
       data: createSpreadsheetData(3, 30),
       width: 200,
@@ -2060,7 +2060,8 @@ describe('MergeCells cooperation with hidden columns', () => {
     render();
 
     getPlugin('mergeCells').merge(0, 0, 0, 20);
-    selectCell(0, 0);
+
+    await selectCell(0, 0);
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:first td:last').text()).toBe('A1');
@@ -2070,8 +2071,7 @@ describe('MergeCells cooperation with hidden columns', () => {
       |   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   |
     `).toBeMatchToSelectionPattern();
 
-    scrollViewportTo({ row: 0, col: 22 });
-    render();
+    await scrollViewportTo({ row: 0, col: 22 });
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:first td:last').text()).toBe('W1');
@@ -2081,8 +2081,7 @@ describe('MergeCells cooperation with hidden columns', () => {
       |   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   :   |
     `).toBeMatchToSelectionPattern();
 
-    scrollViewportTo({ row: 0, col: 25 });
-    render();
+    await scrollViewportTo({ row: 0, col: 25 });
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('W1');
     expect(getHtCore().find('tr:first td:last').text()).toBe('Z1');
@@ -2093,7 +2092,7 @@ describe('MergeCells cooperation with hidden columns', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it('should display properly wide merged cell containing hidden columns (virtualized)', () => {
+  it('should display properly wide merged cell containing hidden columns (virtualized)', async() => {
     handsontable({
       data: createSpreadsheetData(3, 30),
       width: 200,
@@ -2113,7 +2112,8 @@ describe('MergeCells cooperation with hidden columns', () => {
     render();
 
     getPlugin('mergeCells').merge(0, 0, 0, 20);
-    selectCell(0, 0);
+
+    await selectCell(0, 0);
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:first td:last').text()).toBe('A1');
@@ -2123,8 +2123,7 @@ describe('MergeCells cooperation with hidden columns', () => {
       |   :   :   :   |
     `).toBeMatchToSelectionPattern();
 
-    scrollViewportTo({ row: 0, col: 22 });
-    render();
+    await scrollViewportTo({ row: 0, col: 22 });
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:first td:last').text()).toBe('W1');
@@ -2134,8 +2133,7 @@ describe('MergeCells cooperation with hidden columns', () => {
       |   :   :   :   |
     `).toBeMatchToSelectionPattern();
 
-    scrollViewportTo({ row: 0, col: 25 });
-    render();
+    await scrollViewportTo({ row: 0, col: 25 });
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('W1');
     expect(getHtCore().find('tr:first td:last').text()).toBe('Z1');

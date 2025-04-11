@@ -154,7 +154,7 @@ describe('Comments', () => {
           comments: true,
         });
 
-        scrollViewportTo({
+        await scrollViewportTo({
           row: countRows() - 1,
           col: countCols() - 1,
           verticalSnap: 'top',
@@ -163,8 +163,6 @@ describe('Comments', () => {
 
         const plugin = getPlugin('comments');
         const $editor = $(plugin.getEditorInputElement());
-
-        await sleep(30);
 
         plugin.showAtCell(countRows() - 10, countCols() - 10);
 
@@ -255,7 +253,7 @@ describe('Comments', () => {
           height: 200,
         });
 
-        scrollViewportTo({
+        await scrollViewportTo({
           row: countRows() - 1,
           col: countCols() - 1,
           verticalSnap: 'top',
@@ -264,8 +262,6 @@ describe('Comments', () => {
 
         const plugin = getPlugin('comments');
         const $editor = $(plugin.getEditorInputElement());
-
-        await sleep(30);
 
         plugin.showAtCell(countRows() - 2, countCols() - 5);
 
@@ -286,7 +282,7 @@ describe('Comments', () => {
           height: 250,
         });
 
-        scrollViewportTo({
+        await scrollViewportTo({
           row: countRows() - 1,
           col: countCols() - 1,
           verticalSnap: 'top',
@@ -295,8 +291,6 @@ describe('Comments', () => {
 
         const plugin = getPlugin('comments');
         const $editor = $(plugin.getEditorInputElement());
-
-        await sleep(30);
 
         plugin.showAtCell(countRows() - 2, countCols() - 8);
 
@@ -317,7 +311,7 @@ describe('Comments', () => {
           height: 250,
         });
 
-        scrollViewportTo({
+        await scrollViewportTo({
           row: countRows() - 1,
           col: countCols() - 1,
           verticalSnap: 'top',
@@ -326,8 +320,6 @@ describe('Comments', () => {
 
         const plugin = getPlugin('comments');
         const $editor = $(plugin.getEditorInputElement());
-
-        await sleep(30);
 
         plugin.showAtCell(countRows() - 2, countCols() - 8);
 
@@ -351,7 +343,7 @@ describe('Comments', () => {
           comments: true,
         });
 
-        scrollViewportTo({
+        await scrollViewportTo({
           row: countRows() - 1,
           col: countCols() - 1,
           verticalSnap: 'top',
@@ -360,8 +352,6 @@ describe('Comments', () => {
 
         const plugin = getPlugin('comments');
         const $editor = $(plugin.getEditorInputElement());
-
-        await sleep(30);
 
         plugin.showAtCell(countRows() - 5, countCols() - 2);
 
@@ -392,14 +382,12 @@ describe('Comments', () => {
           comments: true,
         });
 
-        scrollViewportTo({
+        await scrollViewportTo({
           row: countRows() - 1,
           col: countCols() - 1,
           verticalSnap: 'top',
           horizontalSnap: 'start',
         });
-
-        await sleep(30);
 
         const defaultRowHeight = getDefaultRowHeight();
         const plugin = getPlugin('comments');
@@ -510,7 +498,7 @@ describe('Comments', () => {
           comments: true,
         });
 
-        scrollViewportTo({
+        await scrollViewportTo({
           row: countRows() - 1,
           col: 0,
           verticalSnap: 'top',
@@ -519,8 +507,6 @@ describe('Comments', () => {
 
         const plugin = getPlugin('comments');
         const $editor = $(plugin.getEditorInputElement());
-
-        await sleep(30);
 
         plugin.showAtCell(countRows() - 1, 0);
 
@@ -672,14 +658,12 @@ describe('Comments', () => {
       fixedColumnsStart: 5,
     });
 
-    scrollViewportTo({
+    await scrollViewportTo({
       row: 0,
       col: 19,
       verticalSnap: 'top',
       horizontalSnap: 'start',
     });
-
-    await sleep(30);
 
     const plugin = hot.getPlugin('comments');
     const editor = plugin.getEditorInputElement();

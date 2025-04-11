@@ -1066,11 +1066,8 @@ describe('NestedHeaders', () => {
         ]
       });
 
-      scrollViewportTo(0, 9);
-
-      await sleep(20);
-
-      simulateClick(getCell(-3, 7), 'LMB'); // Header "B"
+      await scrollViewportTo(0, 9);
+      await simulateClick(getCell(-3, 7), 'LMB'); // Header "B"
 
       expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(265);
@@ -1118,11 +1115,8 @@ describe('NestedHeaders', () => {
         ]
       });
 
-      scrollViewportTo(0, 9);
-
-      await sleep(20);
-
-      simulateClick(getCell(-1, 6), 'LMB'); // Header "K"
+      await scrollViewportTo(0, 9);
+      await simulateClick(getCell(-1, 6), 'LMB'); // Header "K"
 
       expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(250);
@@ -1172,11 +1166,8 @@ describe('NestedHeaders', () => {
         ]
       });
 
-      scrollViewportTo(0, 9);
-
-      await sleep(20);
-
-      simulateClick(getCell(-3, 7), 'LMB'); // Header "B"
+      await scrollViewportTo(0, 9);
+      await simulateClick(getCell(-3, 7), 'LMB'); // Header "B"
 
       expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(265);
@@ -1226,11 +1217,8 @@ describe('NestedHeaders', () => {
         ]
       });
 
-      scrollViewportTo(0, 9);
-
-      await sleep(20);
-
-      simulateClick(getCell(-1, 6), 'LMB'); // Header "K"
+      await scrollViewportTo(0, 9);
+      await simulateClick(getCell(-1, 6), 'LMB'); // Header "K"
 
       expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(250);

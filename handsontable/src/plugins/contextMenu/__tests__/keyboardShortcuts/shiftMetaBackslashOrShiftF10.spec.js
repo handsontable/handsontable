@@ -184,22 +184,19 @@ describe('ContextMenu keyboard shortcut', () => {
         contextMenu: true,
       });
 
-      selectCell(400, 40);
-      scrollViewportTo({
+      await selectCell(400, 40);
+      await scrollViewportTo({
         row: 0,
         col: 0,
         verticalSnap: 'top',
         horizontalSnap: 'start',
       });
 
-      await sleep(10);
-
       const plugin = getPlugin('contextMenu');
 
       spyOn(plugin, 'open').and.callThrough();
-      keyDownUp(keyboardShortcut);
 
-      await sleep(10);
+      await keyDownUp(keyboardShortcut);
 
       const cellRect = getCell(400, 40).getBoundingClientRect();
 
