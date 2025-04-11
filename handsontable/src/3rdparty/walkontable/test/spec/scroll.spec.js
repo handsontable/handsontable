@@ -912,7 +912,7 @@ describe('WalkontableScroll', () => {
       inlineStartOverlayHolder.removeEventListener('scroll', inlineStartOverlayCallback);
     });
 
-    it('should call onScrollVertically hook, if scrollTop was changed', async() => {
+    it('should call onScrollVertically hook, if scrollTop was changed (from 0 to N)', async() => {
       createDataArray(100, 100);
       spec().$wrapper.width(245 + getScrollbarWidth()).height(186 + getScrollbarWidth());
 
@@ -923,8 +923,6 @@ describe('WalkontableScroll', () => {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        fixedColumnsStart: 2,
-        fixedRowsTop: 2,
         onScrollVertically: scrollVertically,
         onScrollHorizontally: scrollHorizontally,
       });
@@ -939,7 +937,7 @@ describe('WalkontableScroll', () => {
       expect(scrollHorizontally.calls.count()).toEqual(0);
     });
 
-    it('should call onScrollHorizontally hook, if scrollLeft was changed', async() => {
+    it('should call onScrollVertically hook, if scrollTop was changed (from N to 0)', async() => {
       createDataArray(100, 100);
       spec().$wrapper.width(245 + getScrollbarWidth()).height(186 + getScrollbarWidth());
 
@@ -950,8 +948,39 @@ describe('WalkontableScroll', () => {
         data: getData,
         totalRows: getTotalRows,
         totalColumns: getTotalColumns,
-        fixedColumnsStart: 2,
-        fixedRowsTop: 2,
+        onScrollVertically: scrollVertically,
+        onScrollHorizontally: scrollHorizontally,
+      });
+
+      wt.draw();
+      wt.wtTable.holder.scrollTop = 400;
+      wt.draw();
+
+      await sleep(50);
+
+      scrollVertically.calls.reset();
+      scrollHorizontally.calls.reset();
+
+      wt.wtTable.holder.scrollTop = 0;
+      wt.draw();
+
+      await sleep(50);
+
+      expect(scrollVertically.calls.count()).toBe(1);
+      expect(scrollHorizontally.calls.count()).toBe(0);
+    });
+
+    it('should call onScrollHorizontally hook, if scrollLeft was changed (from 0 to N)', async() => {
+      createDataArray(100, 100);
+      spec().$wrapper.width(245 + getScrollbarWidth()).height(186 + getScrollbarWidth());
+
+      const scrollHorizontally = jasmine.createSpy('scrollHorizontal');
+      const scrollVertically = jasmine.createSpy('scrollVertically');
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
         onScrollVertically: scrollVertically,
         onScrollHorizontally: scrollHorizontally,
       });
@@ -962,8 +991,41 @@ describe('WalkontableScroll', () => {
 
       await sleep(50);
 
-      expect(scrollVertically.calls.count()).toEqual(0);
-      expect(scrollHorizontally.calls.count()).toEqual(1);
+      expect(scrollVertically.calls.count()).toBe(0);
+      expect(scrollHorizontally.calls.count()).toBe(1);
+    });
+
+    it('should call onScrollHorizontally hook, if scrollLeft was changed (from N to 0)', async() => {
+      createDataArray(100, 100);
+      spec().$wrapper.width(245 + getScrollbarWidth()).height(186 + getScrollbarWidth());
+
+      const scrollHorizontally = jasmine.createSpy('scrollHorizontal');
+      const scrollVertically = jasmine.createSpy('scrollVertically');
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        onScrollVertically: scrollVertically,
+        onScrollHorizontally: scrollHorizontally,
+      });
+
+      wt.draw();
+      wt.wtTable.holder.scrollLeft = 400;
+      wt.draw();
+
+      await sleep(50);
+
+      scrollVertically.calls.reset();
+      scrollHorizontally.calls.reset();
+
+      wt.wtTable.holder.scrollLeft = 0;
+      wt.draw();
+
+      await sleep(50);
+
+      expect(scrollVertically.calls.count()).toBe(0);
+      expect(scrollHorizontally.calls.count()).toBe(1);
     });
 
     it('should add the "innerBorderInlineStart" CSS class (compensation for 1px border bug) to the root element when ' +
