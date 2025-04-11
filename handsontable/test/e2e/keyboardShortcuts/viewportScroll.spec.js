@@ -213,22 +213,14 @@ describe('Core viewport scroll keyboard shortcuts', () => {
         height: 300,
       });
 
-      selectCell(10, 1);
-
-      await sleep(10);
-
-      scrollViewportTo({
+      await selectCell(10, 1);
+      await scrollViewportTo({
         row: 99,
         col: 0,
         verticalSnap: 'bottom',
         horizontalSnap: 'end',
       });
-
-      await sleep(10);
-
-      keyDownUp(['control/meta', 'backspace']);
-
-      await sleep(10);
+      await keyDownUp(['control/meta', 'backspace']);
 
       expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ x: 0, y: 92 });
