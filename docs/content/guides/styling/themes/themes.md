@@ -183,11 +183,11 @@ const hot = new Handsontable(container, {
 
 ::: only-for angular
 
-### Global Theme Management
+## Global Theme Management
 
 In addition to passing a theme name via the settings object for individual Handsontable instances, you can set a global default theme that applies to all instances. This can be accomplished in two ways:
 
-#### Using ApplicationConfig
+### Using ApplicationConfig
 
 You can use `ApplicationConfig` to provide a global configuration via the `HOT_GLOBAL_CONFIG` injection token.
 
@@ -208,7 +208,7 @@ bootstrapApplication(AppComponent, appConfig);
 ```
 This global configuration is then merged with local settings when initializing each Handsontable instance.
 
-#### Using HotConfigService
+### Using HotConfigService
 
 You can manage the global theme at runtime using the `HotConfigService`.
 
@@ -217,7 +217,7 @@ hotConfigService.setConfig({ themeName: 'ht-theme-horizon-dark' });
 ```
 When the configuration changes, all Handsontable instances will automatically update their settings.
 
-#### Theme settings hierarchy
+### Theme settings hierarchy
 
 When both a global theme and a local themeName are defined, the local setting takes precedence. This means:
 - Local Setting: If a `<hot-table>` component is provided with a `themeName` via its `settings` input, that value overrides the global default.
@@ -228,8 +228,6 @@ This hierarchy ensures that you can define a consistent default theme for your e
 ::: only-for angular
 
 <!-- TODO: angular example example--02-01-02 -->
-
-:::
 
 :::
 
