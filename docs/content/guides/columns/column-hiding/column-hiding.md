@@ -57,6 +57,13 @@ To enable column hiding, use the [`hiddenColumns`](@/api/options.md#hiddencolumn
 
 :::
 
+
+::: only-for angular
+
+<!-- TODO: angular example example--03-04-01 -->
+
+:::
+
 ## Set up column hiding
 
 To set up your column hiding configuration, follow the steps below.
@@ -90,6 +97,12 @@ Now, those columns are hidden by default:
 @[code](@/content/guides/columns/column-hiding/react/example2.tsx)
 
 :::
+
+:::
+
+::: only-for angular
+
+<!-- TODO: angular example example--03-04-02 -->
 
 :::
 
@@ -131,6 +144,13 @@ If you use both the [`NestedHeaders`](@/api/nestedHeaders.md) plugin and the
 
 :::
 
+
+::: only-for angular
+
+<!-- TODO: angular example example--03-04-03 -->
+
+:::
+
 ### Step 3: Set up context menu items
 
 To easily hide and unhide columns, add column hiding items to Handsontable's
@@ -162,6 +182,13 @@ additional items for hiding and unhiding columns.
 
 :::
 
+
+::: only-for angular
+
+<!-- TODO: angular example example--03-04-04 -->
+
+:::
+
 You can also add the column hiding menu items individually, by adding the
 [`hidden_columns_show`](@/guides/accessories-and-menus/context-menu/context-menu.md#context-menu-with-specific-options)
 and
@@ -187,6 +214,13 @@ strings to the[ `contextMenu`](@/api/contextMenu.md) parameter:
 @[code](@/content/guides/columns/column-hiding/react/example5.tsx)
 
 :::
+
+:::
+
+
+::: only-for angular
+
+<!-- TODO: angular example example--03-04-05 -->
 
 :::
 
@@ -216,6 +250,12 @@ object, set the [`copyPasteEnabled`](@/api/hiddenColumns.md) property to `false`
 @[code](@/content/guides/columns/column-hiding/react/example6.tsx)
 
 :::
+
+:::
+
+::: only-for angular
+
+<!-- TODO: angular example example--03-04-06 -->
 
 :::
 

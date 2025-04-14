@@ -46,6 +46,12 @@ A draggable move handle appears above the selected column header. You can click 
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example example--03-05-01 -->
+
+:::
+
 #### Move column headers
 
 When you move columns, the default column headers (A, B, C) stay in place.
@@ -72,6 +78,12 @@ When you move columns, the default column headers (A, B, C) stay in place.
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example example--03-05-02 -->
+
+:::
+
 But, if you configure the [`colHeaders`](@/api/options.md#colheaders) option with your own column labels (e.g., One, Two, Three), your headers move along with the columns.
 
 ::: only-for javascript
@@ -93,6 +105,12 @@ But, if you configure the [`colHeaders`](@/api/options.md#colheaders) option wit
 @[code](@/content/guides/columns/column-moving/react/example3.tsx)
 
 :::
+
+:::
+
+::: only-for angular
+
+<!-- TODO: angular example example--03-05-03 -->
 
 :::
 

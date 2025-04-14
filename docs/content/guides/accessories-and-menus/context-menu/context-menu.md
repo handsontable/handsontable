@@ -55,6 +55,12 @@ To see the context menu, right-click on a cell:
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example example--11-01-01 -->
+
+:::
+
 
 ## Context menu with selected options
 
@@ -122,6 +128,12 @@ To see the context menu, right-click on a cell:
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example example--11-01-02 -->
+
+:::
+
 ::: only-for react
 
 ## Context menu with custom options
@@ -170,6 +182,12 @@ To see the context menu, right-click on a cell:
 @[code](@/content/guides/accessories-and-menus/context-menu/react/example3.tsx)
 
 :::
+
+:::
+
+::: only-for angular
+
+<!-- TODO: angular example example--11-01-03 -->
 
 :::
 

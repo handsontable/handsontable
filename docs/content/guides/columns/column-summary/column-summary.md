@@ -63,6 +63,13 @@ This example calculates and displays five different column summaries:
 
 :::
 
+
+::: only-for angular
+
+<!-- TODO: angular example example--03-08-01 -->
+
+:::
+
 ### Built-in summary functions
 
 To decide how a column summary is calculated, you can use one of the following summary functions:
@@ -151,6 +158,34 @@ const ExampleComponent = () => {
 
 :::
 
+::: only-for angular
+
+```ts
+import {GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
+
+const configurationOptions: GridSettings = {
+  licenseKey: 'non-commercial-and-evaluation',
+  data: [
+    [1, 2, 3, 4, 5],
+    [6, 7, 8, 9, 10],
+    [11, 12, 13, 14, 15]
+  ],
+  colHeaders: true,
+  rowHeaders: true,
+  // set the `columnSummary` configuration option to an array of objects
+  columnSummary: [
+    {},
+    {}
+  ],
+};
+```
+
+```angular17html
+<hot-table [settings]="configurationOptions"></hot-table>
+```
+
+:::
+
 You can also set the [`columnSummary`](@/api/options.md#columnsummary) option [to a function](#set-up-column-summaries-using-a-function).
 
 ### Step 2: Select cells that you want to summarize
@@ -193,6 +228,25 @@ columnSummary={[
     sourceColumn: 1,
   }
 ]}
+```
+
+:::
+
+::: only-for angular
+
+```js
+columnSummary: [
+  {
+    // set this column summary to summarize the first column
+    // (i.e. a column with physical index `0`)
+    sourceColumn: 0,
+  },
+  {
+    // set this column summary to summarize the second column
+    // (i.e. a column with physical index `1`)
+    sourceColumn: 1,
+  }
+]
 ```
 
 :::
@@ -245,6 +299,29 @@ columnSummary={[
 
 :::
 
+::: only-for angular
+
+```js
+columnSummary: [
+  {
+    sourceColumn: 0,
+    // set this column summary to only summarize rows with physical indexes 0-2, 4, and 6-8
+    ranges: [
+      [0, 2], [4], [6, 8]
+    ],
+  },
+  {
+    sourceColumn: 0,
+    // set this column summary to only summarize rows with physical indexes 0-5
+    ranges: [
+      [0, 5]
+    ],
+  }
+]
+```
+
+:::
+
 ### Step 3: Calculate your summary
 
 Now, decide how you want to calculate your column summary.
@@ -287,6 +364,25 @@ columnSummary={[
     type: 'min',
   }
 ]}
+```
+
+:::
+
+::: only-for angular
+
+```js
+columnSummary: [
+  {
+    sourceColumn: 0,
+    // set this column summary to return the sum all values in the summarized column
+    type: 'sum',
+  },
+  {
+    sourceColumn: 1,
+    // set this column summary to return the lowest value in the summarized column
+    type: 'min',
+  }
+]
 ```
 
 :::
@@ -343,6 +439,29 @@ columnSummary={[
 
 :::
 
+::: only-for angular
+
+```js
+columnSummary: [
+  {
+    sourceColumn: 0,
+    type: 'sum',
+    // set this column summary to display its result in cell (4, 0)
+    destinationRow: 4,
+    destinationColumn: 0
+  },
+  {
+    sourceColumn: 1,
+    type: 'min',
+    // set this column summary to display its result in cell (4, 1)
+    destinationRow: 4,
+    destinationColumn: 1
+  }
+]
+```
+
+:::
+
 ::: tip
 
 Don't change the [`className`](@/api/options.md#classname) metadata of the summary row.
@@ -387,6 +506,12 @@ To reverse row coordinates for your column summary, set the [`reversedRowCoords`
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example example--03-08-02 -->
+
+:::
+
 ## Set up column summaries, using a function
 
 Instead of [setting up the column summary options manually](#set-up-a-column-summary), you can provide the whole column summary configuration as a function that returns a required array of objects.
@@ -420,6 +545,12 @@ The example below sets up five different column summaries. To do this, it:
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example example--03-08-03 -->
+
+:::
+
 Using a function to provide a column summary configuration lets you set up all sorts of more complex column summaries. For example, you can sum subtotals for nested groups:
 
 ::: only-for javascript
@@ -441,6 +572,12 @@ Using a function to provide a column summary configuration lets you set up all s
 @[code](@/content/guides/columns/column-summary/react/example8.tsx)
 
 :::
+
+:::
+
+::: only-for angular
+
+<!-- TODO: angular example example--03-08-04 -->
 
 :::
 
@@ -483,6 +620,21 @@ columnSummary={[{
 
 :::
 
+::: only-for angular
+
+```js
+columnSummary: [{
+  sourceColumn: 1,
+  // set the `type` option to `'custom'`
+  type: 'custom',
+  destinationRow: 0,
+  destinationColumn: 5,
+  reversedRowCoords: true
+}]
+```
+
+:::
+
 3. In your column summary object, add your custom summary function:
 
 ::: only-for javascript
@@ -519,6 +671,23 @@ columnSummary={[{
 
 :::
 
+::: only-for angular
+
+```js
+columnSummary: [{
+    type: 'custom',
+    destinationRow: 0,
+    destinationColumn: 5,
+    reversedRowCoords: true,
+    // add your custom summary function
+    customFunction: function(endpoint) {
+      // implement your function here
+    }
+}]
+```
+
+:::
+
 This example implements a function that counts the number of even values in a column:
 
 ::: only-for javascript
@@ -540,6 +709,12 @@ This example implements a function that counts the number of even values in a co
 @[code](@/content/guides/columns/column-summary/react/example9.tsx)
 
 :::
+
+:::
+
+::: only-for angular
+
+<!-- TODO: angular example example--03-08-05 -->
 
 :::
 
@@ -569,6 +744,12 @@ See the following example:
 @[code](@/content/guides/columns/column-summary/react/example12.tsx)
 
 :::
+
+:::
+
+::: only-for angular
+
+<!-- TODO: angular example example--03-08-06 -->
 
 :::
 
@@ -629,6 +810,12 @@ To enable this feature, set the [`forceNumeric`](@/api/columnSummary.md) option 
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example example--03-08-07 -->
+
+:::
+
 ### Throw data type errors
 
 You can throw a data type error whenever a non-numeric value is passed to your column summary.
@@ -654,6 +841,12 @@ To throw data type errors, set the [`suppressDataTypeErrors`](@/api/columnSummar
 @[code](@/content/guides/columns/column-summary/react/example11.tsx)
 
 :::
+
+:::
+
+::: only-for angular
+
+<!-- TODO: angular example example--03-08-08 -->
 
 :::
 

@@ -131,6 +131,12 @@ Check out the interactive demo below to see how various Handsontable settings im
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example example--10-01-01 -->
+
+:::
+
 ## Disabling DOM virtualization for improved accessibility
 
 By default, Handsontable uses DOM virtualization to display only the [rows](@/guides/rows/row-virtualization/row-virtualization.md)
@@ -169,6 +175,25 @@ const hot = new Handsontable(container, {
   // disable row virtualization
   renderAllRows={true}
 />
+```
+
+:::
+
+::: only-for angular
+
+```ts
+import {GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
+
+const configurationOptions: GridSettings = {
+  // disable column virtualization
+  renderAllColumns: true,
+  // disable row virtualization
+  renderAllRows: true,
+};
+```
+
+```angular17html
+<hot-table [settings]="configurationOptions"></hot-table>
 ```
 
 :::

@@ -61,6 +61,12 @@ Make some changes to the grid below and the use the <kbd>**Ctrl**</kbd>/<kbd>**C
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example example--11-02-01 -->
+
+:::
+
 ## Known limitations
 
 Not all user-triggered actions are recorded in the undo-and-redo history.

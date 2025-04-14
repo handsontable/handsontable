@@ -49,6 +49,12 @@ The example below shows how cell renderers can be used to populate the template 
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example example--04-10-01 -->
+
+:::
+
 ## Related API reference
 
 - Hooks:

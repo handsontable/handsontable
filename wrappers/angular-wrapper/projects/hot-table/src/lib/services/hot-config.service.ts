@@ -10,12 +10,16 @@ export const NON_COMMERCIAL_LICENSE = 'non-commercial-and-evaluation';
  * Type representing a theme name.
  * Possible values include predefined themes and any custom string.
  */
-export type ThemeName =
-    'ht-theme-main'
-  | 'ht-theme-main-dark'
-  | 'ht-theme-horizon'
-  | 'ht-theme-horizon-dark'
-  | string;
+export enum PredefinedTheme {
+  Main = 'ht-theme-main',
+  MainDark = 'ht-theme-main-dark',
+  MainDarkAuto = 'ht-theme-main-dark-auto',
+  Horizon = 'ht-theme-horizon',
+  HorizonDark = 'ht-theme-horizon-dark',
+  HorizonDarkAuto = 'ht-theme-horizon-dark-auto'
+}
+
+export type ThemeName = PredefinedTheme | string;
 
 /**
  * Interface for the Handsontable global configuration.

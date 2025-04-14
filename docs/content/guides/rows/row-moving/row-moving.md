@@ -46,6 +46,12 @@ A draggable move handle appears above the selected row header. You can click and
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example example--04-04-01 -->
+
+:::
+
 ## Drag and move actions of `manualRowMove` plugin
 
 There are significant differences between the plugin's [`dragRows`](@/api/manualRowMove.md#dragrows) and [`moveRows`](@/api/manualRowMove.md#moverows) API functions. Both of them change the order of rows, but they rely on different kinds of indexes. The differences between them are shown in the diagrams below.

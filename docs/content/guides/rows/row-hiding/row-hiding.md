@@ -52,6 +52,12 @@ To enable row hiding, use the [`hiddenRows`](@/api/options.md#hiddenrows) option
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example example--04-03-01 -->
+
+:::
+
 ## Set up row hiding
 
 To set up your row hiding configuration, follow the steps below.
@@ -86,6 +92,12 @@ Now, those rows are hidden by default:
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example example--04-03-02 -->
+
+:::
+
 ### Step 2: Show UI indicators
 
 To easily see which rows are currently hidden, display UI indicators.
@@ -111,6 +123,12 @@ To enable the UI indicators, in the `hiddenRows` object, set the `indicators` pr
 @[code](@/content/guides/rows/row-hiding/react/example3.tsx)
 
 :::
+
+:::
+
+::: only-for angular
+
+<!-- TODO: angular example example--04-03-03 -->
 
 :::
 
@@ -142,6 +160,12 @@ Enable both the [`ContextMenu`](@/api/contextMenu.md) plugin and the [`HiddenRow
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example example--04-03-04 -->
+
+:::
+
 You can also add the row hiding menu items individually, by adding the [`hidden_rows_show`](@/guides/accessories-and-menus/context-menu/context-menu.md#context-menu-with-specific-options) and [`hidden_rows_hide`](@/guides/accessories-and-menus/context-menu/context-menu.md#context-menu-with-specific-options) strings to the `contextMenu` parameter:
 
 ::: only-for javascript
@@ -163,6 +187,12 @@ You can also add the row hiding menu items individually, by adding the [`hidden_
 @[code](@/content/guides/rows/row-hiding/react/example5.tsx)
 
 :::
+
+:::
+
+::: only-for angular
+
+<!-- TODO: angular example example--04-03-05 -->
 
 :::
 
@@ -194,6 +224,12 @@ To exclude hidden rows from copying and pasting, in the `hiddenRows` object, set
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example example--04-03-06 -->
+
+:::
+
 ## Row hiding API methods
 
 ::: only-for react
@@ -211,6 +247,24 @@ For more information, see the [Instance methods](@/guides/getting-started/react-
 For the most popular row hiding tasks, use the API methods below.
 
 To see your changes, re-render your Handsontable instance with the [`render()`](@/api/core.md#render) method.
+
+::: only-for angular
+
+To obtain the Handsontable instance from the Angular wrapper component, you can use Angular's `@ViewChild` decorator to reference the `HotTableComponent` and then access its `hotInstance` property.
+
+```ts
+@ViewChild(HotTableComponent, {static: false})
+hotTable!: HotTableComponent;
+
+ngAfterViewInit() {
+  // The Handsontable instance is available through the hotInstance property
+  const hot = this.hotTable.hotInstance;
+  // You can now use the "hot" instance to call Handsontable's API methods
+  // ...
+}
+```
+
+:::
 
 ### Access the `HiddenRows` plugin instance
 

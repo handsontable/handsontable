@@ -50,6 +50,11 @@ Mind that CSV exports contain only raw data, and don't include formulas, styling
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example example--11-04-01 -->
+
+:::
 
 ### Export as a JavaScript Blob object
 
@@ -78,6 +83,12 @@ Open a console in browser developer tools to see the result for the below exampl
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example example--11-04-02 -->
+
+:::
+
 ### Export as a string
 
 Open a console in browser developer tools to see the result for the below example.
@@ -102,6 +113,12 @@ Open a console in browser developer tools to see the result for the below exampl
 @[code](@/content/guides/accessories-and-menus/export-to-csv/react/example3.tsx)
 
 :::
+
+:::
+
+::: only-for angular
+
+<!-- TODO: angular example example--11-04-03 -->
 
 :::
 

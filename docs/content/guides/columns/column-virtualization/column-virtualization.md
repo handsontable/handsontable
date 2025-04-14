@@ -69,6 +69,12 @@ The demo below presents a data grid displaying one million cells (1000 rows x 10
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example example--03-09-01 -->
+
+:::
+
 ## Known limitations
 
 Using column virtualization has the following side effects:

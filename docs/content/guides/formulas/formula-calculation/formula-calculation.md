@@ -80,6 +80,12 @@ Double click on a cell to open the editor and preview the formula.
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example example--08-01-01 -->
+
+:::
+
 ## Data grid example
 
 This example is more typical of data grids than spreadsheets. Calculations are present in two places
@@ -104,6 +110,12 @@ This example is more typical of data grids than spreadsheets. Calculations are p
 @[code](@/content/guides/formulas/formula-calculation/react/example-data-grid.tsx)
 
 :::
+
+:::
+
+::: only-for angular
+
+<!-- TODO: angular example example--08-01-02 -->
 
 :::
 
@@ -164,6 +176,19 @@ const hyperformulaInstance = HyperFormula.buildEmpty({
 
 :::
 
+::: only-for angular
+
+```ts
+{
+  formulas: {
+    engine: HyperFormula,
+    // [plugin configuration]
+  }
+}
+```
+
+:::
+
 or
 
 ::: only-for javascript
@@ -198,6 +223,24 @@ or
     // [plugin configuration]
   }}
 />
+```
+
+:::
+
+::: only-for angular
+
+```ts
+{
+  formulas: {
+    engine: {
+      hyperformula: HyperFormula, // or `engine: hyperformulaInstance`
+      leapYear1900: false,
+      // ...and more engine configuration options.
+      // See https://handsontable.github.io/hyperformula/api/interfaces/configparams.html#number
+    },
+    // [plugin configuration]
+  }
+}
 ```
 
 :::
@@ -240,6 +283,31 @@ const ExampleComponent = () => {
     />
   );
 };
+```
+
+:::
+
+::: only-for angular
+
+```ts
+import {GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
+import {HyperFormula} from 'hyperformula';
+
+const hyperformulaInstance = HyperFormula.buildEmpty({
+  // to use an external HyperFormula instance,
+  // initialize it with the `'internal-use-in-handsontable'` license key
+  licenseKey: 'internal-use-in-handsontable',
+});
+ 
+const configurationOptions: GridSettings = {
+  formulas: {
+    engine: hyperformulaInstance
+  }
+};
+```
+
+```angular17html
+<hot-table [settings]="configurationOptions"></hot-table>
 ```
 
 :::
@@ -289,6 +357,28 @@ const ExampleComponent = () => {
     </>
   );
 };
+```
+
+:::
+
+::: only-for angular
+
+```ts
+// Instance 1
+{
+  formulas: {
+    engine: HyperFormula,
+    // [plugin configuration]
+  }
+}
+
+// Instance 2
+{
+  formulas: {
+    engine: HyperFormula,
+    // [plugin configuration]
+  }
+}
 ```
 
 :::
@@ -384,6 +474,36 @@ const ExampleComponent = () => {
 
 :::
 
+::: only-for angular
+
+```ts
+const hyperformulaInstance = HyperFormula.buildEmpty({
+  // to use an external HyperFormula instance,
+  // initialize it with the `'internal-use-in-handsontable'` license key
+  licenseKey: 'internal-use-in-handsontable',
+});
+
+// Instance 1
+{
+  formulas: {
+    engine: hyperformulaInstance,
+    sheetName: 'Sheet1'
+    // [plugin configuration]
+  }
+}
+
+// Instance 2
+{
+  formulas: {
+    engine: hyperformulaInstance,
+    sheetName: 'Sheet2'
+    // [plugin configuration]
+  }
+}
+```
+
+:::
+
 ## Available options and methods
 
 For the list of available settings and methods, visit the [API reference](@/api/formulas.md).
@@ -437,6 +557,32 @@ const ExampleComponent = () => {
     />
   );
 };
+```
+
+:::
+
+::: only-for angular
+
+```ts
+import {GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
+import {HyperFormula} from 'hyperformula';
+
+const afterFormulasValuesUpdate = (changes) => {
+  changes.forEach((change) => {
+    console.log('change', change.address, change.newValue);
+  });
+};
+
+const configurationOptions: GridSettings = {
+  formulas: {
+    engine: HyperFormula,
+  },
+  afterFormulasValuesUpdate,
+};
+```
+
+```angular17html
+<hot-table [settings]="configurationOptions"></hot-table>
 ```
 
 :::

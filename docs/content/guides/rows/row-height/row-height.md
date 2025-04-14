@@ -64,6 +64,12 @@ We set the same height of `40px` for all rows across the entire grid in this exa
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example example--04-06-01 -->
+
+:::
+
 ## Set row heights with an array
 
 In this example, the height is only set for the first rows. Each additional row would be automatically adjusted to the content.
@@ -87,6 +93,12 @@ In this example, the height is only set for the first rows. Each additional row 
 @[code](@/content/guides/rows/row-height/react/example2.tsx)
 
 :::
+
+:::
+
+::: only-for angular
+
+<!-- TODO: angular example example--04-06-02 -->
 
 :::
 
@@ -116,6 +128,12 @@ The row height can be set using a function. In this example, the size of all row
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example example--04-06-03 -->
+
+:::
+
 ## Adjust row heights manually
 
 Set the option [`manualRowResize`](@/api/options.md#manualrowresize) to `true` to allow users to manually resize the row height by dragging the handle between the adjacent row headers. Don't forget to enable row headers by setting [`rowHeaders`](@/api/options.md#rowheaders) to `true`.
@@ -141,6 +159,12 @@ You can adjust the size of one or multiple rows simultaneously, even if the sele
 @[code](@/content/guides/rows/row-height/react/example4.tsx)
 
 :::
+
+:::
+
+::: only-for angular
+
+<!-- TODO: angular example example--04-06-04 -->
 
 :::
 

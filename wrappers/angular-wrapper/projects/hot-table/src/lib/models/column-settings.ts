@@ -8,9 +8,9 @@ export type CustomValidatorFn<T> = (value: T) => boolean;
 export type ColumnSettings =
   | Handsontable.ColumnSettings
   | {
-      editor?: Type<HotCellEditorComponent<any>>;
-      renderer?: Type<HotCellRendererComponent<any, any>> | TemplateRef<any>;
-      validator?: CustomValidatorFn<any>;
+      editor?: Type<HotCellEditorComponent<any>> |  Handsontable.ColumnSettings['editor'];
+      renderer?: Type<HotCellRendererComponent<any, any>> | TemplateRef<any> | Handsontable.ColumnSettings['renderer'];
+      validator?: CustomValidatorFn<any> | Handsontable.ColumnSettings['validator'];
       rendererProps?: any;
     };
 

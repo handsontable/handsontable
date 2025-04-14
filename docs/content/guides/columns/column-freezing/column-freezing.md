@@ -59,6 +59,12 @@ If your [layout direction](@/guides/internationalization/layout-direction/layout
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example example--03-06-01 -->
+
+:::
+
 ## User-triggered freeze
 
 To enable manual column freezing, set [`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze) to `true`. This lets you freeze and unfreeze columns by using the grid's [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md).
@@ -84,6 +90,12 @@ Mind that when you unfreeze a frozen column, it doesn't go back to the original 
 @[code](@/content/guides/columns/column-freezing/react/example2.tsx)
 
 :::
+
+:::
+
+::: only-for angular
+
+<!-- TODO: angular example example--03-06-02 -->
 
 :::
 

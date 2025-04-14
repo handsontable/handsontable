@@ -1,10 +1,14 @@
-import { createComponent, EnvironmentInjector, Injectable, TemplateRef, Type } from '@angular/core';
+import {createComponent, EnvironmentInjector, Injectable, NgZone, TemplateRef, Type} from '@angular/core';
 import { DynamicComponentService } from '../renderer/hot-dynamic-renderer-component.service';
 import { BaseEditorAdapter } from '../editor/base-editor-adapter';
 import { GridSettings, GridSettingsInternal } from '../models/grid-settings';
 import { CustomValidatorFn, ColumnSettings } from '../models/column-settings';
 import { HotCellRendererComponent } from '../renderer/hot-cell-renderer.component';
 import { HotCellEditorComponent } from '../editor/hot-cell-editor.component';
+import Handsontable from 'handsontable/base';
+
+const AVAILABLE_OPTIONS: string[] = Object.keys(Handsontable.DefaultSettings);
+const AVAILABLE_HOOKS: string[] = Handsontable.hooks.getRegistered();
 
 /**
  * Service to resolve and apply custom settings for Handsontable settings object.
@@ -16,16 +20,50 @@ export class HotSettingsResolver {
   /**
    * Applies custom settings to the provided GridSettings.
    * @param settings The original grid settings.
+   * @param ngZone The NgZone instance to run hooks inside the zone context.
    * @returns The merged grid settings with custom settings applied.
    */
-  applyCustomSettings(settings: GridSettings): GridSettingsInternal {
+  applyCustomSettings(settings: GridSettings, ngZone: NgZone): GridSettingsInternal {
     const mergedSettings: GridSettings = settings;
 
     this.updateColumnRendererForGivenCustomRenderer(mergedSettings);
     this.updateColumnEditorForGivenCustomEditor(mergedSettings);
     this.updateColumnValidatorForGivenCustomValidator(mergedSettings);
 
+    this.wrapHooksInNgZone(mergedSettings, ngZone);
+
     return (mergedSettings as GridSettingsInternal) ?? {};
+  }
+
+  /**
+   * Ensures that hook callbacks in the provided grid settings run inside Angular's zone.
+   *
+   * @param settings The original grid settings.
+   * @param ngZone The NgZone instance to run hooks inside the zone context.
+   */
+  private wrapHooksInNgZone(settings: GridSettings, ngZone: NgZone) {
+    const options = AVAILABLE_HOOKS.concat(AVAILABLE_OPTIONS);
+
+    options.forEach(key => {
+      const isHook = AVAILABLE_HOOKS.indexOf(key) > -1;
+      let option;
+
+      if (isHook) {
+        option = settings[key];
+      }
+
+      if (option === void 0) {
+        return;
+
+      } else if (!!ngZone && (typeof option === 'function' && isHook)) {
+        settings[key] = function(...args: any) {
+          return ngZone.run(() => option.apply(this, args));
+        };
+
+      } else {
+        settings[key] = option;
+      }
+    });
   }
 
   /**

@@ -65,6 +65,12 @@ The example below presents a data grid displaying 1 million cells (1000 rows x 1
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example example--04-07-01 -->
+
+:::
+
 ## Known limitations
 
 Using row virtualization has the following side effects:

@@ -68,7 +68,8 @@ Keep in mind that starting from version `15.0`, importing a theme is required.
 
 ::: only-for angular
 
-::: example #exampleTheme .disable-auto-theme :angular-wrapper --ts 1 --html 2 --scss 3
+::: example #exampleTheme .disable-auto-theme :angular-wrapper --js 1 --ts 2 --html 3 --scss 4
+@[code](@/content/guides/styling/themes/angular/exampleTheme.component.js)
 @[code](@/content/guides/styling/themes/angular/exampleTheme.component.ts)
 @[code](@/content/guides/styling/themes/angular/exampleTheme.component.html)
 @[code](@/content/guides/styling/themes/angular/exampleTheme.component.scss)
@@ -128,7 +129,6 @@ Alternatively, you can import the necessary files from the recommended CDN such 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/styles/handsontable.min.css" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/styles/ht-theme-main.min.css" />
 ```
-
 
 ## Pass a theme name
 
@@ -200,7 +200,7 @@ import { AppComponent } from './app/app.component';
 export const appConfig: ApplicationConfig = {
   providers: [{
     provide: HOT_GLOBAL_CONFIG,
-    useValue: { themeName: 'ht-theme-main' } as HotConfig
+    useValue: { themeName: 'ht-theme-main-dark-auto' } as HotConfig
   }],
 };
 
@@ -224,6 +224,12 @@ When both a global theme and a local themeName are defined, the local setting ta
 - Global Setting: If no local theme is specified, the component falls back to the global configuration provided via the injection token or the configuration service.
 
 This hierarchy ensures that you can define a consistent default theme for your entire application while still allowing individual components to customize their appearance when needed.
+
+::: only-for angular
+
+<!-- TODO: angular example example--02-01-02 -->
+
+:::
 
 :::
 

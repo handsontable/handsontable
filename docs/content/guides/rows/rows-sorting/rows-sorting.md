@@ -79,6 +79,12 @@ Click on one of the column names to sort the values in ascending (↑) or descen
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example example--04-08-01 -->
+
+:::
+
 ## Enable sorting
 
 To enable sorting for all columns, set [`columnSorting`](@/api/options.md#columnsorting) to `true`.
@@ -101,6 +107,23 @@ const configurationOptions = {
   // enable sorting for all columns
   columnSorting={true}
 />
+```
+
+:::
+
+::: only-for angular
+
+```ts
+import {GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
+
+const configurationOptions: GridSettings = {
+  // enable sorting for all columns
+  columnSorting: true,
+};
+```
+
+```angular17html
+<hot-table [settings]="configurationOptions"></hot-table>
 ```
 
 :::
@@ -128,6 +151,12 @@ the following example, only columns **Model**, **Date** and **In stock** are sor
 @[code](@/content/guides/rows/rows-sorting/react/exampleEnableSortingForColumns.tsx)
 
 :::
+
+:::
+
+::: only-for angular
+
+<!-- TODO: angular example example--04-08-02 -->
 
 :::
 
@@ -206,6 +235,43 @@ const configurationOptions = {
 
 :::
 
+::: only-for angular
+
+```ts
+import {GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
+
+const configurationOptions: GridSettings = {
+  columnSorting: {
+    // let the end user sort data by clicking on the column name (set by default)
+    headerAction: true,
+    // don't sort empty cells – move rows that contain empty cells to the bottom (set by default)
+    sortEmptyCells: false,
+    // enable the sort order icon that appears next to the column name (set by default)
+    indicator: true,
+
+    // at initialization, sort data by the first column, in descending order
+    initialConfig: {
+      column: 1,
+      sortOrder: 'desc',
+    },
+
+    // implement your own comparator
+    compareFunctionFactory(sortOrder, columnMeta) {
+      return function (value, nextValue) {
+        // here, add a compare function
+        // that returns `-1`, or `0`, or `1`
+      };
+    },
+  },
+};
+```
+
+```angular17html
+<hot-table [settings]="configurationOptions"></hot-table>
+```
+
+:::
+
 ## Sort different types of data
 
 Handsontable sorts different [types of data](@/guides/cell-types/cell-type/cell-type.md#available-cell-types) automatically, based on which
@@ -245,6 +311,12 @@ You can configure the following types:
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example example--04-08-03 -->
+
+:::
+
 You can also create a custom type. For details, see this guide: [Cell type](@/guides/cell-types/cell-type/cell-type.md).
 
 ## Sort by multiple columns
@@ -280,6 +352,12 @@ To try out sorting by multiple columns, see the following demo:
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example example--04-08-04 -->
+
+:::
+
 To enable sorting by multiple columns, set [`multiColumnSorting`](@/api/options.md#multicolumnsorting) to `true`.
 
 ::: only-for javascript
@@ -300,6 +378,23 @@ const configurationOptions = {
   // enable sorting by multiple columns, for all columns
   multiColumnSorting={true}
 />
+```
+
+:::
+
+::: only-for angular
+
+```ts
+import {GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
+
+const configurationOptions: GridSettings = {
+  // enable sorting by multiple columns, for all columns
+  multiColumnSorting: true,
+};
+```
+
+```angular17html
+<hot-table [settings]="configurationOptions"></hot-table>
 ```
 
 :::
@@ -344,6 +439,30 @@ const configurationOptions = {
 
 :::
 
+::: only-for angular
+
+```ts
+import {GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
+
+const configurationOptions: GridSettings = {
+  // enable sorting by multiple columns, for all columns
+  multiColumnSorting: true,
+  columns: [
+    {
+      // disable sorting by multiple columns for the first column
+      multiColumnSorting: {
+        headerAction: false,
+      },
+    },
+};
+```
+
+```angular17html
+<hot-table [settings]="configurationOptions"></hot-table>
+```
+
+:::
+
 The [`columnSorting`](@/api/options.md#columnsorting) and [`multiColumnSorting`](@/api/options.md#multicolumnsorting) options are mutually exclusive; do not enable them together. If you do, [`columnSorting`](@/api/options.md#columnsorting) will be automatically disabled as it is overridden by [`multiColumnSorting`](@/api/options.md#multicolumnsorting).
 
 ## Set an initial sort order
@@ -378,6 +497,12 @@ In the following demo, the data is initially sorted:
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example example--04-08-05 -->
+
+:::
+
 To set an initial sort order, use the [`initialConfig`](@/api/options.md#columnsorting) option.
 
 ::: only-for javascript
@@ -407,6 +532,27 @@ const configurationOptions = {
     },
   }}
 />
+```
+
+:::
+
+::: only-for angular
+
+```ts
+import {GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
+
+const configurationOptions: GridSettings = {
+  columnSorting: {
+    // at initialization, sort data by the first column, in ascending order
+    initialConfig: {
+      column: 0,
+      sortOrder: 'asc', // for descending order, use `'desc'`
+    },
+};
+```
+
+```angular17html
+<hot-table [settings]="configurationOptions"></hot-table>
 ```
 
 :::
@@ -460,6 +606,35 @@ const configurationOptions = {
 
 :::
 
+::: only-for angular
+
+```ts
+import {GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
+
+const configurationOptions: GridSettings = {
+  // enable sorting by multiple columns
+  multiColumnSorting: {
+    initialConfig: [
+      // at initialization, sort data by the first column, in ascending order
+      {
+        column: 0,
+        sortOrder: 'asc',
+      },
+      // at initialization, sort data by the second column, in descending order
+      {
+        column: 1,
+        sortOrder: 'desc',
+      },
+    ]
+};
+```
+
+```angular17html
+<hot-table [settings]="configurationOptions"></hot-table>
+```
+
+:::
+
 ## Add custom sort icons
 
 The default sort icons (↑↓) are encoded `url`. You can replace them by changing `-webkit-mask-image` for the following pseudo-elements of Handsontable's CSS:
@@ -492,6 +667,12 @@ The default sort icons (↑↓) are encoded `url`. You can replace them by chang
 
 :::
 
+::: only-for angular
+
+<!-- TODO: angular example example--04-08-06 -->
+
+:::
+
 To replace the icons that indicate sorting [by multiple columns](#sort-by-multiple-columns)
 (<sub>1</sub>, <sub>2</sub> etc.), change `content` for the `.columnSorting.sort-1::after` and
 subsequent pseudo-elements:
@@ -518,6 +699,12 @@ subsequent pseudo-elements:
 @[code](@/content/guides/rows/rows-sorting/react/exampleCustomSortIcons3.tsx)
 
 :::
+
+:::
+
+::: only-for angular
+
+<!-- TODO: angular example example--04-08-07 -->
 
 :::
 
@@ -582,6 +769,36 @@ const configurationOptions = {
 
 :::
 
+::: only-for angular
+
+```ts
+import {GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
+
+const configurationOptions: GridSettings = {
+  columnSorting: {
+    compareFunctionFactory: function (sortOrder, columnMeta) {
+      // implement your own comparator
+      return function (value, nextValue) {
+        if (value < nextValue) {
+          return -1;
+        }
+        if (value > nextValue) {
+          return 1;
+        }
+
+        return 0;
+      };
+    },
+  },
+};
+```
+
+```angular17html
+<hot-table [settings]="configurationOptions"></hot-table>
+```
+
+:::
+
 ## Use sorting hooks
 
 You can run your code before or after sorting, using the following [Handsontable hooks](@/guides/getting-started/events-and-hooks/events-and-hooks.md):
@@ -624,6 +841,28 @@ const configurationOptions = {
 
 :::
 
+::: only-for angular
+
+```ts
+import {GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
+
+const configurationOptions: GridSettings = {
+  beforeColumnSort() {
+    // add your code here
+    return false; // to block front-end sorting
+  },
+  afterColumnSort() {
+    // add your code here
+  },
+};
+```
+
+```angular17html
+<hot-table [settings]="configurationOptions"></hot-table>
+```
+
+:::
+
 ## Exclude rows from sorting
 
 You can exclude any number of top or bottom rows from sorting.
@@ -651,6 +890,12 @@ For example, if you [freeze](@/guides/rows/row-freezing/row-freezing.md) a row a
 @[code](@/content/guides/rows/rows-sorting/react/exampleExcludeRowsFromSorting.tsx)
 
 :::
+
+:::
+
+::: only-for angular
+
+<!-- TODO: angular example example--04-08-08 -->
 
 :::
 
@@ -709,6 +954,41 @@ hotTableComponentRef.current.hotInstance.updateSettings({
 
 :::
 
+::: only-for angular
+
+```js
+// enable sorting for all columns
+handsontableInstance.updateSettings({
+  columnSorting: true,
+});
+
+// disable sorting for all columns
+handsontableInstance.updateSettings({
+  columnSorting: false,
+});
+```
+
+```ts
+@ViewChild(HotTableComponent, {static: false})
+hotTable!: HotTableComponent;
+
+ngAfterViewInit() {
+  const hot = this.hotTable.hotInstance;
+
+  // enable sorting for all columns
+  hot.updateSettings({
+    columnSorting: true,
+  });
+
+  // disable sorting for all columns
+  hot.updateSettings({
+    columnSorting: false,
+  });
+}
+```
+
+:::
+
 You can also enable or disable sorting for specific columns.
 
 ::: only-for javascript
@@ -755,6 +1035,36 @@ hotTableComponentRef.current.hotInstance.updateSettings({
     },
   ],
 });
+```
+
+:::
+
+::: only-for angular
+
+```ts
+@ViewChild(HotTableComponent, {static: false})
+hotTable!: HotTableComponent;
+
+ngAfterViewInit() {
+  const hot = this.hotTable.hotInstance;
+
+  hot.updateSettings({
+    columns: [
+      {
+        // enable sorting for the first column
+        columnSorting: {
+          headerAction: true,
+        },
+      },
+      {
+        // disable sorting for the second column
+        columnSorting: {
+          headerAction: false,
+        },
+      },
+    ],
+  });
+}
 ```
 
 :::
@@ -816,6 +1126,40 @@ columnSorting.clearSort();
 
 :::
 
+::: only-for angular
+
+```ts
+@ViewChild(HotTableComponent, {static: false})
+hotTable!: HotTableComponent;
+
+configurationOptions: GridSettings = {
+  // enable sorting for all columns
+  columnSorting: true,
+};
+
+ngAfterViewInit() {
+  const hot = this.hotTable.hotInstance;
+
+  const columnSorting = hot.getPlugin('columnSorting');
+
+  columnSorting.sort(
+    // sort data by the first column, in ascending order
+    {
+      column: 0,
+      sortOrder: 'asc', // for descending order, use `'desc'`
+    }
+  );
+
+  // go back to the original order
+  columnSorting.clearSort();
+}
+```
+
+```angular17html
+<hot-table [settings]="configurationOptions"></hot-table>
+```
+:::
+
 To see how it works, try out the following demo:
 
 ::: only-for javascript
@@ -838,6 +1182,12 @@ To see how it works, try out the following demo:
 @[code](@/content/guides/rows/rows-sorting/react/exampleSortByAPI.tsx)
 
 :::
+
+:::
+
+::: only-for angular
+
+<!-- TODO: angular example example--04-08-09 -->
 
 :::
 
@@ -912,6 +1262,48 @@ multiColumnSorting.clearSort();
 
 :::
 
+::: only-for angular
+
+```ts
+@ViewChild(HotTableComponent, {static: false})
+hotTable!: HotTableComponent;
+
+configurationOptions: GridSettings = {
+  // enable sorting for all columns
+  multiColumnSorting: true,
+};
+
+ngAfterViewInit() {
+  const hot = this.hotTable.hotInstance;
+
+  // get the `MultiColumnSorting` plugin
+  const multiColumnSorting = hot.getPlugin('multiColumnSorting');
+
+  multiColumnSorting.sort([
+    // sort data by the first column, in ascending order
+    {
+      column: 0,
+      sortOrder: 'asc',
+    },
+    // within the above sort criteria,
+    // sort data by the second column, in descending order
+    {
+      column: 1,
+      sortOrder: 'desc',
+    },
+  ]);
+
+  // go back to the original order
+  multiColumnSorting.clearSort();
+}
+```
+
+```angular17html
+<hot-table [settings]="configurationOptions"></hot-table>
+```
+
+:::
+
 To see how it works, try out the following demo:
 
 ::: only-for javascript
@@ -934,6 +1326,12 @@ To see how it works, try out the following demo:
 @[code](@/content/guides/rows/rows-sorting/react/exampleSortByAPIMultipleColumns.tsx)
 
 :::
+
+:::
+
+::: only-for angular
+
+<!-- TODO: angular example example--04-08-10 -->
 
 :::
 
