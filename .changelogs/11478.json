@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed merged cells height for custom defined row heights",
-  "type": "fixed",
-  "issueOrPR": 11478,
-  "breaking": false,
-  "framework": "none"
-}

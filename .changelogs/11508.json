@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a problem where re-enabling the Hidden Columns configuration caused an error to be thrown if a selection was a part of the hidden range.",
+  "type": "fixed",
+  "issueOrPR": 11508,
+  "breaking": false,
+  "framework": "none"
+}

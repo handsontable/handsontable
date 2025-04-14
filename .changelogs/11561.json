@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added horizontal scroll to the Filter's by value component",
+  "type": "added",
+  "issueOrPR": 11561,
+  "breaking": false,
+  "framework": "none"
+}

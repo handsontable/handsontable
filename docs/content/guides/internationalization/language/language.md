@@ -118,7 +118,7 @@ const App = () => {
 1. **ES modules (ESM)**
 
 ```ts
-import { Component, ViewChild, AfterViewInit } from "@angular/core";
+import { Component } from "@angular/core";
 import {
   GridSettings,
   HotTableComponent,
@@ -219,6 +219,7 @@ By default, Handsontable uses the **English - United States** language-country s
 - `de-CH.js` for **German - Switzerland** (`de-CH` code).
 - `de-DE.js` for **German - Germany** (`de-DE` code).
 - `es-MX.js` for **Spanish - Mexico** (`es-MX` code).
+- `fa-IR.js` for **Persian - Iran** (`fa-IR` code).
 - `fr-FR.js` for **French - France** (`fr-FR` code).
 - `hr-HR.js` for **Croatian - Croatia** (`hr-HR` code).
 - `it-IT.js` for **Italian - Italy** (`it-IT` code).

@@ -23,7 +23,7 @@ describe('DOM helpers', () => {
     });
   });
 
-  describe('isThisHotChild', () => {
+  describe('isInternalElement', () => {
     it('should recognize if the provided element is a child of the container of the Handsontable container provided' +
       ' as the second argument', () => {
       const createDivWithId = (id) => {
@@ -45,7 +45,7 @@ describe('DOM helpers', () => {
         fixedColumnsStart: 3
       });
       const { rootElement } = hot;
-      const isThisHotChild = Handsontable.dom.isThisHotChild;
+      const isInternalElement = Handsontable.dom.isInternalElement;
 
       hot.selectCell(0, 0);
 
@@ -57,30 +57,30 @@ describe('DOM helpers', () => {
       // Overlay elements
       const topOverlayTableElement = hot.view._wt.wtOverlays.topOverlay.clone.wtTable.TABLE;
 
-      expect(isThisHotChild(topOverlayTableElement, rootElement)).toBe(true);
-      expect(isThisHotChild(topOverlayTableElement.parentNode, rootElement)).toBe(true);
-      expect(isThisHotChild(topOverlayTableElement.parentNode.parentNode, rootElement)).toBe(true);
-      expect(isThisHotChild(topOverlayTableElement.parentNode.parentNode.parentNode, rootElement)).toBe(true);
+      expect(isInternalElement(topOverlayTableElement, rootElement)).toBe(true);
+      expect(isInternalElement(topOverlayTableElement.parentNode, rootElement)).toBe(true);
+      expect(isInternalElement(topOverlayTableElement.parentNode.parentNode, rootElement)).toBe(true);
+      expect(isInternalElement(topOverlayTableElement.parentNode.parentNode.parentNode, rootElement)).toBe(true);
 
       const mainOverlayTableElement = hot.view._wt.wtOverlays.wtTable.TABLE;
 
-      expect(isThisHotChild(mainOverlayTableElement, rootElement)).toBe(true);
-      expect(isThisHotChild(mainOverlayTableElement.parentNode, rootElement)).toBe(true);
-      expect(isThisHotChild(mainOverlayTableElement.parentNode.parentNode, rootElement)).toBe(true);
-      expect(isThisHotChild(mainOverlayTableElement.parentNode.parentNode.parentNode, rootElement)).toBe(true);
+      expect(isInternalElement(mainOverlayTableElement, rootElement)).toBe(true);
+      expect(isInternalElement(mainOverlayTableElement.parentNode, rootElement)).toBe(true);
+      expect(isInternalElement(mainOverlayTableElement.parentNode.parentNode, rootElement)).toBe(true);
+      expect(isInternalElement(mainOverlayTableElement.parentNode.parentNode.parentNode, rootElement)).toBe(true);
 
       // Cell elements
-      expect(isThisHotChild(hot.getCell(0, 0, true), rootElement)).toBe(true);
-      expect(isThisHotChild(hot.getCell(3, 3, true), rootElement)).toBe(true);
-      expect(isThisHotChild(hot.getCell(9, 9, true), rootElement)).toBe(true);
+      expect(isInternalElement(hot.getCell(0, 0, true), rootElement)).toBe(true);
+      expect(isInternalElement(hot.getCell(3, 3, true), rootElement)).toBe(true);
+      expect(isInternalElement(hot.getCell(9, 9, true), rootElement)).toBe(true);
 
       // Misc
-      expect(isThisHotChild(document.querySelector('.htFocusCatcher'), rootElement)).toBe(true);
-      expect(isThisHotChild(document.querySelector('.handsontableInputHolder'), rootElement)).toBe(true);
-      expect(isThisHotChild(document.querySelector('#rootChild'), rootElement)).toBe(true);
+      expect(isInternalElement(document.querySelector('.htFocusCatcher'), rootElement)).toBe(true);
+      expect(isInternalElement(document.querySelector('.handsontableInputHolder'), rootElement)).toBe(true);
+      expect(isInternalElement(document.querySelector('#rootChild'), rootElement)).toBe(true);
 
-      expect(isThisHotChild(document.querySelector('#rootSibling'), rootElement)).toBe(false);
-      expect(isThisHotChild(document.body, rootElement)).toBe(false);
+      expect(isInternalElement(document.querySelector('#rootSibling'), rootElement)).toBe(false);
+      expect(isInternalElement(document.body, rootElement)).toBe(false);
 
       hot.destroy();
       document.body.removeChild(document.querySelector('#rootSibling'));

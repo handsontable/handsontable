@@ -31,8 +31,8 @@ describe('MergeCells', () => {
 
     expect(getRowHeight(0)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(23);
-      main.toBe(29);
-      horizon.toBe(37);
+      main.toBe(30);
+      horizon.toBe(38);
     });
     expect(getRowHeight(1)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(23);

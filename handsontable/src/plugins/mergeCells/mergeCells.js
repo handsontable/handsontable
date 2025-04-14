@@ -13,6 +13,7 @@ import { getStyle } from '../../helpers/dom/element';
 import { isChrome } from '../../helpers/browser';
 import { FocusOrder } from './focusOrder';
 import { createMergeCellRenderer } from './renderer';
+import { sumCellsHeights } from './utils';
 
 Hooks.getSingleton().register('beforeMergeCells');
 Hooks.getSingleton().register('afterMergeCells');
@@ -57,6 +58,24 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
  *    {row: 4, col: 8, rowspan: 3, colspan: 3}
  *   ]}
  * />
+ * ```
+ * :::
+ *
+ * ::: only-for angular
+ * ```ts
+ * settings = {
+ *   data: getData(),
+ *   // Enable plugin
+ *   mergeCells: [
+ *     { row: 0, col: 3, rowspan: 3, colspan: 3 },
+ *     { row: 2, col: 6, rowspan: 2, colspan: 2 },
+ *     { row: 4, col: 8, rowspan: 3, colspan: 3 },
+ *   ],
+ * };
+ * ```
+ *
+ * ```html
+ * <hot-table [settings]="settings"></hot-table>
  * ```
  * :::
  */
@@ -525,11 +544,12 @@ export class MergeCells extends BasePlugin {
    * @param {CellRange} cellRange The cell range to merge or unmerged.
    */
   toggleMerge(cellRange) {
-    const mergedCell = this.mergedCellsCollection.get(cellRange.from.row, cellRange.from.col);
-    const mergedCellCoversWholeRange = mergedCell.row === cellRange.from.row &&
-      mergedCell.col === cellRange.from.col &&
-      mergedCell.row + mergedCell.rowspan - 1 === cellRange.to.row &&
-      mergedCell.col + mergedCell.colspan - 1 === cellRange.to.col;
+    const { from, to } = cellRange.clone().normalize();
+    const mergedCell = this.mergedCellsCollection.get(from.row, from.col);
+    const mergedCellCoversWholeRange = mergedCell.row === from.row &&
+      mergedCell.col === from.col &&
+      mergedCell.row + mergedCell.rowspan - 1 === to.row &&
+      mergedCell.col + mergedCell.colspan - 1 === to.col;
 
     if (mergedCellCoversWholeRange) {
       this.unmergeRange(cellRange);
@@ -1490,34 +1510,8 @@ export class MergeCells extends BasePlugin {
         rowspanAfterCorrection = rowspan - rowspanCorrection;
       }
 
-      height = Math.max(height ?? 0, this.#sumCellsHeights(row, rowspanAfterCorrection));
+      height = Math.max(height ?? 0, sumCellsHeights(this.hot, row, rowspanAfterCorrection));
     });
-
-    return height;
-  }
-
-  /**
-   * Sums the heights of the all cells that the merge cell consists of.
-   *
-   * @param {number} row The visual row index of the merged cell.
-   * @param {number} rowspan The rowspan value of the merged cell.
-   * @returns {number}
-   */
-  #sumCellsHeights(row, rowspan) {
-    const { view, rowIndexMapper } = this.hot;
-    const stylesHandler = view.getStylesHandler();
-    const defaultHeight = view.getDefaultRowHeight();
-    let height = 0;
-
-    for (let i = row; i < row + rowspan; i++) {
-      if (!rowIndexMapper.isHidden(i)) {
-        height += this.hot.getRowHeight(i) ?? defaultHeight;
-
-        if (i === 0 && !stylesHandler.isClassicTheme()) {
-          height += 1; // border-top-width
-        }
-      }
-    }
 
     return height;
   }

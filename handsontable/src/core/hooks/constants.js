@@ -46,6 +46,22 @@
  * />
  * :::
  *
+ * ::: only-for angular
+ * ```ts
+ * settings = {
+ *   afterChange: (changes, source) => {
+ *     changes?.forEach(([row, prop, oldValue, newValue]) => {
+ *       // Some logic...
+ *     });
+ *   },
+ * };
+ * ```
+ *
+ * ```html
+ * <hot-table [settings]="settings" />
+ * ```
+ * :::
+ *
  * ::: only-for javascript
  * ```js
  * // using events as plugin hooks
@@ -150,6 +166,22 @@ export const REGISTERED_HOOKS = [
    *     });
    *   }}
    * />
+   * ```
+   * :::
+   *
+   * ::: only-for angular
+   * ```ts
+   * settings = {
+   *   afterChange: (changes, source) => {
+   *     changes?.forEach(([row, prop, oldValue, newValue]) => {
+   *       // Some logic...
+   *     });
+   *   },
+   * };
+   * ```
+   *
+   * ```html
+   * <hot-table [settings]="settings"></hot-table>
    * ```
    * :::
    */
@@ -264,6 +296,21 @@ export const REGISTERED_HOOKS = [
    * />
    * ```
    * :::
+   *
+   * ::: only-for angular
+   * ```ts
+   * settings = {
+   *   beforeCreateCol: (data, coords) => {
+   *     // Return `false` to cancel column inserting.
+   *     return false;
+   *   },
+   * };
+   * ```
+   *
+   * ```html
+   * <hot-table [settings]="settings"></hot-table>
+   * ```
+   * :::
    */
   'beforeCreateCol',
 
@@ -353,6 +400,15 @@ export const REGISTERED_HOOKS = [
    * @returns {string[]|undefined} Can return an `Array` of `String`s. Each of these strings will act like class names to be removed from all the cells in the table.
    */
   'beforeRemoveCellClassNames',
+
+  /**
+   * Hook fired after `compositionstart` event is handled.
+   *
+   * @event Hooks#beforeCompositionStart
+   * @since 15.3.0
+   * @param {Event} event A native `composition` event object.
+   */
+  'beforeCompositionStart',
 
   /**
    * Fired after getting the cell settings.
@@ -675,6 +731,31 @@ export const REGISTERED_HOOKS = [
    * />
    * ```
    * :::
+   *
+   * ::: only-for angular
+   * ```ts
+ * settings = {
+ *   afterSelection: (
+ *     row,
+ *     column,
+ *     row2,
+ *     column2,
+ *     preventScrolling,
+ *     selectionLayerLevel
+ *   ) => {
+ *     // If set to `false` (default): when cell selection is outside the viewport,
+ *     // Handsontable scrolls the viewport to cell selection's end corner.
+ *     // If set to `true`: when cell selection is outside the viewport,
+ *     // Handsontable doesn't scroll to cell selection's end corner.
+ *     preventScrolling.value = true;
+ *   },
+ * };
+ * ```
+ *
+ * ```html
+ * <hot-table [settings]="settings"></hot-table>
+ * ```
+   * :::
    */
   'afterSelection',
 
@@ -712,6 +793,28 @@ export const REGISTERED_HOOKS = [
    *     preventScrolling.value = true;
    *   }}
    * />
+   * ```
+   * :::
+   *
+   * ::: only-for angular
+   * ```ts
+   * settings = {
+   *   afterSelectionByProp: (
+   *     row,
+   *     column,
+   *     row2,
+   *     column2,
+   *     preventScrolling,
+   *     selectionLayerLevel
+   *   ) => {
+   *     // Setting if prevent scrolling after selection
+   *     preventScrolling.value = true;
+   *   },
+   * };
+   * ```
+   *
+   * ```html
+   * <hot-table [settings]="settings"></hot-table>
    * ```
    * :::
    */
@@ -781,6 +884,24 @@ export const REGISTERED_HOOKS = [
    * />
    * ```
    * :::
+   *
+   * ::: only-for angular
+   * ```ts
+   * settings = {
+   *   afterSelectionFocusSet: (row, column, preventScrolling) => {
+   *     // If set to `false` (default): when focused cell selection is outside the viewport,
+   *     // Handsontable scrolls the viewport to that cell.
+   *     // If set to `true`: when focused cell selection is outside the viewport,
+   *     // Handsontable doesn't scroll the viewport.
+   *     preventScrolling.value = true;
+   *   },
+   * };
+   * ```
+   *
+   * ```html
+   * <hot-table [settings]="settings"></hot-table>
+   * ```
+   * :::
    */
   'afterSelectionFocusSet',
 
@@ -814,6 +935,22 @@ export const REGISTERED_HOOKS = [
    *     to.col = Math.min(to.col + 1, this.countCols() - 1);
    *   }}
    * />
+   * ```
+   * :::
+   *
+   * ::: only-for angular
+   * ```ts
+   * settings = {
+   *   beforeSelectColumns: (from, to, highlight) => {
+   *     // Extend the column selection by one column left and one column right.
+   *     from.col = Math.max(from.col - 1, 0);
+   *     to.col = Math.min(to.col + 1, this.countCols() - 1);
+   *   },
+   * };
+   * ```
+   *
+   * ```html
+   * <hot-table [settings]="settings"></hot-table>
    * ```
    * :::
    */
@@ -860,6 +997,22 @@ export const REGISTERED_HOOKS = [
    *     to.row = Math.min(to.row + 1, this.countRows() - 1);
    *   }}
    * />
+   * ```
+   * :::
+   *
+   * ::: only-for angular
+   * ```ts
+   * settings = {
+   *   beforeSelectRows: (from, to, highlight) => {
+   *     // Extend the row selection by one row up and one row down.
+   *     from.row = Math.max(from.row - 1, 0);
+   *     to.row = Math.min(to.row + 1, this.countRows() - 1);
+   *   },
+   * };
+   * ```
+   *
+   * ```html
+   * <hot-table [settings]="settings"></hot-table>
    * ```
    * :::
    */
@@ -1096,6 +1249,42 @@ export const REGISTERED_HOOKS = [
    *   }}
    * />
    * ```
+   * :::
+   * ::: only-for angular
+   *```ts
+   * // To alter a single change, overwrite the desired value with `changes[i][3]`
+   * settings1 = {
+   *   beforeChange: (changes, source) => {
+   *     // [[row, prop, oldVal, newVal], ...]
+   *     changes[0][3] = 10;
+   *   },
+   * };
+   *
+   * // To ignore a single change, set `changes[i]` to `null`
+   * // or remove `changes[i]` from the array, by using changes.splice(i, 1).
+   * settings2 = {
+   *   beforeChange: (changes, source) => {
+   *     // [[row, prop, oldVal, newVal], ...]
+   *     changes[0] = null;
+   *   },
+   * };
+   *
+   * // To ignore all changes, return `false`
+   * // or set the array's length to 0 (`changes.length = 0`)
+   * settings3 = {
+   *   beforeChange: (changes, source) => {
+   *     // [[row, prop, oldVal, newVal], ...]
+   *     return false;
+   *   },
+   * };
+   * ```
+   *
+   * ```html
+   * <hot-table [settings]="settings1"></hot-table>
+   * <hot-table [settings]="settings2"></hot-table>
+   * <hot-table [settings]="settings3"></hot-table>
+   * ```
+   *
    * :::
    */
   'beforeChange',
@@ -1763,6 +1952,32 @@ export const REGISTERED_HOOKS = [
    * />
    * ```
    * :::
+   *
+   * ::: only-for angular
+   *```ts
+   * // To disregard a single row, remove it from the array using data.splice(i, 1).
+   * settings1 = {
+   *   beforeCut: (data, coords) => {
+   *     // data -> [[1, 2, 3], [4, 5, 6]]
+   *     data.splice(0, 1);
+   *     // data -> [[4, 5, 6]]
+   *     // coords -> [{startRow: 0, startCol: 0, endRow: 1, endCol: 2}]
+   *   },
+   * };
+   *
+   * // To cancel a cutting action, just return `false`.
+   * settings2 = {
+   *   beforeCut: (data, coords) => {
+   *     return false;
+   *   },
+   * };
+   * ```
+   *
+   * ```html
+   * <hot-table [settings]="settings1"></hot-table>
+   * <hot-table [settings]="settings2"></hot-table>
+   * ```
+   * :::
    */
   'beforeCut',
 
@@ -1837,6 +2052,32 @@ export const REGISTERED_HOOKS = [
    * ...
    * ```
    * :::
+   *
+   * ::: only-for angular
+   * ```ts
+   * // To disregard a single row, remove it from the array using data.splice(i, 1).
+   * settings1 = {
+   *   beforeCopy: (data, coords) => {
+   *     // data -> [[1, 2, 3], [4, 5, 6]]
+   *     data.splice(0, 1);
+   *     // data -> [[4, 5, 6]]
+   *     // coords -> [{startRow: 0, startCol: 0, endRow: 1, endCol: 2}]
+   *   },
+   * };
+   *
+   * // To cancel copying, return false from the callback.
+   * settings2 = {
+   *   beforeCopy: (data, coords) => {
+   *     return false;
+   *   },
+   * };
+   * ```
+   *
+   * ```html
+   * <hot-table [settings]="settings1"></hot-table>
+   * <hot-table [settings]="settings2"></hot-table>
+   * ```
+   * :::
    */
   'beforeCopy',
 
@@ -1899,6 +2140,32 @@ export const REGISTERED_HOOKS = [
    *     return false;
    *   }}
    * />
+   * ```
+   * :::
+   *
+   * ::: only-for angular
+   * ```ts
+   * // To disregard a single row, remove it from the array using data.splice(i, 1).
+   * settings1 = {
+   *   beforePaste: (data, coords) => {
+   *     // data -> [[1, 2, 3], [4, 5, 6]]
+   *     data.splice(0, 1);
+   *     // data -> [[4, 5, 6]]
+   *     // coords -> [{startRow: 0, startCol: 0, endRow: 1, endCol: 2}]
+   *   },
+   * };
+   *
+   * // To cancel pasting, return false from the callback.
+   * settings2 = {
+   *   beforePaste: (data, coords) => {
+   *     return false;
+   *   },
+   * };
+   * ```
+   *
+   * ```html
+   * <hot-table [settings]="settings1"></hot-table>
+   * <hot-table [settings]="settings2"></hot-table>
    * ```
    * :::
    */

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Changed the size of the manual row and row resize guide line",
+  "type": "changed",
+  "issueOrPR": 11507,
+  "breaking": false,
+  "framework": "none"
+}

@@ -396,5 +396,19 @@ describe('Object helper', () => {
       setProperty(testObject2, 'prop1.subprop1', 'value1');
       expect(testObject2.prop1.subprop1).toEqual('value1');
     });
+
+    it('should not set object if name is not a string', () => {
+      const testObject = { prop1: 0 };
+
+      setProperty(
+        testObject,
+        (row, value) => {
+          return row.attr(attr, value);
+        },
+        'value1'
+      );
+
+      expect(testObject).toEqual({ prop1: 0 });
+    });
   });
 });

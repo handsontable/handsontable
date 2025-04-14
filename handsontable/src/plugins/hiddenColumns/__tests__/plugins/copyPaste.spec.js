@@ -11,30 +11,6 @@ describe('hiddenColumns', () => {
     return data;
   }
 
-  class DataTransferObject {
-    constructor() {
-      this.data = {
-        'text/plain': '',
-        'text/html': ''
-      };
-    }
-    getData(type) {
-      return this.data[type];
-    }
-    setData(type, value) {
-      this.data[type] = value;
-    }
-  }
-
-  function getClipboardEventMock() {
-    const event = {};
-
-    event.clipboardData = new DataTransferObject();
-    event.preventDefault = () => {};
-
-    return event;
-  }
-
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
@@ -55,7 +31,7 @@ describe('hiddenColumns', () => {
         }
       });
 
-      const copyEvent = getClipboardEventMock('copy');
+      const copyEvent = getClipboardEvent();
       const plugin = hot.getPlugin('CopyPaste');
 
       selectCell(0, 4);
@@ -76,7 +52,7 @@ describe('hiddenColumns', () => {
         height: 300,
       });
 
-      const copyEvent = getClipboardEventMock('copy');
+      const copyEvent = getClipboardEvent();
       const plugin = hot.getPlugin('CopyPaste');
 
       selectCell(0, 0, 4, 9);
@@ -108,7 +84,7 @@ describe('hiddenColumns', () => {
         height: 300
       });
 
-      const copyEvent = getClipboardEventMock('copy');
+      const copyEvent = getClipboardEvent();
       const plugin = hot.getPlugin('CopyPaste');
 
       selectCell(0, 0, 4, 9);
@@ -140,7 +116,7 @@ describe('hiddenColumns', () => {
         height: 300
       });
 
-      const copyEvent = getClipboardEventMock('copy');
+      const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
       selectCell(0, 0, 4, 9);

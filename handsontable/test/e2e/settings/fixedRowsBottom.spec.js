@@ -314,5 +314,20 @@ describe('settings', () => {
         horizon.toBe(38);
       });
     });
+
+    it('should not throw an error when the row is removed from the bottom overlay (#dev-2351)', () => {
+      handsontable({
+        data: createSpreadsheetData(2, 4),
+        fixedRowsBottom: 1,
+        rowHeaders: true,
+        colHeaders: true,
+      });
+
+      selectRows(1);
+
+      expect(() => {
+        alter('remove_row', 1);
+      }).not.toThrow();
+    });
   });
 });

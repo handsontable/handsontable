@@ -1821,6 +1821,32 @@ describe('manualRowResize', () => {
         expect($rowHeader.offset().left).toBeCloseTo($handle.offset().left, 0);
         expect($rowHeader.offset().top + $rowHeader.height() - 5).toBeCloseTo($handle.offset().top, 0);
       });
+
+      it('should display the resize guide in the correct size', async() => {
+        const hot = handsontable({
+          layoutDirection,
+          data: Handsontable.helper.createSpreadsheetData(20, 20),
+          rowHeaders: true,
+          manualRowResize: true,
+          height: 100,
+          width: 200
+        });
+        const tableWidth = parseInt(hot.view.getTableWidth(), 10);
+        const $rowHeader = getInlineStartClone().find('tbody tr:eq(2) th:eq(0)');
+
+        $rowHeader.simulate('mouseover');
+
+        const $resizer = spec().$container.find('.manualRowResizer');
+        const resizerPosition = $resizer.position();
+
+        $resizer.simulate('mousedown', { clientY: resizerPosition.top });
+
+        const $guide = spec().$container.find('.manualRowResizerGuide');
+
+        $resizer.simulate('mouseup');
+
+        expect($guide.width()).toBeCloseTo(tableWidth - $resizer.width(), 0);
+      });
     });
 
     it.forTheme('classic')('should remove resize handler when user clicks RMB', async() => {

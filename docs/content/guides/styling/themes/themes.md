@@ -28,9 +28,9 @@ category: Styling
 
 # Themes
 
-[[toc]]
-
 Use Handsontable's built-in themes or customize its look by adjusting available CSS variables.
+
+[[toc]]
 
 ## Overview
 

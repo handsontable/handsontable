@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed calculating the first row height",
+  "type": "fixed",
+  "issueOrPR": 11557,
+  "breaking": false,
+  "framework": "none"
+}

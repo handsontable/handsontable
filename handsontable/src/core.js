@@ -1,6 +1,6 @@
 import { addClass, empty, observeVisibilityChangeOnce, removeClass } from './helpers/dom/element';
 import { isFunction } from './helpers/function';
-import { isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty } from './helpers/mixed';
+import { isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty, stringify } from './helpers/mixed';
 import { isMobileBrowser, isIpadOS } from './helpers/browser';
 import EditorManager from './editorManager';
 import EventManager from './eventManager';
@@ -78,6 +78,12 @@ const deprecationWarns = new Set();
  * by using React's `ref` feature (read more on the [Instance methods](@/guides/getting-started/react-methods/react-methods.md) page).
  * :::
  *
+ * ::: only-for angular
+ * To use these methods, associate a Handsontable instance with your instance
+ * of the [`HotTable` component](@/guides/getting-started/installation/installation.md#5-use-the-hottable-component),
+ * by using `@ViewChild` decorator (read more on the [Instance access](@/guides/getting-started/angular-hot-instance/angular-hot-instance.md) page).
+ * :::
+ *
  * ## How to call a method
  *
  * ::: only-for javascript
@@ -105,6 +111,39 @@ const deprecationWarns = new Set();
  * // access the Handsontable instance, under the `.current.hotInstance` property
  * // call a method
  * hotTableComponent.current.hotInstance.setDataAtCell(0, 0, 'new value');
+ * ```
+ * :::
+ *
+ * ::: only-for angular
+ * ```ts
+ * import { Component, ViewChild, AfterViewInit } from "@angular/core";
+ * import {
+ *   GridSettings,
+ *   HotTableComponent,
+ *   HotTableModule,
+ * } from "@handsontable/angular-wrapper";
+ *
+ * `@Component`({
+ *   standalone: true,
+ *   imports: [HotTableModule],
+ *   template: ` <div class="ht-theme-main">
+ *     <hot-table [settings]="gridSettings" />
+ *   </div>`,
+ * })
+ * export class ExampleComponent implements AfterViewInit {
+ *   `@ViewChild`(HotTableComponent, { static: false })
+ *   readonly hotTable!: HotTableComponent;
+ *
+ *   readonly gridSettings = <GridSettings>{
+ *     columns: [{}],
+ *   };
+ *
+ *   ngAfterViewInit(): void {
+ *     // Access the Handsontable instance
+ *     // Call a method
+ *     this.hotTable?.hotInstance?.setDataAtCell(0, 0, "new value");
+ *   }
+ * }
  * ```
  * :::
  *
@@ -233,7 +272,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   const pluginsRegistry = createUniqueMap();
 
   this.container = this.rootDocument.createElement('div');
-  this.renderCall = false;
 
   rootElement.insertBefore(this.container, rootElement.firstChild);
 
@@ -270,6 +308,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   this.rowIndexMapper.addLocalHook('indexesSequenceChange', (source) => {
     instance.runHooks('afterRowSequenceChange', source);
+  });
+
+  eventManager.addEventListener(this.rootDocument.documentElement, 'compositionstart', (event) => {
+    instance.runHooks('beforeCompositionStart', event);
   });
 
   dataSource = new DataSource(instance);
@@ -356,6 +398,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.selection = selection;
 
   const onIndexMapperCacheUpdate = ({ hiddenIndexesChanged }) => {
+    this.forceFullRender = true;
+
     if (hiddenIndexesChanged) {
       this.selection.commit();
     }
@@ -624,17 +668,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               }
 
               const totalRows = instance.countRows();
-
-              if (totalRows === 0) {
-                selection.deselect();
-
-              } else if (source === 'ContextMenu.removeRow') {
-                selection.refresh();
-
-              } else {
-                selection.shiftRows(groupIndex, -groupAmount);
-              }
-
               const fixedRowsTop = tableMeta.fixedRowsTop;
 
               if (fixedRowsTop >= calcIndex + 1) {
@@ -645,6 +678,16 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
               if (fixedRowsBottom && calcIndex >= totalRows - fixedRowsBottom) {
                 tableMeta.fixedRowsBottom -= Math.min(groupAmount, fixedRowsBottom);
+              }
+
+              if (totalRows === 0) {
+                selection.deselect();
+
+              } else if (source === 'ContextMenu.removeRow') {
+                selection.refresh();
+
+              } else {
+                selection.shiftRows(groupIndex, -groupAmount);
               }
 
               offset += groupAmount;
@@ -1136,8 +1179,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     instance.runHooks('init');
 
-    this.forceFullRender = true; // used when data was changed
-    this.view.render();
+    this.render();
 
     // Run the logic only if it's the table's initialization and the root element is not visible.
     if (!!firstRun && instance.rootElement.offsetParent === null) {
@@ -1328,13 +1370,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     const hasChanges = changes.length > 0;
 
-    instance.forceFullRender = true; // used when data was changed or when all cells need to be re-rendered
-
     if (hasChanges) {
       grid.adjustRowsAndCols();
       instance.runHooks('beforeChangeRender', changes, source);
       editorManager.closeEditor();
-      instance.view.render();
+      instance.render();
       editorManager.prepareEditor();
       instance.view.adjustElementsSize();
       instance.runHooks('afterChange', changes, source || 'edit');
@@ -1346,7 +1386,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       }
 
     } else {
-      instance.view.render();
+      instance.render();
     }
   }
 
@@ -1506,8 +1546,28 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         cellProperties = { ...Object.getPrototypeOf(tableMeta), ...tableMeta };
       }
 
-      if (cellProperties.type === 'numeric' && typeof newValue === 'string' && isNumericLike(newValue)) {
+      const {
+        type,
+        checkedTemplate,
+        uncheckedTemplate,
+      } = cellProperties;
+
+      if (
+        type === 'numeric' &&
+        typeof newValue === 'string' &&
+        isNumericLike(newValue)
+      ) {
         filteredChanges[i][3] = getParsedNumber(newValue);
+      }
+
+      if (type === 'checkbox') {
+        const stringifiedValue = stringify(newValue);
+        const isChecked = stringifiedValue === stringify(checkedTemplate);
+        const isUnchecked = stringifiedValue === stringify(uncheckedTemplate);
+
+        if (isChecked || isUnchecked) {
+          filteredChanges[i][3] = isChecked ? checkedTemplate : uncheckedTemplate;
+        }
       }
     }
 
@@ -1932,11 +1992,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this.renderSuspendedCounter = Math.max(nextValue, 0);
 
     if (!this.isRenderSuspended() && nextValue === this.renderSuspendedCounter) {
-      if (this.renderCall) {
-        this.render();
-      } else {
-        instance.view.render();
-      }
+      instance.view.render();
     }
   };
 
@@ -1952,8 +2008,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.render = function() {
     if (this.view) {
-      this.renderCall = true;
-      this.forceFullRender = true; // used when data was changed or when all cells need to be re-rendered
+      // used when data was changed or when all cells need to be re-rendered (slow render)
+      this.forceFullRender = true;
 
       if (!this.isRenderSuspended()) {
         instance.view.render();
@@ -2628,8 +2684,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     grid.adjustRowsAndCols();
 
     if (instance.view && !firstRun) {
-      instance.forceFullRender = true; // used when data was changed
-      instance.view.render();
+      instance.render();
       instance.view._wt.wtOverlays.adjustElementsSize();
     }
 

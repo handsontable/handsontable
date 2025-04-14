@@ -1833,4 +1833,28 @@ describe('Filters UI', () => {
 
     expect(countRows()).toBe(1);
   });
+
+  it('should be possible to scroll the viewport of the "by value" component in both directions', () => {
+    const data = getDataForFilters();
+
+    data[1].name = 'A very long name that should be visible in the component';
+
+    handsontable({
+      data,
+      columns: getColumnsForFilters(),
+      dropdownMenu: true,
+      filters: true,
+      width: 500,
+      height: 300
+    });
+
+    dropdownMenu(1);
+
+    const byValueScrollableElement = byValueBoxRootElement().querySelector('.ht_master .wtHolder');
+
+    byValueScrollableElement.scrollBy(100, 100);
+
+    expect(byValueScrollableElement.scrollTop).toBe(100);
+    expect(byValueScrollableElement.scrollLeft).toBe(100);
+  });
 });

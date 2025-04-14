@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue with highlighting the cell  after call updateData",
+  "type": "fixed",
+  "issueOrPR": 11558,
+  "breaking": false,
+  "framework": "none"
+}

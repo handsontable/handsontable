@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue with focus catcher accessibility",
+  "type": "fixed",
+  "issueOrPR": 11553,
+  "breaking": false,
+  "framework": "none"
+}
