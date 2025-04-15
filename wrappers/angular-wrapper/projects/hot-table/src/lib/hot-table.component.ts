@@ -1,7 +1,4 @@
-import {
-  AfterViewInit, Component, ElementRef, Input, NgZone, OnChanges,
-  OnDestroy, SimpleChanges, ViewChild, ViewEncapsulation
-} from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, NgZone, OnChanges, OnDestroy, SimpleChanges, ViewChild, ViewEncapsulation } from '@angular/core';
 import Handsontable from 'handsontable/base';
 import { HotSettingsResolver } from './services/hot-settings-resolver.service';
 import { HotConfigService } from './services/hot-config.service';
@@ -26,6 +23,8 @@ export const HOT_DESTROYED_WARNING = 'The Handsontable instance bound to this co
 })
 export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   // component inputs
+  /** The data for the Handsontable instance. */
+  @Input() data: Handsontable.GridSettings['data'] | null = [];
   /** The settings for the Handsontable instance. */
   @Input() settings: GridSettings;
 
@@ -69,7 +68,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
     let options: Handsontable.GridSettings = this._hotSettingsResolver.applyCustomSettings(this.settings, this.ngZone);
 
     const negotiatedSettings = this.getNegotiatedSettings(options);
-    options = { ...options, ...negotiatedSettings };
+    options = { ...options, ...negotiatedSettings, data: this.data };
 
     this.ngZone.runOutsideAngular(() => {
       this.hotInstance = new Handsontable.Core(this.container.nativeElement, options);
@@ -92,12 +91,13 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
     }
 
     if (changes.settings && !changes.settings.firstChange) {
-      const newOptions: Handsontable.GridSettings = this._hotSettingsResolver.applyCustomSettings(
-        changes.settings.currentValue,
-        this.ngZone
-      );
+      const newOptions: Handsontable.GridSettings = this._hotSettingsResolver.applyCustomSettings(changes.settings.currentValue, this.ngZone);
 
       this.updateHotTable(newOptions);
+    }
+
+    if (changes.data && !changes.data.firstChange) {
+      this.hotInstance?.updateData(changes.data.currentValue);
     }
   }
 
