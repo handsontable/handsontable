@@ -2,13 +2,12 @@ describe('Core_view', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
   });
 
   afterEach(function() {
     if (this.$container) {
       destroy();
-      this.$container.remove();
     }
   });
 
@@ -592,13 +591,14 @@ describe('Core_view', () => {
 
   it('should not shrink table when width and height is not specified for container', async() => {
     spec().$container[0].style.overflow = 'hidden';
-    spec().$container.wrap('<div style="width: 50px;"></div>');
     handsontable({
       startRows: 10,
       startCols: 10
     });
 
     await sleep(250);
+
+    spec().$container.wrap('<div style="width: 50px;"></div>');
 
     const initHeight = spec().$container.height();
 

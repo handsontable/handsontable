@@ -2,13 +2,12 @@ describe('Core_validate', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
   });
 
   afterEach(function() {
     if (this.$container) {
       destroy();
-      this.$container.remove();
     }
   });
 
@@ -42,7 +41,7 @@ describe('Core_validate', () => {
     await sleep(100);
 
     hot.destroy();
-    spec().$container.remove();
+    $(`#${spec().$container[0].id}`).remove();
 
     expect(() => { validatorCallback(false); }).not.toThrow();
     expect(validatorCallback(false)).toBe(undefined);

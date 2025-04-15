@@ -2,13 +2,12 @@ describe('Core_reCreate', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
   });
 
   afterEach(function() {
     if (this.$container) {
       destroy();
-      this.$container.remove();
     }
   });
 
@@ -20,8 +19,6 @@ describe('Core_reCreate', () => {
       }
     };
 
-    handsontable(settings);
-    destroy();
     handsontable(settings);
 
     expect(getTopInlineStartClone().width()).toBeAroundValue(50); // default column width

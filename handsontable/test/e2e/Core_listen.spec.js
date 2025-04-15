@@ -2,13 +2,12 @@ describe('Core_listen', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
   });
 
   afterEach(function() {
     if (this.$container) {
       destroy();
-      this.$container.remove();
     }
   });
 
@@ -81,7 +80,7 @@ describe('Core_listen', () => {
     const hot = handsontable();
     const input = document.createElement('input');
 
-    document.body.appendChild(input);
+    $(input).appendTo('#rootWrapper');
 
     hot.selectCell(0, 0);
     input.focus();
@@ -90,14 +89,14 @@ describe('Core_listen', () => {
     expect(hot.isListening()).toBe(true);
     expect(document.activeElement).toBe(input);
 
-    document.body.removeChild(input);
+    $(input).remove();
   });
 
   it('when second instance is created, first should unlisten automatically', () => {
-    const $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable();
+    const $container1 = $('<div id="hot1"></div>').appendTo('#rootWrapper').handsontable();
 
     $container1.handsontable('selectCell', 0, 0);
-    const $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable();
+    const $container2 = $('<div id="hot2"></div>').appendTo('#rootWrapper').handsontable();
 
     $container2.handsontable('selectCell', 0, 0);
 
@@ -111,10 +110,10 @@ describe('Core_listen', () => {
   });
 
   it('when listen is called on first instance, second should unlisten automatically', () => {
-    const $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable();
+    const $container1 = $('<div id="hot1"></div>').appendTo('#rootWrapper').handsontable();
 
     $container1.handsontable('selectCell', 0, 0);
-    const $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable();
+    const $container2 = $('<div id="hot2"></div>').appendTo('#rootWrapper').handsontable();
 
     $container2.handsontable('selectCell', 0, 0);
 

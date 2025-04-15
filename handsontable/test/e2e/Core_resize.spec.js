@@ -6,13 +6,12 @@ describe('Core resize', () => {
     this.$container = $(`<div id="${id}"></div>`);
 
     this.$wrapper.append(this.$container);
-    this.$wrapper.appendTo('body');
+    this.$wrapper.appendTo('#rootWrapper');
   });
 
   afterEach(function() {
     if (this.$container) {
       destroy();
-      this.$container.remove();
     }
 
     if (this.$wrapper) {

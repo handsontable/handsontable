@@ -2,13 +2,12 @@ describe('Core_destroyEditor', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
   });
 
   afterEach(function() {
     if (this.$container) {
       destroy();
-      this.$container.remove();
     }
   });
 
@@ -74,7 +73,5 @@ describe('Core_destroyEditor', () => {
     spec().$container.scroll();
 
     expect(editor.is(':visible')).toBe(true);
-
   });
-
 });

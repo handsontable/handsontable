@@ -1,4 +1,5 @@
 const specContext = {};
+const rootWrapper = $('<div id="rootWrapper"></div>');
 
 beforeEach(function() {
   specContext.spec = this;
@@ -10,9 +11,12 @@ beforeEach(function() {
 
 afterEach(() => {
   specContext.spec = null;
+  rootWrapper.empty();
 });
 
 beforeAll(() => {
+  rootWrapper.appendTo('body');
+
   // Make the test more predictable by hiding the test suite dots (skip it on unit tests)
   if (!process.env.JEST_WORKER_ID) {
     $('.jasmine_html-reporter').hide();
@@ -23,6 +27,8 @@ afterAll(() => {
   if (!process.env.JEST_WORKER_ID) {
     $('.jasmine_html-reporter').show();
   }
+
+  rootWrapper.remove();
 });
 
 /**
@@ -65,7 +71,7 @@ export function handsontableMethodFactory(method) {
 
     if (instance) {
       if (method === 'destroy') {
-        spec().$container.removeData();
+        // TODO: destroy the instance
       }
     } else {
       if (method === 'destroy') {

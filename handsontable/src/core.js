@@ -1,4 +1,4 @@
-import { addClass, empty, observeVisibilityChangeOnce, removeClass } from './helpers/dom/element';
+import { addClass, observeVisibilityChangeOnce, removeClass } from './helpers/dom/element';
 import { isFunction } from './helpers/function';
 import { isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty, stringify } from './helpers/mixed';
 import { isMobileBrowser, isIpadOS } from './helpers/browser';
@@ -124,6 +124,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   let focusManager;
   let viewportScroller;
   let firstRun = true;
+  const initialRootElement = rootElement.cloneNode(false);
 
   if (hasValidParameter(rootInstanceSymbol)) {
     registerAsRootInstance(this);
@@ -2652,7 +2653,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         const themeNameOptionExists = hasOwnProperty(settings, 'themeName');
 
         if (
-          currentThemeName &&
           themeNameOptionExists &&
           currentThemeName !== settings.themeName
         ) {
@@ -4571,18 +4571,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     metaManager.clearCache();
     foreignHotInstances.delete(this.guid);
 
-    if (isRootInstance(instance)) {
-      const licenseInfo = this.rootDocument.querySelector('.hot-display-license-info');
-
-      if (licenseInfo) {
-        licenseInfo.parentNode.removeChild(licenseInfo);
-      }
-
-      if (this.rootDocument.body.contains(instance.rootPortalElement)) {
-        this.rootDocument.body.removeChild(instance.rootPortalElement);
-      }
+    if (instance.rootPortalElement) {
+      instance.rootPortalElement.remove();
     }
-    empty(instance.rootElement);
+
+    if (instance.rootWrapperElement) {
+      instance.rootWrapperElement.after(initialRootElement);
+      instance.rootWrapperElement.remove();
+    }
+
     eventManager.destroy();
 
     if (editorManager) {
@@ -5014,8 +5011,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       removeClass(this.rootWrapperElement, /ht-theme-.*/g);
       removeClass(this.rootPortalElement, /ht-theme-.*/g);
 
-      addClass(this.rootWrapperElement, themeName);
-      addClass(this.rootPortalElement, themeName);
+      if (themeName) {
+        addClass(this.rootWrapperElement, themeName);
+        addClass(this.rootPortalElement, themeName);
+      }
     }
 
     this.stylesHandler.useTheme(themeName);
