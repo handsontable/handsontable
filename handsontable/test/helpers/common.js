@@ -1,5 +1,5 @@
 const specContext = {};
-const rootWrapper = $('<div id="rootWrapper"></div>');
+let rootWrapper;
 
 beforeEach(function() {
   specContext.spec = this;
@@ -11,14 +11,18 @@ beforeEach(function() {
 
 afterEach(() => {
   specContext.spec = null;
-  rootWrapper.empty();
+
+  if (!process.env.JEST_WORKER_ID && rootWrapper) {
+    rootWrapper.empty();
+  }
 });
 
 beforeAll(() => {
-  rootWrapper.appendTo('body');
-
   // Make the test more predictable by hiding the test suite dots (skip it on unit tests)
   if (!process.env.JEST_WORKER_ID) {
+    rootWrapper = $('<div id="rootWrapper"></div>');
+    rootWrapper.appendTo('body');
+
     $('.jasmine_html-reporter').hide();
   }
 });
@@ -26,9 +30,11 @@ afterAll(() => {
   // After the test are finished show the test suite dots
   if (!process.env.JEST_WORKER_ID) {
     $('.jasmine_html-reporter').show();
-  }
 
-  rootWrapper.remove();
+    if (rootWrapper) {
+      rootWrapper.remove();
+    }
+  }
 });
 
 /**
