@@ -1,4 +1,4 @@
-import { addClass, observeVisibilityChangeOnce, removeClass } from './helpers/dom/element';
+import { addClass, empty, observeVisibilityChangeOnce, removeClass } from './helpers/dom/element';
 import { isFunction } from './helpers/function';
 import { isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty, stringify } from './helpers/mixed';
 import { isMobileBrowser, isIpadOS } from './helpers/browser';
@@ -127,6 +127,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   let initialRootElement;
 
   if (hasValidParameter(rootInstanceSymbol)) {
+    initialRootElement = rootElement.cloneNode(true);
     registerAsRootInstance(this);
   }
 
@@ -267,7 +268,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   rootElement.insertBefore(this.container, rootElement.firstChild);
 
   if (isRootInstance(this)) {
-    initialRootElement = rootElement.cloneNode(false);
     this.rootWrapperElement = rootElement.ownerDocument.createElement('div');
     this.rootPortalElement = rootElement.ownerDocument.createElement('div');
 
@@ -4584,6 +4584,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       instance.rootWrapperElement.remove();
     }
 
+    empty(instance.rootElement);
     eventManager.destroy();
 
     if (editorManager) {
