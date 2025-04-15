@@ -99,7 +99,14 @@ const getCommonScript = (scriptName, version) => {
 };
 
 const getPrebuiltUmdUrl = (scriptName) => {
-  return `/docs/scripts/prebuilt-umd/${scriptName}`;
+  if (isBrowser) {
+    return `${window.location.origin}/docs/scripts/prebuilt-umd/${scriptName}`;
+  }
+
+  // eslint-disable-next-line global-require
+  const { getDocsBaseFullUrl } = require('../helpers');
+
+  return `${getDocsBaseFullUrl()}/scripts/prebuilt-umd/${scriptName}`;
 };
 
 /**
