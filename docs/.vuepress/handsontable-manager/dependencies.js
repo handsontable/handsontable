@@ -99,7 +99,7 @@ const getCommonScript = (scriptName, version) => {
 };
 
 const getPrebuiltUmdUrl = (scriptName) => {
-  return `/docs/prebuilt-umd/${scriptName}`;
+  return `/docs/scripts/prebuilt-umd/${scriptName}`;
 };
 
 /**
@@ -128,18 +128,18 @@ const buildDependencyGetter = (version) => {
       'react-star-rating-component': ['https://cdn.jsdelivr.net/npm/react-star-rating-component@1.4.1/dist/react-star-rating-component.min.js'],
       numbro: ['https://cdn.jsdelivr.net/npm/numbro@2.5.0/dist/languages.min.js', ['numbro.allLanguages', 'numbro']],
       redux: ['https://cdn.jsdelivr.net/npm/redux@4/dist/redux.min.js', []],
-      rxjs: ['https://cdn.jsdelivr.net/npm/rxjs@6/bundles/rxjs.umd.js', [/* todo */]],
+      rxjs: ['https://cdn.jsdelivr.net/npm/rxjs@6/bundles/rxjs.umd.min.js', [/* todo */]],
       'core-js': ['https://cdn.jsdelivr.net/npm/core-js@2/client/core.min.js', [/* todo */]],
-      zone: ['https://cdn.jsdelivr.net/npm/zone.js@0.15.0/bundles/zone.umd.js', [/* todo */]],
-      'angular-compiler': [getPrebuiltUmdUrl('angular-compiler.umd.js'), [/* todo
+      zone: ['https://cdn.jsdelivr.net/npm/zone.js@0.15.0/bundles/zone.umd.min.js', [/* todo */]],
+      'angular-compiler': [getPrebuiltUmdUrl('angular-compiler.umd.min.js'), [/* todo
        */]],
-      'angular-core': [getPrebuiltUmdUrl('angular-core.umd.js'), [/* todo */]],
-      'angular-common': [getPrebuiltUmdUrl('angular-common.umd.js'), [/* todo */]],
-      'angular-forms': [getPrebuiltUmdUrl('angular-forms.umd.js'), [/* todo */]],
-      'angular-platform-browser': [getPrebuiltUmdUrl('angular-platformBrowser.umd.js'), [/* todo */]],
-      'angular-platform-browser-dynamic': [getPrebuiltUmdUrl('angular-platformBrowserDynamic.umd.js'), [/* todo */]],
-      'angular-core-primitives-signals': [getPrebuiltUmdUrl('angular-core-primitives-signals.umd.js'), [/* todo */]],
-      'hot-angular': [getPrebuiltUmdUrl('handsontable-angular.umd.js')],
+      'angular-core': [getPrebuiltUmdUrl('angular-core.umd.min.js'), [/* todo */]],
+      'angular-common': [getPrebuiltUmdUrl('angular-common.umd.min.js'), [/* todo */]],
+      'angular-forms': [getPrebuiltUmdUrl('angular-forms.umd.min.js'), [/* todo */]],
+      'angular-platform-browser': [getPrebuiltUmdUrl('angular-platformBrowser.umd.min.js'), [/* todo */]],
+      'angular-platform-browser-dynamic': [getPrebuiltUmdUrl('angular-platformBrowserDynamic.umd.min.js'), [/* todo */]],
+      'angular-core-primitives-signals': [getPrebuiltUmdUrl('angular-core-primitives-signals.umd.min.js'), [/* todo */]],
+      'hot-angular': [getPrebuiltUmdUrl('handsontable-angular.umd.min.js')],
       'hot-vue': [getPackageUrls('@handsontable/vue', version, 'js'), [/* todo */], null, 'hot-vue3'],
       'hot-vue3': [getPackageUrls('@handsontable/vue3', version, 'js'), [/* todo */], null, 'hot-vue'],
       vue: ['https://cdn.jsdelivr.net/npm/vue@2/dist/vue.min.js', [/* todo */], null, 'vue3'],

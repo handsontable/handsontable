@@ -31,13 +31,13 @@ module.exports = {
     }
   },
   output: {
-    path: path.resolve(__dirname, '../../public/prebuilt-umd'),
+    path: path.resolve(__dirname, '../../public/scripts/prebuilt-umd'),
     filename: (pathData) => {
       if (pathData.chunk.name === 'handsontable-angular') {
-        return 'handsontable-angular.umd.js';
+        return 'handsontable-angular.umd.min.js';
       }
 
-      return 'angular-[name].umd.js';
+      return 'angular-[name].umd.min.js';
     },
     library: {
       name: ['ng', '[name]'],
@@ -51,7 +51,7 @@ module.exports = {
     mainFields: ['fesm2022', 'es2022', 'es2020', 'es2015', 'module', 'main']
   },
   optimization: {
-    minimize: false,
+    minimize: true,
     minimizer: [
       new TerserPlugin({
         extractComments: false
