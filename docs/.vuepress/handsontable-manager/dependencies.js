@@ -32,8 +32,8 @@ const getPackageUrls = (packageName, version, fileSelection) => {
       js: 'react-handsontable.min.js',
       subDir: 'dist/',
     },
-    '@handsontable/angular': {
-      js: 'handsontable-angular.mjs',
+    '@handsontable/angular-wrapper': {
+      js: 'handsontable-angular-wrapper.mjs',
       subDir: 'fesm2022/'
     },
     '@handsontable/vue': {
@@ -146,7 +146,7 @@ const buildDependencyGetter = (version) => {
       'angular-platform-browser': [getPrebuiltUmdUrl('angular-platformBrowser.umd.min.js'), [/* todo */]],
       'angular-platform-browser-dynamic': [getPrebuiltUmdUrl('angular-platformBrowserDynamic.umd.min.js'), [/* todo */]],
       'angular-core-primitives-signals': [getPrebuiltUmdUrl('angular-core-primitives-signals.umd.min.js'), [/* todo */]],
-      'hot-angular': [getPrebuiltUmdUrl('handsontable-angular.umd.min.js')],
+      'hot-angular': [getPrebuiltUmdUrl('handsontable-angular-wrapper.umd.min.js')],
       'hot-vue': [getPackageUrls('@handsontable/vue', version, 'js'), [/* todo */], null, 'hot-vue3'],
       'hot-vue3': [getPackageUrls('@handsontable/vue3', version, 'js'), [/* todo */], null, 'hot-vue'],
       vue: ['https://cdn.jsdelivr.net/npm/vue@2/dist/vue.min.js', [/* todo */], null, 'vue3'],
