@@ -124,7 +124,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   let focusManager;
   let viewportScroller;
   let firstRun = true;
-  const initialRootElement = rootElement.cloneNode(false);
+  let initialRootElement;
 
   if (hasValidParameter(rootInstanceSymbol)) {
     registerAsRootInstance(this);
@@ -136,7 +136,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @private
    * @type {HTMLElement}
    */
-  this.rootWrapperElement = rootElement.ownerDocument.createElement('div');
+  this.rootWrapperElement = undefined;
 
   /**
    * Reference to the portal element.
@@ -144,7 +144,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @private
    * @type {HTMLElement}
    */
-  this.rootPortalElement = rootElement.ownerDocument.createElement('div');
+  this.rootPortalElement = undefined;
 
   // TODO: check if references to DOM elements should be move to UI layer (Walkontable)
   /**
@@ -267,6 +267,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   rootElement.insertBefore(this.container, rootElement.firstChild);
 
   if (isRootInstance(this)) {
+    initialRootElement = rootElement.cloneNode(false);
+    this.rootWrapperElement = rootElement.ownerDocument.createElement('div');
+    this.rootPortalElement = rootElement.ownerDocument.createElement('div');
+
     addClass(this.rootWrapperElement, 'ht-wrapper');
     addClass(this.rootPortalElement, 'ht-portal');
 
@@ -4575,8 +4579,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       instance.rootPortalElement.remove();
     }
 
-    if (instance.rootWrapperElement) {
-      instance.rootWrapperElement.after(initialRootElement);
+    if (instance.rootWrapperElement && initialRootElement) {
+      instance.rootWrapperElement.before(initialRootElement);
       instance.rootWrapperElement.remove();
     }
 
