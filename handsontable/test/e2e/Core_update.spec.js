@@ -669,8 +669,6 @@ describe('Core_updateSettings', () => {
         themeName: 'ht-theme-sth'
       });
 
-      console.log(hot.rootWrapperElement);
-
       expect(hot.view.getStylesHandler().isClassicTheme()).toBe(false);
       expect(hot.getCurrentThemeName()).toBe('ht-theme-sth');
       expect($(hot.rootWrapperElement).hasClass('ht-theme-sth')).toBe(true);
