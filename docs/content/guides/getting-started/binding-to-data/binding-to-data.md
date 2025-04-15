@@ -314,13 +314,12 @@ you). The easiest way to do it is by passing your data array as the value of `Gr
 ```ts
 import { GridSettings } from "@handsontable/angular-wrapper";
 
-gridSettings: GridSettings = {
-  data: newDatset,
-};
+data = newDatset,
+gridSettings: GridSettings = {};
 ```
 
 ```html
-<hot-table [settings]="gridSettings" />
+<hot-table [data]="data" [settings]="gridSettings" />
 ```
 
 :::
@@ -371,6 +370,12 @@ To replace the entire data in an already-initialized Handsontable instance, you 
     // ... other config options
   });
   ```
+
+::: only-for angular
+
+You can also use the built-in mechanism of the Angular wrapper to update data. When a change in the `@Input data` is detected by `ngOnChanges`, the wrapper will call `hot.updateData(newDataset);` with the data provided in the `@Input`.
+
+:::
 
 ### The data-modifying API methods
 

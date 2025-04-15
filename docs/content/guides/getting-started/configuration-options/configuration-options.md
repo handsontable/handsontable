@@ -91,14 +91,14 @@ To apply configuration options, pass them as `GridSettings` object to [`HotTable
 ```ts
 import { GridSettings } from "@handsontable/angular-wrapper";
 
+data = [
+  ["A1", "B1", "C1", "D1"],
+  ["A2", "B2", "C2", "D2"],
+  ["A3", "B3", "C3", "D3"],
+];
 gridSettings: GridSettings = {
   autoWrapRow: true,
   autoWrapCol: true,
-  data: [
-    ["A1", "B1", "C1", "D1"],
-    ["A2", "B2", "C2", "D2"],
-    ["A3", "B3", "C3", "D3"],
-  ],
   width: 400,
   height: 300,
   colHeaders: true,
@@ -112,7 +112,7 @@ gridSettings: GridSettings = {
 ```
 
 ```html
-<hot-table [settings]="gridSettings" />
+<hot-table [data]="data" [settings]="gridSettings" />
 ```
 
 :::
@@ -761,7 +761,7 @@ const hot = new Handsontable(container, {
 });
 
 // changes the `readOnly` option of cell (1, 1) back to `false`
-hot.setCellMeta(1, 1, 'readOnly', false);
+hot.setCellMeta(1, 1, "readOnly", false);
 
 // returns `false`
 hot.getCellMeta(1, 1).readOnly;

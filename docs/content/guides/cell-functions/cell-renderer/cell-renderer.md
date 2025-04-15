@@ -83,7 +83,7 @@ In this example, React's `Context` passes information available in the main app 
 ## Declare a custom renderer as a function
 
 You can also declare a custom renderer for the `HotTable` component by declaring it as a function. In the simplest scenario, you can pass the rendering function as the `hotRenderer` prop into `HotTable` or `HotColumn`.
-If you need the renderer to be a part of a `columns` config array, declare it under the `renderer` key. 
+If you need the renderer to be a part of a `columns` config array, declare it under the `renderer` key.
 
 The following example implements `@handsontable/react-wrapper` with a custom renderer added to one of the columns. It takes an image URL as the input and renders the image in the edited cell.
 
@@ -120,7 +120,7 @@ Be sure to turn those options off in your Handsontable configuration, as keeping
 
 <!-- TODO: angular example example--06-02-01 -->
 
-You can create and use a custom cell renderer component that utilizes the `rendererProps` property and use them inside the renderer component. 
+You can create and use a custom cell renderer component that utilizes the `rendererProps` property and use them inside the renderer component.
 
 <!-- TODO: angular example example--06-02-02 -->
 
@@ -195,12 +195,14 @@ It is possible to register your renderer and re-use it with the name you registe
 ::: only-for javascript
 
 ```js
-const container = document.querySelector('#container');
+const container = document.querySelector("#container");
 const hot = new Handsontable(container, {
   data: someData,
-  columns: [{
-    renderer: 'numeric'
-  }]
+  columns: [
+    {
+      renderer: "numeric",
+    },
+  ],
 });
 ```
 
@@ -211,9 +213,11 @@ const hot = new Handsontable(container, {
 ```jsx
 <HotTable
   data={someData}
-  columns={[{
-    renderer: 'numeric'
-  }]}
+  columns={[
+    {
+      renderer: "numeric",
+    },
+  ]}
 />
 ```
 
@@ -222,18 +226,20 @@ const hot = new Handsontable(container, {
 ::: only-for angular
 
 ```ts
-import {GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
+import { GridSettings, HotTableModule } from "@handsontable/angular-wrapper";
 
+const data = someData;
 const configurationOptions: GridSettings = {
-  data: someData,
-  columns: [{
-    renderer: 'numeric'
-  }]
+  columns: [
+    {
+      renderer: "numeric",
+    },
+  ],
 };
 ```
 
 ```angular17html
-<hot-table [settings]="configurationOptions"></hot-table>
+<hot-table [data]="data" [settings]="configurationOptions"></hot-table>
 ```
 
 :::
@@ -264,13 +270,13 @@ To register your own alias use `Handsontable.renderers.registerRenderer()` funct
 If you'd like to register `asterixDecoratorRenderer` under alias `asterix` you have to call:
 
 ```js
-Handsontable.renderers.registerRenderer('asterix', asterixDecoratorRenderer);
+Handsontable.renderers.registerRenderer("asterix", asterixDecoratorRenderer);
 ```
 
 Choose aliases wisely. If you register your renderer under name that is already registered, the target function will be overwritten:
 
 ```js
-Handsontable.renderers.registerRenderer('text', asterixDecoratorRenderer);
+Handsontable.renderers.registerRenderer("text", asterixDecoratorRenderer);
 ```
 
 Now 'text' alias points to `asterixDecoratorRenderer` function, not `Handsontable.renderers.TextRenderer`.
@@ -278,13 +284,13 @@ Now 'text' alias points to `asterixDecoratorRenderer` function, not `Handsontabl
 So, unless you intentionally want to overwrite an existing alias, try to choose a unique name. A good practice is prefixing your aliases with some custom name (for example your GitHub username) to minimize the possibility of name collisions. This is especially important if you want to publish your renderer, because you never know aliases has been registered by the user who uses your renderer.
 
 ```js
-Handsontable.renderers.registerRenderer('asterix', asterixDecoratorRenderer);
+Handsontable.renderers.registerRenderer("asterix", asterixDecoratorRenderer);
 ```
 
 Someone might already registered such alias
 
 ```js
-Handsontable.renderers.registerRenderer('my.asterix', asterixDecoratorRenderer);
+Handsontable.renderers.registerRenderer("my.asterix", asterixDecoratorRenderer);
 ```
 
 That's better.
@@ -306,7 +312,15 @@ The final touch is to use registered aliases. That way users can easily refer to
 To sum up, a well prepared renderer function should look like this:
 
 ```js
-function customRenderer(hotInstance, td, row, column, prop, value, cellProperties) {
+function customRenderer(
+  hotInstance,
+  td,
+  row,
+  column,
+  prop,
+  value,
+  cellProperties
+) {
   // Optionally include `BaseRenderer` which is responsible for
   // adding/removing CSS classes to/from the table cells.
   Handsontable.renderers.BaseRenderer.apply(this, arguments);
@@ -315,7 +329,7 @@ function customRenderer(hotInstance, td, row, column, prop, value, cellPropertie
 }
 
 // Register an alias
-Handsontable.renderers.registerRenderer('my.custom', customRenderer);
+Handsontable.renderers.registerRenderer("my.custom", customRenderer);
 ```
 
 From now on, you can use `customRenderer` like so:
@@ -323,12 +337,14 @@ From now on, you can use `customRenderer` like so:
 ::: only-for javascript
 
 ```js
-const container = document.querySelector('#container');
+const container = document.querySelector("#container");
 const hot = new Handsontable(container, {
   data: someData,
-  columns: [{
-    renderer: 'my.custom'
-  }]
+  columns: [
+    {
+      renderer: "my.custom",
+    },
+  ],
 });
 ```
 
@@ -339,9 +355,11 @@ const hot = new Handsontable(container, {
 ```jsx
 <HotTable
   data={someData}
-  columns={[{
-    renderer: 'my.custom'
-  }]}
+  columns={[
+    {
+      renderer: "my.custom",
+    },
+  ]}
 />
 ```
 
@@ -350,18 +368,20 @@ const hot = new Handsontable(container, {
 ::: only-for angular
 
 ```ts
-import {GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
+import { GridSettings, HotTableModule } from "@handsontable/angular-wrapper";
 
+const data = someData;
 const configurationOptions: GridSettings = {
-  data: someData,
-  columns: [{
-    renderer: 'my.custom'
-  }]
+  columns: [
+    {
+      renderer: "my.custom",
+    },
+  ],
 };
 ```
 
 ```angular17html
-<hot-table [settings]="configurationOptions"></hot-table>
+<hot-table [data]="data" [settings]="configurationOptions"></hot-table>
 ```
 
 :::

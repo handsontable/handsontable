@@ -57,17 +57,17 @@ const hot = new Handsontable(container, {
 ::: only-for angular
 
 ```ts
+data = [
+  ["A1", "B1", "C1"],
+  ["A2", "B2", "C2"],
+];
 settings = {
-  data: [
-    ["A1", "B1", "C1"],
-    ["A2", "B2", "C2"],
-  ],
   comments: true,
 };
 ```
 
 ```html
-<hot-table [settings]="settings" />
+<hot-table [data]="data" [settings]="settings" />
 ```
 
 :::

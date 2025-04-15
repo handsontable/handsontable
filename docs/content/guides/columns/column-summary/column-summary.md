@@ -31,9 +31,10 @@ Calculate sum, min, max, count, average or custom aggregates of individual colum
 The [`ColumnSummary`](@/api/columnSummary.md) plugin lets you quickly calculate and display a column summary.
 
 To customize your column summaries, you can:
+
 - Decide how a summary is calculated:
-    - Either select one of the [built-in summary functions](#built-in-summary-functions)
-    - Or implement a [custom summary function](#implement-a-custom-summary-function)
+  - Either select one of the [built-in summary functions](#built-in-summary-functions)
+  - Or implement a [custom summary function](#implement-a-custom-summary-function)
 - [Select columns and ranges of rows](#step-2-select-cells-that-you-want-to-summarize) that you want to summarize
 - [Display your summary result](#step-4-provide-the-destination-cell-s-coordinates) in a specific cell
 
@@ -62,7 +63,6 @@ This example calculates and displays five different column summaries:
 :::
 
 :::
-
 
 ::: only-for angular
 
@@ -100,24 +100,21 @@ To enable the [`ColumnSummary`](@/api/columnSummary.md) plugin, set the [`column
 ::: only-for javascript
 
 ```js
-import Handsontable from 'handsontable';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
+import Handsontable from "handsontable";
+import "handsontable/styles/handsontable.css";
+import "handsontable/styles/ht-theme-main.css";
 
-const hot = new Handsontable(document.querySelector('#example'), {
-  licenseKey: 'non-commercial-and-evaluation',
+const hot = new Handsontable(document.querySelector("#example"), {
+  licenseKey: "non-commercial-and-evaluation",
   data: [
     [1, 2, 3, 4, 5],
     [6, 7, 8, 9, 10],
-    [11, 12, 13, 14, 15]
+    [11, 12, 13, 14, 15],
   ],
   colHeaders: true,
   rowHeaders: true,
   // set the `columnSummary` configuration option to an array of objects
-  columnSummary: [
-    {},
-    {}
-  ],
+  columnSummary: [{}, {}],
 });
 ```
 
@@ -126,10 +123,10 @@ const hot = new Handsontable(document.querySelector('#example'), {
 ::: only-for react
 
 ```jsx
-import { HotTable } from '@handsontable/react-wrapper';
-import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
+import { HotTable } from "@handsontable/react-wrapper";
+import { registerAllModules } from "handsontable/registry";
+import "handsontable/styles/handsontable.css";
+import "handsontable/styles/ht-theme-main.css";
 
 // register Handsontable's modules
 registerAllModules();
@@ -143,14 +140,11 @@ const ExampleComponent = () => {
       data={[
         [1, 2, 3, 4, 5],
         [6, 7, 8, 9, 10],
-        [11, 12, 13, 14, 15]
+        [11, 12, 13, 14, 15],
       ]}
       colHeaders={true}
       rowHeaders={true}
-      columnSummary={[
-        {},
-        {}
-      ]}
+      columnSummary={[{}, {}]}
     />
   );
 };
@@ -161,27 +155,24 @@ const ExampleComponent = () => {
 ::: only-for angular
 
 ```ts
-import {GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
+import { GridSettings, HotTableModule } from "@handsontable/angular-wrapper";
 
+const data = [
+  [1, 2, 3, 4, 5],
+  [6, 7, 8, 9, 10],
+  [11, 12, 13, 14, 15],
+];
 const configurationOptions: GridSettings = {
-  licenseKey: 'non-commercial-and-evaluation',
-  data: [
-    [1, 2, 3, 4, 5],
-    [6, 7, 8, 9, 10],
-    [11, 12, 13, 14, 15]
-  ],
+  licenseKey: "non-commercial-and-evaluation",
   colHeaders: true,
   rowHeaders: true,
   // set the `columnSummary` configuration option to an array of objects
-  columnSummary: [
-    {},
-    {}
-  ],
+  columnSummary: [{}, {}],
 };
 ```
 
 ```angular17html
-<hot-table [settings]="configurationOptions"></hot-table>
+<hot-table [data]="data" [settings]="configurationOptions"></hot-table>
 ```
 
 :::
@@ -207,8 +198,8 @@ columnSummary: [
     // set this column summary to summarize the second column
     // (i.e. a column with physical index `1`)
     sourceColumn: 1,
-  }
-]
+  },
+];
 ```
 
 :::
@@ -245,8 +236,8 @@ columnSummary: [
     // set this column summary to summarize the second column
     // (i.e. a column with physical index `1`)
     sourceColumn: 1,
-  }
-]
+  },
+];
 ```
 
 :::
@@ -260,18 +251,14 @@ columnSummary: [
   {
     sourceColumn: 0,
     // set this column summary to only summarize rows with physical indexes 0-2, 4, and 6-8
-    ranges: [
-      [0, 2], [4], [6, 8]
-    ],
+    ranges: [[0, 2], [4], [6, 8]],
   },
   {
     sourceColumn: 0,
     // set this column summary to only summarize rows with physical indexes 0-5
-    ranges: [
-      [0, 5]
-    ],
-  }
-]
+    ranges: [[0, 5]],
+  },
+];
 ```
 
 :::
@@ -306,18 +293,14 @@ columnSummary: [
   {
     sourceColumn: 0,
     // set this column summary to only summarize rows with physical indexes 0-2, 4, and 6-8
-    ranges: [
-      [0, 2], [4], [6, 8]
-    ],
+    ranges: [[0, 2], [4], [6, 8]],
   },
   {
     sourceColumn: 0,
     // set this column summary to only summarize rows with physical indexes 0-5
-    ranges: [
-      [0, 5]
-    ],
-  }
-]
+    ranges: [[0, 5]],
+  },
+];
 ```
 
 :::
@@ -327,6 +310,7 @@ columnSummary: [
 Now, decide how you want to calculate your column summary.
 
 You can:
+
 - Either select one of the [built-in summary functions](#built-in-summary-functions)
 - Or implement a [custom summary function](#implement-a-custom-summary-function)
 
@@ -337,14 +321,14 @@ columnSummary: [
   {
     sourceColumn: 0,
     // set this column summary to return the sum all values in the summarized column
-    type: 'sum',
+    type: "sum",
   },
   {
     sourceColumn: 1,
     // set this column summary to return the lowest value in the summarized column
-    type: 'min',
-  }
-]
+    type: "min",
+  },
+];
 ```
 
 :::
@@ -375,14 +359,14 @@ columnSummary: [
   {
     sourceColumn: 0,
     // set this column summary to return the sum all values in the summarized column
-    type: 'sum',
+    type: "sum",
   },
   {
     sourceColumn: 1,
     // set this column summary to return the lowest value in the summarized column
-    type: 'min',
-  }
-]
+    type: "min",
+  },
+];
 ```
 
 :::
@@ -399,19 +383,19 @@ Set the [`destinationRow`](@/api/columnSummary.md#options) and [`destinationColu
 columnSummary: [
   {
     sourceColumn: 0,
-    type: 'sum',
+    type: "sum",
     // set this column summary to display its result in cell (4, 0)
     destinationRow: 4,
-    destinationColumn: 0
+    destinationColumn: 0,
   },
   {
     sourceColumn: 1,
-    type: 'min',
+    type: "min",
     // set this column summary to display its result in cell (4, 1)
     destinationRow: 4,
-    destinationColumn: 1
-  }
-]
+    destinationColumn: 1,
+  },
+];
 ```
 
 :::
@@ -445,19 +429,19 @@ columnSummary={[
 columnSummary: [
   {
     sourceColumn: 0,
-    type: 'sum',
+    type: "sum",
     // set this column summary to display its result in cell (4, 0)
     destinationRow: 4,
-    destinationColumn: 0
+    destinationColumn: 0,
   },
   {
     sourceColumn: 1,
-    type: 'min',
+    type: "min",
     // set this column summary to display its result in cell (4, 1)
     destinationRow: 4,
-    destinationColumn: 1
-  }
-]
+    destinationColumn: 1,
+  },
+];
 ```
 
 :::
@@ -475,6 +459,7 @@ If you need to style the summary row, use the class name assigned automatically 
 The [`ColumnSummary`](@/api/columnSummary.md) plugin doesn't automatically add new rows to display its summary results.
 
 So, if you always want to display your column summary result below your existing rows, you need to:
+
 1. Add an empty row to the bottom of your grid (to avoid overwriting your existing rows).
 2. Reverse row coordinates for your column summary (to always display your summary result at the bottom).
 
@@ -517,11 +502,12 @@ To reverse row coordinates for your column summary, set the [`reversedRowCoords`
 Instead of [setting up the column summary options manually](#set-up-a-column-summary), you can provide the whole column summary configuration as a function that returns a required array of objects.
 
 The example below sets up five different column summaries. To do this, it:
+
 - Defines a function named `generateData` which generates an array of arrays with dummy numeric data, and which lets you add an empty row at the bottom of the grid (to make room for displaying column summaries)
 - Sets Handsontable's [`columnSummary`](@/api/options.md#columnsummary) configuration option to a function that:
-    - Iterates over visible columns
-    - For each visible column, adds a column summary with a configuration
-    - To display the column summaries in the empty row added by `generateData`, sets the [`reversedRowCoords`](@/api/columnSummary.md#options) option to `true`, and the [`destinationRow`](@/api/columnSummary.md#options) option to `0`
+  - Iterates over visible columns
+  - For each visible column, adds a column summary with a configuration
+  - To display the column summaries in the empty row added by `generateData`, sets the [`reversedRowCoords`](@/api/columnSummary.md#options) option to `true`, and the [`destinationRow`](@/api/columnSummary.md#options) option to `0`
 
 ::: only-for javascript
 
@@ -593,14 +579,16 @@ To implement a custom summary function:
 ::: only-for javascript
 
 ```js
-columnSummary: [{
-  sourceColumn: 1,
-  // set the `type` option to `'custom'`
-  type: 'custom',
-  destinationRow: 0,
-  destinationColumn: 5,
-  reversedRowCoords: true
-}]
+columnSummary: [
+  {
+    sourceColumn: 1,
+    // set the `type` option to `'custom'`
+    type: "custom",
+    destinationRow: 0,
+    destinationColumn: 5,
+    reversedRowCoords: true,
+  },
+];
 ```
 
 :::
@@ -623,14 +611,16 @@ columnSummary={[{
 ::: only-for angular
 
 ```js
-columnSummary: [{
-  sourceColumn: 1,
-  // set the `type` option to `'custom'`
-  type: 'custom',
-  destinationRow: 0,
-  destinationColumn: 5,
-  reversedRowCoords: true
-}]
+columnSummary: [
+  {
+    sourceColumn: 1,
+    // set the `type` option to `'custom'`
+    type: "custom",
+    destinationRow: 0,
+    destinationColumn: 5,
+    reversedRowCoords: true,
+  },
+];
 ```
 
 :::
@@ -640,16 +630,18 @@ columnSummary: [{
 ::: only-for javascript
 
 ```js
-columnSummary: [{
-    type: 'custom',
+columnSummary: [
+  {
+    type: "custom",
     destinationRow: 0,
     destinationColumn: 5,
     reversedRowCoords: true,
     // add your custom summary function
-    customFunction: function(endpoint) {
+    customFunction: function (endpoint) {
       // implement your function here
-    }
-}]
+    },
+  },
+];
 ```
 
 :::
@@ -674,16 +666,18 @@ columnSummary={[{
 ::: only-for angular
 
 ```js
-columnSummary: [{
-    type: 'custom',
+columnSummary: [
+  {
+    type: "custom",
     destinationRow: 0,
     destinationColumn: 5,
     reversedRowCoords: true,
     // add your custom summary function
-    customFunction: function(endpoint) {
+    customFunction: function (endpoint) {
       // implement your function here
-    }
-}]
+    },
+  },
+];
 ```
 
 :::
@@ -763,7 +757,7 @@ The [`roundFloat`](@/api/columnSummary.md) option accepts the following values:
 | Integer < 0       | Round the result to 0 digits after the decimal point.   |
 | Integer > 100     | Round the result to 100 digits after the decimal point. |
 
-If you enable [`roundFloat`](@/api/columnSummary.md), the data type returned by Handsontable's data-retrieving methods 
+If you enable [`roundFloat`](@/api/columnSummary.md), the data type returned by Handsontable's data-retrieving methods
 (like [`getDataAtCell()`](@/api/core.md#getdataatcell)) changes from `number` to `string`.
 
 ## Handle non-numeric values

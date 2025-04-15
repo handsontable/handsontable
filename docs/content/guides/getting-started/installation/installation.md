@@ -150,20 +150,20 @@ import {
   standalone: true,
   imports: [HotTableModule],
   template: ` <div class="ht-theme-main">
-    <hot-table [settings]="gridSettings" />
+    <hot-table [data]="data" [settings]="gridSettings" />
   </div>`,
 })
 export class HotTableWrapperComponent {
   @ViewChild(HotTableComponent, { static: false })
   readonly hotTable!: HotTableComponent;
 
+  readonly data = [
+    ["", "Tesla", "Volvo", "Toyota", "Ford"],
+    ["2019", 10, 11, 12, 13],
+    ["2020", 20, 11, 14, 13],
+    ["2021", 30, 15, 12, 13],
+  ];
   readonly gridSettings = <GridSettings>{
-    data: [
-      ["", "Tesla", "Volvo", "Toyota", "Ford"],
-      ["2019", 10, 11, 12, 13],
-      ["2020", 20, 11, 14, 13],
-      ["2021", 30, 15, 12, 13],
-    ],
     rowHeaders: true,
     colHeaders: true,
     height: "auto",
