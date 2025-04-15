@@ -10,7 +10,7 @@ module.exports = {
     '**/guides/**/*.ts',
     '**/guides/**/*.jsx',
     '**/guides/**/*.tsx',
-    '**/public/**/*.*',
+    '**/public/scripts/prebuilt-umd/*.*',
   ],
   rules: {
     'no-restricted-globals': 'off',
