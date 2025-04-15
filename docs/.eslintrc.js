@@ -9,7 +9,8 @@ module.exports = {
     '**/guides/**/*.js',
     '**/guides/**/*.ts',
     '**/guides/**/*.jsx',
-    '**/guides/**/*.tsx'
+    '**/guides/**/*.tsx',
+    '**/public/**/*.*',
   ],
   rules: {
     'no-restricted-globals': 'off',

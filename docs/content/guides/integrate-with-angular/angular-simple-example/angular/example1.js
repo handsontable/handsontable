@@ -3,6 +3,7 @@ import { Component } from '@angular/core';
 
 @Component({
   selector: 'app-root',
+  standalone: false,
   template: `
     <div>
       <hot-table
@@ -21,7 +22,7 @@ import { Component } from '@angular/core';
 })
 
 export class AppComponent {
-  dataset: any[] = [
+  dataset = [
     {id: 1, name: 'Ted Right', address: 'Wall Street'},
     {id: 2, name: 'Frank Honest', address: 'Pennsylvania Avenue'},
     {id: 3, name: 'Joan Well', address: 'Broadway'},
