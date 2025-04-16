@@ -4,6 +4,7 @@ import Handsontable from 'handsontable/base';
 
 @Component({
   selector: 'app-root',
+  standalone: false,
   template: `
     <div>
       <hot-table [settings]="hotSettings"></hot-table>

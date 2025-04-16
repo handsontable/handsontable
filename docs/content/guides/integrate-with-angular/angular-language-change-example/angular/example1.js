@@ -47,6 +47,7 @@ registerLanguageDictionary(zhTW);
 
 @Component({
   selector: 'app-root',
+  standalone: false,
   template: `
     <div class="controls select-language"><label>Select language of the context menu:
     <select [(ngModel)]="language">
