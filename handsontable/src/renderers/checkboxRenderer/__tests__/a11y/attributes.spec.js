@@ -13,7 +13,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
   });
 
   it('should add an `aria-checked` attribute to every input of the checkbox-typed cells and mark it `checked` when' +
-    ' the checkbox had been checked', () => {
+    ' the checkbox had been checked', async() => {
     handsontable({
       data: [[false], [true], [false]],
       columns: [
@@ -43,7 +43,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
   });
 
   it('should add an `aria-label` attribute to every input of the checkbox-typed cells describing the current state' +
-    ' of the checkbox', () => {
+    ' of the checkbox', async() => {
     handsontable({
       data: [[false], [true], [false]],
       columns: [
@@ -73,7 +73,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
   });
 
   it('should add an `role=checkbox` attribute to every input of the checkbox-typed cells and mark it `checked` when' +
-    ' the checkbox had been checked', () => {
+    ' the checkbox had been checked', async() => {
     handsontable({
       data: [[false], [true], [false]],
       columns: [

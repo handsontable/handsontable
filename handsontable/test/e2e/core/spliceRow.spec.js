@@ -12,7 +12,7 @@ describe('Core.spliceRow', () => {
     }
   });
 
-  it('should remove from the second row three columns starting from the beginning', () => {
+  it('should remove from the second row three columns starting from the beginning', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(5, 5),
     });
@@ -27,7 +27,7 @@ describe('Core.spliceRow', () => {
     expect(hot.getDataAtRow(4)).toEqual(['A5', 'B5', 'C5', 'D5', 'E5']);
   });
 
-  it('should remove from the third row three columns starting from the second column', () => {
+  it('should remove from the third row three columns starting from the second column', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(5, 5),
     });
@@ -42,7 +42,7 @@ describe('Core.spliceRow', () => {
     expect(hot.getDataAtRow(4)).toEqual(['A5', 'B5', 'C5', 'D5', 'E5']);
   });
 
-  it('should replace and append new columns in the second row starting from the second column', () => {
+  it('should replace and append new columns in the second row starting from the second column', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(5, 5),
     });
@@ -57,7 +57,7 @@ describe('Core.spliceRow', () => {
     expect(hot.getDataAtRow(4)).toEqual(['A5', 'B5', 'C5', 'D5', 'E5', null, null]);
   });
 
-  it('should trigger beforeChange and afterChange hook with proper arguments', () => {
+  it('should trigger beforeChange and afterChange hook with proper arguments', async() => {
     const spyAfter = jasmine.createSpy('after');
     const spyBefore = jasmine.createSpy('before');
     const hot = handsontable({
@@ -86,7 +86,7 @@ describe('Core.spliceRow', () => {
     expect(spyAfter.calls.argsFor(1)[1]).toBe('spliceRow');
   });
 
-  it('should trigger beforeCreateCol and afterCreateCol hook with proper arguments', () => {
+  it('should trigger beforeCreateCol and afterCreateCol hook with proper arguments', async() => {
     const spyAfter = jasmine.createSpy('after');
     const spyBefore = jasmine.createSpy('before');
 

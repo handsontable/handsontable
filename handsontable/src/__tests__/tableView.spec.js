@@ -13,7 +13,7 @@ describe('TableView', () => {
   });
 
   describe('scrollViewport()', () => {
-    it('should not throw error after scrolling the viewport to 0, 0 (empty data)', () => {
+    it('should not throw error after scrolling the viewport to 0, 0 (empty data)', async() => {
       spec().$container[0].style.width = '400px';
 
       const hot1 = handsontable({
@@ -26,7 +26,7 @@ describe('TableView', () => {
       }).not.toThrow();
     });
 
-    it('should throw error after scrolling the viewport below 0 (empty data)', () => {
+    it('should throw error after scrolling the viewport below 0 (empty data)', async() => {
       spec().$container[0].style.width = '400px';
 
       const hot1 = handsontable({
@@ -42,7 +42,7 @@ describe('TableView', () => {
 
   // TODO fix these tests - https://github.com/handsontable/handsontable/issues/1559
   describe('maximumVisibleElementWidth()', () => {
-    it('should return maximum width until right edge of the viewport', () => {
+    it('should return maximum width until right edge of the viewport', async() => {
       const hot = handsontable({
         startRows: 2,
         startCols: 10,
@@ -53,7 +53,7 @@ describe('TableView', () => {
       expect(hot.view.maximumVisibleElementWidth(0)).toBe(100);
     });
 
-    it('should return maximum width until right edge of the viewport (excluding the scrollbar)', () => {
+    it('should return maximum width until right edge of the viewport (excluding the scrollbar)', async() => {
       const hot = handsontable({
         startRows: 10,
         startCols: 10,
@@ -66,7 +66,7 @@ describe('TableView', () => {
   });
 
   describe('maximumVisibleElementHeight()', () => {
-    it('should return maximum height until bottom edge of the viewport', () => {
+    it('should return maximum height until bottom edge of the viewport', async() => {
       const hot = handsontable({
         startRows: 10,
         startCols: 2,
@@ -77,7 +77,7 @@ describe('TableView', () => {
       expect(hot.view.maximumVisibleElementHeight(0)).toBe(100);
     });
 
-    it('should return maximum height until bottom edge of the viewport (excluding the scrollbar)', () => {
+    it('should return maximum height until bottom edge of the viewport (excluding the scrollbar)', async() => {
       const hot = handsontable({
         startRows: 10,
         startCols: 10,
@@ -90,7 +90,7 @@ describe('TableView', () => {
   });
 
   describe('getColumnHeadersCount()', () => {
-    it('should return 0 when there is no column headers rendered (`colHeaders` has `false`)', () => {
+    it('should return 0 when there is no column headers rendered (`colHeaders` has `false`)', async() => {
       const hot = handsontable({
         colHeaders: false,
       });
@@ -98,7 +98,7 @@ describe('TableView', () => {
       expect(hot.view.getColumnHeadersCount(0)).toBe(0);
     });
 
-    it('should return 1 when there is no column headers rendered (`colHeaders` has `true`)', () => {
+    it('should return 1 when there is no column headers rendered (`colHeaders` has `true`)', async() => {
       const hot = handsontable({
         colHeaders: true,
       });
@@ -106,7 +106,7 @@ describe('TableView', () => {
       expect(hot.view.getColumnHeadersCount(0)).toBe(1);
     });
 
-    it('should return the number of column headers as actually added', () => {
+    it('should return the number of column headers as actually added', async() => {
       const hot = handsontable({
         colHeaders: true,
         afterGetColumnHeaderRenderers(renderers) {
@@ -128,7 +128,7 @@ describe('TableView', () => {
   });
 
   describe('getRowHeadersCount()', () => {
-    it('should return 0 when there is no row headers rendered (`rowHeaders` has `false`)', () => {
+    it('should return 0 when there is no row headers rendered (`rowHeaders` has `false`)', async() => {
       const hot = handsontable({
         rowHeaders: false,
       });
@@ -136,7 +136,7 @@ describe('TableView', () => {
       expect(hot.view.getRowHeadersCount(0)).toBe(0);
     });
 
-    it('should return 1 when there is no column headers rendered (`rowHeaders` has `true`)', () => {
+    it('should return 1 when there is no column headers rendered (`rowHeaders` has `true`)', async() => {
       const hot = handsontable({
         rowHeaders: true,
       });
@@ -144,7 +144,7 @@ describe('TableView', () => {
       expect(hot.view.getRowHeadersCount(0)).toBe(1);
     });
 
-    it('should return the number of column headers as actually added', () => {
+    it('should return the number of column headers as actually added', async() => {
       const hot = handsontable({
         colHeaders: true,
         afterGetRowHeaderRenderers(renderers) {
@@ -166,7 +166,7 @@ describe('TableView', () => {
   });
 
   describe('countRenderableColumnsInRange()', () => {
-    it('should return 0 if dataset is empty', () => {
+    it('should return 0 if dataset is empty', async() => {
       const hot = handsontable({
         data: [],
       });
@@ -178,7 +178,7 @@ describe('TableView', () => {
       expect(hot.view.countRenderableColumnsInRange(1, 2)).toBe(0);
     });
 
-    it('should return count of renderable columns depends on the passed range', () => {
+    it('should return count of renderable columns depends on the passed range', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(5, 5),
       });
@@ -193,7 +193,7 @@ describe('TableView', () => {
       expect(hot.view.countRenderableColumnsInRange(-1, 3)).toBe(4);
     });
 
-    it('should return count of renderable columns depends on the passed range when some columns are hidden', () => {
+    it('should return count of renderable columns depends on the passed range when some columns are hidden', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(5, 5),
       });
@@ -218,7 +218,7 @@ describe('TableView', () => {
   });
 
   describe('countRenderableRowsInRange()', () => {
-    it('should return 0 if dataset is empty', () => {
+    it('should return 0 if dataset is empty', async() => {
       const hot = handsontable({
         data: [],
       });
@@ -230,7 +230,7 @@ describe('TableView', () => {
       expect(hot.view.countRenderableRowsInRange(2, 1)).toBe(0);
     });
 
-    it('should return count of renderable rows depends on the passed range', () => {
+    it('should return count of renderable rows depends on the passed range', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(5, 5),
       });
@@ -245,7 +245,7 @@ describe('TableView', () => {
       expect(hot.view.countRenderableRowsInRange(-1, 3)).toBe(4);
     });
 
-    it('should return count of renderable rows depends on the passed range when some rows are hidden', () => {
+    it('should return count of renderable rows depends on the passed range when some rows are hidden', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(5, 5),
       });
@@ -270,7 +270,7 @@ describe('TableView', () => {
   });
 
   describe('getFirstFullyVisibleRow()', () => {
-    it('should internally call `getFirstVisibleRow` method of the Scroll module of the Walkontable', () => {
+    it('should internally call `getFirstVisibleRow` method of the Scroll module of the Walkontable', async() => {
       const hot = handsontable({});
 
       spyOn(hot.view._wt.wtScroll, 'getFirstVisibleRow').and.returnValue(1);
@@ -283,7 +283,7 @@ describe('TableView', () => {
   });
 
   describe('getLastFullyVisibleRow()', () => {
-    it('should internally call `getLastVisibleRow` method of the Scroll module of the Walkontable', () => {
+    it('should internally call `getLastVisibleRow` method of the Scroll module of the Walkontable', async() => {
       const hot = handsontable({});
 
       spyOn(hot.view._wt.wtScroll, 'getLastVisibleRow').and.returnValue(1);
@@ -296,7 +296,7 @@ describe('TableView', () => {
   });
 
   describe('getFirstFullyVisibleColumn()', () => {
-    it('should internally call `getFirstVisibleColumn` method of the Scroll module of the Walkontable', () => {
+    it('should internally call `getFirstVisibleColumn` method of the Scroll module of the Walkontable', async() => {
       const hot = handsontable({});
 
       spyOn(hot.view._wt.wtScroll, 'getFirstVisibleColumn').and.returnValue(1);
@@ -309,7 +309,7 @@ describe('TableView', () => {
   });
 
   describe('getLastFullyVisibleColumn()', () => {
-    it('should internally call `getLastVisibleColumn` method of the Scroll module of the Walkontable', () => {
+    it('should internally call `getLastVisibleColumn` method of the Scroll module of the Walkontable', async() => {
       const hot = handsontable({});
 
       spyOn(hot.view._wt.wtScroll, 'getLastVisibleColumn').and.returnValue(1);
@@ -322,7 +322,7 @@ describe('TableView', () => {
   });
 
   describe('getFirstPartiallyVisibleRow()', () => {
-    it('should internally call `getFirstPartiallyVisibleRow` method of the Scroll module of the Walkontable', () => {
+    it('should internally call `getFirstPartiallyVisibleRow` method of the Scroll module of the Walkontable', async() => {
       const hot = handsontable({});
 
       spyOn(hot.view._wt.wtScroll, 'getFirstPartiallyVisibleRow').and.returnValue(1);
@@ -335,7 +335,7 @@ describe('TableView', () => {
   });
 
   describe('getLastPartiallyVisibleRow()', () => {
-    it('should internally call `getLastPartiallyVisibleRow` method of the Scroll module of the Walkontable', () => {
+    it('should internally call `getLastPartiallyVisibleRow` method of the Scroll module of the Walkontable', async() => {
       const hot = handsontable({});
 
       spyOn(hot.view._wt.wtScroll, 'getLastPartiallyVisibleRow').and.returnValue(1);
@@ -348,7 +348,7 @@ describe('TableView', () => {
   });
 
   describe('getFirstPartiallyVisibleColumn()', () => {
-    it('should internally call `getFirstPartiallyVisibleColumn` method of the Scroll module of the Walkontable', () => {
+    it('should internally call `getFirstPartiallyVisibleColumn` method of the Scroll module of the Walkontable', async() => {
       const hot = handsontable({});
 
       spyOn(hot.view._wt.wtScroll, 'getFirstPartiallyVisibleColumn').and.returnValue(1);
@@ -361,7 +361,7 @@ describe('TableView', () => {
   });
 
   describe('getLastPartiallyVisibleColumn()', () => {
-    it('should internally call `getLastPartiallyVisibleColumn` method of the Scroll module of the Walkontable', () => {
+    it('should internally call `getLastPartiallyVisibleColumn` method of the Scroll module of the Walkontable', async() => {
       const hot = handsontable({});
 
       spyOn(hot.view._wt.wtScroll, 'getLastPartiallyVisibleColumn').and.returnValue(1);
@@ -374,7 +374,7 @@ describe('TableView', () => {
   });
 
   describe('getViewportWidth()', () => {
-    it('should internally call `getViewportWidth` method of the Viewport module of the Walkontable', () => {
+    it('should internally call `getViewportWidth` method of the Viewport module of the Walkontable', async() => {
       const hot = handsontable({});
 
       spyOn(hot.view._wt.wtViewport, 'getViewportWidth').and.returnValue(100);
@@ -385,7 +385,7 @@ describe('TableView', () => {
   });
 
   describe('getWorkspaceWidth()', () => {
-    it('should internally call `getWorkspaceWidth` method of the Viewport module of the Walkontable', () => {
+    it('should internally call `getWorkspaceWidth` method of the Viewport module of the Walkontable', async() => {
       const hot = handsontable({});
 
       spyOn(hot.view._wt.wtViewport, 'getWorkspaceWidth').and.returnValue(100);
@@ -396,7 +396,7 @@ describe('TableView', () => {
   });
 
   describe('getViewportHeight()', () => {
-    it('should internally call `getViewportHeight` method of the Viewport module of the Walkontable', () => {
+    it('should internally call `getViewportHeight` method of the Viewport module of the Walkontable', async() => {
       const hot = handsontable({});
 
       spyOn(hot.view._wt.wtViewport, 'getViewportHeight').and.returnValue(100);
@@ -407,7 +407,7 @@ describe('TableView', () => {
   });
 
   describe('getWorkspaceHeight()', () => {
-    it('should internally call `getWorkspaceHeight` method of the Viewport module of the Walkontable', () => {
+    it('should internally call `getWorkspaceHeight` method of the Viewport module of the Walkontable', async() => {
       const hot = handsontable({});
 
       spyOn(hot.view._wt.wtViewport, 'getWorkspaceHeight').and.returnValue(100);
@@ -418,7 +418,7 @@ describe('TableView', () => {
   });
 
   describe('hasVerticalScroll()', () => {
-    it('should internally call `hasVerticalScroll` method of the Viewport module of the Walkontable', () => {
+    it('should internally call `hasVerticalScroll` method of the Viewport module of the Walkontable', async() => {
       const hot = handsontable({});
 
       spyOn(hot.view._wt.wtViewport, 'hasVerticalScroll').and.returnValue(100);
@@ -429,7 +429,7 @@ describe('TableView', () => {
   });
 
   describe('hasHorizontalScroll()', () => {
-    it('should internally call `hasHorizontalScroll` method of the Viewport module of the Walkontable', () => {
+    it('should internally call `hasHorizontalScroll` method of the Viewport module of the Walkontable', async() => {
       const hot = handsontable({});
 
       spyOn(hot.view._wt.wtViewport, 'hasHorizontalScroll').and.returnValue(100);
@@ -440,7 +440,7 @@ describe('TableView', () => {
   });
 
   describe('getTableWidth()', () => {
-    it('should internally call `getTableWidth` method of the Table module of the Walkontable', () => {
+    it('should internally call `getTableWidth` method of the Table module of the Walkontable', async() => {
       const hot = handsontable({});
 
       spyOn(hot.view._wt.wtTable, 'getWidth').and.returnValue(100);
@@ -451,7 +451,7 @@ describe('TableView', () => {
   });
 
   describe('getTableHeight()', () => {
-    it('should internally call `getTableHeight` method of the Table module of the Walkontable', () => {
+    it('should internally call `getTableHeight` method of the Table module of the Walkontable', async() => {
       const hot = handsontable({});
 
       spyOn(hot.view._wt.wtTable, 'getHeight').and.returnValue(100);
@@ -462,7 +462,7 @@ describe('TableView', () => {
   });
 
   describe('getRowHeaderWidth()', () => {
-    it('should internally call `getRowHeaderWidth` method of the Viewport module of the Walkontable', () => {
+    it('should internally call `getRowHeaderWidth` method of the Viewport module of the Walkontable', async() => {
       const hot = handsontable({});
 
       spyOn(hot.view._wt.wtViewport, 'getRowHeaderWidth').and.returnValue(100);
@@ -473,7 +473,7 @@ describe('TableView', () => {
   });
 
   describe('getColumnHeaderHeight()', () => {
-    it('should internally call `getColumnHeaderHeight` method of the Viewport module of the Walkontable', () => {
+    it('should internally call `getColumnHeaderHeight` method of the Viewport module of the Walkontable', async() => {
       const hot = handsontable({});
 
       spyOn(hot.view._wt.wtViewport, 'getColumnHeaderHeight').and.returnValue(100);
@@ -484,7 +484,7 @@ describe('TableView', () => {
   });
 
   describe('isVerticallyScrollableByWindow()', () => {
-    it('should internally call `isVerticallyScrollableByWindow` method of the Viewport module of the Walkontable', () => {
+    it('should internally call `isVerticallyScrollableByWindow` method of the Viewport module of the Walkontable', async() => {
       const hot = handsontable({});
 
       spyOn(hot.view._wt.wtViewport, 'isVerticallyScrollableByWindow').and.returnValue(true);
@@ -495,7 +495,7 @@ describe('TableView', () => {
   });
 
   describe('isHorizontallyScrollableByWindow()', () => {
-    it('should internally call `isHorizontallyScrollableByWindow` method of the Viewport module of the Walkontable', () => {
+    it('should internally call `isHorizontallyScrollableByWindow` method of the Viewport module of the Walkontable', async() => {
       const hot = handsontable({});
 
       spyOn(hot.view._wt.wtViewport, 'isHorizontallyScrollableByWindow').and.returnValue(true);
@@ -506,7 +506,7 @@ describe('TableView', () => {
   });
 
   describe('getTableOffset()', () => {
-    it('should internally call `getWorkspaceOffset` method of the Viewport module of the Walkontable', () => {
+    it('should internally call `getWorkspaceOffset` method of the Viewport module of the Walkontable', async() => {
       const hot = handsontable({});
 
       spyOn(hot.view._wt.wtViewport, 'getWorkspaceOffset').and.returnValue(true);
@@ -517,7 +517,7 @@ describe('TableView', () => {
   });
 
   describe('render()', () => {
-    it('should draw a table as fast render when the dataset size is not changed', () => {
+    it('should draw a table as fast render when the dataset size is not changed', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(5, 5),
       });
@@ -528,7 +528,7 @@ describe('TableView', () => {
       expect(hot.view._wt.draw).toHaveBeenCalledWith(true);
     });
 
-    it('should draw a table as slow render when the `forceFullRender` flag is set and the dataset size is not changed', () => {
+    it('should draw a table as slow render when the `forceFullRender` flag is set and the dataset size is not changed', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(5, 5),
       });
@@ -541,7 +541,7 @@ describe('TableView', () => {
       expect(hot.forceFullRender).toBe(false);
     });
 
-    it('should draw a table as slow render when the dataset size is changed (number of rows is changed)', () => {
+    it('should draw a table as slow render when the dataset size is changed (number of rows is changed)', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(5, 5),
       });
@@ -552,7 +552,7 @@ describe('TableView', () => {
       expect(hot.view._wt.draw).toHaveBeenCalledWith(false);
     });
 
-    it('should draw a table as slow render when the dataset size is changed (number of columns is changed)', () => {
+    it('should draw a table as slow render when the dataset size is changed (number of columns is changed)', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(5, 5),
       });
@@ -563,7 +563,7 @@ describe('TableView', () => {
       expect(hot.view._wt.draw).toHaveBeenCalledWith(false);
     });
 
-    it('should draw a table as slow render when the number of visible rows was changed (hiding)', () => {
+    it('should draw a table as slow render when the number of visible rows was changed (hiding)', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(5, 5),
       });
@@ -578,7 +578,7 @@ describe('TableView', () => {
       expect(hot.view._wt.draw).toHaveBeenCalledWith(false);
     });
 
-    it('should draw a table as slow render when the number of visible columns was changed (hiding)', () => {
+    it('should draw a table as slow render when the number of visible columns was changed (hiding)', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(5, 5),
       });
@@ -593,7 +593,7 @@ describe('TableView', () => {
       expect(hot.view._wt.draw).toHaveBeenCalledWith(false);
     });
 
-    it('should draw a table as slow render when the number of visible rows was changed (trimming)', () => {
+    it('should draw a table as slow render when the number of visible rows was changed (trimming)', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(5, 5),
       });
@@ -608,7 +608,7 @@ describe('TableView', () => {
       expect(hot.view._wt.draw).toHaveBeenCalledWith(false);
     });
 
-    it('should draw a table as slow render when the number of visible columns was changed (trimming)', () => {
+    it('should draw a table as slow render when the number of visible columns was changed (trimming)', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(5, 5),
       });
@@ -623,7 +623,7 @@ describe('TableView', () => {
       expect(hot.view._wt.draw).toHaveBeenCalledWith(false);
     });
 
-    it('should draw a table as slow render when the rows order changed', () => {
+    it('should draw a table as slow render when the rows order changed', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(5, 5),
       });
@@ -636,7 +636,7 @@ describe('TableView', () => {
       expect(hot.view._wt.draw).toHaveBeenCalledWith(false);
     });
 
-    it('should draw a table as slow render when the columns order changed', () => {
+    it('should draw a table as slow render when the columns order changed', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(5, 5),
       });
@@ -649,7 +649,7 @@ describe('TableView', () => {
       expect(hot.view._wt.draw).toHaveBeenCalledWith(false);
     });
 
-    it('should draw a table as slow render when index sequence for rows was changed', () => {
+    it('should draw a table as slow render when index sequence for rows was changed', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(5, 5),
       });
@@ -662,7 +662,7 @@ describe('TableView', () => {
       expect(hot.view._wt.draw).toHaveBeenCalledWith(false);
     });
 
-    it('should draw a table as slow render when index sequence for columns was changed', () => {
+    it('should draw a table as slow render when index sequence for columns was changed', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(5, 5),
       });

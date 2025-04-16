@@ -57,7 +57,7 @@ describe('editors', () => {
     expect(getDataAtCell(0, 0)).toBe('--hello--');
   });
 
-  it('should retrieve predefined editors by its names', () => {
+  it('should retrieve predefined editors by its names', async() => {
     expect(getEditor('autocomplete')).toBeFunction();
     expect(getEditor('base')).toBeFunction();
     expect(getEditor('checkbox')).toBeFunction();
@@ -70,13 +70,13 @@ describe('editors', () => {
     expect(getEditor('text')).toBeFunction();
   });
 
-  it('should return the original editor function when it was passed directly to the getter', () => {
+  it('should return the original editor function when it was passed directly to the getter', async() => {
     class MyEditor {}
 
     expect(getEditor(MyEditor)).toBe(MyEditor);
   });
 
-  it('should retrieve custom editor by its names', () => {
+  it('should retrieve custom editor by its names', async() => {
     class MyEditor {}
     registerEditor('myEditor', MyEditor);
 

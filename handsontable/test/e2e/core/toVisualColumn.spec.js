@@ -12,7 +12,7 @@ describe('Core.toVisualColumn', () => {
     }
   });
 
-  it('should return valid visual column index', () => {
+  it('should return valid visual column index', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(5, 5)
     });
@@ -25,7 +25,7 @@ describe('Core.toVisualColumn', () => {
   });
 
   // Predicting how user would like to change index mapper's length would be hard.
-  it('should reset visual indexes when `columns` changed data length', () => {
+  it('should reset visual indexes when `columns` changed data length', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(5, 5),
     });
@@ -39,7 +39,7 @@ describe('Core.toVisualColumn', () => {
   });
 
   describe('should reset visual indexes when user load new data', () => {
-    it('by calling the `loadData` function', () => {
+    it('by calling the `loadData` function', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(5, 5),
       });
@@ -54,7 +54,7 @@ describe('Core.toVisualColumn', () => {
   });
 
   describe('should NOT reset visual indexes when user updates data', () => {
-    it('by updating settings', () => {
+    it('by updating settings', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(5, 5),
       });
@@ -67,7 +67,7 @@ describe('Core.toVisualColumn', () => {
       expect(hot.toVisualColumn(2)).toBe(null);
     });
 
-    it('by calling the `updateData` function', () => {
+    it('by calling the `updateData` function', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(5, 5),
       });

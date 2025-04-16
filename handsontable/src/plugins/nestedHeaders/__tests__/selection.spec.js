@@ -916,7 +916,7 @@ describe('NestedHeaders', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should select all column headers (on all levels) after clicking the corner header', function() {
+    it('should select all column headers (on all levels) after clicking the corner header', async() => {
       handsontable({
         data: createSpreadsheetData(3, 10),
         colHeaders: true,
@@ -930,7 +930,7 @@ describe('NestedHeaders', () => {
         ]
       });
 
-      const $cornerHeader = this.$container
+      const $cornerHeader = spec().$container
         .find('.ht_clone_top_inline_start_corner thead tr:eq(0) th:eq(0)');
 
       $cornerHeader.simulate('mousedown');
@@ -948,7 +948,7 @@ describe('NestedHeaders', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should add selection borders in the expected positions, when selecting multi-columned headers', function() {
+    it('should add selection borders in the expected positions, when selecting multi-columned headers', async() => {
       handsontable({
         data: createSpreadsheetData(4, 10),
         colHeaders: true,
@@ -966,14 +966,14 @@ describe('NestedHeaders', () => {
         .simulate('mouseup');
 
       const $headerLvl3 = getTopClone().find('thead tr:eq(2) th:eq(1)');
-      const $firstRow = this.$container.find('.ht_master tbody tr:eq(0)');
-      const $lastRow = this.$container.find('.ht_master tbody tr:eq(3)');
-      const $tbody = this.$container.find('.ht_master tbody');
+      const $firstRow = spec().$container.find('.ht_master tbody tr:eq(0)');
+      const $lastRow = spec().$container.find('.ht_master tbody tr:eq(3)');
+      const $tbody = spec().$container.find('.ht_master tbody');
 
-      const $topBorder = this.$container.find('.wtBorder.area').eq(0);
-      const $bottomBorder = this.$container.find('.wtBorder.area').eq(2);
-      const $leftBorder = this.$container.find('.wtBorder.area').eq(1);
-      const $rightBorder = this.$container.find('.wtBorder.area').eq(3);
+      const $topBorder = spec().$container.find('.wtBorder.area').eq(0);
+      const $bottomBorder = spec().$container.find('.wtBorder.area').eq(2);
+      const $leftBorder = spec().$container.find('.wtBorder.area').eq(1);
+      const $rightBorder = spec().$container.find('.wtBorder.area').eq(3);
 
       expect($topBorder.offset().top).toEqual($firstRow.offset().top);
       expect($bottomBorder.offset().top).toEqual($lastRow.offset().top + $lastRow.height() - 1);

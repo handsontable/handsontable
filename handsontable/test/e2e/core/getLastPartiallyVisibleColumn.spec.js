@@ -10,7 +10,7 @@ describe('Core.getLastPartiallyVisibleColumn', () => {
     }
   });
 
-  it('should return last partially visible column index', () => {
+  it('should return last partially visible column index', async() => {
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
@@ -20,7 +20,7 @@ describe('Core.getLastPartiallyVisibleColumn', () => {
     expect(getLastPartiallyVisibleColumn()).toBe(3);
   });
 
-  it('should return last partially visible and not hidden column index', () => {
+  it('should return last partially visible and not hidden column index', async() => {
     handsontable({
       data: createSpreadsheetData(10, 100),
       width: 200,
@@ -36,7 +36,7 @@ describe('Core.getLastPartiallyVisibleColumn', () => {
     expect(getLastPartiallyVisibleColumn()).toBe(5);
   });
 
-  it.forTheme('classic')('should return last partially visible column index (scrolled viewport)', () => {
+  it.forTheme('classic')('should return last partially visible column index (scrolled viewport)', async() => {
     handsontable({
       data: createSpreadsheetData(10, 100),
       width: 200,
@@ -49,7 +49,7 @@ describe('Core.getLastPartiallyVisibleColumn', () => {
     expect(getLastPartiallyVisibleColumn()).toBe(19);
   });
 
-  it.forTheme('main')('should return last partially visible column index (scrolled viewport)', () => {
+  it.forTheme('main')('should return last partially visible column index (scrolled viewport)', async() => {
     handsontable({
       data: createSpreadsheetData(10, 100),
       width: 200,
@@ -62,7 +62,7 @@ describe('Core.getLastPartiallyVisibleColumn', () => {
     expect(getLastPartiallyVisibleColumn()).toBe(19);
   });
 
-  it.forTheme('horizon')('should return last partially visible column index (scrolled viewport)', () => {
+  it.forTheme('horizon')('should return last partially visible column index (scrolled viewport)', async() => {
     handsontable({
       data: createSpreadsheetData(10, 100),
       width: 200,

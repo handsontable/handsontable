@@ -17,7 +17,7 @@ describe('`ariaTags` setting option', () => {
     }
   });
 
-  it('should NOT prevent any accessibility-related attributes from being added to the table (enabled on init)', () => {
+  it('should NOT prevent any accessibility-related attributes from being added to the table (enabled on init)', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(5, 5),
       fixedRowsTop: 2,
@@ -28,7 +28,7 @@ describe('`ariaTags` setting option', () => {
     expect(getAccessibilityEnabledElements(hot.rootElement).length).toBeGreaterThan(0);
   });
 
-  it('should NOT prevent any accessibility-related attributes from being added to the table (not defined)', () => {
+  it('should NOT prevent any accessibility-related attributes from being added to the table (not defined)', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(5, 5),
       fixedRowsTop: 2,
@@ -38,7 +38,7 @@ describe('`ariaTags` setting option', () => {
     expect(getAccessibilityEnabledElements(hot.rootElement).length).toBeGreaterThan(0);
   });
 
-  it('should prevent any accessibility-related attributes from being added to the table (disabled on init)', () => {
+  it('should prevent any accessibility-related attributes from being added to the table (disabled on init)', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(5, 5),
       fixedRowsTop: 2,
@@ -51,7 +51,7 @@ describe('`ariaTags` setting option', () => {
 
   // TODO: known issue: the ariaTags option is not compatible with `updateSettings`.
   xit('should prevent any accessibility-related attributes from being added to the table (changing using' +
-    ' `updateSettings`)', () => {
+    ' `updateSettings`)', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(5, 5),
       fixedRowsTop: 2,
@@ -69,7 +69,7 @@ describe('`ariaTags` setting option', () => {
 
   // TODO: known issue: the ariaTags option is not compatible with `updateSettings`.
   xit('should NOT prevent any accessibility-related attributes from being added to the table (changing using' +
-    ' `updateSettings`)', () => {
+    ' `updateSettings`)', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(5, 5),
       fixedRowsTop: 2,
@@ -86,7 +86,7 @@ describe('`ariaTags` setting option', () => {
     expect(getAccessibilityEnabledElements(hot.rootElement).length).toBeGreaterThan(0);
   });
 
-  it('should not be possible to change the `ariaTags` option after the table is initialized', () => {
+  it('should not be possible to change the `ariaTags` option after the table is initialized', async() => {
     const hot = handsontable({
       ariaTags: true
     });

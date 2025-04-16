@@ -43,7 +43,7 @@ describe('Core.alter', () => {
 
   describe('`remove_row` action', () => {
     describe('for multiple items at once', () => {
-      it('should remove rows when index groups are passed in ascending order', () => {
+      it('should remove rows when index groups are passed in ascending order', async() => {
         handsontable({
           data: createSpreadsheetData(15, 5),
         });
@@ -59,7 +59,7 @@ describe('Core.alter', () => {
         expect(getData().length).toBe(6);
       });
 
-      it('should remove rows when index groups are passed in descending order', () => {
+      it('should remove rows when index groups are passed in descending order', async() => {
         handsontable({
           data: createSpreadsheetData(15, 5),
         });
@@ -75,7 +75,7 @@ describe('Core.alter', () => {
         expect(getData().length).toBe(6);
       });
 
-      it('should remove rows when index groups are passed as intersecting values', () => {
+      it('should remove rows when index groups are passed as intersecting values', async() => {
         handsontable({
           data: createSpreadsheetData(15, 5),
         });
@@ -91,7 +91,7 @@ describe('Core.alter', () => {
         expect(getData().length).toBe(5);
       });
 
-      it('should remove rows when index groups are passed as intersecting values (the second scenario)', () => {
+      it('should remove rows when index groups are passed as intersecting values (the second scenario)', async() => {
         handsontable({
           data: createSpreadsheetData(15, 5),
         });
@@ -107,7 +107,7 @@ describe('Core.alter', () => {
         expect(getData().length).toBe(10);
       });
 
-      it('should remove rows when index groups are passed as intersecting values (placed randomly)', () => {
+      it('should remove rows when index groups are passed as intersecting values (placed randomly)', async() => {
         handsontable({
           data: createSpreadsheetData(15, 5),
         });
@@ -123,7 +123,7 @@ describe('Core.alter', () => {
         expect(getData().length).toBe(5);
       });
 
-      it('should not display columns when every row have been removed (row header enabled, column header disabled)', () => {
+      it('should not display columns when every row have been removed (row header enabled, column header disabled)', async() => {
         handsontable({
           data: createSpreadsheetData(5, 5),
           rowHeaders: true,
@@ -139,7 +139,7 @@ describe('Core.alter', () => {
         expect($('.ht_master .htCore .cornerHeader').length).toBe(0);
       });
 
-      it('should display columns when every row have been removed (row header disabled, column header enabled)', () => {
+      it('should display columns when every row have been removed (row header disabled, column header enabled)', async() => {
         handsontable({
           data: createSpreadsheetData(5, 5),
           rowHeaders: false,
@@ -156,7 +156,7 @@ describe('Core.alter', () => {
         expect($('.ht_master .htCore .cornerHeader').length).toBe(0);
       });
 
-      it('should display columns when every row have been removed (both headers disabled)', () => {
+      it('should display columns when every row have been removed (both headers disabled)', async() => {
         handsontable({
           data: createSpreadsheetData(5, 5),
           rowHeaders: false,
@@ -173,7 +173,7 @@ describe('Core.alter', () => {
         expect($('.ht_master .htCore .cornerHeader').length).toBe(0);
       });
 
-      it('should not display columns when every row have been removed (both headers enabled)', () => {
+      it('should not display columns when every row have been removed (both headers enabled)', async() => {
         handsontable({
           data: createSpreadsheetData(5, 5),
           rowHeaders: true,
@@ -190,7 +190,7 @@ describe('Core.alter', () => {
         expect($('.ht_master .htCore .cornerHeader').length).toBe(1); // Corner visible.
       });
 
-      it('should not display columns when every row have been removed and just `columns` property is defined', () => {
+      it('should not display columns when every row have been removed and just `columns` property is defined', async() => {
         handsontable({
           data: arrayOfNestedObjects(),
           columns: [
@@ -209,7 +209,7 @@ describe('Core.alter', () => {
         expect($('.ht_master .htCore .cornerHeader').length).toBe(0);
       });
 
-      it('should display columns when every row have been removed and `columns` property is defined with `title` for column header', () => {
+      it('should display columns when every row have been removed and `columns` property is defined with `title` for column header', async() => {
         handsontable({
           data: arrayOfNestedObjects(),
           columns: [
@@ -228,7 +228,7 @@ describe('Core.alter', () => {
         expect($('.ht_master .htCore .cornerHeader').length).toBe(0);
       });
 
-      it('should display columns when every row have been removed and `dataSchema` property is defined and column headers are defined', () => {
+      it('should display columns when every row have been removed and `dataSchema` property is defined and column headers are defined', async() => {
         handsontable({
           data: arrayOfNestedObjects(),
           dataSchema: {
@@ -249,7 +249,7 @@ describe('Core.alter', () => {
       });
     });
 
-    it('should remove row', () => {
+    it('should remove row', async() => {
       handsontable({
         minRows: 5,
         data: arrayOfNestedObjects(),
@@ -264,7 +264,7 @@ describe('Core.alter', () => {
       expect(getData().length).toEqual(5); // new row should be added by keepEmptyRows
     });
 
-    it('should not remove row if amount is zero', () => {
+    it('should not remove row if amount is zero', async() => {
       handsontable({
         data: arrayOfNestedObjects(),
         columns: [
@@ -279,7 +279,7 @@ describe('Core.alter', () => {
       expect(countRows()).toBe(countedRows);
     });
 
-    it('should fire beforeRemoveRow event before removing row', () => {
+    it('should fire beforeRemoveRow event before removing row', async() => {
       const onBeforeRemoveRow = jasmine.createSpy('onBeforeRemoveRow');
 
       handsontable({
@@ -295,7 +295,7 @@ describe('Core.alter', () => {
       expect(onBeforeRemoveRow).toHaveBeenCalledWith(countRows(), 1, [2], 'customSource');
     });
 
-    it('should not remove row if removing has been canceled by beforeRemoveRow event handler', () => {
+    it('should not remove row if removing has been canceled by beforeRemoveRow event handler', async() => {
       const onBeforeRemoveRow = jasmine.createSpy('onBeforeRemoveRow');
 
       onBeforeRemoveRow.and.callFake(() => false);
@@ -316,7 +316,7 @@ describe('Core.alter', () => {
       expect(countRows()).toEqual(3);
     });
 
-    it('should not remove cell meta objects if removing has been canceled by beforeRemoveRow event handler', () => {
+    it('should not remove cell meta objects if removing has been canceled by beforeRemoveRow event handler', async() => {
       handsontable({
         beforeRemoveRow: () => false,
       });
@@ -332,7 +332,7 @@ describe('Core.alter', () => {
       expect(getCellMeta(4, 0)._test).toBeUndefined();
     });
 
-    it('should not remove rows below minRows', () => {
+    it('should not remove rows below minRows', async() => {
       handsontable({
         startRows: 5,
         minRows: 4
@@ -344,7 +344,7 @@ describe('Core.alter', () => {
       expect(countRows()).toEqual(4);
     });
 
-    it('should not remove cols below minCols', () => {
+    it('should not remove cols below minCols', async() => {
       handsontable({
         startCols: 5,
         minCols: 4
@@ -356,7 +356,7 @@ describe('Core.alter', () => {
       expect(countCols()).toEqual(4);
     });
 
-    it('should remove one row if amount parameter is empty', () => {
+    it('should remove one row if amount parameter is empty', async() => {
       handsontable({
         data: [
           ['a1', 'a2', 'a3'],
@@ -373,7 +373,7 @@ describe('Core.alter', () => {
       expect(spec().$container.find('tr:eq(1) td:eq(1)').html()).toEqual('c2');
     });
 
-    it('should remove as many rows as given in the amount parameter', () => {
+    it('should remove as many rows as given in the amount parameter', async() => {
       handsontable({
         data: [
           ['a1', 'a2', 'a3'],
@@ -390,7 +390,7 @@ describe('Core.alter', () => {
       expect(spec().$container.find('tr:eq(1) td:eq(1)').html()).toEqual('e2');
     });
 
-    it('should not remove more rows that exist', () => {
+    it('should not remove more rows that exist', async() => {
       handsontable({
         data: [
           ['a1', 'a2', 'a3'],
@@ -406,7 +406,7 @@ describe('Core.alter', () => {
       expect(getHtCore().find('tr:last td:last').html()).toEqual('a3');
     });
 
-    it('should remove one row from end if no parameters are given', () => {
+    it('should remove one row from end if no parameters are given', async() => {
       handsontable({
         data: [
           ['a1', 'a2', 'a3'],
@@ -422,7 +422,7 @@ describe('Core.alter', () => {
       expect(getHtCore().find('tr:last td:eq(0)').html()).toEqual('d1');
     });
 
-    it('should remove amount of rows from end if index parameter is not given', () => {
+    it('should remove amount of rows from end if index parameter is not given', async() => {
       handsontable({
         data: [
           ['a1', 'a2', 'a3'],
@@ -438,7 +438,7 @@ describe('Core.alter', () => {
       expect(getHtCore().find('tr:last td:eq(0)').html()).toEqual('b1');
     });
 
-    it('should remove rows from table with fixedRows', () => {
+    it('should remove rows from table with fixedRows', async() => {
       handsontable({
         data: [
           ['a1', 'a2', 'a3'],
@@ -454,7 +454,7 @@ describe('Core.alter', () => {
 
     });
 
-    it('should remove all rows from table with fixedRows', () => {
+    it('should remove all rows from table with fixedRows', async() => {
       handsontable({
         data: [
           ['a1', 'a2', 'a3'],
@@ -471,7 +471,7 @@ describe('Core.alter', () => {
 
     });
 
-    it('should remove row\'s cellProperties', () => {
+    it('should remove row\'s cellProperties', async() => {
       handsontable({
         startCols: 1,
         startRows: 3
@@ -487,7 +487,7 @@ describe('Core.alter', () => {
       expect(getCellMeta(1, 0).someValue).toEqual([2, 0]);
     });
 
-    it('should fire callback on remove row', () => {
+    it('should fire callback on remove row', async() => {
       let outputBefore;
       let outputAfter;
 
@@ -511,7 +511,7 @@ describe('Core.alter', () => {
       expect(outputAfter).toEqual([1, 2, [1, 2], 'customSource']);
     });
 
-    it('should decrement the number of fixed rows, if a fix row is removed', () => {
+    it('should decrement the number of fixed rows, if a fix row is removed', async() => {
       const hot = handsontable({
         startCols: 1,
         startRows: 3,
@@ -524,7 +524,7 @@ describe('Core.alter', () => {
       expect(hot.getSettings().fixedRowsTop).toEqual(1);
     });
 
-    it('should shift the cell meta according to the new row layout', () => {
+    it('should shift the cell meta according to the new row layout', async() => {
       handsontable({
         startCols: 3,
         startRows: 4
@@ -536,7 +536,7 @@ describe('Core.alter', () => {
       expect(getCellMeta(1, 1).className).toEqual('test');
     });
 
-    it('should shift the cell meta according to the new rows (>1) layout', () => {
+    it('should shift the cell meta according to the new rows (>1) layout', async() => {
       handsontable({
         startCols: 3,
         startRows: 4
@@ -548,7 +548,7 @@ describe('Core.alter', () => {
       expect(getCellMeta(0, 1).className).toEqual('test');
     });
 
-    it('should cooperate with the `beforeRemoveRow` changing list of the removed rows properly', () => {
+    it('should cooperate with the `beforeRemoveRow` changing list of the removed rows properly', async() => {
       const afterRemoveRow = jasmine.createSpy('afterRemoveRow');
       let hookArgumentsBefore;
       let hookArgumentsAfter;

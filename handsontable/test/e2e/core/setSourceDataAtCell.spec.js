@@ -12,7 +12,7 @@ describe('Core.setSourceDataAtCell', () => {
     }
   });
 
-  it('should set the provided value in the source data set', () => {
+  it('should set the provided value in the source data set', async() => {
     handsontable({
       data: [[1, 2, 3], ['a', 'b', 'c']]
     });
@@ -30,7 +30,7 @@ describe('Core.setSourceDataAtCell', () => {
     expect(getSourceData()[0].foo).toBe('foo');
   });
 
-  it('should set the provided value in the source data set, using the physical coordinates', () => {
+  it('should set the provided value in the source data set, using the physical coordinates', async() => {
     handsontable({
       data: [
         { foo: 'bar', lorem: 'ipsum' },
@@ -49,7 +49,7 @@ describe('Core.setSourceDataAtCell', () => {
     expect(getSourceData()[2].lorem).toBe('amet');
   });
 
-  it('should trigger table render cycle after changing the data', () => {
+  it('should trigger table render cycle after changing the data', async() => {
     const hot = handsontable({
       data: [[1, 2, 3], ['a', 'b', 'c']],
     });
@@ -76,7 +76,7 @@ describe('Core.setSourceDataAtCell', () => {
     expect(hot.getActiveEditor().refreshValue).toHaveBeenCalled();
   });
 
-  it('should throw the `modifySourceData` hook (with the `set` argument) when calling the `setSourceDataAtCell` method', () => {
+  it('should throw the `modifySourceData` hook (with the `set` argument) when calling the `setSourceDataAtCell` method', async() => {
     const argumentHistory = [];
 
     handsontable({
@@ -100,7 +100,7 @@ describe('Core.setSourceDataAtCell', () => {
     expect(argumentHistory[0][3]).toEqual('set');
   });
 
-  it('should be possible to change the value being saved using the `modifySourceData` hook', () => {
+  it('should be possible to change the value being saved using the `modifySourceData` hook', async() => {
     handsontable({
       data: [
         { foo: 'bar', lorem: 'ipsum' },
@@ -117,7 +117,7 @@ describe('Core.setSourceDataAtCell', () => {
     expect(getSourceData()[0].foo).toEqual('CHANGED');
   });
 
-  it('should run the `afterSetSourceDataAtCell` hook', () => {
+  it('should run the `afterSetSourceDataAtCell` hook', async() => {
     const afterSetSourceDataAtCellSpy = jasmine.createSpy('afterSetSourceDataAtCell');
 
     handsontable({
@@ -143,7 +143,7 @@ describe('Core.setSourceDataAtCell', () => {
     ]);
   });
 
-  it('should be possible to change the data source by passing an array of changes and a string as row value (dataset as array of arrays)', () => {
+  it('should be possible to change the data source by passing an array of changes and a string as row value (dataset as array of arrays)', async() => {
     const changesList = [
       ['0', '0', 'a'], ['0', '1', 'b'], ['0', '2', 'c'],
     ];
@@ -157,7 +157,7 @@ describe('Core.setSourceDataAtCell', () => {
     expect(hot.getSourceData()).toEqual([['a', 'b', 'c']]);
   });
 
-  it('should be possible to change the data source by passing an array of changes and a string as row value (dataset as array of objects)', () => {
+  it('should be possible to change the data source by passing an array of changes and a string as row value (dataset as array of objects)', async() => {
     const changesList = [
       ['0', 'id', 'a'], ['0', 'name', 'b'], ['0', 'address', 'c'],
     ];
@@ -171,7 +171,7 @@ describe('Core.setSourceDataAtCell', () => {
     expect(hot.getSourceData()).toEqual([{ id: 'a', name: 'b', address: 'c' }]);
   });
 
-  it('should not replace the source value for row values as a `__proto__`, `constructor`, `prototype` with array of arrays data source', () => {
+  it('should not replace the source value for row values as a `__proto__`, `constructor`, `prototype` with array of arrays data source', async() => {
     const changesList = [
       ['__proto__', '0', 'a'], ['constructor', '1', 'b'], ['prototype', '2', 'c'],
     ];
@@ -185,7 +185,7 @@ describe('Core.setSourceDataAtCell', () => {
     expect(hot.getSourceData()).toEqual([['', '', '']]);
   });
 
-  it('should not replace the source value for row values as a `__proto__`, `constructor`, `prototype` with array of object data source', () => {
+  it('should not replace the source value for row values as a `__proto__`, `constructor`, `prototype` with array of object data source', async() => {
     const changesList = [
       ['__proto__', 'id', 'a'], ['constructor', 'name', 'b'], ['prototype', 'address', 'c'],
     ];

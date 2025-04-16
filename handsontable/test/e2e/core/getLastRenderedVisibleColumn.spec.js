@@ -10,7 +10,7 @@ describe('Core.getLastRenderedVisibleColumn', () => {
     }
   });
 
-  it('should return last rendered column index', () => {
+  it('should return last rendered column index', async() => {
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
@@ -20,7 +20,7 @@ describe('Core.getLastRenderedVisibleColumn', () => {
     expect(getLastRenderedVisibleColumn()).toBe(5);
   });
 
-  it('should return last rendered and not hidden column index', () => {
+  it('should return last rendered and not hidden column index', async() => {
     handsontable({
       data: createSpreadsheetData(10, 100),
       width: 200,
@@ -36,7 +36,7 @@ describe('Core.getLastRenderedVisibleColumn', () => {
     expect(getLastRenderedVisibleColumn()).toBe(6);
   });
 
-  it.forTheme('classic')('should return last rendered column index (scrolled viewport)', () => {
+  it.forTheme('classic')('should return last rendered column index (scrolled viewport)', async() => {
     handsontable({
       data: createSpreadsheetData(10, 100),
       width: 200,
@@ -49,7 +49,7 @@ describe('Core.getLastRenderedVisibleColumn', () => {
     expect(getLastRenderedVisibleColumn()).toBe(21);
   });
 
-  it.forTheme('main')('should return last rendered column index (scrolled viewport)', () => {
+  it.forTheme('main')('should return last rendered column index (scrolled viewport)', async() => {
     handsontable({
       data: createSpreadsheetData(10, 100),
       width: 200,
@@ -62,7 +62,7 @@ describe('Core.getLastRenderedVisibleColumn', () => {
     expect(getLastRenderedVisibleColumn()).toBe(21);
   });
 
-  it.forTheme('horizon')('should return last rendered column index (scrolled viewport)', () => {
+  it.forTheme('horizon')('should return last rendered column index (scrolled viewport)', async() => {
     handsontable({
       data: createSpreadsheetData(10, 100),
       width: 200,

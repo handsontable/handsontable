@@ -29,7 +29,7 @@ describe('Selection navigation (RTL mode)', () => {
   }
 
   describe('"ArrowDown"', () => {
-    it('should move the cell selection below', () => {
+    it('should move the cell selection below', async() => {
       handsontable({
         startRows: 5,
         startCols: 5
@@ -41,7 +41,7 @@ describe('Selection navigation (RTL mode)', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: 2,2 to: 2,2']);
     });
 
-    it('should move the header selection down (navigableHeaders on)', () => {
+    it('should move the header selection down (navigableHeaders on)', async() => {
       handsontable({
         startRows: 5,
         startCols: 5,
@@ -56,7 +56,7 @@ describe('Selection navigation (RTL mode)', () => {
     });
 
     describe('with autoWrap disabled', () => {
-      it('should NOT move the cell selection to the next column, if the last row is already selected', () => {
+      it('should NOT move the cell selection to the next column, if the last row is already selected', async() => {
         handsontable({
           startRows: 5,
           startCols: 5,
@@ -71,7 +71,7 @@ describe('Selection navigation (RTL mode)', () => {
     });
 
     describe('with autoWrap enabled', () => {
-      it('should move the cell selection to the first row of the next column, if the first row is already selected', () => {
+      it('should move the cell selection to the first row of the next column, if the first row is already selected', async() => {
         handsontable({
           startRows: 5,
           startCols: 5,
@@ -84,7 +84,7 @@ describe('Selection navigation (RTL mode)', () => {
         expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: 0,2 to: 0,2']);
       });
 
-      it('should move the cell selection to the first row of the next column, if the first row is already selected (with headers)', () => {
+      it('should move the cell selection to the first row of the next column, if the first row is already selected (with headers)', async() => {
         handsontable({
           startRows: 5,
           startCols: 5,
@@ -99,7 +99,7 @@ describe('Selection navigation (RTL mode)', () => {
         expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: 0,2 to: 0,2']);
       });
 
-      it('should move the cell selection to the first row of the next column, if the first row is already selected (with headers, navigableHeaders on)', () => {
+      it('should move the cell selection to the first row of the next column, if the first row is already selected (with headers, navigableHeaders on)', async() => {
         handsontable({
           startRows: 5,
           startCols: 5,
@@ -123,7 +123,7 @@ describe('Selection navigation (RTL mode)', () => {
         expect(getSelectedRange()).toEqualCellRange(['highlight: -3,2 from: -3,2 to: -3,2']);
       });
 
-      it('should move the cell selection to the top-left corner, if the most bottom-right cell is selected', () => {
+      it('should move the cell selection to the top-left corner, if the most bottom-right cell is selected', async() => {
         handsontable({
           startRows: 5,
           startCols: 5,
@@ -136,7 +136,7 @@ describe('Selection navigation (RTL mode)', () => {
         expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: 0,0 to: 0,0']);
       });
 
-      it('should move the cell selection to the top-left corner, if the most bottom-right cell is selected (with headers)', () => {
+      it('should move the cell selection to the top-left corner, if the most bottom-right cell is selected (with headers)', async() => {
         handsontable({
           startRows: 5,
           startCols: 5,
@@ -151,7 +151,7 @@ describe('Selection navigation (RTL mode)', () => {
         expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: 0,0 to: 0,0']);
       });
 
-      it('should move the cell selection to the top-left corner, if the most bottom-right cell is selected (with headers, navigableHeaders on)', () => {
+      it('should move the cell selection to the top-left corner, if the most bottom-right cell is selected (with headers, navigableHeaders on)', async() => {
         handsontable({
           startRows: 5,
           startCols: 5,
@@ -175,7 +175,7 @@ describe('Selection navigation (RTL mode)', () => {
         expect(getSelectedRange()).toEqualCellRange(['highlight: -3,-3 from: -3,-3 to: -3,-3']);
       });
 
-      it('should traverse whole table by constantly selecting next cell in column', () => {
+      it('should traverse whole table by constantly selecting next cell in column', async() => {
         handsontable({
           startRows: 5,
           startCols: 5,

@@ -13,7 +13,7 @@ describe('settings', () => {
   });
 
   describe('dataDotNotation', () => {
-    it('should be `true` by default', () => {
+    it('should be `true` by default', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5)
       });
@@ -21,7 +21,7 @@ describe('settings', () => {
       expect(getSettings().dataDotNotation).toBe(true);
     });
 
-    it('should be possible to access the nested objects by using dots in the columns\' names', () => {
+    it('should be possible to access the nested objects by using dots in the columns\' names', async() => {
       handsontable({
         data: [
           { name: { first: 'Ted', last: 'Williams' }, city: 'Boston' },
@@ -47,7 +47,7 @@ describe('settings', () => {
       expect(getSourceDataAtCell(0, 'name.first')).toBe('Ted');
     });
 
-    it('should be possible to disable dot notation for columns\' names', () => {
+    it('should be possible to disable dot notation for columns\' names', async() => {
       handsontable({
         data: [
           { name: { first: 'Ted' }, lastName: 'Williams', 'user.city': 'Boston' },
@@ -73,7 +73,7 @@ describe('settings', () => {
       expect(getSourceDataAtCell(0, 'name.first')).toBe(undefined);
     });
 
-    it('should be possible to disable dot notation using `updateSettings`', () => {
+    it('should be possible to disable dot notation using `updateSettings`', async() => {
       handsontable({
         data: [
           { name: { first: 'Ted' }, lastName: 'Williams', 'user.city': 'Boston' },
@@ -93,7 +93,7 @@ describe('settings', () => {
       expect(getData()).toEqual([['Williams', 'Boston', null]]);
     });
 
-    it('should be possible to enable dot notation using `updateSettings`', () => {
+    it('should be possible to enable dot notation using `updateSettings`', async() => {
       handsontable({
         data: [
           { name: { first: 'Ted', last: 'Williams' }, city: 'Boston' },

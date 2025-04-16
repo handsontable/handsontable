@@ -12,7 +12,7 @@ describe('Core_removeCellMeta', () => {
     }
   });
 
-  it('should remove meta for cell', () => {
+  it('should remove meta for cell', async() => {
     handsontable({
       data: [
         [1, 2, 3, 4],
@@ -36,7 +36,7 @@ describe('Core_removeCellMeta', () => {
     expect(getCellMeta(0, 0).borders).toBeUndefined();
   });
 
-  it('should remove proper cell meta when indexes was modified', () => {
+  it('should remove proper cell meta when indexes was modified', async() => {
     const hot = handsontable({
       minRows: 5,
       minCols: 5
@@ -51,7 +51,7 @@ describe('Core_removeCellMeta', () => {
     expect(getCellMeta(0, 0).key).toBeUndefined();
   });
 
-  it('should trigger `beforeRemoveCellMeta` hook with proper parameters', () => {
+  it('should trigger `beforeRemoveCellMeta` hook with proper parameters', async() => {
     const beforeRemoveCellMeta = jasmine.createSpy('beforeRemoveCellMeta');
 
     handsontable({
@@ -69,7 +69,7 @@ describe('Core_removeCellMeta', () => {
     expect(beforeRemoveCellMeta).toHaveBeenCalledWith(0, 0, 'key', 'value');
   });
 
-  it('should trigger `afterRemoveCellMeta` hook with proper parameters - case 1 (removed `key` existed)', () => {
+  it('should trigger `afterRemoveCellMeta` hook with proper parameters - case 1 (removed `key` existed)', async() => {
     const afterRemoveCellMeta = jasmine.createSpy('afterRemoveCellMeta');
 
     handsontable({
@@ -87,7 +87,7 @@ describe('Core_removeCellMeta', () => {
     expect(afterRemoveCellMeta).toHaveBeenCalledWith(0, 0, 'key', 'value');
   });
 
-  it('should trigger `afterRemoveCellMeta` hook with proper parameters - case 2  (removed `key` not existed)', () => {
+  it('should trigger `afterRemoveCellMeta` hook with proper parameters - case 2  (removed `key` not existed)', async() => {
     const afterRemoveCellMeta = jasmine.createSpy('afterRemoveCellMeta');
 
     handsontable({
@@ -104,7 +104,7 @@ describe('Core_removeCellMeta', () => {
     expect(afterRemoveCellMeta).toHaveBeenCalledWith(0, 0, 'key');
   });
 
-  it('should call `beforeRemoveCellMeta` plugin hook with visual indexes as parameters', () => {
+  it('should call `beforeRemoveCellMeta` plugin hook with visual indexes as parameters', async() => {
     let rowInsideHook;
     let colInsideHook;
 
@@ -126,7 +126,7 @@ describe('Core_removeCellMeta', () => {
     expect(colInsideHook).toEqual(1);
   });
 
-  it('should call `afterRemoveCellMeta` plugin hook with visual indexes as parameters', () => {
+  it('should call `afterRemoveCellMeta` plugin hook with visual indexes as parameters', async() => {
     let rowInsideHook;
     let colInsideHook;
 
@@ -148,7 +148,7 @@ describe('Core_removeCellMeta', () => {
     expect(colInsideHook).toEqual(1);
   });
 
-  it('should block removing cell meta when hook `beforeRemoveCellMeta` return false', () => {
+  it('should block removing cell meta when hook `beforeRemoveCellMeta` return false', async() => {
     handsontable({
       beforeRemoveCellMeta(row, col) {
         if (row === 0 && col === 0) {

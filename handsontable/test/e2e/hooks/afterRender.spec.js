@@ -13,7 +13,7 @@ describe('Hook', () => {
   });
 
   describe('afterRender', () => {
-    it('should be fired after the Walkontable\'s draw method call', () => {
+    it('should be fired after the Walkontable\'s draw method call', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(10, 10),
       });
@@ -29,7 +29,7 @@ describe('Hook', () => {
       expect(hot.view._wt.draw).toHaveBeenCalledBefore(afterRender);
     });
 
-    it('should be fired as slow render path', () => {
+    it('should be fired as slow render path', async() => {
       const afterRender = jasmine.createSpy('afterRender');
 
       handsontable({
@@ -45,7 +45,7 @@ describe('Hook', () => {
       expect(afterRender.calls.argsFor(0)[0]).toBe(true);
     });
 
-    it('should be fired as fast render path', () => {
+    it('should be fired as fast render path', async() => {
       const afterRender = jasmine.createSpy('afterRender');
       const hot = handsontable({
         data: createSpreadsheetData(10, 10),

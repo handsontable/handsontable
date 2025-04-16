@@ -353,7 +353,7 @@ describe('settings', () => {
         height: 300
       });
 
-      $externalButton.on('click', () => {
+      $externalButton.on('click', async() => {
         spec().$container.toggle();
       });
 

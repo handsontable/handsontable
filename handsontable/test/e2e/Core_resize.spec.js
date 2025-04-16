@@ -21,7 +21,7 @@ describe('Core resize', () => {
     }
   });
 
-  it('should not change table height after window is resized when a handsontable parent elements have not defined height', () => {
+  it('should not change table height after window is resized when a handsontable parent elements have not defined height', async() => {
     handsontable({
       data: createSpreadsheetData(10, 2),
       rowHeaders: true,
@@ -38,7 +38,7 @@ describe('Core resize', () => {
     expect(getBottomInlineStartClone().height()).toBe(0);
   });
 
-  it('should not change table height after window is resized when a handsontable parent elements have not defined height and has overflow scroll', () => {
+  it('should not change table height after window is resized when a handsontable parent elements have not defined height and has overflow scroll', async() => {
     spec().$wrapper.css({ overflow: 'scroll' });
 
     handsontable({
@@ -57,7 +57,7 @@ describe('Core resize', () => {
     expect(getBottomInlineStartClone().height()).toBe(0);
   });
 
-  it('should change table height after changing parent element height', () => {
+  it('should change table height after changing parent element height', async() => {
     handsontable({
       data: createSpreadsheetData(10, 2),
       rowHeaders: true,

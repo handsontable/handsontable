@@ -12,7 +12,7 @@ describe('Core_render', () => {
     }
   });
 
-  it('all cells should get green background', () => {
+  it('all cells should get green background', async() => {
     function greenCell(instance, td, ...args) {
       Handsontable.renderers.TextRenderer.apply(this, [instance, td, ...args]);
       td.style.backgroundColor = 'green';
@@ -66,7 +66,7 @@ describe('Core_render', () => {
     expect(spec().$container.find('.wtBorder.current').width()).toBeGreaterThan($td.width());
   });
 
-  it('should not render table twice', () => {
+  it('should not render table twice', async() => {
     const afterRender = jasmine.createSpy('afterRender');
 
     handsontable({
@@ -80,7 +80,7 @@ describe('Core_render', () => {
     expect(afterRender).toHaveBeenCalledTimes(2); // 1 from load and 1 from populateFromArray
   });
 
-  it('should render the table when there is no changes in the dataset', () => {
+  it('should render the table when there is no changes in the dataset', async() => {
     const afterRender = jasmine.createSpy('afterRender');
 
     handsontable({
@@ -101,7 +101,7 @@ describe('Core_render', () => {
     expect(afterRender).toHaveBeenCalledTimes(1);
   });
 
-  it('should run afterRenderer hook', () => {
+  it('should run afterRenderer hook', async() => {
     let lastCellProperties;
 
     handsontable({
@@ -121,7 +121,7 @@ describe('Core_render', () => {
     expect(lastCellProperties.col).toEqual(4);
   });
 
-  it('should run beforeValueRender hook', () => {
+  it('should run beforeValueRender hook', async() => {
     handsontable({
       data: [['A1', 'B1']],
       beforeValueRender(value, cellProperties) {
@@ -133,7 +133,7 @@ describe('Core_render', () => {
     expect(spec().$container.find('td:eq(1)')[0].innerHTML).toEqual('B1');
   });
 
-  it('should run beforeRenderer hook', () => {
+  it('should run beforeRenderer hook', async() => {
     let lastCellProperties;
 
     handsontable({
@@ -150,7 +150,7 @@ describe('Core_render', () => {
     expect(lastCellProperties.col).toEqual(4);
   });
 
-  it('should reflect changes applied in beforeRenderer into afterRenderer', () => {
+  it('should reflect changes applied in beforeRenderer into afterRenderer', async() => {
     const afterRenderer = jasmine.createSpy();
 
     handsontable({

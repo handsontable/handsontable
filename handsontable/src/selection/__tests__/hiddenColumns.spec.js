@@ -12,7 +12,7 @@ describe('Selection cooperation with hidden columns', () => {
     }
   });
 
-  it('should scroll viewport properly when selecting singe cell beyond the table boundaries (when some columns are hidden)', () => {
+  it('should scroll viewport properly when selecting singe cell beyond the table boundaries (when some columns are hidden)', async() => {
     const hot = handsontable({
       width: 200,
       height: 200,
@@ -32,7 +32,7 @@ describe('Selection cooperation with hidden columns', () => {
     expect(hot.view._wt.wtTable.getLastVisibleColumn()).toBe(12);
   });
 
-  it('should scroll viewport properly when selecting multiple cells beyond the table boundaries (when some columns are hidden)', () => {
+  it('should scroll viewport properly when selecting multiple cells beyond the table boundaries (when some columns are hidden)', async() => {
     const hot = handsontable({
       width: 200,
       height: 200,
@@ -52,7 +52,7 @@ describe('Selection cooperation with hidden columns', () => {
     expect(hot.view._wt.wtTable.getLastVisibleColumn()).toBe(12);
   });
 
-  it('should scroll viewport properly when selecting singe column beyond the table boundaries (when some columns are hidden)', () => {
+  it('should scroll viewport properly when selecting singe column beyond the table boundaries (when some columns are hidden)', async() => {
     const hot = handsontable({
       width: 200,
       height: 200,
@@ -72,7 +72,7 @@ describe('Selection cooperation with hidden columns', () => {
     expect(hot.view._wt.wtTable.getLastVisibleColumn()).toBe(12);
   });
 
-  it('should move to the right throughout the table when the last column is hidden', () => {
+  it('should move to the right throughout the table when the last column is hidden', async() => {
     handsontable({
       data: createSpreadsheetData(3, 3),
       autoWrapCol: true,
@@ -92,7 +92,7 @@ describe('Selection cooperation with hidden columns', () => {
     expect(getSelected()).toEqual([[1, 0, 1, 0]]);
   });
 
-  it('should not throw an error after hiding already selected column when visual selection is disabled (#dev-2084)', () => {
+  it('should not throw an error after hiding already selected column when visual selection is disabled (#dev-2084)', async() => {
     handsontable({
       data: createSpreadsheetData(3, 3),
       disableVisualSelection: true,

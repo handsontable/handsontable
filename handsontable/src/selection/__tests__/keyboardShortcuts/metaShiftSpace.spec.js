@@ -11,7 +11,7 @@ describe('Selection extending', () => {
   });
 
   describe('"Ctrl/Cmd + Shift + Space"', () => {
-    it('should reset the current selection and select all cells with headers', () => {
+    it('should reset the current selection and select all cells with headers', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,

@@ -13,14 +13,14 @@ describe('Core.isEmpty*', () => {
   });
 
   describe('isEmptyRow', () => {
-    it('should be empty row', () => {
+    it('should be empty row', async() => {
       handsontable();
       const hot = getInstance();
 
       expect(hot.isEmptyRow(0)).toEqual(true);
     });
 
-    it('should not be empty row', () => {
+    it('should not be empty row', async() => {
       handsontable();
       setDataAtCell(0, 0, 'test');
       const hot = getInstance();
@@ -28,7 +28,7 @@ describe('Core.isEmpty*', () => {
       expect(hot.isEmptyRow(0)).toEqual(false);
     });
 
-    it('should bind this to instance', () => {
+    it('should bind this to instance', async() => {
       handsontable();
       const hot = getInstance();
       const check = hot.isEmptyRow;
@@ -38,14 +38,14 @@ describe('Core.isEmpty*', () => {
   });
 
   describe('isEmptyCol', () => {
-    it('should be empty row', () => {
+    it('should be empty row', async() => {
       handsontable();
       const hot = getInstance();
 
       expect(hot.isEmptyCol(0)).toEqual(true);
     });
 
-    it('should not be empty row', () => {
+    it('should not be empty row', async() => {
       handsontable();
       setDataAtCell(0, 0, 'test');
       const hot = getInstance();
@@ -53,7 +53,7 @@ describe('Core.isEmpty*', () => {
       expect(hot.isEmptyCol(0)).toEqual(false);
     });
 
-    it('should bind this to instance', () => {
+    it('should bind this to instance', async() => {
       handsontable();
       const hot = getInstance();
       const check = hot.isEmptyCol;

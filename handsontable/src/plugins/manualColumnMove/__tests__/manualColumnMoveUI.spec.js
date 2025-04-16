@@ -114,7 +114,7 @@ describe('manualColumnMove', () => {
       expect(displayProp).toEqual('none');
     });
 
-    it('should run moving ui if mousedown was fired on sorting element when sort header action is not enabled', function() {
+    it('should run moving ui if mousedown was fired on sorting element when sort header action is not enabled', async() => {
       handsontable({
         data: createSpreadsheetData(30, 30),
         colHeaders: true,
@@ -124,12 +124,12 @@ describe('manualColumnMove', () => {
         }
       });
 
-      const $headerTH = this.$container.find('thead tr:eq(0) th:eq(6)');
+      const $headerTH = spec().$container.find('thead tr:eq(0) th:eq(6)');
       const $summaryElement = $headerTH.find('.columnSorting');
 
       $summaryElement.simulate('mousedown');
 
-      const $backlight = this.$container.find('.ht__manualColumnMove--backlight');
+      const $backlight = spec().$container.find('.ht__manualColumnMove--backlight');
 
       expect($backlight.length).toBe(0);
     });

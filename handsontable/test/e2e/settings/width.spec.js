@@ -13,7 +13,7 @@ describe('settings', () => {
       }
     });
 
-    it('should update the table width', () => {
+    it('should update the table width', async() => {
       const hot = handsontable({
         startRows: 5,
         startCols: 10,
@@ -29,7 +29,7 @@ describe('settings', () => {
       expect($(hot.rootElement).width()).not.toBe(initialWidth);
     });
 
-    it('should update the table width after setting the new value as "auto"', () => {
+    it('should update the table width after setting the new value as "auto"', async() => {
       const hot = handsontable({
         startRows: 5,
         startCols: 15,
@@ -47,7 +47,7 @@ describe('settings', () => {
       expect($(hot.rootElement).width()).not.toBe(initialWidth);
     });
 
-    it('should allow width to be a string', () => {
+    it('should allow width to be a string', async() => {
       handsontable({
         startRows: 10,
         startCols: 10,
@@ -57,7 +57,7 @@ describe('settings', () => {
       expect(spec().$container.height()).toBe(Math.ceil(window.innerHeight / 2));
     });
 
-    it('should allow width to be a number', () => {
+    it('should allow width to be a number', async() => {
       handsontable({
         startRows: 10,
         startCols: 10,
@@ -67,7 +67,7 @@ describe('settings', () => {
       expect(spec().$container.width()).toBe(107);
     });
 
-    it('should allow width to be a function', () => {
+    it('should allow width to be a function', async() => {
       handsontable({
         startRows: 10,
         startCols: 10,
@@ -79,7 +79,7 @@ describe('settings', () => {
       expect(spec().$container.width()).toBe(107);
     });
 
-    it('should allow width to be a string', () => {
+    it('should allow width to be a string', async() => {
       handsontable({
         startRows: 10,
         startCols: 10,
@@ -91,7 +91,7 @@ describe('settings', () => {
       expect(spec().$container.width()).toBeAroundValue(parentWidth * 0.5, 0.5);
     });
 
-    it('should respect width provided in inline style', () => {
+    it('should respect width provided in inline style', async() => {
       spec().$container.css({
         overflow: 'auto',
         width: '200px'
@@ -105,7 +105,7 @@ describe('settings', () => {
       expect(spec().$container.width()).toBe(200);
     });
 
-    it('should respect width provided in CSS class', () => {
+    it('should respect width provided in CSS class', async() => {
       $('<style>.myTable {overflow: auto; width: 200px}</style>').appendTo('head');
       spec().$container.addClass('myTable');
       handsontable({
@@ -118,7 +118,7 @@ describe('settings', () => {
     });
 
     describe('for columns', () => {
-      it('should set the width correctly after changes made during updateSettings', () => {
+      it('should set the width correctly after changes made during updateSettings', async() => {
         const hot = handsontable({
           startRows: 2,
           fixedColumnsStart: 2,
@@ -160,7 +160,7 @@ describe('settings', () => {
         expect(Handsontable.dom.outerWidth(leftClone.find('tbody tr:nth-child(1) td:nth-child(2)')[0])).toEqual(50);
       });
 
-      it('should set the width correctly after changes made during updateSettings when columns are a function', () => {
+      it('should set the width correctly after changes made during updateSettings when columns are a function', async() => {
         const hot = handsontable({
           startCols: 7,
           startRows: 2,

@@ -13,7 +13,7 @@ describe('Hook', () => {
   });
 
   describe('beforeChange', () => {
-    it('should be possible to remove change from the stack', () => {
+    it('should be possible to remove change from the stack', async() => {
       let output = null;
 
       handsontable({
@@ -34,7 +34,7 @@ describe('Hook', () => {
       expect(output).toEqual([[0, 0, 'a', 'test'], [1, 1, 'd', 'test']]);
     });
 
-    it('should be possible to read original value passed to the dataset setter (numeric cell type)', () => {
+    it('should be possible to read original value passed to the dataset setter (numeric cell type)', async() => {
       let dataChanges = null;
 
       handsontable({
@@ -53,7 +53,7 @@ describe('Hook', () => {
       expect(dataChanges).toEqual([[0, 0, 1, '3,45']]);
     });
 
-    it('should drop all changes when it returns false', () => {
+    it('should drop all changes when it returns false', async() => {
       handsontable({
         data: [['a', 'b'], ['c', 'd']],
         beforeChange() {

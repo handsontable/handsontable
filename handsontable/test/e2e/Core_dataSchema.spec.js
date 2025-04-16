@@ -12,7 +12,7 @@ describe('Core_dataSchema', () => {
     }
   });
 
-  it('should be equal to `getSchema()` when dataSchema is defined in settings (as object)', () => {
+  it('should be equal to `getSchema()` when dataSchema is defined in settings (as object)', async() => {
     const schema = { id: null, name: { first: null, last: null }, cars: [{ brand: null }] };
 
     handsontable({
@@ -32,7 +32,7 @@ describe('Core_dataSchema', () => {
     expect(JSON.stringify(getSchema())).toEqual(JSON.stringify(schema));
   });
 
-  it('should be equal to `getSchema()` when dataSchema is defined in settings (as object) when columns is a function', () => {
+  it('should be equal to `getSchema()` when dataSchema is defined in settings (as object) when columns is a function', async() => {
     const schema = { id: null, name: { first: null, last: null }, cars: [{ brand: null }] };
 
     handsontable({
@@ -65,7 +65,7 @@ describe('Core_dataSchema', () => {
     expect(JSON.stringify(getSchema())).toEqual(JSON.stringify(schema));
   });
 
-  it('should be equal to `getSchema()` when dataSchema is defined in settings (as function)', () => {
+  it('should be equal to `getSchema()` when dataSchema is defined in settings (as function)', async() => {
     const schema = { id: null, name: { first: null, last: null }, cars: [{ brand: null }] };
 
     handsontable({
@@ -87,7 +87,7 @@ describe('Core_dataSchema', () => {
     expect(JSON.stringify(getSchema())).toEqual(JSON.stringify(schema));
   });
 
-  it('should be equal to `getSchema()` when dataSchema is defined in settings (as function) when columns is a function', () => {
+  it('should be equal to `getSchema()` when dataSchema is defined in settings (as function) when columns is a function', async() => {
     const schema = { id: null, name: { first: null, last: null }, cars: [{ brand: null }] };
 
     handsontable({
@@ -122,7 +122,7 @@ describe('Core_dataSchema', () => {
     expect(JSON.stringify(getSchema())).toEqual(JSON.stringify(schema));
   });
 
-  it('should be equal to `getSchema()` when dataSchema is generated based on data structure', () => {
+  it('should be equal to `getSchema()` when dataSchema is generated based on data structure', async() => {
     handsontable({
       data: [
         { id: 1, name: { first: 'Alan', last: 'Pakoli' }, cars: [{ brand: 'Ford' }] }
@@ -142,7 +142,7 @@ describe('Core_dataSchema', () => {
       .toEqual(JSON.stringify({ id: null, name: { first: null, last: null }, cars: [{ brand: null }] }));
   });
 
-  it('should be equal to `getSchema()` when dataSchema is generated based on data structure when columns is a function', () => {
+  it('should be equal to `getSchema()` when dataSchema is generated based on data structure when columns is a function', async() => {
     handsontable({
       data: [
         { id: 1, name: { first: 'Alan', last: 'Pakoli' }, cars: [{ brand: 'Ford' }] }
@@ -349,7 +349,7 @@ describe('Core_dataSchema', () => {
     expect(countRows()).toEqual(6); // row should be added by keepEmptyRows
   });
 
-  it('should create new row from dataSchema (functional) - cooperation with alter method', () => {
+  it('should create new row from dataSchema (functional) - cooperation with alter method', async() => {
     handsontable({
       data: [],
       dataSchema(index) {
@@ -378,7 +378,7 @@ describe('Core_dataSchema', () => {
     expect(getDataAtCol(0)).toEqual([1000, 1001, 1002, 1003, 1004, 1005, 1006, 1007, 1008, 1009]);
   });
 
-  it('should translate prop to col, when prop is a function', () => {
+  it('should translate prop to col, when prop is a function', async() => {
     const idAccessor = createAccessorForProperty('id');
     const nameAccessor = createAccessorForProperty('name');
 
@@ -412,7 +412,7 @@ describe('Core_dataSchema', () => {
     expect(hot.propToCol(nameAccessor)).toEqual(1);
   });
 
-  it('should translate prop to col, when prop and columns is a function', () => {
+  it('should translate prop to col, when prop and columns is a function', async() => {
     const idAccessor = createAccessorForProperty('id');
     const nameAccessor = createAccessorForProperty('name');
 
@@ -453,7 +453,7 @@ describe('Core_dataSchema', () => {
     expect(hot.propToCol(nameAccessor)).toEqual(1);
   });
 
-  it('should create new row data matched to dataSchema (data type as `array`)', () => {
+  it('should create new row data matched to dataSchema (data type as `array`)', async() => {
     const spy = jasmine.createSpy();
     const hot = handsontable({
       data: [[{ id: 1 }]],
@@ -476,7 +476,7 @@ describe('Core_dataSchema', () => {
     expect(spy.calls.argsFor(1)[5]).toEqual({ id: 1 });
   });
 
-  it('should create new row data matched to dataSchema (data type as `array`) when columns is a function', () => {
+  it('should create new row data matched to dataSchema (data type as `array`) when columns is a function', async() => {
     const spy = jasmine.createSpy();
     const hot = handsontable({
       data: [[{ id: 1 }]],
@@ -509,7 +509,7 @@ describe('Core_dataSchema', () => {
     expect(spy.calls.argsFor(1)[5]).toEqual({ id: 1 });
   });
 
-  it('should create an array of objects as the source structure, when dataSchema is defined (as an object) but no data is provided', () => {
+  it('should create an array of objects as the source structure, when dataSchema is defined (as an object) but no data is provided', async() => {
     const hot = handsontable({
       startCols: 2,
       minSpareRows: 4,
@@ -524,7 +524,7 @@ describe('Core_dataSchema', () => {
     expect(dataAtRow.surname).toEqual(null);
   });
 
-  it('should create an array of objects as the source structure, when dataSchema is defined (as a function) but no data is provided', () => {
+  it('should create an array of objects as the source structure, when dataSchema is defined (as a function) but no data is provided', async() => {
     const hot = handsontable({
       startCols: 2,
       minSpareRows: 4,
@@ -541,7 +541,7 @@ describe('Core_dataSchema', () => {
     expect(dataAtRow.surname).toEqual(null);
   });
 
-  it('should create an array of objects as the source structure, when dataSchema is defined (as an array with an object) but no data is provided', () => {
+  it('should create an array of objects as the source structure, when dataSchema is defined (as an array with an object) but no data is provided', async() => {
     const hot = handsontable({
       startCols: 2,
       minSpareRows: 4,
@@ -558,7 +558,7 @@ describe('Core_dataSchema', () => {
 
   describe('Automatically generated schema', () => {
     it('should generate a data schema for the array-of-arrays datasets based on the number of columns in the first' +
-      ' row of the dataset, regardless of the `column` setting', () => {
+      ' row of the dataset, regardless of the `column` setting', async() => {
       handsontable({
         data: createSpreadsheetData(4, 4)
       });
@@ -590,7 +590,7 @@ describe('Core_dataSchema', () => {
       expect(getSchema()).toEqual([null, null, null, null]);
     });
 
-    it('should regenerate the schema when a column is added and/or removed', () => {
+    it('should regenerate the schema when a column is added and/or removed', async() => {
       handsontable({
         data: createSpreadsheetData(4, 4)
       });

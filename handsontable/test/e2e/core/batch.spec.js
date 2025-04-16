@@ -74,7 +74,7 @@ describe('Core.batch', () => {
     });
   });
 
-  it('should batch showing/hiding headers correctly', () => {
+  it('should batch showing/hiding headers correctly', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(5, 5),
       colHeaders: false,
@@ -129,7 +129,7 @@ describe('Core.batch', () => {
     expect(getInlineStartClone().height()).toBe(0);
   });
 
-  it('should batch adjusting fixed headers correctly', () => {
+  it('should batch adjusting fixed headers correctly', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(5, 5),
       fixedRowsTop: 0,

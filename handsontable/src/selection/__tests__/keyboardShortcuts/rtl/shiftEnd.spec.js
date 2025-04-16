@@ -16,7 +16,7 @@ describe('Selection extending (RTL mode)', () => {
   });
 
   describe('"Shift + End"', () => {
-    it('should extend the cell selection to the right-most cell of the current row when the cell is selected', () => {
+    it('should extend the cell selection to the right-most cell of the current row when the cell is selected', async() => {
       handsontable({
         startRows: 5,
         startCols: 5
@@ -35,7 +35,7 @@ describe('Selection extending (RTL mode)', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 1,4']);
     });
 
-    it('should extend the cell selection to the right-most cell of the current row starting from the focus position', () => {
+    it('should extend the cell selection to the right-most cell of the current row starting from the focus position', async() => {
       handsontable({
         startRows: 5,
         startCols: 5,
@@ -56,7 +56,7 @@ describe('Selection extending (RTL mode)', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: 1,2 to: 3,4']);
     });
 
-    it('should extend the column header selection to the right-most column header', () => {
+    it('should extend the column header selection to the right-most column header', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,

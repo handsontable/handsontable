@@ -12,7 +12,7 @@ describe('Selection', () => {
     }
   });
 
-  it('should call `afterSelectionEnd` when user finishes selection by releasing SHIFT key (3 times)', () => {
+  it('should call `afterSelectionEnd` when user finishes selection by releasing SHIFT key (3 times)', async() => {
     let tick = 0;
 
     handsontable({
@@ -42,7 +42,7 @@ describe('Selection', () => {
     expect(tick).toEqual(4);
   });
 
-  it('should call `afterSelectionEnd` when user finishes selection by releasing SHIFT key (1 time)', () => {
+  it('should call `afterSelectionEnd` when user finishes selection by releasing SHIFT key (1 time)', async() => {
     let tick = 0;
 
     handsontable({
@@ -72,7 +72,7 @@ describe('Selection', () => {
     expect(tick).toEqual(2);
   });
 
-  it('should move focus to selected cell', () => {
+  it('should move focus to selected cell', async() => {
     const $input = $('<input>').appendTo(document.body);
 
     handsontable({
@@ -87,7 +87,7 @@ describe('Selection', () => {
     $input.remove();
   });
 
-  it('should not overwrite background color of the cells with custom CSS classes', () => {
+  it('should not overwrite background color of the cells with custom CSS classes', async() => {
     handsontable({
       width: 300,
       height: 150,
@@ -103,7 +103,7 @@ describe('Selection', () => {
     expect(window.getComputedStyle(getCell(1, 1))['background-color']).toBe('rgb(255, 0, 0)');
   });
 
-  it('should scroll viewport after partially visible column\'s header is clicked, without vertical scroll manipulation', () => {
+  it('should scroll viewport after partially visible column\'s header is clicked, without vertical scroll manipulation', async() => {
     const hot = handsontable({
       width: 200,
       height: 100,
@@ -127,7 +127,7 @@ describe('Selection', () => {
     expect(mainHolder.scrollTop).toBe(200);
   });
 
-  it('should render selection borders with set proper z-indexes', () => {
+  it('should render selection borders with set proper z-indexes', async() => {
     const hot = handsontable({
       width: 200,
       height: 200,
@@ -148,7 +148,7 @@ describe('Selection', () => {
   it('should allow to scroll the table when a whole column is selected and table is longer than it\'s container', async() => {
     let errCount = 0;
 
-    $(window).on('error.selectionTest', () => {
+    $(window).on('error.selectionTest', async() => {
       errCount += 1;
     });
 
@@ -180,7 +180,7 @@ describe('Selection', () => {
     $(window).off('error.selectionTest');
   });
 
-  it('should scroll to the end of the selection, when selecting cells using the keyboard', () => {
+  it('should scroll to the end of the selection, when selecting cells using the keyboard', async() => {
     const hot = handsontable({
       height: 300,
       width: 300,
@@ -239,7 +239,7 @@ describe('Selection', () => {
     expect(hot.view._wt.wtTable.getLastVisibleRow()).toEqual(lastVisibleRow + 3);
   });
 
-  it('should scroll to the last selected row or column of the selection, when user uses the keyboard', () => {
+  it('should scroll to the last selected row or column of the selection, when user uses the keyboard', async() => {
     const hot = handsontable({
       height: 300,
       width: 300,
@@ -287,7 +287,7 @@ describe('Selection', () => {
     expect(mainHolder.scrollTop).toBeGreaterThan(0);
   });
 
-  it('should scroll viewport after partially visible row\'s header is clicked, without horizontal scroll manipulation', () => {
+  it('should scroll viewport after partially visible row\'s header is clicked, without horizontal scroll manipulation', async() => {
     const hot = handsontable({
       width: 200,
       height: 100,
@@ -311,7 +311,7 @@ describe('Selection', () => {
     expect(mainHolder.scrollLeft).toBe(200);
   });
 
-  it('should select the entire row of a partially fixed table after row header is clicked', () => {
+  it('should select the entire row of a partially fixed table after row header is clicked', async() => {
     handsontable({
       startRows: 5,
       startCols: 5,
@@ -380,7 +380,7 @@ describe('Selection', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it('should change selected coords by modifying coords object via `modifyTransformStart` hook', () => {
+  it('should change selected coords by modifying coords object via `modifyTransformStart` hook', async() => {
     const hot = handsontable({
       rowHeaders: true,
       colHeaders: true,
@@ -408,7 +408,7 @@ describe('Selection', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it('should change selected coords by modifying coords object via `modifyTransformEnd` hook', () => {
+  it('should change selected coords by modifying coords object via `modifyTransformEnd` hook', async() => {
     const hot = handsontable({
       rowHeaders: true,
       colHeaders: true,
@@ -436,7 +436,7 @@ describe('Selection', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it('should indicate is coords is out of bounds via `afterModifyTransformStart` hook', () => {
+  it('should indicate is coords is out of bounds via `afterModifyTransformStart` hook', async() => {
     const spy = jasmine.createSpy();
     const hot = handsontable({
       startRows: 5,
@@ -474,7 +474,7 @@ describe('Selection', () => {
     expect(spy.calls.mostRecent().args[2]).toBe(0);
   });
 
-  it('should indicate is coords is out of bounds via `afterModifyTransformEnd` hook', () => {
+  it('should indicate is coords is out of bounds via `afterModifyTransformEnd` hook', async() => {
     const spy = jasmine.createSpy();
     const hot = handsontable({
       startRows: 5,
@@ -591,7 +591,7 @@ describe('Selection', () => {
     expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
   });
 
-  it('should keep viewport when removing last column', () => {
+  it('should keep viewport when removing last column', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(20, 2),
       width: 300,
@@ -608,7 +608,7 @@ describe('Selection', () => {
   });
 
   describe('multiple selection mode', () => {
-    it('should select cells by using two layers when CTRL key is pressed (default mode of the selectionMode option)', () => {
+    it('should select cells by using two layers when CTRL key is pressed (default mode of the selectionMode option)', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -657,7 +657,7 @@ describe('Selection', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should be disallowed to select non-consecutive cells when selectionMode is set as `single`', () => {
+    it('should be disallowed to select non-consecutive cells when selectionMode is set as `single`', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -707,7 +707,7 @@ describe('Selection', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should be allowed to select consecutive cells when selectionMode is set as `range`', () => {
+    it('should be allowed to select consecutive cells when selectionMode is set as `range`', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -753,7 +753,7 @@ describe('Selection', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should be disallowed to select non-consecutive cells when selectionMode is set as `range`', () => {
+    it('should be disallowed to select non-consecutive cells when selectionMode is set as `range`', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -803,7 +803,7 @@ describe('Selection', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should properly colorize selection layers including layer intersections', () => {
+    it('should properly colorize selection layers including layer intersections', async() => {
       handsontable({
         startRows: 21,
         startCols: 30,
@@ -889,7 +889,7 @@ describe('Selection', () => {
       /* eslint-enable max-len */
     });
 
-    it('should call afterSelection and afterSelectionEnd hooks with proper arguments', () => {
+    it('should call afterSelection and afterSelectionEnd hooks with proper arguments', async() => {
       const hooks = jasmine.createSpyObj('hooks', ['afterSelection', 'afterSelectionEnd']);
 
       handsontable({
@@ -1044,7 +1044,7 @@ describe('Selection', () => {
       expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([10, 10, 10, 25, 10]);
     });
 
-    it('should call afterSelectionByProp and afterSelectionEndByProp hooks with proper arguments', () => {
+    it('should call afterSelectionByProp and afterSelectionEndByProp hooks with proper arguments', async() => {
       const hooks = jasmine.createSpyObj('hooks', ['afterSelection', 'afterSelectionEnd']);
 
       handsontable({
@@ -1200,7 +1200,7 @@ describe('Selection', () => {
   });
 
   describe('alter the table', () => {
-    it('should transform the selection down by amount of added rows when they added before the last selection', () => {
+    it('should transform the selection down by amount of added rows when they added before the last selection', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -1237,7 +1237,7 @@ describe('Selection', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should transform the selection down without changing the selection origin direction', () => {
+    it('should transform the selection down without changing the selection origin direction', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -1264,7 +1264,7 @@ describe('Selection', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should transform the selection down without changing the origin focus position', () => {
+    it('should transform the selection down without changing the origin focus position', async() => {
       const hot = handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -1292,7 +1292,7 @@ describe('Selection', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should transform the header selection down by amount of added rows when they added before the selection', () => {
+    it('should transform the header selection down by amount of added rows when they added before the selection', async() => {
       const hot = handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -1321,7 +1321,7 @@ describe('Selection', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should not transform the selection down by amount of added rows when they added after the last selection', () => {
+    it('should not transform the selection down by amount of added rows when they added after the last selection', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -1357,7 +1357,7 @@ describe('Selection', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should not transform the header selection down by amount of added rows when they added after the selection', () => {
+    it('should not transform the header selection down by amount of added rows when they added after the selection', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -1388,7 +1388,7 @@ describe('Selection', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should transform the selection right by amount of added columns when they added before the last selection', () => {
+    it('should transform the selection right by amount of added columns when they added before the last selection', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -1422,7 +1422,7 @@ describe('Selection', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should transform the selection right without changing the selection origin direction', () => {
+    it('should transform the selection right without changing the selection origin direction', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -1447,7 +1447,7 @@ describe('Selection', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should transform the selection down without changing the origin focus position', () => {
+    it('should transform the selection down without changing the origin focus position', async() => {
       const hot = handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -1473,7 +1473,7 @@ describe('Selection', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should transform the header selection right by amount of added columns when they added before the selection', () => {
+    it('should transform the header selection right by amount of added columns when they added before the selection', async() => {
       const hot = handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -1502,7 +1502,7 @@ describe('Selection', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should not transform the selection right by amount of added columns when they added after the last selection', () => {
+    it('should not transform the selection right by amount of added columns when they added after the last selection', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -1535,7 +1535,7 @@ describe('Selection', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should not transform the header selection right by amount of added columns when they added after the selection', () => {
+    it('should not transform the header selection right by amount of added columns when they added after the selection', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -1563,7 +1563,7 @@ describe('Selection', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should transform removed last column header selection to the last visible column', () => {
+    it('should transform removed last column header selection to the last visible column', async() => {
       const hot = handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -1597,7 +1597,7 @@ describe('Selection', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should transform removed last column selection to the last visible column', () => {
+    it('should transform removed last column selection to the last visible column', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -1629,7 +1629,7 @@ describe('Selection', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should transform removed last row header selection to the last visible row', () => {
+    it('should transform removed last row header selection to the last visible row', async() => {
       const hot = handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -1664,7 +1664,7 @@ describe('Selection', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should transform removed last row selection to the last visible row', () => {
+    it('should transform removed last row selection to the last visible row', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -1698,7 +1698,7 @@ describe('Selection', () => {
     });
   });
 
-  it('should select cells properly while using non-consecutive selection for two instances', () => {
+  it('should select cells properly while using non-consecutive selection for two instances', async() => {
     const hot1 = handsontable({});
     const container2 = $(`<div id="${id}2" style="width: 300px; height: 200px; overflow: auto"></div>`)
       .appendTo('body');
@@ -1770,7 +1770,7 @@ describe('Selection', () => {
       this.$iframe.remove();
     });
 
-    it('should add `current` css class to selected cell', () => {
+    it('should add `current` css class to selected cell', async() => {
       const iframeHot = spec().$iframeContainer.handsontable().handsontable('getInstance');
 
       iframeHot.selectCell(1, 1);

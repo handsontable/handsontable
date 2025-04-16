@@ -12,7 +12,7 @@ describe('Core.resumeExecution', () => {
     }
   });
 
-  it('should resume the table execution process and update the internal cache', () => {
+  it('should resume the table execution process and update the internal cache', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(5, 5),
     });
@@ -42,7 +42,7 @@ describe('Core.resumeExecution', () => {
     });
   });
 
-  it('should update the cache only on the last resume call (a call that resets the counter of nested suspend calls)', () => {
+  it('should update the cache only on the last resume call (a call that resets the counter of nested suspend calls)', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(5, 5),
     });

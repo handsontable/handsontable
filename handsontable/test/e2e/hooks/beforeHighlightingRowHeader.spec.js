@@ -29,7 +29,7 @@ describe('Hook', () => {
   }
 
   describe('beforeHighlightingRowHeader', () => {
-    it('should be fired when the header selection is caused by selected cells', () => {
+    it('should be fired when the header selection is caused by selected cells', async() => {
       const spy = jasmine.createSpy();
 
       handsontable({
@@ -55,7 +55,7 @@ describe('Hook', () => {
       ]);
     });
 
-    it('should be fired when the header selection is caused by selected row headers', () => {
+    it('should be fired when the header selection is caused by selected row headers', async() => {
       const spy = jasmine.createSpy();
 
       handsontable({

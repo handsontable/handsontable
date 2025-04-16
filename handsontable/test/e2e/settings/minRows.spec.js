@@ -14,7 +14,7 @@ describe('settings', () => {
     });
 
     describe('works on init', () => {
-      it('should show data properly when `minRows` is set to 3', () => {
+      it('should show data properly when `minRows` is set to 3', async() => {
         handsontable({
           data: createSpreadsheetData(1, 1),
           minRows: 3
@@ -29,7 +29,7 @@ describe('settings', () => {
     });
 
     describe('update settings works', () => {
-      it('should show data properly after `minRows` is updated to 3', () => {
+      it('should show data properly after `minRows` is updated to 3', async() => {
         handsontable({
           data: createSpreadsheetData(1, 1)
         });
@@ -46,7 +46,7 @@ describe('settings', () => {
       });
 
       // Currently this is a bug (#6571)
-      xit('should show data properly after `minRows` is updated from 5 to 3', () => {
+      xit('should show data properly after `minRows` is updated from 5 to 3', async() => {
         handsontable({
           data: createSpreadsheetData(1, 1),
           minRows: 5
@@ -65,7 +65,7 @@ describe('settings', () => {
     });
 
     describe('cell meta', () => {
-      it('should be rendered as is without shifting the cell meta objects', () => {
+      it('should be rendered as is without shifting the cell meta objects', async() => {
         handsontable({
           data: createSpreadsheetData(1, 1),
           minRows: 3,

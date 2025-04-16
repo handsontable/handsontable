@@ -26,7 +26,7 @@ describe('Selection navigation', () => {
   }
 
   describe('"PageUp"', () => {
-    it.forTheme('classic')('should move the cell selection up by the height of the table viewport', () => {
+    it.forTheme('classic')('should move the cell selection up by the height of the table viewport', async() => {
       handsontable({
         width: 180,
         height: 100, // 100/23 (default cell height) rounding down is 4. So PageUp will move up one per 4 rows
@@ -120,7 +120,7 @@ describe('Selection navigation', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: 0,1 to: 0,1']);
     });
 
-    it.forTheme('main')('should move the cell selection up by the height of the table viewport', () => {
+    it.forTheme('main')('should move the cell selection up by the height of the table viewport', async() => {
       handsontable({
         width: 180,
         height: 126, // 126/29 (default cell height) rounding down is 4. So PageUp will move up one per 4 rows
@@ -214,7 +214,7 @@ describe('Selection navigation', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: 0,1 to: 0,1']);
     });
 
-    it.forTheme('horizon')('should move the cell selection up by the height of the table viewport', () => {
+    it.forTheme('horizon')('should move the cell selection up by the height of the table viewport', async() => {
       handsontable({
         width: 180,
         height: 161, // 161/37 (default cell height) rounding down is 4. So PageUp will move up one per 4 rows
@@ -308,7 +308,7 @@ describe('Selection navigation', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: 0,1 to: 0,1']);
     });
 
-    it('should move the cell selection up to the first cell', () => {
+    it('should move the cell selection up to the first cell', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -344,7 +344,7 @@ describe('Selection navigation', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: 0,2 to: 0,2']);
     });
 
-    it('should move the cell selection up to the first cell and then to the last cell of the previous column (autoWrap on)', () => {
+    it('should move the cell selection up to the first cell and then to the last cell of the previous column (autoWrap on)', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -382,7 +382,7 @@ describe('Selection navigation', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 4,1 from: 4,1 to: 4,1']);
     });
 
-    it('should move the cell selection up to the first column header and then to the last cell of the previous column (autoWrap on, navigableHeaders on)', () => {
+    it('should move the cell selection up to the first column header and then to the last cell of the previous column (autoWrap on, navigableHeaders on)', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -553,7 +553,7 @@ describe('Selection navigation', () => {
       expect(hot.view.getFirstFullyVisibleRow()).toBe(0);
     });
 
-    it('should move the cell selection up for oversized row', () => {
+    it('should move the cell selection up for oversized row', async() => {
       handsontable({
         width: 180,
         height: 100,

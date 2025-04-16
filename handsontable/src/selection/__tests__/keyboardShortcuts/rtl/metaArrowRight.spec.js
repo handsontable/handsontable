@@ -16,7 +16,7 @@ describe('Selection navigation (RTL mode)', () => {
   });
 
   describe('"Ctrl/Cmd + ArrowRight"', () => {
-    it('should move the cell selection to the most right cell in a row', () => {
+    it('should move the cell selection to the most right cell in a row', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -67,7 +67,7 @@ describe('Selection navigation (RTL mode)', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should move the cell selection to the most right cell in a row (navigableHeaders on)', () => {
+    it('should move the cell selection to the most right cell in a row (navigableHeaders on)', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -119,7 +119,7 @@ describe('Selection navigation (RTL mode)', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should move the header selection to the most right column header in a row (navigableHeaders on)', () => {
+    it('should move the header selection to the most right column header in a row (navigableHeaders on)', async() => {
       handsontable({
         startRows: 5,
         startCols: 5,

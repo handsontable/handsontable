@@ -27,15 +27,15 @@ describe('MergeCells keyboard shortcut', () => {
       });
 
       await selectCell(2, 0);
-      await keydownUp('tab');
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 3,3']);
 
-      await keydownUp('tab');
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,4 from: 2,4 to: 2,4']);
 
-      await keydownUp('tab');
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toBeUndefined();
     });
@@ -53,27 +53,27 @@ describe('MergeCells keyboard shortcut', () => {
       });
 
       await selectCell(2, 0);
-      await keydownUp('tab');
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 3,3']);
 
-      await keydownUp('tab');
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,4 from: 2,4 to: 2,4']);
 
-      await keydownUp('tab');
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,0 from: 3,0 to: 3,0']);
 
-      await keydownUp('tab');
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 3,3']);
 
-      await keydownUp('tab');
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,4 from: 3,4 to: 3,4']);
 
-      await keydownUp('tab');
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 4,0 from: 4,0 to: 4,0']);
     });
@@ -90,23 +90,23 @@ describe('MergeCells keyboard shortcut', () => {
 
       await selectCell(1, 1, 5, 5);
       hot.selection.setRangeFocus(cellCoords(3, 1));
-      await keydownUp('tab');
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,5 from: 1,1 to: 5,5']);
 
-      await keydownUp('tab');
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 4,1 from: 1,1 to: 5,5']);
 
-      await keydownUp('tab');
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 4,5 from: 1,1 to: 5,5']);
 
-      await keydownUp('tab');
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 5,1 from: 1,1 to: 5,5']);
 
-      await keydownUp('tab');
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 5,2 from: 1,1 to: 5,5']);
     });
@@ -123,11 +123,11 @@ describe('MergeCells keyboard shortcut', () => {
       });
 
       await selectCell(0, 0, 5, 2);
-      await keydownUp('tab');
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,0 from: 0,0 to: 5,2']);
 
-      await keydownUp('tab');
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: 0,0 to: 5,2']);
     });
@@ -144,11 +144,11 @@ describe('MergeCells keyboard shortcut', () => {
       });
 
       await selectCell(0, 0, 2, 5);
-      await keydownUp('tab');
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,3 from: 0,0 to: 2,5']);
 
-      await keydownUp('tab');
+      await keyDownUp('tab');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: 0,0 to: 2,5']);
     });
@@ -185,7 +185,7 @@ describe('MergeCells keyboard shortcut', () => {
       ];
 
       for (let i = 0; i < focusOrder.length; i++) {
-        await keydownUp('tab');
+        await keyDownUp('tab');
         expect(getSelectedRange()).toEqualCellRange([`highlight: ${focusOrder[i]} from: 1,1 to: 9,6`]);
       }
 
@@ -233,7 +233,7 @@ describe('MergeCells keyboard shortcut', () => {
       ];
 
       for (let i = 0; i < focusOrder.length; i++) {
-        await keydownUp('tab');
+        await keyDownUp('tab');
         expect(getSelectedRange()).toEqualCellRange([`highlight: ${focusOrder[i]} from: 1,1 to: 9,7`]);
       }
 
@@ -281,7 +281,7 @@ describe('MergeCells keyboard shortcut', () => {
       ];
 
       for (let i = 0; i < focusOrder.length; i++) {
-        await keydownUp('tab');
+        await keyDownUp('tab');
         expect(getSelectedRange()).toEqualCellRange([`highlight: ${focusOrder[i]} from: 1,7 to: 9,1`]);
       }
 
@@ -329,7 +329,7 @@ describe('MergeCells keyboard shortcut', () => {
       ];
 
       for (let i = 0; i < focusOrder.length; i++) {
-        await keydownUp('tab');
+        await keyDownUp('tab');
         expect(getSelectedRange()).toEqualCellRange([`highlight: ${focusOrder[i]} from: 9,7 to: 1,1`]);
       }
 
@@ -377,7 +377,7 @@ describe('MergeCells keyboard shortcut', () => {
       ];
 
       for (let i = 0; i < focusOrder.length; i++) {
-        await keydownUp('tab');
+        await keyDownUp('tab');
         expect(getSelectedRange()).toEqualCellRange([`highlight: ${focusOrder[i]} from: 9,1 to: 1,7`]);
       }
 
@@ -417,7 +417,7 @@ describe('MergeCells keyboard shortcut', () => {
       ];
 
       for (let i = 0; i < focusOrder.length; i++) {
-        await keydownUp('tab');
+        await keyDownUp('tab');
         expect(getSelectedRange()).toEqualCellRange([`highlight: ${focusOrder[i]} from: -1,2 to: 10,4`]);
       }
 
@@ -458,7 +458,7 @@ describe('MergeCells keyboard shortcut', () => {
       ];
 
       for (let i = 0; i < focusOrder.length; i++) {
-        await keydownUp('tab');
+        await keyDownUp('tab');
         expect(getSelectedRange()).toEqualCellRange([`highlight: ${focusOrder[i]} from: -1,2 to: 10,4`]);
       }
 
@@ -498,7 +498,7 @@ describe('MergeCells keyboard shortcut', () => {
       ];
 
       for (let i = 0; i < focusOrder.length; i++) {
-        await keydownUp('tab');
+        await keyDownUp('tab');
         expect(getSelectedRange()).toEqualCellRange([`highlight: ${focusOrder[i]} from: -1,4 to: 10,2`]);
       }
 
@@ -540,7 +540,7 @@ describe('MergeCells keyboard shortcut', () => {
       ];
 
       for (let i = 0; i < focusOrder.length; i++) {
-        await keydownUp('tab');
+        await keyDownUp('tab');
         expect(getSelectedRange()).toEqualCellRange([`highlight: ${focusOrder[i]} from: -1,4 to: 10,2`]);
       }
 
@@ -576,7 +576,7 @@ describe('MergeCells keyboard shortcut', () => {
       ];
 
       for (let i = 0; i < focusOrder.length; i++) {
-        await keydownUp('tab');
+        await keyDownUp('tab');
         expect(getSelectedRange()).toEqualCellRange([`highlight: ${focusOrder[i]} from: 2,-1 to: 4,9`]);
       }
 
@@ -613,7 +613,7 @@ describe('MergeCells keyboard shortcut', () => {
       ];
 
       for (let i = 0; i < focusOrder.length; i++) {
-        await keydownUp('tab');
+        await keyDownUp('tab');
         expect(getSelectedRange()).toEqualCellRange([`highlight: ${focusOrder[i]} from: 2,-1 to: 4,9`]);
       }
 
@@ -649,7 +649,7 @@ describe('MergeCells keyboard shortcut', () => {
       ];
 
       for (let i = 0; i < focusOrder.length; i++) {
-        await keydownUp('tab');
+        await keyDownUp('tab');
         expect(getSelectedRange()).toEqualCellRange([`highlight: ${focusOrder[i]} from: 4,-1 to: 2,9`]);
       }
 
@@ -686,7 +686,7 @@ describe('MergeCells keyboard shortcut', () => {
       ];
 
       for (let i = 0; i < focusOrder.length; i++) {
-        await keydownUp('tab');
+        await keyDownUp('tab');
         expect(getSelectedRange()).toEqualCellRange([`highlight: ${focusOrder[i]} from: 4,-1 to: 2,9`]);
       }
 
@@ -740,7 +740,7 @@ describe('MergeCells keyboard shortcut', () => {
       ];
 
       for (let i = 0; i < focusOrder.length; i++) {
-        await keydownUp('tab');
+        await keyDownUp('tab');
         expect(getSelectedRange()).toEqualCellRange([`highlight: ${focusOrder[i]} from: -1,0 to: 10,2`]);
       }
 
@@ -794,7 +794,7 @@ describe('MergeCells keyboard shortcut', () => {
       ];
 
       for (let i = 0; i < focusOrder.length; i++) {
-        await keydownUp('tab');
+        await keyDownUp('tab');
         expect(getSelectedRange()).toEqualCellRange([`highlight: ${focusOrder[i]} from: -1,2 to: 10,0`]);
       }
 
@@ -841,7 +841,7 @@ describe('MergeCells keyboard shortcut', () => {
       ];
 
       for (let i = 0; i < focusOrder.length; i++) {
-        await keydownUp('tab');
+        await keyDownUp('tab');
         expect(getSelectedRange()).toEqualCellRange([`highlight: ${focusOrder[i]} from: 5,-1 to: 8,9`]);
       }
 
@@ -888,7 +888,7 @@ describe('MergeCells keyboard shortcut', () => {
       ];
 
       for (let i = 0; i < focusOrder.length; i++) {
-        await keydownUp('tab');
+        await keyDownUp('tab');
         expect(getSelectedRange()).toEqualCellRange([`highlight: ${focusOrder[i]} from: 8,-1 to: 5,9`]);
       }
 

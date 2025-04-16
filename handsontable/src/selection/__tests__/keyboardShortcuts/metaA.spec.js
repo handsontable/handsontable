@@ -11,7 +11,7 @@ describe('Selection extending', () => {
   });
 
   describe('"Ctrl/Cmd + A"', () => {
-    it('should reset the current selection and select all cells without headers', () => {
+    it('should reset the current selection and select all cells without headers', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -34,7 +34,7 @@ describe('Selection extending', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: -1,-1 to: 4,4']);
     });
 
-    it('should do nothing when pressing the shortcut with a header being selected', () => {
+    it('should do nothing when pressing the shortcut with a header being selected', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -56,7 +56,7 @@ describe('Selection extending', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,0 from: -1,0 to: -1,0']);
     });
 
-    it('should not throw an error when there is no selection', () => {
+    it('should not throw an error when there is no selection', async() => {
       const spy = jasmine.createSpyObj('error', ['test']);
       const prevError = window.onerror;
 

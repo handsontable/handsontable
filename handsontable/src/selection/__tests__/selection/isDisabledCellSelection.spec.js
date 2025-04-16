@@ -13,7 +13,7 @@ describe('Selection', () => {
   });
 
   describe('`isDisabledCellSelection` option', () => {
-    it('should disable any kind of selection when set as `true` on table settings layer', () => {
+    it('should disable any kind of selection when set as `true` on table settings layer', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -66,7 +66,7 @@ describe('Selection', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should disable all "current" selection types', () => {
+    it('should disable all "current" selection types', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -96,7 +96,7 @@ describe('Selection', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should disable all "area" selection types', () => {
+    it('should disable all "area" selection types', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -126,7 +126,7 @@ describe('Selection', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should disable all "header" selection types', () => {
+    it('should disable all "header" selection types', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -156,7 +156,7 @@ describe('Selection', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should disable all "header" and "current" selection types', () => {
+    it('should disable all "header" and "current" selection types', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -186,7 +186,7 @@ describe('Selection', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should disable all "area" and "header" selection types', () => {
+    it('should disable all "area" and "header" selection types', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -216,7 +216,7 @@ describe('Selection', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should disable all kind of selection types for specific rows and columns (navigableHeaders: false)', () => {
+    it('should disable all kind of selection types for specific rows and columns (navigableHeaders: false)', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -266,7 +266,7 @@ describe('Selection', () => {
     });
 
     // headers doesn't support `disableVisualSelection` option defined in the cell meta
-    it('should not disable all kind of selection types for specific rows and columns (navigableHeaders: true)', () => {
+    it('should not disable all kind of selection types for specific rows and columns (navigableHeaders: true)', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -314,7 +314,7 @@ describe('Selection', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should enable the selection for specific rows and columns when the whole table has disabled it', () => {
+    it('should enable the selection for specific rows and columns when the whole table has disabled it', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -364,7 +364,7 @@ describe('Selection', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should disable the "current" selection type for specific rows and columns', () => {
+    it('should disable the "current" selection type for specific rows and columns', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -413,7 +413,7 @@ describe('Selection', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should disable the "area" selection type for specific rows and columns', () => {
+    it('should disable the "area" selection type for specific rows and columns', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -462,7 +462,7 @@ describe('Selection', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should disable the "header" selection type for specific rows and columns', () => {
+    it('should disable the "header" selection type for specific rows and columns', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -507,7 +507,7 @@ describe('Selection', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should disable the selection highlight after call updateData()', () => {
+    it('should disable the selection highlight after call updateData()', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,

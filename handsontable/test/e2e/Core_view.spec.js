@@ -74,7 +74,7 @@ describe('Core_view', () => {
     expect(spec().$container.find('.undefined').length).toBe(0);
   });
 
-  it('should properly calculate dimensions of the table if a container has border', () => {
+  it('should properly calculate dimensions of the table if a container has border', async() => {
     spec().$container[0].style.width = '250px';
     spec().$container[0].style.height = '200px';
     spec().$container[0].style.overflow = 'hidden';
@@ -103,7 +103,7 @@ describe('Core_view', () => {
     expect(masterScrollHeight - scrollbarSize).toBe(leftScrollHeight);
   });
 
-  it('should scroll viewport when partially visible cell is clicked', () => {
+  it('should scroll viewport when partially visible cell is clicked', async() => {
     spec().$container[0].style.width = '400px';
     spec().$container[0].style.height = '60px';
 
@@ -689,7 +689,7 @@ describe('Core_view', () => {
       data: createSpreadsheetData(20, 3)
     });
 
-    hot.addHook('afterViewRender', () => {
+    hot.addHook('afterViewRender', async() => {
       hot.view._wt.wtTable.holder.style.overflow = 'scroll';
       hot.view._wt.wtTable.holder.style.width = '220px';
     });
@@ -701,7 +701,7 @@ describe('Core_view', () => {
     expect(hot.view._wt.wtTable.holder.style.width).toBe('220px');
   });
 
-  it('should correctly calculate the width of the top overlay after the vertical scrollbar disappears (#dev-954)', () => {
+  it('should correctly calculate the width of the top overlay after the vertical scrollbar disappears (#dev-954)', async() => {
     handsontable({
       data: createSpreadsheetData(10, 10),
       colHeaders: true,
@@ -727,7 +727,7 @@ describe('Core_view', () => {
   });
 
   it.forTheme('classic')('should not extend the selection to the cell under the mouse pointer ' +
-    'after the viewport is moved (#dev-1479)', () => {
+    'after the viewport is moved (#dev-1479)', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
     });
@@ -751,7 +751,7 @@ describe('Core_view', () => {
   });
 
   it.forTheme('main')('should not extend the selection to the cell under the mouse pointer after ' +
-    'the viewport is moved (#dev-1479)', () => {
+    'the viewport is moved (#dev-1479)', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
     });
@@ -775,7 +775,7 @@ describe('Core_view', () => {
   });
 
   it.forTheme('horizon')('should not extend the selection to the cell under the mouse pointer after ' +
-    'the viewport is moved (#dev-1479)', () => {
+    'the viewport is moved (#dev-1479)', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
     });
@@ -798,7 +798,7 @@ describe('Core_view', () => {
     expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: 1,2 to: 1,2']);
   });
 
-  it('should update the `scrollableElement` value of the Overlays after changing the table view size settings', () => {
+  it('should update the `scrollableElement` value of the Overlays after changing the table view size settings', async() => {
     const hot = handsontable({
       rowHeaders: true,
       colHeaders: true,
@@ -904,7 +904,7 @@ describe('Core_view', () => {
   });
 
   describe('fixed column row heights', () => {
-    it('should be the same as the row heights in the main table', () => {
+    it('should be the same as the row heights in the main table', async() => {
       const hot = handsontable({
         data: [['A', 'B', 'C', 'D'], ['a', 'b', 'c\nc', 'd'], ['aa', 'bb', 'cc', 'dd']],
         startRows: 3,
@@ -919,7 +919,7 @@ describe('Core_view', () => {
       expect(hot.getCell(1, 2).clientHeight).toEqual(hot.getCell(1, 1).clientHeight);
     });
 
-    it('should be the same as the row heights in the main table (after scroll)', () => {
+    it('should be the same as the row heights in the main table (after scroll)', async() => {
       const myData = createSpreadsheetData(20, 4);
 
       myData[1][3] = 'very\nlong\ntext';
@@ -948,7 +948,7 @@ describe('Core_view', () => {
       expect(cloneTD.clientHeight).toEqual(masterTD.clientHeight);
     });
 
-    it('should be the same as the row heights in the main table (after scroll, in corner)', () => {
+    it('should be the same as the row heights in the main table (after scroll, in corner)', async() => {
       const myData = createSpreadsheetData(20, 4);
 
       myData[1][3] = 'very\nlong\ntext';

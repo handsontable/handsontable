@@ -13,7 +13,7 @@ describe('settings', () => {
   });
 
   describe('viewportRowRenderingThreshold', () => {
-    it('should be possible to change the threshold in the rendering engine', () => {
+    it('should be possible to change the threshold in the rendering engine', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(50, 50),
         width: 100,

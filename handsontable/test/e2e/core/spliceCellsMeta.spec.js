@@ -12,7 +12,7 @@ describe('Core.spliceCellsMeta', () => {
     }
   });
 
-  it('should splice the cell meta array analogously to the native `splice` method', () => {
+  it('should splice the cell meta array analogously to the native `splice` method', async() => {
     handsontable({
       cell: [
         { row: 0, col: 1, myId: 1 },
@@ -41,7 +41,7 @@ describe('Core.spliceCellsMeta', () => {
     expect(metaAtRow[0].myId).toBe(5);
   });
 
-  it('should remove cell meta objects from the collection', () => {
+  it('should remove cell meta objects from the collection', async() => {
     handsontable();
 
     getCellMeta(0, 1)._test = 'foo-0x1';
@@ -59,7 +59,7 @@ describe('Core.spliceCellsMeta', () => {
     expect(getCellMeta(2, 10)._test).toBeUndefined();
   });
 
-  it('should add new cell meta object to the collection', () => {
+  it('should add new cell meta object to the collection', async() => {
     handsontable();
 
     getCellMeta(0, 1)._test = 'foo-0x1';
@@ -80,7 +80,7 @@ describe('Core.spliceCellsMeta', () => {
     expect(getCellMeta(3, 10)._test).toBeUndefined();
   });
 
-  it('should add new cell meta objects to the collection', () => {
+  it('should add new cell meta objects to the collection', async() => {
     handsontable();
 
     getCellMeta(0, 1)._test = 'foo-0x1';
@@ -105,7 +105,7 @@ describe('Core.spliceCellsMeta', () => {
     expect(getCellMeta(5, 10)._test).toBeUndefined();
   });
 
-  it('should throw an error when a new row meta collection is passed in an unexpected format', () => {
+  it('should throw an error when a new row meta collection is passed in an unexpected format', async() => {
     handsontable();
 
     getCellMeta(0, 1)._test = 'foo-0x1';

@@ -13,7 +13,7 @@ describe('Hook', () => {
   });
 
   describe('beforeCompositionStart', () => {
-    it('should be fired after typing characters using IME', () => {
+    it('should be fired after typing characters using IME', async() => {
       const beforeCompositionStart = jasmine.createSpy('beforeCompositionStart');
 
       handsontable({

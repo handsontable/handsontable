@@ -12,7 +12,7 @@ describe('Core.countEmptyCols', () => {
     }
   });
 
-  it('should count empty columns (empty string, `null` or `undefined`)', () => {
+  it('should count empty columns (empty string, `null` or `undefined`)', async() => {
     handsontable({
       data: [
         ['', 'a', 'b', null, 'c', 0, undefined],
@@ -24,7 +24,7 @@ describe('Core.countEmptyCols', () => {
     expect(countEmptyCols()).toBe(3);
   });
 
-  it('should count empty columns only that which sticks to the right edge of the table (empty string, `null` or `undefined`)', () => {
+  it('should count empty columns only that which sticks to the right edge of the table (empty string, `null` or `undefined`)', async() => {
     handsontable({
       data: [
         ['', 'a', 'b', null, 'c', '', undefined],
@@ -36,7 +36,7 @@ describe('Core.countEmptyCols', () => {
     expect(countEmptyCols(true)).toBe(2);
   });
 
-  it('should count empty columns using custom logic implemented in `isEmptyCol` option', () => {
+  it('should count empty columns using custom logic implemented in `isEmptyCol` option', async() => {
     handsontable({
       data: [
         [null, 'a', 'b', null, 'c', '', undefined, null],
@@ -52,7 +52,7 @@ describe('Core.countEmptyCols', () => {
     expect(countEmptyCols(true)).toBe(1);
   });
 
-  it('should return all visible columns when all rows are trimmed', () => {
+  it('should return all visible columns when all rows are trimmed', async() => {
     const hot = handsontable({
       data: [
         ['', 'a', 'b', null, 'c', 0, undefined],
@@ -72,7 +72,7 @@ describe('Core.countEmptyCols', () => {
     expect(countEmptyCols(true)).toBe(7);
   });
 
-  it('should count only empty columns when all rows are hidden', () => {
+  it('should count only empty columns when all rows are hidden', async() => {
     const hot = handsontable({
       data: [
         ['', 'a', 'b', null, 'c', 0, undefined],
@@ -92,7 +92,7 @@ describe('Core.countEmptyCols', () => {
     expect(countEmptyCols(true)).toBe(1);
   });
 
-  it('should count all columns that have `null`', () => {
+  it('should count all columns that have `null`', async() => {
     handsontable({
       data: [
         [null, null, 'b', null, 'c'],
@@ -105,7 +105,7 @@ describe('Core.countEmptyCols', () => {
     expect(countEmptyCols(true)).toBe(0);
   });
 
-  it('should count all columns that have `undefined`', () => {
+  it('should count all columns that have `undefined`', async() => {
     handsontable({
       data: [
         [undefined, undefined, 'b', undefined, 'c'],
@@ -118,7 +118,7 @@ describe('Core.countEmptyCols', () => {
     expect(countEmptyCols(true)).toBe(0);
   });
 
-  it('should count all columns that have an empty string', () => {
+  it('should count all columns that have an empty string', async() => {
     handsontable({
       data: [
         ['', '', 'b', '', 'c'],
@@ -131,7 +131,7 @@ describe('Core.countEmptyCols', () => {
     expect(countEmptyCols(true)).toBe(0);
   });
 
-  it('should not count all columns as empty when the all rows are hidden', () => {
+  it('should not count all columns as empty when the all rows are hidden', async() => {
     const hot = handsontable({
       data: [
         ['a', 'b', 'c', 'd', 'e'],
@@ -147,7 +147,7 @@ describe('Core.countEmptyCols', () => {
     expect(countEmptyCols(true)).toBe(0);
   });
 
-  it('should count all columns as empty when the all rows are trimmed', () => {
+  it('should count all columns as empty when the all rows are trimmed', async() => {
     const hot = handsontable({
       data: [
         ['a', 'b', 'c', 'd', 'e'],
@@ -163,7 +163,7 @@ describe('Core.countEmptyCols', () => {
     expect(countEmptyCols(true)).toBe(5);
   });
 
-  it('should count all empty columns when there is some columns index translation', () => {
+  it('should count all empty columns when there is some columns index translation', async() => {
     const hot = handsontable({
       data: [
         ['', 'a', 'b', '', 'd'],

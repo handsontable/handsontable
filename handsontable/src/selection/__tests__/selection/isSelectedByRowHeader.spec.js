@@ -24,7 +24,7 @@ describe('Selection', () => {
   }
 
   describe('`isSelectedByRowHeader` method', () => {
-    it('should return `true` when the selection was performed by the `selectRows` method only (headers off)', () => {
+    it('should return `true` when the selection was performed by the `selectRows` method only (headers off)', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(4, 6),
         colHeaders: false,
@@ -46,7 +46,7 @@ describe('Selection', () => {
       expect(hot.selection.isSelectedByRowHeader()).toBe(true);
     });
 
-    it('should return `true` when the selection was performed by the `selectRows` method only (headers on)', () => {
+    it('should return `true` when the selection was performed by the `selectRows` method only (headers on)', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(4, 6),
         colHeaders: true,
@@ -68,7 +68,7 @@ describe('Selection', () => {
       expect(hot.selection.isSelectedByRowHeader()).toBe(true);
     });
 
-    it('should return `true` when the selection was performed by the `selectRows` method only (multiple headers, navigableHeaders on)', () => {
+    it('should return `true` when the selection was performed by the `selectRows` method only (multiple headers, navigableHeaders on)', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(4, 6),
         colHeaders: true,
@@ -99,7 +99,7 @@ describe('Selection', () => {
       expect(hot.selection.isSelectedByRowHeader()).toBe(true);
     });
 
-    it('should be possible to check the rows selection for each selection layer individually', () => {
+    it('should be possible to check the rows selection for each selection layer individually', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(4, 6),
         colHeaders: true,
@@ -123,7 +123,7 @@ describe('Selection', () => {
       expect(hot.selection.isSelectedByRowHeader(0)).toBe(false);
     });
 
-    it('should return `false` when the corner is selected with row headers', () => {
+    it('should return `false` when the corner is selected with row headers', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(4, 6),
         colHeaders: true,

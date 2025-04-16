@@ -375,7 +375,7 @@ describe('timeValidator', () => {
       expect(getDataAtCell(1, 0)).toEqual('57:00');
     });
 
-    it('should not try to correct format of non-date strings', (done) => {
+    it('should not try to correct format of non-date strings', async() => {
       const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
@@ -389,11 +389,9 @@ describe('timeValidator', () => {
       });
 
       setDataAtCell(1, 0, 'test non-time string');
+      await sleep(100);
 
-      setTimeout(() => {
-        expect(onAfterValidate).toHaveBeenCalledWith(false, 'test non-time string', 1, 'time');
-        done();
-      }, 100);
+      expect(onAfterValidate).toHaveBeenCalledWith(false, 'test non-time string', 1, 'time');
     });
 
     it('should populate all pasted values in the table when `correctFormat` is enabled (#dev-793)', async() => {

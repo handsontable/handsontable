@@ -12,42 +12,42 @@ describe('TextRenderer', () => {
     }
   });
 
-  it('should render string', () => {
+  it('should render string', async() => {
     handsontable();
     setDataAtCell(2, 2, 'string');
 
     expect(getCell(2, 2).innerHTML).toEqual('string');
   });
 
-  it('should render number', () => {
+  it('should render number', async() => {
     handsontable();
     setDataAtCell(2, 2, 13);
 
     expect(getCell(2, 2).innerHTML).toEqual('13');
   });
 
-  it('should render boolean true', () => {
+  it('should render boolean true', async() => {
     handsontable();
     setDataAtCell(2, 2, true);
 
     expect(getCell(2, 2).innerHTML).toEqual('true');
   });
 
-  it('should render boolean false', () => {
+  it('should render boolean false', async() => {
     handsontable();
     setDataAtCell(2, 2, false);
 
     expect(getCell(2, 2).innerHTML).toEqual('false');
   });
 
-  it('should render null', () => {
+  it('should render null', async() => {
     handsontable();
     setDataAtCell(2, 2, null);
 
     expect(getCell(2, 2).innerHTML).toEqual('');
   });
 
-  it('should render undefined', () => {
+  it('should render undefined', async() => {
     handsontable();
     /* eslint-disable wrap-iife */
     setDataAtCell(2, 2, (function() {})());
@@ -55,7 +55,7 @@ describe('TextRenderer', () => {
     expect(getCell(2, 2).innerHTML).toEqual('');
   });
 
-  it('should render the cell without messing with "dir" attribute', () => {
+  it('should render the cell without messing with "dir" attribute', async() => {
     handsontable({
       data: [['foo']],
       renderer: 'text'
@@ -64,7 +64,7 @@ describe('TextRenderer', () => {
     expect(getCell(0, 0).getAttribute('dir')).toBeNull();
   });
 
-  it('should add class name `htDimmed` to a read only cell', () => {
+  it('should add class name `htDimmed` to a read only cell', async() => {
     const DIV = document.createElement('DIV');
     const instance = new Handsontable.Core(DIV, {});
 
@@ -80,7 +80,7 @@ describe('TextRenderer', () => {
     instance.destroy();
   });
 
-  it('should render a multiline string', () => {
+  it('should render a multiline string', async() => {
     handsontable();
     setDataAtCell(1, 2, 'a b');
     setDataAtCell(2, 2, 'a\nb');
@@ -88,7 +88,7 @@ describe('TextRenderer', () => {
     expect($(getCell(2, 2)).height()).toBeGreaterThan($(getCell(1, 2)).height());
   });
 
-  it('should wrap text when column width is limited', () => {
+  it('should wrap text when column width is limited', async() => {
     handsontable({
       colWidths: [100]
     });
@@ -98,7 +98,7 @@ describe('TextRenderer', () => {
     expect($(getCell(1, 0)).height()).toBeGreaterThan($(getCell(0, 0)).height());
   });
 
-  it('should wrap text when trimWhitespace option is false', () => {
+  it('should wrap text when trimWhitespace option is false', async() => {
     const HOT = handsontable({
       trimWhitespace: false,
       wordWrap: true,

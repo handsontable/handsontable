@@ -31,7 +31,7 @@ describe('Core data modification keyboard shortcuts', () => {
       expect(afterChange).not.toHaveBeenCalled();
     });
 
-    it('should not populate the cell value when the last non-contiguous selection layer includes less than 2 cells', () => {
+    it('should not populate the cell value when the last non-contiguous selection layer includes less than 2 cells', async() => {
       const afterChange = jasmine.createSpy('afterChange');
 
       handsontable({
@@ -51,7 +51,7 @@ describe('Core data modification keyboard shortcuts', () => {
       expect(afterChange).not.toHaveBeenCalled();
     });
 
-    it('should not populate the cell value when the focus highlight points to the column header', () => {
+    it('should not populate the cell value when the focus highlight points to the column header', async() => {
       const afterChange = jasmine.createSpy('afterChange');
 
       handsontable({
@@ -72,7 +72,7 @@ describe('Core data modification keyboard shortcuts', () => {
       expect(afterChange).not.toHaveBeenCalled();
     });
 
-    it('should not populate the cell value when the focus highlight points to the row header', () => {
+    it('should not populate the cell value when the focus highlight points to the row header', async() => {
       const afterChange = jasmine.createSpy('afterChange');
 
       handsontable({
@@ -116,7 +116,7 @@ describe('Core data modification keyboard shortcuts', () => {
     });
 
     it('should not trigger the cells value change more than once for the same coords in "{after/before}Change" hooks ' +
-       'when selection layers overlap each self', () => {
+       'when selection layers overlap each self', async() => {
       const beforeChange = jasmine.createSpy('beforeChange');
       const afterChange = jasmine.createSpy('afterChange');
 
@@ -149,7 +149,7 @@ describe('Core data modification keyboard shortcuts', () => {
       ], 'edit');
     });
 
-    it('should populate the cell value when the selection range includes at least 2 cells in a row', () => {
+    it('should populate the cell value when the selection range includes at least 2 cells in a row', async() => {
       const afterChange = jasmine.createSpy('afterChange');
 
       handsontable({
@@ -168,7 +168,7 @@ describe('Core data modification keyboard shortcuts', () => {
       ], 'edit');
     });
 
-    it('should populate the cell value when the selection range includes at least 2 cells in a column', () => {
+    it('should populate the cell value when the selection range includes at least 2 cells in a column', async() => {
       const afterChange = jasmine.createSpy('afterChange');
 
       handsontable({
@@ -187,7 +187,7 @@ describe('Core data modification keyboard shortcuts', () => {
       ], 'edit');
     });
 
-    it('should populate the cell value when the selection range goes from bottom-right to top-left direction', () => {
+    it('should populate the cell value when the selection range goes from bottom-right to top-left direction', async() => {
       const afterChange = jasmine.createSpy('afterChange');
 
       handsontable({
@@ -213,7 +213,7 @@ describe('Core data modification keyboard shortcuts', () => {
       ], 'edit');
     });
 
-    it('should populate the cell value to all selection layers', () => {
+    it('should populate the cell value to all selection layers', async() => {
       const afterChange = jasmine.createSpy('afterChange');
 
       handsontable({
@@ -276,7 +276,7 @@ describe('Core data modification keyboard shortcuts', () => {
       ], 'edit');
     });
 
-    it('should populate the cell value to all cells within selected column header', () => {
+    it('should populate the cell value to all cells within selected column header', async() => {
       const afterChange = jasmine.createSpy('afterChange');
 
       handsontable({
@@ -299,7 +299,7 @@ describe('Core data modification keyboard shortcuts', () => {
       ], 'edit');
     });
 
-    it('should populate the cell value to all cells within selected row header', () => {
+    it('should populate the cell value to all cells within selected row header', async() => {
       const afterChange = jasmine.createSpy('afterChange');
 
       handsontable({
@@ -322,7 +322,7 @@ describe('Core data modification keyboard shortcuts', () => {
       ], 'edit');
     });
 
-    it('should populate the cell value omitting cells that are marked as read-only', () => {
+    it('should populate the cell value omitting cells that are marked as read-only', async() => {
       const afterChange = jasmine.createSpy('afterChange');
 
       handsontable({
@@ -361,7 +361,7 @@ describe('Core data modification keyboard shortcuts', () => {
       ], 'edit');
     });
 
-    it('should not throw an error when there is no selection', () => {
+    it('should not throw an error when there is no selection', async() => {
       const spy = jasmine.createSpyObj('error', ['test']);
       const prevError = window.onerror;
 
@@ -405,7 +405,7 @@ describe('Core data modification keyboard shortcuts', () => {
       ]);
     });
 
-    it('should make selected cells empty', () => {
+    it('should make selected cells empty', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
       });
@@ -422,7 +422,7 @@ describe('Core data modification keyboard shortcuts', () => {
       ]);
     });
 
-    it('should make non-contiguous selection empty', () => {
+    it('should make non-contiguous selection empty', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
       });

@@ -11,7 +11,7 @@ describe('settings', () => {
   });
 
   describe('disableVisualSelection', () => {
-    it('should be `false` by default', () => {
+    it('should be `false` by default', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(5, 5),
       });

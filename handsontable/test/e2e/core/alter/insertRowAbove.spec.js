@@ -42,7 +42,7 @@ describe('Core.alter', () => {
   };
 
   describe('`insert_row_above` action', () => {
-    it('should insert row above the first row when there is missing the `index` argument', () => {
+    it('should insert row above the first row when there is missing the `index` argument', async() => {
       handsontable({
         data: [
           ['a1', 'a2', 'a3'],
@@ -75,7 +75,7 @@ describe('Core.alter', () => {
       ]);
     });
 
-    it('should insert row below the last row when the index exceeds the data range', () => {
+    it('should insert row below the last row when the index exceeds the data range', async() => {
       handsontable({
         data: [
           ['a1', 'a2', 'a3'],
@@ -120,7 +120,7 @@ describe('Core.alter', () => {
       ]);
     });
 
-    it('should insert one row above the given index (the `amount` argument is not provided)', () => {
+    it('should insert one row above the given index (the `amount` argument is not provided)', async() => {
       handsontable({
         data: [
           ['a1', 'a2', 'a3'],
@@ -140,7 +140,7 @@ describe('Core.alter', () => {
       ]);
     });
 
-    it('should insert 3 rows above the given index', () => {
+    it('should insert 3 rows above the given index', async() => {
       handsontable({
         data: [
           ['a1', 'a2', 'a3'],
@@ -162,7 +162,7 @@ describe('Core.alter', () => {
       ]);
     });
 
-    it('should not create row if removing has been canceled by `beforeCreateRow` hook handler', () => {
+    it('should not create row if removing has been canceled by `beforeCreateRow` hook handler', async() => {
       handsontable({
         data: arrayOfNestedObjects(),
         columns: [
@@ -183,7 +183,7 @@ describe('Core.alter', () => {
       expect(countRows()).toBe(3);
     });
 
-    it('should not create/shift cell meta objects if creating has been canceled by `beforeCreateRow` hook handler', () => {
+    it('should not create/shift cell meta objects if creating has been canceled by `beforeCreateRow` hook handler', async() => {
       handsontable({
         beforeCreateRow: () => false,
       });
@@ -199,7 +199,7 @@ describe('Core.alter', () => {
     });
 
     // #3581, #3989, #2114
-    it('should add new row with cells type defined by cell meta options', () => {
+    it('should add new row with cells type defined by cell meta options', async() => {
       handsontable({
         data: [
           [0, 'a', true],
@@ -237,7 +237,7 @@ describe('Core.alter', () => {
       expect(getDataAtCell(4, 2)).toBe(true);
     });
 
-    it('should insert not more rows than maxRows', () => {
+    it('should insert not more rows than maxRows', async() => {
       handsontable({
         startRows: 5,
         maxRows: 7
@@ -250,7 +250,7 @@ describe('Core.alter', () => {
       expect(countRows()).toBe(7);
     });
 
-    it('should not insert more rows than maxRows (when `amount` parameter is used)', () => {
+    it('should not insert more rows than maxRows (when `amount` parameter is used)', async() => {
       handsontable({
         data: [
           ['a1', 'a2', 'a3'],
@@ -267,7 +267,7 @@ describe('Core.alter', () => {
       expect(countRows()).toBe(10);
     });
 
-    it('should fire `beforeCreateRow` and `afterCreateRow` hooks', () => {
+    it('should fire `beforeCreateRow` and `afterCreateRow` hooks', async() => {
       const beforeCreateRow = jasmine.createSpy('beforeCreateRow');
       const afterCreateRow = jasmine.createSpy('afterCreateRow');
 
@@ -292,7 +292,7 @@ describe('Core.alter', () => {
       expect(afterCreateRow).toHaveBeenCalledWith(3, 2, 'customSource');
     });
 
-    it('should correctly shift cell meta object when they are defined in the `beforeCreateRow` hook', () => {
+    it('should correctly shift cell meta object when they are defined in the `beforeCreateRow` hook', async() => {
       handsontable({
         data: createSpreadsheetData(8, 8),
         beforeCreateRow(index, amount) {
@@ -317,7 +317,7 @@ describe('Core.alter', () => {
       expect(getCellMeta(8, 0).className).toBeUndefined();
     });
 
-    it('should correctly shift cell meta object when they are defined in the `afterCreateRow` hook', () => {
+    it('should correctly shift cell meta object when they are defined in the `afterCreateRow` hook', async() => {
       handsontable({
         data: createSpreadsheetData(8, 8),
         afterCreateRow(index, amount) {
@@ -342,7 +342,7 @@ describe('Core.alter', () => {
       expect(getCellMeta(8, 0).className).toBeUndefined();
     });
 
-    it('should shift down only the last selection layer when the row is inserted above that selection', () => {
+    it('should shift down only the last selection layer when the row is inserted above that selection', async() => {
       handsontable({
         data: createSpreadsheetData(8, 8),
         rowHeaders: true,
@@ -386,7 +386,7 @@ describe('Core.alter', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should not shift down the selection layers when the row is inserted below that selection', () => {
+    it('should not shift down the selection layers when the row is inserted below that selection', async() => {
       handsontable({
         data: createSpreadsheetData(8, 8),
         rowHeaders: true,
@@ -429,7 +429,7 @@ describe('Core.alter', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should shift down the selected row when the new row is inserted above that selection', () => {
+    it('should shift down the selected row when the new row is inserted above that selection', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -483,7 +483,7 @@ describe('Core.alter', () => {
       expect(onAfterScroll).not.toHaveBeenCalled();
     });
 
-    it('should not shift down the selected row when the new row is inserted below that selection', () => {
+    it('should not shift down the selected row when the new row is inserted below that selection', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -557,7 +557,7 @@ describe('Core.alter', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should insert row at proper position when there were some row sequence changes', () => {
+    it('should insert row at proper position when there were some row sequence changes', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(5, 5)
       });
@@ -580,7 +580,7 @@ describe('Core.alter', () => {
       expect(getSourceDataAtCol(0)).toEqual(['A1', 'A2', 'A3', null, 'A4', null, 'A5', null]);
     });
 
-    it('should not throw an exception while adding lot of rows', () => {
+    it('should not throw an exception while adding lot of rows', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5)
       });

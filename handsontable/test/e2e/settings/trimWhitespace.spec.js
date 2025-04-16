@@ -46,7 +46,7 @@ describe('settings', () => {
         expect(getDataAtCell(0, 2)).toBe('       test    of    whitespace      ');
       });
 
-      it('should trimmed out the whitespace through cell renderers, if trimWhitespace is set to `true`', () => {
+      it('should trimmed out the whitespace through cell renderers, if trimWhitespace is set to `true`', async() => {
         handsontable({
           data: [
             ['       test    of    whitespace      ', '       test    of    whitespace      ']
@@ -57,7 +57,7 @@ describe('settings', () => {
         expect(getCell(0, 0).innerText).toBe('test    of    whitespace');
       });
 
-      it('should not trimmed out the whitespace through cell renderers, if trimWhitespace is set to `false`', () => {
+      it('should not trimmed out the whitespace through cell renderers, if trimWhitespace is set to `false`', async() => {
         handsontable({
           data: [
             ['       test    of    whitespace      ', '       test    of    whitespace      ']
@@ -110,7 +110,7 @@ describe('settings', () => {
         expect(getDataAtCell(0, 1)).toBe('       test    of    whitespace      ');
       });
 
-      it('should trimmed out the whitespace through cell renderers, if trimWhitespace is set to `true`', () => {
+      it('should trimmed out the whitespace through cell renderers, if trimWhitespace is set to `true`', async() => {
         handsontable({
           data: [
             ['       test    of    whitespace      ', '       test    of    whitespace      ']
@@ -125,7 +125,7 @@ describe('settings', () => {
         expect(getCell(0, 1).innerText).toBe('test    of    whitespace');
       });
 
-      it('should not trimmed out the whitespace through cell renderers, if trimWhitespace is set to `false`', () => {
+      it('should not trimmed out the whitespace through cell renderers, if trimWhitespace is set to `false`', async() => {
         handsontable({
           data: [
             ['       test    of    whitespace      ', '       test    of    whitespace      ']
@@ -184,7 +184,7 @@ describe('settings', () => {
         expect(getDataAtCell(0, 1)).toBe('       test    of    whitespace      ');
       });
 
-      it('should trimmed out the whitespace through cell renderers, if trimWhitespace is set to `true`', () => {
+      it('should trimmed out the whitespace through cell renderers, if trimWhitespace is set to `true`', async() => {
         handsontable({
           data: [
             ['       test    of    whitespace      ', '       test    of    whitespace      ']
@@ -200,7 +200,7 @@ describe('settings', () => {
         expect(getCell(0, 1).innerText).toBe('test    of    whitespace');
       });
 
-      it('should not trimmed out the whitespace through cell renderers, if trimWhitespace is set to `false`', () => {
+      it('should not trimmed out the whitespace through cell renderers, if trimWhitespace is set to `false`', async() => {
         handsontable({
           data: [
             ['       test    of    whitespace      ', '       test    of    whitespace      ']

@@ -8,7 +8,7 @@ describe('Core.unlisten', () => {
     this.$container.remove();
   });
 
-  it('should make the table inactive', () => {
+  it('should make the table inactive', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
     });

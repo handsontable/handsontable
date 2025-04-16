@@ -16,7 +16,7 @@ describe('Selection navigation (RTL mode)', () => {
   });
 
   describe('"Ctrl/Cmd + ArrowDown"', () => {
-    it('should move the cell selection to the last cell (last row) in a column', () => {
+    it('should move the cell selection to the last cell (last row) in a column', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -67,7 +67,7 @@ describe('Selection navigation (RTL mode)', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should move the header selection to the most bottom header in a column (navigableHeaders on)', () => {
+    it('should move the header selection to the most bottom header in a column (navigableHeaders on)', async() => {
       handsontable({
         startRows: 5,
         startCols: 5,

@@ -27,7 +27,7 @@ describe('numericValidator', () => {
     ];
   };
 
-  it('should validate an empty string (default behavior)', (done) => {
+  it('should validate an empty string (default behavior)', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -41,14 +41,12 @@ describe('numericValidator', () => {
     });
 
     setDataAtCell(2, 0, '');
+    await sleep(100);
 
-    setTimeout(() => {
-      expect(onAfterValidate).toHaveBeenCalledWith(true, '', 2, 'id');
-      done();
-    }, 100);
+    expect(onAfterValidate).toHaveBeenCalledWith(true, '', 2, 'id');
   });
 
-  it('should not validate non numeric string', (done) => {
+  it('should not validate non numeric string', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -62,14 +60,12 @@ describe('numericValidator', () => {
     });
 
     setDataAtCell(2, 0, 'test');
+    await sleep(100);
 
-    setTimeout(() => {
-      expect(onAfterValidate).toHaveBeenCalledWith(false, 'test', 2, 'id');
-      done();
-    }, 100);
+    expect(onAfterValidate).toHaveBeenCalledWith(false, 'test', 2, 'id');
   });
 
-  it('should validate numeric string', (done) => {
+  it('should validate numeric string', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -83,14 +79,12 @@ describe('numericValidator', () => {
     });
 
     setDataAtCell(2, 0, '123');
+    await sleep(100);
 
-    setTimeout(() => {
-      expect(onAfterValidate).toHaveBeenCalledWith(true, 123, 2, 'id');
-      done();
-    }, 100);
+    expect(onAfterValidate).toHaveBeenCalledWith(true, 123, 2, 'id');
   });
 
-  it('should validate signed numeric string', (done) => {
+  it('should validate signed numeric string', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -104,14 +98,12 @@ describe('numericValidator', () => {
     });
 
     setDataAtCell(2, 0, '-123');
+    await sleep(100);
 
-    setTimeout(() => {
-      expect(onAfterValidate).toHaveBeenCalledWith(true, -123, 2, 'id');
-      done();
-    }, 100);
+    expect(onAfterValidate).toHaveBeenCalledWith(true, -123, 2, 'id');
   });
 
-  it('should validate large-number scientific notation', (done) => {
+  it('should validate large-number scientific notation', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -125,14 +117,12 @@ describe('numericValidator', () => {
     });
 
     setDataAtCell(2, 0, '1e+23');
+    await sleep(100);
 
-    setTimeout(() => {
-      expect(onAfterValidate).toHaveBeenCalledWith(true, 1e+23, 2, 'id');
-      done();
-    }, 100);
+    expect(onAfterValidate).toHaveBeenCalledWith(true, 1e+23, 2, 'id');
   });
 
-  it('should validate small-number scientific notation', (done) => {
+  it('should validate small-number scientific notation', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -146,15 +136,13 @@ describe('numericValidator', () => {
     });
 
     setDataAtCell(2, 0, '1e-23');
+    await sleep(100);
 
-    setTimeout(() => {
-      expect(onAfterValidate).toHaveBeenCalledWith(true, 1e-23, 2, 'id');
-      done();
-    }, 100);
+    expect(onAfterValidate).toHaveBeenCalledWith(true, 1e-23, 2, 'id');
   });
 
   describe('allowEmpty', () => {
-    it('should not validate an empty string when allowEmpty is set as `false`', (done) => {
+    it('should not validate an empty string when allowEmpty is set as `false`', async() => {
       const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
@@ -168,14 +156,12 @@ describe('numericValidator', () => {
       });
 
       setDataAtCell(2, 0, '');
+      await sleep(100);
 
-      setTimeout(() => {
-        expect(onAfterValidate).toHaveBeenCalledWith(false, '', 2, 'id');
-        done();
-      }, 100);
+      expect(onAfterValidate).toHaveBeenCalledWith(false, '', 2, 'id');
     });
 
-    it('should not validate `null` when allowEmpty is set as `false`', (done) => {
+    it('should not validate `null` when allowEmpty is set as `false`', async() => {
       const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
@@ -189,14 +175,12 @@ describe('numericValidator', () => {
       });
 
       setDataAtCell(2, 0, null);
+      await sleep(100);
 
-      setTimeout(() => {
-        expect(onAfterValidate).toHaveBeenCalledWith(false, null, 2, 'id');
-        done();
-      }, 100);
+      expect(onAfterValidate).toHaveBeenCalledWith(false, null, 2, 'id');
     });
 
-    it('should not validate `undefined` when allowEmpty is set as `false`', (done) => {
+    it('should not validate `undefined` when allowEmpty is set as `false`', async() => {
       const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
@@ -210,14 +194,12 @@ describe('numericValidator', () => {
       });
 
       setDataAtCell(2, 0);
+      await sleep(100);
 
-      setTimeout(() => {
-        expect(onAfterValidate).toHaveBeenCalledWith(false, undefined, 2, 'id');
-        done();
-      }, 100);
+      expect(onAfterValidate).toHaveBeenCalledWith(false, undefined, 2, 'id');
     });
 
-    it('should validate 0 when allowEmpty is set as `false`', (done) => {
+    it('should validate 0 when allowEmpty is set as `false`', async() => {
       const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
@@ -231,15 +213,13 @@ describe('numericValidator', () => {
       });
 
       setDataAtCell(2, 0, 0);
+      await sleep(100);
 
-      setTimeout(() => {
-        expect(onAfterValidate).toHaveBeenCalledWith(true, 0, 2, 'id');
-        done();
-      }, 100);
+      expect(onAfterValidate).toHaveBeenCalledWith(true, 0, 2, 'id');
     });
 
-    it('should add / remove `htInvalid` class properly when validating non-numeric data', (done) => {
-      const hot = handsontable({
+    it('should add / remove `htInvalid` class properly when validating non-numeric data', async() => {
+      handsontable({
         data: [
           { id: 1, name: 'Ted', salary: 10000 },
           { id: 2, name: 'Frank', salary: '5300' },
@@ -252,19 +232,16 @@ describe('numericValidator', () => {
         ]
       });
 
-      hot.validateCells();
+      validateCells();
+      await sleep(200);
 
-      setTimeout(() => {
-        expect($(getCell(1, 2)).hasClass(hot.getSettings().invalidCellClassName)).toBe(false);
-        expect($(getCell(2, 2)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
+      expect($(getCell(1, 2)).hasClass(getSettings().invalidCellClassName)).toBe(false);
+      expect($(getCell(2, 2)).hasClass(getSettings().invalidCellClassName)).toBe(true);
 
-        setDataAtCell(2, 2, 8000);
-      }, 200);
+      setDataAtCell(2, 2, 8000);
+      await sleep(200);
 
-      setTimeout(() => {
-        expect($(getCell(2, 2)).hasClass(hot.getSettings().invalidCellClassName)).toBe(false);
-        done();
-      }, 400);
+      expect($(getCell(2, 2)).hasClass(getSettings().invalidCellClassName)).toBe(false);
     });
   });
 });

@@ -702,7 +702,7 @@ describe('DropdownEditor', () => {
     });
   });
 
-  it('should mark all invalid values as invalid, after pasting them into dropdown-type cells', (done) => {
+  it('should mark all invalid values as invalid, after pasting them into dropdown-type cells', async() => {
     handsontable({
       data: [
         ['', 'two', 'three'],
@@ -718,13 +718,11 @@ describe('DropdownEditor', () => {
       ]
     });
 
-    populateFromArray(0, 0, [['invalid'], ['input']], null, null, 'paste');
+    await populateFromArray(0, 0, [['invalid'], ['input']], null, null, 'paste');
+    await sleep(40);
 
-    setTimeout(() => {
-      expect(Handsontable.dom.hasClass(getCell(0, 0), 'htInvalid')).toBe(true);
-      expect(Handsontable.dom.hasClass(getCell(1, 0), 'htInvalid')).toBe(true);
-      done();
-    }, 40);
+    expect(Handsontable.dom.hasClass(getCell(0, 0), 'htInvalid')).toBe(true);
+    expect(Handsontable.dom.hasClass(getCell(1, 0), 'htInvalid')).toBe(true);
   });
 
   // Input element can not lose the focus while entering new characters. It breaks IME editor functionality for Asian users.

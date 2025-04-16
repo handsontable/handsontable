@@ -12,7 +12,7 @@ describe('Core.toPhysicalRow', () => {
     }
   });
 
-  it('should return valid physical row index', () => {
+  it('should return valid physical row index', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(5, 5)
     });

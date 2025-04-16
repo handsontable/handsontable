@@ -95,7 +95,7 @@ describe('Cell state-related a11y config', () => {
       expect(getCell(-1, 1).getAttribute('aria-selected')).toEqual('true');
     });
 
-    it('should add a `aria-readonly` attribute to the read-only cells', () => {
+    it('should add a `aria-readonly` attribute to the read-only cells', async() => {
       handsontable({
         data: createSpreadsheetData(4, 4),
       });

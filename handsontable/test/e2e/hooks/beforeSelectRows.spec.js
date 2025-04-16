@@ -13,7 +13,7 @@ describe('Hook', () => {
   });
 
   describe('beforeSelectRows', () => {
-    it('should be fired with proper arguments', () => {
+    it('should be fired with proper arguments', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(10, 10),
         colHeaders: true,
@@ -33,7 +33,7 @@ describe('Hook', () => {
       );
     });
 
-    it('should be possible to modify rows range and change the position of the focus selection', () => {
+    it('should be possible to modify rows range and change the position of the focus selection', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         colHeaders: true,
@@ -51,7 +51,7 @@ describe('Hook', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,1 from: 1,-1 to: 6,9']);
     });
 
-    it('should not be possible to modify rows range in columns selection', () => {
+    it('should not be possible to modify rows range in columns selection', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         colHeaders: true,

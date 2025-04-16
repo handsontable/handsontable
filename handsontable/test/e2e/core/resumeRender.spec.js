@@ -13,7 +13,7 @@ describe('Core.resumeRender', () => {
   });
 
   it('should resume the table rendering process and render the table using slow redrawing ' +
-     '(the same redrawing, which was postponed)', () => {
+     '(the same redrawing, which was postponed)', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(5, 5),
     });
@@ -49,7 +49,7 @@ describe('Core.resumeRender', () => {
   });
 
   it('should resume the table rendering process and render the table using fast redrawing ' +
-     '(the same redrawing, which was postponed)', () => {
+     '(the same redrawing, which was postponed)', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(5, 5),
     });
@@ -83,7 +83,7 @@ describe('Core.resumeRender', () => {
     expect(afterViewRender).toHaveBeenCalledTimes(0);
   });
 
-  it('should resume the table rendering process and adjust the overlays\' sizes', () => {
+  it('should resume the table rendering process and adjust the overlays\' sizes', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(5, 5),
     });
@@ -102,7 +102,7 @@ describe('Core.resumeRender', () => {
     expect(hot.view._wt.wtOverlays.adjustElementsSize).toHaveBeenCalledTimes(1);
   });
 
-  it('should render the table only on the last resume call (a call that resets the counter of nested suspend calls)', () => {
+  it('should render the table only on the last resume call (a call that resets the counter of nested suspend calls)', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(5, 5),
     });

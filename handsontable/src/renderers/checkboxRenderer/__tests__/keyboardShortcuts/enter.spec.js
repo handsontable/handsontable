@@ -11,7 +11,7 @@ describe('CheckboxRenderer keyboard shortcut', () => {
   });
 
   describe('"Enter"', () => {
-    it('should reverse checkboxes state, when multiple non-contiguous cells are selected and they share the same value', () => {
+    it('should reverse checkboxes state, when multiple non-contiguous cells are selected and they share the same value', async() => {
       handsontable({
         data: [[true], [true], [true]],
         columns: [
@@ -43,7 +43,7 @@ describe('CheckboxRenderer keyboard shortcut', () => {
       expect(afterChangeCallback.calls.count()).toEqual(2);
     });
 
-    it('should not change the checkboxes state, when multiple cells are selected', () => {
+    it('should not change the checkboxes state, when multiple cells are selected', async() => {
       handsontable({
         data: [[true], [true], [true]],
         columns: [
@@ -74,7 +74,7 @@ describe('CheckboxRenderer keyboard shortcut', () => {
       expect(afterChangeCallback.calls.count()).toEqual(0);
     });
 
-    it('should not steal the event when the column header is selected', () => {
+    it('should not steal the event when the column header is selected', async() => {
       handsontable({
         data: [[true], [true], [true]],
         columns: [
@@ -98,7 +98,7 @@ describe('CheckboxRenderer keyboard shortcut', () => {
       expect(callback).toHaveBeenCalledTimes(1);
     });
 
-    it('should change checkbox state from checked to unchecked', () => {
+    it('should change checkbox state from checked to unchecked', async() => {
       handsontable({
         data: [[true], [true], [true]],
         columns: [
@@ -132,7 +132,7 @@ describe('CheckboxRenderer keyboard shortcut', () => {
         .toHaveBeenCalledWith([[0, 0, true, false]], 'edit');
     });
 
-    it('should change checkbox state from checked to unchecked for merged cell', () => {
+    it('should change checkbox state from checked to unchecked for merged cell', async() => {
       handsontable({
         data: [
           [true, null, null],
@@ -176,7 +176,7 @@ describe('CheckboxRenderer keyboard shortcut', () => {
         .toHaveBeenCalledWith([[0, 0, true, false]], 'edit');
     });
 
-    it('should move down without changing checkbox state when enterBeginsEditing equals false', () => {
+    it('should move down without changing checkbox state when enterBeginsEditing equals false', async() => {
       handsontable({
         enterBeginsEditing: false,
         data: [[true], [false], [true]],
@@ -211,7 +211,7 @@ describe('CheckboxRenderer keyboard shortcut', () => {
       expect(afterChangeCallback.calls.count()).toEqual(0);
     });
 
-    it('should begin editing and changing checkbox state when enterBeginsEditing equals true', () => {
+    it('should begin editing and changing checkbox state when enterBeginsEditing equals true', async() => {
       handsontable({
         enterBeginsEditing: true,
         data: [[true], [false], [true]],
@@ -246,7 +246,7 @@ describe('CheckboxRenderer keyboard shortcut', () => {
       expect(afterChangeCallback.calls.count()).toEqual(1);
     });
 
-    it('should change checkbox state from checked to unchecked using custom check/uncheck templates', () => {
+    it('should change checkbox state from checked to unchecked using custom check/uncheck templates', async() => {
       handsontable({
         data: [['yes'], ['yes'], ['no']],
         columns: [
@@ -284,7 +284,7 @@ describe('CheckboxRenderer keyboard shortcut', () => {
         .toHaveBeenCalledWith([[0, 0, 'yes', 'no']], 'edit');
     });
 
-    it('should change checkbox state from checked to unchecked using custom check/uncheck templates in numeric format', () => {
+    it('should change checkbox state from checked to unchecked using custom check/uncheck templates in numeric format', async() => {
       handsontable({
         data: [[1], [1], [0]],
         columns: [

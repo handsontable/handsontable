@@ -12,7 +12,7 @@ describe('TimeRenderer', () => {
     }
   });
 
-  it('should render string', () => {
+  it('should render string', async() => {
     handsontable({
       renderer: 'time',
     });
@@ -21,7 +21,7 @@ describe('TimeRenderer', () => {
     expect(getCell(2, 2).innerHTML).toEqual('string');
   });
 
-  it('should render number', () => {
+  it('should render number', async() => {
     handsontable({
       renderer: 'time',
     });
@@ -30,7 +30,7 @@ describe('TimeRenderer', () => {
     expect(getCell(2, 2).innerHTML).toEqual('13');
   });
 
-  it('should render boolean true', () => {
+  it('should render boolean true', async() => {
     handsontable({
       renderer: 'time',
     });
@@ -39,7 +39,7 @@ describe('TimeRenderer', () => {
     expect(getCell(2, 2).innerHTML).toEqual('true');
   });
 
-  it('should render boolean false', () => {
+  it('should render boolean false', async() => {
     handsontable({
       renderer: 'time',
     });
@@ -48,7 +48,7 @@ describe('TimeRenderer', () => {
     expect(getCell(2, 2).innerHTML).toEqual('false');
   });
 
-  it('should render null', () => {
+  it('should render null', async() => {
     handsontable({
       renderer: 'time',
     });
@@ -57,7 +57,7 @@ describe('TimeRenderer', () => {
     expect(getCell(2, 2).innerHTML).toEqual('');
   });
 
-  it('should render undefined', () => {
+  it('should render undefined', async() => {
     handsontable({
       renderer: 'time',
     });
@@ -66,7 +66,7 @@ describe('TimeRenderer', () => {
     expect(getCell(2, 2).innerHTML).toEqual('');
   });
 
-  it('should render the cell without messing with "dir" attribute', () => {
+  it('should render the cell without messing with "dir" attribute', async() => {
     handsontable({
       data: [['foo']],
       renderer: 'time'
@@ -75,7 +75,7 @@ describe('TimeRenderer', () => {
     expect(getCell(0, 0).getAttribute('dir')).toBe('ltr');
   });
 
-  it('should add class name `htDimmed` to a read only cell', () => {
+  it('should add class name `htDimmed` to a read only cell', async() => {
     const DIV = document.createElement('DIV');
     const instance = new Handsontable.Core(DIV, {
       renderer: 'time',
@@ -93,7 +93,7 @@ describe('TimeRenderer', () => {
     instance.destroy();
   });
 
-  it('should render a multiline string', () => {
+  it('should render a multiline string', async() => {
     handsontable({
       renderer: 'time',
     });
@@ -103,7 +103,7 @@ describe('TimeRenderer', () => {
     expect($(getCell(2, 2)).height()).toBeGreaterThan($(getCell(1, 2)).height());
   });
 
-  it('should wrap text when column width is limited', () => {
+  it('should wrap text when column width is limited', async() => {
     handsontable({
       renderer: 'time',
       colWidths: [100],
@@ -114,7 +114,7 @@ describe('TimeRenderer', () => {
     expect($(getCell(1, 0)).height()).toBeGreaterThan($(getCell(0, 0)).height());
   });
 
-  it('should wrap text when trimWhitespace option is false', () => {
+  it('should wrap text when trimWhitespace option is false', async() => {
     const HOT = handsontable({
       renderer: 'time',
       trimWhitespace: false,

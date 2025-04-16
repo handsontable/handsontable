@@ -25,7 +25,7 @@ describe('Cells-related a11y configuration', () => {
   });
 
   describe('DOM structure', () => {
-    it('should add the `role=gridcell` aria tag to every cell in the table', () => {
+    it('should add the `role=gridcell` aria tag to every cell in the table', async() => {
       handsontable({
         data: createSpreadsheetData(50, 50),
         rowHeaders: true,
@@ -60,7 +60,7 @@ describe('Cells-related a11y configuration', () => {
     }, 'should add the `role=gridcell` aria tag to every cell in the table');
 
     it('should have the `aria-colindex` attribute set, taken the headers into account (headers and cells share the' +
-      ' column indexes)', () => {
+      ' column indexes)', async() => {
       handsontable({
         data: createSpreadsheetData(50, 50),
         rowHeaders: true,
@@ -190,7 +190,7 @@ describe('Cells-related a11y configuration', () => {
       verifyGatheredIndexes(indexes, 2, [1, 3]);
     });
 
-    it('should add the `tabindex=-1` aria tag to every cell in the table', () => {
+    it('should add the `tabindex=-1` aria tag to every cell in the table', async() => {
       handsontable({
         data: createSpreadsheetData(50, 50),
         rowHeaders: true,

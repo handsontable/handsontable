@@ -10,7 +10,7 @@ describe('Core.getFirstPartiallyVisibleColumn', () => {
     }
   });
 
-  it('should return first partially visible column index', () => {
+  it('should return first partially visible column index', async() => {
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
@@ -20,7 +20,7 @@ describe('Core.getFirstPartiallyVisibleColumn', () => {
     expect(getFirstPartiallyVisibleColumn()).toBe(0);
   });
 
-  it('should return first partially visible and not hidden column index', () => {
+  it('should return first partially visible and not hidden column index', async() => {
     handsontable({
       data: createSpreadsheetData(10, 100),
       width: 200,
@@ -36,7 +36,7 @@ describe('Core.getFirstPartiallyVisibleColumn', () => {
     expect(getFirstPartiallyVisibleColumn()).toBe(2);
   });
 
-  it('should return first partially visible column index (scrolled viewport)', () => {
+  it('should return first partially visible column index (scrolled viewport)', async() => {
     handsontable({
       data: createSpreadsheetData(10, 100),
       width: 200,

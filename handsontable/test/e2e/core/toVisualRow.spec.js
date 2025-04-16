@@ -12,7 +12,7 @@ describe('Core.toVisualRow', () => {
     }
   });
 
-  it('should return valid visual row index', () => {
+  it('should return valid visual row index', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(5, 5)
     });

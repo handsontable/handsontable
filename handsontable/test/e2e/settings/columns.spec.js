@@ -36,7 +36,7 @@ describe('settings', () => {
     });
 
     describe('as an array of objects', () => {
-      it('should not throw exception when passed columns array is empty (data source as array of arrays)', () => {
+      it('should not throw exception when passed columns array is empty (data source as array of arrays)', async() => {
         const hot = handsontable({
           data: arrayOfArrays(),
           columns: [
@@ -51,7 +51,7 @@ describe('settings', () => {
         }).not.toThrow();
       });
 
-      it('should not throw exception when passed columns array is empty (data source as array of objects)', () => {
+      it('should not throw exception when passed columns array is empty (data source as array of objects)', async() => {
         const hot = handsontable({
           data: arrayOfObjects(),
           columns: [
@@ -69,7 +69,7 @@ describe('settings', () => {
 
     describe('as a function', () => {
       describe('init', () => {
-        it('should render only these columns which are not `null`', () => {
+        it('should render only these columns which are not `null`', async() => {
           const hot = handsontable({
             data: arrayOfArrays(),
             columns(column) {
@@ -80,7 +80,7 @@ describe('settings', () => {
           expect(hot.getData()[0].length).toEqual(2);
         });
 
-        it('should properly bind default data when is not defined (data source as array of arrays)', () => {
+        it('should properly bind default data when is not defined (data source as array of arrays)', async() => {
           const hot = handsontable({
             data: arrayOfArrays(),
             columns(column) {
@@ -92,7 +92,7 @@ describe('settings', () => {
           expect(hot.getDataAtCell(0, 1)).toEqual('Kia');
         });
 
-        it('should properly bind default data when is not defined (data source as array of objects)', () => {
+        it('should properly bind default data when is not defined (data source as array of objects)', async() => {
           const hot = handsontable({
             data: arrayOfObjects(),
             columns(column) {
@@ -104,7 +104,7 @@ describe('settings', () => {
           expect(hot.getDataAtCell(0, 1)).toEqual(null);
         });
 
-        it('should properly bind defined data (data source as array of arrays)', () => {
+        it('should properly bind defined data (data source as array of arrays)', async() => {
           const hot = handsontable({
             data: arrayOfArrays(),
             columns(column) {
@@ -116,7 +116,7 @@ describe('settings', () => {
           expect(hot.getDataAtCell(0, 1)).toEqual('Toyota');
         });
 
-        it('should properly bind defined data (data source as array of objects)', () => {
+        it('should properly bind defined data (data source as array of objects)', async() => {
           const hot = handsontable({
             data: arrayOfObjects(),
             columns(column) {
@@ -132,7 +132,7 @@ describe('settings', () => {
       });
 
       describe('updateSettings', () => {
-        it('should not throw exception when passed columns function without return anything (data source as array of arrays) when columns is a function', () => {
+        it('should not throw exception when passed columns function without return anything (data source as array of arrays) when columns is a function', async() => {
           const hot = handsontable({
             data: arrayOfArrays(),
             columns(column) {
@@ -145,7 +145,7 @@ describe('settings', () => {
           }).not.toThrow();
         });
 
-        it('should not throw exception when passed columns function without return anything (data source as array of objects) when columns is a function', () => {
+        it('should not throw exception when passed columns function without return anything (data source as array of objects) when columns is a function', async() => {
           const hot = handsontable({
             data: arrayOfObjects(),
             columns(column) {
@@ -186,7 +186,7 @@ describe('settings', () => {
       });
 
       describe('renderers', () => {
-        it('should properly bind defined renderer', () => {
+        it('should properly bind defined renderer', async() => {
           handsontable({
             data: [[true], [false], [true]],
             columns(column) {
@@ -201,7 +201,7 @@ describe('settings', () => {
       });
 
       describe('validators', () => {
-        it('should properly bind defined validator', (done) => {
+        it('should properly bind defined validator', async() => {
           const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
           handsontable({
@@ -219,11 +219,9 @@ describe('settings', () => {
           });
 
           setDataAtCell(0, 0, '');
+          await sleep(100);
 
-          setTimeout(() => {
-            expect(onAfterValidate).toHaveBeenCalledWith(true, '', 0, 'date');
-            done();
-          }, 100);
+          expect(onAfterValidate).toHaveBeenCalledWith(true, '', 0, 'date');
         });
       });
     });

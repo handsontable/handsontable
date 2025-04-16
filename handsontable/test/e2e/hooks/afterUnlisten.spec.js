@@ -15,7 +15,7 @@ describe('Hook', () => {
   });
 
   describe('afterUnlisten', () => {
-    it('should be fired once after `unlisten` method call', () => {
+    it('should be fired once after `unlisten` method call', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(5, 5),
       });
@@ -70,7 +70,7 @@ describe('Hook', () => {
       expect(afterUnlisten2).toHaveBeenCalledTimes(1);
     });
 
-    it('should be fired once after the element that is not belong to the root element is clicked', () => {
+    it('should be fired once after the element that is not belong to the root element is clicked', async() => {
       const afterUnlisten = jasmine.createSpy('afterUnlisten');
 
       handsontable({

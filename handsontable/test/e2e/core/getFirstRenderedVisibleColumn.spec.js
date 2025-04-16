@@ -10,7 +10,7 @@ describe('Core.getFirstRenderedVisibleColumn', () => {
     }
   });
 
-  it('should return first rendered column index', () => {
+  it('should return first rendered column index', async() => {
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
@@ -20,7 +20,7 @@ describe('Core.getFirstRenderedVisibleColumn', () => {
     expect(getFirstRenderedVisibleColumn()).toBe(0);
   });
 
-  it('should return first rendered and not hidden column index', () => {
+  it('should return first rendered and not hidden column index', async() => {
     handsontable({
       data: createSpreadsheetData(10, 100),
       width: 200,
@@ -36,7 +36,7 @@ describe('Core.getFirstRenderedVisibleColumn', () => {
     expect(getFirstRenderedVisibleColumn()).toBe(2);
   });
 
-  it('should return first rendered column index (scrolled viewport)', () => {
+  it('should return first rendered column index (scrolled viewport)', async() => {
     handsontable({
       data: createSpreadsheetData(10, 100),
       width: 200,

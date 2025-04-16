@@ -48,7 +48,7 @@ describe('Core_validate', () => {
     expect(validatorCallback(false)).toBe(undefined);
   });
 
-  it('should call beforeValidate', () => {
+  it('should call beforeValidate', async() => {
     let fired = null;
 
     handsontable({
@@ -67,7 +67,7 @@ describe('Core_validate', () => {
     expect(fired).toEqual(true);
   });
 
-  it('should call beforeValidate when columns is a function', () => {
+  it('should call beforeValidate when columns is a function', async() => {
     let fired = null;
 
     handsontable({

@@ -24,7 +24,7 @@ describe('Selection', () => {
   }
 
   describe('`isEntireRowSelected` method', () => {
-    it('should return `true` when the entire row is selected (headers off)', () => {
+    it('should return `true` when the entire row is selected (headers off)', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(4, 6),
         colHeaders: false,
@@ -54,7 +54,7 @@ describe('Selection', () => {
       expect(hot.selection.isEntireRowSelected()).toBe(true);
     });
 
-    it('should return `true` when the entire row is selected (headers on)', () => {
+    it('should return `true` when the entire row is selected (headers on)', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(4, 6),
         colHeaders: true,
@@ -84,7 +84,7 @@ describe('Selection', () => {
       expect(hot.selection.isEntireRowSelected()).toBe(true);
     });
 
-    it('should return `true` when the entire row is selected (multiple headers, navigableHeaders on)', () => {
+    it('should return `true` when the entire row is selected (multiple headers, navigableHeaders on)', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(4, 6),
         colHeaders: true,
@@ -123,7 +123,7 @@ describe('Selection', () => {
       expect(hot.selection.isEntireRowSelected()).toBe(true);
     });
 
-    it('should be possible to check the rows selection for each selection layer individually', () => {
+    it('should be possible to check the rows selection for each selection layer individually', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(4, 6),
         colHeaders: true,
@@ -147,7 +147,7 @@ describe('Selection', () => {
       expect(hot.selection.isEntireRowSelected(0)).toBe(false);
     });
 
-    it('should return `true` when the corner is selected with row headers', () => {
+    it('should return `true` when the corner is selected with row headers', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(4, 6),
         colHeaders: true,

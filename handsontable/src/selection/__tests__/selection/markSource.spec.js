@@ -11,7 +11,7 @@ describe('Selection', () => {
   });
 
   describe('`markSource` method', () => {
-    it('should mark and maintain the source selection until it\'s revoked by the `markEndSource` method', () => {
+    it('should mark and maintain the source selection until it\'s revoked by the `markEndSource` method', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(6, 4),
         colHeaders: false,

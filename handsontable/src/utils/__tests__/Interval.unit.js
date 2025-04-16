@@ -20,66 +20,63 @@ describe('Interval', () => {
     expect(i.delay).toBe(1000 / 60);
   });
 
-  it('should create interval object which is stopped by default', (done) => {
+  it('should create interval object which is stopped by default', async() => {
     const spy = jasmine.createSpy();
 
     Interval.create(spy);
 
-    setTimeout(() => {
-      expect(spy).not.toHaveBeenCalled();
-      done();
-    }, 100);
+    await sleep(100);
+
+    expect(spy).not.toHaveBeenCalled();
   });
 
-  it('should repeatedly invoke callback function after calling `start` method', (done) => {
+  it('should repeatedly invoke callback function after calling `start` method', async() => {
     const spy = jasmine.createSpy();
     const i = Interval.create(spy, 100);
 
     i.start();
 
-    setTimeout(() => {
-      expect(spy).not.toHaveBeenCalled();
-    }, 50);
+    await sleep(50);
 
-    setTimeout(() => {
-      expect(spy.calls.count()).toBe(1);
-    }, 150);
+    expect(spy).not.toHaveBeenCalled();
 
-    setTimeout(() => {
-      expect(spy.calls.count()).toBe(2);
-    }, 250);
+    await sleep(100);
 
-    setTimeout(() => {
-      expect(spy.calls.count()).toBe(3);
-      i.stop();
-      done();
-    }, 350);
+    expect(spy.calls.count()).toBe(1);
+
+    await sleep(100);
+
+    expect(spy.calls.count()).toBe(2);
+
+    await sleep(100);
+
+    expect(spy.calls.count()).toBe(3);
+    i.stop();
   });
 
-  it('should stop repeatedly invoking callback function after calling `stop` method', (done) => {
+  it('should stop repeatedly invoking callback function after calling `stop` method', async() => {
     const spy = jasmine.createSpy();
     const i = Interval.create(spy, 100);
 
     i.start();
 
-    setTimeout(() => {
-      expect(spy).not.toHaveBeenCalled();
-    }, 50);
+    await sleep(50);
 
-    setTimeout(() => {
-      expect(spy.calls.count()).toBe(1);
-      i.stop();
-    }, 150);
+    expect(spy).not.toHaveBeenCalled();
 
-    setTimeout(() => {
-      expect(spy.calls.count()).toBe(1);
-      i.start();
-    }, 250);
+    await sleep(100);
 
-    setTimeout(() => {
-      expect(spy.calls.count()).toBe(2);
-      i.stop();
-      done();
-    }, 400);
+    expect(spy.calls.count()).toBe(1);
+    i.stop();
+
+    await sleep(100);
+
+    expect(spy.calls.count()).toBe(1);
+    i.start();
+
+    await sleep(150);
+
+    expect(spy.calls.count()).toBe(2);
+    i.stop();
   });
 });

@@ -10,7 +10,7 @@ describe('Core.getFirstPartiallyVisibleRow', () => {
     }
   });
 
-  it('should return first partially visible row index', () => {
+  it('should return first partially visible row index', async() => {
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
@@ -20,7 +20,7 @@ describe('Core.getFirstPartiallyVisibleRow', () => {
     expect(getFirstPartiallyVisibleRow()).toBe(0);
   });
 
-  it('should return first partially visible and not hidden row index', () => {
+  it('should return first partially visible and not hidden row index', async() => {
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
@@ -36,7 +36,7 @@ describe('Core.getFirstPartiallyVisibleRow', () => {
     expect(getFirstPartiallyVisibleRow()).toBe(2);
   });
 
-  it.forTheme('classic')('should return first partially visible row index (scrolled viewport)', () => {
+  it.forTheme('classic')('should return first partially visible row index (scrolled viewport)', async() => {
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
@@ -49,7 +49,7 @@ describe('Core.getFirstPartiallyVisibleRow', () => {
     expect(getFirstPartiallyVisibleRow()).toBe(15);
   });
 
-  it.forTheme('main')('should return first partially visible row index (scrolled viewport)', () => {
+  it.forTheme('main')('should return first partially visible row index (scrolled viewport)', async() => {
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
@@ -62,7 +62,7 @@ describe('Core.getFirstPartiallyVisibleRow', () => {
     expect(getFirstPartiallyVisibleRow()).toBe(15);
   });
 
-  it.forTheme('horizon')('should return first partially visible row index (scrolled viewport)', () => {
+  it.forTheme('horizon')('should return first partially visible row index (scrolled viewport)', async() => {
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,

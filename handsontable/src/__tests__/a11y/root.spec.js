@@ -14,19 +14,19 @@ describe('Root element-related a11y configuration', () => {
 
   describe('DOM structure', () => {
     describe('root element', () => {
-      it('should add the `role=treegrid` aria tag to the root element of the table', () => {
+      it('should add the `role=treegrid` aria tag to the root element of the table', async() => {
         const hot = handsontable({});
 
         expect(hot.rootElement.getAttribute('role')).toEqual('treegrid');
       });
 
-      it('should add the `aria-multiselectable` aria tag to the root element of the table', () => {
+      it('should add the `aria-multiselectable` aria tag to the root element of the table', async() => {
         const hot = handsontable({});
 
         expect(hot.rootElement.getAttribute('aria-multiselectable')).toEqual('true');
       });
 
-      it('should add the `aria-rowcount` and `aria-colcount` tags to the root element of the table', () => {
+      it('should add the `aria-rowcount` and `aria-colcount` tags to the root element of the table', async() => {
         const hot = handsontable({
           data: createSpreadsheetData(100, 50),
           rowHeaders: true,
@@ -37,7 +37,7 @@ describe('Root element-related a11y configuration', () => {
       });
 
       it('should update the `aria-rowcount` and `aria-colcount` tags after calling `updateSettings`, `loadData` and' +
-        ' `updateData`', () => {
+        ' `updateData`', async() => {
         const hot = handsontable({
           data: createSpreadsheetData(100, 50),
           rowHeaders: true

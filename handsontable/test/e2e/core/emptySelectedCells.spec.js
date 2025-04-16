@@ -10,7 +10,7 @@ describe('Core.emptySelectedCells', () => {
     }
   });
 
-  it('should make all selected cells empty', () => {
+  it('should make all selected cells empty', async() => {
     handsontable({
       data: createSpreadsheetObjectData(9, 8),
       selectionMode: 'multiple',
@@ -92,7 +92,7 @@ describe('Core.emptySelectedCells', () => {
     }).not.toThrowError();
   });
 
-  it('should not be performed, when there are no rows (even when there are headers selected)', () => {
+  it('should not be performed, when there are no rows (even when there are headers selected)', async() => {
     // We're using the `beforeChange` hook, as the `emptySelectedCells` method ends up doing a bunch of changes to
     // clear the selected cells.
     const onBeforeChange = jasmine.createSpy('beforeChange');
@@ -112,7 +112,7 @@ describe('Core.emptySelectedCells', () => {
     expect(onBeforeChange).not.toHaveBeenCalled();
   });
 
-  it('should not be performed, when there are no columns (even when there are headers selected)', () => {
+  it('should not be performed, when there are no columns (even when there are headers selected)', async() => {
     // We're using the `beforeChange` hook, as the `emptySelectedCells` method ends up doing a bunch of changes to
     // clear the selected cells.
     const onBeforeChange = jasmine.createSpy('beforeChange');
@@ -132,7 +132,7 @@ describe('Core.emptySelectedCells', () => {
     expect(onBeforeChange).not.toHaveBeenCalled();
   });
 
-  it('should not be performed, when all rows are trimmed (even when there are headers selected)', () => {
+  it('should not be performed, when all rows are trimmed (even when there are headers selected)', async() => {
     // We're using the `beforeChange` hook, as the `emptySelectedCells` method ends up doing a bunch of changes to
     // clear the selected cells.
     const onBeforeChange = jasmine.createSpy('beforeChange');
@@ -153,7 +153,7 @@ describe('Core.emptySelectedCells', () => {
     expect(onBeforeChange).not.toHaveBeenCalled();
   });
 
-  it('should override cleared values using `beforeChange` hook', () => {
+  it('should override cleared values using `beforeChange` hook', async() => {
     handsontable({
       data: [
         [1, 2, 3, 4, 5, 6],

@@ -13,7 +13,7 @@ describe('Focus handling', () => {
   });
 
   describe('`imeFastEdit` disabled (default behavior)', () => {
-    it('should disable the `imeFastEdit` option by default', () => {
+    it('should disable the `imeFastEdit` option by default', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(10, 10),
       });
@@ -68,7 +68,7 @@ describe('Focus handling', () => {
       ));
     });
 
-    it('should focus the correct TD element after changing the focus position within a range', () => {
+    it('should focus the correct TD element after changing the focus position within a range', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(10, 10),
         navigableHeaders: true,

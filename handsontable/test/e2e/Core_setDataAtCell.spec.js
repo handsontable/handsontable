@@ -151,7 +151,7 @@ describe('Core_setDataAtCell', () => {
   });
 
   // https://handsontable.com/demo/datasources.html
-  it('should work with functional data source', () => {
+  it('should work with functional data source', async() => {
     handsontable({
       data: [
         model({ id: 1, name: 'Ted Right', address: '' }),
@@ -201,7 +201,7 @@ describe('Core_setDataAtCell', () => {
     expect(getDataAtCell(1, 1)).toEqual('Something Else');
   });
 
-  it('should accept changes array as 1st param and source as 2nd param', () => {
+  it('should accept changes array as 1st param and source as 2nd param', async() => {
     let lastSource = '';
 
     handsontable({
@@ -215,7 +215,7 @@ describe('Core_setDataAtCell', () => {
     expect(lastSource).toEqual('customSource');
   });
 
-  it('should trigger `afterSetDataAtCell` hook with applied changes', () => {
+  it('should trigger `afterSetDataAtCell` hook with applied changes', async() => {
     let _changes;
     let _source;
 
@@ -233,7 +233,7 @@ describe('Core_setDataAtCell', () => {
     expect(getDataAtCell(0, 0)).toEqual('foo bar');
   });
 
-  it('should modify value on the fly using `afterSetDataAtCell` hook', () => {
+  it('should modify value on the fly using `afterSetDataAtCell` hook', async() => {
     handsontable({
       data: [['a', 'b', 'c'], [1, 2, 3]],
       afterSetDataAtCell(changes) {
@@ -254,7 +254,7 @@ describe('Core_setDataAtCell', () => {
     expect(getData()).toEqual([['bar', 'b', 'c'], [1, 2, 33]]);
   });
 
-  it('should trigger `afterSetDataAtRowProp` hook with applied changes', () => {
+  it('should trigger `afterSetDataAtRowProp` hook with applied changes', async() => {
     let _changes;
     let _source;
 
@@ -273,7 +273,7 @@ describe('Core_setDataAtCell', () => {
     expect(getDataAtCell(0, 0)).toBe('foo bar');
   });
 
-  it('should modify value on the fly using `afterSetDataAtRowProp` hook', () => {
+  it('should modify value on the fly using `afterSetDataAtRowProp` hook', async() => {
     handsontable({
       data: [{ name: 'a', id: 1 }, { name: 'b', id: 2 }, { name: 'c', id: 3 }],
       columns: [{ data: 'name' }, { data: 'id' }],
@@ -314,7 +314,7 @@ describe('Core_setDataAtCell', () => {
     expect(errors).toBe(0);
   });
 
-  it('should trigger `beforeChange` and `afterSetDataAtCell` in the correct order', () => {
+  it('should trigger `beforeChange` and `afterSetDataAtCell` in the correct order', async() => {
     const beforeChange = jasmine.createSpy('beforeChange');
     const afterSetDataAtCell = jasmine.createSpy('afterSetDataAtCell');
 
@@ -329,7 +329,7 @@ describe('Core_setDataAtCell', () => {
     expect(beforeChange).toHaveBeenCalledBefore(afterSetDataAtCell);
   });
 
-  it('should trigger `beforeChange` and `afterSetDataAtRowProp` in the correct order', () => {
+  it('should trigger `beforeChange` and `afterSetDataAtRowProp` in the correct order', async() => {
     const beforeChange = jasmine.createSpy('beforeChange');
     const afterSetDataAtRowProp = jasmine.createSpy('afterSetDataAtRowProp');
 
@@ -344,7 +344,7 @@ describe('Core_setDataAtCell', () => {
     expect(beforeChange).toHaveBeenCalledBefore(afterSetDataAtRowProp);
   });
 
-  it('should override set values using `beforeChange` hook', () => {
+  it('should override set values using `beforeChange` hook', async() => {
     handsontable({
       data: [
         [1, 2, 3, 4, 5, 6],
@@ -374,7 +374,7 @@ describe('Core_setDataAtCell', () => {
   });
 
   describe('Coordinates out of dataset', () => {
-    it('should insert new column', () => {
+    it('should insert new column', async() => {
       handsontable({
         data: createSpreadsheetData(1, 1)
       });
@@ -383,7 +383,7 @@ describe('Core_setDataAtCell', () => {
       expect(countCols()).toBe(2);
     });
 
-    it('should insert new row', () => {
+    it('should insert new row', async() => {
       handsontable({
         data: createSpreadsheetData(1, 1)
       });
@@ -392,7 +392,7 @@ describe('Core_setDataAtCell', () => {
       expect(countRows()).toBe(2);
     });
 
-    it('should not insert new column if `beforeCreateCol` returns false', () => {
+    it('should not insert new column if `beforeCreateCol` returns false', async() => {
       handsontable({
         data: createSpreadsheetData(1, 1),
         beforeCreateCol() {
@@ -406,7 +406,7 @@ describe('Core_setDataAtCell', () => {
       expect(countCols()).toBe(countedColumns);
     });
 
-    it('should not insert new row if `beforeCreateRow` returns false', () => {
+    it('should not insert new row if `beforeCreateRow` returns false', async() => {
       handsontable({
         data: createSpreadsheetData(1, 1),
         beforeCreateRow() {
@@ -420,7 +420,7 @@ describe('Core_setDataAtCell', () => {
       expect(countRows()).toBe(countedRows);
     });
 
-    it('should work also when the `editor` option is set to `false`', () => {
+    it('should work also when the `editor` option is set to `false`', async() => {
       handsontable({
         data: createSpreadsheetData(1, 1),
         editor: false,

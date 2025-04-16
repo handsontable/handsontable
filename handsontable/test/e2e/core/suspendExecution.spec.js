@@ -12,7 +12,7 @@ describe('Core.suspendExecution', () => {
     }
   });
 
-  it('should suspend the table execution process', () => {
+  it('should suspend the table execution process', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(5, 5),
     });
@@ -33,7 +33,7 @@ describe('Core.suspendExecution', () => {
     expect(rowIndexCacheUpdated).not.toHaveBeenCalled();
   });
 
-  it('should wrap multiple calls of the table suspend execution', () => {
+  it('should wrap multiple calls of the table suspend execution', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(5, 5),
     });

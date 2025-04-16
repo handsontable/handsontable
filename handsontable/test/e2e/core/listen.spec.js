@@ -14,7 +14,7 @@ describe('Core.listen', () => {
     this.$container2.remove();
   });
 
-  it('should make the table active', () => {
+  it('should make the table active', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
     });
@@ -26,7 +26,7 @@ describe('Core.listen', () => {
     expect(isListening()).toBe(true);
   });
 
-  it('should be possible to make active only one instance at a time', () => {
+  it('should be possible to make active only one instance at a time', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(5, 5),
     });
@@ -60,7 +60,7 @@ describe('Core.listen', () => {
     expect(hot2.isListening()).toBe(true);
   });
 
-  it('should call `unlisten` method on a different instance than the one being activated', () => {
+  it('should call `unlisten` method on a different instance than the one being activated', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(5, 5),
     });

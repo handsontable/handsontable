@@ -11,27 +11,27 @@ describe('WalkontableInFlexContainer', () => {
         display: flex;
         min-height: 400px;
       }
-  
+
       .card-maximized {
         flex-grow: 1;
       }
-  
+
       .card {
         display: flex;
         flex-direction: column;
       }
-  
+
       .card > .card-body {
         flex: 1 1 auto;
         display: flex;
         flex-direction: column;
       }
-  
+
       .container {
         flex: 1 1 auto;
         display: flex;
       }
-  
+
       .hot {
         flex: 1 1 auto;
       }
@@ -70,7 +70,7 @@ describe('WalkontableInFlexContainer', () => {
     this.wotInstance.destroy();
   });
 
-  it('should display walkontable properly (`overflow` property not set for some container) #10005', () => {
+  it('should display walkontable properly (`overflow` property not set for some container) #10005', async() => {
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
@@ -82,7 +82,7 @@ describe('WalkontableInFlexContainer', () => {
     expect($('.ht_master').height()).not.toBe(0);
   });
 
-  it('should display walkontable properly (`overflow` property set to `hidden` for some container) #10005', () => {
+  it('should display walkontable properly (`overflow` property set to `hidden` for some container) #10005', async() => {
     spec().$cardBody.css({ overflow: 'hidden' });
 
     const wt = walkontable({
@@ -96,7 +96,7 @@ describe('WalkontableInFlexContainer', () => {
     expect($('.ht_master').height()).not.toBe(0);
   });
 
-  it('should display walkontable properly (`overflow` property set to `scroll` for some container) #10005', () => {
+  it('should display walkontable properly (`overflow` property set to `scroll` for some container) #10005', async() => {
     spec().$cardBody.css({ overflow: 'scroll' });
 
     const wt = walkontable({
@@ -110,7 +110,7 @@ describe('WalkontableInFlexContainer', () => {
     expect($('.ht_master').height()).not.toBe(0);
   });
 
-  it('should display walkontable properly (`overflow` property set to `auto` for some container) #10005', () => {
+  it('should display walkontable properly (`overflow` property set to `auto` for some container) #10005', async() => {
     spec().$cardBody.css({ overflow: 'auto' });
 
     const wt = walkontable({

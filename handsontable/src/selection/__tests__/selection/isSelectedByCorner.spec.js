@@ -24,7 +24,7 @@ describe('Selection', () => {
   }
 
   describe('`isSelectedByCorner` method', () => {
-    it('should return `false` for the selection that is applied for the table without headers', () => {
+    it('should return `false` for the selection that is applied for the table without headers', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(4, 6),
         colHeaders: false,
@@ -59,7 +59,7 @@ describe('Selection', () => {
       expect(hot.selection.isSelectedByCorner()).toBe(false);
     });
 
-    it('should return `true` when the corner is selected (headers on)', () => {
+    it('should return `true` when the corner is selected (headers on)', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(4, 6),
         colHeaders: true,
@@ -109,7 +109,7 @@ describe('Selection', () => {
       expect(hot.selection.isSelectedByCorner()).toBe(true);
     });
 
-    it('should return `true` when the corner is selected (multiple headers, navigableHeaders on)', () => {
+    it('should return `true` when the corner is selected (multiple headers, navigableHeaders on)', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(4, 6),
         colHeaders: true,

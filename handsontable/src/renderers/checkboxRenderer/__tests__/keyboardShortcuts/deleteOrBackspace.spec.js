@@ -14,7 +14,7 @@ describe('CheckboxRenderer', () => {
       }
     });
 
-    it('should change checkbox state to unchecked', () => {
+    it('should change checkbox state to unchecked', async() => {
       handsontable({
         data: [[true], [false], [true]],
         columns: [
@@ -50,7 +50,7 @@ describe('CheckboxRenderer', () => {
         .toHaveBeenCalledWith([[0, 0, true, false]], 'edit');
     });
 
-    it('should change state to unchecked (from #bad-value# state)', () => {
+    it('should change state to unchecked (from #bad-value# state)', async() => {
       handsontable({
         data: [['foo'], ['bar']],
         columns: [
@@ -107,7 +107,7 @@ describe('CheckboxRenderer', () => {
       ]);
     });
 
-    it('should not change checkbox state when the column header is selected', () => {
+    it('should not change checkbox state when the column header is selected', async() => {
       handsontable({
         data: [[true], [false], [true]],
         columns: [
@@ -137,7 +137,7 @@ describe('CheckboxRenderer', () => {
     });
 
     it('should change the checkbox state to unchecked and clear the non-checkbox cells\' content when both the' +
-      ' checkbox-typed and non-checkbox-typed cells are selected', () => {
+      ' checkbox-typed and non-checkbox-typed cells are selected', async() => {
       handsontable({
         data: [['foo', true], ['bar', true]],
         columns: [
@@ -153,7 +153,7 @@ describe('CheckboxRenderer', () => {
       expect(getData()).toEqual([[null, false], [null, false]]);
     });
 
-    it('should not steal the event when the column header is selected', () => {
+    it('should not steal the event when the column header is selected', async() => {
       handsontable({
         data: [[true], [true], [true]],
         columns: [

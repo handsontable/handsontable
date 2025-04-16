@@ -12,13 +12,13 @@ describe('RowHeader', () => {
     }
   });
 
-  it('should not show row headers by default', () => {
+  it('should not show row headers by default', async() => {
     handsontable();
 
     expect(spec().$container.find('tbody th').length).toEqual(0);
   });
 
-  it('should show row headers if true', () => {
+  it('should show row headers if true', async() => {
     handsontable({
       rowHeaders: true
     });
@@ -26,7 +26,7 @@ describe('RowHeader', () => {
     expect(spec().$container.find('tbody th').length).toBeGreaterThan(0);
   });
 
-  it('should properly calculate colHeaders\' overlay width', () => {
+  it('should properly calculate colHeaders\' overlay width', async() => {
     handsontable({
       rowHeaders: true,
       startCols: 1,
@@ -46,7 +46,7 @@ describe('RowHeader', () => {
     expect(cloneTop.height()).toBeLessThan(masterHolder.height());
   });
 
-  it('should show row headers numbered from `0` to `n` by default (where `n` is number of rows)', () => {
+  it('should show row headers numbered from `0` to `n` by default (where `n` is number of rows)', async() => {
     const startRows = 5;
 
     handsontable({
@@ -64,7 +64,7 @@ describe('RowHeader', () => {
     expect($.trim(ths.eq(4).text())).toEqual('5');
   });
 
-  it('should show row headers with custom label', () => {
+  it('should show row headers with custom label', async() => {
     const startRows = 5;
 
     handsontable({
@@ -82,7 +82,7 @@ describe('RowHeader', () => {
     expect($.trim(ths.eq(4).text())).toEqual('5');
   });
 
-  it('should not show row headers if false', () => {
+  it('should not show row headers if false', async() => {
     handsontable({
       rowHeaders: false
     });
@@ -90,7 +90,7 @@ describe('RowHeader', () => {
     expect(getInlineStartClone().find('tbody th').length).toEqual(0);
   });
 
-  it('should hide rows headers after updateSetting', () => {
+  it('should hide rows headers after updateSetting', async() => {
     const hot = handsontable({
       startCols: 100,
       startRows: 100,
@@ -113,7 +113,7 @@ describe('RowHeader', () => {
     expect(getInlineStartClone().width()).toEqual(0);
   });
 
-  it('should show rows headers after updateSettings', () => {
+  it('should show rows headers after updateSettings', async() => {
     const hot = handsontable({
       startRows: 5,
       rowHeaders: false
@@ -130,7 +130,7 @@ describe('RowHeader', () => {
     expect(getInlineStartClone().find('tbody th').length).toEqual(5);
   });
 
-  it('should show/hide rows headers after multiple updateSettings', () => {
+  it('should show/hide rows headers after multiple updateSettings', async() => {
     const hot = handsontable({
       startRows: 5,
       rowHeaders: false
@@ -161,7 +161,7 @@ describe('RowHeader', () => {
     expect(getInlineStartClone().width()).toBeGreaterThan(0);
   });
 
-  it('should show new rows headers after updateSettings', () => {
+  it('should show new rows headers after updateSettings', async() => {
     const hot = handsontable({
       startCols: 3,
       rowHeaders: ['A', 'B', 'C']
@@ -185,7 +185,7 @@ describe('RowHeader', () => {
 
   it('should remove the row-headers-related css class from the Handsontable container after disabling the' +
     ' `rowHeaders` option using the updateSettings method and add the same css class after re-enabling the option in' +
-    ' the same way', () => {
+    ' the same way', async() => {
     handsontable({
       startCols: 2,
       startRows: 2,
@@ -207,7 +207,7 @@ describe('RowHeader', () => {
     expect(hot().rootElement.className).toContain('htRowHeaders');
   });
 
-  it('should allow defining custom row header width using the rowHeaderWidth config option', () => {
+  it('should allow defining custom row header width using the rowHeaderWidth config option', async() => {
     handsontable({
       startCols: 3,
       rowHeaders: true,
@@ -218,7 +218,7 @@ describe('RowHeader', () => {
     expect(spec().$container.find('col').first().css('width')).toEqual('150px');
   });
 
-  it('should allow defining custom column header heights using the columnHeaderHeight config option, when multiple column header levels are defined', () => {
+  it('should allow defining custom column header heights using the columnHeaderHeight config option, when multiple column header levels are defined', async() => {
     const hot = handsontable({
       startCols: 3,
       rowHeaders: true,
@@ -254,7 +254,7 @@ describe('RowHeader', () => {
     expect(spec().$container.find('col').eq(1).css('width')).toEqual('96px');
   });
 
-  it('should trigger `afterGetRowHeader` hook for all displayed rows on init', () => {
+  it('should trigger `afterGetRowHeader` hook for all displayed rows on init', async() => {
     const afterGetRowHeader = jasmine.createSpy('afterGetRowHeader');
 
     handsontable({

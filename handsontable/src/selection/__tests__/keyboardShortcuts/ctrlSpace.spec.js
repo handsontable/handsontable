@@ -11,7 +11,7 @@ describe('Selection extending', () => {
   });
 
   describe('"Ctrl + Space"', () => {
-    it('should select the column from single cell selection', () => {
+    it('should select the column from single cell selection', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -34,7 +34,7 @@ describe('Selection extending', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,3 from: -1,3 to: 4,3']);
     });
 
-    it('should select the column from selection without changing the focus position', () => {
+    it('should select the column from selection without changing the focus position', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -60,7 +60,7 @@ describe('Selection extending', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,3 from: -1,2 to: 4,3']);
     });
 
-    it('should select the columns from multiple cells selection', () => {
+    it('should select the columns from multiple cells selection', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -83,7 +83,7 @@ describe('Selection extending', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,3 from: -1,3 to: 4,0']);
     });
 
-    it('should select the columns only from the last selection layer of the non-contiguous cells selection', () => {
+    it('should select the columns only from the last selection layer of the non-contiguous cells selection', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -106,7 +106,7 @@ describe('Selection extending', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: -1,2 to: 4,3']);
     });
 
-    it('should select all headers and cells when at least one row is selected', () => {
+    it('should select all headers and cells when at least one row is selected', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -130,7 +130,7 @@ describe('Selection extending', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: -1,-1 to: 4,4']);
     });
 
-    it('should not change the selection when column is already selected', () => {
+    it('should not change the selection when column is already selected', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -154,7 +154,7 @@ describe('Selection extending', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: -1,1 to: 4,1']);
     });
 
-    it('should select the column from single cell selection (navigableHeaders on)', () => {
+    it('should select the column from single cell selection (navigableHeaders on)', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -178,7 +178,7 @@ describe('Selection extending', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,3 from: -1,3 to: 4,3']);
     });
 
-    it('should select the columns from multiple cells selection (navigableHeaders on)', () => {
+    it('should select the columns from multiple cells selection (navigableHeaders on)', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -202,7 +202,7 @@ describe('Selection extending', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,3 from: -1,3 to: 4,0']);
     });
 
-    it('should select the columns only from the last selection layer of the non-contiguous cells selection (navigableHeaders on)', () => {
+    it('should select the columns only from the last selection layer of the non-contiguous cells selection (navigableHeaders on)', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -226,7 +226,7 @@ describe('Selection extending', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: -1,2 to: 4,3']);
     });
 
-    it('should select all headers and cells when at least one row is selected (navigableHeaders on)', () => {
+    it('should select all headers and cells when at least one row is selected (navigableHeaders on)', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,

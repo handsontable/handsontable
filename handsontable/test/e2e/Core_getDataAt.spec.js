@@ -44,7 +44,7 @@ describe('Core_getDataAt*', () => {
     ];
   };
 
-  it('should return data at specified row', () => {
+  it('should return data at specified row', async() => {
     handsontable({
       data: arrayOfArrays()
     });
@@ -52,7 +52,7 @@ describe('Core_getDataAt*', () => {
     expect(getDataAtRow(0)).toEqual(['', 'Kia', 'Nissan', 'Toyota', 'Honda']);
   });
 
-  it('should return data at specified col', () => {
+  it('should return data at specified col', async() => {
     handsontable({
       data: arrayOfArrays()
     });
@@ -60,7 +60,7 @@ describe('Core_getDataAt*', () => {
     expect(getDataAtCol(1)).toEqual(['Kia', 10, 20, 30]);
   });
 
-  it('should not throw an exception while getting data for column by its index (big dataset)', () => {
+  it('should not throw an exception while getting data for column by its index (big dataset)', async() => {
     handsontable({
       data: createSpreadsheetData(130000, 5),
     });
@@ -70,7 +70,7 @@ describe('Core_getDataAt*', () => {
     }).not.toThrowError();
   });
 
-  it('should not throw an exception while getting data for column by its property (big dataset)', () => {
+  it('should not throw an exception while getting data for column by its property (big dataset)', async() => {
     handsontable({
       data: createSpreadsheetData(130000, 5),
     });
@@ -81,7 +81,7 @@ describe('Core_getDataAt*', () => {
   });
 
   describe('Core_getDataAtRowProp', () => {
-    it('should return data at specified column', () => {
+    it('should return data at specified column', async() => {
       handsontable({
         data: arrayOfObjects()
       });
@@ -94,7 +94,7 @@ describe('Core_getDataAt*', () => {
   });
 
   describe('`modifyData` hook', () => {
-    it('should be fired with specified arguments on every `set`, `get` operation (array of arrays)', () => {
+    it('should be fired with specified arguments on every `set`, `get` operation (array of arrays)', async() => {
       const spy = jasmine.createSpy();
 
       handsontable({
@@ -119,7 +119,7 @@ describe('Core_getDataAt*', () => {
       expect(spy.calls.argsFor(0)[3]).toBe('set');
     });
 
-    it('should be fired with specified arguments on every `set`, `get` operation (array of objects)', () => {
+    it('should be fired with specified arguments on every `set`, `get` operation (array of objects)', async() => {
       const spy = jasmine.createSpy();
 
       handsontable({
@@ -144,7 +144,7 @@ describe('Core_getDataAt*', () => {
       expect(spy.calls.argsFor(0)[3]).toBe('set');
     });
 
-    it('should overwrite value while loading data', () => {
+    it('should overwrite value while loading data', async() => {
       handsontable({
         data: arrayOfArrays(),
         modifyData(row, column, valueHolder, ioMode) {
@@ -158,7 +158,7 @@ describe('Core_getDataAt*', () => {
       expect(getSourceDataAtCell(1, 2)).toBe(11);
     });
 
-    it('should overwrite value while saving data', () => {
+    it('should overwrite value while saving data', async() => {
       handsontable({
         data: arrayOfArrays(),
         modifyData(row, column, valueHolder, ioMode) {

@@ -12,7 +12,7 @@ describe('Core.refreshDimensions', () => {
     }
   });
 
-  it('should trigger `beforeRefreshDimensions` and `afterRefreshDimensions` hooks internally', () => {
+  it('should trigger `beforeRefreshDimensions` and `afterRefreshDimensions` hooks internally', async() => {
     const beforeRefreshDimensions = jasmine.createSpy('beforeRefreshDimensions');
     const afterRefreshDimensions = jasmine.createSpy('afterRefreshDimensions');
 
@@ -60,7 +60,7 @@ describe('Core.refreshDimensions', () => {
     });
   });
 
-  it('should trigger `render` and `adjustElementsSize` methods internally (#dev-1876)', () => {
+  it('should trigger `render` and `adjustElementsSize` methods internally (#dev-1876)', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(5, 5),
     });

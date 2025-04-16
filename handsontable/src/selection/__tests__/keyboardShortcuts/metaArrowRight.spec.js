@@ -20,7 +20,7 @@ describe('Selection navigation', () => {
   }
 
   describe('"Ctrl/Cmd + ArrowRight"', () => {
-    it('should move the cell selection to the most right cell in a row', () => {
+    it('should move the cell selection to the most right cell in a row', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -71,7 +71,7 @@ describe('Selection navigation', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should move the header selection to the most right column header in a row (navigableHeaders on)', () => {
+    it('should move the header selection to the most right column header in a row (navigableHeaders on)', async() => {
       handsontable({
         startRows: 5,
         startCols: 5,
@@ -85,7 +85,7 @@ describe('Selection navigation', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,4 from: -1,4 to: -1,4']);
     });
 
-    it('should move the header selection to the most right column header in a row when there is no rows (navigableHeaders on)', () => {
+    it('should move the header selection to the most right column header in a row when there is no rows (navigableHeaders on)', async() => {
       handsontable({
         data: [],
         columns: [{}, {}, {}, {}, {}],
@@ -99,7 +99,7 @@ describe('Selection navigation', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,4 from: -1,4 to: -1,4']);
     });
 
-    it('should move the header selection to the most right column header in a row when all rows are hidden (navigableHeaders on)', () => {
+    it('should move the header selection to the most right column header in a row when all rows are hidden (navigableHeaders on)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
@@ -115,7 +115,7 @@ describe('Selection navigation', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,4 from: -1,4 to: -1,4']);
     });
 
-    it('should move the header selection to the most right row header in a row when there is no columns (navigableHeaders on)', () => {
+    it('should move the header selection to the most right row header in a row when there is no columns (navigableHeaders on)', async() => {
       handsontable({
         data: [[], [], [], [], []],
         rowHeaders: true,
@@ -132,7 +132,7 @@ describe('Selection navigation', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-1 from: 1,-1 to: 1,-1']);
     });
 
-    it('should move the header selection to the most right row header in a row when all columns are hidden (navigableHeaders on)', () => {
+    it('should move the header selection to the most right row header in a row when all columns are hidden (navigableHeaders on)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,

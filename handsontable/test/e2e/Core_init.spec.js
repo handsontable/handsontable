@@ -15,7 +15,7 @@ describe('Core_init', () => {
     this.$parentContainer.remove();
   });
 
-  it('should respect startRows and startCols when no data is provided', () => {
+  it('should respect startRows and startCols when no data is provided', async() => {
     spec().$container.remove();
     spec().$container = $(`<div id="${id}"></div>`).appendTo('body');
     handsontable();
@@ -24,13 +24,13 @@ describe('Core_init', () => {
     expect(countCols()).toEqual(5); // as given in README.md
   });
 
-  it('should construct when container is not appended to document', () => {
+  it('should construct when container is not appended to document', async() => {
     spec().$container.remove();
     handsontable();
     expect(getData()).toBeTruthy();
   });
 
-  it('should create an instance when the iframe is a container', () => {
+  it('should create an instance when the iframe is a container', async() => {
     const iframe = $('<iframe/>').appendTo(spec().$container);
     const doc = iframe[0].contentDocument;
 
@@ -50,7 +50,7 @@ describe('Core_init', () => {
     }).not.toThrow();
   });
 
-  it('should create table even if is launched inside custom element', () => {
+  it('should create table even if is launched inside custom element', async() => {
     const onErrorSpy = spyOn(window, 'onerror');
 
     spec().$container.remove();
@@ -217,7 +217,7 @@ describe('Core_init', () => {
   });
 
   describe('theme initialization', () => {
-    it('should enable a theme when a theme class name was added to the root element', () => {
+    it('should enable a theme when a theme class name was added to the root element', async() => {
       simulateModernThemeStylesheet(spec().$container);
       spec().$container.addClass('ht-theme-sth');
 
@@ -229,7 +229,7 @@ describe('Core_init', () => {
       expect(hot.getCurrentThemeName()).toBe('ht-theme-sth');
     });
 
-    it('should enable a theme when a theme class name was added to a parent of the root element', () => {
+    it('should enable a theme when a theme class name was added to a parent of the root element', async() => {
       simulateModernThemeStylesheet(spec().$container);
       spec().$parentContainer.addClass('ht-theme-sth');
 

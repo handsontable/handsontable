@@ -53,7 +53,7 @@ describe('settings', () => {
     }
 
     describe('constructor', () => {
-      it('should disallow fragmentSelection when set to false', () => {
+      it('should disallow fragmentSelection when set to false', async() => {
         const hot = handsontable({
           data: createSpreadsheetData(4, 4),
           fragmentSelection: false
@@ -79,7 +79,7 @@ describe('settings', () => {
         expect(copyEvent.clipboardData.getData('text/plain')).toBe('B1\tC1\tD1');
       });
 
-      it('should allow fragmentSelection when set to true', () => {
+      it('should allow fragmentSelection when set to true', async() => {
         const hot = handsontable({
           data: createSpreadsheetData(4, 4),
           fragmentSelection: true
@@ -101,7 +101,7 @@ describe('settings', () => {
         expect(copyEvent.clipboardData.getData('text/plain')).toBe('B1\tC1\tD1');
       });
 
-      it('should allow fragmentSelection from one cell when set to `cell`', () => {
+      it('should allow fragmentSelection from one cell when set to `cell`', async() => {
         const hot = handsontable({
           data: createSpreadsheetData(4, 4),
           fragmentSelection: 'cell'
@@ -126,7 +126,7 @@ describe('settings', () => {
         expect(copyEvent.clipboardData.getData('text/plain')).toBe('B1');
       });
 
-      it('should disallow fragmentSelection from one cell when set to `cell` and when user selects adjacent cell', () => {
+      it('should disallow fragmentSelection from one cell when set to `cell` and when user selects adjacent cell', async() => {
         const hot = handsontable({
           data: createSpreadsheetData(4, 4),
           fragmentSelection: 'cell'
@@ -149,7 +149,7 @@ describe('settings', () => {
         expect(copyEvent.clipboardData.getData('text/plain')).toBe('B1\tC1');
       });
 
-      it('should disallow fragmentSelection of Handsontable chrome (anything that is not table) when set to false', () => {
+      it('should disallow fragmentSelection of Handsontable chrome (anything that is not table) when set to false', async() => {
         handsontable({
           data: createSpreadsheetData(4, 4),
           fragmentSelection: false
@@ -166,7 +166,7 @@ describe('settings', () => {
         expect(sel).toEqual('');
       });
 
-      it('should disallow fragmentSelection of Handsontable chrome (anything that is not table) when set to true', () => {
+      it('should disallow fragmentSelection of Handsontable chrome (anything that is not table) when set to true', async() => {
         handsontable({
           data: createSpreadsheetData(4, 4),
           fragmentSelection: true
@@ -185,7 +185,7 @@ describe('settings', () => {
     });
 
     describe('dynamic', () => {
-      it('should disallow fragmentSelection when set to false', () => {
+      it('should disallow fragmentSelection when set to false', async() => {
         const hot = handsontable({
           data: createSpreadsheetData(4, 4),
           fragmentSelection: true
@@ -211,7 +211,7 @@ describe('settings', () => {
         expect(copyEvent.clipboardData.getData('text/plain')).toBe('B1\tC1\tD1');
       });
 
-      it('should allow fragmentSelection when set to true', () => {
+      it('should allow fragmentSelection when set to true', async() => {
         const hot = handsontable({
           data: createSpreadsheetData(4, 4),
           fragmentSelection: false

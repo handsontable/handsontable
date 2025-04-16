@@ -16,7 +16,7 @@ describe('Selection extending (RTL mode)', () => {
   });
 
   describe('"Shift + ArrowDown"', () => {
-    it('should extend the cell selection down when the cell is selected', () => {
+    it('should extend the cell selection down when the cell is selected', async() => {
       handsontable({
         startRows: 5,
         startCols: 5

@@ -16,7 +16,7 @@ describe('viewportRowCalculatorOverride option', () => {
     this.wotInstance.destroy();
   });
 
-  it('should render offset when the first row is fully displayed in the viewport (default setting)', () => {
+  it('should render offset when the first row is fully displayed in the viewport (default setting)', async() => {
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
@@ -40,7 +40,7 @@ describe('viewportRowCalculatorOverride option', () => {
     expect(getTableMaster().find('tr:first td:first').text()).toBe('19');
   });
 
-  it('should render offset when the last row is fully displayed in the viewport (default setting)', () => {
+  it('should render offset when the last row is fully displayed in the viewport (default setting)', async() => {
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
@@ -62,7 +62,7 @@ describe('viewportRowCalculatorOverride option', () => {
     expect(getTableMaster().find('tr:last td:first').text()).toBe('10');
   });
 
-  it('should render offset when the first row is fully displayed in the viewport (custom offset)', () => {
+  it('should render offset when the first row is fully displayed in the viewport (custom offset)', async() => {
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
@@ -89,7 +89,7 @@ describe('viewportRowCalculatorOverride option', () => {
     expect(getTableMaster().find('tr:first td:first').text()).toBe('13');
   });
 
-  it('should render offset when the last row is fully displayed in the viewport (custom offset)', () => {
+  it('should render offset when the last row is fully displayed in the viewport (custom offset)', async() => {
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,

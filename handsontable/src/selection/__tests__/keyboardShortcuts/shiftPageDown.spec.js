@@ -11,7 +11,7 @@ describe('Selection extending', () => {
   });
 
   describe('"Shift + PageDown"', () => {
-    it.forTheme('classic')('should extend the cell selection up by the height of the table viewport', () => {
+    it.forTheme('classic')('should extend the cell selection up by the height of the table viewport', async() => {
       handsontable({
         width: 180,
         height: 100, // 100/23 (default cell height) rounding down is 4. So PageUp will extend the selection per 4 rows
@@ -99,7 +99,7 @@ describe('Selection extending', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 14,1']);
     });
 
-    it.forTheme('main')('should extend the cell selection up by the height of the table viewport', () => {
+    it.forTheme('main')('should extend the cell selection up by the height of the table viewport', async() => {
       handsontable({
         width: 180,
         height: 120, // 120/28 (cell height) rounding down is 4. So PageUp will extend the selection per 4 rows
@@ -187,7 +187,7 @@ describe('Selection extending', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 14,1']);
     });
 
-    it.forTheme('horizon')('should extend the cell selection up by the height of the table viewport', () => {
+    it.forTheme('horizon')('should extend the cell selection up by the height of the table viewport', async() => {
       handsontable({
         width: 180,
         height: 153, // 153/37 (cell height) rounding down is 4. So PageUp will extend the selection per 4 rows

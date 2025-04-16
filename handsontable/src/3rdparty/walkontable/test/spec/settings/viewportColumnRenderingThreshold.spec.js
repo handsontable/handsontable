@@ -16,7 +16,7 @@ describe('viewportColumnRenderingThreshold option', () => {
     this.wotInstance.destroy();
   });
 
-  it('should trigger rendering offset after the first column is fully displayed in the viewport (default setting)', () => {
+  it('should trigger rendering offset after the first column is fully displayed in the viewport (default setting)', async() => {
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
@@ -40,7 +40,7 @@ describe('viewportColumnRenderingThreshold option', () => {
     expect(getTableMaster().find('tr:first td:first').text()).toBe('b');
   });
 
-  it('should trigger rendering offset after the last column is fully displayed in the viewport (default setting)', () => {
+  it('should trigger rendering offset after the last column is fully displayed in the viewport (default setting)', async() => {
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
@@ -62,7 +62,7 @@ describe('viewportColumnRenderingThreshold option', () => {
     expect(getTableMaster().find('tr:first td:last').text()).toBe('e');
   });
 
-  it('should trigger rendering offset after the 3rd column from the start is fully displayed in the viewport', () => {
+  it('should trigger rendering offset after the 3rd column from the start is fully displayed in the viewport', async() => {
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
@@ -112,7 +112,7 @@ describe('viewportColumnRenderingThreshold option', () => {
     expect(getTableMaster().find('tr:first td:first').text()).toBe('g');
   });
 
-  it('should trigger rendering offset after the 3rd column from the end is fully displayed in the viewport', () => {
+  it('should trigger rendering offset after the 3rd column from the end is fully displayed in the viewport', async() => {
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
@@ -162,7 +162,7 @@ describe('viewportColumnRenderingThreshold option', () => {
     expect(getTableMaster().find('tr:first td:last').text()).toBe('i1');
   });
 
-  it('should trigger rendering offset after the middle column in the offset from the start is fully displayed in the viewport', () => {
+  it('should trigger rendering offset after the middle column in the offset from the start is fully displayed in the viewport', async() => {
     const calcOverride = { offset: 8 };
     const wt = walkontable({
       data: getData,
@@ -206,7 +206,7 @@ describe('viewportColumnRenderingThreshold option', () => {
     expect(getTableMaster().find('tr:first td:first').text()).toBe('n');
   });
 
-  it('should trigger rendering offset after the middle column in the offset from the end is fully displayed in the viewport', () => {
+  it('should trigger rendering offset after the middle column in the offset from the end is fully displayed in the viewport', async() => {
     const calcOverride = { offset: 8 };
     const wt = walkontable({
       data: getData,

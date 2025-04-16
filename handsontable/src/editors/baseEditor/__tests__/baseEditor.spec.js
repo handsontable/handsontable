@@ -12,7 +12,7 @@ describe('BaseEditor', () => {
     }
   });
 
-  it('should exported all editors into Handsontable.editors object', () => {
+  it('should exported all editors into Handsontable.editors object', async() => {
     expect(Handsontable.editors.AutocompleteEditor).toBeDefined();
     expect(Handsontable.editors.BaseEditor).toBeDefined();
     expect(Handsontable.editors.CheckboxEditor).toBeDefined();

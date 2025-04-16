@@ -13,7 +13,7 @@ describe('settings', () => {
       }
     });
 
-    it('should add class name every table element inside handsontable wrapper element (as string, without overlays)', () => {
+    it('should add class name every table element inside handsontable wrapper element (as string, without overlays)', async() => {
       const hot = handsontable({
         colHeaders: false,
         rowHeaders: false,
@@ -24,7 +24,7 @@ describe('settings', () => {
       expect(hot.rootElement.querySelectorAll('table.foo').length).toEqual(6);
     });
 
-    it('should add class name every table element inside handsontable wrapper element (as string, with overlays)', () => {
+    it('should add class name every table element inside handsontable wrapper element (as string, with overlays)', async() => {
       const hot = handsontable({
         colHeaders: true,
         rowHeaders: true,
@@ -34,7 +34,7 @@ describe('settings', () => {
       expect(hot.rootElement.querySelectorAll('table.foo').length).toEqual(6);
     });
 
-    it('should add class name every table element inside handsontable wrapper element (as string with spaces, without overlays)', () => {
+    it('should add class name every table element inside handsontable wrapper element (as string with spaces, without overlays)', async() => {
       const hot = handsontable({
         colHeaders: false,
         rowHeaders: false,
@@ -46,7 +46,7 @@ describe('settings', () => {
       expect(hot.rootElement.querySelectorAll('table.bar').length).toEqual(6);
     });
 
-    it('should add class name every table element inside handsontable wrapper element (as string with spaces, with overlays)', () => {
+    it('should add class name every table element inside handsontable wrapper element (as string with spaces, with overlays)', async() => {
       const hot = handsontable({
         colHeaders: true,
         rowHeaders: true,
@@ -57,7 +57,7 @@ describe('settings', () => {
       expect(hot.rootElement.querySelectorAll('table.bar').length).toEqual(6);
     });
 
-    it('should add class name every table element inside handsontable wrapper element (as array, without overlays)', () => {
+    it('should add class name every table element inside handsontable wrapper element (as array, without overlays)', async() => {
       const hot = handsontable({
         colHeaders: false,
         rowHeaders: false,
@@ -69,7 +69,7 @@ describe('settings', () => {
       expect(hot.rootElement.querySelectorAll('table.baz').length).toEqual(6);
     });
 
-    it('should add class name every table element inside handsontable wrapper element (as array, with overlays)', () => {
+    it('should add class name every table element inside handsontable wrapper element (as array, with overlays)', async() => {
       const hot = handsontable({
         colHeaders: true,
         rowHeaders: true,
@@ -81,7 +81,7 @@ describe('settings', () => {
       expect(hot.rootElement.querySelectorAll('table.baz').length).toEqual(6);
     });
 
-    it('should update tableClassName in all tables accordingly', () => {
+    it('should update tableClassName in all tables accordingly', async() => {
       handsontable({
         data: [[1, true]],
         tableClassName: ['table_red'],

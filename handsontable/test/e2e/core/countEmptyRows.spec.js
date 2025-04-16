@@ -12,7 +12,7 @@ describe('Core.countEmptyRows', () => {
     }
   });
 
-  it('should count empty rows properly when using a simple data set', () => {
+  it('should count empty rows properly when using a simple data set', async() => {
     handsontable({
       data: [
         [null],
@@ -27,7 +27,7 @@ describe('Core.countEmptyRows', () => {
     expect(countEmptyRows()).toBe(3);
   });
 
-  it('should count empty rows at the end of the data source properly (optional `ending` parameter)', () => {
+  it('should count empty rows at the end of the data source properly (optional `ending` parameter)', async() => {
     handsontable({
       data: [
         [null],
@@ -46,7 +46,7 @@ describe('Core.countEmptyRows', () => {
     expect(countEmptyRows(true)).toBe(5);
   });
 
-  it('should count empty rows properly when using `minSpareRows` option', () => {
+  it('should count empty rows properly when using `minSpareRows` option', async() => {
     handsontable({
       data: [
         [null],
@@ -61,7 +61,7 @@ describe('Core.countEmptyRows', () => {
     expect(countEmptyRows()).toBe(4);
   });
 
-  it('should count empty rows properly when translating rows in the viewport', () => {
+  it('should count empty rows properly when translating rows in the viewport', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(5, 5)
     });
@@ -71,7 +71,7 @@ describe('Core.countEmptyRows', () => {
     expect(countEmptyRows()).toBe(2);
   });
 
-  it('should count empty rows properly when translating rows below the viewport', () => {
+  it('should count empty rows properly when translating rows below the viewport', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(100, 100)
     });

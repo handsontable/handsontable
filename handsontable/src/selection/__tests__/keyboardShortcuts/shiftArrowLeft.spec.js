@@ -11,7 +11,7 @@ describe('Selection extending', () => {
   });
 
   describe('"Shift + ArrowLeft"', () => {
-    it('should extend the cell selection to the left cell of the current row when the cell is selected', () => {
+    it('should extend the cell selection to the left cell of the current row when the cell is selected', async() => {
       handsontable({
         startRows: 5,
         startCols: 5
@@ -30,7 +30,7 @@ describe('Selection extending', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: 1,2 to: 1,1']);
     });
 
-    it('should extend the cells selection to the left cells of the current row when the range of the cells are selected', () => {
+    it('should extend the cells selection to the left cells of the current row when the range of the cells are selected', async() => {
       handsontable({
         startRows: 5,
         startCols: 5
@@ -49,7 +49,7 @@ describe('Selection extending', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: 1,2 to: 3,1']);
     });
 
-    it('should extend the cells selection to the left when focus is moved within a range', () => {
+    it('should extend the cells selection to the left when focus is moved within a range', async() => {
       handsontable({
         startRows: 5,
         startCols: 6
@@ -85,7 +85,7 @@ describe('Selection extending', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,3 from: 1,3 to: 3,0']);
     });
 
-    it('should extend the column header selection to the left column header', () => {
+    it('should extend the column header selection to the left column header', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -109,7 +109,7 @@ describe('Selection extending', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: -1,2 to: 4,1']);
     });
 
-    it('should extend the column header selection to the left column header when focus is moved within a range', () => {
+    it('should extend the column header selection to the left column header when focus is moved within a range', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -152,7 +152,7 @@ describe('Selection extending', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,3 from: -1,3 to: 4,0']);
     });
 
-    it('should extend the column header selection to the left visible column', () => {
+    it('should extend the column header selection to the left visible column', async() => {
       const hot = handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -182,7 +182,7 @@ describe('Selection extending', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,3 from: -1,3 to: 4,0']);
     });
 
-    it('should extend the column header selection to the left column header (navigableHeaders on)', () => {
+    it('should extend the column header selection to the left column header (navigableHeaders on)', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -207,7 +207,7 @@ describe('Selection extending', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,2 from: -1,2 to: 4,1']);
     });
 
-    it('should not extend the column header selection to the left column header when there is no rows (navigableHeaders on)', () => {
+    it('should not extend the column header selection to the left column header when there is no rows (navigableHeaders on)', async() => {
       handsontable({
         data: [],
         columns: [{}, {}, {}, {}, {}],
@@ -227,7 +227,7 @@ describe('Selection extending', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,2 from: -1,2 to: -1,2']);
     });
 
-    it('should not extend the column header selection to the left column header when all rows are hidden (navigableHeaders on)', () => {
+    it('should not extend the column header selection to the left column header when all rows are hidden (navigableHeaders on)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -249,7 +249,7 @@ describe('Selection extending', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,2 from: -1,2 to: 4,2']);
     });
 
-    it('should not change the selection when row header is selected', () => {
+    it('should not change the selection when row header is selected', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -298,7 +298,7 @@ describe('Selection extending', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: -1,-1 to: 4,4']);
     });
 
-    it('should not change the selection when the column header is highlighted', () => {
+    it('should not change the selection when the column header is highlighted', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -323,7 +323,7 @@ describe('Selection extending', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: -1,1']);
     });
 
-    it('should not change the selection when the row header is highlighted', () => {
+    it('should not change the selection when the row header is highlighted', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -348,7 +348,7 @@ describe('Selection extending', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-1 from: 1,-1 to: 1,-1']);
     });
 
-    it('should not change the selection when the corner is highlighted', () => {
+    it('should not change the selection when the corner is highlighted', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,

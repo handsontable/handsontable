@@ -24,7 +24,7 @@ describe('Selection', () => {
   }
 
   describe('`isSelectedByAnyHeader` method', () => {
-    it('should return `true` when one of the headers are selected (headers off)', () => {
+    it('should return `true` when one of the headers are selected (headers off)', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(4, 6),
         colHeaders: false,
@@ -54,7 +54,7 @@ describe('Selection', () => {
       expect(hot.selection.isSelectedByAnyHeader()).toBe(false);
     });
 
-    it('should return `true` when one of the headers are selected (headers on)', () => {
+    it('should return `true` when one of the headers are selected (headers on)', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(4, 6),
         colHeaders: true,
@@ -94,7 +94,7 @@ describe('Selection', () => {
       expect(hot.selection.isSelectedByAnyHeader()).toBe(true);
     });
 
-    it('should return `true` when one of the headers are selected (multiple headers, navigableHeaders on)', () => {
+    it('should return `true` when one of the headers are selected (multiple headers, navigableHeaders on)', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(4, 6),
         colHeaders: true,

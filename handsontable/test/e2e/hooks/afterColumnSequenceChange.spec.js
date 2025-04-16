@@ -13,7 +13,7 @@ describe('Hook', () => {
   });
 
   describe('afterColumnSequenceChange', () => {
-    it('should be fired once after initializing HOT', () => {
+    it('should be fired once after initializing HOT', async() => {
       const afterColumnSequenceChange = jasmine.createSpy('afterColumnSequenceChange');
 
       handsontable({
@@ -25,7 +25,7 @@ describe('Hook', () => {
       expect(afterColumnSequenceChange).toHaveBeenCalledTimes(1);
     });
 
-    it('should be fired once after moving multiple columns', () => {
+    it('should be fired once after moving multiple columns', async() => {
       const afterColumnSequenceChange = jasmine.createSpy('afterColumnSequenceChange');
 
       const hot = handsontable({
@@ -41,7 +41,7 @@ describe('Hook', () => {
       expect(afterColumnSequenceChange).toHaveBeenCalledTimes(1);
     });
 
-    it('should be fired once after inserting multiple columns', () => {
+    it('should be fired once after inserting multiple columns', async() => {
       const afterColumnSequenceChange = jasmine.createSpy('afterColumnSequenceChange');
 
       handsontable({
@@ -57,7 +57,7 @@ describe('Hook', () => {
       expect(afterColumnSequenceChange).toHaveBeenCalledTimes(1);
     });
 
-    it('should be fired once after removing multiple columns', () => {
+    it('should be fired once after removing multiple columns', async() => {
       const afterColumnSequenceChange = jasmine.createSpy('afterColumnSequenceChange');
 
       handsontable({
@@ -73,7 +73,7 @@ describe('Hook', () => {
       expect(afterColumnSequenceChange).toHaveBeenCalledTimes(1);
     });
 
-    it('should be fired once after updating indexes using IndexMapper API', () => {
+    it('should be fired once after updating indexes using IndexMapper API', async() => {
       const afterColumnSequenceChange = jasmine.createSpy('afterColumnSequenceChange');
 
       const hot = handsontable({

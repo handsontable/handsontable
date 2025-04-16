@@ -12,7 +12,7 @@ describe('Selection cooperation with hidden rows', () => {
     }
   });
 
-  it('should move down throughout the table when the last row is hidden', () => {
+  it('should move down throughout the table when the last row is hidden', async() => {
     handsontable({
       data: createSpreadsheetData(3, 3),
       autoWrapCol: true,

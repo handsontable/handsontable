@@ -27,7 +27,7 @@ describe('settings', () => {
         expect(getCell(-1, 2).querySelector('div')).toHaveClass('test1');
       });
 
-    it('allow adding multiple classes to the headers\' inner `div` elements when passed as a global setting', () => {
+    it('allow adding multiple classes to the headers\' inner `div` elements when passed as a global setting', async() => {
       handsontable({
         data: createSpreadsheetData(3, 3),
         headerClassName: 'test1 test2',
@@ -67,7 +67,7 @@ describe('settings', () => {
         expect(getCell(-1, 2).querySelector('div')).toHaveClass('test3');
       });
 
-    it('allow adding multiple classes to the headers\' inner `div` elements when passed as a column setting', () => {
+    it('allow adding multiple classes to the headers\' inner `div` elements when passed as a column setting', async() => {
       handsontable({
         data: createSpreadsheetData(3, 3),
         columns: [
@@ -94,7 +94,7 @@ describe('settings', () => {
     });
 
     it('should allow adding both global and column settings of `headerClassName` and make them work in a cascade' +
-      ' manner', () => {
+      ' manner', async() => {
       handsontable({
         data: createSpreadsheetData(3, 3),
         headerClassName: 'global-test',
@@ -118,7 +118,7 @@ describe('settings', () => {
 
     describe('predefined classes', () => {
       it('should align the content of the column header\'s inner `div` element to the left, when `htLeft` is passed' +
-        'as `headerClassName', () => {
+        'as `headerClassName', async() => {
         handsontable({
           data: createSpreadsheetData(3, 3),
           headerClassName: 'htLeft',
@@ -131,7 +131,7 @@ describe('settings', () => {
       });
 
       it('should align the content of the column header\'s inner `div` element to the right, when `htRight` is passed' +
-        'as `headerClassName', () => {
+        'as `headerClassName', async() => {
         handsontable({
           data: createSpreadsheetData(3, 3),
           headerClassName: 'htRight',
@@ -144,7 +144,7 @@ describe('settings', () => {
       });
 
       it('should align the content of the column header\'s inner `div` element to the center, when `htCenter` is' +
-        ' passed as `headerClassName', () => {
+        ' passed as `headerClassName', async() => {
         handsontable({
           data: createSpreadsheetData(3, 3),
           headerClassName: 'htCenter',
@@ -157,7 +157,7 @@ describe('settings', () => {
       });
 
       it('should align the header\'s `div` elements according to the class being added, regardless of the data type' +
-        ' declared in the settings', () => {
+        ' declared in the settings', async() => {
         handsontable({
           data: createSpreadsheetData(3, 4),
           colHeaders: true,

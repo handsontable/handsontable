@@ -16,7 +16,7 @@ describe('Selection extending (RTL mode)', () => {
   });
 
   describe('"Ctrl/Cmd + Shift + ArrowDown"', () => {
-    it('should extend the cell selection to the last cell of the current column', () => {
+    it('should extend the cell selection to the last cell of the current column', async() => {
       handsontable({
         startRows: 5,
         startCols: 5
@@ -35,7 +35,7 @@ describe('Selection extending (RTL mode)', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 4,1']);
     });
 
-    it('should extend the cell selection to the last cell of the current column when fixed overlays are enabled', () => {
+    it('should extend the cell selection to the last cell of the current column when fixed overlays are enabled', async() => {
       handsontable({
         fixedColumnsStart: 2,
         fixedRowsTop: 2,
@@ -59,7 +59,7 @@ describe('Selection extending (RTL mode)', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 4,1']);
     });
 
-    it('should extend the cells selection to the last cells of the current column', () => {
+    it('should extend the cells selection to the last cells of the current column', async() => {
       handsontable({
         startRows: 5,
         startCols: 5
@@ -78,7 +78,7 @@ describe('Selection extending (RTL mode)', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 4,3']);
     });
 
-    it('should extend the header selection to the top-most row header', () => {
+    it('should extend the header selection to the top-most row header', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -102,7 +102,7 @@ describe('Selection extending (RTL mode)', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: 1,-1 to: 4,4']);
     });
 
-    it('should extend the row header selection to the bottom-most row header when there is no columns (navigableHeaders on)', () => {
+    it('should extend the row header selection to the bottom-most row header when there is no columns (navigableHeaders on)', async() => {
       handsontable({
         data: [[], [], [], [], []],
         rowHeaders: true,
@@ -126,7 +126,7 @@ describe('Selection extending (RTL mode)', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-1 from: 1,-1 to: 4,-1']);
     });
 
-    it('should extend the row header selection to the bottom-most row header when all columns are hidden (navigableHeaders on)', () => {
+    it('should extend the row header selection to the bottom-most row header when all columns are hidden (navigableHeaders on)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,

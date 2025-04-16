@@ -574,7 +574,7 @@ describe('manualColumnResize', () => {
     }
   });
 
-  it('should resize appropriate columns, even if the column order was changed with manualColumnMove plugin', function() {
+  it('should resize appropriate columns, even if the column order was changed with manualColumnMove plugin', async() => {
     handsontable({
       colHeaders: ['First', 'Second', 'Third'],
       manualColumnMove: [2, 1, 0, 3],

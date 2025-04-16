@@ -14,7 +14,7 @@ describe('settings', () => {
     });
 
     describe('defined in constructor', () => {
-      it('should show columns headers', () => {
+      it('should show columns headers', async() => {
         handsontable({
           fixedColumnsStart: 3
         });
@@ -22,7 +22,7 @@ describe('settings', () => {
         expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toEqual(3);
       });
 
-      it('should show columns headers when headers are enabled', () => {
+      it('should show columns headers when headers are enabled', async() => {
         handsontable({
           rowHeaders: true,
           colHeaders: true,
@@ -35,7 +35,7 @@ describe('settings', () => {
     });
 
     describe('defined in updateSettings', () => {
-      it('should increase fixed columns', () => {
+      it('should increase fixed columns', async() => {
         handsontable({
           fixedColumnsStart: 2
         });
@@ -47,7 +47,7 @@ describe('settings', () => {
         expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toEqual(4);
       });
 
-      it('should decrease fixed columns', () => {
+      it('should decrease fixed columns', async() => {
         handsontable({
           fixedColumnsStart: 4
         });
@@ -59,7 +59,7 @@ describe('settings', () => {
         expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toEqual(2);
       });
 
-      it('should create fixed columns when they are disabled eariler', () => {
+      it('should create fixed columns when they are disabled eariler', async() => {
         handsontable({
           fixedColumnsStart: 0
         });
@@ -71,7 +71,7 @@ describe('settings', () => {
         expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toEqual(2);
       });
 
-      it('should disable fixed columns', () => {
+      it('should disable fixed columns', async() => {
         handsontable({
           fixedColumnsStart: 2
         });
@@ -84,14 +84,15 @@ describe('settings', () => {
         expect(getInlineStartClone().width()).toBe(0);
       });
 
-      it('should not throw errors while scrolling horizontally when fixed columns was set', (done) => {
+      it('should not throw errors while scrolling horizontally when fixed columns was set', async() => {
         const spy = jasmine.createSpyObj('error', ['test']);
         const prevError = window.onerror;
 
         window.onerror = function() {
           spy.test();
         };
-        const hot = handsontable({
+
+        handsontable({
           data: createSpreadsheetData(50, 50),
           width: 200,
           height: 200,
@@ -102,21 +103,17 @@ describe('settings', () => {
           fixedColumnsStart: 2
         });
 
-        setTimeout(() => {
-          hot.scrollViewportTo({
-            row: 30,
-            col: 30,
-            verticalSnap: 'top',
-            horizontalSnap: 'start',
-          });
-        }, 100);
+        await sleep(100);
+        await scrollViewportTo({
+          row: 30,
+          col: 30,
+          verticalSnap: 'top',
+          horizontalSnap: 'start',
+        });
 
-        setTimeout(() => {
-          expect(spy.test.calls.count()).toBe(0);
+        expect(spy.test.calls.count()).toBe(0);
 
-          done();
-          window.onerror = prevError;
-        }, 200);
+        window.onerror = prevError;
       });
 
       it('should synchronize scroll with master table', async() => {
@@ -136,7 +133,7 @@ describe('settings', () => {
       });
     });
 
-    it('should limit fixed columns to dataset columns length', () => {
+    it('should limit fixed columns to dataset columns length', async() => {
       handsontable({
         data: createSpreadsheetData(3, 3),
         fixedColumnsStart: 3
@@ -187,7 +184,7 @@ describe('settings', () => {
       expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(3);
     });
 
-    it('should be possible to hide overlay when there are no headers enabled', () => {
+    it('should be possible to hide overlay when there are no headers enabled', async() => {
       const hot = handsontable({
         colHeaders: false,
         rowHeaders: false,
@@ -221,7 +218,7 @@ describe('settings', () => {
     });
 
     describe('defined in constructor', () => {
-      it('should show columns headers', () => {
+      it('should show columns headers', async() => {
         handsontable({
           fixedColumnsLeft: 3
         });
@@ -229,7 +226,7 @@ describe('settings', () => {
         expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toEqual(3);
       });
 
-      it('should show columns headers when headers are enabled', () => {
+      it('should show columns headers when headers are enabled', async() => {
         handsontable({
           rowHeaders: true,
           colHeaders: true,
@@ -242,7 +239,7 @@ describe('settings', () => {
     });
 
     describe('defined in updateSettings', () => {
-      it('should increase fixed columns', () => {
+      it('should increase fixed columns', async() => {
         handsontable({
           fixedColumnsLeft: 2
         });
@@ -254,7 +251,7 @@ describe('settings', () => {
         expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toEqual(4);
       });
 
-      it('should decrease fixed columns', () => {
+      it('should decrease fixed columns', async() => {
         handsontable({
           fixedColumnsLeft: 4
         });
@@ -266,7 +263,7 @@ describe('settings', () => {
         expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toEqual(2);
       });
 
-      it('should create fixed columns when they are disabled eariler', () => {
+      it('should create fixed columns when they are disabled eariler', async() => {
         handsontable({
           fixedColumnsLeft: 0
         });
@@ -278,7 +275,7 @@ describe('settings', () => {
         expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toEqual(2);
       });
 
-      it('should disable fixed columns', () => {
+      it('should disable fixed columns', async() => {
         handsontable({
           fixedColumnsLeft: 2
         });
@@ -291,14 +288,15 @@ describe('settings', () => {
         expect(getInlineStartClone().width()).toBe(0);
       });
 
-      it('should not throw errors while scrolling horizontally when fixed columns was set', (done) => {
+      it('should not throw errors while scrolling horizontally when fixed columns was set', async() => {
         const spy = jasmine.createSpyObj('error', ['test']);
         const prevError = window.onerror;
 
         window.onerror = function() {
           spy.test();
         };
-        const hot = handsontable({
+
+        handsontable({
           data: createSpreadsheetData(50, 50),
           width: 200,
           height: 200,
@@ -309,21 +307,17 @@ describe('settings', () => {
           fixedColumnsLeft: 2
         });
 
-        setTimeout(() => {
-          hot.scrollViewportTo({
-            row: 30,
-            col: 30,
-            verticalSnap: 'top',
-            horizontalSnap: 'start',
-          });
-        }, 100);
+        await sleep(100);
+        await scrollViewportTo({
+          row: 30,
+          col: 30,
+          verticalSnap: 'top',
+          horizontalSnap: 'start',
+        });
 
-        setTimeout(() => {
-          expect(spy.test.calls.count()).toBe(0);
+        expect(spy.test.calls.count()).toBe(0);
 
-          done();
-          window.onerror = prevError;
-        }, 200);
+        window.onerror = prevError;
       });
 
       it('should synchronize scroll with master table', async() => {
@@ -343,7 +337,7 @@ describe('settings', () => {
       });
     });
 
-    it('should limit fixed columns to dataset columns length', () => {
+    it('should limit fixed columns to dataset columns length', async() => {
       handsontable({
         data: createSpreadsheetData(3, 3),
         fixedColumnsLeft: 3
@@ -409,13 +403,13 @@ describe('settings', () => {
       }
     });
 
-    it('constructor should throw Error', () => {
+    it('constructor should throw Error', async() => {
       expect(() => handsontable({
         fixedColumnsLeft: 3
       })).toThrowError('The `fixedColumnsLeft` is not supported for RTL. Please use option `fixedColumnsStart`.');
     });
 
-    it('updateSettings should throw Error', () => {
+    it('updateSettings should throw Error', async() => {
       handsontable();
 
       expect(() => updateSettings({
@@ -438,7 +432,7 @@ describe('settings', () => {
       }
     });
 
-    it('defined both in constructor should thrown an error', () => {
+    it('defined both in constructor should thrown an error', async() => {
       expect(() => handsontable(
         {
           fixedColumnsStart: 3,
@@ -448,7 +442,7 @@ describe('settings', () => {
         + ' Please use only the option `fixedColumnsStart`.');
     });
 
-    it('defined `fixedColumnsLeft` in constructor, `fixedColumnsStart` in updateSettings should thrown an error', () => {
+    it('defined `fixedColumnsLeft` in constructor, `fixedColumnsStart` in updateSettings should thrown an error', async() => {
       handsontable({
         fixedColumnsLeft: 2
       });
@@ -459,7 +453,7 @@ describe('settings', () => {
         + ' Please use only the option `fixedColumnsStart`.');
     });
 
-    it('defined `fixedColumnsStart` in constructor, `fixedColumnsLeft` in updateSettings should thrown an error', () => {
+    it('defined `fixedColumnsStart` in constructor, `fixedColumnsLeft` in updateSettings should thrown an error', async() => {
       handsontable({
         fixedColumnsStart: 2
       });
@@ -470,7 +464,7 @@ describe('settings', () => {
         + ' Please use only the option `fixedColumnsStart`.');
     });
 
-    it('defined both in updateSettings should thrown an error ', () => {
+    it('defined both in updateSettings should thrown an error ', async() => {
       handsontable({});
 
       expect(() => updateSettings({

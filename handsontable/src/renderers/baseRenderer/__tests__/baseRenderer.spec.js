@@ -20,7 +20,7 @@ describe('CellDecorator', () => {
     ];
   };
 
-  it('should add an appropriate class name to every cell, if wordWrap=false is set to the whole table', () => {
+  it('should add an appropriate class name to every cell, if wordWrap=false is set to the whole table', async() => {
     const hot = handsontable({
       data: arrayOfObjects(),
       columns: [
@@ -41,7 +41,7 @@ describe('CellDecorator', () => {
     }
   });
 
-  it('should add an appropriate class name to every cell in a column, if wordWrap=false is set to the column settings', () => {
+  it('should add an appropriate class name to every cell in a column, if wordWrap=false is set to the column settings', async() => {
     const hot = handsontable({
       data: arrayOfObjects(),
       columns: [
@@ -63,7 +63,7 @@ describe('CellDecorator', () => {
     }
   });
 
-  it('should add an appropriate class to a cell, if wordWrap=false is set to a single cell', () => {
+  it('should add an appropriate class to a cell, if wordWrap=false is set to a single cell', async() => {
     const hot = handsontable({
       data: arrayOfObjects(),
       columns: [
@@ -82,7 +82,7 @@ describe('CellDecorator', () => {
 
   });
 
-  it('should set "white-space" css parameter to "nowrap" if htNoWrap class is added to a cell', () => {
+  it('should set "white-space" css parameter to "nowrap" if htNoWrap class is added to a cell', async() => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
@@ -100,7 +100,7 @@ describe('CellDecorator', () => {
     expect(window.getComputedStyle(getCell(1, 1)).whiteSpace).toEqual('nowrap');
   });
 
-  it('should not add cell `htInvalid` class when trying to add not proper value', (done) => {
+  it('should not add cell `htInvalid` class when trying to add not proper value', async() => {
     const hot = handsontable({
       data: arrayOfObjects(),
       columns: [
@@ -111,15 +111,13 @@ describe('CellDecorator', () => {
     });
 
     setDataAtCell(0, 2, 'non-numeric value');
+    await sleep(100);
 
-    setTimeout(() => {
-      expect($(getCell(0, 2)).hasClass(hot.getSettings().invalidCellClassName)).toBe(false);
-      done();
-    }, 200);
+    expect($(getCell(0, 2)).hasClass(hot.getSettings().invalidCellClassName)).toBe(false);
   });
 
   // When PR#6425 has been approved I will move this test to className.spec.js
-  it('should add all CSS classes to each cell without removing old one (passed as an array)', () => {
+  it('should add all CSS classes to each cell without removing old one (passed as an array)', async() => {
     handsontable({
       data: [[1, true]],
       className: ['First', 'Second', '', 'Third'],
@@ -129,7 +127,7 @@ describe('CellDecorator', () => {
     expect(getCell(0, 1).className).toBe('First Second Third');
   });
 
-  it('should render the cell without messing with "dir" attribute', () => {
+  it('should render the cell without messing with "dir" attribute', async() => {
     handsontable({
       data: [['foo']],
       renderer: 'base'

@@ -24,7 +24,7 @@ describe('Selection', () => {
   }
 
   describe('`isEntireColumnSelected` method', () => {
-    it('should return `true` when the entire column is selected (headers off)', () => {
+    it('should return `true` when the entire column is selected (headers off)', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(6, 4),
         colHeaders: false,
@@ -54,7 +54,7 @@ describe('Selection', () => {
       expect(hot.selection.isEntireColumnSelected()).toBe(true);
     });
 
-    it('should return `true` when the entire column is selected (headers on)', () => {
+    it('should return `true` when the entire column is selected (headers on)', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(6, 4),
         colHeaders: true,
@@ -84,7 +84,7 @@ describe('Selection', () => {
       expect(hot.selection.isEntireColumnSelected()).toBe(true);
     });
 
-    it('should return `true` when the entire column is selected (multiple headers, navigableHeaders on)', () => {
+    it('should return `true` when the entire column is selected (multiple headers, navigableHeaders on)', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(6, 4),
         colHeaders: true,
@@ -123,7 +123,7 @@ describe('Selection', () => {
       expect(hot.selection.isEntireColumnSelected()).toBe(true);
     });
 
-    it('should be possible to check the columns selection for each selection layer individually', () => {
+    it('should be possible to check the columns selection for each selection layer individually', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(6, 4),
         colHeaders: true,
@@ -147,7 +147,7 @@ describe('Selection', () => {
       expect(hot.selection.isEntireColumnSelected(0)).toBe(false);
     });
 
-    it('should return `true` when the corner is selected with column headers', () => {
+    it('should return `true` when the corner is selected with column headers', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(4, 6),
         colHeaders: true,

@@ -12,7 +12,7 @@ describe('Core.getCellMeta', () => {
     }
   });
 
-  it('should get proper cell meta when indexes was modified', () => {
+  it('should get proper cell meta when indexes was modified', async() => {
     const hot = handsontable({
       minRows: 5,
       minCols: 5,
@@ -106,7 +106,7 @@ describe('Core.getCellMeta', () => {
     expect(getDataAtCell(2, 2)).toBe('new value');
   });
 
-  it('should allow to use `type` and other type-related options in the same configuration level (using `beforeGetCellMeta` hook)', () => {
+  it('should allow to use `type` and other type-related options in the same configuration level (using `beforeGetCellMeta` hook)', async() => {
     const { getCellType } = Handsontable.cellTypes;
     const myRenderer = function(instance, td, row, col, prop, value) {
       td.innerHTML = `${value}-*`;
@@ -136,7 +136,7 @@ describe('Core.getCellMeta', () => {
     expect(getCellMeta(3, 0).editor).toBe(getCellType('text').editor);
   });
 
-  it('should allow to use `type` and other type-related options in the same configuration level (using `cells` option)', () => {
+  it('should allow to use `type` and other type-related options in the same configuration level (using `cells` option)', async() => {
     const { getCellType } = Handsontable.cellTypes;
     const myRenderer = function(instance, td, row, col, prop, value) {
       td.innerHTML = `${value}-*`;
@@ -170,7 +170,7 @@ describe('Core.getCellMeta', () => {
     expect(getCellMeta(3, 0).editor).toBe(getCellType('text').editor);
   });
 
-  it('should allow to use `type` and other type-related options in the same configuration level (using `columns` option)', () => {
+  it('should allow to use `type` and other type-related options in the same configuration level (using `columns` option)', async() => {
     const { getCellType } = Handsontable.cellTypes;
     const myRenderer = function(instance, td, row, col, prop, value) {
       td.innerHTML = `${value}-*`;
@@ -205,7 +205,7 @@ describe('Core.getCellMeta', () => {
     expect(getCellMeta(0, 2).copyable).toBe(true);
   });
 
-  it('"this" in cells should point to cellProperties', () => {
+  it('"this" in cells should point to cellProperties', async() => {
     let called = 0;
     let _row;
     let _this;
@@ -227,7 +227,7 @@ describe('Core.getCellMeta', () => {
     expect(_this.instance).toBe(HOT);
   });
 
-  it('should get proper cellProperties when order of displayed rows is different than order of stored data', () => {
+  it('should get proper cellProperties when order of displayed rows is different than order of stored data', async() => {
     handsontable({
       data: [
         ['C'],
@@ -275,7 +275,7 @@ describe('Core.getCellMeta', () => {
     expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').hasClass('htDimmed')).toBe(false);
   });
 
-  it('should call `beforeGetCellMeta` plugin hook with visual indexes as parameters', () => {
+  it('should call `beforeGetCellMeta` plugin hook with visual indexes as parameters', async() => {
     let rowInsideHook;
     let colInsideHook;
 
@@ -299,7 +299,7 @@ describe('Core.getCellMeta', () => {
     expect(colInsideHook).toBe(4);
   });
 
-  it('should call `afterGetCellMeta` plugin hook with visual indexes as parameters', () => {
+  it('should call `afterGetCellMeta` plugin hook with visual indexes as parameters', async() => {
     let rowInsideHook;
     let colInsideHook;
 
@@ -350,7 +350,7 @@ describe('Core.getCellMeta', () => {
       afterGetCellMetaSpy.calls.reset();
     });
 
-    it('false (default), should call `cells`, `beforeGetCellMeta` and `afterGetCellMeta`', () => {
+    it('false (default), should call `cells`, `beforeGetCellMeta` and `afterGetCellMeta`', async() => {
       getCellMeta(0, 0);
 
       expect(cellsSpy).toHaveBeenCalledTimes(1);
@@ -358,7 +358,7 @@ describe('Core.getCellMeta', () => {
       expect(afterGetCellMetaSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('true, should not call `cells`, `beforeGetCellMeta` nor `afterGetCellMeta`', () => {
+    it('true, should not call `cells`, `beforeGetCellMeta` nor `afterGetCellMeta`', async() => {
       getCellMeta(0, 0, { skipMetaExtension: true });
 
       expect(cellsSpy).not.toHaveBeenCalled();

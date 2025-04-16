@@ -30,7 +30,7 @@ describe('settings', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 6,0 from: 6,0 to: 6,0']);
     });
 
-    it('should create a spare row after removing all rows', () => {
+    it('should create a spare row after removing all rows', async() => {
       handsontable({
         data: createSpreadsheetData(4, 1),
         rowHeaders: true,
@@ -45,7 +45,7 @@ describe('settings', () => {
     });
 
     describe('works on init', () => {
-      it('should show data properly when `minSpareRows` is set to 3', () => {
+      it('should show data properly when `minSpareRows` is set to 3', async() => {
         handsontable({
           data: createSpreadsheetData(1, 1),
           minSpareRows: 3
@@ -60,7 +60,7 @@ describe('settings', () => {
     });
 
     describe('update settings works', () => {
-      it('should show data properly after `minSpareRows` is updated to 3', () => {
+      it('should show data properly after `minSpareRows` is updated to 3', async() => {
         handsontable({
           data: createSpreadsheetData(1, 1)
         });
@@ -77,7 +77,7 @@ describe('settings', () => {
       });
 
       // Currently this is a bug (#6571)
-      xit('should show data properly after `minSpareRows` is updated from 5 to 3', () => {
+      xit('should show data properly after `minSpareRows` is updated from 5 to 3', async() => {
         handsontable({
           data: createSpreadsheetData(1, 1),
           minSpareRows: 5
@@ -96,7 +96,7 @@ describe('settings', () => {
     });
 
     describe('cell meta', () => {
-      it('should be rendered as is without shifting the cell meta objects', () => {
+      it('should be rendered as is without shifting the cell meta objects', async() => {
         handsontable({
           data: createSpreadsheetData(1, 1),
           minSpareRows: 3,

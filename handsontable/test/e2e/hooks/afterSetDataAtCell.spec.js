@@ -13,7 +13,7 @@ describe('Hook', () => {
   });
 
   describe('afterSetDataAtCell', () => {
-    it('should be called with value and source', () => {
+    it('should be called with value and source', async() => {
       const afterSetDataAtCell = jasmine.createSpy('afterSetDataAtCell');
 
       handsontable({
@@ -26,7 +26,7 @@ describe('Hook', () => {
       expect(afterSetDataAtCell).toHaveBeenCalledWith([[0, 0, 1, 'test']], 'my-source');
     });
 
-    it('should be called with normalized value when the cell is numeric cell type', () => {
+    it('should be called with normalized value when the cell is numeric cell type', async() => {
       let dataChanges = null;
 
       handsontable({

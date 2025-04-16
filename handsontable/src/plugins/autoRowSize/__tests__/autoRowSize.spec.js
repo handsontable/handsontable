@@ -459,7 +459,7 @@ describe('AutoRowSize', () => {
     expect(document.querySelector('.htAutoSize')).toBe(null);
   });
 
-  it('should recalculate heights after column resize', function() {
+  it('should recalculate heights after column resize', async() => {
     handsontable({
       data: arrayOfObjects2(),
       colWidths: 250,

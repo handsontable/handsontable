@@ -10,7 +10,7 @@ describe('Core.getLastRenderedVisibleRow', () => {
     }
   });
 
-  it.forTheme('classic')('should return last rendered row index', () => {
+  it.forTheme('classic')('should return last rendered row index', async() => {
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
@@ -20,7 +20,7 @@ describe('Core.getLastRenderedVisibleRow', () => {
     expect(getLastRenderedVisibleRow()).toBe(9);
   });
 
-  it.forTheme('main')('should return last rendered row index', () => {
+  it.forTheme('main')('should return last rendered row index', async() => {
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
@@ -30,7 +30,7 @@ describe('Core.getLastRenderedVisibleRow', () => {
     expect(getLastRenderedVisibleRow()).toBe(9);
   });
 
-  it.forTheme('horizon')('should return last rendered row index', () => {
+  it.forTheme('horizon')('should return last rendered row index', async() => {
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
@@ -40,7 +40,7 @@ describe('Core.getLastRenderedVisibleRow', () => {
     expect(getLastRenderedVisibleRow()).toBe(9);
   });
 
-  it.forTheme('classic')('should return last rendered and not hidden row index', () => {
+  it.forTheme('classic')('should return last rendered and not hidden row index', async() => {
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
@@ -56,7 +56,7 @@ describe('Core.getLastRenderedVisibleRow', () => {
     expect(getLastRenderedVisibleRow()).toBe(11);
   });
 
-  it.forTheme('main')('should return last rendered and not hidden row index', () => {
+  it.forTheme('main')('should return last rendered and not hidden row index', async() => {
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
@@ -72,7 +72,7 @@ describe('Core.getLastRenderedVisibleRow', () => {
     expect(getLastRenderedVisibleRow()).toBe(11);
   });
 
-  it.forTheme('horizon')('should return last rendered and not hidden row index', () => {
+  it.forTheme('horizon')('should return last rendered and not hidden row index', async() => {
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
@@ -88,7 +88,7 @@ describe('Core.getLastRenderedVisibleRow', () => {
     expect(getLastRenderedVisibleRow()).toBe(11);
   });
 
-  it.forTheme('classic')('should return last rendered row index (scrolled viewport)', () => {
+  it.forTheme('classic')('should return last rendered row index (scrolled viewport)', async() => {
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
@@ -101,7 +101,7 @@ describe('Core.getLastRenderedVisibleRow', () => {
     expect(getLastRenderedVisibleRow()).toBe(26);
   });
 
-  it.forTheme('main')('should return last rendered row index (scrolled viewport)', () => {
+  it.forTheme('main')('should return last rendered row index (scrolled viewport)', async() => {
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
@@ -114,7 +114,7 @@ describe('Core.getLastRenderedVisibleRow', () => {
     expect(getLastRenderedVisibleRow()).toBe(26);
   });
 
-  it.forTheme('horizon')('should return last rendered row index (scrolled viewport)', () => {
+  it.forTheme('horizon')('should return last rendered row index (scrolled viewport)', async() => {
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,

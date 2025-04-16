@@ -12,7 +12,7 @@ describe('Core.isExecutionSuspended', () => {
     }
   });
 
-  it('should return `true` when the counter is greater than 0', () => {
+  it('should return `true` when the counter is greater than 0', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(5, 5),
     });
@@ -26,7 +26,7 @@ describe('Core.isExecutionSuspended', () => {
     expect(hot.isExecutionSuspended()).toBe(true);
   });
 
-  it('should return `false` when the counter is less or equal to 0', () => {
+  it('should return `false` when the counter is less or equal to 0', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(5, 5),
     });

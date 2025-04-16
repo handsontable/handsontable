@@ -16,11 +16,11 @@ describe('getCurrentThemeName', () => {
     }
   });
 
-  it('should return `undefined` when asking for a theme name, when none is set', () => {
+  it('should return `undefined` when asking for a theme name, when none is set', async() => {
     expect(getCurrentThemeName()).toBe(undefined);
   });
 
-  it('should get the current theme name', () => {
+  it('should get the current theme name', async() => {
     useTheme('ht-theme-sth');
 
     expect(getCurrentThemeName()).toBe('ht-theme-sth');

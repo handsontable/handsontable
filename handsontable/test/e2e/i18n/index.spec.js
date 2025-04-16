@@ -20,7 +20,7 @@ describe('i18n', () => {
     }
   });
 
-  it('should propagate `language` key to meta of cells', () => {
+  it('should propagate `language` key to meta of cells', async() => {
     handsontable({
       language: POLISH_LANGUAGE_CODE
     });
@@ -29,7 +29,7 @@ describe('i18n', () => {
   });
 
   describe('Hook `beforeLanguageChange`', () => {
-    it('should not call the `beforeLanguageChange` at start (`language` key have not been set)', () => {
+    it('should not call the `beforeLanguageChange` at start (`language` key have not been set)', async() => {
       let beforeLanguageChangeCalled = false;
 
       handsontable({
@@ -41,7 +41,7 @@ describe('i18n', () => {
       expect(beforeLanguageChangeCalled).toEqual(false);
     });
 
-    it('should not call the `beforeLanguageChange` at start (`language` key have been set)', () => {
+    it('should not call the `beforeLanguageChange` at start (`language` key have been set)', async() => {
       let beforeLanguageChangeCalled = false;
 
       handsontable({
@@ -54,7 +54,7 @@ describe('i18n', () => {
       expect(beforeLanguageChangeCalled).toEqual(false);
     });
 
-    it('should call the `beforeLanguageChange` before updating settings', () => {
+    it('should call the `beforeLanguageChange` before updating settings', async() => {
       let languageInsideHook;
 
       handsontable({
@@ -74,7 +74,7 @@ describe('i18n', () => {
   });
 
   describe('Hook `afterLanguageChange`', () => {
-    it('should not call the `afterLanguageChange` at start (`language` key have not been set)', () => {
+    it('should not call the `afterLanguageChange` at start (`language` key have not been set)', async() => {
       let afterLanguageChangeCalled = false;
 
       handsontable({
@@ -86,7 +86,7 @@ describe('i18n', () => {
       expect(afterLanguageChangeCalled).toEqual(false);
     });
 
-    it('should not call the `afterLanguageChange` at start (`language` key have been set)', () => {
+    it('should not call the `afterLanguageChange` at start (`language` key have been set)', async() => {
       let afterLanguageChangeCalled = false;
 
       handsontable({
@@ -99,7 +99,7 @@ describe('i18n', () => {
       expect(afterLanguageChangeCalled).toEqual(false);
     });
 
-    it('should call the `afterLanguageChange` after updating settings', () => {
+    it('should call the `afterLanguageChange` after updating settings', async() => {
       let languageInsideHook;
 
       handsontable({
@@ -171,7 +171,7 @@ describe('i18n', () => {
   });
 
   describe('translation log error when needed', () => {
-    it('should log error when setting not existing language code at start', () => {
+    it('should log error when setting not existing language code at start', async() => {
       const spy = spyOn(console, 'error');
 
       handsontable({
@@ -181,7 +181,7 @@ describe('i18n', () => {
       expect(spy).toHaveBeenCalled();
     });
 
-    it('should log error when trying to set not existing language code by updateSettings', () => {
+    it('should log error when trying to set not existing language code by updateSettings', async() => {
       const spy = spyOn(console, 'error');
 
       handsontable();
@@ -191,7 +191,7 @@ describe('i18n', () => {
       expect(spy).toHaveBeenCalled();
     });
 
-    it('should not log error when setting directly default language code at start', () => {
+    it('should not log error when setting directly default language code at start', async() => {
       const spy = spyOn(console, 'error');
 
       handsontable({
@@ -201,7 +201,7 @@ describe('i18n', () => {
       expect(spy).not.toHaveBeenCalled();
     });
 
-    it('should not log error when trying to set directly default language code by updateSettings', () => {
+    it('should not log error when trying to set directly default language code by updateSettings', async() => {
       const spy = spyOn(console, 'error');
 
       handsontable();
@@ -213,20 +213,20 @@ describe('i18n', () => {
   });
 
   describe('settings', () => {
-    it('should set default language code at start', () => {
+    it('should set default language code at start', async() => {
       const hot = handsontable();
 
       expect(hot.getSettings().language).toEqual(DEFAULT_LANGUAGE_CODE);
     });
 
-    it('should not set language code as own property of settings object at start', () => {
+    it('should not set language code as own property of settings object at start', async() => {
       const hot = handsontable();
 
       // eslint-disable-next-line no-prototype-builtins
       expect(hot.getSettings().hasOwnProperty('language')).toEqual(false);
     });
 
-    it('should not set language code as own property of settings object when using updateSettings', () => {
+    it('should not set language code as own property of settings object when using updateSettings', async() => {
       const hot = handsontable();
 
       updateSettings({ language: POLISH_LANGUAGE_CODE });
@@ -235,7 +235,7 @@ describe('i18n', () => {
       expect(hot.getSettings().hasOwnProperty('language')).toEqual(false);
     });
 
-    it('should set proper `language` key when trying to set not existing language code at start', () => {
+    it('should set proper `language` key when trying to set not existing language code at start', async() => {
       spyOn(console, 'error'); // overriding console.error
 
       const hot = handsontable({
@@ -245,7 +245,7 @@ describe('i18n', () => {
       expect(hot.getSettings().language).toEqual(DEFAULT_LANGUAGE_CODE);
     });
 
-    it('should set proper `language` key when trying to set not existing language code by updateSettings #1', () => {
+    it('should set proper `language` key when trying to set not existing language code by updateSettings #1', async() => {
       spyOn(console, 'error'); // overriding console.error
 
       const hot = handsontable();
@@ -255,7 +255,7 @@ describe('i18n', () => {
       expect(hot.getSettings().language).toEqual(DEFAULT_LANGUAGE_CODE);
     });
 
-    it('should set proper `language` key when trying to set not existing language code by updateSettings #2', () => {
+    it('should set proper `language` key when trying to set not existing language code by updateSettings #2', async() => {
       spyOn(console, 'error'); // overriding console.error
 
       const hot = handsontable({
@@ -267,7 +267,7 @@ describe('i18n', () => {
       expect(hot.getSettings().language).toEqual(POLISH_LANGUAGE_CODE);
     });
 
-    it('should accept not normalized language code by default #1', () => {
+    it('should accept not normalized language code by default #1', async() => {
       const hot = handsontable({
         language: POLISH_LANGUAGE_CODE.toLowerCase()
       });
@@ -275,7 +275,7 @@ describe('i18n', () => {
       expect(hot.getSettings().language).toEqual(POLISH_LANGUAGE_CODE);
     });
 
-    it('should accept not normalized language code by default #2', () => {
+    it('should accept not normalized language code by default #2', async() => {
       const hot = handsontable();
 
       updateSettings({
@@ -285,7 +285,7 @@ describe('i18n', () => {
       expect(hot.getSettings().language).toEqual(POLISH_LANGUAGE_CODE);
     });
 
-    it('should not change language when `language` key passed to `updateSettings` was not set', () => {
+    it('should not change language when `language` key passed to `updateSettings` was not set', async() => {
       const hot = handsontable({
         language: POLISH_LANGUAGE_CODE
       });

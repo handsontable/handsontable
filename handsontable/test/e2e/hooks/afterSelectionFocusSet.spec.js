@@ -36,7 +36,7 @@ describe('Hook', () => {
       expect(afterSelectionFocusSet).toHaveBeenCalledWith(4, 5, jasmine.any(Object));
     });
 
-    it('should be possible to prevent viewport scroll after focus position changed', () => {
+    it('should be possible to prevent viewport scroll after focus position changed', async() => {
       handsontable({
         data: createSpreadsheetData(10, 5),
         width: 200,
@@ -93,7 +93,7 @@ describe('Hook', () => {
       expect(afterSelectionFocusSet).not.toHaveBeenCalled();
     });
 
-    it('should not be fired when non-contiguous cells are selected', () => {
+    it('should not be fired when non-contiguous cells are selected', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         colHeaders: true,

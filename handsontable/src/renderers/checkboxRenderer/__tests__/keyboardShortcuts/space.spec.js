@@ -11,7 +11,7 @@ describe('CheckboxRenderer keyboard shortcut', () => {
   });
 
   describe('"Space"', () => {
-    it('should check single box', () => {
+    it('should check single box', async() => {
       handsontable({
         data: [[true], [true], [true]],
         columns: [
@@ -44,7 +44,7 @@ describe('CheckboxRenderer keyboard shortcut', () => {
         .toHaveBeenCalledWith([[0, 0, true, false]], 'edit');
     });
 
-    it('should not check single box, if cell is readOnly', () => {
+    it('should not check single box, if cell is readOnly', async() => {
       handsontable({
         data: [[true], [true], [true]],
         columns: [
@@ -75,7 +75,7 @@ describe('CheckboxRenderer keyboard shortcut', () => {
       expect(afterChangeCallback).not.toHaveBeenCalled();
     });
 
-    it('should not check single box, if last column is readOnly (#3562)', () => {
+    it('should not check single box, if last column is readOnly (#3562)', async() => {
       handsontable({
         data: [[true, true], [false, false], [true, true]],
         columns: [
@@ -107,7 +107,7 @@ describe('CheckboxRenderer keyboard shortcut', () => {
       expect(getData()).toEqual([[false, true], [true, false], [true, true]]);
     });
 
-    it('should not change the box state, if column header is selected', () => {
+    it('should not change the box state, if column header is selected', async() => {
       handsontable({
         data: [[true], [true], [true]],
         columns: [
@@ -136,7 +136,7 @@ describe('CheckboxRenderer keyboard shortcut', () => {
       expect(getData()).toEqual([[true], [true], [true]]);
     });
 
-    it('should not steal the event when the column header is selected', () => {
+    it('should not steal the event when the column header is selected', async() => {
       handsontable({
         data: [[true], [true], [true]],
         columns: [
@@ -160,7 +160,7 @@ describe('CheckboxRenderer keyboard shortcut', () => {
       expect(callback).toHaveBeenCalledTimes(1);
     });
 
-    it('should reverse checkboxes state, when multiple cells are selected and all of the cells share the same value', () => {
+    it('should reverse checkboxes state, when multiple cells are selected and all of the cells share the same value', async() => {
       handsontable({
         data: [[true], [true], [true]],
         columns: [
@@ -224,7 +224,7 @@ describe('CheckboxRenderer keyboard shortcut', () => {
       ], 'edit');
     });
 
-    it('should make all checkboxes checked, when multiple cells are selected and they vary in value', () => {
+    it('should make all checkboxes checked, when multiple cells are selected and they vary in value', async() => {
       handsontable({
         data: [[true], [false], [true]],
         columns: [
@@ -260,7 +260,7 @@ describe('CheckboxRenderer keyboard shortcut', () => {
       ], 'edit');
     });
 
-    it('should reverse checkboxes state, when multiple non-contiguous cells are selected and all of the cells in the entire selection share the same value', () => {
+    it('should reverse checkboxes state, when multiple non-contiguous cells are selected and all of the cells in the entire selection share the same value', async() => {
       handsontable({
         data: [[true, true], [true, true]],
         columns: [
@@ -321,7 +321,7 @@ describe('CheckboxRenderer keyboard shortcut', () => {
       expect(afterChangeCallback2.calls.count()).toEqual(2);
     });
 
-    it('should check all the checkboxes in the entire selection, when multiple non-contiguous cells are selected and they vary in value', () => {
+    it('should check all the checkboxes in the entire selection, when multiple non-contiguous cells are selected and they vary in value', async() => {
       handsontable({
         data: [[true, true], [true, false]],
         columns: [
@@ -355,7 +355,7 @@ describe('CheckboxRenderer keyboard shortcut', () => {
       expect(afterChangeCallback1.calls.count()).toEqual(2);
     });
 
-    it('should reverse checkboxes state, when multiple cells are selected and selStart > selEnd + all the selected checkboxes have the same value', () => {
+    it('should reverse checkboxes state, when multiple cells are selected and selStart > selEnd + all the selected checkboxes have the same value', async() => {
       handsontable({
         data: [[true], [true], [true]],
         columns: [
@@ -391,7 +391,7 @@ describe('CheckboxRenderer keyboard shortcut', () => {
       ], 'edit');
     });
 
-    it('should check all of the checkboxes in the selection, when multiple cells are selected and selStart > selEnd + the selected checkboxes differ in values', () => {
+    it('should check all of the checkboxes in the selection, when multiple cells are selected and selStart > selEnd + the selected checkboxes differ in values', async() => {
       handsontable({
         data: [[true], [false], [true]],
         columns: [

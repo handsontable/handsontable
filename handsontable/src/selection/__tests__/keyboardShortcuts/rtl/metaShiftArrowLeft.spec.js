@@ -16,7 +16,7 @@ describe('Selection extending (RTL mode)', () => {
   });
 
   describe('"Ctrl/Cmd + Shift + ArrowLeft"', () => {
-    it('should extend the cell selection to the left-most cell of the current row when the cell is selected', () => {
+    it('should extend the cell selection to the left-most cell of the current row when the cell is selected', async() => {
       handsontable({
         startRows: 5,
         startCols: 5
@@ -35,7 +35,7 @@ describe('Selection extending (RTL mode)', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 1,4']);
     });
 
-    it('should extend the cell selection to the left-most cell of the current row when fixed overlays are enabled and the cell is selected', () => {
+    it('should extend the cell selection to the left-most cell of the current row when fixed overlays are enabled and the cell is selected', async() => {
       handsontable({
         fixedColumnsStart: 2,
         fixedRowsTop: 2,
@@ -59,7 +59,7 @@ describe('Selection extending (RTL mode)', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 1,4']);
     });
 
-    it('should extend the cells selection to the left-most cells of the current row', () => {
+    it('should extend the cells selection to the left-most cells of the current row', async() => {
       handsontable({
         startRows: 5,
         startCols: 5
@@ -78,7 +78,7 @@ describe('Selection extending (RTL mode)', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 3,4']);
     });
 
-    it('should extend the header selection to the left-most column header', () => {
+    it('should extend the header selection to the left-most column header', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -102,7 +102,7 @@ describe('Selection extending (RTL mode)', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: -1,1 to: 4,4']);
     });
 
-    it('should extend the column header selection to the left-most column header when there is no rows (navigableHeaders on)', () => {
+    it('should extend the column header selection to the left-most column header when there is no rows (navigableHeaders on)', async() => {
       handsontable({
         data: [],
         columns: [{}, {}, {}, {}, {}],
@@ -122,7 +122,7 @@ describe('Selection extending (RTL mode)', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: -1,4']);
     });
 
-    it('should extend the column header selection to the left-most column header when all rows are hidden (navigableHeaders on)', () => {
+    it('should extend the column header selection to the left-most column header when all rows are hidden (navigableHeaders on)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -144,7 +144,7 @@ describe('Selection extending (RTL mode)', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: 4,4']);
     });
 
-    it('should not change the selection when row header is selected', () => {
+    it('should not change the selection when row header is selected', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -193,7 +193,7 @@ describe('Selection extending (RTL mode)', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: -1,-1 to: 4,4']);
     });
 
-    it('should not change the selection when the column header is highlighted', () => {
+    it('should not change the selection when the column header is highlighted', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -218,7 +218,7 @@ describe('Selection extending (RTL mode)', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: -1,1']);
     });
 
-    it('should not change the selection when the row header is highlighted', () => {
+    it('should not change the selection when the row header is highlighted', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -243,7 +243,7 @@ describe('Selection extending (RTL mode)', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-1 from: 1,-1 to: 1,-1']);
     });
 
-    it('should not change the selection when the corner is highlighted', () => {
+    it('should not change the selection when the corner is highlighted', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,

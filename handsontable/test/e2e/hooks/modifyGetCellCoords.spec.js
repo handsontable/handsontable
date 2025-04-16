@@ -49,7 +49,7 @@ describe('Hook', () => {
       expect(modifyGetCellCoords).toHaveBeenCalledTimes(1);
     });
 
-    it('should be fired before the DOM element is being retrieved', () => {
+    it('should be fired before the DOM element is being retrieved', async() => {
       const modifyGetCellCoords = jasmine.createSpy('modifyGetCellCoords');
 
       handsontable({
@@ -64,7 +64,7 @@ describe('Hook', () => {
       expect(modifyGetCellCoords).toHaveBeenCalledTimes(1);
     });
 
-    it('should open editor for proper cell', () => {
+    it('should open editor for proper cell', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,

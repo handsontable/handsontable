@@ -12,7 +12,7 @@ describe('Core.setDataAtCell', () => {
     }
   });
 
-  it('should set the provided value in the dataset', () => {
+  it('should set the provided value in the dataset', async() => {
     handsontable({
       data: [[1, 2, 3], ['a', 'b', 'c']]
     });
@@ -22,7 +22,7 @@ describe('Core.setDataAtCell', () => {
     expect(getDataAtCell(0, 0)).toBe('foo');
   });
 
-  it('should trigger table render cycle after changing the data', () => {
+  it('should trigger table render cycle after changing the data', async() => {
     const hot = handsontable({
       data: [[1, 2, 3], ['a', 'b', 'c']],
     });
@@ -49,7 +49,7 @@ describe('Core.setDataAtCell', () => {
     expect(getActiveEditor().refreshValue).toHaveBeenCalled();
   });
 
-  it('should call the `modifySourceData` hook (with the `set` argument)', () => {
+  it('should call the `modifySourceData` hook (with the `set` argument)', async() => {
     const argumentHistory = [];
 
     handsontable({
@@ -69,7 +69,7 @@ describe('Core.setDataAtCell', () => {
     expect(argumentHistory[0][3]).toBe('set');
   });
 
-  it('should be possible to change the value being saved using the `modifyData` hook', () => {
+  it('should be possible to change the value being saved using the `modifyData` hook', async() => {
     handsontable({
       data: [[1, 2, 3], ['a', 'b', 'c']],
       modifyData: (row, prop, valueHolder) => {
@@ -82,7 +82,7 @@ describe('Core.setDataAtCell', () => {
     expect(getDataAtCell(0, 1)).toEqual('CHANGED');
   });
 
-  it('should trigger the `beforeChange` and `afterChange` hooks with all arguments', () => {
+  it('should trigger the `beforeChange` and `afterChange` hooks with all arguments', async() => {
     const beforeChange = jasmine.createSpy('beforeChange');
     const afterChange = jasmine.createSpy('afterChange');
 

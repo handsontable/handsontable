@@ -1897,7 +1897,7 @@ describe('ColumnSorting', () => {
     }], true);
   });
 
-  it('should not sorting column when beforeColumnSort returns false', (done) => {
+  it('should not sorting column when beforeColumnSort returns false', async() => {
     handsontable({
       data: [
         [2],
@@ -1913,13 +1913,12 @@ describe('ColumnSorting', () => {
 
     getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
 
-    setTimeout(() => {
-      expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('2');
-      expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('4');
-      expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('1');
-      expect(spec().$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('3');
-      done();
-    }, 200);
+    await sleep(200);
+
+    expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('2');
+    expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('4');
+    expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('1');
+    expect(spec().$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('3');
   });
 
   it('should add beforeColumnSort event listener in constructor', async() => {

@@ -12,15 +12,15 @@ describe('Core.hasHook', () => {
     }
   });
 
-  it('should return `true` for existed local and global hooks', () => {
+  it('should return `true` for existed local and global hooks', async() => {
     const hot = handsontable();
 
-    hot.addHook('myHook', () => {});
+    hot.addHook('myHook', async() => {});
 
     expect(hot.hasHook('myHook')).toBe(true);
     expect(hot.hasHook('myGlobalHook')).toBe(false);
 
-    Handsontable.hooks.add('myGlobalHook', () => {});
+    Handsontable.hooks.add('myGlobalHook', async() => {});
 
     expect(hot.hasHook('myHook')).toBe(true);
     expect(hot.hasHook('myGlobalHook')).toBe(true);

@@ -25,7 +25,7 @@ describe('DOM helpers', () => {
 
   describe('isInternalElement', () => {
     it('should recognize if the provided element is a child of the container of the Handsontable container provided' +
-      ' as the second argument', () => {
+      ' as the second argument', async() => {
       const createDivWithId = (id) => {
         const element = document.createElement('DIV');
 
@@ -89,7 +89,7 @@ describe('DOM helpers', () => {
   });
 
   describe('offset', () => {
-    it('should return correct offset for elements inside a foreign object', () => {
+    it('should return correct offset for elements inside a foreign object', async() => {
       const wrapper = document.createElement('div');
 
       wrapper.innerHTML = /* html */`
@@ -113,7 +113,7 @@ describe('DOM helpers', () => {
   });
 
   describe('hasVerticalScrollbar', () => {
-    it('should return `true` if the provided HTML element has a vertical scrollbar', () => {
+    it('should return `true` if the provided HTML element has a vertical scrollbar', async() => {
       const element = document.createElement('div');
 
       document.body.appendChild(element);
@@ -140,7 +140,7 @@ describe('DOM helpers', () => {
       document.body.removeChild(element);
     });
 
-    it('should return `false` if the provided HTML element doesn\'t have a vertical scrollbar', () => {
+    it('should return `false` if the provided HTML element doesn\'t have a vertical scrollbar', async() => {
       const element = document.createElement('div');
 
       document.body.appendChild(element);
@@ -165,7 +165,7 @@ describe('DOM helpers', () => {
       document.body.removeChild(element);
     });
 
-    it('should return `true` if the provided Window element has a vertical scrollbar', () => {
+    it('should return `true` if the provided Window element has a vertical scrollbar', async() => {
       const element = document.createElement('div');
 
       document.body.appendChild(element);
@@ -178,13 +178,13 @@ describe('DOM helpers', () => {
       document.body.removeChild(element);
     });
 
-    it('should return `false` if the provided Window element doesn\'t have a vertical scrollbar', () => {
+    it('should return `false` if the provided Window element doesn\'t have a vertical scrollbar', async() => {
       expect(Handsontable.dom.hasVerticalScrollbar(window)).toBe(false);
     });
   });
 
   describe('hasHorizontalScrollbar', () => {
-    it('should return `true` if the provided HTML element has a vertical scrollbar', () => {
+    it('should return `true` if the provided HTML element has a vertical scrollbar', async() => {
       const element = document.createElement('div');
 
       document.body.appendChild(element);
@@ -208,7 +208,7 @@ describe('DOM helpers', () => {
       document.body.removeChild(element);
     });
 
-    it('should return `false` if the provided HTML element doesn\'t have a vertical scrollbar', () => {
+    it('should return `false` if the provided HTML element doesn\'t have a vertical scrollbar', async() => {
       const element = document.createElement('div');
 
       document.body.appendChild(element);
@@ -233,7 +233,7 @@ describe('DOM helpers', () => {
       document.body.removeChild(element);
     });
 
-    it('should return `true` if the provided Window element has a vertical scrollbar', () => {
+    it('should return `true` if the provided Window element has a vertical scrollbar', async() => {
       const element = document.createElement('div');
 
       element.style.height = '100%';
@@ -249,7 +249,7 @@ describe('DOM helpers', () => {
       document.body.removeChild(element);
     });
 
-    it('should return `false` if the provided Window element doesn\'t have a vertical scrollbar', () => {
+    it('should return `false` if the provided Window element doesn\'t have a vertical scrollbar', async() => {
       expect(Handsontable.dom.hasHorizontalScrollbar(window)).toBe(false);
     });
   });

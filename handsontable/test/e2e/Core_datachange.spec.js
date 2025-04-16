@@ -12,7 +12,7 @@ describe('Core_datachange', () => {
     }
   });
 
-  it('should call afterChange callback', () => {
+  it('should call afterChange callback', async() => {
     let output = null;
 
     handsontable({
@@ -28,7 +28,7 @@ describe('Core_datachange', () => {
     expect(output[0][3]).toEqual('test');
   });
 
-  it('should use custom source for datachange', () => {
+  it('should use custom source for datachange', async() => {
     let output = null;
     let src = null;
 
@@ -44,7 +44,7 @@ describe('Core_datachange', () => {
     expect(src).toEqual('test');
   });
 
-  it('should use custom source for datachange with array', () => {
+  it('should use custom source for datachange with array', async() => {
     let output = null;
     let src = null;
 
@@ -60,7 +60,7 @@ describe('Core_datachange', () => {
     expect(src).toEqual('test');
   });
 
-  it('should trigger datachange event', () => {
+  it('should trigger datachange event', async() => {
     let output = null;
 
     handsontable();
@@ -75,7 +75,7 @@ describe('Core_datachange', () => {
     expect(output[0][3]).toEqual('test');
   });
 
-  it('this.rootElement should point to handsontable rootElement', () => {
+  it('this.rootElement should point to handsontable rootElement', async() => {
     const $container = spec().$container;
     let output = null;
 
@@ -89,7 +89,7 @@ describe('Core_datachange', () => {
     expect(output).toEqual($container[0]);
   });
 
-  it('afterChange should be triggered after data is rendered to DOM (init)', () => {
+  it('afterChange should be triggered after data is rendered to DOM (init)', async() => {
     const $container = spec().$container;
     let output = null;
 
@@ -107,7 +107,7 @@ describe('Core_datachange', () => {
     expect(output).toEqual('Joe Red');
   });
 
-  it('afterChange should be triggered after data is rendered to DOM (setDataAtCell)', () => {
+  it('afterChange should be triggered after data is rendered to DOM (setDataAtCell)', async() => {
     const $container = spec().$container;
     let output = null;
 
@@ -126,7 +126,7 @@ describe('Core_datachange', () => {
     expect(output).toEqual('Alice Red');
   });
 
-  it('afterChange event object should contain documented keys and values when triggered by edit', () => {
+  it('afterChange event object should contain documented keys and values when triggered by edit', async() => {
     const sampleData = [
       {
         col1: 'a',

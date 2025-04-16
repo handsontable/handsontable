@@ -24,7 +24,7 @@ describe('Selection', () => {
   }
 
   describe('`isCellVisible` method', () => {
-    it('should return `true` when the cell is visible', () => {
+    it('should return `true` when the cell is visible', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(6, 4),
         colHeaders: true,
@@ -45,7 +45,7 @@ describe('Selection', () => {
       expect(hot.selection.isCellVisible(cellCoords(5, 3))).toBe(true);
     });
 
-    it('should return `false` for coords that points to the dataset beyond the range', () => {
+    it('should return `false` for coords that points to the dataset beyond the range', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(6, 4),
       });
@@ -55,7 +55,7 @@ describe('Selection', () => {
       expect(hot.selection.isCellVisible(cellCoords(100, 100))).toBe(false);
     });
 
-    it('should return `false` when row is not visible', () => {
+    it('should return `false` when row is not visible', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(6, 4),
       });
@@ -74,7 +74,7 @@ describe('Selection', () => {
       expect(hot.selection.isCellVisible(cellCoords(5, 0))).toBe(false);
     });
 
-    it('should return `false` when column is not visible', () => {
+    it('should return `false` when column is not visible', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(4, 6),
       });

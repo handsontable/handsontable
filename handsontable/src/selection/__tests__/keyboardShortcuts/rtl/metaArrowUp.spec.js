@@ -16,7 +16,7 @@ describe('Selection navigation (RTL mode)', () => {
   });
 
   describe('"Ctrl/Cmd + ArrowUp"', () => {
-    it('should move the cell selection to the first cell (first row) in a column', () => {
+    it('should move the cell selection to the first cell (first row) in a column', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -67,7 +67,7 @@ describe('Selection navigation (RTL mode)', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should move the cell selection to the first cell (first row) in a column (navigableHeaders on)', () => {
+    it('should move the cell selection to the first cell (first row) in a column (navigableHeaders on)', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -119,7 +119,7 @@ describe('Selection navigation (RTL mode)', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should move the header selection to the most top header in a column (navigableHeaders on)', () => {
+    it('should move the header selection to the most top header in a column (navigableHeaders on)', async() => {
       handsontable({
         startRows: 5,
         startCols: 5,

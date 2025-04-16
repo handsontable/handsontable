@@ -13,7 +13,7 @@ describe('Hook', () => {
   });
 
   describe('afterSetTheme', () => {
-    it('should be fired every time the theme is modified', () => {
+    it('should be fired every time the theme is modified', async() => {
       const afterSetThemeSpy = jasmine.createSpy('afterSetTheme');
 
       handsontable({

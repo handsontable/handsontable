@@ -26,7 +26,7 @@ describe('Selection navigation', () => {
   }
 
   describe('"Shift + Enter"', () => {
-    it('should move the selection up for single cell selection', () => {
+    it('should move the selection up for single cell selection', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -50,7 +50,7 @@ describe('Selection navigation', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should move the selection up within a multiple selected cells only', () => {
+    it('should move the selection up within a multiple selected cells only', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -112,7 +112,7 @@ describe('Selection navigation', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should move the selection up within a non-contiguous selection only for the last layer', () => {
+    it('should move the selection up within a non-contiguous selection only for the last layer', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -190,7 +190,7 @@ describe('Selection navigation', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should move the selection up within a column header selection', () => {
+    it('should move the selection up within a column header selection', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -238,7 +238,7 @@ describe('Selection navigation', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should move the selection up within a row header selection', () => {
+    it('should move the selection up within a row header selection', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -318,7 +318,7 @@ describe('Selection navigation', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should move the selection up ignoring hidden indexes', () => {
+    it('should move the selection up ignoring hidden indexes', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -386,7 +386,7 @@ describe('Selection navigation', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should not move the selection up when there is no columns (navigableHeaders on)', () => {
+    it('should not move the selection up when there is no columns (navigableHeaders on)', async() => {
       handsontable({
         data: [[], [], [], [], []],
         rowHeaders: true,
@@ -409,7 +409,7 @@ describe('Selection navigation', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should not move the selection up when all columns are hidden (navigableHeaders on)', () => {
+    it('should not move the selection up when all columns are hidden (navigableHeaders on)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -435,7 +435,7 @@ describe('Selection navigation', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should not move the selection up when there is no rows (navigableHeaders on)', () => {
+    it('should not move the selection up when there is no rows (navigableHeaders on)', async() => {
       handsontable({
         data: [],
         columns: [{}, {}, {}, {}, {}],
@@ -460,7 +460,7 @@ describe('Selection navigation', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should not move the selection up when all rows are hidden (navigableHeaders on)', () => {
+    it('should not move the selection up when all rows are hidden (navigableHeaders on)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,

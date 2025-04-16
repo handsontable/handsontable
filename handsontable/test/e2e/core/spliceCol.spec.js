@@ -12,7 +12,7 @@ describe('Core.spliceCol', () => {
     }
   });
 
-  it('should remove from the second column three rows starting from the beginning', () => {
+  it('should remove from the second column three rows starting from the beginning', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(5, 5),
     });
@@ -27,7 +27,7 @@ describe('Core.spliceCol', () => {
     expect(hot.getDataAtRow(4)).toEqual(['A5', null, 'C5', 'D5', 'E5']);
   });
 
-  it('should remove from the third column three rows starting from the second row', () => {
+  it('should remove from the third column three rows starting from the second row', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(5, 5),
     });
@@ -42,7 +42,7 @@ describe('Core.spliceCol', () => {
     expect(hot.getDataAtRow(4)).toEqual(['A5', 'B5', null, 'D5', 'E5']);
   });
 
-  it('should replace and append new rows in the second column starting from the second row', () => {
+  it('should replace and append new rows in the second column starting from the second row', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(5, 5),
     });
@@ -59,7 +59,7 @@ describe('Core.spliceCol', () => {
     expect(hot.getDataAtRow(6)).toEqual([null, 'B5', null, null, null]);
   });
 
-  it('should trigger beforeChange and afterChange hook with proper arguments', () => {
+  it('should trigger beforeChange and afterChange hook with proper arguments', async() => {
     const spyAfter = jasmine.createSpy('after');
     const spyBefore = jasmine.createSpy('before');
     const hot = handsontable({
@@ -88,7 +88,7 @@ describe('Core.spliceCol', () => {
     expect(spyAfter.calls.argsFor(1)[1]).toBe('spliceCol');
   });
 
-  it('should trigger beforeCreateRow and afterCreateRow hook with proper arguments', () => {
+  it('should trigger beforeCreateRow and afterCreateRow hook with proper arguments', async() => {
     const spyAfter = jasmine.createSpy('after');
     const spyBefore = jasmine.createSpy('before');
 

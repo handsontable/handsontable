@@ -11,7 +11,7 @@ describe('Selection', () => {
   });
 
   describe('`getSelectionSource` method', () => {
-    it('should return `unknown` by default', () => {
+    it('should return `unknown` by default', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(6, 4),
         colHeaders: false,

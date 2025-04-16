@@ -15,7 +15,7 @@ describe('Hook', () => {
   });
 
   describe('afterListen', () => {
-    it('should be fired once after `listen` method call', () => {
+    it('should be fired once after `listen` method call', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(5, 5),
       });

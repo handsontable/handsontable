@@ -11,7 +11,7 @@ describe('Selection', () => {
   });
 
   describe('`setExpectedLayers` method', () => {
-    it('should allow detecting when the last layer of the non-contiguous selection is applied', () => {
+    it('should allow detecting when the last layer of the non-contiguous selection is applied', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(6, 4),
         colHeaders: false,
@@ -38,7 +38,7 @@ describe('Selection', () => {
       hot.selection.finish();
     });
 
-    it('should mark all selection layer as last one when is not used', () => {
+    it('should mark all selection layer as last one when is not used', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(6, 4),
         colHeaders: false,
@@ -61,7 +61,7 @@ describe('Selection', () => {
       expect(afterSetRangeEnd).toHaveBeenCalledWith(cellCoords(3, 3), true);
     });
 
-    it('should mark all selection layer as last one when after calling the `finish` method', () => {
+    it('should mark all selection layer as last one when after calling the `finish` method', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(6, 4),
         colHeaders: false,

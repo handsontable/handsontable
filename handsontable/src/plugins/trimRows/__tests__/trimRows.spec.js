@@ -288,18 +288,16 @@ describe('TrimRows', () => {
     expect(plugin.isTrimmed(10)).toBeTruthy(); // 7 -> 10
   });
 
-  it('should clear cache after loading new data by `loadData` function, when plugin `trimRows` is enabled #92', function(done) {
-    const hot = handsontable({
+  it('should clear cache after loading new data by `loadData` function, when plugin `trimRows` is enabled #92', async() => {
+    handsontable({
       data: createSpreadsheetData(5, 5),
       trimRows: true
     });
 
-    hot.loadData(createSpreadsheetData(10, 10));
+    await loadData(createSpreadsheetData(10, 10));
+    await sleep(100);
 
-    setTimeout(() => {
-      expect(this.$container.find('td').length).toEqual(100);
-      done();
-    }, 100);
+    expect(spec().$container.find('td').length).toEqual(100);
   });
 
   describe('plugin hooks', () => {
@@ -821,7 +819,7 @@ describe('TrimRows', () => {
       expect(getDataAtCell(2, 0)).toBe('A1');
     });
 
-    it('should remove correct rows after insert new rows in sorted column', (done) => {
+    it('should remove correct rows after insert new rows in sorted column', async() => {
       handsontable({
         data: getMultilineData(5, 10),
         colHeaders: true,
@@ -836,22 +834,23 @@ describe('TrimRows', () => {
         height: 300
       });
 
-      setTimeout(() => {
-        alter('insert_row_above', 2, 1);
-        getHtCore().find('th span.columnSorting:eq(2)').simulate('mousedown');
-        getHtCore().find('th span.columnSorting:eq(2)').simulate('mouseup');
-        getHtCore().find('th span.columnSorting:eq(2)').simulate('click');
-        alter('remove_row', 2, 1);
+      await sleep(100);
 
-        expect(getDataAtCell(0, 0)).toBe('A1');
-        expect(getDataAtCell(1, 0)).toBe('A3');
-        expect(getDataAtCell(2, 0)).toBe('A5');
-        expect(getDataAtCell(3, 0)).toBe(null);
-        done();
-      }, 100);
+      alter('insert_row_above', 2, 1);
+
+      getHtCore().find('th span.columnSorting:eq(2)').simulate('mousedown');
+      getHtCore().find('th span.columnSorting:eq(2)').simulate('mouseup');
+      getHtCore().find('th span.columnSorting:eq(2)').simulate('click');
+
+      alter('remove_row', 2, 1);
+
+      expect(getDataAtCell(0, 0)).toBe('A1');
+      expect(getDataAtCell(1, 0)).toBe('A3');
+      expect(getDataAtCell(2, 0)).toBe('A5');
+      expect(getDataAtCell(3, 0)).toBe(null);
     });
 
-    it('should remove correct rows after insert new rows in sorted column (multiple sort click)', (done) => {
+    it('should remove correct rows after insert new rows in sorted column (multiple sort click)', async() => {
       handsontable({
         data: getMultilineData(5, 10),
         colHeaders: true,
@@ -866,23 +865,26 @@ describe('TrimRows', () => {
         height: 300
       });
 
-      setTimeout(() => {
-        alter('insert_row_above', 2, 1);
-        getHtCore().find('th span.columnSorting:eq(2)').simulate('mousedown');
-        getHtCore().find('th span.columnSorting:eq(2)').simulate('mouseup');
-        getHtCore().find('th span.columnSorting:eq(2)').simulate('click');
-        alter('insert_row_above', 0, 1);
-        getHtCore().find('th span.columnSorting:eq(2)').simulate('mousedown');
-        getHtCore().find('th span.columnSorting:eq(2)').simulate('mouseup');
-        getHtCore().find('th span.columnSorting:eq(2)').simulate('click');
-        alter('remove_row', 0, 3);
+      await sleep(100);
 
-        expect(getDataAtCell(0, 0)).toBe('A1');
-        expect(getDataAtCell(1, 0)).toBe(null);
-        expect(getDataAtCell(2, 0)).toBe(null);
-        expect(getDataAtCell(3, 0)).toBe(null);
-        done();
-      }, 100);
+      alter('insert_row_above', 2, 1);
+
+      getHtCore().find('th span.columnSorting:eq(2)').simulate('mousedown');
+      getHtCore().find('th span.columnSorting:eq(2)').simulate('mouseup');
+      getHtCore().find('th span.columnSorting:eq(2)').simulate('click');
+
+      alter('insert_row_above', 0, 1);
+
+      getHtCore().find('th span.columnSorting:eq(2)').simulate('mousedown');
+      getHtCore().find('th span.columnSorting:eq(2)').simulate('mouseup');
+      getHtCore().find('th span.columnSorting:eq(2)').simulate('click');
+
+      alter('remove_row', 0, 3);
+
+      expect(getDataAtCell(0, 0)).toBe('A1');
+      expect(getDataAtCell(1, 0)).toBe(null);
+      expect(getDataAtCell(2, 0)).toBe(null);
+      expect(getDataAtCell(3, 0)).toBe(null);
     });
 
     it('should correctly solve toVisualRow calculations after sort', async() => {
@@ -1125,72 +1127,72 @@ describe('TrimRows', () => {
       expect(getDataAtCell(4, 0)).toBe('A10');
     });
 
-    it('should clear list of trimmed rows when empty array is passed to the method - test no. 1', function() {
-      const hot = handsontable({
+    it('should clear list of trimmed rows when empty array is passed to the method - test no. 1', async() => {
+      handsontable({
         data: getMultilineData(10, 10),
         trimRows: [2, 6, 7],
         width: 500,
         height: 300
       });
 
-      hot.updateSettings({
+      await updateSettings({
         trimRows: []
       });
 
-      expect(this.$container.find('td').length).toEqual(100);
+      expect(spec().$container.find('td').length).toEqual(100);
     });
 
-    it('should clear list of trimmed rows when empty array is passed to the method - test no. 2', function() {
-      const hot = handsontable({
+    it('should clear list of trimmed rows when empty array is passed to the method - test no. 2', async() => {
+      handsontable({
         data: getMultilineData(10, 10),
         trimRows: true,
         width: 500,
         height: 300
       });
 
-      hot.getPlugin('trimRows').trimRows([2, 6, 7]);
-      hot.render();
+      getPlugin('trimRows').trimRows([2, 6, 7]);
 
-      hot.updateSettings({
+      await render();
+      await updateSettings({
         trimRows: []
       });
 
-      expect(this.$container.find('td').length).toEqual(100);
+      expect(spec().$container.find('td').length).toEqual(100);
     });
 
     it('should clear list of trimmed rows when handled setting object has key `trimRows` with value ' +
-      'set to `false` - test no. 1', function() {
-      const hot = handsontable({
+      'set to `false` - test no. 1', async() => {
+      handsontable({
         data: getMultilineData(10, 10),
         trimRows: [2, 6, 7],
         width: 500,
         height: 300
       });
 
-      hot.updateSettings({
+      await updateSettings({
         trimRows: false
       });
 
-      expect(this.$container.find('td').length).toEqual(100);
+      expect(spec().$container.find('td').length).toEqual(100);
     });
 
     it('should clear list of trimmed rows when handled setting object has key `trimRows` with value ' +
-      'set to `false` - test no. 2', function() {
-      const hot = handsontable({
+      'set to `false` - test no. 2', async() => {
+      handsontable({
         data: getMultilineData(10, 10),
         trimRows: true,
         width: 500,
         height: 300
       });
 
-      hot.getPlugin('trimRows').trimRows([2, 6, 7]);
-      hot.render();
+      getPlugin('trimRows').trimRows([2, 6, 7]);
 
-      hot.updateSettings({
+      await render();
+      await updateSettings({
         trimRows: false
       });
 
-      expect(this.$container.find('td').length).toEqual(100);
+      expect(spec().$container.find('td').length).toEqual(100);
     });
 
     it('shouldn\'t clear list of trimmed rows when handled setting object has key `trimRows` with value ' +

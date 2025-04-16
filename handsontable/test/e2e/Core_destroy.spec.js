@@ -12,14 +12,14 @@ describe('Core_destroy', () => {
     }
   });
 
-  it('should remove table from the root element', () => {
+  it('should remove table from the root element', async() => {
     handsontable();
     destroy();
 
     expect(spec().$container.html()).toEqual('');
   });
 
-  it('should remove events from the root element, document element and window', () => {
+  it('should remove events from the root element, document element and window', async() => {
     const x = handsontable();
 
     expect(x.eventListeners.length > 0).toBeTruthy();
@@ -45,7 +45,7 @@ describe('Core_destroy', () => {
     expect(getSelected()).toBeUndefined();
   });
 
-  it('should throw an exception when metod on destroyed instance is called', () => {
+  it('should throw an exception when metod on destroyed instance is called', async() => {
     const hot = handsontable();
 
     destroy();
@@ -60,7 +60,7 @@ describe('Core_destroy', () => {
     }).toThrowError('The "listen" method cannot be called because this Handsontable instance has been destroyed');
   });
 
-  it('should set isDestroyed flag to `true` when instance is destroyed', () => {
+  it('should set isDestroyed flag to `true` when instance is destroyed', async() => {
     const hot = handsontable();
 
     expect(hot.isDestroyed).toBe(false);
@@ -70,7 +70,7 @@ describe('Core_destroy', () => {
     expect(hot.isDestroyed).toBe(true);
   });
 
-  it('should update index mappers cache only when necessary', () => {
+  it('should update index mappers cache only when necessary', async() => {
     const hot = handsontable({
       data: [['a'], ['b'], ['c']],
       autoRowSize: true,

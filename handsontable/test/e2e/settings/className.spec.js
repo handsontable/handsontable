@@ -13,7 +13,7 @@ describe('settings', () => {
       }
     });
 
-    it('should original classNames stay after updateSettings (without headers)', () => {
+    it('should original classNames stay after updateSettings (without headers)', async() => {
       handsontable({});
 
       const container = spec().$container[0];
@@ -27,7 +27,7 @@ describe('settings', () => {
       expect(container.classList.contains('handsontable')).toBe(true);
     });
 
-    it('should original classNames stay after updateSettings (with headers)', () => {
+    it('should original classNames stay after updateSettings (with headers)', async() => {
       handsontable({
         colHeaders: true,
         rowHeaders: true,
@@ -48,7 +48,7 @@ describe('settings', () => {
       expect(container.classList.contains('htColumnHeaders')).toBe(true);
     });
 
-    it('should update className accordingly', () => {
+    it('should update className accordingly', async() => {
       handsontable({
         data: [[1, true]],
         className: ['class-1', 'class-2'],

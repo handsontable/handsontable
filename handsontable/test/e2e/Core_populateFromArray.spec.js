@@ -21,7 +21,7 @@ describe('Core_populateFromArray', () => {
     ];
   };
 
-  it('should call onChange callback', () => {
+  it('should call onChange callback', async() => {
     let output = null;
 
     handsontable({
@@ -35,7 +35,7 @@ describe('Core_populateFromArray', () => {
     expect(output).toEqual([[0, 0, '', 'test'], [0, 1, 'Kia', 'test'], [1, 0, '2008', 'test'], [1, 1, 10, 'test']]);
   });
 
-  it('should override populated values using `beforeChange` hook', () => {
+  it('should override populated values using `beforeChange` hook', async() => {
     handsontable({
       data: [
         [1, 2, 3, 4, 5, 6],
@@ -58,7 +58,7 @@ describe('Core_populateFromArray', () => {
     ]);
   });
 
-  it('should populate single value for whole selection', () => {
+  it('should populate single value for whole selection', async() => {
     let output = null;
 
     handsontable({
@@ -77,7 +77,7 @@ describe('Core_populateFromArray', () => {
     ]);
   });
 
-  it('should populate value for whole selection only if populated data isn\'t an array', () => {
+  it('should populate value for whole selection only if populated data isn\'t an array', async() => {
     let output = null;
 
     handsontable({
@@ -91,7 +91,7 @@ describe('Core_populateFromArray', () => {
     expect(output).toEqual([[0, 0, '', 'test'], [2, 0, '2009', 'test']]);
   });
 
-  it('should populate value for whole selection only if populated data isn\'t an object', () => {
+  it('should populate value for whole selection only if populated data isn\'t an object', async() => {
     let output = null;
 
     handsontable({
@@ -105,7 +105,7 @@ describe('Core_populateFromArray', () => {
     expect(output).toEqual([[0, 0, '', 'test'], [2, 0, '2009', 'test']]);
   });
 
-  it('shouldn\'t populate value if original value doesn\'t have the same data structure', () => {
+  it('shouldn\'t populate value if original value doesn\'t have the same data structure', async() => {
     let output = null;
 
     handsontable({
@@ -119,7 +119,7 @@ describe('Core_populateFromArray', () => {
     expect(output).toEqual([[1, 3, 12, 'test'], [1, 4, 13, 'test']]);
   });
 
-  it('should populate value for array data when array selection is changed to empty', () => {
+  it('should populate value for array data when array selection is changed to empty', async() => {
     // Resolving issue #5675: https://github.com/handsontable/handsontable/issues/5675
     let output = null;
     const dataArray = arrayOfArrays();
@@ -137,7 +137,7 @@ describe('Core_populateFromArray', () => {
     expect(output).toEqual([[0, 0, ['2011'], []]]);
   });
 
-  it('should populate value for array data when bound data begins as empty with new row', () => {
+  it('should populate value for array data when bound data begins as empty with new row', async() => {
     // Resolving issue #5675: https://github.com/handsontable/handsontable/issues/5675
     let output = null;
     const dataArray = [[]];
@@ -155,7 +155,7 @@ describe('Core_populateFromArray', () => {
   });
 
   describe('should shift values down', () => {
-    it('populating from the start of the table', () => {
+    it('populating from the start of the table', async() => {
       const hot = handsontable({
         data: [
           ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
@@ -197,7 +197,7 @@ describe('Core_populateFromArray', () => {
       ], 'populateFromArray');
     });
 
-    it('populating from the end of the table', () => {
+    it('populating from the end of the table', async() => {
       const hot = handsontable({
         data: [
           ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
@@ -239,7 +239,7 @@ describe('Core_populateFromArray', () => {
       ], 'populateFromArray');
     });
 
-    it('populating full data of current table', () => {
+    it('populating full data of current table', async() => {
       const hot = handsontable({
         data: [
           ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
@@ -286,7 +286,7 @@ describe('Core_populateFromArray', () => {
   });
 
   describe('should shift values right', () => {
-    it('populating from the start of the table', () => {
+    it('populating from the start of the table', async() => {
       const hot = handsontable({
         data: [
           ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
@@ -327,7 +327,7 @@ describe('Core_populateFromArray', () => {
       ], 'populateFromArray');
     });
 
-    it('populating from the end of the table', () => {
+    it('populating from the end of the table', async() => {
       const hot = handsontable({
         data: [
           ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
@@ -367,7 +367,7 @@ describe('Core_populateFromArray', () => {
       ], 'populateFromArray');
     });
 
-    it('populating full data of current table', () => {
+    it('populating full data of current table', async() => {
       const hot = handsontable({
         data: [
           ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
@@ -424,7 +424,7 @@ describe('Core_populateFromArray', () => {
       ], 'populateFromArray');
     });
 
-    it('should expand the dataset properly #6929', () => {
+    it('should expand the dataset properly #6929', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(1, 5),
       });
@@ -462,7 +462,7 @@ describe('Core_populateFromArray', () => {
     });
   });
 
-  it('should populate 1 row from 2 selected rows', () => {
+  it('should populate 1 row from 2 selected rows', async() => {
     handsontable({
       data: arrayOfArrays()
     });
@@ -473,7 +473,7 @@ describe('Core_populateFromArray', () => {
     expect(getDataAtCell(3, 0)).toEqual('2010');
   });
 
-  it('should populate 1 column from 2 selected columns`', () => {
+  it('should populate 1 column from 2 selected columns`', async() => {
     handsontable({
       data: arrayOfArrays()
     });

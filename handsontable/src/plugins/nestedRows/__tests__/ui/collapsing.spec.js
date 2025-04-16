@@ -137,7 +137,7 @@ describe('NestedRows Collapsing UI', () => {
     });
 
     describe('expandRows', () => {
-      it('Should make the rows provided in the arguments visible', (done) => {
+      it('Should make the rows provided in the arguments visible', async() => {
         handsontable({
           data: getMoreComplexNestedData(),
           nestedRows: true,
@@ -154,15 +154,14 @@ describe('NestedRows Collapsing UI', () => {
         plugin.collapsingUI.expandRows([3], true, true);
         render();
 
-        setTimeout(() => {
-          expect(countRows()).toEqual(11);
-          done();
-        }, 100);
+        await sleep(100);
+
+        expect(countRows()).toEqual(11);
       });
     });
 
     describe('expandChildren', () => {
-      it('Should make the child rows of the provided element visible', (done) => {
+      it('Should make the child rows of the provided element visible', async() => {
         handsontable({
           data: getMoreComplexNestedData(),
           nestedRows: true
@@ -178,13 +177,12 @@ describe('NestedRows Collapsing UI', () => {
         plugin.collapsingUI.expandChildren(3);
         render();
 
-        setTimeout(() => {
-          expect(countRows()).toEqual(13);
-          done();
-        }, 100);
+        await sleep(100);
+
+        expect(countRows()).toEqual(13);
       });
 
-      it('Should make the child rows of the provided element visible, even if some of them are already visible', (done) => {
+      it('Should make the child rows of the provided element visible, even if some of them are already visible', async() => {
         handsontable({
           data: getMoreComplexNestedData(),
           nestedRows: true
@@ -200,10 +198,9 @@ describe('NestedRows Collapsing UI', () => {
         plugin.collapsingUI.expandChildren(0);
         render();
 
-        setTimeout(() => {
-          expect(countRows()).toEqual(13);
-          done();
-        }, 100);
+        await sleep(100);
+
+        expect(countRows()).toEqual(13);
       });
     });
 

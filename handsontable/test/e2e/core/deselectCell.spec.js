@@ -10,7 +10,7 @@ describe('Core.deselectCell', () => {
     }
   });
 
-  it('should call the `deselectCell` method of the Selection module internally', () => {
+  it('should call the `deselectCell` method of the Selection module internally', async() => {
     const hot = handsontable({
       data: createSpreadsheetObjectData(5, 5),
     });

@@ -20,7 +20,7 @@ describe('WalkontableScrollbar', () => {
     this.wotInstance.destroy();
   });
 
-  it('should table in DIV.wtHolder that contains 2 scrollbars', () => {
+  it('should table in DIV.wtHolder that contains 2 scrollbars', async() => {
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
@@ -32,7 +32,7 @@ describe('WalkontableScrollbar', () => {
     expect(spec().$table.parents('.wtHolder').length).toEqual(1);
   });
 
-  it('scrolling should have no effect when totalRows is smaller than height', function() {
+  it('scrolling should have no effect when totalRows is smaller than height', async() => {
     this.data.splice(5, this.data.length - 5);
 
     try {

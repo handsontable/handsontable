@@ -58,7 +58,7 @@ describe('Events', () => {
     expect(onCellDblClick).toHaveBeenCalled();
   });
 
-  it('should "preventDefault" only the second "touchend" event while double-tapping (issue #7824)', () => {
+  it('should "preventDefault" only the second "touchend" event while double-tapping (issue #7824)', async() => {
     const hot = handsontable({
       width: 400,
       height: 400,
@@ -90,7 +90,7 @@ describe('Events', () => {
     }
   });
 
-  it('should not "preventDefault" the second "touchend" event when interactive element is clicked (PR#7980)', () => {
+  it('should not "preventDefault" the second "touchend" event when interactive element is clicked (PR#7980)', async() => {
     const hot = handsontable({
       data: [['<a href="#justForTest">click me!</a>'], []],
       width: 400,

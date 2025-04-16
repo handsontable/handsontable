@@ -12,7 +12,7 @@ describe('Core.suspendRender', () => {
     }
   });
 
-  it('should suspend the table rendering process and mark that the slow redraw was used', () => {
+  it('should suspend the table rendering process and mark that the slow redraw was used', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(5, 5),
     });
@@ -47,7 +47,7 @@ describe('Core.suspendRender', () => {
     expect(afterViewRender).not.toHaveBeenCalled();
   });
 
-  it('should suspend the table rendering process and mark that the fast redraw was used', () => {
+  it('should suspend the table rendering process and mark that the fast redraw was used', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(5, 5),
     });
@@ -80,7 +80,7 @@ describe('Core.suspendRender', () => {
     expect(afterViewRender).not.toHaveBeenCalled();
   });
 
-  it('should wrap multiple calls of the table suspend rendering', () => {
+  it('should wrap multiple calls of the table suspend rendering', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(5, 5),
     });

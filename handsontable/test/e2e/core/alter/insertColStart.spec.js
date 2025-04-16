@@ -17,7 +17,7 @@ describe('Core.alter', () => {
     });
 
     describe('`insert_col_start` action', () => {
-      it('should insert column on the left of the first column when there is missing the `index` argument', () => {
+      it('should insert column on the left of the first column when there is missing the `index` argument', async() => {
         handsontable({
           data: [
             ['a1', 'a2', 'a3'],
@@ -45,7 +45,7 @@ describe('Core.alter', () => {
         ]);
       });
 
-      it('should insert column on the right of the last column when the index exceeds the data range', () => {
+      it('should insert column on the right of the last column when the index exceeds the data range', async() => {
         handsontable({
           data: [
             ['a1', 'a2', 'a3'],
@@ -82,7 +82,7 @@ describe('Core.alter', () => {
         ]);
       });
 
-      it('should insert one column on the left of the given index (the `amount` argument is not provided)', () => {
+      it('should insert one column on the left of the given index (the `amount` argument is not provided)', async() => {
         handsontable({
           data: [
             ['a1', 'a2', 'a3'],
@@ -101,7 +101,7 @@ describe('Core.alter', () => {
         ]);
       });
 
-      it('should insert 3 columns on the left of the given index', () => {
+      it('should insert 3 columns on the left of the given index', async() => {
         handsontable({
           data: [
             ['a1', 'a2', 'a3'],
@@ -120,7 +120,7 @@ describe('Core.alter', () => {
         ]);
       });
 
-      it('should not create column if removing has been canceled by `beforeCreateCol` hook handler', () => {
+      it('should not create column if removing has been canceled by `beforeCreateCol` hook handler', async() => {
         handsontable({
           data: createSpreadsheetData(5, 5),
           beforeCreateCol: () => false
@@ -137,7 +137,7 @@ describe('Core.alter', () => {
         expect(countCols()).toBe(5);
       });
 
-      it('should not create/shift cell meta objects if creating has been canceled by `beforeCreateCol` hook handler', () => {
+      it('should not create/shift cell meta objects if creating has been canceled by `beforeCreateCol` hook handler', async() => {
         handsontable({
           beforeCreateCol: () => false,
         });
@@ -152,7 +152,7 @@ describe('Core.alter', () => {
         expect(getCellMeta(0, 3)._test).toBeUndefined();
       });
 
-      it('should add new column with cells type defined by cell meta options', () => {
+      it('should add new column with cells type defined by cell meta options', async() => {
         handsontable({
           data: [
             [0, 'a', true],
@@ -176,7 +176,7 @@ describe('Core.alter', () => {
         expect(getDataAtCell(0, 1)).toBe(0);
       });
 
-      it('should insert not more columns than maxCols', () => {
+      it('should insert not more columns than maxCols', async() => {
         handsontable({
           startCols: 5,
           maxCols: 7
@@ -189,7 +189,7 @@ describe('Core.alter', () => {
         expect(countCols()).toBe(7);
       });
 
-      it('should not insert more columns than maxCols (when `amount` parameter is used)', () => {
+      it('should not insert more columns than maxCols (when `amount` parameter is used)', async() => {
         handsontable({
           data: createSpreadsheetData(3, 5),
           maxCols: 10
@@ -200,7 +200,7 @@ describe('Core.alter', () => {
         expect(countCols()).toBe(10);
       });
 
-      it('should fire `beforeCreateCol` and `afterCreateCol` hooks', () => {
+      it('should fire `beforeCreateCol` and `afterCreateCol` hooks', async() => {
         const beforeCreateCol = jasmine.createSpy('beforeCreateCol');
         const afterCreateCol = jasmine.createSpy('afterCreateCol');
 
@@ -225,7 +225,7 @@ describe('Core.alter', () => {
         expect(afterCreateCol).toHaveBeenCalledWith(3, 2, 'customSource');
       });
 
-      it('should correctly shift cell meta object when they are defined in the `beforeCreateCol` hook', () => {
+      it('should correctly shift cell meta object when they are defined in the `beforeCreateCol` hook', async() => {
         handsontable({
           data: createSpreadsheetData(8, 8),
           beforeCreateCol(index, amount) {
@@ -250,7 +250,7 @@ describe('Core.alter', () => {
         expect(getCellMeta(0, 8).className).toBeUndefined();
       });
 
-      it('should correctly shift cell meta object when they are defined in the `afterCreateCol` hook', () => {
+      it('should correctly shift cell meta object when they are defined in the `afterCreateCol` hook', async() => {
         handsontable({
           data: createSpreadsheetData(8, 8),
           afterCreateCol(index, amount) {
@@ -275,7 +275,7 @@ describe('Core.alter', () => {
         expect(getCellMeta(0, 8).className).toBeUndefined();
       });
 
-      it('should shift right only the last selection layer when the column is inserted on the left of that selection', () => {
+      it('should shift right only the last selection layer when the column is inserted on the left of that selection', async() => {
         handsontable({
           data: createSpreadsheetData(8, 8),
           rowHeaders: true,
@@ -347,7 +347,7 @@ describe('Core.alter', () => {
         }
       });
 
-      it('should not shift right the selection layers when the column is inserted on the right of that selection', () => {
+      it('should not shift right the selection layers when the column is inserted on the right of that selection', async() => {
         handsontable({
           data: createSpreadsheetData(8, 8),
           rowHeaders: true,
@@ -419,7 +419,7 @@ describe('Core.alter', () => {
         }
       });
 
-      it('should shift right the selected column when the new column is inserted on the left of that selection', () => {
+      it('should shift right the selected column when the new column is inserted on the left of that selection', async() => {
         handsontable({
           data: createSpreadsheetData(5, 5),
           rowHeaders: true,
@@ -475,7 +475,7 @@ describe('Core.alter', () => {
         }
       });
 
-      it('should not shift right the selected column when the new column is inserted on the right of that selection', () => {
+      it('should not shift right the selected column when the new column is inserted on the right of that selection', async() => {
         handsontable({
           data: createSpreadsheetData(5, 5),
           rowHeaders: true,
@@ -599,7 +599,7 @@ describe('Core.alter', () => {
         }
       });
 
-      it('should not create column header together with the column, if headers were NOT specified explicitly', () => {
+      it('should not create column header together with the column, if headers were NOT specified explicitly', async() => {
         handsontable({
           startCols: 3,
           startRows: 2,
@@ -615,7 +615,7 @@ describe('Core.alter', () => {
         expect(countCols()).toBe(4);
       });
 
-      it('should create column header together with the column, if headers were specified explicitly', () => {
+      it('should create column header together with the column, if headers were specified explicitly', async() => {
         handsontable({
           startCols: 3,
           startRows: 2,
@@ -631,7 +631,7 @@ describe('Core.alter', () => {
         expect(countCols()).toBe(4);
       });
 
-      it('should insert column at proper position when there were some column sequence changes', () => {
+      it('should insert column at proper position when there were some column sequence changes', async() => {
         const hot = handsontable({
           data: createSpreadsheetData(5, 5)
         });

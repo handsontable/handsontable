@@ -13,7 +13,7 @@ describe('Hook', () => {
   });
 
   describe('afterSelectColumns', () => {
-    it('should be fired with proper arguments', () => {
+    it('should be fired with proper arguments', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(10, 10),
         colHeaders: true,
@@ -33,7 +33,7 @@ describe('Hook', () => {
       );
     });
 
-    it('should be fired after the `beforeSelectColumns` hook', () => {
+    it('should be fired after the `beforeSelectColumns` hook', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         colHeaders: true,

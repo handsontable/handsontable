@@ -10,14 +10,14 @@ describe('shortcutManager', () => {
     }
   });
 
-  it('should set `grid` context at start', () => {
+  it('should set `grid` context at start', async() => {
     const hot = handsontable();
     const shortcutManager = hot.getShortcutManager();
 
     expect(shortcutManager.getActiveContextName()).toBe('grid');
   });
 
-  it('should not give a possibility to register context with already registered name', () => {
+  it('should not give a possibility to register context with already registered name', async() => {
     const hot = handsontable();
     const shortcutManager = hot.getShortcutManager();
 
@@ -33,7 +33,7 @@ describe('shortcutManager', () => {
   });
 
   describe('should properly determine whether key is pressed (public method)', () => {
-    it('control', () => {
+    it('control', async() => {
       const hot = handsontable();
       const shortcutManager = hot.getShortcutManager();
 
@@ -64,7 +64,7 @@ describe('shortcutManager', () => {
       keyUp('control');
     });
 
-    it('meta', () => {
+    it('meta', async() => {
       const hot = handsontable();
       const shortcutManager = hot.getShortcutManager();
 
@@ -96,7 +96,7 @@ describe('shortcutManager', () => {
     });
   });
 
-  it('should run action when needed', () => {
+  it('should run action when needed', async() => {
     const hot = handsontable();
     const shortcutManager = hot.getShortcutManager();
     const gridContext = shortcutManager.getContext('grid');
@@ -134,7 +134,7 @@ describe('shortcutManager', () => {
     expect(spy.calls.count()).toBe(1);
   });
 
-  it('should not trigger a callback when IME event is triggered (keyCode 229)', () => {
+  it('should not trigger a callback when IME event is triggered (keyCode 229)', async() => {
     const hot = handsontable();
     const shortcutManager = hot.getShortcutManager();
     const gridContext = shortcutManager.getContext('grid');
@@ -167,7 +167,7 @@ describe('shortcutManager', () => {
     expect(callback.calls.count()).toBe(1);
   });
 
-  it('should not trigger a callback when the `key` is undefined (#dev-2096)', () => {
+  it('should not trigger a callback when the `key` is undefined (#dev-2096)', async() => {
     const afterDocumentKeyDown = jasmine.createSpy();
     const hot = handsontable({
       afterDocumentKeyDown,
@@ -183,7 +183,7 @@ describe('shortcutManager', () => {
     expect(afterDocumentKeyDown).not.toHaveBeenCalled();
   });
 
-  it('should run action for specified Command/Control modifier key depending on the operating system the table runs on', () => {
+  it('should run action for specified Command/Control modifier key depending on the operating system the table runs on', async() => {
     const hot = handsontable();
     const shortcutManager = hot.getShortcutManager();
     const gridContext = shortcutManager.getContext('grid');
@@ -219,7 +219,7 @@ describe('shortcutManager', () => {
     Handsontable.helper.setPlatformMeta(); // Reset platform
   });
 
-  it('should run `beforeKeyDown` and `afterDocumentKeyDown` hook properly', () => {
+  it('should run `beforeKeyDown` and `afterDocumentKeyDown` hook properly', async() => {
     let text = '';
 
     const hot = handsontable({
@@ -249,7 +249,7 @@ describe('shortcutManager', () => {
     expect(text).toBe('13123');
   });
 
-  it('should be possible to stop propagate the shortcut to cell editor', () => {
+  it('should be possible to stop propagate the shortcut to cell editor', async() => {
     const hot = handsontable();
     const shortcutManager = hot.getShortcutManager();
     const gridContext = shortcutManager.getContext('grid');
@@ -267,7 +267,7 @@ describe('shortcutManager', () => {
     expect(getActiveEditor().isOpened()).toBe(false);
   });
 
-  it('should give a possibility to block actions by `beforeKeyDown` hook', () => {
+  it('should give a possibility to block actions by `beforeKeyDown` hook', async() => {
     let text = '';
 
     const hot = handsontable({
@@ -299,7 +299,7 @@ describe('shortcutManager', () => {
     expect(text).toBe('11');
   });
 
-  it('should give a possibility to block next actions by already executed shortcut\'s action', () => {
+  it('should give a possibility to block next actions by already executed shortcut\'s action', async() => {
     let text = '';
     const hot = handsontable({});
     const shortcutManager = hot.getShortcutManager();
@@ -339,7 +339,7 @@ describe('shortcutManager', () => {
     expect(text).toBe('12');
   });
 
-  it('should be possible to capture the Ctrl/Meta pressed keys state using the "captureCtrl" option', () => {
+  it('should be possible to capture the Ctrl/Meta pressed keys state using the "captureCtrl" option', async() => {
     const hot = handsontable({});
     const shortcutManager = hot.getShortcutManager();
     const gridContext = shortcutManager.getContext('grid');
@@ -373,7 +373,7 @@ describe('shortcutManager', () => {
     expect(isCtrlPressedSpy).toHaveBeenCalledWith(false);
   });
 
-  it('should handle action properly when something is removed from actions stack dynamically (executing "old" list of actions)', () => {
+  it('should handle action properly when something is removed from actions stack dynamically (executing "old" list of actions)', async() => {
     const hot = handsontable({});
     const shortcutManager = hot.getShortcutManager();
     const gridContext = shortcutManager.getContext('grid');
@@ -435,7 +435,7 @@ describe('shortcutManager', () => {
     expect(text).toBe('123456');
   });
 
-  it('should handle action properly when something is added to actions stack dynamically (executing "old" list of actions)', () => {
+  it('should handle action properly when something is added to actions stack dynamically (executing "old" list of actions)', async() => {
     const hot = handsontable({});
     const shortcutManager = hot.getShortcutManager();
     const gridContext = shortcutManager.getContext('grid');
@@ -495,7 +495,7 @@ describe('shortcutManager', () => {
     expect(text).toBe('13456');
   });
 
-  it('should check if there is a need of releasing keys on click #dev-1025', () => {
+  it('should check if there is a need of releasing keys on click #dev-1025', async() => {
     const hot = handsontable();
     const shortcutManager = hot.getShortcutManager();
     const releasePressedKeys = spyOn(shortcutManager, 'releasePressedKeys');
@@ -515,7 +515,7 @@ describe('shortcutManager', () => {
   });
 
   describe('`forwardToContext` option', () => {
-    it('should forward the event to the other context within the same HoT instance', () => {
+    it('should forward the event to the other context within the same HoT instance', async() => {
       handsontable();
 
       const shortcutManager = getShortcutManager();
@@ -545,7 +545,7 @@ describe('shortcutManager', () => {
       expect(secondSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('should forward the event to the other context within another HoT instance', () => {
+    it('should forward the event to the other context within another HoT instance', async() => {
       const container2 = $('<div id="testContainer2"></div>').appendTo('body');
       const hot1 = handsontable();
       const hot2 = new Handsontable(container2[0]);
@@ -580,7 +580,7 @@ describe('shortcutManager', () => {
       container2.remove();
     });
 
-    it('should not forward the event to the other context when in the first context the event was cancelled', () => {
+    it('should not forward the event to the other context when in the first context the event was cancelled', async() => {
       handsontable();
 
       const shortcutManager = getShortcutManager();
@@ -612,7 +612,7 @@ describe('shortcutManager', () => {
   });
 
   describe('`runOnlyIf` option', () => {
-    it('should execute the shortcut action when the option is not defined', () => {
+    it('should execute the shortcut action when the option is not defined', async() => {
       const callback = jasmine.createSpy('callback');
 
       handsontable();
@@ -633,7 +633,7 @@ describe('shortcutManager', () => {
       expect(callback).toHaveBeenCalledTimes(1);
     });
 
-    it('should execute the shortcut action when the option returns `true`', () => {
+    it('should execute the shortcut action when the option returns `true`', async() => {
       const callback = jasmine.createSpy('callback');
 
       handsontable();
@@ -655,7 +655,7 @@ describe('shortcutManager', () => {
       expect(callback).toHaveBeenCalledTimes(1);
     });
 
-    it('should not execute the shortcut action when the option returns different value than `true`', () => {
+    it('should not execute the shortcut action when the option returns different value than `true`', async() => {
       const callback = jasmine.createSpy('callback');
       const runOnlyIf = jasmine.createSpy('runOnlyIf');
 

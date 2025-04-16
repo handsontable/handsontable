@@ -641,12 +641,12 @@ describe('DropdownMenu', () => {
       }
     });
 
-    it('should apply enabling/disabling contextMenu using updateSetting only to particular instance of HOT', function() {
+    it('should apply enabling/disabling contextMenu using updateSetting only to particular instance of HOT', async() => {
       const hot1 = handsontable({
         dropdownMenu: false,
         height: 100
       });
-      let hot2 = this.$container2.handsontable({
+      let hot2 = spec().$container2.handsontable({
         dropdownMenu: true,
         height: 100
       });

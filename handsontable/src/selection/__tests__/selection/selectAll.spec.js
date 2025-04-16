@@ -24,7 +24,7 @@ describe('Selection', () => {
   }
 
   describe('`selectAll` method', () => {
-    it('should select all cells with headers keeping the focus selection untouched', () => {
+    it('should select all cells with headers keeping the focus selection untouched', async() => {
       const hot = handsontable({
         data: createSpreadsheetObjectData(4, 6),
         colHeaders: true,
@@ -45,7 +45,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: -1,-1 to: 3,5']);
     });
 
-    it('should select all cells with headers and move the focus selection to another cell', () => {
+    it('should select all cells with headers and move the focus selection to another cell', async() => {
       const hot = handsontable({
         data: createSpreadsheetObjectData(4, 6),
         colHeaders: true,
@@ -68,7 +68,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,3 from: -1,-1 to: 3,5']);
     });
 
-    it('should select all cells with headers without highlighting headers', () => {
+    it('should select all cells with headers without highlighting headers', async() => {
       const hot = handsontable({
         data: createSpreadsheetObjectData(4, 6),
         colHeaders: true,
@@ -92,7 +92,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,3 from: -1,-1 to: 3,5']);
     });
 
-    it('should select all cells without column headers', () => {
+    it('should select all cells without column headers', async() => {
       const hot = handsontable({
         data: createSpreadsheetObjectData(4, 6),
         colHeaders: true,
@@ -113,7 +113,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 0,-1 to: 3,5']);
     });
 
-    it('should select all cells without row headers', () => {
+    it('should select all cells without row headers', async() => {
       const hot = handsontable({
         data: createSpreadsheetObjectData(4, 6),
         colHeaders: true,
@@ -134,7 +134,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: -1,0 to: 3,5']);
     });
 
-    it('should select all cells and move the focus selection around the cells range', () => {
+    it('should select all cells and move the focus selection around the cells range', async() => {
       const hot = handsontable({
         data: createSpreadsheetObjectData(4, 6),
         colHeaders: true,
@@ -184,7 +184,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,5 from: -1,-1 to: 3,5']);
     });
 
-    it('should select all cells and move the focus selection around the tables range (navigableHeaders on)', () => {
+    it('should select all cells and move the focus selection around the tables range (navigableHeaders on)', async() => {
       const hot = handsontable({
         data: createSpreadsheetObjectData(4, 6),
         colHeaders: true,
@@ -281,7 +281,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,5 from: -3,-3 to: 3,5']);
     });
 
-    it('should select all cells with headers and keep the focus selection untouched (multiple headers, navigableHeaders on)', () => {
+    it('should select all cells with headers and keep the focus selection untouched (multiple headers, navigableHeaders on)', async() => {
       const hot = handsontable({
         data: createSpreadsheetObjectData(4, 6),
         colHeaders: true,
@@ -313,7 +313,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: -3,-3 to: 3,5']);
     });
 
-    it('should select all cells with row headers and keep the focus selection untouched (multiple headers, navigableHeaders on)', () => {
+    it('should select all cells with row headers and keep the focus selection untouched (multiple headers, navigableHeaders on)', async() => {
       const hot = handsontable({
         data: createSpreadsheetObjectData(4, 6),
         colHeaders: false,
@@ -337,7 +337,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 0,-3 to: 3,5']);
     });
 
-    it('should select all cells with column headers and keep the focus selection untouched (multiple headers, navigableHeaders on)', () => {
+    it('should select all cells with column headers and keep the focus selection untouched (multiple headers, navigableHeaders on)', async() => {
       const hot = handsontable({
         data: createSpreadsheetObjectData(4, 6),
         colHeaders: true,
@@ -365,7 +365,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: -3,0 to: 3,5']);
     });
 
-    it('should select all cells without column headers (multiple headers, navigableHeaders on)', () => {
+    it('should select all cells without column headers (multiple headers, navigableHeaders on)', async() => {
       const hot = handsontable({
         data: createSpreadsheetObjectData(4, 6),
         colHeaders: true,
@@ -397,7 +397,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 0,-3 to: 3,5']);
     });
 
-    it('should select all cells without row headers (multiple headers, navigableHeaders on)', () => {
+    it('should select all cells without row headers (multiple headers, navigableHeaders on)', async() => {
       const hot = handsontable({
         data: createSpreadsheetObjectData(4, 6),
         colHeaders: true,
@@ -429,7 +429,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: -3,0 to: 3,5']);
     });
 
-    it('should select row and column headers when all rows are trimmed', () => {
+    it('should select row and column headers when all rows are trimmed', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -446,7 +446,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: -1,-1 to: -1,4']);
     });
 
-    it('should not select row and column headers when all rows are trimmed', () => {
+    it('should not select row and column headers when all rows are trimmed', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -463,7 +463,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toBeUndefined();
     });
 
-    it('should select row and column headers when all rows are trimmed (multiple headers, navigableHeaders on)', () => {
+    it('should select row and column headers when all rows are trimmed (multiple headers, navigableHeaders on)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -491,7 +491,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: -3,-3 from: -3,-3 to: -1,4']);
     });
 
-    it('should not select row and column headers when all rows are trimmed (multiple headers, navigableHeaders on)', () => {
+    it('should not select row and column headers when all rows are trimmed (multiple headers, navigableHeaders on)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,

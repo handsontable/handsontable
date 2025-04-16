@@ -12,7 +12,7 @@ describe('Core.propToCol', () => {
     }
   });
 
-  it('should return valid index for newly added column when manualColumnMove is enabled', () => {
+  it('should return valid index for newly added column when manualColumnMove is enabled', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(10, 10),
       manualColumnMove: true,
@@ -24,7 +24,7 @@ describe('Core.propToCol', () => {
     expect(propToCol(10)).toBe(10);
   });
 
-  it('should return proper value after calling the function when columns was reorganized (data is array of arrays)', () => {
+  it('should return proper value after calling the function when columns was reorganized (data is array of arrays)', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(5, 5)
     });
@@ -36,7 +36,7 @@ describe('Core.propToCol', () => {
     expect(propToCol(10)).toBe(10); // I'm not sure if this should return result like that by design.
   });
 
-  it('should return proper value after calling the function when columns was reorganized (data is array of objects)', () => {
+  it('should return proper value after calling the function when columns was reorganized (data is array of objects)', async() => {
     const hot = handsontable({
       data: [
         { id: 1, name: 'Ted', lastName: 'Right', date: '01/01/2015' },

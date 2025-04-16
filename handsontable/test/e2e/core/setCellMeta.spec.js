@@ -12,7 +12,7 @@ describe('Core.setCellMeta', () => {
     }
   });
 
-  it('should set correct meta className for cell', () => {
+  it('should set correct meta className for cell', async() => {
 
     const className = 'htCenter htMiddle';
 
@@ -28,7 +28,7 @@ describe('Core.setCellMeta', () => {
     expect(cellMeta.className).toEqual(className);
   });
 
-  it('should set proper cell meta when indexes was modified', () => {
+  it('should set proper cell meta when indexes was modified', async() => {
     const hot = handsontable({
       minRows: 5,
       minCols: 5
@@ -42,7 +42,7 @@ describe('Core.setCellMeta', () => {
     expect(getCellMeta(0, 1).key).toEqual('value');
   });
 
-  it('should set correct meta className for non existed cell', () => {
+  it('should set correct meta className for non existed cell', async() => {
     const className = 'htCenter htMiddle';
 
     handsontable({
@@ -58,7 +58,7 @@ describe('Core.setCellMeta', () => {
     expect(cellMeta.className).toEqual(className);
   });
 
-  it('should set correct meta classNames for cells using cell in configuration', () => {
+  it('should set correct meta classNames for cells using cell in configuration', async() => {
     const classNames = [
       'htCenter htTop',
       'htRight htBottom'
@@ -75,7 +75,7 @@ describe('Core.setCellMeta', () => {
     expect(spec().$container.find('tbody tr:eq(1) td:eq(1)')[0].className).toEqual(classNames[1]);
   });
 
-  it('should change cell meta data with updateSettings when the cell option is defined', () => {
+  it('should change cell meta data with updateSettings when the cell option is defined', async() => {
     const classNames = [
       'htCenter htTop',
       'htRight htBottom'
@@ -109,7 +109,7 @@ describe('Core.setCellMeta', () => {
     expect(spec().$container.find('tbody tr:eq(1) td:eq(1)')[0].className).toEqual(classNames[0]);
   });
 
-  it('should call `beforeSetCellMeta` and `afterSetCellMeta` plugin hook with visual indexes as parameters', () => {
+  it('should call `beforeSetCellMeta` and `afterSetCellMeta` plugin hook with visual indexes as parameters', async() => {
     const className = 'htCenter htMiddle';
     const beforeSetCellMeta = jasmine.createSpy('beforeSetCellMeta');
     const afterSetCellMeta = jasmine.createSpy('afterSetCellMeta');
@@ -129,7 +129,7 @@ describe('Core.setCellMeta', () => {
     expect(afterSetCellMeta).toHaveBeenCalledWith(0, 1, 'className', className);
   });
 
-  it('should NOT call the `afterSetCellMeta` hook, if the `beforeSetCellMeta` returned false', () => {
+  it('should NOT call the `afterSetCellMeta` hook, if the `beforeSetCellMeta` returned false', async() => {
     const className = 'htCenter htMiddle';
     const afterSetCellMeta = jasmine.createSpy('afterSetCellMeta');
     const hot = handsontable({
@@ -147,7 +147,7 @@ describe('Core.setCellMeta', () => {
     expect(afterSetCellMeta).not.toHaveBeenCalled();
   });
 
-  it('should extend the the meta object with `type` setting', () => {
+  it('should extend the the meta object with `type` setting', async() => {
     const { getCellType } = Handsontable.cellTypes;
 
     handsontable();
@@ -178,7 +178,7 @@ describe('Core.setCellMeta', () => {
     expect(getCellMeta(0, 0).editor).toBe(getCellType('numeric').editor);
   });
 
-  it('should not overwrite the manually defined `renderer` and `editor` props by setting a `type` meta prop', () => {
+  it('should not overwrite the manually defined `renderer` and `editor` props by setting a `type` meta prop', async() => {
     const mockRenderer = () => {};
     const mockEditor = () => {};
     const { getCellType } = Handsontable.cellTypes;

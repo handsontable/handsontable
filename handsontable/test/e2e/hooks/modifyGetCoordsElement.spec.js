@@ -9,7 +9,7 @@ describe('Hook', () => {
   });
 
   describe('modifyGetCoordsElement', () => {
-    it('should be fired before the cell is clicked', () => {
+    it('should be fired before the cell is clicked', async() => {
       const modifyGetCoordsElement = jasmine.createSpy('modifyGetCellCoords');
 
       handsontable({
@@ -24,7 +24,7 @@ describe('Hook', () => {
       expect(modifyGetCoordsElement).toHaveBeenCalledTimes(1);
     });
 
-    it('should shift the selection after cell click', () => {
+    it('should shift the selection after cell click', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         modifyGetCoordsElement(row, column) {

@@ -25,7 +25,7 @@ describe('Selection using mouse interaction', () => {
     this.view.appendRowHeader(visualRowIndex, TH);
   }
 
-  it('should correctly render the selection using event simulation', () => {
+  it('should correctly render the selection using event simulation', async() => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(9, 8),
       selectionMode: 'multiple',
@@ -68,7 +68,7 @@ describe('Selection using mouse interaction', () => {
       `).toBeMatchToSelectionPattern();
   });
 
-  it('should focus external textarea when clicked during editing', () => {
+  it('should focus external textarea when clicked during editing', async() => {
     const textarea = $('<input type="text">').prependTo($('body'));
 
     handsontable();
@@ -83,7 +83,7 @@ describe('Selection using mouse interaction', () => {
     textarea.remove();
   });
 
-  it('should deselect currently selected cell', () => {
+  it('should deselect currently selected cell', async() => {
     handsontable();
     selectCell(0, 0);
 
@@ -99,7 +99,7 @@ describe('Selection using mouse interaction', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it('should select entire column by left click on column header', () => {
+  it('should select entire column by left click on column header', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       rowHeaders: true,
@@ -120,7 +120,7 @@ describe('Selection using mouse interaction', () => {
     expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: -1,0 to: 4,0']);
   });
 
-  it('should select entire row by left click on row header', () => {
+  it('should select entire row by left click on row header', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       rowHeaders: true,
@@ -141,7 +141,7 @@ describe('Selection using mouse interaction', () => {
     expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: 0,-1 to: 0,4']);
   });
 
-  it('should select entire column by right click on column header', () => {
+  it('should select entire column by right click on column header', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       rowHeaders: true,
@@ -162,7 +162,7 @@ describe('Selection using mouse interaction', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it('should select entire row by right click on row header', () => {
+  it('should select entire row by right click on row header', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       rowHeaders: true,
@@ -183,7 +183,7 @@ describe('Selection using mouse interaction', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it('should select entire column by left click on column header (navigableHeaders on)', () => {
+  it('should select entire column by left click on column header (navigableHeaders on)', async() => {
     handsontable({
       data: createSpreadsheetData(2, 5),
       rowHeaders: true,
@@ -234,7 +234,7 @@ describe('Selection using mouse interaction', () => {
     expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: 1,1']);
   });
 
-  it('should select entire row by left click on row header (navigableHeaders on)', () => {
+  it('should select entire row by left click on row header (navigableHeaders on)', async() => {
     handsontable({
       data: createSpreadsheetData(5, 2),
       rowHeaders: true,
@@ -288,7 +288,7 @@ describe('Selection using mouse interaction', () => {
     expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-1 from: 1,-1 to: 1,1']);
   });
 
-  it('should select entire column by right click on column header (navigableHeaders on)', () => {
+  it('should select entire column by right click on column header (navigableHeaders on)', async() => {
     handsontable({
       data: createSpreadsheetData(2, 5),
       rowHeaders: true,
@@ -339,7 +339,7 @@ describe('Selection using mouse interaction', () => {
     expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: 1,1']);
   });
 
-  it('should select entire row by right click on row header (navigableHeaders on)', () => {
+  it('should select entire row by right click on row header (navigableHeaders on)', async() => {
     handsontable({
       data: createSpreadsheetData(5, 2),
       rowHeaders: true,
@@ -393,7 +393,7 @@ describe('Selection using mouse interaction', () => {
     expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-1 from: 1,-1 to: 1,1']);
   });
 
-  it('should select entire column by right click on column header and overwrite the previous cell selection (#7051)', () => {
+  it('should select entire column by right click on column header and overwrite the previous cell selection (#7051)', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       rowHeaders: true,
@@ -415,7 +415,7 @@ describe('Selection using mouse interaction', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it('should select entire row by right click on row header and overwrite the previous cell selection (#7051)', () => {
+  it('should select entire row by right click on row header and overwrite the previous cell selection (#7051)', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       rowHeaders: true,
@@ -437,7 +437,7 @@ describe('Selection using mouse interaction', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it('should select columns by click on header when all rows are trimmed', () => {
+  it('should select columns by click on header when all rows are trimmed', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       rowHeaders: true,
@@ -454,7 +454,7 @@ describe('Selection using mouse interaction', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it('should select row and column headers after clicking the corner header, when all rows are trimmed', () => {
+  it('should select row and column headers after clicking the corner header, when all rows are trimmed', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       rowHeaders: true,
@@ -471,7 +471,7 @@ describe('Selection using mouse interaction', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it('should select rows by click on header when all columns are trimmed (using `columns` option)', () => {
+  it('should select rows by click on header when all columns are trimmed (using `columns` option)', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       rowHeaders: true,
@@ -493,7 +493,7 @@ describe('Selection using mouse interaction', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it('should expand columns selection by click on header with SHIFT key', () => {
+  it('should expand columns selection by click on header with SHIFT key', async() => {
     handsontable({
       rowHeaders: true,
       colHeaders: true,
@@ -519,7 +519,7 @@ describe('Selection using mouse interaction', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it('should expand rows selection by click on header with SHIFT key', () => {
+  it('should expand rows selection by click on header with SHIFT key', async() => {
     handsontable({
       rowHeaders: true,
       colHeaders: true,
@@ -545,7 +545,7 @@ describe('Selection using mouse interaction', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it('should change selection after click on column header with SHIFT key', () => {
+  it('should change selection after click on column header with SHIFT key', async() => {
     handsontable({
       rowHeaders: true,
       colHeaders: true,
@@ -570,7 +570,7 @@ describe('Selection using mouse interaction', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it('should change selection after click on row header with SHIFT key', () => {
+  it('should change selection after click on row header with SHIFT key', async() => {
     handsontable({
       rowHeaders: true,
       colHeaders: true,
@@ -596,7 +596,7 @@ describe('Selection using mouse interaction', () => {
   });
 
   it('should allow switching between row/column selection, when clicking on the headers ' +
-    'while holding the SHIFT key', () => {
+    'while holding the SHIFT key', async() => {
     handsontable({
       rowHeaders: true,
       colHeaders: true,
@@ -649,7 +649,7 @@ describe('Selection using mouse interaction', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it('should call `afterSelection` while user selects cells with mouse; `afterSelectionEnd` when user finishes selection', () => {
+  it('should call `afterSelection` while user selects cells with mouse; `afterSelectionEnd` when user finishes selection', async() => {
     let tick = 0;
     let tickEnd = 0;
 
@@ -686,7 +686,7 @@ describe('Selection using mouse interaction', () => {
     expect(tickEnd).toEqual(1);
   });
 
-  it('should properly select columns, when the user moves the cursor over column headers across two overlays', () => {
+  it('should properly select columns, when the user moves the cursor over column headers across two overlays', async() => {
     handsontable({
       rowHeaders: true,
       colHeaders: true,
@@ -714,7 +714,7 @@ describe('Selection using mouse interaction', () => {
   });
 
   // This test should cover the #893 case, but it always passes. It seems like the keydown event (with CTRL key pressed) isn't delivered.
-  it('should not move focus from outside elements on CTRL keydown event, when no cell is selected', () => {
+  it('should not move focus from outside elements on CTRL keydown event, when no cell is selected', async() => {
     const $input = $('<input type="text"/>');
 
     $('body').append($input);
@@ -733,7 +733,7 @@ describe('Selection using mouse interaction', () => {
     $input.remove();
   });
 
-  it.forTheme('classic')('should select the entire column after column header is clicked', () => {
+  it.forTheme('classic')('should select the entire column after column header is clicked', async() => {
     handsontable({
       width: 200,
       height: 100,
@@ -761,7 +761,7 @@ describe('Selection using mouse interaction', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it.forTheme('main')('should select the entire column after column header is clicked', () => {
+  it.forTheme('main')('should select the entire column after column header is clicked', async() => {
     handsontable({
       width: 200,
       height: 126,
@@ -789,7 +789,7 @@ describe('Selection using mouse interaction', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it.forTheme('horizon')('should select the entire column after column header is clicked', () => {
+  it.forTheme('horizon')('should select the entire column after column header is clicked', async() => {
     handsontable({
       width: 200,
       height: 161,
@@ -818,7 +818,7 @@ describe('Selection using mouse interaction', () => {
   });
 
   it.forTheme('classic')('should select the entire column and row after column header and row ' +
-    'header is clicked', () => {
+    'header is clicked', async() => {
     handsontable({
       width: 200,
       height: 100,
@@ -853,7 +853,7 @@ describe('Selection using mouse interaction', () => {
   });
 
   it.forTheme('main')('should select the entire column and row after column header and row ' +
-    'header is clicked', () => {
+    'header is clicked', async() => {
     handsontable({
       width: 200,
       height: 126,
@@ -888,7 +888,7 @@ describe('Selection using mouse interaction', () => {
   });
 
   it.forTheme('horizon')('should select the entire column and row after column header and row ' +
-    'header is clicked', () => {
+    'header is clicked', async() => {
     handsontable({
       width: 200,
       height: 161,
@@ -922,7 +922,7 @@ describe('Selection using mouse interaction', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it('should select the entire column and row after column header and row header is clicked when cell editor is open', () => {
+  it('should select the entire column and row after column header and row header is clicked when cell editor is open', async() => {
     handsontable({
       width: 200,
       height: 100,
@@ -955,7 +955,7 @@ describe('Selection using mouse interaction', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it('should select the entire column after column header is clicked (in fixed rows/cols corner)', () => {
+  it('should select the entire column after column header is clicked (in fixed rows/cols corner)', async() => {
     handsontable({
       width: 200,
       height: 100,
@@ -1401,7 +1401,7 @@ describe('Selection using mouse interaction', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it('should select the entire row after row header is clicked', () => {
+  it('should select the entire row after row header is clicked', async() => {
     handsontable({
       startRows: 5,
       startCols: 5,
@@ -1423,7 +1423,7 @@ describe('Selection using mouse interaction', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it('should change selection after left mouse button on one of selected cell', () => {
+  it('should change selection after left mouse button on one of selected cell', async() => {
     const hot = handsontable({
       rowHeaders: true,
       colHeaders: true,
@@ -1462,7 +1462,7 @@ describe('Selection using mouse interaction', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it('should select all cells when corner header is clicked', () => {
+  it('should select all cells when corner header is clicked', async() => {
     handsontable({
       startRows: 5,
       startCols: 5,
@@ -1484,7 +1484,7 @@ describe('Selection using mouse interaction', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it('should be able to select one column headers after select all headers and cells', () => {
+  it('should be able to select one column headers after select all headers and cells', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(2, 2),
       colHeaders: true,

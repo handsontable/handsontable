@@ -12,7 +12,7 @@ describe('Core.uncheckedTemplate', () => {
     }
   });
 
-  it('should be set by default as boolean `true` value', () => {
+  it('should be set by default as boolean `true` value', async() => {
     handsontable({
       data: [[false]],
       type: 'checkbox'
@@ -21,7 +21,7 @@ describe('Core.uncheckedTemplate', () => {
     expect(getCellMeta(0, 0).uncheckedTemplate).toBe(false);
   });
 
-  it('should keep the boolean value in the cell after changing the data', () => {
+  it('should keep the boolean value in the cell after changing the data', async() => {
     handsontable({
       data: [[null]],
       type: 'checkbox',
@@ -37,7 +37,7 @@ describe('Core.uncheckedTemplate', () => {
     expect(getDataAtCell(0, 0)).toBe(false);
   });
 
-  it('should keep the boolean value (as string) in the cell after changing the data', () => {
+  it('should keep the boolean value (as string) in the cell after changing the data', async() => {
     handsontable({
       data: [[null]],
       type: 'checkbox',
@@ -53,7 +53,7 @@ describe('Core.uncheckedTemplate', () => {
     expect(getDataAtCell(0, 0)).toBe('false');
   });
 
-  it('should keep the numeric value in the cell after changing the data', () => {
+  it('should keep the numeric value in the cell after changing the data', async() => {
     handsontable({
       data: [[null]],
       type: 'checkbox',
@@ -69,7 +69,7 @@ describe('Core.uncheckedTemplate', () => {
     expect(getDataAtCell(0, 0)).toBe(0);
   });
 
-  it('should keep the numeric value (as string) in the cell after changing the data', () => {
+  it('should keep the numeric value (as string) in the cell after changing the data', async() => {
     handsontable({
       data: [[null]],
       type: 'checkbox',
@@ -85,7 +85,7 @@ describe('Core.uncheckedTemplate', () => {
     expect(getDataAtCell(0, 0)).toBe('0');
   });
 
-  it('should keep the string value in the cell after changing the data', () => {
+  it('should keep the string value in the cell after changing the data', async() => {
     handsontable({
       data: [[null]],
       type: 'checkbox',
@@ -97,7 +97,7 @@ describe('Core.uncheckedTemplate', () => {
     expect(getDataAtCell(0, 0)).toBe('no');
   });
 
-  it('should be possible to set any value to the cell', () => {
+  it('should be possible to set any value to the cell', async() => {
     handsontable({
       data: [[null]],
       type: 'checkbox',
