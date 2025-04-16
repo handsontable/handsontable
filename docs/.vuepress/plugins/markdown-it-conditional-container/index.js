@@ -17,9 +17,9 @@ const { parseFramework, getDefaultFramework, getNormalizedPath } = require('../.
  * ```
  */
 module.exports = function conditionalContainer(markdown) {
-  const openAndCloseTagOneliner = /::: only-for (((react|javascript|angular|angular-wrapper) ?)+)(.*?):::$/ms; // It is multi line text.
-  const openTokenContent = /(?:\n?)::: only-for (((react|javascript|angular|angular-wrapper) ?)+)\n?/;
-  const fullMatchOpenToken = /^(?:\n?)::: only-for (((react|javascript|angular|angular-wrapper) ?)+)\n?$/;
+  const openAndCloseTagOneliner = /::: only-for (((react|javascript|angular) ?)+)(.*?):::$/ms; // It is multi line text.
+  const openTokenContent = /(?:\n?)::: only-for (((react|javascript|angular) ?)+)\n?/;
+  const fullMatchOpenToken = /^(?:\n?)::: only-for (((react|javascript|angular) ?)+)\n?$/;
   const closeTokenContent = /(?:\n?):::(?:\n?)$/;
   const fullMatchCloseToken = /^(?:\n?):::(?:\n?)$/;
   const markupForCustomContainer = ':::';

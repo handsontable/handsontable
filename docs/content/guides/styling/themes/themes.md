@@ -68,12 +68,7 @@ Keep in mind that starting from version `15.0`, importing a theme is required.
 
 ::: only-for angular
 
-::: example #exampleTheme .disable-auto-theme :angular-wrapper --js 1 --ts 2 --html 3 --scss 4
-@[code](@/content/guides/styling/themes/angular/exampleTheme.component.js)
-@[code](@/content/guides/styling/themes/angular/exampleTheme.component.ts)
-@[code](@/content/guides/styling/themes/angular/exampleTheme.component.html)
-@[code](@/content/guides/styling/themes/angular/exampleTheme.component.scss)
-:::
+
 
 :::
 

@@ -52,10 +52,9 @@ Setting the [`colHeaders`](@/api/options.md#colheaders) option to `true` enables
 
 ::: only-for angular
 
-::: example #example1 :angular-wrapper --js 1 --ts 2 --html 3
+::: example #example1 :angular --js 1 --html 2
 
 @[code](@/content/guides/columns/column-header/angular/example1.js)
-@[code](@/content/guides/columns/column-header/angular/example1.ts)
 @[code](@/content/guides/columns/column-header/angular/example1.html)
 
 :::
@@ -89,13 +88,6 @@ An array of labels can be used to set the [`colHeaders`](@/api/options.md#colhea
 
 ::: only-for angular
 
-::: example #example2 :angular-wrapper --js 1 --ts 2 --html 3
-
-@[code](@/content/guides/columns/column-header/angular/example2.js)
-@[code](@/content/guides/columns/column-header/angular/example2.ts)
-@[code](@/content/guides/columns/column-header/angular/example2.html)
-
-:::
 
 :::
 
@@ -126,13 +118,7 @@ The [`colHeaders`](@/api/options.md#colheaders) can also be populated using a fu
 
 ::: only-for angular
 
-::: example #example3 :angular-wrapper --js 1 --ts 2 --html 3
 
-@[code](@/content/guides/columns/column-header/angular/example3.js)
-@[code](@/content/guides/columns/column-header/angular/example3.ts)
-@[code](@/content/guides/columns/column-header/angular/example3.html)
-
-:::
 
 :::
 
@@ -166,13 +152,7 @@ You can also set the alignment for a specific column by using the [`columns`](@/
 
 ::: only-for angular
 
-::: example #example4 :angular-wrapper --js 1 --ts 2 --html 3
 
-@[code](@/content/guides/columns/column-header/angular/example4.js)
-@[code](@/content/guides/columns/column-header/angular/example4.ts)
-@[code](@/content/guides/columns/column-header/angular/example4.html)
-
-:::
 
 :::
 
@@ -204,13 +184,7 @@ If you want to style the header labels, you can pass any number of class names, 
 
 ::: only-for angular
 
-::: example #example5 :angular-wrapper --js 1 --ts 2 --html 3
 
-@[code](@/content/guides/columns/column-header/angular/example5.js)
-@[code](@/content/guides/columns/column-header/angular/example5.ts)
-@[code](@/content/guides/columns/column-header/angular/example5.html)
-
-:::
 
 :::
 

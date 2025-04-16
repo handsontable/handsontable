@@ -42,7 +42,6 @@ const buildAngularBody = ({ html, js, version, hyperformulaVersion }) => {
     "zone.js": "^0.15.0",
     "hyperformula": "${hyperformulaVersion}",
     "handsontable": "${version}",
-    "@handsontable/angular": "${version}",
     "@handsontable/angular-wrapper": "${version}"
   },
   "devDependencies": {

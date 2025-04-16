@@ -11,7 +11,6 @@ const SYMLINK_PATHS = [
   { source: '../handsontable/tmp/', target: './.vuepress/public/handsontable/' },
   { source: '../wrappers/react/', target: './.vuepress/public/@handsontable/react/' },
   { source: '../wrappers/react-wrapper/', target: './.vuepress/public/@handsontable/react-wrapper/' },
-  { source: '../wrappers/angular/dist/hot-table/', target: './.vuepress/public/@handsontable/angular/' },
   // eslint-disable-next-line max-len
   { source: '../wrappers/angular-wrapper/dist/hot-table/', target: './.vuepress/public/@handsontable/angular-wrapper/' },
   { source: '../wrappers/vue/', target: './.vuepress/public/@handsontable/vue/' },
@@ -33,11 +32,9 @@ SYMLINK_PATHS.forEach((paths) => {
 
   if (fs.existsSync(source)) {
     if (fs.existsSync(target)) {
-      logger.success(`unlink ${source} ${target}`);
       fs.unlinkSync(target);
     }
 
-    logger.success(`create symlink ${source} ${target}`);
     fs.symlinkSync(
       source,
       target,
