@@ -46,7 +46,7 @@ Import the following:
 - `registerPlugin` - a utility to register a plugin in the Handsontable plugin registry.
 
 ```js
-import { BasePlugin, registerPlugin } from "handsontable/plugins";
+import { BasePlugin, registerPlugin } from 'handsontable/plugins';
 ```
 
 ### 2. Extend the [`BasePlugin`](@/api/basePlugin.md)
@@ -61,30 +61,30 @@ The [`BasePlugin`](@/api/basePlugin.md) interface takes care of:
 
 ```js
 export class CustomPlugin extends BasePlugin {
-  /**
-   * Define a unique key (a string) for your plugin.
-   * The key becomes the plugin's alias.
-   * Handsontable registers the plugin under that alias.
-   * When an `updateSettings()` call includes the plugin's alias,
-   * your plugin's state gets updated.
-   * You can also use the alias to recognize the plugin's
-   * options passed through the Setting object at Handsontable's initialization.
-   *
-   * @returns {string}
-   */
+ /**
+  * Define a unique key (a string) for your plugin.
+  * The key becomes the plugin's alias.
+  * Handsontable registers the plugin under that alias.
+  * When an `updateSettings()` call includes the plugin's alias,
+  * your plugin's state gets updated.
+  * You can also use the alias to recognize the plugin's
+  * options passed through the Setting object at Handsontable's initialization.
+  *
+  * @returns {string}
+  */
   static get PLUGIN_KEY() {
-    return "customPlugin";
+    return 'customPlugin';
   }
 
-  /**
-   * Define additional setting keys (an array of strings) for your plugin.
-   * When an `updateSettings()` call includes at least one of those setting keys,
-   * your plugin's state gets updated.
-   * If you set SETTING_KEYS() to return `true`, your plugin updates on every `updateSettings()` call.
-   * If you set SETTING_KEYS() to return `false`, your plugin never updates on any `updateSettings()` call.
-   *
-   * @returns {Array|boolean}
-   */
+ /**
+  * Define additional setting keys (an array of strings) for your plugin.
+  * When an `updateSettings()` call includes at least one of those setting keys,
+  * your plugin's state gets updated.
+  * If you set SETTING_KEYS() to return `true`, your plugin updates on every `updateSettings()` call.
+  * If you set SETTING_KEYS() to return `false`, your plugin never updates on any `updateSettings()` call.
+  *
+  * @returns {Array|boolean}
+  */
   static get SETTING_KEYS() {
     return true;
   }
@@ -95,7 +95,7 @@ export class CustomPlugin extends BasePlugin {
    * @param {Handsontable} hotInstance
    */
   constructor(hotInstance) {
-    /**
+     /**
      * The [`BasePlugin`](@/api/basePlugin.md)'s constructor adds a `this.hot` property to your plugin.
      * The `this.hot` property:
      * - Is a reference to the Handsontable instance.
@@ -107,7 +107,7 @@ export class CustomPlugin extends BasePlugin {
     // Initialize all your public properties in the class' constructor.
     this.configuration = {
       enabled: false,
-      msg: "",
+      msg: ''
     };
   }
 
@@ -123,20 +123,20 @@ export class CustomPlugin extends BasePlugin {
     if (pluginSettings === true) {
       return {
         enabled: true,
-        msg: "default msg boolean",
+        msg: 'default msg boolean'
       };
     }
-    if (Object.prototype.toString.call(pluginSettings) === "[object Object]") {
+    if (Object.prototype.toString.call(pluginSettings) === '[object Object]') {
       return {
         enabled: true,
-        msg: "default msg obj",
-        ...pluginSettings,
+        msg: 'default msg obj',
+        ...pluginSettings
       };
     }
     if (pluginSettings === false) {
       return {
         enabled: false,
-        msg: "",
+        msg: ''
       };
     }
 
@@ -144,7 +144,7 @@ export class CustomPlugin extends BasePlugin {
       `${CustomPlugin.PLUGIN_KEY} - incorrect plugins configuration.
       Passed:
         - type: ${typeof pluginSettings}
-        - value: ${JSON.stringify(pluginSettings, null, " ")}
+        - value: ${JSON.stringify(pluginSettings, null, ' ')}
 
       Expected:
         - boolean
@@ -172,9 +172,7 @@ export class CustomPlugin extends BasePlugin {
     this.configuration = this.getUnifiedConfig();
 
     // Add all your plugin hooks here. It's a good idea to use arrow functions to keep the plugin as a context.
-    this.addHook("afterChange", (changes, source) =>
-      this.onAfterChange(changes, source)
-    );
+    this.addHook('afterChange', (changes, source) => this.onAfterChange(changes, source));
 
     // The `super` method sets the `this.enabled` property to `true`.
     // It is a necessary step to update the plugin's settings properly.
@@ -268,7 +266,7 @@ There are two ways to register a plugin:
   ```
 - **Option 2**: Use a custom alias. Put a string in the first argument. The registerer uses that string as an alias, instead of the `PLUGIN_KEY` getter from `CustomPlugin`.
   ```js
-  registerPlugin("CustomAlias", CustomPlugin);
+  registerPlugin('CustomAlias', CustomPlugin);
   ```
 
 ### 4. Use your plugin in Handsontable
@@ -278,15 +276,15 @@ To control the plugin's options, pass a boolean or an object at the plugin's ini
 ::: only-for javascript
 
 ```js
-import Handsontable from "handsontable";
-import { CustomPlugin } from "./customPlugin";
+import Handsontable from 'handsontable';
+import { CustomPlugin } from './customPlugin';
 
 const hotInstance = new Handsontable(container, {
   // Pass `true` to enable the plugin with default options.
   [CustomPlugin.PLUGIN_KEY]: true,
   // You can also enable the plugin by passing an object with options.
   [CustomPlugin.PLUGIN_KEY]: {
-    msg: "user-defined message",
+    msg: 'user-defined message',
   },
   // You can also initialize the plugin without enabling it at the beginning.
   [CustomPlugin.PLUGIN_KEY]: false,
@@ -298,19 +296,19 @@ const hotInstance = new Handsontable(container, {
 ::: only-for react
 
 ```jsx
-import Handsontable from "handsontable";
-import { CustomPlugin } from "./customPlugin";
+import Handsontable from 'handsontable';
+import { CustomPlugin } from './customPlugin';
 
 <HotTable
   // Pass `true` to enable the plugin with default options.
   customPlugin={true}
   // You can also enable the plugin by passing an object with options.
   customPlugin={{
-    msg: "user-defined message",
+    msg: 'user-defined message',
   }}
   // You can also initialize the plugin without enabling it at the beginning.
   customPlugin={false}
-/>;
+/>
 ```
 
 :::
@@ -363,9 +361,7 @@ For more information, see the [Instance methods](@/guides/getting-started/react-
 ```jsx
 const hotTableComponentRef = useRef(null);
 
-const pluginInstance = hotTableComponentRef.current.hotInstance.getPlugin(
-  CustomPlugin.PLUGIN_KEY
-);
+const pluginInstance = hotTableComponentRef.current.hotInstance.getPlugin(CustomPlugin.PLUGIN_KEY);
 ```
 
 :::

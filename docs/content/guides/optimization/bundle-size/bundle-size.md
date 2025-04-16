@@ -29,8 +29,8 @@ The following example shows how to import and register the [`ContextMenu`](@/api
 ::: only-for javascript
 
 ```js
-import Handsontable from "handsontable/base";
-import { registerPlugin, ContextMenu } from "handsontable/plugins";
+import Handsontable from 'handsontable/base';
+import { registerPlugin, ContextMenu } from 'handsontable/plugins';
 
 registerPlugin(ContextMenu);
 
@@ -44,14 +44,18 @@ new Handsontable(container, {
 ::: only-for react
 
 ```js
-import Handsontable from "handsontable/base";
-import { HotTable } from "@handsontable/react-wrapper";
-import { registerPlugin, ContextMenu } from "handsontable/plugins";
+import Handsontable from 'handsontable/base';
+import { HotTable } from '@handsontable/react-wrapper';
+import { registerPlugin, ContextMenu } from 'handsontable/plugins';
 
 registerPlugin(ContextMenu);
 
 const App = () => {
-  return <HotTable contextMenu={true} />;
+  return (
+    <HotTable
+      contextMenu={true}
+    />
+  );
 };
 ```
 
@@ -89,7 +93,7 @@ By default, [Moment.js](https://momentjs.com/) (Handsontable's dependency) comes
 To [optimize Moment.js locales](https://github.com/jmblog/how-to-optimize-momentjs-with-webpack), use [webpack's `IgnorePlugin`](https://webpack.js.org/plugins/ignore-plugin/):
 
 ```js
-const webpack = require("webpack");
+const webpack = require('webpack');
 
 module.exports = {
   //...
@@ -105,20 +109,20 @@ And then explicitly load Moment.js, importing just those locales that you need:
 ::: only-for javascript
 
 ```js
-import Handsontable from "handsontable/base";
-import { registerCellType, DateCellType } from "handsontable/cellTypes";
+import Handsontable from 'handsontable/base';
+import { registerCellType, DateCellType } from 'handsontable/cellTypes';
 
 // explicitly import Moment.js
-import moment from "moment";
+import moment from 'moment';
 // explicitly import a Moment.js locale of your choice
-import "moment/locale/ja";
+import 'moment/locale/ja';
 
 // register the Moment.js locale of your choice
-moment.locale("ja");
+moment.locale('ja');
 registerCellType(DateCellType);
 
 new Handsontable(container, {
-  type: "date",
+  type: 'date',
 });
 ```
 
@@ -127,21 +131,25 @@ new Handsontable(container, {
 ::: only-for react
 
 ```js
-import Handsontable from "handsontable/base";
-import { HotTable } from "@handsontable/react-wrapper";
-import { registerCellType, DateCellType } from "handsontable/cellTypes";
+import Handsontable from 'handsontable/base';
+import { HotTable } from '@handsontable/react-wrapper';
+import { registerCellType, DateCellType } from 'handsontable/cellTypes';
 
 // explicitly import Moment.js
-import moment from "moment";
+import moment from 'moment';
 // explicitly import a Moment.js locale of your choice
-import "moment/locale/ja";
+import 'moment/locale/ja';
 
 // register the Moment.js locale of your choice
-moment.locale("ja");
+moment.locale('ja');
 registerCellType(DateCellType);
 
 const App = () => {
-  return <HotTable type="date" />;
+  return (
+    <HotTable
+      type="date"
+    />
+  );
 };
 ```
 

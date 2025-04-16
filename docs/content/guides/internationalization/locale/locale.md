@@ -51,7 +51,7 @@ To configure the locale of the entire grid, set the [`locale`](@/api/options.md#
 ```js
 const hot = new Handsontable(container, {
   // set the entire grid's locale to Polish
-  locale: "pl-PL",
+  locale: 'pl-PL',
 });
 ```
 
@@ -96,15 +96,15 @@ const hot = new Handsontable(container, {
   columns: [
     {
       // set the first column's locale to Polish
-      locale: "pl-PL",
+      locale: 'pl-PL',
     },
     {
       // set the second column's locale to German
-      locale: "de-DE",
+      locale: 'de-DE',
     },
     {
       // set the third column's locale to Japanese
-      locale: "ja-JP",
+      locale: 'ja-JP',
     },
   ],
 });
@@ -116,18 +116,15 @@ const hot = new Handsontable(container, {
 
 ```jsx
 <HotTable
-  columns={[
-    {
+  columns={[{
       // set the first column's locale to Polish
-      locale: "pl-PL",
-    },
-    {
+      locale: 'pl-PL',
+    }, {
       // set the second column's locale to German
-      locale: "de-DE",
-    },
-    {
+      locale: 'de-DE',
+    }, {
       // set the third column's locale to Japanese
-      locale: "ja-JP",
+      locale: 'ja-JP',
     },
   ]}
 />

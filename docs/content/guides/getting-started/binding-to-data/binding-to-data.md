@@ -386,48 +386,48 @@ To modify just a subset of data passed to Handsontable, these are the methods yo
 
   ```js
   // Replaces the cell contents at the (0, 2) visual coordinates (0 being the visual row index, 2 - the visual column index) with the supplied value.
-  hot.setDataAtCell(0, 2, "New Value");
+  hot.setDataAtCell(0, 2, 'New Value');
 
   // Replaces the cells at `(0,2)`, `(1,2)` and `(2,2)` with the provided values.
   const changes = [
-    [0, 2, "New Value"],
-    [1, 2, "Different Value"],
-    [2, 2, "Third Replaced Value"],
+    [0, 2, 'New Value'],
+    [1, 2, 'Different Value'],
+    [2, 2, 'Third Replaced Value'],
   ];
   hot.setDataAtCell(changes);
   ```
 
 - [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop)<br>
-  Replaces data in a single cell or to perform a series of single-cell data replacements, analogously to `setDataAtCell()`, but allows targeting the cells by the visual row index and data row _property_. Useful for the [Array of objects data type](#array-of-objects).
+  Replaces data in a single cell or to perform a series of single-cell data replacements, analogously to `setDataAtCell()`, but allows targeting the cells by the visual row index and data row *property*. Useful for the [Array of objects data type](#array-of-objects).
 
   ```js
   // Replaces the cell contents at the (0, 'title') coordinates (0 being the visual row index, 'title' - the data row object property) with the supplied value.
-  hot.setDataAtRowProp(0, "title", "New Value");
+  hot.setDataAtRowProp(0, 'title', 'New Value');
 
   // Replaces the cells with the props of 'id', 'firstName' and 'lastName' in the first row with the provided values.
   const changes = [
-    [0, "id", "22"],
-    [0, "firstName", "John"],
-    [0, "lastName", "Doe"],
+    [0, 'id', '22'],
+    [0, 'firstName', 'John'],
+    [0, 'lastName', 'Doe'],
   ];
   hot.setDataAtRowProp(changes);
   ```
 
 - [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell)<br>
-  As the displayed data coordinates can differ from the way it's stored internally, sometimes you might need to target the cells more directly - that's when [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell) comes in handy. The `row` and `columns`/`prop` arguments represent the _physical_ indexes.
+  As the displayed data coordinates can differ from the way it's stored internally, sometimes you might need to target the cells more directly - that's when [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell) comes in handy. The `row` and `columns`/`prop` arguments represent the *physical* indexes.
 
   ```js
   // Replaces the cell contents at the (0, 2) coordinates (0 being the physical row index, 2 - the physical column index) with the supplied value.
-  hot.setSourceDataAtCell(0, 2, "New Value");
+  hot.setSourceDataAtCell(0, 2, 'New Value');
 
   // Replaces the cell contents at the (0, 'title') coordinates (0 being the physical row index, 'title' - the data row property) with the supplied value.
-  hot.setSourceDataAtCell(0, "title", "New Value");
+  hot.setSourceDataAtCell(0, 'title', 'New Value');
 
   // Replaces the cells with the props of 'id', 'firstName' and 'lastName' in the first physical row with the provided values.
   const changes = [
-    [0, "id", "22"],
-    [0, "firstName", "John"],
-    [0, "lastName", "Doe"],
+    [0, 'id', '22'],
+    [0, 'firstName', 'John'],
+    [0, 'lastName', 'Doe'],
   ];
   hot.setSourceDataAtCell(changes);
   ```
@@ -443,8 +443,8 @@ To modify just a subset of data passed to Handsontable, these are the methods yo
 
   ```js
   const newValues = [
-    ["A", "B", "C"],
-    ["D", "E", "F"],
+    ['A', 'B', 'C'],
+    ['D', 'E', 'F']
   ];
 
   // Replaces the values from (1, 1) to (2, 3) visual cell coordinates with the values from the `newValues` array.

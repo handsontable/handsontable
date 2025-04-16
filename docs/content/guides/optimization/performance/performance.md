@@ -44,7 +44,10 @@ const hot = new Handsontable(obj, {
 ::: only-for react
 
 ```js
-<HotTable colWidths={[50, 150, 45]} rowHeights={[40, 40, 40, 40]} />
+<HotTable
+  colWidths={[50, 150, 45]}
+  rowHeights={[40, 40, 40, 40]}
+/>
 ```
 
 :::
@@ -120,14 +123,14 @@ For more information, see the [Instance access](@/guides/getting-started/angular
 
 ```js
 hot.batch(() => {
-  hot.alter("insert_row_above", 5, 45);
-  hot.setDataAtCell(1, 1, "x");
+  hot.alter('insert_row_above', 5, 45);
+  hot.setDataAtCell(1, 1, 'x');
 
-  const filters = hot.getPlugin("filters");
+  const filters = hot.getPlugin('filters');
 
-  filters.addCondition(2, "contains", ["3"]);
+  filters.addCondition(2, 'contains', ['3']);
   filters.filter();
-  hot.getPlugin("columnSorting").sort({ column: 1, sortOrder: "desc" });
+  hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
   // The table cache will be recalculated and table render will be called once after executing the callback
 });
 ```

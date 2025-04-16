@@ -202,23 +202,23 @@ To install Handsontable locally using a package manager, run one of these comman
 <code-group>
   <code-block title="npm">
 
-```bash
-npm install handsontable
-```
+  ```bash
+  npm install handsontable
+  ```
 
   </code-block>
   <code-block title="Yarn">
 
-```bash
-yarn add handsontable
-```
+  ```bash
+  yarn add handsontable
+  ```
 
   </code-block>
   <code-block title="pnpm">
 
-```bash
-pnpm add handsontable
-```
+  ```bash
+  pnpm add handsontable
+  ```
 
   </code-block>
 </code-group>
@@ -246,7 +246,7 @@ If you're using Handsontable as a CommonJS package, or as an ECMAScript module (
 Use your bundler's preferred method of importing files. For example:
 
 ```js
-import Handsontable from "handsontable";
+import Handsontable from 'handsontable';
 ```
 
 ### Using the `script` tag
@@ -256,10 +256,7 @@ If you're using Handsontable as a traditional UMD package, import the full distr
 Use the `script` tag. For example, if you're loading Handsontable's JavaScript from a CDN:
 
 ```html
-<script
-  type="text/javascript"
-  src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"
-></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
 ```
 
 ## Import Handsontable's CSS
@@ -271,8 +268,8 @@ Import Handsontable's CSS into your application.
 If your bundler allows it, you can import Handsontable's full distribution CSS file, using an `import` statement.
 
 ```js
-import "handsontable/styles/handsontable.min.css";
-import "handsontable/styles/ht-theme-main.min.css";
+import 'handsontable/styles/handsontable.min.css';
+import 'handsontable/styles/ht-theme-main.min.css';
 ```
 
 ### Using the `link` tag
@@ -280,14 +277,8 @@ import "handsontable/styles/ht-theme-main.min.css";
 You can also import Handsontable's CSS using a link tag:
 
 ```html
-<link
-  rel="stylesheet"
-  href="https://cdn.jsdelivr.net/npm/handsontable/styles/handsontable.min.css"
-/>
-<link
-  rel="stylesheet"
-  href="https://cdn.jsdelivr.net/npm/handsontable/styles/ht-theme-main.min.css"
-/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/styles/handsontable.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/styles/ht-theme-main.min.css" />
 ```
 
 ## Create a container
@@ -303,21 +294,21 @@ In your HTML, add an empty `div`, which serves as a container for your Handsonta
 Now turn your container into a data grid with sample data.
 
 ```js
-const container = document.querySelector("#example");
+const container = document.querySelector('#example');
 
 const hot = new Handsontable(container, {
   data: [
-    ["", "Tesla", "Volvo", "Toyota", "Ford"],
-    ["2019", 10, 11, 12, 13],
-    ["2020", 20, 11, 14, 13],
-    ["2021", 30, 15, 12, 13],
+    ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
+    ['2019', 10, 11, 12, 13],
+    ['2020', 20, 11, 14, 13],
+    ['2021', 30, 15, 12, 13]
   ],
   rowHeaders: true,
   colHeaders: true,
-  height: "auto",
+  height: 'auto',
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: "non-commercial-and-evaluation", // for non-commercial use only
+  licenseKey: 'non-commercial-and-evaluation' // for non-commercial use only
 });
 ```
 
@@ -341,23 +332,23 @@ To install Handsontable locally using a package manager, run one of these comman
 <code-group>
   <code-block title="npm">
 
-```bash
-npm install handsontable @handsontable/react-wrapper
-```
+  ```bash
+  npm install handsontable @handsontable/react-wrapper
+  ```
 
   </code-block>
   <code-block title="Yarn">
 
-```bash
-yarn add handsontable @handsontable/react-wrapper
-```
+  ```bash
+  yarn add handsontable @handsontable/react-wrapper
+  ```
 
   </code-block>
   <code-block title="pnpm">
 
-```bash
-pnpm add handsontable @handsontable/react-wrapper
-```
+  ```bash
+  pnpm add handsontable @handsontable/react-wrapper
+  ```
 
   </code-block>
 </code-group>
@@ -367,8 +358,8 @@ pnpm add handsontable @handsontable/react-wrapper
 Import Handsontable's CSS into your application.
 
 ```jsx
-import "handsontable/styles/handsontable.min.css";
-import "handsontable/styles/ht-theme-main.min.css";
+import 'handsontable/styles/handsontable.min.css';
+import 'handsontable/styles/ht-theme-main.min.css';
 ```
 
 ## Register Handsontable's modules
@@ -376,8 +367,8 @@ import "handsontable/styles/ht-theme-main.min.css";
 Import and register all of Handsontable's modules with a single function call:
 
 ```jsx
-import Handsontable from "handsontable/base";
-import { registerAllModules } from "handsontable/registry";
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
 
 registerAllModules();
 ```
@@ -389,7 +380,7 @@ Or, to reduce the size of your JavaScript bundle, [import only the modules that 
 The main Handsontable component is called `HotTable`.
 
 ```jsx
-import { HotTable } from "@handsontable/react-wrapper";
+import { HotTable } from '@handsontable/react-wrapper';
 ```
 
 To set Handsontable's [configuration options](@/guides/getting-started/configuration-options/configuration-options.md), use `HotTable`'s props. For example:
@@ -398,10 +389,10 @@ To set Handsontable's [configuration options](@/guides/getting-started/configura
 <div class="ht-theme-main-dark-auto">
   <HotTable
     data={[
-      ["", "Tesla", "Volvo", "Toyota", "Ford"],
-      ["2019", 10, 11, 12, 13],
-      ["2020", 20, 11, 14, 13],
-      ["2021", 30, 15, 12, 13],
+      ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
+      ['2019', 10, 11, 12, 13],
+      ['2020', 20, 11, 14, 13],
+      ['2021', 30, 15, 12, 13]
     ]}
     rowHeaders={true}
     colHeaders={true}

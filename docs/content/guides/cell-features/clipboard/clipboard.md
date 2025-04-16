@@ -115,8 +115,8 @@ hot.selectCell(1, 1);
 
 Then use one of the following commands:
 
-- `document.execCommand('copy')`
-- `document.execCommand('cut')`
+* `document.execCommand('copy')`
+* `document.execCommand('cut')`
 
 The [`CopyPaste`](@/api/copyPaste.md) plugin listens to the browser's `copy` and `cut` events. If triggered, our implementation will copy or cut the selected data to the system clipboard.
 
@@ -168,8 +168,8 @@ You can let the end user copy the contents of column headers, by enabling additi
 
 <span class="img-invert">
 
-| Context menu item      | Copied area                                                               |
-| ---------------------- | ------------------------------------------------------------------------- |
+| Context menu item         | Copied area                                                               |
+| ------------------------- | ------------------------------------------------------------------------- |
 | Copy with header       | ![copy_with_headers]({{$basePath}}/img/copy_with_headers.png)             |
 | Copy with group header | ![copy_with_group_headers]({{$basePath}}/img/copy_with_group_headers.png) |
 | Copy header only       | ![copy_headers_only]({{$basePath}}/img/copy_headers_only.png)             |
@@ -252,20 +252,20 @@ For more information, see the [Instance access](@/guides/getting-started/angular
 
 ```js
 // access the `CopyPaste` plugin instance
-const copyPastePlugin = hot.getPlugin("copyPaste");
+const copyPastePlugin = hot.getPlugin('copyPaste');
 
 // select some cells
 hot.selectCell(1, 1);
 
 // copy the selected cells along with their nearest column headers
-copyPastePlugin.copy("with-column-headers");
+copyPastePlugin.copy('with-column-headers');
 
 // copy the selected cells along with all their related columns headers
-copyPastePlugin.copy("with-all-column-headers");
+copyPastePlugin.copy('with-all-column-headers');
 
 // copy the column headers nearest to the selected cells
 // (without copying the cells themselves)
-copyPastePlugin.copy("column-headers-only");
+copyPastePlugin.copy('column-headers-only');
 ```
 
 ## Paste
@@ -308,8 +308,8 @@ Examples of how to use them are provided in their descriptions.
 
 ## Related keyboard shortcuts
 
-| Windows                              | macOS                               | Action                                                          |  Excel  | Sheets  |
-| ------------------------------------ | ----------------------------------- | --------------------------------------------------------------- | :-----: | :-----: |
+| Windows                                | macOS                                 | Action                                                          |  Excel  | Sheets  |
+| -------------------------------------- | ------------------------------------- | --------------------------------------------------------------- | :-----: | :-----: |
 | <kbd>**Ctrl**</kbd>+<kbd>**X**</kbd> | <kbd>**Cmd**</kbd>+<kbd>**X**</kbd> | Cut the contents of the selected cells to the system clipboard  | &check; | &check; |
 | <kbd>**Ctrl**</kbd>+<kbd>**C**</kbd> | <kbd>**Cmd**</kbd>+<kbd>**C**</kbd> | Copy the contents of the selected cells to the system clipboard | &check; | &check; |
 | <kbd>**Ctrl**</kbd>+<kbd>**V**</kbd> | <kbd>**Cmd**</kbd>+<kbd>**V**</kbd> | Paste from the system clipboard                                 | &check; | &check; |

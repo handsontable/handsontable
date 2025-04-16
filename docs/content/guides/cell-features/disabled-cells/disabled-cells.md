@@ -29,7 +29,7 @@ Make specified cells read-only to protect them from unwanted changes but still a
 Disabling a cell makes the cell read-only or non-editable. Both have similar outcomes, with the following differences:
 
 | Read-only cell<br>`readOnly: true`                                           | Non-editable cell<br>`editor: false`                                       |
-| ---------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+|------------------------------------------------------------------------------| -------------------------------------------------------------------------- |
 | Has an additional CSS class (`htDimmed`)                                     | Has no additional CSS class                                                |
 | Copy works, paste doesn't work                                               | Copy-paste works                                                           |
 | Drag-to-fill doesn't work                                                    | Drag-to-fill works                                                         |
