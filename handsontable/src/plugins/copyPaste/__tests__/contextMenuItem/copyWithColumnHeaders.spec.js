@@ -13,7 +13,7 @@ describe('CopyPaste', () => {
   });
 
   describe('context menu `copy_with_column_headers` action', () => {
-    it('should be available with different noun forms while creating custom menu', () => {
+    it('should be available with different noun forms while creating custom menu', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -24,8 +24,8 @@ describe('CopyPaste', () => {
         }
       });
 
-      selectCell(1, 1);
-      contextMenu();
+      await selectCell(1, 1);
+      await contextMenu();
 
       {
         const menuItem = $('.htContextMenu tbody tr td').filter(function() {
@@ -35,8 +35,8 @@ describe('CopyPaste', () => {
         expect(menuItem[0]).not.toBeUndefined();
       }
 
-      selectCell(1, 1, 2, 1); // 2 rows are selected
-      contextMenu();
+      await selectCell(1, 1, 2, 1); // 2 rows are selected
+      await contextMenu();
 
       {
         const menuItem = $('.htContextMenu tbody tr td').filter(function() {
@@ -46,8 +46,8 @@ describe('CopyPaste', () => {
         expect(menuItem[0]).not.toBeUndefined();
       }
 
-      selectCell(1, 1, 1, 2); // 2 columns are selected
-      contextMenu();
+      await selectCell(1, 1, 1, 2); // 2 columns are selected
+      await contextMenu();
 
       {
         const menuItem = $('.htContextMenu tbody tr td').filter(function() {
@@ -57,8 +57,8 @@ describe('CopyPaste', () => {
         expect(menuItem[0]).not.toBeUndefined();
       }
 
-      selectCells([[0, 0, 0, 0], [1, 1, 1, 2]]); // the last layer has selected 2 columns
-      contextMenu();
+      await selectCells([[0, 0, 0, 0], [1, 1, 1, 2]]); // the last layer has selected 2 columns
+      await contextMenu();
 
       {
         const menuItem = $('.htContextMenu tbody tr td').filter(function() {
@@ -69,7 +69,7 @@ describe('CopyPaste', () => {
       }
     });
 
-    it('should call plugin\'s `copyWithColumnHeaders()` method after menu item click', () => {
+    it('should call plugin\'s `copyWithColumnHeaders()` method after menu item click', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -82,13 +82,13 @@ describe('CopyPaste', () => {
 
       spyOn(getPlugin('copyPaste'), 'copyWithColumnHeaders');
 
-      contextMenu(getCell(1, 1));
+      await contextMenu(getCell(1, 1));
       selectContextMenuOption('Copy with header');
 
       expect(getPlugin('copyPaste').copyWithColumnHeaders).toHaveBeenCalled();
     });
 
-    it('should be enabled when the cells are selected and column headers are enabled', () => {
+    it('should be enabled when the cells are selected and column headers are enabled', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -99,7 +99,7 @@ describe('CopyPaste', () => {
         }
       });
 
-      contextMenu(getCell(1, 1));
+      await contextMenu(getCell(1, 1));
 
       const menuItem = $('.htContextMenu tbody tr td').filter(function() {
         return this.textContent === 'Copy with header';
@@ -108,7 +108,7 @@ describe('CopyPaste', () => {
       expect(menuItem.hasClass('htDisabled')).toBe(false);
     });
 
-    it('should be disabled when the cells are selected and column headers are disabled', () => {
+    it('should be disabled when the cells are selected and column headers are disabled', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -119,7 +119,7 @@ describe('CopyPaste', () => {
         }
       });
 
-      contextMenu(getCell(1, 1));
+      await contextMenu(getCell(1, 1));
 
       const menuItem = $('.htContextMenu tbody tr td').filter(function() {
         return this.textContent === 'Copy with header';
@@ -128,7 +128,7 @@ describe('CopyPaste', () => {
       expect(menuItem.hasClass('htDisabled')).toBe(true);
     });
 
-    it('should be enabled when the column is selected and headers are enabled', () => {
+    it('should be enabled when the column is selected and headers are enabled', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -139,7 +139,7 @@ describe('CopyPaste', () => {
         }
       });
 
-      contextMenu(getCell(-1, 1));
+      await contextMenu(getCell(-1, 1));
 
       const menuItem = $('.htContextMenu tbody tr td').filter(function() {
         return this.textContent === 'Copy with headers';
@@ -148,7 +148,7 @@ describe('CopyPaste', () => {
       expect(menuItem.hasClass('htDisabled')).toBe(false);
     });
 
-    it('should be enabled when the row is selected and headers are enabled', () => {
+    it('should be enabled when the row is selected and headers are enabled', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -159,7 +159,7 @@ describe('CopyPaste', () => {
         }
       });
 
-      contextMenu(getCell(1, -1));
+      await contextMenu(getCell(1, -1));
 
       const menuItem = $('.htContextMenu tbody tr td').filter(function() {
         return this.textContent === 'Copy with headers';
@@ -168,7 +168,7 @@ describe('CopyPaste', () => {
       expect(menuItem.hasClass('htDisabled')).toBe(false);
     });
 
-    it('should be disabled for non-contiguous selection and when the column headers are enabled', () => {
+    it('should be disabled for non-contiguous selection and when the column headers are enabled', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -179,11 +179,11 @@ describe('CopyPaste', () => {
         }
       });
 
-      selectCells([
+      await selectCells([
         [1, 0, 2, 1],
         [1, 2, 3, 3],
       ]);
-      contextMenu(getCell(3, 3));
+      await contextMenu(getCell(3, 3));
 
       const menuItem = $('.htContextMenu tbody tr td').filter(function() {
         return this.textContent === 'Copy with headers';
@@ -192,7 +192,7 @@ describe('CopyPaste', () => {
       expect(menuItem.hasClass('htDisabled')).toBe(true);
     });
 
-    it('should be enabled when all rows are hidden and headers are enabled', () => {
+    it('should be enabled when all rows are hidden and headers are enabled', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -207,7 +207,7 @@ describe('CopyPaste', () => {
       hot.rowIndexMapper.createAndRegisterIndexMap('map', 'hiding', true);
       render();
 
-      contextMenu(getCell(-1, 1)); // Column header "B"
+      await contextMenu(getCell(-1, 1)); // Column header "B"
 
       const menuItem = $('.htContextMenu tbody tr td').filter(function() {
         return this.textContent === 'Copy with headers';
@@ -216,7 +216,7 @@ describe('CopyPaste', () => {
       expect(menuItem.hasClass('htDisabled')).toBe(false);
     });
 
-    it('should be enabled when all columns are hidden and headers are enabled', () => {
+    it('should be enabled when all columns are hidden and headers are enabled', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -231,7 +231,7 @@ describe('CopyPaste', () => {
       hot.columnIndexMapper.createAndRegisterIndexMap('map', 'hiding', true);
       render();
 
-      contextMenu(getCell(1, -1)); // Row header "2"
+      await contextMenu(getCell(1, -1)); // Row header "2"
 
       const menuItem = $('.htContextMenu tbody tr td').filter(function() {
         return this.textContent === 'Copy with headers';
@@ -240,7 +240,7 @@ describe('CopyPaste', () => {
       expect(menuItem.hasClass('htDisabled')).toBe(false);
     });
 
-    it('should be enabled when all rows are trimmed and headers are enabled', () => {
+    it('should be enabled when all rows are trimmed and headers are enabled', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -255,7 +255,7 @@ describe('CopyPaste', () => {
       hot.rowIndexMapper.createAndRegisterIndexMap('map', 'trimming', true);
       render();
 
-      contextMenu(getCell(-1, 1)); // Column header "B"
+      await contextMenu(getCell(-1, 1)); // Column header "B"
 
       const menuItem = $('.htContextMenu tbody tr td').filter(function() {
         return this.textContent === 'Copy with headers';
@@ -264,7 +264,7 @@ describe('CopyPaste', () => {
       expect(menuItem.hasClass('htDisabled')).toBe(false);
     });
 
-    it('should be enabled when all columns are trimmed and headers are enabled', () => {
+    it('should be enabled when all columns are trimmed and headers are enabled', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -279,7 +279,7 @@ describe('CopyPaste', () => {
       hot.columnIndexMapper.createAndRegisterIndexMap('map', 'trimming', true);
       render();
 
-      contextMenu(getCell(1, -1)); // Row header "2"
+      await contextMenu(getCell(1, -1)); // Row header "2"
 
       const menuItem = $('.htContextMenu tbody tr td').filter(function() {
         return this.textContent === 'Copy with headers';
@@ -288,7 +288,7 @@ describe('CopyPaste', () => {
       expect(menuItem.hasClass('htDisabled')).toBe(false);
     });
 
-    it('should be disabled when the single row header is selected', () => {
+    it('should be disabled when the single row header is selected', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -300,7 +300,7 @@ describe('CopyPaste', () => {
         navigableHeaders: true,
       });
 
-      selectCell(1, -1);
+      await selectCell(1, -1);
       getPlugin('contextMenu').open($(getCell(1, -1)).offset());
 
       const menuItem = $('.htContextMenu tbody tr td').filter(function() {
@@ -310,7 +310,7 @@ describe('CopyPaste', () => {
       expect(menuItem.hasClass('htDisabled')).toBe(true);
     });
 
-    it('should be disabled when the single column header is selected', () => {
+    it('should be disabled when the single column header is selected', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -322,7 +322,7 @@ describe('CopyPaste', () => {
         navigableHeaders: true,
       });
 
-      selectCell(-1, 1);
+      await selectCell(-1, 1);
       getPlugin('contextMenu').open($(getCell(-1, 1)).offset());
 
       const menuItem = $('.htContextMenu tbody tr td').filter(function() {
@@ -332,7 +332,7 @@ describe('CopyPaste', () => {
       expect(menuItem.hasClass('htDisabled')).toBe(true);
     });
 
-    it('should be disabled when the single corner is selected', () => {
+    it('should be disabled when the single corner is selected', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -344,7 +344,7 @@ describe('CopyPaste', () => {
         navigableHeaders: true,
       });
 
-      selectCell(-1, -1);
+      await selectCell(-1, -1);
       getPlugin('contextMenu').open($(getCell(-1, -1)).offset());
 
       const menuItem = $('.htContextMenu tbody tr td').filter(function() {

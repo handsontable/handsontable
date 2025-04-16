@@ -10,7 +10,7 @@ describe('Filters UI cooperation with UndoRedo', () => {
     }
   });
 
-  it('should undo previously added filters', () => {
+  it('should undo previously added filters', async() => {
     const hot = handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -43,7 +43,7 @@ describe('Filters UI cooperation with UndoRedo', () => {
     expect(getData().length).toEqual(39);
   });
 
-  it('should redo previously reverted filters', () => {
+  it('should redo previously reverted filters', async() => {
     const hot = handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -90,7 +90,7 @@ describe('Filters UI cooperation with UndoRedo', () => {
       height: 300
     });
 
-    dropdownMenu(1);
+    await dropdownMenu(1);
     openDropdownByConditionMenu();
     selectDropdownByConditionMenuOption('Begins with');
 
@@ -108,7 +108,7 @@ describe('Filters UI cooperation with UndoRedo', () => {
     expect(getDataAtCell(0, 1).includes('!')).toBe(true);
     expect(getDataAtCell(1, 1).includes('!')).toBe(true);
 
-    dropdownMenu(1);
+    await dropdownMenu(1);
     openDropdownByConditionMenu();
     selectDropdownByConditionMenuOption('Begins with');
 
@@ -149,7 +149,7 @@ describe('Filters UI cooperation with UndoRedo', () => {
     expect(getDataAtCell(33, 1).includes('!')).toBe(false);
   });
 
-  it('should undo and redo previously added filters with changed data between conditions (#dev-2079)', () => {
+  it('should undo and redo previously added filters with changed data between conditions (#dev-2079)', async() => {
     const hot = handsontable({
       data: getDataForFilters().splice(0, 5),
       columns: getColumnsForFilters().splice(0, 3),

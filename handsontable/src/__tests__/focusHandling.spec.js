@@ -21,7 +21,7 @@ describe('Focus handling', () => {
       expect(hot.getSettings().imeFastEdit).toBe(false);
     });
 
-    it('should focus the browser on the last selection\'s `highlight` cell/header element after selection', () => {
+    it('should focus the browser on the last selection\'s `highlight` cell/header element after selection', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         navigableHeaders: true,
@@ -31,11 +31,11 @@ describe('Focus handling', () => {
 
       expect(document.activeElement).toEqual(document.body);
 
-      selectCell(2, 2);
+      await selectCell(2, 2);
 
       expect(document.activeElement).toEqual(getCell(2, 2, true));
 
-      selectCells([[1, 1, 3, 3]]);
+      await selectCells([[1, 1, 3, 3]]);
 
       expect(document.activeElement).toEqual(getCell(
         getSelectedRangeLast().highlight.row,
@@ -43,7 +43,7 @@ describe('Focus handling', () => {
         true
       ));
 
-      selectCells([[1, 1, 3, 3], [4, 4, 2, 2]]);
+      await selectCells([[1, 1, 3, 3], [4, 4, 2, 2]]);
 
       expect(document.activeElement).toEqual(getCell(
         getSelectedRangeLast().highlight.row,
@@ -51,7 +51,7 @@ describe('Focus handling', () => {
         true
       ));
 
-      selectCells([[0, -1, 0, -1]]);
+      await selectCells([[0, -1, 0, -1]]);
 
       expect(document.activeElement).toEqual(getCell(
         getSelectedRangeLast().highlight.row,
@@ -59,7 +59,7 @@ describe('Focus handling', () => {
         true
       ));
 
-      selectCells([[-1, 0, -1, 0]]);
+      await selectCells([[-1, 0, -1, 0]]);
 
       expect(document.activeElement).toEqual(getCell(
         getSelectedRangeLast().highlight.row,
@@ -107,9 +107,7 @@ describe('Focus handling', () => {
 
       expect(document.activeElement).toEqual(document.body);
 
-      selectCell(90, 40);
-
-      await sleep(10); // waits for the scroll to finish
+      await selectCell(90, 40);
 
       expect(document.activeElement).toEqual(getCell(
         getSelectedRangeLast().highlight.row,
@@ -129,7 +127,7 @@ describe('Focus handling', () => {
 
       expect(document.activeElement).toEqual(document.body);
 
-      selectCell(2, 2);
+      await selectCell(2, 2);
 
       expect(document.activeElement).toEqual(getCell(
         getSelectedRangeLast().highlight.row,
@@ -141,7 +139,7 @@ describe('Focus handling', () => {
 
       expect(document.activeElement).toEqual(getActiveEditor().TEXTAREA);
 
-      selectCells([[1, 1, 3, 3], [4, 4, 2, 2]]);
+      await selectCells([[1, 1, 3, 3], [4, 4, 2, 2]]);
 
       expect(document.activeElement).toEqual(getCell(
         getSelectedRangeLast().highlight.row,
@@ -163,7 +161,7 @@ describe('Focus handling', () => {
 
       expect(document.activeElement).toEqual(document.body);
 
-      selectCell(2, 2);
+      await selectCell(2, 2);
 
       expect(document.activeElement).toEqual(getCell(
         getSelectedRangeLast().highlight.row,
@@ -191,7 +189,7 @@ describe('Focus handling', () => {
 
       expect(document.activeElement).toEqual(document.body);
 
-      selectCell(0, -1);
+      await selectCell(0, -1);
 
       expect(document.activeElement).toEqual(getCell(
         getSelectedRangeLast().highlight.row,
@@ -207,7 +205,7 @@ describe('Focus handling', () => {
         true
       ));
 
-      selectCell(-1, 0);
+      await selectCell(-1, 0);
 
       expect(document.activeElement).toEqual(getCell(
         getSelectedRangeLast().highlight.row,
@@ -244,7 +242,8 @@ describe('Focus handling', () => {
       expect(document.activeElement).toEqual(document.body);
 
       getFocusManager().setRefocusElementGetter(() => getActiveEditor().TEXTAREA_ALTERNATIVE);
-      selectCell(2, 2);
+
+      await selectCell(2, 2);
 
       expect(document.activeElement).toEqual(getCell(
         getSelectedRangeLast().highlight.row,

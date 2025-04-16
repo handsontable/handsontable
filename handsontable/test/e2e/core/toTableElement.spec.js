@@ -14,7 +14,7 @@ describe('Core.toTableElement', () => {
 
   it('should convert instance into HTMLTableElement', () => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      data: createSpreadsheetData(2, 2),
       colHeaders: true,
       rowHeaders: true,
     });

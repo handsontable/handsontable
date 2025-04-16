@@ -73,7 +73,7 @@ describe('Core_init', () => {
     spec().$container.css('display', 'none');
 
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(15, 15),
+      data: createSpreadsheetData(15, 15),
       rowHeaders: true,
       colHeaders: true,
       stretchH: 'all'
@@ -111,7 +111,7 @@ describe('Core_init', () => {
     $testParentContainer.css('display', 'none');
 
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(15, 15),
+      data: createSpreadsheetData(15, 15),
       rowHeaders: true,
       colHeaders: true,
       stretchH: 'all'
@@ -147,7 +147,7 @@ describe('Core_init', () => {
     spec().$container.attr('id', 'test-hot');
 
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(15, 15),
+      data: createSpreadsheetData(15, 15),
       rowHeaders: true,
       colHeaders: true,
       stretchH: 'all'
@@ -186,7 +186,7 @@ describe('Core_init', () => {
     $testParentContainer.append(spec().$container);
 
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(15, 15),
+      data: createSpreadsheetData(15, 15),
       rowHeaders: true,
       colHeaders: true,
       stretchH: 'all'
@@ -222,7 +222,7 @@ describe('Core_init', () => {
       spec().$container.addClass('ht-theme-sth');
 
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(15, 15),
+        data: createSpreadsheetData(15, 15),
       }, true);
 
       expect(hot.view.getStylesHandler().isClassicTheme()).toBe(false);
@@ -234,7 +234,7 @@ describe('Core_init', () => {
       spec().$parentContainer.addClass('ht-theme-sth');
 
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(15, 15),
+        data: createSpreadsheetData(15, 15),
       }, true);
 
       expect(hot.view.getStylesHandler().isClassicTheme()).toBe(false);

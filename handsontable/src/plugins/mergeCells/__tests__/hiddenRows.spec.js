@@ -13,7 +13,7 @@ describe('MergeCells cooperation with hidden rows', () => {
   });
 
   using('DOM virtualization as', [false, true], (virtualized) => {
-    it('should display properly merged cells based on the settings', () => {
+    it('should display properly merged cells based on the settings', async() => {
       handsontable({
         data: createSpreadsheetObjectData(5, 5),
         mergeCells: {
@@ -28,7 +28,7 @@ describe('MergeCells cooperation with hidden rows', () => {
 
       rowMapper.setValueAtIndex(1, true);
       render();
-      selectCell(0, 0);
+      await selectCell(0, 0);
 
       expect(getData()).toEqual([
         ['A1', null, 'C1', 'D1', 'E1'],
@@ -66,7 +66,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should display properly merged cells containing hidden columns (merge area from visible cell to visible cell)', () => {
+    it('should display properly merged cells containing hidden columns (merge area from visible cell to visible cell)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 1),
         mergeCells: {
@@ -124,7 +124,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should display properly merged cells containing hidden columns (merge area from invisible cell to visible cell)', () => {
+    it('should display properly merged cells containing hidden columns (merge area from invisible cell to visible cell)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 1),
         mergeCells: {
@@ -193,7 +193,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should display properly merged cells containing hidden columns (merge area from visible cell to invisible cell)', () => {
+    it('should display properly merged cells containing hidden columns (merge area from visible cell to invisible cell)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 1),
         mergeCells: {
@@ -261,7 +261,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should display properly merged cells containing hidden columns (merge area from invisible cell to invisible cell)', () => {
+    it('should display properly merged cells containing hidden columns (merge area from invisible cell to invisible cell)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 1),
         mergeCells: {
@@ -342,7 +342,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should return proper values from the `getCell` function', () => {
+    it('should return proper values from the `getCell` function', async() => {
       handsontable({
         data: createSpreadsheetData(5, 1),
         mergeCells: {
@@ -375,7 +375,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       expect(getCell(4, 0)).toBe(null);
     });
 
-    it('should translate column indexes properly - regression check', () => {
+    it('should translate column indexes properly - regression check', async() => {
       // An error have been thrown and too many columns have been drawn in the specific case. There haven't been done
       // index translation (from renderable to visual columns indexes and the other way around).
       handsontable({
@@ -406,7 +406,7 @@ describe('MergeCells cooperation with hidden rows', () => {
 
     // Please keep in mind that this test doesn't fulfill checks for all types of renderers. Change code carefully
     // when something is failing.
-    it('should show start of the merge area properly also when first row from the area is hidden', () => {
+    it('should show start of the merge area properly also when first row from the area is hidden', async() => {
       handsontable({
         data: [
           ['<b>Hello world</b>', 123, 'secret'],
@@ -435,7 +435,7 @@ describe('MergeCells cooperation with hidden rows', () => {
     });
 
     it('should select proper cells when calling the `selectCell` within area of merge ' +
-      '(contains few hidden columns)', () => {
+      '(contains few hidden columns)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 1),
         mergeCells: {
@@ -455,7 +455,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       // First visible cell (merged area).
       const $mergeArea = spec().$container.find('tr:eq(0) td:eq(0)');
 
-      selectCell(1, 0);
+      await selectCell(1, 0);
 
       // Second and third rows are not displayed (CSS - display: none).
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: 1,0 to: 4,0']);
@@ -476,7 +476,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       expect($mergeArea.hasClass('fullySelectedMergedCell-7')).toBeFalse();
 
       deselectCell();
-      selectCell(2, 0);
+      await selectCell(2, 0);
 
       // Second and third rows are not displayed (CSS - display: none).
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: 1,0 to: 4,0']);
@@ -497,7 +497,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       expect($mergeArea.hasClass('fullySelectedMergedCell-7')).toBeFalse();
 
       deselectCell();
-      selectCell(3, 0);
+      await selectCell(3, 0);
 
       // Second and third rows are not displayed (CSS - display: none).
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: 1,0 to: 4,0']);
@@ -518,7 +518,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       expect($mergeArea.hasClass('fullySelectedMergedCell-7')).toBeFalse();
 
       deselectCell();
-      selectCell(4, 0);
+      await selectCell(4, 0);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: 1,0 to: 4,0']);
       expect(`
@@ -539,7 +539,7 @@ describe('MergeCells cooperation with hidden rows', () => {
     });
 
     it('should select proper cells when calling the `selectCell` within area of merge ' +
-      '(contains just one hidden and one not hidden column)', () => {
+      '(contains just one hidden and one not hidden column)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 1),
         mergeCells: {
@@ -558,7 +558,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       // First visible cell (merged area).
       const $mergeArea = spec().$container.find('tr:eq(0) td:eq(0)');
 
-      selectCell(0, 0);
+      await selectCell(0, 0);
 
       expect(`
         | # |
@@ -579,7 +579,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       expect($mergeArea.hasClass('fullySelectedMergedCell-7')).toBeFalse();
 
       deselectCell();
-      selectCell(1, 0);
+      await selectCell(1, 0);
 
       expect(`
         | # |
@@ -601,7 +601,7 @@ describe('MergeCells cooperation with hidden rows', () => {
     });
 
     it('should select proper cells when calling the `selectCells` within area of merge ' +
-      '(contains just one hidden and one not hidden column) + singe cell', () => {
+      '(contains just one hidden and one not hidden column) + singe cell', async() => {
       handsontable({
         data: createSpreadsheetData(5, 1),
         mergeCells: {
@@ -620,7 +620,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       // First visible cell (merged area).
       const $mergeArea = spec().$container.find('tr:eq(0) td:eq(0)');
 
-      selectCells([[1, 0], [4, 0]]);
+      await selectCells([[1, 0], [4, 0]]);
 
       expect(`
         | 0 |
@@ -646,7 +646,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       expect($mergeArea.hasClass('fullySelectedMergedCell-7')).toBeFalse();
     });
 
-    it('should open properly merged cells containing hidden columns (merge area from visible cell to visible cell)', () => {
+    it('should open properly merged cells containing hidden columns (merge area from visible cell to visible cell)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 1),
         mergeCells: {
@@ -663,8 +663,8 @@ describe('MergeCells cooperation with hidden rows', () => {
 
       getPlugin('mergeCells').merge(1, 0, 3, 0);
 
-      selectCell(1, 0);
-      keyDownUp('F2');
+      await selectCell(1, 0);
+      await keyDownUp('F2');
 
       let editor = getActiveEditor();
 
@@ -673,15 +673,15 @@ describe('MergeCells cooperation with hidden rows', () => {
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A2');
 
       // Closing the editor.
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       editor = getActiveEditor();
 
       expect(editor.isOpened()).toBe(false);
       expect(editor.isInFullEditMode()).toBe(false);
 
-      selectCell(2, 0);
-      keyDownUp('F2');
+      await selectCell(2, 0);
+      await keyDownUp('F2');
 
       editor = getActiveEditor();
 
@@ -690,15 +690,15 @@ describe('MergeCells cooperation with hidden rows', () => {
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A2');
 
       // Closing the editor.
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       editor = getActiveEditor();
 
       expect(editor.isOpened()).toBe(false);
       expect(editor.isInFullEditMode()).toBe(false);
 
-      selectCell(3, 0);
-      keyDownUp('F2');
+      await selectCell(3, 0);
+      await keyDownUp('F2');
 
       editor = getActiveEditor();
 
@@ -707,7 +707,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A2');
 
       // Closing the editor.
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       editor = getActiveEditor();
 
@@ -724,7 +724,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A2');
     });
 
-    it('should open properly merged cells containing hidden columns (merge area from invisible cell to visible cell)', () => {
+    it('should open properly merged cells containing hidden columns (merge area from invisible cell to visible cell)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 1),
         mergeCells: {
@@ -741,8 +741,8 @@ describe('MergeCells cooperation with hidden rows', () => {
 
       getPlugin('mergeCells').merge(0, 0, 3, 0);
 
-      selectCell(0, 0);
-      keyDownUp('F2');
+      await selectCell(0, 0);
+      await keyDownUp('F2');
 
       let editor = getActiveEditor();
 
@@ -751,28 +751,28 @@ describe('MergeCells cooperation with hidden rows', () => {
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
 
       // Closing the editor.
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       editor = getActiveEditor();
 
       expect(editor.isOpened()).toBe(false);
       expect(editor.isInFullEditMode()).toBe(false);
 
-      selectCell(1, 0);
-      keyDownUp('F2');
+      await selectCell(1, 0);
+      await keyDownUp('F2');
 
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
 
       // Closing the editor.
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       editor = getActiveEditor();
 
       expect(editor.isOpened()).toBe(false);
       expect(editor.isInFullEditMode()).toBe(false);
 
-      selectCell(2, 0);
-      keyDownUp('F2');
+      await selectCell(2, 0);
+      await keyDownUp('F2');
 
       editor = getActiveEditor();
 
@@ -781,15 +781,15 @@ describe('MergeCells cooperation with hidden rows', () => {
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
 
       // Closing the editor.
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       editor = getActiveEditor();
 
       expect(editor.isOpened()).toBe(false);
       expect(editor.isInFullEditMode()).toBe(false);
 
-      selectCell(3, 0);
-      keyDownUp('F2');
+      await selectCell(3, 0);
+      await keyDownUp('F2');
 
       editor = getActiveEditor();
 
@@ -798,7 +798,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
 
       // Closing the editor.
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       editor = getActiveEditor();
 
@@ -815,7 +815,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
     });
 
-    it('should open properly merged cells containing hidden columns (merge area from visible cell to invisible cell)', () => {
+    it('should open properly merged cells containing hidden columns (merge area from visible cell to invisible cell)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 1),
         mergeCells: {
@@ -832,8 +832,8 @@ describe('MergeCells cooperation with hidden rows', () => {
 
       getPlugin('mergeCells').merge(1, 0, 4, 0);
 
-      selectCell(1, 0);
-      keyDownUp('F2');
+      await selectCell(1, 0);
+      await keyDownUp('F2');
 
       let editor = getActiveEditor();
 
@@ -842,15 +842,15 @@ describe('MergeCells cooperation with hidden rows', () => {
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A2');
 
       // Closing the editor.
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       editor = getActiveEditor();
 
       expect(editor.isOpened()).toBe(false);
       expect(editor.isInFullEditMode()).toBe(false);
 
-      selectCell(2, 0);
-      keyDownUp('F2');
+      await selectCell(2, 0);
+      await keyDownUp('F2');
 
       editor = getActiveEditor();
 
@@ -859,15 +859,15 @@ describe('MergeCells cooperation with hidden rows', () => {
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A2');
 
       // Closing the editor.
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       editor = getActiveEditor();
 
       expect(editor.isOpened()).toBe(false);
       expect(editor.isInFullEditMode()).toBe(false);
 
-      selectCell(3, 0);
-      keyDownUp('F2');
+      await selectCell(3, 0);
+      await keyDownUp('F2');
 
       editor = getActiveEditor();
 
@@ -876,15 +876,15 @@ describe('MergeCells cooperation with hidden rows', () => {
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A2');
 
       // Closing the editor.
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       editor = getActiveEditor();
 
       expect(editor.isOpened()).toBe(false);
       expect(editor.isInFullEditMode()).toBe(false);
 
-      selectCell(4, 0);
-      keyDownUp('F2');
+      await selectCell(4, 0);
+      await keyDownUp('F2');
 
       editor = getActiveEditor();
 
@@ -893,7 +893,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A2');
 
       // Closing the editor.
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       editor = getActiveEditor();
 
@@ -910,7 +910,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A2');
     });
 
-    it('should open properly merged cells containing hidden columns (merge area from invisible cell to invisible cell)', () => {
+    it('should open properly merged cells containing hidden columns (merge area from invisible cell to invisible cell)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 1),
         mergeCells: {
@@ -927,8 +927,8 @@ describe('MergeCells cooperation with hidden rows', () => {
 
       getPlugin('mergeCells').merge(0, 0, 4, 0);
 
-      selectCell(0, 0);
-      keyDownUp('F2');
+      await selectCell(0, 0);
+      await keyDownUp('F2');
 
       let editor = getActiveEditor();
 
@@ -937,15 +937,15 @@ describe('MergeCells cooperation with hidden rows', () => {
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
 
       // Closing the editor.
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       editor = getActiveEditor();
 
       expect(editor.isOpened()).toBe(false);
       expect(editor.isInFullEditMode()).toBe(false);
 
-      selectCell(1, 0);
-      keyDownUp('F2');
+      await selectCell(1, 0);
+      await keyDownUp('F2');
 
       editor = getActiveEditor();
 
@@ -954,15 +954,15 @@ describe('MergeCells cooperation with hidden rows', () => {
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
 
       // Closing the editor.
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       editor = getActiveEditor();
 
       expect(editor.isOpened()).toBe(false);
       expect(editor.isInFullEditMode()).toBe(false);
 
-      selectCell(2, 0);
-      keyDownUp('F2');
+      await selectCell(2, 0);
+      await keyDownUp('F2');
 
       editor = getActiveEditor();
 
@@ -971,15 +971,15 @@ describe('MergeCells cooperation with hidden rows', () => {
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
 
       // Closing the editor.
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       editor = getActiveEditor();
 
       expect(editor.isOpened()).toBe(false);
       expect(editor.isInFullEditMode()).toBe(false);
 
-      selectCell(3, 0);
-      keyDownUp('F2');
+      await selectCell(3, 0);
+      await keyDownUp('F2');
 
       editor = getActiveEditor();
 
@@ -988,15 +988,15 @@ describe('MergeCells cooperation with hidden rows', () => {
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
 
       // Closing the editor.
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       editor = getActiveEditor();
 
       expect(editor.isOpened()).toBe(false);
       expect(editor.isInFullEditMode()).toBe(false);
 
-      selectCell(4, 0);
-      keyDownUp('F2');
+      await selectCell(4, 0);
+      await keyDownUp('F2');
 
       editor = getActiveEditor();
 
@@ -1005,7 +1005,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
 
       // Closing the editor.
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       editor = getActiveEditor();
 
@@ -1022,7 +1022,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A1');
     });
 
-    it('should edit merged cells properly (merge area from visible cell to visible cell)', () => {
+    it('should edit merged cells properly (merge area from visible cell to visible cell)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 1),
         mergeCells: {
@@ -1048,12 +1048,12 @@ describe('MergeCells cooperation with hidden rows', () => {
       textarea.value = 'Edited value';
 
       // Closing the editor.
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       expect(getData()).toEqual([['A1'], ['Edited value'], [null], [null], ['A5']]);
     });
 
-    it('should edit merged cells properly (merge area from invisible cell to visible cell)', () => {
+    it('should edit merged cells properly (merge area from invisible cell to visible cell)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 1),
         mergeCells: {
@@ -1079,12 +1079,12 @@ describe('MergeCells cooperation with hidden rows', () => {
       textarea.value = 'Edited value';
 
       // Closing the editor.
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       expect(getData()).toEqual([['Edited value'], [null], [null], [null], ['A5']]);
     });
 
-    it('should edit merged cells properly (merge area from visible cell to invisible cell)', () => {
+    it('should edit merged cells properly (merge area from visible cell to invisible cell)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 1),
         mergeCells: {
@@ -1110,12 +1110,12 @@ describe('MergeCells cooperation with hidden rows', () => {
       textarea.value = 'Edited value';
 
       // Closing the editor.
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       expect(getData()).toEqual([['A1'], ['Edited value'], [null], [null], [null]]);
     });
 
-    it('should edit merged cells properly (merge area from invisible cell to invisible cell)', () => {
+    it('should edit merged cells properly (merge area from invisible cell to invisible cell)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 1),
         mergeCells: {
@@ -1141,12 +1141,12 @@ describe('MergeCells cooperation with hidden rows', () => {
       textarea.value = 'Edited value';
 
       // Closing the editor.
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       expect(getData()).toEqual([['Edited value'], [null], [null], [null], [null]]);
     });
 
-    it('should work properly when hidden column is read only', () => {
+    it('should work properly when hidden column is read only', async() => {
       handsontable({
         data: createSpreadsheetData(5, 1),
         mergeCells: {
@@ -1183,14 +1183,14 @@ describe('MergeCells cooperation with hidden rows', () => {
       expect(editor).toBeUndefined();
 
       // Try of opening the editor.
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       editor = getActiveEditor();
 
       expect(editor).toBeUndefined();
     });
 
-    it('should work properly when editor is set to `false` for hidden column', () => {
+    it('should work properly when editor is set to `false` for hidden column', async() => {
       handsontable({
         data: createSpreadsheetData(5, 1),
         mergeCells: {
@@ -1227,14 +1227,14 @@ describe('MergeCells cooperation with hidden rows', () => {
       expect(editor).toBeUndefined();
 
       // Try of opening the editor.
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       editor = getActiveEditor();
 
       expect(editor).toBeUndefined();
     });
 
-    it('should edit merged cells properly (merge area from visible cell to visible cell)', () => {
+    it('should edit merged cells properly (merge area from visible cell to visible cell)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 1),
         mergeCells: {
@@ -1260,12 +1260,12 @@ describe('MergeCells cooperation with hidden rows', () => {
       textarea.value = 'Edited value';
 
       // Closing the editor.
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       expect(getData()).toEqual([['A1'], ['Edited value'], [null], [null], ['A5']]);
     });
 
-    it('should edit merged cells properly (merge area from invisible cell to visible cell)', () => {
+    it('should edit merged cells properly (merge area from invisible cell to visible cell)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 1),
         mergeCells: {
@@ -1291,12 +1291,12 @@ describe('MergeCells cooperation with hidden rows', () => {
       textarea.value = 'Edited value';
 
       // Closing the editor.
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       expect(getData()).toEqual([['Edited value'], [null], [null], [null], ['A5']]);
     });
 
-    it('should edit merged cells properly (merge area from visible cell to invisible cell)', () => {
+    it('should edit merged cells properly (merge area from visible cell to invisible cell)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 1),
         mergeCells: {
@@ -1322,12 +1322,12 @@ describe('MergeCells cooperation with hidden rows', () => {
       textarea.value = 'Edited value';
 
       // Closing the editor.
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       expect(getData()).toEqual([['A1'], ['Edited value'], [null], [null], [null]]);
     });
 
-    it('should edit merged cells properly (merge area from invisible cell to invisible cell)', () => {
+    it('should edit merged cells properly (merge area from invisible cell to invisible cell)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 1),
         mergeCells: {
@@ -1353,12 +1353,12 @@ describe('MergeCells cooperation with hidden rows', () => {
       textarea.value = 'Edited value';
 
       // Closing the editor.
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       expect(getData()).toEqual([['Edited value'], [null], [null], [null], [null]]);
     });
 
-    it('should populate merged cells properly (merge area from visible cell to visible cell)', () => {
+    it('should populate merged cells properly (merge area from visible cell to visible cell)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         mergeCells: {
@@ -1391,7 +1391,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       ]);
     });
 
-    it('should populate merged cells properly (merge area from invisible cell to visible cell)', () => {
+    it('should populate merged cells properly (merge area from invisible cell to visible cell)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         mergeCells: {
@@ -1424,7 +1424,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       ]);
     });
 
-    it('should populate merged cells properly (merge area from visible cell to invisible cell)', () => {
+    it('should populate merged cells properly (merge area from visible cell to invisible cell)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         mergeCells: {
@@ -1457,7 +1457,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       ]);
     });
 
-    it('should populate merged cells properly (merge area from invisible cell to invisible cell)', () => {
+    it('should populate merged cells properly (merge area from invisible cell to invisible cell)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         mergeCells: {
@@ -1490,7 +1490,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       ]);
     });
 
-    it('should select single merged area properly when it starts with hidden column', () => {
+    it('should select single merged area properly when it starts with hidden column', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -1536,7 +1536,7 @@ describe('MergeCells cooperation with hidden rows', () => {
     });
 
     it('should select cells properly when there is a merged area within the selection' +
-      '(selecting from non-merged cell to the merged cell; from the left to the right)', () => {
+      '(selecting from non-merged cell to the merged cell; from the left to the right)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -1586,7 +1586,7 @@ describe('MergeCells cooperation with hidden rows', () => {
     });
 
     it('should select cells properly when there is a merged area within the selection' +
-      '(selecting from non-merged cell to the merged cell; from the top to the bottom)', () => {
+      '(selecting from non-merged cell to the merged cell; from the top to the bottom)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -1636,7 +1636,7 @@ describe('MergeCells cooperation with hidden rows', () => {
     });
 
     it('should select cells properly when there is a merged area within the selection' +
-      '(selecting from non-merged cell to the merged cell; from the right to the left)', () => {
+      '(selecting from non-merged cell to the merged cell; from the right to the left)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -1686,7 +1686,7 @@ describe('MergeCells cooperation with hidden rows', () => {
     });
 
     it('should select cells properly when there is a merged area within the selection' +
-      '(selecting from non-merged cell to the merged cell; from the bottom to the top)', () => {
+      '(selecting from non-merged cell to the merged cell; from the bottom to the top)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -1737,7 +1737,7 @@ describe('MergeCells cooperation with hidden rows', () => {
     });
 
     it('should select cells properly when there is a merged area within the selection' +
-      '(selecting from the merged cell to non-merged cell; from the left to the right)', () => {
+      '(selecting from the merged cell to non-merged cell; from the left to the right)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -1787,7 +1787,7 @@ describe('MergeCells cooperation with hidden rows', () => {
     });
 
     it('should select cells properly when there is a merged area within the selection' +
-      '(selecting from the merged cell to non-merged cell; from the top to the bottom)', () => {
+      '(selecting from the merged cell to non-merged cell; from the top to the bottom)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -1837,7 +1837,7 @@ describe('MergeCells cooperation with hidden rows', () => {
     });
 
     it('should select cells properly when there is a merged area within the selection' +
-      '(selecting from the merged cell to non-merged cell; from the right to the left)', () => {
+      '(selecting from the merged cell to non-merged cell; from the right to the left)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -1887,7 +1887,7 @@ describe('MergeCells cooperation with hidden rows', () => {
     });
 
     it('should select cells properly when there is a merged area within the selection' +
-      '(selecting from the merged cell to non-merged cell; from the bottom to the top)', () => {
+      '(selecting from the merged cell to non-merged cell; from the bottom to the top)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -1936,7 +1936,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       expect($(dragStart).hasClass('fullySelectedMergedCell-7')).toBeFalse();
     });
 
-    it('should add highlight to an area of merged cells only when selected every merged cell', () => {
+    it('should add highlight to an area of merged cells only when selected every merged cell', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -1957,7 +1957,7 @@ describe('MergeCells cooperation with hidden rows', () => {
 
       const mergeArea = spec().$container.find('tr:eq(2) td:eq(1)');
 
-      selectRows(2, 3);
+      await selectRows(2, 3);
 
       expect(`
         |   ║ - : - : - : - : - |
@@ -1979,7 +1979,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       expect($(mergeArea).hasClass('fullySelectedMergedCell-6')).toBeFalse();
       expect($(mergeArea).hasClass('fullySelectedMergedCell-7')).toBeFalse();
 
-      selectRows(1, 3);
+      await selectRows(1, 3);
 
       expect(`
         |   ║ - : - : - : - : - |
@@ -2003,7 +2003,7 @@ describe('MergeCells cooperation with hidden rows', () => {
     });
 
     it('should add proper highlight to an area of merged cells when selected every cell ' +
-      '(few layers, every layer contain merge area)', () => {
+      '(few layers, every layer contain merge area)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -2025,7 +2025,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       const mergeArea = spec().$container.find('tr:eq(2) td:eq(1)');
 
       // Selected 3 ranges containing merged area.
-      selectCells([[1, 0, 3, 4], [1, 0, 3, 4], [1, 0, 3, 4]]);
+      await selectCells([[1, 0, 3, 4], [1, 0, 3, 4], [1, 0, 3, 4]]);
 
       expect(`
         |   ║ - : - : - : - : - |
@@ -2053,7 +2053,7 @@ describe('MergeCells cooperation with hidden rows', () => {
     });
 
     it('should add proper highlight to an area of merged cells when selected every cell ' +
-      '(few layers, every layer contain part of merge area)', () => {
+      '(few layers, every layer contain part of merge area)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -2076,15 +2076,15 @@ describe('MergeCells cooperation with hidden rows', () => {
 
       // After changes introduced in Handsontable 12.0.0 we handle shortcuts only by listening Handsontable.
       // Please keep in mind that selectColumns/selectRows doesn't set instance to listening (see #7290).
-      listen();
+      await listen();
 
       // Selected 2 ranges containing together merged area.
-      selectRows(1);
+      await selectRows(1);
 
-      keyDown('control/meta');
+      await keyDown('control/meta');
 
-      selectRows(3);
-      selectRows(2);
+      await selectRows(3);
+      await selectRows(2);
 
       keyUp('control/meta');
 
@@ -2587,7 +2587,7 @@ describe('MergeCells cooperation with hidden rows', () => {
   });
 
   describe('Hooks', () => {
-    it('should trigger the `beforeOnCellMouseDown` hook with proper coords', () => {
+    it('should trigger the `beforeOnCellMouseDown` hook with proper coords', async() => {
       let rowOnCellMouseDown;
       let columnOnCellMouseDown;
       let coordsOnCellMouseDown;
@@ -2618,7 +2618,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       expect(coordsOnCellMouseDown).toEqual(jasmine.objectContaining({ row: 2, col: 0 }));
     });
 
-    it('should trigger the `afterOnCellMouseDown` hook with proper coords', () => {
+    it('should trigger the `afterOnCellMouseDown` hook with proper coords', async() => {
       let rowOnCellMouseDown;
       let columnOnCellMouseDown;
       let coordsOnCellMouseDown;

@@ -14,7 +14,7 @@ describe('Core.toPhysicalRow', () => {
 
   it('should return valid physical row index', () => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5)
+      data: createSpreadsheetData(5, 5)
     });
 
     hot.rowIndexMapper.setIndexesSequence([3, 4, 5, 6, 7]);

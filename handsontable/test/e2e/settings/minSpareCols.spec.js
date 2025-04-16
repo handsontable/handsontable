@@ -60,7 +60,7 @@ describe('settings', () => {
     describe('works on init', () => {
       it('should show data properly when `minSpareCols` is set to 0', () => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(1, 1),
+          data: createSpreadsheetData(1, 1),
           minSpareCols: 0
         });
 
@@ -73,7 +73,7 @@ describe('settings', () => {
 
       it('should show data properly when `minSpareCols` is set to value > 0', () => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(1, 1),
+          data: createSpreadsheetData(1, 1),
           minSpareCols: 5
         });
 
@@ -125,7 +125,7 @@ describe('settings', () => {
     describe('update settings works', () => {
       it('should show data properly after `minSpareCols` is updated to 5', () => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(1, 1)
+          data: createSpreadsheetData(1, 1)
         });
 
         updateSettings({
@@ -142,7 +142,7 @@ describe('settings', () => {
       // Currently this is a bug (#6571)
       xit('should show data properly after `minSpareCols` is updated from 5 to 2', () => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(1, 1),
+          data: createSpreadsheetData(1, 1),
           minSpareCols: 5
         });
 
@@ -159,7 +159,7 @@ describe('settings', () => {
 
       it('should show data properly after `minSpareCols` is updated from 2 to 5', () => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(1, 1),
+          data: createSpreadsheetData(1, 1),
           minSpareCols: 2
         });
 
@@ -178,7 +178,7 @@ describe('settings', () => {
     describe('cell meta', () => {
       it('should be rendered as is without shifting the cell meta objects', () => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(1, 1),
+          data: createSpreadsheetData(1, 1),
           minSpareCols: 3,
         });
 

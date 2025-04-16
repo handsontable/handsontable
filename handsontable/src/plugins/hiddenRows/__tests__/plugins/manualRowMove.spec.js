@@ -34,9 +34,9 @@ describe('HiddenRows', () => {
   });
 
   describe('manualRowMove', () => {
-    it('should properly render hidden ranges after moving action (moving not hidden rows just before the hidden one)', () => {
+    it('should properly render hidden ranges after moving action (moving not hidden rows just before the hidden one)', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 2),
+        data: createSpreadsheetData(5, 2),
         rowHeaders: true,
         hiddenRows: {
           rows: [0],
@@ -83,9 +83,9 @@ describe('HiddenRows', () => {
         `);
     });
 
-    it('should properly render hidden ranges after moving action (moving not hidden rows just after the hidden one)', () => {
+    it('should properly render hidden ranges after moving action (moving not hidden rows just after the hidden one)', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 2),
+        data: createSpreadsheetData(5, 2),
         rowHeaders: true,
         hiddenRows: {
           rows: [4],
@@ -132,9 +132,9 @@ describe('HiddenRows', () => {
         `);
     });
 
-    it('should properly render hidden ranges after moving action (moving only hidden row)', () => {
+    it('should properly render hidden ranges after moving action (moving only hidden row)', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 2),
+        data: createSpreadsheetData(5, 2),
         rowHeaders: true,
         hiddenRows: {
           rows: [4],
@@ -181,9 +181,9 @@ describe('HiddenRows', () => {
         `);
     });
 
-    it('should properly render hidden ranges after moving action (moving range of rows containing a hidden row)', () => {
+    it('should properly render hidden ranges after moving action (moving range of rows containing a hidden row)', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 2),
+        data: createSpreadsheetData(5, 2),
         rowHeaders: true,
         hiddenRows: {
           rows: [3],
@@ -230,9 +230,9 @@ describe('HiddenRows', () => {
         `);
     });
 
-    it('should properly render hidden ranges after moving action (shifts between hidden rows)', () => {
+    it('should properly render hidden ranges after moving action (shifts between hidden rows)', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 2),
+        data: createSpreadsheetData(5, 2),
         rowHeaders: true,
         hiddenRows: {
           rows: [1, 2, 3],
@@ -273,9 +273,9 @@ describe('HiddenRows', () => {
         `);
     });
 
-    it('should properly render hidden ranges after moving action (moving part of hidden rows)', () => {
+    it('should properly render hidden ranges after moving action (moving part of hidden rows)', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 2),
+        data: createSpreadsheetData(5, 2),
         rowHeaders: true,
         hiddenRows: {
           rows: [1, 3, 4],
@@ -318,9 +318,9 @@ describe('HiddenRows', () => {
 
     describe('selection', () => {
       it('should correctly set the selection of the unhidden row when it\'s placed as a most-top ' +
-         'table record (caused by moving first visible row under hidden one)', () => {
+         'table record (caused by moving first visible row under hidden one)', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(5, 2),
+          data: createSpreadsheetData(5, 2),
           rowHeaders: true,
           colHeaders: true,
           contextMenu: [CONTEXTMENU_ITEM_SHOW],
@@ -333,9 +333,9 @@ describe('HiddenRows', () => {
         getPlugin('manualRowMove').moveRow(0, 2);
         render();
 
-        selectRows(1);
+        await selectRows(1);
 
-        contextMenu();
+        await contextMenu();
         getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_SHOW);
 
         expect(spec().$container.find('.ht_master tbody th').length).toBe(5);
@@ -365,9 +365,9 @@ describe('HiddenRows', () => {
 
     describe('UI', () => {
       describe('backlight', () => {
-        it('should get correct position and size while grabing the row placed after hidden rows', () => {
+        it('should get correct position and size while grabing the row placed after hidden rows', async() => {
           handsontable({
-            data: Handsontable.helper.createSpreadsheetData(10, 10),
+            data: createSpreadsheetData(10, 10),
             rowHeaders: true,
             hiddenRows: {
               rows: [0, 1],
@@ -392,9 +392,9 @@ describe('HiddenRows', () => {
           });
         });
 
-        it('should get correct position and size while grabing the multiple rows placed after hidden rows', () => {
+        it('should get correct position and size while grabing the multiple rows placed after hidden rows', async() => {
           handsontable({
-            data: Handsontable.helper.createSpreadsheetData(10, 10),
+            data: createSpreadsheetData(10, 10),
             rowHeaders: true,
             hiddenRows: {
               rows: [0, 1],
@@ -427,9 +427,9 @@ describe('HiddenRows', () => {
           });
         });
 
-        it('should get correct position and size while grabing the row placed before hidden rows', () => {
+        it('should get correct position and size while grabing the row placed before hidden rows', async() => {
           handsontable({
-            data: Handsontable.helper.createSpreadsheetData(10, 10),
+            data: createSpreadsheetData(10, 10),
             rowHeaders: true,
             hiddenRows: {
               rows: [8, 9],
@@ -454,9 +454,9 @@ describe('HiddenRows', () => {
           });
         });
 
-        it('should get correct position and size while grabing the multiple rows placed before hidden rows', () => {
+        it('should get correct position and size while grabing the multiple rows placed before hidden rows', async() => {
           handsontable({
-            data: Handsontable.helper.createSpreadsheetData(10, 10),
+            data: createSpreadsheetData(10, 10),
             rowHeaders: true,
             hiddenRows: {
               rows: [8, 9],
@@ -491,9 +491,9 @@ describe('HiddenRows', () => {
       });
 
       describe('guideline', () => {
-        it('should get correct position while grabing the row placed after hidden rows (moving down)', () => {
+        it('should get correct position while grabing the row placed after hidden rows (moving down)', async() => {
           handsontable({
-            data: Handsontable.helper.createSpreadsheetData(10, 10),
+            data: createSpreadsheetData(10, 10),
             rowHeaders: true,
             hiddenRows: {
               rows: [0, 1],
@@ -527,9 +527,9 @@ describe('HiddenRows', () => {
           });
         });
 
-        it('should get correct position while grabing the row placed after hidden rows (moving up)', () => {
+        it('should get correct position while grabing the row placed after hidden rows (moving up)', async() => {
           handsontable({
-            data: Handsontable.helper.createSpreadsheetData(10, 10),
+            data: createSpreadsheetData(10, 10),
             rowHeaders: true,
             hiddenRows: {
               rows: [0, 1],
@@ -562,9 +562,9 @@ describe('HiddenRows', () => {
           });
         });
 
-        it('should get correct position while grabing the row placed before hidden rows (moving down)', () => {
+        it('should get correct position while grabing the row placed before hidden rows (moving down)', async() => {
           handsontable({
-            data: Handsontable.helper.createSpreadsheetData(10, 10),
+            data: createSpreadsheetData(10, 10),
             rowHeaders: true,
             hiddenRows: {
               rows: [8, 9],
@@ -598,9 +598,9 @@ describe('HiddenRows', () => {
           });
         });
 
-        it('should get correct position while grabing the row placed before hidden rows (moving up)', () => {
+        it('should get correct position while grabing the row placed before hidden rows (moving up)', async() => {
           handsontable({
-            data: Handsontable.helper.createSpreadsheetData(10, 10),
+            data: createSpreadsheetData(10, 10),
             rowHeaders: true,
             hiddenRows: {
               rows: [8, 9],

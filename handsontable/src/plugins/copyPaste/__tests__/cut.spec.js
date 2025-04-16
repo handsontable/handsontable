@@ -16,22 +16,22 @@ describe('CopyPaste', () => {
   });
 
   describe('cut', () => {
-    xit('should be possible to cut data by keyboard shortcut', () => {
+    xit('should be possible to cut data by keyboard shortcut', async() => {
       // simulated keyboard shortcuts doesn't run the true events
     });
 
-    xit('should be possible to cut data by contextMenu option', () => {
+    xit('should be possible to cut data by contextMenu option', async() => {
       // simulated mouse events doesn't run the true browser event
     });
 
-    it('should be possible to cut data by API', () => {
+    it('should be possible to cut data by API', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(2, 2),
+        data: createSpreadsheetData(2, 2),
       });
       const cutEvent = getClipboardEvent();
       const plugin = hot.getPlugin('CopyPaste');
 
-      selectCell(1, 0);
+      await selectCell(1, 0);
 
       plugin.onCut(cutEvent);
 
@@ -44,19 +44,19 @@ describe('CopyPaste', () => {
       expect(hot.getDataAtCell(1, 0)).toBe(null);
     });
 
-    it('should call beforeCut and afterCut during cutting out operation', () => {
+    it('should call beforeCut and afterCut during cutting out operation', async() => {
       const beforeCutSpy = jasmine.createSpy('beforeCut');
       const afterCutSpy = jasmine.createSpy('afterCut');
 
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(2, 2),
+        data: createSpreadsheetData(2, 2),
         beforeCut: beforeCutSpy,
         afterCut: afterCutSpy
       });
       const cutEvent = getClipboardEvent();
       const plugin = hot.getPlugin('CopyPaste');
 
-      selectCell(0, 0);
+      await selectCell(0, 0);
 
       plugin.onCut(cutEvent);
 
@@ -68,7 +68,7 @@ describe('CopyPaste', () => {
         [['A1']], [{ startRow: 0, startCol: 0, endRow: 0, endCol: 0 }]);
     });
 
-    it('should be possible to cut text outside the table when the `outsideClickDeselects` is disabled', () => {
+    it('should be possible to cut text outside the table when the `outsideClickDeselects` is disabled', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         outsideClickDeselects: false,
@@ -81,7 +81,8 @@ describe('CopyPaste', () => {
       const cutEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
-      selectCell(1, 1);
+      await selectCell(1, 1);
+
       cutEvent.target = testElement[0]; // native cut event is triggered on the element outside the table
       plugin.onCut(cutEvent); // trigger the plugin's method that is normally triggered by the native "cut" event
 
@@ -92,7 +93,7 @@ describe('CopyPaste', () => {
       testElement.remove();
     });
 
-    it('should skip processing the event when the target element has the "data-hot-input" attribute and it\'s not an editor', () => {
+    it('should skip processing the event when the target element has the "data-hot-input" attribute and it\'s not an editor', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
       });
@@ -102,14 +103,15 @@ describe('CopyPaste', () => {
 
       spyOn(copyEvent, 'preventDefault');
 
-      selectCell(1, 1);
+      await selectCell(1, 1);
+
       copyEvent.target = $('<div id="testElement" data-hot-input="true">Test</div>')[0];
       plugin.onCut(copyEvent); // trigger the plugin's method that is normally triggered by the native "cut" event
 
       expect(copyEvent.preventDefault).not.toHaveBeenCalled();
     });
 
-    it('should not skip processing the event when the target element has the "data-hot-input" attribute and it\'s an editor', () => {
+    it('should not skip processing the event when the target element has the "data-hot-input" attribute and it\'s an editor', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
       });
@@ -119,14 +121,15 @@ describe('CopyPaste', () => {
 
       spyOn(copyEvent, 'preventDefault');
 
-      selectCell(1, 1);
+      await selectCell(1, 1);
+
       copyEvent.target = getActiveEditor().TEXTAREA;
       plugin.onCut(copyEvent); // trigger the plugin's method that is normally triggered by the native "cut" event
 
       expect(copyEvent.preventDefault).toHaveBeenCalled();
     });
 
-    it('should skip processing the event when the target element does not have the "data-hot-input" attribute and it\'s not a BODY element', () => {
+    it('should skip processing the event when the target element does not have the "data-hot-input" attribute and it\'s not a BODY element', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
       });
@@ -136,14 +139,15 @@ describe('CopyPaste', () => {
 
       spyOn(copyEvent, 'preventDefault');
 
-      selectCell(1, 1);
+      await selectCell(1, 1);
+
       copyEvent.target = $('<div id="testElement">Test</div>')[0];
       plugin.onCut(copyEvent); // trigger the plugin's method that is normally triggered by the native "cut" event
 
       expect(copyEvent.preventDefault).not.toHaveBeenCalled();
     });
 
-    it('should not skip processing the event when the target element does not have the "data-hot-input" attribute and it\'s a BODY element', () => {
+    it('should not skip processing the event when the target element does not have the "data-hot-input" attribute and it\'s a BODY element', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
       });
@@ -153,14 +157,15 @@ describe('CopyPaste', () => {
 
       spyOn(copyEvent, 'preventDefault');
 
-      selectCell(1, 1);
+      await selectCell(1, 1);
+
       copyEvent.target = document.body;
       plugin.onCut(copyEvent); // trigger the plugin's method that is normally triggered by the native "cut" event
 
       expect(copyEvent.preventDefault).toHaveBeenCalled();
     });
 
-    it('should not skip processing the event when the target element does not have the "data-hot-input" attribute and it\'s a TD element (#dev-2225)', () => {
+    it('should not skip processing the event when the target element does not have the "data-hot-input" attribute and it\'s a TD element (#dev-2225)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
       });
@@ -170,7 +175,8 @@ describe('CopyPaste', () => {
 
       spyOn(copyEvent, 'preventDefault');
 
-      selectCell(1, 1);
+      await selectCell(1, 1);
+
       copyEvent.target = getCell(1, 1);
       plugin.onCut(copyEvent); // trigger the plugin's method that is normally triggered by the native "cut" event
 
@@ -188,8 +194,7 @@ describe('CopyPaste', () => {
       const plugin = getPlugin('CopyPaste');
       const expectedResult = getDataAtRow(0).join('\t');
 
-      selectCells([[0, 0, 0, 49]]);
-
+      await selectCells([[0, 0, 0, 49]]);
       await sleep(10);
 
       cutEvent.target = document.activeElement;

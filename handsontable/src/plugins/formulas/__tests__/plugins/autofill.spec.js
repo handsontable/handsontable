@@ -28,7 +28,7 @@ describe('Formulas', () => {
         fillHandle: true
       });
 
-      selectCell(0, 2);
+      await selectCell(0, 2);
 
       spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
       spec().$container.find('tr:last-child td:eq(2)').simulate('mouseover');
@@ -83,7 +83,7 @@ describe('Formulas', () => {
         fillHandle: true
       });
 
-      selectRows(0);
+      await selectRows(0);
 
       spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
       spec().$container.find('tr:last-child td:eq(0)').simulate('mouseover');
@@ -117,7 +117,7 @@ describe('Formulas', () => {
         fillHandle: true
       });
 
-      selectRows(0, 1);
+      await selectRows(0, 1);
 
       spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
       spec().$container.find('tr:last-child td:eq(0)').simulate('mouseover');

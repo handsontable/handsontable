@@ -20,7 +20,7 @@ describe('MultiColumnSorting keyboard shortcut', () => {
   }
 
   describe('"Shift" + "Enter"', () => {
-    it('should not be possible to sort non-visible column', () => {
+    it('should not be possible to sort non-visible column', async() => {
       handsontable({
         data: createSpreadsheetData(3, 8),
         colHeaders: true,
@@ -34,13 +34,13 @@ describe('MultiColumnSorting keyboard shortcut', () => {
       hidingMap.setValueAtIndex(1, true);
 
       render();
-      selectCell(-1, 1);
-      keyDownUp(['shift', 'enter']);
+      await selectCell(-1, 1);
+      await keyDownUp(['shift', 'enter']);
 
       expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([]);
     });
 
-    it('should be possible to sort columns with correct sort order', () => {
+    it('should be possible to sort columns with correct sort order', async() => {
       handsontable({
         data: createSpreadsheetData(3, 8),
         colHeaders: true,
@@ -49,26 +49,26 @@ describe('MultiColumnSorting keyboard shortcut', () => {
         multiColumnSorting: true
       });
 
-      selectCell(-1, 1);
-      keyDownUp(['shift', 'enter']);
+      await selectCell(-1, 1);
+      await keyDownUp(['shift', 'enter']);
 
       expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([{
         column: 1,
         sortOrder: 'asc',
       }]);
 
-      keyDownUp(['shift', 'enter']);
+      await keyDownUp(['shift', 'enter']);
 
       expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([{
         column: 1,
         sortOrder: 'desc',
       }]);
 
-      keyDownUp(['shift', 'enter']);
+      await keyDownUp(['shift', 'enter']);
 
       expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([]);
 
-      keyDownUp(['shift', 'enter']);
+      await keyDownUp(['shift', 'enter']);
 
       expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([{
         column: 1,
@@ -76,7 +76,7 @@ describe('MultiColumnSorting keyboard shortcut', () => {
       }]);
     });
 
-    it('should be possible to sort multi-columns with correct sort order', () => {
+    it('should be possible to sort multi-columns with correct sort order', async() => {
       handsontable({
         data: createSpreadsheetData(3, 8),
         colHeaders: true,
@@ -85,16 +85,16 @@ describe('MultiColumnSorting keyboard shortcut', () => {
         multiColumnSorting: true
       });
 
-      selectCell(-1, 1);
-      keyDownUp(['shift', 'enter']);
+      await selectCell(-1, 1);
+      await keyDownUp(['shift', 'enter']);
 
       expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([{
         column: 1,
         sortOrder: 'asc',
       }]);
 
-      selectCell(-1, 3);
-      keyDownUp(['shift', 'enter']);
+      await selectCell(-1, 3);
+      await keyDownUp(['shift', 'enter']);
 
       expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([
         {
@@ -107,7 +107,7 @@ describe('MultiColumnSorting keyboard shortcut', () => {
         }
       ]);
 
-      keyDownUp(['shift', 'enter']);
+      await keyDownUp(['shift', 'enter']);
 
       expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([
         {
@@ -120,15 +120,15 @@ describe('MultiColumnSorting keyboard shortcut', () => {
         }
       ]);
 
-      keyDownUp(['shift', 'enter']);
+      await keyDownUp(['shift', 'enter']);
 
       expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([{
         column: 1,
         sortOrder: 'asc',
       }]);
 
-      selectCell(-1, 5);
-      keyDownUp(['shift', 'enter']);
+      await selectCell(-1, 5);
+      await keyDownUp(['shift', 'enter']);
 
       expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([
         {
@@ -141,8 +141,8 @@ describe('MultiColumnSorting keyboard shortcut', () => {
         }
       ]);
 
-      selectCell(-1, 1);
-      keyDownUp(['shift', 'enter']);
+      await selectCell(-1, 1);
+      await keyDownUp(['shift', 'enter']);
 
       expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([
         {
@@ -156,7 +156,7 @@ describe('MultiColumnSorting keyboard shortcut', () => {
       ]);
     });
 
-    it('should be possible to sort a column when a range of the columns are selected', () => {
+    it('should be possible to sort a column when a range of the columns are selected', async() => {
       handsontable({
         data: createSpreadsheetData(3, 8),
         colHeaders: true,
@@ -165,9 +165,9 @@ describe('MultiColumnSorting keyboard shortcut', () => {
         multiColumnSorting: true
       });
 
-      selectCell(-1, 4);
-      listen();
-      keyDownUp(['shift', 'enter']);
+      await selectCell(-1, 4);
+      await listen();
+      await keyDownUp(['shift', 'enter']);
 
       expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([{
         column: 4,
@@ -175,7 +175,7 @@ describe('MultiColumnSorting keyboard shortcut', () => {
       }]);
     });
 
-    it('should not be possible to sort a column when a range of the columns are selected', () => {
+    it('should not be possible to sort a column when a range of the columns are selected', async() => {
       handsontable({
         data: createSpreadsheetData(3, 8),
         colHeaders: true,
@@ -184,14 +184,14 @@ describe('MultiColumnSorting keyboard shortcut', () => {
         multiColumnSorting: true
       });
 
-      selectColumns(1, 4, -1);
-      listen();
-      keyDownUp(['shift', 'enter']);
+      await selectColumns(1, 4, -1);
+      await listen();
+      await keyDownUp(['shift', 'enter']);
 
       expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([]);
     });
 
-    it('should be possible to sort columns only by triggering the action from the lowest column header', () => {
+    it('should be possible to sort columns only by triggering the action from the lowest column header', async() => {
       handsontable({
         data: createSpreadsheetData(3, 8),
         colHeaders: true,
@@ -204,28 +204,28 @@ describe('MultiColumnSorting keyboard shortcut', () => {
         },
       });
 
-      selectCell(-1, -1); // corner
-      keyDownUp(['shift', 'enter']);
+      await selectCell(-1, -1); // corner
+      await keyDownUp(['shift', 'enter']);
 
       expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([]);
 
-      selectCell(1, -1); // row header
-      keyDownUp(['shift', 'enter']);
+      await selectCell(1, -1); // row header
+      await keyDownUp(['shift', 'enter']);
 
       expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([]);
 
-      selectCell(-3, 1); // the first (top) column header
-      keyDownUp(['shift', 'enter']);
+      await selectCell(-3, 1); // the first (top) column header
+      await keyDownUp(['shift', 'enter']);
 
       expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([]);
 
-      selectCell(-2, 1); // the second column header
-      keyDownUp(['shift', 'enter']);
+      await selectCell(-2, 1); // the second column header
+      await keyDownUp(['shift', 'enter']);
 
       expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([]);
 
-      selectCell(-1, 1); // the third (bottom) column header
-      keyDownUp(['shift', 'enter']);
+      await selectCell(-1, 1); // the third (bottom) column header
+      await keyDownUp(['shift', 'enter']);
 
       expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([{
         column: 1,
@@ -233,7 +233,7 @@ describe('MultiColumnSorting keyboard shortcut', () => {
       }]);
     });
 
-    it('should not trigger the editor to be opened', () => {
+    it('should not trigger the editor to be opened', async() => {
       handsontable({
         data: createSpreadsheetData(3, 8),
         colHeaders: true,
@@ -242,15 +242,15 @@ describe('MultiColumnSorting keyboard shortcut', () => {
         multiColumnSorting: true,
       });
 
-      selectCell(-1, 1);
-      keyDownUp(['shift', 'enter']);
+      await selectCell(-1, 1);
+      await keyDownUp(['shift', 'enter']);
 
       expect(getActiveEditor()).toBeUndefined();
     });
   });
 
   describe('"Enter"', () => {
-    it('should clear all multiple columns sort state and sort a single column', () => {
+    it('should clear all multiple columns sort state and sort a single column', async() => {
       handsontable({
         data: createSpreadsheetData(3, 8),
         colHeaders: true,
@@ -265,8 +265,8 @@ describe('MultiColumnSorting keyboard shortcut', () => {
         { column: 4, sortOrder: 'desc' },
       ]);
 
-      selectCell(-1, 2);
-      keyDownUp('enter');
+      await selectCell(-1, 2);
+      await keyDownUp('enter');
 
       expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([{
         column: 2,

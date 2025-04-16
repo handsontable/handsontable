@@ -13,7 +13,7 @@ describe('NestedHeaders', () => {
   });
 
   describe('GhostTable', () => {
-    it('should be initialized and accessible from the plugin', () => {
+    it('should be initialized and accessible from the plugin', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(10, 10),
         nestedHeaders: [
@@ -27,7 +27,7 @@ describe('NestedHeaders', () => {
     });
 
     describe('widthsCache', () => {
-      it('should contain cached widths after initialization', () => {
+      it('should contain cached widths after initialization', async() => {
         handsontable({
           data: createSpreadsheetData(10, 10),
           nestedHeaders: [
@@ -41,7 +41,7 @@ describe('NestedHeaders', () => {
         expect(ghostTable.widthsMap.getLength()).toBe(10);
       });
 
-      it('should properly prepare widths cache, even if container is smaller than needed', () => {
+      it('should properly prepare widths cache, even if container is smaller than needed', async() => {
         handsontable({
           data: createSpreadsheetData(7, 7),
           width: 300,
@@ -91,7 +91,7 @@ describe('NestedHeaders', () => {
         });
       });
 
-      it('should properly prepare widths cache, even if container is smaller than needed (different headers configuration #1)', () => {
+      it('should properly prepare widths cache, even if container is smaller than needed (different headers configuration #1)', async() => {
         handsontable({
           data: createSpreadsheetData(3, 10),
           width: 300,
@@ -158,7 +158,7 @@ describe('NestedHeaders', () => {
         });
       });
 
-      it('should container be removed after initialization', () => {
+      it('should container be removed after initialization', async() => {
         handsontable({
           data: createSpreadsheetData(10, 10),
           nestedHeaders: [
@@ -174,7 +174,7 @@ describe('NestedHeaders', () => {
     });
 
     describe('updateSettings', () => {
-      it('should recreate the widths cache', () => {
+      it('should recreate the widths cache', async() => {
         handsontable({
           data: createSpreadsheetData(10, 10),
           nestedHeaders: [
@@ -201,7 +201,7 @@ describe('NestedHeaders', () => {
     });
 
     describe('with hidden columns', () => {
-      it('should calculate the columns widths when some columns are hidden on table initialization', () => {
+      it('should calculate the columns widths when some columns are hidden on table initialization', async() => {
         handsontable({
           data: createSpreadsheetData(3, 10),
           nestedHeaders: [
@@ -258,7 +258,7 @@ describe('NestedHeaders', () => {
         expect(ghostTable.widthsMap.getValueAtIndex(9)).toBe(null);
       });
 
-      it('should recalculate the columns widths after hiding columns', () => {
+      it('should recalculate the columns widths after hiding columns', async() => {
         handsontable({
           data: createSpreadsheetData(3, 10),
           nestedHeaders: [
@@ -311,7 +311,7 @@ describe('NestedHeaders', () => {
         expect(ghostTable.widthsMap.getValueAtIndex(9)).toBe(null);
       });
 
-      it('should recalculate the columns widths after showing columns', () => {
+      it('should recalculate the columns widths after showing columns', async() => {
         handsontable({
           data: createSpreadsheetData(3, 10),
           nestedHeaders: [

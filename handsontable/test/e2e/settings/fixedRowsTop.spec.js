@@ -92,7 +92,7 @@ describe('settings', () => {
           spy.test();
         };
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(50, 50),
+          data: createSpreadsheetData(50, 50),
           width: 200,
           height: 200,
           rowHeaders: true,
@@ -116,7 +116,7 @@ describe('settings', () => {
 
       it('should synchronize scroll with master table', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(50, 50),
+          data: createSpreadsheetData(50, 50),
           width: 200,
           height: 200,
           rowHeaders: true,
@@ -133,50 +133,50 @@ describe('settings', () => {
 
     it('should limit fixed rows to dataset rows length', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        data: createSpreadsheetData(3, 3),
         fixedRowsTop: 3
       });
 
       expect(getTopClone().find('tbody tr').length).toBe(3);
 
       updateSettings({
-        data: Handsontable.helper.createSpreadsheetData(2, 3),
+        data: createSpreadsheetData(2, 3),
       });
 
       expect(getTopClone().find('tbody tr').length).toBe(2);
 
       updateSettings({
-        data: Handsontable.helper.createSpreadsheetData(1, 3),
+        data: createSpreadsheetData(1, 3),
       });
 
       expect(getTopClone().find('tbody tr').length).toBe(1);
 
       updateSettings({
-        data: Handsontable.helper.createSpreadsheetData(0, 3),
+        data: createSpreadsheetData(0, 3),
       });
 
       expect(getTopClone().find('tbody tr').length).toBe(0);
 
       updateSettings({
-        data: Handsontable.helper.createSpreadsheetData(1, 3),
+        data: createSpreadsheetData(1, 3),
       });
 
       expect(getTopClone().find('tbody tr').length).toBe(1);
 
       updateSettings({
-        data: Handsontable.helper.createSpreadsheetData(2, 3),
+        data: createSpreadsheetData(2, 3),
       });
 
       expect(getTopClone().find('tbody tr').length).toBe(2);
 
       updateSettings({
-        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        data: createSpreadsheetData(3, 3),
       });
 
       expect(getTopClone().find('tbody tr').length).toBe(3);
 
       updateSettings({
-        data: Handsontable.helper.createSpreadsheetData(4, 3),
+        data: createSpreadsheetData(4, 3),
       });
 
       expect(getTopClone().find('tbody tr').length).toBe(3);
@@ -202,7 +202,7 @@ describe('settings', () => {
 
     it('should not render column header with doubled border after inserting a new row (#7065)', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(0, 0),
+        data: createSpreadsheetData(0, 0),
         colHeaders: true,
         rowHeaders: true,
         fixedRowsTop: 3,

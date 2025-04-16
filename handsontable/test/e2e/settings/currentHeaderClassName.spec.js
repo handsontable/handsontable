@@ -17,7 +17,7 @@ describe('settings', () => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
-        data: Handsontable.helper.createSpreadsheetData(5, 7),
+        data: createSpreadsheetData(5, 7),
       });
 
       await selectCell(2, 2);
@@ -29,7 +29,7 @@ describe('settings', () => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
-        data: Handsontable.helper.createSpreadsheetData(5, 7),
+        data: createSpreadsheetData(5, 7),
       });
 
       await selectCell(2, 2);
@@ -43,7 +43,7 @@ describe('settings', () => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
-        data: Handsontable.helper.createSpreadsheetData(5, 7),
+        data: createSpreadsheetData(5, 7),
         currentHeaderClassName: 'currentHeaderClassName'
       });
 

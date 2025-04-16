@@ -13,7 +13,7 @@ describe('ContextMenu', () => {
   });
 
   describe('clearColumn', () => {
-    it('should not be possible to use the `clearColumn` option, when anything but entire columns was selected', () => {
+    it('should not be possible to use the `clearColumn` option, when anything but entire columns was selected', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(4, 4),
         contextMenu: ['clear_column'],
@@ -23,7 +23,7 @@ describe('ContextMenu', () => {
         navigableHeaders: true,
       });
 
-      contextMenu();
+      await contextMenu();
 
       const clearColumnTitle = hot.getTranslatedPhrase(
         Handsontable.languages.dictionaryKeys.CONTEXTMENU_ITEMS_CLEAR_COLUMN
@@ -41,7 +41,7 @@ describe('ContextMenu', () => {
 
       hot.selectCell(0, 0);
 
-      contextMenu();
+      await contextMenu();
 
       expect(getClearColumnItem().hasClass('htDisabled')).toBe(true);
 
@@ -49,7 +49,7 @@ describe('ContextMenu', () => {
 
       hot.selectCell(0, 0, 2, 2);
 
-      contextMenu();
+      await contextMenu();
 
       expect(getClearColumnItem().hasClass('htDisabled')).toBe(true);
 
@@ -57,7 +57,7 @@ describe('ContextMenu', () => {
 
       hot.selectAll();
 
-      contextMenu();
+      await contextMenu();
 
       expect(getClearColumnItem().hasClass('htDisabled')).toBe(true);
 
@@ -65,7 +65,7 @@ describe('ContextMenu', () => {
 
       hot.selectCell(-1, 1);
 
-      contextMenu();
+      await contextMenu();
 
       expect(getClearColumnItem().hasClass('htDisabled')).toBe(true);
 
@@ -73,7 +73,7 @@ describe('ContextMenu', () => {
 
       hot.selectCell(1, -1);
 
-      contextMenu();
+      await contextMenu();
 
       expect(getClearColumnItem().hasClass('htDisabled')).toBe(true);
 
@@ -81,7 +81,7 @@ describe('ContextMenu', () => {
 
       hot.selectCell(-1, -1);
 
-      contextMenu();
+      await contextMenu();
 
       expect(getClearColumnItem().hasClass('htDisabled')).toBe(true);
 
@@ -89,7 +89,7 @@ describe('ContextMenu', () => {
 
       hot.selectColumns(0);
 
-      contextMenu();
+      await contextMenu();
 
       expect(getClearColumnItem().hasClass('htDisabled')).toBe(false);
 
@@ -97,7 +97,7 @@ describe('ContextMenu', () => {
 
       hot.selectColumns(0, 1);
 
-      contextMenu();
+      await contextMenu();
 
       expect(getClearColumnItem().hasClass('htDisabled')).toBe(false);
 
@@ -113,14 +113,14 @@ describe('ContextMenu', () => {
         colHeaders: true
       });
 
-      selectColumns(0);
+      await selectColumns(0);
 
-      contextMenu();
+      await contextMenu();
       selectContextMenuOption('Clear column');
 
-      selectColumns(2, 3);
+      await selectColumns(2, 3);
 
-      contextMenu();
+      await contextMenu();
       selectContextMenuOption('Clear column');
 
       expect(getDataAtCol(0)).toEqual([null, null, null, null]);
@@ -129,7 +129,7 @@ describe('ContextMenu', () => {
       expect(getDataAtCol(3)).toEqual([null, null, null, null]);
     });
 
-    it('should display entry as enabled, when all rows are non-read-only', () => {
+    it('should display entry as enabled, when all rows are non-read-only', async() => {
       handsontable({
         data: createSpreadsheetData(4, 4),
         contextMenu: ['clear_column'],
@@ -138,15 +138,15 @@ describe('ContextMenu', () => {
         readOnly: false,
       });
 
-      selectColumns(0);
-      contextMenu();
+      await selectColumns(0);
+      await contextMenu();
 
       const item = selectContextMenuOption('Clear column');
 
       expect(item.hasClass('htDisabled')).toBe(false);
     });
 
-    it('should display a disabled entry, when all rows are read-only', () => {
+    it('should display a disabled entry, when all rows are read-only', async() => {
       handsontable({
         data: createSpreadsheetData(4, 4),
         contextMenu: ['clear_column'],
@@ -155,15 +155,15 @@ describe('ContextMenu', () => {
         readOnly: true,
       });
 
-      selectColumns(0);
-      contextMenu();
+      await selectColumns(0);
+      await contextMenu();
 
       const item = selectContextMenuOption('Clear column');
 
       expect(item.hasClass('htDisabled')).toBe(true);
     });
 
-    it('should display non-disabled entry, when one of the rows is non-read-only', () => {
+    it('should display non-disabled entry, when one of the rows is non-read-only', async() => {
       handsontable({
         data: createSpreadsheetData(4, 4),
         contextMenu: ['clear_column'],
@@ -173,8 +173,8 @@ describe('ContextMenu', () => {
       });
 
       setCellMeta(2, 0, 'readOnly', false);
-      selectColumns(0);
-      contextMenu();
+      await selectColumns(0);
+      await contextMenu();
 
       const item = selectContextMenuOption('Clear column');
 

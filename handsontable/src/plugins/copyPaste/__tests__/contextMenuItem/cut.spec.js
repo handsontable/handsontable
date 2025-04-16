@@ -13,7 +13,7 @@ describe('ContextMenu', () => {
   });
 
   describe('cut', () => {
-    it('should be available while creating custom menu', () => {
+    it('should be available while creating custom menu', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -21,7 +21,7 @@ describe('ContextMenu', () => {
         contextMenu: ['cut'],
       });
 
-      contextMenu(getCell(1, 1));
+      await contextMenu(getCell(1, 1));
 
       const menuItem = $('.htContextMenu tbody tr td').filter(function() {
         return this.textContent === 'Cut';
@@ -30,7 +30,7 @@ describe('ContextMenu', () => {
       expect(menuItem[0]).not.toBeUndefined();
     });
 
-    it('should call plugin\'s `cut()` method after menu item click', () => {
+    it('should call plugin\'s `cut()` method after menu item click', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -40,13 +40,13 @@ describe('ContextMenu', () => {
 
       spyOn(getPlugin('copyPaste'), 'cut');
 
-      contextMenu(getCell(1, 1));
+      await contextMenu(getCell(1, 1));
       selectContextMenuOption('Cut');
 
       expect(getPlugin('copyPaste').cut).toHaveBeenCalled();
     });
 
-    it('should enable the item when all rows are hidden', () => {
+    it('should enable the item when all rows are hidden', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
@@ -57,7 +57,7 @@ describe('ContextMenu', () => {
       hot.rowIndexMapper.createAndRegisterIndexMap('map', 'hiding', true);
       render();
 
-      contextMenu(getCell(-1, 1)); // Column header "B"
+      await contextMenu(getCell(-1, 1)); // Column header "B"
 
       const menuItem = $('.htContextMenu tbody tr td').filter(function() {
         return this.textContent === 'Cut';
@@ -66,7 +66,7 @@ describe('ContextMenu', () => {
       expect(menuItem.hasClass('htDisabled')).toBe(false);
     });
 
-    it('should enable the item when all columns are hidden', () => {
+    it('should enable the item when all columns are hidden', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -77,7 +77,7 @@ describe('ContextMenu', () => {
       hot.columnIndexMapper.createAndRegisterIndexMap('map', 'hiding', true);
       render();
 
-      contextMenu(getCell(1, -1)); // Row header "2"
+      await contextMenu(getCell(1, -1)); // Row header "2"
 
       const menuItem = $('.htContextMenu tbody tr td').filter(function() {
         return this.textContent === 'Cut';
@@ -86,7 +86,7 @@ describe('ContextMenu', () => {
       expect(menuItem.hasClass('htDisabled')).toBe(false);
     });
 
-    it('should disable the item when all rows are trimmed', () => {
+    it('should disable the item when all rows are trimmed', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
@@ -97,7 +97,7 @@ describe('ContextMenu', () => {
       hot.rowIndexMapper.createAndRegisterIndexMap('map', 'trimming', true);
       render();
 
-      contextMenu(getCell(-1, 1)); // Column header "B"
+      await contextMenu(getCell(-1, 1)); // Column header "B"
 
       const menuItem = $('.htContextMenu tbody tr td').filter(function() {
         return this.textContent === 'Cut';
@@ -106,7 +106,7 @@ describe('ContextMenu', () => {
       expect(menuItem.hasClass('htDisabled')).toBe(true);
     });
 
-    it('should disable the item when all columns are trimmed', () => {
+    it('should disable the item when all columns are trimmed', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -117,7 +117,7 @@ describe('ContextMenu', () => {
       hot.columnIndexMapper.createAndRegisterIndexMap('map', 'trimming', true);
       render();
 
-      contextMenu(getCell(1, -1)); // Row header "2"
+      await contextMenu(getCell(1, -1)); // Row header "2"
 
       const menuItem = $('.htContextMenu tbody tr td').filter(function() {
         return this.textContent === 'Cut';
@@ -126,7 +126,7 @@ describe('ContextMenu', () => {
       expect(menuItem.hasClass('htDisabled')).toBe(true);
     });
 
-    it('should be disabled when the single row header is selected', () => {
+    it('should be disabled when the single row header is selected', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -135,7 +135,7 @@ describe('ContextMenu', () => {
         navigableHeaders: true,
       });
 
-      selectCell(1, -1);
+      await selectCell(1, -1);
       getPlugin('contextMenu').open($(getCell(1, -1)).offset());
 
       const menuItem = $('.htContextMenu tbody tr td').filter(function() {
@@ -145,7 +145,7 @@ describe('ContextMenu', () => {
       expect(menuItem.hasClass('htDisabled')).toBe(true);
     });
 
-    it('should be disabled when the single column header is selected', () => {
+    it('should be disabled when the single column header is selected', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -154,7 +154,7 @@ describe('ContextMenu', () => {
         navigableHeaders: true,
       });
 
-      selectCell(-1, 1);
+      await selectCell(-1, 1);
       getPlugin('contextMenu').open($(getCell(-1, 1)).offset());
 
       const menuItem = $('.htContextMenu tbody tr td').filter(function() {
@@ -164,7 +164,7 @@ describe('ContextMenu', () => {
       expect(menuItem.hasClass('htDisabled')).toBe(true);
     });
 
-    it('should be disabled when the single corner is selected', () => {
+    it('should be disabled when the single corner is selected', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -173,7 +173,7 @@ describe('ContextMenu', () => {
         navigableHeaders: true,
       });
 
-      selectCell(-1, -1);
+      await selectCell(-1, -1);
       getPlugin('contextMenu').open($(getCell(-1, -1)).offset());
 
       const menuItem = $('.htContextMenu tbody tr td').filter(function() {

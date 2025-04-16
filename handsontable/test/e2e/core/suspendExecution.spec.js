@@ -14,7 +14,7 @@ describe('Core.suspendExecution', () => {
 
   it('should suspend the table execution process', () => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
     });
     const columnIndexCacheUpdated = jasmine.createSpy('columnIndexCacheUpdated');
     const rowIndexCacheUpdated = jasmine.createSpy('rowIndexCacheUpdated');
@@ -35,7 +35,7 @@ describe('Core.suspendExecution', () => {
 
   it('should wrap multiple calls of the table suspend execution', () => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
     });
     const columnIndexCacheUpdated = jasmine.createSpy('columnIndexCacheUpdated');
     const rowIndexCacheUpdated = jasmine.createSpy('rowIndexCacheUpdated');

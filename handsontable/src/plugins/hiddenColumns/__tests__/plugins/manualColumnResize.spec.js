@@ -13,9 +13,9 @@ describe('HiddenColumns', () => {
   });
 
   describe('manualColumnResize', () => {
-    it('should resize a proper column when the table contains hidden column using mouse events', () => {
+    it('should resize a proper column when the table contains hidden column using mouse events', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(2, 5),
+        data: createSpreadsheetData(2, 5),
         colHeaders: true,
         hiddenColumns: {
           columns: [1],
@@ -32,9 +32,9 @@ describe('HiddenColumns', () => {
       expect(colWidth(spec().$container, 1)).toBe(114); // 100 + 15 (indicator) - 1 (margin from overlay)
     });
 
-    it('should resize a proper column when the table contains hidden column using public API', () => {
+    it('should resize a proper column when the table contains hidden column using public API', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(2, 5),
+        data: createSpreadsheetData(2, 5),
         colHeaders: true,
         hiddenColumns: {
           columns: [1],
@@ -50,7 +50,7 @@ describe('HiddenColumns', () => {
       expect(colWidth(spec().$container, 1)).toBe(100);
     });
 
-    it('should display the resize handler in the proper position when the table contains hidden column', () => {
+    it('should display the resize handler in the proper position when the table contains hidden column', async() => {
       handsontable({
         data: [
           { id: 1, name: 'Ted', lastName: 'Right', addr: 'NYC' },
@@ -81,7 +81,7 @@ describe('HiddenColumns', () => {
       expect($handle.height()).toBe($headerTH.outerHeight());
     });
 
-    it('should display the resize handler in the proper position when the table contains hidden fixed left column', () => {
+    it('should display the resize handler in the proper position when the table contains hidden fixed left column', async() => {
       handsontable({
         data: [
           { id: 1, name: 'Ted', lastName: 'Right', addr: 'NYC' },
@@ -115,7 +115,7 @@ describe('HiddenColumns', () => {
       expect($handle.height()).toBe($headerTH.outerHeight());
     });
 
-    it('should resize a proper column using the resize handler when the table contains hidden column', () => {
+    it('should resize a proper column using the resize handler when the table contains hidden column', async() => {
       handsontable({
         data: [
           { id: 1, name: 'Ted', lastName: 'Right', addr: 'NYC' },

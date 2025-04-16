@@ -11,7 +11,7 @@ describe('Filters UI cooperation with ManualColumnMove', () => {
   });
 
   it('should work as expected after actions sequence: filtering column by value -> moving the column -> ' +
-     'filtering any other column by value', () => {
+     'filtering any other column by value', async() => {
     const hot = handsontable({
       data: [
         {
@@ -50,7 +50,7 @@ describe('Filters UI cooperation with ManualColumnMove', () => {
     const manualColumnMove = hot.getPlugin('manualColumnMove');
 
     // filtering first value of column (deselecting checkbox)
-    dropdownMenu(0);
+    await dropdownMenu(0);
 
     simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(1) [type=checkbox]'));
     simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
@@ -60,7 +60,7 @@ describe('Filters UI cooperation with ManualColumnMove', () => {
     hot.render();
 
     // filtering first value of column (deselecting checkbox)
-    dropdownMenu(2);
+    await dropdownMenu(2);
 
     simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(1) [type=checkbox]'));
     simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
@@ -69,7 +69,7 @@ describe('Filters UI cooperation with ManualColumnMove', () => {
   });
 
   it('should work as expected after actions sequence: filtering column by value -> moving the column -> ' +
-    'filtering the column by value ', () => {
+    'filtering the column by value ', async() => {
     const hot = handsontable({
       data: [
         {
@@ -108,7 +108,7 @@ describe('Filters UI cooperation with ManualColumnMove', () => {
     const manualColumnMove = hot.getPlugin('manualColumnMove');
 
     // filtering first value of column (deselecting checkbox)
-    dropdownMenu(0);
+    await dropdownMenu(0);
 
     simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(1) [type=checkbox]'));
     simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
@@ -118,7 +118,7 @@ describe('Filters UI cooperation with ManualColumnMove', () => {
     hot.render();
 
     // filtering second value of column (deselecting checkbox)
-    dropdownMenu(1);
+    await dropdownMenu(1);
 
     simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(2) [type=checkbox]'));
     simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));

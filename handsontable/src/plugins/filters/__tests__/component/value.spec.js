@@ -20,7 +20,7 @@ describe('Filters UI Value component', () => {
       height: 300
     });
 
-    dropdownMenu(1);
+    await dropdownMenu(1);
 
     expect(dropdownMenuRootElement().querySelector('.htFiltersMenuValue .htFiltersMenuLabel').textContent)
       .toBe('Filter by value:');
@@ -35,7 +35,7 @@ describe('Filters UI Value component', () => {
     expect(dropdownMenuRootElement().querySelector('.htFiltersMenuValue .htUIMultipleSelect')).not.toBeNull();
   });
 
-  it('should appear an empty list when the dropdown is opened using API and the table has no selection', () => {
+  it('should appear an empty list when the dropdown is opened using API and the table has no selection', async() => {
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -54,7 +54,7 @@ describe('Filters UI Value component', () => {
   });
 
   it('should appear a list from the column selected by the selection highlight when the dropdown is opened ' +
-      'using API and the table has non-contiguous selection', () => {
+      'using API and the table has non-contiguous selection', async() => {
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -65,7 +65,7 @@ describe('Filters UI Value component', () => {
     });
 
     // the highlight cell points to the 6, 3 (the selected column is 3)
-    selectCells([
+    await selectCells([
       [1, 0, 2, 1],
       [4, 2, 4, 4],
       [6, 3, 6, 1],
@@ -94,7 +94,7 @@ describe('Filters UI Value component', () => {
       height: 300
     });
 
-    dropdownMenu(2);
+    await dropdownMenu(2);
 
     await sleep(200);
 
@@ -114,7 +114,7 @@ describe('Filters UI Value component', () => {
     expect($(byValueBoxRootElement()).find('.ht_master .wtHolder').scrollTop()).toBe(0);
   });
 
-  it('should display empty values as "(Blank cells)"', () => {
+  it('should display empty values as "(Blank cells)"', async() => {
     const data = getDataForFilters();
 
     data[3].name = '';
@@ -128,17 +128,17 @@ describe('Filters UI Value component', () => {
       height: 300
     });
 
-    dropdownMenu(1);
+    await dropdownMenu(1);
 
     expect(byValueMultipleSelect().element.querySelector('.htCore td').textContent).toBe('Alice Blake');
 
     loadData(data);
-    dropdownMenu(1);
+    await dropdownMenu(1);
 
     expect(byValueMultipleSelect().element.querySelector('.htCore td').textContent).toBe('(Blank cells)');
   });
 
-  it('should display `null` values as "(Blank cells)"', () => {
+  it('should display `null` values as "(Blank cells)"', async() => {
     const data = getDataForFilters();
 
     data[3].name = null;
@@ -152,17 +152,17 @@ describe('Filters UI Value component', () => {
       height: 300
     });
 
-    dropdownMenu(1);
+    await dropdownMenu(1);
 
     expect(byValueMultipleSelect().element.querySelector('.htCore td').textContent).toBe('Alice Blake');
 
     loadData(data);
-    dropdownMenu(1);
+    await dropdownMenu(1);
 
     expect(byValueMultipleSelect().element.querySelector('.htCore td').textContent).toBe('(Blank cells)');
   });
 
-  it('should display `undefined` values as "(Blank cells)"', () => {
+  it('should display `undefined` values as "(Blank cells)"', async() => {
     const data = getDataForFilters();
 
     data[3].name = undefined;
@@ -176,17 +176,18 @@ describe('Filters UI Value component', () => {
       height: 300
     });
 
-    dropdownMenu(1);
+    await dropdownMenu(1);
 
     expect(byValueMultipleSelect().element.querySelector('.htCore td').textContent).toBe('Alice Blake');
 
     loadData(data);
-    dropdownMenu(1);
+    await dropdownMenu(1);
 
     expect(byValueMultipleSelect().element.querySelector('.htCore td').textContent).toBe('(Blank cells)');
   });
 
-  it.forTheme('classic')('should utilize the `modifyFiltersMultiSelectValue` hook to display the cell value', () => {
+  it.forTheme('classic')(`should utilize the 'modifyFiltersMultiSelectValue' hook to display
+ the cell value`, async() => {
     const columnsSetting = getColumnsForFilters();
 
     handsontable({
@@ -201,7 +202,7 @@ describe('Filters UI Value component', () => {
       },
     });
 
-    dropdownMenu(1);
+    await dropdownMenu(1);
 
     const unifiedColDataSample = [
       'Alice Blake', 'Alyssa Francis', 'Becky Ross', 'Bridges Sawyer', 'Burt Cash', 'Carissa Villarreal'
@@ -215,7 +216,8 @@ describe('Filters UI Value component', () => {
     expect(unifiedColDataSample.length).toBe(6);
   });
 
-  it.forTheme('main')('should utilize the `modifyFiltersMultiSelectValue` hook to display the cell value', () => {
+  it.forTheme('main')(`should utilize the 'modifyFiltersMultiSelectValue' hook to display
+ the cell value`, async() => {
     const columnsSetting = getColumnsForFilters();
 
     handsontable({
@@ -230,7 +232,7 @@ describe('Filters UI Value component', () => {
       },
     });
 
-    dropdownMenu(1);
+    await dropdownMenu(1);
 
     const unifiedColDataSample = [
       'Alice Blake', 'Alyssa Francis', 'Becky Ross', 'Bridges Sawyer', 'Burt Cash',
@@ -244,7 +246,8 @@ describe('Filters UI Value component', () => {
     expect(unifiedColDataSample.length).toBe(5);
   });
 
-  it.forTheme('horizon')('should utilize the `modifyFiltersMultiSelectValue` hook to display the cell value', () => {
+  it.forTheme('horizon')(`should utilize the 'modifyFiltersMultiSelectValue' hook to display
+ the cell value`, async() => {
     const columnsSetting = getColumnsForFilters();
 
     handsontable({
@@ -259,7 +262,7 @@ describe('Filters UI Value component', () => {
       },
     });
 
-    dropdownMenu(1);
+    await dropdownMenu(1);
 
     const unifiedColDataSample = [
       'Alice Blake', 'Alyssa Francis', 'Becky Ross', 'Bridges Sawyer', 'Burt Cash',
@@ -274,7 +277,7 @@ describe('Filters UI Value component', () => {
   });
 
   it('should display the formatted renderer output in the multi-selection component if the column being filtered ' +
-    'is numeric-typed', () => {
+    'is numeric-typed', async() => {
     handsontable({
       data: [
         [1, 6],
@@ -297,7 +300,7 @@ describe('Filters UI Value component', () => {
       ]
     });
 
-    dropdownMenu(1);
+    await dropdownMenu(1);
 
     for (let i = 0; i < countRows(); i++) {
       expect(
@@ -320,28 +323,28 @@ describe('Filters UI Value component', () => {
       height: 300
     });
 
-    dropdownMenu(1);
+    await dropdownMenu(1);
 
     await sleep(200);
 
     // deselect "(Blank cells)"
     $(byValueMultipleSelect().element.querySelector('.htUIMultipleSelectHot td input')).simulate('click');
     $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
-    dropdownMenu(2);
+    await dropdownMenu(2);
 
     await sleep(200);
 
     // deselect "Alamo"
     $(byValueMultipleSelect().element.querySelector('.htUIMultipleSelectHot td input')).simulate('click');
     $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
-    dropdownMenu(1);
+    await dropdownMenu(1);
 
     await sleep(200);
 
     // select "(Blank cells)"
     $(byValueMultipleSelect().element.querySelector('.htUIMultipleSelectHot td input')).simulate('click');
     $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
-    dropdownMenu(2);
+    await dropdownMenu(2);
 
     await sleep(200);
 
@@ -358,12 +361,12 @@ describe('Filters UI Value component', () => {
       height: 300
     });
 
-    dropdownMenu(1);
+    await dropdownMenu(1);
     byValueMultipleSelect().element.querySelector('input').focus();
 
     await sleep(200);
 
-    keyDownUp('escape');
+    await keyDownUp('escape');
 
     expect($(conditionMenuRootElements().first).is(':visible')).toBe(false);
     expect($(dropdownMenuRootElement()).is(':visible')).toBe(false);
@@ -379,18 +382,18 @@ describe('Filters UI Value component', () => {
       height: 300
     });
 
-    dropdownMenu(1);
+    await dropdownMenu(1);
 
     await sleep(200);
 
     byValueMultipleSelect().focus();
-    keyDownUp('escape');
+    await keyDownUp('escape');
     expect($(conditionMenuRootElements().first).is(':visible')).toBe(false);
     expect($(dropdownMenuRootElement()).is(':visible')).toBe(false);
   });
 
   describe('Updating "by value" component cache #87', () => {
-    it('should update component view after applying filtering and changing cell value', () => {
+    it('should update component view after applying filtering and changing cell value', async() => {
       handsontable({
         data: [
           {
@@ -420,13 +423,13 @@ describe('Filters UI Value component', () => {
         height: 300
       });
 
-      dropdownMenu(2);
+      await dropdownMenu(2);
 
       simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(1) [type=checkbox]'));
       simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
       setDataAtCell(0, 2, 'BBB City - modified');
 
-      dropdownMenu(2);
+      await dropdownMenu(2);
       expect($(byValueBoxRootElement()).find('tr:contains("BBB City - modified")').length).toEqual(1);
 
       const checkboxes = $(byValueBoxRootElement()).find(':checkbox').toArray();
@@ -435,9 +438,9 @@ describe('Filters UI Value component', () => {
       expect(checkedArray).toEqual([false, true, true]);
     });
 
-    it('should not modify checkboxes if the user changed values in another column', () => {
+    it('should not modify checkboxes if the user changed values in another column', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 2),
+        data: createSpreadsheetData(5, 2),
         dropdownMenu: true,
         colHeaders: true,
         filters: true,
@@ -450,7 +453,7 @@ describe('Filters UI Value component', () => {
       hot.selectCell(0, 1);
       hot.emptySelectedCells();
 
-      dropdownMenu(0);
+      await dropdownMenu(0);
 
       const checkboxes = $(byValueBoxRootElement()).find(':checkbox');
 
@@ -462,7 +465,7 @@ describe('Filters UI Value component', () => {
     });
 
     it('should show proper number of values after refreshing cache ' +
-      '(should remove the value from component), case nr 1 (changing value to match unfiltered value)', () => {
+      '(should remove the value from component), case nr 1 (changing value to match unfiltered value)', async() => {
       handsontable({
         data: [
           {
@@ -493,13 +496,13 @@ describe('Filters UI Value component', () => {
         height: 300
       });
 
-      dropdownMenu(2);
+      await dropdownMenu(2);
 
       simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(1) [type=checkbox]'));
       simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
       setDataAtCell(0, 2, 'CCC City'); // BBB City -> CCC City
-      dropdownMenu(2);
+      await dropdownMenu(2);
 
       const elements = $(byValueBoxRootElement()).find('label').toArray();
       const text = elements.map(element => $(element).text());
@@ -513,7 +516,7 @@ describe('Filters UI Value component', () => {
     });
 
     it('should show proper number of values after refreshing cache ' +
-      '(should remove the value from component), case nr 2 (changing value to match filtered value)', (done) => {
+      '(should remove the value from component), case nr 2 (changing value to match filtered value)', async() => {
       handsontable({
         data: [
           {
@@ -548,22 +551,21 @@ describe('Filters UI Value component', () => {
         height: 300
       });
 
-      dropdownMenu(2);
+      await dropdownMenu(2);
 
       simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(1) [type=checkbox]'));
       simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
       setDataAtCell(0, 2, 'AAA City'); // AAAA City -> AAA City
 
-      dropdownMenu(2);
+      await dropdownMenu(2);
       const elements = $(byValueBoxRootElement()).find('label').toArray();
       const text = elements.map(element => $(element).text());
 
       expect(text).toEqual(['AAA City', 'CCC City', 'DDD City']);
-      done();
     });
 
-    it('should show proper number of values after refreshing cache (should add new value to component)', () => {
+    it('should show proper number of values after refreshing cache (should add new value to component)', async() => {
       handsontable({
         data: [
           {
@@ -598,13 +600,13 @@ describe('Filters UI Value component', () => {
         height: 300
       });
 
-      dropdownMenu(2);
+      await dropdownMenu(2);
 
       simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(1) [type=checkbox]'));
       simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
       setDataAtCell(1, 2, 'CCC City');
-      dropdownMenu(2);
+      await dropdownMenu(2);
 
       const elements = $(byValueBoxRootElement()).find('label').toArray();
       const text = elements.map(element => $(element).text());
@@ -617,7 +619,7 @@ describe('Filters UI Value component', () => {
       expect(checkedArray).toEqual([false, true, true, true]);
     });
 
-    it('should sort updated values', () => {
+    it('should sort updated values', async() => {
       handsontable({
         data: [
           {
@@ -652,14 +654,14 @@ describe('Filters UI Value component', () => {
         height: 300
       });
 
-      dropdownMenu(2);
+      await dropdownMenu(2);
 
       simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(1) [type=checkbox]'));
       simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
       setDataAtCell(0, 2, 'AAA City');
 
-      dropdownMenu(2);
+      await dropdownMenu(2);
       expect($(byValueBoxRootElement()).find('tr:nth-child(1)').text()).toEqual('AAA City');
     });
   });

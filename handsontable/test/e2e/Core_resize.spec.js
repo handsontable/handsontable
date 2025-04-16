@@ -23,7 +23,7 @@ describe('Core resize', () => {
 
   it('should not change table height after window is resized when a handsontable parent elements have not defined height', () => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 2),
+      data: createSpreadsheetData(10, 2),
       rowHeaders: true,
       colHeaders: true,
       fixedRowsBottom: 1,
@@ -42,7 +42,7 @@ describe('Core resize', () => {
     spec().$wrapper.css({ overflow: 'scroll' });
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 2),
+      data: createSpreadsheetData(10, 2),
       rowHeaders: true,
       colHeaders: true,
       fixedRowsBottom: 1,
@@ -59,7 +59,7 @@ describe('Core resize', () => {
 
   it('should change table height after changing parent element height', () => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 2),
+      data: createSpreadsheetData(10, 2),
       rowHeaders: true,
       colHeaders: true,
       fixedRowsBottom: 1,

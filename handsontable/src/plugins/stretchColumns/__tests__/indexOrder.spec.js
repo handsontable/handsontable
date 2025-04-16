@@ -10,7 +10,7 @@ describe('StretchColumns cooperation with reordered indexes', () => {
     }
   });
 
-  it('should follow the columns order when they are moved', () => {
+  it('should follow the columns order when they are moved', async() => {
     handsontable({
       data: createSpreadsheetData(5, 4),
       colHeaders: true,

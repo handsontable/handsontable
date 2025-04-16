@@ -17,7 +17,7 @@ describe('manualRowResize (RTL mode)', () => {
 
   it('should resize (expanding and narrowing) selected rows', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 20),
+      data: createSpreadsheetData(10, 20),
       rowHeaders: true,
       manualRowResize: true
     });
@@ -74,7 +74,7 @@ describe('manualRowResize (RTL mode)', () => {
       spec().$container.css('transform', 'translate(-50px, 120px)');
 
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(20, 10),
+        data: createSpreadsheetData(20, 10),
         colHeaders: true,
         rowHeaders: true,
         manualRowResize: true,
@@ -108,7 +108,7 @@ describe('manualRowResize (RTL mode)', () => {
       spec().$container.css('transform', 'translate(-50px, 120px)');
 
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(80, 10),
+        data: createSpreadsheetData(80, 10),
         colHeaders: true,
         rowHeaders: true,
         manualRowResize: true,
@@ -150,7 +150,7 @@ describe('manualRowResize (RTL mode)', () => {
         $('html').attr('dir', 'ltr');
       });
 
-      it('should display the resize handle in the proper position and with a proper size', () => {
+      it('should display the resize handle in the proper position and with a proper size', async() => {
         handsontable({
           layoutDirection,
           data: [
@@ -182,7 +182,7 @@ describe('manualRowResize (RTL mode)', () => {
       it('should display the resize handle in the correct place after the table has been scrolled', async() => {
         const hot = handsontable({
           layoutDirection,
-          data: Handsontable.helper.createSpreadsheetData(20, 20),
+          data: createSpreadsheetData(20, 20),
           rowHeaders: true,
           manualRowResize: true,
           height: 100,

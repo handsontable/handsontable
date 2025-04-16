@@ -12,9 +12,9 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     }
   });
 
-  it('should add the `aria-sort` attribute to a sortable header and change its value after sorting', () => {
+  it('should add the `aria-sort` attribute to a sortable header and change its value after sorting', async() => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(3, 3),
+      data: createSpreadsheetData(3, 3),
       colHeaders: true,
       nestedRows: true,
       multiColumnSorting: true,

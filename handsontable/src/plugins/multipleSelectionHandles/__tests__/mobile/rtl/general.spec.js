@@ -19,7 +19,7 @@ describe('MultipleSelectionHandles (RTL mode)', () => {
       }
     });
 
-    it('should not stretch the container of the scrollable element (#9475)', () => {
+    it('should not stretch the container of the scrollable element (#9475)', async() => {
       handsontable({
         layoutDirection,
         data: createSpreadsheetData(5, 8),

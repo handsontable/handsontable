@@ -23,7 +23,7 @@ describe('DropdownMenu (RTL mode)', () => {
 
     // all other E2E tests are moved to visual tests. See ./visual-tests/tests/js-only/dropdown-menu/
 
-    it('should show tick from "Read only" element at proper place', () => {
+    it('should show tick from "Read only" element at proper place', async() => {
       handsontable({
         layoutDirection,
         data: createSpreadsheetData(10, 10),
@@ -32,7 +32,7 @@ describe('DropdownMenu (RTL mode)', () => {
         readOnly: true,
       });
 
-      dropdownMenu(0);
+      await dropdownMenu(0);
 
       const $readOnlyItem = $('.htDropdownMenu .ht_master .htCore td:contains(Read only)');
       const $tickItem = $readOnlyItem.find('span.selected');

@@ -20,9 +20,9 @@ describe('NestedHeaders', () => {
   });
 
   describe('hiding columns', () => {
-    it('should work with default setup', () => {
+    it('should work with default setup', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         colHeaders: true,
         nestedHeaders: true,
       });
@@ -60,9 +60,9 @@ describe('NestedHeaders', () => {
         `);
     });
 
-    it('should work with minimal setup', () => {
+    it('should work with minimal setup', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         colHeaders: true,
       });
 
@@ -103,9 +103,9 @@ describe('NestedHeaders', () => {
         `);
     });
 
-    it('should work with single level of nested headers configuration', () => {
+    it('should work with single level of nested headers configuration', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         colHeaders: true,
         nestedHeaders: [
           ['A', { label: 'B', colspan: 3 }, 'E', 'F', { label: 'G', colspan: 2 }, 'I', 'J'],
@@ -220,9 +220,9 @@ describe('NestedHeaders', () => {
         `);
     });
 
-    it('should keep the headers in sync with a dataset after updateSettings call', () => {
+    it('should keep the headers in sync with a dataset after updateSettings call', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         colHeaders: true,
         nestedHeaders: [
           ['A', { label: 'B', colspan: 3 }, 'E', 'F', { label: 'G', colspan: 2 }, 'I', 'J'],
@@ -288,9 +288,9 @@ describe('NestedHeaders', () => {
         `);
     });
 
-    it('should work with multiple levels of nested headers configuration (variation #1)', () => {
+    it('should work with multiple levels of nested headers configuration (variation #1)', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         colHeaders: true,
         nestedHeaders: [
           ['A1', { label: 'B1', colspan: 8 }, 'J1'],
@@ -574,9 +574,9 @@ describe('NestedHeaders', () => {
         `);
     });
 
-    it('should work with multiple levels of nested headers configuration (variation #2, advanced example, with "mirrored" headers)', () => {
+    it('should work with multiple levels of nested headers configuration (variation #2, advanced example, with "mirrored" headers)', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 13),
+        data: createSpreadsheetData(10, 13),
         colHeaders: true,
         nestedHeaders: [
           ['A1', { label: 'B1', colspan: 8 }, 'J1', { label: 'K1', colspan: 3 }],
@@ -896,9 +896,9 @@ describe('NestedHeaders', () => {
         `);
     });
 
-    it('should work with multiple levels of nested headers configuration with cooperation with the fixedColumnsStart option', () => {
+    it('should work with multiple levels of nested headers configuration with cooperation with the fixedColumnsStart option', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 13),
+        data: createSpreadsheetData(10, 13),
         colHeaders: true,
         nestedHeaders: [
           ['A1', { label: 'B1', colspan: 8 }, 'J1', { label: 'K1', colspan: 3 }],
@@ -1723,7 +1723,7 @@ describe('NestedHeaders', () => {
 
     it('should adjust headers correctly when the new maps are created and registered after Hot is running', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         colHeaders: true,
         nestedHeaders: [
           ['A1', { label: 'B1', colspan: 8 }, 'J1'],
@@ -1891,7 +1891,7 @@ describe('NestedHeaders', () => {
 
     it('should adjust headers correctly when the hidden maps are unregistered', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         colHeaders: true,
         nestedHeaders: [
           ['A1', { label: 'B1', colspan: 8 }, 'J1'],
@@ -2161,7 +2161,7 @@ describe('NestedHeaders', () => {
       }
 
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 60),
+        data: createSpreadsheetData(10, 60),
         colHeaders: true,
         nestedHeaders,
         width: 500,
@@ -2218,9 +2218,9 @@ describe('NestedHeaders', () => {
     });
 
     describe('with cooperation with the HidingColumns plugin', () => {
-      it('should keep the headers in sync with a dataset using initial settings', () => {
+      it('should keep the headers in sync with a dataset using initial settings', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           colHeaders: true,
           nestedHeaders: [
             ['A', { label: 'B', colspan: 3 }, 'E', 'F', { label: 'G', colspan: 2 }, 'I', 'J'],
@@ -2254,9 +2254,9 @@ describe('NestedHeaders', () => {
           `);
       });
 
-      it('should keep the headers in sync with a dataset after updateSettings call', () => {
+      it('should keep the headers in sync with a dataset after updateSettings call', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           colHeaders: true,
           nestedHeaders: [
             ['A', { label: 'B', colspan: 3 }, 'E', 'F', { label: 'G', colspan: 2 }, 'I', 'J'],

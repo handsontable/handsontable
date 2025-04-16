@@ -12,7 +12,7 @@ describe('PasswordEditor', () => {
     }
   });
 
-  it('should render an editor in specified position at cell 0, 0', () => {
+  it('should render an editor in specified position at cell 0, 0', async() => {
     handsontable({
       columns: [
         {
@@ -21,11 +21,11 @@ describe('PasswordEditor', () => {
       ],
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(editor.offset()).toEqual($(getCell(0, 0)).offset());
   });
@@ -53,9 +53,9 @@ describe('PasswordEditor', () => {
   });
 
   it('should render an editor in specified position while opening an editor from top to bottom when ' +
-     'top and bottom overlays are enabled', () => {
+     'top and bottom overlays are enabled', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(8, 2),
+      data: createSpreadsheetData(8, 2),
       rowHeaders: true,
       colHeaders: true,
       fixedRowsTop: 3,
@@ -68,16 +68,16 @@ describe('PasswordEditor', () => {
       ],
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
 
-    keyDownUp('enter');
-    keyDownUp('enter');
+    await keyDownUp('enter');
+    await keyDownUp('enter');
 
     // Cells that do not touch the edges of the table have an additional top border.
     const editorOffset = () => ({
@@ -87,58 +87,58 @@ describe('PasswordEditor', () => {
 
     expect(editorOffset()).toEqual($(getCell(1, 0, true)).offset());
 
-    keyDownUp('enter');
-    keyDownUp('enter');
+    await keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
 
-    keyDownUp('enter');
-    keyDownUp('enter');
+    await keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(3, 0, true)).offset());
 
-    keyDownUp('enter');
-    keyDownUp('enter');
+    await keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(4, 0, true)).offset());
 
-    keyDownUp('enter');
-    keyDownUp('enter');
+    await keyDownUp('enter');
+    await keyDownUp('enter');
 
     // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
     expect(editor.offset()).toEqual($(getCell(5, 0, true)).offset());
 
-    keyDownUp('enter');
-    keyDownUp('enter');
+    await keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(6, 0, true)).offset());
 
-    keyDownUp('enter');
-    keyDownUp('enter');
+    await keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
   });
 
   it('should render an editor in specified position while opening an editor from left to right when ' +
-     'left overlay is enabled', () => {
+     'left overlay is enabled', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 5),
+      data: createSpreadsheetData(2, 5),
       rowHeaders: true,
       colHeaders: true,
       fixedColumnsStart: 3,
       type: 'password',
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
 
-    selectCell(0, 1);
-    keyDownUp('enter');
+    await selectCell(0, 1);
+    await keyDownUp('enter');
 
     // Cells that do not touch the edges of the table have an additional left border.
     const editorOffset = () => ({
@@ -148,26 +148,26 @@ describe('PasswordEditor', () => {
 
     expect(editorOffset()).toEqual($(getCell(0, 1, true)).offset());
 
-    selectCell(0, 2);
-    keyDownUp('enter');
+    await selectCell(0, 2);
+    await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 2, true)).offset());
 
-    selectCell(0, 3);
-    keyDownUp('enter');
+    await selectCell(0, 3);
+    await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 3, true)).offset());
 
-    selectCell(0, 4);
-    keyDownUp('enter');
+    await selectCell(0, 4);
+    await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 4, true)).offset());
   });
 
   it('should render an editor in specified position while opening an editor from top to bottom when ' +
-       'top and bottom overlays are enabled and the first row of the both overlays are hidden', () => {
+       'top and bottom overlays are enabled and the first row of the both overlays are hidden', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(8, 2),
+      data: createSpreadsheetData(8, 2),
       rowHeaders: true,
       colHeaders: true,
       fixedRowsTop: 3,
@@ -184,17 +184,17 @@ describe('PasswordEditor', () => {
       ],
     });
 
-    selectCell(1, 0);
+    await selectCell(1, 0);
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     // First renderable row index.
     expect(editor.offset()).toEqual($(getCell(1, 0, true)).offset());
 
-    keyDownUp('enter');
-    keyDownUp('enter');
+    await keyDownUp('enter');
+    await keyDownUp('enter');
 
     // Cells that do not touch the edges of the table have an additional top border.
     const editorOffset = () => ({
@@ -204,32 +204,32 @@ describe('PasswordEditor', () => {
 
     expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
 
-    keyDownUp('enter');
-    keyDownUp('enter');
+    await keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(3, 0, true)).offset());
 
-    keyDownUp('enter');
-    keyDownUp('enter');
+    await keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(4, 0, true)).offset());
 
-    keyDownUp('enter');
-    keyDownUp('enter');
+    await keyDownUp('enter');
+    await keyDownUp('enter');
 
     // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
     expect(editor.offset()).toEqual($(getCell(6, 0, true)).offset());
 
-    keyDownUp('enter');
-    keyDownUp('enter');
+    await keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
   });
 
   it('should render an editor in specified position while opening an editor from left to right when ' +
-     'left overlay is enabled and the first column of the overlay is hidden', () => {
+     'left overlay is enabled and the first column of the overlay is hidden', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 5),
+      data: createSpreadsheetData(2, 5),
       rowHeaders: true,
       colHeaders: true,
       fixedColumnsStart: 3,
@@ -240,17 +240,17 @@ describe('PasswordEditor', () => {
       type: 'password',
     });
 
-    selectCell(0, 1);
+    await selectCell(0, 1);
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     // First renderable column index.
     expect(editor.offset()).toEqual($(getCell(0, 1, true)).offset());
 
-    selectCell(0, 2);
-    keyDownUp('enter');
+    await selectCell(0, 2);
+    await keyDownUp('enter');
 
     // Cells that do not touch the edges of the table have an additional left border.
     const editorOffset = () => ({
@@ -260,31 +260,31 @@ describe('PasswordEditor', () => {
 
     expect(editorOffset()).toEqual($(getCell(0, 2, true)).offset());
 
-    selectCell(0, 3);
-    keyDownUp('enter');
+    await selectCell(0, 3);
+    await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 3, true)).offset());
 
-    selectCell(0, 4);
-    keyDownUp('enter');
+    await selectCell(0, 4);
+    await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 4, true)).offset());
   });
 
-  it('should not highlight the input element by browsers native selection', () => {
+  it('should not highlight the input element by browsers native selection', async() => {
     handsontable({
       type: 'password',
     });
 
-    selectCell(0, 0);
-    keyDownUp('enter');
+    await selectCell(0, 0);
+    await keyDownUp('enter');
 
     const editor = getActiveEditor().TEXTAREA;
 
     expect(window.getComputedStyle(editor, 'focus').getPropertyValue('outline-style')).toBe('none');
   });
 
-  it('should display editor as password field', () => {
+  it('should display editor as password field', async() => {
     handsontable({
       data: [
         ['Joe'],
@@ -299,8 +299,8 @@ describe('PasswordEditor', () => {
       ]
     });
 
-    selectCell(0, 0);
-    keyDownUp('enter');
+    await selectCell(0, 0);
+    await keyDownUp('enter');
 
     const editor = $('.handsontableInput');
 
@@ -318,14 +318,14 @@ describe('PasswordEditor', () => {
       ]
     });
 
-    selectCell(0, 0);
-    keyDownUp('enter');
+    await selectCell(0, 0);
+    await keyDownUp('enter');
 
     const editor = getActiveEditor().TEXTAREA;
 
     editor.value = 'wwwwwwwwwwwwwwwwww'; // "w" is wider than password dots
-    keyDownUp('w'); // trigger editor autoresize
 
+    await keyDownUp('w'); // trigger editor autoresize
     await sleep(10);
 
     expect(editor.style.width).forThemes(({ classic, main, horizon }) => {
@@ -335,7 +335,7 @@ describe('PasswordEditor', () => {
     });
   });
 
-  it('should set passwordEditor using \'password\' alias', () => {
+  it('should set passwordEditor using \'password\' alias', async() => {
     handsontable({
       data: [
         ['Joe'],
@@ -350,8 +350,8 @@ describe('PasswordEditor', () => {
       ]
     });
 
-    selectCell(0, 0);
-    keyDownUp('enter');
+    await selectCell(0, 0);
+    await keyDownUp('enter');
 
     const editor = $('.handsontableInput');
 
@@ -360,7 +360,7 @@ describe('PasswordEditor', () => {
 
   });
 
-  it('should set passwordEditor using column type \'password\' ', () => {
+  it('should set passwordEditor using column type \'password\' ', async() => {
     handsontable({
       data: [
         ['Joe'],
@@ -375,8 +375,8 @@ describe('PasswordEditor', () => {
       ]
     });
 
-    selectCell(0, 0);
-    keyDownUp('enter');
+    await selectCell(0, 0);
+    await keyDownUp('enter');
 
     const editorHolder = $('.handsontableInputHolder');
     const editor = editorHolder.find('.handsontableInput');
@@ -386,7 +386,7 @@ describe('PasswordEditor', () => {
 
   });
 
-  it('should save values typed in passwordEditor', () => {
+  it('should save values typed in passwordEditor', async() => {
     handsontable({
       data: [
         ['Joe'],
@@ -401,12 +401,12 @@ describe('PasswordEditor', () => {
       ]
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
     expect(getDataAtCell(0, 0)).toMatch('Joe');
     expect(getRenderedValue(0, 0)).toMatch('Joe');
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     const editorHolder = $('.handsontableInputHolder');
     const editor = editorHolder.find('.handsontableInput');
@@ -415,7 +415,7 @@ describe('PasswordEditor', () => {
 
     editor.val('Edgar');
 
-    selectCell(1, 0); // closes editor and saves current value
+    await selectCell(1, 0); // closes editor and saves current value
 
     expect(editorHolder.css('z-index')).toBe('-1');
 
@@ -438,7 +438,7 @@ describe('PasswordEditor', () => {
       imeFastEdit: true,
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
     // The `imeFastEdit` timeout is set to 50ms.
     await sleep(55);
@@ -449,7 +449,7 @@ describe('PasswordEditor', () => {
     expect(activeElement).not.toBe(null);
     expect(document.activeElement).toBe(activeElement);
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(document.activeElement).toBe(activeElement);
 
@@ -458,28 +458,31 @@ describe('PasswordEditor', () => {
     expect(document.activeElement).toBe(activeElement);
 
     hot.getActiveEditor().TEXTAREA.value = '1';
-    keyDownUp('1');
+
+    await keyDownUp('1');
 
     expect(document.activeElement).toBe(activeElement);
 
     hot.getActiveEditor().TEXTAREA.value = '12';
-    keyDownUp('2');
+
+    await keyDownUp('2');
 
     expect(document.activeElement).toBe(activeElement);
 
     hot.getActiveEditor().TEXTAREA.value = '123';
-    keyDownUp('3');
+
+    await keyDownUp('3');
 
     expect(document.activeElement).toBe(activeElement);
   });
 
-  it('should render an editable editor\'s element without messing with "dir" attribute', () => {
+  it('should render an editable editor\'s element without messing with "dir" attribute', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 5),
+      data: createSpreadsheetData(2, 5),
       editor: 'password',
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
     const editableElement = getActiveEditor().TEXTAREA;
 
@@ -493,7 +496,7 @@ describe('PasswordEditor', () => {
         imeFastEdit: true,
       });
 
-      selectCell(0, 0, 0, 0, true, false);
+      await selectCell(0, 0, 0, 0, true, false);
 
       // The `imeFastEdit` timeout is set to 50ms.
       await sleep(55);

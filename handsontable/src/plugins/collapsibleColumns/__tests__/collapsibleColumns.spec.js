@@ -101,9 +101,9 @@ describe('CollapsibleColumns', () => {
   });
 
   describe('initialization', () => {
-    it('should be possible to disable the plugin using the disablePlugin method', () => {
+    it('should be possible to disable the plugin using the disablePlugin method', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         nestedHeaders: [
           ['A1', { label: 'B1', colspan: 4 }, 'F1', 'G1', 'H1', 'I1', 'J1'],
           ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2', 'J2'],
@@ -157,7 +157,7 @@ describe('CollapsibleColumns', () => {
         `);
 
       plugin.disablePlugin();
-      hot.render();
+      await render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -203,9 +203,9 @@ describe('CollapsibleColumns', () => {
         `);
     });
 
-    it('should be possible to re-enable the plugin using the enablePlugin method', () => {
+    it('should be possible to re-enable the plugin using the enablePlugin method', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         nestedHeaders: [
           ['A1', { label: 'B1', colspan: 4 }, 'F1', 'G1', 'H1', 'I1', 'J1'],
           ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2', 'J2'],
@@ -216,9 +216,9 @@ describe('CollapsibleColumns', () => {
       const plugin = hot.getPlugin('collapsibleColumns');
 
       plugin.disablePlugin();
-      hot.render();
+      await render();
       plugin.enablePlugin();
-      hot.render();
+      await render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -264,16 +264,16 @@ describe('CollapsibleColumns', () => {
         `);
     });
 
-    it('should be possible to enable the plugin using the updateSettings method (enable all nested headers)', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+    it('should be possible to enable the plugin using the updateSettings method (enable all nested headers)', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
         nestedHeaders: [
           ['A1', { label: 'B1', colspan: 4 }, 'F1', 'G1', 'H1', 'I1', 'J1'],
           ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2', 'J2'],
         ]
       });
 
-      hot.updateSettings({
+      await updateSettings({
         collapsibleColumns: true
       });
 
@@ -321,16 +321,16 @@ describe('CollapsibleColumns', () => {
         `);
     });
 
-    it('should be possible to enable the plugin using the updateSettings method (selective configuration)', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+    it('should be possible to enable the plugin using the updateSettings method (selective configuration)', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
         nestedHeaders: [
           ['A1', { label: 'B1', colspan: 4 }, 'F1', 'G1', 'H1', 'I1', 'J1'],
           ['A2', { label: 'B1', colspan: 2 }, { label: 'D1', colspan: 2 }, 'F2', 'G2', 'H2', 'I2', 'J2'],
         ]
       });
 
-      hot.updateSettings({
+      await updateSettings({
         collapsibleColumns: [
           { row: -1, col: 3, collapsible: true },
           { row: -2, col: 1, collapsible: true },
@@ -381,9 +381,9 @@ describe('CollapsibleColumns', () => {
         `);
     });
 
-    it('should be possible to disable the plugin using the updateSettings method', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+    it('should be possible to disable the plugin using the updateSettings method', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
         nestedHeaders: [
           ['A1', { label: 'B1', colspan: 4 }, 'F1', 'G1', 'H1', 'I1', 'J1'],
           ['A2', { label: 'B1', colspan: 2 }, { label: 'D1', colspan: 2 }, 'F2', 'G2', 'H2', 'I2', 'J2'],
@@ -391,7 +391,7 @@ describe('CollapsibleColumns', () => {
         collapsibleColumns: true,
       });
 
-      hot.updateSettings({
+      await updateSettings({
         collapsibleColumns: false,
       });
 
@@ -439,9 +439,9 @@ describe('CollapsibleColumns', () => {
         `);
     });
 
-    it('should be possible to update the plugin settings using the updateSettings method', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+    it('should be possible to update the plugin settings using the updateSettings method', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
         nestedHeaders: [
           ['A1', { label: 'B1', colspan: 4 }, 'F1', 'G1', 'H1', 'I1', 'J1'],
           ['A2', { label: 'B1', colspan: 2 }, { label: 'D1', colspan: 2 }, 'F2', 'G2', 'H2', 'I2', 'J2'],
@@ -451,7 +451,7 @@ describe('CollapsibleColumns', () => {
         ],
       });
 
-      hot.updateSettings({
+      await updateSettings({
         collapsibleColumns: [
           { row: -2, col: 1, collapsible: true }
         ],
@@ -500,7 +500,7 @@ describe('CollapsibleColumns', () => {
         </tbody>
         `);
 
-      hot.updateSettings({
+      await updateSettings({
         collapsibleColumns: [
           { row: -1, col: 3, collapsible: true }
         ],
@@ -549,7 +549,7 @@ describe('CollapsibleColumns', () => {
         </tbody>
         `);
 
-      hot.updateSettings({
+      await updateSettings({
         collapsibleColumns: true
       });
 
@@ -597,9 +597,9 @@ describe('CollapsibleColumns', () => {
         `);
     });
 
-    it('should ignore creating collapsible headers when they are belongs to the start overlay', () => {
+    it('should ignore creating collapsible headers when they are belongs to the start overlay', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         nestedHeaders: [
           ['A1', { label: 'B1', colspan: 4 }, 'F1', 'G1', 'H1', { label: 'I1', colspan: 2 }],
           ['A2', { label: 'B2', colspan: 2 }, { label: 'D2', colspan: 2 }, 'F2', 'G2', 'H2', 'I2', 'J2'],
@@ -652,9 +652,9 @@ describe('CollapsibleColumns', () => {
         `);
     });
 
-    it('should make collapsible headers only when they have colspan greater than 0', () => {
+    it('should make collapsible headers only when they have colspan greater than 0', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 6),
+        data: createSpreadsheetData(10, 6),
         nestedHeaders: [
           ['A1', { label: 'B1', colspan: 4 }],
           ['A2', { label: 'B2', colspan: 2 }, { label: 'D2', colspan: 2 }],
@@ -701,9 +701,9 @@ describe('CollapsibleColumns', () => {
   });
 
   describe('collapsing headers functionality', () => {
-    it('should keep headers and cells consistent after collapsing single header (basic example)', () => {
+    it('should keep headers and cells consistent after collapsing single header (basic example)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         nestedHeaders: [
           ['A1', { label: 'B1', colspan: 4 }, 'F1', 'G1', 'H1', 'I1', 'J1'],
           ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2', 'J2'],
@@ -794,9 +794,9 @@ describe('CollapsibleColumns', () => {
         `);
     });
 
-    it('should keep headers and cells consistent after collapsing multiple headers (basic example)', () => {
+    it('should keep headers and cells consistent after collapsing multiple headers (basic example)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         nestedHeaders: [
           ['A1', { label: 'B1', colspan: 4 }, 'F1', 'G1', 'H1', 'I1', 'J1'],
           ['A2', { label: 'B2', colspan: 2 }, { label: 'D2', colspan: 2 }, 'F2', 'G2', 'H2', 'I2', 'J2'],
@@ -893,9 +893,9 @@ describe('CollapsibleColumns', () => {
         `);
     });
 
-    it('should keep headers and cells consistent after collapsing multiple headers (advanced example)', () => {
+    it('should keep headers and cells consistent after collapsing multiple headers (advanced example)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 13),
+        data: createSpreadsheetData(5, 13),
         nestedHeaders: [
           ['A1', { label: 'B1', colspan: 8 }, 'J1', { label: 'K1', colspan: 3 }],
           ['A2', { label: 'B2', colspan: 8 }, 'J2', { label: 'K2', colspan: 3 }],
@@ -1419,9 +1419,9 @@ describe('CollapsibleColumns', () => {
         `);
     });
 
-    it('should keep headers and cells consistent when dataset is shorter (has less columns) than header settings', () => {
+    it('should keep headers and cells consistent when dataset is shorter (has less columns) than header settings', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 6),
+        data: createSpreadsheetData(5, 6),
         nestedHeaders: [
           ['A1', { label: 'B1', colspan: 8 }, 'J1', { label: 'K1', colspan: 3 }],
           ['A2', { label: 'B2', colspan: 8 }, 'J2', { label: 'K2', colspan: 3 }],
@@ -1635,7 +1635,7 @@ describe('CollapsibleColumns', () => {
 
     it.forTheme('classic')('should maintain the collapse functionality, when the table has been scrolled', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 90),
+        data: createSpreadsheetData(10, 90),
         nestedHeaders: generateComplexSetup(4, 70, true),
         collapsibleColumns: true,
         width: 400,
@@ -1790,7 +1790,7 @@ describe('CollapsibleColumns', () => {
 
     it.forTheme('main')('should maintain the collapse functionality, when the table has been scrolled', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 90),
+        data: createSpreadsheetData(10, 90),
         nestedHeaders: generateComplexSetup(4, 70, true),
         collapsibleColumns: true,
         width: 400,
@@ -1945,7 +1945,7 @@ describe('CollapsibleColumns', () => {
 
     it.forTheme('horizon')('should maintain the collapse functionality, when the table has been scrolled', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 90),
+        data: createSpreadsheetData(10, 90),
         nestedHeaders: generateComplexSetup(4, 70, true),
         collapsibleColumns: true,
         width: 500,
@@ -2108,7 +2108,7 @@ describe('CollapsibleColumns', () => {
       spec().$wrapper = spec().$container.wrap($wrapper).parent();
 
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(3, 40),
+        data: createSpreadsheetData(3, 40),
         colHeaders: true,
         nestedHeaders: [
           ['-', '-', '-', '-', '-', '-', '-', '-', '-', { label: 'J', colspan: 4 },
@@ -2239,9 +2239,9 @@ describe('CollapsibleColumns', () => {
   });
 
   describe('expanding headers functionality', () => {
-    it('should keep headers and cells consistent after expanding single header (basic example)', () => {
+    it('should keep headers and cells consistent after expanding single header (basic example)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         nestedHeaders: [
           ['A1', { label: 'B1', colspan: 4 }, 'F1', 'G1', 'H1', 'I1', 'J1'],
           ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2', 'J2'],
@@ -2336,9 +2336,9 @@ describe('CollapsibleColumns', () => {
         `);
     });
 
-    it('should keep headers and cells consistent after expanding multiple headers (basic example)', () => {
+    it('should keep headers and cells consistent after expanding multiple headers (basic example)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         nestedHeaders: [
           ['A1', { label: 'B1', colspan: 4 }, 'F1', 'G1', 'H1', 'I1', 'J1'],
           ['A2', { label: 'B2', colspan: 2 }, { label: 'D2', colspan: 2 }, 'F2', 'G2', 'H2', 'I2', 'J2'],
@@ -2427,9 +2427,9 @@ describe('CollapsibleColumns', () => {
         `);
     });
 
-    it('should keep headers and cells consistent after expanding multiple headers (advanced example)', () => {
+    it('should keep headers and cells consistent after expanding multiple headers (advanced example)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 13),
+        data: createSpreadsheetData(5, 13),
         nestedHeaders: [
           ['A1', { label: 'B1', colspan: 8 }, 'J1', { label: 'K1', colspan: 3 }],
           ['A2', { label: 'B2', colspan: 8 }, 'J2', { label: 'K2', colspan: 3 }],
@@ -2803,7 +2803,7 @@ describe('CollapsibleColumns', () => {
 
     it.forTheme('classic')('should maintain the expand functionality, when the table has been scrolled', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 90),
+        data: createSpreadsheetData(10, 90),
         nestedHeaders: generateComplexSetup(4, 70, true),
         collapsibleColumns: true,
         width: 400,
@@ -2969,7 +2969,7 @@ describe('CollapsibleColumns', () => {
 
     it.forTheme('main')('should maintain the expand functionality, when the table has been scrolled', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 90),
+        data: createSpreadsheetData(10, 90),
         nestedHeaders: generateComplexSetup(4, 70, true),
         collapsibleColumns: true,
         width: 400,
@@ -3135,7 +3135,7 @@ describe('CollapsibleColumns', () => {
 
     it.forTheme('horizon')('should maintain the expand functionality, when the table has been scrolled', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 90),
+        data: createSpreadsheetData(10, 90),
         nestedHeaders: generateComplexSetup(4, 70, true),
         collapsibleColumns: true,
         width: 500,
@@ -3313,10 +3313,10 @@ describe('CollapsibleColumns', () => {
         $('html').attr('dir', 'ltr');
       });
 
-      it.forTheme('classic')('should be placed in correct place', () => {
+      it.forTheme('classic')('should be placed in correct place', async() => {
         handsontable({
           layoutDirection,
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           nestedHeaders: [
             ['A1', { label: 'B1', colspan: 4 }, 'F1', 'G1', 'H1', 'I1', 'J1'],
             ['A2', { label: 'B2', colspan: 2 }, { label: 'D2', colspan: 2 }, 'F2', 'G2', 'H2', 'I2', 'J2'],
@@ -3328,10 +3328,10 @@ describe('CollapsibleColumns', () => {
           .getPropertyValue('right')).toEqual('5px');
       });
 
-      it.forTheme('main')('should be placed in correct place', () => {
+      it.forTheme('main')('should be placed in correct place', async() => {
         handsontable({
           layoutDirection,
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           nestedHeaders: [
             ['A1', { label: 'B1', colspan: 4 }, 'F1', 'G1', 'H1', 'I1', 'J1'],
             ['A2', { label: 'B2', colspan: 2 }, { label: 'D2', colspan: 2 }, 'F2', 'G2', 'H2', 'I2', 'J2'],
@@ -3346,10 +3346,10 @@ describe('CollapsibleColumns', () => {
         expect(indicatorComputedStyle.float).toEqual('right');
       });
 
-      it.forTheme('horizon')('should be placed in correct place', () => {
+      it.forTheme('horizon')('should be placed in correct place', async() => {
         handsontable({
           layoutDirection,
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           nestedHeaders: [
             ['A1', { label: 'B1', colspan: 4 }, 'F1', 'G1', 'H1', 'I1', 'J1'],
             ['A2', { label: 'B2', colspan: 2 }, { label: 'D2', colspan: 2 }, 'F2', 'G2', 'H2', 'I2', 'J2'],
@@ -3366,9 +3366,9 @@ describe('CollapsibleColumns', () => {
     });
 
     it('should call "toggleCollapsibleSection" internally with correct toggle state ' +
-       '(depends if the clicked header is already collapsed or not)', () => {
+       '(depends if the clicked header is already collapsed or not)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         nestedHeaders: [
           ['A1', { label: 'B1', colspan: 4 }, 'F1', 'G1', 'H1', 'I1', 'J1'],
           ['A2', { label: 'B2', colspan: 2 }, { label: 'D2', colspan: 2 }, 'F2', 'G2', 'H2', 'I2', 'J2'],
@@ -3438,9 +3438,9 @@ describe('CollapsibleColumns', () => {
 
   describe('integration', () => {
     describe('columnSorting', () => {
-      it('should collapse all columns', () => {
+      it('should collapse all columns', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(1, 4),
+          data: createSpreadsheetData(1, 4),
           colHeaders: true,
           nestedHeaders: [
             ['A', { label: 'B', colspan: 2 }, 'C'],
@@ -3458,10 +3458,10 @@ describe('CollapsibleColumns', () => {
     });
   });
 
-  it('should not throw an error for configuration with columns beyond the table boundaries', () => {
+  it('should not throw an error for configuration with columns beyond the table boundaries', async() => {
     expect(() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         colHeaders: true,
         nestedHeaders: [
           ['A', { label: 'B', colspan: 8 }, 'C'],

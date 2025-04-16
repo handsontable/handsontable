@@ -13,7 +13,7 @@ describe('DropdownMenu', () => {
   });
 
   describe('enable/disable plugin', () => {
-    it('should disable plugin after call disablePlugin method', () => {
+    it('should disable plugin after call disablePlugin method', async() => {
       const hot = handsontable({
         dropdownMenu: true,
         colHeaders: true,
@@ -28,7 +28,7 @@ describe('DropdownMenu', () => {
       expect(hot.view._wt.wtTable.getColumnHeader(0).querySelector('.changeType')).toBe(null);
     });
 
-    it('should enable plugin after call enablePlugin method', () => {
+    it('should enable plugin after call enablePlugin method', async() => {
       const hot = handsontable({
         dropdownMenu: false,
         colHeaders: true,
@@ -62,7 +62,7 @@ describe('DropdownMenu', () => {
 
       const $menu = $('.htDropdownMenu');
 
-      dropdownMenu(0);
+      await dropdownMenu(0);
 
       expect($menu.find('.wtHider').width()).toEqual(215);
     });
@@ -87,7 +87,7 @@ describe('DropdownMenu', () => {
         }
       });
 
-      dropdownMenu(0);
+      await dropdownMenu(0);
 
       const $item = $('.htDropdownMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(1);
 
@@ -102,7 +102,7 @@ describe('DropdownMenu', () => {
   });
 
   describe('menu opening', () => {
-    it('should open menu after click on table header button', () => {
+    it('should open menu after click on table header button', async() => {
       const hot = handsontable({
         dropdownMenu: true,
         colHeaders: true,
@@ -112,19 +112,19 @@ describe('DropdownMenu', () => {
       expect(hot.getPlugin('dropdownMenu')).toBeDefined();
       expect($('.htDropdownMenu').is(':visible')).toBe(false);
 
-      dropdownMenu(0);
+      await dropdownMenu(0);
 
       expect($('.htDropdownMenu').is(':visible')).toBe(true);
     });
 
-    it('should open menu after click on table header button and do not select any items by default', () => {
+    it('should open menu after click on table header button and do not select any items by default', async() => {
       handsontable({
         dropdownMenu: true,
         colHeaders: true,
         height: 100
       });
 
-      dropdownMenu(0);
+      await dropdownMenu(0);
 
       const menu = getPlugin('dropdownMenu').menu;
 
@@ -132,7 +132,7 @@ describe('DropdownMenu', () => {
       expect(document.activeElement).toBe(menu.hotMenu.rootElement);
     });
 
-    it('should be possible to define a custom container for DropdownMenu\'s UI elements', () => {
+    it('should be possible to define a custom container for DropdownMenu\'s UI elements', async() => {
       const uiContainer = $('<div/>').addClass('uiContainer');
 
       spec().$container.append(uiContainer);
@@ -144,12 +144,12 @@ describe('DropdownMenu', () => {
         },
       });
 
-      dropdownMenu(0);
+      await dropdownMenu(0);
 
       expect($('.uiContainer .htDropdownMenu').is(':visible')).toBe(true);
     });
 
-    it('should open menu after click on table header button when only header cells are visible', () => {
+    it('should open menu after click on table header button when only header cells are visible', async() => {
       handsontable({
         data: [],
         colHeaders: ['Year', 'Kia'],
@@ -160,32 +160,32 @@ describe('DropdownMenu', () => {
 
       expect($('.htDropdownMenu').is(':visible')).toBe(false);
 
-      dropdownMenu(0);
+      await dropdownMenu(0);
 
       expect($('.htDropdownMenu').is(':visible')).toBe(true);
     });
   });
 
   describe('menu closing', () => {
-    it('should close menu after click', function() {
+    it('should close menu after click', async() => {
       handsontable({
         dropdownMenu: true,
         colHeaders: true,
         height: 100
       });
 
-      dropdownMenu(0);
+      await dropdownMenu(0);
 
       expect($('.htDropdownMenu').is(':visible')).toBe(true);
 
-      mouseDown(this.$container);
+      await mouseDown(spec().$container);
 
       expect($('.htDropdownMenu').is(':visible')).toBe(false);
     });
   });
 
   describe('menu disabled', () => {
-    it('should not open menu after table header button click', () => {
+    it('should not open menu after table header button click', async() => {
       const hot = handsontable({
         dropdownMenu: true,
         colHeaders: true,
@@ -193,17 +193,18 @@ describe('DropdownMenu', () => {
       });
 
       hot.getPlugin('dropdownMenu').disablePlugin();
-      hot.render();
+
+      await render();
 
       expect($('.htDropdownMenu').is(':visible')).toBe(false);
 
-      dropdownMenu(0);
+      await dropdownMenu(0);
 
       expect($('.htDropdownMenu').is(':visible')).toBe(false);
       expect(hot.view._wt.wtTable.getColumnHeader(0).querySelector('.changeType')).toBe(null);
     });
 
-    it('should not create dropdowm menu if it\'s disabled in constructor options', () => {
+    it('should not create dropdowm menu if it\'s disabled in constructor options', async() => {
       const hot = handsontable({
         dropdownMenu: false,
         colHeaders: true,
@@ -214,7 +215,7 @@ describe('DropdownMenu', () => {
       expect(hot.view._wt.wtTable.getColumnHeader(0).querySelector('.changeType')).toBe(null);
     });
 
-    it('should reenable menu', () => {
+    it('should reenable menu', async() => {
       const hot = handsontable({
         dropdownMenu: true,
         colHeaders: true,
@@ -225,18 +226,18 @@ describe('DropdownMenu', () => {
 
       expect($('.htDropdownMenu').is(':visible')).toBe(false);
 
-      dropdownMenu(0);
+      await dropdownMenu(0);
 
       expect($('.htDropdownMenu').is(':visible')).toBe(false);
 
       hot.getPlugin('dropdownMenu').enablePlugin();
 
-      dropdownMenu(0);
+      await dropdownMenu(0);
 
       expect($('.htDropdownMenu').is(':visible')).toBe(true);
     });
 
-    it('should reenable menu with updateSettings when it was disabled in constructor', () => {
+    it('should reenable menu with updateSettings when it was disabled in constructor', async() => {
       const hot = handsontable({
         dropdownMenu: false,
         colHeaders: true,
@@ -245,7 +246,7 @@ describe('DropdownMenu', () => {
 
       expect(hot.getPlugin('dropdownMenu').isEnabled()).toBe(false);
 
-      updateSettings({
+      await updateSettings({
         dropdownMenu: true
       });
 
@@ -253,12 +254,12 @@ describe('DropdownMenu', () => {
 
       expect($('.htDropdownMenu').is(':visible')).toBe(false);
 
-      dropdownMenu(0);
+      await dropdownMenu(0);
 
       expect($('.htDropdownMenu').is(':visible')).toBe(true);
     });
 
-    it('should disable menu with updateSettings when it was enabled in constructor', () => {
+    it('should disable menu with updateSettings when it was enabled in constructor', async() => {
       const hot = handsontable({
         dropdownMenu: true,
         colHeaders: true,
@@ -267,7 +268,7 @@ describe('DropdownMenu', () => {
 
       expect(hot.getPlugin('dropdownMenu').isEnabled()).toBe(true);
 
-      updateSettings({
+      await updateSettings({
         dropdownMenu: false
       });
 
@@ -276,14 +277,14 @@ describe('DropdownMenu', () => {
   });
 
   describe('menu destroy', () => {
-    it('should close context menu when HOT is being destroyed', () => {
+    it('should close context menu when HOT is being destroyed', async() => {
       handsontable({
         dropdownMenu: true,
         colHeaders: true,
         height: 100
       });
 
-      dropdownMenu(0);
+      await dropdownMenu(0);
 
       expect($('.htDropdownMenu').is(':visible')).toBe(true);
 
@@ -294,7 +295,7 @@ describe('DropdownMenu', () => {
   });
 
   describe('selection', () => {
-    it('should continue menu navigation from the position of the lastly highlighted item by mouse', () => {
+    it('should continue menu navigation from the position of the lastly highlighted item by mouse', async() => {
       handsontable({
         data: createSpreadsheetData(4, 4),
         colHeaders: true,
@@ -302,7 +303,7 @@ describe('DropdownMenu', () => {
         height: 400
       });
 
-      dropdownMenu(1);
+      await dropdownMenu(1);
 
       $('.htDropdownMenu .ht_master .htCore tbody td')
         .not('.htSeparator')
@@ -314,7 +315,7 @@ describe('DropdownMenu', () => {
       expect(getPlugin('dropdownMenu').menu.getNavigator().getCurrentPage()).toBe(3);
       expect(getPlugin('dropdownMenu').menu.getSelectedItem().key).toBe('remove_col');
 
-      keyDownUp('arrowDown');
+      await keyDownUp('arrowDown');
 
       expect(getPlugin('dropdownMenu').menu.getNavigator().getCurrentPage()).toBe(5);
       expect(getPlugin('dropdownMenu').menu.getSelectedItem().key).toBe('clear_column');
@@ -322,7 +323,7 @@ describe('DropdownMenu', () => {
   });
 
   describe('default context menu actions', () => {
-    it('should display the default set of actions', () => {
+    it('should display the default set of actions', async() => {
       handsontable({
         dropdownMenu: true,
         colHeaders: true,
@@ -330,7 +331,7 @@ describe('DropdownMenu', () => {
         height: 100
       });
 
-      dropdownMenu();
+      await dropdownMenu();
 
       const items = $('.htDropdownMenu tbody td');
       const actions = items.not('.htSeparator');
@@ -349,7 +350,7 @@ describe('DropdownMenu', () => {
       ].join(''));
     });
 
-    it('should insert column on the left of selection', () => {
+    it('should insert column on the left of selection', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(4, 4),
         dropdownMenu: true,
@@ -364,15 +365,15 @@ describe('DropdownMenu', () => {
 
       expect(countCols()).toEqual(4);
 
-      dropdownMenu(2);
-      selectDropdownMenuOption('Insert column left');
+      await dropdownMenu(2);
+      await selectDropdownMenuOption('Insert column left');
 
       expect(afterCreateColCallback)
         .toHaveBeenCalledWith(2, 1, 'ContextMenu.columnLeft');
       expect(countCols()).toEqual(5);
     });
 
-    it('should Insert column right of selection', () => {
+    it('should Insert column right of selection', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(4, 4),
         dropdownMenu: true,
@@ -386,14 +387,14 @@ describe('DropdownMenu', () => {
 
       expect(countCols()).toEqual(4);
 
-      dropdownMenu(2);
-      selectDropdownMenuOption('Insert column right');
+      await dropdownMenu(2);
+      await selectDropdownMenuOption('Insert column right');
 
       expect(afterCreateColCallback).toHaveBeenCalledWith(3, 1, 'ContextMenu.columnRight');
       expect(countCols()).toEqual(5);
     });
 
-    it('should remove column', () => {
+    it('should remove column', async() => {
       handsontable({
         data: createSpreadsheetData(4, 4),
         dropdownMenu: true,
@@ -403,13 +404,13 @@ describe('DropdownMenu', () => {
 
       expect(countCols()).toEqual(4);
 
-      dropdownMenu(1);
-      selectDropdownMenuOption('Remove column');
+      await dropdownMenu(1);
+      await selectDropdownMenuOption('Remove column');
 
       expect(countCols()).toEqual(3);
     });
 
-    it('should clear column data', () => {
+    it('should clear column data', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(4, 4),
         dropdownMenu: true,
@@ -417,8 +418,8 @@ describe('DropdownMenu', () => {
         height: 100
       });
 
-      dropdownMenu(1);
-      selectDropdownMenuOption('Clear column');
+      await dropdownMenu(1);
+      await selectDropdownMenuOption('Clear column');
 
       expect(hot.getDataAtCell(0, 0)).toBe('A1');
       expect(hot.getDataAtCell(1, 2)).toBe('C2');
@@ -429,7 +430,7 @@ describe('DropdownMenu', () => {
       expect(hot.getDataAtCell(3, 1)).toBeNull('');
     });
 
-    it('should display only the specified actions', () => {
+    it('should display only the specified actions', async() => {
       handsontable({
         data: createSpreadsheetData(4, 4),
         dropdownMenu: ['clear_column'],
@@ -437,12 +438,12 @@ describe('DropdownMenu', () => {
         height: 100
       });
 
-      dropdownMenu(1);
+      await dropdownMenu(1);
 
       expect($('.htDropdownMenu .ht_master .htCore').find('tbody td').length).toEqual(1);
     });
 
-    it('should highlight menu items after hovering them', () => {
+    it('should highlight menu items after hovering them', async() => {
       handsontable({
         data: createSpreadsheetData(4, 4),
         colHeaders: true,
@@ -450,7 +451,7 @@ describe('DropdownMenu', () => {
         height: 400
       });
 
-      dropdownMenu(1);
+      await dropdownMenu(1);
 
       $('.htDropdownMenu .ht_master .htCore tbody td')
         .not('.htSeparator')
@@ -464,7 +465,7 @@ describe('DropdownMenu', () => {
   });
 
   describe('custom options', () => {
-    it('should have custom items list', () => {
+    it('should have custom items list', async() => {
 
       const callback1 = jasmine.createSpy('callback1');
       const callback2 = jasmine.createSpy('callback2');
@@ -486,25 +487,25 @@ describe('DropdownMenu', () => {
         height: 100
       });
 
-      dropdownMenu();
+      await dropdownMenu();
 
       expect($('.htDropdownMenu .ht_master .htCore').find('tbody td').length).toEqual(2);
       expect($('.htDropdownMenu .ht_master .htCore').find('tbody td').text())
         .toEqual(['CustomItem1', 'CustomItem2'].join(''));
 
-      selectDropdownMenuOption('CustomItem1');
+      await selectDropdownMenuOption('CustomItem1');
 
       expect(callback1.calls.count()).toEqual(1);
       expect(callback2.calls.count()).toEqual(0);
 
-      dropdownMenu();
-      selectDropdownMenuOption('CustomItem2');
+      await dropdownMenu();
+      await selectDropdownMenuOption('CustomItem2');
 
       expect(callback1.calls.count()).toEqual(1);
       expect(callback2.calls.count()).toEqual(1);
     });
 
-    it('should have custom items list (defined as a function)', () => {
+    it('should have custom items list (defined as a function)', async() => {
       let enabled = false;
 
       handsontable({
@@ -528,21 +529,21 @@ describe('DropdownMenu', () => {
         height: 100
       });
 
-      dropdownMenu();
+      await dropdownMenu();
 
       expect($('.htDropdownMenu .ht_master .htCore').find('tbody td').text()).toEqual('Enable my custom option');
 
-      selectDropdownMenuOption('Enable my custom option');
+      await selectDropdownMenuOption('Enable my custom option');
 
       enabled = true;
-      dropdownMenu();
+      await dropdownMenu();
 
       expect($('.htDropdownMenu .ht_master .htCore').find('tbody td').text()).toEqual('Disable my custom option');
 
-      selectDropdownMenuOption('Disable my custom option');
+      await selectDropdownMenuOption('Disable my custom option');
     });
 
-    it('should enable to define item options globally', () => {
+    it('should enable to define item options globally', async() => {
       const callback = jasmine.createSpy('callback');
 
       handsontable({
@@ -561,19 +562,19 @@ describe('DropdownMenu', () => {
         height: 100
       });
 
-      dropdownMenu();
+      await dropdownMenu();
 
-      selectDropdownMenuOption('CustomItem1');
+      await selectDropdownMenuOption('CustomItem1');
 
       expect(callback.calls.count()).toEqual(1);
 
-      dropdownMenu();
-      selectDropdownMenuOption('CustomItem2');
+      await dropdownMenu();
+      await selectDropdownMenuOption('CustomItem2');
 
       expect(callback.calls.count()).toEqual(2);
     });
 
-    it('should override default items options', () => {
+    it('should override default items options', async() => {
       const callback = jasmine.createSpy('callback');
 
       handsontable({
@@ -591,18 +592,18 @@ describe('DropdownMenu', () => {
         height: 100
       });
 
-      dropdownMenu();
+      await dropdownMenu();
 
       expect($('.htDropdownMenu .ht_master .htCore').find('tbody td').length).toEqual(2);
       expect($('.htDropdownMenu .ht_master .htCore').find('tbody td').text())
         .toEqual(['Remove column', 'CLEAR'].join(''));
 
-      selectDropdownMenuOption('Remove column');
+      await selectDropdownMenuOption('Remove column');
 
       expect(callback.calls.count()).toEqual(1);
     });
 
-    it('should fire item callback after item has been clicked', () => {
+    it('should fire item callback after item has been clicked', async() => {
       const customItem = {
         name: 'Custom item',
         callback() {}
@@ -620,9 +621,8 @@ describe('DropdownMenu', () => {
         height: 100
       });
 
-      dropdownMenu();
-
-      selectDropdownMenuOption('Custom item');
+      await dropdownMenu();
+      await selectDropdownMenuOption('Custom item');
 
       expect(customItem.callback.calls.count()).toEqual(1);
       expect(customItem.callback.calls.argsFor(0)[0]).toEqual('customItemKey');
@@ -669,7 +669,7 @@ describe('DropdownMenu', () => {
   });
 
   describe('afterDropdownMenuDefaultOptions hook', () => {
-    it('should call with dropdown menu options as the first param', () => {
+    it('should call with dropdown menu options as the first param', async() => {
       let options;
 
       const afterDropdownMenuDefaultOptions = function(options_) {
@@ -688,7 +688,7 @@ describe('DropdownMenu', () => {
         height: 100
       });
 
-      dropdownMenu();
+      await dropdownMenu();
 
       const $menu = $('.htDropdownMenu .ht_master .htCore');
 
@@ -696,7 +696,7 @@ describe('DropdownMenu', () => {
       expect(options.items).toBeDefined();
       expect($menu.find('tbody td').text()).toContain('My custom item');
 
-      selectDropdownMenuOption('My custom item');
+      await selectDropdownMenuOption('My custom item');
 
       Handsontable.hooks.remove('afterDropdownMenuDefaultOptions', afterDropdownMenuDefaultOptions);
     });
@@ -719,8 +719,7 @@ describe('DropdownMenu', () => {
         height: 100
       });
 
-      dropdownMenu();
-
+      await dropdownMenu();
       await sleep(200);
 
       const items = $('.htDropdownMenu tbody td');
@@ -748,8 +747,7 @@ describe('DropdownMenu', () => {
         height: 100
       });
 
-      dropdownMenu();
-
+      await dropdownMenu();
       await sleep(200);
 
       expect(keys).toEqual(['make_read_only', 'col_left']);
@@ -758,30 +756,34 @@ describe('DropdownMenu', () => {
     });
   });
 
-  it('should be possible undo the alignment process by calling the \'Undo\' action without contextMenu', () => {
+  it('should be possible undo the alignment process by calling the \'Undo\' action without contextMenu', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(9, 9),
       dropdownMenu: true
     });
 
     // top 3 rows center
-    selectCell(0, 0, 2, 8);
+    await selectCell(0, 0, 2, 8);
+
     hot.getPlugin('dropdownMenu').executeCommand('alignment:center');
 
     // middle 3 rows unchanged - left
 
     // bottom 3 rows right
-    selectCell(6, 0, 8, 8);
+    await selectCell(6, 0, 8, 8);
+
     hot.getPlugin('dropdownMenu').executeCommand('alignment:right');
 
     // left 3 columns - middle
-    selectCell(0, 0, 8, 2);
+    await selectCell(0, 0, 8, 2);
+
     hot.getPlugin('dropdownMenu').executeCommand('alignment:middle');
 
     // middle 3 columns unchanged - top
 
     // right 3 columns - bottom
-    selectCell(0, 6, 8, 8);
+    await selectCell(0, 6, 8, 8);
+
     hot.getPlugin('dropdownMenu').executeCommand('alignment:bottom');
 
     let cellMeta = hot.getCellMeta(0, 0);
@@ -849,30 +851,34 @@ describe('DropdownMenu', () => {
     expect(cellMeta.className.includes('htBottom')).toBeFalsy();
   });
 
-  it('should be possible redo the alignment process by calling the \'Redo\' action without contextMenu', () => {
+  it('should be possible redo the alignment process by calling the \'Redo\' action without contextMenu', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(9, 9),
       dropdownMenu: true
     });
 
     // top 3 rows center
-    selectCell(0, 0, 2, 8);
+    await selectCell(0, 0, 2, 8);
+
     hot.getPlugin('dropdownMenu').executeCommand('alignment:center');
 
     // middle 3 rows unchanged - left
 
     // bottom 3 rows right
-    selectCell(6, 0, 8, 8);
+    await selectCell(6, 0, 8, 8);
+
     hot.getPlugin('dropdownMenu').executeCommand('alignment:right');
 
     // left 3 columns - middle
-    selectCell(0, 0, 8, 2);
+    await selectCell(0, 0, 8, 2);
+
     hot.getPlugin('dropdownMenu').executeCommand('alignment:middle');
 
     // middle 3 columns unchanged - top
 
     // right 3 columns - bottom
-    selectCell(0, 6, 8, 8);
+    await selectCell(0, 6, 8, 8);
+
     hot.getPlugin('dropdownMenu').executeCommand('alignment:bottom');
 
     let cellMeta = hot.getCellMeta(0, 0);
@@ -962,7 +968,7 @@ describe('DropdownMenu', () => {
       horizon.toBe(666);
     });
 
-    dropdownMenu(6); // click on the column `G` header button
+    await dropdownMenu(6); // click on the column `G` header button
 
     expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(651);

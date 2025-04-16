@@ -1486,7 +1486,7 @@ describe('Selection using mouse interaction', () => {
 
   it('should be able to select one column headers after select all headers and cells', () => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      data: createSpreadsheetData(2, 2),
       colHeaders: true,
     });
 

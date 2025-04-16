@@ -13,46 +13,46 @@ describe('ContextMenu', () => {
   });
 
   describe('read only', () => {
-    it('should make a single selected cell read-only', () => {
+    it('should make a single selected cell read-only', async() => {
       handsontable({
         data: createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100
       });
 
-      selectCell(0, 0);
+      await selectCell(0, 0);
 
       expect(getDataAtCell(0, 0)).toEqual('A1');
       expect(getCellMeta(0, 0).readOnly).toBe(false);
 
-      selectCell(0, 0);
-      contextMenu();
+      await selectCell(0, 0);
+      await contextMenu();
       selectContextMenuOption('Read only');
 
       expect(getCellMeta(0, 0).readOnly).toBe(true);
     });
 
-    it('should make a single selected cell writable, when it\'s set to read-only', () => {
+    it('should make a single selected cell writable, when it\'s set to read-only', async() => {
       handsontable({
         data: createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100
       });
 
-      selectCell(0, 0);
+      await selectCell(0, 0);
 
       expect(getDataAtCell(0, 0)).toEqual('A1');
 
       getCellMeta(0, 0).readOnly = true;
 
-      selectCell(0, 0);
-      contextMenu();
+      await selectCell(0, 0);
+      await contextMenu();
       selectContextMenuOption('Read only');
 
       expect(getCellMeta(0, 0).readOnly).toBe(false);
     });
 
-    it('should make a range of selected cells read-only, if all of them are writable', () => {
+    it('should make a range of selected cells read-only, if all of them are writable', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(4, 4),
         contextMenu: true,
@@ -64,8 +64,8 @@ describe('ContextMenu', () => {
       expect(hot.getCellMeta(1, 0).readOnly).toEqual(false);
       expect(hot.getCellMeta(1, 1).readOnly).toEqual(false);
 
-      selectCell(0, 0, 2, 2);
-      contextMenu();
+      await selectCell(0, 0, 2, 2);
+      await contextMenu();
       selectContextMenuOption('Read only');
 
       expect(hot.getCellMeta(0, 0).readOnly).toEqual(true);
@@ -75,7 +75,7 @@ describe('ContextMenu', () => {
       expect(getSelected()).toEqual([[0, 0, 2, 2]]);
     });
 
-    it('should make a multiple of selected cells read-only, if all of them are writable', () => {
+    it('should make a multiple of selected cells read-only, if all of them are writable', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(4, 4),
         contextMenu: true,
@@ -87,8 +87,8 @@ describe('ContextMenu', () => {
       expect(hot.getCellMeta(1, 0).readOnly).toBe(false);
       expect(hot.getCellMeta(1, 1).readOnly).toBe(false);
 
-      selectCell(0, 0, 2, 2);
-      contextMenu();
+      await selectCell(0, 0, 2, 2);
+      await contextMenu();
       selectContextMenuOption('Read only');
 
       expect(hot.getCellMeta(0, 0).readOnly).toBe(true);
@@ -97,7 +97,7 @@ describe('ContextMenu', () => {
       expect(hot.getCellMeta(1, 1).readOnly).toBe(true);
     });
 
-    it('should make a group of selected cells read-only, if all of them are writable (reverse selection)', () => {
+    it('should make a group of selected cells read-only, if all of them are writable (reverse selection)', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(4, 4),
         contextMenu: true,
@@ -109,8 +109,8 @@ describe('ContextMenu', () => {
       expect(hot.getCellMeta(1, 0).readOnly).toBe(false);
       expect(hot.getCellMeta(1, 1).readOnly).toBe(false);
 
-      selectCell(2, 2, 0, 0);
-      contextMenu();
+      await selectCell(2, 2, 0, 0);
+      await contextMenu();
       selectContextMenuOption('Read only');
 
       expect(hot.getCellMeta(0, 0).readOnly).toBe(true);
@@ -119,7 +119,7 @@ describe('ContextMenu', () => {
       expect(hot.getCellMeta(1, 1).readOnly).toBe(true);
     });
 
-    it('should make a group of selected cells writable if at least one of them is read-only', () => {
+    it('should make a group of selected cells writable if at least one of them is read-only', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(4, 4),
         contextMenu: true,
@@ -133,8 +133,8 @@ describe('ContextMenu', () => {
 
       hot.getCellMeta(1, 1).readOnly = true;
 
-      selectCell(0, 0, 2, 2);
-      contextMenu();
+      await selectCell(0, 0, 2, 2);
+      await contextMenu();
       selectContextMenuOption('Read only');
 
       expect(hot.getCellMeta(0, 0).readOnly).toBe(false);
@@ -143,7 +143,7 @@ describe('ContextMenu', () => {
       expect(hot.getCellMeta(1, 1).readOnly).toBe(false);
     });
 
-    it('should make a group of selected cells writable if at least one of them is read-only (reverse selection)', () => {
+    it('should make a group of selected cells writable if at least one of them is read-only (reverse selection)', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(4, 4),
         contextMenu: true,
@@ -157,8 +157,8 @@ describe('ContextMenu', () => {
 
       hot.getCellMeta(1, 1).readOnly = true;
 
-      selectCell(2, 2, 0, 0);
-      contextMenu();
+      await selectCell(2, 2, 0, 0);
+      await contextMenu();
       selectContextMenuOption('Read only');
 
       expect(hot.getCellMeta(0, 0).readOnly).toBe(false);
@@ -167,37 +167,37 @@ describe('ContextMenu', () => {
       expect(hot.getCellMeta(1, 1).readOnly).toBe(false);
     });
 
-    it('should trigger `afterSetCellMeta` callback after changing cell to read only by context menu', () => {
+    it('should trigger `afterSetCellMeta` callback after changing cell to read only by context menu', async() => {
       const afterSetCellMetaCallback = jasmine.createSpy('afterSetCellMetaCallback');
       const rows = 5;
       const columns = 5;
 
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(rows, columns),
+        data: createSpreadsheetData(rows, columns),
         rowHeaders: true,
         colHeaders: true,
         contextMenu: true,
         afterSetCellMeta: afterSetCellMetaCallback
       });
 
-      selectCell(2, 3);
-      contextMenu();
+      await selectCell(2, 3);
+      await contextMenu();
       selectContextMenuOption('Read only');
 
       expect(afterSetCellMetaCallback).toHaveBeenCalledWith(2, 3, 'readOnly', true);
     });
 
-    it('should not change readOnly property to true after changing cell to read only by context menu, if `beforeSetCellMeta` returned false', () => {
+    it('should not change readOnly property to true after changing cell to read only by context menu, if `beforeSetCellMeta` returned false', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         colHeaders: true,
         contextMenu: true,
         beforeSetCellMeta: () => false
       });
 
-      selectCell(2, 3);
-      contextMenu();
+      await selectCell(2, 3);
+      await contextMenu();
 
       const changeToReadOnlyButton = $('.htItemWrapper').filter(function() {
         return this.textContent === 'Read only';
@@ -209,7 +209,7 @@ describe('ContextMenu', () => {
     });
 
     describe('UI', () => {
-      it('should enable the item when all rows are hidden', () => {
+      it('should enable the item when all rows are hidden', async() => {
         handsontable({
           data: createSpreadsheetData(5, 5),
           colHeaders: true,
@@ -219,7 +219,7 @@ describe('ContextMenu', () => {
           },
         });
 
-        contextMenu(getCell(-1, 1)); // Column header "B"
+        await contextMenu(getCell(-1, 1)); // Column header "B"
 
         const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
           return this.textContent === 'Read only';
@@ -228,7 +228,7 @@ describe('ContextMenu', () => {
         expect(readOnlyItem.hasClass('htDisabled')).toBe(false);
       });
 
-      it('should enable the item when all columns are hidden', () => {
+      it('should enable the item when all columns are hidden', async() => {
         handsontable({
           data: createSpreadsheetData(5, 5),
           rowHeaders: true,
@@ -238,7 +238,7 @@ describe('ContextMenu', () => {
           },
         });
 
-        contextMenu(getCell(1, -1)); // Row header "2"
+        await contextMenu(getCell(1, -1)); // Row header "2"
 
         const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
           return this.textContent === 'Read only';
@@ -247,7 +247,7 @@ describe('ContextMenu', () => {
         expect(readOnlyItem.hasClass('htDisabled')).toBe(false);
       });
 
-      it('should disable the item when the row header is focused', () => {
+      it('should disable the item when the row header is focused', async() => {
         handsontable({
           data: createSpreadsheetData(5, 5),
           rowHeaders: true,
@@ -256,7 +256,7 @@ describe('ContextMenu', () => {
           navigableHeaders: true,
         });
 
-        selectCell(1, -1);
+        await selectCell(1, -1);
         getPlugin('contextMenu').open({ top: 0, left: 0 });
 
         const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
@@ -266,7 +266,7 @@ describe('ContextMenu', () => {
         expect(readOnlyItem.hasClass('htDisabled')).toBe(true);
       });
 
-      it('should disable the item when the column header is focused', () => {
+      it('should disable the item when the column header is focused', async() => {
         handsontable({
           data: createSpreadsheetData(5, 5),
           rowHeaders: true,
@@ -275,7 +275,7 @@ describe('ContextMenu', () => {
           navigableHeaders: true,
         });
 
-        selectCell(-1, 1);
+        await selectCell(-1, 1);
         getPlugin('contextMenu').open({ top: 0, left: 0 });
 
         const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
@@ -285,7 +285,7 @@ describe('ContextMenu', () => {
         expect(readOnlyItem.hasClass('htDisabled')).toBe(true);
       });
 
-      it('should disable the item when the corner is focused', () => {
+      it('should disable the item when the corner is focused', async() => {
         handsontable({
           data: createSpreadsheetData(5, 5),
           rowHeaders: true,
@@ -294,7 +294,7 @@ describe('ContextMenu', () => {
           navigableHeaders: true,
         });
 
-        selectCell(-1, -1);
+        await selectCell(-1, -1);
         getPlugin('contextMenu').open({ top: 0, left: 0 });
 
         const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
@@ -304,7 +304,7 @@ describe('ContextMenu', () => {
         expect(readOnlyItem.hasClass('htDisabled')).toBe(true);
       });
 
-      it('should disable the item when all rows are trimmed', () => {
+      it('should disable the item when all rows are trimmed', async() => {
         handsontable({
           data: createSpreadsheetData(5, 5),
           colHeaders: true,
@@ -312,7 +312,7 @@ describe('ContextMenu', () => {
           trimRows: [0, 1, 2, 3, 4], // The TrimmingMap should be used instead of the plugin.
         });
 
-        contextMenu(getCell(-1, 1)); // Column header "B"
+        await contextMenu(getCell(-1, 1)); // Column header "B"
 
         const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
           return this.textContent === 'Read only';
@@ -321,7 +321,7 @@ describe('ContextMenu', () => {
         expect(readOnlyItem.hasClass('htDisabled')).toBe(true);
       });
 
-      it('should disable the item when all columns are trimmed', () => {
+      it('should disable the item when all columns are trimmed', async() => {
         handsontable({
           data: createSpreadsheetData(5, 5),
           rowHeaders: true,
@@ -329,7 +329,7 @@ describe('ContextMenu', () => {
           columns: [], // The TrimmingMap should be used instead of the `columns` option.
         });
 
-        contextMenu(getCell(1, -1)); // Row header "2"
+        await contextMenu(getCell(1, -1)); // Row header "2"
 
         const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
           return this.textContent === 'Read only';

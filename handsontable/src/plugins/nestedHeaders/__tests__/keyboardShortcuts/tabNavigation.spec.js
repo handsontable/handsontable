@@ -37,34 +37,34 @@ describe('NestedHeaders navigation keyboard shortcuts', () => {
       expect(hot.getSelectedRange()).toEqualCellRange(['highlight: -1,-1 from: -1,-1 to: -1,-1']);
       expect(hot1.getSelectedRange()).toBeUndefined();
 
-      keyDownUp('tab');
+      await keyDownUp('tab');
 
       expect(hot.getSelectedRange()).toEqualCellRange(['highlight: -1,0 from: -1,0 to: -1,0']);
       expect(hot1.getSelectedRange()).toBeUndefined();
 
-      keyDownUp('tab');
+      await keyDownUp('tab');
 
       expect(hot.getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: -1,1']);
       expect(hot1.getSelectedRange()).toBeUndefined();
 
-      keyDownUp('tab');
+      await keyDownUp('tab');
       triggerTabNavigationFromTop(hot1); // emulates native browser Tab navigation
 
       expect(hot.getSelectedRange()).toBeUndefined();
       expect(hot1.getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: 0,0 to: 0,0']);
 
-      keyDownUp(['shift', 'tab']);
+      await keyDownUp(['shift', 'tab']);
       triggerTabNavigationFromBottom(); // emulates native browser Tab navigation
 
       expect(hot.getSelectedRange()).toEqualCellRange(['highlight: -1,4 from: -1,4 to: -1,4']);
       expect(hot1.getSelectedRange()).toBeUndefined();
 
-      keyDownUp(['shift', 'tab']);
+      await keyDownUp(['shift', 'tab']);
 
       expect(hot.getSelectedRange()).toEqualCellRange(['highlight: -1,0 from: -1,0 to: -1,0']);
       expect(hot1.getSelectedRange()).toBeUndefined();
 
-      keyDownUp(['shift', 'tab']);
+      await keyDownUp(['shift', 'tab']);
 
       expect(hot.getSelectedRange()).toEqualCellRange(['highlight: -1,-1 from: -1,-1 to: -1,-1']);
       expect(hot1.getSelectedRange()).toBeUndefined();

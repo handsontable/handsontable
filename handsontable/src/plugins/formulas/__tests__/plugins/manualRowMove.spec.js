@@ -22,7 +22,7 @@ describe('Formulas', () => {
 
   describe('manualRowMove', () => {
     describe('should not move elements for some calls', () => {
-      it('[0, 1] -> 0', () => {
+      it('[0, 1] -> 0', async() => {
         const hot = handsontable({
           data: dataset,
           formulas: {
@@ -51,7 +51,7 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[3, 4] -> 3', () => {
+      it('[3, 4] -> 3', async() => {
         const hot = handsontable({
           data: dataset,
           formulas: {
@@ -80,7 +80,7 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[1, 2, 3, 4] -> 1', () => {
+      it('[1, 2, 3, 4] -> 1', async() => {
         const hot = handsontable({
           data: dataset,
           formulas: {
@@ -109,7 +109,7 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[0, 1, 2, 3, 4] -> 0', () => {
+      it('[0, 1, 2, 3, 4] -> 0', async() => {
         const hot = handsontable({
           data: dataset,
           formulas: {
@@ -140,7 +140,7 @@ describe('Formulas', () => {
     });
 
     describe('should move elements from top to bottom properly', () => {
-      it('[0, 1] -> 1', () => {
+      it('[0, 1] -> 1', async() => {
         const hot = handsontable({
           data: dataset,
           formulas: {
@@ -171,7 +171,7 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[0, 1] -> 2', () => {
+      it('[0, 1] -> 2', async() => {
         const hot = handsontable({
           data: dataset,
           formulas: {
@@ -202,7 +202,7 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[0, 1] -> 3', () => {
+      it('[0, 1] -> 3', async() => {
         const hot = handsontable({
           data: dataset,
           formulas: {
@@ -233,7 +233,7 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[0, 2] -> 2', () => {
+      it('[0, 2] -> 2', async() => {
         const hot = handsontable({
           data: dataset,
           formulas: {
@@ -264,7 +264,7 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[0, 2] -> 3', () => {
+      it('[0, 2] -> 3', async() => {
         const hot = handsontable({
           data: dataset,
           formulas: {
@@ -295,7 +295,7 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[0, 3] -> 3', () => {
+      it('[0, 3] -> 3', async() => {
         const hot = handsontable({
           data: dataset,
           formulas: {
@@ -326,7 +326,7 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[0, 1, 2] -> 2', () => {
+      it('[0, 1, 2] -> 2', async() => {
         const hot = handsontable({
           data: dataset,
           formulas: {
@@ -357,7 +357,7 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[0, 1, 2, 3] -> 1', () => {
+      it('[0, 1, 2, 3] -> 1', async() => {
         const hot = handsontable({
           data: dataset,
           formulas: {
@@ -389,7 +389,7 @@ describe('Formulas', () => {
       });
 
       describe('moving mixed elements', () => {
-        it('[1, 0] -> 3', () => {
+        it('[1, 0] -> 3', async() => {
           const hot = handsontable({
             data: dataset,
             formulas: {
@@ -420,7 +420,7 @@ describe('Formulas', () => {
           ]);
         });
 
-        it('[1, 0, 3] -> 2', () => {
+        it('[1, 0, 3] -> 2', async() => {
           const hot = handsontable({
             data: dataset,
             formulas: {
@@ -451,7 +451,7 @@ describe('Formulas', () => {
           ]);
         });
 
-        it('[1, 0, 3, 2] -> 1', () => {
+        it('[1, 0, 3, 2] -> 1', async() => {
           const hot = handsontable({
             data: dataset,
             formulas: {
@@ -485,7 +485,7 @@ describe('Formulas', () => {
     });
 
     describe('should move elements from bottom to top properly', () => {
-      it('[3, 4] -> 0', () => {
+      it('[3, 4] -> 0', async() => {
         const hot = handsontable({
           data: dataset,
           formulas: {
@@ -516,7 +516,7 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[3, 4] -> 1', () => {
+      it('[3, 4] -> 1', async() => {
         const hot = handsontable({
           data: dataset,
           formulas: {
@@ -547,7 +547,7 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[3, 4] -> 2', () => {
+      it('[3, 4] -> 2', async() => {
         const hot = handsontable({
           data: dataset,
           formulas: {
@@ -578,7 +578,7 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[2, 4] -> 0', () => {
+      it('[2, 4] -> 0', async() => {
         const hot = handsontable({
           data: dataset,
           formulas: {
@@ -609,7 +609,7 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[2, 4] -> 1', () => {
+      it('[2, 4] -> 1', async() => {
         const hot = handsontable({
           data: dataset,
           formulas: {
@@ -640,7 +640,7 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[2, 4] -> 2', () => {
+      it('[2, 4] -> 2', async() => {
         const hot = handsontable({
           data: dataset,
           formulas: {
@@ -672,7 +672,7 @@ describe('Formulas', () => {
       });
 
       describe('moving mixed elements', () => {
-        it('[4, 2] -> 0', () => {
+        it('[4, 2] -> 0', async() => {
           const hot = handsontable({
             data: dataset,
             formulas: {
@@ -703,7 +703,7 @@ describe('Formulas', () => {
           ]);
         });
 
-        it('[4, 3, 1] -> 0', () => {
+        it('[4, 3, 1] -> 0', async() => {
           const hot = handsontable({
             data: dataset,
             formulas: {
@@ -734,7 +734,7 @@ describe('Formulas', () => {
           ]);
         });
 
-        it('[4, 3, 2, 1] -> 0', () => {
+        it('[4, 3, 2, 1] -> 0', async() => {
           const hot = handsontable({
             data: dataset,
             formulas: {
@@ -765,7 +765,7 @@ describe('Formulas', () => {
           ]);
         });
 
-        it('[4, 2, 3, 1] -> 0', () => {
+        it('[4, 2, 3, 1] -> 0', async() => {
           const hot = handsontable({
             data: dataset,
             formulas: {
@@ -796,7 +796,7 @@ describe('Formulas', () => {
           ]);
         });
 
-        it('[0, 3, 4, 1] -> 0', () => {
+        it('[0, 3, 4, 1] -> 0', async() => {
           const hot = handsontable({
             data: dataset,
             formulas: {
@@ -827,7 +827,7 @@ describe('Formulas', () => {
           ]);
         });
 
-        it('[5, 4, 3, 2, 1, 0] -> 0', () => {
+        it('[5, 4, 3, 2, 1, 0] -> 0', async() => {
           const hot = handsontable({
             data: [
               [1, 2, 3, 4, 5],
@@ -870,7 +870,7 @@ describe('Formulas', () => {
     });
 
     describe('should move elements, placed on both sides, to the middle properly', () => {
-      it('[2, 4] -> 3', () => {
+      it('[2, 4] -> 3', async() => {
         const hot = handsontable({
           data: dataset,
           formulas: {
@@ -901,7 +901,7 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[0, 3, 4] -> 1', () => {
+      it('[0, 3, 4] -> 1', async() => {
         const hot = handsontable({
           data: dataset,
           formulas: {
@@ -934,7 +934,7 @@ describe('Formulas', () => {
     });
 
     describe('moving elements when there are some trimmed elements', () => {
-      it('[0] -> 1 (trimmed [0, 1])', () => {
+      it('[0] -> 1 (trimmed [0, 1])', async() => {
         const hot = handsontable({
           data: dataset,
           formulas: {
@@ -964,7 +964,7 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[2, 1] -> 0 (trimmed [0, 1])', () => {
+      it('[2, 1] -> 0 (trimmed [0, 1])', async() => {
         const hot = handsontable({
           data: dataset,
           formulas: {
@@ -995,7 +995,7 @@ describe('Formulas', () => {
       });
     });
 
-    it('should cooperate with UndoRedo properly', () => {
+    it('should cooperate with UndoRedo properly', async() => {
       const hot = handsontable({
         data: dataset,
         formulas: {

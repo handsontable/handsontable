@@ -32,7 +32,7 @@ describe('NestedRows (RTL)', () => {
   });
 
   describe('Displaying a nested structure', () => {
-    it('should display as many rows as there are overall elements in a nested structure', () => {
+    it('should display as many rows as there are overall elements in a nested structure', async() => {
       const hot = handsontable({
         data: getMoreComplexNestedData(),
         nestedRows: true
@@ -42,7 +42,7 @@ describe('NestedRows (RTL)', () => {
     });
 
     it('should display all nested structure elements in correct order (parent, its children, ' +
-      'its children children, next parent etc)', () => {
+      'its children children, next parent etc)', async() => {
       const hot = handsontable({
         data: getMoreComplexNestedData(),
         nestedRows: true
@@ -52,20 +52,20 @@ describe('NestedRows (RTL)', () => {
     });
   });
 
-  it('should allow user to detach already added child', () => {
+  it('should allow user to detach already added child', async() => {
     handsontable({
       data: getSimplerNestedData(),
       nestedRows: true,
       contextMenu: true
     });
 
-    selectCell(0, 0);
-    contextMenu();
+    await selectCell(0, 0);
+    await contextMenu();
     $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(0)
       .simulate('mousedown').simulate('mouseup'); // Insert child row.
 
-    selectCell(6, 0);
-    contextMenu();
+    await selectCell(6, 0);
+    await contextMenu();
     $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(1)
       .simulate('mousedown').simulate('mouseup'); // Detach from parent.
 
@@ -76,15 +76,15 @@ describe('NestedRows (RTL)', () => {
     expect(getPlugin('nestedRows').dataManager.isParent(18)).toBeFalsy();
   });
 
-  it('should allow user to insert row below and above the parent', () => {
+  it('should allow user to insert row below and above the parent', async() => {
     handsontable({
       data: getSimplerNestedData(),
       nestedRows: true,
       contextMenu: true
     });
 
-    selectCell(0, 0);
-    contextMenu();
+    await selectCell(0, 0);
+    await contextMenu();
 
     $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(2)
       .simulate('mousedown').simulate('mouseup'); // Insert row above.
@@ -93,8 +93,8 @@ describe('NestedRows (RTL)', () => {
     expect(getDataAtRow(2)).toEqual([null, 'Alabama Shakes', 'Don\'t Wanna Fight', 'ATO Records']);
     expect(getDataAtRow(7)).toEqual(['Best Metal Performance', null, null, null]);
 
-    selectCell(1, 0);
-    contextMenu();
+    await selectCell(1, 0);
+    await contextMenu();
 
     $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator').eq(3)
       .simulate('mousedown').simulate('mouseup'); // Insert row below.
@@ -119,7 +119,7 @@ describe('NestedRows (RTL)', () => {
         $('html').attr('dir', 'ltr');
       });
 
-      it.forTheme('classic')('should display indicators properly located', () => {
+      it.forTheme('classic')('should display indicators properly located', async() => {
         const hot = handsontable({
           layoutDirection,
           data: getMoreComplexNestedData(),
@@ -132,7 +132,7 @@ describe('NestedRows (RTL)', () => {
         expect(window.getComputedStyle($('.ht_nestingCollapse')[0]).left).toEqual('-2px');
       });
 
-      it.forTheme('main')('should display indicators properly located', () => {
+      it.forTheme('main')('should display indicators properly located', async() => {
         const hot = handsontable({
           layoutDirection,
           data: getMoreComplexNestedData(),
@@ -145,7 +145,7 @@ describe('NestedRows (RTL)', () => {
         expect(window.getComputedStyle($('.ht_nestingCollapse')[0].parentNode).display).toEqual('flex');
       });
 
-      it.forTheme('horizon')('should display indicators properly located', () => {
+      it.forTheme('horizon')('should display indicators properly located', async() => {
         const hot = handsontable({
           layoutDirection,
           data: getMoreComplexNestedData(),

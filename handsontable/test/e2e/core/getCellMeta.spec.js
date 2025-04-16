@@ -67,7 +67,7 @@ describe('Core.getCellMeta', () => {
 
   it('should move the selection to the cell below, when hitting the ENTER key on a read-only cell', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(3, 3),
+      data: createSpreadsheetData(3, 3),
       cells() {
         return { readOnly: true };
       }

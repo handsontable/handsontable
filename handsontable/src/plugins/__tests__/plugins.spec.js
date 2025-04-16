@@ -14,7 +14,7 @@ describe('Plugins', () => {
 
   describe('the `updatePlugin` method', () => {
     it('should NOT be triggered if the preceding `updateSettings` call didn\'t contain an object with the plugin' +
-      ' main key or additional config keys', () => {
+      ' main key or additional config keys', async() => {
       class TestPlugin extends Handsontable.plugins.BasePlugin {
         static get PLUGIN_KEY() {
           return 'testPlugin1';
@@ -125,7 +125,7 @@ describe('Plugins', () => {
       });
 
     it('should never be triggered on an `updateSettings` call, regardles of the plugin key being present in the' +
-      ' config object if the plugin is configured with `SETTING_KEYS = false`', () => {
+      ' config object if the plugin is configured with `SETTING_KEYS = false`', async() => {
       class TestPlugin extends Handsontable.plugins.BasePlugin {
         static get PLUGIN_KEY() {
           return 'testPlugin3';

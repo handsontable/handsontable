@@ -10,7 +10,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     }
   });
 
-  it.forTheme('classic')('should scale text input showed after condition selection (pixel perfect)', () => {
+  it.forTheme('classic')('should scale text input showed after condition selection (pixel perfect)', async() => {
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -29,7 +29,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
       filters: true
     });
 
-    dropdownMenu(1);
+    await dropdownMenu(1);
 
     openDropdownByConditionMenu();
     selectDropdownByConditionMenuOption('Begins with');
@@ -45,7 +45,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     expect(widthOfInput).toEqual(widthOfMenu - parentsPaddings);
   });
 
-  it.forTheme('main')('should scale text input showed after condition selection (pixel perfect)', () => {
+  it.forTheme('main')('should scale text input showed after condition selection (pixel perfect)', async() => {
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -64,7 +64,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
       filters: true
     });
 
-    dropdownMenu(1);
+    await dropdownMenu(1);
 
     openDropdownByConditionMenu();
     selectDropdownByConditionMenuOption('Begins with');
@@ -80,7 +80,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     expect(widthOfInput).toEqual(widthOfMenu - parentsPaddings);
   });
 
-  it.forTheme('horizon')('should scale text input showed after condition selection (pixel perfect)', () => {
+  it.forTheme('horizon')('should scale text input showed after condition selection (pixel perfect)', async() => {
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -99,7 +99,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
       filters: true
     });
 
-    dropdownMenu(1);
+    await dropdownMenu(1);
 
     openDropdownByConditionMenu();
     selectDropdownByConditionMenuOption('Begins with');
@@ -115,7 +115,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     expect(widthOfInput).toEqual(widthOfMenu - parentsPaddings);
   });
 
-  it.forTheme('classic')('should scale a condition select (pixel perfect)', () => {
+  it.forTheme('classic')('should scale a condition select (pixel perfect)', async() => {
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -134,7 +134,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
       filters: true
     });
 
-    dropdownMenu(1);
+    await dropdownMenu(1);
 
     const widthOfMenu = $(dropdownMenuRootElement()).find('table.htCore').width();
     const widthOfSelect = $(conditionSelectRootElements().first).width();
@@ -145,7 +145,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     expect(widthOfSelect).toEqual(widthOfMenu - parentsPaddings);
   });
 
-  it.forTheme('main')('should scale a condition select (pixel perfect)', () => {
+  it.forTheme('main')('should scale a condition select (pixel perfect)', async() => {
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -164,7 +164,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
       filters: true
     });
 
-    dropdownMenu(1);
+    await dropdownMenu(1);
 
     const widthOfMenu = $(dropdownMenuRootElement()).find('table.htCore').width();
     const widthOfSelect = $(conditionSelectRootElements().first).width();
@@ -175,7 +175,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     expect(widthOfSelect).toEqual(widthOfMenu - parentsPaddings);
   });
 
-  it.forTheme('horizon')('should scale a condition select (pixel perfect)', () => {
+  it.forTheme('horizon')('should scale a condition select (pixel perfect)', async() => {
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -194,7 +194,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
       filters: true
     });
 
-    dropdownMenu(1);
+    await dropdownMenu(1);
 
     const widthOfMenu = $(dropdownMenuRootElement()).find('table.htCore').width();
     const widthOfSelect = $(conditionSelectRootElements().first).width();
@@ -205,7 +205,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     expect(widthOfSelect).toEqual(widthOfMenu - parentsPaddings);
   });
 
-  it.forTheme('classic')('should scale search input of the value box (pixel perfect)', () => {
+  it.forTheme('classic')('should scale search input of the value box (pixel perfect)', async() => {
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -224,7 +224,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
       filters: true
     });
 
-    dropdownMenu(1);
+    await dropdownMenu(1);
 
     const widthOfMenu = $(dropdownMenuRootElement()).find('table.htCore').width();
     const widthOfInput = $(dropdownMenuRootElement()).find('.htUIMultipleSelectSearch input').width();
@@ -237,7 +237,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     expect(widthOfInput).toEqual(widthOfMenu - parentsPaddings);
   });
 
-  it.forTheme('main')('should scale search input of the value box (pixel perfect)', () => {
+  it.forTheme('main')('should scale search input of the value box (pixel perfect)', async() => {
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -256,7 +256,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
       filters: true
     });
 
-    dropdownMenu(1);
+    await dropdownMenu(1);
 
     const widthOfMenu = $(dropdownMenuRootElement()).find('table.htCore').width();
     const widthOfInput = $(dropdownMenuRootElement()).find('.htUIMultipleSelectSearch input').width();
@@ -269,7 +269,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     expect(widthOfInput).toEqual(widthOfMenu - parentsPaddings);
   });
 
-  it.forTheme('horizon')('should scale search input of the value box (pixel perfect)', () => {
+  it.forTheme('horizon')('should scale search input of the value box (pixel perfect)', async() => {
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -288,7 +288,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
       filters: true
     });
 
-    dropdownMenu(1);
+    await dropdownMenu(1);
 
     const widthOfMenu = $(dropdownMenuRootElement()).find('table.htCore').width();
     const widthOfInput = $(dropdownMenuRootElement()).find('.htUIMultipleSelectSearch input').width();
@@ -301,7 +301,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     expect(widthOfInput).toEqual(widthOfMenu - parentsPaddings);
   });
 
-  it.forTheme('classic')('should scale the value box element (pixel perfect)', () => {
+  it.forTheme('classic')('should scale the value box element (pixel perfect)', async() => {
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -320,7 +320,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
       filters: true
     });
 
-    dropdownMenu(1);
+    await dropdownMenu(1);
 
     openDropdownByConditionMenu();
     $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")')
@@ -337,7 +337,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     expect(widthOfValueBox).toEqual(widthOfMenu - parentsPaddings);
   });
 
-  it.forTheme('main')('should scale the value box element (pixel perfect)', () => {
+  it.forTheme('main')('should scale the value box element (pixel perfect)', async() => {
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -356,7 +356,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
       filters: true
     });
 
-    dropdownMenu(1);
+    await dropdownMenu(1);
 
     openDropdownByConditionMenu();
     $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")')
@@ -369,7 +369,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     expect(widthOfValueBox).toEqual(widthOfMenu);
   });
 
-  it.forTheme('horizon')('should scale the value box element (pixel perfect)', () => {
+  it.forTheme('horizon')('should scale the value box element (pixel perfect)', async() => {
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -388,7 +388,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
       filters: true
     });
 
-    dropdownMenu(1);
+    await dropdownMenu(1);
 
     openDropdownByConditionMenu();
     $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")')
@@ -420,7 +420,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
       filters: true
     });
 
-    dropdownMenu(1);
+    await dropdownMenu(1);
 
     openDropdownByConditionMenu();
     $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")')
@@ -454,7 +454,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
 
     const $menu = $('.htDropdownMenu');
 
-    dropdownMenu(0);
+    await dropdownMenu(0);
 
     await sleep(300);
 
@@ -462,7 +462,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
 
     hot.updateSettings({ dropdownMenu: true });
 
-    dropdownMenu(0);
+    await dropdownMenu(0);
 
     await sleep(300);
 
@@ -481,7 +481,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
 
     const $menu = $('.htDropdownMenu');
 
-    dropdownMenu(0);
+    await dropdownMenu(0);
 
     await sleep(300);
 
@@ -489,7 +489,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
 
     mouseDown(this.$container);
 
-    dropdownMenu(0);
+    await dropdownMenu(0);
 
     await sleep(300);
 
@@ -506,7 +506,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
       language: 'longerForTests'
     });
 
-    dropdownMenu(0);
+    await dropdownMenu(0);
 
     openDropdownByConditionMenu();
 
@@ -517,7 +517,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
 
     hot.updateSettings({ language: 'en-US' });
 
-    dropdownMenu(0);
+    await dropdownMenu(0);
 
     openDropdownByConditionMenu();
 
@@ -546,7 +546,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
       filters: true
     });
 
-    dropdownMenu(0);
+    await dropdownMenu(0);
 
     await sleep(300);
 
@@ -567,7 +567,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
 
     const $menu = $('.htDropdownMenu');
 
-    dropdownMenu(0);
+    await dropdownMenu(0);
 
     const firstWidth = $menu.find('.wtHider').width();
 
@@ -585,7 +585,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     expect(nextWidth).toBe(firstWidth);
   });
 
-  it('should not display extra condition element at start', () => {
+  it('should not display extra condition element at start', async() => {
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -595,11 +595,11 @@ describe('Filters UI cooperation with DropdownMenu', () => {
       height: 300
     });
 
-    dropdownMenu(1);
+    await dropdownMenu(1);
     expect($(conditionSelectRootElements().second).is(':visible')).toBe(false);
   });
 
-  it('should show extra condition element after specific conditional options menu click', () => {
+  it('should show extra condition element after specific conditional options menu click', async() => {
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -609,7 +609,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
       height: 300
     });
 
-    dropdownMenu(1);
+    await dropdownMenu(1);
     openDropdownByConditionMenu();
     selectDropdownByConditionMenuOption('Begins with');
 
@@ -618,7 +618,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     expect($(conditionSelectRootElements().second).is(':visible')).toBe(true);
   });
 
-  it('should not show extra condition element after specific conditional options menu click', () => {
+  it('should not show extra condition element after specific conditional options menu click', async() => {
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -628,7 +628,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
       height: 300
     });
 
-    dropdownMenu(1);
+    await dropdownMenu(1);
     openDropdownByConditionMenu();
     selectDropdownByConditionMenuOption('None');
 
@@ -637,7 +637,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     expect($(conditionSelectRootElements().second).is(':visible')).toBe(false);
   });
 
-  it('should hide extra condition element after specific conditional options menu click', () => {
+  it('should hide extra condition element after specific conditional options menu click', async() => {
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -647,7 +647,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
       height: 300
     });
 
-    dropdownMenu(1);
+    await dropdownMenu(1);
     openDropdownByConditionMenu();
     selectDropdownByConditionMenuOption('Is equal to');
 
@@ -660,7 +660,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
   });
 
   it('should not show extra condition elements after changing value of cell when conditions wasn\'t set' +
-    '(`conditionUpdateObserver` triggers hook)', () => {
+    '(`conditionUpdateObserver` triggers hook)', async() => {
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -670,19 +670,19 @@ describe('Filters UI cooperation with DropdownMenu', () => {
       height: 300
     });
 
-    selectCell(3, 0);
-    keyDownUp('enter');
+    await selectCell(3, 0);
+    await keyDownUp('enter');
     document.activeElement.value = '99';
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
-    dropdownMenu(1);
+    await dropdownMenu(1);
 
     expect($(conditionSelectRootElements().second).is(':visible')).toBe(false);
     expect($(conditionRadioInput(0).element).parent().is(':visible')).toBe(false);
   });
 
   it('should show proper condition elements after changing value of cell when condition was set' +
-    '(`conditionUpdateObserver` triggers hook)', () => {
+    '(`conditionUpdateObserver` triggers hook)', async() => {
     const hot = handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -697,19 +697,19 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     filters.addCondition(1, 'gte', [10]);
     filters.filter();
 
-    selectCell(3, 0);
-    keyDownUp('enter');
+    await selectCell(3, 0);
+    await keyDownUp('enter');
     document.activeElement.value = '99';
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
-    dropdownMenu(1);
+    await dropdownMenu(1);
 
     expect($(conditionSelectRootElements().first).is(':visible')).toBe(true);
     expect($(conditionSelectRootElements().second).is(':visible')).toBe(true);
     expect($(conditionRadioInput(0).element).parent().is(':visible')).toBe(true);
   });
 
-  it('should update components properly after API action #1', () => {
+  it('should update components properly after API action #1', async() => {
     const hot = handsontable({
       data: [
         {
@@ -746,7 +746,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     filters.addCondition(1, 'not_contains', ['z']);
     filters.filter();
 
-    dropdownMenu(1);
+    await dropdownMenu(1);
 
     const checkboxes = $(byValueBoxRootElement()).find(':checkbox').toArray();
     const checkedArray = checkboxes.map(element => element.checked);
@@ -760,7 +760,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     expect($(conditionRadioInput(0).element).parent().is(':visible')).toBe(true);
   });
 
-  it('should update components properly after API action #2', () => {
+  it('should update components properly after API action #2', async() => {
     const hot = handsontable({
       data: [
         {
@@ -797,7 +797,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     filters.addCondition(1, 'by_value', [['Nannie Patel', 'Leanne Ware']]);
     filters.filter();
 
-    dropdownMenu(1);
+    await dropdownMenu(1);
 
     const checkboxes = $(byValueBoxRootElement()).find(':checkbox').toArray();
     const checkedArray = checkboxes.map(element => element.checked);
@@ -811,7 +811,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     expect($(conditionRadioInput(0).element).parent().is(':visible')).toBe(true);
   });
 
-  it('should update components properly after API action #3', () => {
+  it('should update components properly after API action #3', async() => {
     const hot = handsontable({
       data: [
         {
@@ -848,7 +848,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     filters.addCondition(1, 'not_contains', ['z']);
     filters.filter();
 
-    dropdownMenu(1);
+    await dropdownMenu(1);
 
     const checkboxes = $(byValueBoxRootElement()).find(':checkbox').toArray();
     const checkedArray = checkboxes.map(element => element.checked);
@@ -862,7 +862,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     expect($(conditionRadioInput(0).element).parent().is(':visible')).toBe(true);
   });
 
-  it('should update components properly after API action #4', () => {
+  it('should update components properly after API action #4', async() => {
     const hot = handsontable({
       data: [
         {
@@ -898,7 +898,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     filters.addCondition(1, 'contains', ['a']);
     filters.filter();
 
-    dropdownMenu(1);
+    await dropdownMenu(1);
 
     const checkboxes = $(byValueBoxRootElement()).find(':checkbox').toArray();
     const checkedArray = checkboxes.map(element => element.checked);
@@ -912,7 +912,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     expect($(conditionRadioInput(0).element).parent().is(':visible')).toBe(true);
   });
 
-  it('should update components properly after API action #5', () => {
+  it('should update components properly after API action #5', async() => {
     const hot = handsontable({
       data: [
         {
@@ -947,7 +947,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     filters.addCondition(1, 'by_value', [['Nannie Patel', 'Leanne Ware']]);
     filters.filter();
 
-    dropdownMenu(1);
+    await dropdownMenu(1);
 
     const checkboxes = $(byValueBoxRootElement()).find(':checkbox').toArray();
     const checkedArray = checkboxes.map(element => element.checked);
@@ -961,7 +961,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     expect($(conditionRadioInput(0).element).parent().is(':visible')).toBe(false);
   });
 
-  it('should show last operation which was added from API and can be shown inside `dropdownMenu` #1', () => {
+  it('should show last operation which was added from API and can be shown inside `dropdownMenu` #1', async() => {
     const hot = handsontable({
       data: [
         {
@@ -999,7 +999,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     filters.addCondition(1, 'by_value', [['Nannie Patel', 'Leanne Ware']]);
     filters.filter();
 
-    dropdownMenu(1);
+    await dropdownMenu(1);
 
     const checkboxes = $(byValueBoxRootElement()).find(':checkbox').toArray();
     const checkedArray = checkboxes.map(element => element.checked);
@@ -1014,7 +1014,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     expect($(conditionRadioInput(0).element).parent().is(':visible')).toBe(true);
   });
 
-  it('should show last operation which was added from API and can be shown inside `dropdownMenu` #2', () => {
+  it('should show last operation which was added from API and can be shown inside `dropdownMenu` #2', async() => {
     const hot = handsontable({
       data: [
         {
@@ -1050,7 +1050,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     filters.addCondition(1, 'by_value', [['Mathis Boone']]);
     filters.filter();
 
-    dropdownMenu(1);
+    await dropdownMenu(1);
 
     const checkboxes = $(byValueBoxRootElement()).find(':checkbox').toArray();
     const checkedArray = checkboxes.map(element => element.checked);
@@ -1072,7 +1072,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
       filters: true,
     });
 
-    dropdownMenu(0);
+    await dropdownMenu(0);
     await sleep(300);
 
     {
@@ -1086,7 +1086,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     }
 
     updateSettings({ dropdownMenu: true });
-    dropdownMenu(0);
+    await dropdownMenu(0);
     await sleep(300);
 
     {

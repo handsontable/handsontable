@@ -20,9 +20,9 @@ describe('NestedHeaders', () => {
   });
 
   describe('initialization', () => {
-    it('should be possible to initialize the plugin with minimal setup', () => {
+    it('should be possible to initialize the plugin with minimal setup', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         colHeaders: true,
       });
 
@@ -62,9 +62,9 @@ describe('NestedHeaders', () => {
         `);
     });
 
-    it('should be possible to disable the plugin using the disablePlugin method', () => {
+    it('should be possible to disable the plugin using the disablePlugin method', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         colHeaders: true,
         nestedHeaders: [
           ['A1', { label: 'B1', colspan: 3 }, 'E1', 'F1', 'G1'],
@@ -109,9 +109,9 @@ describe('NestedHeaders', () => {
         `);
     });
 
-    it('should be possible to re-enable the plugin using the enablePlugin method', () => {
+    it('should be possible to re-enable the plugin using the enablePlugin method', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         colHeaders: true,
         nestedHeaders: [
           ['A1', { label: 'B1', colspan: 3 }, 'E1', 'F1', 'G1'],
@@ -170,9 +170,9 @@ describe('NestedHeaders', () => {
         `);
     });
 
-    it('should be possible to initialize the plugin using the updateSettings method', () => {
+    it('should be possible to initialize the plugin using the updateSettings method', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         colHeaders: true,
       });
 
@@ -227,9 +227,9 @@ describe('NestedHeaders', () => {
         `);
     });
 
-    it('should be possible to disable the plugin using updateSettings method', () => {
+    it('should be possible to disable the plugin using updateSettings method', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         colHeaders: true,
         nestedHeaders: [
           ['A1', { label: 'B1', colspan: 3 }, 'E1', 'F1', 'G1'],
@@ -273,9 +273,9 @@ describe('NestedHeaders', () => {
         `);
     });
 
-    it('should be possible to update the plugin settings using the updateSettings method', () => {
+    it('should be possible to update the plugin settings using the updateSettings method', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         colHeaders: true,
         nestedHeaders: [
           ['A1', { label: 'B1', colspan: 3 }, 'E1', 'F1', 'G1'],
@@ -347,11 +347,11 @@ describe('NestedHeaders', () => {
         `);
     });
 
-    it('should warn the developer when the settings contains overlaping headers', () => {
+    it('should warn the developer when the settings contains overlaping headers', async() => {
       const warnSpy = spyOn(console, 'warn');
 
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         colHeaders: true,
         nestedHeaders: [
           ['a', { label: 'b', colspan: 2 }, 'c'],
@@ -403,10 +403,10 @@ describe('NestedHeaders', () => {
         `);
     });
 
-    it('should warn the developer when the settings are invalid', () => {
+    it('should warn the developer when the settings are invalid', async() => {
       const warnSpy = spyOn(console, 'warn');
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         colHeaders: true,
       });
 

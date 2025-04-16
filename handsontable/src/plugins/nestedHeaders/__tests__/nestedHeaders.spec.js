@@ -20,9 +20,9 @@ describe('NestedHeaders', () => {
   });
 
   describe('basic functionality', () => {
-    it('should add as many header levels as the \'colHeaders\' property suggests', () => {
+    it('should add as many header levels as the \'colHeaders\' property suggests', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         colHeaders: true,
         nestedHeaders: [
           ['a', 'b', 'c', 'd'],
@@ -33,9 +33,9 @@ describe('NestedHeaders', () => {
       expect(hot.view._wt.wtTable.THEAD.querySelectorAll('tr').length).toEqual(2);
     });
 
-    it('should adjust headers widths', () => {
+    it('should adjust headers widths', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         colHeaders: true,
         nestedHeaders: [
           ['a', { label: 'b', colspan: 2 }, 'c', 'd'],
@@ -51,9 +51,9 @@ describe('NestedHeaders', () => {
   });
 
   describe('cooperation with drop-down menu element', () => {
-    it('should close drop-down menu after click on header which sorts a column', () => {
+    it('should close drop-down menu after click on header which sorts a column', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 11),
+        data: createSpreadsheetData(5, 11),
         colHeaders: true,
         rowHeaders: true,
         columnSorting: true,
@@ -65,7 +65,7 @@ describe('NestedHeaders', () => {
 
       const $firstHeader = spec().$container.find('.ht_master table.htCore thead th span.columnSorting');
 
-      dropdownMenu(0);
+      await dropdownMenu(0);
 
       $firstHeader.simulate('mousedown');
       $firstHeader.simulate('mouseup');

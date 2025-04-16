@@ -46,7 +46,7 @@ describe('Core.setCellMeta', () => {
     const className = 'htCenter htMiddle';
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
       afterCellMetaReset() {
         this.setCellMeta(100, 100, 'className', className);
       }

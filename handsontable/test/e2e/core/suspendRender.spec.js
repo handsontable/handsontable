@@ -14,7 +14,7 @@ describe('Core.suspendRender', () => {
 
   it('should suspend the table rendering process and mark that the slow redraw was used', () => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
     });
 
     spyOn(hot.view._wt, 'draw');
@@ -49,7 +49,7 @@ describe('Core.suspendRender', () => {
 
   it('should suspend the table rendering process and mark that the fast redraw was used', () => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
     });
 
     spyOn(hot.view._wt, 'draw');
@@ -82,7 +82,7 @@ describe('Core.suspendRender', () => {
 
   it('should wrap multiple calls of the table suspend rendering', () => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
     });
 
     spyOn(hot.view._wt, 'draw');

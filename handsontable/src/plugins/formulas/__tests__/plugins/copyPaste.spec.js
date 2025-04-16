@@ -13,7 +13,7 @@ describe('Formulas', () => {
   });
 
   describe('Integration with Copy/Paste', () => {
-    it('should allow pasting data near the table borders (thus extending the table)', () => {
+    it('should allow pasting data near the table borders (thus extending the table)', async() => {
       const hot = handsontable({
         data: [[1, 'x'], ['=A1 + 1', 'y']],
         formulas: {
@@ -25,11 +25,11 @@ describe('Formulas', () => {
       const copyEvent = getClipboardEvent();
       const copyPastePlugin = getPlugin('CopyPaste');
 
-      selectCell(0, 0, 1, 1);
+      await selectCell(0, 0, 1, 1);
 
       copyPastePlugin.onCopy(copyEvent);
 
-      selectCell(1, 1);
+      await selectCell(1, 1);
 
       copyPastePlugin.onPaste(copyEvent);
 

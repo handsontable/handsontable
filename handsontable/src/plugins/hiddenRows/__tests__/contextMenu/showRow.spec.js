@@ -19,9 +19,9 @@ describe('ContextMenu', () => {
 
   describe('show row', () => {
     it('should hide the entry for "Show row" in the context menu, when the selection doesn\'t contain an' +
-      ' entire row (including the header)', () => {
+      ' entire row (including the header)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        data: createSpreadsheetData(4, 4),
         contextMenu: true,
         rowHeaders: true,
         colHeaders: true,
@@ -30,8 +30,8 @@ describe('ContextMenu', () => {
         },
       });
 
-      selectCell(1, 0);
-      contextMenu();
+      await selectCell(1, 0);
+      await contextMenu();
 
       const compatibleEntries = getShowRowCMElement();
 
@@ -41,7 +41,7 @@ describe('ContextMenu', () => {
     it('should NOT hide the entry for "Show row" in the context menu, when the selection contains an' +
       ' entire row (including the header) or all cells (including all headers)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(4, 4),
+        data: createSpreadsheetData(4, 4),
         contextMenu: true,
         rowHeaders: true,
         colHeaders: true,

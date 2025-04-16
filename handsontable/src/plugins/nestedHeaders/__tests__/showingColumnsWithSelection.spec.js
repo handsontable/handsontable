@@ -21,9 +21,9 @@ describe('NestedHeaders', () => {
 
   describe('showing columns', () => {
     describe('with selection', () => {
-      it('should highlight column headers for selected cells', () => {
+      it('should highlight column headers for selected cells', async() => {
         const hot = handsontable({
-          data: Handsontable.helper.createSpreadsheetData(3, 13),
+          data: createSpreadsheetData(3, 13),
           colHeaders: true,
           nestedHeaders: [
             ['A1', { label: 'B1', colspan: 8 }, 'J1', { label: 'K1', colspan: 3 }],
@@ -40,7 +40,7 @@ describe('NestedHeaders', () => {
         hidingMap.setValueAtIndex(5, false); // Show column that contains cells F{n}
         hot.render();
 
-        selectCells([
+        await selectCells([
           [2, 2, 2, 2], // C3
           [2, 5, 2, 5], // F3
           [2, 11, 2, 11], // L3
@@ -124,9 +124,9 @@ describe('NestedHeaders', () => {
         `).toBeMatchToSelectionPattern();
       });
 
-      it('should active highlight column headers correctly', () => {
+      it('should active highlight column headers correctly', async() => {
         const hot = handsontable({
-          data: Handsontable.helper.createSpreadsheetData(3, 13),
+          data: createSpreadsheetData(3, 13),
           colHeaders: true,
           nestedHeaders: [
             ['A1', { label: 'B1', colspan: 8 }, 'J1', { label: 'K1', colspan: 3 }],
@@ -147,7 +147,7 @@ describe('NestedHeaders', () => {
 
         simulateClick(getTopClone().find('thead tr:eq(2) th:eq(2)')); // select column F3
 
-        keyDown('control/meta');
+        await keyDown('control/meta');
 
         simulateClick(getTopClone().find('thead tr:eq(1) th:eq(3)')); // select column K2
         simulateClick(getTopClone().find('thead tr:eq(3) th:eq(0)')); // select column B4
@@ -235,9 +235,9 @@ describe('NestedHeaders', () => {
         `).toBeMatchToSelectionPattern();
       });
 
-      it('should active highlight column headers correctly (navigableHeaders on)', () => {
+      it('should active highlight column headers correctly (navigableHeaders on)', async() => {
         const hot = handsontable({
-          data: Handsontable.helper.createSpreadsheetData(3, 13),
+          data: createSpreadsheetData(3, 13),
           colHeaders: true,
           navigableHeaders: true,
           nestedHeaders: [
@@ -259,7 +259,7 @@ describe('NestedHeaders', () => {
 
         simulateClick(getTopClone().find('thead tr:eq(2) th:eq(2)')); // select column F3
 
-        keyDown('control/meta');
+        await keyDown('control/meta');
 
         simulateClick(getTopClone().find('thead tr:eq(1) th:eq(3)')); // select column K2
         simulateClick(getTopClone().find('thead tr:eq(3) th:eq(0)')); // select column B4

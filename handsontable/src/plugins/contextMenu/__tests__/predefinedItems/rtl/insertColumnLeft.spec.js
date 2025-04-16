@@ -16,7 +16,7 @@ describe('ContextMenu (RTL mode)', () => {
   });
 
   describe('insert column left', () => {
-    it('should insert column on the left of the clicked column header', () => {
+    it('should insert column on the left of the clicked column header', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
@@ -24,7 +24,7 @@ describe('ContextMenu (RTL mode)', () => {
         contextMenu: true,
       });
 
-      contextMenu(getCell(-1, 1, true));
+      await contextMenu(getCell(-1, 1, true));
 
       const item = selectContextMenuOption('Insert column left');
 
@@ -41,7 +41,7 @@ describe('ContextMenu (RTL mode)', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should insert column on the left when the menu is triggered by corner', () => {
+    it('should insert column on the left when the menu is triggered by corner', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
@@ -49,7 +49,7 @@ describe('ContextMenu (RTL mode)', () => {
         contextMenu: true,
       });
 
-      contextMenu(getCell(-1, -1, true));
+      await contextMenu(getCell(-1, -1, true));
 
       const item = selectContextMenuOption('Insert column left');
 
@@ -66,7 +66,7 @@ describe('ContextMenu (RTL mode)', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should insert column on the left when the menu is triggered by corner and all rows are trimmed', () => {
+    it('should insert column on the left when the menu is triggered by corner and all rows are trimmed', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: [1, 2, 3, 4, 5],
@@ -75,7 +75,7 @@ describe('ContextMenu (RTL mode)', () => {
         trimRows: [0, 1, 2, 3, 4],
       });
 
-      contextMenu(getCell(-1, -1, true));
+      await contextMenu(getCell(-1, -1, true));
 
       const item = selectContextMenuOption('Insert column left');
 
@@ -87,7 +87,7 @@ describe('ContextMenu (RTL mode)', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should insert column on the left of the clicked cell', () => {
+    it('should insert column on the left of the clicked cell', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
@@ -95,7 +95,7 @@ describe('ContextMenu (RTL mode)', () => {
         contextMenu: true,
       });
 
-      contextMenu(getCell(1, 1));
+      await contextMenu(getCell(1, 1));
 
       const item = selectContextMenuOption('Insert column left');
 

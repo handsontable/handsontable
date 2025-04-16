@@ -13,9 +13,9 @@ describe('HiddenColumns', () => {
   });
 
   describe('alter actions', () => {
-    it('should update hidden column indexes after columns removal (removing not hidden columns)', () => {
+    it('should update hidden column indexes after columns removal (removing not hidden columns)', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 10),
+        data: createSpreadsheetData(1, 10),
         hiddenColumns: true,
         manualColumnMove: [4, 0, 8, 5, 2, 6, 1, 7, 3, 9]
       });
@@ -23,7 +23,7 @@ describe('HiddenColumns', () => {
       const plugin = getPlugin('hiddenColumns');
 
       plugin.hideColumns([6, 7, 8]); // visual column indexes after move (physical indexes: 1, 7, 3)
-      alter('remove_col', 2, 3); // visual column index
+      await alter('remove_col', 2, 3); // visual column index
 
       expect(plugin.isHidden(3)).toBe(true); // 6 -> 3
       expect(hot.getColWidth(3)).toEqual(0);
@@ -46,9 +46,9 @@ describe('HiddenColumns', () => {
       expect(getDataAtRow(0)).toEqual(['E1', 'A1', 'G1', 'B1', 'H1', 'D1', 'J1']);
     });
 
-    it('should update hidden column indexes after columns removal (removing part of hidden columns)', () => {
+    it('should update hidden column indexes after columns removal (removing part of hidden columns)', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 10),
+        data: createSpreadsheetData(1, 10),
         colHeaders: true,
         hiddenColumns: {
           indicators: true,
@@ -59,7 +59,7 @@ describe('HiddenColumns', () => {
       const plugin = getPlugin('hiddenColumns');
 
       plugin.hideColumns([6, 7, 8]); // visual column indexes after move (physical indexes: 1, 7, 3)
-      alter('remove_col', 6, 2); // visual column index
+      await alter('remove_col', 6, 2); // visual column index
 
       expect(plugin.isHidden(6)).toBe(true); // 8 -> 6
       expect(hot.getColWidth(6)).toEqual(0);
@@ -85,9 +85,9 @@ describe('HiddenColumns', () => {
       expect(getDataAtRow(0)).toEqual(['E1', 'A1', 'I1', 'F1', 'C1', 'G1', 'D1', 'J1']);
     });
 
-    it('should update hidden column indexes after columns insertion (inserting columns before already hidden columns)', () => {
+    it('should update hidden column indexes after columns insertion (inserting columns before already hidden columns)', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 10),
+        data: createSpreadsheetData(1, 10),
         hiddenColumns: true,
         manualColumnMove: [4, 0, 8, 5, 2, 6, 1, 7, 3, 9]
       });
@@ -95,7 +95,7 @@ describe('HiddenColumns', () => {
       const plugin = getPlugin('hiddenColumns');
 
       plugin.hideColumns([6, 7, 8]); // visual column indexes after move (physical indexes: 1, 7, 3)
-      alter('insert_col_start', 0, 3); // visual column index
+      await alter('insert_col_start', 0, 3); // visual column index
 
       expect(plugin.isHidden(9)).toBe(true); // 6 -> 9
       expect(hot.getColWidth(9)).toEqual(0);
@@ -124,9 +124,9 @@ describe('HiddenColumns', () => {
       expect(getDataAtRow(0)).toEqual([null, null, null, 'E1', 'A1', 'I1', 'F1', 'C1', 'G1', 'B1', 'H1', 'D1', 'J1']);
     });
 
-    it('should update hidden column indexes after columns insertion (inserting columns between already hidden columns)', () => {
+    it('should update hidden column indexes after columns insertion (inserting columns between already hidden columns)', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 10),
+        data: createSpreadsheetData(1, 10),
         colHeaders: true,
         hiddenColumns: {
           indicators: true,
@@ -137,7 +137,7 @@ describe('HiddenColumns', () => {
       const plugin = getPlugin('hiddenColumns');
 
       plugin.hideColumns([6, 7, 8]); // visual column indexes after move (physical indexes: 1, 7, 3)
-      alter('insert_col_start', 7, 2); // visual column index
+      await alter('insert_col_start', 7, 2); // visual column index
 
       expect(plugin.isHidden(6)).toBe(true);
       expect(hot.getColWidth(6)).toEqual(0);

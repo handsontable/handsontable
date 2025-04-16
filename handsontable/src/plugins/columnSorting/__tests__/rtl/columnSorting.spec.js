@@ -21,7 +21,7 @@ describe('ColumnSorting (RTL)', () => {
       }
     });
 
-    it.forTheme('classic')('should display indicator properly after changing sorted column sequence', () => {
+    it.forTheme('classic')('should display indicator properly after changing sorted column sequence', async() => {
       const hot = handsontable({
         layoutDirection,
         data: [
@@ -40,7 +40,7 @@ describe('ColumnSorting (RTL)', () => {
 
       // changing column sequence: 0 <-> 1
       hot.columnIndexMapper.moveIndexes([1], 0);
-      hot.render();
+      await render();
 
       const sortedColumn = spec().$container.find('th span.columnSorting')[1];
 
@@ -48,7 +48,7 @@ describe('ColumnSorting (RTL)', () => {
       expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('left')).toEqual('-9px');
     });
 
-    it.forTheme('main')('should display indicator properly after changing sorted column sequence', () => {
+    it.forTheme('main')('should display indicator properly after changing sorted column sequence', async() => {
       const hot = handsontable({
         layoutDirection,
         data: [
@@ -67,7 +67,7 @@ describe('ColumnSorting (RTL)', () => {
 
       // changing column sequence: 0 <-> 1
       hot.columnIndexMapper.moveIndexes([1], 0);
-      hot.render();
+      await render();
 
       const sortedColumn = spec().$container.find('th span.columnSorting')[1];
 
@@ -83,7 +83,7 @@ describe('ColumnSorting (RTL)', () => {
       expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('top')).toEqual('10px');
     });
 
-    it.forTheme('horizon')('should display indicator properly after changing sorted column sequence', () => {
+    it.forTheme('horizon')('should display indicator properly after changing sorted column sequence', async() => {
       const hot = handsontable({
         layoutDirection,
         data: [
@@ -102,7 +102,7 @@ describe('ColumnSorting (RTL)', () => {
 
       // changing column sequence: 0 <-> 1
       hot.columnIndexMapper.moveIndexes([1], 0);
-      hot.render();
+      await render();
 
       const sortedColumn = spec().$container.find('th span.columnSorting')[1];
 

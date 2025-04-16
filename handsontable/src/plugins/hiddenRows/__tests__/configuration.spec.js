@@ -13,9 +13,9 @@ describe('HiddenRows', () => {
   });
 
   describe('configuration', () => {
-    it('should hide rows if the "hiddenRows" has "rows" property set', () => {
+    it('should hide rows if the "hiddenRows" has "rows" property set', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         hiddenRows: {
           rows: [1, 3],
         }
@@ -30,9 +30,9 @@ describe('HiddenRows', () => {
       expect(countRows()).toBe(5);
     });
 
-    it('should return to default state after calling the disablePlugin method', () => {
+    it('should return to default state after calling the disablePlugin method', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         hiddenRows: {
           rows: [1, 3],
         },
@@ -49,9 +49,9 @@ describe('HiddenRows', () => {
       expect(countRows()).toBe(5);
     });
 
-    it('should hide rows after calling the enablePlugin method', () => {
+    it('should hide rows after calling the enablePlugin method', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         hiddenRows: {
           rows: [1, 3],
         },
@@ -75,9 +75,9 @@ describe('HiddenRows', () => {
       expect(getCell(4, 0).innerText).toBe('A5');
     });
 
-    it('should initialize the plugin after setting it up with the "updateSettings" method', () => {
+    it('should initialize the plugin after setting it up with the "updateSettings" method', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
       });
 
       const plugin = getPlugin('hiddenRows');
@@ -100,9 +100,9 @@ describe('HiddenRows', () => {
       expect(getCell(4, 0).innerText).toBe('A5');
     });
 
-    it('should update hidden rows with the "updateSettings" method', () => {
+    it('should update hidden rows with the "updateSettings" method', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         hiddenRows: {
           rows: [1, 3],
         },

@@ -12,7 +12,7 @@ describe('MultipleSelectionHandles', () => {
     }
   });
 
-  it('should not stretch the container of the scrollable element (#9475)', () => {
+  it('should not stretch the container of the scrollable element (#9475)', async() => {
     handsontable({
       data: createSpreadsheetData(5, 8),
       width: 400,
@@ -26,7 +26,7 @@ describe('MultipleSelectionHandles', () => {
     expect(getMaster().find('.wtHolder').scrollLeft()).toBe(0);
   });
 
-  it('should not stretch the container of the scrollable element when the edge cells are selected (#9621)', () => {
+  it('should not stretch the container of the scrollable element when the edge cells are selected (#9621)', async() => {
     handsontable({
       data: createSpreadsheetData(5, 8),
       width: 400,
@@ -34,7 +34,7 @@ describe('MultipleSelectionHandles', () => {
     });
 
     // select the top bottom-right cell
-    selectCell(4, 7);
+    await selectCell(4, 7);
 
     // try to scroll the viewport max to the bottom-right position
     getMaster().find('.wtHolder').scrollLeft(999);
@@ -53,12 +53,12 @@ describe('MultipleSelectionHandles', () => {
     expect(getMaster().find('.wtHolder').scrollTop()).toBe(0);
   });
 
-  it('should hide all selection handlers when the cell\'s selection disappears', () => {
+  it('should hide all selection handlers when the cell\'s selection disappears', async() => {
     handsontable({
       data: createSpreadsheetData(5, 8),
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
     const topSelectionHandle = spec().$container
       .find('.ht_master .htBorders div:first-child .topSelectionHandle');
@@ -82,15 +82,15 @@ describe('MultipleSelectionHandles', () => {
     expect(bottomSelectionHandleHitArea.is(':visible')).toBe(false);
   });
 
-  it('should not show the selection handlers on context menu', () => {
+  it('should not show the selection handlers on context menu', async() => {
     handsontable({
       data: createSpreadsheetData(5, 8),
       contextMenu: true,
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
-    contextMenu();
+    await contextMenu();
 
     getPlugin('contextMenu').menu.hotMenu.selectCell(0, 0);
 
@@ -122,9 +122,9 @@ describe('MultipleSelectionHandles', () => {
       ]
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     await sleep(50);
 
@@ -152,7 +152,7 @@ describe('MultipleSelectionHandles', () => {
       dropdownMenu: true,
     });
 
-    dropdownMenu(0);
+    await dropdownMenu(0);
 
     await sleep(50);
 

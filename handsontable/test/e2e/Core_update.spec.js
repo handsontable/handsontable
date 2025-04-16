@@ -659,7 +659,7 @@ describe('Core_updateSettings', () => {
   describe('theme updating', () => {
     it('should be able to change the themes with the `updateSettings` method', () => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(15, 15),
+        data: createSpreadsheetData(15, 15),
       }, true);
 
       expect(hot.view.getStylesHandler().isClassicTheme()).toBe(true);
@@ -716,7 +716,7 @@ describe('Core_updateSettings', () => {
       simulateModernThemeStylesheet(spec().$container);
       spec().$container.addClass('ht-theme-sth');
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(15, 15),
+        data: createSpreadsheetData(15, 15),
       }, true);
 
       expect(hot.view.getStylesHandler().isClassicTheme()).toBe(false);
@@ -738,7 +738,7 @@ describe('Core_updateSettings', () => {
       spec().$container.addClass('ht-theme-sth');
 
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(15, 15),
+        data: createSpreadsheetData(15, 15),
       }, true);
 
       expect(hot.view.getStylesHandler().isClassicTheme()).toBe(false);

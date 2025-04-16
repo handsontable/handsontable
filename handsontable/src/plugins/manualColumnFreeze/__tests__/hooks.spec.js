@@ -15,12 +15,12 @@ describe('manualColumnFreeze', () => {
   describe('freezeColumn', () => {
     describe('Hooks', () => {
       it('should trigger the `beforeColumnFreeze` and `afterColumnFreeze` hooks with proper ' +
-        'parameters (all columns aren\'t fixed)', () => {
+        'parameters (all columns aren\'t fixed)', async() => {
         const beforeColumnFreezeCallback = jasmine.createSpy('beforeColumnFreeze');
         const afterColumnFreezeCallback = jasmine.createSpy('afterColumnFreeze');
 
         const hot = handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           rowHeaders: true,
           colHeaders: true,
           manualColumnFreeze: true,
@@ -36,12 +36,12 @@ describe('manualColumnFreeze', () => {
       });
 
       it('should trigger the `beforeColumnFreeze` and `afterColumnFreeze` hooks with proper ' +
-        'parameters (all columns ARE fixed)', () => {
+        'parameters (all columns ARE fixed)', async() => {
         const beforeColumnFreezeCallback = jasmine.createSpy('beforeColumnFreeze');
         const afterColumnFreezeCallback = jasmine.createSpy('afterColumnFreeze');
 
         const hot = handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           rowHeaders: true,
           colHeaders: true,
           manualColumnFreeze: true,
@@ -58,11 +58,11 @@ describe('manualColumnFreeze', () => {
       });
 
       it('should not freeze and not trigger the `afterColumnFreeze` hook after try of freezing column, when ' +
-        '`beforeColumnFreeze` return false', () => {
+        '`beforeColumnFreeze` return false', async() => {
         const afterColumnFreezeCallback = jasmine.createSpy('afterColumnFreeze');
 
         const hot = handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           rowHeaders: true,
           colHeaders: true,
           manualColumnFreeze: true,
@@ -83,12 +83,12 @@ describe('manualColumnFreeze', () => {
   describe('unfreezeColumn', () => {
     describe('Hooks', () => {
       it('should trigger the `beforeColumnUnfreeze` and `afterColumnUnfreeze` hooks with proper ' +
-        'parameters (some columns are fixed)', () => {
+        'parameters (some columns are fixed)', async() => {
         const beforeColumnUnfreezeCallback = jasmine.createSpy('beforeColumnUnfreeze');
         const afterColumnUnfreezeCallback = jasmine.createSpy('afterColumnUnfreeze');
 
         const hot = handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           rowHeaders: true,
           colHeaders: true,
           manualColumnFreeze: true,
@@ -105,12 +105,12 @@ describe('manualColumnFreeze', () => {
       });
 
       it('should trigger the `beforeColumnUnfreeze` and `afterColumnUnfreeze` hooks with proper ' +
-        'parameters (no columns are fixed)', () => {
+        'parameters (no columns are fixed)', async() => {
         const beforeColumnUnfreezeCallback = jasmine.createSpy('beforeColumnUnfreeze');
         const afterColumnUnfreezeCallback = jasmine.createSpy('afterColumnUnfreeze');
 
         const hot = handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           rowHeaders: true,
           colHeaders: true,
           manualColumnFreeze: true,
@@ -126,11 +126,11 @@ describe('manualColumnFreeze', () => {
       });
 
       it('should not freeze and not trigger the `afterColumnUnfreeze` hook after try of freezing column, when ' +
-        '`beforeColumnUnfreeze` return false', () => {
+        '`beforeColumnUnfreeze` return false', async() => {
         const afterColumnUnfreezeCallback = jasmine.createSpy('afterColumnUnfreeze');
 
         const hot = handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           rowHeaders: true,
           colHeaders: true,
           manualColumnFreeze: true,

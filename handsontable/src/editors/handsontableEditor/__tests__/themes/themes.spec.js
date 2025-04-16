@@ -38,10 +38,8 @@ describe('Handsontable editor theme handling', () => {
       themeName: 'ht-theme-sth',
     });
 
-    selectCell(0, 0);
-    keyDown('enter');
-
-    await sleep(50);
+    await selectCell(0, 0);
+    await keyDown('enter');
 
     expect($(getActiveEditor().htEditor.rootElement).hasClass('ht-theme-sth')).toBe(true);
     expect(getActiveEditor().htEditor.getCurrentThemeName()).toBe('ht-theme-sth');
@@ -62,16 +60,14 @@ describe('Handsontable editor theme handling', () => {
       ],
     }, true);
 
-    selectCell(0, 0);
-    keyDown('enter');
-
-    await sleep(50);
+    await selectCell(0, 0);
+    await keyDown('enter');
 
     expect($(getActiveEditor().htEditor.rootElement).hasClass('ht-theme-sth-else')).toBe(true);
     expect(getActiveEditor().htEditor.getCurrentThemeName()).toBe('ht-theme-sth-else');
   });
 
-  it('should not throw an exception after changing a theme for non-fully-initialized editor (#dev-2157)', () => {
+  it('should not throw an exception after changing a theme for non-fully-initialized editor (#dev-2157)', async() => {
     simulateModernThemeStylesheet(spec().$container);
     handsontable({
       columns: [
@@ -85,7 +81,7 @@ describe('Handsontable editor theme handling', () => {
       ],
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
     expect(() => {
       updateSettings({ themeName: 'ht-theme-sth-else' });

@@ -15,7 +15,7 @@ describe('HiddenColumns', () => {
   describe('navigation', () => {
     it('should not throw an error when all columns are hidden', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         colHeaders: true,
         hiddenColumns: {
@@ -23,8 +23,7 @@ describe('HiddenColumns', () => {
         },
       });
 
-      listen();
-
+      await listen();
       await selectAll();
 
       expect(() => keyDownUp('home')).not.toThrow();
@@ -38,17 +37,16 @@ describe('HiddenColumns', () => {
       expect(getSelected()).toEqual([[-1, -1, 4, 4]]);
     });
 
-    it('should go to the closest not hidden cell on the right side while navigating by right arrow', () => {
+    it('should go to the closest not hidden cell on the right side while navigating by right arrow', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         hiddenColumns: {
           columns: [1, 2, 3],
         },
       });
 
-      selectCell(0, 0);
-
-      keyDownUp('arrowright');
+      await selectCell(0, 0);
+      await keyDownUp('arrowright');
 
       expect(getSelected()).toEqual([[0, 4, 0, 4]]);
       expect(getCell(0, 4)).toHaveClass('current');
@@ -63,17 +61,16 @@ describe('HiddenColumns', () => {
       expect(getSelectedRangeLast().highlight.col).toBe(4);
     });
 
-    it('should go to the closest not hidden cell on the left side while navigating by left arrow', () => {
+    it('should go to the closest not hidden cell on the left side while navigating by left arrow', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         hiddenColumns: {
           columns: [1, 2, 3],
         },
       });
 
-      selectCell(0, 4);
-
-      keyDownUp('arrowleft');
+      await selectCell(0, 4);
+      await keyDownUp('arrowleft');
 
       expect(getCell(0, 0)).toHaveClass('current');
       expect(`
@@ -92,9 +89,9 @@ describe('HiddenColumns', () => {
       expect(getSelectedRangeLast().to.col).toBe(0);
     });
 
-    it('should go to the first visible cell in the next row while navigating by right arrow if all column on the right side are hidden', () => {
+    it('should go to the first visible cell in the next row while navigating by right arrow if all column on the right side are hidden', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         autoWrapRow: true,
         autoWrapCol: true,
         hiddenColumns: {
@@ -102,9 +99,8 @@ describe('HiddenColumns', () => {
         },
       });
 
-      selectCell(0, 2);
-
-      keyDownUp('arrowright');
+      await selectCell(0, 2);
+      await keyDownUp('arrowright');
 
       expect(getCell(1, 0)).toHaveClass('current');
       expect(`
@@ -123,9 +119,9 @@ describe('HiddenColumns', () => {
       expect(getSelectedRangeLast().to.col).toBe(0);
     });
 
-    it('should go to the last visible cell in the previous row while navigating by left arrow if all column on the left side are hidden', () => {
+    it('should go to the last visible cell in the previous row while navigating by left arrow if all column on the left side are hidden', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         autoWrapRow: true,
         autoWrapCol: true,
         hiddenColumns: {
@@ -133,9 +129,8 @@ describe('HiddenColumns', () => {
         },
       });
 
-      selectCell(1, 2);
-
-      keyDownUp('arrowleft');
+      await selectCell(1, 2);
+      await keyDownUp('arrowleft');
 
       expect(getCell(0, 4)).toHaveClass('current');
       expect(`
@@ -154,9 +149,9 @@ describe('HiddenColumns', () => {
       expect(getSelectedRangeLast().to.col).toBe(4);
     });
 
-    it('should go to the first cell in the next visible column while navigating by down arrow if column on the right side is hidden', () => {
+    it('should go to the first cell in the next visible column while navigating by down arrow if column on the right side is hidden', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         autoWrapRow: true,
         autoWrapCol: true,
         hiddenColumns: {
@@ -164,9 +159,8 @@ describe('HiddenColumns', () => {
         },
       });
 
-      selectCell(4, 0);
-
-      keyDownUp('arrowdown');
+      await selectCell(4, 0);
+      await keyDownUp('arrowdown');
 
       expect(getCell(0, 4)).toHaveClass('current');
       expect(`
@@ -185,9 +179,9 @@ describe('HiddenColumns', () => {
       expect(getSelectedRangeLast().to.col).toBe(4);
     });
 
-    it('should go to the last cell in the previous visible column while navigating by up arrow if column on the left side is hidden', () => {
+    it('should go to the last cell in the previous visible column while navigating by up arrow if column on the left side is hidden', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         autoWrapRow: true,
         autoWrapCol: true,
         hiddenColumns: {
@@ -195,9 +189,8 @@ describe('HiddenColumns', () => {
         },
       });
 
-      selectCell(0, 4);
-
-      keyDownUp('arrowup');
+      await selectCell(0, 4);
+      await keyDownUp('arrowup');
 
       expect(getCell(4, 0)).toHaveClass('current');
       expect(`
@@ -217,9 +210,9 @@ describe('HiddenColumns', () => {
     });
 
     describe('should go to the proper cell while navigating if row header is selected and', () => {
-      it('first columns are hidden', () => {
+      it('first columns are hidden', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          data: createSpreadsheetData(5, 5),
           autoWrapRow: true,
           autoWrapCol: true,
           rowHeaders: true,
@@ -231,8 +224,8 @@ describe('HiddenColumns', () => {
 
         const header = getCell(0, -1);
 
-        simulateClick(header, 'LMB');
-        keyDownUp('arrowright');
+        await simulateClick(header, 'LMB');
+        await keyDownUp('arrowright');
 
         expect(`
         |   ║   : - :   |
@@ -252,9 +245,9 @@ describe('HiddenColumns', () => {
         expect(getSelectedRangeLast().to.col).toBe(3);
       });
 
-      it('last columns are hidden', () => {
+      it('last columns are hidden', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          data: createSpreadsheetData(5, 5),
           autoWrapRow: true,
           autoWrapCol: true,
           rowHeaders: true,
@@ -266,8 +259,8 @@ describe('HiddenColumns', () => {
 
         const header = getCell(0, -1);
 
-        simulateClick(header, 'LMB');
-        keyDownUp('arrowleft');
+        await simulateClick(header, 'LMB');
+        await keyDownUp('arrowleft');
 
         expect(`
         |   ║   :   : - |
@@ -287,9 +280,9 @@ describe('HiddenColumns', () => {
         expect(getSelectedRangeLast().to.col).toBe(2);
       });
 
-      it('just one column is visible (column at the start is not hidden)', () => {
+      it('just one column is visible (column at the start is not hidden)', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          data: createSpreadsheetData(5, 5),
           autoWrapRow: true,
           autoWrapCol: true,
           rowHeaders: true,
@@ -301,8 +294,8 @@ describe('HiddenColumns', () => {
 
         let header = getCell(0, -1); // first visible cell
 
-        simulateClick(header, 'LMB');
-        keyDownUp('arrowup');
+        await simulateClick(header, 'LMB');
+        await keyDownUp('arrowup');
 
         expect(`
         |   ║ - |
@@ -323,8 +316,8 @@ describe('HiddenColumns', () => {
 
         header = getCell(0, -1); // first visible cell
 
-        simulateClick(header, 'LMB');
-        keyDownUp('arrowdown');
+        await simulateClick(header, 'LMB');
+        await keyDownUp('arrowdown');
 
         expect(`
         |   ║ - |
@@ -345,8 +338,8 @@ describe('HiddenColumns', () => {
 
         header = getCell(0, -1); // first visible cell
 
-        simulateClick(header, 'LMB');
-        keyDownUp('arrowleft');
+        await simulateClick(header, 'LMB');
+        await keyDownUp('arrowleft');
 
         expect(`
         |   ║ - |
@@ -367,8 +360,8 @@ describe('HiddenColumns', () => {
 
         header = getCell(0, -1); // first visible cell
 
-        simulateClick(header, 'LMB');
-        keyDownUp('arrowright');
+        await simulateClick(header, 'LMB');
+        await keyDownUp('arrowright');
 
         expect(`
         |   ║ - |
@@ -389,8 +382,8 @@ describe('HiddenColumns', () => {
 
         header = getCell(4, -1); // last visible cell
 
-        simulateClick(header, 'LMB');
-        keyDownUp('arrowup');
+        await simulateClick(header, 'LMB');
+        await keyDownUp('arrowup');
 
         expect(getSelected()).toEqual([[3, 0, 3, 0]]);
         expect(`
@@ -407,8 +400,8 @@ describe('HiddenColumns', () => {
 
         header = getCell(4, -1); // last visible cell
 
-        simulateClick(header, 'LMB');
-        keyDownUp('arrowdown');
+        await simulateClick(header, 'LMB');
+        await keyDownUp('arrowdown');
 
         expect(`
         |   ║ - |
@@ -429,8 +422,8 @@ describe('HiddenColumns', () => {
 
         header = getCell(4, -1); // last visible cell
 
-        simulateClick(header, 'LMB');
-        keyDownUp('arrowleft');
+        await simulateClick(header, 'LMB');
+        await keyDownUp('arrowleft');
 
         expect(`
         |   ║ - |
@@ -451,8 +444,8 @@ describe('HiddenColumns', () => {
 
         header = getCell(4, -1); // last visible cell
 
-        simulateClick(header, 'LMB');
-        keyDownUp('arrowright');
+        await simulateClick(header, 'LMB');
+        await keyDownUp('arrowright');
 
         expect(`
         |   ║ - |
@@ -472,9 +465,9 @@ describe('HiddenColumns', () => {
         expect(getSelectedRangeLast().to.col).toBe(0);
       });
 
-      it('just one column is visible (column at the end is not hidden)', () => {
+      it('just one column is visible (column at the end is not hidden)', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          data: createSpreadsheetData(5, 5),
           autoWrapRow: true,
           autoWrapCol: true,
           rowHeaders: true,
@@ -486,8 +479,8 @@ describe('HiddenColumns', () => {
 
         let header = getCell(0, -1); // first visible cell
 
-        simulateClick(header, 'LMB');
-        keyDownUp('arrowup');
+        await simulateClick(header, 'LMB');
+        await keyDownUp('arrowup');
 
         expect(`
         |   ║ - |
@@ -508,8 +501,8 @@ describe('HiddenColumns', () => {
 
         header = getCell(0, -1); // first visible cell
 
-        simulateClick(header, 'LMB');
-        keyDownUp('arrowdown');
+        await simulateClick(header, 'LMB');
+        await keyDownUp('arrowdown');
 
         expect(`
         |   ║ - |
@@ -530,8 +523,8 @@ describe('HiddenColumns', () => {
 
         header = getCell(0, -1); // first visible cell
 
-        simulateClick(header, 'LMB');
-        keyDownUp('arrowleft');
+        await simulateClick(header, 'LMB');
+        await keyDownUp('arrowleft');
 
         expect(`
         |   ║ - |
@@ -552,8 +545,8 @@ describe('HiddenColumns', () => {
 
         header = getCell(0, -1); // first visible cell
 
-        simulateClick(header, 'LMB');
-        keyDownUp('arrowright');
+        await simulateClick(header, 'LMB');
+        await keyDownUp('arrowright');
 
         expect(`
         |   ║ - |
@@ -574,8 +567,8 @@ describe('HiddenColumns', () => {
 
         header = getCell(4, -1); // last visible cell
 
-        simulateClick(header, 'LMB');
-        keyDownUp('arrowup');
+        await simulateClick(header, 'LMB');
+        await keyDownUp('arrowup');
 
         expect(`
         |   ║ - |
@@ -596,8 +589,8 @@ describe('HiddenColumns', () => {
 
         header = getCell(4, -1); // last visible cell
 
-        simulateClick(header, 'LMB');
-        keyDownUp('arrowdown');
+        await simulateClick(header, 'LMB');
+        await keyDownUp('arrowdown');
 
         expect(`
         |   ║ - |
@@ -618,8 +611,8 @@ describe('HiddenColumns', () => {
 
         header = getCell(4, -1); // last visible cell
 
-        simulateClick(header, 'LMB');
-        keyDownUp('arrowleft');
+        await simulateClick(header, 'LMB');
+        await keyDownUp('arrowleft');
 
         expect(`
         |   ║ - |
@@ -640,8 +633,8 @@ describe('HiddenColumns', () => {
 
         header = getCell(4, -1); // last visible cell
 
-        simulateClick(header, 'LMB');
-        keyDownUp('arrowright');
+        await simulateClick(header, 'LMB');
+        await keyDownUp('arrowright');
 
         expect(`
         |   ║ - |
@@ -663,11 +656,11 @@ describe('HiddenColumns', () => {
     });
 
     describe('should not change position and call hook when single hidden cell was selected and' +
-      'navigating by any arrow key', () => {
+      'navigating by any arrow key', async() => {
       describe('without shift key pressed', () => {
-        it('hidden cell at the table start', () => {
+        it('hidden cell at the table start', async() => {
           const hot = handsontable({
-            data: Handsontable.helper.createSpreadsheetData(5, 5),
+            data: createSpreadsheetData(5, 5),
             hiddenColumns: {
               columns: [0],
             },
@@ -679,9 +672,9 @@ describe('HiddenColumns', () => {
           hot.addHook('modifyTransformStart', hookSpy1);
           hot.addHook('afterModifyTransformStart', hookSpy2);
 
-          selectCell(1, 0);
+          await selectCell(1, 0);
 
-          keyDownUp('arrowup');
+          await keyDownUp('arrowup');
 
           expect(getSelected()).toEqual([[1, 0, 1, 0]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(-1);
@@ -691,7 +684,7 @@ describe('HiddenColumns', () => {
           expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
           expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
 
-          keyDownUp('arrowdown');
+          await keyDownUp('arrowdown');
 
           expect(getSelected()).toEqual([[1, 0, 1, 0]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(1);
@@ -701,7 +694,7 @@ describe('HiddenColumns', () => {
           expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
           expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
 
-          keyDownUp('arrowleft');
+          await keyDownUp('arrowleft');
 
           expect(getSelected()).toEqual([[1, 0, 1, 0]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(0);
@@ -711,7 +704,7 @@ describe('HiddenColumns', () => {
           expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
           expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
 
-          keyDownUp('arrowright');
+          await keyDownUp('arrowright');
 
           expect(getSelected()).toEqual([[1, 0, 1, 0]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(0);
@@ -722,9 +715,9 @@ describe('HiddenColumns', () => {
           expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
         });
 
-        it('hidden cell in the table middle', () => {
+        it('hidden cell in the table middle', async() => {
           const hot = handsontable({
-            data: Handsontable.helper.createSpreadsheetData(5, 5),
+            data: createSpreadsheetData(5, 5),
             hiddenColumns: {
               columns: [2],
             },
@@ -736,9 +729,9 @@ describe('HiddenColumns', () => {
           hot.addHook('modifyTransformStart', hookSpy1);
           hot.addHook('afterModifyTransformStart', hookSpy2);
 
-          selectCell(1, 2);
+          await selectCell(1, 2);
 
-          keyDownUp('arrowup');
+          await keyDownUp('arrowup');
 
           expect(getSelected()).toEqual([[1, 2, 1, 2]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(-1);
@@ -748,7 +741,7 @@ describe('HiddenColumns', () => {
           expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
           expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
 
-          keyDownUp('arrowdown');
+          await keyDownUp('arrowdown');
 
           expect(getSelected()).toEqual([[1, 2, 1, 2]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(1);
@@ -758,7 +751,7 @@ describe('HiddenColumns', () => {
           expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
           expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
 
-          keyDownUp('arrowleft');
+          await keyDownUp('arrowleft');
 
           expect(getSelected()).toEqual([[1, 2, 1, 2]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(0);
@@ -768,7 +761,7 @@ describe('HiddenColumns', () => {
           expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
           expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
 
-          keyDownUp('arrowright');
+          await keyDownUp('arrowright');
 
           expect(getSelected()).toEqual([[1, 2, 1, 2]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(0);
@@ -779,9 +772,9 @@ describe('HiddenColumns', () => {
           expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
         });
 
-        it('hidden cell at the table end', () => {
+        it('hidden cell at the table end', async() => {
           const hot = handsontable({
-            data: Handsontable.helper.createSpreadsheetData(5, 5),
+            data: createSpreadsheetData(5, 5),
             hiddenColumns: {
               columns: [4],
             },
@@ -793,9 +786,9 @@ describe('HiddenColumns', () => {
           hot.addHook('modifyTransformStart', hookSpy1);
           hot.addHook('afterModifyTransformStart', hookSpy2);
 
-          selectCell(1, 4);
+          await selectCell(1, 4);
 
-          keyDownUp('arrowup');
+          await keyDownUp('arrowup');
 
           expect(getSelected()).toEqual([[1, 4, 1, 4]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(-1);
@@ -805,7 +798,7 @@ describe('HiddenColumns', () => {
           expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
           expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
 
-          keyDownUp('arrowdown');
+          await keyDownUp('arrowdown');
 
           expect(getSelected()).toEqual([[1, 4, 1, 4]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(1);
@@ -815,7 +808,7 @@ describe('HiddenColumns', () => {
           expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
           expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
 
-          keyDownUp('arrowleft');
+          await keyDownUp('arrowleft');
 
           expect(getSelected()).toEqual([[1, 4, 1, 4]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(0);
@@ -825,7 +818,7 @@ describe('HiddenColumns', () => {
           expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
           expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
 
-          keyDownUp('arrowright');
+          await keyDownUp('arrowright');
 
           expect(getSelected()).toEqual([[1, 4, 1, 4]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(0);
@@ -838,9 +831,9 @@ describe('HiddenColumns', () => {
       });
 
       describe('with shift key pressed', () => {
-        it('hidden cell at the table start', () => {
+        it('hidden cell at the table start', async() => {
           const hot = handsontable({
-            data: Handsontable.helper.createSpreadsheetData(5, 5),
+            data: createSpreadsheetData(5, 5),
             hiddenColumns: {
               columns: [0],
             },
@@ -852,9 +845,9 @@ describe('HiddenColumns', () => {
           hot.addHook('modifyTransformEnd', hookSpy1);
           hot.addHook('afterModifyTransformEnd', hookSpy2);
 
-          selectCell(1, 0);
+          await selectCell(1, 0);
 
-          keyDownUp(['shift', 'arrowup']);
+          await keyDownUp(['shift', 'arrowup']);
 
           expect(getSelected()).toEqual([[1, 0, 1, 0]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(-1);
@@ -864,7 +857,7 @@ describe('HiddenColumns', () => {
           expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
           expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
 
-          keyDownUp(['shift', 'arrowdown']);
+          await keyDownUp(['shift', 'arrowdown']);
 
           expect(getSelected()).toEqual([[1, 0, 1, 0]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(1);
@@ -874,7 +867,7 @@ describe('HiddenColumns', () => {
           expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
           expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
 
-          keyDownUp(['shift', 'arrowleft']);
+          await keyDownUp(['shift', 'arrowleft']);
 
           expect(getSelected()).toEqual([[1, 0, 1, 0]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(0);
@@ -884,7 +877,7 @@ describe('HiddenColumns', () => {
           expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
           expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
 
-          keyDownUp(['shift', 'arrowright']);
+          await keyDownUp(['shift', 'arrowright']);
 
           expect(getSelected()).toEqual([[1, 0, 1, 0]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(0);
@@ -895,9 +888,9 @@ describe('HiddenColumns', () => {
           expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
         });
 
-        it('hidden cell in the table middle', () => {
+        it('hidden cell in the table middle', async() => {
           const hot = handsontable({
-            data: Handsontable.helper.createSpreadsheetData(5, 5),
+            data: createSpreadsheetData(5, 5),
             hiddenColumns: {
               columns: [2],
             },
@@ -909,9 +902,9 @@ describe('HiddenColumns', () => {
           hot.addHook('modifyTransformEnd', hookSpy1);
           hot.addHook('afterModifyTransformEnd', hookSpy2);
 
-          selectCell(1, 2);
+          await selectCell(1, 2);
 
-          keyDownUp(['shift', 'arrowup']);
+          await keyDownUp(['shift', 'arrowup']);
 
           expect(getSelected()).toEqual([[1, 2, 1, 2]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(-1);
@@ -921,7 +914,7 @@ describe('HiddenColumns', () => {
           expect(hookSpy2.calls.mostRecent().args[0].col).toEqual(2);
           expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
 
-          keyDownUp(['shift', 'arrowdown']);
+          await keyDownUp(['shift', 'arrowdown']);
 
           expect(getSelected()).toEqual([[1, 2, 1, 2]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(1);
@@ -931,7 +924,7 @@ describe('HiddenColumns', () => {
           expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
           expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
 
-          keyDownUp(['shift', 'arrowleft']);
+          await keyDownUp(['shift', 'arrowleft']);
 
           expect(getSelected()).toEqual([[1, 2, 1, 2]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(0);
@@ -941,7 +934,7 @@ describe('HiddenColumns', () => {
           expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
           expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
 
-          keyDownUp(['shift', 'arrowright']);
+          await keyDownUp(['shift', 'arrowright']);
 
           expect(getSelected()).toEqual([[1, 2, 1, 2]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(0);
@@ -952,9 +945,9 @@ describe('HiddenColumns', () => {
           expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
         });
 
-        it('hidden cell at the table end', () => {
+        it('hidden cell at the table end', async() => {
           const hot = handsontable({
-            data: Handsontable.helper.createSpreadsheetData(5, 5),
+            data: createSpreadsheetData(5, 5),
             hiddenColumns: {
               columns: [4],
             },
@@ -966,9 +959,9 @@ describe('HiddenColumns', () => {
           hot.addHook('modifyTransformEnd', hookSpy1);
           hot.addHook('afterModifyTransformEnd', hookSpy2);
 
-          selectCell(1, 4);
+          await selectCell(1, 4);
 
-          keyDownUp(['shift', 'arrowup']);
+          await keyDownUp(['shift', 'arrowup']);
 
           expect(getSelected()).toEqual([[1, 4, 1, 4]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(-1);
@@ -978,7 +971,7 @@ describe('HiddenColumns', () => {
           expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
           expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
 
-          keyDownUp(['shift', 'arrowdown']);
+          await keyDownUp(['shift', 'arrowdown']);
 
           expect(getSelected()).toEqual([[1, 4, 1, 4]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(1);
@@ -988,7 +981,7 @@ describe('HiddenColumns', () => {
           expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
           expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
 
-          keyDownUp(['shift', 'arrowleft']);
+          await keyDownUp(['shift', 'arrowleft']);
 
           expect(getSelected()).toEqual([[1, 4, 1, 4]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(0);
@@ -998,7 +991,7 @@ describe('HiddenColumns', () => {
           expect(hookSpy2.calls.mostRecent().args[1]).toEqual(0);
           expect(hookSpy2.calls.mostRecent().args[2]).toEqual(0);
 
-          keyDownUp(['shift', 'arrowright']);
+          await keyDownUp(['shift', 'arrowright']);
 
           expect(getSelected()).toEqual([[1, 4, 1, 4]]);
           expect(hookSpy1.calls.mostRecent().args[0].row).toEqual(0);
@@ -1012,16 +1005,16 @@ describe('HiddenColumns', () => {
     });
 
     describe('should go to the closest not hidden cell in a row while navigating', () => {
-      it('by HOME key (without fixed rows and columns)', () => {
+      it('by HOME key (without fixed rows and columns)', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          data: createSpreadsheetData(5, 5),
           hiddenColumns: {
             columns: [0, 1, 3],
           },
         });
 
-        selectCell(4, 4);
-        keyDownUp('home');
+        await selectCell(4, 4);
+        await keyDownUp('home');
 
         expect(`
         |   :   |
@@ -1039,9 +1032,9 @@ describe('HiddenColumns', () => {
         expect(getSelectedRangeLast().to.col).toBe(2);
       });
 
-      it('by HOME key (with fixed rows and columns)', () => {
+      it('by HOME key (with fixed rows and columns)', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          data: createSpreadsheetData(5, 5),
           fixedColumnsStart: 2,
           fixedRowsTop: 1,
           fixedRowsBottom: 1,
@@ -1050,8 +1043,8 @@ describe('HiddenColumns', () => {
           },
         });
 
-        selectCell(2, 4);
-        keyDownUp('home');
+        await selectCell(2, 4);
+        await keyDownUp('home');
 
         expect(`
         |   |   :   |
@@ -1071,16 +1064,16 @@ describe('HiddenColumns', () => {
         expect(getSelectedRangeLast().to.col).toBe(3);
       });
 
-      it('by shift + HOME key', () => {
+      it('by shift + HOME key', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          data: createSpreadsheetData(5, 5),
           hiddenColumns: {
             columns: [0, 1, 3],
           },
         });
 
-        selectCell(4, 4);
-        keyDownUp(['shift', 'home']);
+        await selectCell(4, 4);
+        await keyDownUp(['shift', 'home']);
 
         expect(`
         |   :   |
@@ -1099,16 +1092,16 @@ describe('HiddenColumns', () => {
         expect(getSelectedRangeLast().to.col).toBe(2);
       });
 
-      it('by END key', () => {
+      it('by END key', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          data: createSpreadsheetData(5, 5),
           hiddenColumns: {
             columns: [1, 3, 4],
           },
         });
 
-        selectCell(0, 0);
-        keyDownUp('end');
+        await selectCell(0, 0);
+        await keyDownUp('end');
 
         expect(`
         |   : # |
@@ -1126,16 +1119,16 @@ describe('HiddenColumns', () => {
         expect(getSelectedRangeLast().to.col).toBe(2);
       });
 
-      it('by shift + END key', () => {
+      it('by shift + END key', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          data: createSpreadsheetData(5, 5),
           hiddenColumns: {
             columns: [1, 3, 4],
           },
         });
 
-        selectCell(0, 0);
-        keyDownUp(['shift', 'end']);
+        await selectCell(0, 0);
+        await keyDownUp(['shift', 'end']);
 
         expect(`
         | A : 0 |
@@ -1155,16 +1148,16 @@ describe('HiddenColumns', () => {
     });
 
     describe('should go to the closest not hidden cell of the table while navigating', () => {
-      it('by ctrl/cmd + HOME key (without fixed rows and columns)', () => {
+      it('by ctrl/cmd + HOME key (without fixed rows and columns)', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          data: createSpreadsheetData(5, 5),
           hiddenColumns: {
             columns: [1, 3],
           },
         });
 
-        selectCell(4, 4);
-        keyDownUp(['control/meta', 'home']);
+        await selectCell(4, 4);
+        await keyDownUp(['control/meta', 'home']);
 
         expect(`
         | # :   :   |
@@ -1183,9 +1176,9 @@ describe('HiddenColumns', () => {
         expect(getSelectedRangeLast().to.col).toBe(0);
       });
 
-      it('by ctrl/cmd + HOME key (with fixed rows and columns)', () => {
+      it('by ctrl/cmd + HOME key (with fixed rows and columns)', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          data: createSpreadsheetData(5, 5),
           fixedColumnsStart: 2,
           fixedRowsTop: 1,
           fixedRowsBottom: 1,
@@ -1194,8 +1187,8 @@ describe('HiddenColumns', () => {
           },
         });
 
-        selectCell(4, 4);
-        keyDownUp(['control/meta', 'home']);
+        await selectCell(4, 4);
+        await keyDownUp(['control/meta', 'home']);
 
         expect(`
         |   |   :   |
@@ -1216,16 +1209,16 @@ describe('HiddenColumns', () => {
         expect(getSelectedRangeLast().to.col).toBe(3);
       });
 
-      it('by ctrl/cmd + END key (without fixed rows and columns)', () => {
+      it('by ctrl/cmd + END key (without fixed rows and columns)', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          data: createSpreadsheetData(5, 5),
           hiddenColumns: {
             columns: [1, 3],
           },
         });
 
-        selectCell(1, 1);
-        keyDownUp(['control/meta', 'end']);
+        await selectCell(1, 1);
+        await keyDownUp(['control/meta', 'end']);
 
         expect(`
         |   :   :   |
@@ -1243,9 +1236,9 @@ describe('HiddenColumns', () => {
         expect(getSelectedRangeLast().to.col).toBe(4);
       });
 
-      it('by ctrl/cmd + END key (with fixed rows and columns)', () => {
+      it('by ctrl/cmd + END key (with fixed rows and columns)', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(5, 5),
+          data: createSpreadsheetData(5, 5),
           fixedColumnsStart: 2,
           fixedRowsTop: 1,
           fixedRowsBottom: 1,
@@ -1254,8 +1247,8 @@ describe('HiddenColumns', () => {
           },
         });
 
-        selectCell(1, 1);
-        keyDownUp(['control/meta', 'end']);
+        await selectCell(1, 1);
+        await keyDownUp(['control/meta', 'end']);
 
         expect(`
         |   |   :   |

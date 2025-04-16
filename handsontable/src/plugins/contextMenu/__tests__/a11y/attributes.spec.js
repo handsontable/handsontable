@@ -33,19 +33,19 @@ describe('a11y DOM attributes (ARIA tags)', () => {
       contextMenu: true
     });
 
-    contextMenu();
+    await contextMenu();
 
     await sleep(50);
 
     expect(getPlugin('contextMenu').menu.container.getAttribute('role')).toEqual('menu');
   });
 
-  it('should assign the `role=menuitem` attribute to all the options of the context menu except of the `Read only` option', () => {
+  it('should assign the `role=menuitem` attribute to all the options of the context menu except of the `Read only` option', async() => {
     handsontable({
       contextMenu: true
     });
 
-    contextMenu();
+    await contextMenu();
 
     const cMenu = getPlugin('contextMenu').menu;
 
@@ -76,12 +76,12 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     ).length).toBe(8);
   });
 
-  it('should assign the `role=menucheckboxitem` to the `Read only` option of the context menu', () => {
+  it('should assign the `role=menucheckboxitem` to the `Read only` option of the context menu', async() => {
     handsontable({
       contextMenu: true
     });
 
-    contextMenu();
+    await contextMenu();
 
     const cMenu = getPlugin('contextMenu').menu;
 
@@ -101,10 +101,10 @@ describe('a11y DOM attributes (ARIA tags)', () => {
       contextMenu: true
     });
 
-    contextMenu();
+    await contextMenu();
     selectContextMenuOption('Read only');
     await sleep(50);
-    contextMenu();
+    await contextMenu();
 
     {
       const readOnlyElement = $(getPlugin('contextMenu').menu.container).find('td:contains(Read only)');
@@ -113,10 +113,10 @@ describe('a11y DOM attributes (ARIA tags)', () => {
       expect(readOnlyElement.attr('aria-label')).toEqual('Read only');
     }
 
-    contextMenu();
+    await contextMenu();
     selectContextMenuOption('Read only');
     await sleep(50);
-    contextMenu();
+    await contextMenu();
 
     {
       const readOnlyElement = $(getPlugin('contextMenu').menu.container).find('td:contains(Read only)');
@@ -131,7 +131,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
       contextMenu: true
     });
 
-    contextMenu();
+    await contextMenu();
 
     const cMenu = getPlugin('contextMenu').menu;
 
@@ -145,12 +145,12 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     expect(cMenu.hotMenu.getCell(0, 0).getAttribute('aria-label')).toBe('Insert row above');
   });
 
-  it('should assign the `tabindex` attribute to all the options of the context menu', () => {
+  it('should assign the `tabindex` attribute to all the options of the context menu', async() => {
     handsontable({
       contextMenu: true
     });
 
-    contextMenu();
+    await contextMenu();
 
     const cMenu = getPlugin('contextMenu').menu;
 
@@ -162,12 +162,12 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     ).length).toBe(10);
   });
 
-  it('should assign the `aria-disabled` attribute to all the disabled options of the context menu', () => {
+  it('should assign the `aria-disabled` attribute to all the disabled options of the context menu', async() => {
     handsontable({
       contextMenu: true
     });
 
-    contextMenu();
+    await contextMenu();
 
     const cMenu = getPlugin('contextMenu').menu;
 
@@ -182,7 +182,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
       contextMenu: true
     });
 
-    contextMenu();
+    await contextMenu();
 
     const cMenu = getPlugin('contextMenu').menu;
 
@@ -217,7 +217,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
       contextMenu: ['remove_row', 'alignment']
     });
 
-    contextMenu();
+    await contextMenu();
 
     const cMenu = getPlugin('contextMenu').menu;
 
@@ -231,20 +231,20 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     const $unExpandableItem = $(cMenu.hotMenu.getCell(0, 0));
     const $expandableItem = $(cMenu.hotMenu.getCell(1, 0));
 
-    keyDownUp('arrowdown');
-    keyDownUp('arrowright');
+    await keyDownUp('arrowdown');
+    await keyDownUp('arrowright');
 
     expect($unExpandableItem.get(0).hasAttribute('aria-expanded')).toBe(false);
 
-    keyDownUp('arrowdown');
+    await keyDownUp('arrowdown');
 
     expect($expandableItem.get(0).getAttribute('aria-expanded')).toBe('false');
 
-    keyDownUp('arrowright');
+    await keyDownUp('arrowright');
 
     expect($expandableItem.get(0).getAttribute('aria-expanded')).toBe('true');
 
-    keyDownUp('arrowleft');
+    await keyDownUp('arrowleft');
 
     expect($expandableItem.get(0).getAttribute('aria-expanded')).toBe('false');
   });

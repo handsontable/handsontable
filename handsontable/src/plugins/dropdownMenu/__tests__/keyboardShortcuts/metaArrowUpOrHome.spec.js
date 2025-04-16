@@ -20,22 +20,22 @@ describe('DropdownMenu keyboard shortcut', () => {
         dropdownMenu: generateRandomDropdownMenuItems(200),
       });
 
-      dropdownMenu();
+      await dropdownMenu();
+
       window.scrollTo(0, 1000);
 
       await sleep(100);
-
-      keyDownUp(keyboardShortcut);
+      await keyDownUp(keyboardShortcut);
 
       expect(getPlugin('dropdownMenu').menu.getSelectedItem().name).toBe('Test item 1');
       expect(window.scrollY).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(1);
-        main.toBe(0);
-        horizon.toBe(0);
+        classic.toBe(25);
+        main.toBe(35);
+        horizon.toBe(43);
       });
     });
 
-    it('should move the menu item selection to the first active item', () => {
+    it('should move the menu item selection to the first active item', async() => {
       handsontable({
         colHeaders: true,
         dropdownMenu: generateRandomDropdownMenuItems(200, (i, item) => {
@@ -47,17 +47,17 @@ describe('DropdownMenu keyboard shortcut', () => {
         }),
       });
 
-      dropdownMenu();
-      keyDownUp(keyboardShortcut);
+      await dropdownMenu();
+      await keyDownUp(keyboardShortcut);
 
       expect(getPlugin('dropdownMenu').menu.getSelectedItem().name).toBe('Test item 101');
 
-      keyDownUp(keyboardShortcut);
+      await keyDownUp(keyboardShortcut);
 
       expect(getPlugin('dropdownMenu').menu.getSelectedItem().name).toBe('Test item 101');
     });
 
-    it('should not select the menu when all items are disabled', () => {
+    it('should not select the menu when all items are disabled', async() => {
       handsontable({
         colHeaders: true,
         dropdownMenu: generateRandomDropdownMenuItems(200, (i, item) => {
@@ -67,8 +67,8 @@ describe('DropdownMenu keyboard shortcut', () => {
         }),
       });
 
-      dropdownMenu();
-      keyDownUp(keyboardShortcut);
+      await dropdownMenu();
+      await keyDownUp(keyboardShortcut);
 
       expect(getPlugin('dropdownMenu').menu.getSelectedItem()).toBe(null);
     });

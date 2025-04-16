@@ -14,7 +14,7 @@ describe('Core.batchRender', () => {
 
   it('should batch multi-line operations into one render call', async() => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
     });
 
     spyOn(hot, 'suspendRender').and.callThrough();
@@ -42,7 +42,7 @@ describe('Core.batchRender', () => {
 
   it('should batch nested multi-line operations into one render call', async() => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
     });
 
     spyOn(hot, 'suspendRender').and.callThrough();

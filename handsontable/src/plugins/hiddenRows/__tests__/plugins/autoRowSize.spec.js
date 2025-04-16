@@ -15,7 +15,7 @@ describe('HiddenRows', () => {
   describe('AutoRowSize', () => {
     it('should display proper row height (when indicator is enabled) #1', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        data: createSpreadsheetData(3, 3),
         rowHeaders: true,
         colHeaders: true,
         autoRowSize: true,
@@ -34,7 +34,7 @@ describe('HiddenRows', () => {
 
     it('should display proper row height (when indicator is enabled) #2', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        data: createSpreadsheetData(3, 3),
         rowHeaders: true,
         colHeaders: true,
         autoRowSize: true,
@@ -53,7 +53,7 @@ describe('HiddenRows', () => {
 
     it('should display proper row height (when indicator is enabled) #3', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        data: createSpreadsheetData(3, 3),
         rowHeaders: true,
         colHeaders: true,
         autoRowSize: true,
@@ -70,9 +70,9 @@ describe('HiddenRows', () => {
       });
     });
 
-    it('should display proper row height (when indicator is disabled)', () => {
+    it('should display proper row height (when indicator is disabled)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        data: createSpreadsheetData(3, 3),
         rowHeaders: true,
         colHeaders: true,
         autoRowSize: true,
@@ -153,9 +153,9 @@ describe('HiddenRows', () => {
       });
     });
 
-    it('should return proper values from the `getRowHeight` function when the `ManualRowResize` plugin define sizes for some rows', () => {
+    it('should return proper values from the `getRowHeight` function when the `ManualRowResize` plugin define sizes for some rows', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 1),
+        data: createSpreadsheetData(5, 1),
         hiddenRows: {
           rows: [0, 2],
         },
@@ -170,7 +170,7 @@ describe('HiddenRows', () => {
       expect(hot.getRowHeight(5)).toBeUndefined();
     });
 
-    it('should return proper values from the `getRowHeader` function', () => {
+    it('should return proper values from the `getRowHeader` function', async() => {
       const hot = handsontable({
         data: [
           { id: 'Short', name: 'Somewhat long', lastName: 'The very very very longest one' },

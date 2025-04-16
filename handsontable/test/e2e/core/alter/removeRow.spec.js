@@ -45,7 +45,7 @@ describe('Core.alter', () => {
     describe('for multiple items at once', () => {
       it('should remove rows when index groups are passed in ascending order', () => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(15, 5),
+          data: createSpreadsheetData(15, 5),
         });
         // [[rowVisualIndex, amountRowsToRemove] ...]
         alter('remove_row', [[1, 3], [5, 1], [7, 3], [11, 2]]);
@@ -61,7 +61,7 @@ describe('Core.alter', () => {
 
       it('should remove rows when index groups are passed in descending order', () => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(15, 5),
+          data: createSpreadsheetData(15, 5),
         });
         // [[rowVisualIndex, amountRowsToRemove] ...]
         alter('remove_row', [[11, 2], [7, 3], [5, 1], [1, 3]]);
@@ -77,7 +77,7 @@ describe('Core.alter', () => {
 
       it('should remove rows when index groups are passed as intersecting values', () => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(15, 5),
+          data: createSpreadsheetData(15, 5),
         });
         // [[rowVisualIndex, amountRowsToRemove] ...]
         alter('remove_row', [[1, 3], [4, 2], [5, 5], [11, 1]]);
@@ -93,7 +93,7 @@ describe('Core.alter', () => {
 
       it('should remove rows when index groups are passed as intersecting values (the second scenario)', () => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(15, 5),
+          data: createSpreadsheetData(15, 5),
         });
         // [[rowVisualIndex, amountRowsToRemove] ...]
         alter('remove_row', [[1, 3], [2, 1], [5, 2]]);
@@ -109,7 +109,7 @@ describe('Core.alter', () => {
 
       it('should remove rows when index groups are passed as intersecting values (placed randomly)', () => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(15, 5),
+          data: createSpreadsheetData(15, 5),
         });
         // [[rowVisualIndex, amountRowsToRemove] ...]
         alter('remove_row', [[4, 2], [11, 1], [5, 5], [1, 3]]);
@@ -554,7 +554,7 @@ describe('Core.alter', () => {
       let hookArgumentsAfter;
 
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 5),
+        data: createSpreadsheetData(10, 5),
         beforeRemoveRow(index, amount, physicalRows) {
           hookArgumentsBefore = [index, amount, [...physicalRows]];
 

@@ -178,7 +178,7 @@ describe('Core_render', () => {
     });
 
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(50, 50),
+      data: createSpreadsheetData(50, 50),
     });
 
     window.scrollBy(0, 9500);
@@ -213,7 +213,7 @@ describe('Core_render', () => {
     });
 
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(50, 50),
+      data: createSpreadsheetData(50, 50),
     });
 
     const wotRenderSpy = spyOn(hot.view._wt.wtTable.tableRenderer, 'render');

@@ -13,15 +13,15 @@ describe('UndoRedo', () => {
   });
 
   describe('selection', () => {
-    it('should keep saved selection state after undo and redo data change', () => {
+    it('should keep saved selection state after undo and redo data change', async() => {
       handsontable();
 
-      selectCell(0, 0);
+      await selectCell(0, 0);
       setDataAtCell(0, 0, 'test');
-      selectCell(0, 1);
+      await selectCell(0, 1);
       setDataAtCell(0, 1, 'test2');
 
-      selectCell(0, 2);
+      await selectCell(0, 2);
       getPlugin('undoRedo').undo();
       getPlugin('undoRedo').undo();
 
@@ -33,14 +33,14 @@ describe('UndoRedo', () => {
       expect(getSelectedLast()).toEqual([0, 1, 0, 1]);
     });
 
-    it('should restore row headers selection after undoing changes', () => {
+    it('should restore row headers selection after undoing changes', async() => {
       handsontable({
         data: createSpreadsheetData(3, 5),
         colHeaders: true,
         rowHeaders: true,
       });
 
-      selectRows(1);
+      await selectRows(1);
       emptySelectedCells();
 
       getPlugin('undoRedo').undo();
@@ -55,14 +55,14 @@ describe('UndoRedo', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should restore column headers selection after undoing changes', () => {
+    it('should restore column headers selection after undoing changes', async() => {
       handsontable({
         data: createSpreadsheetData(5, 3),
         colHeaders: true,
         rowHeaders: true,
       });
 
-      selectColumns(1);
+      await selectColumns(1);
       emptySelectedCells();
 
       getPlugin('undoRedo').undo();
@@ -79,15 +79,15 @@ describe('UndoRedo', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should keep saved selection state ater undoing non-contignous selected cells', () => {
+    it('should keep saved selection state ater undoing non-contignous selected cells', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
       });
 
-      selectCells([[0, 0, 1, 1], [1, 2, 2, 3]]);
+      await selectCells([[0, 0, 1, 1], [1, 2, 2, 3]]);
       emptySelectedCells();
 
-      selectCell(4, 0);
+      await selectCell(4, 0);
       getPlugin('undoRedo').undo();
 
       expect(getSelected().length).toBe(2);
@@ -95,14 +95,14 @@ describe('UndoRedo', () => {
       expect(getSelected()[1]).toEqual([1, 2, 2, 3]);
     });
 
-    it('should transform the header selection down after undoing rows removal', () => {
+    it('should transform the header selection down after undoing rows removal', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         rowHeaders: true,
         colHeaders: true,
       });
 
-      selectRows(4, 5);
+      await selectRows(4, 5);
       alter('remove_row', 1, 3);
       getPlugin('undoRedo').undo();
 
@@ -123,14 +123,14 @@ describe('UndoRedo', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should transform cells selection down after undoing rows removal', () => {
+    it('should transform cells selection down after undoing rows removal', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         rowHeaders: true,
         colHeaders: true,
       });
 
-      selectCells([[3, 3, 3, 3], [5, 2, 6, 2]]);
+      await selectCells([[3, 3, 3, 3], [5, 2, 6, 2]]);
       alter('remove_row', 1, 3);
       getPlugin('undoRedo').undo();
 
@@ -152,14 +152,14 @@ describe('UndoRedo', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should transform the header selection right after undoing columns removal', () => {
+    it('should transform the header selection right after undoing columns removal', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         rowHeaders: true,
         colHeaders: true,
       });
 
-      selectColumns(4, 5);
+      await selectColumns(4, 5);
       alter('remove_col', 1, 3);
       getPlugin('undoRedo').undo();
 
@@ -180,14 +180,14 @@ describe('UndoRedo', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should transform cells selection right after undoing columns removal', () => {
+    it('should transform cells selection right after undoing columns removal', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         rowHeaders: true,
         colHeaders: true,
       });
 
-      selectCells([[3, 3, 3, 3], [2, 5, 2, 6]]);
+      await selectCells([[3, 3, 3, 3], [2, 5, 2, 6]]);
       alter('remove_col', 1, 3);
       getPlugin('undoRedo').undo();
 
@@ -209,7 +209,7 @@ describe('UndoRedo', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should undo removal of fixed column on the left', () => {
+    it('should undo removal of fixed column on the left', async() => {
       handsontable({
         data: createSpreadsheetData(3, 3),
         colHeaders: true,

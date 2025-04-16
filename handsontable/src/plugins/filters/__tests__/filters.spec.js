@@ -12,7 +12,7 @@ describe('Filters', () => {
     }
   });
 
-  it('should filter values when feature is enabled', (done) => {
+  it('should filter values when feature is enabled', async() => {
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -22,23 +22,23 @@ describe('Filters', () => {
       height: 300
     });
 
-    dropdownMenu(1);
-    openDropdownByConditionMenu();
-    selectDropdownByConditionMenuOption('Begins with');
+    await dropdownMenu(1);
+    await openDropdownByConditionMenu();
+    await selectDropdownByConditionMenuOption('Begins with');
+    await sleep(200);
 
-    setTimeout(() => {
-      // Begins with 'c'
-      document.activeElement.value = 'c';
-      keyUp('c');
-      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+    // Begins with 'c'
+    document.activeElement.value = 'c';
 
-      expect(getData().length).toEqual(4);
-      done();
-    }, 200);
+    await keyUp('c');
+
+    $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
+
+    expect(getData().length).toEqual(4);
   });
 
-  it('should disable filter functionality via `updateSettings`', () => {
-    const hot = handsontable({
+  it('should disable filter functionality via `updateSettings`', async() => {
+    handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
       dropdownMenu: true,
@@ -46,20 +46,20 @@ describe('Filters', () => {
       width: 500,
       height: 300
     });
-    const plugin = hot.getPlugin('filters');
+    const plugin = getPlugin('filters');
 
     plugin.addCondition(1, 'begins_with', ['c']);
     plugin.filter();
 
-    hot.updateSettings({ filters: false });
+    await updateSettings({ filters: false });
+    await dropdownMenu(1);
 
-    dropdownMenu(1);
     expect(dropdownMenuRootElement().querySelector('.htFiltersMenuCondition .htFiltersMenuLabel')).toBeNull();
     expect(getData().length).toEqual(39);
   });
 
-  it('should enable filter functionality via `updateSettings`', () => {
-    const hot = handsontable({
+  it('should enable filter functionality via `updateSettings`', async() => {
+    handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
       dropdownMenu: true,
@@ -67,18 +67,20 @@ describe('Filters', () => {
       width: 500,
       height: 300
     });
-    const plugin = hot.getPlugin('filters');
+    const plugin = getPlugin('filters');
 
-    hot.updateSettings({ filters: true });
+    await updateSettings({ filters: true });
+
     plugin.addCondition(1, 'begins_with', ['c']);
     plugin.filter();
 
-    dropdownMenu(1);
+    await dropdownMenu(1);
+
     expect(dropdownMenuRootElement().querySelector('.htFiltersMenuCondition .htFiltersMenuLabel')).not.toBeNull();
     expect(getData().length).toEqual(4);
   });
 
-  it('should enable filter functionality via `enablePlugin`', () => {
+  it('should enable filter functionality via `enablePlugin`', async() => {
     const hot = handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -93,12 +95,13 @@ describe('Filters', () => {
     plugin.addCondition(1, 'begins_with', ['c']);
     plugin.filter();
 
-    dropdownMenu(1);
+    await dropdownMenu(1);
+
     expect(dropdownMenuRootElement().querySelector('.htFiltersMenuCondition .htFiltersMenuLabel')).not.toBeNull();
     expect(getData().length).toEqual(4);
   });
 
-  it('should disable filter functionality via `disablePlugin`', () => {
+  it('should disable filter functionality via `disablePlugin`', async() => {
     const hot = handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -113,12 +116,13 @@ describe('Filters', () => {
     plugin.filter();
     hot.getPlugin('filters').disablePlugin();
 
-    dropdownMenu(1);
+    await dropdownMenu(1);
+
     expect(dropdownMenuRootElement().querySelector('.htFiltersMenuCondition .htFiltersMenuLabel')).toBeNull();
     expect(getData().length).toEqual(39);
   });
 
-  it('should not throw Exception after triggering `disablePlugin` when `dropdownMenu` isn\'t enabled #173', () => {
+  it('should not throw Exception after triggering `disablePlugin` when `dropdownMenu` isn\'t enabled #173', async() => {
     const hot = handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -132,8 +136,8 @@ describe('Filters', () => {
     }).not.toThrow();
   });
 
-  it('should work properly with updateSettings #32', () => {
-    const hot = handsontable({
+  it('should work properly with updateSettings #32', async() => {
+    handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
       filters: true,
@@ -141,17 +145,17 @@ describe('Filters', () => {
       height: 300
     });
 
-    hot.getPlugin('filters').addCondition(0, 'contains', ['0']);
-    hot.getPlugin('filters').filter();
+    getPlugin('filters').addCondition(0, 'contains', ['0']);
+    getPlugin('filters').filter();
 
-    hot.updateSettings({
+    await updateSettings({
       fillHandle: true
     });
 
     expect(getData().length).toEqual(3);
   });
 
-  it('should return proper response on the `toVisualRow` call when sorted filtered values #5890', () => {
+  it('should return proper response on the `toVisualRow` call when sorted filtered values #5890', async() => {
     const hot = handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -176,7 +180,7 @@ describe('Filters', () => {
   });
 
   it('should warn user by log at console when amount of conditions at specific column exceed the capability of ' +
-    'a dropdown menu (`dropdownMenu` plugin is enabled)', () => {
+    'a dropdown menu (`dropdownMenu` plugin is enabled)', async() => {
     const warnSpy = spyOn(console, 'warn');
     const hot = handsontable({
       data: getDataForFilters(),
@@ -208,7 +212,7 @@ describe('Filters', () => {
   });
 
   it('should not warn user by log at console when amount of conditions at specific column not exceed the capability of ' +
-    'a dropdown menu (`dropdownMenu` plugin is enabled)', () => {
+    'a dropdown menu (`dropdownMenu` plugin is enabled)', async() => {
     const warnSpy = spyOn(console, 'warn');
 
     const hot = handsontable({
@@ -234,7 +238,7 @@ describe('Filters', () => {
   });
 
   it('should not warn user by log at console when amount of conditions at specific column exceed the capability of ' +
-    'a dropdown menu (`dropdownMenu` plugin is disabled)', () => {
+    'a dropdown menu (`dropdownMenu` plugin is disabled)', async() => {
     const warnSpy = spyOn(console, 'warn');
 
     const hot = handsontable({
@@ -256,7 +260,7 @@ describe('Filters', () => {
   });
 
   describe('Simple filtering (one column)', () => {
-    it('should filter numeric value (greater than)', () => {
+    it('should filter numeric value (greater than)', async() => {
       const hot = handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -280,7 +284,7 @@ describe('Filters', () => {
       expect(getDataAtCol(0).join()).toBe('23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39');
     });
 
-    it('should filter text value (contains)', () => {
+    it('should filter text value (contains)', async() => {
       const hot = handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -306,7 +310,7 @@ describe('Filters', () => {
         .toBe('Ernestine Wiggins,Becky Ross,Lee Reed,Gertrude Nielsen,Peterson Bowers,Ferguson Nichols');
     });
 
-    it('should filter date value (yesterday)', () => {
+    it('should filter date value (yesterday)', async() => {
       const hot = handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -330,7 +334,7 @@ describe('Filters', () => {
       expect(getData()[0][6]).toBe(false);
     });
 
-    it('should filter boolean value (true)', () => {
+    it('should filter boolean value (true)', async() => {
       const hot = handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -357,7 +361,7 @@ describe('Filters', () => {
     });
 
     describe('Cooperation with Manual Column Move plugin #32', () => {
-      it('should show indicator at proper position when column order was changed - test no. 1', function() {
+      it('should show indicator at proper position when column order was changed - test no. 1', async() => {
         const hot = handsontable({
           data: getDataForFilters(),
           columns: getColumnsForFilters(),
@@ -377,10 +381,10 @@ describe('Filters', () => {
         manualColumnMove.moveColumn(0, 3);
         hot.render();
 
-        expect(this.$container.find('th:eq(3)').hasClass('htFiltersActive')).toEqual(true);
+        expect(spec().$container.find('th:eq(3)').hasClass('htFiltersActive')).toEqual(true);
       });
 
-      it('should show indicator at proper position when column order was changed - test no. 2', function() {
+      it('should show indicator at proper position when column order was changed - test no. 2', async() => {
         const hot = handsontable({
           data: getDataForFilters(),
           columns: getColumnsForFilters(),
@@ -400,10 +404,10 @@ describe('Filters', () => {
         filters.addCondition(1, 'not_empty', []);
         filters.filter();
 
-        expect(this.$container.find('th:eq(1)').hasClass('htFiltersActive')).toEqual(true);
+        expect(spec().$container.find('th:eq(1)').hasClass('htFiltersActive')).toEqual(true);
       });
 
-      it('should display conditional menu with proper filter selected when column order was changed', () => {
+      it('should display conditional menu with proper filter selected when column order was changed', async() => {
         const hot = handsontable({
           data: getDataForFilters(),
           columns: getColumnsForFilters(),
@@ -421,14 +425,14 @@ describe('Filters', () => {
         filters.filter();
 
         manualColumnMove.moveColumn(0, 2);
-        hot.render();
 
-        dropdownMenu(2);
+        await render();
+        await dropdownMenu(2);
 
         expect($(conditionSelectRootElements().first).find('.htUISelectCaption').text()).toBe('Is not empty');
       });
 
-      it('should display value box with proper items when column order was changed', () => {
+      it('should display value box with proper items when column order was changed', async() => {
         const hot = handsontable({
           data: getDataForFilters(),
           columns: getColumnsForFilters(),
@@ -442,9 +446,9 @@ describe('Filters', () => {
         const manualColumnMove = hot.getPlugin('manualColumnMove');
 
         manualColumnMove.moveColumn(0, 2);
-        hot.render();
 
-        dropdownMenu(2);
+        await render();
+        await dropdownMenu(2);
 
         expect($(byValueBoxRootElement()).find('label:eq(0)').text()).toEqual('1');
       });
@@ -452,7 +456,7 @@ describe('Filters', () => {
   });
 
   describe('Advanced filtering (multiple columns)', () => {
-    it('should filter values from 3 columns', () => {
+    it('should filter values from 3 columns', async() => {
       const hot = handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -485,7 +489,7 @@ describe('Filters', () => {
       expect(getData()[1][6]).toBe(false);
     });
 
-    it('should filter values from multiple conditions for one column', () => {
+    it('should filter values from multiple conditions for one column', async() => {
       const hot = handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -513,7 +517,7 @@ describe('Filters', () => {
   });
 
   describe('Advanced filtering (conditions and operations combination #160)', () => {
-    it('should filter values when one type of condition is used (single column)', () => {
+    it('should filter values when one type of condition is used (single column)', async() => {
       const hot = handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -539,7 +543,7 @@ describe('Filters', () => {
       expect(getDataAtCell(4, 1)).toBe('Long Mathews');
     });
 
-    it('should filter values when more than one type of condition is used (single column) #1', () => {
+    it('should filter values when more than one type of condition is used (single column) #1', async() => {
       const hot = handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -570,7 +574,7 @@ describe('Filters', () => {
       expect(getDataAtCell(1, 1)).toBe('Mejia Osborne');
     });
 
-    it('should filter values when more than one type of condition is used (single column) #2', () => {
+    it('should filter values when more than one type of condition is used (single column) #2', async() => {
       const hot = handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -592,7 +596,7 @@ describe('Filters', () => {
       expect(getDataAtCell(1, 1)).toBe('Mejia Osborne');
     });
 
-    it('should filter values when one type of condition is used (multiple columns)', () => {
+    it('should filter values when one type of condition is used (multiple columns)', async() => {
       const hot = handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -621,7 +625,7 @@ describe('Filters', () => {
     });
 
     it('should filter values when more than one type of condition is used ' +
-      '(multiple columns & two different operations)', () => {
+      '(multiple columns & two different operations)', async() => {
       const hot = handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -657,13 +661,13 @@ describe('Filters', () => {
     });
   });
 
-  it('should add minSpareRows properly when the filters plugin is enabled #3937', () => {
+  it('should add minSpareRows properly when the filters plugin is enabled #3937', async() => {
     handsontable({
       minSpareRows: 1,
       filters: true
     });
 
-    loadData(Handsontable.helper.createSpreadsheetData(3, 3));
+    loadData(createSpreadsheetData(3, 3));
 
     expect(getData()).toEqual([
       ['A1', 'B1', 'C1'],
@@ -673,9 +677,9 @@ describe('Filters', () => {
     ]);
   });
 
-  it('should work also when the `TrimRows` plugin is enabled #3937', () => {
+  it('should work also when the `TrimRows` plugin is enabled #3937', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
       filters: true,
       trimRows: [1]
     });
@@ -689,11 +693,11 @@ describe('Filters', () => {
   });
 
   describe('cooperation with alter actions', () => {
-    it('should filter proper column after removing column right before the already filtered one', function() {
+    it('should filter proper column after removing column right before the already filtered one', async() => {
       handsontable({
         colHeaders: true,
         dropdownMenu: true,
-        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        data: createSpreadsheetData(3, 3),
         filters: true,
       });
 
@@ -702,16 +706,16 @@ describe('Filters', () => {
       plugin.addCondition(1, 'contains', ['b']);
       plugin.filter();
 
-      alter('remove_col', 0);
-      dropdownMenu(0);
+      await alter('remove_col', 0);
+      await dropdownMenu(0);
 
       expect(getData()).toEqual([
         ['B1', 'C1'],
         ['B2', 'C2'],
         ['B3', 'C3'],
       ]);
-      expect(this.$container.find('th:eq(0)').hasClass('htFiltersActive')).toEqual(true);
-      expect(this.$container.find('th:eq(1)').hasClass('htFiltersActive')).toEqual(false);
+      expect(spec().$container.find('th:eq(0)').hasClass('htFiltersActive')).toEqual(true);
+      expect(spec().$container.find('th:eq(1)').hasClass('htFiltersActive')).toEqual(false);
       expect(plugin.components.get('filter_by_condition').getState()).toEqual({
         args: ['b'],
         command: {
@@ -744,11 +748,11 @@ describe('Filters', () => {
       });
     });
 
-    it('should filter proper column after inserting column right before the already filtered one', function() {
+    it('should filter proper column after inserting column right before the already filtered one', async() => {
       handsontable({
         colHeaders: true,
         dropdownMenu: true,
-        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        data: createSpreadsheetData(3, 3),
         filters: true,
       });
 
@@ -757,16 +761,16 @@ describe('Filters', () => {
       plugin.addCondition(1, 'contains', ['b']);
       plugin.filter();
 
-      alter('insert_col_start', 1);
-      dropdownMenu(2);
+      await alter('insert_col_start', 1);
+      await dropdownMenu(2);
 
       expect(getData()).toEqual([
         ['A1', null, 'B1', 'C1'],
         ['A2', null, 'B2', 'C2'],
         ['A3', null, 'B3', 'C3'],
       ]);
-      expect(this.$container.find('th:eq(1)').hasClass('htFiltersActive')).toEqual(false);
-      expect(this.$container.find('th:eq(2)').hasClass('htFiltersActive')).toEqual(true);
+      expect(spec().$container.find('th:eq(1)').hasClass('htFiltersActive')).toEqual(false);
+      expect(spec().$container.find('th:eq(2)').hasClass('htFiltersActive')).toEqual(true);
       expect(plugin.components.get('filter_by_condition').getState()).toEqual({
         args: ['b'],
         command: {

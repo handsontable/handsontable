@@ -610,23 +610,23 @@ describe('Core_updateData', () => {
 
   it('should not reinitialize index mappers after calling updateData', () => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
     });
 
     hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
     hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
 
-    updateData(Handsontable.helper.createSpreadsheetData(5, 5));
+    updateData(createSpreadsheetData(5, 5));
 
     expect(hot.rowIndexMapper.getIndexesSequence()).toEqual([4, 3, 2, 1, 0]);
     expect(hot.columnIndexMapper.getIndexesSequence()).toEqual([4, 3, 2, 1, 0]);
 
-    updateData(Handsontable.helper.createSpreadsheetData(3, 3));
+    updateData(createSpreadsheetData(3, 3));
 
     expect(hot.rowIndexMapper.getIndexesSequence()).toEqual([2, 1, 0]);
     expect(hot.columnIndexMapper.getIndexesSequence()).toEqual([2, 1, 0]);
 
-    updateData(Handsontable.helper.createSpreadsheetData(5, 5));
+    updateData(createSpreadsheetData(5, 5));
 
     expect(hot.rowIndexMapper.getIndexesSequence()).toEqual([2, 1, 0, 3, 4]);
     expect(hot.columnIndexMapper.getIndexesSequence()).toEqual([2, 1, 0, 3, 4]);

@@ -16,7 +16,7 @@ describe('settings', () => {
     describe('works on init', () => {
       it('should show data properly when `maxRows` is set to 0', () => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           maxRows: 0
         });
 
@@ -33,7 +33,7 @@ describe('settings', () => {
 
       it('should show data properly when `maxRows` is set to value > 0', () => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           maxRows: 5
         });
 
@@ -49,7 +49,7 @@ describe('settings', () => {
 
       it('should show data properly when `maxRows` is set to infinity value', () => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           maxRows: Infinity
         });
 
@@ -67,7 +67,7 @@ describe('settings', () => {
     describe('update settings works', () => {
       it('should show data properly after maxRows is updated to 0', () => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10)
+          data: createSpreadsheetData(10, 10)
         });
 
         updateSettings({
@@ -87,7 +87,7 @@ describe('settings', () => {
 
       it('should show data properly after maxRows is updated to value > 0 -> test no. 1', () => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10)
+          data: createSpreadsheetData(10, 10)
         });
 
         updateSettings({
@@ -106,7 +106,7 @@ describe('settings', () => {
 
       it('should show data properly after maxRows is updated to value > 0 -> test no. 2', () => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           maxRows: 5
         });
 
@@ -126,7 +126,7 @@ describe('settings', () => {
 
       it('should show data properly after maxRows is updated to value > 0 -> test no. 3', () => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           maxRows: 2
         });
 
@@ -146,7 +146,7 @@ describe('settings', () => {
 
       it('should show data properly after maxRows is updated to infinity value -> test no. 1', () => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10)
+          data: createSpreadsheetData(10, 10)
         });
 
         updateSettings({
@@ -165,7 +165,7 @@ describe('settings', () => {
 
       it('should show data properly after maxRows is updated to infinity value -> test no. 2', () => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           maxRows: 2
         });
 

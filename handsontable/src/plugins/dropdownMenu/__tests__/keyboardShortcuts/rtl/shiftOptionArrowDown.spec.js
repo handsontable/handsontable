@@ -18,7 +18,7 @@ describe('DropdownMenu keyboard shortcut (RTL mode)', () => {
     });
 
     describe('"Shift" + "Alt/Option" + "ArrowDown"', () => {
-      it('should be possible to open the dropdown menu in the correct position', () => {
+      it('should be possible to open the dropdown menu in the correct position', async() => {
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(3, 8),
@@ -28,8 +28,8 @@ describe('DropdownMenu keyboard shortcut (RTL mode)', () => {
           dropdownMenu: true
         });
 
-        selectCell(1, 1);
-        keyDownUp(['shift', 'alt', 'arrowdown']);
+        await selectCell(1, 1);
+        await keyDownUp(['shift', 'alt', 'arrowdown']);
 
         const cell = getCell(-1, 1, true);
         const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
@@ -61,8 +61,8 @@ describe('DropdownMenu keyboard shortcut (RTL mode)', () => {
 
         const lastColumn = countCols() - 1;
 
-        selectCell(-1, lastColumn);
-        keyDownUp(['shift', 'alt', 'arrowdown']);
+        await selectCell(-1, lastColumn);
+        await keyDownUp(['shift', 'alt', 'arrowdown']);
 
         const cell = getCell(-1, lastColumn, true);
         const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');

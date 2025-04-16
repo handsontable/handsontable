@@ -14,7 +14,7 @@ describe('Core.resumeExecution', () => {
 
   it('should resume the table execution process and update the internal cache', () => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
     });
     const columnIndexCacheUpdated = jasmine.createSpy('columnIndexCacheUpdated');
     const rowIndexCacheUpdated = jasmine.createSpy('rowIndexCacheUpdated');
@@ -44,7 +44,7 @@ describe('Core.resumeExecution', () => {
 
   it('should update the cache only on the last resume call (a call that resets the counter of nested suspend calls)', () => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
     });
     const columnIndexCacheUpdated = jasmine.createSpy('columnIndexCacheUpdated');
     const rowIndexCacheUpdated = jasmine.createSpy('rowIndexCacheUpdated');

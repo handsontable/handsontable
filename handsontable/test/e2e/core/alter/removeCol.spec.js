@@ -25,7 +25,7 @@ describe('Core.alter', () => {
     describe('for multiple items at once', () => {
       it('should remove columns when index groups are passed in ascending order', () => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(5, 15),
+          data: createSpreadsheetData(5, 15),
         });
         // [[columnVisualIndex, amountColumnsToRemove] ...]
         alter('remove_col', [[1, 3], [5, 1], [7, 3], [11, 2]]);
@@ -41,7 +41,7 @@ describe('Core.alter', () => {
 
       it('should remove columns when index groups are passed in descending order', () => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(5, 15),
+          data: createSpreadsheetData(5, 15),
         });
         // [[columnVisualIndex, amountColumnsToRemove] ...]
         alter('remove_col', [[11, 2], [7, 3], [5, 1], [1, 3]]);
@@ -57,7 +57,7 @@ describe('Core.alter', () => {
 
       it('should remove columns when index groups are passed as intersecting values', () => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(5, 15),
+          data: createSpreadsheetData(5, 15),
         });
         // [[columnVisualIndex, amountColumnsToRemove] ...]
         alter('remove_col', [[1, 3], [4, 2], [5, 5], [11, 1]]);
@@ -73,7 +73,7 @@ describe('Core.alter', () => {
 
       it('should remove columns when index groups are passed as intersecting values (the second scenario)', () => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(5, 15),
+          data: createSpreadsheetData(5, 15),
         });
         // [[columnVisualIndex, amountColumnsToRemove] ...]
         alter('remove_col', [[1, 3], [2, 1], [5, 2]]);
@@ -89,7 +89,7 @@ describe('Core.alter', () => {
 
       it('should remove columns when index groups are passed as intersecting values (placed randomly)', () => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(5, 15),
+          data: createSpreadsheetData(5, 15),
         });
         // [[columnVisualIndex, amountColumnsToRemove] ...]
         alter('remove_col', [[4, 2], [11, 1], [5, 5], [1, 3]]);
@@ -173,7 +173,7 @@ describe('Core.alter', () => {
 
       it('should remove all rows if removing all columns', () => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
         });
 
         alter('remove_col', 0, 10);

@@ -21,10 +21,10 @@ describe('Comments (RTL mode)', () => {
     });
 
     describe('Styling', () => {
-      it('should display comment indicators in the appropriate cells', () => {
+      it('should display comment indicators in the appropriate cells', async() => {
         handsontable({
           layoutDirection,
-          data: Handsontable.helper.createSpreadsheetData(4, 4),
+          data: createSpreadsheetData(4, 4),
           comments: true,
           cell: [
             { row: 1, col: 1, comment: { value: 'test' } },
@@ -44,10 +44,10 @@ describe('Comments (RTL mode)', () => {
         expect(getComputedStyle(getCell(2, 2), ':after').borderRightWidth).toBe('6px');
       });
 
-      it('should display the comment editor on the left of the cell when the viewport is not scrolled (the Window object is a scrollable element)', () => {
+      it('should display the comment editor on the left of the cell when the viewport is not scrolled (the Window object is a scrollable element)', async() => {
         handsontable({
           layoutDirection,
-          data: Handsontable.helper.createSpreadsheetData(4, 10),
+          data: createSpreadsheetData(4, 10),
           comments: true,
         });
 
@@ -77,7 +77,7 @@ describe('Comments (RTL mode)', () => {
 
         handsontable({
           layoutDirection,
-          data: Handsontable.helper.createSpreadsheetData(100, 100),
+          data: createSpreadsheetData(100, 100),
           comments: true,
         });
 
@@ -105,10 +105,10 @@ describe('Comments (RTL mode)', () => {
         });
       });
 
-      it('should display the comment editor on the left of the cell when the viewport is not scrolled (the Window object is not a scrollable element)', () => {
+      it('should display the comment editor on the left of the cell when the viewport is not scrolled (the Window object is not a scrollable element)', async() => {
         handsontable({
           layoutDirection,
-          data: Handsontable.helper.createSpreadsheetData(30, 20),
+          data: createSpreadsheetData(30, 20),
           comments: true,
           width: 400,
           height: 200,
@@ -134,7 +134,7 @@ describe('Comments (RTL mode)', () => {
       it('should display the comment editor on the left of the cell when the viewport is scrolled (the Window object is not a scrollable element)', async() => {
         handsontable({
           layoutDirection,
-          data: Handsontable.helper.createSpreadsheetData(30, 20),
+          data: createSpreadsheetData(30, 20),
           comments: true,
           width: 200,
           height: 200,
@@ -173,7 +173,7 @@ describe('Comments (RTL mode)', () => {
 
         handsontable({
           layoutDirection,
-          data: Handsontable.helper.createSpreadsheetData(100, 100),
+          data: createSpreadsheetData(100, 100),
           comments: true,
         });
 
@@ -210,7 +210,7 @@ describe('Comments (RTL mode)', () => {
 
         handsontable({
           layoutDirection,
-          data: Handsontable.helper.createSpreadsheetData(100, 100),
+          data: createSpreadsheetData(100, 100),
           comments: true,
         });
 
@@ -250,7 +250,7 @@ describe('Comments (RTL mode)', () => {
 
         handsontable({
           layoutDirection,
-          data: Handsontable.helper.createSpreadsheetData(100, 100),
+          data: createSpreadsheetData(100, 100),
           comments: true,
         });
 

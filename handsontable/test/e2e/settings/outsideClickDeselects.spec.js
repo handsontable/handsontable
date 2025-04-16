@@ -345,7 +345,7 @@ describe('settings', () => {
       const $externalButton = $('<button>test</button>').prependTo('body');
 
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(50, 1),
+        data: createSpreadsheetData(50, 1),
         rowHeaders: true,
         colHeaders: true,
         outsideClickDeselects: false,

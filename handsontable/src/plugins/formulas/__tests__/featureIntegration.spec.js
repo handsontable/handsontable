@@ -13,7 +13,7 @@ describe('Formulas: Integration with other features', () => {
   });
 
   describe('Integration with alter', () => {
-    it('should allow inserting rows and columns with the formula plugin enabled', () => {
+    it('should allow inserting rows and columns with the formula plugin enabled', async() => {
       const hot = handsontable({
         data: [['foo', null], ['=A1', null]],
         formulas: {
@@ -35,7 +35,7 @@ describe('Formulas: Integration with other features', () => {
       expect(hot.countCols()).toEqual(5);
     });
 
-    it('should work properly when indexes are reorganised and some rows/columns are inserted', () => {
+    it('should work properly when indexes are reorganised and some rows/columns are inserted', async() => {
       handsontable({
         data: [
           [1, '=A1+10', '=B1+100', '=C1+1000', '=D1+1000000'],
@@ -54,7 +54,7 @@ describe('Formulas: Integration with other features', () => {
 
       getPlugin('manualRowMove').moveRows([4, 3, 2, 1, 0], 0);
       getPlugin('manualColumnMove').moveColumns([4, 3, 2, 1, 0], 0);
-      render();
+      await render();
 
       alter('insert_col_start', 0, 1);
       alter('insert_row_above', 0, 1);
@@ -71,7 +71,7 @@ describe('Formulas: Integration with other features', () => {
       ]);
     });
 
-    it('should work properly when indexes are reorganised and some rows/columns are removed', () => {
+    it('should work properly when indexes are reorganised and some rows/columns are removed', async() => {
       handsontable({
         data: [
           [1, '=A1+10', '=B1+100', '=C1+1000', '=D1+1000000'],
@@ -90,11 +90,13 @@ describe('Formulas: Integration with other features', () => {
 
       getPlugin('manualRowMove').moveRows([4, 3, 2, 1, 0], 0);
       getPlugin('manualColumnMove').moveColumns([4, 3, 2, 1, 0], 0);
-      render();
+
+      await render();
 
       alter('remove_row', 2, 2);
       alter('remove_row', 2, 1);
-      render();
+
+      await render();
 
       expect(getData()).toEqual([
         [1001115, 1115, 115, 15, 5],
@@ -104,7 +106,7 @@ describe('Formulas: Integration with other features', () => {
   });
 
   describe('Integration with minSpareRows/minSpareCols', () => {
-    it('should display the minSpareRows and minSpareCols properly', () => {
+    it('should display the minSpareRows and minSpareCols properly', async() => {
       const hot = handsontable({
         data: [[1, 'x'], ['=A1 + 1', 'y']],
         formulas: {
@@ -143,7 +145,7 @@ describe('Formulas: Integration with other features', () => {
         fillHandle: true
       });
 
-      selectCell(0, 2);
+      await selectCell(0, 2);
 
       spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
       spec().$container.find('tr:last-child td:eq(2)').simulate('mouseover');
@@ -151,11 +153,13 @@ describe('Formulas: Integration with other features', () => {
       expect(hot.countRows()).toBe(4);
 
       await sleep(300);
+
       expect(hot.countRows()).toBe(5);
 
       spec().$container.find('tr:last-child td:eq(2)').simulate('mouseover');
 
       await sleep(300);
+
       expect(hot.countRows()).toBe(6);
 
       spec().$container.find('tr:last-child td:eq(2)').simulate('mouseup');
@@ -209,7 +213,7 @@ describe('Formulas: Integration with other features', () => {
         fillHandle: true,
       });
 
-      selectCells([[1, 2, 2, 4]]);
+      await selectCells([[1, 2, 2, 4]]);
 
       spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
       spec().$container.find('tr:last-child td:eq(2)').simulate('mouseover');
@@ -280,7 +284,7 @@ describe('Formulas: Integration with other features', () => {
   });
 
   describe('Integration with TrimRows and ColumnSorting plugins', () => {
-    it('sorting dataset with one trimmed element', () => {
+    it('sorting dataset with one trimmed element', async() => {
       const hot = handsontable({
         data: [
           ['$B$2', 1, '=$B$2'],
@@ -301,7 +305,8 @@ describe('Formulas: Integration with other features', () => {
       });
 
       hot.getPlugin('trimRows').untrimAll();
-      hot.render();
+
+      await render();
 
       expect(getData()).toEqual([
         ['$B$2', 1, 100],
@@ -322,7 +327,8 @@ describe('Formulas: Integration with other features', () => {
       ]);
 
       hot.getPlugin('trimRows').trimRows([3]);
-      hot.render();
+
+      await render();
 
       hot.getPlugin('columnSorting').sort({
         column: 1,
@@ -348,7 +354,8 @@ describe('Formulas: Integration with other features', () => {
       ]);
 
       hot.getPlugin('trimRows').untrimAll();
-      hot.render();
+
+      await render();
 
       expect(getData()).toEqual([
         ['$B$2', 1, 3],
@@ -369,7 +376,8 @@ describe('Formulas: Integration with other features', () => {
       ]);
 
       hot.getPlugin('trimRows').trimRows([3]);
-      hot.render();
+
+      await render();
 
       hot.getPlugin('columnSorting').sort({
         column: 1,
@@ -395,7 +403,8 @@ describe('Formulas: Integration with other features', () => {
       ]);
 
       hot.getPlugin('trimRows').untrimAll();
-      hot.render();
+
+      await render();
 
       expect(getData()).toEqual([
         ['$B$1', 100, 100],
@@ -417,7 +426,8 @@ describe('Formulas: Integration with other features', () => {
 
       hot.getPlugin('trimRows').trimRows([3]);
       hot.getPlugin('columnSorting').clearSort();
-      hot.render();
+
+      await render();
 
       expect(hot.getData()).toEqual([
         ['$B$2', 1, 100],
@@ -438,7 +448,8 @@ describe('Formulas: Integration with other features', () => {
       ]);
 
       hot.getPlugin('trimRows').untrimAll();
-      hot.render();
+
+      await render();
 
       expect(hot.getData()).toEqual([
         ['$B$2', 1, 100],

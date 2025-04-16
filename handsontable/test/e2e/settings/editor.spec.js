@@ -159,7 +159,7 @@ describe('settings', () => {
 
       it('should provide correct set of arguments to the prepare callback', async() => {
         const customEditor = jasmine.createSpy('customEditor');
-        const myData = Handsontable.helper.createSpreadsheetData(1, 5);
+        const myData = createSpreadsheetData(1, 5);
         let editedTd;
 
         customEditor.and.callFake(function() {
@@ -191,7 +191,7 @@ describe('settings', () => {
       it('should provide correct set of arguments to the prepare callback (fixed column, cell rendered overlay but not rendered on master)', async() => {
         // https://github.com/handsontable/handsontable/issues/6043
         const customEditor = jasmine.createSpy('customEditor');
-        const myData = Handsontable.helper.createSpreadsheetData(1, 5);
+        const myData = createSpreadsheetData(1, 5);
         let editedTd;
 
         customEditor.and.callFake(function() {

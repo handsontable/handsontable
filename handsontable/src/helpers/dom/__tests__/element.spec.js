@@ -38,7 +38,7 @@ describe('DOM helpers', () => {
       document.body.appendChild(hotContainer);
 
       const hot = new Handsontable(hotContainer, {
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         colHeaders: true,
         rowHeaders: true,
         fixedRowsTop: 3,

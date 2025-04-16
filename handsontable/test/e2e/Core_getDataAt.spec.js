@@ -62,7 +62,7 @@ describe('Core_getDataAt*', () => {
 
   it('should not throw an exception while getting data for column by its index (big dataset)', () => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(130000, 5),
+      data: createSpreadsheetData(130000, 5),
     });
 
     expect(() => {
@@ -72,7 +72,7 @@ describe('Core_getDataAt*', () => {
 
   it('should not throw an exception while getting data for column by its property (big dataset)', () => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(130000, 5),
+      data: createSpreadsheetData(130000, 5),
     });
 
     expect(() => {

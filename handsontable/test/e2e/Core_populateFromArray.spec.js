@@ -426,7 +426,7 @@ describe('Core_populateFromArray', () => {
 
     it('should expand the dataset properly #6929', () => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 5),
+        data: createSpreadsheetData(1, 5),
       });
 
       const afterChange = jasmine.createSpy('afterChange');

@@ -49,7 +49,7 @@ describe('MultiColumnSorting', () => {
     ['Robert', 'Evans', '07/24/2020', 30500, undefined]
   ];
 
-  it('should sort table by first visible column', () => {
+  it('should sort table by first visible column', async() => {
     handsontable({
       data: [
         [1, 9, 3, 4, 5, 6, 7, 8, 9],
@@ -71,7 +71,7 @@ describe('MultiColumnSorting', () => {
     expect(htCore.find('tbody tr:eq(0) td:eq(3)').text()).toEqual('5');
   });
 
-  it('should not change row indexes in the sorted table after using `disablePlugin` until next render is called', () => {
+  it('should not change row indexes in the sorted table after using `disablePlugin` until next render is called', async() => {
     handsontable({
       data: [
         [1, 9, 3, 4, 5, 6, 7, 8, 9],
@@ -102,7 +102,7 @@ describe('MultiColumnSorting', () => {
     expect(htCore.find('tbody tr:eq(0) td:eq(3)').text()).toEqual('4');
   });
 
-  it('should clear the sort performed on the table by the `clearSort` method', () => {
+  it('should clear the sort performed on the table by the `clearSort` method', async() => {
     handsontable({
       data: arrayOfArrays(),
       multiColumnSorting: {
@@ -118,7 +118,7 @@ describe('MultiColumnSorting', () => {
     expect(getData()).toEqual(arrayOfArrays());
   });
 
-  it('should return sorting state with visual column index under `column` key by the `getSortConfig` method', () => {
+  it('should return sorting state with visual column index under `column` key by the `getSortConfig` method', async() => {
     const predefinedSortQueue = [{
       column: 0,
       sortOrder: 'asc'
@@ -153,7 +153,7 @@ describe('MultiColumnSorting', () => {
     expect(getPlugin('multiColumnSorting').getSortConfig(1)).toEqual({ column: 1, sortOrder: 'asc' });
   });
 
-  it('should set properly sort config by the `setSortConfig` method', () => {
+  it('should set properly sort config by the `setSortConfig` method', async() => {
     const sortQueue = [{
       column: 0,
       sortOrder: 'asc'
@@ -188,7 +188,7 @@ describe('MultiColumnSorting', () => {
     expect(getPlugin('multiColumnSorting').getSortConfig(1)).toEqual({ column: 1, sortOrder: 'asc' });
   });
 
-  it.forTheme('classic')('should display indicator properly after changing sorted column sequence', () => {
+  it.forTheme('classic')('should display indicator properly after changing sorted column sequence', async() => {
     const hot = handsontable({
       data: [
         [1, 9, 3, 4, 5, 6, 7, 8, 9],
@@ -213,7 +213,7 @@ describe('MultiColumnSorting', () => {
     expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
   });
 
-  it.forTheme('main')('should display indicator properly after changing sorted column sequence', () => {
+  it.forTheme('main')('should display indicator properly after changing sorted column sequence', async() => {
     const hot = handsontable({
       data: [
         [1, 9, 3, 4, 5, 6, 7, 8, 9],
@@ -240,7 +240,7 @@ describe('MultiColumnSorting', () => {
     expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('top')).toEqual('10px');
   });
 
-  it.forTheme('horizon')('should display indicator properly after changing sorted column sequence', () => {
+  it.forTheme('horizon')('should display indicator properly after changing sorted column sequence', async() => {
     const hot = handsontable({
       data: [
         [1, 9, 3, 4, 5, 6, 7, 8, 9],
@@ -267,7 +267,7 @@ describe('MultiColumnSorting', () => {
     expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('top')).toEqual('10px');
   });
 
-  it('should clear indicator after disabling plugin', () => {
+  it('should clear indicator after disabling plugin', async() => {
     handsontable({
       data: arrayOfObjects(),
       colHeaders: true,
@@ -307,7 +307,7 @@ describe('MultiColumnSorting', () => {
     expect(htCore.find('td').length).toEqual(2);
   });
 
-  it('should apply stable sort function #3606', () => {
+  it('should apply stable sort function #3606', async() => {
     handsontable({
       data: [
         ['mercedes1', 'Mercedes', 'A 160', '01/14/2007'],
@@ -373,7 +373,7 @@ describe('MultiColumnSorting', () => {
     expect(onErrorSpy).not.toHaveBeenCalled();
   });
 
-  it('should not throw error when trying run handsontable with multiColumnSorting and autoRowSize in the same time.', () => {
+  it('should not throw error when trying run handsontable with multiColumnSorting and autoRowSize in the same time.', async() => {
     let errors = 0;
 
     try {
@@ -389,7 +389,7 @@ describe('MultiColumnSorting', () => {
     expect(errors).toBe(0);
   });
 
-  it('should sort numbers descending after 2 clicks on table header', () => {
+  it('should sort numbers descending after 2 clicks on table header', async() => {
     handsontable({
       data: arrayOfObjects(),
       colHeaders: true,
@@ -402,7 +402,7 @@ describe('MultiColumnSorting', () => {
     expect(spec().$container.find('tr td').first().html()).toEqual('10');
   });
 
-  it('should place empty strings, null and undefined values at proper position (stability of default comparing function)', () => {
+  it('should place empty strings, null and undefined values at proper position (stability of default comparing function)', async() => {
     handsontable({
       data: [
         [null, 'Ted Right'],
@@ -456,7 +456,7 @@ describe('MultiColumnSorting', () => {
   });
 
   it('should place empty strings, null and undefined values at proper position when `sortEmptyCells` option is enabled ' +
-    '(API call, data type: default)', () => {
+    '(API call, data type: default)', async() => {
     handsontable({
       data: [
         [6, 'Frank Honest'],
@@ -509,7 +509,7 @@ describe('MultiColumnSorting', () => {
   });
 
   it('should place empty strings, null and undefined values at proper position when `sortEmptyCells` ' +
-    'option is enabled and `column` property of `multiColumnSorting` option is set (data type: default)', () => {
+    'option is enabled and `column` property of `multiColumnSorting` option is set (data type: default)', async() => {
     handsontable({
       data: [
         [6, 'Frank Honest'],
@@ -593,7 +593,7 @@ describe('MultiColumnSorting', () => {
   });
 
   it('should place empty strings, null and undefined values at proper position when `sortEmptyCells` ' +
-    'option is enabled and `column` property of `multiColumnSorting` option is set (data type: numeric)', () => {
+    'option is enabled and `column` property of `multiColumnSorting` option is set (data type: numeric)', async() => {
     handsontable({
       data: [
         [6, 'Frank Honest'],
@@ -683,13 +683,13 @@ describe('MultiColumnSorting', () => {
   });
 
   describe('isSorted', () => {
-    it('should return `false` when plugin is disabled', () => {
+    it('should return `false` when plugin is disabled', async() => {
       handsontable();
 
       expect(getPlugin('multiColumnSorting').isSorted()).toBeFalsy();
     });
 
-    it('should return `false` when plugin has been disabled by the `disablePlugin` method', () => {
+    it('should return `false` when plugin has been disabled by the `disablePlugin` method', async() => {
       handsontable({
         multiColumnSorting: {
           initialConfig: {
@@ -704,7 +704,7 @@ describe('MultiColumnSorting', () => {
       expect(getPlugin('multiColumnSorting').isSorted()).toBeFalsy();
     });
 
-    it('should return `false` when plugin is enabled and the table was not sorted #1', () => {
+    it('should return `false` when plugin is enabled and the table was not sorted #1', async() => {
       handsontable({
         multiColumnSorting: true
       });
@@ -712,7 +712,7 @@ describe('MultiColumnSorting', () => {
       expect(getPlugin('multiColumnSorting').isSorted()).toBeFalsy();
     });
 
-    it('should return `false` when plugin is enabled and the table was not sorted #2', () => {
+    it('should return `false` when plugin is enabled and the table was not sorted #2', async() => {
       handsontable({
         data: [
           ['Citroen1', 'C4 Coupe', null],
@@ -727,7 +727,7 @@ describe('MultiColumnSorting', () => {
       expect(getPlugin('multiColumnSorting').isSorted()).toBeFalsy();
     });
 
-    it('should return `true` when plugin is enabled and the table was sorted', () => {
+    it('should return `true` when plugin is enabled and the table was sorted', async() => {
       handsontable({
         data: [
           ['Citroen1', 'C4 Coupe', null],
@@ -745,7 +745,7 @@ describe('MultiColumnSorting', () => {
       expect(getPlugin('multiColumnSorting').isSorted()).toBeTruthy();
     });
 
-    it('should be handled properly when using the `updateSettings`', () => {
+    it('should be handled properly when using the `updateSettings`', async() => {
       handsontable({
         data: [
           ['Citroen1', 'C4 Coupe', null],
@@ -787,7 +787,7 @@ describe('MultiColumnSorting', () => {
 
   describe('data type: date', () => {
     it('should place empty strings, null and undefined values at proper position when `sortEmptyCells` ' +
-      'option is enabled and `column` property of `multiColumnSorting` option is set', () => {
+      'option is enabled and `column` property of `multiColumnSorting` option is set', async() => {
       handsontable({
         data: [
           ['Citroen1', 'C4 Coupe', null],
@@ -886,7 +886,7 @@ describe('MultiColumnSorting', () => {
       ]);
     });
 
-    it('should sort date columns (MM/DD/YYYY)', () => {
+    it('should sort date columns (MM/DD/YYYY)', async() => {
       handsontable({
         data: [
           ['Mercedes', 'A 160', '01/14/2006', 6999.9999],
@@ -927,7 +927,7 @@ describe('MultiColumnSorting', () => {
       expect(getDataAtRow(4)).toEqual(['Opel', 'Astra', '02/02/2004', 7000]);
     });
 
-    it('should sort date columns (DD/MM/YYYY)', () => {
+    it('should sort date columns (DD/MM/YYYY)', async() => {
       handsontable({
         data: [
           ['Mercedes', 'A 160', '01/12/2012', 6999.9999],
@@ -968,7 +968,7 @@ describe('MultiColumnSorting', () => {
       expect(getDataAtRow(4)).toEqual(['Mercedes', 'A 160', '01/12/2012', 6999.9999]);
     });
 
-    it('should sort date columns (MMMM Do YYYY)', () => {
+    it('should sort date columns (MMMM Do YYYY)', async() => {
       handsontable({
         data: [
           ['Mercedes', 'A 160', 'October 28th 2016', 6999.9999],
@@ -1009,7 +1009,7 @@ describe('MultiColumnSorting', () => {
       expect(getDataAtRow(4)).toEqual(['Audi', 'A4 Avant', 'July 8th 1999', 33900]);
     });
 
-    it('should sort date columns along with empty and null values', () => {
+    it('should sort date columns along with empty and null values', async() => {
       handsontable({
         data: [
           ['Mercedes', 'A 160', '01/14/2006', 6999.9999],
@@ -1091,7 +1091,7 @@ describe('MultiColumnSorting', () => {
   });
 
   describe('data type: checkbox', () => {
-    it('should sort checkboxes properly when `checkedTemplate` and `checkedTemplate` options are not set', () => {
+    it('should sort checkboxes properly when `checkedTemplate` and `checkedTemplate` options are not set', async() => {
       handsontable({
         data: [
           { car: 'Mercedes A 160', year: 2017, available: true },
@@ -1137,7 +1137,7 @@ describe('MultiColumnSorting', () => {
       ]);
     });
 
-    it('should sort checkboxes properly when `checkedTemplate` and `checkedTemplate` options are set (string templates)', () => {
+    it('should sort checkboxes properly when `checkedTemplate` and `checkedTemplate` options are set (string templates)', async() => {
       handsontable({
         data: [
           { car: 'Mercedes A 160', year: 2017, comesInBlack: 'yes' },
@@ -1185,7 +1185,7 @@ describe('MultiColumnSorting', () => {
       ]);
     });
 
-    it('should sort checkboxes properly when `checkedTemplate` and `checkedTemplate` options are set (non-string templates) #1', () => {
+    it('should sort checkboxes properly when `checkedTemplate` and `checkedTemplate` options are set (non-string templates) #1', async() => {
       handsontable({
         data: [
           { car: 'Mercedes A 160', damaged: true },
@@ -1232,7 +1232,7 @@ describe('MultiColumnSorting', () => {
       ]);
     });
 
-    it('should sort checkboxes properly when `checkedTemplate` and `checkedTemplate` options are set (non-string templates) #2', () => {
+    it('should sort checkboxes properly when `checkedTemplate` and `checkedTemplate` options are set (non-string templates) #2', async() => {
       handsontable({
         data: [
           { car: 'Mercedes A 160', damaged: 1 },
@@ -1279,7 +1279,7 @@ describe('MultiColumnSorting', () => {
       ]);
     });
 
-    it('should sort #bad_value# elements in a proper way', () => {
+    it('should sort #bad_value# elements in a proper way', async() => {
       handsontable({
         data: [
           ['b', 0],
@@ -1328,7 +1328,7 @@ describe('MultiColumnSorting', () => {
       ]);
     });
 
-    it('should sort elements in a proper way when `sortEmptyCells` is set to `false` (by default)', () => {
+    it('should sort elements in a proper way when `sortEmptyCells` is set to `false` (by default)', async() => {
       handsontable({
         data: [
           [null, 0], // empty cell
@@ -1391,7 +1391,7 @@ describe('MultiColumnSorting', () => {
       ]);
     });
 
-    it('should sort elements in a proper way when `sortEmptyCells` is set to `true`', () => {
+    it('should sort elements in a proper way when `sortEmptyCells` is set to `true`', async() => {
       handsontable({
         data: [
           [null, 0], // empty cell
@@ -1455,7 +1455,7 @@ describe('MultiColumnSorting', () => {
     });
   });
 
-  it('should properly sort numeric data', () => {
+  it('should properly sort numeric data', async() => {
     handsontable({
       data: [
         ['Mercedes', 'A 160', '01/14/2006', '6999.9999'],
@@ -1491,7 +1491,7 @@ describe('MultiColumnSorting', () => {
     expect(getDataAtCol(3)).toEqual(['6999.9999', 8330, '8330', 8333, '33900', '7000', 30500]);
   });
 
-  it('should sort table with multiple row headers', () => {
+  it('should sort table with multiple row headers', async() => {
     handsontable({
       data: [
         [1, 'B'],
@@ -1527,7 +1527,7 @@ describe('MultiColumnSorting', () => {
     expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('A');
   });
 
-  it('should allow to define sorting column and order during initialization', () => {
+  it('should allow to define sorting column and order during initialization', async() => {
     handsontable({
       data: [
         [1, 'B'],
@@ -1548,7 +1548,7 @@ describe('MultiColumnSorting', () => {
     expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('D');
   });
 
-  it('should allow to change sorting column with updateSettings', () => {
+  it('should allow to change sorting column with updateSettings', async() => {
     handsontable({
       data: [
         [1, 'B'],
@@ -1581,7 +1581,7 @@ describe('MultiColumnSorting', () => {
     expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('A');
   });
 
-  it('should allow to change sort order with updateSettings', () => {
+  it('should allow to change sort order with updateSettings', async() => {
     handsontable({
       data: [
         [1, 'B'],
@@ -1612,7 +1612,7 @@ describe('MultiColumnSorting', () => {
     expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('3');
   });
 
-  it('should allow to change if sorting empty cells with updateSettings', () => {
+  it('should allow to change if sorting empty cells with updateSettings', async() => {
     handsontable({
       data: [
         [1, 'B'],
@@ -1660,7 +1660,7 @@ describe('MultiColumnSorting', () => {
     expect(getDataAtCol(0)).toEqual([3, 1, 6, 8, 2, 4, 7]);
   });
 
-  it('should NOT sort spare rows', () => {
+  it('should NOT sort spare rows', async() => {
     const myData = [
       { a: 'aaa', b: 2, c: 3 },
       { a: 'z', b: 11, c: -4 },
@@ -1731,7 +1731,7 @@ describe('MultiColumnSorting', () => {
     ]);
   });
 
-  it('should reset column sorting with updateSettings', () => {
+  it('should reset column sorting with updateSettings', async() => {
     handsontable({
       data: [
         [1, 'B'],
@@ -1757,7 +1757,7 @@ describe('MultiColumnSorting', () => {
     expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
   });
 
-  it('should sort table using plugin API method', () => {
+  it('should sort table using plugin API method', async() => {
     handsontable({
       data: [
         [1, 'B'],
@@ -1781,7 +1781,7 @@ describe('MultiColumnSorting', () => {
     expect(spec().$container.find('tbody tr:eq(3) td:eq(0)').text()).toEqual('3');
   });
 
-  it('should fire beforeColumnSort event before sorting data', () => {
+  it('should fire beforeColumnSort event before sorting data', async() => {
     handsontable({
       data: [
         [2],
@@ -1830,7 +1830,7 @@ describe('MultiColumnSorting', () => {
     }, 200);
   });
 
-  it('should add beforeColumnSort event listener in constructor', () => {
+  it('should add beforeColumnSort event listener in constructor', async() => {
     const beforeColumnSortCallback = jasmine.createSpy('beforeColumnSortHandler');
 
     handsontable({
@@ -1848,7 +1848,7 @@ describe('MultiColumnSorting', () => {
     }], true);
   });
 
-  it('should fire afterColumnSort event after data has been sorted', () => {
+  it('should fire afterColumnSort event after data has been sorted', async() => {
     handsontable({
       data: [
         [2],
@@ -1872,7 +1872,7 @@ describe('MultiColumnSorting', () => {
     }], true);
   });
 
-  it('should add afterColumnSort event listener in constructor', () => {
+  it('should add afterColumnSort event listener in constructor', async() => {
     const afterColumnSortCallback = jasmine.createSpy('afterColumnSortHandler');
 
     handsontable({
@@ -1890,7 +1890,7 @@ describe('MultiColumnSorting', () => {
     }], true);
   });
 
-  it('should fire hooks with proper hook argument when sorting is not possible', () => {
+  it('should fire hooks with proper hook argument when sorting is not possible', async() => {
     const beforeColumnSortCallback = jasmine.createSpy('beforeColumnSort');
     const afterColumnSortCallback = jasmine.createSpy('afterColumnSort');
 
@@ -1912,7 +1912,7 @@ describe('MultiColumnSorting', () => {
     expect(afterColumnSortCallback).toHaveBeenCalledWith([], [], false);
   });
 
-  it('should insert row when plugin is enabled, but table hasn\'t been sorted', () => {
+  it('should insert row when plugin is enabled, but table hasn\'t been sorted', async() => {
     handsontable({
       data: [
         [1, 'B'],
@@ -1930,7 +1930,7 @@ describe('MultiColumnSorting', () => {
     expect(countRows()).toEqual(5);
   });
 
-  it('should apply sorting when there are two tables and only one has sorting enabled and has been already sorted (#1020)', () => {
+  it('should apply sorting when there are two tables and only one has sorting enabled and has been already sorted (#1020)', async() => {
     handsontable({
       data: [
         [1, 'B'],
@@ -1949,15 +1949,15 @@ describe('MultiColumnSorting', () => {
     spec().$container2 = $(`<div id='${id}-2'></div>`).appendTo('body');
     spec().$container2.handsontable();
 
-    selectCell(0, 1);
-    keyDownUp('enter');
+    await selectCell(0, 1);
+    await keyDownUp('enter');
     expect($('.handsontableInput').val()).toEqual('A');
 
     spec().$container2.handsontable('destroy');
     spec().$container2.remove();
   });
 
-  it('should return updated data at specified row after sorted', () => {
+  it('should return updated data at specified row after sorted', async() => {
     handsontable({
       data: [
         [1, 'Ted', 'Right'],
@@ -1987,7 +1987,7 @@ describe('MultiColumnSorting', () => {
     expect(getDataAtRow(4)).toEqual([5, 'Jane', 'Neat']);
   });
 
-  it('should return updated data at specified col after sorted', () => {
+  it('should return updated data at specified col after sorted', async() => {
     handsontable({
       data: [
         [1, 'Ted', 'Right'],
@@ -2017,7 +2017,7 @@ describe('MultiColumnSorting', () => {
     expect(getDataAtCol(1)).toEqual(['Ted', 'Frank', 'Joan', 'Sid', 'Jane']);
   });
 
-  it('should return original data source at specified row after sorted', () => {
+  it('should return original data source at specified row after sorted', async() => {
     handsontable({
       data: [
         [1, 'Ted', 'Right'],
@@ -2049,7 +2049,7 @@ describe('MultiColumnSorting', () => {
 
   });
 
-  it('should return original data source at specified col after sorted', () => {
+  it('should return original data source at specified col after sorted', async() => {
     handsontable({
       data: [
         [1, 'Ted', 'Right'],
@@ -2088,7 +2088,7 @@ describe('MultiColumnSorting', () => {
     expect(getSourceDataAtCol(1)).toEqual(['Ted', 'Frank', 'Joan', 'Sid', 'Jane']);
   });
 
-  it('should ignore case when sorting', () => {
+  it('should ignore case when sorting', async() => {
     handsontable({
       data: [
         [1, 'albuquerque'],
@@ -2109,7 +2109,7 @@ describe('MultiColumnSorting', () => {
 
   });
 
-  it('should push empty cells to the end of sorted column', () => {
+  it('should push empty cells to the end of sorted column', async() => {
     handsontable({
       data: [
         [1, 'Ted', 'Right'],
@@ -2134,7 +2134,7 @@ describe('MultiColumnSorting', () => {
 
   });
 
-  it('should push numeric values before non-numeric values, when sorting ascending using the default sorting function', () => {
+  it('should push numeric values before non-numeric values, when sorting ascending using the default sorting function', async() => {
     handsontable({
       data: [
         [1, 'Ted', 123],
@@ -2156,7 +2156,7 @@ describe('MultiColumnSorting', () => {
   });
 
   it.forTheme('classic')('should add a sorting indicator to the column header after it\'s been ' +
-    'sorted, if `indicator` property is set to `true` (by default)', () => {
+    'sorted, if `indicator` property is set to `true` (by default)', async() => {
     handsontable({
       data: [
         [1, 'Ted', 'Right'],
@@ -2214,7 +2214,7 @@ describe('MultiColumnSorting', () => {
   });
 
   it.forTheme('main')('should add a sorting indicator to the column header after it\'s been ' +
-    'sorted, if `indicator` property is set to `true` (by default)', () => {
+    'sorted, if `indicator` property is set to `true` (by default)', async() => {
     handsontable({
       data: [
         [1, 'Ted', 'Right'],
@@ -2272,7 +2272,7 @@ describe('MultiColumnSorting', () => {
   });
 
   it.forTheme('horizon')('should add a sorting indicator to the column header after it\'s been ' +
-    'sorted, if `indicator` property is set to `true` (by default)', () => {
+    'sorted, if `indicator` property is set to `true` (by default)', async() => {
     handsontable({
       data: [
         [1, 'Ted', 'Right'],
@@ -2330,7 +2330,7 @@ describe('MultiColumnSorting', () => {
   });
 
   it.forTheme('classic')('should change sorting indicator state on every plugin API method ' +
-    '(calling for different columns)', () => {
+    '(calling for different columns)', async() => {
     handsontable({
       data: [
         [1, 'Ted', 'Right'],
@@ -2384,7 +2384,7 @@ describe('MultiColumnSorting', () => {
   });
 
   it.forTheme('main')('should change sorting indicator state on every plugin API method ' +
-    '(calling for different columns)', () => {
+    '(calling for different columns)', async() => {
     handsontable({
       data: [
         [1, 'Ted', 'Right'],
@@ -2438,7 +2438,7 @@ describe('MultiColumnSorting', () => {
   });
 
   it.forTheme('horizon')('should change sorting indicator state on every plugin API method ' +
-    '(calling for different columns)', () => {
+    '(calling for different columns)', async() => {
     handsontable({
       data: [
         [1, 'Ted', 'Right'],
@@ -2491,7 +2491,7 @@ describe('MultiColumnSorting', () => {
     expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
   });
 
-  it.forTheme('classic')('should change sorting indicator state when initial column sorting was provided', () => {
+  it.forTheme('classic')('should change sorting indicator state when initial column sorting was provided', async() => {
     handsontable({
       data: [
         [1, 'Ted', 'Right'],
@@ -2540,7 +2540,7 @@ describe('MultiColumnSorting', () => {
     expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
   });
 
-  it.forTheme('main')('should change sorting indicator state when initial column sorting was provided', () => {
+  it.forTheme('main')('should change sorting indicator state when initial column sorting was provided', async() => {
     handsontable({
       data: [
         [1, 'Ted', 'Right'],
@@ -2589,7 +2589,7 @@ describe('MultiColumnSorting', () => {
     expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).not.toMatch(/url/);
   });
 
-  it.forTheme('horizon')('should change sorting indicator state when initial column sorting was provided', () => {
+  it.forTheme('horizon')('should change sorting indicator state when initial column sorting was provided', async() => {
     handsontable({
       data: [
         [1, 'Ted', 'Right'],
@@ -2638,7 +2638,7 @@ describe('MultiColumnSorting', () => {
     expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).not.toMatch(/url/);
   });
 
-  it('should properly sort the table, when it\'s scrolled to the far right', () => {
+  it('should properly sort the table, when it\'s scrolled to the far right', async() => {
     const data = [
       ['Jasmine Ferguson', 'Britney Carey', 'Kelly Decker', 'Lacey Mcleod', 'Leona Shaffer', 'Kelli Ochoa',
         'Adele Roberson', 'Viola Snow', 'Barron Cherry', 'Calhoun Lane', 'Elvia Andrews', 'Katheryn Dale',
@@ -2688,7 +2688,7 @@ describe('MultiColumnSorting', () => {
     expect(getDataAtCell(3, 15)).toEqual('Nita Holloway');
   });
 
-  it('should allow specifiyng a custom sorting function', () => {
+  it('should allow specifiyng a custom sorting function', async() => {
     const data = [['1 inch'], ['1 yard'], ['2 feet'], ['0.2 miles']];
     const compareFunctionFactory = function(sortOrder) {
       return function(value, nextValue) {
@@ -2764,7 +2764,7 @@ describe('MultiColumnSorting', () => {
     expect(getDataAtCell(3, 0)).toEqual('0.2 miles');
   });
 
-  it('should properly sort integers with nulls', () => {
+  it('should properly sort integers with nulls', async() => {
     handsontable({
       data: [
         ['12'],
@@ -2785,7 +2785,7 @@ describe('MultiColumnSorting', () => {
     expect(getDataAtCol(0)).toEqual(['1000', '12', '10', '-5', null, null]);
   });
 
-  it('should properly sort floating points', () => {
+  it('should properly sort floating points', async() => {
     handsontable({
       data: [
         ['0.0561'],
@@ -2806,7 +2806,7 @@ describe('MultiColumnSorting', () => {
     expect(getDataAtCol(0)).toEqual(['1000', '0.0561', '-0.01', '-4.1', '-10.67', '-127']);
   });
 
-  it('should properly sort floating points with nulls', () => {
+  it('should properly sort floating points with nulls', async() => {
     handsontable({
       data: [
         ['0.0561'],
@@ -2830,7 +2830,7 @@ describe('MultiColumnSorting', () => {
     expect(getDataAtCol(0)).toEqual(['1000', '0.0561', '-0.01', '-4.1', '-10.67', '-127', null, null, null]);
   });
 
-  it('should properly sort floating points with non-numerical values', () => {
+  it('should properly sort floating points with non-numerical values', async() => {
     handsontable({
       data: [
         ['0.0561'],
@@ -2854,7 +2854,7 @@ describe('MultiColumnSorting', () => {
     expect(getDataAtCol(0)).toEqual(['hello', 'b', 'a', '1000', '0.0561', '-0.01', '-4.1', '-10.67', '-127']);
   });
 
-  it('should modify row translating process when soring is applied (visual to physical and vice versa)', () => {
+  it('should modify row translating process when soring is applied (visual to physical and vice versa)', async() => {
     const hot = handsontable({
       data: [
         [2],
@@ -2879,7 +2879,7 @@ describe('MultiColumnSorting', () => {
   });
 
   describe('should return sorted properly data when maxRows or / and minSpareRow options are set', () => {
-    it('maxRows < data.length', () => {
+    it('maxRows < data.length', async() => {
       handsontable({
         data: createSpreadsheetData(9, 9),
         maxRows: 6,
@@ -2894,7 +2894,7 @@ describe('MultiColumnSorting', () => {
       expect(getDataAtCol(0)).toEqual(['A6', 'A5', 'A4', 'A3', 'A2', 'A1']);
     });
 
-    it('maxRows > data.length', () => {
+    it('maxRows > data.length', async() => {
       handsontable({
         data: createSpreadsheetData(9, 9),
         maxRows: 20,
@@ -2909,7 +2909,7 @@ describe('MultiColumnSorting', () => {
       expect(getDataAtCol(0)).toEqual(['A9', 'A8', 'A7', 'A6', 'A5', 'A4', 'A3', 'A2', 'A1']);
     });
 
-    it('minSpareRows is set; maxRows < data.length', () => {
+    it('minSpareRows is set; maxRows < data.length', async() => {
       handsontable({
         data: createSpreadsheetData(9, 9),
         maxRows: 5,
@@ -2925,7 +2925,7 @@ describe('MultiColumnSorting', () => {
       expect(getDataAtCol(0)).toEqual(['A5', 'A4', 'A3', 'A2', 'A1']);
     });
 
-    it('minSpareRows is set; maxRows === data.length', () => {
+    it('minSpareRows is set; maxRows === data.length', async() => {
       handsontable({
         data: createSpreadsheetData(6, 6),
         maxRows: 9,
@@ -2941,7 +2941,7 @@ describe('MultiColumnSorting', () => {
       expect(getDataAtCol(0)).toEqual(['A6', 'A5', 'A4', 'A3', 'A2', 'A1', null, null, null]);
     });
 
-    it('minSpareRows is set; maxRows > data.length', () => {
+    it('minSpareRows is set; maxRows > data.length', async() => {
       handsontable({
         data: createSpreadsheetData(9, 9),
         maxRows: 15,
@@ -2960,7 +2960,7 @@ describe('MultiColumnSorting', () => {
 
   describe('Sorting by multiple columns should reorganize sequence of rows properly', () => {
     describe('by the `sort` method', () => {
-      it('when sorting two columns with default type of data', () => {
+      it('when sorting two columns with default type of data', async() => {
         handsontable({
           data: arrayOfArrays(),
           columns: [
@@ -2984,7 +2984,7 @@ describe('MultiColumnSorting', () => {
         expect(getDataAtCol(0)).toEqual(['Mary', 'Mary', 'John', 'Robert', 'Robert', 'Ann', 'Henry', 'David', 'Ann']);
       });
 
-      it('when sorting first column with default type of data, the second one with numeric data', () => {
+      it('when sorting first column with default type of data, the second one with numeric data', async() => {
         handsontable({
           data: arrayOfArrays(),
           columns: [
@@ -3008,7 +3008,7 @@ describe('MultiColumnSorting', () => {
         expect(getDataAtCol(0)).toEqual(['Ann', 'David', 'Henry', 'Robert', 'Ann', 'Robert', 'John', 'Mary', 'Mary']);
       });
 
-      it('when sorting first column with date type of data, the second one with numeric data', () => {
+      it('when sorting first column with date type of data, the second one with numeric data', async() => {
         handsontable({
           data: arrayOfArrays(),
           columns: [
@@ -3032,7 +3032,7 @@ describe('MultiColumnSorting', () => {
         expect(getDataAtCol(0)).toEqual(['Ann', 'Mary', 'Mary', 'Henry', 'Robert', 'David', 'John', 'Robert', 'Ann']);
       });
 
-      it('when sorting four columns with three different kind of data', () => {
+      it('when sorting four columns with three different kind of data', async() => {
         handsontable({
           data: arrayOfArrays(),
           columns: [
@@ -3064,7 +3064,7 @@ describe('MultiColumnSorting', () => {
     });
 
     describe('by provided initial configuration', () => {
-      it('when simple configuration was set', () => {
+      it('when simple configuration was set', async() => {
         handsontable({
           data: arrayOfArrays(),
           columns: [
@@ -3094,7 +3094,7 @@ describe('MultiColumnSorting', () => {
         expect(getDataAtCol(3)).toEqual([30500, 33.9, 7000, 8330, 2984, 4000, 6999.95, 12464, 30500]);
       });
 
-      it('when `sortEmptyCells` option was set for one column', () => {
+      it('when `sortEmptyCells` option was set for one column', async() => {
         handsontable({
           data: arrayOfArrays(),
           columns: [
@@ -3133,7 +3133,7 @@ describe('MultiColumnSorting', () => {
         $('html').attr('dir', 'ltr');
       });
 
-      it.forTheme('classic')('should be properly position the number when multi columns are sorted', () => {
+      it.forTheme('classic')('should be properly position the number when multi columns are sorted', async() => {
         spec().$container[0].style.width = 'auto';
         spec().$container[0].style.height = 'auto';
 
@@ -3183,7 +3183,7 @@ describe('MultiColumnSorting', () => {
           .getPropertyValue('padding-left')).toEqual('5px');
       });
 
-      it.forTheme('main')('should be properly position the number when multi columns are sorted', () => {
+      it.forTheme('main')('should be properly position the number when multi columns are sorted', async() => {
         spec().$container[0].style.width = 'auto';
         spec().$container[0].style.height = 'auto';
 
@@ -3240,7 +3240,7 @@ describe('MultiColumnSorting', () => {
         }
       });
 
-      it.forTheme('horizon')('should be properly position the number when multi columns are sorted', () => {
+      it.forTheme('horizon')('should be properly position the number when multi columns are sorted', async() => {
         spec().$container[0].style.width = 'auto';
         spec().$container[0].style.height = 'auto';
 
@@ -3297,7 +3297,7 @@ describe('MultiColumnSorting', () => {
         }
       });
 
-      it('should be properly presented on the UI when more than 7 columns are sorted', () => {
+      it('should be properly presented on the UI when more than 7 columns are sorted', async() => {
         spec().$container[0].style.width = 'auto';
         spec().$container[0].style.height = 'auto';
 
@@ -3455,7 +3455,7 @@ describe('MultiColumnSorting', () => {
 
   describe('Sorting configuration validation', () => {
     describe('should not change internal state of sorting when wrong configuration was provided', () => {
-      it('when too low column index was passed to the initial config', () => {
+      it('when too low column index was passed to the initial config', async() => {
         handsontable({
           data: createSpreadsheetData(10, 10),
           colHeaders: true,
@@ -3474,7 +3474,7 @@ describe('MultiColumnSorting', () => {
         expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([]);
       });
 
-      it('when too high column index was passed to the initial config', () => {
+      it('when too high column index was passed to the initial config', async() => {
         handsontable({
           data: createSpreadsheetData(10, 10),
           colHeaders: true,
@@ -3493,7 +3493,7 @@ describe('MultiColumnSorting', () => {
         expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([]);
       });
 
-      it('when not proper sort order was passed to the initial config', () => {
+      it('when not proper sort order was passed to the initial config', async() => {
         handsontable({
           data: createSpreadsheetData(10, 10),
           colHeaders: true,
@@ -3512,7 +3512,7 @@ describe('MultiColumnSorting', () => {
         expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([]);
       });
 
-      it('when missed sort order was passed to the initial config', () => {
+      it('when missed sort order was passed to the initial config', async() => {
         handsontable({
           data: createSpreadsheetData(10, 10),
           colHeaders: true,
@@ -3530,7 +3530,7 @@ describe('MultiColumnSorting', () => {
         expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([]);
       });
 
-      it('when missed column index was passed to the initial config', () => {
+      it('when missed column index was passed to the initial config', async() => {
         handsontable({
           data: createSpreadsheetData(10, 10),
           colHeaders: true,
@@ -3548,7 +3548,7 @@ describe('MultiColumnSorting', () => {
         expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([]);
       });
 
-      it('when the same column index was passed twice to the initial config', () => {
+      it('when the same column index was passed twice to the initial config', async() => {
         handsontable({
           data: createSpreadsheetData(10, 10),
           colHeaders: true,
@@ -3570,7 +3570,7 @@ describe('MultiColumnSorting', () => {
   });
 
   describe('Sorting more than one column by clicks', () => {
-    it('should sort two columns when ctrl was held while clicking', () => {
+    it('should sort two columns when ctrl was held while clicking', async() => {
       handsontable({
         data: arrayOfArrays(),
         columns: [
@@ -3586,7 +3586,7 @@ describe('MultiColumnSorting', () => {
 
       spec().sortByClickOnColumnHeader(2);
 
-      keyDown('control/meta');
+      await keyDown('control/meta');
 
       spec().sortByClickOnColumnHeader(3);
 
@@ -3595,7 +3595,7 @@ describe('MultiColumnSorting', () => {
       expect(getDataAtCol(0)).toEqual(['Ann', 'Mary', 'Mary', 'Henry', 'Robert', 'David', 'John', 'Robert', 'Ann']);
     });
 
-    it('should push last clicked column to the end of sort queue', () => {
+    it('should push last clicked column to the end of sort queue', async() => {
       handsontable({
         data: arrayOfArrays(),
         columns: [
@@ -3612,7 +3612,7 @@ describe('MultiColumnSorting', () => {
       // ASC
       spec().sortByClickOnColumnHeader(0);
 
-      keyDown('control/meta');
+      await keyDown('control/meta');
 
       // ASC as 2nd
       spec().sortByClickOnColumnHeader(1);
@@ -3629,7 +3629,7 @@ describe('MultiColumnSorting', () => {
   describe('Click on the header sort data', () => {
     const HEADER_ACTION_CLASS = 'sortAction';
 
-    it('should block action for specific configuration', () => {
+    it('should block action for specific configuration', async() => {
       handsontable({
         data: arrayOfArrays(),
         columns: [
@@ -3654,7 +3654,7 @@ describe('MultiColumnSorting', () => {
       expect(getDataAtCol(0)).toEqual(['Mary', 'Henry', 'Ann', 'Robert', 'Ann', 'David', 'John', 'Mary', 'Robert']);
     });
 
-    it('should not sort table by right click', () => {
+    it('should not sort table by right click', async() => {
       const hot = handsontable({
         data: arrayOfArrays(),
         colHeaders: true,
@@ -3671,7 +3671,7 @@ describe('MultiColumnSorting', () => {
       expect(getData()).toEqual(arrayOfArrays());
     });
 
-    it('should not block action for specific configuration updated by `updateSettings`', () => {
+    it('should not block action for specific configuration updated by `updateSettings`', async() => {
       handsontable({
         data: arrayOfArrays(),
         columns: [
@@ -3702,7 +3702,7 @@ describe('MultiColumnSorting', () => {
       expect(getDataAtCol(0)).toEqual(['Ann', 'Ann', 'David', 'Henry', 'John', 'Mary', 'Mary', 'Robert', 'Robert']);
     });
 
-    it('should block action for specific configuration updated by `updateSettings`', () => {
+    it('should block action for specific configuration updated by `updateSettings`', async() => {
       handsontable({
         data: arrayOfArrays(),
         columns: [
@@ -3733,7 +3733,7 @@ describe('MultiColumnSorting', () => {
   });
 
   describe('rendering headers', () => {
-    it('should change width of multi-line headers when plugin is enabled / disabled by `updateSettings` and sort indicator is enabled', () => {
+    it('should change width of multi-line headers when plugin is enabled / disabled by `updateSettings` and sort indicator is enabled', async() => {
       handsontable({
         colHeaders: ['AAA<br>BB']
       });
@@ -3759,7 +3759,7 @@ describe('MultiColumnSorting', () => {
       expect(headerWidthAtStart).toBeLessThan(newHeaderWidth);
     });
 
-    it('should work properly also when `rowHeaders` option is set to `true`', () => {
+    it('should work properly also when `rowHeaders` option is set to `true`', async() => {
       handsontable({
         colHeaders: ['AAA<br>BB'],
         rowHeaders: true
@@ -3835,10 +3835,10 @@ describe('MultiColumnSorting', () => {
   });
 
   describe('index mappers', () => {
-    it('should not map indexes when already sorted column was set to not sorted', () => {
+    it('should not map indexes when already sorted column was set to not sorted', async() => {
       const hot = handsontable({
         colHeaders: true,
-        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        data: createSpreadsheetData(3, 3),
         multiColumnSorting: {
           initialConfig: {
             column: 0,
@@ -3854,10 +3854,10 @@ describe('MultiColumnSorting', () => {
   });
 
   describe('cooperation with alter actions', () => {
-    it('should sort proper columns after removing column right before the already sorted one', () => {
+    it('should sort proper columns after removing column right before the already sorted one', async() => {
       handsontable({
         colHeaders: true,
-        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        data: createSpreadsheetData(3, 3),
         multiColumnSorting: {
           initialConfig: [{
             column: 1,
@@ -3882,10 +3882,10 @@ describe('MultiColumnSorting', () => {
       ]);
     });
 
-    it('should sort proper columns after inserting column right before the already sorted one', () => {
+    it('should sort proper columns after inserting column right before the already sorted one', async() => {
       handsontable({
         colHeaders: true,
-        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        data: createSpreadsheetData(3, 3),
         multiColumnSorting: {
           initialConfig: [{
             column: 1,
@@ -3911,9 +3911,9 @@ describe('MultiColumnSorting', () => {
     });
 
     // DIFF - MultiColumnSorting & ColumnSorting: extra test
-    it('should sort proper columns after removing already sorted one', () => {
+    it('should sort proper columns after removing already sorted one', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         colHeaders: true,
         multiColumnSorting: {
           initialConfig: [{
@@ -3940,10 +3940,10 @@ describe('MultiColumnSorting', () => {
 
   // TODO: Remove tests when workaround will be removed.
   describe('workaround regression check', () => {
-    it('should not break the dataset when inserted new row', () => {
+    it('should not break the dataset when inserted new row', async() => {
       handsontable({
         colHeaders: true,
-        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        data: createSpreadsheetData(3, 3),
         multiColumnSorting: true
       });
 
@@ -3957,13 +3957,13 @@ describe('MultiColumnSorting', () => {
       ]);
     });
 
-    it('should add new columns properly when the `multiColumnSorting` plugin is enabled (inheriting of non-primitive cell meta values)', () => {
+    it('should add new columns properly when the `multiColumnSorting` plugin is enabled (inheriting of non-primitive cell meta values)', async() => {
       spec().$container[0].style.width = 'auto';
       spec().$container[0].style.height = 'auto';
 
       handsontable({
         colHeaders: true,
-        data: Handsontable.helper.createSpreadsheetData(2, 2),
+        data: createSpreadsheetData(2, 2),
         multiColumnSorting: true
       });
 
@@ -3972,7 +3972,7 @@ describe('MultiColumnSorting', () => {
       expect(getHtCore().find('tbody tr:eq(0) td').length).toEqual(7);
     });
 
-    it('should not break sorting with UI after `updateSettings` call #7228', () => {
+    it('should not break sorting with UI after `updateSettings` call #7228', async() => {
       const onErrorSpy = spyOn(window, 'onerror');
 
       handsontable({
@@ -3988,7 +3988,7 @@ describe('MultiColumnSorting', () => {
   });
 
   describe('undo/redo', () => {
-    it('should be able to undo the sorting action', () => {
+    it('should be able to undo the sorting action', async() => {
       const hot = handsontable({
         data: [
           ['Alice', 'Smith', 'Eve'],
@@ -4051,7 +4051,7 @@ describe('MultiColumnSorting', () => {
       ]);
     });
 
-    it('should be able to redo the sorting action', () => {
+    it('should be able to redo the sorting action', async() => {
       const hot = handsontable({
         data: [
           ['Alice', 'Smith', 'Eve'],

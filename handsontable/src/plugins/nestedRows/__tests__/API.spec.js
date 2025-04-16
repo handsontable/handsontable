@@ -15,7 +15,7 @@ describe('NestedRows', () => {
   describe('API', () => {
     describe('disableCoreAPIModifiers and enableCoreAPIModifiers', () => {
       it('should kill the runtime of the core API modifying hook callbacks - ' +
-        'onModifyRowData, onModifySourceLength and onBeforeDataSplice', () => {
+        'onModifyRowData, onModifySourceLength and onBeforeDataSplice', async() => {
         handsontable({
           data: getSimplerNestedData(),
           nestedRows: true,
@@ -41,7 +41,7 @@ describe('NestedRows', () => {
   });
 
   describe('Core.loadData', () => {
-    it('should recreate the nested structure when updating the data', () => {
+    it('should recreate the nested structure when updating the data', async() => {
       handsontable({
         data: getSimplerNestedData(),
         nestedRows: true,
@@ -61,7 +61,7 @@ describe('NestedRows', () => {
   });
 
   describe('Core.updateData', () => {
-    it('should recreate the nested structure when updating the data', () => {
+    it('should recreate the nested structure when updating the data', async() => {
       handsontable({
         data: getSimplerNestedData(),
         nestedRows: true,

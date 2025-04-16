@@ -11,17 +11,17 @@ describe('ContextMenu keyboard shortcut', () => {
   });
 
   describe('"Escape"', () => {
-    it('should close the menu', () => {
+    it('should close the menu', async() => {
       handsontable({
         contextMenu: true,
         height: 100
       });
 
-      contextMenu();
+      await contextMenu();
 
       expect($('.htContextMenu').is(':visible')).toBe(true);
 
-      keyDownUp('escape');
+      await keyDownUp('escape');
 
       expect($('.htContextMenu').is(':visible')).toBe(false);
     });
@@ -36,11 +36,11 @@ describe('ContextMenu keyboard shortcut', () => {
 
       await sleep(300);
 
-      keyDownUp('arrowdown');
+      await keyDownUp('arrowdown');
 
       expect($('.htContextMenuSub_Alignment').is(':visible')).toBe(true);
 
-      keyDownUp('escape');
+      await keyDownUp('escape');
 
       expect($('.htContextMenuSub_Alignment').is(':visible')).toBe(false);
       expect($('.htContextMenu').is(':visible')).toBe(true);

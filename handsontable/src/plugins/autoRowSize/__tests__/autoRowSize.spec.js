@@ -35,7 +35,7 @@ describe('AutoRowSize', () => {
     ];
   }
 
-  it('should apply auto size by default', () => {
+  it('should apply auto size by default', async() => {
     handsontable({
       data: arrayOfObjects()
     });
@@ -100,7 +100,7 @@ describe('AutoRowSize', () => {
   });
 
   describe('should draw scrollbar correctly (proper height) after calculation when autoRowSize option ' +
-           'is set (`table td` element height set by CSS) #4000', () => {
+           'is set (`table td` element height set by CSS) #4000', async() => {
     const cellHeightInPx = 100;
     const nrOfColumns = 200;
     let style;
@@ -215,7 +215,8 @@ describe('AutoRowSize', () => {
 
   it('should correctly detect row height when table is hidden on init (display: none)', async() => {
     spec().$container.css('display', 'none');
-    const hot = handsontable({
+
+    handsontable({
       data: arrayOfObjects(),
       rowHeaders: true,
       autoRowSize: true
@@ -223,7 +224,7 @@ describe('AutoRowSize', () => {
 
     await sleep(200);
     spec().$container.css('display', 'block');
-    hot.render();
+    await render();
 
     expect(rowHeight(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(24);
@@ -243,8 +244,8 @@ describe('AutoRowSize', () => {
     });
   });
 
-  it('should be possible to disable plugin using updateSettings', () => {
-    const hot = handsontable({
+  it('should be possible to disable plugin using updateSettings', async() => {
+    handsontable({
       data: arrayOfObjects()
     });
 
@@ -255,17 +256,17 @@ describe('AutoRowSize', () => {
     expect(height0).toBeLessThan(height1);
     expect(height1).toBeLessThan(height2);
 
-    updateSettings({
+    await updateSettings({
       autoRowSize: false
     });
-    hot.setDataAtCell(0, 0, 'A\nB\nC');
+    await setDataAtCell(0, 0, 'A\nB\nC');
 
     const height4 = rowHeight(spec().$container, 0);
 
     expect(height4).toBeGreaterThan(height0);
   });
 
-  it('should be possible to enable plugin using updateSettings', () => {
+  it('should be possible to enable plugin using updateSettings', async() => {
     handsontable({
       data: arrayOfObjects(),
       autoRowSize: false
@@ -279,7 +280,7 @@ describe('AutoRowSize', () => {
     expect(height0).toEqual(height2);
     expect(height1).toEqual(height2);
 
-    updateSettings({
+    await updateSettings({
       autoRowSize: true
     });
 
@@ -307,12 +308,10 @@ describe('AutoRowSize', () => {
       autoRowSize: true
     });
 
-    selectCell(4, 0);
-    keyDownUp('enter');
-
+    await selectCell(4, 0);
+    await keyDownUp('enter');
     await sleep(100);
-
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(getInlineStartClone().find('.wtHolder').scrollTop()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(90);
@@ -326,7 +325,7 @@ describe('AutoRowSize', () => {
     });
   });
 
-  it('should consider CSS style of each instance separately', () => {
+  it('should consider CSS style of each instance separately', async() => {
     const $style = $('<style>.big .htCore td {font-size: 40px;line-height: 1.1}</style>').appendTo('head');
     const $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable({
       data: arrayOfObjects(),
@@ -364,7 +363,7 @@ describe('AutoRowSize', () => {
     $container2.remove();
   });
 
-  it('should consider CSS class of the <table> element (e.g. when used with Bootstrap)', () => {
+  it('should consider CSS class of the <table> element (e.g. when used with Bootstrap)', async() => {
     const $style = $('<style>.htCore.big-table td {font-size: 32px;line-height: 1.1}</style>').appendTo('head');
 
     const hot = handsontable({
@@ -375,13 +374,15 @@ describe('AutoRowSize', () => {
 
     spec().$container.find('table').addClass('big-table');
     hot.getPlugin('autoRowSize').clearCache();
-    render();
+
+    await render();
+
     expect(parseInt(hot.getCell(2, 0).style.height, 10)).toBeGreaterThan(height);
 
     $style.remove();
   });
 
-  it('should not trigger autoColumnSize when column width is defined (through colWidths)', () => {
+  it('should not trigger autoColumnSize when column width is defined (through colWidths)', async() => {
     const hot = handsontable({
       data: arrayOfObjects(),
       autoRowSize: true,
@@ -391,7 +392,7 @@ describe('AutoRowSize', () => {
       rowHeaders: true
     });
 
-    setDataAtCell(0, 0, 'LongLongLongLong');
+    await setDataAtCell(0, 0, 'LongLongLongLong');
 
     expect(parseInt(hot.getCell(0, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(69); // -1px of cell border
@@ -401,7 +402,7 @@ describe('AutoRowSize', () => {
   });
 
   // Currently columns.height is not supported
-  xit('should not trigger autoRowSize when column height is defined (through columns.height)', () => {
+  xit('should not trigger autoRowSize when column height is defined (through columns.height)', async() => {
     const hot = handsontable({
       data: arrayOfObjects(),
       autoRowSize: true,
@@ -416,12 +417,12 @@ describe('AutoRowSize', () => {
       rowHeaders: true
     });
 
-    setDataAtCell(0, 0, 'LongLongLongLong');
+    await setDataAtCell(0, 0, 'LongLongLongLong');
 
     expect(parseInt(hot.getCell(0, -1).style.height, 10)).toBe(69); // -1px of cell border
   });
 
-  it('should consider renderer that uses conditional formatting for specific row & column index', () => {
+  it('should consider renderer that uses conditional formatting for specific row & column index', async() => {
     const data = arrayOfObjects();
 
     data.push({ id: '2', name: 'Rocket Man', lastName: 'In a tin can' });
@@ -450,7 +451,7 @@ describe('AutoRowSize', () => {
     });
   });
 
-  it('should destroy temporary element', () => {
+  it('should destroy temporary element', async() => {
     handsontable({
       autoRowSize: true
     });
@@ -539,7 +540,7 @@ describe('AutoRowSize', () => {
     });
   });
 
-  it('should recalculate heights after column moved', () => {
+  it('should recalculate heights after column moved', async() => {
     handsontable({
       data: arrayOfObjects2(),
       colWidths: [250, 50],
@@ -568,7 +569,8 @@ describe('AutoRowSize', () => {
     });
 
     plugin.moveColumn(0, 1);
-    render();
+
+    await render();
 
     expect(parseInt(getCell(0, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(22);
@@ -587,7 +589,7 @@ describe('AutoRowSize', () => {
     });
   });
 
-  it('should recalculate heights with manualRowResize when changing text to multiline', () => {
+  it('should recalculate heights with manualRowResize when changing text to multiline', async() => {
     handsontable({
       data: arrayOfObjects2(),
       colWidths: 250,
@@ -613,7 +615,7 @@ describe('AutoRowSize', () => {
       horizon.toBeInArray([37, 63]);
     });
 
-    setDataAtCell(1, 0, 'A\nB\nC\nD\nE');
+    await setDataAtCell(1, 0, 'A\nB\nC\nD\nE');
 
     expect(parseInt(getCell(0, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(22);
@@ -632,7 +634,7 @@ describe('AutoRowSize', () => {
     });
   });
 
-  it('should recalculate heights after moved row', () => {
+  it('should recalculate heights after moved row', async() => {
     handsontable({
       data: arrayOfObjects2(),
       colWidths: 250,
@@ -662,7 +664,8 @@ describe('AutoRowSize', () => {
     const plugin = getPlugin('manualRowMove');
 
     plugin.moveRow(1, 0);
-    render();
+
+    await render();
 
     expect(parseInt(getCell(0, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(49);
@@ -681,7 +684,7 @@ describe('AutoRowSize', () => {
     });
   });
 
-  it('should resize the column headers properly, according the their content sizes', () => {
+  it('should resize the column headers properly, according the their content sizes', async() => {
     handsontable({
       data: createSpreadsheetData(30, 30),
       colHeaders(index) {
@@ -723,7 +726,7 @@ describe('AutoRowSize', () => {
     });
   });
 
-  it('should not calculate any row heights, if there are no rows in the dataset', () => {
+  it('should not calculate any row heights, if there are no rows in the dataset', async() => {
     handsontable({
       data: [[1, 2]],
       colHeaders: true,
@@ -733,12 +736,12 @@ describe('AutoRowSize', () => {
     spyOn(getPlugin('autoRowSize'), 'calculateRowsHeight').and.callThrough();
     const calculateColumnsWidth = getPlugin('autoRowSize').calculateRowsHeight;
 
-    loadData([]);
+    await loadData([]);
 
     expect(calculateColumnsWidth).not.toHaveBeenCalled();
   });
 
-  it('should ignore calculate row heights for samples from hidden columns', () => {
+  it('should ignore calculate row heights for samples from hidden columns', async() => {
     const data = createSpreadsheetData(3, 5);
 
     data[0][2] = 'Very long text that causes the column to be wide';
@@ -752,7 +755,8 @@ describe('AutoRowSize', () => {
     const hidingMap = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
 
     hidingMap.setValueAtIndex(2, true);
-    render();
+
+    await render();
 
     expect(getRowHeight(0)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(23);
@@ -771,7 +775,7 @@ describe('AutoRowSize', () => {
     });
   });
 
-  it('should correctly apply the column widths to the measured row when the first column is hidden (#dev-569)', () => {
+  it('should correctly apply the column widths to the measured row when the first column is hidden (#dev-569)', async() => {
     const data = createSpreadsheetData(1, 6);
 
     data[0][2] = 'Some text';
@@ -788,7 +792,8 @@ describe('AutoRowSize', () => {
     const hidingMap = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
 
     hidingMap.setValueAtIndex(0, true);
-    render();
+
+    await render();
 
     expect(getRowHeight(0)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(23);
@@ -797,7 +802,7 @@ describe('AutoRowSize', () => {
     });
   });
 
-  it('should not throw error while traversing header\'s DOM elements', () => {
+  it('should not throw error while traversing header\'s DOM elements', async() => {
     const onErrorSpy = spyOn(window, 'onerror');
 
     handsontable({
@@ -845,8 +850,7 @@ describe('AutoRowSize', () => {
       horizon.toBe(1544);
     });
 
-    listen();
-
+    await listen();
     await selectColumns(2, 2);
     await keyDownUp('delete');
 
@@ -858,7 +862,7 @@ describe('AutoRowSize', () => {
   });
 
   it('should correctly calculate row heights for cell\'s content that produce ' +
-     'heights with fractions (#dev-1926)', () => {
+     'heights with fractions (#dev-1926)', async() => {
     const css = '.handsontable .htCheckboxRendererLabel { height: 24.5px !important }'; // creates cell height with
     // fraction
     const head = document.head;
@@ -924,7 +928,7 @@ describe('AutoRowSize', () => {
   });
 
   describe('should work together with formulas plugin', () => {
-    it('should calculate heights only once during the initialization of Handsontable with formulas plugin enabled', () => {
+    it('should calculate heights only once during the initialization of Handsontable with formulas plugin enabled', async() => {
       const beforeInit = function() {
         spyOn(this.getPlugin('autoRowSize').ghostTable, 'addRow').and.callThrough();
       };

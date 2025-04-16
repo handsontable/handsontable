@@ -16,7 +16,7 @@ describe('settings', () => {
     it('allow adding a provided class name to the header\'s inner `div` element when passed as a global setting',
       () => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(3, 3),
+          data: createSpreadsheetData(3, 3),
           headerClassName: 'test1',
           colHeaders: true,
           rowHeaders: true,
@@ -29,7 +29,7 @@ describe('settings', () => {
 
     it('allow adding multiple classes to the headers\' inner `div` elements when passed as a global setting', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        data: createSpreadsheetData(3, 3),
         headerClassName: 'test1 test2',
         colHeaders: true,
         rowHeaders: true,
@@ -46,7 +46,7 @@ describe('settings', () => {
     it('allow adding a provided class name to the header\'s inner `div` element when passed as a column setting',
       () => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(3, 3),
+          data: createSpreadsheetData(3, 3),
           columns: [
             {
               headerClassName: 'test1',
@@ -69,7 +69,7 @@ describe('settings', () => {
 
     it('allow adding multiple classes to the headers\' inner `div` elements when passed as a column setting', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        data: createSpreadsheetData(3, 3),
         columns: [
           {
             headerClassName: 'test1a test1b',
@@ -96,7 +96,7 @@ describe('settings', () => {
     it('should allow adding both global and column settings of `headerClassName` and make them work in a cascade' +
       ' manner', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        data: createSpreadsheetData(3, 3),
         headerClassName: 'global-test',
         columns: [
           {
@@ -120,7 +120,7 @@ describe('settings', () => {
       it('should align the content of the column header\'s inner `div` element to the left, when `htLeft` is passed' +
         'as `headerClassName', () => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(3, 3),
+          data: createSpreadsheetData(3, 3),
           headerClassName: 'htLeft',
           colHeaders: true,
           rowHeaders: true,
@@ -133,7 +133,7 @@ describe('settings', () => {
       it('should align the content of the column header\'s inner `div` element to the right, when `htRight` is passed' +
         'as `headerClassName', () => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(3, 3),
+          data: createSpreadsheetData(3, 3),
           headerClassName: 'htRight',
           colHeaders: true,
           rowHeaders: true,
@@ -146,7 +146,7 @@ describe('settings', () => {
       it('should align the content of the column header\'s inner `div` element to the center, when `htCenter` is' +
         ' passed as `headerClassName', () => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(3, 3),
+          data: createSpreadsheetData(3, 3),
           headerClassName: 'htCenter',
           colHeaders: true,
           rowHeaders: true,
@@ -159,7 +159,7 @@ describe('settings', () => {
       it('should align the header\'s `div` elements according to the class being added, regardless of the data type' +
         ' declared in the settings', () => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(3, 4),
+          data: createSpreadsheetData(3, 4),
           colHeaders: true,
           rowHeaders: true,
           columns: [

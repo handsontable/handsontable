@@ -15,7 +15,7 @@ describe('Core.resumeRender', () => {
   it('should resume the table rendering process and render the table using slow redrawing ' +
      '(the same redrawing, which was postponed)', () => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
     });
 
     spyOn(hot.view._wt, 'draw');
@@ -51,7 +51,7 @@ describe('Core.resumeRender', () => {
   it('should resume the table rendering process and render the table using fast redrawing ' +
      '(the same redrawing, which was postponed)', () => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
     });
 
     spyOn(hot.view._wt, 'draw');
@@ -85,7 +85,7 @@ describe('Core.resumeRender', () => {
 
   it('should resume the table rendering process and adjust the overlays\' sizes', () => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
     });
 
     spyOn(hot.view._wt, 'draw');
@@ -104,7 +104,7 @@ describe('Core.resumeRender', () => {
 
   it('should render the table only on the last resume call (a call that resets the counter of nested suspend calls)', () => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
     });
 
     spyOn(hot.view._wt, 'draw');

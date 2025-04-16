@@ -21,7 +21,7 @@ describe('CustomBorders (using backward compatible "left"/"right" options)', () 
   });
 
   describe('enabling/disabling plugin', () => {
-    it('should hide borders when disabled using updateSettings', () => {
+    it('should hide borders when disabled using updateSettings', async() => {
       const hot = handsontable({
         customBorders: [{
           row: 2,
@@ -40,7 +40,7 @@ describe('CustomBorders (using backward compatible "left"/"right" options)', () 
       expect(countCustomBorders()).toBe(0);
     });
 
-    it('should hide borders when disabled using disablePlugin', () => {
+    it('should hide borders when disabled using disablePlugin', async() => {
       const hot = handsontable({
         customBorders: [{
           row: 2,
@@ -57,7 +57,7 @@ describe('CustomBorders (using backward compatible "left"/"right" options)', () 
       expect(countCustomBorders()).toBe(0);
     });
 
-    it('should show initial borders when re-enabled using updateSettings', () => {
+    it('should show initial borders when re-enabled using updateSettings', async() => {
       const hot = handsontable({
         customBorders: [{
           row: 2,
@@ -79,7 +79,7 @@ describe('CustomBorders (using backward compatible "left"/"right" options)', () 
       expect(countCustomBorders()).toBe(5); // TODO this assertion checks current behavior that looks like a bug. I would expect 0
     });
 
-    it('should show initial borders when re-enabled using disablePlugin', () => {
+    it('should show initial borders when re-enabled using disablePlugin', async() => {
       const hot = handsontable({
         customBorders: [{
           row: 2,
@@ -97,7 +97,7 @@ describe('CustomBorders (using backward compatible "left"/"right" options)', () 
       expect(countCustomBorders()).toBe(0);
     });
 
-    it('should not throw an error when the same borders object is passed by reference', () => {
+    it('should not throw an error when the same borders object is passed by reference', async() => {
       const customBorders = [{
         row: 2,
         col: 2,
@@ -122,9 +122,9 @@ describe('CustomBorders (using backward compatible "left"/"right" options)', () 
     });
   });
 
-  it('should translate borders declared using new "start"/"end" API to backward compatible format', () => {
+  it('should translate borders declared using new "start"/"end" API to backward compatible format', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      data: createSpreadsheetData(4, 4),
       customBorders: [{
         row: 2,
         col: 2,
@@ -145,9 +145,9 @@ describe('CustomBorders (using backward compatible "left"/"right" options)', () 
     expect(countCustomBorders()).toBe(5);
   });
 
-  it('should render specific borders provided in the configuration', () => {
+  it('should render specific borders provided in the configuration', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      data: createSpreadsheetData(4, 4),
       customBorders: [{
         row: 2,
         col: 2,
@@ -185,15 +185,15 @@ describe('CustomBorders (using backward compatible "left"/"right" options)', () 
     expect(countCustomBorders()).toBe(5);
   });
 
-  it('should draw new borders by use setBorders method (while selected)', () => {
+  it('should draw new borders by use setBorders method (while selected)', async() => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      data: createSpreadsheetData(4, 4),
       customBorders: true
     });
 
     const customBorders = hot.getPlugin('customBorders');
 
-    selectCells([[1, 1, 2, 2]]);
+    await selectCells([[1, 1, 2, 2]]);
     customBorders.setBorders(getSelected(), {
       left: GREEN_BORDER,
       right: RED_BORDER
@@ -224,9 +224,9 @@ describe('CustomBorders (using backward compatible "left"/"right" options)', () 
     expect(countCustomBorders()).toBe(4 * 5); // there are 4 cells in the provided range
   });
 
-  it('should draw new borders by use setBorders method (while deselected)', () => {
+  it('should draw new borders by use setBorders method (while deselected)', async() => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      data: createSpreadsheetData(4, 4),
       customBorders: true
     });
 
@@ -261,9 +261,9 @@ describe('CustomBorders (using backward compatible "left"/"right" options)', () 
     expect(countCustomBorders()).toBe(4 * 5); // there are 4 cells in the provided range
   });
 
-  it('should redraw existing borders by use setBorders method (while selected)', () => {
+  it('should redraw existing borders by use setBorders method (while selected)', async() => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      data: createSpreadsheetData(4, 4),
       customBorders: [{
         row: 2,
         col: 2,
@@ -275,7 +275,7 @@ describe('CustomBorders (using backward compatible "left"/"right" options)', () 
 
     const customBorders = hot.getPlugin('customBorders');
 
-    selectCell(2, 2);
+    await selectCell(2, 2);
     customBorders.setBorders(getSelectedRange(), {
       left: GREEN_BORDER,
       right: RED_BORDER
@@ -290,9 +290,9 @@ describe('CustomBorders (using backward compatible "left"/"right" options)', () 
     expect(countCustomBorders()).toBe(5);
   });
 
-  it('should redraw existing borders by use setBorders method (while deselected)', () => {
+  it('should redraw existing borders by use setBorders method (while deselected)', async() => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      data: createSpreadsheetData(4, 4),
       customBorders: [{
         row: 2,
         col: 2,
@@ -317,9 +317,9 @@ describe('CustomBorders (using backward compatible "left"/"right" options)', () 
     expect(countCustomBorders()).toBe(5);
   });
 
-  it('should hide only specific border by use setBorders method with {hide: true} (while selected)', () => {
+  it('should hide only specific border by use setBorders method with {hide: true} (while selected)', async() => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      data: createSpreadsheetData(4, 4),
       customBorders: [{
         row: 2,
         col: 2,
@@ -331,7 +331,7 @@ describe('CustomBorders (using backward compatible "left"/"right" options)', () 
 
     const customBorders = hot.getPlugin('customBorders');
 
-    selectCell(2, 2);
+    await selectCell(2, 2);
     customBorders.setBorders(getSelected(), {
       right: EMPTY
     });
@@ -345,9 +345,9 @@ describe('CustomBorders (using backward compatible "left"/"right" options)', () 
     expect(countCustomBorders()).toBe(5);
   });
 
-  it('should hide only specific border by use setBorders method with {hide: true} (while deselected)', () => {
+  it('should hide only specific border by use setBorders method with {hide: true} (while deselected)', async() => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      data: createSpreadsheetData(4, 4),
       customBorders: [{
         row: 2,
         col: 2,
@@ -371,9 +371,9 @@ describe('CustomBorders (using backward compatible "left"/"right" options)', () 
     expect(countCustomBorders()).toBe(5);
   });
 
-  it('should hide only specific border by use setBorders method with {right: false} (while selected)', () => {
+  it('should hide only specific border by use setBorders method with {right: false} (while selected)', async() => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      data: createSpreadsheetData(4, 4),
       customBorders: [{
         row: 2,
         col: 2,
@@ -385,7 +385,7 @@ describe('CustomBorders (using backward compatible "left"/"right" options)', () 
 
     const customBorders = hot.getPlugin('customBorders');
 
-    selectCell(2, 2);
+    await selectCell(2, 2);
     customBorders.setBorders(getSelected(), {
       right: false
     });
@@ -419,9 +419,9 @@ describe('CustomBorders (using backward compatible "left"/"right" options)', () 
     expect(countCustomBorders()).toBe(5);
   });
 
-  it('should hide only specific border by use setBorders method with {right: false} (while deselected)', () => {
+  it('should hide only specific border by use setBorders method with {right: false} (while deselected)', async() => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      data: createSpreadsheetData(4, 4),
       customBorders: [{
         row: 2,
         col: 2,
@@ -465,9 +465,9 @@ describe('CustomBorders (using backward compatible "left"/"right" options)', () 
     expect(countCustomBorders()).toBe(5);
   });
 
-  it('should return borders from the selected area by use getBorders method', () => {
+  it('should return borders from the selected area by use getBorders method', async() => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      data: createSpreadsheetData(4, 4),
       customBorders: [{
         row: 2,
         col: 2,
@@ -493,9 +493,9 @@ describe('CustomBorders (using backward compatible "left"/"right" options)', () 
     expect(countCustomBorders()).toBe(5);
   });
 
-  it('should return all borders by use getBorders method without parameter', () => {
+  it('should return all borders by use getBorders method without parameter', async() => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      data: createSpreadsheetData(4, 4),
       customBorders: [{
         range: {
           from: {
@@ -530,9 +530,9 @@ describe('CustomBorders (using backward compatible "left"/"right" options)', () 
     expect(countCustomBorders()).toBe(9 * 5); // there are 9 cells in the provided range
   });
 
-  it('should clear borders from area by use clearBorders method (while selected)', () => {
+  it('should clear borders from area by use clearBorders method (while selected)', async() => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      data: createSpreadsheetData(4, 4),
       customBorders: [{
         range: {
           from: {
@@ -568,7 +568,7 @@ describe('CustomBorders (using backward compatible "left"/"right" options)', () 
     0111
     */
 
-    selectCells([[0, 0, 2, 2]]);
+    await selectCells([[0, 0, 2, 2]]);
     customBorders.clearBorders(getSelectedRange());
     deselectCell();
 
@@ -597,9 +597,9 @@ describe('CustomBorders (using backward compatible "left"/"right" options)', () 
     expect(countCustomBorders()).toBe(5 * 5);
   });
 
-  it('should clear borders from area by use clearBorders method (while deselected)', () => {
+  it('should clear borders from area by use clearBorders method (while deselected)', async() => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      data: createSpreadsheetData(4, 4),
       customBorders: [{
         range: {
           from: {
@@ -662,9 +662,9 @@ describe('CustomBorders (using backward compatible "left"/"right" options)', () 
     expect(countCustomBorders()).toBe(5 * 5);
   });
 
-  it('should clear all borders by use clearBorders method without parameter', () => {
+  it('should clear all borders by use clearBorders method without parameter', async() => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      data: createSpreadsheetData(4, 4),
       customBorders: [{
         range: {
           from: {
@@ -711,7 +711,7 @@ describe('CustomBorders (using backward compatible "left"/"right" options)', () 
 
   it('should draw top border from context menu options', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      data: createSpreadsheetData(4, 4),
       contextMenu: true,
       customBorders: true
     });
@@ -730,7 +730,7 @@ describe('CustomBorders (using backward compatible "left"/"right" options)', () 
 
   it('should draw left border from context menu options', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      data: createSpreadsheetData(4, 4),
       contextMenu: true,
       customBorders: true
     });
@@ -748,7 +748,7 @@ describe('CustomBorders (using backward compatible "left"/"right" options)', () 
 
   it('should draw right border from context menu options', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      data: createSpreadsheetData(4, 4),
       contextMenu: true,
       customBorders: true
     });
@@ -766,7 +766,7 @@ describe('CustomBorders (using backward compatible "left"/"right" options)', () 
 
   it('should draw bottom border from context menu options', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      data: createSpreadsheetData(4, 4),
       contextMenu: true,
       customBorders: true
     });
@@ -784,7 +784,7 @@ describe('CustomBorders (using backward compatible "left"/"right" options)', () 
 
   it('should remove all bottoms border from context menu options', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      data: createSpreadsheetData(4, 4),
       contextMenu: true,
       customBorders: [
         {

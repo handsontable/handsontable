@@ -28,7 +28,7 @@ describe('Root element-related a11y configuration', () => {
 
       it('should add the `aria-rowcount` and `aria-colcount` tags to the root element of the table', () => {
         const hot = handsontable({
-          data: Handsontable.helper.createSpreadsheetData(100, 50),
+          data: createSpreadsheetData(100, 50),
           rowHeaders: true,
         });
 
@@ -39,7 +39,7 @@ describe('Root element-related a11y configuration', () => {
       it('should update the `aria-rowcount` and `aria-colcount` tags after calling `updateSettings`, `loadData` and' +
         ' `updateData`', () => {
         const hot = handsontable({
-          data: Handsontable.helper.createSpreadsheetData(100, 50),
+          data: createSpreadsheetData(100, 50),
           rowHeaders: true
         });
 
@@ -47,18 +47,18 @@ describe('Root element-related a11y configuration', () => {
         expect(hot.rootElement.getAttribute('aria-colcount')).toEqual('51'); // Include row headers.
 
         hot.updateSettings({
-          data: Handsontable.helper.createSpreadsheetData(50, 100),
+          data: createSpreadsheetData(50, 100),
         });
 
         expect(hot.rootElement.getAttribute('aria-rowcount')).toEqual('-1'); // temp value (#10607)
         expect(hot.rootElement.getAttribute('aria-colcount')).toEqual('101'); // Include row headers.
 
-        hot.loadData(Handsontable.helper.createSpreadsheetData(12, 21));
+        hot.loadData(createSpreadsheetData(12, 21));
 
         expect(hot.rootElement.getAttribute('aria-rowcount')).toEqual('-1'); // temp value (#10607)
         expect(hot.rootElement.getAttribute('aria-colcount')).toEqual('22'); // Include row headers.
 
-        hot.updateData(Handsontable.helper.createSpreadsheetData(32, 23));
+        hot.updateData(createSpreadsheetData(32, 23));
 
         expect(hot.rootElement.getAttribute('aria-rowcount')).toEqual('-1'); // temp value (#10607)
         expect(hot.rootElement.getAttribute('aria-colcount')).toEqual('24'); // Include row headers.

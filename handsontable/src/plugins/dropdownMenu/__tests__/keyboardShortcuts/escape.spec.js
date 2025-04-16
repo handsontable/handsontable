@@ -11,18 +11,18 @@ describe('DropdownMenu keyboard shortcut', () => {
   });
 
   describe('"Escape"', () => {
-    it('should close the menu', () => {
+    it('should close the menu', async() => {
       handsontable({
         colHeaders: true,
         dropdownMenu: true,
         height: 100
       });
 
-      dropdownMenu();
+      await dropdownMenu();
 
       expect($('.htDropdownMenu').is(':visible')).toBe(true);
 
-      keyDownUp('escape');
+      await keyDownUp('escape');
 
       expect($('.htDropdownMenu').is(':visible')).toBe(false);
     });
@@ -38,11 +38,11 @@ describe('DropdownMenu keyboard shortcut', () => {
 
       await sleep(300);
 
-      keyDownUp('arrowdown');
+      await keyDownUp('arrowdown');
 
       expect($('.htDropdownMenuSub_Alignment').is(':visible')).toBe(true);
 
-      keyDownUp('escape');
+      await keyDownUp('escape');
 
       expect($('.htDropdownMenuSub_Alignment').is(':visible')).toBe(false);
       expect($('.htDropdownMenu').is(':visible')).toBe(true);

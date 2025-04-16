@@ -12,7 +12,7 @@ describe('Filters UI cooperation with HiddenColumn', () => {
 
   it('should display proper values after opening dropdown menu', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
       dropdownMenu: true,
       filters: true,
       hiddenColumns: {
@@ -22,7 +22,7 @@ describe('Filters UI cooperation with HiddenColumn', () => {
       rowHeaders: true
     });
 
-    dropdownMenu(0);
+    await dropdownMenu(0);
 
     await sleep(200);
 

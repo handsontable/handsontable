@@ -14,7 +14,7 @@ describe('manualColumnMove', () => {
 
   describe('scrolling', () => {
     it('should move the table\'s viewport right when the next mouse-overed element is on ' +
-       'the right of the table', () => {
+       'the right of the table', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
@@ -46,7 +46,7 @@ describe('manualColumnMove', () => {
       expect(getMaster().find('.wtHolder').scrollLeft()).toBe(50);
     });
 
-    it('should not move the table\'s viewport when the next mouse-overed element is the last column', () => {
+    it('should not move the table\'s viewport when the next mouse-overed element is the last column', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,

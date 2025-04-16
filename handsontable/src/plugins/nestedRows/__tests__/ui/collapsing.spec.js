@@ -14,7 +14,7 @@ describe('NestedRows Collapsing UI', () => {
 
   describe('API', () => {
     describe('collapseChildren', () => {
-      it('should collapse all children nodes of the row provided as a number', () => {
+      it('should collapse all children nodes of the row provided as a number', async() => {
         const hot = handsontable({
           data: getMoreComplexNestedData(),
           nestedRows: true
@@ -37,7 +37,7 @@ describe('NestedRows Collapsing UI', () => {
         expect(hot.rowIndexMapper.isTrimmed(plugin.dataManager.countChildren(0) + 2)).toEqual(false);
       });
 
-      it('should keep collapsed rows after collapsing next ones', () => {
+      it('should keep collapsed rows after collapsing next ones', async() => {
         const hot = handsontable({
           data: getSimplerNestedData(),
           nestedRows: true,
@@ -75,7 +75,7 @@ describe('NestedRows Collapsing UI', () => {
         expect(hot.rowIndexMapper.isTrimmed(12)).toEqual(false);
       });
 
-      it('should collapse all children nodes of the row provided as an object', () => {
+      it('should collapse all children nodes of the row provided as an object', async() => {
         const sourceDataReference = getMoreComplexNestedData();
 
         const hot = handsontable({
@@ -103,7 +103,7 @@ describe('NestedRows Collapsing UI', () => {
     });
 
     describe('expandChildren', () => {
-      it('should collapse all children nodes of the row provided as a number', () => {
+      it('should collapse all children nodes of the row provided as a number', async() => {
         const hot = handsontable({
           data: getMoreComplexNestedData(),
           nestedRows: true
@@ -119,7 +119,7 @@ describe('NestedRows Collapsing UI', () => {
         }
       });
 
-      it('should collapse all children nodes of the row provided as an object', () => {
+      it('should collapse all children nodes of the row provided as an object', async() => {
         const hot = handsontable({
           data: getMoreComplexNestedData(),
           nestedRows: true,

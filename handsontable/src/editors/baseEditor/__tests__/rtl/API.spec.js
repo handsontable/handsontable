@@ -30,7 +30,7 @@ describe('BaseEditor API (RTL mode)', () => {
     describe('getEditedCellRect()', () => {
       describe('should return an object with provided correct information about size and position of the cell', () => {
         describe('for top overlay when viewport is scrolled to the top-right edge', () => {
-          it('and the scrollable element is not the Window object', () => {
+          it('and the scrollable element is not the Window object', async() => {
             handsontable({
               layoutDirection,
               data: createSpreadsheetData(10, 10),
@@ -40,7 +40,7 @@ describe('BaseEditor API (RTL mode)', () => {
               fixedRowsTop: 2,
             });
 
-            selectCell(0, 0);
+            await selectCell(0, 0);
 
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual({
@@ -70,7 +70,7 @@ describe('BaseEditor API (RTL mode)', () => {
             });
           });
 
-          it('and the scrollable element is the Window object', () => {
+          it('and the scrollable element is the Window object', async() => {
             handsontable({
               layoutDirection,
               data: createSpreadsheetData(100, 100),
@@ -78,7 +78,7 @@ describe('BaseEditor API (RTL mode)', () => {
               fixedRowsTop: 2,
             });
 
-            selectCell(0, 0);
+            await selectCell(0, 0);
 
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual({
@@ -210,7 +210,7 @@ describe('BaseEditor API (RTL mode)', () => {
         });
 
         describe('for top-right corner overlay when viewport is scrolled to the top-right edge', () => {
-          it('and the scrollable element is not the Window object', () => {
+          it('and the scrollable element is not the Window object', async() => {
             handsontable({
               layoutDirection,
               data: createSpreadsheetData(10, 10),
@@ -221,7 +221,7 @@ describe('BaseEditor API (RTL mode)', () => {
               fixedRowsTop: 2,
             });
 
-            selectCell(0, 0);
+            await selectCell(0, 0);
 
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual({
@@ -251,7 +251,7 @@ describe('BaseEditor API (RTL mode)', () => {
             });
           });
 
-          it('and the scrollable element is the Window object', () => {
+          it('and the scrollable element is the Window object', async() => {
             handsontable({
               layoutDirection,
               data: createSpreadsheetData(100, 100),
@@ -260,7 +260,7 @@ describe('BaseEditor API (RTL mode)', () => {
               fixedRowsTop: 2,
             });
 
-            selectCell(0, 0);
+            await selectCell(0, 0);
 
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual({
@@ -386,7 +386,7 @@ describe('BaseEditor API (RTL mode)', () => {
         });
 
         describe('for right overlay when viewport is scrolled to the top-right edge', () => {
-          it('and the scrollable element is not the Window object', () => {
+          it('and the scrollable element is not the Window object', async() => {
             handsontable({
               layoutDirection,
               data: createSpreadsheetData(10, 10),
@@ -396,7 +396,7 @@ describe('BaseEditor API (RTL mode)', () => {
               fixedColumnsStart: 2,
             });
 
-            selectCell(0, 0);
+            await selectCell(0, 0);
 
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual({
@@ -426,7 +426,7 @@ describe('BaseEditor API (RTL mode)', () => {
             });
           });
 
-          it('and the scrollable element is the Window object', () => {
+          it('and the scrollable element is the Window object', async() => {
             handsontable({
               layoutDirection,
               data: createSpreadsheetData(100, 100),
@@ -434,7 +434,7 @@ describe('BaseEditor API (RTL mode)', () => {
               fixedColumnsStart: 2,
             });
 
-            selectCell(0, 0);
+            await selectCell(0, 0);
 
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual({
@@ -558,7 +558,7 @@ describe('BaseEditor API (RTL mode)', () => {
         });
 
         describe('for bottom-right corner overlay when viewport is scrolled to the top-right edge', () => {
-          it('and the scrollable element is not the Window object', () => {
+          it('and the scrollable element is not the Window object', async() => {
             handsontable({
               layoutDirection,
               data: createSpreadsheetData(10, 10),
@@ -569,7 +569,7 @@ describe('BaseEditor API (RTL mode)', () => {
               fixedRowsBottom: 2,
             });
 
-            selectCell(8, 0);
+            await selectCell(8, 0);
 
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
@@ -599,7 +599,7 @@ describe('BaseEditor API (RTL mode)', () => {
             });
           });
 
-          it('and the scrollable element is the Window object', () => {
+          it('and the scrollable element is the Window object', async() => {
             handsontable({
               layoutDirection,
               data: createSpreadsheetData(100, 100),
@@ -608,7 +608,7 @@ describe('BaseEditor API (RTL mode)', () => {
               fixedRowsBottom: 2,
             });
 
-            selectCell(countRows() - 2, 0);
+            await selectCell(countRows() - 2, 0);
 
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
@@ -734,7 +734,7 @@ describe('BaseEditor API (RTL mode)', () => {
         });
 
         describe('for bottom overlay when viewport is scrolled to the top-right edge', () => {
-          it('and the scrollable element is not the Window object', () => {
+          it('and the scrollable element is not the Window object', async() => {
             handsontable({
               layoutDirection,
               data: createSpreadsheetData(10, 10),
@@ -744,7 +744,7 @@ describe('BaseEditor API (RTL mode)', () => {
               fixedRowsBottom: 2,
             });
 
-            selectCell(countRows() - 2, 0);
+            await selectCell(countRows() - 2, 0);
 
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
@@ -774,7 +774,7 @@ describe('BaseEditor API (RTL mode)', () => {
             });
           });
 
-          it('and the scrollable element is the Window object', () => {
+          it('and the scrollable element is the Window object', async() => {
             handsontable({
               layoutDirection,
               data: createSpreadsheetData(100, 100),
@@ -782,7 +782,7 @@ describe('BaseEditor API (RTL mode)', () => {
               fixedRowsBottom: 2,
             });
 
-            selectCell(countRows() - 2, 0);
+            await selectCell(countRows() - 2, 0);
 
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({

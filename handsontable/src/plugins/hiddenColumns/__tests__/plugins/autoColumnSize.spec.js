@@ -13,7 +13,7 @@ describe('HiddenColumns', () => {
   describe('AutoColumnSize', () => {
     it('should display proper column width (when indicator is enabled) #1', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        data: createSpreadsheetData(3, 3),
         rowHeaders: true,
         colHeaders: true,
         autoColumnSize: true,
@@ -29,7 +29,7 @@ describe('HiddenColumns', () => {
 
     it('should display proper column width (when indicator is enabled) #2', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        data: createSpreadsheetData(3, 3),
         rowHeaders: true,
         colHeaders: true,
         autoColumnSize: true,
@@ -45,7 +45,7 @@ describe('HiddenColumns', () => {
 
     it('should display proper column width (when indicator is enabled) #3', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        data: createSpreadsheetData(3, 3),
         rowHeaders: true,
         colHeaders: true,
         autoColumnSize: true,
@@ -59,9 +59,9 @@ describe('HiddenColumns', () => {
       expect(colWidth(spec().$container, 0)).toBeAroundValue(65, 3);
     });
 
-    it('should display proper column width (when indicator is disabled)', () => {
+    it('should display proper column width (when indicator is disabled)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        data: createSpreadsheetData(3, 3),
         rowHeaders: true,
         colHeaders: true,
         autoColumnSize: true,
@@ -74,7 +74,7 @@ describe('HiddenColumns', () => {
       expect(colWidth(spec().$container, 0)).toBeAroundValue(50, 3);
     });
 
-    it('should return proper values from the `getColWidth` function (when indicator is enabled)', () => {
+    it('should return proper values from the `getColWidth` function (when indicator is enabled)', async() => {
       const hot = handsontable({
         data: [{ id: 'Short', name: 'Somewhat long', lastName: 'The very very very longest one' }],
         rowHeaders: true,
@@ -100,7 +100,7 @@ describe('HiddenColumns', () => {
       });
     });
 
-    it('should return proper values from the `getColWidth` function (when indicator is disabled)', () => {
+    it('should return proper values from the `getColWidth` function (when indicator is disabled)', async() => {
       const hot = handsontable({
         data: [{ id: 'Short', name: 'Somewhat long', lastName: 'The very very very longest one' }],
         rowHeaders: true,
@@ -125,7 +125,7 @@ describe('HiddenColumns', () => {
       });
     });
 
-    it('should return proper values from the `getColHeader` function', () => {
+    it('should return proper values from the `getColHeader` function', async() => {
       const hot = handsontable({
         data: [{ id: 'Short', name: 'Somewhat long', lastName: 'The very very very longest one' }],
         rowHeaders: true,

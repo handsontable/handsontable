@@ -22,16 +22,16 @@ describe('DateEditor', () => {
     ];
   }
 
-  it('should render an editor in specified position at cell 0, 0', () => {
+  it('should render an editor in specified position at cell 0, 0', async() => {
     handsontable({
       columns: [{ type: 'date' }],
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(editor.offset()).toEqual($(getCell(0, 0)).offset());
   });
@@ -57,7 +57,7 @@ describe('DateEditor', () => {
   it('should render an editor in specified position while opening an editor from top to bottom when ' +
      'top and bottom overlays are enabled', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(8, 2),
+      data: createSpreadsheetData(8, 2),
       rowHeaders: true,
       colHeaders: true,
       fixedRowsTop: 3,
@@ -65,17 +65,17 @@ describe('DateEditor', () => {
       columns: [{ type: 'date' }, {}],
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
     await sleep(200); // Caused by async DateEditor close.
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     // Cells that do not touch the edges of the table have an additional top border.
     const editorOffset = () => ({
@@ -85,40 +85,40 @@ describe('DateEditor', () => {
 
     expect(editorOffset()).toEqual($(getCell(1, 0, true)).offset());
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
     await sleep(200); // Caused by async DateEditor close.
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
     await sleep(200); // Caused by async DateEditor close.
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(3, 0, true)).offset());
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
     await sleep(200); // Caused by async DateEditor close.
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(4, 0, true)).offset());
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
     await sleep(200); // Caused by async DateEditor close.
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
     expect(editor.offset()).toEqual($(getCell(5, 0, true)).offset());
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
     await sleep(200); // Caused by async DateEditor close.
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(6, 0, true)).offset());
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
     await sleep(200); // Caused by async DateEditor close.
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
   });
@@ -126,24 +126,24 @@ describe('DateEditor', () => {
   it('should render an editor in specified position while opening an editor from left to right when ' +
      'left overlay is enabled', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 5),
+      data: createSpreadsheetData(2, 5),
       rowHeaders: true,
       colHeaders: true,
       fixedColumnsStart: 3,
       type: 'date',
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
 
-    selectCell(0, 1);
+    await selectCell(0, 1);
     await sleep(200); // Caused by async DateEditor close.
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     // Cells that do not touch the edges of the table have an additional left border.
     const editorOffset = () => ({
@@ -153,21 +153,21 @@ describe('DateEditor', () => {
 
     expect(editorOffset()).toEqual($(getCell(0, 1, true)).offset());
 
-    selectCell(0, 2);
+    await selectCell(0, 2);
     await sleep(200); // Caused by async DateEditor close.
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 2, true)).offset());
 
-    selectCell(0, 3);
+    await selectCell(0, 3);
     await sleep(200); // Caused by async DateEditor close.
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 3, true)).offset());
 
-    selectCell(0, 4);
+    await selectCell(0, 4);
     await sleep(200); // Caused by async DateEditor close.
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 4, true)).offset());
   });
@@ -175,7 +175,7 @@ describe('DateEditor', () => {
   it('should render an editor in specified position while opening an editor from top to bottom when ' +
      'top and bottom overlays are enabled and the first row of the both overlays are hidden', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(8, 2),
+      data: createSpreadsheetData(8, 2),
       rowHeaders: true,
       colHeaders: true,
       fixedRowsTop: 3,
@@ -187,18 +187,18 @@ describe('DateEditor', () => {
       columns: [{ type: 'date' }, {}],
     });
 
-    selectCell(1, 0);
+    await selectCell(1, 0);
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     // First renderable row index.
     expect(editor.offset()).toEqual($(getCell(1, 0, true)).offset());
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
     await sleep(200); // Caused by async DateEditor close.
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     // Cells that do not touch the edges of the table have an additional top border.
     const editorOffset = () => ({
@@ -208,28 +208,28 @@ describe('DateEditor', () => {
 
     expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
     await sleep(200); // Caused by async DateEditor close.
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(3, 0, true)).offset());
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
     await sleep(200); // Caused by async DateEditor close.
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(4, 0, true)).offset());
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
     await sleep(200); // Caused by async DateEditor close.
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
     expect(editor.offset()).toEqual($(getCell(6, 0, true)).offset());
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
     await sleep(200); // Caused by async DateEditor close.
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
   });
@@ -237,7 +237,7 @@ describe('DateEditor', () => {
   it('should render an editor in specified position while opening an editor from left to right when ' +
      'left overlay is enabled and the first column of the overlay is hidden', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 5),
+      data: createSpreadsheetData(2, 5),
       rowHeaders: true,
       colHeaders: true,
       fixedColumnsStart: 3,
@@ -248,17 +248,17 @@ describe('DateEditor', () => {
       type: 'date',
     });
 
-    selectCell(0, 1);
-    keyDownUp('enter');
+    await selectCell(0, 1);
+    await keyDownUp('enter');
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
     // First renderable column index.
     expect(editor.offset()).toEqual($(getCell(0, 1, true)).offset());
 
-    selectCell(0, 2);
+    await selectCell(0, 2);
     await sleep(200); // Caused by async DateEditor close.
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     // Cells that do not touch the edges of the table have an additional left border.
     const editorOffset = () => ({
@@ -268,33 +268,33 @@ describe('DateEditor', () => {
 
     expect(editorOffset()).toEqual($(getCell(0, 2, true)).offset());
 
-    selectCell(0, 3);
+    await selectCell(0, 3);
     await sleep(200); // Caused by async DateEditor close.
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 3, true)).offset());
 
-    selectCell(0, 4);
+    await selectCell(0, 4);
     await sleep(200); // Caused by async DateEditor close.
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 4, true)).offset());
   });
 
-  it('should not highlight the input element by browsers native selection', () => {
+  it('should not highlight the input element by browsers native selection', async() => {
     handsontable({
       type: 'date',
     });
 
-    selectCell(0, 0);
-    keyDownUp('enter');
+    await selectCell(0, 0);
+    await keyDownUp('enter');
 
     const editor = getActiveEditor().TEXTAREA;
 
     expect(window.getComputedStyle(editor, 'focus').getPropertyValue('outline-style')).toBe('none');
   });
 
-  it('should display Pikaday calendar', () => {
+  it('should display Pikaday calendar', async() => {
     handsontable({
       data: getDates(),
       columns: [
@@ -306,13 +306,13 @@ describe('DateEditor', () => {
 
     expect($('.pika-single').is(':visible')).toBe(false);
 
-    selectCell(0, 0);
-    keyDownUp('enter');
+    await selectCell(0, 0);
+    await keyDownUp('enter');
 
     expect($('.pika-single').is(':visible')).toBe(true);
   });
 
-  it('should pass date picker config object to Pikaday', () => {
+  it('should pass date picker config object to Pikaday', async() => {
     const onOpenSpy = jasmine.createSpy('open');
     const onCloseSpy = jasmine.createSpy('close');
     const hot = handsontable({
@@ -341,9 +341,9 @@ describe('DateEditor', () => {
       ]
     });
 
-    selectCell(0, 0);
-    keyDownUp('enter');
-    keyDownUp('escape');
+    await selectCell(0, 0);
+    await keyDownUp('enter');
+    await keyDownUp('escape');
 
     const config = hot.getActiveEditor().$datePicker.config();
 
@@ -358,17 +358,17 @@ describe('DateEditor', () => {
     expect(onCloseSpy).toHaveBeenCalled();
   });
 
-  it('should render Pikaday within element that contains correct "dir" attribute value', () => {
+  it('should render Pikaday within element that contains correct "dir" attribute value', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 2),
+      data: createSpreadsheetData(5, 2),
       columns: [
         { type: 'date' },
         { type: 'date' }
       ]
     });
 
-    selectCell(1, 1);
-    keyDown('enter');
+    await selectCell(1, 1);
+    await keyDown('enter');
 
     const datePicker = getActiveEditor().datePicker;
     const config = getActiveEditor().$datePicker.config();
@@ -377,7 +377,7 @@ describe('DateEditor', () => {
     expect(config.isRTL).toBe(false);
   });
 
-  it('should remove any HTML connected with Pikaday Calendar', () => {
+  it('should remove any HTML connected with Pikaday Calendar', async() => {
     handsontable({
       data: getDates(),
       columns: [
@@ -389,8 +389,8 @@ describe('DateEditor', () => {
 
     expect($('.pika-single').length).toBe(0);
 
-    selectCell(0, 0);
-    keyDownUp('enter');
+    await selectCell(0, 0);
+    await keyDownUp('enter');
 
     expect($('.pika-single').length).toBe(1);
 
@@ -399,7 +399,7 @@ describe('DateEditor', () => {
     expect($('.pika-single').length).toBe(0);
   });
 
-  it('should select date corresponding to cell value', () => {
+  it('should select date corresponding to cell value', async() => {
     handsontable({
       data: getDates(),
       columns: [
@@ -410,8 +410,8 @@ describe('DateEditor', () => {
       ]
     });
 
-    selectCell(0, 0);
-    keyDownUp('enter');
+    await selectCell(0, 0);
+    await keyDownUp('enter');
 
     const date = new Date(getDates()[0][0]);
 
@@ -431,12 +431,12 @@ describe('DateEditor', () => {
       ]
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
+
     expect(getDataAtCell(0, 0)).toMatch('01/14/2006');
 
-    keyDownUp('enter');
-
-    mouseDown($('.pika-single').find('.pika-table tbody tr:eq(0) td:eq(0) button'));
+    await keyDownUp('enter');
+    await mouseDown($('.pika-single').find('.pika-table tbody tr:eq(0) td:eq(0) button'));
 
     await sleep(150);
 
@@ -454,12 +454,12 @@ describe('DateEditor', () => {
       ]
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
+
     expect(getDataAtCell(0, 0)).toMatch('01/14/2006');
 
-    keyDownUp('enter');
-
-    mouseDown($('.pika-single').find('.pika-table tbody tr:eq(0) td:eq(0) button'));
+    await keyDownUp('enter');
+    await mouseDown($('.pika-single').find('.pika-table tbody tr:eq(0) td:eq(0) button'));
 
     await sleep(150);
 
@@ -480,10 +480,11 @@ describe('DateEditor', () => {
       ]
     });
 
-    selectCell(5, 0);
+    await selectCell(5, 0);
+
     expect(getDataAtCell(5, 0)).toBe(null);
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     const date = new Date('01/01/1900');
 
@@ -491,7 +492,7 @@ describe('DateEditor', () => {
     expect($('.pika-single').find('.pika-select-month').find(':selected').val()).toMatch(date.getMonth().toString());
     expect($('.pika-single').find('.pika-table .is-selected').text()).toMatch(date.getDate().toString());
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     await sleep(150);
 
@@ -511,16 +512,16 @@ describe('DateEditor', () => {
       ]
     });
 
-    selectCell(0, 0);
-    keyDownUp('enter');
-    keyDownUp('enter');
+    await selectCell(0, 0);
+    await keyDownUp('enter');
+    await keyDownUp('enter');
 
     await sleep(50);
 
     expect(getDataAtCell(0, 0)).toBe('2000-01-01');
   });
 
-  it('should close calendar after picking new date', () => {
+  it('should close calendar after picking new date', async() => {
     handsontable({
       data: getDates(),
       columns: [
@@ -531,12 +532,12 @@ describe('DateEditor', () => {
       ]
     });
 
-    selectCell(0, 0);
-    keyDownUp('enter');
+    await selectCell(0, 0);
+    await keyDownUp('enter');
 
     expect($('.pika-single').is(':visible')).toBe(true);
 
-    mouseDown($('.pika-single').find('.pika-table tbody tr:eq(0) td:eq(0) button'));
+    await mouseDown($('.pika-single').find('.pika-table tbody tr:eq(0) td:eq(0) button'));
 
     expect($('.pika-single').is(':visible')).toBe(false);
   });
@@ -551,7 +552,7 @@ describe('DateEditor', () => {
       ]
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
     const editor = hot.getActiveEditor();
 
@@ -560,7 +561,8 @@ describe('DateEditor', () => {
     expect(editor.isOpened()).toBe(true);
 
     editor.TEXTAREA.value = 'foo';
-    keyDownUp('o');
+
+    await keyDownUp('o');
 
     expect(editor.getValue()).toEqual('foo');
 
@@ -582,7 +584,7 @@ describe('DateEditor', () => {
       ]
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
     const editor = hot.getActiveEditor();
 
@@ -618,7 +620,7 @@ describe('DateEditor', () => {
       imeFastEdit: true,
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
     // The `imeFastEdit` timeout is set to 50ms.
     await sleep(55);
@@ -629,7 +631,7 @@ describe('DateEditor', () => {
     expect(activeElement).not.toBe(null);
     expect(document.activeElement).toBe(activeElement);
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(document.activeElement).toBe(activeElement);
 
@@ -638,17 +640,20 @@ describe('DateEditor', () => {
     expect(document.activeElement).toBe(activeElement);
 
     hot.getActiveEditor().TEXTAREA.value = 't';
-    keyDownUp('t');
+
+    await keyDownUp('t');
 
     expect(document.activeElement).toBe(activeElement);
 
     hot.getActiveEditor().TEXTAREA.value = 'te';
-    keyDownUp('e');
+
+    await keyDownUp('e');
 
     expect(document.activeElement).toBe(activeElement);
 
     hot.getActiveEditor().TEXTAREA.value = 'teo';
-    keyDownUp('o');
+
+    await keyDownUp('o');
 
     expect(document.activeElement).toBe(activeElement);
   });
@@ -663,7 +668,7 @@ describe('DateEditor', () => {
       ]
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
     const editor = hot.getActiveEditor();
 
@@ -675,9 +680,7 @@ describe('DateEditor', () => {
 
     expect(editor.getValue()).toEqual('foo');
 
-    keyDownUp('escape'); // cancel editing
-
-    await sleep(30);
+    await keyDownUp('escape'); // cancel editing
 
     editor.finishEditing();
 
@@ -686,7 +689,7 @@ describe('DateEditor', () => {
 
   it('should display a calendar based on a current date, even if a date in a wrong format was entered previously', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 2),
+      data: createSpreadsheetData(5, 2),
       columns: [
         { type: 'date' },
         { type: 'date', dateFormat: 'YYYY-MM-DD' }
@@ -697,12 +700,13 @@ describe('DateEditor', () => {
     setDataAtCell(4, 1, '15-11-11');
 
     await sleep(200);
-    selectCell(5, 1);
-    keyDownUp('enter');
+
+    await selectCell(5, 1);
+    await keyDownUp('enter');
 
     expect($('.pika-single').is(':visible')).toBe(true);
 
-    mouseDown($('.pika-single').find('.pika-table tbody tr:eq(3) td:eq(3) button'));
+    await mouseDown($('.pika-single').find('.pika-table tbody tr:eq(3) td:eq(3) button'));
 
     await sleep(200);
     const resultDate = getDataAtCell(5, 1);
@@ -711,7 +715,7 @@ describe('DateEditor', () => {
     expect(moment(resultDate).month()).toEqual(moment().month());
   });
 
-  it('should display Pikaday Calendar right-bottom of the selected cell (window as non-scrollable element)', () => {
+  it('should display Pikaday Calendar right-bottom of the selected cell (window as non-scrollable element)', async() => {
     handsontable({
       data: createSpreadsheetData(50, 20),
       width: 200,
@@ -719,8 +723,8 @@ describe('DateEditor', () => {
       type: 'date'
     });
 
-    selectCell(10, 10);
-    keyDownUp('enter');
+    await selectCell(10, 10);
+    await keyDownUp('enter');
 
     const cellOffset = $(getActiveEditor().TD).offset();
     const datePickerOffset = $('.pika-single').offset();
@@ -739,10 +743,10 @@ describe('DateEditor', () => {
       type: 'date'
     });
 
-    selectCell(50, 10);
-    keyDownUp('enter');
-    setScrollLeft(10);
+    await selectCell(50, 10);
+    await keyDownUp('enter');
 
+    setScrollLeft(10);
     await sleep(50);
 
     const cellOffset = $(getActiveEditor().TD).offset();
@@ -765,8 +769,9 @@ describe('DateEditor', () => {
       type: 'date',
     });
 
-    selectCell(2, 2);
-    keyDownUp('enter');
+    await selectCell(2, 2);
+    await keyDownUp('enter');
+
     setScrollTop(30);
 
     const editorElement = $(getActiveEditor().TD);
@@ -806,8 +811,9 @@ describe('DateEditor', () => {
       type: 'date',
     });
 
-    selectCell(2, 2);
-    keyDownUp('enter');
+    await selectCell(2, 2);
+    await keyDownUp('enter');
+
     setScrollTop(30);
 
     const editorElement = $(getActiveEditor().TD);
@@ -847,8 +853,9 @@ describe('DateEditor', () => {
       type: 'date',
     });
 
-    selectCell(2, 2);
-    keyDownUp('enter');
+    await selectCell(2, 2);
+    await keyDownUp('enter');
+
     setScrollTop(30);
 
     const editorElement = $(getActiveEditor().TD);
@@ -888,8 +895,8 @@ describe('DateEditor', () => {
       type: 'date',
     });
 
-    selectCell(25, 2);
-    keyDownUp('enter');
+    await selectCell(25, 2);
+    await keyDownUp('enter');
 
     const editorElement = $(getActiveEditor().TD);
     const pikaElement = $('.pika-single');
@@ -929,8 +936,8 @@ describe('DateEditor', () => {
       type: 'date',
     });
 
-    selectCell(25, 2);
-    keyDownUp('enter');
+    await selectCell(25, 2);
+    await keyDownUp('enter');
 
     await sleep(50);
 
@@ -970,8 +977,8 @@ describe('DateEditor', () => {
       type: 'date',
     });
 
-    selectCell(25, 2);
-    keyDownUp('enter');
+    await selectCell(25, 2);
+    await keyDownUp('enter');
 
     await sleep(50);
 
@@ -1010,8 +1017,8 @@ describe('DateEditor', () => {
       type: 'date',
     });
 
-    selectCell(2, 10);
-    keyDownUp('enter');
+    await selectCell(2, 10);
+    await keyDownUp('enter');
 
     const editorElement = $(getActiveEditor().TD);
     const pikaElement = $('.pika-single');
@@ -1051,8 +1058,8 @@ describe('DateEditor', () => {
       type: 'date',
     });
 
-    selectCell(2, 10);
-    keyDownUp('enter');
+    await selectCell(2, 10);
+    await keyDownUp('enter');
 
     await sleep(50);
 
@@ -1092,8 +1099,8 @@ describe('DateEditor', () => {
       type: 'date',
     });
 
-    selectCell(2, 10);
-    keyDownUp('enter');
+    await selectCell(2, 10);
+    await keyDownUp('enter');
 
     await sleep(50);
 
@@ -1132,8 +1139,9 @@ describe('DateEditor', () => {
       type: 'date',
     });
 
-    selectCell(2, 2);
-    keyDownUp('enter');
+    await selectCell(2, 2);
+    await keyDownUp('enter');
+
     setScrollLeft(30);
 
     const editorElement = $(getActiveEditor().TD);
@@ -1173,8 +1181,9 @@ describe('DateEditor', () => {
       type: 'date',
     });
 
-    selectCell(2, 2);
-    keyDownUp('enter');
+    await selectCell(2, 2);
+    await keyDownUp('enter');
+
     setScrollLeft(30);
 
     const editorElement = $(getActiveEditor().TD);
@@ -1214,8 +1223,9 @@ describe('DateEditor', () => {
       type: 'date',
     });
 
-    selectCell(2, 2);
-    keyDownUp('enter');
+    await selectCell(2, 2);
+    await keyDownUp('enter');
+
     setScrollLeft(30);
 
     const editorElement = $(getActiveEditor().TD);
@@ -1255,8 +1265,9 @@ describe('DateEditor', () => {
       type: 'date',
     });
 
-    selectCell(1, 1);
-    keyDownUp('enter');
+    await selectCell(1, 1);
+    await keyDownUp('enter');
+
     setScrollTop(100);
 
     const editorElement = $(getActiveEditor().TD);
@@ -1310,8 +1321,9 @@ describe('DateEditor', () => {
       type: 'date',
     });
 
-    selectCell(1, 1);
-    keyDownUp('enter');
+    await selectCell(1, 1);
+    await keyDownUp('enter');
+
     setScrollLeft(100);
 
     const editorElement = $(getActiveEditor().TD);
@@ -1366,8 +1378,8 @@ describe('DateEditor', () => {
       type: 'date',
     });
 
-    selectCell(48, 1);
-    keyDownUp('enter');
+    await selectCell(48, 1);
+    await keyDownUp('enter');
 
     const editorElement = $(getActiveEditor().TD);
     const pikaElement = $('.pika-single');
@@ -1400,8 +1412,8 @@ describe('DateEditor', () => {
       type: 'date',
     });
 
-    selectCell(48, 1);
-    keyDownUp('enter');
+    await selectCell(48, 1);
+    await keyDownUp('enter');
 
     const editorElement = $(getActiveEditor().TD);
     const pikaElement = $('.pika-single');
@@ -1434,8 +1446,8 @@ describe('DateEditor', () => {
       type: 'date',
     });
 
-    selectCell(48, 1);
-    keyDownUp('enter');
+    await selectCell(48, 1);
+    await keyDownUp('enter');
 
     const editorElement = $(getActiveEditor().TD);
     const pikaElement = $('.pika-single');
@@ -1468,8 +1480,8 @@ describe('DateEditor', () => {
       type: 'date',
     });
 
-    selectCell(1, 1);
-    keyDownUp('enter');
+    await selectCell(1, 1);
+    await keyDownUp('enter');
 
     const editorElement = $(getActiveEditor().TD);
     const pikaElement = $('.pika-single');
@@ -1503,8 +1515,8 @@ describe('DateEditor', () => {
       type: 'date',
     });
 
-    selectCell(1, 1);
-    keyDownUp('enter');
+    await selectCell(1, 1);
+    await keyDownUp('enter');
 
     const editorElement = $(getActiveEditor().TD);
     const pikaElement = $('.pika-single');
@@ -1539,8 +1551,8 @@ describe('DateEditor', () => {
       type: 'date',
     });
 
-    selectCell(1, 1);
-    keyDownUp('enter');
+    await selectCell(1, 1);
+    await keyDownUp('enter');
 
     const editorElement = $(getActiveEditor().TD);
     const pikaElement = $('.pika-single');
@@ -1574,8 +1586,8 @@ describe('DateEditor', () => {
       type: 'date',
     });
 
-    selectCell(48, 1);
-    keyDownUp('enter');
+    await selectCell(48, 1);
+    await keyDownUp('enter');
 
     const editorElement = $(getActiveEditor().TD);
     const pikaElement = $('.pika-single');
@@ -1610,8 +1622,8 @@ describe('DateEditor', () => {
       type: 'date',
     });
 
-    selectCell(48, 1);
-    keyDownUp('enter');
+    await selectCell(48, 1);
+    await keyDownUp('enter');
 
     const editorElement = $(getActiveEditor().TD);
     const pikaElement = $('.pika-single');
@@ -1646,8 +1658,8 @@ describe('DateEditor', () => {
       type: 'date',
     });
 
-    selectCell(48, 1);
-    keyDownUp('enter');
+    await selectCell(48, 1);
+    await keyDownUp('enter');
 
     const editorElement = $(getActiveEditor().TD);
     const pikaElement = $('.pika-single');
@@ -1679,7 +1691,7 @@ describe('DateEditor', () => {
     container[0].style.overflow = 'hidden';
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(30, 10),
+      data: createSpreadsheetData(30, 10),
       colWidths: 60,
       columns: [
         { type: 'date' },
@@ -1692,11 +1704,8 @@ describe('DateEditor', () => {
       ]
     });
 
-    selectCell(20, 6);
-
-    await sleep(50);
-
-    keyDownUp('enter');
+    await selectCell(20, 6);
+    await keyDownUp('enter');
 
     const cellOffset = $(getActiveEditor().TD).offset();
     const datePickerOffset = $('.pika-single').offset();
@@ -1714,7 +1723,7 @@ describe('DateEditor', () => {
     container[0].style.overflow = 'hidden';
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(30, 10),
+      data: createSpreadsheetData(30, 10),
       colWidths: 60,
       columns: [
         { type: 'date' },
@@ -1727,13 +1736,8 @@ describe('DateEditor', () => {
       ]
     });
 
-    selectCell(20, 6);
-
-    await sleep(50);
-
-    keyDownUp('enter');
-
-    await sleep(50);
+    await selectCell(20, 6);
+    await keyDownUp('enter');
 
     const cellOffset = $(getActiveEditor().TD).offset();
     const datePickerOffset = $('.pika-single').offset();
@@ -1752,7 +1756,7 @@ describe('DateEditor', () => {
     container[0].style.overflow = 'hidden';
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(30, 10),
+      data: createSpreadsheetData(30, 10),
       colWidths: 90,
       columns: [
         { type: 'date' },
@@ -1765,13 +1769,8 @@ describe('DateEditor', () => {
       ]
     });
 
-    selectCell(20, 6);
-
-    await sleep(50);
-
-    keyDownUp('enter');
-
-    await sleep(50);
+    await selectCell(20, 6);
+    await keyDownUp('enter');
 
     const cellOffset = $(getActiveEditor().TD).offset();
     const datePickerOffset = $('.pika-single').offset();
@@ -1781,7 +1780,7 @@ describe('DateEditor', () => {
     expect(cellOffset.left).toBeCloseTo(datePickerOffset.left, 0);
   });
 
-  it('should not modify the edited date and time, when opening the editor', () => {
+  it('should not modify the edited date and time, when opening the editor', async() => {
     const hot = handsontable({
       data: [['02/02/2015 8:00 AM']],
       columns: [
@@ -1798,8 +1797,8 @@ describe('DateEditor', () => {
     // setDataAtCell(0, 0, '02/02/2015 8:00 AM');
     const cellValue = getDataAtCell(0, 0);
 
-    selectCell(0, 0);
-    keyDownUp('enter');
+    await selectCell(0, 0);
+    await keyDownUp('enter');
 
     const editor = hot.getActiveEditor();
 
@@ -1825,38 +1824,38 @@ describe('DateEditor', () => {
       ]
     });
 
-    selectCell(0, 0);
-    keyDownUp('enter');
+    await selectCell(0, 0);
+    await keyDownUp('enter');
     await sleep(200);
 
     expect($('.pika-lendar').length).toEqual(1);
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
     await sleep(200);
 
-    selectCell(0, 1);
-    keyDownUp('enter');
+    await selectCell(0, 1);
+    await keyDownUp('enter');
     await sleep(200);
 
     expect($('.pika-lendar').length).toEqual(3);
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
     await sleep(200);
 
-    selectCell(0, 0);
-    keyDownUp('enter');
+    await selectCell(0, 0);
+    await keyDownUp('enter');
     await sleep(200);
 
     expect($('.pika-lendar').length).toEqual(1);
   });
 
-  it('should render an editable editor\'s element without messing with "dir" attribute', () => {
+  it('should render an editable editor\'s element without messing with "dir" attribute', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 5),
+      data: createSpreadsheetData(2, 5),
       editor: 'date',
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
     const editableElement = getActiveEditor().TEXTAREA;
 
@@ -1890,9 +1889,8 @@ describe('DateEditor', () => {
         dateFormat
       });
 
-      selectCell(0, 0);
-      keyDownUp('enter');
-      await sleep(50);
+      await selectCell(0, 0);
+      await keyDownUp('enter');
 
       const datePickerDate = hot().getActiveEditor().$datePicker._d;
 
@@ -1937,9 +1935,8 @@ describe('DateEditor', () => {
         dateFormat
       });
 
-      selectCell(0, 0);
-      keyDownUp('enter');
-      await sleep(50);
+      await selectCell(0, 0);
+      await keyDownUp('enter');
 
       const datePickerDate = hot().getActiveEditor().$datePicker._d;
 
@@ -1958,8 +1955,7 @@ describe('DateEditor', () => {
         imeFastEdit: true,
       });
 
-      selectCell(0, 0, 0, 0, true, false);
-
+      await selectCell(0, 0, 0, 0, true, false);
       // The `imeFastEdit` timeout is set to 50ms.
       await sleep(55);
 
@@ -1968,7 +1964,7 @@ describe('DateEditor', () => {
   });
 
   describe('Cleaning up after the editor', () => {
-    it('should not leave any editor containers after destroying the Handsontable instance', () => {
+    it('should not leave any editor containers after destroying the Handsontable instance', async() => {
       handsontable({
         data: [['02/02/2015 8:00 AM']],
         columns: [
@@ -1978,9 +1974,9 @@ describe('DateEditor', () => {
         ]
       });
 
-      selectCell(0, 0);
-      keyDownUp('enter');
-      keyDownUp('enter');
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+      await keyDownUp('enter');
 
       destroy();
 

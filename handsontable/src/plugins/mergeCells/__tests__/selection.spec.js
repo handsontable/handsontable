@@ -12,7 +12,7 @@ describe('MergeCells Selection', () => {
     }
   });
 
-  it('should leave the partially selected merged cells white (or any initial color), when selecting entire columns or rows', () => {
+  it('should leave the partially selected merged cells white (or any initial color), when selecting entire columns or rows', async() => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
       mergeCells: [
@@ -20,19 +20,19 @@ describe('MergeCells Selection', () => {
       ]
     });
 
-    selectColumns(0, 1);
+    await selectColumns(0, 1);
 
     const mergedCell = getCell(0, 0);
 
     expect(getComputedStyle(mergedCell, ':before').opacity).toEqual('0');
 
-    selectRows(0, 1);
+    await selectRows(0, 1);
 
     expect(getComputedStyle(mergedCell, ':before').opacity).toEqual('0');
   });
 
   it('should leave the partially selected merged cells with their initial color, when selecting entire columns or rows ' +
-    '(when the merged cells was previously fully selected)', () => {
+    '(when the merged cells was previously fully selected)', async() => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
       mergeCells: [
@@ -43,15 +43,15 @@ describe('MergeCells Selection', () => {
 
     // After changes introduced in Handsontable 12.0.0 we handle shortcuts only by listening Handsontable.
     // Please keep in mind that selectColumns/selectRows doesn't set instance to listening (see #7290).
-    listen();
-    selectColumns(0, 2);
+    await listen();
+    await selectColumns(0, 2);
 
     const mergedCell = getCell(0, 0);
     const selectedCellBackground = getComputedStyle(mergedCell, ':before').backgroundColor;
     const selectedCellOpacity = getComputedStyle(mergedCell, ':before').opacity;
     const firstRowHeader = getCell(0, -1, true);
 
-    keyDown('control/meta');
+    await keyDown('control/meta');
 
     simulateClick(firstRowHeader);
 
@@ -62,7 +62,7 @@ describe('MergeCells Selection', () => {
   });
 
   it('should make the entirely selected merged cells have the same background color as a regular selected area, when ' +
-    'selecting entire columns or rows', () => {
+    'selecting entire columns or rows', async() => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 6),
       mergeCells: [
@@ -70,27 +70,27 @@ describe('MergeCells Selection', () => {
       ]
     });
 
-    selectCell(4, 4, 5, 5);
+    await selectCell(4, 4, 5, 5);
 
     const selectedCell = getCell(4, 4);
     const selectedCellBackground = getComputedStyle(selectedCell, ':before').backgroundColor;
     const selectedCellOpacity = getComputedStyle(selectedCell, ':before').opacity;
 
-    selectColumns(0, 2);
+    await selectColumns(0, 2);
 
     const mergedCell = getCell(0, 0);
 
     expect(getComputedStyle(mergedCell, ':before').backgroundColor).toEqual(selectedCellBackground);
     expect(getComputedStyle(mergedCell, ':before').opacity).toEqual(selectedCellOpacity);
 
-    selectRows(0, 2);
+    await selectRows(0, 2);
 
     expect(getComputedStyle(mergedCell, ':before').backgroundColor).toEqual(selectedCellBackground);
     expect(getComputedStyle(mergedCell, ':before').opacity).toEqual(selectedCellOpacity);
   });
 
   it('should make the entirely selected merged cells have the same background color as a regular selected area, when ' +
-    'selecting entire columns or rows (using multiple selection layers)', () => {
+    'selecting entire columns or rows (using multiple selection layers)', async() => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
       mergeCells: [
@@ -101,7 +101,7 @@ describe('MergeCells Selection', () => {
     });
 
     // sample the selected background
-    selectCells([[5, 1, 5, 2]]);
+    await selectCells([[5, 1, 5, 2]]);
     const selectedCell = getCell(5, 1);
     const selectedCellBackground = getComputedStyle(selectedCell, ':before').backgroundColor;
     const selectedCellOpacity = getComputedStyle(selectedCell, ':before').opacity;
@@ -122,7 +122,7 @@ describe('MergeCells Selection', () => {
 
     deselectCell();
 
-    keyDown('control/meta');
+    await keyDown('control/meta');
     mouseDown(rowHeaders[0]);
     mouseOver(rowHeaders[1]);
     mouseUp(rowHeaders[1]);
@@ -136,7 +136,7 @@ describe('MergeCells Selection', () => {
 
     deselectCell();
 
-    keyDown('control/meta');
+    await keyDown('control/meta');
     mouseDown(columnHeaders[0]);
     mouseOver(columnHeaders[1]);
     mouseUp(columnHeaders[1]);
@@ -150,7 +150,7 @@ describe('MergeCells Selection', () => {
   });
 
   it('should make the entirely selected merged cells have the same background color as a regular selected area, when ' +
-    'selecting entire columns or rows (when the merged cells was previously fully selected)', () => {
+    'selecting entire columns or rows (when the merged cells was previously fully selected)', async() => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
       mergeCells: [
@@ -160,18 +160,18 @@ describe('MergeCells Selection', () => {
     });
 
     // sample the double-selected background
-    selectCells([[5, 1, 5, 2], [5, 1, 5, 2]]);
+    await selectCells([[5, 1, 5, 2], [5, 1, 5, 2]]);
     const selectedCell = getCell(5, 1);
     const selectedCellBackground = getComputedStyle(selectedCell, ':before').backgroundColor;
     const selectedCellOpacity = getComputedStyle(selectedCell, ':before').opacity;
 
-    selectColumns(0, 2);
+    await selectColumns(0, 2);
 
     const mergedCell = getCell(0, 0);
     const firstRowHeader = getCell(0, -1, true);
     const thirdRowHeader = getCell(2, -1, true);
 
-    keyDown('control/meta');
+    await keyDown('control/meta');
 
     mouseDown(firstRowHeader);
     mouseOver(thirdRowHeader);
@@ -183,17 +183,17 @@ describe('MergeCells Selection', () => {
     expect(getComputedStyle(mergedCell, ':before').opacity).toEqual(selectedCellOpacity);
   });
 
-  it('should keep headers\' selection after merging', () => {
+  it('should keep headers\' selection after merging', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
       colHeaders: true,
       rowHeaders: true,
       mergeCells: true,
       contextMenu: true,
     });
 
-    selectColumns(0, 2);
-    contextMenu();
+    await selectColumns(0, 2);
+    await contextMenu();
     selectContextMenuOption('Merge cells');
 
     expect(getSelected()).toEqual([[-1, 0, 4, 2]]);
@@ -208,15 +208,15 @@ describe('MergeCells Selection', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it('should keep the selection on merged cells after inserting row above merged cells', () => {
+  it('should keep the selection on merged cells after inserting row above merged cells', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(3, 3),
+      data: createSpreadsheetData(3, 3),
       mergeCells: [
         { row: 1, col: 1, rowspan: 2, colspan: 2 }
       ],
     });
 
-    selectCell(1, 1);
+    await selectCell(1, 1);
 
     const $borderTop = spec().$container.find('.wtBorder.current').eq(1);
     const topPositionBefore = $borderTop.position().top;
@@ -231,15 +231,15 @@ describe('MergeCells Selection', () => {
     });
   });
 
-  it('should keep the selection on merged cells after inserting column to left to the merged cells', () => {
+  it('should keep the selection on merged cells after inserting column to left to the merged cells', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(3, 3),
+      data: createSpreadsheetData(3, 3),
       mergeCells: [
         { row: 1, col: 1, rowspan: 2, colspan: 2 }
       ],
     });
 
-    selectCell(1, 1);
+    await selectCell(1, 1);
 
     const $borderLeft = spec().$container.find('.wtBorder.current').eq(1);
     const leftPositionBefore = $borderLeft.position().left;
@@ -251,9 +251,9 @@ describe('MergeCells Selection', () => {
     expect($borderLeft.position().left).toBe(leftPositionBefore + 50);
   });
 
-  it('should correctly indicate that the selected merged cell is not multiple selection', () => {
+  it('should correctly indicate that the selected merged cell is not multiple selection', async() => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
       colHeaders: true,
       rowHeaders: true,
       mergeCells: [
@@ -261,7 +261,7 @@ describe('MergeCells Selection', () => {
       ]
     });
 
-    selectCell(1, 1, 2, 2);
+    await selectCell(1, 1, 2, 2);
 
     expect(hot.selection.isMultiple()).toBe(false);
     expect(`
@@ -274,7 +274,7 @@ describe('MergeCells Selection', () => {
       |   ║   :   :   :   :   |
     `).toBeMatchToSelectionPattern();
 
-    selectCell(2, 2, 1, 1);
+    await selectCell(2, 2, 1, 1);
 
     expect(hot.selection.isMultiple()).toBe(false);
     expect(`
@@ -288,7 +288,7 @@ describe('MergeCells Selection', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it('should correctly select the neighboring merged cells', () => {
+  it('should correctly select the neighboring merged cells', async() => {
     handsontable({
       data: createSpreadsheetData(5, 8),
       colHeaders: true,
@@ -300,7 +300,7 @@ describe('MergeCells Selection', () => {
       ]
     });
 
-    selectCell(1, 2, 2, 2);
+    await selectCell(1, 2, 2, 2);
 
     expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: 1,1 to: 3,6']);
     expect(`

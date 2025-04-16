@@ -22,7 +22,7 @@ describe('Formulas', () => {
 
   describe('manualColumnMove', () => {
     describe('should not move elements for some calls', () => {
-      it('[0, 1] -> 0', () => {
+      it('[0, 1] -> 0', async() => {
         const hot = handsontable({
           data: JSON.parse(JSON.stringify(dataset)),
           formulas: {
@@ -51,7 +51,7 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[3, 4] -> 3', () => {
+      it('[3, 4] -> 3', async() => {
         const hot = handsontable({
           data: JSON.parse(JSON.stringify(dataset)),
           formulas: {
@@ -80,7 +80,7 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[1, 2, 3, 4] -> 1', () => {
+      it('[1, 2, 3, 4] -> 1', async() => {
         const hot = handsontable({
           data: JSON.parse(JSON.stringify(dataset)),
           formulas: {
@@ -109,7 +109,7 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[0, 1, 2, 3, 4] -> 0', () => {
+      it('[0, 1, 2, 3, 4] -> 0', async() => {
         const hot = handsontable({
           data: JSON.parse(JSON.stringify(dataset)),
           formulas: {
@@ -140,7 +140,7 @@ describe('Formulas', () => {
     });
 
     describe('should move elements from the left to the right properly', () => {
-      it('[0, 1] -> 1', () => {
+      it('[0, 1] -> 1', async() => {
         const hot = handsontable({
           data: JSON.parse(JSON.stringify(dataset)),
           formulas: {
@@ -171,7 +171,7 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[0, 1] -> 2', () => {
+      it('[0, 1] -> 2', async() => {
         const hot = handsontable({
           data: JSON.parse(JSON.stringify(dataset)),
           formulas: {
@@ -202,7 +202,7 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[0, 1] -> 3', () => {
+      it('[0, 1] -> 3', async() => {
         const hot = handsontable({
           data: JSON.parse(JSON.stringify(dataset)),
           formulas: {
@@ -233,7 +233,7 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[0, 2] -> 2', () => {
+      it('[0, 2] -> 2', async() => {
         const hot = handsontable({
           data: JSON.parse(JSON.stringify(dataset)),
           formulas: {
@@ -264,7 +264,7 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[0, 2] -> 3', () => {
+      it('[0, 2] -> 3', async() => {
         const hot = handsontable({
           data: JSON.parse(JSON.stringify(dataset)),
           formulas: {
@@ -295,7 +295,7 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[0, 3] -> 3', () => {
+      it('[0, 3] -> 3', async() => {
         const hot = handsontable({
           data: JSON.parse(JSON.stringify(dataset)),
           formulas: {
@@ -326,7 +326,7 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[0, 1, 2] -> 2', () => {
+      it('[0, 1, 2] -> 2', async() => {
         const hot = handsontable({
           data: JSON.parse(JSON.stringify(dataset)),
           formulas: {
@@ -357,7 +357,7 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[0, 1, 2, 3] -> 1', () => {
+      it('[0, 1, 2, 3] -> 1', async() => {
         const hot = handsontable({
           data: JSON.parse(JSON.stringify(dataset)),
           formulas: {
@@ -389,7 +389,7 @@ describe('Formulas', () => {
       });
 
       describe('moving mixed elements', () => {
-        it('[1, 0] -> 3', () => {
+        it('[1, 0] -> 3', async() => {
           const hot = handsontable({
             data: JSON.parse(JSON.stringify(dataset)),
             formulas: {
@@ -420,7 +420,7 @@ describe('Formulas', () => {
           ]);
         });
 
-        it('[1, 0, 3] -> 2', () => {
+        it('[1, 0, 3] -> 2', async() => {
           const hot = handsontable({
             data: JSON.parse(JSON.stringify(dataset)),
             formulas: {
@@ -451,7 +451,7 @@ describe('Formulas', () => {
           ]);
         });
 
-        it('[1, 0, 3, 2] -> 1', () => {
+        it('[1, 0, 3, 2] -> 1', async() => {
           const hot = handsontable({
             data: JSON.parse(JSON.stringify(dataset)),
             formulas: {
@@ -485,7 +485,7 @@ describe('Formulas', () => {
     });
 
     describe('should move elements from the right to the left properly', () => {
-      it('[3, 4] -> 0', () => {
+      it('[3, 4] -> 0', async() => {
         const hot = handsontable({
           data: JSON.parse(JSON.stringify(dataset)),
           formulas: {
@@ -516,7 +516,7 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[3, 4] -> 1', () => {
+      it('[3, 4] -> 1', async() => {
         const hot = handsontable({
           data: JSON.parse(JSON.stringify(dataset)),
           formulas: {
@@ -547,7 +547,7 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[3, 4] -> 2', () => {
+      it('[3, 4] -> 2', async() => {
         const hot = handsontable({
           data: JSON.parse(JSON.stringify(dataset)),
           formulas: {
@@ -578,7 +578,7 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[2, 4] -> 0', () => {
+      it('[2, 4] -> 0', async() => {
         const hot = handsontable({
           data: JSON.parse(JSON.stringify(dataset)),
           formulas: {
@@ -609,7 +609,7 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[2, 4] -> 1', () => {
+      it('[2, 4] -> 1', async() => {
         const hot = handsontable({
           data: JSON.parse(JSON.stringify(dataset)),
           formulas: {
@@ -640,7 +640,7 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[2, 4] -> 2', () => {
+      it('[2, 4] -> 2', async() => {
         const hot = handsontable({
           data: JSON.parse(JSON.stringify(dataset)),
           formulas: {
@@ -672,7 +672,7 @@ describe('Formulas', () => {
       });
 
       describe('moving mixed elements', () => {
-        it('[4, 2] -> 0', () => {
+        it('[4, 2] -> 0', async() => {
           const hot = handsontable({
             data: JSON.parse(JSON.stringify(dataset)),
             formulas: {
@@ -703,7 +703,7 @@ describe('Formulas', () => {
           ]);
         });
 
-        it('[4, 3, 1] -> 0', () => {
+        it('[4, 3, 1] -> 0', async() => {
           const hot = handsontable({
             data: JSON.parse(JSON.stringify(dataset)),
             formulas: {
@@ -734,7 +734,7 @@ describe('Formulas', () => {
           ]);
         });
 
-        it('[4, 3, 2, 1] -> 0', () => {
+        it('[4, 3, 2, 1] -> 0', async() => {
           const hot = handsontable({
             data: JSON.parse(JSON.stringify(dataset)),
             formulas: {
@@ -765,7 +765,7 @@ describe('Formulas', () => {
           ]);
         });
 
-        it('[4, 2, 3, 1] -> 0', () => {
+        it('[4, 2, 3, 1] -> 0', async() => {
           const hot = handsontable({
             data: JSON.parse(JSON.stringify(dataset)),
             formulas: {
@@ -796,7 +796,7 @@ describe('Formulas', () => {
           ]);
         });
 
-        it('[0, 3, 4, 1] -> 0', () => {
+        it('[0, 3, 4, 1] -> 0', async() => {
           const hot = handsontable({
             data: JSON.parse(JSON.stringify(dataset)),
             formulas: {
@@ -827,7 +827,7 @@ describe('Formulas', () => {
           ]);
         });
 
-        it('[5, 4, 3, 2, 1, 0] -> 0', () => {
+        it('[5, 4, 3, 2, 1, 0] -> 0', async() => {
           const hot = handsontable({
             data: [
               [1, '=A1+10', '=B1+100', '=C1+1000', '=D1+1000000', '=E1*0'],
@@ -867,7 +867,7 @@ describe('Formulas', () => {
     });
 
     describe('should move elements, placed on both sides, to the middle properly', () => {
-      it('[2, 4] -> 3', () => {
+      it('[2, 4] -> 3', async() => {
         const hot = handsontable({
           data: JSON.parse(JSON.stringify(dataset)),
           formulas: {
@@ -898,7 +898,7 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[0, 3, 4] -> 1', () => {
+      it('[0, 3, 4] -> 1', async() => {
         const hot = handsontable({
           data: JSON.parse(JSON.stringify(dataset)),
           formulas: {
@@ -931,7 +931,7 @@ describe('Formulas', () => {
     });
 
     // Covers case 1 from the comment https://github.com/handsontable/handsontable/pull/10215
-    it('should work properly while moving, right after clearing a column #1', () => {
+    it('should work properly while moving, right after clearing a column #1', async() => {
       const hot = handsontable({
         data: JSON.parse(JSON.stringify(dataset)),
         formulas: {
@@ -946,14 +946,14 @@ describe('Formulas', () => {
 
       hot.selectCell(0, 0);
 
-      expect(() => {
-        keyDownUp('enter');
-        keyDownUp('enter');
+      expect(async() => {
+        await keyDownUp('enter');
+        await keyDownUp('enter');
       }).not.toThrow();
     });
 
     // Covers case 2 from the comment https://github.com/handsontable/handsontable/pull/10215
-    it('should work properly while moving, right after clearing a column #2', () => {
+    it('should work properly while moving, right after clearing a column #2', async() => {
       const hot = handsontable({
         data: JSON.parse(JSON.stringify(dataset)),
         formulas: {
@@ -967,9 +967,9 @@ describe('Formulas', () => {
       hot.render();
       hot.selectCell(0, 3);
 
-      expect(() => {
-        keyDownUp('enter');
-        keyDownUp('enter');
+      expect(async() => {
+        await keyDownUp('enter');
+        await keyDownUp('enter');
       }).not.toThrow();
     });
   });

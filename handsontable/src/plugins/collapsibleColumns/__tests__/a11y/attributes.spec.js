@@ -12,9 +12,9 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     }
   });
 
-  it('should add the `aria-expanded` attribute to a collapsible header - `true` if it\'s expanded, `false` otherwise', () => {
+  it('should add the `aria-expanded` attribute to a collapsible header - `true` if it\'s expanded, `false` otherwise', async() => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 10),
+      data: createSpreadsheetData(10, 10),
       rowHeaders: true,
       colHeaders: true,
       nestedHeaders: [
@@ -39,9 +39,9 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     expect(getCell(-2, 1).getAttribute('aria-expanded')).toEqual('true');
   });
 
-  it('should add the `aria-hidden` attribute to the collapse/expand button', () => {
+  it('should add the `aria-hidden` attribute to the collapse/expand button', async() => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 10),
+      data: createSpreadsheetData(10, 10),
       rowHeaders: true,
       colHeaders: true,
       nestedHeaders: [

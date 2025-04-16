@@ -40,7 +40,7 @@ describe('UndoRedo', () => {
     });
 
     it('should fire a `beforeUndoStackChange` and `afterUndoStackChange` hooks after ' +
-      'performing an action which may be undone', () => {
+      'performing an action which may be undone', async() => {
       const beforeUndoStackChangeSpy = jasmine.createSpy('beforeUndoStackChange');
       const afterUndoStackChangeSpy = jasmine.createSpy('afterUndoStackChange');
 
@@ -58,7 +58,7 @@ describe('UndoRedo', () => {
         [], getPlugin('undoRedo').doneActions);
     });
 
-    it('should not add action to undo stack while `beforeUndoStackChange` return `false` value', () => {
+    it('should not add action to undo stack while `beforeUndoStackChange` return `false` value', async() => {
       const afterUndoStackChangeSpy = jasmine.createSpy('afterUndoStackChange');
 
       handsontable({
@@ -76,7 +76,7 @@ describe('UndoRedo', () => {
     });
 
     it('should fire a `beforeUndoStackChange`, `afterUndoStackChange`, `beforeRedoStackChange` and ' +
-      '`afterRedoStackChange` hooks after undoing action', () => {
+      '`afterRedoStackChange` hooks after undoing action', async() => {
       const beforeUndoStackChangeSpy = jasmine.createSpy('beforeUndoStackChange');
       const afterUndoStackChangeSpy = jasmine.createSpy('afterUndoStackChange');
       const beforeRedoStackChangeSpy = jasmine.createSpy('beforeRedoStackChange');
@@ -105,7 +105,7 @@ describe('UndoRedo', () => {
     });
 
     it('should fire a `beforeUndoStackChange`, `afterUndoStackChange`, `beforeRedoStackChange` and ' +
-      '`afterRedoStackChange` hooks after redoing action', () => {
+      '`afterRedoStackChange` hooks after redoing action', async() => {
       const beforeUndoStackChangeSpy = jasmine.createSpy('beforeUndoStackChange');
       const afterUndoStackChangeSpy = jasmine.createSpy('afterUndoStackChange');
       const beforeRedoStackChangeSpy = jasmine.createSpy('beforeRedoStackChange');

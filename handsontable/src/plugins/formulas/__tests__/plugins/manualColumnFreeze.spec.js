@@ -13,7 +13,7 @@ describe('Formulas', () => {
   });
 
   describe('Integration with Frozen Columns', () => {
-    it('should calculate result of formula properly after freezing/unfreezing column using ManualColumnFreeze plugin API', () => {
+    it('should calculate result of formula properly after freezing/unfreezing column using ManualColumnFreeze plugin API', async() => {
       const hot = handsontable({
         data: [
           [1, '=A1+10', '=B1+100', '=C1+1000', '=D1+1000000'],

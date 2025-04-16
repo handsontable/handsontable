@@ -19,7 +19,7 @@ describe('Formulas public API', () => {
   });
 
   describe('isFormulaCellType()', () => {
-    it('should return `true` when under the cell is formula', () => {
+    it('should return `true` when under the cell is formula', async() => {
       handsontable({
         data: [
           ['1', '2'],
@@ -54,7 +54,7 @@ describe('Formulas public API', () => {
   });
 
   describe('getCellType()', () => {
-    it('should detect cells correctly', () => {
+    it('should detect cells correctly', async() => {
       handsontable({
         data: [
           ['1', '2'],

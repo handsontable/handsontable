@@ -14,7 +14,7 @@ describe('Core.batchExecution', () => {
 
   it('should batch multi-line operations into one execution call', async() => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
     });
     const columnIndexCacheUpdated = jasmine.createSpy('columnIndexCacheUpdated');
     const rowIndexCacheUpdated = jasmine.createSpy('rowIndexCacheUpdated');
@@ -52,7 +52,7 @@ describe('Core.batchExecution', () => {
 
   it('should batch nested multi-line operations into one execution call', async() => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
     });
     const columnIndexCacheUpdated = jasmine.createSpy('columnIndexCacheUpdated');
     const rowIndexCacheUpdated = jasmine.createSpy('rowIndexCacheUpdated');
@@ -96,7 +96,7 @@ describe('Core.batchExecution', () => {
 
   it('should be possible to trigger cache update manually for wrapped operations', async() => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
     });
     const columnIndexCacheUpdated = jasmine.createSpy('columnIndexCacheUpdated');
     const rowIndexCacheUpdated = jasmine.createSpy('rowIndexCacheUpdated');

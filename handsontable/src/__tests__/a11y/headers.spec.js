@@ -28,7 +28,7 @@ describe('header-related a11y config', () => {
     describe('headers', () => {
       it('should have the `tabindex=-1` attribute set', () => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(50, 50),
+          data: createSpreadsheetData(50, 50),
           rowHeaders: true,
           colHeaders: true,
           fixedRowsTop: 2,
@@ -63,7 +63,7 @@ describe('header-related a11y config', () => {
       describe('row headers', () => {
         it('should add the `role=rowheader` aria tag to every row headers in the table', () => {
           handsontable({
-            data: Handsontable.helper.createSpreadsheetData(50, 15),
+            data: createSpreadsheetData(50, 15),
             rowHeaders: true,
             colHeaders: true,
             fixedRowsTop: 2,
@@ -97,7 +97,7 @@ describe('header-related a11y config', () => {
 
         it('should add the `scope=row` aria tag to every row headers in the table', () => {
           handsontable({
-            data: Handsontable.helper.createSpreadsheetData(50, 15),
+            data: createSpreadsheetData(50, 15),
             rowHeaders: true,
             colHeaders: true,
             fixedRowsTop: 2,
@@ -133,7 +133,7 @@ describe('header-related a11y config', () => {
       describe('column headers', () => {
         it('should add the `role=columnheader` aria tag to every row headers in the table (except the corner header)', () => {
           handsontable({
-            data: Handsontable.helper.createSpreadsheetData(50, 50),
+            data: createSpreadsheetData(50, 50),
             rowHeaders: true,
             colHeaders: true,
             fixedRowsTop: 2,
@@ -160,7 +160,7 @@ describe('header-related a11y config', () => {
 
         it('should add the `scope=col` aria tag to every row headers in the table', () => {
           handsontable({
-            data: Handsontable.helper.createSpreadsheetData(50, 50),
+            data: createSpreadsheetData(50, 50),
             rowHeaders: true,
             colHeaders: true,
             fixedRowsTop: 2,
@@ -194,7 +194,7 @@ describe('header-related a11y config', () => {
         // handsontable/dev-handsontable#1574
         it('should add the `role=row` aria tag to the corner headers', () => {
           handsontable({
-            data: Handsontable.helper.createSpreadsheetData(50, 15),
+            data: createSpreadsheetData(50, 15),
             rowHeaders: true,
             colHeaders: true,
             fixedRowsTop: 2,

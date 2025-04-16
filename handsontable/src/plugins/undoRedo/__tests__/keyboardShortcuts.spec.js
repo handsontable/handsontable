@@ -12,42 +12,24 @@ describe('UndoRedo keyboard shortcuts', () => {
     }
   });
 
-  it('should undo single change after hitting CTRL+Z', () => {
+  it('should undo single change after hitting CTRL+Z', async() => {
     handsontable({
       data: createSpreadsheetData(2, 2)
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
     setDataAtCell(0, 0, 'new value');
 
-    keyDownUp(['control/meta', 'z']);
+    await keyDownUp(['control/meta', 'z']);
     expect(getDataAtCell(0, 0)).toBe('A1');
   });
 
-  it('should redo single change after hitting CTRL+Y', () => {
+  it('should redo single change after hitting CTRL+Y', async() => {
     handsontable({
       data: createSpreadsheetData(2, 2)
     });
 
-    selectCell(0, 0);
-    setDataAtCell(0, 0, 'new value');
-
-    expect(getDataAtCell(0, 0)).toBe('new value');
-
-    getPlugin('undoRedo').undo();
-    expect(getDataAtCell(0, 0)).toBe('A1');
-
-    keyDownUp(['control/meta', 'y']);
-
-    expect(getDataAtCell(0, 0)).toBe('new value');
-  });
-
-  it('should redo single change after hitting CTRL+SHIFT+Z', () => {
-    handsontable({
-      data: createSpreadsheetData(2, 2)
-    });
-
-    selectCell(0, 0);
+    await selectCell(0, 0);
     setDataAtCell(0, 0, 'new value');
 
     expect(getDataAtCell(0, 0)).toBe('new value');
@@ -55,12 +37,30 @@ describe('UndoRedo keyboard shortcuts', () => {
     getPlugin('undoRedo').undo();
     expect(getDataAtCell(0, 0)).toBe('A1');
 
-    keyDownUp(['control/meta', 'shift', 'z']);
+    await keyDownUp(['control/meta', 'y']);
 
     expect(getDataAtCell(0, 0)).toBe('new value');
   });
 
-  it('should be possible to block keyboard shortcuts', () => {
+  it('should redo single change after hitting CTRL+SHIFT+Z', async() => {
+    handsontable({
+      data: createSpreadsheetData(2, 2)
+    });
+
+    await selectCell(0, 0);
+    setDataAtCell(0, 0, 'new value');
+
+    expect(getDataAtCell(0, 0)).toBe('new value');
+
+    getPlugin('undoRedo').undo();
+    expect(getDataAtCell(0, 0)).toBe('A1');
+
+    await keyDownUp(['control/meta', 'shift', 'z']);
+
+    expect(getDataAtCell(0, 0)).toBe('new value');
+  });
+
+  it('should be possible to block keyboard shortcuts', async() => {
     handsontable({
       data: createSpreadsheetData(2, 2),
       beforeKeyDown: (e) => {
@@ -72,10 +72,10 @@ describe('UndoRedo keyboard shortcuts', () => {
       }
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
     setDataAtCell(0, 0, 'new value');
 
-    keyDownUp(['control/meta', 'z']);
+    await keyDownUp(['control/meta', 'z']);
     expect(getDataAtCell(0, 0)).toBe('new value');
   });
 });

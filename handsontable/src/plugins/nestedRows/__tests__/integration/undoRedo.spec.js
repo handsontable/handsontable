@@ -13,7 +13,7 @@ describe('NestedRows', () => {
   });
 
   describe('working with UndoRedo plugin', () => {
-    it('should properly undo remove of the child row', () => {
+    it('should properly undo remove of the child row', async() => {
       handsontable({
         data: [
           {

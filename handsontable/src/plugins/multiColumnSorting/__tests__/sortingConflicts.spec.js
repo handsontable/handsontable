@@ -37,7 +37,7 @@ describe('MultiColumnSorting cooperation with ColumnSorting', () => {
     { id: 10, name: 'Eve', lastName: 'Branson' }
   ];
 
-  it('should print warning and set the correct plugin\'s enabled state when the both plugins are enabled', () => {
+  it('should print warning and set the correct plugin\'s enabled state when the both plugins are enabled', async() => {
     const warnSpy = spyOn(console, 'warn');
 
     handsontable({
@@ -55,7 +55,7 @@ describe('MultiColumnSorting cooperation with ColumnSorting', () => {
     expect(getSettings().multiColumnSorting).toBe(false);
   });
 
-  it('should not print warnings when both plugins are enabled in different Handsontable instances', () => {
+  it('should not print warnings when both plugins are enabled in different Handsontable instances', async() => {
     const warnSpy = spyOn(console, 'warn');
 
     handsontable({
@@ -78,7 +78,7 @@ describe('MultiColumnSorting cooperation with ColumnSorting', () => {
     container2.remove();
   });
 
-  it('should print warning and leave only ColumnSorting plugin enabled after MultiColumnSorting is tried to be enabled', () => {
+  it('should print warning and leave only ColumnSorting plugin enabled after MultiColumnSorting is tried to be enabled', async() => {
     const warnSpy = spyOn(console, 'warn');
 
     handsontable({
@@ -97,7 +97,7 @@ describe('MultiColumnSorting cooperation with ColumnSorting', () => {
     expect(getSettings().multiColumnSorting).toBe(false);
   });
 
-  it('should print warning and leave only MultiColumnSorting plugin enabled after ColumnSorting is tried to be enabled', () => {
+  it('should print warning and leave only MultiColumnSorting plugin enabled after ColumnSorting is tried to be enabled', async() => {
     const warnSpy = spyOn(console, 'warn');
 
     handsontable({
@@ -116,7 +116,7 @@ describe('MultiColumnSorting cooperation with ColumnSorting', () => {
     expect(getSettings().columnSorting).toBe(false);
   });
 
-  it('should column sorting (not multi-sorting) work correctly when both plugins are enabled', () => {
+  it('should column sorting (not multi-sorting) work correctly when both plugins are enabled', async() => {
     handsontable({
       colHeaders: true,
       columnSorting: true,
@@ -125,7 +125,7 @@ describe('MultiColumnSorting cooperation with ColumnSorting', () => {
 
     spec().sortByClickOnColumnHeader(2);
 
-    keyDown('control/meta');
+    await keyDown('control/meta');
 
     spec().sortByClickOnColumnHeader(3);
 
@@ -139,7 +139,7 @@ describe('MultiColumnSorting cooperation with ColumnSorting', () => {
     ]);
   });
 
-  it('should not reset the state of the MultiColumnSorting plugin after ColumnSorting is tried to be enabled', () => {
+  it('should not reset the state of the MultiColumnSorting plugin after ColumnSorting is tried to be enabled', async() => {
     handsontable({
       colHeaders: true,
       multiColumnSorting: true,
@@ -147,7 +147,7 @@ describe('MultiColumnSorting cooperation with ColumnSorting', () => {
 
     spec().sortByClickOnColumnHeader(2);
 
-    keyDown('control/meta');
+    await keyDown('control/meta');
 
     spec().sortByClickOnColumnHeader(3);
 
@@ -164,7 +164,7 @@ describe('MultiColumnSorting cooperation with ColumnSorting', () => {
     ]);
   });
 
-  it('should not reset the state of the ColumnSorting plugin after MultiColumnSorting is tried to be enabled', () => {
+  it('should not reset the state of the ColumnSorting plugin after MultiColumnSorting is tried to be enabled', async() => {
     handsontable({
       colHeaders: true,
       columnSorting: true,

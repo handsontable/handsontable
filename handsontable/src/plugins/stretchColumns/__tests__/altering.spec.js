@@ -10,7 +10,7 @@ describe('StretchColumns cooperation with columns altering', () => {
     }
   });
 
-  it('should re-stretch all columns after adding a new column', () => {
+  it('should re-stretch all columns after adding a new column', async() => {
     handsontable({
       data: createSpreadsheetData(5, 2),
       colHeaders: true,
@@ -62,7 +62,7 @@ describe('StretchColumns cooperation with columns altering', () => {
     });
   });
 
-  it('should re-stretch all columns after removing a column', () => {
+  it('should re-stretch all columns after removing a column', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(5, 7),
       colHeaders: true,
@@ -114,7 +114,7 @@ describe('StretchColumns cooperation with columns altering', () => {
     });
   });
 
-  it('should stop stretching the columns when the sum of columns widths is wider than the viewport', () => {
+  it('should stop stretching the columns when the sum of columns widths is wider than the viewport', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(5, 2),
       colHeaders: true,

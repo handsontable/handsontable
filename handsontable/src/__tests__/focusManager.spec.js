@@ -80,8 +80,7 @@ describe('Focus Manager', () => {
         imeFastEdit: true,
       });
 
-      selectCell(0, 0);
-
+      await selectCell(0, 0);
       await sleep(10);
 
       expect(document.activeElement).toEqual(getActiveEditor().TEXTAREA);
@@ -132,9 +131,10 @@ describe('Focus Manager', () => {
       window.onerror = prevError;
     });
 
-    it('should focus the element provided in the argument', () => {
+    it('should focus the element provided in the argument', async() => {
       handsontable({});
-      selectCell(0, 0);
+
+      await selectCell(0, 0);
 
       getFocusManager().focusOnHighlightedCell(getCell(1, 1, true));
 
@@ -153,14 +153,13 @@ describe('Focus Manager', () => {
       });
 
       getFocusManager().setRefocusDelay(50);
-      selectCell(0, 0);
 
+      await selectCell(0, 0);
       await sleep(100);
 
       expect(document.activeElement).toEqual(getActiveEditor().TEXTAREA);
 
-      selectCell(0, 1);
-
+      await selectCell(0, 1);
       await sleep(100);
 
       expect(document.activeElement).toEqual(getActiveEditor().TEXTAREA);

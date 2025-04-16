@@ -27,7 +27,7 @@ describe('Cells-related a11y configuration', () => {
   describe('DOM structure', () => {
     it('should add the `role=gridcell` aria tag to every cell in the table', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(50, 50),
+        data: createSpreadsheetData(50, 50),
         rowHeaders: true,
         colHeaders: true,
         fixedRowsTop: 2,
@@ -62,7 +62,7 @@ describe('Cells-related a11y configuration', () => {
     it('should have the `aria-colindex` attribute set, taken the headers into account (headers and cells share the' +
       ' column indexes)', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(50, 50),
+        data: createSpreadsheetData(50, 50),
         rowHeaders: true,
         colHeaders: true,
         fixedRowsTop: 2,
@@ -115,7 +115,7 @@ describe('Cells-related a11y configuration', () => {
     it('should have the `aria-colindex` attribute set, taken the headers into account (headers and cells share the' +
       ' column indexes) - WITH VIRTUAL SCROLLING', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(50, 50),
+        data: createSpreadsheetData(50, 50),
         rowHeaders: true,
         colHeaders: true,
         fixedRowsTop: 2,
@@ -192,7 +192,7 @@ describe('Cells-related a11y configuration', () => {
 
     it('should add the `tabindex=-1` aria tag to every cell in the table', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(50, 50),
+        data: createSpreadsheetData(50, 50),
         rowHeaders: true,
         colHeaders: true,
         fixedRowsTop: 2,
@@ -226,7 +226,7 @@ describe('Cells-related a11y configuration', () => {
 
     it('should clear the aria-tags every time a cell is re-rendered', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(50, 50),
+        data: createSpreadsheetData(50, 50),
         rowHeaders: true,
         colHeaders: true,
         width: 300,

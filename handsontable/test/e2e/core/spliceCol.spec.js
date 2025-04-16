@@ -14,7 +14,7 @@ describe('Core.spliceCol', () => {
 
   it('should remove from the second column three rows starting from the beginning', () => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
     });
 
     const removedData = hot.spliceCol(1, 0, 3);
@@ -29,7 +29,7 @@ describe('Core.spliceCol', () => {
 
   it('should remove from the third column three rows starting from the second row', () => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
     });
 
     const removedData = hot.spliceCol(2, 1, 3);
@@ -44,7 +44,7 @@ describe('Core.spliceCol', () => {
 
   it('should replace and append new rows in the second column starting from the second row', () => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
     });
 
     const removedData = hot.spliceCol(1, 1, 3, 'X1', 'X2', 'X3', 'X4', 'X5');
@@ -63,7 +63,7 @@ describe('Core.spliceCol', () => {
     const spyAfter = jasmine.createSpy('after');
     const spyBefore = jasmine.createSpy('before');
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
       beforeChange: spyBefore,
       afterChange: spyAfter,
     });

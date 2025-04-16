@@ -25,9 +25,9 @@ describe('HiddenColumns', () => {
   }
 
   describe('should cooperate with the `fixedColumnsStart` option properly', () => {
-    it('when there are hidden columns in the middle of fixed columns', () => {
+    it('when there are hidden columns in the middle of fixed columns', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 10),
+        data: createSpreadsheetData(1, 10),
         colHeaders: true,
         hiddenColumns: {
           columns: [2, 3],
@@ -46,9 +46,9 @@ describe('HiddenColumns', () => {
       expect($(getCell(-1, 5).querySelector('span')).text()).toBe('F');
     });
 
-    it('when there is hidden column by the fixed column', () => {
+    it('when there is hidden column by the fixed column', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 10),
+        data: createSpreadsheetData(1, 10),
         colHeaders: true,
         hiddenColumns: {
           columns: [1],
@@ -64,9 +64,9 @@ describe('HiddenColumns', () => {
       expect($(getCell(-1, 2).querySelector('span')).text()).toBe('C');
     });
 
-    it('when there are hidden columns at the start of fixed columns', () => {
+    it('when there are hidden columns at the start of fixed columns', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 10),
+        data: createSpreadsheetData(1, 10),
         colHeaders: true,
         hiddenColumns: {
           columns: [0, 1, 2],
@@ -85,9 +85,9 @@ describe('HiddenColumns', () => {
       expect($(getCell(-1, 5).querySelector('span')).text()).toBe('F');
     });
 
-    it('when there are hidden columns at the end of fixed columns', () => {
+    it('when there are hidden columns at the end of fixed columns', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 10),
+        data: createSpreadsheetData(1, 10),
         colHeaders: true,
         hiddenColumns: {
           columns: [3, 4, 5],
@@ -106,9 +106,9 @@ describe('HiddenColumns', () => {
       expect(getCell(-1, 5)).toBe(null);
     });
 
-    it('when all fixed columns are hidden', () => {
+    it('when all fixed columns are hidden', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 10),
+        data: createSpreadsheetData(1, 10),
         colHeaders: true,
         hiddenColumns: {
           columns: [0, 1, 2, 3],
@@ -121,9 +121,9 @@ describe('HiddenColumns', () => {
       expect(getInlineStartClone().width()).toBe(0);
     });
 
-    it('should not display cells after API call hiding all columns', () => {
+    it('should not display cells after API call hiding all columns', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 10),
+        data: createSpreadsheetData(1, 10),
         hiddenColumns: true,
         fixedColumnsStart: 3
       });

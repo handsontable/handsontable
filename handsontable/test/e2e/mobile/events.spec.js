@@ -168,7 +168,7 @@ describe('Events', () => {
   it('touch on button inside header should not block default action  ' +
     '(header does not have to be selected at first)', async() => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(3, 7),
+      data: createSpreadsheetData(3, 7),
       colHeaders: true,
       dropdownMenu: true
     });

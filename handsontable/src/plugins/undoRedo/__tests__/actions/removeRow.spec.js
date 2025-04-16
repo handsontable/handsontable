@@ -39,7 +39,7 @@ describe('UndoRedo -> RemoveRow action', () => {
     });
   });
 
-  it('should undo and redo the remove action after row moving (#dev-2071)', () => {
+  it('should undo and redo the remove action after row moving (#dev-2071)', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       manualRowMove: true,

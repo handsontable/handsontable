@@ -14,7 +14,7 @@ describe('Core.getCopyableData', () => {
 
   it('should return copyable data when `copyable` option is enabled', () => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 10),
+      data: createSpreadsheetData(10, 10),
       copyable: true
     });
 
@@ -26,7 +26,7 @@ describe('Core.getCopyableData', () => {
 
   it('should return empty string as copyable data when `copyable` option is disabled', () => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 10),
+      data: createSpreadsheetData(10, 10),
       copyable: false
     });
 

@@ -19,32 +19,32 @@ describe('DateEditor (RTL mode)', () => {
       }
     });
 
-    it('should render an editable editor\'s element without messing with "dir" attribute', () => {
+    it('should render an editable editor\'s element without messing with "dir" attribute', async() => {
       handsontable({
         layoutDirection,
-        data: Handsontable.helper.createSpreadsheetData(2, 5),
+        data: createSpreadsheetData(2, 5),
         editor: 'date',
       });
 
-      selectCell(0, 0);
+      await selectCell(0, 0);
 
       const editableElement = getActiveEditor().TEXTAREA;
 
       expect(editableElement.getAttribute('dir')).toBeNull();
     });
 
-    it('should render Pikaday within element that contains correct "dir" attribute value', () => {
+    it('should render Pikaday within element that contains correct "dir" attribute value', async() => {
       handsontable({
         layoutDirection,
-        data: Handsontable.helper.createSpreadsheetData(5, 2),
+        data: createSpreadsheetData(5, 2),
         columns: [
           { type: 'date' },
           { type: 'date' }
         ]
       });
 
-      selectCell(1, 1);
-      keyDown('enter');
+      await selectCell(1, 1);
+      await keyDown('enter');
 
       const datePicker = getActiveEditor().datePicker;
       const config = getActiveEditor().$datePicker.config();
@@ -55,18 +55,18 @@ describe('DateEditor (RTL mode)', () => {
       expect(config.isRTL).toBe(false);
     });
 
-    it('should display Pikaday Calendar left-bottom of the selected cell', () => {
+    it('should display Pikaday Calendar left-bottom of the selected cell', async() => {
       handsontable({
         layoutDirection,
-        data: Handsontable.helper.createSpreadsheetData(5, 2),
+        data: createSpreadsheetData(5, 2),
         columns: [
           { type: 'date' },
           { type: 'date' }
         ]
       });
 
-      selectCell(1, 1);
-      keyDown('enter');
+      await selectCell(1, 1);
+      await keyDown('enter');
 
       const cellOffset = $(getActiveEditor().TD).offset();
       const cellWidth = $(getActiveEditor().TD).outerWidth();
@@ -83,7 +83,7 @@ describe('DateEditor (RTL mode)', () => {
     });
 
     it.forTheme('classic')('should display Pikaday Calendar left-bottom of the selected cell when ' +
-      'table have scrolls', () => {
+      'table have scrolls', async() => {
       const container = $('#testContainer');
 
       container[0].style.height = '300px';
@@ -92,7 +92,7 @@ describe('DateEditor (RTL mode)', () => {
 
       handsontable({
         layoutDirection,
-        data: Handsontable.helper.createSpreadsheetData(30, 10),
+        data: createSpreadsheetData(30, 10),
         colWidths: 60,
         columns: [
           { type: 'date' },
@@ -105,8 +105,9 @@ describe('DateEditor (RTL mode)', () => {
         ]
       });
 
-      selectCell(20, 6);
-      keyDown('enter');
+      await selectCell(20, 6);
+      await keyDown('enter');
+      await sleep(50);
 
       const cellOffset = $(getActiveEditor().TD).offset();
       const cellWidth = $(getActiveEditor().TD).outerWidth();
@@ -128,7 +129,7 @@ describe('DateEditor (RTL mode)', () => {
 
       handsontable({
         layoutDirection,
-        data: Handsontable.helper.createSpreadsheetData(30, 10),
+        data: createSpreadsheetData(30, 10),
         colWidths: 60,
         columns: [
           { type: 'date' },
@@ -141,12 +142,8 @@ describe('DateEditor (RTL mode)', () => {
         ]
       });
 
-      selectCell(20, 6);
-
-      await sleep(50);
-
-      keyDown('enter');
-
+      await selectCell(20, 6);
+      await keyDown('enter');
       await sleep(50);
 
       const cellOffset = $(getActiveEditor().TD).offset();
@@ -169,7 +166,7 @@ describe('DateEditor (RTL mode)', () => {
 
       handsontable({
         layoutDirection,
-        data: Handsontable.helper.createSpreadsheetData(30, 10),
+        data: createSpreadsheetData(30, 10),
         colWidths: 90,
         columns: [
           { type: 'date' },
@@ -182,12 +179,8 @@ describe('DateEditor (RTL mode)', () => {
         ]
       });
 
-      selectCell(20, 6);
-
-      await sleep(50);
-
-      keyDown('enter');
-
+      await selectCell(20, 6);
+      await keyDown('enter');
       await sleep(50);
 
       const cellOffset = $(getActiveEditor().TD).offset();
@@ -210,8 +203,8 @@ describe('DateEditor (RTL mode)', () => {
         type: 'date',
       });
 
-      selectCell(2, 10);
-      keyDownUp('enter');
+      await selectCell(2, 10);
+      await keyDownUp('enter');
 
       const cellOffset = $(getActiveEditor().TD).offset();
       const cellWidth = $(getActiveEditor().TD).outerWidth();
@@ -251,10 +244,8 @@ describe('DateEditor (RTL mode)', () => {
         type: 'date',
       });
 
-      selectCell(2, 10);
-      keyDownUp('enter');
-
-      await sleep(50);
+      await selectCell(2, 10);
+      await keyDownUp('enter');
 
       const cellOffset = $(getActiveEditor().TD).offset();
       const cellWidth = $(getActiveEditor().TD).outerWidth();
@@ -292,10 +283,8 @@ describe('DateEditor (RTL mode)', () => {
         type: 'date',
       });
 
-      selectCell(2, 10);
-      keyDownUp('enter');
-
-      await sleep(50);
+      await selectCell(2, 10);
+      await keyDownUp('enter');
 
       const cellOffset = $(getActiveEditor().TD).offset();
       const cellWidth = $(getActiveEditor().TD).outerWidth();
@@ -333,10 +322,8 @@ describe('DateEditor (RTL mode)', () => {
         type: 'date',
       });
 
-      selectCell(2, 10);
-      keyDownUp('enter');
-
-      await sleep(50);
+      await selectCell(2, 10);
+      await keyDownUp('enter');
 
       const cellOffset = $(getActiveEditor().TD).offset();
       const cellWidth = $(getActiveEditor().TD).outerWidth();
@@ -374,10 +361,8 @@ describe('DateEditor (RTL mode)', () => {
         type: 'date',
       });
 
-      selectCell(2, 10);
-      keyDownUp('enter');
-
-      await sleep(50);
+      await selectCell(2, 10);
+      await keyDownUp('enter');
 
       const cellOffset = $(getActiveEditor().TD).offset();
       const cellWidth = $(getActiveEditor().TD).outerWidth();
@@ -415,10 +400,8 @@ describe('DateEditor (RTL mode)', () => {
         type: 'date',
       });
 
-      selectCell(2, 10);
-      keyDownUp('enter');
-
-      await sleep(50);
+      await selectCell(2, 10);
+      await keyDownUp('enter');
 
       const cellOffset = $(getActiveEditor().TD).offset();
       const cellWidth = $(getActiveEditor().TD).outerWidth();

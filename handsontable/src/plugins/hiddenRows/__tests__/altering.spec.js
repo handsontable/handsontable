@@ -13,9 +13,9 @@ describe('HiddenRows', () => {
   });
 
   describe('altering', () => {
-    it('should update hidden row indexes after rows removal (removing not hidden rows)', () => {
+    it('should update hidden row indexes after rows removal (removing not hidden rows)', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 1),
+        data: createSpreadsheetData(10, 1),
         hiddenRows: true,
         manualRowMove: [4, 0, 8, 5, 2, 6, 1, 7, 3, 9]
       });
@@ -46,9 +46,9 @@ describe('HiddenRows', () => {
       expect(getDataAtCol(0)).toEqual(['A5', 'A1', 'A7', 'A2', 'A8', 'A4', 'A10']);
     });
 
-    it('should update hidden row indexes after rows removal (removing part of hidden rows)', () => {
+    it('should update hidden row indexes after rows removal (removing part of hidden rows)', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 1),
+        data: createSpreadsheetData(10, 1),
         rowHeaders: true,
         hiddenRows: {
           indicators: true,
@@ -85,9 +85,9 @@ describe('HiddenRows', () => {
       expect(getDataAtCol(0)).toEqual(['A5', 'A1', 'A9', 'A6', 'A3', 'A7', 'A4', 'A10']);
     });
 
-    it('should update hidden row indexes after rows insertion (inserting rows before already hidden rows)', () => {
+    it('should update hidden row indexes after rows insertion (inserting rows before already hidden rows)', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 1),
+        data: createSpreadsheetData(10, 1),
         hiddenRows: true,
         manualRowMove: [4, 0, 8, 5, 2, 6, 1, 7, 3, 9]
       });
@@ -124,9 +124,9 @@ describe('HiddenRows', () => {
       expect(getDataAtCol(0)).toEqual([null, null, null, 'A5', 'A1', 'A9', 'A6', 'A3', 'A7', 'A2', 'A8', 'A4', 'A10']);
     });
 
-    it('should update hidden row indexes after rows insertion (inserting rows between already hidden rows)', () => {
+    it('should update hidden row indexes after rows insertion (inserting rows between already hidden rows)', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 1),
+        data: createSpreadsheetData(10, 1),
         rowHeaders: true,
         hiddenRows: {
           indicators: true,

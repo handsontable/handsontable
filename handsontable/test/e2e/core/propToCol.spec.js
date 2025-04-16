@@ -14,7 +14,7 @@ describe('Core.propToCol', () => {
 
   it('should return valid index for newly added column when manualColumnMove is enabled', () => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 10),
+      data: createSpreadsheetData(10, 10),
       manualColumnMove: true,
     });
 
@@ -26,7 +26,7 @@ describe('Core.propToCol', () => {
 
   it('should return proper value after calling the function when columns was reorganized (data is array of arrays)', () => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5)
+      data: createSpreadsheetData(5, 5)
     });
 
     hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);

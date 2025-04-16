@@ -13,7 +13,7 @@ describe('NestedRows keyboard shortcut', () => {
   });
 
   describe('"Enter"', () => {
-    it('should not be possible to collapse or expand non-visible row', () => {
+    it('should not be possible to collapse or expand non-visible row', async() => {
       handsontable({
         data: getMoreComplexNestedData(),
         colHeaders: true,
@@ -27,8 +27,8 @@ describe('NestedRows keyboard shortcut', () => {
       hidingMap.setValueAtIndex(0, true);
 
       render();
-      selectCell(0, -1);
-      keyDownUp('enter');
+      await selectCell(0, -1);
+      await keyDownUp('enter');
 
       expect(getData()).toEqual([
         ['a0', 'b0'],
@@ -47,7 +47,7 @@ describe('NestedRows keyboard shortcut', () => {
       ]);
     });
 
-    it('should be possible to collapse nested rows', () => {
+    it('should be possible to collapse nested rows', async() => {
       handsontable({
         data: getMoreComplexNestedData(),
         colHeaders: true,
@@ -56,8 +56,8 @@ describe('NestedRows keyboard shortcut', () => {
         nestedRows: true
       });
 
-      selectCell(4, -1);
-      keyDownUp('enter');
+      await selectCell(4, -1);
+      await keyDownUp('enter');
 
       expect(getData()).toEqual([
         ['a0', 'b0'],
@@ -75,8 +75,8 @@ describe('NestedRows keyboard shortcut', () => {
         ['a2-a1-a1', 'b2-b1-b1'],
       ]);
 
-      selectCell(3, -1);
-      keyDownUp('enter');
+      await selectCell(3, -1);
+      await keyDownUp('enter');
 
       expect(getData()).toEqual([
         ['a0', 'b0'],
@@ -94,8 +94,8 @@ describe('NestedRows keyboard shortcut', () => {
         ['a2-a1-a1', 'b2-b1-b1'],
       ]);
 
-      selectCell(0, -1);
-      keyDownUp('enter');
+      await selectCell(0, -1);
+      await keyDownUp('enter');
 
       expect(getData()).toEqual([
         ['a0', 'b0'],
@@ -113,8 +113,8 @@ describe('NestedRows keyboard shortcut', () => {
         ['a2-a1-a1', 'b2-b1-b1'],
       ]);
 
-      selectCell(2, -1);
-      keyDownUp('enter');
+      await selectCell(2, -1);
+      await keyDownUp('enter');
 
       expect(getData()).toEqual([
         ['a0', 'b0'],
@@ -133,7 +133,7 @@ describe('NestedRows keyboard shortcut', () => {
       ]);
     });
 
-    it('should be possible to collapse a single row when a single row header is selected', () => {
+    it('should be possible to collapse a single row when a single row header is selected', async() => {
       handsontable({
         data: getMoreComplexNestedData(),
         colHeaders: true,
@@ -142,9 +142,9 @@ describe('NestedRows keyboard shortcut', () => {
         nestedRows: true
       });
 
-      selectCell(0, -1);
-      listen();
-      keyDownUp('enter');
+      await selectCell(0, -1);
+      await listen();
+      await keyDownUp('enter');
 
       expect(getData()).toEqual([
         ['a0', 'b0'],
@@ -163,7 +163,7 @@ describe('NestedRows keyboard shortcut', () => {
       ]);
     });
 
-    it('should be possible to collapse a single row when a single row header is selected and ColumnSorting plugin is enabled (#dev-1817)', () => {
+    it('should be possible to collapse a single row when a single row header is selected and ColumnSorting plugin is enabled (#dev-1817)', async() => {
       handsontable({
         data: getMoreComplexNestedData(),
         colHeaders: true,
@@ -173,9 +173,9 @@ describe('NestedRows keyboard shortcut', () => {
         columnSorting: true,
       });
 
-      selectCell(0, -1);
-      listen();
-      keyDownUp('enter');
+      await selectCell(0, -1);
+      await listen();
+      await keyDownUp('enter');
 
       expect(getData()).toEqual([
         ['a0', 'b0'],
@@ -194,7 +194,7 @@ describe('NestedRows keyboard shortcut', () => {
       ]);
     });
 
-    it('should not be possible to collapse a single row when a range of the rows are selected', () => {
+    it('should not be possible to collapse a single row when a range of the rows are selected', async() => {
       handsontable({
         data: getMoreComplexNestedData(),
         colHeaders: true,
@@ -203,9 +203,9 @@ describe('NestedRows keyboard shortcut', () => {
         nestedRows: true
       });
 
-      selectRows(0, 4, -1);
-      listen();
-      keyDownUp('enter');
+      await selectRows(0, 4, -1);
+      await listen();
+      await keyDownUp('enter');
 
       expect(getData()).toEqual([
         ['a0', 'b0'],
@@ -224,7 +224,7 @@ describe('NestedRows keyboard shortcut', () => {
       ]);
     });
 
-    it('should be possible to expand all nested rows', () => {
+    it('should be possible to expand all nested rows', async() => {
       handsontable({
         data: getMoreComplexNestedData(),
         colHeaders: true,
@@ -238,8 +238,8 @@ describe('NestedRows keyboard shortcut', () => {
       getPlugin('nestedRows').collapsingUI.collapseChildren(10);
       getPlugin('nestedRows').collapsingUI.collapseChildren(8);
 
-      selectCell(2, -1);
-      keyDownUp('enter');
+      await selectCell(2, -1);
+      await keyDownUp('enter');
 
       expect(getData()).toEqual([
         ['a0', 'b0'],
@@ -257,8 +257,8 @@ describe('NestedRows keyboard shortcut', () => {
         // ['a2-a1-a1', 'b2-b1-b1'],
       ]);
 
-      selectCell(0, -1);
-      keyDownUp('enter');
+      await selectCell(0, -1);
+      await keyDownUp('enter');
 
       expect(getData()).toEqual([
         ['a0', 'b0'],
@@ -276,8 +276,8 @@ describe('NestedRows keyboard shortcut', () => {
         // ['a2-a1-a1', 'b2-b1-b1'],
       ]);
 
-      selectCell(8, -1);
-      keyDownUp('enter');
+      await selectCell(8, -1);
+      await keyDownUp('enter');
 
       expect(getData()).toEqual([
         ['a0', 'b0'],
@@ -295,8 +295,8 @@ describe('NestedRows keyboard shortcut', () => {
         ['a2-a1-a1', 'b2-b1-b1'],
       ]);
 
-      selectCell(3, -1);
-      keyDownUp('enter');
+      await selectCell(3, -1);
+      await keyDownUp('enter');
 
       expect(getData()).toEqual([
         ['a0', 'b0'],
@@ -315,7 +315,7 @@ describe('NestedRows keyboard shortcut', () => {
       ]);
     });
 
-    it('should be possible to expand a single row when a row header is selected', () => {
+    it('should be possible to expand a single row when a row header is selected', async() => {
       handsontable({
         data: getMoreComplexNestedData(),
         colHeaders: true,
@@ -326,9 +326,9 @@ describe('NestedRows keyboard shortcut', () => {
 
       getPlugin('nestedRows').collapsingUI.collapseChildren(0);
 
-      selectCell(0, -1);
-      listen();
-      keyDownUp('enter');
+      await selectCell(0, -1);
+      await listen();
+      await keyDownUp('enter');
 
       expect(getData()).toEqual([
         ['a0', 'b0'],
@@ -347,7 +347,7 @@ describe('NestedRows keyboard shortcut', () => {
       ]);
     });
 
-    it('should not be possible to expand a single row when a range of rows are selected', () => {
+    it('should not be possible to expand a single row when a range of rows are selected', async() => {
       handsontable({
         data: getMoreComplexNestedData(),
         colHeaders: true,
@@ -358,9 +358,9 @@ describe('NestedRows keyboard shortcut', () => {
 
       getPlugin('nestedRows').collapsingUI.collapseChildren(0);
 
-      selectRows(0, 4, -1);
-      listen();
-      keyDownUp('enter');
+      await selectRows(0, 4, -1);
+      await listen();
+      await keyDownUp('enter');
 
       expect(getData()).toEqual([
         ['a0', 'b0'],
@@ -373,7 +373,7 @@ describe('NestedRows keyboard shortcut', () => {
       ]);
     });
 
-    it('should be possible to collapse/expand only nested rows', () => {
+    it('should be possible to collapse/expand only nested rows', async() => {
       handsontable({
         data: getMoreComplexNestedData(),
         colHeaders: true,
@@ -382,8 +382,8 @@ describe('NestedRows keyboard shortcut', () => {
         nestedRows: true,
       });
 
-      selectCell(-1, -1); // corner
-      keyDownUp('enter');
+      await selectCell(-1, -1); // corner
+      await keyDownUp('enter');
 
       expect(getData()).toEqual([
         ['a0', 'b0'],
@@ -401,8 +401,8 @@ describe('NestedRows keyboard shortcut', () => {
         ['a2-a1-a1', 'b2-b1-b1'],
       ]);
 
-      selectCell(-1, 1); // column header
-      keyDownUp('enter');
+      await selectCell(-1, 1); // column header
+      await keyDownUp('enter');
 
       expect(getData()).toEqual([
         ['a0', 'b0'],
@@ -420,8 +420,8 @@ describe('NestedRows keyboard shortcut', () => {
         ['a2-a1-a1', 'b2-b1-b1'],
       ]);
 
-      selectCell(2, -1); // non nested header
-      keyDownUp('enter');
+      await selectCell(2, -1); // non nested header
+      await keyDownUp('enter');
 
       expect(getData()).toEqual([
         ['a0', 'b0'],
@@ -440,7 +440,7 @@ describe('NestedRows keyboard shortcut', () => {
       ]);
     });
 
-    it('should not trigger the editor to be opened', () => {
+    it('should not trigger the editor to be opened', async() => {
       handsontable({
         data: getMoreComplexNestedData(),
         colHeaders: true,
@@ -449,8 +449,8 @@ describe('NestedRows keyboard shortcut', () => {
         nestedRows: true
       });
 
-      selectCell(0, -1);
-      keyDownUp('enter');
+      await selectCell(0, -1);
+      await keyDownUp('enter');
 
       expect(getActiveEditor()).toBeUndefined();
     });

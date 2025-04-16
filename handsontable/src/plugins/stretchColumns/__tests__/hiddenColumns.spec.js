@@ -10,7 +10,7 @@ describe('StretchColumns cooperation with hidden columns', () => {
     }
   });
 
-  it('should stretch only visible columns (ignore hidden ones)', () => {
+  it('should stretch only visible columns (ignore hidden ones)', async() => {
     handsontable({
       data: createSpreadsheetData(5, 9),
       colHeaders: true,

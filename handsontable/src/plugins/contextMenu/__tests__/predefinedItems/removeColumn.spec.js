@@ -13,7 +13,7 @@ describe('ContextMenu', () => {
   });
 
   describe('remove columns', () => {
-    it('should remove column of the clicked column header', () => {
+    it('should remove column of the clicked column header', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
@@ -21,7 +21,7 @@ describe('ContextMenu', () => {
         contextMenu: true,
       });
 
-      contextMenu(getCell(-1, 1, true));
+      await contextMenu(getCell(-1, 1, true));
 
       const item = selectContextMenuOption('Remove column');
 
@@ -38,7 +38,7 @@ describe('ContextMenu', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should not remove column when the menu is triggered by row header', () => {
+    it('should not remove column when the menu is triggered by row header', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
@@ -46,7 +46,7 @@ describe('ContextMenu', () => {
         contextMenu: true,
       });
 
-      contextMenu(getCell(1, -1, true));
+      await contextMenu(getCell(1, -1, true));
 
       const item = selectContextMenuOption('Remove column');
 
@@ -63,7 +63,7 @@ describe('ContextMenu', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should not remove column when the menu is triggered by focused row header', () => {
+    it('should not remove column when the menu is triggered by focused row header', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
@@ -72,7 +72,7 @@ describe('ContextMenu', () => {
         navigableHeaders: true,
       });
 
-      selectCell(1, -1);
+      await selectCell(1, -1);
       getPlugin('contextMenu').open({ top: 0, left: 0 });
 
       const item = selectContextMenuOption('Remove column');
@@ -81,7 +81,7 @@ describe('ContextMenu', () => {
       expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1']);
     });
 
-    it('should not remove column when the menu is triggered by focused corner', () => {
+    it('should not remove column when the menu is triggered by focused corner', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
@@ -90,7 +90,7 @@ describe('ContextMenu', () => {
         navigableHeaders: true,
       });
 
-      selectCell(-1, -1);
+      await selectCell(-1, -1);
       getPlugin('contextMenu').open({ top: 0, left: 0 });
 
       const item = selectContextMenuOption('Remove column');
@@ -99,7 +99,7 @@ describe('ContextMenu', () => {
       expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1']);
     });
 
-    it('should remove column when the menu is triggered by focused column header', () => {
+    it('should remove column when the menu is triggered by focused column header', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
@@ -108,7 +108,7 @@ describe('ContextMenu', () => {
         navigableHeaders: true,
       });
 
-      selectCell(-1, 1);
+      await selectCell(-1, 1);
       getPlugin('contextMenu').open({ top: 0, left: 0 });
 
       const item = selectContextMenuOption('Remove column');
@@ -117,7 +117,7 @@ describe('ContextMenu', () => {
       expect(getDataAtRow(0)).toEqual(['A1', 'C1', 'D1', 'E1']);
     });
 
-    it('should remove all columns when the menu is triggered by corner (dataset as an array of arrays)', () => {
+    it('should remove all columns when the menu is triggered by corner (dataset as an array of arrays)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
@@ -125,7 +125,7 @@ describe('ContextMenu', () => {
         contextMenu: true,
       });
 
-      contextMenu(getCell(-1, -1, true));
+      await contextMenu(getCell(-1, -1, true));
 
       const item = selectContextMenuOption('Remove column');
 
@@ -142,7 +142,7 @@ describe('ContextMenu', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should not remove all columns when the menu is triggered by corner (dataset as an array of objects)', () => {
+    it('should not remove all columns when the menu is triggered by corner (dataset as an array of objects)', async() => {
       handsontable({
         data: createSpreadsheetObjectData(5, 5),
         colHeaders: true,
@@ -150,7 +150,7 @@ describe('ContextMenu', () => {
         contextMenu: true,
       });
 
-      contextMenu(getCell(-1, -1, true));
+      await contextMenu(getCell(-1, -1, true));
 
       const item = selectContextMenuOption('Remove column');
 
@@ -166,7 +166,7 @@ describe('ContextMenu', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should remove all columns when the menu is triggered by corner and all rows are trimmed', () => {
+    it('should remove all columns when the menu is triggered by corner and all rows are trimmed', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
@@ -175,7 +175,7 @@ describe('ContextMenu', () => {
         trimRows: [0, 1, 2, 3, 4],
       });
 
-      contextMenu(getCell(-1, -1, true));
+      await contextMenu(getCell(-1, -1, true));
 
       const item = selectContextMenuOption('Remove column');
 
@@ -187,7 +187,7 @@ describe('ContextMenu', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should not remove columns when the menu is triggered by corner and all columns are trimmed', () => {
+    it('should not remove columns when the menu is triggered by corner and all columns are trimmed', async() => {
       handsontable({
         data: createSpreadsheetData(5, 0),
         dataSchema: [], // Unlocks adding new rows through the context menu.
@@ -196,7 +196,7 @@ describe('ContextMenu', () => {
         contextMenu: true,
       });
 
-      contextMenu(getCell(-1, -1, true));
+      await contextMenu(getCell(-1, -1, true));
 
       const item = selectContextMenuOption('Remove column');
 
@@ -212,7 +212,7 @@ describe('ContextMenu', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should not remove columns when the menu is triggered by corner and dataset is empty', () => {
+    it('should not remove columns when the menu is triggered by corner and dataset is empty', async() => {
       handsontable({
         data: createSpreadsheetData(0, 0),
         dataSchema: [], // Unlocks adding new rows through the context menu.
@@ -221,7 +221,7 @@ describe('ContextMenu', () => {
         contextMenu: true,
       });
 
-      contextMenu(getCell(-1, -1, true));
+      await contextMenu(getCell(-1, -1, true));
 
       const item = selectContextMenuOption('Remove column');
 
@@ -232,7 +232,7 @@ describe('ContextMenu', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should remove column from the single cell', () => {
+    it('should remove column from the single cell', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
@@ -240,7 +240,7 @@ describe('ContextMenu', () => {
         contextMenu: true,
       });
 
-      contextMenu(getCell(1, 1));
+      await contextMenu(getCell(1, 1));
 
       const item = selectContextMenuOption('Remove column');
 
@@ -257,7 +257,7 @@ describe('ContextMenu', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should remove rows from the multiple selection range', () => {
+    it('should remove rows from the multiple selection range', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
@@ -265,8 +265,8 @@ describe('ContextMenu', () => {
         contextMenu: true,
       });
 
-      selectCell(2, 2, 4, 4);
-      contextMenu(getCell(2, 2));
+      await selectCell(2, 2, 4, 4);
+      await contextMenu(getCell(2, 2));
 
       const item = selectContextMenuOption('Remove column');
 
@@ -283,7 +283,7 @@ describe('ContextMenu', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should remove columns from the non-contiques selection range', () => {
+    it('should remove columns from the non-contiques selection range', async() => {
       handsontable({
         data: createSpreadsheetData(8, 8),
         colHeaders: true,
@@ -295,7 +295,7 @@ describe('ContextMenu', () => {
       mouseOver(getCell(1, 0));
       mouseUp(getCell(1, 0));
 
-      keyDown('control/meta');
+      await keyDown('control/meta');
 
       mouseDown(getCell(2, 1));
       mouseOver(getCell(2, 1));
@@ -328,7 +328,7 @@ describe('ContextMenu', () => {
         | - ║   :   :   :   : A :   :   :   |
         `).toBeMatchToSelectionPattern();
 
-      contextMenu();
+      await contextMenu();
 
       const item = selectContextMenuOption('Remove column');
 

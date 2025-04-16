@@ -13,13 +13,13 @@ describe('Search plugin', () => {
   });
 
   describe('enabling/disabling plugin', () => {
-    it('should be disabled by default', () => {
+    it('should be disabled by default', async() => {
       const hot = handsontable();
 
       expect(hot.getPlugin('search').isEnabled()).toBe(false);
     });
 
-    it('should disable plugin using updateSettings', () => {
+    it('should disable plugin using updateSettings', async() => {
       const hot = handsontable({
         search: true
       });
@@ -31,7 +31,7 @@ describe('Search plugin', () => {
       expect(hot.getPlugin('search').isEnabled()).toBe(false);
     });
 
-    it('should enable plugin using updateSettings', () => {
+    it('should enable plugin using updateSettings', async() => {
       const hot = handsontable({
         search: false
       });
@@ -43,9 +43,9 @@ describe('Search plugin', () => {
       expect(hot.getPlugin('search')).toBeDefined();
     });
 
-    it('should remove default search result class to cells when disable plugin', () => {
+    it('should remove default search result class to cells when disable plugin', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        data: createSpreadsheetData(3, 3),
         search: true
       });
 
@@ -101,9 +101,9 @@ describe('Search plugin', () => {
   });
 
   describe('query method', () => {
-    it('should use the default query method if no queryMethod is passed to query function', () => {
+    it('should use the default query method if no queryMethod is passed to query function', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         search: true
       });
 
@@ -116,7 +116,7 @@ describe('Search plugin', () => {
       expect(queryMethod.calls.count()).toEqual(25);
     });
 
-    it('should handle locales properly while using default query method', () => {
+    it('should handle locales properly while using default query method', async() => {
       let result;
       const hot = handsontable({
         data: [
@@ -148,11 +148,11 @@ describe('Search plugin', () => {
       })]);
     });
 
-    it('should use the custom default query method if no queryMethod is passed to query function', () => {
+    it('should use the custom default query method if no queryMethod is passed to query function', async() => {
       const customQueryMethod = jasmine.createSpy('customQueryMethod');
 
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         search: true
       });
 
@@ -163,11 +163,11 @@ describe('Search plugin', () => {
       expect(customQueryMethod.calls.count()).toEqual(25);
     });
 
-    it('should use the query method from the constructor if no queryMethod is passed to query function', () => {
+    it('should use the query method from the constructor if no queryMethod is passed to query function', async() => {
       const customQueryMethod = jasmine.createSpy('customQueryMethod');
 
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         search: {
           queryMethod: customQueryMethod
         }
@@ -178,11 +178,11 @@ describe('Search plugin', () => {
       expect(customQueryMethod.calls.count()).toEqual(25);
     });
 
-    it('should use method passed to query function', () => {
+    it('should use method passed to query function', async() => {
       const customQueryMethod = jasmine.createSpy('customQueryMethod');
 
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         search: true
       });
 
@@ -191,11 +191,11 @@ describe('Search plugin', () => {
       expect(customQueryMethod.calls.count()).toEqual(25);
     });
 
-    it('should pass search string and cell params to the query method', () => {
+    it('should pass search string and cell params to the query method', async() => {
       const customQueryMethod = jasmine.createSpy('customQueryMethod');
 
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         search: true
       });
 
@@ -241,9 +241,9 @@ describe('Search plugin', () => {
 
   describe('default query method', () => {
 
-    it('should use query method to find phrase', () => {
+    it('should use query method to find phrase', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         search: true
       });
 
@@ -258,9 +258,9 @@ describe('Search plugin', () => {
       }
     });
 
-    it('default query method should be case insensitive', () => {
+    it('default query method should be case insensitive', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         search: true
       });
 
@@ -273,7 +273,7 @@ describe('Search plugin', () => {
       expect(searchResult.length).toEqual(5);
     });
 
-    it('default query method should work with numeric values', () => {
+    it('default query method should work with numeric values', async() => {
       const hot = handsontable({
         data: [
           [1, 2],
@@ -287,9 +287,9 @@ describe('Search plugin', () => {
       expect(searchResult.length).toEqual(2);
     });
 
-    it('default query method should interpret query as string, not regex', () => {
+    it('default query method should interpret query as string, not regex', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         search: true
       });
 
@@ -298,9 +298,9 @@ describe('Search plugin', () => {
       expect(searchResult.length).toEqual(0);
     });
 
-    it('default query method should always return false if query string is empty', () => {
+    it('default query method should always return false if query string is empty', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         search: true
       });
 
@@ -313,9 +313,9 @@ describe('Search plugin', () => {
       expect(searchResult.length).toEqual(0);
     });
 
-    it('default query method should always return false if no query string has been specified', () => {
+    it('default query method should always return false if no query string has been specified', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         search: true
       });
 
@@ -328,9 +328,9 @@ describe('Search plugin', () => {
       expect(searchResult.length).toEqual(0);
     });
 
-    it('default query method should always return false if no query string is not a string', () => {
+    it('default query method should always return false if no query string is not a string', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         search: true
       });
 
@@ -346,9 +346,9 @@ describe('Search plugin', () => {
 
   describe('search callback', () => {
 
-    it('should invoke default callback for each cell', () => {
+    it('should invoke default callback for each cell', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         search: true
       });
 
@@ -361,9 +361,9 @@ describe('Search plugin', () => {
       expect(callback.calls.count()).toEqual(25);
     });
 
-    it('should change the default callback', () => {
+    it('should change the default callback', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         search: true
       });
 
@@ -382,11 +382,11 @@ describe('Search plugin', () => {
       expect(newCallback.calls.count()).toEqual(25);
     });
 
-    it('should invoke callback passed in constructor', () => {
+    it('should invoke callback passed in constructor', async() => {
       const searchCallback = jasmine.createSpy('searchCallback');
 
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         search: {
           callback: searchCallback
         }
@@ -397,9 +397,9 @@ describe('Search plugin', () => {
       expect(searchCallback.calls.count()).toEqual(25);
     });
 
-    it('should invoke custom callback for each cell which has been tested', () => {
+    it('should invoke custom callback for each cell which has been tested', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(2, 2),
+        data: createSpreadsheetData(2, 2),
         search: true
       });
 
@@ -416,9 +416,9 @@ describe('Search plugin', () => {
   });
 
   describe('default search callback', () => {
-    it('should add isSearchResult = true, to cell properties of all matched cells', () => {
+    it('should add isSearchResult = true, to cell properties of all matched cells', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        data: createSpreadsheetData(3, 3),
         search: true
       });
 
@@ -449,10 +449,10 @@ describe('Search plugin', () => {
   });
 
   describe('search result decorator', () => {
-    it('should add default search result class to cells which mach the query', () => {
+    it('should add default search result class to cells which mach the query', async() => {
 
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        data: createSpreadsheetData(3, 3),
         search: true
       });
 
@@ -483,9 +483,9 @@ describe('Search plugin', () => {
       expect($(cell).hasClass(searchResultClass)).toBe(false);
     });
 
-    it('should add custom search result class to cells which mach the query', () => {
+    it('should add custom search result class to cells which mach the query', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        data: createSpreadsheetData(3, 3),
         search: {
           searchResultClass: 'customSearchResultClass'
         }
@@ -518,9 +518,9 @@ describe('Search plugin', () => {
   });
 
   describe('HOT properties compatibility', () => {
-    it('should work properly when the last row is empty', () => { // connected with https://github.com/handsontable/handsontable/issues/1606
+    it('should work properly when the last row is empty', async() => { // connected with https://github.com/handsontable/handsontable/issues/1606
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         colHeaders: true,
         search: true,
         minSpareRows: 1
@@ -538,10 +538,10 @@ describe('Search plugin', () => {
   });
 
   describe('cellProperties.className', () => {
-    it('should add default search result class to cells when we have classes in array', () => {
+    it('should add default search result class to cells when we have classes in array', async() => {
 
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        data: createSpreadsheetData(3, 3),
         search: true,
         columns() {
           return {
@@ -575,10 +575,10 @@ describe('Search plugin', () => {
       expect(cellClassName).toBe('columns cell');
     });
 
-    it('should add default search result class to cells when we have class in string', () => {
+    it('should add default search result class to cells when we have class in string', async() => {
 
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        data: createSpreadsheetData(3, 3),
         search: true,
         className: 'cell',
       });

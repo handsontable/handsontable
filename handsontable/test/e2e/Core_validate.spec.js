@@ -400,7 +400,7 @@ describe('Core_validate', () => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      data: createSpreadsheetData(2, 2),
       validator(value, callb) {
         if (value === 'B1') {
           callb(false);
@@ -423,7 +423,7 @@ describe('Core_validate', () => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      data: createSpreadsheetData(2, 2),
       validator(value, callb) {
         callb(true);
       },
@@ -440,7 +440,7 @@ describe('Core_validate', () => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      data: createSpreadsheetData(2, 2),
       validator(value, callb) {
         callb(true);
       },
@@ -457,7 +457,7 @@ describe('Core_validate', () => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      data: createSpreadsheetData(2, 2),
       validator(value, callb) {
         callb(true);
       },
@@ -473,7 +473,7 @@ describe('Core_validate', () => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      data: createSpreadsheetData(2, 2),
       validator(value, callb) {
         callb(true);
       },
@@ -489,7 +489,7 @@ describe('Core_validate', () => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      data: createSpreadsheetData(2, 2),
       validator(value, callb) {
         if (value === 'B1') {
           callb(false);
@@ -514,7 +514,7 @@ describe('Core_validate', () => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      data: createSpreadsheetData(2, 2),
       validator(value, callb) {
         if (value === 'B1') {
           callb(false);
@@ -534,7 +534,7 @@ describe('Core_validate', () => {
     expect(spec().$container.find('td.htInvalid').length).toEqual(0);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(4);
 
-    loadData(Handsontable.helper.createSpreadsheetData(2, 2));
+    loadData(createSpreadsheetData(2, 2));
 
     validateRows([0], () => {
       render();
@@ -545,7 +545,7 @@ describe('Core_validate', () => {
     expect(spec().$container.find('td.htInvalid').length).toEqual(1);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(3);
 
-    loadData(Handsontable.helper.createSpreadsheetData(2, 2));
+    loadData(createSpreadsheetData(2, 2));
 
     validateRows([1], () => {
       render();
@@ -556,7 +556,7 @@ describe('Core_validate', () => {
     expect(spec().$container.find('td.htInvalid').length).toEqual(0);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(4);
 
-    loadData(Handsontable.helper.createSpreadsheetData(2, 2));
+    loadData(createSpreadsheetData(2, 2));
 
     validateRows([0, 1], () => {
       render();
@@ -567,7 +567,7 @@ describe('Core_validate', () => {
     expect(spec().$container.find('td.htInvalid').length).toEqual(1);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(3);
 
-    loadData(Handsontable.helper.createSpreadsheetData(2, 2));
+    loadData(createSpreadsheetData(2, 2));
 
     validateRows([0, 1, 100], () => {
       render();
@@ -578,7 +578,7 @@ describe('Core_validate', () => {
     expect(spec().$container.find('td.htInvalid').length).toEqual(1);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(3);
 
-    loadData(Handsontable.helper.createSpreadsheetData(2, 2));
+    loadData(createSpreadsheetData(2, 2));
 
     validateRows([100, 101], () => {
       render();
@@ -594,7 +594,7 @@ describe('Core_validate', () => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      data: createSpreadsheetData(2, 2),
       validator(value, callb) {
         if (value === 'B1') {
           callb(false);
@@ -610,35 +610,35 @@ describe('Core_validate', () => {
     expect(spec().$container.find('td.htInvalid').length).toEqual(0);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(4);
 
-    loadData(Handsontable.helper.createSpreadsheetData(2, 2));
+    loadData(createSpreadsheetData(2, 2));
 
     await promisfy(resolve => validateColumns([0], resolve));
 
     expect(spec().$container.find('td.htInvalid').length).toEqual(0);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(4);
 
-    loadData(Handsontable.helper.createSpreadsheetData(2, 2));
+    loadData(createSpreadsheetData(2, 2));
 
     await promisfy(resolve => validateColumns([1], resolve));
 
     expect(spec().$container.find('td.htInvalid').length).toEqual(1);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(3);
 
-    loadData(Handsontable.helper.createSpreadsheetData(2, 2));
+    loadData(createSpreadsheetData(2, 2));
 
     await promisfy(resolve => validateColumns([0, 1], resolve));
 
     expect(spec().$container.find('td.htInvalid').length).toEqual(1);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(3);
 
-    loadData(Handsontable.helper.createSpreadsheetData(2, 2));
+    loadData(createSpreadsheetData(2, 2));
 
     await promisfy(resolve => validateColumns([0, 1, 100], resolve));
 
     expect(spec().$container.find('td.htInvalid').length).toEqual(1);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(3);
 
-    loadData(Handsontable.helper.createSpreadsheetData(2, 2));
+    loadData(createSpreadsheetData(2, 2));
 
     await promisfy(resolve => validateColumns([100, 101], resolve));
 
@@ -650,7 +650,7 @@ describe('Core_validate', () => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      data: createSpreadsheetData(2, 2),
       validator(value, cb) {
         cb(false);
       },
@@ -675,7 +675,7 @@ describe('Core_validate', () => {
     };
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      data: createSpreadsheetData(2, 2),
       validator(value, cb) {
         cb(validator());
       },
@@ -703,7 +703,7 @@ describe('Core_validate', () => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      data: createSpreadsheetData(2, 2),
       validator(value, callb) {
         if (value === 'test') {
           callb(false);
@@ -726,7 +726,7 @@ describe('Core_validate', () => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      data: createSpreadsheetData(2, 2),
       validator(value, callb) {
         if (value === 'test') {
           callb(false);
@@ -756,7 +756,7 @@ describe('Core_validate', () => {
     let allowChange = true;
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      data: createSpreadsheetData(2, 2),
       validator(value, callb) {
         if (value === 'test') {
           callb(false);
@@ -807,7 +807,7 @@ describe('Core_validate', () => {
     });
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      data: createSpreadsheetData(2, 2),
       type: 'numeric',
       validator,
       afterValidate: onAfterValidate
@@ -834,7 +834,7 @@ describe('Core_validate', () => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      data: createSpreadsheetData(2, 2),
       afterValidate: onAfterValidate
     });
 
@@ -868,7 +868,7 @@ describe('Core_validate', () => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      data: createSpreadsheetData(2, 2),
       afterValidate: onAfterValidate
     });
 
@@ -902,7 +902,7 @@ describe('Core_validate', () => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      data: createSpreadsheetData(2, 2),
       afterValidate: onAfterValidate
     });
 
@@ -936,7 +936,7 @@ describe('Core_validate', () => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      data: createSpreadsheetData(2, 2),
       validator(value, callb) {
         if (value === 'A1') {
           callb(false);
@@ -968,7 +968,7 @@ describe('Core_validate', () => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      data: createSpreadsheetData(2, 2),
       validator(value, callback) {
         callback(true);
       },
@@ -987,7 +987,7 @@ describe('Core_validate', () => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      data: createSpreadsheetData(2, 2),
       validator(value, callback) {
         callback(true);
       },
@@ -1006,7 +1006,7 @@ describe('Core_validate', () => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      data: createSpreadsheetData(2, 2),
       validator(value, callback) {
         callback(true);
       },
@@ -1025,7 +1025,7 @@ describe('Core_validate', () => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      data: createSpreadsheetData(2, 2),
       validator(value, callback) {
         callback(false);
       },
@@ -1044,7 +1044,7 @@ describe('Core_validate', () => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      data: createSpreadsheetData(2, 2),
       validator(value, callback) {
         callback(false);
       },
@@ -1063,7 +1063,7 @@ describe('Core_validate', () => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      data: createSpreadsheetData(2, 2),
       validator(value, callback) {
         callback(false);
       },
@@ -1081,7 +1081,7 @@ describe('Core_validate', () => {
     let validatedChanges;
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 2),
+      data: createSpreadsheetData(5, 2),
       allowInvalid: false,
       validator(value, callb) {
         setTimeout(() => {
@@ -1122,7 +1122,7 @@ describe('Core_validate', () => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
     const onBeforeChange = jasmine.createSpy('onBeforeChange');
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 2),
+      data: createSpreadsheetData(5, 2),
       allowInvalid: false,
       validator(value, callback) {
         callback(true);
@@ -1144,7 +1144,7 @@ describe('Core_validate', () => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
     const onBeforeChange = jasmine.createSpy('onBeforeChange');
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 2),
+      data: createSpreadsheetData(5, 2),
       allowInvalid: false,
       validator(value, callback) {
         setTimeout(() => {
@@ -1168,7 +1168,7 @@ describe('Core_validate', () => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
     const onAfterChange = jasmine.createSpy('onAfterChange');
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 2),
+      data: createSpreadsheetData(5, 2),
       allowInvalid: false,
       validator(value, callback) {
         callback(true);
@@ -1190,7 +1190,7 @@ describe('Core_validate', () => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
     const onAfterChange = jasmine.createSpy('onAfterChange');
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 2),
+      data: createSpreadsheetData(5, 2),
       allowInvalid: false,
       validator(value, callback) {
         setTimeout(() => {
@@ -1224,7 +1224,7 @@ describe('Core_validate', () => {
     });
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 2),
+      data: createSpreadsheetData(5, 2),
       allowInvalid: false,
       afterValidate: onAfterValidate,
       afterChange: onAfterChange,
@@ -1268,7 +1268,7 @@ describe('Core_validate', () => {
     });
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 2),
+      data: createSpreadsheetData(5, 2),
       allowInvalid: false,
       afterValidate: onAfterValidate,
       afterChange: onAfterChange,
@@ -1302,7 +1302,7 @@ describe('Core_validate', () => {
     let validatedValue;
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 2),
+      data: createSpreadsheetData(5, 2),
       allowInvalid: false,
       validator(value, callback) {
         setTimeout(() => {
@@ -1327,7 +1327,7 @@ describe('Core_validate', () => {
     let validationResult;
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 2),
+      data: createSpreadsheetData(5, 2),
       allowInvalid: false,
       validator(value, callback) {
         setTimeout(() => {
@@ -1353,7 +1353,7 @@ describe('Core_validate', () => {
     let validationResult;
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 2),
+      data: createSpreadsheetData(5, 2),
       allowInvalid: false,
       validator(value, callback) {
         validationResult = value.length === 2;
@@ -1377,7 +1377,7 @@ describe('Core_validate', () => {
     let validationResult;
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 2),
+      data: createSpreadsheetData(5, 2),
       allowInvalid: false,
       validator(value, callback) {
         setTimeout(() => {
@@ -1403,7 +1403,7 @@ describe('Core_validate', () => {
     let validationResult;
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 2),
+      data: createSpreadsheetData(5, 2),
       allowInvalid: false,
       validator(value, callback) {
         validationResult = value.length === 2;
@@ -1425,7 +1425,7 @@ describe('Core_validate', () => {
 
   it('should remove htInvalid class properly after cancelling change, when physical indexes are not equal to visual indexes', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 2),
+      data: createSpreadsheetData(5, 2),
       columnSorting: {
         column: 0,
         sortOrder: 'desc'
@@ -1453,7 +1453,7 @@ describe('Core_validate', () => {
 
   it('should not attempt to remove the htInvalid class if the validated cell is no longer rendered', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(20, 2),
+      data: createSpreadsheetData(20, 2),
       columnSorting: {
         column: 0,
         sortOrder: 'desc'
@@ -1484,7 +1484,7 @@ describe('Core_validate', () => {
     let validationResult;
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 2),
+      data: createSpreadsheetData(5, 2),
       allowInvalid: true,
       validator(value, callback) {
         setTimeout(() => {
@@ -1511,7 +1511,7 @@ describe('Core_validate', () => {
     let validationResult;
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 2),
+      data: createSpreadsheetData(5, 2),
       allowInvalid: false,
       validator(value, callback) {
         setTimeout(() => {
@@ -1545,7 +1545,7 @@ describe('Core_validate', () => {
     let validationResult;
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 2),
+      data: createSpreadsheetData(5, 2),
       allowInvalid: false,
       validator(value, callback) {
         setTimeout(() => {
@@ -2229,7 +2229,7 @@ describe('Core_validate', () => {
 
   it('should call the callback in the `done` function using the renderable indexes (passing them to the renderer)', async() => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(1, 4),
+      data: createSpreadsheetData(1, 4),
       hiddenColumns: {
         columns: [1]
       },

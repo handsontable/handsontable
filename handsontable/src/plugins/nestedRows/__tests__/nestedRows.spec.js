@@ -28,7 +28,7 @@ describe('NestedRows', () => {
   });
 
   describe('Displaying a nested structure', () => {
-    it('should display as many rows as there are overall elements in a nested structure', () => {
+    it('should display as many rows as there are overall elements in a nested structure', async() => {
       const hot = handsontable({
         data: getMoreComplexNestedData(),
         nestedRows: true
@@ -37,7 +37,7 @@ describe('NestedRows', () => {
       expect(hot.countRows()).toEqual(13);
     });
 
-    it('should show full dataset when the `Filters` plugin is enabled #5889', () => {
+    it('should show full dataset when the `Filters` plugin is enabled #5889', async() => {
       const hot = handsontable({
         data: getSimplerNestedData(),
         nestedRows: true,
@@ -48,7 +48,7 @@ describe('NestedRows', () => {
     });
 
     it('should display all nested structure elements in correct order (parent, its children, ' +
-      'its children children, next parent etc)', () => {
+      'its children children, next parent etc)', async() => {
       const hot = handsontable({
         data: getMoreComplexNestedData(),
         nestedRows: true
@@ -57,7 +57,7 @@ describe('NestedRows', () => {
       expect(hot.getData()).toEqual(dataInOrder);
     });
 
-    it('should not crash the table, when there\'s no `data` provided', () => {
+    it('should not crash the table, when there\'s no `data` provided', async() => {
       const errors = [];
 
       try {
@@ -85,7 +85,7 @@ describe('NestedRows', () => {
         $('html').attr('dir', 'ltr');
       });
 
-      it.forTheme('classic')('should display indicators properly located', () => {
+      it.forTheme('classic')('should display indicators properly located', async() => {
         const hot = handsontable({
           layoutDirection,
           data: getMoreComplexNestedData(),
@@ -98,7 +98,7 @@ describe('NestedRows', () => {
         expect(window.getComputedStyle($('.ht_nestingCollapse')[0]).right).toEqual('-2px');
       });
 
-      it.forTheme('main')('should display indicators properly located', () => {
+      it.forTheme('main')('should display indicators properly located', async() => {
         const hot = handsontable({
           layoutDirection,
           data: getMoreComplexNestedData(),
@@ -111,7 +111,7 @@ describe('NestedRows', () => {
         expect(window.getComputedStyle($('.ht_nestingCollapse')[0].parentNode).display).toEqual('flex');
       });
 
-      it.forTheme('horizon')('should display indicators properly located', () => {
+      it.forTheme('horizon')('should display indicators properly located', async() => {
         const hot = handsontable({
           layoutDirection,
           data: getMoreComplexNestedData(),
@@ -159,8 +159,8 @@ describe('NestedRows', () => {
         rowHeaderWidth: 70,
       });
 
-      selectCell(2, 0);
-      contextMenu();
+      await selectCell(2, 0);
+      await contextMenu();
       selectContextMenuOption('Insert child row');
 
       expect(getCell(0, -1).offsetWidth).forThemes(({ classic, main, horizon }) => {
@@ -169,8 +169,8 @@ describe('NestedRows', () => {
         horizon.toBe(79);
       });
 
-      selectCell(3, 0);
-      contextMenu();
+      await selectCell(3, 0);
+      await contextMenu();
       selectContextMenuOption('Insert child row');
 
       expect(getCell(0, -1).offsetWidth).forThemes(({ classic, main, horizon }) => {
@@ -179,8 +179,8 @@ describe('NestedRows', () => {
         horizon.toBe(89);
       });
 
-      selectCell(4, 0);
-      contextMenu();
+      await selectCell(4, 0);
+      await contextMenu();
       selectContextMenuOption('Insert child row');
 
       expect(getCell(0, -1).offsetWidth).forThemes(({ classic, main, horizon }) => {
@@ -225,7 +225,7 @@ describe('NestedRows', () => {
     expect(getData()).toEqual([]);
   });
 
-  it('should add child properly', () => {
+  it('should add child properly', async() => {
     handsontable({
       data: getSimplerNestedData(),
       nestedRows: true,
@@ -234,8 +234,8 @@ describe('NestedRows', () => {
 
     expect(countRows()).toEqual(18);
 
-    selectCell(0, 0);
-    contextMenu();
+    await selectCell(0, 0);
+    await contextMenu();
     selectContextMenuOption('Insert child row');
 
     expect(countRows()).toEqual(19);
@@ -250,8 +250,8 @@ describe('NestedRows', () => {
     // Added child.
     expect(getPlugin('nestedRows').dataManager.isParent(6)).toBeFalsy();
 
-    selectCell(1, 0);
-    contextMenu();
+    await selectCell(1, 0);
+    await contextMenu();
     selectContextMenuOption('Insert child row');
 
     expect(countRows()).toEqual(20);
@@ -271,19 +271,19 @@ describe('NestedRows', () => {
     expect(getPlugin('nestedRows').dataManager.isParent(7)).toBeFalsy();
   });
 
-  it('should allow user to detach already added child', () => {
+  it('should allow user to detach already added child', async() => {
     handsontable({
       data: getSimplerNestedData(),
       nestedRows: true,
       contextMenu: true
     });
 
-    selectCell(0, 0);
-    contextMenu();
+    await selectCell(0, 0);
+    await contextMenu();
     selectContextMenuOption('Insert child row');
 
-    selectCell(6, 0);
-    contextMenu();
+    await selectCell(6, 0);
+    await contextMenu();
     selectContextMenuOption('Detach from parent');
 
     expect(getDataAtCell(6, 0)).toEqual('Best Metal Performance');
@@ -293,15 +293,15 @@ describe('NestedRows', () => {
     expect(getPlugin('nestedRows').dataManager.isParent(18)).toBeFalsy();
   });
 
-  it('should allow user to insert row below and above the parent', () => {
+  it('should allow user to insert row below and above the parent', async() => {
     handsontable({
       data: getSimplerNestedData(),
       nestedRows: true,
       contextMenu: true
     });
 
-    selectCell(0, 0);
-    contextMenu();
+    await selectCell(0, 0);
+    await contextMenu();
     selectContextMenuOption('Insert row above');
 
     expect(getDataAtRow(0)).toEqual([null, null, null, null]);
@@ -309,8 +309,8 @@ describe('NestedRows', () => {
     expect(getDataAtRow(2)).toEqual([null, 'Alabama Shakes', 'Don\'t Wanna Fight', 'ATO Records']);
     expect(getDataAtRow(7)).toEqual(['Best Metal Performance', null, null, null]);
 
-    selectCell(1, 0);
-    contextMenu();
+    await selectCell(1, 0);
+    await contextMenu();
     selectContextMenuOption('Insert row below');
 
     expect(getDataAtRow(0)).toEqual([null, null, null, null]);
@@ -320,7 +320,7 @@ describe('NestedRows', () => {
     expect(getDataAtRow(8)).toEqual(['Best Metal Performance', null, null, null]);
   });
 
-  it('should warn user that `moveRow` and `moveRows` methods can\'t be used and they don\'t move data', () => {
+  it('should warn user that `moveRow` and `moveRows` methods can\'t be used and they don\'t move data', async() => {
     const warnSpy = spyOn(console, 'warn');
 
     handsontable({
@@ -362,7 +362,7 @@ describe('NestedRows', () => {
     expect(getData()).toEqual(dataAtStart);
   });
 
-  it('should move child data using the `dragRow` and `dragRows` methods', () => {
+  it('should move child data using the `dragRow` and `dragRows` methods', async() => {
     const warnSpy = spyOn(console, 'warn');
 
     const hot = handsontable({
@@ -426,7 +426,7 @@ describe('NestedRows', () => {
   });
 
   it('should display proper row headers after collapsing one parent - ' +
-    'cooperation with the `BindRowsWithHeaders` plugin #5874', () => {
+    'cooperation with the `BindRowsWithHeaders` plugin #5874', async() => {
     handsontable({
       data: getSimplerNestedData(),
       nestedRows: true,
@@ -449,7 +449,7 @@ describe('NestedRows', () => {
     expect(rowHeaders).toEqual(['A', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'R', 'S']);
   });
 
-  it('should not throw an error while inserting new row in specific case', () => {
+  it('should not throw an error while inserting new row in specific case', async() => {
     const spy = spyOn(console, 'error');
 
     handsontable({
@@ -459,8 +459,8 @@ describe('NestedRows', () => {
       contextMenu: true,
     });
 
-    selectCell(1, 0);
-    contextMenu();
+    await selectCell(1, 0);
+    await contextMenu();
 
     $('.htContextMenu .ht_master .htCore')
       .find('tbody td')

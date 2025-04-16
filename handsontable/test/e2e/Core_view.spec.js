@@ -108,7 +108,7 @@ describe('Core_view', () => {
     spec().$container[0].style.height = '60px';
 
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 3),
+      data: createSpreadsheetData(10, 3),
       height: 60
     });
 
@@ -134,7 +134,7 @@ describe('Core_view', () => {
     spec().$container[0].style.height = '60px';
 
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 9),
+      data: createSpreadsheetData(10, 9),
       fixedRowsTop: 1,
       height: 60
     });
@@ -161,7 +161,7 @@ describe('Core_view', () => {
     spec().$container[0].style.height = '60px';
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 9),
+      data: createSpreadsheetData(10, 9),
       fixedRowsTop: 1,
       width: 200,
       height: 100
@@ -207,7 +207,7 @@ describe('Core_view', () => {
     spec().$container[0].style.height = '100px';
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 9),
+      data: createSpreadsheetData(10, 9),
       fixedColumnsStart: 1
     });
 
@@ -239,7 +239,7 @@ describe('Core_view', () => {
     spec().$container[0].style.height = '100px';
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 9),
+      data: createSpreadsheetData(10, 9),
       fixedColumnsStart: 1
     });
 
@@ -610,7 +610,7 @@ describe('Core_view', () => {
     spec().$container[0].style.overflow = 'hidden';
 
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(100, 3)
+      data: createSpreadsheetData(100, 3)
     });
 
     const beforeRenderCallback = jasmine.createSpy('beforeRenderCallback');
@@ -629,7 +629,7 @@ describe('Core_view', () => {
     spec().$container[0].style.overflow = 'hidden';
 
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(100, 3)
+      data: createSpreadsheetData(100, 3)
     });
 
     const beforeRenderCallback = jasmine.createSpy('beforeRenderCallback');
@@ -648,7 +648,7 @@ describe('Core_view', () => {
     spec().$container[0].style.overflow = 'hidden';
 
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(100, 3)
+      data: createSpreadsheetData(100, 3)
     });
 
     const beforeRenderCallback = jasmine.createSpy('beforeRenderCallback');
@@ -667,7 +667,7 @@ describe('Core_view', () => {
     spec().$container[0].style.overflow = 'hidden';
 
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(20, 3)
+      data: createSpreadsheetData(20, 3)
     });
 
     const afterRenderCallback = jasmine.createSpy('afterRenderCallback');
@@ -686,7 +686,7 @@ describe('Core_view', () => {
     spec().$container[0].style.overflow = 'hidden';
 
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(20, 3)
+      data: createSpreadsheetData(20, 3)
     });
 
     hot.addHook('afterViewRender', () => {
@@ -825,7 +825,7 @@ describe('Core_view', () => {
       window.scrollTo(0, 0);
 
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(50, 50),
+        data: createSpreadsheetData(50, 50),
         colHeaders: true,
         rowHeaders: true,
       });
@@ -870,7 +870,7 @@ describe('Core_view', () => {
       window.scrollTo(0, 0);
 
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(50, 50),
+        data: createSpreadsheetData(50, 50),
         colHeaders: true,
         rowHeaders: true,
       });
@@ -920,7 +920,7 @@ describe('Core_view', () => {
     });
 
     it('should be the same as the row heights in the main table (after scroll)', () => {
-      const myData = Handsontable.helper.createSpreadsheetData(20, 4);
+      const myData = createSpreadsheetData(20, 4);
 
       myData[1][3] = 'very\nlong\ntext';
       myData[5][3] = 'very\nlong\ntext';
@@ -949,7 +949,7 @@ describe('Core_view', () => {
     });
 
     it('should be the same as the row heights in the main table (after scroll, in corner)', () => {
-      const myData = Handsontable.helper.createSpreadsheetData(20, 4);
+      const myData = createSpreadsheetData(20, 4);
 
       myData[1][3] = 'very\nlong\ntext';
       myData[5][3] = 'very\nlong\ntext';

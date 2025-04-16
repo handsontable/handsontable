@@ -376,7 +376,7 @@ describe('Core_setDataAtCell', () => {
   describe('Coordinates out of dataset', () => {
     it('should insert new column', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 1)
+        data: createSpreadsheetData(1, 1)
       });
 
       setDataAtCell([[0, 1, 'new column']], 'customSource');
@@ -385,7 +385,7 @@ describe('Core_setDataAtCell', () => {
 
     it('should insert new row', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 1)
+        data: createSpreadsheetData(1, 1)
       });
 
       setDataAtCell([[1, 0, 'new row']], 'customSource');
@@ -394,7 +394,7 @@ describe('Core_setDataAtCell', () => {
 
     it('should not insert new column if `beforeCreateCol` returns false', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 1),
+        data: createSpreadsheetData(1, 1),
         beforeCreateCol() {
           return false;
         }
@@ -408,7 +408,7 @@ describe('Core_setDataAtCell', () => {
 
     it('should not insert new row if `beforeCreateRow` returns false', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 1),
+        data: createSpreadsheetData(1, 1),
         beforeCreateRow() {
           return false;
         }
@@ -422,7 +422,7 @@ describe('Core_setDataAtCell', () => {
 
     it('should work also when the `editor` option is set to `false`', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 1),
+        data: createSpreadsheetData(1, 1),
         editor: false,
       });
 

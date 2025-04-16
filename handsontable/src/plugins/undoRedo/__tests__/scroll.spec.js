@@ -12,7 +12,7 @@ describe('UndoRedo', () => {
     }
   });
 
-  describe('scroll', async() => {
+  describe('scroll', () => {
     it('should move to the already changed cell only vertically', async() => {
       handsontable({
         data: createSpreadsheetData(50, 50),

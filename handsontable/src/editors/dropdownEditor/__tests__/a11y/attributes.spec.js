@@ -21,7 +21,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
       ],
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
     const editor = getActiveEditor();
     const editorTextarea = editor.TEXTAREA;
@@ -33,8 +33,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     expect(editorTextarea.getAttribute('aria-autocomplete')).toEqual('list');
     expect(editorTextarea.getAttribute('aria-controls')).toEqual(`${hot.guid.slice(0, 9)}-listbox-0-0`);
 
-    keyDownUp('enter');
-
+    await keyDownUp('enter');
     await sleep(50);
 
     expect(editorTextarea.getAttribute('aria-expanded')).toEqual('true');
@@ -54,10 +53,8 @@ describe('a11y DOM attributes (ARIA tags)', () => {
       ],
     });
 
-    selectCell(0, 0);
-
-    keyDownUp('enter');
-
+    await selectCell(0, 0);
+    await keyDownUp('enter');
     await sleep(50);
 
     const editor = getActiveEditor();
@@ -85,10 +82,8 @@ describe('a11y DOM attributes (ARIA tags)', () => {
       ],
     });
 
-    selectCell(0, 0);
-
-    keyDownUp('enter');
-
+    await selectCell(0, 0);
+    await keyDownUp('enter');
     await sleep(50);
 
     const editor = getActiveEditor();

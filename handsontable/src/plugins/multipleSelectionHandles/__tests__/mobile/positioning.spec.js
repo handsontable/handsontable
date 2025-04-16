@@ -19,14 +19,14 @@ describe('MultipleSelectionHandles', () => {
       }
     });
 
-    it('should show selection handles in correct positions', () => {
+    it('should show selection handles in correct positions', async() => {
       handsontable({
         layoutDirection,
         width: 400,
         height: 400
       });
 
-      selectCell(1, 1);
+      await selectCell(1, 1);
 
       const topSelectionHandle = spec().$container
         .find('.ht_master .htBorders div:first-child .topSelectionHandle');
@@ -60,7 +60,7 @@ describe('MultipleSelectionHandles', () => {
         height: 400
       });
 
-      selectCell(1, 1);
+      await selectCell(1, 1);
 
       await sleep(100);
 
@@ -107,7 +107,7 @@ describe('MultipleSelectionHandles', () => {
         height: 400
       });
 
-      selectCell(1, 1);
+      await selectCell(1, 1);
 
       await sleep(100);
 

@@ -14,7 +14,7 @@ describe('Core.toHTML', () => {
 
   it('should convert instance into outerHTML of HTMLTableElement', () => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      data: createSpreadsheetData(2, 2),
       colHeaders: true,
       rowHeaders: true,
     });

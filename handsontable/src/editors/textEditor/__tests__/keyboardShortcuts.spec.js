@@ -13,7 +13,7 @@ describe('TextEditor keyboard shortcut', () => {
   });
 
   describe('"Home"', () => {
-    it('should move the caret position to the beginning of the line', () => {
+    it('should move the caret position to the beginning of the line', async() => {
       handsontable({
         data: [
           ['Maserati', 'Mazda'],
@@ -21,21 +21,21 @@ describe('TextEditor keyboard shortcut', () => {
         ],
       });
 
-      selectCell(0, 0);
-      keyDownUp('enter');
+      await selectCell(0, 0);
+      await keyDownUp('enter');
 
       const editorElement = getActiveEditor().TEXTAREA;
 
       Handsontable.dom.setCaretPosition(editorElement, 2);
 
-      keyDownUp('home');
+      await keyDownUp('home');
 
       expect(Handsontable.dom.getCaretPosition(editorElement)).toBe(0);
     });
   });
 
   describe('"End"', () => {
-    it('should move the caret position to the end of the line', () => {
+    it('should move the caret position to the end of the line', async() => {
       handsontable({
         data: [
           ['Maserati', 'Mazda'],
@@ -43,21 +43,21 @@ describe('TextEditor keyboard shortcut', () => {
         ],
       });
 
-      selectCell(0, 0);
-      keyDownUp('enter');
+      await selectCell(0, 0);
+      await keyDownUp('enter');
 
       const editorElement = getActiveEditor().TEXTAREA;
 
       Handsontable.dom.setCaretPosition(editorElement, 2);
 
-      keyDownUp('end');
+      await keyDownUp('end');
 
       expect(Handsontable.dom.getCaretPosition(editorElement)).toBe(8);
     });
   });
 
   describe('"Enter + Alt"', () => {
-    it.forTheme('classic')('should exceed the editor height only for one line', () => {
+    it.forTheme('classic')('should exceed the editor height only for one line', async() => {
       const hot = handsontable({
         data: [
           ['Maserati', 'Mazda'],
@@ -65,9 +65,9 @@ describe('TextEditor keyboard shortcut', () => {
         ]
       });
 
-      selectCell(0, 0);
-      keyDownUp('enter');
-      keyDownUp(['alt', 'enter']);
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+      await keyDownUp(['alt', 'enter']);
 
       const editorTextarea = hot.getActiveEditor().TEXTAREA;
       const editorComputedStyle = getComputedStyle(editorTextarea);
@@ -77,7 +77,7 @@ describe('TextEditor keyboard shortcut', () => {
       expect(editorTextareaHeight).toBe(2 * editorTextareaLineHeight);
     });
 
-    it.forTheme('main')('should exceed the editor height only for one line', () => {
+    it.forTheme('main')('should exceed the editor height only for one line', async() => {
       const hot = handsontable({
         data: [
           ['Maserati', 'Mazda'],
@@ -85,9 +85,9 @@ describe('TextEditor keyboard shortcut', () => {
         ]
       });
 
-      selectCell(0, 0);
-      keyDownUp('enter');
-      keyDownUp(['alt', 'enter']);
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+      await keyDownUp(['alt', 'enter']);
 
       const editorTextarea = hot.getActiveEditor().TEXTAREA;
       const editorComputedStyle = getComputedStyle(editorTextarea);
@@ -104,7 +104,7 @@ describe('TextEditor keyboard shortcut', () => {
       );
     });
 
-    it.forTheme('horizon')('should exceed the editor height only for one line', () => {
+    it.forTheme('horizon')('should exceed the editor height only for one line', async() => {
       const hot = handsontable({
         data: [
           ['Maserati', 'Mazda'],
@@ -112,9 +112,9 @@ describe('TextEditor keyboard shortcut', () => {
         ]
       });
 
-      selectCell(0, 0);
-      keyDownUp('enter');
-      keyDownUp(['alt', 'enter']);
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+      await keyDownUp(['alt', 'enter']);
 
       const editorTextarea = hot.getActiveEditor().TEXTAREA;
       const editorComputedStyle = getComputedStyle(editorTextarea);
@@ -133,7 +133,7 @@ describe('TextEditor keyboard shortcut', () => {
   });
 
   describe('"Enter + Control"', () => {
-    it.forTheme('classic')('should exceed the editor height only for one line', () => {
+    it.forTheme('classic')('should exceed the editor height only for one line', async() => {
       const hot = handsontable({
         data: [
           ['Maserati', 'Mazda'],
@@ -141,9 +141,9 @@ describe('TextEditor keyboard shortcut', () => {
         ]
       });
 
-      selectCell(0, 0);
-      keyDownUp('enter');
-      keyDownUp(['control', 'enter']);
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+      await keyDownUp(['control', 'enter']);
 
       const editorTextarea = hot.getActiveEditor().TEXTAREA;
       const editorComputedStyle = getComputedStyle(editorTextarea);
@@ -153,7 +153,7 @@ describe('TextEditor keyboard shortcut', () => {
       expect(editorTextareaHeight).toBe(2 * editorTextareaLineHeight);
     });
 
-    it.forTheme('main')('should exceed the editor height only for one line', () => {
+    it.forTheme('main')('should exceed the editor height only for one line', async() => {
       const hot = handsontable({
         data: [
           ['Maserati', 'Mazda'],
@@ -161,9 +161,9 @@ describe('TextEditor keyboard shortcut', () => {
         ]
       });
 
-      selectCell(0, 0);
-      keyDownUp('enter');
-      keyDownUp(['control', 'enter']);
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+      await keyDownUp(['control', 'enter']);
 
       const editorTextarea = hot.getActiveEditor().TEXTAREA;
       const editorComputedStyle = getComputedStyle(editorTextarea);
@@ -180,7 +180,7 @@ describe('TextEditor keyboard shortcut', () => {
       );
     });
 
-    it.forTheme('horizon')('should exceed the editor height only for one line', () => {
+    it.forTheme('horizon')('should exceed the editor height only for one line', async() => {
       const hot = handsontable({
         data: [
           ['Maserati', 'Mazda'],
@@ -188,9 +188,9 @@ describe('TextEditor keyboard shortcut', () => {
         ]
       });
 
-      selectCell(0, 0);
-      keyDownUp('enter');
-      keyDownUp(['control', 'enter']);
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+      await keyDownUp(['control', 'enter']);
 
       const editorTextarea = hot.getActiveEditor().TEXTAREA;
       const editorComputedStyle = getComputedStyle(editorTextarea);
@@ -209,7 +209,7 @@ describe('TextEditor keyboard shortcut', () => {
   });
 
   describe('"Enter + Command"', () => {
-    it.forTheme('classic')('should exceed the editor height only for one line', () => {
+    it.forTheme('classic')('should exceed the editor height only for one line', async() => {
       const hot = handsontable({
         data: [
           ['Maserati', 'Mazda'],
@@ -217,9 +217,9 @@ describe('TextEditor keyboard shortcut', () => {
         ]
       });
 
-      selectCell(0, 0);
-      keyDownUp('enter');
-      keyDownUp(['meta', 'enter']);
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+      await keyDownUp(['meta', 'enter']);
 
       const editorTextarea = hot.getActiveEditor().TEXTAREA;
       const editorComputedStyle = getComputedStyle(editorTextarea);
@@ -229,7 +229,7 @@ describe('TextEditor keyboard shortcut', () => {
       expect(editorTextareaHeight).toBe(2 * editorTextareaLineHeight);
     });
 
-    it.forTheme('main')('should exceed the editor height only for one line', () => {
+    it.forTheme('main')('should exceed the editor height only for one line', async() => {
       const hot = handsontable({
         data: [
           ['Maserati', 'Mazda'],
@@ -237,9 +237,9 @@ describe('TextEditor keyboard shortcut', () => {
         ]
       });
 
-      selectCell(0, 0);
-      keyDownUp('enter');
-      keyDownUp(['meta', 'enter']);
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+      await keyDownUp(['meta', 'enter']);
 
       const editorTextarea = hot.getActiveEditor().TEXTAREA;
       const editorComputedStyle = getComputedStyle(editorTextarea);
@@ -256,7 +256,7 @@ describe('TextEditor keyboard shortcut', () => {
       );
     });
 
-    it.forTheme('horizon')('should exceed the editor height only for one line', () => {
+    it.forTheme('horizon')('should exceed the editor height only for one line', async() => {
       const hot = handsontable({
         data: [
           ['Maserati', 'Mazda'],
@@ -264,9 +264,9 @@ describe('TextEditor keyboard shortcut', () => {
         ]
       });
 
-      selectCell(0, 0);
-      keyDownUp('enter');
-      keyDownUp(['meta', 'enter']);
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+      await keyDownUp(['meta', 'enter']);
 
       const editorTextarea = hot.getActiveEditor().TEXTAREA;
       const editorComputedStyle = getComputedStyle(editorTextarea);
@@ -285,30 +285,30 @@ describe('TextEditor keyboard shortcut', () => {
   });
 
   describe('"PageUp"', () => {
-    it('should move the selection to the first cell in a row while cell editing', () => {
+    it('should move the selection to the first cell in a row while cell editing', async() => {
       handsontable({
         startRows: 5,
         startCols: 5
       });
 
-      selectCell(2, 0);
-      keyDownUp('enter');
-      keyDownUp('pageup');
+      await selectCell(2, 0);
+      await keyDownUp('enter');
+      await keyDownUp('pageup');
 
       expect(getSelected()).toEqual([[0, 0, 0, 0]]);
     });
   });
 
   describe('"PageUp + Shift"', () => {
-    it('should not move the selection while cell editing', () => {
+    it('should not move the selection while cell editing', async() => {
       handsontable({
         startRows: 5,
         startCols: 5
       });
 
-      selectCell(2, 0);
-      keyDownUp('enter');
-      keyDownUp(['shift', 'pageup']);
+      await selectCell(2, 0);
+      await keyDownUp('enter');
+      await keyDownUp(['shift', 'pageup']);
 
       expect(getActiveEditor().isOpened()).toBe(true);
       expect(getSelected()).toEqual([[2, 0, 2, 0]]);
@@ -316,30 +316,30 @@ describe('TextEditor keyboard shortcut', () => {
   });
 
   describe('"PageDown"', () => {
-    it('should move the selection to the last cell in a row while cell editing', () => {
+    it('should move the selection to the last cell in a row while cell editing', async() => {
       handsontable({
         startRows: 5,
         startCols: 5
       });
 
-      selectCell(2, 0);
-      keyDownUp('enter');
-      keyDownUp('pagedown');
+      await selectCell(2, 0);
+      await keyDownUp('enter');
+      await keyDownUp('pagedown');
 
       expect(getSelected()).toEqual([[4, 0, 4, 0]]);
     });
   });
 
   describe('"PageDown + Shift"', () => {
-    it('should not move the selection while cell editing', () => {
+    it('should not move the selection while cell editing', async() => {
       handsontable({
         startRows: 5,
         startCols: 5
       });
 
-      selectCell(2, 0);
-      keyDownUp('enter');
-      keyDownUp(['shift', 'pagedown']);
+      await selectCell(2, 0);
+      await keyDownUp('enter');
+      await keyDownUp(['shift', 'pagedown']);
 
       expect(getActiveEditor().isOpened()).toBe(true);
       expect(getSelected()).toEqual([[2, 0, 2, 0]]);
@@ -347,30 +347,30 @@ describe('TextEditor keyboard shortcut', () => {
   });
 
   describe('"Tab"', () => {
-    it('should move the selection to the next cell in the a while cell editing', () => {
+    it('should move the selection to the next cell in the a while cell editing', async() => {
       handsontable({
         startRows: 5,
         startCols: 5
       });
 
-      selectCell(2, 0);
-      keyDownUp('enter');
-      keyDownUp('tab');
+      await selectCell(2, 0);
+      await keyDownUp('enter');
+      await keyDownUp('tab');
 
       expect(getSelected()).toEqual([[2, 1, 2, 1]]);
     });
   });
 
   describe('"Tab + Shift"', () => {
-    it('should move the selection to the previous cell in a row while cell editing', () => {
+    it('should move the selection to the previous cell in a row while cell editing', async() => {
       handsontable({
         startRows: 5,
         startCols: 5
       });
 
-      selectCell(2, 2);
-      keyDownUp('enter');
-      keyDownUp(['shift', 'tab']);
+      await selectCell(2, 2);
+      await keyDownUp('enter');
+      await keyDownUp(['shift', 'tab']);
 
       expect(getSelected()).toEqual([[2, 1, 2, 1]]);
     });

@@ -13,7 +13,7 @@ describe('manualColumnMove', () => {
   });
 
   describe('UI', () => {
-    it('should append UI elements to wtHider after click on column header', () => {
+    it('should append UI elements to wtHider after click on column header', async() => {
       handsontable({
         data: createSpreadsheetData(30, 30),
         colHeaders: true,
@@ -30,7 +30,7 @@ describe('manualColumnMove', () => {
       expect(spec().$container.find('.ht__manualColumnMove--backlight').length).toBe(1);
     });
 
-    it('should part of UI elements be visible on dragging action', () => {
+    it('should part of UI elements be visible on dragging action', async() => {
       handsontable({
         data: createSpreadsheetData(30, 30),
         colHeaders: true,
@@ -47,7 +47,7 @@ describe('manualColumnMove', () => {
       expect(spec().$container.find('.ht__manualColumnMove--backlight:visible').length).toBe(1);
     });
 
-    it('should all of UI elements be visible on dragging action', () => {
+    it('should all of UI elements be visible on dragging action', async() => {
       handsontable({
         data: createSpreadsheetData(30, 30),
         colHeaders: true,
@@ -70,9 +70,9 @@ describe('manualColumnMove', () => {
       expect(spec().$container.find('.ht__manualColumnMove--backlight:visible').length).toBe(1);
     });
 
-    it('should set proper z-index of the backlight and guideline element and be greater than top overlay z-index', () => {
+    it('should set proper z-index of the backlight and guideline element and be greater than top overlay z-index', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         manualColumnMove: true,
         rowHeaders: true,
         colHeaders: true,
@@ -88,7 +88,7 @@ describe('manualColumnMove', () => {
       expect($('.ht__manualColumnMove--guideline').css('z-index')).toBeGreaterThan(getTopClone().css('z-index'));
     });
 
-    it('should not run moving ui if mousedown was fired on sorting element', () => {
+    it('should not run moving ui if mousedown was fired on sorting element', async() => {
       handsontable({
         data: createSpreadsheetData(30, 30),
         colHeaders: true,

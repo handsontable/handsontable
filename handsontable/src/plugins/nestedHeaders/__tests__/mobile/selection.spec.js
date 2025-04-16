@@ -12,9 +12,9 @@ describe('Mobile selection', () => {
     }
   });
 
-  it('should allow selecting columns by tapping on the column headers', () => {
+  it('should allow selecting columns by tapping on the column headers', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 10),
+      data: createSpreadsheetData(10, 10),
       colHeaders: true,
       rowHeaders: true,
       nestedHeaders: [

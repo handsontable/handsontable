@@ -13,7 +13,7 @@ describe('Formulas', () => {
   });
 
   describe('Integration with Nested Rows', () => {
-    it('should allow adding and removing rows, while retaining the formulas functionality', () => {
+    it('should allow adding and removing rows, while retaining the formulas functionality', async() => {
       const hot = handsontable({
         data: [
           {
@@ -55,7 +55,7 @@ describe('Formulas', () => {
       expect(hot.getDataAtCell(6, 0)).toEqual('PARENT1');
     });
 
-    it('should allow detaching row children, while retaining the formulas functionality', () => {
+    it('should allow detaching row children, while retaining the formulas functionality', async() => {
       const hot = handsontable({
         data: [
           {
@@ -108,7 +108,7 @@ describe('Formulas', () => {
       expect(hot.getDataAtCell(6, 0)).toEqual('PARENT1');
     });
 
-    it('should allow collapsing/expanding while retaining the formulas functionality', () => {
+    it('should allow collapsing/expanding while retaining the formulas functionality', async() => {
       const hot = handsontable({
         data: [{
           col1: 1,
@@ -165,7 +165,7 @@ describe('Formulas', () => {
       ]);
     });
 
-    it('should allow moving while retaining the formulas functionality', () => {
+    it('should allow moving while retaining the formulas functionality', async() => {
       const hot = handsontable({
         data: [{
           col1: 1,

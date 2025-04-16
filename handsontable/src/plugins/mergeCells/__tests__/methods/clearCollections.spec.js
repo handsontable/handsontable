@@ -11,9 +11,9 @@ describe('MergeCells', () => {
   });
 
   describe('`clearCollections()` method', () => {
-    it('should clear merged cells collection without throw an exception', () => {
+    it('should clear merged cells collection without throw an exception', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(50, 1),
+        data: createSpreadsheetData(50, 1),
         width: 100,
         height: 100,
         mergeCells: [

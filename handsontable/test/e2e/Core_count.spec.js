@@ -13,7 +13,7 @@ describe('Core_count', () => {
   describe('countVisibleRows', () => {
     it.forTheme('classic')('should return number of visible rows', () => {
       const instance = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         height: 100,
         width: 600
       });
@@ -23,7 +23,7 @@ describe('Core_count', () => {
 
     it.forTheme('main')('should return number of visible rows', () => {
       const instance = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         height: 125,
         width: 600
       });
@@ -33,7 +33,7 @@ describe('Core_count', () => {
 
     it.forTheme('horizon')('should return number of visible rows', () => {
       const instance = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         height: 161,
         width: 600
       });
@@ -44,7 +44,7 @@ describe('Core_count', () => {
     it('should return -1 if table is not rendered', () => {
       spec().$container.remove();
       const instance = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         width: 100
       });
 
@@ -55,7 +55,7 @@ describe('Core_count', () => {
   describe('countRenderedRows', () => {
     it.forTheme('classic')('should return number of rendered rows', () => {
       const instance = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         height: 100,
         viewportRowRenderingOffset: 0
       });
@@ -65,7 +65,7 @@ describe('Core_count', () => {
 
     it.forTheme('main')('should return number of rendered rows', () => {
       const instance = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         height: 125,
         viewportRowRenderingOffset: 0
       });
@@ -75,7 +75,7 @@ describe('Core_count', () => {
 
     it.forTheme('horizon')('should return number of rendered rows', () => {
       const instance = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         height: 161,
         viewportRowRenderingOffset: 0
       });
@@ -86,7 +86,7 @@ describe('Core_count', () => {
     it.forTheme('classic')('should return number of rendered rows, including rows rendered ' +
       'because of viewportRowRenderingOffset', () => {
       const instance = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(50, 10),
+        data: createSpreadsheetData(50, 10),
         height: 100,
         viewportRowRenderingOffset: 20
       });
@@ -97,7 +97,7 @@ describe('Core_count', () => {
     it.forTheme('main')('should return number of rendered rows, including rows rendered ' +
       'because of viewportRowRenderingOffset', () => {
       const instance = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(50, 10),
+        data: createSpreadsheetData(50, 10),
         height: 125,
         viewportRowRenderingOffset: 20
       });
@@ -108,7 +108,7 @@ describe('Core_count', () => {
     it.forTheme('horizon')('should return number of rendered rows, including rows rendered ' +
       'because of viewportRowRenderingOffset', () => {
       const instance = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(50, 10),
+        data: createSpreadsheetData(50, 10),
         height: 161,
         viewportRowRenderingOffset: 20
       });
@@ -119,7 +119,7 @@ describe('Core_count', () => {
     it('should return -1 if table is not rendered', () => {
       spec().$container.remove();
       const instance = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         width: 100
       });
 
@@ -130,7 +130,7 @@ describe('Core_count', () => {
   describe('countVisibleCols', () => {
     it('should return number of visible columns', () => {
       const instance = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         width: 100
       });
 
@@ -140,7 +140,7 @@ describe('Core_count', () => {
     it('should return -1 if table is not rendered', () => {
       spec().$container.remove();
       const instance = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         width: 100
       });
 

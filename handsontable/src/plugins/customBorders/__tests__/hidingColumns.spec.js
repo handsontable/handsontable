@@ -22,9 +22,9 @@ describe('CustomBorders', () => {
 
   describe('cooperation with the `HiddenColumns` plugin', () => {
     // TODO: Should it work in this way? Probably some warn would be helpful.
-    it('should draw borders properly when some of them are beyond the table boundaries (drawing single borders)', () => {
+    it('should draw borders properly when some of them are beyond the table boundaries (drawing single borders)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         colHeaders: true,
         hiddenColumns: {
@@ -57,9 +57,9 @@ describe('CustomBorders', () => {
     });
 
     it('should display custom borders (drawing range) properly when some columns are hidden ' +
-      '(range starts from hidden column)', () => {
+      '(range starts from hidden column)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         colHeaders: true,
         hiddenColumns: {
@@ -110,9 +110,9 @@ describe('CustomBorders', () => {
     });
 
     it('should display custom borders (drawing range) properly when hiding columns that have been visible ' +
-      '(hiding column at the start of the range)', () => {
+      '(hiding column at the start of the range)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         colHeaders: true,
         hiddenColumns: true,
@@ -135,7 +135,7 @@ describe('CustomBorders', () => {
       });
 
       getPlugin('hiddenColumns').hideColumn(1);
-      render();
+      await render();
 
       expect(countVisibleCustomBorders()).toEqual((3 * 2) + 4); // 4 rows x 3 columns without left border
       // First cell from the top-left position
@@ -163,9 +163,9 @@ describe('CustomBorders', () => {
     });
 
     it('should display custom borders (drawing range) properly when showing columns that have been hidden ' +
-      '(range starts from hidden column)', () => {
+      '(range starts from hidden column)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         colHeaders: true,
         hiddenColumns: {
@@ -191,7 +191,7 @@ describe('CustomBorders', () => {
       });
 
       getPlugin('hiddenColumns').showColumn(1);
-      render();
+      await render();
 
       expect(countVisibleCustomBorders()).toEqual(4 * 4); // 4 rows x 4 columns
       // First cell from the top-left position
@@ -219,9 +219,9 @@ describe('CustomBorders', () => {
     });
 
     it('should display custom borders (drawing range) properly when some columns are hidden ' +
-      '(range ends at hidden column)', () => {
+      '(range ends at hidden column)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         colHeaders: true,
         hiddenColumns: {
@@ -272,9 +272,9 @@ describe('CustomBorders', () => {
     });
 
     it('should display custom borders (drawing range) properly when hiding columns that have been visible ' +
-      '(hiding column at the end of the range)', () => {
+      '(hiding column at the end of the range)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         colHeaders: true,
         hiddenColumns: true,
@@ -297,7 +297,7 @@ describe('CustomBorders', () => {
       });
 
       getPlugin('hiddenColumns').hideColumn(4);
-      render();
+      await render();
 
       expect(countVisibleCustomBorders()).toEqual((3 * 2) + 4); // 4 rows x 3 columns without right border
       // First cell from the top-left position
@@ -325,9 +325,9 @@ describe('CustomBorders', () => {
     });
 
     it('should display custom borders (drawing range) properly when showing columns that have been hidden ' +
-      '(range ends at hidden column)', () => {
+      '(range ends at hidden column)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         colHeaders: true,
         hiddenColumns: {
@@ -353,7 +353,7 @@ describe('CustomBorders', () => {
       });
 
       getPlugin('hiddenColumns').showColumn(4);
-      render();
+      await render();
 
       expect(countVisibleCustomBorders()).toEqual(4 * 4); // 4 rows x 4 columns
       // First cell from the top-left position
@@ -381,9 +381,9 @@ describe('CustomBorders', () => {
     });
 
     it('should display custom borders (drawing range) properly when some columns are hidden ' +
-      '(hidden column in the middle of the range)', () => {
+      '(hidden column in the middle of the range)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         colHeaders: true,
         hiddenColumns: {
@@ -434,9 +434,9 @@ describe('CustomBorders', () => {
     });
 
     it('should display custom borders (drawing range) properly when hiding columns that have been visible ' +
-      '(hiding column in the middle of the range)', () => {
+      '(hiding column in the middle of the range)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         colHeaders: true,
         hiddenColumns: true,
@@ -459,7 +459,7 @@ describe('CustomBorders', () => {
       });
 
       getPlugin('hiddenColumns').hideColumn(2);
-      render();
+      await render();
 
       expect(countVisibleCustomBorders()).toEqual((3 * 2) + (4 * 2)); // 4 rows x 3 columns
       // First cell from the top-left position
@@ -487,9 +487,9 @@ describe('CustomBorders', () => {
     });
 
     it('should display custom borders (drawing range) properly when showing columns that have been hidden ' +
-      '(hidden column in the middle of the range)', () => {
+      '(hidden column in the middle of the range)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         colHeaders: true,
         hiddenColumns: {
@@ -515,7 +515,7 @@ describe('CustomBorders', () => {
       });
 
       getPlugin('hiddenColumns').showColumn(4);
-      render();
+      await render();
 
       expect(countVisibleCustomBorders()).toEqual(4 * 4); // 4 rows x 4 columns
       // First cell from the top-left position
@@ -542,9 +542,9 @@ describe('CustomBorders', () => {
       expect(getCellMeta(2, 2).borders).toBeUndefined();
     });
 
-    it('should display borders properly when hiding cells separating another cells with borders (they will stick together) #1', () => {
+    it('should display borders properly when hiding cells separating another cells with borders (they will stick together) #1', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         colHeaders: true,
         hiddenColumns: true,
@@ -573,7 +573,7 @@ describe('CustomBorders', () => {
       });
 
       getPlugin('hiddenColumns').hideColumns([1, 3]);
-      render();
+      await render();
 
       expect(countVisibleCustomBorders()).toEqual(3 * 4); // It isn't ok probably. There is no specification.
       // expect(countVisibleCustomBorders()).toEqual((4 * 2) + 2); // TODO: It should work.
@@ -593,9 +593,9 @@ describe('CustomBorders', () => {
       expect(getCellMeta(1, 4).borders.end).toEqual(YELLOW_BORDER);
     });
 
-    it('should display borders properly when hiding cells separating another cells with borders (they will stick together) #2', () => {
+    it('should display borders properly when hiding cells separating another cells with borders (they will stick together) #2', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         colHeaders: true,
         hiddenColumns: true,
@@ -624,7 +624,7 @@ describe('CustomBorders', () => {
       });
 
       getPlugin('hiddenColumns').hideColumns([1, 2, 3]);
-      render();
+      await render();
 
       expect(countVisibleCustomBorders()).toEqual(2 * 4); // It isn't ok probably. There is no specification.
       // expect(countVisibleCustomBorders()).toEqual((4 + 3)); // TODO: It should work.
@@ -644,9 +644,9 @@ describe('CustomBorders', () => {
       expect(getCellMeta(1, 4).borders.end).toEqual(YELLOW_BORDER);
     });
 
-    it('should not display custom border for single cell when it is placed on the hidden column', () => {
+    it('should not display custom border for single cell when it is placed on the hidden column', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         colHeaders: true,
         hiddenColumns: {
@@ -672,9 +672,9 @@ describe('CustomBorders', () => {
       expect(getCellMeta(2, 2).borders).toBeUndefined();
     });
 
-    it('should display custom borders for single cells properly when one of them is placed on the hidden column', () => {
+    it('should display custom borders for single cells properly when one of them is placed on the hidden column', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         colHeaders: true,
         hiddenColumns: {
@@ -713,9 +713,9 @@ describe('CustomBorders', () => {
       expect(getCellMeta(3, 2).borders.end).toEqual(MAGENTA_BORDER);
     });
 
-    it('should not display custom border for single cell when column containing border is hidden by API call', () => {
+    it('should not display custom border for single cell when column containing border is hidden by API call', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         colHeaders: true,
         hiddenColumns: true,
@@ -730,7 +730,7 @@ describe('CustomBorders', () => {
       });
 
       getPlugin('hiddenColumns').hideColumn(1);
-      render();
+      await render();
 
       // Just the meta is defined.
       expect(countVisibleCustomBorders()).toEqual(0);
@@ -740,9 +740,9 @@ describe('CustomBorders', () => {
       expect(getCellMeta(1, 1).borders.end).toEqual(MAGENTA_BORDER);
     });
 
-    it('should display custom border for single cell when hidden column containing border has been shown by API call', () => {
+    it('should display custom border for single cell when hidden column containing border has been shown by API call', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         colHeaders: true,
         hiddenColumns: {
@@ -760,7 +760,7 @@ describe('CustomBorders', () => {
       });
 
       getPlugin('hiddenColumns').showColumn(1);
-      render();
+      await render();
 
       expect(countVisibleCustomBorders()).toEqual(4);
       expect(getCellMeta(1, 1).borders.top).toEqual(BLUE_BORDER);
@@ -773,7 +773,7 @@ describe('CustomBorders', () => {
     it('should draw border from context menu options in proper place when there are some hidden columns before ' +
       'a place where the border is added', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         contextMenu: true,
         customBorders: true,
         hiddenColumns: {

@@ -21,9 +21,9 @@ describe('NestedHeaders', () => {
 
   describe('hiding columns', () => {
     describe('with selection', () => {
-      it('should highlight column headers for selected cells', () => {
+      it('should highlight column headers for selected cells', async() => {
         const hot = handsontable({
-          data: Handsontable.helper.createSpreadsheetData(3, 13),
+          data: createSpreadsheetData(3, 13),
           colHeaders: true,
           nestedHeaders: [
             ['A1', { label: 'B1', colspan: 8 }, 'J1', { label: 'K1', colspan: 3 }],
@@ -42,7 +42,7 @@ describe('NestedHeaders', () => {
         hidingMap.setValueAtIndex(10, true); // Hide column that contains cells K{n}
         hot.render();
 
-        selectCells([
+        await selectCells([
           [2, 2, 2, 2], // C3
           [2, 5, 2, 5], // F3
           [2, 11, 2, 11], // L3
@@ -100,9 +100,9 @@ describe('NestedHeaders', () => {
         `).toBeMatchToSelectionPattern();
       });
 
-      it('should highlight column headers for selected cells in-between nested headers', () => {
+      it('should highlight column headers for selected cells in-between nested headers', async() => {
         const hot = handsontable({
-          data: Handsontable.helper.createSpreadsheetData(6, 13),
+          data: createSpreadsheetData(6, 13),
           colHeaders: true,
           nestedHeaders: [
             ['A1', { label: 'B1', colspan: 8 }, 'J1', { label: 'K1', colspan: 3 }],
@@ -121,7 +121,7 @@ describe('NestedHeaders', () => {
         hidingMap.setValueAtIndex(10, true); // Hide column that contains cells K{n}
         hot.render();
 
-        selectCells([
+        await selectCells([
           [2, 0, 2, 2], // A3 to C3
           [4, 3, 4, 5], // D4 to F4
           [5, 7, 5, 9], // H5 to J5
@@ -142,9 +142,9 @@ describe('NestedHeaders', () => {
         `).toBeMatchToSelectionPattern();
       });
 
-      it('should active highlight column headers correctly', () => {
+      it('should active highlight column headers correctly', async() => {
         const hot = handsontable({
-          data: Handsontable.helper.createSpreadsheetData(3, 13),
+          data: createSpreadsheetData(3, 13),
           colHeaders: true,
           nestedHeaders: [
             ['A1', { label: 'B1', colspan: 8 }, 'J1', { label: 'K1', colspan: 3 }],
@@ -165,7 +165,7 @@ describe('NestedHeaders', () => {
 
         simulateClick(getTopClone().find('thead tr:eq(3) th:eq(1)')); // select column B4
 
-        keyDown('control/meta');
+        await keyDown('control/meta');
 
         simulateClick(getTopClone().find('thead tr:eq(2) th:eq(3)')); // select column F3
         simulateClick(getTopClone().find('thead tr:eq(1) th:eq(7)')); // select column K2
@@ -229,9 +229,9 @@ describe('NestedHeaders', () => {
         `).toBeMatchToSelectionPattern();
       });
 
-      it('should active highlight column headers correctly (navigableHeaders on)', () => {
+      it('should active highlight column headers correctly (navigableHeaders on)', async() => {
         const hot = handsontable({
-          data: Handsontable.helper.createSpreadsheetData(3, 13),
+          data: createSpreadsheetData(3, 13),
           colHeaders: true,
           navigableHeaders: true,
           nestedHeaders: [
@@ -253,7 +253,7 @@ describe('NestedHeaders', () => {
 
         simulateClick(getTopClone().find('thead tr:eq(3) th:eq(1)')); // select column B4
 
-        keyDown('control/meta');
+        await keyDown('control/meta');
 
         simulateClick(getTopClone().find('thead tr:eq(2) th:eq(3)')); // select column F3
         simulateClick(getTopClone().find('thead tr:eq(1) th:eq(7)')); // select column K2
@@ -319,9 +319,9 @@ describe('NestedHeaders', () => {
       });
 
       it('should select every column header under the nested headers, when changing the selection by dragging ' +
-         'the cursor from the left to the right', () => {
+         'the cursor from the left to the right', async() => {
         const hot = handsontable({
-          data: Handsontable.helper.createSpreadsheetData(3, 13),
+          data: createSpreadsheetData(3, 13),
           colHeaders: true,
           nestedHeaders: [
             ['A1', { label: 'B1', colspan: 8 }, 'J1', { label: 'K1', colspan: 3 }],
@@ -442,9 +442,9 @@ describe('NestedHeaders', () => {
       });
 
       it('should select every column header under the nested headers, when changing the selection by dragging ' +
-         'the cursor from the right to the left', () => {
+         'the cursor from the right to the left', async() => {
         const hot = handsontable({
-          data: Handsontable.helper.createSpreadsheetData(3, 13),
+          data: createSpreadsheetData(3, 13),
           colHeaders: true,
           nestedHeaders: [
             ['A1', { label: 'B1', colspan: 8 }, 'J1', { label: 'K1', colspan: 3 }],
@@ -550,9 +550,9 @@ describe('NestedHeaders', () => {
         `).toBeMatchToSelectionPattern();
       });
 
-      it('should be possible to back to the single column selection, when it was modified by the SHIFT key', () => {
+      it('should be possible to back to the single column selection, when it was modified by the SHIFT key', async() => {
         const hot = handsontable({
-          data: Handsontable.helper.createSpreadsheetData(3, 13),
+          data: createSpreadsheetData(3, 13),
           colHeaders: true,
           nestedHeaders: [
             ['A1', { label: 'B1', colspan: 8 }, 'J1', { label: 'K1', colspan: 3 }],
@@ -596,9 +596,9 @@ describe('NestedHeaders', () => {
       });
 
       it('should select every column header under the nested headers, when changing the selection using the SHIFT key ' +
-         '(expanding the column selection from the left to the right)', () => {
+         '(expanding the column selection from the left to the right)', async() => {
         const hot = handsontable({
-          data: Handsontable.helper.createSpreadsheetData(3, 13),
+          data: createSpreadsheetData(3, 13),
           colHeaders: true,
           nestedHeaders: [
             ['A1', { label: 'B1', colspan: 8 }, 'J1', { label: 'K1', colspan: 3 }],
@@ -668,9 +668,9 @@ describe('NestedHeaders', () => {
       });
 
       it('should select every column header under the nested headers, when changing the selection using the SHIFT key ' +
-         '(expanding the column selection from the right to the left)', () => {
+         '(expanding the column selection from the right to the left)', async() => {
         const hot = handsontable({
-          data: Handsontable.helper.createSpreadsheetData(3, 13),
+          data: createSpreadsheetData(3, 13),
           colHeaders: true,
           nestedHeaders: [
             ['A1', { label: 'B1', colspan: 8 }, 'J1', { label: 'K1', colspan: 3 }],

@@ -14,7 +14,7 @@ describe('Core.isRenderSuspended', () => {
 
   it('should return `true` when the counter is greater than 0', () => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
     });
 
     hot.renderSuspendedCounter = 1;
@@ -28,7 +28,7 @@ describe('Core.isRenderSuspended', () => {
 
   it('should return `false` when the counter is less or equal to 0', () => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
     });
 
     hot.renderSuspendedCounter = 0;

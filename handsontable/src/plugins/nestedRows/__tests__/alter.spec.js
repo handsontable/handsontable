@@ -13,7 +13,7 @@ describe('NestedRows', () => {
   });
 
   describe('should work properly when some alters have been performed', () => {
-    it('inserting and removing rows', () => {
+    it('inserting and removing rows', async() => {
       handsontable({
         data: getSimplerNestedData(),
         nestedRows: true,
@@ -36,7 +36,7 @@ describe('NestedRows', () => {
     });
 
     describe('inserting rows and changing cell values ', () => {
-      it('(by API)', () => {
+      it('(by API)', async() => {
         handsontable({
           data: getSimplerNestedData(),
           nestedRows: true,
@@ -54,7 +54,7 @@ describe('NestedRows', () => {
         expect(getData()).toEqual([[null, null, null, null], ['value', null, null, null], ...dataAtStart]);
       });
 
-      it('(using context menu)', () => {
+      it('(using context menu)', async() => {
         handsontable({
           data: getSimplerNestedData(),
           nestedRows: true,
@@ -64,8 +64,8 @@ describe('NestedRows', () => {
 
         const dataAtStart = getData();
 
-        selectCell(0, 0);
-        contextMenu();
+        await selectCell(0, 0);
+        await contextMenu();
 
         $('.htContextMenu .ht_master .htCore')
           .find('tbody td')
@@ -76,8 +76,8 @@ describe('NestedRows', () => {
 
         setDataAtCell(0, 0, 'value');
 
-        selectCell(0, 0);
-        contextMenu();
+        await selectCell(0, 0);
+        await contextMenu();
 
         $('.htContextMenu .ht_master .htCore')
           .find('tbody td')
@@ -90,7 +90,7 @@ describe('NestedRows', () => {
       });
     });
 
-    it('inserting rows after calling the `updateSettings` method and changing a cell value', () => {
+    it('inserting rows after calling the `updateSettings` method and changing a cell value', async() => {
       handsontable({
         data: getSimplerNestedData(),
         nestedRows: true,
@@ -108,7 +108,7 @@ describe('NestedRows', () => {
       expect(getData()).toEqual([[null, null, null, null], ...dataAtStart]);
     });
 
-    it('inserting rows after moving some row and changing a cell value', () => {
+    it('inserting rows after moving some row and changing a cell value', async() => {
       handsontable({
         data: getSimplerNestedData(),
         nestedRows: true,

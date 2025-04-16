@@ -5,7 +5,7 @@ describe('useTheme', () => {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
     }, true);
   });
 

@@ -593,7 +593,7 @@ describe('Selection', () => {
 
   it('should keep viewport when removing last column', () => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(20, 2),
+      data: createSpreadsheetData(20, 2),
       width: 300,
       height: 200,
       colHeaders: true,

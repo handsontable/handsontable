@@ -14,7 +14,7 @@ describe('Core.toVisualRow', () => {
 
   it('should return valid visual row index', () => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5)
+      data: createSpreadsheetData(5, 5)
     });
 
     hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);

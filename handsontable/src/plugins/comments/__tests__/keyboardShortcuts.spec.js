@@ -21,9 +21,8 @@ describe('Comments keyboard shortcut', () => {
         comments: true,
       });
 
-      selectCell(1, 1);
-      keyDownUp(['control', 'alt', 'm']);
-
+      await selectCell(1, 1);
+      await keyDownUp(['control', 'alt', 'm']);
       await sleep(10);
 
       const plugin = getPlugin('comments');
@@ -34,7 +33,7 @@ describe('Comments keyboard shortcut', () => {
       expect(document.activeElement).toBe(editor);
       expect(plugin.range).toEqualCellRange('highlight: 1,1 from: 1,1 to: 1,1');
 
-      keyDownUp(['m']); // typing printable characters should not trigger cell editor
+      await keyDownUp(['m']); // typing printable characters should not trigger cell editor
 
       expect(getShortcutManager().getActiveContextName()).toBe('plugin:comments');
       expect(document.activeElement).toBe(editor);
@@ -89,9 +88,8 @@ describe('Comments keyboard shortcut', () => {
         ],
       });
 
-      selectCell(1, 1);
-      keyDownUp(['control', 'alt', 'm']);
-
+      await selectCell(1, 1);
+      await keyDownUp(['control', 'alt', 'm']);
       await sleep(10);
 
       const plugin = getPlugin('comments');
@@ -102,7 +100,7 @@ describe('Comments keyboard shortcut', () => {
       expect(document.activeElement).toBe(editor);
       expect(plugin.range).toEqualCellRange('highlight: 1,1 from: 1,1 to: 1,1');
 
-      keyDownUp(['m']); // typing printable characters should not trigger cell editor
+      await keyDownUp(['m']); // typing printable characters should not trigger cell editor
 
       expect(getShortcutManager().getActiveContextName()).toBe('plugin:comments');
       expect(document.activeElement).toBe(editor);
@@ -121,16 +119,15 @@ describe('Comments keyboard shortcut', () => {
         ],
       });
 
-      selectCell(1, 1);
+      await selectCell(1, 1);
+
       $(getCell(1, 1)).simulate('mouseover', {
         clientX: Handsontable.dom.offset(getCell(1, 1)).left + 5,
         clientY: Handsontable.dom.offset(getCell(1, 1)).top + 5,
       });
 
       await sleep(50);
-
-      keyDownUp(['control', 'alt', 'm']);
-
+      await keyDownUp(['control', 'alt', 'm']);
       await sleep(10);
 
       const plugin = getPlugin('comments');
@@ -148,9 +145,8 @@ describe('Comments keyboard shortcut', () => {
         comments: true,
       });
 
-      selectCells([[3, 3, 2, 1]]);
-      keyDownUp(['control', 'alt', 'm']);
-
+      await selectCells([[3, 3, 2, 1]]);
+      await keyDownUp(['control', 'alt', 'm']);
       await sleep(10);
 
       const plugin = getPlugin('comments');
@@ -161,7 +157,7 @@ describe('Comments keyboard shortcut', () => {
       expect(document.activeElement).toBe(editor);
       expect(plugin.range).toEqualCellRange('highlight: 3,3 from: 3,3 to: 2,1');
 
-      keyDownUp(['m']); // typing printable characters should not trigger cell editor
+      await keyDownUp(['m']); // typing printable characters should not trigger cell editor
 
       expect(getShortcutManager().getActiveContextName()).toBe('plugin:comments');
       expect(document.activeElement).toBe(editor);
@@ -176,9 +172,8 @@ describe('Comments keyboard shortcut', () => {
         navigableHeaders: true,
       });
 
-      selectCell(-1, 1);
-      keyDownUp(['control', 'alt', 'm']);
-
+      await selectCell(-1, 1);
+      await keyDownUp(['control', 'alt', 'm']);
       await sleep(10);
 
       const plugin = getPlugin('comments');
@@ -198,9 +193,8 @@ describe('Comments keyboard shortcut', () => {
         navigableHeaders: true,
       });
 
-      selectCell(1, -1);
-      keyDownUp(['control', 'alt', 'm']);
-
+      await selectCell(1, -1);
+      await keyDownUp(['control', 'alt', 'm']);
       await sleep(10);
 
       const plugin = getPlugin('comments');
@@ -220,8 +214,8 @@ describe('Comments keyboard shortcut', () => {
         navigableHeaders: true,
       });
 
-      selectCell(-1, -1);
-      keyDownUp(['control', 'alt', 'm']);
+      await selectCell(-1, -1);
+      await keyDownUp(['control', 'alt', 'm']);
 
       await sleep(10);
 
@@ -243,15 +237,13 @@ describe('Comments keyboard shortcut', () => {
         comments: true,
       });
 
-      selectCell(1, 1);
-      keyDownUp(['control', 'alt', 'm']);
-
+      await selectCell(1, 1);
+      await keyDownUp(['control', 'alt', 'm']);
       await sleep(10);
 
       getPlugin('comments').getEditorInputElement().value = 'Test comment';
 
-      keyDownUp(['control/meta', 'enter']);
-
+      await keyDownUp(['control/meta', 'enter']);
       await sleep(50);
 
       expect(getCellMeta(1, 1).comment.value).toBe('Test comment');
@@ -266,14 +258,14 @@ describe('Comments keyboard shortcut', () => {
         contextMenu: true,
       });
 
-      selectCell(1, 1);
-      contextMenu();
-      selectContextMenuOption('Add comment');
+      await selectCell(1, 1);
+      await contextMenu();
+      await selectContextMenuOption('Add comment');
+
       getPlugin('comments').getEditorInputElement().value = 'Test comment';
-      deselectCell();
 
-      keyDownUp(['control/meta', 'enter']);
-
+      await deselectCell();
+      await keyDownUp(['control/meta', 'enter']);
       await sleep(50);
 
       expect(getCellMeta(1, 1).comment.value).toBe('Test comment');
@@ -289,12 +281,12 @@ describe('Comments keyboard shortcut', () => {
         comments: true,
       });
 
-      selectCell(1, 1);
-      keyDownUp(['escape']);
+      await selectCell(1, 1);
+      await keyDownUp(['escape']);
+
       getPlugin('comments').getEditorInputElement().value = 'Test comment';
 
-      keyDownUp(['control/meta', 'enter']);
-
+      await keyDownUp(['control/meta', 'enter']);
       await sleep(50);
 
       expect(getCellMeta(1, 1).comment).toBeUndefined();
@@ -311,12 +303,12 @@ describe('Comments keyboard shortcut', () => {
         ],
       });
 
-      selectCell(1, 1);
-      keyDownUp(['escape']);
+      await selectCell(1, 1);
+      await keyDownUp(['escape']);
+
       getPlugin('comments').getEditorInputElement().value = 'Test comment';
 
-      keyDownUp(['control/meta', 'enter']);
-
+      await keyDownUp(['control/meta', 'enter']);
       await sleep(50);
 
       expect(getCellMeta(1, 1).comment.value).toBe('Hello world!');
@@ -333,19 +325,18 @@ describe('Comments keyboard shortcut', () => {
           comments: true,
         });
 
-        selectCell(1, 1);
-        keyDownUp(['control', 'alt', 'm']);
-
+        await selectCell(1, 1);
+        await keyDownUp(['control', 'alt', 'm']);
         await sleep(50);
 
         const plugin = getPlugin('comments');
         const commentsInput = plugin.getEditorInputElement();
 
         expect(commentsInput.parentNode.style.display).toEqual('block');
+
         commentsInput.value = 'Test comment';
 
-        keyDownUp(['TAB']);
-
+        await keyDownUp(['TAB']);
         await sleep(50);
 
         expect(getCellMeta(1, 1).comment).toEqual({ value: 'Test comment' });
@@ -365,9 +356,8 @@ describe('Comments keyboard shortcut', () => {
           comments: true,
         });
 
-        selectCell(1, 1);
-        keyDownUp(['control', 'alt', 'm']);
-
+        await selectCell(1, 1);
+        await keyDownUp(['control', 'alt', 'm']);
         await sleep(50);
 
         const plugin = getPlugin('comments');
@@ -376,8 +366,7 @@ describe('Comments keyboard shortcut', () => {
         expect(commentsInput.parentNode.style.display).toEqual('block');
         commentsInput.value = 'Test comment';
 
-        keyDownUp(['SHIFT', 'TAB']);
-
+        await keyDownUp(['SHIFT', 'TAB']);
         await sleep(50);
 
         expect(getCellMeta(1, 1).comment).toEqual({ value: 'Test comment' });

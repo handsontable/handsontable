@@ -92,7 +92,7 @@ describe('settings', () => {
           spy.test();
         };
         const hot = handsontable({
-          data: Handsontable.helper.createSpreadsheetData(50, 50),
+          data: createSpreadsheetData(50, 50),
           width: 200,
           height: 200,
           colHeaders: true,
@@ -121,7 +121,7 @@ describe('settings', () => {
 
       it('should synchronize scroll with master table', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(50, 50),
+          data: createSpreadsheetData(50, 50),
           width: 200,
           height: 200,
           rowHeaders: true,
@@ -138,50 +138,50 @@ describe('settings', () => {
 
     it('should limit fixed columns to dataset columns length', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        data: createSpreadsheetData(3, 3),
         fixedColumnsStart: 3
       });
 
       expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(3);
 
       updateSettings({
-        data: Handsontable.helper.createSpreadsheetData(3, 2),
+        data: createSpreadsheetData(3, 2),
       });
 
       expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(2);
 
       updateSettings({
-        data: Handsontable.helper.createSpreadsheetData(3, 1),
+        data: createSpreadsheetData(3, 1),
       });
 
       expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(1);
 
       updateSettings({
-        data: Handsontable.helper.createSpreadsheetData(3, 0),
+        data: createSpreadsheetData(3, 0),
       });
 
       expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(0);
 
       updateSettings({
-        data: Handsontable.helper.createSpreadsheetData(3, 1),
+        data: createSpreadsheetData(3, 1),
       });
 
       expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(1);
 
       updateSettings({
-        data: Handsontable.helper.createSpreadsheetData(3, 2),
+        data: createSpreadsheetData(3, 2),
       });
 
       expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(2);
 
       updateSettings({
-        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        data: createSpreadsheetData(3, 3),
       });
 
       expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(3);
 
       updateSettings({
-        data: Handsontable.helper.createSpreadsheetData(3, 4),
+        data: createSpreadsheetData(3, 4),
       });
 
       expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(3);
@@ -299,7 +299,7 @@ describe('settings', () => {
           spy.test();
         };
         const hot = handsontable({
-          data: Handsontable.helper.createSpreadsheetData(50, 50),
+          data: createSpreadsheetData(50, 50),
           width: 200,
           height: 200,
           colHeaders: true,
@@ -328,7 +328,7 @@ describe('settings', () => {
 
       it('should synchronize scroll with master table', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(50, 50),
+          data: createSpreadsheetData(50, 50),
           width: 200,
           height: 200,
           rowHeaders: true,
@@ -345,50 +345,50 @@ describe('settings', () => {
 
     it('should limit fixed columns to dataset columns length', () => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        data: createSpreadsheetData(3, 3),
         fixedColumnsLeft: 3
       });
 
       expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(3);
 
       updateSettings({
-        data: Handsontable.helper.createSpreadsheetData(3, 2),
+        data: createSpreadsheetData(3, 2),
       });
 
       expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(2);
 
       updateSettings({
-        data: Handsontable.helper.createSpreadsheetData(3, 1),
+        data: createSpreadsheetData(3, 1),
       });
 
       expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(1);
 
       updateSettings({
-        data: Handsontable.helper.createSpreadsheetData(3, 0),
+        data: createSpreadsheetData(3, 0),
       });
 
       expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(0);
 
       updateSettings({
-        data: Handsontable.helper.createSpreadsheetData(3, 1),
+        data: createSpreadsheetData(3, 1),
       });
 
       expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(1);
 
       updateSettings({
-        data: Handsontable.helper.createSpreadsheetData(3, 2),
+        data: createSpreadsheetData(3, 2),
       });
 
       expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(2);
 
       updateSettings({
-        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        data: createSpreadsheetData(3, 3),
       });
 
       expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(3);
 
       updateSettings({
-        data: Handsontable.helper.createSpreadsheetData(3, 4),
+        data: createSpreadsheetData(3, 4),
       });
 
       expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(3);

@@ -27,7 +27,7 @@ describe('NumericEditor', () => {
     ];
   };
 
-  it('should render an editor in specified position at cell 0, 0', () => {
+  it('should render an editor in specified position at cell 0, 0', async() => {
     handsontable({
       columns: [
         {
@@ -36,11 +36,11 @@ describe('NumericEditor', () => {
       ],
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(editor.offset()).toEqual($(getCell(0, 0)).offset());
   });
@@ -70,7 +70,7 @@ describe('NumericEditor', () => {
   it('should render an editor in specified position while opening an editor from top to bottom when ' +
      'top and bottom overlays are enabled', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(8, 2),
+      data: createSpreadsheetData(8, 2),
       rowHeaders: true,
       colHeaders: true,
       fixedRowsTop: 3,
@@ -83,17 +83,17 @@ describe('NumericEditor', () => {
       ],
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
     await sleep(100); // Caused by async DateEditor close.
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     // Cells that do not touch the edges of the table have an additional top border.
     const editorOffset = () => ({
@@ -103,40 +103,40 @@ describe('NumericEditor', () => {
 
     expect(editorOffset()).toEqual($(getCell(1, 0, true)).offset());
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
     await sleep(100); // Caused by async DateEditor close.
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
     await sleep(100); // Caused by async DateEditor close.
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(3, 0, true)).offset());
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
     await sleep(100); // Caused by async DateEditor close.
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(4, 0, true)).offset());
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
     await sleep(100); // Caused by async DateEditor close.
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
     expect(editor.offset()).toEqual($(getCell(5, 0, true)).offset());
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
     await sleep(100); // Caused by async DateEditor close.
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(6, 0, true)).offset());
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
     await sleep(100); // Caused by async DateEditor close.
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
   });
@@ -144,24 +144,24 @@ describe('NumericEditor', () => {
   it('should render an editor in specified position while opening an editor from left to right when ' +
      'left overlay is enabled', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 5),
+      data: createSpreadsheetData(2, 5),
       rowHeaders: true,
       colHeaders: true,
       fixedColumnsStart: 3,
       type: 'numeric'
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(editor.offset()).toEqual($(getCell(0, 0, true)).offset());
 
-    selectCell(0, 1);
+    await selectCell(0, 1);
     await sleep(100); // Caused by async DateEditor close.
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     // Cells that do not touch the edges of the table have an additional left border.
     const editorOffset = () => ({
@@ -171,21 +171,21 @@ describe('NumericEditor', () => {
 
     expect(editorOffset()).toEqual($(getCell(0, 1, true)).offset());
 
-    selectCell(0, 2);
+    await selectCell(0, 2);
     await sleep(100); // Caused by async DateEditor close.
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 2, true)).offset());
 
-    selectCell(0, 3);
+    await selectCell(0, 3);
     await sleep(100); // Caused by async DateEditor close.
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 3, true)).offset());
 
-    selectCell(0, 4);
+    await selectCell(0, 4);
     await sleep(100); // Caused by async DateEditor close.
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 4, true)).offset());
   });
@@ -193,7 +193,7 @@ describe('NumericEditor', () => {
   it('should render an editor in specified position while opening an editor from top to bottom when ' +
        'top and bottom overlays are enabled and the first row of the both overlays are hidden', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(8, 2),
+      data: createSpreadsheetData(8, 2),
       rowHeaders: true,
       colHeaders: true,
       fixedRowsTop: 3,
@@ -210,18 +210,18 @@ describe('NumericEditor', () => {
       ],
     });
 
-    selectCell(1, 0);
+    await selectCell(1, 0);
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     // First renderable row index.
     expect(editor.offset()).toEqual($(getCell(1, 0, true)).offset());
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
     await sleep(100); // Caused by async DateEditor close.
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     // Cells that do not touch the edges of the table have an additional top border.
     const editorOffset = () => ({
@@ -231,28 +231,28 @@ describe('NumericEditor', () => {
 
     expect(editorOffset()).toEqual($(getCell(2, 0, true)).offset());
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
     await sleep(100); // Caused by async DateEditor close.
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(3, 0, true)).offset());
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
     await sleep(100); // Caused by async DateEditor close.
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(4, 0, true)).offset());
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
     await sleep(100); // Caused by async DateEditor close.
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     // The first row of the bottom overlay has different position, influenced by `innerBorderTop` CSS class.
     expect(editor.offset()).toEqual($(getCell(6, 0, true)).offset());
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
     await sleep(100); // Caused by async DateEditor close.
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(7, 0, true)).offset());
   });
@@ -260,7 +260,7 @@ describe('NumericEditor', () => {
   it('should render an editor in specified position while opening an editor from left to right when ' +
      'left overlay is enabled and the first column of the overlay is hidden', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 5),
+      data: createSpreadsheetData(2, 5),
       rowHeaders: true,
       colHeaders: true,
       fixedColumnsStart: 3,
@@ -271,18 +271,18 @@ describe('NumericEditor', () => {
       type: 'numeric',
     });
 
-    selectCell(0, 1);
+    await selectCell(0, 1);
 
     const editor = $(getActiveEditor().TEXTAREA_PARENT);
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     // First renderable column index.
     expect(editor.offset()).toEqual($(getCell(0, 1, true)).offset());
 
-    selectCell(0, 2);
+    await selectCell(0, 2);
     await sleep(100); // Caused by async DateEditor close.
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     // Cells that do not touch the edges of the table have an additional left border.
     const editorOffset = () => ({
@@ -292,26 +292,26 @@ describe('NumericEditor', () => {
 
     expect(editorOffset()).toEqual($(getCell(0, 2, true)).offset());
 
-    selectCell(0, 3);
+    await selectCell(0, 3);
     await sleep(100); // Caused by async DateEditor close.
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 3, true)).offset());
 
-    selectCell(0, 4);
+    await selectCell(0, 4);
     await sleep(100); // Caused by async DateEditor close.
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(editorOffset()).toEqual($(getCell(0, 4, true)).offset());
   });
 
-  it('should not highlight the input element by browsers native selection', () => {
+  it('should not highlight the input element by browsers native selection', async() => {
     handsontable({
       type: 'numeric',
     });
 
-    selectCell(0, 0);
-    keyDownUp('enter');
+    await selectCell(0, 0);
+    await keyDownUp('enter');
 
     const editor = getActiveEditor().TEXTAREA;
 
@@ -327,9 +327,10 @@ describe('NumericEditor', () => {
         { data: 'lastName' }
       ]
     });
-    selectCell(2, 0);
 
-    keyDownUp('enter');
+    await selectCell(2, 0);
+    await keyDownUp('enter');
+
     document.activeElement.value = '999';
 
     destroyEditor();
@@ -351,8 +352,8 @@ describe('NumericEditor', () => {
       ]
     });
 
-    selectCell(0, 1);
-    keyDownUp('enter');
+    await selectCell(0, 1);
+    await keyDownUp('enter');
 
     document.activeElement.value = '100.000,0';
 
@@ -360,8 +361,8 @@ describe('NumericEditor', () => {
 
     await sleep(100);
 
-    selectCell(1, 1);
-    keyDownUp('enter');
+    await selectCell(1, 1);
+    await keyDownUp('enter');
 
     document.activeElement.value = '200,000.5';
 
@@ -369,8 +370,8 @@ describe('NumericEditor', () => {
 
     await sleep(100);
 
-    selectCell(0, 2);
-    keyDownUp('enter');
+    await selectCell(0, 2);
+    await keyDownUp('enter');
 
     document.activeElement.value = '300,000.5';
 
@@ -378,8 +379,8 @@ describe('NumericEditor', () => {
 
     await sleep(100);
 
-    selectCell(1, 2);
-    keyDownUp('enter');
+    await selectCell(1, 2);
+    await keyDownUp('enter');
 
     document.activeElement.value = '300.000,5';
 
@@ -387,8 +388,8 @@ describe('NumericEditor', () => {
 
     await sleep(100);
 
-    selectCell(0, 3);
-    keyDownUp('enter');
+    await selectCell(0, 3);
+    await keyDownUp('enter');
 
     document.activeElement.value = '400.000,5';
 
@@ -396,8 +397,8 @@ describe('NumericEditor', () => {
 
     await sleep(100);
 
-    selectCell(1, 3);
-    keyDownUp('enter');
+    await selectCell(1, 3);
+    await keyDownUp('enter');
 
     document.activeElement.value = '400,000.5';
 
@@ -422,9 +423,10 @@ describe('NumericEditor', () => {
         { data: 'lastName' }
       ]
     });
-    selectCell(2, 0);
 
-    keyDownUp('enter');
+    await selectCell(2, 0);
+    await keyDownUp('enter');
+
     document.activeElement.value = '77.70';
 
     destroyEditor();
@@ -444,9 +446,10 @@ describe('NumericEditor', () => {
         { data: 'lastName' }
       ]
     });
-    selectCell(2, 0);
 
-    keyDownUp('enter');
+    await selectCell(2, 0);
+    await keyDownUp('enter');
+
     document.activeElement.value = '77,70';
 
     destroyEditor();
@@ -467,8 +470,8 @@ describe('NumericEditor', () => {
       ]
     });
 
-    selectCell(2, 0);
-    keyDownUp('enter');
+    await selectCell(2, 0);
+    await keyDownUp('enter');
 
     document.activeElement.value = '.74';
 
@@ -487,8 +490,8 @@ describe('NumericEditor', () => {
       ]
     });
 
-    selectCell(0, 0);
-    keyDownUp('delete');
+    await selectCell(0, 0);
+    await keyDownUp('delete');
 
     await sleep(100);
 
@@ -507,8 +510,8 @@ describe('NumericEditor', () => {
 
     // Column with default formatting
 
-    selectCell(0, 0);
-    keyDownUp('enter');
+    await selectCell(0, 0);
+    await keyDownUp('enter');
 
     document.activeElement.value = '12aaa34';
 
@@ -516,8 +519,8 @@ describe('NumericEditor', () => {
 
     await sleep(100);
 
-    selectCell(1, 0);
-    keyDownUp('enter');
+    await selectCell(1, 0);
+    await keyDownUp('enter');
 
     document.activeElement.value = 'aaa34';
 
@@ -525,8 +528,8 @@ describe('NumericEditor', () => {
 
     await sleep(100);
 
-    selectCell(2, 0);
-    keyDownUp('enter');
+    await selectCell(2, 0);
+    await keyDownUp('enter');
 
     document.activeElement.value = '12aaa';
 
@@ -536,8 +539,8 @@ describe('NumericEditor', () => {
 
     await sleep(100);
 
-    selectCell(0, 1);
-    keyDownUp('enter');
+    await selectCell(0, 1);
+    await keyDownUp('enter');
 
     document.activeElement.value = '12aaa34';
 
@@ -545,8 +548,8 @@ describe('NumericEditor', () => {
 
     await sleep(100);
 
-    selectCell(1, 1);
-    keyDownUp('enter');
+    await selectCell(1, 1);
+    await keyDownUp('enter');
 
     document.activeElement.value = 'aaa34';
 
@@ -554,8 +557,8 @@ describe('NumericEditor', () => {
 
     await sleep(100);
 
-    selectCell(2, 1);
-    keyDownUp('enter');
+    await selectCell(2, 1);
+    await keyDownUp('enter');
 
     document.activeElement.value = '12aaa';
 
@@ -592,9 +595,9 @@ describe('NumericEditor', () => {
         { data: 'lastName' }
       ]
     });
-    selectCell(2, 0);
 
-    keyDownUp('enter');
+    await selectCell(2, 0);
+    await keyDownUp('enter');
 
     document.activeElement.value = '2456.22';
 
@@ -615,9 +618,9 @@ describe('NumericEditor', () => {
         { data: 'lastName' }
       ]
     });
-    selectCell(2, 0);
 
-    keyDownUp('enter');
+    await selectCell(2, 0);
+    await keyDownUp('enter');
 
     document.activeElement.value = '2456,22';
 
@@ -641,9 +644,9 @@ describe('NumericEditor', () => {
       ],
       afterValidate: onAfterValidate
     });
-    selectCell(2, 0);
 
-    keyDownUp('enter');
+    await selectCell(2, 0);
+    await keyDownUp('enter');
 
     document.activeElement.value = '2456.22';
 
@@ -677,9 +680,8 @@ describe('NumericEditor', () => {
       ]
     });
 
-    selectCell(2, 0);
-
-    keyDownUp('enter');
+    await selectCell(2, 0);
+    await keyDownUp('enter');
 
     document.activeElement.value = '2456,220';
 
@@ -689,9 +691,8 @@ describe('NumericEditor', () => {
 
     expect(getCell(2, 0).innerHTML).toEqual('2.456,22 €');
 
-    selectCell(2, 3);
-
-    keyDownUp('enter');
+    await selectCell(2, 3);
+    await keyDownUp('enter');
 
     document.activeElement.value = '2456.220';
 
@@ -716,44 +717,39 @@ describe('NumericEditor', () => {
       ]
     });
 
-    selectCell(0, 1);
-    keyDownUp('enter');
+    await selectCell(0, 1);
+    await keyDownUp('enter');
 
     await sleep(100);
 
     expect(document.activeElement.value).toEqual('222.5');
 
     // closing editor
-    keyDownUp('enter');
-
+    await keyDownUp('enter');
     await sleep(100);
 
     expect(getDataAtCell(0, 1)).toEqual(222.5);
 
-    selectCell(0, 2);
-    keyDownUp('enter');
-
+    await selectCell(0, 2);
+    await keyDownUp('enter');
     await sleep(100);
 
     expect(document.activeElement.value).toEqual('1222.6');
 
     // closing editor
-    keyDownUp('enter');
-
+    await keyDownUp('enter');
     await sleep(100);
 
     expect(getDataAtCell(0, 2)).toEqual(1222.6);
 
-    selectCell(0, 3);
-    keyDownUp('enter');
-
+    await selectCell(0, 3);
+    await keyDownUp('enter');
     await sleep(100);
 
     expect(document.activeElement.value).toEqual('1333.5');
 
     // closing editor
-    keyDownUp('enter');
-
+    await keyDownUp('enter');
     await sleep(100);
 
     expect(getDataAtCell(0, 3)).toEqual(1333.5);
@@ -773,41 +769,35 @@ describe('NumericEditor', () => {
       ]
     });
 
-    mouseDoubleClick(getCell(0, 1));
-
+    await mouseDoubleClick(getCell(0, 1));
     await sleep(100);
 
     expect(document.activeElement.value).toEqual('222.5');
 
     // closing editor
-    keyDownUp('enter');
-
+    await keyDownUp('enter');
     await sleep(100);
 
     expect(getDataAtCell(0, 1)).toEqual(222.5);
 
-    mouseDoubleClick(getCell(0, 2));
-
+    await mouseDoubleClick(getCell(0, 2));
     await sleep(100);
 
     expect(document.activeElement.value).toEqual('1222.6');
 
     // closing editor
-    keyDownUp('enter');
-
+    await keyDownUp('enter');
     await sleep(100);
 
     expect(getDataAtCell(0, 2)).toEqual(1222.6);
 
-    mouseDoubleClick(getCell(0, 3));
-
+    await mouseDoubleClick(getCell(0, 3));
     await sleep(100);
 
     expect(document.activeElement.value).toEqual('1333.5');
 
     // closing editor
-    keyDownUp('enter');
-
+    await keyDownUp('enter');
     await sleep(100);
 
     expect(getDataAtCell(0, 3)).toEqual(1333.5);
@@ -847,9 +837,10 @@ describe('NumericEditor', () => {
         { data: 'lastName' }
       ]
     });
-    selectCell(2, 0);
 
-    keyDownUp('enter');
+    await selectCell(2, 0);
+    await keyDownUp('enter');
+
     document.activeElement.value = '99';
 
     destroyEditor();
@@ -879,7 +870,7 @@ describe('NumericEditor', () => {
       imeFastEdit: true,
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
     // The `imeFastEdit` timeout is set to 50ms.
     await sleep(55);
@@ -890,7 +881,7 @@ describe('NumericEditor', () => {
     expect(activeElement).not.toBe(null);
     expect(document.activeElement).toBe(activeElement);
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(document.activeElement).toBe(activeElement);
 
@@ -899,22 +890,25 @@ describe('NumericEditor', () => {
     expect(document.activeElement).toBe(activeElement);
 
     hot.getActiveEditor().TEXTAREA.value = '1';
-    keyDownUp('1');
+
+    await keyDownUp('1');
 
     expect(document.activeElement).toBe(activeElement);
 
     hot.getActiveEditor().TEXTAREA.value = '12';
-    keyDownUp('2');
+
+    await keyDownUp('2');
 
     expect(document.activeElement).toBe(activeElement);
 
     hot.getActiveEditor().TEXTAREA.value = '123';
-    keyDownUp('3');
+
+    await keyDownUp('3');
 
     expect(document.activeElement).toBe(activeElement);
   });
 
-  it('should not throw error on closing editor when column data is defined as \'length\'', () => {
+  it('should not throw error on closing editor when column data is defined as \'length\'', async() => {
     handsontable({
       data: [
         { length: 4 },
@@ -929,8 +923,9 @@ describe('NumericEditor', () => {
       ]
     });
 
-    selectCell(1, 0);
-    keyDownUp('enter');
+    await selectCell(1, 0);
+    await keyDownUp('enter');
+
     document.activeElement.value = '999';
 
     expect(() => {
@@ -939,25 +934,22 @@ describe('NumericEditor', () => {
   });
 
   describe('Cell corner is showed properly when changing focused cells #3877', () => {
-    const isFocusedCellDisplayingCornerTest = function(settings) {
+    const isFocusedCellDisplayingCornerTest = async function(settings) {
       const moveFromRow = settings.moveFromRow;
       const moveFromCol = settings.moveFromCol;
       const moveToRow = settings.moveToRow;
       const moveToCol = settings.moveToCol;
-      const doneFunc = settings.doneFunc;
       const $corner = settings.$container.find('.wtBorder.current.corner');
 
-      selectCell(moveFromRow, moveFromCol);
-      keyDownUp('enter');
-      selectCell(moveToRow, moveToCol);
+      await selectCell(moveFromRow, moveFromCol);
+      await keyDownUp('enter');
+      await selectCell(moveToRow, moveToCol);
+      await sleep(100);
 
-      setTimeout(() => {
-        expect($corner.css('display')).toEqual('block');
-        doneFunc();
-      }, 100);
+      expect($corner.css('display')).toEqual('block');
     };
 
-    it('Moving from numeric editor to text editor', (done) => {
+    it('Moving from numeric editor to text editor', async() => {
       handsontable({
         data: [
           { id: 1, name: 'Ted', lastName: 'Right', money: 0 }
@@ -970,17 +962,16 @@ describe('NumericEditor', () => {
         ]
       });
 
-      isFocusedCellDisplayingCornerTest({
+      await isFocusedCellDisplayingCornerTest({
         moveFromRow: 0,
         moveFromCol: 3,
         moveToRow: 0,
         moveToCol: 0,
         $container: spec().$container,
-        doneFunc: done
       });
     });
 
-    it('Moving from text editor to numeric editor', (done) => {
+    it('Moving from text editor to numeric editor', async() => {
       handsontable({
         data: [
           { id: 1, name: 'Ted', lastName: 'Right', money: 0 }
@@ -993,24 +984,23 @@ describe('NumericEditor', () => {
         ]
       });
 
-      isFocusedCellDisplayingCornerTest({
+      await isFocusedCellDisplayingCornerTest({
         moveFromRow: 0,
         moveFromCol: 1,
         moveToRow: 0,
         moveToCol: 3,
         $container: spec().$container,
-        doneFunc: done
       });
     });
   });
 
-  it('should render an editable editor\'s element without messing with "dir" attribute', () => {
+  it('should render an editable editor\'s element without messing with "dir" attribute', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 5),
+      data: createSpreadsheetData(2, 5),
       editor: 'numeric',
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
     const editableElement = getActiveEditor().TEXTAREA;
 
@@ -1028,7 +1018,7 @@ describe('NumericEditor', () => {
         imeFastEdit: true,
       });
 
-      selectCell(0, 0, 0, 0, true, false);
+      await selectCell(0, 0, 0, 0, true, false);
 
       // The `imeFastEdit` timeout is set to 50ms.
       await sleep(55);
