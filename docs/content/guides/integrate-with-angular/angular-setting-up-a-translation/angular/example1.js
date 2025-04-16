@@ -17,6 +17,7 @@ type Product = {
 
 @Component({
   selector: 'app-root',
+  standalone: false,
   template: `
     <div>
       <hot-table [data]="dataset" [colHeaders]="true" height="auto" [autoWrapRow]="true" [autoWrapCol]="true" licenseKey="non-commercial-and-evaluation">
