@@ -19,8 +19,8 @@ describe('Selection extending', () => {
         startCols: 5
       });
 
-      selectCells([[1, 1, 1, 1], [2, 2, 3, 3]]);
-      keyDownUp(['control/meta', 'shift', 'space']);
+      await selectCells([[1, 1, 1, 1], [2, 2, 3, 3]]);
+      await keyDownUp(['control/meta', 'shift', 'space']);
 
       expect(`
         | * ║ * : * : * : * : * |

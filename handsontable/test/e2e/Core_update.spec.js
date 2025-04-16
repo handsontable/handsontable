@@ -118,7 +118,7 @@ describe('Core_updateSettings', () => {
     expect(td.eq(0).text()).toEqual('1');
     expect(td.eq(1).text()).toEqual('');
 
-    updateSettings({});
+    await updateSettings({});
 
     expect(td.eq(0).text()).toEqual('1');
     expect(td.eq(1).text()).toEqual('');
@@ -146,7 +146,7 @@ describe('Core_updateSettings', () => {
     expect(td.eq(0).text()).toEqual('1');
     expect(td.eq(1).text()).toEqual('');
 
-    updateSettings({});
+    await updateSettings({});
 
     expect(td.eq(0).text()).toEqual('1');
     expect(td.eq(1).text()).toEqual('');
@@ -168,7 +168,7 @@ describe('Core_updateSettings', () => {
     expect(getCellMeta(0, 1).readOnly).toBe(true);
     expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(true);
 
-    updateSettings({
+    await updateSettings({
       readOnly: false
     });
 
@@ -200,7 +200,7 @@ describe('Core_updateSettings', () => {
     expect(getCellMeta(0, 1).readOnly).toBe(true);
     expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(true);
 
-    updateSettings({
+    await updateSettings({
       readOnly: false
     });
 
@@ -226,7 +226,7 @@ describe('Core_updateSettings', () => {
     expect(getCellMeta(0, 1).readOnly).toBe(false);
     expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(false);
 
-    updateSettings({
+    await updateSettings({
       columns: [
         { type: 'text', readOnly: false },
         { type: 'checkbox' }
@@ -262,7 +262,7 @@ describe('Core_updateSettings', () => {
     expect(getCellMeta(0, 1).readOnly).toBe(false);
     expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(false);
 
-    updateSettings({
+    await updateSettings({
       columns(column) {
         let colMeta = null;
 
@@ -299,7 +299,7 @@ describe('Core_updateSettings', () => {
     expect(getCellMeta(0, 1).readOnly).toBe(true);
     expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(true);
 
-    updateSettings({
+    await updateSettings({
       columns: [
         { type: 'text', readOnly: false },
         { type: 'checkbox' }
@@ -337,7 +337,7 @@ describe('Core_updateSettings', () => {
     expect(getCellMeta(0, 1).readOnly).toBe(true);
     expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(true);
 
-    updateSettings({
+    await updateSettings({
       columns(column) {
         let colMeta = null;
 
@@ -392,7 +392,7 @@ describe('Core_updateSettings', () => {
 
     columns[0].type = 'date';
 
-    updateSettings({
+    await updateSettings({
       columns
     });
 
@@ -419,7 +419,7 @@ describe('Core_updateSettings', () => {
 
     columns[0].type = 'text';
 
-    updateSettings({
+    await updateSettings({
       columns
     });
 
@@ -439,7 +439,7 @@ describe('Core_updateSettings', () => {
     const rowHeights = [];
 
     rowHeights.push(spec().$container.find('.ht_clone_top_inline_start_corner thead th')[0].clientHeight);
-    updateSettings({
+    await updateSettings({
       colHeaders: ['A<br/>A']
     });
 
@@ -468,17 +468,17 @@ describe('Core_updateSettings', () => {
       }
     });
 
-    updateSettings({});
+    await updateSettings({});
     expect(getCellMeta(rows, 0).readOnly).toEqual(true);
     expect(getCellMeta(rows, 1).type).toEqual('checkbox');
 
     rows = 100;
 
-    updateSettings({ data: Handsontable.helper.createSpreadsheetObjectData(columns, rows) });
+    await updateSettings({ data: Handsontable.helper.createSpreadsheetObjectData(columns, rows) });
     expect(getCellMeta(rows, 0).readOnly).toEqual(true);
     expect(getCellMeta(rows, 1).type).toEqual('checkbox');
 
-    updateSettings({
+    await updateSettings({
       columns(col) {
         const colProp = {
           data: `prop${col}`,
@@ -514,18 +514,18 @@ describe('Core_updateSettings', () => {
       ]
     });
 
-    updateSettings({});
+    await updateSettings({});
     expect(getCellMeta(rows, 0).type).toEqual('numeric');
     expect(getCellMeta(rows, 1).readOnly).toEqual(true);
 
     rows = 100;
 
-    updateSettings({ data: Handsontable.helper.createSpreadsheetObjectData(columns, rows) });
+    await updateSettings({ data: Handsontable.helper.createSpreadsheetObjectData(columns, rows) });
     expect(getCellMeta(rows, 0).type).toEqual('numeric');
     expect(typeof getCellMeta(rows, 0).numericFormat).toEqual('object');
     expect(getCellMeta(rows, 1).readOnly).toEqual(true);
 
-    updateSettings({
+    await updateSettings({
       columns: [
         {
           type: 'text',
@@ -559,7 +559,7 @@ describe('Core_updateSettings', () => {
 
     const newSettings = { readOnly: false };
 
-    updateSettings(newSettings);
+    await updateSettings(newSettings);
 
     expect(afterUpdateSettings)
       .toHaveBeenCalledWith(newSettings);
@@ -577,7 +577,7 @@ describe('Core_updateSettings', () => {
       }
     });
 
-    updateSettings(updatedSetting);
+    await updateSettings(updatedSetting);
 
     expect(Object.keys(updatedSetting)).toEqual(Object.keys(newSettings));
   });
@@ -593,7 +593,7 @@ describe('Core_updateSettings', () => {
     hot.rowIndexMapper.addLocalHook('cacheUpdated', rowCacheUpdatedCallback);
     hot.columnIndexMapper.addLocalHook('cacheUpdated', columnCacheUpdatedCallback);
 
-    updateSettings({ a: 'b' });
+    await updateSettings({ a: 'b' });
 
     expect(rowCacheUpdatedCallback).not.toHaveBeenCalled();
     expect(columnCacheUpdatedCallback).not.toHaveBeenCalled();
@@ -610,7 +610,7 @@ describe('Core_updateSettings', () => {
     hot.rowIndexMapper.addLocalHook('cacheUpdated', rowCacheUpdatedCallback);
     hot.columnIndexMapper.addLocalHook('cacheUpdated', columnCacheUpdatedCallback);
 
-    updateSettings({ data: Handsontable.helper.createSpreadsheetObjectData(5, 5), columns: [{}] });
+    await updateSettings({ data: Handsontable.helper.createSpreadsheetObjectData(5, 5), columns: [{}] });
 
     expect(rowCacheUpdatedCallback.calls.count()).toEqual(1);
     expect(columnCacheUpdatedCallback.calls.count()).toEqual(1);
@@ -633,7 +633,7 @@ describe('Core_updateSettings', () => {
       }
     });
 
-    updateSettings({});
+    await updateSettings({});
 
     expect(correctSourceCount).toEqual(2);
   });
@@ -646,7 +646,7 @@ describe('Core_updateSettings', () => {
       }]
     });
 
-    updateSettings({
+    await updateSettings({
       columns: [{
         data: 'brand'
       }]

@@ -66,7 +66,7 @@ describe('Core.countEmptyCols', () => {
     trimmingMap.setValueAtIndex(0, true);
     trimmingMap.setValueAtIndex(1, true);
     trimmingMap.setValueAtIndex(2, true);
-    render();
+    await render();
 
     expect(countEmptyCols()).toBe(7);
     expect(countEmptyCols(true)).toBe(7);
@@ -86,7 +86,7 @@ describe('Core.countEmptyCols', () => {
     hidingMap.setValueAtIndex(0, true);
     hidingMap.setValueAtIndex(1, true);
     hidingMap.setValueAtIndex(2, true);
-    render();
+    await render();
 
     expect(countEmptyCols()).toBe(3);
     expect(countEmptyCols(true)).toBe(1);
@@ -141,7 +141,7 @@ describe('Core.countEmptyCols', () => {
     });
 
     hot.rowIndexMapper.createAndRegisterIndexMap('hide', 'hiding', true); // hide all rows
-    render();
+    await render();
 
     expect(countEmptyCols()).toBe(0);
     expect(countEmptyCols(true)).toBe(0);
@@ -157,7 +157,7 @@ describe('Core.countEmptyCols', () => {
     });
 
     hot.rowIndexMapper.createAndRegisterIndexMap('trim', 'trimming', true); // trim all rows
-    render();
+    await render();
 
     expect(countEmptyCols()).toBe(5);
     expect(countEmptyCols(true)).toBe(5);

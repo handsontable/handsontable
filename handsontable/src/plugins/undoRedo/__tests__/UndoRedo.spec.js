@@ -23,7 +23,7 @@ describe('UndoRedo', () => {
     expect(hot.isRedoAvailable).toBeUndefined();
     expect(hot.clearUndo).toBeUndefined();
 
-    updateSettings({
+    await updateSettings({
       undo: true
     });
 
@@ -45,7 +45,7 @@ describe('UndoRedo', () => {
     expect(typeof hot.isRedoAvailable).toEqual('function');
     expect(typeof hot.clearUndo).toEqual('function');
 
-    updateSettings({
+    await updateSettings({
       undo: false
     });
 
@@ -62,7 +62,7 @@ describe('UndoRedo', () => {
     });
 
     await selectCell(0, 0);
-    setDataAtCell(0, 0, 'new value');
+    await setDataAtCell(0, 0, 'new value');
 
     await selectCell(1, 0);
     await keyDownUp('enter');
@@ -78,13 +78,13 @@ describe('UndoRedo', () => {
         undo: false,
       });
 
-      setDataAtCell(0, 0, 'X1');
+      await setDataAtCell(0, 0, 'X1');
 
-      updateSettings({
+      await updateSettings({
         undo: true,
       });
 
-      setDataAtCell(0, 0, 'X2');
+      await setDataAtCell(0, 0, 'X2');
 
       getPlugin('undoRedo').undo();
 
@@ -101,7 +101,7 @@ describe('UndoRedo', () => {
         undo: true,
       });
 
-      setDataAtCell(0, 0, 'X2');
+      await setDataAtCell(0, 0, 'X2');
 
       getPlugin('undoRedo').undo();
 
@@ -111,11 +111,11 @@ describe('UndoRedo', () => {
 
       expect(getDataAtCell(0, 0)).toBe('X2');
 
-      updateSettings({
+      await updateSettings({
         undo: false,
       });
 
-      setDataAtCell(1, 1, 'X2');
+      await setDataAtCell(1, 1, 'X2');
 
       getPlugin('undoRedo').undo();
 
@@ -130,7 +130,7 @@ describe('UndoRedo', () => {
           data: createSpreadsheetData(2, 2)
         });
 
-        setDataAtCell(0, 0, 'X1');
+        await setDataAtCell(0, 0, 'X1');
         expect(getDataAtCell(0, 0)).toBe('X1');
 
         getPlugin('undoRedo').undo();
@@ -144,7 +144,7 @@ describe('UndoRedo', () => {
 
         expect(countRows()).toEqual(2);
 
-        alter('insert_row_above');
+        await alter('insert_row_above');
 
         expect(countRows()).toEqual(3);
 
@@ -160,7 +160,7 @@ describe('UndoRedo', () => {
 
         expect(countRows()).toEqual(2);
 
-        alter('insert_row_above', 0, 5);
+        await alter('insert_row_above', 0, 5);
 
         expect(countRows()).toEqual(7);
 
@@ -175,8 +175,8 @@ describe('UndoRedo', () => {
           minSpareRows: 2
         });
 
-        setDataAtCell(2, 0, 'A3');
-        setDataAtCell(4, 0, 'A4');
+        await setDataAtCell(2, 0, 'A3');
+        await setDataAtCell(4, 0, 'A4');
 
         expect(getData()).toEqual([['A1'], ['A2'], ['A3'], [null], ['A4'], [null], [null]]);
 
@@ -192,7 +192,7 @@ describe('UndoRedo', () => {
           minSpareRows: 2,
         });
 
-        setDataAtCell([
+        await setDataAtCell([
           [4, 0, 'A1'], [4, 1, 'B1'],
           [5, 0, 'A2'], [5, 1, 'B2'],
           [6, 0, 'A3'], [6, 1, 'B3'],
@@ -236,7 +236,7 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(2, 0)).toEqual('A3');
         expect(getDataAtCell(2, 1)).toEqual('B3');
 
-        alter('remove_row', 1);
+        await alter('remove_row', 1);
 
         expect(countRows()).toEqual(2);
         expect(getDataAtCell(0, 0)).toEqual('A1');
@@ -270,7 +270,7 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(3, 0)).toEqual('A4');
         expect(getDataAtCell(3, 1)).toEqual('B4');
 
-        alter('remove_row', 1, 2);
+        await alter('remove_row', 1, 2);
 
         expect(countRows()).toEqual(2);
         expect(getDataAtCell(0, 0)).toEqual('A1');
@@ -296,7 +296,7 @@ describe('UndoRedo', () => {
           data: createSpreadsheetData(4, 2)
         });
 
-        alter('remove_row', 0, 4);
+        await alter('remove_row', 0, 4);
 
         expect(countRows()).toBe(0);
         expect(countCols()).toBe(0);
@@ -343,7 +343,7 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(2, 0)).toEqual('A1');
         expect(getDataAtCell(2, 1)).toEqual('B1');
 
-        alter('remove_row', 0);
+        await alter('remove_row', 0);
 
         expect(countRows()).toEqual(2);
         expect(getDataAtCell(0, 0)).toEqual('A2');
@@ -370,7 +370,7 @@ describe('UndoRedo', () => {
           ]
         });
 
-        alter('remove_row', 0, 3);
+        await alter('remove_row', 0, 3);
 
         expect(countRows()).toEqual(0);
         expect(countSourceRows()).toEqual(0);
@@ -402,7 +402,7 @@ describe('UndoRedo', () => {
 
         expect(countCols()).toEqual(3);
 
-        alter('insert_col_start');
+        await alter('insert_col_start');
 
         expect(countCols()).toEqual(4);
 
@@ -420,7 +420,7 @@ describe('UndoRedo', () => {
         expect(countCols()).toEqual(3);
         expect(getColHeader()).toEqual(['A', 'B', 'C']);
 
-        alter('insert_col_start');
+        await alter('insert_col_start');
 
         expect(countCols()).toEqual(4);
         expect(getColHeader()).toEqual(['A', 'B', 'C', 'D']);
@@ -440,7 +440,7 @@ describe('UndoRedo', () => {
         expect(countCols()).toEqual(3);
         expect(getColHeader()).toEqual(['Header1', 'Header2', 'Header3']);
 
-        alter('insert_col_start', 1);
+        await alter('insert_col_start', 1);
 
         expect(countCols()).toEqual(4);
         expect(getColHeader()).toEqual(['Header1', 'B', 'Header2', 'Header3']);
@@ -458,7 +458,7 @@ describe('UndoRedo', () => {
 
         expect(countCols()).toEqual(2);
 
-        alter('insert_col_start', 1, 5);
+        await alter('insert_col_start', 1, 5);
 
         expect(countCols()).toEqual(7);
 
@@ -476,7 +476,7 @@ describe('UndoRedo', () => {
         expect(countCols()).toEqual(2);
         expect(getColHeader()).toEqual(['A', 'B']);
 
-        alter('insert_col_start', 1, 5);
+        await alter('insert_col_start', 1, 5);
 
         expect(countCols()).toEqual(7);
         expect(getColHeader()).toEqual(['A', 'B', 'C', 'D', 'E', 'F', 'G']);
@@ -496,7 +496,7 @@ describe('UndoRedo', () => {
         expect(countCols()).toEqual(2);
         expect(getColHeader()).toEqual(['Header1', 'Header2']);
 
-        alter('insert_col_start', 1, 5);
+        await alter('insert_col_start', 1, 5);
 
         expect(countCols()).toEqual(7);
         expect(getColHeader()).toEqual(['Header1', 'B', 'C', 'D', 'E', 'F', 'Header2']);
@@ -513,8 +513,8 @@ describe('UndoRedo', () => {
           minSpareCols: 2
         });
 
-        setDataAtCell(0, 1, 'B1');
-        setDataAtCell(0, 3, 'C1');
+        await setDataAtCell(0, 1, 'B1');
+        await setDataAtCell(0, 3, 'C1');
 
         expect(getData()).toEqual([['A1', 'B1', null, 'C1', null, null]]);
 
@@ -534,7 +534,7 @@ describe('UndoRedo', () => {
         });
 
         await selectColumns(0, 2);
-        alter('remove_col', 0, 3);
+        await alter('remove_col', 0, 3);
         getPlugin('undoRedo').undo();
 
         expect(getSelected()).toBeUndefined();
@@ -550,7 +550,7 @@ describe('UndoRedo', () => {
           minSpareCols: 2,
         });
 
-        setDataAtCell([
+        await setDataAtCell([
           [0, 4, 'A1'], [0, 5, 'B1'],
           [1, 4, 'A2'], [1, 5, 'B2'],
           [2, 4, 'A3'], [2, 5, 'B3'],
@@ -586,7 +586,7 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(1, 1)).toEqual('B2');
         expect(getDataAtCell(1, 2)).toEqual('C2');
 
-        alter('remove_col', 1);
+        await alter('remove_col', 1);
 
         expect(countCols()).toEqual(2);
         expect(getDataAtCell(0, 0)).toEqual('A1');
@@ -618,7 +618,7 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(1, 1)).toEqual('B2');
         expect(getColHeader()).toEqual(['A', 'B']);
 
-        alter('remove_col');
+        await alter('remove_col');
 
         expect(countCols()).toEqual(1);
         expect(getDataAtCell(0, 0)).toEqual('A1');
@@ -651,7 +651,7 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(1, 1)).toEqual('B2');
         expect(getColHeader()).toEqual(['Header1', 'Header2']);
 
-        alter('remove_col');
+        await alter('remove_col');
 
         expect(countCols()).toEqual(1);
         expect(getDataAtCell(0, 0)).toEqual('A1');
@@ -681,7 +681,7 @@ describe('UndoRedo', () => {
           ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1', 'K1', 'L1', 'M1', 'N1', 'O1']
         ]);
 
-        alter('remove_col', 4, 7);
+        await alter('remove_col', 4, 7);
 
         expect(getData()).toEqual([
           ['A1', 'B1', 'C1', 'D1', 'L1', 'M1', 'N1', 'O1']
@@ -712,7 +712,7 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(1, 3)).toEqual('D2');
         expect(getColHeader()).toEqual(['A', 'B', 'C', 'D']);
 
-        alter('remove_col', 1, 3);
+        await alter('remove_col', 1, 3);
 
         expect(countCols()).toEqual(1);
         expect(getDataAtCell(0, 0)).toEqual('A1');
@@ -756,7 +756,7 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(1, 3)).toEqual('D2');
         expect(getColHeader()).toEqual(['Header1', 'Header2', 'Header3', 'Header4']);
 
-        alter('remove_col', 1, 2);
+        await alter('remove_col', 1, 2);
 
         expect(countCols()).toEqual(2);
         expect(getDataAtCell(0, 0)).toEqual('A1');
@@ -790,7 +790,7 @@ describe('UndoRedo', () => {
           contextMenu: true,
         });
 
-        alter('remove_col', 0, 4);
+        await alter('remove_col', 0, 4);
 
         expect(countRows()).toBe(0);
         expect(countCols()).toBe(0);
@@ -822,7 +822,7 @@ describe('UndoRedo', () => {
         expect(countCols()).toEqual(7);
         expect(getDataAtRow(0)).toEqual(['D1', 'C1', 'A1', 'G1', 'B1', 'F1', 'E1']);
 
-        alter('remove_col', 1, 3);
+        await alter('remove_col', 1, 3);
 
         expect(countCols()).toEqual(4);
         expect(getDataAtRow(0)).toEqual(['D1', 'B1', 'F1', 'E1']);
@@ -838,10 +838,10 @@ describe('UndoRedo', () => {
           data: createSpreadsheetData(2, 2)
         });
 
-        setDataAtCell(0, 0, 'X1');
-        setDataAtCell(1, 0, 'X2');
-        setDataAtCell(0, 1, 'Y1');
-        setDataAtCell(1, 1, 'Y2');
+        await setDataAtCell(0, 0, 'X1');
+        await setDataAtCell(1, 0, 'X2');
+        await setDataAtCell(0, 1, 'Y1');
+        await setDataAtCell(1, 1, 'Y2');
 
         expect(getDataAtCell(0, 0)).toBe('X1');
         expect(getDataAtCell(1, 0)).toBe('X2');
@@ -885,9 +885,9 @@ describe('UndoRedo', () => {
           validator: /^[A-Z]+[0-9]+$/
         });
 
-        setDataAtCell(0, 0, 'X1');
-        setDataAtCell(1, 0, 'X2');
-        setDataAtCell(0, 1, 'Y1');
+        await setDataAtCell(0, 0, 'X1');
+        await setDataAtCell(1, 0, 'X2');
+        await setDataAtCell(0, 1, 'Y1');
 
         await sleep(10);
 
@@ -927,10 +927,10 @@ describe('UndoRedo', () => {
 
         expect(countRows()).toEqual(2);
 
-        alter('insert_row_above');
-        alter('insert_row_above');
-        alter('insert_row_above');
-        alter('insert_row_above');
+        await alter('insert_row_above');
+        await alter('insert_row_above');
+        await alter('insert_row_above');
+        await alter('insert_row_above');
 
         expect(countRows()).toEqual(6);
 
@@ -965,9 +965,9 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(3, 0)).toEqual('A4');
         expect(getDataAtCell(3, 1)).toEqual('B4');
 
-        alter('remove_row');
-        alter('remove_row');
-        alter('remove_row');
+        await alter('remove_row');
+        await alter('remove_row');
+        await alter('remove_row');
 
         expect(countRows()).toEqual(1);
         expect(getDataAtCell(0, 0)).toEqual('A1');
@@ -1066,7 +1066,7 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(1, 1)).toEqual('B2');
         expect(getDataAtCell(1, 2)).toEqual('C2');
 
-        alter('remove_col', 1);
+        await alter('remove_col', 1);
 
         expect(countCols()).toEqual(2);
         expect(getDataAtCell(0, 0)).toEqual('A1');
@@ -1139,7 +1139,7 @@ describe('UndoRedo', () => {
         }
 
         expect(getDataAtCell(1, 1)).toEqual('Frank Honest');
-        setDataAtCell(1, 1, 'Something Else');
+        await setDataAtCell(1, 1, 'Something Else');
         expect(getDataAtCell(1, 1)).toEqual('Something Else');
 
         getPlugin('undoRedo').undo();
@@ -1153,7 +1153,7 @@ describe('UndoRedo', () => {
           data: createSpreadsheetData(2, 2)
         });
 
-        setDataAtCell(0, 0, 'new value');
+        await setDataAtCell(0, 0, 'new value');
 
         expect(getDataAtCell(0, 0)).toBe('new value');
 
@@ -1170,9 +1170,9 @@ describe('UndoRedo', () => {
           validator: /^[A-Z]+[0-9]+$/
         });
 
-        setDataAtCell(0, 0, 'X1');
-        setDataAtCell(1, 0, 'X2');
-        setDataAtCell(0, 1, 'Y1');
+        await setDataAtCell(0, 0, 'X1');
+        await setDataAtCell(1, 0, 'X2');
+        await setDataAtCell(0, 1, 'Y1');
 
         await sleep(10);
         getPlugin('undoRedo').undo();
@@ -1210,7 +1210,7 @@ describe('UndoRedo', () => {
 
         expect(countRows()).toEqual(2);
 
-        alter('insert_row_above');
+        await alter('insert_row_above');
 
         expect(countRows()).toEqual(3);
 
@@ -1230,7 +1230,7 @@ describe('UndoRedo', () => {
 
         expect(countRows()).toEqual(2);
 
-        alter('insert_row_above', 0, 5);
+        await alter('insert_row_above', 0, 5);
 
         expect(countRows()).toEqual(7);
 
@@ -1256,7 +1256,7 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(2, 0)).toEqual('A3');
         expect(getDataAtCell(2, 1)).toEqual('B3');
 
-        alter('remove_row', 1);
+        await alter('remove_row', 1);
 
         expect(countRows()).toEqual(2);
         expect(getDataAtCell(0, 0)).toEqual('A1');
@@ -1298,7 +1298,7 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(3, 0)).toEqual('A4');
         expect(getDataAtCell(3, 1)).toEqual('B4');
 
-        alter('remove_row', 1, 2);
+        await alter('remove_row', 1, 2);
 
         expect(countRows()).toEqual(2);
         expect(getDataAtCell(0, 0)).toEqual('A1');
@@ -1334,7 +1334,7 @@ describe('UndoRedo', () => {
 
         expect(countCols()).toEqual(2);
 
-        alter('insert_col_start');
+        await alter('insert_col_start');
 
         expect(countCols()).toEqual(3);
 
@@ -1354,7 +1354,7 @@ describe('UndoRedo', () => {
 
         expect(countCols()).toEqual(2);
 
-        alter('insert_col_start', 1, 5);
+        await alter('insert_col_start', 1, 5);
 
         expect(countCols()).toEqual(7);
 
@@ -1378,7 +1378,7 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(1, 0)).toEqual('A2');
         expect(getDataAtCell(1, 1)).toEqual('B2');
 
-        alter('remove_col');
+        await alter('remove_col');
 
         expect(countCols()).toEqual(1);
         expect(getDataAtCell(0, 0)).toEqual('A1');
@@ -1418,7 +1418,7 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(1, 2)).toEqual('C2');
         expect(getDataAtCell(1, 3)).toEqual('D2');
 
-        alter('remove_col', 1, 3);
+        await alter('remove_col', 1, 3);
 
         expect(countCols()).toEqual(1);
         expect(getDataAtCell(0, 0)).toEqual('A1');
@@ -1460,10 +1460,10 @@ describe('UndoRedo', () => {
           data: createSpreadsheetData(2, 2)
         });
 
-        setDataAtCell(0, 0, 'X1');
-        setDataAtCell(1, 0, 'X2');
-        setDataAtCell(0, 1, 'Y1');
-        setDataAtCell(1, 1, 'Y2');
+        await setDataAtCell(0, 0, 'X1');
+        await setDataAtCell(1, 0, 'X2');
+        await setDataAtCell(0, 1, 'Y1');
+        await setDataAtCell(1, 1, 'Y2');
 
         expect(getDataAtCell(0, 0)).toBe('X1');
         expect(getDataAtCell(1, 0)).toBe('X2');
@@ -1518,10 +1518,10 @@ describe('UndoRedo', () => {
 
         expect(countRows()).toEqual(2);
 
-        alter('insert_row_above');
-        alter('insert_row_above');
-        alter('insert_row_above');
-        alter('insert_row_above');
+        await alter('insert_row_above');
+        await alter('insert_row_above');
+        await alter('insert_row_above');
+        await alter('insert_row_above');
 
         expect(countRows()).toEqual(6);
 
@@ -1563,9 +1563,9 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(3, 0)).toEqual('A4');
         expect(getDataAtCell(3, 1)).toEqual('B4');
 
-        alter('remove_row');
-        alter('remove_row');
-        alter('remove_row');
+        await alter('remove_row');
+        await alter('remove_row');
+        await alter('remove_row');
 
         expect(countRows()).toEqual(1);
         expect(getDataAtCell(0, 0)).toEqual('A1');
@@ -1684,7 +1684,7 @@ describe('UndoRedo', () => {
 
         expect(countRows()).toEqual(2);
 
-        alter('insert_row_above');
+        await alter('insert_row_above');
 
         expect(countRows()).toEqual(3);
 
@@ -1700,7 +1700,7 @@ describe('UndoRedo', () => {
 
         expect(countRows()).toEqual(2);
 
-        alter('insert_row_above', 0, 5);
+        await alter('insert_row_above', 0, 5);
 
         expect(countRows()).toEqual(7);
 
@@ -1720,7 +1720,7 @@ describe('UndoRedo', () => {
         expect(getDataAtRowProp(1, 'name')).toEqual('Sean');
         expect(getDataAtRowProp(1, 'surname')).toEqual('Connery');
 
-        alter('remove_row');
+        await alter('remove_row');
 
         expect(countRows()).toEqual(1);
         expect(getDataAtRowProp(0, 'name')).toEqual('Timothy');
@@ -1750,7 +1750,7 @@ describe('UndoRedo', () => {
         expect(getDataAtRowProp(2, 'name')).toEqual('Roger');
         expect(getDataAtRowProp(2, 'surname')).toEqual('Moore');
 
-        alter('remove_row', 1, 2);
+        await alter('remove_row', 1, 2);
 
         expect(countRows()).toEqual(1);
         expect(getDataAtRowProp(0, 'name')).toEqual('Timothy');
@@ -1784,7 +1784,7 @@ describe('UndoRedo', () => {
           height: 400,
         });
 
-        alter('remove_row', 0, 3);
+        await alter('remove_row', 0, 3);
         getPlugin('undoRedo').undo();
 
         expect(getSettings().fixedRowsBottom).toBe(1);
@@ -1801,7 +1801,7 @@ describe('UndoRedo', () => {
           fixedRowsTop: 1,
         });
 
-        alter('remove_row', 0, 3);
+        await alter('remove_row', 0, 3);
         getPlugin('undoRedo').undo();
 
         expect(getSettings().fixedRowsTop).toBe(1);
@@ -1860,10 +1860,10 @@ describe('UndoRedo', () => {
 
         expect(countRows()).toEqual(2);
 
-        alter('insert_row_above');
-        alter('insert_row_above');
-        alter('insert_row_above');
-        alter('insert_row_above');
+        await alter('insert_row_above');
+        await alter('insert_row_above');
+        await alter('insert_row_above');
+        await alter('insert_row_above');
 
         expect(countRows()).toEqual(6);
 
@@ -1896,8 +1896,8 @@ describe('UndoRedo', () => {
         expect(getDataAtRowProp(2, 'name')).toEqual('Roger');
         expect(getDataAtRowProp(2, 'surname')).toEqual('Moore');
 
-        alter('remove_row');
-        alter('remove_row');
+        await alter('remove_row');
+        await alter('remove_row');
 
         expect(countRows()).toEqual(1);
         expect(getDataAtRowProp(0, 'name')).toEqual('Timothy');
@@ -1950,7 +1950,7 @@ describe('UndoRedo', () => {
         expect(getDataAtRowProp(1, 'name')).toEqual('Sean');
         expect(getDataAtRowProp(1, 'surname')).toEqual('Connery');
 
-        alter('remove_row');
+        await alter('remove_row');
 
         expect(countRows()).toEqual(1);
         expect(getDataAtRowProp(0, 'name')).toEqual('Timothy');
@@ -1991,7 +1991,7 @@ describe('UndoRedo', () => {
 
         expect(countRows()).toEqual(2);
 
-        alter('insert_row_above');
+        await alter('insert_row_above');
 
         expect(countRows()).toEqual(3);
 
@@ -2011,7 +2011,7 @@ describe('UndoRedo', () => {
 
         expect(countRows()).toEqual(2);
 
-        alter('insert_row_above', 0, 5);
+        await alter('insert_row_above', 0, 5);
 
         expect(countRows()).toEqual(7);
 
@@ -2035,7 +2035,7 @@ describe('UndoRedo', () => {
         expect(getDataAtRowProp(1, 'name')).toEqual('Sean');
         expect(getDataAtRowProp(1, 'surname')).toEqual('Connery');
 
-        alter('remove_row');
+        await alter('remove_row');
 
         expect(countRows()).toEqual(1);
         expect(getDataAtRowProp(0, 'name')).toEqual('Timothy');
@@ -2073,7 +2073,7 @@ describe('UndoRedo', () => {
         expect(getDataAtRowProp(2, 'name')).toEqual('Roger');
         expect(getDataAtRowProp(2, 'surname')).toEqual('Moore');
 
-        alter('remove_row', 1, 2);
+        await alter('remove_row', 1, 2);
 
         expect(countRows()).toEqual(1);
         expect(getDataAtRowProp(0, 'name')).toEqual('Timothy');
@@ -2172,10 +2172,10 @@ describe('UndoRedo', () => {
 
         expect(countRows()).toEqual(2);
 
-        alter('insert_row_above');
-        alter('insert_row_above');
-        alter('insert_row_above');
-        alter('insert_row_above');
+        await alter('insert_row_above');
+        await alter('insert_row_above');
+        await alter('insert_row_above');
+        await alter('insert_row_above');
 
         expect(countRows()).toEqual(6);
 
@@ -2220,8 +2220,8 @@ describe('UndoRedo', () => {
         expect(getDataAtRowProp(2, 'name')).toEqual('Roger');
         expect(getDataAtRowProp(2, 'surname')).toEqual('Moore');
 
-        alter('remove_row');
-        alter('remove_row');
+        await alter('remove_row');
+        await alter('remove_row');
 
         expect(countRows()).toEqual(1);
         expect(getDataAtRowProp(0, 'name')).toEqual('Timothy');
@@ -2268,11 +2268,11 @@ describe('UndoRedo', () => {
     });
 
     expect(getDataAtCell(0, 0)).toBe('A1');
-    setDataAtCell(0, 0, 'A1');
+    await setDataAtCell(0, 0, 'A1');
 
     expect(getPlugin('undoRedo').isUndoAvailable()).toBe(false);
 
-    setDataAtCell(0, 0, 'A');
+    await setDataAtCell(0, 0, 'A');
     expect(getPlugin('undoRedo').isUndoAvailable()).toBe(true);
   });
 
@@ -2285,7 +2285,7 @@ describe('UndoRedo', () => {
 
     expect(getPlugin('undoRedo').isUndoAvailable()).toBe(false);
     expect(getDataAtCell(0, 0)).toEqual({ key1: 'abc' });
-    setDataAtCell(0, 0, { key1: 'abc' });
+    await setDataAtCell(0, 0, { key1: 'abc' });
 
     expect(getPlugin('undoRedo').isUndoAvailable()).toBe(true);
   });

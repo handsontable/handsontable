@@ -145,14 +145,14 @@ describe('NestedHeaders', () => {
         hidingMap.setValueAtIndex(10, false); // Show column that contains cells K{n}
         hot.render();
 
-        simulateClick(getTopClone().find('thead tr:eq(2) th:eq(2)')); // select column F3
+        await simulateClick(getTopClone().find('thead tr:eq(2) th:eq(2)')); // select column F3
 
         await keyDown('control/meta');
 
-        simulateClick(getTopClone().find('thead tr:eq(1) th:eq(3)')); // select column K2
-        simulateClick(getTopClone().find('thead tr:eq(3) th:eq(0)')); // select column B4
+        await simulateClick(getTopClone().find('thead tr:eq(1) th:eq(3)')); // select column K2
+        await simulateClick(getTopClone().find('thead tr:eq(3) th:eq(0)')); // select column B4
 
-        keyUp('control/meta');
+        await keyUp('control/meta');
 
         expect(getSelectedRange()).toEqualCellRange([
           'highlight: 0,8 from: -2,5 to: 2,8', // F3
@@ -257,14 +257,14 @@ describe('NestedHeaders', () => {
         hidingMap.setValueAtIndex(10, false); // Show column that contains cells K{n}
         hot.render();
 
-        simulateClick(getTopClone().find('thead tr:eq(2) th:eq(2)')); // select column F3
+        await simulateClick(getTopClone().find('thead tr:eq(2) th:eq(2)')); // select column F3
 
         await keyDown('control/meta');
 
-        simulateClick(getTopClone().find('thead tr:eq(1) th:eq(3)')); // select column K2
-        simulateClick(getTopClone().find('thead tr:eq(3) th:eq(0)')); // select column B4
+        await simulateClick(getTopClone().find('thead tr:eq(1) th:eq(3)')); // select column K2
+        await simulateClick(getTopClone().find('thead tr:eq(3) th:eq(0)')); // select column B4
 
-        keyUp('control/meta');
+        await keyUp('control/meta');
 
         expect(getSelectedRange()).toEqualCellRange([
           'highlight: -2,8 from: -2,5 to: 2,8', // F3

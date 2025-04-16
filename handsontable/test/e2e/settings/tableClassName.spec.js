@@ -98,7 +98,7 @@ describe('settings', () => {
       expect(cloneBottomTable.classList.contains('table_red')).toBe(true);
       expect(cloneLeftTable.classList.contains('table_red')).toBe(true);
 
-      updateSettings({ tableClassName: ['table_green'] });
+      await updateSettings({ tableClassName: ['table_green'] });
 
       expect(masterTable.classList.contains('table_red')).toBe(false);
       expect(cloneTopTable.classList.contains('table_red')).toBe(false);

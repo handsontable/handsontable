@@ -137,13 +137,13 @@ describe('CheckboxRenderer', () => {
       ]
     });
 
-    selectCell(0, 0, 1, 0);
-    keyDownUp(' ');
+    await selectCell(0, 0, 1, 0);
+    await keyDownUp(' ');
 
     expect(getDataAtCol(0)).toEqual([true, true]);
 
-    selectCell(0, 0, 1, 0);
-    keyDownUp(' ');
+    await selectCell(0, 0, 1, 0);
+    await keyDownUp(' ');
 
     expect(getDataAtCol(0)).toEqual([false, false]);
   });
@@ -159,8 +159,8 @@ describe('CheckboxRenderer', () => {
       ]
     });
 
-    selectCell(0, 0, 199, 0);
-    keyDownUp(' ');
+    await selectCell(0, 0, 199, 0);
+    await keyDownUp(' ');
 
     expect(getDataAtCell(199, 0)).toEqual(true);
   });
@@ -174,11 +174,11 @@ describe('CheckboxRenderer', () => {
       ]
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
     expect(getDataAtCell(0, 0)).toBe('true');
 
-    keyDownUp(' ');
+    await keyDownUp(' ');
 
     expect(getDataAtCell(0, 0)).toBe(false);
   });
@@ -195,15 +195,15 @@ describe('CheckboxRenderer', () => {
       ]
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
-    mouseDoubleClick(getCell(0, 0));
+    await mouseDoubleClick(getCell(0, 0));
     expect(getDataAtCell(0, 0)).toBe(false);
 
-    mouseDoubleClick(getCell(0, 0));
+    await mouseDoubleClick(getCell(0, 0));
     expect(getDataAtCell(0, 0)).toBe(true);
 
-    mouseDoubleClick(getCell(0, 0));
+    await mouseDoubleClick(getCell(0, 0));
     expect(getDataAtCell(0, 0)).toBe(false);
   });
 
@@ -219,12 +219,12 @@ describe('CheckboxRenderer', () => {
       ]
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
-    mouseDoubleClick($(getCell(0, 0)).find('input[type=checkbox]'));
+    await mouseDoubleClick($(getCell(0, 0)).find('input[type=checkbox]'));
     expect(getDataAtCell(0, 0)).toBe(true);
 
-    mouseDoubleClick($(getCell(1, 0)).find('input[type=checkbox]'));
+    await mouseDoubleClick($(getCell(1, 0)).find('input[type=checkbox]'));
     expect(getDataAtCell(1, 0)).toBe(false);
   });
 
@@ -242,10 +242,10 @@ describe('CheckboxRenderer', () => {
 
     expect(getDataAtCell(0, 0)).toBe('foo');
 
-    selectCell(0, 0);
-    keyDownUp(' ');
-    selectCell(0, 0);
-    keyDownUp('c');
+    await selectCell(0, 0);
+    await keyDownUp(' ');
+    await selectCell(0, 0);
+    await keyDownUp('c');
 
     expect(getDataAtCell(0, 0)).toBe('foo');
     expect(getData()).toEqual([['foo'], ['bar']]);
@@ -264,8 +264,8 @@ describe('CheckboxRenderer', () => {
       onAfterChange
     });
 
-    selectCell(0, 0);
-    keyDownUp('f2');
+    await selectCell(0, 0);
+    await keyDownUp('f2');
 
     expect(getDataAtCell(0, 0)).toBe(false);
 
@@ -284,13 +284,13 @@ describe('CheckboxRenderer', () => {
 
     addHook('afterChange', afterChangeCallback);
 
-    selectCell(0, 0);
-    keyDownUp(' ');
+    await selectCell(0, 0);
+    await keyDownUp(' ');
 
     expect(getDataAtCell(0, 0)).toBe(true);
 
-    selectCell(0, 0);
-    keyDownUp('c');
+    await selectCell(0, 0);
+    await keyDownUp('c');
 
     expect(getDataAtCell(0, 0)).toBe(true);
     expect(afterChangeCallback.calls.count()).toEqual(1);
@@ -308,8 +308,8 @@ describe('CheckboxRenderer', () => {
 
     addHook('afterChange', afterChangeCallback);
 
-    selectCell(0, 0);
-    keyDownUp(' ');
+    await selectCell(0, 0);
+    await keyDownUp(' ');
 
     expect(getDataAtCell(0, 0)).toBe(false);
     expect(getDataAtCell(1, 0)).toBe(false);
@@ -369,8 +369,8 @@ describe('CheckboxRenderer', () => {
 
     addHook('afterChange', afterChangeCallback);
 
-    selectCell(0, 0);
-    keyDownUp(' ');
+    await selectCell(0, 0);
+    await keyDownUp(' ');
 
     expect(getDataAtCell(0, 0)).toBe(false);
     expect(getDataAtCell(1, 0)).toBe(false);
@@ -391,8 +391,8 @@ describe('CheckboxRenderer', () => {
 
     addHook('afterChange', afterChangeCallback);
 
-    selectCell(0, 0);
-    keyDownUp(' ');
+    await selectCell(0, 0);
+    await keyDownUp(' ');
 
     expect(getDataAtCell(0, 0)).toBe(false);
     expect(getDataAtCell(1, 0)).toBe(false);
@@ -412,8 +412,8 @@ describe('CheckboxRenderer', () => {
 
     addHook('afterChange', afterChangeCallback);
 
-    selectCell(0, 0);
-    keyDownUp(' ');
+    await selectCell(0, 0);
+    await keyDownUp(' ');
 
     expect(getDataAtCell(0, 0)).toBe(false);
     expect(getDataAtCell(1, 0)).toBe(false);
@@ -511,7 +511,7 @@ describe('CheckboxRenderer', () => {
     const td5 = hot.getCell(2, 1);
     const td6 = hot.getCell(2, 2);
 
-    selectCell(0, 0, 2, 2);
+    await selectCell(0, 0, 2, 2);
 
     plugin.onCut(cutEvent);
 
@@ -565,7 +565,7 @@ describe('CheckboxRenderer', () => {
     const plugin = hot.getPlugin('CopyPaste');
     const td = hot.getCell(1, 2);
 
-    selectCell(1, 2);
+    await selectCell(1, 2);
 
     plugin.onCut(cutEvent);
 
@@ -647,7 +647,7 @@ describe('CheckboxRenderer', () => {
         height: 100
       });
 
-      selectCell(0, 0);
+      await selectCell(0, 0);
       contextMenu();
 
       const menu = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator');

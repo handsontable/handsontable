@@ -28,11 +28,11 @@ describe('Core.uncheckedTemplate', () => {
       uncheckedTemplate: false,
     });
 
-    setDataAtCell(0, 0, false);
+    await setDataAtCell(0, 0, false);
 
     expect(getDataAtCell(0, 0)).toBe(false);
 
-    setDataAtCell(0, 0, 'false');
+    await setDataAtCell(0, 0, 'false');
 
     expect(getDataAtCell(0, 0)).toBe(false);
   });
@@ -44,11 +44,11 @@ describe('Core.uncheckedTemplate', () => {
       uncheckedTemplate: 'false',
     });
 
-    setDataAtCell(0, 0, 'false');
+    await setDataAtCell(0, 0, 'false');
 
     expect(getDataAtCell(0, 0)).toBe('false');
 
-    setDataAtCell(0, 0, false);
+    await setDataAtCell(0, 0, false);
 
     expect(getDataAtCell(0, 0)).toBe('false');
   });
@@ -60,11 +60,11 @@ describe('Core.uncheckedTemplate', () => {
       uncheckedTemplate: 0,
     });
 
-    setDataAtCell(0, 0, 0);
+    await setDataAtCell(0, 0, 0);
 
     expect(getDataAtCell(0, 0)).toBe(0);
 
-    setDataAtCell(0, 0, '0');
+    await setDataAtCell(0, 0, '0');
 
     expect(getDataAtCell(0, 0)).toBe(0);
   });
@@ -76,11 +76,11 @@ describe('Core.uncheckedTemplate', () => {
       uncheckedTemplate: '0',
     });
 
-    setDataAtCell(0, 0, '0');
+    await setDataAtCell(0, 0, '0');
 
     expect(getDataAtCell(0, 0)).toBe('0');
 
-    setDataAtCell(0, 0, 0);
+    await setDataAtCell(0, 0, 0);
 
     expect(getDataAtCell(0, 0)).toBe('0');
   });
@@ -92,7 +92,7 @@ describe('Core.uncheckedTemplate', () => {
       uncheckedTemplate: 'no',
     });
 
-    setDataAtCell(0, 0, 'no');
+    await setDataAtCell(0, 0, 'no');
 
     expect(getDataAtCell(0, 0)).toBe('no');
   });
@@ -104,7 +104,7 @@ describe('Core.uncheckedTemplate', () => {
       checkedTemplate: 'no',
     });
 
-    setDataAtCell(0, 0, 'nie');
+    await setDataAtCell(0, 0, 'nie');
 
     expect(getDataAtCell(0, 0)).toBe('nie');
   });

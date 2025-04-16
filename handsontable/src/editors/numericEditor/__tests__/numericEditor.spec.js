@@ -56,7 +56,7 @@ describe('NumericEditor', () => {
       ],
     });
 
-    listen();
+    await listen();
 
     await selectAll();
 

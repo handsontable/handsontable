@@ -17,8 +17,8 @@ describe('Selection extending', () => {
         startCols: 5
       });
 
-      selectCell(1, 1);
-      keyDownUp(['shift', 'end']);
+      await selectCell(1, 1);
+      await keyDownUp(['shift', 'end']);
 
       expect(`
         |   :   :   :   :   |
@@ -37,9 +37,9 @@ describe('Selection extending', () => {
         enterBeginsEditing: false,
       });
 
-      selectCell(1, 2, 3, 4);
-      keyDownUp('enter'); // Move focus down
-      keyDownUp(['shift', 'end']);
+      await selectCell(1, 2, 3, 4);
+      await keyDownUp('enter'); // Move focus down
+      await keyDownUp(['shift', 'end']);
 
       expect(`
         |   :   :   :   :   |
@@ -60,8 +60,8 @@ describe('Selection extending', () => {
         startCols: 5
       });
 
-      selectCell(1, 1);
-      keyDownUp(['shift', 'end']);
+      await selectCell(1, 1);
+      await keyDownUp(['shift', 'end']);
 
       expect(`
         |   :   |   :   :   |
@@ -81,8 +81,8 @@ describe('Selection extending', () => {
         startCols: 5
       });
 
-      selectCells([[1, 1, 3, 3]]);
-      keyDownUp(['shift', 'end']);
+      await selectCells([[1, 1, 3, 3]]);
+      await keyDownUp(['shift', 'end']);
 
       expect(`
         |   :   :   :   :   |
@@ -102,9 +102,9 @@ describe('Selection extending', () => {
         startCols: 5
       });
 
-      selectColumns(2);
-      listen();
-      keyDownUp(['shift', 'end']);
+      await selectColumns(2);
+      await listen();
+      await keyDownUp(['shift', 'end']);
 
       expect(`
         |   ║   :   : * : * : * |
@@ -127,10 +127,10 @@ describe('Selection extending', () => {
         enterBeginsEditing: false,
       });
 
-      selectColumns(2);
-      listen();
-      keyDownUp('enter'); // Move focus down
-      keyDownUp(['shift', 'end']);
+      await selectColumns(2);
+      await listen();
+      await keyDownUp('enter'); // Move focus down
+      await keyDownUp(['shift', 'end']);
 
       expect(`
         |   ║   :   : * : * : * |
@@ -158,9 +158,9 @@ describe('Selection extending', () => {
       hidingMap.setValueAtIndex(4, true);
       hot.render();
 
-      selectColumns(1);
-      listen();
-      keyDownUp(['shift', 'end']);
+      await selectColumns(1);
+      await listen();
+      await keyDownUp(['shift', 'end']);
 
       expect(`
         |   ║   : * : * |
@@ -183,9 +183,9 @@ describe('Selection extending', () => {
         startCols: 5
       });
 
-      selectColumns(3, 3, -1);
-      listen();
-      keyDownUp(['shift', 'end']);
+      await selectColumns(3, 3, -1);
+      await listen();
+      await keyDownUp(['shift', 'end']);
 
       expect(`
         |   ║   :   :   : # :   |
@@ -208,9 +208,9 @@ describe('Selection extending', () => {
         navigableHeaders: true,
       });
 
-      selectColumns(3);
-      listen();
-      keyDownUp(['shift', 'end']);
+      await selectColumns(3);
+      await listen();
+      await keyDownUp(['shift', 'end']);
 
       expect(`
         |   ║   :   :   : # :   |
@@ -228,11 +228,11 @@ describe('Selection extending', () => {
       });
 
       rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
-      render();
+      await render();
 
-      selectColumns(3, 3, -1);
-      listen();
-      keyDownUp(['shift', 'end']);
+      await selectColumns(3, 3, -1);
+      await listen();
+      await keyDownUp(['shift', 'end']);
 
       expect(`
         |   ║   :   :   : # :   |
@@ -249,9 +249,9 @@ describe('Selection extending', () => {
         startCols: 5
       });
 
-      selectRows(1);
-      listen();
-      keyDownUp(['shift', 'end']);
+      await selectRows(1);
+      await listen();
+      await keyDownUp(['shift', 'end']);
 
       expect(`
         |   ║ - : - : - : - : - |
@@ -273,7 +273,7 @@ describe('Selection extending', () => {
         startCols: 5
       });
 
-      listen();
+      await listen();
 
       await selectAll();
       await keyDownUp(['shift', 'end']);
@@ -299,9 +299,9 @@ describe('Selection extending', () => {
         navigableHeaders: true,
       });
 
-      selectCell(-1, 1);
-      listen();
-      keyDownUp(['shift', 'end']);
+      await selectCell(-1, 1);
+      await listen();
+      await keyDownUp(['shift', 'end']);
 
       expect(`
         |   ║   : # :   :   :   |
@@ -324,9 +324,9 @@ describe('Selection extending', () => {
         navigableHeaders: true,
       });
 
-      selectCell(1, -1);
-      listen();
-      keyDownUp(['shift', 'end']);
+      await selectCell(1, -1);
+      await listen();
+      await keyDownUp(['shift', 'end']);
 
       expect(`
         |   ║   :   :   :   :   |
@@ -349,9 +349,9 @@ describe('Selection extending', () => {
         navigableHeaders: true,
       });
 
-      selectCell(-1, -1);
-      listen();
-      keyDownUp(['shift', 'end']);
+      await selectCell(-1, -1);
+      await listen();
+      await keyDownUp(['shift', 'end']);
 
       expect(`
         | # ║   :   :   :   :   |

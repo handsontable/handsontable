@@ -55,7 +55,7 @@ describe('noEditor', () => {
       editor: false
     });
 
-    setDataAtCell(2, 2, 'string');
+    await setDataAtCell(2, 2, 'string');
 
     await selectCell(2, 2);
     await keyDownUp('enter');

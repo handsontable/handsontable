@@ -31,7 +31,7 @@ describe('settings', () => {
       expect(calculator.startRow).toBe(22);
       expect(calculator.endRow).toBe(26);
 
-      updateSettings({ viewportRowRenderingOffset: 10 });
+      await updateSettings({ viewportRowRenderingOffset: 10 });
 
       expect(calculator.startRow).toBe(12);
       expect(calculator.endRow).toBe(36);
@@ -55,7 +55,7 @@ describe('settings', () => {
       expect(calculator.startRow).toBe(22);
       expect(calculator.endRow).toBe(26);
 
-      updateSettings({ viewportRowRenderingOffset: 10 });
+      await updateSettings({ viewportRowRenderingOffset: 10 });
 
       expect(calculator.startRow).toBe(12);
       expect(calculator.endRow).toBe(36);
@@ -79,7 +79,7 @@ describe('settings', () => {
       expect(calculator.startRow).toBe(22);
       expect(calculator.endRow).toBe(26);
 
-      updateSettings({ viewportRowRenderingOffset: 10 });
+      await updateSettings({ viewportRowRenderingOffset: 10 });
 
       expect(calculator.startRow).toBe(12);
       expect(calculator.endRow).toBe(36);

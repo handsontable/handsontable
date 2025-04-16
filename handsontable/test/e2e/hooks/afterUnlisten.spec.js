@@ -77,13 +77,13 @@ describe('Hook', () => {
         data: createSpreadsheetData(5, 5),
         afterUnlisten,
       }, true);
-      listen();
-      simulateClick(document.body);
+      await listen();
+      await simulateClick(document.body);
 
       expect(afterUnlisten).toHaveBeenCalled();
 
-      listen();
-      simulateClick(document.querySelector('.hot-display-license-info'));
+      await listen();
+      await simulateClick(document.querySelector('.hot-display-license-info'));
 
       expect(afterUnlisten).toHaveBeenCalled();
     });

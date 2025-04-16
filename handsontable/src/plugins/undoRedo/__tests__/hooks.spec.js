@@ -26,7 +26,7 @@ describe('UndoRedo', () => {
         hookData = data;
       });
 
-      alter('remove_row', 1);
+      await alter('remove_row', 1);
 
       await sleep(10);
 
@@ -51,7 +51,7 @@ describe('UndoRedo', () => {
       addHook('beforeUndoStackChange', beforeUndoStackChangeSpy);
       addHook('afterUndoStackChange', afterUndoStackChangeSpy);
 
-      alter('remove_row', 1);
+      await alter('remove_row', 1);
 
       expect(beforeUndoStackChangeSpy).toHaveBeenCalledOnceWith([]);
       expect(afterUndoStackChangeSpy).toHaveBeenCalledOnceWith(
@@ -68,7 +68,7 @@ describe('UndoRedo', () => {
       addHook('beforeUndoStackChange', () => false);
       addHook('afterUndoStackChange', afterUndoStackChangeSpy);
 
-      alter('remove_row', 1);
+      await alter('remove_row', 1);
 
       expect(afterUndoStackChangeSpy).not.toHaveBeenCalled();
       expect(getPlugin('undoRedo').isUndoAvailable()).toBe(false);
@@ -86,7 +86,7 @@ describe('UndoRedo', () => {
         data: createSpreadsheetData(2, 2),
       });
 
-      alter('remove_row', 1);
+      await alter('remove_row', 1);
 
       addHook('beforeUndoStackChange', beforeUndoStackChangeSpy);
       addHook('afterUndoStackChange', afterUndoStackChangeSpy);
@@ -115,7 +115,7 @@ describe('UndoRedo', () => {
         data: createSpreadsheetData(2, 2),
       });
 
-      alter('remove_row', 1);
+      await alter('remove_row', 1);
       getPlugin('undoRedo').undo();
 
       addHook('beforeUndoStackChange', beforeUndoStackChangeSpy);
@@ -147,7 +147,7 @@ describe('UndoRedo', () => {
         hookData = data;
       });
 
-      alter('remove_row', 1);
+      await alter('remove_row', 1);
 
       await sleep(10);
 
@@ -174,7 +174,7 @@ describe('UndoRedo', () => {
         hookData = data;
       });
 
-      alter('remove_row', 1);
+      await alter('remove_row', 1);
 
       await sleep(10);
 

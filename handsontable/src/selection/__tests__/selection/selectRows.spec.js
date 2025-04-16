@@ -166,11 +166,11 @@ describe('Selection', () => {
 
       // After changes introduced in Handsontable 12.0.0 we handle shortcuts only by listening Handsontable.
       // Please keep in mind that selectRows/selectRows doesn't set instance to listening (see #7290).
-      listen();
+      await listen();
       hot().selection.selectRows(2);
-      keyDown('control/meta');
+      await keyDown('control/meta');
       hot().selection.selectRows(0);
-      keyUp('control/meta');
+      await keyUp('control/meta');
 
       expect(`
         |   ║ - : - : - : - : - : - |
@@ -204,11 +204,11 @@ describe('Selection', () => {
 
       // After changes introduced in Handsontable 12.0.0 we handle shortcuts only by listening Handsontable.
       // Please keep in mind that selectRows/selectRows doesn't set instance to listening (see #7290).
-      listen();
+      await listen();
       hot().selection.selectRows(2);
-      keyDown('control/meta');
+      await keyDown('control/meta');
       hot().selection.selectRows(0);
-      keyUp('control/meta');
+      await keyUp('control/meta');
 
       expect(`
         |   :   :   ║   :   :   :   :   :   |
@@ -967,7 +967,7 @@ describe('Selection', () => {
         data: createSpreadsheetObjectData(4, 6),
       });
 
-      selectCell(1, 1); // Initial selection.
+      await selectCell(1, 1); // Initial selection.
 
       expect(`
         |   :   :   :   :   :   |
@@ -1139,7 +1139,7 @@ describe('Selection', () => {
         width: 300,
       });
 
-      selectCell(1, 15); // Scroll to the right of the Hot viewport.
+      await selectCell(1, 15); // Scroll to the right of the Hot viewport.
 
       const scrollLeft = hot.view._wt.wtTable.holder.scrollLeft;
 

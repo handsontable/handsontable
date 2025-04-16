@@ -38,7 +38,7 @@ describe('Hook', () => {
         beforeHighlightingColumnHeader: spy,
       });
 
-      selectCells([[2, 2, 2, 4]]);
+      await selectCells([[2, 2, 2, 4]]);
 
       const createHighlightMeta = highlightMetaFactory({
         selectionType: 'header',
@@ -64,7 +64,7 @@ describe('Hook', () => {
         beforeHighlightingColumnHeader: spy,
       });
 
-      selectColumns(2, 5);
+      await selectColumns(2, 5);
 
       const createHighlightMeta = highlightMetaFactory({
         selectionType: 'header',

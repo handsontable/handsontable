@@ -41,30 +41,30 @@ describe('Plugins', () => {
       });
 
       // `updateSettings` calls that SHOULD NOT trigger `updatePlugin`:
-      updateSettings({});
+      await updateSettings({});
 
-      updateSettings({
+      await updateSettings({
         data: [[1, 2, 3]]
       });
 
-      updateSettings({
+      await updateSettings({
         rowHeaders: true
       });
 
       // `updateSettings` calls that SHOULD trigger `updatePlugin`:
-      updateSettings({
+      await updateSettings({
         testPlugin1: true
       });
 
-      updateSettings({
+      await updateSettings({
         test1: true
       });
 
-      updateSettings({
+      await updateSettings({
         test2: true
       });
 
-      updateSettings({
+      await updateSettings({
         test3: true
       });
 
@@ -72,7 +72,7 @@ describe('Plugins', () => {
     });
 
     it('should be triggered on every `updateSettings` call if the plugin is configured with `SETTING_KEYS = true`',
-      () => {
+      async() => {
         class TestPlugin extends Handsontable.plugins.BasePlugin {
           static get PLUGIN_KEY() {
             return 'testPlugin2';
@@ -95,29 +95,29 @@ describe('Plugins', () => {
           testPlugin2: true
         });
 
-        updateSettings({});
+        await updateSettings({});
 
-        updateSettings({
+        await updateSettings({
           data: [[1, 2, 3]]
         });
 
-        updateSettings({
+        await updateSettings({
           rowHeaders: true
         });
 
-        updateSettings({
+        await updateSettings({
           testPlugin2: true
         });
 
-        updateSettings({
+        await updateSettings({
           test1: true
         });
 
-        updateSettings({
+        await updateSettings({
           test2: true
         });
 
-        updateSettings({
+        await updateSettings({
           test3: true
         });
 
@@ -148,29 +148,29 @@ describe('Plugins', () => {
         testPlugin3: true
       });
 
-      updateSettings({});
+      await updateSettings({});
 
-      updateSettings({
+      await updateSettings({
         data: [[1, 2, 3]]
       });
 
-      updateSettings({
+      await updateSettings({
         rowHeaders: true
       });
 
-      updateSettings({
+      await updateSettings({
         testPlugin3: true
       });
 
-      updateSettings({
+      await updateSettings({
         test1: true
       });
 
-      updateSettings({
+      await updateSettings({
         test2: true
       });
 
-      updateSettings({
+      await updateSettings({
         test3: true
       });
 

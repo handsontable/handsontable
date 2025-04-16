@@ -35,7 +35,7 @@ describe('Hook', () => {
       expect(afterSetThemeSpy.calls.count()).toBe(3);
       expect(afterSetThemeSpy.calls.mostRecent().args).toEqual([undefined, false]);
 
-      updateSettings({
+      await updateSettings({
         themeName: 'ht-theme-sth3',
       });
 

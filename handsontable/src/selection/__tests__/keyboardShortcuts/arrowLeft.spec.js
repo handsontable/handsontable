@@ -32,8 +32,8 @@ describe('Selection navigation', () => {
         startCols: 5
       });
 
-      selectCell(1, 2);
-      keyDownUp('arrowleft');
+      await selectCell(1, 2);
+      await keyDownUp('arrowleft');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 1,1']);
     });
@@ -46,8 +46,8 @@ describe('Selection navigation', () => {
         navigableHeaders: true,
       });
 
-      selectCell(-1, 3);
-      keyDownUp('arrowleft');
+      await selectCell(-1, 3);
+      await keyDownUp('arrowleft');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,2 from: -1,2 to: -1,2']);
     });
@@ -60,8 +60,8 @@ describe('Selection navigation', () => {
         navigableHeaders: true,
       });
 
-      selectCell(-1, 3);
-      keyDownUp('arrowleft');
+      await selectCell(-1, 3);
+      await keyDownUp('arrowleft');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,2 from: -1,2 to: -1,2']);
     });
@@ -75,8 +75,8 @@ describe('Selection navigation', () => {
         navigableHeaders: true,
       });
 
-      selectCell(-1, 0);
-      keyDownUp('arrowleft');
+      await selectCell(-1, 0);
+      await keyDownUp('arrowleft');
 
       expect(`
         | # ║   :   :   :   :   |
@@ -93,10 +93,10 @@ describe('Selection navigation', () => {
       });
 
       rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
-      render();
+      await render();
 
-      selectCell(-1, 3);
-      keyDownUp('arrowleft');
+      await selectCell(-1, 3);
+      await keyDownUp('arrowleft');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,2 from: -1,2 to: -1,2']);
     });
@@ -109,8 +109,8 @@ describe('Selection navigation', () => {
           autoWrapRow: false
         });
 
-        selectCell(1, 0);
-        keyDownUp('arrowleft');
+        await selectCell(1, 0);
+        await keyDownUp('arrowleft');
 
         expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: 1,0 to: 1,0']);
       });
@@ -124,8 +124,8 @@ describe('Selection navigation', () => {
           autoWrapRow: true
         });
 
-        selectCell(1, 0);
-        keyDownUp('arrowleft');
+        await selectCell(1, 0);
+        await keyDownUp('arrowleft');
 
         expect(getSelectedRange()).toEqualCellRange(['highlight: 0,4 from: 0,4 to: 0,4']);
       });
@@ -140,13 +140,13 @@ describe('Selection navigation', () => {
           autoWrapRow: true
         });
 
-        selectCell(1, 0);
-        keyDownUp('arrowleft');
+        await selectCell(1, 0);
+        await keyDownUp('arrowleft');
 
-        updateSettings({ navigableHeaders: false });
+        await updateSettings({ navigableHeaders: false });
 
-        selectCell(1, 0);
-        keyDownUp('arrowleft');
+        await selectCell(1, 0);
+        await keyDownUp('arrowleft');
 
         expect(getSelectedRange()).toEqualCellRange(['highlight: 0,4 from: 0,4 to: 0,4']);
       });
@@ -160,8 +160,8 @@ describe('Selection navigation', () => {
           autoWrapRow: true,
         });
 
-        selectCell(1, 0);
-        keyDownUp('arrowleft');
+        await selectCell(1, 0);
+        await keyDownUp('arrowleft');
 
         expect(getSelectedRange()).toEqualCellRange(['highlight: 0,4 from: 0,4 to: 0,4']);
       });
@@ -184,8 +184,8 @@ describe('Selection navigation', () => {
           },
         });
 
-        selectCell(1, -3);
-        keyDownUp('arrowleft');
+        await selectCell(1, -3);
+        await keyDownUp('arrowleft');
 
         expect(getSelectedRange()).toEqualCellRange(['highlight: 0,4 from: 0,4 to: 0,4']);
       });
@@ -208,8 +208,8 @@ describe('Selection navigation', () => {
           },
         });
 
-        selectCell(1, 0);
-        keyDownUp('arrowleft');
+        await selectCell(1, 0);
+        await keyDownUp('arrowleft');
 
         expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-1 from: 1,-1 to: 1,-1']);
       });
@@ -221,8 +221,8 @@ describe('Selection navigation', () => {
           autoWrapRow: true
         });
 
-        selectCell(0, 0);
-        keyDownUp('arrowleft');
+        await selectCell(0, 0);
+        await keyDownUp('arrowleft');
 
         expect(getSelectedRange()).toEqualCellRange(['highlight: 4,4 from: 4,4 to: 4,4']);
       });
@@ -236,8 +236,8 @@ describe('Selection navigation', () => {
           autoWrapRow: true
         });
 
-        selectCell(0, 0);
-        keyDownUp('arrowleft');
+        await selectCell(0, 0);
+        await keyDownUp('arrowleft');
 
         expect(getSelectedRange()).toEqualCellRange(['highlight: 4,4 from: 4,4 to: 4,4']);
       });
@@ -260,8 +260,8 @@ describe('Selection navigation', () => {
           },
         });
 
-        selectCell(-3, -3);
-        keyDownUp('arrowleft');
+        await selectCell(-3, -3);
+        await keyDownUp('arrowleft');
 
         expect(getSelectedRange()).toEqualCellRange(['highlight: 4,4 from: 4,4 to: 4,4']);
       });
@@ -284,8 +284,8 @@ describe('Selection navigation', () => {
           },
         });
 
-        selectCell(0, 0);
-        keyDownUp('arrowleft');
+        await selectCell(0, 0);
+        await keyDownUp('arrowleft');
 
         expect(getSelectedRange()).toEqualCellRange(['highlight: 0,-1 from: 0,-1 to: 0,-1']);
       });
@@ -297,14 +297,14 @@ describe('Selection navigation', () => {
           autoWrapRow: true
         });
 
-        selectCell(4, 4);
+        await selectCell(4, 4);
 
         for (let row = countRows() - 1; row >= 0; row--) {
           for (let col = countCols() - 1; col >= 0; col--) {
             expect(getSelectedRange()).toEqualCellRange([
               `highlight: ${row},${col} from: ${row},${col} to: ${row},${col}`
             ]);
-            keyDownUp('arrowleft');
+            await keyDownUp('arrowleft'); // eslint-disable-line no-await-in-loop
           }
         }
 

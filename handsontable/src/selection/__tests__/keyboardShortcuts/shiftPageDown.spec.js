@@ -19,8 +19,8 @@ describe('Selection extending', () => {
         startCols: 3
       });
 
-      selectCell(1, 1);
-      keyDownUp(['shift', 'pagedown']);
+      await selectCell(1, 1);
+      await keyDownUp(['shift', 'pagedown']);
 
       expect(`
         |   :   :   |
@@ -35,7 +35,7 @@ describe('Selection extending', () => {
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 5,1']);
 
-      keyDownUp(['shift', 'pagedown']);
+      await keyDownUp(['shift', 'pagedown']);
 
       expect(`
         |   :   :   |
@@ -56,7 +56,7 @@ describe('Selection extending', () => {
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 9,1']);
 
-      keyDownUp(['shift', 'pagedown']);
+      await keyDownUp(['shift', 'pagedown']);
 
       expect(`
         |   :   :   |
@@ -77,7 +77,7 @@ describe('Selection extending', () => {
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 13,1']);
 
-      keyDownUp(['shift', 'pagedown']);
+      await keyDownUp(['shift', 'pagedown']);
 
       expect(`
         |   :   :   |
@@ -107,8 +107,8 @@ describe('Selection extending', () => {
         startCols: 3
       });
 
-      selectCell(1, 1);
-      keyDownUp(['shift', 'pagedown']);
+      await selectCell(1, 1);
+      await keyDownUp(['shift', 'pagedown']);
 
       expect(`
         |   :   :   |
@@ -123,7 +123,7 @@ describe('Selection extending', () => {
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 5,1']);
 
-      keyDownUp(['shift', 'pagedown']);
+      await keyDownUp(['shift', 'pagedown']);
 
       expect(`
         |   :   :   |
@@ -144,7 +144,7 @@ describe('Selection extending', () => {
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 9,1']);
 
-      keyDownUp(['shift', 'pagedown']);
+      await keyDownUp(['shift', 'pagedown']);
 
       expect(`
         |   :   :   |
@@ -165,7 +165,7 @@ describe('Selection extending', () => {
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 13,1']);
 
-      keyDownUp(['shift', 'pagedown']);
+      await keyDownUp(['shift', 'pagedown']);
 
       expect(`
         |   :   :   |
@@ -195,8 +195,8 @@ describe('Selection extending', () => {
         startCols: 3
       });
 
-      selectCell(1, 1);
-      keyDownUp(['shift', 'pagedown']);
+      await selectCell(1, 1);
+      await keyDownUp(['shift', 'pagedown']);
 
       expect(`
         |   :   :   |
@@ -211,7 +211,7 @@ describe('Selection extending', () => {
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 5,1']);
 
-      keyDownUp(['shift', 'pagedown']);
+      await keyDownUp(['shift', 'pagedown']);
 
       expect(`
         |   :   :   |
@@ -232,7 +232,7 @@ describe('Selection extending', () => {
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 9,1']);
 
-      keyDownUp(['shift', 'pagedown']);
+      await keyDownUp(['shift', 'pagedown']);
 
       expect(`
         |   :   :   |
@@ -253,7 +253,7 @@ describe('Selection extending', () => {
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 13,1']);
 
-      keyDownUp(['shift', 'pagedown']);
+      await keyDownUp(['shift', 'pagedown']);
 
       expect(`
         |   :   :   |
@@ -285,25 +285,25 @@ describe('Selection extending', () => {
       });
 
       // select and scroll the viewport in that way the cell highlight is in the middle of the table viewport
-      selectCell(4, 1);
+      await selectCell(4, 1);
 
       await sleep(20);
 
-      keyDownUp(['shift', 'pagedown']);
-
-      await sleep(20);
-
-      expect(getSelectedRangeLast().to.row).toBe(hot.view.getFirstFullyVisibleRow() + 4);
-
-      await sleep(20);
-
-      keyDownUp(['shift', 'pagedown']);
+      await keyDownUp(['shift', 'pagedown']);
 
       await sleep(20);
 
       expect(getSelectedRangeLast().to.row).toBe(hot.view.getFirstFullyVisibleRow() + 4);
 
-      keyDownUp(['shift', 'pagedown']);
+      await sleep(20);
+
+      await keyDownUp(['shift', 'pagedown']);
+
+      await sleep(20);
+
+      expect(getSelectedRangeLast().to.row).toBe(hot.view.getFirstFullyVisibleRow() + 4);
+
+      await keyDownUp(['shift', 'pagedown']);
 
       await sleep(20);
 

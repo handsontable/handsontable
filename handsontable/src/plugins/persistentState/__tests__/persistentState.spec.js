@@ -161,7 +161,7 @@ describe('persistentState', () => {
 
     expect(storedData.value).toEqual(100);
 
-    updateSettings({
+    await updateSettings({
       persistentState: false
     });
 
@@ -185,7 +185,7 @@ describe('persistentState', () => {
 
     expect(storedData.value).toBeUndefined();
 
-    updateSettings({
+    await updateSettings({
       persistentState: true
     });
 

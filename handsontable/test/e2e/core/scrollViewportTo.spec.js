@@ -482,7 +482,7 @@ describe('Core.scrollViewportTo', () => {
     hidingMap.setValueAtIndex(1, true);
     hidingMap.setValueAtIndex(2, true);
 
-    render();
+    await render();
 
     await scrollViewportTo({
       row: 0,
@@ -507,7 +507,7 @@ describe('Core.scrollViewportTo', () => {
     hidingMap.setValueAtIndex(1, true);
     hidingMap.setValueAtIndex(2, true);
 
-    render();
+    await render();
 
     await scrollViewportTo({
       row: 15,
@@ -532,7 +532,7 @@ describe('Core.scrollViewportTo', () => {
     hidingMap.setValueAtIndex(1, true);
     hidingMap.setValueAtIndex(2, true);
 
-    render();
+    await render();
 
     await scrollViewportTo({
       col: 15,
@@ -556,7 +556,7 @@ describe('Core.scrollViewportTo', () => {
     hidingMap.setValueAtIndex(1, true);
     hidingMap.setValueAtIndex(2, true);
 
-    render();
+    await render();
 
     await scrollViewportTo({
       row: 15,
@@ -582,7 +582,7 @@ describe('Core.scrollViewportTo', () => {
     hidingMap.setValueAtIndex(7, true);
     hidingMap.setValueAtIndex(15, true);
 
-    render();
+    await render();
 
     const scrollResult1 = await scrollViewportTo({
       row: 0,
@@ -640,7 +640,7 @@ describe('Core.scrollViewportTo', () => {
     hidingMap.setValueAtIndex(7, true);
     hidingMap.setValueAtIndex(15, true);
 
-    render();
+    await render();
 
     const scrollResult1 = await scrollViewportTo({
       row: 7,
@@ -703,7 +703,7 @@ describe('Core.scrollViewportTo', () => {
     hidingMap.setValueAtIndex(18, true);
     hidingMap.setValueAtIndex(19, true);
 
-    render();
+    await render();
     hot.view._wt.wtOverlays.adjustElementsSize();
 
     const scrollResult1 = await scrollViewportTo({
@@ -763,7 +763,7 @@ describe('Core.scrollViewportTo', () => {
     hidingMap.setValueAtIndex(24, true);
     hidingMap.setValueAtIndex(25, true);
 
-    render();
+    await render();
     hot.view._wt.wtOverlays.adjustElementsSize();
 
     const scrollResult1 = await scrollViewportTo({
@@ -812,7 +812,7 @@ describe('Core.scrollViewportTo', () => {
     hidingMap.setValueAtIndex(7, true);
     hidingMap.setValueAtIndex(15, true);
 
-    render();
+    await render();
 
     const scrollResult1 = await scrollViewportTo({
       row: 0,
@@ -875,7 +875,7 @@ describe('Core.scrollViewportTo', () => {
     hidingMap.setValueAtIndex(7, true);
     hidingMap.setValueAtIndex(15, true);
 
-    render();
+    await render();
 
     const scrollResult1 = await scrollViewportTo({
       row: 2,
@@ -938,7 +938,7 @@ describe('Core.scrollViewportTo', () => {
     hidingMap.setValueAtIndex(7, true);
     hidingMap.setValueAtIndex(15, true);
 
-    render();
+    await render();
 
     const scrollResult1 = await scrollViewportTo({
       row: 2,
@@ -1001,7 +1001,7 @@ describe('Core.scrollViewportTo', () => {
     hidingMap.setValueAtIndex(7, true);
     hidingMap.setValueAtIndex(15, true);
 
-    render();
+    await render();
 
     const scrollResult1 = await scrollViewportTo({
       row: 2,
@@ -1056,7 +1056,7 @@ describe('Core.scrollViewportTo', () => {
     });
 
     columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
-    render();
+    await render();
 
     const scrollResult1 = await scrollViewportTo({
       row: 0,
@@ -1087,7 +1087,7 @@ describe('Core.scrollViewportTo', () => {
     });
 
     rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
-    render();
+    await render();
 
     const scrollResult1 = await scrollViewportTo({
       row: 0,

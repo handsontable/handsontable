@@ -65,7 +65,7 @@ describe('TextEditor (RTL mode)', () => {
         ],
       });
 
-      listen();
+      await listen();
 
       await selectAll();
 
@@ -614,7 +614,7 @@ describe('TextEditor (RTL mode)', () => {
         colHeaders: true
       });
 
-      setDataAtCell(2, 2, 'string\nstring\nstring');
+      await setDataAtCell(2, 2, 'string\nstring\nstring');
 
       await selectCell(2, 2);
       await keyDown('enter');

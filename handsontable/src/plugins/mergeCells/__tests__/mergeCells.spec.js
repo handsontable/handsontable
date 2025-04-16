@@ -133,7 +133,7 @@ describe('MergeCells', () => {
       expect(TD.getAttribute('rowspan')).toBe('2');
       expect(TD.getAttribute('colspan')).toBe('2');
 
-      updateSettings({
+      await updateSettings({
         mergeCells: [
           { row: 2, col: 2, rowspan: 2, colspan: 2 }
         ]
@@ -161,7 +161,7 @@ describe('MergeCells', () => {
       expect(TD.getAttribute('rowspan')).toBe('2');
       expect(TD.getAttribute('colspan')).toBe('2');
 
-      updateSettings({
+      await updateSettings({
         mergeCells: []
       });
 
@@ -182,7 +182,7 @@ describe('MergeCells', () => {
       expect(TD.getAttribute('rowspan')).toBe('2');
       expect(TD.getAttribute('colspan')).toBe('2');
 
-      updateSettings({
+      await updateSettings({
         mergeCells: false
       });
 
@@ -1148,7 +1148,7 @@ describe('MergeCells', () => {
 
       const corner = $('.ht_clone_top_inline_start_corner .htCore').find('thead').find('th').eq(0);
 
-      simulateClick(corner, 'RMB');
+      await simulateClick(corner, 'RMB');
       await contextMenu();
 
       expect($('.htContextMenu tbody td.htDisabled').text()).toBe([
@@ -1392,7 +1392,7 @@ describe('MergeCells', () => {
       });
 
       // Click on the first visible cell (merged area).
-      simulateClick(spec().$container.find('tr:eq(1) td:eq(0)'));
+      await simulateClick(spec().$container.find('tr:eq(1) td:eq(0)'));
 
       expect(rowOnCellMouseDown).toEqual(0);
       expect(columnOnCellMouseDown).toEqual(0);
@@ -1417,7 +1417,7 @@ describe('MergeCells', () => {
       });
 
       // Click on the first visible cell (merged area).
-      simulateClick(spec().$container.find('tr:eq(1) td:eq(0)'));
+      await simulateClick(spec().$container.find('tr:eq(1) td:eq(0)'));
 
       expect(rowOnCellMouseDown).toEqual(0);
       expect(columnOnCellMouseDown).toEqual(0);
@@ -1482,7 +1482,7 @@ describe('MergeCells', () => {
       mergeCells: true,
     });
 
-    updateSettings({
+    await updateSettings({
       mergeCells: [{ row: 0, col: 0, rowspan: 3, colspan: 5 }],
     });
 
@@ -1500,7 +1500,7 @@ describe('MergeCells', () => {
       mergeCells: true,
     });
 
-    updateSettings({
+    await updateSettings({
       mergeCells: [{ row: 0, col: 0, rowspan: 3, colspan: 1 }],
     });
 
@@ -1510,7 +1510,7 @@ describe('MergeCells', () => {
       horizon.toBe(186);
     });
 
-    updateSettings({
+    await updateSettings({
       mergeCells: [{ row: 0, col: 0, rowspan: 3, colspan: 2 }],
     });
 
@@ -1520,7 +1520,7 @@ describe('MergeCells', () => {
       horizon.toBe(186);
     });
 
-    updateSettings({
+    await updateSettings({
       mergeCells: [{ row: 0, col: 0, rowspan: 3, colspan: 3 }],
     });
 
@@ -1538,19 +1538,19 @@ describe('MergeCells', () => {
       mergeCells: true,
     });
 
-    updateSettings({
+    await updateSettings({
       mergeCells: [{ row: 0, col: 0, rowspan: 3, colspan: 5 }],
     });
 
     expect(getTopClone().height()).toBe(70);
 
-    updateSettings({
+    await updateSettings({
       mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 5 }],
     });
 
     expect(getTopClone().height()).toBe(47);
 
-    updateSettings({
+    await updateSettings({
       mergeCells: [{ row: 0, col: 0, rowspan: 1, colspan: 5 }],
     });
 

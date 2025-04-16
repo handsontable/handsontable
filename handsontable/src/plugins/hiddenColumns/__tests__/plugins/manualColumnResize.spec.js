@@ -45,7 +45,7 @@ describe('HiddenColumns', () => {
       expect(colWidth(spec().$container, 1)).toBe(50);
 
       getPlugin('manualColumnResize').setManualSize(2, 100);
-      render();
+      await render();
 
       expect(colWidth(spec().$container, 1)).toBe(100);
     });

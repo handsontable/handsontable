@@ -34,7 +34,7 @@ describe('settings', () => {
           data: createSpreadsheetData(1, 1)
         });
 
-        updateSettings({
+        await updateSettings({
           minRows: 3
         });
 
@@ -52,7 +52,7 @@ describe('settings', () => {
           minRows: 5
         });
 
-        updateSettings({
+        await updateSettings({
           minRows: 3
         });
 
@@ -74,7 +74,7 @@ describe('settings', () => {
         getCellMeta(4, 0).test = 'foo';
         getCellMeta(5, 0).test = 'bar';
 
-        updateSettings({
+        await updateSettings({
           minRows: 5
         });
 

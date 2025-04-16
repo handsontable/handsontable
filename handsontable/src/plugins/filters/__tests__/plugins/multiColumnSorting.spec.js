@@ -29,7 +29,7 @@ describe('Filters UI cooperation with MultiColumnSorting', () => {
 
     // Greater than 12
     document.activeElement.value = '12';
-    keyUp('2');
+    await keyUp('2');
     $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
     // sort
@@ -45,7 +45,7 @@ describe('Filters UI cooperation with MultiColumnSorting', () => {
 
     // Begins with 'b'
     document.activeElement.value = 'b';
-    keyUp('b');
+    await keyUp('b');
     $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
     await sleep(10);
@@ -77,14 +77,14 @@ describe('Filters UI cooperation with MultiColumnSorting', () => {
     $(conditionSelectRootElements().first).next().find('input')[0].focus();
 
     document.activeElement.value = '12';
-    keyUp('2');
+    await keyUp('2');
     $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
     // sort
     getHtCore().find('th span.columnSorting:eq(2)').simulate('mousedown').simulate('mouseup');
     getHtCore().find('th span.columnSorting:eq(2)').simulate('mouseup');
     getHtCore().find('th span.columnSorting:eq(2)').simulate('click');
-    alter('remove_row', 1, 5);
+    await alter('remove_row', 1, 5);
 
     await dropdownMenu(2);
     openDropdownByConditionMenu();
@@ -96,13 +96,13 @@ describe('Filters UI cooperation with MultiColumnSorting', () => {
     $(conditionSelectRootElements().first).next().find('input')[0].focus();
 
     document.activeElement.value = 'e';
-    keyUp('e');
+    await keyUp('e');
     $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
     expect(getData().length).toEqual(7);
     expect(getDataAtCol(0).join()).toBe('24,16,23,32,26,28,21');
 
-    alter('remove_row', 1, 5);
+    await alter('remove_row', 1, 5);
 
     expect(getData().length).toEqual(2);
     expect(getDataAtCol(0).join()).toBe('24,21');
@@ -140,14 +140,14 @@ describe('Filters UI cooperation with MultiColumnSorting', () => {
     $(conditionSelectRootElements().first).next().find('input')[0].focus();
 
     document.activeElement.value = '12';
-    keyUp('2');
+    await keyUp('2');
     $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
     // sort
     getHtCore().find('th span.columnSorting:eq(2)').simulate('mousedown');
     getHtCore().find('th span.columnSorting:eq(2)').simulate('mouseup');
     getHtCore().find('th span.columnSorting:eq(2)').simulate('click');
-    alter('insert_row_above', 1, 5);
+    await alter('insert_row_above', 1, 5);
 
     await dropdownMenu(2);
     openDropdownByConditionMenu();
@@ -159,13 +159,13 @@ describe('Filters UI cooperation with MultiColumnSorting', () => {
     $(conditionSelectRootElements().first).next().find('input')[0].focus();
 
     document.activeElement.value = 'e';
-    keyUp('e');
+    await keyUp('e');
     $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
     expect(getData().length).toBe(9);
     expect(getDataAtCol(0).join()).toBe('24,17,14,16,23,32,26,28,21');
 
-    alter('insert_row_above', 1, 1);
+    await alter('insert_row_above', 1, 1);
 
     expect(getData().length).toBe(10);
     expect(getDataAtCol(0).join()).toBe('24,,17,14,16,23,32,26,28,21');

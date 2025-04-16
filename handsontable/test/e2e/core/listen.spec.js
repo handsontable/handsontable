@@ -21,7 +21,7 @@ describe('Core.listen', () => {
 
     expect(isListening()).toBe(false);
 
-    listen();
+    await listen();
 
     expect(isListening()).toBe(true);
   });

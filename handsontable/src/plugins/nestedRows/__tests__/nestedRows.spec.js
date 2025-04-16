@@ -161,7 +161,7 @@ describe('NestedRows', () => {
 
       await selectCell(2, 0);
       await contextMenu();
-      selectContextMenuOption('Insert child row');
+      await selectContextMenuOption('Insert child row');
 
       expect(getCell(0, -1).offsetWidth).forThemes(({ classic, main, horizon }) => {
         classic.toBe(70);
@@ -171,7 +171,7 @@ describe('NestedRows', () => {
 
       await selectCell(3, 0);
       await contextMenu();
-      selectContextMenuOption('Insert child row');
+      await selectContextMenuOption('Insert child row');
 
       expect(getCell(0, -1).offsetWidth).forThemes(({ classic, main, horizon }) => {
         classic.toBe(76);
@@ -181,7 +181,7 @@ describe('NestedRows', () => {
 
       await selectCell(4, 0);
       await contextMenu();
-      selectContextMenuOption('Insert child row');
+      await selectContextMenuOption('Insert child row');
 
       expect(getCell(0, -1).offsetWidth).forThemes(({ classic, main, horizon }) => {
         classic.toBe(86);
@@ -203,7 +203,7 @@ describe('NestedRows', () => {
     plugin.collapsingUI.collapseChildren(6);
     plugin.collapsingUI.collapseChildren(12);
 
-    alter('remove_row', 2);
+    await alter('remove_row', 2);
 
     await sleep(0); // There is a timeout in the `onAfterRemoveRow` callback.
 
@@ -212,13 +212,13 @@ describe('NestedRows', () => {
       ['Best Metal Performance', null, null, null],
     ]);
 
-    alter('remove_row', 1);
+    await alter('remove_row', 1);
 
     await sleep(0); // There is a timeout in the `onAfterRemoveRow` callback.
 
     expect(getData()).toEqual([['Best Rock Performance', null, null, null]]);
 
-    alter('remove_row', 0);
+    await alter('remove_row', 0);
 
     await sleep(0); // There is a timeout in the `onAfterRemoveRow` callback.
 
@@ -236,7 +236,7 @@ describe('NestedRows', () => {
 
     await selectCell(0, 0);
     await contextMenu();
-    selectContextMenuOption('Insert child row');
+    await selectContextMenuOption('Insert child row');
 
     expect(countRows()).toEqual(19);
     expect(getDataAtCell(0, 0)).toEqual('Best Rock Performance');
@@ -252,7 +252,7 @@ describe('NestedRows', () => {
 
     await selectCell(1, 0);
     await contextMenu();
-    selectContextMenuOption('Insert child row');
+    await selectContextMenuOption('Insert child row');
 
     expect(countRows()).toEqual(20);
     expect(getDataAtCell(0, 0)).toEqual('Best Rock Performance');
@@ -280,11 +280,11 @@ describe('NestedRows', () => {
 
     await selectCell(0, 0);
     await contextMenu();
-    selectContextMenuOption('Insert child row');
+    await selectContextMenuOption('Insert child row');
 
     await selectCell(6, 0);
     await contextMenu();
-    selectContextMenuOption('Detach from parent');
+    await selectContextMenuOption('Detach from parent');
 
     expect(getDataAtCell(6, 0)).toEqual('Best Metal Performance');
     expect(getDataAtCell(18, 1)).toEqual(null);
@@ -302,7 +302,7 @@ describe('NestedRows', () => {
 
     await selectCell(0, 0);
     await contextMenu();
-    selectContextMenuOption('Insert row above');
+    await selectContextMenuOption('Insert row above');
 
     expect(getDataAtRow(0)).toEqual([null, null, null, null]);
     expect(getDataAtRow(1)).toEqual(['Best Rock Performance', null, null, null]);
@@ -311,7 +311,7 @@ describe('NestedRows', () => {
 
     await selectCell(1, 0);
     await contextMenu();
-    selectContextMenuOption('Insert row below');
+    await selectContextMenuOption('Insert row below');
 
     expect(getDataAtRow(0)).toEqual([null, null, null, null]);
     expect(getDataAtRow(1)).toEqual(['Best Rock Performance', null, null, null]);

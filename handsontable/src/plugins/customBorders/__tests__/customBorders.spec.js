@@ -1112,7 +1112,7 @@ describe('CustomBorders', () => {
 
     const corner = $('.ht_clone_top_inline_start_corner .htCore').find('thead').find('th').eq(0);
 
-    simulateClick(corner, 'RMB');
+    await simulateClick(corner, 'RMB');
     await contextMenu();
 
     expect($('.htContextMenu tbody td.htDisabled').text()).toBe([

@@ -130,15 +130,15 @@ describe('Selection', () => {
         rowHeaders: true,
       });
 
-      listen();
+      await listen();
       hot.selection.selectColumns(2);
-      keyDown('control/meta');
+      await keyDown('control/meta');
       hot.selection.selectRows(2);
-      keyDown('control/meta');
+      await keyDown('control/meta');
       hot.selection.selectColumns(0);
-      keyDown('control/meta');
+      await keyDown('control/meta');
       hot.selection.selectRows(0);
-      keyUp('control/meta');
+      await keyUp('control/meta');
 
       expect(hot.selection.isEntireRowSelected(4)).toBe(false); // out of range
       expect(hot.selection.isEntireRowSelected(3)).toBe(true);

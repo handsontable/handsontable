@@ -22,8 +22,8 @@ describe('Selection extending (RTL mode)', () => {
         startCols: 5
       });
 
-      selectCell(1, 2);
-      keyDownUp(['shift', 'arrowleft']);
+      await selectCell(1, 2);
+      await keyDownUp(['shift', 'arrowleft']);
 
       expect(`
         |   :   :   :   :   |
@@ -41,10 +41,10 @@ describe('Selection extending (RTL mode)', () => {
         startCols: 6
       });
 
-      selectCells([[1, 4, 3, 1]]);
-      keyDownUp(['shift', 'tab']); // move cell focus right
-      keyDownUp(['shift', 'tab']); // move cell focus right
-      keyDownUp(['shift', 'arrowleft']);
+      await selectCells([[1, 4, 3, 1]]);
+      await keyDownUp(['shift', 'tab']); // move cell focus right
+      await keyDownUp(['shift', 'tab']); // move cell focus right
+      await keyDownUp(['shift', 'arrowleft']);
 
       expect(`
         |   :   :   :   :   :   |
@@ -55,7 +55,7 @@ describe('Selection extending (RTL mode)', () => {
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: 1,4 to: 3,2']);
 
-      keyDownUp(['shift', 'arrowleft']);
+      await keyDownUp(['shift', 'arrowleft']);
 
       expect(`
         |   :   :   :   :   :   |
@@ -66,7 +66,7 @@ describe('Selection extending (RTL mode)', () => {
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: 1,2 to: 3,5']);
 
-      keyDownUp(['shift', 'arrowleft']);
+      await keyDownUp(['shift', 'arrowleft']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: 1,2 to: 3,5']);
     });

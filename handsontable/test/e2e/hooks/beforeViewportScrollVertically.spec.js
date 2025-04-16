@@ -169,7 +169,7 @@ describe('Hook', () => {
       hidingMap.setValueAtIndex(1, true);
       hidingMap.setValueAtIndex(2, true);
 
-      render();
+      await render();
 
       await scrollViewportTo({ row: 20 });
 

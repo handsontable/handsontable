@@ -37,7 +37,7 @@ describe('Core.setCellMeta', () => {
     hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
     hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
 
-    setCellMeta(0, 1, 'key', 'value');
+    await setCellMeta(0, 1, 'key', 'value');
 
     expect(getCellMeta(0, 1).key).toEqual('value');
   });
@@ -91,14 +91,14 @@ describe('Core.setCellMeta', () => {
     expect(spec().$container.find('tbody tr:eq(0) td:eq(0)')[0].className).toEqual(classNames[0]);
     expect(spec().$container.find('tbody tr:eq(1) td:eq(1)')[0].className).toEqual(classNames[1]);
 
-    updateSettings({
+    await updateSettings({
       cell: []
     });
 
     expect(spec().$container.find('tbody tr:eq(0) td:eq(0)')[0].className).toEqual('');
     expect(spec().$container.find('tbody tr:eq(1) td:eq(1)')[0].className).toEqual('');
 
-    updateSettings({
+    await updateSettings({
       cell: [
         { row: 0, col: 0, className: classNames[1] },
         { row: 1, col: 1, className: classNames[0] }
@@ -156,22 +156,22 @@ describe('Core.setCellMeta', () => {
     expect(getCellMeta(0, 0).renderer).toBe(getCellType('text').renderer);
     expect(getCellMeta(0, 0).editor).toBe(getCellType('text').editor);
 
-    setCellMeta(0, 0, 'type', 'autocomplete');
-    render();
+    await setCellMeta(0, 0, 'type', 'autocomplete');
+    await render();
 
     expect(getCellMeta(0, 0).type).toBe(getCellType('autocomplete').CELL_TYPE);
     expect(getCellMeta(0, 0).renderer).toBe(getCellType('autocomplete').renderer);
     expect(getCellMeta(0, 0).editor).toBe(getCellType('autocomplete').editor);
 
-    setCellMeta(0, 0, 'type', 'password');
-    render();
+    await setCellMeta(0, 0, 'type', 'password');
+    await render();
 
     expect(getCellMeta(0, 0).type).toBe(getCellType('password').CELL_TYPE);
     expect(getCellMeta(0, 0).renderer).toBe(getCellType('password').renderer);
     expect(getCellMeta(0, 0).editor).toBe(getCellType('password').editor);
 
-    setCellMeta(0, 0, 'type', 'numeric');
-    render();
+    await setCellMeta(0, 0, 'type', 'numeric');
+    await render();
 
     expect(getCellMeta(0, 0).type).toBe(getCellType('numeric').CELL_TYPE);
     expect(getCellMeta(0, 0).renderer).toBe(getCellType('numeric').renderer);
@@ -189,17 +189,17 @@ describe('Core.setCellMeta', () => {
     expect(getCellMeta(0, 0).renderer).toBe(getCellType('text').renderer);
     expect(getCellMeta(0, 0).editor).toBe(getCellType('text').editor);
 
-    setCellMeta(0, 0, 'renderer', mockRenderer);
-    setCellMeta(0, 0, 'type', 'autocomplete');
-    render();
+    await setCellMeta(0, 0, 'renderer', mockRenderer);
+    await setCellMeta(0, 0, 'type', 'autocomplete');
+    await render();
 
     expect(getCellMeta(0, 0).type).toBe(getCellType('autocomplete').CELL_TYPE);
     expect(getCellMeta(0, 0).renderer).toBe(mockRenderer);
     expect(getCellMeta(0, 0).editor).toBe(getCellType('autocomplete').editor);
 
-    setCellMeta(0, 0, 'editor', mockEditor);
-    setCellMeta(0, 0, 'type', 'password');
-    render();
+    await setCellMeta(0, 0, 'editor', mockEditor);
+    await setCellMeta(0, 0, 'type', 'password');
+    await render();
 
     expect(getCellMeta(0, 0).type).toBe(getCellType('password').CELL_TYPE);
     expect(getCellMeta(0, 0).renderer).toBe(mockRenderer);

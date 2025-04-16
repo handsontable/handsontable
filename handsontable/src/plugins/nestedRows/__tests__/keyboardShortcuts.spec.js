@@ -26,7 +26,7 @@ describe('NestedRows keyboard shortcut', () => {
 
       hidingMap.setValueAtIndex(0, true);
 
-      render();
+      await render();
       await selectCell(0, -1);
       await keyDownUp('enter');
 

@@ -19,7 +19,7 @@ describe('Selection navigation', () => {
       colHeaders: true,
     });
 
-    listen();
+    await listen();
 
     await selectAll();
 

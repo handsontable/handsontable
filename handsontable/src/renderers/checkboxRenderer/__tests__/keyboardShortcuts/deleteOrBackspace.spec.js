@@ -33,10 +33,10 @@ describe('CheckboxRenderer', () => {
       expect(checkboxes.eq(2).prop('checked')).toBe(true);
       expect(getData()).toEqual([[true], [false], [true]]);
 
-      selectCell(0, 0);
-      keyDownUp(key);
-      selectCell(0, 1);
-      keyDownUp(key);
+      await selectCell(0, 0);
+      await keyDownUp(key);
+      await selectCell(0, 1);
+      await keyDownUp(key);
 
       checkboxes = spec().$container.find(':checkbox');
 
@@ -65,10 +65,10 @@ describe('CheckboxRenderer', () => {
       expect(getDataAtCell(0, 0)).toBe('foo');
       expect(getDataAtCell(1, 0)).toBe('bar');
 
-      selectCell(0, 0);
-      keyDownUp(key);
-      selectCell(1, 0);
-      keyDownUp(key);
+      await selectCell(0, 0);
+      await keyDownUp(key);
+      await selectCell(1, 0);
+      await keyDownUp(key);
 
       expect(getDataAtCell(0, 0)).toBe(false);
       expect(getDataAtCell(1, 0)).toBe(false);
@@ -125,8 +125,8 @@ describe('CheckboxRenderer', () => {
       expect(checkboxes.eq(2).prop('checked')).toBe(true);
       expect(getData()).toEqual([[true], [false], [true]]);
 
-      selectCell(-1, 0);
-      keyDownUp(key);
+      await selectCell(-1, 0);
+      await keyDownUp(key);
 
       checkboxes = spec().$container.find(':checkbox');
 
@@ -146,9 +146,9 @@ describe('CheckboxRenderer', () => {
         ]
       });
 
-      selectCells([[0, 0, 1, 1]]);
+      await selectCells([[0, 0, 1, 1]]);
 
-      keyDownUp(key);
+      await keyDownUp(key);
 
       expect(getData()).toEqual([[null, false], [null, false]]);
     });
@@ -171,8 +171,8 @@ describe('CheckboxRenderer', () => {
         callback,
       }], { group: 'grid' });
 
-      selectCell(-1, 0);
-      keyDownUp(key);
+      await selectCell(-1, 0);
+      await keyDownUp(key);
 
       expect(callback).toHaveBeenCalledTimes(1);
     });

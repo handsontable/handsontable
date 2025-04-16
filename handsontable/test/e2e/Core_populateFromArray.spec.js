@@ -30,7 +30,7 @@ describe('Core_populateFromArray', () => {
         output = changes;
       }
     });
-    populateFromArray(0, 0, [['test', 'test'], ['test', 'test']], 1, 1);
+    await populateFromArray(0, 0, [['test', 'test'], ['test', 'test']], 1, 1);
 
     expect(output).toEqual([[0, 0, '', 'test'], [0, 1, 'Kia', 'test'], [1, 0, '2008', 'test'], [1, 1, 10, 'test']]);
   });
@@ -48,7 +48,7 @@ describe('Core_populateFromArray', () => {
         changes[3][3] = 'test4';
       }
     });
-    populateFromArray(0, 0, [['test', 'test'], ['test', 'test']], 1, 1);
+    await populateFromArray(0, 0, [['test', 'test'], ['test', 'test']], 1, 1);
 
     expect(getData()).toEqual([
       ['test1', 'test', 3, 4, 5, 6],
@@ -67,7 +67,7 @@ describe('Core_populateFromArray', () => {
         output = changes;
       }
     });
-    populateFromArray(0, 0, [['test']], 3, 0);
+    await populateFromArray(0, 0, [['test']], 3, 0);
 
     expect(output).toEqual([
       [0, 0, '', 'test'],
@@ -86,7 +86,7 @@ describe('Core_populateFromArray', () => {
         output = changes;
       }
     });
-    populateFromArray(0, 0, [['test'], [[1, 2, 3]]], 3, 0);
+    await populateFromArray(0, 0, [['test'], [[1, 2, 3]]], 3, 0);
 
     expect(output).toEqual([[0, 0, '', 'test'], [2, 0, '2009', 'test']]);
   });
@@ -100,7 +100,7 @@ describe('Core_populateFromArray', () => {
         output = changes;
       }
     });
-    populateFromArray(0, 0, [['test'], [{ test: 1 }]], 3, 0);
+    await populateFromArray(0, 0, [['test'], [{ test: 1 }]], 3, 0);
 
     expect(output).toEqual([[0, 0, '', 'test'], [2, 0, '2009', 'test']]);
   });
@@ -114,7 +114,7 @@ describe('Core_populateFromArray', () => {
         output = changes;
       }
     });
-    populateFromArray(1, 3, [['test']], 1, 5);
+    await populateFromArray(1, 3, [['test']], 1, 5);
 
     expect(output).toEqual([[1, 3, 12, 'test'], [1, 4, 13, 'test']]);
   });
@@ -132,7 +132,7 @@ describe('Core_populateFromArray', () => {
         output = changes;
       }
     });
-    populateFromArray(0, 0, [[[]]], 0, 0);
+    await populateFromArray(0, 0, [[[]]], 0, 0);
 
     expect(output).toEqual([[0, 0, ['2011'], []]]);
   });
@@ -149,7 +149,7 @@ describe('Core_populateFromArray', () => {
       },
       minSpareRows: 1
     });
-    populateFromArray(0, 0, [[['2011']]], 0, 0);
+    await populateFromArray(0, 0, [[['2011']]], 0, 0);
 
     expect(output).toEqual([[0, 0, undefined, ['2011']]]);
   });
@@ -171,7 +171,7 @@ describe('Core_populateFromArray', () => {
 
       hot.addHook('afterChange', afterChange);
 
-      populateFromArray(0, 0, [['test', 'test2'], ['test3', 'test4']], 2, 2, null, 'shift_down');
+      await populateFromArray(0, 0, [['test', 'test2'], ['test3', 'test4']], 2, 2, null, 'shift_down');
 
       expect(getData()).toEqual([
         ['test', 'test2', 'test', 'Toyota', 'Honda', null],
@@ -213,7 +213,7 @@ describe('Core_populateFromArray', () => {
 
       hot.addHook('afterChange', afterChange);
 
-      populateFromArray(1, 3, [
+      await populateFromArray(1, 3, [
         ['test', 'test2', 'test3'],
         ['test4', 'test5', 'test6']
       ], null, null, null, 'shift_down');
@@ -257,7 +257,7 @@ describe('Core_populateFromArray', () => {
 
       const data = getData();
 
-      populateFromArray(0, 0, data, null, null, null, 'shift_down');
+      await populateFromArray(0, 0, data, null, null, null, 'shift_down');
 
       expect(getData()).toEqual(data.concat(data));
 
@@ -302,7 +302,7 @@ describe('Core_populateFromArray', () => {
 
       hot.addHook('afterChange', afterChange);
 
-      populateFromArray(0, 0, [['test', 'test2'], ['test3', 'test4']], 2, 2, null, 'shift_right');
+      await populateFromArray(0, 0, [['test', 'test2'], ['test3', 'test4']], 2, 2, null, 'shift_right');
 
       expect(getData()).toEqual([
         ['test', 'test2', 'test', '', 'Kia', 'Nissan', 'Toyota', 'Honda', null],
@@ -343,7 +343,7 @@ describe('Core_populateFromArray', () => {
 
       hot.addHook('afterChange', afterChange);
 
-      populateFromArray(4, 2, [['test', 'test2'], ['test3', 'test4']], null, null, null, 'shift_right');
+      await populateFromArray(4, 2, [['test', 'test2'], ['test3', 'test4']], null, null, null, 'shift_right');
 
       expect(getData()).toEqual([
         ['', 'Kia', 'Nissan', 'Toyota', 'Honda', null], // TODO: Should be ['', 'Kia', 'Nissan', 'Toyota', 'Honda', null, null, null]
@@ -385,7 +385,7 @@ describe('Core_populateFromArray', () => {
 
       const data = getData();
 
-      populateFromArray(0, 0, data, null, null, null, 'shift_right');
+      await populateFromArray(0, 0, data, null, null, null, 'shift_right');
 
       expect(getData()).toEqual([
         ['', 'Kia', 'Nissan', 'Toyota', 'Honda', null, '', 'Kia', 'Nissan', 'Toyota', 'Honda', null],
@@ -467,7 +467,7 @@ describe('Core_populateFromArray', () => {
       data: arrayOfArrays()
     });
 
-    populateFromArray(2, 0, [['A1'], ['A2']], 2, 0, 'autofill', null);
+    await populateFromArray(2, 0, [['A1'], ['A2']], 2, 0, 'autofill', null);
 
     expect(getDataAtCell(2, 0)).toEqual('A1');
     expect(getDataAtCell(3, 0)).toEqual('2010');
@@ -478,7 +478,7 @@ describe('Core_populateFromArray', () => {
       data: arrayOfArrays()
     });
 
-    populateFromArray(0, 2, [['A1', 'A2']], 0, 2, 'autofill', null);
+    await populateFromArray(0, 2, [['A1', 'A2']], 0, 2, 'autofill', null);
 
     expect(getDataAtCell(0, 2)).toEqual('A1');
     expect(getDataAtCell(0, 3)).toEqual('Toyota');

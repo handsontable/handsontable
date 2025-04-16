@@ -39,7 +39,7 @@ describe('HiddenRows', () => {
       });
 
       getPlugin('hiddenRows').disablePlugin();
-      render();
+      await render();
 
       expect(getCell(0, 0).innerText).toBe('A1');
       expect(getCell(1, 0).innerText).toBe('A2');
@@ -60,12 +60,12 @@ describe('HiddenRows', () => {
       const plugin = getPlugin('hiddenRows');
 
       plugin.disablePlugin();
-      render();
+      await render();
 
       expect(countRows()).toBe(5);
 
       plugin.enablePlugin();
-      render();
+      await render();
 
       expect(countRows()).toBe(5);
       expect(getCell(0, 0).innerText).toBe('A1');
@@ -84,7 +84,7 @@ describe('HiddenRows', () => {
 
       expect(plugin.enabled).toEqual(false);
 
-      updateSettings({
+      await updateSettings({
         hiddenRows: {
           rows: [1, 3],
         },
@@ -116,7 +116,7 @@ describe('HiddenRows', () => {
       expect(getCell(3, 0)).toBe(null);
       expect(getCell(4, 0).innerText).toBe('A5');
 
-      updateSettings({
+      await updateSettings({
         hiddenRows: {
           rows: [0, 2, 4],
         },

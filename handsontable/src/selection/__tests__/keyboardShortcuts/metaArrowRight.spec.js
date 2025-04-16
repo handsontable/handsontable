@@ -28,8 +28,8 @@ describe('Selection navigation', () => {
         startCols: 5,
       });
 
-      selectCell(1, 3);
-      keyDownUp(['control/meta', 'arrowright']);
+      await selectCell(1, 3);
+      await keyDownUp(['control/meta', 'arrowright']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,4 from: 1,4 to: 1,4']);
       expect(`
@@ -42,8 +42,8 @@ describe('Selection navigation', () => {
         |   ║   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
 
-      selectCells([[3, 1, 1, 3]]);
-      keyDownUp(['control/meta', 'arrowright']);
+      await selectCells([[3, 1, 1, 3]]);
+      await keyDownUp(['control/meta', 'arrowright']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,4 from: 3,4 to: 3,4']);
       expect(`
@@ -56,8 +56,8 @@ describe('Selection navigation', () => {
         |   ║   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
 
-      selectRows(2);
-      keyDownUp(['control/meta', 'arrowright']);
+      await selectRows(2);
+      await keyDownUp(['control/meta', 'arrowright']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,4 from: 2,4 to: 2,4']);
       expect(`
@@ -79,8 +79,8 @@ describe('Selection navigation', () => {
         navigableHeaders: true,
       });
 
-      selectCell(-1, 1);
-      keyDownUp(['control/meta', 'arrowright']);
+      await selectCell(-1, 1);
+      await keyDownUp(['control/meta', 'arrowright']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,4 from: -1,4 to: -1,4']);
     });
@@ -93,8 +93,8 @@ describe('Selection navigation', () => {
         navigableHeaders: true,
       });
 
-      selectCell(-1, 1);
-      keyDownUp(['control/meta', 'arrowright']);
+      await selectCell(-1, 1);
+      await keyDownUp(['control/meta', 'arrowright']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,4 from: -1,4 to: -1,4']);
     });
@@ -107,10 +107,10 @@ describe('Selection navigation', () => {
       });
 
       rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
-      render();
+      await render();
 
-      selectCell(-1, 1);
-      keyDownUp(['control/meta', 'arrowright']);
+      await selectCell(-1, 1);
+      await keyDownUp(['control/meta', 'arrowright']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,4 from: -1,4 to: -1,4']);
     });
@@ -126,8 +126,8 @@ describe('Selection navigation', () => {
         },
       });
 
-      selectCell(1, -3);
-      keyDownUp(['control/meta', 'arrowright']);
+      await selectCell(1, -3);
+      await keyDownUp(['control/meta', 'arrowright']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-1 from: 1,-1 to: 1,-1']);
     });
@@ -144,10 +144,10 @@ describe('Selection navigation', () => {
       });
 
       columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
-      render();
+      await render();
 
-      selectCell(1, -3);
-      keyDownUp(['control/meta', 'arrowright']);
+      await selectCell(1, -3);
+      await keyDownUp(['control/meta', 'arrowright']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-1 from: 1,-1 to: 1,-1']);
     });

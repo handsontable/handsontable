@@ -60,8 +60,8 @@ describe('Core_init', () => {
 
     const cell = spec().$container.find('tr:eq(0) td:eq(1)');
 
-    mouseOver(cell);
-    mouseDown(cell);
+    await mouseOver(cell);
+    await mouseDown(cell);
 
     expect(onErrorSpy).not.toHaveBeenCalled();
   });

@@ -29,7 +29,7 @@ describe('Hook', () => {
         },
       });
 
-      setDataAtCell(0, 0, '3,45');
+      await setDataAtCell(0, 0, '3,45');
 
       await sleep(50);
 
@@ -52,7 +52,7 @@ describe('Hook', () => {
           }
         });
 
-        setDataAtCell(0, 0, 'test');
+        await setDataAtCell(0, 0, 'test');
 
         await selectCell(0, 0);
         await keyDownUp([keyCode]);

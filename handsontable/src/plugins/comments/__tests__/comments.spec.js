@@ -411,7 +411,7 @@ describe('Comments', () => {
 
         // Set the comment editor height/width to 2 rows/columns + 5px, which should overlap the scrollbar by `5px`.
         // If the editor overlaps the scrollbar, it should be flipped.
-        setCellMeta(countRows() - 2, countCols() - 2, 'comment', {
+        await setCellMeta(countRows() - 2, countCols() - 2, 'comment', {
           style:
             {
               height: (defaultRowHeight * 2) + 5,
@@ -465,7 +465,7 @@ describe('Comments', () => {
 
         // Set the comment editor height to 2 rows + 5px, which should overlay the bottom scrollbar by `5px`, if it existed.
         // As it doesn't exist, the editor should not be flipped vertically.
-        setCellMeta(countRows() - 2, countCols() - 2, 'comment', {
+        await setCellMeta(countRows() - 2, countCols() - 2, 'comment', {
           style:
             {
               height: (defaultRowHeight * 2) + 5,
@@ -859,7 +859,7 @@ describe('Comments', () => {
     let readOnly;
     let comment;
 
-    setCellMeta(0, 0, 'comment', { readOnly: true });
+    await setCellMeta(0, 0, 'comment', { readOnly: true });
     plugin.updateCommentMeta(0, 0, { value: 'Test' });
 
     comment = getCellMeta(0, 0).comment;

@@ -27,7 +27,7 @@ describe('ContextMenu', () => {
 
       await selectCell(0, 0);
       await contextMenu();
-      selectContextMenuOption('Read only');
+      await selectContextMenuOption('Read only');
 
       expect(getCellMeta(0, 0).readOnly).toBe(true);
     });
@@ -47,7 +47,7 @@ describe('ContextMenu', () => {
 
       await selectCell(0, 0);
       await contextMenu();
-      selectContextMenuOption('Read only');
+      await selectContextMenuOption('Read only');
 
       expect(getCellMeta(0, 0).readOnly).toBe(false);
     });
@@ -66,7 +66,7 @@ describe('ContextMenu', () => {
 
       await selectCell(0, 0, 2, 2);
       await contextMenu();
-      selectContextMenuOption('Read only');
+      await selectContextMenuOption('Read only');
 
       expect(hot.getCellMeta(0, 0).readOnly).toEqual(true);
       expect(hot.getCellMeta(0, 1).readOnly).toEqual(true);
@@ -89,7 +89,7 @@ describe('ContextMenu', () => {
 
       await selectCell(0, 0, 2, 2);
       await contextMenu();
-      selectContextMenuOption('Read only');
+      await selectContextMenuOption('Read only');
 
       expect(hot.getCellMeta(0, 0).readOnly).toBe(true);
       expect(hot.getCellMeta(0, 1).readOnly).toBe(true);
@@ -111,7 +111,7 @@ describe('ContextMenu', () => {
 
       await selectCell(2, 2, 0, 0);
       await contextMenu();
-      selectContextMenuOption('Read only');
+      await selectContextMenuOption('Read only');
 
       expect(hot.getCellMeta(0, 0).readOnly).toBe(true);
       expect(hot.getCellMeta(0, 1).readOnly).toBe(true);
@@ -135,7 +135,7 @@ describe('ContextMenu', () => {
 
       await selectCell(0, 0, 2, 2);
       await contextMenu();
-      selectContextMenuOption('Read only');
+      await selectContextMenuOption('Read only');
 
       expect(hot.getCellMeta(0, 0).readOnly).toBe(false);
       expect(hot.getCellMeta(0, 1).readOnly).toBe(false);
@@ -159,7 +159,7 @@ describe('ContextMenu', () => {
 
       await selectCell(2, 2, 0, 0);
       await contextMenu();
-      selectContextMenuOption('Read only');
+      await selectContextMenuOption('Read only');
 
       expect(hot.getCellMeta(0, 0).readOnly).toBe(false);
       expect(hot.getCellMeta(0, 1).readOnly).toBe(false);
@@ -182,7 +182,7 @@ describe('ContextMenu', () => {
 
       await selectCell(2, 3);
       await contextMenu();
-      selectContextMenuOption('Read only');
+      await selectContextMenuOption('Read only');
 
       expect(afterSetCellMetaCallback).toHaveBeenCalledWith(2, 3, 'readOnly', true);
     });

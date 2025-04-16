@@ -41,7 +41,7 @@ describe('RowHeader', () => {
 
     expect(cloneTop.height()).toBe(masterHolder.height());
 
-    alter('insert_col_start', undefined, 10);
+    await alter('insert_col_start', undefined, 10);
 
     expect(cloneTop.height()).toBeLessThan(masterHolder.height());
   });

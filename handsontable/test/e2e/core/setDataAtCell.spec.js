@@ -17,7 +17,7 @@ describe('Core.setDataAtCell', () => {
       data: [[1, 2, 3], ['a', 'b', 'c']]
     });
 
-    setDataAtCell(0, 0, 'foo');
+    await setDataAtCell(0, 0, 'foo');
 
     expect(getDataAtCell(0, 0)).toBe('foo');
   });
@@ -29,7 +29,7 @@ describe('Core.setDataAtCell', () => {
 
     spyOn(hot.view, 'render').and.callThrough();
 
-    setDataAtCell(0, 1, 'foo');
+    await setDataAtCell(0, 1, 'foo');
 
     expect(hot.view.render).toHaveBeenCalled();
   });
@@ -44,7 +44,7 @@ describe('Core.setDataAtCell', () => {
 
     spyOn(getActiveEditor(), 'refreshValue').and.callThrough();
 
-    setDataAtCell(0, 1, 'foo');
+    await setDataAtCell(0, 1, 'foo');
 
     expect(getActiveEditor().refreshValue).toHaveBeenCalled();
   });
@@ -61,7 +61,7 @@ describe('Core.setDataAtCell', () => {
       }
     });
 
-    setDataAtCell(0, 1, 'foo');
+    await setDataAtCell(0, 1, 'foo');
 
     expect(argumentHistory[0][0]).toBe(0);
     expect(argumentHistory[0][1]).toBe(1);
@@ -77,7 +77,7 @@ describe('Core.setDataAtCell', () => {
       }
     });
 
-    setDataAtCell(0, 1, 'foo');
+    await setDataAtCell(0, 1, 'foo');
 
     expect(getDataAtCell(0, 1)).toEqual('CHANGED');
   });
@@ -94,7 +94,7 @@ describe('Core.setDataAtCell', () => {
 
     beforeChange.calls.reset();
     afterChange.calls.reset();
-    setDataAtCell(0, 1, 'foo', 'single-change');
+    await setDataAtCell(0, 1, 'foo', 'single-change');
 
     expect(beforeChange).toHaveBeenCalledWith([[0, 1, 2, 'foo']], 'single-change');
     expect(afterChange).toHaveBeenCalledWith([[0, 1, 2, 'foo']], 'single-change');
@@ -102,7 +102,7 @@ describe('Core.setDataAtCell', () => {
     beforeChange.calls.reset();
     afterChange.calls.reset();
 
-    setDataAtCell([[0, 1, 'foo2']], 'multiple-change');
+    await setDataAtCell([[0, 1, 'foo2']], 'multiple-change');
 
     expect(beforeChange).toHaveBeenCalledWith([[0, 1, 'foo', 'foo2']], 'multiple-change');
   });

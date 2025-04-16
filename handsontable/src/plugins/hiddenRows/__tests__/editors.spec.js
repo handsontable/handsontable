@@ -49,7 +49,7 @@ describe('HiddenRows', () => {
 
       const firstHeader = spec().$container.find('.ht_clone_top tr:eq(0) th:eq(1)');
 
-      simulateClick(firstHeader, 'LMB');
+      await simulateClick(firstHeader, 'LMB');
 
       await keyDownUp('F2');
       await keyDownUp(['control/meta', 'enter']);
@@ -76,7 +76,7 @@ describe('HiddenRows', () => {
 
       const corner = $('.ht_clone_top_inline_start_corner .htCore').find('thead').find('th').eq(0);
 
-      simulateClick(corner, 'LMB');
+      await simulateClick(corner, 'LMB');
 
       await keyDownUp('F2');
       await keyDownUp(['control/meta', 'enter']);

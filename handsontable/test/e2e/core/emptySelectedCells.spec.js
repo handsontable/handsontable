@@ -16,25 +16,25 @@ describe('Core.emptySelectedCells', () => {
       selectionMode: 'multiple',
     });
 
-    mouseDown(getCell(5, 4));
-    mouseOver(getCell(1, 1));
-    mouseUp(getCell(1, 1));
+    await mouseDown(getCell(5, 4));
+    await mouseOver(getCell(1, 1));
+    await mouseUp(getCell(1, 1));
 
-    keyDown('control/meta');
+    await keyDown('control/meta');
 
-    mouseDown(getCell(2, 2));
-    mouseOver(getCell(7, 2));
-    mouseUp(getCell(7, 2));
+    await mouseDown(getCell(2, 2));
+    await mouseOver(getCell(7, 2));
+    await mouseUp(getCell(7, 2));
 
-    mouseDown(getCell(2, 4));
-    mouseOver(getCell(2, 4));
-    mouseUp(getCell(2, 4));
+    await mouseDown(getCell(2, 4));
+    await mouseOver(getCell(2, 4));
+    await mouseUp(getCell(2, 4));
 
-    mouseDown(getCell(7, 6));
-    mouseOver(getCell(8, 7));
-    mouseUp(getCell(8, 7));
+    await mouseDown(getCell(7, 6));
+    await mouseOver(getCell(8, 7));
+    await mouseUp(getCell(8, 7));
 
-    keyUp('control/meta');
+    await keyUp('control/meta');
 
     emptySelectedCells();
 
@@ -105,7 +105,7 @@ describe('Core.emptySelectedCells', () => {
       beforeChange: onBeforeChange
     });
 
-    simulateClick(spec().$container.find('.ht_clone_top tr:eq(0) th:eq(0)'));
+    await simulateClick(spec().$container.find('.ht_clone_top tr:eq(0) th:eq(0)'));
 
     emptySelectedCells();
 
@@ -125,7 +125,7 @@ describe('Core.emptySelectedCells', () => {
       beforeChange: onBeforeChange
     });
 
-    simulateClick(spec().$container.find('.ht_clone_inline_start tr:eq(1) th:eq(0)'));
+    await simulateClick(spec().$container.find('.ht_clone_inline_start tr:eq(1) th:eq(0)'));
 
     emptySelectedCells();
 
@@ -146,7 +146,7 @@ describe('Core.emptySelectedCells', () => {
       beforeChange: onBeforeChange
     });
 
-    simulateClick(spec().$container.find('.ht_clone_top tr:eq(0) th:eq(0)'));
+    await simulateClick(spec().$container.find('.ht_clone_top tr:eq(0) th:eq(0)'));
 
     emptySelectedCells();
 
@@ -166,7 +166,7 @@ describe('Core.emptySelectedCells', () => {
       }
     });
 
-    selectCells([[0, 0, 2, 2]]);
+    await selectCells([[0, 0, 2, 2]]);
 
     emptySelectedCells();
 

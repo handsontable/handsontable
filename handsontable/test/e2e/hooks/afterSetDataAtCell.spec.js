@@ -21,7 +21,7 @@ describe('Hook', () => {
         afterSetDataAtCell,
       });
 
-      setDataAtCell(0, 0, 'test', 'my-source');
+      await setDataAtCell(0, 0, 'test', 'my-source');
 
       expect(afterSetDataAtCell).toHaveBeenCalledWith([[0, 0, 1, 'test']], 'my-source');
     });
@@ -40,7 +40,7 @@ describe('Hook', () => {
         },
       });
 
-      setDataAtCell(0, 0, '3,45');
+      await setDataAtCell(0, 0, '3,45');
 
       expect(dataChanges).toEqual([[0, 0, 1, 3.45]]);
     });

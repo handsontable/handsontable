@@ -45,7 +45,7 @@ describe('AutocompleteEditor', () => {
       ],
     });
 
-    listen();
+    await listen();
 
     await selectAll();
 
@@ -1079,7 +1079,7 @@ describe('AutocompleteEditor', () => {
       await sleep(10);
 
       data[1][1] = 'dddddddddddddddddddd';
-      render();
+      await render();
 
       await sleep(10);
 
@@ -1686,7 +1686,7 @@ describe('AutocompleteEditor', () => {
         ]
       });
 
-      setDataAtCell(0, 0, 'black');
+      await setDataAtCell(0, 0, 'black');
 
       await selectCell(0, 0);
       await keyDownUp('enter');
@@ -1889,7 +1889,7 @@ describe('AutocompleteEditor', () => {
         afterChange: onAfterChange
       });
 
-      setDataAtCell(0, 0, 'unexistent');
+      await setDataAtCell(0, 0, 'unexistent');
 
       await sleep(200);
 
@@ -1930,7 +1930,7 @@ describe('AutocompleteEditor', () => {
         afterChange: onAfterChange
       });
 
-      setDataAtCell(0, 0, 'yellow');
+      await setDataAtCell(0, 0, 'yellow');
 
       await sleep(200);
 
@@ -1973,7 +1973,7 @@ describe('AutocompleteEditor', () => {
         afterChange: onAfterChange
       });
 
-      setDataAtCell(0, 0, 'unexistent');
+      await setDataAtCell(0, 0, 'unexistent');
 
       await sleep(200);
 
@@ -2016,7 +2016,7 @@ describe('AutocompleteEditor', () => {
         afterChange: onAfterChange
       });
 
-      setDataAtCell(0, 0, 'yellow');
+      await setDataAtCell(0, 0, 'yellow');
 
       await sleep(200);
 
@@ -2060,7 +2060,7 @@ describe('AutocompleteEditor', () => {
       expect(getCellMeta(0, 0).valid).not.toBe(false);
       expect($(getCell(0, 0)).hasClass('htInvalid')).toBe(false);
 
-      setDataAtCell(0, 0, 'unexistent');
+      await setDataAtCell(0, 0, 'unexistent');
 
       await sleep(200);
 

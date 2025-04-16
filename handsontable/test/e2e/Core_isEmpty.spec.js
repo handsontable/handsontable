@@ -22,7 +22,7 @@ describe('Core.isEmpty*', () => {
 
     it('should not be empty row', async() => {
       handsontable();
-      setDataAtCell(0, 0, 'test');
+      await setDataAtCell(0, 0, 'test');
       const hot = getInstance();
 
       expect(hot.isEmptyRow(0)).toEqual(false);
@@ -47,7 +47,7 @@ describe('Core.isEmpty*', () => {
 
     it('should not be empty row', async() => {
       handsontable();
-      setDataAtCell(0, 0, 'test');
+      await setDataAtCell(0, 0, 'test');
       const hot = getInstance();
 
       expect(hot.isEmptyCol(0)).toEqual(false);

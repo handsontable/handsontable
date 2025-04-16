@@ -200,7 +200,7 @@ describe('TrimRows', () => {
       height: 300
     });
 
-    alter('remove_row', 0, 2);
+    await alter('remove_row', 0, 2);
 
     expect(getDataAtCell(0, 0)).toBe('A4');
     expect(getDataAtCell(1, 0)).toBe('A5');
@@ -215,9 +215,9 @@ describe('TrimRows', () => {
       height: 300
     });
 
-    alter('insert_row_above', 1);
-    alter('insert_row_above', 3);
-    alter('remove_row', 0, 3);
+    await alter('insert_row_above', 1);
+    await alter('insert_row_above', 3);
+    await alter('remove_row', 0, 3);
 
     expect(getDataAtCell(0, 0)).toBe(null);
     expect(getDataAtCell(1, 0)).toBe('A4');
@@ -259,7 +259,7 @@ describe('TrimRows', () => {
     const plugin = getPlugin('trimRows');
 
     plugin.trimRows([1, 7, 3]); // physical row indexes after move
-    alter('remove_row', 2, 3); // visual row indexes
+    await alter('remove_row', 2, 3); // visual row indexes
 
     expect(plugin.isTrimmed(1)).toBeTruthy();
     expect(plugin.isTrimmed(5)).toBeTruthy(); // 7 -> 5
@@ -279,7 +279,7 @@ describe('TrimRows', () => {
     const plugin = getPlugin('trimRows');
 
     plugin.trimRows([1, 7, 3]); // physical row indexes after move
-    alter('insert_row_above', 0, 3); // visual row indexes
+    await alter('insert_row_above', 0, 3); // visual row indexes
 
     expect(plugin.isTrimmed(1)).toBeTruthy();
     expect(plugin.isTrimmed(3)).toBeTruthy();
@@ -706,7 +706,7 @@ describe('TrimRows', () => {
         beforeCreateRow: onBeforeCreateRowCallback
       });
 
-      alter('insert_row_above', 1);
+      await alter('insert_row_above', 1);
 
       expect(onBeforeCreateRowCallback).toHaveBeenCalledWith(1, 1);
     });
@@ -812,7 +812,7 @@ describe('TrimRows', () => {
         width: 500,
         height: 300
       });
-      alter('remove_row', 2, 1);
+      await alter('remove_row', 2, 1);
 
       expect(getDataAtCell(0, 0)).toBe('A5');
       expect(getDataAtCell(1, 0)).toBe('A4');
@@ -836,13 +836,13 @@ describe('TrimRows', () => {
 
       await sleep(100);
 
-      alter('insert_row_above', 2, 1);
+      await alter('insert_row_above', 2, 1);
 
       getHtCore().find('th span.columnSorting:eq(2)').simulate('mousedown');
       getHtCore().find('th span.columnSorting:eq(2)').simulate('mouseup');
       getHtCore().find('th span.columnSorting:eq(2)').simulate('click');
 
-      alter('remove_row', 2, 1);
+      await alter('remove_row', 2, 1);
 
       expect(getDataAtCell(0, 0)).toBe('A1');
       expect(getDataAtCell(1, 0)).toBe('A3');
@@ -867,19 +867,19 @@ describe('TrimRows', () => {
 
       await sleep(100);
 
-      alter('insert_row_above', 2, 1);
+      await alter('insert_row_above', 2, 1);
 
       getHtCore().find('th span.columnSorting:eq(2)').simulate('mousedown');
       getHtCore().find('th span.columnSorting:eq(2)').simulate('mouseup');
       getHtCore().find('th span.columnSorting:eq(2)').simulate('click');
 
-      alter('insert_row_above', 0, 1);
+      await alter('insert_row_above', 0, 1);
 
       getHtCore().find('th span.columnSorting:eq(2)').simulate('mousedown');
       getHtCore().find('th span.columnSorting:eq(2)').simulate('mouseup');
       getHtCore().find('th span.columnSorting:eq(2)').simulate('click');
 
-      alter('remove_row', 0, 3);
+      await alter('remove_row', 0, 3);
 
       expect(getDataAtCell(0, 0)).toBe('A1');
       expect(getDataAtCell(1, 0)).toBe(null);
@@ -1281,7 +1281,7 @@ describe('TrimRows', () => {
 
       expect(spec().$container.find('.ht_clone_inline_start').eq(0).height()).toBe(rowHeadersHeightAtStart);
 
-      alter('insert_row_above', 0, insertedRows);
+      await alter('insert_row_above', 0, insertedRows);
 
       const newRowHeadersHeight = spec().$container.find('.ht_clone_inline_start').eq(0).height();
 
@@ -1306,7 +1306,7 @@ describe('TrimRows', () => {
 
       expect(spec().$container.find('.ht_clone_inline_start').eq(0).height()).toBe(rowHeadersHeightAtStart);
 
-      alter('insert_row_above', 0, insertedRows);
+      await alter('insert_row_above', 0, insertedRows);
 
       const newRowHeadersHeight = spec().$container.find('.ht_clone_inline_start').eq(0).height();
 
@@ -1331,7 +1331,7 @@ describe('TrimRows', () => {
 
       expect(spec().$container.find('.ht_clone_inline_start').eq(0).height()).toBe(rowHeadersHeightAtStart);
 
-      alter('insert_row_above', 0, insertedRows);
+      await alter('insert_row_above', 0, insertedRows);
 
       const newRowHeadersHeight = spec().$container.find('.ht_clone_inline_start').eq(0).height();
 
@@ -1355,7 +1355,7 @@ describe('TrimRows', () => {
 
       expect(spec().$container.find('.ht_clone_inline_start').eq(0).height()).toBe(rowHeadersHeightAtStart);
 
-      alter('remove_row', 0, removedRows);
+      await alter('remove_row', 0, removedRows);
 
       const newRowHeadersHeight = spec().$container.find('.ht_clone_inline_start').eq(0).height();
 
@@ -1380,7 +1380,7 @@ describe('TrimRows', () => {
 
       expect(spec().$container.find('.ht_clone_inline_start').eq(0).height()).toBe(rowHeadersHeightAtStart);
 
-      alter('remove_row', 0, removedRows);
+      await alter('remove_row', 0, removedRows);
 
       const newRowHeadersHeight = spec().$container.find('.ht_clone_inline_start').eq(0).height();
 
@@ -1405,7 +1405,7 @@ describe('TrimRows', () => {
 
       expect(spec().$container.find('.ht_clone_inline_start').eq(0).height()).toBe(rowHeadersHeightAtStart);
 
-      alter('remove_row', 0, removedRows);
+      await alter('remove_row', 0, removedRows);
 
       const newRowHeadersHeight = spec().$container.find('.ht_clone_inline_start').eq(0).height();
 

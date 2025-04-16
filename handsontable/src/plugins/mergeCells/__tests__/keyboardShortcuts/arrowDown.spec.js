@@ -65,7 +65,7 @@ describe('MergeCells keyboard shortcut', () => {
 
       hidingMap.setValueAtIndex(1, true);
       hidingMap.setValueAtIndex(4, true);
-      render();
+      await render();
 
       await selectCell(0, 2);
       await keyDownUp('arrowdown');
@@ -114,7 +114,7 @@ describe('MergeCells keyboard shortcut', () => {
       hidingMap.setValueAtIndex(3, true);
       hidingMap.setValueAtIndex(4, true);
       hidingMap.setValueAtIndex(8, true);
-      render();
+      await render();
 
       await selectCell(1, 2);
       await keyDownUp('arrowdown');
@@ -172,7 +172,7 @@ describe('MergeCells keyboard shortcut', () => {
 
         hidingMap.setValueAtIndex(3, true);
         hidingMap.setValueAtIndex(4, true);
-        render();
+        await render();
 
         await selectCell(1, 1);
         await keyDownUp('arrowdown');
@@ -195,7 +195,7 @@ describe('MergeCells keyboard shortcut', () => {
 
         hidingMap.setValueAtIndex(3, true);
         hidingMap.setValueAtIndex(4, true);
-        render();
+        await render();
 
         await selectCell(3, 1);
         await keyDownUp('arrowdown');
@@ -285,7 +285,7 @@ describe('MergeCells keyboard shortcut', () => {
         hidingRowMap.setValueAtIndex(4, true);
         hidingColumnMap.setValueAtIndex(1, true);
         hidingColumnMap.setValueAtIndex(4, true);
-        render();
+        await render();
 
         await selectCell(0, 3);
         await keyDownUp('arrowdown');
@@ -312,7 +312,7 @@ describe('MergeCells keyboard shortcut', () => {
         hidingRowMap.setValueAtIndex(4, true);
         hidingColumnMap.setValueAtIndex(1, true);
         hidingColumnMap.setValueAtIndex(4, true);
-        render();
+        await render();
 
         await selectCell(1, 3);
         await keyDownUp('arrowdown');

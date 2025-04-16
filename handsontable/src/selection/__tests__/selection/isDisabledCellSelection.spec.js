@@ -23,10 +23,10 @@ describe('Selection', () => {
         disableVisualSelection: true,
       });
 
-      selectColumns(1, 1, -1);
-      keyDown('control/meta');
-      selectRows(1, 1, -1);
-      keyUp('control/meta');
+      await selectColumns(1, 1, -1);
+      await keyDown('control/meta');
+      await selectRows(1, 1, -1);
+      await keyUp('control/meta');
 
       expect(getSelectedRange()).toEqualCellRange([
         'highlight: -1,1 from: -1,1 to: 4,1',
@@ -42,14 +42,14 @@ describe('Selection', () => {
         |   ║   :   :   :   :   |
         `).toBeMatchToSelectionPattern();
 
-      updateSettings({
+      await updateSettings({
         disableVisualSelection: ['current', 'area', 'header'],
       });
 
-      selectColumns(1, 1, -1);
-      keyDown('control/meta');
-      selectRows(1, 1, -1);
-      keyUp('control/meta');
+      await selectColumns(1, 1, -1);
+      await keyDown('control/meta');
+      await selectRows(1, 1, -1);
+      await keyUp('control/meta');
 
       expect(getSelectedRange()).toEqualCellRange([
         'highlight: -1,1 from: -1,1 to: 4,1',
@@ -76,10 +76,10 @@ describe('Selection', () => {
         disableVisualSelection: 'current',
       });
 
-      selectColumns(1, 1, -1);
-      keyDown('control/meta');
-      selectRows(1, 1, -1);
-      keyUp('control/meta');
+      await selectColumns(1, 1, -1);
+      await keyDown('control/meta');
+      await selectRows(1, 1, -1);
+      await keyUp('control/meta');
 
       expect(getSelectedRange()).toEqualCellRange([
         'highlight: -1,1 from: -1,1 to: 4,1',
@@ -106,10 +106,10 @@ describe('Selection', () => {
         disableVisualSelection: 'area',
       });
 
-      selectColumns(1, 1, -1);
-      keyDown('control/meta');
-      selectRows(1, 1, -1);
-      keyUp('control/meta');
+      await selectColumns(1, 1, -1);
+      await keyDown('control/meta');
+      await selectRows(1, 1, -1);
+      await keyUp('control/meta');
 
       expect(getSelectedRange()).toEqualCellRange([
         'highlight: -1,1 from: -1,1 to: 4,1',
@@ -136,10 +136,10 @@ describe('Selection', () => {
         disableVisualSelection: 'header',
       });
 
-      selectColumns(1, 1, -1);
-      keyDown('control/meta');
-      selectRows(1, 1, -1);
-      keyUp('control/meta');
+      await selectColumns(1, 1, -1);
+      await keyDown('control/meta');
+      await selectRows(1, 1, -1);
+      await keyUp('control/meta');
 
       expect(getSelectedRange()).toEqualCellRange([
         'highlight: -1,1 from: -1,1 to: 4,1',
@@ -166,10 +166,10 @@ describe('Selection', () => {
         disableVisualSelection: ['current', 'header'],
       });
 
-      selectColumns(1, 1, -1);
-      keyDown('control/meta');
-      selectRows(1, 1, -1);
-      keyUp('control/meta');
+      await selectColumns(1, 1, -1);
+      await keyDown('control/meta');
+      await selectRows(1, 1, -1);
+      await keyUp('control/meta');
 
       expect(getSelectedRange()).toEqualCellRange([
         'highlight: -1,1 from: -1,1 to: 4,1',
@@ -196,10 +196,10 @@ describe('Selection', () => {
         disableVisualSelection: ['area', 'header'],
       });
 
-      selectColumns(1, 1, -1);
-      keyDown('control/meta');
-      selectRows(1, 1, -1);
-      keyUp('control/meta');
+      await selectColumns(1, 1, -1);
+      await keyDown('control/meta');
+      await selectRows(1, 1, -1);
+      await keyUp('control/meta');
 
       expect(getSelectedRange()).toEqualCellRange([
         'highlight: -1,1 from: -1,1 to: 4,1',
@@ -241,12 +241,12 @@ describe('Selection', () => {
         ]
       });
 
-      selectColumns(1);
-      keyDown('control/meta');
-      selectColumns(2);
-      selectRows(1);
-      selectRows(2);
-      keyUp('control/meta');
+      await selectColumns(1);
+      await keyDown('control/meta');
+      await selectColumns(2);
+      await selectRows(1);
+      await selectRows(2);
+      await keyUp('control/meta');
 
       expect(getSelectedRange()).toEqualCellRange([
         'highlight: 0,1 from: -1,1 to: 4,1',
@@ -290,12 +290,12 @@ describe('Selection', () => {
           {},
         ]
       });
-      selectColumns(1, 1, -1);
-      keyDown('control/meta');
-      selectColumns(2, 2, -1);
-      selectRows(1, 1, -1);
-      selectRows(2, 2, -1);
-      keyUp('control/meta');
+      await selectColumns(1, 1, -1);
+      await keyDown('control/meta');
+      await selectColumns(2, 2, -1);
+      await selectRows(1, 1, -1);
+      await selectRows(2, 2, -1);
+      await keyUp('control/meta');
 
       expect(getSelectedRange()).toEqualCellRange([
         'highlight: -1,1 from: -1,1 to: 4,1',
@@ -340,12 +340,12 @@ describe('Selection', () => {
         ]
       });
 
-      selectColumns(1);
-      keyDown('control/meta');
-      selectColumns(2);
-      selectRows(1);
-      selectRows(2);
-      keyUp('control/meta');
+      await selectColumns(1);
+      await keyDown('control/meta');
+      await selectColumns(2);
+      await selectRows(1);
+      await selectRows(2);
+      await keyUp('control/meta');
 
       expect(getSelectedRange()).toEqualCellRange([
         'highlight: 0,1 from: -1,1 to: 4,1',
@@ -389,12 +389,12 @@ describe('Selection', () => {
         ]
       });
 
-      selectColumns(1);
-      keyDown('control/meta');
-      selectColumns(2);
-      selectRows(1);
-      selectRows(2);
-      keyUp('control/meta');
+      await selectColumns(1);
+      await keyDown('control/meta');
+      await selectColumns(2);
+      await selectRows(1);
+      await selectRows(2);
+      await keyUp('control/meta');
 
       expect(getSelectedRange()).toEqualCellRange([
         'highlight: 0,1 from: -1,1 to: 4,1',
@@ -438,12 +438,12 @@ describe('Selection', () => {
         ]
       });
 
-      selectColumns(1);
-      keyDown('control/meta');
-      selectColumns(2);
-      selectRows(1);
-      selectRows(2);
-      keyUp('control/meta');
+      await selectColumns(1);
+      await keyDown('control/meta');
+      await selectColumns(2);
+      await selectRows(1);
+      await selectRows(2);
+      await keyUp('control/meta');
 
       expect(getSelectedRange()).toEqualCellRange([
         'highlight: 0,1 from: -1,1 to: 4,1',
@@ -487,10 +487,10 @@ describe('Selection', () => {
         ]
       });
 
-      selectColumns(1);
-      keyDown('control/meta');
-      selectRows(1);
-      keyUp('control/meta');
+      await selectColumns(1);
+      await keyDown('control/meta');
+      await selectRows(1);
+      await keyUp('control/meta');
 
       expect(getSelectedRange()).toEqualCellRange([
         'highlight: 0,1 from: -1,1 to: 4,1',
@@ -518,7 +518,7 @@ describe('Selection', () => {
         disableVisualSelection: true,
       });
 
-      selectCell(1, 1);
+      await selectCell(1, 1);
       updateData(createSpreadsheetData(5, 5), 'updateSettings');
 
       expect(`

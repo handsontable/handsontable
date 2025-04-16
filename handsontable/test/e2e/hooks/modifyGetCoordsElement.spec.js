@@ -18,7 +18,7 @@ describe('Hook', () => {
       });
 
       modifyGetCoordsElement.calls.reset();
-      mouseDown(getCell(1, 2));
+      await mouseDown(getCell(1, 2));
 
       expect(modifyGetCoordsElement).toHaveBeenCalledWith(1, 2);
       expect(modifyGetCoordsElement).toHaveBeenCalledTimes(1);
@@ -32,7 +32,7 @@ describe('Hook', () => {
         },
       });
 
-      simulateClick(getCell(1, 1));
+      await simulateClick(getCell(1, 1));
 
       expect(getSelected()).toEqual([[2, 3, 2, 3]]);
     });

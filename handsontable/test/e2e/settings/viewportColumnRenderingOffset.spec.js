@@ -31,7 +31,7 @@ describe('settings', () => {
       expect(calculator.startColumn).toBe(24);
       expect(calculator.endColumn).toBe(25);
 
-      updateSettings({ viewportColumnRenderingOffset: 10 });
+      await updateSettings({ viewportColumnRenderingOffset: 10 });
 
       expect(calculator.startColumn).toBe(14);
       expect(calculator.endColumn).toBe(35);

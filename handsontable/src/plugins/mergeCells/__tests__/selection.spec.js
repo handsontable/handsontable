@@ -53,9 +53,9 @@ describe('MergeCells Selection', () => {
 
     await keyDown('control/meta');
 
-    simulateClick(firstRowHeader);
+    await simulateClick(firstRowHeader);
 
-    keyUp('control/meta');
+    await keyUp('control/meta');
 
     expect(getComputedStyle(mergedCell, ':before').backgroundColor).toEqual(selectedCellBackground);
     expect(getComputedStyle(mergedCell, ':before').opacity).toEqual(selectedCellOpacity);
@@ -123,13 +123,13 @@ describe('MergeCells Selection', () => {
     deselectCell();
 
     await keyDown('control/meta');
-    mouseDown(rowHeaders[0]);
-    mouseOver(rowHeaders[1]);
-    mouseUp(rowHeaders[1]);
-    mouseDown(rowHeaders[2]);
-    mouseOver(rowHeaders[2]);
-    mouseUp(rowHeaders[2]);
-    keyUp('control/meta');
+    await mouseDown(rowHeaders[0]);
+    await mouseOver(rowHeaders[1]);
+    await mouseUp(rowHeaders[1]);
+    await mouseDown(rowHeaders[2]);
+    await mouseOver(rowHeaders[2]);
+    await mouseUp(rowHeaders[2]);
+    await keyUp('control/meta');
 
     expect(getComputedStyle(mergedCell, ':before').backgroundColor).toEqual(selectedCellBackground);
     expect(getComputedStyle(mergedCell, ':before').opacity).toEqual(selectedCellOpacity);
@@ -137,13 +137,13 @@ describe('MergeCells Selection', () => {
     deselectCell();
 
     await keyDown('control/meta');
-    mouseDown(columnHeaders[0]);
-    mouseOver(columnHeaders[1]);
-    mouseUp(columnHeaders[1]);
-    mouseDown(columnHeaders[2]);
-    mouseOver(columnHeaders[3]);
-    mouseUp(columnHeaders[3]);
-    keyUp('control/meta');
+    await mouseDown(columnHeaders[0]);
+    await mouseOver(columnHeaders[1]);
+    await mouseUp(columnHeaders[1]);
+    await mouseDown(columnHeaders[2]);
+    await mouseOver(columnHeaders[3]);
+    await mouseUp(columnHeaders[3]);
+    await keyUp('control/meta');
 
     expect(getComputedStyle(mergedCell, ':before').backgroundColor).toEqual(selectedCellBackground);
     expect(getComputedStyle(mergedCell, ':before').opacity).toEqual(selectedCellOpacity);
@@ -173,11 +173,11 @@ describe('MergeCells Selection', () => {
 
     await keyDown('control/meta');
 
-    mouseDown(firstRowHeader);
-    mouseOver(thirdRowHeader);
-    mouseUp(thirdRowHeader);
+    await mouseDown(firstRowHeader);
+    await mouseOver(thirdRowHeader);
+    await mouseUp(thirdRowHeader);
 
-    keyUp('control/meta');
+    await keyUp('control/meta');
 
     expect(getComputedStyle(mergedCell, ':before').backgroundColor).toEqual(selectedCellBackground);
     expect(getComputedStyle(mergedCell, ':before').opacity).toEqual(selectedCellOpacity);
@@ -194,7 +194,7 @@ describe('MergeCells Selection', () => {
 
     await selectColumns(0, 2);
     await contextMenu();
-    selectContextMenuOption('Merge cells');
+    await selectContextMenuOption('Merge cells');
 
     expect(getSelected()).toEqual([[-1, 0, 4, 2]]);
     expect(`
@@ -221,7 +221,7 @@ describe('MergeCells Selection', () => {
     const $borderTop = spec().$container.find('.wtBorder.current').eq(1);
     const topPositionBefore = $borderTop.position().top;
 
-    alter('insert_row_above', 1);
+    await alter('insert_row_above', 1);
 
     expect(getSelected()).toEqual([[2, 1, 3, 2]]);
     expect($borderTop.position().top).forThemes(({ classic, main, horizon }) => {
@@ -244,7 +244,7 @@ describe('MergeCells Selection', () => {
     const $borderLeft = spec().$container.find('.wtBorder.current').eq(1);
     const leftPositionBefore = $borderLeft.position().left;
 
-    alter('insert_col_start', 1);
+    await alter('insert_col_start', 1);
 
     expect(getSelected()).toEqual([[1, 2, 2, 3]]);
 

@@ -40,7 +40,7 @@ describe('numericValidator', () => {
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(2, 0, '');
+    await setDataAtCell(2, 0, '');
     await sleep(100);
 
     expect(onAfterValidate).toHaveBeenCalledWith(true, '', 2, 'id');
@@ -59,7 +59,7 @@ describe('numericValidator', () => {
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(2, 0, 'test');
+    await setDataAtCell(2, 0, 'test');
     await sleep(100);
 
     expect(onAfterValidate).toHaveBeenCalledWith(false, 'test', 2, 'id');
@@ -78,7 +78,7 @@ describe('numericValidator', () => {
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(2, 0, '123');
+    await setDataAtCell(2, 0, '123');
     await sleep(100);
 
     expect(onAfterValidate).toHaveBeenCalledWith(true, 123, 2, 'id');
@@ -97,7 +97,7 @@ describe('numericValidator', () => {
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(2, 0, '-123');
+    await setDataAtCell(2, 0, '-123');
     await sleep(100);
 
     expect(onAfterValidate).toHaveBeenCalledWith(true, -123, 2, 'id');
@@ -116,7 +116,7 @@ describe('numericValidator', () => {
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(2, 0, '1e+23');
+    await setDataAtCell(2, 0, '1e+23');
     await sleep(100);
 
     expect(onAfterValidate).toHaveBeenCalledWith(true, 1e+23, 2, 'id');
@@ -135,7 +135,7 @@ describe('numericValidator', () => {
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(2, 0, '1e-23');
+    await setDataAtCell(2, 0, '1e-23');
     await sleep(100);
 
     expect(onAfterValidate).toHaveBeenCalledWith(true, 1e-23, 2, 'id');
@@ -155,7 +155,7 @@ describe('numericValidator', () => {
         afterValidate: onAfterValidate
       });
 
-      setDataAtCell(2, 0, '');
+      await setDataAtCell(2, 0, '');
       await sleep(100);
 
       expect(onAfterValidate).toHaveBeenCalledWith(false, '', 2, 'id');
@@ -174,7 +174,7 @@ describe('numericValidator', () => {
         afterValidate: onAfterValidate
       });
 
-      setDataAtCell(2, 0, null);
+      await setDataAtCell(2, 0, null);
       await sleep(100);
 
       expect(onAfterValidate).toHaveBeenCalledWith(false, null, 2, 'id');
@@ -193,7 +193,7 @@ describe('numericValidator', () => {
         afterValidate: onAfterValidate
       });
 
-      setDataAtCell(2, 0);
+      await setDataAtCell(2, 0);
       await sleep(100);
 
       expect(onAfterValidate).toHaveBeenCalledWith(false, undefined, 2, 'id');
@@ -212,7 +212,7 @@ describe('numericValidator', () => {
         afterValidate: onAfterValidate
       });
 
-      setDataAtCell(2, 0, 0);
+      await setDataAtCell(2, 0, 0);
       await sleep(100);
 
       expect(onAfterValidate).toHaveBeenCalledWith(true, 0, 2, 'id');
@@ -232,13 +232,13 @@ describe('numericValidator', () => {
         ]
       });
 
-      validateCells();
+      await validateCells();
       await sleep(200);
 
       expect($(getCell(1, 2)).hasClass(getSettings().invalidCellClassName)).toBe(false);
       expect($(getCell(2, 2)).hasClass(getSettings().invalidCellClassName)).toBe(true);
 
-      setDataAtCell(2, 2, 8000);
+      await setDataAtCell(2, 2, 8000);
       await sleep(200);
 
       expect($(getCell(2, 2)).hasClass(getSettings().invalidCellClassName)).toBe(false);

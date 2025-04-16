@@ -100,18 +100,18 @@ describe('Cell state-related a11y config', () => {
         data: createSpreadsheetData(4, 4),
       });
 
-      setCellMeta(1, 1, 'readOnly', true);
-      setCellMeta(2, 2, 'readOnly', true);
+      await setCellMeta(1, 1, 'readOnly', true);
+      await setCellMeta(2, 2, 'readOnly', true);
 
-      render();
+      await render();
 
       expect(getCell(1, 1).getAttribute('aria-readonly')).toEqual('true');
       expect(getCell(2, 2).getAttribute('aria-readonly')).toEqual('true');
 
-      setCellMeta(1, 1, 'readOnly', false);
-      setCellMeta(2, 2, 'readOnly', false);
+      await setCellMeta(1, 1, 'readOnly', false);
+      await setCellMeta(2, 2, 'readOnly', false);
 
-      render();
+      await render();
 
       expect(getCell(1, 1).getAttribute('aria-readonly')).toEqual(null);
       expect(getCell(2, 2).getAttribute('aria-readonly')).toEqual(null);

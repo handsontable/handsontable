@@ -69,7 +69,7 @@ describe('Core viewport scroll keyboard shortcuts', () => {
 
       expect(scrollPosition).toEqual({ x: 0, y: 0 });
 
-      keyDownUp(['control/meta', 'backspace']);
+      await keyDownUp(['control/meta', 'backspace']);
 
       expect(getCurrentScrollPosition()).toEqual(scrollPosition);
     });
@@ -96,7 +96,7 @@ describe('Core viewport scroll keyboard shortcuts', () => {
 
       expect(scrollPosition).toEqual({ x: 0, y: 0 });
 
-      keyDownUp(['control/meta', 'backspace']);
+      await keyDownUp(['control/meta', 'backspace']);
 
       expect(getCurrentScrollPosition()).toEqual(scrollPosition);
     });
@@ -123,7 +123,7 @@ describe('Core viewport scroll keyboard shortcuts', () => {
 
       expect(scrollPosition).toEqual({ x: 35, y: 0 });
 
-      keyDownUp(['control/meta', 'backspace']);
+      await keyDownUp(['control/meta', 'backspace']);
 
       expect(getCurrentScrollPosition()).toEqual(scrollPosition);
     });
@@ -280,7 +280,7 @@ describe('Core viewport scroll keyboard shortcuts', () => {
       });
 
       rowIndexMapper().createAndRegisterIndexMap('my-trimming-map', 'trimming', true);
-      render();
+      await render();
 
       await selectCell(-1, 25, -1, 25, false);
       await keyDownUp(['control/meta', 'backspace']);
@@ -299,7 +299,7 @@ describe('Core viewport scroll keyboard shortcuts', () => {
       });
 
       rowIndexMapper().createAndRegisterIndexMap('my-trimming-map', 'hiding', true);
-      render();
+      await render();
 
       await selectCell(-1, 25, -1, 25, false);
       await keyDownUp(['control/meta', 'backspace']);
@@ -346,7 +346,7 @@ describe('Core viewport scroll keyboard shortcuts', () => {
       });
 
       columnIndexMapper().createAndRegisterIndexMap('my-trimming-map', 'trimming', true);
-      render();
+      await render();
 
       await selectCell(50, -1, 50, -1, false);
       await keyDownUp(['control/meta', 'backspace']);
@@ -369,7 +369,7 @@ describe('Core viewport scroll keyboard shortcuts', () => {
       });
 
       columnIndexMapper().createAndRegisterIndexMap('my-trimming-map', 'hiding', true);
-      render();
+      await render();
 
       await selectCell(50, -1, 50, -1, false);
       await keyDownUp(['control/meta', 'backspace']);
@@ -407,7 +407,7 @@ describe('Core viewport scroll keyboard shortcuts', () => {
         horizon.toEqual({ x: 1238, y: 1641 });
       });
 
-      keyDownUp(['control/meta', 'backspace']);
+      await keyDownUp(['control/meta', 'backspace']);
 
       expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ x: 996, y: 916 });

@@ -20,7 +20,7 @@ describe('AutocompleteRenderer', () => {
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(2, 2, 'string');
+    await setDataAtCell(2, 2, 'string');
     await sleep(100);
 
     const html = getCell(2, 2).innerHTML;
@@ -34,7 +34,7 @@ describe('AutocompleteRenderer', () => {
       renderer: 'autocomplete'
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
     expect(hot.getActiveEditor().isOpened()).toBe(false);
 
@@ -54,7 +54,7 @@ describe('AutocompleteRenderer', () => {
       renderer: 'autocomplete'
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
     expect(hot.getActiveEditor().isOpened()).toBe(false);
 

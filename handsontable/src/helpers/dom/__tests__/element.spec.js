@@ -49,7 +49,7 @@ describe('DOM helpers', () => {
 
       hot.selectCell(0, 0);
 
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       rootElement.parentNode.appendChild(createDivWithId('rootSibling'));
       rootElement.appendChild(createDivWithId('rootChild'));

@@ -29,7 +29,7 @@ describe('HiddenColumns', () => {
       });
 
       getPlugin('manualColumnMove').moveColumns([2, 3, 4], 0);
-      render();
+      await render();
 
       expect(hot.getData()).toEqual([
         ['C1', 'D1', 'E1', 'A1', 'B1'],
@@ -58,7 +58,7 @@ describe('HiddenColumns', () => {
       });
 
       getPlugin('manualColumnMove').moveColumns([0, 1, 2], 2);
-      render();
+      await render();
 
       expect(hot.getData()).toEqual([
         ['D1', 'E1', 'A1', 'B1', 'C1'],
@@ -87,7 +87,7 @@ describe('HiddenColumns', () => {
       });
 
       getPlugin('manualColumnMove').moveColumns([4], 1);
-      render();
+      await render();
 
       expect(hot.getData()).toEqual([
         ['A1', 'E1', 'B1', 'C1', 'D1'],
@@ -116,7 +116,7 @@ describe('HiddenColumns', () => {
       });
 
       getPlugin('manualColumnMove').moveColumns([2, 3, 4], 1);
-      render();
+      await render();
 
       expect(hot.getData()).toEqual([
         ['A1', 'C1', 'D1', 'E1', 'B1'],
@@ -145,7 +145,7 @@ describe('HiddenColumns', () => {
       });
 
       getPlugin('manualColumnMove').moveColumns([3, 1, 2], 1);
-      render();
+      await render();
 
       expect(hot.getData()).toEqual([
         ['A1', 'D1', 'B1', 'C1', 'E1'],
@@ -174,7 +174,7 @@ describe('HiddenColumns', () => {
       });
 
       getPlugin('manualColumnMove').moveColumns([3, 4], 0);
-      render();
+      await render();
 
       expect(hot.getData()).toEqual([
         ['D1', 'E1', 'A1', 'B1', 'C1'],
@@ -211,7 +211,7 @@ describe('HiddenColumns', () => {
         });
 
         getPlugin('manualColumnMove').moveColumn(0, 2);
-        render();
+        await render();
 
         await selectColumns(1);
 

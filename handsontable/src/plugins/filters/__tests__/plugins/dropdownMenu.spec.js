@@ -487,7 +487,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
 
     const firstWidth = $menu.find('.wtHider').width();
 
-    mouseDown(this.$container);
+    await mouseDown(this.$container);
 
     await dropdownMenu(0);
 
@@ -1085,7 +1085,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
       expect(menuShortcutManager.getActiveContextName()).toBe('menu:filters');
     }
 
-    updateSettings({ dropdownMenu: true });
+    await updateSettings({ dropdownMenu: true });
     await dropdownMenu(0);
     await sleep(300);
 

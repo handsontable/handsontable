@@ -20,7 +20,7 @@ describe('StretchColumns cooperation with columns altering', () => {
       stretchH: 'all',
     });
 
-    alter('insert_col_end', null, 1);
+    await alter('insert_col_end', null, 1);
 
     expect(getColWidth(0)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(90);
@@ -38,7 +38,7 @@ describe('StretchColumns cooperation with columns altering', () => {
       horizon.toBe(85);
     });
 
-    alter('insert_col_start', null, 1);
+    await alter('insert_col_start', null, 1);
 
     expect(getColWidth(0)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(68);
@@ -72,7 +72,7 @@ describe('StretchColumns cooperation with columns altering', () => {
       stretchH: 'all',
     });
 
-    alter('remove_col');
+    await alter('remove_col');
 
     expect(hot.view.hasHorizontalScroll()).toBe(true);
 
@@ -83,7 +83,7 @@ describe('StretchColumns cooperation with columns altering', () => {
     expect(getColWidth(4)).toBe(50);
     expect(getColWidth(5)).toBe(50);
 
-    alter('remove_col', 1);
+    await alter('remove_col', 1);
 
     expect(hot.view.hasHorizontalScroll()).toBe(false);
 
@@ -124,7 +124,7 @@ describe('StretchColumns cooperation with columns altering', () => {
       stretchH: 'all',
     });
 
-    alter('insert_col_end', null, 3);
+    await alter('insert_col_end', null, 3);
 
     expect(hot.view.hasHorizontalScroll()).toBe(false);
     expect(getColWidth(0)).forThemes(({ classic, main, horizon }) => {
@@ -153,7 +153,7 @@ describe('StretchColumns cooperation with columns altering', () => {
       horizon.toBe(51);
     });
 
-    alter('insert_col_end', null, 1);
+    await alter('insert_col_end', null, 1);
 
     expect(hot.view.hasHorizontalScroll()).toBe(true);
     expect(getColWidth(0)).toBe(50);

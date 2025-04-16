@@ -94,7 +94,7 @@ describe('settings', () => {
           data: createSpreadsheetData(10, 10)
         });
 
-        updateSettings({
+        await updateSettings({
           maxCols: 0
         });
 
@@ -113,7 +113,7 @@ describe('settings', () => {
           data: createSpreadsheetData(10, 10)
         });
 
-        updateSettings({
+        await updateSettings({
           maxCols: 2
         });
 
@@ -133,7 +133,7 @@ describe('settings', () => {
           maxCols: 5
         });
 
-        updateSettings({
+        await updateSettings({
           maxCols: 2
         });
 
@@ -153,7 +153,7 @@ describe('settings', () => {
           maxCols: 2
         });
 
-        updateSettings({
+        await updateSettings({
           maxCols: 5
         });
 
@@ -172,7 +172,7 @@ describe('settings', () => {
           data: createSpreadsheetData(10, 10)
         });
 
-        updateSettings({
+        await updateSettings({
           maxCols: Infinity
         });
 
@@ -192,7 +192,7 @@ describe('settings', () => {
           maxCols: 2
         });
 
-        updateSettings({
+        await updateSettings({
           maxCols: Infinity
         });
 
@@ -219,7 +219,7 @@ describe('settings', () => {
             minRows: 10
           });
 
-          updateSettings({
+          await updateSettings({
             maxCols: 2
           });
 

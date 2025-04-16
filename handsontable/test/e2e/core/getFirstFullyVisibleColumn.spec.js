@@ -31,7 +31,7 @@ describe('Core.getFirstFullyVisibleColumn', () => {
 
     columnMapper.setValueAtIndex(0, true);
     columnMapper.setValueAtIndex(1, true);
-    render();
+    await render();
 
     expect(getFirstFullyVisibleColumn()).toBe(2);
   });
@@ -44,7 +44,7 @@ describe('Core.getFirstFullyVisibleColumn', () => {
     });
 
     setScrollLeft(780); // row 15 (P1) is partially visible
-    render();
+    await render();
 
     expect(getFirstFullyVisibleColumn()).toBe(16);
   });

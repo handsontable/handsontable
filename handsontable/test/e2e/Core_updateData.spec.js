@@ -496,7 +496,7 @@ describe('Core_updateData', () => {
     });
 
     updateData(cars);
-    updateSettings({
+    await updateSettings({
       columns: [
         attr('make'),
         attr('model'),
@@ -652,12 +652,12 @@ describe('Core_updateData', () => {
 
     updateData(objectData);
 
-    mouseDoubleClick(getCell(1, 1));
+    await mouseDoubleClick(getCell(1, 1));
     document.activeElement.value = 'Harry';
     deselectCell();
     expect(objectData[1].user.name.first).toEqual('Harry');
 
-    mouseDoubleClick(getCell(2, 1));
+    await mouseDoubleClick(getCell(2, 1));
     document.activeElement.value = 'Barry';
     deselectCell();
     expect(objectData[2].user.name.first).toEqual('Barry');
@@ -691,12 +691,12 @@ describe('Core_updateData', () => {
 
     updateData(objectData);
 
-    mouseDoubleClick(getCell(1, 1));
+    await mouseDoubleClick(getCell(1, 1));
     document.activeElement.value = 'Harry';
     deselectCell();
     expect(objectData[1].user.name.first).toEqual('Harry');
 
-    mouseDoubleClick(getCell(2, 1));
+    await mouseDoubleClick(getCell(2, 1));
     document.activeElement.value = 'Barry';
     deselectCell();
     expect(objectData[2].user.name.first).toEqual('Barry');

@@ -40,7 +40,7 @@ describe('settings', () => {
           fixedRowsBottom: 2
         });
 
-        updateSettings({
+        await updateSettings({
           fixedRowsBottom: 4
         });
 
@@ -52,7 +52,7 @@ describe('settings', () => {
           fixedRowsBottom: 4
         });
 
-        updateSettings({
+        await updateSettings({
           fixedRowsBottom: 2
         });
 
@@ -64,7 +64,7 @@ describe('settings', () => {
           fixedRowsBottom: 0
         });
 
-        updateSettings({
+        await updateSettings({
           fixedRowsBottom: 2
         });
 
@@ -76,7 +76,7 @@ describe('settings', () => {
           fixedRowsBottom: 2
         });
 
-        updateSettings({
+        await updateSettings({
           fixedRowsBottom: 0
         });
 
@@ -98,7 +98,7 @@ describe('settings', () => {
           rowHeaders: true,
         });
 
-        updateSettings({
+        await updateSettings({
           fixedRowsBottom: 2
         });
 
@@ -155,43 +155,43 @@ describe('settings', () => {
 
       expect(getBottomClone().find('tbody tr').length).toBe(3);
 
-      updateSettings({
+      await updateSettings({
         data: createSpreadsheetData(2, 3),
       });
 
       expect(getBottomClone().find('tbody tr').length).toBe(2);
 
-      updateSettings({
+      await updateSettings({
         data: createSpreadsheetData(1, 3),
       });
 
       expect(getBottomClone().find('tbody tr').length).toBe(1);
 
-      updateSettings({
+      await updateSettings({
         data: createSpreadsheetData(0, 3),
       });
 
       expect(getBottomClone().find('tbody tr').length).toBe(0);
 
-      updateSettings({
+      await updateSettings({
         data: createSpreadsheetData(1, 3),
       });
 
       expect(getBottomClone().find('tbody tr').length).toBe(1);
 
-      updateSettings({
+      await updateSettings({
         data: createSpreadsheetData(2, 3),
       });
 
       expect(getBottomClone().find('tbody tr').length).toBe(2);
 
-      updateSettings({
+      await updateSettings({
         data: createSpreadsheetData(3, 3),
       });
 
       expect(getBottomClone().find('tbody tr').length).toBe(3);
 
-      updateSettings({
+      await updateSettings({
         data: createSpreadsheetData(4, 3),
       });
 
@@ -206,7 +206,7 @@ describe('settings', () => {
         fixedRowsBottom: 3,
       });
 
-      alter('insert_row_above', 0);
+      await alter('insert_row_above', 0);
 
       expect(getMaster().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(50); // 25px corner + 25px added row
@@ -239,7 +239,7 @@ describe('settings', () => {
         horizon.toBe(38);
       });
 
-      alter('insert_row_above', 0);
+      await alter('insert_row_above', 0);
 
       expect(getMaster().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(73);
@@ -287,7 +287,7 @@ describe('settings', () => {
         horizon.toBe(37);
       });
 
-      updateSettings({ fixedRowsBottom: 0 });
+      await updateSettings({ fixedRowsBottom: 0 });
 
       expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(26);
@@ -295,7 +295,7 @@ describe('settings', () => {
         horizon.toBe(37);
       });
 
-      updateSettings({ fixedRowsBottom: 1 });
+      await updateSettings({ fixedRowsBottom: 1 });
 
       expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(26);
@@ -303,7 +303,7 @@ describe('settings', () => {
         horizon.toBe(37);
       });
 
-      updateSettings({ data: [] });
+      await updateSettings({ data: [] });
 
       // The only header (when there is no cells - even when the `fixedRowsBottom` isn't defined) has such height.
       expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
@@ -321,7 +321,7 @@ describe('settings', () => {
         colHeaders: true,
       });
 
-      selectRows(1);
+      await selectRows(1);
 
       expect(() => {
         alter('remove_row', 1);

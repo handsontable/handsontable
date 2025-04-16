@@ -31,7 +31,7 @@ describe('Selection', () => {
         rowHeaders: true,
       });
 
-      selectCells([[1, 1, 2, 2]]);
+      await selectCells([[1, 1, 2, 2]]);
       hot.selection.selectAll(true, true);
 
       expect(`
@@ -52,7 +52,7 @@ describe('Selection', () => {
         rowHeaders: true,
       });
 
-      selectCells([[1, 1, 2, 2]]);
+      await selectCells([[1, 1, 2, 2]]);
       hot.selection.selectAll(true, true, {
         focusPosition: { row: 2, col: 3 },
       });
@@ -75,7 +75,7 @@ describe('Selection', () => {
         rowHeaders: true,
       });
 
-      selectCells([[1, 1, 2, 2]]);
+      await selectCells([[1, 1, 2, 2]]);
       hot.selection.selectAll(true, true, {
         focusPosition: { row: 2, col: 3 },
         disableHeadersHighlight: true,
@@ -99,7 +99,7 @@ describe('Selection', () => {
         rowHeaders: true,
       });
 
-      selectCells([[1, 1, 2, 2]]);
+      await selectCells([[1, 1, 2, 2]]);
       hot.selection.selectAll(true, false);
 
       expect(`
@@ -120,7 +120,7 @@ describe('Selection', () => {
         rowHeaders: true,
       });
 
-      selectCells([[1, 1, 2, 2]]);
+      await selectCells([[1, 1, 2, 2]]);
       hot.selection.selectAll(false, true);
 
       expect(`
@@ -297,7 +297,7 @@ describe('Selection', () => {
         },
       });
 
-      selectCells([[1, 1, 2, 2]]);
+      await selectCells([[1, 1, 2, 2]]);
       hot.selection.selectAll(true, true);
 
       expect(`
@@ -325,7 +325,7 @@ describe('Selection', () => {
         },
       });
 
-      selectCells([[1, 1, 2, 2]]);
+      await selectCells([[1, 1, 2, 2]]);
       hot.selection.selectAll(true, true);
 
       expect(`
@@ -349,7 +349,7 @@ describe('Selection', () => {
         },
       });
 
-      selectCells([[1, 1, 2, 2]]);
+      await selectCells([[1, 1, 2, 2]]);
       hot.selection.selectAll(true, true);
 
       expect(`
@@ -381,7 +381,7 @@ describe('Selection', () => {
         },
       });
 
-      selectCells([[1, 1, 2, 2]]);
+      await selectCells([[1, 1, 2, 2]]);
       hot.selection.selectAll(true, false);
 
       expect(`
@@ -413,7 +413,7 @@ describe('Selection', () => {
         },
       });
 
-      selectCells([[1, 1, 2, 2]]);
+      await selectCells([[1, 1, 2, 2]]);
       hot.selection.selectAll(false, true);
 
       expect(`

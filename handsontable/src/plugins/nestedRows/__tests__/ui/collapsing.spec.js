@@ -147,12 +147,12 @@ describe('NestedRows Collapsing UI', () => {
         const plugin = getPlugin('nestedRows');
 
         plugin.collapsingUI.collapseRows([1, 2, 3, 4, 5], true, true);
-        render();
+        await render();
 
         expect(countRows()).toEqual(8);
 
         plugin.collapsingUI.expandRows([3], true, true);
-        render();
+        await render();
 
         await sleep(100);
 
@@ -170,12 +170,12 @@ describe('NestedRows Collapsing UI', () => {
         const plugin = getPlugin('nestedRows');
 
         plugin.collapsingUI.collapseRows([4, 5], false, true);
-        render();
+        await render();
 
         expect(countRows()).toEqual(11);
 
         plugin.collapsingUI.expandChildren(3);
-        render();
+        await render();
 
         await sleep(100);
 
@@ -191,12 +191,12 @@ describe('NestedRows Collapsing UI', () => {
         const plugin = getPlugin('nestedRows');
 
         plugin.collapsingUI.collapseRows([4, 5], false, true);
-        render();
+        await render();
 
         expect(countRows()).toEqual(11);
 
         plugin.collapsingUI.expandChildren(0);
-        render();
+        await render();
 
         await sleep(100);
 

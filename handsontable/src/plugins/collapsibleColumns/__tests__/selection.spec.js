@@ -172,16 +172,16 @@ describe('CollapsibleColumns', () => {
         collapsibleColumns: true
       });
 
-      simulateClick(getCell(-2, 7)); // Select header "H4"
-      simulateClick(getCell(-2, 7).querySelector('.collapsibleIndicator')); // Collapse header "H4"
+      await simulateClick(getCell(-2, 7)); // Select header "H4"
+      await simulateClick(getCell(-2, 7).querySelector('.collapsibleIndicator')); // Collapse header "H4"
 
       await keyDown('control/meta');
 
-      simulateClick(getCell(-1, 5)); // Select header "F5"
-      simulateClick(getCell(-2, 1).querySelector('.collapsibleIndicator')); // Collapse header "B4"
-      simulateClick(getCell(-2, 3)); // Select header "D4"
+      await simulateClick(getCell(-1, 5)); // Select header "F5"
+      await simulateClick(getCell(-2, 1).querySelector('.collapsibleIndicator')); // Collapse header "B4"
+      await simulateClick(getCell(-2, 3)); // Select header "D4"
 
-      keyUp('control/meta');
+      await keyUp('control/meta');
 
       expect(`
         |   :                       :   |
@@ -202,7 +202,7 @@ describe('CollapsibleColumns', () => {
         'highlight: 0,3 from: -2,3 to: 4,4', // D4
       ]);
 
-      simulateClick(getCell(-4, 1).querySelector('.collapsibleIndicator')); // Collapse header "B1"
+      await simulateClick(getCell(-4, 1).querySelector('.collapsibleIndicator')); // Collapse header "B1"
 
       expect(`
         |   :           :   |
@@ -547,7 +547,7 @@ describe('CollapsibleColumns', () => {
       columnMapper.setValueAtIndex(8, true);
       columnMapper.setValueAtIndex(9, true);
 
-      render();
+      await render();
 
       await selectCell(1, 3, 2, 5);
       $(getCell(-3, 1).querySelector('.collapsibleIndicator')) // Collapse header "B1"

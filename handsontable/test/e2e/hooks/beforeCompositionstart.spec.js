@@ -21,7 +21,7 @@ describe('Hook', () => {
         beforeCompositionStart,
       });
 
-      listen();
+      await listen();
 
       const event = new Event('compositionstart', {
         data: 'c',

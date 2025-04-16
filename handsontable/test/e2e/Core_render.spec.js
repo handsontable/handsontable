@@ -59,7 +59,7 @@ describe('Core_render', () => {
     await selectCell(1, 1);
 
     data[1][1] = 'dddddddddddddddddddd';
-    render();
+    await render();
 
     const $td = spec().$container.find('.htCore tbody tr:eq(1) td:eq(1)');
 
@@ -75,7 +75,7 @@ describe('Core_render', () => {
       ],
       afterRender,
     });
-    populateFromArray(0, 0, [['t', 'e', 's', 't']]);
+    await populateFromArray(0, 0, [['t', 'e', 's', 't']]);
 
     expect(afterRender).toHaveBeenCalledTimes(2); // 1 from load and 1 from populateFromArray
   });
@@ -94,7 +94,7 @@ describe('Core_render', () => {
     });
 
     afterRender.calls.reset();
-    setDataAtCell(0, 0, 'Test');
+    await setDataAtCell(0, 0, 'Test');
 
     // even though the changes are canceled, the table should be rendered to reset
     // the cells states (e.g. validation CSS classes)

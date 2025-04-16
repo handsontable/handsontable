@@ -48,7 +48,7 @@ describe('NestedRows', () => {
         contextMenu: true
       });
 
-      setCellMeta(1, 1, 'className', 'red');
+      await setCellMeta(1, 1, 'className', 'red');
       loadData(getMoreComplexNestedData());
 
       const nrPlugin = getPlugin('nestedRows');
@@ -68,7 +68,7 @@ describe('NestedRows', () => {
         contextMenu: true
       });
 
-      setCellMeta(1, 1, 'className', 'red');
+      await setCellMeta(1, 1, 'className', 'red');
       updateData(getMoreComplexNestedData());
 
       const nrPlugin = getPlugin('nestedRows');

@@ -773,7 +773,7 @@ describe('Filters UI Conditional component', () => {
 
     // Is equal to '5'
     document.activeElement.value = '5';
-    keyUp('5');
+    await keyUp('5');
     $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
     await dropdownMenu(0);
@@ -794,7 +794,7 @@ describe('Filters UI Conditional component', () => {
 
     // Is equal to '5'
     document.activeElement.value = '5';
-    keyUp('5');
+    await keyUp('5');
     $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
     await dropdownMenu(3);

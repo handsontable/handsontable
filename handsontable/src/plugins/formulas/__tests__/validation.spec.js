@@ -357,7 +357,7 @@ describe('Formulas general', () => {
       const errorList = [];
 
       try {
-        setDataAtCell(0, 0, 1);
+        await setDataAtCell(0, 0, 1);
 
       } catch (e) {
         errorList.push(e);

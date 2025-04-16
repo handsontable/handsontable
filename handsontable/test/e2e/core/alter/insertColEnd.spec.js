@@ -26,7 +26,7 @@ describe('Core.alter', () => {
           ]
         });
 
-        alter('insert_col_end');
+        await alter('insert_col_end');
 
         expect(countCols()).toBe(4);
         expect(getData()).toEqual([
@@ -35,7 +35,7 @@ describe('Core.alter', () => {
           ['c1', 'c2', 'c3', null],
         ]);
 
-        alter('insert_col_end', null, 3);
+        await alter('insert_col_end', null, 3);
 
         expect(countCols()).toBe(7);
         expect(getData()).toEqual([
@@ -54,7 +54,7 @@ describe('Core.alter', () => {
           ]
         });
 
-        alter('insert_col_end', 3);
+        await alter('insert_col_end', 3);
 
         expect(countCols()).toBe(4);
         expect(getData()).toEqual([
@@ -63,7 +63,7 @@ describe('Core.alter', () => {
           ['c1', 'c2', 'c3', null],
         ]);
 
-        alter('insert_col_end', 100);
+        await alter('insert_col_end', 100);
 
         expect(countCols()).toBe(5);
         expect(getData()).toEqual([
@@ -72,7 +72,7 @@ describe('Core.alter', () => {
           ['c1', 'c2', 'c3', null, null],
         ]);
 
-        alter('insert_col_end', 100, 3);
+        await alter('insert_col_end', 100, 3);
 
         expect(countCols()).toBe(8);
         expect(getData()).toEqual([
@@ -91,7 +91,7 @@ describe('Core.alter', () => {
           ]
         });
 
-        alter('insert_col_end', 1);
+        await alter('insert_col_end', 1);
 
         expect(countCols()).toBe(4);
         expect(getData()).toEqual([
@@ -110,7 +110,7 @@ describe('Core.alter', () => {
           ]
         });
 
-        alter('insert_col_end', 1, 3);
+        await alter('insert_col_end', 1, 3);
 
         expect(countCols()).toBe(6);
         expect(getData()).toEqual([
@@ -128,11 +128,11 @@ describe('Core.alter', () => {
 
         expect(countCols()).toBe(5);
 
-        alter('insert_col_end');
+        await alter('insert_col_end');
 
         expect(countCols()).toBe(5);
 
-        alter('insert_col_end', 1, 10);
+        await alter('insert_col_end', 1, 10);
 
         expect(countCols()).toBe(5);
       });
@@ -142,9 +142,9 @@ describe('Core.alter', () => {
           beforeCreateCol: () => false,
         });
 
-        setCellMeta(0, 2, '_test', 'foo');
+        await setCellMeta(0, 2, '_test', 'foo');
 
-        alter('insert_col_end', 1, 1);
+        await alter('insert_col_end', 1, 1);
 
         expect(getCellMeta(0, 0)._test).toBeUndefined();
         expect(getCellMeta(0, 1)._test).toBeUndefined();
@@ -165,7 +165,7 @@ describe('Core.alter', () => {
           ],
         });
 
-        alter('insert_col_end');
+        await alter('insert_col_end');
 
         // a new column
         expect(getCellMeta(0, 3).type).toBe('text');
@@ -182,9 +182,9 @@ describe('Core.alter', () => {
           maxCols: 7
         });
 
-        alter('insert_col_end', 1);
-        alter('insert_col_end', 1);
-        alter('insert_col_end', 1);
+        await alter('insert_col_end', 1);
+        await alter('insert_col_end', 1);
+        await alter('insert_col_end', 1);
 
         expect(countCols()).toBe(7);
       });
@@ -195,7 +195,7 @@ describe('Core.alter', () => {
           maxCols: 10
         });
 
-        alter('insert_col_end', 1, 10);
+        await alter('insert_col_end', 1, 10);
 
         expect(countCols()).toBe(10);
       });
@@ -210,14 +210,14 @@ describe('Core.alter', () => {
           afterCreateCol,
         });
 
-        alter('insert_col_end');
+        await alter('insert_col_end');
 
         expect(beforeCreateCol).toHaveBeenCalledTimes(1);
         expect(beforeCreateCol).toHaveBeenCalledWith(8, 1);
         expect(afterCreateCol).toHaveBeenCalledTimes(1);
         expect(afterCreateCol).toHaveBeenCalledWith(8, 1);
 
-        alter('insert_col_end', 3, 2, 'customSource');
+        await alter('insert_col_end', 3, 2, 'customSource');
 
         expect(beforeCreateCol).toHaveBeenCalledTimes(2);
         expect(beforeCreateCol).toHaveBeenCalledWith(3, 2, 'customSource');
@@ -235,9 +235,9 @@ describe('Core.alter', () => {
           },
         });
 
-        setCellMeta(0, 0, 'className', 'green-background');
-        setCellMeta(0, 1, 'className', 'green-background');
-        alter('insert_col_end', 1, 3);
+        await setCellMeta(0, 0, 'className', 'green-background');
+        await setCellMeta(0, 1, 'className', 'green-background');
+        await alter('insert_col_end', 1, 3);
 
         expect(getCellMeta(0, 0).className).toBe('green-background');
         expect(getCellMeta(0, 1).className).toBe('red-background');
@@ -260,9 +260,9 @@ describe('Core.alter', () => {
           },
         });
 
-        setCellMeta(0, 0, 'className', 'green-background');
-        setCellMeta(0, 1, 'className', 'green-background');
-        alter('insert_col_end', 1, 3);
+        await setCellMeta(0, 0, 'className', 'green-background');
+        await setCellMeta(0, 1, 'className', 'green-background');
+        await alter('insert_col_end', 1, 3);
 
         expect(getCellMeta(0, 0).className).toBe('green-background');
         expect(getCellMeta(0, 1).className).toBe('green-background');
@@ -282,7 +282,7 @@ describe('Core.alter', () => {
           colHeaders: true,
         });
 
-        selectCells([
+        await selectCells([
           [1, 1, 3, 2],
           [1, 4, 1, 4],
           [5, 3, 6, 4],
@@ -316,7 +316,7 @@ describe('Core.alter', () => {
           `).toBeMatchToSelectionPattern();
         }
 
-        alter('insert_col_end', 2, 2);
+        await alter('insert_col_end', 2, 2);
 
         if (htmlDir === 'rtl') {
           expect(`
@@ -354,7 +354,7 @@ describe('Core.alter', () => {
           colHeaders: true,
         });
 
-        selectCells([
+        await selectCells([
           [1, 1, 3, 2],
           [1, 4, 1, 4],
           [5, 3, 6, 4],
@@ -388,7 +388,7 @@ describe('Core.alter', () => {
           `).toBeMatchToSelectionPattern();
         }
 
-        alter('insert_col_end', 3, 2);
+        await alter('insert_col_end', 3, 2);
 
         if (htmlDir === 'rtl') {
           expect(`
@@ -426,7 +426,7 @@ describe('Core.alter', () => {
           colHeaders: true,
         });
 
-        selectColumns(2, 3);
+        await selectColumns(2, 3);
 
         if (htmlDir === 'rtl') {
           expect(`
@@ -450,7 +450,7 @@ describe('Core.alter', () => {
           `).toBeMatchToSelectionPattern();
         }
 
-        alter('insert_col_end', 1, 1);
+        await alter('insert_col_end', 1, 1);
 
         if (htmlDir === 'rtl') {
           expect(`
@@ -482,7 +482,7 @@ describe('Core.alter', () => {
           colHeaders: true,
         });
 
-        selectColumns(2, 3);
+        await selectColumns(2, 3);
 
         if (htmlDir === 'rtl') {
           expect(`
@@ -506,7 +506,7 @@ describe('Core.alter', () => {
           `).toBeMatchToSelectionPattern();
         }
 
-        alter('insert_col_end', 2, 1);
+        await alter('insert_col_end', 2, 1);
 
         if (htmlDir === 'rtl') {
           expect(`
@@ -558,7 +558,7 @@ describe('Core.alter', () => {
           `).toBeMatchToSelectionPattern();
         }
 
-        alter('insert_col_end', 0); // add to the beginning of the table
+        await alter('insert_col_end', 0); // add to the beginning of the table
 
         if (htmlDir === 'rtl') {
           expect(`
@@ -578,7 +578,7 @@ describe('Core.alter', () => {
           `).toBeMatchToSelectionPattern();
         }
 
-        alter('insert_col_end', 100); // add to the end of the table
+        await alter('insert_col_end', 100); // add to the end of the table
 
         if (htmlDir === 'rtl') {
           expect(`
@@ -609,7 +609,7 @@ describe('Core.alter', () => {
         expect(getColHeader()).toEqual(['A', 'B', 'C']);
         expect(countCols()).toBe(3);
 
-        alter('insert_col_end', 1);
+        await alter('insert_col_end', 1);
 
         expect(getColHeader()).toEqual(['A', 'B', 'C', 'D']);
         expect(countCols()).toBe(4);
@@ -625,7 +625,7 @@ describe('Core.alter', () => {
         expect(getColHeader()).toEqual(['Header0', 'Header1', 'Header2']);
         expect(countCols()).toBe(3);
 
-        alter('insert_col_end', 1);
+        await alter('insert_col_end', 1);
 
         expect(getColHeader()).toEqual(['Header0', 'Header1', 'C', 'Header2']);
         expect(countCols()).toBe(4);
@@ -638,17 +638,17 @@ describe('Core.alter', () => {
 
         hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
 
-        alter('insert_col_end', 1, 1);
+        await alter('insert_col_end', 1, 1);
 
         expect(getDataAtRow(0)).toEqual(['E1', 'D1', null, 'C1', 'B1', 'A1']);
         expect(getSourceDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', null, 'E1']);
 
-        alter('insert_col_end', 0, 1);
+        await alter('insert_col_end', 0, 1);
 
         expect(getDataAtRow(0)).toEqual(['E1', null, 'D1', null, 'C1', 'B1', 'A1']);
         expect(getSourceDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', null, 'E1', null]);
 
-        alter('insert_col_end', 6, 1);
+        await alter('insert_col_end', 6, 1);
 
         expect(getDataAtRow(0)).toEqual(['E1', null, 'D1', null, 'C1', 'B1', 'A1', null]);
         expect(getSourceDataAtRow(0)).toEqual(['A1', null, 'B1', 'C1', 'D1', null, 'E1', null]);

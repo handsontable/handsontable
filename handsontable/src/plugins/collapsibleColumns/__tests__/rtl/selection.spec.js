@@ -84,7 +84,7 @@ describe('CollapsibleColumns (RTL mode)', () => {
       columnMapper.setValueAtIndex(8, true);
       columnMapper.setValueAtIndex(9, true);
 
-      render();
+      await render();
 
       await selectCell(1, 3, 2, 5);
       $(getCell(-3, 1).querySelector('.collapsibleIndicator')) // Collapse header "B1"

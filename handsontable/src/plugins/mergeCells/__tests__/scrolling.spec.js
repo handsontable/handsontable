@@ -21,8 +21,9 @@ describe('MergeCells scrolling', () => {
     });
 
     setScrollTop(130);
-    render();
-    simulateClick(getCell(5, 0));
+
+    await render();
+    await simulateClick(getCell(5, 0));
 
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(115);
@@ -31,10 +32,13 @@ describe('MergeCells scrolling', () => {
     });
 
     setScrollTop(0);
-    render();
+
+    await render();
+
     setScrollTop(130);
-    render();
-    simulateClick(getCell(5, 2));
+
+    await render();
+    await simulateClick(getCell(5, 2));
 
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(115);
@@ -54,16 +58,16 @@ describe('MergeCells scrolling', () => {
     });
 
     setScrollLeft(300);
-    render();
-    simulateClick(getCell(0, 5));
+    await render();
+    await simulateClick(getCell(0, 5));
 
     expect(inlineStartOverlay().getScrollPosition()).toBe(250);
 
     setScrollLeft(0);
-    render();
+    await render();
     setScrollLeft(300);
-    render();
-    simulateClick(getCell(2, 5));
+    await render();
+    await simulateClick(getCell(2, 5));
 
     expect(inlineStartOverlay().getScrollPosition()).toBe(250);
   });
@@ -82,14 +86,14 @@ describe('MergeCells scrolling', () => {
     });
 
     setScrollTop(2000);
-    render();
 
-    simulateClick(getCell(5, 0));
+    await render();
+    await simulateClick(getCell(5, 0));
 
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(115);
-      main.toBe(145);
-      horizon.toBe(185);
+      classic.toBe(116);
+      main.toBe(146);
+      horizon.toBe(186);
     });
   });
 
@@ -107,9 +111,9 @@ describe('MergeCells scrolling', () => {
     });
 
     setScrollLeft(2000);
-    render();
 
-    simulateClick(getCell(0, 5));
+    await render();
+    await simulateClick(getCell(0, 5));
 
     expect(inlineStartOverlay().getScrollPosition()).toBe(250);
   });

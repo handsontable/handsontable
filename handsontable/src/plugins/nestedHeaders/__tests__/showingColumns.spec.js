@@ -240,7 +240,7 @@ describe('NestedHeaders', () => {
         </tbody>
         `);
 
-      updateSettings({ });
+      await updateSettings({ });
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -1935,7 +1935,7 @@ describe('NestedHeaders', () => {
           </tbody>
           `);
 
-        updateSettings({
+        await updateSettings({
           hiddenColumns: {
             columns: [2, 3, 5, 6, 7, 9],
           },
@@ -1960,7 +1960,7 @@ describe('NestedHeaders', () => {
           </tbody>
           `);
 
-        updateSettings({
+        await updateSettings({
           hiddenColumns: {
             columns: [2, 7],
           },
@@ -1993,7 +1993,7 @@ describe('NestedHeaders', () => {
           </tbody>
           `);
 
-        updateSettings({ });
+        await updateSettings({ });
 
         expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
           <thead>

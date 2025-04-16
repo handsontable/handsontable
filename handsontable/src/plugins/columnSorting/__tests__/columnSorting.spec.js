@@ -94,7 +94,7 @@ describe('ColumnSorting', () => {
     expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('0');
     expect(htCore.find('tbody tr:eq(0) td:eq(3)').text()).toEqual('5');
 
-    render();
+    await render();
 
     expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
     expect(htCore.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('9');
@@ -2756,7 +2756,7 @@ describe('ColumnSorting', () => {
     });
 
     hot.view._wt.wtOverlays.inlineStartOverlay.scrollTo(15);
-    render();
+    await render();
     getPlugin('columnSorting').sort({ column: 15, sortOrder: 'asc' });
 
     expect(getDataAtCell(0, 15)).toEqual('Ball Levy');

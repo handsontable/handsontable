@@ -22,7 +22,7 @@ describe('settings', () => {
 
       expect(hot.view._wt.getSetting('viewportColumnRenderingThreshold')).toBe(0);
 
-      updateSettings({ viewportColumnRenderingThreshold: 5 });
+      await updateSettings({ viewportColumnRenderingThreshold: 5 });
 
       expect(hot.view._wt.getSetting('viewportColumnRenderingThreshold')).toBe(5);
     });

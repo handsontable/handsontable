@@ -13,7 +13,7 @@ describe('Core.unlisten', () => {
       data: createSpreadsheetData(5, 5),
     });
 
-    listen();
+    await listen();
 
     expect(isListening()).toBe(true);
 

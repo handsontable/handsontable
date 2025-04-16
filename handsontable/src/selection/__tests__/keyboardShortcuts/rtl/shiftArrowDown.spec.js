@@ -22,8 +22,8 @@ describe('Selection extending (RTL mode)', () => {
         startCols: 5
       });
 
-      selectCell(2, 1);
-      keyDownUp(['shift', 'arrowdown']);
+      await selectCell(2, 1);
+      await keyDownUp(['shift', 'arrowdown']);
 
       expect(`
         |   :   :   :   :   |

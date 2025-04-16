@@ -165,8 +165,8 @@ describe('UndoRedo -> CellAlignment action', () => {
       },
     });
 
-    alter('remove_row', 0, 1);
-    alter('remove_row', 0, 2);
+    await alter('remove_row', 0, 1);
+    await alter('remove_row', 0, 2);
     getPlugin('undoRedo').undo();
     getPlugin('undoRedo').undo();
 
@@ -226,8 +226,8 @@ describe('UndoRedo -> CellAlignment action', () => {
       },
     });
 
-    alter('remove_col', 0, 1);
-    alter('remove_col', 0, 2);
+    await alter('remove_col', 0, 1);
+    await alter('remove_col', 0, 2);
     getPlugin('undoRedo').undo();
     getPlugin('undoRedo').undo();
 

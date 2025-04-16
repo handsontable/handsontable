@@ -427,7 +427,7 @@ describe('NestedHeaders', () => {
         expect(extractDOMStructure(getInlineStartClone(), getInlineStartClone())).toMatchHTML(htmlPattern);
       }
 
-      updateSettings({ fixedColumnsStart: 3 });
+      await updateSettings({ fixedColumnsStart: 3 });
 
       {
         const htmlPattern = `
@@ -456,7 +456,7 @@ describe('NestedHeaders', () => {
         expect(extractDOMStructure(getInlineStartClone(), getInlineStartClone())).toMatchHTML(htmlPattern);
       }
 
-      updateSettings({ fixedColumnsStart: 6 });
+      await updateSettings({ fixedColumnsStart: 6 });
 
       {
         const htmlPattern = `

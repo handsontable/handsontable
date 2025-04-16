@@ -51,7 +51,7 @@ describe('settings', () => {
         minSpareCols: 1,
       });
 
-      alter('remove_col', 0, 5);
+      await alter('remove_col', 0, 5);
 
       expect(countCols()).toBe(1);
       expect(getCell(-1, 0)).toBeInstanceOf(HTMLTableCellElement);
@@ -128,7 +128,7 @@ describe('settings', () => {
           data: createSpreadsheetData(1, 1)
         });
 
-        updateSettings({
+        await updateSettings({
           minSpareCols: 5
         });
 
@@ -146,7 +146,7 @@ describe('settings', () => {
           minSpareCols: 5
         });
 
-        updateSettings({
+        await updateSettings({
           minSpareCols: 2
         });
 
@@ -163,7 +163,7 @@ describe('settings', () => {
           minSpareCols: 2
         });
 
-        updateSettings({
+        await updateSettings({
           minSpareCols: 5
         });
 
@@ -185,7 +185,7 @@ describe('settings', () => {
         getCellMeta(0, 4).test = 'foo';
         getCellMeta(0, 5).test = 'bar';
 
-        updateSettings({
+        await updateSettings({
           minSpareCols: 5
         });
 

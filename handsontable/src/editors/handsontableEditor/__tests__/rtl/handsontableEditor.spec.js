@@ -92,7 +92,7 @@ describe('HandsontableEditor (RTL mode)', () => {
         ],
       });
 
-      listen();
+      await listen();
 
       await selectAll();
 

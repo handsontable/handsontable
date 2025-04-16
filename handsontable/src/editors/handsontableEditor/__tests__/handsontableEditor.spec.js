@@ -58,7 +58,7 @@ describe('HandsontableEditor', () => {
       ],
     });
 
-    listen();
+    await listen();
 
     await selectAll();
 

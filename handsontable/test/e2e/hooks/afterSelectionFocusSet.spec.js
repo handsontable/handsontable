@@ -48,14 +48,14 @@ describe('Hook', () => {
         }
       });
 
-      selectColumns(1, 1, -1);
-      listen();
+      await selectColumns(1, 1, -1);
+      await listen();
 
-      keyDownUp('enter');
-      keyDownUp('enter');
-      keyDownUp('enter');
-      keyDownUp('enter');
-      keyDownUp('enter');
+      await keyDownUp('enter');
+      await keyDownUp('enter');
+      await keyDownUp('enter');
+      await keyDownUp('enter');
+      await keyDownUp('enter');
 
       expect(topOverlay().getScrollPosition()).toBe(0);
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
@@ -103,7 +103,7 @@ describe('Hook', () => {
       const afterSelectionFocusSet = jasmine.createSpy('afterSelectionFocusSet');
 
       addHook('afterSelectionFocusSet', afterSelectionFocusSet);
-      selectCells([[1, 1], [5, 5]]);
+      await selectCells([[1, 1], [5, 5]]);
 
       expect(afterSelectionFocusSet).not.toHaveBeenCalled();
     });

@@ -22,8 +22,8 @@ describe('Selection extending (RTL mode)', () => {
         startCols: 5
       });
 
-      selectCell(3, 1);
-      keyDownUp(['control/meta', 'shift', 'arrowup']);
+      await selectCell(3, 1);
+      await keyDownUp(['control/meta', 'shift', 'arrowup']);
 
       expect(`
         |   :   :   : 0 :   |
@@ -44,8 +44,8 @@ describe('Selection extending (RTL mode)', () => {
         startCols: 5
       });
 
-      selectCell(3, 1);
-      keyDownUp(['control/meta', 'shift', 'arrowup']);
+      await selectCell(3, 1);
+      await keyDownUp(['control/meta', 'shift', 'arrowup']);
 
       expect(`
         |   :   :   | 0 :   |
@@ -65,8 +65,8 @@ describe('Selection extending (RTL mode)', () => {
         startCols: 5
       });
 
-      selectCells([[3, 1, 3, 3]]);
-      keyDownUp(['control/meta', 'shift', 'arrowup']);
+      await selectCells([[3, 1, 3, 3]]);
+      await keyDownUp(['control/meta', 'shift', 'arrowup']);
 
       expect(`
         |   : 0 : 0 : 0 :   |
@@ -86,9 +86,9 @@ describe('Selection extending (RTL mode)', () => {
         startCols: 5
       });
 
-      selectRows(3);
-      listen();
-      keyDownUp(['control/meta', 'shift', 'arrowup']);
+      await selectRows(3);
+      await listen();
+      await keyDownUp(['control/meta', 'shift', 'arrowup']);
 
       expect(`
         | - : - : - : - : - ║   |
@@ -110,9 +110,9 @@ describe('Selection extending (RTL mode)', () => {
         navigableHeaders: true,
       });
 
-      selectRows(3, 3, -1);
-      listen();
-      keyDownUp(['control/meta', 'shift', 'arrowup']);
+      await selectRows(3, 3, -1);
+      await listen();
+      await keyDownUp(['control/meta', 'shift', 'arrowup']);
 
       expect(`
         |   |
@@ -135,11 +135,11 @@ describe('Selection extending (RTL mode)', () => {
       });
 
       columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
-      render();
+      await render();
 
-      selectRows(3, 3, -1);
-      listen();
-      keyDownUp(['control/meta', 'shift', 'arrowup']);
+      await selectRows(3, 3, -1);
+      await listen();
+      await keyDownUp(['control/meta', 'shift', 'arrowup']);
 
       expect(`
         |   |
@@ -161,7 +161,7 @@ describe('Selection extending (RTL mode)', () => {
         startCols: 5
       });
 
-      listen();
+      await listen();
 
       await selectAll();
       await keyDownUp(['control/meta', 'shift', 'arrowup']);

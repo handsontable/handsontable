@@ -314,7 +314,7 @@ describe('NestedHeaders', () => {
         ],
       });
 
-      simulateClick(getCell(-2, 1)); // Header "B3"
+      await simulateClick(getCell(-2, 1)); // Header "B3"
 
       expect(`
         |   :               :   :   :   :   :   |
@@ -331,9 +331,9 @@ describe('NestedHeaders', () => {
 
       await keyDown('control/meta');
 
-      simulateClick(getCell(-3, 5)); // Header "F2"
+      await simulateClick(getCell(-3, 5)); // Header "F2"
 
-      keyUp('control/meta');
+      await keyUp('control/meta');
 
       expect(`
         |   :               : * :   :   :   :   |
@@ -353,9 +353,9 @@ describe('NestedHeaders', () => {
 
       await keyDown('control/meta');
 
-      simulateClick(getCell(-3, 1)); // Header "B2"
+      await simulateClick(getCell(-3, 1)); // Header "B2"
 
-      keyUp('control/meta');
+      await keyUp('control/meta');
 
       expect(`
         |   :               : * :   :   :   :   |
@@ -1005,7 +1005,7 @@ describe('NestedHeaders', () => {
         .simulate('mouseover')
         .simulate('mouseup');
 
-      simulateClick(getCell(-1, 5), 'RMB'); // Header "K"
+      await simulateClick(getCell(-1, 5), 'RMB'); // Header "K"
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: -1,1 to: 9,6']);
     });
@@ -1022,7 +1022,7 @@ describe('NestedHeaders', () => {
         ]
       });
 
-      simulateClick(getCell(-1, 5), 'RMB'); // Header "K"
+      await simulateClick(getCell(-1, 5), 'RMB'); // Header "K"
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,5 from: -1,5 to: 9,6']);
     });
@@ -1042,7 +1042,7 @@ describe('NestedHeaders', () => {
         ]
       });
 
-      simulateClick(getCell(-3, 2), 'LMB'); // Header "B"
+      await simulateClick(getCell(-3, 2), 'LMB'); // Header "B"
 
       expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(50);
@@ -1091,7 +1091,7 @@ describe('NestedHeaders', () => {
         ]
       });
 
-      simulateClick(getCell(-1, 3), 'LMB'); // Header "J"
+      await simulateClick(getCell(-1, 3), 'LMB'); // Header "J"
 
       expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(65);
@@ -1141,7 +1141,7 @@ describe('NestedHeaders', () => {
         ]
       });
 
-      simulateClick(getCell(-3, 2), 'LMB'); // Header "B"
+      await simulateClick(getCell(-3, 2), 'LMB'); // Header "B"
 
       expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(50);
@@ -1192,7 +1192,7 @@ describe('NestedHeaders', () => {
         ]
       });
 
-      simulateClick(getCell(-1, 3), 'LMB'); // Header "J"
+      await simulateClick(getCell(-1, 3), 'LMB'); // Header "J"
 
       expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(65);
@@ -1240,8 +1240,8 @@ describe('NestedHeaders', () => {
         ],
       });
 
-      simulateClick(getTopClone().find('thead tr:eq(3) th:eq(1)')); // select column B4
-      simulateClick(getTopClone().find('thead tr:eq(3) th:eq(11)'), 'LMB', {
+      await simulateClick(getTopClone().find('thead tr:eq(3) th:eq(1)')); // select column B4
+      await simulateClick(getTopClone().find('thead tr:eq(3) th:eq(11)'), 'LMB', {
         shiftKey: true
       }); // select column L4
 
@@ -1257,7 +1257,7 @@ describe('NestedHeaders', () => {
         |   : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 |
       `).toBeMatchToSelectionPattern();
 
-      simulateClick(getTopClone().find('thead tr:eq(3) th:eq(1)'), 'LMB', {
+      await simulateClick(getTopClone().find('thead tr:eq(3) th:eq(1)'), 'LMB', {
         shiftKey: true
       }); // Back to column B4
 
@@ -1288,8 +1288,8 @@ describe('NestedHeaders', () => {
         ],
       });
 
-      simulateClick(getTopClone().find('thead tr:eq(3) th:eq(1)')); // select column B4
-      simulateClick(getTopClone().find('thead tr:eq(3) th:eq(3)'), 'LMB', {
+      await simulateClick(getTopClone().find('thead tr:eq(3) th:eq(1)')); // select column B4
+      await simulateClick(getTopClone().find('thead tr:eq(3) th:eq(3)'), 'LMB', {
         shiftKey: true
       }); // select column D4
 
@@ -1305,7 +1305,7 @@ describe('NestedHeaders', () => {
         |   : 0 : 0 : 0 : 0 :   :   :   :   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
 
-      simulateClick(getTopClone().find('thead tr:eq(3) th:eq(5)'), 'LMB', {
+      await simulateClick(getTopClone().find('thead tr:eq(3) th:eq(5)'), 'LMB', {
         shiftKey: true
       }); // select column F4
 
@@ -1321,7 +1321,7 @@ describe('NestedHeaders', () => {
         |   : 0 : 0 : 0 : 0 : 0 : 0 :   :   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
 
-      simulateClick(getTopClone().find('thead tr:eq(3) th:eq(7)'), 'LMB', {
+      await simulateClick(getTopClone().find('thead tr:eq(3) th:eq(7)'), 'LMB', {
         shiftKey: true
       }); // select column H4
 
@@ -1337,7 +1337,7 @@ describe('NestedHeaders', () => {
         |   : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 :   :   :   :   |
       `).toBeMatchToSelectionPattern();
 
-      simulateClick(getTopClone().find('thead tr:eq(3) th:eq(10)'), 'LMB', {
+      await simulateClick(getTopClone().find('thead tr:eq(3) th:eq(10)'), 'LMB', {
         shiftKey: true
       }); // select column K4
 
@@ -1368,8 +1368,8 @@ describe('NestedHeaders', () => {
         ],
       });
 
-      simulateClick(getTopClone().find('thead tr:eq(3) th:eq(10)')); // select column K4
-      simulateClick(getTopClone().find('thead tr:eq(3) th:eq(9)'), 'LMB', {
+      await simulateClick(getTopClone().find('thead tr:eq(3) th:eq(10)')); // select column K4
+      await simulateClick(getTopClone().find('thead tr:eq(3) th:eq(9)'), 'LMB', {
         shiftKey: true
       }); // select column J4
 
@@ -1385,7 +1385,7 @@ describe('NestedHeaders', () => {
         |   :   :   :   :   :   :   :   :   : 0 : 0 :   :   |
       `).toBeMatchToSelectionPattern();
 
-      simulateClick(getTopClone().find('thead tr:eq(3) th:eq(7)'), 'LMB', {
+      await simulateClick(getTopClone().find('thead tr:eq(3) th:eq(7)'), 'LMB', {
         shiftKey: true
       }); // select column H4
 
@@ -1401,7 +1401,7 @@ describe('NestedHeaders', () => {
         |   :   :   :   :   :   :   : 0 : 0 : 0 : 0 :   :   |
       `).toBeMatchToSelectionPattern();
 
-      simulateClick(getTopClone().find('thead tr:eq(3) th:eq(5)'), 'LMB', {
+      await simulateClick(getTopClone().find('thead tr:eq(3) th:eq(5)'), 'LMB', {
         shiftKey: true
       }); // select column F4
 
@@ -1417,7 +1417,7 @@ describe('NestedHeaders', () => {
         |   :   :   :   :   : 0 : 0 : 0 : 0 : 0 : 0 :   :   |
       `).toBeMatchToSelectionPattern();
 
-      simulateClick(getTopClone().find('thead tr:eq(3) th:eq(3)'), 'LMB', {
+      await simulateClick(getTopClone().find('thead tr:eq(3) th:eq(3)'), 'LMB', {
         shiftKey: true
       }); // select column D4
 
@@ -1433,7 +1433,7 @@ describe('NestedHeaders', () => {
         |   :   :   : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 :   :   |
       `).toBeMatchToSelectionPattern();
 
-      simulateClick(getTopClone().find('thead tr:eq(3) th:eq(1)'), 'LMB', {
+      await simulateClick(getTopClone().find('thead tr:eq(3) th:eq(1)'), 'LMB', {
         shiftKey: true
       }); // select column B4
 

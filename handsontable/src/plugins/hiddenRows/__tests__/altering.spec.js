@@ -23,7 +23,7 @@ describe('HiddenRows', () => {
       const plugin = getPlugin('hiddenRows');
 
       plugin.hideRows([6, 7, 8]); // visual column indexes after move (physical indexes: 1, 7, 3)
-      alter('remove_row', 2, 3); // visual column index
+      await alter('remove_row', 2, 3); // visual column index
 
       expect(plugin.isHidden(3)).toBe(true); // 6 -> 3
       expect(hot.getRowHeight(3)).toBe(0);
@@ -59,7 +59,7 @@ describe('HiddenRows', () => {
       const plugin = getPlugin('hiddenRows');
 
       plugin.hideRows([6, 7, 8]); // visual row indexes after move (physical indexes: 1, 7, 3)
-      alter('remove_row', 6, 2); // visual row index
+      await alter('remove_row', 6, 2); // visual row index
 
       expect(plugin.isHidden(6)).toBe(true); // 8 -> 6
       expect(hot.getRowHeight(6)).toBe(0);
@@ -95,7 +95,7 @@ describe('HiddenRows', () => {
       const plugin = getPlugin('hiddenRows');
 
       plugin.hideRows([6, 7, 8]); // visual row indexes after move (physical indexes: 1, 7, 3)
-      alter('insert_row_above', 0, 3); // visual row index
+      await alter('insert_row_above', 0, 3); // visual row index
 
       expect(plugin.isHidden(9)).toBe(true); // 6 -> 9
       expect(hot.getRowHeight(9)).toBe(0);
@@ -137,7 +137,7 @@ describe('HiddenRows', () => {
       const plugin = getPlugin('hiddenRows');
 
       plugin.hideRows([6, 7, 8]); // visual row indexes after move (physical indexes: 1, 7, 3)
-      alter('insert_row_above', 7, 2); // visual row index
+      await alter('insert_row_above', 7, 2); // visual row index
 
       expect(plugin.isHidden(6)).toBe(true);
       expect(hot.getRowHeight(6)).toBe(0);

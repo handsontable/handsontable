@@ -76,9 +76,9 @@ describe('HiddenRows', () => {
           const start = getCell(0, -1);
           const end = getCell(2, -1);
 
-          mouseDown(start);
-          mouseOver(end);
-          mouseUp(end);
+          await mouseDown(start);
+          await mouseOver(end);
+          await mouseUp(end);
 
           await contextMenu();
 
@@ -119,8 +119,8 @@ describe('HiddenRows', () => {
 
           const header = getCell(0, -1);
 
-          mouseDown(header);
-          mouseUp(header);
+          await mouseDown(header);
+          await mouseUp(header);
           await contextMenu(header);
 
           const items = $('.htContextMenu tbody td');
@@ -141,8 +141,8 @@ describe('HiddenRows', () => {
 
           const header = getCell(4, -1);
 
-          mouseDown(header);
-          mouseUp(header);
+          await mouseDown(header);
+          await mouseUp(header);
           await contextMenu(header);
 
           const items = $('.htContextMenu tbody td');
@@ -163,8 +163,8 @@ describe('HiddenRows', () => {
 
           const header = getCell(2, -1);
 
-          mouseDown(header);
-          mouseUp(header);
+          await mouseDown(header);
+          await mouseUp(header);
           await contextMenu(header);
 
           const items = $('.htContextMenu tbody td');
@@ -250,9 +250,9 @@ describe('HiddenRows', () => {
           const start = getCell(0, -1);
           const end = getCell(4, -1);
 
-          mouseDown(start);
-          mouseOver(end);
-          mouseUp(end);
+          await mouseDown(start);
+          await mouseOver(end);
+          await mouseUp(end);
 
           await contextMenu();
 
@@ -275,9 +275,9 @@ describe('HiddenRows', () => {
           const start = getCell(0, -1);
           const end = getCell(4, -1);
 
-          mouseDown(start);
-          mouseOver(end);
-          mouseUp(end);
+          await mouseDown(start);
+          await mouseOver(end);
+          await mouseUp(end);
 
           await contextMenu();
 
@@ -301,9 +301,9 @@ describe('HiddenRows', () => {
           const start = getCell(0, -1);
           const end = getCell(2, -1);
 
-          mouseDown(start);
-          mouseOver(end);
-          mouseUp(end);
+          await mouseDown(start);
+          await mouseOver(end);
+          await mouseUp(end);
 
           await contextMenu();
 
@@ -327,9 +327,9 @@ describe('HiddenRows', () => {
           const start = getCell(0, -1);
           const end = getCell(2, -1);
 
-          mouseDown(start);
-          mouseOver(end);
-          mouseUp(end);
+          await mouseDown(start);
+          await mouseOver(end);
+          await mouseUp(end);
 
           await contextMenu();
 
@@ -817,9 +817,9 @@ describe('HiddenRows', () => {
           const start = getCell(0, -1);
           const end = getCell(2, -1);
 
-          mouseDown(start);
-          mouseOver(end);
-          mouseUp(end);
+          await mouseDown(start);
+          await mouseOver(end);
+          await mouseUp(end);
 
           await contextMenu();
           getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_SHOW);
@@ -860,9 +860,9 @@ describe('HiddenRows', () => {
           const start = getCell(0, -1);
           const end = getCell(2, -1);
 
-          mouseDown(start);
-          mouseOver(end);
-          mouseUp(end);
+          await mouseDown(start);
+          await mouseOver(end);
+          await mouseUp(end);
 
           await contextMenu();
           getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_SHOW);
@@ -903,9 +903,9 @@ describe('HiddenRows', () => {
           const start = getCell(0, -1);
           const end = getCell(2, -1);
 
-          mouseDown(start);
-          mouseOver(end);
-          mouseUp(end);
+          await mouseDown(start);
+          await mouseOver(end);
+          await mouseUp(end);
 
           await contextMenu();
           getPlugin('contextMenu').executeCommand(CONTEXTMENU_ITEM_SHOW);
@@ -943,8 +943,8 @@ describe('HiddenRows', () => {
 
             const header = $('.ht_clone_top .htCore thead tr th').eq(1); // The first column
 
-            simulateClick(header, 'RMB');
-            selectContextMenuOption('Insert column left');
+            await simulateClick(header, 'RMB');
+            await selectContextMenuOption('Insert column left');
 
             expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: -1,1 to: 3,1']);
             expect(`
@@ -969,8 +969,8 @@ describe('HiddenRows', () => {
 
             const header = $('.ht_clone_top .htCore thead tr th').eq(1); // The first column
 
-            simulateClick(header, 'RMB');
-            selectContextMenuOption('Insert column left');
+            await simulateClick(header, 'RMB');
+            await selectContextMenuOption('Insert column left');
 
             expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: -1,1 to: 3,1']);
             expect(`
@@ -994,8 +994,8 @@ describe('HiddenRows', () => {
 
             const header = $('.ht_clone_top .htCore thead tr th').eq(1); // The first column
 
-            simulateClick(header, 'RMB');
-            selectContextMenuOption('Insert column right');
+            await simulateClick(header, 'RMB');
+            await selectContextMenuOption('Insert column right');
 
             expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: -1,0 to: 3,0']);
             expect(`
@@ -1020,8 +1020,8 @@ describe('HiddenRows', () => {
 
             const header = $('.ht_clone_top .htCore thead tr th').eq(1); // The first column
 
-            simulateClick(header, 'RMB');
-            selectContextMenuOption('Insert column right');
+            await simulateClick(header, 'RMB');
+            await selectContextMenuOption('Insert column right');
 
             expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: -1,0 to: 3,0']);
             expect(`

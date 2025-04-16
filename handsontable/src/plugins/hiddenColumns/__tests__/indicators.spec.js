@@ -107,7 +107,7 @@ describe('HiddenColumns', () => {
         expect(getCell(-1, 1)).not.toHaveClass(CSS_CLASS_BEFORE_HIDDEN_COLUMN);
         expect(getCell(-1, 1)).not.toHaveClass(CSS_CLASS_AFTER_HIDDEN_COLUMN);
 
-        updateSettings({
+        await updateSettings({
           hiddenColumns: {
             columns: [0, 2],
             indicators: true,

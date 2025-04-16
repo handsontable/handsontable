@@ -27,7 +27,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       const rowMapper = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
 
       rowMapper.setValueAtIndex(1, true);
-      render();
+      await render();
       await selectCell(0, 0);
 
       expect(getData()).toEqual([
@@ -45,7 +45,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       `).toBeMatchToSelectionPattern();
 
       rowMapper.setValueAtIndex(1, false);
-      render();
+      await render();
 
       expect(`
         | #     :   :   :   |
@@ -56,7 +56,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       `).toBeMatchToSelectionPattern();
 
       rowMapper.setValueAtIndex(1, true);
-      render();
+      await render();
 
       expect(`
         | #     :   :   :   |
@@ -79,7 +79,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       rowMapper.setValueAtIndex(0, true);
       rowMapper.setValueAtIndex(2, true);
       rowMapper.setValueAtIndex(4, true);
-      render();
+      await render();
 
       getPlugin('mergeCells').merge(1, 0, 3, 0);
 
@@ -94,7 +94,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       `).toBeMatchToSelectionPattern();
 
       rowMapper.setValueAtIndex(2, false);
-      render();
+      await render();
 
       expect(`
         |   |
@@ -103,7 +103,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       `).toBeMatchToSelectionPattern();
 
       rowMapper.setValueAtIndex(2, true);
-      render();
+      await render();
 
       expect(`
         |   |
@@ -113,7 +113,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       rowMapper.setValueAtIndex(0, false);
       rowMapper.setValueAtIndex(2, false);
       rowMapper.setValueAtIndex(4, false);
-      render();
+      await render();
 
       expect(`
         |   |
@@ -137,7 +137,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       rowMapper.setValueAtIndex(0, true);
       rowMapper.setValueAtIndex(2, true);
       rowMapper.setValueAtIndex(4, true);
-      render();
+      await render();
 
       getPlugin('mergeCells').merge(0, 0, 3, 0);
 
@@ -151,7 +151,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       `).toBeMatchToSelectionPattern();
 
       rowMapper.setValueAtIndex(0, false);
-      render();
+      await render();
 
       expect(getHtCore().find('td:first').text()).toBe('A1');
       expect(`
@@ -161,7 +161,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       `).toBeMatchToSelectionPattern();
 
       rowMapper.setValueAtIndex(2, false);
-      render();
+      await render();
 
       expect(`
         |   |
@@ -172,7 +172,7 @@ describe('MergeCells cooperation with hidden rows', () => {
 
       rowMapper.setValueAtIndex(0, true);
       rowMapper.setValueAtIndex(2, true);
-      render();
+      await render();
 
       expect(`
         |   |
@@ -182,7 +182,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       rowMapper.setValueAtIndex(0, false);
       rowMapper.setValueAtIndex(2, false);
       rowMapper.setValueAtIndex(4, false);
-      render();
+      await render();
 
       expect(`
         |   |
@@ -206,7 +206,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       rowMapper.setValueAtIndex(0, true);
       rowMapper.setValueAtIndex(2, true);
       rowMapper.setValueAtIndex(4, true);
-      render();
+      await render();
 
       getPlugin('mergeCells').merge(1, 0, 4, 0);
 
@@ -220,7 +220,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       `).toBeMatchToSelectionPattern();
 
       rowMapper.setValueAtIndex(2, false);
-      render();
+      await render();
 
       expect(`
         |   |
@@ -229,7 +229,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       `).toBeMatchToSelectionPattern();
 
       rowMapper.setValueAtIndex(4, false);
-      render();
+      await render();
 
       expect(`
         |   |
@@ -240,7 +240,7 @@ describe('MergeCells cooperation with hidden rows', () => {
 
       rowMapper.setValueAtIndex(2, true);
       rowMapper.setValueAtIndex(4, true);
-      render();
+      await render();
 
       expect(`
         |   |
@@ -250,7 +250,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       rowMapper.setValueAtIndex(0, false);
       rowMapper.setValueAtIndex(2, false);
       rowMapper.setValueAtIndex(4, false);
-      render();
+      await render();
 
       expect(`
         |   |
@@ -274,7 +274,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       rowMapper.setValueAtIndex(0, true);
       rowMapper.setValueAtIndex(2, true);
       rowMapper.setValueAtIndex(4, true);
-      render();
+      await render();
 
       getPlugin('mergeCells').merge(0, 0, 4, 0);
 
@@ -288,7 +288,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       `).toBeMatchToSelectionPattern();
 
       rowMapper.setValueAtIndex(0, false);
-      render();
+      await render();
 
       expect(getHtCore().find('td:first').text()).toBe('A1');
       expect(`
@@ -298,7 +298,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       `).toBeMatchToSelectionPattern();
 
       rowMapper.setValueAtIndex(2, false);
-      render();
+      await render();
 
       expect(`
         |   |
@@ -308,7 +308,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       `).toBeMatchToSelectionPattern();
 
       rowMapper.setValueAtIndex(4, false);
-      render();
+      await render();
 
       expect(`
         |   |
@@ -321,7 +321,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       rowMapper.setValueAtIndex(0, true);
       rowMapper.setValueAtIndex(2, true);
       rowMapper.setValueAtIndex(4, true);
-      render();
+      await render();
 
       expect(`
         |   |
@@ -331,7 +331,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       rowMapper.setValueAtIndex(0, false);
       rowMapper.setValueAtIndex(2, false);
       rowMapper.setValueAtIndex(4, false);
-      render();
+      await render();
 
       expect(`
         |   |
@@ -355,7 +355,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       rowMapper.setValueAtIndex(0, true);
       rowMapper.setValueAtIndex(2, true);
       rowMapper.setValueAtIndex(4, true);
-      render();
+      await render();
 
       getPlugin('mergeCells').merge(1, 0, 3, 0);
 
@@ -366,7 +366,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       expect(getCell(4, 0)).toBe(null);
 
       rowMapper.setValueAtIndex(2, false);
-      render();
+      await render();
 
       expect(getCell(0, 0)).toBe(null);
       expect(getCell(1, 0)).toBe(getHtCore().find('td')[0]);
@@ -389,7 +389,7 @@ describe('MergeCells cooperation with hidden rows', () => {
 
       rowMapper.setValueAtIndex(0, true);
       rowMapper.setValueAtIndex(2, true);
-      render();
+      await render();
 
       getPlugin('mergeCells').merge(3, 0, 5, 0);
 
@@ -427,7 +427,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       const rowMapper = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
 
       rowMapper.setValueAtIndex(0, true);
-      render();
+      await render();
 
       expect($(getHtCore()).find('td')[0].innerHTML).toBe('<b>Hello world</b>');
       expect($(getHtCore()).find('td')[1].innerText).toBe('123');
@@ -450,7 +450,7 @@ describe('MergeCells cooperation with hidden rows', () => {
 
       rowMapper.setValueAtIndex(0, true);
       rowMapper.setValueAtIndex(2, true);
-      render();
+      await render();
 
       // First visible cell (merged area).
       const $mergeArea = spec().$container.find('tr:eq(0) td:eq(0)');
@@ -553,7 +553,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       const rowMapper = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
 
       rowMapper.setValueAtIndex(0, true);
-      render();
+      await render();
 
       // First visible cell (merged area).
       const $mergeArea = spec().$container.find('tr:eq(0) td:eq(0)');
@@ -615,7 +615,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       const rowMapper = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
 
       rowMapper.setValueAtIndex(0, true);
-      render();
+      await render();
 
       // First visible cell (merged area).
       const $mergeArea = spec().$container.find('tr:eq(0) td:eq(0)');
@@ -659,7 +659,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       rowMapper.setValueAtIndex(0, true);
       rowMapper.setValueAtIndex(2, true);
       rowMapper.setValueAtIndex(4, true);
-      render();
+      await render();
 
       getPlugin('mergeCells').merge(1, 0, 3, 0);
 
@@ -715,7 +715,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       expect(editor.isInFullEditMode()).toBe(false);
 
       // Double click on the first visible cell (merged area).
-      mouseDoubleClick(spec().$container.find('tr:eq(0) td:eq(0)'));
+      await mouseDoubleClick(spec().$container.find('tr:eq(0) td:eq(0)'));
 
       editor = getActiveEditor();
 
@@ -737,7 +737,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       rowMapper.setValueAtIndex(0, true);
       rowMapper.setValueAtIndex(2, true);
       rowMapper.setValueAtIndex(4, true);
-      render();
+      await render();
 
       getPlugin('mergeCells').merge(0, 0, 3, 0);
 
@@ -806,7 +806,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       expect(editor.isInFullEditMode()).toBe(false);
 
       // Double click on the first visible cell (merged area).
-      mouseDoubleClick(spec().$container.find('tr:eq(0) td:eq(0)'));
+      await mouseDoubleClick(spec().$container.find('tr:eq(0) td:eq(0)'));
 
       editor = getActiveEditor();
 
@@ -828,7 +828,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       rowMapper.setValueAtIndex(0, true);
       rowMapper.setValueAtIndex(2, true);
       rowMapper.setValueAtIndex(4, true);
-      render();
+      await render();
 
       getPlugin('mergeCells').merge(1, 0, 4, 0);
 
@@ -901,7 +901,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       expect(editor.isInFullEditMode()).toBe(false);
 
       // Double click on the first visible cell (merged area).
-      mouseDoubleClick(spec().$container.find('tr:eq(0) td:eq(0)'));
+      await mouseDoubleClick(spec().$container.find('tr:eq(0) td:eq(0)'));
 
       editor = getActiveEditor();
 
@@ -923,7 +923,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       rowMapper.setValueAtIndex(0, true);
       rowMapper.setValueAtIndex(2, true);
       rowMapper.setValueAtIndex(4, true);
-      render();
+      await render();
 
       getPlugin('mergeCells').merge(0, 0, 4, 0);
 
@@ -1013,7 +1013,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       expect(editor.isInFullEditMode()).toBe(false);
 
       // Double click on the first visible cell (merged area).
-      mouseDoubleClick(spec().$container.find('tr:eq(0) td:eq(0)'));
+      await mouseDoubleClick(spec().$container.find('tr:eq(0) td:eq(0)'));
 
       editor = getActiveEditor();
 
@@ -1038,10 +1038,10 @@ describe('MergeCells cooperation with hidden rows', () => {
       rowMapper.setValueAtIndex(0, true);
       rowMapper.setValueAtIndex(2, true);
       rowMapper.setValueAtIndex(4, true);
-      render();
+      await render();
 
       // Double click on the first visible cell (merged area).
-      mouseDoubleClick(spec().$container.find('tr:eq(0) td:eq(0)'));
+      await mouseDoubleClick(spec().$container.find('tr:eq(0) td:eq(0)'));
 
       const textarea = spec().$container.find('.handsontableInputHolder textarea')[0];
 
@@ -1069,10 +1069,10 @@ describe('MergeCells cooperation with hidden rows', () => {
       rowMapper.setValueAtIndex(0, true);
       rowMapper.setValueAtIndex(2, true);
       rowMapper.setValueAtIndex(4, true);
-      render();
+      await render();
 
       // Double click on the first visible cell (merged area).
-      mouseDoubleClick(spec().$container.find('tr:eq(0) td:eq(0)'));
+      await mouseDoubleClick(spec().$container.find('tr:eq(0) td:eq(0)'));
 
       const textarea = spec().$container.find('.handsontableInputHolder textarea')[0];
 
@@ -1100,10 +1100,10 @@ describe('MergeCells cooperation with hidden rows', () => {
       rowMapper.setValueAtIndex(0, true);
       rowMapper.setValueAtIndex(2, true);
       rowMapper.setValueAtIndex(4, true);
-      render();
+      await render();
 
       // Double click on the first visible cell (merged area).
-      mouseDoubleClick(spec().$container.find('tr:eq(0) td:eq(0)'));
+      await mouseDoubleClick(spec().$container.find('tr:eq(0) td:eq(0)'));
 
       const textarea = spec().$container.find('.handsontableInputHolder textarea')[0];
 
@@ -1131,10 +1131,10 @@ describe('MergeCells cooperation with hidden rows', () => {
       rowMapper.setValueAtIndex(0, true);
       rowMapper.setValueAtIndex(2, true);
       rowMapper.setValueAtIndex(4, true);
-      render();
+      await render();
 
       // Double click on the first visible cell (merged area).
-      mouseDoubleClick(spec().$container.find('tr:eq(0) td:eq(0)'));
+      await mouseDoubleClick(spec().$container.find('tr:eq(0) td:eq(0)'));
 
       const textarea = spec().$container.find('.handsontableInputHolder textarea')[0];
 
@@ -1173,10 +1173,10 @@ describe('MergeCells cooperation with hidden rows', () => {
       rowMapper.setValueAtIndex(0, true);
       rowMapper.setValueAtIndex(2, true);
       rowMapper.setValueAtIndex(4, true);
-      render();
+      await render();
 
       // Double click on the first visible cell (merged area).
-      mouseDoubleClick(spec().$container.find('tr:eq(0) td:eq(0)'));
+      await mouseDoubleClick(spec().$container.find('tr:eq(0) td:eq(0)'));
 
       let editor = getActiveEditor();
 
@@ -1217,10 +1217,10 @@ describe('MergeCells cooperation with hidden rows', () => {
       rowMapper.setValueAtIndex(0, true);
       rowMapper.setValueAtIndex(2, true);
       rowMapper.setValueAtIndex(4, true);
-      render();
+      await render();
 
       // Double click on the first visible cell (merged area).
-      mouseDoubleClick(spec().$container.find('tr:eq(0) td:eq(0)'));
+      await mouseDoubleClick(spec().$container.find('tr:eq(0) td:eq(0)'));
 
       let editor = getActiveEditor();
 
@@ -1250,10 +1250,10 @@ describe('MergeCells cooperation with hidden rows', () => {
       rowMapper.setValueAtIndex(0, true);
       rowMapper.setValueAtIndex(2, true);
       rowMapper.setValueAtIndex(4, true);
-      render();
+      await render();
 
       // Double click on the first visible cell (merged area).
-      mouseDoubleClick(spec().$container.find('tr:eq(0) td:eq(0)'));
+      await mouseDoubleClick(spec().$container.find('tr:eq(0) td:eq(0)'));
 
       const textarea = spec().$container.find('.handsontableInputHolder textarea')[0];
 
@@ -1281,10 +1281,10 @@ describe('MergeCells cooperation with hidden rows', () => {
       rowMapper.setValueAtIndex(0, true);
       rowMapper.setValueAtIndex(2, true);
       rowMapper.setValueAtIndex(4, true);
-      render();
+      await render();
 
       // Double click on the first visible cell (merged area).
-      mouseDoubleClick(spec().$container.find('tr:eq(0) td:eq(0)'));
+      await mouseDoubleClick(spec().$container.find('tr:eq(0) td:eq(0)'));
 
       const textarea = spec().$container.find('.handsontableInputHolder textarea')[0];
 
@@ -1312,10 +1312,10 @@ describe('MergeCells cooperation with hidden rows', () => {
       rowMapper.setValueAtIndex(0, true);
       rowMapper.setValueAtIndex(2, true);
       rowMapper.setValueAtIndex(4, true);
-      render();
+      await render();
 
       // Double click on the first visible cell (merged area).
-      mouseDoubleClick(spec().$container.find('tr:eq(0) td:eq(0)'));
+      await mouseDoubleClick(spec().$container.find('tr:eq(0) td:eq(0)'));
 
       const textarea = spec().$container.find('.handsontableInputHolder textarea')[0];
 
@@ -1343,10 +1343,10 @@ describe('MergeCells cooperation with hidden rows', () => {
       rowMapper.setValueAtIndex(0, true);
       rowMapper.setValueAtIndex(2, true);
       rowMapper.setValueAtIndex(4, true);
-      render();
+      await render();
 
       // Double click on the first visible cell (merged area).
-      mouseDoubleClick(spec().$container.find('tr:eq(0) td:eq(0)'));
+      await mouseDoubleClick(spec().$container.find('tr:eq(0) td:eq(0)'));
 
       const textarea = spec().$container.find('.handsontableInputHolder textarea')[0];
 
@@ -1374,10 +1374,10 @@ describe('MergeCells cooperation with hidden rows', () => {
       rowMapper.setValueAtIndex(0, true);
       rowMapper.setValueAtIndex(2, true);
       rowMapper.setValueAtIndex(4, true);
-      render();
+      await render();
 
       // Click on the first visible cell (merged area).
-      simulateClick(spec().$container.find('tr:eq(0) td:eq(0)'));
+      await simulateClick(spec().$container.find('tr:eq(0) td:eq(0)'));
       spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
       spec().$container.find('tbody tr:eq(1) td:eq(4)').simulate('mouseover').simulate('mouseup');
 
@@ -1407,10 +1407,10 @@ describe('MergeCells cooperation with hidden rows', () => {
       rowMapper.setValueAtIndex(0, true);
       rowMapper.setValueAtIndex(2, true);
       rowMapper.setValueAtIndex(4, true);
-      render();
+      await render();
 
       // Click on the first visible cell (merged area).
-      simulateClick(spec().$container.find('tr:eq(0) td:eq(0)'));
+      await simulateClick(spec().$container.find('tr:eq(0) td:eq(0)'));
       spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
       spec().$container.find('tbody tr:eq(1) td:eq(4)').simulate('mouseover').simulate('mouseup');
 
@@ -1440,10 +1440,10 @@ describe('MergeCells cooperation with hidden rows', () => {
       rowMapper.setValueAtIndex(0, true);
       rowMapper.setValueAtIndex(2, true);
       rowMapper.setValueAtIndex(4, true);
-      render();
+      await render();
 
       // Click on the first visible cell (merged area).
-      simulateClick(spec().$container.find('tr:eq(0) td:eq(0)'));
+      await simulateClick(spec().$container.find('tr:eq(0) td:eq(0)'));
       spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
       spec().$container.find('tbody tr:eq(1) td:eq(4)').simulate('mouseover').simulate('mouseup');
 
@@ -1473,10 +1473,10 @@ describe('MergeCells cooperation with hidden rows', () => {
       rowMapper.setValueAtIndex(0, true);
       rowMapper.setValueAtIndex(2, true);
       rowMapper.setValueAtIndex(4, true);
-      render();
+      await render();
 
       // Click on the first visible cell (merged area).
-      simulateClick(spec().$container.find('tr:eq(0) td:eq(0)'));
+      await simulateClick(spec().$container.find('tr:eq(0) td:eq(0)'));
       spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
       spec().$container.find('tbody tr:eq(1) td:eq(4)').simulate('mouseover').simulate('mouseup');
 
@@ -1506,11 +1506,11 @@ describe('MergeCells cooperation with hidden rows', () => {
       const rowMapper = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
 
       rowMapper.setValueAtIndex(1, true);
-      render();
+      await render();
 
       const mergedCell = spec().$container.find('tr:eq(2) td:eq(1)');
 
-      simulateClick(mergedCell);
+      await simulateClick(mergedCell);
 
       // Third column is not displayed (CSS - display: none).
       expect(`
@@ -1553,14 +1553,14 @@ describe('MergeCells cooperation with hidden rows', () => {
       const rowMapper = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
 
       rowMapper.setValueAtIndex(1, true);
-      render();
+      await render();
 
       const dragStart = spec().$container.find('tr:eq(2) td:eq(0)');
       const dragEnd = spec().$container.find('tr:eq(2) td:eq(1)'); // Merged cell.
 
-      mouseDown(dragStart);
-      mouseOver(dragEnd);
-      mouseUp(dragEnd);
+      await mouseDown(dragStart);
+      await mouseOver(dragEnd);
+      await mouseUp(dragEnd);
 
       // Third row is not displayed (CSS - display: none).
       expect(`
@@ -1603,14 +1603,14 @@ describe('MergeCells cooperation with hidden rows', () => {
       const rowMapper = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
 
       rowMapper.setValueAtIndex(1, true);
-      render();
+      await render();
 
       const dragStart = spec().$container.find('tr:eq(1) td:eq(1)');
       const dragEnd = spec().$container.find('tr:eq(2) td:eq(1)'); // Merged cell.
 
-      mouseDown(dragStart);
-      mouseOver(dragEnd);
-      mouseUp(dragEnd);
+      await mouseDown(dragStart);
+      await mouseOver(dragEnd);
+      await mouseUp(dragEnd);
 
       // Third row is not displayed (CSS - display: none).
       expect(`
@@ -1653,14 +1653,14 @@ describe('MergeCells cooperation with hidden rows', () => {
       const rowMapper = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
 
       rowMapper.setValueAtIndex(1, true);
-      render();
+      await render();
 
       const dragStart = spec().$container.find('tr:eq(2) td:eq(2)');
       const dragEnd = spec().$container.find('tr:eq(2) td:eq(1)'); // Merged cell.
 
-      mouseDown(dragStart);
-      mouseOver(dragEnd);
-      mouseUp(dragEnd);
+      await mouseDown(dragStart);
+      await mouseOver(dragEnd);
+      await mouseUp(dragEnd);
 
       // Third row is not displayed (CSS - display: none).
       expect(`
@@ -1703,15 +1703,15 @@ describe('MergeCells cooperation with hidden rows', () => {
       const rowMapper = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
 
       rowMapper.setValueAtIndex(1, true);
-      render();
+      await render();
 
       // There is one `TD` element with `display: none`, just before the cell.
       const dragStart = spec().$container.find('tr:eq(4) td:eq(1)');
       const dragEnd = spec().$container.find('tr:eq(2) td:eq(1)'); // Merged cell.
 
-      mouseDown(dragStart);
-      mouseOver(dragEnd);
-      mouseUp(dragEnd);
+      await mouseDown(dragStart);
+      await mouseOver(dragEnd);
+      await mouseUp(dragEnd);
 
       // Third row is not displayed (CSS - display: none).
       expect(`
@@ -1754,14 +1754,14 @@ describe('MergeCells cooperation with hidden rows', () => {
       const rowMapper = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
 
       rowMapper.setValueAtIndex(1, true);
-      render();
+      await render();
 
       const dragStart = spec().$container.find('tr:eq(2) td:eq(1)'); // Merged cell.
       const dragEnd = spec().$container.find('tr:eq(2) td:eq(2)');
 
-      mouseDown(dragStart);
-      mouseOver(dragEnd);
-      mouseUp(dragEnd);
+      await mouseDown(dragStart);
+      await mouseOver(dragEnd);
+      await mouseUp(dragEnd);
 
       // Third column is not displayed (CSS - display: none).
       expect(`
@@ -1804,14 +1804,14 @@ describe('MergeCells cooperation with hidden rows', () => {
       const rowMapper = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
 
       rowMapper.setValueAtIndex(1, true);
-      render();
+      await render();
 
       const dragStart = spec().$container.find('tr:eq(2) td:eq(1)'); // Merged cell.
       const dragEnd = spec().$container.find('tr:eq(4) td:eq(1)');
 
-      mouseDown(dragStart);
-      mouseOver(dragEnd);
-      mouseUp(dragEnd);
+      await mouseDown(dragStart);
+      await mouseOver(dragEnd);
+      await mouseUp(dragEnd);
 
       // Third row is not displayed (CSS - display: none).
       expect(`
@@ -1854,14 +1854,14 @@ describe('MergeCells cooperation with hidden rows', () => {
       const rowMapper = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
 
       rowMapper.setValueAtIndex(1, true);
-      render();
+      await render();
 
       const dragStart = spec().$container.find('tr:eq(2) td:eq(1)'); // Merged cell.
       const dragEnd = spec().$container.find('tr:eq(2) td:eq(0)');
 
-      mouseDown(dragStart);
-      mouseOver(dragEnd);
-      mouseUp(dragEnd);
+      await mouseDown(dragStart);
+      await mouseOver(dragEnd);
+      await mouseUp(dragEnd);
 
       // Third row is not displayed (CSS - display: none).
       expect(`
@@ -1904,14 +1904,14 @@ describe('MergeCells cooperation with hidden rows', () => {
       const rowMapper = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
 
       rowMapper.setValueAtIndex(1, true);
-      render();
+      await render();
 
       const dragStart = spec().$container.find('tr:eq(2) td:eq(1)'); // Merged cell.
       const dragEnd = spec().$container.find('tr:eq(1) td:eq(1)');
 
-      mouseDown(dragStart);
-      mouseOver(dragEnd);
-      mouseUp(dragEnd);
+      await mouseDown(dragStart);
+      await mouseOver(dragEnd);
+      await mouseUp(dragEnd);
 
       // Third row is not displayed (CSS - display: none).
       expect(`
@@ -1953,7 +1953,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       const rowMapper = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
 
       rowMapper.setValueAtIndex(1, true);
-      render();
+      await render();
 
       const mergeArea = spec().$container.find('tr:eq(2) td:eq(1)');
 
@@ -2020,7 +2020,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       const rowMapper = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
 
       rowMapper.setValueAtIndex(1, true);
-      render();
+      await render();
 
       const mergeArea = spec().$container.find('tr:eq(2) td:eq(1)');
 
@@ -2070,7 +2070,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       const rowMapper = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
 
       rowMapper.setValueAtIndex(1, true);
-      render();
+      await render();
 
       const mergeArea = spec().$container.find('tr:eq(2) td:eq(1)');
 
@@ -2086,7 +2086,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       await selectRows(3);
       await selectRows(2);
 
-      keyUp('control/meta');
+      await keyUp('control/meta');
 
       expect(`
         |   ║ - : - : - : - : - |
@@ -2129,7 +2129,7 @@ describe('MergeCells cooperation with hidden rows', () => {
     rowMapper.setValueAtIndex(1, true);
     rowMapper.setValueAtIndex(2, true);
     rowMapper.setValueAtIndex(5, true);
-    render();
+    await render();
 
     getPlugin('mergeCells').merge(0, 0, 20, 0);
 
@@ -2223,7 +2223,7 @@ describe('MergeCells cooperation with hidden rows', () => {
     rowMapper.setValueAtIndex(1, true);
     rowMapper.setValueAtIndex(2, true);
     rowMapper.setValueAtIndex(5, true);
-    render();
+    await render();
 
     getPlugin('mergeCells').merge(0, 0, 20, 0);
 
@@ -2317,7 +2317,7 @@ describe('MergeCells cooperation with hidden rows', () => {
     rowMapper.setValueAtIndex(1, true);
     rowMapper.setValueAtIndex(2, true);
     rowMapper.setValueAtIndex(5, true);
-    render();
+    await render();
 
     getPlugin('mergeCells').merge(0, 0, 20, 0);
 
@@ -2414,7 +2414,7 @@ describe('MergeCells cooperation with hidden rows', () => {
     rowMapper.setValueAtIndex(1, true);
     rowMapper.setValueAtIndex(2, true);
     rowMapper.setValueAtIndex(5, true);
-    render();
+    await render();
 
     getPlugin('mergeCells').merge(0, 0, 20, 0);
 
@@ -2477,7 +2477,7 @@ describe('MergeCells cooperation with hidden rows', () => {
     rowMapper.setValueAtIndex(1, true);
     rowMapper.setValueAtIndex(2, true);
     rowMapper.setValueAtIndex(5, true);
-    render();
+    await render();
 
     getPlugin('mergeCells').merge(0, 0, 20, 0);
 
@@ -2541,7 +2541,7 @@ describe('MergeCells cooperation with hidden rows', () => {
     rowMapper.setValueAtIndex(1, true);
     rowMapper.setValueAtIndex(2, true);
     rowMapper.setValueAtIndex(5, true);
-    render();
+    await render();
 
     getPlugin('mergeCells').merge(0, 0, 20, 0);
 
@@ -2608,10 +2608,10 @@ describe('MergeCells cooperation with hidden rows', () => {
 
       rowMapper.setValueAtIndex(0, true);
       rowMapper.setValueAtIndex(1, true);
-      render();
+      await render();
 
       // Click on the first visible cell (merged area).
-      simulateClick(spec().$container.find('tr:eq(1) td:eq(0)'));
+      await simulateClick(spec().$container.find('tr:eq(1) td:eq(0)'));
 
       expect(rowOnCellMouseDown).toBe(2);
       expect(columnOnCellMouseDown).toBe(0);
@@ -2639,10 +2639,10 @@ describe('MergeCells cooperation with hidden rows', () => {
 
       rowMapper.setValueAtIndex(0, true);
       rowMapper.setValueAtIndex(1, true);
-      render();
+      await render();
 
       // Click on the first visible cell (merged area).
-      simulateClick(spec().$container.find('tr:eq(1) td:eq(0)'));
+      await simulateClick(spec().$container.find('tr:eq(1) td:eq(0)'));
 
       expect(rowOnCellMouseDown).toBe(2);
       expect(columnOnCellMouseDown).toBe(0);

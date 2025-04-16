@@ -44,7 +44,7 @@ describe('`modifyFocusedElement` hook', () => {
     const hidingMap = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
 
     hidingMap.setValueAtIndex(1, true);
-    render();
+    await render();
 
     await selectCell(1, 1);
 

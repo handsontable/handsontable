@@ -22,15 +22,15 @@ describe('NestedRows', () => {
 
       const dataAtStart = getData();
 
-      alter('insert_row_above', 0, 2);
+      await alter('insert_row_above', 0, 2);
 
       expect(getData()).toEqual([[null, null, null, null], [null, null, null, null], ...dataAtStart]);
 
-      alter('remove_row', 0, 2);
+      await alter('remove_row', 0, 2);
 
       expect(getData()).toEqual(dataAtStart);
 
-      alter('insert_row_above', 0, 2);
+      await alter('insert_row_above', 0, 2);
 
       expect(getData()).toEqual([[null, null, null, null], [null, null, null, null], ...dataAtStart]);
     });
@@ -45,11 +45,11 @@ describe('NestedRows', () => {
 
         const dataAtStart = getData();
 
-        alter('insert_row_above', 0, 1);
+        await alter('insert_row_above', 0, 1);
 
-        setDataAtCell(0, 0, 'value');
+        await setDataAtCell(0, 0, 'value');
 
-        alter('insert_row_above', 0, 1);
+        await alter('insert_row_above', 0, 1);
 
         expect(getData()).toEqual([[null, null, null, null], ['value', null, null, null], ...dataAtStart]);
       });
@@ -74,7 +74,7 @@ describe('NestedRows', () => {
           .simulate('mousedown')
           .simulate('mouseup');
 
-        setDataAtCell(0, 0, 'value');
+        await setDataAtCell(0, 0, 'value');
 
         await selectCell(0, 0);
         await contextMenu();
@@ -97,13 +97,13 @@ describe('NestedRows', () => {
         rowHeaders: true
       });
 
-      updateSettings({});
+      await updateSettings({});
 
-      setDataAtCell(0, 0, 'value');
+      await setDataAtCell(0, 0, 'value');
 
       const dataAtStart = getData();
 
-      alter('insert_row_above', 0, 1);
+      await alter('insert_row_above', 0, 1);
 
       expect(getData()).toEqual([[null, null, null, null], ...dataAtStart]);
     });
@@ -118,11 +118,11 @@ describe('NestedRows', () => {
 
       getPlugin('manualRowMove').dragRows([3], 5);
 
-      setDataAtCell(0, 0, 'value');
+      await setDataAtCell(0, 0, 'value');
 
       const dataAtStart = getData();
 
-      alter('insert_row_above', 0, 1);
+      await alter('insert_row_above', 0, 1);
 
       expect(getData()).toEqual([[null, null, null, null], ...dataAtStart]);
     });

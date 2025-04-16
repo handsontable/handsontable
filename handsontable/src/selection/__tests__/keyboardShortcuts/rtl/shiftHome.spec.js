@@ -22,8 +22,8 @@ describe('Selection extending (RTL mode)', () => {
         startCols: 5
       });
 
-      selectCell(1, 3);
-      keyDownUp(['shift', 'home']);
+      await selectCell(1, 3);
+      await keyDownUp(['shift', 'home']);
 
       expect(`
         |   :   :   :   :   |
@@ -42,9 +42,9 @@ describe('Selection extending (RTL mode)', () => {
         enterBeginsEditing: false,
       });
 
-      selectCell(1, 2, 3, 4);
-      keyDownUp('enter'); // Move focus down
-      keyDownUp(['shift', 'home']);
+      await selectCell(1, 2, 3, 4);
+      await keyDownUp('enter'); // Move focus down
+      await keyDownUp(['shift', 'home']);
 
       expect(`
         |   :   :   :   :   |
@@ -64,9 +64,9 @@ describe('Selection extending (RTL mode)', () => {
         startCols: 5
       });
 
-      selectColumns(3);
-      listen();
-      keyDownUp(['shift', 'home']);
+      await selectColumns(3);
+      await listen();
+      await keyDownUp(['shift', 'home']);
 
       expect(`
         |   : * : * : * : * ║   |
@@ -87,8 +87,8 @@ describe('Selection extending (RTL mode)', () => {
         fixedColumnsStart: 2,
       });
 
-      selectCell(1, 3);
-      keyDownUp(['shift', 'home']);
+      await selectCell(1, 3);
+      await keyDownUp(['shift', 'home']);
 
       expect(`
         |   :   :   |   :   |
@@ -107,8 +107,8 @@ describe('Selection extending (RTL mode)', () => {
         fixedColumnsStart: 3,
       });
 
-      selectCell(1, 1);
-      keyDownUp(['shift', 'home']);
+      await selectCell(1, 1);
+      await keyDownUp(['shift', 'home']);
 
       expect(`
         |   :   |   :   :   |
@@ -128,9 +128,9 @@ describe('Selection extending (RTL mode)', () => {
         fixedColumnsStart: 1,
       });
 
-      selectCell(1, 2, 3, 4);
-      keyDownUp('enter'); // Move focus down
-      keyDownUp(['shift', 'home']);
+      await selectCell(1, 2, 3, 4);
+      await keyDownUp('enter'); // Move focus down
+      await keyDownUp(['shift', 'home']);
 
       expect(`
         |   :   :   :   |   |
@@ -151,9 +151,9 @@ describe('Selection extending (RTL mode)', () => {
         fixedColumnsStart: 2,
       });
 
-      selectColumns(3);
-      listen();
-      keyDownUp(['shift', 'home']);
+      await selectColumns(3);
+      await listen();
+      await keyDownUp(['shift', 'home']);
 
       expect(`
         |   : * : * |   :   ║   |

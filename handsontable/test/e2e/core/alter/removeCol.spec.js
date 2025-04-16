@@ -28,7 +28,7 @@ describe('Core.alter', () => {
           data: createSpreadsheetData(5, 15),
         });
         // [[columnVisualIndex, amountColumnsToRemove] ...]
-        alter('remove_col', [[1, 3], [5, 1], [7, 3], [11, 2]]);
+        await alter('remove_col', [[1, 3], [5, 1], [7, 3], [11, 2]]);
         // It remove columns as follow:
         //     1--------3      5-1     7--------3      11---2
         // A1, B1, C1, D1, E1, F1, G1, H1, I1, J1, K1, L1, M1, N1, O1
@@ -44,7 +44,7 @@ describe('Core.alter', () => {
           data: createSpreadsheetData(5, 15),
         });
         // [[columnVisualIndex, amountColumnsToRemove] ...]
-        alter('remove_col', [[11, 2], [7, 3], [5, 1], [1, 3]]);
+        await alter('remove_col', [[11, 2], [7, 3], [5, 1], [1, 3]]);
         // It remove columns as follow:
         //     1--------3      5-1     7--------3      11---2
         // A1, B1, C1, D1, E1, F1, G1, H1, I1, J1, K1, L1, M1, N1, O1
@@ -60,7 +60,7 @@ describe('Core.alter', () => {
           data: createSpreadsheetData(5, 15),
         });
         // [[columnVisualIndex, amountColumnsToRemove] ...]
-        alter('remove_col', [[1, 3], [4, 2], [5, 5], [11, 1]]);
+        await alter('remove_col', [[1, 3], [4, 2], [5, 5], [11, 1]]);
         // It remove columns as follow:
         //     1--------------------------------9     11-1
         // A1, B1, C1, D1, E1, F1, G1, H1, I1, J1, K1, L1, M1, N1, O1
@@ -76,7 +76,7 @@ describe('Core.alter', () => {
           data: createSpreadsheetData(5, 15),
         });
         // [[columnVisualIndex, amountColumnsToRemove] ...]
-        alter('remove_col', [[1, 3], [2, 1], [5, 2]]);
+        await alter('remove_col', [[1, 3], [2, 1], [5, 2]]);
         // It remove columns as follow:
         //     1--------3      5----2
         // A1, B1, C1, D1, E1, F1, G1, H1, I1, J1, K1, L1, M1, N1, O1
@@ -92,7 +92,7 @@ describe('Core.alter', () => {
           data: createSpreadsheetData(5, 15),
         });
         // [[columnVisualIndex, amountColumnsToRemove] ...]
-        alter('remove_col', [[4, 2], [11, 1], [5, 5], [1, 3]]);
+        await alter('remove_col', [[4, 2], [11, 1], [5, 5], [1, 3]]);
         // It remove columns as follow:
         //     1--------------------------------9     11-1
         // A1, B1, C1, D1, E1, F1, G1, H1, I1, J1, K1, L1, M1, N1, O1
@@ -110,7 +110,7 @@ describe('Core.alter', () => {
           colHeaders: false,
         });
 
-        alter('remove_col', 0, 5);
+        await alter('remove_col', 0, 5);
 
         expect(countRows()).toBe(5);
         expect(getData()).toEqual([[null], [null], [null], [null], [null]]);
@@ -127,7 +127,7 @@ describe('Core.alter', () => {
           colHeaders: true
         });
 
-        alter('remove_col', 0, 5);
+        await alter('remove_col', 0, 5);
 
         expect(countRows()).toBe(0);
         expect(getData()).toEqual([]);
@@ -144,7 +144,7 @@ describe('Core.alter', () => {
           colHeaders: false,
         });
 
-        alter('remove_col', 0, 5);
+        await alter('remove_col', 0, 5);
 
         expect(countRows()).toBe(0);
         expect(getData()).toEqual([]);
@@ -161,7 +161,7 @@ describe('Core.alter', () => {
           colHeaders: true
         });
 
-        alter('remove_col', 0, 5);
+        await alter('remove_col', 0, 5);
 
         expect(countRows()).toBe(5);
         expect(getData()).toEqual([[null], [null], [null], [null], [null]]);
@@ -176,7 +176,7 @@ describe('Core.alter', () => {
           data: createSpreadsheetData(10, 10),
         });
 
-        alter('remove_col', 0, 10);
+        await alter('remove_col', 0, 10);
 
         expect(countCols()).toBe(0);
         expect(countRows()).toBe(0);
@@ -189,7 +189,7 @@ describe('Core.alter', () => {
       });
       const countedColumns = countCols();
 
-      alter('remove_col', 1, 0);
+      await alter('remove_col', 1, 0);
 
       expect(countCols()).toBe(countedColumns);
     });
@@ -201,7 +201,7 @@ describe('Core.alter', () => {
           ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
         ]
       });
-      alter('remove_col', 1);
+      await alter('remove_col', 1);
 
       expect(countCols()).toEqual(7);
       expect(spec().$container.find('tr:eq(0) td:eq(0)').html()).toEqual('a');
@@ -215,7 +215,7 @@ describe('Core.alter', () => {
           ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
         ]
       });
-      alter('remove_col', 1, 3);
+      await alter('remove_col', 1, 3);
 
       expect(countCols()).toEqual(5);
       expect(spec().$container.find('tr:eq(0) td:eq(0)').html()).toEqual('a');
@@ -229,7 +229,7 @@ describe('Core.alter', () => {
           ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
         ]
       });
-      alter('remove_col', 6, 3);
+      await alter('remove_col', 6, 3);
 
       expect(countCols()).toEqual(6);
       expect(spec().$container.find('tr:eq(1) td:last').html()).toEqual('f');
@@ -242,7 +242,7 @@ describe('Core.alter', () => {
           ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
         ]
       });
-      alter('remove_col');
+      await alter('remove_col');
 
       expect(countCols()).toEqual(7);
       expect(spec().$container.find('tr:eq(1) td:last').html()).toEqual('g');
@@ -255,7 +255,7 @@ describe('Core.alter', () => {
           ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
         ]
       });
-      alter('remove_col', null, 3);
+      await alter('remove_col', null, 3);
 
       expect(countCols()).toEqual(5);
       expect(spec().$container.find('tr:eq(1) td:last').html()).toEqual('e');
@@ -267,7 +267,7 @@ describe('Core.alter', () => {
       handsontable({
         beforeRemoveCol: onBeforeRemoveCol
       });
-      alter('remove_col');
+      await alter('remove_col');
 
       expect(onBeforeRemoveCol).toHaveBeenCalledWith(countCols(), 1, [4]);
     });
@@ -283,7 +283,7 @@ describe('Core.alter', () => {
 
       expect(countCols()).toEqual(5);
 
-      alter('remove_col');
+      await alter('remove_col');
 
       expect(countCols()).toEqual(5);
     });
@@ -293,9 +293,9 @@ describe('Core.alter', () => {
         beforeRemoveCol: () => false,
       });
 
-      setCellMeta(0, 2, '_test', 'foo');
+      await setCellMeta(0, 2, '_test', 'foo');
 
-      alter('remove_col', 1, 1);
+      await alter('remove_col', 1, 1);
 
       expect(getCellMeta(0, 0)._test).toBeUndefined();
       expect(getCellMeta(0, 1)._test).toBeUndefined();
@@ -318,7 +318,7 @@ describe('Core.alter', () => {
           outputAfter = [index, amount, removedCols, source];
         }
       });
-      alter('remove_col', 1, 2, 'customSource');
+      await alter('remove_col', 1, 2, 'customSource');
 
       expect(outputBefore).toEqual([1, 2, [1, 2], 'customSource']);
       expect(outputAfter).toEqual([1, 2, [1, 2], 'customSource']);
@@ -334,7 +334,7 @@ describe('Core.alter', () => {
       getCellMeta(0, 1).someValue = [0, 1];
       getCellMeta(0, 2).someValue = [0, 2];
 
-      alter('remove_col', 0);
+      await alter('remove_col', 0);
 
       expect(getCellMeta(0, 0).someValue).toEqual([0, 1]);
       expect(getCellMeta(0, 1).someValue).toEqual([0, 2]);
@@ -354,7 +354,7 @@ describe('Core.alter', () => {
       expect(getHtCore().find('tbody tr').length).toBeLessThan(20);
       expect(countCols()).toEqual(3);
 
-      alter('remove_col', 0);
+      await alter('remove_col', 0);
 
       expect(countCols()).toEqual(2);
     });
@@ -371,7 +371,7 @@ describe('Core.alter', () => {
 
       expect(countCols()).toEqual(3);
 
-      alter('remove_col', 1);
+      await alter('remove_col', 1);
 
       expect(countCols()).toEqual(2);
 
@@ -390,7 +390,7 @@ describe('Core.alter', () => {
 
       expect(countCols()).toEqual(3);
 
-      alter('remove_col', 1);
+      await alter('remove_col', 1);
 
       expect(countCols()).toEqual(2);
 
@@ -404,9 +404,9 @@ describe('Core.alter', () => {
         fixedColumnsStart: 4
       });
 
-      alter('remove_col', 1, 1);
+      await alter('remove_col', 1, 1);
       expect(hot.getSettings().fixedColumnsStart).toEqual(3);
-      alter('remove_col', 1, 2);
+      await alter('remove_col', 1, 2);
       expect(hot.getSettings().fixedColumnsStart).toEqual(1);
     });
 
@@ -416,8 +416,8 @@ describe('Core.alter', () => {
         startRows: 3
       });
 
-      setCellMeta(1, 2, 'className', 'test');
-      alter('remove_col', 1, 1);
+      await setCellMeta(1, 2, 'className', 'test');
+      await alter('remove_col', 1, 1);
 
       expect(getCellMeta(1, 1).className).toEqual('test');
     });
@@ -428,8 +428,8 @@ describe('Core.alter', () => {
         startRows: 3
       });
 
-      setCellMeta(1, 2, 'className', 'test');
-      alter('remove_col', 0, 2);
+      await setCellMeta(1, 2, 'className', 'test');
+      await alter('remove_col', 0, 2);
 
       expect(getCellMeta(1, 0).className).toEqual('test');
     });
@@ -441,7 +441,7 @@ describe('Core.alter', () => {
         colHeaders: true,
       });
 
-      alter('remove_row', 0, 2);
+      await alter('remove_row', 0, 2);
 
       expect(() => {
         alter('remove_col', 0, 1);

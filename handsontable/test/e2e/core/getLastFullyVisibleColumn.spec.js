@@ -31,7 +31,7 @@ describe('Core.getLastFullyVisibleColumn', () => {
 
     columnMapper.setValueAtIndex(0, true);
     columnMapper.setValueAtIndex(1, true);
-    render();
+    await render();
 
     expect(getLastFullyVisibleColumn()).toBe(4);
   });
@@ -44,7 +44,7 @@ describe('Core.getLastFullyVisibleColumn', () => {
     });
 
     setScrollLeft(780); // row 19 (T1) is partially visible
-    render();
+    await render();
 
     expect(getLastFullyVisibleColumn()).toBe(18);
   });
@@ -57,7 +57,7 @@ describe('Core.getLastFullyVisibleColumn', () => {
     });
 
     setScrollLeft(780); // row 19 (T1) is partially visible
-    render();
+    await render();
 
     expect(getLastFullyVisibleColumn()).toBe(18);
   });
@@ -70,7 +70,7 @@ describe('Core.getLastFullyVisibleColumn', () => {
     });
 
     setScrollLeft(820); // row 19 (T1) is partially visible
-    render();
+    await render();
 
     expect(getLastFullyVisibleColumn()).toBe(18);
   });

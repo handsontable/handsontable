@@ -38,7 +38,7 @@ describe('Selection', () => {
         rowHeaders: false,
       });
 
-      selectCells([[1, 1, 3, 3]]);
+      await selectCells([[1, 1, 3, 3]]);
       hot.selection.setRangeFocus(cellCoords(2, 2));
 
       expect(`
@@ -59,7 +59,7 @@ describe('Selection', () => {
         rowHeaders: false,
       });
 
-      selectCells([[1, 1, 3, 3]]);
+      await selectCells([[1, 1, 3, 3]]);
       hot.selection.setRangeFocus(cellCoords(4, 2));
 
       expect(`
@@ -83,7 +83,7 @@ describe('Selection', () => {
 
       hot.selection.addLocalHook('beforeSetFocus', beforeSetFocus);
 
-      selectCells([[1, 1, 3, 3]]);
+      await selectCells([[1, 1, 3, 3]]);
       hot.selection.setRangeFocus(cellCoords(2, 2));
 
       expect(beforeSetFocus).toHaveBeenCalledOnceWith(cellCoords(2, 2));
@@ -99,7 +99,7 @@ describe('Selection', () => {
 
       hot.selection.addLocalHook('afterSetFocus', afterSetFocus);
 
-      selectCells([[1, 1, 3, 3]]);
+      await selectCells([[1, 1, 3, 3]]);
       hot.selection.setRangeFocus(cellCoords(2, 2));
 
       expect(afterSetFocus).toHaveBeenCalledOnceWith(cellCoords(2, 2));
@@ -113,7 +113,7 @@ describe('Selection', () => {
         rowHeaders: false,
       });
 
-      selectCells([[1, 1, 3, 3]]);
+      await selectCells([[1, 1, 3, 3]]);
 
       hot.selection.addLocalHook('beforeHighlightSet', beforeHighlightSet);
       hot.selection.setRangeFocus(cellCoords(2, 2));

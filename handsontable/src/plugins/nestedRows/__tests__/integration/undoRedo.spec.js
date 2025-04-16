@@ -24,7 +24,7 @@ describe('NestedRows', () => {
         nestedRows: true,
       });
 
-      alter('remove_row', 1);
+      await alter('remove_row', 1);
       getPlugin('undoRedo').undo();
 
       expect(getDataAtCell(1, 0)).toBe('A1.1');

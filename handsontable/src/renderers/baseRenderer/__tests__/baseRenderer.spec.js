@@ -76,7 +76,7 @@ describe('CellDecorator', () => {
     expect($(getCell(1, 1)).hasClass(hot.getSettings().noWordWrapClassName)).toBe(false);
 
     getCellMeta(1, 1).wordWrap = false;
-    render();
+    await render();
 
     expect($(getCell(1, 1)).hasClass(hot.getSettings().noWordWrapClassName)).toBe(true);
 
@@ -95,7 +95,7 @@ describe('CellDecorator', () => {
     expect(window.getComputedStyle(getCell(1, 1)).whiteSpace).not.toEqual('nowrap');
 
     getCellMeta(1, 1).wordWrap = false;
-    render();
+    await render();
 
     expect(window.getComputedStyle(getCell(1, 1)).whiteSpace).toEqual('nowrap');
   });
@@ -110,7 +110,7 @@ describe('CellDecorator', () => {
       ]
     });
 
-    setDataAtCell(0, 2, 'non-numeric value');
+    await setDataAtCell(0, 2, 'non-numeric value');
     await sleep(100);
 
     expect($(getCell(0, 2)).hasClass(hot.getSettings().invalidCellClassName)).toBe(false);

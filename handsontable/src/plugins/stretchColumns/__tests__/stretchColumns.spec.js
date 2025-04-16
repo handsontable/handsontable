@@ -32,7 +32,7 @@ describe('StretchColumns', () => {
     expect(getColWidth(1)).toBe(50);
     expect(getColWidth(2)).toBe(50);
 
-    updateSettings({
+    await updateSettings({
       stretchH: 'all',
     });
 
@@ -52,7 +52,7 @@ describe('StretchColumns', () => {
       horizon.toBe(61);
     });
 
-    updateSettings({
+    await updateSettings({
       stretchH: 'last',
     });
 
@@ -64,7 +64,7 @@ describe('StretchColumns', () => {
       horizon.toBe(85);
     });
 
-    updateSettings({
+    await updateSettings({
       stretchH: 'none',
     });
 
@@ -102,7 +102,7 @@ describe('StretchColumns', () => {
     expect(getColWidth(1)).toBe(90);
     expect(getColWidth(2)).toBe(90);
 
-    updateSettings({
+    await updateSettings({
       width: 500,
     });
 
@@ -150,7 +150,7 @@ describe('StretchColumns', () => {
       horizon.toBe(85);
     });
 
-    updateSettings({
+    await updateSettings({
       height: 141,
     });
 
@@ -158,7 +158,7 @@ describe('StretchColumns', () => {
     expect(getColWidth(1)).toBe(85);
     expect(getColWidth(2)).toBe(85);
 
-    updateSettings({
+    await updateSettings({
       height: 142,
     });
 
@@ -194,7 +194,7 @@ describe('StretchColumns', () => {
     expect(getColWidth(1)).toBe(90);
     expect(getColWidth(2)).toBe(90);
 
-    updateSettings({
+    await updateSettings({
       height: 165,
     });
 
@@ -202,7 +202,7 @@ describe('StretchColumns', () => {
     expect(getColWidth(1)).toBe(85);
     expect(getColWidth(2)).toBe(85);
 
-    updateSettings({
+    await updateSettings({
       height: 179,
     });
 
@@ -226,7 +226,7 @@ describe('StretchColumns', () => {
     expect(getColWidth(1)).toBe(90);
     expect(getColWidth(2)).toBe(90);
 
-    updateSettings({
+    await updateSettings({
       height: 211,
     });
 
@@ -234,7 +234,7 @@ describe('StretchColumns', () => {
     expect(getColWidth(1)).toBe(85);
     expect(getColWidth(2)).toBe(85);
 
-    updateSettings({
+    await updateSettings({
       height: 228,
     });
 
@@ -400,11 +400,11 @@ describe('StretchColumns', () => {
       horizon.toBe(319);
     });
 
-    setDataAtCell(0, 4, 'text');
+    await setDataAtCell(0, 4, 'text');
 
     expect(getColWidth(4)).toBe(80);
 
-    setDataAtCell(0, 4, 'very long text is here to make the column wider');
+    await setDataAtCell(0, 4, 'very long text is here to make the column wider');
 
     expect(getColWidth(4)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(259);

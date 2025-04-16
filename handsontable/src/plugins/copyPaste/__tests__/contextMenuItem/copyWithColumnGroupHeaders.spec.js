@@ -89,7 +89,7 @@ describe('CopyPaste', () => {
       spyOn(getPlugin('copyPaste'), 'copyWithAllColumnHeaders');
 
       await contextMenu(getCell(1, 1));
-      selectContextMenuOption('Copy with group header');
+      await selectContextMenuOption('Copy with group header');
 
       expect(getPlugin('copyPaste').copyWithAllColumnHeaders).toHaveBeenCalled();
     });
@@ -246,7 +246,7 @@ describe('CopyPaste', () => {
 
       // hide all rows
       hot.rowIndexMapper.createAndRegisterIndexMap('map', 'hiding', true);
-      render();
+      await render();
 
       await contextMenu(getCell(-1, 1)); // Column header "B"
 
@@ -273,7 +273,7 @@ describe('CopyPaste', () => {
 
       // hide all columns
       hot.columnIndexMapper.createAndRegisterIndexMap('map', 'hiding', true);
-      render();
+      await render();
 
       await contextMenu(getCell(1, -1)); // Row header "2"
 
@@ -300,7 +300,7 @@ describe('CopyPaste', () => {
 
       // trim all rows
       hot.rowIndexMapper.createAndRegisterIndexMap('map', 'trimming', true);
-      render();
+      await render();
 
       await contextMenu(getCell(-1, 1)); // Column header "B"
 
@@ -327,7 +327,7 @@ describe('CopyPaste', () => {
 
       // trim all columns
       hot.columnIndexMapper.createAndRegisterIndexMap('map', 'trimming', true);
-      render();
+      await render();
 
       await contextMenu(getCell(1, -1)); // Row header "2"
 

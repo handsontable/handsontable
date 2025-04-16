@@ -29,7 +29,7 @@ describe('Core_removeCellMeta', () => {
       }
     };
 
-    setCellMeta(0, 0, 'borders', border);
+    await setCellMeta(0, 0, 'borders', border);
     expect(getCellMeta(0, 0).borders).toEqual(border);
 
     removeCellMeta(0, 0, 'borders');
@@ -45,7 +45,7 @@ describe('Core_removeCellMeta', () => {
     hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
     hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
 
-    setCellMeta(0, 0, 'key', 'value');
+    await setCellMeta(0, 0, 'key', 'value');
     removeCellMeta(0, 0, 'key');
 
     expect(getCellMeta(0, 0).key).toBeUndefined();
@@ -63,7 +63,7 @@ describe('Core_removeCellMeta', () => {
       beforeRemoveCellMeta
     });
 
-    setCellMeta(0, 0, 'key', 'value');
+    await setCellMeta(0, 0, 'key', 'value');
     removeCellMeta(0, 0, 'key');
 
     expect(beforeRemoveCellMeta).toHaveBeenCalledWith(0, 0, 'key', 'value');
@@ -81,7 +81,7 @@ describe('Core_removeCellMeta', () => {
       afterRemoveCellMeta
     });
 
-    setCellMeta(0, 0, 'key', 'value');
+    await setCellMeta(0, 0, 'key', 'value');
     removeCellMeta(0, 0, 'key');
 
     expect(afterRemoveCellMeta).toHaveBeenCalledWith(0, 0, 'key', 'value');
@@ -159,8 +159,8 @@ describe('Core_removeCellMeta', () => {
       }
     });
 
-    setCellMeta(0, 0, 'key', 'value');
-    setCellMeta(0, 1, 'key', 'value');
+    await setCellMeta(0, 0, 'key', 'value');
+    await setCellMeta(0, 1, 'key', 'value');
 
     removeCellMeta(0, 0, 'key');
     removeCellMeta(0, 1, 'key');

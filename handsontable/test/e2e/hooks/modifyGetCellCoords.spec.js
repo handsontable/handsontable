@@ -87,7 +87,7 @@ describe('Hook', () => {
         }
       });
 
-      mouseDoubleClick(spec().$container.find('tr:eq(1) td:eq(1)'));
+      await mouseDoubleClick(spec().$container.find('tr:eq(1) td:eq(1)'));
 
       let editor = getActiveEditor();
 
@@ -97,14 +97,14 @@ describe('Hook', () => {
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A2');
 
       // Closing the editor.
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       editor = getActiveEditor();
 
       expect(editor.isOpened()).toBe(false);
       expect(editor.isInFullEditMode()).toBe(false);
 
-      mouseDoubleClick(spec().$container.find('tr:eq(1) td:eq(2)'));
+      await mouseDoubleClick(spec().$container.find('tr:eq(1) td:eq(2)'));
 
       editor = getActiveEditor();
 
@@ -137,7 +137,7 @@ describe('Hook', () => {
         }
       });
 
-      mouseDoubleClick(spec().$container.find('tr:eq(1) td:eq(1)'));
+      await mouseDoubleClick(spec().$container.find('tr:eq(1) td:eq(1)'));
 
       const editor = getActiveEditor();
 

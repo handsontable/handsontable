@@ -30,9 +30,9 @@ describe('CheckboxRenderer keyboard shortcut', () => {
       expect(checkboxes.eq(2).prop('checked')).toBe(true);
       expect(getData()).toEqual([[true], [true], [true]]);
 
-      selectCells([[0, 0], [2, 0]]);
+      await selectCells([[0, 0], [2, 0]]);
 
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       checkboxes = spec().$container.find(':checkbox');
 
@@ -62,8 +62,8 @@ describe('CheckboxRenderer keyboard shortcut', () => {
       expect(checkboxes.eq(2).prop('checked')).toBe(true);
       expect(getData()).toEqual([[true], [true], [true]]);
 
-      selectCell(0, 0, 2, 0);
-      keyDownUp('enter');
+      await selectCell(0, 0, 2, 0);
+      await keyDownUp('enter');
 
       checkboxes = spec().$container.find(':checkbox');
 
@@ -92,8 +92,8 @@ describe('CheckboxRenderer keyboard shortcut', () => {
         callback,
       }], { group: 'grid' });
 
-      selectCell(-1, 0);
-      keyDownUp('enter');
+      await selectCell(-1, 0);
+      await keyDownUp('enter');
 
       expect(callback).toHaveBeenCalledTimes(1);
     });
@@ -117,9 +117,9 @@ describe('CheckboxRenderer keyboard shortcut', () => {
       expect(checkboxes.eq(2).prop('checked')).toBe(true);
       expect(getData()).toEqual([[true], [true], [true]]);
 
-      selectCell(0, 0);
+      await selectCell(0, 0);
 
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       checkboxes = spec().$container.find(':checkbox');
 
@@ -160,8 +160,8 @@ describe('CheckboxRenderer keyboard shortcut', () => {
         [null, null, null],
       ]);
 
-      selectCell(0, 0);
-      keyDownUp('enter');
+      await selectCell(0, 0);
+      await keyDownUp('enter');
 
       checkboxes = spec().$container.find(':checkbox');
 
@@ -196,9 +196,9 @@ describe('CheckboxRenderer keyboard shortcut', () => {
       expect(checkboxes.eq(2).prop('checked')).toBe(true);
       expect(getData()).toEqual([[true], [false], [true]]);
 
-      selectCell(0, 0);
+      await selectCell(0, 0);
 
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       checkboxes = spec().$container.find(':checkbox');
       const selection = getSelected();
@@ -231,9 +231,9 @@ describe('CheckboxRenderer keyboard shortcut', () => {
       expect(checkboxes.eq(2).prop('checked')).toBe(true);
       expect(getData()).toEqual([[true], [false], [true]]);
 
-      selectCell(0, 0);
+      await selectCell(0, 0);
 
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       checkboxes = spec().$container.find(':checkbox');
       const selection = getSelected();
@@ -269,9 +269,9 @@ describe('CheckboxRenderer keyboard shortcut', () => {
       expect(checkboxes.eq(2).prop('checked')).toBe(false);
       expect(getData()).toEqual([['yes'], ['yes'], ['no']]);
 
-      selectCell(0, 0);
+      await selectCell(0, 0);
 
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       checkboxes = spec().$container.find(':checkbox');
 
@@ -307,9 +307,9 @@ describe('CheckboxRenderer keyboard shortcut', () => {
       expect(checkboxes.eq(2).prop('checked')).toBe(false);
       expect(getData()).toEqual([[1], [1], [0]]);
 
-      selectCell(0, 0);
+      await selectCell(0, 0);
 
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       checkboxes = spec().$container.find(':checkbox');
 

@@ -4,7 +4,7 @@ describe('MultiColumnSorting', () => {
   beforeEach(function() {
     this.$container = $(`<div id="${id}" style="overflow: auto; width: 300px; height: 200px;"></div>`).appendTo('body');
 
-    this.sortByClickOnColumnHeader = (columnIndex) => {
+    this.sortByClickOnColumnHeader = async(columnIndex) => {
       const hot = this.$container.data('handsontable');
       const $columnHeader = $(hot.view._wt.wtTable.getColumnHeader(columnIndex));
       const $spanInsideHeader = $columnHeader.find('.columnSorting');
@@ -13,7 +13,7 @@ describe('MultiColumnSorting', () => {
         throw Error('Please check the test scenario. The header doesn\'t exist.');
       }
 
-      simulateClick($spanInsideHeader);
+      await simulateClick($spanInsideHeader);
     };
   });
 
@@ -63,7 +63,7 @@ describe('MultiColumnSorting', () => {
 
     const htCore = getHtCore();
 
-    spec().sortByClickOnColumnHeader(0);
+    await spec().sortByClickOnColumnHeader(0);
 
     expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
     expect(htCore.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('3');
@@ -85,7 +85,7 @@ describe('MultiColumnSorting', () => {
 
     const htCore = getHtCore();
 
-    spec().sortByClickOnColumnHeader(0);
+    await spec().sortByClickOnColumnHeader(0);
 
     getPlugin('multiColumnSorting').disablePlugin();
 
@@ -94,7 +94,7 @@ describe('MultiColumnSorting', () => {
     expect(htCore.find('tbody tr:eq(0) td:eq(2)').text()).toEqual('0');
     expect(htCore.find('tbody tr:eq(0) td:eq(3)').text()).toEqual('5');
 
-    render();
+    await render();
 
     expect(htCore.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
     expect(htCore.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('9');
@@ -280,7 +280,7 @@ describe('MultiColumnSorting', () => {
       }
     });
 
-    updateSettings({ multiColumnSorting: false });
+    await updateSettings({ multiColumnSorting: false });
 
     const sortedColumn = spec().$container.find('th span')[0];
 
@@ -396,8 +396,8 @@ describe('MultiColumnSorting', () => {
       multiColumnSorting: true
     });
 
-    spec().sortByClickOnColumnHeader(0);
-    spec().sortByClickOnColumnHeader(0);
+    await spec().sortByClickOnColumnHeader(0);
+    await spec().sortByClickOnColumnHeader(0);
 
     expect(spec().$container.find('tr td').first().html()).toEqual('10');
   });
@@ -760,13 +760,13 @@ describe('MultiColumnSorting', () => {
         }
       });
 
-      updateSettings({
+      await updateSettings({
         multiColumnSorting: true
       });
 
       expect(getPlugin('multiColumnSorting').isSorted()).toBeTruthy();
 
-      updateSettings({
+      await updateSettings({
         multiColumnSorting: {
           initialConfig: {
             column: 1,
@@ -777,7 +777,7 @@ describe('MultiColumnSorting', () => {
 
       expect(getPlugin('multiColumnSorting').isSorted()).toBeTruthy();
 
-      updateSettings({
+      await updateSettings({
         multiColumnSorting: false
       });
 
@@ -1082,7 +1082,7 @@ describe('MultiColumnSorting', () => {
       // Firefox and Safari seem to take more time for the sorting to finish.
       await sleep(600);
 
-      setDataAtCell(0, 0, '19:55', 'edit');
+      await setDataAtCell(0, 0, '19:55', 'edit');
 
       await sleep(200);
 
@@ -1478,15 +1478,15 @@ describe('MultiColumnSorting', () => {
       multiColumnSorting: true
     });
 
-    spec().sortByClickOnColumnHeader(3);
+    await spec().sortByClickOnColumnHeader(3);
 
     expect(getDataAtCol(3)).toEqual(['6999.9999', '7000', 8330, '8330', 8333, 30500, '33900']);
 
-    spec().sortByClickOnColumnHeader(3);
+    await spec().sortByClickOnColumnHeader(3);
 
     expect(getDataAtCol(3)).toEqual(['33900', 30500, 8333, 8330, '8330', '7000', '6999.9999']);
 
-    spec().sortByClickOnColumnHeader(3);
+    await spec().sortByClickOnColumnHeader(3);
 
     expect(getDataAtCol(3)).toEqual(['6999.9999', 8330, '8330', 8333, '33900', '7000', 30500]);
   });
@@ -1516,13 +1516,13 @@ describe('MultiColumnSorting', () => {
 
     expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
 
-    spec().sortByClickOnColumnHeader(0); // sort by first column
+    await spec().sortByClickOnColumnHeader(0); // sort by first column
 
     expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
 
     expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('D');
 
-    spec().sortByClickOnColumnHeader(1); // sort by second column
+    await spec().sortByClickOnColumnHeader(1); // sort by second column
 
     expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('A');
   });
@@ -1568,7 +1568,7 @@ describe('MultiColumnSorting', () => {
     expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
     expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('D');
 
-    updateSettings({
+    await updateSettings({
       multiColumnSorting: {
         initialConfig: {
           column: 1,
@@ -1600,7 +1600,7 @@ describe('MultiColumnSorting', () => {
 
     expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
 
-    updateSettings({
+    await updateSettings({
       multiColumnSorting: {
         initialConfig: {
           column: 0,
@@ -1633,7 +1633,7 @@ describe('MultiColumnSorting', () => {
       }
     });
 
-    updateSettings({
+    await updateSettings({
       multiColumnSorting: {
         sortEmptyCells: true,
         initialConfig: {
@@ -1646,7 +1646,7 @@ describe('MultiColumnSorting', () => {
     // ASC with empty cells sorting
     expect(getDataAtCol(0)).toEqual([2, 4, 7, 3, 1, 6, 8]);
 
-    updateSettings({
+    await updateSettings({
       multiColumnSorting: {
         sortEmptyCells: false,
         initialConfig: {
@@ -1692,7 +1692,7 @@ describe('MultiColumnSorting', () => {
 
     // ASC
 
-    updateSettings({
+    await updateSettings({
       multiColumnSorting: {
         initialConfig: {
           column: 0,
@@ -1711,7 +1711,7 @@ describe('MultiColumnSorting', () => {
       [false, null, null]
     ]);
 
-    updateSettings({
+    await updateSettings({
       multiColumnSorting: {
         initialConfig: {
           column: 0,
@@ -1750,7 +1750,7 @@ describe('MultiColumnSorting', () => {
 
     expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('0');
 
-    updateSettings({
+    await updateSettings({
       multiColumnSorting: undefined
     });
 
@@ -1924,7 +1924,7 @@ describe('MultiColumnSorting', () => {
 
     expect(countRows()).toEqual(4);
 
-    alter('insert_row_above');
+    await alter('insert_row_above');
 
     expect(countRows()).toEqual(5);
   });
@@ -1970,17 +1970,17 @@ describe('MultiColumnSorting', () => {
       multiColumnSorting: true
     });
 
-    spec().sortByClickOnColumnHeader(0);
+    await spec().sortByClickOnColumnHeader(0);
 
     expect(getDataAtRow(0)).toEqual([1, 'Ted', 'Right']);
     expect(getDataAtRow(4)).toEqual([5, 'Jane', 'Neat']);
 
-    spec().sortByClickOnColumnHeader(0);
+    await spec().sortByClickOnColumnHeader(0);
 
     expect(getDataAtRow(0)).toEqual([5, 'Jane', 'Neat']);
     expect(getDataAtRow(4)).toEqual([1, 'Ted', 'Right']);
 
-    spec().sortByClickOnColumnHeader(0);
+    await spec().sortByClickOnColumnHeader(0);
 
     expect(getDataAtRow(0)).toEqual([1, 'Ted', 'Right']);
     expect(getDataAtRow(4)).toEqual([5, 'Jane', 'Neat']);
@@ -2000,17 +2000,17 @@ describe('MultiColumnSorting', () => {
       multiColumnSorting: true
     });
 
-    spec().sortByClickOnColumnHeader(0);
+    await spec().sortByClickOnColumnHeader(0);
 
     expect(getDataAtCol(0)).toEqual([1, 2, 3, 4, 5]);
     expect(getDataAtCol(1)).toEqual(['Ted', 'Frank', 'Joan', 'Sid', 'Jane']);
 
-    spec().sortByClickOnColumnHeader(0);
+    await spec().sortByClickOnColumnHeader(0);
 
     expect(getDataAtCol(0)).toEqual([5, 4, 3, 2, 1]);
     expect(getDataAtCol(1)).toEqual(['Jane', 'Sid', 'Joan', 'Frank', 'Ted']);
 
-    spec().sortByClickOnColumnHeader(0);
+    await spec().sortByClickOnColumnHeader(0);
 
     expect(getDataAtCol(0)).toEqual([1, 2, 3, 4, 5]);
     expect(getDataAtCol(1)).toEqual(['Ted', 'Frank', 'Joan', 'Sid', 'Jane']);
@@ -2030,7 +2030,7 @@ describe('MultiColumnSorting', () => {
       multiColumnSorting: true
     });
 
-    spec().sortByClickOnColumnHeader(0);
+    await spec().sortByClickOnColumnHeader(0);
 
     expect(getDataAtRow(0)).toEqual([1, 'Ted', 'Right']);
     expect(getDataAtRow(4)).toEqual([5, 'Jane', 'Neat']);
@@ -2038,7 +2038,7 @@ describe('MultiColumnSorting', () => {
     expect(getSourceDataAtRow(0)).toEqual([1, 'Ted', 'Right']);
     expect(getSourceDataAtRow(4)).toEqual([5, 'Jane', 'Neat']);
 
-    spec().sortByClickOnColumnHeader(0);
+    await spec().sortByClickOnColumnHeader(0);
 
     expect(getDataAtRow(0)).toEqual([5, 'Jane', 'Neat']);
     expect(getDataAtRow(4)).toEqual([1, 'Ted', 'Right']);
@@ -2062,7 +2062,7 @@ describe('MultiColumnSorting', () => {
       multiColumnSorting: true
     });
 
-    spec().sortByClickOnColumnHeader(0);
+    await spec().sortByClickOnColumnHeader(0);
 
     expect(getDataAtCol(0)).toEqual([1, 2, 3, 4, 5]);
     expect(getDataAtCol(1)).toEqual(['Ted', 'Frank', 'Joan', 'Sid', 'Jane']);
@@ -2070,7 +2070,7 @@ describe('MultiColumnSorting', () => {
     expect(getSourceDataAtCol(0)).toEqual([1, 2, 3, 4, 5]);
     expect(getSourceDataAtCol(1)).toEqual(['Ted', 'Frank', 'Joan', 'Sid', 'Jane']);
 
-    spec().sortByClickOnColumnHeader(0);
+    await spec().sortByClickOnColumnHeader(0);
 
     expect(getDataAtCol(0)).toEqual([5, 4, 3, 2, 1]);
     expect(getDataAtCol(1)).toEqual(['Jane', 'Sid', 'Joan', 'Frank', 'Ted']);
@@ -2078,7 +2078,7 @@ describe('MultiColumnSorting', () => {
     expect(getSourceDataAtCol(0)).toEqual([1, 2, 3, 4, 5]);
     expect(getSourceDataAtCol(1)).toEqual(['Ted', 'Frank', 'Joan', 'Sid', 'Jane']);
 
-    spec().sortByClickOnColumnHeader(0);
+    await spec().sortByClickOnColumnHeader(0);
 
     expect(getDataAtCol(0)).toEqual([1, 2, 3, 4, 5]);
     expect(getDataAtCol(1)).toEqual(['Ted', 'Frank', 'Joan', 'Sid', 'Jane']);
@@ -2098,11 +2098,11 @@ describe('MultiColumnSorting', () => {
       multiColumnSorting: true
     });
 
-    spec().sortByClickOnColumnHeader(1);
+    await spec().sortByClickOnColumnHeader(1);
     expect(getDataAtCol(0)).toEqual([2, 1, 3]);
     expect(getDataAtCol(1)).toEqual(['Alabama', 'albuquerque', 'Missouri']);
 
-    spec().sortByClickOnColumnHeader(1);
+    await spec().sortByClickOnColumnHeader(1);
     expect(getDataAtCol(0)).toEqual([3, 1, 2]);
     expect(getDataAtCol(1)).toEqual(['Missouri', 'albuquerque', 'Alabama']);
 
@@ -2123,11 +2123,11 @@ describe('MultiColumnSorting', () => {
       minSpareRows: 1
     });
 
-    spec().sortByClickOnColumnHeader(1);
+    await spec().sortByClickOnColumnHeader(1);
     expect(getDataAtCol(0)).toEqual([5, 4, 1, 2, 3, null]);
     expect(getDataAtCol(1)).toEqual(['Jane', 'Sid', 'Ted', '', '', null]);
 
-    spec().sortByClickOnColumnHeader(1);
+    await spec().sortByClickOnColumnHeader(1);
     expect(getDataAtCol(0)).toEqual([1, 4, 5, 2, 3, null]);
     expect(getDataAtCol(1)).toEqual(['Ted', 'Sid', 'Jane', '', '', null]);
 
@@ -2146,10 +2146,10 @@ describe('MultiColumnSorting', () => {
       multiColumnSorting: true
     });
 
-    spec().sortByClickOnColumnHeader(2);
+    await spec().sortByClickOnColumnHeader(2);
     expect(getDataAtCol(2)).toEqual([46, 123, 321, 'Some', 'String']);
 
-    spec().sortByClickOnColumnHeader(2);
+    await spec().sortByClickOnColumnHeader(2);
     expect(getDataAtCol(2)).toEqual(['String', 'Some', 321, 123, 46]);
 
   });
@@ -2180,32 +2180,32 @@ describe('MultiColumnSorting', () => {
       multiColumnSorting: true,
     });
 
-    spec().sortByClickOnColumnHeader(2);
+    await spec().sortByClickOnColumnHeader(2);
 
     let sortedColumn = spec().$container.find('th span.columnSorting')[2];
 
     // not sorted
     expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
 
-    spec().sortByClickOnColumnHeader(2);
+    await spec().sortByClickOnColumnHeader(2);
 
     sortedColumn = spec().$container.find('th span.columnSorting')[2];
     // not sorted
     expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).not.toMatch(/url/);
 
-    spec().sortByClickOnColumnHeader(1);
+    await spec().sortByClickOnColumnHeader(1);
 
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
     // ascending
     expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
 
-    spec().sortByClickOnColumnHeader(1);
+    await spec().sortByClickOnColumnHeader(1);
 
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
     // descending
     expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('background-image')).toMatch(/url/);
 
-    spec().sortByClickOnColumnHeader(1);
+    await spec().sortByClickOnColumnHeader(1);
 
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
     // not sorted
@@ -2238,32 +2238,32 @@ describe('MultiColumnSorting', () => {
       multiColumnSorting: true,
     });
 
-    spec().sortByClickOnColumnHeader(2);
+    await spec().sortByClickOnColumnHeader(2);
 
     let sortedColumn = spec().$container.find('th span.columnSorting')[2];
 
     // not sorted
     expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).not.toMatch(/url/);
 
-    spec().sortByClickOnColumnHeader(2);
+    await spec().sortByClickOnColumnHeader(2);
 
     sortedColumn = spec().$container.find('th span.columnSorting')[2];
     // not sorted
     expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).not.toMatch(/url/);
 
-    spec().sortByClickOnColumnHeader(1);
+    await spec().sortByClickOnColumnHeader(1);
 
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
     // ascending
     expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
 
-    spec().sortByClickOnColumnHeader(1);
+    await spec().sortByClickOnColumnHeader(1);
 
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
     // descending
     expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
 
-    spec().sortByClickOnColumnHeader(1);
+    await spec().sortByClickOnColumnHeader(1);
 
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
     // not sorted
@@ -2296,32 +2296,32 @@ describe('MultiColumnSorting', () => {
       multiColumnSorting: true,
     });
 
-    spec().sortByClickOnColumnHeader(2);
+    await spec().sortByClickOnColumnHeader(2);
 
     let sortedColumn = spec().$container.find('th span.columnSorting')[2];
 
     // not sorted
     expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).not.toMatch(/url/);
 
-    spec().sortByClickOnColumnHeader(2);
+    await spec().sortByClickOnColumnHeader(2);
 
     sortedColumn = spec().$container.find('th span.columnSorting')[2];
     // not sorted
     expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).not.toMatch(/url/);
 
-    spec().sortByClickOnColumnHeader(1);
+    await spec().sortByClickOnColumnHeader(1);
 
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
     // ascending
     expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
 
-    spec().sortByClickOnColumnHeader(1);
+    await spec().sortByClickOnColumnHeader(1);
 
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
     // descending
     expect(window.getComputedStyle(sortedColumn, ':before').getPropertyValue('-webkit-mask-image')).toMatch(/url/);
 
-    spec().sortByClickOnColumnHeader(1);
+    await spec().sortByClickOnColumnHeader(1);
 
     sortedColumn = spec().$container.find('th span.columnSorting')[1];
     // not sorted
@@ -2664,7 +2664,7 @@ describe('MultiColumnSorting', () => {
     });
 
     hot.view._wt.wtOverlays.inlineStartOverlay.scrollTo(15);
-    render();
+    await render();
     getPlugin('multiColumnSorting').sort({ column: 15, sortOrder: 'asc' });
 
     expect(getDataAtCell(0, 15)).toEqual('Ball Levy');
@@ -2777,10 +2777,10 @@ describe('MultiColumnSorting', () => {
       multiColumnSorting: true
     });
 
-    spec().sortByClickOnColumnHeader(0);
+    await spec().sortByClickOnColumnHeader(0);
     expect(getDataAtCol(0)).toEqual(['-5', '10', '12', '1000', null, null]);
 
-    spec().sortByClickOnColumnHeader(0);
+    await spec().sortByClickOnColumnHeader(0);
     expect(getDataAtCol(0)).toEqual(['1000', '12', '10', '-5', null, null]);
   });
 
@@ -2798,10 +2798,10 @@ describe('MultiColumnSorting', () => {
       multiColumnSorting: true
     });
 
-    spec().sortByClickOnColumnHeader(0);
+    await spec().sortByClickOnColumnHeader(0);
     expect(getDataAtCol(0)).toEqual(['-127', '-10.67', '-4.1', '-0.01', '0.0561', '1000']);
 
-    spec().sortByClickOnColumnHeader(0);
+    await spec().sortByClickOnColumnHeader(0);
     expect(getDataAtCol(0)).toEqual(['1000', '0.0561', '-0.01', '-4.1', '-10.67', '-127']);
   });
 
@@ -2822,10 +2822,10 @@ describe('MultiColumnSorting', () => {
       multiColumnSorting: true
     });
 
-    spec().sortByClickOnColumnHeader(0);
+    await spec().sortByClickOnColumnHeader(0);
     expect(getDataAtCol(0)).toEqual(['-127', '-10.67', '-4.1', '-0.01', '0.0561', '1000', null, null, null]);
 
-    spec().sortByClickOnColumnHeader(0);
+    await spec().sortByClickOnColumnHeader(0);
     expect(getDataAtCol(0)).toEqual(['1000', '0.0561', '-0.01', '-4.1', '-10.67', '-127', null, null, null]);
   });
 
@@ -2846,10 +2846,10 @@ describe('MultiColumnSorting', () => {
       multiColumnSorting: true
     });
 
-    spec().sortByClickOnColumnHeader(0);
+    await spec().sortByClickOnColumnHeader(0);
     expect(getDataAtCol(0)).toEqual(['-127', '-10.67', '-4.1', '-0.01', '0.0561', '1000', 'a', 'b', 'hello']);
 
-    spec().sortByClickOnColumnHeader(0);
+    await spec().sortByClickOnColumnHeader(0);
     expect(getDataAtCol(0)).toEqual(['hello', 'b', 'a', '1000', '0.0561', '-0.01', '-4.1', '-10.67', '-127']);
   });
 
@@ -2865,7 +2865,7 @@ describe('MultiColumnSorting', () => {
       multiColumnSorting: true
     });
 
-    spec().sortByClickOnColumnHeader(0);
+    await spec().sortByClickOnColumnHeader(0);
 
     expect(hot.toPhysicalRow(0)).toBe(2);
     expect(hot.toPhysicalRow(1)).toBe(0);
@@ -3583,13 +3583,13 @@ describe('MultiColumnSorting', () => {
         multiColumnSorting: true
       });
 
-      spec().sortByClickOnColumnHeader(2);
+      await spec().sortByClickOnColumnHeader(2);
 
       await keyDown('control/meta');
 
-      spec().sortByClickOnColumnHeader(3);
+      await spec().sortByClickOnColumnHeader(3);
 
-      keyUp('control/meta');
+      await keyUp('control/meta');
 
       expect(getDataAtCol(0)).toEqual(['Ann', 'Mary', 'Mary', 'Henry', 'Robert', 'David', 'John', 'Robert', 'Ann']);
     });
@@ -3609,17 +3609,17 @@ describe('MultiColumnSorting', () => {
       });
 
       // ASC
-      spec().sortByClickOnColumnHeader(0);
+      await spec().sortByClickOnColumnHeader(0);
 
       await keyDown('control/meta');
 
       // ASC as 2nd
-      spec().sortByClickOnColumnHeader(1);
+      await spec().sortByClickOnColumnHeader(1);
 
       // DESC as 2nd
-      spec().sortByClickOnColumnHeader(0);
+      await spec().sortByClickOnColumnHeader(0);
 
-      keyUp('control/meta');
+      await keyUp('control/meta');
 
       expect(getDataAtCol(0)).toEqual(['Mary', 'Mary', 'John', 'Robert', 'Robert', 'Ann', 'Henry', 'David', 'Ann']);
     });
@@ -3648,7 +3648,7 @@ describe('MultiColumnSorting', () => {
 
       expect($clickedHeader.hasClass(HEADER_ACTION_CLASS)).toBeFalsy();
 
-      spec().sortByClickOnColumnHeader(0);
+      await spec().sortByClickOnColumnHeader(0);
 
       expect(getDataAtCol(0)).toEqual(['Mary', 'Henry', 'Ann', 'Robert', 'Ann', 'David', 'John', 'Mary', 'Robert']);
     });
@@ -3690,13 +3690,13 @@ describe('MultiColumnSorting', () => {
 
       expect($clickedHeader.hasClass(HEADER_ACTION_CLASS)).toBeFalsy();
 
-      updateSettings({ columns: () => ({ type: 'text' }) });
+      await updateSettings({ columns: () => ({ type: 'text' }) });
 
       $clickedHeader = spec().$container.find('th span.columnSorting:eq(0)');
 
       expect($clickedHeader.hasClass(HEADER_ACTION_CLASS)).toBeTruthy();
 
-      spec().sortByClickOnColumnHeader(0);
+      await spec().sortByClickOnColumnHeader(0);
 
       expect(getDataAtCol(0)).toEqual(['Ann', 'Ann', 'David', 'Henry', 'John', 'Mary', 'Mary', 'Robert', 'Robert']);
     });
@@ -3719,13 +3719,13 @@ describe('MultiColumnSorting', () => {
 
       expect($clickedHeader.hasClass(HEADER_ACTION_CLASS)).toBeTruthy();
 
-      updateSettings({ multiColumnSorting: { headerAction: false } });
+      await updateSettings({ multiColumnSorting: { headerAction: false } });
 
       $clickedHeader = spec().$container.find('th span.columnSorting:eq(0)');
 
       expect($clickedHeader.hasClass(HEADER_ACTION_CLASS)).toBeFalsy();
 
-      spec().sortByClickOnColumnHeader(0);
+      await spec().sortByClickOnColumnHeader(0);
 
       expect(getDataAtCol(0)).toEqual(['Mary', 'Henry', 'Ann', 'Robert', 'Ann', 'David', 'John', 'Mary', 'Robert']);
     });
@@ -3739,19 +3739,19 @@ describe('MultiColumnSorting', () => {
 
       const headerWidthAtStart = spec().$container.find('th').eq(0).width();
 
-      updateSettings({ multiColumnSorting: true });
+      await updateSettings({ multiColumnSorting: true });
 
       let newHeaderWidth = spec().$container.find('th').eq(0).width();
 
       expect(headerWidthAtStart).toBeLessThan(newHeaderWidth);
 
-      updateSettings({ multiColumnSorting: false });
+      await updateSettings({ multiColumnSorting: false });
 
       newHeaderWidth = spec().$container.find('th').eq(0).width();
 
       expect(headerWidthAtStart).toBe(newHeaderWidth);
 
-      updateSettings({ multiColumnSorting: { initialConfig: { column: 0, sortOrder: 'asc' } } });
+      await updateSettings({ multiColumnSorting: { initialConfig: { column: 0, sortOrder: 'asc' } } });
 
       newHeaderWidth = spec().$container.find('th').eq(0).width();
 
@@ -3770,7 +3770,7 @@ describe('MultiColumnSorting', () => {
       const wtHiderWidthAtStart = spec().$container.find('.wtHider').eq(0).width();
       const htCoreWidthAtStart = spec().$container.find('.htCore').eq(0).width();
 
-      updateSettings({ multiColumnSorting: true });
+      await updateSettings({ multiColumnSorting: true });
 
       let newWtHiderWidth = spec().$container.find('.wtHider').eq(0).width();
       let newHtCoreWidth = spec().$container.find('.htCore').eq(0).width();
@@ -3779,7 +3779,7 @@ describe('MultiColumnSorting', () => {
       expect(htCoreWidthAtStart).toBeLessThan(newHtCoreWidth);
       expect(newWtHiderWidth).toBe(newHtCoreWidth);
 
-      updateSettings({ multiColumnSorting: false });
+      await updateSettings({ multiColumnSorting: false });
 
       newWtHiderWidth = spec().$container.find('.wtHider').eq(0).width();
       newHtCoreWidth = spec().$container.find('.htCore').eq(0).width();
@@ -3788,7 +3788,7 @@ describe('MultiColumnSorting', () => {
       expect(htCoreWidthAtStart).toBe(newHtCoreWidth);
       expect(newWtHiderWidth).toBe(newHtCoreWidth);
 
-      updateSettings({ multiColumnSorting: { initialConfig: { column: 0, sortOrder: 'asc' } } });
+      await updateSettings({ multiColumnSorting: { initialConfig: { column: 0, sortOrder: 'asc' } } });
 
       newWtHiderWidth = spec().$container.find('.wtHider').eq(0).width();
       newHtCoreWidth = spec().$container.find('.htCore').eq(0).width();
@@ -3807,7 +3807,7 @@ describe('MultiColumnSorting', () => {
       const wtHiderWidthAtStart = spec().$container.find('.wtHider').eq(0).width();
       const htCoreWidthAtStart = spec().$container.find('.htCore').eq(0).width();
 
-      updateSettings({ multiColumnSorting: { indicator: false } });
+      await updateSettings({ multiColumnSorting: { indicator: false } });
 
       await sleep(100);
 
@@ -3819,7 +3819,7 @@ describe('MultiColumnSorting', () => {
       expect(wtHiderWidthAtStart).toBe(newWtHiderWidth);
       expect(htCoreWidthAtStart).toBe(newHtCoreWidth);
 
-      updateSettings({ multiColumnSorting: false });
+      await updateSettings({ multiColumnSorting: false });
 
       await sleep(100);
 
@@ -3846,7 +3846,7 @@ describe('MultiColumnSorting', () => {
         }
       });
 
-      updateSettings({ multiColumnSorting: { initialConfig: [] } });
+      await updateSettings({ multiColumnSorting: { initialConfig: [] } });
 
       expect(hot.toVisualRow(0)).toEqual(0);
     });
@@ -3868,7 +3868,7 @@ describe('MultiColumnSorting', () => {
         },
       });
 
-      alter('remove_col', 0);
+      await alter('remove_col', 0);
 
       expect(getData()).toEqual([
         ['B3', 'C3'],
@@ -3896,7 +3896,7 @@ describe('MultiColumnSorting', () => {
         },
       });
 
-      alter('insert_col_start', 1);
+      await alter('insert_col_start', 1);
 
       expect(getData()).toEqual([
         ['A3', null, 'B3', 'C3'],
@@ -3928,7 +3928,7 @@ describe('MultiColumnSorting', () => {
         },
       });
 
-      alter('remove_col', 3);
+      await alter('remove_col', 3);
 
       expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([
         { column: 1, sortOrder: 'asc' },
@@ -3946,7 +3946,7 @@ describe('MultiColumnSorting', () => {
         multiColumnSorting: true
       });
 
-      alter('insert_row_above', 2);
+      await alter('insert_row_above', 2);
 
       expect(getData()).toEqual([
         ['A1', 'B1', 'C1'],
@@ -3966,7 +3966,7 @@ describe('MultiColumnSorting', () => {
         multiColumnSorting: true
       });
 
-      alter('insert_col_start', 2, 5);
+      await alter('insert_col_start', 2, 5);
 
       expect(getHtCore().find('tbody tr:eq(0) td').length).toEqual(7);
     });
@@ -3980,7 +3980,7 @@ describe('MultiColumnSorting', () => {
         colHeaders: true
       });
 
-      updateSettings({});
+      await updateSettings({});
 
       expect(onErrorSpy).not.toHaveBeenCalled();
     });

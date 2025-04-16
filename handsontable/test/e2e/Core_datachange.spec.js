@@ -20,7 +20,7 @@ describe('Core_datachange', () => {
         output = changes;
       }
     });
-    setDataAtCell(1, 2, 'test');
+    await setDataAtCell(1, 2, 'test');
 
     expect(output[0][0]).toEqual(1);
     expect(output[0][1]).toEqual(2);
@@ -38,7 +38,7 @@ describe('Core_datachange', () => {
         src = source;
       }
     });
-    setDataAtCell(1, 2, 'abc', 'test');
+    await setDataAtCell(1, 2, 'abc', 'test');
 
     expect(output[0][3]).toEqual('abc');
     expect(src).toEqual('test');
@@ -54,7 +54,7 @@ describe('Core_datachange', () => {
         src = source;
       }
     });
-    setDataAtCell([[1, 2, 'abc']], 'test');
+    await setDataAtCell([[1, 2, 'abc']], 'test');
 
     expect(output[0][3]).toEqual('abc');
     expect(src).toEqual('test');
@@ -67,7 +67,7 @@ describe('Core_datachange', () => {
     Handsontable.hooks.add('afterChange', (changes) => {
       output = changes;
     });
-    setDataAtCell(1, 2, 'test');
+    await setDataAtCell(1, 2, 'test');
 
     expect(output[0][0]).toEqual(1);
     expect(output[0][1]).toEqual(2);
@@ -84,7 +84,7 @@ describe('Core_datachange', () => {
         output = this.rootElement;
       }
     });
-    setDataAtCell(0, 0, 'test');
+    await setDataAtCell(0, 0, 'test');
 
     expect(output).toEqual($container[0]);
   });
@@ -121,7 +121,7 @@ describe('Core_datachange', () => {
         }
       }
     });
-    setDataAtCell(0, 0, 'Alice Red');
+    await setDataAtCell(0, 0, 'Alice Red');
 
     expect(output).toEqual('Alice Red');
   });
@@ -144,7 +144,7 @@ describe('Core_datachange', () => {
         }
       }
     });
-    setDataAtCell(0, 0, 'test');
+    await setDataAtCell(0, 0, 'test');
 
     expect(event[0]).toEqual(0);
     expect(event[1]).toEqual('col1');

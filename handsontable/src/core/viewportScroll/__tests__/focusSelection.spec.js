@@ -28,7 +28,7 @@ describe('Focus selection scroll', () => {
       colHeaders: true,
     });
 
-    listen();
+    await listen();
 
     await selectColumns(1, 1, -1);
     await keyDownUp('enter');
@@ -141,7 +141,7 @@ describe('Focus selection scroll', () => {
       colHeaders: true,
     });
 
-    listen();
+    await listen();
 
     await selectRows(1, 1, -1);
     await keyDownUp('tab');

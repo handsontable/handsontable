@@ -35,8 +35,8 @@ describe('Selection navigation (RTL mode)', () => {
         startCols: 5
       });
 
-      selectCell(1, 1);
-      keyDownUp('arrowright');
+      await selectCell(1, 1);
+      await keyDownUp('arrowright');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: 1,0 to: 1,0']);
     });
@@ -49,8 +49,8 @@ describe('Selection navigation (RTL mode)', () => {
         navigableHeaders: true,
       });
 
-      selectCell(-1, 3);
-      keyDownUp('arrowright');
+      await selectCell(-1, 3);
+      await keyDownUp('arrowright');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,2 from: -1,2 to: -1,2']);
     });
@@ -63,8 +63,8 @@ describe('Selection navigation (RTL mode)', () => {
           autoWrapRow: false
         });
 
-        selectCell(1, 0);
-        keyDownUp('arrowright');
+        await selectCell(1, 0);
+        await keyDownUp('arrowright');
 
         expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: 1,0 to: 1,0']);
       });
@@ -78,8 +78,8 @@ describe('Selection navigation (RTL mode)', () => {
           autoWrapRow: true
         });
 
-        selectCell(1, 0);
-        keyDownUp('arrowright');
+        await selectCell(1, 0);
+        await keyDownUp('arrowright');
 
         expect(getSelectedRange()).toEqualCellRange(['highlight: 0,4 from: 0,4 to: 0,4']);
       });
@@ -93,8 +93,8 @@ describe('Selection navigation (RTL mode)', () => {
           autoWrapRow: true
         });
 
-        selectCell(1, 0);
-        keyDownUp('arrowright');
+        await selectCell(1, 0);
+        await keyDownUp('arrowright');
 
         expect(getSelectedRange()).toEqualCellRange(['highlight: 0,4 from: 0,4 to: 0,4']);
       });
@@ -117,8 +117,8 @@ describe('Selection navigation (RTL mode)', () => {
           },
         });
 
-        selectCell(1, -3);
-        keyDownUp('arrowright');
+        await selectCell(1, -3);
+        await keyDownUp('arrowright');
 
         expect(getSelectedRange()).toEqualCellRange(['highlight: 0,4 from: 0,4 to: 0,4']);
       });
@@ -141,8 +141,8 @@ describe('Selection navigation (RTL mode)', () => {
           },
         });
 
-        selectCell(1, 0);
-        keyDownUp('arrowright');
+        await selectCell(1, 0);
+        await keyDownUp('arrowright');
 
         expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-1 from: 1,-1 to: 1,-1']);
       });
@@ -154,8 +154,8 @@ describe('Selection navigation (RTL mode)', () => {
           autoWrapRow: true
         });
 
-        selectCell(0, 0);
-        keyDownUp('arrowright');
+        await selectCell(0, 0);
+        await keyDownUp('arrowright');
 
         expect(getSelectedRange()).toEqualCellRange(['highlight: 4,4 from: 4,4 to: 4,4']);
       });
@@ -169,8 +169,8 @@ describe('Selection navigation (RTL mode)', () => {
           autoWrapRow: true
         });
 
-        selectCell(0, 0);
-        keyDownUp('arrowright');
+        await selectCell(0, 0);
+        await keyDownUp('arrowright');
 
         expect(getSelectedRange()).toEqualCellRange(['highlight: 4,4 from: 4,4 to: 4,4']);
       });
@@ -193,8 +193,8 @@ describe('Selection navigation (RTL mode)', () => {
           },
         });
 
-        selectCell(-3, -3);
-        keyDownUp('arrowright');
+        await selectCell(-3, -3);
+        await keyDownUp('arrowright');
 
         expect(getSelectedRange()).toEqualCellRange(['highlight: 4,4 from: 4,4 to: 4,4']);
       });
@@ -217,8 +217,8 @@ describe('Selection navigation (RTL mode)', () => {
           },
         });
 
-        selectCell(0, 0);
-        keyDownUp('arrowright');
+        await selectCell(0, 0);
+        await keyDownUp('arrowright');
 
         expect(getSelectedRange()).toEqualCellRange(['highlight: 0,-1 from: 0,-1 to: 0,-1']);
       });

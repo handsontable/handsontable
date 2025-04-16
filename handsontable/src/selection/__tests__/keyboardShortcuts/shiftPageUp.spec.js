@@ -19,8 +19,8 @@ describe('Selection extending', () => {
         startCols: 3
       });
 
-      selectCell(13, 1);
-      keyDownUp(['shift', 'pageup']);
+      await selectCell(13, 1);
+      await keyDownUp(['shift', 'pageup']);
 
       expect(`
         |   :   :   |
@@ -41,7 +41,7 @@ describe('Selection extending', () => {
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 13,1 from: 13,1 to: 9,1']);
 
-      keyDownUp(['shift', 'pageup']);
+      await keyDownUp(['shift', 'pageup']);
 
       expect(`
         |   :   :   |
@@ -62,7 +62,7 @@ describe('Selection extending', () => {
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 13,1 from: 13,1 to: 5,1']);
 
-      keyDownUp(['shift', 'pageup']);
+      await keyDownUp(['shift', 'pageup']);
 
       expect(`
         |   :   :   |
@@ -83,7 +83,7 @@ describe('Selection extending', () => {
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 13,1 from: 13,1 to: 1,1']);
 
-      keyDownUp(['shift', 'pageup']);
+      await keyDownUp(['shift', 'pageup']);
 
       expect(`
         |   : 0 :   |
@@ -113,8 +113,8 @@ describe('Selection extending', () => {
         startCols: 3
       });
 
-      selectCell(13, 1);
-      keyDownUp(['shift', 'pageup']);
+      await selectCell(13, 1);
+      await keyDownUp(['shift', 'pageup']);
 
       expect(`
         |   :   :   |
@@ -135,7 +135,7 @@ describe('Selection extending', () => {
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 13,1 from: 13,1 to: 9,1']);
 
-      keyDownUp(['shift', 'pageup']);
+      await keyDownUp(['shift', 'pageup']);
 
       expect(`
         |   :   :   |
@@ -156,7 +156,7 @@ describe('Selection extending', () => {
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 13,1 from: 13,1 to: 5,1']);
 
-      keyDownUp(['shift', 'pageup']);
+      await keyDownUp(['shift', 'pageup']);
 
       expect(`
         |   :   :   |
@@ -177,7 +177,7 @@ describe('Selection extending', () => {
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 13,1 from: 13,1 to: 1,1']);
 
-      keyDownUp(['shift', 'pageup']);
+      await keyDownUp(['shift', 'pageup']);
 
       expect(`
         |   : 0 :   |
@@ -207,8 +207,8 @@ describe('Selection extending', () => {
         startCols: 3
       });
 
-      selectCell(13, 1);
-      keyDownUp(['shift', 'pageup']);
+      await selectCell(13, 1);
+      await keyDownUp(['shift', 'pageup']);
 
       expect(`
         |   :   :   |
@@ -229,7 +229,7 @@ describe('Selection extending', () => {
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 13,1 from: 13,1 to: 9,1']);
 
-      keyDownUp(['shift', 'pageup']);
+      await keyDownUp(['shift', 'pageup']);
 
       expect(`
         |   :   :   |
@@ -250,7 +250,7 @@ describe('Selection extending', () => {
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 13,1 from: 13,1 to: 5,1']);
 
-      keyDownUp(['shift', 'pageup']);
+      await keyDownUp(['shift', 'pageup']);
 
       expect(`
         |   :   :   |
@@ -271,7 +271,7 @@ describe('Selection extending', () => {
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 13,1 from: 13,1 to: 1,1']);
 
-      keyDownUp(['shift', 'pageup']);
+      await keyDownUp(['shift', 'pageup']);
 
       expect(`
         |   : 0 :   |

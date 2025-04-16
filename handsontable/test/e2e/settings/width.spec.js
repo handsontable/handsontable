@@ -21,7 +21,7 @@ describe('settings', () => {
 
       const initialWidth = $(hot.rootElement).width();
 
-      updateSettings({
+      await updateSettings({
         width: 300
       });
 
@@ -39,7 +39,7 @@ describe('settings', () => {
 
       const initialWidth = $(hot.rootElement).width();
 
-      updateSettings({
+      await updateSettings({
         width: 'auto'
       });
 

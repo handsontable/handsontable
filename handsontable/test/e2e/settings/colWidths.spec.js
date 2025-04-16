@@ -78,7 +78,7 @@ describe('settings', () => {
     describe('defined in updateSettings', () => {
       it('should consider colWidths provided as number', async() => {
         handsontable();
-        updateSettings({
+        await updateSettings({
           colWidths: 123
         });
 
@@ -87,7 +87,7 @@ describe('settings', () => {
 
       it('should consider colWidths provided as string', async() => {
         handsontable();
-        updateSettings({
+        await updateSettings({
           colWidths: '123'
         });
 
@@ -96,7 +96,7 @@ describe('settings', () => {
 
       it('should consider colWidths provided as array of numbers', async() => {
         handsontable();
-        updateSettings({
+        await updateSettings({
           colWidths: [123]
         });
 
@@ -105,7 +105,7 @@ describe('settings', () => {
 
       it('should consider colWidths provided as array of strings', async() => {
         handsontable();
-        updateSettings({
+        await updateSettings({
           colWidths: ['123']
         });
 
@@ -114,7 +114,7 @@ describe('settings', () => {
 
       it('should consider colWidth provided as function that returns number', async() => {
         handsontable();
-        updateSettings({
+        await updateSettings({
           colWidths(index) {
             if (index === 0) {
               return 123;
@@ -129,7 +129,7 @@ describe('settings', () => {
 
       it('should consider colWidth provided as function that returns string', async() => {
         handsontable();
-        updateSettings({
+        await updateSettings({
           colWidths(index) {
             if (index === 0) {
               return '123';

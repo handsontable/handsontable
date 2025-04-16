@@ -37,7 +37,7 @@ describe('Core.getSourceDataAtRow', () => {
     expect(getSourceDataAtRow(0)).not.toBe(datasetAoA[0]);
     expect(getSourceDataAtRow(0)[0]).toEqual('a1');
 
-    updateSettings({
+    await updateSettings({
       data: datasetAoO
     });
 
@@ -80,7 +80,7 @@ describe('Core.getSourceDataAtRow', () => {
 
     expect(getSourceDataAtRow(1)).toEqual(dataset[1]);
 
-    updateSettings({
+    await updateSettings({
       data: null,
       startRows: 1,
       dataSchema: [{ a: null, b: null, c: null, d: { e: null, f: null } }],

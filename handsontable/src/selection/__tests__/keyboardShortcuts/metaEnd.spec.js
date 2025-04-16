@@ -45,8 +45,8 @@ describe('Selection navigation', () => {
             startCols: 5
           });
 
-          selectCell(1, 1);
-          keyDownUp(['control/meta', 'end']);
+          await selectCell(1, 1);
+          await keyDownUp(['control/meta', 'end']);
 
           expect(getSelectedRange()).toEqualCellRange(['highlight: 4,4 from: 4,4 to: 4,4']);
         });
@@ -59,8 +59,8 @@ describe('Selection navigation', () => {
             rowHeaders: true,
           });
 
-          selectCell(1, 1);
-          keyDownUp(['control/meta', 'end']);
+          await selectCell(1, 1);
+          await keyDownUp(['control/meta', 'end']);
 
           expect(getSelectedRange()).toEqualCellRange(['highlight: 4,4 from: 4,4 to: 4,4']);
         });
@@ -82,8 +82,8 @@ describe('Selection navigation', () => {
             },
           });
 
-          selectCell(1, 1);
-          keyDownUp(['control/meta', 'end']);
+          await selectCell(1, 1);
+          await keyDownUp(['control/meta', 'end']);
 
           expect(getSelectedRange()).toEqualCellRange(['highlight: 4,4 from: 4,4 to: 4,4']);
         });
@@ -105,8 +105,8 @@ describe('Selection navigation', () => {
             },
           });
 
-          selectCell(-2, 3);
-          keyDownUp(['control/meta', 'end']);
+          await selectCell(-2, 3);
+          await keyDownUp(['control/meta', 'end']);
 
           expect(getSelectedRange()).toEqualCellRange(['highlight: 4,4 from: 4,4 to: 4,4']);
         });
@@ -128,8 +128,8 @@ describe('Selection navigation', () => {
             },
           });
 
-          selectCell(3, -2);
-          keyDownUp(['control/meta', 'end']);
+          await selectCell(3, -2);
+          await keyDownUp(['control/meta', 'end']);
 
           expect(getSelectedRange()).toEqualCellRange(['highlight: 4,4 from: 4,4 to: 4,4']);
         });
@@ -142,8 +142,8 @@ describe('Selection navigation', () => {
             startCols: 5
           });
 
-          selectCell(0, 0);
-          keyDownUp(['control/meta', 'end']);
+          await selectCell(0, 0);
+          await keyDownUp(['control/meta', 'end']);
 
           expect(getSelectedRange()).toEqualCellRange(['highlight: 4,4 from: 4,4 to: 4,4']);
         });
@@ -155,8 +155,8 @@ describe('Selection navigation', () => {
             startCols: 5
           });
 
-          selectCell(1, 1);
-          keyDownUp(['control/meta', 'end']);
+          await selectCell(1, 1);
+          await keyDownUp(['control/meta', 'end']);
 
           expect(getSelectedRange()).toEqualCellRange(['highlight: 4,4 from: 4,4 to: 4,4']);
         });
@@ -169,8 +169,8 @@ describe('Selection navigation', () => {
             startCols: 5
           });
 
-          selectCell(4, 0);
-          keyDownUp(['control/meta', 'end']);
+          await selectCell(4, 0);
+          await keyDownUp(['control/meta', 'end']);
 
           expect(getSelectedRange()).toEqualCellRange(['highlight: 2,4 from: 2,4 to: 2,4']);
         });
@@ -184,12 +184,12 @@ describe('Selection navigation', () => {
             startCols: 3
           });
 
-          selectCell(0, 0);
-          keyDownUp(['control/meta', 'end']);
+          await selectCell(0, 0);
+          await keyDownUp(['control/meta', 'end']);
 
           expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: 2,2 to: 2,2']);
 
-          keyDownUp(['control/meta', 'end']);
+          await keyDownUp(['control/meta', 'end']);
 
           expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: 2,2 to: 2,2']);
         });
@@ -203,8 +203,8 @@ describe('Selection navigation', () => {
             startCols: 5
           });
 
-          selectCell(2, 2);
-          keyDownUp(['control/meta', 'end']);
+          await selectCell(2, 2);
+          await keyDownUp(['control/meta', 'end']);
 
           expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: 2,2 to: 2,2']);
         });
@@ -216,8 +216,8 @@ describe('Selection navigation', () => {
             startCols: 5
           });
 
-          selectCell(2, 2);
-          keyDownUp(['control/meta', 'end']);
+          await selectCell(2, 2);
+          await keyDownUp(['control/meta', 'end']);
 
           expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: 2,2 to: 2,2']);
         });
@@ -229,8 +229,8 @@ describe('Selection navigation', () => {
             startCols: 5
           });
 
-          selectCell(2, 2);
-          keyDownUp(['control/meta', 'end']);
+          await selectCell(2, 2);
+          await keyDownUp(['control/meta', 'end']);
 
           expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: 2,2 to: 2,2']);
         });
@@ -244,8 +244,8 @@ describe('Selection navigation', () => {
             startCols: 3
           });
 
-          selectCell(1, 1);
-          keyDownUp(['control/meta', 'end']);
+          await selectCell(1, 1);
+          await keyDownUp(['control/meta', 'end']);
 
           expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 1,1']);
         });

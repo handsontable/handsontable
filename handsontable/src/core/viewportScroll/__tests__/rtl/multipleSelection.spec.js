@@ -82,7 +82,7 @@ describe('Multiple selection scroll (RTL mode)', () => {
       await selectCell(-1, 4);
 
       scrollIntoViewSpy.calls.reset();
-      keyDownUp(['shift', 'arrowleft']);
+      await keyDownUp(['shift', 'arrowleft']);
 
       await sleep(10);
 

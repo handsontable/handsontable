@@ -19,8 +19,8 @@ describe('Selection extending', () => {
         startCols: 5
       });
 
-      selectCell(2, 3);
-      keyDownUp(['control', 'space']);
+      await selectCell(2, 3);
+      await keyDownUp(['control', 'space']);
 
       expect(`
         |   ║   :   :   : * :   |
@@ -42,11 +42,11 @@ describe('Selection extending', () => {
         startCols: 5
       });
 
-      selectCell(2, 2, 3, 3);
-      keyDownUp('tab'); // Move focus to the next cell
-      keyDownUp('tab'); // Move focus to the next cell
-      keyDownUp('tab'); // Move focus to the next cell
-      keyDownUp(['control', 'space']);
+      await selectCell(2, 2, 3, 3);
+      await keyDownUp('tab'); // Move focus to the next cell
+      await keyDownUp('tab'); // Move focus to the next cell
+      await keyDownUp('tab'); // Move focus to the next cell
+      await keyDownUp(['control', 'space']);
 
       expect(`
         |   ║   :   : * : * :   |
@@ -68,8 +68,8 @@ describe('Selection extending', () => {
         startCols: 5
       });
 
-      selectCells([[3, 3, 1, 0]]);
-      keyDownUp(['control', 'space']);
+      await selectCells([[3, 3, 1, 0]]);
+      await keyDownUp(['control', 'space']);
 
       expect(`
         |   ║ * : * : * : * :   |
@@ -91,8 +91,8 @@ describe('Selection extending', () => {
         startCols: 5
       });
 
-      selectCells([[1, 1, 1, 1], [2, 2, 3, 3]]);
-      keyDownUp(['control', 'space']);
+      await selectCells([[1, 1, 1, 1], [2, 2, 3, 3]]);
+      await keyDownUp(['control', 'space']);
 
       expect(`
         |   ║   :   : * : * :   |
@@ -114,9 +114,9 @@ describe('Selection extending', () => {
         startCols: 5
       });
 
-      selectRows(1);
-      listen();
-      keyDownUp(['control', 'space']);
+      await selectRows(1);
+      await listen();
+      await keyDownUp(['control', 'space']);
 
       expect(`
         | * ║ * : * : * : * : * |
@@ -138,9 +138,9 @@ describe('Selection extending', () => {
         startCols: 5
       });
 
-      selectColumns(1);
-      listen();
-      keyDownUp(['control', 'space']);
+      await selectColumns(1);
+      await listen();
+      await keyDownUp(['control', 'space']);
 
       expect(`
         |   ║   : * :   :   :   |
@@ -163,8 +163,8 @@ describe('Selection extending', () => {
         navigableHeaders: true,
       });
 
-      selectCell(2, 3);
-      keyDownUp(['control', 'space']);
+      await selectCell(2, 3);
+      await keyDownUp(['control', 'space']);
 
       expect(`
         |   ║   :   :   : * :   |
@@ -187,8 +187,8 @@ describe('Selection extending', () => {
         navigableHeaders: true,
       });
 
-      selectCells([[3, 3, 1, 0]]);
-      keyDownUp(['control', 'space']);
+      await selectCells([[3, 3, 1, 0]]);
+      await keyDownUp(['control', 'space']);
 
       expect(`
         |   ║ * : * : * : * :   |
@@ -211,8 +211,8 @@ describe('Selection extending', () => {
         navigableHeaders: true,
       });
 
-      selectCells([[1, 1, 1, 1], [2, 2, 3, 3]]);
-      keyDownUp(['control', 'space']);
+      await selectCells([[1, 1, 1, 1], [2, 2, 3, 3]]);
+      await keyDownUp(['control', 'space']);
 
       expect(`
         |   ║   :   : * : * :   |
@@ -235,9 +235,9 @@ describe('Selection extending', () => {
         navigableHeaders: true,
       });
 
-      selectRows(1);
-      listen();
-      keyDownUp(['control', 'space']);
+      await selectRows(1);
+      await listen();
+      await keyDownUp(['control', 'space']);
 
       expect(`
         | * ║ * : * : * : * : * |

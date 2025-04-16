@@ -99,7 +99,7 @@ describe('TextEditor', () => {
       ],
     });
 
-    listen();
+    await listen();
 
     await selectAll();
 
@@ -914,7 +914,7 @@ describe('TextEditor', () => {
   it('should render string in textarea', async() => {
     handsontable();
 
-    setDataAtCell(2, 2, 'string');
+    await setDataAtCell(2, 2, 'string');
 
     await selectCell(2, 2);
     await keyDownUp('enter');
@@ -999,7 +999,7 @@ describe('TextEditor', () => {
       colHeaders: true
     });
 
-    listen();
+    await listen();
 
     await selectAll();
     await keyDownUp('enter');
@@ -1057,7 +1057,7 @@ describe('TextEditor', () => {
       colHeaders: true
     });
 
-    setDataAtCell(2, 2, 'string\nstring\nstring');
+    await setDataAtCell(2, 2, 'string\nstring\nstring');
 
     await selectCell(2, 2);
     await keyDownUp('enter');
@@ -1076,7 +1076,7 @@ describe('TextEditor', () => {
       colHeaders: true
     });
 
-    setDataAtCell(2, 2, 'string\nstring\nstring');
+    await setDataAtCell(2, 2, 'string\nstring\nstring');
 
     await selectCell(2, 2);
     await keyDownUp('enter');
@@ -1105,7 +1105,7 @@ describe('TextEditor', () => {
       colHeaders: true
     });
 
-    setDataAtCell(2, 2, 'string\nstring\nstring');
+    await setDataAtCell(2, 2, 'string\nstring\nstring');
 
     await selectCell(2, 2);
     await keyDownUp('enter');
@@ -1118,7 +1118,7 @@ describe('TextEditor', () => {
   it('should render textarea editor in specified height (single line)', async() => {
     const hot = handsontable();
 
-    setDataAtCell(2, 2, 'first line');
+    await setDataAtCell(2, 2, 'first line');
 
     await selectCell(2, 2);
     await keyDownUp('enter');
@@ -1133,7 +1133,7 @@ describe('TextEditor', () => {
   it('should render textarea editor in specified height (multi line)', async() => {
     const hot = handsontable();
 
-    setDataAtCell(2, 2, 'first line\n second line\n third line...');
+    await setDataAtCell(2, 2, 'first line\n second line\n third line...');
 
     await selectCell(2, 2);
     await keyDownUp('enter');
@@ -1147,7 +1147,7 @@ describe('TextEditor', () => {
 
   it('should render number in textarea', async() => {
     handsontable();
-    setDataAtCell(2, 2, 13);
+    await setDataAtCell(2, 2, 13);
 
     await selectCell(2, 2);
     await keyDownUp('enter');
@@ -1157,7 +1157,7 @@ describe('TextEditor', () => {
 
   it('should render boolean true in textarea', async() => {
     handsontable();
-    setDataAtCell(2, 2, true);
+    await setDataAtCell(2, 2, true);
 
     await selectCell(2, 2);
     await keyDownUp('enter');
@@ -1167,7 +1167,7 @@ describe('TextEditor', () => {
 
   it('should render boolean false in textarea', async() => {
     handsontable();
-    setDataAtCell(2, 2, false);
+    await setDataAtCell(2, 2, false);
 
     await selectCell(2, 2);
     await keyDownUp('enter');
@@ -1177,7 +1177,7 @@ describe('TextEditor', () => {
 
   it('should render null in textarea', async() => {
     handsontable();
-    setDataAtCell(2, 2, null);
+    await setDataAtCell(2, 2, null);
 
     await selectCell(2, 2);
     await keyDownUp('enter');
@@ -1187,7 +1187,7 @@ describe('TextEditor', () => {
 
   it('should render undefined in textarea', async() => {
     handsontable();
-    setDataAtCell(2, 2);
+    await setDataAtCell(2, 2);
 
     await selectCell(2, 2);
     await keyDownUp('enter');
@@ -1474,7 +1474,7 @@ describe('TextEditor', () => {
     await selectCell(2, 2);
     await keyDownUp('f2');
 
-    updateSettings({
+    await updateSettings({
       data: getData()
     });
 
@@ -1507,7 +1507,7 @@ describe('TextEditor', () => {
     await keyDownUp('enter');
 
     data[1][1] = 'dddddddddddddddddddd';
-    render();
+    await render();
 
     await keyDownUp('enter');
 
@@ -1804,7 +1804,7 @@ describe('TextEditor', () => {
       height: 100
     });
 
-    listen();
+    await listen();
 
     await selectCells([[0, 3, 75, 3]]);
 
@@ -2305,7 +2305,7 @@ describe('TextEditor', () => {
       height: 250
     });
 
-    setDataAtCell(2, 2, `\
+    await setDataAtCell(2, 2, `\
     The Dude abides...
 
     I don't know about you, but I take
@@ -2464,7 +2464,7 @@ describe('TextEditor', () => {
     const hidingMap = hot.rowIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding');
 
     hidingMap.setValueAtIndex(1, true);
-    render();
+    await render();
 
     await selectCell(0, 0);
     await keyDownUp('enter');
@@ -2491,7 +2491,7 @@ describe('TextEditor', () => {
     const hidingMap = hot.rowIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding');
 
     hidingMap.setValueAtIndex(1, true);
-    render();
+    await render();
 
     await keyDownUp('enter');
 
@@ -2521,7 +2521,7 @@ describe('TextEditor', () => {
 
     getActiveEditor().setValue('test');
 
-    alter('insert_row_above', 0, 2);
+    await alter('insert_row_above', 0, 2);
 
     expect(getSelectedRange()).toEqualCellRange(['highlight: 3,1 from: 3,1 to: 3,1']);
     expect(getActiveEditor().isOpened()).toBe(true);
@@ -2543,7 +2543,7 @@ describe('TextEditor', () => {
 
     getActiveEditor().setValue('test');
 
-    alter('insert_row_below', 1, 2);
+    await alter('insert_row_below', 1, 2);
 
     expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 1,1']);
     expect(getActiveEditor().isOpened()).toBe(true);
@@ -2565,7 +2565,7 @@ describe('TextEditor', () => {
 
     getActiveEditor().setValue('test');
 
-    alter('remove_row', 0);
+    await alter('remove_row', 0);
 
     expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: 0,1 to: 0,1']);
     expect(getActiveEditor().isOpened()).toBe(true);
@@ -2587,7 +2587,7 @@ describe('TextEditor', () => {
 
     getActiveEditor().setValue('test');
 
-    alter('remove_row', 2);
+    await alter('remove_row', 2);
 
     expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 1,1']);
     expect(getActiveEditor().isOpened()).toBe(true);
@@ -2609,7 +2609,7 @@ describe('TextEditor', () => {
 
     getActiveEditor().setValue('test');
 
-    alter('remove_row', 1);
+    await alter('remove_row', 1);
 
     expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: 0,1 to: 0,1']);
     expect(getActiveEditor().isOpened()).toBe(false);
@@ -2626,7 +2626,7 @@ describe('TextEditor', () => {
 
     getActiveEditor().setValue('test');
 
-    alter('insert_col_start', 0, 2);
+    await alter('insert_col_start', 0, 2);
 
     expect(getSelectedRange()).toEqualCellRange(['highlight: 1,3 from: 1,3 to: 1,3']);
     expect(getActiveEditor().isOpened()).toBe(true);
@@ -2648,7 +2648,7 @@ describe('TextEditor', () => {
 
     getActiveEditor().setValue('test');
 
-    alter('insert_col_end', 1, 2);
+    await alter('insert_col_end', 1, 2);
 
     expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 1,1']);
     expect(getActiveEditor().isOpened()).toBe(true);
@@ -2670,7 +2670,7 @@ describe('TextEditor', () => {
 
     getActiveEditor().setValue('test');
 
-    alter('remove_col', 0);
+    await alter('remove_col', 0);
 
     expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: 1,0 to: 1,0']);
     expect(getActiveEditor().isOpened()).toBe(true);
@@ -2692,7 +2692,7 @@ describe('TextEditor', () => {
 
     getActiveEditor().setValue('test');
 
-    alter('remove_col', 2);
+    await alter('remove_col', 2);
 
     expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 1,1']);
     expect(getActiveEditor().isOpened()).toBe(true);
@@ -2714,7 +2714,7 @@ describe('TextEditor', () => {
 
     getActiveEditor().setValue('test');
 
-    alter('remove_col', 1);
+    await alter('remove_col', 1);
 
     expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: 1,0 to: 1,0']);
     expect(getActiveEditor().isOpened()).toBe(false);

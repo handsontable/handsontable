@@ -110,10 +110,10 @@ describe('settings', () => {
         const $TD = spec().$container.find('tr:eq(0) td:eq(1)');
 
         selectElementText($TD[0], 1);
-        mouseDown($TD);
-        mouseOver($TD);
+        await mouseDown($TD);
+        await mouseOver($TD);
         mouseMove($TD);
-        mouseUp($TD);
+        await mouseUp($TD);
         mouseClick($TD);
 
         expect(getSelected()).toEqual('B1');
@@ -133,10 +133,10 @@ describe('settings', () => {
         });
 
         selectElementText(spec().$container.find('td')[1], 1);
-        mouseDown(spec().$container.find('tr:eq(0) td:eq(1)'));
-        mouseOver(spec().$container.find('tr:eq(0) td:eq(2)'));
+        await mouseDown(spec().$container.find('tr:eq(0) td:eq(1)'));
+        await mouseOver(spec().$container.find('tr:eq(0) td:eq(2)'));
         mouseMove(spec().$container.find('tr:eq(0) td:eq(2)'));
-        mouseUp(spec().$container.find('tr:eq(0) td:eq(2)'));
+        await mouseUp(spec().$container.find('tr:eq(0) td:eq(2)'));
         mouseClick(spec().$container.find('tr:eq(0) td:eq(2)'));
 
         expect(getSelected()).toEqual(''); // copyPaste has selected space in textarea
@@ -191,7 +191,7 @@ describe('settings', () => {
           fragmentSelection: true
         });
 
-        updateSettings({ fragmentSelection: false });
+        await updateSettings({ fragmentSelection: false });
 
         selectElementText(spec().$container.find('td')[1], 3);
         $(spec().$container.find('tr:eq(0) td:eq(1)')).simulate('mousedown');
@@ -217,7 +217,7 @@ describe('settings', () => {
           fragmentSelection: false
         });
 
-        updateSettings({ fragmentSelection: true });
+        await updateSettings({ fragmentSelection: true });
 
         selectElementText(spec().$container.find('td')[1], 3);
         $(spec().$container.find('tr:eq(0) td:eq(1)')).simulate('mousedown');

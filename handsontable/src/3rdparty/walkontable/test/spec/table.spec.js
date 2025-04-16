@@ -33,7 +33,7 @@ describe('WalkontableTable', () => {
   });
 
   it('should create as many rows as in `totalRows` if it is smaller than `height`', async() => {
-    this.data.splice(5, this.data.length - 5);
+    spec().data.splice(5, spec().data.length - 5);
 
     const wt = walkontable({
       data: getData,

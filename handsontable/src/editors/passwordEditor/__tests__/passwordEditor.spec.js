@@ -41,7 +41,7 @@ describe('PasswordEditor', () => {
       ],
     });
 
-    listen();
+    await listen();
 
     await selectAll();
 

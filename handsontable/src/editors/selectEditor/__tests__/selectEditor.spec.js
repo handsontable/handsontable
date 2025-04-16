@@ -43,7 +43,7 @@ describe('SelectEditor', () => {
       columns: [{ editor: 'select' }, {}],
     });
 
-    listen();
+    await listen();
 
     await selectAll();
 

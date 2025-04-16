@@ -197,7 +197,7 @@ describe('Core_setDataAtCell', () => {
     }
 
     expect(getDataAtCell(1, 1)).toEqual('Frank Honest');
-    setDataAtCell(1, 1, 'Something Else');
+    await setDataAtCell(1, 1, 'Something Else');
     expect(getDataAtCell(1, 1)).toEqual('Something Else');
   });
 
@@ -210,7 +210,7 @@ describe('Core_setDataAtCell', () => {
       }
     });
 
-    setDataAtCell([[0, 0, 'new value']], 'customSource');
+    await setDataAtCell([[0, 0, 'new value']], 'customSource');
     expect(getDataAtCell(0, 0)).toEqual('new value');
     expect(lastSource).toEqual('customSource');
   });
@@ -226,7 +226,7 @@ describe('Core_setDataAtCell', () => {
       }
     });
 
-    setDataAtCell(0, 0, 'foo bar', 'customSource');
+    await setDataAtCell(0, 0, 'foo bar', 'customSource');
 
     expect(_changes).toEqual([[0, 0, null, 'foo bar']]);
     expect(_source).toBe('customSource');
@@ -246,8 +246,8 @@ describe('Core_setDataAtCell', () => {
       }
     });
 
-    setDataAtCell(0, 0, 'foo bar', 'customSource');
-    setDataAtCell(1, 2, 22, 'customSource');
+    await setDataAtCell(0, 0, 'foo bar', 'customSource');
+    await setDataAtCell(1, 2, 22, 'customSource');
 
     expect(getDataAtCell(0, 0)).toBe('bar');
     expect(getDataAtCell(1, 2)).toBe(33);
@@ -306,7 +306,7 @@ describe('Core_setDataAtCell', () => {
     try {
       await selectCell(0, 0);
 
-      setDataAtCell(0, 0, '333');
+      await setDataAtCell(0, 0, '333');
     } catch (e) {
       errors += 1;
     }
@@ -324,7 +324,7 @@ describe('Core_setDataAtCell', () => {
       afterSetDataAtCell,
     });
 
-    setDataAtCell(0, 0, 5);
+    await setDataAtCell(0, 0, 5);
 
     expect(beforeChange).toHaveBeenCalledBefore(afterSetDataAtCell);
   });
@@ -358,9 +358,9 @@ describe('Core_setDataAtCell', () => {
       }
     });
 
-    setDataAtCell(0, 0, 5);
-    setDataAtCell(1, 1, 6);
-    setDataAtCell(2, 2, 7);
+    await setDataAtCell(0, 0, 5);
+    await setDataAtCell(1, 1, 6);
+    await setDataAtCell(2, 2, 7);
     setDataAtRowProp(3, 3, 8);
     setDataAtRowProp(4, 4, 9);
 
@@ -379,7 +379,7 @@ describe('Core_setDataAtCell', () => {
         data: createSpreadsheetData(1, 1)
       });
 
-      setDataAtCell([[0, 1, 'new column']], 'customSource');
+      await setDataAtCell([[0, 1, 'new column']], 'customSource');
       expect(countCols()).toBe(2);
     });
 
@@ -388,7 +388,7 @@ describe('Core_setDataAtCell', () => {
         data: createSpreadsheetData(1, 1)
       });
 
-      setDataAtCell([[1, 0, 'new row']], 'customSource');
+      await setDataAtCell([[1, 0, 'new row']], 'customSource');
       expect(countRows()).toBe(2);
     });
 
@@ -402,7 +402,7 @@ describe('Core_setDataAtCell', () => {
 
       const countedColumns = countCols();
 
-      setDataAtCell([[0, 1, 'new column']], 'customSource');
+      await setDataAtCell([[0, 1, 'new column']], 'customSource');
       expect(countCols()).toBe(countedColumns);
     });
 
@@ -416,7 +416,7 @@ describe('Core_setDataAtCell', () => {
 
       const countedRows = countRows();
 
-      setDataAtCell([[1, 0, 'new row']], 'customSource');
+      await setDataAtCell([[1, 0, 'new row']], 'customSource');
       expect(countRows()).toBe(countedRows);
     });
 
@@ -426,7 +426,7 @@ describe('Core_setDataAtCell', () => {
         editor: false,
       });
 
-      setDataAtCell(0, 0, 'aaa');
+      await setDataAtCell(0, 0, 'aaa');
       expect(getData()).toEqual([['aaa']]);
     });
   });

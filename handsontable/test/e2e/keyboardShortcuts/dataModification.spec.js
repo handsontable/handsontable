@@ -40,8 +40,8 @@ describe('Core data modification keyboard shortcuts', () => {
       });
 
       afterChange.calls.reset(); // reset initial "afterChange" call after load data
-      selectCells([[1, 0, 3, 0], [2, 2, 2, 2]]);
-      keyDownUp(['control/meta', 'enter']);
+      await selectCells([[1, 0, 3, 0], [2, 2, 2, 2]]);
+      await keyDownUp(['control/meta', 'enter']);
 
       expect(getData()).toEqual(createSpreadsheetData(5, 5));
       expect(getSelectedRange()).toEqualCellRange([
@@ -63,9 +63,9 @@ describe('Core data modification keyboard shortcuts', () => {
       });
 
       afterChange.calls.reset(); // reset initial "afterChange" call after load data
-      selectColumns(1, 2, -1);
-      listen();
-      keyDownUp(['control/meta', 'enter']);
+      await selectColumns(1, 2, -1);
+      await listen();
+      await keyDownUp(['control/meta', 'enter']);
 
       expect(getData()).toEqual(createSpreadsheetData(5, 5));
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: 4,2']);
@@ -84,9 +84,9 @@ describe('Core data modification keyboard shortcuts', () => {
       });
 
       afterChange.calls.reset(); // reset initial "afterChange" call after load data
-      selectRows(1, 2, -1);
-      listen();
-      keyDownUp(['control/meta', 'enter']);
+      await selectRows(1, 2, -1);
+      await listen();
+      await keyDownUp(['control/meta', 'enter']);
 
       expect(getData()).toEqual(createSpreadsheetData(5, 5));
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-1 from: 1,-1 to: 2,4']);
@@ -105,7 +105,7 @@ describe('Core data modification keyboard shortcuts', () => {
       });
 
       afterChange.calls.reset(); // reset initial "afterChange" call after load data
-      listen();
+      await listen();
 
       await selectAll(true, true, { row: -1, col: -1 });
       await keyDownUp(['control/meta', 'enter']);
@@ -127,8 +127,8 @@ describe('Core data modification keyboard shortcuts', () => {
       });
 
       afterChange.calls.reset(); // reset initial "afterChange" call after load data
-      selectCells([[1, 1, 2, 2], [1, 2, 2, 2], [2, 1, 2, 2]]);
-      keyDownUp(['control/meta', 'enter']);
+      await selectCells([[1, 1, 2, 2], [1, 2, 2, 2], [2, 1, 2, 2]]);
+      await keyDownUp(['control/meta', 'enter']);
 
       expect(getSelectedRange()).toEqualCellRange([
         'highlight: 1,1 from: 1,1 to: 2,2',
@@ -158,8 +158,8 @@ describe('Core data modification keyboard shortcuts', () => {
       });
 
       afterChange.calls.reset(); // reset initial "afterChange" call after load data
-      selectCells([[2, 1, 2, 2]]);
-      keyDownUp(['control/meta', 'enter']);
+      await selectCells([[2, 1, 2, 2]]);
+      await keyDownUp(['control/meta', 'enter']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,1 from: 2,1 to: 2,2']);
       expect(afterChange).toHaveBeenCalledTimes(1);
@@ -177,8 +177,8 @@ describe('Core data modification keyboard shortcuts', () => {
       });
 
       afterChange.calls.reset(); // reset initial "afterChange" call after load data
-      selectCells([[1, 1, 2, 1]]);
-      keyDownUp(['control/meta', 'enter']);
+      await selectCells([[1, 1, 2, 1]]);
+      await keyDownUp(['control/meta', 'enter']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 2,1']);
       expect(afterChange).toHaveBeenCalledTimes(1);
@@ -196,8 +196,8 @@ describe('Core data modification keyboard shortcuts', () => {
       });
 
       afterChange.calls.reset(); // reset initial "afterChange" call after load data
-      selectCells([[3, 3, 1, 1]]);
-      keyDownUp(['control/meta', 'enter']);
+      await selectCells([[3, 3, 1, 1]]);
+      await keyDownUp(['control/meta', 'enter']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,3 from: 3,3 to: 1,1']);
       expect(afterChange).toHaveBeenCalledTimes(1);
@@ -222,8 +222,8 @@ describe('Core data modification keyboard shortcuts', () => {
       });
 
       afterChange.calls.reset(); // reset initial "afterChange" call after load data
-      selectCells([[3, 4, 3, 4], [4, 3, 1, 3], [3, 2, 3, 2], [1, 1, 1, 2], [0, 0, 1, 0]]);
-      keyDownUp(['control/meta', 'enter']);
+      await selectCells([[3, 4, 3, 4], [4, 3, 1, 3], [3, 2, 3, 2], [1, 1, 1, 2], [0, 0, 1, 0]]);
+      await keyDownUp(['control/meta', 'enter']);
 
       expect(getSelectedRange()).toEqualCellRange([
         'highlight: 3,4 from: 3,4 to: 3,4',
@@ -257,7 +257,7 @@ describe('Core data modification keyboard shortcuts', () => {
       });
 
       afterChange.calls.reset(); // reset initial "afterChange" call after load data
-      listen();
+      await listen();
 
       await selectAll();
       await keyDownUp(['control/meta', 'enter']);
@@ -287,9 +287,9 @@ describe('Core data modification keyboard shortcuts', () => {
       });
 
       afterChange.calls.reset(); // reset initial "afterChange" call after load data
-      selectColumns(1);
-      listen();
-      keyDownUp(['control/meta', 'enter']);
+      await selectColumns(1);
+      await listen();
+      await keyDownUp(['control/meta', 'enter']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: -1,1 to: 2,1']);
       expect(afterChange).toHaveBeenCalledTimes(1);
@@ -310,9 +310,9 @@ describe('Core data modification keyboard shortcuts', () => {
       });
 
       afterChange.calls.reset(); // reset initial "afterChange" call after load data
-      selectRows(1);
-      listen();
-      keyDownUp(['control/meta', 'enter']);
+      await selectRows(1);
+      await listen();
+      await keyDownUp(['control/meta', 'enter']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: 1,-1 to: 1,2']);
       expect(afterChange).toHaveBeenCalledTimes(1);
@@ -344,8 +344,8 @@ describe('Core data modification keyboard shortcuts', () => {
       });
 
       afterChange.calls.reset(); // reset initial "afterChange" call after load data
-      selectCells([[1, 0, 4, 1], [4, 5, 4, 0]]);
-      keyDownUp(['control/meta', 'enter']);
+      await selectCells([[1, 0, 4, 1], [4, 5, 4, 0]]);
+      await keyDownUp(['control/meta', 'enter']);
 
       expect(getSelectedRange()).toEqualCellRange([
         'highlight: 1,0 from: 1,0 to: 4,1',
@@ -378,8 +378,8 @@ describe('Core data modification keyboard shortcuts', () => {
         startCols: 5
       });
 
-      listen();
-      keyDownUp(['control/meta', 'enter']);
+      await listen();
+      await keyDownUp(['control/meta', 'enter']);
 
       expect(spy.test).not.toHaveBeenCalled();
 
@@ -410,8 +410,8 @@ describe('Core data modification keyboard shortcuts', () => {
         data: createSpreadsheetData(5, 5),
       });
 
-      selectCells([[1, 1, 2, 2]]);
-      keyDownUp([pressedKey]);
+      await selectCells([[1, 1, 2, 2]]);
+      await keyDownUp([pressedKey]);
 
       expect(getData()).toEqual([
         ['A1', 'B1', 'C1', 'D1', 'E1'],
@@ -427,8 +427,8 @@ describe('Core data modification keyboard shortcuts', () => {
         data: createSpreadsheetData(5, 5),
       });
 
-      selectCells([[0, 0, 0, 0], [1, 1, 2, 2], [4, 2, 4, 4]]);
-      keyDownUp([pressedKey]);
+      await selectCells([[0, 0, 0, 0], [1, 1, 2, 2], [4, 2, 4, 4]]);
+      await keyDownUp([pressedKey]);
 
       expect(getData()).toEqual([
         [null, 'B1', 'C1', 'D1', 'E1'],

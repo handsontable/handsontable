@@ -37,7 +37,7 @@ describe('Core_validate', () => {
       }
     });
 
-    validateCells();
+    await validateCells();
 
     await sleep(100);
 
@@ -62,7 +62,7 @@ describe('Core_validate', () => {
         fired = true;
       }
     });
-    setDataAtCell(2, 0, 'test');
+    await setDataAtCell(2, 0, 'test');
 
     expect(fired).toEqual(true);
   });
@@ -95,7 +95,7 @@ describe('Core_validate', () => {
         fired = true;
       }
     });
-    setDataAtCell(2, 0, 'test');
+    await setDataAtCell(2, 0, 'test');
 
     expect(fired).toBe(true);
   });
@@ -113,7 +113,7 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(2, 0, 'test');
+    await setDataAtCell(2, 0, 'test');
 
     await sleep(100); // wait for async validation
 
@@ -147,7 +147,7 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(2, 0, 'test');
+    await setDataAtCell(2, 0, 'test');
 
     await sleep(100); // wait for async validation
 
@@ -175,7 +175,7 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(2, 0, 123);
+    await setDataAtCell(2, 0, 123);
 
     await sleep(100); // wait for async validation
 
@@ -217,7 +217,7 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(2, 0, 123);
+    await setDataAtCell(2, 0, 123);
 
     await sleep(100); // wait for async validation
 
@@ -240,7 +240,7 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(2, 0, 123);
+    await setDataAtCell(2, 0, 123);
 
     await sleep(100); // wait for async validation
 
@@ -275,7 +275,7 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(2, 0, 123);
+    await setDataAtCell(2, 0, 123);
 
     await sleep(100); // wait for async validation
 
@@ -295,7 +295,7 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(2, 0, 'test');
+    await setDataAtCell(2, 0, 'test');
 
     await sleep(100); // wait for async validation
 
@@ -325,7 +325,7 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(2, 0, 'test');
+    await setDataAtCell(2, 0, 'test');
 
     await sleep(100); // wait for async validation
 
@@ -352,7 +352,7 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(2, 0, 123);
+    await setDataAtCell(2, 0, 123);
 
     await sleep(100); // wait for async validation
 
@@ -389,7 +389,7 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(2, 0, 123);
+    await setDataAtCell(2, 0, 123);
 
     await sleep(100); // wait for async validation
 
@@ -500,7 +500,7 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    validateCells(() => {
+    await validateCells(() => {
       render();
     });
 
@@ -525,7 +525,7 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    validateRows([], () => {
+    await validateRows([], () => {
       render();
     });
 
@@ -536,7 +536,7 @@ describe('Core_validate', () => {
 
     loadData(createSpreadsheetData(2, 2));
 
-    validateRows([0], () => {
+    await validateRows([0], () => {
       render();
     });
 
@@ -547,7 +547,7 @@ describe('Core_validate', () => {
 
     loadData(createSpreadsheetData(2, 2));
 
-    validateRows([1], () => {
+    await validateRows([1], () => {
       render();
     });
 
@@ -558,7 +558,7 @@ describe('Core_validate', () => {
 
     loadData(createSpreadsheetData(2, 2));
 
-    validateRows([0, 1], () => {
+    await validateRows([0, 1], () => {
       render();
     });
 
@@ -569,7 +569,7 @@ describe('Core_validate', () => {
 
     loadData(createSpreadsheetData(2, 2));
 
-    validateRows([0, 1, 100], () => {
+    await validateRows([0, 1, 100], () => {
       render();
     });
 
@@ -580,7 +580,7 @@ describe('Core_validate', () => {
 
     loadData(createSpreadsheetData(2, 2));
 
-    validateRows([100, 101], () => {
+    await validateRows([100, 101], () => {
       render();
     });
 
@@ -682,7 +682,7 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    validateCells(() => {});
+    await validateCells(() => {});
 
     await sleep(100); // wait for async validation
 
@@ -714,7 +714,7 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(0, 0, 'test');
+    await setDataAtCell(0, 0, 'test');
 
     await sleep(100); // wait for async validation
 
@@ -738,7 +738,7 @@ describe('Core_validate', () => {
       beforeChange: () => false
     });
 
-    setDataAtCell(0, 0, 'test');
+    await setDataAtCell(0, 0, 'test');
 
     await sleep(500);
 
@@ -768,7 +768,7 @@ describe('Core_validate', () => {
       beforeChange: () => allowChange
     });
 
-    setDataAtCell(0, 0, 'test');
+    await setDataAtCell(0, 0, 'test');
 
     await sleep(500);
 
@@ -781,7 +781,7 @@ describe('Core_validate', () => {
 
     // setting flag to have 'beforeChange' reject changes, then change value
     allowChange = false;
-    setDataAtCell(0, 0, 'test2');
+    await setDataAtCell(0, 0, 'test2');
 
     await sleep(500);
 
@@ -813,7 +813,7 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(0, 0, 123);
+    await setDataAtCell(0, 0, 123);
 
     await sleep(100); // wait for async validation
 
@@ -822,7 +822,7 @@ describe('Core_validate', () => {
     expect(spec().$container.find('tr:eq(0) td:eq(0)').hasClass('htNumeric')).toEqual(true);
 
     onAfterValidate.calls.reset();
-    setDataAtCell(0, 0, 124);
+    await setDataAtCell(0, 0, 124);
 
     await sleep(100); // wait for async validation
 
@@ -838,13 +838,13 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(0, 0, 'test');
+    await setDataAtCell(0, 0, 'test');
 
     await sleep(100); // wait for async validation
 
     expect(spec().$container.find('td.htInvalid').length).toEqual(0);
 
-    updateSettings({
+    await updateSettings({
       validator(value, callb) {
         if (value === 'test') {
           callb(false);
@@ -856,7 +856,7 @@ describe('Core_validate', () => {
 
     onAfterValidate.calls.reset();
 
-    validateCells(() => {});
+    await validateCells(() => {});
 
     await sleep(100); // wait for async validation
 
@@ -872,13 +872,13 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(0, 0, 'test');
+    await setDataAtCell(0, 0, 'test');
 
     await sleep(100); // wait for async validation
 
     expect(spec().$container.find('td.htInvalid').length).toEqual(0);
 
-    updateSettings({
+    await updateSettings({
       validator(value, callb) {
         if (value === 'test') {
           callb(false);
@@ -890,7 +890,7 @@ describe('Core_validate', () => {
 
     onAfterValidate.calls.reset();
 
-    validateRows([0], () => {});
+    await validateRows([0], () => {});
 
     await sleep(100); // wait for async validation
 
@@ -906,13 +906,13 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(0, 0, 'test');
+    await setDataAtCell(0, 0, 'test');
 
     await sleep(100); // wait for async validation
 
     expect(spec().$container.find('td.htInvalid').length).toEqual(0);
 
-    updateSettings({
+    await updateSettings({
       validator(value, callb) {
         if (value === 'test') {
           callb(false);
@@ -924,7 +924,7 @@ describe('Core_validate', () => {
 
     onAfterValidate.calls.reset();
 
-    validateColumns([0], () => {});
+    await validateColumns([0], () => {});
 
     await sleep(100); // wait for async validation
 
@@ -947,7 +947,7 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    validateCells(() => {
+    await validateCells(() => {
       render();
     });
 
@@ -956,7 +956,7 @@ describe('Core_validate', () => {
     expect(spec().$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
 
     onAfterValidate.calls.reset();
-    setDataAtCell(0, 0, 'test');
+    await setDataAtCell(0, 0, 'test');
 
     await sleep(100); // wait for async validation
 
@@ -975,7 +975,7 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    validateCells(onValidate);
+    await validateCells(onValidate);
 
     await sleep(100); // wait for async validation
 
@@ -994,7 +994,7 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    validateRows([0, 1], onValidate);
+    await validateRows([0, 1], onValidate);
 
     await sleep(100); // wait for async validation
 
@@ -1013,7 +1013,7 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    validateColumns([0, 1], onValidate);
+    await validateColumns([0, 1], onValidate);
 
     await sleep(100); // wait for async validation
 
@@ -1032,7 +1032,7 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    validateCells(onValidate);
+    await validateCells(onValidate);
 
     await sleep(100); // wait for async validation
 
@@ -1051,7 +1051,7 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    validateRows([0, 1], onValidate);
+    await validateRows([0, 1], onValidate);
 
     await sleep(100); // wait for async validation
 
@@ -1070,7 +1070,7 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    validateColumns([0, 1], onValidate);
+    await validateColumns([0, 1], onValidate);
 
     await sleep(100); // wait for async validation
 
@@ -1099,7 +1099,7 @@ describe('Core_validate', () => {
       }
     });
 
-    populateFromArray(0, 0, [
+    await populateFromArray(0, 0, [
       ['A1-new'],
       ['fail'],
       ['A3-new']
@@ -1850,7 +1850,7 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(0, 0, 'foo');
+    await setDataAtCell(0, 0, 'foo');
 
     await sleep(100);
 
@@ -1891,7 +1891,7 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(0, 0, 'foo');
+    await setDataAtCell(0, 0, 'foo');
 
     await sleep(100);
 

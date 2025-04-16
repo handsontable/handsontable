@@ -22,12 +22,12 @@ describe('Selection cooperation with hidden rows', () => {
     const hidingMap = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
 
     hidingMap.setValueAtIndex(2, true);
-    render();
+    await render();
 
-    selectCell(0, 0); // Select cell "A1"
+    await selectCell(0, 0); // Select cell "A1"
 
-    keyDownUp('arrowdown'); // Move selection down to the end of the table
-    keyDownUp('arrowdown'); // Move selection to the next column, to the cell "B1"
+    await keyDownUp('arrowdown'); // Move selection down to the end of the table
+    await keyDownUp('arrowdown'); // Move selection to the next column, to the cell "B1"
 
     expect(getSelected()).toEqual([[0, 1, 0, 1]]);
   });

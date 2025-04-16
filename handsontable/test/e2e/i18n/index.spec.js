@@ -65,7 +65,7 @@ describe('i18n', () => {
         }
       });
 
-      updateSettings({
+      await updateSettings({
         language: POLISH_LANGUAGE_CODE
       });
 
@@ -110,7 +110,7 @@ describe('i18n', () => {
         }
       });
 
-      updateSettings({
+      await updateSettings({
         language: POLISH_LANGUAGE_CODE
       });
 
@@ -150,7 +150,7 @@ describe('i18n', () => {
 
       handsontable();
 
-      updateSettings({ language: NOT_EXISTING_LANGUAGE_CODE });
+      await updateSettings({ language: NOT_EXISTING_LANGUAGE_CODE });
 
       await sleep(100);
 
@@ -162,7 +162,7 @@ describe('i18n', () => {
 
       handsontable();
 
-      updateSettings({ language: DEFAULT_LANGUAGE_CODE });
+      await updateSettings({ language: DEFAULT_LANGUAGE_CODE });
 
       await sleep(100);
 
@@ -186,7 +186,7 @@ describe('i18n', () => {
 
       handsontable();
 
-      updateSettings({ language: NOT_EXISTING_LANGUAGE_CODE });
+      await updateSettings({ language: NOT_EXISTING_LANGUAGE_CODE });
 
       expect(spy).toHaveBeenCalled();
     });
@@ -206,7 +206,7 @@ describe('i18n', () => {
 
       handsontable();
 
-      updateSettings({ language: DEFAULT_LANGUAGE_CODE });
+      await updateSettings({ language: DEFAULT_LANGUAGE_CODE });
 
       expect(spy).not.toHaveBeenCalled();
     });
@@ -229,7 +229,7 @@ describe('i18n', () => {
     it('should not set language code as own property of settings object when using updateSettings', async() => {
       const hot = handsontable();
 
-      updateSettings({ language: POLISH_LANGUAGE_CODE });
+      await updateSettings({ language: POLISH_LANGUAGE_CODE });
 
       // eslint-disable-next-line no-prototype-builtins
       expect(hot.getSettings().hasOwnProperty('language')).toEqual(false);
@@ -250,7 +250,7 @@ describe('i18n', () => {
 
       const hot = handsontable();
 
-      updateSettings({ language: NOT_EXISTING_LANGUAGE_CODE });
+      await updateSettings({ language: NOT_EXISTING_LANGUAGE_CODE });
 
       expect(hot.getSettings().language).toEqual(DEFAULT_LANGUAGE_CODE);
     });
@@ -262,7 +262,7 @@ describe('i18n', () => {
         language: POLISH_LANGUAGE_CODE
       });
 
-      updateSettings({ language: NOT_EXISTING_LANGUAGE_CODE });
+      await updateSettings({ language: NOT_EXISTING_LANGUAGE_CODE });
 
       expect(hot.getSettings().language).toEqual(POLISH_LANGUAGE_CODE);
     });
@@ -278,7 +278,7 @@ describe('i18n', () => {
     it('should accept not normalized language code by default #2', async() => {
       const hot = handsontable();
 
-      updateSettings({
+      await updateSettings({
         language: POLISH_LANGUAGE_CODE.toUpperCase()
       });
 
@@ -290,7 +290,7 @@ describe('i18n', () => {
         language: POLISH_LANGUAGE_CODE
       });
 
-      updateSettings({
+      await updateSettings({
         fillHandle: true
       });
 
@@ -334,7 +334,7 @@ describe('i18n', () => {
         contextMenu: ['row_above']
       });
 
-      updateSettings({ language: POLISH_LANGUAGE_CODE });
+      await updateSettings({ language: POLISH_LANGUAGE_CODE });
 
       await sleep(0);
 
@@ -352,7 +352,7 @@ describe('i18n', () => {
         contextMenu: ['row_above']
       });
 
-      updateSettings({ language: NOT_EXISTING_LANGUAGE_CODE });
+      await updateSettings({ language: NOT_EXISTING_LANGUAGE_CODE });
 
       await sleep(0);
 
@@ -371,7 +371,7 @@ describe('i18n', () => {
         contextMenu: ['row_above']
       });
 
-      updateSettings({ language: NOT_EXISTING_LANGUAGE_CODE2 });
+      await updateSettings({ language: NOT_EXISTING_LANGUAGE_CODE2 });
 
       await sleep(0);
 
@@ -390,7 +390,7 @@ describe('i18n', () => {
         contextMenu: ['row_above']
       });
 
-      updateSettings({ language: NOT_EXISTING_LANGUAGE_CODE });
+      await updateSettings({ language: NOT_EXISTING_LANGUAGE_CODE });
 
       await sleep(0);
 

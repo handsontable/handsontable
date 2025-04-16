@@ -188,7 +188,7 @@ describe('Core_view', () => {
     expect(topClone.find('tr').length).toEqual(1);
     expect(topClone.find('tr:eq(0) td:eq(0)').html()).toEqual('A1');
 
-    updateSettings({
+    await updateSettings({
       fixedRowsTop: 2
     });
 
@@ -263,7 +263,7 @@ describe('Core_view', () => {
 
     await selectCell(0, 0);
 
-    updateSettings({
+    await updateSettings({
       fixedColumnsStart: 2
     });
 
@@ -573,7 +573,7 @@ describe('Core_view', () => {
 
     const lastScroll = $(window).scrollTop();
 
-    render(); // renders synchronously so we don't have to put stuff in waits/runs
+    await render(); // renders synchronously so we don't have to put stuff in waits/runs
 
     await selectCell(39, 0);
 
@@ -709,7 +709,7 @@ describe('Core_view', () => {
       height: 200,
     });
 
-    selectColumns(1);
+    await selectColumns(1);
 
     const rowMapper = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'trimming');
 
@@ -717,7 +717,7 @@ describe('Core_view', () => {
     rowMapper.setValueAtIndex(1, true);
     rowMapper.setValueAtIndex(2, true);
     rowMapper.setValueAtIndex(3, true);
-    render();
+    await render();
 
     expect(getTopClone().width()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(200);
@@ -732,8 +732,8 @@ describe('Core_view', () => {
       data: createSpreadsheetData(5, 5),
     });
 
-    simulateClick(getCell(0, 0));
-    keyDownUp('enter');
+    await simulateClick(getCell(0, 0));
+    await keyDownUp('enter');
     getActiveEditor().TEXTAREA.value = 'AVeryLongStringThatWillBePastedInASingleCell';
 
     // emulates behavior that is similar to the one that is caused by the bug
@@ -756,8 +756,8 @@ describe('Core_view', () => {
       data: createSpreadsheetData(5, 5),
     });
 
-    simulateClick(getCell(0, 0));
-    keyDownUp('enter');
+    await simulateClick(getCell(0, 0));
+    await keyDownUp('enter');
     getActiveEditor().TEXTAREA.value = 'AVeryLongStringThatWillBePastedInASingleCell';
 
     // emulates behavior that is similar to the one that is caused by the bug
@@ -780,8 +780,8 @@ describe('Core_view', () => {
       data: createSpreadsheetData(5, 5),
     });
 
-    simulateClick(getCell(0, 0));
-    keyDownUp('enter');
+    await simulateClick(getCell(0, 0));
+    await keyDownUp('enter');
     getActiveEditor().TEXTAREA.value = 'AVeryLongStringThatWillBePastedInASingleCell';
 
     // emulates behavior that is similar to the one that is caused by the bug
@@ -806,7 +806,7 @@ describe('Core_view', () => {
 
     expect(hot.view._wt.wtOverlays.scrollableElement).toBe(window);
 
-    updateSettings({
+    await updateSettings({
       width: 200,
       height: 200,
     });

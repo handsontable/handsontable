@@ -33,7 +33,7 @@ describe('WalkontableScrollbar', () => {
   });
 
   it('scrolling should have no effect when totalRows is smaller than height', async() => {
-    this.data.splice(5, this.data.length - 5);
+    spec().data.splice(5, spec().data.length - 5);
 
     try {
       const wt = walkontable({

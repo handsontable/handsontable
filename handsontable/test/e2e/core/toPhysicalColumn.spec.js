@@ -60,7 +60,7 @@ describe('Core.toPhysicalColumn', () => {
       });
 
       hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
-      updateSettings({ data: createSpreadsheetData(2, 2) });
+      await updateSettings({ data: createSpreadsheetData(2, 2) });
 
       expect(hot.toPhysicalColumn(0)).toBe(1);
       expect(hot.toPhysicalColumn(1)).toBe(0);

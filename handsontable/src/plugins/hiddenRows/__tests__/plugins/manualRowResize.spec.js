@@ -54,7 +54,7 @@ describe('HiddenRows', () => {
       });
 
       getPlugin('manualRowResize').setManualSize(2, 100);
-      render();
+      await render();
 
       expect(rowHeight(spec().$container, 1)).toEqual(100);
     });

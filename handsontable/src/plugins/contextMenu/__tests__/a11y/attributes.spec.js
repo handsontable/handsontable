@@ -102,7 +102,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     });
 
     await contextMenu();
-    selectContextMenuOption('Read only');
+    await selectContextMenuOption('Read only');
     await sleep(50);
     await contextMenu();
 
@@ -114,7 +114,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     }
 
     await contextMenu();
-    selectContextMenuOption('Read only');
+    await selectContextMenuOption('Read only');
     await sleep(50);
     await contextMenu();
 

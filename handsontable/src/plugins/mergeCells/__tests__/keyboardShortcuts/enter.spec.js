@@ -221,7 +221,7 @@ describe('MergeCells keyboard shortcut', () => {
       rowHiddenMap.setValueAtIndex(4, true);
       rowHiddenMap.setValueAtIndex(9, true);
 
-      render();
+      await render();
       await selectCell(1, 1, 9, 7);
 
       const focusOrder = [
@@ -270,7 +270,7 @@ describe('MergeCells keyboard shortcut', () => {
       rowHiddenMap.setValueAtIndex(4, true);
       rowHiddenMap.setValueAtIndex(9, true);
 
-      render();
+      await render();
       await selectCell(1, 7, 9, 1);
 
       const focusOrder = [
@@ -319,7 +319,7 @@ describe('MergeCells keyboard shortcut', () => {
       rowHiddenMap.setValueAtIndex(4, true);
       rowHiddenMap.setValueAtIndex(9, true);
 
-      render();
+      await render();
       await selectCell(9, 7, 1, 1);
 
       const focusOrder = [
@@ -368,7 +368,7 @@ describe('MergeCells keyboard shortcut', () => {
       rowHiddenMap.setValueAtIndex(4, true);
       rowHiddenMap.setValueAtIndex(9, true);
 
-      render();
+      await render();
       await selectCell(9, 1, 1, 7);
 
       const focusOrder = [
@@ -718,7 +718,7 @@ describe('MergeCells keyboard shortcut', () => {
       rowHiddenMap.setValueAtIndex(3, true);
       rowHiddenMap.setValueAtIndex(8, true);
 
-      render();
+      await render();
       await selectColumns(0, 2, -1);
       await listen();
 
@@ -764,7 +764,7 @@ describe('MergeCells keyboard shortcut', () => {
       rowHiddenMap.setValueAtIndex(3, true);
       rowHiddenMap.setValueAtIndex(8, true);
 
-      render();
+      await render();
       await selectColumns(2, 0, -1);
       await listen();
 
@@ -810,7 +810,7 @@ describe('MergeCells keyboard shortcut', () => {
       rowHiddenMap.setValueAtIndex(3, true);
       rowHiddenMap.setValueAtIndex(7, true);
 
-      render();
+      await render();
       await selectRows(5, 8, -1);
       await listen();
 
@@ -862,7 +862,7 @@ describe('MergeCells keyboard shortcut', () => {
       rowHiddenMap.setValueAtIndex(3, true);
       rowHiddenMap.setValueAtIndex(7, true);
 
-      render();
+      await render();
       await selectRows(8, 5, -1);
       await listen();
 

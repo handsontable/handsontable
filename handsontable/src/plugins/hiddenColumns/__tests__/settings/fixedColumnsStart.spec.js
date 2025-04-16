@@ -129,7 +129,7 @@ describe('HiddenColumns', () => {
       });
 
       getPlugin('hiddenColumns').hideColumns([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
-      render();
+      await render();
 
       expect(getInlineStartClone().find('tbody td').length).toBe(0);
       expect(extractDOMStructure(getInlineStartClone())).toMatchHTML(`

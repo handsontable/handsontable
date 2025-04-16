@@ -35,7 +35,7 @@ describe('Formulas general', () => {
         },
       });
 
-      updateSettings({
+      await updateSettings({
         formulas: {
           sheetName: 'Test Sheet 2'
         }

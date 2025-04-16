@@ -49,13 +49,13 @@ describe('Focus Manager', () => {
 
       expect(getFocusManager().getFocusMode()).toEqual('cell');
 
-      updateSettings({
+      await updateSettings({
         imeFastEdit: true,
       });
 
       expect(getFocusManager().getFocusMode()).toEqual('mixed');
 
-      updateSettings({
+      await updateSettings({
         imeFastEdit: false,
       });
 
@@ -69,7 +69,7 @@ describe('Focus Manager', () => {
 
       expect(getFocusManager().getFocusMode()).toEqual('mixed');
 
-      updateSettings({});
+      await updateSettings({});
 
       expect(getFocusManager().getFocusMode()).toEqual('mixed');
     });

@@ -21,7 +21,7 @@ describe('settings', () => {
       expect(container.classList.contains('class-1')).toBe(false);
       expect(container.classList.contains('handsontable')).toBe(true);
 
-      updateSettings({ className: ['class-1'] });
+      await updateSettings({ className: ['class-1'] });
 
       expect(container.classList.contains('class-1')).toBe(true);
       expect(container.classList.contains('handsontable')).toBe(true);
@@ -40,7 +40,7 @@ describe('settings', () => {
       expect(container.classList.contains('htRowHeaders')).toBe(true);
       expect(container.classList.contains('htColumnHeaders')).toBe(true);
 
-      updateSettings({ className: ['class-1'] });
+      await updateSettings({ className: ['class-1'] });
 
       expect(container.classList.contains('class-1')).toBe(true);
       expect(container.classList.contains('handsontable')).toBe(true);
@@ -61,7 +61,7 @@ describe('settings', () => {
       expect(getCellMeta(0, 0).className).toEqual(['class-1', 'class-2']);
       expect(getCellMeta(0, 1).className).toEqual(['class-1', 'class-2']);
 
-      updateSettings({ className: ['class-1'] });
+      await updateSettings({ className: ['class-1'] });
 
       expect(container.classList.contains('class-1')).toBe(true);
       expect(container.classList.contains('class-2')).toBe(false);

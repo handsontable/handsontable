@@ -43,7 +43,7 @@ describe('DateEditor', () => {
       columns: [{ type: 'date' }],
     });
 
-    listen();
+    await listen();
 
     await selectAll();
 
@@ -697,7 +697,7 @@ describe('DateEditor', () => {
       minSpareRows: 1
     });
 
-    setDataAtCell(4, 1, '15-11-11');
+    await setDataAtCell(4, 1, '15-11-11');
 
     await sleep(200);
 

@@ -71,7 +71,7 @@ describe('Row header selection scroll', () => {
         colHeaders: true,
       });
 
-      listen();
+      await listen();
 
       // make sure that the `A1` cell is partially visible on the top side of the table
       await scrollOverlay(topOverlay(), 15);
@@ -181,7 +181,7 @@ describe('Row header selection scroll', () => {
         colHeaders: true,
       });
 
-      listen();
+      await listen();
 
       await selectRows(10);
       await keyDownUp(['shift', 'arrowdown']);

@@ -19,8 +19,8 @@ describe('Selection extending', () => {
         startCols: 5
       });
 
-      selectCells([[1, 1, 1, 1], [2, 2, 3, 3]]);
-      keyDownUp(['control/meta', 'a']);
+      await selectCells([[1, 1, 1, 1], [2, 2, 3, 3]]);
+      await keyDownUp(['control/meta', 'a']);
 
       expect(`
         |   ║ - : - : - : - : - |
@@ -43,15 +43,15 @@ describe('Selection extending', () => {
         startCols: 5
       });
 
-      selectCell(0, 0);
-      keyDownUp(['ArrowLeft']);
-      keyDownUp(['control/meta', 'a']);
+      await selectCell(0, 0);
+      await keyDownUp(['ArrowLeft']);
+      await keyDownUp(['control/meta', 'a']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,-1 from: 0,-1 to: 0,-1']);
 
-      selectCell(0, 0);
-      keyDownUp(['ArrowUp']);
-      keyDownUp(['control/meta', 'a']);
+      await selectCell(0, 0);
+      await keyDownUp(['ArrowUp']);
+      await keyDownUp(['control/meta', 'a']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,0 from: -1,0 to: -1,0']);
     });
@@ -73,8 +73,8 @@ describe('Selection extending', () => {
         startCols: 5
       });
 
-      listen();
-      keyDownUp(['control/meta', 'a']);
+      await listen();
+      await keyDownUp(['control/meta', 'a']);
 
       expect(spy.test).not.toHaveBeenCalled();
 

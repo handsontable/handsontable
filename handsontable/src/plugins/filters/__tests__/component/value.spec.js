@@ -425,9 +425,9 @@ describe('Filters UI Value component', () => {
 
       await dropdownMenu(2);
 
-      simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(1) [type=checkbox]'));
-      simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
-      setDataAtCell(0, 2, 'BBB City - modified');
+      await simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(1) [type=checkbox]'));
+      await simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
+      await setDataAtCell(0, 2, 'BBB City - modified');
 
       await dropdownMenu(2);
       expect($(byValueBoxRootElement()).find('tr:contains("BBB City - modified")').length).toEqual(1);
@@ -498,10 +498,10 @@ describe('Filters UI Value component', () => {
 
       await dropdownMenu(2);
 
-      simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(1) [type=checkbox]'));
-      simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
+      await simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(1) [type=checkbox]'));
+      await simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
-      setDataAtCell(0, 2, 'CCC City'); // BBB City -> CCC City
+      await setDataAtCell(0, 2, 'CCC City'); // BBB City -> CCC City
       await dropdownMenu(2);
 
       const elements = $(byValueBoxRootElement()).find('label').toArray();
@@ -553,10 +553,10 @@ describe('Filters UI Value component', () => {
 
       await dropdownMenu(2);
 
-      simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(1) [type=checkbox]'));
-      simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
+      await simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(1) [type=checkbox]'));
+      await simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
-      setDataAtCell(0, 2, 'AAA City'); // AAAA City -> AAA City
+      await setDataAtCell(0, 2, 'AAA City'); // AAAA City -> AAA City
 
       await dropdownMenu(2);
       const elements = $(byValueBoxRootElement()).find('label').toArray();
@@ -602,10 +602,10 @@ describe('Filters UI Value component', () => {
 
       await dropdownMenu(2);
 
-      simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(1) [type=checkbox]'));
-      simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
+      await simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(1) [type=checkbox]'));
+      await simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
-      setDataAtCell(1, 2, 'CCC City');
+      await setDataAtCell(1, 2, 'CCC City');
       await dropdownMenu(2);
 
       const elements = $(byValueBoxRootElement()).find('label').toArray();
@@ -656,10 +656,10 @@ describe('Filters UI Value component', () => {
 
       await dropdownMenu(2);
 
-      simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(1) [type=checkbox]'));
-      simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
+      await simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(1) [type=checkbox]'));
+      await simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
-      setDataAtCell(0, 2, 'AAA City');
+      await setDataAtCell(0, 2, 'AAA City');
 
       await dropdownMenu(2);
       expect($(byValueBoxRootElement()).find('tr:nth-child(1)').text()).toEqual('AAA City');

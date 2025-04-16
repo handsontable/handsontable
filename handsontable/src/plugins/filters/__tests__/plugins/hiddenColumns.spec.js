@@ -38,7 +38,7 @@ describe('Filters UI cooperation with HiddenColumn', () => {
 
     // Begins with 'b'
     document.activeElement.value = 'b';
-    keyUp('b');
+    await keyUp('b');
     $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
     expect(spec().$container.find('th:eq(1)').hasClass('htFiltersActive')).toEqual(true);

@@ -86,7 +86,7 @@ describe('settings', () => {
         dataDotNotation: true,
       });
 
-      updateSettings({
+      await updateSettings({
         dataDotNotation: false,
       });
 
@@ -106,7 +106,7 @@ describe('settings', () => {
         dataDotNotation: false,
       });
 
-      updateSettings({
+      await updateSettings({
         dataDotNotation: true,
       });
 

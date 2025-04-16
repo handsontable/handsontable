@@ -24,8 +24,8 @@ describe('Selection navigation (RTL mode)', () => {
         startCols: 5,
       });
 
-      selectCell(3, 3);
-      keyDownUp(['control/meta', 'arrowup']);
+      await selectCell(3, 3);
+      await keyDownUp(['control/meta', 'arrowup']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,3 from: 0,3 to: 0,3']);
       expect(`
@@ -38,8 +38,8 @@ describe('Selection navigation (RTL mode)', () => {
         |   :   :   :   :   ║   |
       `).toBeMatchToSelectionPattern();
 
-      selectCells([[3, 1, 1, 3]]);
-      keyDownUp(['control/meta', 'arrowup']);
+      await selectCells([[3, 1, 1, 3]]);
+      await keyDownUp(['control/meta', 'arrowup']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: 0,1 to: 0,1']);
       expect(`
@@ -52,8 +52,8 @@ describe('Selection navigation (RTL mode)', () => {
         |   :   :   :   :   ║   |
       `).toBeMatchToSelectionPattern();
 
-      selectColumns(2);
-      keyDownUp(['control/meta', 'arrowup']);
+      await selectColumns(2);
+      await keyDownUp(['control/meta', 'arrowup']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: 0,2 to: 0,2']);
       expect(`
@@ -76,8 +76,8 @@ describe('Selection navigation (RTL mode)', () => {
         navigableHeaders: true,
       });
 
-      selectCell(3, 3);
-      keyDownUp(['control/meta', 'arrowup']);
+      await selectCell(3, 3);
+      await keyDownUp(['control/meta', 'arrowup']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,3 from: 0,3 to: 0,3']);
       expect(`
@@ -90,8 +90,8 @@ describe('Selection navigation (RTL mode)', () => {
         |   :   :   :   :   ║   |
       `).toBeMatchToSelectionPattern();
 
-      selectCells([[3, 1, 1, 3]]);
-      keyDownUp(['control/meta', 'arrowup']);
+      await selectCells([[3, 1, 1, 3]]);
+      await keyDownUp(['control/meta', 'arrowup']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: 0,1 to: 0,1']);
       expect(`
@@ -104,8 +104,8 @@ describe('Selection navigation (RTL mode)', () => {
         |   :   :   :   :   ║   |
       `).toBeMatchToSelectionPattern();
 
-      selectColumns(2);
-      keyDownUp(['control/meta', 'arrowup']);
+      await selectColumns(2);
+      await keyDownUp(['control/meta', 'arrowup']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: 0,2 to: 0,2']);
       expect(`
@@ -127,8 +127,8 @@ describe('Selection navigation (RTL mode)', () => {
         navigableHeaders: true,
       });
 
-      selectCell(3, -1);
-      keyDownUp(['control/meta', 'arrowup']);
+      await selectCell(3, -1);
+      await keyDownUp(['control/meta', 'arrowup']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,-1 from: 0,-1 to: 0,-1']);
     });

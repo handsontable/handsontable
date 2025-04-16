@@ -28,7 +28,7 @@ describe('Core.setDataAtRowProp', () => {
 
     expect(getDataAtCell(0, 0)).toEqual('changed!');
 
-    updateSettings({
+    await updateSettings({
       manualRowMove: [1, 0, 2]
     });
 
@@ -51,7 +51,7 @@ describe('Core.setDataAtRowProp', () => {
     expect(getDataAtCell(0, 0)).toEqual('changed!');
     expect(getDataAtCell(0, 1)).toEqual('changed too!');
 
-    updateSettings({
+    await updateSettings({
       manualRowMove: [1, 0, 2]
     });
 

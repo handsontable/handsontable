@@ -14,35 +14,35 @@ describe('TextRenderer', () => {
 
   it('should render string', async() => {
     handsontable();
-    setDataAtCell(2, 2, 'string');
+    await setDataAtCell(2, 2, 'string');
 
     expect(getCell(2, 2).innerHTML).toEqual('string');
   });
 
   it('should render number', async() => {
     handsontable();
-    setDataAtCell(2, 2, 13);
+    await setDataAtCell(2, 2, 13);
 
     expect(getCell(2, 2).innerHTML).toEqual('13');
   });
 
   it('should render boolean true', async() => {
     handsontable();
-    setDataAtCell(2, 2, true);
+    await setDataAtCell(2, 2, true);
 
     expect(getCell(2, 2).innerHTML).toEqual('true');
   });
 
   it('should render boolean false', async() => {
     handsontable();
-    setDataAtCell(2, 2, false);
+    await setDataAtCell(2, 2, false);
 
     expect(getCell(2, 2).innerHTML).toEqual('false');
   });
 
   it('should render null', async() => {
     handsontable();
-    setDataAtCell(2, 2, null);
+    await setDataAtCell(2, 2, null);
 
     expect(getCell(2, 2).innerHTML).toEqual('');
   });
@@ -50,7 +50,7 @@ describe('TextRenderer', () => {
   it('should render undefined', async() => {
     handsontable();
     /* eslint-disable wrap-iife */
-    setDataAtCell(2, 2, (function() {})());
+    await setDataAtCell(2, 2, (function() {})());
 
     expect(getCell(2, 2).innerHTML).toEqual('');
   });
@@ -82,8 +82,8 @@ describe('TextRenderer', () => {
 
   it('should render a multiline string', async() => {
     handsontable();
-    setDataAtCell(1, 2, 'a b');
-    setDataAtCell(2, 2, 'a\nb');
+    await setDataAtCell(1, 2, 'a b');
+    await setDataAtCell(2, 2, 'a\nb');
 
     expect($(getCell(2, 2)).height()).toBeGreaterThan($(getCell(1, 2)).height());
   });
@@ -92,8 +92,8 @@ describe('TextRenderer', () => {
     handsontable({
       colWidths: [100]
     });
-    setDataAtCell(0, 0, 'short text');
-    setDataAtCell(1, 0, 'long long long long long long long text');
+    await setDataAtCell(0, 0, 'short text');
+    await setDataAtCell(1, 0, 'long long long long long long long text');
 
     expect($(getCell(1, 0)).height()).toBeGreaterThan($(getCell(0, 0)).height());
   });

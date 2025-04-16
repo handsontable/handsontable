@@ -930,7 +930,7 @@ describe('ColumnSummarySpec', () => {
         expect(getDataAtCell(0, 1)).toEqual(106);
         expect(getDataAtCell(1, 1)).toEqual(3996);
 
-        setDataAtCell(2, 1, 0);
+        await setDataAtCell(2, 1, 0);
 
         expect(getDataAtCell(0, 1)).toEqual(106);
         expect(getDataAtCell(1, 1)).toEqual(3633);

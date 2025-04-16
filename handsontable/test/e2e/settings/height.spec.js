@@ -21,7 +21,7 @@ describe('settings', () => {
 
       const initialHeight = $(hot.rootElement).height();
 
-      updateSettings({
+      await updateSettings({
         height: 300
       });
 
@@ -60,7 +60,7 @@ describe('settings', () => {
 
       const initialHeight = $(hot.rootElement).height();
 
-      updateSettings({
+      await updateSettings({
         rowHeaders: true
       });
 

@@ -51,7 +51,7 @@ describe('Search plugin', () => {
 
       hot.getPlugin('search').query('2');
 
-      render();
+      await render();
 
       const searchResultClass = hot.getPlugin('search').searchResultClass;
 
@@ -424,7 +424,7 @@ describe('Search plugin', () => {
 
       hot.getPlugin('search').query('2');
 
-      render();
+      await render();
 
       let cellProperties = hot.getCellMeta(0, 0);
 
@@ -458,7 +458,7 @@ describe('Search plugin', () => {
 
       hot.getPlugin('search').query('2');
 
-      render();
+      await render();
 
       const searchResultClass = hot.getPlugin('search').searchResultClass;
 
@@ -493,7 +493,7 @@ describe('Search plugin', () => {
 
       hot.getPlugin('search').query('2');
 
-      render();
+      await render();
 
       let cell = hot.getCell(0, 0);
 
@@ -552,7 +552,7 @@ describe('Search plugin', () => {
 
       hot.getPlugin('search').query('2');
 
-      render();
+      await render();
 
       let cellClassName = hot.getCell(0, 0).className;
 
@@ -585,7 +585,7 @@ describe('Search plugin', () => {
 
       hot.getPlugin('search').query('2');
 
-      render();
+      await render();
 
       let cellClassName = hot.getCell(0, 0).className;
 

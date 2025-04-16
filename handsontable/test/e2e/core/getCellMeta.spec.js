@@ -39,7 +39,7 @@ describe('Core.getCellMeta', () => {
     });
     allCellsReadOnly = true;
 
-    render(); // It triggers the table "slow render" cycle that clears the cell meta cache
+    await render(); // It triggers the table "slow render" cycle that clears the cell meta cache
 
     await selectCell(2, 2);
     await keyDownUp('enter');
@@ -57,7 +57,7 @@ describe('Core.getCellMeta', () => {
     });
     allCellsReadOnly = false;
 
-    render(); // It triggers the table "slow render" cycle that clears the cell meta cache
+    await render(); // It triggers the table "slow render" cycle that clears the cell meta cache
 
     await selectCell(2, 2);
     await keyDownUp('enter');
@@ -256,7 +256,7 @@ describe('Core.getCellMeta', () => {
     expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').hasClass('htDimmed')).toBe(false);
 
     // Column sorting changes the order of displayed rows while keeping table data unchanged
-    updateSettings({
+    await updateSettings({
       columnSorting: {
         initialConfig: {
           column: 0,
@@ -291,7 +291,7 @@ describe('Core.getCellMeta', () => {
     hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
     hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
 
-    render(); // It triggers the table "slow render" cycle that clears the cell meta cache
+    await render(); // It triggers the table "slow render" cycle that clears the cell meta cache
     hot.getCellMeta(0, 0);
 
     // The last beforeGetCellMeta call should be called with visual index 4, 4
@@ -315,7 +315,7 @@ describe('Core.getCellMeta', () => {
     hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
     hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
 
-    render(); // It triggers the table "slow render" cycle that clears the cell meta cache
+    await render(); // It triggers the table "slow render" cycle that clears the cell meta cache
     hot.getCellMeta(0, 1);
 
     // The last beforeGetCellMeta call should be called with visual index 4, 4

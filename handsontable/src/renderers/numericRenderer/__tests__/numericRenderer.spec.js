@@ -24,7 +24,7 @@ describe('NumericRenderer', () => {
       },
       afterValidate: onAfterValidate
     });
-    setDataAtCell(2, 2, '1000.234');
+    await setDataAtCell(2, 2, '1000.234');
 
     await sleep(100);
 
@@ -44,7 +44,7 @@ describe('NumericRenderer', () => {
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(2, 2, '-1000.234');
+    await setDataAtCell(2, 2, '-1000.234');
 
     await sleep(100);
 
@@ -61,7 +61,7 @@ describe('NumericRenderer', () => {
       },
     });
 
-    setDataAtCell(2, 2, '123 simple test');
+    await setDataAtCell(2, 2, '123 simple test');
 
     await sleep(100);
 
@@ -163,8 +163,8 @@ describe('NumericRenderer', () => {
         height: 100
       });
 
-      setDataAtCell(0, 0, '1000');
-      selectCell(0, 0);
+      await setDataAtCell(0, 0, '1000');
+      await selectCell(0, 0);
 
       contextMenu();
 

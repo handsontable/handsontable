@@ -33,25 +33,25 @@ describe('Selection using mouse interaction', () => {
       rowHeaders: true,
     });
 
-    mouseDown(getCell(5, 4));
-    mouseOver(getCell(1, 1));
-    mouseUp(getCell(1, 1));
+    await mouseDown(getCell(5, 4));
+    await mouseOver(getCell(1, 1));
+    await mouseUp(getCell(1, 1));
 
-    keyDown('control/meta');
+    await keyDown('control/meta');
 
-    mouseDown(getCell(0, 2));
-    mouseOver(getCell(8, 2));
-    mouseUp(getCell(7, 2));
+    await mouseDown(getCell(0, 2));
+    await mouseOver(getCell(8, 2));
+    await mouseUp(getCell(7, 2));
 
-    mouseDown(getCell(2, 4));
-    mouseOver(getCell(2, 4));
-    mouseUp(getCell(2, 4));
+    await mouseDown(getCell(2, 4));
+    await mouseOver(getCell(2, 4));
+    await mouseUp(getCell(2, 4));
 
-    mouseDown(getCell(7, 6));
-    mouseOver(getCell(8, 7));
-    mouseUp(getCell(8, 7));
+    await mouseDown(getCell(7, 6));
+    await mouseOver(getCell(8, 7));
+    await mouseUp(getCell(8, 7));
 
-    keyUp('control/meta');
+    await keyUp('control/meta');
 
     expect(`
       |   ║   : - : - : - : - :   : - : - |
@@ -72,9 +72,9 @@ describe('Selection using mouse interaction', () => {
     const textarea = $('<input type="text">').prependTo($('body'));
 
     handsontable();
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
     // $("html").triggerHandler('mouseup');
     $('html').simulate('mouseup');
     textarea.focus();
@@ -85,7 +85,7 @@ describe('Selection using mouse interaction', () => {
 
   it('should deselect currently selected cell', async() => {
     handsontable();
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
     $('html').simulate('mousedown');
 
@@ -106,7 +106,7 @@ describe('Selection using mouse interaction', () => {
       colHeaders: true,
     });
 
-    simulateClick(spec().$container.find('.ht_clone_top tr:eq(0) th:eq(1)'), 'LMB'); // Header "A"
+    await simulateClick(spec().$container.find('.ht_clone_top tr:eq(0) th:eq(1)'), 'LMB'); // Header "A"
 
     expect(`
       |   ║ * :   :   :   :   |
@@ -127,7 +127,7 @@ describe('Selection using mouse interaction', () => {
       colHeaders: true,
     });
 
-    simulateClick(spec().$container.find('.ht_clone_inline_start tbody tr:eq(0) th'), 'LMB'); // Header "1"
+    await simulateClick(spec().$container.find('.ht_clone_inline_start tbody tr:eq(0) th'), 'LMB'); // Header "1"
 
     expect(`
       |   ║ - : - : - : - : - |
@@ -148,7 +148,7 @@ describe('Selection using mouse interaction', () => {
       colHeaders: true,
     });
 
-    simulateClick(spec().$container.find('.ht_clone_top tr:eq(0) th:eq(1)'), 'RMB'); // Header "A"
+    await simulateClick(spec().$container.find('.ht_clone_top tr:eq(0) th:eq(1)'), 'RMB'); // Header "A"
 
     expect(getSelected()).toEqual([[-1, 0, 4, 0]]);
     expect(`
@@ -169,7 +169,7 @@ describe('Selection using mouse interaction', () => {
       colHeaders: true,
     });
 
-    simulateClick(spec().$container.find('.ht_clone_inline_start tbody tr:eq(0) th'), 'RMB'); // Header "1"
+    await simulateClick(spec().$container.find('.ht_clone_inline_start tbody tr:eq(0) th'), 'RMB'); // Header "1"
 
     expect(getSelected()).toEqual([[0, -1, 0, 4]]);
     expect(`
@@ -195,7 +195,7 @@ describe('Selection using mouse interaction', () => {
       },
     });
 
-    simulateClick(spec().$container.find('.ht_clone_top tr:eq(0) th:eq(2)'), 'LMB'); // First "B" header
+    await simulateClick(spec().$container.find('.ht_clone_top tr:eq(0) th:eq(2)'), 'LMB'); // First "B" header
 
     expect(`
       |   ║   : # :   :   :   |
@@ -208,7 +208,7 @@ describe('Selection using mouse interaction', () => {
     expect(getSelectedRange()).toEqualCellRange(['highlight: -3,1 from: -3,1 to: 1,1']);
 
     deselectCell();
-    simulateClick(spec().$container.find('.ht_clone_top tr:eq(1) th:eq(2)'), 'LMB'); // Second "B" header
+    await simulateClick(spec().$container.find('.ht_clone_top tr:eq(1) th:eq(2)'), 'LMB'); // Second "B" header
 
     expect(`
       |   ║   : * :   :   :   |
@@ -221,7 +221,7 @@ describe('Selection using mouse interaction', () => {
     expect(getSelectedRange()).toEqualCellRange(['highlight: -2,1 from: -2,1 to: 1,1']);
 
     deselectCell();
-    simulateClick(spec().$container.find('.ht_clone_top tr:eq(2) th:eq(2)'), 'LMB'); // Third "B" header
+    await simulateClick(spec().$container.find('.ht_clone_top tr:eq(2) th:eq(2)'), 'LMB'); // Third "B" header
 
     expect(`
       |   ║   : * :   :   :   |
@@ -246,7 +246,7 @@ describe('Selection using mouse interaction', () => {
       },
     });
 
-    simulateClick(spec().$container.find('.ht_clone_inline_start tbody tr:eq(1) th:eq(0)'), 'LMB'); // First header "2"
+    await simulateClick(spec().$container.find('.ht_clone_inline_start tbody tr:eq(1) th:eq(0)'), 'LMB'); // First header "2"
 
     expect(`
       |   :   :   ║ - : - |
@@ -260,7 +260,7 @@ describe('Selection using mouse interaction', () => {
     expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-3 from: 1,-3 to: 1,1']);
 
     deselectCell();
-    simulateClick(spec().$container.find('.ht_clone_inline_start tbody tr:eq(1) th:eq(1)'), 'LMB'); // Second header "2"
+    await simulateClick(spec().$container.find('.ht_clone_inline_start tbody tr:eq(1) th:eq(1)'), 'LMB'); // Second header "2"
 
     expect(`
       |   :   :   ║ - : - |
@@ -274,7 +274,7 @@ describe('Selection using mouse interaction', () => {
     expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-2 from: 1,-2 to: 1,1']);
 
     deselectCell();
-    simulateClick(spec().$container.find('.ht_clone_inline_start tbody tr:eq(1) th:eq(2)'), 'LMB'); // Third header "2"
+    await simulateClick(spec().$container.find('.ht_clone_inline_start tbody tr:eq(1) th:eq(2)'), 'LMB'); // Third header "2"
 
     expect(`
       |   :   :   ║ - : - |
@@ -300,7 +300,7 @@ describe('Selection using mouse interaction', () => {
       },
     });
 
-    simulateClick(spec().$container.find('.ht_clone_top tr:eq(0) th:eq(2)'), 'RMB'); // First "B" header
+    await simulateClick(spec().$container.find('.ht_clone_top tr:eq(0) th:eq(2)'), 'RMB'); // First "B" header
 
     expect(`
       |   ║   : # :   :   :   |
@@ -313,7 +313,7 @@ describe('Selection using mouse interaction', () => {
     expect(getSelectedRange()).toEqualCellRange(['highlight: -3,1 from: -3,1 to: 1,1']);
 
     deselectCell();
-    simulateClick(spec().$container.find('.ht_clone_top tr:eq(1) th:eq(2)'), 'RMB'); // Second "B" header
+    await simulateClick(spec().$container.find('.ht_clone_top tr:eq(1) th:eq(2)'), 'RMB'); // Second "B" header
 
     expect(`
       |   ║   : * :   :   :   |
@@ -326,7 +326,7 @@ describe('Selection using mouse interaction', () => {
     expect(getSelectedRange()).toEqualCellRange(['highlight: -2,1 from: -2,1 to: 1,1']);
 
     deselectCell();
-    simulateClick(spec().$container.find('.ht_clone_top tr:eq(2) th:eq(2)'), 'RMB'); // Third "B" header
+    await simulateClick(spec().$container.find('.ht_clone_top tr:eq(2) th:eq(2)'), 'RMB'); // Third "B" header
 
     expect(`
       |   ║   : * :   :   :   |
@@ -351,7 +351,7 @@ describe('Selection using mouse interaction', () => {
       },
     });
 
-    simulateClick(spec().$container.find('.ht_clone_inline_start tbody tr:eq(1) th:eq(0)'), 'RMB'); // First header "2"
+    await simulateClick(spec().$container.find('.ht_clone_inline_start tbody tr:eq(1) th:eq(0)'), 'RMB'); // First header "2"
 
     expect(`
       |   :   :   ║ - : - |
@@ -365,7 +365,7 @@ describe('Selection using mouse interaction', () => {
     expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-3 from: 1,-3 to: 1,1']);
 
     deselectCell();
-    simulateClick(spec().$container.find('.ht_clone_inline_start tbody tr:eq(1) th:eq(1)'), 'RMB'); // Second header "2"
+    await simulateClick(spec().$container.find('.ht_clone_inline_start tbody tr:eq(1) th:eq(1)'), 'RMB'); // Second header "2"
 
     expect(`
       |   :   :   ║ - : - |
@@ -379,7 +379,7 @@ describe('Selection using mouse interaction', () => {
     expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-2 from: 1,-2 to: 1,1']);
 
     deselectCell();
-    simulateClick(spec().$container.find('.ht_clone_inline_start tbody tr:eq(1) th:eq(2)'), 'RMB'); // Third header "2"
+    await simulateClick(spec().$container.find('.ht_clone_inline_start tbody tr:eq(1) th:eq(2)'), 'RMB'); // Third header "2"
 
     expect(`
       |   :   :   ║ - : - |
@@ -400,8 +400,8 @@ describe('Selection using mouse interaction', () => {
       colHeaders: true,
     });
 
-    selectCell(0, 0);
-    simulateClick(spec().$container.find('.ht_clone_top tr:eq(0) th:eq(1)'), 'RMB'); // Header "A"
+    await selectCell(0, 0);
+    await simulateClick(spec().$container.find('.ht_clone_top tr:eq(0) th:eq(1)'), 'RMB'); // Header "A"
 
     expect(getSelected()).toEqual([[-1, 0, 4, 0]]);
     expect(`
@@ -422,8 +422,8 @@ describe('Selection using mouse interaction', () => {
       colHeaders: true,
     });
 
-    selectCell(0, 0);
-    simulateClick(spec().$container.find('.ht_clone_inline_start tbody tr:eq(0) th'), 'RMB'); // Header "1"
+    await selectCell(0, 0);
+    await simulateClick(spec().$container.find('.ht_clone_inline_start tbody tr:eq(0) th'), 'RMB'); // Header "1"
 
     expect(getSelected()).toEqual([[0, -1, 0, 4]]);
     expect(`
@@ -445,7 +445,7 @@ describe('Selection using mouse interaction', () => {
       trimRows: [0, 1, 2, 3, 4], // The TrimmingMap should be used instead of the plugin.
     });
 
-    simulateClick(spec().$container.find('.ht_clone_top tr:eq(0) th:eq(2)'));
+    await simulateClick(spec().$container.find('.ht_clone_top tr:eq(0) th:eq(2)'));
 
     expect(getSelected()).toEqual([[-1, 1, -1, 1]]);
     expect(`
@@ -462,7 +462,7 @@ describe('Selection using mouse interaction', () => {
       trimRows: [0, 1, 2, 3, 4], // The TrimmingMap should be used instead of the plugin.
     });
 
-    simulateClick(spec().$container.find('.ht_clone_top tr:eq(0) th:eq(0)'));
+    await simulateClick(spec().$container.find('.ht_clone_top tr:eq(0) th:eq(0)'));
 
     expect(getSelected()).toEqual([[-1, -1, -1, 4]]);
     expect(`
@@ -479,7 +479,7 @@ describe('Selection using mouse interaction', () => {
       columns: [], // The TrimmingMap should be used instead of the plugin.
     });
 
-    simulateClick(spec().$container.find('.ht_clone_inline_start tr:eq(2) th:eq(0)'));
+    await simulateClick(spec().$container.find('.ht_clone_inline_start tr:eq(2) th:eq(0)'));
 
     expect(getSelected()).toEqual([[1, -1, 1, -1]]);
     expect(`
@@ -553,7 +553,7 @@ describe('Selection using mouse interaction', () => {
       startCols: 5,
     });
 
-    selectCell(1, 1, 3, 3);
+    await selectCell(1, 1, 3, 3);
 
     spec().$container.find('.ht_clone_top tr:eq(0) th:eq(5)').simulate('mousedown', { shiftKey: true });
     spec().$container.find('.ht_clone_top tr:eq(0) th:eq(5)').simulate('mouseup');
@@ -578,7 +578,7 @@ describe('Selection using mouse interaction', () => {
       startCols: 5,
     });
 
-    selectCell(1, 1, 3, 3);
+    await selectCell(1, 1, 3, 3);
 
     spec().$container.find('.ht_clone_inline_start tr:eq(5) th:eq(0)').simulate('mousedown', { shiftKey: true });
     spec().$container.find('.ht_clone_inline_start tr:eq(5) th:eq(0)').simulate('mouseup');
@@ -604,7 +604,7 @@ describe('Selection using mouse interaction', () => {
       startCols: 5,
     });
 
-    selectCell(0, 0, 0, 0);
+    await selectCell(0, 0, 0, 0);
 
     spec().$container.find('.ht_clone_inline_start tr:eq(5) th:eq(0)').simulate('mousedown', { shiftKey: true });
     spec().$container.find('.ht_clone_inline_start tr:eq(5) th:eq(0)').simulate('mouseup');
@@ -719,7 +719,7 @@ describe('Selection using mouse interaction', () => {
 
     $('body').append($input);
     handsontable();
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
     expect(document.activeElement.nodeName).toBeInArray(['TEXTAREA', 'BODY', 'HTML', 'TD', 'TH']);
 
@@ -830,11 +830,11 @@ describe('Selection using mouse interaction', () => {
 
     spec().$container.find('thead th:eq(3)').simulate('mousedown');
 
-    keyDown('control/meta');
+    await keyDown('control/meta');
 
-    mouseDown(spec().$container.find('tr:eq(2) th:eq(0)')[0]);
+    await mouseDown(spec().$container.find('tr:eq(2) th:eq(0)')[0]);
 
-    keyUp('control/meta');
+    await keyUp('control/meta');
 
     expect(`
       |   ║ - : - : * : - : - |
@@ -865,11 +865,11 @@ describe('Selection using mouse interaction', () => {
 
     spec().$container.find('thead th:eq(3)').simulate('mousedown');
 
-    keyDown('control/meta');
+    await keyDown('control/meta');
 
-    mouseDown(spec().$container.find('tr:eq(2) th:eq(0)')[0]);
+    await mouseDown(spec().$container.find('tr:eq(2) th:eq(0)')[0]);
 
-    keyUp('control/meta');
+    await keyUp('control/meta');
 
     expect(`
       |   ║ - : - : * : - : - |
@@ -900,11 +900,11 @@ describe('Selection using mouse interaction', () => {
 
     spec().$container.find('thead th:eq(3)').simulate('mousedown');
 
-    keyDown('control/meta');
+    await keyDown('control/meta');
 
-    mouseDown(spec().$container.find('tr:eq(2) th:eq(0)')[0]);
+    await mouseDown(spec().$container.find('tr:eq(2) th:eq(0)')[0]);
 
-    keyUp('control/meta');
+    await keyUp('control/meta');
 
     expect(`
       |   ║ - : - : * : - : - |
@@ -932,17 +932,17 @@ describe('Selection using mouse interaction', () => {
       rowHeaders: true,
     });
 
-    selectCell(0, 0);
-    keyDownUp('enter');
+    await selectCell(0, 0);
+    await keyDownUp('enter');
 
     expect(getActiveEditor()).not.toBeUndefined();
 
-    keyDown('control/meta');
+    await keyDown('control/meta');
 
-    mouseDown(spec().$container.find('thead th:eq(3)')[0]);
-    mouseDown(spec().$container.find('tr:eq(3) th:eq(0)')[0]);
+    await mouseDown(spec().$container.find('thead th:eq(3)')[0]);
+    await mouseDown(spec().$container.find('tr:eq(3) th:eq(0)')[0]);
 
-    keyUp('control/meta');
+    await keyUp('control/meta');
 
     expect(`
       |   ║ - : - : * : - : - |
@@ -1491,7 +1491,7 @@ describe('Selection using mouse interaction', () => {
     });
 
     hot.selectAll();
-    simulateClick(spec().$container.find('.ht_clone_top tr:eq(0) th:eq(1)'), 'LMB'); // Header "B"
+    await simulateClick(spec().$container.find('.ht_clone_top tr:eq(0) th:eq(1)'), 'LMB'); // Header "B"
 
     expect(getSelected()).toEqual([[-1, 1, 1, 1]]);
   });

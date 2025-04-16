@@ -40,7 +40,7 @@ describe('settings', () => {
           fixedRowsTop: 2
         });
 
-        updateSettings({
+        await updateSettings({
           fixedRowsTop: 4
         });
 
@@ -52,7 +52,7 @@ describe('settings', () => {
           fixedRowsTop: 4
         });
 
-        updateSettings({
+        await updateSettings({
           fixedRowsTop: 2
         });
 
@@ -64,7 +64,7 @@ describe('settings', () => {
           fixedRowsTop: 0
         });
 
-        updateSettings({
+        await updateSettings({
           fixedRowsTop: 2
         });
 
@@ -76,7 +76,7 @@ describe('settings', () => {
           fixedRowsTop: 2
         });
 
-        updateSettings({
+        await updateSettings({
           fixedRowsTop: 0
         });
 
@@ -98,7 +98,7 @@ describe('settings', () => {
           rowHeaders: true,
         });
 
-        updateSettings({
+        await updateSettings({
           fixedRowsTop: 2
         });
 
@@ -139,43 +139,43 @@ describe('settings', () => {
 
       expect(getTopClone().find('tbody tr').length).toBe(3);
 
-      updateSettings({
+      await updateSettings({
         data: createSpreadsheetData(2, 3),
       });
 
       expect(getTopClone().find('tbody tr').length).toBe(2);
 
-      updateSettings({
+      await updateSettings({
         data: createSpreadsheetData(1, 3),
       });
 
       expect(getTopClone().find('tbody tr').length).toBe(1);
 
-      updateSettings({
+      await updateSettings({
         data: createSpreadsheetData(0, 3),
       });
 
       expect(getTopClone().find('tbody tr').length).toBe(0);
 
-      updateSettings({
+      await updateSettings({
         data: createSpreadsheetData(1, 3),
       });
 
       expect(getTopClone().find('tbody tr').length).toBe(1);
 
-      updateSettings({
+      await updateSettings({
         data: createSpreadsheetData(2, 3),
       });
 
       expect(getTopClone().find('tbody tr').length).toBe(2);
 
-      updateSettings({
+      await updateSettings({
         data: createSpreadsheetData(3, 3),
       });
 
       expect(getTopClone().find('tbody tr').length).toBe(3);
 
-      updateSettings({
+      await updateSettings({
         data: createSpreadsheetData(4, 3),
       });
 
@@ -189,7 +189,7 @@ describe('settings', () => {
         fixedRowsTop: 2,
       });
 
-      updateSettings({
+      await updateSettings({
         fixedRowsTop: 0,
       });
 
@@ -208,7 +208,7 @@ describe('settings', () => {
         fixedRowsTop: 3,
       });
 
-      alter('insert_row_above', 0);
+      await alter('insert_row_above', 0);
 
       expect(getMaster().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(50); // 25px corner + 25px added row
@@ -232,7 +232,7 @@ describe('settings', () => {
       });
       expect(getBottomClone().height()).toBe(0);
 
-      alter('insert_row_above', 0);
+      await alter('insert_row_above', 0);
 
       expect(getMaster().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(73);

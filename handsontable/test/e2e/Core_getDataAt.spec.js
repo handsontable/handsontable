@@ -110,7 +110,7 @@ describe('Core_getDataAt*', () => {
       expect(spy.calls.argsFor(1)[3]).toBe('get');
 
       spy.calls.reset();
-      setDataAtCell(2, 3, 'foo');
+      await setDataAtCell(2, 3, 'foo');
 
       expect(spy.calls.count()).toBe(21); // call for all cells + 1 from setDataAtCell
       expect(spy.calls.argsFor(0)[0]).toBe(2);
@@ -168,7 +168,7 @@ describe('Core_getDataAt*', () => {
         },
       });
 
-      setDataAtCell(1, 2, 'bar');
+      await setDataAtCell(1, 2, 'bar');
 
       expect(getDataAtCell(1, 2)).toBe('foo');
       expect(getSourceDataAtCell(1, 2)).toBe('foo');

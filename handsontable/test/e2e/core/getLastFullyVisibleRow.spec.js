@@ -51,7 +51,7 @@ describe('Core.getLastFullyVisibleRow', () => {
 
     rowMapper.setValueAtIndex(0, true);
     rowMapper.setValueAtIndex(1, true);
-    render();
+    await render();
 
     expect(getLastFullyVisibleRow()).toBe(9);
   });
@@ -67,7 +67,7 @@ describe('Core.getLastFullyVisibleRow', () => {
 
     rowMapper.setValueAtIndex(0, true);
     rowMapper.setValueAtIndex(1, true);
-    render();
+    await render();
 
     expect(getLastFullyVisibleRow()).toBe(9);
   });
@@ -83,7 +83,7 @@ describe('Core.getLastFullyVisibleRow', () => {
 
     rowMapper.setValueAtIndex(0, true);
     rowMapper.setValueAtIndex(1, true);
-    render();
+    await render();
 
     expect(getLastFullyVisibleRow()).toBe(9);
   });
@@ -96,7 +96,7 @@ describe('Core.getLastFullyVisibleRow', () => {
     });
 
     setScrollTop(355); // row 23 (A24) is partially visible
-    render();
+    await render();
 
     expect(getLastFullyVisibleRow()).toBe(22);
   });
@@ -109,7 +109,7 @@ describe('Core.getLastFullyVisibleRow', () => {
     });
 
     setScrollTop(447); // row 23 (A24) is partially visible
-    render();
+    await render();
 
     expect(getLastFullyVisibleRow()).toBe(22);
   });
@@ -122,7 +122,7 @@ describe('Core.getLastFullyVisibleRow', () => {
     });
 
     setScrollTop(570); // row 23 (A24) is partially visible
-    render();
+    await render();
 
     expect(getLastFullyVisibleRow()).toBe(22);
   });

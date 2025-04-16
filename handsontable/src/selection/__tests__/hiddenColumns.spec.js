@@ -25,9 +25,9 @@ describe('Selection cooperation with hidden columns', () => {
     hidingMap.setValueAtIndex(0, true);
     hidingMap.setValueAtIndex(1, true);
     hidingMap.setValueAtIndex(2, true);
-    render();
+    await render();
 
-    selectCell(0, 15);
+    await selectCell(0, 15);
 
     expect(hot.view._wt.wtTable.getLastVisibleColumn()).toBe(12);
   });
@@ -45,9 +45,9 @@ describe('Selection cooperation with hidden columns', () => {
     hidingMap.setValueAtIndex(0, true);
     hidingMap.setValueAtIndex(1, true);
     hidingMap.setValueAtIndex(2, true);
-    render();
+    await render();
 
-    selectCells([[0, 4], [0, 15]]);
+    await selectCells([[0, 4], [0, 15]]);
 
     expect(hot.view._wt.wtTable.getLastVisibleColumn()).toBe(12);
   });
@@ -65,9 +65,9 @@ describe('Selection cooperation with hidden columns', () => {
     hidingMap.setValueAtIndex(0, true);
     hidingMap.setValueAtIndex(1, true);
     hidingMap.setValueAtIndex(2, true);
-    render();
+    await render();
 
-    selectColumns(15);
+    await selectColumns(15);
 
     expect(hot.view._wt.wtTable.getLastVisibleColumn()).toBe(12);
   });
@@ -82,12 +82,12 @@ describe('Selection cooperation with hidden columns', () => {
     const hidingMap = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
 
     hidingMap.setValueAtIndex(2, true);
-    render();
+    await render();
 
-    selectCell(0, 0); // Select cell "A1"
+    await selectCell(0, 0); // Select cell "A1"
 
-    keyDownUp('arrowright'); // Move selection to the right edge of the table
-    keyDownUp('arrowright'); // Move selection to first column, to the cell "A2"
+    await keyDownUp('arrowright'); // Move selection to the right edge of the table
+    await keyDownUp('arrowright'); // Move selection to first column, to the cell "A2"
 
     expect(getSelected()).toEqual([[1, 0, 1, 0]]);
   });
@@ -98,7 +98,7 @@ describe('Selection cooperation with hidden columns', () => {
       disableVisualSelection: true,
     });
 
-    selectColumns(1);
+    await selectColumns(1);
 
     expect(() => {
       columnIndexMapper()

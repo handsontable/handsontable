@@ -23,7 +23,7 @@ describe('Hook', () => {
       const afterSelectRows = jasmine.createSpy('afterSelectRows');
 
       addHook('afterSelectRows', afterSelectRows);
-      selectRows(2, 4);
+      await selectRows(2, 4);
 
       expect(afterSelectRows).toHaveBeenCalledTimes(1);
       expect(afterSelectRows).toHaveBeenCalledWith(
@@ -45,7 +45,7 @@ describe('Hook', () => {
 
       addHook('beforeSelectRows', beforeSelectRows);
       addHook('afterSelectRows', afterSelectRows);
-      selectRows(2, 4);
+      await selectRows(2, 4);
 
       expect(beforeSelectRows).toHaveBeenCalledBefore(afterSelectRows);
     });

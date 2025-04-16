@@ -52,8 +52,8 @@ describe('Filters UI cooperation with ManualColumnMove', () => {
     // filtering first value of column (deselecting checkbox)
     await dropdownMenu(0);
 
-    simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(1) [type=checkbox]'));
-    simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
+    await simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(1) [type=checkbox]'));
+    await simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
     // moving column
     manualColumnMove.moveColumn(0, 1);
@@ -62,8 +62,8 @@ describe('Filters UI cooperation with ManualColumnMove', () => {
     // filtering first value of column (deselecting checkbox)
     await dropdownMenu(2);
 
-    simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(1) [type=checkbox]'));
-    simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
+    await simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(1) [type=checkbox]'));
+    await simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
     expect(getData().length).toBe(2);
   });
@@ -110,8 +110,8 @@ describe('Filters UI cooperation with ManualColumnMove', () => {
     // filtering first value of column (deselecting checkbox)
     await dropdownMenu(0);
 
-    simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(1) [type=checkbox]'));
-    simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
+    await simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(1) [type=checkbox]'));
+    await simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
     // moving column
     manualColumnMove.moveColumn(0, 1);
@@ -120,8 +120,8 @@ describe('Filters UI cooperation with ManualColumnMove', () => {
     // filtering second value of column (deselecting checkbox)
     await dropdownMenu(1);
 
-    simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(2) [type=checkbox]'));
-    simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
+    await simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(2) [type=checkbox]'));
+    await simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
     expect(getData().length).toEqual(2);
   });

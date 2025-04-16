@@ -43,7 +43,7 @@ describe('HiddenRows', () => {
       expect(getCell(1, -1)).not.toHaveClass(CSS_CLASS_BEFORE_HIDDEN_ROW);
       expect(getCell(1, -1)).not.toHaveClass(CSS_CLASS_AFTER_HIDDEN_ROW);
 
-      updateSettings({
+      await updateSettings({
         hiddenRows: {
           rows: [0, 2],
           indicators: true,

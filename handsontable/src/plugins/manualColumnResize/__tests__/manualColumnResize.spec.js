@@ -162,7 +162,7 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 3)).toBe(50);
     expect(colWidth(spec().$container, 4)).toBe(50);
 
-    alter('insert_col_start', 0);
+    await alter('insert_col_start', 0);
 
     expect(colWidth(spec().$container, 0)).toBe(50); // Added new row here.
     expect(colWidth(spec().$container, 1)).toBe(50);
@@ -171,7 +171,7 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 4)).toBe(50);
     expect(colWidth(spec().$container, 5)).toBe(50);
 
-    alter('insert_col_start', 3);
+    await alter('insert_col_start', 3);
 
     expect(colWidth(spec().$container, 0)).toBe(50);
     expect(colWidth(spec().$container, 1)).toBe(50);
@@ -181,7 +181,7 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 5)).toBe(50);
     expect(colWidth(spec().$container, 6)).toBe(50);
 
-    alter('insert_col_start', 5);
+    await alter('insert_col_start', 5);
 
     expect(colWidth(spec().$container, 0)).toBe(50);
     expect(colWidth(spec().$container, 1)).toBe(50);
@@ -203,7 +203,7 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 2)).toBe(120);
     expect(colWidth(spec().$container, 3)).toBe(50);
 
-    alter('remove_col', 0);
+    await alter('remove_col', 0);
 
     expect(colWidth(spec().$container, 0)).toBe(50);
     expect(colWidth(spec().$container, 1)).toBe(120);
@@ -702,7 +702,7 @@ describe('manualColumnResize', () => {
     const $resizer = spec().$container.find('.manualColumnResizer');
     const resizerPosition = $resizer.position();
 
-    simulateClick($resizer, { clientX: resizerPosition.left });
+    await simulateClick($resizer, { clientX: resizerPosition.left });
 
     expect(afterColumnResizeCallback).not.toHaveBeenCalled();
     expect(colWidth(spec().$container, 0)).toEqual(50);

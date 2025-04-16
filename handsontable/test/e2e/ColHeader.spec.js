@@ -55,7 +55,7 @@ describe('ColHeader', () => {
 
     expect(cloneTop.width()).toBe(masterHolder.width());
 
-    alter('insert_row_below', null, 10);
+    await alter('insert_row_below', null, 10);
 
     expect(cloneTop.width()).toBeLessThan(masterHolder.width());
   });

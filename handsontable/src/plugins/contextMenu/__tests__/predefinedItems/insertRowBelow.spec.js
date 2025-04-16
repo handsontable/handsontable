@@ -221,7 +221,7 @@ describe('ContextMenu', () => {
       const rowMapper = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'trimming');
 
       rowMapper.setValueAtIndex(1, true);
-      render();
+      await render();
 
       await contextMenu(getCell(0, 0, true));
 

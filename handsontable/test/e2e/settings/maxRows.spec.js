@@ -70,7 +70,7 @@ describe('settings', () => {
           data: createSpreadsheetData(10, 10)
         });
 
-        updateSettings({
+        await updateSettings({
           maxRows: 0
         });
 
@@ -90,7 +90,7 @@ describe('settings', () => {
           data: createSpreadsheetData(10, 10)
         });
 
-        updateSettings({
+        await updateSettings({
           maxRows: 2
         });
 
@@ -110,7 +110,7 @@ describe('settings', () => {
           maxRows: 5
         });
 
-        updateSettings({
+        await updateSettings({
           maxRows: 2
         });
 
@@ -130,7 +130,7 @@ describe('settings', () => {
           maxRows: 2
         });
 
-        updateSettings({
+        await updateSettings({
           maxRows: 5
         });
 
@@ -149,7 +149,7 @@ describe('settings', () => {
           data: createSpreadsheetData(10, 10)
         });
 
-        updateSettings({
+        await updateSettings({
           maxRows: Infinity
         });
 
@@ -169,7 +169,7 @@ describe('settings', () => {
           maxRows: 2
         });
 
-        updateSettings({
+        await updateSettings({
           maxRows: Infinity
         });
 

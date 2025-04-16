@@ -23,13 +23,13 @@ describe('Hook', () => {
       const beforeSelectionHighlightSet = jasmine.createSpy('beforeSelectionHighlightSet');
 
       addHook('beforeSelectionHighlightSet', beforeSelectionHighlightSet);
-      selectColumns(2, 4);
+      await selectColumns(2, 4);
 
       expect(beforeSelectionHighlightSet).toHaveBeenCalledWith();
       expect(beforeSelectionHighlightSet).toHaveBeenCalledTimes(1);
 
       beforeSelectionHighlightSet.calls.reset();
-      selectRows(2, 4);
+      await selectRows(2, 4);
 
       expect(beforeSelectionHighlightSet).toHaveBeenCalledTimes(1);
 

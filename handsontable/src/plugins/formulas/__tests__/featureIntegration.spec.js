@@ -22,15 +22,15 @@ describe('Formulas: Integration with other features', () => {
         },
       });
 
-      alter('insert_row_above', 0, 1);
-      alter('insert_row_above', 2, 1);
-      alter('insert_row_above', hot.countRows(), 1);
+      await alter('insert_row_above', 0, 1);
+      await alter('insert_row_above', 2, 1);
+      await alter('insert_row_above', hot.countRows(), 1);
 
       expect(hot.countRows()).toEqual(5);
 
-      alter('insert_col_start', 0, 1);
-      alter('insert_col_start', 2, 1);
-      alter('insert_col_start', hot.countCols(), 1);
+      await alter('insert_col_start', 0, 1);
+      await alter('insert_col_start', 2, 1);
+      await alter('insert_col_start', hot.countCols(), 1);
 
       expect(hot.countCols()).toEqual(5);
     });
@@ -56,9 +56,9 @@ describe('Formulas: Integration with other features', () => {
       getPlugin('manualColumnMove').moveColumns([4, 3, 2, 1, 0], 0);
       await render();
 
-      alter('insert_col_start', 0, 1);
-      alter('insert_row_above', 0, 1);
-      alter('insert_row_below', 1, 1);
+      await alter('insert_col_start', 0, 1);
+      await alter('insert_row_above', 0, 1);
+      await alter('insert_row_below', 1, 1);
 
       expect(getData()).toEqual([
         [null, null, null, null, null, null],
@@ -93,8 +93,8 @@ describe('Formulas: Integration with other features', () => {
 
       await render();
 
-      alter('remove_row', 2, 2);
-      alter('remove_row', 2, 1);
+      await alter('remove_row', 2, 2);
+      await alter('remove_row', 2, 1);
 
       await render();
 

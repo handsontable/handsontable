@@ -165,7 +165,7 @@ describe('Core_keepEmptyRows', () => {
       minCols: 4,
       minSpareRows: 1
     });
-    setDataAtCell(3, 3, 'test');
+    await setDataAtCell(3, 3, 'test');
 
     expect(data.length).toEqual(5);
   });
@@ -182,7 +182,7 @@ describe('Core_keepEmptyRows', () => {
       minCols: 4,
       minSpareCols: 1
     });
-    setDataAtCell(3, 3, 'test');
+    await setDataAtCell(3, 3, 'test');
 
     expect(countCols()).toEqual(5);
   });
@@ -271,9 +271,9 @@ describe('Core_keepEmptyRows', () => {
       maxRows: 6,
       minSpareRows: 1
     });
-    setDataAtCell(3, 0, 'test');
-    setDataAtCell(4, 0, 'test');
-    setDataAtCell(5, 0, 'test');
+    await setDataAtCell(3, 0, 'test');
+    await setDataAtCell(4, 0, 'test');
+    await setDataAtCell(5, 0, 'test');
 
     expect(countRows()).toEqual(6);
   });
@@ -284,9 +284,9 @@ describe('Core_keepEmptyRows', () => {
       maxCols: 6,
       minSpareCols: 1
     });
-    setDataAtCell(0, 3, 'test');
-    setDataAtCell(0, 4, 'test');
-    setDataAtCell(0, 5, 'test');
+    await setDataAtCell(0, 3, 'test');
+    await setDataAtCell(0, 4, 'test');
+    await setDataAtCell(0, 5, 'test');
 
     expect(countCols()).toEqual(6);
   });

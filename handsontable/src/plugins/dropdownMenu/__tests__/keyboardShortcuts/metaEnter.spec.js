@@ -38,7 +38,7 @@ describe('DropdownMenu keyboard shortcut', () => {
       hidingMap.setValueAtIndex(1, true);
       hidingMap.setValueAtIndex(2, true);
 
-      render();
+      await render();
       await selectCell(-1, 1);
 
       await keyDownUp(['control/meta', 'enter']);

@@ -23,7 +23,7 @@ describe('Hook', () => {
       const beforeSelectRows = jasmine.createSpy('beforeSelectRows');
 
       addHook('beforeSelectRows', beforeSelectRows);
-      selectRows(2, 4);
+      await selectRows(2, 4);
 
       expect(beforeSelectRows).toHaveBeenCalledTimes(1);
       expect(beforeSelectRows).toHaveBeenCalledWith(
@@ -46,7 +46,7 @@ describe('Hook', () => {
         }
       });
 
-      selectRows(2, 4);
+      await selectRows(2, 4);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,1 from: 1,-1 to: 6,9']);
     });
@@ -62,7 +62,7 @@ describe('Hook', () => {
         }
       });
 
-      selectRows(2, 4);
+      await selectRows(2, 4);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,0 from: 2,-1 to: 4,9']);
     });

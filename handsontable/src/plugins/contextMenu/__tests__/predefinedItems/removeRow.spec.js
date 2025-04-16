@@ -241,29 +241,29 @@ describe('ContextMenu', () => {
         contextMenu: true,
       });
 
-      mouseDown(getCell(0, 0));
-      mouseOver(getCell(1, 0));
-      mouseUp(getCell(1, 0));
+      await mouseDown(getCell(0, 0));
+      await mouseOver(getCell(1, 0));
+      await mouseUp(getCell(1, 0));
 
       await keyDown('control/meta');
 
-      mouseDown(getCell(2, 1));
-      mouseOver(getCell(2, 1));
-      mouseUp(getCell(2, 1));
+      await mouseDown(getCell(2, 1));
+      await mouseOver(getCell(2, 1));
+      await mouseUp(getCell(2, 1));
 
-      mouseDown(getCell(0, 3));
-      mouseOver(getCell(5, 3));
-      mouseUp(getCell(5, 3));
+      await mouseDown(getCell(0, 3));
+      await mouseOver(getCell(5, 3));
+      await mouseUp(getCell(5, 3));
 
-      mouseDown(getCell(5, 0));
-      mouseOver(getCell(5, 4));
-      mouseUp(getCell(5, 4));
+      await mouseDown(getCell(5, 0));
+      await mouseOver(getCell(5, 4));
+      await mouseUp(getCell(5, 4));
 
-      mouseDown(getCell(7, 4));
-      mouseOver(getCell(7, 4));
-      mouseUp(getCell(7, 4));
+      await mouseDown(getCell(7, 4));
+      await mouseOver(getCell(7, 4));
+      await mouseUp(getCell(7, 4));
 
-      keyUp('control/meta');
+      await keyUp('control/meta');
 
       expect(`
         |   ║ - : - : - : - : - :   :   :   |
@@ -319,7 +319,7 @@ describe('ContextMenu', () => {
 
       await selectCell(1, 1);
       await contextMenu();
-      selectContextMenuOption('Remove row');
+      await selectContextMenuOption('Remove row');
 
       expect($(hot.getCell(2, 1)).hasClass('htInvalid')).toBeTruthy();
     });

@@ -19,7 +19,7 @@ describe('MergeCells open editor', () => {
       ]
     });
     await selectCell(1, 1);
-    mouseDoubleClick(getCell(1, 1));
+    await mouseDoubleClick(getCell(1, 1));
 
     expect(isEditorVisible()).toBe(true);
     expect(getActiveEditor()).toBeDefined();
@@ -34,7 +34,7 @@ describe('MergeCells open editor', () => {
     });
     await selectCell(1, 1);
     await keyDown('shift');
-    mouseDoubleClick(getCell(1, 1));
+    await mouseDoubleClick(getCell(1, 1));
 
     expect(isEditorVisible()).toBe(true);
     expect(getActiveEditor()).toBeDefined();
@@ -49,7 +49,7 @@ describe('MergeCells open editor', () => {
     });
     await selectCell(1, 1, 2, 3);
     await keyDown('shift');
-    mouseDoubleClick(getCell(2, 3));
+    await mouseDoubleClick(getCell(2, 3));
 
     expect(isEditorVisible()).toBe(false);
     expect(getActiveEditor()).toBeUndefined();
@@ -64,7 +64,7 @@ describe('MergeCells open editor', () => {
     });
     await selectCell(1, 1);
     await keyDown('control/meta');
-    mouseDoubleClick(getCell(1, 1));
+    await mouseDoubleClick(getCell(1, 1));
 
     expect(isEditorVisible()).toBe(false);
     expect(getActiveEditor()).toBeUndefined();

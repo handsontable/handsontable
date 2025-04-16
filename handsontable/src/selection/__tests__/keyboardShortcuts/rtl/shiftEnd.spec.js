@@ -22,8 +22,8 @@ describe('Selection extending (RTL mode)', () => {
         startCols: 5
       });
 
-      selectCell(1, 1);
-      keyDownUp(['shift', 'end']);
+      await selectCell(1, 1);
+      await keyDownUp(['shift', 'end']);
 
       expect(`
         |   :   :   :   :   |
@@ -42,9 +42,9 @@ describe('Selection extending (RTL mode)', () => {
         enterBeginsEditing: false,
       });
 
-      selectCell(1, 2, 3, 4);
-      keyDownUp('enter'); // Move focus down
-      keyDownUp(['shift', 'end']);
+      await selectCell(1, 2, 3, 4);
+      await keyDownUp('enter'); // Move focus down
+      await keyDownUp(['shift', 'end']);
 
       expect(`
         |   :   :   :   :   |
@@ -64,9 +64,9 @@ describe('Selection extending (RTL mode)', () => {
         startCols: 5
       });
 
-      selectColumns(2);
-      listen();
-      keyDownUp(['shift', 'end']);
+      await selectColumns(2);
+      await listen();
+      await keyDownUp(['shift', 'end']);
 
       expect(`
         | * : * : * :   :   ║   |

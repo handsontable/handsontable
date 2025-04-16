@@ -862,7 +862,7 @@ describe('Core_loadData', () => {
     loadData(arrayOfArrays());
 
     getCellMeta(0, 0).valid = false;
-    render();
+    await render();
 
     expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
 
@@ -914,12 +914,12 @@ describe('Core_loadData', () => {
       ]
     });
 
-    mouseDoubleClick(getCell(1, 1));
+    await mouseDoubleClick(getCell(1, 1));
     document.activeElement.value = 'Harry';
     deselectCell();
     expect(objectData[1].user.name.first).toEqual('Harry');
 
-    mouseDoubleClick(getCell(2, 1));
+    await mouseDoubleClick(getCell(2, 1));
     document.activeElement.value = 'Barry';
     deselectCell();
     expect(objectData[2].user.name.first).toEqual('Barry');
@@ -946,12 +946,12 @@ describe('Core_loadData', () => {
 
     loadData(objectData);
 
-    mouseDoubleClick(getCell(1, 1));
+    await mouseDoubleClick(getCell(1, 1));
     document.activeElement.value = 'Harry';
     deselectCell();
     expect(objectData[1].user.name.first).toEqual('Harry');
 
-    mouseDoubleClick(getCell(2, 1));
+    await mouseDoubleClick(getCell(2, 1));
     document.activeElement.value = 'Barry';
     deselectCell();
     expect(objectData[2].user.name.first).toEqual('Barry');
@@ -984,12 +984,12 @@ describe('Core_loadData', () => {
       }
     });
 
-    mouseDoubleClick(getCell(1, 1));
+    await mouseDoubleClick(getCell(1, 1));
     document.activeElement.value = 'Harry';
     deselectCell();
     expect(objectData[1].user.name.first).toEqual('Harry');
 
-    mouseDoubleClick(getCell(2, 1));
+    await mouseDoubleClick(getCell(2, 1));
     document.activeElement.value = 'Barry';
     deselectCell();
     expect(objectData[2].user.name.first).toEqual('Barry');
@@ -1024,12 +1024,12 @@ describe('Core_loadData', () => {
 
     loadData(objectData);
 
-    mouseDoubleClick(getCell(1, 1));
+    await mouseDoubleClick(getCell(1, 1));
     document.activeElement.value = 'Harry';
     deselectCell();
     expect(objectData[1].user.name.first).toEqual('Harry');
 
-    mouseDoubleClick(getCell(2, 1));
+    await mouseDoubleClick(getCell(2, 1));
     document.activeElement.value = 'Barry';
     deselectCell();
     expect(objectData[2].user.name.first).toEqual('Barry');

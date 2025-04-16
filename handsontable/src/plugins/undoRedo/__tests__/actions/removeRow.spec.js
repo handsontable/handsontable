@@ -22,7 +22,7 @@ describe('UndoRedo -> RemoveRow action', () => {
       afterUndo,
     });
 
-    alter('remove_row', 1, 2);
+    await alter('remove_row', 1, 2);
     getPlugin('undoRedo').undo();
 
     expect(afterUndo).toHaveBeenCalledWith({
@@ -46,8 +46,8 @@ describe('UndoRedo -> RemoveRow action', () => {
     });
 
     getPlugin('manualRowMove').moveRow(4, 0);
-    render();
-    alter('remove_row', 1, 1);
+    await render();
+    await alter('remove_row', 1, 1);
     getPlugin('undoRedo').undo();
 
     expect(getDataAtCol(0)).toEqual(['A5', 'A1', 'A2', 'A3', 'A4']);

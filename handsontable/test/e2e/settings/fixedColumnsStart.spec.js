@@ -40,7 +40,7 @@ describe('settings', () => {
           fixedColumnsStart: 2
         });
 
-        updateSettings({
+        await updateSettings({
           fixedColumnsStart: 4
         });
 
@@ -52,7 +52,7 @@ describe('settings', () => {
           fixedColumnsStart: 4
         });
 
-        updateSettings({
+        await updateSettings({
           fixedColumnsStart: 2
         });
 
@@ -64,7 +64,7 @@ describe('settings', () => {
           fixedColumnsStart: 0
         });
 
-        updateSettings({
+        await updateSettings({
           fixedColumnsStart: 2
         });
 
@@ -76,7 +76,7 @@ describe('settings', () => {
           fixedColumnsStart: 2
         });
 
-        updateSettings({
+        await updateSettings({
           fixedColumnsStart: 0
         });
 
@@ -99,7 +99,7 @@ describe('settings', () => {
           colHeaders: true,
         });
 
-        updateSettings({
+        await updateSettings({
           fixedColumnsStart: 2
         });
 
@@ -141,43 +141,43 @@ describe('settings', () => {
 
       expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(3);
 
-      updateSettings({
+      await updateSettings({
         data: createSpreadsheetData(3, 2),
       });
 
       expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(2);
 
-      updateSettings({
+      await updateSettings({
         data: createSpreadsheetData(3, 1),
       });
 
       expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(1);
 
-      updateSettings({
+      await updateSettings({
         data: createSpreadsheetData(3, 0),
       });
 
       expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(0);
 
-      updateSettings({
+      await updateSettings({
         data: createSpreadsheetData(3, 1),
       });
 
       expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(1);
 
-      updateSettings({
+      await updateSettings({
         data: createSpreadsheetData(3, 2),
       });
 
       expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(2);
 
-      updateSettings({
+      await updateSettings({
         data: createSpreadsheetData(3, 3),
       });
 
       expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(3);
 
-      updateSettings({
+      await updateSettings({
         data: createSpreadsheetData(3, 4),
       });
 
@@ -191,7 +191,7 @@ describe('settings', () => {
         fixedColumnsStart: 2,
       });
 
-      updateSettings({
+      await updateSettings({
         fixedColumnsStart: 0,
       });
 
@@ -244,7 +244,7 @@ describe('settings', () => {
           fixedColumnsLeft: 2
         });
 
-        updateSettings({
+        await updateSettings({
           fixedColumnsLeft: 4
         });
 
@@ -256,7 +256,7 @@ describe('settings', () => {
           fixedColumnsLeft: 4
         });
 
-        updateSettings({
+        await updateSettings({
           fixedColumnsLeft: 2
         });
 
@@ -268,7 +268,7 @@ describe('settings', () => {
           fixedColumnsLeft: 0
         });
 
-        updateSettings({
+        await updateSettings({
           fixedColumnsLeft: 2
         });
 
@@ -280,7 +280,7 @@ describe('settings', () => {
           fixedColumnsLeft: 2
         });
 
-        updateSettings({
+        await updateSettings({
           fixedColumnsLeft: 0
         });
 
@@ -303,7 +303,7 @@ describe('settings', () => {
           colHeaders: true,
         });
 
-        updateSettings({
+        await updateSettings({
           fixedColumnsLeft: 2
         });
 
@@ -345,43 +345,43 @@ describe('settings', () => {
 
       expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(3);
 
-      updateSettings({
+      await updateSettings({
         data: createSpreadsheetData(3, 2),
       });
 
       expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(2);
 
-      updateSettings({
+      await updateSettings({
         data: createSpreadsheetData(3, 1),
       });
 
       expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(1);
 
-      updateSettings({
+      await updateSettings({
         data: createSpreadsheetData(3, 0),
       });
 
       expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(0);
 
-      updateSettings({
+      await updateSettings({
         data: createSpreadsheetData(3, 1),
       });
 
       expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(1);
 
-      updateSettings({
+      await updateSettings({
         data: createSpreadsheetData(3, 2),
       });
 
       expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(2);
 
-      updateSettings({
+      await updateSettings({
         data: createSpreadsheetData(3, 3),
       });
 
       expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(3);
 
-      updateSettings({
+      await updateSettings({
         data: createSpreadsheetData(3, 4),
       });
 

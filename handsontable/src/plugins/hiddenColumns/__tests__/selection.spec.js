@@ -795,13 +795,13 @@ describe('HiddenColumns', () => {
       let errorThrown = false;
 
       try {
-        updateSettings({
+        await updateSettings({
           hiddenColumns: {
             columns: [0]
           },
         });
 
-        updateSettings({
+        await updateSettings({
           hiddenColumns: {
             columns: []
           },

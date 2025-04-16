@@ -24,7 +24,7 @@ describe('Hook', () => {
 
       addHook('afterRender', afterRender);
 
-      render();
+      await render();
 
       expect(hot.view._wt.draw).toHaveBeenCalledBefore(afterRender);
     });
@@ -39,7 +39,7 @@ describe('Hook', () => {
 
       afterRender.calls.reset();
 
-      render();
+      await render();
 
       expect(afterRender).toHaveBeenCalledTimes(1);
       expect(afterRender.calls.argsFor(0)[0]).toBe(true);

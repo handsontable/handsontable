@@ -155,7 +155,7 @@ describe('HiddenRows', () => {
       });
 
       getPlugin('hiddenRows').hideRows([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
-      render();
+      await render();
 
       expect(getTopClone().find('tbody tr').length).toBe(0);
       expect(extractDOMStructure(getTopClone())).toMatchHTML(`
@@ -172,7 +172,7 @@ describe('HiddenRows', () => {
       });
 
       getPlugin('trimRows').trimRows([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
-      render();
+      await render();
 
       expect(getTopClone().find('tbody tr').length).toBe(0);
       expect(extractDOMStructure(getTopClone())).toMatchHTML(`

@@ -163,14 +163,14 @@ describe('NestedHeaders', () => {
         hidingMap.setValueAtIndex(10, true); // Hide column that contains cells K{n}
         hot.render();
 
-        simulateClick(getTopClone().find('thead tr:eq(3) th:eq(1)')); // select column B4
+        await simulateClick(getTopClone().find('thead tr:eq(3) th:eq(1)')); // select column B4
 
         await keyDown('control/meta');
 
-        simulateClick(getTopClone().find('thead tr:eq(2) th:eq(3)')); // select column F3
-        simulateClick(getTopClone().find('thead tr:eq(1) th:eq(7)')); // select column K2
+        await simulateClick(getTopClone().find('thead tr:eq(2) th:eq(3)')); // select column F3
+        await simulateClick(getTopClone().find('thead tr:eq(1) th:eq(7)')); // select column K2
 
-        keyUp('control/meta');
+        await keyUp('control/meta');
 
         expect(getSelectedRange()).toEqualCellRange([
           'highlight: 0,2 from: -1,1 to: 2,2', // B4
@@ -251,14 +251,14 @@ describe('NestedHeaders', () => {
         hidingMap.setValueAtIndex(10, true); // Hide column that contains cells K{n}
         hot.render();
 
-        simulateClick(getTopClone().find('thead tr:eq(3) th:eq(1)')); // select column B4
+        await simulateClick(getTopClone().find('thead tr:eq(3) th:eq(1)')); // select column B4
 
         await keyDown('control/meta');
 
-        simulateClick(getTopClone().find('thead tr:eq(2) th:eq(3)')); // select column F3
-        simulateClick(getTopClone().find('thead tr:eq(1) th:eq(7)')); // select column K2
+        await simulateClick(getTopClone().find('thead tr:eq(2) th:eq(3)')); // select column F3
+        await simulateClick(getTopClone().find('thead tr:eq(1) th:eq(7)')); // select column K2
 
-        keyUp('control/meta');
+        await keyUp('control/meta');
 
         expect(getSelectedRange()).toEqualCellRange([
           'highlight: -1,2 from: -1,1 to: 2,2', // B4
@@ -571,14 +571,14 @@ describe('NestedHeaders', () => {
         hidingMap.setValueAtIndex(10, true); // Hide column that contains cells K{n}
         hot.render();
 
-        simulateClick(getTopClone().find('thead tr:eq(3) th:eq(3)')); // select column F4
-        simulateClick(getTopClone().find('thead tr:eq(3) th:eq(7)'), 'LMB', {
+        await simulateClick(getTopClone().find('thead tr:eq(3) th:eq(3)')); // select column F4
+        await simulateClick(getTopClone().find('thead tr:eq(3) th:eq(7)'), 'LMB', {
           shiftKey: true
         }); // select column L4
 
         expect(getSelected()).toEqual([[-1, 5, 2, 12]]);
 
-        simulateClick(getTopClone().find('thead tr:eq(3) th:eq(3)'), 'LMB', {
+        await simulateClick(getTopClone().find('thead tr:eq(3) th:eq(3)'), 'LMB', {
           shiftKey: true
         }); // Back to column F4
 
@@ -617,8 +617,8 @@ describe('NestedHeaders', () => {
         hidingMap.setValueAtIndex(10, true); // Hide column that contains cells K{n}
         hot.render();
 
-        simulateClick(getTopClone().find('thead tr:eq(3) th:eq(1)')); // select column B4
-        simulateClick(getTopClone().find('thead tr:eq(3) th:eq(2)'), 'LMB', {
+        await simulateClick(getTopClone().find('thead tr:eq(3) th:eq(1)')); // select column B4
+        await simulateClick(getTopClone().find('thead tr:eq(3) th:eq(2)'), 'LMB', {
           shiftKey: true
         }); // select column D4
 
@@ -634,7 +634,7 @@ describe('NestedHeaders', () => {
           |   : 0 : 0 :   :   :   :   :   :   |
         `).toBeMatchToSelectionPattern();
 
-        simulateClick(getTopClone().find('thead tr:eq(3) th:eq(3)'), 'LMB', {
+        await simulateClick(getTopClone().find('thead tr:eq(3) th:eq(3)'), 'LMB', {
           shiftKey: true
         }); // select column F4
 
@@ -650,7 +650,7 @@ describe('NestedHeaders', () => {
           |   : 0 : 0 : 0 : 0 :   :   :   :   |
         `).toBeMatchToSelectionPattern();
 
-        simulateClick(getTopClone().find('thead tr:eq(3) th:eq(5)'), 'LMB', {
+        await simulateClick(getTopClone().find('thead tr:eq(3) th:eq(5)'), 'LMB', {
           shiftKey: true
         }); // select column H4
 
@@ -689,8 +689,8 @@ describe('NestedHeaders', () => {
         hidingMap.setValueAtIndex(10, true); // Hide column that contains cells K{n}
         hot.render();
 
-        simulateClick(getTopClone().find('thead tr:eq(3) th:eq(7)')); // select column L4
-        simulateClick(getTopClone().find('thead tr:eq(3) th:eq(6)'), 'LMB', {
+        await simulateClick(getTopClone().find('thead tr:eq(3) th:eq(7)')); // select column L4
+        await simulateClick(getTopClone().find('thead tr:eq(3) th:eq(6)'), 'LMB', {
           shiftKey: true
         }); // select column J4
 
@@ -706,7 +706,7 @@ describe('NestedHeaders', () => {
           |   :   :   :   :   :   : 0 : 0 : 0 |
         `).toBeMatchToSelectionPattern();
 
-        simulateClick(getTopClone().find('thead tr:eq(3) th:eq(5)'), 'LMB', {
+        await simulateClick(getTopClone().find('thead tr:eq(3) th:eq(5)'), 'LMB', {
           shiftKey: true
         }); // select column H4
 
@@ -722,7 +722,7 @@ describe('NestedHeaders', () => {
           |   :   :   :   :   : 0 : 0 : 0 : 0 |
         `).toBeMatchToSelectionPattern();
 
-        simulateClick(getTopClone().find('thead tr:eq(3) th:eq(3)'), 'LMB', {
+        await simulateClick(getTopClone().find('thead tr:eq(3) th:eq(3)'), 'LMB', {
           shiftKey: true
         }); // select column F4
 
@@ -738,7 +738,7 @@ describe('NestedHeaders', () => {
           |   :   :   : 0 : 0 : 0 : 0 : 0 : 0 |
         `).toBeMatchToSelectionPattern();
 
-        simulateClick(getTopClone().find('thead tr:eq(3) th:eq(2)'), 'LMB', {
+        await simulateClick(getTopClone().find('thead tr:eq(3) th:eq(2)'), 'LMB', {
           shiftKey: true
         }); // select column D4
 
@@ -754,7 +754,7 @@ describe('NestedHeaders', () => {
           |   :   : 0 : 0 : 0 : 0 : 0 : 0 : 0 |
         `).toBeMatchToSelectionPattern();
 
-        simulateClick(getTopClone().find('thead tr:eq(3) th:eq(1)'), 'LMB', {
+        await simulateClick(getTopClone().find('thead tr:eq(3) th:eq(1)'), 'LMB', {
           shiftKey: true
         }); // select column B4
 

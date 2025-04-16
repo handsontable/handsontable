@@ -183,7 +183,7 @@ describe('NestedHeaders', () => {
         });
         const widthBeforeUpdate = getPlugin('nestedHeaders').ghostTable.getWidth(1);
 
-        updateSettings({
+        await updateSettings({
           nestedHeaders: [
             ['a', 'bbbbbbbbbbbbbbbbb', 'c', 'd', 'e', 'f', 'g']
           ]

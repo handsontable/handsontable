@@ -237,7 +237,7 @@ describe('NestedHeaders', () => {
       hidingMap.setValueAtIndex(6, true); // Hide column that contains cells G{n}
       hot.render();
 
-      updateSettings({ });
+      await updateSettings({ });
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -266,7 +266,7 @@ describe('NestedHeaders', () => {
       hidingMap.setValueAtIndex(0, true); // Hide column that contains cells A{n}
       hot.render();
 
-      updateSettings({ });
+      await updateSettings({ });
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -2266,7 +2266,7 @@ describe('NestedHeaders', () => {
           },
         });
 
-        updateSettings({
+        await updateSettings({
           hiddenColumns: {
             columns: [1, 4, 8, 6],
           },
@@ -2295,7 +2295,7 @@ describe('NestedHeaders', () => {
           </tbody>
           `);
 
-        updateSettings({
+        await updateSettings({
           hiddenColumns: {
             columns: [0, 1, 2, 4, 8, 6],
           },
@@ -2320,7 +2320,7 @@ describe('NestedHeaders', () => {
           </tbody>
           `);
 
-        updateSettings({ });
+        await updateSettings({ });
 
         expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
           <thead>

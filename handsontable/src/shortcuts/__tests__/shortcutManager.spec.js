@@ -39,29 +39,29 @@ describe('shortcutManager', () => {
 
       expect(shortcutManager.isCtrlPressed()).toBeFalse();
 
-      keyDown('control');
+      await keyDown('control');
 
       expect(shortcutManager.isCtrlPressed()).toBeTrue();
 
-      keyUp('control');
+      await keyUp('control');
 
       hot.listen();
 
-      keyDown('control');
+      await keyDown('control');
 
       expect(shortcutManager.isCtrlPressed()).toBeTrue();
 
-      keyUp('control');
+      await keyUp('control');
 
       expect(shortcutManager.isCtrlPressed()).toBeFalse();
 
       hot.unlisten();
 
-      keyDown('control');
+      await keyDown('control');
 
       expect(shortcutManager.isCtrlPressed()).toBeTrue();
 
-      keyUp('control');
+      await keyUp('control');
     });
 
     it('meta', async() => {
@@ -70,29 +70,29 @@ describe('shortcutManager', () => {
 
       expect(shortcutManager.isCtrlPressed()).toBeFalse();
 
-      keyDown('meta');
+      await keyDown('meta');
 
       expect(shortcutManager.isCtrlPressed()).toBeTrue();
 
-      keyUp('meta');
+      await keyUp('meta');
 
       hot.listen();
 
-      keyDown('meta');
+      await keyDown('meta');
 
       expect(shortcutManager.isCtrlPressed()).toBeTrue();
 
-      keyUp('meta');
+      await keyUp('meta');
 
       expect(shortcutManager.isCtrlPressed()).toBeFalse();
 
       hot.unlisten();
 
-      keyDown('meta');
+      await keyDown('meta');
 
       expect(shortcutManager.isCtrlPressed()).toBeTrue();
 
-      keyUp('meta');
+      await keyUp('meta');
     });
   });
 
@@ -111,25 +111,25 @@ describe('shortcutManager', () => {
       runOnlyIf: () => hot.getSelected() !== undefined,
     });
 
-    keyDownUp(['control', 'b']);
+    await keyDownUp(['control', 'b']);
 
     expect(spy.calls.count()).toBe(0);
 
     hot.listen();
 
-    keyDownUp(['control', 'b']);
+    await keyDownUp(['control', 'b']);
 
     expect(spy.calls.count()).toBe(0);
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
-    keyDownUp(['control', 'b']);
+    await keyDownUp(['control', 'b']);
 
     expect(spy.calls.count()).toBe(1);
 
     hot.unlisten();
 
-    keyDownUp(['control', 'b']);
+    await keyDownUp(['control', 'b']);
 
     expect(spy.calls.count()).toBe(1);
   });
@@ -154,15 +154,15 @@ describe('shortcutManager', () => {
     });
     hot.listen();
 
-    keyDownUp(['a'], { ime: true });
+    await keyDownUp(['a'], { ime: true });
 
     expect(callback.calls.count()).toBe(0);
 
-    keyDownUp(['Enter'], { ime: true });
+    await keyDownUp(['Enter'], { ime: true });
 
     expect(callback.calls.count()).toBe(0);
 
-    keyDownUp(['Enter'], { ime: false });
+    await keyDownUp(['Enter'], { ime: false });
 
     expect(callback.calls.count()).toBe(1);
   });
@@ -198,21 +198,21 @@ describe('shortcutManager', () => {
 
     hot.listen();
     Handsontable.helper.setPlatformMeta({ platform: 'Win' });
-    keyDownUp(['meta', 'b']);
+    await keyDownUp(['meta', 'b']);
 
     expect(callback.calls.count()).toBe(0);
 
-    keyDownUp(['control', 'b']);
+    await keyDownUp(['control', 'b']);
 
     expect(callback.calls.count()).toBe(1);
 
     callback.calls.reset();
     Handsontable.helper.setPlatformMeta({ platform: 'Mac' });
-    keyDownUp(['control', 'b']);
+    await keyDownUp(['control', 'b']);
 
     expect(callback.calls.count()).toBe(0);
 
-    keyDownUp(['meta', 'b']);
+    await keyDownUp(['meta', 'b']);
 
     expect(callback.calls.count()).toBe(1);
 
@@ -242,8 +242,8 @@ describe('shortcutManager', () => {
       runOnlyIf: () => hot.getSelected() !== undefined,
     });
 
-    selectCell(0, 0);
-    keyDownUp(['control', 'b']);
+    await selectCell(0, 0);
+    await keyDownUp(['control', 'b']);
 
     // Please keep in mind that two keys are pressed.
     expect(text).toBe('13123');
@@ -261,8 +261,8 @@ describe('shortcutManager', () => {
       group: 'spy',
     });
 
-    selectCell(0, 0);
-    keyDownUp(['shift', 'z']);
+    await selectCell(0, 0);
+    await keyDownUp(['shift', 'z']);
 
     expect(getActiveEditor().isOpened()).toBe(false);
   });
@@ -292,8 +292,8 @@ describe('shortcutManager', () => {
       runOnlyIf: () => hot.getSelected() !== undefined,
     });
 
-    selectCell(0, 0);
-    keyDownUp(['control', 'b']);
+    await selectCell(0, 0);
+    await keyDownUp(['control', 'b']);
 
     // Please keep in mind that two keys are pressed.
     expect(text).toBe('11');
@@ -333,8 +333,8 @@ describe('shortcutManager', () => {
       group: 'spy'
     });
 
-    selectCell(0, 0);
-    keyDownUp(['control', 'b']);
+    await selectCell(0, 0);
+    await keyDownUp(['control', 'b']);
 
     expect(text).toBe('12');
   });
@@ -362,13 +362,13 @@ describe('shortcutManager', () => {
       group: 'spy',
     });
 
-    selectCell(0, 0);
-    keyDownUp(['control', 'b']);
+    await selectCell(0, 0);
+    await keyDownUp(['control', 'b']);
 
     expect(isCtrlPressedSpy).toHaveBeenCalledWith(true);
 
     isCtrlPressedSpy.calls.reset();
-    keyDownUp(['control', 'k']);
+    await keyDownUp(['control', 'k']);
 
     expect(isCtrlPressedSpy).toHaveBeenCalledWith(false);
   });
@@ -429,8 +429,8 @@ describe('shortcutManager', () => {
       group: 'spy3',
     });
 
-    selectCell(0, 0);
-    keyDownUp(['control', 'b']);
+    await selectCell(0, 0);
+    await keyDownUp(['control', 'b']);
 
     expect(text).toBe('123456');
   });
@@ -489,8 +489,8 @@ describe('shortcutManager', () => {
       group: 'spy3',
     });
 
-    selectCell(0, 0);
-    keyDownUp(['control', 'b']);
+    await selectCell(0, 0);
+    await keyDownUp(['control', 'b']);
 
     expect(text).toBe('13456');
   });
@@ -500,16 +500,16 @@ describe('shortcutManager', () => {
     const shortcutManager = hot.getShortcutManager();
     const releasePressedKeys = spyOn(shortcutManager, 'releasePressedKeys');
 
-    keyDown('control/meta');
-    simulateClick(getCell(0, 0));
+    await keyDown('control/meta');
+    await simulateClick(getCell(0, 0));
 
     expect(releasePressedKeys).not.toHaveBeenCalled();
 
-    keyUp('control/meta');
+    await keyUp('control/meta');
     // Any key other than control/meta.
-    keyDown('f');
+    await keyDown('f');
 
-    simulateClick(getCell(0, 0));
+    await simulateClick(getCell(0, 0));
 
     expect(releasePressedKeys).toHaveBeenCalled();
   });
@@ -525,7 +525,7 @@ describe('shortcutManager', () => {
       const secondSpy = jasmine.createSpy('second');
 
       shortcutManager.setActiveContextName('second');
-      listen();
+      await listen();
 
       firstContext.addShortcut({
         keys: [['enter']],
@@ -539,7 +539,7 @@ describe('shortcutManager', () => {
         group: 'spy',
       });
 
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       expect(firstSpy).toHaveBeenCalledTimes(1);
       expect(secondSpy).toHaveBeenCalledTimes(1);
@@ -571,7 +571,7 @@ describe('shortcutManager', () => {
         group: 'spy',
       });
 
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       expect(hot2Spy).toHaveBeenCalledTimes(1);
       expect(hot1Spy).toHaveBeenCalledTimes(1);
@@ -589,7 +589,7 @@ describe('shortcutManager', () => {
       const firstSpy = jasmine.createSpy('first');
 
       shortcutManager.setActiveContextName('second');
-      listen();
+      await listen();
 
       firstContext.addShortcut({
         keys: [['enter']],
@@ -605,7 +605,7 @@ describe('shortcutManager', () => {
         group: 'spy',
       });
 
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       expect(firstSpy).toHaveBeenCalledTimes(0);
     });
@@ -627,8 +627,8 @@ describe('shortcutManager', () => {
       });
 
       shortcutManager.setActiveContextName('test');
-      listen();
-      keyDownUp('enter');
+      await listen();
+      await keyDownUp('enter');
 
       expect(callback).toHaveBeenCalledTimes(1);
     });
@@ -649,8 +649,8 @@ describe('shortcutManager', () => {
       });
 
       shortcutManager.setActiveContextName('test');
-      listen();
-      keyDownUp('enter');
+      await listen();
+      await keyDownUp('enter');
 
       expect(callback).toHaveBeenCalledTimes(1);
     });
@@ -672,25 +672,25 @@ describe('shortcutManager', () => {
       });
 
       shortcutManager.setActiveContextName('test');
-      listen();
+      await listen();
 
       runOnlyIf.and.returnValue(false);
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       expect(callback).toHaveBeenCalledTimes(0);
 
       runOnlyIf.and.returnValue(null);
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       expect(callback).toHaveBeenCalledTimes(0);
 
       runOnlyIf.and.returnValue(undefined);
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       expect(callback).toHaveBeenCalledTimes(0);
 
       runOnlyIf.and.returnValue([]);
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       expect(callback).toHaveBeenCalledTimes(0);
     });

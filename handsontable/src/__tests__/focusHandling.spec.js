@@ -78,7 +78,7 @@ describe('Focus handling', () => {
 
       expect(document.activeElement).toEqual(document.body);
 
-      selectCells([[1, 1, 3, 3]]);
+      await selectCells([[1, 1, 3, 3]]);
       hot.selection.setRangeFocus(cellCoords(2, 2));
 
       expect(document.activeElement).toEqual(getCell(

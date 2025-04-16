@@ -31,7 +31,7 @@ describe('Core.getFirstRenderedVisibleRow', () => {
 
     rowMapper.setValueAtIndex(0, true);
     rowMapper.setValueAtIndex(1, true);
-    render();
+    await render();
 
     expect(getFirstRenderedVisibleRow()).toBe(2);
   });
@@ -44,7 +44,7 @@ describe('Core.getFirstRenderedVisibleRow', () => {
     });
 
     setScrollTop(355); // row 15 (A16) is partially visible
-    render();
+    await render();
 
     expect(getFirstRenderedVisibleRow()).toBe(12);
   });
@@ -57,7 +57,7 @@ describe('Core.getFirstRenderedVisibleRow', () => {
     });
 
     setScrollTop(447); // row 15 (A16) is partially visible
-    render();
+    await render();
 
     expect(getFirstRenderedVisibleRow()).toBe(12);
   });
@@ -70,7 +70,7 @@ describe('Core.getFirstRenderedVisibleRow', () => {
     });
 
     setScrollTop(570); // row 15 (A16) is partially visible
-    render();
+    await render();
 
     expect(getFirstRenderedVisibleRow()).toBe(12);
   });

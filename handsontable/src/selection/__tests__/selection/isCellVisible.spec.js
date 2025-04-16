@@ -64,7 +64,7 @@ describe('Selection', () => {
 
       hidingMap.setValueAtIndex(2, true);
       hidingMap.setValueAtIndex(5, true);
-      render();
+      await render();
 
       expect(hot.selection.isCellVisible(cellCoords(0, 0))).toBe(true);
       expect(hot.selection.isCellVisible(cellCoords(1, 0))).toBe(true);
@@ -83,7 +83,7 @@ describe('Selection', () => {
 
       hidingMap.setValueAtIndex(2, true);
       hidingMap.setValueAtIndex(5, true);
-      render();
+      await render();
 
       expect(hot.selection.isCellVisible(cellCoords(0, 0))).toBe(true);
       expect(hot.selection.isCellVisible(cellCoords(0, 1))).toBe(true);

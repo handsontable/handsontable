@@ -24,10 +24,10 @@ describe('Selection', () => {
         tick += 1;
       }
     });
-    selectCell(3, 0); // makes tick++
-    keyDownUp(['shift', 'arrowdown']); // makes tick++
-    keyDownUp(['shift', 'arrowdown']); // makes tick++
-    keyDownUp(['shift', 'arrowdown']); // makes tick++
+    await selectCell(3, 0); // makes tick++
+    await keyDownUp(['shift', 'arrowdown']); // makes tick++
+    await keyDownUp(['shift', 'arrowdown']); // makes tick++
+    await keyDownUp(['shift', 'arrowdown']); // makes tick++
 
     expect(getSelected()).toEqual([[3, 0, 4, 0]]);
     expect(`
@@ -54,10 +54,10 @@ describe('Selection', () => {
         tick += 1;
       }
     });
-    selectCell(3, 0); // makes tick++
-    keyDown(['shift', 'arrowdown']);
-    keyDown(['shift', 'arrowdown']);
-    keyDownUp(['shift', 'arrowdown']); // makes tick++
+    await selectCell(3, 0); // makes tick++
+    await keyDown(['shift', 'arrowdown']);
+    await keyDown(['shift', 'arrowdown']);
+    await keyDownUp(['shift', 'arrowdown']); // makes tick++
 
     expect(getSelected()).toEqual([[3, 0, 4, 0]]);
     expect(`
@@ -80,9 +80,9 @@ describe('Selection', () => {
       startCols: 5
     });
     $input[0].focus();
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
     expect(isEditorVisible()).toEqual(true);
     $input.remove();
   });
@@ -96,9 +96,9 @@ describe('Selection', () => {
       cells: (row, col) => (row === 1 && col === 1 ? { className: 'red-background' } : undefined)
     });
 
-    mouseDown(getCell(0, 0));
-    mouseOver(getCell(4, 4));
-    mouseUp(getCell(4, 4));
+    await mouseDown(getCell(0, 0));
+    await mouseOver(getCell(4, 4));
+    await mouseUp(getCell(4, 4));
 
     expect(window.getComputedStyle(getCell(1, 1))['background-color']).toBe('rgb(255, 0, 0)');
   });
@@ -195,47 +195,65 @@ describe('Selection', () => {
     const mainHolder = hot.view._wt.wtTable.holder;
 
     mainHolder.scrollTop = 100;
-    selectCell(1, 3);
-    keyDownUp('arrowdown');
+
+    await sleep(20);
+    await selectCell(1, 3);
+    await keyDownUp('arrowdown');
+
     expect(mainHolder.scrollTop).toEqual(0);
 
     mainHolder.scrollTop = 100;
-    selectCell(1, 3);
-    keyDownUp(['shift', 'arrowdown']);
+
+    await sleep(20);
+    await selectCell(1, 3);
+    await keyDownUp(['shift', 'arrowdown']);
+
     expect(mainHolder.scrollTop).toEqual(0);
 
     mainHolder.scrollLeft = 100;
-    selectCell(3, 1);
-    keyDownUp('arrowright');
+
+    await sleep(20);
+    await selectCell(3, 1);
+    await keyDownUp('arrowright');
+
     expect(mainHolder.scrollLeft).toEqual(0);
 
     mainHolder.scrollLeft = 100;
-    selectCell(3, 1);
-    keyDownUp(['shift', 'arrowright']);
+
+    await sleep(20);
+    await selectCell(3, 1);
+    await keyDownUp(['shift', 'arrowright']);
+
     expect(mainHolder.scrollLeft).toEqual(0);
 
     const lastVisibleColumn = hot.view._wt.wtTable.getLastVisibleColumn();
 
-    selectCell(3, lastVisibleColumn);
-    keyDownUp('arrowright');
+    await selectCell(3, lastVisibleColumn);
+    await keyDownUp('arrowright');
+
     expect(hot.view._wt.wtTable.getLastVisibleColumn()).toEqual(lastVisibleColumn + 1);
 
-    keyDownUp('arrowright');
+    await keyDownUp('arrowright');
+
     expect(hot.view._wt.wtTable.getLastVisibleColumn()).toEqual(lastVisibleColumn + 2);
 
-    keyDownUp(['shift', 'arrowright']);
+    await keyDownUp(['shift', 'arrowright']);
+
     expect(hot.view._wt.wtTable.getLastVisibleColumn()).toEqual(lastVisibleColumn + 3);
 
     const lastVisibleRow = hot.view._wt.wtTable.getLastVisibleRow();
 
-    selectCell(lastVisibleRow, 3);
-    keyDownUp('arrowdown');
+    await selectCell(lastVisibleRow, 3);
+    await keyDownUp('arrowdown');
+
     expect(hot.view._wt.wtTable.getLastVisibleRow()).toEqual(lastVisibleRow + 1);
 
-    keyDownUp('arrowdown');
+    await keyDownUp('arrowdown');
+
     expect(hot.view._wt.wtTable.getLastVisibleRow()).toEqual(lastVisibleRow + 2);
 
-    keyDownUp(['shift', 'arrowdown']);
+    await keyDownUp(['shift', 'arrowdown']);
+
     expect(hot.view._wt.wtTable.getLastVisibleRow()).toEqual(lastVisibleRow + 3);
   });
 
@@ -259,13 +277,13 @@ describe('Selection', () => {
 
     $(columnHeader).simulate('mousedown');
     $(columnHeader).simulate('mouseup');
-    keyDownUp(['shift', 'arrowright']);
+    await keyDownUp(['shift', 'arrowright']);
     expect(hot.view._wt.wtTable.getLastVisibleColumn()).toEqual(lastVisibleColumn + 1);
 
-    keyDownUp(['shift', 'arrowright']);
+    await keyDownUp(['shift', 'arrowright']);
     expect(hot.view._wt.wtTable.getLastVisibleColumn()).toEqual(lastVisibleColumn + 2);
 
-    keyDownUp(['shift', 'arrowright']);
+    await keyDownUp(['shift', 'arrowright']);
     expect(hot.view._wt.wtTable.getLastVisibleColumn()).toEqual(lastVisibleColumn + 3);
 
     const scrollLeft = mainHolder.scrollLeft;
@@ -275,13 +293,13 @@ describe('Selection', () => {
 
     $(rowHeader).simulate('mousedown');
     $(rowHeader).simulate('mouseup');
-    keyDownUp(['shift', 'arrowdown']);
+    await keyDownUp(['shift', 'arrowdown']);
     expect(hot.view._wt.wtTable.getLastVisibleRow()).toEqual(lastVisibleRow + 1);
 
-    keyDownUp(['shift', 'arrowdown']);
+    await keyDownUp(['shift', 'arrowdown']);
     expect(hot.view._wt.wtTable.getLastVisibleRow()).toEqual(lastVisibleRow + 2);
 
-    keyDownUp(['shift', 'arrowdown']);
+    await keyDownUp(['shift', 'arrowdown']);
     expect(hot.view._wt.wtTable.getLastVisibleRow()).toEqual(lastVisibleRow + 3);
     expect(mainHolder.scrollLeft).toBe(scrollLeft);
     expect(mainHolder.scrollTop).toBeGreaterThan(0);
@@ -359,11 +377,11 @@ describe('Selection', () => {
     });
 
     await sleep(10);
-    selectCell(4, 0);
-    keyDownUp('enter');
+    await selectCell(4, 0);
+    await keyDownUp('enter');
 
     await sleep(90);
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     await sleep(100);
     expect(countRows()).toEqual(6);
@@ -388,13 +406,13 @@ describe('Selection', () => {
       startCols: 5
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
     hot.addHook('modifyTransformStart', (coords) => {
       coords.col += 1;
       coords.row += 1;
     });
-    keyDownUp('arrowdown');
+    await keyDownUp('arrowdown');
 
     expect(getSelected()).toEqual([[2, 1, 2, 1]]);
     expect(`
@@ -416,13 +434,13 @@ describe('Selection', () => {
       startCols: 5
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
     hot.addHook('modifyTransformEnd', (delta) => {
       delta.col += 2;
       delta.row += 1;
     });
-    keyDownUp(['shift', 'arrowdown']);
+    await keyDownUp(['shift', 'arrowdown']);
 
     expect(getSelected()).toEqual([[0, 0, 2, 2]]);
     expect(`
@@ -446,29 +464,29 @@ describe('Selection', () => {
     });
 
     hot.addHook('afterModifyTransformStart', spy);
-    selectCell(2, 0);
-    keyDownUp('arrowleft');
+    await selectCell(2, 0);
+    await keyDownUp('arrowleft');
 
     expect(spy.calls.mostRecent().args[1]).toBe(0);
     expect(spy.calls.mostRecent().args[2]).toBe(-1);
 
     spy.calls.reset();
-    selectCell(2, 4);
-    keyDownUp('arrowright');
+    await selectCell(2, 4);
+    await keyDownUp('arrowright');
 
     expect(spy.calls.mostRecent().args[1]).toBe(0);
     expect(spy.calls.mostRecent().args[2]).toBe(1);
 
     spy.calls.reset();
-    selectCell(4, 2);
-    keyDownUp('arrowdown');
+    await selectCell(4, 2);
+    await keyDownUp('arrowdown');
 
     expect(spy.calls.mostRecent().args[1]).toBe(1);
     expect(spy.calls.mostRecent().args[2]).toBe(0);
 
     spy.calls.reset();
-    selectCell(0, 2);
-    keyDownUp('arrowup');
+    await selectCell(0, 2);
+    await keyDownUp('arrowup');
 
     expect(spy.calls.mostRecent().args[1]).toBe(-1);
     expect(spy.calls.mostRecent().args[2]).toBe(0);
@@ -482,29 +500,29 @@ describe('Selection', () => {
     });
 
     hot.addHook('afterModifyTransformEnd', spy);
-    selectCell(2, 0);
-    keyDownUp(['shift', 'arrowleft']);
+    await selectCell(2, 0);
+    await keyDownUp(['shift', 'arrowleft']);
 
     expect(spy.calls.mostRecent().args[1]).toBe(0);
     expect(spy.calls.mostRecent().args[2]).toBe(-1);
 
     spy.calls.reset();
-    selectCell(2, 4);
-    keyDownUp(['shift', 'arrowright']);
+    await selectCell(2, 4);
+    await keyDownUp(['shift', 'arrowright']);
 
     expect(spy.calls.mostRecent().args[1]).toBe(0);
     expect(spy.calls.mostRecent().args[2]).toBe(1);
 
     spy.calls.reset();
-    selectCell(4, 2);
-    keyDownUp(['shift', 'arrowdown']);
+    await selectCell(4, 2);
+    await keyDownUp(['shift', 'arrowdown']);
 
     expect(spy.calls.mostRecent().args[1]).toBe(1);
     expect(spy.calls.mostRecent().args[2]).toBe(0);
 
     spy.calls.reset();
-    selectCell(0, 2);
-    keyDownUp(['shift', 'arrowup']);
+    await selectCell(0, 2);
+    await keyDownUp(['shift', 'arrowup']);
 
     expect(spy.calls.mostRecent().args[1]).toBe(-1);
     expect(spy.calls.mostRecent().args[2]).toBe(0);
@@ -546,7 +564,7 @@ describe('Selection', () => {
     const borderOffsetInPixels = 1;
     let topBorder;
 
-    selectCell(5, 5);
+    await selectCell(5, 5);
     hot.view._wt.wtOverlays.topOverlay.scrollTo(2);
 
     await sleep(100);
@@ -576,7 +594,7 @@ describe('Selection', () => {
     const borderOffsetInPixels = 1;
     let topBorder;
 
-    selectCell(1, 0);
+    await selectCell(1, 0);
     hot.view._wt.wtOverlays.topOverlay.scrollTo(5);
 
     await sleep(100);
@@ -616,9 +634,9 @@ describe('Selection', () => {
         startCols: 10
       });
 
-      mouseDown(getCell(1, 1));
-      mouseOver(getCell(4, 4));
-      mouseUp(getCell(4, 4));
+      await mouseDown(getCell(1, 1));
+      await mouseOver(getCell(4, 4));
+      await mouseUp(getCell(4, 4));
 
       expect(getSelected()).toEqual([[1, 1, 4, 4]]);
       expect(`
@@ -634,13 +652,13 @@ describe('Selection', () => {
       |   ║   :   :   :   :   :   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
 
-      keyDown('control/meta');
+      await keyDown('control/meta');
 
-      mouseDown(getCell(3, 3));
-      mouseOver(getCell(5, 6));
-      mouseUp(getCell(5, 6));
+      await mouseDown(getCell(3, 3));
+      await mouseOver(getCell(5, 6));
+      await mouseUp(getCell(5, 6));
 
-      keyUp('control/meta');
+      await keyUp('control/meta');
 
       expect(getSelected()).toEqual([[1, 1, 4, 4], [3, 3, 5, 6]]);
       expect(`
@@ -666,9 +684,9 @@ describe('Selection', () => {
         selectionMode: 'single',
       });
 
-      mouseDown(getCell(1, 1));
-      mouseOver(getCell(4, 4));
-      mouseUp(getCell(4, 4));
+      await mouseDown(getCell(1, 1));
+      await mouseOver(getCell(4, 4));
+      await mouseUp(getCell(4, 4));
 
       expect(getSelected()).toEqual([[1, 1, 1, 1]]);
       expect(`
@@ -684,13 +702,13 @@ describe('Selection', () => {
       |   ║   :   :   :   :   :   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
 
-      keyDown('control/meta');
+      await keyDown('control/meta');
 
-      mouseDown(getCell(3, 3));
-      mouseOver(getCell(5, 6));
-      mouseUp(getCell(5, 6));
+      await mouseDown(getCell(3, 3));
+      await mouseOver(getCell(5, 6));
+      await mouseUp(getCell(5, 6));
 
-      keyUp('control/meta');
+      await keyUp('control/meta');
 
       expect(getSelected()).toEqual([[3, 3, 3, 3]]);
       expect(`
@@ -716,9 +734,9 @@ describe('Selection', () => {
         selectionMode: 'range',
       });
 
-      mouseDown(getCell(1, 1));
-      mouseOver(getCell(4, 4));
-      mouseUp(getCell(4, 4));
+      await mouseDown(getCell(1, 1));
+      await mouseOver(getCell(4, 4));
+      await mouseUp(getCell(4, 4));
 
       expect(getSelected()).toEqual([[1, 1, 4, 4]]);
       expect(`
@@ -734,9 +752,9 @@ describe('Selection', () => {
       |   ║   :   :   :   :   :   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
 
-      mouseDown(getCell(3, 3));
-      mouseOver(getCell(5, 6));
-      mouseUp(getCell(5, 6));
+      await mouseDown(getCell(3, 3));
+      await mouseOver(getCell(5, 6));
+      await mouseUp(getCell(5, 6));
 
       expect(getSelected()).toEqual([[3, 3, 5, 6]]);
       expect(`
@@ -762,9 +780,9 @@ describe('Selection', () => {
         selectionMode: 'range',
       });
 
-      mouseDown(getCell(1, 1));
-      mouseOver(getCell(4, 4));
-      mouseUp(getCell(4, 4));
+      await mouseDown(getCell(1, 1));
+      await mouseOver(getCell(4, 4));
+      await mouseUp(getCell(4, 4));
 
       expect(getSelected()).toEqual([[1, 1, 4, 4]]);
       expect(`
@@ -780,13 +798,13 @@ describe('Selection', () => {
       |   ║   :   :   :   :   :   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
 
-      keyDown('control/meta');
+      await keyDown('control/meta');
 
-      mouseDown(getCell(3, 3));
-      mouseOver(getCell(5, 6));
-      mouseUp(getCell(5, 6));
+      await mouseDown(getCell(3, 3));
+      await mouseOver(getCell(5, 6));
+      await mouseUp(getCell(5, 6));
 
-      keyUp('control/meta');
+      await keyUp('control/meta');
 
       expect(getSelected()).toEqual([[3, 3, 5, 6]]);
       expect(`
@@ -812,53 +830,53 @@ describe('Selection', () => {
         rowHeaders: true,
       });
 
-      mouseDown(getCell(0, 0));
-      mouseOver(getCell(20, 15));
-      mouseUp(getCell(20, 15));
+      await mouseDown(getCell(0, 0));
+      await mouseOver(getCell(20, 15));
+      await mouseUp(getCell(20, 15));
 
-      keyDown('control/meta');
+      await keyDown('control/meta');
 
-      mouseDown(getCell(1, 1));
-      mouseOver(getCell(19, 16));
-      mouseUp(getCell(19, 16));
+      await mouseDown(getCell(1, 1));
+      await mouseOver(getCell(19, 16));
+      await mouseUp(getCell(19, 16));
 
-      mouseDown(getCell(2, 2));
-      mouseOver(getCell(18, 17));
-      mouseUp(getCell(18, 17));
+      await mouseDown(getCell(2, 2));
+      await mouseOver(getCell(18, 17));
+      await mouseUp(getCell(18, 17));
 
-      mouseDown(getCell(3, 3));
-      mouseOver(getCell(17, 18));
-      mouseUp(getCell(17, 18));
+      await mouseDown(getCell(3, 3));
+      await mouseOver(getCell(17, 18));
+      await mouseUp(getCell(17, 18));
 
-      mouseDown(getCell(4, 4));
-      mouseOver(getCell(16, 19));
-      mouseUp(getCell(16, 19));
+      await mouseDown(getCell(4, 4));
+      await mouseOver(getCell(16, 19));
+      await mouseUp(getCell(16, 19));
 
-      mouseDown(getCell(5, 5));
-      mouseOver(getCell(15, 20));
-      mouseUp(getCell(15, 20));
+      await mouseDown(getCell(5, 5));
+      await mouseOver(getCell(15, 20));
+      await mouseUp(getCell(15, 20));
 
-      mouseDown(getCell(6, 6));
-      mouseOver(getCell(14, 21));
-      mouseUp(getCell(14, 21));
+      await mouseDown(getCell(6, 6));
+      await mouseOver(getCell(14, 21));
+      await mouseUp(getCell(14, 21));
 
-      mouseDown(getCell(7, 7));
-      mouseOver(getCell(13, 22));
-      mouseUp(getCell(13, 22));
+      await mouseDown(getCell(7, 7));
+      await mouseOver(getCell(13, 22));
+      await mouseUp(getCell(13, 22));
 
-      mouseDown(getCell(8, 8));
-      mouseOver(getCell(12, 23));
-      mouseUp(getCell(12, 23));
+      await mouseDown(getCell(8, 8));
+      await mouseOver(getCell(12, 23));
+      await mouseUp(getCell(12, 23));
 
-      mouseDown(getCell(9, 9));
-      mouseOver(getCell(11, 24));
-      mouseUp(getCell(11, 24));
+      await mouseDown(getCell(9, 9));
+      await mouseOver(getCell(11, 24));
+      await mouseUp(getCell(11, 24));
 
-      mouseDown(getCell(10, 10));
-      mouseOver(getCell(10, 25));
-      mouseUp(getCell(10, 25));
+      await mouseDown(getCell(10, 10));
+      await mouseOver(getCell(10, 25));
+      await mouseUp(getCell(10, 25));
 
-      keyUp('control/meta');
+      await keyUp('control/meta');
 
       /* eslint-disable max-len */
       expect(`
@@ -900,9 +918,9 @@ describe('Selection', () => {
         afterSelectionEnd: hooks.afterSelectionEnd,
       });
 
-      mouseDown(getCell(0, 0));
-      mouseOver(getCell(20, 15));
-      mouseUp(getCell(20, 15));
+      await mouseDown(getCell(0, 0));
+      await mouseOver(getCell(20, 15));
+      await mouseUp(getCell(20, 15));
 
       expect(hooks.afterSelection.calls.count()).toBe(2);
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([0, 0, 0, 0, jasmine.any(Object), 0]);
@@ -910,13 +928,13 @@ describe('Selection', () => {
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
       expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([0, 0, 20, 15, 0]);
 
-      keyDown('control/meta');
+      await keyDown('control/meta');
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
 
-      mouseDown(getCell(1, 1));
-      mouseOver(getCell(19, 16));
-      mouseUp(getCell(19, 16));
+      await mouseDown(getCell(1, 1));
+      await mouseOver(getCell(19, 16));
+      await mouseUp(getCell(19, 16));
 
       expect(hooks.afterSelection.calls.count()).toBe(2);
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([1, 1, 1, 1, jasmine.any(Object), 1]);
@@ -927,9 +945,9 @@ describe('Selection', () => {
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
 
-      mouseDown(getCell(2, 2));
-      mouseOver(getCell(18, 17));
-      mouseUp(getCell(18, 17));
+      await mouseDown(getCell(2, 2));
+      await mouseOver(getCell(18, 17));
+      await mouseUp(getCell(18, 17));
 
       expect(hooks.afterSelection.calls.count()).toBe(2);
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([2, 2, 2, 2, jasmine.any(Object), 2]);
@@ -940,9 +958,9 @@ describe('Selection', () => {
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
 
-      mouseDown(getCell(3, 3));
-      mouseOver(getCell(17, 18));
-      mouseUp(getCell(17, 18));
+      await mouseDown(getCell(3, 3));
+      await mouseOver(getCell(17, 18));
+      await mouseUp(getCell(17, 18));
 
       expect(hooks.afterSelection.calls.count()).toBe(2);
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([3, 3, 3, 3, jasmine.any(Object), 3]);
@@ -953,9 +971,9 @@ describe('Selection', () => {
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
 
-      mouseDown(getCell(4, 4));
-      mouseOver(getCell(16, 19));
-      mouseUp(getCell(16, 19));
+      await mouseDown(getCell(4, 4));
+      await mouseOver(getCell(16, 19));
+      await mouseUp(getCell(16, 19));
 
       expect(hooks.afterSelection.calls.count()).toBe(2);
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([4, 4, 4, 4, jasmine.any(Object), 4]);
@@ -966,9 +984,9 @@ describe('Selection', () => {
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
 
-      mouseDown(getCell(5, 5));
-      mouseOver(getCell(15, 20));
-      mouseUp(getCell(15, 20));
+      await mouseDown(getCell(5, 5));
+      await mouseOver(getCell(15, 20));
+      await mouseUp(getCell(15, 20));
 
       expect(hooks.afterSelection.calls.count()).toBe(2);
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([5, 5, 5, 5, jasmine.any(Object), 5]);
@@ -979,9 +997,9 @@ describe('Selection', () => {
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
 
-      mouseDown(getCell(6, 6));
-      mouseOver(getCell(14, 21));
-      mouseUp(getCell(14, 21));
+      await mouseDown(getCell(6, 6));
+      await mouseOver(getCell(14, 21));
+      await mouseUp(getCell(14, 21));
 
       expect(hooks.afterSelection.calls.count()).toBe(2);
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([6, 6, 6, 6, jasmine.any(Object), 6]);
@@ -992,9 +1010,9 @@ describe('Selection', () => {
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
 
-      mouseDown(getCell(7, 7));
-      mouseOver(getCell(13, 22));
-      mouseUp(getCell(13, 22));
+      await mouseDown(getCell(7, 7));
+      await mouseOver(getCell(13, 22));
+      await mouseUp(getCell(13, 22));
 
       expect(hooks.afterSelection.calls.count()).toBe(2);
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([7, 7, 7, 7, jasmine.any(Object), 7]);
@@ -1005,9 +1023,9 @@ describe('Selection', () => {
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
 
-      mouseDown(getCell(8, 8));
-      mouseOver(getCell(12, 23));
-      mouseUp(getCell(12, 23));
+      await mouseDown(getCell(8, 8));
+      await mouseOver(getCell(12, 23));
+      await mouseUp(getCell(12, 23));
 
       expect(hooks.afterSelection.calls.count()).toBe(2);
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([8, 8, 8, 8, jasmine.any(Object), 8]);
@@ -1018,9 +1036,9 @@ describe('Selection', () => {
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
 
-      mouseDown(getCell(9, 9));
-      mouseOver(getCell(11, 24));
-      mouseUp(getCell(11, 24));
+      await mouseDown(getCell(9, 9));
+      await mouseOver(getCell(11, 24));
+      await mouseUp(getCell(11, 24));
 
       expect(hooks.afterSelection.calls.count()).toBe(2);
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([9, 9, 9, 9, jasmine.any(Object), 9]);
@@ -1031,11 +1049,11 @@ describe('Selection', () => {
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
 
-      mouseDown(getCell(10, 10));
-      mouseOver(getCell(10, 25));
-      mouseUp(getCell(10, 25));
+      await mouseDown(getCell(10, 10));
+      await mouseOver(getCell(10, 25));
+      await mouseUp(getCell(10, 25));
 
-      keyUp('control/meta');
+      await keyUp('control/meta');
 
       expect(hooks.afterSelection.calls.count()).toBe(2);
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([10, 10, 10, 10, jasmine.any(Object), 10]);
@@ -1054,9 +1072,9 @@ describe('Selection', () => {
         afterSelectionEndByProp: hooks.afterSelectionEnd,
       });
 
-      mouseDown(getCell(0, 0));
-      mouseOver(getCell(20, 15));
-      mouseUp(getCell(20, 15));
+      await mouseDown(getCell(0, 0));
+      await mouseOver(getCell(20, 15));
+      await mouseUp(getCell(20, 15));
 
       expect(hooks.afterSelection.calls.count()).toBe(2);
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([0, 'prop0', 0, 'prop0', jasmine.any(Object), 0]);
@@ -1064,13 +1082,13 @@ describe('Selection', () => {
       expect(hooks.afterSelectionEnd.calls.count()).toBe(1);
       expect(hooks.afterSelectionEnd.calls.argsFor(0)).toEqual([0, 'prop0', 20, 'prop15', 0]);
 
-      keyDown('control/meta');
+      await keyDown('control/meta');
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
 
-      mouseDown(getCell(1, 1));
-      mouseOver(getCell(19, 16));
-      mouseUp(getCell(19, 16));
+      await mouseDown(getCell(1, 1));
+      await mouseOver(getCell(19, 16));
+      await mouseUp(getCell(19, 16));
 
       expect(hooks.afterSelection.calls.count()).toBe(2);
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([1, 'prop1', 1, 'prop1', jasmine.any(Object), 1]);
@@ -1081,9 +1099,9 @@ describe('Selection', () => {
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
 
-      mouseDown(getCell(2, 2));
-      mouseOver(getCell(18, 17));
-      mouseUp(getCell(18, 17));
+      await mouseDown(getCell(2, 2));
+      await mouseOver(getCell(18, 17));
+      await mouseUp(getCell(18, 17));
 
       expect(hooks.afterSelection.calls.count()).toBe(2);
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([2, 'prop2', 2, 'prop2', jasmine.any(Object), 2]);
@@ -1094,9 +1112,9 @@ describe('Selection', () => {
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
 
-      mouseDown(getCell(3, 3));
-      mouseOver(getCell(17, 18));
-      mouseUp(getCell(17, 18));
+      await mouseDown(getCell(3, 3));
+      await mouseOver(getCell(17, 18));
+      await mouseUp(getCell(17, 18));
 
       expect(hooks.afterSelection.calls.count()).toBe(2);
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([3, 'prop3', 3, 'prop3', jasmine.any(Object), 3]);
@@ -1107,9 +1125,9 @@ describe('Selection', () => {
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
 
-      mouseDown(getCell(4, 4));
-      mouseOver(getCell(16, 19));
-      mouseUp(getCell(16, 19));
+      await mouseDown(getCell(4, 4));
+      await mouseOver(getCell(16, 19));
+      await mouseUp(getCell(16, 19));
 
       expect(hooks.afterSelection.calls.count()).toBe(2);
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([4, 'prop4', 4, 'prop4', jasmine.any(Object), 4]);
@@ -1120,9 +1138,9 @@ describe('Selection', () => {
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
 
-      mouseDown(getCell(5, 5));
-      mouseOver(getCell(15, 20));
-      mouseUp(getCell(15, 20));
+      await mouseDown(getCell(5, 5));
+      await mouseOver(getCell(15, 20));
+      await mouseUp(getCell(15, 20));
 
       expect(hooks.afterSelection.calls.count()).toBe(2);
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([5, 'prop5', 5, 'prop5', jasmine.any(Object), 5]);
@@ -1133,9 +1151,9 @@ describe('Selection', () => {
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
 
-      mouseDown(getCell(6, 6));
-      mouseOver(getCell(14, 21));
-      mouseUp(getCell(14, 21));
+      await mouseDown(getCell(6, 6));
+      await mouseOver(getCell(14, 21));
+      await mouseUp(getCell(14, 21));
 
       expect(hooks.afterSelection.calls.count()).toBe(2);
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([6, 'prop6', 6, 'prop6', jasmine.any(Object), 6]);
@@ -1146,9 +1164,9 @@ describe('Selection', () => {
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
 
-      mouseDown(getCell(7, 7));
-      mouseOver(getCell(13, 22));
-      mouseUp(getCell(13, 22));
+      await mouseDown(getCell(7, 7));
+      await mouseOver(getCell(13, 22));
+      await mouseUp(getCell(13, 22));
 
       expect(hooks.afterSelection.calls.count()).toBe(2);
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([7, 'prop7', 7, 'prop7', jasmine.any(Object), 7]);
@@ -1159,9 +1177,9 @@ describe('Selection', () => {
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
 
-      mouseDown(getCell(8, 8));
-      mouseOver(getCell(12, 23));
-      mouseUp(getCell(12, 23));
+      await mouseDown(getCell(8, 8));
+      await mouseOver(getCell(12, 23));
+      await mouseUp(getCell(12, 23));
 
       expect(hooks.afterSelection.calls.count()).toBe(2);
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([8, 'prop8', 8, 'prop8', jasmine.any(Object), 8]);
@@ -1172,9 +1190,9 @@ describe('Selection', () => {
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
 
-      mouseDown(getCell(9, 9));
-      mouseOver(getCell(11, 24));
-      mouseUp(getCell(11, 24));
+      await mouseDown(getCell(9, 9));
+      await mouseOver(getCell(11, 24));
+      await mouseUp(getCell(11, 24));
 
       expect(hooks.afterSelection.calls.count()).toBe(2);
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([9, 'prop9', 9, 'prop9', jasmine.any(Object), 9]);
@@ -1185,11 +1203,11 @@ describe('Selection', () => {
       hooks.afterSelection.calls.reset();
       hooks.afterSelectionEnd.calls.reset();
 
-      mouseDown(getCell(10, 10));
-      mouseOver(getCell(10, 25));
-      mouseUp(getCell(10, 25));
+      await mouseDown(getCell(10, 10));
+      await mouseOver(getCell(10, 25));
+      await mouseUp(getCell(10, 25));
 
-      keyUp('control/meta');
+      await keyUp('control/meta');
 
       expect(hooks.afterSelection.calls.count()).toBe(2);
       expect(hooks.afterSelection.calls.argsFor(0)).toEqual([10, 'prop10', 10, 'prop10', jasmine.any(Object), 10]);
@@ -1208,8 +1226,8 @@ describe('Selection', () => {
         startCols: 10
       });
 
-      selectCells([[2, 2, 5, 5], [6, 1], [3, 3, 6, 6], [8, 0]]);
-      alter('insert_row_above', 1, 3);
+      await selectCells([[2, 2, 5, 5], [6, 1], [3, 3, 6, 6], [8, 0]]);
+      await alter('insert_row_above', 1, 3);
 
       expect(getSelectedRange()).toEqualCellRange([
         'highlight: 2,2 from: 2,2 to: 5,5',
@@ -1245,8 +1263,8 @@ describe('Selection', () => {
         startCols: 7
       });
 
-      selectCells([[5, 3, 4, 1]]);
-      alter('insert_row_above', 1, 2);
+      await selectCells([[5, 3, 4, 1]]);
+      await alter('insert_row_above', 1, 2);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 7,3 from: 7,3 to: 6,1']);
       expect(`
@@ -1272,9 +1290,9 @@ describe('Selection', () => {
         startCols: 7
       });
 
-      selectCells([[5, 3, 3, 1]]);
+      await selectCells([[5, 3, 3, 1]]);
       hot.selection.setRangeFocus(hot._createCellCoords(4, 2));
-      alter('insert_row_above', 1, 2);
+      await alter('insert_row_above', 1, 2);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 6,2 from: 7,3 to: 5,1']);
       expect(`
@@ -1300,8 +1318,8 @@ describe('Selection', () => {
         startCols: 10
       });
 
-      selectRows(3, 5);
-      alter('insert_row_above', 1, 3);
+      await selectRows(3, 5);
+      await alter('insert_row_above', 1, 3);
 
       expect(hot.selection.isSelectedByRowHeader()).toBe(true);
       expect(getSelectedRange()).toEqualCellRange(['highlight: 6,0 from: 6,-1 to: 8,9']);
@@ -1329,8 +1347,8 @@ describe('Selection', () => {
         startCols: 10
       });
 
-      selectCells([[2, 2, 5, 5], [6, 1], [3, 3, 6, 6], [8, 0]]);
-      alter('insert_row_above', 9, 3);
+      await selectCells([[2, 2, 5, 5], [6, 1], [3, 3, 6, 6], [8, 0]]);
+      await alter('insert_row_above', 9, 3);
 
       expect(getSelectedRange()).toEqualCellRange([
         'highlight: 2,2 from: 2,2 to: 5,5',
@@ -1365,8 +1383,8 @@ describe('Selection', () => {
         startCols: 10
       });
 
-      selectRows(3, 5);
-      alter('insert_row_above', 5, 3);
+      await selectRows(3, 5);
+      await alter('insert_row_above', 5, 3);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,0 from: 3,-1 to: 5,9']);
       expect(`
@@ -1396,8 +1414,8 @@ describe('Selection', () => {
         startCols: 10
       });
 
-      selectCells([[2, 2, 5, 5], [6, 1], [3, 3, 6, 6], [8, 5]]);
-      alter('insert_col_start', 1, 3);
+      await selectCells([[2, 2, 5, 5], [6, 1], [3, 3, 6, 6], [8, 5]]);
+      await alter('insert_col_start', 1, 3);
 
       expect(getSelectedRange()).toEqualCellRange([
         'highlight: 2,2 from: 2,2 to: 5,5',
@@ -1430,8 +1448,8 @@ describe('Selection', () => {
         startCols: 7
       });
 
-      selectCells([[1, 5, 5, 4]]);
-      alter('insert_col_start', 1, 2);
+      await selectCells([[1, 5, 5, 4]]);
+      await alter('insert_col_start', 1, 2);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,7 from: 1,7 to: 5,6']);
       expect(`
@@ -1455,9 +1473,9 @@ describe('Selection', () => {
         startCols: 7
       });
 
-      selectCells([[1, 5, 5, 4]]);
+      await selectCells([[1, 5, 5, 4]]);
       hot.selection.setRangeFocus(hot._createCellCoords(3, 5));
-      alter('insert_col_start', 1, 2);
+      await alter('insert_col_start', 1, 2);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,7 from: 1,7 to: 5,6']);
       expect(`
@@ -1481,8 +1499,8 @@ describe('Selection', () => {
         startCols: 10
       });
 
-      selectColumns(3, 5);
-      alter('insert_col_start', 1, 3);
+      await selectColumns(3, 5);
+      await alter('insert_col_start', 1, 3);
 
       expect(hot.selection.isSelectedByColumnHeader()).toBe(true);
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,6 from: -1,6 to: 9,8']);
@@ -1510,8 +1528,8 @@ describe('Selection', () => {
         startCols: 10
       });
 
-      selectCells([[2, 2, 5, 5], [6, 1], [3, 3, 6, 6], [8, 5]]);
-      alter('insert_col_start', 6, 3);
+      await selectCells([[2, 2, 5, 5], [6, 1], [3, 3, 6, 6], [8, 5]]);
+      await alter('insert_col_start', 6, 3);
 
       expect(getSelectedRange()).toEqualCellRange([
         'highlight: 2,2 from: 2,2 to: 5,5',
@@ -1543,8 +1561,8 @@ describe('Selection', () => {
         startCols: 10
       });
 
-      selectColumns(3, 5);
-      alter('insert_col_start', 5, 3);
+      await selectColumns(3, 5);
+      await alter('insert_col_start', 5, 3);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,3 from: -1,3 to: 9,5']);
       expect(`
@@ -1571,8 +1589,8 @@ describe('Selection', () => {
         startCols: 5,
       });
 
-      selectColumns(4, 4);
-      alter('remove_col', 4);
+      await selectColumns(4, 4);
+      await alter('remove_col', 4);
 
       expect(hot.selection.isSelectedByColumnHeader()).toBe(true);
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,3 from: -1,3 to: 2,3']);
@@ -1605,8 +1623,8 @@ describe('Selection', () => {
         startCols: 5,
       });
 
-      selectCells([[1, 4, 0, 4]]);
-      alter('remove_col', 4);
+      await selectCells([[1, 4, 0, 4]]);
+      await alter('remove_col', 4);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,3 from: 1,3 to: 0,3']);
       expect(`
@@ -1637,8 +1655,8 @@ describe('Selection', () => {
         startCols: 3,
       });
 
-      selectRows(4, 4);
-      alter('remove_row', 4);
+      await selectRows(4, 4);
+      await alter('remove_row', 4);
 
       expect(hot.selection.isSelectedByRowHeader()).toBe(true);
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,0 from: 3,-1 to: 3,2']);
@@ -1672,8 +1690,8 @@ describe('Selection', () => {
         startCols: 3,
       });
 
-      selectCells([[4, 1, 4, 0]]);
-      alter('remove_row', 4);
+      await selectCells([[4, 1, 4, 0]]);
+      await alter('remove_row', 4);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,1 from: 3,1 to: 3,0']);
       expect(`
@@ -1706,43 +1724,43 @@ describe('Selection', () => {
 
     hot1.selectCell(0, 0);
 
-    keyDown('control/meta');
+    await keyDown('control/meta');
 
-    mouseDown(hot1.getCell(0, 1));
-    mouseOver(hot1.getCell(0, 1));
-    mouseUp(hot1.getCell(0, 1));
+    await mouseDown(hot1.getCell(0, 1));
+    await mouseOver(hot1.getCell(0, 1));
+    await mouseUp(hot1.getCell(0, 1));
 
-    mouseDown(hot1.getCell(0, 2));
-    mouseOver(hot1.getCell(0, 2));
-    mouseUp(hot1.getCell(0, 2));
+    await mouseDown(hot1.getCell(0, 2));
+    await mouseOver(hot1.getCell(0, 2));
+    await mouseUp(hot1.getCell(0, 2));
 
-    mouseDown(hot2.getCell(0, 0));
-    mouseOver(hot2.getCell(0, 0));
-    mouseUp(hot2.getCell(0, 0));
+    await mouseDown(hot2.getCell(0, 0));
+    await mouseOver(hot2.getCell(0, 0));
+    await mouseUp(hot2.getCell(0, 0));
 
-    mouseDown(hot2.getCell(0, 1));
-    mouseOver(hot2.getCell(0, 1));
-    mouseUp(hot2.getCell(0, 1));
+    await mouseDown(hot2.getCell(0, 1));
+    await mouseOver(hot2.getCell(0, 1));
+    await mouseUp(hot2.getCell(0, 1));
 
-    keyUp('control/meta');
+    await keyUp('control/meta');
 
     expect(hot1.getSelected()).toBe(undefined);
     expect(hot2.getSelected()).toEqual([[0, 0, 0, 0], [0, 1, 0, 1]]);
 
-    keyDown('control/meta');
+    await keyDown('control/meta');
 
-    mouseDown(hot1.getCell(0, 0));
-    mouseOver(hot1.getCell(0, 0));
-    mouseUp(hot1.getCell(0, 0));
+    await mouseDown(hot1.getCell(0, 0));
+    await mouseOver(hot1.getCell(0, 0));
+    await mouseUp(hot1.getCell(0, 0));
 
-    mouseDown(hot1.getCell(0, 1));
-    mouseOver(hot1.getCell(0, 1));
-    mouseUp(hot1.getCell(0, 1));
+    await mouseDown(hot1.getCell(0, 1));
+    await mouseOver(hot1.getCell(0, 1));
+    await mouseUp(hot1.getCell(0, 1));
 
     expect(hot1.getSelected()).toEqual([[0, 0, 0, 0], [0, 1, 0, 1]]);
     expect(hot2.getSelected()).toBe(undefined);
 
-    keyUp('control/meta');
+    await keyUp('control/meta');
 
     hot2.destroy();
     container2.remove();

@@ -218,7 +218,7 @@ describe('settings', () => {
             afterValidate: onAfterValidate
           });
 
-          setDataAtCell(0, 0, '');
+          await setDataAtCell(0, 0, '');
           await sleep(100);
 
           expect(onAfterValidate).toHaveBeenCalledWith(true, '', 0, 'date');

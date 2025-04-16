@@ -23,7 +23,7 @@ describe('ContextMenu', () => {
 
       await selectCell(1, 1);
       await contextMenu(getCell(1, 1));
-      selectContextMenuOption('Add comment');
+      await selectContextMenuOption('Add comment');
 
       expect(getSelected()).toEqual([[1, 1, 1, 1]]);
     });
@@ -41,7 +41,7 @@ describe('ContextMenu', () => {
 
       await selectCell(1, 1);
       await contextMenu(getCell(1, 1));
-      selectContextMenuOption('Edit comment');
+      await selectContextMenuOption('Edit comment');
 
       expect(getSelected()).toEqual([[1, 1, 1, 1]]);
     });

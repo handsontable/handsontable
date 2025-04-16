@@ -24,7 +24,7 @@ describe('UndoRedo', () => {
 
       await selectCell(4, 4);
 
-      setDataAtCell(4, 4, 'aaaa');
+      await setDataAtCell(4, 4, 'aaaa');
 
       await selectCell(5, 4);
       await scrollViewportTo({ row: 25, col: 4, verticalSnap: 'top' });
@@ -46,7 +46,7 @@ describe('UndoRedo', () => {
 
       await selectCell(4, 4);
 
-      setDataAtCell(4, 4, 'aaaa');
+      await setDataAtCell(4, 4, 'aaaa');
 
       await selectCell(5, 4);
       await scrollViewportTo({ row: 4, col: 25, horizontalSnap: 'start' });
@@ -68,7 +68,7 @@ describe('UndoRedo', () => {
 
       await selectCell(4, 4);
 
-      setDataAtCell(4, 4, 'aaaa');
+      await setDataAtCell(4, 4, 'aaaa');
 
       await selectCell(5, 4);
       await scrollViewportTo({ row: 25, col: 25 });
@@ -90,7 +90,7 @@ describe('UndoRedo', () => {
 
       await selectCell(4, 4);
 
-      setDataAtCell(4, 4, 'aaaa');
+      await setDataAtCell(4, 4, 'aaaa');
 
       await scrollViewportTo({ row: 25, col: 25, horizontalSnap: 'start', verticalSnap: 'top' });
 

@@ -51,7 +51,7 @@ describe('Core.alter', () => {
         ]
       });
 
-      alter('insert_row_above');
+      await alter('insert_row_above');
 
       expect(countRows()).toBe(4);
       expect(getData()).toEqual([
@@ -61,7 +61,7 @@ describe('Core.alter', () => {
         ['c1', 'c2', 'c3'],
       ]);
 
-      alter('insert_row_above', null, 3);
+      await alter('insert_row_above', null, 3);
 
       expect(countRows()).toBe(7);
       expect(getData()).toEqual([
@@ -84,7 +84,7 @@ describe('Core.alter', () => {
         ]
       });
 
-      alter('insert_row_above', 3);
+      await alter('insert_row_above', 3);
 
       expect(countRows()).toBe(4);
       expect(getData()).toEqual([
@@ -94,7 +94,7 @@ describe('Core.alter', () => {
         [null, null, null],
       ]);
 
-      alter('insert_row_above', 100);
+      await alter('insert_row_above', 100);
 
       expect(countRows()).toBe(5);
       expect(getData()).toEqual([
@@ -105,7 +105,7 @@ describe('Core.alter', () => {
         [null, null, null],
       ]);
 
-      alter('insert_row_above', 100, 3);
+      await alter('insert_row_above', 100, 3);
 
       expect(countRows()).toBe(8);
       expect(getData()).toEqual([
@@ -129,7 +129,7 @@ describe('Core.alter', () => {
         ]
       });
 
-      alter('insert_row_above', 1);
+      await alter('insert_row_above', 1);
 
       expect(countRows()).toBe(4);
       expect(getData()).toEqual([
@@ -149,7 +149,7 @@ describe('Core.alter', () => {
         ]
       });
 
-      alter('insert_row_above', 1, 3);
+      await alter('insert_row_above', 1, 3);
 
       expect(countRows()).toBe(6);
       expect(getData()).toEqual([
@@ -174,11 +174,11 @@ describe('Core.alter', () => {
 
       expect(countRows()).toBe(3);
 
-      alter('insert_row_above');
+      await alter('insert_row_above');
 
       expect(countRows()).toBe(3);
 
-      alter('insert_row_above', 1, 10);
+      await alter('insert_row_above', 1, 10);
 
       expect(countRows()).toBe(3);
     });
@@ -188,9 +188,9 @@ describe('Core.alter', () => {
         beforeCreateRow: () => false,
       });
 
-      setCellMeta(2, 0, '_test', 'foo');
+      await setCellMeta(2, 0, '_test', 'foo');
 
-      alter('insert_row_above', 1, 1);
+      await alter('insert_row_above', 1, 1);
 
       expect(getCellMeta(0, 0)._test).toBeUndefined();
       expect(getCellMeta(1, 0)._test).toBeUndefined();
@@ -217,7 +217,7 @@ describe('Core.alter', () => {
         ]
       });
 
-      alter('insert_row_above');
+      await alter('insert_row_above');
 
       // a new row
       expect(getCellMeta(0, 0).type).toBe('numeric');
@@ -243,9 +243,9 @@ describe('Core.alter', () => {
         maxRows: 7
       });
 
-      alter('insert_row_above', 1);
-      alter('insert_row_above', 1);
-      alter('insert_row_above', 1);
+      await alter('insert_row_above', 1);
+      await alter('insert_row_above', 1);
+      await alter('insert_row_above', 1);
 
       expect(countRows()).toBe(7);
     });
@@ -262,7 +262,7 @@ describe('Core.alter', () => {
         maxRows: 10
       });
 
-      alter('insert_row_above', 1, 10);
+      await alter('insert_row_above', 1, 10);
 
       expect(countRows()).toBe(10);
     });
@@ -277,14 +277,14 @@ describe('Core.alter', () => {
         afterCreateRow,
       });
 
-      alter('insert_row_above');
+      await alter('insert_row_above');
 
       expect(beforeCreateRow).toHaveBeenCalledTimes(1);
       expect(beforeCreateRow).toHaveBeenCalledWith(0, 1);
       expect(afterCreateRow).toHaveBeenCalledTimes(1);
       expect(afterCreateRow).toHaveBeenCalledWith(0, 1);
 
-      alter('insert_row_above', 3, 2, 'customSource');
+      await alter('insert_row_above', 3, 2, 'customSource');
 
       expect(beforeCreateRow).toHaveBeenCalledTimes(2);
       expect(beforeCreateRow).toHaveBeenCalledWith(3, 2, 'customSource');
@@ -302,9 +302,9 @@ describe('Core.alter', () => {
         },
       });
 
-      setCellMeta(0, 0, 'className', 'green-background');
-      setCellMeta(1, 0, 'className', 'green-background');
-      alter('insert_row_above', 1, 3);
+      await setCellMeta(0, 0, 'className', 'green-background');
+      await setCellMeta(1, 0, 'className', 'green-background');
+      await alter('insert_row_above', 1, 3);
 
       expect(getCellMeta(0, 0).className).toBe('green-background');
       expect(getCellMeta(1, 0).className).toBeUndefined();
@@ -327,9 +327,9 @@ describe('Core.alter', () => {
         },
       });
 
-      setCellMeta(0, 0, 'className', 'green-background');
-      setCellMeta(1, 0, 'className', 'green-background');
-      alter('insert_row_above', 1, 3);
+      await setCellMeta(0, 0, 'className', 'green-background');
+      await setCellMeta(1, 0, 'className', 'green-background');
+      await alter('insert_row_above', 1, 3);
 
       expect(getCellMeta(0, 0).className).toBe('green-background');
       expect(getCellMeta(1, 0).className).toBe('red-background');
@@ -349,7 +349,7 @@ describe('Core.alter', () => {
         colHeaders: true,
       });
 
-      selectCells([
+      await selectCells([
         [6, 5, 7, 6],
         [1, 5, 4, 7],
         [5, 1, 7, 3],
@@ -368,7 +368,7 @@ describe('Core.alter', () => {
         | - ║   : 0 : 0 : 0 :   : 0 : 0 :   |
       `).toBeMatchToSelectionPattern();
 
-      alter('insert_row_above', 5, 2);
+      await alter('insert_row_above', 5, 2);
 
       expect(`
         |   ║   : - : - : - :   : - : - : - |
@@ -393,7 +393,7 @@ describe('Core.alter', () => {
         colHeaders: true,
       });
 
-      selectCells([
+      await selectCells([
         [1, 5, 4, 7],
         [5, 1, 5, 4],
       ]);
@@ -411,7 +411,7 @@ describe('Core.alter', () => {
         |   ║   :   :   :   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
 
-      alter('insert_row_above', 6, 2);
+      await alter('insert_row_above', 6, 2);
 
       expect(`
         |   ║   : - : - : - : - : - : - : - |
@@ -436,7 +436,7 @@ describe('Core.alter', () => {
         colHeaders: true,
       });
 
-      selectRows(2, 3);
+      await selectRows(2, 3);
 
       expect(`
         |   ║ - : - : - : - : - |
@@ -448,7 +448,7 @@ describe('Core.alter', () => {
         |   ║   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
 
-      alter('insert_row_above', 2, 1);
+      await alter('insert_row_above', 2, 1);
 
       expect(`
         |   ║ - : - : - : - : - |
@@ -474,9 +474,9 @@ describe('Core.alter', () => {
         afterScroll: onAfterScroll,
       });
 
-      selectRows(2);
+      await selectRows(2);
 
-      alter('insert_row_above', 2, 1);
+      await alter('insert_row_above', 2, 1);
 
       await sleep(20);
 
@@ -490,7 +490,7 @@ describe('Core.alter', () => {
         colHeaders: true,
       });
 
-      selectRows(2, 3);
+      await selectRows(2, 3);
 
       expect(`
         |   ║ - : - : - : - : - |
@@ -502,7 +502,7 @@ describe('Core.alter', () => {
         |   ║   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
 
-      alter('insert_row_above', 3, 1);
+      await alter('insert_row_above', 3, 1);
 
       expect(`
         |   ║ - : - : - : - : - |
@@ -533,7 +533,7 @@ describe('Core.alter', () => {
         | * ║ 0 : 0 : 0 : 0 : 0 |
       `).toBeMatchToSelectionPattern();
 
-      alter('insert_row_above', 0); // add to the beginning of the table
+      await alter('insert_row_above', 0); // add to the beginning of the table
 
       expect(`
         |   ║ - : - : - : - : - |
@@ -544,7 +544,7 @@ describe('Core.alter', () => {
         | - ║ 0 : 0 : 0 : 0 : 0 |
       `).toBeMatchToSelectionPattern();
 
-      alter('insert_row_above', 100); // add to the end of the table
+      await alter('insert_row_above', 100); // add to the end of the table
 
       expect(`
         |   ║ - : - : - : - : - |
@@ -564,17 +564,17 @@ describe('Core.alter', () => {
 
       hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
 
-      alter('insert_row_above', 1, 1);
+      await alter('insert_row_above', 1, 1);
 
       expect(getDataAtCol(0)).toEqual(['A5', null, 'A4', 'A3', 'A2', 'A1']);
       expect(getSourceDataAtCol(0)).toEqual(['A1', 'A2', 'A3', null, 'A4', 'A5']);
 
-      alter('insert_row_above', 0, 1);
+      await alter('insert_row_above', 0, 1);
 
       expect(getDataAtCol(0)).toEqual([null, 'A5', null, 'A4', 'A3', 'A2', 'A1']);
       expect(getSourceDataAtCol(0)).toEqual(['A1', 'A2', 'A3', null, 'A4', null, 'A5']);
 
-      alter('insert_row_above', 7, 1);
+      await alter('insert_row_above', 7, 1);
 
       expect(getDataAtCol(0)).toEqual([null, 'A5', null, 'A4', 'A3', 'A2', 'A1', null]);
       expect(getSourceDataAtCol(0)).toEqual(['A1', 'A2', 'A3', null, 'A4', null, 'A5', null]);

@@ -33,7 +33,7 @@ describe('MultiColumnSorting keyboard shortcut', () => {
 
       hidingMap.setValueAtIndex(1, true);
 
-      render();
+      await render();
       await selectCell(-1, 1);
       await keyDownUp(['shift', 'enter']);
 

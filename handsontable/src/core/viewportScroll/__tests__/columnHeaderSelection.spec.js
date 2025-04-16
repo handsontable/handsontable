@@ -71,7 +71,7 @@ describe('Column header selection scroll', () => {
         colHeaders: true,
       });
 
-      listen();
+      await listen();
 
       // make sure that the `F1` cell is partially visible on the right side of the table
       await scrollOverlay(inlineStartOverlay(), 25);
@@ -186,7 +186,7 @@ describe('Column header selection scroll', () => {
         colHeaders: true,
       });
 
-      listen();
+      await listen();
 
       // make sure that the `A1` cell is partially visible on the left side of the table
       await scrollOverlay(inlineStartOverlay(), 25);

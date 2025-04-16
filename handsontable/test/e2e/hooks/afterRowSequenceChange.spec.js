@@ -51,7 +51,7 @@ describe('Hook', () => {
 
       afterRowSequenceChange.calls.reset();
 
-      alter('insert_row_above', 0, 3);
+      await alter('insert_row_above', 0, 3);
 
       expect(afterRowSequenceChange).toHaveBeenCalledWith('insert');
       expect(afterRowSequenceChange).toHaveBeenCalledTimes(1);
@@ -67,7 +67,7 @@ describe('Hook', () => {
 
       afterRowSequenceChange.calls.reset();
 
-      alter('remove_row', 0, 3);
+      await alter('remove_row', 0, 3);
 
       expect(afterRowSequenceChange).toHaveBeenCalledWith('remove');
       expect(afterRowSequenceChange).toHaveBeenCalledTimes(1);

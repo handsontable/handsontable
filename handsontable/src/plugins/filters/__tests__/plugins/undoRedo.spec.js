@@ -96,14 +96,14 @@ describe('Filters UI cooperation with UndoRedo', () => {
 
     await sleep(20);
     document.activeElement.value = 'R';
-    keyUp('R');
+    await keyUp('R');
 
     $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
     expect(getData().length).toEqual(2);
 
-    setDataAtCell(0, 1, `${getDataAtCell(0, 1)}!`);
-    setDataAtCell(1, 1, `${getDataAtCell(1, 1)}!`);
+    await setDataAtCell(0, 1, `${getDataAtCell(0, 1)}!`);
+    await setDataAtCell(1, 1, `${getDataAtCell(1, 1)}!`);
 
     expect(getDataAtCell(0, 1).includes('!')).toBe(true);
     expect(getDataAtCell(1, 1).includes('!')).toBe(true);
@@ -114,7 +114,7 @@ describe('Filters UI cooperation with UndoRedo', () => {
 
     await sleep(20);
     document.activeElement.value = '';
-    keyUp('Backspace');
+    await keyUp('Backspace');
 
     $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
@@ -164,7 +164,7 @@ describe('Filters UI cooperation with UndoRedo', () => {
     filtersPlugin.addCondition(2, 'by_value', [['Gardiner']]);
     filtersPlugin.filter();
 
-    setDataAtCell(0, 2, null);
+    await setDataAtCell(0, 2, null);
 
     filtersPlugin.removeConditions(2);
     filtersPlugin.filter();

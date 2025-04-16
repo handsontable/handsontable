@@ -41,7 +41,7 @@ describe('ContextMenu', () => {
       spyOn(getPlugin('copyPaste'), 'cut');
 
       await contextMenu(getCell(1, 1));
-      selectContextMenuOption('Cut');
+      await selectContextMenuOption('Cut');
 
       expect(getPlugin('copyPaste').cut).toHaveBeenCalled();
     });
@@ -55,7 +55,7 @@ describe('ContextMenu', () => {
 
       // hide all rows
       hot.rowIndexMapper.createAndRegisterIndexMap('map', 'hiding', true);
-      render();
+      await render();
 
       await contextMenu(getCell(-1, 1)); // Column header "B"
 
@@ -75,7 +75,7 @@ describe('ContextMenu', () => {
 
       // hide all columns
       hot.columnIndexMapper.createAndRegisterIndexMap('map', 'hiding', true);
-      render();
+      await render();
 
       await contextMenu(getCell(1, -1)); // Row header "2"
 
@@ -95,7 +95,7 @@ describe('ContextMenu', () => {
 
       // trim all rows
       hot.rowIndexMapper.createAndRegisterIndexMap('map', 'trimming', true);
-      render();
+      await render();
 
       await contextMenu(getCell(-1, 1)); // Column header "B"
 
@@ -115,7 +115,7 @@ describe('ContextMenu', () => {
 
       // trim all columns
       hot.columnIndexMapper.createAndRegisterIndexMap('map', 'trimming', true);
-      render();
+      await render();
 
       await contextMenu(getCell(1, -1)); // Row header "2"
 

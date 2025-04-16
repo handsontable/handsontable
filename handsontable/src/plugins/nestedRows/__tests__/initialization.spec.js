@@ -48,7 +48,7 @@ describe('NestedRows', () => {
       expect(errorSpy).toHaveBeenCalledWith('The Nested Rows plugin requires an Array of Objects as a dataset to be' +
         ' provided. The plugin has been disabled.');
 
-      updateSettings({});
+      await updateSettings({});
 
       expect(getSettings().nestedRows).toBe(false);
       expect(getPlugin('nestedRows').enabled).toBe(false);

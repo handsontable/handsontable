@@ -110,7 +110,7 @@ describe('CopyPaste', () => {
 
       // hide all rows
       hot.rowIndexMapper.createAndRegisterIndexMap('map', 'hiding', true);
-      render();
+      await render();
 
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
@@ -140,7 +140,7 @@ describe('CopyPaste', () => {
 
       // hide all rows
       hot.rowIndexMapper.createAndRegisterIndexMap('map', 'hiding', true);
-      render();
+      await render();
 
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
@@ -168,7 +168,7 @@ describe('CopyPaste', () => {
 
       // hide all columns
       hot.columnIndexMapper.createAndRegisterIndexMap('map', 'hiding', true);
-      render();
+      await render();
 
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
@@ -198,7 +198,7 @@ describe('CopyPaste', () => {
 
       // hide all columns
       hot.columnIndexMapper.createAndRegisterIndexMap('map', 'hiding', true);
-      render();
+      await render();
 
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
@@ -226,7 +226,7 @@ describe('CopyPaste', () => {
 
       // trim all rows
       hot.rowIndexMapper.createAndRegisterIndexMap('map', 'trimming', true);
-      render();
+      await render();
 
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
@@ -256,7 +256,7 @@ describe('CopyPaste', () => {
 
       // trim all rows
       hot.rowIndexMapper.createAndRegisterIndexMap('map', 'trimming', true);
-      render();
+      await render();
 
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
@@ -284,7 +284,7 @@ describe('CopyPaste', () => {
 
       // trim all columns
       hot.columnIndexMapper.createAndRegisterIndexMap('map', 'trimming', true);
-      render();
+      await render();
 
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
@@ -312,7 +312,7 @@ describe('CopyPaste', () => {
 
       // trim all columns
       hot.columnIndexMapper.createAndRegisterIndexMap('map', 'trimming', true);
-      render();
+      await render();
 
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');

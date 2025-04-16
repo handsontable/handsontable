@@ -22,8 +22,8 @@ describe('Selection extending (RTL mode)', () => {
         startCols: 5
       });
 
-      selectCell(1, 1);
-      keyDownUp(['control/meta', 'shift', 'arrowleft']);
+      await selectCell(1, 1);
+      await keyDownUp(['control/meta', 'shift', 'arrowleft']);
 
       expect(`
         |   :   :   :   :   |
@@ -44,8 +44,8 @@ describe('Selection extending (RTL mode)', () => {
         startCols: 5
       });
 
-      selectCell(1, 1);
-      keyDownUp(['control/meta', 'shift', 'arrowleft']);
+      await selectCell(1, 1);
+      await keyDownUp(['control/meta', 'shift', 'arrowleft']);
 
       expect(`
         |   :   :   |   :   |
@@ -65,8 +65,8 @@ describe('Selection extending (RTL mode)', () => {
         startCols: 5
       });
 
-      selectCells([[1, 1, 3, 1]]);
-      keyDownUp(['control/meta', 'shift', 'arrowleft']);
+      await selectCells([[1, 1, 3, 1]]);
+      await keyDownUp(['control/meta', 'shift', 'arrowleft']);
 
       expect(`
         |   :   :   :   :   |
@@ -86,9 +86,9 @@ describe('Selection extending (RTL mode)', () => {
         startCols: 5
       });
 
-      selectColumns(1);
-      listen();
-      keyDownUp(['control/meta', 'shift', 'arrowleft']);
+      await selectColumns(1);
+      await listen();
+      await keyDownUp(['control/meta', 'shift', 'arrowleft']);
 
       expect(`
         | * : * : * : * :   ║   |
@@ -111,9 +111,9 @@ describe('Selection extending (RTL mode)', () => {
         navigableHeaders: true,
       });
 
-      selectColumns(1, 1, -1);
-      listen();
-      keyDownUp(['control/meta', 'shift', 'arrowleft']);
+      await selectColumns(1, 1, -1);
+      await listen();
+      await keyDownUp(['control/meta', 'shift', 'arrowleft']);
 
       expect(`
         | * : * : * : # :   ║   |
@@ -131,11 +131,11 @@ describe('Selection extending (RTL mode)', () => {
       });
 
       rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
-      render();
+      await render();
 
-      selectColumns(1, 1, -1);
-      listen();
-      keyDownUp(['control/meta', 'shift', 'arrowleft']);
+      await selectColumns(1, 1, -1);
+      await listen();
+      await keyDownUp(['control/meta', 'shift', 'arrowleft']);
 
       expect(`
         | * : * : * : # :   ║   |
@@ -152,9 +152,9 @@ describe('Selection extending (RTL mode)', () => {
         startCols: 5
       });
 
-      selectRows(1);
-      listen();
-      keyDownUp(['control/meta', 'shift', 'arrowleft']);
+      await selectRows(1);
+      await listen();
+      await keyDownUp(['control/meta', 'shift', 'arrowleft']);
 
       expect(`
         | - : - : - : - : - ║   |
@@ -176,7 +176,7 @@ describe('Selection extending (RTL mode)', () => {
         startCols: 5
       });
 
-      listen();
+      await listen();
 
       await selectAll();
       await keyDownUp(['control/meta', 'shift', 'arrowleft']);
@@ -202,9 +202,9 @@ describe('Selection extending (RTL mode)', () => {
         navigableHeaders: true,
       });
 
-      selectCell(-1, 1);
-      listen();
-      keyDownUp(['control/meta', 'shift', 'arrowright']);
+      await selectCell(-1, 1);
+      await listen();
+      await keyDownUp(['control/meta', 'shift', 'arrowright']);
 
       expect(`
         |   :   :   : # :   ║   |
@@ -227,9 +227,9 @@ describe('Selection extending (RTL mode)', () => {
         navigableHeaders: true,
       });
 
-      selectCell(1, -1);
-      listen();
-      keyDownUp(['control/meta', 'shift', 'arrowright']);
+      await selectCell(1, -1);
+      await listen();
+      await keyDownUp(['control/meta', 'shift', 'arrowright']);
 
       expect(`
         |   :   :   :   :   ║   |
@@ -252,9 +252,9 @@ describe('Selection extending (RTL mode)', () => {
         navigableHeaders: true,
       });
 
-      selectCell(-1, -1);
-      listen();
-      keyDownUp(['control/meta', 'shift', 'arrowright']);
+      await selectCell(-1, -1);
+      await listen();
+      await keyDownUp(['control/meta', 'shift', 'arrowright']);
 
       expect(`
         |   :   :   :   :   ║ # |

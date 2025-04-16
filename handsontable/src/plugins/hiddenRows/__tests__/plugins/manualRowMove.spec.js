@@ -46,7 +46,7 @@ describe('HiddenRows', () => {
       });
 
       getPlugin('manualRowMove').moveRows([2, 3, 4], 0);
-      render();
+      await render();
 
       expect(hot.getData()).toEqual([
         ['A3', 'B3'],
@@ -95,7 +95,7 @@ describe('HiddenRows', () => {
       });
 
       getPlugin('manualRowMove').moveRows([0, 1, 2], 2);
-      render();
+      await render();
 
       expect(hot.getData()).toEqual([
         ['A4', 'B4'],
@@ -144,7 +144,7 @@ describe('HiddenRows', () => {
       });
 
       getPlugin('manualRowMove').moveRows([4], 1);
-      render();
+      await render();
 
       expect(hot.getData()).toEqual([
         ['A1', 'B1'],
@@ -193,7 +193,7 @@ describe('HiddenRows', () => {
       });
 
       getPlugin('manualRowMove').moveRows([2, 3, 4], 1);
-      render();
+      await render();
 
       expect(hot.getData()).toEqual([
         ['A1', 'B1'],
@@ -242,7 +242,7 @@ describe('HiddenRows', () => {
       });
 
       getPlugin('manualRowMove').moveRows([3, 1, 2], 1);
-      render();
+      await render();
 
       expect(hot.getData()).toEqual([
         ['A1', 'B1'],
@@ -285,7 +285,7 @@ describe('HiddenRows', () => {
       });
 
       getPlugin('manualRowMove').moveRows([3, 4], 0);
-      render();
+      await render();
 
       expect(hot.getData()).toEqual([
         ['A4', 'B4'], // Hidden row
@@ -331,7 +331,7 @@ describe('HiddenRows', () => {
         });
 
         getPlugin('manualRowMove').moveRow(0, 2);
-        render();
+        await render();
 
         await selectRows(1);
 

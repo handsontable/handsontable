@@ -23,7 +23,7 @@ describe('HiddenColumns', () => {
         expect(getCell(0, 1).innerText).toBe('B1');
 
         getPlugin('hiddenColumns').hideColumn(1);
-        render();
+        await render();
 
         expect(getCell(0, 1)).toBe(null);
       });
@@ -41,7 +41,7 @@ describe('HiddenColumns', () => {
         expect(getCell(0, 1)).toBe(null);
 
         getPlugin('hiddenColumns').showColumn(1);
-        render();
+        await render();
 
         expect(getCell(0, 1).innerText).toBe('B1');
       });
@@ -61,9 +61,9 @@ describe('HiddenColumns', () => {
         const initialHiderWidth = $(hot().view._wt.wtTable.hider).width();
 
         getPlugin('hiddenColumns').hideColumns([2, 3, 4, 5]);
-        render();
+        await render();
         getPlugin('hiddenColumns').showColumns([2, 3, 4, 5]);
-        render();
+        await render();
 
         expect($(hot().view._wt.wtTable.hider).width()).toEqual(initialHiderWidth);
       });
@@ -85,14 +85,14 @@ describe('HiddenColumns', () => {
         expect(plugin.isHidden(2)).toBe(false);
 
         getPlugin('hiddenColumns').showColumn(1);
-        render();
+        await render();
 
         expect(plugin.isHidden(0)).toBe(false);
         expect(plugin.isHidden(1)).toBe(false);
         expect(plugin.isHidden(2)).toBe(false);
 
         getPlugin('hiddenColumns').hideColumn(2);
-        render();
+        await render();
 
         expect(plugin.isHidden(0)).toBe(false);
         expect(plugin.isHidden(1)).toBe(false);
@@ -114,12 +114,12 @@ describe('HiddenColumns', () => {
         expect(plugin.getHiddenColumns()).toEqual([1]);
 
         getPlugin('hiddenColumns').showColumn(1);
-        render();
+        await render();
 
         expect(plugin.getHiddenColumns()).toEqual([]);
 
         getPlugin('hiddenColumns').hideColumns([0, 2]);
-        render();
+        await render();
 
         expect(plugin.getHiddenColumns()).toEqual([0, 2]);
       });
@@ -142,12 +142,12 @@ describe('HiddenColumns', () => {
         expect(plugin.getHiddenColumns()).toEqual([2]);
 
         getPlugin('hiddenColumns').showColumn(2);
-        render();
+        await render();
 
         expect(plugin.getHiddenColumns()).toEqual([]);
 
         getPlugin('hiddenColumns').hideColumns([3, 6]);
-        render();
+        await render();
 
         expect(plugin.getHiddenColumns()).toEqual([3, 6]);
       });

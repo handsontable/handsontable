@@ -17,9 +17,9 @@ describe('UndoRedo', () => {
       handsontable();
 
       await selectCell(0, 0);
-      setDataAtCell(0, 0, 'test');
+      await setDataAtCell(0, 0, 'test');
       await selectCell(0, 1);
-      setDataAtCell(0, 1, 'test2');
+      await setDataAtCell(0, 1, 'test2');
 
       await selectCell(0, 2);
       getPlugin('undoRedo').undo();
@@ -103,7 +103,7 @@ describe('UndoRedo', () => {
       });
 
       await selectRows(4, 5);
-      alter('remove_row', 1, 3);
+      await alter('remove_row', 1, 3);
       getPlugin('undoRedo').undo();
 
       expect(getSelected()).toEqual([[4, -1, 5, 9]]);
@@ -131,7 +131,7 @@ describe('UndoRedo', () => {
       });
 
       await selectCells([[3, 3, 3, 3], [5, 2, 6, 2]]);
-      alter('remove_row', 1, 3);
+      await alter('remove_row', 1, 3);
       getPlugin('undoRedo').undo();
 
       expect(getSelected()).toEqual([[3, 3, 3, 3], [5, 2, 6, 2]]);
@@ -160,7 +160,7 @@ describe('UndoRedo', () => {
       });
 
       await selectColumns(4, 5);
-      alter('remove_col', 1, 3);
+      await alter('remove_col', 1, 3);
       getPlugin('undoRedo').undo();
 
       expect(getSelected()).toEqual([[-1, 4, 9, 5]]);
@@ -188,7 +188,7 @@ describe('UndoRedo', () => {
       });
 
       await selectCells([[3, 3, 3, 3], [2, 5, 2, 6]]);
-      alter('remove_col', 1, 3);
+      await alter('remove_col', 1, 3);
       getPlugin('undoRedo').undo();
 
       expect(getSelected()).toEqual([[3, 3, 3, 3], [2, 5, 2, 6]]);
@@ -217,7 +217,7 @@ describe('UndoRedo', () => {
         fixedColumnsStart: 1,
       });
 
-      alter('remove_col', 0, 3);
+      await alter('remove_col', 0, 3);
       getPlugin('undoRedo').undo();
 
       expect(getSettings().fixedColumnsStart).toBe(1);

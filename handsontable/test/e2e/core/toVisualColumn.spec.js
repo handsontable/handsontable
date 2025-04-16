@@ -60,7 +60,7 @@ describe('Core.toVisualColumn', () => {
       });
 
       hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
-      updateSettings({ data: createSpreadsheetData(2, 2) });
+      await updateSettings({ data: createSpreadsheetData(2, 2) });
 
       expect(hot.toVisualColumn(0)).toBe(1);
       expect(hot.toVisualColumn(1)).toBe(0);

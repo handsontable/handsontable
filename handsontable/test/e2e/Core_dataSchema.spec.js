@@ -372,7 +372,7 @@ describe('Core_dataSchema', () => {
       ],
     });
 
-    alter('insert_row_above', 5, 5);
+    await alter('insert_row_above', 5, 5);
 
     expect(countRows()).toEqual(10);
     expect(getDataAtCol(0)).toEqual([1000, 1001, 1002, 1003, 1004, 1005, 1006, 1007, 1008, 1009]);
@@ -573,13 +573,13 @@ describe('Core_dataSchema', () => {
 
       expect(getSchema()).toEqual([null, null, null, null, null, null]);
 
-      updateSettings({
+      await updateSettings({
         data: createSpreadsheetData(3, 3)
       });
 
       expect(getSchema()).toEqual([null, null, null]);
 
-      updateSettings({
+      await updateSettings({
         data: createSpreadsheetData(3, 4),
         columns: [
           { data: 1 },
@@ -595,11 +595,11 @@ describe('Core_dataSchema', () => {
         data: createSpreadsheetData(4, 4)
       });
 
-      alter('insert_col_start', 1, 2);
+      await alter('insert_col_start', 1, 2);
 
       expect(getSchema()).toEqual([null, null, null, null, null, null]);
 
-      alter('remove_col', 0, 5);
+      await alter('remove_col', 0, 5);
 
       expect(getSchema()).toEqual([null]);
     });

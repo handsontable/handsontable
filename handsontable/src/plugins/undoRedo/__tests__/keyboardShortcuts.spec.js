@@ -18,7 +18,7 @@ describe('UndoRedo keyboard shortcuts', () => {
     });
 
     await selectCell(0, 0);
-    setDataAtCell(0, 0, 'new value');
+    await setDataAtCell(0, 0, 'new value');
 
     await keyDownUp(['control/meta', 'z']);
     expect(getDataAtCell(0, 0)).toBe('A1');
@@ -30,7 +30,7 @@ describe('UndoRedo keyboard shortcuts', () => {
     });
 
     await selectCell(0, 0);
-    setDataAtCell(0, 0, 'new value');
+    await setDataAtCell(0, 0, 'new value');
 
     expect(getDataAtCell(0, 0)).toBe('new value');
 
@@ -48,7 +48,7 @@ describe('UndoRedo keyboard shortcuts', () => {
     });
 
     await selectCell(0, 0);
-    setDataAtCell(0, 0, 'new value');
+    await setDataAtCell(0, 0, 'new value');
 
     expect(getDataAtCell(0, 0)).toBe('new value');
 
@@ -73,7 +73,7 @@ describe('UndoRedo keyboard shortcuts', () => {
     });
 
     await selectCell(0, 0);
-    setDataAtCell(0, 0, 'new value');
+    await setDataAtCell(0, 0, 'new value');
 
     await keyDownUp(['control/meta', 'z']);
     expect(getDataAtCell(0, 0)).toBe('new value');

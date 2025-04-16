@@ -766,7 +766,7 @@ describe('manualRowResize', () => {
       manualRowResize: true,
     });
 
-    setDataAtCell(1, 0, 'Longer\ntext');
+    await setDataAtCell(1, 0, 'Longer\ntext');
 
     await sleep(50);
 
@@ -1546,7 +1546,7 @@ describe('manualRowResize', () => {
       await selectRows(7);
       await selectRows(10);
 
-      keyUp('control/meta');
+      await keyUp('control/meta');
       getInlineStartClone().find('tbody tr:eq(10) th:eq(0)').simulate('mouseover');
 
       const $resizer = spec().$container.find('.manualRowResizer');

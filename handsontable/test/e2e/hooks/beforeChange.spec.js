@@ -26,7 +26,7 @@ describe('Hook', () => {
         }
       });
 
-      setDataAtCell([[0, 0, 'test'], [1, 0, 'test'], [1, 1, 'test']]);
+      await setDataAtCell([[0, 0, 'test'], [1, 0, 'test'], [1, 1, 'test']]);
 
       expect(getDataAtCell(0, 0)).toEqual('test');
       expect(getDataAtCell(1, 0)).toEqual('c');
@@ -48,7 +48,7 @@ describe('Hook', () => {
         },
       });
 
-      setDataAtCell(0, 0, '3,45');
+      await setDataAtCell(0, 0, '3,45');
 
       expect(dataChanges).toEqual([[0, 0, 1, '3,45']]);
     });
@@ -61,7 +61,7 @@ describe('Hook', () => {
         }
       });
 
-      setDataAtCell([[0, 0, 'test'], [1, 0, 'test'], [1, 1, 'test']]);
+      await setDataAtCell([[0, 0, 'test'], [1, 0, 'test'], [1, 1, 'test']]);
 
       expect(getDataAtCell(0, 0)).toBe('a');
       expect(getDataAtCell(1, 0)).toBe('c');
@@ -86,7 +86,7 @@ describe('Hook', () => {
         }
       });
 
-      setDataAtCell([[0, 0, 'test']]);
+      await setDataAtCell([[0, 0, 'test']]);
 
       expect(getDataAtCell(0, 0)).toBe('a');
 
@@ -116,7 +116,7 @@ describe('Hook', () => {
         }
       });
 
-      setDataAtCell([[0, 0, 'test']]);
+      await setDataAtCell([[0, 0, 'test']]);
 
       expect(getDataAtCell(0, 0)).toBe('a');
 
@@ -137,7 +137,7 @@ describe('Hook', () => {
         beforeChange: () => true
       });
 
-      setDataAtCell([[0, 0, 'test']]);
+      await setDataAtCell([[0, 0, 'test']]);
 
       expect(getDataAtCell(0, 0)).toBe('a');
 
@@ -158,7 +158,7 @@ describe('Hook', () => {
         beforeChange: () => false
       });
 
-      setDataAtCell([[0, 0, 'test']]);
+      await setDataAtCell([[0, 0, 'test']]);
 
       expect(getDataAtCell(0, 0)).toBe('a');
 
@@ -181,7 +181,7 @@ describe('Hook', () => {
           }
         });
 
-        setDataAtCell(0, 0, 'test');
+        await setDataAtCell(0, 0, 'test');
 
         await selectCell(0, 0);
         await keyDownUp([keyCode]);

@@ -227,7 +227,7 @@ describe('AutoFill', () => {
       fillHandle: 'horizontal'
     });
 
-    updateSettings({ fillHandle: 'vertical' });
+    await updateSettings({ fillHandle: 'vertical' });
 
     // checking drag vertically - should change cell value
 
@@ -237,7 +237,7 @@ describe('AutoFill', () => {
 
     expect(getDataAtCell(0, 1)).toEqual(2);
 
-    updateSettings({ fillHandle: false });
+    await updateSettings({ fillHandle: false });
 
     // checking drag vertically - should not change cell value
 

@@ -116,12 +116,12 @@ describe('ContextMenu', () => {
       await selectColumns(0);
 
       await contextMenu();
-      selectContextMenuOption('Clear column');
+      await selectContextMenuOption('Clear column');
 
       await selectColumns(2, 3);
 
       await contextMenu();
-      selectContextMenuOption('Clear column');
+      await selectContextMenuOption('Clear column');
 
       expect(getDataAtCol(0)).toEqual([null, null, null, null]);
       expect(getDataAtCol(1)).toEqual(['B1', 'B2', 'B3', 'B4']);
@@ -172,7 +172,7 @@ describe('ContextMenu', () => {
         readOnly: true,
       });
 
-      setCellMeta(2, 0, 'readOnly', false);
+      await setCellMeta(2, 0, 'readOnly', false);
       await selectColumns(0);
       await contextMenu();
 

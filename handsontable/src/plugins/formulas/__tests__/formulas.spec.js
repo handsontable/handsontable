@@ -156,10 +156,10 @@ describe('Formulas general', () => {
       afterChange,
     });
 
-    setDataAtCell(0, 1, '=B5');
-    setDataAtCell(0, 2, '=B1');
-    setDataAtCell(0, 3, '=C1');
-    setDataAtCell(4, 5, '=D1');
+    await setDataAtCell(0, 1, '=B5');
+    await setDataAtCell(0, 2, '=B1');
+    await setDataAtCell(0, 3, '=C1');
+    await setDataAtCell(4, 5, '=D1');
 
     expect(getDataAtRow(0)).toEqual([0, 8042, 8042, 8042, 'Mini', 0]);
     expect(getDataAtRow(1)).toEqual([2009, 0, 2941, 4303, 354, 5814]);
@@ -216,8 +216,8 @@ describe('Formulas general', () => {
       height: 300
     });
 
-    setDataAtCell(2, 0, '=A1$');
-    setDataAtCell(3, 0, '=$A$$1');
+    await setDataAtCell(2, 0, '=A1$');
+    await setDataAtCell(3, 0, '=$A$$1');
 
     expect(getDataAtRow(0)).toEqual(['#ERROR!', '#ERROR!', '#ERROR!', '#ERROR!', 'Mini', '#ERROR!']);
     expect(getDataAtRow(1)).toEqual([2009, 0, 2941, 4303, 354, 5814]);
@@ -3172,7 +3172,7 @@ describe('Formulas general', () => {
         ['=A1'],
       ]);
 
-      validateCells();
+      await validateCells();
 
       await sleep(50);
 
@@ -3217,7 +3217,7 @@ describe('Formulas general', () => {
         ['=A1'],
       ]);
 
-      validateCells();
+      await validateCells();
 
       await sleep(50);
 
@@ -3262,7 +3262,7 @@ describe('Formulas general', () => {
         ['=A1'],
       ]);
 
-      validateCells();
+      await validateCells();
 
       await sleep(100);
 
@@ -3311,7 +3311,7 @@ describe('Formulas general', () => {
         ['=A1'],
       ]);
 
-      validateCells();
+      await validateCells();
 
       await sleep(100);
 
@@ -3342,7 +3342,7 @@ describe('Formulas general', () => {
         ['=A1'],
       ]);
 
-      validateCells();
+      await validateCells();
 
       await sleep(100);
 
@@ -3387,7 +3387,7 @@ describe('Formulas general', () => {
         ['=A1'],
       ]);
 
-      validateCells();
+      await validateCells();
 
       await sleep(50);
 
@@ -3418,7 +3418,7 @@ describe('Formulas general', () => {
         ['=A1'],
       ]);
 
-      validateCells();
+      await validateCells();
 
       await sleep(50);
 
@@ -3449,7 +3449,7 @@ describe('Formulas general', () => {
         ['=A1'],
       ]);
 
-      validateCells();
+      await validateCells();
 
       await sleep(50);
 
@@ -3676,7 +3676,7 @@ describe('Formulas general', () => {
         ['=A1'],
       ]);
 
-      validateCells();
+      await validateCells();
 
       await sleep(50);
 
@@ -3721,7 +3721,7 @@ describe('Formulas general', () => {
         ['=A1'],
       ]);
 
-      validateCells();
+      await validateCells();
 
       await sleep(50);
 
@@ -3766,7 +3766,7 @@ describe('Formulas general', () => {
         ['=A1'],
       ]);
 
-      validateCells();
+      await validateCells();
 
       await sleep(100);
 
@@ -3815,7 +3815,7 @@ describe('Formulas general', () => {
         ['=A1'],
       ]);
 
-      validateCells();
+      await validateCells();
 
       await sleep(100);
 
@@ -3846,7 +3846,7 @@ describe('Formulas general', () => {
         ['=A1'],
       ]);
 
-      validateCells();
+      await validateCells();
 
       await sleep(100);
 
@@ -3891,7 +3891,7 @@ describe('Formulas general', () => {
         ['=A1'],
       ]);
 
-      validateCells();
+      await validateCells();
 
       await sleep(50);
 
@@ -3922,7 +3922,7 @@ describe('Formulas general', () => {
         ['=A1'],
       ]);
 
-      validateCells();
+      await validateCells();
 
       await sleep(50);
 
@@ -3953,7 +3953,7 @@ describe('Formulas general', () => {
         ['=A1'],
       ]);
 
-      validateCells();
+      await validateCells();
 
       await sleep(50);
 
