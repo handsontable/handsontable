@@ -11,10 +11,6 @@ beforeEach(function() {
 
 afterEach(() => {
   specContext.spec = null;
-
-  if (!process.env.JEST_WORKER_ID && rootWrapper) {
-    rootWrapper.empty();
-  }
 });
 
 beforeAll(() => {
@@ -77,7 +73,9 @@ export function handsontableMethodFactory(method) {
 
     if (instance) {
       if (method === 'destroy') {
-        // TODO: destroy the instance
+        if (!process.env.JEST_WORKER_ID && rootWrapper) {
+          rootWrapper.empty();
+        }
       }
     } else {
       if (method === 'destroy') {
@@ -408,7 +406,7 @@ export function getBottomInlineStartClone() {
  * @param {Handsontable} hotInstance The Handsontable instance to apply the event.
  */
 export function triggerTabNavigationFromTop(hotInstance = hot()) {
-  $(hotInstance.rootElement).find('.htFocusCatcher').first().focus();
+  $(hotInstance.rootWrapperElement).find('.htFocusCatcher').first().focus();
 }
 
 /**
@@ -417,7 +415,7 @@ export function triggerTabNavigationFromTop(hotInstance = hot()) {
  * @param {Handsontable} hotInstance The Handsontable instance to apply the event.
  */
 export function triggerTabNavigationFromBottom(hotInstance = hot()) {
-  $(hotInstance.rootElement).find('.htFocusCatcher').last().focus();
+  $(hotInstance.rootWrapperElement).find('.htFocusCatcher').last().focus();
 }
 
 /**

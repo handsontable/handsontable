@@ -692,7 +692,7 @@ export class Menu {
         addClass(container, className);
       }
 
-      this.hot.rootPortalElement.appendChild(container);
+      this.options.container.appendChild(container);
     }
 
     return container;
