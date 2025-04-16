@@ -75,13 +75,8 @@ The [`queryMethod()`](@/api/search.md#query) function is responsible for determi
 The default [`queryMethod`](@/api/options.md#search) function is dead simple:
 
 ```js
-const DEFAULT_QUERY_METHOD = function (query, value) {
-  if (
-    isUndefined(query) ||
-    query === null ||
-    !query.toLowerCase ||
-    query.length === 0
-  ) {
+const DEFAULT_QUERY_METHOD = function(query, value) {
+  if (isUndefined(query) || query === null || !query.toLowerCase || query.length === 0) {
     return false;
   }
   if (isUndefined(value) || value === null) {
@@ -103,7 +98,7 @@ Just as the [`queryMethod`](@/api/options.md#search), you can override this call
 The default `callback` is responsible for setting the `isSearchResult` property.
 
 ```js
-const DEFAULT_CALLBACK = function (instance, row, col, data, testResult) {
+const DEFAULT_CALLBACK = function(instance, row, col, data, testResult) {
   instance.getCellMeta(row, col).isSearchResult = testResult;
 };
 ```

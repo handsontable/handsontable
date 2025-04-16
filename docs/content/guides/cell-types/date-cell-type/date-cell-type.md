@@ -183,7 +183,7 @@ Click on one of the ▼ icons to open an interactive date editor.
   - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
   - [`removeCellMeta()`](@/api/core.md#removecellmeta)
 - Hooks:
-  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
-  - [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta)
-  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
-  - [`beforeSetCellMeta`](@/api/hooks.md#beforesetcellmeta)
+    - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
+    - [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta)
+    - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
+    - [`beforeSetCellMeta`](@/api/hooks.md#beforesetcellmeta)

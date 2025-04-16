@@ -29,12 +29,12 @@ Set the [`comments`](@/api/options.md#comments) configuration option to `true` t
 ```js
 const hot = new Handsontable(container, {
   data: [
-    ["A1", "B1", "C1"],
-    ["A2", "B2", "C2"],
+    ['A1', 'B1', 'C1'],
+    ['A2', 'B2', 'C2'],
   ],
   comments: true,
   autoWrapRow: true,
-  autoWrapCol: true,
+  autoWrapCol: true
 });
 ```
 
@@ -45,8 +45,8 @@ const hot = new Handsontable(container, {
 ```jsx
 <HotTable
   data={[
-    ["A1", "B1", "C1"],
-    ["A2", "B2", "C2"],
+    ['A1', 'B1', 'C1'],
+    ['A2', 'B2', 'C2'],
   ]}
   comments={true}
 />
@@ -87,7 +87,9 @@ You can also pre-define comments for your table. Comments are stored in the tabl
 ::: only-for javascript
 
 ```js
-cell: [{ row: 1, col: 1, comment: { value: "Hello world!" } }];
+cell: [
+  { row: 1, col: 1, comment: { value: 'Hello world!' } }
+]
 ```
 
 :::

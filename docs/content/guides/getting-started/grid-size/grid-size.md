@@ -74,19 +74,19 @@ or
 ::: only-for react
 
 ```jsx
-<HotTable height={100} width={100} />
+  <HotTable height={100} width={100} />
 ```
 
 or
 
 ```jsx
-<HotTable height="75%" width="75%" />
+  <HotTable height="75%" width="75%" />
 ```
 
 or
 
 ```jsx
-<HotTable height="100px" width="100px" />
+  <HotTable height="100px" width="100px" />
 ```
 
 :::
@@ -161,7 +161,7 @@ You can easily overwrite this behaviour by returning `false` in the [`beforeRefr
 ::: only-for react
 
 ```jsx
-<HotTable beforeRefreshDimensions={() => false} />
+  <HotTable beforeRefreshDimensions={() => false} />
 ```
 
 :::

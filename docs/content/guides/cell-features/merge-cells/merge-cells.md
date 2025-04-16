@@ -28,7 +28,7 @@ Cell merging happens on Handsontable's visual layer and doesn't affect your sour
 
 ## How to merge cells
 
-To enable the merge cells feature, set the [`mergeCells`](@/api/options.md#mergecells) option to `true` or to an array.
+To enable the merge cells feature, set the [`mergeCells`](@/api/options.md#mergecells) option to  `true` or to an array.
 
 To initialize Handsontable with predefined merged cells, provide merged cells details in form of an array:
 
@@ -151,8 +151,8 @@ The example below uses virtualized merged cells. It's also recommended to increa
 
 ## Related keyboard shortcuts
 
-| Windows                              | macOS                                | Action                              |  Excel  | Sheets  |
-| ------------------------------------ | ------------------------------------ | ----------------------------------- | :-----: | :-----: |
+| Windows                                | macOS                                  | Action                              |  Excel  | Sheets  |
+| -------------------------------------- | -------------------------------------- | ----------------------------------- | :-----: | :-----: |
 | <kbd>**Ctrl**</kbd>+<kbd>**M**</kbd> | <kbd>**Ctrl**</kbd>+<kbd>**M**</kbd> | Merge or unmerge the selected cells | &cross; | &cross; |
 
 ## Related API reference

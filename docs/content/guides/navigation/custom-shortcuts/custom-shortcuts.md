@@ -63,18 +63,18 @@ For more information, see the [Instance access](@/guides/getting-started/angular
    ```
 2. Select a keyboard shortcut [context](#keyboard-shortcut-contexts), for example:
    ```js
-   const gridContext = hot.getShortcutManager().getContext("grid");
+   const gridContext = hot.getShortcutManager().getContext('grid');
    ```
 3. Use the selected context's [methods](@/api/shortcutContext.md). For example, to use the [`addShortcut()`](@/api/shortcutContext.md#addshortcut) method in the
    `grid` context:
 
    ```js
-   const gridContext = hot.getShortcutManager().getContext("grid");
+   const gridContext = hot.getShortcutManager().getContext('grid');
 
    gridContext.addShortcut({
-     group: "group_ID", // a string value; the user can decide on its name.
+     group: 'group_ID', // a string value; the user can decide on its name. 
      // Each shortcut should be assigned to the group.
-     keys: [["enter"]],
+     keys: [['enter']],
      callback: () => {},
    });
    ```
@@ -111,17 +111,17 @@ To add a custom keyboard shortcut:
 
 1. Select a [context](#keyboard-shortcut-contexts) in which you want to add a shortcut, for example:
    ```js
-   const gridContext = hot.getShortcutManager().getContext("grid");
+   const gridContext = hot.getShortcutManager().getContext('grid');
    ```
 2. Using the selected context's [`addShortcut()`](@/api/shortcutContext.md#addshortcut) method, add your keyboard shortcut:
 
    ```js
-   const gridContext = hot.getShortcutManager().getContext("grid");
+   const gridContext = hot.getShortcutManager().getContext('grid');
 
    gridContext.addShortcut({
-     group: "group_ID", // a string value; the user can decide on its name.
+     group: 'group_ID', // a string value; the user can decide on its name. 
      // Each shortcut should be assigned to the group.
-     keys: [["enter"]],
+     keys: [['enter']],
      callback: () => {},
    });
    ```
@@ -138,13 +138,13 @@ To add a custom keyboard shortcut:
 To make a keyboard action run on a certain condition, set the [`runOnlyIf`](@/api/shortcutContext.md#addshortcut) parameter to a function:
 
 ```js
-const gridContext = hot.getShortcutManager().getContext("grid");
+const gridContext = hot.getShortcutManager().getContext('grid');
 
 gridContext.addShortcut({
-  group: "group_ID", // a string value; the user can decide on its name.
-  // Each shortcut should be assigned to the group.
+  group: 'group_ID', // a string value; the user can decide on its name. 
+     // Each shortcut should be assigned to the group.
   runOnlyIf: () => hot.getSelected() !== void 0,
-  keys: [["enter"]],
+  keys: [['enter']],
   callback: () => {},
 });
 ```
@@ -156,18 +156,18 @@ You can assign multiple actions to a single keyboard shortcut.
 By default, when you assign a new action, it runs after any other actions that were assigned previously. To set your own order of actions, use the [`position`](@/api/shortcutContext.md#addshortcut) and [`relativeToGroup`](@/api/shortcutContext.md#addshortcut) parameters of the [`addShortcut()`](@/api/shortcutContext.md#addshortcut) method:
 
 ```js
-const gridContext = hot.getShortcutManager().getContext("grid");
+const gridContext = hot.getShortcutManager().getContext('grid');
 
 gridContext.addShortcut({
-  group: "customNumericEditor",
-  position: "before",
-  relativeToGroup: "editorManager.handlingEditor",
+  group: 'customNumericEditor',
+  position: 'before',
+  relativeToGroup: 'editorManager.handlingEditor',
   runOnlyIf: () => {
     hot.getSelected() !== void 0;
   },
-  keys: [["F2"]],
+  keys: [['F2']],
   callback: () => {
-    if (hot.getActiveEditor().cellProperties.type === "numeric") {
+    if (hot.getActiveEditor().cellProperties.type === 'numeric') {
       return false; // the `F2` shortcut won't work for `numeric` cells
     }
 
@@ -184,9 +184,9 @@ To remove a keyboard shortcut (e.g., one of the [default](#default-custom-shortc
 2. Use the selected context's [`removeShortcutsByKeys()`](@/api/shortcutContext.md#removeshortcutsbykeys) method.
 
 ```js
-const gridContext = hot.getShortcutManager().getContext("grid");
+const gridContext = hot.getShortcutManager().getContext('grid');
 
-gridContext.removeShortcutsByKeys(["enter"]);
+gridContext.removeShortcutsByKeys(['enter']);
 ```
 
 To remove all keyboard shortcuts registered in a certain group:
@@ -195,9 +195,9 @@ To remove all keyboard shortcuts registered in a certain group:
 2. Use the selected context's [`removeShortcutsByGroup()`](@/api/shortcutContext.md#removeshortcutsbygroup) method.
 
 ```js
-const gridContext = hot.getShortcutManager().getContext("grid");
+const gridContext = hot.getShortcutManager().getContext('grid');
 
-gridContext.removeShortcutsByGroup("group_ID");
+gridContext.removeShortcutsByGroup('group_ID');
 ```
 
 ## Replace a keyboard shortcut
@@ -211,13 +211,13 @@ To replace a keyboard shortcut:
 5. Add your new keyboard shortcut, using the selected context's [`addShortcuts()`](@/api/shortcutContext.md#addshortcuts) method.
 
 ```js
-const gridContext = hot.getShortcutManager().getContext("grid");
-const undoShortcut = gridContext.getShortcuts(["control/meta", "z"]);
+const gridContext = hot.getShortcutManager().getContext('grid');
+const undoShortcut = gridContext.getShortcuts(['control/meta', 'z']);
 
-gridContext.removeShortcutsByKeys(["control/meta", "z"]);
+gridContext.removeShortcutsByKeys(['control/meta', 'z']);
 
 undoShortcut.map((shortcut) => {
-  shortcut.keys = [["shift", "control/meta", "z"]];
+  shortcut.keys = [['shift', 'control/meta', 'z']];
 });
 
 gridContext.addShortcuts(undoShortcut);
@@ -230,9 +230,9 @@ To block a keyboard shortcut's actions, return `false` in the [`beforeKeyDown`](
 ::: only-for javascript
 
 ```js
-hot.addHook("beforeKeyDown", (event) => {
+hot.addHook('beforeKeyDown', (event) => {
   // the `Enter` shortcut won't work
-  if (event.key === "enter") {
+  if (event.key === 'enter') {
     return false;
   }
 });
@@ -246,7 +246,7 @@ hot.addHook("beforeKeyDown", (event) => {
 <HotTable
   beforeKeyDown={(event) => {
     // the `Enter` shortcut won't work
-    if (event.key === "enter") {
+    if (event.key === 'enter') {
       return false;
     }
   }}

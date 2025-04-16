@@ -100,7 +100,7 @@ In strict mode, the [`allowInvalid`](@/api/options.md#allowinvalid) option deter
 
 ## Autocomplete strict mode (Ajax)
 
-Autocomplete can also be used with Ajax data sources. In the example below, suggestions for the "Car" column are loaded from the server. To load data from a remote _asynchronous_ source, assign a function to the 'source' property. The function should perform the server-side request and call the callback function when the result is available.
+Autocomplete can also be used with Ajax data sources. In the example below, suggestions for the "Car" column are loaded from the server. To load data from a remote *asynchronous* source, assign a function to the 'source' property. The function should perform the server-side request and call the callback function when the result is available.
 
 ::: only-for javascript
 

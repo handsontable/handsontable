@@ -25,7 +25,7 @@ To initialize Handsontable with predefined horizontal and vertical alignment glo
 ::: only-for javascript
 
 ```js
-className: "htCenter";
+className: 'htCenter'
 ```
 
 :::
@@ -33,7 +33,7 @@ className: "htCenter";
 ::: only-for react
 
 ```jsx
-className = "htCenter";
+className="htCenter"
 ```
 
 :::
