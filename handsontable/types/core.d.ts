@@ -140,7 +140,6 @@ export default class Core {
   removeCellMeta(row: number, column: number, key: (keyof CellMeta) | string): void;
   removeHook<K extends keyof Events>(key: K, callback: Events[K]): void;
   render(): void;
-  renderCall: boolean;
   resumeExecution(): void;
   resumeRender(): void;
   rootDocument: Document;

@@ -28,7 +28,7 @@ const platforms = {
   mac: tester(platform => /^Mac/.test(platform)),
   win: tester(platform => /^Win/.test(platform)),
   linux: tester(platform => /^Linux/.test(platform)),
-  ios: tester(ua => /iPhone|iPad|iPod/i.test(ua))
+  ios: tester(platform => /iPhone|iPad|iPod/i.test(platform)),
 };
 
 /**

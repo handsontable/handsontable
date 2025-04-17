@@ -462,8 +462,7 @@ export class ManualColumnResize extends BasePlugin {
    */
   afterMouseDownTimeout() {
     const render = () => {
-      this.hot.forceFullRender = true;
-      this.hot.view.render(); // updates all
+      this.hot.render();
       this.hot.view.adjustElementsSize();
     };
     const resize = (column, forceRender) => {
@@ -556,8 +555,7 @@ export class ManualColumnResize extends BasePlugin {
    */
   #onMouseUp() {
     const render = () => {
-      this.hot.forceFullRender = true;
-      this.hot.view.render(); // updates all
+      this.hot.render();
       this.hot.view.adjustElementsSize();
     };
     const resize = (column, forceRender) => {

@@ -282,7 +282,7 @@ export class AutoRowSize extends BasePlugin {
       return;
     }
 
-    const overwriteCache = this.hot.renderCall;
+    const overwriteCache = this.hot.forceFullRender;
 
     this.calculateRowsHeight({ from: firstVisibleRow, to: lastVisibleRow }, undefined, overwriteCache);
   }
@@ -378,11 +378,6 @@ export class AutoRowSize extends BasePlugin {
 
         // @TODO Should call once per render cycle, currently fired separately in different plugins
         this.hot.view.adjustElementsSize();
-
-        // tmp
-        if (this.hot.view._wt.wtOverlays.inlineStartOverlay.needFullRender) {
-          this.hot.view._wt.wtOverlays.inlineStartOverlay.clone.draw();
-        }
       }
     };
 

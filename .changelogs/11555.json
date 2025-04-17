@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed `TypeError` for rows removal for bottom overlay",
+  "type": "fixed",
+  "issueOrPR": 11555,
+  "breaking": false,
+  "framework": "none"
+}

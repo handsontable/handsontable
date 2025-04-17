@@ -154,7 +154,6 @@ export class AutocompleteEditor extends HandsontableEditor {
     this.htEditor.updateSettings({
       colWidths: trimDropdown ? [outerWidth(this.TEXTAREA) - 2] : undefined,
       autoColumnSize: true,
-      autoRowSize: true,
       renderer: (hotInstance, TD, row, col, prop, value, cellProperties) => {
         textRenderer(hotInstance, TD, row, col, prop, value, cellProperties);
 
@@ -501,7 +500,11 @@ export class AutocompleteEditor extends HandsontableEditor {
       parseInt(containerStyle.borderBottomWidth, 10);
     const maxItems = Math.min(this.cellProperties.visibleRows, this.strippedChoices.length);
     const height = Array.from({ length: maxItems }, (_, i) => i)
-      .reduce((h, index) => h + this.htEditor.getRowHeight(index), 0);
+      .reduce((totalHeight, index) => {
+        const rowHeight = this.htEditor.getRowHeight(index) || this.htEditor.view.getDefaultRowHeight();
+
+        return totalHeight + rowHeight;
+      }, 0);
 
     return height + borderVerticalCompensation + 1;
   }

@@ -38,7 +38,6 @@ describe('Core.suspendRender', () => {
     hot.render();
 
     expect(hot.renderSuspendedCounter).toBe(1);
-    expect(hot.renderCall).toBe(true);
     expect(hot.forceFullRender).toBe(true);
     expect(hot.view._wt.draw).not.toHaveBeenCalled();
     expect(hot.view._wt.wtOverlays.adjustElementsSize).not.toHaveBeenCalled();
@@ -72,7 +71,6 @@ describe('Core.suspendRender', () => {
     hot.selectCell(1, 1);
 
     expect(hot.renderSuspendedCounter).toBe(1);
-    expect(hot.renderCall).toBe(false);
     expect(hot.forceFullRender).toBe(false);
     expect(hot.view._wt.draw).not.toHaveBeenCalled();
     expect(hot.view._wt.wtOverlays.adjustElementsSize).not.toHaveBeenCalled();

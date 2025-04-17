@@ -448,8 +448,7 @@ export class ManualRowResize extends BasePlugin {
    */
   afterMouseDownTimeout() {
     const render = () => {
-      this.hot.forceFullRender = true;
-      this.hot.view.render(); // updates all
+      this.hot.render();
       this.hot.view.adjustElementsSize();
     };
     const resize = (row, forceRender) => {
@@ -535,8 +534,7 @@ export class ManualRowResize extends BasePlugin {
    */
   #onMouseUp() {
     const render = () => {
-      this.hot.forceFullRender = true;
-      this.hot.view.render(); // updates all
+      this.hot.render();
       this.hot.view.adjustElementsSize();
     };
     const runHooks = (row, forceRender) => {

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Allow changing the selection after filter is applied",
+  "type": "fixed",
+  "issueOrPR": 11538,
+  "breaking": false,
+  "framework": "none"
+}

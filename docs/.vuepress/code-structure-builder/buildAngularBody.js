@@ -28,31 +28,31 @@ const buildAngularBody = ({ html, js, version, hyperformulaVersion }) => {
     "build": "ng build"
   },
   "dependencies": {
-    "@angular/animations": "^17.3.0",
-    "@angular/common": "^17.3.0",
-    "@angular/compiler": "^17.3.0",
-    "@angular/core": "^17.3.0",
-    "@angular/forms": "^17.3.0",
-    "@angular/platform-browser": "^17.3.0",
-    "@angular/platform-browser-dynamic": "^17.3.0",
-    "@angular/router": "^17.3.0",
+    "@angular/core": "^19.2.6",
+    "@angular/common": "^19.2.6",
+    "@angular/forms": "^19.2.6",
+    "@angular/platform-browser": "^19.2.6",
+    "@angular/platform-browser-dynamic": "^19.2.6",
+    "@angular/animations": "^19.2.6",
+    "@angular/compiler": "^19.2.6",
+    "@angular/router": "^19.2.6",
     "numbro": "^2.4.0",
     "rxjs": "^7.8.0",
     "tslib": "^2.6.2",
-    "zone.js": "^0.14.4",
+    "zone.js": "^0.15.0",
     "hyperformula": "${hyperformulaVersion}",
     "handsontable": "${version}",
     "@handsontable/angular": "${version}"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "^17.3.0",
+    "@angular-devkit/build-angular": "^19.2.6",
     "@angular/localize": "latest",
     "@angular/service-worker": "latest",
-    "@angular/cli": "^17.3.0",
-    "@angular/compiler-cli": "^17.3.0",
+    "@angular/cli": "^19.2.6",
+    "@angular/compiler-cli": "^19.2.6",
     "@types/node": "12.20.7",
     "ts-node": "8.3.0",
-    "typescript": "5.4.2"
+    "typescript": "5.5.4"
   }
 }`,
       },
@@ -123,14 +123,14 @@ const buildAngularBody = ({ html, js, version, hyperformulaVersion }) => {
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "sandbox:build"
+            "buildTarget": "sandbox:build"
           },
           "configurations": {
             "production": {
-              "browserTarget": "sandbox:build:production"
+              "buildTarget": "sandbox:build:production"
             },
             "development": {
-              "browserTarget": "sandbox:build:development"
+              "buildTarget": "sandbox:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -138,7 +138,7 @@ const buildAngularBody = ({ html, js, version, hyperformulaVersion }) => {
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "sandbox:build"
+            "buildTarget": "sandbox:build"
           }
         }
       }
