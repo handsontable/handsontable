@@ -6,7 +6,7 @@ describe('HiddenColumns', () => {
   const CONTEXTMENU_ITEM_SHOW = 'hidden_columns_show';
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
   });
 
   afterEach(function() {

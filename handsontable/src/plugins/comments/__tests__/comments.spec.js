@@ -2,7 +2,7 @@ describe('Comments', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
   });
 
   afterEach(function() {
@@ -1292,7 +1292,7 @@ describe('Comments', () => {
       contextMenu();
       selectContextMenuOption('Edit comment');
 
-      const textarea = spec().$container[0].parentNode.querySelector('.htCommentTextArea');
+      const textarea = spec().$container[0].parentNode.parentNode.parentNode.querySelector('.htCommentTextArea');
 
       textarea.focus();
       textarea.value = 'Edited comment';
@@ -1329,7 +1329,7 @@ describe('Comments', () => {
       contextMenu();
       selectContextMenuOption('Edit comment');
 
-      const textarea = spec().$container[0].parentNode.querySelector('.htCommentTextArea');
+      const textarea = spec().$container[0].parentNode.parentNode.parentNode.querySelector('.htCommentTextArea');
 
       textarea.focus();
       textarea.value = 'Edited comment';
@@ -1509,13 +1509,14 @@ describe('Comments', () => {
       });
 
       container2.handsontable('destroy');
-
+      $('#rootWrapper').find('#hot2').remove();
       let commentContainersLength = document.querySelectorAll('.htCommentsContainer').length;
 
       expect(commentContainersLength).toEqual(1);
 
       // cleanup HOT instance
       container1.handsontable('destroy');
+      $('#rootWrapper').find('#hot1').remove();
       commentContainersLength = document.querySelectorAll('.htCommentsContainer').length;
       expect(commentContainersLength).toEqual(0);
     });

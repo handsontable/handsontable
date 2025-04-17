@@ -8,7 +8,7 @@ describe('TextEditor (RTL mode)', () => {
     beforeEach(function() {
       $('html').attr('dir', htmlDir);
       this.$container = $(`<div id="${id}" style="width: 300px; height: 200px; overflow: hidden;"></div>`)
-        .appendTo('body');
+        .appendTo('#rootWrapper');
     });
 
     afterEach(function() {

@@ -1,6 +1,6 @@
 describe('Filters UI cooperation with ColumnSorting', () => {
   beforeEach(function() {
-    this.$container = $('<div id="testContainer"></div>').appendTo('body');
+    this.$container = $('<div id="testContainer"></div>').appendTo('#rootWrapper');
   });
 
   afterEach(function() {

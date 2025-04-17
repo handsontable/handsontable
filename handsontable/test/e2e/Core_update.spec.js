@@ -709,6 +709,8 @@ describe('Core_updateSettings', () => {
       expect(hot.view.getStylesHandler().isClassicTheme()).toBe(true);
       expect(hot.getCurrentThemeName()).toBe(undefined);
       expect($(hot.rootWrapperElement).hasClass('ht-theme-sth')).toBe(false);
+
+      clearModernThemeStylesheetMock(spec().$container);
     });
 
     it('should update the theme based on the `themeName` option, even if a theme class is already applied to the container', () => {
@@ -730,6 +732,8 @@ describe('Core_updateSettings', () => {
       expect(hot.getCurrentThemeName()).toBe('ht-theme-sth-else');
       expect($(hot.rootWrapperElement).hasClass('ht-theme-sth')).toBe(false);
       expect($(hot.rootWrapperElement).hasClass('ht-theme-sth-else')).toBe(true);
+
+      clearModernThemeStylesheetMock(spec().$container);
     });
 
     it('should be possible to disable a "modern" theme by setting the `themeName` to `false` or `undefined`', () => {
@@ -766,6 +770,8 @@ describe('Core_updateSettings', () => {
       expect(hot.view.getStylesHandler().isClassicTheme()).toBe(true);
       expect(hot.getCurrentThemeName()).toBe(undefined);
       expect($(hot.rootWrapperElement).hasClass('ht-theme-sth')).toBe(false);
+
+      clearModernThemeStylesheetMock(spec().$container);
     });
   });
 });

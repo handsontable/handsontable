@@ -4,7 +4,8 @@ describe('CheckboxRenderer', () => {
     'Backspace',
   ], (key) => {
     beforeEach(function() {
-      this.$container = $('<div id="testContainer" style="width: 300px; height: 200px;"></div>').appendTo('body');
+      this.$container = $('<div id="testContainer" style="width: 300px; height: 200px;"></div>')
+        .appendTo('#rootWrapper');
     });
 
     afterEach(function() {

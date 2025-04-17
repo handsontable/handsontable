@@ -2,7 +2,7 @@ describe('CopyPaste', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
     // Installing spy stabilizes the tests. Without that on CI and real browser there are some
     // differences in results.
     spyOn(document, 'execCommand');
@@ -41,7 +41,7 @@ describe('CopyPaste', () => {
 
   describe('working with multiple tables', () => {
     beforeEach(function() {
-      this.$container2 = $(`<div id="${id}2"></div>`).appendTo('body');
+      this.$container2 = $(`<div id="${id}2"></div>`).appendTo('#rootWrapper');
     });
 
     afterEach(function() {

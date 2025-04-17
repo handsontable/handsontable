@@ -3,7 +3,7 @@ describe('settings', () => {
     const id = 'testContainer';
 
     beforeEach(function() {
-      this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+      this.$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
     });
 
     afterEach(function() {
@@ -210,7 +210,7 @@ describe('settings', () => {
     const id = 'testContainer';
 
     beforeEach(function() {
-      this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+      this.$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
     });
 
     afterEach(function() {
@@ -399,7 +399,7 @@ describe('settings', () => {
     const id = 'testContainer';
 
     beforeEach(function() {
-      this.$container = $(`<div dir="rtl" id="${id}"></div>`).appendTo('body');
+      this.$container = $(`<div dir="rtl" id="${id}"></div>`).appendTo('#rootWrapper');
     });
 
     afterEach(function() {
@@ -428,7 +428,7 @@ describe('settings', () => {
     const id = 'testContainer';
 
     beforeEach(function() {
-      this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+      this.$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
     });
 
     afterEach(function() {

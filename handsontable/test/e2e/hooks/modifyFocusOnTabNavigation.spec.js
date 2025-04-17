@@ -1,11 +1,10 @@
 describe('Hook', () => {
   beforeEach(function() {
-    this.$container = $('<div id="testContainer"></div>').appendTo('body');
+    this.$container = $('<div id="testContainer"></div>').appendTo('#rootWrapper');
   });
 
   afterEach(function() {
     this.$container.data('handsontable')?.destroy();
-    this.$container.remove();
   });
 
   describe('modifyFocusOnTabNavigation', () => {

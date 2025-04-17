@@ -3,7 +3,7 @@ describe('TimeEditor', () => {
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}" style="width: 300px; height: 200px; overflow: hidden;"></div>`)
-      .appendTo('body');
+      .appendTo('#rootWrapper');
   });
 
   afterEach(function() {

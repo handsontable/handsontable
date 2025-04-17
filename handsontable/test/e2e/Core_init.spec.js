@@ -50,7 +50,8 @@ describe('Core_init', () => {
     const onErrorSpy = spyOn(window, 'onerror');
 
     $(`#${spec().$container[0].id}`).remove();
-    spec().$container = $(`<hot-table><div id="${id}"></div></hot-table>`).appendTo($('#rootWrapper'));
+    spec().$container = $(`<div id="hot-table"><hot-table><div id="${id}"></div></hot-table></div>`)
+      .appendTo($('#rootWrapper'));
 
     handsontable();
 
@@ -223,6 +224,8 @@ describe('Core_init', () => {
 
       expect(hot.view.getStylesHandler().isClassicTheme()).toBe(false);
       expect(hot.getCurrentThemeName()).toBe('ht-theme-sth');
+
+      clearModernThemeStylesheetMock(spec().$container);
     });
 
     it('should enable a theme when a theme class name was added to a parent of the root element', () => {
@@ -238,6 +241,8 @@ describe('Core_init', () => {
       expect(hot.view.getStylesHandler().isClassicTheme()).toBe(false);
       expect(hot.getCurrentThemeName()).toBe('ht-theme-sth');
       expect($(hot.rootWrapperElement).hasClass('ht-theme-sth')).toBe(true);
+
+      clearModernThemeStylesheetMock(spec().$container);
     });
   });
 });

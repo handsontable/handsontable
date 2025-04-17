@@ -1,6 +1,6 @@
 describe('CopyPaste', () => {
   beforeEach(function() {
-    this.$container = $('<div id="testContainer"></div>').appendTo('body');
+    this.$container = $('<div id="testContainer"></div>').appendTo('#rootWrapper');
     // Installing spy stabilizes the tests. Without that on CI and real browser there are some
     // differences in results.
     spyOn(document, 'execCommand');

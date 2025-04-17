@@ -3,7 +3,7 @@ describe('CustomBorders (RTL mode)', () => {
 
   beforeEach(function() {
     $('html').attr('dir', 'rtl');
-    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
     const wrapper = $('<div></div>').css({
       width: 400,
       height: 200,

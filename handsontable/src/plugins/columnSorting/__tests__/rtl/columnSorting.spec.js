@@ -9,7 +9,7 @@ describe('ColumnSorting (RTL)', () => {
       $('html').attr('dir', htmlDir);
 
       this.$container = $(`<div id="${id}" style="overflow: auto; width: 300px; height: 200px;"></div>`)
-        .appendTo('body');
+        .appendTo('#rootWrapper');
     });
 
     afterEach(function() {

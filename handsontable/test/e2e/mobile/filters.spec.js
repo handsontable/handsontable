@@ -2,7 +2,7 @@ const id = 'testContainer';
 
 describe('Filters', () => {
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
     window.resizeTo(390, 840);
   });
 

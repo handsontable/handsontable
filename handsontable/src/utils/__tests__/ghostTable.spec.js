@@ -6,7 +6,7 @@ describe('GhostTable', () => {
   let gt;
 
   beforeEach(function() {
-    this.$container = $('<div id="testContainer"></div>').appendTo('body');
+    this.$container = $('<div id="testContainer"></div>').appendTo('#rootWrapper');
   });
 
   afterEach(function() {
@@ -55,9 +55,9 @@ describe('GhostTable', () => {
 
       expect(gt.createContainer.calls.count()).toBe(1);
       expect(gt.createContainer.calls.mostRecent().args).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual(['ht-wrapper handsontable']);
-        main.toEqual(['ht-wrapper handsontable ht-theme-main']);
-        horizon.toEqual(['ht-wrapper handsontable ht-theme-horizon']);
+        classic.toEqual(['handsontable']);
+        main.toEqual(['handsontable ht-theme-main']);
+        horizon.toEqual(['handsontable ht-theme-horizon']);
       });
     });
 
@@ -174,9 +174,9 @@ describe('GhostTable', () => {
 
       expect(gt.createContainer.calls.count()).toBe(1);
       expect(gt.createContainer.calls.mostRecent().args).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual(['ht-wrapper handsontable']);
-        main.toEqual(['ht-wrapper handsontable ht-theme-main']);
-        horizon.toEqual(['ht-wrapper handsontable ht-theme-horizon']);
+        classic.toEqual(['handsontable']);
+        main.toEqual(['handsontable ht-theme-main']);
+        horizon.toEqual(['handsontable ht-theme-horizon']);
       });
     });
 

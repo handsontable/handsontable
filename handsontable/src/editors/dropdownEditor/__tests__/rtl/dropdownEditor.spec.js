@@ -8,7 +8,7 @@ describe('DropdownEditor (RTL mode)', () => {
     beforeEach(function() {
       $('html').attr('dir', htmlDir);
       this.$container = $(`<div id="${id}" style="width: 300px; height: 200px; overflow: auto"></div>`)
-        .appendTo('body');
+        .appendTo('#rootWrapper');
     });
 
     afterEach(function() {

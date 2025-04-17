@@ -18,7 +18,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
   };
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
   });
 
   afterEach(function() {

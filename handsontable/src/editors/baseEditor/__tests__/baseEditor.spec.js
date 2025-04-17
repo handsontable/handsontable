@@ -2,7 +2,8 @@ describe('BaseEditor', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}" style="width: 300px; height: 200px; overflow: auto"></div>`).appendTo('body');
+    this.$container = $(`<div id="${id}" style="width: 300px; height: 200px; overflow: auto"></div>`)
+      .appendTo('#rootWrapper');
   });
 
   afterEach(function() {
@@ -187,7 +188,7 @@ describe('BaseEditor', () => {
 
       const hot1 = handsontable({});
       const container2 = $(`<div id="${id}2" style="width: 300px; height: 200px; overflow: auto"></div>`)
-        .appendTo('body');
+        .appendTo('#rootWrapper');
       const hot2 = container2.handsontable().handsontable('getInstance');
 
       $(hot1.getCell(1, 1)).simulate('mousedown');
@@ -205,7 +206,7 @@ describe('BaseEditor', () => {
       expect(errorSpy.test).not.toHaveBeenCalled();
 
       hot2.destroy();
-      container2.remove();
+      $('#rootWrapper').find('#testContainer2').remove();
       window.onerror = prevError;
     });
   });

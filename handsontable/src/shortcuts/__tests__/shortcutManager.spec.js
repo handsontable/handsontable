@@ -1,6 +1,6 @@
 describe('shortcutManager', () => {
   beforeEach(function() {
-    this.$container = $('<div id="testContainer"></div>').appendTo('body');
+    this.$container = $('<div id="testContainer"></div>').appendTo('#rootWrapper');
   });
 
   afterEach(function() {
@@ -546,7 +546,7 @@ describe('shortcutManager', () => {
     });
 
     it('should forward the event to the other context within another HoT instance', () => {
-      const container2 = $('<div id="testContainer2"></div>').appendTo('body');
+      const container2 = $('<div id="testContainer2"></div>').appendTo('#rootWrapper');
       const hot1 = handsontable();
       const hot2 = new Handsontable(container2[0]);
       const shortcutManager1 = hot1.getShortcutManager();
@@ -577,7 +577,7 @@ describe('shortcutManager', () => {
       expect(hot1Spy).toHaveBeenCalledTimes(1);
 
       hot2.destroy();
-      container2.remove();
+      $('#rootWrapper').find('#testContainer2').remove();
     });
 
     it('should not forward the event to the other context when in the first context the event was cancelled', () => {

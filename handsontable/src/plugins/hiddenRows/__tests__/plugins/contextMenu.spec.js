@@ -15,7 +15,7 @@ describe('HiddenRows', () => {
   const CONTEXTMENU_ITEM_HIDE = 'hidden_rows_hide';
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
   });
 
   afterEach(function() {

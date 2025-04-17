@@ -1,7 +1,7 @@
 describe('MergeCells open editor', () => {
   beforeEach(function() {
     this.$container = $('<div id="testContainer" style="width: 300px; height: 200px; overflow: auto"></div>')
-      .appendTo('body');
+      .appendTo('#rootWrapper');
   });
 
   afterEach(function() {

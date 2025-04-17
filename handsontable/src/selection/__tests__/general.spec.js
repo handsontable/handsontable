@@ -2,7 +2,7 @@ describe('Selection', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
   });
 
   afterEach(function() {
@@ -1701,7 +1701,7 @@ describe('Selection', () => {
   it('should select cells properly while using non-consecutive selection for two instances', () => {
     const hot1 = handsontable({});
     const container2 = $(`<div id="${id}2" style="width: 300px; height: 200px; overflow: auto"></div>`)
-      .appendTo('body');
+      .appendTo('#rootWrapper');
     const hot2 = container2.handsontable().handsontable('getInstance');
 
     hot1.selectCell(0, 0);
@@ -1745,7 +1745,7 @@ describe('Selection', () => {
     keyUp('control/meta');
 
     hot2.destroy();
-    container2.remove();
+    $('#rootWrapper').find('#testContainer2').remove();
   });
 
   describe('running in iframe', () => {

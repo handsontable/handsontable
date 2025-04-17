@@ -2,7 +2,7 @@ describe('AutocompleteRenderer', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
   });
 
   afterEach(function() {
@@ -50,6 +50,9 @@ describe('AutocompleteRenderer', () => {
     });
 
     destroy();
+
+    $('#rootWrapper').find(`#${id}`).remove();
+    spec().$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
 
     const hot = handsontable({
       renderer: 'autocomplete'

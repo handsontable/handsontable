@@ -15,7 +15,7 @@ describe('HiddenColumns', () => {
   const CONTEXTMENU_ITEM_HIDE = 'hidden_columns_hide';
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
   });
 
   afterEach(function() {

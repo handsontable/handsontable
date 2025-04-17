@@ -2,13 +2,12 @@ describe('Hook', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
   });
 
   afterEach(function() {
     if (this.$container) {
       destroy();
-      this.$container.remove();
     }
   });
 
@@ -117,7 +116,7 @@ describe('Hook', () => {
       ' appropriate warning message', async() => {
       spyOn(console, 'warn');
       const afterRefreshDimensions = jasmine.createSpy('afterRefreshDimensions');
-      const $parentContainer = $('<div id="parentContainer"></div>').appendTo('body');
+      const $parentContainer = $('<div id="parentContainer"></div>').appendTo('#rootWrapper');
 
       spec().$container.detach().appendTo($parentContainer);
       $parentContainer

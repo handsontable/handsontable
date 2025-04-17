@@ -2,7 +2,7 @@ describe('Hook', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}" class="ht-theme-sth"></div>`).appendTo('body');
+    this.$container = $(`<div id="${id}" class="ht-theme-sth"></div>`).appendTo('#rootWrapper');
   });
 
   afterEach(function() {

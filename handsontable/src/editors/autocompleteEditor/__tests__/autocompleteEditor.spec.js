@@ -4,13 +4,12 @@ describe('AutocompleteEditor', () => {
 
   beforeEach(function() {
     this.$container = $('<div id="testContainer" style="width: 300px; height: 200px; overflow: auto"></div>')
-      .appendTo('body');
+      .appendTo('#rootWrapper');
   });
 
   afterEach(function() {
     if (this.$container) {
       destroy();
-      this.$container.remove();
     }
   });
 

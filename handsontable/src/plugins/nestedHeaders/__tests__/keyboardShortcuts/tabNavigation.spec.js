@@ -1,14 +1,12 @@
 describe('NestedHeaders navigation keyboard shortcuts', () => {
   beforeEach(function() {
-    this.$container = $('<div id="testContainer"></div>').appendTo('body');
-    this.$container1 = $('<div id="testContainer1"></div>').appendTo('body');
+    this.$container = $('<div id="testContainer"></div>').appendTo('#rootWrapper');
+    this.$container1 = $('<div id="testContainer1"></div>').appendTo('#rootWrapper');
   });
 
   afterEach(function() {
     this.$container.data('handsontable')?.destroy();
-    this.$container.remove();
     this.$container1.data('handsontable')?.destroy();
-    this.$container1.remove();
   });
 
   describe('"Tab" with "Shift" + "Tab"', () => {

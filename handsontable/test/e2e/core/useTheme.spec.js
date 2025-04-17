@@ -2,7 +2,7 @@ describe('useTheme', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),
@@ -12,7 +12,6 @@ describe('useTheme', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-      this.$container.remove();
     }
   });
 
@@ -33,6 +32,6 @@ describe('useTheme', () => {
 
     useTheme('ht-theme-sth');
 
-    expect(spec().$container.hasClass('ht-theme-sth')).toBe(true);
+    expect(spec().$container.parent().hasClass('ht-theme-sth')).toBe(true);
   });
 });

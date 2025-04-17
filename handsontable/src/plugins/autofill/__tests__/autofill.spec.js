@@ -2,13 +2,12 @@ describe('AutoFill', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
   });
 
   afterEach(function() {
     if (this.$container) {
       destroy();
-      this.$container.remove();
     }
   });
 
@@ -704,7 +703,7 @@ describe('AutoFill', () => {
   });
 
   it('should use correct cell coordinates also when Handsontable is used inside a TABLE (#355)', () => {
-    const $table = $('<table><tr><td></td></tr></table>').appendTo('body');
+    const $table = $('<table><tr><td></td></tr></table>').appendTo('#rootWrapper');
 
     spec().$container.appendTo($table.find('td'));
 
@@ -729,7 +728,8 @@ describe('AutoFill', () => {
     expect(getSelected()).toEqual([[1, 1, 2, 1]]);
     expect(getDataAtCell(2, 1)).toEqual('test');
 
-    document.body.removeChild($table[0]);
+    spec().$container.handsontable('destroy');
+    $table.remove();
   });
 
   it('should fill empty cells below until the end of content in the neighbouring column with current cell\'s data', () => {
@@ -1643,12 +1643,12 @@ describe('AutoFill', () => {
         [1, 2, 3, 4, 5, 6]
       ];
 
-      $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable({
+      $container1 = $('<div id="hot1"></div>').appendTo('#rootWrapper').handsontable({
         data: getData(),
         fillHandle: true
       });
 
-      $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable({
+      $container2 = $('<div id="hot2"></div>').appendTo('#rootWrapper').handsontable({
         data: getData(),
         fillHandle: 'horizontal'
       });
@@ -1678,12 +1678,10 @@ describe('AutoFill', () => {
 
     afterAll(() => {
       // destroing containers
-
       $container1.handsontable('destroy');
-      $container1.remove();
-
+      $('#rootWrapper').find('#hot1').remove();
       $container2.handsontable('destroy');
-      $container2.remove();
+      $('#rootWrapper').find('#hot2').remove();
     });
   });
 

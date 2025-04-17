@@ -10,6 +10,37 @@ beforeEach(function() {
 });
 
 afterEach(() => {
+  if (!process.env.JEST_WORKER_ID && rootWrapper) {
+    const container = spec().$container;
+    const container1 = spec().$container1;
+    const container2 = spec().$container2;
+    const container3 = spec().$container3;
+
+    if (container) {
+      const id = container.attr('id');
+
+      $('#rootWrapper').find(`#${id}`).remove();
+    }
+
+    if (container1) {
+      const id = container1.attr('id');
+
+      $('#rootWrapper').find(`#${id}`).remove();
+    }
+
+    if (container2) {
+      const id = container2.attr('id');
+
+      $('#rootWrapper').find(`#${id}`).remove();
+    }
+
+    if (container3) {
+      const id = container3.attr('id');
+
+      $('#rootWrapper').find(`#${id}`).remove();
+    }
+  }
+
   specContext.spec = null;
 });
 
@@ -73,9 +104,7 @@ export function handsontableMethodFactory(method) {
 
     if (instance) {
       if (method === 'destroy') {
-        if (!process.env.JEST_WORKER_ID && rootWrapper) {
-          rootWrapper.empty();
-        }
+        spec().$container.removeData();
       }
     } else {
       if (method === 'destroy') {

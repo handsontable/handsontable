@@ -104,9 +104,9 @@ describe('Core_listen', () => {
     expect($container2.handsontable('isListening')).toBe(true);
 
     $container1.handsontable('destroy');
-    $container1.remove();
+    $('#rootWrapper').find('#hot1').remove();
     $container2.handsontable('destroy');
-    $container2.remove();
+    $('#rootWrapper').find('#hot2').remove();
   });
 
   it('when listen is called on first instance, second should unlisten automatically', () => {
@@ -122,9 +122,9 @@ describe('Core_listen', () => {
     expect($container2.handsontable('isListening')).toBe(false);
 
     $container1.handsontable('destroy');
-    $container1.remove();
+    $('#rootWrapper').find('#hot1').remove();
     $container2.handsontable('destroy');
-    $container2.remove();
+    $('#rootWrapper').find('#hot2').remove();
   });
 
   it('should unlisten after click outside an iframe', () => {

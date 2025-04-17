@@ -5,12 +5,6 @@ describe('Core_destroy', () => {
     spec().$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
   });
 
-  afterEach(() => {
-    if (spec().$container) {
-      destroy();
-    }
-  });
-
   it('should remove table from the root element', async() => {
     handsontable();
     destroy();
@@ -35,13 +29,14 @@ describe('Core_destroy', () => {
 
     $tmp.handsontable();
     $tmp.handsontable('destroy');
-    $tmp.remove();
+    $('#rootWrapper').find('#tmp').remove();
 
     selectCell(0, 0);
 
     $('html').simulate('mousedown');
 
     expect(getSelected()).toBeUndefined();
+    destroy();
   });
 
   it('should throw an exception when metod on destroyed instance is called', () => {
