@@ -237,7 +237,7 @@ describe('Selection navigation', () => {
             expect(getSelectedRange()).toEqualCellRange([
               `highlight: ${row},${col} from: ${row},${col} to: ${row},${col}`
             ]);
-            await keyDownUp('arrowdown'); // eslint-disable-line no-await-in-loop
+            await keyDownUp('arrowdown');
           }
         }
 

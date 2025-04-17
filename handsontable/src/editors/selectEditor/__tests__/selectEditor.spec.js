@@ -287,8 +287,8 @@ describe('SelectEditor', () => {
     await selectCell(0, 0);
     await keyDownUp('enter');
 
-    await scrollOverlay(topOverlay(), 10);
-    await scrollOverlay(inlineStartOverlay(), 20);
+    await scrollViewportVertically(10);
+    await scrollViewportHorizontally(20);
 
     const editorWrapper = $('.htSelectEditor');
 

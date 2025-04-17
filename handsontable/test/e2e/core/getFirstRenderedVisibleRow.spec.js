@@ -43,7 +43,7 @@ describe('Core.getFirstRenderedVisibleRow', () => {
       height: 200,
     });
 
-    setScrollTop(355); // row 15 (A16) is partially visible
+    await scrollViewportVertically(355); // row 15 (A16) is partially visible
     await render();
 
     expect(getFirstRenderedVisibleRow()).toBe(12);
@@ -56,7 +56,7 @@ describe('Core.getFirstRenderedVisibleRow', () => {
       height: 240,
     });
 
-    setScrollTop(447); // row 15 (A16) is partially visible
+    await scrollViewportVertically(447); // row 15 (A16) is partially visible
     await render();
 
     expect(getFirstRenderedVisibleRow()).toBe(12);
@@ -69,7 +69,7 @@ describe('Core.getFirstRenderedVisibleRow', () => {
       height: 306,
     });
 
-    setScrollTop(570); // row 15 (A16) is partially visible
+    await scrollViewportVertically(570); // row 15 (A16) is partially visible
     await render();
 
     expect(getFirstRenderedVisibleRow()).toBe(12);

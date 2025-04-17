@@ -31,6 +31,8 @@ module.exports = {
         'src/plugins/**/__tests__/helpers/**',
       ],
       rules: {
+        'no-restricted-syntax': 'off',
+        'no-await-in-loop': 'off',
         'import/extensions': 'off',
         'import/no-unresolved': [
           'error',

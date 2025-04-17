@@ -1063,8 +1063,8 @@ describe('TextEditor', () => {
     await keyDownUp('enter');
     await keyUp(['enter']);
 
-    await scrollOverlay(topOverlay(), 500);
-    await scrollOverlay(inlineStartOverlay(), 500);
+    await scrollViewportVertically(500);
+    await scrollViewportHorizontally(500);
 
     expect(parseInt(hot.getActiveEditor().textareaParentStyle.opacity, 10)).toBe(0); // result of textEditor .close()
   });
@@ -1082,8 +1082,8 @@ describe('TextEditor', () => {
     await keyDownUp('enter');
     await keyUp(['enter']);
 
-    await scrollOverlay(topOverlay(), 150);
-    await scrollOverlay(inlineStartOverlay(), 100);
+    await scrollViewportVertically(150);
+    await scrollViewportHorizontally(100);
 
     expect(parseInt(hot.getActiveEditor().textareaParentStyle.opacity, 10)).toBe(1);
     expect(parseInt(hot.getActiveEditor().textareaParentStyle.top, 10)).forThemes(({ classic, main, horizon }) => {
@@ -1923,7 +1923,7 @@ describe('TextEditor', () => {
       height: 500,
     });
 
-    await scrollOverlay(inlineStartOverlay(), 100);
+    await scrollViewportHorizontally(100);
 
     hot.render();
 

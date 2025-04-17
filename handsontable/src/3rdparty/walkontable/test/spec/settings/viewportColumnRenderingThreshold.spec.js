@@ -24,17 +24,17 @@ describe('viewportColumnRenderingThreshold option', () => {
     });
 
     wt.draw();
-    setScrollLeft(200);
+    await scrollViewportHorizontally(200);
     wt.draw(true);
 
     expect(getTableMaster().find('tr:first td:first').text()).toBe('d');
 
-    setScrollLeft(180);
+    await scrollViewportHorizontally(180);
     wt.draw(true);
 
     expect(getTableMaster().find('tr:first td:first').text()).toBe('c');
 
-    setScrollLeft(140);
+    await scrollViewportHorizontally(140);
     wt.draw(true);
 
     expect(getTableMaster().find('tr:first td:first').text()).toBe('b');
@@ -51,12 +51,12 @@ describe('viewportColumnRenderingThreshold option', () => {
 
     expect(getTableMaster().find('tr:first td:last').text()).toBe('c');
 
-    setScrollLeft(40);
+    await scrollViewportHorizontally(40);
     wt.draw(true);
 
     expect(getTableMaster().find('tr:first td:last').text()).toBe('d');
 
-    setScrollLeft(80);
+    await scrollViewportHorizontally(80);
     wt.draw(true);
 
     expect(getTableMaster().find('tr:first td:last').text()).toBe('e');
@@ -75,38 +75,55 @@ describe('viewportColumnRenderingThreshold option', () => {
 
     wt.draw();
 
-    [1500, 1450, 1400, 1350, 1300].forEach((scrollLeft) => {
-      setScrollLeft(scrollLeft);
-      wt.draw(true);
+    {
+      const scrollLeftValues = [1500, 1450, 1400, 1350, 1300];
 
-      expect(getTableMaster().find('tr:first td:first').text()).toBe('b1');
-    });
+      for (const scrollLeft of scrollLeftValues) {
+        await scrollViewportHorizontally(scrollLeft);
 
-    setScrollLeft(1250);
+        wt.draw(true);
+
+        expect(getTableMaster().find('tr:first td:first').text()).toBe('b1');
+      }
+    }
+
+    await scrollViewportHorizontally(1250);
+
     wt.draw(true);
 
     expect(getTableMaster().find('tr:first td:first').text()).toBe('q');
 
-    [1200, 1150, 1100, 1050, 1010].forEach((scrollLeft) => {
-      setScrollLeft(scrollLeft);
-      wt.draw(true);
+    {
+      const scrollLeftValues = [1200, 1150, 1100, 1050, 1010];
 
-      expect(getTableMaster().find('tr:first td:first').text()).toBe('q');
-    });
+      for (const scrollLeft of scrollLeftValues) {
+        await scrollViewportHorizontally(scrollLeft);
 
-    setScrollLeft(1000);
+        wt.draw(true);
+
+        expect(getTableMaster().find('tr:first td:first').text()).toBe('q');
+      }
+    }
+
+    await scrollViewportHorizontally(1000);
     wt.draw(true);
 
     expect(getTableMaster().find('tr:first td:first').text()).toBe('l');
 
-    [950, 900, 850, 800, 760].forEach((scrollLeft) => {
-      setScrollLeft(scrollLeft);
-      wt.draw(true);
+    {
+      const scrollLeftValues = [950, 900, 850, 800, 760];
 
-      expect(getTableMaster().find('tr:first td:first').text()).toBe('l');
-    });
+      for (const scrollLeft of scrollLeftValues) {
+        await scrollViewportHorizontally(scrollLeft);
 
-    setScrollLeft(750);
+        wt.draw(true);
+
+        expect(getTableMaster().find('tr:first td:first').text()).toBe('l');
+      }
+    }
+
+    await scrollViewportHorizontally(750);
+
     wt.draw(true);
 
     expect(getTableMaster().find('tr:first td:first').text()).toBe('g');
@@ -125,38 +142,54 @@ describe('viewportColumnRenderingThreshold option', () => {
 
     wt.draw();
 
-    [100, 200, 260].forEach((scrollLeft) => {
-      setScrollLeft(scrollLeft);
-      wt.draw(true);
+    {
+      const scrollLeftValues = [100, 200, 260];
 
-      expect(getTableMaster().find('tr:first td:last').text()).toBe('k');
-    });
+      for (const scrollLeft of scrollLeftValues) {
+        await scrollViewportHorizontally(scrollLeft);
 
-    setScrollLeft(270);
+        wt.draw(true);
+
+        expect(getTableMaster().find('tr:first td:last').text()).toBe('k');
+      }
+    }
+
+    await scrollViewportHorizontally(270);
     wt.draw(true);
 
     expect(getTableMaster().find('tr:first td:last').text()).toBe('q');
 
-    [300, 350, 400, 450, 500, 550].forEach((scrollLeft) => {
-      setScrollLeft(scrollLeft);
-      wt.draw(true);
+    {
+      const scrollLeftValues = [300, 350, 400, 450, 500, 550];
 
-      expect(getTableMaster().find('tr:first td:last').text()).toBe('q');
-    });
+      for (const scrollLeft of scrollLeftValues) {
+        await scrollViewportHorizontally(scrollLeft);
 
-    setScrollLeft(570);
+        wt.draw(true);
+
+        expect(getTableMaster().find('tr:first td:last').text()).toBe('q');
+      }
+    }
+
+    await scrollViewportHorizontally(570);
     wt.draw(true);
 
     expect(getTableMaster().find('tr:first td:last').text()).toBe('c1');
 
-    [600, 650, 700, 750, 800, 860].forEach((scrollLeft) => {
-      setScrollLeft(scrollLeft);
-      wt.draw(true);
+    {
+      const scrollLeftValues = [600, 650, 700, 750, 800, 860];
 
-      expect(getTableMaster().find('tr:first td:last').text()).toBe('c1');
-    });
+      for (const scrollLeft of scrollLeftValues) {
+        await scrollViewportHorizontally(scrollLeft);
 
-    setScrollLeft(870);
+        wt.draw(true);
+
+        expect(getTableMaster().find('tr:first td:last').text()).toBe('c1');
+      }
+    }
+
+    await scrollViewportHorizontally(870);
+
     wt.draw(true);
 
     expect(getTableMaster().find('tr:first td:last').text()).toBe('i1');
@@ -175,17 +208,17 @@ describe('viewportColumnRenderingThreshold option', () => {
     });
 
     wt.draw();
-    setScrollLeft(1250);
+    await scrollViewportHorizontally(1250);
     wt.draw(true);
 
     expect(getTableMaster().find('tr:first td:first').text()).toBe('q');
 
-    setScrollLeft(1080);
+    await scrollViewportHorizontally(1080);
     wt.draw(true);
 
     expect(getTableMaster().find('tr:first td:first').text()).toBe('q');
 
-    setScrollLeft(1050);
+    await scrollViewportHorizontally(1050);
     wt.draw(true);
 
     expect(getTableMaster().find('tr:first td:first').text()).toBe('m');
@@ -195,12 +228,12 @@ describe('viewportColumnRenderingThreshold option', () => {
 
     expect(getTableMaster().find('tr:first td:first').text()).toBe('q');
 
-    setScrollLeft(960);
+    await scrollViewportHorizontally(960);
     wt.draw(true);
 
     expect(getTableMaster().find('tr:first td:first').text()).toBe('q');
 
-    setScrollLeft(940);
+    await scrollViewportHorizontally(940);
     wt.draw(true);
 
     expect(getTableMaster().find('tr:first td:first').text()).toBe('n');
@@ -222,12 +255,12 @@ describe('viewportColumnRenderingThreshold option', () => {
 
     expect(getTableMaster().find('tr:first td:last').text()).toBe('k');
 
-    setScrollLeft(200);
+    await scrollViewportHorizontally(200);
     wt.draw(true);
 
     expect(getTableMaster().find('tr:first td:last').text()).toBe('k');
 
-    setScrollLeft(220);
+    await scrollViewportHorizontally(220);
     wt.draw(true);
 
     expect(getTableMaster().find('tr:first td:last').text()).toBe('p');
@@ -237,12 +270,12 @@ describe('viewportColumnRenderingThreshold option', () => {
 
     expect(getTableMaster().find('tr:first td:last').text()).toBe('l');
 
-    setScrollLeft(350);
+    await scrollViewportHorizontally(350);
     wt.draw(true);
 
     expect(getTableMaster().find('tr:first td:last').text()).toBe('l');
 
-    setScrollLeft(370);
+    await scrollViewportHorizontally(370);
     wt.draw(true);
 
     expect(getTableMaster().find('tr:first td:last').text()).toBe('o');

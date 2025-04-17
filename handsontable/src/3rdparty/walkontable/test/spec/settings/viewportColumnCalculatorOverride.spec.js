@@ -24,17 +24,17 @@ describe('viewportColumnCalculatorOverride option', () => {
     });
 
     wt.draw();
-    setScrollLeft(200);
+    await scrollViewportHorizontally(200);
     wt.draw(true);
 
     expect(getTableMaster().find('tr:first td:first').text()).toBe('d');
 
-    setScrollLeft(180);
+    await scrollViewportHorizontally(180);
     wt.draw(true);
 
     expect(getTableMaster().find('tr:first td:first').text()).toBe('c');
 
-    setScrollLeft(140);
+    await scrollViewportHorizontally(140);
     wt.draw(true);
 
     expect(getTableMaster().find('tr:first td:first').text()).toBe('b');
@@ -51,12 +51,12 @@ describe('viewportColumnCalculatorOverride option', () => {
 
     expect(getTableMaster().find('tr:first td:last').text()).toBe('c');
 
-    setScrollLeft(40);
+    await scrollViewportHorizontally(40);
     wt.draw(true);
 
     expect(getTableMaster().find('tr:first td:last').text()).toBe('d');
 
-    setScrollLeft(80);
+    await scrollViewportHorizontally(80);
     wt.draw(true);
 
     expect(getTableMaster().find('tr:first td:last').text()).toBe('e');
@@ -73,17 +73,17 @@ describe('viewportColumnCalculatorOverride option', () => {
     });
 
     wt.draw();
-    setScrollLeft(400);
+    await scrollViewportHorizontally(400);
     wt.draw(true);
 
     expect(getTableMaster().find('tr:first td:first').text()).toBe('f');
 
-    setScrollLeft(290);
+    await scrollViewportHorizontally(290);
     wt.draw(true);
 
     expect(getTableMaster().find('tr:first td:first').text()).toBe('c');
 
-    setScrollLeft(140);
+    await scrollViewportHorizontally(140);
     wt.draw(true);
 
     expect(getTableMaster().find('tr:first td:first').text()).toBe('0');
@@ -103,12 +103,12 @@ describe('viewportColumnCalculatorOverride option', () => {
 
     expect(getTableMaster().find('tr:first td:last').text()).toBe('f');
 
-    setScrollLeft(170);
+    await scrollViewportHorizontally(170);
     wt.draw(true);
 
     expect(getTableMaster().find('tr:first td:last').text()).toBe('j');
 
-    setScrollLeft(370);
+    await scrollViewportHorizontally(370);
     wt.draw(true);
 
     expect(getTableMaster().find('tr:first td:last').text()).toBe('n');

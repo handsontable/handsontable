@@ -746,8 +746,7 @@ describe('DateEditor', () => {
     await selectCell(50, 10);
     await keyDownUp('enter');
 
-    setScrollLeft(10);
-    await sleep(50);
+    await scrollViewportHorizontally(10);
 
     const cellOffset = $(getActiveEditor().TD).offset();
     const datePickerOffset = $('.pika-single').offset();
@@ -772,7 +771,7 @@ describe('DateEditor', () => {
     await selectCell(2, 2);
     await keyDownUp('enter');
 
-    setScrollTop(30);
+    await scrollViewportVertically(30);
 
     const editorElement = $(getActiveEditor().TD);
     const pikaElement = $('.pika-single');
@@ -785,7 +784,7 @@ describe('DateEditor', () => {
     });
     expect(pikaElement.is(':visible')).toBe(true);
 
-    setScrollTop(60); // scroll the viewport so the edited cell is partially visible from above
+    await scrollViewportVertically(60); // scroll the viewport so the edited cell is partially visible from above
 
     await sleep(50);
 
@@ -795,7 +794,7 @@ describe('DateEditor', () => {
     });
     expect(pikaElement.is(':visible')).toBe(true);
 
-    setScrollTop(100); // scroll the viewport so the edited cell is not visible
+    await scrollViewportVertically(100); // scroll the viewport so the edited cell is not visible
 
     await sleep(50);
 
@@ -814,7 +813,7 @@ describe('DateEditor', () => {
     await selectCell(2, 2);
     await keyDownUp('enter');
 
-    setScrollTop(30);
+    await scrollViewportVertically(30);
 
     const editorElement = $(getActiveEditor().TD);
     const pikaElement = $('.pika-single');
@@ -827,7 +826,7 @@ describe('DateEditor', () => {
     });
     expect(pikaElement.is(':visible')).toBe(true);
 
-    setScrollTop(60); // scroll the viewport so the edited cell is partially visible from above
+    await scrollViewportVertically(60); // scroll the viewport so the edited cell is partially visible from above
 
     await sleep(50);
 
@@ -837,7 +836,7 @@ describe('DateEditor', () => {
     });
     expect(pikaElement.is(':visible')).toBe(true);
 
-    setScrollTop(100); // scroll the viewport so the edited cell is not visible
+    await scrollViewportVertically(100); // scroll the viewport so the edited cell is not visible
 
     await sleep(50);
 
@@ -856,7 +855,7 @@ describe('DateEditor', () => {
     await selectCell(2, 2);
     await keyDownUp('enter');
 
-    setScrollTop(30);
+    await scrollViewportVertically(30);
 
     const editorElement = $(getActiveEditor().TD);
     const pikaElement = $('.pika-single');
@@ -869,7 +868,7 @@ describe('DateEditor', () => {
     });
     expect(pikaElement.is(':visible')).toBe(true);
 
-    setScrollTop(90); // scroll the viewport so the edited cell is partially visible from above
+    await scrollViewportVertically(90); // scroll the viewport so the edited cell is partially visible from above
 
     await sleep(50);
 
@@ -879,7 +878,7 @@ describe('DateEditor', () => {
     });
     expect(pikaElement.is(':visible')).toBe(true);
 
-    setScrollTop(140); // scroll the viewport so the edited cell is not visible
+    await scrollViewportVertically(140); // scroll the viewport so the edited cell is not visible
 
     await sleep(50);
 
@@ -909,7 +908,7 @@ describe('DateEditor', () => {
     });
     expect(pikaElement.is(':visible')).toBe(true);
 
-    setScrollTop(400); // scroll the viewport so the edited cell is partially visible from below
+    await scrollViewportVertically(400); // scroll the viewport so the edited cell is partially visible from below
 
     await sleep(50);
 
@@ -919,7 +918,7 @@ describe('DateEditor', () => {
     });
     expect(pikaElement.is(':visible')).toBe(true);
 
-    setScrollTop(370); // scroll the viewport so the edited cell is not visible
+    await scrollViewportVertically(370); // scroll the viewport so the edited cell is not visible
 
     await sleep(50);
 
@@ -950,7 +949,7 @@ describe('DateEditor', () => {
     });
     expect(pikaElement.is(':visible')).toBe(true);
 
-    setScrollTop(504); // scroll the viewport so the edited cell is partially visible from below
+    await scrollViewportVertically(504); // scroll the viewport so the edited cell is partially visible from below
 
     await sleep(50);
 
@@ -960,7 +959,7 @@ describe('DateEditor', () => {
     });
     expect(pikaElement.is(':visible')).toBe(true);
 
-    setScrollTop(370); // scroll the viewport so the edited cell is not visible
+    await scrollViewportVertically(370); // scroll the viewport so the edited cell is not visible
 
     await sleep(50);
 
@@ -991,7 +990,7 @@ describe('DateEditor', () => {
     });
     expect(pikaElement.is(':visible')).toBe(true);
 
-    setScrollTop(643); // scroll the viewport so the edited cell is partially visible from below
+    await scrollViewportVertically(643); // scroll the viewport so the edited cell is partially visible from below
 
     await sleep(50);
 
@@ -1001,7 +1000,7 @@ describe('DateEditor', () => {
     });
     expect(pikaElement.is(':visible')).toBe(true);
 
-    setScrollTop(472); // scroll the viewport so the edited cell is not visible
+    await scrollViewportVertically(472); // scroll the viewport so the edited cell is not visible
 
     await sleep(50);
 
@@ -1031,9 +1030,7 @@ describe('DateEditor', () => {
     });
     expect(pikaElement.is(':visible')).toBe(true);
 
-    setScrollLeft(350); // scroll the viewport so the edited cell is partially visible from right
-
-    await sleep(50);
+    await scrollViewportHorizontally(350); // scroll the viewport so the edited cell is partially visible from right
 
     expect(pikaElement.offset()).toEqual({
       top: editorElement.offset().top + 23, // 23 is a height of the editor cell
@@ -1041,9 +1038,7 @@ describe('DateEditor', () => {
     });
     expect(pikaElement.is(':visible')).toBe(true);
 
-    setScrollLeft(310); // scroll the viewport so the edited cell is not visible
-
-    await sleep(50);
+    await scrollViewportHorizontally(310); // scroll the viewport so the edited cell is not visible
 
     expect(pikaElement.is(':visible')).toBe(false);
   });
@@ -1072,9 +1067,7 @@ describe('DateEditor', () => {
     });
     expect(pikaElement.is(':visible')).toBe(true);
 
-    setScrollLeft(655); // scroll the viewport so the edited cell is partially visible from right
-
-    await sleep(50);
+    await scrollViewportHorizontally(655); // scroll the viewport so the edited cell is partially visible from right
 
     expect(pikaElement.offset()).toEqual({
       top: editorElement.offset().top + 29, // 29 is a height of the editor cell
@@ -1082,9 +1075,7 @@ describe('DateEditor', () => {
     });
     expect(pikaElement.is(':visible')).toBe(true);
 
-    setScrollLeft(500); // scroll the viewport so the edited cell is not visible
-
-    await sleep(50);
+    await scrollViewportHorizontally(500); // scroll the viewport so the edited cell is not visible
 
     expect(pikaElement.is(':visible')).toBe(false);
   });
@@ -1113,9 +1104,7 @@ describe('DateEditor', () => {
     });
     expect(pikaElement.is(':visible')).toBe(true);
 
-    setScrollLeft(655); // scroll the viewport so the edited cell is partially visible from right
-
-    await sleep(50);
+    await scrollViewportHorizontally(655); // scroll the viewport so the edited cell is partially visible from right
 
     expect(pikaElement.offset()).toEqual({
       top: editorElement.offset().top + 37, // 37 is a height of the editor cell
@@ -1123,9 +1112,7 @@ describe('DateEditor', () => {
     });
     expect(pikaElement.is(':visible')).toBe(true);
 
-    setScrollLeft(500); // scroll the viewport so the edited cell is not visible
-
-    await sleep(50);
+    await scrollViewportHorizontally(500); // scroll the viewport so the edited cell is not visible
 
     expect(pikaElement.is(':visible')).toBe(false);
   });
@@ -1142,12 +1129,18 @@ describe('DateEditor', () => {
     await selectCell(2, 2);
     await keyDownUp('enter');
 
-    setScrollLeft(30);
+    await scrollViewportHorizontally(30);
 
     const editorElement = $(getActiveEditor().TD);
     const pikaElement = $('.pika-single');
 
-    await sleep(50);
+    expect(pikaElement.offset()).toEqual({
+      top: editorElement.offset().top + 23, // 23 is a height of the editor cell
+      left: editorElement.offset().left,
+    });
+    expect(pikaElement.is(':visible')).toBe(true);
+
+    await scrollViewportHorizontally(130); // scroll the viewport so the edited cell is partially visible from left
 
     expect(pikaElement.offset()).toEqual({
       top: editorElement.offset().top + 23, // 23 is a height of the editor cell
@@ -1155,19 +1148,7 @@ describe('DateEditor', () => {
     });
     expect(pikaElement.is(':visible')).toBe(true);
 
-    setScrollLeft(130); // scroll the viewport so the edited cell is partially visible from left
-
-    await sleep(50);
-
-    expect(pikaElement.offset()).toEqual({
-      top: editorElement.offset().top + 23, // 23 is a height of the editor cell
-      left: editorElement.offset().left,
-    });
-    expect(pikaElement.is(':visible')).toBe(true);
-
-    setScrollLeft(150); // scroll the viewport so the edited cell is not visible
-
-    await sleep(50);
+    await scrollViewportHorizontally(150); // scroll the viewport so the edited cell is not visible
 
     expect(pikaElement.is(':visible')).toBe(false);
   });
@@ -1184,12 +1165,18 @@ describe('DateEditor', () => {
     await selectCell(2, 2);
     await keyDownUp('enter');
 
-    setScrollLeft(30);
+    await scrollViewportHorizontally(30);
 
     const editorElement = $(getActiveEditor().TD);
     const pikaElement = $('.pika-single');
 
-    await sleep(50);
+    expect(pikaElement.offset()).toEqual({
+      top: editorElement.offset().top + 29, // 29 is a height of the editor cell
+      left: editorElement.offset().left,
+    });
+    expect(pikaElement.is(':visible')).toBe(true);
+
+    await scrollViewportHorizontally(160); // scroll the viewport so the edited cell is partially visible from left
 
     expect(pikaElement.offset()).toEqual({
       top: editorElement.offset().top + 29, // 29 is a height of the editor cell
@@ -1197,19 +1184,7 @@ describe('DateEditor', () => {
     });
     expect(pikaElement.is(':visible')).toBe(true);
 
-    setScrollLeft(160); // scroll the viewport so the edited cell is partially visible from left
-
-    await sleep(50);
-
-    expect(pikaElement.offset()).toEqual({
-      top: editorElement.offset().top + 29, // 29 is a height of the editor cell
-      left: editorElement.offset().left,
-    });
-    expect(pikaElement.is(':visible')).toBe(true);
-
-    setScrollLeft(220); // scroll the viewport so the edited cell is not visible
-
-    await sleep(50);
+    await scrollViewportHorizontally(220); // scroll the viewport so the edited cell is not visible
 
     expect(pikaElement.is(':visible')).toBe(false);
   });
@@ -1226,12 +1201,18 @@ describe('DateEditor', () => {
     await selectCell(2, 2);
     await keyDownUp('enter');
 
-    setScrollLeft(30);
+    await scrollViewportHorizontally(30);
 
     const editorElement = $(getActiveEditor().TD);
     const pikaElement = $('.pika-single');
 
-    await sleep(50);
+    expect(pikaElement.offset()).toEqual({
+      top: editorElement.offset().top + 37, // 37 is a height of the editor cell
+      left: editorElement.offset().left,
+    });
+    expect(pikaElement.is(':visible')).toBe(true);
+
+    await scrollViewportHorizontally(180); // scroll the viewport so the edited cell is partially visible from left
 
     expect(pikaElement.offset()).toEqual({
       top: editorElement.offset().top + 37, // 37 is a height of the editor cell
@@ -1239,19 +1220,7 @@ describe('DateEditor', () => {
     });
     expect(pikaElement.is(':visible')).toBe(true);
 
-    setScrollLeft(180); // scroll the viewport so the edited cell is partially visible from left
-
-    await sleep(50);
-
-    expect(pikaElement.offset()).toEqual({
-      top: editorElement.offset().top + 37, // 37 is a height of the editor cell
-      left: editorElement.offset().left,
-    });
-    expect(pikaElement.is(':visible')).toBe(true);
-
-    setScrollLeft(270); // scroll the viewport so the edited cell is not visible
-
-    await sleep(50);
+    await scrollViewportHorizontally(270); // scroll the viewport so the edited cell is not visible
 
     expect(pikaElement.is(':visible')).toBe(false);
   });
@@ -1268,7 +1237,7 @@ describe('DateEditor', () => {
     await selectCell(1, 1);
     await keyDownUp('enter');
 
-    setScrollTop(100);
+    await scrollViewportVertically(100);
 
     const editorElement = $(getActiveEditor().TD);
     const pikaElement = $('.pika-single');
@@ -1291,7 +1260,7 @@ describe('DateEditor', () => {
     });
     expect(pikaElement.is(':visible')).toBe(true);
 
-    setScrollTop(130);
+    await scrollViewportVertically(130);
 
     await sleep(50);
 
@@ -1324,12 +1293,10 @@ describe('DateEditor', () => {
     await selectCell(1, 1);
     await keyDownUp('enter');
 
-    setScrollLeft(100);
+    await scrollViewportHorizontally(100);
 
     const editorElement = $(getActiveEditor().TD);
     const pikaElement = $('.pika-single');
-
-    await sleep(50);
 
     expect(pikaElement.offset()).forThemes(({ classic, main, horizon }) => {
       classic.toEqual({
@@ -1347,9 +1314,7 @@ describe('DateEditor', () => {
     });
     expect(pikaElement.is(':visible')).toBe(true);
 
-    setScrollLeft(130);
-
-    await sleep(50);
+    await scrollViewportHorizontally(130);
 
     expect(pikaElement.offset()).forThemes(({ classic, main, horizon }) => {
       classic.toEqual({
@@ -1390,9 +1355,7 @@ describe('DateEditor', () => {
     });
     expect(pikaElement.is(':visible')).toBe(true);
 
-    setScrollTop(130);
-
-    await sleep(50);
+    await scrollViewportVertically(130);
 
     expect(pikaElement.offset()).toEqual({
       top: editorElement.offset().top + 23, // 23 is a height of the editor cell
@@ -1424,9 +1387,7 @@ describe('DateEditor', () => {
     });
     expect(pikaElement.is(':visible')).toBe(true);
 
-    setScrollTop(130);
-
-    await sleep(50);
+    await scrollViewportVertically(130);
 
     expect(pikaElement.offset()).toEqual({
       top: editorElement.offset().top + 29,
@@ -1458,9 +1419,7 @@ describe('DateEditor', () => {
     });
     expect(pikaElement.is(':visible')).toBe(true);
 
-    setScrollTop(166);
-
-    await sleep(50);
+    await scrollViewportVertically(166);
 
     expect(pikaElement.offset()).toEqual({
       top: editorElement.offset().top + 37,
@@ -1492,10 +1451,8 @@ describe('DateEditor', () => {
     });
     expect(pikaElement.is(':visible')).toBe(true);
 
-    setScrollTop(100);
-    setScrollLeft(100);
-
-    await sleep(50);
+    await scrollViewportVertically(100);
+    await scrollViewportHorizontally(100);
 
     expect(pikaElement.offset()).toEqual({
       top: editorElement.offset().top + 23, // 23 is a height of the editor cell
@@ -1527,10 +1484,8 @@ describe('DateEditor', () => {
     });
     expect(pikaElement.is(':visible')).toBe(true);
 
-    setScrollTop(100);
-    setScrollLeft(100);
-
-    await sleep(50);
+    await scrollViewportVertically(100);
+    await scrollViewportHorizontally(100);
 
     expect(pikaElement.offset()).toEqual({
       top: editorElement.offset().top + 29,
@@ -1563,10 +1518,8 @@ describe('DateEditor', () => {
     });
     expect(pikaElement.is(':visible')).toBe(true);
 
-    setScrollTop(160);
-    setScrollLeft(100);
-
-    await sleep(50);
+    await scrollViewportVertically(160);
+    await scrollViewportHorizontally(100);
 
     expect(pikaElement.offset()).toEqual({
       top: editorElement.offset().top + 37,
@@ -1598,10 +1551,8 @@ describe('DateEditor', () => {
     });
     expect(pikaElement.is(':visible')).toBe(true);
 
-    setScrollTop(100);
-    setScrollLeft(100);
-
-    await sleep(50);
+    await scrollViewportVertically(100);
+    await scrollViewportHorizontally(100);
 
     expect(pikaElement.offset()).toEqual({
       top: editorElement.offset().top + 23, // 23 is a height of the editor cell
@@ -1634,10 +1585,8 @@ describe('DateEditor', () => {
     });
     expect(pikaElement.is(':visible')).toBe(true);
 
-    setScrollTop(100);
-    setScrollLeft(100);
-
-    await sleep(50);
+    await scrollViewportVertically(100);
+    await scrollViewportHorizontally(100);
 
     expect(pikaElement.offset()).toEqual({
       top: editorElement.offset().top + 29,
@@ -1670,10 +1619,8 @@ describe('DateEditor', () => {
     });
     expect(pikaElement.is(':visible')).toBe(true);
 
-    setScrollTop(128);
-    setScrollLeft(100);
-
-    await sleep(50);
+    await scrollViewportVertically(128);
+    await scrollViewportHorizontally(100);
 
     expect(pikaElement.offset()).toEqual({
       top: editorElement.offset().top + 37,

@@ -1,4 +1,3 @@
-/* eslint-disable no-await-in-loop */
 describe('MergeCells keyboard shortcut', () => {
   const id = 'testContainer';
 

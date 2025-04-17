@@ -20,8 +20,7 @@ describe('MergeCells scrolling', () => {
       width: 400
     });
 
-    setScrollTop(130);
-
+    await scrollViewportVertically(130);
     await render();
     await simulateClick(getCell(5, 0));
 
@@ -31,12 +30,9 @@ describe('MergeCells scrolling', () => {
       horizon.toBe(130);
     });
 
-    setScrollTop(0);
-
+    await scrollViewportVertically(0);
     await render();
-
-    setScrollTop(130);
-
+    await scrollViewportVertically(130);
     await render();
     await simulateClick(getCell(5, 2));
 
@@ -57,15 +53,15 @@ describe('MergeCells scrolling', () => {
       width: 265
     });
 
-    setScrollLeft(300);
+    await scrollViewportHorizontally(300);
     await render();
     await simulateClick(getCell(0, 5));
 
     expect(inlineStartOverlay().getScrollPosition()).toBe(250);
 
-    setScrollLeft(0);
+    await scrollViewportHorizontally(0);
     await render();
-    setScrollLeft(300);
+    await scrollViewportHorizontally(300);
     await render();
     await simulateClick(getCell(2, 5));
 
@@ -85,8 +81,7 @@ describe('MergeCells scrolling', () => {
       width: 200
     });
 
-    setScrollTop(2000);
-
+    await scrollViewportVertically(2000);
     await render();
     await simulateClick(getCell(5, 0));
 
@@ -110,7 +105,7 @@ describe('MergeCells scrolling', () => {
       width: 300
     });
 
-    setScrollLeft(2000);
+    await scrollViewportHorizontally(2000);
 
     await render();
     await simulateClick(getCell(0, 5));

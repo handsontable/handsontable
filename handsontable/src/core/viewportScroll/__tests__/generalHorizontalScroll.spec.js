@@ -28,7 +28,7 @@ describe('Horizontal scroll', () => {
     });
 
     // make sure that the `I` column is partially visible
-    await scrollOverlay(inlineStartOverlay(), 415);
+    await scrollViewportHorizontally(415);
     // select the `I` column
     await selectCell(0, 8);
 

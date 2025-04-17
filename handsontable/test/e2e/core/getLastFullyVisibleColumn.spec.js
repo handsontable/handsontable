@@ -43,7 +43,7 @@ describe('Core.getLastFullyVisibleColumn', () => {
       height: 200,
     });
 
-    setScrollLeft(780); // row 19 (T1) is partially visible
+    await scrollViewportHorizontally(780); // row 19 (T1) is partially visible
     await render();
 
     expect(getLastFullyVisibleColumn()).toBe(18);
@@ -56,7 +56,7 @@ describe('Core.getLastFullyVisibleColumn', () => {
       height: 200,
     });
 
-    setScrollLeft(780); // row 19 (T1) is partially visible
+    await scrollViewportHorizontally(780); // row 19 (T1) is partially visible
     await render();
 
     expect(getLastFullyVisibleColumn()).toBe(18);
@@ -69,7 +69,7 @@ describe('Core.getLastFullyVisibleColumn', () => {
       height: 321,
     });
 
-    setScrollLeft(820); // row 19 (T1) is partially visible
+    await scrollViewportHorizontally(820); // row 19 (T1) is partially visible
     await render();
 
     expect(getLastFullyVisibleColumn()).toBe(18);

@@ -45,7 +45,7 @@ describe('Single selection scroll (RTL mode)', () => {
       });
 
       // make sure that the `F1` cell is partially visible on the left side of the table
-      await scrollOverlay(inlineStartOverlay(), 25);
+      await scrollViewportHorizontally(25);
       await mouseDoubleClick(getCell(0, 5));
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(51);
@@ -66,7 +66,7 @@ describe('Single selection scroll (RTL mode)', () => {
       });
 
       // make sure that the `F1` cell is partially visible on the left side of the table
-      await scrollOverlay(inlineStartOverlay(), 25);
+      await scrollViewportHorizontally(25);
       await selectCell(0, 4);
       await keyDownUp('arrowleft');
 
@@ -90,7 +90,7 @@ describe('Single selection scroll (RTL mode)', () => {
       });
 
       // make sure that the `F1` cell is partially visible on the left side of the table
-      await scrollOverlay(inlineStartOverlay(), 25);
+      await scrollViewportHorizontally(25);
       await selectCell(-1, 4);
       await keyDownUp('arrowleft');
 
@@ -113,7 +113,7 @@ describe('Single selection scroll (RTL mode)', () => {
       });
 
       // make sure that the `F1` cell is partially visible on the left side of the table
-      await scrollOverlay(inlineStartOverlay(), 25);
+      await scrollViewportHorizontally(25);
       await selectCell(0, 5);
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(51);
@@ -136,7 +136,7 @@ describe('Single selection scroll (RTL mode)', () => {
       });
 
       // make sure that the `A1` cell is partially visible on the right side of the table
-      await scrollOverlay(inlineStartOverlay(), 25);
+      await scrollViewportHorizontally(25);
       await simulateClick(getCell(0, 0));
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
@@ -157,7 +157,7 @@ describe('Single selection scroll (RTL mode)', () => {
       });
 
       // make sure that the `A1` cell is partially visible on the right side of the table
-      await scrollOverlay(inlineStartOverlay(), 25);
+      await scrollViewportHorizontally(25);
       await mouseDoubleClick(getCell(0, 0));
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
@@ -178,7 +178,7 @@ describe('Single selection scroll (RTL mode)', () => {
       });
 
       // make sure that the `A1` cell is partially visible on the right side of the table
-      await scrollOverlay(inlineStartOverlay(), 25);
+      await scrollViewportHorizontally(25);
       await selectCell(0, 1);
       await keyDownUp('arrowright');
 
@@ -202,7 +202,7 @@ describe('Single selection scroll (RTL mode)', () => {
       });
 
       // make sure that the `A1` cell is partially visible on the right side of the table
-      await scrollOverlay(inlineStartOverlay(), 25);
+      await scrollViewportHorizontally(25);
       await selectCell(-1, 1);
       await keyDownUp('arrowright');
 
@@ -225,7 +225,7 @@ describe('Single selection scroll (RTL mode)', () => {
       });
 
       // make sure that the `A1` cell is partially visible on the right side of the table
-      await scrollOverlay(inlineStartOverlay(), 25);
+      await scrollViewportHorizontally(25);
       await selectCell(0, 0);
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);

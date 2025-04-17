@@ -322,12 +322,24 @@ export function bottomInlineStartCornerOverlay() {
  *
  * @param {number} y The scroll position.
  */
-export function setScrollTop(y) {
-  if (hot().view._wt.wtOverlays.scrollableElement === hot().rootWindow) {
-    window.scrollTo(window.scrollX, y);
-  } else {
-    getMaster().find('.wtHolder')[0].scrollTop = y;
-  }
+export async function scrollViewportVertically(y) {
+  const isWindow = hot().view._wt.wtOverlays.scrollableElement === hot().rootWindow;
+  const scrollableElement = isWindow ? window : getMaster().find('.wtHolder')[0];
+
+  return new Promise((resolve) => {
+    const scrollHandler = () => {
+      scrollableElement.removeEventListener('scroll', scrollHandler);
+      resolve();
+    };
+
+    scrollableElement.addEventListener('scroll', scrollHandler);
+
+    if (isWindow) {
+      scrollableElement.scrollTo(scrollableElement.scrollX, y);
+    } else {
+      scrollableElement.scrollTop = y;
+    }
+  });
 }
 
 /**
@@ -335,12 +347,25 @@ export function setScrollTop(y) {
  *
  * @param {number} x The scroll position.
  */
-export function setScrollLeft(x) {
-  if (hot().view._wt.wtOverlays.scrollableElement === hot().rootWindow) {
-    window.scrollTo(x, window.scrollY);
-  } else {
-    getMaster().find('.wtHolder')[0].scrollLeft = x;
-  }
+export async function scrollViewportHorizontally(x) {
+  const isWindow = hot().view._wt.wtOverlays.scrollableElement === hot().rootWindow;
+  const scrollableElement = isWindow ? window : getMaster().find('.wtHolder')[0];
+
+  return new Promise((resolve) => {
+    const scrollHandler = () => {
+      scrollableElement.removeEventListener('scroll', scrollHandler);
+      resolve();
+    };
+
+    scrollableElement.addEventListener('scroll', scrollHandler);
+    x = hot().isRtl() ? -x : x;
+
+    if (isWindow) {
+      scrollableElement.scrollTo(x, scrollableElement.scrollY);
+    } else {
+      scrollableElement.scrollLeft = x;
+    }
+  });
 }
 
 /**
@@ -1187,28 +1212,6 @@ export function clearModernThemeStylesheetMock(container) {
 
   element.style.removeProperty('--ht-line-height');
   element.style.removeProperty('--ht-cell-vertical-padding');
-}
-
-/**
- * Scrolls the overlay to a specific position and waits for the scroll event to fire.
- *
- * @param {object} overlay The overlay object.
- * @param {number} amount The amount to scroll.
- * @returns {Promise} A promise that resolves when the scroll event fires.
- */
-export async function scrollOverlay(overlay, amount) {
-  const scrollPromise = new Promise((resolve) => {
-    const scrollHandler = () => {
-      overlay.mainTableScrollableElement.removeEventListener('scroll', scrollHandler);
-      resolve();
-    };
-
-    overlay.mainTableScrollableElement.addEventListener('scroll', scrollHandler);
-  });
-
-  overlay.setScrollPosition(amount);
-
-  return scrollPromise;
 }
 
 /**

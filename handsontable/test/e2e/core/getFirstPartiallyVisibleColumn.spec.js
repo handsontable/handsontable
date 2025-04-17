@@ -43,7 +43,7 @@ describe('Core.getFirstPartiallyVisibleColumn', () => {
       height: 200,
     });
 
-    setScrollLeft(780); // row 15 (P1) is partially visible
+    await scrollViewportHorizontally(780); // row 15 (P1) is partially visible
     await render();
 
     expect(getFirstPartiallyVisibleColumn()).toBe(15);

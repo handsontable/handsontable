@@ -26,7 +26,7 @@ describe('Non-contiguous selection scroll', () => {
       });
 
       // make sure that the `F1` cell is partially visible on the right side of the table
-      await scrollOverlay(inlineStartOverlay(), 25);
+      await scrollViewportHorizontally(25);
 
       await simulateClick(getCell(0, 3));
       await keyDown('control/meta');
@@ -51,7 +51,7 @@ describe('Non-contiguous selection scroll', () => {
       });
 
       // make sure that the `F1` cell is partially visible on the right side of the table
-      await scrollOverlay(inlineStartOverlay(), 25);
+      await scrollViewportHorizontally(25);
       await selectCells([[0, 3], [0, 5]]);
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(51);
@@ -72,7 +72,7 @@ describe('Non-contiguous selection scroll', () => {
       });
 
       // make sure that the `F1` cell is partially visible on the right side of the table
-      await scrollOverlay(inlineStartOverlay(), 25);
+      await scrollViewportHorizontally(25);
       await selectCells([[0, 5], [0, 3]]);
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(25);
@@ -95,7 +95,7 @@ describe('Non-contiguous selection scroll', () => {
       });
 
       // make sure that the `A1` cell is partially visible on the left side of the table
-      await scrollOverlay(inlineStartOverlay(), 25);
+      await scrollViewportHorizontally(25);
 
       await simulateClick(getCell(0, 2));
       await keyDown('control/meta');
@@ -120,7 +120,7 @@ describe('Non-contiguous selection scroll', () => {
       });
 
       // make sure that the `A1` cell is partially visible on the left side of the table
-      await scrollOverlay(inlineStartOverlay(), 25);
+      await scrollViewportHorizontally(25);
       await selectCells([[0, 2], [0, 0]]);
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
@@ -141,7 +141,7 @@ describe('Non-contiguous selection scroll', () => {
       });
 
       // make sure that the `A1` cell is partially visible on the left side of the table
-      await scrollOverlay(inlineStartOverlay(), 25);
+      await scrollViewportHorizontally(25);
       await selectCells([[0, 0], [0, 2]]);
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(25);
@@ -164,7 +164,7 @@ describe('Non-contiguous selection scroll', () => {
       });
 
       // make sure that the `A1` cell is partially visible on the top side of the table
-      await scrollOverlay(topOverlay(), 15);
+      await scrollViewportVertically(15);
 
       await simulateClick(getCell(2, 0));
       await keyDown('control/meta');
@@ -189,7 +189,7 @@ describe('Non-contiguous selection scroll', () => {
       });
 
       // make sure that the `A1` cell is partially visible on the top side of the table
-      await scrollOverlay(topOverlay(), 15);
+      await scrollViewportVertically(15);
       await selectCells([[2, 0], [0, 0]]);
 
       expect(topOverlay().getScrollPosition()).toBe(0);
@@ -210,7 +210,7 @@ describe('Non-contiguous selection scroll', () => {
       });
 
       // make sure that the `A1` cell is partially visible on the top side of the table
-      await scrollOverlay(topOverlay(), 15);
+      await scrollViewportVertically(15);
       await selectCells([[0, 0], [2, 0]]);
 
       expect(topOverlay().getScrollPosition()).toBe(15);
@@ -274,7 +274,7 @@ describe('Non-contiguous selection scroll', () => {
       });
 
       // make sure that the `A12` cell is partially visible on the bottom side of the table
-      await scrollOverlay(topOverlay(), 5);
+      await scrollViewportVertically(5);
       await selectCells([[11, 0], [9, 0]]);
 
       expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
