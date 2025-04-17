@@ -2749,14 +2749,15 @@ describe('ColumnSorting', () => {
         'Pruitt Stokes', 'Felicia Briggs', 'Melba Bradshaw']
     ];
 
-    const hot = handsontable({
+    handsontable({
       data,
       colHeaders: true,
       columnSorting: true
     });
 
-    hot.view._wt.wtOverlays.inlineStartOverlay.scrollTo(15);
+    await scrollViewportHorizontally(15);
     await render();
+
     getPlugin('columnSorting').sort({ column: 15, sortOrder: 'asc' });
 
     expect(getDataAtCell(0, 15)).toEqual('Ball Levy');

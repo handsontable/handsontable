@@ -1387,9 +1387,7 @@ describe('AutocompleteEditor', () => {
         source: choices,
       });
 
-      window.scrollTo(0, 10000); // scroll to the bottom
-
-      await sleep(50);
+      await scrollWindowTo(0, 10000); // scroll to the bottom
       await mouseDoubleClick($(getCell(96, 0)));
       await sleep(50);
 
@@ -3484,10 +3482,7 @@ describe('AutocompleteEditor', () => {
 
   it('should not close editor on scrolling', async() => {
     const hot = handsontable({
-      data: [
-        ['', 'two', 'three'],
-        ['four', 'five', 'six']
-      ],
+      data: createEmptySpreadsheetData(100, 3),
       columns: [
         {
           type: 'autocomplete',
@@ -3503,26 +3498,20 @@ describe('AutocompleteEditor', () => {
     expect(choices.length).toBeGreaterThan(10);
 
     await selectCell(0, 0);
-
-    $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
-    $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mouseup');
+    await mouseDoubleClick(getCell(0, 0));
+    await sleep(50);
 
     const dropdown = hot.getActiveEditor().htContainer;
 
-    hot.view._wt.wtOverlays.topOverlay.scrollTo(1);
-
-    await sleep(50);
+    await scrollViewportVertically(1);
 
     expect($(dropdown).is(':visible')).toBe(true);
 
     await selectCell(0, 0);
     await sleep(50);
+    await mouseDoubleClick(getCell(0, 0));
 
-    $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
-    $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mouseup');
-    hot.view._wt.wtOverlays.topOverlay.scrollTo(3);
-
-    await sleep(50);
+    await scrollViewportVertically(3);
 
     expect($(dropdown).is(':visible')).toBe(true);
   });

@@ -21,10 +21,7 @@ describe('DropdownMenu keyboard shortcut', () => {
       });
 
       await dropdownMenu();
-
-      window.scrollTo(0, 1000);
-
-      await sleep(100);
+      await scrollWindowTo(0, 1000);
       await keyDownUp(keyboardShortcut);
 
       expect(getPlugin('dropdownMenu').menu.getSelectedItem().name).toBe('Test item 1');

@@ -123,9 +123,7 @@ describe('settings', () => {
           fixedRowsTop: 2,
         });
 
-        getMaster().find('.wtHolder').scrollLeft(100);
-
-        await sleep(10);
+        await scrollViewportHorizontally(100);
 
         expect(getTopClone().find('.wtHolder').scrollLeft()).toBe(getMaster().find('.wtHolder').scrollLeft());
       });

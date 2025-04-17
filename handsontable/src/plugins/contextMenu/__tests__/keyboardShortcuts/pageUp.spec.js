@@ -18,10 +18,7 @@ describe('ContextMenu keyboard shortcut', () => {
       });
 
       await contextMenu();
-
-      window.scrollTo(0, 1000);
-
-      await sleep(100);
+      await scrollWindowTo(0, 1000);
       await keyDownUp('pageup');
 
       expect(getPlugin('contextMenu').menu.getSelectedItem().name).toBe('Test item 1');
@@ -54,12 +51,10 @@ describe('ContextMenu keyboard shortcut', () => {
       });
 
       await contextMenu();
+
       getPlugin('contextMenu').menu.getNavigator().toLastItem();
 
-      window.scrollTo(0, document.documentElement.scrollHeight);
-
-      await sleep(100);
-
+      await scrollWindowTo(0, document.documentElement.scrollHeight);
       await keyDownUp('pageup');
 
       const menuView = getPlugin('contextMenu').menu.hotMenu.view;

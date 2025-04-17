@@ -1184,10 +1184,9 @@ describe('CustomBorders', () => {
         height: 100,
         viewportRowRenderingOffset: 0
       });
-      const mainHolder = instance.view._wt.wtTable.holder;
 
-      $(mainHolder).scrollTop(400);
-      await sleep(300);
+      await scrollViewportVertically(400);
+
       expect(instance.countRenderedRows()).toEqual(5);
       expect(countVisibleCustomBorders()).toEqual(5);
       expect(countCustomBorders()).toEqual(10 * 5); // TODO I think this should be 5 * 5
@@ -1202,10 +1201,9 @@ describe('CustomBorders', () => {
         height: 125,
         viewportRowRenderingOffset: 0
       });
-      const mainHolder = instance.view._wt.wtTable.holder;
 
-      $(mainHolder).scrollTop(400);
-      await sleep(300);
+      await scrollViewportVertically(400);
+
       expect(instance.countRenderedRows()).toEqual(5);
       expect(countVisibleCustomBorders()).toEqual(5);
       expect(countCustomBorders()).toEqual(10 * 5); // TODO I think this should be 5 * 5
@@ -1220,10 +1218,9 @@ describe('CustomBorders', () => {
         height: 159,
         viewportRowRenderingOffset: 0
       });
-      const mainHolder = instance.view._wt.wtTable.holder;
 
-      $(mainHolder).scrollTop(400);
-      await sleep(300);
+      await scrollViewportVertically(400);
+
       expect(instance.countRenderedRows()).toEqual(5);
       expect(countVisibleCustomBorders()).toEqual(5);
       expect(countCustomBorders()).toEqual(10 * 5); // TODO I think this should be 5 * 5

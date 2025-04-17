@@ -125,9 +125,7 @@ describe('settings', () => {
           fixedColumnsStart: 2,
         });
 
-        getMaster().find('.wtHolder').scrollTop(100);
-
-        await sleep(10);
+        await scrollViewportVertically(100);
 
         expect(getInlineStartClone().find('.wtHolder').scrollTop()).toBe(getMaster().find('.wtHolder').scrollTop());
       });
@@ -329,9 +327,7 @@ describe('settings', () => {
           fixedColumnsLeft: 2,
         });
 
-        getMaster().find('.wtHolder').scrollTop(100);
-
-        await sleep(10);
+        await scrollViewportVertically(100);
 
         expect(getInlineStartClone().find('.wtHolder').scrollTop()).toBe(getMaster().find('.wtHolder').scrollTop());
       });

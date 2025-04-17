@@ -181,26 +181,26 @@ describe('Core_render', () => {
       data: createSpreadsheetData(50, 50),
     });
 
-    window.scrollBy(0, 9500);
+    await scrollWindowBy(0, 9500);
 
     await sleep(100);
 
     const wotRenderSpy = spyOn(hot.view._wt.wtTable.tableRenderer, 'render');
 
-    window.scrollBy(0, 10);
+    await scrollWindowBy(0, 10);
     await sleep(100);
-    window.scrollBy(0, 10);
+    await scrollWindowBy(0, 10);
     await sleep(100);
-    window.scrollBy(0, 10);
+    await scrollWindowBy(0, 10);
     await sleep(100);
 
-    window.scrollBy(9500, -9500);
+    await scrollWindowBy(9500, -9500);
 
-    window.scrollBy(0, 10);
+    await scrollWindowBy(0, 10);
     await sleep(100);
-    window.scrollBy(0, 10);
+    await scrollWindowBy(0, 10);
     await sleep(100);
-    window.scrollBy(0, 10);
+    await scrollWindowBy(0, 10);
     await sleep(100);
 
     expect(wotRenderSpy).toHaveBeenCalledTimes(0);
@@ -218,13 +218,13 @@ describe('Core_render', () => {
 
     const wotRenderSpy = spyOn(hot.view._wt.wtTable.tableRenderer, 'render');
 
-    window.scrollBy(0, 10);
+    await scrollWindowBy(0, 10);
     await sleep(100);
-    window.scrollBy(0, 10);
+    await scrollWindowBy(0, 10);
     await sleep(100);
-    window.scrollBy(0, 10);
+    await scrollWindowBy(0, 10);
     await sleep(100);
-    window.scrollBy(0, 2071);
+    await scrollWindowBy(0, 2071);
     await sleep(100);
 
     expect(wotRenderSpy).toHaveBeenCalledTimes(0);

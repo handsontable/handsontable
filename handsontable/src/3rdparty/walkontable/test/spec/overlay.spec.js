@@ -779,12 +779,12 @@ describe('WalkontableOverlay', () => {
       wt.draw();
 
       // scroll the viewport precisely 1px before the top overlay disappears
-      window.scrollBy(0, 23);
+      await scrollWindowBy(0, 23);
 
       expect(wt.wtOverlays.topOverlay.getOverlayOffset()).toBe(184);
 
       // it causes the overlay to be reset to the initial position
-      window.scrollBy(0, 1);
+      await scrollWindowBy(0, 1);
       wt.draw();
 
       expect(wt.wtOverlays.topOverlay.getOverlayOffset()).toBe(0);
@@ -803,12 +803,12 @@ describe('WalkontableOverlay', () => {
       wt.draw();
 
       // scroll the viewport precisely 1px before the left overlay disappears
-      window.scrollBy(50, 0);
+      await scrollWindowBy(50, 0);
 
       expect(wt.wtOverlays.inlineStartOverlay.getOverlayOffset()).toBe(400);
 
       // it causes the overlay to be reset to the initial position
-      window.scrollBy(1, 1);
+      await scrollWindowBy(1, 1);
 
       expect(wt.wtOverlays.inlineStartOverlay.getOverlayOffset()).toBe(0);
     });
@@ -826,12 +826,12 @@ describe('WalkontableOverlay', () => {
       wt.draw();
 
       // scroll the viewport precisely 1px before the bottom overlay disappears
-      window.scrollBy(0, -230);
+      await scrollWindowBy(0, -230);
 
       expect(wt.wtOverlays.bottomOverlay.getOverlayOffset()).toBe(184);
 
       // it causes the overlay to be reset to the initial position
-      window.scrollBy(0, -1);
+      await scrollWindowBy(0, -1);
 
       expect(wt.wtOverlays.bottomOverlay.getOverlayOffset()).toBe(0);
     });

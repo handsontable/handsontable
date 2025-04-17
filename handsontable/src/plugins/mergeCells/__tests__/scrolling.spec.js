@@ -27,7 +27,7 @@ describe('MergeCells scrolling', () => {
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(115);
       main.toBe(130);
-      horizon.toBe(130);
+      horizon.toBe(159);
     });
 
     await scrollViewportVertically(0);
@@ -138,10 +138,8 @@ describe('MergeCells scrolling', () => {
       width: 400
     });
 
-    const mainHolder = hot.view._wt.wtTable.holder;
-
-    $(mainHolder).scrollTop(99999);
-    hot.render();
+    await scrollViewportVertically(99999);
+    await render();
 
     expect(hot.countRenderedRows()).toBe(39);
   });
@@ -171,8 +169,8 @@ describe('MergeCells scrolling', () => {
       width: 400
     });
 
-    spec().$container.scrollLeft(99999);
-    hot.render();
+    await scrollViewportHorizontally(99999);
+    await render();
 
     expect(hot.countRenderedCols()).toBe(39);
   });

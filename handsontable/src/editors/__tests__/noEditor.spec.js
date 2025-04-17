@@ -99,8 +99,6 @@ describe('noEditor', () => {
 
     const cell = $(getCell(0, 0));
 
-    window.scrollTo(0, cell.offset().top);
-
     await mouseDoubleClick(cell);
 
     expect(hot.getActiveEditor()).toBe(undefined);

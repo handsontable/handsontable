@@ -20,7 +20,7 @@ describe('MultipleSelectionHandles', () => {
     });
 
     // try to scroll the viewport max to the right
-    getMaster().find('.wtHolder').scrollLeft(9999);
+    await scrollViewportHorizontally(9999);
 
     // there should be no scroll as the 8 columns fit to the table's width
     expect(getMaster().find('.wtHolder').scrollLeft()).toBe(0);
@@ -37,8 +37,8 @@ describe('MultipleSelectionHandles', () => {
     await selectCell(4, 7);
 
     // try to scroll the viewport max to the bottom-right position
-    getMaster().find('.wtHolder').scrollLeft(999);
-    getMaster().find('.wtHolder').scrollTop(999);
+    await scrollViewportHorizontally(999);
+    await scrollViewportVertically(999);
 
     expect(getMaster().find('.wtHolder').scrollLeft()).toBe(0);
     expect(getMaster().find('.wtHolder').scrollTop()).toBe(0);
@@ -46,8 +46,8 @@ describe('MultipleSelectionHandles', () => {
     loadData([['X']]);
 
     // try to scroll the viewport max to the bottom-right position
-    getMaster().find('.wtHolder').scrollLeft(999);
-    getMaster().find('.wtHolder').scrollTop(999);
+    await scrollViewportHorizontally(999);
+    await scrollViewportVertically(999);
 
     expect(getMaster().find('.wtHolder').scrollLeft()).toBe(0);
     expect(getMaster().find('.wtHolder').scrollTop()).toBe(0);

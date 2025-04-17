@@ -1319,7 +1319,7 @@ describe('manualRowResize', () => {
     it('should display the handles in the correct position, with holder as a scroll parent', async() => {
       spec().$container.css('transform', 'translate(50px, 120px)');
 
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(20, 10),
         colHeaders: true,
         rowHeaders: true,
@@ -1328,7 +1328,6 @@ describe('manualRowResize', () => {
         width: 200
       });
 
-      const mainHolder = hot.view._wt.wtTable.holder;
       let $rowHeader = getInlineStartClone().find('tr:eq(2) th:eq(0)');
 
       $rowHeader.simulate('mouseover');
@@ -1338,10 +1337,8 @@ describe('manualRowResize', () => {
       expect($rowHeader.offset().top + $rowHeader.height() - 5).toBeCloseTo($handle.offset().top, 0);
       expect($rowHeader.offset().left).toBeCloseTo($handle.offset().left, 0);
 
-      $(mainHolder).scrollTop(1); // we have to trigger innerBorderTop before we scroll to correct position
-      await sleep(100);
-      $(mainHolder).scrollTop(200);
-      await sleep(400);
+      await scrollViewportVertically(1); // we have to trigger innerBorderTop before we scroll to correct position
+      await scrollViewportVertically(200);
 
       $rowHeader = getInlineStartClone().find('tr:eq(13) th:eq(0)');
       $rowHeader.simulate('mouseover');
@@ -1369,17 +1366,13 @@ describe('manualRowResize', () => {
       expect($rowHeader.offset().top + $rowHeader.height() - 5).toBeCloseTo($handle.offset().top, 0);
       expect($rowHeader.offset().left).toBeCloseTo($handle.offset().left, 0);
 
-      $(window).scrollTop(600);
-
-      await sleep(400);
+      await scrollViewportVertically(600);
 
       $rowHeader = getInlineStartClone().find('tr:eq(13) th:eq(0)');
       $rowHeader.simulate('mouseover');
 
       expect($rowHeader.offset().top + $rowHeader.height() - 5).toBeCloseTo($handle.offset().top, 0);
       expect($rowHeader.offset().left).toBeCloseTo($handle.offset().left, 0);
-
-      $(window).scrollTop(0);
     });
   });
 
@@ -1387,7 +1380,7 @@ describe('manualRowResize', () => {
     it('should resize (expanding) selected columns, with holder as a scroll parent', async() => {
       spec().$container.css('transform', 'translate(50px, 120px)');
 
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(30, 10),
         rowHeaders: true,
         manualRowResize: true,
@@ -1395,11 +1388,7 @@ describe('manualRowResize', () => {
         height: 400
       });
 
-      const mainHolder = hot.view._wt.wtTable.holder;
-
-      $(mainHolder).scrollTop(200);
-
-      await sleep(400);
+      await scrollViewportVertically(200);
 
       getInlineStartClone().find('tbody tr:eq(12) th:eq(0)').simulate('mousedown');
       getInlineStartClone().find('tbody tr:eq(13) th:eq(0)').simulate('mouseover');
@@ -1442,7 +1431,7 @@ describe('manualRowResize', () => {
         manualRowResize: true
       });
 
-      $(window).scrollTop(200);
+      await scrollViewportVertically(200);
 
       getInlineStartClone().find('tbody tr:eq(12) th:eq(0)').simulate('mousedown');
       getInlineStartClone().find('tbody tr:eq(13) th:eq(0)').simulate('mouseover');
@@ -1474,8 +1463,6 @@ describe('manualRowResize', () => {
           main.toBe(58);
           horizon.toBe(66);
         });
-
-      $(window).scrollTop(0);
     });
   });
 
@@ -1791,7 +1778,7 @@ describe('manualRowResize', () => {
       });
 
       it('should display the resize handle in the correct place after the table has been scrolled', async() => {
-        const hot = handsontable({
+        handsontable({
           layoutDirection,
           data: createSpreadsheetData(20, 20),
           rowHeaders: true,
@@ -1800,7 +1787,6 @@ describe('manualRowResize', () => {
           width: 200
         });
 
-        const mainHolder = hot.view._wt.wtTable.holder;
         let $rowHeader = getInlineStartClone().find('tbody tr:eq(2) th:eq(0)');
 
         $rowHeader.simulate('mouseover');
@@ -1812,10 +1798,7 @@ describe('manualRowResize', () => {
         expect($rowHeader.offset().left).toBeCloseTo($handle.offset().left, 0);
         expect($rowHeader.offset().top + $rowHeader.height() - 5).toBeCloseTo($handle.offset().top, 0);
 
-        $(mainHolder).scrollTop(200);
-        $(mainHolder).scroll();
-
-        await sleep(400);
+        await scrollViewportVertically(200);
 
         $rowHeader = getInlineStartClone().find('tbody tr:eq(10) th:eq(0)');
         $rowHeader.simulate('mouseover');

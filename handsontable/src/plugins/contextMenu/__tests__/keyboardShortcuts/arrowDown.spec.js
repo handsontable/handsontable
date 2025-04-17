@@ -29,10 +29,7 @@ describe('ContextMenu keyboard shortcut', () => {
       });
 
       await contextMenu();
-
-      window.scrollTo(0, 1000);
-
-      await sleep(100);
+      await scrollWindowTo(0, 1000);
       await keyDownUp('arrowdown');
 
       expect(getPlugin('contextMenu').menu.getSelectedItem().name).toBe('Test item 1');

@@ -2657,14 +2657,15 @@ describe('MultiColumnSorting', () => {
         'Eula Wolfe', 'Pruitt Stokes', 'Felicia Briggs', 'Melba Bradshaw']
     ];
 
-    const hot = handsontable({
+    handsontable({
       data,
       colHeaders: true,
       multiColumnSorting: true
     });
 
-    hot.view._wt.wtOverlays.inlineStartOverlay.scrollTo(15);
+    await scrollViewportHorizontally(15);
     await render();
+
     getPlugin('multiColumnSorting').sort({ column: 15, sortOrder: 'asc' });
 
     expect(getDataAtCell(0, 15)).toEqual('Ball Levy');
@@ -2687,7 +2688,7 @@ describe('MultiColumnSorting', () => {
     expect(getDataAtCell(3, 15)).toEqual('Nita Holloway');
   });
 
-  it('should allow specifiyng a custom sorting function', async() => {
+  it('should allow specifying a custom sorting function', async() => {
     const data = [['1 inch'], ['1 yard'], ['2 feet'], ['0.2 miles']];
     const compareFunctionFactory = function(sortOrder) {
       return function(value, nextValue) {
@@ -2778,9 +2779,11 @@ describe('MultiColumnSorting', () => {
     });
 
     await spec().sortByClickOnColumnHeader(0);
+
     expect(getDataAtCol(0)).toEqual(['-5', '10', '12', '1000', null, null]);
 
     await spec().sortByClickOnColumnHeader(0);
+
     expect(getDataAtCol(0)).toEqual(['1000', '12', '10', '-5', null, null]);
   });
 
@@ -2799,9 +2802,11 @@ describe('MultiColumnSorting', () => {
     });
 
     await spec().sortByClickOnColumnHeader(0);
+
     expect(getDataAtCol(0)).toEqual(['-127', '-10.67', '-4.1', '-0.01', '0.0561', '1000']);
 
     await spec().sortByClickOnColumnHeader(0);
+
     expect(getDataAtCol(0)).toEqual(['1000', '0.0561', '-0.01', '-4.1', '-10.67', '-127']);
   });
 
@@ -2823,9 +2828,11 @@ describe('MultiColumnSorting', () => {
     });
 
     await spec().sortByClickOnColumnHeader(0);
+
     expect(getDataAtCol(0)).toEqual(['-127', '-10.67', '-4.1', '-0.01', '0.0561', '1000', null, null, null]);
 
     await spec().sortByClickOnColumnHeader(0);
+
     expect(getDataAtCol(0)).toEqual(['1000', '0.0561', '-0.01', '-4.1', '-10.67', '-127', null, null, null]);
   });
 
@@ -2847,9 +2854,11 @@ describe('MultiColumnSorting', () => {
     });
 
     await spec().sortByClickOnColumnHeader(0);
+
     expect(getDataAtCol(0)).toEqual(['-127', '-10.67', '-4.1', '-0.01', '0.0561', '1000', 'a', 'b', 'hello']);
 
     await spec().sortByClickOnColumnHeader(0);
+
     expect(getDataAtCol(0)).toEqual(['hello', 'b', 'a', '1000', '0.0561', '-0.01', '-4.1', '-10.67', '-127']);
   });
 

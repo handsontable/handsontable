@@ -938,7 +938,7 @@ describe('manualColumnResize', () => {
   });
 
   it('should display the resize handle in the correct place after the table has been scrolled', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(10, 20),
       colHeaders: true,
       manualColumnResize: true,
@@ -946,7 +946,6 @@ describe('manualColumnResize', () => {
       width: 200
     });
 
-    const mainHolder = hot.view._wt.wtTable.holder;
     const $colHeader = getTopClone().find('thead tr:eq(0) th:eq(2)'); // Header "C"
 
     $colHeader.simulate('mouseover');
@@ -958,9 +957,7 @@ describe('manualColumnResize', () => {
     expect($colHeader.offset().left + $colHeader.width() - 5).toBeCloseTo($handle.offset().left, 0);
     expect($colHeader.offset().top).toBeCloseTo($handle.offset().top, 0);
 
-    $(mainHolder).scrollLeft(200);
-
-    await sleep(400);
+    await scrollViewportHorizontally(200);
 
     $colHeader.simulate('mouseover');
 
@@ -1102,7 +1099,7 @@ describe('manualColumnResize', () => {
     it('should display the handles in the correct position, with holder as a scroll parent', async() => {
       spec().$container.css('transform', 'translate(50px, 120px)');
 
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(10, 20),
         colHeaders: true,
         rowHeaders: true,
@@ -1111,7 +1108,6 @@ describe('manualColumnResize', () => {
         width: 400
       });
 
-      const mainHolder = hot.view._wt.wtTable.holder;
       let $colHeader = getTopClone().find('thead tr:eq(0) th:eq(2)');
 
       $colHeader.simulate('mouseover');
@@ -1121,9 +1117,7 @@ describe('manualColumnResize', () => {
       expect($colHeader.offset().left + $colHeader.width() - 5).toBeCloseTo($handle.offset().left, 0);
       expect($colHeader.offset().top).toBeCloseTo($handle.offset().top, 0);
 
-      $(mainHolder).scrollLeft(200);
-
-      await sleep(400);
+      await scrollViewportHorizontally(200);
 
       $colHeader = getTopClone().find('thead tr:eq(0) th:eq(7)');
       $colHeader.simulate('mouseover');
@@ -1151,17 +1145,13 @@ describe('manualColumnResize', () => {
       expect($colHeader.offset().left + $colHeader.width() - 5).toBeCloseTo($handle.offset().left, 0);
       expect($colHeader.offset().top).toBeCloseTo($handle.offset().top, 0);
 
-      $(window).scrollLeft(600);
-
-      await sleep(400);
+      await scrollViewportHorizontally(600);
 
       $colHeader = getTopClone().find('thead tr:eq(0) th:eq(7)');
       $colHeader.simulate('mouseover');
 
       expect($colHeader.offset().left + $colHeader.width() - 5).toBeCloseTo($handle.offset().left, 0);
       expect($colHeader.offset().top).toBeCloseTo($handle.offset().top, 0);
-
-      $(window).scrollLeft(0);
     });
   });
 
@@ -1169,7 +1159,7 @@ describe('manualColumnResize', () => {
     it('should resize (expanding) selected columns, with holder as a scroll parent', async() => {
       spec().$container.css('transform', 'translate(50px, 120px)');
 
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(10, 20),
         colHeaders: true,
         manualColumnResize: true,
@@ -1178,11 +1168,7 @@ describe('manualColumnResize', () => {
         viewportColumnRenderingOffset: 20
       });
 
-      const mainHolder = hot.view._wt.wtTable.holder;
-
-      $(mainHolder).scrollLeft(200);
-
-      await sleep(400);
+      await scrollViewportHorizontally(200);
 
       getTopClone().find('thead tr:eq(0) th:eq(5)').simulate('mousedown');
       getTopClone().find('thead tr:eq(0) th:eq(6)').simulate('mouseover');
@@ -1223,7 +1209,7 @@ describe('manualColumnResize', () => {
         viewportColumnRenderingOffset: 20
       });
 
-      $(window).scrollLeft(400);
+      await scrollViewportHorizontally(400);
 
       getTopClone().find('thead tr:eq(0) th:eq(9)').simulate('mousedown');
       getTopClone().find('thead tr:eq(0) th:eq(10)').simulate('mouseover');
@@ -1240,8 +1226,6 @@ describe('manualColumnResize', () => {
       expect(getTopClone().find('thead tr:eq(0) th:eq(9)').width()).toBe(79);
       expect(getTopClone().find('thead tr:eq(0) th:eq(10)').width()).toBe(79);
       expect(getTopClone().find('thead tr:eq(0) th:eq(11)').width()).toBe(79);
-
-      $(window).scrollLeft(0);
     });
   });
 

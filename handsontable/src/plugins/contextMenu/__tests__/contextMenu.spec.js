@@ -2127,8 +2127,8 @@ describe('ContextMenu', () => {
 
       await selectCell(100, 0);
       await contextMenu();
+      await scrollWindowTo(0, 0);
 
-      window.scrollTo(0, 0);
       $('.htContextMenu .ht_master .htCore').find('tr td:eq("0")').simulate('mouseenter');
 
       const scrollHeight = typeof window.scrollY !== 'undefined' ? window.scrollY : document.documentElement.scrollTop;
@@ -2157,7 +2157,8 @@ describe('ContextMenu', () => {
 
       await selectCell(100, 0);
       await contextMenu();
-      window.scrollTo(0, 0);
+      await scrollWindowTo(0, 0);
+
       $('.htContextMenu .ht_master .htCore')
         .find('tbody td')
         .not('.htSeparator')
@@ -2695,7 +2696,7 @@ describe('ContextMenu', () => {
     });
 
     it('should display menu table is scrolled', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(40, 30),
         colWidths: 50, // can also be a number or a function
         rowHeaders: true,
@@ -2704,10 +2705,7 @@ describe('ContextMenu', () => {
         height: 100
       });
 
-      const mainHolder = hot.view._wt.wtTable.holder;
-
-      $(mainHolder).scrollTop(300);
-      $(mainHolder).scroll();
+      await scrollViewportVertically(300);
 
       await selectCell(15, 3);
       await contextMenu();
@@ -2734,7 +2732,7 @@ describe('ContextMenu', () => {
 
       expect($('.htContextMenu').is(':visible')).toBe(true);
 
-      $mainHolder.scrollTop(scrollTop + 60).scroll();
+      await scrollViewportVertically(scrollTop + 60);
 
       expect($('.htContextMenu').is(':visible')).toBe(true);
 
@@ -2742,7 +2740,7 @@ describe('ContextMenu', () => {
 
       expect($('.htContextMenu').is(':visible')).toBe(true);
 
-      $mainHolder.scrollTop(scrollTop + 100).scroll();
+      await scrollViewportVertically(scrollTop + 100);
 
       expect($('.htContextMenu').is(':visible')).toBe(true);
     });
@@ -2767,7 +2765,7 @@ describe('ContextMenu', () => {
 
       spyOn(hot.getPlugin('contextMenu'), 'close');
 
-      mainHolder.scrollTop(scrollTop + 100).scroll();
+      await scrollViewportVertically(scrollTop + 100);
 
       expect(hot.getPlugin('contextMenu').close).not.toHaveBeenCalled();
     });

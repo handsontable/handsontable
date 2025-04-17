@@ -88,11 +88,11 @@ describe('Filters UI', () => {
 
     expect(byValueMultipleSelect().getItems().map(o => o.checked).indexOf(true)).toBe(-1);
 
-    window.scrollBy(0, 9500);
+    await scrollWindowBy(0, 9500);
 
     await sleep(200);
 
-    window.scrollBy(0, -9500);
+    await scrollWindowBy(0, -9500);
 
     await sleep(200);
 

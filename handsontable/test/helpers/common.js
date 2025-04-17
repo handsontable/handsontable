@@ -3,6 +3,8 @@ import { waitOnScroll } from './utils';
 const specContext = {};
 
 beforeEach(function() {
+  window.scrollTo(0, 0);
+
   specContext.spec = this;
 
   if (typeof __ENV_ARGS__ !== 'undefined') {
@@ -365,6 +367,42 @@ export async function scrollViewportHorizontally(x) {
     } else {
       scrollableElement.scrollLeft = x;
     }
+  });
+}
+
+/**
+ * Moves the browser's viewport to the specified x and y scroll position.
+ *
+ * @param {number} x The scroll vertical position.
+ * @param {number} y The scroll horizontal position.
+ */
+export async function scrollWindowTo(x, y) {
+  return new Promise((resolve) => {
+    const scrollHandler = () => {
+      window.removeEventListener('scroll', scrollHandler);
+      resolve();
+    };
+
+    window.addEventListener('scroll', scrollHandler);
+    window.scrollTo(hot().isRtl() ? -x : x, y);
+  });
+}
+
+/**
+ * Moves the browser's viewport to the specified x and y scroll position.
+ *
+ * @param {number} x The scroll vertical position.
+ * @param {number} y The scroll horizontal position.
+ */
+export async function scrollWindowBy(x, y) {
+  return new Promise((resolve) => {
+    const scrollHandler = () => {
+      window.removeEventListener('scroll', scrollHandler);
+      resolve();
+    };
+
+    window.addEventListener('scroll', scrollHandler);
+    window.scrollBy(x, y);
   });
 }
 
@@ -1226,6 +1264,7 @@ export function createSpreadsheetData(...args) {
 }
 
 /**
+ *
  * Creates spreadsheet data as an array of arrays filled with an empty string.
  *
  * @param {*} args The arguments passed directly to the Handsontable helper.

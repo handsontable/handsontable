@@ -19,10 +19,7 @@ describe('DropdownMenu keyboard shortcut', () => {
       });
 
       await dropdownMenu();
-
-      window.scrollTo(0, 1000);
-
-      await sleep(100);
+      await scrollWindowTo(0, 1000);
       await keyDownUp('pageup');
 
       expect(getPlugin('dropdownMenu').menu.getSelectedItem().name).toBe('Test item 1');
@@ -59,9 +56,8 @@ describe('DropdownMenu keyboard shortcut', () => {
       await dropdownMenu();
 
       getPlugin('dropdownMenu').menu.getNavigator().toLastItem();
-      window.scrollTo(0, document.documentElement.scrollHeight);
 
-      await sleep(100);
+      await scrollWindowTo(0, document.documentElement.scrollHeight);
       await keyDownUp('pageup');
 
       const menuView = getPlugin('dropdownMenu').menu.hotMenu.view;

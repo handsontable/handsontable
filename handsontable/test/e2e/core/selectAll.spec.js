@@ -57,8 +57,8 @@ describe('Core.selectAll', () => {
 
     await selectCells([[1, 1, 2, 2], [2, 2, 4, 4]]);
 
-    hot.view._wt.wtTable.holder.scrollTop = 150;
-    hot.view._wt.wtTable.holder.scrollLeft = 150;
+    await scrollViewportHorizontally(150);
+    await scrollViewportVertically(150);
 
     await selectAll(false);
 
@@ -95,8 +95,8 @@ describe('Core.selectAll', () => {
 
     await selectCells([[1, 1, 2, 2], [2, 2, 4, 4]]);
 
-    hot.view._wt.wtTable.holder.scrollTop = 150;
-    hot.view._wt.wtTable.holder.scrollLeft = 150;
+    await scrollViewportHorizontally(150);
+    await scrollViewportVertically(150);
 
     await selectAll(true);
 

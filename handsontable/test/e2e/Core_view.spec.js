@@ -569,7 +569,7 @@ describe('Core_view', () => {
       startRows: 40
     });
 
-    $(window).scrollTop(10000);
+    await scrollViewportVertically(10000);
 
     const lastScroll = $(window).scrollTop();
 
@@ -616,9 +616,8 @@ describe('Core_view', () => {
     const beforeRenderCallback = jasmine.createSpy('beforeRenderCallback');
 
     hot.addHook('beforeViewRender', beforeRenderCallback);
-    spec().$container.find('.ht_master .wtHolder').scrollTop(1000);
 
-    await sleep(200);
+    await scrollViewportVertically(1000);
 
     expect(beforeRenderCallback.calls.count()).toBe(1);
   });
@@ -635,9 +634,8 @@ describe('Core_view', () => {
     const beforeRenderCallback = jasmine.createSpy('beforeRenderCallback');
 
     hot.addHook('beforeViewRender', beforeRenderCallback);
-    spec().$container.find('.ht_master .wtHolder').scrollTop(1000);
 
-    await sleep(200);
+    await scrollViewportVertically(1000);
 
     expect(beforeRenderCallback.calls.count()).toBe(1);
   });
@@ -654,9 +652,8 @@ describe('Core_view', () => {
     const beforeRenderCallback = jasmine.createSpy('beforeRenderCallback');
 
     hot.addHook('beforeViewRender', beforeRenderCallback);
-    spec().$container.find('.ht_master .wtHolder').scrollTop(1000);
 
-    await sleep(200);
+    await scrollViewportVertically(1000);
 
     expect(beforeRenderCallback.calls.count()).toBe(1);
   });
@@ -673,9 +670,8 @@ describe('Core_view', () => {
     const afterRenderCallback = jasmine.createSpy('afterRenderCallback');
 
     hot.addHook('afterViewRender', afterRenderCallback);
-    spec().$container.find('.ht_master .wtHolder').first().scrollTop(1000);
 
-    await sleep(200);
+    await scrollViewportVertically(1000);
 
     expect(afterRenderCallback.calls.count()).toBe(1);
   });
@@ -693,9 +689,9 @@ describe('Core_view', () => {
       hot.view._wt.wtTable.holder.style.overflow = 'scroll';
       hot.view._wt.wtTable.holder.style.width = '220px';
     });
-    spec().$container.find('.ht_master .wtHolder').first().scrollTop(1000);
 
-    await sleep(100);
+    await scrollViewportVertically(1000);
+
     // after afterViewRender hook triggered element style shouldn't changed
     expect(hot.view._wt.wtTable.holder.style.overflow).toBe('scroll');
     expect(hot.view._wt.wtTable.holder.style.width).toBe('220px');
@@ -822,8 +818,6 @@ describe('Core_view', () => {
         overflow: 'hidden',
       });
 
-      window.scrollTo(0, 0);
-
       const hot = handsontable({
         data: createSpreadsheetData(50, 50),
         colHeaders: true,
@@ -866,8 +860,6 @@ describe('Core_view', () => {
         overflow: 'hidden',
         margin: '2000px',
       });
-
-      window.scrollTo(0, 0);
 
       const hot = handsontable({
         data: createSpreadsheetData(50, 50),
@@ -927,7 +919,7 @@ describe('Core_view', () => {
       myData[10][3] = 'very\nlong\ntext';
       myData[15][3] = 'very\nlong\ntext';
 
-      const hot = handsontable({
+      handsontable({
         data: myData,
         startRows: 3,
         startCols: 4,
@@ -937,10 +929,8 @@ describe('Core_view', () => {
         height: 200
       });
 
-      const mainHolder = hot.view._wt.wtTable.holder;
-
-      $(mainHolder).scrollTop(200);
-      hot.render();
+      await scrollViewportVertically(200);
+      await render();
 
       const masterTD = spec().$container.find('.ht_master tbody tr:eq(5) td:eq(1)')[0];
       const cloneTD = spec().$container.find('.ht_clone_inline_start tbody tr:eq(5) td:eq(1)')[0];
@@ -967,13 +957,12 @@ describe('Core_view', () => {
       });
 
       const rowHeight = hot.getCell(1, 3).clientHeight;
-      const mainHolder = hot.view._wt.wtTable.holder;
 
       expect(spec().$container.find('.ht_clone_top_inline_start_corner tbody tr:eq(1) td:eq(1)')[0].clientHeight)
         .toEqual(rowHeight);
 
-      $(mainHolder).scrollTop(200);
-      hot.render();
+      await scrollViewportVertically(200);
+      await render();
 
       expect(spec().$container.find('.ht_clone_top_inline_start_corner tbody tr:eq(1) td:eq(1)')[0].clientHeight)
         .toEqual(rowHeight);

@@ -210,17 +210,15 @@ describe('Selection', () => {
 
     expect(mainHolder.scrollTop).toEqual(0);
 
-    mainHolder.scrollLeft = 100;
+    await scrollViewportHorizontally(100);
 
-    await sleep(20);
     await selectCell(3, 1);
     await keyDownUp('arrowright');
 
     expect(mainHolder.scrollLeft).toEqual(0);
 
-    mainHolder.scrollLeft = 100;
+    await scrollViewportHorizontally(100);
 
-    await sleep(20);
     await selectCell(3, 1);
     await keyDownUp(['shift', 'arrowright']);
 
@@ -318,12 +316,12 @@ describe('Selection', () => {
 
     const mainHolder = hot.view._wt.wtTable.holder;
 
-    mainHolder.scrollLeft = 200;
+    await scrollViewportHorizontally(200);
 
     const firstLastVisibleRow = hot.view._wt.wtTable.getLastVisibleRow();
-    const headerElement = hot.view._wt.wtTable.getRowHeader(firstLastVisibleRow + 1);
+    const headerElement = getCell(firstLastVisibleRow + 1, -1, true);
 
-    $(headerElement).simulate('mousedown');
+    await simulateClick(headerElement);
 
     expect(hot.view._wt.wtTable.getLastVisibleRow()).toBe(firstLastVisibleRow + 1);
     expect(mainHolder.scrollLeft).toBe(200);
@@ -565,18 +563,18 @@ describe('Selection', () => {
     let topBorder;
 
     await selectCell(5, 5);
-    hot.view._wt.wtOverlays.topOverlay.scrollTo(2);
-
-    await sleep(100);
+    await scrollViewportVertically(2);
 
     cellVerticalPosition = hot.getCell(5, 5).offsetTop;
     topBorder = $('.wtBorder.current')[0];
+
     expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
-    hot.view._wt.wtOverlays.topOverlay.scrollTo(0);
 
-    await sleep(100);
+    await scrollViewportVertically(0);
+
     cellVerticalPosition = hot.getCell(5, 5).offsetTop;
     topBorder = $('.wtBorder.current')[0];
+
     expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
   });
 
@@ -595,17 +593,18 @@ describe('Selection', () => {
     let topBorder;
 
     await selectCell(1, 0);
-    hot.view._wt.wtOverlays.topOverlay.scrollTo(5);
+    await scrollViewportVertically(5);
 
-    await sleep(100);
     cellVerticalPosition = hot.getCell(1, 0).offsetTop;
     topBorder = $('.wtBorder.current')[0];
+
     expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
-    hot.view._wt.wtOverlays.topOverlay.scrollTo(0);
 
-    await sleep(100);
+    await scrollViewportVertically(0);
+
     cellVerticalPosition = hot.getCell(1, 0).offsetTop;
     topBorder = $('.wtBorder.current')[0];
+
     expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
   });
 
