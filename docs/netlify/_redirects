@@ -1,17 +1,8 @@
+/ /docs
+
 /docs /docs/javascript-data-grid
 /docs/latest /docs/javascript-data-grid
-/docs/14.6 /docs/14.6/javascript-data-grid
-/docs/14.5 /docs/14.5/javascript-data-grid
-/docs/14.4 /docs/14.4/javascript-data-grid
-/docs/14.3 /docs/14.3/javascript-data-grid
-/docs/14.2 /docs/14.2/javascript-data-grid
-/docs/14.1 /docs/14.1/javascript-data-grid
-/docs/14.0 /docs/14.0/javascript-data-grid
-/docs/13.0 /docs/13.0/javascript-data-grid
-/docs/12.4 /docs/12.4/javascript-data-grid
-/docs/12.3 /docs/12.3/javascript-data-grid
-/docs/12.2 /docs/12.2/javascript-data-grid
-/docs/12.1 /docs/:major.:minor/javascript-data-grid
+/docs/:major.:minor /docs/:major.:minor/javascript-data-grid
 
 /docs/ActionBarComponent.html /docs/javascript-data-grid/api/action-bar-component/
 /docs/AlterManager.html /docs/javascript-data-grid/api/alter-manager/
@@ -228,6 +219,11 @@
 /docs/:major.:minor/UndoRedoSnapshot.html /docs/:major.:minor/javascript-data-grid/api/undo-redo-snapshot/
 /docs/:major.:minor/UnmergeCellsAction.html /docs/:major.:minor/javascript-data-grid/api/unmerge-cells-action/
 /docs/:major.:minor/ValueComponent.html /docs/:major.:minor/javascript-data-grid/valuecomponent.html
+
+/docs/react /docs/react-installation/
+/docs/angular /docs/angular-installation/
+/docs/vue /docs/vue-installation/
+/docs/vue3 /docs/vue3-installation/
  
 /docs/:major.:minor/tutorial-introduction/ /docs/javascript-data-grid/
 /docs/:major.:minor/tutorial-compatibility/ /docs/javascript-data-grid/supported-browsers/
@@ -254,6 +250,34 @@
 /docs/:major.:minor/tutorial-release-notes/ /docs/javascript-data-grid/release-notes/
 /docs/:major.:minor/tutorial-migration-guide/ /docs/javascript-data-grid/migration-from-7.4-to-8.0/
 /docs/:major.:minor/tutorial-known-limitations/ /docs/javascript-data-grid/third-party-licenses/
+
+/docs/tutorial-introduction/ /docs/javascript-data-grid/
+/docs/tutorial-compatibility/ /docs/javascript-data-grid/supported-browsers/
+/docs/tutorial-licensing/ /docs/javascript-data-grid/software-license/
+/docs/tutorial-license-key/ /docs/javascript-data-grid/license-key/
+/docs/tutorial-quick-start/ /docs/javascript-data-grid/installation/
+/docs/tutorial-data-binding/ /docs/javascript-data-grid/binding-to-data/
+/docs/tutorial-data-sources/ /docs/javascript-data-grid/binding-to-data/
+/docs/tutorial-load-and-save/ /docs/javascript-data-grid/saving-data/
+/docs/tutorial-setting-options/ /docs/javascript-data-grid/setting-options/
+/docs/tutorial-grid-sizing/ /docs/javascript-data-grid/grid-size/
+/docs/tutorial-using-callbacks/ /docs/javascript-data-grid/events-and-hooks/
+/docs/tutorial-keyboard-navigation/ /docs/javascript-data-grid/keyboard-navigation/
+/docs/tutorial-internationalization/ /docs/javascript-data-grid/internationalization-i18n/
+/docs/tutorial-modules/ /docs/javascript-data-grid/modules/
+/docs/tutorial-custom-build/ /docs/javascript-data-grid/building/
+/docs/tutorial-custom-plugin/ /docs/javascript-data-grid/plugins/
+/docs/tutorial-cell-types/ /docs/javascript-data-grid/cell-type/
+/docs/tutorial-cell-editor/ /docs/javascript-data-grid/cell-editor/
+/docs/tutorial-cell-function/ /docs/javascript-data-grid/cell-function/
+/docs/tutorial-suspend-rendering/ /docs/javascript-data-grid/batch-operations/
+/docs/tutorial-testing/ /docs/javascript-data-grid/testing/
+/docs/tutorial-performance-tips/ /docs/javascript-data-grid/performance/
+/docs/tutorial-release-notes/ /docs/javascript-data-grid/release-notes/
+/docs/tutorial-migration-guide/ /docs/javascript-data-grid/migration-from-7.4-to-8.0/
+/docs/tutorial-known-limitations/ /docs/javascript-data-grid/third-party-licenses/
+
+
 /docs/:major.:minor/demo-scrolling/ /docs/:major.:minor/row-virtualization/
 /docs/:major.:minor/demo-fixing/ /docs/:major.:minor/column-freezing/
 /docs/:major.:minor/demo-resizing/ /docs/:major.:minor/column-width/
@@ -303,6 +327,10 @@
 /docs/:major.:minor/demo-formula-support/ /docs/:major.:minor/formula-calculation/
 /docs/:major.:minor/demo-using-callbacks/ /docs/:major.:minor/events-and-hooks/
 /docs/:major.:minor/demo-react-simple-examples/ /docs/:major.:minor/react-simple-example/
+
+
+
+
 /docs/:major.:minor/frameworks-wrapper-for-angular-custom-context-menu-example.html /docs/:major.:minor/javascript-data-grid/angular-custom-context-menu-example/
 /docs/:major.:minor/frameworks-wrapper-for-angular-custom-editor-example.html /docs/:major.:minor/javascript-data-grid/angular-custom-editor-example/
 /docs/:major.:minor/frameworks-wrapper-for-angular-custom-id.html /docs/:major.:minor/javascript-data-grid/angular-custom-id/
@@ -346,7 +374,7 @@
 /docs/:major.:minor/react-hot-reference/ /docs/:major.:minor/react-data-grid/methods/
  
 /docs/hyperformula https://hyperformula.handsontable.com/
-/docs/hyperformula/whatever https://hyperformula.handsontable.com/whatever
+/docs/hyperformula/* https://hyperformula.handsontable.com/:splat
 /docs/ /docs/javascript-data-grid/
 /docs/:major.:minor/ /docs/:major.:minor/javascript-data-grid/
 /docs/i18n/missing-language-code /docs/javascript-data-grid/language/
