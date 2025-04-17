@@ -13,19 +13,18 @@ describe('settings', () => {
       }
     });
 
-    it('allow adding a provided class name to the header\'s inner `div` element when passed as a global setting',
-      () => {
-        handsontable({
-          data: createSpreadsheetData(3, 3),
-          headerClassName: 'test1',
-          colHeaders: true,
-          rowHeaders: true,
-        });
-
-        expect(getCell(-1, 0).querySelector('div')).toHaveClass('test1');
-        expect(getCell(-1, 1).querySelector('div')).toHaveClass('test1');
-        expect(getCell(-1, 2).querySelector('div')).toHaveClass('test1');
+    it('allow adding a provided class name to the header\'s inner `div` element when passed as a global setting', async() => {
+      handsontable({
+        data: createSpreadsheetData(3, 3),
+        headerClassName: 'test1',
+        colHeaders: true,
+        rowHeaders: true,
       });
+
+      expect(getCell(-1, 0).querySelector('div')).toHaveClass('test1');
+      expect(getCell(-1, 1).querySelector('div')).toHaveClass('test1');
+      expect(getCell(-1, 2).querySelector('div')).toHaveClass('test1');
+    });
 
     it('allow adding multiple classes to the headers\' inner `div` elements when passed as a global setting', async() => {
       handsontable({
@@ -43,29 +42,28 @@ describe('settings', () => {
       expect(getCell(-1, 2).querySelector('div')).toHaveClass('test2');
     });
 
-    it('allow adding a provided class name to the header\'s inner `div` element when passed as a column setting',
-      () => {
-        handsontable({
-          data: createSpreadsheetData(3, 3),
-          columns: [
-            {
-              headerClassName: 'test1',
-            },
-            {
-              headerClassName: 'test2',
-            },
-            {
-              headerClassName: 'test3',
-            },
-          ],
-          colHeaders: true,
-          rowHeaders: true,
-        });
-
-        expect(getCell(-1, 0).querySelector('div')).toHaveClass('test1');
-        expect(getCell(-1, 1).querySelector('div')).toHaveClass('test2');
-        expect(getCell(-1, 2).querySelector('div')).toHaveClass('test3');
+    it('allow adding a provided class name to the header\'s inner `div` element when passed as a column setting', async() => {
+      handsontable({
+        data: createSpreadsheetData(3, 3),
+        columns: [
+          {
+            headerClassName: 'test1',
+          },
+          {
+            headerClassName: 'test2',
+          },
+          {
+            headerClassName: 'test3',
+          },
+        ],
+        colHeaders: true,
+        rowHeaders: true,
       });
+
+      expect(getCell(-1, 0).querySelector('div')).toHaveClass('test1');
+      expect(getCell(-1, 1).querySelector('div')).toHaveClass('test2');
+      expect(getCell(-1, 2).querySelector('div')).toHaveClass('test3');
+    });
 
     it('allow adding multiple classes to the headers\' inner `div` elements when passed as a column setting', async() => {
       handsontable({

@@ -20,6 +20,7 @@ module.exports = {
       '**/validators',
       '**/validators/?(index)',
     ],
+    'handsontable/require-async-in-it': 'error',
   },
   overrides: [
     {
@@ -45,6 +46,7 @@ module.exports = {
         ],
         'no-undef': 'off',
         'handsontable/restricted-module-imports': 'off',
+        'handsontable/require-async-in-it': 'error',
       }
     },
     {
@@ -57,6 +59,13 @@ module.exports = {
         'jsdoc/require-param-type': 'off',
         'jsdoc/require-returns': 'off',
         'handsontable/restricted-module-imports': 'off',
+        'handsontable/require-async-in-it': 'error',
+      }
+    },
+    {
+      files: ['*.unit.js'],
+      rules: {
+        'handsontable/require-async-in-it': 'off',
       }
     },
   ],

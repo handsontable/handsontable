@@ -214,7 +214,7 @@ describe('ViewDiffer', () => {
     });
 
     it(`should generate correct leads when a new order is shifted by 2 steps down, is shorter (by 1 item) according to the previous order
-        (force generating "replace" and "append" types)`, () => {
+        (force generating "replace" and "append" types)`, async() => {
       const sizeSet = new ViewSizeSet();
       const differ = new ViewDiffer(sizeSet);
 
