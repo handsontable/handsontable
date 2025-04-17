@@ -1,18 +1,14 @@
-import { Octokit } from "@octokit/rest";
-import semver from "semver";
+import { Octokit } from '@octokit/rest';
+import semver from 'semver';
 
 /** You might think this violates DRY principle with docs/.vuepress/plugins/dump-docs-data/docs-versions.js but
- * DRY applies when you're repeating the same concept (visual or otherwise), not when you're repeating the same code
+ * DRY applies when you're repeating the same concept (visual or otherwise), not when you're repeating the same code.
  */
 
 /**
  * Min docs version that is used for creating canonicals.
  */
-const MIN_DOCS_VERSION = "9.0";
-/**
- * Max number of minors displayed in the drop-down.
- */
-const MAX_MINORS_COUNT = 6;
+const MIN_DOCS_VERSION = '9.0';
 
 /**
  * Reads the list of Docs version from the GitHub using the releases list.
@@ -23,24 +19,25 @@ async function readFromGitHub() {
   const octokit = new Octokit();
 
   const releases = await octokit.rest.repos.listReleases({
-    owner: "handsontable",
-    repo: "handsontable",
+    owner: 'handsontable',
+    repo: 'handsontable',
     per_page: 50,
   });
 
   if (releases.status !== 200) {
-    throw new Error("Incorrect response from the GitHub API.");
+    throw new Error('Incorrect response from the GitHub API.');
   }
 
   const tags = [];
 
   releases.data
-    .map((item) => item.tag_name)
+    .map(item => item.tag_name)
     .sort((a, b) => semver.rcompare(a, b))
     .forEach((tag) => {
       const minorVersion = `${semver.parse(tag).major}.${
         semver.parse(tag).minor
       }`;
+
       if (!tags.includes(minorVersion)) {
         tags.push(minorVersion);
       }
@@ -56,6 +53,8 @@ async function readFromGitHub() {
   };
 }
 const versions = await readFromGitHub();
-console.log(`PREVIOUS_VERSIONS="${versions.previousVersions.join(" ")}"
+
+// eslint-disable-next-line no-console
+console.log(`PREVIOUS_VERSIONS="${versions.previousVersions.join(' ')}"
 LATEST_VERSION="${versions.latestVersion}"`);
 

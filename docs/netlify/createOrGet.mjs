@@ -1,9 +1,9 @@
-import { NetlifyAPI } from "netlify";
+import { NetlifyAPI } from 'netlify';
 
-import { writeFileSync } from "node:fs";
+import { writeFileSync } from 'node:fs';
 
 const branchNameProcess = (branchName, prefix = '') => {
-  return branchName ? prefix + branchName.replaceAll("_", "-").replaceAll("/", "-") : "";
+  return branchName ? prefix + branchName.replaceAll('_', '-').replaceAll('/', '-') : '';
 };
 
 const branchName = branchNameProcess(
@@ -12,31 +12,27 @@ const branchName = branchNameProcess(
 const client = new NetlifyAPI(process.env.NETLIFY_AUTH_TOKEN);
 const sites = await client.listSites();
 
-let site = sites.find((site) => site.name === branchName);
-
-// console.log('branchname', branchName);
-console.log('site', site);
-// console.log('sites', sites);
+let site = sites.find(_site => _site.name === branchName);
 
 if (site) {
+  // eslint-disable-next-line no-console
   console.log(`Found site: ${site.name}`);
-} else {
   // only create site if BRANCH_NAME is set
-  if (process.env.BRANCH_NAME) {
-    console.log(`Creating site: ${branchName}`);
-    site = await client.createSite({
-      body: {
-        name: branchName,
-      },
-    });
-  }
+} else if (process.env.BRANCH_NAME) {
+  // eslint-disable-next-line no-console
+  console.log(`Creating site: ${branchName}`);
+  site = await client.createSite({
+    body: {
+      name: branchName,
+    },
+  });
 }
 
 await writeFileSync(
-  "NETLIFY_VARS",
+  'NETLIFY_VARS',
   site
     ? `NETLIFY_SITE_ID=${site.id}
 NETLIFY_SITE_URL=${site.url}`
-    : "",
-  { encoding: "utf-8" }
+    : '',
+  { encoding: 'utf-8' }
 );
