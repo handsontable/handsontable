@@ -6,3 +6,4 @@ node_modules
 package-lock.json
 NETLIFY_VARS
 NETLIFY_SITE_URL
+VERSIONS_VARS
