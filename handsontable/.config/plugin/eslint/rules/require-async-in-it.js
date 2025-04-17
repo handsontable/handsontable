@@ -1,17 +1,17 @@
 module.exports = {
+  meta: {
+    type: 'suggestion',
+
+    docs: {
+      description: 'Restricts the use of `it` function (Jasmine) with async/await syntax',
+      category: 'Custom',
+      recommended: false,
+      fixable: false,
+    },
+  },
+
   create(context) {
     return {
-      meta: {
-        type: 'suggestion',
-
-        docs: {
-          description: 'Restricts the use of `it` function (Jasmine) with async/await syntax',
-          category: 'Custom',
-          recommended: false,
-          fixable: false,
-        },
-      },
-
       CallExpression(node) {
         if (
           node.callee.name === 'it' &&
