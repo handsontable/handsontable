@@ -126,11 +126,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   let firstRun = true;
   let initialRootElement;
 
-  if (hasValidParameter(rootInstanceSymbol)) {
-    initialRootElement = rootElement.cloneNode(true);
-    registerAsRootInstance(this);
-  }
-
   /**
    * Reference to the wrapper element.
    *
@@ -146,6 +141,23 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @type {HTMLElement}
    */
   this.rootPortalElement = undefined;
+
+  if (hasValidParameter(rootInstanceSymbol)) {
+    initialRootElement = rootElement.cloneNode(false);
+
+    this.rootWrapperElement = rootElement.ownerDocument.createElement('div');
+    this.rootPortalElement = rootElement.ownerDocument.createElement('div');
+
+    addClass(this.rootWrapperElement, 'ht-wrapper');
+    addClass(this.rootPortalElement, 'ht-portal');
+
+    rootElement.before(this.rootWrapperElement);
+    this.rootWrapperElement.appendChild(rootElement);
+
+    rootElement.ownerDocument.body.appendChild(this.rootPortalElement);
+
+    registerAsRootInstance(this);
+  }
 
   // TODO: check if references to DOM elements should be move to UI layer (Walkontable)
   /**
@@ -268,18 +280,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   rootElement.insertBefore(this.container, rootElement.firstChild);
 
   if (isRootInstance(this)) {
-    this.rootWrapperElement = rootElement.ownerDocument.createElement('div');
-    this.rootPortalElement = rootElement.ownerDocument.createElement('div');
-
-    addClass(this.rootWrapperElement, 'ht-wrapper');
-    addClass(this.rootPortalElement, 'ht-portal');
-
-    rootElement.before(this.rootWrapperElement);
-    this.rootWrapperElement.appendChild(rootElement);
-
     _injectProductInfo(userSettings.licenseKey, this.rootWrapperElement);
-
-    this.rootDocument.body.appendChild(this.rootPortalElement);
   }
 
   this.guid = `ht_${randomString()}`; // this is the namespace for global events
@@ -5015,7 +5016,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       removeClass(this.rootElement, /ht-theme-.*/g);
       removeClass(this.rootWrapperElement, /ht-theme-.*/g);
       removeClass(this.rootPortalElement, /ht-theme-.*/g);
-
+      
       if (themeName) {
         addClass(this.rootWrapperElement, themeName);
         addClass(this.rootPortalElement, themeName);

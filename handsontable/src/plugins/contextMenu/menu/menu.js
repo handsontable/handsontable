@@ -21,6 +21,7 @@ import {
   hasClass,
   setAttribute,
   outerHeight,
+  removeClass,
 } from '../../../helpers/dom/element';
 import { isRightClick } from '../../../helpers/dom/event';
 import { debounce, isFunction } from '../../../helpers/function';
@@ -153,7 +154,7 @@ export class Menu {
       keepInViewport: true,
       standalone: false,
       minWidth: MIN_WIDTH,
-      container: this.hot.rootDocument.documentElement,
+      container: this.hot.rootPortalElement,
     };
     this.container = this.createContainer(this.options.name);
     this.positioner = new Positioner(this.options.keepInViewport);
@@ -167,6 +168,11 @@ export class Menu {
     }
 
     this.hot.addHook('afterSetTheme', (themeName, firstRun) => {
+      if (this.options.container !== this.hot.rootPortalElement) {
+        removeClass(this.options.container, /ht-theme-.*/g);
+        addClass(this.options.container, themeName);
+      }
+
       if (!firstRun) {
         this.close();
       }
