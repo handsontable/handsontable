@@ -584,3 +584,39 @@ export async function scrollViewportHorizontally(x) {
     }
   });
 }
+
+/**
+ * Moves the browser's viewport to the specified x and y scroll position.
+ *
+ * @param {number} x The scroll vertical position.
+ * @param {number} y The scroll horizontal position.
+ */
+export async function scrollWindowTo(x, y) {
+  return new Promise((resolve) => {
+    const scrollHandler = () => {
+      window.removeEventListener('scroll', scrollHandler);
+      resolve();
+    };
+
+    window.addEventListener('scroll', scrollHandler);
+    window.scrollTo(hot().isRtl() ? -x : x, y);
+  });
+}
+
+/**
+ * Moves the browser's viewport to the specified x and y scroll position.
+ *
+ * @param {number} x The scroll vertical position.
+ * @param {number} y The scroll horizontal position.
+ */
+export async function scrollWindowBy(x, y) {
+  return new Promise((resolve) => {
+    const scrollHandler = () => {
+      window.removeEventListener('scroll', scrollHandler);
+      resolve();
+    };
+
+    window.addEventListener('scroll', scrollHandler);
+    window.scrollBy(x, y);
+  });
+}
