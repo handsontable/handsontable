@@ -187,13 +187,27 @@ export class AutocompleteEditor extends HandsontableEditor {
       },
       afterSelectionEnd: (startRow, startCol) => {
         if (rootInstanceAriaTagsEnabled) {
+          const setA11yAttributes = (TD) => {
+            setAttribute(TD, [
+              A11Y_SELECTED(),
+            ]);
+
+            setAttribute(this.TEXTAREA, ...A11Y_ACTIVEDESCENDANT(TD.id));
+          };
           const TD = this.htEditor.getCell(startRow, startCol, true);
 
-          setAttribute(TD, [
-            A11Y_SELECTED(),
-          ]);
+          if (TD !== null) {
+            setA11yAttributes(TD);
 
-          setAttribute(this.TEXTAREA, ...A11Y_ACTIVEDESCENDANT(TD.id));
+          } else {
+            // If TD is null, it means that the cell is not (yet) in the viewport.
+            // Moving the logic to after it's been scrolled to the requested cell.
+            this.htEditor.addHookOnce('afterScrollVertically', () => {
+              const renderedTD = this.htEditor.getCell(startRow, startCol, true);
+
+              setA11yAttributes(renderedTD);
+            });
+          }
         }
       },
     });
