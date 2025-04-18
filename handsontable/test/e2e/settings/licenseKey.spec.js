@@ -5,12 +5,12 @@ describe('settings', () => {
 
     beforeEach(function() {
       this.$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
+      this.$container1 = $(`<div id="${id}1"></div>`).appendTo('#rootWrapper');
     });
 
     afterEach(function() {
       if (this.$container) {
         destroy();
-        this.$container.remove();
       }
     });
 
@@ -29,10 +29,8 @@ describe('settings', () => {
     });
 
     it('should destroy all DOM elements related to the invalidation information for specific HoT instance only', () => {
-      const element2 = $('<div id="hot2"></div>').appendTo('#rootWrapper');
-
       const hot1 = handsontable({}, true);
-      const hot2 = new Handsontable(element2[0], {});
+      const hot2 = new Handsontable(spec().$container1[0], {});
 
       expect(document.querySelectorAll('.hot-display-license-info').length).toBe(2);
 
@@ -41,7 +39,6 @@ describe('settings', () => {
       expect(document.querySelectorAll('.hot-display-license-info').length).toBe(1);
 
       hot2.destroy();
-      $('#rootWrapper').find('#hot2').remove();
 
       expect(document.querySelectorAll('.hot-display-license-info').length).toBe(0);
     });
