@@ -76,7 +76,13 @@ class Csv extends BaseType {
     let escapedValue = stringify(value);
 
     if (sanitizeValue) {
-      if (escapedValue.startsWith('=')) {
+      if (escapedValue.startsWith('=')
+        || escapedValue.startsWith('+')
+        || escapedValue.startsWith('-')
+        || escapedValue.startsWith('@')
+        || escapedValue.startsWith('\t')
+        || escapedValue.startsWith('\r')
+      ) {
         escapedValue = `'${escapedValue}`;
         force = true;
       }
