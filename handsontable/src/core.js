@@ -4570,6 +4570,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (dataSource) {
       dataSource.destroy();
     }
+
     dataSource = null;
 
     this.getShortcutManager().destroy();
