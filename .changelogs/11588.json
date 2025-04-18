@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a problem with a deprecation warnings being thrown when using Context Menu's Undo and Redo items.",
+  "type": "fixed",
+  "issueOrPR": 11588,
+  "breaking": false,
+  "framework": "none"
+}
