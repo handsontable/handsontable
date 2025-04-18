@@ -82,11 +82,12 @@ describe('exportFile CSV type', () => {
       expect(csv.options.bom).toBe(true);
       expect(csv.options.columnDelimiter).toBe(',');
       expect(csv.options.rowDelimiter).toBe('\r\n');
+      expect(csv.options.sanitizeValues).toBe(false);
     });
   });
 
   describe('`export` method', () => {
-    it('should returns string with corrected lines count', () => {
+    it('should return string with corrected lines count', () => {
       handsontable({
         data: data(10, 10),
         height: 396,
@@ -413,6 +414,75 @@ describe('exportFile CSV type', () => {
       csv = getPlugin('exportFile')._createTypeFormatter('csv', { columnDelimiter: ';' });
 
       expect(csv._escapeCell('12;4')).toBe('"12;4"');
+    });
+
+    describe('when `sanitizeValues` option is', () => {
+      fit('set to `true`, should escape strings starting with =', () => {
+        handsontable({
+          data: [['=A1+B1', '=A2+B2']],
+        });
+
+        const csv = getPlugin('exportFile')._createTypeFormatter('csv', { sanitizeValues: true }).export();
+
+        expect(csv).toBe('\ufeff"\'=A1+B1","\'=A2+B2"');
+      });
+
+      it('set to `true`, should escape strings starting with +', () => {
+        handsontable({
+          data: [['+abc', '+42']],
+        });
+
+        const csv = getPlugin('exportFile')._createTypeFormatter('csv', { sanitizeValues: true }).export();
+
+        expect(csv).toBe('"\'+abc","\'+42"');
+      });
+
+      it('set to `true`, should escape strings starting with -', () => {
+        handsontable({
+          data: [['-abc', '-42']],
+        });
+        
+        const csv = getPlugin('exportFile')._createTypeFormatter('csv', { sanitizeValues: true }).export();
+
+        expect(csv).toBe('"\'-abc","\'-42"');
+      });
+
+      it('set to `true`, should escape strings starting with @', () => {
+        handsontable({
+          data: [['@abc', '@42']],
+        });
+        
+        const csv = getPlugin('exportFile')._createTypeFormatter('csv', { sanitizeValues: true }).export();
+
+        expect(csv).toBe('"\'@abc","\'@42"');
+      });
+
+      it('set to `true`, should escape strings starting with TAB (0x09)', () => {
+        handsontable({
+          data: [['\tabc', '\t42']],
+        });
+        
+        const csv = getPlugin('exportFile')._createTypeFormatter('csv', { sanitizeValues: true }).export();
+
+        expect(csv).toBe('"\'\tabc","\'\t42"');
+      });
+
+      it('set to `true`, should escape strings starting with carriage return (0x0D)', () => {
+        handsontable({
+          data: [['\rabc', '\r42']],
+        });
+        
+        const csv = getPlugin('exportFile')._createTypeFormatter('csv', { sanitizeValues: true }).export();
+
+        expect(csv).toBe('"\'\rabc","\'\r42"');
+      });
+
+      it.todo('set to a regex, should escape all values that match the regex');
+      it.todo('set to a function, should sanitize values using the function');
+
+      it.todo('not provided, should not sanitize values');
+
+      // TODO: handle a " inside string
     });
   });
 });
