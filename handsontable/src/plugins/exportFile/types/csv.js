@@ -22,6 +22,7 @@ class Csv extends BaseType {
       bom: true,
       columnDelimiter: ',',
       rowDelimiter: '\r\n',
+      sanitizeValues: false,
     };
   }
 
@@ -40,7 +41,7 @@ class Csv extends BaseType {
     let result = options.bom ? String.fromCharCode(0xFEFF) : '';
 
     if (hasColumnHeaders) {
-      columnHeaders = arrayMap(columnHeaders, value => this._escapeCell(value, true));
+      columnHeaders = arrayMap(columnHeaders, value => this._escapeCell(value, { force: true, sanitizeValue: options.sanitizeValues }));
 
       if (hasRowHeaders) {
         result += options.columnDelimiter;
@@ -54,9 +55,9 @@ class Csv extends BaseType {
         result += options.rowDelimiter;
       }
       if (hasRowHeaders) {
-        result += this._escapeCell(rowHeaders[index]) + options.columnDelimiter;
+        result += this._escapeCell(rowHeaders[index], { sanitizeValue: options.sanitizeValues }) + options.columnDelimiter;
       }
-      result += value.map(cellValue => this._escapeCell(cellValue)).join(options.columnDelimiter);
+      result += value.map(cellValue => this._escapeCell(cellValue, { sanitizeValue: options.sanitizeValues })).join(options.columnDelimiter);
     });
 
     return result;
@@ -66,11 +67,20 @@ class Csv extends BaseType {
    * Escape cell value.
    *
    * @param {*} value Cell value.
-   * @param {boolean} [force=false] Indicates if cell value will be escaped forcefully.
+   * @param {Object} options Options.
+   * @param {boolean} [options.force=false] Indicates if cell value will be escaped forcefully.
+   * @param {boolean} [options.sanitizeValue=false] Controls the sanitization of cell value.
    * @returns {string}
    */
-  _escapeCell(value, force = false) {
+  _escapeCell(value, { force = false, sanitizeValue = false } = {}) {
     let escapedValue = stringify(value);
+
+    if (sanitizeValue) {
+      if (escapedValue.startsWith('=')) {
+        escapedValue = `'${escapedValue}`;
+        force = true;
+      }
+    }
 
     if (escapedValue !== '' && (force ||
       escapedValue.indexOf(CHAR_CARRIAGE_RETURN) >= 0 ||

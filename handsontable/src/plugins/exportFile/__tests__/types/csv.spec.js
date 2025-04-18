@@ -417,7 +417,7 @@ describe('exportFile CSV type', () => {
     });
 
     describe('when `sanitizeValues` option is', () => {
-      fit('set to `true`, should escape strings starting with =', () => {
+      it('set to `true`, should sanitize strings starting with =', () => {
         handsontable({
           data: [['=A1+B1', '=A2+B2']],
         });
@@ -427,62 +427,90 @@ describe('exportFile CSV type', () => {
         expect(csv).toBe('\ufeff"\'=A1+B1","\'=A2+B2"');
       });
 
-      it('set to `true`, should escape strings starting with +', () => {
+      it('set to `true`, should sanitize strings starting with +', () => {
         handsontable({
           data: [['+abc', '+42']],
         });
 
         const csv = getPlugin('exportFile')._createTypeFormatter('csv', { sanitizeValues: true }).export();
 
-        expect(csv).toBe('"\'+abc","\'+42"');
+        expect(csv).toBe('\ufeff"\'+abc","\'+42"');
       });
 
-      it('set to `true`, should escape strings starting with -', () => {
+      it('set to `true`, should sanitize strings starting with -', () => {
         handsontable({
           data: [['-abc', '-42']],
         });
         
         const csv = getPlugin('exportFile')._createTypeFormatter('csv', { sanitizeValues: true }).export();
 
-        expect(csv).toBe('"\'-abc","\'-42"');
+        expect(csv).toBe('\ufeff"\'-abc","\'-42"');
       });
 
-      it('set to `true`, should escape strings starting with @', () => {
+      it('set to `true`, should sanitize strings starting with @', () => {
         handsontable({
           data: [['@abc', '@42']],
         });
         
         const csv = getPlugin('exportFile')._createTypeFormatter('csv', { sanitizeValues: true }).export();
 
-        expect(csv).toBe('"\'@abc","\'@42"');
+        expect(csv).toBe('\ufeff"\'@abc","\'@42"');
       });
 
-      it('set to `true`, should escape strings starting with TAB (0x09)', () => {
+      it('set to `true`, should sanitize strings starting with TAB (0x09)', () => {
         handsontable({
           data: [['\tabc', '\t42']],
         });
         
         const csv = getPlugin('exportFile')._createTypeFormatter('csv', { sanitizeValues: true }).export();
 
-        expect(csv).toBe('"\'\tabc","\'\t42"');
+        expect(csv).toBe('\ufeff"\'\tabc","\'\t42"');
       });
 
-      it('set to `true`, should escape strings starting with carriage return (0x0D)', () => {
+      it('set to `true`, should sanitize strings starting with carriage return (0x0D)', () => {
         handsontable({
           data: [['\rabc', '\r42']],
         });
         
         const csv = getPlugin('exportFile')._createTypeFormatter('csv', { sanitizeValues: true }).export();
 
-        expect(csv).toBe('"\'\rabc","\'\r42"');
+        expect(csv).toBe('\ufeff"\'\rabc","\'\r42"');
       });
 
-      it.todo('set to a regex, should escape all values that match the regex');
+      it('set to `true`, should sanitize column headers', () => {
+        handsontable({
+          data: [['1', '2']],
+          colHeaders: ['====', '++++'],
+        });
+        
+        const csv = getPlugin('exportFile')._createTypeFormatter('csv', { sanitizeValues: true, columnHeaders: true }).export();
+
+        expect(csv).toBe('\ufeff"\'====","\'++++"\r\n1,2');
+      });
+
+      it('set to `true`, should sanitize row headers', () => {
+        handsontable({
+          data: [['1']],
+          rowHeaders: ['==='],
+        });
+        
+        const csv = getPlugin('exportFile')._createTypeFormatter('csv', { sanitizeValues: true, rowHeaders: true }).export();
+
+        expect(csv).toBe('\ufeff"\'===",1');
+      });
+
+      it.todo('set to a regex, should sanitize all values that match the regex');
       it.todo('set to a function, should sanitize values using the function');
 
-      it.todo('not provided, should not sanitize values');
+      it('not provided, should not sanitize values', () => {
+        handsontable({
+          data: [['=A1+B1', '=A2+B2']],
+        });
 
-      // TODO: handle a " inside string
+        const csv = getPlugin('exportFile')._createTypeFormatter('csv').export();
+
+        expect(csv).toBe('\ufeff=A1+B1,=A2+B2');
+      });
     });
   });
 });
