@@ -209,6 +209,12 @@ You can use this property in the `downloadFile()` and `exportAsBlob()` methods.
 
 Default value: `'text/csv'`
 
+### sanitizeValues `boolean`
+
+TODO
+
+Default value: `false`
+
 ### range `Array`
 
 Allows you to define a range of dataset to export. It's represented by an array of numeric, visual indexes `[startRow, startColumn, endRow, endColumn]`.
