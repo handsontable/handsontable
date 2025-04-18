@@ -38,6 +38,7 @@ export function setCaretPosition(element: Element, pos: number, endPos: number):
 export function getScrollbarWidth(rootDocument?: Document): number;
 export function hasVerticalScrollbar(element: HTMLElement): boolean;
 export function hasHorizontalScrollbar(element: HTMLElement): boolean;
+export function hasZeroHeight(element: HTMLElement): boolean;
 export function setOverlayPosition(overlayElem: HTMLElement, left: string | number, top: string | number): void;
 export function getCssTransform(element: HTMLElement): number;
 export function resetCssTransform(element: HTMLElement): void;
