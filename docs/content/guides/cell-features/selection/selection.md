@@ -66,7 +66,12 @@ Possible values of [`selectionMode`](@/api/options.md#selectionmode):
 
 ::: only-for angular
 
-<!-- TODO: angular example -->
+::: example #example1 :angular --js 1 --html 2
+
+@[code](@/content/guides/cell-features/selection/angular/example1.js)
+@[code](@/content/guides/cell-features/selection/angular/example1.html)
+
+:::
 
 :::
 
@@ -99,7 +104,12 @@ To retrieve the selected cells as an array of arrays, you use the [`getSelected(
 
 ::: only-for angular
 
-<!-- TODO: angular example -->
+::: example #example2 :angular --js 1 --html 2
+
+@[code](@/content/guides/cell-features/selection/angular/example2.js)
+@[code](@/content/guides/cell-features/selection/angular/example2.html)
+
+:::
 
 :::
 
@@ -134,7 +144,12 @@ You may want to delete, format, or otherwise change the selected cells. For exam
 
 ::: only-for angular
 
-<!-- TODO: angular example -->
+::: example #example3 :angular --js 1 --html 2
+
+@[code](@/content/guides/cell-features/selection/angular/example3.js)
+@[code](@/content/guides/cell-features/selection/angular/example3.html)
+
+:::
 
 :::
 

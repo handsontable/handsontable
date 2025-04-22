@@ -54,7 +54,12 @@ Click on the column names to sort them.
 
 ::: only-for angular
 
-<!-- TODO: angular example -->
+::: example #example1 :angular-numbro --js 1 --html 2
+
+@[code](@/content/guides/cell-types/numeric-cell-type/angular/example1.js)
+@[code](@/content/guides/cell-types/numeric-cell-type/angular/example1.html)
+
+:::
 
 :::
 
@@ -178,7 +183,12 @@ In the following demo, columns **Price in Japan** and **Price in Turkey** use tw
 
 ::: only-for angular
 
-<!-- TODO: angular example -->
+::: example #example3 :angular-numbro --js 1 --html 2
+
+@[code](@/content/guides/cell-types/numeric-cell-type/angular/example3.js)
+@[code](@/content/guides/cell-types/numeric-cell-type/angular/example3.html)
+
+:::
 
 :::
 

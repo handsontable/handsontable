@@ -64,7 +64,12 @@ While HOT-in-HOT is opened, the text field above the HOT-in-HOT remains focused 
 
 ::: only-for angular
 
-<!-- TODO: angular example -->
+::: example #example1 .docs-height-small :angular --js 1 --html 2
+
+@[code](@/content/guides/cell-types/handsontable-cell-type/angular/example1.js)
+@[code](@/content/guides/cell-types/handsontable-cell-type/angular/example1.html)
+
+:::
 
 :::
 

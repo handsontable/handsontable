@@ -263,7 +263,12 @@ As a result, each cell in the grid is read-only:
 
 ::: only-for angular
 
-<!-- TODO: angular example -->
+::: example #example1 :angular --js 1 --html 2
+
+@[code](@/content/guides/getting-started/configuration-options/angular/example1.js)
+@[code](@/content/guides/getting-started/configuration-options/angular/example1.html)
+
+:::
 
 :::
 
@@ -369,7 +374,12 @@ As a result, each cell in the third and ninth columns is read-only:
 
 ::: only-for angular
 
-<!-- TODO angular example -->
+::: example #example2 :angular --js 1 --html 2
+
+@[code](@/content/guides/getting-started/configuration-options/angular/example2.js)
+@[code](@/content/guides/getting-started/configuration-options/angular/example2.html)
+
+:::
 
 :::
 
@@ -495,7 +505,12 @@ Options modified through [`cells`](@/api/options.md#cells) overwrite all other o
 
 ::: only-for angular
 
-<!-- TODO: angular example-->
+::: example #example3 :angular --js 1 --html 2
+
+@[code](@/content/guides/getting-started/configuration-options/angular/example3.js)
+@[code](@/content/guides/getting-started/configuration-options/angular/example3.html)
+
+:::
 
 :::
 
@@ -610,7 +625,12 @@ The modified [`cell`](@/api/options.md#cell) options:
 
 ::: only-for angular
 
-<!-- TODO: angular example-->
+::: example #example4 :angular --js 1 --html 2
+
+@[code](@/content/guides/getting-started/configuration-options/angular/example4.js)
+@[code](@/content/guides/getting-started/configuration-options/angular/example4.html)
+
+:::
 
 :::
 
@@ -928,9 +948,23 @@ hot.getCellMeta(1, 1).readOnly;
 
 :::
 
-::: only-for react
+::: only-for angular
 
-<!-- TODO: angular example-->
+```ts
+// for cell (0, 0), the `readOnly` option is the default (`false`)
+// returns `false`
+hot.getCellMeta(0, 0).readOnly;
+
+// for cell (1, 1), the `cell` option overwrote the default `readOnly` value
+// returns `true`
+hot.getCellMeta(1, 1).readOnly;
+
+// changes the `readOnly` option of cell (1, 1) back to `false`
+hot.setCellMeta(1, 1, 'readOnly', false);
+
+// returns `false`
+hot.getCellMeta(1, 1).readOnly;
+```
 
 :::
 
@@ -970,7 +1004,12 @@ In the example below, some cells are read-only, and some cells are editable:
 
 ::: only-for angular
 
-<!-- TODO: angular example-->
+::: example #example6 :angular --js 1 --html 2
+
+@[code](@/content/guides/getting-started/configuration-options/angular/example6.js)
+@[code](@/content/guides/getting-started/configuration-options/angular/example6.html)
+
+:::
 
 :::
 

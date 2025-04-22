@@ -55,7 +55,12 @@ In this example, we add a custom class `custom-cell` to the cell in the top left
 
 ::: only-for angular
 
-<!-- TODO: angular example -->
+::: example #example1 :angular --js 1 --html 2
+
+@[code](@/content/guides/cell-features/formatting-cells/angular/example1.js)
+@[code](@/content/guides/cell-features/formatting-cells/angular/example1.html)
+
+:::
 
 :::
 
@@ -87,7 +92,12 @@ You can apply inline styles directly to the DOM element using its `style` proper
 
 ::: only-for angular
 
-<!-- TODO: angular example -->
+::: example #example2 :angular --js 1 --html 2
+
+@[code](@/content/guides/cell-features/formatting-cells/angular/example2.js)
+@[code](@/content/guides/cell-features/formatting-cells/angular/example2.html)
+
+:::
 
 :::
 
@@ -123,7 +133,12 @@ In the names of the API properties, the words `start` and `end` refer to the sta
 
 ::: only-for angular
 
-<!-- TODO: angular example -->
+::: example #example3 :angular --js 1 --html 2
+
+@[code](@/content/guides/cell-features/formatting-cells/angular/example3.js)
+@[code](@/content/guides/cell-features/formatting-cells/angular/example3.html)
+
+:::
 
 :::
 

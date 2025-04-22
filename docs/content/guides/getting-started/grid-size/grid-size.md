@@ -243,7 +243,12 @@ You can listen for two hooks, [`beforeRefreshDimensions`](@/api/hooks.md#beforer
 
 ::: only-for angular
 
-<!-- TODO: angular example-->
+::: example #example :angular --js 1 --html 2
+
+@[code](@/content/guides/getting-started/grid-size/angular/example.js)
+@[code](@/content/guides/getting-started/grid-size/angular/example.html)
+
+:::
 
 :::
 

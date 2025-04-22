@@ -1,67 +1,74 @@
 /* file: app.component.ts */
-import { Component } from '@angular/core';
-import Handsontable from 'handsontable/base';
-import { ContextMenu } from 'handsontable/plugins/contextMenu';
+import { Component, ViewChild } from '@angular/core';
+import {
+  GridSettings,
+  HotTableComponent,
+  HotTableModule,
+  NON_COMMERCIAL_LICENSE,
+} from '@handsontable/angular-wrapper';
 
 @Component({
-  selector: 'app-root',
-  template: `
-    <div>
-      <hot-table [settings]="hotSettings"></hot-table>
-    </div>
-  `,
+  selector: 'example-installation',
+  standalone: false,
+  template: ` <div class="ht-theme-main">
+    <hot-table [data]="data" [settings]="gridSettings" />
+  </div>`,
 })
+export class ExampleInstallationComponent {
+  @ViewChild(HotTableComponent, { static: false })
+  readonly hotTable!: HotTableComponent;
 
-export class AppComponent {
-  hotSettings: Handsontable.GridSettings = {
-    data: [
-      ['A1', 'B1', 'C1', 'D1', 'E1'],
-      ['A2', 'B2', 'C2', 'D2', 'E2'],
-      ['A3', 'B3', 'C3', 'D3', 'E3'],
-      ['A4', 'B4', 'C4', 'D4', 'E4'],
-      ['A5', 'B5', 'C5', 'D5', 'E5'],
-    ],
+  readonly data = [
+    ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
+    ['2019', 10, 11, 12, 13],
+    ['2020', 20, 11, 14, 13],
+    ['2021', 30, 15, 12, 13],
+  ];
+  readonly gridSettings: GridSettings = {
+    rowHeaders: true,
     colHeaders: true,
-    contextMenu: {
-      items: {
-        'row_above': {
-          name: 'Insert row above this one (custom name)'
-        },
-        'row_below': {},
-        'separator': ContextMenu.SEPARATOR,
-        'clear_custom': {
-          name: 'Clear all cells (custom)',
-          callback: function() {
-            this.clear();
-          }
-        }
-      }
-    },
     height: 'auto',
     autoWrapRow: true,
-    autoWrapCol: true,
-    licenseKey: 'non-commercial-and-evaluation'
+    autoWrapCol: true
   };
 }
+
 /* end-file */
 
+
 /* file: app.module.ts */
-import { NgModule } from '@angular/core';
+import { NgModule, ApplicationConfig } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-// TODO replace this with new wrapper 
-import { HotTableModule } from '@handsontable/angular';
 import { registerAllModules } from 'handsontable/registry';
+import { HOT_GLOBAL_CONFIG, HotConfig, HotTableModule } from '@handsontable/angular-wrapper';
+import { CommonModule } from '@angular/common';
+import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
+
 /* start:skip-in-compilation */
-import { AppComponent } from './app.component';
+import { ExampleInstallationComponent } from './app.component';
 /* end:skip-in-compilation */
 
 // register Handsontable's modules
 registerAllModules();
 
+export const appConfig: ApplicationConfig = {
+  providers: [
+    {
+      provide: HOT_GLOBAL_CONFIG,
+      useValue: {
+        themeName: 'ht-theme-main',
+        license: NON_COMMERCIAL_LICENSE,
+      } as HotConfig
+    }
+  ],
+};
+
 @NgModule({
-  imports: [ BrowserModule, HotTableModule ],
-  declarations: [ AppComponent ],
-  bootstrap: [ AppComponent ]
+  imports: [ BrowserModule, HotTableModule, CommonModule ],
+  declarations: [ ExampleInstallationComponent ],
+  providers: [...appConfig.providers],
+  bootstrap: [ ExampleInstallationComponent ]
 })
+
 export class AppModule { }
 /* end-file */

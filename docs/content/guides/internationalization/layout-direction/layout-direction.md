@@ -74,7 +74,12 @@ To try out Handsontable's RTL support, check out the demo below:
 
 ::: only-for angular
 
-<!-- TODO: angular example -->
+::: example #example1 :angular-languages --js 1 --html 2
+
+@[code](@/content/guides/internationalization/layout-direction/angular/example1.js)
+@[code](@/content/guides/internationalization/layout-direction/angular/example1.html)
+
+:::
 
 :::
 
@@ -139,7 +144,12 @@ In the example below, the RTL layout direction is inherited from a `dir` attribu
 
 ::: only-for angular
 
-<!-- TODO: angular example -->
+::: example #example2 :angular --js 1 --html 2
+
+@[code](@/content/guides/internationalization/layout-direction/angular/example2.js)
+@[code](@/content/guides/internationalization/layout-direction/angular/example2.html)
+
+:::
 
 :::
 
@@ -174,7 +184,12 @@ and set it to `'rtl'`:
 
 ::: only-for angular
 
-<!-- TODO: angular example -->
+::: example #example3 :angular --js 1 --html 2
+
+@[code](@/content/guides/internationalization/layout-direction/angular/example3.js)
+@[code](@/content/guides/internationalization/layout-direction/angular/example3.html)
+
+:::
 
 :::
 
@@ -209,7 +224,12 @@ and set it to `'ltr'`:
 
 ::: only-for angular
 
-<!-- TODO: angular example -->
+::: example #example4 :angular --js 1 --html 2
+
+@[code](@/content/guides/internationalization/layout-direction/angular/example4.js)
+@[code](@/content/guides/internationalization/layout-direction/angular/example4.html)
+
+:::
 
 :::
 
@@ -243,7 +263,12 @@ In the example below, some columns are explicitly aligned to the left, center, o
 
 ::: only-for angular
 
-<!-- TODO: angular example -->
+::: example #example5 :angular --js 1 --html 2
+
+@[code](@/content/guides/internationalization/layout-direction/angular/example5.js)
+@[code](@/content/guides/internationalization/layout-direction/angular/example5.html)
+
+:::
 
 :::
 

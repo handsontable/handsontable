@@ -50,7 +50,12 @@ The select editor should be considered an example of how to write editors rather
 
 ::: only-for angular
 
-<!-- TODO: angular example -->
+::: example #example1 :angular --js 1 --html 2
+
+@[code](@/content/guides/cell-types/select-cell-type/angular/example1.js)
+@[code](@/content/guides/cell-types/select-cell-type/angular/example1.html)
+
+:::
 
 :::
 

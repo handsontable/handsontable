@@ -160,7 +160,12 @@ In this way, the Angular wrapper will understand that you want to use a custom e
 
 Example:
 
-<!-- TODO: angular example -->
+::: example #example1 :angular --js 1 --html 2
+
+@[code](@/content/guides/cell-functions/cell-editor/angular/example1.js)
+@[code](@/content/guides/cell-functions/cell-editor/angular/example1.html)
+
+:::
 
 ## Class-based editors
 
@@ -168,7 +173,12 @@ You can also declare a custom editor for the `HotTable` component by declaring i
 
 The following example implements the `@handsontable/angular-wrapper` component with a custom editor added, utilizing the `placeholder` attribute in the editor's `input` element.
 
-<!-- TODO: angular example -->
+::: example #example2 :angular --js 1 --html 2
+
+@[code](@/content/guides/cell-functions/cell-editor/angular/example2.js)
+@[code](@/content/guides/cell-functions/cell-editor/angular/example2.html)
+
+:::
 
 ::: tip
 

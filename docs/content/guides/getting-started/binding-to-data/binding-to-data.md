@@ -50,6 +50,17 @@ Array of arrays is a good choice for the more grid-like scenarios where you need
 
 :::
 
+::: only-for angular
+
+::: example #example1 :angular --js 1 --html 2
+
+@[code](@/content/guides/getting-started/binding-to-data/angular/example1.js)
+@[code](@/content/guides/getting-started/binding-to-data/angular/example1.html)
+
+:::
+
+:::
+
 ### Array of arrays with a selective display of columns
 
 The following example shows how you would use the array of arrays with a selective display of columns. This scenario uses the same data source as in the previous example, this time omitting the `Tesla` column from the grid.
@@ -71,6 +82,17 @@ The following example shows how you would use the array of arrays with a selecti
 
 @[code](@/content/guides/getting-started/binding-to-data/react/example2.jsx)
 @[code](@/content/guides/getting-started/binding-to-data/react/example2.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example2 :angular --js 1 --html 2
+
+@[code](@/content/guides/getting-started/binding-to-data/angular/example2.js)
+@[code](@/content/guides/getting-started/binding-to-data/angular/example2.html)
 
 :::
 
@@ -102,6 +124,17 @@ An array of objects can be used as a data source as follows:
 
 :::
 
+::: only-for angular
+
+::: example #example3 :angular --js 1 --html 2
+
+@[code](@/content/guides/getting-started/binding-to-data/angular/example3.js)
+@[code](@/content/guides/getting-started/binding-to-data/angular/example3.html)
+
+:::
+
+:::
+
 ### Array of objects with column as a function
 
 You can set the [`columns`](@/api/options.md#columns) configuration option to a function. This is good practice when you want to bind data more dynamically.
@@ -128,6 +161,17 @@ You can set the [`columns`](@/api/options.md#columns) configuration option to a 
 
 :::
 
+::: only-for angular
+
+::: example #example4 :angular --js 1 --html 2
+
+@[code](@/content/guides/getting-started/binding-to-data/angular/example4.js)
+@[code](@/content/guides/getting-started/binding-to-data/angular/example4.html)
+
+:::
+
+:::
+
 ### Array of objects with column mapping
 
 In a scenario where you have nested objects, you can use them as the data source by mapping the columns using the [`columns`](@/api/options.md#columns) option.
@@ -149,6 +193,17 @@ In a scenario where you have nested objects, you can use them as the data source
 
 @[code](@/content/guides/getting-started/binding-to-data/react/example5.jsx)
 @[code](@/content/guides/getting-started/binding-to-data/react/example5.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example5 :angular --js 1 --html 2
+
+@[code](@/content/guides/getting-started/binding-to-data/angular/example5.js)
+@[code](@/content/guides/getting-started/binding-to-data/angular/example5.html)
 
 :::
 
@@ -182,6 +237,17 @@ In a scenario where you start with an empty data source, you will need to provid
 
 :::
 
+::: only-for angular
+
+::: example #example6 :angular --js 1 --html 2
+
+@[code](@/content/guides/getting-started/binding-to-data/angular/example6.js)
+@[code](@/content/guides/getting-started/binding-to-data/angular/example6.html)
+
+:::
+
+:::
+
 ### Function data source and schema
 
 If your [`dataSchema`](@/api/options.md#dataschema) is a constructor of an object that doesn't directly expose its members, you can specify functions for the [`data`](@/api/options.md#data) member of each [`columns`](@/api/options.md#columns) item.
@@ -210,6 +276,17 @@ The example below shows how to use such objects:
 
 :::
 
+::: only-for angular
+
+::: example #example7 :angular --js 1 --html 2
+
+@[code](@/content/guides/getting-started/binding-to-data/angular/example7.js)
+@[code](@/content/guides/getting-started/binding-to-data/angular/example7.html)
+
+:::
+
+:::
+
 ### No data
 
 By default, if you don't provide any data, Handsontable renders as an empty 5x5 grid.
@@ -231,6 +308,17 @@ By default, if you don't provide any data, Handsontable renders as an empty 5x5 
 
 @[code](@/content/guides/getting-started/binding-to-data/react/example9.jsx)
 @[code](@/content/guides/getting-started/binding-to-data/react/example9.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example9 :angular --js 1 --html 2
+
+@[code](@/content/guides/getting-started/binding-to-data/angular/example9.js)
+@[code](@/content/guides/getting-started/binding-to-data/angular/example9.html)
 
 :::
 
@@ -274,6 +362,17 @@ the [`setDataAtCell()`](@/api/core.md#setdataatcell) method.
 
 @[code](@/content/guides/getting-started/binding-to-data/react/example10.jsx)
 @[code](@/content/guides/getting-started/binding-to-data/react/example10.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example10 :angular --js 1 --html 2
+
+@[code](@/content/guides/getting-started/binding-to-data/angular/example10.js)
+@[code](@/content/guides/getting-started/binding-to-data/angular/example10.html)
 
 :::
 
@@ -479,7 +578,16 @@ When working with a copy of data for Handsontable, it is best practice is to clo
 
 :::
 
-<!-- TODO: angular example -->
+::: only-for angular
+
+::: example #example11 :angular --js 1 --html 2
+
+@[code](@/content/guides/getting-started/binding-to-data/angular/example11.js)
+@[code](@/content/guides/getting-started/binding-to-data/angular/example11.html)
+
+:::
+
+:::
 
 ## Related API reference
 

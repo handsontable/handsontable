@@ -38,6 +38,13 @@ Play around with a demo of Handsontable, in your favorite framework.
 :::
 :::
 
+::: only-for angular
+::: example-without-tabs #example1 :angular
+@[code](@/content/guides/getting-started/demo/angular/example1.js)
+@[code](@/content/guides/getting-started/demo/angular/example1.html)
+:::
+:::
+
 ## Find the code on GitHub
 
 <div class="boxes-list gray">
@@ -66,6 +73,7 @@ Explore the demo and discover Handsontable's most popular features:
 ## Edit the demo's source code
 
 You can:
+
 - View the complete source code behind your framework's demo
 - Run your framework's demo on your local machine
 - Fork the directory with your framework's demo, and add changes of your own

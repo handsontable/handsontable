@@ -57,7 +57,12 @@ This demo shows how to use the cell type renderer feature to make some condition
 
 ::: only-for angular
 
-<!-- TODO: angular example -->
+::: example #example1 :angular --js 1 --html 2
+
+@[code](@/content/guides/cell-features/conditional-formatting/angular/example1.js)
+@[code](@/content/guides/cell-features/conditional-formatting/angular/example1.html)
+
+:::
 
 :::
 

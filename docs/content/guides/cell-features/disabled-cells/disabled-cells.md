@@ -63,7 +63,12 @@ You can make the entire grid read-only by setting [`readOnly`](@/api/options.md#
 
 ::: only-for angular
 
-<!-- TODO: angular example -->
+::: example #exampleReadOnlyGrid :angular --js 1 --html 2
+
+@[code](@/content/guides/cell-features/disabled-cells/angular/exampleReadOnlyGrid.js)
+@[code](@/content/guides/cell-features/disabled-cells/angular/exampleReadOnlyGrid.html)
+
+:::
 
 :::
 
@@ -97,7 +102,12 @@ To make a column read-only, declare it in the [`columns`](@/api/options.md#colum
 
 ::: only-for angular
 
-<!-- TODO: angular example -->
+::: example #example1 :angular --js 1 --html 2
+
+@[code](@/content/guides/cell-features/disabled-cells/angular/example1.js)
+@[code](@/content/guides/cell-features/disabled-cells/angular/example1.html)
+
+:::
 
 :::
 
@@ -129,7 +139,12 @@ This example makes cells that contain the word "Nissan" read-only. It forces all
 
 ::: only-for angular
 
-<!-- TODO: angular example -->
+::: example #example2 :angular --js 1 --html 2
+
+@[code](@/content/guides/cell-features/disabled-cells/angular/example2.js)
+@[code](@/content/guides/cell-features/disabled-cells/angular/example2.html)
+
+:::
 
 :::
 
@@ -165,7 +180,12 @@ To make a column non-editable, declare it in the [`columns`](@/api/options.md#co
 
 ::: only-for angular
 
-<!-- TODO: angular example -->
+::: example #example3 :angular --js 1 --html 2
+
+@[code](@/content/guides/cell-features/disabled-cells/angular/example3.js)
+@[code](@/content/guides/cell-features/disabled-cells/angular/example3.html)
+
+:::
 
 :::
 
@@ -197,7 +217,12 @@ The following example shows the table with non-editable cells containing the wor
 
 ::: only-for angular
 
-<!-- TODO: angular example -->
+::: example #example4 :angular --js 1 --html 2
+
+@[code](@/content/guides/cell-features/disabled-cells/angular/example4.js)
+@[code](@/content/guides/cell-features/disabled-cells/angular/example4.html)
+
+:::
 
 :::
 

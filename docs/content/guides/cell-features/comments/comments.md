@@ -142,7 +142,12 @@ In this example, the comment "Hello world!" is added to the cell at `(1,1)`.
 
 ::: only-for angular
 
-<!-- TODO: angular example -->
+::: example #example1 :angular --js 1 --html 2
+
+@[code](@/content/guides/cell-features/comments/angular/example1.js)
+@[code](@/content/guides/cell-features/comments/angular/example1.html)
+
+:::
 
 :::
 
@@ -174,7 +179,12 @@ By default, all comments are editable. To change this, set the [`readOnly`](@/ap
 
 ::: only-for angular
 
-<!-- TODO: angular example -->
+::: example #example2 :angular --js 1 --html 2
+
+@[code](@/content/guides/cell-features/comments/angular/example2.js)
+@[code](@/content/guides/cell-features/comments/angular/example2.html)
+
+:::
 
 :::
 
@@ -206,7 +216,12 @@ To set the width and height of a comment box, use the [`style`](@/api/options.md
 
 ::: only-for angular
 
-<!-- TODO: angular example -->
+::: example #example3 :angular --js 1 --html 2
+
+@[code](@/content/guides/cell-features/comments/angular/example3.js)
+@[code](@/content/guides/cell-features/comments/angular/example3.html)
+
+:::
 
 :::
 
@@ -238,7 +253,12 @@ To display comments after a pre-configured time delay, use the [`displayDelay`](
 
 ::: only-for angular
 
-<!-- TODO: angular example -->
+::: example #example4 :angular --js 1 --html 2
+
+@[code](@/content/guides/cell-features/comments/angular/example4.js)
+@[code](@/content/guides/cell-features/comments/angular/example4.html)
+
+:::
 
 :::
 

@@ -152,7 +152,12 @@ Click on one of the ▼ icons to open an interactive date editor.
 
 ::: only-for angular
 
-<!-- TODO: angular example -->
+::: example #example1 :angular --js 1 --html 2
+
+@[code](@/content/guides/cell-types/date-cell-type/angular/example1.js)
+@[code](@/content/guides/cell-types/date-cell-type/angular/example1.html)
+
+:::
 
 :::
 
