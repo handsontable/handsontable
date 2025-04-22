@@ -7,7 +7,7 @@ describe('DOM helpers', () => {
 
       element.style.display = 'none';
 
-      document.querySelector('#rootWrapper').appendChild(element);
+      document.body.appendChild(element);
 
       observeVisibilityChangeOnce(element, callbackSpy);
 
@@ -19,7 +19,7 @@ describe('DOM helpers', () => {
 
       expect(callbackSpy).toHaveBeenCalledTimes(1);
 
-      document.querySelector('#rootWrapper').removeChild(element);
+      document.body.removeChild(element);
     });
   });
 
@@ -35,7 +35,7 @@ describe('DOM helpers', () => {
       };
       const hotContainer = createDivWithId('hot');
 
-      document.querySelector('#rootWrapper').appendChild(hotContainer);
+      document.body.appendChild(hotContainer);
 
       const hot = new Handsontable(hotContainer, {
         data: Handsontable.helper.createSpreadsheetData(10, 10),
@@ -75,14 +75,16 @@ describe('DOM helpers', () => {
       expect(isInternalElement(hot.getCell(9, 9, true), rootElement)).toBe(true);
 
       // Misc
+      expect(isInternalElement(document.querySelector('.htFocusCatcher'), rootElement)).toBe(true);
       expect(isInternalElement(document.querySelector('.handsontableInputHolder'), rootElement)).toBe(true);
       expect(isInternalElement(document.querySelector('#rootChild'), rootElement)).toBe(true);
 
       expect(isInternalElement(document.querySelector('#rootSibling'), rootElement)).toBe(false);
-      expect(isInternalElement(document.querySelector('#rootWrapper'), rootElement)).toBe(false);
+      expect(isInternalElement(document.body, rootElement)).toBe(false);
 
       hot.destroy();
-      $('#rootWrapper').find('#hot').remove();
+      document.body.removeChild(document.querySelector('#rootSibling'));
+      document.body.removeChild(hotContainer);
     });
   });
 
@@ -98,7 +100,7 @@ describe('DOM helpers', () => {
         </svg>
       `;
 
-      document.querySelector('#rootWrapper').appendChild(wrapper);
+      document.body.appendChild(wrapper);
 
       const element = wrapper.querySelector('div');
       const elementOffset = Handsontable.dom.offset(element);
@@ -106,7 +108,7 @@ describe('DOM helpers', () => {
       expect(Number.isFinite(elementOffset.top)).toBe(true);
       expect(Number.isFinite(elementOffset.left)).toBe(true);
 
-      document.querySelector('#rootWrapper').removeChild(wrapper);
+      document.body.removeChild(wrapper);
     });
   });
 
@@ -114,7 +116,7 @@ describe('DOM helpers', () => {
     it('should return `true` if the provided HTML element has a vertical scrollbar', () => {
       const element = document.createElement('div');
 
-      document.querySelector('#rootWrapper').appendChild(element);
+      document.body.appendChild(element);
 
       element.innerText = new Array(50)
         .fill('Lorem ipsum dolor sit amet, consectetur adipiscing elit.').join(' ');
@@ -135,13 +137,13 @@ describe('DOM helpers', () => {
 
       expect(Handsontable.dom.hasVerticalScrollbar(element)).toBe(true);
 
-      document.querySelector('#rootWrapper').removeChild(element);
+      document.body.removeChild(element);
     });
 
     it('should return `false` if the provided HTML element doesn\'t have a vertical scrollbar', () => {
       const element = document.createElement('div');
 
-      document.querySelector('#rootWrapper').appendChild(element);
+      document.body.appendChild(element);
 
       element.innerText = new Array(50)
         .fill('Lorem ipsum dolor sit amet, consectetur adipiscing elit.').join(' ');
@@ -160,20 +162,20 @@ describe('DOM helpers', () => {
 
       expect(Handsontable.dom.hasVerticalScrollbar(element)).toBe(false);
 
-      document.querySelector('#rootWrapper').removeChild(element);
+      document.body.removeChild(element);
     });
 
     it('should return `true` if the provided Window element has a vertical scrollbar', () => {
       const element = document.createElement('div');
 
-      document.querySelector('#rootWrapper').appendChild(element);
+      document.body.appendChild(element);
 
       element.innerText = new Array(1000)
         .fill('Lorem ipsum dolor sit amet, consectetur adipiscing elit.').join(' ');
 
       expect(Handsontable.dom.hasVerticalScrollbar(window)).toBe(true);
 
-      document.querySelector('#rootWrapper').removeChild(element);
+      document.body.removeChild(element);
     });
 
     it('should return `false` if the provided Window element doesn\'t have a vertical scrollbar', () => {
@@ -185,7 +187,7 @@ describe('DOM helpers', () => {
     it('should return `true` if the provided HTML element has a vertical scrollbar', () => {
       const element = document.createElement('div');
 
-      document.querySelector('#rootWrapper').appendChild(element);
+      document.body.appendChild(element);
 
       element.innerText = new Array(50)
         .fill('Lorem ipsum dolor sit amet, consectetur adipiscing elit.').join(' ');
@@ -203,13 +205,13 @@ describe('DOM helpers', () => {
 
       expect(Handsontable.dom.hasHorizontalScrollbar(element)).toBe(true);
 
-      document.querySelector('#rootWrapper').removeChild(element);
+      document.body.removeChild(element);
     });
 
     it('should return `false` if the provided HTML element doesn\'t have a vertical scrollbar', () => {
       const element = document.createElement('div');
 
-      document.querySelector('#rootWrapper').appendChild(element);
+      document.body.appendChild(element);
 
       element.innerText = new Array(50)
         .fill('Lorem ipsum dolor sit amet, consectetur adipiscing elit.').join(' ');
@@ -228,7 +230,7 @@ describe('DOM helpers', () => {
 
       expect(Handsontable.dom.hasHorizontalScrollbar(element)).toBe(false);
 
-      document.querySelector('#rootWrapper').removeChild(element);
+      document.body.removeChild(element);
     });
 
     it('should return `true` if the provided Window element has a vertical scrollbar', () => {
@@ -237,14 +239,14 @@ describe('DOM helpers', () => {
       element.style.height = '100%';
       element.style.width = '500%';
 
-      document.querySelector('#rootWrapper').appendChild(element);
+      document.body.appendChild(element);
 
       element.innerText = new Array(1000)
         .fill('Lorem ipsum dolor sit amet, consectetur adipiscing elit.').join(' ');
 
       expect(Handsontable.dom.hasHorizontalScrollbar(window)).toBe(true);
 
-      document.querySelector('#rootWrapper').removeChild(element);
+      document.body.removeChild(element);
     });
 
     it('should return `false` if the provided Window element doesn\'t have a vertical scrollbar', () => {

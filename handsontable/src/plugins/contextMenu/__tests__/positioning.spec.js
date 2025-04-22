@@ -1,6 +1,6 @@
 describe('ContextMenu', () => {
   beforeEach(function() {
-    this.$container = $('<div id="testContainer"></div>').appendTo('#rootWrapper');
+    this.$container = $('<div id="testContainer"></div>').appendTo('body');
   });
 
   afterEach(function() {
@@ -73,7 +73,8 @@ describe('ContextMenu', () => {
         const contextMenuElem = $(docOutside.body).find('.htContextMenu');
         const contextMenuOffset = contextMenuElem.offset();
         const { top: cellTop, left: cellLeft } = cell.getBoundingClientRect();
-        const { top: iframeTop, left: iframeLeft } = iframeInside.offset();
+        const { top: iframeTop, left: iframeLeft } = iframeInside.offset()
+        ;
         const cellOffsetTop = cellTop + iframeTop;
         const cellOffsetLeft = cellLeft + iframeLeft;
 

@@ -10,7 +10,7 @@ describe('i18n', () => {
   const INSERT_ROW_ABOVE_IN_POLISH_LANGUAGE = 'Wstaw wiersz powyżej';
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {

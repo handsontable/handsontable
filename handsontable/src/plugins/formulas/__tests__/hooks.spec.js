@@ -2,7 +2,7 @@ import HyperFormula from 'hyperformula';
 
 describe('Formulas general', () => {
   beforeEach(function() {
-    this.$container = $('<div id="testContainer"></div>').appendTo('#rootWrapper');
+    this.$container = $('<div id="testContainer"></div>').appendTo('body');
     this.hfInstance = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
   });
 

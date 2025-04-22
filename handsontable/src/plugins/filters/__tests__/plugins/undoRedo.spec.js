@@ -1,6 +1,6 @@
 describe('Filters UI cooperation with UndoRedo', () => {
   beforeEach(function() {
-    this.$container = $('<div id="testContainer"></div>').appendTo('#rootWrapper');
+    this.$container = $('<div id="testContainer"></div>').appendTo('body');
   });
 
   afterEach(function() {

@@ -1,7 +1,7 @@
 describe('ContextMenu (RTL mode)', () => {
   beforeEach(function() {
     $('html').attr('dir', 'rtl');
-    this.$container = $('<div id="testContainer"></div>').appendTo('#rootWrapper');
+    this.$container = $('<div id="testContainer"></div>').appendTo('body');
   });
 
   afterEach(function() {

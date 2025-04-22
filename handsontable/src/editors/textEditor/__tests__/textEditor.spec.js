@@ -1,7 +1,7 @@
 describe('TextEditor', () => {
   beforeEach(function() {
     this.$container = $('<div id="testContainer" style="width: 300px; height: 200px; overflow: hidden;"></div>')
-      .appendTo('#rootWrapper');
+      .appendTo('body');
   });
 
   afterEach(function() {
@@ -1668,7 +1668,7 @@ describe('TextEditor', () => {
   });
 
   it('should open editor after selecting cell in another table and hitting enter', () => {
-    spec().$container2 = $('<div id="testContainer-2"></div>').appendTo('#rootWrapper');
+    spec().$container2 = $('<div id="testContainer-2"></div>').appendTo('body');
 
     const hot1 = handsontable();
     const hot2 = handsontable2.call(this);

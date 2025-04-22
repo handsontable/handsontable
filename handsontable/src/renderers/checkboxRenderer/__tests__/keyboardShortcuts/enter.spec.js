@@ -1,6 +1,6 @@
 describe('CheckboxRenderer keyboard shortcut', () => {
   beforeEach(function() {
-    this.$container = $('<div id="testContainer" style="width: 300px; height: 200px;"></div>').appendTo('#rootWrapper');
+    this.$container = $('<div id="testContainer" style="width: 300px; height: 200px;"></div>').appendTo('body');
   });
 
   afterEach(function() {

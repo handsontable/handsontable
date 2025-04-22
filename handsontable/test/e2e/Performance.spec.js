@@ -4,7 +4,7 @@ describe('Performance', () => {
   // this is a test suite to test if there are no redundant operations
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {

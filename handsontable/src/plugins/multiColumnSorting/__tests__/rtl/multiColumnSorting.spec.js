@@ -8,7 +8,7 @@ describe('MultiColumnSorting (RTL)', () => {
     beforeEach(function() {
       $('html').attr('dir', htmlDir);
       this.$container = $(`<div id="${id}" style="overflow: auto; width: 300px; height: 200px;"></div>`)
-        .appendTo('#rootWrapper');
+        .appendTo('body');
     });
 
     afterEach(function() {

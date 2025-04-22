@@ -2,7 +2,7 @@ describe('UndoRedo', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -1013,7 +1013,7 @@ describe('UndoRedo', () => {
       });
 
       it('should undo changes only for table where the change actually took place', () => {
-        spec().$container2 = $(`<div id="${id}-2"></div>`).appendTo('#rootWrapper');
+        spec().$container2 = $(`<div id="${id}-2"></div>`).appendTo('body');
 
         const hot1 = handsontable({
           data: [
@@ -1613,7 +1613,7 @@ describe('UndoRedo', () => {
       });
 
       it('should redo changes only for table where the change actually took place', () => {
-        spec().$container2 = $(`<div id="${id}-2"></div>`).appendTo('#rootWrapper');
+        spec().$container2 = $(`<div id="${id}-2"></div>`).appendTo('body');
 
         const hot1 = handsontable({
           data: [

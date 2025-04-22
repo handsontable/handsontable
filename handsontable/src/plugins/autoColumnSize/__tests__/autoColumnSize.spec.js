@@ -4,7 +4,7 @@ describe('AutoColumnSize', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -395,7 +395,7 @@ describe('AutoColumnSize', () => {
   });
 
   it('should apply disabling/enabling plugin using updateSettings, only to a particular HOT instance', () => {
-    spec().$container2 = $(`<div id="${id}-2"></div>`).appendTo('#rootWrapper');
+    spec().$container2 = $(`<div id="${id}-2"></div>`).appendTo('body');
 
     handsontable({
       data: arrayOfObjects()
@@ -505,10 +505,10 @@ describe('AutoColumnSize', () => {
 
   it('should consider CSS style of each instance separately', () => {
     const $style = $('<style>.big .htCore td {font-size: 40px; line-height: 1.1;}</style>').appendTo('head');
-    const $container1 = $('<div id="hot1"></div>').appendTo('#rootWrapper').handsontable({
+    const $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable({
       data: arrayOfObjects()
     });
-    const $container2 = $('<div id="hot2"></div>').appendTo('#rootWrapper').handsontable({
+    const $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable({
       data: arrayOfObjects()
     });
     const hot1 = $container1.handsontable('getInstance');
@@ -527,9 +527,9 @@ describe('AutoColumnSize', () => {
 
     $style.remove();
     $container1.handsontable('destroy');
-    $('#rootWrapper').find('#hot1').remove();
+    $container1.remove();
     $container2.handsontable('destroy');
-    $('#rootWrapper').find('#hot2').remove();
+    $container2.remove();
   });
 
   it('should consider CSS class of the <table> element (e.g. when used with Bootstrap)', () => {

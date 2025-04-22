@@ -2,7 +2,7 @@ describe('Core.setDataAtRowProp', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
 
     this.datasetAoO = [
       { a: 1, b: 2, c: 3, d: { e: 'nested1', f: 'nested2_1' } },

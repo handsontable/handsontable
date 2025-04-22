@@ -4,7 +4,7 @@ describe('AutoRowSize', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -110,7 +110,7 @@ describe('AutoRowSize', () => {
 
     beforeEach(function() {
       if (!this.$container) {
-        this.$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
+        this.$container = $(`<div id="${id}"></div>`).appendTo('body');
       }
 
       const css = `.handsontable table td { height: ${cellHeightInPx}px !important }`;
@@ -328,11 +328,11 @@ describe('AutoRowSize', () => {
 
   it('should consider CSS style of each instance separately', () => {
     const $style = $('<style>.big .htCore td {font-size: 40px;line-height: 1.1}</style>').appendTo('head');
-    const $container1 = $('<div id="hot1"></div>').appendTo('#rootWrapper').handsontable({
+    const $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable({
       data: arrayOfObjects(),
       autoRowSize: true
     });
-    const $container2 = $('<div id="hot2"></div>').appendTo('#rootWrapper').handsontable({
+    const $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable({
       data: arrayOfObjects(),
       autoRowSize: true
     });
@@ -359,9 +359,9 @@ describe('AutoRowSize', () => {
 
     $style.remove();
     $container1.handsontable('destroy');
-    $('#rootWrapper').find('#hot1').remove();
+    $container1.remove();
     $container2.handsontable('destroy');
-    $('#rootWrapper').find('#hot2').remove();
+    $container2.remove();
   });
 
   it('should consider CSS class of the <table> element (e.g. when used with Bootstrap)', () => {

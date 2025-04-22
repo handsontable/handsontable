@@ -2,8 +2,7 @@ describe('MultiColumnSorting', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}" style="overflow: auto; width: 300px; height: 200px;"></div>`)
-      .appendTo('#rootWrapper');
+    this.$container = $(`<div id="${id}" style="overflow: auto; width: 300px; height: 200px;"></div>`).appendTo('body');
 
     this.sortByClickOnColumnHeader = (columnIndex) => {
       const hot = this.$container.data('handsontable');
@@ -1947,7 +1946,7 @@ describe('MultiColumnSorting', () => {
       }
     });
 
-    spec().$container2 = $(`<div id='${id}-2'></div>`).appendTo('#rootWrapper');
+    spec().$container2 = $(`<div id='${id}-2'></div>`).appendTo('body');
     spec().$container2.handsontable();
 
     selectCell(0, 1);

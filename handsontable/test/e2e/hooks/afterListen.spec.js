@@ -1,14 +1,17 @@
 describe('Hook', () => {
   beforeEach(function() {
-    this.$container = $('<div id="testContainer"></div>').appendTo('#rootWrapper');
-    this.$container1 = $('<div id="testContainer1"></div>').appendTo('#rootWrapper');
-    this.$container2 = $('<div id="testContainer2"></div>').appendTo('#rootWrapper');
+    this.$container = $('<div id="testContainer"></div>').appendTo('body');
+    this.$container1 = $('<div id="testContainer1"></div>').appendTo('body');
+    this.$container2 = $('<div id="testContainer2"></div>').appendTo('body');
   });
 
   afterEach(function() {
     this.$container.data('handsontable')?.destroy();
+    this.$container.remove();
     this.$container1.data('handsontable')?.destroy();
+    this.$container1.remove();
     this.$container2.data('handsontable')?.destroy();
+    this.$container2.remove();
   });
 
   describe('afterListen', () => {

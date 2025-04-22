@@ -2,7 +2,7 @@ describe('CustomBorders', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
     const wrapper = $('<div></div>').css({
       width: 400,
       height: 200,

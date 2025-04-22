@@ -1,10 +1,11 @@
 describe('Hook', () => {
   beforeEach(function() {
-    this.$container = $('<div id="testContainer"></div>').appendTo('#rootWrapper');
+    this.$container = $('<div id="testContainer"></div>').appendTo('body');
   });
 
   afterEach(function() {
     this.$container.data('handsontable')?.destroy();
+    this.$container.remove();
   });
 
   describe('beforeRowWrap', () => {

@@ -2,16 +2,18 @@ describe('Comments theme handling', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
     if (this.$container) {
       destroy();
+      this.$container.remove();
     }
   });
 
   it('should have the same theme as the parent Handsontable instance (if originally passed as a config option)', () => {
+    simulateModernThemeStylesheet(spec().$container);
     handsontable({
       data: createSpreadsheetData(4, 4),
       comments: true,
@@ -22,15 +24,14 @@ describe('Comments theme handling', () => {
     });
 
     selectCell(1, 1);
+    const $editorElement = $(getPlugin('comments').getEditorInputElement().parentElement);
 
-    const $editorElement = $(getPlugin('comments').getEditorInputElement());
-
-    expect($editorElement.parent().parent().parent().hasClass('ht-theme-sth')).toBe(true);
+    expect($editorElement.hasClass('ht-theme-sth')).toBe(true);
   });
 
   it('should have the same theme as the parent Handsontable instance (if originally passed as a container class)', () => {
+    simulateModernThemeStylesheet(spec().$container);
     spec().$container.addClass('ht-theme-sth-else');
-
     handsontable({
       comments: true,
       cell: [
@@ -39,9 +40,8 @@ describe('Comments theme handling', () => {
     }, true);
 
     selectCell(1, 1);
+    const $editorElement = $(getPlugin('comments').getEditorInputElement().parentElement);
 
-    const $editorElement = $(getPlugin('comments').getEditorInputElement());
-
-    expect($editorElement.parent().parent().parent().hasClass('ht-theme-sth-else')).toBe(true);
+    expect($editorElement.hasClass('ht-theme-sth-else')).toBe(true);
   });
 });

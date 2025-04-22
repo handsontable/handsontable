@@ -3,7 +3,7 @@ describe('Single selection scroll (RTL mode)', () => {
 
   beforeEach(function() {
     $('html').attr('dir', 'rtl');
-    this.$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {

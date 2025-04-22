@@ -2,7 +2,7 @@ describe('getCurrentThemeName', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
 
     handsontable({
       data: Handsontable.helper.createSpreadsheetData(5, 5),

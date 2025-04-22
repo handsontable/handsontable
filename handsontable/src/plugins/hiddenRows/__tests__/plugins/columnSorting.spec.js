@@ -2,7 +2,7 @@ describe('HiddenRows', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
 
     this.sortByClickOnColumnHeader = (columnIndex) => {
       const hot = this.$container.data('handsontable');

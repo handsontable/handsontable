@@ -5,7 +5,7 @@ describe('DropdownMenu keyboard shortcut (RTL mode)', () => {
   ], ({ htmlDir, layoutDirection }) => {
     beforeEach(function() {
       $('html').attr('dir', htmlDir);
-      this.$container = $('<div id="testContainer"></div>').appendTo('#rootWrapper');
+      this.$container = $('<div id="testContainer"></div>').appendTo('body');
     });
 
     afterEach(function() {

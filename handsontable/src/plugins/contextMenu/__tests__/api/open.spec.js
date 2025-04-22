@@ -7,7 +7,7 @@ describe('ContextMenu', () => {
 
     beforeEach(function() {
       $('html').attr('dir', htmlDir);
-      this.$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
+      this.$container = $(`<div id="${id}"></div>`).appendTo('body');
     });
 
     afterEach(function() {

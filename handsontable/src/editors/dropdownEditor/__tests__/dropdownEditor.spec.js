@@ -4,8 +4,7 @@ describe('DropdownEditor', () => {
     'white', 'purple', 'lime', 'olive', 'cyan'];
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}" style="width: 300px; height: 200px; overflow: auto"></div>`)
-      .appendTo('#rootWrapper');
+    this.$container = $(`<div id="${id}" style="width: 300px; height: 200px; overflow: auto"></div>`).appendTo('body');
   });
 
   afterEach(function() {

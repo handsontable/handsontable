@@ -14,7 +14,7 @@ describe('header-related a11y config', () => {
   };
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -206,19 +206,19 @@ describe('header-related a11y config', () => {
 
           expect(
             getTopInlineStartClone().get(0).querySelector('thead th:first-of-type').getAttribute('role')
-          ).toBe('gridcell button');
+          ).toBe('row');
 
           expect(
             getMaster().get(0).querySelector('thead th:first-of-type').getAttribute('role')
-          ).toBe('gridcell button');
+          ).toBe('row');
 
           expect(
             getInlineStartClone().get(0).querySelector('thead th:first-of-type').getAttribute('role')
-          ).toBe('gridcell button');
+          ).toBe('row');
 
           expect(
             getTopClone().get(0).querySelector('thead th:first-of-type').getAttribute('role')
-          ).toBe('gridcell button');
+          ).toBe('row');
         });
       });
     });

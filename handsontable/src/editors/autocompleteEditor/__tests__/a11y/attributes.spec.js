@@ -4,7 +4,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     'white', 'purple', 'lime', 'olive', 'cyan'];
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {

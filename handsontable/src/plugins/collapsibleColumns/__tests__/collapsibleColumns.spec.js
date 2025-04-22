@@ -80,7 +80,7 @@ describe('CollapsibleColumns', () => {
   }
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
 
     // Matchers configuration.
     this.matchersConfig = {

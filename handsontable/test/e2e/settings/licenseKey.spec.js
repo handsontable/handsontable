@@ -4,8 +4,7 @@ describe('settings', () => {
     const id = 'testContainer';
 
     beforeEach(function() {
-      this.$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
-      this.$container1 = $(`<div id="${id}1"></div>`).appendTo('#rootWrapper');
+      this.$container = $(`<div id="${id}"></div>`).appendTo('body');
     });
 
     afterEach(function() {
@@ -17,7 +16,7 @@ describe('settings', () => {
     it('should print information about key invalidation right after the Handsontable root element', () => {
       handsontable({}, true);
 
-      const info = spec().$container[0].nextSibling.nextSibling;
+      const info = spec().$container[0].nextSibling;
 
       expect(info.className).toBe('handsontable hot-display-license-info');
       expect(info.innerText).toBe([
@@ -29,6 +28,8 @@ describe('settings', () => {
     });
 
     it('should destroy all DOM elements related to the invalidation information for specific HoT instance only', () => {
+      const element2 = $('<div id="hot2"></div>').appendTo('body');
+
       const hot1 = handsontable({}, true);
       const hot2 = new Handsontable(spec().$container1[0], {});
 
@@ -39,6 +40,7 @@ describe('settings', () => {
       expect(document.querySelectorAll('.hot-display-license-info').length).toBe(1);
 
       hot2.destroy();
+      element2.remove();
 
       expect(document.querySelectorAll('.hot-display-license-info').length).toBe(0);
     });

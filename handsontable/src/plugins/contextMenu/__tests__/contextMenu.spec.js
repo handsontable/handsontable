@@ -2,7 +2,7 @@ describe('ContextMenu', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -648,8 +648,6 @@ describe('ContextMenu', () => {
 
       test();
       destroy();
-      $('#rootWrapper').find(`#${id}`).remove();
-      spec().$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
       test();
     });
   });
@@ -2520,7 +2518,7 @@ describe('ContextMenu', () => {
 
   describe('working with multiple tables', () => {
     beforeEach(function() {
-      this.$container2 = $(`<div id="${id}-2"></div>`).appendTo('#rootWrapper');
+      this.$container2 = $(`<div id="${id}-2"></div>`).appendTo('body');
     });
 
     afterEach(function() {
