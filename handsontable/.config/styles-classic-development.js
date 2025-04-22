@@ -1,7 +1,8 @@
 const path = require('path');
-const configFactory = require('./base');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const RemoveEmptyScriptsPlugin = require('webpack-remove-empty-scripts');
+const configFactory = require('./base');
+const CssCharsetCleanupPlugin = require('./plugin/webpack/css-charset-cleanup-plugin');
 const { getClosest } = require('./helper/path');
 
 module.exports.create = function create(envArgs) {
@@ -43,6 +44,7 @@ module.exports.create = function create(envArgs) {
       new MiniCssExtractPlugin({
         filename: '[name].css',
       }),
+      new CssCharsetCleanupPlugin(),
     );
   });
 
