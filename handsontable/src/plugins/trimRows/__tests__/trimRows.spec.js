@@ -713,33 +713,6 @@ describe('TrimRows', () => {
   });
 
   describe('copy-paste functionality', () => {
-    class DataTransferObject {
-      constructor() {
-        this.data = {
-          'text/plain': '',
-          'text/html': ''
-        };
-      }
-      getData(type) {
-        return this.data[type];
-      }
-      setData(type, value) {
-        this.data[type] = value;
-      }
-    }
-
-    /**
-     *
-     */
-    function getClipboardEventMock() {
-      const event = {};
-
-      event.clipboardData = new DataTransferObject();
-      event.preventDefault = () => {};
-
-      return event;
-    }
-
     it('should skip trimmed rows, while copying data', async() => {
       handsontable({
         data: getMultilineData(10, 10),
@@ -748,7 +721,7 @@ describe('TrimRows', () => {
         height: 300
       });
 
-      const copyEvent = getClipboardEventMock('copy');
+      const copyEvent = getClipboardEvent('copy');
       const plugin = getPlugin('CopyPaste');
 
       await selectCell(0, 0, 4, 9);

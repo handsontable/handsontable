@@ -15,6 +15,7 @@ import { init as initBasicTwoTablesDemo } from "./demos/basicTwoTables";
 import { init as initContextMenuDemo } from "./demos/contextMenu";
 import { init as initDropdownMenuDemo } from "./demos/dropdownMenu";
 import { init as initLargeDatasetDemo } from './demos/largeDataset';
+import { init as initWebComponentDemo } from './demos/webComponent';
 
 // Function to dynamically load CSS
 function loadCSS(href) {
@@ -205,6 +206,15 @@ router
         loadThemeCSS(),
       ]).then(() => {
         initDropdownMenuDemo();
+      });
+    },
+    '/web-component-demo': function () {
+      removeCSS();
+
+      Promise.all([
+        loadThemeCSS(),
+      ]).then(() => {
+        initWebComponentDemo();
       });
     },
   })

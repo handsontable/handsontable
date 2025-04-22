@@ -2562,8 +2562,7 @@ describe('AutocompleteEditor', () => {
       expect(autocompleteList.find('td:eq(1)').html()).toEqual('Female');
     });
 
-    // TODO: Test added/refactored by Piotr should be checked.
-    xit('should allow any value if filter === false and allowInvalid === true', async() => {
+    it('should allow any value if filter === false and allowInvalid === true', async() => {
       spyOn(Handsontable.editors.AutocompleteEditor.prototype, 'queryChoices').and.callThrough();
       const queryChoices = Handsontable.editors.AutocompleteEditor.prototype.queryChoices;
 
@@ -2586,7 +2585,7 @@ describe('AutocompleteEditor', () => {
       expect(getDataAtCell(0, 0)).toBeNull();
 
       await keyDownUp('f');
-      await sleep(200);
+      await sleep(10);
 
       queryChoices.calls.reset();
       editorInput.val('foobar');

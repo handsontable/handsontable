@@ -75,6 +75,33 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     });
   });
 
+  it('should add a correct set of aria tags to the choice dropdown element (choice list being scrolled to the best choice)', async() => {
+    const hot = handsontable({
+      data: [['11'], [], []],
+      type: 'dropdown',
+      cells: () => {
+        return { type: 'dropdown', source: Array.from({ length: 100 }, (_, i) => i + 1) };
+      },
+      width: 200,
+      height: 'auto',
+    });
+
+    await selectCell(0, 0);
+    await keyDownUp('enter');
+    await sleep(50);
+
+    const editor = getActiveEditor();
+    const editorHot = editor.htEditor;
+    const choiceDropdownRoot = editorHot.rootElement;
+
+    expect(choiceDropdownRoot.getAttribute('role')).toEqual('listbox');
+    expect(choiceDropdownRoot.getAttribute('aria-live')).toEqual('polite');
+    expect(choiceDropdownRoot.getAttribute('aria-relevant')).toEqual('text');
+    expect(choiceDropdownRoot.getAttribute('id')).toEqual(`${hot.guid.slice(0, 9)}-listbox-0-0`);
+
+    expect(editorHot.getCell(...editorHot.getSelectedLast()).getAttribute('aria-selected')).toEqual('true');
+  });
+
   it('should should not add `aria-setsize` and `aria-posinset` if the source is a function`', async() => {
     const hot = handsontable({
       columns: [

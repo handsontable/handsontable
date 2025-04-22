@@ -78,7 +78,9 @@ describe('CopyPaste', () => {
 
       spec().$container.after(testElement);
 
-      const cutEvent = getClipboardEvent();
+      const cutEvent = getClipboardEvent({
+        target: testElement[0],
+      });
       const plugin = getPlugin('CopyPaste');
 
       await selectCell(1, 1);
@@ -98,7 +100,9 @@ describe('CopyPaste', () => {
         data: createSpreadsheetData(5, 5),
       });
 
-      const copyEvent = getClipboardEvent();
+      const copyEvent = getClipboardEvent({
+        target: $('<div id="testElement" data-hot-input="true">Test</div>')[0],
+      });
       const plugin = getPlugin('CopyPaste');
 
       spyOn(copyEvent, 'preventDefault');
@@ -116,12 +120,15 @@ describe('CopyPaste', () => {
         data: createSpreadsheetData(5, 5),
       });
 
-      const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
-      spyOn(copyEvent, 'preventDefault');
-
       await selectCell(1, 1);
+
+      const copyEvent = getClipboardEvent({
+        target: getActiveEditor().TEXTAREA,
+      });
+
+      spyOn(copyEvent, 'preventDefault');
 
       copyEvent.target = getActiveEditor().TEXTAREA;
       plugin.onCut(copyEvent); // trigger the plugin's method that is normally triggered by the native "cut" event
@@ -134,7 +141,9 @@ describe('CopyPaste', () => {
         data: createSpreadsheetData(5, 5),
       });
 
-      const copyEvent = getClipboardEvent();
+      const copyEvent = getClipboardEvent({
+        target: $('<div id="testElement">Test</div>')[0],
+      });
       const plugin = getPlugin('CopyPaste');
 
       spyOn(copyEvent, 'preventDefault');
@@ -152,7 +161,9 @@ describe('CopyPaste', () => {
         data: createSpreadsheetData(5, 5),
       });
 
-      const copyEvent = getClipboardEvent();
+      const copyEvent = getClipboardEvent({
+        target: document.body,
+      });
       const plugin = getPlugin('CopyPaste');
 
       spyOn(copyEvent, 'preventDefault');
@@ -170,7 +181,9 @@ describe('CopyPaste', () => {
         data: createSpreadsheetData(5, 5),
       });
 
-      const copyEvent = getClipboardEvent();
+      const copyEvent = getClipboardEvent({
+        target: getCell(1, 1),
+      });
       const plugin = getPlugin('CopyPaste');
 
       spyOn(copyEvent, 'preventDefault');
@@ -190,14 +203,16 @@ describe('CopyPaste', () => {
         height: 50,
       });
 
-      const cutEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
       const expectedResult = getDataAtRow(0).join('\t');
 
       await selectCells([[0, 0, 0, 49]]);
       await sleep(10);
 
-      cutEvent.target = document.activeElement;
+      const cutEvent = getClipboardEvent({
+        target: document.activeElement,
+      });
+
       plugin.onCut(cutEvent); // emulate native "cut" event
 
       expect(cutEvent.clipboardData.getData('text/plain')).toBe(expectedResult);

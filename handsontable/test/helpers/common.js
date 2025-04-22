@@ -1315,13 +1315,19 @@ export function createSpreadsheetObjectData(...args) {
 }
 
 /**
+ * Creates the mock of the clipboard event.
+ *
+ * @param {object} options The options for the event.
+ * @param {HTMLElement} options.target The target element for the event.
  * @returns {Event}
  */
-export function getClipboardEvent() {
+export function getClipboardEvent({ target = document.body } = {}) {
   const event = {};
 
   event.clipboardData = new DataTransferObject();
   event.preventDefault = () => { };
+  event.target = target;
+  event.composedPath = () => [target];
 
   return event;
 }
