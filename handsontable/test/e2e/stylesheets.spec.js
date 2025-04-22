@@ -1,28 +1,18 @@
 describe('Stylesheets', () => {
   describe('CSS charset declarations', () => {
-    it('should have exactly one @charset declaration at the beginning of each CSS file', () => {
-      if (!['classic', undefined].includes(spec().loadedTheme)) {
-        pending('Test is only valid for the classic theme.');
+    it.forTheme('classic')(
+      'should have exactly one @charset declaration at the beginning of each CSS file',
+      async() => {
+        const hotCss = [
+          '../dist/handsontable.css',
+          '../dist/handsontable.min.css',
+          '../dist/handsontable.full.css',
+          '../dist/handsontable.full.min.css',
+        ];
 
-        return;
-      }
-
-      const hotCss = [
-        '../dist/handsontable.css',
-        '../dist/handsontable.min.css',
-        '../dist/handsontable.full.css',
-        '../dist/handsontable.full.min.css',
-      ];
-
-      hotCss.forEach((cssUrl) => {
-        // Create a new XMLHttpRequest to fetch the CSS content.
-        const xhr = new XMLHttpRequest();
-
-        xhr.open('GET', cssUrl, false);
-        xhr.send();
-
-        if (xhr.status === 200) {
-          const content = xhr.responseText;
+        await Promise.all(hotCss.map(async(cssUrl) => {
+          const response = await fetch(cssUrl);
+          const content = await response.text();
           const charsetRegex = /@charset\s+["'][^"']+["']\s*;/g;
           const matches = content.match(charsetRegex);
 
@@ -35,8 +25,8 @@ describe('Stylesheets', () => {
 
           expect(firstCharsetIndex).toBe(0);
           expect(contentBeforeCharset).toBe('');
-        }
-      });
-    });
+        }));
+      }
+    );
   });
 });
