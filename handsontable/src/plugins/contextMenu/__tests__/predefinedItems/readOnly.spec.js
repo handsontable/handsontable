@@ -53,118 +53,118 @@ describe('ContextMenu', () => {
     });
 
     it('should make a range of selected cells read-only, if all of them are writable', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100
       });
 
-      expect(hot.getCellMeta(0, 0).readOnly).toEqual(false);
-      expect(hot.getCellMeta(0, 1).readOnly).toEqual(false);
-      expect(hot.getCellMeta(1, 0).readOnly).toEqual(false);
-      expect(hot.getCellMeta(1, 1).readOnly).toEqual(false);
+      expect(getCellMeta(0, 0).readOnly).toEqual(false);
+      expect(getCellMeta(0, 1).readOnly).toEqual(false);
+      expect(getCellMeta(1, 0).readOnly).toEqual(false);
+      expect(getCellMeta(1, 1).readOnly).toEqual(false);
 
       await selectCell(0, 0, 2, 2);
       await contextMenu();
       await selectContextMenuOption('Read only');
 
-      expect(hot.getCellMeta(0, 0).readOnly).toEqual(true);
-      expect(hot.getCellMeta(0, 1).readOnly).toEqual(true);
-      expect(hot.getCellMeta(1, 0).readOnly).toEqual(true);
-      expect(hot.getCellMeta(1, 1).readOnly).toEqual(true);
+      expect(getCellMeta(0, 0).readOnly).toEqual(true);
+      expect(getCellMeta(0, 1).readOnly).toEqual(true);
+      expect(getCellMeta(1, 0).readOnly).toEqual(true);
+      expect(getCellMeta(1, 1).readOnly).toEqual(true);
       expect(getSelected()).toEqual([[0, 0, 2, 2]]);
     });
 
     it('should make a multiple of selected cells read-only, if all of them are writable', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100
       });
 
-      expect(hot.getCellMeta(0, 0).readOnly).toBe(false);
-      expect(hot.getCellMeta(0, 1).readOnly).toBe(false);
-      expect(hot.getCellMeta(1, 0).readOnly).toBe(false);
-      expect(hot.getCellMeta(1, 1).readOnly).toBe(false);
+      expect(getCellMeta(0, 0).readOnly).toBe(false);
+      expect(getCellMeta(0, 1).readOnly).toBe(false);
+      expect(getCellMeta(1, 0).readOnly).toBe(false);
+      expect(getCellMeta(1, 1).readOnly).toBe(false);
 
       await selectCell(0, 0, 2, 2);
       await contextMenu();
       await selectContextMenuOption('Read only');
 
-      expect(hot.getCellMeta(0, 0).readOnly).toBe(true);
-      expect(hot.getCellMeta(0, 1).readOnly).toBe(true);
-      expect(hot.getCellMeta(1, 0).readOnly).toBe(true);
-      expect(hot.getCellMeta(1, 1).readOnly).toBe(true);
+      expect(getCellMeta(0, 0).readOnly).toBe(true);
+      expect(getCellMeta(0, 1).readOnly).toBe(true);
+      expect(getCellMeta(1, 0).readOnly).toBe(true);
+      expect(getCellMeta(1, 1).readOnly).toBe(true);
     });
 
     it('should make a group of selected cells read-only, if all of them are writable (reverse selection)', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100
       });
 
-      expect(hot.getCellMeta(0, 0).readOnly).toBe(false);
-      expect(hot.getCellMeta(0, 1).readOnly).toBe(false);
-      expect(hot.getCellMeta(1, 0).readOnly).toBe(false);
-      expect(hot.getCellMeta(1, 1).readOnly).toBe(false);
+      expect(getCellMeta(0, 0).readOnly).toBe(false);
+      expect(getCellMeta(0, 1).readOnly).toBe(false);
+      expect(getCellMeta(1, 0).readOnly).toBe(false);
+      expect(getCellMeta(1, 1).readOnly).toBe(false);
 
       await selectCell(2, 2, 0, 0);
       await contextMenu();
       await selectContextMenuOption('Read only');
 
-      expect(hot.getCellMeta(0, 0).readOnly).toBe(true);
-      expect(hot.getCellMeta(0, 1).readOnly).toBe(true);
-      expect(hot.getCellMeta(1, 0).readOnly).toBe(true);
-      expect(hot.getCellMeta(1, 1).readOnly).toBe(true);
+      expect(getCellMeta(0, 0).readOnly).toBe(true);
+      expect(getCellMeta(0, 1).readOnly).toBe(true);
+      expect(getCellMeta(1, 0).readOnly).toBe(true);
+      expect(getCellMeta(1, 1).readOnly).toBe(true);
     });
 
     it('should make a group of selected cells writable if at least one of them is read-only', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100
       });
 
-      expect(hot.getCellMeta(0, 0).readOnly).toBe(false);
-      expect(hot.getCellMeta(0, 1).readOnly).toBe(false);
-      expect(hot.getCellMeta(1, 0).readOnly).toBe(false);
-      expect(hot.getCellMeta(1, 1).readOnly).toBe(false);
+      expect(getCellMeta(0, 0).readOnly).toBe(false);
+      expect(getCellMeta(0, 1).readOnly).toBe(false);
+      expect(getCellMeta(1, 0).readOnly).toBe(false);
+      expect(getCellMeta(1, 1).readOnly).toBe(false);
 
-      hot.getCellMeta(1, 1).readOnly = true;
+      getCellMeta(1, 1).readOnly = true;
 
       await selectCell(0, 0, 2, 2);
       await contextMenu();
       await selectContextMenuOption('Read only');
 
-      expect(hot.getCellMeta(0, 0).readOnly).toBe(false);
-      expect(hot.getCellMeta(0, 1).readOnly).toBe(false);
-      expect(hot.getCellMeta(1, 0).readOnly).toBe(false);
-      expect(hot.getCellMeta(1, 1).readOnly).toBe(false);
+      expect(getCellMeta(0, 0).readOnly).toBe(false);
+      expect(getCellMeta(0, 1).readOnly).toBe(false);
+      expect(getCellMeta(1, 0).readOnly).toBe(false);
+      expect(getCellMeta(1, 1).readOnly).toBe(false);
     });
 
     it('should make a group of selected cells writable if at least one of them is read-only (reverse selection)', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(4, 4),
         contextMenu: true,
         height: 100
       });
 
-      expect(hot.getCellMeta(0, 0).readOnly).toBe(false);
-      expect(hot.getCellMeta(0, 1).readOnly).toBe(false);
-      expect(hot.getCellMeta(1, 0).readOnly).toBe(false);
-      expect(hot.getCellMeta(1, 1).readOnly).toBe(false);
+      expect(getCellMeta(0, 0).readOnly).toBe(false);
+      expect(getCellMeta(0, 1).readOnly).toBe(false);
+      expect(getCellMeta(1, 0).readOnly).toBe(false);
+      expect(getCellMeta(1, 1).readOnly).toBe(false);
 
-      hot.getCellMeta(1, 1).readOnly = true;
+      getCellMeta(1, 1).readOnly = true;
 
       await selectCell(2, 2, 0, 0);
       await contextMenu();
       await selectContextMenuOption('Read only');
 
-      expect(hot.getCellMeta(0, 0).readOnly).toBe(false);
-      expect(hot.getCellMeta(0, 1).readOnly).toBe(false);
-      expect(hot.getCellMeta(1, 0).readOnly).toBe(false);
-      expect(hot.getCellMeta(1, 1).readOnly).toBe(false);
+      expect(getCellMeta(0, 0).readOnly).toBe(false);
+      expect(getCellMeta(0, 1).readOnly).toBe(false);
+      expect(getCellMeta(1, 0).readOnly).toBe(false);
+      expect(getCellMeta(1, 1).readOnly).toBe(false);
     });
 
     it('should trigger `afterSetCellMeta` callback after changing cell to read only by context menu', async() => {

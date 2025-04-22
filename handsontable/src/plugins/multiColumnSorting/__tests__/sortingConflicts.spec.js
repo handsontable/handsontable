@@ -6,7 +6,7 @@ describe('MultiColumnSorting cooperation with ColumnSorting', () => {
 
     this.sortByClickOnColumnHeader = async(columnIndex) => {
       const hot = this.$container.data('handsontable');
-      const $columnHeader = $(hot.view._wt.wtTable.getColumnHeader(columnIndex));
+      const $columnHeader = $(tableView()._wt.wtTable.getColumnHeader(columnIndex));
       const $spanInsideHeader = $columnHeader.find('.columnSorting');
 
       if ($spanInsideHeader.length === 0) {

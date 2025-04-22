@@ -21,18 +21,18 @@ describe('NestedHeaders', () => {
 
   describe('hiding columns', () => {
     it('should work with default setup', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(10, 10),
         colHeaders: true,
         nestedHeaders: true,
       });
 
-      const hidingMap = hot.columnIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding');
+      const hidingMap = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
 
       hidingMap.setValueAtIndex(1, true); // Hide column that contains cells B{n}
       hidingMap.setValueAtIndex(4, true); // Hide column that contains cells E{n}
       hidingMap.setValueAtIndex(8, true); // Hide column that contains cells I{n}
-      hot.render();
+      await render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -61,21 +61,21 @@ describe('NestedHeaders', () => {
     });
 
     it('should work with minimal setup', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(10, 10),
         colHeaders: true,
       });
 
-      hot.updateSettings({
+      await updateSettings({
         nestedHeaders: [[]],
       });
 
-      const hidingMap = hot.columnIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding');
+      const hidingMap = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
 
       hidingMap.setValueAtIndex(1, true); // Hide column that contains cells B{n}
       hidingMap.setValueAtIndex(4, true); // Hide column that contains cells E{n}
       hidingMap.setValueAtIndex(8, true); // Hide column that contains cells I{n}
-      hot.render();
+      await render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -104,7 +104,7 @@ describe('NestedHeaders', () => {
     });
 
     it('should work with single level of nested headers configuration', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(10, 10),
         colHeaders: true,
         nestedHeaders: [
@@ -112,13 +112,13 @@ describe('NestedHeaders', () => {
         ],
       });
 
-      const hidingMap = hot.columnIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding');
+      const hidingMap = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
 
       hidingMap.setValueAtIndex(1, true); // Hide column that contains cells B{n}
       hidingMap.setValueAtIndex(4, true); // Hide column that contains cells E{n}
       hidingMap.setValueAtIndex(8, true); // Hide column that contains cells I{n}
       hidingMap.setValueAtIndex(7, true); // Hide column that contains cells H{n}
-      hot.render();
+      await render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -144,7 +144,7 @@ describe('NestedHeaders', () => {
         `);
 
       hidingMap.setValueAtIndex(3, true); // Hide column that contains cells D{n}
-      hot.render();
+      await render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -169,7 +169,7 @@ describe('NestedHeaders', () => {
 
       hidingMap.setValueAtIndex(2, true); // Hide column that contains cells C{n}
       hidingMap.setValueAtIndex(9, true); // Hide column that contains cells J{n}
-      hot.render();
+      await render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -190,7 +190,7 @@ describe('NestedHeaders', () => {
 
       hidingMap.setValueAtIndex(0, true); // Hide column that contains cells A{n}
       hidingMap.setValueAtIndex(6, true); // Hide column that contains cells G{n}
-      hot.render();
+      await render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -206,7 +206,7 @@ describe('NestedHeaders', () => {
         `);
 
       hidingMap.setValueAtIndex(5, true); // Hide column that contains cells F{n}
-      hot.render();
+      await render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -221,7 +221,7 @@ describe('NestedHeaders', () => {
     });
 
     it('should keep the headers in sync with a dataset after updateSettings call', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(10, 10),
         colHeaders: true,
         nestedHeaders: [
@@ -229,13 +229,13 @@ describe('NestedHeaders', () => {
         ],
       });
 
-      const hidingMap = hot.columnIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding');
+      const hidingMap = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
 
       hidingMap.setValueAtIndex(1, true); // Hide column that contains cells B{n}
       hidingMap.setValueAtIndex(4, true); // Hide column that contains cells E{n}
       hidingMap.setValueAtIndex(8, true); // Hide column that contains cells I{n}
       hidingMap.setValueAtIndex(6, true); // Hide column that contains cells G{n}
-      hot.render();
+      await render();
 
       await updateSettings({ });
 
@@ -264,7 +264,7 @@ describe('NestedHeaders', () => {
 
       hidingMap.setValueAtIndex(7, true); // Hide column that contains cells H{n}
       hidingMap.setValueAtIndex(0, true); // Hide column that contains cells A{n}
-      hot.render();
+      await render();
 
       await updateSettings({ });
 
@@ -289,7 +289,7 @@ describe('NestedHeaders', () => {
     });
 
     it('should work with multiple levels of nested headers configuration (variation #1)', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(10, 10),
         colHeaders: true,
         nestedHeaders: [
@@ -300,11 +300,11 @@ describe('NestedHeaders', () => {
         ],
       });
 
-      const hidingMap = hot.columnIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding');
+      const hidingMap = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
 
       hidingMap.setValueAtIndex(1, true); // Hide column that contains cells B{n}
       hidingMap.setValueAtIndex(3, true); // Hide column that contains cells D{n}
-      hot.render();
+      await render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -366,7 +366,7 @@ describe('NestedHeaders', () => {
       hidingMap.setValueAtIndex(7, true); // Hide column that contains cells H{n}
       hidingMap.setValueAtIndex(6, true); // Hide column that contains cells G{n}
       hidingMap.setValueAtIndex(9, true); // Hide column that contains cells J{n}
-      hot.render();
+      await render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -413,7 +413,7 @@ describe('NestedHeaders', () => {
       hidingMap.setValueAtIndex(7, true); // Hide column that contains cells H{n}
       hidingMap.setValueAtIndex(6, true); // Hide column that contains cells G{n}
       hidingMap.setValueAtIndex(9, true); // Hide column that contains cells J{n}
-      hot.render();
+      await render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -458,7 +458,7 @@ describe('NestedHeaders', () => {
         `);
 
       hidingMap.setValueAtIndex(4, true); // Hide column that contains cells E{n}
-      hot.render();
+      await render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -499,7 +499,7 @@ describe('NestedHeaders', () => {
 
       hidingMap.setValueAtIndex(2, true); // Hide column that contains cells C{n}
       hidingMap.setValueAtIndex(0, true); // Hide column that contains cells A{n}
-      hot.render();
+      await render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -529,7 +529,7 @@ describe('NestedHeaders', () => {
         `);
 
       hidingMap.setValueAtIndex(5, true); // Hide column that contains cells F{n}
-      hot.render();
+      await render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -554,7 +554,7 @@ describe('NestedHeaders', () => {
         `);
 
       hidingMap.setValueAtIndex(8, true); // Hide column that contains cells I{n}
-      hot.render();
+      await render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -575,7 +575,7 @@ describe('NestedHeaders', () => {
     });
 
     it('should work with multiple levels of nested headers configuration (variation #2, advanced example, with "mirrored" headers)', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(10, 13),
         colHeaders: true,
         nestedHeaders: [
@@ -587,11 +587,11 @@ describe('NestedHeaders', () => {
         ],
       });
 
-      const hidingMap = hot.columnIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding');
+      const hidingMap = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
 
       hidingMap.setValueAtIndex(3, true); // Hide column that contains cells D{n}
       hidingMap.setValueAtIndex(0, true); // Hide column that contains cells A{n}
-      hot.render();
+      await render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -668,7 +668,7 @@ describe('NestedHeaders', () => {
       hidingMap.setValueAtIndex(9, true); // Hide column that contains cells J{n}
       hidingMap.setValueAtIndex(8, true); // Hide column that contains cells I{n}
       hidingMap.setValueAtIndex(11, true); // Hide column that contains cells L{n}
-      hot.render();
+      await render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -729,7 +729,7 @@ describe('NestedHeaders', () => {
 
       hidingMap.setValueAtIndex(7, true); // Hide column that contains cells H{n}
       hidingMap.setValueAtIndex(2, true); // Hide column that contains cells C{n}
-      hot.render();
+      await render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -780,7 +780,7 @@ describe('NestedHeaders', () => {
 
       hidingMap.setValueAtIndex(4, true); // Hide column that contains cells E{n}
       hidingMap.setValueAtIndex(10, true); // Hide column that contains cells K{n}
-      hot.render();
+      await render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -821,7 +821,7 @@ describe('NestedHeaders', () => {
 
       hidingMap.setValueAtIndex(1, true); // Hide column that contains cells B{n}
       hidingMap.setValueAtIndex(12, true); // Hide column that contains cells M{n}
-      hot.render();
+      await render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -851,7 +851,7 @@ describe('NestedHeaders', () => {
         `);
 
       hidingMap.setValueAtIndex(5, true); // Hide column that contains cells F{n}
-      hot.render();
+      await render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -876,7 +876,7 @@ describe('NestedHeaders', () => {
         `);
 
       hidingMap.setValueAtIndex(6, true); // Hide column that contains cells G{n}
-      hot.render();
+      await render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -897,7 +897,7 @@ describe('NestedHeaders', () => {
     });
 
     it('should work with multiple levels of nested headers configuration with cooperation with the fixedColumnsStart option', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(10, 13),
         colHeaders: true,
         nestedHeaders: [
@@ -910,11 +910,11 @@ describe('NestedHeaders', () => {
         fixedColumnsStart: 6,
       });
 
-      const hidingMap = hot.columnIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding');
+      const hidingMap = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
 
       hidingMap.setValueAtIndex(3, true); // Hide column that contains cells D{n}
       hidingMap.setValueAtIndex(0, true); // Hide column that contains cells A{n}
-      hot.render();
+      await render();
 
       {
         const htmlPattern = `
@@ -959,7 +959,7 @@ describe('NestedHeaders', () => {
       }
 
       hidingMap.setValueAtIndex(4, true); // Hide column that contains cells E{n}
-      hot.render();
+      await render();
 
       {
         const htmlPattern = `
@@ -999,7 +999,7 @@ describe('NestedHeaders', () => {
       }
 
       hidingMap.setValueAtIndex(1, true); // Hide column that contains cells B{n}
-      hot.render();
+      await render();
 
       {
         const htmlPattern = `
@@ -1034,7 +1034,7 @@ describe('NestedHeaders', () => {
       }
 
       hidingMap.setValueAtIndex(2, true); // Hide column that contains cells C{n}
-      hot.render();
+      await render();
 
       {
         const htmlPattern = `
@@ -1066,7 +1066,7 @@ describe('NestedHeaders', () => {
       hidingMap.setValueAtIndex(5, true); // Hide column that contains cells F{n}
       hidingMap.setValueAtIndex(6, true); // Hide column that contains cells G{n}
       hidingMap.setValueAtIndex(10, true); // Hide column that contains cells K{n}
-      hot.render();
+      await render();
 
       {
         const htmlPattern = `
@@ -1092,7 +1092,7 @@ describe('NestedHeaders', () => {
     });
 
     it.forTheme('classic')('should render the setup properly after the table being scrolled', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(10, 90),
         colHeaders: true,
         nestedHeaders: generateComplexSetup(4, 70, true),
@@ -1101,12 +1101,12 @@ describe('NestedHeaders', () => {
         viewportColumnRenderingOffset: 0,
       });
 
-      const hidingMap = hot.columnIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding');
+      const hidingMap = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
 
       hidingMap.setValueAtIndex(40, true); // Hide column that contains cells AO{n}
       hidingMap.setValueAtIndex(42, true); // Hide column that contains cells AQ{n}
       hidingMap.setValueAtIndex(45, true); // Hide column that contains cells AT{n}
-      hot.render();
+      await render();
 
       await scrollViewportTo({ // Scroll to column AP4
         col: 40,
@@ -1190,7 +1190,7 @@ describe('NestedHeaders', () => {
       hidingMap.setValueAtIndex(60, true); // Hide column that contains cells BI{n}
       hidingMap.setValueAtIndex(62, true); // Hide column that contains cells BK{n}
       hidingMap.setValueAtIndex(57, true); // Hide column that contains cells BF{n}
-      hot.render();
+      await render();
 
       await scrollViewportTo({ // Scroll to column BD4
         col: 55,
@@ -1302,7 +1302,7 @@ describe('NestedHeaders', () => {
     });
 
     it.forTheme('main')('should render the setup properly after the table being scrolled', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(10, 90),
         colHeaders: true,
         nestedHeaders: generateComplexSetup(4, 70, true),
@@ -1311,12 +1311,12 @@ describe('NestedHeaders', () => {
         viewportColumnRenderingOffset: 0,
       });
 
-      const hidingMap = hot.columnIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding');
+      const hidingMap = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
 
       hidingMap.setValueAtIndex(40, true); // Hide column that contains cells AO{n}
       hidingMap.setValueAtIndex(42, true); // Hide column that contains cells AQ{n}
       hidingMap.setValueAtIndex(45, true); // Hide column that contains cells AT{n}
-      hot.render();
+      await render();
 
       await scrollViewportTo({ // Scroll to column AP4
         col: 40,
@@ -1400,7 +1400,7 @@ describe('NestedHeaders', () => {
       hidingMap.setValueAtIndex(60, true); // Hide column that contains cells BI{n}
       hidingMap.setValueAtIndex(62, true); // Hide column that contains cells BK{n}
       hidingMap.setValueAtIndex(57, true); // Hide column that contains cells BF{n}
-      hot.render();
+      await render();
 
       await scrollViewportTo({ // Scroll to column BD4
         col: 55,
@@ -1512,7 +1512,7 @@ describe('NestedHeaders', () => {
     });
 
     it.forTheme('horizon')('should render the setup properly after the table being scrolled', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(10, 90),
         colHeaders: true,
         nestedHeaders: generateComplexSetup(4, 70, true),
@@ -1521,12 +1521,12 @@ describe('NestedHeaders', () => {
         viewportColumnRenderingOffset: 0,
       });
 
-      const hidingMap = hot.columnIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding');
+      const hidingMap = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
 
       hidingMap.setValueAtIndex(40, true); // Hide column that contains cells AO{n}
       hidingMap.setValueAtIndex(42, true); // Hide column that contains cells AQ{n}
       hidingMap.setValueAtIndex(45, true); // Hide column that contains cells AT{n}
-      hot.render();
+      await render();
 
       await scrollViewportTo({ // Scroll to column AP4
         col: 40,
@@ -1610,7 +1610,7 @@ describe('NestedHeaders', () => {
       hidingMap.setValueAtIndex(60, true); // Hide column that contains cells BI{n}
       hidingMap.setValueAtIndex(62, true); // Hide column that contains cells BK{n}
       hidingMap.setValueAtIndex(57, true); // Hide column that contains cells BF{n}
-      hot.render();
+      await render();
 
       await scrollViewportTo({ // Scroll to column BD4
         col: 55,
@@ -1722,7 +1722,7 @@ describe('NestedHeaders', () => {
     });
 
     it('should adjust headers correctly when the new maps are created and registered after Hot is running', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(10, 10),
         colHeaders: true,
         nestedHeaders: [
@@ -1733,18 +1733,18 @@ describe('NestedHeaders', () => {
         ],
       });
 
-      const hidingMap = hot.columnIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding');
+      const hidingMap = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
 
       hidingMap.setValueAtIndex(3, true); // Hide column that contains cells D{n}
-      hot.render();
+      await render();
 
       await sleep(200);
 
-      const hidingMap2 = hot.columnIndexMapper.createAndRegisterIndexMap('my-hiding-map2', 'hiding');
+      const hidingMap2 = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map2', 'hiding');
 
       hidingMap2.setValueAtIndex(6, true); // Hide column that contains cells G{n}
       hidingMap2.setValueAtIndex(9, true); // Hide column that contains cells J{n}
-      hot.render();
+      await render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -1800,11 +1800,11 @@ describe('NestedHeaders', () => {
 
       await sleep(200);
 
-      const hidingMap3 = hot.columnIndexMapper.createAndRegisterIndexMap('my-hiding-map3', 'hiding');
+      const hidingMap3 = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map3', 'hiding');
 
       hidingMap3.setValueAtIndex(2, true); // Hide column that contains cells C{n}
       hidingMap3.setValueAtIndex(1, true); // Hide column that contains cells B{n}
-      hot.render();
+      await render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -1850,11 +1850,11 @@ describe('NestedHeaders', () => {
 
       await sleep(200);
 
-      const hidingMap4 = hot.columnIndexMapper.createAndRegisterIndexMap('my-hiding-map4', 'hiding');
+      const hidingMap4 = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map4', 'hiding');
 
       hidingMap4.setValueAtIndex(0, true); // Hide column that contains cells A{n}
       hidingMap4.setValueAtIndex(5, true); // Hide column that contains cells F{n}
-      hot.render();
+      await render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -1890,7 +1890,7 @@ describe('NestedHeaders', () => {
     });
 
     it('should adjust headers correctly when the hidden maps are unregistered', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(10, 10),
         colHeaders: true,
         nestedHeaders: [
@@ -1901,36 +1901,36 @@ describe('NestedHeaders', () => {
         ],
       });
 
-      const hidingMap = hot.columnIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding');
+      const hidingMap = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
 
       hidingMap.setValueAtIndex(3, true); // Hide column that contains cells D{n}
-      hot.render();
+      await render();
 
       await sleep(200);
 
-      const hidingMap2 = hot.columnIndexMapper.createAndRegisterIndexMap('my-hiding-map2', 'hiding');
+      const hidingMap2 = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map2', 'hiding');
 
       hidingMap2.setValueAtIndex(6, true); // Hide column that contains cells G{n}
       hidingMap2.setValueAtIndex(9, true); // Hide column that contains cells J{n}
 
       await sleep(200);
 
-      const hidingMap3 = hot.columnIndexMapper.createAndRegisterIndexMap('my-hiding-map3', 'hiding');
+      const hidingMap3 = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map3', 'hiding');
 
       hidingMap3.setValueAtIndex(2, true); // Hide column that contains cells C{n}
       hidingMap3.setValueAtIndex(1, true); // Hide column that contains cells B{n}
       hidingMap3.setValueAtIndex(3, true); // Hide column that contains cells D{n}
       hidingMap3.setValueAtIndex(9, true); // Hide column that contains cells J{n}
-      hot.render();
+      await render();
 
       await sleep(200);
 
-      const hidingMap4 = hot.columnIndexMapper.createAndRegisterIndexMap('my-hiding-map4', 'hiding');
+      const hidingMap4 = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map4', 'hiding');
 
       hidingMap4.setValueAtIndex(0, true); // Hide column that contains cells A{n}
       hidingMap4.setValueAtIndex(5, true); // Hide column that contains cells F{n}
       hidingMap4.setValueAtIndex(9, true); // Hide column that contains cells J{n}
-      hot.render();
+      await render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -1964,8 +1964,8 @@ describe('NestedHeaders', () => {
         </tbody>
         `);
 
-      hot.columnIndexMapper.unregisterMap('my-hiding-map4');
-      hot.render();
+      columnIndexMapper().unregisterMap('my-hiding-map4');
+      await render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -2009,9 +2009,9 @@ describe('NestedHeaders', () => {
         </tbody>
         `);
 
-      hot.columnIndexMapper.unregisterMap('my-hiding-map');
-      hot.columnIndexMapper.unregisterMap('my-hiding-map3');
-      hot.render();
+      columnIndexMapper().unregisterMap('my-hiding-map');
+      columnIndexMapper().unregisterMap('my-hiding-map3');
+      await render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -2070,8 +2070,8 @@ describe('NestedHeaders', () => {
         </tbody>
         `);
 
-      hot.columnIndexMapper.unregisterMap('my-hiding-map2');
-      hot.render();
+      columnIndexMapper().unregisterMap('my-hiding-map2');
+      await render();
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -2177,10 +2177,10 @@ describe('NestedHeaders', () => {
         return true;
       };
 
-      const hidingMap = hot.columnIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding');
+      const hidingMap = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
 
       hidingMap.setValues([true, true, true]);
-      hot.render();
+      await render();
 
       await scrollViewportTo({
         row: 0,
@@ -2203,7 +2203,7 @@ describe('NestedHeaders', () => {
       ).toEqual(true);
 
       hidingMap.setValues([true, true, true, true, true, true]);
-      hot.render();
+      await render();
 
       await scrollViewportTo({
         row: 0,

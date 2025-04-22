@@ -12,7 +12,7 @@ describe('Filters UI cooperation with ManualColumnMove', () => {
 
   it('should work as expected after actions sequence: filtering column by value -> moving the column -> ' +
      'filtering any other column by value', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [
         {
           id: 1,
@@ -47,7 +47,7 @@ describe('Filters UI cooperation with ManualColumnMove', () => {
       height: 300
     });
 
-    const manualColumnMove = hot.getPlugin('manualColumnMove');
+    const manualColumnMove = getPlugin('manualColumnMove');
 
     // filtering first value of column (deselecting checkbox)
     await dropdownMenu(0);
@@ -57,7 +57,7 @@ describe('Filters UI cooperation with ManualColumnMove', () => {
 
     // moving column
     manualColumnMove.moveColumn(0, 1);
-    hot.render();
+    await render();
 
     // filtering first value of column (deselecting checkbox)
     await dropdownMenu(2);
@@ -70,7 +70,7 @@ describe('Filters UI cooperation with ManualColumnMove', () => {
 
   it('should work as expected after actions sequence: filtering column by value -> moving the column -> ' +
     'filtering the column by value ', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [
         {
           id: 1,
@@ -105,7 +105,7 @@ describe('Filters UI cooperation with ManualColumnMove', () => {
       height: 300
     });
 
-    const manualColumnMove = hot.getPlugin('manualColumnMove');
+    const manualColumnMove = getPlugin('manualColumnMove');
 
     // filtering first value of column (deselecting checkbox)
     await dropdownMenu(0);
@@ -115,7 +115,7 @@ describe('Filters UI cooperation with ManualColumnMove', () => {
 
     // moving column
     manualColumnMove.moveColumn(0, 1);
-    hot.render();
+    await render();
 
     // filtering second value of column (deselecting checkbox)
     await dropdownMenu(1);

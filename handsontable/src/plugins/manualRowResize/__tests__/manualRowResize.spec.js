@@ -446,7 +446,7 @@ describe('manualRowResize', () => {
   });
 
   it('should appropriate resize rowHeight after beforeRowResize call a few times', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       rowHeaders: true,
       manualRowResize: true
@@ -458,9 +458,9 @@ describe('manualRowResize', () => {
       horizon.toEqual(38);
     });
 
-    hot.addHook('beforeRowResize', () => 100);
-    hot.addHook('beforeRowResize', () => 200);
-    hot.addHook('beforeRowResize', () => undefined);
+    addHook('beforeRowResize', () => 100);
+    addHook('beforeRowResize', () => 200);
+    addHook('beforeRowResize', () => undefined);
 
     const $th = getInlineStartClone().find('tbody tr:eq(0) th:eq(0)');
 
@@ -1808,7 +1808,7 @@ describe('manualRowResize', () => {
       });
 
       it('should display the resize guide in the correct size', async() => {
-        const hot = handsontable({
+        handsontable({
           layoutDirection,
           data: createSpreadsheetData(20, 20),
           rowHeaders: true,
@@ -1816,7 +1816,7 @@ describe('manualRowResize', () => {
           height: 100,
           width: 200
         });
-        const tableWidth = parseInt(hot.view.getTableWidth(), 10);
+        const tableWidth = parseInt(tableView().getTableWidth(), 10);
         const $rowHeader = getInlineStartClone().find('tbody tr:eq(2) th:eq(0)');
 
         $rowHeader.simulate('mouseover');

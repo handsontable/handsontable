@@ -25,77 +25,77 @@ describe('Selection', () => {
 
   describe('`isSelectedByAnyHeader` method', () => {
     it('should return `true` when one of the headers are selected (headers off)', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(4, 6),
         colHeaders: false,
         rowHeaders: false,
       });
 
-      expect(hot.selection.isSelectedByAnyHeader()).toBe(false);
+      expect(selection().isSelectedByAnyHeader()).toBe(false);
 
-      hot.selection.deselect();
-      hot.selection.selectRows(0);
+      selection().deselect();
+      selection().selectRows(0);
 
-      expect(hot.selection.isSelectedByAnyHeader()).toBe(true);
+      expect(selection().isSelectedByAnyHeader()).toBe(true);
 
-      hot.selection.deselect();
-      hot.selection.selectColumns(0);
+      selection().deselect();
+      selection().selectColumns(0);
 
-      expect(hot.selection.isSelectedByAnyHeader()).toBe(true);
+      expect(selection().isSelectedByAnyHeader()).toBe(true);
 
-      hot.selection.deselect();
-      hot.selection.selectAll(false, false);
+      selection().deselect();
+      selection().selectAll(false, false);
 
-      expect(hot.selection.isSelectedByAnyHeader()).toBe(false);
+      expect(selection().isSelectedByAnyHeader()).toBe(false);
 
-      hot.selection.deselect();
-      hot.selection.selectAll(true, true);
+      selection().deselect();
+      selection().selectAll(true, true);
 
-      expect(hot.selection.isSelectedByAnyHeader()).toBe(false);
+      expect(selection().isSelectedByAnyHeader()).toBe(false);
     });
 
     it('should return `true` when one of the headers are selected (headers on)', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(4, 6),
         colHeaders: true,
         rowHeaders: true,
       });
 
-      expect(hot.selection.isSelectedByAnyHeader()).toBe(false);
+      expect(selection().isSelectedByAnyHeader()).toBe(false);
 
-      hot.selection.deselect();
-      hot.selection.selectRows(0);
+      selection().deselect();
+      selection().selectRows(0);
 
-      expect(hot.selection.isSelectedByAnyHeader()).toBe(true);
+      expect(selection().isSelectedByAnyHeader()).toBe(true);
 
-      hot.selection.deselect();
-      hot.selection.selectColumns(0);
+      selection().deselect();
+      selection().selectColumns(0);
 
-      expect(hot.selection.isSelectedByAnyHeader()).toBe(true);
+      expect(selection().isSelectedByAnyHeader()).toBe(true);
 
-      hot.selection.deselect();
-      hot.selection.selectAll(false, false);
+      selection().deselect();
+      selection().selectAll(false, false);
 
-      expect(hot.selection.isSelectedByAnyHeader()).toBe(false);
+      expect(selection().isSelectedByAnyHeader()).toBe(false);
 
-      hot.selection.deselect();
-      hot.selection.selectAll(true, false);
+      selection().deselect();
+      selection().selectAll(true, false);
 
-      expect(hot.selection.isSelectedByAnyHeader()).toBe(true);
+      expect(selection().isSelectedByAnyHeader()).toBe(true);
 
-      hot.selection.deselect();
-      hot.selection.selectAll(false, true);
+      selection().deselect();
+      selection().selectAll(false, true);
 
-      expect(hot.selection.isSelectedByAnyHeader()).toBe(true);
+      expect(selection().isSelectedByAnyHeader()).toBe(true);
 
-      hot.selection.deselect();
-      hot.selection.selectAll(true, true);
+      selection().deselect();
+      selection().selectAll(true, true);
 
-      expect(hot.selection.isSelectedByAnyHeader()).toBe(true);
+      expect(selection().isSelectedByAnyHeader()).toBe(true);
     });
 
     it('should return `true` when one of the headers are selected (multiple headers, navigableHeaders on)', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(4, 6),
         colHeaders: true,
         rowHeaders: true,
@@ -110,42 +110,42 @@ describe('Selection', () => {
         },
       });
 
-      expect(hot.selection.isSelectedByAnyHeader()).toBe(false);
+      expect(selection().isSelectedByAnyHeader()).toBe(false);
 
-      hot.selection.deselect();
-      hot.selection.selectRows(0);
+      selection().deselect();
+      selection().selectRows(0);
 
-      expect(hot.selection.isSelectedByAnyHeader()).toBe(true);
+      expect(selection().isSelectedByAnyHeader()).toBe(true);
 
-      hot.selection.deselect();
-      hot.selection.selectColumns(0);
+      selection().deselect();
+      selection().selectColumns(0);
 
-      expect(hot.selection.isSelectedByAnyHeader()).toBe(true);
+      expect(selection().isSelectedByAnyHeader()).toBe(true);
 
-      hot.selection.deselect();
-      hot.selection.selectAll(false, false);
+      selection().deselect();
+      selection().selectAll(false, false);
 
-      expect(hot.selection.isSelectedByAnyHeader()).toBe(false);
+      expect(selection().isSelectedByAnyHeader()).toBe(false);
 
-      hot.selection.deselect();
-      hot.selection.selectAll(true, false);
+      selection().deselect();
+      selection().selectAll(true, false);
 
-      expect(hot.selection.isSelectedByAnyHeader()).toBe(true);
+      expect(selection().isSelectedByAnyHeader()).toBe(true);
 
-      hot.selection.deselect();
-      hot.selection.selectAll(false, true);
+      selection().deselect();
+      selection().selectAll(false, true);
 
-      expect(hot.selection.isSelectedByAnyHeader()).toBe(true);
+      expect(selection().isSelectedByAnyHeader()).toBe(true);
 
-      hot.selection.deselect();
-      hot.selection.selectAll(true, true);
+      selection().deselect();
+      selection().selectAll(true, true);
 
-      expect(hot.selection.isSelectedByAnyHeader()).toBe(true);
+      expect(selection().isSelectedByAnyHeader()).toBe(true);
 
-      hot.selection.deselect();
-      hot.selection.selectAll(-1, -1);
+      selection().deselect();
+      selection().selectAll(-1, -1);
 
-      expect(hot.selection.isSelectedByAnyHeader()).toBe(true);
+      expect(selection().isSelectedByAnyHeader()).toBe(true);
     });
   });
 });

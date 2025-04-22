@@ -58,7 +58,7 @@ describe('TextEditor keyboard shortcut', () => {
 
   describe('"Enter + Alt"', () => {
     it.forTheme('classic')('should exceed the editor height only for one line', async() => {
-      const hot = handsontable({
+      handsontable({
         data: [
           ['Maserati', 'Mazda'],
           ['Honda', 'Mini']
@@ -69,7 +69,7 @@ describe('TextEditor keyboard shortcut', () => {
       await keyDownUp('enter');
       await keyDownUp(['alt', 'enter']);
 
-      const editorTextarea = hot.getActiveEditor().TEXTAREA;
+      const editorTextarea = getActiveEditor().TEXTAREA;
       const editorComputedStyle = getComputedStyle(editorTextarea);
       const editorTextareaLineHeight = parseInt(editorComputedStyle.lineHeight, 10);
       const editorTextareaHeight = parseInt(editorComputedStyle.height, 10);
@@ -78,7 +78,7 @@ describe('TextEditor keyboard shortcut', () => {
     });
 
     it.forTheme('main')('should exceed the editor height only for one line', async() => {
-      const hot = handsontable({
+      handsontable({
         data: [
           ['Maserati', 'Mazda'],
           ['Honda', 'Mini']
@@ -89,7 +89,7 @@ describe('TextEditor keyboard shortcut', () => {
       await keyDownUp('enter');
       await keyDownUp(['alt', 'enter']);
 
-      const editorTextarea = hot.getActiveEditor().TEXTAREA;
+      const editorTextarea = getActiveEditor().TEXTAREA;
       const editorComputedStyle = getComputedStyle(editorTextarea);
       const editorTextareaLineHeight = parseInt(editorComputedStyle.lineHeight, 10);
       const editorTextareaTopPadding = parseInt(editorComputedStyle.paddingTop, 10);
@@ -105,7 +105,7 @@ describe('TextEditor keyboard shortcut', () => {
     });
 
     it.forTheme('horizon')('should exceed the editor height only for one line', async() => {
-      const hot = handsontable({
+      handsontable({
         data: [
           ['Maserati', 'Mazda'],
           ['Honda', 'Mini']
@@ -116,7 +116,7 @@ describe('TextEditor keyboard shortcut', () => {
       await keyDownUp('enter');
       await keyDownUp(['alt', 'enter']);
 
-      const editorTextarea = hot.getActiveEditor().TEXTAREA;
+      const editorTextarea = getActiveEditor().TEXTAREA;
       const editorComputedStyle = getComputedStyle(editorTextarea);
       const editorTextareaLineHeight = parseInt(editorComputedStyle.lineHeight, 10);
       const editorTextareaTopPadding = parseInt(editorComputedStyle.paddingTop, 10);
@@ -134,7 +134,7 @@ describe('TextEditor keyboard shortcut', () => {
 
   describe('"Enter + Control"', () => {
     it.forTheme('classic')('should exceed the editor height only for one line', async() => {
-      const hot = handsontable({
+      handsontable({
         data: [
           ['Maserati', 'Mazda'],
           ['Honda', 'Mini']
@@ -145,7 +145,7 @@ describe('TextEditor keyboard shortcut', () => {
       await keyDownUp('enter');
       await keyDownUp(['control', 'enter']);
 
-      const editorTextarea = hot.getActiveEditor().TEXTAREA;
+      const editorTextarea = getActiveEditor().TEXTAREA;
       const editorComputedStyle = getComputedStyle(editorTextarea);
       const editorTextareaLineHeight = parseInt(editorComputedStyle.lineHeight, 10);
       const editorTextareaHeight = parseInt(editorComputedStyle.height, 10);
@@ -154,7 +154,7 @@ describe('TextEditor keyboard shortcut', () => {
     });
 
     it.forTheme('main')('should exceed the editor height only for one line', async() => {
-      const hot = handsontable({
+      handsontable({
         data: [
           ['Maserati', 'Mazda'],
           ['Honda', 'Mini']
@@ -165,7 +165,7 @@ describe('TextEditor keyboard shortcut', () => {
       await keyDownUp('enter');
       await keyDownUp(['control', 'enter']);
 
-      const editorTextarea = hot.getActiveEditor().TEXTAREA;
+      const editorTextarea = getActiveEditor().TEXTAREA;
       const editorComputedStyle = getComputedStyle(editorTextarea);
       const editorTextareaLineHeight = parseInt(editorComputedStyle.lineHeight, 10);
       const editorTextareaPaddingTop = parseInt(editorComputedStyle.paddingTop, 10);
@@ -181,7 +181,7 @@ describe('TextEditor keyboard shortcut', () => {
     });
 
     it.forTheme('horizon')('should exceed the editor height only for one line', async() => {
-      const hot = handsontable({
+      handsontable({
         data: [
           ['Maserati', 'Mazda'],
           ['Honda', 'Mini']
@@ -192,7 +192,7 @@ describe('TextEditor keyboard shortcut', () => {
       await keyDownUp('enter');
       await keyDownUp(['control', 'enter']);
 
-      const editorTextarea = hot.getActiveEditor().TEXTAREA;
+      const editorTextarea = getActiveEditor().TEXTAREA;
       const editorComputedStyle = getComputedStyle(editorTextarea);
       const editorTextareaLineHeight = parseInt(editorComputedStyle.lineHeight, 10);
       const editorTextareaPaddingTop = parseInt(editorComputedStyle.paddingTop, 10);
@@ -210,7 +210,7 @@ describe('TextEditor keyboard shortcut', () => {
 
   describe('"Enter + Command"', () => {
     it.forTheme('classic')('should exceed the editor height only for one line', async() => {
-      const hot = handsontable({
+      handsontable({
         data: [
           ['Maserati', 'Mazda'],
           ['Honda', 'Mini']
@@ -221,7 +221,7 @@ describe('TextEditor keyboard shortcut', () => {
       await keyDownUp('enter');
       await keyDownUp(['meta', 'enter']);
 
-      const editorTextarea = hot.getActiveEditor().TEXTAREA;
+      const editorTextarea = getActiveEditor().TEXTAREA;
       const editorComputedStyle = getComputedStyle(editorTextarea);
       const editorTextareaLineHeight = parseInt(editorComputedStyle.lineHeight, 10);
       const editorTextareaHeight = parseInt(editorComputedStyle.height, 10);
@@ -230,7 +230,7 @@ describe('TextEditor keyboard shortcut', () => {
     });
 
     it.forTheme('main')('should exceed the editor height only for one line', async() => {
-      const hot = handsontable({
+      handsontable({
         data: [
           ['Maserati', 'Mazda'],
           ['Honda', 'Mini']
@@ -241,7 +241,7 @@ describe('TextEditor keyboard shortcut', () => {
       await keyDownUp('enter');
       await keyDownUp(['meta', 'enter']);
 
-      const editorTextarea = hot.getActiveEditor().TEXTAREA;
+      const editorTextarea = getActiveEditor().TEXTAREA;
       const editorComputedStyle = getComputedStyle(editorTextarea);
       const editorTextareaLineHeight = parseInt(editorComputedStyle.lineHeight, 10);
       const editorTextareaPaddingTop = parseInt(editorComputedStyle.paddingTop, 10);
@@ -257,7 +257,7 @@ describe('TextEditor keyboard shortcut', () => {
     });
 
     it.forTheme('horizon')('should exceed the editor height only for one line', async() => {
-      const hot = handsontable({
+      handsontable({
         data: [
           ['Maserati', 'Mazda'],
           ['Honda', 'Mini']
@@ -268,7 +268,7 @@ describe('TextEditor keyboard shortcut', () => {
       await keyDownUp('enter');
       await keyDownUp(['meta', 'enter']);
 
-      const editorTextarea = hot.getActiveEditor().TEXTAREA;
+      const editorTextarea = getActiveEditor().TEXTAREA;
       const editorComputedStyle = getComputedStyle(editorTextarea);
       const editorTextareaLineHeight = parseInt(editorComputedStyle.lineHeight, 10);
       const editorTextareaPaddingTop = parseInt(editorComputedStyle.paddingTop, 10);

@@ -581,7 +581,7 @@ describe('HandsontableEditor', () => {
   });
 
   it('should keep focus on textarea after arrow is pressed', async() => {
-    const hot = handsontable({
+    handsontable({
       columns: [
         {
           type: 'handsontable',
@@ -597,7 +597,7 @@ describe('HandsontableEditor', () => {
     await keyDownUp('enter');
     await keyDownUp('arrowdown');
 
-    expect(document.activeElement).toEqual(hot.getActiveEditor().TEXTAREA);
+    expect(document.activeElement).toEqual(getActiveEditor().TEXTAREA);
   });
 
   it('should focus the TD after HT editor is prepared and destroyed', async() => {
@@ -665,7 +665,7 @@ describe('HandsontableEditor', () => {
 
   describe('strict mode', () => {
     it('should open editor and select cell (0, 0) in inner HOT', async() => {
-      const hot = handsontable({
+      handsontable({
         columns: [
           {
             type: 'handsontable',
@@ -681,7 +681,7 @@ describe('HandsontableEditor', () => {
       await selectCell(2, 0);
       await keyDownUp('enter');
 
-      const ht = hot.getActiveEditor();
+      const ht = getActiveEditor();
       const innerHot = ht.htEditor;
 
       expect(innerHot.getSelected()).toEqual([[0, 0, 0, 0]]);
@@ -690,7 +690,7 @@ describe('HandsontableEditor', () => {
 
   describe('non strict mode', () => {
     it('should open editor and DO NOT select any cell in inner HOT', async() => {
-      const hot = handsontable({
+      handsontable({
         columns: [
           {
             type: 'handsontable',
@@ -705,14 +705,14 @@ describe('HandsontableEditor', () => {
       await selectCell(2, 0);
       await keyDownUp('enter');
 
-      const ht = hot.getActiveEditor();
+      const ht = getActiveEditor();
       const innerHot = ht.htEditor;
 
       expect(innerHot.getSelected()).toBeUndefined();
     });
 
     it('should show textarea', async() => {
-      const hot = handsontable({
+      handsontable({
         columns: [
           {
             type: 'handsontable',
@@ -727,8 +727,8 @@ describe('HandsontableEditor', () => {
       await selectCell(2, 0);
       await keyDownUp('enter');
 
-      expect(hot.getActiveEditor().TEXTAREA.parentElement.style.zIndex).toEqual('');
-      expect(hot.getActiveEditor().TEXTAREA.style.visibility).toEqual('');
+      expect(getActiveEditor().TEXTAREA.parentElement.style.zIndex).toEqual('');
+      expect(getActiveEditor().TEXTAREA.style.visibility).toEqual('');
     });
   });
 

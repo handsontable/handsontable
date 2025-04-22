@@ -14,26 +14,26 @@ describe('Comments', () => {
 
   describe('Enabling the plugin', () => {
     it('should enable the plugin in the initial config', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(4, 4),
         comments: true,
       });
 
-      expect(hot.getPlugin('comments').isEnabled()).toBe(true);
+      expect(getPlugin('comments').isEnabled()).toBe(true);
     });
 
     it('should enable the plugin using updateSettings', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(4, 4)
       });
 
-      expect(hot.getPlugin('comments').isEnabled()).toBe(false);
+      expect(getPlugin('comments').isEnabled()).toBe(false);
 
       await updateSettings({
         comments: true
       });
 
-      expect(hot.getPlugin('comments').isEnabled()).toBe(true);
+      expect(getPlugin('comments').isEnabled()).toBe(true);
     });
   });
 
@@ -41,7 +41,8 @@ describe('Comments', () => {
     it('should change delay, after which comment is showed #4323', async() => {
       const rows = 10;
       const columns = 10;
-      const hot = handsontable({
+
+      handsontable({
         data: createSpreadsheetData(rows, columns),
         rowHeaders: true,
         colHeaders: true,
@@ -56,7 +57,7 @@ describe('Comments', () => {
         },
       });
 
-      const plugin = hot.getPlugin('comments');
+      const plugin = getPlugin('comments');
       const editor = plugin.getEditorInputElement();
 
       await updateSettings({
@@ -647,7 +648,7 @@ describe('Comments', () => {
   });
 
   it('should display the comment editor properly, when comment had been added on fixed column and some scrolling was performed', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(5, 20),
       comments: true,
       cell: [
@@ -665,7 +666,7 @@ describe('Comments', () => {
       horizontalSnap: 'start',
     });
 
-    const plugin = hot.getPlugin('comments');
+    const plugin = getPlugin('comments');
     const editor = plugin.getEditorInputElement();
 
     expect(plugin.getCommentAtCell(0, 0)).toEqual('test');
@@ -677,7 +678,7 @@ describe('Comments', () => {
 
   describe('API', () => {
     it('should return the comment from a proper cell, when using the getCommentAtCell method', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(4, 4),
         comments: {
           displayDelay: 400
@@ -688,14 +689,14 @@ describe('Comments', () => {
         ]
       });
 
-      const plugin = hot.getPlugin('comments');
+      const plugin = getPlugin('comments');
 
       expect(plugin.getCommentAtCell(1, 1)).toEqual('test');
       expect(plugin.getCommentAtCell(2, 2)).toEqual('another test');
     });
 
     it('should return the comment from a proper cell, when using the setRange and getComment methods', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(4, 4),
         comments: true,
         cell: [
@@ -704,7 +705,7 @@ describe('Comments', () => {
         ],
       });
 
-      const plugin = hot.getPlugin('comments');
+      const plugin = getPlugin('comments');
 
       plugin.setRange({ from: { row: 1, col: 1 } });
 
@@ -716,12 +717,12 @@ describe('Comments', () => {
     });
 
     it('should allow inserting comments using the `setCommentAtCell` method', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(4, 4),
         comments: true,
       });
 
-      const plugin = hot.getPlugin('comments');
+      const plugin = getPlugin('comments');
 
       expect(getCellMeta(1, 1).comment).toEqual(undefined);
 
@@ -731,13 +732,13 @@ describe('Comments', () => {
     });
 
     it('should not allow inserting comments using the `setCommentAtCell` method if `beforeSetCellMeta` returned false', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(4, 4),
         comments: true,
         beforeSetCellMeta: () => false,
       });
 
-      const plugin = hot.getPlugin('comments');
+      const plugin = getPlugin('comments');
 
       expect(getCellMeta(1, 1).comment).toEqual(undefined);
 
@@ -748,13 +749,14 @@ describe('Comments', () => {
 
     it('should trigger `afterSetCellMeta` callback when `setCommentAtCell` function is invoked', async() => {
       const afterSetCellMeta = jasmine.createSpy('afterSetCellMeta');
-      const hot = handsontable({
+
+      handsontable({
         data: createSpreadsheetData(4, 4),
         comments: true,
         afterSetCellMeta,
       });
 
-      const plugin = hot.getPlugin('comments');
+      const plugin = getPlugin('comments');
 
       plugin.setCommentAtCell(1, 1, 'Added comment');
 
@@ -762,7 +764,7 @@ describe('Comments', () => {
     });
 
     it('should allow removing comments using the `removeCommentAtCell` method', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(4, 4),
         comments: true,
         cell: [
@@ -770,7 +772,7 @@ describe('Comments', () => {
         ],
       });
 
-      const plugin = hot.getPlugin('comments');
+      const plugin = getPlugin('comments');
 
       expect(getCellMeta(1, 1).comment.value).toEqual('test');
 
@@ -780,7 +782,7 @@ describe('Comments', () => {
     });
 
     it('should not allow removing comments using the `removeCommentAtCell` method if `beforeSetCellMeta` returned false', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(4, 4),
         comments: true,
         cell: [
@@ -788,9 +790,9 @@ describe('Comments', () => {
         ],
       });
 
-      hot.updateSettings({ beforeSetCellMeta: () => false });
+      await updateSettings({ beforeSetCellMeta: () => false });
 
-      const plugin = hot.getPlugin('comments');
+      const plugin = getPlugin('comments');
 
       plugin.removeCommentAtCell(1, 1);
 
@@ -799,7 +801,8 @@ describe('Comments', () => {
 
     it('should trigger `afterSetCellMeta` callback when `removeCommentAtCell` function is invoked', async() => {
       const afterSetCellMeta = jasmine.createSpy('afterSetCellMeta');
-      const hot = handsontable({
+
+      handsontable({
         data: createSpreadsheetData(4, 4),
         comments: true,
         cell: [
@@ -808,7 +811,7 @@ describe('Comments', () => {
         afterSetCellMeta,
       });
 
-      const plugin = hot.getPlugin('comments');
+      const plugin = getPlugin('comments');
 
       plugin.removeCommentAtCell(1, 1);
 
@@ -816,12 +819,12 @@ describe('Comments', () => {
     });
 
     it('should allow opening the comment editor using the `showAtCell` method', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(4, 4),
         comments: true,
       });
 
-      const plugin = hot.getPlugin('comments');
+      const plugin = getPlugin('comments');
       const editor = plugin.getEditorInputElement();
 
       expect(editor.parentNode.style.display).toEqual('none');
@@ -832,12 +835,12 @@ describe('Comments', () => {
     });
 
     it('should allow closing the comment editor using the `hide` method', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(4, 4),
         comments: true,
       });
 
-      const plugin = hot.getPlugin('comments');
+      const plugin = getPlugin('comments');
       const editor = plugin.getEditorInputElement();
 
       plugin.showAtCell(1, 1);
@@ -851,11 +854,11 @@ describe('Comments', () => {
   });
 
   it('`updateCommentMeta` & `setComment` functions should extend cellMetaObject properly', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(4, 4),
       comments: true,
     });
-    const plugin = hot.getPlugin('comments');
+    const plugin = getPlugin('comments');
     let readOnly;
     let comment;
 
@@ -914,7 +917,7 @@ describe('Comments', () => {
 
   it('should set the table active and switch the keyboard shortcuts context to plugin when the comment is triggered ' +
       'by LMB to inactive (unlisten) table', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(4, 4),
       contextMenu: true,
       comments: true,
@@ -938,7 +941,7 @@ describe('Comments', () => {
 
     await sleep(50);
 
-    expect(hot.isListening()).toBe(true);
+    expect(isListening()).toBe(true);
     expect(getShortcutManager().getActiveContextName()).toBe('plugin:comments');
   });
 
@@ -1002,7 +1005,7 @@ describe('Comments', () => {
 
   describe('Using the Context Menu', () => {
     it('should open the comment editor when clicking the "Add comment" entry', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(4, 4),
         contextMenu: true,
         comments: true,
@@ -1012,7 +1015,7 @@ describe('Comments', () => {
       await contextMenu();
       await selectContextMenuOption('Add comment');
 
-      const editor = hot.getPlugin('comments').getEditorInputElement();
+      const editor = getPlugin('comments').getEditorInputElement();
 
       expect($(editor).parents('.htComments')[0].style.display).toEqual('block');
     });
@@ -1109,7 +1112,7 @@ describe('Comments', () => {
 
     it('should make multiple comment editor\'s textarea read-only after clicking the "Read-only comment" ' +
        'entry  (selection from top-left to bottom-right)', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(4, 4),
         contextMenu: true,
         comments: true,
@@ -1123,7 +1126,7 @@ describe('Comments', () => {
       await selectCell(1, 1, 3, 3);
       await contextMenu();
 
-      const editor = hot.getPlugin('comments').getEditorInputElement();
+      const editor = getPlugin('comments').getEditorInputElement();
 
       expect($(editor)[0].readOnly).toBe(false);
 
@@ -1136,7 +1139,7 @@ describe('Comments', () => {
 
     it('should make multiple comment editor\'s textarea read-only after clicking the "Read-only comment" ' +
        'entry  (selection from bottom-right to top-left)', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(4, 4),
         contextMenu: true,
         comments: true,
@@ -1150,7 +1153,7 @@ describe('Comments', () => {
       await selectCell(3, 3, 1, 1);
       await contextMenu();
 
-      const editor = hot.getPlugin('comments').getEditorInputElement();
+      const editor = getPlugin('comments').getEditorInputElement();
 
       expect($(editor)[0].readOnly).toBe(false);
 
@@ -1351,7 +1354,7 @@ describe('Comments', () => {
         },
       });
 
-      const plugin = hot.getPlugin('comments');
+      const plugin = getPlugin('comments');
       const editor = plugin.getEditorInputElement();
 
       plugin.showAtCell(0, 0);
@@ -1406,7 +1409,7 @@ describe('Comments', () => {
     });
 
     it('should display the correct values in the comment editor, for cells placed past hidden rows/columns', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(6, 6),
         comments: true,
         hiddenColumns: {
@@ -1423,7 +1426,7 @@ describe('Comments', () => {
         ],
       });
 
-      const plugin = hot.getPlugin('comments');
+      const plugin = getPlugin('comments');
       const editor = plugin.getEditorInputElement();
 
       plugin.showAtCell(2, 2);

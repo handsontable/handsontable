@@ -620,7 +620,7 @@ describe('manualColumnResize', () => {
   });
 
   it('should appropriate resize colWidth after beforeColumnResize call a few times', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       colHeaders: true,
       manualColumnResize: true
@@ -628,10 +628,10 @@ describe('manualColumnResize', () => {
 
     expect(colWidth(spec().$container, 0)).toEqual(50);
 
-    hot.addHook('beforeColumnResize', () => 100);
-    hot.addHook('beforeColumnResize', () => 200);
+    addHook('beforeColumnResize', () => 100);
+    addHook('beforeColumnResize', () => 200);
 
-    hot.addHook('beforeColumnResize', () => undefined);
+    addHook('beforeColumnResize', () => undefined);
 
     const $th = getTopClone().find('thead tr:eq(0) th:eq(0)');
 
@@ -1482,7 +1482,7 @@ describe('manualColumnResize', () => {
       });
 
       it('should display the resize guide in the correct size', async() => {
-        const hot = handsontable({
+        handsontable({
           layoutDirection,
           data: createSpreadsheetData(10, 10),
           colHeaders: true,
@@ -1490,7 +1490,7 @@ describe('manualColumnResize', () => {
           height: 'auto',
           width: 200
         });
-        const tableHeight = parseInt(hot.view.getTableHeight(), 10);
+        const tableHeight = parseInt(tableView().getTableHeight(), 10);
         const $headerTH = getTopClone().find('thead tr:eq(0) th:eq(1)');
 
         $headerTH.simulate('mouseover');

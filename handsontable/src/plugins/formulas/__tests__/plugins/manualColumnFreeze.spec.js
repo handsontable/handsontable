@@ -14,7 +14,7 @@ describe('Formulas', () => {
 
   describe('Integration with Frozen Columns', () => {
     it('should calculate result of formula properly after freezing/unfreezing column using ManualColumnFreeze plugin API', async() => {
-      const hot = handsontable({
+      handsontable({
         data: [
           [1, '=A1+10', '=B1+100', '=C1+1000', '=D1+1000000'],
           [2, '=A2+10', '=B2+100', '=C2+1000', '=D2+1000000'],
@@ -30,8 +30,8 @@ describe('Formulas', () => {
         manualColumnMove: true,
       });
 
-      hot.getPlugin('manualColumnFreeze').freezeColumn(2);
-      hot.render();
+      getPlugin('manualColumnFreeze').freezeColumn(2);
+      await render();
 
       expect(getData()).toEqual([
         [111, 1, 11, 1111, 1001111],
@@ -51,8 +51,8 @@ describe('Formulas', () => {
         [5, '=B5+10', '=C5+100', '=A5+1000', '=D5+1000000'],
       ]);
 
-      hot.getPlugin('manualColumnFreeze').freezeColumn(4);
-      hot.render();
+      getPlugin('manualColumnFreeze').freezeColumn(4);
+      await render();
 
       expect(getData()).toEqual([
         [111, 1001111, 1, 11, 1111],
@@ -72,8 +72,8 @@ describe('Formulas', () => {
         [5, '=C5+10', '=D5+100', '=A5+1000', '=E5+1000000'],
       ]);
 
-      hot.getPlugin('manualColumnFreeze').freezeColumn(4);
-      hot.render();
+      getPlugin('manualColumnFreeze').freezeColumn(4);
+      await render();
 
       expect(getData()).toEqual([
         [111, 1001111, 1111, 1, 11],
@@ -93,8 +93,8 @@ describe('Formulas', () => {
         [5, '=D5+10', '=E5+100', '=A5+1000', '=C5+1000000'],
       ]);
 
-      hot.getPlugin('manualColumnFreeze').unfreezeColumn(0);
-      hot.render();
+      getPlugin('manualColumnFreeze').unfreezeColumn(0);
+      await render();
 
       expect(getData()).toEqual([
         [1001111, 1111, 111, 1, 11],
@@ -114,8 +114,8 @@ describe('Formulas', () => {
         [5, '=D5+10', '=E5+100', '=C5+1000', '=B5+1000000'],
       ]);
 
-      hot.getPlugin('manualColumnFreeze').unfreezeColumn(0);
-      hot.render();
+      getPlugin('manualColumnFreeze').unfreezeColumn(0);
+      await render();
 
       expect(getData()).toEqual([
         [1111, 1001111, 111, 1, 11],
@@ -135,8 +135,8 @@ describe('Formulas', () => {
         [5, '=D5+10', '=E5+100', '=C5+1000', '=A5+1000000'],
       ]);
 
-      hot.getPlugin('manualColumnFreeze').unfreezeColumn(0);
-      hot.render();
+      getPlugin('manualColumnFreeze').unfreezeColumn(0);
+      await render();
 
       expect(getData()).toEqual([
         [1111, 1001111, 111, 1, 11],

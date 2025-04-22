@@ -14,11 +14,11 @@ describe('Focus handling', () => {
 
   describe('`imeFastEdit` disabled (default behavior)', () => {
     it('should disable the `imeFastEdit` option by default', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(10, 10),
       });
 
-      expect(hot.getSettings().imeFastEdit).toBe(false);
+      expect(getSettings().imeFastEdit).toBe(false);
     });
 
     it('should focus the browser on the last selection\'s `highlight` cell/header element after selection', async() => {
@@ -69,7 +69,7 @@ describe('Focus handling', () => {
     });
 
     it('should focus the correct TD element after changing the focus position within a range', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(10, 10),
         navigableHeaders: true,
         rowHeaders: true,
@@ -79,7 +79,8 @@ describe('Focus handling', () => {
       expect(document.activeElement).toEqual(document.body);
 
       await selectCells([[1, 1, 3, 3]]);
-      hot.selection.setRangeFocus(cellCoords(2, 2));
+
+      selection().setRangeFocus(cellCoords(2, 2));
 
       expect(document.activeElement).toEqual(getCell(
         getSelectedRangeLast().highlight.row,
@@ -87,7 +88,7 @@ describe('Focus handling', () => {
         true
       ));
 
-      hot.selection.transformFocus(1, 1);
+      selection().transformFocus(1, 1);
 
       expect(document.activeElement).toEqual(getCell(
         getSelectedRangeLast().highlight.row,

@@ -159,7 +159,7 @@ describe('manualColumnMove', () => {
 
   describe('moving', () => {
     it('should keep cell meta created using cells function', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(3, 10),
         colHeaders: true,
         manualColumnMove: true,
@@ -174,14 +174,14 @@ describe('manualColumnMove', () => {
 
       expect(htCore.find('tbody tr:eq(1) td:eq(0)')[0].className.indexOf('htDimmed')).toBeGreaterThan(-1);
 
-      hot.getPlugin('manualColumnMove').moveColumn(0, 2);
-      hot.render();
+      getPlugin('manualColumnMove').moveColumn(0, 2);
+      await render();
 
       expect(htCore.find('tbody tr:eq(1) td:eq(2)')[0].className.indexOf('htDimmed')).toBeGreaterThan(-1);
     });
 
     it('should keep cell meta created using cell array', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(3, 10),
         colHeaders: true,
         manualColumnMove: true,
@@ -194,8 +194,8 @@ describe('manualColumnMove', () => {
 
       expect(htCore.find('tbody tr:eq(1) td:eq(0)')[0].className.indexOf('htDimmed')).toBeGreaterThan(-1);
 
-      hot.getPlugin('manualColumnMove').moveColumn(3, 0);
-      hot.render();
+      getPlugin('manualColumnMove').moveColumn(3, 0);
+      await render();
 
       expect(htCore.find('tbody tr:eq(1) td:eq(1)')[0].className.indexOf('htDimmed')).toBeGreaterThan(-1);
     });
@@ -203,14 +203,14 @@ describe('manualColumnMove', () => {
     describe('by API', () => {
       describe('the `moveColumn` method', () => {
         it('should move single column from the right to the left', async() => {
-          const hot = handsontable({
+          handsontable({
             data: createSpreadsheetData(3, 10),
             colHeaders: true,
             manualColumnMove: true
           });
 
-          hot.getPlugin('manualColumnMove').moveColumn(2, 0);
-          hot.render();
+          getPlugin('manualColumnMove').moveColumn(2, 0);
+          await render();
 
           expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('C1');
           expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('A1');
@@ -218,14 +218,14 @@ describe('manualColumnMove', () => {
         });
 
         it('should move single column from the left to the right', async() => {
-          const hot = handsontable({
+          handsontable({
             data: createSpreadsheetData(3, 10),
             colHeaders: true,
             manualColumnMove: true
           });
 
-          hot.getPlugin('manualColumnMove').moveColumn(0, 2);
-          hot.render();
+          getPlugin('manualColumnMove').moveColumn(0, 2);
+          await render();
 
           expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('B1');
           expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('C1');
@@ -233,17 +233,17 @@ describe('manualColumnMove', () => {
         });
 
         it('should revert change by two moves', async() => {
-          const hot = handsontable({
+          handsontable({
             data: createSpreadsheetData(3, 10),
             colHeaders: true,
             manualColumnMove: true
           });
 
-          hot.getPlugin('manualColumnMove').moveColumn(1, 0);
-          hot.render();
+          getPlugin('manualColumnMove').moveColumn(1, 0);
+          await render();
 
-          hot.getPlugin('manualColumnMove').moveColumn(1, 0);
-          hot.render();
+          getPlugin('manualColumnMove').moveColumn(1, 0);
+          await render();
 
           expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
           expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('B1');
@@ -253,7 +253,7 @@ describe('manualColumnMove', () => {
         it('should not move and not trigger the `afterColumnMove` hook after try of moving column, when `beforeColumnMove` return false', async() => {
           const afterMoveColumnCallback = jasmine.createSpy('afterMoveColumnCallback');
 
-          const hot = handsontable({
+          handsontable({
             data: createSpreadsheetData(10, 10),
             rowHeaders: true,
             colHeaders: true,
@@ -264,17 +264,17 @@ describe('manualColumnMove', () => {
             afterColumnMove: afterMoveColumnCallback
           });
 
-          const result = hot.getPlugin('manualColumnMove').moveColumn(0, 1);
+          const result = getPlugin('manualColumnMove').moveColumn(0, 1);
 
           expect(afterMoveColumnCallback).not.toHaveBeenCalled();
-          expect(hot.getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
+          expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
           expect(result).toBeFalsy();
         });
 
         it('should not move and trigger the `afterColumnMove` hook with proper arguments after try of moving column to final index, which is too high', async() => {
           const afterMoveColumnCallback = jasmine.createSpy('afterMoveColumnCallback');
 
-          const hot = handsontable({
+          handsontable({
             data: createSpreadsheetData(10, 10),
             rowHeaders: true,
             colHeaders: true,
@@ -282,17 +282,17 @@ describe('manualColumnMove', () => {
             afterColumnMove: afterMoveColumnCallback
           });
 
-          const result = hot.getPlugin('manualColumnMove').moveColumn(0, 1000);
+          const result = getPlugin('manualColumnMove').moveColumn(0, 1000);
 
           expect(afterMoveColumnCallback).toHaveBeenCalledWith([0], 1000, undefined, false, false);
-          expect(hot.getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
+          expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
           expect(result).toBeFalsy();
         });
 
         it('should not move and trigger the `afterColumnMove` hook with proper arguments after try of moving column to final index, which is too low', async() => {
           const afterMoveColumnCallback = jasmine.createSpy('afterMoveColumnCallback');
 
-          const hot = handsontable({
+          handsontable({
             data: createSpreadsheetData(10, 10),
             rowHeaders: true,
             colHeaders: true,
@@ -300,17 +300,17 @@ describe('manualColumnMove', () => {
             afterColumnMove: afterMoveColumnCallback
           });
 
-          const result = hot.getPlugin('manualColumnMove').moveColumn(0, -1);
+          const result = getPlugin('manualColumnMove').moveColumn(0, -1);
 
           expect(afterMoveColumnCallback).toHaveBeenCalledWith([0], -1, undefined, false, false);
-          expect(hot.getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
+          expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
           expect(result).toBeFalsy();
         });
 
         it('should not move and trigger the `afterColumnMove` hook with proper arguments after try of moving too high column', async() => {
           const afterMoveColumnCallback = jasmine.createSpy('afterMoveColumnCallback');
 
-          const hot = handsontable({
+          handsontable({
             data: createSpreadsheetData(10, 10),
             rowHeaders: true,
             colHeaders: true,
@@ -318,17 +318,17 @@ describe('manualColumnMove', () => {
             afterColumnMove: afterMoveColumnCallback
           });
 
-          const result = hot.getPlugin('manualColumnMove').moveColumn(1000, 1);
+          const result = getPlugin('manualColumnMove').moveColumn(1000, 1);
 
           expect(afterMoveColumnCallback).toHaveBeenCalledWith([1000], 1, undefined, false, false);
-          expect(hot.getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
+          expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
           expect(result).toBeFalsy();
         });
 
         it('should not move and trigger the `afterColumnMove` hook with proper arguments after try of moving too low column', async() => {
           const afterMoveColumnCallback = jasmine.createSpy('afterMoveColumnCallback');
 
-          const hot = handsontable({
+          handsontable({
             data: createSpreadsheetData(10, 10),
             rowHeaders: true,
             colHeaders: true,
@@ -336,11 +336,11 @@ describe('manualColumnMove', () => {
             afterColumnMove: afterMoveColumnCallback
           });
 
-          const result = hot.getPlugin('manualColumnMove').moveColumn(-1, 1);
+          const result = getPlugin('manualColumnMove').moveColumn(-1, 1);
 
           expect(afterMoveColumnCallback).toHaveBeenCalledWith([-1], 1, undefined, false, false);
           expect(result).toBeFalsy();
-          expect(hot.getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
+          expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
           expect(result).toBeFalsy();
         });
 
@@ -385,14 +385,14 @@ describe('manualColumnMove', () => {
 
       describe('the `moveColumns` method', () => {
         it('should move multiple columns from the right to the left #1', async() => {
-          const hot = handsontable({
+          handsontable({
             data: createSpreadsheetData(3, 10),
             colHeaders: true,
             manualColumnMove: true
           });
 
-          hot.getPlugin('manualColumnMove').moveColumns([7, 9, 8], 0);
-          hot.render();
+          getPlugin('manualColumnMove').moveColumns([7, 9, 8], 0);
+          await render();
 
           expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('H1');
           expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('J1');
@@ -400,14 +400,14 @@ describe('manualColumnMove', () => {
         });
 
         it('should move multiple columns from the right to the left #2', async() => {
-          const hot = handsontable({
+          handsontable({
             data: createSpreadsheetData(3, 10),
             colHeaders: true,
             manualColumnMove: true
           });
 
-          hot.getPlugin('manualColumnMove').moveColumns([9, 7, 8], 0);
-          hot.render();
+          getPlugin('manualColumnMove').moveColumns([9, 7, 8], 0);
+          await render();
 
           expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('J1');
           expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('H1');
@@ -415,14 +415,14 @@ describe('manualColumnMove', () => {
         });
 
         it('should move multiple columns with mixed indexes #1', async() => {
-          const hot = handsontable({
+          handsontable({
             data: createSpreadsheetData(3, 10),
             colHeaders: true,
             manualColumnMove: true
           });
 
-          hot.getPlugin('manualColumnMove').moveColumns([0, 1, 4], 0);
-          hot.render();
+          getPlugin('manualColumnMove').moveColumns([0, 1, 4], 0);
+          await render();
 
           expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
           expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('B1');
@@ -430,14 +430,14 @@ describe('manualColumnMove', () => {
         });
 
         it('should move multiple columns with mixed indexes #2', async() => {
-          const hot = handsontable({
+          handsontable({
             data: createSpreadsheetData(3, 10),
             colHeaders: true,
             manualColumnMove: true
           });
 
-          hot.getPlugin('manualColumnMove').moveColumns([1, 4, 0, 5], 3);
-          hot.render();
+          getPlugin('manualColumnMove').moveColumns([1, 4, 0, 5], 3);
+          await render();
 
           expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('C1');
           expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('D1');
@@ -453,14 +453,14 @@ describe('manualColumnMove', () => {
 
       describe('the `dragColumn` method', () => {
         it('should not change order when dragging single column from the position of first column to the left side of second column', async() => {
-          const hot = handsontable({
+          handsontable({
             data: createSpreadsheetData(3, 10),
             colHeaders: true,
             manualColumnMove: true
           });
 
-          hot.getPlugin('manualColumnMove').dragColumn(0, 1);
-          hot.render();
+          getPlugin('manualColumnMove').dragColumn(0, 1);
+          await render();
 
           expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
           expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('B1');
@@ -468,14 +468,14 @@ describe('manualColumnMove', () => {
         });
 
         it('should not change order when dragging single column from the position of first column to the left side of first column', async() => {
-          const hot = handsontable({
+          handsontable({
             data: createSpreadsheetData(3, 10),
             colHeaders: true,
             manualColumnMove: true
           });
 
-          hot.getPlugin('manualColumnMove').dragColumn(0, 0);
-          hot.render();
+          getPlugin('manualColumnMove').dragColumn(0, 0);
+          await render();
 
           expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
           expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('B1');
@@ -483,14 +483,14 @@ describe('manualColumnMove', () => {
         });
 
         it('should change order properly when dragging single column from the position of first column to the left side of fourth column', async() => {
-          const hot = handsontable({
+          handsontable({
             data: createSpreadsheetData(3, 10),
             colHeaders: true,
             manualColumnMove: true
           });
 
-          hot.getPlugin('manualColumnMove').dragColumn(0, 3);
-          hot.render();
+          getPlugin('manualColumnMove').dragColumn(0, 3);
+          await render();
 
           expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('B1');
           expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('C1');
@@ -499,14 +499,14 @@ describe('manualColumnMove', () => {
         });
 
         it('should change order properly when dragging single column from the position of fourth column to the left side of first column', async() => {
-          const hot = handsontable({
+          handsontable({
             data: createSpreadsheetData(3, 10),
             colHeaders: true,
             manualColumnMove: true
           });
 
-          hot.getPlugin('manualColumnMove').dragColumn(3, 0);
-          hot.render();
+          getPlugin('manualColumnMove').dragColumn(3, 0);
+          await render();
 
           expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('D1');
           expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('A1');
@@ -518,14 +518,14 @@ describe('manualColumnMove', () => {
 
       describe('the `dragColumns` method', () => {
         it('should not change order when dragging multiple columns to the specific position', async() => {
-          const hot = handsontable({
+          handsontable({
             data: createSpreadsheetData(3, 10),
             colHeaders: true,
             manualColumnMove: true
           });
 
-          hot.getPlugin('manualColumnMove').dragColumns([0, 1, 2, 3], 2);
-          hot.render();
+          getPlugin('manualColumnMove').dragColumns([0, 1, 2, 3], 2);
+          await render();
 
           expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
           expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('B1');
@@ -535,14 +535,14 @@ describe('manualColumnMove', () => {
         });
 
         it('should change order properly when dragging multiple columns from the left to the right', async() => {
-          const hot = handsontable({
+          handsontable({
             data: createSpreadsheetData(3, 10),
             colHeaders: true,
             manualColumnMove: true
           });
 
-          hot.getPlugin('manualColumnMove').dragColumns([0, 1, 2], 4);
-          hot.render();
+          getPlugin('manualColumnMove').dragColumns([0, 1, 2], 4);
+          await render();
 
           expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('D1');
           expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('A1');
@@ -552,14 +552,14 @@ describe('manualColumnMove', () => {
         });
 
         it('should change order properly when dragging multiple columns from the right to the left', async() => {
-          const hot = handsontable({
+          handsontable({
             data: createSpreadsheetData(3, 10),
             colHeaders: true,
             manualColumnMove: true
           });
 
-          hot.getPlugin('manualColumnMove').dragColumns([4, 3, 2], 0);
-          hot.render();
+          getPlugin('manualColumnMove').dragColumns([4, 3, 2], 0);
+          await render();
 
           expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('E1');
           expect(spec().$container.find('tbody tr:eq(0) td:eq(1)').text()).toEqual('D1');
@@ -571,7 +571,7 @@ describe('manualColumnMove', () => {
           let movePossible;
           let orderChanged;
 
-          const hot = handsontable({
+          handsontable({
             data: createSpreadsheetData(10, 10),
             rowHeaders: true,
             colHeaders: true,
@@ -581,19 +581,19 @@ describe('manualColumnMove', () => {
             }
           });
 
-          const result = hot.getPlugin('manualColumnMove').dragColumns([1, 2, 3], 15);
+          const result = getPlugin('manualColumnMove').dragColumns([1, 2, 3], 15);
 
           expect(movePossible).toBeFalsy();
           expect(orderChanged).toBeFalsy();
           expect(result).toBeFalsy();
-          expect(hot.getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
+          expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
         });
 
         it('should not move and trigger the `afterColumnMove` hook with proper arguments after try of dragging columns to index, which is too low', async() => {
           let movePossible;
           let orderChanged;
 
-          const hot = handsontable({
+          handsontable({
             data: createSpreadsheetData(10, 10),
             rowHeaders: true,
             colHeaders: true,
@@ -603,19 +603,19 @@ describe('manualColumnMove', () => {
             }
           });
 
-          const result = hot.getPlugin('manualColumnMove').dragColumns([1, 2, 3], -1);
+          const result = getPlugin('manualColumnMove').dragColumns([1, 2, 3], -1);
 
           expect(movePossible).toBeFalsy();
           expect(orderChanged).toBeFalsy();
           expect(result).toBeFalsy();
-          expect(hot.getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
+          expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
         });
 
         it('should not move and trigger the `afterColumnMove` hook with proper arguments after try of dragging too low columns to index, which is too high', async() => {
           let movePossible;
           let orderChanged;
 
-          const hot = handsontable({
+          handsontable({
             data: createSpreadsheetData(10, 10),
             rowHeaders: true,
             colHeaders: true,
@@ -625,19 +625,19 @@ describe('manualColumnMove', () => {
             }
           });
 
-          const result = hot.getPlugin('manualColumnMove').dragColumns([-1, -2, -3, -4], 15);
+          const result = getPlugin('manualColumnMove').dragColumns([-1, -2, -3, -4], 15);
 
           expect(movePossible).toBeFalsy();
           expect(orderChanged).toBeFalsy();
           expect(result).toBeFalsy();
-          expect(hot.getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
+          expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
         });
 
         it('should not move and trigger the `afterColumnMove` hook with proper arguments after try of dragging too low columns to index, which is too low', async() => {
           let movePossible;
           let orderChanged;
 
-          const hot = handsontable({
+          handsontable({
             data: createSpreadsheetData(10, 10),
             rowHeaders: true,
             colHeaders: true,
@@ -647,12 +647,12 @@ describe('manualColumnMove', () => {
             }
           });
 
-          const result = hot.getPlugin('manualColumnMove').dragColumns([-2, -3, -4, -5], -1);
+          const result = getPlugin('manualColumnMove').dragColumns([-2, -3, -4, -5], -1);
 
           expect(movePossible).toBeFalsy();
           expect(orderChanged).toBeFalsy();
           expect(result).toBeFalsy();
-          expect(hot.getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
+          expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
         });
       });
     });
@@ -664,7 +664,7 @@ describe('manualColumnMove', () => {
           const beforeColumnMoveCallback = jasmine.createSpy('beforeColumnMoveCallback');
           const afterMoveColumnCallback = jasmine.createSpy('afterMoveColumnCallback');
 
-          const hot = handsontable({
+          handsontable({
             data: createSpreadsheetData(3, 10),
             colHeaders: true,
             manualColumnMove: true,
@@ -672,8 +672,8 @@ describe('manualColumnMove', () => {
             afterColumnMove: afterMoveColumnCallback
           });
 
-          hot.columnIndexMapper.setIndexesSequence([9, 8, 7, 6, 5, 4, 3, 2, 1, 0]);
-          const result = hot.getPlugin('manualColumnMove').moveColumns([8, 9, 7], 0);
+          columnIndexMapper().setIndexesSequence([9, 8, 7, 6, 5, 4, 3, 2, 1, 0]);
+          const result = getPlugin('manualColumnMove').moveColumns([8, 9, 7], 0);
 
           expect(beforeColumnMoveCallback).toHaveBeenCalledWith([8, 9, 7], 0, undefined, true);
           expect(afterMoveColumnCallback).toHaveBeenCalledWith([8, 9, 7], 0, undefined, true, true);
@@ -1317,7 +1317,7 @@ describe('manualColumnMove', () => {
       });
 
       it('should properly scrolling viewport if mouse is over part-visible cell', async() => {
-        const hot = handsontable({
+        handsontable({
           data: createSpreadsheetData(20, 20),
           rowHeaders: true,
           colHeaders: true,
@@ -1330,7 +1330,7 @@ describe('manualColumnMove', () => {
         await selectCell(19, 0);
         await sleep(50);
 
-        expect(hot.view._wt.wtTable.getFirstVisibleRow()).toBeGreaterThan(8);
+        expect(tableView()._wt.wtTable.getFirstVisibleRow()).toBeGreaterThan(8);
 
         const $rowsHeaders = spec().$container.find('.ht_clone_inline_start tr th');
 
@@ -1343,7 +1343,7 @@ describe('manualColumnMove', () => {
 
         await sleep(100);
 
-        expect(hot.view._wt.wtTable.getFirstVisibleRow()).toBeLessThan(8);
+        expect(tableView()._wt.wtTable.getFirstVisibleRow()).toBeLessThan(8);
       });
     });
   });
@@ -1351,83 +1351,83 @@ describe('manualColumnMove', () => {
   describe('undoRedo', () => {
     describe('should back changes', () => {
       it('when moving single row from the left to the right', async() => {
-        const hot = handsontable({
+        handsontable({
           data: createSpreadsheetData(10, 10),
           colHeaders: true,
           manualColumnMove: true,
         });
 
-        hot.getPlugin('manualColumnMove').moveColumn(1, 4);
-        hot.render();
+        getPlugin('manualColumnMove').moveColumn(1, 4);
+        await render();
 
         getPlugin('undoRedo').undo();
 
-        expect(hot.getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
+        expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
       });
 
       it('when moving multiple columns from the left to the right', async() => {
-        const hot = handsontable({
+        handsontable({
           data: createSpreadsheetData(10, 10),
           colHeaders: true,
           manualColumnMove: true,
         });
 
-        hot.getPlugin('manualColumnMove').moveColumns([0, 1], 4);
-        hot.render();
+        getPlugin('manualColumnMove').moveColumns([0, 1], 4);
+        await render();
 
         getPlugin('undoRedo').undo();
 
-        expect(hot.getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
+        expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
       });
 
       it('when moving multiple columns from the right to the left', async() => {
-        const hot = handsontable({
+        handsontable({
           data: createSpreadsheetData(10, 10),
           colHeaders: true,
           manualColumnMove: true,
         });
 
-        hot.getPlugin('manualColumnMove').moveColumns([4, 5], 1);
-        hot.render();
+        getPlugin('manualColumnMove').moveColumns([4, 5], 1);
+        await render();
 
         getPlugin('undoRedo').undo();
 
-        expect(hot.getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
+        expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
       });
 
       it('when moving multiple columns with mixed indexes', async() => {
-        const hot = handsontable({
+        handsontable({
           data: createSpreadsheetData(10, 10),
           colHeaders: true,
           manualColumnMove: true,
         });
 
-        hot.getPlugin('manualColumnMove').moveColumns([0, 1, 8, 4, 7], 2);
-        hot.render();
+        getPlugin('manualColumnMove').moveColumns([0, 1, 8, 4, 7], 2);
+        await render();
 
         getPlugin('undoRedo').undo();
 
-        expect(hot.getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
+        expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
       });
 
       it('when moving using few actions', async() => {
-        const hot = handsontable({
+        handsontable({
           data: createSpreadsheetData(10, 10),
           colHeaders: true,
           manualColumnMove: true,
         });
 
-        hot.getPlugin('manualColumnMove').moveColumn(0, 9);
-        hot.getPlugin('manualColumnMove').moveColumn(0, 9);
-        hot.render();
+        getPlugin('manualColumnMove').moveColumn(0, 9);
+        getPlugin('manualColumnMove').moveColumn(0, 9);
+        await render();
 
         getPlugin('undoRedo').undo();
 
-        expect(hot.getDataAtRow(0)).toEqual(['B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1', 'A1']);
+        expect(getDataAtRow(0)).toEqual(['B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1', 'A1']);
 
         getPlugin('undoRedo').undo();
 
-        expect(hot.getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
+        expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1']);
       });
     });
 

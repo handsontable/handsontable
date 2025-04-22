@@ -133,7 +133,7 @@ describe('manualRowMove', () => {
 
   describe('moving', () => {
     it('should keep cell meta created using cells function', async() => {
-      const hot = handsontable({
+      handsontable({
         data: arrayOfObjects,
         rowHeaders: true,
         manualRowMove: true,
@@ -148,14 +148,14 @@ describe('manualRowMove', () => {
 
       expect(htCore.find('tbody tr:eq(1) td:eq(0)')[0].className.indexOf('htDimmed')).toBeGreaterThan(-1);
 
-      hot.getPlugin('manualRowMove').moveRow(1, 3);
-      hot.render();
+      getPlugin('manualRowMove').moveRow(1, 3);
+      await render();
 
       expect(htCore.find('tbody tr:eq(3) td:eq(0)')[0].className.indexOf('htDimmed')).toBeGreaterThan(-1);
     });
 
     it('should keep cell meta created using cell array', async() => {
-      const hot = handsontable({
+      handsontable({
         data: arrayOfObjects,
         rowHeaders: true,
         manualRowMove: true,
@@ -168,8 +168,8 @@ describe('manualRowMove', () => {
 
       expect(htCore.find('tbody tr:eq(1) td:eq(0)')[0].className.indexOf('htDimmed')).toBeGreaterThan(-1);
 
-      hot.getPlugin('manualRowMove').moveRow(3, 1);
-      hot.render();
+      getPlugin('manualRowMove').moveRow(3, 1);
+      await render();
 
       expect(htCore.find('tbody tr:eq(2) td:eq(0)')[0].className.indexOf('htDimmed')).toBeGreaterThan(-1);
     });
@@ -181,7 +181,7 @@ describe('manualRowMove', () => {
           const beforeRowMoveCallback = jasmine.createSpy('beforeRowMoveCallback');
           const afterMoveRowCallback = jasmine.createSpy('afterMoveRowCallback');
 
-          const hot = handsontable({
+          handsontable({
             data: arrayOfObjects,
             rowHeaders: true,
             manualRowMove: true,
@@ -189,8 +189,8 @@ describe('manualRowMove', () => {
             afterRowMove: afterMoveRowCallback
           });
 
-          hot.rowIndexMapper.setIndexesSequence([9, 8, 7, 6, 5, 4, 3, 2, 1, 0]);
-          const result = hot.getPlugin('manualRowMove').moveRows([8, 9, 7], 0);
+          rowIndexMapper().setIndexesSequence([9, 8, 7, 6, 5, 4, 3, 2, 1, 0]);
+          const result = getPlugin('manualRowMove').moveRows([8, 9, 7], 0);
 
           expect(beforeRowMoveCallback).toHaveBeenCalledWith([8, 9, 7], 0, undefined, true);
           expect(afterMoveRowCallback).toHaveBeenCalledWith([8, 9, 7], 0, undefined, true, true);
@@ -806,7 +806,7 @@ describe('manualRowMove', () => {
       });
 
       it('should properly scrolling viewport if mouse is over part-visible cell', async() => {
-        const hot = handsontable({
+        handsontable({
           data: createSpreadsheetData(20, 20),
           colHeaders: true,
           rowHeaders: true,
@@ -816,11 +816,11 @@ describe('manualRowMove', () => {
           rowHeights: 47
         });
 
-        hot.selectCell(19, 0);
+        await selectCell(19, 0);
 
         await sleep(50);
 
-        expect(hot.view.getFirstFullyVisibleRow()).toBe(9);
+        expect(tableView().getFirstFullyVisibleRow()).toBe(9);
 
         $(getCell(9, -1))
           .simulate('mousedown')
@@ -831,7 +831,7 @@ describe('manualRowMove', () => {
           .simulate('mousemove')
           .simulate('mouseup');
 
-        expect(hot.view.getFirstFullyVisibleRow()).toBe(7);
+        expect(tableView().getFirstFullyVisibleRow()).toBe(7);
       });
     });
   });
@@ -839,172 +839,172 @@ describe('manualRowMove', () => {
   describe('undoRedo', () => {
     describe('should back changes', () => {
       it('when moving single row from the top to the bottom', async() => {
-        const hot = handsontable({
+        handsontable({
           data: createSpreadsheetData(10, 10),
           rowHeaders: true,
           manualRowMove: true,
         });
 
-        hot.getPlugin('manualRowMove').moveRow(1, 4);
-        hot.render();
+        getPlugin('manualRowMove').moveRow(1, 4);
+        await render();
 
         getPlugin('undoRedo').undo();
 
-        expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
+        expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
       });
 
       it('when moving multiple rows from the top to the bottom', async() => {
-        const hot = handsontable({
+        handsontable({
           data: createSpreadsheetData(10, 10),
           rowHeaders: true,
           manualRowMove: true,
         });
 
-        hot.getPlugin('manualRowMove').moveRows([0, 1], 4);
-        hot.render();
+        getPlugin('manualRowMove').moveRows([0, 1], 4);
+        await render();
 
         getPlugin('undoRedo').undo();
 
-        expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
+        expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
       });
 
       it('when moving multiple rows from the bottom to the top', async() => {
-        const hot = handsontable({
+        handsontable({
           data: createSpreadsheetData(10, 10),
           rowHeaders: true,
           manualRowMove: true,
         });
 
-        hot.getPlugin('manualRowMove').moveRows([4, 5], 1);
-        hot.render();
+        getPlugin('manualRowMove').moveRows([4, 5], 1);
+        await render();
 
         getPlugin('undoRedo').undo();
 
-        expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
+        expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
       });
 
       it('when moving multiple rows with mixed indexes', async() => {
-        const hot = handsontable({
+        handsontable({
           data: createSpreadsheetData(10, 10),
           rowHeaders: true,
           manualRowMove: true,
         });
 
-        hot.getPlugin('manualRowMove').moveRows([0, 1, 8, 4, 7], 2);
-        hot.render();
+        getPlugin('manualRowMove').moveRows([0, 1, 8, 4, 7], 2);
+        await render();
 
         getPlugin('undoRedo').undo();
 
-        expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
+        expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
       });
 
       it('when moving using few actions', async() => {
-        const hot = handsontable({
+        handsontable({
           data: createSpreadsheetData(10, 10),
           rowHeaders: true,
           manualRowMove: true,
         });
 
-        hot.getPlugin('manualRowMove').moveRow(0, 9);
-        hot.getPlugin('manualRowMove').moveRow(0, 9);
-        hot.render();
+        getPlugin('manualRowMove').moveRow(0, 9);
+        getPlugin('manualRowMove').moveRow(0, 9);
+        await render();
 
         getPlugin('undoRedo').undo();
 
-        expect(hot.getDataAtCol(0)).toEqual(['A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10', 'A1']);
+        expect(getDataAtCol(0)).toEqual(['A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10', 'A1']);
 
         getPlugin('undoRedo').undo();
 
-        expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
+        expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
       });
     });
 
     describe('should revert changes', () => {
       it('when moving single row from the top to the bottom', async() => {
-        const hot = handsontable({
+        handsontable({
           data: createSpreadsheetData(10, 10),
           rowHeaders: true,
           manualRowMove: true,
         });
 
-        hot.getPlugin('manualRowMove').moveRow(1, 4);
-        hot.render();
+        getPlugin('manualRowMove').moveRow(1, 4);
+        await render();
 
         getPlugin('undoRedo').undo();
-        hot.getPlugin('undoRedo').redo();
+        getPlugin('undoRedo').redo();
 
-        expect(hot.getDataAtCol(0)).toEqual(['A1', 'A3', 'A4', 'A5', 'A2', 'A6', 'A7', 'A8', 'A9', 'A10']);
+        expect(getDataAtCol(0)).toEqual(['A1', 'A3', 'A4', 'A5', 'A2', 'A6', 'A7', 'A8', 'A9', 'A10']);
       });
 
       it('when moving multiple rows from the top to the bottom', async() => {
-        const hot = handsontable({
+        handsontable({
           data: createSpreadsheetData(10, 10),
           rowHeaders: true,
           manualRowMove: true,
         });
 
-        hot.getPlugin('manualRowMove').moveRows([0, 1], 4);
-        hot.render();
+        getPlugin('manualRowMove').moveRows([0, 1], 4);
+        await render();
 
         getPlugin('undoRedo').undo();
-        hot.getPlugin('undoRedo').redo();
+        getPlugin('undoRedo').redo();
 
-        expect(hot.getDataAtCol(0)).toEqual(['A3', 'A4', 'A5', 'A6', 'A1', 'A2', 'A7', 'A8', 'A9', 'A10']);
+        expect(getDataAtCol(0)).toEqual(['A3', 'A4', 'A5', 'A6', 'A1', 'A2', 'A7', 'A8', 'A9', 'A10']);
       });
 
       it('when moving multiple rows from the bottom to the top', async() => {
-        const hot = handsontable({
+        handsontable({
           data: createSpreadsheetData(10, 10),
           rowHeaders: true,
           manualRowMove: true,
         });
 
-        hot.getPlugin('manualRowMove').moveRows([4, 5], 1);
-        hot.render();
+        getPlugin('manualRowMove').moveRows([4, 5], 1);
+        await render();
 
         getPlugin('undoRedo').undo();
-        hot.getPlugin('undoRedo').redo();
+        getPlugin('undoRedo').redo();
 
-        expect(hot.getDataAtCol(0)).toEqual(['A1', 'A5', 'A6', 'A2', 'A3', 'A4', 'A7', 'A8', 'A9', 'A10']);
+        expect(getDataAtCol(0)).toEqual(['A1', 'A5', 'A6', 'A2', 'A3', 'A4', 'A7', 'A8', 'A9', 'A10']);
       });
 
       it('when moving multiple rows with mixed indexes', async() => {
-        const hot = handsontable({
+        handsontable({
           data: createSpreadsheetData(10, 10),
           rowHeaders: true,
           manualRowMove: true,
         });
 
-        hot.getPlugin('manualRowMove').moveRows([0, 1, 8, 4, 7], 2);
-        hot.render();
+        getPlugin('manualRowMove').moveRows([0, 1, 8, 4, 7], 2);
+        await render();
 
         getPlugin('undoRedo').undo();
-        hot.getPlugin('undoRedo').redo();
+        getPlugin('undoRedo').redo();
 
-        expect(hot.getDataAtCol(0)).toEqual(['A3', 'A4', 'A1', 'A2', 'A9', 'A5', 'A8', 'A6', 'A7', 'A10']);
+        expect(getDataAtCol(0)).toEqual(['A3', 'A4', 'A1', 'A2', 'A9', 'A5', 'A8', 'A6', 'A7', 'A10']);
       });
 
       it('when moving using few actions', async() => {
-        const hot = handsontable({
+        handsontable({
           data: createSpreadsheetData(10, 10),
           rowHeaders: true,
           manualRowMove: true,
         });
 
-        hot.getPlugin('manualRowMove').moveRow(0, 9);
-        hot.getPlugin('manualRowMove').moveRow(0, 9);
-        hot.render();
+        getPlugin('manualRowMove').moveRow(0, 9);
+        getPlugin('manualRowMove').moveRow(0, 9);
+        await render();
 
         getPlugin('undoRedo').undo();
         getPlugin('undoRedo').undo();
 
-        hot.getPlugin('undoRedo').redo();
+        getPlugin('undoRedo').redo();
 
-        expect(hot.getDataAtCol(0)).toEqual(['A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10', 'A1']);
+        expect(getDataAtCol(0)).toEqual(['A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10', 'A1']);
 
-        hot.getPlugin('undoRedo').redo();
+        getPlugin('undoRedo').redo();
 
-        expect(hot.getDataAtCol(0)).toEqual(['A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10', 'A1', 'A2']);
+        expect(getDataAtCol(0)).toEqual(['A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10', 'A1', 'A2']);
       });
     });
   });

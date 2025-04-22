@@ -145,18 +145,18 @@ describe('Selection extending', () => {
     });
 
     it('should extend the column header selection to the left-most visible column', async() => {
-      const hot = handsontable({
+      handsontable({
         rowHeaders: true,
         colHeaders: true,
         startRows: 5,
         startCols: 5
       });
 
-      const hidingMap = hot.columnIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding');
+      const hidingMap = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
 
       hidingMap.setValueAtIndex(0, true);
       hidingMap.setValueAtIndex(1, true);
-      hot.render();
+      await render();
 
       await selectColumns(3);
       await listen();
@@ -524,7 +524,7 @@ describe('Selection extending', () => {
     });
 
     it('should extend the column header selection to the left-most non-frozen visible column', async() => {
-      const hot = handsontable({
+      handsontable({
         rowHeaders: true,
         colHeaders: true,
         startRows: 5,
@@ -532,11 +532,11 @@ describe('Selection extending', () => {
         fixedColumnsStart: 2,
       });
 
-      const hidingMap = hot.columnIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding');
+      const hidingMap = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
 
       hidingMap.setValueAtIndex(0, true);
       hidingMap.setValueAtIndex(2, true);
-      hot.render();
+      await render();
 
       await selectColumns(3);
       await listen();

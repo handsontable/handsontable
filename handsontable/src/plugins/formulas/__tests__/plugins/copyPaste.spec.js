@@ -14,7 +14,7 @@ describe('Formulas', () => {
 
   describe('Integration with Copy/Paste', () => {
     it('should allow pasting data near the table borders (thus extending the table)', async() => {
-      const hot = handsontable({
+      handsontable({
         data: [[1, 'x'], ['=A1 + 1', 'y']],
         formulas: {
           engine: HyperFormula,
@@ -33,9 +33,9 @@ describe('Formulas', () => {
 
       copyPastePlugin.onPaste(copyEvent);
 
-      expect(hot.countRows()).toEqual(3);
-      expect(hot.countCols()).toEqual(3);
-      expect(hot.getData()).toEqual([
+      expect(countRows()).toEqual(3);
+      expect(countCols()).toEqual(3);
+      expect(getData()).toEqual([
         [1, 'x', null],
         [2, '1', 'x'],
         [null, '2', 'y']

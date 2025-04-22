@@ -439,19 +439,19 @@ describe('Filters UI Value component', () => {
     });
 
     it('should not modify checkboxes if the user changed values in another column', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(5, 2),
         dropdownMenu: true,
         colHeaders: true,
         filters: true,
       });
 
-      const filters = hot.getPlugin('Filters');
+      const filters = getPlugin('Filters');
 
       filters.addCondition(0, 'by_value', [['A2', 'A3', 'A4', 'A5']]);
       filters.filter();
-      hot.selectCell(0, 1);
-      hot.emptySelectedCells();
+      await selectCell(0, 1);
+      await emptySelectedCells();
 
       await dropdownMenu(0);
 

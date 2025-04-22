@@ -12,40 +12,40 @@ describe('Selection', () => {
 
   describe('`markSource` method', () => {
     it('should mark and maintain the source selection until it\'s revoked by the `markEndSource` method', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(6, 4),
         colHeaders: false,
         rowHeaders: false,
       });
 
-      hot.selection.markSource('test');
-      hot.selection.selectAll();
+      selection().markSource('test');
+      selection().selectAll();
 
-      expect(hot.selection.getSelectionSource()).toBe('test');
+      expect(selection().getSelectionSource()).toBe('test');
 
-      hot.selection.selectRows(1);
+      selection().selectRows(1);
 
-      expect(hot.selection.getSelectionSource()).toBe('test');
+      expect(selection().getSelectionSource()).toBe('test');
 
-      hot.selection.selectColumns(1);
+      selection().selectColumns(1);
 
-      expect(hot.selection.getSelectionSource()).toBe('test');
+      expect(selection().getSelectionSource()).toBe('test');
 
-      hot.selection.selectCells([[0, 0, 3, 0]]);
+      selection().selectCells([[0, 0, 3, 0]]);
 
-      expect(hot.selection.getSelectionSource()).toBe('test');
+      expect(selection().getSelectionSource()).toBe('test');
 
-      hot.selection.setRangeStart(cellCoords(1, 1));
+      selection().setRangeStart(cellCoords(1, 1));
 
-      expect(hot.selection.getSelectionSource()).toBe('test');
+      expect(selection().getSelectionSource()).toBe('test');
 
-      hot.selection.setRangeEnd(cellCoords(2, 2));
+      selection().setRangeEnd(cellCoords(2, 2));
 
-      expect(hot.selection.getSelectionSource()).toBe('test');
+      expect(selection().getSelectionSource()).toBe('test');
 
-      hot.selection.markEndSource();
+      selection().markEndSource();
 
-      expect(hot.selection.getSelectionSource()).toBe('unknown');
+      expect(selection().getSelectionSource()).toBe('unknown');
     });
   });
 });

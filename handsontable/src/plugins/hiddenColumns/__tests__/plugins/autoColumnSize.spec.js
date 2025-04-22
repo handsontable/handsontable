@@ -75,7 +75,7 @@ describe('HiddenColumns', () => {
     });
 
     it('should return proper values from the `getColWidth` function (when indicator is enabled)', async() => {
-      const hot = handsontable({
+      handsontable({
         data: [{ id: 'Short', name: 'Somewhat long', lastName: 'The very very very longest one' }],
         rowHeaders: true,
         colHeaders: true,
@@ -91,9 +91,9 @@ describe('HiddenColumns', () => {
         autoColumnSize: true,
       });
 
-      expect(hot.getColWidth(0)).toBe(0);
-      expect(hot.getColWidth(1)).toBe(0);
-      expect(hot.getColWidth(2)).forThemes(({ classic, main, horizon }) => {
+      expect(getColWidth(0)).toBe(0);
+      expect(getColWidth(1)).toBe(0);
+      expect(getColWidth(2)).forThemes(({ classic, main, horizon }) => {
         classic.toBe(188);
         main.toBe(225);
         horizon.toBe(233);
@@ -101,7 +101,7 @@ describe('HiddenColumns', () => {
     });
 
     it('should return proper values from the `getColWidth` function (when indicator is disabled)', async() => {
-      const hot = handsontable({
+      handsontable({
         data: [{ id: 'Short', name: 'Somewhat long', lastName: 'The very very very longest one' }],
         rowHeaders: true,
         colHeaders: true,
@@ -116,9 +116,9 @@ describe('HiddenColumns', () => {
         autoColumnSize: true,
       });
 
-      expect(hot.getColWidth(0)).toBe(0);
-      expect(hot.getColWidth(1)).toBe(0);
-      expect(hot.getColWidth(2)).forThemes(({ classic, main, horizon }) => {
+      expect(getColWidth(0)).toBe(0);
+      expect(getColWidth(1)).toBe(0);
+      expect(getColWidth(2)).forThemes(({ classic, main, horizon }) => {
         classic.toBe(173);
         main.toBe(210);
         horizon.toBe(218);
@@ -126,7 +126,7 @@ describe('HiddenColumns', () => {
     });
 
     it('should return proper values from the `getColHeader` function', async() => {
-      const hot = handsontable({
+      handsontable({
         data: [{ id: 'Short', name: 'Somewhat long', lastName: 'The very very very longest one' }],
         rowHeaders: true,
         colHeaders: true,
@@ -141,9 +141,9 @@ describe('HiddenColumns', () => {
         autoColumnSize: true,
       });
 
-      expect(hot.getColHeader(0)).toBe('Identifier');
-      expect(hot.getColHeader(1)).toBe('Name');
-      expect(hot.getColHeader(2)).toBe('Last Name');
+      expect(getColHeader(0)).toBe('Identifier');
+      expect(getColHeader(1)).toBe('Name');
+      expect(getColHeader(2)).toBe('Last Name');
     });
   });
 });

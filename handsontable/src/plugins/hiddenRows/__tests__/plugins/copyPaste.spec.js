@@ -48,7 +48,7 @@ describe('HiddenRows', () => {
 
   describe('copy-paste functionality', () => {
     it('should allow to copy hidden cell', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(5, 5),
         hiddenRows: {
           rows: [2, 4]
@@ -56,7 +56,7 @@ describe('HiddenRows', () => {
       });
 
       const copyEvent = getClipboardEventMock('copy');
-      const plugin = hot.getPlugin('CopyPaste');
+      const plugin = getPlugin('CopyPaste');
 
       await selectCell(4, 0);
 
@@ -67,7 +67,7 @@ describe('HiddenRows', () => {
     });
 
     it('should allow to copy hidden rows, when "copyPasteEnabled" property is not set', async() => {
-      const hot = handsontable({
+      handsontable({
         data: getMultilineData(10, 5),
         hiddenRows: {
           rows: [2, 4]
@@ -77,7 +77,7 @@ describe('HiddenRows', () => {
       });
 
       const copyEvent = getClipboardEventMock('copy');
-      const plugin = hot.getPlugin('CopyPaste');
+      const plugin = getPlugin('CopyPaste');
 
       await selectCell(0, 0, 9, 4);
 
@@ -103,7 +103,7 @@ describe('HiddenRows', () => {
     });
 
     it('should allow to copy hidden rows, when "copyPasteEnabled" property is set to true', async() => {
-      const hot = handsontable({
+      handsontable({
         data: getMultilineData(10, 5),
         hiddenRows: {
           rows: [2, 4],
@@ -114,7 +114,7 @@ describe('HiddenRows', () => {
       });
 
       const copyEvent = getClipboardEventMock('copy');
-      const plugin = hot.getPlugin('CopyPaste');
+      const plugin = getPlugin('CopyPaste');
 
       await selectCell(0, 0, 9, 4);
 

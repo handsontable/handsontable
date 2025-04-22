@@ -12,48 +12,48 @@ describe('Selection', () => {
 
   describe('`setExpectedLayers` method', () => {
     it('should allow detecting when the last layer of the non-contiguous selection is applied', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(6, 4),
         colHeaders: false,
         rowHeaders: false,
       });
       const afterSetRangeEnd = jasmine.createSpy('afterSetRangeEnd');
 
-      hot.selection.addLocalHook('afterSetRangeEnd', afterSetRangeEnd);
+      selection().addLocalHook('afterSetRangeEnd', afterSetRangeEnd);
 
-      hot.selection.setExpectedLayers(3);
+      selection().setExpectedLayers(3);
 
-      hot.selection.setRangeStartOnly(cellCoords(1, 1), false);
-      hot.selection.setRangeEnd(cellCoords(1, 1));
-      hot.selection.setRangeStartOnly(cellCoords(2, 2), false);
-      hot.selection.setRangeEnd(cellCoords(2, 2));
-      hot.selection.setRangeStartOnly(cellCoords(3, 3), false);
-      hot.selection.setRangeEnd(cellCoords(3, 3));
+      selection().setRangeStartOnly(cellCoords(1, 1), false);
+      selection().setRangeEnd(cellCoords(1, 1));
+      selection().setRangeStartOnly(cellCoords(2, 2), false);
+      selection().setRangeEnd(cellCoords(2, 2));
+      selection().setRangeStartOnly(cellCoords(3, 3), false);
+      selection().setRangeEnd(cellCoords(3, 3));
 
       expect(afterSetRangeEnd).toHaveBeenCalledTimes(3);
       expect(afterSetRangeEnd).toHaveBeenCalledWith(cellCoords(1, 1), false);
       expect(afterSetRangeEnd).toHaveBeenCalledWith(cellCoords(2, 2), false);
       expect(afterSetRangeEnd).toHaveBeenCalledWith(cellCoords(3, 3), true);
 
-      hot.selection.finish();
+      selection().finish();
     });
 
     it('should mark all selection layer as last one when is not used', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(6, 4),
         colHeaders: false,
         rowHeaders: false,
       });
       const afterSetRangeEnd = jasmine.createSpy('afterSetRangeEnd');
 
-      hot.selection.addLocalHook('afterSetRangeEnd', afterSetRangeEnd);
+      selection().addLocalHook('afterSetRangeEnd', afterSetRangeEnd);
 
-      hot.selection.setRangeStartOnly(cellCoords(1, 1), false);
-      hot.selection.setRangeEnd(cellCoords(1, 1));
-      hot.selection.setRangeStartOnly(cellCoords(2, 2), false);
-      hot.selection.setRangeEnd(cellCoords(2, 2));
-      hot.selection.setRangeStartOnly(cellCoords(3, 3), false);
-      hot.selection.setRangeEnd(cellCoords(3, 3));
+      selection().setRangeStartOnly(cellCoords(1, 1), false);
+      selection().setRangeEnd(cellCoords(1, 1));
+      selection().setRangeStartOnly(cellCoords(2, 2), false);
+      selection().setRangeEnd(cellCoords(2, 2));
+      selection().setRangeStartOnly(cellCoords(3, 3), false);
+      selection().setRangeEnd(cellCoords(3, 3));
 
       expect(afterSetRangeEnd).toHaveBeenCalledTimes(3);
       expect(afterSetRangeEnd).toHaveBeenCalledWith(cellCoords(1, 1), true);
@@ -62,30 +62,30 @@ describe('Selection', () => {
     });
 
     it('should mark all selection layer as last one when after calling the `finish` method', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(6, 4),
         colHeaders: false,
         rowHeaders: false,
       });
       const afterSetRangeEnd = jasmine.createSpy('afterSetRangeEnd');
 
-      hot.selection.addLocalHook('afterSetRangeEnd', afterSetRangeEnd);
+      selection().addLocalHook('afterSetRangeEnd', afterSetRangeEnd);
 
-      hot.selection.setExpectedLayers(3);
+      selection().setExpectedLayers(3);
 
-      hot.selection.setRangeStartOnly(cellCoords(1, 1), false);
-      hot.selection.setRangeEnd(cellCoords(1, 1));
-      hot.selection.setRangeStartOnly(cellCoords(2, 2), false);
-      hot.selection.setRangeEnd(cellCoords(2, 2));
-      hot.selection.setRangeStartOnly(cellCoords(3, 3), false);
-      hot.selection.setRangeEnd(cellCoords(3, 3));
+      selection().setRangeStartOnly(cellCoords(1, 1), false);
+      selection().setRangeEnd(cellCoords(1, 1));
+      selection().setRangeStartOnly(cellCoords(2, 2), false);
+      selection().setRangeEnd(cellCoords(2, 2));
+      selection().setRangeStartOnly(cellCoords(3, 3), false);
+      selection().setRangeEnd(cellCoords(3, 3));
 
-      hot.selection.finish(); // resets the `#expectedLayersCount` field
+      selection().finish(); // resets the `#expectedLayersCount` field
 
-      hot.selection.setRangeStartOnly(cellCoords(4, 4), false);
-      hot.selection.setRangeEnd(cellCoords(4, 4));
-      hot.selection.setRangeStartOnly(cellCoords(5, 5), false);
-      hot.selection.setRangeEnd(cellCoords(5, 5));
+      selection().setRangeStartOnly(cellCoords(4, 4), false);
+      selection().setRangeEnd(cellCoords(4, 4));
+      selection().setRangeStartOnly(cellCoords(5, 5), false);
+      selection().setRangeEnd(cellCoords(5, 5));
 
       expect(afterSetRangeEnd).toHaveBeenCalledTimes(5);
       expect(afterSetRangeEnd).toHaveBeenCalledWith(cellCoords(1, 1), false);

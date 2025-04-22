@@ -309,7 +309,8 @@ describe('Formulas general', () => {
 
     it('should validate correct visual cells', async() => {
       const beforeValidate = jasmine.createSpy('beforeValidate');
-      const hot = handsontable({
+
+      handsontable({
         data: [
           ['1', 2, '=D1', 'text1', 'foo1'],
           ['2', 2, '=D2', 'text2', 'foo2'],
@@ -326,8 +327,8 @@ describe('Formulas general', () => {
         beforeValidate,
       });
 
-      hot.columnIndexMapper.setIndexesSequence([0, 2, 3, 4, 1]);
-      hot.rowIndexMapper.setIndexesSequence([0, 2, 3, 4, 1]);
+      columnIndexMapper().setIndexesSequence([0, 2, 3, 4, 1]);
+      rowIndexMapper().setIndexesSequence([0, 2, 3, 4, 1]);
 
       await render();
       await setDataAtCell(3, 0, 6);

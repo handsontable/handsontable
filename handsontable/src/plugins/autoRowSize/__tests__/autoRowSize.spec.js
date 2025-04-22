@@ -80,7 +80,7 @@ describe('AutoRowSize', () => {
     const nrOfRows = 200;
     const columnWidth = 100;
 
-    const hot = handsontable({
+    handsontable({
       data: Handsontable.helper.createEmptySpreadsheetData(nrOfRows, 1),
       colWidths() {
         return columnWidth;
@@ -90,7 +90,7 @@ describe('AutoRowSize', () => {
 
     const oldHeight = spec().$container[0].scrollHeight;
 
-    hot.setDataAtCell(150, 0, 'This is very long text which will break this cell text into two lines');
+    await setDataAtCell(150, 0, 'This is very long text which will break this cell text into two lines');
 
     await sleep(200);
 
@@ -366,24 +366,24 @@ describe('AutoRowSize', () => {
   it('should consider CSS class of the <table> element (e.g. when used with Bootstrap)', async() => {
     const $style = $('<style>.htCore.big-table td {font-size: 32px;line-height: 1.1}</style>').appendTo('head');
 
-    const hot = handsontable({
+    handsontable({
       data: arrayOfObjects(),
       autoRowSize: true
     });
-    const height = parseInt(hot.getCell(2, 0).style.height, 10);
+    const height = parseInt(getCell(2, 0).style.height, 10);
 
     spec().$container.find('table').addClass('big-table');
-    hot.getPlugin('autoRowSize').clearCache();
+    getPlugin('autoRowSize').clearCache();
 
     await render();
 
-    expect(parseInt(hot.getCell(2, 0).style.height, 10)).toBeGreaterThan(height);
+    expect(parseInt(getCell(2, 0).style.height, 10)).toBeGreaterThan(height);
 
     $style.remove();
   });
 
   it('should not trigger autoColumnSize when column width is defined (through colWidths)', async() => {
-    const hot = handsontable({
+    handsontable({
       data: arrayOfObjects(),
       autoRowSize: true,
       rowHeights: [70, 70, 70],
@@ -394,7 +394,7 @@ describe('AutoRowSize', () => {
 
     await setDataAtCell(0, 0, 'LongLongLongLong');
 
-    expect(parseInt(hot.getCell(0, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
+    expect(parseInt(getCell(0, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(69); // -1px of cell border
       main.toBe(70);
       horizon.toBe(70);
@@ -403,7 +403,7 @@ describe('AutoRowSize', () => {
 
   // Currently columns.height is not supported
   xit('should not trigger autoRowSize when column height is defined (through columns.height)', async() => {
-    const hot = handsontable({
+    handsontable({
       data: arrayOfObjects(),
       autoRowSize: true,
       rowHeights: 77,
@@ -419,7 +419,7 @@ describe('AutoRowSize', () => {
 
     await setDataAtCell(0, 0, 'LongLongLongLong');
 
-    expect(parseInt(hot.getCell(0, -1).style.height, 10)).toBe(69); // -1px of cell border
+    expect(parseInt(getCell(0, -1).style.height, 10)).toBe(69); // -1px of cell border
   });
 
   it('should consider renderer that uses conditional formatting for specific row & column index', async() => {
@@ -427,7 +427,7 @@ describe('AutoRowSize', () => {
 
     data.push({ id: '2', name: 'Rocket Man', lastName: 'In a tin can' });
 
-    const hot = handsontable({
+    handsontable({
       data,
       columns: [
         { data: 'id' },
@@ -444,7 +444,7 @@ describe('AutoRowSize', () => {
       }
     });
 
-    expect(parseInt(hot.getCell(1, 0).style.height || 0, 10)).forThemes(({ classic, main, horizon }) => {
+    expect(parseInt(getCell(1, 0).style.height || 0, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(242);
       main.toBe(241);
       horizon.toBe(241);

@@ -34,7 +34,7 @@ describe('NestedHeaders', () => {
     });
 
     it('should add as many header levels as the \'colHeaders\' property suggests', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(10, 10),
         colHeaders: true,
         nestedHeaders: [
@@ -43,11 +43,11 @@ describe('NestedHeaders', () => {
         ]
       });
 
-      expect(hot.view._wt.wtTable.THEAD.querySelectorAll('tr').length).toEqual(2);
+      expect(tableView()._wt.wtTable.THEAD.querySelectorAll('tr').length).toEqual(2);
     });
 
     it('should adjust headers widths', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(10, 10),
         colHeaders: true,
         nestedHeaders: [
@@ -56,14 +56,14 @@ describe('NestedHeaders', () => {
         ]
       });
 
-      const headers = hot.view._wt.wtTable.THEAD.querySelectorAll('tr:first-of-type th');
+      const headers = tableView()._wt.wtTable.THEAD.querySelectorAll('tr:first-of-type th');
 
-      expect(hot.getColWidth(1)).toBeGreaterThan(50);
+      expect(getColWidth(1)).toBeGreaterThan(50);
       expect(headers[1].offsetWidth).toBeGreaterThan(100);
     });
 
     it('should correctly render headers when loaded dataset is shorter (less columns) than nested headers settings', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(10, 10),
         colHeaders: true,
         nestedHeaders: generateComplexSetup(4, 100, true),
@@ -138,7 +138,7 @@ describe('NestedHeaders', () => {
         </tbody>
         `);
 
-      hot.loadData(createSpreadsheetData(5, 5));
+      await loadData(createSpreadsheetData(5, 5));
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -182,7 +182,7 @@ describe('NestedHeaders', () => {
         </tbody>
         `);
 
-      hot.loadData(createSpreadsheetData(5, 2));
+      await loadData(createSpreadsheetData(5, 2));
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -211,7 +211,7 @@ describe('NestedHeaders', () => {
         </tbody>
         `);
 
-      hot.loadData(createSpreadsheetData(5, 6));
+      await loadData(createSpreadsheetData(5, 6));
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -495,7 +495,7 @@ describe('NestedHeaders', () => {
       }
     });
 
-    it('should return a relevant nested header element in hot.getCell()', async() => {
+    it('should return a relevant nested header element in getCell()', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(10, 90),
         colHeaders: true,

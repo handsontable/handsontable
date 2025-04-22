@@ -18,7 +18,7 @@ describe('HiddenColumns', () => {
 
   describe('manualColumnMove', () => {
     it('should properly render hidden ranges after moving action (moving not hidden columns just before the hidden one)', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(2, 5),
         colHeaders: true,
         hiddenColumns: {
@@ -31,11 +31,11 @@ describe('HiddenColumns', () => {
       getPlugin('manualColumnMove').moveColumns([2, 3, 4], 0);
       await render();
 
-      expect(hot.getData()).toEqual([
+      expect(getData()).toEqual([
         ['C1', 'D1', 'E1', 'A1', 'B1'],
         ['C2', 'D2', 'E2', 'A2', 'B2'],
       ]);
-      expect(hot.getColWidth(3)).toEqual(0);
+      expect(getColWidth(3)).toEqual(0);
       expect(getPlugin('hiddenColumns').isHidden(3)).toBeTruthy();
       expect(getCell(-1, 2)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN_COLUMN);
       expect(getCell(-1, 3)).toBe(null);
@@ -47,7 +47,7 @@ describe('HiddenColumns', () => {
     });
 
     it('should properly render hidden ranges after moving action (moving not hidden columns just after the hidden one)', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(2, 5),
         colHeaders: true,
         hiddenColumns: {
@@ -60,11 +60,11 @@ describe('HiddenColumns', () => {
       getPlugin('manualColumnMove').moveColumns([0, 1, 2], 2);
       await render();
 
-      expect(hot.getData()).toEqual([
+      expect(getData()).toEqual([
         ['D1', 'E1', 'A1', 'B1', 'C1'],
         ['D2', 'E2', 'A2', 'B2', 'C2'],
       ]);
-      expect(hot.getColWidth(1)).toEqual(0);
+      expect(getColWidth(1)).toEqual(0);
       expect(getPlugin('hiddenColumns').isHidden(1)).toBeTruthy();
       expect(getCell(-1, 0)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN_COLUMN);
       expect(getCell(-1, 1)).toBe(null);
@@ -76,7 +76,7 @@ describe('HiddenColumns', () => {
     });
 
     it('should properly render hidden ranges after moving action (moving only hidden column)', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(2, 5),
         colHeaders: true,
         hiddenColumns: {
@@ -89,11 +89,11 @@ describe('HiddenColumns', () => {
       getPlugin('manualColumnMove').moveColumns([4], 1);
       await render();
 
-      expect(hot.getData()).toEqual([
+      expect(getData()).toEqual([
         ['A1', 'E1', 'B1', 'C1', 'D1'],
         ['A2', 'E2', 'B2', 'C2', 'D2'],
       ]);
-      expect(hot.getColWidth(1)).toEqual(0);
+      expect(getColWidth(1)).toEqual(0);
       expect(getPlugin('hiddenColumns').isHidden(1)).toBeTruthy();
       expect(getCell(-1, 0)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN_COLUMN);
       expect(getCell(-1, 1)).toBe(null);
@@ -105,7 +105,7 @@ describe('HiddenColumns', () => {
     });
 
     it('should properly render hidden ranges after moving action (moving range of columns containing a hidden column)', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(2, 5),
         colHeaders: true,
         hiddenColumns: {
@@ -118,11 +118,11 @@ describe('HiddenColumns', () => {
       getPlugin('manualColumnMove').moveColumns([2, 3, 4], 1);
       await render();
 
-      expect(hot.getData()).toEqual([
+      expect(getData()).toEqual([
         ['A1', 'C1', 'D1', 'E1', 'B1'],
         ['A2', 'C2', 'D2', 'E2', 'B2'],
       ]);
-      expect(hot.getColWidth(2)).toEqual(0);
+      expect(getColWidth(2)).toEqual(0);
       expect(getPlugin('hiddenColumns').isHidden(2)).toBeTruthy();
       expect(getCell(-1, 1)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN_COLUMN);
       expect(getCell(-1, 2)).toBe(null);
@@ -134,7 +134,7 @@ describe('HiddenColumns', () => {
     });
 
     it('should properly render hidden ranges after moving action (shifts between hidden columns)', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(2, 5),
         colHeaders: true,
         hiddenColumns: {
@@ -147,11 +147,11 @@ describe('HiddenColumns', () => {
       getPlugin('manualColumnMove').moveColumns([3, 1, 2], 1);
       await render();
 
-      expect(hot.getData()).toEqual([
+      expect(getData()).toEqual([
         ['A1', 'D1', 'B1', 'C1', 'E1'],
         ['A2', 'D2', 'B2', 'C2', 'E2'],
       ]);
-      expect(hot.getColWidth(2)).toEqual(0);
+      expect(getColWidth(2)).toEqual(0);
       expect(getPlugin('hiddenColumns').isHidden(2)).toBeTruthy();
       expect(getCell(-1, 0)).toHaveClass(CSS_CLASS_BEFORE_HIDDEN_COLUMN);
       expect(getCell(-1, 1)).toBe(null);
@@ -163,7 +163,7 @@ describe('HiddenColumns', () => {
     });
 
     it('should properly render hidden ranges after moving action (moving part of hidden columns)', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(2, 5),
         colHeaders: true,
         hiddenColumns: {
@@ -176,13 +176,13 @@ describe('HiddenColumns', () => {
       getPlugin('manualColumnMove').moveColumns([3, 4], 0);
       await render();
 
-      expect(hot.getData()).toEqual([
+      expect(getData()).toEqual([
         ['D1', 'E1', 'A1', 'B1', 'C1'],
         ['D2', 'E2', 'A2', 'B2', 'C2'],
       ]);
-      expect(hot.getColWidth(1)).toEqual(0);
-      expect(hot.getColWidth(1)).toEqual(0);
-      expect(hot.getColWidth(3)).toEqual(0);
+      expect(getColWidth(1)).toEqual(0);
+      expect(getColWidth(1)).toEqual(0);
+      expect(getColWidth(3)).toEqual(0);
       expect(getPlugin('hiddenColumns').isHidden(0)).toBeTruthy();
       expect(getPlugin('hiddenColumns').isHidden(1)).toBeTruthy();
       expect(getPlugin('hiddenColumns').isHidden(3)).toBeTruthy();

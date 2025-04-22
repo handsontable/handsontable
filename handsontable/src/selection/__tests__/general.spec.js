@@ -104,7 +104,7 @@ describe('Selection', () => {
   });
 
   it('should scroll viewport after partially visible column\'s header is clicked, without vertical scroll manipulation', async() => {
-    const hot = handsontable({
+    handsontable({
       width: 200,
       height: 100,
       startRows: 40,
@@ -114,16 +114,16 @@ describe('Selection', () => {
       rowHeaders: true,
     });
 
-    const mainHolder = hot.view._wt.wtTable.holder;
+    const mainHolder = tableView()._wt.wtTable.holder;
 
     mainHolder.scrollTop = 200;
 
-    const lastVisibleColumn = hot.view._wt.wtTable.getLastVisibleColumn();
-    const headerElement = hot.view._wt.wtTable.getColumnHeader(lastVisibleColumn + 1);
+    const lastVisibleColumn = tableView()._wt.wtTable.getLastVisibleColumn();
+    const headerElement = tableView()._wt.wtTable.getColumnHeader(lastVisibleColumn + 1);
 
     $(headerElement).simulate('mousedown');
 
-    expect(hot.view._wt.wtTable.getLastVisibleColumn()).toBe(lastVisibleColumn + 1);
+    expect(tableView()._wt.wtTable.getLastVisibleColumn()).toBe(lastVisibleColumn + 1);
     expect(mainHolder.scrollTop).toBe(200);
   });
 
@@ -137,7 +137,7 @@ describe('Selection', () => {
       rowHeaders: true
     });
 
-    hot.selectCell(1, 1, 2, 2);
+    await selectCell(1, 1, 2, 2);
 
     expect(getComputedStyle(hot.rootElement.querySelector('.ht_master .htBorders .current')).zIndex)
       .toBe('10');
@@ -154,7 +154,7 @@ describe('Selection', () => {
 
     const onAfterScrollVertically = jasmine.createSpy('onAfterScrollVertically');
 
-    const hot = handsontable({
+    handsontable({
       height: 100,
       width: 300,
       startRows: 100,
@@ -164,7 +164,7 @@ describe('Selection', () => {
       afterScrollVertically: onAfterScrollVertically
     });
 
-    const mainHolder = hot.view._wt.wtTable.holder;
+    const mainHolder = tableView()._wt.wtTable.holder;
 
     mainHolder.scrollTop = 0;
 
@@ -181,7 +181,7 @@ describe('Selection', () => {
   });
 
   it('should scroll to the end of the selection, when selecting cells using the keyboard', async() => {
-    const hot = handsontable({
+    handsontable({
       height: 300,
       width: 300,
       startRows: 50,
@@ -192,7 +192,7 @@ describe('Selection', () => {
       fixedColumnsStart: 2
     });
 
-    const mainHolder = hot.view._wt.wtTable.holder;
+    const mainHolder = tableView()._wt.wtTable.holder;
 
     mainHolder.scrollTop = 100;
 
@@ -224,39 +224,39 @@ describe('Selection', () => {
 
     expect(mainHolder.scrollLeft).toEqual(0);
 
-    const lastVisibleColumn = hot.view._wt.wtTable.getLastVisibleColumn();
+    const lastVisibleColumn = tableView()._wt.wtTable.getLastVisibleColumn();
 
     await selectCell(3, lastVisibleColumn);
     await keyDownUp('arrowright');
 
-    expect(hot.view._wt.wtTable.getLastVisibleColumn()).toEqual(lastVisibleColumn + 1);
+    expect(tableView()._wt.wtTable.getLastVisibleColumn()).toEqual(lastVisibleColumn + 1);
 
     await keyDownUp('arrowright');
 
-    expect(hot.view._wt.wtTable.getLastVisibleColumn()).toEqual(lastVisibleColumn + 2);
+    expect(tableView()._wt.wtTable.getLastVisibleColumn()).toEqual(lastVisibleColumn + 2);
 
     await keyDownUp(['shift', 'arrowright']);
 
-    expect(hot.view._wt.wtTable.getLastVisibleColumn()).toEqual(lastVisibleColumn + 3);
+    expect(tableView()._wt.wtTable.getLastVisibleColumn()).toEqual(lastVisibleColumn + 3);
 
-    const lastVisibleRow = hot.view._wt.wtTable.getLastVisibleRow();
+    const lastVisibleRow = tableView()._wt.wtTable.getLastVisibleRow();
 
     await selectCell(lastVisibleRow, 3);
     await keyDownUp('arrowdown');
 
-    expect(hot.view._wt.wtTable.getLastVisibleRow()).toEqual(lastVisibleRow + 1);
+    expect(tableView()._wt.wtTable.getLastVisibleRow()).toEqual(lastVisibleRow + 1);
 
     await keyDownUp('arrowdown');
 
-    expect(hot.view._wt.wtTable.getLastVisibleRow()).toEqual(lastVisibleRow + 2);
+    expect(tableView()._wt.wtTable.getLastVisibleRow()).toEqual(lastVisibleRow + 2);
 
     await keyDownUp(['shift', 'arrowdown']);
 
-    expect(hot.view._wt.wtTable.getLastVisibleRow()).toEqual(lastVisibleRow + 3);
+    expect(tableView()._wt.wtTable.getLastVisibleRow()).toEqual(lastVisibleRow + 3);
   });
 
   it('should scroll to the last selected row or column of the selection, when user uses the keyboard', async() => {
-    const hot = handsontable({
+    handsontable({
       height: 300,
       width: 300,
       startRows: 50,
@@ -267,22 +267,22 @@ describe('Selection', () => {
       fixedColumnsStart: 2
     });
 
-    const mainHolder = hot.view._wt.wtTable.holder;
-    const lastVisibleColumn = hot.view._wt.wtTable.getLastVisibleColumn();
-    const lastVisibleRow = hot.view._wt.wtTable.getLastVisibleRow();
-    const rowHeader = hot.view._wt.wtTable.getRowHeader(lastVisibleRow);
-    const columnHeader = hot.view._wt.wtTable.getColumnHeader(lastVisibleColumn);
+    const mainHolder = tableView()._wt.wtTable.holder;
+    const lastVisibleColumn = tableView()._wt.wtTable.getLastVisibleColumn();
+    const lastVisibleRow = tableView()._wt.wtTable.getLastVisibleRow();
+    const rowHeader = tableView()._wt.wtTable.getRowHeader(lastVisibleRow);
+    const columnHeader = tableView()._wt.wtTable.getColumnHeader(lastVisibleColumn);
 
     $(columnHeader).simulate('mousedown');
     $(columnHeader).simulate('mouseup');
     await keyDownUp(['shift', 'arrowright']);
-    expect(hot.view._wt.wtTable.getLastVisibleColumn()).toEqual(lastVisibleColumn + 1);
+    expect(tableView()._wt.wtTable.getLastVisibleColumn()).toEqual(lastVisibleColumn + 1);
 
     await keyDownUp(['shift', 'arrowright']);
-    expect(hot.view._wt.wtTable.getLastVisibleColumn()).toEqual(lastVisibleColumn + 2);
+    expect(tableView()._wt.wtTable.getLastVisibleColumn()).toEqual(lastVisibleColumn + 2);
 
     await keyDownUp(['shift', 'arrowright']);
-    expect(hot.view._wt.wtTable.getLastVisibleColumn()).toEqual(lastVisibleColumn + 3);
+    expect(tableView()._wt.wtTable.getLastVisibleColumn()).toEqual(lastVisibleColumn + 3);
 
     const scrollLeft = mainHolder.scrollLeft;
 
@@ -292,19 +292,19 @@ describe('Selection', () => {
     $(rowHeader).simulate('mousedown');
     $(rowHeader).simulate('mouseup');
     await keyDownUp(['shift', 'arrowdown']);
-    expect(hot.view._wt.wtTable.getLastVisibleRow()).toEqual(lastVisibleRow + 1);
+    expect(tableView()._wt.wtTable.getLastVisibleRow()).toEqual(lastVisibleRow + 1);
 
     await keyDownUp(['shift', 'arrowdown']);
-    expect(hot.view._wt.wtTable.getLastVisibleRow()).toEqual(lastVisibleRow + 2);
+    expect(tableView()._wt.wtTable.getLastVisibleRow()).toEqual(lastVisibleRow + 2);
 
     await keyDownUp(['shift', 'arrowdown']);
-    expect(hot.view._wt.wtTable.getLastVisibleRow()).toEqual(lastVisibleRow + 3);
+    expect(tableView()._wt.wtTable.getLastVisibleRow()).toEqual(lastVisibleRow + 3);
     expect(mainHolder.scrollLeft).toBe(scrollLeft);
     expect(mainHolder.scrollTop).toBeGreaterThan(0);
   });
 
   it('should scroll viewport after partially visible row\'s header is clicked, without horizontal scroll manipulation', async() => {
-    const hot = handsontable({
+    handsontable({
       width: 200,
       height: 100,
       startRows: 40,
@@ -314,16 +314,16 @@ describe('Selection', () => {
       rowHeaders: true,
     });
 
-    const mainHolder = hot.view._wt.wtTable.holder;
+    const mainHolder = tableView()._wt.wtTable.holder;
 
     await scrollViewportHorizontally(200);
 
-    const firstLastVisibleRow = hot.view._wt.wtTable.getLastVisibleRow();
+    const firstLastVisibleRow = tableView()._wt.wtTable.getLastVisibleRow();
     const headerElement = getCell(firstLastVisibleRow + 1, -1, true);
 
     await simulateClick(headerElement);
 
-    expect(hot.view._wt.wtTable.getLastVisibleRow()).toBe(firstLastVisibleRow + 1);
+    expect(tableView()._wt.wtTable.getLastVisibleRow()).toBe(firstLastVisibleRow + 1);
     expect(mainHolder.scrollLeft).toBe(200);
   });
 
@@ -397,7 +397,7 @@ describe('Selection', () => {
   });
 
   it('should change selected coords by modifying coords object via `modifyTransformStart` hook', async() => {
-    const hot = handsontable({
+    handsontable({
       rowHeaders: true,
       colHeaders: true,
       startRows: 5,
@@ -406,7 +406,7 @@ describe('Selection', () => {
 
     await selectCell(0, 0);
 
-    hot.addHook('modifyTransformStart', (coords) => {
+    addHook('modifyTransformStart', (coords) => {
       coords.col += 1;
       coords.row += 1;
     });
@@ -425,7 +425,7 @@ describe('Selection', () => {
   });
 
   it('should change selected coords by modifying coords object via `modifyTransformEnd` hook', async() => {
-    const hot = handsontable({
+    handsontable({
       rowHeaders: true,
       colHeaders: true,
       startRows: 5,
@@ -434,7 +434,7 @@ describe('Selection', () => {
 
     await selectCell(0, 0);
 
-    hot.addHook('modifyTransformEnd', (delta) => {
+    addHook('modifyTransformEnd', (delta) => {
       delta.col += 2;
       delta.row += 1;
     });
@@ -454,14 +454,16 @@ describe('Selection', () => {
 
   it('should indicate is coords is out of bounds via `afterModifyTransformStart` hook', async() => {
     const spy = jasmine.createSpy();
-    const hot = handsontable({
+
+    handsontable({
       startRows: 5,
       startCols: 5,
       autoWrapCol: false,
       autoWrapRow: false
     });
 
-    hot.addHook('afterModifyTransformStart', spy);
+    addHook('afterModifyTransformStart', spy);
+
     await selectCell(2, 0);
     await keyDownUp('arrowleft');
 
@@ -492,12 +494,13 @@ describe('Selection', () => {
 
   it('should indicate is coords is out of bounds via `afterModifyTransformEnd` hook', async() => {
     const spy = jasmine.createSpy();
-    const hot = handsontable({
+
+    handsontable({
       startRows: 5,
       startCols: 5
     });
 
-    hot.addHook('afterModifyTransformEnd', spy);
+    addHook('afterModifyTransformEnd', spy);
     await selectCell(2, 0);
     await keyDownUp(['shift', 'arrowleft']);
 
@@ -550,7 +553,7 @@ describe('Selection', () => {
   });
 
   it('should redraw selection when option `colHeaders` is set and user scrolled', async() => {
-    const hot = handsontable({
+    handsontable({
       startRows: 20,
       startCols: 20,
       colHeaders: true,
@@ -565,21 +568,21 @@ describe('Selection', () => {
     await selectCell(5, 5);
     await scrollViewportVertically(2);
 
-    cellVerticalPosition = hot.getCell(5, 5).offsetTop;
+    cellVerticalPosition = getCell(5, 5).offsetTop;
     topBorder = $('.wtBorder.current')[0];
 
     expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
 
     await scrollViewportVertically(0);
 
-    cellVerticalPosition = hot.getCell(5, 5).offsetTop;
+    cellVerticalPosition = getCell(5, 5).offsetTop;
     topBorder = $('.wtBorder.current')[0];
 
     expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
   });
 
   it('should redraw selection on `inlineStartOverlay` when options `colHeaders` and `fixedColumnsStart` are set, and user scrolled', async() => {
-    const hot = handsontable({
+    handsontable({
       fixedColumnsStart: 2,
       startRows: 20,
       startCols: 20,
@@ -595,32 +598,32 @@ describe('Selection', () => {
     await selectCell(1, 0);
     await scrollViewportVertically(5);
 
-    cellVerticalPosition = hot.getCell(1, 0).offsetTop;
+    cellVerticalPosition = getCell(1, 0).offsetTop;
     topBorder = $('.wtBorder.current')[0];
 
     expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
 
     await scrollViewportVertically(0);
 
-    cellVerticalPosition = hot.getCell(1, 0).offsetTop;
+    cellVerticalPosition = getCell(1, 0).offsetTop;
     topBorder = $('.wtBorder.current')[0];
 
     expect(topBorder.offsetTop).toEqual(cellVerticalPosition - borderOffsetInPixels);
   });
 
   it('should keep viewport when removing last column', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(20, 2),
       width: 300,
       height: 200,
       colHeaders: true,
     });
 
-    hot.selectColumns(1);
+    await selectColumns(1);
     const $masterHolder = spec().$container.find('.ht_master .wtHolder');
     const scrollTopBefore = $masterHolder.scrollTop();
 
-    hot.alter('remove_col', 1); // remove last column
+    await alter('remove_col', 1); // remove last column
     expect($masterHolder.scrollTop()).toEqual(scrollTopBefore);
   });
 
@@ -1282,7 +1285,7 @@ describe('Selection', () => {
     });
 
     it('should transform the selection down without changing the origin focus position', async() => {
-      const hot = handsontable({
+      handsontable({
         rowHeaders: true,
         colHeaders: true,
         startRows: 7,
@@ -1290,7 +1293,7 @@ describe('Selection', () => {
       });
 
       await selectCells([[5, 3, 3, 1]]);
-      hot.selection.setRangeFocus(hot._createCellCoords(4, 2));
+      selection().setRangeFocus(cellCoords(4, 2));
       await alter('insert_row_above', 1, 2);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 6,2 from: 7,3 to: 5,1']);
@@ -1310,7 +1313,7 @@ describe('Selection', () => {
     });
 
     it('should transform the header selection down by amount of added rows when they added before the selection', async() => {
-      const hot = handsontable({
+      handsontable({
         rowHeaders: true,
         colHeaders: true,
         startRows: 7,
@@ -1320,7 +1323,7 @@ describe('Selection', () => {
       await selectRows(3, 5);
       await alter('insert_row_above', 1, 3);
 
-      expect(hot.selection.isSelectedByRowHeader()).toBe(true);
+      expect(selection().isSelectedByRowHeader()).toBe(true);
       expect(getSelectedRange()).toEqualCellRange(['highlight: 6,0 from: 6,-1 to: 8,9']);
       expect(`
         |   ║ - : - : - : - : - : - : - : - : - : - |
@@ -1465,7 +1468,7 @@ describe('Selection', () => {
     });
 
     it('should transform the selection down without changing the origin focus position', async() => {
-      const hot = handsontable({
+      handsontable({
         rowHeaders: true,
         colHeaders: true,
         startRows: 7,
@@ -1473,7 +1476,7 @@ describe('Selection', () => {
       });
 
       await selectCells([[1, 5, 5, 4]]);
-      hot.selection.setRangeFocus(hot._createCellCoords(3, 5));
+      selection().setRangeFocus(cellCoords(3, 5));
       await alter('insert_col_start', 1, 2);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,7 from: 1,7 to: 5,6']);
@@ -1491,7 +1494,7 @@ describe('Selection', () => {
     });
 
     it('should transform the header selection right by amount of added columns when they added before the selection', async() => {
-      const hot = handsontable({
+      handsontable({
         rowHeaders: true,
         colHeaders: true,
         startRows: 10,
@@ -1501,7 +1504,7 @@ describe('Selection', () => {
       await selectColumns(3, 5);
       await alter('insert_col_start', 1, 3);
 
-      expect(hot.selection.isSelectedByColumnHeader()).toBe(true);
+      expect(selection().isSelectedByColumnHeader()).toBe(true);
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,6 from: -1,6 to: 9,8']);
       expect(`
         |   ║   :   :   :   :   :   : * : * : * :   :   :   :   |
@@ -1581,7 +1584,7 @@ describe('Selection', () => {
     });
 
     it('should transform removed last column header selection to the last visible column', async() => {
-      const hot = handsontable({
+      handsontable({
         rowHeaders: true,
         colHeaders: true,
         startRows: 3,
@@ -1591,7 +1594,7 @@ describe('Selection', () => {
       await selectColumns(4, 4);
       await alter('remove_col', 4);
 
-      expect(hot.selection.isSelectedByColumnHeader()).toBe(true);
+      expect(selection().isSelectedByColumnHeader()).toBe(true);
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,3 from: -1,3 to: 2,3']);
       expect(`
         |   ║   :   :   : * |
@@ -1603,7 +1606,7 @@ describe('Selection', () => {
 
       loadData([[1, 2, 3], [1, 2, 3], [1, 2, 3]]);
 
-      expect(hot.selection.isSelectedByColumnHeader()).toBe(true);
+      expect(selection().isSelectedByColumnHeader()).toBe(true);
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: -1,2 to: 2,2']);
       expect(`
         |   ║   :   : * |
@@ -1647,7 +1650,7 @@ describe('Selection', () => {
     });
 
     it('should transform removed last row header selection to the last visible row', async() => {
-      const hot = handsontable({
+      handsontable({
         rowHeaders: true,
         colHeaders: true,
         startRows: 5,
@@ -1657,7 +1660,7 @@ describe('Selection', () => {
       await selectRows(4, 4);
       await alter('remove_row', 4);
 
-      expect(hot.selection.isSelectedByRowHeader()).toBe(true);
+      expect(selection().isSelectedByRowHeader()).toBe(true);
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,0 from: 3,-1 to: 3,2']);
       expect(`
         |   ║ - : - : - |
@@ -1670,7 +1673,7 @@ describe('Selection', () => {
 
       loadData([[1, 2, 3], [1, 2, 3], [1, 2, 3]]);
 
-      expect(hot.selection.isSelectedByRowHeader()).toBe(true);
+      expect(selection().isSelectedByRowHeader()).toBe(true);
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,0 from: 2,-1 to: 2,2']);
       expect(`
         |   ║ - : - : - |

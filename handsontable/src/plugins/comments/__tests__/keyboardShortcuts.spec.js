@@ -40,7 +40,7 @@ describe('Comments keyboard shortcut', () => {
     });
 
     it('should scroll the viewport, open and create a new comment when the focused cell is outside the table', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(500, 50),
         width: 300,
         height: 300,
@@ -69,8 +69,8 @@ describe('Comments keyboard shortcut', () => {
       expect(plugin.range).toEqualCellRange('highlight: 400,40 from: 400,40 to: 400,40');
 
       // 2050 column width - 250 viewport width + 15 scrollbar compensation + 1 header border compensation
-      expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(1816);
-      expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).forThemes(({ classic, main, horizon }) => {
+      expect(tableView()._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(1816);
+      expect(tableView()._wt.wtOverlays.topOverlay.getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(8966);
         main.toBe(11375);
         horizon.toBe(14591);

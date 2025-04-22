@@ -6,7 +6,7 @@ describe('MultiColumnSorting', () => {
 
     this.sortByClickOnColumnHeader = async(columnIndex) => {
       const hot = this.$container.data('handsontable');
-      const $columnHeader = $(hot.view._wt.wtTable.getColumnHeader(columnIndex));
+      const $columnHeader = $(tableView()._wt.wtTable.getColumnHeader(columnIndex));
       const $spanInsideHeader = $columnHeader.find('.columnSorting');
 
       if ($spanInsideHeader.length === 0) {
@@ -124,7 +124,7 @@ describe('MultiColumnSorting', () => {
       sortOrder: 'asc'
     }];
 
-    const hot = handsontable({
+    handsontable({
       data: arrayOfArrays(),
       columns: [
         {},
@@ -142,8 +142,8 @@ describe('MultiColumnSorting', () => {
     expect(getPlugin('multiColumnSorting').getSortConfig(0)).toEqual({ column: 0, sortOrder: 'asc' });
 
     // changing column sequence: 0 <-> 1
-    hot.columnIndexMapper.moveIndexes([1], 0);
-    hot.render();
+    columnIndexMapper().moveIndexes([1], 0);
+    await render();
 
     expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([{
       column: 1,
@@ -159,7 +159,7 @@ describe('MultiColumnSorting', () => {
       sortOrder: 'asc'
     }];
 
-    const hot = handsontable({
+    handsontable({
       data: arrayOfArrays(),
       columns: [
         {},
@@ -177,8 +177,8 @@ describe('MultiColumnSorting', () => {
     expect(getPlugin('multiColumnSorting').getSortConfig(0)).toEqual({ column: 0, sortOrder: 'asc' });
 
     // changing column sequence: 0 <-> 1
-    hot.columnIndexMapper.moveIndexes([1], 0);
-    hot.render();
+    columnIndexMapper().moveIndexes([1], 0);
+    await render();
 
     expect(getPlugin('multiColumnSorting').getSortConfig()).toEqual([{
       column: 1,
@@ -189,7 +189,7 @@ describe('MultiColumnSorting', () => {
   });
 
   it.forTheme('classic')('should display indicator properly after changing sorted column sequence', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [
         [1, 9, 3, 4, 5, 6, 7, 8, 9],
         [9, 8, 7, 6, 5, 4, 3, 2, 1],
@@ -205,8 +205,8 @@ describe('MultiColumnSorting', () => {
     getPlugin('multiColumnSorting').sort({ column: 0, sortOrder: 'asc' });
 
     // changing column sequence: 0 <-> 1
-    hot.columnIndexMapper.moveIndexes([1], 0);
-    hot.render();
+    columnIndexMapper().moveIndexes([1], 0);
+    await render();
 
     const sortedColumn = spec().$container.find('th span.columnSorting')[1];
 
@@ -214,7 +214,7 @@ describe('MultiColumnSorting', () => {
   });
 
   it.forTheme('main')('should display indicator properly after changing sorted column sequence', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [
         [1, 9, 3, 4, 5, 6, 7, 8, 9],
         [9, 8, 7, 6, 5, 4, 3, 2, 1],
@@ -230,8 +230,8 @@ describe('MultiColumnSorting', () => {
     getPlugin('multiColumnSorting').sort({ column: 0, sortOrder: 'asc' });
 
     // changing column sequence: 0 <-> 1
-    hot.columnIndexMapper.moveIndexes([1], 0);
-    hot.render();
+    columnIndexMapper().moveIndexes([1], 0);
+    await render();
 
     const sortedColumn = spec().$container.find('th span.columnSorting')[1];
 
@@ -241,7 +241,7 @@ describe('MultiColumnSorting', () => {
   });
 
   it.forTheme('horizon')('should display indicator properly after changing sorted column sequence', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [
         [1, 9, 3, 4, 5, 6, 7, 8, 9],
         [9, 8, 7, 6, 5, 4, 3, 2, 1],
@@ -257,8 +257,8 @@ describe('MultiColumnSorting', () => {
     getPlugin('multiColumnSorting').sort({ column: 0, sortOrder: 'asc' });
 
     // changing column sequence: 0 <-> 1
-    hot.columnIndexMapper.moveIndexes([1], 0);
-    hot.render();
+    columnIndexMapper().moveIndexes([1], 0);
+    await render();
 
     const sortedColumn = spec().$container.find('th span.columnSorting')[1];
 
@@ -2863,7 +2863,7 @@ describe('MultiColumnSorting', () => {
   });
 
   it('should modify row translating process when soring is applied (visual to physical and vice versa)', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [
         [2],
         [4],
@@ -2876,14 +2876,14 @@ describe('MultiColumnSorting', () => {
 
     await spec().sortByClickOnColumnHeader(0);
 
-    expect(hot.toPhysicalRow(0)).toBe(2);
-    expect(hot.toPhysicalRow(1)).toBe(0);
-    expect(hot.toPhysicalRow(2)).toBe(3);
-    expect(hot.toPhysicalRow(3)).toBe(1);
-    expect(hot.toVisualRow(0)).toBe(1);
-    expect(hot.toVisualRow(1)).toBe(3);
-    expect(hot.toVisualRow(2)).toBe(0);
-    expect(hot.toVisualRow(3)).toBe(2);
+    expect(toPhysicalRow(0)).toBe(2);
+    expect(toPhysicalRow(1)).toBe(0);
+    expect(toPhysicalRow(2)).toBe(3);
+    expect(toPhysicalRow(3)).toBe(1);
+    expect(toVisualRow(0)).toBe(1);
+    expect(toVisualRow(1)).toBe(3);
+    expect(toVisualRow(2)).toBe(0);
+    expect(toVisualRow(3)).toBe(2);
   });
 
   describe('should return sorted properly data when maxRows or / and minSpareRow options are set', () => {
@@ -3663,13 +3663,13 @@ describe('MultiColumnSorting', () => {
     });
 
     it('should not sort table by right click', async() => {
-      const hot = handsontable({
+      handsontable({
         data: arrayOfArrays(),
         colHeaders: true,
         multiColumnSorting: true
       });
 
-      const $columnHeader = $(hot.view._wt.wtTable.getColumnHeader(0));
+      const $columnHeader = $(tableView()._wt.wtTable.getColumnHeader(0));
       const $spanInsideHeader = $columnHeader.find('.columnSorting');
 
       $spanInsideHeader.simulate('mousedown', { button: 2 });
@@ -3844,7 +3844,7 @@ describe('MultiColumnSorting', () => {
 
   describe('index mappers', () => {
     it('should not map indexes when already sorted column was set to not sorted', async() => {
-      const hot = handsontable({
+      handsontable({
         colHeaders: true,
         data: createSpreadsheetData(3, 3),
         multiColumnSorting: {
@@ -3857,7 +3857,7 @@ describe('MultiColumnSorting', () => {
 
       await updateSettings({ multiColumnSorting: { initialConfig: [] } });
 
-      expect(hot.toVisualRow(0)).toEqual(0);
+      expect(toVisualRow(0)).toEqual(0);
     });
   });
 
@@ -3997,7 +3997,7 @@ describe('MultiColumnSorting', () => {
 
   describe('undo/redo', () => {
     it('should be able to undo the sorting action', async() => {
-      const hot = handsontable({
+      handsontable({
         data: [
           ['Alice', 'Smith', 'Eve'],
           ['Bob', 'Johnson', 'Grace'],
@@ -4009,7 +4009,7 @@ describe('MultiColumnSorting', () => {
         colHeaders: true,
       });
 
-      hot.getPlugin('multiColumnSorting').sort([{
+      getPlugin('multiColumnSorting').sort([{
         column: 0,
         sortOrder: 'desc'
       }]);
@@ -4022,7 +4022,7 @@ describe('MultiColumnSorting', () => {
         ['Alice', 'Miller', 'Olivia']
       ]);
 
-      hot.getPlugin('multiColumnSorting').sort([{
+      getPlugin('multiColumnSorting').sort([{
         column: 0,
         sortOrder: 'desc'
       }, {
@@ -4060,7 +4060,7 @@ describe('MultiColumnSorting', () => {
     });
 
     it('should be able to redo the sorting action', async() => {
-      const hot = handsontable({
+      handsontable({
         data: [
           ['Alice', 'Smith', 'Eve'],
           ['Bob', 'Johnson', 'Grace'],
@@ -4072,13 +4072,13 @@ describe('MultiColumnSorting', () => {
         colHeaders: true,
       });
 
-      hot.getPlugin('multiColumnSorting').sort([
+      getPlugin('multiColumnSorting').sort([
         {
           column: 0,
           sortOrder: 'desc'
         }]);
 
-      hot.getPlugin('multiColumnSorting').sort([
+      getPlugin('multiColumnSorting').sort([
         {
           column: 0,
           sortOrder: 'desc'
@@ -4098,7 +4098,7 @@ describe('MultiColumnSorting', () => {
         ['David', 'Lee', 'Sophia']
       ]);
 
-      hot.getPlugin('undoRedo').redo();
+      getPlugin('undoRedo').redo();
 
       expect(getData()).toEqual([
         ['David', 'Lee', 'Sophia'],
@@ -4108,7 +4108,7 @@ describe('MultiColumnSorting', () => {
         ['Alice', 'Miller', 'Olivia']
       ]);
 
-      hot.getPlugin('undoRedo').redo();
+      getPlugin('undoRedo').redo();
 
       expect(getData()).toEqual([
         ['David', 'Lee', 'Sophia'],

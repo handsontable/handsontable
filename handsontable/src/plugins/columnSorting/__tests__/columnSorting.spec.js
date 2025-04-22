@@ -124,7 +124,7 @@ describe('ColumnSorting', () => {
       sortOrder: 'asc'
     }];
 
-    const hot = handsontable({
+    handsontable({
       data: arrayOfArrays(),
       columns: [
         {},
@@ -142,7 +142,7 @@ describe('ColumnSorting', () => {
     expect(getPlugin('columnSorting').getSortConfig(0)).toEqual({ column: 0, sortOrder: 'asc' });
 
     // changing column sequence: 0 <-> 1
-    hot.columnIndexMapper.moveIndexes([1], 0);
+    columnIndexMapper().moveIndexes([1], 0);
     await render();
 
     expect(getPlugin('columnSorting').getSortConfig()).toEqual([{
@@ -159,7 +159,7 @@ describe('ColumnSorting', () => {
       sortOrder: 'asc'
     }];
 
-    const hot = handsontable({
+    handsontable({
       data: arrayOfArrays(),
       columns: [
         {},
@@ -177,7 +177,7 @@ describe('ColumnSorting', () => {
     expect(getPlugin('columnSorting').getSortConfig(0)).toEqual({ column: 0, sortOrder: 'asc' });
 
     // changing column sequence: 0 <-> 1
-    hot.columnIndexMapper.moveIndexes([1], 0);
+    columnIndexMapper().moveIndexes([1], 0);
     await render();
 
     expect(getPlugin('columnSorting').getSortConfig()).toEqual([{
@@ -201,7 +201,7 @@ describe('ColumnSorting', () => {
     });
 
     it.forTheme('classic')('should display indicator properly after changing sorted column sequence', async() => {
-      const hot = handsontable({
+      handsontable({
         layoutDirection,
         data: [
           [1, 9, 3, 4, 5, 6, 7, 8, 9],
@@ -218,7 +218,7 @@ describe('ColumnSorting', () => {
       getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
 
       // changing column sequence: 0 <-> 1
-      hot.columnIndexMapper.moveIndexes([1], 0);
+      columnIndexMapper().moveIndexes([1], 0);
       await render();
 
       const sortedColumn = spec().$container.find('th span.columnSorting')[1];
@@ -228,7 +228,7 @@ describe('ColumnSorting', () => {
     });
 
     it.forTheme('main')('should display indicator properly after changing sorted column sequence', async() => {
-      const hot = handsontable({
+      handsontable({
         layoutDirection,
         data: [
           [1, 9, 3, 4, 5, 6, 7, 8, 9],
@@ -245,8 +245,8 @@ describe('ColumnSorting', () => {
       getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
 
       // changing column sequence: 0 <-> 1
-      hot.columnIndexMapper.moveIndexes([1], 0);
-      hot.render();
+      columnIndexMapper().moveIndexes([1], 0);
+      await render();
 
       const sortedColumn = spec().$container.find('th span.columnSorting')[1];
 
@@ -263,7 +263,7 @@ describe('ColumnSorting', () => {
     });
 
     it.forTheme('horizon')('should display indicator properly after changing sorted column sequence', async() => {
-      const hot = handsontable({
+      handsontable({
         layoutDirection,
         data: [
           [1, 9, 3, 4, 5, 6, 7, 8, 9],
@@ -280,7 +280,7 @@ describe('ColumnSorting', () => {
       getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
 
       // changing column sequence: 0 <-> 1
-      hot.columnIndexMapper.moveIndexes([1], 0);
+      columnIndexMapper().moveIndexes([1], 0);
       await render();
 
       const sortedColumn = spec().$container.find('th span.columnSorting')[1];
@@ -2947,7 +2947,7 @@ describe('ColumnSorting', () => {
   });
 
   it('should modify row translating process when soring is applied (visual to physical and vice versa)', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [
         [2],
         [4],
@@ -2960,14 +2960,14 @@ describe('ColumnSorting', () => {
 
     await spec().sortByClickOnColumnHeader(0);
 
-    expect(hot.toPhysicalRow(0)).toBe(2);
-    expect(hot.toPhysicalRow(1)).toBe(0);
-    expect(hot.toPhysicalRow(2)).toBe(3);
-    expect(hot.toPhysicalRow(3)).toBe(1);
-    expect(hot.toVisualRow(0)).toBe(1);
-    expect(hot.toVisualRow(1)).toBe(3);
-    expect(hot.toVisualRow(2)).toBe(0);
-    expect(hot.toVisualRow(3)).toBe(2);
+    expect(toPhysicalRow(0)).toBe(2);
+    expect(toPhysicalRow(1)).toBe(0);
+    expect(toPhysicalRow(2)).toBe(3);
+    expect(toPhysicalRow(3)).toBe(1);
+    expect(toVisualRow(0)).toBe(1);
+    expect(toVisualRow(1)).toBe(3);
+    expect(toVisualRow(2)).toBe(0);
+    expect(toVisualRow(3)).toBe(2);
   });
 
   describe('should return sorted properly data when maxRows or / and minSpareRow options are set', () => {
@@ -3173,13 +3173,13 @@ describe('ColumnSorting', () => {
     });
 
     it('should not sort table by right click', async() => {
-      const hot = handsontable({
+      handsontable({
         data: arrayOfArrays(),
         colHeaders: true,
         columnSorting: true
       });
 
-      const $columnHeader = $(hot.view._wt.wtTable.getColumnHeader(0));
+      const $columnHeader = $(tableView()._wt.wtTable.getColumnHeader(0));
       const $spanInsideHeader = $columnHeader.find('.columnSorting');
 
       $spanInsideHeader.simulate('mousedown', { button: 2 });
@@ -3380,13 +3380,13 @@ describe('ColumnSorting', () => {
   });
 
   it('should revert starting indexes sequence after resetting the state to not sorted', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 3),
       colHeaders: true,
       columnSorting: true
     });
 
-    hot.rowIndexMapper.setIndexesSequence([2, 0, 1]);
+    rowIndexMapper().setIndexesSequence([2, 0, 1]);
 
     await spec().sortByClickOnColumnHeader(0);
     await spec().sortByClickOnColumnHeader(0);
@@ -3400,7 +3400,7 @@ describe('ColumnSorting', () => {
   });
 
   it('should not map indexes when already sorted column was set to not sorted', async() => {
-    const hot = handsontable({
+    handsontable({
       colHeaders: true,
       data: createSpreadsheetData(3, 3),
       columnSorting: {
@@ -3413,7 +3413,7 @@ describe('ColumnSorting', () => {
 
     await updateSettings({ columnSorting: { initialConfig: [] } });
 
-    expect(hot.toVisualRow(0)).toEqual(0);
+    expect(toVisualRow(0)).toEqual(0);
   });
 
   it('should not break data order when extra `loadData` is triggered #3809', async() => {
@@ -3439,12 +3439,12 @@ describe('ColumnSorting', () => {
 
   describe('undo/redo', () => {
     it('should be able to undo the sorting action', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(3, 3),
         columnSorting: true
       });
 
-      hot.getPlugin('columnSorting').sort({
+      getPlugin('columnSorting').sort({
         column: 0,
         sortOrder: 'desc'
       });
@@ -3465,12 +3465,12 @@ describe('ColumnSorting', () => {
     });
 
     it('should be able to redo the sorting action', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(3, 3),
         columnSorting: true
       });
 
-      hot.getPlugin('columnSorting').sort({
+      getPlugin('columnSorting').sort({
         column: 0,
         sortOrder: 'desc'
       });
@@ -3594,7 +3594,7 @@ describe('ColumnSorting', () => {
     });
 
     it('should not break the ability to freeze column', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(1, 3),
         fixedColumnsStart: 1,
         columnSorting: true,
@@ -3602,20 +3602,20 @@ describe('ColumnSorting', () => {
         contextMenu: true
       });
 
-      hot.selectCell(0, 2);
+      await selectCell(0, 2);
       await contextMenu();
 
-      const freezeColumn = $(hot.getPlugin('contextMenu').menu.container).find('div').filter(function() {
+      const freezeColumn = $(getPlugin('contextMenu').menu.container).find('div').filter(function() {
         return $(this).text() === 'Freeze column';
       });
 
       await simulateClick(freezeColumn);
 
-      expect(hot.getSettings().fixedColumnsStart).toEqual(2);
-      expect(hot.toPhysicalColumn(0)).toEqual(0);
-      expect(hot.toPhysicalColumn(1)).toEqual(2);
-      expect(hot.toPhysicalColumn(2)).toEqual(1);
-      expect(hot.getData()).toEqual([['A1', 'C1', 'B1']]);
+      expect(getSettings().fixedColumnsStart).toEqual(2);
+      expect(toPhysicalColumn(0)).toEqual(0);
+      expect(toPhysicalColumn(1)).toEqual(2);
+      expect(toPhysicalColumn(2)).toEqual(1);
+      expect(getData()).toEqual([['A1', 'C1', 'B1']]);
     });
   });
 

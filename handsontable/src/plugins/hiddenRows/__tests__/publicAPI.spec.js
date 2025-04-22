@@ -104,7 +104,7 @@ describe('HiddenRows', () => {
 
       it('should return correct visual indexes when rows sequence is non-contiguous ' +
          '(force desync between physical and visual indexes)', async() => {
-        const hot = handsontable({
+        handsontable({
           data: createSpreadsheetData(10, 1),
           rowHeaders: true,
           hiddenRows: {
@@ -113,7 +113,7 @@ describe('HiddenRows', () => {
           },
         });
 
-        hot.rowIndexMapper.setIndexesSequence([0, 9, 1, 2, 3, 4, 5, 6, 7, 8]);
+        rowIndexMapper().setIndexesSequence([0, 9, 1, 2, 3, 4, 5, 6, 7, 8]);
 
         const plugin = getPlugin('hiddenRows');
 

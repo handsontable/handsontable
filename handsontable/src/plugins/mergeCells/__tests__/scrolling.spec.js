@@ -114,7 +114,7 @@ describe('MergeCells scrolling', () => {
   });
 
   it('should render whole merged cell even when most rows are not in the viewport - scrolled to top', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetObjectData(40, 5),
       mergeCells: [
         { row: 1, col: 0, rowspan: 21, colspan: 2 },
@@ -124,11 +124,11 @@ describe('MergeCells scrolling', () => {
       width: 400
     });
 
-    expect(hot.countRenderedRows()).toBe(39);
+    expect(countRenderedRows()).toBe(39);
   });
 
   it('should render whole merged cell even when most rows are not in the viewport - scrolled to bottom', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetObjectData(40, 5),
       mergeCells: [
         { row: 1, col: 0, rowspan: 21, colspan: 2 },
@@ -141,11 +141,11 @@ describe('MergeCells scrolling', () => {
     await scrollViewportVertically(99999);
     await render();
 
-    expect(hot.countRenderedRows()).toBe(39);
+    expect(countRenderedRows()).toBe(39);
   });
 
   it('should render whole merged cell even when most columns are not in the viewport - scrolled to the left', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetObjectData(5, 40),
       mergeCells: [
         { row: 0, col: 1, rowspan: 2, colspan: 21 },
@@ -155,11 +155,11 @@ describe('MergeCells scrolling', () => {
       width: 400
     });
 
-    expect(hot.countRenderedCols()).toBe(39);
+    expect(countRenderedCols()).toBe(39);
   });
 
   it('should render whole merged cell even when most columns are not in the viewport - scrolled to the right', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetObjectData(5, 40),
       mergeCells: [
         { row: 0, col: 1, rowspan: 2, colspan: 21 },
@@ -172,6 +172,6 @@ describe('MergeCells scrolling', () => {
     await scrollViewportHorizontally(99999);
     await render();
 
-    expect(hot.countRenderedCols()).toBe(39);
+    expect(countRenderedCols()).toBe(39);
   });
 });

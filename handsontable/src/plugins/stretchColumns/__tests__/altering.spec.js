@@ -63,7 +63,7 @@ describe('StretchColumns cooperation with columns altering', () => {
   });
 
   it('should re-stretch all columns after removing a column', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(5, 7),
       colHeaders: true,
       rowHeaders: true,
@@ -74,7 +74,7 @@ describe('StretchColumns cooperation with columns altering', () => {
 
     await alter('remove_col');
 
-    expect(hot.view.hasHorizontalScroll()).toBe(true);
+    expect(tableView().hasHorizontalScroll()).toBe(true);
 
     expect(getColWidth(0)).toBe(50);
     expect(getColWidth(1)).toBe(50);
@@ -85,7 +85,7 @@ describe('StretchColumns cooperation with columns altering', () => {
 
     await alter('remove_col', 1);
 
-    expect(hot.view.hasHorizontalScroll()).toBe(false);
+    expect(tableView().hasHorizontalScroll()).toBe(false);
 
     expect(getColWidth(0)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(54);
@@ -115,7 +115,7 @@ describe('StretchColumns cooperation with columns altering', () => {
   });
 
   it('should stop stretching the columns when the sum of columns widths is wider than the viewport', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(5, 2),
       colHeaders: true,
       rowHeaders: true,
@@ -126,7 +126,7 @@ describe('StretchColumns cooperation with columns altering', () => {
 
     await alter('insert_col_end', null, 3);
 
-    expect(hot.view.hasHorizontalScroll()).toBe(false);
+    expect(tableView().hasHorizontalScroll()).toBe(false);
     expect(getColWidth(0)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(54);
       main.toBe(54);
@@ -155,7 +155,7 @@ describe('StretchColumns cooperation with columns altering', () => {
 
     await alter('insert_col_end', null, 1);
 
-    expect(hot.view.hasHorizontalScroll()).toBe(true);
+    expect(tableView().hasHorizontalScroll()).toBe(true);
     expect(getColWidth(0)).toBe(50);
     expect(getColWidth(1)).toBe(50);
     expect(getColWidth(2)).toBe(50);

@@ -736,6 +736,7 @@ describe('AutocompleteEditor', () => {
         process(choices);
         context = this;
       });
+
       const hot = handsontable({
         columns: [
           {
@@ -826,7 +827,7 @@ describe('AutocompleteEditor', () => {
       spyOn(Handsontable.editors.AutocompleteEditor.prototype, 'updateChoicesList').and.callThrough();
       const updateChoicesList = Handsontable.editors.AutocompleteEditor.prototype.updateChoicesList;
 
-      const hot = handsontable({
+      handsontable({
         columns: [
           {
             editor: 'autocomplete',
@@ -837,7 +838,7 @@ describe('AutocompleteEditor', () => {
 
       await selectCell(0, 0);
 
-      const editor = hot.getActiveEditor();
+      const editor = getActiveEditor();
 
       await keyDownUp('enter');
       await sleep(200);
@@ -856,7 +857,7 @@ describe('AutocompleteEditor', () => {
       spyOn(Handsontable.editors.AutocompleteEditor.prototype, 'updateChoicesList').and.callThrough();
       const updateChoicesList = Handsontable.editors.AutocompleteEditor.prototype.updateChoicesList;
 
-      const hot = handsontable({
+      handsontable({
         columns: [
           {
             editor: 'autocomplete',
@@ -867,7 +868,7 @@ describe('AutocompleteEditor', () => {
 
       await selectCell(0, 0);
 
-      const editor = hot.getActiveEditor();
+      const editor = getActiveEditor();
 
       updateChoicesList.calls.reset();
 
@@ -884,7 +885,7 @@ describe('AutocompleteEditor', () => {
     });
 
     it('should hide the list when there is no entries to choose (#dev-92)', async() => {
-      const hot = handsontable({
+      handsontable({
         columns: [
           {
             editor: 'autocomplete',
@@ -895,7 +896,7 @@ describe('AutocompleteEditor', () => {
 
       await selectCell(0, 0);
 
-      const editor = hot.getActiveEditor();
+      const editor = getActiveEditor();
 
       await keyDownUp('enter');
       await sleep(200);
@@ -918,7 +919,7 @@ describe('AutocompleteEditor', () => {
       spyOn(Handsontable.editors.AutocompleteEditor.prototype, 'updateChoicesList').and.callThrough();
       const updateChoicesList = Handsontable.editors.AutocompleteEditor.prototype.updateChoicesList;
 
-      const hot = handsontable({
+      handsontable({
         data: [
           [
             'blue'
@@ -937,7 +938,7 @@ describe('AutocompleteEditor', () => {
 
       await selectCell(0, 0);
 
-      const editor = hot.getActiveEditor();
+      const editor = getActiveEditor();
 
       updateChoicesList.calls.reset();
 
@@ -1089,7 +1090,7 @@ describe('AutocompleteEditor', () => {
     });
 
     it('should invoke beginEditing only once after doubleclicking on a cell (#1011)', async() => {
-      const hot = handsontable({
+      handsontable({
         columns: [
           {},
           {},
@@ -1102,21 +1103,21 @@ describe('AutocompleteEditor', () => {
 
       await selectCell(0, 2);
 
-      spyOn(hot.getActiveEditor(), 'beginEditing');
+      spyOn(getActiveEditor(), 'beginEditing');
 
-      expect(hot.getActiveEditor().beginEditing.calls.count()).toBe(0);
+      expect(getActiveEditor().beginEditing.calls.count()).toBe(0);
 
       await mouseDoubleClick(getCell(0, 2));
 
-      expect(hot.getActiveEditor().beginEditing.calls.count()).toBe(1);
+      expect(getActiveEditor().beginEditing.calls.count()).toBe(1);
 
       await mouseDoubleClick(getCell(1, 2));
 
-      expect(hot.getActiveEditor().beginEditing.calls.count()).toBe(2);
+      expect(getActiveEditor().beginEditing.calls.count()).toBe(2);
 
       await mouseDoubleClick(getCell(2, 2));
 
-      expect(hot.getActiveEditor().beginEditing.calls.count()).toBe(3);
+      expect(getActiveEditor().beginEditing.calls.count()).toBe(3);
     });
 
     it('should not display all the choices from a long source list and not leave any unused space in the dropdown', async() => {
@@ -1816,7 +1817,7 @@ describe('AutocompleteEditor', () => {
         process(choices.filter(choice => choice.indexOf(query) !== -1));
       });
 
-      const hot = handsontable({
+      handsontable({
         columns: [
           {
             editor: 'autocomplete',
@@ -1841,7 +1842,7 @@ describe('AutocompleteEditor', () => {
       await keyDownUp('b');
       await sleep(200);
 
-      const ac = hot.getActiveEditor();
+      const ac = getActiveEditor();
       const innerHot = ac.htEditor;
 
       expect(innerHot.getData()).toEqual([
@@ -2079,7 +2080,7 @@ describe('AutocompleteEditor', () => {
         process(choices.filter(choice => choice.indexOf(query) !== -1));
       });
 
-      const hot = handsontable({
+      handsontable({
         columns: [
           {
             editor: 'autocomplete',
@@ -2106,7 +2107,7 @@ describe('AutocompleteEditor', () => {
       await keyDownUp('b');
       await sleep(200);
 
-      const ac = hot.getActiveEditor();
+      const ac = getActiveEditor();
       const innerHot = ac.htEditor;
 
       expect(innerHot.getData()).toEqual([
@@ -2135,7 +2136,7 @@ describe('AutocompleteEditor', () => {
         process(choices.filter(choice => choice.indexOf(query) !== -1));
       });
 
-      const hot = handsontable({
+      handsontable({
         columns: [
           {
             editor: 'autocomplete',
@@ -2162,7 +2163,7 @@ describe('AutocompleteEditor', () => {
       await keyDownUp('b');
       await sleep(200);
 
-      const ac = hot.getActiveEditor();
+      const ac = getActiveEditor();
       const innerHot = ac.htEditor;
 
       expect(innerHot.getData()).toEqual([
@@ -2221,7 +2222,7 @@ describe('AutocompleteEditor', () => {
         process(choices.filter(choice => choice.indexOf(query) !== -1));
       });
 
-      const hot = handsontable({
+      handsontable({
         columns: [
           {
             editor: 'autocomplete',
@@ -2246,7 +2247,7 @@ describe('AutocompleteEditor', () => {
       await sleep(200);
 
       {
-        const ac = hot.getActiveEditor();
+        const ac = getActiveEditor();
         const innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
@@ -2270,7 +2271,7 @@ describe('AutocompleteEditor', () => {
       await sleep(200);
 
       {
-        const ac = hot.getActiveEditor();
+        const ac = getActiveEditor();
         const innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
@@ -2280,7 +2281,7 @@ describe('AutocompleteEditor', () => {
     });
 
     it('default filtering should be case insensitive', async() => {
-      const hot = handsontable({
+      handsontable({
         columns: [
           {
             editor: 'autocomplete',
@@ -2303,7 +2304,7 @@ describe('AutocompleteEditor', () => {
       await sleep(50);
 
       {
-        const ac = hot.getActiveEditor();
+        const ac = getActiveEditor();
         const innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
@@ -2326,7 +2327,7 @@ describe('AutocompleteEditor', () => {
       await sleep(50);
 
       {
-        const ac = hot.getActiveEditor();
+        const ac = getActiveEditor();
         const innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
@@ -2344,7 +2345,7 @@ describe('AutocompleteEditor', () => {
     });
 
     it('default filtering should be case sensitive when filteringCaseSensitive is false', async() => {
-      const hot = handsontable({
+      handsontable({
         columns: [
           {
             editor: 'autocomplete',
@@ -2368,7 +2369,7 @@ describe('AutocompleteEditor', () => {
       await sleep(100);
 
       {
-        const ac = hot.getActiveEditor();
+        const ac = getActiveEditor();
         const innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
@@ -2391,7 +2392,7 @@ describe('AutocompleteEditor', () => {
       await sleep(100);
 
       {
-        const ac = hot.getActiveEditor();
+        const ac = getActiveEditor();
         const innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([]);
@@ -2400,7 +2401,7 @@ describe('AutocompleteEditor', () => {
     });
 
     it('typing in textarea should NOT filter the lookup list when filtering is disabled', async() => {
-      const hot = handsontable({
+      handsontable({
         columns: [
           {
             editor: 'autocomplete',
@@ -2425,7 +2426,7 @@ describe('AutocompleteEditor', () => {
       await sleep(20);
 
       {
-        const ac = hot.getActiveEditor();
+        const ac = getActiveEditor();
         const innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual(Handsontable.helper.pivot([choices]));
@@ -2438,7 +2439,7 @@ describe('AutocompleteEditor', () => {
       await sleep(20);
 
       {
-        const ac = hot.getActiveEditor();
+        const ac = getActiveEditor();
         const innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual(Handsontable.helper.pivot([choices]));
@@ -2453,7 +2454,7 @@ describe('AutocompleteEditor', () => {
         process(choicesList.filter(choice => choice.search(new RegExp(query, 'i')) !== -1));
       });
 
-      const hot = handsontable({
+      handsontable({
         columns: [
           {
             editor: 'autocomplete',
@@ -2478,7 +2479,7 @@ describe('AutocompleteEditor', () => {
       await keyDownUp('e'); // e
       await sleep(200);
 
-      const ac = hot.getActiveEditor();
+      const ac = getActiveEditor();
       const innerHot = ac.htEditor;
       const autocompleteList = $(innerHot.rootElement);
 
@@ -2490,7 +2491,7 @@ describe('AutocompleteEditor', () => {
       spyOn(Handsontable.editors.AutocompleteEditor.prototype, 'queryChoices').and.callThrough();
       const queryChoices = Handsontable.editors.AutocompleteEditor.prototype.queryChoices;
 
-      const hot = handsontable({
+      handsontable({
         columns: [
           {
             editor: 'autocomplete',
@@ -2513,7 +2514,7 @@ describe('AutocompleteEditor', () => {
       await keyDownUp('d');
       await sleep(200);
 
-      const ac = hot.getActiveEditor();
+      const ac = getActiveEditor();
       const innerHot = ac.htEditor;
 
       expect(innerHot.getData().length).toEqual(0);
@@ -2527,7 +2528,7 @@ describe('AutocompleteEditor', () => {
         process(choicesList.filter(choice => choice.search(new RegExp(query, 'i')) !== -1));
       });
 
-      const hot = handsontable({
+      handsontable({
         columns: [
           {
             editor: 'autocomplete',
@@ -2552,7 +2553,7 @@ describe('AutocompleteEditor', () => {
       await keyDownUp('F');
       await sleep(200);
 
-      const ac = hot.getActiveEditor();
+      const ac = getActiveEditor();
       const innerHot = ac.htEditor;
 
       const autocompleteList = $(innerHot.rootElement);
@@ -2605,7 +2606,7 @@ describe('AutocompleteEditor', () => {
         process(choicesList.filter(choice => choice.search(new RegExp(query, 'i')) !== -1));
       });
 
-      const hot = handsontable({
+      handsontable({
         columns: [
           {
             editor: 'autocomplete',
@@ -2631,7 +2632,7 @@ describe('AutocompleteEditor', () => {
       await keyDownUp('e'); // e
       await sleep(200);
 
-      const ac = hot.getActiveEditor();
+      const ac = getActiveEditor();
       const innerHot = ac.htEditor;
 
       expect(innerHot.getSelected()).toEqual([[1, 0, 1, 0]]);
@@ -2703,7 +2704,7 @@ describe('AutocompleteEditor', () => {
 
   describe('allow html mode', () => {
     it('should allow inject html items (async mode)', async() => {
-      const hot = handsontable({
+      handsontable({
         columns: [
           {
             type: 'autocomplete',
@@ -2730,7 +2731,7 @@ describe('AutocompleteEditor', () => {
       await sleep(200);
 
       {
-        const ac = hot.getActiveEditor();
+        const ac = getActiveEditor();
         const innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
@@ -2747,7 +2748,7 @@ describe('AutocompleteEditor', () => {
       await sleep(200);
 
       {
-        const ac = hot.getActiveEditor();
+        const ac = getActiveEditor();
         const innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
@@ -2764,7 +2765,7 @@ describe('AutocompleteEditor', () => {
     });
 
     it('should allow inject html items (sync mode)', async() => {
-      const hot = handsontable({
+      handsontable({
         columns: [
           {
             type: 'autocomplete',
@@ -2789,7 +2790,7 @@ describe('AutocompleteEditor', () => {
       await sleep(200);
 
       {
-        const ac = hot.getActiveEditor();
+        const ac = getActiveEditor();
         const innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
@@ -2806,7 +2807,7 @@ describe('AutocompleteEditor', () => {
       await sleep(200);
 
       {
-        const ac = hot.getActiveEditor();
+        const ac = getActiveEditor();
         const innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
@@ -2823,7 +2824,7 @@ describe('AutocompleteEditor', () => {
     });
 
     it('should allow render the html items without sanitizing the content', async() => {
-      const hot = handsontable({
+      handsontable({
         columns: [
           {
             type: 'autocomplete',
@@ -2841,7 +2842,7 @@ describe('AutocompleteEditor', () => {
       await keyDownUp('enter');
       await sleep(200);
 
-      const ac = hot.getActiveEditor();
+      const ac = getActiveEditor();
       const innerHot = ac.htEditor;
 
       expect(window.__xssTestInjection).toBe(true);
@@ -2857,7 +2858,7 @@ describe('AutocompleteEditor', () => {
 
   describe('disallow html mode', () => {
     it('should be disabled by default', async() => {
-      const hot = handsontable({
+      handsontable({
         columns: [
           {
             type: 'autocomplete',
@@ -2869,11 +2870,11 @@ describe('AutocompleteEditor', () => {
         ]
       });
 
-      expect(hot.getCellMeta(0, 0).allowHtml).toBeFalsy();
+      expect(getCellMeta(0, 0).allowHtml).toBeFalsy();
     });
 
     it('should strip html from strings provided in source (async mode)', async() => {
-      const hot = handsontable({
+      handsontable({
         columns: [
           {
             type: 'autocomplete',
@@ -2900,7 +2901,7 @@ describe('AutocompleteEditor', () => {
       await sleep(200);
 
       {
-        const ac = hot.getActiveEditor();
+        const ac = getActiveEditor();
         const innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
@@ -2917,7 +2918,7 @@ describe('AutocompleteEditor', () => {
       await sleep(200);
 
       {
-        const ac = hot.getActiveEditor();
+        const ac = getActiveEditor();
         const innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
@@ -2935,7 +2936,7 @@ describe('AutocompleteEditor', () => {
     });
 
     it('should strip html from strings provided in source (sync mode)', async() => {
-      const hot = handsontable({
+      handsontable({
         columns: [
           {
             type: 'autocomplete',
@@ -2960,7 +2961,7 @@ describe('AutocompleteEditor', () => {
       await sleep(200);
 
       {
-        const ac = hot.getActiveEditor();
+        const ac = getActiveEditor();
         const innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
@@ -2976,7 +2977,7 @@ describe('AutocompleteEditor', () => {
       await sleep(200);
 
       {
-        const ac = hot.getActiveEditor();
+        const ac = getActiveEditor();
         const innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
@@ -3188,7 +3189,7 @@ describe('AutocompleteEditor', () => {
     spyOn(Handsontable.editors.AutocompleteEditor.prototype, 'updateChoicesList').and.callThrough();
     const afterValidateCallback = jasmine.createSpy('afterValidateCallbak');
 
-    const hot = handsontable({
+    handsontable({
       data: [
         new Model({
           id: 1,
@@ -3228,15 +3229,15 @@ describe('AutocompleteEditor', () => {
 
     await selectCell(0, 0);
 
-    expect(hot.getActiveEditor().isOpened()).toBe(false);
+    expect(getActiveEditor().isOpened()).toBe(false);
 
     await keyDownUp('enter');
     await sleep(200);
 
-    expect(hot.getActiveEditor().isOpened()).toBe(true);
+    expect(getActiveEditor().isOpened()).toBe(true);
 
     afterValidateCallback.calls.reset();
-    $(hot.getActiveEditor().htContainer).find('tr:eq(1) td:eq(0)').simulate('mousedown');
+    $(getActiveEditor().htContainer).find('tr:eq(1) td:eq(0)').simulate('mousedown');
 
     await sleep(200);
 
@@ -3245,7 +3246,7 @@ describe('AutocompleteEditor', () => {
 
   // Input element should be focused on cell selection otherwise it breaks IME editor functionality for Asian users.
   it('should not lose the focus on input element while inserting new characters when `imeFastEditing` is enabled  (#839)', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [
         ['one', 'two'],
         ['three', 'four']
@@ -3265,7 +3266,7 @@ describe('AutocompleteEditor', () => {
     // The `imeFastEdit` timeout is set to 50ms.
     await sleep(55);
 
-    const activeElement = hot.getActiveEditor().TEXTAREA;
+    const activeElement = getActiveEditor().TEXTAREA;
 
     expect(activeElement).toBeDefined();
     expect(activeElement).not.toBe(null);
@@ -3280,19 +3281,19 @@ describe('AutocompleteEditor', () => {
 
     expect(document.activeElement).toBe(activeElement);
 
-    hot.getActiveEditor().TEXTAREA.value = 't';
+    getActiveEditor().TEXTAREA.value = 't';
 
     await keyDownUp('t');
 
     expect(document.activeElement).toBe(activeElement);
 
-    hot.getActiveEditor().TEXTAREA.value = 'te';
+    getActiveEditor().TEXTAREA.value = 'te';
 
     await keyDownUp('e');
 
     expect(document.activeElement).toBe(activeElement);
 
-    hot.getActiveEditor().TEXTAREA.value = 'teo';
+    getActiveEditor().TEXTAREA.value = 'teo';
 
     await keyDownUp('o');
 
@@ -3300,7 +3301,7 @@ describe('AutocompleteEditor', () => {
   });
 
   it('should not lose the focus from the editor after selecting items from the choice list', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [
         ['', 'two'],
         ['three', 'four']
@@ -3320,14 +3321,14 @@ describe('AutocompleteEditor', () => {
     await keyDownUp('arrowdown');
     await keyDownUp('arrowdown');
 
-    hot.getActiveEditor().TEXTAREA.value = 'r';
+    getActiveEditor().TEXTAREA.value = 'r';
 
     await keyDownUp('r');
     // Check if ESCAPE key is responsive.
     await keyDownUp('escape');
 
-    expect(hot.isListening()).toBeTruthy();
-    expect(isEditorVisible($(hot.getActiveEditor().htEditor.rootElement))).toBeFalsy();
+    expect(isListening()).toBeTruthy();
+    expect(isEditorVisible($(getActiveEditor().htEditor.rootElement))).toBeFalsy();
   });
 
   it('should not call the `source` has been selected', async() => {
@@ -3433,7 +3434,7 @@ describe('AutocompleteEditor', () => {
   });
 
   it('should add a scrollbar to the autocomplete dropdown, only if number of displayed choices exceeds 10', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [
         ['', 'two', 'three'],
         ['four', 'five', 'six']
@@ -3460,7 +3461,7 @@ describe('AutocompleteEditor', () => {
 
     $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
 
-    const dropdownHolder = hot.getActiveEditor().htEditor.view._wt.wtTable.holder;
+    const dropdownHolder = getActiveEditor().htEditor.view._wt.wtTable.holder;
 
     await sleep(30);
 
@@ -3468,8 +3469,8 @@ describe('AutocompleteEditor', () => {
 
     await keyDownUp('escape');
 
-    hot.getSettings().columns[0].source = hot.getSettings().columns[0].source.slice(0).splice(3);
-    hot.updateSettings({});
+    getSettings().columns[0].source = getSettings().columns[0].source.slice(0).splice(3);
+    await updateSettings({});
 
     await selectCell(0, 0);
 
@@ -3481,7 +3482,7 @@ describe('AutocompleteEditor', () => {
   });
 
   it('should not close editor on scrolling', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createEmptySpreadsheetData(100, 3),
       columns: [
         {
@@ -3501,7 +3502,7 @@ describe('AutocompleteEditor', () => {
     await mouseDoubleClick(getCell(0, 0));
     await sleep(50);
 
-    const dropdown = hot.getActiveEditor().htContainer;
+    const dropdown = getActiveEditor().htContainer;
 
     await scrollViewportVertically(1);
 
@@ -3811,7 +3812,7 @@ describe('AutocompleteEditor', () => {
       process(choices.filter(choice => choice.indexOf(query) !== -1));
     });
 
-    const hot = handsontable({
+    handsontable({
       columns: [
         {
           type: 'autocomplete',
@@ -3827,15 +3828,15 @@ describe('AutocompleteEditor', () => {
     await sleep(200);
     await keyDownUp('arrowdown');
 
-    expect(hot.getActiveEditor().htEditor.getSelected()).toEqual([[0, 0, 0, 0]]);
+    expect(getActiveEditor().htEditor.getSelected()).toEqual([[0, 0, 0, 0]]);
 
     await keyDownUp('arrowdown');
 
-    expect(hot.getActiveEditor().htEditor.getSelected()).toEqual([[1, 0, 1, 0]]);
+    expect(getActiveEditor().htEditor.getSelected()).toEqual([[1, 0, 1, 0]]);
 
     await keyDownUp('arrowdown');
 
-    expect(hot.getActiveEditor().htEditor.getSelected()).toEqual([[2, 0, 2, 0]]);
+    expect(getActiveEditor().htEditor.getSelected()).toEqual([[2, 0, 2, 0]]);
   });
 
   it('should select option in opened editor after pressing up key in quick edit mode', async() => {
@@ -3845,7 +3846,7 @@ describe('AutocompleteEditor', () => {
       process(choices.filter(choice => choice.indexOf(query) !== -1));
     });
 
-    const hot = handsontable({
+    handsontable({
       columns: [
         {
           type: 'autocomplete',
@@ -3862,21 +3863,21 @@ describe('AutocompleteEditor', () => {
     await keyDownUp('x'); // Trigger quick edit mode
     await sleep(200);
 
-    hot.getActiveEditor().htEditor.selectCell(2, 0);
+    getActiveEditor().htEditor.selectCell(2, 0);
 
-    expect(hot.getActiveEditor().htEditor.getSelected()).toEqual([[2, 0, 2, 0]]);
-
-    await keyDownUp('arrowup');
-
-    expect(hot.getActiveEditor().htEditor.getSelected()).toEqual([[1, 0, 1, 0]]);
+    expect(getActiveEditor().htEditor.getSelected()).toEqual([[2, 0, 2, 0]]);
 
     await keyDownUp('arrowup');
 
-    expect(hot.getActiveEditor().htEditor.getSelected()).toEqual([[0, 0, 0, 0]]);
+    expect(getActiveEditor().htEditor.getSelected()).toEqual([[1, 0, 1, 0]]);
 
     await keyDownUp('arrowup');
 
-    expect(hot.getActiveEditor().htEditor.getSelected()).toEqual([[0, 0, 0, 0]]);
+    expect(getActiveEditor().htEditor.getSelected()).toEqual([[0, 0, 0, 0]]);
+
+    await keyDownUp('arrowup');
+
+    expect(getActiveEditor().htEditor.getSelected()).toEqual([[0, 0, 0, 0]]);
   });
 
   it('should not close editor in quick edit mode after pressing down key when last option is selected', async() => {
@@ -3886,7 +3887,7 @@ describe('AutocompleteEditor', () => {
       process(choices.filter(choice => choice.indexOf(query) !== -1));
     });
 
-    const hot = handsontable({
+    handsontable({
       columns: [
         {
           type: 'autocomplete',
@@ -3901,8 +3902,8 @@ describe('AutocompleteEditor', () => {
     await keyDownUp('x'); // Trigger quick edit mode
     await sleep(200);
 
-    hot.getActiveEditor().htEditor.selectCell(7, 0);
-    hot.listen();
+    getActiveEditor().htEditor.selectCell(7, 0);
+    await listen();
 
     await keyDownUp('arrowdown');
     await keyDownUp('arrowdown');
@@ -3910,7 +3911,7 @@ describe('AutocompleteEditor', () => {
     await keyDownUp('arrowdown');
     await keyDownUp('arrowdown');
 
-    expect(hot.getActiveEditor().isOpened()).toBe(true);
+    expect(getActiveEditor().isOpened()).toBe(true);
   });
 
   it('should close editor in quick edit mode after pressing up key when no option is selected', async() => {
@@ -3920,7 +3921,7 @@ describe('AutocompleteEditor', () => {
       process(choices.filter(choice => choice.indexOf(query) !== -1));
     });
 
-    const hot = handsontable({
+    handsontable({
       columns: [
         {
           type: 'autocomplete',
@@ -3935,8 +3936,8 @@ describe('AutocompleteEditor', () => {
     await keyDownUp('x'); // Trigger quick edit mode
     await sleep(200);
 
-    hot.getActiveEditor().htEditor.selectCell(1, 0);
-    hot.listen();
+    getActiveEditor().htEditor.selectCell(1, 0);
+    await listen();
 
     await keyDownUp('arrowup');
     await keyDownUp('arrowup');

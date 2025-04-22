@@ -328,7 +328,7 @@ describe('HiddenColumns', () => {
   describe('cell selection (API)', () => {
     // Do we need this test case?
     it('should not throw any errors, when selecting a whole row with the last column hidden', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(4, 4),
         hiddenColumns: {
           columns: [3]
@@ -339,7 +339,7 @@ describe('HiddenColumns', () => {
       let errorThrown = false;
 
       try {
-        hot.selectCell(2, 0, 2, 3);
+        await selectCell(2, 0, 2, 3);
 
       } catch (err) {
         errorThrown = true;

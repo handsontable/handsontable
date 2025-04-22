@@ -33,22 +33,22 @@ describe('NestedRows (RTL)', () => {
 
   describe('Displaying a nested structure', () => {
     it('should display as many rows as there are overall elements in a nested structure', async() => {
-      const hot = handsontable({
+      handsontable({
         data: getMoreComplexNestedData(),
         nestedRows: true
       });
 
-      expect(hot.countRows()).toEqual(13);
+      expect(countRows()).toEqual(13);
     });
 
     it('should display all nested structure elements in correct order (parent, its children, ' +
       'its children children, next parent etc)', async() => {
-      const hot = handsontable({
+      handsontable({
         data: getMoreComplexNestedData(),
         nestedRows: true
       });
 
-      expect(hot.getData()).toEqual(dataInOrder);
+      expect(getData()).toEqual(dataInOrder);
     });
   });
 
@@ -120,40 +120,40 @@ describe('NestedRows (RTL)', () => {
       });
 
       it.forTheme('classic')('should display indicators properly located', async() => {
-        const hot = handsontable({
+        handsontable({
           layoutDirection,
           data: getMoreComplexNestedData(),
           nestedRows: true,
           rowHeaders: true
         });
 
-        expect(hot.countRows()).toEqual(13);
+        expect(countRows()).toEqual(13);
         expect(window.getComputedStyle($('.ht_nestingLevel_empty')[0]).float).toEqual('right');
         expect(window.getComputedStyle($('.ht_nestingCollapse')[0]).left).toEqual('-2px');
       });
 
       it.forTheme('main')('should display indicators properly located', async() => {
-        const hot = handsontable({
+        handsontable({
           layoutDirection,
           data: getMoreComplexNestedData(),
           nestedRows: true,
           rowHeaders: true
         });
 
-        expect(hot.countRows()).toEqual(13);
+        expect(countRows()).toEqual(13);
         expect(window.getComputedStyle($('.ht_nestingLevel_empty')[0]).order).toEqual('-2');
         expect(window.getComputedStyle($('.ht_nestingCollapse')[0].parentNode).display).toEqual('flex');
       });
 
       it.forTheme('horizon')('should display indicators properly located', async() => {
-        const hot = handsontable({
+        handsontable({
           layoutDirection,
           data: getMoreComplexNestedData(),
           nestedRows: true,
           rowHeaders: true
         });
 
-        expect(hot.countRows()).toEqual(13);
+        expect(countRows()).toEqual(13);
         expect(window.getComputedStyle($('.ht_nestingLevel_empty')[0]).order).toEqual('-2');
         expect(window.getComputedStyle($('.ht_nestingCollapse')[0].parentNode).display).toEqual('flex');
       });

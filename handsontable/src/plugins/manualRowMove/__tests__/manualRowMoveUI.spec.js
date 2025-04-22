@@ -223,7 +223,7 @@ describe('manualRowMove', () => {
 
       describe('should be shown properly after redo action', () => {
         it('when moving multiple rows from the top to the bottom', async() => {
-          const hot = handsontable({
+          handsontable({
             data: createSpreadsheetData(10, 10),
             rowHeaders: true,
             manualRowMove: true
@@ -244,13 +244,13 @@ describe('manualRowMove', () => {
           $rowHeader.simulate('mouseup');
 
           getPlugin('undoRedo').undo();
-          hot.getPlugin('undoRedo').redo();
+          getPlugin('undoRedo').redo();
 
           expect(getSelected()).toEqual([[1, -1, 3, 9]]);
         });
 
         it('when moving multiple rows from the bottom to the top', async() => {
-          const hot = handsontable({
+          handsontable({
             data: createSpreadsheetData(10, 10),
             rowHeaders: true,
             manualRowMove: true
@@ -272,7 +272,7 @@ describe('manualRowMove', () => {
           $rowHeader.simulate('mouseup');
 
           getPlugin('undoRedo').undo();
-          hot.getPlugin('undoRedo').redo();
+          getPlugin('undoRedo').redo();
 
           expect(getSelected()).toEqual([[1, -1, 3, 9]]);
         });

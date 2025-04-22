@@ -17,12 +17,12 @@ describe('NestedRows Data Manager', () => {
       it('should return the data source object corresponding to the provided visual row number', async() => {
         const data = getMoreComplexNestedData();
 
-        const hot = handsontable({
+        handsontable({
           data,
           nestedRows: true,
         });
 
-        const plugin = hot.getPlugin('nestedRows');
+        const plugin = getPlugin('nestedRows');
 
         expect(plugin.dataManager.getDataObject(-5)).not.toBeDefined();
         expect(plugin.dataManager.getDataObject(0)).toEqual(data[0]);
@@ -38,12 +38,12 @@ describe('NestedRows Data Manager', () => {
       it('should return a visual row index for the provided source data row object', async() => {
         const data = getMoreComplexNestedData();
 
-        const hot = handsontable({
+        handsontable({
           data,
           nestedRows: true
         });
 
-        const plugin = hot.getPlugin('nestedRows');
+        const plugin = getPlugin('nestedRows');
 
         expect(plugin.dataManager.getRowIndex(data[0])).toEqual(0);
         expect(plugin.dataManager.getRowIndex(data[0].__children[2])).toEqual(3);
@@ -55,12 +55,12 @@ describe('NestedRows Data Manager', () => {
 
     describe('getRowIndexWithinParent', () => {
       it('should return an index of the provided source data row object withing its parent', async() => {
-        const hot = handsontable({
+        handsontable({
           data: getMoreComplexNestedData(),
           nestedRows: true
         });
 
-        const plugin = hot.getPlugin('nestedRows');
+        const plugin = getPlugin('nestedRows');
 
         expect(plugin.dataManager.getRowIndexWithinParent(-5)).toEqual(-1);
         expect(plugin.dataManager.getRowIndexWithinParent(0)).toEqual(0);
@@ -75,12 +75,12 @@ describe('NestedRows Data Manager', () => {
 
     describe('countAllRows', () => {
       it('should return a number of all row objects within the data set', async() => {
-        const hot = handsontable({
+        handsontable({
           data: getMoreComplexNestedData(),
           nestedRows: true
         });
 
-        const plugin = hot.getPlugin('nestedRows');
+        const plugin = getPlugin('nestedRows');
 
         expect(plugin.dataManager.countAllRows()).toEqual(13);
 
@@ -89,12 +89,12 @@ describe('NestedRows Data Manager', () => {
 
     describe('countChildren', () => {
       it('should return a number of children (and children\'s children) of the row provided as an index', async() => {
-        const hot = handsontable({
+        handsontable({
           data: getMoreComplexNestedData(),
           nestedRows: true
         });
 
-        const plugin = hot.getPlugin('nestedRows');
+        const plugin = getPlugin('nestedRows');
 
         expect(plugin.dataManager.countChildren(-5)).toEqual(0);
         expect(plugin.dataManager.countChildren(0)).toEqual(6);
@@ -109,12 +109,12 @@ describe('NestedRows Data Manager', () => {
       it('should return a number of children (and children\'s children) of the row provided as a row object from the data source', async() => {
         const data = getMoreComplexNestedData();
 
-        const hot = handsontable({
+        handsontable({
           data,
           nestedRows: true
         });
 
-        const plugin = hot.getPlugin('nestedRows');
+        const plugin = getPlugin('nestedRows');
 
         expect(plugin.dataManager.countChildren(data[0])).toEqual(6);
         expect(plugin.dataManager.countChildren(data[0].__children[2])).toEqual(2);
@@ -129,12 +129,12 @@ describe('NestedRows Data Manager', () => {
       it('should return a row object from the data source, being the parent node for the provided row index', async() => {
         const data = getMoreComplexNestedData();
 
-        const hot = handsontable({
+        handsontable({
           data,
           nestedRows: true
         });
 
-        const plugin = hot.getPlugin('nestedRows');
+        const plugin = getPlugin('nestedRows');
 
         expect(plugin.dataManager.getRowParent(-5)).toEqual(null);
         expect(plugin.dataManager.getRowParent(0)).toEqual(null);
@@ -149,12 +149,12 @@ describe('NestedRows Data Manager', () => {
       it('should return a row object from the data source, being the parent node for the provided row object', async() => {
         const data = getMoreComplexNestedData();
 
-        const hot = handsontable({
+        handsontable({
           data,
           nestedRows: true
         });
 
-        const plugin = hot.getPlugin('nestedRows');
+        const plugin = getPlugin('nestedRows');
 
         expect(plugin.dataManager.getRowParent(data[0])).toEqual(null);
         expect(plugin.dataManager.getRowParent(data[0].__children[2])).toEqual(data[0]);
@@ -167,12 +167,12 @@ describe('NestedRows Data Manager', () => {
 
     describe('getRowLevel', () => {
       it('should return the nesting level of the row, provided as an index', async() => {
-        const hot = handsontable({
+        handsontable({
           data: getMoreComplexNestedData(),
           nestedRows: true
         });
 
-        const plugin = hot.getPlugin('nestedRows');
+        const plugin = getPlugin('nestedRows');
 
         expect(plugin.dataManager.getRowLevel(-5)).toEqual(null);
         expect(plugin.dataManager.getRowLevel(0)).toEqual(0);
@@ -187,12 +187,12 @@ describe('NestedRows Data Manager', () => {
       it('should return a row object from the data source, being the parent node for the provided row object', async() => {
         const data = getMoreComplexNestedData();
 
-        const hot = handsontable({
+        handsontable({
           data,
           nestedRows: true
         });
 
-        const plugin = hot.getPlugin('nestedRows');
+        const plugin = getPlugin('nestedRows');
 
         expect(plugin.dataManager.getRowLevel(data[0])).toEqual(0);
         expect(plugin.dataManager.getRowLevel(data[0].__children[2])).toEqual(1);
@@ -205,12 +205,12 @@ describe('NestedRows Data Manager', () => {
 
     describe('hasChildren', () => {
       it('should return whether the element at the provided row index has children', async() => {
-        const hot = handsontable({
+        handsontable({
           data: getMoreComplexNestedData(),
           nestedRows: true
         });
 
-        const plugin = hot.getPlugin('nestedRows');
+        const plugin = getPlugin('nestedRows');
 
         expect(plugin.dataManager.hasChildren(0)).toEqual(true);
         expect(plugin.dataManager.hasChildren(1)).toEqual(false);
@@ -232,12 +232,12 @@ describe('NestedRows Data Manager', () => {
       it('should add an empty child to the provided parent, when the second method arguments is not declared', async() => {
         const data = getMoreComplexNestedData();
 
-        const hot = handsontable({
+        handsontable({
           data,
           nestedRows: true
         });
 
-        const plugin = hot.getPlugin('nestedRows');
+        const plugin = getPlugin('nestedRows');
         const parentElement = data[0].__children[2];
 
         expect(plugin.dataManager.countChildren(3)).toEqual(2);
@@ -255,12 +255,12 @@ describe('NestedRows Data Manager', () => {
       it('should add a provided row element as a child to the provided parent', async() => {
         const data = getMoreComplexNestedData();
 
-        const hot = handsontable({
+        handsontable({
           data,
           nestedRows: true
         });
 
-        const plugin = hot.getPlugin('nestedRows');
+        const plugin = getPlugin('nestedRows');
         const parentElement = data[0].__children[2];
         const newElement = {
           a: 'test-a',
@@ -282,16 +282,17 @@ describe('NestedRows Data Manager', () => {
 
       it('should add a new child to the provided parent, when the parent is collapsed', async() => {
         const data = getSimplerNestedData();
-        const hot = handsontable({
+
+        handsontable({
           data,
           nestedRows: true,
           rowHeaders: true,
           colHeaders: true
         });
 
-        const startRowCount = hot.countRows();
-        const plugin = hot.getPlugin('nestedRows');
-        const lastRowParentObject = plugin.dataManager.getRowParent(hot.countRows() - 1);
+        const startRowCount = countRows();
+        const plugin = getPlugin('nestedRows');
+        const lastRowParentObject = plugin.dataManager.getRowParent(countRows() - 1);
         const lastRowParentIndex = plugin.dataManager.getRowIndex(lastRowParentObject);
         const startLastRowChildCount = plugin.dataManager.countChildren(lastRowParentObject);
 
@@ -303,8 +304,8 @@ describe('NestedRows Data Manager', () => {
 
         plugin.collapsingUI.expandAll();
 
-        expect(hot.countRows()).toEqual(startRowCount + 1);
-        expect(hot.getDataAtRow(hot.countRows() - 1)).toEqual([null, null, null, null]);
+        expect(countRows()).toEqual(startRowCount + 1);
+        expect(getDataAtRow(countRows() - 1)).toEqual([null, null, null, null]);
       });
     });
 
@@ -312,12 +313,12 @@ describe('NestedRows Data Manager', () => {
       it('should detach a child node from it\'s parent and re-attach it to the parent of it\'s parent', async() => {
         const data = getMoreComplexNestedData();
 
-        const hot = handsontable({
+        handsontable({
           data,
           nestedRows: true
         });
 
-        const plugin = hot.getPlugin('nestedRows');
+        const plugin = getPlugin('nestedRows');
         let parentElement = data[0].__children[2];
         let grandparent = plugin.dataManager.getRowParent(parentElement) || data;
         let child = parentElement.__children[0];

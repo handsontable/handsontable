@@ -22,7 +22,8 @@ describe('validators', () => {
     });
 
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
-    const hot = handsontable({
+
+    handsontable({
       data: [
         [1, 6, 10],
       ],
@@ -32,14 +33,12 @@ describe('validators', () => {
       afterValidate: onAfterValidate
     });
 
-    hot.setDataAtCell(1, 0, 10);
-
+    await setDataAtCell(1, 0, 10);
     await sleep(100);
 
     expect(onAfterValidate).toHaveBeenCalledWith(true, 10, 1, 0);
 
-    hot.setDataAtCell(2, 0, 2);
-
+    await setDataAtCell(2, 0, 2);
     await sleep(100);
 
     expect(onAfterValidate).toHaveBeenCalledWith(false, 2, 2, 0);

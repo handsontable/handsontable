@@ -193,14 +193,14 @@ describe('CopyPaste', () => {
     });
 
     it('should enable the item when all rows are hidden', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
         contextMenu: true,
       });
 
       // hide all rows
-      hot.rowIndexMapper.createAndRegisterIndexMap('map', 'hiding', true);
+      rowIndexMapper().createAndRegisterIndexMap('map', 'hiding', true);
       await render();
 
       await contextMenu(getCell(-1, 1)); // Column header "B"
@@ -213,14 +213,14 @@ describe('CopyPaste', () => {
     });
 
     it('should enable the item when all columns are hidden', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         contextMenu: true,
       });
 
       // hide all columns
-      hot.columnIndexMapper.createAndRegisterIndexMap('map', 'hiding', true);
+      columnIndexMapper().createAndRegisterIndexMap('map', 'hiding', true);
       await render();
 
       await contextMenu(getCell(1, -1)); // Row header "2"
@@ -233,14 +233,14 @@ describe('CopyPaste', () => {
     });
 
     it('should disable the item when all rows are trimmed', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
         contextMenu: true,
       });
 
       // trim all rows
-      hot.rowIndexMapper.createAndRegisterIndexMap('map', 'trimming', true);
+      rowIndexMapper().createAndRegisterIndexMap('map', 'trimming', true);
       await render();
 
       await contextMenu(getCell(-1, 1)); // Column header "B"
@@ -253,14 +253,14 @@ describe('CopyPaste', () => {
     });
 
     it('should disable the item when all columns are trimmed', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         contextMenu: true,
       });
 
       // trim all columns
-      hot.columnIndexMapper.createAndRegisterIndexMap('map', 'trimming', true);
+      columnIndexMapper().createAndRegisterIndexMap('map', 'trimming', true);
       await render();
 
       await contextMenu(getCell(1, -1)); // Row header "2"

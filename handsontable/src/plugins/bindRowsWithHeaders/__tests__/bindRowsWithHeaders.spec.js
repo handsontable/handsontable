@@ -44,7 +44,7 @@ describe('BindRowsWithHeaders', () => {
   });
 
   it('should correct bind rows with headers after re-load data calling loadData method (strict mode)', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(10, 10),
       rowHeaders: true,
       bindRowsWithHeaders: 'strict',
@@ -56,7 +56,7 @@ describe('BindRowsWithHeaders', () => {
 
     await sleep(100);
 
-    hot.loadData(createSpreadsheetData(5, 5));
+    await loadData(createSpreadsheetData(5, 5));
 
     expect(getRowHeader()).toEqual([1, 2, 3, 4, 5]);
   });

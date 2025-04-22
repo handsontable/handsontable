@@ -17,9 +17,9 @@ describe('CopyPaste', () => {
 
   describe('enabling/disabling plugin', () => {
     it('should copyPaste be set enabled as default', async() => {
-      const hot = handsontable();
+      handsontable();
 
-      expect(hot.getSettings().copyPaste).toBeTruthy();
+      expect(getSettings().copyPaste).toBeTruthy();
     });
 
     it('should do not create textarea element if copyPaste is disabled on initialization', async() => {

@@ -86,6 +86,7 @@ export const _getColWidthFromSettings = handsontableMethodFactory('_getColWidthF
 export const addHook = handsontableMethodFactory('addHook');
 export const addHookOnce = handsontableMethodFactory('addHookOnce');
 export const alter = handsontableMethodFactory('alter');
+export const batch = handsontableMethodFactory('batch');
 export const clear = handsontableMethodFactory('clear');
 export const colToProp = handsontableMethodFactory('colToProp');
 export const countColHeaders = handsontableMethodFactory('countColHeaders');
@@ -181,6 +182,9 @@ export const spliceCellsMeta = handsontableMethodFactory('spliceCellsMeta');
 export const spliceCol = handsontableMethodFactory('spliceCol');
 export const spliceRow = handsontableMethodFactory('spliceRow');
 export const toVisualRow = handsontableMethodFactory('toVisualRow');
+export const toVisualColumn = handsontableMethodFactory('toVisualColumn');
+export const toPhysicalRow = handsontableMethodFactory('toPhysicalRow');
+export const toPhysicalColumn = handsontableMethodFactory('toPhysicalColumn');
 export const unlisten = handsontableMethodFactory('unlisten');
 export const updateData = handsontableMethodFactory('updateData');
 export const updateSettings = handsontableMethodFactory('updateSettings');
@@ -258,6 +262,20 @@ export function spec() {
  */
 export function hot() {
   return spec().hotInstance ?? spec().$container?.data('handsontable');
+}
+
+/**
+ * @returns {Selection} Returns the Handsontable Selection instance.
+ */
+export function selection() {
+  return hot().selection;
+}
+
+/**
+ * @returns {TableView} Returns the Handsontable TableView instance.
+ */
+export function tableView() {
+  return hot().view;
 }
 
 /**

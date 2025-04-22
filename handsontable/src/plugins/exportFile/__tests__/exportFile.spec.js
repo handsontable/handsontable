@@ -64,8 +64,8 @@ describe('exportFile', () => {
 
   describe('`_createTypeFormatter` method', () => {
     it('should create formatter type object', async() => {
-      const hot = handsontable();
-      const plugin = hot.getPlugin('exportFile');
+      handsontable();
+      const plugin = getPlugin('exportFile');
 
       const result = plugin._createTypeFormatter('csv');
 

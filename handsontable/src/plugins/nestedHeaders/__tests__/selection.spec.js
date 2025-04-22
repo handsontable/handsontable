@@ -376,7 +376,7 @@ describe('NestedHeaders', () => {
     });
 
     it('should select every column header under the nested headers, when changing the selection by dragging the cursor', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(3, 10),
         colHeaders: true,
         nestedHeaders: [
@@ -394,7 +394,7 @@ describe('NestedHeaders', () => {
         .simulate('mouseover')
         .simulate('mouseup');
 
-      expect(hot.getSelected()).toEqual([[-2, 3, hot.countRows() - 1, 6]]);
+      expect(getSelected()).toEqual([[-2, 3, countRows() - 1, 6]]);
       expect(`
         |   :                               :   |
         |   :               :               :   |
@@ -412,7 +412,7 @@ describe('NestedHeaders', () => {
         .simulate('mouseover')
         .simulate('mouseup');
 
-      expect(hot.getSelected()).toEqual([[-2, 4, hot.countRows() - 1, 1]]);
+      expect(getSelected()).toEqual([[-2, 4, countRows() - 1, 1]]);
       expect(`
         |   :                               :   |
         |   : *   *   *   * :               :   |
@@ -430,7 +430,7 @@ describe('NestedHeaders', () => {
       getTopClone().find('thead tr:eq(2) th:eq(5)').simulate('mouseover');
       getTopClone().find('thead tr:eq(2) th:eq(5)').simulate('mouseup');
 
-      expect(hot.getSelected()).toEqual([[-2, 3, hot.countRows() - 1, 6]]);
+      expect(getSelected()).toEqual([[-2, 3, countRows() - 1, 6]]);
       expect(`
         |   :                               :   |
         |   :               :               :   |

@@ -707,7 +707,7 @@ describe('Filters UI Conditional component', () => {
 
     it('should show proper condition elements after changing value of cell when condition was set' +
       '(`conditionUpdateObserver` triggers hook)', async() => {
-      const hot = handsontable({
+      handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
         filters: true,
@@ -716,7 +716,7 @@ describe('Filters UI Conditional component', () => {
         height: 300
       });
 
-      const filters = hot.getPlugin('filters');
+      const filters = getPlugin('filters');
 
       filters.addCondition(1, 'gte', [10]);
       filters.filter();
@@ -810,7 +810,7 @@ describe('Filters UI Conditional component', () => {
   });
 
   it('should save state of applied filter for specified column when conditions was added from API', async() => {
-    const hot = handsontable({
+    handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
       dropdownMenu: true,
@@ -819,7 +819,7 @@ describe('Filters UI Conditional component', () => {
       height: 300
     });
 
-    const filters = hot.getPlugin('filters');
+    const filters = getPlugin('filters');
 
     filters.addCondition(1, 'gte', [10]);
     filters.filter();
@@ -858,7 +858,8 @@ describe('Filters UI Conditional component', () => {
 
   it('should work properly when user added condition with too many arguments #179', async() => {
     const spy = spyOn(window, 'onerror');
-    const hot = handsontable({
+
+    handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
       dropdownMenu: true,
@@ -867,8 +868,8 @@ describe('Filters UI Conditional component', () => {
       height: 300
     });
 
-    const plugin = hot.getPlugin('filters');
-    const th = hot.view._wt.wtTable.getColumnHeader(1);
+    const plugin = getPlugin('filters');
+    const th = tableView()._wt.wtTable.getColumnHeader(1);
     const filterButton = $(th).find('button');
 
     plugin.addCondition(1, 'begins_with', ['a', 'b', 'c', 'd']);

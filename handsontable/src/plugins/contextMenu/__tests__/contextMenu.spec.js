@@ -244,7 +244,7 @@ describe('ContextMenu', () => {
         clientY: cellOffset.top - hot.rootWindow.scrollY,
       });
 
-      expect(hot.selection.isInProgress()).toBe(false);
+      expect(selection().isInProgress()).toBe(false);
     });
 
     it('should call every selection hooks after right click on table cell', async() => {
@@ -308,7 +308,7 @@ describe('ContextMenu', () => {
         height: 100
       });
 
-      expect(hot.getPlugin('contextMenu')).toBeDefined();
+      expect(getPlugin('contextMenu')).toBeDefined();
       expect($('.htContextMenu').is(':visible')).toBe(false);
 
       await contextMenu(hot.rootElement.querySelector('.ht_clone_top thead th'));
@@ -327,7 +327,7 @@ describe('ContextMenu', () => {
 
       await selectColumns(1, 4);
 
-      expect(hot.getPlugin('contextMenu')).toBeDefined();
+      expect(getPlugin('contextMenu')).toBeDefined();
       expect($('.htContextMenu').is(':visible')).toBe(false);
 
       await contextMenu(hot.rootElement.querySelector('.ht_clone_top thead th:nth-child(4)'));
@@ -355,7 +355,7 @@ describe('ContextMenu', () => {
 
       await selectRows(1, 3);
 
-      expect(hot.getPlugin('contextMenu')).toBeDefined();
+      expect(getPlugin('contextMenu')).toBeDefined();
       expect($('.htContextMenu').is(':visible')).toBe(false);
 
       await contextMenu(hot.rootElement.querySelector('.ht_clone_inline_start tbody tr:nth-child(3) th'));
@@ -381,7 +381,7 @@ describe('ContextMenu', () => {
         height: 100
       });
 
-      expect(hot.getPlugin('contextMenu')).toBeDefined();
+      expect(getPlugin('contextMenu')).toBeDefined();
       expect($('.htContextMenu').is(':visible')).toBe(false);
 
       await contextMenu(hot.rootElement.querySelector('.ht_clone_top_inline_start_corner thead th'));
@@ -2464,7 +2464,7 @@ describe('ContextMenu', () => {
     });
 
     it('should properly change selection on right click on headers', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(2, 2),
         contextMenu: true,
         colHeaders: true,
@@ -2475,13 +2475,13 @@ describe('ContextMenu', () => {
       await contextMenu(getCell(-1, 0));
 
       expect(getSelected()).toEqual([[-1, 0, 1, 0]]);
-      expect(hot.selection.isEntireColumnSelected()).toBe(true);
+      expect(selection().isEntireColumnSelected()).toBe(true);
 
       await selectCell(1, 0);
       await contextMenu(getCell(1, -1));
 
       expect(getSelected()).toEqual([[1, -1, 1, 1]]);
-      expect(hot.selection.isEntireRowSelected()).toBe(true);
+      expect(selection().isEntireRowSelected()).toBe(true);
     });
 
     it('should continue menu navigation from the position of the lastly highlighted item by mouse', async() => {
@@ -2714,7 +2714,7 @@ describe('ContextMenu', () => {
     });
 
     it('should not close the menu, when table is scrolled', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(40, 30),
         colWidths: 50, // can also be a number or a function
         rowHeaders: true,
@@ -2723,7 +2723,7 @@ describe('ContextMenu', () => {
         height: 100
       });
 
-      const $mainHolder = $(hot.view._wt.wtTable.holder);
+      const $mainHolder = $(tableView()._wt.wtTable.holder);
 
       await selectCell(15, 3);
       const scrollTop = $mainHolder.scrollTop();
@@ -2746,7 +2746,7 @@ describe('ContextMenu', () => {
     });
 
     it('should not attempt to close menu, when table is scrolled and the menu is already closed', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(40, 30),
         colWidths: 50, // can also be a number or a function
         rowHeaders: true,
@@ -2755,7 +2755,7 @@ describe('ContextMenu', () => {
         height: 100
       });
 
-      const mainHolder = $(hot.view._wt.wtTable.holder);
+      const mainHolder = $(tableView()._wt.wtTable.holder);
 
       await selectCell(15, 3);
 
@@ -2763,11 +2763,11 @@ describe('ContextMenu', () => {
 
       await contextMenu();
 
-      spyOn(hot.getPlugin('contextMenu'), 'close');
+      spyOn(getPlugin('contextMenu'), 'close');
 
       await scrollViewportVertically(scrollTop + 100);
 
-      expect(hot.getPlugin('contextMenu').close).not.toHaveBeenCalled();
+      expect(getPlugin('contextMenu').close).not.toHaveBeenCalled();
     });
 
     it('should not scroll the window when hovering over context menu items (#1897 reopen)', async() => {
@@ -2939,7 +2939,7 @@ describe('ContextMenu', () => {
 
   describe('table listening', () => {
     it('should listen to changes after removing all rows', async() => {
-      const hot = handsontable({
+      handsontable({
         data: [[1]],
         rowHeaders: true,
         colHeaders: true,
@@ -2951,12 +2951,12 @@ describe('ContextMenu', () => {
 
       await selectContextMenuOption('Remove row');
 
-      expect(hot.countRows()).toBe(0);
-      expect(hot.isListening()).toBe(true);
+      expect(countRows()).toBe(0);
+      expect(isListening()).toBe(true);
     });
 
     it('should listen to changes after removing all columns', async() => {
-      const hot = handsontable({
+      handsontable({
         data: [[1]],
         rowHeaders: true,
         colHeaders: true,
@@ -2968,8 +2968,8 @@ describe('ContextMenu', () => {
 
       await selectContextMenuOption('Remove column');
 
-      expect(hot.countCols()).toBe(0);
-      expect(hot.isListening()).toBe(true);
+      expect(countCols()).toBe(0);
+      expect(isListening()).toBe(true);
     });
   });
 
@@ -3068,14 +3068,15 @@ describe('ContextMenu', () => {
   it('should not throw error while calling the `updateSettings` in a body of any callback executed right ' +
     'after some context-menu action', async() => {
     const errorSpy = spyOn(console, 'error');
-    const hot = handsontable({
+
+    handsontable({
       data: createSpreadsheetData(4, 4),
       contextMenu: true,
       height: 100
     });
 
-    hot.addHook('beforeCreateCol', async() => {
-      hot.updateSettings({}); // Will close the menu. Instance of Handsontable being a context-menu is destroyed.
+    addHook('beforeCreateCol', async() => {
+      await updateSettings({}); // Will close the menu. Instance of Handsontable being a context-menu is destroyed.
     });
 
     await contextMenu();

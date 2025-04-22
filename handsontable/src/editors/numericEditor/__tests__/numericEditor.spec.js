@@ -804,7 +804,7 @@ describe('NumericEditor', () => {
   });
 
   it('should mark text as invalid without removing when using `setDataAtCell`', async() => {
-    const hot = handsontable({
+    handsontable({
       data: arrayOfObjects(),
       columns: [
         { data: 'id', type: 'numeric' },
@@ -813,11 +813,11 @@ describe('NumericEditor', () => {
       ],
     });
 
-    hot.setDataAtCell(0, 0, 'abc');
+    await setDataAtCell(0, 0, 'abc');
 
     await sleep(200);
 
-    expect(hot.getDataAtCell(0, 0)).toEqual('abc');
+    expect(getDataAtCell(0, 0)).toEqual('abc');
     expect($(getCell(0, 0)).hasClass('htInvalid')).toBe(true);
   });
 
@@ -860,7 +860,7 @@ describe('NumericEditor', () => {
 
   // Input element can not lose the focus while entering new characters. It breaks IME editor functionality for Asian users.
   it('should not lose the focus on input element while inserting new characters if `imeFastEdit` is enabled (#839)', async() => {
-    const hot = handsontable({
+    handsontable({
       data: arrayOfObjects(),
       columns: [
         { data: 'id', type: 'numeric', numericFormat: { pattern: '0,0.00', culture: 'en-US' } },
@@ -875,7 +875,7 @@ describe('NumericEditor', () => {
     // The `imeFastEdit` timeout is set to 50ms.
     await sleep(55);
 
-    const activeElement = hot.getActiveEditor().TEXTAREA;
+    const activeElement = getActiveEditor().TEXTAREA;
 
     expect(activeElement).toBeDefined();
     expect(activeElement).not.toBe(null);
@@ -889,19 +889,19 @@ describe('NumericEditor', () => {
 
     expect(document.activeElement).toBe(activeElement);
 
-    hot.getActiveEditor().TEXTAREA.value = '1';
+    getActiveEditor().TEXTAREA.value = '1';
 
     await keyDownUp('1');
 
     expect(document.activeElement).toBe(activeElement);
 
-    hot.getActiveEditor().TEXTAREA.value = '12';
+    getActiveEditor().TEXTAREA.value = '12';
 
     await keyDownUp('2');
 
     expect(document.activeElement).toBe(activeElement);
 
-    hot.getActiveEditor().TEXTAREA.value = '123';
+    getActiveEditor().TEXTAREA.value = '123';
 
     await keyDownUp('3');
 

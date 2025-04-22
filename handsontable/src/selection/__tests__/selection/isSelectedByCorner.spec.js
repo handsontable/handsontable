@@ -25,92 +25,92 @@ describe('Selection', () => {
 
   describe('`isSelectedByCorner` method', () => {
     it('should return `false` for the selection that is applied for the table without headers', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(4, 6),
         colHeaders: false,
         rowHeaders: false,
       });
 
-      expect(hot.selection.isSelectedByCorner()).toBe(false);
+      expect(selection().isSelectedByCorner()).toBe(false);
 
-      hot.selection.deselect();
-      hot.selection.selectRows(0);
+      selection().deselect();
+      selection().selectRows(0);
 
-      expect(hot.selection.isSelectedByCorner()).toBe(false);
+      expect(selection().isSelectedByCorner()).toBe(false);
 
-      hot.selection.deselect();
-      hot.selection.selectColumns(0);
+      selection().deselect();
+      selection().selectColumns(0);
 
-      expect(hot.selection.isSelectedByCorner()).toBe(false);
+      expect(selection().isSelectedByCorner()).toBe(false);
 
-      hot.selection.deselect();
-      hot.selection.selectCells([[2, 2, 2, 2]]);
+      selection().deselect();
+      selection().selectCells([[2, 2, 2, 2]]);
 
-      expect(hot.selection.isSelectedByCorner()).toBe(false);
+      expect(selection().isSelectedByCorner()).toBe(false);
 
-      hot.selection.deselect();
-      hot.selection.selectAll(false, false);
+      selection().deselect();
+      selection().selectAll(false, false);
 
-      expect(hot.selection.isSelectedByCorner()).toBe(false);
+      expect(selection().isSelectedByCorner()).toBe(false);
 
-      hot.selection.deselect();
-      hot.selection.selectAll(true, true);
+      selection().deselect();
+      selection().selectAll(true, true);
 
-      expect(hot.selection.isSelectedByCorner()).toBe(false);
+      expect(selection().isSelectedByCorner()).toBe(false);
     });
 
     it('should return `true` when the corner is selected (headers on)', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(4, 6),
         colHeaders: true,
         rowHeaders: true,
       });
 
-      expect(hot.selection.isSelectedByCorner()).toBe(false);
+      expect(selection().isSelectedByCorner()).toBe(false);
 
-      hot.selection.deselect();
-      hot.selection.selectRows(0);
+      selection().deselect();
+      selection().selectRows(0);
 
-      expect(hot.selection.isSelectedByCorner()).toBe(false);
+      expect(selection().isSelectedByCorner()).toBe(false);
 
-      hot.selection.deselect();
-      hot.selection.selectColumns(0);
+      selection().deselect();
+      selection().selectColumns(0);
 
-      expect(hot.selection.isSelectedByCorner()).toBe(false);
+      expect(selection().isSelectedByCorner()).toBe(false);
 
-      hot.selection.deselect();
-      hot.selection.selectCells([[-1, -1, -1, -1]]);
+      selection().deselect();
+      selection().selectCells([[-1, -1, -1, -1]]);
 
-      expect(hot.selection.isSelectedByCorner()).toBe(false);
+      expect(selection().isSelectedByCorner()).toBe(false);
 
-      hot.selection.deselect();
-      hot.selection.selectCells([[2, 2, 2, 2]]);
+      selection().deselect();
+      selection().selectCells([[2, 2, 2, 2]]);
 
-      expect(hot.selection.isSelectedByCorner()).toBe(false);
+      expect(selection().isSelectedByCorner()).toBe(false);
 
-      hot.selection.deselect();
-      hot.selection.selectAll(false, false);
+      selection().deselect();
+      selection().selectAll(false, false);
 
-      expect(hot.selection.isSelectedByCorner()).toBe(false);
+      expect(selection().isSelectedByCorner()).toBe(false);
 
-      hot.selection.deselect();
-      hot.selection.selectAll(true, false);
+      selection().deselect();
+      selection().selectAll(true, false);
 
-      expect(hot.selection.isSelectedByCorner()).toBe(false);
+      expect(selection().isSelectedByCorner()).toBe(false);
 
-      hot.selection.deselect();
-      hot.selection.selectAll(false, true);
+      selection().deselect();
+      selection().selectAll(false, true);
 
-      expect(hot.selection.isSelectedByCorner()).toBe(false);
+      expect(selection().isSelectedByCorner()).toBe(false);
 
-      hot.selection.deselect();
-      hot.selection.selectAll(true, true);
+      selection().deselect();
+      selection().selectAll(true, true);
 
-      expect(hot.selection.isSelectedByCorner()).toBe(true);
+      expect(selection().isSelectedByCorner()).toBe(true);
     });
 
     it('should return `true` when the corner is selected (multiple headers, navigableHeaders on)', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(4, 6),
         colHeaders: true,
         rowHeaders: true,
@@ -125,47 +125,47 @@ describe('Selection', () => {
         },
       });
 
-      expect(hot.selection.isSelectedByCorner()).toBe(false);
+      expect(selection().isSelectedByCorner()).toBe(false);
 
-      hot.selection.deselect();
-      hot.selection.selectRows(0);
+      selection().deselect();
+      selection().selectRows(0);
 
-      expect(hot.selection.isSelectedByCorner()).toBe(false);
+      expect(selection().isSelectedByCorner()).toBe(false);
 
-      hot.selection.deselect();
-      hot.selection.selectColumns(0);
+      selection().deselect();
+      selection().selectColumns(0);
 
-      expect(hot.selection.isSelectedByCorner()).toBe(false);
+      expect(selection().isSelectedByCorner()).toBe(false);
 
-      hot.selection.deselect();
-      hot.selection.selectCells([[2, 2, 2, 2]]);
+      selection().deselect();
+      selection().selectCells([[2, 2, 2, 2]]);
 
-      expect(hot.selection.isSelectedByCorner()).toBe(false);
+      expect(selection().isSelectedByCorner()).toBe(false);
 
-      hot.selection.deselect();
-      hot.selection.selectAll(false, false);
+      selection().deselect();
+      selection().selectAll(false, false);
 
-      expect(hot.selection.isSelectedByCorner()).toBe(false);
+      expect(selection().isSelectedByCorner()).toBe(false);
 
-      hot.selection.deselect();
-      hot.selection.selectAll(true, false);
+      selection().deselect();
+      selection().selectAll(true, false);
 
-      expect(hot.selection.isSelectedByCorner()).toBe(false);
+      expect(selection().isSelectedByCorner()).toBe(false);
 
-      hot.selection.deselect();
-      hot.selection.selectAll(false, true);
+      selection().deselect();
+      selection().selectAll(false, true);
 
-      expect(hot.selection.isSelectedByCorner()).toBe(false);
+      expect(selection().isSelectedByCorner()).toBe(false);
 
-      hot.selection.deselect();
-      hot.selection.selectAll(true, true);
+      selection().deselect();
+      selection().selectAll(true, true);
 
-      expect(hot.selection.isSelectedByCorner()).toBe(true);
+      expect(selection().isSelectedByCorner()).toBe(true);
 
-      hot.selection.deselect();
-      hot.selection.selectAll(-1, -1);
+      selection().deselect();
+      selection().selectAll(-1, -1);
 
-      expect(hot.selection.isSelectedByCorner()).toBe(true);
+      expect(selection().isSelectedByCorner()).toBe(true);
     });
   });
 });

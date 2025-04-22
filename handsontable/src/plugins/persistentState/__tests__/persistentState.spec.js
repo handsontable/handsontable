@@ -15,11 +15,11 @@ describe('persistentState', () => {
   });
 
   it('should save data, when persistentStateSave is run', async() => {
-    const hot = handsontable({
+    handsontable({
       persistentState: true
     });
 
-    hot.runHooks('persistentStateSave', 'testData', 100);
+    runHooks('persistentStateSave', 'testData', 100);
 
     const rawStoredData = window.localStorage[`${id}_testData`];
 
@@ -31,11 +31,11 @@ describe('persistentState', () => {
   });
 
   it('should NOT save data, when persistentStateSave is run, if plugin is not enabled', async() => {
-    const hot = handsontable({
+    handsontable({
       persistentState: false
     });
 
-    hot.runHooks('persistentStateSave', 'testData', 100);
+    runHooks('persistentStateSave', 'testData', 100);
 
     const rawStoredData = window.localStorage[`${id}_testData`];
 
@@ -44,22 +44,22 @@ describe('persistentState', () => {
   });
 
   it('should load data, when persistentStateLoad is run', async() => {
-    const hot = handsontable({
+    handsontable({
       persistentState: true
     });
 
-    hot.runHooks('persistentStateSave', 'testData', 100);
+    runHooks('persistentStateSave', 'testData', 100);
 
     const storedData = {};
 
-    hot.runHooks('persistentStateLoad', 'testData', storedData);
+    runHooks('persistentStateLoad', 'testData', storedData);
 
     expect(storedData.value).toEqual(100);
 
   });
 
   it('should NOT load data, when persistentStateLoad is run, if plugin is not enabled', async() => {
-    const hot = handsontable({
+    handsontable({
       persistentState: false
     });
 
@@ -68,55 +68,55 @@ describe('persistentState', () => {
 
     const storedData = {};
 
-    hot.runHooks('persistentStateLoad', 'testData', storedData);
+    runHooks('persistentStateLoad', 'testData', storedData);
 
     expect(storedData.value).toBeUndefined();
 
   });
 
   it('should clear the data under the given key, when persistentStateReset is run', async() => {
-    const hot = handsontable({
+    handsontable({
       persistentState: true
     });
 
-    hot.runHooks('persistentStateSave', 'testData', 100);
+    runHooks('persistentStateSave', 'testData', 100);
 
     let storedData = {};
 
-    hot.runHooks('persistentStateLoad', 'testData', storedData);
+    runHooks('persistentStateLoad', 'testData', storedData);
 
     expect(storedData.value).toEqual(100);
 
-    hot.runHooks('persistentStateReset', 'testData');
+    runHooks('persistentStateReset', 'testData');
 
     storedData = {};
-    hot.runHooks('persistentStateLoad', 'testData', storedData);
+    runHooks('persistentStateLoad', 'testData', storedData);
 
     expect(storedData.value).toBeUndefined();
   });
 
   it('should NOT clear the data under the given key, when persistentStateReset is run', async() => {
-    const hot = handsontable({
+    handsontable({
       persistentState: false
     });
 
     // We have to manually save data, as persistentStateSave won't work when the plugin is disabled
     window.localStorage[`${id}_testData`] = JSON.stringify(100);
 
-    hot.runHooks('persistentStateReset', 'testData');
+    runHooks('persistentStateReset', 'testData');
 
     expect(JSON.parse(window.localStorage[`${id}_testData`])).toEqual(100);
 
   });
 
   it('should clear all data, when persistentStateReset is run without specifying a key to reset', async() => {
-    const hot = handsontable({
+    handsontable({
       persistentState: true
     });
 
-    hot.runHooks('persistentStateSave', 'testData0', 100);
-    hot.runHooks('persistentStateSave', 'testData1', 'foo');
-    hot.runHooks('persistentStateSave', 'testData2', 200);
+    runHooks('persistentStateSave', 'testData0', 100);
+    runHooks('persistentStateSave', 'testData1', 'foo');
+    runHooks('persistentStateSave', 'testData2', 200);
 
     let storedData = [
       {},
@@ -124,24 +124,24 @@ describe('persistentState', () => {
       {}
     ];
 
-    hot.runHooks('persistentStateLoad', 'testData0', storedData[0]);
-    hot.runHooks('persistentStateLoad', 'testData1', storedData[1]);
-    hot.runHooks('persistentStateLoad', 'testData2', storedData[2]);
+    runHooks('persistentStateLoad', 'testData0', storedData[0]);
+    runHooks('persistentStateLoad', 'testData1', storedData[1]);
+    runHooks('persistentStateLoad', 'testData2', storedData[2]);
 
     expect(storedData[0].value).toEqual(100);
     expect(storedData[1].value).toEqual('foo');
     expect(storedData[2].value).toEqual(200);
 
-    hot.runHooks('persistentStateReset');
+    runHooks('persistentStateReset');
 
     storedData = [
       {},
       {},
       {}
     ];
-    hot.runHooks('persistentStateLoad', 'testData0', storedData[0]);
-    hot.runHooks('persistentStateLoad', 'testData1', storedData[1]);
-    hot.runHooks('persistentStateLoad', 'testData2', storedData[2]);
+    runHooks('persistentStateLoad', 'testData0', storedData[0]);
+    runHooks('persistentStateLoad', 'testData1', storedData[1]);
+    runHooks('persistentStateLoad', 'testData2', storedData[2]);
 
     expect(storedData[0].value).toBeUndefined();
     expect(storedData[1].value).toBeUndefined();
@@ -149,15 +149,15 @@ describe('persistentState', () => {
   });
 
   it('should allow to DISABLE plugin with updateSettings', async() => {
-    const hot = handsontable({
+    handsontable({
       persistentState: true
     });
 
-    hot.runHooks('persistentStateSave', 'testData', 100);
+    runHooks('persistentStateSave', 'testData', 100);
 
     let storedData = {};
 
-    hot.runHooks('persistentStateLoad', 'testData', storedData);
+    runHooks('persistentStateLoad', 'testData', storedData);
 
     expect(storedData.value).toEqual(100);
 
@@ -166,22 +166,21 @@ describe('persistentState', () => {
     });
 
     storedData = {};
-    hot.runHooks('persistentStateLoad', 'testData', storedData);
+    runHooks('persistentStateLoad', 'testData', storedData);
 
     expect(storedData.value).toBeUndefined();
-
   });
 
   it('should allow to ENABLE plugin with updateSettings', async() => {
-    const hot = handsontable({
+    handsontable({
       persistentState: false
     });
 
-    hot.runHooks('persistentStateSave', 'testData', 100);
+    runHooks('persistentStateSave', 'testData', 100);
 
     let storedData = {};
 
-    hot.runHooks('persistentStateLoad', 'testData', storedData);
+    runHooks('persistentStateLoad', 'testData', storedData);
 
     expect(storedData.value).toBeUndefined();
 
@@ -189,10 +188,10 @@ describe('persistentState', () => {
       persistentState: true
     });
 
-    hot.runHooks('persistentStateSave', 'testData', 100);
+    runHooks('persistentStateSave', 'testData', 100);
 
     storedData = {};
-    hot.runHooks('persistentStateLoad', 'testData', storedData);
+    runHooks('persistentStateLoad', 'testData', storedData);
 
     expect(storedData.value).toEqual(100);
 

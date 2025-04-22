@@ -21,7 +21,7 @@ describe('CellDecorator', () => {
   };
 
   it('should add an appropriate class name to every cell, if wordWrap=false is set to the whole table', async() => {
-    const hot = handsontable({
+    handsontable({
       data: arrayOfObjects(),
       columns: [
         { data: 'id' },
@@ -36,13 +36,13 @@ describe('CellDecorator', () => {
 
     for (let i = 0; i < cols; i++) {
       for (let j = 0; j < rows; j++) {
-        expect($(getCell(i, j)).hasClass(hot.getSettings().noWordWrapClassName)).toBe(true);
+        expect($(getCell(i, j)).hasClass(getSettings().noWordWrapClassName)).toBe(true);
       }
     }
   });
 
   it('should add an appropriate class name to every cell in a column, if wordWrap=false is set to the column settings', async() => {
-    const hot = handsontable({
+    handsontable({
       data: arrayOfObjects(),
       columns: [
         { data: 'id' },
@@ -54,17 +54,17 @@ describe('CellDecorator', () => {
     const rows = countRows();
 
     for (let i = 0; i < rows; i++) {
-      expect($(getCell(i, 1)).hasClass(hot.getSettings().noWordWrapClassName)).toBe(true);
+      expect($(getCell(i, 1)).hasClass(getSettings().noWordWrapClassName)).toBe(true);
     }
 
     for (let i = 0; i < rows; i++) {
-      expect($(getCell(i, 0)).hasClass(hot.getSettings().noWordWrapClassName)).toBe(false); // no class added to other columns
-      expect($(getCell(i, 2)).hasClass(hot.getSettings().noWordWrapClassName)).toBe(false);
+      expect($(getCell(i, 0)).hasClass(getSettings().noWordWrapClassName)).toBe(false); // no class added to other columns
+      expect($(getCell(i, 2)).hasClass(getSettings().noWordWrapClassName)).toBe(false);
     }
   });
 
   it('should add an appropriate class to a cell, if wordWrap=false is set to a single cell', async() => {
-    const hot = handsontable({
+    handsontable({
       data: arrayOfObjects(),
       columns: [
         { data: 'id' },
@@ -73,12 +73,12 @@ describe('CellDecorator', () => {
       ]
     });
 
-    expect($(getCell(1, 1)).hasClass(hot.getSettings().noWordWrapClassName)).toBe(false);
+    expect($(getCell(1, 1)).hasClass(getSettings().noWordWrapClassName)).toBe(false);
 
     getCellMeta(1, 1).wordWrap = false;
     await render();
 
-    expect($(getCell(1, 1)).hasClass(hot.getSettings().noWordWrapClassName)).toBe(true);
+    expect($(getCell(1, 1)).hasClass(getSettings().noWordWrapClassName)).toBe(true);
 
   });
 
@@ -101,7 +101,7 @@ describe('CellDecorator', () => {
   });
 
   it('should not add cell `htInvalid` class when trying to add not proper value', async() => {
-    const hot = handsontable({
+    handsontable({
       data: arrayOfObjects(),
       columns: [
         { data: 'id' },
@@ -113,7 +113,7 @@ describe('CellDecorator', () => {
     await setDataAtCell(0, 2, 'non-numeric value');
     await sleep(100);
 
-    expect($(getCell(0, 2)).hasClass(hot.getSettings().invalidCellClassName)).toBe(false);
+    expect($(getCell(0, 2)).hasClass(getSettings().invalidCellClassName)).toBe(false);
   });
 
   // When PR#6425 has been approved I will move this test to className.spec.js

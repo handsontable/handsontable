@@ -1424,7 +1424,7 @@ describe('Selection using mouse interaction', () => {
   });
 
   it('should change selection after left mouse button on one of selected cell', async() => {
-    const hot = handsontable({
+    handsontable({
       rowHeaders: true,
       colHeaders: true,
       startRows: 5,
@@ -1436,7 +1436,7 @@ describe('Selection using mouse interaction', () => {
     cells.eq(18).simulate('mouseover');
     cells.eq(18).simulate('mouseup');
 
-    expect(hot.getSelected()).toEqual([[1, 1, 3, 3]]);
+    expect(getSelected()).toEqual([[1, 1, 3, 3]]);
     expect(`
       |   ║   : - : - : - :   |
       |===:===:===:===:===:===|
@@ -1450,7 +1450,7 @@ describe('Selection using mouse interaction', () => {
     cells.eq(16).simulate('mousedown');
     cells.eq(16).simulate('mouseup');
 
-    expect(hot.getSelected()).toEqual([[3, 1, 3, 1]]);
+    expect(getSelected()).toEqual([[3, 1, 3, 1]]);
     expect(`
       |   ║   : - :   :   :   |
       |===:===:===:===:===:===|
@@ -1485,12 +1485,12 @@ describe('Selection using mouse interaction', () => {
   });
 
   it('should be able to select one column headers after select all headers and cells', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(2, 2),
       colHeaders: true,
     });
 
-    hot.selectAll();
+    await selectAll();
     await simulateClick(spec().$container.find('.ht_clone_top tr:eq(0) th:eq(1)'), 'LMB'); // Header "B"
 
     expect(getSelected()).toEqual([[-1, 1, 1, 1]]);

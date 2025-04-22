@@ -1553,7 +1553,7 @@ describe('Selection', () => {
         beforeSetRangeEnd,
       });
 
-      hot.selection.selectCells([[1, 2]]);
+      selection().selectCells([[1, 2]]);
 
       expect(afterSelection.calls.first().object).toBe(hot);
       expect(afterSelectionByProp.calls.first().object).toBe(hot);

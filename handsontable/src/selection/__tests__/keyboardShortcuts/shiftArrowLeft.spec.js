@@ -153,18 +153,18 @@ describe('Selection extending', () => {
     });
 
     it('should extend the column header selection to the left visible column', async() => {
-      const hot = handsontable({
+      handsontable({
         rowHeaders: true,
         colHeaders: true,
         startRows: 5,
         startCols: 5
       });
 
-      const hidingMap = hot.columnIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding');
+      const hidingMap = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
 
       hidingMap.setValueAtIndex(1, true);
       hidingMap.setValueAtIndex(2, true);
-      hot.render();
+      await render();
 
       await selectColumns(3);
       await listen();

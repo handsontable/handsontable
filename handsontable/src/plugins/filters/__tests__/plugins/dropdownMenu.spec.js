@@ -435,7 +435,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
 
   it('should display proper width of value box after change of another elements width to lower ' +
     '(bug: once rendered `MultipleSelectUI` has elbowed the table created by AutoColumnSize plugin)', async() => {
-    const hot = handsontable({
+    handsontable({
       colHeaders: true,
       dropdownMenu: {
         items: {
@@ -460,7 +460,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
 
     const firstWidth = $menu.find('.wtHider').width();
 
-    hot.updateSettings({ dropdownMenu: true });
+    await updateSettings({ dropdownMenu: true });
 
     await dropdownMenu(0);
 
@@ -499,7 +499,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
   });
 
   it('should display proper width of conditional select', async() => {
-    const hot = handsontable({
+    handsontable({
       colHeaders: true,
       dropdownMenu: true,
       filters: true,
@@ -515,7 +515,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     const $conditionalMenu = $('.htFiltersConditionsMenu');
     const firstWidth = $conditionalMenu.find('.wtHider').width();
 
-    hot.updateSettings({ language: 'en-US' });
+    await updateSettings({ language: 'en-US' });
 
     await dropdownMenu(0);
 
@@ -683,7 +683,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
 
   it('should show proper condition elements after changing value of cell when condition was set' +
     '(`conditionUpdateObserver` triggers hook)', async() => {
-    const hot = handsontable({
+    handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
       filters: true,
@@ -692,7 +692,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
       height: 300
     });
 
-    const filters = hot.getPlugin('filters');
+    const filters = getPlugin('filters');
 
     filters.addCondition(1, 'gte', [10]);
     filters.filter();
@@ -710,7 +710,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
   });
 
   it('should update components properly after API action #1', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [
         {
           id: 2,
@@ -739,7 +739,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
       height: 300
     });
 
-    const filters = hot.getPlugin('filters');
+    const filters = getPlugin('filters');
 
     filters.addCondition(1, 'by_value', [['Nannie Patel', 'Leanne Ware']]);
     filters.addCondition(1, 'contains', ['a']);
@@ -761,7 +761,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
   });
 
   it('should update components properly after API action #2', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [
         {
           id: 2,
@@ -790,7 +790,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
       height: 300
     });
 
-    const filters = hot.getPlugin('filters');
+    const filters = getPlugin('filters');
 
     filters.addCondition(1, 'contains', ['a']);
     filters.addCondition(1, 'not_contains', ['z']);
@@ -812,7 +812,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
   });
 
   it('should update components properly after API action #3', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [
         {
           id: 2,
@@ -841,7 +841,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
       height: 300
     });
 
-    const filters = hot.getPlugin('filters');
+    const filters = getPlugin('filters');
 
     filters.addCondition(1, 'contains', ['a']);
     filters.addCondition(1, 'by_value', [['Nannie Patel', 'Leanne Ware']]);
@@ -863,7 +863,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
   });
 
   it('should update components properly after API action #4', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [
         {
           id: 2,
@@ -892,7 +892,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
       height: 300
     });
 
-    const filters = hot.getPlugin('filters');
+    const filters = getPlugin('filters');
 
     filters.addCondition(1, 'by_value', [['Nannie Patel', 'Leanne Ware']]);
     filters.addCondition(1, 'contains', ['a']);
@@ -913,7 +913,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
   });
 
   it('should update components properly after API action #5', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [
         {
           id: 2,
@@ -942,7 +942,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
       height: 300
     });
 
-    const filters = hot.getPlugin('filters');
+    const filters = getPlugin('filters');
 
     filters.addCondition(1, 'by_value', [['Nannie Patel', 'Leanne Ware']]);
     filters.filter();
@@ -962,7 +962,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
   });
 
   it('should show last operation which was added from API and can be shown inside `dropdownMenu` #1', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [
         {
           id: 2,
@@ -991,7 +991,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
       height: 300
     });
 
-    const filters = hot.getPlugin('filters');
+    const filters = getPlugin('filters');
 
     filters.addCondition(1, 'contains', ['e']);
     filters.addCondition(1, 'not_contains', ['z']);
@@ -1015,7 +1015,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
   });
 
   it('should show last operation which was added from API and can be shown inside `dropdownMenu` #2', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [
         {
           id: 2,
@@ -1044,7 +1044,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
       height: 300
     });
 
-    const filters = hot.getPlugin('filters');
+    const filters = getPlugin('filters');
 
     filters.addCondition(1, 'by_value', [['Nannie Patel', 'Leanne Ware']]);
     filters.addCondition(1, 'by_value', [['Mathis Boone']]);

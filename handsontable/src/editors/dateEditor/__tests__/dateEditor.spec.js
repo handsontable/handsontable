@@ -315,7 +315,8 @@ describe('DateEditor', () => {
   it('should pass date picker config object to Pikaday', async() => {
     const onOpenSpy = jasmine.createSpy('open');
     const onCloseSpy = jasmine.createSpy('close');
-    const hot = handsontable({
+
+    handsontable({
       data: getDates(),
       columns: [
         {
@@ -345,7 +346,7 @@ describe('DateEditor', () => {
     await keyDownUp('enter');
     await keyDownUp('escape');
 
-    const config = hot.getActiveEditor().$datePicker.config();
+    const config = getActiveEditor().$datePicker.config();
 
     expect(config.field instanceof HTMLElement).toBe(true);
     expect(config.trigger instanceof HTMLElement).toBe(true);
@@ -543,7 +544,7 @@ describe('DateEditor', () => {
   });
 
   it('should enable to input any value in textarea', async() => {
-    const hot = handsontable({
+    handsontable({
       data: getDates(),
       columns: [
         {
@@ -554,7 +555,7 @@ describe('DateEditor', () => {
 
     await selectCell(0, 0);
 
-    const editor = hot.getActiveEditor();
+    const editor = getActiveEditor();
 
     editor.beginEditing();
 
@@ -574,7 +575,7 @@ describe('DateEditor', () => {
   });
 
   it('should not close editor when inserting wrong value and allowInvalid is set to false, (#5419)', async() => {
-    const hot = handsontable({
+    handsontable({
       data: getDates(),
       allowInvalid: false,
       columns: [
@@ -586,7 +587,7 @@ describe('DateEditor', () => {
 
     await selectCell(0, 0);
 
-    const editor = hot.getActiveEditor();
+    const editor = getActiveEditor();
 
     editor.beginEditing();
 
@@ -606,7 +607,7 @@ describe('DateEditor', () => {
 
   // Input element can not lose the focus while entering new characters. It breaks IME editor functionality for Asian users.
   it('should not lose the focus on input element while inserting new characters if `imeFastEdit` is enabled (#839)', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [
         ['one', 'two'],
         ['three', 'four']
@@ -625,7 +626,7 @@ describe('DateEditor', () => {
     // The `imeFastEdit` timeout is set to 50ms.
     await sleep(55);
 
-    const activeElement = hot.getActiveEditor().TEXTAREA;
+    const activeElement = getActiveEditor().TEXTAREA;
 
     expect(activeElement).toBeDefined();
     expect(activeElement).not.toBe(null);
@@ -639,19 +640,19 @@ describe('DateEditor', () => {
 
     expect(document.activeElement).toBe(activeElement);
 
-    hot.getActiveEditor().TEXTAREA.value = 't';
+    getActiveEditor().TEXTAREA.value = 't';
 
     await keyDownUp('t');
 
     expect(document.activeElement).toBe(activeElement);
 
-    hot.getActiveEditor().TEXTAREA.value = 'te';
+    getActiveEditor().TEXTAREA.value = 'te';
 
     await keyDownUp('e');
 
     expect(document.activeElement).toBe(activeElement);
 
-    hot.getActiveEditor().TEXTAREA.value = 'teo';
+    getActiveEditor().TEXTAREA.value = 'teo';
 
     await keyDownUp('o');
 
@@ -659,7 +660,7 @@ describe('DateEditor', () => {
   });
 
   it('should restore original when edited and pressed ESC ', async() => {
-    const hot = handsontable({
+    handsontable({
       data: getDates(),
       columns: [
         {
@@ -670,7 +671,7 @@ describe('DateEditor', () => {
 
     await selectCell(0, 0);
 
-    const editor = hot.getActiveEditor();
+    const editor = getActiveEditor();
 
     editor.beginEditing();
 
@@ -1728,7 +1729,7 @@ describe('DateEditor', () => {
   });
 
   it('should not modify the edited date and time, when opening the editor', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [['02/02/2015 8:00 AM']],
       columns: [
         {
@@ -1747,7 +1748,7 @@ describe('DateEditor', () => {
     await selectCell(0, 0);
     await keyDownUp('enter');
 
-    const editor = hot.getActiveEditor();
+    const editor = getActiveEditor();
 
     expect(editor.TEXTAREA.value).toEqual(cellValue);
   });

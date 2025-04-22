@@ -64,14 +64,14 @@ describe('CheckboxRenderer', () => {
       return false;
     };
 
-    const hot = handsontable({
+    handsontable({
       data: [[true], [false], [true]],
       columns: [
         { type: 'checkbox' }
       ]
     });
 
-    hot.selectCell(0, 0);
+    await selectCell(0, 0);
 
     spec().$container.find(':checkbox').eq(2).simulate('mousedown');
     spec().$container.find(':checkbox').eq(2).simulate('mouseup');
@@ -80,22 +80,22 @@ describe('CheckboxRenderer', () => {
     await sleep(100);
 
     expect(spy.test.calls.count()).toBe(0);
-    expect(hot.getSelected()).toEqual([[2, 0, 2, 0]]);
+    expect(getSelected()).toEqual([[2, 0, 2, 0]]);
   });
 
   it('should select cell after label click', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [[true], [false], [true]],
       columns: [
         { type: 'checkbox', label: { position: 'before', value: 'Sure? ' } }
       ]
     });
 
-    hot.selectCell(0, 0);
+    await selectCell(0, 0);
 
     spec().$container.find('td label').eq(2).simulate('mousedown');
 
-    expect(hot.getSelected()).toEqual([[2, 0, 2, 0]]);
+    expect(getSelected()).toEqual([[2, 0, 2, 0]]);
   });
 
   it('should reverse selection in checkboxes', async() => {
@@ -475,7 +475,7 @@ describe('CheckboxRenderer', () => {
   });
 
   it('should remove checkbox and do not add #bad-value# content after cut action', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [
         { car: 'Mercedes A 160', available: true, comesInBlack: 'yes' },
         { car: 'Citroen C4 Coupe', available: false, comesInBlack: '' },
@@ -503,13 +503,13 @@ describe('CheckboxRenderer', () => {
       ],
     });
     const cutEvent = getClipboardEvent('cut');
-    const plugin = hot.getPlugin('CopyPaste');
-    const td = hot.getCell(0, 1);
-    const td2 = hot.getCell(0, 2);
-    const td3 = hot.getCell(1, 1);
-    const td4 = hot.getCell(1, 2);
-    const td5 = hot.getCell(2, 1);
-    const td6 = hot.getCell(2, 2);
+    const plugin = getPlugin('CopyPaste');
+    const td = getCell(0, 1);
+    const td2 = getCell(0, 2);
+    const td3 = getCell(1, 1);
+    const td4 = getCell(1, 2);
+    const td5 = getCell(2, 1);
+    const td6 = getCell(2, 2);
 
     await selectCell(0, 0, 2, 2);
 
@@ -534,7 +534,7 @@ describe('CheckboxRenderer', () => {
   });
 
   it('should remove #bad-value# content after cut action', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [
         { car: 'Mercedes A 160', available: true, comesInBlack: 'yes' },
         { car: 'Citroen C4 Coupe', available: false, comesInBlack: '' },
@@ -562,8 +562,8 @@ describe('CheckboxRenderer', () => {
       ],
     });
     const cutEvent = getClipboardEvent('cut');
-    const plugin = hot.getPlugin('CopyPaste');
-    const td = hot.getCell(1, 2);
+    const plugin = getPlugin('CopyPaste');
+    const td = getCell(1, 2);
 
     await selectCell(1, 2);
 

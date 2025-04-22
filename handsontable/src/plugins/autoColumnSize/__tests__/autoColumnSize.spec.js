@@ -496,9 +496,9 @@ describe('AutoColumnSize', () => {
     // or internal plugins' methods like Filters, Manual*Move, Manual*Resize.
     await render();
 
-    hot.view.adjustElementsSize();
+    tableView().adjustElementsSize();
 
-    hot.updateSettings({
+    await updateSettings({
       colHeaders: getHeaders().reverse(),
     });
 
@@ -832,12 +832,12 @@ describe('AutoColumnSize', () => {
   });
 
   it('should keep appropriate column size when columns order is changed', async() => {
-    const hot = handsontable({
+    handsontable({
       autoColumnSize: true,
       colHeaders: ['Short', 'Longer', 'The longest header']
     });
 
-    hot.columnIndexMapper.moveIndexes(2, 1);
+    columnIndexMapper().moveIndexes(2, 1);
     await render();
 
     expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
@@ -851,7 +851,7 @@ describe('AutoColumnSize', () => {
       horizon.toBe(70);
     });
 
-    hot.columnIndexMapper.moveIndexes(1, 2);
+    columnIndexMapper().moveIndexes(1, 2);
     await render();
 
     expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
@@ -867,13 +867,13 @@ describe('AutoColumnSize', () => {
   });
 
   it('should keep appropriate column size when columns order is changed and some column is cleared', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(5, 3),
       autoColumnSize: true,
       colHeaders: ['Short', 'Longer', 'The longest header']
     });
 
-    hot.columnIndexMapper.moveIndexes(2, 1);
+    columnIndexMapper().moveIndexes(2, 1);
     await render();
 
     expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
@@ -887,7 +887,7 @@ describe('AutoColumnSize', () => {
       horizon.toBe(70);
     });
 
-    hot.populateFromArray(0, 1, [[null], [null], [null], [null], [null]]); // Empty values on the second visual column.
+    await populateFromArray(0, 1, [[null], [null], [null], [null], [null]]); // Empty values on the second visual column.
 
     expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(109);
@@ -1275,7 +1275,7 @@ describe('AutoColumnSize', () => {
     });
 
     it('when removing all rows', async() => {
-      const hot = handsontable({
+      handsontable({
         data: arrayOfObjects(),
         autoColumnSize: true,
         columns: [
@@ -1301,7 +1301,7 @@ describe('AutoColumnSize', () => {
         horizon.toBe(218);
       });
 
-      hot.alter('remove_row', 0);
+      await alter('remove_row', 0);
 
       getPlugin('undoRedo').undo();
 

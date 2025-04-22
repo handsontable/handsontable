@@ -841,7 +841,7 @@ describe('NestedHeaders', () => {
     });
 
     it('should be possible to move the focus around the headers when some columns are hidden (autoWrap off)', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(1, 7),
         colHeaders: true,
         rowHeaders: true,
@@ -853,12 +853,12 @@ describe('NestedHeaders', () => {
         ],
       });
 
-      const hidingMap = hot.columnIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding');
+      const hidingMap = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
 
       hidingMap.setValueAtIndex(1, true); // Hide column that contains cells B{n}
       hidingMap.setValueAtIndex(2, true); // Hide column that contains cells C{n}
       hidingMap.setValueAtIndex(5, true); // Hide column that contains cells F{n}
-      hot.render();
+      await render();
 
       await selectCell(0, 6);
       await keyDownUp('arrowup');
@@ -995,7 +995,7 @@ describe('NestedHeaders', () => {
     });
 
     it('should be possible to move the focus vertically when some columns are hidden (autoWrap on)', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(1, 7),
         colHeaders: true,
         rowHeaders: true,
@@ -1009,12 +1009,12 @@ describe('NestedHeaders', () => {
         ],
       });
 
-      const hidingMap = hot.columnIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding');
+      const hidingMap = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
 
       hidingMap.setValueAtIndex(0, true); // Hide column that contains cells A{n}
       hidingMap.setValueAtIndex(2, true); // Hide column that contains cells C{n}
       hidingMap.setValueAtIndex(4, true); // Hide column that contains cells F{n}
-      hot.render();
+      await render();
 
       await selectCell(-3, -1);
       await keyDownUp('arrowdown');
@@ -1239,7 +1239,7 @@ describe('NestedHeaders', () => {
     });
 
     it('should be possible to move the focus horizontally when some columns are hidden (autoWrap on)', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(1, 7),
         colHeaders: true,
         rowHeaders: true,
@@ -1253,12 +1253,12 @@ describe('NestedHeaders', () => {
         ],
       });
 
-      const hidingMap = hot.columnIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding');
+      const hidingMap = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
 
       hidingMap.setValueAtIndex(0, true); // Hide column that contains cells A{n}
       hidingMap.setValueAtIndex(2, true); // Hide column that contains cells C{n}
       hidingMap.setValueAtIndex(4, true); // Hide column that contains cells F{n}
-      hot.render();
+      await render();
 
       await selectCell(-3, -1);
       await keyDownUp('arrowright');

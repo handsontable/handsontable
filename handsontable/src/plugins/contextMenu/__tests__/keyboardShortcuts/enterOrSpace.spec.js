@@ -16,7 +16,8 @@ describe('ContextMenu keyboard shortcut', () => {
   ], (keyboardShortcut) => {
     it('should execute the selected menu action', async() => {
       const itemAction = jasmine.createSpy('itemAction');
-      const hot = handsontable({
+
+      handsontable({
         contextMenu: {
           items: {
             item1: {
@@ -31,7 +32,7 @@ describe('ContextMenu keyboard shortcut', () => {
 
       await contextMenu();
 
-      const menuHot = hot.getPlugin('contextMenu').menu.hotMenu;
+      const menuHot = getPlugin('contextMenu').menu.hotMenu;
 
       await keyDownUp('arrowdown');
 
@@ -42,7 +43,7 @@ describe('ContextMenu keyboard shortcut', () => {
       await keyDownUp(keyboardShortcut);
 
       expect(itemAction).toHaveBeenCalled();
-      expect($(hot.getPlugin('contextMenu').menu).is(':visible')).toBe(false);
+      expect($(getPlugin('contextMenu').menu).is(':visible')).toBe(false);
     });
 
     it('should not throw an error when any of the menu item is not selected', async() => {

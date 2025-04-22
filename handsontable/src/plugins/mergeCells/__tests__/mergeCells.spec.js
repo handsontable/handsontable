@@ -194,14 +194,14 @@ describe('MergeCells', () => {
 
   describe('mergeCells copy', () => {
     it('should not copy text of cells that are merged into another cell', async() => {
-      const hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
         mergeCells: [
           { row: 0, col: 0, rowspan: 2, colspan: 2 }
         ]
       });
 
-      expect(hot.getCopyableText(0, 0, 2, 2)).toBe('A1\t\tC1\n\t\tC2\nA3\tB3\tC3');
+      expect(getCopyableText(0, 0, 2, 2)).toBe('A1\t\tC1\n\t\tC2\nA3\tB3\tC3');
     });
   });
 
@@ -229,7 +229,7 @@ describe('MergeCells', () => {
     });
 
     it('should select the whole range of cells which form a merged cell', async() => {
-      const hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(4, 4),
         mergeCells: [
           {
@@ -247,21 +247,21 @@ describe('MergeCells', () => {
       expect($td.attr('rowspan')).toEqual('1');
       expect($td.attr('colspan')).toEqual('4');
 
-      expect(hot.getSelectedLast()).toBeUndefined();
+      expect(getSelectedLast()).toBeUndefined();
 
-      hot.selectCell(0, 0);
+      await selectCell(0, 0);
 
-      expect(hot.getSelectedLast()).toEqual([0, 0, 0, 3]);
+      expect(getSelectedLast()).toEqual([0, 0, 0, 3]);
 
       deselectCell();
 
-      hot.selectCell(0, 1);
+      await selectCell(0, 1);
 
-      expect(hot.getSelectedLast()).toEqual([0, 0, 0, 3]);
+      expect(getSelectedLast()).toEqual([0, 0, 0, 3]);
     });
 
     it('should always make a rectangular selection, when selecting merged and not merged cells', async() => {
-      const hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(4, 4),
         mergeCells: [
           {
@@ -279,28 +279,28 @@ describe('MergeCells', () => {
       expect($td.attr('rowspan')).toEqual('2');
       expect($td.attr('colspan')).toEqual('3');
 
-      expect(hot.getSelectedLast()).toBeUndefined();
+      expect(getSelectedLast()).toBeUndefined();
 
-      hot.selectCell(0, 0);
+      await selectCell(0, 0);
 
-      expect(hot.getSelectedLast()).toEqual([0, 0, 0, 0]);
-
-      deselectCell();
-
-      hot.selectCell(0, 0, 1, 1);
-
-      expect(hot.getSelectedLast()).not.toEqual([0, 0, 1, 1]);
-      expect(hot.getSelectedLast()).toEqual([0, 0, 2, 3]);
+      expect(getSelectedLast()).toEqual([0, 0, 0, 0]);
 
       deselectCell();
 
-      hot.selectCell(0, 1, 1, 1);
+      await selectCell(0, 0, 1, 1);
 
-      expect(hot.getSelectedLast()).toEqual([0, 1, 2, 3]);
+      expect(getSelectedLast()).not.toEqual([0, 0, 1, 1]);
+      expect(getSelectedLast()).toEqual([0, 0, 2, 3]);
+
+      deselectCell();
+
+      await selectCell(0, 1, 1, 1);
+
+      expect(getSelectedLast()).toEqual([0, 1, 2, 3]);
     });
 
     it('should not switch the selection start point when selecting from non-merged cells to merged cells', async() => {
-      const hot = handsontable({
+      handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(10, 10),
         mergeCells: [
           { row: 1, col: 1, rowspan: 3, colspan: 3 },
@@ -308,25 +308,25 @@ describe('MergeCells', () => {
         ]
       });
 
-      $(hot.getCell(6, 6)).simulate('mousedown');
+      $(getCell(6, 6)).simulate('mousedown');
 
-      expect(hot.getSelectedRangeLast().from.col).toEqual(6);
-      expect(hot.getSelectedRangeLast().from.row).toEqual(6);
+      expect(getSelectedRangeLast().from.col).toEqual(6);
+      expect(getSelectedRangeLast().from.row).toEqual(6);
 
-      $(hot.getCell(1, 1)).simulate('mouseenter');
+      $(getCell(1, 1)).simulate('mouseenter');
 
-      expect(hot.getSelectedRangeLast().from.col).toEqual(6);
-      expect(hot.getSelectedRangeLast().from.row).toEqual(6);
+      expect(getSelectedRangeLast().from.col).toEqual(6);
+      expect(getSelectedRangeLast().from.row).toEqual(6);
 
-      $(hot.getCell(3, 3)).simulate('mouseenter');
+      $(getCell(3, 3)).simulate('mouseenter');
 
-      expect(hot.getSelectedRangeLast().from.col).toEqual(6);
-      expect(hot.getSelectedRangeLast().from.row).toEqual(6);
+      expect(getSelectedRangeLast().from.col).toEqual(6);
+      expect(getSelectedRangeLast().from.row).toEqual(6);
 
-      $(hot.getCell(4, 4)).simulate('mouseenter');
+      $(getCell(4, 4)).simulate('mouseenter');
 
-      expect(hot.getSelectedRangeLast().from.col).toEqual(6);
-      expect(hot.getSelectedRangeLast().from.row).toEqual(6);
+      expect(getSelectedRangeLast().from.col).toEqual(6);
+      expect(getSelectedRangeLast().from.row).toEqual(6);
     });
 
     // TODO: After some changes please take a look at #7010 (test for unspecified behavior)
@@ -391,48 +391,48 @@ describe('MergeCells', () => {
     });
 
     it('should render fill handle after merge cells', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(10, 10),
         mergeCells: true
       });
 
-      const plugin = hot.getPlugin('mergeCells');
+      const plugin = getPlugin('mergeCells');
 
-      hot.selectCell(0, 0, 2, 2);
+      await selectCell(0, 0, 2, 2);
       plugin.mergeSelection();
 
       expect(spec().$container.find('.wtBorder.current.corner:visible').length).toEqual(1);
     });
 
     it('should render fill handle when merge cells is highlighted cell in right bottom corner', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(10, 10),
         mergeCells: [
           { row: 2, col: 2, rowspan: 2, colspan: 2 }
         ]
       });
 
-      hot.selectCell(2, 2, 1, 1);
+      await selectCell(2, 2, 1, 1);
 
       expect(spec().$container.find('.wtBorder.corner:visible').length).toEqual(1);
     });
 
     it('should render fill handle when cell in right bottom corner is a merged cell', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(10, 10),
         mergeCells: [
           { row: 2, col: 2, rowspan: 2, colspan: 2 }
         ]
       });
 
-      hot.selectCell(1, 1, 2, 2);
+      await selectCell(1, 1, 2, 2);
 
       expect(spec().$container.find('.wtBorder.corner:visible').length).toEqual(1);
     });
 
     it('should select the cell in the top-left corner of the merged cell, when navigating down using the ENTER key on the' +
       ' bottom edge of the table', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(10, 10),
         autoWrapRow: true,
         autoWrapCol: true,
@@ -441,8 +441,8 @@ describe('MergeCells', () => {
         ]
       });
 
-      hot.setDataAtCell(8, 8, 'top-left-corner!');
-      hot.selectCell(7, 9);
+      await setDataAtCell(8, 8, 'top-left-corner!');
+      await selectCell(7, 9);
 
       await keyDownUp('enter');
       await keyDownUp('enter');
@@ -463,7 +463,7 @@ describe('MergeCells', () => {
 
     it('should not select the cell in the top-left corner of the merged cell, when navigating down using the TAB key on the' +
       ' bottom edge of the table', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(10, 10),
         mergeCells: [
           { row: 8, col: 8, rowspan: 2, colspan: 2 }
@@ -472,8 +472,8 @@ describe('MergeCells', () => {
         autoWrapRow: false
       });
 
-      hot.setDataAtCell(8, 8, 'top-left-corner!');
-      hot.selectCell(9, 7);
+      await setDataAtCell(8, 8, 'top-left-corner!');
+      await selectCell(9, 7);
 
       await keyDownUp('enter');
       await keyDownUp('tab');
@@ -494,7 +494,7 @@ describe('MergeCells', () => {
 
     it('should select the cell in the top-left corner of the merged cell, when navigating down using the SHIFT + ENTER key on the' +
       ' top edge of the table', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(10, 10),
         mergeCells: [
           { row: 0, col: 0, rowspan: 2, colspan: 2 }
@@ -503,9 +503,9 @@ describe('MergeCells', () => {
         autoWrapRow: false
       });
 
-      hot.setDataAtCell(0, 0, 'top-left-corner!');
+      await setDataAtCell(0, 0, 'top-left-corner!');
 
-      hot.selectCell(2, 1);
+      await selectCell(2, 1);
 
       await keyDownUp(['shift', 'enter']);
       await keyDownUp(['shift', 'enter']);
@@ -526,7 +526,7 @@ describe('MergeCells', () => {
 
     it('should select the cell in the top-left corner of the merged cell, when navigating down using the SHIFT + TAB key on the' +
       ' top edge of the table', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(10, 10),
         mergeCells: [
           { row: 0, col: 0, rowspan: 2, colspan: 2 }
@@ -535,9 +535,9 @@ describe('MergeCells', () => {
         autoWrapCol: true,
       });
 
-      hot.setDataAtCell(0, 0, 'top-left-corner!');
+      await setDataAtCell(0, 0, 'top-left-corner!');
 
-      hot.selectCell(1, 2);
+      await selectCell(1, 2);
 
       await keyDownUp(['shift', 'enter']);
       await keyDownUp(['shift', 'tab']);
@@ -733,7 +733,7 @@ describe('MergeCells', () => {
 
   describe('merge cells shift', () => {
     it('should shift the merged cells right, when inserting a column on the left side of them', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(20, 20),
         mergeCells: [
           { row: 1, col: 1, rowspan: 2, colspan: 2 },
@@ -744,9 +744,9 @@ describe('MergeCells', () => {
         width: 400
       });
 
-      hot.alter('insert_col_start', 3, 2);
+      await alter('insert_col_start', 3, 2);
 
-      const cellsCollection = hot.getPlugin('mergeCells').mergedCellsCollection;
+      const cellsCollection = getPlugin('mergeCells').mergedCellsCollection;
 
       expect(cellsCollection.get(1, 1).col).toBe(1);
       expect(cellsCollection.get(3, 3)).toBe(false);
@@ -759,7 +759,7 @@ describe('MergeCells', () => {
     });
 
     it('should shift the merged cells left, when removing a column on the left side of them', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(20, 20),
         mergeCells: [
           { row: 1, col: 1, rowspan: 2, colspan: 2 },
@@ -770,9 +770,9 @@ describe('MergeCells', () => {
         width: 400
       });
 
-      hot.alter('remove_col', 3, 2);
+      await alter('remove_col', 3, 2);
 
-      const cellsCollection = hot.getPlugin('mergeCells').mergedCellsCollection;
+      const cellsCollection = getPlugin('mergeCells').mergedCellsCollection;
 
       expect(cellsCollection.get(1, 1).col).toBe(1);
       expect(cellsCollection.get(3, 3).col).toBe(3);
@@ -784,7 +784,7 @@ describe('MergeCells', () => {
     });
 
     it('should shift the merged cells down, when inserting rows above them', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(20, 20),
         mergeCells: [
           { row: 1, col: 1, rowspan: 1, colspan: 2 },
@@ -795,9 +795,9 @@ describe('MergeCells', () => {
         width: 400
       });
 
-      hot.alter('insert_row_above', 3, 2);
+      await alter('insert_row_above', 3, 2);
 
-      const cellsCollection = hot.getPlugin('mergeCells').mergedCellsCollection;
+      const cellsCollection = getPlugin('mergeCells').mergedCellsCollection;
 
       expect(cellsCollection.get(1, 1).row).toBe(1);
       expect(cellsCollection.get(5, 5)).toBe(false);
@@ -809,7 +809,7 @@ describe('MergeCells', () => {
     });
 
     it('should shift the merged cells up, when removing rows above them', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(20, 20),
         mergeCells: [
           { row: 1, col: 1, rowspan: 2, colspan: 2 },
@@ -820,9 +820,9 @@ describe('MergeCells', () => {
         width: 400
       });
 
-      hot.alter('remove_row', 3, 2);
+      await alter('remove_row', 3, 2);
 
-      const cellsCollection = hot.getPlugin('mergeCells').mergedCellsCollection;
+      const cellsCollection = getPlugin('mergeCells').mergedCellsCollection;
 
       expect(cellsCollection.get(1, 1).row).toBe(1);
       expect(cellsCollection.get(2, 5)).toBe(false);
@@ -834,7 +834,7 @@ describe('MergeCells', () => {
     });
 
     it('should trim the merged cell\'s height, when removing rows between their start and end', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(20, 20),
         mergeCells: [
           { row: 1, col: 1, rowspan: 5, colspan: 3 }
@@ -843,9 +843,9 @@ describe('MergeCells', () => {
         width: 400
       });
 
-      hot.alter('remove_row', 2, 2);
+      await alter('remove_row', 2, 2);
 
-      const plugin = hot.getPlugin('mergeCells');
+      const plugin = getPlugin('mergeCells');
       const mergedCellsCollection = plugin.mergedCellsCollection.mergedCells;
 
       expect(mergedCellsCollection[0].row).toEqual(1);
@@ -854,14 +854,14 @@ describe('MergeCells', () => {
       plugin.mergedCellsCollection.clear();
       plugin.merge(1, 1, 2, 2);
 
-      hot.alter('remove_row', 2, 2);
+      await alter('remove_row', 2, 2);
 
       expect(mergedCellsCollection[0].row).toEqual(1);
       expect(mergedCellsCollection[0].rowspan).toEqual(1);
     });
 
     it('should trim the merged cell\'s width, when removing columns between their start and end', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(20, 20),
         mergeCells: [
           { row: 1, col: 1, rowspan: 3, colspan: 5 }
@@ -870,9 +870,9 @@ describe('MergeCells', () => {
         width: 400
       });
 
-      hot.alter('remove_col', 2, 2);
+      await alter('remove_col', 2, 2);
 
-      const plugin = hot.getPlugin('mergeCells');
+      const plugin = getPlugin('mergeCells');
       const mergedCellsCollection = plugin.mergedCellsCollection.mergedCells;
 
       expect(mergedCellsCollection[0].col).toEqual(1);
@@ -881,14 +881,14 @@ describe('MergeCells', () => {
       plugin.mergedCellsCollection.clear();
       plugin.merge(1, 1, 2, 2);
 
-      hot.alter('remove_col', 2, 2);
+      await alter('remove_col', 2, 2);
 
       expect(mergedCellsCollection[0].col).toEqual(1);
       expect(mergedCellsCollection[0].colspan).toEqual(1);
     });
 
     it('should shift the `row` of a merged cells, when removing rows consisting it', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(20, 20),
         mergeCells: [
           { row: 5, col: 5, rowspan: 5, colspan: 3 }
@@ -897,9 +897,9 @@ describe('MergeCells', () => {
         width: 400
       });
 
-      hot.alter('remove_row', 4, 3);
+      await alter('remove_row', 4, 3);
 
-      const plugin = hot.getPlugin('mergeCells');
+      const plugin = getPlugin('mergeCells');
       const mergedCellsCollection = plugin.mergedCellsCollection.mergedCells;
 
       expect(mergedCellsCollection[0].row).toEqual(4);
@@ -908,7 +908,7 @@ describe('MergeCells', () => {
       plugin.mergedCellsCollection.clear();
       plugin.merge(1, 1, 2, 2);
 
-      hot.alter('remove_row', 0, 2);
+      await alter('remove_row', 0, 2);
 
       expect(mergedCellsCollection[0].row).toEqual(0);
       expect(mergedCellsCollection[0].rowspan).toEqual(1);
@@ -916,14 +916,14 @@ describe('MergeCells', () => {
       plugin.mergedCellsCollection.clear();
       plugin.merge(1, 1, 2, 2);
 
-      hot.alter('remove_row', 1, 1);
+      await alter('remove_row', 1, 1);
 
       expect(mergedCellsCollection[0].row).toEqual(1);
       expect(mergedCellsCollection[0].rowspan).toEqual(1);
     });
 
     it('should shift the `col` of a merged cells, when removing columns consisting it', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(20, 20),
         mergeCells: [
           { row: 5, col: 5, rowspan: 3, colspan: 5 }
@@ -932,9 +932,9 @@ describe('MergeCells', () => {
         width: 400
       });
 
-      hot.alter('remove_col', 4, 3);
+      await alter('remove_col', 4, 3);
 
-      const plugin = hot.getPlugin('mergeCells');
+      const plugin = getPlugin('mergeCells');
       const mergedCellsCollection = plugin.mergedCellsCollection.mergedCells;
 
       expect(mergedCellsCollection[0].col).toEqual(4);
@@ -943,7 +943,7 @@ describe('MergeCells', () => {
       plugin.mergedCellsCollection.clear();
       plugin.merge(1, 1, 2, 2);
 
-      hot.alter('remove_col', 0, 2);
+      await alter('remove_col', 0, 2);
 
       expect(mergedCellsCollection[0].col).toEqual(0);
       expect(mergedCellsCollection[0].colspan).toEqual(1);
@@ -951,7 +951,7 @@ describe('MergeCells', () => {
       plugin.mergedCellsCollection.clear();
       plugin.merge(1, 1, 2, 2);
 
-      hot.alter('remove_col', 1, 1);
+      await alter('remove_col', 1, 1);
 
       expect(mergedCellsCollection[0].col).toEqual(1);
       expect(mergedCellsCollection[0].colspan).toEqual(1);
@@ -959,7 +959,8 @@ describe('MergeCells', () => {
 
     it('should allow removing multiple merged cells, while removing multiple rows', async() => {
       const errorSpy = spyOn(console, 'error');
-      const hot = handsontable({
+
+      handsontable({
         data: createSpreadsheetData(20, 20),
         mergeCells: [
           { row: 0, col: 0, rowspan: 2, colspan: 2 },
@@ -969,7 +970,7 @@ describe('MergeCells', () => {
         width: 400
       });
 
-      hot.alter('remove_row', 0, 10);
+      await alter('remove_row', 0, 10);
 
       expect(errorSpy).not.toHaveBeenCalled();
     });
@@ -1010,7 +1011,8 @@ describe('MergeCells', () => {
           rowspan: 3,
           colspan: -4
         }];
-      const hot = handsontable({
+
+      handsontable({
         data: createSpreadsheetData(20, 20),
         mergeCells: newMergedCells
       });
@@ -1028,7 +1030,7 @@ describe('MergeCells', () => {
         .toHaveBeenCalledWith('The merged cell declared with {row: 220, col: 220, rowspan: 3, colspan: -4} ' +
           'contains negative values, which is not supported. It will not be added to the collection.');
 
-      expect(hot.getPlugin('mergeCells').mergedCellsCollection.mergedCells.length).toEqual(1);
+      expect(getPlugin('mergeCells').mergedCellsCollection.mergedCells.length).toEqual(1);
     });
 
     it('should check if the provided merged cell information object has rowspan and colspan declared as 0, and if so, do not add it ' +
@@ -1054,7 +1056,8 @@ describe('MergeCells', () => {
           colspan: 0
         }
       ];
-      const hot = handsontable({
+
+      handsontable({
         data: createSpreadsheetData(20, 20),
         mergeCells: newMergedCells
       });
@@ -1064,7 +1067,7 @@ describe('MergeCells', () => {
       expect(warnSpy).toHaveBeenCalledWith('The merged cell declared at [9, 9] has "rowspan" or ' +
         '"colspan" declared as "0", which is not supported. It cannot be added to the collection.');
 
-      expect(hot.getPlugin('mergeCells').mergedCellsCollection.mergedCells.length).toEqual(1);
+      expect(getPlugin('mergeCells').mergedCellsCollection.mergedCells.length).toEqual(1);
     });
 
     it('should check if the provided merged cell information object represents a single cell, and if so, do not add it ' +
@@ -1090,14 +1093,15 @@ describe('MergeCells', () => {
           colspan: 4
         }
       ];
-      const hot = handsontable({
+
+      handsontable({
         data: createSpreadsheetData(30, 30),
         mergeCells: newMergedCells
       });
 
       expect(warnSpy).toHaveBeenCalledWith('The merged cell declared at [5, 8] has both "rowspan" and "colspan" ' +
         'declared as "1", which makes it a single cell. It cannot be added to the collection.');
-      expect(hot.getPlugin('mergeCells').mergedCellsCollection.mergedCells.length).toEqual(2);
+      expect(getPlugin('mergeCells').mergedCellsCollection.mergedCells.length).toEqual(2);
     });
 
     it('should check if the provided merged cell information object contains merged declared out of bounds, and if so, ' +
@@ -1123,7 +1127,8 @@ describe('MergeCells', () => {
           colspan: 4
         }
       ];
-      const hot = handsontable({
+
+      handsontable({
         data: createSpreadsheetData(20, 20),
         mergeCells: newMergedCells
       });
@@ -1132,7 +1137,7 @@ describe('MergeCells', () => {
         '(or positioned partially) outside of the table range. It was not added to the table, please fix your setup.');
       expect(warnSpy).toHaveBeenCalledWith('The merged cell declared at [20, 21] is positioned ' +
         '(or positioned partially) outside of the table range. It was not added to the table, please fix your setup.');
-      expect(hot.getPlugin('mergeCells').mergedCellsCollection.mergedCells.length).toEqual(1);
+      expect(getPlugin('mergeCells').mergedCellsCollection.mergedCells.length).toEqual(1);
     });
   });
 
@@ -1167,7 +1172,8 @@ describe('MergeCells', () => {
   describe('Validation', () => {
     it('should not hide the merged cells after validating the table', async() => {
       const onAfterValidate = jasmine.createSpy('onAfterValidate');
-      const hot = handsontable({
+
+      handsontable({
         data: createSpreadsheetData(10, 10),
         mergeCells: [
           { row: 5, col: 4, rowspan: 2, colspan: 2 },
@@ -1179,20 +1185,19 @@ describe('MergeCells', () => {
         afterValidate: onAfterValidate
       });
 
-      let firstCollection = hot.getCell(5, 4);
-      let secondCollection = hot.getCell(1, 1);
+      let firstCollection = getCell(5, 4);
+      let secondCollection = getCell(1, 1);
 
       expect(firstCollection.style.display.indexOf('none')).toEqual(-1);
       expect(secondCollection.style.display.indexOf('none')).toEqual(-1);
 
-      hot.validateCells();
-
+      await validateCells();
       await sleep(300);
 
       expect(onAfterValidate).toHaveBeenCalled();
 
-      firstCollection = hot.getCell(5, 4);
-      secondCollection = hot.getCell(1, 1);
+      firstCollection = getCell(5, 4);
+      secondCollection = getCell(1, 1);
 
       expect(firstCollection.style.display.indexOf('none')).toEqual(-1);
       expect(secondCollection.style.display.indexOf('none')).toEqual(-1);
@@ -1201,45 +1206,45 @@ describe('MergeCells', () => {
 
   describe('Entire row/column selection', () => {
     it('should be possible to select a single entire column, when there\'s a merged cell in it', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(10, 10),
         mergeCells: [
           { row: 5, col: 4, rowspan: 2, colspan: 5 }
         ]
       });
 
-      hot.selectColumns(5);
+      await selectColumns(5);
 
-      expect(hot.getSelectedLast()).toEqual([0, 5, 9, 5]);
+      expect(getSelectedLast()).toEqual([0, 5, 9, 5]);
 
       // it should work only for selecting the entire column
-      hot.selectCell(4, 5, 7, 5);
+      await selectCell(4, 5, 7, 5);
 
-      expect(hot.getSelectedLast()).toEqual([4, 4, 7, 8]);
+      expect(getSelectedLast()).toEqual([4, 4, 7, 8]);
     });
 
     it('should be possible to select a single entire row, when there\'s a merged cell in it', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(10, 10),
         mergeCells: [
           { row: 5, col: 4, rowspan: 5, colspan: 2 }
         ]
       });
 
-      hot.selectRows(5);
+      await selectRows(5);
 
-      expect(hot.getSelectedLast()).toEqual([5, 0, 5, 9]);
+      expect(getSelectedLast()).toEqual([5, 0, 5, 9]);
 
       // it should work only for selecting the entire row
-      hot.selectCell(6, 3, 6, 7);
+      await selectCell(6, 3, 6, 7);
 
-      expect(hot.getSelectedLast()).toEqual([5, 3, 9, 7]);
+      expect(getSelectedLast()).toEqual([5, 3, 9, 7]);
     });
   });
 
   describe('Undo/Redo', () => {
     it('should not be possible to remove initially declared merged cells by calling the \'Undo\' action.', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(10, 10),
         mergeCells: [
           { row: 5, col: 4, rowspan: 2, colspan: 5 },
@@ -1249,19 +1254,19 @@ describe('MergeCells', () => {
 
       getPlugin('undoRedo').undo();
 
-      expect(hot.getPlugin('mergeCells').mergedCellsCollection.mergedCells.length).toEqual(2);
+      expect(getPlugin('mergeCells').mergedCellsCollection.mergedCells.length).toEqual(2);
     });
 
     it('should be possible undo the merging process by calling the \'Undo\' action.', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(10, 10),
         mergeCells: true
       });
 
-      const plugin = hot.getPlugin('mergeCells');
+      const plugin = getPlugin('mergeCells');
 
       plugin.merge(0, 0, 3, 3);
-      hot.selectCell(4, 4, 7, 7);
+      await selectCell(4, 4, 7, 7);
       plugin.mergeSelection();
 
       expect(plugin.mergedCellsCollection.mergedCells.length).toEqual(2);
@@ -1272,23 +1277,23 @@ describe('MergeCells', () => {
     });
 
     it('should be possible redo the merging process by calling the \'Redo\' action.', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(10, 10),
         mergeCells: true
       });
 
-      const plugin = hot.getPlugin('mergeCells');
+      const plugin = getPlugin('mergeCells');
 
       plugin.merge(0, 0, 3, 3);
-      hot.selectCell(4, 4, 7, 7);
+      await selectCell(4, 4, 7, 7);
       plugin.mergeSelection();
 
       getPlugin('undoRedo').undo();
       getPlugin('undoRedo').undo();
 
-      hot.getPlugin('undoRedo').redo();
+      getPlugin('undoRedo').redo();
       expect(plugin.mergedCellsCollection.mergedCells.length).toEqual(1);
-      hot.getPlugin('undoRedo').redo();
+      getPlugin('undoRedo').redo();
       expect(plugin.mergedCellsCollection.mergedCells.length).toEqual(2);
     });
   });
@@ -1426,7 +1431,7 @@ describe('MergeCells', () => {
   });
 
   it('`getCell` should return merged cell parent', async() => {
-    const hot = handsontable({
+    handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
       mergeCells: [
         { row: 0, col: 0, rowspan: 2, colspan: 2 }
@@ -1435,8 +1440,8 @@ describe('MergeCells', () => {
       width: 400
     });
 
-    const mergedCellParent = hot.getCell(0, 0);
-    const mergedCellHidden = hot.getCell(1, 1);
+    const mergedCellParent = getCell(0, 0);
+    const mergedCellHidden = getCell(1, 1);
 
     expect(mergedCellHidden).toBe(mergedCellParent);
   });

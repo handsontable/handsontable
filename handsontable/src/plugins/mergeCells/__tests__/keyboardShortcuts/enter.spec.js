@@ -80,7 +80,7 @@ describe('MergeCells keyboard shortcut', () => {
     });
 
     it('should correctly navigate forward vertically through the merged cells within the range', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(7, 7),
         colHeaders: true,
         rowHeaders: true,
@@ -90,7 +90,7 @@ describe('MergeCells keyboard shortcut', () => {
       });
 
       await selectCell(1, 1, 5, 5);
-      hot.selection.setRangeFocus(cellCoords(1, 3));
+      selection().setRangeFocus(cellCoords(1, 3));
 
       await keyDownUp('enter');
 

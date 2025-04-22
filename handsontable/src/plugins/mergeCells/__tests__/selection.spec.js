@@ -252,7 +252,7 @@ describe('MergeCells Selection', () => {
   });
 
   it('should correctly indicate that the selected merged cell is not multiple selection', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(5, 5),
       colHeaders: true,
       rowHeaders: true,
@@ -263,7 +263,7 @@ describe('MergeCells Selection', () => {
 
     await selectCell(1, 1, 2, 2);
 
-    expect(hot.selection.isMultiple()).toBe(false);
+    expect(selection().isMultiple()).toBe(false);
     expect(`
       |   ║   : - : - :   :   |
       |===:===:===:===:===:===|
@@ -276,7 +276,7 @@ describe('MergeCells Selection', () => {
 
     await selectCell(2, 2, 1, 1);
 
-    expect(hot.selection.isMultiple()).toBe(false);
+    expect(selection().isMultiple()).toBe(false);
     expect(`
       |   ║   : - : - :   :   |
       |===:===:===:===:===:===|

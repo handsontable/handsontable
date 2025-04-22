@@ -117,7 +117,7 @@ describe('manualColumnMove', () => {
 
     describe('should be shown properly after redo action', () => {
       it('when moving multiple columns from the left to the right', async() => {
-        const hot = handsontable({
+        handsontable({
           data: createSpreadsheetData(10, 10),
           colHeaders: true,
           manualColumnMove: true
@@ -138,13 +138,13 @@ describe('manualColumnMove', () => {
         $columnHeader.simulate('mouseup');
 
         getPlugin('undoRedo').undo();
-        hot.getPlugin('undoRedo').redo();
+        getPlugin('undoRedo').redo();
 
         expect(getSelected()).toEqual([[-1, 1, 9, 3]]);
       });
 
       it('when moving multiple columns from the right to the left', async() => {
-        const hot = handsontable({
+        handsontable({
           data: createSpreadsheetData(10, 10),
           colHeaders: true,
           manualColumnMove: true
@@ -165,7 +165,7 @@ describe('manualColumnMove', () => {
         $columnHeader.simulate('mouseup');
 
         getPlugin('undoRedo').undo();
-        hot.getPlugin('undoRedo').redo();
+        getPlugin('undoRedo').redo();
 
         expect(getSelected()).toEqual([[-1, 1, 9, 3]]);
       });

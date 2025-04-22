@@ -22,7 +22,7 @@ describe('ColumnSorting (RTL)', () => {
     });
 
     it.forTheme('classic')('should display indicator properly after changing sorted column sequence', async() => {
-      const hot = handsontable({
+      handsontable({
         layoutDirection,
         data: [
           [1, 9, 3, 4, 5, 6, 7, 8, 9],
@@ -39,7 +39,7 @@ describe('ColumnSorting (RTL)', () => {
       getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
 
       // changing column sequence: 0 <-> 1
-      hot.columnIndexMapper.moveIndexes([1], 0);
+      columnIndexMapper().moveIndexes([1], 0);
       await render();
 
       const sortedColumn = spec().$container.find('th span.columnSorting')[1];
@@ -49,7 +49,7 @@ describe('ColumnSorting (RTL)', () => {
     });
 
     it.forTheme('main')('should display indicator properly after changing sorted column sequence', async() => {
-      const hot = handsontable({
+      handsontable({
         layoutDirection,
         data: [
           [1, 9, 3, 4, 5, 6, 7, 8, 9],
@@ -66,7 +66,7 @@ describe('ColumnSorting (RTL)', () => {
       getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
 
       // changing column sequence: 0 <-> 1
-      hot.columnIndexMapper.moveIndexes([1], 0);
+      columnIndexMapper().moveIndexes([1], 0);
       await render();
 
       const sortedColumn = spec().$container.find('th span.columnSorting')[1];
@@ -84,7 +84,7 @@ describe('ColumnSorting (RTL)', () => {
     });
 
     it.forTheme('horizon')('should display indicator properly after changing sorted column sequence', async() => {
-      const hot = handsontable({
+      handsontable({
         layoutDirection,
         data: [
           [1, 9, 3, 4, 5, 6, 7, 8, 9],
@@ -101,7 +101,7 @@ describe('ColumnSorting (RTL)', () => {
       getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
 
       // changing column sequence: 0 <-> 1
-      hot.columnIndexMapper.moveIndexes([1], 0);
+      columnIndexMapper().moveIndexes([1], 0);
       await render();
 
       const sortedColumn = spec().$container.find('th span.columnSorting')[1];

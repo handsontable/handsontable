@@ -12,13 +12,13 @@ describe('Selection', () => {
 
   describe('`setRangeFocus` method', () => {
     it('should do nothing when there is no selection range defined', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(6, 4),
         colHeaders: false,
         rowHeaders: false,
       });
 
-      hot.selection.setRangeFocus(cellCoords(1, 1));
+      selection().setRangeFocus(cellCoords(1, 1));
 
       expect(`
         |   :   :   :   |
@@ -32,14 +32,14 @@ describe('Selection', () => {
     });
 
     it('should move the focus highlight position to specific coords', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(6, 4),
         colHeaders: false,
         rowHeaders: false,
       });
 
       await selectCells([[1, 1, 3, 3]]);
-      hot.selection.setRangeFocus(cellCoords(2, 2));
+      selection().setRangeFocus(cellCoords(2, 2));
 
       expect(`
         |   :   :   :   |
@@ -53,14 +53,14 @@ describe('Selection', () => {
     });
 
     it('should move the focus highlight position to specific coords outside of the selected range', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(6, 4),
         colHeaders: false,
         rowHeaders: false,
       });
 
       await selectCells([[1, 1, 3, 3]]);
-      hot.selection.setRangeFocus(cellCoords(4, 2));
+      selection().setRangeFocus(cellCoords(4, 2));
 
       expect(`
         |   :   :   :   |
@@ -75,39 +75,42 @@ describe('Selection', () => {
 
     it('should trigger the "beforeSetFocus" local hook', async() => {
       const beforeSetFocus = jasmine.createSpy('beforeSetFocus');
-      const hot = handsontable({
+
+      handsontable({
         data: createSpreadsheetData(6, 4),
         colHeaders: false,
         rowHeaders: false,
       });
 
-      hot.selection.addLocalHook('beforeSetFocus', beforeSetFocus);
+      selection().addLocalHook('beforeSetFocus', beforeSetFocus);
 
       await selectCells([[1, 1, 3, 3]]);
-      hot.selection.setRangeFocus(cellCoords(2, 2));
+      selection().setRangeFocus(cellCoords(2, 2));
 
       expect(beforeSetFocus).toHaveBeenCalledOnceWith(cellCoords(2, 2));
     });
 
     it('should trigger the "afterSetFocus" local hook', async() => {
       const afterSetFocus = jasmine.createSpy('afterSetFocus');
-      const hot = handsontable({
+
+      handsontable({
         data: createSpreadsheetData(6, 4),
         colHeaders: false,
         rowHeaders: false,
       });
 
-      hot.selection.addLocalHook('afterSetFocus', afterSetFocus);
+      selection().addLocalHook('afterSetFocus', afterSetFocus);
 
       await selectCells([[1, 1, 3, 3]]);
-      hot.selection.setRangeFocus(cellCoords(2, 2));
+      selection().setRangeFocus(cellCoords(2, 2));
 
       expect(afterSetFocus).toHaveBeenCalledOnceWith(cellCoords(2, 2));
     });
 
     it('should trigger the "beforeHighlightSet" local hook', async() => {
       const beforeHighlightSet = jasmine.createSpy('beforeHighlightSet');
-      const hot = handsontable({
+
+      handsontable({
         data: createSpreadsheetData(6, 4),
         colHeaders: false,
         rowHeaders: false,
@@ -115,8 +118,8 @@ describe('Selection', () => {
 
       await selectCells([[1, 1, 3, 3]]);
 
-      hot.selection.addLocalHook('beforeHighlightSet', beforeHighlightSet);
-      hot.selection.setRangeFocus(cellCoords(2, 2));
+      selection().addLocalHook('beforeHighlightSet', beforeHighlightSet);
+      selection().setRangeFocus(cellCoords(2, 2));
 
       expect(beforeHighlightSet).toHaveBeenCalledTimes(1);
     });

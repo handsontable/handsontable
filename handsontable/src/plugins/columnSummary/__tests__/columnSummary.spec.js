@@ -656,7 +656,7 @@ describe('ColumnSummarySpec', () => {
     });
 
     it('should modify the calculation row range when a row was moved outside the range', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createNumericData(40, 40),
         height: 200,
         width: 200,
@@ -672,13 +672,13 @@ describe('ColumnSummarySpec', () => {
           }]
       });
 
-      expect(JSON.stringify(hot.getPlugin('columnSummary').endpoints.getEndpoint(0).ranges)).toEqual('[[0,6]]');
-      hot.getPlugin('manualRowMove').moveRow(3, 10);
-      expect(JSON.stringify(hot.getPlugin('columnSummary').endpoints.getEndpoint(0).ranges)).toEqual('[[0,2],[4,6]]');
+      expect(JSON.stringify(getPlugin('columnSummary').endpoints.getEndpoint(0).ranges)).toEqual('[[0,6]]');
+      getPlugin('manualRowMove').moveRow(3, 10);
+      expect(JSON.stringify(getPlugin('columnSummary').endpoints.getEndpoint(0).ranges)).toEqual('[[0,2],[4,6]]');
     });
 
     it('should modify the calculation row range when a row was moved into the range', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createNumericData(40, 40),
         height: 200,
         width: 200,
@@ -694,18 +694,18 @@ describe('ColumnSummarySpec', () => {
           }]
       });
 
-      expect(JSON.stringify(hot.getPlugin('columnSummary').endpoints.getEndpoint(0).ranges))
+      expect(JSON.stringify(getPlugin('columnSummary').endpoints.getEndpoint(0).ranges))
         .toEqual('[[0,6]]');
 
-      hot.getPlugin('manualRowMove').moveRow(10, 3);
+      getPlugin('manualRowMove').moveRow(10, 3);
 
-      expect(JSON.stringify(hot.getPlugin('columnSummary').endpoints.getEndpoint(0).ranges))
+      expect(JSON.stringify(getPlugin('columnSummary').endpoints.getEndpoint(0).ranges))
         .toEqual('[[0,2],[10,10],[3,6]]');
     });
 
     it.forTheme('classic')('should shift the visual calculation result position when a row ' +
       'was moved outside the endpoint range', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createNumericData(40, 40),
         height: 200,
         width: 200,
@@ -723,20 +723,20 @@ describe('ColumnSummarySpec', () => {
 
       expect(spec().$container.find('.columnSummaryResult').size()).toEqual(1);
       expect(spec().$container.find('.htDimmed').size()).toEqual(1);
-      expect($(hot.getCell(7, 3)).hasClass('columnSummaryResult')).toBe(true);
-      expect($(hot.getCell(7, 3)).hasClass('htDimmed')).toBe(true);
+      expect($(getCell(7, 3)).hasClass('columnSummaryResult')).toBe(true);
+      expect($(getCell(7, 3)).hasClass('htDimmed')).toBe(true);
 
-      hot.getPlugin('manualRowMove').moveRow(3, 10);
+      getPlugin('manualRowMove').moveRow(3, 10);
 
       expect(spec().$container.find('.columnSummaryResult').size()).toEqual(1);
       expect(spec().$container.find('.htDimmed').size()).toEqual(1);
-      expect($(hot.getCell(6, 3)).hasClass('columnSummaryResult')).toBe(true);
-      expect($(hot.getCell(6, 3)).hasClass('htDimmed')).toBe(true);
+      expect($(getCell(6, 3)).hasClass('columnSummaryResult')).toBe(true);
+      expect($(getCell(6, 3)).hasClass('htDimmed')).toBe(true);
     });
 
     it.forTheme('main')('should shift the visual calculation result position when a row ' +
       'was moved outside the endpoint range', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createNumericData(40, 40),
         height: 252,
         width: 200,
@@ -754,20 +754,20 @@ describe('ColumnSummarySpec', () => {
 
       expect(spec().$container.find('.columnSummaryResult').size()).toEqual(1);
       expect(spec().$container.find('.htDimmed').size()).toEqual(1);
-      expect($(hot.getCell(7, 3)).hasClass('columnSummaryResult')).toBe(true);
-      expect($(hot.getCell(7, 3)).hasClass('htDimmed')).toBe(true);
+      expect($(getCell(7, 3)).hasClass('columnSummaryResult')).toBe(true);
+      expect($(getCell(7, 3)).hasClass('htDimmed')).toBe(true);
 
-      hot.getPlugin('manualRowMove').moveRow(3, 10);
+      getPlugin('manualRowMove').moveRow(3, 10);
 
       expect(spec().$container.find('.columnSummaryResult').size()).toEqual(1);
       expect(spec().$container.find('.htDimmed').size()).toEqual(1);
-      expect($(hot.getCell(6, 3)).hasClass('columnSummaryResult')).toBe(true);
-      expect($(hot.getCell(6, 3)).hasClass('htDimmed')).toBe(true);
+      expect($(getCell(6, 3)).hasClass('columnSummaryResult')).toBe(true);
+      expect($(getCell(6, 3)).hasClass('htDimmed')).toBe(true);
     });
 
     it.forTheme('horizon')('should shift the visual calculation result position when a row ' +
       'was moved outside the endpoint range', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createNumericData(40, 40),
         height: 321,
         width: 200,
@@ -785,20 +785,20 @@ describe('ColumnSummarySpec', () => {
 
       expect(spec().$container.find('.columnSummaryResult').size()).toEqual(1);
       expect(spec().$container.find('.htDimmed').size()).toEqual(1);
-      expect($(hot.getCell(7, 3)).hasClass('columnSummaryResult')).toBe(true);
-      expect($(hot.getCell(7, 3)).hasClass('htDimmed')).toBe(true);
+      expect($(getCell(7, 3)).hasClass('columnSummaryResult')).toBe(true);
+      expect($(getCell(7, 3)).hasClass('htDimmed')).toBe(true);
 
-      hot.getPlugin('manualRowMove').moveRow(3, 10);
+      getPlugin('manualRowMove').moveRow(3, 10);
 
       expect(spec().$container.find('.columnSummaryResult').size()).toEqual(1);
       expect(spec().$container.find('.htDimmed').size()).toEqual(1);
-      expect($(hot.getCell(6, 3)).hasClass('columnSummaryResult')).toBe(true);
-      expect($(hot.getCell(6, 3)).hasClass('htDimmed')).toBe(true);
+      expect($(getCell(6, 3)).hasClass('columnSummaryResult')).toBe(true);
+      expect($(getCell(6, 3)).hasClass('htDimmed')).toBe(true);
     });
 
     it.forTheme('classic')('should shift the visual calculation result position when a row ' +
       'was moved inside the endpoint range', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createNumericData(40, 40),
         height: 200,
         width: 200,
@@ -816,20 +816,20 @@ describe('ColumnSummarySpec', () => {
 
       expect(spec().$container.find('.columnSummaryResult').size()).toEqual(1);
       expect(spec().$container.find('.htDimmed').size()).toEqual(1);
-      expect($(hot.getCell(7, 3)).hasClass('columnSummaryResult')).toBe(true);
-      expect($(hot.getCell(7, 3)).hasClass('htDimmed')).toBe(true);
+      expect($(getCell(7, 3)).hasClass('columnSummaryResult')).toBe(true);
+      expect($(getCell(7, 3)).hasClass('htDimmed')).toBe(true);
 
-      hot.getPlugin('manualRowMove').moveRow(10, 3);
+      getPlugin('manualRowMove').moveRow(10, 3);
 
       expect(spec().$container.find('.columnSummaryResult').size()).toEqual(1);
       expect(spec().$container.find('.htDimmed').size()).toEqual(1);
-      expect($(hot.getCell(8, 3)).hasClass('columnSummaryResult')).toBe(true);
-      expect($(hot.getCell(8, 3)).hasClass('htDimmed')).toBe(true);
+      expect($(getCell(8, 3)).hasClass('columnSummaryResult')).toBe(true);
+      expect($(getCell(8, 3)).hasClass('htDimmed')).toBe(true);
     });
 
     it.forTheme('main')('should shift the visual calculation result position when a row ' +
       'was moved inside the endpoint range', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createNumericData(40, 40),
         height: 252,
         width: 200,
@@ -847,20 +847,20 @@ describe('ColumnSummarySpec', () => {
 
       expect(spec().$container.find('.columnSummaryResult').size()).toEqual(1);
       expect(spec().$container.find('.htDimmed').size()).toEqual(1);
-      expect($(hot.getCell(7, 3)).hasClass('columnSummaryResult')).toBe(true);
-      expect($(hot.getCell(7, 3)).hasClass('htDimmed')).toBe(true);
+      expect($(getCell(7, 3)).hasClass('columnSummaryResult')).toBe(true);
+      expect($(getCell(7, 3)).hasClass('htDimmed')).toBe(true);
 
-      hot.getPlugin('manualRowMove').moveRow(10, 3);
+      getPlugin('manualRowMove').moveRow(10, 3);
 
       expect(spec().$container.find('.columnSummaryResult').size()).toEqual(1);
       expect(spec().$container.find('.htDimmed').size()).toEqual(1);
-      expect($(hot.getCell(8, 3)).hasClass('columnSummaryResult')).toBe(true);
-      expect($(hot.getCell(8, 3)).hasClass('htDimmed')).toBe(true);
+      expect($(getCell(8, 3)).hasClass('columnSummaryResult')).toBe(true);
+      expect($(getCell(8, 3)).hasClass('htDimmed')).toBe(true);
     });
 
     it.forTheme('horizon')('should shift the visual calculation result position when a row ' +
       'was moved inside the endpoint range', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createNumericData(40, 40),
         height: 321,
         width: 200,
@@ -878,22 +878,22 @@ describe('ColumnSummarySpec', () => {
 
       expect(spec().$container.find('.columnSummaryResult').size()).toEqual(1);
       expect(spec().$container.find('.htDimmed').size()).toEqual(1);
-      expect($(hot.getCell(7, 3)).hasClass('columnSummaryResult')).toBe(true);
-      expect($(hot.getCell(7, 3)).hasClass('htDimmed')).toBe(true);
+      expect($(getCell(7, 3)).hasClass('columnSummaryResult')).toBe(true);
+      expect($(getCell(7, 3)).hasClass('htDimmed')).toBe(true);
 
-      hot.getPlugin('manualRowMove').moveRow(10, 3);
+      getPlugin('manualRowMove').moveRow(10, 3);
 
       expect(spec().$container.find('.columnSummaryResult').size()).toEqual(1);
       expect(spec().$container.find('.htDimmed').size()).toEqual(1);
-      expect($(hot.getCell(8, 3)).hasClass('columnSummaryResult')).toBe(true);
-      expect($(hot.getCell(8, 3)).hasClass('htDimmed')).toBe(true);
+      expect($(getCell(8, 3)).hasClass('columnSummaryResult')).toBe(true);
+      expect($(getCell(8, 3)).hasClass('htDimmed')).toBe(true);
     });
   });
 
   describe('compatibility with other plugins', () => {
     describe('nestedRows', () => {
       it('should work properly with the nestedRows plugin', async() => {
-        const hot = handsontable({
+        handsontable({
           data: getDataForColumnSummary(),
           height: 200,
           width: 200,
@@ -902,7 +902,7 @@ describe('ColumnSummarySpec', () => {
           columnSummary: columnSummaryFunction
         });
 
-        const nestedRowsPlugin = hot.getPlugin('nestedRows');
+        const nestedRowsPlugin = getPlugin('nestedRows');
 
         /**
          * @param row
@@ -940,7 +940,7 @@ describe('ColumnSummarySpec', () => {
     });
 
     it('should calculate the endpoints properly after moving rows between groups', async() => {
-      const hot = handsontable({
+      handsontable({
         data: getDataForColumnSummary(),
         height: 200,
         width: 200,
@@ -949,15 +949,15 @@ describe('ColumnSummarySpec', () => {
         columnSummary: columnSummaryFunction
       });
 
-      expect(hot.getDataAtCell(0, 1)).toEqual(106);
-      expect(hot.getDataAtCell(4, 1)).toEqual(3996);
+      expect(getDataAtCell(0, 1)).toEqual(106);
+      expect(getDataAtCell(4, 1)).toEqual(3996);
       expect(spec().$container.find('.columnSummaryResult').size()).toEqual(3);
       expect(spec().$container.find('.htDimmed').size()).toEqual(3);
 
-      hot.getPlugin('manualRowMove').dragRow(2, 6);
+      getPlugin('manualRowMove').dragRow(2, 6);
 
-      expect(hot.getDataAtCell(0, 1)).toEqual(70);
-      expect(hot.getDataAtCell(3, 1)).toEqual(4032);
+      expect(getDataAtCell(0, 1)).toEqual(70);
+      expect(getDataAtCell(3, 1)).toEqual(4032);
       expect(spec().$container.find('.columnSummaryResult').size()).toEqual(3);
       expect(spec().$container.find('.htDimmed').size()).toEqual(3);
     });

@@ -277,7 +277,7 @@ describe('Selection extending', () => {
 
     it('should scroll the viewport repeatedly by the same number of pixels with keeping the initial ' +
        'selection viewport offset', async() => {
-      const hot = handsontable({
+      handsontable({
         width: 180,
         height: 200,
         startRows: 100,
@@ -293,7 +293,7 @@ describe('Selection extending', () => {
 
       await sleep(20);
 
-      expect(getSelectedRangeLast().to.row).toBe(hot.view.getFirstFullyVisibleRow() + 4);
+      expect(getSelectedRangeLast().to.row).toBe(tableView().getFirstFullyVisibleRow() + 4);
 
       await sleep(20);
 
@@ -301,13 +301,13 @@ describe('Selection extending', () => {
 
       await sleep(20);
 
-      expect(getSelectedRangeLast().to.row).toBe(hot.view.getFirstFullyVisibleRow() + 4);
+      expect(getSelectedRangeLast().to.row).toBe(tableView().getFirstFullyVisibleRow() + 4);
 
       await keyDownUp(['shift', 'pagedown']);
 
       await sleep(20);
 
-      expect(getSelectedRangeLast().to.row).toBe(hot.view.getFirstFullyVisibleRow() + 4);
+      expect(getSelectedRangeLast().to.row).toBe(tableView().getFirstFullyVisibleRow() + 4);
     });
   });
 });

@@ -25,11 +25,11 @@ describe('CopyPaste', () => {
     });
 
     it('should be possible to cut data by API', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(2, 2),
       });
       const cutEvent = getClipboardEvent();
-      const plugin = hot.getPlugin('CopyPaste');
+      const plugin = getPlugin('CopyPaste');
 
       await selectCell(1, 0);
 
@@ -41,20 +41,20 @@ describe('CopyPaste', () => {
           '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
         '<table><tbody><tr><td>A2</td></tr></tbody></table>'].join(''));
 
-      expect(hot.getDataAtCell(1, 0)).toBe(null);
+      expect(getDataAtCell(1, 0)).toBe(null);
     });
 
     it('should call beforeCut and afterCut during cutting out operation', async() => {
       const beforeCutSpy = jasmine.createSpy('beforeCut');
       const afterCutSpy = jasmine.createSpy('afterCut');
 
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(2, 2),
         beforeCut: beforeCutSpy,
         afterCut: afterCutSpy
       });
       const cutEvent = getClipboardEvent();
-      const plugin = hot.getPlugin('CopyPaste');
+      const plugin = getPlugin('CopyPaste');
 
       await selectCell(0, 0);
 

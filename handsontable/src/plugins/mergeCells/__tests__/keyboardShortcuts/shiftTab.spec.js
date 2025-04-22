@@ -78,7 +78,7 @@ describe('MergeCells keyboard shortcut', () => {
     });
 
     it('should correctly navigate backward horizontally through the merged cells within the range', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(7, 7),
         colHeaders: true,
         rowHeaders: true,
@@ -88,7 +88,7 @@ describe('MergeCells keyboard shortcut', () => {
       });
 
       await selectCell(1, 1, 5, 5);
-      hot.selection.setRangeFocus(cellCoords(3, 5));
+      selection().setRangeFocus(cellCoords(3, 5));
       await keyDownUp(['shift', 'tab']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,1 from: 1,1 to: 5,5']);

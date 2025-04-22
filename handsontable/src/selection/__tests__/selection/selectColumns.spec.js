@@ -1280,7 +1280,7 @@ describe('Selection', () => {
     });
 
     it('should not the scroll the viewport when column is selected', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetObjectData(20, 20),
         height: 300,
         width: 300,
@@ -1288,11 +1288,11 @@ describe('Selection', () => {
 
       await selectCell(15, 1); // Scroll to the bottom of the Hot viewport.
 
-      const scrollTop = hot.view._wt.wtTable.holder.scrollTop;
+      const scrollTop = tableView()._wt.wtTable.holder.scrollTop;
 
-      hot.selection.selectColumns(1);
+      selection().selectColumns(1);
 
-      expect(hot.view._wt.wtTable.holder.scrollTop).toBe(scrollTop);
+      expect(tableView()._wt.wtTable.holder.scrollTop).toBe(scrollTop);
     });
 
     it('should fire hooks with proper context', async() => {
@@ -1327,7 +1327,7 @@ describe('Selection', () => {
         beforeSetRangeEnd,
       });
 
-      hot.selection.selectColumns(1, 2);
+      selection().selectColumns(1, 2);
 
       expect(afterSelection.calls.first().object).toBe(hot);
       expect(afterSelectionByProp.calls.first().object).toBe(hot);

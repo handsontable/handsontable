@@ -28,13 +28,13 @@ describe('NestedRows cooperation with ManualRowMove plugin', () => {
   });
 
   it('should display the right amount of entries when the plugin is enabled', async() => {
-    const hot = handsontable({
+    handsontable({
       data: getMoreComplexNestedData(),
       nestedRows: true,
       manualRowMove: true
     });
 
-    expect(hot.getData().length).toEqual(13);
+    expect(getData().length).toEqual(13);
   });
 
   it('should move child which is under a parent to the another position, also under the same parent', async() => {
@@ -243,7 +243,7 @@ describe('NestedRows cooperation with ManualRowMove plugin', () => {
   });
 
   it('should add row to element as child when there is no parent of final destination row', async() => {
-    const hot = handsontable({
+    handsontable({
       data: getMoreComplexNestedData(),
       nestedRows: true,
       manualRowMove: true,
@@ -255,7 +255,7 @@ describe('NestedRows cooperation with ManualRowMove plugin', () => {
 
     // Row placed at index 8 is row being a parent.
     getPlugin('manualRowMove').dragRow(1, 8);
-    hot.render();
+    await render();
 
     const finalParent = getPlugin('nestedRows').dataManager.getRowParent(7);
 
@@ -489,7 +489,7 @@ describe('NestedRows cooperation with ManualRowMove plugin', () => {
   });
 
   it('should be possible to move rows after the last child of a parent', async() => {
-    const hot = handsontable({
+    handsontable({
       data: getSimplerNestedData(),
       nestedRows: true,
       manualRowMove: true,
@@ -498,7 +498,7 @@ describe('NestedRows cooperation with ManualRowMove plugin', () => {
       height: 500
     });
 
-    hot.getPlugin('nestedRows').collapsingUI.collapseChildren(6);
+    getPlugin('nestedRows').collapsingUI.collapseChildren(6);
 
     const firstBaseHeader = spec().$container.find('.ht_clone_inline_start tbody tr:eq(10) th:eq(0)');
     const secondBaseHeader = spec().$container.find('.ht_clone_inline_start tbody tr:eq(11) th:eq(0)');
@@ -525,7 +525,7 @@ describe('NestedRows cooperation with ManualRowMove plugin', () => {
   });
 
   it('should be possible to move rows after the last child of a parent along with its meta data', async() => {
-    const hot = handsontable({
+    handsontable({
       data: getSimplerNestedData(),
       nestedRows: true,
       manualRowMove: true,
@@ -534,8 +534,8 @@ describe('NestedRows cooperation with ManualRowMove plugin', () => {
       height: 500
     });
 
-    hot.setCellMeta(1, 0, 'className', 'htSearchResult');
-    hot.setCellMeta(2, 0, 'className', 'htSearchResult');
+    await setCellMeta(1, 0, 'className', 'htSearchResult');
+    await setCellMeta(2, 0, 'className', 'htSearchResult');
 
     const firstBaseHeader = spec().$container.find('.ht_clone_inline_start tbody tr:eq(1) th:eq(0)');
     const secondBaseHeader = spec().$container.find('.ht_clone_inline_start tbody tr:eq(2) th:eq(0)');
@@ -555,12 +555,12 @@ describe('NestedRows cooperation with ManualRowMove plugin', () => {
 
     $targetHeader.simulate('mouseup');
 
-    expect(hot.getCellMeta(4, 0).className.includes('htSearchResult')).toBe(true);
-    expect(hot.getCellMeta(5, 0).className.includes('htSearchResult')).toBe(true);
+    expect(getCellMeta(4, 0).className.includes('htSearchResult')).toBe(true);
+    expect(getCellMeta(5, 0).className.includes('htSearchResult')).toBe(true);
   });
 
   it('should be possible to move rows into a collapsed parent (they should be placed as their last child)', async() => {
-    const hot = handsontable({
+    handsontable({
       data: getSimplerNestedData(),
       nestedRows: true,
       manualRowMove: true,
@@ -569,7 +569,7 @@ describe('NestedRows cooperation with ManualRowMove plugin', () => {
       height: 500
     });
 
-    hot.getPlugin('nestedRows').collapsingUI.collapseChildren(6);
+    getPlugin('nestedRows').collapsingUI.collapseChildren(6);
 
     const firstBaseHeader = spec().$container.find('.ht_clone_inline_start tbody tr:eq(11) th:eq(0)');
     const secondBaseHeader = spec().$container.find('.ht_clone_inline_start tbody tr:eq(12) th:eq(0)');
@@ -601,7 +601,7 @@ describe('NestedRows cooperation with ManualRowMove plugin', () => {
   });
 
   it('should not expand and parents, if they were collapsed at the time of moving rows', async() => {
-    const hot = handsontable({
+    handsontable({
       data: getSimplerNestedData(),
       nestedRows: true,
       manualRowMove: true,
@@ -610,8 +610,8 @@ describe('NestedRows cooperation with ManualRowMove plugin', () => {
       height: 500
     });
 
-    hot.getPlugin('nestedRows').collapsingUI.collapseChildren(6);
-    hot.getPlugin('nestedRows').collapsingUI.collapseChildren(12);
+    getPlugin('nestedRows').collapsingUI.collapseChildren(6);
+    getPlugin('nestedRows').collapsingUI.collapseChildren(12);
 
     const firstBaseHeader = spec().$container.find('.ht_clone_inline_start tbody tr:eq(1) th:eq(0)');
     const secondBaseHeader = spec().$container.find('.ht_clone_inline_start tbody tr:eq(2) th:eq(0)');
@@ -640,7 +640,7 @@ describe('NestedRows cooperation with ManualRowMove plugin', () => {
   });
 
   it('should not expand and parents, if they were collapsed at the time of inserting rows', async() => {
-    const hot = handsontable({
+    handsontable({
       data: getSimplerNestedData(),
       nestedRows: true,
       manualRowMove: true,
@@ -653,7 +653,7 @@ describe('NestedRows cooperation with ManualRowMove plugin', () => {
     collapsingUI.collapseChildren(6);
     collapsingUI.collapseChildren(12);
 
-    hot.selectCell(7, 0);
+    await selectCell(7, 0);
 
     await contextMenu();
 
@@ -669,7 +669,7 @@ describe('NestedRows cooperation with ManualRowMove plugin', () => {
   });
 
   it('should select the collapsed parent after rows were moved inside of it', async() => {
-    const hot = handsontable({
+    handsontable({
       data: getSimplerNestedData(),
       nestedRows: true,
       manualRowMove: true,
@@ -678,8 +678,8 @@ describe('NestedRows cooperation with ManualRowMove plugin', () => {
       height: 500
     });
 
-    hot.getPlugin('nestedRows').collapsingUI.collapseChildren(6);
-    hot.getPlugin('nestedRows').collapsingUI.collapseChildren(12);
+    getPlugin('nestedRows').collapsingUI.collapseChildren(6);
+    getPlugin('nestedRows').collapsingUI.collapseChildren(12);
 
     let firstBaseHeader = spec().$container.find('.ht_clone_inline_start tbody tr:eq(1) th:eq(0)');
     let secondBaseHeader = spec().$container.find('.ht_clone_inline_start tbody tr:eq(2) th:eq(0)');

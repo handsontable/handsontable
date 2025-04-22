@@ -14,14 +14,14 @@ describe('NestedHeaders', () => {
 
   describe('GhostTable', () => {
     it('should be initialized and accessible from the plugin', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(10, 10),
         nestedHeaders: [
           ['a', { label: 'b', colspan: 3 }, 'c', 'd'],
           ['a', 'b', 'c', 'd', 'e', 'f', 'g']
         ]
       });
-      const ghostTable = hot.getPlugin('nestedHeaders').ghostTable;
+      const ghostTable = getPlugin('nestedHeaders').ghostTable;
 
       expect(ghostTable).toBeDefined();
     });

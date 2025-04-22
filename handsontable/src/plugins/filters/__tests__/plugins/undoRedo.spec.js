@@ -11,7 +11,7 @@ describe('Filters UI cooperation with UndoRedo', () => {
   });
 
   it('should undo previously added filters', async() => {
-    const hot = handsontable({
+    handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
       dropdownMenu: true,
@@ -19,7 +19,7 @@ describe('Filters UI cooperation with UndoRedo', () => {
       width: 500,
       height: 300
     });
-    const plugin = hot.getPlugin('filters');
+    const plugin = getPlugin('filters');
 
     plugin.addCondition(0, 'gt', [3]);
     plugin.filter();
@@ -44,7 +44,7 @@ describe('Filters UI cooperation with UndoRedo', () => {
   });
 
   it('should redo previously reverted filters', async() => {
-    const hot = handsontable({
+    handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
       dropdownMenu: true,
@@ -52,7 +52,7 @@ describe('Filters UI cooperation with UndoRedo', () => {
       width: 500,
       height: 300
     });
-    const plugin = hot.getPlugin('filters');
+    const plugin = getPlugin('filters');
 
     plugin.addCondition(0, 'gt', [3]);
     plugin.filter();
@@ -150,7 +150,7 @@ describe('Filters UI cooperation with UndoRedo', () => {
   });
 
   it('should undo and redo previously added filters with changed data between conditions (#dev-2079)', async() => {
-    const hot = handsontable({
+    handsontable({
       data: getDataForFilters().splice(0, 5),
       columns: getColumnsForFilters().splice(0, 3),
       dropdownMenu: true,
@@ -159,7 +159,7 @@ describe('Filters UI cooperation with UndoRedo', () => {
       height: 300
     });
     const undoPlugin = getPlugin('undoRedo');
-    const filtersPlugin = hot.getPlugin('filters');
+    const filtersPlugin = getPlugin('filters');
 
     filtersPlugin.addCondition(2, 'by_value', [['Gardiner']]);
     filtersPlugin.filter();

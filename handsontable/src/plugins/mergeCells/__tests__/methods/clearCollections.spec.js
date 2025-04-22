@@ -12,7 +12,7 @@ describe('MergeCells', () => {
 
   describe('`clearCollections()` method', () => {
     it('should clear merged cells collection without throw an exception', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(50, 1),
         width: 100,
         height: 100,
@@ -24,7 +24,7 @@ describe('MergeCells', () => {
       });
 
       expect(() => {
-        hot.getPlugin('mergeCells').clearCollections();
+        getPlugin('mergeCells').clearCollections();
       }).not.toThrow();
     });
   });

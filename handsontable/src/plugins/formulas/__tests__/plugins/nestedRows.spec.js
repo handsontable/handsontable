@@ -14,7 +14,7 @@ describe('Formulas', () => {
 
   describe('Integration with Nested Rows', () => {
     it('should allow adding and removing rows, while retaining the formulas functionality', async() => {
-      const hot = handsontable({
+      handsontable({
         data: [
           {
             col1: 'parent1',
@@ -44,19 +44,19 @@ describe('Formulas', () => {
         colHeaders: true
       });
 
-      expect(hot.getDataAtCell(1, 0)).toEqual('parent1-');
-      expect(hot.getDataAtCell(4, 0)).toEqual('PARENT1');
+      expect(getDataAtCell(1, 0)).toEqual('parent1-');
+      expect(getDataAtCell(4, 0)).toEqual('PARENT1');
 
-      hot.alter('insert_row_above', 1, 1);
-      hot.alter('insert_row_above', 3, 1);
-      hot.alter('insert_row_above', 7, 1);
+      await alter('insert_row_above', 1, 1);
+      await alter('insert_row_above', 3, 1);
+      await alter('insert_row_above', 7, 1);
 
-      expect(hot.getDataAtCell(2, 0)).toEqual('parent1-');
-      expect(hot.getDataAtCell(6, 0)).toEqual('PARENT1');
+      expect(getDataAtCell(2, 0)).toEqual('parent1-');
+      expect(getDataAtCell(6, 0)).toEqual('PARENT1');
     });
 
     it('should allow detaching row children, while retaining the formulas functionality', async() => {
-      const hot = handsontable({
+      handsontable({
         data: [
           {
             col1: 'parent1',
@@ -91,25 +91,25 @@ describe('Formulas', () => {
         rowHeaders: true,
         colHeaders: true
       });
-      const nestedRowsPlugin = hot.getPlugin('nestedRows');
+      const nestedRowsPlugin = getPlugin('nestedRows');
       const nestedRowsDataManager = nestedRowsPlugin.dataManager;
 
       let rowToBeDetached = nestedRowsDataManager.getDataObject(1);
 
       nestedRowsDataManager.detachFromParent(rowToBeDetached);
 
-      expect(hot.getDataAtCell(2, 0)).toEqual('parent1-');
-      expect(hot.getDataAtCell(5, 0)).toEqual('PARENT1');
+      expect(getDataAtCell(2, 0)).toEqual('parent1-');
+      expect(getDataAtCell(5, 0)).toEqual('PARENT1');
 
       rowToBeDetached = nestedRowsDataManager.getDataObject(5);
 
       nestedRowsDataManager.detachFromParent(rowToBeDetached);
 
-      expect(hot.getDataAtCell(6, 0)).toEqual('PARENT1');
+      expect(getDataAtCell(6, 0)).toEqual('PARENT1');
     });
 
     it('should allow collapsing/expanding while retaining the formulas functionality', async() => {
-      const hot = handsontable({
+      handsontable({
         data: [{
           col1: 1,
           __children: [{
@@ -141,7 +141,7 @@ describe('Formulas', () => {
         colHeaders: true
       });
 
-      const plugin = hot.getPlugin('nestedRows');
+      const plugin = getPlugin('nestedRows');
 
       plugin.collapsingUI.collapseAll();
 
@@ -166,7 +166,7 @@ describe('Formulas', () => {
     });
 
     it('should allow moving while retaining the formulas functionality', async() => {
-      const hot = handsontable({
+      handsontable({
         data: [{
           col1: 1,
           __children: [{
@@ -198,7 +198,7 @@ describe('Formulas', () => {
         colHeaders: true
       });
 
-      hot.getPlugin('manualRowMove').dragRows([4], 7);
+      getPlugin('manualRowMove').dragRows([4], 7);
 
       expect(getData()).toEqual([
         [1],
@@ -212,7 +212,7 @@ describe('Formulas', () => {
         ['6001111+'],
       ]);
 
-      hot.getPlugin('manualRowMove').dragRows([7], 1);
+      getPlugin('manualRowMove').dragRows([7], 1);
 
       expect(getData()).toEqual([
         [1],

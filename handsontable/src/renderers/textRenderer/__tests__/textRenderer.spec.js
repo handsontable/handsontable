@@ -99,7 +99,7 @@ describe('TextRenderer', () => {
   });
 
   it('should wrap text when trimWhitespace option is false', async() => {
-    const HOT = handsontable({
+    handsontable({
       trimWhitespace: false,
       wordWrap: true,
       data: [
@@ -110,7 +110,7 @@ describe('TextRenderer', () => {
 
     const oldRowHeight = $(getCell(0, 1)).height();
 
-    HOT.updateSettings({
+    await updateSettings({
       colWidths: [100, 100]
     });
 

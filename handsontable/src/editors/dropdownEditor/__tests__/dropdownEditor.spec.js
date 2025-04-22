@@ -613,7 +613,7 @@ describe('DropdownEditor', () => {
     });
 
     it('should set textarea caret position at the end of the input, after moving scrollbar', async() => {
-      const hot = handsontable({
+      handsontable({
         data: [
           ['yellow'],
           ['red'],
@@ -641,7 +641,7 @@ describe('DropdownEditor', () => {
       await selectCell(0, 0);
       await keyDownUp('enter');
 
-      const editor = hot.getActiveEditor();
+      const editor = getActiveEditor();
       const htContainer = editor.htContainer;
 
       await sleep(100);
@@ -662,7 +662,7 @@ describe('DropdownEditor', () => {
 
   describe('closing the editor', () => {
     it('should not close editor on scrolling', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createEmptySpreadsheetData(100, 3),
         columns: [
           {
@@ -680,7 +680,7 @@ describe('DropdownEditor', () => {
       await mouseDoubleClick(getCell(0, 0));
       await sleep(50);
 
-      const dropdown = hot.getActiveEditor().htContainer;
+      const dropdown = getActiveEditor().htContainer;
 
       await scrollViewportVertically(1);
 
@@ -721,7 +721,7 @@ describe('DropdownEditor', () => {
 
   // Input element can not lose the focus while entering new characters. It breaks IME editor functionality for Asian users.
   it('should not lose the focus on input element while inserting new characters if `imeFastEdit` is enabled (#839)', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [
         ['one', 'two'],
         ['three', 'four']
@@ -741,7 +741,7 @@ describe('DropdownEditor', () => {
     // The `imeFastEdit` timeout is set to 50ms.
     await sleep(55);
 
-    const activeElement = hot.getActiveEditor().TEXTAREA;
+    const activeElement = getActiveEditor().TEXTAREA;
 
     expect(activeElement).toBeDefined();
     expect(activeElement).not.toBe(null);
@@ -755,19 +755,19 @@ describe('DropdownEditor', () => {
 
     expect(document.activeElement).toBe(activeElement);
 
-    hot.getActiveEditor().TEXTAREA.value = 't';
+    getActiveEditor().TEXTAREA.value = 't';
 
     await keyDownUp('t');
 
     expect(document.activeElement).toBe(activeElement);
 
-    hot.getActiveEditor().TEXTAREA.value = 'te';
+    getActiveEditor().TEXTAREA.value = 'te';
 
     await keyDownUp('e');
 
     expect(document.activeElement).toBe(activeElement);
 
-    hot.getActiveEditor().TEXTAREA.value = 'teo';
+    getActiveEditor().TEXTAREA.value = 'teo';
 
     await keyDownUp('o');
 
@@ -776,7 +776,7 @@ describe('DropdownEditor', () => {
 
   describe('allow html mode', () => {
     it('should allow render the html items without sanitizing the content', async() => {
-      const hot = handsontable({
+      handsontable({
         columns: [
           {
             type: 'dropdown',
@@ -794,7 +794,7 @@ describe('DropdownEditor', () => {
       await keyDownUp('enter');
       await sleep(50);
 
-      const ac = hot.getActiveEditor();
+      const ac = getActiveEditor();
       const innerHot = ac.htEditor;
 
       expect(window.__xssTestInjection).toBe(true);
@@ -810,7 +810,7 @@ describe('DropdownEditor', () => {
 
   describe('disallow html mode', () => {
     it('should strip HTML content', async() => {
-      const hot = handsontable({
+      handsontable({
         columns: [
           {
             type: 'dropdown',
@@ -828,7 +828,7 @@ describe('DropdownEditor', () => {
       await keyDownUp('enter');
       await sleep(50);
 
-      const ac = hot.getActiveEditor();
+      const ac = getActiveEditor();
       const innerHot = ac.htEditor;
 
       expect(window.__xssTestInjection).toBeUndefined();

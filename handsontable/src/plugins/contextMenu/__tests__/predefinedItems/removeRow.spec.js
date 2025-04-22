@@ -292,7 +292,7 @@ describe('ContextMenu', () => {
     });
 
     it('should not shift invalid row when removing a single row', async() => {
-      const hot = handsontable({
+      handsontable({
         data: [
           ['aaa', 2],
           ['bbb', 3],
@@ -313,15 +313,14 @@ describe('ContextMenu', () => {
         }
       });
 
-      hot.validateCells();
-
+      await validateCells();
       await sleep(150);
 
       await selectCell(1, 1);
       await contextMenu();
       await selectContextMenuOption('Remove row');
 
-      expect($(hot.getCell(2, 1)).hasClass('htInvalid')).toBeTruthy();
+      expect($(getCell(2, 1)).hasClass('htInvalid')).toBeTruthy();
     });
   });
 });

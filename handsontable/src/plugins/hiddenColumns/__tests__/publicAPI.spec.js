@@ -126,7 +126,7 @@ describe('HiddenColumns', () => {
 
       it('should return correct visual indexes when columns sequence is non-contiguous ' +
          '(force desync between physical and visual indexes)', async() => {
-        const hot = handsontable({
+        handsontable({
           data: createSpreadsheetData(1, 10),
           colHeaders: true,
           hiddenColumns: {
@@ -135,7 +135,7 @@ describe('HiddenColumns', () => {
           },
         });
 
-        hot.columnIndexMapper.setIndexesSequence([0, 9, 1, 2, 3, 4, 5, 6, 7, 8]);
+        columnIndexMapper().setIndexesSequence([0, 9, 1, 2, 3, 4, 5, 6, 7, 8]);
 
         const plugin = getPlugin('hiddenColumns');
 
@@ -196,15 +196,16 @@ describe('HiddenColumns', () => {
     describe('clear()', () => {
       it('should clear the data from hidden column when hidden column is second last one', async() => {
         const col = 2;
-        const hot = handsontable({
+
+        handsontable({
           data: createSpreadsheetData(2, col),
           hiddenColumns: {
             columns: [col - 1], // hide penultimate column
           }
         });
 
-        hot.clear();
-        const emptyData = hot.getData();
+        await clear();
+        const emptyData = getData();
         const empyDataComparision = [[null, null], [null, null]];
 
         expect(emptyData).toEqual(empyDataComparision);
@@ -213,7 +214,7 @@ describe('HiddenColumns', () => {
 
     describe('setDataAtCell()', () => {
       it('should correctly render the changed values subjected to validation when there is a hidden column next to it', async() => {
-        const hot = handsontable({
+        handsontable({
           data: [[1, 2, 'Smith']],
           hiddenColumns: {
             columns: [0], // hide the first column
@@ -228,10 +229,10 @@ describe('HiddenColumns', () => {
           ]
         });
 
-        hot.setDataAtCell(0, 1, 'aa'); // set such data in the second column so that it does not pass validation
+        await setDataAtCell(0, 1, 'aa'); // set such data in the second column so that it does not pass validation
 
-        expect(hot.getDataAtCell(0, 1)).toBe(2);
-        expect(hot.getCell(0, 1).textContent).toBe('2');
+        expect(getDataAtCell(0, 1)).toBe(2);
+        expect(getCell(0, 1).textContent).toBe('2');
       });
     });
   });

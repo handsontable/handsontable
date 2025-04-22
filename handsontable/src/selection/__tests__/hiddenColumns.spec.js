@@ -13,7 +13,7 @@ describe('Selection cooperation with hidden columns', () => {
   });
 
   it('should scroll viewport properly when selecting singe cell beyond the table boundaries (when some columns are hidden)', async() => {
-    const hot = handsontable({
+    handsontable({
       width: 200,
       height: 200,
       startRows: 20,
@@ -29,11 +29,11 @@ describe('Selection cooperation with hidden columns', () => {
 
     await selectCell(0, 15);
 
-    expect(hot.view._wt.wtTable.getLastVisibleColumn()).toBe(12);
+    expect(tableView()._wt.wtTable.getLastVisibleColumn()).toBe(12);
   });
 
   it('should scroll viewport properly when selecting multiple cells beyond the table boundaries (when some columns are hidden)', async() => {
-    const hot = handsontable({
+    handsontable({
       width: 200,
       height: 200,
       startRows: 20,
@@ -49,11 +49,11 @@ describe('Selection cooperation with hidden columns', () => {
 
     await selectCells([[0, 4], [0, 15]]);
 
-    expect(hot.view._wt.wtTable.getLastVisibleColumn()).toBe(12);
+    expect(tableView()._wt.wtTable.getLastVisibleColumn()).toBe(12);
   });
 
   it('should scroll viewport properly when selecting singe column beyond the table boundaries (when some columns are hidden)', async() => {
-    const hot = handsontable({
+    handsontable({
       width: 200,
       height: 200,
       startRows: 20,
@@ -69,7 +69,7 @@ describe('Selection cooperation with hidden columns', () => {
 
     await selectColumns(15);
 
-    expect(hot.view._wt.wtTable.getLastVisibleColumn()).toBe(12);
+    expect(tableView()._wt.wtTable.getLastVisibleColumn()).toBe(12);
   });
 
   it('should move to the right throughout the table when the last column is hidden', async() => {

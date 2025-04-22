@@ -603,7 +603,7 @@ describe('CustomBorders', () => {
   });
 
   it('should hide only specific border by use setBorders method with {top: false} (while deselected)', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(4, 4),
       customBorders: [{
         row: 2,
@@ -614,7 +614,7 @@ describe('CustomBorders', () => {
       }]
     });
 
-    const customBorders = hot.getPlugin('customBorders');
+    const customBorders = getPlugin('customBorders');
 
     customBorders.setBorders([[2, 2]], {
       top: false,
@@ -650,7 +650,7 @@ describe('CustomBorders', () => {
   });
 
   it('should return borders from the selected area by use getBorders method', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(4, 4),
       customBorders: [{
         row: 2,
@@ -661,9 +661,10 @@ describe('CustomBorders', () => {
       }]
     });
 
-    const customBorders = hot.getPlugin('customBorders');
+    const customBorders = getPlugin('customBorders');
 
-    hot.selectCells([[1, 1, 2, 2]]);
+    await selectCells([[1, 1, 2, 2]]);
+
     const borders = customBorders.getBorders(getSelected());
 
     deselectCell();
@@ -678,7 +679,7 @@ describe('CustomBorders', () => {
   });
 
   it('should return all borders by use getBorders method without parameter', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(4, 4),
       customBorders: [{
         range: {
@@ -705,7 +706,7 @@ describe('CustomBorders', () => {
       }]
     });
 
-    const customBorders = hot.getPlugin('customBorders');
+    const customBorders = getPlugin('customBorders');
 
     const borders = customBorders.getBorders();
 
@@ -715,7 +716,7 @@ describe('CustomBorders', () => {
   });
 
   it('should clear borders from area by use clearBorders method (while selected)', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(4, 4),
       customBorders: [{
         range: {
@@ -742,7 +743,7 @@ describe('CustomBorders', () => {
       }]
     });
 
-    const customBorders = hot.getPlugin('customBorders');
+    const customBorders = getPlugin('customBorders');
 
     /*
     Was:
@@ -782,7 +783,7 @@ describe('CustomBorders', () => {
   });
 
   it('should clear borders from area by use clearBorders method (while deselected)', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(4, 4),
       customBorders: [{
         range: {
@@ -809,7 +810,7 @@ describe('CustomBorders', () => {
       }]
     });
 
-    const customBorders = hot.getPlugin('customBorders');
+    const customBorders = getPlugin('customBorders');
 
     /*
     Was:
@@ -847,7 +848,7 @@ describe('CustomBorders', () => {
   });
 
   it('should clear all borders by use clearBorders method without parameter', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(4, 4),
       customBorders: [{
         range: {
@@ -874,7 +875,7 @@ describe('CustomBorders', () => {
       }]
     });
 
-    const customBorders = hot.getPlugin('customBorders');
+    const customBorders = getPlugin('customBorders');
 
     customBorders.clearBorders();
 
@@ -940,7 +941,7 @@ describe('CustomBorders', () => {
   });
 
   it('should draw borders from context menu options when was first cleared borders by the clearBorders method', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(4, 4),
       contextMenu: true,
       customBorders: [{
@@ -952,7 +953,7 @@ describe('CustomBorders', () => {
       }]
     });
 
-    const customBorders = hot.getPlugin('customBorders');
+    const customBorders = getPlugin('customBorders');
 
     await selectCell(0, 0);
     customBorders.clearBorders(getSelectedRange());
@@ -972,7 +973,7 @@ describe('CustomBorders', () => {
   it('should clear all borders when first was cleared borders by the clearBorders method with selections, ' +
      'then draw borders from context menu options, and then was cleared borders by the clearBorders ' +
      'method without selections', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(4, 4),
       contextMenu: true,
       customBorders: [{
@@ -984,7 +985,7 @@ describe('CustomBorders', () => {
       }]
     });
 
-    const customBorders = hot.getPlugin('customBorders');
+    const customBorders = getPlugin('customBorders');
 
     await selectCell(0, 0);
     customBorders.clearBorders(getSelectedRange());

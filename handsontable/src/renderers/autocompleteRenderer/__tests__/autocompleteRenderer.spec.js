@@ -30,17 +30,17 @@ describe('AutocompleteRenderer', () => {
   });
 
   it('should open cell editor after clicking on arrow glyph', async() => {
-    const hot = handsontable({
+    handsontable({
       renderer: 'autocomplete'
     });
 
     await selectCell(0, 0);
 
-    expect(hot.getActiveEditor().isOpened()).toBe(false);
+    expect(getActiveEditor().isOpened()).toBe(false);
 
     $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
 
-    expect(hot.getActiveEditor().isOpened()).toBe(true);
+    expect(getActiveEditor().isOpened()).toBe(true);
   });
 
   it('should open cell editor after clicking on arrow glyph, after the table has been destroyed and reinitialized (#1367)', async() => {
@@ -50,17 +50,17 @@ describe('AutocompleteRenderer', () => {
 
     destroy();
 
-    const hot = handsontable({
+    handsontable({
       renderer: 'autocomplete'
     });
 
     await selectCell(0, 0);
 
-    expect(hot.getActiveEditor().isOpened()).toBe(false);
+    expect(getActiveEditor().isOpened()).toBe(false);
 
     $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
 
-    expect(hot.getActiveEditor().isOpened()).toBe(true);
+    expect(getActiveEditor().isOpened()).toBe(true);
   });
 
   it('should prepend the autocomplete arrow at the start of the cell element (#5124)', async() => {

@@ -14,7 +14,7 @@ describe('Formulas', () => {
 
   describe('Integration with Autofill', () => {
     it('should allow dragging the fill handle outside of the table, adding new rows and performing autofill', async() => {
-      const hot = handsontable({
+      handsontable({
         data: [
           ['test', 2, '=UPPER($A$1)', 4, 5, 6],
           [1, 2, 3, 4, 5, 6],
@@ -33,21 +33,21 @@ describe('Formulas', () => {
       spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
       spec().$container.find('tr:last-child td:eq(2)').simulate('mouseover');
 
-      expect(hot.countRows()).toBe(4);
+      expect(countRows()).toBe(4);
 
       await sleep(300);
-      expect(hot.countRows()).toBe(5);
+      expect(countRows()).toBe(5);
 
       spec().$container.find('tr:last-child td:eq(2)').simulate('mouseover');
 
       await sleep(300);
-      expect(hot.countRows()).toBe(6);
+      expect(countRows()).toBe(6);
 
       spec().$container.find('tr:last-child td:eq(2)').simulate('mouseup');
 
       await sleep(300);
 
-      expect(hot.getData()).toEqual([
+      expect(getData()).toEqual([
         ['test', 2, 'TEST', 4, 5, 6],
         [1, 2, 'TEST', 4, 5, 6],
         [1, 2, 'TEST', 4, 5, 6],
@@ -56,7 +56,7 @@ describe('Formulas', () => {
         [null, null, null, null, null, null]
       ]);
 
-      expect(hot.getSourceData()).toEqual([
+      expect(getSourceData()).toEqual([
         ['test', 2, '=UPPER($A$1)', 4, 5, 6],
         [1, 2, '=UPPER($A$1)', 4, 5, 6],
         [1, 2, '=UPPER($A$1)', 4, 5, 6],
@@ -67,7 +67,7 @@ describe('Formulas', () => {
     });
 
     it('should cooperate properly with trimmed rows (populating not trimmed elements)', async() => {
-      const hot = handsontable({
+      handsontable({
         data: [
           ['=B1+10', 1, 2, 3, 4, 5, 6],
           ['=B2+20', 7, 8, 9, 0, 1, 2],
@@ -92,7 +92,7 @@ describe('Formulas', () => {
 
       spec().$container.find('tr:last-child td:eq(0)').simulate('mouseup');
 
-      expect(hot.getData()).toEqual([
+      expect(getData()).toEqual([
         [33, 3, 4, 5, 6, 7, 8],
         [33, 3, 4, 5, 6, 7, 8],
         [33, 3, 4, 5, 6, 7, 8],
@@ -101,7 +101,7 @@ describe('Formulas', () => {
     });
 
     xit('should cooperate properly with trimmed rows (populating two elements placed next to trimmed element)', async() => {
-      const hot = handsontable({
+      handsontable({
         data: [
           ['=B1+10', 1, 2, 3, 4, 5, 6],
           ['=B2+20', 7, 8, 9, 0, 1, 2],
@@ -126,7 +126,7 @@ describe('Formulas', () => {
 
       spec().$container.find('tr:last-child td:eq(0)').simulate('mouseup');
 
-      expect(hot.getData()).toEqual([
+      expect(getData()).toEqual([
         [11, 1, 2, 3, 4, 5, 6],
         [33, 3, 4, 5, 6, 7, 8],
         [11, 1, 2, 3, 4, 5, 6],

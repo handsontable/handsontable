@@ -167,7 +167,7 @@ describe('Filters UI', () => {
   });
 
   it('should display data and filter\'s box properly when there was the `clearConditions` call and the `loadData` call #5244', async() => {
-    const hot = handsontable({
+    handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
       colHeaders: true,
@@ -178,13 +178,13 @@ describe('Filters UI', () => {
       height: 300
     });
 
-    const plugin = hot.getPlugin('filters');
+    const plugin = getPlugin('filters');
 
     plugin.addCondition(1, 'begins_with', ['m']);
     plugin.filter();
     plugin.clearConditions();
 
-    hot.loadData([{
+    await loadData([{
       id: 1,
       name: 'Nannie Patel',
       address: 'Jenkinsville',
@@ -1483,7 +1483,7 @@ describe('Filters UI', () => {
 
   describe('API + UI #116', () => {
     it('should change state of components by plugin function calls', async() => {
-      const hot = handsontable({
+      handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
         dropdownMenu: true,
@@ -1491,7 +1491,7 @@ describe('Filters UI', () => {
         width: 500,
         height: 300
       });
-      const plugin = hot.getPlugin('filters');
+      const plugin = getPlugin('filters');
 
       plugin.addCondition(1, 'begins_with', ['m'], 'conjunction');
       plugin.addCondition(1, 'ends_with', ['e'], 'conjunction');
@@ -1506,7 +1506,7 @@ describe('Filters UI', () => {
     });
 
     it('should not change state of components and data after clicking `OK` button', async() => {
-      const hot = handsontable({
+      handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
         dropdownMenu: true,
@@ -1514,7 +1514,7 @@ describe('Filters UI', () => {
         width: 500,
         height: 300
       });
-      const plugin = hot.getPlugin('filters');
+      const plugin = getPlugin('filters');
 
       plugin.addCondition(1, 'begins_with', ['m'], 'disjunction');
       plugin.addCondition(1, 'ends_with', ['e'], 'disjunction');
@@ -1537,7 +1537,7 @@ describe('Filters UI', () => {
     });
 
     it('should allow to perform changes on conditions by UI, when they were added by API before #1', async() => {
-      const hot = handsontable({
+      handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
         dropdownMenu: true,
@@ -1545,7 +1545,7 @@ describe('Filters UI', () => {
         width: 500,
         height: 300
       });
-      const plugin = hot.getPlugin('filters');
+      const plugin = getPlugin('filters');
 
       plugin.addCondition(1, 'begins_with', ['m'], 'disjunction');
       plugin.filter();
@@ -1573,7 +1573,7 @@ describe('Filters UI', () => {
     });
 
     it('should allow to perform changes on conditions by UI, when they were added by API before #1', async() => {
-      const hot = handsontable({
+      handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
         dropdownMenu: true,
@@ -1581,7 +1581,7 @@ describe('Filters UI', () => {
         width: 500,
         height: 300
       });
-      const plugin = hot.getPlugin('filters');
+      const plugin = getPlugin('filters');
 
       plugin.addCondition(1, 'begins_with', ['m'], 'disjunction');
       plugin.addCondition(1, 'ends_with', ['e'], 'disjunction');

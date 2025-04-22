@@ -26,14 +26,14 @@ describe('manualRowMove API', () => {
 
   describe('moveRow()', () => {
     it('should move single row from the bottom to the top', async() => {
-      const hot = handsontable({
+      handsontable({
         data: arrayOfObjects,
         rowHeaders: true,
         manualRowMove: true
       });
 
-      hot.getPlugin('manualRowMove').moveRow(2, 0);
-      hot.render();
+      getPlugin('manualRowMove').moveRow(2, 0);
+      await render();
 
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('3');
       expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
@@ -41,14 +41,14 @@ describe('manualRowMove API', () => {
     });
 
     it('should move single row from the top to the bottom', async() => {
-      const hot = handsontable({
+      handsontable({
         data: arrayOfObjects,
         rowHeaders: true,
         manualRowMove: true
       });
 
-      hot.getPlugin('manualRowMove').moveRow(0, 2);
-      hot.render();
+      getPlugin('manualRowMove').moveRow(0, 2);
+      await render();
 
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('2');
       expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('3');
@@ -56,17 +56,17 @@ describe('manualRowMove API', () => {
     });
 
     it('should revert change by two moves', async() => {
-      const hot = handsontable({
+      handsontable({
         data: arrayOfObjects,
         rowHeaders: true,
         manualRowMove: true
       });
 
-      hot.getPlugin('manualRowMove').moveRow(1, 0);
-      hot.render();
+      getPlugin('manualRowMove').moveRow(1, 0);
+      await render();
 
-      hot.getPlugin('manualRowMove').moveRow(1, 0);
-      hot.render();
+      getPlugin('manualRowMove').moveRow(1, 0);
+      await render();
 
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
       expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
@@ -76,7 +76,7 @@ describe('manualRowMove API', () => {
     it('should not move and not trigger the `afterRowMove` hook after try of moving row, when `beforeRowMove` return false', async() => {
       const afterMoveRowCallback = jasmine.createSpy('afterMoveRowCallback');
 
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(10, 10),
         rowHeaders: true,
         colHeaders: true,
@@ -87,17 +87,17 @@ describe('manualRowMove API', () => {
         afterRowMove: afterMoveRowCallback
       });
 
-      const result = hot.getPlugin('manualRowMove').moveRow(0, 1);
+      const result = getPlugin('manualRowMove').moveRow(0, 1);
 
       expect(afterMoveRowCallback).not.toHaveBeenCalled();
-      expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
+      expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
       expect(result).toBeFalsy();
     });
 
     it('should not move and trigger the `afterRowMove` hook with proper arguments after try of moving row to final index, which is too high', async() => {
       const afterMoveRowCallback = jasmine.createSpy('afterMoveRowCallback');
 
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(10, 10),
         rowHeaders: true,
         colHeaders: true,
@@ -105,17 +105,17 @@ describe('manualRowMove API', () => {
         afterRowMove: afterMoveRowCallback
       });
 
-      const result = hot.getPlugin('manualRowMove').moveRow(0, 1000);
+      const result = getPlugin('manualRowMove').moveRow(0, 1000);
 
       expect(afterMoveRowCallback).toHaveBeenCalledWith([0], 1000, undefined, false, false);
-      expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
+      expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
       expect(result).toBeFalsy();
     });
 
     it('should not move and trigger the `afterRowMove` hook with proper arguments after try of moving row to final index, which is too low', async() => {
       const afterMoveRowCallback = jasmine.createSpy('afterMoveRowCallback');
 
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(10, 10),
         rowHeaders: true,
         colHeaders: true,
@@ -123,17 +123,17 @@ describe('manualRowMove API', () => {
         afterRowMove: afterMoveRowCallback
       });
 
-      const result = hot.getPlugin('manualRowMove').moveRow(0, -1);
+      const result = getPlugin('manualRowMove').moveRow(0, -1);
 
       expect(afterMoveRowCallback).toHaveBeenCalledWith([0], -1, undefined, false, false);
-      expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
+      expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
       expect(result).toBeFalsy();
     });
 
     it('should not move and trigger the `afterRowMove` hook with proper arguments after try of moving too high row', async() => {
       const afterMoveRowCallback = jasmine.createSpy('afterMoveRowCallback');
 
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(10, 10),
         rowHeaders: true,
         colHeaders: true,
@@ -141,17 +141,17 @@ describe('manualRowMove API', () => {
         afterRowMove: afterMoveRowCallback
       });
 
-      const result = hot.getPlugin('manualRowMove').moveRow(1000, 1);
+      const result = getPlugin('manualRowMove').moveRow(1000, 1);
 
       expect(afterMoveRowCallback).toHaveBeenCalledWith([1000], 1, undefined, false, false);
-      expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
+      expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
       expect(result).toBeFalsy();
     });
 
     it('should not move and trigger the `afterRowMove` hook with proper arguments after try of moving too low row', async() => {
       const afterMoveRowCallback = jasmine.createSpy('afterMoveRowCallback');
 
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(10, 10),
         rowHeaders: true,
         colHeaders: true,
@@ -159,24 +159,24 @@ describe('manualRowMove API', () => {
         afterRowMove: afterMoveRowCallback
       });
 
-      const result = hot.getPlugin('manualRowMove').moveRow(-1, 1);
+      const result = getPlugin('manualRowMove').moveRow(-1, 1);
 
       expect(afterMoveRowCallback).toHaveBeenCalledWith([-1], 1, undefined, false, false);
-      expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
+      expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
       expect(result).toBeFalsy();
     });
   });
 
   describe('moveRows()', () => {
     it('should move multiple rows from the bottom to the top #1', async() => {
-      const hot = handsontable({
+      handsontable({
         data: arrayOfObjects,
         rowHeaders: true,
         manualRowMove: true
       });
 
-      hot.getPlugin('manualRowMove').moveRows([7, 9, 8], 0);
-      hot.render();
+      getPlugin('manualRowMove').moveRows([7, 9, 8], 0);
+      await render();
 
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('8');
       expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('10');
@@ -184,14 +184,14 @@ describe('manualRowMove API', () => {
     });
 
     it('should move multiple rows from the bottom to the top #2', async() => {
-      const hot = handsontable({
+      handsontable({
         data: arrayOfObjects,
         rowHeaders: true,
         manualRowMove: true
       });
 
-      hot.getPlugin('manualRowMove').moveRows([9, 7, 8], 0);
-      hot.render();
+      getPlugin('manualRowMove').moveRows([9, 7, 8], 0);
+      await render();
 
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('10');
       expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('8');
@@ -199,14 +199,14 @@ describe('manualRowMove API', () => {
     });
 
     it('should move multiple rows with mixed indexes #1', async() => {
-      const hot = handsontable({
+      handsontable({
         data: arrayOfObjects,
         rowHeaders: true,
         manualRowMove: true
       });
 
-      hot.getPlugin('manualRowMove').moveRows([0, 1, 4], 0);
-      hot.render();
+      getPlugin('manualRowMove').moveRows([0, 1, 4], 0);
+      await render();
 
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
       expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
@@ -214,14 +214,14 @@ describe('manualRowMove API', () => {
     });
 
     it('should move multiple rows with mixed indexes #2', async() => {
-      const hot = handsontable({
+      handsontable({
         data: arrayOfObjects,
         rowHeaders: true,
         manualRowMove: true
       });
 
-      hot.getPlugin('manualRowMove').moveRows([1, 4, 0, 5], 3);
-      hot.render();
+      getPlugin('manualRowMove').moveRows([1, 4, 0, 5], 3);
+      await render();
 
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('3');
       expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('4');
@@ -237,14 +237,14 @@ describe('manualRowMove API', () => {
 
   describe('dragRow()', () => {
     it('should not change order when dragging single row from the position of first row to the top of second row', async() => {
-      const hot = handsontable({
+      handsontable({
         data: arrayOfObjects,
         rowHeaders: true,
         manualRowMove: true
       });
 
-      hot.getPlugin('manualRowMove').dragRow(0, 1);
-      hot.render();
+      getPlugin('manualRowMove').dragRow(0, 1);
+      await render();
 
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
       expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
@@ -252,14 +252,14 @@ describe('manualRowMove API', () => {
     });
 
     it('should not change order when dragging single row from the position of first row to the top of first row', async() => {
-      const hot = handsontable({
+      handsontable({
         data: arrayOfObjects,
         rowHeaders: true,
         manualRowMove: true
       });
 
-      hot.getPlugin('manualRowMove').dragRow(0, 0);
-      hot.render();
+      getPlugin('manualRowMove').dragRow(0, 0);
+      await render();
 
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
       expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
@@ -267,14 +267,14 @@ describe('manualRowMove API', () => {
     });
 
     it('should change order properly when dragging single row from the position of first row to the top of fourth row', async() => {
-      const hot = handsontable({
+      handsontable({
         data: arrayOfObjects,
         rowHeaders: true,
         manualRowMove: true
       });
 
-      hot.getPlugin('manualRowMove').dragRow(0, 3);
-      hot.render();
+      getPlugin('manualRowMove').dragRow(0, 3);
+      await render();
 
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('2');
       expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('3');
@@ -283,14 +283,14 @@ describe('manualRowMove API', () => {
     });
 
     it('should change order properly when dragging single row from the position of fourth row to the top of first row', async() => {
-      const hot = handsontable({
+      handsontable({
         data: arrayOfObjects,
         rowHeaders: true,
         manualRowMove: true
       });
 
-      hot.getPlugin('manualRowMove').dragRow(3, 0);
-      hot.render();
+      getPlugin('manualRowMove').dragRow(3, 0);
+      await render();
 
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('4');
       expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
@@ -302,14 +302,14 @@ describe('manualRowMove API', () => {
 
   describe('dragRows()', () => {
     it('should not change order when dragging multiple rows to the specific position', async() => {
-      const hot = handsontable({
+      handsontable({
         data: arrayOfObjects,
         rowHeaders: true,
         manualRowMove: true
       });
 
-      hot.getPlugin('manualRowMove').dragRows([0, 1, 2, 3], 2);
-      hot.render();
+      getPlugin('manualRowMove').dragRows([0, 1, 2, 3], 2);
+      await render();
 
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('1');
       expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('2');
@@ -319,14 +319,14 @@ describe('manualRowMove API', () => {
     });
 
     it('should change order properly when dragging multiple rows from the top to the bottom', async() => {
-      const hot = handsontable({
+      handsontable({
         data: arrayOfObjects,
         rowHeaders: true,
         manualRowMove: true
       });
 
-      hot.getPlugin('manualRowMove').dragRows([0, 1, 2], 4);
-      hot.render();
+      getPlugin('manualRowMove').dragRows([0, 1, 2], 4);
+      await render();
 
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('4');
       expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('1');
@@ -336,14 +336,14 @@ describe('manualRowMove API', () => {
     });
 
     it('should change order properly when dragging multiple rows from the bottom to the top', async() => {
-      const hot = handsontable({
+      handsontable({
         data: arrayOfObjects,
         rowHeaders: true,
         manualRowMove: true
       });
 
-      hot.getPlugin('manualRowMove').dragRows([4, 3, 2], 0);
-      hot.render();
+      getPlugin('manualRowMove').dragRows([4, 3, 2], 0);
+      await render();
 
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('5');
       expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('4');
@@ -355,7 +355,7 @@ describe('manualRowMove API', () => {
       let movePossible;
       let orderChanged;
 
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(10, 10),
         rowHeaders: true,
         colHeaders: true,
@@ -365,19 +365,19 @@ describe('manualRowMove API', () => {
         }
       });
 
-      const result = hot.getPlugin('manualRowMove').dragRows([1, 2, 3], 15);
+      const result = getPlugin('manualRowMove').dragRows([1, 2, 3], 15);
 
       expect(movePossible).toBeFalsy();
       expect(orderChanged).toBeFalsy();
       expect(result).toBeFalsy();
-      expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
+      expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
     });
 
     it('should not move and trigger the `afterRowMove` hook with proper arguments after try of dragging rows to index, which is too low', async() => {
       let movePossible;
       let orderChanged;
 
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(10, 10),
         rowHeaders: true,
         colHeaders: true,
@@ -387,19 +387,19 @@ describe('manualRowMove API', () => {
         }
       });
 
-      const result = hot.getPlugin('manualRowMove').dragRows([1, 2, 3], -1);
+      const result = getPlugin('manualRowMove').dragRows([1, 2, 3], -1);
 
       expect(movePossible).toBeFalsy();
       expect(orderChanged).toBeFalsy();
       expect(result).toBeFalsy();
-      expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
+      expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
     });
 
     it('should not move and trigger the `afterRowMove` hook with proper arguments after try of dragging too low rows to index, which is too high', async() => {
       let movePossible;
       let orderChanged;
 
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(10, 10),
         rowHeaders: true,
         colHeaders: true,
@@ -409,19 +409,19 @@ describe('manualRowMove API', () => {
         }
       });
 
-      const result = hot.getPlugin('manualRowMove').dragRows([-1, -2, -3, -4], 15);
+      const result = getPlugin('manualRowMove').dragRows([-1, -2, -3, -4], 15);
 
       expect(movePossible).toBeFalsy();
       expect(orderChanged).toBeFalsy();
       expect(result).toBeFalsy();
-      expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
+      expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
     });
 
     it('should not move and trigger the `afterRowMove` hook with proper arguments after try of dragging too low rows to index, which is too low', async() => {
       let movePossible;
       let orderChanged;
 
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(10, 10),
         rowHeaders: true,
         colHeaders: true,
@@ -431,12 +431,12 @@ describe('manualRowMove API', () => {
         }
       });
 
-      const result = hot.getPlugin('manualRowMove').dragRows([-2, -3, -4, -5], -1);
+      const result = getPlugin('manualRowMove').dragRows([-2, -3, -4, -5], -1);
 
       expect(movePossible).toBeFalsy();
       expect(orderChanged).toBeFalsy();
       expect(result).toBeFalsy();
-      expect(hot.getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
+      expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
     });
   });
 });

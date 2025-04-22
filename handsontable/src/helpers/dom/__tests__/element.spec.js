@@ -83,6 +83,7 @@ describe('DOM helpers', () => {
       expect(isInternalElement(document.body, rootElement)).toBe(false);
 
       hot.destroy();
+
       document.body.removeChild(document.querySelector('#rootSibling'));
       document.body.removeChild(hotContainer);
     });

@@ -92,7 +92,7 @@ describe('noEditor', () => {
   });
 
   it('shouldn\'t open editor after double clicking on a cell', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(5, 2),
       editor: false
     });
@@ -101,7 +101,7 @@ describe('noEditor', () => {
 
     await mouseDoubleClick(cell);
 
-    expect(hot.getActiveEditor()).toBe(undefined);
+    expect(getActiveEditor()).toBe(undefined);
     expect(isEditorVisible()).toBe(false);
   });
 

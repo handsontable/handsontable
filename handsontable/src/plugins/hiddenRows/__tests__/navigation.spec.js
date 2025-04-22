@@ -566,7 +566,7 @@ describe('HiddenRows', () => {
 
       describe('without shift key pressed', () => {
         it('hidden cell at the table start', async() => {
-          const hot = handsontable({
+          handsontable({
             data: createSpreadsheetData(5, 5),
             hiddenRows: {
               rows: [0],
@@ -576,8 +576,8 @@ describe('HiddenRows', () => {
           const hookSpy1 = jasmine.createSpy('beforeModifyTransformStart');
           const hookSpy2 = jasmine.createSpy('afterModifyTransformStart');
 
-          hot.addHook('modifyTransformStart', hookSpy1);
-          hot.addHook('afterModifyTransformStart', hookSpy2);
+          addHook('modifyTransformStart', hookSpy1);
+          addHook('afterModifyTransformStart', hookSpy2);
 
           await selectCell(0, 1);
 
@@ -623,7 +623,7 @@ describe('HiddenRows', () => {
         });
 
         it('hidden cell in the table middle', async() => {
-          const hot = handsontable({
+          handsontable({
             data: createSpreadsheetData(5, 5),
             hiddenRows: {
               rows: [2],
@@ -633,8 +633,8 @@ describe('HiddenRows', () => {
           const hookSpy1 = jasmine.createSpy('modifyTransformStart');
           const hookSpy2 = jasmine.createSpy('afterModifyTransformStart');
 
-          hot.addHook('modifyTransformStart', hookSpy1);
-          hot.addHook('afterModifyTransformStart', hookSpy2);
+          addHook('modifyTransformStart', hookSpy1);
+          addHook('afterModifyTransformStart', hookSpy2);
 
           await selectCell(2, 1);
 
@@ -680,7 +680,7 @@ describe('HiddenRows', () => {
         });
 
         it('hidden cell at the table end', async() => {
-          const hot = handsontable({
+          handsontable({
             data: createSpreadsheetData(5, 5),
             hiddenRows: {
               rows: [4],
@@ -690,8 +690,8 @@ describe('HiddenRows', () => {
           const hookSpy1 = jasmine.createSpy('modifyTransformStart');
           const hookSpy2 = jasmine.createSpy('afterModifyTransformStart');
 
-          hot.addHook('modifyTransformStart', hookSpy1);
-          hot.addHook('afterModifyTransformStart', hookSpy2);
+          addHook('modifyTransformStart', hookSpy1);
+          addHook('afterModifyTransformStart', hookSpy2);
 
           await selectCell(4, 1);
 
@@ -739,7 +739,7 @@ describe('HiddenRows', () => {
 
       describe('with shift key pressed', () => {
         it('hidden cell at the table start', async() => {
-          const hot = handsontable({
+          handsontable({
             data: createSpreadsheetData(5, 5),
             hiddenRows: {
               rows: [0],
@@ -749,8 +749,8 @@ describe('HiddenRows', () => {
           const hookSpy1 = jasmine.createSpy('modifyTransformEnd');
           const hookSpy2 = jasmine.createSpy('afterModifyTransformEnd');
 
-          hot.addHook('modifyTransformEnd', hookSpy1);
-          hot.addHook('afterModifyTransformEnd', hookSpy2);
+          addHook('modifyTransformEnd', hookSpy1);
+          addHook('afterModifyTransformEnd', hookSpy2);
 
           await selectCell(0, 1);
           await keyDownUp(['shift', 'arrowleft']);
@@ -795,7 +795,7 @@ describe('HiddenRows', () => {
         });
 
         it('hidden cell in the table middle', async() => {
-          const hot = handsontable({
+          handsontable({
             data: createSpreadsheetData(5, 5),
             hiddenRows: {
               rows: [2],
@@ -805,8 +805,8 @@ describe('HiddenRows', () => {
           const hookSpy1 = jasmine.createSpy('modifyTransformEnd');
           const hookSpy2 = jasmine.createSpy('afterModifyTransformEnd');
 
-          hot.addHook('modifyTransformEnd', hookSpy1);
-          hot.addHook('afterModifyTransformEnd', hookSpy2);
+          addHook('modifyTransformEnd', hookSpy1);
+          addHook('afterModifyTransformEnd', hookSpy2);
 
           await selectCell(2, 1);
           await keyDownUp(['shift', 'arrowleft']);
@@ -851,7 +851,7 @@ describe('HiddenRows', () => {
         });
 
         it('hidden cell at the table end', async() => {
-          const hot = handsontable({
+          handsontable({
             data: createSpreadsheetData(5, 5),
             hiddenRows: {
               rows: [4],
@@ -861,8 +861,8 @@ describe('HiddenRows', () => {
           const hookSpy1 = jasmine.createSpy('modifyTransformEnd');
           const hookSpy2 = jasmine.createSpy('afterModifyTransformEnd');
 
-          hot.addHook('modifyTransformEnd', hookSpy1);
-          hot.addHook('afterModifyTransformEnd', hookSpy2);
+          addHook('modifyTransformEnd', hookSpy1);
+          addHook('afterModifyTransformEnd', hookSpy2);
 
           await selectCell(4, 1);
           await keyDownUp(['shift', 'arrowleft']);

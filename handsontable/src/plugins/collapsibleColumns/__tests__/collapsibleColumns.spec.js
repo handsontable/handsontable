@@ -102,7 +102,7 @@ describe('CollapsibleColumns', () => {
 
   describe('initialization', () => {
     it('should be possible to disable the plugin using the disablePlugin method', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(10, 10),
         nestedHeaders: [
           ['A1', { label: 'B1', colspan: 4 }, 'F1', 'G1', 'H1', 'I1', 'J1'],
@@ -111,7 +111,7 @@ describe('CollapsibleColumns', () => {
         collapsibleColumns: true
       });
 
-      const plugin = hot.getPlugin('collapsibleColumns');
+      const plugin = getPlugin('collapsibleColumns');
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -204,7 +204,7 @@ describe('CollapsibleColumns', () => {
     });
 
     it('should be possible to re-enable the plugin using the enablePlugin method', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(10, 10),
         nestedHeaders: [
           ['A1', { label: 'B1', colspan: 4 }, 'F1', 'G1', 'H1', 'I1', 'J1'],
@@ -213,7 +213,7 @@ describe('CollapsibleColumns', () => {
         collapsibleColumns: true
       });
 
-      const plugin = hot.getPlugin('collapsibleColumns');
+      const plugin = getPlugin('collapsibleColumns');
 
       plugin.disablePlugin();
       await render();

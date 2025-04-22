@@ -14,7 +14,7 @@ describe('MergeCells compatibility with other plugins', () => {
 
   describe('Custom Borders', () => {
     it('should be possible to add custom borders to a merged cell at initialization', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(10, 10),
         mergeCells: [{ row: 1, col: 1, rowspan: 2, colspan: 2 }],
         customBorders: [
@@ -37,7 +37,7 @@ describe('MergeCells compatibility with other plugins', () => {
         ]
       });
 
-      const border = hot.getPlugin('customBorders').getBorders([[1, 1, 2, 2]])[0];
+      const border = getPlugin('customBorders').getBorders([[1, 1, 2, 2]])[0];
 
       expect(border.row).toEqual(1);
       expect(border.col).toEqual(1);

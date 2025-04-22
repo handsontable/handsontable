@@ -435,7 +435,7 @@ describe('Selection navigation', () => {
 
     it.forTheme('classic')('should move the cell selection up to the first column header and scroll ' +
       'the viewport (navigableHeaders on)', async() => {
-      const hot = handsontable({
+      handsontable({
         height: 200,
         rowHeaders: true,
         colHeaders: true,
@@ -458,24 +458,24 @@ describe('Selection navigation', () => {
 
       await sleep(100);
 
-      expect(hot.view.getFirstFullyVisibleRow()).toBe(9);
+      expect(tableView().getFirstFullyVisibleRow()).toBe(9);
 
       await keyDownUp('pageup');
 
       await sleep(100);
 
-      expect(hot.view.getFirstFullyVisibleRow()).toBe(5);
+      expect(tableView().getFirstFullyVisibleRow()).toBe(5);
 
       await keyDownUp('pageup');
 
       await sleep(100);
 
-      expect(hot.view.getFirstFullyVisibleRow()).toBe(0);
+      expect(tableView().getFirstFullyVisibleRow()).toBe(0);
     });
 
     it.forTheme('main')('should move the cell selection up to the first column header and scroll ' +
       'the viewport (navigableHeaders on)', async() => {
-      const hot = handsontable({
+      handsontable({
         height: 252,
         rowHeaders: true,
         colHeaders: true,
@@ -498,24 +498,24 @@ describe('Selection navigation', () => {
 
       await sleep(100);
 
-      expect(hot.view.getFirstFullyVisibleRow()).toBe(9);
+      expect(tableView().getFirstFullyVisibleRow()).toBe(9);
 
       await keyDownUp('pageup');
 
       await sleep(100);
 
-      expect(hot.view.getFirstFullyVisibleRow()).toBe(5);
+      expect(tableView().getFirstFullyVisibleRow()).toBe(5);
 
       await keyDownUp('pageup');
 
       await sleep(100);
 
-      expect(hot.view.getFirstFullyVisibleRow()).toBe(0);
+      expect(tableView().getFirstFullyVisibleRow()).toBe(0);
     });
 
     it.forTheme('horizon')('should move the cell selection up to the first column header and scroll ' +
       'the viewport (navigableHeaders on)', async() => {
-      const hot = handsontable({
+      handsontable({
         height: 322,
         rowHeaders: true,
         colHeaders: true,
@@ -538,19 +538,19 @@ describe('Selection navigation', () => {
 
       await sleep(100);
 
-      expect(hot.view.getFirstFullyVisibleRow()).toBe(9);
+      expect(tableView().getFirstFullyVisibleRow()).toBe(9);
 
       await keyDownUp('pageup');
 
       await sleep(100);
 
-      expect(hot.view.getFirstFullyVisibleRow()).toBe(5);
+      expect(tableView().getFirstFullyVisibleRow()).toBe(5);
 
       await keyDownUp('pageup');
 
       await sleep(100);
 
-      expect(hot.view.getFirstFullyVisibleRow()).toBe(0);
+      expect(tableView().getFirstFullyVisibleRow()).toBe(0);
     });
 
     it('should move the cell selection up for oversized row', async() => {

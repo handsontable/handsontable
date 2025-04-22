@@ -29,32 +29,32 @@ describe('NestedRows', () => {
 
   describe('Displaying a nested structure', () => {
     it('should display as many rows as there are overall elements in a nested structure', async() => {
-      const hot = handsontable({
+      handsontable({
         data: getMoreComplexNestedData(),
         nestedRows: true
       });
 
-      expect(hot.countRows()).toEqual(13);
+      expect(countRows()).toEqual(13);
     });
 
     it('should show full dataset when the `Filters` plugin is enabled #5889', async() => {
-      const hot = handsontable({
+      handsontable({
         data: getSimplerNestedData(),
         nestedRows: true,
         filters: true
       });
 
-      expect(hot.countRows()).toEqual(18);
+      expect(countRows()).toEqual(18);
     });
 
     it('should display all nested structure elements in correct order (parent, its children, ' +
       'its children children, next parent etc)', async() => {
-      const hot = handsontable({
+      handsontable({
         data: getMoreComplexNestedData(),
         nestedRows: true
       });
 
-      expect(hot.getData()).toEqual(dataInOrder);
+      expect(getData()).toEqual(dataInOrder);
     });
 
     it('should not crash the table, when there\'s no `data` provided', async() => {
@@ -86,40 +86,40 @@ describe('NestedRows', () => {
       });
 
       it.forTheme('classic')('should display indicators properly located', async() => {
-        const hot = handsontable({
+        handsontable({
           layoutDirection,
           data: getMoreComplexNestedData(),
           nestedRows: true,
           rowHeaders: true
         });
 
-        expect(hot.countRows()).toEqual(13);
+        expect(countRows()).toEqual(13);
         expect(window.getComputedStyle($('.ht_nestingLevel_empty')[0]).float).toEqual('left');
         expect(window.getComputedStyle($('.ht_nestingCollapse')[0]).right).toEqual('-2px');
       });
 
       it.forTheme('main')('should display indicators properly located', async() => {
-        const hot = handsontable({
+        handsontable({
           layoutDirection,
           data: getMoreComplexNestedData(),
           nestedRows: true,
           rowHeaders: true
         });
 
-        expect(hot.countRows()).toEqual(13);
+        expect(countRows()).toEqual(13);
         expect(window.getComputedStyle($('.ht_nestingLevel_empty')[0]).order).toEqual('-2');
         expect(window.getComputedStyle($('.ht_nestingCollapse')[0].parentNode).display).toEqual('flex');
       });
 
       it.forTheme('horizon')('should display indicators properly located', async() => {
-        const hot = handsontable({
+        handsontable({
           layoutDirection,
           data: getMoreComplexNestedData(),
           nestedRows: true,
           rowHeaders: true
         });
 
-        expect(hot.countRows()).toEqual(13);
+        expect(countRows()).toEqual(13);
         expect(window.getComputedStyle($('.ht_nestingLevel_empty')[0]).order).toEqual('-2');
         expect(window.getComputedStyle($('.ht_nestingCollapse')[0].parentNode).display).toEqual('flex');
       });
@@ -365,13 +365,13 @@ describe('NestedRows', () => {
   it('should move child data using the `dragRow` and `dragRows` methods', async() => {
     const warnSpy = spyOn(console, 'warn');
 
-    const hot = handsontable({
+    handsontable({
       data: getSimplerNestedData(),
       nestedRows: true,
       manualRowMove: true
     });
 
-    const dataManager = hot.getPlugin('nestedRows').dataManager;
+    const dataManager = getPlugin('nestedRows').dataManager;
     const row = dataManager.getDataObject(1);
 
     expect(dataManager.getDataObject(1)).toEqual(row);
@@ -399,7 +399,7 @@ describe('NestedRows', () => {
 
   it('should display the right amount of entries when calling loadData ' +
     'after being initialized with empty data', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [],
       nestedRows: true
     });
@@ -407,22 +407,22 @@ describe('NestedRows', () => {
     await sleep(50);
 
     // The plugin is disabled after being initialized with the wrong type of dataset.
-    hot.getPlugin('nestedRows').enablePlugin();
+    getPlugin('nestedRows').enablePlugin();
 
-    hot.loadData(getMoreComplexNestedData());
-    expect(hot.countRows()).toEqual(13);
+    await loadData(getMoreComplexNestedData());
+    expect(countRows()).toEqual(13);
   });
 
   it('should display the right amount of entries when calling loadData with another set of data', async() => {
-    const hot = handsontable({
+    handsontable({
       data: getMoreComplexNestedData(),
       nestedRows: true
     });
 
     await sleep(50);
 
-    hot.loadData(getMoreComplexNestedData().slice(0, 1));
-    expect(hot.countRows()).toEqual(7);
+    await loadData(getMoreComplexNestedData().slice(0, 1));
+    expect(countRows()).toEqual(7);
   });
 
   it('should display proper row headers after collapsing one parent - ' +

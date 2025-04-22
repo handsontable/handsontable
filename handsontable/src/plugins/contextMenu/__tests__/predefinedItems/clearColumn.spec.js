@@ -28,7 +28,7 @@ describe('ContextMenu', () => {
       const clearColumnTitle = hot.getTranslatedPhrase(
         Handsontable.languages.dictionaryKeys.CONTEXTMENU_ITEMS_CLEAR_COLUMN
       );
-      const contextMenuPlugin = hot.getPlugin('contextMenu');
+      const contextMenuPlugin = getPlugin('contextMenu');
       const getClearColumnItem = () => {
         return $('.htContextMenu tbody tr td').filter(function() {
           return this.textContent === clearColumnTitle;
@@ -39,64 +39,56 @@ describe('ContextMenu', () => {
 
       contextMenuPlugin.close();
 
-      hot.selectCell(0, 0);
-
+      await selectCell(0, 0);
       await contextMenu();
 
       expect(getClearColumnItem().hasClass('htDisabled')).toBe(true);
 
       contextMenuPlugin.close();
 
-      hot.selectCell(0, 0, 2, 2);
-
+      await selectCell(0, 0, 2, 2);
       await contextMenu();
 
       expect(getClearColumnItem().hasClass('htDisabled')).toBe(true);
 
       contextMenuPlugin.close();
 
-      hot.selectAll();
-
+      await selectAll();
       await contextMenu();
 
       expect(getClearColumnItem().hasClass('htDisabled')).toBe(true);
 
       contextMenuPlugin.close();
 
-      hot.selectCell(-1, 1);
-
+      await selectCell(-1, 1);
       await contextMenu();
 
       expect(getClearColumnItem().hasClass('htDisabled')).toBe(true);
 
       contextMenuPlugin.close();
 
-      hot.selectCell(1, -1);
-
+      await selectCell(1, -1);
       await contextMenu();
 
       expect(getClearColumnItem().hasClass('htDisabled')).toBe(true);
 
       contextMenuPlugin.close();
 
-      hot.selectCell(-1, -1);
-
+      await selectCell(-1, -1);
       await contextMenu();
 
       expect(getClearColumnItem().hasClass('htDisabled')).toBe(true);
 
       contextMenuPlugin.close();
 
-      hot.selectColumns(0);
-
+      await selectColumns(0);
       await contextMenu();
 
       expect(getClearColumnItem().hasClass('htDisabled')).toBe(false);
 
       contextMenuPlugin.close();
 
-      hot.selectColumns(0, 1);
-
+      await selectColumns(0, 1);
       await contextMenu();
 
       expect(getClearColumnItem().hasClass('htDisabled')).toBe(false);
