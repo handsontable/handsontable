@@ -8,9 +8,8 @@ describe('Core.getRowHeader', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
+      $('body').find(`#${id}`).remove();
     }
-
-    $('body').find(`#${id}`).remove();
   });
 
   it('when not configured, should return undefined', () => {

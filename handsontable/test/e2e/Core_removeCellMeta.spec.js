@@ -8,9 +8,8 @@ describe('Core_removeCellMeta', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
+      $('body').find(`#${id}`).remove();
     }
-
-    $('body').find(`#${id}`).remove();
   });
 
   it('should remove meta for cell', () => {

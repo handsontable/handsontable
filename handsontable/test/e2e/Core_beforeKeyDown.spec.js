@@ -8,7 +8,6 @@ describe('Core_beforeKeyDown', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-
       $('body').find(`#${id}`).remove();
     }
   });

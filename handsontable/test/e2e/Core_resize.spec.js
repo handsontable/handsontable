@@ -12,9 +12,8 @@ describe('Core resize', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
+      $('body').find(`#${id}`).remove();
     }
-
-    $('body').find(`#${id}`).remove();
 
     if (this.$wrapper) {
       destroy();

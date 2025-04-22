@@ -8,9 +8,9 @@ describe('Core_alter', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
+      $('body').find(`#${id}`).remove();
     }
 
-    $('body').find(`#${id}`).remove();
     $('html').attr('dir', 'ltr');
   });
 

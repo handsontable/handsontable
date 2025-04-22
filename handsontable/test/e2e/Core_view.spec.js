@@ -8,9 +8,8 @@ describe('Core_view', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
+      $('body').find(`#${id}`).remove();
     }
-
-    $('body').find(`#${id}`).remove();
   });
 
   it('should focus cell after viewport is scrolled using down arrow', () => {
@@ -734,7 +733,7 @@ describe('Core_view', () => {
   });
 
   it.forTheme('classic')('should not extend the selection to the cell under the mouse pointer ' +
-    'after the viewport is moved (#dev-1479)', async () => {
+    'after the viewport is moved (#dev-1479)', () => {
     handsontable({
       data: createSpreadsheetData(5, 5),
     });
@@ -753,8 +752,6 @@ describe('Core_view', () => {
       })
       .simulate('mouseup')
       .simulate('click');
-
-    await sleep(10000);
 
     expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: 1,2 to: 1,2']);
   });
