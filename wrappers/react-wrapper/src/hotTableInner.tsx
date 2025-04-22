@@ -167,7 +167,7 @@ const HotTableInner = forwardRef<
     // Update prevProps with the current props
     prevProps.current = props;
 
-    __hotInstance.current = new Handsontable.Core(hotElementRef.current!, newGlobalSettings);
+    __hotInstance.current = new Handsontable.Core(hotElementRef.current.firstChild!, newGlobalSettings);
 
     /**
      * Handsontable's `beforeViewRender` hook callback.
@@ -250,8 +250,10 @@ const HotTableInner = forwardRef<
 
   return (
     <Fragment>
-      <div ref={hotElementRef} {...containerProps}>
-        {hotColumnWrapped}
+      <div ref={hotElementRef}>
+        <div {...containerProps}>
+          {hotColumnWrapped}
+        </div>
       </div>
       <RenderersPortalManager ref={context.setRenderersPortalManagerRef} />
       <EditorContextProvider hooksRef={globalEditorHooksRef}
