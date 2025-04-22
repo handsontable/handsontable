@@ -8,8 +8,8 @@ describe('Stylesheets', () => {
       }
 
       // Clear all initial stylesheets.
-      const initialStylesheetNodes =  Array.from(document.styleSheets).filter(
-        (sheet) => sheet.href && sheet.href.includes('dist/handsontable')
+      const initialStylesheetNodes = Array.from(document.styleSheets).filter(
+        sheet => sheet.href && sheet.href.includes('dist/handsontable')
       ).map(sheet => sheet.ownerNode);
 
       initialStylesheetNodes.forEach(node => node.remove());
@@ -23,7 +23,7 @@ describe('Stylesheets', () => {
       ];
       const hotCssNodes = [];
 
-      hotCss.forEach(cssUrl => {
+      hotCss.forEach((cssUrl) => {
         const link = document.createElement('link');
 
         link.rel = 'stylesheet';
@@ -39,6 +39,7 @@ describe('Stylesheets', () => {
 
           // Create a new XMLHttpRequest to fetch the CSS content.
           const xhr = new XMLHttpRequest();
+
           xhr.open('GET', styleSheetNode.href, false);
           xhr.send();
 
