@@ -111,7 +111,8 @@ export class ExportFile extends BasePlugin {
    * @property {boolean} [rowHeaders=false] Include row headers in the exported file.
    * @property {string} [columnDelimiter=','] Column delimiter.
    * @property {string} [range=[]] Cell range that will be exported to file.
-   * @property {boolean|RegExp|(val: string) => string} [sanitizeValues=false] Controls the sanitization of cell value.
+   * @property {boolean|RegExp|Function} [sanitizeValues=false] Controls the sanitization of cell value.
+   */
 
   /**
    * Exports table data as a string.

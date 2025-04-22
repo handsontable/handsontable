@@ -441,7 +441,7 @@ describe('exportFile CSV type', () => {
         handsontable({
           data: [['-abc', '-42']],
         });
-        
+
         const csv = getPlugin('exportFile')._createTypeFormatter('csv', { sanitizeValues: true }).export();
 
         expect(csv).toBe('\ufeff"\'-abc","\'-42"');
@@ -451,7 +451,7 @@ describe('exportFile CSV type', () => {
         handsontable({
           data: [['@abc', '@42']],
         });
-        
+
         const csv = getPlugin('exportFile')._createTypeFormatter('csv', { sanitizeValues: true }).export();
 
         expect(csv).toBe('\ufeff"\'@abc","\'@42"');
@@ -461,7 +461,7 @@ describe('exportFile CSV type', () => {
         handsontable({
           data: [['\tabc', '\t42']],
         });
-        
+
         const csv = getPlugin('exportFile')._createTypeFormatter('csv', { sanitizeValues: true }).export();
 
         expect(csv).toBe('\ufeff"\'\tabc","\'\t42"');
@@ -471,7 +471,7 @@ describe('exportFile CSV type', () => {
         handsontable({
           data: [['\rabc', '\r42']],
         });
-        
+
         const csv = getPlugin('exportFile')._createTypeFormatter('csv', { sanitizeValues: true }).export();
 
         expect(csv).toBe('\ufeff"\'\rabc","\'\r42"');
@@ -482,8 +482,10 @@ describe('exportFile CSV type', () => {
           data: [['1', '2']],
           colHeaders: ['====', '++++'],
         });
-        
-        const csv = getPlugin('exportFile')._createTypeFormatter('csv', { sanitizeValues: true, columnHeaders: true }).export();
+
+        const csv = getPlugin('exportFile')
+          ._createTypeFormatter('csv', { sanitizeValues: true, columnHeaders: true })
+          .export();
 
         expect(csv).toBe('\ufeff"\'====","\'++++"\r\n"1","2"');
       });
@@ -493,8 +495,10 @@ describe('exportFile CSV type', () => {
           data: [['1']],
           rowHeaders: ['==='],
         });
-        
-        const csv = getPlugin('exportFile')._createTypeFormatter('csv', { sanitizeValues: true, rowHeaders: true }).export();
+
+        const csv = getPlugin('exportFile')
+          ._createTypeFormatter('csv', { sanitizeValues: true, rowHeaders: true })
+          .export();
 
         expect(csv).toBe('\ufeff"\'===","1"');
       });
@@ -505,12 +509,12 @@ describe('exportFile CSV type', () => {
         });
 
         const sanitizeRegex = /WEBSERVICE/;
-        
+
         const csv = getPlugin('exportFile')._createTypeFormatter('csv', { sanitizeValues: sanitizeRegex }).export();
 
         expect(csv).toBe('\ufeff"42","=A1+B1","\'=WEBSERVICE(""https://handsontable.com"")"');
       });
-      
+
       it('set to a function, should sanitize values using the function', () => {
         handsontable({
           data: [[42, '=A1+B1', 'abba', 'abfooba']],
@@ -520,9 +524,10 @@ describe('exportFile CSV type', () => {
           if (value.includes('foo')) {
             return 'BAR';
           }
+
           return value;
         });
-        
+
         const csv = getPlugin('exportFile')._createTypeFormatter('csv', { sanitizeValues: sanitizeFoo }).export();
 
         expect(sanitizeFoo).toHaveBeenCalledTimes(4);

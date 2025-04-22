@@ -46,7 +46,10 @@ class Csv extends BaseType {
     let result = options.bom ? String.fromCharCode(0xFEFF) : '';
 
     if (hasColumnHeaders) {
-      columnHeaders = arrayMap(columnHeaders, value => this._escapeCell(value, { force: true, sanitizeValue: options.sanitizeValues }));
+      columnHeaders = arrayMap(
+        columnHeaders,
+        value => this._escapeCell(value, { force: true, sanitizeValue: options.sanitizeValues })
+      );
 
       if (hasRowHeaders) {
         result += options.columnDelimiter;
@@ -59,10 +62,18 @@ class Csv extends BaseType {
       if (index > 0) {
         result += options.rowDelimiter;
       }
+
       if (hasRowHeaders) {
-        result += this._escapeCell(rowHeaders[index], { sanitizeValue: options.sanitizeValues }) + options.columnDelimiter;
+        result = result
+          + this._escapeCell(rowHeaders[index], { sanitizeValue: options.sanitizeValues })
+          + options.columnDelimiter;
       }
-      result += value.map(cellValue => this._escapeCell(cellValue, { sanitizeValue: options.sanitizeValues })).join(options.columnDelimiter);
+
+      const escapedValue = value
+        .map(cellValue => this._escapeCell(cellValue, { sanitizeValue: options.sanitizeValues }))
+        .join(options.columnDelimiter);
+
+      result += escapedValue;
     });
 
     return result;
@@ -72,9 +83,9 @@ class Csv extends BaseType {
    * Escape cell value.
    *
    * @param {*} value Cell value.
-   * @param {Object} options Options.
+   * @param {object} options Options.
    * @param {boolean} [options.force=false] Indicates if cell value will be escaped forcefully.
-   * @param {boolean|RegExp|(val: string) => string} [options.sanitizeValue=false] Controls the sanitization of cell value.
+   * @param {boolean|RegExp|Function} [options.sanitizeValue=false] Controls the sanitization of cell value.
    * @returns {string}
    */
   _escapeCell(value, { force = false, sanitizeValue = false } = {}) {
@@ -101,8 +112,8 @@ class Csv extends BaseType {
       || returnValue.indexOf(CHAR_DOUBLE_QUOTES) >= 0
       || returnValue.indexOf(CHAR_LINE_FEED) >= 0
       || returnValue.indexOf(this.options.columnDelimiter) >= 0) {
-        returnValue = returnValue.replace(new RegExp('"', 'g'), '""');
-        returnValue = `"${returnValue}"`;
+      returnValue = returnValue.replace(new RegExp('"', 'g'), '""');
+      returnValue = `"${returnValue}"`;
     }
 
     return returnValue;
@@ -110,7 +121,7 @@ class Csv extends BaseType {
 
   /**
    * Sanitize value that may be interpreted as a formula in spreadsheet software.
-   * Following the OWASP recommendations: https://owasp.org/www-community/attacks/CSV_Injection
+   * Following the OWASP recommendations: https://owasp.org/www-community/attacks/CSV_Injection.
    *
    * @param {string} value Cell value.
    * @returns {string}
@@ -125,7 +136,7 @@ class Csv extends BaseType {
       || value.startsWith(CHAR_CARRIAGE_RETURN)) {
       return `'${value}`;
     }
-    
+
     return value;
   }
 
