@@ -2,7 +2,7 @@ describe('Core_alter', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
@@ -10,6 +10,7 @@ describe('Core_alter', () => {
       destroy();
     }
 
+    $('body').find(`#${id}`).remove();
     $('html').attr('dir', 'ltr');
   });
 

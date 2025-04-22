@@ -2,13 +2,15 @@ describe('Core_listen', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
     if (this.$container) {
       destroy();
     }
+
+    $('body').find(`#${id}`).remove();
   });
 
   it('should not listen by default after initialization', () => {
@@ -80,7 +82,7 @@ describe('Core_listen', () => {
     const hot = handsontable();
     const input = document.createElement('input');
 
-    $(input).appendTo('#rootWrapper');
+    $(input).appendTo('body');
 
     hot.selectCell(0, 0);
     input.focus();
@@ -93,10 +95,10 @@ describe('Core_listen', () => {
   });
 
   it('when second instance is created, first should unlisten automatically', () => {
-    const $container1 = $('<div id="hot1"></div>').appendTo('#rootWrapper').handsontable();
+    const $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable();
 
     $container1.handsontable('selectCell', 0, 0);
-    const $container2 = $('<div id="hot2"></div>').appendTo('#rootWrapper').handsontable();
+    const $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable();
 
     $container2.handsontable('selectCell', 0, 0);
 
@@ -104,16 +106,16 @@ describe('Core_listen', () => {
     expect($container2.handsontable('isListening')).toBe(true);
 
     $container1.handsontable('destroy');
-    $container1.remove();
+    $('body').find('#hot1').remove();
     $container2.handsontable('destroy');
-    $container2.remove();
+    $('body').find('#hot2').remove();
   });
 
   it('when listen is called on first instance, second should unlisten automatically', () => {
-    const $container1 = $('<div id="hot1"></div>').appendTo('#rootWrapper').handsontable();
+    const $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable();
 
     $container1.handsontable('selectCell', 0, 0);
-    const $container2 = $('<div id="hot2"></div>').appendTo('#rootWrapper').handsontable();
+    const $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable();
 
     $container2.handsontable('selectCell', 0, 0);
 
@@ -122,9 +124,9 @@ describe('Core_listen', () => {
     expect($container2.handsontable('isListening')).toBe(false);
 
     $container1.handsontable('destroy');
-    $container1.remove();
+    $('body').find('#hot1').remove();
     $container2.handsontable('destroy');
-    $container2.remove();
+    $('body').find('#hot2').remove();
   });
 
   it('should unlisten after click outside an iframe', () => {

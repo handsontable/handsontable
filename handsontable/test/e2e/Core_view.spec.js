@@ -2,13 +2,15 @@ describe('Core_view', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(function() {
     if (this.$container) {
       destroy();
     }
+
+    $('body').find(`#${id}`).remove();
   });
 
   it('should focus cell after viewport is scrolled using down arrow', () => {
@@ -732,7 +734,7 @@ describe('Core_view', () => {
   });
 
   it.forTheme('classic')('should not extend the selection to the cell under the mouse pointer ' +
-    'after the viewport is moved (#dev-1479)', () => {
+    'after the viewport is moved (#dev-1479)', async () => {
     handsontable({
       data: createSpreadsheetData(5, 5),
     });
@@ -751,6 +753,8 @@ describe('Core_view', () => {
       })
       .simulate('mouseup')
       .simulate('click');
+
+    await sleep(10000);
 
     expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: 1,2 to: 1,2']);
   });

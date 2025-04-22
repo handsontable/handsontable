@@ -2,12 +2,14 @@ describe('Core_destroy', () => {
   const id = 'testContainer';
 
   beforeEach(() => {
-    spec().$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
+    spec().$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
   afterEach(() => {
     if (spec().$container) {
       destroy();
+
+      $('body').find(`#${id}`).remove();
     }
   });
 
@@ -15,7 +17,7 @@ describe('Core_destroy', () => {
     handsontable();
     destroy();
 
-    expect($('#rootWrapper').html()).toEqual(`<div id="${id}"></div>`);
+    expect(spec().$container.html()).toEqual('');
   });
 
   it('should remove events from the root element, document element and window', () => {
@@ -31,12 +33,11 @@ describe('Core_destroy', () => {
     // test based on Core_selectionSpec.js (should deselect currently selected cell)
     handsontable();
 
-    const $tmp = $('<div id="tmp"></div>').appendTo($('#rootWrapper'));
+    const $tmp = $('<div id="tmp"></div>').appendTo($('body'));
 
     $tmp.handsontable();
     $tmp.handsontable('destroy');
-    $tmp.remove();
-
+    $('body').find('#tmp').remove();
     selectCell(0, 0);
 
     $('html').simulate('mousedown');
@@ -48,7 +49,7 @@ describe('Core_destroy', () => {
     const hot = handsontable();
 
     destroy();
-    $(`#${spec().$container[0].id}`).remove();
+    $('body').find(`#${id}`).remove();
 
     expect(() => {
       hot.getDataAtCell(0, 0);

@@ -2,18 +2,23 @@ describe('Core_init', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
-    this.$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
+    this.$parentContainer = $(`<div id="${id}"></div>`).appendTo('body');
+    this.$container = $(`<div id="${id}2"></div>`).appendTo(this.$parentContainer);
   });
 
   afterEach(function() {
     if (this.$container) {
       destroy();
     }
+
+    $('body').find(`#${id}`).remove();
+    $('body').find(`#${id}2`).remove();
+    $('body').find('hot-table').remove();
   });
 
   it('should respect startRows and startCols when no data is provided', () => {
-    $(`#${spec().$container[0].id}`).remove();
-    spec().$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
+    $('body').find(`#${id}`).remove();
+    spec().$container = $(`<div id="${id}"></div>`).appendTo('body');
     handsontable();
 
     expect(countRows()).toEqual(5); // as given in README.md
@@ -21,7 +26,7 @@ describe('Core_init', () => {
   });
 
   it('should construct when container is not appended to document', () => {
-    $(`#${spec().$container[0].id}`).remove();
+    $('body').find(`#${id}`).remove();
     handsontable();
     expect(getData()).toBeTruthy();
   });
@@ -49,8 +54,8 @@ describe('Core_init', () => {
   it('should create table even if is launched inside custom element', () => {
     const onErrorSpy = spyOn(window, 'onerror');
 
-    $(`#${spec().$container[0].id}`).remove();
-    spec().$container = $(`<hot-table><div id="${id}"></div></hot-table>`).appendTo($('#rootWrapper'));
+    spec().$container.remove();
+    spec().$container = $(`<hot-table><div id="${id}"></div></hot-table>`).appendTo('body');
 
     handsontable();
 
@@ -98,7 +103,7 @@ describe('Core_init', () => {
     ' element\'s parent if it was initialized with `display: none` with inline styles', async() => {
     const $testParentContainer = $('<div id="test-parent-container"></div>');
 
-    $('#rootWrapper').append($testParentContainer);
+    $('body').append($testParentContainer);
 
     spec().$container.detach();
 
@@ -132,7 +137,7 @@ describe('Core_init', () => {
     expect($topHolderElement.outerWidth()).toBe(getTopClone().find('.htCore').outerWidth());
 
     spec().$container.detach();
-    $('#rootWrapper').append(spec().$container);
+    $('body').append(spec().$container);
     $testParentContainer.remove();
   });
 
@@ -175,7 +180,7 @@ describe('Core_init', () => {
     const $style = $('<style>#test-parent-container {display: none;}</style>').appendTo('head');
     const $testParentContainer = $('<div id="test-parent-container"></div>');
 
-    $('#rootWrapper').append($testParentContainer);
+    $('body').append($testParentContainer);
 
     spec().$container.detach();
 
@@ -207,7 +212,7 @@ describe('Core_init', () => {
     expect($topHolderElement.outerWidth()).toBe(getTopClone().find('.htCore').outerWidth());
 
     spec().$container.detach();
-    $('#rootWrapper').append(spec().$container);
+    $('body').append(spec().$container);
     $testParentContainer.remove();
     $style.remove();
   });
@@ -227,17 +232,15 @@ describe('Core_init', () => {
 
     it('should enable a theme when a theme class name was added to a parent of the root element', () => {
       simulateModernThemeStylesheet(spec().$container);
-      $('#rootWrapper').addClass('ht-theme-sth');
+      spec().$parentContainer.addClass('ht-theme-sth');
 
       const hot = handsontable({
         data: Handsontable.helper.createSpreadsheetData(15, 15),
       }, true);
 
-      $('#rootWrapper').removeClass('ht-theme-sth');
-
       expect(hot.view.getStylesHandler().isClassicTheme()).toBe(false);
       expect(hot.getCurrentThemeName()).toBe('ht-theme-sth');
-      expect($(hot.rootWrapperElement).hasClass('ht-theme-sth')).toBe(true);
+      expect($(hot.rootElement.parentElement).hasClass('ht-theme-sth')).toBe(true);
     });
   });
 });

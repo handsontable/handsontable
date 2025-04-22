@@ -1,5 +1,4 @@
 const specContext = {};
-let rootWrapper;
 
 beforeEach(function() {
   specContext.spec = this;
@@ -10,57 +9,20 @@ beforeEach(function() {
 });
 
 afterEach(() => {
-  if (!process.env.JEST_WORKER_ID && rootWrapper) {
-    const container = spec().$container;
-    const container1 = spec().$container1;
-    const container2 = spec().$container2;
-    const container3 = spec().$container3;
-
-    if (container) {
-      const id = container.attr('id');
-
-      $('#rootWrapper').find(`#${id}`).remove();
-    }
-
-    if (container1) {
-      const id = container1.attr('id');
-
-      $('#rootWrapper').find(`#${id}`).remove();
-    }
-
-    if (container2) {
-      const id = container2.attr('id');
-
-      $('#rootWrapper').find(`#${id}`).remove();
-    }
-
-    if (container3) {
-      const id = container3.attr('id');
-
-      $('#rootWrapper').find(`#${id}`).remove();
-    }
-  }
-
   specContext.spec = null;
 });
 
 beforeAll(() => {
   // Make the test more predictable by hiding the test suite dots (skip it on unit tests)
   if (!process.env.JEST_WORKER_ID) {
-    rootWrapper = $('<div id="rootWrapper"></div>');
-    rootWrapper.appendTo('body');
-
     $('.jasmine_html-reporter').hide();
   }
 });
+
 afterAll(() => {
   // After the test are finished show the test suite dots
   if (!process.env.JEST_WORKER_ID) {
     $('.jasmine_html-reporter').show();
-
-    if (rootWrapper) {
-      rootWrapper.remove();
-    }
   }
 });
 

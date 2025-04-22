@@ -16,7 +16,7 @@ describe('MemoryLeakTest', () => {
     let leftoverNodesCount = 0;
 
     Array.from(document.body.children).forEach((child) => {
-      if (child.nodeName !== 'SCRIPT' && !child.className.includes('jasmine') && !child.id.includes('rootWrapper')) {
+      if (child.nodeName !== 'SCRIPT' && !child.className.includes('jasmine')) {
         leftoverNodesCount += 1;
       }
     });
@@ -28,12 +28,14 @@ describe('MemoryLeakTest', () => {
     const id = 'testContainer';
 
     beforeEach(function() {
-      this.$container = $(`<div id="${id}"></div>`).appendTo('#rootWrapper');
+      this.$container = $(`<div id="${id}"></div>`).appendTo('body');
     });
 
     afterEach(function() {
       if (this.$container) {
         destroy();
+
+        $('body').find(`#${id}`).remove();
       }
     });
 
