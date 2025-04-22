@@ -419,12 +419,12 @@ describe('exportFile CSV type', () => {
     describe('when `sanitizeValues` option is', () => {
       it('set to `true`, should sanitize strings starting with =', () => {
         handsontable({
-          data: [['=A1+B1', '=A2+B2']],
+          data: [[42, '=A1+B1', '=A2+B2']],
         });
 
         const csv = getPlugin('exportFile')._createTypeFormatter('csv', { sanitizeValues: true }).export();
 
-        expect(csv).toBe('\ufeff"\'=A1+B1","\'=A2+B2"');
+        expect(csv).toBe('\ufeff"42","\'=A1+B1","\'=A2+B2"');
       });
 
       it('set to `true`, should sanitize strings starting with +', () => {
@@ -485,7 +485,7 @@ describe('exportFile CSV type', () => {
         
         const csv = getPlugin('exportFile')._createTypeFormatter('csv', { sanitizeValues: true, columnHeaders: true }).export();
 
-        expect(csv).toBe('\ufeff"\'====","\'++++"\r\n1,2');
+        expect(csv).toBe('\ufeff"\'====","\'++++"\r\n"1","2"');
       });
 
       it('set to `true`, should sanitize row headers', () => {
@@ -496,11 +496,38 @@ describe('exportFile CSV type', () => {
         
         const csv = getPlugin('exportFile')._createTypeFormatter('csv', { sanitizeValues: true, rowHeaders: true }).export();
 
-        expect(csv).toBe('\ufeff"\'===",1');
+        expect(csv).toBe('\ufeff"\'===","1"');
       });
 
-      it.todo('set to a regex, should sanitize all values that match the regex');
-      it.todo('set to a function, should sanitize values using the function');
+      it('set to a regex, should sanitize all values that match the regex', () => {
+        handsontable({
+          data: [[42, '=A1+B1', '=WEBSERVICE("https://handsontable.com")']],
+        });
+
+        const sanitizeRegex = /WEBSERVICE/;
+        
+        const csv = getPlugin('exportFile')._createTypeFormatter('csv', { sanitizeValues: sanitizeRegex }).export();
+
+        expect(csv).toBe('\ufeff"42","=A1+B1","\'=WEBSERVICE(""https://handsontable.com"")"');
+      });
+      
+      it('set to a function, should sanitize values using the function', () => {
+        handsontable({
+          data: [[42, '=A1+B1', 'abba', 'abfooba']],
+        });
+
+        const sanitizeFoo = jasmine.createSpy('sanitizeFoo').and.callFake((value) => {
+          if (value.includes('foo')) {
+            return 'BAR';
+          }
+          return value;
+        });
+        
+        const csv = getPlugin('exportFile')._createTypeFormatter('csv', { sanitizeValues: sanitizeFoo }).export();
+
+        expect(sanitizeFoo).toHaveBeenCalledTimes(4);
+        expect(csv).toBe('\ufeff"42","=A1+B1","abba","BAR"');
+      });
 
       it('not provided, should not sanitize values', () => {
         handsontable({

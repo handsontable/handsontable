@@ -5,6 +5,11 @@ import BaseType from './_base';
 const CHAR_CARRIAGE_RETURN = String.fromCharCode(13);
 const CHAR_DOUBLE_QUOTES = String.fromCharCode(34);
 const CHAR_LINE_FEED = String.fromCharCode(10);
+const CHAR_EQUAL = String.fromCharCode(61);
+const CHAR_PLUS = String.fromCharCode(43);
+const CHAR_MINUS = String.fromCharCode(45);
+const CHAR_AT = String.fromCharCode(64);
+const CHAR_TAB = String.fromCharCode(9);
 
 /**
  * @private
@@ -69,36 +74,71 @@ class Csv extends BaseType {
    * @param {*} value Cell value.
    * @param {Object} options Options.
    * @param {boolean} [options.force=false] Indicates if cell value will be escaped forcefully.
-   * @param {boolean} [options.sanitizeValue=false] Controls the sanitization of cell value.
+   * @param {boolean|RegExp|(val: string) => string} [options.sanitizeValue=false] Controls the sanitization of cell value.
    * @returns {string}
    */
   _escapeCell(value, { force = false, sanitizeValue = false } = {}) {
-    let escapedValue = stringify(value);
+    let returnValue = stringify(value);
+
+    if (returnValue === '') {
+      return returnValue;
+    }
 
     if (sanitizeValue) {
-      if (escapedValue.startsWith('=')
-        || escapedValue.startsWith('+')
-        || escapedValue.startsWith('-')
-        || escapedValue.startsWith('@')
-        || escapedValue.startsWith('\t')
-        || escapedValue.startsWith('\r')
-      ) {
-        escapedValue = `'${escapedValue}`;
-        force = true;
-      }
+      force = true;
     }
 
-    if (escapedValue !== '' && (force ||
-      escapedValue.indexOf(CHAR_CARRIAGE_RETURN) >= 0 ||
-      escapedValue.indexOf(CHAR_DOUBLE_QUOTES) >= 0 ||
-      escapedValue.indexOf(CHAR_LINE_FEED) >= 0 ||
-      escapedValue.indexOf(this.options.columnDelimiter) >= 0)) {
-
-      escapedValue = escapedValue.replace(new RegExp('"', 'g'), '""');
-      escapedValue = `"${escapedValue}"`;
+    if (sanitizeValue instanceof RegExp) {
+      returnValue = this._sanitizeValueWithRegExp(returnValue, sanitizeValue);
+    } else if (typeof sanitizeValue === 'function') {
+      returnValue = sanitizeValue(returnValue);
+    } else if (sanitizeValue) {
+      returnValue = this._sanitizeValueWithOWASP(returnValue);
     }
 
-    return escapedValue;
+    if (force
+      || returnValue.indexOf(CHAR_CARRIAGE_RETURN) >= 0
+      || returnValue.indexOf(CHAR_DOUBLE_QUOTES) >= 0
+      || returnValue.indexOf(CHAR_LINE_FEED) >= 0
+      || returnValue.indexOf(this.options.columnDelimiter) >= 0) {
+        returnValue = returnValue.replace(new RegExp('"', 'g'), '""');
+        returnValue = `"${returnValue}"`;
+    }
+
+    return returnValue;
+  }
+
+  /**
+   * Sanitize value that may be interpreted as a formula in spreadsheet software.
+   * Following the OWASP recommendations: https://owasp.org/www-community/attacks/CSV_Injection
+   *
+   * @param {string} value Cell value.
+   * @returns {string}
+   * @private
+   */
+  _sanitizeValueWithOWASP(value) {
+    if (value.startsWith(CHAR_EQUAL)
+      || value.startsWith(CHAR_PLUS)
+      || value.startsWith(CHAR_MINUS)
+      || value.startsWith(CHAR_AT)
+      || value.startsWith(CHAR_TAB)
+      || value.startsWith(CHAR_CARRIAGE_RETURN)) {
+      return `'${value}`;
+    }
+    
+    return value;
+  }
+
+  /**
+   * Sanitize value using regular expression.
+   *
+   * @param {string} value Cell value.
+   * @param {RegExp} regexp Regular expression to test against.
+   * @returns {string}
+   * @private
+   */
+  _sanitizeValueWithRegExp(value, regexp) {
+    return regexp.test(value) ? `'${value}` : value;
   }
 }
 
