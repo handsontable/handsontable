@@ -12,7 +12,7 @@ describe('Core.getSelectedLast', () => {
 
   it('should return valid coordinates', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetObjectData(10, 10),
+      data: createSpreadsheetObjectData(10, 10),
       selectionMode: 'multiple',
     });
 
@@ -54,7 +54,7 @@ describe('Core.getSelectedLast', () => {
 
   it('should return valid coordinates when `.getSelectedRange` and `.getSelectedRangeLast` is called', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetObjectData(10, 10),
+      data: createSpreadsheetObjectData(10, 10),
       selectionMode: 'multiple',
     });
 

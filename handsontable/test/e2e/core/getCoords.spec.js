@@ -12,7 +12,7 @@ describe('Core.getCoords', () => {
 
   it('should return coords of TH (row header)', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetObjectData(5, 5),
+      data: createSpreadsheetObjectData(5, 5),
       rowHeaders: true,
     });
 
@@ -24,7 +24,7 @@ describe('Core.getCoords', () => {
 
   it('should return coords of TH (column header)', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetObjectData(5, 5),
+      data: createSpreadsheetObjectData(5, 5),
       colHeaders: true,
     });
 
@@ -36,7 +36,7 @@ describe('Core.getCoords', () => {
 
   it('should return visual coords of TD', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetObjectData(5, 5),
+      data: createSpreadsheetObjectData(5, 5),
       rowHeaders: true,
       colHeaders: true,
     });

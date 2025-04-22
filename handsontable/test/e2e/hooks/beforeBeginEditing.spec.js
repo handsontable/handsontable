@@ -58,14 +58,14 @@ describe('Hook', () => {
     it('should be fired after calling the `openEditor` method', async() => {
       const beforeBeginEditing = jasmine.createSpy('beforeBeginEditing');
 
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(5, 5),
         beforeBeginEditing,
       });
 
       await selectCell(1, 2);
 
-      hot._getEditorManager().openEditor('test');
+      _getEditorManager().openEditor('test');
 
       expect(beforeBeginEditing).toHaveBeenCalledWith(1, 2, 'test', undefined, false);
     });
@@ -74,7 +74,7 @@ describe('Hook', () => {
       const beforeBeginEditing = jasmine.createSpy('beforeBeginEditing');
       const afterBeginEditing = jasmine.createSpy('afterBeginEditing');
 
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(5, 5),
         beforeBeginEditing,
         afterBeginEditing,
@@ -82,7 +82,7 @@ describe('Hook', () => {
 
       await selectCell(1, 2);
 
-      hot._getEditorManager().openEditor('test');
+      _getEditorManager().openEditor('test');
 
       expect(beforeBeginEditing).toHaveBeenCalledWith(1, 2, 'test', undefined, false);
       expect(beforeBeginEditing).toHaveBeenCalledBefore(afterBeginEditing);

@@ -14,7 +14,7 @@ describe('Hook', () => {
 
   describe('afterSelectionFocusSet', () => {
     it('should be fired with proper arguments when the focus is changed', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(10, 10),
         colHeaders: true,
         rowHeaders: true,
@@ -25,12 +25,12 @@ describe('Hook', () => {
       await selectCell(1, 1, 5, 5);
 
       addHook('afterSelectionFocusSet', afterSelectionFocusSet);
-      hot.selection.setRangeFocus(hot._createCellCoords(2, 3));
+      selection().setRangeFocus(cellCoords(2, 3));
 
       expect(afterSelectionFocusSet).toHaveBeenCalledTimes(1);
       expect(afterSelectionFocusSet).toHaveBeenCalledWith(2, 3, jasmine.any(Object));
 
-      hot.selection.setRangeFocus(hot._createCellCoords(4, 5));
+      selection().setRangeFocus(cellCoords(4, 5));
 
       expect(afterSelectionFocusSet).toHaveBeenCalledTimes(2);
       expect(afterSelectionFocusSet).toHaveBeenCalledWith(4, 5, jasmine.any(Object));

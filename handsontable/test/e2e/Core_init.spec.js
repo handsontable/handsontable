@@ -221,12 +221,12 @@ describe('Core_init', () => {
       simulateModernThemeStylesheet(spec().$container);
       spec().$container.addClass('ht-theme-sth');
 
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(15, 15),
       }, true);
 
-      expect(hot.view.getStylesHandler().isClassicTheme()).toBe(false);
-      expect(hot.getCurrentThemeName()).toBe('ht-theme-sth');
+      expect(tableView().getStylesHandler().isClassicTheme()).toBe(false);
+      expect(getCurrentThemeName()).toBe('ht-theme-sth');
     });
 
     it('should enable a theme when a theme class name was added to a parent of the root element', async() => {
@@ -237,8 +237,8 @@ describe('Core_init', () => {
         data: createSpreadsheetData(15, 15),
       }, true);
 
-      expect(hot.view.getStylesHandler().isClassicTheme()).toBe(false);
-      expect(hot.getCurrentThemeName()).toBe('ht-theme-sth');
+      expect(tableView().getStylesHandler().isClassicTheme()).toBe(false);
+      expect(getCurrentThemeName()).toBe('ht-theme-sth');
       expect($(hot.rootElement).hasClass('ht-theme-sth')).toBe(true);
     });
   });

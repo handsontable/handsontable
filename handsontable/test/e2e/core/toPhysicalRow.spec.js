@@ -13,14 +13,14 @@ describe('Core.toPhysicalRow', () => {
   });
 
   it('should return valid physical row index', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(5, 5)
     });
 
-    hot.rowIndexMapper.setIndexesSequence([3, 4, 5, 6, 7]);
+    rowIndexMapper().setIndexesSequence([3, 4, 5, 6, 7]);
 
-    expect(hot.toPhysicalRow(0)).toBe(3);
-    expect(hot.toPhysicalRow(1)).toBe(4);
-    expect(hot.toPhysicalRow(2)).toBe(5);
+    expect(toPhysicalRow(0)).toBe(3);
+    expect(toPhysicalRow(1)).toBe(4);
+    expect(toPhysicalRow(2)).toBe(5);
   });
 });

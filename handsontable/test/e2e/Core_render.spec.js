@@ -177,7 +177,7 @@ describe('Core_render', () => {
       paddingRight: '10000px'
     });
 
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(50, 50),
     });
 
@@ -185,7 +185,7 @@ describe('Core_render', () => {
 
     await sleep(100);
 
-    const wotRenderSpy = spyOn(hot.view._wt.wtTable.tableRenderer, 'render');
+    const wotRenderSpy = spyOn(tableView()._wt.wtTable.tableRenderer, 'render');
 
     await scrollWindowBy(0, 10);
     await sleep(100);
@@ -212,11 +212,11 @@ describe('Core_render', () => {
       marginTop: '3000px'
     });
 
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(50, 50),
     });
 
-    const wotRenderSpy = spyOn(hot.view._wt.wtTable.tableRenderer, 'render');
+    const wotRenderSpy = spyOn(tableView()._wt.wtTable.tableRenderer, 'render');
 
     await scrollWindowBy(0, 10);
     await sleep(100);

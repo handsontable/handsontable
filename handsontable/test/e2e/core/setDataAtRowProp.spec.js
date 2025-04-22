@@ -24,7 +24,7 @@ describe('Core.setDataAtRowProp', () => {
       data: spec().datasetAoO,
     });
 
-    setDataAtRowProp(0, 'a', 'changed!');
+    await setDataAtRowProp(0, 'a', 'changed!');
 
     expect(getDataAtCell(0, 0)).toEqual('changed!');
 
@@ -32,7 +32,7 @@ describe('Core.setDataAtRowProp', () => {
       manualRowMove: [1, 0, 2]
     });
 
-    setDataAtRowProp(0, 'a', 'changed again!');
+    await setDataAtRowProp(0, 'a', 'changed again!');
 
     expect(getDataAtCell(0, 0)).toEqual('changed again!');
   });
@@ -43,7 +43,7 @@ describe('Core.setDataAtRowProp', () => {
       data: spec().datasetAoO,
     });
 
-    setDataAtRowProp([
+    await setDataAtRowProp([
       [0, 'a', 'changed!'],
       [0, 'b', 'changed too!']
     ]);
@@ -55,7 +55,7 @@ describe('Core.setDataAtRowProp', () => {
       manualRowMove: [1, 0, 2]
     });
 
-    setDataAtRowProp([
+    await setDataAtRowProp([
       [0, 'a', 'changed again!'],
       [0, 'b', 'changed again too!']
     ]);
@@ -72,7 +72,7 @@ describe('Core.setDataAtRowProp', () => {
       ]
     });
 
-    setDataAtRowProp(0, 'b', 'changed!');
+    await setDataAtRowProp(0, 'b', 'changed!');
 
     expect(getSourceDataAtCell(0, 'b')).toEqual('changed!');
   });
@@ -85,7 +85,7 @@ describe('Core.setDataAtRowProp', () => {
       ]
     });
 
-    setDataAtRowProp([
+    await setDataAtRowProp([
       [0, 'a', 'changed!'],
       [0, 'b', 'changed too!']
     ]);
@@ -105,7 +105,7 @@ describe('Core.setDataAtRowProp', () => {
       allowInvalid: false,
     });
 
-    setDataAtRowProp([
+    await setDataAtRowProp([
       [0, 'a', 'changed!'],
       [0, 'b', 'changed too!'],
       [1, 'a', 777],

@@ -19,17 +19,17 @@ describe('Core.batchExecution', () => {
     const columnIndexCacheUpdated = jasmine.createSpy('columnIndexCacheUpdated');
     const rowIndexCacheUpdated = jasmine.createSpy('rowIndexCacheUpdated');
 
-    hot.columnIndexMapper.addLocalHook('cacheUpdated', columnIndexCacheUpdated);
-    hot.rowIndexMapper.addLocalHook('cacheUpdated', rowIndexCacheUpdated);
+    columnIndexMapper().addLocalHook('cacheUpdated', columnIndexCacheUpdated);
+    rowIndexMapper().addLocalHook('cacheUpdated', rowIndexCacheUpdated);
 
     spyOn(hot, 'suspendExecution').and.callThrough();
     spyOn(hot, 'resumeExecution').and.callThrough();
 
-    const result = hot.batchExecution(() => {
-      hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
-      hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
-      hot.rowIndexMapper.setIndexesSequence([4, 0, 1, 2, 3]);
-      hot.columnIndexMapper.setIndexesSequence([0, 4, 3, 2, 1]);
+    const result = batchExecution(() => {
+      columnIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
+      rowIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
+      rowIndexMapper().setIndexesSequence([4, 0, 1, 2, 3]);
+      columnIndexMapper().setIndexesSequence([0, 4, 3, 2, 1]);
 
       return 'test';
     });
@@ -57,21 +57,21 @@ describe('Core.batchExecution', () => {
     const columnIndexCacheUpdated = jasmine.createSpy('columnIndexCacheUpdated');
     const rowIndexCacheUpdated = jasmine.createSpy('rowIndexCacheUpdated');
 
-    hot.columnIndexMapper.addLocalHook('cacheUpdated', columnIndexCacheUpdated);
-    hot.rowIndexMapper.addLocalHook('cacheUpdated', rowIndexCacheUpdated);
+    columnIndexMapper().addLocalHook('cacheUpdated', columnIndexCacheUpdated);
+    rowIndexMapper().addLocalHook('cacheUpdated', rowIndexCacheUpdated);
 
     spyOn(hot, 'suspendExecution').and.callThrough();
     spyOn(hot, 'resumeExecution').and.callThrough();
 
-    const result = hot.batchExecution(() => {
-      hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
-      hot.rowIndexMapper.setIndexesSequence([4, 0, 1, 2, 3]);
+    const result = batchExecution(() => {
+      columnIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
+      rowIndexMapper().setIndexesSequence([4, 0, 1, 2, 3]);
 
-      hot.batchExecution(() => {
-        hot.columnIndexMapper.setIndexesSequence([0, 4, 3, 2, 1]);
+      batchExecution(() => {
+        columnIndexMapper().setIndexesSequence([0, 4, 3, 2, 1]);
 
-        hot.batchExecution(() => {
-          hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+        batchExecution(() => {
+          rowIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
         });
       });
 
@@ -101,29 +101,29 @@ describe('Core.batchExecution', () => {
     const columnIndexCacheUpdated = jasmine.createSpy('columnIndexCacheUpdated');
     const rowIndexCacheUpdated = jasmine.createSpy('rowIndexCacheUpdated');
 
-    hot.columnIndexMapper.addLocalHook('cacheUpdated', columnIndexCacheUpdated);
-    hot.rowIndexMapper.addLocalHook('cacheUpdated', rowIndexCacheUpdated);
+    columnIndexMapper().addLocalHook('cacheUpdated', columnIndexCacheUpdated);
+    rowIndexMapper().addLocalHook('cacheUpdated', rowIndexCacheUpdated);
 
     spyOn(hot, 'suspendExecution').and.callThrough();
     spyOn(hot, 'resumeExecution').and.callThrough();
 
-    const result = hot.batchExecution(() => {
-      hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
-      hot.rowIndexMapper.setIndexesSequence([4, 0, 1, 2, 3]);
+    const result = batchExecution(() => {
+      columnIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
+      rowIndexMapper().setIndexesSequence([4, 0, 1, 2, 3]);
 
-      hot.batchExecution(() => {
-        hot.columnIndexMapper.setIndexesSequence([0, 4, 3, 2, 1]);
+      batchExecution(() => {
+        columnIndexMapper().setIndexesSequence([0, 4, 3, 2, 1]);
 
-        hot.batchExecution(() => {
-          hot.batchExecution(() => {
-            hot.columnIndexMapper.setIndexesSequence([0, 1, 2, 4, 3]);
-            hot.rowIndexMapper.setIndexesSequence([0, 1, 2, 4, 3]);
+        batchExecution(() => {
+          batchExecution(() => {
+            columnIndexMapper().setIndexesSequence([0, 1, 2, 4, 3]);
+            rowIndexMapper().setIndexesSequence([0, 1, 2, 4, 3]);
           }, true);
 
-          hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+          rowIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
         }, true);
 
-        hot.columnIndexMapper.setIndexesSequence([0, 1, 2, 3, 4]);
+        columnIndexMapper().setIndexesSequence([0, 1, 2, 3, 4]);
       });
 
       return 'test';

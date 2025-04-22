@@ -183,7 +183,7 @@ describe('settings', () => {
     });
 
     it('should be possible to hide overlay when there are no headers enabled', async() => {
-      const hot = handsontable({
+      handsontable({
         colHeaders: false,
         rowHeaders: false,
         fixedColumnsStart: 2,
@@ -193,7 +193,7 @@ describe('settings', () => {
         fixedColumnsStart: 0,
       });
 
-      hot.view.adjustElementsSize(); // this was causing a bug (#dev-678)
+      tableView().adjustElementsSize(); // this was causing a bug (#dev-678)
 
       expect(getInlineStartClone().width()).toBe(0);
       expect(getInlineStartClone().height()).toBe(0);

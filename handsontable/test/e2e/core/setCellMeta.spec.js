@@ -29,13 +29,13 @@ describe('Core.setCellMeta', () => {
   });
 
   it('should set proper cell meta when indexes was modified', async() => {
-    const hot = handsontable({
+    handsontable({
       minRows: 5,
       minCols: 5
     });
 
-    hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
-    hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+    rowIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
+    columnIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
 
     await setCellMeta(0, 1, 'key', 'value');
 
@@ -113,17 +113,18 @@ describe('Core.setCellMeta', () => {
     const className = 'htCenter htMiddle';
     const beforeSetCellMeta = jasmine.createSpy('beforeSetCellMeta');
     const afterSetCellMeta = jasmine.createSpy('afterSetCellMeta');
-    const hot = handsontable({
+
+    handsontable({
       minRows: 5,
       minCols: 5,
       beforeSetCellMeta,
       afterSetCellMeta
     });
 
-    hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
-    hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+    rowIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
+    columnIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
 
-    hot.setCellMeta(0, 1, 'className', className);
+    setCellMeta(0, 1, 'className', className);
 
     expect(beforeSetCellMeta).toHaveBeenCalledWith(0, 1, 'className', className);
     expect(afterSetCellMeta).toHaveBeenCalledWith(0, 1, 'className', className);
@@ -132,17 +133,18 @@ describe('Core.setCellMeta', () => {
   it('should NOT call the `afterSetCellMeta` hook, if the `beforeSetCellMeta` returned false', async() => {
     const className = 'htCenter htMiddle';
     const afterSetCellMeta = jasmine.createSpy('afterSetCellMeta');
-    const hot = handsontable({
+
+    handsontable({
       minRows: 5,
       minCols: 5,
       beforeSetCellMeta: () => false,
       afterSetCellMeta
     });
 
-    hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
-    hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+    rowIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
+    columnIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
 
-    hot.setCellMeta(0, 1, 'className', className);
+    setCellMeta(0, 1, 'className', className);
 
     expect(afterSetCellMeta).not.toHaveBeenCalled();
   });

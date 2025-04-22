@@ -14,7 +14,7 @@ describe('Hook', () => {
 
   describe('afterSelectColumns', () => {
     it('should be fired with proper arguments', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(10, 10),
         colHeaders: true,
         rowHeaders: true,
@@ -27,9 +27,9 @@ describe('Hook', () => {
 
       expect(afterSelectColumns).toHaveBeenCalledTimes(1);
       expect(afterSelectColumns).toHaveBeenCalledWith(
-        hot._createCellCoords(-1, 2),
-        hot._createCellCoords(9, 4),
-        hot._createCellCoords(0, 2),
+        cellCoords(-1, 2),
+        cellCoords(9, 4),
+        cellCoords(0, 2),
       );
     });
 

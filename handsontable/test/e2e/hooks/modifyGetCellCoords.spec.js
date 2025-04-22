@@ -11,7 +11,6 @@ describe('Hook', () => {
   describe('modifyGetCellCoords', () => {
     it('should be fired before the editor is prepared', async() => {
       const modifyGetCellCoords = jasmine.createSpy('modifyGetCellCoords');
-
       const hot = handsontable({
         data: createSpreadsheetData(5, 5),
         modifyGetCellCoords,
@@ -23,7 +22,7 @@ describe('Hook', () => {
 
       modifyGetCellCoords.calls.reset();
 
-      hot._getEditorManager().prepareEditor();
+      _getEditorManager().prepareEditor();
 
       expect(modifyGetCellCoords).toHaveBeenCalledWith(1, 2, false, 'meta');
       expect(modifyGetCellCoords).toHaveBeenCalledTimes(1);

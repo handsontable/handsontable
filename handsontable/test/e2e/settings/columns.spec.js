@@ -37,7 +37,7 @@ describe('settings', () => {
 
     describe('as an array of objects', () => {
       it('should not throw exception when passed columns array is empty (data source as array of arrays)', async() => {
-        const hot = handsontable({
+        handsontable({
           data: arrayOfArrays(),
           columns: [
             { data: 0 },
@@ -47,12 +47,12 @@ describe('settings', () => {
         });
 
         expect(() => {
-          hot.updateSettings({ columns: [] });
+          updateSettings({ columns: [] });
         }).not.toThrow();
       });
 
       it('should not throw exception when passed columns array is empty (data source as array of objects)', async() => {
-        const hot = handsontable({
+        handsontable({
           data: arrayOfObjects(),
           columns: [
             { data: 'id' },
@@ -62,7 +62,7 @@ describe('settings', () => {
         });
 
         expect(() => {
-          hot.updateSettings({ columns: [] });
+          updateSettings({ columns: [] });
         }).not.toThrow();
       });
     });
@@ -70,54 +70,54 @@ describe('settings', () => {
     describe('as a function', () => {
       describe('init', () => {
         it('should render only these columns which are not `null`', async() => {
-          const hot = handsontable({
+          handsontable({
             data: arrayOfArrays(),
             columns(column) {
               return [1, 2].indexOf(column) > -1 ? {} : null;
             }
           });
 
-          expect(hot.getData()[0].length).toEqual(2);
+          expect(getData()[0].length).toEqual(2);
         });
 
         it('should properly bind default data when is not defined (data source as array of arrays)', async() => {
-          const hot = handsontable({
+          handsontable({
             data: arrayOfArrays(),
             columns(column) {
               return [1, 2].indexOf(column) > -1 ? {} : null;
             }
           });
 
-          expect(hot.getDataAtCell(0, 0)).toEqual('');
-          expect(hot.getDataAtCell(0, 1)).toEqual('Kia');
+          expect(getDataAtCell(0, 0)).toEqual('');
+          expect(getDataAtCell(0, 1)).toEqual('Kia');
         });
 
         it('should properly bind default data when is not defined (data source as array of objects)', async() => {
-          const hot = handsontable({
+          handsontable({
             data: arrayOfObjects(),
             columns(column) {
               return [1, 2].indexOf(column) > -1 ? {} : null;
             }
           });
 
-          expect(hot.getDataAtCell(0, 0)).toEqual(null);
-          expect(hot.getDataAtCell(0, 1)).toEqual(null);
+          expect(getDataAtCell(0, 0)).toEqual(null);
+          expect(getDataAtCell(0, 1)).toEqual(null);
         });
 
         it('should properly bind defined data (data source as array of arrays)', async() => {
-          const hot = handsontable({
+          handsontable({
             data: arrayOfArrays(),
             columns(column) {
               return [1, 2].indexOf(column) > -1 ? { data: column + 1 } : null;
             }
           });
 
-          expect(hot.getDataAtCell(0, 0)).toEqual('Nissan');
-          expect(hot.getDataAtCell(0, 1)).toEqual('Toyota');
+          expect(getDataAtCell(0, 0)).toEqual('Nissan');
+          expect(getDataAtCell(0, 1)).toEqual('Toyota');
         });
 
         it('should properly bind defined data (data source as array of objects)', async() => {
-          const hot = handsontable({
+          handsontable({
             data: arrayOfObjects(),
             columns(column) {
               const keys = ['id', 'name', 'lastName'];
@@ -126,14 +126,14 @@ describe('settings', () => {
             }
           });
 
-          expect(hot.getDataAtCell(0, 0)).toEqual(1);
-          expect(hot.getDataAtCell(0, 1)).toEqual('Ted');
+          expect(getDataAtCell(0, 0)).toEqual(1);
+          expect(getDataAtCell(0, 1)).toEqual('Ted');
         });
       });
 
       describe('updateSettings', () => {
         it('should not throw exception when passed columns function without return anything (data source as array of arrays) when columns is a function', async() => {
-          const hot = handsontable({
+          handsontable({
             data: arrayOfArrays(),
             columns(column) {
               return [0, 1, 2].indexOf(column) > -1 ? { data: column } : null;
@@ -141,12 +141,12 @@ describe('settings', () => {
           });
 
           expect(() => {
-            hot.updateSettings({ columns() {} });
+            updateSettings({ columns() {} });
           }).not.toThrow();
         });
 
         it('should not throw exception when passed columns function without return anything (data source as array of objects) when columns is a function', async() => {
-          const hot = handsontable({
+          handsontable({
             data: arrayOfObjects(),
             columns(column) {
               const keys = ['id', 'name', 'lasName'];
@@ -156,7 +156,7 @@ describe('settings', () => {
           });
 
           expect(() => {
-            hot.updateSettings({ columns() {} });
+            updateSettings({ columns() {} });
           }).not.toThrow();
         });
       });

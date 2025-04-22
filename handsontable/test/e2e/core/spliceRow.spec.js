@@ -13,60 +13,61 @@ describe('Core.spliceRow', () => {
   });
 
   it('should remove from the second row three columns starting from the beginning', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(5, 5),
     });
 
-    const removedData = hot.spliceRow(1, 0, 3);
+    const removedData = await spliceRow(1, 0, 3);
 
     expect(removedData).toEqual(['A2', 'B2', 'C2']);
-    expect(hot.getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1']);
-    expect(hot.getDataAtRow(1)).toEqual(['D2', 'E2', null, null, null]);
-    expect(hot.getDataAtRow(2)).toEqual(['A3', 'B3', 'C3', 'D3', 'E3']);
-    expect(hot.getDataAtRow(3)).toEqual(['A4', 'B4', 'C4', 'D4', 'E4']);
-    expect(hot.getDataAtRow(4)).toEqual(['A5', 'B5', 'C5', 'D5', 'E5']);
+    expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1']);
+    expect(getDataAtRow(1)).toEqual(['D2', 'E2', null, null, null]);
+    expect(getDataAtRow(2)).toEqual(['A3', 'B3', 'C3', 'D3', 'E3']);
+    expect(getDataAtRow(3)).toEqual(['A4', 'B4', 'C4', 'D4', 'E4']);
+    expect(getDataAtRow(4)).toEqual(['A5', 'B5', 'C5', 'D5', 'E5']);
   });
 
   it('should remove from the third row three columns starting from the second column', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(5, 5),
     });
 
-    const removedData = hot.spliceRow(2, 1, 3);
+    const removedData = await spliceRow(2, 1, 3);
 
     expect(removedData).toEqual(['B3', 'C3', 'D3']);
-    expect(hot.getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1']);
-    expect(hot.getDataAtRow(1)).toEqual(['A2', 'B2', 'C2', 'D2', 'E2']);
-    expect(hot.getDataAtRow(2)).toEqual(['A3', 'E3', null, null, null]);
-    expect(hot.getDataAtRow(3)).toEqual(['A4', 'B4', 'C4', 'D4', 'E4']);
-    expect(hot.getDataAtRow(4)).toEqual(['A5', 'B5', 'C5', 'D5', 'E5']);
+    expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1']);
+    expect(getDataAtRow(1)).toEqual(['A2', 'B2', 'C2', 'D2', 'E2']);
+    expect(getDataAtRow(2)).toEqual(['A3', 'E3', null, null, null]);
+    expect(getDataAtRow(3)).toEqual(['A4', 'B4', 'C4', 'D4', 'E4']);
+    expect(getDataAtRow(4)).toEqual(['A5', 'B5', 'C5', 'D5', 'E5']);
   });
 
   it('should replace and append new columns in the second row starting from the second column', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(5, 5),
     });
 
-    const removedData = hot.spliceRow(1, 1, 3, 'X1', 'X2', 'X3', 'X4', 'X5');
+    const removedData = await spliceRow(1, 1, 3, 'X1', 'X2', 'X3', 'X4', 'X5');
 
     expect(removedData).toEqual(['B2', 'C2', 'D2']);
-    expect(hot.getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', null, null]);
-    expect(hot.getDataAtRow(1)).toEqual(['A2', 'X1', 'X2', 'X3', 'X4', 'X5', 'E2']);
-    expect(hot.getDataAtRow(2)).toEqual(['A3', 'B3', 'C3', 'D3', 'E3', null, null]);
-    expect(hot.getDataAtRow(3)).toEqual(['A4', 'B4', 'C4', 'D4', 'E4', null, null]);
-    expect(hot.getDataAtRow(4)).toEqual(['A5', 'B5', 'C5', 'D5', 'E5', null, null]);
+    expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1', null, null]);
+    expect(getDataAtRow(1)).toEqual(['A2', 'X1', 'X2', 'X3', 'X4', 'X5', 'E2']);
+    expect(getDataAtRow(2)).toEqual(['A3', 'B3', 'C3', 'D3', 'E3', null, null]);
+    expect(getDataAtRow(3)).toEqual(['A4', 'B4', 'C4', 'D4', 'E4', null, null]);
+    expect(getDataAtRow(4)).toEqual(['A5', 'B5', 'C5', 'D5', 'E5', null, null]);
   });
 
   it('should trigger beforeChange and afterChange hook with proper arguments', async() => {
     const spyAfter = jasmine.createSpy('after');
     const spyBefore = jasmine.createSpy('before');
-    const hot = handsontable({
+
+    handsontable({
       data: createSpreadsheetData(5, 5),
       beforeChange: spyBefore,
       afterChange: spyAfter,
     });
 
-    hot.spliceRow(2, 1, 3, 'X1');
+    await spliceRow(2, 1, 3, 'X1');
 
     expect(spyBefore.calls.argsFor(0)[0]).toEqual([
       [2, 1, 'B3', 'X1'],
@@ -96,7 +97,7 @@ describe('Core.spliceRow', () => {
       afterCreateCol: spyAfter,
     });
 
-    spliceRow(2, 1, 3, 'X1', 'X2', 'X3', 'X4');
+    await spliceRow(2, 1, 3, 'X1', 'X2', 'X3', 'X4');
 
     expect(spyBefore).toHaveBeenCalledWith(5, 1, 'auto');
     expect(spyAfter).toHaveBeenCalledWith(5, 1, 'auto');

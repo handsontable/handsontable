@@ -50,7 +50,7 @@ describe('MemoryLeakTest', () => {
         const countListenersOfType = (listeners, type) =>
           (listeners.filter(listener => listener.type === type) || []).length;
 
-        const hot = handsontable({
+        handsontable({
           data: [['a', 'b'], ['c', 'd']],
           columns: [
             {
@@ -65,7 +65,7 @@ describe('MemoryLeakTest', () => {
         await keyDownUp('enter');
         await keyDownUp('enter');
 
-        hot.destroy();
+        destroy();
 
         const htmlListenersAfter = await getEventListeners('html');
         const bodyListenersAfter = await getEventListeners('body');

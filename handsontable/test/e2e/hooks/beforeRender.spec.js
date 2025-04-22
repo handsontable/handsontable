@@ -47,13 +47,13 @@ describe('Hook', () => {
 
     it('should be fired as fast render path', async() => {
       const beforeRender = jasmine.createSpy('beforeRender');
+
       const hot = handsontable({
         data: createSpreadsheetData(10, 10),
         beforeRender,
       });
 
       beforeRender.calls.reset();
-
       hot.view.render();
 
       expect(beforeRender).toHaveBeenCalledTimes(1);

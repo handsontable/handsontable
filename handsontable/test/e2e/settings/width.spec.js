@@ -119,7 +119,7 @@ describe('settings', () => {
 
     describe('for columns', () => {
       it('should set the width correctly after changes made during updateSettings', async() => {
-        const hot = handsontable({
+        handsontable({
           startRows: 2,
           fixedColumnsStart: 2,
           columns: [{
@@ -143,7 +143,7 @@ describe('settings', () => {
 
         expect(Handsontable.dom.outerWidth(leftClone.find('tbody tr:nth-child(1) td:nth-child(2)')[0])).toEqual(80);
 
-        hot.updateSettings({
+        await updateSettings({
           manualColumnMove: [2, 0, 1],
           fixedColumnsStart: 1
         });
@@ -151,7 +151,7 @@ describe('settings', () => {
         expect(Handsontable.dom.outerWidth(leftClone.find('tbody tr:nth-child(1) td:nth-child(1)')[0])).toEqual(110);
         expect(leftClone.find('tbody tr:nth-child(1) td:nth-child(2)')[0]).toBe(undefined);
 
-        hot.updateSettings({
+        await updateSettings({
           manualColumnMove: false,
           fixedColumnsStart: 2
         });
@@ -161,7 +161,7 @@ describe('settings', () => {
       });
 
       it('should set the width correctly after changes made during updateSettings when columns are a function', async() => {
-        const hot = handsontable({
+        handsontable({
           startCols: 7,
           startRows: 2,
           fixedColumnsStart: 2,
@@ -195,7 +195,7 @@ describe('settings', () => {
 
         expect(Handsontable.dom.outerWidth(leftClone.find('tbody tr:nth-child(1) td:nth-child(2)')[0])).toEqual(80);
 
-        hot.updateSettings({
+        await updateSettings({
           manualColumnMove: [2, 0, 1],
           fixedColumnsStart: 1
         });
@@ -203,7 +203,7 @@ describe('settings', () => {
         expect(Handsontable.dom.outerWidth(leftClone.find('tbody tr:nth-child(1) td:nth-child(1)')[0])).toEqual(110);
         expect(leftClone.find('tbody tr:nth-child(1) td:nth-child(2)')[0]).toBe(undefined);
 
-        hot.updateSettings({
+        await updateSettings({
           manualColumnMove: false,
           fixedColumnsStart: 2
         });

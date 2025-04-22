@@ -1121,7 +1121,8 @@ describe('Core_validate', () => {
   it('should call beforeChange exactly once after cell value edit and validator is synchronous', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
     const onBeforeChange = jasmine.createSpy('onBeforeChange');
-    const hot = handsontable({
+
+    handsontable({
       data: createSpreadsheetData(5, 2),
       allowInvalid: false,
       validator(value, callback) {
@@ -1133,8 +1134,7 @@ describe('Core_validate', () => {
 
     expect(onBeforeChange.calls.count()).toEqual(0);
 
-    hot.setDataAtCell(0, 0, 10);
-
+    await setDataAtCell(0, 0, 10);
     await sleep(100); // wait for async validation
 
     expect(onBeforeChange.calls.count()).toEqual(1);
@@ -1143,7 +1143,8 @@ describe('Core_validate', () => {
   it('should call beforeChange exactly once after cell value edit and validator is asynchronous', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
     const onBeforeChange = jasmine.createSpy('onBeforeChange');
-    const hot = handsontable({
+
+    handsontable({
       data: createSpreadsheetData(5, 2),
       allowInvalid: false,
       validator(value, callback) {
@@ -1157,8 +1158,7 @@ describe('Core_validate', () => {
 
     expect(onBeforeChange.calls.count()).toEqual(0);
 
-    hot.setDataAtCell(0, 0, 10);
-
+    await setDataAtCell(0, 0, 10);
     await sleep(100); // wait for async validation
 
     expect(onBeforeChange.calls.count()).toEqual(1);
@@ -1167,7 +1167,8 @@ describe('Core_validate', () => {
   it('should call afterChange exactly once after cell value edit and validator is synchronous', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
     const onAfterChange = jasmine.createSpy('onAfterChange');
-    const hot = handsontable({
+
+    handsontable({
       data: createSpreadsheetData(5, 2),
       allowInvalid: false,
       validator(value, callback) {
@@ -1179,8 +1180,7 @@ describe('Core_validate', () => {
 
     expect(onAfterChange.calls.count()).toEqual(1); // loadData
 
-    hot.setDataAtCell(0, 0, 10);
-
+    await setDataAtCell(0, 0, 10);
     await sleep(100); // wait for async validation
 
     expect(onAfterChange.calls.count()).toEqual(2);
@@ -1189,7 +1189,8 @@ describe('Core_validate', () => {
   it('should call afterChange exactly once after cell value edit and validator is asynchronous', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
     const onAfterChange = jasmine.createSpy('onAfterChange');
-    const hot = handsontable({
+
+    handsontable({
       data: createSpreadsheetData(5, 2),
       allowInvalid: false,
       validator(value, callback) {
@@ -1203,8 +1204,7 @@ describe('Core_validate', () => {
 
     expect(onAfterChange.calls.count()).toEqual(1); // loadData
 
-    hot.setDataAtCell(0, 0, 10);
-
+    await setDataAtCell(0, 0, 10);
     await sleep(100); // wait for async validation
 
     expect(onAfterChange.calls.count()).toEqual(2);
@@ -1907,7 +1907,7 @@ describe('Core_validate', () => {
   it('should open an appropriate editor after cell value is valid again', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
-    const hot = handsontable({
+    handsontable({
       data: arrayOfObjects(),
       columns: [
         {
@@ -1926,7 +1926,7 @@ describe('Core_validate', () => {
 
     await selectCell(0, 0);
 
-    let activeEditor = hot.getActiveEditor();
+    let activeEditor = getActiveEditor();
 
     expect(activeEditor.row).toEqual(0);
     expect(activeEditor.col).toEqual(0);
@@ -1939,7 +1939,7 @@ describe('Core_validate', () => {
     await sleep(200);
 
     onAfterValidate.calls.reset();
-    activeEditor = hot.getActiveEditor();
+    activeEditor = getActiveEditor();
 
     expect(activeEditor.isOpened()).toBe(true); // value is invalid, so editor stays opened
     expect(activeEditor.row).toEqual(0);
@@ -1952,7 +1952,7 @@ describe('Core_validate', () => {
 
     await keyDownUp('enter'); // open editor
 
-    activeEditor = hot.getActiveEditor();
+    activeEditor = getActiveEditor();
 
     expect(activeEditor.row).toEqual(1);
     expect(activeEditor.col).toEqual(0);
@@ -1961,7 +1961,7 @@ describe('Core_validate', () => {
   it('should open an appropriate editor after cell value is valid again when columns is a function', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
-    const hot = handsontable({
+    handsontable({
       data: arrayOfObjects(),
       columns(column) {
         let colMeta = null;
@@ -1991,7 +1991,7 @@ describe('Core_validate', () => {
 
     await selectCell(0, 0);
 
-    let activeEditor = hot.getActiveEditor();
+    let activeEditor = getActiveEditor();
 
     expect(activeEditor.row).toEqual(0);
     expect(activeEditor.col).toEqual(0);
@@ -2004,7 +2004,7 @@ describe('Core_validate', () => {
     await sleep(200);
 
     onAfterValidate.calls.reset();
-    activeEditor = hot.getActiveEditor();
+    activeEditor = getActiveEditor();
 
     expect(activeEditor.isOpened()).toBe(true); // value is invalid, so editor stays opened
     expect(activeEditor.row).toEqual(0);
@@ -2017,7 +2017,7 @@ describe('Core_validate', () => {
 
     await keyDownUp('enter'); // open editor
 
-    activeEditor = hot.getActiveEditor();
+    activeEditor = getActiveEditor();
 
     expect(activeEditor.row).toEqual(1);
     expect(activeEditor.col).toEqual(0);
@@ -2228,7 +2228,7 @@ describe('Core_validate', () => {
   });
 
   it('should call the callback in the `done` function using the renderable indexes (passing them to the renderer)', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(1, 4),
       hiddenColumns: {
         columns: [1]
@@ -2241,11 +2241,11 @@ describe('Core_validate', () => {
       ]
     });
 
-    spyOn(hot.view._wt.wtSettings.settings, 'cellRenderer');
+    spyOn(tableView()._wt.wtSettings.settings, 'cellRenderer');
 
     await promisfy(resolve => validateCells(resolve));
 
-    const mostRecentRendererCallArgs = hot.view._wt.wtSettings.settings.cellRenderer.calls.mostRecent().args;
+    const mostRecentRendererCallArgs = tableView()._wt.wtSettings.settings.cellRenderer.calls.mostRecent().args;
 
     // The `date` column (the one that is being validated) should be described as the `1` (renderable) column.
     expect(mostRecentRendererCallArgs[1]).toEqual(1);

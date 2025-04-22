@@ -53,7 +53,6 @@ describe('Hook', () => {
       });
 
       afterRender.calls.reset();
-
       hot.view.render();
 
       expect(afterRender).toHaveBeenCalledTimes(1);

@@ -398,16 +398,19 @@ describe('Core.alter', () => {
     });
 
     it('should decrement the number of fixed columns, if a fix column is removed', async() => {
-      const hot = handsontable({
+      handsontable({
         startCols: 1,
         startRows: 3,
         fixedColumnsStart: 4
       });
 
       await alter('remove_col', 1, 1);
-      expect(hot.getSettings().fixedColumnsStart).toEqual(3);
+
+      expect(getSettings().fixedColumnsStart).toEqual(3);
+
       await alter('remove_col', 1, 2);
-      expect(hot.getSettings().fixedColumnsStart).toEqual(1);
+
+      expect(getSettings().fixedColumnsStart).toEqual(1);
     });
 
     it('should shift the cell meta according to the new column layout', async() => {

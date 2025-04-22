@@ -14,11 +14,11 @@ describe('settings', () => {
 
   describe('autoWrapCol', () => {
     it('should be `false` by default', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(5, 5)
       });
 
-      expect(hot.getSettings().autoWrapCol).toBe(false);
+      expect(getSettings().autoWrapCol).toBe(false);
     });
 
     // The rest of the E2E tests you can find in the Selection module ./handsontable/src/selection/__tests__/keyboardShortcuts/navigation.spec.js

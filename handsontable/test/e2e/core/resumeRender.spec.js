@@ -31,11 +31,11 @@ describe('Core.resumeRender', () => {
     addHook('beforeViewRender', beforeViewRender);
     addHook('afterViewRender', afterViewRender);
 
-    hot.suspendRender();
-    hot.render();
-    hot.render();
-    hot.render();
-    hot.resumeRender();
+    await suspendRender();
+    await render();
+    await render();
+    await render();
+    await resumeRender();
 
     expect(hot.renderSuspendedCounter).toBe(0);
     expect(hot.view._wt.draw).toHaveBeenCalledOnceWith(false); // slow redraw
@@ -67,11 +67,11 @@ describe('Core.resumeRender', () => {
     addHook('beforeViewRender', beforeViewRender);
     addHook('afterViewRender', afterViewRender);
 
-    hot.suspendRender();
-    hot.selectCell(0, 0);
-    hot.selectCell(1, 1);
-    hot.selectCell(2, 2);
-    hot.resumeRender();
+    await suspendRender();
+    await selectCell(0, 0);
+    await selectCell(1, 1);
+    await selectCell(2, 2);
+    await resumeRender();
 
     expect(hot.renderSuspendedCounter).toBe(0);
     expect(hot.view._wt.draw).toHaveBeenCalledOnceWith(true); // fast redraw
@@ -91,11 +91,13 @@ describe('Core.resumeRender', () => {
     spyOn(hot.view._wt, 'draw');
     spyOn(hot.view._wt.wtOverlays, 'adjustElementsSize');
 
-    hot.suspendRender();
-    hot.view.adjustElementsSize();
-    hot.view.adjustElementsSize();
-    hot.view.adjustElementsSize();
-    hot.resumeRender();
+    await suspendRender();
+
+    tableView().adjustElementsSize();
+    tableView().adjustElementsSize();
+    tableView().adjustElementsSize();
+
+    await resumeRender();
 
     expect(hot.renderSuspendedCounter).toBe(0);
     expect(hot.view._wt.draw).toHaveBeenCalledOnceWith(true); // fast redraw
@@ -110,29 +112,31 @@ describe('Core.resumeRender', () => {
     spyOn(hot.view._wt, 'draw');
     spyOn(hot.view._wt.wtOverlays, 'adjustElementsSize');
 
-    hot.suspendRender();
-    hot.suspendRender();
-    hot.suspendRender();
+    await suspendRender();
+    await suspendRender();
+    await suspendRender();
 
     // fast render
-    hot.selectCell(1, 1);
-    hot.resumeRender();
+    await selectCell(1, 1);
+    await resumeRender();
 
     expect(hot.renderSuspendedCounter).toBe(2);
 
     // slow render
-    hot.render();
-    hot.resumeRender();
+    await render();
+    await resumeRender();
 
     expect(hot.renderSuspendedCounter).toBe(1);
 
     // fast render
-    hot.selectCell(2, 2);
-    hot.view.adjustElementsSize();
-    hot.resumeRender(); // Counter is now equals to 0, it calls render.
-    hot.resumeRender();
-    hot.resumeRender();
-    hot.resumeRender();
+    await selectCell(2, 2);
+
+    tableView().adjustElementsSize();
+
+    await resumeRender(); // Counter is now equals to 0, it calls render.
+    await resumeRender();
+    await resumeRender();
+    await resumeRender();
 
     expect(hot.renderSuspendedCounter).toBe(0);
     expect(hot.view._wt.draw).toHaveBeenCalledOnceWith(false); // slow redraw

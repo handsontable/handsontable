@@ -71,7 +71,7 @@ describe('Core_destroy', () => {
   });
 
   it('should update index mappers cache only when necessary', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [['a'], ['b'], ['c']],
       autoRowSize: true,
       autoColumnSize: true,
@@ -86,8 +86,8 @@ describe('Core_destroy', () => {
     const rowCacheUpdatedCallback = jasmine.createSpy('cacheUpdated');
     const columnCacheUpdatedCallback = jasmine.createSpy('cacheUpdated');
 
-    hot.rowIndexMapper.addLocalHook('cacheUpdated', rowCacheUpdatedCallback);
-    hot.columnIndexMapper.addLocalHook('cacheUpdated', columnCacheUpdatedCallback);
+    rowIndexMapper().addLocalHook('cacheUpdated', rowCacheUpdatedCallback);
+    columnIndexMapper().addLocalHook('cacheUpdated', columnCacheUpdatedCallback);
 
     destroy();
 

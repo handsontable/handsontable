@@ -38,14 +38,14 @@ describe('Core_view', () => {
     spec().$container[0].style.height = '50px';
     spec().$container[0].style.overflow = 'hidden';
 
-    const hot = handsontable({
+    handsontable({
       startRows: 20,
       renderAllRows: true,
     });
 
     await selectCell(0, 0);
 
-    const scrollableElement = hot.view._wt.wtOverlays.topOverlay.mainTableScrollableElement;
+    const scrollableElement = tableView()._wt.wtOverlays.topOverlay.mainTableScrollableElement;
     const initialScrollTop = scrollableElement.scrollTop;
 
     await keyDownUp('arrowdown');
@@ -80,7 +80,7 @@ describe('Core_view', () => {
     spec().$container[0].style.overflow = 'hidden';
     spec().$container[0].style.border = '10px solid #000';
 
-    const hot = handsontable({
+    handsontable({
       startRows: 10,
       startCols: 10,
       colWidths: 50,
@@ -89,7 +89,7 @@ describe('Core_view', () => {
       colHeaders: true,
     });
 
-    const scrollbarSize = hot.view._wt.wtOverlays.scrollbarSize;
+    const scrollbarSize = tableView()._wt.wtOverlays.scrollbarSize;
     const {
       scrollWidth: masterScrollWidth,
       scrollHeight: masterScrollHeight
@@ -609,13 +609,13 @@ describe('Core_view', () => {
     spec().$container[0].style.height = '60px';
     spec().$container[0].style.overflow = 'hidden';
 
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(100, 3)
     });
 
     const beforeRenderCallback = jasmine.createSpy('beforeRenderCallback');
 
-    hot.addHook('beforeViewRender', beforeRenderCallback);
+    await addHook('beforeViewRender', beforeRenderCallback);
 
     await scrollViewportVertically(1000);
 
@@ -627,13 +627,13 @@ describe('Core_view', () => {
     spec().$container[0].style.height = '60px';
     spec().$container[0].style.overflow = 'hidden';
 
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(100, 3)
     });
 
     const beforeRenderCallback = jasmine.createSpy('beforeRenderCallback');
 
-    hot.addHook('beforeViewRender', beforeRenderCallback);
+    await addHook('beforeViewRender', beforeRenderCallback);
 
     await scrollViewportVertically(1000);
 
@@ -645,13 +645,13 @@ describe('Core_view', () => {
     spec().$container[0].style.height = '97px';
     spec().$container[0].style.overflow = 'hidden';
 
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(100, 3)
     });
 
     const beforeRenderCallback = jasmine.createSpy('beforeRenderCallback');
 
-    hot.addHook('beforeViewRender', beforeRenderCallback);
+    await addHook('beforeViewRender', beforeRenderCallback);
 
     await scrollViewportVertically(1000);
 
@@ -663,13 +663,13 @@ describe('Core_view', () => {
     spec().$container[0].style.height = '60px';
     spec().$container[0].style.overflow = 'hidden';
 
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(20, 3)
     });
 
     const afterRenderCallback = jasmine.createSpy('afterRenderCallback');
 
-    hot.addHook('afterViewRender', afterRenderCallback);
+    await addHook('afterViewRender', afterRenderCallback);
 
     await scrollViewportVertically(1000);
 
@@ -681,20 +681,20 @@ describe('Core_view', () => {
     spec().$container[0].style.height = '60px';
     spec().$container[0].style.overflow = 'hidden';
 
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(20, 3)
     });
 
-    hot.addHook('afterViewRender', async() => {
-      hot.view._wt.wtTable.holder.style.overflow = 'scroll';
-      hot.view._wt.wtTable.holder.style.width = '220px';
+    await addHook('afterViewRender', async() => {
+      tableView()._wt.wtTable.holder.style.overflow = 'scroll';
+      tableView()._wt.wtTable.holder.style.width = '220px';
     });
 
     await scrollViewportVertically(1000);
 
     // after afterViewRender hook triggered element style shouldn't changed
-    expect(hot.view._wt.wtTable.holder.style.overflow).toBe('scroll');
-    expect(hot.view._wt.wtTable.holder.style.width).toBe('220px');
+    expect(tableView()._wt.wtTable.holder.style.overflow).toBe('scroll');
+    expect(tableView()._wt.wtTable.holder.style.width).toBe('220px');
   });
 
   it('should correctly calculate the width of the top overlay after the vertical scrollbar disappears (#dev-954)', async() => {
@@ -800,14 +800,14 @@ describe('Core_view', () => {
       colHeaders: true,
     });
 
-    expect(hot.view._wt.wtOverlays.scrollableElement).toBe(window);
+    expect(tableView()._wt.wtOverlays.scrollableElement).toBe(window);
 
     await updateSettings({
       width: 200,
       height: 200,
     });
 
-    expect(hot.view._wt.wtOverlays.scrollableElement).toBe(hot.rootElement.querySelector('.wtHolder'));
+    expect(tableView()._wt.wtOverlays.scrollableElement).toBe(hot.rootElement.querySelector('.wtHolder'));
   });
 
   describe('scroll', () => {
@@ -818,7 +818,7 @@ describe('Core_view', () => {
         overflow: 'hidden',
       });
 
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(50, 50),
         colHeaders: true,
         rowHeaders: true,
@@ -840,8 +840,8 @@ describe('Core_view', () => {
 
       // If run on a browser different than Chrome or a higher density display, the event is listened on a different element (https://github.com/handsontable/handsontable/pull/5921)
       if (!(/Chrome/.test(navigator.userAgent) && /Google/.test(navigator.vendor))
-        || hot.view._wt.rootWindow.devicePixelRatio && hot.view._wt.rootWindow.devicePixelRatio > 1) {
-        hot.view._wt.wtTable.wtRootElement.dispatchEvent(wheelEvt);
+        || tableView()._wt.rootWindow.devicePixelRatio && tableView()._wt.rootWindow.devicePixelRatio > 1) {
+        tableView()._wt.wtTable.wtRootElement.dispatchEvent(wheelEvt);
 
       } else {
         spec().$container.find('.ht_clone_top_inline_start_corner .wtHolder')[0].dispatchEvent(wheelEvt);
@@ -861,7 +861,7 @@ describe('Core_view', () => {
         margin: '2000px',
       });
 
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(50, 50),
         colHeaders: true,
         rowHeaders: true,
@@ -878,8 +878,8 @@ describe('Core_view', () => {
 
       // If run on a browser different than Chrome or a higher density display, the event is listened on a different element (https://github.com/handsontable/handsontable/pull/5921)
       if (!(/Chrome/.test(navigator.userAgent) && /Google/.test(navigator.vendor))
-        || hot.view._wt.rootWindow.devicePixelRatio && hot.view._wt.rootWindow.devicePixelRatio > 1) {
-        hot.view._wt.wtTable.wtRootElement.dispatchEvent(wheelEvt);
+        || tableView()._wt.rootWindow.devicePixelRatio && tableView()._wt.rootWindow.devicePixelRatio > 1) {
+        tableView()._wt.wtTable.wtRootElement.dispatchEvent(wheelEvt);
 
       } else {
         spec().$container.find('.ht_clone_top_inline_start_corner .wtHolder')[0].dispatchEvent(wheelEvt);
@@ -897,18 +897,18 @@ describe('Core_view', () => {
 
   describe('fixed column row heights', () => {
     it('should be the same as the row heights in the main table', async() => {
-      const hot = handsontable({
+      handsontable({
         data: [['A', 'B', 'C', 'D'], ['a', 'b', 'c\nc', 'd'], ['aa', 'bb', 'cc', 'dd']],
         startRows: 3,
         startCols: 4,
         fixedColumnsStart: 2,
       });
 
-      expect(hot.getCell(1, 2).clientHeight).toEqual(hot.getCell(1, 1).clientHeight);
+      expect(getCell(1, 2).clientHeight).toEqual(getCell(1, 1).clientHeight);
 
-      hot.setDataAtCell(1, 2, 'c');
+      await setDataAtCell(1, 2, 'c');
 
-      expect(hot.getCell(1, 2).clientHeight).toEqual(hot.getCell(1, 1).clientHeight);
+      expect(getCell(1, 2).clientHeight).toEqual(getCell(1, 1).clientHeight);
     });
 
     it('should be the same as the row heights in the main table (after scroll)', async() => {
@@ -946,7 +946,7 @@ describe('Core_view', () => {
       myData[10][3] = 'very\nlong\ntext';
       myData[15][3] = 'very\nlong\ntext';
 
-      const hot = handsontable({
+      handsontable({
         data: myData,
         startRows: 3,
         startCols: 4,
@@ -956,7 +956,7 @@ describe('Core_view', () => {
         height: 200
       });
 
-      const rowHeight = hot.getCell(1, 3).clientHeight;
+      const rowHeight = getCell(1, 3).clientHeight;
 
       expect(spec().$container.find('.ht_clone_top_inline_start_corner tbody tr:eq(1) td:eq(1)')[0].clientHeight)
         .toEqual(rowHeight);

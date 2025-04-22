@@ -16,7 +16,7 @@ describe('Scrolling', () => {
     handsontable({
       width: 400,
       height: 400,
-      data: Handsontable.helper.createSpreadsheetObjectData(100, 15)
+      data: createSpreadsheetObjectData(100, 15)
     });
 
     const $htCore = $(getHtCore());
@@ -36,7 +36,7 @@ describe('Scrolling', () => {
 
   it('should load cells below the viewport on scroll down (dimensions of the table was not set)', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetObjectData(100, 15)
+      data: createSpreadsheetObjectData(100, 15)
     });
 
     const $htCore = $(getHtCore());

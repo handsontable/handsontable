@@ -12,11 +12,11 @@ describe('settings', () => {
 
   describe('disableVisualSelection', () => {
     it('should be `false` by default', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(5, 5),
       });
 
-      expect(hot.getSettings().disableVisualSelection).toBe(false);
+      expect(getSettings().disableVisualSelection).toBe(false);
     });
 
     // The rest of the E2E tests you can find in the Selection module ./handsontable/src/selection/__tests__/selection/isDisabledCellSelection.spec.js

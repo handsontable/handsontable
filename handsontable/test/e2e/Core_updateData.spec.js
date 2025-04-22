@@ -609,27 +609,27 @@ describe('Core_updateData', () => {
   });
 
   it('should not reinitialize index mappers after calling updateData', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(5, 5),
     });
 
-    hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
-    hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+    rowIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
+    columnIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
 
     updateData(createSpreadsheetData(5, 5));
 
-    expect(hot.rowIndexMapper.getIndexesSequence()).toEqual([4, 3, 2, 1, 0]);
-    expect(hot.columnIndexMapper.getIndexesSequence()).toEqual([4, 3, 2, 1, 0]);
+    expect(rowIndexMapper().getIndexesSequence()).toEqual([4, 3, 2, 1, 0]);
+    expect(columnIndexMapper().getIndexesSequence()).toEqual([4, 3, 2, 1, 0]);
 
     updateData(createSpreadsheetData(3, 3));
 
-    expect(hot.rowIndexMapper.getIndexesSequence()).toEqual([2, 1, 0]);
-    expect(hot.columnIndexMapper.getIndexesSequence()).toEqual([2, 1, 0]);
+    expect(rowIndexMapper().getIndexesSequence()).toEqual([2, 1, 0]);
+    expect(columnIndexMapper().getIndexesSequence()).toEqual([2, 1, 0]);
 
     updateData(createSpreadsheetData(5, 5));
 
-    expect(hot.rowIndexMapper.getIndexesSequence()).toEqual([2, 1, 0, 3, 4]);
-    expect(hot.columnIndexMapper.getIndexesSequence()).toEqual([2, 1, 0, 3, 4]);
+    expect(rowIndexMapper().getIndexesSequence()).toEqual([2, 1, 0, 3, 4]);
+    expect(columnIndexMapper().getIndexesSequence()).toEqual([2, 1, 0, 3, 4]);
   });
 
   // https://github.com/handsontable/handsontable/issues/1700

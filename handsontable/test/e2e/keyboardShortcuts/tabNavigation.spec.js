@@ -288,7 +288,7 @@ describe('Core navigation keyboard shortcuts', () => {
         autoWrapRow: false,
       }, false, spec().$container1);
 
-      hot.selectCell(-1, 1);
+      await selectCell(-1, 1);
       hot1.selectCell(1, -1);
       hot.deselectCell();
       hot1.deselectCell();
@@ -328,7 +328,7 @@ describe('Core navigation keyboard shortcuts', () => {
         autoWrapRow: false,
       }, false, spec().$container1);
 
-      const map1 = hot.rowIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
+      const map1 = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
 
       map1.setValueAtIndex(2, false);
 
@@ -374,7 +374,7 @@ describe('Core navigation keyboard shortcuts', () => {
         autoWrapRow: false,
       }, false, spec().$container1);
 
-      hot.rowIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
+      rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
       hot1.rowIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
 
       hot.render();
@@ -670,7 +670,7 @@ describe('Core navigation keyboard shortcuts', () => {
         autoWrapRow: false,
       }, false, spec().$container1);
 
-      hot.selectCell(-1, 1);
+      await selectCell(-1, 1);
       hot1.selectCell(1, -1);
       hot.deselectCell();
       hot1.deselectCell();
@@ -710,7 +710,7 @@ describe('Core navigation keyboard shortcuts', () => {
         autoWrapRow: false,
       }, false, spec().$container1);
 
-      const map1 = hot.rowIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
+      const map1 = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
 
       map1.setValueAtIndex(2, false);
 
@@ -756,7 +756,7 @@ describe('Core navigation keyboard shortcuts', () => {
         autoWrapRow: false,
       }, false, spec().$container1);
 
-      hot.rowIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
+      rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
       hot1.rowIndexMapper.createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
 
       hot.render();
@@ -840,7 +840,7 @@ describe('Core navigation keyboard shortcuts', () => {
       autoWrapRow: false,
     }, false, spec().$container1);
 
-    hot.selectCell(1, 1);
+    await selectCell(1, 1);
     hot1.selectCell(0, 0);
     hot.deselectCell();
     hot1.deselectCell();
@@ -889,7 +889,7 @@ describe('Core navigation keyboard shortcuts', () => {
       autoWrapRow: true,
     }, false, spec().$container1);
 
-    hot.selectCell(0, 0);
+    await selectCell(0, 0);
     hot.deselectCell();
     hot1.deselectCell();
 
@@ -934,7 +934,7 @@ describe('Core navigation keyboard shortcuts', () => {
       navigableHeaders: true,
     }, false, spec().$container1);
 
-    hot.selectCell(-1, -1);
+    await selectCell(-1, -1);
     hot.deselectCell();
     hot1.deselectCell();
 
@@ -977,7 +977,7 @@ describe('Core navigation keyboard shortcuts', () => {
       navigableHeaders: true,
     }, false, spec().$container1);
 
-    hot.selectCell(10, 5);
+    await selectCell(10, 5);
     hot.deselectCell();
     hot1.deselectCell();
 
@@ -1021,7 +1021,7 @@ describe('Core navigation keyboard shortcuts', () => {
       autoWrapRow: true,
     }, false, spec().$container1);
 
-    hot.selectCell(0, -1);
+    await selectCell(0, -1);
     hot.deselectCell();
     hot1.selectCell(0, -1);
     hot1.deselectCell();

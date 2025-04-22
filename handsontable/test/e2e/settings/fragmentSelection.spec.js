@@ -54,7 +54,7 @@ describe('settings', () => {
 
     describe('constructor', () => {
       it('should disallow fragmentSelection when set to false', async() => {
-        const hot = handsontable({
+        handsontable({
           data: createSpreadsheetData(4, 4),
           fragmentSelection: false
         });
@@ -72,7 +72,7 @@ describe('settings', () => {
         expect(sel).toEqual(''); // copyPaste has selected space in textarea
 
         const copyEvent = getClipboardEvent();
-        const plugin = hot.getPlugin('CopyPaste');
+        const plugin = getPlugin('CopyPaste');
 
         plugin.onCopy(copyEvent);
 
@@ -80,7 +80,7 @@ describe('settings', () => {
       });
 
       it('should allow fragmentSelection when set to true', async() => {
-        const hot = handsontable({
+        handsontable({
           data: createSpreadsheetData(4, 4),
           fragmentSelection: true
         });
@@ -94,7 +94,7 @@ describe('settings', () => {
         expect(getSelected()).toEqual('B1C1D1');
 
         const copyEvent = getClipboardEvent();
-        const plugin = hot.getPlugin('CopyPaste');
+        const plugin = getPlugin('CopyPaste');
 
         plugin.onCopy(copyEvent);
 
@@ -102,7 +102,7 @@ describe('settings', () => {
       });
 
       it('should allow fragmentSelection from one cell when set to `cell`', async() => {
-        const hot = handsontable({
+        handsontable({
           data: createSpreadsheetData(4, 4),
           fragmentSelection: 'cell'
         });
@@ -119,7 +119,7 @@ describe('settings', () => {
         expect(getSelected()).toEqual('B1');
 
         const copyEvent = getClipboardEvent();
-        const plugin = hot.getPlugin('CopyPaste');
+        const plugin = getPlugin('CopyPaste');
 
         plugin.onCopy(copyEvent);
 
@@ -127,7 +127,7 @@ describe('settings', () => {
       });
 
       it('should disallow fragmentSelection from one cell when set to `cell` and when user selects adjacent cell', async() => {
-        const hot = handsontable({
+        handsontable({
           data: createSpreadsheetData(4, 4),
           fragmentSelection: 'cell'
         });
@@ -142,7 +142,7 @@ describe('settings', () => {
         expect(getSelected()).toEqual(''); // copyPaste has selected space in textarea
 
         const copyEvent = getClipboardEvent();
-        const plugin = hot.getPlugin('CopyPaste');
+        const plugin = getPlugin('CopyPaste');
 
         plugin.onCopy(copyEvent);
 
@@ -186,7 +186,7 @@ describe('settings', () => {
 
     describe('dynamic', () => {
       it('should disallow fragmentSelection when set to false', async() => {
-        const hot = handsontable({
+        handsontable({
           data: createSpreadsheetData(4, 4),
           fragmentSelection: true
         });
@@ -204,7 +204,7 @@ describe('settings', () => {
         expect(sel).toEqual(''); // copyPaste has selected space in textarea
 
         const copyEvent = getClipboardEvent();
-        const plugin = hot.getPlugin('CopyPaste');
+        const plugin = getPlugin('CopyPaste');
 
         plugin.onCopy(copyEvent);
 
@@ -212,7 +212,7 @@ describe('settings', () => {
       });
 
       it('should allow fragmentSelection when set to true', async() => {
-        const hot = handsontable({
+        handsontable({
           data: createSpreadsheetData(4, 4),
           fragmentSelection: false
         });
@@ -228,7 +228,7 @@ describe('settings', () => {
         expect(getSelected()).toEqual('B1C1D1');
 
         const copyEvent = getClipboardEvent();
-        const plugin = hot.getPlugin('CopyPaste');
+        const plugin = getPlugin('CopyPaste');
 
         plugin.onCopy(copyEvent);
 

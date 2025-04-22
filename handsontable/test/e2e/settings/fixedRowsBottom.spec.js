@@ -131,14 +131,14 @@ describe('settings', () => {
     });
 
     it('should overwrite td value in fixed bottom rows when fixedRowsBottom is equal to one', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(20, 10),
         fixedRowsBottom: 1
       });
 
       expect(getBottomClone().find('tbody tr:eq(0) td:eq(0)').html()).toEqual('A20');
 
-      const td = hot.getCell(19, 0, true);
+      const td = getCell(19, 0, true);
 
       td.innerHTML = 'test';
 

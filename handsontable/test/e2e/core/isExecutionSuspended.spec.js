@@ -19,11 +19,11 @@ describe('Core.isExecutionSuspended', () => {
 
     hot.executionSuspendedCounter = 1;
 
-    expect(hot.isExecutionSuspended()).toBe(true);
+    expect(isExecutionSuspended()).toBe(true);
 
     hot.executionSuspendedCounter = 3;
 
-    expect(hot.isExecutionSuspended()).toBe(true);
+    expect(isExecutionSuspended()).toBe(true);
   });
 
   it('should return `false` when the counter is less or equal to 0', async() => {
@@ -33,14 +33,14 @@ describe('Core.isExecutionSuspended', () => {
 
     hot.executionSuspendedCounter = 0;
 
-    expect(hot.isExecutionSuspended()).toBe(false);
+    expect(isExecutionSuspended()).toBe(false);
 
     hot.executionSuspendedCounter = -1;
 
-    expect(hot.isExecutionSuspended()).toBe(false);
+    expect(isExecutionSuspended()).toBe(false);
 
     hot.executionSuspendedCounter = -2;
 
-    expect(hot.isExecutionSuspended()).toBe(false);
+    expect(isExecutionSuspended()).toBe(false);
   });
 });

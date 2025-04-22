@@ -53,7 +53,7 @@ describe('Core.countEmptyCols', () => {
   });
 
   it('should return all visible columns when all rows are trimmed', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [
         ['', 'a', 'b', null, 'c', 0, undefined],
         ['', 'a', 'b', null, 'c', 0, undefined],
@@ -61,7 +61,7 @@ describe('Core.countEmptyCols', () => {
       ],
     });
 
-    const trimmingMap = hot.rowIndexMapper.createAndRegisterIndexMap('map', 'trimming');
+    const trimmingMap = rowIndexMapper().createAndRegisterIndexMap('map', 'trimming');
 
     trimmingMap.setValueAtIndex(0, true);
     trimmingMap.setValueAtIndex(1, true);
@@ -73,7 +73,7 @@ describe('Core.countEmptyCols', () => {
   });
 
   it('should count only empty columns when all rows are hidden', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [
         ['', 'a', 'b', null, 'c', 0, undefined],
         ['', 'a', 'b', null, 'c', 0, undefined],
@@ -81,7 +81,7 @@ describe('Core.countEmptyCols', () => {
       ],
     });
 
-    const hidingMap = hot.rowIndexMapper.createAndRegisterIndexMap('map', 'hiding');
+    const hidingMap = rowIndexMapper().createAndRegisterIndexMap('map', 'hiding');
 
     hidingMap.setValueAtIndex(0, true);
     hidingMap.setValueAtIndex(1, true);
@@ -132,7 +132,7 @@ describe('Core.countEmptyCols', () => {
   });
 
   it('should not count all columns as empty when the all rows are hidden', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [
         ['a', 'b', 'c', 'd', 'e'],
         ['a', 'b', 'c', 'd', 'e'],
@@ -140,7 +140,7 @@ describe('Core.countEmptyCols', () => {
       ],
     });
 
-    hot.rowIndexMapper.createAndRegisterIndexMap('hide', 'hiding', true); // hide all rows
+    rowIndexMapper().createAndRegisterIndexMap('hide', 'hiding', true); // hide all rows
     await render();
 
     expect(countEmptyCols()).toBe(0);
@@ -148,7 +148,7 @@ describe('Core.countEmptyCols', () => {
   });
 
   it('should count all columns as empty when the all rows are trimmed', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [
         ['a', 'b', 'c', 'd', 'e'],
         ['a', 'b', 'c', 'd', 'e'],
@@ -156,7 +156,7 @@ describe('Core.countEmptyCols', () => {
       ],
     });
 
-    hot.rowIndexMapper.createAndRegisterIndexMap('trim', 'trimming', true); // trim all rows
+    rowIndexMapper().createAndRegisterIndexMap('trim', 'trimming', true); // trim all rows
     await render();
 
     expect(countEmptyCols()).toBe(5);
@@ -164,13 +164,13 @@ describe('Core.countEmptyCols', () => {
   });
 
   it('should count all empty columns when there is some columns index translation', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [
         ['', 'a', 'b', '', 'd'],
       ],
     });
 
-    hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+    columnIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
 
     expect(countEmptyCols()).toBe(2);
     expect(countEmptyCols(true)).toBe(1);

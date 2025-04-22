@@ -14,7 +14,7 @@ describe('settings', () => {
     });
 
     it('should not deselect the currently selected cell after clicking on a scrollbar', async() => {
-      const hot = handsontable({
+      handsontable({
         outsideClickDeselects: false,
         minRows: 20,
         minCols: 2,
@@ -24,7 +24,7 @@ describe('settings', () => {
 
       await selectCell(0, 0);
 
-      const holderBoundingBox = hot.view._wt.wtTable.holder.getBoundingClientRect();
+      const holderBoundingBox = tableView()._wt.wtTable.holder.getBoundingClientRect();
       const verticalScrollbarCoords = {
         x: holderBoundingBox.left + holderBoundingBox.width - 3,
         y: holderBoundingBox.top + (holderBoundingBox.height / 2)
@@ -34,14 +34,14 @@ describe('settings', () => {
         y: holderBoundingBox.top + holderBoundingBox.height - 3
       };
 
-      $(hot.view._wt.wtTable.holder).simulate('mousedown', {
+      $(tableView()._wt.wtTable.holder).simulate('mousedown', {
         clientX: verticalScrollbarCoords.x,
         clientY: verticalScrollbarCoords.y
       });
 
       expect(getSelected()).toEqual([[0, 0, 0, 0]]);
 
-      $(hot.view._wt.wtTable.holder).simulate('mousedown', {
+      $(tableView()._wt.wtTable.holder).simulate('mousedown', {
         clientX: horizontalScrollbarCoords.x,
         clientY: horizontalScrollbarCoords.y
       });

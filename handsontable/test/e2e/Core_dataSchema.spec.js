@@ -382,7 +382,7 @@ describe('Core_dataSchema', () => {
     const idAccessor = createAccessorForProperty('id');
     const nameAccessor = createAccessorForProperty('name');
 
-    const hot = handsontable({
+    handsontable({
       data: [
         Model({
           id: 1,
@@ -408,15 +408,15 @@ describe('Core_dataSchema', () => {
       ]
     });
 
-    expect(hot.propToCol(idAccessor)).toEqual(0);
-    expect(hot.propToCol(nameAccessor)).toEqual(1);
+    expect(propToCol(idAccessor)).toEqual(0);
+    expect(propToCol(nameAccessor)).toEqual(1);
   });
 
   it('should translate prop to col, when prop and columns is a function', async() => {
     const idAccessor = createAccessorForProperty('id');
     const nameAccessor = createAccessorForProperty('name');
 
-    const hot = handsontable({
+    handsontable({
       data: [
         Model({
           id: 1,
@@ -449,13 +449,14 @@ describe('Core_dataSchema', () => {
       }
     });
 
-    expect(hot.propToCol(idAccessor)).toEqual(0);
-    expect(hot.propToCol(nameAccessor)).toEqual(1);
+    expect(propToCol(idAccessor)).toEqual(0);
+    expect(propToCol(nameAccessor)).toEqual(1);
   });
 
   it('should create new row data matched to dataSchema (data type as `array`)', async() => {
     const spy = jasmine.createSpy();
-    const hot = handsontable({
+
+    handsontable({
       data: [[{ id: 1 }]],
       dataSchema: [{ id: null }],
       columns: [
@@ -469,7 +470,7 @@ describe('Core_dataSchema', () => {
     expect(spy.calls.argsFor(0)[5]).toEqual({ id: 1 });
 
     spy.calls.reset();
-    hot.alter('insert_row_above', 0);
+    await alter('insert_row_above', 0);
 
     expect(spy.calls.count()).toBe(2);
     expect(spy.calls.argsFor(0)[5]).toEqual({ id: null });
@@ -478,7 +479,8 @@ describe('Core_dataSchema', () => {
 
   it('should create new row data matched to dataSchema (data type as `array`) when columns is a function', async() => {
     const spy = jasmine.createSpy();
-    const hot = handsontable({
+
+    handsontable({
       data: [[{ id: 1 }]],
       dataSchema: [{ id: null }],
       columns(column) {
@@ -502,7 +504,7 @@ describe('Core_dataSchema', () => {
     expect(spy.calls.argsFor(0)[5]).toEqual({ id: 1 });
 
     spy.calls.reset();
-    hot.alter('insert_row_above', 0);
+    await alter('insert_row_above', 0);
 
     expect(spy.calls.count()).toBe(2);
     expect(spy.calls.argsFor(0)[5]).toEqual({ id: null });
@@ -510,13 +512,13 @@ describe('Core_dataSchema', () => {
   });
 
   it('should create an array of objects as the source structure, when dataSchema is defined (as an object) but no data is provided', async() => {
-    const hot = handsontable({
+    handsontable({
       startCols: 2,
       minSpareRows: 4,
       dataSchema: { id: null, name: null, surname: null },
     });
 
-    const dataAtRow = hot.getSourceDataAtRow(0);
+    const dataAtRow = getSourceDataAtRow(0);
 
     expect(Array.isArray(dataAtRow)).toBe(false);
     expect(dataAtRow.id).toEqual(null);
@@ -525,7 +527,7 @@ describe('Core_dataSchema', () => {
   });
 
   it('should create an array of objects as the source structure, when dataSchema is defined (as a function) but no data is provided', async() => {
-    const hot = handsontable({
+    handsontable({
       startCols: 2,
       minSpareRows: 4,
       dataSchema() {
@@ -533,7 +535,7 @@ describe('Core_dataSchema', () => {
       },
     });
 
-    const dataAtRow = hot.getSourceDataAtRow(0);
+    const dataAtRow = getSourceDataAtRow(0);
 
     expect(Array.isArray(dataAtRow)).toBe(false);
     expect(dataAtRow.id).toEqual(null);
@@ -542,13 +544,13 @@ describe('Core_dataSchema', () => {
   });
 
   it('should create an array of objects as the source structure, when dataSchema is defined (as an array with an object) but no data is provided', async() => {
-    const hot = handsontable({
+    handsontable({
       startCols: 2,
       minSpareRows: 4,
       dataSchema: [{ id: null, name: null, surname: null }],
     });
 
-    const dataAtRow = hot.getSourceDataAtRow(0);
+    const dataAtRow = getSourceDataAtRow(0);
 
     expect(Array.isArray(dataAtRow)).toBe(false);
     expect(dataAtRow.id).toEqual(null);

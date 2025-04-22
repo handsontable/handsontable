@@ -13,21 +13,21 @@ describe('Core_listen', () => {
   });
 
   it('should not listen by default after initialization', async() => {
-    const hot = handsontable();
+    handsontable();
 
-    expect(hot.isListening()).toBe(false);
+    expect(isListening()).toBe(false);
   });
 
   it('should listen to changes when cell is selected', async() => {
-    const hot = handsontable();
+    handsontable();
 
-    hot.selectCell(0, 0);
+    await selectCell(0, 0);
 
-    expect(hot.isListening()).toBe(true);
+    expect(isListening()).toBe(true);
   });
 
   it('should listen to changes when the dataset is empty and the corner is clicked', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [],
       rowHeaders: true,
       colHeaders: true,
@@ -39,55 +39,55 @@ describe('Core_listen', () => {
       .simulate('click')
     ;
 
-    expect(hot.isListening()).toBe(true);
+    expect(isListening()).toBe(true);
   });
 
   it('should\'t listen to changes when cell is selected via `selectCell` when `changeListener` argument is `false`', async() => {
-    const hot = handsontable();
+    handsontable();
 
-    hot.unlisten();
+    await unlisten();
 
-    expect(hot.isListening()).toBe(false);
+    expect(isListening()).toBe(false);
 
-    hot.selectCell(0, 0, undefined, undefined, true, false);
+    await selectCell(0, 0, undefined, undefined, true, false);
 
-    expect(hot.isListening()).toBe(false);
+    expect(isListening()).toBe(false);
   });
 
   it('should unlisten changes', async() => {
-    const hot = handsontable();
+    handsontable();
 
-    hot.selectCell(0, 0);
+    await selectCell(0, 0);
 
-    expect(hot.isListening()).toBe(true);
+    expect(isListening()).toBe(true);
 
-    hot.unlisten();
+    await unlisten();
 
-    expect(hot.isListening()).toBe(false);
+    expect(isListening()).toBe(false);
   });
 
   it('should listen to changes, when called after unlisten', async() => {
-    const hot = handsontable();
+    handsontable();
 
-    hot.selectCell(0, 0);
-    hot.unlisten();
-    hot.listen();
+    await selectCell(0, 0);
+    await unlisten();
+    await listen();
 
-    expect(hot.isListening()).toBe(true);
+    expect(isListening()).toBe(true);
   });
 
   // We have no idea why listen should change focus (behavior up to Handsontable 8.0).
   it('should not change focus on active element, when listen was called', async() => {
-    const hot = handsontable();
+    handsontable();
     const input = document.createElement('input');
 
     document.body.appendChild(input);
 
-    hot.selectCell(0, 0);
+    await selectCell(0, 0);
     input.focus();
-    hot.listen();
+    await listen();
 
-    expect(hot.isListening()).toBe(true);
+    expect(isListening()).toBe(true);
     expect(document.activeElement).toBe(input);
 
     document.body.removeChild(input);

@@ -145,7 +145,7 @@ describe('ColHeader', () => {
   });
 
   it('should hide columns headers after updateSettings', async() => {
-    const hot = handsontable({
+    handsontable({
       startCols: 100,
       startRows: 100,
       width: 250,
@@ -157,7 +157,7 @@ describe('ColHeader', () => {
     expect(headers).toBeGreaterThan(0);
     expect(getTopClone().find('thead th').length).toBe(headers);
 
-    hot.updateSettings({
+    await updateSettings({
       colHeaders: false
     });
 
@@ -168,7 +168,7 @@ describe('ColHeader', () => {
   });
 
   it('should show/hide columns headers after updateSettings', async() => {
-    const hot = handsontable({
+    handsontable({
       startCols: 5,
       colHeaders: true
     });
@@ -176,21 +176,21 @@ describe('ColHeader', () => {
     expect(getHtCore().find('thead th').length).toEqual(5);
     expect(getTopClone().find('thead th').length).toEqual(5);
 
-    hot.updateSettings({
+    await updateSettings({
       colHeaders: false
     });
 
     expect(getHtCore().find('thead th').length).toEqual(0);
     expect(getTopClone().width()).toEqual(0);
 
-    hot.updateSettings({
+    await updateSettings({
       colHeaders: true
     });
 
     expect(getHtCore().find('thead th').length).toEqual(5);
     expect(getTopClone().width()).toBeGreaterThan(0);
 
-    hot.updateSettings({
+    await updateSettings({
       colHeaders: false
     });
 
@@ -199,7 +199,7 @@ describe('ColHeader', () => {
   });
 
   it('should show columns headers after updateSettings', async() => {
-    const hot = handsontable({
+    handsontable({
       startCols: 5,
       colHeaders: false
     });
@@ -207,7 +207,7 @@ describe('ColHeader', () => {
     expect(getHtCore().find('thead th').length).toEqual(0);
     expect(getTopClone().find('thead th').length).toEqual(0);
 
-    hot.updateSettings({
+    await updateSettings({
       colHeaders: true
     });
 
@@ -216,7 +216,7 @@ describe('ColHeader', () => {
   });
 
   it('should show new columns headers after updateSettings', async() => {
-    const hot = handsontable({
+    handsontable({
       startCols: 3,
       colHeaders: ['A', 'B', 'C']
     });
@@ -227,7 +227,7 @@ describe('ColHeader', () => {
     expect(htCore.find('thead th:eq(1)').text()).toEqual('B');
     expect(htCore.find('thead th:eq(2)').text()).toEqual('C');
 
-    hot.updateSettings({
+    await updateSettings({
       colHeaders: ['X', 'Y', 'Z']
     });
 
@@ -385,13 +385,13 @@ describe('ColHeader', () => {
   });
 
   it('should allow defining custom column header height using the columnHeaderHeight config option', async() => {
-    const hot = handsontable({
+    handsontable({
       startCols: 3,
       colHeaders: true,
       columnHeaderHeight: 40
     });
 
-    hot.render();
+    await render();
 
     expect(spec().$container.find('th').eq(0).height()).forThemes(({ classic, main, horizon }) => {
       classic.toEqual(40);
@@ -401,7 +401,7 @@ describe('ColHeader', () => {
   });
 
   it('should allow defining custom column header heights using the columnHeaderHeight config option, when multiple column header levels are defined', async() => {
-    const hot = handsontable({
+    handsontable({
       startCols: 3,
       colHeaders: true,
       columnHeaderHeight: [45, 65],
@@ -425,7 +425,7 @@ describe('ColHeader', () => {
       }
     });
 
-    hot.render();
+    await render();
 
     expect(spec().$container.find('.handsontable.ht_clone_top tr:nth-child(1) th:nth-child(1)').height())
       .forThemes(({ classic, main, horizon }) => {
@@ -438,7 +438,7 @@ describe('ColHeader', () => {
   });
 
   it('should display auto-generated headers (the `colHeaders` is set to `true`) in the original order even when columns have been moved', async() => {
-    const hot = handsontable({
+    handsontable({
       rowHeaders: true,
       colHeaders: true,
       startCols: 3,
@@ -446,8 +446,9 @@ describe('ColHeader', () => {
     });
     const htCore = getHtCore();
 
-    hot.columnIndexMapper.setIndexesSequence([2, 1, 0]);
-    hot.render();
+    columnIndexMapper().setIndexesSequence([2, 1, 0]);
+
+    await render();
 
     expect(htCore.find('thead th:eq(0)').text()).toEqual(' '); // Row header
     expect(htCore.find('thead th:eq(1)').text()).toEqual('A');
@@ -456,7 +457,7 @@ describe('ColHeader', () => {
   });
 
   it('should move the defined headers with columns when the `colHeaders` option is set to a custom value and columns have been moved', async() => {
-    const hot = handsontable({
+    handsontable({
       rowHeaders: true,
       colHeaders: ['0', '1', '2'],
       startCols: 3,
@@ -464,8 +465,9 @@ describe('ColHeader', () => {
     });
     const htCore = getHtCore();
 
-    hot.columnIndexMapper.setIndexesSequence([2, 1, 0]);
-    hot.render();
+    columnIndexMapper().setIndexesSequence([2, 1, 0]);
+
+    await render();
 
     expect(htCore.find('thead th:eq(0)').text()).toEqual(' '); // Row header
     expect(htCore.find('thead th:eq(1)').text()).toEqual('2');

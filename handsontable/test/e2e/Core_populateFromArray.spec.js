@@ -156,7 +156,7 @@ describe('Core_populateFromArray', () => {
 
   describe('should shift values down', () => {
     it('populating from the start of the table', async() => {
-      const hot = handsontable({
+      handsontable({
         data: [
           ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
           ['2008', 10, 11, 12, 13],
@@ -169,7 +169,7 @@ describe('Core_populateFromArray', () => {
 
       const afterChange = jasmine.createSpy('afterChange');
 
-      hot.addHook('afterChange', afterChange);
+      await addHook('afterChange', afterChange);
 
       await populateFromArray(0, 0, [['test', 'test2'], ['test3', 'test4']], 2, 2, null, 'shift_down');
 
@@ -198,7 +198,7 @@ describe('Core_populateFromArray', () => {
     });
 
     it('populating from the end of the table', async() => {
-      const hot = handsontable({
+      handsontable({
         data: [
           ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
           ['2008', 10, 11, 12, 13],
@@ -211,7 +211,7 @@ describe('Core_populateFromArray', () => {
 
       const afterChange = jasmine.createSpy('afterChange');
 
-      hot.addHook('afterChange', afterChange);
+      await addHook('afterChange', afterChange);
 
       await populateFromArray(1, 3, [
         ['test', 'test2', 'test3'],
@@ -240,7 +240,7 @@ describe('Core_populateFromArray', () => {
     });
 
     it('populating full data of current table', async() => {
-      const hot = handsontable({
+      handsontable({
         data: [
           ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
           ['2008', 10, 11, 12, 13],
@@ -253,7 +253,7 @@ describe('Core_populateFromArray', () => {
 
       const afterChange = jasmine.createSpy('afterChange');
 
-      hot.addHook('afterChange', afterChange);
+      await addHook('afterChange', afterChange);
 
       const data = getData();
 
@@ -287,7 +287,7 @@ describe('Core_populateFromArray', () => {
 
   describe('should shift values right', () => {
     it('populating from the start of the table', async() => {
-      const hot = handsontable({
+      handsontable({
         data: [
           ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
           ['2008', 10, 11, 12, 13],
@@ -300,7 +300,7 @@ describe('Core_populateFromArray', () => {
 
       const afterChange = jasmine.createSpy('afterChange');
 
-      hot.addHook('afterChange', afterChange);
+      await addHook('afterChange', afterChange);
 
       await populateFromArray(0, 0, [['test', 'test2'], ['test3', 'test4']], 2, 2, null, 'shift_right');
 
@@ -328,7 +328,7 @@ describe('Core_populateFromArray', () => {
     });
 
     it('populating from the end of the table', async() => {
-      const hot = handsontable({
+      handsontable({
         data: [
           ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
           ['2008', 10, 11, 12, 13],
@@ -341,7 +341,7 @@ describe('Core_populateFromArray', () => {
 
       const afterChange = jasmine.createSpy('afterChange');
 
-      hot.addHook('afterChange', afterChange);
+      await addHook('afterChange', afterChange);
 
       await populateFromArray(4, 2, [['test', 'test2'], ['test3', 'test4']], null, null, null, 'shift_right');
 
@@ -368,7 +368,7 @@ describe('Core_populateFromArray', () => {
     });
 
     it('populating full data of current table', async() => {
-      const hot = handsontable({
+      handsontable({
         data: [
           ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
           ['2008', 10, 11, 12, 13],
@@ -381,7 +381,7 @@ describe('Core_populateFromArray', () => {
 
       const afterChange = jasmine.createSpy('afterChange');
 
-      hot.addHook('afterChange', afterChange);
+      await addHook('afterChange', afterChange);
 
       const data = getData();
 
@@ -425,15 +425,15 @@ describe('Core_populateFromArray', () => {
     });
 
     it('should expand the dataset properly #6929', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(1, 5),
       });
 
       const afterChange = jasmine.createSpy('afterChange');
 
-      hot.addHook('afterChange', afterChange);
+      await addHook('afterChange', afterChange);
 
-      hot.populateFromArray(0, 0, [
+      await populateFromArray(0, 0, [
         ['test', 'test2'],
         ['test3', 'test4']
       ], 3, 3, null, 'shift_right');

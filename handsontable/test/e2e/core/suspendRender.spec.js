@@ -32,10 +32,10 @@ describe('Core.suspendRender', () => {
 
     expect(hot.renderSuspendedCounter).toBe(0);
 
-    hot.suspendRender();
-    hot.render();
-    hot.render();
-    hot.render();
+    await suspendRender();
+    await render();
+    await render();
+    await render();
 
     expect(hot.renderSuspendedCounter).toBe(1);
     expect(hot.forceFullRender).toBe(true);
@@ -67,8 +67,8 @@ describe('Core.suspendRender', () => {
 
     expect(hot.renderSuspendedCounter).toBe(0);
 
-    hot.suspendRender();
-    hot.selectCell(1, 1);
+    await suspendRender();
+    await selectCell(1, 1);
 
     expect(hot.renderSuspendedCounter).toBe(1);
     expect(hot.forceFullRender).toBe(false);
@@ -100,16 +100,16 @@ describe('Core.suspendRender', () => {
 
     expect(hot.renderSuspendedCounter).toBe(0);
 
-    hot.suspendRender();
-    hot.render();
-    hot.suspendRender();
-    hot.render();
-    hot.suspendRender();
-    hot.suspendRender();
-    hot.selectCell(1, 1);
-    hot.suspendRender();
-    hot.render();
-    hot.selectCell(1, 1);
+    await suspendRender();
+    await render();
+    await suspendRender();
+    await render();
+    await suspendRender();
+    await suspendRender();
+    await selectCell(1, 1);
+    await suspendRender();
+    await render();
+    await selectCell(1, 1);
 
     expect(hot.renderSuspendedCounter).toBe(5);
     expect(hot.view._wt.draw).not.toHaveBeenCalled();

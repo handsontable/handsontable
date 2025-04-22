@@ -30,7 +30,7 @@ describe('Hook', () => {
     });
 
     it('should add new columns by default when `minSpareCols` is defined', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(5, 3),
         autoWrapRow: false,
         minSpareCols: 2,
@@ -38,14 +38,14 @@ describe('Hook', () => {
 
       await selectCell(4, 4);
 
-      hot.selection.transformStart(0, 1, true);
+      selection().transformStart(0, 1, true);
 
       expect(countRows()).toBe(5);
       expect(countCols()).toBe(6);
     });
 
     it('should prevent adding new columns when `minSpareCols` is defined and the action is interrupted', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(5, 3),
         autoWrapRow: false,
         minSpareCols: 2,
@@ -56,7 +56,7 @@ describe('Hook', () => {
 
       await selectCell(4, 4);
 
-      hot.selection.transformStart(0, 1, true);
+      selection().transformStart(0, 1, true);
 
       expect(countRows()).toBe(5);
       expect(countCols()).toBe(5);

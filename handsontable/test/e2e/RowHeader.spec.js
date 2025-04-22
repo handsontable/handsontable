@@ -91,7 +91,7 @@ describe('RowHeader', () => {
   });
 
   it('should hide rows headers after updateSetting', async() => {
-    const hot = handsontable({
+    handsontable({
       startCols: 100,
       startRows: 100,
       width: 250,
@@ -103,7 +103,7 @@ describe('RowHeader', () => {
     expect(headers).toBeGreaterThan(0);
     expect(getInlineStartClone().find('tbody th').length).toEqual(headers);
 
-    hot.updateSettings({
+    await updateSettings({
       rowHeaders: false
     });
 
@@ -114,7 +114,7 @@ describe('RowHeader', () => {
   });
 
   it('should show rows headers after updateSettings', async() => {
-    const hot = handsontable({
+    handsontable({
       startRows: 5,
       rowHeaders: false
     });
@@ -122,7 +122,7 @@ describe('RowHeader', () => {
     expect(getHtCore().find('tbody th').length).toEqual(0);
     expect(getInlineStartClone().find('tbody th').length).toEqual(0);
 
-    hot.updateSettings({
+    await updateSettings({
       rowHeaders: true
     });
 
@@ -131,7 +131,7 @@ describe('RowHeader', () => {
   });
 
   it('should show/hide rows headers after multiple updateSettings', async() => {
-    const hot = handsontable({
+    handsontable({
       startRows: 5,
       rowHeaders: false
     });
@@ -139,21 +139,21 @@ describe('RowHeader', () => {
     expect(getHtCore().find('tbody th').length).toEqual(0);
     expect(getInlineStartClone().find('tbody th').length).toEqual(0);
 
-    hot.updateSettings({
+    await updateSettings({
       rowHeaders: true
     });
 
     expect(getHtCore().find('tbody th').length).toEqual(5);
     expect(getInlineStartClone().width()).toBeGreaterThan(0);
 
-    hot.updateSettings({
+    await updateSettings({
       rowHeaders: false
     });
 
     expect(getHtCore().find('tbody th').length).toEqual(0);
     expect(getInlineStartClone().width()).toEqual(0);
 
-    hot.updateSettings({
+    await updateSettings({
       rowHeaders: true
     });
 
@@ -162,7 +162,7 @@ describe('RowHeader', () => {
   });
 
   it('should show new rows headers after updateSettings', async() => {
-    const hot = handsontable({
+    handsontable({
       startCols: 3,
       rowHeaders: ['A', 'B', 'C']
     });
@@ -173,7 +173,7 @@ describe('RowHeader', () => {
     expect(leftClone.find('tbody tr:eq(1) th:eq(0)').text()).toEqual('B');
     expect(leftClone.find('tbody tr:eq(2) th:eq(0)').text()).toEqual('C');
 
-    hot.updateSettings({
+    await updateSettings({
       rowHeaders: ['X', 'Y', 'Z']
     });
 
@@ -219,7 +219,7 @@ describe('RowHeader', () => {
   });
 
   it('should allow defining custom column header heights using the columnHeaderHeight config option, when multiple column header levels are defined', async() => {
-    const hot = handsontable({
+    handsontable({
       startCols: 3,
       rowHeaders: true,
       rowHeaderWidth: [66, 96],
@@ -243,7 +243,7 @@ describe('RowHeader', () => {
       }
     });
 
-    hot.render();
+    await render();
 
     expect(spec().$container.find('.handsontable.ht_clone_inline_start tr:nth-child(1) th:nth-child(1)').outerWidth())
       .toEqual(66);

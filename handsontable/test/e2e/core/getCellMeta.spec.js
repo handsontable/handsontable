@@ -13,13 +13,13 @@ describe('Core.getCellMeta', () => {
   });
 
   it('should get proper cell meta when indexes was modified', async() => {
-    const hot = handsontable({
+    handsontable({
       minRows: 5,
       minCols: 5,
     });
 
-    hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
-    hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+    columnIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
+    rowIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
 
     const cellMeta = getCellMeta(0, 1);
 
@@ -279,7 +279,7 @@ describe('Core.getCellMeta', () => {
     let rowInsideHook;
     let colInsideHook;
 
-    const hot = handsontable({
+    handsontable({
       minRows: 5,
       minCols: 5,
       beforeGetCellMeta(row, col) {
@@ -288,11 +288,12 @@ describe('Core.getCellMeta', () => {
       },
     });
 
-    hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
-    hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+    rowIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
+    columnIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
 
     await render(); // It triggers the table "slow render" cycle that clears the cell meta cache
-    hot.getCellMeta(0, 0);
+
+    getCellMeta(0, 0);
 
     // The last beforeGetCellMeta call should be called with visual index 4, 4
     expect(rowInsideHook).toBe(4);
@@ -303,7 +304,7 @@ describe('Core.getCellMeta', () => {
     let rowInsideHook;
     let colInsideHook;
 
-    const hot = handsontable({
+    handsontable({
       minRows: 5,
       minCols: 5,
       afterGetCellMeta(row, col) {
@@ -312,11 +313,12 @@ describe('Core.getCellMeta', () => {
       }
     });
 
-    hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
-    hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+    rowIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
+    columnIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
 
     await render(); // It triggers the table "slow render" cycle that clears the cell meta cache
-    hot.getCellMeta(0, 1);
+
+    getCellMeta(0, 1);
 
     // The last beforeGetCellMeta call should be called with visual index 4, 4
     expect(rowInsideHook).toBe(4);

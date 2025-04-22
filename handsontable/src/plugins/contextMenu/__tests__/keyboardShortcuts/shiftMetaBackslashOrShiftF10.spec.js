@@ -208,16 +208,18 @@ describe('ContextMenu keyboard shortcut', () => {
         left: cellRect.width,
         above: -cellRect.height,
       });
-      expect(tableView()._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(1766);
-        main.toBe(1961);
-        horizon.toBe(2284);
-      });
-      expect(tableView()._wt.wtOverlays.topOverlay.getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(8939);
-        main.toBe(11345);
-        horizon.toBe(14553);
-      });
+      expect(inlineStartOverlay().getScrollPosition())
+        .forThemes(({ classic, main, horizon }) => {
+          classic.toBe(1766);
+          main.toBe(1961);
+          horizon.toBe(2284);
+        });
+      expect(topOverlay().getScrollPosition())
+        .forThemes(({ classic, main, horizon }) => {
+          classic.toBe(8939);
+          main.toBe(11345);
+          horizon.toBe(14553);
+        });
     });
 
     it('should not close the menu after hitting the same shortcut many times', async() => {

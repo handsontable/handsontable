@@ -69,8 +69,8 @@ describe('Comments keyboard shortcut', () => {
       expect(plugin.range).toEqualCellRange('highlight: 400,40 from: 400,40 to: 400,40');
 
       // 2050 column width - 250 viewport width + 15 scrollbar compensation + 1 header border compensation
-      expect(tableView()._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(1816);
-      expect(tableView()._wt.wtOverlays.topOverlay.getScrollPosition()).forThemes(({ classic, main, horizon }) => {
+      expect(inlineStartOverlay().getScrollPosition()).toBe(1816);
+      expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(8966);
         main.toBe(11375);
         horizon.toBe(14591);

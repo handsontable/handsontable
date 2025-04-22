@@ -28,14 +28,14 @@ describe('Hook', () => {
     it('should be fired once after moving multiple columns', async() => {
       const afterRowSequenceChange = jasmine.createSpy('afterRowSequenceChange');
 
-      const hot = handsontable({
+      handsontable({
         colHeaders: true,
         afterRowSequenceChange,
       });
 
       afterRowSequenceChange.calls.reset();
 
-      hot.rowIndexMapper.moveIndexes([1, 2], 0);
+      rowIndexMapper().moveIndexes([1, 2], 0);
 
       expect(afterRowSequenceChange).toHaveBeenCalledWith('move');
       expect(afterRowSequenceChange).toHaveBeenCalledTimes(1);
@@ -76,14 +76,14 @@ describe('Hook', () => {
     it('should be fired once after updating indexes using IndexMapper API', async() => {
       const afterRowSequenceChange = jasmine.createSpy('afterRowSequenceChange');
 
-      const hot = handsontable({
+      handsontable({
         colHeaders: true,
         afterRowSequenceChange,
       });
 
       afterRowSequenceChange.calls.reset();
 
-      hot.rowIndexMapper.setIndexesSequence([3, 2, 1]);
+      rowIndexMapper().setIndexesSequence([3, 2, 1]);
 
       expect(afterRowSequenceChange).toHaveBeenCalledWith('update');
       expect(afterRowSequenceChange).toHaveBeenCalledTimes(1);

@@ -13,31 +13,31 @@ describe('Core.countSourceCols', () => {
   });
 
   it('should return properly index from ', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [['', '', '', '', '', '', '', '', '', '', '', '', '', '', '']],
       columns(column) {
         return [1, 5, 9].indexOf(column) > -1 ? {} : null;
       }
     });
 
-    expect(hot.countSourceCols()).toBe(15);
+    expect(countSourceCols()).toBe(15);
   });
 
   it('should return the number of columns in the provided dataset, regardless of the `columns` settings (when the dataset is an array of arrays).', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [['', '', '', '', '', '', '', '', '', '', '', '', '', '', '']],
       columns: [{}]
     });
 
-    expect(hot.countSourceCols()).toBe(15);
+    expect(countSourceCols()).toBe(15);
   });
 
   it('should return the number of columns in the provided dataset, regardless of the `columns` settings (when the dataset is an array of objects).', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [{ a: 0, b: 1, c: 2 }],
       columns: [{ data: 'a' }]
     });
 
-    expect(hot.countSourceCols()).toBe(3);
+    expect(countSourceCols()).toBe(3);
   });
 });

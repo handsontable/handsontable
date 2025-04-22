@@ -30,7 +30,7 @@ describe('Hook', () => {
     });
 
     it('should add new rows by default when `minSpareRows` is defined', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(3, 5),
         autoWrapCol: false,
         minSpareRows: 2,
@@ -38,14 +38,14 @@ describe('Hook', () => {
 
       await selectCell(4, 4);
 
-      hot.selection.transformStart(1, 0, true);
+      selection().transformStart(1, 0, true);
 
       expect(countRows()).toBe(6);
       expect(countCols()).toBe(5);
     });
 
     it('should prevent adding new rows when `minSpareRows` is defined and the action is interrupted', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(3, 5),
         autoWrapCol: false,
         minSpareRows: 2,
@@ -56,7 +56,7 @@ describe('Hook', () => {
 
       await selectCell(4, 4);
 
-      hot.selection.transformStart(1, 0, true);
+      selection().transformStart(1, 0, true);
 
       expect(countRows()).toBe(5);
       expect(countCols()).toBe(5);

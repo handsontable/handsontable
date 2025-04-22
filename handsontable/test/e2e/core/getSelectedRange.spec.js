@@ -12,7 +12,7 @@ describe('Core.getSelectedRange', () => {
 
   it('should return valid coordinates', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetObjectData(10, 10),
+      data: createSpreadsheetObjectData(10, 10),
       selectionMode: 'multiple',
     });
 

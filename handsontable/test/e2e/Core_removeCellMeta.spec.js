@@ -37,13 +37,13 @@ describe('Core_removeCellMeta', () => {
   });
 
   it('should remove proper cell meta when indexes was modified', async() => {
-    const hot = handsontable({
+    handsontable({
       minRows: 5,
       minCols: 5
     });
 
-    hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
-    hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+    rowIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
+    columnIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
 
     await setCellMeta(0, 0, 'key', 'value');
     removeCellMeta(0, 0, 'key');
@@ -108,7 +108,7 @@ describe('Core_removeCellMeta', () => {
     let rowInsideHook;
     let colInsideHook;
 
-    const hot = handsontable({
+    handsontable({
       minRows: 5,
       minCols: 5,
       beforeRemoveCellMeta(row, col) {
@@ -117,8 +117,8 @@ describe('Core_removeCellMeta', () => {
       }
     });
 
-    hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
-    hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+    rowIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
+    columnIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
 
     removeCellMeta(0, 1, 'key');
 
@@ -130,7 +130,7 @@ describe('Core_removeCellMeta', () => {
     let rowInsideHook;
     let colInsideHook;
 
-    const hot = handsontable({
+    handsontable({
       minRows: 5,
       minCols: 5,
       afterRemoveCellMeta(row, col) {
@@ -139,8 +139,8 @@ describe('Core_removeCellMeta', () => {
       }
     });
 
-    hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
-    hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+    rowIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
+    columnIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
 
     removeCellMeta(0, 1, 'key');
 

@@ -11,27 +11,27 @@ describe('Core.selectCells', () => {
   });
 
   it('should call the `selectCells` method of the Selection module internally', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetObjectData(5, 5),
     });
 
-    spyOn(hot.selection, 'selectCells').and.returnValue('return value');
+    spyOn(selection(), 'selectCells').and.returnValue('return value');
 
     expect(await selectCells()).toBe('return value');
-    expect(hot.selection.selectCells).toHaveBeenCalledWith([[]]);
-    expect(hot.selection.selectCells).toHaveBeenCalledTimes(1);
+    expect(selection().selectCells).toHaveBeenCalledWith([[]]);
+    expect(selection().selectCells).toHaveBeenCalledTimes(1);
 
-    hot.selection.selectCells.calls.reset();
+    selection().selectCells.calls.reset();
 
     expect(await selectCells('arg1')).toBe('return value');
-    expect(hot.selection.selectCells).toHaveBeenCalledWith('arg1');
-    expect(hot.selection.selectCells).toHaveBeenCalledTimes(1);
+    expect(selection().selectCells).toHaveBeenCalledWith('arg1');
+    expect(selection().selectCells).toHaveBeenCalledTimes(1);
 
-    hot.selection.selectCells.calls.reset();
+    selection().selectCells.calls.reset();
 
     expect(await selectCells('arg1', 'arg2')).toBe('return value');
-    expect(hot.selection.selectCells).toHaveBeenCalledWith('arg1');
-    expect(hot.selection.selectCells).toHaveBeenCalledTimes(1);
+    expect(selection().selectCells).toHaveBeenCalledWith('arg1');
+    expect(selection().selectCells).toHaveBeenCalledTimes(1);
   });
 
   it('should not deselect current selection when selectCells is called without arguments', async() => {

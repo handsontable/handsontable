@@ -13,7 +13,7 @@ describe('Date Editor', () => {
   });
 
   it('should close the editor after select the date', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [
         ['01/14/2006'],
         ['12/01/2008'],
@@ -49,7 +49,7 @@ describe('Date Editor', () => {
   });
 
   it('should display the correct date in the cell after select the date', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [
         ['01/14/2006'],
         ['12/01/2008'],

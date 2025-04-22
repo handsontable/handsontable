@@ -13,13 +13,13 @@ describe('Core.toTableElement', () => {
   });
 
   it('should convert instance into HTMLTableElement', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(2, 2),
       colHeaders: true,
       rowHeaders: true,
     });
 
-    const newTable = hot.toTableElement();
+    const newTable = toTableElement();
 
     expect(newTable.nodeName).toBe('TABLE');
     expect(newTable.tBodies.length).toBe(1);

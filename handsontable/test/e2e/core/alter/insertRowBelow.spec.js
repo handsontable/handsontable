@@ -527,13 +527,13 @@ describe('Core.alter', () => {
     });
 
     it('should insert row at proper position when there were some row sequence changes', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(5, 5)
       });
 
-      hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
-      hot.render();
+      rowIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
 
+      await render();
       await alter('insert_row_below', 1, 1);
 
       expect(getDataAtCol(0)).toEqual(['A5', 'A4', null, 'A3', 'A2', 'A1']);

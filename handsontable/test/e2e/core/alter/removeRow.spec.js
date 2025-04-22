@@ -512,16 +512,19 @@ describe('Core.alter', () => {
     });
 
     it('should decrement the number of fixed rows, if a fix row is removed', async() => {
-      const hot = handsontable({
+      handsontable({
         startCols: 1,
         startRows: 3,
         fixedRowsTop: 4
       });
 
       await alter('remove_row', 1, 1);
-      expect(hot.getSettings().fixedRowsTop).toEqual(3);
+
+      expect(getSettings().fixedRowsTop).toEqual(3);
+
       await alter('remove_row', 1, 2);
-      expect(hot.getSettings().fixedRowsTop).toEqual(1);
+
+      expect(getSettings().fixedRowsTop).toEqual(1);
     });
 
     it('should shift the cell meta according to the new row layout', async() => {

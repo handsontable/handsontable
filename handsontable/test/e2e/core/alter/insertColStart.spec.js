@@ -632,11 +632,11 @@ describe('Core.alter', () => {
       });
 
       it('should insert column at proper position when there were some column sequence changes', async() => {
-        const hot = handsontable({
+        handsontable({
           data: createSpreadsheetData(5, 5)
         });
 
-        hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+        columnIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
 
         await alter('insert_col_start', 1, 1);
 

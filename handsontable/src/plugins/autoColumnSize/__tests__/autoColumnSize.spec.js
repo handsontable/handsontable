@@ -483,7 +483,8 @@ describe('AutoColumnSize', () => {
       'D_longer',
       'E_longer',
     ];
-    const hot = handsontable({
+
+    handsontable({
       data: createSpreadsheetData(5, 5),
       colHeaders: getHeaders(),
       rowHeaders: true,

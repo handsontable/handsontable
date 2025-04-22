@@ -15,7 +15,7 @@ describe('Events', () => {
   it('should translate tap (`touchstart`) to `mousedown`', async() => {
     const afterOnCellMouseDown = jasmine.createSpy('onAfterOnCellMouseDown');
 
-    const hot = handsontable({
+    handsontable({
       width: 400,
       height: 400,
       afterOnCellMouseDown
@@ -36,7 +36,7 @@ describe('Events', () => {
   it('should translate double tap to `dblclick`', async() => {
     const onCellDblClick = jasmine.createSpy('onCellDblClick');
 
-    const hot = handsontable({
+    handsontable({
       width: 400,
       height: 400,
     });
@@ -59,7 +59,7 @@ describe('Events', () => {
   });
 
   it('should "preventDefault" only the second "touchend" event while double-tapping (issue #7824)', async() => {
-    const hot = handsontable({
+    handsontable({
       width: 400,
       height: 400,
     });
@@ -91,7 +91,7 @@ describe('Events', () => {
   });
 
   it('should not "preventDefault" the second "touchend" event when interactive element is clicked (PR#7980)', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [['<a href="#justForTest">click me!</a>'], []],
       width: 400,
       height: 400,
@@ -117,7 +117,7 @@ describe('Events', () => {
   });
 
   it('should "preventDefault" the link element (block its default action) when the cell is not highlighted', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [['<a href="#justForTest">click me!</a>'], []],
       rowHeaders: true,
       colHeaders: true,
@@ -167,7 +167,7 @@ describe('Events', () => {
 
   it('touch on button inside header should not block default action  ' +
     '(header does not have to be selected at first)', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(3, 7),
       colHeaders: true,
       dropdownMenu: true

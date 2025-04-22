@@ -19,11 +19,11 @@ describe('Core.isRenderSuspended', () => {
 
     hot.renderSuspendedCounter = 1;
 
-    expect(hot.isRenderSuspended()).toBe(true);
+    expect(isRenderSuspended()).toBe(true);
 
     hot.renderSuspendedCounter = 3;
 
-    expect(hot.isRenderSuspended()).toBe(true);
+    expect(isRenderSuspended()).toBe(true);
   });
 
   it('should return `false` when the counter is less or equal to 0', async() => {
@@ -33,14 +33,14 @@ describe('Core.isRenderSuspended', () => {
 
     hot.renderSuspendedCounter = 0;
 
-    expect(hot.isRenderSuspended()).toBe(false);
+    expect(isRenderSuspended()).toBe(false);
 
     hot.renderSuspendedCounter = -1;
 
-    expect(hot.isRenderSuspended()).toBe(false);
+    expect(isRenderSuspended()).toBe(false);
 
     hot.renderSuspendedCounter = -2;
 
-    expect(hot.isRenderSuspended()).toBe(false);
+    expect(isRenderSuspended()).toBe(false);
   });
 });

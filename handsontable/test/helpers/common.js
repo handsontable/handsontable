@@ -83,10 +83,13 @@ export function handsontableMethodFactory(method) {
 }
 
 export const _getColWidthFromSettings = handsontableMethodFactory('_getColWidthFromSettings');
+export const _getEditorManager = handsontableMethodFactory('_getEditorManager');
 export const addHook = handsontableMethodFactory('addHook');
 export const addHookOnce = handsontableMethodFactory('addHookOnce');
 export const alter = handsontableMethodFactory('alter');
 export const batch = handsontableMethodFactory('batch');
+export const batchExecution = handsontableMethodFactory('batchExecution');
+export const batchRender = handsontableMethodFactory('batchRender');
 export const clear = handsontableMethodFactory('clear');
 export const colToProp = handsontableMethodFactory('colToProp');
 export const countColHeaders = handsontableMethodFactory('countColHeaders');
@@ -157,7 +160,9 @@ export const getSourceDataAtCol = handsontableMethodFactory('getSourceDataAtCol'
 export const getSourceDataAtRow = handsontableMethodFactory('getSourceDataAtRow');
 export const getValue = handsontableMethodFactory('getValue');
 export const hasHook = handsontableMethodFactory('hasHook');
+export const isExecutionSuspended = handsontableMethodFactory('isExecutionSuspended');
 export const isListening = handsontableMethodFactory('isListening');
+export const isRenderSuspended = handsontableMethodFactory('isRenderSuspended');
 export const listen = handsontableMethodFactory('listen');
 export const loadData = handsontableMethodFactory('loadData');
 export const populateFromArray = handsontableMethodFactory('populateFromArray');
@@ -166,6 +171,8 @@ export const refreshDimensions = handsontableMethodFactory('refreshDimensions');
 export const removeCellMeta = handsontableMethodFactory('removeCellMeta');
 export const removeHook = handsontableMethodFactory('removeHook');
 export const render = handsontableMethodFactory('render');
+export const resumeExecution = handsontableMethodFactory('resumeExecution');
+export const resumeRender = handsontableMethodFactory('resumeRender');
 export const runHooks = handsontableMethodFactory('runHooks');
 export const scrollToFocusedCell = waitOnScroll(handsontableMethodFactory('scrollToFocusedCell'));
 export const scrollViewportTo = waitOnScroll(handsontableMethodFactory('scrollViewportTo'));
@@ -181,18 +188,22 @@ export const setSourceDataAtCell = handsontableMethodFactory('setSourceDataAtCel
 export const spliceCellsMeta = handsontableMethodFactory('spliceCellsMeta');
 export const spliceCol = handsontableMethodFactory('spliceCol');
 export const spliceRow = handsontableMethodFactory('spliceRow');
-export const toVisualRow = handsontableMethodFactory('toVisualRow');
-export const toVisualColumn = handsontableMethodFactory('toVisualColumn');
-export const toPhysicalRow = handsontableMethodFactory('toPhysicalRow');
+export const suspendExecution = handsontableMethodFactory('suspendExecution');
+export const suspendRender = handsontableMethodFactory('suspendRender');
+export const toHTML = handsontableMethodFactory('toHTML');
 export const toPhysicalColumn = handsontableMethodFactory('toPhysicalColumn');
+export const toPhysicalRow = handsontableMethodFactory('toPhysicalRow');
+export const toTableElement = handsontableMethodFactory('toTableElement');
+export const toVisualColumn = handsontableMethodFactory('toVisualColumn');
+export const toVisualRow = handsontableMethodFactory('toVisualRow');
 export const unlisten = handsontableMethodFactory('unlisten');
 export const updateData = handsontableMethodFactory('updateData');
 export const updateSettings = handsontableMethodFactory('updateSettings');
 export const useTheme = handsontableMethodFactory('useTheme');
 export const validateCell = handsontableMethodFactory('validateCell');
 export const validateCells = handsontableMethodFactory('validateCells');
-export const validateRows = handsontableMethodFactory('validateRows');
 export const validateColumns = handsontableMethodFactory('validateColumns');
+export const validateRows = handsontableMethodFactory('validateRows');
 
 /**
  * @returns {number} Returns the default row height based on the current theme.

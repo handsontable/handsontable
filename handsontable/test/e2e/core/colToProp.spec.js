@@ -41,19 +41,19 @@ describe('Core.colToProp', () => {
   });
 
   it('should return proper value after calling the function when columns was reorganized (data is array of arrays)', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(5, 5)
     });
 
-    hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
-    hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+    rowIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
+    columnIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
 
     expect(colToProp(0)).toBe(4);
     expect(colToProp(10)).toBe(10); // I'm not sure if this should return result like that by design.
   });
 
   it('should return proper value after calling the function when columns was reorganized (data is array of objects)', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [
         { id: 1, name: 'Ted', lastName: 'Right', date: '01/01/2015' },
         { id: 2, name: 'Frank', lastName: 'Honest', date: '01/01/15' },
@@ -62,8 +62,8 @@ describe('Core.colToProp', () => {
       ]
     });
 
-    hot.rowIndexMapper.setIndexesSequence([3, 2, 1, 0]);
-    hot.columnIndexMapper.setIndexesSequence([3, 2, 1, 0]);
+    rowIndexMapper().setIndexesSequence([3, 2, 1, 0]);
+    columnIndexMapper().setIndexesSequence([3, 2, 1, 0]);
 
     expect(colToProp(0)).toBe('date');
     expect(propToCol(10)).toBe(10); // I'm not sure if this should return result like that by design.

@@ -11,13 +11,13 @@ describe('Core.deselectCell', () => {
   });
 
   it('should call the `deselectCell` method of the Selection module internally', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetObjectData(5, 5),
     });
 
-    spyOn(hot.selection, 'deselect');
+    spyOn(selection(), 'deselect');
     deselectCell();
 
-    expect(hot.selection.deselect).toHaveBeenCalled();
+    expect(selection().deselect).toHaveBeenCalled();
   });
 });
