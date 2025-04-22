@@ -609,11 +609,12 @@ describe('CopyPaste', () => {
 
       spec().$container.after(testElement);
 
-      const pasteEvent = getClipboardEvent();
+      const pasteEvent = getClipboardEvent({
+        target: testElement[0],
+      });
       const plugin = getPlugin('CopyPaste');
 
       selectCell(1, 1);
-      pasteEvent.target = testElement[0]; // native paste event is triggered on the element outside the table
       plugin.onPaste(pasteEvent); // trigger the plugin's method that is normally triggered by the native "paste" event
 
       // the data in HoT should not be changed as the paste was triggered on the outside element
@@ -627,13 +628,14 @@ describe('CopyPaste', () => {
         data: createSpreadsheetData(5, 5),
       });
 
-      const copyEvent = getClipboardEvent();
+      const copyEvent = getClipboardEvent({
+        target: $('<div id="testElement" data-hot-input="true">Test</div>')[0],
+      });
       const plugin = getPlugin('CopyPaste');
 
       spyOn(copyEvent, 'preventDefault');
 
       selectCell(1, 1);
-      copyEvent.target = $('<div id="testElement" data-hot-input="true">Test</div>')[0];
       plugin.onPaste(copyEvent); // trigger the plugin's method that is normally triggered by the native "paste" event
 
       expect(copyEvent.preventDefault).not.toHaveBeenCalled();
@@ -644,13 +646,16 @@ describe('CopyPaste', () => {
         data: createSpreadsheetData(5, 5),
       });
 
-      const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
+
+      selectCell(1, 1);
+
+      const copyEvent = getClipboardEvent({
+        target: getActiveEditor().TEXTAREA,
+      });
 
       spyOn(copyEvent, 'preventDefault');
 
-      selectCell(1, 1);
-      copyEvent.target = getActiveEditor().TEXTAREA;
       plugin.onPaste(copyEvent); // trigger the plugin's method that is normally triggered by the native "paste" event
 
       expect(copyEvent.preventDefault).toHaveBeenCalled();
@@ -661,13 +666,14 @@ describe('CopyPaste', () => {
         data: createSpreadsheetData(5, 5),
       });
 
-      const copyEvent = getClipboardEvent();
+      const copyEvent = getClipboardEvent({
+        target: $('<div id="testElement">Test</div>')[0],
+      });
       const plugin = getPlugin('CopyPaste');
 
       spyOn(copyEvent, 'preventDefault');
 
       selectCell(1, 1);
-      copyEvent.target = $('<div id="testElement">Test</div>')[0];
       plugin.onPaste(copyEvent); // trigger the plugin's method that is normally triggered by the native "paste" event
 
       expect(copyEvent.preventDefault).not.toHaveBeenCalled();
@@ -678,13 +684,14 @@ describe('CopyPaste', () => {
         data: createSpreadsheetData(5, 5),
       });
 
-      const copyEvent = getClipboardEvent();
+      const copyEvent = getClipboardEvent({
+        target: document.body,
+      });
       const plugin = getPlugin('CopyPaste');
 
       spyOn(copyEvent, 'preventDefault');
 
       selectCell(1, 1);
-      copyEvent.target = document.body;
       plugin.onPaste(copyEvent); // trigger the plugin's method that is normally triggered by the native "paste" event
 
       expect(copyEvent.preventDefault).toHaveBeenCalled();
@@ -695,13 +702,14 @@ describe('CopyPaste', () => {
         data: createSpreadsheetData(5, 5),
       });
 
-      const copyEvent = getClipboardEvent();
+      const copyEvent = getClipboardEvent({
+        target: getCell(1, 1),
+      });
       const plugin = getPlugin('CopyPaste');
 
       spyOn(copyEvent, 'preventDefault');
 
       selectCell(1, 1);
-      copyEvent.target = getCell(1, 1);
       plugin.onPaste(copyEvent); // trigger the plugin's method that is normally triggered by the native "paste" event
 
       expect(copyEvent.preventDefault).toHaveBeenCalled();
@@ -714,16 +722,18 @@ describe('CopyPaste', () => {
         height: 50,
       });
 
-      const pasteEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
-
-      spyOn(pasteEvent, 'preventDefault');
 
       selectCells([[0, 0, 0, 49]]);
 
       await sleep(10);
 
-      pasteEvent.target = document.activeElement;
+      const pasteEvent = getClipboardEvent({
+        target: document.activeElement,
+      });
+
+      spyOn(pasteEvent, 'preventDefault');
+
       plugin.onPaste(pasteEvent); // emulate native "paste" event
 
       expect(pasteEvent.preventDefault).toHaveBeenCalled();

@@ -1,13 +1,13 @@
 <template>
   <header class="navbar">
     <div class="navbar-wrapper">
-      <RouterLink
-          :to="frameworkUrlPrefix"
-          class="home-link"
-          aria-label="Docs Homepage Link"
+      <a
+        href="/"
+        class="home-link"
+        aria-label="Handsontable Main Page"
       >
         <Logo />
-      </RouterLink>
+    </a>
 
       <div class="top-bar">
         <div class="top-bar_left">
@@ -83,9 +83,6 @@ export default {
     },
     isAlgoliaSearch() {
       return this.algolia && this.algolia.apiKey && this.algolia.indexName;
-    },
-    frameworkUrlPrefix() {
-      return `/${this.$page.currentFramework}${this.$page.frameworkSuffix}/`;
     }
   },
   methods: {
