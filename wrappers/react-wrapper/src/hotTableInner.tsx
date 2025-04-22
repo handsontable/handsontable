@@ -167,7 +167,13 @@ const HotTableInner = forwardRef<
     // Update prevProps with the current props
     prevProps.current = props;
 
-    __hotInstance.current = new Handsontable.Core(hotElementRef.current.firstChild!, newGlobalSettings);
+    if(hotElementRef.current) {
+      __hotInstance.current = new Handsontable.Core(hotElementRef.current.firstChild as HTMLElement, newGlobalSettings);
+    }
+
+    if(!__hotInstance.current) {
+      return;
+    }
 
     /**
      * Handsontable's `beforeViewRender` hook callback.
