@@ -207,7 +207,7 @@ describe('Selection using mouse interaction', () => {
     `).toBeMatchToSelectionPattern();
     expect(getSelectedRange()).toEqualCellRange(['highlight: -3,1 from: -3,1 to: 1,1']);
 
-    deselectCell();
+    await deselectCell();
     await simulateClick(spec().$container.find('.ht_clone_top tr:eq(1) th:eq(2)'), 'LMB'); // Second "B" header
 
     expect(`
@@ -220,7 +220,7 @@ describe('Selection using mouse interaction', () => {
     `).toBeMatchToSelectionPattern();
     expect(getSelectedRange()).toEqualCellRange(['highlight: -2,1 from: -2,1 to: 1,1']);
 
-    deselectCell();
+    await deselectCell();
     await simulateClick(spec().$container.find('.ht_clone_top tr:eq(2) th:eq(2)'), 'LMB'); // Third "B" header
 
     expect(`
@@ -259,7 +259,7 @@ describe('Selection using mouse interaction', () => {
     `).toBeMatchToSelectionPattern();
     expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-3 from: 1,-3 to: 1,1']);
 
-    deselectCell();
+    await deselectCell();
     await simulateClick(spec().$container.find('.ht_clone_inline_start tbody tr:eq(1) th:eq(1)'), 'LMB'); // Second header "2"
 
     expect(`
@@ -273,7 +273,7 @@ describe('Selection using mouse interaction', () => {
     `).toBeMatchToSelectionPattern();
     expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-2 from: 1,-2 to: 1,1']);
 
-    deselectCell();
+    await deselectCell();
     await simulateClick(spec().$container.find('.ht_clone_inline_start tbody tr:eq(1) th:eq(2)'), 'LMB'); // Third header "2"
 
     expect(`
@@ -312,7 +312,7 @@ describe('Selection using mouse interaction', () => {
     `).toBeMatchToSelectionPattern();
     expect(getSelectedRange()).toEqualCellRange(['highlight: -3,1 from: -3,1 to: 1,1']);
 
-    deselectCell();
+    await deselectCell();
     await simulateClick(spec().$container.find('.ht_clone_top tr:eq(1) th:eq(2)'), 'RMB'); // Second "B" header
 
     expect(`
@@ -325,7 +325,7 @@ describe('Selection using mouse interaction', () => {
     `).toBeMatchToSelectionPattern();
     expect(getSelectedRange()).toEqualCellRange(['highlight: -2,1 from: -2,1 to: 1,1']);
 
-    deselectCell();
+    await deselectCell();
     await simulateClick(spec().$container.find('.ht_clone_top tr:eq(2) th:eq(2)'), 'RMB'); // Third "B" header
 
     expect(`
@@ -364,7 +364,7 @@ describe('Selection using mouse interaction', () => {
     `).toBeMatchToSelectionPattern();
     expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-3 from: 1,-3 to: 1,1']);
 
-    deselectCell();
+    await deselectCell();
     await simulateClick(spec().$container.find('.ht_clone_inline_start tbody tr:eq(1) th:eq(1)'), 'RMB'); // Second header "2"
 
     expect(`
@@ -378,7 +378,7 @@ describe('Selection using mouse interaction', () => {
     `).toBeMatchToSelectionPattern();
     expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-2 from: 1,-2 to: 1,1']);
 
-    deselectCell();
+    await deselectCell();
     await simulateClick(spec().$container.find('.ht_clone_inline_start tbody tr:eq(1) th:eq(2)'), 'RMB'); // Third header "2"
 
     expect(`

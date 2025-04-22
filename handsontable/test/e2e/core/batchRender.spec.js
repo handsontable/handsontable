@@ -1,3 +1,4 @@
+/* eslint-disable handsontable/require-await */
 describe('Core.batchRender', () => {
   const id = 'testContainer';
 

@@ -22,7 +22,8 @@ describe('manualRowResize (RTL mode)', () => {
       manualRowResize: true
     });
 
-    resizeRow(2, 60);
+    await resizeRow(2, 60);
+
     getInlineStartClone().find('tbody tr:eq(1) th:eq(0)').simulate('mouseover');
 
     const $rowsHeaders = getInlineStartClone().find('tr th');

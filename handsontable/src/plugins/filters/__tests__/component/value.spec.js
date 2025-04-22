@@ -132,7 +132,7 @@ describe('Filters UI Value component', () => {
 
     expect(byValueMultipleSelect().element.querySelector('.htCore td').textContent).toBe('Alice Blake');
 
-    loadData(data);
+    await loadData(data);
     await dropdownMenu(1);
 
     expect(byValueMultipleSelect().element.querySelector('.htCore td').textContent).toBe('(Blank cells)');
@@ -156,7 +156,7 @@ describe('Filters UI Value component', () => {
 
     expect(byValueMultipleSelect().element.querySelector('.htCore td').textContent).toBe('Alice Blake');
 
-    loadData(data);
+    await loadData(data);
     await dropdownMenu(1);
 
     expect(byValueMultipleSelect().element.querySelector('.htCore td').textContent).toBe('(Blank cells)');
@@ -180,7 +180,7 @@ describe('Filters UI Value component', () => {
 
     expect(byValueMultipleSelect().element.querySelector('.htCore td').textContent).toBe('Alice Blake');
 
-    loadData(data);
+    await loadData(data);
     await dropdownMenu(1);
 
     expect(byValueMultipleSelect().element.querySelector('.htCore td').textContent).toBe('(Blank cells)');

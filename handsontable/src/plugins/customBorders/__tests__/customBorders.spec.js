@@ -199,6 +199,7 @@ describe('CustomBorders', () => {
       });
 
       expect(() => {
+        // eslint-disable-next-line handsontable/require-await
         updateSettings({
           customBorders: [{
             row: 2,
@@ -373,7 +374,7 @@ describe('CustomBorders', () => {
       top: RED_BORDER,
       end: RED_BORDER
     });
-    deselectCell();
+    await deselectCell();
 
     expect(getCellMeta(1, 1).borders.top).toEqual(RED_BORDER);
     expect(getCellMeta(1, 1).borders.bottom).toEqual(EMPTY);
@@ -457,7 +458,7 @@ describe('CustomBorders', () => {
       bottom: GREEN_BORDER,
       end: RED_BORDER
     });
-    deselectCell();
+    await deselectCell();
 
     expect(getCellMeta(2, 2).borders.top).toEqual(RED_BORDER);
     expect(getCellMeta(2, 2).borders.start).toEqual(RED_BORDER);
@@ -515,7 +516,7 @@ describe('CustomBorders', () => {
       top: EMPTY,
       end: EMPTY,
     });
-    deselectCell();
+    await deselectCell();
 
     expect(getCellMeta(2, 2).borders.top).toEqual(EMPTY);
     expect(getCellMeta(2, 2).borders.start).toEqual(RED_BORDER);
@@ -572,7 +573,7 @@ describe('CustomBorders', () => {
       top: false,
       end: false,
     });
-    deselectCell();
+    await deselectCell();
 
     expect(getCellMeta(2, 2).borders.top).toEqual(EMPTY);
     expect(getCellMeta(2, 2).borders.start).toEqual(RED_BORDER);
@@ -667,7 +668,7 @@ describe('CustomBorders', () => {
 
     const borders = customBorders.getBorders(getSelected());
 
-    deselectCell();
+    await deselectCell();
 
     expect(borders.length).toEqual(1);
     expect(borders[0].top).toEqual(GREEN_BORDER);
@@ -755,7 +756,7 @@ describe('CustomBorders', () => {
 
     await selectCells([[0, 0, 2, 2]]);
     customBorders.clearBorders(getSelectedRange());
-    deselectCell();
+    await deselectCell();
 
     /*
     Is:
@@ -904,7 +905,7 @@ describe('CustomBorders', () => {
 
     await selectContextSubmenuOption('Borders', 'Top', getCell(0, -1));
 
-    deselectCell();
+    await deselectCell();
 
     expect(getCellMeta(0, 0).borders.top).toEqual(DEFAULT_BORDER);
     expect(getCellMeta(0, 1).borders.top).toEqual(DEFAULT_BORDER);
@@ -927,7 +928,7 @@ describe('CustomBorders', () => {
 
     await selectContextSubmenuOption('Borders', 'Right', getCell(-1, 0));
 
-    deselectCell();
+    await deselectCell();
 
     expect(getCellMeta(0, 0).borders.end).toEqual(DEFAULT_BORDER);
     expect(getCellMeta(1, 0).borders.end).toEqual(DEFAULT_BORDER);
@@ -957,10 +958,10 @@ describe('CustomBorders', () => {
 
     await selectCell(0, 0);
     customBorders.clearBorders(getSelectedRange());
-    deselectCell();
+    await deselectCell();
 
     await selectContextSubmenuOption('Borders', 'Top');
-    deselectCell();
+    await deselectCell();
 
     expect(getCellMeta(0, 0).borders.top).toEqual(DEFAULT_BORDER);
     expect(getCellMeta(0, 0).borders.bottom).toEqual(EMPTY);
@@ -989,10 +990,10 @@ describe('CustomBorders', () => {
 
     await selectCell(0, 0);
     customBorders.clearBorders(getSelectedRange());
-    deselectCell();
+    await deselectCell();
 
     await selectContextSubmenuOption('Borders', 'Top');
-    deselectCell();
+    await deselectCell();
 
     customBorders.clearBorders();
     expect(getCellMeta(0, 0).borders).toBeUndefined();
@@ -1008,7 +1009,7 @@ describe('CustomBorders', () => {
     });
 
     await selectContextSubmenuOption('Borders', 'Top');
-    deselectCell();
+    await deselectCell();
 
     expect(getCellMeta(0, 0).borders.top).toEqual(DEFAULT_BORDER);
     expect(getCellMeta(0, 0).borders.bottom).toEqual(EMPTY);
@@ -1027,7 +1028,7 @@ describe('CustomBorders', () => {
     });
 
     await selectContextSubmenuOption('Borders', 'Left');
-    deselectCell();
+    await deselectCell();
 
     /* eslint-disable no-prototype-builtins */
     expect(getCellMeta(0, 0).borders.hasOwnProperty('left')).toBe(true);
@@ -1047,7 +1048,7 @@ describe('CustomBorders', () => {
     });
 
     await selectContextSubmenuOption('Borders', 'Right');
-    deselectCell();
+    await deselectCell();
 
     /* eslint-disable no-prototype-builtins */
     expect(getCellMeta(0, 0).borders.hasOwnProperty('right')).toBe(true); // TODO flaky test. sometimes I get this error on this line: 'Failed: Cannot read property 'hasOwnProperty' of undefined'
@@ -1067,7 +1068,7 @@ describe('CustomBorders', () => {
     });
 
     await selectContextSubmenuOption('Borders', 'Bottom');
-    deselectCell();
+    await deselectCell();
 
     /* eslint-disable no-prototype-builtins */
     expect(getCellMeta(0, 0).borders.hasOwnProperty('right')).toBe(true);
@@ -1095,7 +1096,7 @@ describe('CustomBorders', () => {
     expect(countCustomBorders()).toBe(5);
 
     await selectContextSubmenuOption('Borders', 'Remove border');
-    deselectCell();
+    await deselectCell();
 
     expect(getCellMeta(0, 0).borders).toBeUndefined();
     expect(countVisibleCustomBorders()).toBe(0);

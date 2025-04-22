@@ -23,7 +23,7 @@ describe('ContextMenu', () => {
 
       await contextMenu(getCell(-1, 1, true));
 
-      const item = selectContextMenuOption('Remove row');
+      const item = await selectContextMenuOption('Remove row');
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5']);
@@ -39,7 +39,7 @@ describe('ContextMenu', () => {
 
       await contextMenu(getCell(1, -1, true));
 
-      const item = selectContextMenuOption('Remove row');
+      const item = await selectContextMenuOption('Remove row');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtCol(0)).toEqual(['A1', 'A3', 'A4', 'A5']);
@@ -65,7 +65,7 @@ describe('ContextMenu', () => {
       await selectCell(1, -1);
       getPlugin('contextMenu').open({ top: 0, left: 0 });
 
-      const item = selectContextMenuOption('Remove row');
+      const item = await selectContextMenuOption('Remove row');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtCol(0)).toEqual(['A1', 'A3', 'A4', 'A5']);
@@ -83,7 +83,7 @@ describe('ContextMenu', () => {
       await selectCell(-1, -1);
       getPlugin('contextMenu').open({ top: 0, left: 0 });
 
-      const item = selectContextMenuOption('Remove row');
+      const item = await selectContextMenuOption('Remove row');
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5']);
@@ -101,7 +101,7 @@ describe('ContextMenu', () => {
       await selectCell(-1, 1);
       getPlugin('contextMenu').open({ top: 0, left: 0 });
 
-      const item = selectContextMenuOption('Remove row');
+      const item = await selectContextMenuOption('Remove row');
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5']);
@@ -117,7 +117,7 @@ describe('ContextMenu', () => {
 
       await contextMenu(getCell(-1, -1, true));
 
-      const item = selectContextMenuOption('Remove row');
+      const item = await selectContextMenuOption('Remove row');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getData()).toEqual([]);
@@ -138,7 +138,7 @@ describe('ContextMenu', () => {
 
       await contextMenu(getCell(-1, -1, true));
 
-      const item = selectContextMenuOption('Remove row');
+      const item = await selectContextMenuOption('Remove row');
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(`
@@ -157,7 +157,7 @@ describe('ContextMenu', () => {
 
       await contextMenu(getCell(-1, -1, true));
 
-      const item = selectContextMenuOption('Remove row');
+      const item = await selectContextMenuOption('Remove row');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getData()).toEqual([]);
@@ -177,7 +177,7 @@ describe('ContextMenu', () => {
 
       await contextMenu(getCell(-1, -1, true));
 
-      const item = selectContextMenuOption('Remove row');
+      const item = await selectContextMenuOption('Remove row');
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(`
@@ -196,7 +196,7 @@ describe('ContextMenu', () => {
 
       await contextMenu(getCell(1, 1));
 
-      const item = selectContextMenuOption('Remove row');
+      const item = await selectContextMenuOption('Remove row');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtCol(0)).toEqual(['A1', 'A3', 'A4', 'A5']);
@@ -221,7 +221,7 @@ describe('ContextMenu', () => {
       await selectCell(2, 2, 4, 4);
       await contextMenu(getCell(2, 2));
 
-      const item = selectContextMenuOption('Remove row');
+      const item = await selectContextMenuOption('Remove row');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtCol(0)).toEqual(['A1', 'A2']);
@@ -280,7 +280,7 @@ describe('ContextMenu', () => {
 
       await contextMenu();
 
-      const item = selectContextMenuOption('Remove row');
+      const item = await selectContextMenuOption('Remove row');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtCol(0)).toEqual(['A7']);

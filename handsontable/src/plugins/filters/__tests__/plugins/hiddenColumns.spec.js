@@ -31,8 +31,8 @@ describe('Filters UI cooperation with HiddenColumn', () => {
 
     expect(text).toEqual(['B1', 'B2', 'B3', 'B4', 'B5']);
 
-    openDropdownByConditionMenu();
-    selectDropdownByConditionMenuOption('Begins with');
+    await openDropdownByConditionMenu();
+    await selectDropdownByConditionMenuOption('Begins with');
 
     await sleep(200);
 

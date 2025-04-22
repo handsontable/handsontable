@@ -648,7 +648,7 @@ describe('CheckboxRenderer', () => {
       });
 
       await selectCell(0, 0);
-      contextMenu();
+      await contextMenu();
 
       const menu = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator');
 

@@ -27,7 +27,7 @@ describe('DropdownMenu keyboard shortcut', () => {
       expect(getSelectedRange()).toEqual(initialSelectionState);
       expect(isListening()).toBe(false);
 
-      openDropdownSubmenuOption('Alignment');
+      await openDropdownSubmenuOption('Alignment');
 
       await sleep(300);
 

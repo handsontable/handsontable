@@ -22,8 +22,8 @@ describe('Filters UI cooperation with ColumnSorting', () => {
     });
 
     await dropdownMenu(0);
-    openDropdownByConditionMenu();
-    selectDropdownByConditionMenuOption('Greater than');
+    await openDropdownByConditionMenu();
+    await selectDropdownByConditionMenuOption('Greater than');
 
     await sleep(200);
 
@@ -38,8 +38,8 @@ describe('Filters UI cooperation with ColumnSorting', () => {
     getHtCore().find('th span.columnSorting:eq(2)').simulate('click');
 
     await dropdownMenu(2);
-    openDropdownByConditionMenu();
-    selectDropdownByConditionMenuOption('Begins with');
+    await openDropdownByConditionMenu();
+    await selectDropdownByConditionMenuOption('Begins with');
 
     await sleep(200);
 
@@ -69,8 +69,8 @@ describe('Filters UI cooperation with ColumnSorting', () => {
 
     await sleep(300);
     await dropdownMenu(0);
-    openDropdownByConditionMenu();
-    selectDropdownByConditionMenuOption('Greater than');
+    await openDropdownByConditionMenu();
+    await selectDropdownByConditionMenuOption('Greater than');
 
     await sleep(300);
 
@@ -88,8 +88,8 @@ describe('Filters UI cooperation with ColumnSorting', () => {
     await alter('remove_row', 1, 5);
 
     await dropdownMenu(2);
-    openDropdownByConditionMenu();
-    selectDropdownByConditionMenuOption('Ends with');
+    await openDropdownByConditionMenu();
+    await selectDropdownByConditionMenuOption('Ends with');
 
     await sleep(300);
 
@@ -110,8 +110,8 @@ describe('Filters UI cooperation with ColumnSorting', () => {
 
     await dropdownMenu(0);
 
-    openDropdownByConditionMenu();
-    selectDropdownByConditionMenuOption('None');
+    await openDropdownByConditionMenu();
+    await selectDropdownByConditionMenuOption('None');
 
     await sleep(300);
 
@@ -135,8 +135,8 @@ describe('Filters UI cooperation with ColumnSorting', () => {
     await sleep(300);
 
     await dropdownMenu(0);
-    openDropdownByConditionMenu();
-    selectDropdownByConditionMenuOption('Greater than');
+    await openDropdownByConditionMenu();
+    await selectDropdownByConditionMenuOption('Greater than');
 
     // Greater than 12
     $(conditionSelectRootElements().first).next().find('input')[0].focus();
@@ -152,8 +152,8 @@ describe('Filters UI cooperation with ColumnSorting', () => {
     await alter('insert_row_above', 1, 5);
 
     await dropdownMenu(2);
-    openDropdownByConditionMenu();
-    selectDropdownByConditionMenuOption('Ends with');
+    await openDropdownByConditionMenu();
+    await selectDropdownByConditionMenuOption('Ends with');
 
     await sleep(300);
 
@@ -173,8 +173,8 @@ describe('Filters UI cooperation with ColumnSorting', () => {
     expect(getDataAtCol(0).join()).toBe('24,,17,14,16,23,32,26,28,21');
 
     await dropdownMenu(0);
-    openDropdownByConditionMenu();
-    selectDropdownByConditionMenuOption('Is empty');
+    await openDropdownByConditionMenu();
+    await selectDropdownByConditionMenuOption('Is empty');
 
     await sleep(300);
 

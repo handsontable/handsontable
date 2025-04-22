@@ -145,7 +145,7 @@ describe('manualColumnMove', () => {
       getPlugin('manualColumnMove').moveColumn(4, 2);
       await render();
 
-      loadData(createSpreadsheetData(1, 5));
+      await loadData(createSpreadsheetData(1, 5));
 
       const tdElements = spec().$container.find('tbody tr:eq(0) td');
 

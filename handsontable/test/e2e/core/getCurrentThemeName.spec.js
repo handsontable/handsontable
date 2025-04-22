@@ -21,7 +21,7 @@ describe('getCurrentThemeName', () => {
   });
 
   it('should get the current theme name', async() => {
-    useTheme('ht-theme-sth');
+    await useTheme('ht-theme-sth');
 
     expect(getCurrentThemeName()).toBe('ht-theme-sth');
   });

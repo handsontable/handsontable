@@ -408,9 +408,12 @@ describe('settings', () => {
     it('updateSettings should throw Error', async() => {
       handsontable();
 
-      expect(() => updateSettings({
-        fixedColumnsLeft: 4
-      })).toThrowError('The `fixedColumnsLeft` is not supported for RTL. Please use option `fixedColumnsStart`.');
+      expect(() => {
+        // eslint-disable-next-line handsontable/require-await
+        updateSettings({
+          fixedColumnsLeft: 4
+        });
+      }).toThrowError('The `fixedColumnsLeft` is not supported for RTL. Please use option `fixedColumnsStart`.');
     });
   });
 
@@ -443,9 +446,12 @@ describe('settings', () => {
         fixedColumnsLeft: 2
       });
 
-      expect(() => updateSettings({
-        fixedColumnsStart: 4
-      })).toThrowError('The `fixedColumnsLeft` and `fixedColumnsStart` should not be used together.'
+      expect(() => {
+        // eslint-disable-next-line handsontable/require-await
+        updateSettings({
+          fixedColumnsStart: 4
+        });
+      }).toThrowError('The `fixedColumnsLeft` and `fixedColumnsStart` should not be used together.'
         + ' Please use only the option `fixedColumnsStart`.');
     });
 
@@ -454,19 +460,25 @@ describe('settings', () => {
         fixedColumnsStart: 2
       });
 
-      expect(() => updateSettings({
-        fixedColumnsLeft: 4
-      })).toThrowError('The `fixedColumnsLeft` and `fixedColumnsStart` should not be used together.'
+      expect(() => {
+        // eslint-disable-next-line handsontable/require-await
+        updateSettings({
+          fixedColumnsLeft: 4
+        });
+      }).toThrowError('The `fixedColumnsLeft` and `fixedColumnsStart` should not be used together.'
         + ' Please use only the option `fixedColumnsStart`.');
     });
 
     it('defined both in updateSettings should thrown an error ', async() => {
       handsontable({});
 
-      expect(() => updateSettings({
-        fixedColumnsStart: 4,
-        fixedColumnsLeft: 3
-      })).toThrowError('The `fixedColumnsLeft` and `fixedColumnsStart` should not be used together. '
+      expect(() => {
+        // eslint-disable-next-line handsontable/require-await
+        updateSettings({
+          fixedColumnsStart: 4,
+          fixedColumnsLeft: 3
+        });
+      }).toThrowError('The `fixedColumnsLeft` and `fixedColumnsStart` should not be used together. '
         + 'Please use only the option `fixedColumnsStart`.');
     });
   });

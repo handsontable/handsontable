@@ -326,6 +326,7 @@ describe('HiddenRows', () => {
       });
 
       expect(() => {
+        // eslint-disable-next-line handsontable/require-await
         selectCell(0, 2, 3, 2);
       }).not.toThrow();
     });

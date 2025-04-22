@@ -43,7 +43,7 @@ describe('MultipleSelectionHandles', () => {
     expect(getMaster().find('.wtHolder').scrollLeft()).toBe(0);
     expect(getMaster().find('.wtHolder').scrollTop()).toBe(0);
 
-    loadData([['X']]);
+    await loadData([['X']]);
 
     // try to scroll the viewport max to the bottom-right position
     await scrollViewportHorizontally(999);
@@ -74,7 +74,7 @@ describe('MultipleSelectionHandles', () => {
     expect(bottomSelectionHandle.is(':visible')).toBe(true);
     expect(bottomSelectionHandleHitArea.is(':visible')).toBe(true);
 
-    deselectCell();
+    await deselectCell();
 
     expect(topSelectionHandle.is(':visible')).toBe(false);
     expect(topSelectionHandleHitArea.is(':visible')).toBe(false);

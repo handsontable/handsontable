@@ -84,6 +84,7 @@ describe('Handsontable editor theme handling', () => {
     await selectCell(0, 0);
 
     expect(() => {
+      // eslint-disable-next-line handsontable/require-await
       updateSettings({ themeName: 'ht-theme-sth-else' });
     }).not.toThrow();
   });

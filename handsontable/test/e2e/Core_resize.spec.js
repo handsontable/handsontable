@@ -29,7 +29,7 @@ describe('Core resize', () => {
       fixedRowsBottom: 1,
     });
 
-    refreshDimensions();
+    await refreshDimensions();
 
     expect(getMaster().height()).toBe(0);
     expect(getTopClone().height()).toBe(0);
@@ -48,7 +48,7 @@ describe('Core resize', () => {
       fixedRowsBottom: 1,
     });
 
-    refreshDimensions();
+    await refreshDimensions();
 
     expect(getMaster().height()).toBe(0);
     expect(getTopClone().height()).toBe(0);
@@ -86,7 +86,7 @@ describe('Core resize', () => {
       horizon.toBe(38);
     });
 
-    refreshDimensions();
+    await refreshDimensions();
 
     expect(getMaster().height()).toBe(200);
     expect(getInlineStartClone().height()).toBe(200);

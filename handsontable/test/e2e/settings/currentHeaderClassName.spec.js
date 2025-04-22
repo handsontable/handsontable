@@ -33,8 +33,7 @@ describe('settings', () => {
       });
 
       await selectCell(2, 2);
-
-      deselectCell();
+      await deselectCell();
 
       expect(spec().$container.find('.ht_master th.ht__highlight').length).toEqual(0);
     });

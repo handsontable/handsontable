@@ -782,7 +782,7 @@ describe('CustomBorders', () => {
       });
 
       await selectContextSubmenuOption('Borders', 'Top', getCell(0, 2));
-      deselectCell();
+      await deselectCell();
 
       expect(getCellMeta(0, 2).borders.top).toEqual(DEFAULT_BORDER);
       expect(getCellMeta(0, 2).borders.bottom).toEqual(EMPTY);

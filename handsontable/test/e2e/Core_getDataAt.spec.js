@@ -135,7 +135,8 @@ describe('Core_getDataAt*', () => {
       expect(spy.calls.argsFor(2)[3]).toBe('get');
 
       spy.calls.reset();
-      setDataAtRowProp(2, 'name', 'foo');
+
+      await setDataAtRowProp(2, 'name', 'foo');
 
       expect(spy.calls.count()).toBe(16);
       expect(spy.calls.argsFor(0)[0]).toBe(2);

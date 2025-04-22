@@ -36,7 +36,7 @@ describe('Core.emptySelectedCells', () => {
 
     await keyUp('control/meta');
 
-    emptySelectedCells();
+    await emptySelectedCells();
 
     /* eslint-disable no-multi-spaces, comma-spacing */
     const snapshot = [
@@ -68,7 +68,7 @@ describe('Core.emptySelectedCells', () => {
 
     await selectCell(-1, 1);
 
-    emptySelectedCells();
+    await emptySelectedCells();
 
     expect(getData()).toEqual([
       ['A1', 'B1', 'C1'],
@@ -88,6 +88,7 @@ describe('Core.emptySelectedCells', () => {
     await selectAll();
 
     expect(() => {
+      // eslint-disable-next-line handsontable/require-await
       emptySelectedCells();
     }).not.toThrowError();
   });
@@ -107,7 +108,7 @@ describe('Core.emptySelectedCells', () => {
 
     await simulateClick(spec().$container.find('.ht_clone_top tr:eq(0) th:eq(0)'));
 
-    emptySelectedCells();
+    await emptySelectedCells();
 
     expect(onBeforeChange).not.toHaveBeenCalled();
   });
@@ -127,7 +128,7 @@ describe('Core.emptySelectedCells', () => {
 
     await simulateClick(spec().$container.find('.ht_clone_inline_start tr:eq(1) th:eq(0)'));
 
-    emptySelectedCells();
+    await emptySelectedCells();
 
     expect(onBeforeChange).not.toHaveBeenCalled();
   });
@@ -148,7 +149,7 @@ describe('Core.emptySelectedCells', () => {
 
     await simulateClick(spec().$container.find('.ht_clone_top tr:eq(0) th:eq(0)'));
 
-    emptySelectedCells();
+    await emptySelectedCells();
 
     expect(onBeforeChange).not.toHaveBeenCalled();
   });
@@ -168,7 +169,7 @@ describe('Core.emptySelectedCells', () => {
 
     await selectCells([[0, 0, 2, 2]]);
 
-    emptySelectedCells();
+    await emptySelectedCells();
 
     expect(getData()).toEqual([
       ['test', null, null, 4, 5, 6],

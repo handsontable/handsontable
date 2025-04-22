@@ -37,12 +37,13 @@ describe('Core_setDataAtCell', () => {
   it('HTML special chars should be preserved in data map but escaped in DOM', async() => {
     // https://github.com/handsontable/handsontable/issues/147
     handsontable();
-    const td = setDataAtCell(0, 0, htmlText);
+
+    const td = await setDataAtCell(0, 0, htmlText);
 
     await selectCell(0, 0);
 
     $(td).simulate('dblclick');
-    deselectCell();
+    await deselectCell();
 
     expect(getDataAtCell(0, 0)).toEqual(htmlText);
   });
@@ -266,7 +267,7 @@ describe('Core_setDataAtCell', () => {
       }
     });
 
-    setDataAtRowProp(0, 'name', 'foo bar', 'customSource');
+    await setDataAtRowProp(0, 'name', 'foo bar', 'customSource');
 
     expect(_changes).toEqual([[0, 'name', undefined, 'foo bar']]);
     expect(_source).toBe('customSource');
@@ -287,8 +288,8 @@ describe('Core_setDataAtCell', () => {
       }
     });
 
-    setDataAtRowProp(0, 'name', 'foo bar', 'customSource');
-    setDataAtRowProp(1, 'id', 22, 'customSource');
+    await setDataAtRowProp(0, 'name', 'foo bar', 'customSource');
+    await setDataAtRowProp(1, 'id', 22, 'customSource');
 
     expect(getDataAtRowProp(0, 'name')).toEqual('bar');
     expect(getDataAtRowProp(1, 'id')).toBe(33);
@@ -339,7 +340,7 @@ describe('Core_setDataAtCell', () => {
       afterSetDataAtRowProp,
     });
 
-    setDataAtRowProp(0, 0, 5);
+    await setDataAtRowProp(0, 0, 5);
 
     expect(beforeChange).toHaveBeenCalledBefore(afterSetDataAtRowProp);
   });
@@ -361,8 +362,8 @@ describe('Core_setDataAtCell', () => {
     await setDataAtCell(0, 0, 5);
     await setDataAtCell(1, 1, 6);
     await setDataAtCell(2, 2, 7);
-    setDataAtRowProp(3, 3, 8);
-    setDataAtRowProp(4, 4, 9);
+    await setDataAtRowProp(3, 3, 8);
+    await setDataAtRowProp(4, 4, 9);
 
     expect(getData()).toEqual([
       ['test', 2, 3, 4, 5, 6],
@@ -380,6 +381,7 @@ describe('Core_setDataAtCell', () => {
       });
 
       await setDataAtCell([[0, 1, 'new column']], 'customSource');
+
       expect(countCols()).toBe(2);
     });
 
@@ -389,6 +391,7 @@ describe('Core_setDataAtCell', () => {
       });
 
       await setDataAtCell([[1, 0, 'new row']], 'customSource');
+
       expect(countRows()).toBe(2);
     });
 
@@ -403,6 +406,7 @@ describe('Core_setDataAtCell', () => {
       const countedColumns = countCols();
 
       await setDataAtCell([[0, 1, 'new column']], 'customSource');
+
       expect(countCols()).toBe(countedColumns);
     });
 
@@ -417,6 +421,7 @@ describe('Core_setDataAtCell', () => {
       const countedRows = countRows();
 
       await setDataAtCell([[1, 0, 'new row']], 'customSource');
+
       expect(countRows()).toBe(countedRows);
     });
 
@@ -427,6 +432,7 @@ describe('Core_setDataAtCell', () => {
       });
 
       await setDataAtCell(0, 0, 'aaa');
+
       expect(getData()).toEqual([['aaa']]);
     });
   });

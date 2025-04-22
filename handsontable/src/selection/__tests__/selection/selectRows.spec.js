@@ -904,7 +904,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: 0,-1 to: 0,-1']);
       expect(wasSelected).toBeTrue();
 
-      deselectCell();
+      await deselectCell();
       wasSelected = hot().selection.selectRows(1);
 
       expect(`
@@ -914,7 +914,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: 1,-1 to: 1,-1']);
       expect(wasSelected).toBeTrue();
 
-      deselectCell();
+      await deselectCell();
       wasSelected = hot().selection.selectRows(1, 2);
 
       expect(`
@@ -941,7 +941,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,-1 from: 0,-1 to: 0,-1']);
       expect(wasSelected).toBeTrue();
 
-      deselectCell();
+      await deselectCell();
       wasSelected = hot().selection.selectRows(1);
 
       expect(`
@@ -951,7 +951,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-1 from: 1,-1 to: 1,-1']);
       expect(wasSelected).toBeTrue();
 
-      deselectCell();
+      await deselectCell();
       wasSelected = hot().selection.selectRows(1, 2);
 
       expect(`

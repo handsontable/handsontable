@@ -25,7 +25,7 @@ describe('Events', () => {
 
     expect(getSelected()).toBeUndefined();
 
-    triggerTouchEvent('touchstart', cell);
+    await triggerTouchEvent('touchstart', cell);
 
     await sleep(100);
 
@@ -47,10 +47,10 @@ describe('Events', () => {
 
     expect(getSelected()).toBeUndefined();
 
-    triggerTouchEvent('touchstart', cell);
-    triggerTouchEvent('touchend', cell);
-    triggerTouchEvent('touchstart', cell);
-    triggerTouchEvent('touchend', cell);
+    await triggerTouchEvent('touchstart', cell);
+    await triggerTouchEvent('touchend', cell);
+    await triggerTouchEvent('touchstart', cell);
+    await triggerTouchEvent('touchend', cell);
 
     await sleep(100);
 
@@ -67,16 +67,16 @@ describe('Events', () => {
     const cell = hot.getCell(1, 1);
 
     {
-      triggerTouchEvent('touchstart', cell);
+      await triggerTouchEvent('touchstart', cell);
 
-      const event = triggerTouchEvent('touchend', cell);
+      const event = await triggerTouchEvent('touchend', cell);
 
       expect(event.defaultPrevented).toBeTrue();
     }
     {
-      triggerTouchEvent('touchstart', cell);
+      await triggerTouchEvent('touchstart', cell);
 
-      const event = triggerTouchEvent('touchend', cell);
+      const event = await triggerTouchEvent('touchend', cell);
 
       // In the WebKit-based engines the second touch event is not prevent defaulted.
       // See ./handsontable/src/3rdparty/walkontable/src/event.js#L327
@@ -101,16 +101,16 @@ describe('Events', () => {
     const linkElement = hot.getCell(0, 0).firstChild;
 
     {
-      triggerTouchEvent('touchstart', linkElement);
+      await triggerTouchEvent('touchstart', linkElement);
 
-      const event = triggerTouchEvent('touchend', linkElement);
+      const event = await triggerTouchEvent('touchend', linkElement);
 
       expect(event.defaultPrevented).toBeTrue();
     }
     {
-      triggerTouchEvent('touchstart', linkElement);
+      await triggerTouchEvent('touchstart', linkElement);
 
-      const event = triggerTouchEvent('touchend', linkElement);
+      const event = await triggerTouchEvent('touchend', linkElement);
 
       expect(event.defaultPrevented).toBeFalse();
     }
@@ -131,7 +131,7 @@ describe('Events', () => {
     location.hash = ''; // Resetting before test.
 
     // First touch
-    simulateTouch(linkElement);
+    await simulateTouch(linkElement);
 
     expect(location.hash).toBe('');
     expect(getSelected()).toEqual([[0, 0, 0, 0]]);
@@ -139,7 +139,7 @@ describe('Events', () => {
     await sleep(600); // To prevents double-click detection (emulation)
 
     // Second touch
-    simulateTouch(linkElement);
+    await simulateTouch(linkElement);
 
     expect(location.hash).toBe('#justForTest');
     expect(getSelected()).toEqual([[0, 0, 0, 0]]);
@@ -149,7 +149,7 @@ describe('Events', () => {
     const anotherCell = getCell(1, 0);
 
     // First touch
-    simulateTouch(anotherCell);
+    await simulateTouch(anotherCell);
 
     await sleep(550); // To prevents double-click detection (emulation)
 
@@ -157,7 +157,7 @@ describe('Events', () => {
     expect(getSelected()).toEqual([[1, 0, 1, 0]]);
 
     // Second touch
-    simulateTouch(anotherCell);
+    await simulateTouch(anotherCell);
 
     expect(location.hash).toBe('');
     expect(getSelected()).toEqual([[1, 0, 1, 0]]);
@@ -175,7 +175,7 @@ describe('Events', () => {
 
     const dropDownIndicator = $(hot.getCell(-1, 2)).find('button')[0];
 
-    simulateTouch(dropDownIndicator);
+    await simulateTouch(dropDownIndicator);
 
     expect($('.htDropdownMenu').is(':visible')).toBe(true);
   });

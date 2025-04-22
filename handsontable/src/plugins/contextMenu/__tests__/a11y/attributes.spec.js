@@ -62,8 +62,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
       contextMenu: ['alignment']
     });
 
-    openContextSubmenuOption('Alignment');
-
+    await openContextSubmenuOption('Alignment');
     await sleep(300);
 
     const cMenu = getPlugin('contextMenu').menu.hotSubMenus.alignment;

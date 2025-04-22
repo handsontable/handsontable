@@ -64,6 +64,7 @@ describe('settings', () => {
       });
 
       expect(() => {
+        // eslint-disable-next-line handsontable/require-await
         updateSettings({
           layoutDirection: 'rtl'
         });

@@ -1049,7 +1049,7 @@ describe('manualRowMove', () => {
         minSpareRows: 1,
       });
 
-      loadData(createSpreadsheetData(4, 4));
+      await loadData(createSpreadsheetData(4, 4));
 
       expect(getData()).toEqual([
         ['A1', 'B1', 'C1', 'D1'],

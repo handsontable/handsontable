@@ -71,14 +71,16 @@ describe('Core_loadData', () => {
 
   it('should allow array of arrays', async() => {
     handsontable();
-    loadData(arrayOfArrays());
+
+    await loadData(arrayOfArrays());
+
     expect(getDataAtCell(0, 2)).toEqual('Nissan');
   });
 
   it('should load data properly when it is defined as an array of objects #4204', async() => {
     handsontable({});
 
-    loadData(arrayOfObjects());
+    await loadData(arrayOfObjects());
 
     expect(getData()).toEqual([
       [1, 'Ted', 'Right'],
@@ -102,7 +104,7 @@ describe('Core_loadData', () => {
         { data: 'name' }
       ]
     });
-    loadData(arrayOfObjects());
+    await loadData(arrayOfObjects());
     expect(getDataAtCell(0, 2)).toEqual('Ted');
   });
 
@@ -124,7 +126,7 @@ describe('Core_loadData', () => {
         return colMeta;
       }
     });
-    loadData(arrayOfObjects());
+    await loadData(arrayOfObjects());
     expect(getDataAtCell(0, 2)).toEqual('Ted');
   });
 
@@ -154,7 +156,7 @@ describe('Core_loadData', () => {
         { data: 'full.street' },
       ]
     });
-    loadData(arrayOfNestedObjects());
+    await loadData(arrayOfNestedObjects());
 
     expect(getDataAtCell(0, 2)).toEqual('Ted');
     expect(getDataAtCell(1, 3)).toEqual('Street II');
@@ -209,7 +211,7 @@ describe('Core_loadData', () => {
         return colMeta;
       }
     });
-    loadData(arrayOfNestedObjects());
+    await loadData(arrayOfNestedObjects());
 
     expect(getDataAtCell(0, 2)).toEqual('Ted');
     expect(getDataAtCell(1, 3)).toEqual('Street II');
@@ -228,7 +230,7 @@ describe('Core_loadData', () => {
     handsontable({
       colHeaders: true
     });
-    loadData(arrayOfNestedObjects());
+    await loadData(arrayOfNestedObjects());
 
     expect(getDataAtCell(0, 2)).toEqual('Right');
   });
@@ -243,7 +245,7 @@ describe('Core_loadData', () => {
         }
       }
     });
-    loadData(arrayOfArrays());
+    await loadData(arrayOfArrays());
 
     expect(called).toEqual(true);
   });
@@ -258,7 +260,7 @@ describe('Core_loadData', () => {
         }
       }
     });
-    loadData(arrayOfObjects());
+    await loadData(arrayOfObjects());
 
     expect(called).toEqual(true);
   });
@@ -273,7 +275,7 @@ describe('Core_loadData', () => {
         }
       }
     });
-    loadData(arrayOfNestedObjects());
+    await loadData(arrayOfNestedObjects());
 
     expect(called).toEqual(true);
   });
@@ -292,7 +294,7 @@ describe('Core_loadData', () => {
       minRows: 20, // minRows should be respected
     });
 
-    loadData(arrayOfArrays());
+    await loadData(arrayOfArrays());
 
     expect(countRows()).toEqual(20); // TODO why this must be checked after render?
   });
@@ -311,14 +313,14 @@ describe('Core_loadData', () => {
       minRows: 20, // minRows should be respected
     });
 
-    loadData(arrayOfNestedObjects());
+    await loadData(arrayOfNestedObjects());
 
     expect(countRows()).toEqual(20); // TODO why this must be checked after render?
   });
 
   it('HTML special chars should be escaped by default', async() => {
     handsontable();
-    loadData(htmlData);
+    await loadData(htmlData);
 
     expect(getCell(0, 0).innerHTML).toEqual('&lt;b&gt;H&amp;M&lt;/b&gt;');
   });
@@ -337,7 +339,7 @@ describe('Core_loadData', () => {
       minRows: 6,
     });
 
-    loadData(arrayOfObjects());
+    await loadData(arrayOfObjects());
 
     expect(getCell(9, 1).innerHTML).toEqual('Eve');
   });
@@ -370,7 +372,7 @@ describe('Core_loadData', () => {
     // Default `cells` calls (table initializes with default values)
     const afterInitCellsSpy = cellsSpy.calls.count();
 
-    loadData(arrayOfNestedObjects());
+    await loadData(arrayOfNestedObjects());
 
     expect(cellsSpy.calls.count() - afterInitCellsSpy).toBe(12);
   });
@@ -405,7 +407,7 @@ describe('Core_loadData', () => {
     // Default `cells` calls (table initializes with default values)
     const afterInitCellsSpy = cellsSpy.calls.count();
 
-    loadData(arrayOfNestedObjects());
+    await loadData(arrayOfNestedObjects());
 
     expect(cellsSpy.calls.count() - afterInitCellsSpy).toBe(12);
   });
@@ -438,7 +440,7 @@ describe('Core_loadData', () => {
 
     await selectCell(7, 0);
 
-    loadData(data2);
+    await loadData(data2);
 
     expect(countRows()).toBe(data2.length);
     expect(getSelected()).toEqual([[4, 0, 4, 0]]);
@@ -469,11 +471,11 @@ describe('Core_loadData', () => {
       colHeaders: true
     });
 
-    loadData(data1);
+    await loadData(data1);
 
     await selectCell(7, 0);
 
-    loadData(data2);
+    await loadData(data2);
 
     expect(countRows()).toBe(data2.length);
     expect(getSelected()).toEqual([[4, 0, 4, 0]]);
@@ -508,7 +510,7 @@ describe('Core_loadData', () => {
 
     await selectCell(8, 0);
 
-    loadData(data2);
+    await loadData(data2);
 
     expect(countRows()).toBe(6); // +1 because of minSpareRows
     expect(getSelected()).toEqual([[5, 0, 5, 0]]);
@@ -540,11 +542,11 @@ describe('Core_loadData', () => {
       colHeaders: true
     });
 
-    loadData(data1);
+    await loadData(data1);
 
     await selectCell(8, 0);
 
-    loadData(data2);
+    await loadData(data2);
 
     expect(countRows()).toBe(6); // +1 because of minSpareRows
     expect(getSelected()).toEqual([[5, 0, 5, 0]]);
@@ -572,7 +574,7 @@ describe('Core_loadData', () => {
 
     await selectCell(7, 0);
 
-    loadData(data2);
+    await loadData(data2);
 
     expect(countRows()).toBe(0);
     expect(getSelected()).toBeUndefined();
@@ -597,11 +599,11 @@ describe('Core_loadData', () => {
       colHeaders: true
     });
 
-    loadData(data1);
+    await loadData(data1);
 
     await selectCell(7, 0);
 
-    loadData(data2);
+    await loadData(data2);
 
     expect(countRows()).toBe(0);
     expect(getSelected()).toBeUndefined();
@@ -631,7 +633,7 @@ describe('Core_loadData', () => {
       ]
     });
 
-    loadData(data1);
+    await loadData(data1);
 
     expect(countCols()).toBe(2);
   });
@@ -688,7 +690,7 @@ describe('Core_loadData', () => {
       }
     });
 
-    loadData(data1);
+    await loadData(data1);
 
     expect(countCols()).toBe(2);
   });
@@ -698,7 +700,7 @@ describe('Core_loadData', () => {
 
     try {
       handsontable();
-      loadData('string');
+      await loadData('string');
     } catch (e) {
       errors += 1;
     }
@@ -846,27 +848,27 @@ describe('Core_loadData', () => {
 
   it('should clear cell properties after loadData', async() => {
     handsontable();
-    loadData(arrayOfArrays());
+    await loadData(arrayOfArrays());
 
     getCellMeta(0, 0).foo = 'bar';
 
     expect(getCellMeta(0, 0).foo).toEqual('bar');
 
-    loadData(arrayOfArrays());
+    await loadData(arrayOfArrays());
 
     expect(getCellMeta(0, 0).foo).toBeUndefined();
   });
 
   it('should clear cell properties after loadData, but before rendering new data', async() => {
     handsontable();
-    loadData(arrayOfArrays());
+    await loadData(arrayOfArrays());
 
     getCellMeta(0, 0).valid = false;
     await render();
 
     expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
 
-    loadData(arrayOfArrays());
+    await loadData(arrayOfArrays());
 
     expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(false);
   });
@@ -879,17 +881,17 @@ describe('Core_loadData', () => {
     rowIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
     columnIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
 
-    loadData(createSpreadsheetData(5, 5));
+    await loadData(createSpreadsheetData(5, 5));
 
     expect(rowIndexMapper().getIndexesSequence()).toEqual([0, 1, 2, 3, 4]);
     expect(columnIndexMapper().getIndexesSequence()).toEqual([0, 1, 2, 3, 4]);
 
-    loadData(createSpreadsheetData(3, 3));
+    await loadData(createSpreadsheetData(3, 3));
 
     expect(rowIndexMapper().getIndexesSequence()).toEqual([0, 1, 2]);
     expect(columnIndexMapper().getIndexesSequence()).toEqual([0, 1, 2]);
 
-    loadData(createSpreadsheetData(5, 5));
+    await loadData(createSpreadsheetData(5, 5));
 
     expect(rowIndexMapper().getIndexesSequence()).toEqual([0, 1, 2, 3, 4]);
     expect(columnIndexMapper().getIndexesSequence()).toEqual([0, 1, 2, 3, 4]);
@@ -915,13 +917,19 @@ describe('Core_loadData', () => {
     });
 
     await mouseDoubleClick(getCell(1, 1));
+
     document.activeElement.value = 'Harry';
-    deselectCell();
+
+    await deselectCell();
+
     expect(objectData[1].user.name.first).toEqual('Harry');
 
     await mouseDoubleClick(getCell(2, 1));
+
     document.activeElement.value = 'Barry';
-    deselectCell();
+
+    await deselectCell();
+
     expect(objectData[2].user.name.first).toEqual('Barry');
   });
 
@@ -944,16 +952,21 @@ describe('Core_loadData', () => {
       ]
     });
 
-    loadData(objectData);
-
+    await loadData(objectData);
     await mouseDoubleClick(getCell(1, 1));
+
     document.activeElement.value = 'Harry';
-    deselectCell();
+
+    await deselectCell();
+
     expect(objectData[1].user.name.first).toEqual('Harry');
 
     await mouseDoubleClick(getCell(2, 1));
+
     document.activeElement.value = 'Barry';
-    deselectCell();
+
+    await deselectCell();
+
     expect(objectData[2].user.name.first).toEqual('Barry');
   });
 
@@ -985,13 +998,19 @@ describe('Core_loadData', () => {
     });
 
     await mouseDoubleClick(getCell(1, 1));
+
     document.activeElement.value = 'Harry';
-    deselectCell();
+
+    await deselectCell();
+
     expect(objectData[1].user.name.first).toEqual('Harry');
 
     await mouseDoubleClick(getCell(2, 1));
+
     document.activeElement.value = 'Barry';
-    deselectCell();
+
+    await deselectCell();
+
     expect(objectData[2].user.name.first).toEqual('Barry');
   });
 
@@ -1022,16 +1041,21 @@ describe('Core_loadData', () => {
       }
     });
 
-    loadData(objectData);
-
+    await loadData(objectData);
     await mouseDoubleClick(getCell(1, 1));
+
     document.activeElement.value = 'Harry';
-    deselectCell();
+
+    await deselectCell();
+
     expect(objectData[1].user.name.first).toEqual('Harry');
 
     await mouseDoubleClick(getCell(2, 1));
+
     document.activeElement.value = 'Barry';
-    deselectCell();
+
+    await deselectCell();
+
     expect(objectData[2].user.name.first).toEqual('Barry');
   });
 
@@ -1039,8 +1063,8 @@ describe('Core_loadData', () => {
     handsontable({
     });
 
-    loadData(arrayOfObjects());
-    loadData(arrayOfArrays());
+    await loadData(arrayOfObjects());
+    await loadData(arrayOfArrays());
 
     expect(getSourceData()).toEqual(arrayOfArrays());
     expect(getData()).toEqual(arrayOfArrays());
@@ -1063,7 +1087,7 @@ describe('Core_loadData', () => {
       }
     });
 
-    loadData(arrayOfArrays(), 'testSource');
+    await loadData(arrayOfArrays(), 'testSource');
 
     expect(correctSourceCount).toEqual(2);
   });
@@ -1085,8 +1109,8 @@ describe('Core_loadData', () => {
       }
     });
 
-    loadData(arrayOfObjects());
-    loadData(arrayOfArrays(), 'testSource');
+    await loadData(arrayOfObjects());
+    await loadData(arrayOfArrays(), 'testSource');
 
     expect(correctSourceCount).toEqual(2);
   });

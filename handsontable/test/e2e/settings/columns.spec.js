@@ -47,6 +47,7 @@ describe('settings', () => {
         });
 
         expect(() => {
+          // eslint-disable-next-line handsontable/require-await
           updateSettings({ columns: [] });
         }).not.toThrow();
       });
@@ -62,6 +63,7 @@ describe('settings', () => {
         });
 
         expect(() => {
+          // eslint-disable-next-line handsontable/require-await
           updateSettings({ columns: [] });
         }).not.toThrow();
       });
@@ -141,6 +143,7 @@ describe('settings', () => {
           });
 
           expect(() => {
+            // eslint-disable-next-line handsontable/require-await
             updateSettings({ columns() {} });
           }).not.toThrow();
         });
@@ -156,6 +159,7 @@ describe('settings', () => {
           });
 
           expect(() => {
+            // eslint-disable-next-line handsontable/require-await
             updateSettings({ columns() {} });
           }).not.toThrow();
         });

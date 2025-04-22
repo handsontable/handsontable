@@ -91,8 +91,8 @@ describe('Filters UI cooperation with UndoRedo', () => {
     });
 
     await dropdownMenu(1);
-    openDropdownByConditionMenu();
-    selectDropdownByConditionMenuOption('Begins with');
+    await openDropdownByConditionMenu();
+    await selectDropdownByConditionMenuOption('Begins with');
 
     await sleep(20);
     document.activeElement.value = 'R';
@@ -109,8 +109,8 @@ describe('Filters UI cooperation with UndoRedo', () => {
     expect(getDataAtCell(1, 1).includes('!')).toBe(true);
 
     await dropdownMenu(1);
-    openDropdownByConditionMenu();
-    selectDropdownByConditionMenuOption('Begins with');
+    await openDropdownByConditionMenu();
+    await selectDropdownByConditionMenuOption('Begins with');
 
     await sleep(20);
     document.activeElement.value = '';

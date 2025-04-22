@@ -26,6 +26,7 @@ describe('HiddenColumns', () => {
       await listen();
       await selectAll();
 
+      /* eslint-disable handsontable/require-await */
       expect(() => keyDownUp('home')).not.toThrow();
       expect(() => keyDownUp(['control/meta', 'home'])).not.toThrow();
       expect(() => keyDownUp('end')).not.toThrow();
@@ -34,6 +35,7 @@ describe('HiddenColumns', () => {
       expect(() => keyDownUp('arrowbottom')).not.toThrow();
       expect(() => keyDownUp('arrowright')).not.toThrow();
       expect(() => keyDownUp('arrowleft')).not.toThrow();
+      /* eslint-enable handsontable/require-await */
       expect(getSelected()).toEqual([[-1, -1, 4, 4]]);
     });
 

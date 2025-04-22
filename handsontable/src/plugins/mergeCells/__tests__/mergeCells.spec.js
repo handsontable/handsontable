@@ -253,7 +253,7 @@ describe('MergeCells', () => {
 
       expect(getSelectedLast()).toEqual([0, 0, 0, 3]);
 
-      deselectCell();
+      await deselectCell();
 
       await selectCell(0, 1);
 
@@ -285,14 +285,14 @@ describe('MergeCells', () => {
 
       expect(getSelectedLast()).toEqual([0, 0, 0, 0]);
 
-      deselectCell();
+      await deselectCell();
 
       await selectCell(0, 0, 1, 1);
 
       expect(getSelectedLast()).not.toEqual([0, 0, 1, 1]);
       expect(getSelectedLast()).toEqual([0, 0, 2, 3]);
 
-      deselectCell();
+      await deselectCell();
 
       await selectCell(0, 1, 1, 1);
 

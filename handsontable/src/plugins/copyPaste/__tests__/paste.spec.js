@@ -136,6 +136,7 @@ describe('CopyPaste', () => {
               return;
             }
 
+            // eslint-disable-next-line handsontable/require-await
             loadData(arrayOfArrays());
           }
         });

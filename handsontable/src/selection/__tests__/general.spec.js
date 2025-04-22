@@ -1604,7 +1604,7 @@ describe('Selection', () => {
         | - ║   :   :   : 0 |
       `).toBeMatchToSelectionPattern();
 
-      loadData([[1, 2, 3], [1, 2, 3], [1, 2, 3]]);
+      await loadData([[1, 2, 3], [1, 2, 3], [1, 2, 3]]);
 
       expect(selection().isSelectedByColumnHeader()).toBe(true);
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: -1,2 to: 2,2']);
@@ -1637,7 +1637,7 @@ describe('Selection', () => {
         |   ║   :   :   :   |
       `).toBeMatchToSelectionPattern();
 
-      loadData([[1, 2, 3], [1, 2, 3], [1, 2, 3]]);
+      await loadData([[1, 2, 3], [1, 2, 3], [1, 2, 3]]);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: 1,2 to: 0,2']);
       expect(`
@@ -1671,7 +1671,7 @@ describe('Selection', () => {
         | * ║ A : 0 : 0 |
       `).toBeMatchToSelectionPattern();
 
-      loadData([[1, 2, 3], [1, 2, 3], [1, 2, 3]]);
+      await loadData([[1, 2, 3], [1, 2, 3], [1, 2, 3]]);
 
       expect(selection().isSelectedByRowHeader()).toBe(true);
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,0 from: 2,-1 to: 2,2']);
@@ -1705,7 +1705,7 @@ describe('Selection', () => {
         | - ║ 0 : A :   |
       `).toBeMatchToSelectionPattern();
 
-      loadData([[1, 2, 3], [1, 2, 3], [1, 2, 3]]);
+      await loadData([[1, 2, 3], [1, 2, 3], [1, 2, 3]]);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,1 from: 2,1 to: 2,0']);
       expect(`

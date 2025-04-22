@@ -547,7 +547,7 @@ describe('TableView', () => {
       });
 
       spyOn(tableView()._wt, 'draw').and.callThrough();
-      loadData(createSpreadsheetData(10, 5));
+      await loadData(createSpreadsheetData(10, 5));
 
       expect(tableView()._wt.draw).toHaveBeenCalledWith(false);
     });
@@ -558,7 +558,7 @@ describe('TableView', () => {
       });
 
       spyOn(tableView()._wt, 'draw').and.callThrough();
-      loadData(createSpreadsheetData(5, 10));
+      await loadData(createSpreadsheetData(5, 10));
 
       expect(tableView()._wt.draw).toHaveBeenCalledWith(false);
     });

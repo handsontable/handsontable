@@ -519,7 +519,7 @@ describe('Selection', () => {
       });
 
       await selectCell(1, 1);
-      updateData(createSpreadsheetData(5, 5), 'updateSettings');
+      await updateData(createSpreadsheetData(5, 5), 'updateSettings');
 
       expect(`
         |   ║   :   :   :   :   |

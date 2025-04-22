@@ -1463,7 +1463,7 @@ describe('TextEditor', () => {
     await selectCell(2, 2);
     await keyDownUp('f2');
 
-    loadData(getData());
+    await loadData(getData());
 
     expect(isEditorVisible()).toEqual(true);
   });
@@ -1963,8 +1963,8 @@ describe('TextEditor', () => {
     // non-fixed
     await scrollWindowBy(300, 300);
 
-    selectCell(10, 6);
-    keyDownUp('enter');
+    await selectCell(10, 6);
+    await keyDownUp('enter');
 
     await scrollWindowBy(-300, -300);
 
@@ -2432,8 +2432,8 @@ describe('TextEditor', () => {
     const hidingMap = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
 
     hidingMap.setValueAtIndex(1, true);
-    await render();
 
+    await render();
     await keyDownUp('enter');
 
     expect(getActiveEditor()).toBe(undefined);

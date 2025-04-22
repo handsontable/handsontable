@@ -55,7 +55,7 @@ describe('Filters UI ActionBar component', () => {
 
     expect($(dropdownMenuRootElement()).is(':visible')).toBe(true);
 
-    mouseClick(dropdownMenuRootElement().querySelector('.htFiltersMenuActionBar .htUIButtonOK input'));
+    await mouseClick(dropdownMenuRootElement().querySelector('.htFiltersMenuActionBar .htUIButtonOK input'));
 
     expect($(dropdownMenuRootElement()).is(':visible')).toBe(false);
   });
@@ -84,7 +84,7 @@ describe('Filters UI ActionBar component', () => {
 
     expect($(dropdownMenuRootElement()).is(':visible')).toBe(true);
 
-    mouseClick(dropdownMenuRootElement().querySelector('.htFiltersMenuActionBar .htUIButtonOK input'));
+    await mouseClick(dropdownMenuRootElement().querySelector('.htFiltersMenuActionBar .htUIButtonOK input'));
 
     expect($(dropdownMenuRootElement()).is(':visible')).toBe(false);
   });

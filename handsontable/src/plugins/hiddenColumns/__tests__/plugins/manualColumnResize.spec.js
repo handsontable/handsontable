@@ -27,7 +27,7 @@ describe('HiddenColumns', () => {
       expect(colWidth(spec().$container, 1)).toBe(65); // 50 + 15 (indicator)
 
       // Resize renderable column index `1` (within visual index term the index at 1 is hidden).
-      resizeColumn(1, 100);
+      await resizeColumn(1, 100);
 
       expect(colWidth(spec().$container, 1)).toBe(114); // 100 + 15 (indicator) - 1 (margin from overlay)
     });

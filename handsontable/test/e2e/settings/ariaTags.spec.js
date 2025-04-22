@@ -60,7 +60,7 @@ describe('`ariaTags` setting option', () => {
 
     expect(getAccessibilityEnabledElements(hot.rootElement).length).toBeGreaterThan(0);
 
-    hot.updateSettings({
+    await updateSettings({
       ariaTags: false
     });
 
@@ -79,7 +79,7 @@ describe('`ariaTags` setting option', () => {
 
     expect(getAccessibilityEnabledElements(hot.rootElement).length).toBe(0);
 
-    hot.updateSettings({
+    await updateSettings({
       ariaTags: true
     });
 
@@ -92,6 +92,7 @@ describe('`ariaTags` setting option', () => {
     });
 
     expect(() => {
+      // eslint-disable-next-line handsontable/require-await
       updateSettings({
         ariaTags: false
       });

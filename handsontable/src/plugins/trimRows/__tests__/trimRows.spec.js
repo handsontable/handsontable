@@ -1070,7 +1070,7 @@ describe('TrimRows', () => {
         trimRows: true,
       });
 
-      loadData(createSpreadsheetData(5, 2));
+      await loadData(createSpreadsheetData(5, 2));
 
       expect(getData()).toEqual([
         ['A1', 'B1'],

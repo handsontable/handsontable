@@ -71,14 +71,16 @@ describe('Core_updateData', () => {
 
   it('should allow array of arrays', async() => {
     handsontable();
-    updateData(arrayOfArrays());
+
+    await updateData(arrayOfArrays());
+
     expect(getDataAtCell(0, 2)).toEqual('Nissan');
   });
 
   it('should load data properly when it is defined as an array of objects #4204', async() => {
     handsontable({});
 
-    updateData(arrayOfObjects());
+    await updateData(arrayOfObjects());
 
     expect(getData()).toEqual([
       [1, 'Ted', 'Right'],
@@ -102,7 +104,8 @@ describe('Core_updateData', () => {
         { data: 'name' }
       ]
     });
-    updateData(arrayOfObjects());
+    await updateData(arrayOfObjects());
+
     expect(getDataAtCell(0, 2)).toEqual('Ted');
   });
 
@@ -124,7 +127,9 @@ describe('Core_updateData', () => {
         return colMeta;
       }
     });
-    updateData(arrayOfObjects());
+
+    await updateData(arrayOfObjects());
+
     expect(getDataAtCell(0, 2)).toEqual('Ted');
   });
 
@@ -139,7 +144,8 @@ describe('Core_updateData', () => {
       ]
     });
 
-    updateData(arrayOfNestedObjects());
+    await updateData(arrayOfNestedObjects());
+
     expect(getDataAtCell(0, 2)).toEqual('Ted');
     expect(getDataAtCell(1, 3)).toEqual('Street II');
     expect(getDataAtRowProp(2, 'full.street')).toEqual('Street III');
@@ -167,7 +173,8 @@ describe('Core_updateData', () => {
       }
     });
 
-    updateData(arrayOfNestedObjects());
+    await updateData(arrayOfNestedObjects());
+
     expect(getDataAtCell(0, 2)).toEqual('Ted');
     expect(getDataAtCell(1, 3)).toEqual('Street II');
     expect(getDataAtRowProp(2, 'full.street')).toEqual('Street III');
@@ -178,7 +185,7 @@ describe('Core_updateData', () => {
       colHeaders: true
     });
 
-    updateData(arrayOfNestedObjects());
+    await updateData(arrayOfNestedObjects());
     expect(getDataAtCell(0, 2)).toEqual('Right');
   });
 
@@ -193,7 +200,7 @@ describe('Core_updateData', () => {
       }
     });
 
-    updateData(arrayOfArrays());
+    await updateData(arrayOfArrays());
 
     expect(called).toEqual(true);
   });
@@ -209,7 +216,7 @@ describe('Core_updateData', () => {
       }
     });
 
-    updateData(arrayOfObjects());
+    await updateData(arrayOfObjects());
 
     expect(called).toEqual(true);
   });
@@ -225,7 +232,7 @@ describe('Core_updateData', () => {
       }
     });
 
-    updateData(arrayOfNestedObjects());
+    await updateData(arrayOfNestedObjects());
 
     expect(called).toEqual(true);
   });
@@ -235,7 +242,7 @@ describe('Core_updateData', () => {
       minRows: 20, // minRows should be respected
     });
 
-    updateData(arrayOfArrays());
+    await updateData(arrayOfArrays());
     expect(countRows()).toEqual(20); // TODO why this must be checked after render?
   });
 
@@ -244,14 +251,14 @@ describe('Core_updateData', () => {
       minRows: 20, // minRows should be respected
     });
 
-    updateData(arrayOfNestedObjects());
+    await updateData(arrayOfNestedObjects());
     expect(countRows()).toEqual(20); // TODO why this must be checked after render?
   });
 
   it('HTML special chars should be escaped by default', async() => {
     handsontable();
 
-    updateData(htmlData);
+    await updateData(htmlData);
 
     expect(getCell(0, 0).innerHTML).toEqual('&lt;b&gt;H&amp;M&lt;/b&gt;');
   });
@@ -261,7 +268,7 @@ describe('Core_updateData', () => {
       minRows: 6,
     });
 
-    updateData(arrayOfObjects());
+    await updateData(arrayOfObjects());
     expect(getCell(9, 1).innerHTML).toEqual('Eve');
   });
 
@@ -278,7 +285,7 @@ describe('Core_updateData', () => {
     // Default `cells` calls (table initializes with default values)
     const afterInitCellsSpy = cellsSpy.calls.count();
 
-    updateData(arrayOfNestedObjects());
+    await updateData(arrayOfNestedObjects());
 
     expect(cellsSpy.calls.count() - afterInitCellsSpy).toBe(12);
   });
@@ -297,7 +304,7 @@ describe('Core_updateData', () => {
     // Default `cells` calls (table initializes with default values)
     const afterInitCellsSpy = cellsSpy.calls.count();
 
-    updateData(arrayOfNestedObjects());
+    await updateData(arrayOfNestedObjects());
 
     expect(cellsSpy.calls.count() - afterInitCellsSpy).toBe(12);
   });
@@ -327,11 +334,11 @@ describe('Core_updateData', () => {
       colHeaders: true
     });
 
-    updateData(data1);
+    await updateData(data1);
 
     await selectCell(7, 0);
 
-    updateData(data2);
+    await updateData(data2);
 
     expect(countRows()).toBe(data2.length);
     expect(getSelected()).toEqual([[4, 0, 4, 0]]);
@@ -363,11 +370,11 @@ describe('Core_updateData', () => {
       colHeaders: true
     });
 
-    updateData(data1);
+    await updateData(data1);
 
     await selectCell(8, 0);
 
-    updateData(data2);
+    await updateData(data2);
 
     expect(countRows()).toBe(6); // +1 because of minSpareRows
     expect(getSelected()).toEqual([[5, 0, 5, 0]]);
@@ -392,11 +399,11 @@ describe('Core_updateData', () => {
       colHeaders: true
     });
 
-    updateData(data1);
+    await updateData(data1);
 
     await selectCell(7, 0);
 
-    updateData(data2);
+    await updateData(data2);
 
     expect(countRows()).toBe(0);
     expect(getSelected()).toBeUndefined();
@@ -412,7 +419,7 @@ describe('Core_updateData', () => {
       ]
     });
 
-    updateData(data1);
+    await updateData(data1);
 
     expect(countCols()).toBe(2);
   });
@@ -434,7 +441,7 @@ describe('Core_updateData', () => {
       }
     });
 
-    updateData(data1);
+    await updateData(data1);
 
     expect(countCols()).toBe(2);
   });
@@ -444,7 +451,7 @@ describe('Core_updateData', () => {
 
     try {
       handsontable();
-      updateData('string');
+      await updateData('string');
 
     } catch (e) {
       errors += 1;
@@ -495,7 +502,7 @@ describe('Core_updateData', () => {
     handsontable({
     });
 
-    updateData(cars);
+    await updateData(cars);
     await updateSettings({
       columns: [
         attr('make'),
@@ -576,7 +583,7 @@ describe('Core_updateData', () => {
       }
     });
 
-    updateData(cars);
+    await updateData(cars);
 
     // normally, you'd get these from the server with .fetch()
     function attr(attribute) {
@@ -597,13 +604,13 @@ describe('Core_updateData', () => {
 
   it('should NOT clear cell properties after updateData', async() => {
     handsontable();
-    updateData(arrayOfArrays());
+    await updateData(arrayOfArrays());
 
     getCellMeta(0, 0).foo = 'bar';
 
     expect(getCellMeta(0, 0).foo).toEqual('bar');
 
-    updateData(arrayOfArrays());
+    await updateData(arrayOfArrays());
 
     expect(getCellMeta(0, 0).foo).toEqual('bar');
   });
@@ -616,17 +623,17 @@ describe('Core_updateData', () => {
     rowIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
     columnIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
 
-    updateData(createSpreadsheetData(5, 5));
+    await updateData(createSpreadsheetData(5, 5));
 
     expect(rowIndexMapper().getIndexesSequence()).toEqual([4, 3, 2, 1, 0]);
     expect(columnIndexMapper().getIndexesSequence()).toEqual([4, 3, 2, 1, 0]);
 
-    updateData(createSpreadsheetData(3, 3));
+    await updateData(createSpreadsheetData(3, 3));
 
     expect(rowIndexMapper().getIndexesSequence()).toEqual([2, 1, 0]);
     expect(columnIndexMapper().getIndexesSequence()).toEqual([2, 1, 0]);
 
-    updateData(createSpreadsheetData(5, 5));
+    await updateData(createSpreadsheetData(5, 5));
 
     expect(rowIndexMapper().getIndexesSequence()).toEqual([2, 1, 0, 3, 4]);
     expect(columnIndexMapper().getIndexesSequence()).toEqual([2, 1, 0, 3, 4]);
@@ -650,16 +657,16 @@ describe('Core_updateData', () => {
       ]
     });
 
-    updateData(objectData);
+    await updateData(objectData);
 
     await mouseDoubleClick(getCell(1, 1));
     document.activeElement.value = 'Harry';
-    deselectCell();
+    await deselectCell();
     expect(objectData[1].user.name.first).toEqual('Harry');
 
     await mouseDoubleClick(getCell(2, 1));
     document.activeElement.value = 'Barry';
-    deselectCell();
+    await deselectCell();
     expect(objectData[2].user.name.first).toEqual('Barry');
   });
 
@@ -689,16 +696,16 @@ describe('Core_updateData', () => {
       }
     });
 
-    updateData(objectData);
+    await updateData(objectData);
 
     await mouseDoubleClick(getCell(1, 1));
     document.activeElement.value = 'Harry';
-    deselectCell();
+    await deselectCell();
     expect(objectData[1].user.name.first).toEqual('Harry');
 
     await mouseDoubleClick(getCell(2, 1));
     document.activeElement.value = 'Barry';
-    deselectCell();
+    await deselectCell();
     expect(objectData[2].user.name.first).toEqual('Barry');
   });
 
@@ -706,8 +713,8 @@ describe('Core_updateData', () => {
     handsontable({
     });
 
-    updateData(arrayOfObjects());
-    updateData(arrayOfArrays());
+    await updateData(arrayOfObjects());
+    await updateData(arrayOfArrays());
 
     expect(getSourceData()).toEqual(arrayOfArrays());
     expect(getData()).toEqual(arrayOfArrays());
@@ -729,9 +736,9 @@ describe('Core_updateData', () => {
       }
     });
 
-    updateData(arrayOfObjects());
+    await updateData(arrayOfObjects());
 
-    updateData(arrayOfArrays(), 'testSource');
+    await updateData(arrayOfArrays(), 'testSource');
 
     expect(correctSourceCount).toEqual(2);
   });

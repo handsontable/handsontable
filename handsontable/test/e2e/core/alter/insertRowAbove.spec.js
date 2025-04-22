@@ -587,6 +587,7 @@ describe('Core.alter', () => {
       });
 
       expect(() => {
+        // eslint-disable-next-line handsontable/require-await
         alter('insert_row_above', 0, 100000);
       }).not.toThrowError();
     });

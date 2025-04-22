@@ -1,4 +1,4 @@
-describe('Core.refreshDimensions', () => {
+describe('Core.await refreshDimensions()', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
@@ -22,7 +22,7 @@ describe('Core.refreshDimensions', () => {
       afterRefreshDimensions,
     });
 
-    refreshDimensions();
+    await refreshDimensions();
 
     expect(beforeRefreshDimensions).forThemes(({ classic, main, horizon }) => {
       classic.toHaveBeenCalledOnceWith(
@@ -68,7 +68,7 @@ describe('Core.refreshDimensions', () => {
     spyOn(hot, 'render');
     spyOn(hot.view, 'adjustElementsSize');
 
-    refreshDimensions();
+    await refreshDimensions();
 
     expect(hot.render).toHaveBeenCalledTimes(1);
     expect(hot.render).toHaveBeenCalledBefore(hot.view.adjustElementsSize);

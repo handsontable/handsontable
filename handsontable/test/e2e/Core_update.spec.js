@@ -74,6 +74,7 @@ describe('Core_updateSettings', () => {
     });
 
     expect(() => {
+      // eslint-disable-next-line handsontable/require-await
       updateSettings({ cell: new Array() });
     }).not.toThrow();
   });
@@ -100,6 +101,7 @@ describe('Core_updateSettings', () => {
     });
 
     expect(() => {
+      // eslint-disable-next-line handsontable/require-await
       updateSettings({ cell: new Array() });
     }).not.toThrow();
   });

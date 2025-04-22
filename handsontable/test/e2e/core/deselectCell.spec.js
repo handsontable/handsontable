@@ -16,7 +16,8 @@ describe('Core.deselectCell', () => {
     });
 
     spyOn(selection(), 'deselect');
-    deselectCell();
+
+    await deselectCell();
 
     expect(selection().deselect).toHaveBeenCalled();
   });

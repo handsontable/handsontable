@@ -110,11 +110,12 @@ describe('settings', () => {
         const $TD = spec().$container.find('tr:eq(0) td:eq(1)');
 
         selectElementText($TD[0], 1);
+
         await mouseDown($TD);
         await mouseOver($TD);
-        mouseMove($TD);
+        await mouseMove($TD);
         await mouseUp($TD);
-        mouseClick($TD);
+        await mouseClick($TD);
 
         expect(getSelected()).toEqual('B1');
 
@@ -135,9 +136,9 @@ describe('settings', () => {
         selectElementText(spec().$container.find('td')[1], 1);
         await mouseDown(spec().$container.find('tr:eq(0) td:eq(1)'));
         await mouseOver(spec().$container.find('tr:eq(0) td:eq(2)'));
-        mouseMove(spec().$container.find('tr:eq(0) td:eq(2)'));
+        await mouseMove(spec().$container.find('tr:eq(0) td:eq(2)'));
         await mouseUp(spec().$container.find('tr:eq(0) td:eq(2)'));
-        mouseClick(spec().$container.find('tr:eq(0) td:eq(2)'));
+        await mouseClick(spec().$container.find('tr:eq(0) td:eq(2)'));
 
         expect(getSelected()).toEqual(''); // copyPaste has selected space in textarea
 

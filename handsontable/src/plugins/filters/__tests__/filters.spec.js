@@ -668,7 +668,7 @@ describe('Filters', () => {
       filters: true
     });
 
-    loadData(createSpreadsheetData(3, 3));
+    await loadData(createSpreadsheetData(3, 3));
 
     expect(getData()).toEqual([
       ['A1', 'B1', 'C1'],

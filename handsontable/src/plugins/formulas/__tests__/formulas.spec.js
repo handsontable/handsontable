@@ -234,6 +234,7 @@ describe('Formulas general', () => {
       }
     });
 
+    // eslint-disable-next-line handsontable/require-await
     expect(() => updateSettings({
       colWidths() {
         return 400;
@@ -334,7 +335,7 @@ describe('Formulas general', () => {
       height: 300
     });
 
-    setSourceDataAtCell(1, 1, 20);
+    await setSourceDataAtCell(1, 1, 20);
 
     expect(getDataAtRow(0)).toEqual([20, 'Maserati', 'Mazda', 'Mercedes', 'Mini', 20]);
     expect(getDataAtRow(1)).toEqual([2009, 20, 2941, 4303, 354, 5814]);
@@ -2985,7 +2986,7 @@ describe('Formulas general', () => {
       }
     });
 
-    loadData([
+    await loadData([
       [1, 2, 3, 4, 5],
       [9, 8, 7, 6, '=A1 + B1']
     ]);
@@ -3003,7 +3004,7 @@ describe('Formulas general', () => {
       }
     });
 
-    updateData([
+    await updateData([
       [1, 2, 3, 4, 5],
       [9, 8, 7, 6, '=A1 + B1']
     ]);
@@ -3096,6 +3097,7 @@ describe('Formulas general', () => {
       hfInstance.renameSheet(0, 'Lorem Ipsum');
 
       expect(() => {
+        // eslint-disable-next-line handsontable/require-await
         setDataAtCell(0, 1, 'new value');
       }).not.toThrow();
 

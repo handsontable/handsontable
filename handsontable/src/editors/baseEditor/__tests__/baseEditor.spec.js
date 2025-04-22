@@ -48,6 +48,7 @@ describe('BaseEditor', () => {
 
     hotInputElement.setAttribute('data-hot-input', true);
     document.body.appendChild(hotInputElement);
+
     spyOn(hotInputElement, 'blur').and.callThrough();
 
     handsontable();
@@ -65,6 +66,7 @@ describe('BaseEditor', () => {
     const externalInputElement = document.createElement('input');
 
     document.body.appendChild(externalInputElement);
+
     spyOn(externalInputElement, 'blur').and.callThrough();
 
     handsontable({
@@ -97,7 +99,7 @@ describe('BaseEditor', () => {
       expect(getDataAtCell(2, 2)).toBe('B2');
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,1 from: 1,1 to: 2,2']);
 
-      loadData(createSpreadsheetData(6, 6));
+      await loadData(createSpreadsheetData(6, 6));
 
       await selectCell(1, 2, 2, 1);
       await keyDownUp('F2');
@@ -109,7 +111,7 @@ describe('BaseEditor', () => {
       expect(getDataAtCell(2, 2)).toBe('C2');
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: 1,2 to: 2,1']);
 
-      loadData(createSpreadsheetData(6, 6));
+      await loadData(createSpreadsheetData(6, 6));
 
       await selectCell(2, 2, 1, 1);
       await keyDownUp('F2');
@@ -121,7 +123,7 @@ describe('BaseEditor', () => {
       expect(getDataAtCell(2, 2)).toBe('C3');
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 2,2 to: 1,1']);
 
-      loadData(createSpreadsheetData(6, 6));
+      await loadData(createSpreadsheetData(6, 6));
 
       await selectCell(2, 1, 1, 2);
       await keyDownUp('F2');
@@ -149,7 +151,7 @@ describe('BaseEditor', () => {
       expect(getDataAtCell(2, 2)).toBe('B2');
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: 1,1 to: 2,2']);
 
-      loadData(createSpreadsheetData(6, 6));
+      await loadData(createSpreadsheetData(6, 6));
 
       await selectCell(1, 2, 2, 1);
       await keyDownUp('F2');
@@ -161,7 +163,7 @@ describe('BaseEditor', () => {
       expect(getDataAtCell(2, 2)).toBe('C2');
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,1 from: 1,2 to: 2,1']);
 
-      loadData(createSpreadsheetData(6, 6));
+      await loadData(createSpreadsheetData(6, 6));
 
       await selectCell(2, 2, 1, 1);
       await keyDownUp('F2');
@@ -173,7 +175,7 @@ describe('BaseEditor', () => {
       expect(getDataAtCell(2, 2)).toBe('C3');
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: 2,2 to: 1,1']);
 
-      loadData(createSpreadsheetData(6, 6));
+      await loadData(createSpreadsheetData(6, 6));
 
       await selectCell(2, 1, 1, 2);
       await keyDownUp('F2');

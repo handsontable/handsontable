@@ -397,7 +397,7 @@ describe('MergeCells cooperation with hidden columns', () => {
       expect($mergeArea.hasClass('fullySelectedMergedCell-6')).toBeFalse();
       expect($mergeArea.hasClass('fullySelectedMergedCell-7')).toBeFalse();
 
-      deselectCell();
+      await deselectCell();
       await selectCell(0, 2);
 
       // Second and third columns are not displayed (CSS - display: none).
@@ -417,7 +417,7 @@ describe('MergeCells cooperation with hidden columns', () => {
       expect($mergeArea.hasClass('fullySelectedMergedCell-6')).toBeFalse();
       expect($mergeArea.hasClass('fullySelectedMergedCell-7')).toBeFalse();
 
-      deselectCell();
+      await deselectCell();
       await selectCell(0, 3);
 
       // Second and third columns are not displayed (CSS - display: none).
@@ -437,7 +437,7 @@ describe('MergeCells cooperation with hidden columns', () => {
       expect($mergeArea.hasClass('fullySelectedMergedCell-6')).toBeFalse();
       expect($mergeArea.hasClass('fullySelectedMergedCell-7')).toBeFalse();
 
-      deselectCell();
+      await deselectCell();
       await selectCell(0, 4);
 
       expect(`
@@ -495,7 +495,7 @@ describe('MergeCells cooperation with hidden columns', () => {
       expect($mergeArea.hasClass('fullySelectedMergedCell-6')).toBeFalse();
       expect($mergeArea.hasClass('fullySelectedMergedCell-7')).toBeFalse();
 
-      deselectCell();
+      await deselectCell();
       await selectCell(0, 1);
 
       expect(`

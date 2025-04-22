@@ -1670,7 +1670,8 @@ describe('UndoRedo', () => {
           data: createObjectData()
         });
 
-        setDataAtRowProp(0, 0, 'Pearce');
+        await setDataAtRowProp(0, 0, 'Pearce');
+
         expect(getDataAtRowProp(0, 0)).toBe('Pearce');
 
         getPlugin('undoRedo').undo();
@@ -1812,10 +1813,10 @@ describe('UndoRedo', () => {
           data: createObjectData().slice(0, 2)
         });
 
-        setDataAtRowProp(0, 'name', 'Pierce');
-        setDataAtRowProp(0, 'surname', 'Brosnan');
-        setDataAtRowProp(1, 'name', 'Daniel');
-        setDataAtRowProp(1, 'surname', 'Craig');
+        await setDataAtRowProp(0, 'name', 'Pierce');
+        await setDataAtRowProp(0, 'surname', 'Brosnan');
+        await setDataAtRowProp(1, 'name', 'Daniel');
+        await setDataAtRowProp(1, 'surname', 'Craig');
 
         expect(getDataAtRowProp(0, 'name')).toBe('Pierce');
         expect(getDataAtRowProp(0, 'surname')).toBe('Brosnan');
@@ -1823,30 +1824,35 @@ describe('UndoRedo', () => {
         expect(getDataAtRowProp(1, 'surname')).toBe('Craig');
 
         getPlugin('undoRedo').undo();
+
         expect(getDataAtRowProp(0, 'name')).toBe('Pierce');
         expect(getDataAtRowProp(0, 'surname')).toBe('Brosnan');
         expect(getDataAtRowProp(1, 'name')).toBe('Daniel');
         expect(getDataAtRowProp(1, 'surname')).toBe('Connery');
 
         getPlugin('undoRedo').undo();
+
         expect(getDataAtRowProp(0, 'name')).toBe('Pierce');
         expect(getDataAtRowProp(0, 'surname')).toBe('Brosnan');
         expect(getDataAtRowProp(1, 'name')).toBe('Sean');
         expect(getDataAtRowProp(1, 'surname')).toBe('Connery');
 
         getPlugin('undoRedo').undo();
+
         expect(getDataAtRowProp(0, 'name')).toBe('Pierce');
         expect(getDataAtRowProp(0, 'surname')).toBe('Dalton');
         expect(getDataAtRowProp(1, 'name')).toBe('Sean');
         expect(getDataAtRowProp(1, 'surname')).toBe('Connery');
 
         getPlugin('undoRedo').undo();
+
         expect(getDataAtRowProp(0, 'name')).toBe('Timothy');
         expect(getDataAtRowProp(0, 'surname')).toBe('Dalton');
         expect(getDataAtRowProp(1, 'name')).toBe('Sean');
         expect(getDataAtRowProp(1, 'surname')).toBe('Connery');
 
         getPlugin('undoRedo').undo();
+
         expect(getDataAtRowProp(0, 'name')).toBe('Timothy');
         expect(getDataAtRowProp(0, 'surname')).toBe('Dalton');
         expect(getDataAtRowProp(1, 'name')).toBe('Sean');
@@ -1974,13 +1980,16 @@ describe('UndoRedo', () => {
           data: createObjectData()
         });
 
-        setDataAtRowProp(0, 0, 'Pearce');
+        await setDataAtRowProp(0, 0, 'Pearce');
+
         expect(getDataAtRowProp(0, 0)).toBe('Pearce');
 
         getPlugin('undoRedo').undo();
+
         expect(getDataAtCell(0, 0)).toBe('Timothy');
 
         getPlugin('undoRedo').redo();
+
         expect(getDataAtRowProp(0, 0)).toBe('Pearce');
       });
 
@@ -2109,10 +2118,10 @@ describe('UndoRedo', () => {
           data: createObjectData().slice(0, 2)
         });
 
-        setDataAtRowProp(0, 'name', 'Pierce');
-        setDataAtRowProp(0, 'surname', 'Brosnan');
-        setDataAtRowProp(1, 'name', 'Daniel');
-        setDataAtRowProp(1, 'surname', 'Craig');
+        await setDataAtRowProp(0, 'name', 'Pierce');
+        await setDataAtRowProp(0, 'surname', 'Brosnan');
+        await setDataAtRowProp(1, 'name', 'Daniel');
+        await setDataAtRowProp(1, 'surname', 'Craig');
 
         expect(getDataAtRowProp(0, 'name')).toBe('Pierce');
         expect(getDataAtRowProp(0, 'surname')).toBe('Brosnan');

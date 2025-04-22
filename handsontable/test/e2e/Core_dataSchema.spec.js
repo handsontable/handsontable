@@ -470,6 +470,7 @@ describe('Core_dataSchema', () => {
     expect(spy.calls.argsFor(0)[5]).toEqual({ id: 1 });
 
     spy.calls.reset();
+
     await alter('insert_row_above', 0);
 
     expect(spy.calls.count()).toBe(2);
@@ -504,6 +505,7 @@ describe('Core_dataSchema', () => {
     expect(spy.calls.argsFor(0)[5]).toEqual({ id: 1 });
 
     spy.calls.reset();
+
     await alter('insert_row_above', 0);
 
     expect(spy.calls.count()).toBe(2);
@@ -567,11 +569,11 @@ describe('Core_dataSchema', () => {
 
       expect(getSchema()).toEqual([null, null, null, null]);
 
-      loadData(createSpreadsheetData(1, 2));
+      await loadData(createSpreadsheetData(1, 2));
 
       expect(getSchema()).toEqual([null, null]);
 
-      updateData(createSpreadsheetData(2, 6));
+      await updateData(createSpreadsheetData(2, 6));
 
       expect(getSchema()).toEqual([null, null, null, null, null, null]);
 

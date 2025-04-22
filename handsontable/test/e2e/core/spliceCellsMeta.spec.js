@@ -115,6 +115,7 @@ describe('Core.spliceCellsMeta', () => {
     getCellMeta(3, 10)._test = 'foo-3x10';
 
     expect(() => {
+      // eslint-disable-next-line handsontable/require-await
       spliceCellsMeta(1, 2, { _test: 'a' }, { _test: 'b' });
     }).toThrowError('The 3rd argument (cellMetaRows) has to be passed as an array of cell meta objects array.');
 

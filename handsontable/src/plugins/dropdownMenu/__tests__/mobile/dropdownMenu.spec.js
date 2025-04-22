@@ -25,7 +25,7 @@ describe('DropdownMenu', () => {
 
     expect($('.htDropdownMenu').is(':visible')).toBe(true);
 
-    simulateTouch(document.body);
+    await simulateTouch(document.body);
 
     expect($('.htDropdownMenu').is(':visible')).toBe(false);
   });
@@ -44,7 +44,7 @@ describe('DropdownMenu', () => {
 
     expect($('.htDropdownMenu').is(':visible')).toBe(true);
 
-    simulateTouch(getCell(3, 3));
+    await simulateTouch(getCell(3, 3));
 
     expect($('.htDropdownMenu').is(':visible')).toBe(false);
   });

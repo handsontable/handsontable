@@ -338,7 +338,7 @@ describe('i18n', () => {
 
       await sleep(0);
 
-      contextMenu();
+      await contextMenu();
 
       const $contextMenuItem = $('.htContextMenu tbody td:not(.htSeparator)');
 
@@ -356,7 +356,7 @@ describe('i18n', () => {
 
       await sleep(0);
 
-      contextMenu();
+      await contextMenu();
 
       const $contextMenuItem = $('.htContextMenu tbody td:not(.htSeparator)');
 
@@ -375,7 +375,7 @@ describe('i18n', () => {
 
       await sleep(0);
 
-      contextMenu();
+      await contextMenu();
 
       const $contextMenuItem = $('.htContextMenu tbody td:not(.htSeparator)');
 
@@ -394,7 +394,7 @@ describe('i18n', () => {
 
       await sleep(0);
 
-      contextMenu();
+      await contextMenu();
 
       const $contextMenuItem = $('.htContextMenu tbody td:not(.htSeparator)');
 

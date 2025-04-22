@@ -23,7 +23,7 @@ describe('ContextMenu', () => {
 
       await contextMenu(getCell(-1, 1, true));
 
-      const item = selectContextMenuOption('Remove column');
+      const item = await selectContextMenuOption('Remove column');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtRow(0)).toEqual(['A1', 'C1', 'D1', 'E1']);
@@ -48,7 +48,7 @@ describe('ContextMenu', () => {
 
       await contextMenu(getCell(1, -1, true));
 
-      const item = selectContextMenuOption('Remove column');
+      const item = await selectContextMenuOption('Remove column');
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1']);
@@ -75,7 +75,7 @@ describe('ContextMenu', () => {
       await selectCell(1, -1);
       getPlugin('contextMenu').open({ top: 0, left: 0 });
 
-      const item = selectContextMenuOption('Remove column');
+      const item = await selectContextMenuOption('Remove column');
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1']);
@@ -93,7 +93,7 @@ describe('ContextMenu', () => {
       await selectCell(-1, -1);
       getPlugin('contextMenu').open({ top: 0, left: 0 });
 
-      const item = selectContextMenuOption('Remove column');
+      const item = await selectContextMenuOption('Remove column');
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(getDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1']);
@@ -111,7 +111,7 @@ describe('ContextMenu', () => {
       await selectCell(-1, 1);
       getPlugin('contextMenu').open({ top: 0, left: 0 });
 
-      const item = selectContextMenuOption('Remove column');
+      const item = await selectContextMenuOption('Remove column');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtRow(0)).toEqual(['A1', 'C1', 'D1', 'E1']);
@@ -127,7 +127,7 @@ describe('ContextMenu', () => {
 
       await contextMenu(getCell(-1, -1, true));
 
-      const item = selectContextMenuOption('Remove column');
+      const item = await selectContextMenuOption('Remove column');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getData()).toEqual([[null], [null], [null], [null], [null]]);
@@ -152,7 +152,7 @@ describe('ContextMenu', () => {
 
       await contextMenu(getCell(-1, -1, true));
 
-      const item = selectContextMenuOption('Remove column');
+      const item = await selectContextMenuOption('Remove column');
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(`
@@ -177,7 +177,7 @@ describe('ContextMenu', () => {
 
       await contextMenu(getCell(-1, -1, true));
 
-      const item = selectContextMenuOption('Remove column');
+      const item = await selectContextMenuOption('Remove column');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getData()).toEqual([]);
@@ -198,7 +198,7 @@ describe('ContextMenu', () => {
 
       await contextMenu(getCell(-1, -1, true));
 
-      const item = selectContextMenuOption('Remove column');
+      const item = await selectContextMenuOption('Remove column');
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(`
@@ -223,7 +223,7 @@ describe('ContextMenu', () => {
 
       await contextMenu(getCell(-1, -1, true));
 
-      const item = selectContextMenuOption('Remove column');
+      const item = await selectContextMenuOption('Remove column');
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(`
@@ -242,7 +242,7 @@ describe('ContextMenu', () => {
 
       await contextMenu(getCell(1, 1));
 
-      const item = selectContextMenuOption('Remove column');
+      const item = await selectContextMenuOption('Remove column');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtRow(0)).toEqual(['A1', 'C1', 'D1', 'E1']);
@@ -268,7 +268,7 @@ describe('ContextMenu', () => {
       await selectCell(2, 2, 4, 4);
       await contextMenu(getCell(2, 2));
 
-      const item = selectContextMenuOption('Remove column');
+      const item = await selectContextMenuOption('Remove column');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtRow(0)).toEqual(['A1', 'B1']);
@@ -330,7 +330,7 @@ describe('ContextMenu', () => {
 
       await contextMenu();
 
-      const item = selectContextMenuOption('Remove column');
+      const item = await selectContextMenuOption('Remove column');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtRow(0)).toEqual(['F1', 'G1', 'H1']);

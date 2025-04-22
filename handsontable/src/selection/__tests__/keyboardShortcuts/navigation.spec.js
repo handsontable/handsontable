@@ -1,3 +1,4 @@
+/* eslint-disable handsontable/require-await */
 describe('Selection navigation', () => {
   const id = 'testContainer';
 

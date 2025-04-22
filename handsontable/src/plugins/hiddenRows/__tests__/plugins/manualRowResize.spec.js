@@ -31,7 +31,7 @@ describe('HiddenRows', () => {
       });
 
       // Resize renderable row index `1` (within visual index term the index at 1 is hidden).
-      resizeRow(1, 100);
+      await resizeRow(1, 100);
 
       expect(rowHeight(spec().$container, 1)).toEqual(100);
     });

@@ -133,7 +133,7 @@ describe('ContextMenu', () => {
       await selectColumns(0);
       await contextMenu();
 
-      const item = selectContextMenuOption('Clear column');
+      const item = await selectContextMenuOption('Clear column');
 
       expect(item.hasClass('htDisabled')).toBe(false);
     });
@@ -150,7 +150,7 @@ describe('ContextMenu', () => {
       await selectColumns(0);
       await contextMenu();
 
-      const item = selectContextMenuOption('Clear column');
+      const item = await selectContextMenuOption('Clear column');
 
       expect(item.hasClass('htDisabled')).toBe(true);
     });
@@ -168,7 +168,7 @@ describe('ContextMenu', () => {
       await selectColumns(0);
       await contextMenu();
 
-      const item = selectContextMenuOption('Clear column');
+      const item = await selectContextMenuOption('Clear column');
 
       expect(item.hasClass('htDisabled')).toBe(false);
     });

@@ -23,7 +23,7 @@ describe('ContextMenu', () => {
 
       await contextMenu(getCell(-1, 1, true));
 
-      const item = selectContextMenuOption('Insert row below');
+      const item = await selectContextMenuOption('Insert row below');
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5']);
@@ -39,7 +39,7 @@ describe('ContextMenu', () => {
 
       await contextMenu(getCell(1, -1, true));
 
-      const item = selectContextMenuOption('Insert row below');
+      const item = await selectContextMenuOption('Insert row below');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtCol(0)).toEqual(['A1', 'A2', null, 'A3', 'A4', 'A5']);
@@ -65,7 +65,7 @@ describe('ContextMenu', () => {
 
       await contextMenu(getCell(-1, -1, true));
 
-      const item = selectContextMenuOption('Insert row below');
+      const item = await selectContextMenuOption('Insert row below');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', null]);
@@ -93,7 +93,7 @@ describe('ContextMenu', () => {
       await selectCell(1, -1);
       getPlugin('contextMenu').open({ top: 0, left: 0 });
 
-      const item = selectContextMenuOption('Insert row below');
+      const item = await selectContextMenuOption('Insert row below');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtCol(0)).toEqual(['A1', 'A2', null, 'A3', 'A4', 'A5']);
@@ -111,7 +111,7 @@ describe('ContextMenu', () => {
       await selectCell(-1, -1);
       getPlugin('contextMenu').open({ top: 0, left: 0 });
 
-      const item = selectContextMenuOption('Insert row below');
+      const item = await selectContextMenuOption('Insert row below');
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5']);
@@ -129,7 +129,7 @@ describe('ContextMenu', () => {
       await selectCell(-1, 1);
       getPlugin('contextMenu').open({ top: 0, left: 0 });
 
-      const item = selectContextMenuOption('Insert row below');
+      const item = await selectContextMenuOption('Insert row below');
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5']);
@@ -146,7 +146,7 @@ describe('ContextMenu', () => {
 
       await contextMenu(getCell(-1, -1, true));
 
-      const item = selectContextMenuOption('Insert row below');
+      const item = await selectContextMenuOption('Insert row below');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtCol(0)).toEqual([null]);
@@ -167,7 +167,7 @@ describe('ContextMenu', () => {
 
       await contextMenu(getCell(-1, -1, true));
 
-      const item = selectContextMenuOption('Insert row below');
+      const item = await selectContextMenuOption('Insert row below');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       // Currently HoT doesn't support row headers shift as it support columns.
@@ -195,7 +195,7 @@ describe('ContextMenu', () => {
 
       await contextMenu(getCell(-1, -1, true));
 
-      const item = selectContextMenuOption('Insert row below');
+      const item = await selectContextMenuOption('Insert row below');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       // Currently HoT doesn't support row headers shift as it support columns.
@@ -225,7 +225,7 @@ describe('ContextMenu', () => {
 
       await contextMenu(getCell(0, 0, true));
 
-      const item = selectContextMenuOption('Insert row below');
+      const item = await selectContextMenuOption('Insert row below');
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(`
@@ -248,7 +248,7 @@ describe('ContextMenu', () => {
 
       await contextMenu(getCell(1, 1));
 
-      const item = selectContextMenuOption('Insert row below');
+      const item = await selectContextMenuOption('Insert row below');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtCol(0)).toEqual(['A1', 'A2', null, 'A3', 'A4', 'A5']);
@@ -277,7 +277,7 @@ describe('ContextMenu', () => {
 
         await contextMenu();
 
-        const item = selectContextMenuOption('Insert row below');
+        const item = await selectContextMenuOption('Insert row below');
 
         expect(item.hasClass('htDisabled')).toBe(true);
       });

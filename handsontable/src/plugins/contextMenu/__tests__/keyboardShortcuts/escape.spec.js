@@ -32,10 +32,8 @@ describe('ContextMenu keyboard shortcut', () => {
         height: 100
       });
 
-      openContextSubmenuOption('Alignment');
-
+      await openContextSubmenuOption('Alignment');
       await sleep(300);
-
       await keyDownUp('arrowdown');
 
       expect($('.htContextMenuSub_Alignment').is(':visible')).toBe(true);

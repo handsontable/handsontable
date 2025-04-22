@@ -447,6 +447,7 @@ describe('Core.alter', () => {
       await alter('remove_row', 0, 2);
 
       expect(() => {
+        // eslint-disable-next-line handsontable/require-await
         alter('remove_col', 0, 1);
       }).not.toThrow();
     });

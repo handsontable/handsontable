@@ -17,7 +17,7 @@ describe('Core.unlisten', () => {
 
     expect(isListening()).toBe(true);
 
-    unlisten();
+    await unlisten();
 
     expect(isListening()).toBe(false);
   });

@@ -60,9 +60,8 @@ describe('AutoColumnSize', () => {
       horizon.toBe(218);
     });
 
-    setDataAtRowProp(0, 'id', 'foo bar foo bar foo bar');
-    setDataAtRowProp(0, 'name', 'foo');
-
+    await setDataAtRowProp(0, 'id', 'foo bar foo bar foo bar');
+    await setDataAtRowProp(0, 'name', 'foo');
     await sleep(50);
 
     expect(colWidth(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {

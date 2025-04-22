@@ -25,7 +25,7 @@ describe('Hook', () => {
         afterSetDataAtRowProp,
       });
 
-      setDataAtRowProp(0, 'a', 'test', 'my-source');
+      await setDataAtRowProp(0, 'a', 'test', 'my-source');
 
       expect(afterSetDataAtRowProp).toHaveBeenCalledWith([[0, 'a', 1, 'test']], 'my-source');
     });
@@ -48,7 +48,7 @@ describe('Hook', () => {
         },
       });
 
-      setDataAtRowProp(0, 'a', '3,45');
+      await setDataAtRowProp(0, 'a', '3,45');
 
       expect(dataChanges).toEqual([[0, 'a', 1, 3.45]]);
     });

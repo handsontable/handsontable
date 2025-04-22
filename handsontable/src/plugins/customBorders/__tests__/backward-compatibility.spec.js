@@ -117,6 +117,7 @@ describe('CustomBorders (using backward compatible "left"/"right" options)', () 
           right: GREEN_BORDER,
         });
 
+        // eslint-disable-next-line handsontable/require-await
         updateSettings({ customBorders });
       }).not.toThrow();
     });
@@ -198,7 +199,7 @@ describe('CustomBorders (using backward compatible "left"/"right" options)', () 
       left: GREEN_BORDER,
       right: RED_BORDER
     });
-    deselectCell();
+    await deselectCell();
 
     expect(getCellMeta(1, 1).borders.top).toEqual(EMPTY);
     expect(getCellMeta(1, 1).borders.left).toEqual(GREEN_BORDER);
@@ -280,7 +281,7 @@ describe('CustomBorders (using backward compatible "left"/"right" options)', () 
       left: GREEN_BORDER,
       right: RED_BORDER
     });
-    deselectCell();
+    await deselectCell();
 
     expect(getCellMeta(2, 2).borders.top).toEqual(GREEN_BORDER);
     expect(getCellMeta(2, 2).borders.left).toEqual(GREEN_BORDER);
@@ -335,7 +336,7 @@ describe('CustomBorders (using backward compatible "left"/"right" options)', () 
     customBorders.setBorders(getSelected(), {
       right: EMPTY
     });
-    deselectCell();
+    await deselectCell();
 
     expect(getCellMeta(2, 2).borders.top).toEqual(GREEN_BORDER);
     expect(getCellMeta(2, 2).borders.left).toEqual(RED_BORDER);
@@ -389,7 +390,7 @@ describe('CustomBorders (using backward compatible "left"/"right" options)', () 
     customBorders.setBorders(getSelected(), {
       right: false
     });
-    deselectCell();
+    await deselectCell();
 
     expect(getCellMeta(2, 2).borders.top).toEqual(GREEN_BORDER);
     expect(getCellMeta(2, 2).borders.left).toEqual(RED_BORDER);
@@ -483,7 +484,7 @@ describe('CustomBorders (using backward compatible "left"/"right" options)', () 
 
     const borders = customBorders.getBorders(getSelected());
 
-    deselectCell();
+    await deselectCell();
 
     expect(borders.length).toEqual(1);
     expect(borders[0].top).toEqual(GREEN_BORDER);
@@ -571,7 +572,7 @@ describe('CustomBorders (using backward compatible "left"/"right" options)', () 
 
     await selectCells([[0, 0, 2, 2]]);
     customBorders.clearBorders(getSelectedRange());
-    deselectCell();
+    await deselectCell();
 
     /*
     Is:
@@ -718,7 +719,7 @@ describe('CustomBorders (using backward compatible "left"/"right" options)', () 
     });
 
     await selectContextSubmenuOption('Borders', 'Top');
-    deselectCell();
+    await deselectCell();
 
     expect(getCellMeta(0, 0).borders.top).toEqual(DEFAULT_BORDER);
     expect(getCellMeta(0, 0).borders.left).toEqual(EMPTY);
@@ -737,7 +738,7 @@ describe('CustomBorders (using backward compatible "left"/"right" options)', () 
     });
 
     await selectContextSubmenuOption('Borders', 'Left');
-    deselectCell();
+    await deselectCell();
 
     expect(getCellMeta(0, 0).borders.top).toEqual(EMPTY);
     expect(getCellMeta(0, 0).borders.left).toEqual(DEFAULT_BORDER);
@@ -755,7 +756,7 @@ describe('CustomBorders (using backward compatible "left"/"right" options)', () 
     });
 
     await selectContextSubmenuOption('Borders', 'Right');
-    deselectCell();
+    await deselectCell();
 
     expect(getCellMeta(0, 0).borders.top).toEqual(EMPTY);
     expect(getCellMeta(0, 0).borders.left).toEqual(EMPTY);
@@ -773,7 +774,7 @@ describe('CustomBorders (using backward compatible "left"/"right" options)', () 
     });
 
     await selectContextSubmenuOption('Borders', 'Bottom');
-    deselectCell();
+    await deselectCell();
 
     expect(getCellMeta(0, 0).borders.top).toEqual(EMPTY);
     expect(getCellMeta(0, 0).borders.left).toEqual(EMPTY);
@@ -799,7 +800,7 @@ describe('CustomBorders (using backward compatible "left"/"right" options)', () 
     expect(countCustomBorders()).toBe(5);
 
     await selectContextSubmenuOption('Borders', 'Remove border');
-    deselectCell();
+    await deselectCell();
 
     expect(getCellMeta(0, 0).borders).toBeUndefined();
     expect(countVisibleCustomBorders()).toBe(0);

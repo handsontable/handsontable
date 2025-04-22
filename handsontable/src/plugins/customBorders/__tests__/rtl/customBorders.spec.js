@@ -61,6 +61,7 @@ describe('CustomBorders (RTL mode)', () => {
       });
 
       expect(() => {
+        // eslint-disable-next-line handsontable/require-await
         updateSettings({
           customBorders: [{
             row: 2,
@@ -140,7 +141,7 @@ describe('CustomBorders (RTL mode)', () => {
       start: GREEN_BORDER,
       end: RED_BORDER
     });
-    deselectCell();
+    await deselectCell();
 
     expect(getCellMeta(1, 1).borders.top).toEqual(EMPTY);
     expect(getCellMeta(1, 1).borders.bottom).toEqual(EMPTY);
@@ -222,7 +223,7 @@ describe('CustomBorders (RTL mode)', () => {
       start: GREEN_BORDER,
       end: RED_BORDER
     });
-    deselectCell();
+    await deselectCell();
 
     expect(getCellMeta(2, 2).borders.top).toEqual(GREEN_BORDER);
     expect(getCellMeta(2, 2).borders.bottom).toEqual(GREEN_BORDER);
@@ -277,7 +278,7 @@ describe('CustomBorders (RTL mode)', () => {
     customBorders.setBorders(getSelected(), {
       end: EMPTY
     });
-    deselectCell();
+    await deselectCell();
 
     expect(getCellMeta(2, 2).borders.top).toEqual(GREEN_BORDER);
     expect(getCellMeta(2, 2).borders.bottom).toEqual(EMPTY);
@@ -331,7 +332,7 @@ describe('CustomBorders (RTL mode)', () => {
     customBorders.setBorders(getSelected(), {
       end: false
     });
-    deselectCell();
+    await deselectCell();
 
     expect(getCellMeta(2, 2).borders.top).toEqual(GREEN_BORDER);
     expect(getCellMeta(2, 2).borders.bottom).toEqual(EMPTY);
@@ -424,7 +425,7 @@ describe('CustomBorders (RTL mode)', () => {
     await selectCells([[1, 1, 2, 2]]);
     const borders = customBorders.getBorders(getSelected());
 
-    deselectCell();
+    await deselectCell();
 
     expect(borders.length).toEqual(1);
     expect(borders[0].top).toEqual(GREEN_BORDER);
@@ -512,7 +513,7 @@ describe('CustomBorders (RTL mode)', () => {
 
     await selectCells([[0, 0, 2, 2]]);
     customBorders.clearBorders(getSelectedRange());
-    deselectCell();
+    await deselectCell();
 
     /*
     Is:
@@ -659,7 +660,7 @@ describe('CustomBorders (RTL mode)', () => {
     });
 
     await selectContextSubmenuOption('Borders', 'Top');
-    deselectCell();
+    await deselectCell();
 
     expect(getCellMeta(0, 0).borders.top).toEqual(DEFAULT_BORDER);
     expect(getCellMeta(0, 0).borders.bottom).toEqual(EMPTY);
@@ -678,7 +679,7 @@ describe('CustomBorders (RTL mode)', () => {
     });
 
     await selectContextSubmenuOption('Borders', 'Left');
-    deselectCell();
+    await deselectCell();
 
     expect(getCellMeta(0, 0).borders.top).toEqual(EMPTY);
     expect(getCellMeta(0, 0).borders.bottom).toEqual(EMPTY);
@@ -696,7 +697,7 @@ describe('CustomBorders (RTL mode)', () => {
     });
 
     await selectContextSubmenuOption('Borders', 'Right');
-    deselectCell();
+    await deselectCell();
 
     expect(getCellMeta(0, 0).borders.top).toEqual(EMPTY);
     expect(getCellMeta(0, 0).borders.bottom).toEqual(EMPTY);
@@ -714,7 +715,7 @@ describe('CustomBorders (RTL mode)', () => {
     });
 
     await selectContextSubmenuOption('Borders', 'Bottom');
-    deselectCell();
+    await deselectCell();
 
     expect(getCellMeta(0, 0).borders.top).toEqual(EMPTY);
     expect(getCellMeta(0, 0).borders.bottom).toEqual(DEFAULT_BORDER);
@@ -740,7 +741,7 @@ describe('CustomBorders (RTL mode)', () => {
     expect(countCustomBorders()).toBe(5);
 
     await selectContextSubmenuOption('Borders', 'Remove border');
-    deselectCell();
+    await deselectCell();
 
     expect(getCellMeta(0, 0).borders).toBeUndefined();
     expect(countVisibleCustomBorders()).toBe(0);

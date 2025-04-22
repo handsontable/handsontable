@@ -35,19 +35,19 @@ describe('Mobile selection', () => {
 
     let $colHeader = spec().$container.find('.ht_clone_top thead tr:nth-child(4) th').get(2);
 
-    simulateTouch($colHeader);
+    await simulateTouch($colHeader);
 
     expect(getSelected()).toEqual([[-1, 1, 9, 1]]);
 
     $colHeader = spec().$container.find('.ht_clone_top thead tr:nth-child(3) th').get(2);
 
-    simulateTouch($colHeader);
+    await simulateTouch($colHeader);
 
     expect(getSelected()).toEqual([[-2, 1, 9, 2]]);
 
     $colHeader = spec().$container.find('.ht_clone_top thead tr:nth-child(2) th').get(2);
 
-    simulateTouch($colHeader);
+    await simulateTouch($colHeader);
 
     expect(getSelected()).toEqual([[-3, 1, 9, 4]]);
   });

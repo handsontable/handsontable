@@ -322,6 +322,7 @@ describe('settings', () => {
       await selectRows(1);
 
       expect(() => {
+        // eslint-disable-next-line handsontable/require-await
         alter('remove_row', 1);
       }).not.toThrow();
     });

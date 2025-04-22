@@ -31,8 +31,7 @@ describe('settings', () => {
       });
 
       await selectCell(2, 2);
-
-      deselectCell();
+      await deselectCell();
 
       expect(spec().$container.find('td.currentRowClassName').length).toEqual(0);
     });
@@ -57,8 +56,7 @@ describe('settings', () => {
       });
 
       await selectCell(2, 2);
-
-      deselectCell();
+      await deselectCell();
 
       expect(spec().$container.find('td.currentColClassName').length).toEqual(0);
     });

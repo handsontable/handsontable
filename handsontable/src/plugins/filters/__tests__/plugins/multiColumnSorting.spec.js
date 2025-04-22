@@ -22,8 +22,8 @@ describe('Filters UI cooperation with MultiColumnSorting', () => {
     });
 
     await dropdownMenu(0);
-    openDropdownByConditionMenu();
-    selectDropdownByConditionMenuOption('Greater than');
+    await openDropdownByConditionMenu();
+    await selectDropdownByConditionMenuOption('Greater than');
 
     await sleep(200);
 
@@ -38,8 +38,8 @@ describe('Filters UI cooperation with MultiColumnSorting', () => {
     getHtCore().find('th span.columnSorting:eq(2)').simulate('click');
 
     await dropdownMenu(2);
-    openDropdownByConditionMenu();
-    selectDropdownByConditionMenuOption('Begins with');
+    await openDropdownByConditionMenu();
+    await selectDropdownByConditionMenuOption('Begins with');
 
     await sleep(200);
 
@@ -68,8 +68,8 @@ describe('Filters UI cooperation with MultiColumnSorting', () => {
     });
 
     await dropdownMenu(0);
-    openDropdownByConditionMenu();
-    selectDropdownByConditionMenuOption('Greater than');
+    await openDropdownByConditionMenu();
+    await selectDropdownByConditionMenuOption('Greater than');
 
     await sleep(300);
 
@@ -87,8 +87,8 @@ describe('Filters UI cooperation with MultiColumnSorting', () => {
     await alter('remove_row', 1, 5);
 
     await dropdownMenu(2);
-    openDropdownByConditionMenu();
-    selectDropdownByConditionMenuOption('Ends with');
+    await openDropdownByConditionMenu();
+    await selectDropdownByConditionMenuOption('Ends with');
 
     await sleep(300);
 
@@ -108,8 +108,8 @@ describe('Filters UI cooperation with MultiColumnSorting', () => {
     expect(getDataAtCol(0).join()).toBe('24,21');
 
     await dropdownMenu(0);
-    openDropdownByConditionMenu();
-    selectDropdownByConditionMenuOption('None');
+    await openDropdownByConditionMenu();
+    await selectDropdownByConditionMenuOption('None');
 
     await sleep(300);
 
@@ -131,8 +131,8 @@ describe('Filters UI cooperation with MultiColumnSorting', () => {
     });
 
     await dropdownMenu(0);
-    openDropdownByConditionMenu();
-    selectDropdownByConditionMenuOption('Greater than');
+    await openDropdownByConditionMenu();
+    await selectDropdownByConditionMenuOption('Greater than');
 
     await sleep(300);
 
@@ -150,8 +150,8 @@ describe('Filters UI cooperation with MultiColumnSorting', () => {
     await alter('insert_row_above', 1, 5);
 
     await dropdownMenu(2);
-    openDropdownByConditionMenu();
-    selectDropdownByConditionMenuOption('Ends with');
+    await openDropdownByConditionMenu();
+    await selectDropdownByConditionMenuOption('Ends with');
 
     await sleep(300);
 
@@ -171,8 +171,8 @@ describe('Filters UI cooperation with MultiColumnSorting', () => {
     expect(getDataAtCol(0).join()).toBe('24,,17,14,16,23,32,26,28,21');
 
     await dropdownMenu(0);
-    openDropdownByConditionMenu();
-    selectDropdownByConditionMenuOption('Is empty');
+    await openDropdownByConditionMenu();
+    await selectDropdownByConditionMenuOption('Is empty');
 
     await sleep(300);
 

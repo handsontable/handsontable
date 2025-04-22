@@ -199,6 +199,7 @@ describe('Formulas general', () => {
       expect($(getCell(0, 2)).hasClass(getSettings().invalidCellClassName)).toBe(false);
       expect($(getCell(0, 3)).hasClass(getSettings().invalidCellClassName)).toBe(false);
 
+      // eslint-disable-next-line handsontable/require-await
       await new Promise(resolve => validateCells(resolve));
 
       expect(beforeValidate).toHaveBeenCalledWith('#REF!', 0, 0, 'validateCells');
@@ -228,6 +229,7 @@ describe('Formulas general', () => {
       expect($(getCell(0, 2)).hasClass(getSettings().invalidCellClassName)).toBe(false);
       expect($(getCell(0, 3)).hasClass(getSettings().invalidCellClassName)).toBe(false);
 
+      // eslint-disable-next-line handsontable/require-await
       await new Promise(resolve => validateCells(resolve));
 
       expect($(getCell(0, 0)).hasClass(getSettings().invalidCellClassName)).toBe(true);
@@ -249,6 +251,7 @@ describe('Formulas general', () => {
         afterValidate,
       });
 
+      // eslint-disable-next-line handsontable/require-await
       await new Promise(resolve => validateCells(resolve));
 
       expect(afterValidate).toHaveBeenCalledTimes(8);
@@ -389,6 +392,7 @@ describe('Formulas general', () => {
       ]);
 
       expect(() => {
+        // eslint-disable-next-line handsontable/require-await
         setDataAtCell(0, 1, 'test');
       }).not.toThrowError();
     });

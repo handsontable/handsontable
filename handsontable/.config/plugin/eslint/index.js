@@ -12,5 +12,6 @@ module.exports = {
   rules: {
     'restricted-module-imports': require('./rules/restricted-module-imports'),
     'require-async-in-it': require('./rules/require-async-in-it'),
+    'require-await': require('./rules/require-await'),
   },
 };

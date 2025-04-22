@@ -17,7 +17,7 @@ describe('Core.clear', () => {
 
     expect(isListening()).toBe(false);
 
-    clear();
+    await clear();
 
     expect(isListening()).toBe(true);
   });

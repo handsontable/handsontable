@@ -166,7 +166,7 @@ describe('NumericRenderer', () => {
       await setDataAtCell(0, 0, '1000');
       await selectCell(0, 0);
 
-      contextMenu();
+      await contextMenu();
 
       const menu = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator');
 

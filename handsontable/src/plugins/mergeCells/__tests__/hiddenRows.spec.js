@@ -475,7 +475,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       expect($mergeArea.hasClass('fullySelectedMergedCell-6')).toBeFalse();
       expect($mergeArea.hasClass('fullySelectedMergedCell-7')).toBeFalse();
 
-      deselectCell();
+      await deselectCell();
       await selectCell(2, 0);
 
       // Second and third rows are not displayed (CSS - display: none).
@@ -496,7 +496,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       expect($mergeArea.hasClass('fullySelectedMergedCell-6')).toBeFalse();
       expect($mergeArea.hasClass('fullySelectedMergedCell-7')).toBeFalse();
 
-      deselectCell();
+      await deselectCell();
       await selectCell(3, 0);
 
       // Second and third rows are not displayed (CSS - display: none).
@@ -517,7 +517,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       expect($mergeArea.hasClass('fullySelectedMergedCell-6')).toBeFalse();
       expect($mergeArea.hasClass('fullySelectedMergedCell-7')).toBeFalse();
 
-      deselectCell();
+      await deselectCell();
       await selectCell(4, 0);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: 1,0 to: 4,0']);
@@ -578,7 +578,7 @@ describe('MergeCells cooperation with hidden rows', () => {
       expect($mergeArea.hasClass('fullySelectedMergedCell-6')).toBeFalse();
       expect($mergeArea.hasClass('fullySelectedMergedCell-7')).toBeFalse();
 
-      deselectCell();
+      await deselectCell();
       await selectCell(1, 0);
 
       expect(`

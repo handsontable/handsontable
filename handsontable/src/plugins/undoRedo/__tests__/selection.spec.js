@@ -41,7 +41,7 @@ describe('UndoRedo', () => {
       });
 
       await selectRows(1);
-      emptySelectedCells();
+      await emptySelectedCells();
 
       getPlugin('undoRedo').undo();
 
@@ -63,7 +63,7 @@ describe('UndoRedo', () => {
       });
 
       await selectColumns(1);
-      emptySelectedCells();
+      await emptySelectedCells();
 
       getPlugin('undoRedo').undo();
 
@@ -85,7 +85,7 @@ describe('UndoRedo', () => {
       });
 
       await selectCells([[0, 0, 1, 1], [1, 2, 2, 3]]);
-      emptySelectedCells();
+      await emptySelectedCells();
 
       await selectCell(4, 0);
       getPlugin('undoRedo').undo();

@@ -31,8 +31,8 @@ describe('Filters UI cooperation with DropdownMenu', () => {
 
     await dropdownMenu(1);
 
-    openDropdownByConditionMenu();
-    selectDropdownByConditionMenuOption('Begins with');
+    await openDropdownByConditionMenu();
+    await selectDropdownByConditionMenuOption('Begins with');
 
     const widthOfMenu = $(dropdownMenuRootElement()).find('table.htCore').width();
     const widthOfInput = $(dropdownMenuRootElement()).find('input').width();
@@ -66,8 +66,8 @@ describe('Filters UI cooperation with DropdownMenu', () => {
 
     await dropdownMenu(1);
 
-    openDropdownByConditionMenu();
-    selectDropdownByConditionMenuOption('Begins with');
+    await openDropdownByConditionMenu();
+    await selectDropdownByConditionMenuOption('Begins with');
 
     const widthOfMenu = $(dropdownMenuRootElement()).find('table.htCore').width();
     const widthOfInput = $(dropdownMenuRootElement()).find('input').width();
@@ -101,8 +101,8 @@ describe('Filters UI cooperation with DropdownMenu', () => {
 
     await dropdownMenu(1);
 
-    openDropdownByConditionMenu();
-    selectDropdownByConditionMenuOption('Begins with');
+    await openDropdownByConditionMenu();
+    await selectDropdownByConditionMenuOption('Begins with');
 
     const widthOfMenu = $(dropdownMenuRootElement()).find('table.htCore').width();
     const widthOfInput = $(dropdownMenuRootElement()).find('input').width();
@@ -322,7 +322,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
 
     await dropdownMenu(1);
 
-    openDropdownByConditionMenu();
+    await openDropdownByConditionMenu();
     $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")')
       .simulate('mousedown')
       .simulate('mouseup');
@@ -358,7 +358,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
 
     await dropdownMenu(1);
 
-    openDropdownByConditionMenu();
+    await openDropdownByConditionMenu();
     $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")')
       .simulate('mousedown')
       .simulate('mouseup');
@@ -390,7 +390,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
 
     await dropdownMenu(1);
 
-    openDropdownByConditionMenu();
+    await openDropdownByConditionMenu();
     $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")')
       .simulate('mousedown')
       .simulate('mouseup');
@@ -422,7 +422,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
 
     await dropdownMenu(1);
 
-    openDropdownByConditionMenu();
+    await openDropdownByConditionMenu();
     $(conditionMenuRootElements().first).find('tbody td:contains("Begins with")')
       .simulate('mousedown')
       .simulate('mouseup');
@@ -508,7 +508,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
 
     await dropdownMenu(0);
 
-    openDropdownByConditionMenu();
+    await openDropdownByConditionMenu();
 
     await sleep(300);
 
@@ -519,7 +519,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
 
     await dropdownMenu(0);
 
-    openDropdownByConditionMenu();
+    await openDropdownByConditionMenu();
 
     await sleep(300);
 
@@ -571,7 +571,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
 
     const firstWidth = $menu.find('.wtHider').width();
 
-    openDropdownByConditionMenu();
+    await openDropdownByConditionMenu();
 
     await sleep(300);
 
@@ -610,8 +610,8 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     });
 
     await dropdownMenu(1);
-    openDropdownByConditionMenu();
-    selectDropdownByConditionMenuOption('Begins with');
+    await openDropdownByConditionMenu();
+    await selectDropdownByConditionMenuOption('Begins with');
 
     expect($(dropdownMenuRootElement()).is(':visible')).toBe(true);
     expect($(conditionMenuRootElements().first).is(':visible')).toBe(false);
@@ -629,8 +629,8 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     });
 
     await dropdownMenu(1);
-    openDropdownByConditionMenu();
-    selectDropdownByConditionMenuOption('None');
+    await openDropdownByConditionMenu();
+    await selectDropdownByConditionMenuOption('None');
 
     expect($(dropdownMenuRootElement()).is(':visible')).toBe(true);
     expect($(conditionMenuRootElements().first).is(':visible')).toBe(false);
@@ -648,11 +648,11 @@ describe('Filters UI cooperation with DropdownMenu', () => {
     });
 
     await dropdownMenu(1);
-    openDropdownByConditionMenu();
-    selectDropdownByConditionMenuOption('Is equal to');
+    await openDropdownByConditionMenu();
+    await selectDropdownByConditionMenuOption('Is equal to');
 
-    openDropdownByConditionMenu();
-    selectDropdownByConditionMenuOption('None');
+    await openDropdownByConditionMenu();
+    await selectDropdownByConditionMenuOption('None');
 
     expect($(dropdownMenuRootElement()).is(':visible')).toBe(true);
     expect($(conditionMenuRootElements().first).is(':visible')).toBe(false);

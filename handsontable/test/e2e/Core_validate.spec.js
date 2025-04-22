@@ -38,7 +38,6 @@ describe('Core_validate', () => {
     });
 
     await validateCells();
-
     await sleep(100);
 
     destroy();
@@ -411,7 +410,10 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    expect(() => validateCells()).not.toThrow();
+    expect(() => {
+      // eslint-disable-next-line handsontable/require-await
+      validateCells();
+    }).not.toThrow();
 
     await sleep(100); // wait for async validation
 
@@ -430,10 +432,22 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    expect(() => validateRows()).toThrow();
-    expect(() => validateRows(0, () => {})).toThrow();
-    expect(() => validateRows({}, () => {})).toThrow();
-    expect(() => validateRows(() => {})).toThrow();
+    expect(() => {
+      // eslint-disable-next-line handsontable/require-await
+      validateRows();
+    }).toThrow();
+    expect(() => {
+      // eslint-disable-next-line handsontable/require-await
+      validateRows(0, () => {});
+    }).toThrow();
+    expect(() => {
+      // eslint-disable-next-line handsontable/require-await
+      validateRows({}, () => {});
+    }).toThrow();
+    expect(() => {
+      // eslint-disable-next-line handsontable/require-await
+      validateRows(() => {});
+    }).toThrow();
   });
 
   it('should throw error after calling validateColumns first argument not array', async() => {
@@ -447,10 +461,22 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    expect(() => validateColumns()).toThrow();
-    expect(() => validateColumns(0, () => {})).toThrow();
-    expect(() => validateColumns({}, () => {})).toThrow();
-    expect(() => validateColumns(() => {})).toThrow();
+    expect(() => {
+      // eslint-disable-next-line handsontable/require-await
+      validateColumns();
+    }).toThrow();
+    expect(() => {
+      // eslint-disable-next-line handsontable/require-await
+      validateColumns(0, () => {});
+    }).toThrow();
+    expect(() => {
+      // eslint-disable-next-line handsontable/require-await
+      validateColumns({}, () => {});
+    }).toThrow();
+    expect(() => {
+      // eslint-disable-next-line handsontable/require-await
+      validateColumns(() => {});
+    }).toThrow();
   });
 
   it('should not throw error after calling validateRows without second argument', async() => {
@@ -464,9 +490,18 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    expect(() => validateRows([])).not.toThrow();
-    expect(() => validateRows([0, 1])).not.toThrow();
-    expect(() => validateRows([100, 101])).not.toThrow();
+    expect(() => {
+      // eslint-disable-next-line handsontable/require-await
+      validateRows([]);
+    }).not.toThrow();
+    expect(() => {
+      // eslint-disable-next-line handsontable/require-await
+      validateRows([0, 1]);
+    }).not.toThrow();
+    expect(() => {
+      // eslint-disable-next-line handsontable/require-await
+      validateRows([100, 101]);
+    }).not.toThrow();
   });
 
   it('should not throw error after calling validateColumns without second argument', async() => {
@@ -480,9 +515,18 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    expect(() => validateColumns([])).not.toThrow();
-    expect(() => validateColumns([0, 1])).not.toThrow();
-    expect(() => validateColumns([100, 101])).not.toThrow();
+    expect(() => {
+      // eslint-disable-next-line handsontable/require-await
+      validateColumns([]);
+    }).not.toThrow();
+    expect(() => {
+      // eslint-disable-next-line handsontable/require-await
+      validateColumns([0, 1]);
+    }).not.toThrow();
+    expect(() => {
+      // eslint-disable-next-line handsontable/require-await
+      validateColumns([100, 101]);
+    }).not.toThrow();
   });
 
   it('should add class name `htInvalid` to an cell that does not validate - on validateCells', async() => {
@@ -501,6 +545,7 @@ describe('Core_validate', () => {
     });
 
     await validateCells(() => {
+      // eslint-disable-next-line handsontable/require-await
       render();
     });
 
@@ -526,6 +571,7 @@ describe('Core_validate', () => {
     });
 
     await validateRows([], () => {
+      // eslint-disable-next-line handsontable/require-await
       render();
     });
 
@@ -534,9 +580,10 @@ describe('Core_validate', () => {
     expect(spec().$container.find('td.htInvalid').length).toEqual(0);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(4);
 
-    loadData(createSpreadsheetData(2, 2));
+    await loadData(createSpreadsheetData(2, 2));
 
     await validateRows([0], () => {
+      // eslint-disable-next-line handsontable/require-await
       render();
     });
 
@@ -545,9 +592,10 @@ describe('Core_validate', () => {
     expect(spec().$container.find('td.htInvalid').length).toEqual(1);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(3);
 
-    loadData(createSpreadsheetData(2, 2));
+    await loadData(createSpreadsheetData(2, 2));
 
     await validateRows([1], () => {
+      // eslint-disable-next-line handsontable/require-await
       render();
     });
 
@@ -556,9 +604,10 @@ describe('Core_validate', () => {
     expect(spec().$container.find('td.htInvalid').length).toEqual(0);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(4);
 
-    loadData(createSpreadsheetData(2, 2));
+    await loadData(createSpreadsheetData(2, 2));
 
     await validateRows([0, 1], () => {
+      // eslint-disable-next-line handsontable/require-await
       render();
     });
 
@@ -567,9 +616,10 @@ describe('Core_validate', () => {
     expect(spec().$container.find('td.htInvalid').length).toEqual(1);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(3);
 
-    loadData(createSpreadsheetData(2, 2));
+    await loadData(createSpreadsheetData(2, 2));
 
     await validateRows([0, 1, 100], () => {
+      // eslint-disable-next-line handsontable/require-await
       render();
     });
 
@@ -578,9 +628,10 @@ describe('Core_validate', () => {
     expect(spec().$container.find('td.htInvalid').length).toEqual(1);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(3);
 
-    loadData(createSpreadsheetData(2, 2));
+    await loadData(createSpreadsheetData(2, 2));
 
     await validateRows([100, 101], () => {
+      // eslint-disable-next-line handsontable/require-await
       render();
     });
 
@@ -605,41 +656,47 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
+    // eslint-disable-next-line handsontable/require-await
     await promisfy(resolve => validateColumns([], resolve));
 
     expect(spec().$container.find('td.htInvalid').length).toEqual(0);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(4);
 
-    loadData(createSpreadsheetData(2, 2));
+    await loadData(createSpreadsheetData(2, 2));
 
+    // eslint-disable-next-line handsontable/require-await
     await promisfy(resolve => validateColumns([0], resolve));
 
     expect(spec().$container.find('td.htInvalid').length).toEqual(0);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(4);
 
-    loadData(createSpreadsheetData(2, 2));
+    await loadData(createSpreadsheetData(2, 2));
 
+    // eslint-disable-next-line handsontable/require-await
     await promisfy(resolve => validateColumns([1], resolve));
 
     expect(spec().$container.find('td.htInvalid').length).toEqual(1);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(3);
 
-    loadData(createSpreadsheetData(2, 2));
+    await loadData(createSpreadsheetData(2, 2));
 
+    // eslint-disable-next-line handsontable/require-await
     await promisfy(resolve => validateColumns([0, 1], resolve));
 
     expect(spec().$container.find('td.htInvalid').length).toEqual(1);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(3);
 
-    loadData(createSpreadsheetData(2, 2));
+    await loadData(createSpreadsheetData(2, 2));
 
+    // eslint-disable-next-line handsontable/require-await
     await promisfy(resolve => validateColumns([0, 1, 100], resolve));
 
     expect(spec().$container.find('td.htInvalid').length).toEqual(1);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(3);
 
-    loadData(createSpreadsheetData(2, 2));
+    await loadData(createSpreadsheetData(2, 2));
 
+    // eslint-disable-next-line handsontable/require-await
     await promisfy(resolve => validateColumns([100, 101], resolve));
 
     expect(spec().$container.find('td.htInvalid').length).toEqual(0);
@@ -659,8 +716,7 @@ describe('Core_validate', () => {
 
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(4);
 
-    validateCell(getDataAtCell(1, 1), getCellMeta(1, 1), () => {});
-
+    await validateCell(getDataAtCell(1, 1), getCellMeta(1, 1), () => {});
     await sleep(200);
 
     expect(spec().$container.find('td.htInvalid').length).toEqual(1);
@@ -691,8 +747,8 @@ describe('Core_validate', () => {
 
     isValid = true;
     onAfterValidate.calls.reset();
-    validateCell(getDataAtCell(1, 1), getCellMeta(1, 1), () => {});
 
+    await validateCell(getDataAtCell(1, 1), getCellMeta(1, 1), () => {});
     await sleep(100); // wait for async validation
 
     expect(spec().$container.find('td.htInvalid').length).toEqual(3);
@@ -948,6 +1004,7 @@ describe('Core_validate', () => {
     });
 
     await validateCells(() => {
+      // eslint-disable-next-line handsontable/require-await
       render();
     });
 
@@ -2044,6 +2101,7 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
+    // eslint-disable-next-line handsontable/require-await
     await promisfy(resolve => validateCells((...args) => {
       onValidate(...args);
       resolve();
@@ -2074,6 +2132,7 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
+    // eslint-disable-next-line handsontable/require-await
     await promisfy(resolve => validateRows([0, 1], (...args) => {
       onValidate(...args);
       resolve();
@@ -2104,6 +2163,7 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
+    // eslint-disable-next-line handsontable/require-await
     await promisfy(resolve => validateColumns([0, 1], (...args) => {
       onValidate(...args);
       resolve();
@@ -2142,6 +2202,7 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
+    // eslint-disable-next-line handsontable/require-await
     await promisfy(resolve => validateCells((...args) => {
       onValidate(...args);
       resolve();
@@ -2180,6 +2241,7 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
+    // eslint-disable-next-line handsontable/require-await
     await promisfy(resolve => validateRows([0, 1], (...args) => {
       onValidate(...args);
       resolve();
@@ -2218,6 +2280,7 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
+    // eslint-disable-next-line handsontable/require-await
     await promisfy(resolve => validateColumns([0, 1], (...args) => {
       onValidate(...args);
       resolve();
@@ -2243,6 +2306,7 @@ describe('Core_validate', () => {
 
     spyOn(tableView()._wt.wtSettings.settings, 'cellRenderer');
 
+    // eslint-disable-next-line handsontable/require-await
     await promisfy(resolve => validateCells(resolve));
 
     const mostRecentRendererCallArgs = tableView()._wt.wtSettings.settings.cellRenderer.calls.mostRecent().args;

@@ -50,7 +50,7 @@ describe('Filters UI Conditional component', () => {
     expect(document.querySelector('.htFiltersConditionsMenu.handsontable table')).toBeNull();
 
     await dropdownMenu(1);
-    openDropdownByConditionMenu();
+    await openDropdownByConditionMenu();
 
     expect(document.querySelector('.htFiltersConditionsMenu.handsontable table')).not.toBeNull();
   });
@@ -66,7 +66,7 @@ describe('Filters UI Conditional component', () => {
     });
 
     await dropdownMenu(1);
-    openDropdownByConditionMenu();
+    await openDropdownByConditionMenu();
 
     const conditionalMenu = $(conditionMenuRootElements().first);
 
@@ -113,7 +113,7 @@ describe('Filters UI Conditional component', () => {
     });
 
     await dropdownMenu(1);
-    openDropdownByConditionMenu();
+    await openDropdownByConditionMenu();
 
     const menuItems = $(conditionMenuRootElements().first).find('.htCore tr').map(function() {
       return this.textContent;
@@ -147,7 +147,7 @@ describe('Filters UI Conditional component', () => {
     });
 
     await dropdownMenu(5);
-    openDropdownByConditionMenu();
+    await openDropdownByConditionMenu();
 
     const menuItems = $(conditionMenuRootElements().first).find('.htCore tr').map(function() {
       return this.textContent;
@@ -182,7 +182,7 @@ describe('Filters UI Conditional component', () => {
     });
 
     await dropdownMenu(3);
-    openDropdownByConditionMenu();
+    await openDropdownByConditionMenu();
 
     const menuItems = $(conditionMenuRootElements().first).find('.htCore tr').map(function() {
       return this.textContent;
@@ -223,7 +223,7 @@ describe('Filters UI Conditional component', () => {
     });
 
     await dropdownMenu(3);
-    openDropdownByConditionMenu();
+    await openDropdownByConditionMenu();
 
     const menuItems = $(conditionMenuRootElements().first).find('.htCore tr').map(function() {
       return this.textContent;
@@ -261,7 +261,7 @@ describe('Filters UI Conditional component', () => {
       top: 100,
       left: 100,
     });
-    openDropdownByConditionMenu();
+    await openDropdownByConditionMenu();
 
     const menuItems = $(conditionMenuRootElements().first).find('.htCore tr').map(function() {
       return this.textContent;
@@ -293,7 +293,7 @@ describe('Filters UI Conditional component', () => {
       top: 100,
       left: 100,
     });
-    openDropdownByConditionMenu();
+    await openDropdownByConditionMenu();
 
     const menuItems = $(conditionMenuRootElements().first).find('.htCore tr').map(function() {
       return this.textContent;
@@ -329,8 +329,8 @@ describe('Filters UI Conditional component', () => {
     });
 
     await dropdownMenu(2);
-    openDropdownByConditionMenu();
-    selectDropdownByConditionMenuOption('Is equal to');
+    await openDropdownByConditionMenu();
+    await selectDropdownByConditionMenuOption('Is equal to');
 
     await sleep(100); // Wait for autofocus of the filter input element
 
@@ -355,13 +355,13 @@ describe('Filters UI Conditional component', () => {
     });
 
     await dropdownMenu(3);
-    openDropdownByConditionMenu();
-    selectDropdownByConditionMenuOption('Is empty');
+    await openDropdownByConditionMenu();
+    await selectDropdownByConditionMenuOption('Is empty');
 
     $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK')).simulate('click');
 
     await dropdownMenu(3);
-    openDropdownByConditionMenu();
+    await openDropdownByConditionMenu();
 
     const menuItems = $(conditionMenuRootElements().first).find('.htCore tr').map(function() {
       return this.textContent;
@@ -397,7 +397,7 @@ describe('Filters UI Conditional component', () => {
     });
 
     await dropdownMenu(1);
-    openDropdownByConditionMenu();
+    await openDropdownByConditionMenu();
 
     expect(document.querySelector('.htFiltersConditionsMenu.handsontable table')).not.toBeNull();
 
@@ -417,7 +417,7 @@ describe('Filters UI Conditional component', () => {
     });
 
     await dropdownMenu(1);
-    openDropdownByConditionMenu();
+    await openDropdownByConditionMenu();
 
     expect(document.querySelector('.htFiltersConditionsMenu.handsontable table')).not.toBeNull();
 
@@ -438,11 +438,11 @@ describe('Filters UI Conditional component', () => {
     });
 
     await dropdownMenu(1);
-    openDropdownByConditionMenu();
+    await openDropdownByConditionMenu();
 
     expect(document.querySelector('.htFiltersConditionsMenu.handsontable table')).not.toBeNull();
 
-    selectDropdownMenuOption('Clear column');
+    await selectDropdownMenuOption('Clear column');
 
     expect($(dropdownMenuRootElement()).is(':visible')).toBe(false);
   });
@@ -459,8 +459,8 @@ describe('Filters UI Conditional component', () => {
     });
 
     await dropdownMenu(1);
-    openDropdownByConditionMenu();
-    selectDropdownByConditionMenuOption('Is equal to');
+    await openDropdownByConditionMenu();
+    await selectDropdownByConditionMenuOption('Is equal to');
 
     await sleep(200);
 
@@ -495,8 +495,8 @@ describe('Filters UI Conditional component', () => {
     $(button).simulate('mouseup');
     $(button).simulate('click');
 
-    openDropdownByConditionMenu();
-    selectDropdownByConditionMenuOption('Is empty');
+    await openDropdownByConditionMenu();
+    await selectDropdownByConditionMenuOption('Is empty');
 
     await sleep(200);
     await keyDownUp('escape');
@@ -529,7 +529,7 @@ describe('Filters UI Conditional component', () => {
     $(button).simulate('mouseup');
     $(button).simulate('click');
 
-    openDropdownByConditionMenu();
+    await openDropdownByConditionMenu();
 
     await sleep(200);
 
@@ -551,15 +551,15 @@ describe('Filters UI Conditional component', () => {
     });
 
     await dropdownMenu(1);
-    openDropdownByConditionMenu();
+    await openDropdownByConditionMenu();
     // is empty (test for condition which doesn't have input elements to provide filtered values)
-    selectDropdownByConditionMenuOption('Is empty');
+    await selectDropdownByConditionMenuOption('Is empty');
 
     expect(getPlugin('dropdownMenu').menu.hotMenu.isListening()).toBe(true);
 
     // is equal to (test for condition which has input elements to provide filtered values, that focusable elements
     // can cause the menu focus)
-    selectDropdownByConditionMenuOption('Is equal to');
+    await selectDropdownByConditionMenuOption('Is equal to');
 
     expect(getPlugin('dropdownMenu').menu.hotMenu.isListening()).toBe(true);
   });
@@ -575,8 +575,8 @@ describe('Filters UI Conditional component', () => {
     });
 
     await dropdownMenu(1);
-    openDropdownByConditionMenu();
-    selectDropdownByConditionMenuOption('Is equal to');
+    await openDropdownByConditionMenu();
+    await selectDropdownByConditionMenuOption('Is equal to');
 
     await sleep(50);
 
@@ -601,8 +601,8 @@ describe('Filters UI Conditional component', () => {
     });
 
     await dropdownMenu(1);
-    openDropdownByConditionMenu();
-    selectDropdownByConditionMenuOption('Is empty');
+    await openDropdownByConditionMenu();
+    await selectDropdownByConditionMenuOption('Is empty');
 
     expect($(dropdownMenuRootElement()).is(':visible')).toBe(true);
     expect($(conditionMenuRootElements().first).is(':visible')).toBe(false);
@@ -634,8 +634,8 @@ describe('Filters UI Conditional component', () => {
       });
 
       await dropdownMenu(1);
-      openDropdownByConditionMenu();
-      selectDropdownByConditionMenuOption('Begins with');
+      await openDropdownByConditionMenu();
+      await selectDropdownByConditionMenuOption('Begins with');
 
       expect($(dropdownMenuRootElement()).is(':visible')).toBe(true);
       expect($(conditionMenuRootElements().first).is(':visible')).toBe(false);
@@ -653,8 +653,8 @@ describe('Filters UI Conditional component', () => {
       });
 
       await dropdownMenu(1);
-      openDropdownByConditionMenu();
-      selectDropdownByConditionMenuOption('None');
+      await openDropdownByConditionMenu();
+      await selectDropdownByConditionMenuOption('None');
 
       expect($(dropdownMenuRootElement()).is(':visible')).toBe(true);
       expect($(conditionMenuRootElements().first).is(':visible')).toBe(false);
@@ -672,11 +672,11 @@ describe('Filters UI Conditional component', () => {
       });
 
       await dropdownMenu(1);
-      openDropdownByConditionMenu();
-      selectDropdownByConditionMenuOption('Is equal to');
+      await openDropdownByConditionMenu();
+      await selectDropdownByConditionMenuOption('Is equal to');
 
-      openDropdownByConditionMenu();
-      selectDropdownByConditionMenuOption('None');
+      await openDropdownByConditionMenu();
+      await selectDropdownByConditionMenuOption('None');
 
       expect($(dropdownMenuRootElement()).is(':visible')).toBe(true);
       expect($(conditionMenuRootElements().first).is(':visible')).toBe(false);
@@ -745,7 +745,7 @@ describe('Filters UI Conditional component', () => {
     });
 
     await dropdownMenu(1);
-    openDropdownByConditionMenu();
+    await openDropdownByConditionMenu();
     // menu separator click
     $(conditionMenuRootElements().first.querySelector('tbody :nth-child(2) td'))
       .simulate('mouseenter')
@@ -766,8 +766,8 @@ describe('Filters UI Conditional component', () => {
     });
 
     await dropdownMenu(0);
-    openDropdownByConditionMenu();
-    selectDropdownByConditionMenuOption('Is equal to');
+    await openDropdownByConditionMenu();
+    await selectDropdownByConditionMenuOption('Is equal to');
 
     await sleep(200);
 
@@ -787,8 +787,8 @@ describe('Filters UI Conditional component', () => {
     expect($(inputs[1]).is(':visible')).toBe(false);
 
     await dropdownMenu(3);
-    openDropdownByConditionMenu();
-    selectDropdownByConditionMenuOption('Is between');
+    await openDropdownByConditionMenu();
+    await selectDropdownByConditionMenuOption('Is between');
 
     await sleep(200);
 

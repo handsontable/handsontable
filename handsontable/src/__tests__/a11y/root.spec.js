@@ -58,7 +58,7 @@ describe('Root element-related a11y configuration', () => {
         expect(hot.rootElement.getAttribute('aria-rowcount')).toEqual('-1'); // temp value (#10607)
         expect(hot.rootElement.getAttribute('aria-colcount')).toEqual('22'); // Include row headers.
 
-        updateData(createSpreadsheetData(32, 23));
+        await updateData(createSpreadsheetData(32, 23));
 
         expect(hot.rootElement.getAttribute('aria-rowcount')).toEqual('-1'); // temp value (#10607)
         expect(hot.rootElement.getAttribute('aria-colcount')).toEqual('24'); // Include row headers.

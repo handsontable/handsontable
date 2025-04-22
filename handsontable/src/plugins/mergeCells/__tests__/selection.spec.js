@@ -120,7 +120,7 @@ describe('MergeCells Selection', () => {
       spec().$container.find('.ht_clone_top tr:eq(0) th:eq(4)'),
     ];
 
-    deselectCell();
+    await deselectCell();
 
     await keyDown('control/meta');
     await mouseDown(rowHeaders[0]);
@@ -134,7 +134,7 @@ describe('MergeCells Selection', () => {
     expect(getComputedStyle(mergedCell, ':before').backgroundColor).toEqual(selectedCellBackground);
     expect(getComputedStyle(mergedCell, ':before').opacity).toEqual(selectedCellOpacity);
 
-    deselectCell();
+    await deselectCell();
 
     await keyDown('control/meta');
     await mouseDown(columnHeaders[0]);

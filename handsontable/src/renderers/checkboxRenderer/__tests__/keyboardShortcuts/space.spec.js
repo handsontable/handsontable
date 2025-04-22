@@ -195,7 +195,7 @@ describe('CheckboxRenderer keyboard shortcut', () => {
         [2, 0, true, false]
       ], 'edit');
 
-      updateData([[false], [false], [false]]);
+      await updateData([[false], [false], [false]]);
 
       const afterChangeCallback2 = jasmine.createSpy('afterChangeCallback');
 
@@ -207,7 +207,6 @@ describe('CheckboxRenderer keyboard shortcut', () => {
       expect(getData()).toEqual([[false], [false], [false]]);
 
       await selectCell(0, 0, 2, 0);
-
       await keyDownUp(' ');
 
       checkboxes = spec().$container.find(':checkbox');
@@ -293,7 +292,7 @@ describe('CheckboxRenderer keyboard shortcut', () => {
       expect(getData()).toEqual([[false, false], [false, false]]);
       expect(afterChangeCallback1.calls.count()).toEqual(2);
 
-      updateData([[false, false], [false, false]]);
+      await updateData([[false, false], [false, false]]);
 
       const afterChangeCallback2 = jasmine.createSpy('afterChangeCallback');
 
