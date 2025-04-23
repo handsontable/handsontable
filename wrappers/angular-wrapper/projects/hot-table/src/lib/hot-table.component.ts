@@ -24,7 +24,7 @@ export const HOT_DESTROYED_WARNING = 'The Handsontable instance bound to this co
 export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   // component inputs
   /** The data for the Handsontable instance. */
-  @Input() data: Handsontable.GridSettings['data'] | null = [];
+  @Input() data: Handsontable.GridSettings['data'] | null = null;
   /** The settings for the Handsontable instance. */
   @Input() settings: GridSettings;
 
