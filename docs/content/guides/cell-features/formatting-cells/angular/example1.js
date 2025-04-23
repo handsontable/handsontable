@@ -1,15 +1,12 @@
 /* file: app.component.ts */
-import { Component, ViewChild, ViewEncapsulation } from '@angular/core';
-import {
-  GridSettings,
-  HotTableComponent
-} from '@handsontable/angular-wrapper';
+import { Component, ViewEncapsulation } from '@angular/core';
+import { GridSettings } from '@handsontable/angular-wrapper';
 
 @Component({
   selector: 'example1-formatting-cells',
   standalone: false,
-  template: ` <div class="ht-theme-main">
-    <hot-table [data]="data" [settings]="gridSettings" />
+  template: ` <div>
+    <hot-table [data]="data" [settings]="gridSettings"></hot-table>
   </div>`,
   styles: `hot-table td.custom-cell {
     color: #fff !important;
@@ -24,8 +21,6 @@ hot-table .custom-table tbody tr:nth-child(odd) th {
   encapsulation: ViewEncapsulation.None,
 })
 export class Example1FormattingCellsComponent {
-  @ViewChild(HotTableComponent, { static: false })
-  readonly hotTable!: HotTableComponent;
 
   readonly data = [
     ['A1', 'B1', 'C1', 'D1', 'E1'],

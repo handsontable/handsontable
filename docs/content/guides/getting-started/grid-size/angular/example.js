@@ -1,9 +1,6 @@
 /* file: app.component.ts */
 import { Component, ViewChild } from '@angular/core';
-import {
-  GridSettings,
-  HotTableComponent,
-} from '@handsontable/angular-wrapper';
+import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
 
 @Component({
   selector: 'example-grid-size',
@@ -17,13 +14,12 @@ import {
         {{ isContainerExpanded ? 'Collapse container' : 'Expand container' }}
       </button>
     </div>
-    <div class="ht-theme-main" [style.height.px]="currentHeight">
-      <hot-table [data]="data" [settings]="gridSettings" />
+    <div [style.height.px]="currentHeight">
+      <hot-table [data]="data" [settings]="gridSettings"></hot-table>
     </div>`,
 })
 export class ExampleGridSizeComponent {
-  @ViewChild(HotTableComponent, { static: false })
-  readonly hotTable!: HotTableComponent;
+  @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
 
   // generate an array of arrays with dummy data
   readonly data = new Array(100) // number of rows

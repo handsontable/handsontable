@@ -1,20 +1,15 @@
 /* file: app.component.ts */
-import { Component, ViewChild } from '@angular/core';
-import {
-  GridSettings,
-  HotTableComponent,
-} from '@handsontable/angular-wrapper';
+import { Component } from '@angular/core';
+import { GridSettings } from '@handsontable/angular-wrapper';
 
 @Component({
   selector: 'example1-comments',
   standalone: false,
-  template: ` <div class="ht-theme-main">
-    <hot-table [data]="data" [settings]="gridSettings" />
+  template: ` <div>
+    <hot-table [data]="data" [settings]="gridSettings"></hot-table>
   </div>`,
 })
 export class Example1CommentsComponent {
-  @ViewChild(HotTableComponent, { static: false })
-  readonly hotTable!: HotTableComponent;
 
   readonly data = [
     ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
@@ -39,7 +34,6 @@ export class Example1CommentsComponent {
     autoWrapCol: true
   };
 }
-
 /* end-file */
 
 

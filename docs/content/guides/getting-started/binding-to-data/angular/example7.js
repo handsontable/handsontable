@@ -1,9 +1,6 @@
 /* file: app.component.ts */
-import { Component, Type, ViewChild } from '@angular/core';
-import {
-  GridSettings,
-  HotTableComponent
-} from '@handsontable/angular-wrapper';
+import { Component, Type } from '@angular/core';
+import { GridSettings } from '@handsontable/angular-wrapper';
 import Handsontable from 'handsontable';
 
 interface Person {
@@ -68,13 +65,12 @@ function property(attr: keyof Person | string) {
 @Component({
   selector: 'example7-binding-data',
   standalone: false,
-  template: ` <div class="ht-theme-main">
-    <hot-table [data]="data" [settings]="gridSettings" />
+  template: ` <div>
+    <hot-table [data]="data" [settings]="gridSettings"></hot-table>
   </div>`,
 })
 export class Example7BindingDataComponent {
-  @ViewChild(HotTableComponent, { static: false })
-  readonly hotTable!: HotTableComponent;
+
   readonly data = [
     model({ id: 1, name: 'Ted Right', address: '' }),
     model({ id: 2, name: 'Frank Honest', address: '' }),
@@ -82,6 +78,7 @@ export class Example7BindingDataComponent {
     model({ id: 4, name: 'Gail Polite', address: '' }),
     model({ id: 5, name: 'Michael Fair', address: '' }),
   ];
+
   readonly gridSettings: GridSettings = {
     dataSchema: model,
     height: 'auto',

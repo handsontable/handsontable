@@ -1,13 +1,8 @@
 /* file: app.component.ts */
 import { Component, ViewChild } from '@angular/core';
-import {
-  GridSettings,
-  HotTableComponent
-} from '@handsontable/angular-wrapper';
-import {
-  registerLanguageDictionary,
-  getLanguagesDictionaries,
-  // @ts-ignore
+import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
+import { registerLanguageDictionary, getLanguagesDictionaries,
+   // @ts-ignore
   arAR,
   csCZ,
   deCH,
@@ -63,14 +58,13 @@ registerLanguageDictionary(zhTW);
         </select>
       </label>
     </div>
-    <div class="ht-theme-main">
-      <hot-table [data]="data" [settings]="gridSettings" />
+    <div>
+      <hot-table [data]="data" [settings]="gridSettings"></hot-table>
     </div>
   </div>`,
 })
 export class Example2LanguageComponent {
-  @ViewChild(HotTableComponent, { static: false })
-  readonly hotTable!: HotTableComponent;
+  @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
 
   readonly data: Array<Array<string | number>> = [
     ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1'],

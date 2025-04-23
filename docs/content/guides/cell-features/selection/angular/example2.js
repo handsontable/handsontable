@@ -1,27 +1,23 @@
 /* file: app.component.ts */
 import { Component, ViewChild } from '@angular/core';
-import {
-  GridSettings,
-  HotTableComponent
-} from '@handsontable/angular-wrapper';
+import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
 import Handsontable from 'handsontable';
 
 @Component({
   selector: 'example2-selection',
   standalone: false,
-  template: ` <div className="example-controls-container">
-      <div className="controls">
+  template: ` <div class="example-controls-container">
+      <div class="controls">
         <button id="getButton" (click)="getButtonClick()">Get data</button>
       </div>
-      <output className="console" id="output"> {{ output }} </output>
+      <output class="console" id="output"> {{ output }} </output>
     </div>
-    <div class="ht-theme-main">
-      <hot-table [data]="data" [settings]="gridSettings" />
+    <div>
+      <hot-table [data]="data" [settings]="gridSettings"></hot-table>
     </div>`,
 })
 export class Example2SelectionComponent {
-  @ViewChild(HotTableComponent, { static: false })
-  readonly hotTable!: HotTableComponent;
+  @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
 
   readonly data = [
     ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1'],

@@ -1,9 +1,6 @@
 /* file: app.component.ts */
 import { Component, ViewChild } from '@angular/core';
-import {
-  GridSettings,
-  HotTableComponent
-} from '@handsontable/angular-wrapper';
+import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
 
 @Component({
   selector: 'example1-batch-operation',
@@ -29,13 +26,12 @@ import {
         {{ output || 'Here you will see the log' }}
       </output>
     </div>
-    <div class="ht-theme-main">
-      <hot-table [data]="dataInit" [settings]="gridSettings" />
+    <div>
+      <hot-table [data]="dataInit" [settings]="gridSettings"></hot-table>
     </div>`,
 })
 export class Example1BatchOperationComponent {
-  @ViewChild(HotTableComponent, { static: false })
-  readonly hotTable!: HotTableComponent;
+  @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
 
   dataInit = [
     [1, 'Gary Nash', 'Speckled trousers', 'S', 1, 'yes'],

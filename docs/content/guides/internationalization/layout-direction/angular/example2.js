@@ -1,22 +1,17 @@
 /* file: app.component.ts */
-import { Component, ViewChild } from '@angular/core';
-import {
-  GridSettings,
-  HotTableComponent
-} from '@handsontable/angular-wrapper';
+import { Component } from '@angular/core';
+import { GridSettings } from '@handsontable/angular-wrapper';
 
 @Component({
   selector: 'example2-layout-direction',
   standalone: false,
   template: ` <section dir="rtl">
-    <div class="ht-theme-main">
-      <hot-table [data]="data" [settings]="gridSettings" />
+    <div>
+      <hot-table [data]="data" [settings]="gridSettings"></hot-table>
     </div>
   </section>`,
 })
 export class Example2LayoutDirectionComponent {
-  @ViewChild(HotTableComponent, { static: false })
-  readonly hotTable!: HotTableComponent;
 
   data = [
     ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],

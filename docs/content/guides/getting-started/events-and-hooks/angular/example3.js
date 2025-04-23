@@ -1,8 +1,6 @@
 /* file: app.component.ts */
 import { Component, ViewChild } from '@angular/core';
-import {
-  HotTableComponent
-} from '@handsontable/angular-wrapper';
+import { HotTableComponent } from '@handsontable/angular-wrapper';
 
 @Component({
   selector: 'example3-events-hooks',
@@ -44,13 +42,13 @@ import {
       </label>
       <br />
     </div>
-    <div class="ht-theme-main" style="max-width: 440px">
-      <hot-table [data]="data" [settings]="initialState" />
+    <div style="max-width: 440px">
+      <hot-table [data]="data" [settings]="initialState"></hot-table>
     </div>`,
 })
 export class Example3EventsHooksComponent {
-  @ViewChild(HotTableComponent, { static: false })
-  readonly hotTable!: HotTableComponent;
+  @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
+
   readonly data = [
     ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1', 'K1', 'L1'],
     ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2', 'J2', 'K2', 'L2'],

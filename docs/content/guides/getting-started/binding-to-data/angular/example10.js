@@ -1,20 +1,16 @@
 /* file: app.component.ts */
 import { Component, ViewChild, AfterViewInit } from '@angular/core';
-import {
-  GridSettings,
-  HotTableComponent
-} from '@handsontable/angular-wrapper';
+import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
 
 @Component({
   selector: 'example10-binding-data',
   standalone: false,
-  template: ` <div class="ht-theme-main">
-    <hot-table [data]="data" [settings]="gridSettings" />
+  template: ` <div>
+    <hot-table [data]="data" [settings]="gridSettings"></hot-table>
   </div>`,
 })
 export class Example10BindingDataComponent implements AfterViewInit {
-  @ViewChild(HotTableComponent, { static: false })
-  readonly hotTable!: HotTableComponent;
+  @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
 
   readonly data: Array<Array<string | number>> = [
     ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],

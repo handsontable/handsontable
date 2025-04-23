@@ -1246,12 +1246,12 @@ export function addClassesToRows(
 @Component({
   selector: 'example1-demo',
   standalone: false,
-  template: ` <div class="ht-theme-main">
-    <hot-table [data]="data" [settings]="gridSettings" />
+  template: ` <div>
+    <hot-table [data]="initialData" [settings]="gridSettings"></hot-table>
   </div>`,
 })
 export class Example1DemoComponent {
-  data = data;
+  initialData = data;
   gridSettings = {
     height: 450,
     colWidths: [180, 220, 140, 120, 120, 120, 140],

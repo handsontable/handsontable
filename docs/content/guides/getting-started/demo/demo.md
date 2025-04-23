@@ -39,10 +39,14 @@ Play around with a demo of Handsontable, in your favorite framework.
 :::
 
 ::: only-for angular
-::: example-without-tabs #example1 :angular
+
+::: example #example1 :angular --js 1 --html 2
+
 @[code](@/content/guides/getting-started/demo/angular/example1.js)
 @[code](@/content/guides/getting-started/demo/angular/example1.html)
+
 :::
+
 :::
 
 ## Find the code on GitHub

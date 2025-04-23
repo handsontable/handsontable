@@ -1,9 +1,6 @@
 /* file: app.component.ts */
 import { Component, ViewChild, ViewEncapsulation } from '@angular/core';
-import {
-  GridSettings,
-  HotTableComponent
-} from '@handsontable/angular-wrapper';
+import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
 
 @Component({
   selector: 'example2-searching-values',
@@ -18,8 +15,8 @@ import {
         />
       </div>
     </div>
-    <div class="ht-theme-main">
-      <hot-table [data]="data" [settings]="gridSettings" />
+    <div>
+      <hot-table [data]="data" [settings]="gridSettings"></hot-table>
     </div>`,
   styles: `.my-custom-search-result-class{
       color: #ff0000;
@@ -28,8 +25,7 @@ import {
   encapsulation: ViewEncapsulation.None,
 })
 export class Example2SearchingValuesComponent {
-  @ViewChild(HotTableComponent, { static: false })
-  readonly hotTable!: HotTableComponent;
+  @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
 
   readonly data: Array<Array<string | number>> = [
     ['Tesla', 2017, 'black', 'black'],

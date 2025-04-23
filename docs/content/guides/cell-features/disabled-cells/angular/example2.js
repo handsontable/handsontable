@@ -1,22 +1,16 @@
 /* file: app.component.ts */
 import { AfterViewInit, Component, ViewChild } from '@angular/core';
-import {
-  GridSettings,
-  HotTableComponent,
-  HotTableModule,
-  NON_COMMERCIAL_LICENSE,
-} from '@handsontable/angular-wrapper';
+import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
 
 @Component({
   selector: 'example2-disabled-cells',
   standalone: false,
-  template: ` <div class="ht-theme-main">
-    <hot-table [data]="data" [settings]="gridSettings" />
+  template: ` <div>
+    <hot-table [data]="data" [settings]="gridSettings"></hot-table>
   </div>`,
 })
 export class Example2DisabledCellsComponent implements AfterViewInit {
-  @ViewChild(HotTableComponent, { static: false })
-  readonly hotTable!: HotTableComponent;
+  @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
 
   readonly data = [
     { car: 'Tesla', year: 2017, chassis: 'black', bumper: 'black' },
@@ -29,8 +23,7 @@ export class Example2DisabledCellsComponent implements AfterViewInit {
     height: 'auto',
     colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
     autoWrapRow: true,
-    autoWrapCol: true,
-    licenseKey: NON_COMMERCIAL_LICENSE,
+    autoWrapCol: true
   };
 
   ngAfterViewInit(): void {

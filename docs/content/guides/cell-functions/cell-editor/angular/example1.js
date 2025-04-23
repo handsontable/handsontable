@@ -1,15 +1,11 @@
 /* file: app.component.ts */
-import { Component, ViewChild } from '@angular/core';
-import {
-  GridSettings,
-  HotCellEditorComponent,
-  HotTableComponent
-} from '@handsontable/angular-wrapper';
+import { Component } from '@angular/core';
+import { GridSettings, HotCellEditorComponent } from '@handsontable/angular-wrapper';
 
 @Component({
   standalone: false,
-  template: `<button (click)="toUpperCase()">Upper</button
-    ><button (click)="toLowerCase()">Lower</button>`,
+  template: `<button (click)="toUpperCase()">Upper</button>
+  <button (click)="toLowerCase()">Lower</button>`,
 })
 export class EditorComponent extends HotCellEditorComponent<string> {
   override onFocus(): void {}
@@ -28,13 +24,11 @@ export class EditorComponent extends HotCellEditorComponent<string> {
 @Component({
   selector: 'example1-cell-editor',
   standalone: false,
-  template: ` <div class="ht-theme-main">
-    <hot-table [data]="data" [settings]="gridSettings" />
+  template: ` <div>
+    <hot-table [data]="data" [settings]="gridSettings"></hot-table>
   </div>`,
 })
 export class Example1CellEditorComponent {
-  @ViewChild(HotTableComponent, { static: false })
-  readonly hotTable!: HotTableComponent;
 
   readonly data = [
     ['Obrien Fischer'],

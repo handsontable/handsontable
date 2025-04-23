@@ -1,15 +1,12 @@
 /* file: app.component.ts */
 import { Component, ViewChild } from '@angular/core';
-import {
-  GridSettings,
-  HotTableComponent
-} from '@handsontable/angular-wrapper';
+import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
 
 @Component({
   selector: 'example3-clipboard',
   standalone: false,
-  template: ` <div class="ht-theme-main">
-      <hot-table [data]="data" [settings]="gridSettings" />
+  template: ` <div>
+      <hot-table [data]="data" [settings]="gridSettings"></hot-table>
     </div>
     <div className="controls">
       <button
