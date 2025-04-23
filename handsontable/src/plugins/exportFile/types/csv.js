@@ -48,7 +48,7 @@ class Csv extends BaseType {
     if (hasColumnHeaders) {
       columnHeaders = arrayMap(
         columnHeaders,
-        value => this._escapeCell(value, { force: true, sanitizeValue: options.sanitizeValues })
+        value => this.#escapeCell(value, { force: true, sanitizeValue: options.sanitizeValues })
       );
 
       if (hasRowHeaders) {
@@ -65,12 +65,12 @@ class Csv extends BaseType {
 
       if (hasRowHeaders) {
         result = result
-          + this._escapeCell(rowHeaders[index], { sanitizeValue: options.sanitizeValues })
+          + this.#escapeCell(rowHeaders[index], { sanitizeValue: options.sanitizeValues })
           + options.columnDelimiter;
       }
 
       const escapedValue = value
-        .map(cellValue => this._escapeCell(cellValue, { sanitizeValue: options.sanitizeValues }))
+        .map(cellValue => this.#escapeCell(cellValue, { sanitizeValue: options.sanitizeValues }))
         .join(options.columnDelimiter);
 
       result += escapedValue;
@@ -88,7 +88,7 @@ class Csv extends BaseType {
    * @param {boolean|RegExp|Function} [options.sanitizeValue=false] Controls the sanitization of cell value.
    * @returns {string}
    */
-  _escapeCell(value, { force = false, sanitizeValue = false } = {}) {
+  #escapeCell(value, { force = false, sanitizeValue = false } = {}) {
     let returnValue = stringify(value);
 
     if (returnValue === '') {
@@ -100,11 +100,11 @@ class Csv extends BaseType {
     }
 
     if (sanitizeValue instanceof RegExp) {
-      returnValue = this._sanitizeValueWithRegExp(returnValue, sanitizeValue);
+      returnValue = this.#sanitizeValueWithRegExp(returnValue, sanitizeValue);
     } else if (typeof sanitizeValue === 'function') {
       returnValue = sanitizeValue(returnValue);
     } else if (sanitizeValue) {
-      returnValue = this._sanitizeValueWithOWASP(returnValue);
+      returnValue = this.#sanitizeValueWithOWASP(returnValue);
     }
 
     if (force
@@ -125,9 +125,8 @@ class Csv extends BaseType {
    *
    * @param {string} value Cell value.
    * @returns {string}
-   * @private
    */
-  _sanitizeValueWithOWASP(value) {
+  #sanitizeValueWithOWASP(value) {
     if (value.startsWith(CHAR_EQUAL)
       || value.startsWith(CHAR_PLUS)
       || value.startsWith(CHAR_MINUS)
@@ -146,9 +145,8 @@ class Csv extends BaseType {
    * @param {string} value Cell value.
    * @param {RegExp} regexp Regular expression to test against.
    * @returns {string}
-   * @private
    */
-  _sanitizeValueWithRegExp(value, regexp) {
+  #sanitizeValueWithRegExp(value, regexp) {
     return regexp.test(value) ? `'${value}` : value;
   }
 }
