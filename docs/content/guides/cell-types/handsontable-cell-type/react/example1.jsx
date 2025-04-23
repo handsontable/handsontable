@@ -7,17 +7,7 @@ import 'handsontable/styles/ht-theme-main.css';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const colorData = [
-    ['yellow'],
-    ['red'],
-    ['orange'],
-    ['green'],
-    ['blue'],
-    ['gray'],
-    ['black'],
-    ['white'],
-  ];
-
+  const colorData = [['yellow'], ['red'], ['orange'], ['green'], ['blue'], ['gray'], ['black'], ['white']];
   const manufacturerData = [
     { name: 'BMW', country: 'Germany', owner: 'Bayerische Motoren Werke AG' },
     { name: 'Chrysler', country: 'USA', owner: 'Chrysler Group LLC' },

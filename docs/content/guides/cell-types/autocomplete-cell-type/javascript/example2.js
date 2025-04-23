@@ -18,7 +18,6 @@ const colors = [
 ];
 
 const cars = ['BMW', 'Chrysler', 'Nissan', 'Suzuki', 'Toyota', 'Volvo'];
-
 const container = document.querySelector('#example2');
 
 new Handsontable(container, {
