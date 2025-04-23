@@ -23,24 +23,8 @@ const ExampleComponent = () => {
     td.style.background = '#CEC';
   };
 
-  const negativeValueRenderer = (
-    instance,
-    td,
-    row,
-    col,
-    prop,
-    value,
-    cellProperties
-  ) => {
-    Handsontable.renderers.TextRenderer(
-      instance,
-      td,
-      row,
-      col,
-      prop,
-      value,
-      cellProperties
-    );
+  const negativeValueRenderer = (instance, td, row, col, prop, value, cellProperties) => {
+    Handsontable.renderers.TextRenderer(instance, td, row, col, prop, value, cellProperties);
 
     // if the row contains a negative number
     if (parseInt(value, 10) < 0) {

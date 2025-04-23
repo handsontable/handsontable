@@ -15,6 +15,7 @@ export interface ExportOptions {
   exportHiddenColumns?: boolean;
   exportHiddenRows?: boolean;
   range?: number[];
+  sanitizeValues?: boolean | RegExp | ((val: string) => string);
 }
 export type Settings = boolean;
 
