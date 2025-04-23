@@ -115,6 +115,21 @@ describe('WalkontableCore', () => {
     $div.remove();
   });
 
+  it('should not render the table if the container has the height of 0px', async() => {
+    spec().$wrapper.height(0);
+
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns
+    });
+
+    wt.draw();
+
+    expect(wt.drawn).toBe(false);
+    expect(wt.drawInterrupted).toBe(true);
+  });
+
   it('should render empty table (limited height)', async() => {
     createDataArray(0, 5);
 

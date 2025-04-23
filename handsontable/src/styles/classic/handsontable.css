@@ -1,3 +1,4 @@
+@charset "UTF-8";
 /**
  * Fix for bootstrap styles
  */
@@ -337,8 +338,6 @@ innerBorderBottom - Property controlled by bottom overlay
 .ht_clone_bottom .wtHolder {
   overflow: hidden;
 }
-
-@charset "UTF-8";
 
 .handsontable {
   position: relative;
@@ -1135,8 +1134,6 @@ textarea.HandsontableCopyPaste {
   outline: 0 none !important;
 }
 
-@charset "UTF-8";
-
 /*!
  * Handsontable DropdownMenu
  */
@@ -1284,8 +1281,6 @@ textarea.HandsontableCopyPaste {
 .htDropdownMenu .ht_master .wtHolder {
   overflow: hidden;
 }
-
-@charset "UTF-8";
 
 /*!
  * Handsontable Filters
@@ -1632,8 +1627,6 @@ textarea.HandsontableCopyPaste {
   padding-bottom: 5px;
 }
 
-@charset "UTF-8";
-
 /*
  * Handsontable HiddenColumns
  */
@@ -1691,8 +1684,6 @@ textarea.HandsontableCopyPaste {
   left: initial;
   content: "◀"; /* left arrow */
 }
-
-@charset "UTF-8";
 
 /*!
  * Handsontable HiddenRows
@@ -1963,8 +1954,6 @@ textarea.HandsontableCopyPaste {
 thead th.hiddenHeaderText .colHeader {
   opacity: 0;
 }
-
-@charset "UTF-8";
 
 .handsontable th.ht_nestingLevels {
   text-align: left;

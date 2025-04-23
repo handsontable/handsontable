@@ -43,6 +43,7 @@ Handsontable.dom.hasAccessToParentWindow(window);
 Handsontable.dom.hasClass(domElement, 'foo');
 Handsontable.dom.hasHorizontalScrollbar(domElement);
 Handsontable.dom.hasVerticalScrollbar(domElement);
+Handsontable.dom.hasZeroHeight(domElement);
 Handsontable.dom.index(domElement);
 Handsontable.dom.innerHeight(domElement);
 Handsontable.dom.innerWidth(domElement);
