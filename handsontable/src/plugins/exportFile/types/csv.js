@@ -64,9 +64,8 @@ class Csv extends BaseType {
       }
 
       if (hasRowHeaders) {
-        result = result
-          + this.#escapeCell(rowHeaders[index], { sanitizeValue: options.sanitizeValues })
-          + options.columnDelimiter;
+        result += this.#escapeCell(rowHeaders[index], { sanitizeValue: options.sanitizeValues });
+        result += options.columnDelimiter;
       }
 
       const escapedValue = value

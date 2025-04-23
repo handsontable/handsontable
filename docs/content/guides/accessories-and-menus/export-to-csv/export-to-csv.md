@@ -216,7 +216,7 @@ Controls the value sanitization during the CSV export
 - when `sanitizeValues` is `false`, `ExportPlugin` doesn't sanitize the values
 - when `sanitizeValues` is `true`, `ExportPlugin` sanitizes values according to OWASP recommendations: https://owasp.org/www-community/attacks/CSV_Injection
 - when `sanitizeValues` is a regexp, `ExportPlugin` escapes values that match the regexp
-- when `sanitizeValues` is a regexp, `ExportPlugin` replaces values with the return value of the function
+- when `sanitizeValues` is a function, `ExportPlugin` replaces values with the return value of the function
 
 Default value: `false`
 
