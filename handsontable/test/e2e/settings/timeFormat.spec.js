@@ -13,7 +13,7 @@ describe('settings', () => {
       }
     });
 
-    it('should have defined default value', () => {
+    it('should have defined default value', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
       });

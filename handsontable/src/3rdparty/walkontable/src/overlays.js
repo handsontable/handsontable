@@ -530,29 +530,37 @@ class Overlays {
       return;
     }
 
-    const { rootWindow } = this.domBindings;
     const topHolder = this.topOverlay.clone.wtTable.holder; // todo rethink
     const leftHolder = this.inlineStartOverlay.clone.wtTable.holder; // todo rethink
 
-    const [scrollLeft, scrollTop] = [this.scrollableElement.scrollLeft, this.scrollableElement.scrollTop];
+    let scrollX = this.scrollableElement.scrollLeft;
+    let scrollY = this.scrollableElement.scrollTop;
 
-    this.horizontalScrolling = (topHolder.scrollLeft !== scrollLeft || this.lastScrollX !== rootWindow.scrollX);
-    this.verticalScrolling = (leftHolder.scrollTop !== scrollTop || this.lastScrollY !== rootWindow.scrollY);
-    this.lastScrollX = rootWindow.scrollX;
-    this.lastScrollY = rootWindow.scrollY;
+    if (this.wot.wtViewport.isHorizontallyScrollableByWindow()) {
+      scrollX = this.scrollableElement.scrollX;
+    }
+
+    if (this.wot.wtViewport.isVerticallyScrollableByWindow()) {
+      scrollY = this.scrollableElement.scrollY;
+    }
+
+    this.horizontalScrolling = this.lastScrollX !== scrollX;
+    this.verticalScrolling = this.lastScrollY !== scrollY;
+    this.lastScrollX = scrollX;
+    this.lastScrollY = scrollY;
 
     if (this.horizontalScrolling) {
-      topHolder.scrollLeft = scrollLeft;
+      topHolder.scrollLeft = scrollX;
 
       const bottomHolder = this.bottomOverlay.needFullRender ? this.bottomOverlay.clone.wtTable.holder : null; // todo rethink
 
       if (bottomHolder) {
-        bottomHolder.scrollLeft = scrollLeft;
+        bottomHolder.scrollLeft = scrollX;
       }
     }
 
     if (this.verticalScrolling) {
-      leftHolder.scrollTop = scrollTop;
+      leftHolder.scrollTop = scrollY;
     }
 
     this.refreshAll();

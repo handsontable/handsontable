@@ -13,50 +13,50 @@ describe('settings', () => {
   });
 
   describe('currentRowClassName', () => {
-    it('should apply currentRowClassName to cells in row where there is a selection', () => {
+    it('should apply currentRowClassName to cells in row where there is a selection', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 7),
+        data: createSpreadsheetData(5, 7),
         currentRowClassName: 'currentRowClassName'
       });
 
-      selectCell(2, 2);
+      await selectCell(2, 2);
 
       expect(spec().$container.find('td.currentRowClassName').length).toEqual(7);
     });
 
-    it('should apply currentRowClassName from cells after deselection', () => {
+    it('should apply currentRowClassName from cells after deselection', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 7),
+        data: createSpreadsheetData(5, 7),
         currentRowClassName: 'currentRowClassName'
       });
 
-      selectCell(2, 2);
-      deselectCell();
+      await selectCell(2, 2);
+      await deselectCell();
 
       expect(spec().$container.find('td.currentRowClassName').length).toEqual(0);
     });
   });
 
   describe('currentColClassName', () => {
-    it('should apply currentColClassName to cells in row where there is a selection', () => {
+    it('should apply currentColClassName to cells in row where there is a selection', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 7),
+        data: createSpreadsheetData(5, 7),
         currentColClassName: 'currentColClassName'
       });
 
-      selectCell(2, 2);
+      await selectCell(2, 2);
 
       expect(spec().$container.find('td.currentColClassName').length).toEqual(5);
     });
 
-    it('should remove currentColClassName from cells after deselection', () => {
+    it('should remove currentColClassName from cells after deselection', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 7),
+        data: createSpreadsheetData(5, 7),
         currentColClassName: 'currentColClassName'
       });
 
-      selectCell(2, 2);
-      deselectCell();
+      await selectCell(2, 2);
+      await deselectCell();
 
       expect(spec().$container.find('td.currentColClassName').length).toEqual(0);
     });

@@ -12,7 +12,7 @@ describe('Core_updateSettings', () => {
     }
   });
 
-  it('should inherit cell type', () => {
+  it('should inherit cell type', async() => {
     handsontable({
       data: [[1, 2]],
       columns: [
@@ -32,7 +32,7 @@ describe('Core_updateSettings', () => {
     expect(getCellMeta(0, 1).type).toEqual('checkbox');
   });
 
-  it('should inherit cell type when columns is a function', () => {
+  it('should inherit cell type when columns is a function', async() => {
     handsontable({
       data: [[1, 2]],
       columns(column) {
@@ -60,7 +60,7 @@ describe('Core_updateSettings', () => {
     expect(getCellMeta(0, 1).type).toEqual('checkbox');
   });
 
-  it('should ignore mixed in properties to the cell array option', () => {
+  it('should ignore mixed in properties to the cell array option', async() => {
     /* eslint-disable no-array-constructor */
     /* eslint-disable no-extend-native */
     Array.prototype.willFail = 'BOOM';
@@ -74,11 +74,12 @@ describe('Core_updateSettings', () => {
     });
 
     expect(() => {
+      // eslint-disable-next-line handsontable/require-await
       updateSettings({ cell: new Array() });
     }).not.toThrow();
   });
 
-  it('should ignore mixed in properties to the cell array option when columns is a function', () => {
+  it('should ignore mixed in properties to the cell array option when columns is a function', async() => {
     /* eslint-disable no-array-constructor */
     /* eslint-disable no-extend-native */
     Array.prototype.willFail = 'BOOM';
@@ -100,11 +101,12 @@ describe('Core_updateSettings', () => {
     });
 
     expect(() => {
+      // eslint-disable-next-line handsontable/require-await
       updateSettings({ cell: new Array() });
     }).not.toThrow();
   });
 
-  it('should not reset columns types to text', () => {
+  it('should not reset columns types to text', async() => {
     handsontable({
       data: [[1, true]],
       columns: [
@@ -118,13 +120,13 @@ describe('Core_updateSettings', () => {
     expect(td.eq(0).text()).toEqual('1');
     expect(td.eq(1).text()).toEqual('');
 
-    updateSettings({});
+    await updateSettings({});
 
     expect(td.eq(0).text()).toEqual('1');
     expect(td.eq(1).text()).toEqual('');
   });
 
-  it('should not reset columns types to text when columns is a function', () => {
+  it('should not reset columns types to text when columns is a function', async() => {
     handsontable({
       data: [[1, true]],
       columns(column) {
@@ -146,13 +148,13 @@ describe('Core_updateSettings', () => {
     expect(td.eq(0).text()).toEqual('1');
     expect(td.eq(1).text()).toEqual('');
 
-    updateSettings({});
+    await updateSettings({});
 
     expect(td.eq(0).text()).toEqual('1');
     expect(td.eq(1).text()).toEqual('');
   });
 
-  it('should update readOnly global setting', () => {
+  it('should update readOnly global setting', async() => {
     handsontable({
       readOnly: true,
       data: [['foo', 'bar']],
@@ -168,7 +170,7 @@ describe('Core_updateSettings', () => {
     expect(getCellMeta(0, 1).readOnly).toBe(true);
     expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(true);
 
-    updateSettings({
+    await updateSettings({
       readOnly: false
     });
 
@@ -179,7 +181,7 @@ describe('Core_updateSettings', () => {
     expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(false);
   });
 
-  it('should update readOnly global setting when columns is a function', () => {
+  it('should update readOnly global setting when columns is a function', async() => {
     handsontable({
       readOnly: true,
       data: [['foo', 'bar']],
@@ -200,7 +202,7 @@ describe('Core_updateSettings', () => {
     expect(getCellMeta(0, 1).readOnly).toBe(true);
     expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(true);
 
-    updateSettings({
+    await updateSettings({
       readOnly: false
     });
 
@@ -211,7 +213,7 @@ describe('Core_updateSettings', () => {
     expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(false);
   });
 
-  it('should update readOnly columns setting', () => {
+  it('should update readOnly columns setting', async() => {
     handsontable({
       data: [['foo', true]],
       columns: [
@@ -226,7 +228,7 @@ describe('Core_updateSettings', () => {
     expect(getCellMeta(0, 1).readOnly).toBe(false);
     expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(false);
 
-    updateSettings({
+    await updateSettings({
       columns: [
         { type: 'text', readOnly: false },
         { type: 'checkbox' }
@@ -240,7 +242,7 @@ describe('Core_updateSettings', () => {
     expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(false);
   });
 
-  it('should update readOnly columns setting when columns is a function', () => {
+  it('should update readOnly columns setting when columns is a function', async() => {
     handsontable({
       data: [['foo', true]],
       columns(column) {
@@ -262,7 +264,7 @@ describe('Core_updateSettings', () => {
     expect(getCellMeta(0, 1).readOnly).toBe(false);
     expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(false);
 
-    updateSettings({
+    await updateSettings({
       columns(column) {
         let colMeta = null;
 
@@ -283,7 +285,7 @@ describe('Core_updateSettings', () => {
     expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(false);
   });
 
-  it('should update readOnly columns setting and override global setting', () => {
+  it('should update readOnly columns setting and override global setting', async() => {
     handsontable({
       readOnly: true,
       data: [['foo', true]],
@@ -299,7 +301,7 @@ describe('Core_updateSettings', () => {
     expect(getCellMeta(0, 1).readOnly).toBe(true);
     expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(true);
 
-    updateSettings({
+    await updateSettings({
       columns: [
         { type: 'text', readOnly: false },
         { type: 'checkbox' }
@@ -313,7 +315,7 @@ describe('Core_updateSettings', () => {
     expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(true);
   });
 
-  it('should update readOnly columns setting and override global setting when columns is a function', () => {
+  it('should update readOnly columns setting and override global setting when columns is a function', async() => {
     handsontable({
       readOnly: true,
       data: [['foo', true]],
@@ -337,7 +339,7 @@ describe('Core_updateSettings', () => {
     expect(getCellMeta(0, 1).readOnly).toBe(true);
     expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(true);
 
-    updateSettings({
+    await updateSettings({
       columns(column) {
         let colMeta = null;
 
@@ -359,7 +361,7 @@ describe('Core_updateSettings', () => {
     expect($(getCell(0, 1)).hasClass('htDimmed')).toBe(true);
   });
 
-  it('should not alter the columns object during init', () => {
+  it('should not alter the columns object during init', async() => {
     const columns = [
       {
         type: 'text'
@@ -375,7 +377,7 @@ describe('Core_updateSettings', () => {
     expect(columns).toEqual(columnsCopy);
   });
 
-  it('should update column type', () => {
+  it('should update column type', async() => {
     const columns = [
       {
         type: 'text'
@@ -392,7 +394,7 @@ describe('Core_updateSettings', () => {
 
     columns[0].type = 'date';
 
-    updateSettings({
+    await updateSettings({
       columns
     });
 
@@ -401,7 +403,7 @@ describe('Core_updateSettings', () => {
     expect(getCellEditor(0, 0)).toEqual(Handsontable.editors.DateEditor);
   });
 
-  it('should update cell type functions, even if new type does not implement all of those functions', () => {
+  it('should update cell type functions, even if new type does not implement all of those functions', async() => {
     const columns = [
       {
         type: 'numeric'
@@ -419,7 +421,7 @@ describe('Core_updateSettings', () => {
 
     columns[0].type = 'text';
 
-    updateSettings({
+    await updateSettings({
       columns
     });
 
@@ -430,7 +432,7 @@ describe('Core_updateSettings', () => {
     expect(getCellValidator(0, 0)).toBeUndefined();
   });
 
-  it('should change colHeader\'s row height if is needed', () => {
+  it('should change colHeader\'s row height if is needed', async() => {
     handsontable({
       colHeaders: true,
       rowHeaders: true
@@ -439,7 +441,7 @@ describe('Core_updateSettings', () => {
     const rowHeights = [];
 
     rowHeights.push(spec().$container.find('.ht_clone_top_inline_start_corner thead th')[0].clientHeight);
-    updateSettings({
+    await updateSettings({
       colHeaders: ['A<br/>A']
     });
 
@@ -448,12 +450,12 @@ describe('Core_updateSettings', () => {
     expect(rowHeights[0]).toBeLessThan(rowHeights[1]);
   });
 
-  it('should not overwrite properties (created by columns defined as function) of cells below the viewport by updateSettings #4029', () => {
+  it('should not overwrite properties (created by columns defined as function) of cells below the viewport by updateSettings #4029', async() => {
     let rows = 50;
     const columns = 2;
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetObjectData(columns, rows),
+      data: createSpreadsheetObjectData(columns, rows),
       columns(col) {
         const colProp = {
           data: `prop${col}`,
@@ -468,17 +470,17 @@ describe('Core_updateSettings', () => {
       }
     });
 
-    updateSettings({});
+    await updateSettings({});
     expect(getCellMeta(rows, 0).readOnly).toEqual(true);
     expect(getCellMeta(rows, 1).type).toEqual('checkbox');
 
     rows = 100;
 
-    updateSettings({ data: Handsontable.helper.createSpreadsheetObjectData(columns, rows) });
+    await updateSettings({ data: createSpreadsheetObjectData(columns, rows) });
     expect(getCellMeta(rows, 0).readOnly).toEqual(true);
     expect(getCellMeta(rows, 1).type).toEqual('checkbox');
 
-    updateSettings({
+    await updateSettings({
       columns(col) {
         const colProp = {
           data: `prop${col}`,
@@ -494,12 +496,12 @@ describe('Core_updateSettings', () => {
     expect(getCellMeta(rows, 1).readOnly).toEqual(false);
   });
 
-  it('should not overwrite properties (created by columns defined as array) of cells below the viewport by updateSettings #4029', () => {
+  it('should not overwrite properties (created by columns defined as array) of cells below the viewport by updateSettings #4029', async() => {
     let rows = 50;
     const columns = 2;
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetObjectData(columns, rows),
+      data: createSpreadsheetObjectData(columns, rows),
       columns: [
         {
           type: 'numeric',
@@ -514,18 +516,18 @@ describe('Core_updateSettings', () => {
       ]
     });
 
-    updateSettings({});
+    await updateSettings({});
     expect(getCellMeta(rows, 0).type).toEqual('numeric');
     expect(getCellMeta(rows, 1).readOnly).toEqual(true);
 
     rows = 100;
 
-    updateSettings({ data: Handsontable.helper.createSpreadsheetObjectData(columns, rows) });
+    await updateSettings({ data: createSpreadsheetObjectData(columns, rows) });
     expect(getCellMeta(rows, 0).type).toEqual('numeric');
     expect(typeof getCellMeta(rows, 0).numericFormat).toEqual('object');
     expect(getCellMeta(rows, 1).readOnly).toEqual(true);
 
-    updateSettings({
+    await updateSettings({
       columns: [
         {
           type: 'text',
@@ -548,75 +550,75 @@ describe('Core_updateSettings', () => {
     expect(getCellMeta(rows, 1).type).toEqual('numeric');
   });
 
-  it('should call `afterUpdateSettings` hook with proper parameter', () => {
+  it('should call `afterUpdateSettings` hook with proper parameter', async() => {
     const afterUpdateSettings = jasmine.createSpy('afterUpdateSettings');
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetObjectData(10, 10),
+      data: createSpreadsheetObjectData(10, 10),
       readOnly: true,
       afterUpdateSettings
     });
 
     const newSettings = { readOnly: false };
 
-    updateSettings(newSettings);
+    await updateSettings(newSettings);
 
     expect(afterUpdateSettings)
       .toHaveBeenCalledWith(newSettings);
   });
 
-  it('should not extend parameter passed to `afterUpdateSettings` hook by another properties', () => {
+  it('should not extend parameter passed to `afterUpdateSettings` hook by another properties', async() => {
     const updatedSetting = { fillHandle: true };
     let newSettings;
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetObjectData(10, 10),
+      data: createSpreadsheetObjectData(10, 10),
       readOnly: true,
       afterUpdateSettings(settings) {
         newSettings = settings;
       }
     });
 
-    updateSettings(updatedSetting);
+    await updateSettings(updatedSetting);
 
     expect(Object.keys(updatedSetting)).toEqual(Object.keys(newSettings));
   });
 
-  it('should not update cache of index mappers when updating random key', () => {
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetObjectData(10, 10),
+  it('should not update cache of index mappers when updating random key', async() => {
+    handsontable({
+      data: createSpreadsheetObjectData(10, 10),
       columns: [{}, {}, {}]
     });
     const rowCacheUpdatedCallback = jasmine.createSpy('cacheUpdated');
     const columnCacheUpdatedCallback = jasmine.createSpy('cacheUpdated');
 
-    hot.rowIndexMapper.addLocalHook('cacheUpdated', rowCacheUpdatedCallback);
-    hot.columnIndexMapper.addLocalHook('cacheUpdated', columnCacheUpdatedCallback);
+    rowIndexMapper().addLocalHook('cacheUpdated', rowCacheUpdatedCallback);
+    columnIndexMapper().addLocalHook('cacheUpdated', columnCacheUpdatedCallback);
 
-    updateSettings({ a: 'b' });
+    await updateSettings({ a: 'b' });
 
     expect(rowCacheUpdatedCallback).not.toHaveBeenCalled();
     expect(columnCacheUpdatedCallback).not.toHaveBeenCalled();
   });
 
-  it('should update cache of index mappers only once when updating `data` and `column` properties', () => {
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetObjectData(10, 10),
+  it('should update cache of index mappers only once when updating `data` and `column` properties', async() => {
+    handsontable({
+      data: createSpreadsheetObjectData(10, 10),
       columns: [{}, {}, {}]
     });
     const rowCacheUpdatedCallback = jasmine.createSpy('cacheUpdated');
     const columnCacheUpdatedCallback = jasmine.createSpy('cacheUpdated');
 
-    hot.rowIndexMapper.addLocalHook('cacheUpdated', rowCacheUpdatedCallback);
-    hot.columnIndexMapper.addLocalHook('cacheUpdated', columnCacheUpdatedCallback);
+    rowIndexMapper().addLocalHook('cacheUpdated', rowCacheUpdatedCallback);
+    columnIndexMapper().addLocalHook('cacheUpdated', columnCacheUpdatedCallback);
 
-    updateSettings({ data: Handsontable.helper.createSpreadsheetObjectData(5, 5), columns: [{}] });
+    await updateSettings({ data: createSpreadsheetObjectData(5, 5), columns: [{}] });
 
     expect(rowCacheUpdatedCallback.calls.count()).toEqual(1);
     expect(columnCacheUpdatedCallback.calls.count()).toEqual(1);
   });
 
-  it('should pass the `source` argument as "updateSettings" to the `beforeLoadData` and `afterLoadData` hooks', () => {
+  it('should pass the `source` argument as "updateSettings" to the `beforeLoadData` and `afterLoadData` hooks', async() => {
     let correctSourceCount = 0;
 
     handsontable({
@@ -633,12 +635,12 @@ describe('Core_updateSettings', () => {
       }
     });
 
-    updateSettings({});
+    await updateSettings({});
 
     expect(correctSourceCount).toEqual(2);
   });
 
-  it('should adjust column header size if `columns` is included in `updateSettings`', () => {
+  it('should adjust column header size if `columns` is included in `updateSettings`', async() => {
     handsontable({
       colHeaders: true,
       data: [{
@@ -646,7 +648,7 @@ describe('Core_updateSettings', () => {
       }]
     });
 
-    updateSettings({
+    await updateSettings({
       columns: [{
         data: 'brand'
       }]
@@ -657,115 +659,117 @@ describe('Core_updateSettings', () => {
   });
 
   describe('theme updating', () => {
-    it('should be able to change the themes with the `updateSettings` method', () => {
+    it('should be able to change the themes with the `updateSettings` method', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(15, 15),
+        data: createSpreadsheetData(15, 15),
       }, true);
 
       expect(hot.view.getStylesHandler().isClassicTheme()).toBe(true);
-      expect(hot.getCurrentThemeName()).toBe(undefined);
+      expect(getCurrentThemeName()).toBe(undefined);
 
       simulateModernThemeStylesheet(spec().$container);
-      hot.updateSettings({
+
+      await updateSettings({
         themeName: 'ht-theme-sth'
       });
 
       expect(hot.view.getStylesHandler().isClassicTheme()).toBe(false);
-      expect(hot.getCurrentThemeName()).toBe('ht-theme-sth');
+      expect(getCurrentThemeName()).toBe('ht-theme-sth');
       expect(spec().$container.hasClass('ht-theme-sth')).toBe(true);
 
       // `updateSettings` calls without `themeName` provided should not change the theme
-      hot.updateSettings({});
+      await updateSettings({});
 
       expect(hot.view.getStylesHandler().isClassicTheme()).toBe(false);
-      expect(hot.getCurrentThemeName()).toBe('ht-theme-sth');
+      expect(getCurrentThemeName()).toBe('ht-theme-sth');
       expect(spec().$container.hasClass('ht-theme-sth')).toBe(true);
 
       // `updateSettings` calls with the theme name provided as the same that's currently applied should not change the theme
-      hot.updateSettings({
+      await updateSettings({
         themeName: 'ht-theme-sth'
       });
 
       expect(hot.view.getStylesHandler().isClassicTheme()).toBe(false);
-      expect(hot.getCurrentThemeName()).toBe('ht-theme-sth');
+      expect(getCurrentThemeName()).toBe('ht-theme-sth');
       expect(spec().$container.hasClass('ht-theme-sth')).toBe(true);
 
       // Calling `updateSettings` with `themeName` defined to `undefined` or `false` should
       // switch HOT back to the classic theme.
-      hot.updateSettings({
+      await updateSettings({
         themeName: undefined
       });
 
       expect(hot.view.getStylesHandler().isClassicTheme()).toBe(true);
-      expect(hot.getCurrentThemeName()).toBe(undefined);
+      expect(getCurrentThemeName()).toBe(undefined);
       expect(spec().$container.hasClass('ht-theme-sth')).toBe(false);
 
-      hot.updateSettings({
+      await updateSettings({
         themeName: 'ht-theme-sth'
       });
-      hot.updateSettings({
+      await updateSettings({
         themeName: false
       });
 
       expect(hot.view.getStylesHandler().isClassicTheme()).toBe(true);
-      expect(hot.getCurrentThemeName()).toBe(undefined);
+      expect(getCurrentThemeName()).toBe(undefined);
       expect(spec().$container.hasClass('ht-theme-sth')).toBe(false);
     });
 
-    it('should update the theme based on the `themeName` option, even if a theme class is already applied to the container', () => {
+    it('should update the theme based on the `themeName` option, even if a theme class is already applied to the container', async() => {
       simulateModernThemeStylesheet(spec().$container);
       spec().$container.addClass('ht-theme-sth');
+
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(15, 15),
+        data: createSpreadsheetData(15, 15),
       }, true);
 
       expect(hot.view.getStylesHandler().isClassicTheme()).toBe(false);
-      expect(hot.getCurrentThemeName()).toBe('ht-theme-sth');
+      expect(getCurrentThemeName()).toBe('ht-theme-sth');
       expect(spec().$container.hasClass('ht-theme-sth')).toBe(true);
 
-      hot.updateSettings({
+      await updateSettings({
         themeName: 'ht-theme-sth-else',
       });
 
       expect(hot.view.getStylesHandler().isClassicTheme()).toBe(false);
-      expect(hot.getCurrentThemeName()).toBe('ht-theme-sth-else');
+      expect(getCurrentThemeName()).toBe('ht-theme-sth-else');
       expect(spec().$container.hasClass('ht-theme-sth')).toBe(false);
       expect(spec().$container.hasClass('ht-theme-sth-else')).toBe(true);
     });
 
-    it('should be possible to disable a "modern" theme by setting the `themeName` to `false` or `undefined`', () => {
+    it('should be possible to disable a "modern" theme by setting the `themeName` to `false` or `undefined`', async() => {
       simulateModernThemeStylesheet(spec().$container);
       spec().$container.addClass('ht-theme-sth');
 
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(15, 15),
+        data: createSpreadsheetData(15, 15),
       }, true);
 
       expect(hot.view.getStylesHandler().isClassicTheme()).toBe(false);
-      expect(hot.getCurrentThemeName()).toBe('ht-theme-sth');
+      expect(getCurrentThemeName()).toBe('ht-theme-sth');
       expect(spec().$container.hasClass('ht-theme-sth')).toBe(true);
 
-      hot.updateSettings({
+      await updateSettings({
         themeName: undefined,
       });
 
       expect(hot.view.getStylesHandler().isClassicTheme()).toBe(true);
-      expect(hot.getCurrentThemeName()).toBe(undefined);
+      expect(getCurrentThemeName()).toBe(undefined);
       expect(spec().$container.hasClass('ht-theme-sth')).toBe(false);
 
       spec().$container.addClass('ht-theme-sth');
       hot.useTheme('ht-theme-sth');
 
       expect(hot.view.getStylesHandler().isClassicTheme()).toBe(false);
-      expect(hot.getCurrentThemeName()).toBe('ht-theme-sth');
+      expect(getCurrentThemeName()).toBe('ht-theme-sth');
       expect(spec().$container.hasClass('ht-theme-sth')).toBe(true);
 
-      hot.updateSettings({
+      await updateSettings({
         themeName: false,
       });
 
       expect(hot.view.getStylesHandler().isClassicTheme()).toBe(true);
-      expect(hot.getCurrentThemeName()).toBe(undefined);
+      expect(getCurrentThemeName()).toBe(undefined);
       expect(spec().$container.hasClass('ht-theme-sth')).toBe(false);
     });
   });

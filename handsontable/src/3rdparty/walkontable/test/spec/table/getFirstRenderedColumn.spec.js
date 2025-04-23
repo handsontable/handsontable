@@ -30,7 +30,7 @@ describe('WalkontableTable', () => {
   });
 
   describe('getFirstRenderedColumn()', () => {
-    it('should return -1 error code if there are no rendered rows and columns', () => {
+    it('should return -1 error code if there are no rendered rows and columns', async() => {
       createDataArray(0, 0);
       spec().$wrapper.width(250).height(170);
 
@@ -69,7 +69,7 @@ describe('WalkontableTable', () => {
       expectWtTable(wt, wtTable => wtTable.getFirstRenderedColumn(), 'top').toBe(-1);
     });
 
-    it('should return -1 error code if there are rendered rows and columns after fixed overlays are disabled', () => {
+    it('should return -1 error code if there are rendered rows and columns after fixed overlays are disabled', async() => {
       createDataArray(4, 4);
       spec().$wrapper.width(250).height(170);
 
@@ -102,7 +102,7 @@ describe('WalkontableTable', () => {
       expectWtTable(wt, wtTable => wtTable.getFirstRenderedColumn(), 'bottomInlineStartCorner').toBe(-1);
     });
 
-    it('should return source index that is relevant to a given overlay', () => {
+    it('should return source index that is relevant to a given overlay', async() => {
       createDataArray(18, 18);
       spec().$wrapper.width(250).height(170);
 
@@ -125,7 +125,7 @@ describe('WalkontableTable', () => {
       expectWtTable(wt, wtTable => wtTable.getFirstRenderedColumn(), 'top').toBe(2);
     });
 
-    it('should return source index even for partially visible column (the first column is fully visible)', () => {
+    it('should return source index even for partially visible column (the first column is fully visible)', async() => {
       createDataArray(18, 18);
       spec().$wrapper.width(209).height(185);
 
@@ -140,7 +140,7 @@ describe('WalkontableTable', () => {
       expect(wt.wtTable.getFirstRenderedColumn()).toBe(0);
     });
 
-    it('should return source index even for partially visible column (the first column is partially visible)', () => {
+    it('should return source index even for partially visible column (the first column is partially visible)', async() => {
       createDataArray(18, 18);
       spec().$wrapper.width(209).height(185);
 

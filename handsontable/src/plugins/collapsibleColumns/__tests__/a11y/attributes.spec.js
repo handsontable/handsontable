@@ -12,9 +12,9 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     }
   });
 
-  it('should add the `aria-expanded` attribute to a collapsible header - `true` if it\'s expanded, `false` otherwise', () => {
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 10),
+  it('should add the `aria-expanded` attribute to a collapsible header - `true` if it\'s expanded, `false` otherwise', async() => {
+    handsontable({
+      data: createSpreadsheetData(10, 10),
       rowHeaders: true,
       colHeaders: true,
       nestedHeaders: [
@@ -28,20 +28,20 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     expect(getCell(-3, 1).getAttribute('aria-expanded')).toEqual('true');
     expect(getCell(-2, 1).getAttribute('aria-expanded')).toEqual('true');
 
-    hot.getPlugin('collapsibleColumns').collapseAll();
+    getPlugin('collapsibleColumns').collapseAll();
 
     expect(getCell(-3, 1).getAttribute('aria-expanded')).toEqual('false');
     expect(getCell(-2, 1).getAttribute('aria-expanded')).toEqual('false');
 
-    hot.getPlugin('collapsibleColumns').expandAll();
+    getPlugin('collapsibleColumns').expandAll();
 
     expect(getCell(-3, 1).getAttribute('aria-expanded')).toEqual('true');
     expect(getCell(-2, 1).getAttribute('aria-expanded')).toEqual('true');
   });
 
-  it('should add the `aria-hidden` attribute to the collapse/expand button', () => {
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 10),
+  it('should add the `aria-hidden` attribute to the collapse/expand button', async() => {
+    handsontable({
+      data: createSpreadsheetData(10, 10),
       rowHeaders: true,
       colHeaders: true,
       nestedHeaders: [
@@ -55,12 +55,12 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     expect(getCell(-3, 1).querySelector('.collapsibleIndicator').getAttribute('aria-hidden')).toEqual('true');
     expect(getCell(-2, 1).querySelector('.collapsibleIndicator').getAttribute('aria-hidden')).toEqual('true');
 
-    hot.getPlugin('collapsibleColumns').collapseAll();
+    getPlugin('collapsibleColumns').collapseAll();
 
     expect(getCell(-3, 1).querySelector('.collapsibleIndicator').getAttribute('aria-hidden')).toEqual('true');
     expect(getCell(-2, 1).querySelector('.collapsibleIndicator').getAttribute('aria-hidden')).toEqual('true');
 
-    hot.getPlugin('collapsibleColumns').expandAll();
+    getPlugin('collapsibleColumns').expandAll();
 
     expect(getCell(-3, 1).querySelector('.collapsibleIndicator').getAttribute('aria-hidden')).toEqual('true');
     expect(getCell(-2, 1).querySelector('.collapsibleIndicator').getAttribute('aria-hidden')).toEqual('true');

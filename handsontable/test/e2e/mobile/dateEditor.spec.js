@@ -13,7 +13,7 @@ describe('Date Editor', () => {
   });
 
   it('should close the editor after select the date', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [
         ['01/14/2006'],
         ['12/01/2008'],
@@ -28,10 +28,10 @@ describe('Date Editor', () => {
 
     expect(getSelected()).toBeUndefined();
 
-    triggerTouchEvent('touchstart', cell);
-    triggerTouchEvent('touchend', cell);
-    triggerTouchEvent('touchstart', cell);
-    triggerTouchEvent('touchend', cell);
+    await triggerTouchEvent('touchstart', cell);
+    await triggerTouchEvent('touchend', cell);
+    await triggerTouchEvent('touchstart', cell);
+    await triggerTouchEvent('touchend', cell);
 
     await sleep(100);
 
@@ -39,8 +39,8 @@ describe('Date Editor', () => {
 
     const datePickerFirstButton = document.querySelector('.pika-button');
 
-    triggerTouchEvent('touchstart', datePickerFirstButton);
-    triggerTouchEvent('touchend', datePickerFirstButton);
+    await triggerTouchEvent('touchstart', datePickerFirstButton);
+    await triggerTouchEvent('touchend', datePickerFirstButton);
 
     await sleep(100);
 
@@ -49,7 +49,7 @@ describe('Date Editor', () => {
   });
 
   it('should display the correct date in the cell after select the date', async() => {
-    const hot = handsontable({
+    handsontable({
       data: [
         ['01/14/2006'],
         ['12/01/2008'],
@@ -64,15 +64,15 @@ describe('Date Editor', () => {
 
     expect(getSelected()).toBeUndefined();
 
-    triggerTouchEvent('touchstart', cell);
-    triggerTouchEvent('touchend', cell);
-    triggerTouchEvent('touchstart', cell);
-    triggerTouchEvent('touchend', cell);
+    await triggerTouchEvent('touchstart', cell);
+    await triggerTouchEvent('touchend', cell);
+    await triggerTouchEvent('touchstart', cell);
+    await triggerTouchEvent('touchend', cell);
 
     const datePickerFirstButton = document.querySelector('.pika-button');
 
-    triggerTouchEvent('touchstart', datePickerFirstButton);
-    triggerTouchEvent('touchend', datePickerFirstButton);
+    await triggerTouchEvent('touchstart', datePickerFirstButton);
+    await triggerTouchEvent('touchend', datePickerFirstButton);
 
     await sleep(100);
 

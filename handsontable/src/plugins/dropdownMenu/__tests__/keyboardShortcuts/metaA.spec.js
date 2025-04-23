@@ -17,21 +17,21 @@ describe('DropdownMenu keyboard shortcut', () => {
         dropdownMenu: true,
       });
 
-      dropdownMenu(0);
+      await dropdownMenu(0);
 
       const initialSelectionState = getSelectedRange();
 
-      keyDownUp(['Control/Meta', 'A']);
+      await keyDownUp(['Control/Meta', 'A']);
 
       expect(getPlugin('dropdownMenu').menu.isOpened()).toBe(true);
       expect(getSelectedRange()).toEqual(initialSelectionState);
       expect(isListening()).toBe(false);
 
-      openDropdownSubmenuOption('Alignment');
+      await openDropdownSubmenuOption('Alignment');
 
       await sleep(300);
 
-      keyDownUp(['Control/Meta', 'A']);
+      await keyDownUp(['Control/Meta', 'A']);
 
       expect(getPlugin('dropdownMenu').menu.hotSubMenus.alignment.isOpened()).toBe(true);
       expect(getPlugin('dropdownMenu').menu.isOpened()).toBe(true);

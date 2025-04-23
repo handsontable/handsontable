@@ -20,7 +20,7 @@ describe('ColumnSorting keyboard shortcut', () => {
   }
 
   describe('"Enter"', () => {
-    it('should not be possible to sort non-visible column', () => {
+    it('should not be possible to sort non-visible column', async() => {
       handsontable({
         data: createSpreadsheetData(3, 8),
         colHeaders: true,
@@ -33,14 +33,14 @@ describe('ColumnSorting keyboard shortcut', () => {
 
       hidingMap.setValueAtIndex(1, true);
 
-      render();
-      selectCell(-1, 1);
-      keyDownUp('enter');
+      await render();
+      await selectCell(-1, 1);
+      await keyDownUp('enter');
 
       expect(getPlugin('columnSorting').getSortConfig()).toEqual([]);
     });
 
-    it('should be possible to sort columns with correct sort order', () => {
+    it('should be possible to sort columns with correct sort order', async() => {
       handsontable({
         data: createSpreadsheetData(3, 8),
         colHeaders: true,
@@ -49,34 +49,34 @@ describe('ColumnSorting keyboard shortcut', () => {
         columnSorting: true
       });
 
-      selectCell(-1, 1);
-      keyDownUp('enter');
+      await selectCell(-1, 1);
+      await keyDownUp('enter');
 
       expect(getPlugin('columnSorting').getSortConfig()).toEqual([{
         column: 1,
         sortOrder: 'asc',
       }]);
 
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       expect(getPlugin('columnSorting').getSortConfig()).toEqual([{
         column: 1,
         sortOrder: 'desc',
       }]);
 
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       expect(getPlugin('columnSorting').getSortConfig()).toEqual([]);
 
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       expect(getPlugin('columnSorting').getSortConfig()).toEqual([{
         column: 1,
         sortOrder: 'asc',
       }]);
 
-      selectCell(-1, 3);
-      keyDownUp('enter');
+      await selectCell(-1, 3);
+      await keyDownUp('enter');
 
       expect(getPlugin('columnSorting').getSortConfig()).toEqual([{
         column: 3,
@@ -84,7 +84,7 @@ describe('ColumnSorting keyboard shortcut', () => {
       }]);
     });
 
-    it('should be possible to sort a column when a column header is selected', () => {
+    it('should be possible to sort a column when a column header is selected', async() => {
       handsontable({
         data: createSpreadsheetData(3, 8),
         colHeaders: true,
@@ -93,9 +93,9 @@ describe('ColumnSorting keyboard shortcut', () => {
         columnSorting: true
       });
 
-      selectCell(-1, 4);
-      listen();
-      keyDownUp('enter');
+      await selectCell(-1, 4);
+      await listen();
+      await keyDownUp('enter');
 
       expect(getPlugin('columnSorting').getSortConfig()).toEqual([{
         column: 4,
@@ -103,7 +103,7 @@ describe('ColumnSorting keyboard shortcut', () => {
       }]);
     });
 
-    it('should be possible to sort a column when a column header is selected and NestedRows plugin is enabled (#dev-1817)', () => {
+    it('should be possible to sort a column when a column header is selected and NestedRows plugin is enabled (#dev-1817)', async() => {
       handsontable({
         data: [
           {
@@ -123,9 +123,9 @@ describe('ColumnSorting keyboard shortcut', () => {
         nestedRows: true,
       });
 
-      selectCell(-1, 1);
-      listen();
-      keyDownUp('enter');
+      await selectCell(-1, 1);
+      await listen();
+      await keyDownUp('enter');
 
       expect(getPlugin('columnSorting').getSortConfig()).toEqual([{
         column: 1,
@@ -133,7 +133,7 @@ describe('ColumnSorting keyboard shortcut', () => {
       }]);
     });
 
-    it('should not be possible to sort a column when a range of the columns are selected', () => {
+    it('should not be possible to sort a column when a range of the columns are selected', async() => {
       handsontable({
         data: createSpreadsheetData(3, 8),
         colHeaders: true,
@@ -142,14 +142,14 @@ describe('ColumnSorting keyboard shortcut', () => {
         columnSorting: true
       });
 
-      selectColumns(1, 4, -1);
-      listen();
-      keyDownUp('enter');
+      await selectColumns(1, 4, -1);
+      await listen();
+      await keyDownUp('enter');
 
       expect(getPlugin('columnSorting').getSortConfig()).toEqual([]);
     });
 
-    it('should be possible to sort columns only by triggering the action from the lowest column header', () => {
+    it('should be possible to sort columns only by triggering the action from the lowest column header', async() => {
       handsontable({
         data: createSpreadsheetData(3, 8),
         colHeaders: true,
@@ -162,28 +162,28 @@ describe('ColumnSorting keyboard shortcut', () => {
         },
       });
 
-      selectCell(-1, -1); // corner
-      keyDownUp('enter');
+      await selectCell(-1, -1); // corner
+      await keyDownUp('enter');
 
       expect(getPlugin('columnSorting').getSortConfig()).toEqual([]);
 
-      selectCell(1, -1); // row header
-      keyDownUp('enter');
+      await selectCell(1, -1); // row header
+      await keyDownUp('enter');
 
       expect(getPlugin('columnSorting').getSortConfig()).toEqual([]);
 
-      selectCell(-3, 1); // the first (top) column header
-      keyDownUp('enter');
+      await selectCell(-3, 1); // the first (top) column header
+      await keyDownUp('enter');
 
       expect(getPlugin('columnSorting').getSortConfig()).toEqual([]);
 
-      selectCell(-2, 1); // the second column header
-      keyDownUp('enter');
+      await selectCell(-2, 1); // the second column header
+      await keyDownUp('enter');
 
       expect(getPlugin('columnSorting').getSortConfig()).toEqual([]);
 
-      selectCell(-1, 1); // the third (bottom) column header
-      keyDownUp('enter');
+      await selectCell(-1, 1); // the third (bottom) column header
+      await keyDownUp('enter');
 
       expect(getPlugin('columnSorting').getSortConfig()).toEqual([{
         column: 1,
@@ -191,7 +191,7 @@ describe('ColumnSorting keyboard shortcut', () => {
       }]);
     });
 
-    it('should not trigger the editor to be opened', () => {
+    it('should not trigger the editor to be opened', async() => {
       handsontable({
         data: createSpreadsheetData(3, 8),
         colHeaders: true,
@@ -200,8 +200,8 @@ describe('ColumnSorting keyboard shortcut', () => {
         columnSorting: true,
       });
 
-      selectCell(-1, 1);
-      keyDownUp('enter');
+      await selectCell(-1, 1);
+      await keyDownUp('enter');
 
       expect(getActiveEditor()).toBeUndefined();
     });

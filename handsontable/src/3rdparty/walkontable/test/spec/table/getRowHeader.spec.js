@@ -22,7 +22,7 @@ describe('WalkontableTable', () => {
   });
 
   describe('getRowHeader()', () => {
-    it('should return valid row header', () => {
+    it('should return valid row header', async() => {
       spec().$wrapper.width(250);
 
       const wt = walkontable({
@@ -50,7 +50,7 @@ describe('WalkontableTable', () => {
       expect(wt.wtTable.getRowHeader(0, 3)).toBeUndefined();
     });
 
-    it('should return valid row header when the viewport is scrolled', () => {
+    it('should return valid row header when the viewport is scrolled', async() => {
       spec().$wrapper.width(250);
 
       const wt = walkontable({

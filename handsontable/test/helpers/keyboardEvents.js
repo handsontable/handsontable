@@ -1,3 +1,5 @@
+import { waitOnScroll } from './utils';
+
 const { KEY_CODES } = Handsontable.helper;
 const KEY_CODES_MAP = new Map([
   ['A', KEY_CODES.A],
@@ -108,8 +110,11 @@ export function keyTriggerFactory(type, key, { extend, target, ime }) {
   $(target).simulate(type, ev);
 }
 
-export const keyDown = triggerKeys('keydown');
-export const keyUp = triggerKeys('keyup');
+const keyDownTrigger = triggerKeys('keydown');
+const keyUpTrigger = triggerKeys('keyup');
+
+export const keyDown = waitOnScroll(keyDownTrigger);
+export const keyUp = waitOnScroll(keyUpTrigger);
 
 /**
  * @param {string} type Event type.
@@ -155,10 +160,10 @@ function triggerKeys(type) {
  * @param {Array} keys The keys `key` which will be associated with the event.
  * @param {object} options Additional options which extends the event or change its behavior.
  */
-export function keyDownUp(keys, options) {
-  keyDown(keys, options);
-  keyUp(keys, options);
-}
+export const keyDownUp = waitOnScroll((keys, options) => {
+  keyDownTrigger(keys, options);
+  keyUpTrigger(keys, options);
+});
 
 /**
  * Returns current value of the keyboard proxy textarea.

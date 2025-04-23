@@ -18,9 +18,9 @@ describe('ContextMenu keyboard shortcut', () => {
         height: 100
       });
 
-      contextMenu();
-      keyDownUp('arrowdown');
-      keyDownUp('arrowright');
+      await contextMenu();
+      await keyDownUp('arrowdown');
+      await keyDownUp('arrowright');
 
       await sleep(300);
 
@@ -37,15 +37,15 @@ describe('ContextMenu keyboard shortcut', () => {
         layoutDirection: 'rtl',
       });
 
-      contextMenu();
-      keyDownUp('arrowdown');
-      keyDownUp('arrowleft');
+      await contextMenu();
+      await keyDownUp('arrowdown');
+      await keyDownUp('arrowleft');
 
       await sleep(300);
 
       expect($('.htContextMenuSub_Alignment').is(':visible')).toBe(true);
 
-      keyDownUp('arrowright');
+      await keyDownUp('arrowright');
 
       expect($('.htContextMenuSub_Alignment').is(':visible')).toBe(false);
     });

@@ -16,7 +16,7 @@ describe('editors', () => {
     }
   });
 
-  it('should register custom editor', () => {
+  it('should register custom editor', async() => {
     class MyEditor extends Handsontable.editors.BaseEditor {
       init() {
         this.TEXTAREA = document.createElement('TEXTAREA');
@@ -48,15 +48,16 @@ describe('editors', () => {
       }],
     });
 
-    selectCell(0, 0);
-    keyDownUp('enter');
+    await selectCell(0, 0);
+    await keyDownUp('enter');
+
     document.activeElement.value = 'hello';
     destroyEditor();
 
     expect(getDataAtCell(0, 0)).toBe('--hello--');
   });
 
-  it('should retrieve predefined editors by its names', () => {
+  it('should retrieve predefined editors by its names', async() => {
     expect(getEditor('autocomplete')).toBeFunction();
     expect(getEditor('base')).toBeFunction();
     expect(getEditor('checkbox')).toBeFunction();
@@ -69,13 +70,13 @@ describe('editors', () => {
     expect(getEditor('text')).toBeFunction();
   });
 
-  it('should return the original editor function when it was passed directly to the getter', () => {
+  it('should return the original editor function when it was passed directly to the getter', async() => {
     class MyEditor {}
 
     expect(getEditor(MyEditor)).toBe(MyEditor);
   });
 
-  it('should retrieve custom editor by its names', () => {
+  it('should retrieve custom editor by its names', async() => {
     class MyEditor {}
     registerEditor('myEditor', MyEditor);
 
@@ -95,8 +96,8 @@ describe('editors', () => {
       ]
     });
 
-    selectCell(0, 0);
-    keyDownUp('1');
+    await selectCell(0, 0);
+    await keyDownUp('1');
 
     destroyEditor();
 
@@ -104,12 +105,12 @@ describe('editors', () => {
 
     expect(getCell(0, 0).innerHTML).not.toEqual('10');
 
-    selectCell(0, 1);
-    keyDownUp('a');
+    await selectCell(0, 1);
+    await keyDownUp('a');
 
     destroyEditor();
 
-    await sleep(100);
+    await sleep(50);
 
     expect(getCell(1, 0).innerHTML).not.toEqual('Cup');
   });

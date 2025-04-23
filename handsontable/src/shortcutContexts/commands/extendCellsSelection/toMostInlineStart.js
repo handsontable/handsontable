@@ -5,8 +5,8 @@ export const command = {
     const { highlight, from, to } = hot.getSelectedRangeLast();
 
     if (
-      !hot.selection.isSelectedByRowHeader() &&
-      !hot.selection.isSelectedByCorner() &&
+      !selection.isSelectedByRowHeader() &&
+      !selection.isSelectedByCorner() &&
       highlight.isCell()
     ) {
       const fixedColumns = parseInt(hot.getSettings().fixedColumnsStart, 10);
@@ -14,8 +14,11 @@ export const command = {
       const newFrom = from.clone();
 
       newFrom.col = highlight.col;
+
+      selection.markSource('keyboard');
       selection.setRangeStart(newFrom, undefined, false, highlight.clone());
       selection.setRangeEnd(hot._createCellCoords(to.row, column));
+      selection.markEndSource();
     }
   },
 };

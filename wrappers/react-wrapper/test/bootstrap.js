@@ -7,6 +7,7 @@ beforeAll(() => {
   
   window.IntersectionObserver = IntersectionObserverMock;
   window.ResizeObserver = ResizeObserverMock;
+  Element.prototype.scrollIntoView = jest.fn();
 });
 
 afterAll(() => {

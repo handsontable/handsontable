@@ -12,44 +12,44 @@ describe('Core.setDataAtCell', () => {
     }
   });
 
-  it('should set the provided value in the dataset', () => {
+  it('should set the provided value in the dataset', async() => {
     handsontable({
       data: [[1, 2, 3], ['a', 'b', 'c']]
     });
 
-    setDataAtCell(0, 0, 'foo');
+    await setDataAtCell(0, 0, 'foo');
 
     expect(getDataAtCell(0, 0)).toBe('foo');
   });
 
-  it('should trigger table render cycle after changing the data', () => {
+  it('should trigger table render cycle after changing the data', async() => {
     const hot = handsontable({
       data: [[1, 2, 3], ['a', 'b', 'c']],
     });
 
     spyOn(hot.view, 'render').and.callThrough();
 
-    setDataAtCell(0, 1, 'foo');
+    await setDataAtCell(0, 1, 'foo');
 
     expect(hot.view.render).toHaveBeenCalled();
   });
 
-  it('should call "refreshValue" method of the active editor when new data is set', () => {
+  it('should call "refreshValue" method of the active editor when new data is set', async() => {
     handsontable({
       data: [[1, 2, 3], ['a', 'b', 'c']],
     });
 
-    selectCell(0, 1);
-    keyDownUp('enter');
+    await selectCell(0, 1);
+    await keyDownUp('enter');
 
     spyOn(getActiveEditor(), 'refreshValue').and.callThrough();
 
-    setDataAtCell(0, 1, 'foo');
+    await setDataAtCell(0, 1, 'foo');
 
     expect(getActiveEditor().refreshValue).toHaveBeenCalled();
   });
 
-  it('should call the `modifySourceData` hook (with the `set` argument)', () => {
+  it('should call the `modifySourceData` hook (with the `set` argument)', async() => {
     const argumentHistory = [];
 
     handsontable({
@@ -61,7 +61,7 @@ describe('Core.setDataAtCell', () => {
       }
     });
 
-    setDataAtCell(0, 1, 'foo');
+    await setDataAtCell(0, 1, 'foo');
 
     expect(argumentHistory[0][0]).toBe(0);
     expect(argumentHistory[0][1]).toBe(1);
@@ -69,7 +69,7 @@ describe('Core.setDataAtCell', () => {
     expect(argumentHistory[0][3]).toBe('set');
   });
 
-  it('should be possible to change the value being saved using the `modifyData` hook', () => {
+  it('should be possible to change the value being saved using the `modifyData` hook', async() => {
     handsontable({
       data: [[1, 2, 3], ['a', 'b', 'c']],
       modifyData: (row, prop, valueHolder) => {
@@ -77,12 +77,12 @@ describe('Core.setDataAtCell', () => {
       }
     });
 
-    setDataAtCell(0, 1, 'foo');
+    await setDataAtCell(0, 1, 'foo');
 
     expect(getDataAtCell(0, 1)).toEqual('CHANGED');
   });
 
-  it('should trigger the `beforeChange` and `afterChange` hooks with all arguments', () => {
+  it('should trigger the `beforeChange` and `afterChange` hooks with all arguments', async() => {
     const beforeChange = jasmine.createSpy('beforeChange');
     const afterChange = jasmine.createSpy('afterChange');
 
@@ -94,7 +94,7 @@ describe('Core.setDataAtCell', () => {
 
     beforeChange.calls.reset();
     afterChange.calls.reset();
-    setDataAtCell(0, 1, 'foo', 'single-change');
+    await setDataAtCell(0, 1, 'foo', 'single-change');
 
     expect(beforeChange).toHaveBeenCalledWith([[0, 1, 2, 'foo']], 'single-change');
     expect(afterChange).toHaveBeenCalledWith([[0, 1, 2, 'foo']], 'single-change');
@@ -102,7 +102,7 @@ describe('Core.setDataAtCell', () => {
     beforeChange.calls.reset();
     afterChange.calls.reset();
 
-    setDataAtCell([[0, 1, 'foo2']], 'multiple-change');
+    await setDataAtCell([[0, 1, 'foo2']], 'multiple-change');
 
     expect(beforeChange).toHaveBeenCalledWith([[0, 1, 'foo', 'foo2']], 'multiple-change');
   });

@@ -15,8 +15,8 @@ describe('Hook', () => {
   });
 
   describe('afterListen', () => {
-    it('should be fired once after `listen` method call', () => {
-      const hot = handsontable({
+    it('should be fired once after `listen` method call', async() => {
+      handsontable({
         data: createSpreadsheetData(5, 5),
       });
       const hot1 = handsontable({
@@ -30,13 +30,13 @@ describe('Hook', () => {
       const afterListen1 = jasmine.createSpy('afterListen1');
       const afterListen2 = jasmine.createSpy('afterListen2');
 
-      hot.addHook('afterListen', afterListen);
+      await addHook('afterListen', afterListen);
       hot1.addHook('afterListen', afterListen1);
       hot2.addHook('afterListen', afterListen2);
 
-      hot.listen();
-      hot.listen();
-      hot.listen();
+      await listen();
+      await listen();
+      await listen();
 
       expect(afterListen).toHaveBeenCalledTimes(1);
       expect(afterListen1).toHaveBeenCalledTimes(0);

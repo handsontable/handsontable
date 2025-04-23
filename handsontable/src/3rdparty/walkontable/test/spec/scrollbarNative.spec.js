@@ -21,7 +21,7 @@ describe('WalkontableScrollbarNative', () => {
     this.wotInstance.destroy();
   });
 
-  it('initial render should be no different than the redraw (vertical)', () => {
+  it('initial render should be no different than the redraw (vertical)', async() => {
     createDataArray(100, 1);
 
     const wt = walkontable({
@@ -39,7 +39,7 @@ describe('WalkontableScrollbarNative', () => {
     expect(spec().$table.find('td').length).toEqual(tds);
   });
 
-  it('initial render should be no different than the redraw (horizontal)', () => {
+  it('initial render should be no different than the redraw (horizontal)', async() => {
     createDataArray(1, 50);
 
     const wt = walkontable({
@@ -57,7 +57,7 @@ describe('WalkontableScrollbarNative', () => {
     expect(spec().$table.find('td').length).toEqual(tds);
   });
 
-  it('scrolling 50px down should render 2 more rows', () => {
+  it('scrolling 50px down should render 2 more rows', async() => {
     createDataArray(20, 4);
 
     const wt = walkontable({
@@ -76,7 +76,7 @@ describe('WalkontableScrollbarNative', () => {
     expect(wt.wtTable.getLastRenderedRow()).toEqual(lastRenderedRow + 2);
   });
 
-  it('should recognize the scrollHandler properly, even if the \'overflow\' property is assigned in an external stylesheet', () => {
+  it('should recognize the scrollHandler properly, even if the \'overflow\' property is assigned in an external stylesheet', async() => {
     spec().$wrapper.css({
       overflow: ''
     });
