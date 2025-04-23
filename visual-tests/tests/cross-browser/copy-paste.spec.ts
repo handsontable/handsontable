@@ -74,7 +74,7 @@ test('Copy and paste data in a scrolled table', async({ goto, tablePage, browser
 
   await goto('/large-dataset-demo');
 
-  const table = tablePage.locator('#root > .handsontable');
+  const table = tablePage.locator('#root .ht-wrapper > .handsontable');
   const scrollableElement = table.locator('.ht_master .wtHolder');
   const sourceCell = await selectCell(1, 1, table);
 
@@ -116,7 +116,7 @@ test('Cut and paste data in a scrolled table', async({ goto, tablePage, browserN
 
   await goto('/large-dataset-demo');
 
-  const table = tablePage.locator('#root > .handsontable');
+  const table = tablePage.locator('#root > .ht-wrapper > .handsontable');
   const scrollableElement = table.locator('.ht_master .wtHolder');
   let sourceCell = await selectCell(1, 1, table);
 
