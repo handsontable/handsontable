@@ -19,7 +19,7 @@ describe('WalkontableTable (RTL mode)', () => {
     this.wotInstance.destroy();
   });
 
-  it('getCoords should return coords of TD', () => {
+  it('getCoords should return coords of TD', async() => {
     const wt = walkontable({
       rtlMode: true,
       data: getData,
@@ -34,7 +34,7 @@ describe('WalkontableTable (RTL mode)', () => {
     expect(wt.wtTable.getCoords($td2[0])).toEqual(new Walkontable.CellCoords(1, 1));
   });
 
-  it('getCoords should return coords of TD (with row header)', () => {
+  it('getCoords should return coords of TD (with row header)', async() => {
     spec().$wrapper.width(300);
 
     function plusOne(i) {
@@ -58,7 +58,7 @@ describe('WalkontableTable (RTL mode)', () => {
     expect(wt.wtTable.getCoords($td2[0])).toEqual(new Walkontable.CellCoords(1, 1));
   });
 
-  it('getCoords should return coords of TH', () => {
+  it('getCoords should return coords of TH', async() => {
     spec().$wrapper.width(300);
 
     const wt = walkontable({
@@ -78,7 +78,7 @@ describe('WalkontableTable (RTL mode)', () => {
     expect(wt.wtTable.getCoords($th2[0])).toEqual(new Walkontable.CellCoords(-1, 1));
   });
 
-  it('getCoords should return coords of TD (with fixedColumnsStart)', () => {
+  it('getCoords should return coords of TD (with fixedColumnsStart)', async() => {
     const wt = walkontable({
       rtlMode: true,
       data: getData,
@@ -99,7 +99,7 @@ describe('WalkontableTable (RTL mode)', () => {
   });
 
   describe('getColumnHeader', () => {
-    it('should return valid column header', () => {
+    it('should return valid column header', async() => {
       const wt = walkontable({
         rtlMode: true,
         data: getData,
@@ -126,7 +126,7 @@ describe('WalkontableTable (RTL mode)', () => {
       expect(wt.wtTable.getColumnHeader(0, 3)).toBeUndefined();
     });
 
-    it('should return valid column header when the viewport is scrolled', () => {
+    it('should return valid column header when the viewport is scrolled', async() => {
       const wt = walkontable({
         rtlMode: true,
         data: getData,
@@ -158,7 +158,7 @@ describe('WalkontableTable (RTL mode)', () => {
   });
 
   describe('getColumnHeaders', () => {
-    it('should return valid column headers', () => {
+    it('should return valid column headers', async() => {
       const wt = walkontable({
         rtlMode: true,
         data: getData,
@@ -192,7 +192,7 @@ describe('WalkontableTable (RTL mode)', () => {
       expect(wt.wtTable.getColumnHeaders(2)).toEqual([]);
     });
 
-    it('should return valid column headers when the viewport is scrolled', () => {
+    it('should return valid column headers when the viewport is scrolled', async() => {
       const wt = walkontable({
         rtlMode: true,
         data: getData,
@@ -229,7 +229,7 @@ describe('WalkontableTable (RTL mode)', () => {
     });
   });
 
-  it('should render as much columns as the container width allows, if width is null', () => {
+  it('should render as much columns as the container width allows, if width is null', async() => {
     const wt = walkontable({
       rtlMode: true,
       data: getData,
@@ -250,7 +250,7 @@ describe('WalkontableTable (RTL mode)', () => {
     expect(spec().$table.find('tbody tr:first').children().length).toBe(4);
   });
 
-  it('should render as much columns as the container width allows, if width is null (with row header)', () => {
+  it('should render as much columns as the container width allows, if width is null (with row header)', async() => {
     const wt = walkontable({
       rtlMode: true,
       data: getData,
@@ -274,7 +274,7 @@ describe('WalkontableTable (RTL mode)', () => {
     expect(spec().$table.find('tbody tr:first').children().length).toBe(4);
   });
 
-  it('should use column width array to get column width', () => {
+  it('should use column width array to get column width', async() => {
     spec().$wrapper.width(600);
 
     const wt = walkontable({
@@ -299,7 +299,7 @@ describe('WalkontableTable (RTL mode)', () => {
   });
 
   describe('isLastColumnFullyVisible', () => {
-    it('should be false because it is only partially visible', () => {
+    it('should be false because it is only partially visible', async() => {
       createDataArray(18, 4);
       spec().$wrapper.width(209).height(185);
 
@@ -315,7 +315,7 @@ describe('WalkontableTable (RTL mode)', () => {
       expect(wt.wtTable.isLastColumnFullyVisible()).toBe(false);
     });
 
-    it('should be true because it is fully visible', () => {
+    it('should be true because it is fully visible', async() => {
       createDataArray(18, 4);
       spec().$wrapper.width(180).height(185);
 
@@ -335,7 +335,7 @@ describe('WalkontableTable (RTL mode)', () => {
   });
 
   describe('getFirstVisibleColumn', () => {
-    it('should return source index only for fully visible column (the first column is fully visible)', () => {
+    it('should return source index only for fully visible column (the first column is fully visible)', async() => {
       createDataArray(18, 18);
       spec().$wrapper.width(209).height(185);
 
@@ -351,7 +351,7 @@ describe('WalkontableTable (RTL mode)', () => {
       expect(wt.wtTable.getFirstVisibleColumn()).toBe(0);
     });
 
-    it('should return source index only for fully visible column (the first column is partially visible)', () => {
+    it('should return source index only for fully visible column (the first column is partially visible)', async() => {
       createDataArray(18, 18);
       spec().$wrapper.width(209).height(185);
 
@@ -369,7 +369,7 @@ describe('WalkontableTable (RTL mode)', () => {
       expect(wt.wtTable.getFirstVisibleColumn()).toBe(5);
     });
 
-    it('should return source index that is relevant to a given overlay', () => {
+    it('should return source index that is relevant to a given overlay', async() => {
       createDataArray(18, 18);
       spec().$wrapper.width(250).height(170);
 
@@ -395,7 +395,7 @@ describe('WalkontableTable (RTL mode)', () => {
   });
 
   describe('getLastVisibleColumn', () => {
-    it('should return source index only for fully visible column (the last column is partially visible)', () => {
+    it('should return source index only for fully visible column (the last column is partially visible)', async() => {
       createDataArray(18, 18);
       spec().$wrapper.width(209).height(185);
 
@@ -411,7 +411,7 @@ describe('WalkontableTable (RTL mode)', () => {
       expect(wt.wtTable.getLastVisibleColumn()).toBe(2);
     });
 
-    it('should return source index only for fully visible column (the last column is fully visible)', () => {
+    it('should return source index only for fully visible column (the last column is fully visible)', async() => {
       createDataArray(18, 18);
       spec().$wrapper.width(209).height(185);
 
@@ -429,7 +429,7 @@ describe('WalkontableTable (RTL mode)', () => {
       expect(wt.wtTable.getLastVisibleColumn()).toBe(7);
     });
 
-    it('should return source index that is relevant to a given overlay', () => {
+    it('should return source index that is relevant to a given overlay', async() => {
       createDataArray(18, 18);
       spec().$wrapper.width(250).height(170);
 
@@ -455,7 +455,7 @@ describe('WalkontableTable (RTL mode)', () => {
   });
 
   describe('getFirstRenderedColumn', () => {
-    it('should return source index even for partially visible column (the first column is fully visible)', () => {
+    it('should return source index even for partially visible column (the first column is fully visible)', async() => {
       createDataArray(18, 18);
       spec().$wrapper.width(209).height(185);
 
@@ -471,7 +471,7 @@ describe('WalkontableTable (RTL mode)', () => {
       expect(wt.wtTable.getFirstRenderedColumn()).toBe(0);
     });
 
-    it('should return source index even for partially visible column (the first column is partially visible)', () => {
+    it('should return source index even for partially visible column (the first column is partially visible)', async() => {
       createDataArray(18, 18);
       spec().$wrapper.width(209).height(185);
 
@@ -489,7 +489,7 @@ describe('WalkontableTable (RTL mode)', () => {
       expect(wt.wtTable.getFirstRenderedColumn()).toBe(4);
     });
 
-    it('should return source index that is relevant to a given overlay', () => {
+    it('should return source index that is relevant to a given overlay', async() => {
       createDataArray(18, 18);
       spec().$wrapper.width(250).height(170);
 
@@ -515,7 +515,7 @@ describe('WalkontableTable (RTL mode)', () => {
   });
 
   describe('getLastRenderedColumn', () => {
-    it('should return source index even for partially visible column (the first column is fully visible)', () => {
+    it('should return source index even for partially visible column (the first column is fully visible)', async() => {
       createDataArray(18, 18);
       spec().$wrapper.width(209).height(185);
 
@@ -531,7 +531,7 @@ describe('WalkontableTable (RTL mode)', () => {
       expect(wt.wtTable.getLastRenderedColumn()).toBe(4);
     });
 
-    it('should return source index even for partially visible column (the first column is partially visible)', () => {
+    it('should return source index even for partially visible column (the first column is partially visible)', async() => {
       createDataArray(18, 18);
       spec().$wrapper.width(209).height(185);
 
@@ -549,7 +549,7 @@ describe('WalkontableTable (RTL mode)', () => {
       expect(wt.wtTable.getLastRenderedColumn()).toBe(7);
     });
 
-    it('should return source index that is relevant to a given overlay', () => {
+    it('should return source index that is relevant to a given overlay', async() => {
       createDataArray(18, 18);
       spec().$wrapper.width(250).height(170);
 
@@ -575,7 +575,7 @@ describe('WalkontableTable (RTL mode)', () => {
   });
 
   describe('getVisibleColumnsCount', () => {
-    it('should return columns count only for fully visible columns', () => {
+    it('should return columns count only for fully visible columns', async() => {
       createDataArray(18, 18);
       spec().$wrapper.width(209).height(185);
 
@@ -602,7 +602,7 @@ describe('WalkontableTable (RTL mode)', () => {
       expect(wt.wtTable.getVisibleColumnsCount()).toBe(3);
     });
 
-    it('should return sum that is relevant to a given overlay', () => {
+    it('should return sum that is relevant to a given overlay', async() => {
       createDataArray(18, 18);
       spec().$wrapper.width(250).height(170);
 
@@ -628,7 +628,7 @@ describe('WalkontableTable (RTL mode)', () => {
   });
 
   describe('getRenderedColumnsCount', () => {
-    it('should return columns count only for fully visible columns', () => {
+    it('should return columns count only for fully visible columns', async() => {
       createDataArray(18, 18);
       spec().$wrapper.width(209).height(185);
 
@@ -655,7 +655,7 @@ describe('WalkontableTable (RTL mode)', () => {
       expect(wt.wtTable.getRenderedColumnsCount()).toBe(5);
     });
 
-    it('should return sum that is relevant to a given overlay', () => {
+    it('should return sum that is relevant to a given overlay', async() => {
       createDataArray(18, 18);
       spec().$wrapper.width(250).height(170);
 

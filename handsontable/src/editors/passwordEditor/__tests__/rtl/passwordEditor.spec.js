@@ -19,14 +19,14 @@ describe('PasswordEditor RTL (mode)', () => {
       }
     });
 
-    it('should render an editable editor\'s element without messing with "dir" attribute', () => {
+    it('should render an editable editor\'s element without messing with "dir" attribute', async() => {
       handsontable({
         layoutDirection,
-        data: Handsontable.helper.createSpreadsheetData(2, 5),
+        data: createSpreadsheetData(2, 5),
         editor: 'password',
       });
 
-      selectCell(0, 0);
+      await selectCell(0, 0);
 
       const editableElement = getActiveEditor().TEXTAREA;
 

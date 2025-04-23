@@ -12,7 +12,7 @@ describe('Core_reCreate', () => {
     }
   });
 
-  it('should correctly re-render corner header when there is multiline content', () => {
+  it('should correctly re-render corner header when there is multiline content', async() => {
     const settings = {
       rowHeaders: true,
       colHeaders(col) {

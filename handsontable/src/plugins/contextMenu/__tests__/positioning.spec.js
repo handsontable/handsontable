@@ -68,13 +68,14 @@ describe('ContextMenu', () => {
 
         const cell = hot.getCell(2, 2);
 
-        contextMenu(cell, hot);
+        setCurrentHotInstance(hot);
+
+        await contextMenu(cell, hot);
 
         const contextMenuElem = $(docOutside.body).find('.htContextMenu');
         const contextMenuOffset = contextMenuElem.offset();
         const { top: cellTop, left: cellLeft } = cell.getBoundingClientRect();
-        const { top: iframeTop, left: iframeLeft } = iframeInside.offset()
-        ;
+        const { top: iframeTop, left: iframeLeft } = iframeInside.offset();
         const cellOffsetTop = cellTop + iframeTop;
         const cellOffsetLeft = cellLeft + iframeLeft;
 
@@ -85,7 +86,7 @@ describe('ContextMenu', () => {
       });
     });
 
-    it('should show tick from "Read only" element at proper place', () => {
+    it('should show tick from "Read only" element at proper place', async() => {
       handsontable({
         layoutDirection,
         data: createSpreadsheetData(10, 10),
@@ -93,11 +94,11 @@ describe('ContextMenu', () => {
         readOnly: true,
       });
 
-      selectCell(0, 0);
+      await selectCell(0, 0);
 
       const cell = getCell(0, 0);
 
-      contextMenu(cell);
+      await contextMenu(cell);
 
       const $readOnlyItem = $('.htContextMenu .ht_master .htCore td:contains(Read only)');
       const $tickItem = $readOnlyItem.find('span.selected');

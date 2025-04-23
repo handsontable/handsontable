@@ -13,15 +13,15 @@ describe('Public API', () => {
   });
 
   describe('Plugins', () => {
-    it('should expose static method for registering external plugins', () => {
+    it('should expose static method for registering external plugins', async() => {
       expect(Handsontable.plugins.registerPlugin).toBeFunction();
     });
 
-    it('should expose BasePlugin class', () => {
+    it('should expose BasePlugin class', async() => {
       expect(Handsontable.plugins.BasePlugin).toBeFunction();
     });
 
-    it('should expose all registered plugin classes', () => {
+    it('should expose all registered plugin classes', async() => {
       expect(Handsontable.plugins.AutoColumnSize).toBeFunction();
       expect(Handsontable.plugins.Autofill).toBeFunction();
       expect(Handsontable.plugins.AutoRowSize).toBeFunction();
@@ -59,19 +59,19 @@ describe('Public API', () => {
   });
 
   describe('Editors', () => {
-    it('should expose static method for registering external editors', () => {
+    it('should expose static method for registering external editors', async() => {
       expect(Handsontable.editors.registerEditor).toBeFunction();
     });
 
-    it('should expose static method for retrieving registered editors', () => {
+    it('should expose static method for retrieving registered editors', async() => {
       expect(Handsontable.editors.getEditor).toBeFunction();
     });
 
-    it('should expose BaseEditor class', () => {
+    it('should expose BaseEditor class', async() => {
       expect(Handsontable.editors.BaseEditor).toBeFunction();
     });
 
-    it('should expose all registered editor classes', () => {
+    it('should expose all registered editor classes', async() => {
       expect(Handsontable.editors.AutocompleteEditor).toBeFunction();
       expect(Handsontable.editors.CheckboxEditor).toBeFunction();
       expect(Handsontable.editors.DateEditor).toBeFunction();
@@ -86,19 +86,19 @@ describe('Public API', () => {
   });
 
   describe('Renderers', () => {
-    it('should expose static method for registering external renderers', () => {
+    it('should expose static method for registering external renderers', async() => {
       expect(Handsontable.renderers.registerRenderer).toBeFunction();
     });
 
-    it('should expose static method for retrieving registered renderers', () => {
+    it('should expose static method for retrieving registered renderers', async() => {
       expect(Handsontable.renderers.getRenderer).toBeFunction();
     });
 
-    it('should expose BaseRenderer class', () => {
+    it('should expose BaseRenderer class', async() => {
       expect(Handsontable.renderers.BaseRenderer).toBeFunction();
     });
 
-    it('should expose all registered renderer functions', () => {
+    it('should expose all registered renderer functions', async() => {
       expect(Handsontable.renderers.AutocompleteRenderer).toBeFunction();
       expect(Handsontable.renderers.DropdownRenderer).toBeFunction();
       expect(Handsontable.renderers.CheckboxRenderer).toBeFunction();
@@ -111,15 +111,15 @@ describe('Public API', () => {
   });
 
   describe('Validators', () => {
-    it('should expose static method for registering external validators', () => {
+    it('should expose static method for registering external validators', async() => {
       expect(Handsontable.validators.registerValidator).toBeFunction();
     });
 
-    it('should expose static method for retrieving registered validators', () => {
+    it('should expose static method for retrieving registered validators', async() => {
       expect(Handsontable.validators.getValidator).toBeFunction();
     });
 
-    it('should expose all registered validator functions', () => {
+    it('should expose all registered validator functions', async() => {
       expect(Handsontable.validators.AutocompleteValidator).toBeFunction();
       expect(Handsontable.validators.DropdownValidator).toBeFunction();
       expect(Handsontable.validators.DateValidator).toBeFunction();
@@ -129,15 +129,15 @@ describe('Public API', () => {
   });
 
   describe('CellTypes', () => {
-    it('should expose static method for registering external cell types', () => {
+    it('should expose static method for registering external cell types', async() => {
       expect(Handsontable.cellTypes.registerCellType).toBeFunction();
     });
 
-    it('should expose static method for retrieving registered cell types', () => {
+    it('should expose static method for retrieving registered cell types', async() => {
       expect(Handsontable.cellTypes.getCellType).toBeFunction();
     });
 
-    it('should expose all registered cell type objects', () => {
+    it('should expose all registered cell type objects', async() => {
       expect(Handsontable.cellTypes.autocomplete.editor).toBe(Handsontable.editors.AutocompleteEditor);
       expect(Handsontable.cellTypes.autocomplete.renderer).toBe(Handsontable.renderers.AutocompleteRenderer);
       expect(Handsontable.cellTypes.autocomplete.validator).toBe(Handsontable.validators.AutocompleteValidator);
@@ -181,7 +181,7 @@ describe('Public API', () => {
   });
 
   describe('Helpers', () => {
-    it('should expose all registered helpers', () => {
+    it('should expose all registered helpers', async() => {
       expect(Handsontable.dom.addClass).toBeFunction();
       expect(Handsontable.dom.addEvent).toBeFunction();
       expect(Handsontable.dom.closest).toBeFunction();

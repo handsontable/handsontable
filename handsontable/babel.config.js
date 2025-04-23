@@ -9,6 +9,7 @@ const allowedE2EModules = [
   '@babel/runtime/*',
   './htmlNormalize',
   './common',
+  './utils',
   './jasmine-helpers',
   './mouseEvents',
   './keyboardEvents',

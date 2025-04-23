@@ -10,7 +10,7 @@ describe('Core.getColHeader', () => {
     }
   });
 
-  it('should return `null` when the table is initialized using default values', () => {
+  it('should return `null` when the table is initialized using default values', async() => {
     handsontable();
 
     expect(getColHeader(1)).toBe(null);
@@ -21,7 +21,7 @@ describe('Core.getColHeader', () => {
     expect(getColHeader(2, 2)).toBe(null);
   });
 
-  it('should return the Excel-style column titles when `colHeaders` is enabled', () => {
+  it('should return the Excel-style column titles when `colHeaders` is enabled', async() => {
     handsontable({
       colHeaders: true
     });
@@ -35,7 +35,7 @@ describe('Core.getColHeader', () => {
     expect(getColHeader(300)).toBe('KO');
   });
 
-  it('should return Excel-style column for all header levels that point to the header beyond the range when `colHeaders` is enabled', () => {
+  it('should return Excel-style column for all header levels that point to the header beyond the range when `colHeaders` is enabled', async() => {
     handsontable({
       colHeaders: true
     });
@@ -48,7 +48,7 @@ describe('Core.getColHeader', () => {
     expect(getColHeader(0, 20)).toBe('A');
   });
 
-  it('should return value at specified index when `colHeaders` is defined as an array', () => {
+  it('should return value at specified index when `colHeaders` is defined as an array', async() => {
     handsontable({
       colHeaders: ['One', 'Two', 'Three', 'Four', 'Five']
     });
@@ -60,7 +60,7 @@ describe('Core.getColHeader', () => {
     expect(getColHeader(4)).toBe('Five');
   });
 
-  it('should return the Excel-style column title when the index points beyond the array length', () => {
+  it('should return the Excel-style column title when the index points beyond the array length', async() => {
     handsontable({
       colHeaders: ['One', 'Two', 'Three']
     });
@@ -74,7 +74,7 @@ describe('Core.getColHeader', () => {
     expect(getColHeader(300)).toBe('KO');
   });
 
-  it('should return the Excel-style column title when the value at specific index returns `undefined`', () => {
+  it('should return the Excel-style column title when the value at specific index returns `undefined`', async() => {
     handsontable({
       data: createSpreadsheetData(2, 10),
       colHeaders: ['One', undefined, 'Three', '', null, 'Seven', undefined, 0]
@@ -92,7 +92,7 @@ describe('Core.getColHeader', () => {
     expect(getColHeader(9)).toBe('J');
   });
 
-  it('should return function output when the `colHeaders` is defined as function', () => {
+  it('should return function output when the `colHeaders` is defined as function', async() => {
     handsontable({
       colHeaders(index) {
         return `col${index}`;
@@ -104,7 +104,7 @@ describe('Core.getColHeader', () => {
     expect(getColHeader(3)).toBe('col3');
   });
 
-  it('should return the value when the `colHeaders` is defined as static value', () => {
+  it('should return the value when the `colHeaders` is defined as static value', async() => {
     handsontable({
       colHeaders: 'static'
     });
@@ -115,7 +115,7 @@ describe('Core.getColHeader', () => {
     expect(getColHeader(300)).toBe('static');
   });
 
-  it('should return raw HTML values', () => {
+  it('should return raw HTML values', async() => {
     handsontable({
       colHeaders(index) {
         return `<b>col${index}</b>`;
@@ -127,7 +127,7 @@ describe('Core.getColHeader', () => {
     expect(getColHeader(3)).toBe('<b>col3</b>');
   });
 
-  it('should return as much column headers as there are columns (`startCols`) when `colHeaders` is defined as `true`', () => {
+  it('should return as much column headers as there are columns (`startCols`) when `colHeaders` is defined as `true`', async() => {
     handsontable({
       colHeaders: true,
       startCols: 3
@@ -136,7 +136,7 @@ describe('Core.getColHeader', () => {
     expect(getColHeader()).toEqual(['A', 'B', 'C']);
   });
 
-  it('should return as much column headers as there are columns (`data`) when `colHeaders` is defined as `true`', () => {
+  it('should return as much column headers as there are columns (`data`) when `colHeaders` is defined as `true`', async() => {
     handsontable({
       colHeaders: true,
       data: createSpreadsheetData(2, 3)
@@ -145,7 +145,7 @@ describe('Core.getColHeader', () => {
     expect(getColHeader()).toEqual(['A', 'B', 'C']);
   });
 
-  it('should return as much column headers as there are columns (`columns`) when `colHeaders` is defined as `true`', () => {
+  it('should return as much column headers as there are columns (`columns`) when `colHeaders` is defined as `true`', async() => {
     handsontable({
       colHeaders: true,
       columns: [
@@ -158,7 +158,7 @@ describe('Core.getColHeader', () => {
     expect(getColHeader()).toEqual(['A', 'B', 'C']);
   });
 
-  it('should be possible to get the header values using header level index 0 to N nomenclature', () => {
+  it('should be possible to get the header values using header level index 0 to N nomenclature', async() => {
     const headers = [
       ['a1', 'a2', 'a3', 'a4'],
       ['b1', 'b2', 'b3', 'b4'],
@@ -200,7 +200,7 @@ describe('Core.getColHeader', () => {
     expect(getColHeader(4, 3)).toBe('default'); // column index is out of range
   });
 
-  it('should be possible to get the header values using header level index -1 to -N nomenclature', () => {
+  it('should be possible to get the header values using header level index -1 to -N nomenclature', async() => {
     const headers = [
       ['a1', 'a2', 'a3', 'a4'],
       ['b1', 'b2', 'b3', 'b4'],

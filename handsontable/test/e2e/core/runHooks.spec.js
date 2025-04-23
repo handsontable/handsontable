@@ -10,7 +10,7 @@ describe('Core.runHooks', () => {
     }
   });
 
-  it('should forward call to the internal Hooks module', () => {
+  it('should forward call to the internal Hooks module', async() => {
     handsontable({});
 
     spyOn(Handsontable.hooks, 'run').and.returnValue('foo');

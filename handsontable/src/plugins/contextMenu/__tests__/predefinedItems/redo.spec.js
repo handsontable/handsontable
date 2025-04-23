@@ -13,7 +13,7 @@ describe('ContextMenu', () => {
   });
 
   describe('Redo', () => {
-    it('should redo the last action using the Context Menu option', () => {
+    it('should redo the last action using the Context Menu option', async() => {
       handsontable({
         data: [
           ['']
@@ -21,17 +21,17 @@ describe('ContextMenu', () => {
         contextMenu: true
       });
 
-      setDataAtCell(0, 0, 'test');
+      await setDataAtCell(0, 0, 'test');
 
       expect(getDataAtCell(0, 0)).toEqual('test');
 
       getPlugin('undoRedo').undo();
 
-      contextMenu(getCell(0, 0, true));
+      await contextMenu(getCell(0, 0, true));
 
       const warnSpy = spyOn(console, 'warn');
 
-      selectContextMenuOption('Redo');
+      await selectContextMenuOption('Redo');
 
       expect(getDataAtCell(0, 0)).toEqual('test');
       expect(warnSpy).not.toHaveBeenCalled();

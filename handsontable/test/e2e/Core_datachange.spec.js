@@ -12,7 +12,7 @@ describe('Core_datachange', () => {
     }
   });
 
-  it('should call afterChange callback', () => {
+  it('should call afterChange callback', async() => {
     let output = null;
 
     handsontable({
@@ -20,7 +20,7 @@ describe('Core_datachange', () => {
         output = changes;
       }
     });
-    setDataAtCell(1, 2, 'test');
+    await setDataAtCell(1, 2, 'test');
 
     expect(output[0][0]).toEqual(1);
     expect(output[0][1]).toEqual(2);
@@ -28,7 +28,7 @@ describe('Core_datachange', () => {
     expect(output[0][3]).toEqual('test');
   });
 
-  it('should use custom source for datachange', () => {
+  it('should use custom source for datachange', async() => {
     let output = null;
     let src = null;
 
@@ -38,13 +38,13 @@ describe('Core_datachange', () => {
         src = source;
       }
     });
-    setDataAtCell(1, 2, 'abc', 'test');
+    await setDataAtCell(1, 2, 'abc', 'test');
 
     expect(output[0][3]).toEqual('abc');
     expect(src).toEqual('test');
   });
 
-  it('should use custom source for datachange with array', () => {
+  it('should use custom source for datachange with array', async() => {
     let output = null;
     let src = null;
 
@@ -54,20 +54,20 @@ describe('Core_datachange', () => {
         src = source;
       }
     });
-    setDataAtCell([[1, 2, 'abc']], 'test');
+    await setDataAtCell([[1, 2, 'abc']], 'test');
 
     expect(output[0][3]).toEqual('abc');
     expect(src).toEqual('test');
   });
 
-  it('should trigger datachange event', () => {
+  it('should trigger datachange event', async() => {
     let output = null;
 
     handsontable();
     Handsontable.hooks.add('afterChange', (changes) => {
       output = changes;
     });
-    setDataAtCell(1, 2, 'test');
+    await setDataAtCell(1, 2, 'test');
 
     expect(output[0][0]).toEqual(1);
     expect(output[0][1]).toEqual(2);
@@ -75,7 +75,7 @@ describe('Core_datachange', () => {
     expect(output[0][3]).toEqual('test');
   });
 
-  it('this.rootElement should point to handsontable rootElement', () => {
+  it('this.rootElement should point to handsontable rootElement', async() => {
     const $container = spec().$container;
     let output = null;
 
@@ -84,12 +84,12 @@ describe('Core_datachange', () => {
         output = this.rootElement;
       }
     });
-    setDataAtCell(0, 0, 'test');
+    await setDataAtCell(0, 0, 'test');
 
     expect(output).toEqual($container[0]);
   });
 
-  it('afterChange should be triggered after data is rendered to DOM (init)', () => {
+  it('afterChange should be triggered after data is rendered to DOM (init)', async() => {
     const $container = spec().$container;
     let output = null;
 
@@ -107,7 +107,7 @@ describe('Core_datachange', () => {
     expect(output).toEqual('Joe Red');
   });
 
-  it('afterChange should be triggered after data is rendered to DOM (setDataAtCell)', () => {
+  it('afterChange should be triggered after data is rendered to DOM (setDataAtCell)', async() => {
     const $container = spec().$container;
     let output = null;
 
@@ -121,12 +121,12 @@ describe('Core_datachange', () => {
         }
       }
     });
-    setDataAtCell(0, 0, 'Alice Red');
+    await setDataAtCell(0, 0, 'Alice Red');
 
     expect(output).toEqual('Alice Red');
   });
 
-  it('afterChange event object should contain documented keys and values when triggered by edit', () => {
+  it('afterChange event object should contain documented keys and values when triggered by edit', async() => {
     const sampleData = [
       {
         col1: 'a',
@@ -144,7 +144,7 @@ describe('Core_datachange', () => {
         }
       }
     });
-    setDataAtCell(0, 0, 'test');
+    await setDataAtCell(0, 0, 'test');
 
     expect(event[0]).toEqual(0);
     expect(event[1]).toEqual('col1');
@@ -152,7 +152,7 @@ describe('Core_datachange', () => {
     expect(event[3]).toEqual('test');
   });
 
-  it('source parameter should be `edit` when cell value is changed through editor', () => {
+  it('source parameter should be `edit` when cell value is changed through editor', async() => {
     const sources = [];
 
     handsontable({
@@ -163,11 +163,13 @@ describe('Core_datachange', () => {
         sources.push(source);
       }
     });
-    selectCell(0, 0);
 
-    keyDownUp('enter');
+    await selectCell(0, 0);
+    await keyDownUp('enter');
+
     document.activeElement.value = 'Ted';
-    keyDownUp('enter');
+
+    await keyDownUp('enter');
 
     expect(sources).toEqual(['loadData', 'edit']); // loadData is always the first source
   });

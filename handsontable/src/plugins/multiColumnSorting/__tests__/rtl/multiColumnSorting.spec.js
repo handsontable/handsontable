@@ -21,7 +21,7 @@ describe('MultiColumnSorting (RTL)', () => {
     });
 
     describe('Numbers presenting sorting sequence', () => {
-      it.forTheme('classic')('should be properly position the number when multi columns are sorted', () => {
+      it.forTheme('classic')('should be properly position the number when multi columns are sorted', async() => {
         spec().$container[0].style.width = 'auto';
         spec().$container[0].style.height = 'auto';
 
@@ -71,7 +71,7 @@ describe('MultiColumnSorting (RTL)', () => {
           .getPropertyValue('padding-right')).toEqual('5px');
       });
 
-      it.forTheme('main')('should be properly position the number when multi columns are sorted', () => {
+      it.forTheme('main')('should be properly position the number when multi columns are sorted', async() => {
         spec().$container[0].style.width = 'auto';
         spec().$container[0].style.height = 'auto';
 
@@ -128,7 +128,7 @@ describe('MultiColumnSorting (RTL)', () => {
         }
       });
 
-      it.forTheme('horizon')('should be properly position the number when multi columns are sorted', () => {
+      it.forTheme('horizon')('should be properly position the number when multi columns are sorted', async() => {
         spec().$container[0].style.width = 'auto';
         spec().$container[0].style.height = 'auto';
 

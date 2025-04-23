@@ -23,7 +23,7 @@ describe('ContextMenu (RTL mode)', () => {
 
     // all other E2E tests are moved to visual tests. See ./visual-tests/tests/js-only/context-menu/
 
-    it('should show tick from "Read only" element at proper place', () => {
+    it('should show tick from "Read only" element at proper place', async() => {
       handsontable({
         layoutDirection,
         data: createSpreadsheetData(10, 10),
@@ -31,11 +31,11 @@ describe('ContextMenu (RTL mode)', () => {
         readOnly: true,
       });
 
-      selectCell(0, 0);
+      await selectCell(0, 0);
 
       const cell = getCell(0, 0);
 
-      contextMenu(cell);
+      await contextMenu(cell);
 
       const $readOnlyItem = $('.htContextMenu .ht_master .htCore td:contains(Read only)');
       const $tickItem = $readOnlyItem.find('span.selected');

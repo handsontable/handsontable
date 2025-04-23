@@ -24,68 +24,68 @@ describe('Selection', () => {
   }
 
   describe('`isEntireRowSelected` method', () => {
-    it('should return `true` when the entire row is selected (headers off)', () => {
-      const hot = handsontable({
+    it('should return `true` when the entire row is selected (headers off)', async() => {
+      handsontable({
         data: createSpreadsheetData(4, 6),
         colHeaders: false,
         rowHeaders: false,
       });
 
-      expect(hot.selection.isEntireRowSelected()).toBe(false);
+      expect(selection().isEntireRowSelected()).toBe(false);
 
-      hot.selection.selectColumns(1);
+      selection().selectColumns(1);
 
-      expect(hot.selection.isEntireRowSelected()).toBe(false);
+      expect(selection().isEntireRowSelected()).toBe(false);
 
-      hot.selection.selectCells([[1, 1, 1, 5]]);
+      selection().selectCells([[1, 1, 1, 5]]);
 
-      expect(hot.selection.isEntireRowSelected()).toBe(false);
+      expect(selection().isEntireRowSelected()).toBe(false);
 
-      hot.selection.selectCells([[1, 0, 1, 4]]);
+      selection().selectCells([[1, 0, 1, 4]]);
 
-      expect(hot.selection.isEntireRowSelected()).toBe(false);
+      expect(selection().isEntireRowSelected()).toBe(false);
 
-      hot.selection.selectCells([[1, 0, 1, 5]]);
+      selection().selectCells([[1, 0, 1, 5]]);
 
-      expect(hot.selection.isEntireRowSelected()).toBe(true);
+      expect(selection().isEntireRowSelected()).toBe(true);
 
-      hot.selection.selectRows(0);
+      selection().selectRows(0);
 
-      expect(hot.selection.isEntireRowSelected()).toBe(true);
+      expect(selection().isEntireRowSelected()).toBe(true);
     });
 
-    it('should return `true` when the entire row is selected (headers on)', () => {
-      const hot = handsontable({
+    it('should return `true` when the entire row is selected (headers on)', async() => {
+      handsontable({
         data: createSpreadsheetData(4, 6),
         colHeaders: true,
         rowHeaders: true,
       });
 
-      expect(hot.selection.isEntireRowSelected()).toBe(false);
+      expect(selection().isEntireRowSelected()).toBe(false);
 
-      hot.selection.selectColumns(1);
+      selection().selectColumns(1);
 
-      expect(hot.selection.isEntireRowSelected()).toBe(false);
+      expect(selection().isEntireRowSelected()).toBe(false);
 
-      hot.selection.selectCells([[1, 1, 1, 5]]);
+      selection().selectCells([[1, 1, 1, 5]]);
 
-      expect(hot.selection.isEntireRowSelected()).toBe(false);
+      expect(selection().isEntireRowSelected()).toBe(false);
 
-      hot.selection.selectCells([[1, 0, 1, 4]]);
+      selection().selectCells([[1, 0, 1, 4]]);
 
-      expect(hot.selection.isEntireRowSelected()).toBe(false);
+      expect(selection().isEntireRowSelected()).toBe(false);
 
-      hot.selection.selectCells([[1, 0, 1, 5]]);
+      selection().selectCells([[1, 0, 1, 5]]);
 
-      expect(hot.selection.isEntireRowSelected()).toBe(false);
+      expect(selection().isEntireRowSelected()).toBe(false);
 
-      hot.selection.selectRows(0);
+      selection().selectRows(0);
 
-      expect(hot.selection.isEntireRowSelected()).toBe(true);
+      expect(selection().isEntireRowSelected()).toBe(true);
     });
 
-    it('should return `true` when the entire row is selected (multiple headers, navigableHeaders on)', () => {
-      const hot = handsontable({
+    it('should return `true` when the entire row is selected (multiple headers, navigableHeaders on)', async() => {
+      handsontable({
         data: createSpreadsheetData(4, 6),
         colHeaders: true,
         rowHeaders: true,
@@ -100,71 +100,71 @@ describe('Selection', () => {
         },
       });
 
-      expect(hot.selection.isEntireRowSelected()).toBe(false);
+      expect(selection().isEntireRowSelected()).toBe(false);
 
-      hot.selection.selectColumns(1);
+      selection().selectColumns(1);
 
-      expect(hot.selection.isEntireRowSelected()).toBe(false);
+      expect(selection().isEntireRowSelected()).toBe(false);
 
-      hot.selection.selectCells([[1, 1, 1, 5]]);
+      selection().selectCells([[1, 1, 1, 5]]);
 
-      expect(hot.selection.isEntireRowSelected()).toBe(false);
+      expect(selection().isEntireRowSelected()).toBe(false);
 
-      hot.selection.selectCells([[1, 0, 1, 4]]);
+      selection().selectCells([[1, 0, 1, 4]]);
 
-      expect(hot.selection.isEntireRowSelected()).toBe(false);
+      expect(selection().isEntireRowSelected()).toBe(false);
 
-      hot.selection.selectCells([[1, 0, 1, 5]]);
+      selection().selectCells([[1, 0, 1, 5]]);
 
-      expect(hot.selection.isEntireRowSelected()).toBe(false);
+      expect(selection().isEntireRowSelected()).toBe(false);
 
-      hot.selection.selectRows(0);
+      selection().selectRows(0);
 
-      expect(hot.selection.isEntireRowSelected()).toBe(true);
+      expect(selection().isEntireRowSelected()).toBe(true);
     });
 
-    it('should be possible to check the rows selection for each selection layer individually', () => {
-      const hot = handsontable({
+    it('should be possible to check the rows selection for each selection layer individually', async() => {
+      handsontable({
         data: createSpreadsheetData(4, 6),
         colHeaders: true,
         rowHeaders: true,
       });
 
-      listen();
-      hot.selection.selectColumns(2);
-      keyDown('control/meta');
-      hot.selection.selectRows(2);
-      keyDown('control/meta');
-      hot.selection.selectColumns(0);
-      keyDown('control/meta');
-      hot.selection.selectRows(0);
-      keyUp('control/meta');
+      await listen();
+      selection().selectColumns(2);
+      await keyDown('control/meta');
+      selection().selectRows(2);
+      await keyDown('control/meta');
+      selection().selectColumns(0);
+      await keyDown('control/meta');
+      selection().selectRows(0);
+      await keyUp('control/meta');
 
-      expect(hot.selection.isEntireRowSelected(4)).toBe(false); // out of range
-      expect(hot.selection.isEntireRowSelected(3)).toBe(true);
-      expect(hot.selection.isEntireRowSelected(2)).toBe(false);
-      expect(hot.selection.isEntireRowSelected(1)).toBe(true);
-      expect(hot.selection.isEntireRowSelected(0)).toBe(false);
+      expect(selection().isEntireRowSelected(4)).toBe(false); // out of range
+      expect(selection().isEntireRowSelected(3)).toBe(true);
+      expect(selection().isEntireRowSelected(2)).toBe(false);
+      expect(selection().isEntireRowSelected(1)).toBe(true);
+      expect(selection().isEntireRowSelected(0)).toBe(false);
     });
 
-    it('should return `true` when the corner is selected with row headers', () => {
-      const hot = handsontable({
+    it('should return `true` when the corner is selected with row headers', async() => {
+      handsontable({
         data: createSpreadsheetData(4, 6),
         colHeaders: true,
         rowHeaders: true,
       });
 
-      hot.selection.selectAll(false, false);
+      selection().selectAll(false, false);
 
-      expect(hot.selection.isEntireRowSelected()).toBe(false);
+      expect(selection().isEntireRowSelected()).toBe(false);
 
-      hot.selection.selectAll(false, true);
+      selection().selectAll(false, true);
 
-      expect(hot.selection.isEntireRowSelected()).toBe(false);
+      expect(selection().isEntireRowSelected()).toBe(false);
 
-      hot.selection.selectAll(true, true);
+      selection().selectAll(true, true);
 
-      expect(hot.selection.isEntireRowSelected()).toBe(true);
+      expect(selection().isEntireRowSelected()).toBe(true);
     });
   });
 });

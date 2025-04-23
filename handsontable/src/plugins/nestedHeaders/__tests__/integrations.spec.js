@@ -13,7 +13,7 @@ describe('Integration with other plugins', () => {
   });
 
   describe('Core `getColHeader` method', () => {
-    it('should return column header values based on the nested headers configuration', () => {
+    it('should return column header values based on the nested headers configuration', async() => {
       handsontable({
         data: [['1', '2', '3', '4', '5', '6']],
         colHeaders: true,
@@ -51,7 +51,7 @@ describe('Integration with other plugins', () => {
 
   describe('DropdownMenu', () => {
     it('should not block the opening of the dropdown menu after clicking on its header button, when all the rows are' +
-      ' trimmed', () => {
+      ' trimmed', async() => {
       const afterDropdownMenuShow = jasmine.createSpy('afterDropdownMenuShow');
 
       handsontable({
@@ -82,7 +82,7 @@ describe('Integration with other plugins', () => {
       spyOn(document, 'execCommand');
     });
 
-    it('should copy cells and all column nested headers to the clipboard', () => {
+    it('should copy cells and all column nested headers to the clipboard', async() => {
       handsontable({
         data: createSpreadsheetData(2, 4),
         rowHeaders: true,
@@ -103,7 +103,7 @@ describe('Integration with other plugins', () => {
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
-      selectAll();
+      await selectAll();
 
       plugin.copyWithAllColumnHeaders();
       plugin.onCopy(copyEvent); // emulate native "copy" event

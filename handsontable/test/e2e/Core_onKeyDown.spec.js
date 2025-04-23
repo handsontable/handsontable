@@ -12,111 +12,136 @@ describe('Core_onKeyDown', () => {
     }
   });
 
-  it('should advance to next cell when TAB is pressed', () => {
+  it('should advance to next cell when TAB is pressed', async() => {
     // https://github.com/handsontable/handsontable/issues/151
     handsontable();
-    selectCell(0, 0);
-    keyDownUp('tab');
+
+    await selectCell(0, 0);
+    await keyDownUp('tab');
+
     expect(getSelected()).toEqual([[0, 1, 0, 1]]);
   });
 
-  it('should advance to previous cell when shift+TAB is pressed', () => {
+  it('should advance to previous cell when shift+TAB is pressed', async() => {
     handsontable();
-    selectCell(1, 1);
-    keyDownUp(['shift', 'tab']);
+
+    await selectCell(1, 1);
+    await keyDownUp(['shift', 'tab']);
+
     expect(getSelected()).toEqual([[1, 0, 1, 0]]);
   });
 
   describe('while editing (quick edit mode)', () => {
-    it('should finish editing and advance to next cell when TAB is pressed', () => {
+    it('should finish editing and advance to next cell when TAB is pressed', async() => {
       // https://github.com/handsontable/handsontable/issues/215
       handsontable();
-      selectCell(1, 1);
 
-      keyDownUp('x'); // value to cell trigger quick edit mode
+      await selectCell(1, 1);
+      await keyDownUp('x'); // value to cell trigger quick edit mode
+
       keyProxy().val('Ted');
-      keyDownUp('tab');
+
+      await keyDownUp('tab');
+
       expect(getData()[1][1]).toEqual('Ted');
       expect(getSelected()).toEqual([[1, 2, 1, 2]]);
     });
 
-    it('should finish editing and advance to lower cell when enter is pressed', () => {
+    it('should finish editing and advance to lower cell when enter is pressed', async() => {
       // https://github.com/handsontable/handsontable/issues/215
       handsontable();
-      selectCell(1, 1);
 
-      keyDownUp('x'); // value to cell trigger quick edit mode
+      await selectCell(1, 1);
+      await keyDownUp('x'); // value to cell trigger quick edit mode
+
       keyProxy().val('Ted');
-      keyDownUp('enter');
+
+      await keyDownUp('enter');
+
       expect(getData()[1][1]).toEqual('Ted');
       expect(getSelected()).toEqual([[2, 1, 2, 1]]);
     });
 
-    it('should finish editing and advance to higher cell when shift+enter is pressed', () => {
+    it('should finish editing and advance to higher cell when shift+enter is pressed', async() => {
       // https://github.com/handsontable/handsontable/issues/215
       handsontable();
-      selectCell(1, 1);
 
-      keyDownUp('x'); // trigger quick edit mode
+      await selectCell(1, 1);
+      await keyDownUp('x'); // trigger quick edit mode
+
       keyProxy().val('Ted');
-      keyDownUp(['shift', 'enter']);
+
+      await keyDownUp(['shift', 'enter']);
+
       expect(getData()[1][1]).toEqual('Ted');
       expect(getSelected()).toEqual([[0, 1, 0, 1]]);
     });
 
-    it('should finish editing and advance to lower cell when down arrow is pressed', () => {
+    it('should finish editing and advance to lower cell when down arrow is pressed', async() => {
       handsontable();
-      selectCell(1, 1);
 
-      keyDownUp('x');
+      await selectCell(1, 1);
+      await keyDownUp('x');
+
       keyProxy().val('Ted');
-      keyDownUp('arrowdown');
+
+      await keyDownUp('arrowdown');
+
       expect(getData()[1][1]).toEqual('Ted');
       expect(getSelected()).toEqual([[2, 1, 2, 1]]);
     });
 
-    it('should finish editing and advance to higher cell when up arrow is pressed', () => {
+    it('should finish editing and advance to higher cell when up arrow is pressed', async() => {
       handsontable();
-      selectCell(1, 1);
 
-      keyDownUp('x');
+      await selectCell(1, 1);
+      await keyDownUp('x');
+
       keyProxy().val('Ted');
-      keyDownUp('arrowup');
+
+      await keyDownUp('arrowup');
+
       expect(getData()[1][1]).toEqual('Ted');
       expect(getSelected()).toEqual([[0, 1, 0, 1]]);
     });
 
-    it('should finish editing and advance to right cell when right arrow is pressed', () => {
+    it('should finish editing and advance to right cell when right arrow is pressed', async() => {
       handsontable();
-      selectCell(1, 1);
 
-      keyDownUp('x');
+      await selectCell(1, 1);
+      await keyDownUp('x');
+
       keyProxy().val('Ted');
-      keyDownUp('arrowright');
-      keyDownUp('arrowright');
-      keyDownUp('arrowright');
-      keyDownUp('arrowright');
+
+      await keyDownUp('arrowright');
+      await keyDownUp('arrowright');
+      await keyDownUp('arrowright');
+      await keyDownUp('arrowright');
+
       expect(getData()[1][1]).toEqual('Ted');
       expect(getSelected()).toEqual([[1, 4, 1, 4]]);
     });
 
-    it('should finish editing and advance to left cell when left arrow is pressed', () => {
+    it('should finish editing and advance to left cell when left arrow is pressed', async() => {
       handsontable();
-      selectCell(1, 1);
 
-      keyDownUp('x');
+      await selectCell(1, 1);
+      await keyDownUp('x');
+
       keyProxy().val('Ted');
       Handsontable.dom.setCaretPosition(keyProxy()[0], 0, 0);
-      keyDownUp('arrowleft');
-      keyDownUp('arrowleft');
-      keyDownUp('arrowleft');
-      keyDownUp('arrowleft');
-      keyDownUp('arrowleft');
+
+      await keyDownUp('arrowleft');
+      await keyDownUp('arrowleft');
+      await keyDownUp('arrowleft');
+      await keyDownUp('arrowleft');
+      await keyDownUp('arrowleft');
+
       expect(getData()[1][1]).toEqual('Ted');
       expect(getSelected()).toEqual([[1, 0, 1, 0]]);
     });
 
-    it('should finish editing and advance to lower cell when enter is pressed (with sync validator)', (done) => {
+    it('should finish editing and advance to lower cell when enter is pressed (with sync validator)', async() => {
       const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
@@ -126,164 +151,22 @@ describe('Core_onKeyDown', () => {
         afterValidate: onAfterValidate
       });
 
-      selectCell(1, 1);
+      await selectCell(1, 1);
+      await keyDownUp('x');
 
-      keyDownUp('x');
       keyProxy().val('Ted');
 
       onAfterValidate.calls.reset();
-      keyDownUp('enter');
 
-      setTimeout(() => {
-        expect(onAfterValidate).toHaveBeenCalled();
-        expect(getData()[1][1]).toEqual('Ted');
-        expect(getSelected()).toEqual([[2, 1, 2, 1]]);
-        done();
-      }, 200);
-    });
+      await keyDownUp('enter');
+      await sleep(50); // wait for async validator
 
-    it('should finish editing and advance to lower cell when enter is pressed (with async validator)', (done) => {
-      const onAfterValidate = jasmine.createSpy('onAfterValidate');
-
-      handsontable({
-        validator(val, cb) {
-          setTimeout(() => {
-            cb(true);
-          }, 10);
-        },
-        afterValidate: onAfterValidate
-      });
-      selectCell(1, 1);
-
-      keyDownUp('x');
-      keyProxy().val('Ted');
-
-      onAfterValidate.calls.reset();
-      keyDownUp('enter');
-
-      setTimeout(() => {
-        expect(onAfterValidate).toHaveBeenCalled();
-        expect(getData()[1][1]).toEqual('Ted');
-        expect(getSelected()).toEqual([[2, 1, 2, 1]]);
-        done();
-      }, 200);
-    });
-  });
-
-  describe('while editing (full edit mode)', () => {
-    it('should finish editing and advance to next cell when TAB is pressed', () => {
-      // https://github.com/handsontable/handsontable/issues/215
-      handsontable();
-      selectCell(1, 1);
-
-      keyDownUp('enter');
-      keyProxy().val('Ted');
-      keyDownUp('tab');
-      expect(getData()[1][1]).toEqual('Ted');
-      expect(getSelected()).toEqual([[1, 2, 1, 2]]);
-    });
-
-    it('should finish editing and advance to lower cell when enter is pressed', () => {
-      // https://github.com/handsontable/handsontable/issues/215
-      handsontable();
-      selectCell(1, 1);
-
-      keyDownUp('enter');
-      keyProxy().val('Ted');
-      keyDownUp('enter');
+      expect(onAfterValidate).toHaveBeenCalled();
       expect(getData()[1][1]).toEqual('Ted');
       expect(getSelected()).toEqual([[2, 1, 2, 1]]);
     });
 
-    it('should finish editing and advance to higher cell when shift+enter is pressed', () => {
-      // https://github.com/handsontable/handsontable/issues/215
-      handsontable();
-      selectCell(1, 1);
-
-      keyDownUp('enter');
-      keyProxy().val('Ted');
-      keyDownUp(['shift', 'enter']);
-      expect(getData()[1][1]).toEqual('Ted');
-      expect(getSelected()).toEqual([[0, 1, 0, 1]]);
-    });
-
-    it('shouldn\'t finish editing and advance to lower cell when down arrow is pressed', () => {
-      handsontable();
-      selectCell(1, 1);
-
-      keyDownUp('enter');
-      keyProxy().val('Ted');
-      keyDownUp('arrowdown');
-      expect(getData()[1][1]).toEqual(null);
-      expect(getSelected()).toEqual([[1, 1, 1, 1]]);
-    });
-
-    it('shouldn\'t finish editing and advance to higher cell when up arrow is pressed', () => {
-      handsontable();
-      selectCell(1, 1);
-
-      keyDownUp('enter');
-      keyProxy().val('Ted');
-      keyDownUp('arrowup');
-      expect(getData()[1][1]).toEqual(null);
-      expect(getSelected()).toEqual([[1, 1, 1, 1]]);
-    });
-
-    it('shouldn\'t finish editing and advance to right cell when right arrow is pressed', () => {
-      handsontable();
-      selectCell(1, 1);
-
-      keyDownUp('enter');
-      keyProxy().val('Ted');
-      keyDownUp('arrowright');
-      keyDownUp('arrowright');
-      keyDownUp('arrowright');
-      keyDownUp('arrowright');
-      expect(getData()[1][1]).toEqual(null);
-      expect(getSelected()).toEqual([[1, 1, 1, 1]]);
-    });
-
-    it('shouldn\'t finish editing and advance to left cell when left arrow is pressed', () => {
-      handsontable();
-      selectCell(1, 1);
-
-      keyDownUp('enter');
-      keyProxy().val('Ted');
-      keyDownUp('arrowleft');
-      keyDownUp('arrowleft');
-      keyDownUp('arrowleft');
-      keyDownUp('arrowleft');
-      expect(getData()[1][1]).toEqual(null);
-      expect(getSelected()).toEqual([[1, 1, 1, 1]]);
-    });
-
-    it('should finish editing and advance to lower cell when enter is pressed (with sync validator)', (done) => {
-      const onAfterValidate = jasmine.createSpy('onAfterValidate');
-
-      handsontable({
-        validator(val, cb) {
-          cb(true);
-        },
-        afterValidate: onAfterValidate
-      });
-
-      selectCell(1, 1);
-
-      keyDownUp('enter');
-      keyProxy().val('Ted');
-
-      onAfterValidate.calls.reset();
-      keyDownUp('enter');
-
-      setTimeout(() => {
-        expect(onAfterValidate).toHaveBeenCalled();
-        expect(getData()[1][1]).toEqual('Ted');
-        expect(getSelected()).toEqual([[2, 1, 2, 1]]);
-        done();
-      }, 200);
-    });
-
-    it('should finish editing and advance to lower cell when enter is pressed (with async validator)', (done) => {
+    it('should finish editing and advance to lower cell when enter is pressed (with async validator)', async() => {
       const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
       handsontable({
@@ -294,20 +177,181 @@ describe('Core_onKeyDown', () => {
         },
         afterValidate: onAfterValidate
       });
-      selectCell(1, 1);
 
-      keyDownUp('enter');
+      await selectCell(1, 1);
+      await keyDownUp('x');
+
       keyProxy().val('Ted');
 
       onAfterValidate.calls.reset();
-      keyDownUp('enter');
 
-      setTimeout(() => {
-        expect(onAfterValidate).toHaveBeenCalled();
-        expect(getData()[1][1]).toEqual('Ted');
-        expect(getSelected()).toEqual([[2, 1, 2, 1]]);
-        done();
-      }, 200);
+      await keyDownUp('enter');
+      await sleep(50); // wait for async validator
+
+      expect(onAfterValidate).toHaveBeenCalled();
+      expect(getData()[1][1]).toEqual('Ted');
+      expect(getSelected()).toEqual([[2, 1, 2, 1]]);
+    });
+  });
+
+  describe('while editing (full edit mode)', () => {
+    it('should finish editing and advance to next cell when TAB is pressed', async() => {
+      // https://github.com/handsontable/handsontable/issues/215
+      handsontable();
+
+      await selectCell(1, 1);
+      await keyDownUp('enter');
+
+      keyProxy().val('Ted');
+
+      await keyDownUp('tab');
+
+      expect(getData()[1][1]).toEqual('Ted');
+      expect(getSelected()).toEqual([[1, 2, 1, 2]]);
+    });
+
+    it('should finish editing and advance to lower cell when enter is pressed', async() => {
+      // https://github.com/handsontable/handsontable/issues/215
+      handsontable();
+
+      await selectCell(1, 1);
+      await keyDownUp('enter');
+
+      keyProxy().val('Ted');
+
+      await keyDownUp('enter');
+
+      expect(getData()[1][1]).toEqual('Ted');
+      expect(getSelected()).toEqual([[2, 1, 2, 1]]);
+    });
+
+    it('should finish editing and advance to higher cell when shift+enter is pressed', async() => {
+      // https://github.com/handsontable/handsontable/issues/215
+      handsontable();
+
+      await selectCell(1, 1);
+      await keyDownUp('enter');
+
+      keyProxy().val('Ted');
+
+      await keyDownUp(['shift', 'enter']);
+
+      expect(getData()[1][1]).toEqual('Ted');
+      expect(getSelected()).toEqual([[0, 1, 0, 1]]);
+    });
+
+    it('shouldn\'t finish editing and advance to lower cell when down arrow is pressed', async() => {
+      handsontable();
+
+      await selectCell(1, 1);
+      await keyDownUp('enter');
+
+      keyProxy().val('Ted');
+
+      await keyDownUp('arrowdown');
+
+      expect(getData()[1][1]).toEqual(null);
+      expect(getSelected()).toEqual([[1, 1, 1, 1]]);
+    });
+
+    it('shouldn\'t finish editing and advance to higher cell when up arrow is pressed', async() => {
+      handsontable();
+
+      await selectCell(1, 1);
+      await keyDownUp('enter');
+
+      keyProxy().val('Ted');
+
+      await keyDownUp('arrowup');
+
+      expect(getData()[1][1]).toEqual(null);
+      expect(getSelected()).toEqual([[1, 1, 1, 1]]);
+    });
+
+    it('shouldn\'t finish editing and advance to right cell when right arrow is pressed', async() => {
+      handsontable();
+
+      await selectCell(1, 1);
+      await keyDownUp('enter');
+
+      keyProxy().val('Ted');
+
+      await keyDownUp('arrowright');
+      await keyDownUp('arrowright');
+      await keyDownUp('arrowright');
+      await keyDownUp('arrowright');
+
+      expect(getData()[1][1]).toEqual(null);
+      expect(getSelected()).toEqual([[1, 1, 1, 1]]);
+    });
+
+    it('shouldn\'t finish editing and advance to left cell when left arrow is pressed', async() => {
+      handsontable();
+
+      await selectCell(1, 1);
+      await keyDownUp('enter');
+
+      keyProxy().val('Ted');
+
+      await keyDownUp('arrowleft');
+      await keyDownUp('arrowleft');
+      await keyDownUp('arrowleft');
+      await keyDownUp('arrowleft');
+
+      expect(getData()[1][1]).toEqual(null);
+      expect(getSelected()).toEqual([[1, 1, 1, 1]]);
+    });
+
+    it('should finish editing and advance to lower cell when enter is pressed (with sync validator)', async() => {
+      const onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+      handsontable({
+        validator(val, cb) {
+          cb(true);
+        },
+        afterValidate: onAfterValidate
+      });
+
+      await selectCell(1, 1);
+      await keyDownUp('enter');
+
+      keyProxy().val('Ted');
+
+      onAfterValidate.calls.reset();
+
+      await keyDownUp('enter');
+      await sleep(50); // wait for async validator
+
+      expect(onAfterValidate).toHaveBeenCalled();
+      expect(getData()[1][1]).toEqual('Ted');
+      expect(getSelected()).toEqual([[2, 1, 2, 1]]);
+    });
+
+    it('should finish editing and advance to lower cell when enter is pressed (with async validator)', async() => {
+      const onAfterValidate = jasmine.createSpy('onAfterValidate');
+
+      handsontable({
+        validator(val, cb) {
+          setTimeout(() => {
+            cb(true);
+          }, 10);
+        },
+        afterValidate: onAfterValidate
+      });
+
+      await selectCell(1, 1);
+      await keyDownUp('enter');
+
+      keyProxy().val('Ted');
+
+      onAfterValidate.calls.reset();
+
+      await keyDownUp('enter');
+      await sleep(50); // wait for async validator
+
+      expect(onAfterValidate).toHaveBeenCalled();
+      expect(getData()[1][1]).toEqual('Ted');
+      expect(getSelected()).toEqual([[2, 1, 2, 1]]);
     });
   });
 });

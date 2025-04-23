@@ -19,31 +19,31 @@ describe('Core.setDataAtRowProp', () => {
     }
   });
 
-  it('should apply the content to the provided visual row and (physical) prop arguments', () => {
+  it('should apply the content to the provided visual row and (physical) prop arguments', async() => {
     handsontable({
       data: spec().datasetAoO,
     });
 
-    setDataAtRowProp(0, 'a', 'changed!');
+    await setDataAtRowProp(0, 'a', 'changed!');
 
     expect(getDataAtCell(0, 0)).toEqual('changed!');
 
-    updateSettings({
+    await updateSettings({
       manualRowMove: [1, 0, 2]
     });
 
-    setDataAtRowProp(0, 'a', 'changed again!');
+    await setDataAtRowProp(0, 'a', 'changed again!');
 
     expect(getDataAtCell(0, 0)).toEqual('changed again!');
   });
 
   it('should apply the content to the provided visual row and (physical) prop arguments by passing' +
-  'an array of changes to the method', () => {
+  'an array of changes to the method', async() => {
     handsontable({
       data: spec().datasetAoO,
     });
 
-    setDataAtRowProp([
+    await setDataAtRowProp([
       [0, 'a', 'changed!'],
       [0, 'b', 'changed too!']
     ]);
@@ -51,11 +51,11 @@ describe('Core.setDataAtRowProp', () => {
     expect(getDataAtCell(0, 0)).toEqual('changed!');
     expect(getDataAtCell(0, 1)).toEqual('changed too!');
 
-    updateSettings({
+    await updateSettings({
       manualRowMove: [1, 0, 2]
     });
 
-    setDataAtRowProp([
+    await setDataAtRowProp([
       [0, 'a', 'changed again!'],
       [0, 'b', 'changed again too!']
     ]);
@@ -64,7 +64,7 @@ describe('Core.setDataAtRowProp', () => {
     expect(getDataAtCell(0, 1)).toEqual('changed again too!');
   });
 
-  it('should allow setting content to the trimmed columns', () => {
+  it('should allow setting content to the trimmed columns', async() => {
     handsontable({
       data: spec().datasetAoO,
       columns: [
@@ -72,12 +72,12 @@ describe('Core.setDataAtRowProp', () => {
       ]
     });
 
-    setDataAtRowProp(0, 'b', 'changed!');
+    await setDataAtRowProp(0, 'b', 'changed!');
 
     expect(getSourceDataAtCell(0, 'b')).toEqual('changed!');
   });
 
-  it('should allow setting content to the trimmed columns by passing an array of changes to the method', () => {
+  it('should allow setting content to the trimmed columns by passing an array of changes to the method', async() => {
     handsontable({
       data: spec().datasetAoO,
       columns: [
@@ -85,7 +85,7 @@ describe('Core.setDataAtRowProp', () => {
       ]
     });
 
-    setDataAtRowProp([
+    await setDataAtRowProp([
       [0, 'a', 'changed!'],
       [0, 'b', 'changed too!']
     ]);
@@ -105,7 +105,7 @@ describe('Core.setDataAtRowProp', () => {
       allowInvalid: false,
     });
 
-    setDataAtRowProp([
+    await setDataAtRowProp([
       [0, 'a', 'changed!'],
       [0, 'b', 'changed too!'],
       [1, 'a', 777],

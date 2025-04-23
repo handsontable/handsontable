@@ -32,7 +32,7 @@ describe('Walkontable.Renderer.RowHeadersRenderer', () => {
     return { rowHeadersRenderer, rowsRenderer, cellsRenderer, tableMock, rootNode };
   }
 
-  it('should not generate any row headers', () => {
+  it('should not generate any row headers', async() => {
     const { rowHeadersRenderer, rowsRenderer, cellsRenderer, tableMock, rootNode } = createRenderer();
 
     tableMock.rowsToRender = 5;
@@ -58,7 +58,7 @@ describe('Walkontable.Renderer.RowHeadersRenderer', () => {
       `);
   });
 
-  it('should generate row headers before cells', () => {
+  it('should generate row headers before cells', async() => {
     const { rowHeadersRenderer, rowsRenderer, cellsRenderer, tableMock, rootNode } = createRenderer();
 
     const headerRenderer1 = jasmine.createSpy();
@@ -98,7 +98,7 @@ describe('Walkontable.Renderer.RowHeadersRenderer', () => {
     expect(headerRenderer2).not.toHaveBeenCalled();
   });
 
-  it('should generate row headers before cells after rendering the renderers from 0 to N cells', () => {
+  it('should generate row headers before cells after rendering the renderers from 0 to N cells', async() => {
     const { rowHeadersRenderer, rowsRenderer, cellsRenderer, tableMock, rootNode } = createRenderer();
 
     const cellRenderer = jasmine.createSpy();
@@ -154,7 +154,7 @@ describe('Walkontable.Renderer.RowHeadersRenderer', () => {
       `);
   });
 
-  it('should reuse row header elements after next render call', () => {
+  it('should reuse row header elements after next render call', async() => {
     const { rowHeadersRenderer, rowsRenderer, cellsRenderer, tableMock, rootNode } = createRenderer();
 
     const cellRenderer = jasmine.createSpy();
@@ -206,7 +206,7 @@ describe('Walkontable.Renderer.RowHeadersRenderer', () => {
     expect(rootNode.childNodes[1].childNodes[0]).toBe(TR2.childNodes[0]);
   });
 
-  it('should render multi-level row headers in the correct order', () => {
+  it('should render multi-level row headers in the correct order', async() => {
     const { rowHeadersRenderer, rowsRenderer, cellsRenderer, tableMock, rootNode } = createRenderer();
 
     const headerRenderer1 = (_, TH) => { TH.innerHTML = 'HeaderOne'; };

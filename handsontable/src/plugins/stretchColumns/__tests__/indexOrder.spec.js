@@ -10,7 +10,7 @@ describe('StretchColumns cooperation with reordered indexes', () => {
     }
   });
 
-  it('should follow the columns order when they are moved', () => {
+  it('should follow the columns order when they are moved', async() => {
     handsontable({
       data: createSpreadsheetData(5, 4),
       colHeaders: true,
@@ -24,7 +24,7 @@ describe('StretchColumns cooperation with reordered indexes', () => {
     });
 
     columnIndexMapper().setIndexesSequence([0, 2, 3, 1]);
-    render();
+    await render();
 
     expect(getColWidth(0)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(79);
@@ -44,7 +44,7 @@ describe('StretchColumns cooperation with reordered indexes', () => {
     expect(getColWidth(3)).toBe(33);
 
     columnIndexMapper().setIndexesSequence([1, 0, 2, 3]);
-    render();
+    await render();
 
     expect(getColWidth(0)).toBe(33);
     expect(getColWidth(1)).forThemes(({ classic, main, horizon }) => {

@@ -12,14 +12,14 @@ describe('ContextMenuReadOnly', () => {
     }
   });
 
-  it('should render noItems item only if contextmenu has no available options', () => {
+  it('should render noItems item only if contextmenu has no available options', async() => {
     handsontable({
       rowHeaders: true,
       colHeaders: true,
       contextMenu: [],
     });
 
-    contextMenu();
+    await contextMenu();
 
     const item = $('.htItemWrapper').filter(function() {
       return $(this).text() === 'No available options';
@@ -28,14 +28,14 @@ describe('ContextMenuReadOnly', () => {
     expect(item.length).toBe(1);
   });
 
-  it('should not render noItems item if contextmenu has available options', () => {
+  it('should not render noItems item if contextmenu has available options', async() => {
     handsontable({
       rowHeaders: true,
       colHeaders: true,
       contextMenu: true,
     });
 
-    contextMenu();
+    await contextMenu();
 
     const item = $('.htItemWrapper').filter(function() {
       return $(this).text() === 'No available options';
@@ -44,7 +44,7 @@ describe('ContextMenuReadOnly', () => {
     expect(item.length).toBe(0);
   });
 
-  it('should be possible to overwrite noItems\' name', () => {
+  it('should be possible to overwrite noItems\' name', async() => {
     handsontable({
       rowHeaders: true,
       colHeaders: true,
@@ -57,7 +57,7 @@ describe('ContextMenuReadOnly', () => {
       },
     });
 
-    contextMenu();
+    await contextMenu();
 
     const item = $('.htDisabled .htItemWrapper').filter(function() {
       return $(this).text() === 'No options';
@@ -66,7 +66,7 @@ describe('ContextMenuReadOnly', () => {
     expect(item.length).toBe(1);
   });
 
-  it('should be possible to no render context menu completely', () => {
+  it('should be possible to no render context menu completely', async() => {
     handsontable({
       rowHeaders: true,
       colHeaders: true,
@@ -79,7 +79,7 @@ describe('ContextMenuReadOnly', () => {
       },
     });
 
-    contextMenu();
+    await contextMenu();
     const items = $('.htItemWrapper');
 
     expect(getPlugin('contextMenu').menu.isOpened()).toBe(false);

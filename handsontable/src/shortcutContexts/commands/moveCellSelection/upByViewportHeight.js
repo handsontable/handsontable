@@ -1,6 +1,7 @@
 export const command = {
   name: 'moveCellSelectionUpByViewportHight',
   callback(hot) {
+    const { selection } = hot;
     const { navigableHeaders } = hot.getSettings();
     const columnHeadersCount = (navigableHeaders ? hot.countColHeaders() : 0);
     const { row } = hot.getSelectedRangeLast().highlight;
@@ -18,7 +19,9 @@ export const command = {
       rowsStep = -(row + columnHeadersCount);
     }
 
-    hot.selection.transformStart(rowsStep, 0);
+    selection.markSource('keyboard');
+    selection.transformStart(rowsStep, 0);
+    selection.markEndSource();
 
     if (hot.getSelectedRangeLast().highlight.row < 0) {
       hot.scrollViewportTo({ row: 0 });

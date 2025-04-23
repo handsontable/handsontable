@@ -22,7 +22,7 @@ describe('WalkontableTable', () => {
   });
 
   describe('getColumnHeaders()', () => {
-    it('should return valid column headers', () => {
+    it('should return valid column headers', async() => {
       const wt = walkontable({
         data: getData,
         totalRows: getTotalRows,
@@ -55,7 +55,7 @@ describe('WalkontableTable', () => {
       expect(wt.wtTable.getColumnHeaders(2)).toEqual([]);
     });
 
-    it('should return valid column headers when the viewport is scrolled', () => {
+    it('should return valid column headers when the viewport is scrolled', async() => {
       const wt = walkontable({
         data: getData,
         totalRows: getTotalRows,

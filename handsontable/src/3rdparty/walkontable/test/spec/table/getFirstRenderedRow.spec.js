@@ -30,7 +30,7 @@ describe('WalkontableTable', () => {
   });
 
   describe('getFirstRenderedRow()', () => {
-    it('should return -1 error code if there are no rendered rows and columns', () => {
+    it('should return -1 error code if there are no rendered rows and columns', async() => {
       createDataArray(0, 0);
       spec().$wrapper.width(250).height(170);
 
@@ -69,7 +69,7 @@ describe('WalkontableTable', () => {
       expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'top').toBe(-1);
     });
 
-    it('should return -1 error code if there are rendered rows and columns after fixed overlays are disabled', () => {
+    it('should return -1 error code if there are rendered rows and columns after fixed overlays are disabled', async() => {
       createDataArray(4, 4);
       spec().$wrapper.width(250).height(170);
 
@@ -107,7 +107,7 @@ describe('WalkontableTable', () => {
       expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'top').toBe(-1);
     });
 
-    it('should return source index that is relevant to a given overlay', () => {
+    it('should return source index that is relevant to a given overlay', async() => {
       createDataArray(18, 18);
       spec().$wrapper.width(250).height(170);
 
@@ -130,7 +130,7 @@ describe('WalkontableTable', () => {
       expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'top').toBe(0);
     });
 
-    it('should return source index even for partially visible row (the first row is fully visible)', () => {
+    it('should return source index even for partially visible row (the first row is fully visible)', async() => {
       createDataArray(18, 18);
       spec().$wrapper.width(185).height(175);
 
@@ -145,7 +145,7 @@ describe('WalkontableTable', () => {
       expect(wt.wtTable.getFirstRenderedRow()).toBe(0);
     });
 
-    it('should return source index even for partially visible row (the first row is partially visible)', () => {
+    it('should return source index even for partially visible row (the first row is partially visible)', async() => {
       createDataArray(18, 18);
       spec().$wrapper.width(185).height(185);
 
@@ -162,7 +162,7 @@ describe('WalkontableTable', () => {
       expect(wt.wtTable.getFirstRenderedRow()).toBe(3);
     });
 
-    it('should return 0 as the first rendered row, when there\'s more fixed bottom rows than rows in total', () => {
+    it('should return 0 as the first rendered row, when there\'s more fixed bottom rows than rows in total', async() => {
       createDataArray(18, 18);
       spec().$wrapper.width(250).height(170);
 
