@@ -2,9 +2,7 @@
 import { Component, ViewChild } from '@angular/core';
 import {
   GridSettings,
-  HotTableComponent,
-  HotTableModule,
-  NON_COMMERCIAL_LICENSE,
+  HotTableComponent
 } from '@handsontable/angular-wrapper';
 
 @Component({
