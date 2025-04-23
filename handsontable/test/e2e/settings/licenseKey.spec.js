@@ -9,7 +9,6 @@ describe('settings', () => {
 
     afterEach(function() {
       if (this.$container) {
-        destroy();
         $('body').find(`#${id}`).remove();
       }
     });
@@ -26,6 +25,8 @@ describe('settings', () => {
         'by passing the key: \'non-commercial-and-evaluation\'. ',
         'Read more about it in the documentation or contact us at support@handsontable.com.',
       ].join(''));
+
+      destroy();
     });
 
     it('should destroy all DOM elements related to the invalidation information for specific HoT instance only', async() => {
@@ -37,6 +38,7 @@ describe('settings', () => {
       expect(document.querySelectorAll('.hot-display-license-info').length).toBe(2);
 
       hot1.destroy();
+      $('body').find(`#${id}`).remove();
 
       expect(document.querySelectorAll('.hot-display-license-info').length).toBe(1);
 
