@@ -48,7 +48,7 @@ class Csv extends BaseType {
     if (hasColumnHeaders) {
       columnHeaders = arrayMap(
         columnHeaders,
-        value => this.#escapeCell(value, { force: true, sanitizeValue: options.sanitizeValues })
+        value => this._escapeCell(value, { force: true, sanitizeValue: options.sanitizeValues })
       );
 
       if (hasRowHeaders) {
@@ -64,12 +64,12 @@ class Csv extends BaseType {
       }
 
       if (hasRowHeaders) {
-        result += this.#escapeCell(rowHeaders[index], { sanitizeValue: options.sanitizeValues });
+        result += this._escapeCell(rowHeaders[index], { sanitizeValue: options.sanitizeValues });
         result += options.columnDelimiter;
       }
 
       const escapedValue = value
-        .map(cellValue => this.#escapeCell(cellValue, { sanitizeValue: options.sanitizeValues }))
+        .map(cellValue => this._escapeCell(cellValue, { sanitizeValue: options.sanitizeValues }))
         .join(options.columnDelimiter);
 
       result += escapedValue;
@@ -87,7 +87,7 @@ class Csv extends BaseType {
    * @param {boolean|RegExp|Function} [options.sanitizeValue=false] Controls the sanitization of cell value.
    * @returns {string}
    */
-  #escapeCell(value, { force = false, sanitizeValue = false } = {}) {
+  _escapeCell(value, { force = false, sanitizeValue = false } = {}) {
     let returnValue = stringify(value);
 
     if (returnValue === '') {

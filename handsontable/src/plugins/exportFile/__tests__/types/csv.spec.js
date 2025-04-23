@@ -377,43 +377,43 @@ describe('exportFile CSV type', () => {
       handsontable();
       const csv = getPlugin('exportFile')._createTypeFormatter('csv');
 
-      expect(csv['#escapeCell']('')).toBe('');
-      expect(csv['#escapeCell']('12345')).toBe('12345');
-      expect(csv['#escapeCell'](null)).toBe('');
-      expect(csv['#escapeCell'](undefined)).toBe('');
-      expect(csv['#escapeCell']({})).toBe('[object Object]');
+      expect(csv._escapeCell('')).toBe('');
+      expect(csv._escapeCell('12345')).toBe('12345');
+      expect(csv._escapeCell(null)).toBe('');
+      expect(csv._escapeCell(undefined)).toBe('');
+      expect(csv._escapeCell({})).toBe('[object Object]');
     });
 
     it('should escape value if it includes Carriage Return (CR)', async() => {
       handsontable();
       const csv = getPlugin('exportFile')._createTypeFormatter('csv');
 
-      expect(csv['#escapeCell']('1234\r22')).toBe('"1234\r22"');
+      expect(csv._escapeCell('1234\r22')).toBe('"1234\r22"');
     });
 
     it('should escape value if it includes Double Quote (")', async() => {
       handsontable();
       const csv = getPlugin('exportFile')._createTypeFormatter('csv');
 
-      expect(csv['#escapeCell']('123"42')).toBe('"123""42"');
+      expect(csv._escapeCell('123"42')).toBe('"123""42"');
     });
 
     it('should escape value if it includes Line Feed (LF)', async() => {
       handsontable();
       const csv = getPlugin('exportFile')._createTypeFormatter('csv');
 
-      expect(csv['#escapeCell']('123\n4')).toBe('"123\n4"');
+      expect(csv._escapeCell('123\n4')).toBe('"123\n4"');
     });
 
     it('should escape value if it includes char defined in `columnDelimiter` option', async() => {
       handsontable();
       let csv = getPlugin('exportFile')._createTypeFormatter('csv', { columnDelimiter: ',' });
 
-      expect(csv['#escapeCell']('12,4')).toBe('"12,4"');
+      expect(csv._escapeCell('12,4')).toBe('"12,4"');
 
       csv = getPlugin('exportFile')._createTypeFormatter('csv', { columnDelimiter: ';' });
 
-      expect(csv['#escapeCell']('12;4')).toBe('"12;4"');
+      expect(csv._escapeCell('12;4')).toBe('"12;4"');
     });
 
     describe('when `sanitizeValues` option is', () => {
@@ -534,7 +534,7 @@ describe('exportFile CSV type', () => {
         expect(csv).toBe('\ufeff"42","=A1+B1","abba","BAR"');
       });
 
-      it('not provided, should not sanitize values', async() => {
+      it('not provided, should not sanitize values', () => {
         handsontable({
           data: [['=A1+B1', '=A2+B2']],
         });
