@@ -45,7 +45,7 @@ describe('Core_destroy', () => {
     expect(getSelected()).toBeUndefined();
   });
 
-  it('should throw an exception when metod on destroyed instance is called', async() => {
+  it('should throw an exception when method on destroyed instance is called', async() => {
     const hot = handsontable();
 
     destroy();
