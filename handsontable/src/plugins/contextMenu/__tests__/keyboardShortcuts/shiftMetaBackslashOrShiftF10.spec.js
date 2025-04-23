@@ -14,7 +14,7 @@ describe('ContextMenu keyboard shortcut', () => {
     ['Shift', 'Control/Meta', 'Backslash'],
     ['Shift', 'F10'],
   ], (keyboardShortcut) => {
-    it('should not throw an error when triggered on selection that points on the hidden records', () => {
+    it('should not throw an error when triggered on selection that points on the hidden records', async() => {
       const spy = jasmine.createSpyObj('error', ['test']);
       const prevError = window.onerror;
 
@@ -33,47 +33,47 @@ describe('ContextMenu keyboard shortcut', () => {
       hidingMap.setValueAtIndex(1, true);
       hidingMap.setValueAtIndex(2, true);
 
-      render();
-      selectCell(1, 1);
+      await render();
+      await selectCell(1, 1);
 
-      keyDownUp(keyboardShortcut);
+      await keyDownUp(keyboardShortcut);
 
       expect(spy.test.calls.count()).toBe(0);
 
       window.onerror = prevError;
     });
 
-    it('should open a menu after `updateSettings` call', () => {
+    it('should open a menu after `updateSettings` call', async() => {
       handsontable({
         contextMenu: true,
       });
 
-      selectCell(1, 1);
+      await selectCell(1, 1);
 
-      updateSettings({
+      await updateSettings({
         contextMenu: true,
       });
 
       const plugin = getPlugin('contextMenu');
 
       spyOn(plugin, 'open').and.callThrough();
-      keyDownUp(keyboardShortcut);
+      await keyDownUp(keyboardShortcut);
 
       expect(plugin.open).toHaveBeenCalledTimes(1);
     });
 
-    it('should internally call `open()` method with correct cell coordinates', () => {
+    it('should internally call `open()` method with correct cell coordinates', async() => {
       handsontable({
         contextMenu: true,
       });
 
-      selectCell(1, 1);
+      await selectCell(1, 1);
 
       const plugin = getPlugin('contextMenu');
       const cellRect = getCell(1, 1).getBoundingClientRect();
 
       spyOn(plugin, 'open').and.callThrough();
-      keyDownUp(keyboardShortcut);
+      await keyDownUp(keyboardShortcut);
 
       expect(plugin.open).toHaveBeenCalledTimes(1);
       expect(plugin.open).toHaveBeenCalledWith({
@@ -85,7 +85,7 @@ describe('ContextMenu keyboard shortcut', () => {
       });
     });
 
-    it('should internally call `open()` method with correct row header coordinates', () => {
+    it('should internally call `open()` method with correct row header coordinates', async() => {
       handsontable({
         contextMenu: true,
         rowHeaders: true,
@@ -93,13 +93,13 @@ describe('ContextMenu keyboard shortcut', () => {
         navigableHeaders: true,
       });
 
-      selectCell(1, -1);
+      await selectCell(1, -1);
 
       const plugin = getPlugin('contextMenu');
       const cellRect = getCell(1, -1).getBoundingClientRect();
 
       spyOn(plugin, 'open').and.callThrough();
-      keyDownUp(keyboardShortcut);
+      await keyDownUp(keyboardShortcut);
 
       expect(plugin.open).toHaveBeenCalledTimes(1);
       expect(plugin.open).toHaveBeenCalledWith({
@@ -111,7 +111,7 @@ describe('ContextMenu keyboard shortcut', () => {
       });
     });
 
-    it('should internally call `open()` method with correct column header coordinates', () => {
+    it('should internally call `open()` method with correct column header coordinates', async() => {
       handsontable({
         contextMenu: true,
         rowHeaders: true,
@@ -119,13 +119,13 @@ describe('ContextMenu keyboard shortcut', () => {
         navigableHeaders: true,
       });
 
-      selectCell(-1, 1);
+      await selectCell(-1, 1);
 
       const plugin = getPlugin('contextMenu');
       const cellRect = getCell(-1, 1).getBoundingClientRect();
 
       spyOn(plugin, 'open').and.callThrough();
-      keyDownUp(keyboardShortcut);
+      await keyDownUp(keyboardShortcut);
 
       expect(plugin.open).toHaveBeenCalledTimes(1);
       expect(plugin.open).toHaveBeenCalledWith({
@@ -137,7 +137,7 @@ describe('ContextMenu keyboard shortcut', () => {
       });
     });
 
-    it('should internally call `open()` method with correct corner coordinates', () => {
+    it('should internally call `open()` method with correct corner coordinates', async() => {
       handsontable({
         contextMenu: true,
         rowHeaders: true,
@@ -145,13 +145,13 @@ describe('ContextMenu keyboard shortcut', () => {
         navigableHeaders: true,
       });
 
-      selectCell(-1, -1);
+      await selectCell(-1, -1);
 
       const plugin = getPlugin('contextMenu');
       const cellRect = getCell(-1, -1).getBoundingClientRect();
 
       spyOn(plugin, 'open').and.callThrough();
-      keyDownUp(keyboardShortcut);
+      await keyDownUp(keyboardShortcut);
 
       expect(plugin.open).toHaveBeenCalledTimes(1);
       expect(plugin.open).toHaveBeenCalledWith({
@@ -163,13 +163,13 @@ describe('ContextMenu keyboard shortcut', () => {
       });
     });
 
-    it('should open the menu and select the first item by default', () => {
+    it('should open the menu and select the first item by default', async() => {
       handsontable({
         contextMenu: true,
       });
 
-      selectCell(1, 1);
-      keyDownUp(keyboardShortcut);
+      await selectCell(1, 1);
+      await keyDownUp(keyboardShortcut);
 
       const firstItem = getPlugin('contextMenu').menu.hotMenu.getCell(0, 0);
 
@@ -177,29 +177,26 @@ describe('ContextMenu keyboard shortcut', () => {
     });
 
     it('should scroll the viewport when the focused cell is outside the table and call the `open` method', async() => {
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(500, 50),
         width: 300,
         height: 300,
         contextMenu: true,
       });
 
-      selectCell(400, 40);
-      scrollViewportTo({
+      await selectCell(400, 40);
+      await scrollViewportTo({
         row: 0,
         col: 0,
         verticalSnap: 'top',
         horizontalSnap: 'start',
       });
 
-      await sleep(10);
-
       const plugin = getPlugin('contextMenu');
 
       spyOn(plugin, 'open').and.callThrough();
-      keyDownUp(keyboardShortcut);
 
-      await sleep(10);
+      await keyDownUp(keyboardShortcut);
 
       const cellRect = getCell(400, 40).getBoundingClientRect();
 
@@ -211,28 +208,30 @@ describe('ContextMenu keyboard shortcut', () => {
         left: cellRect.width,
         above: -cellRect.height,
       });
-      expect(hot.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(1766);
-        main.toBe(1961);
-        horizon.toBe(2284);
-      });
-      expect(hot.view._wt.wtOverlays.topOverlay.getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(8939);
-        main.toBe(11345);
-        horizon.toBe(14553);
-      });
+      expect(inlineStartOverlay().getScrollPosition())
+        .forThemes(({ classic, main, horizon }) => {
+          classic.toBe(1766);
+          main.toBe(1961);
+          horizon.toBe(2284);
+        });
+      expect(topOverlay().getScrollPosition())
+        .forThemes(({ classic, main, horizon }) => {
+          classic.toBe(8939);
+          main.toBe(11345);
+          horizon.toBe(14553);
+        });
     });
 
-    it('should not close the menu after hitting the same shortcut many times', () => {
+    it('should not close the menu after hitting the same shortcut many times', async() => {
       handsontable({
         contextMenu: true,
       });
 
-      selectCell(1, 1);
+      await selectCell(1, 1);
 
-      keyDownUp(keyboardShortcut);
-      keyDownUp(keyboardShortcut);
-      keyDownUp(keyboardShortcut);
+      await keyDownUp(keyboardShortcut);
+      await keyDownUp(keyboardShortcut);
+      await keyDownUp(keyboardShortcut);
 
       const $contextMenu = $(document.body).find('.htContextMenu:visible');
 

@@ -11,14 +11,14 @@ describe('Selection', () => {
   });
 
   describe('`setRangeFocus` method', () => {
-    it('should do nothing when there is no selection range defined', () => {
-      const hot = handsontable({
+    it('should do nothing when there is no selection range defined', async() => {
+      handsontable({
         data: createSpreadsheetData(6, 4),
         colHeaders: false,
         rowHeaders: false,
       });
 
-      hot.selection.setRangeFocus(cellCoords(1, 1));
+      selection().setRangeFocus(cellCoords(1, 1));
 
       expect(`
         |   :   :   :   |
@@ -31,15 +31,15 @@ describe('Selection', () => {
       expect(getSelectedRange()).toBeUndefined();
     });
 
-    it('should move the focus highlight position to specific coords', () => {
-      const hot = handsontable({
+    it('should move the focus highlight position to specific coords', async() => {
+      handsontable({
         data: createSpreadsheetData(6, 4),
         colHeaders: false,
         rowHeaders: false,
       });
 
-      selectCells([[1, 1, 3, 3]]);
-      hot.selection.setRangeFocus(cellCoords(2, 2));
+      await selectCells([[1, 1, 3, 3]]);
+      selection().setRangeFocus(cellCoords(2, 2));
 
       expect(`
         |   :   :   :   |
@@ -52,15 +52,15 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: 1,1 to: 3,3']);
     });
 
-    it('should move the focus highlight position to specific coords outside of the selected range', () => {
-      const hot = handsontable({
+    it('should move the focus highlight position to specific coords outside of the selected range', async() => {
+      handsontable({
         data: createSpreadsheetData(6, 4),
         colHeaders: false,
         rowHeaders: false,
       });
 
-      selectCells([[1, 1, 3, 3]]);
-      hot.selection.setRangeFocus(cellCoords(4, 2));
+      await selectCells([[1, 1, 3, 3]]);
+      selection().setRangeFocus(cellCoords(4, 2));
 
       expect(`
         |   :   :   :   |
@@ -73,50 +73,53 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 4,2 from: 1,1 to: 3,3']);
     });
 
-    it('should trigger the "beforeSetFocus" local hook', () => {
+    it('should trigger the "beforeSetFocus" local hook', async() => {
       const beforeSetFocus = jasmine.createSpy('beforeSetFocus');
-      const hot = handsontable({
+
+      handsontable({
         data: createSpreadsheetData(6, 4),
         colHeaders: false,
         rowHeaders: false,
       });
 
-      hot.selection.addLocalHook('beforeSetFocus', beforeSetFocus);
+      selection().addLocalHook('beforeSetFocus', beforeSetFocus);
 
-      selectCells([[1, 1, 3, 3]]);
-      hot.selection.setRangeFocus(cellCoords(2, 2));
+      await selectCells([[1, 1, 3, 3]]);
+      selection().setRangeFocus(cellCoords(2, 2));
 
       expect(beforeSetFocus).toHaveBeenCalledOnceWith(cellCoords(2, 2));
     });
 
-    it('should trigger the "afterSetFocus" local hook', () => {
+    it('should trigger the "afterSetFocus" local hook', async() => {
       const afterSetFocus = jasmine.createSpy('afterSetFocus');
-      const hot = handsontable({
+
+      handsontable({
         data: createSpreadsheetData(6, 4),
         colHeaders: false,
         rowHeaders: false,
       });
 
-      hot.selection.addLocalHook('afterSetFocus', afterSetFocus);
+      selection().addLocalHook('afterSetFocus', afterSetFocus);
 
-      selectCells([[1, 1, 3, 3]]);
-      hot.selection.setRangeFocus(cellCoords(2, 2));
+      await selectCells([[1, 1, 3, 3]]);
+      selection().setRangeFocus(cellCoords(2, 2));
 
       expect(afterSetFocus).toHaveBeenCalledOnceWith(cellCoords(2, 2));
     });
 
-    it('should trigger the "beforeHighlightSet" local hook', () => {
+    it('should trigger the "beforeHighlightSet" local hook', async() => {
       const beforeHighlightSet = jasmine.createSpy('beforeHighlightSet');
-      const hot = handsontable({
+
+      handsontable({
         data: createSpreadsheetData(6, 4),
         colHeaders: false,
         rowHeaders: false,
       });
 
-      selectCells([[1, 1, 3, 3]]);
+      await selectCells([[1, 1, 3, 3]]);
 
-      hot.selection.addLocalHook('beforeHighlightSet', beforeHighlightSet);
-      hot.selection.setRangeFocus(cellCoords(2, 2));
+      selection().addLocalHook('beforeHighlightSet', beforeHighlightSet);
+      selection().setRangeFocus(cellCoords(2, 2));
 
       expect(beforeHighlightSet).toHaveBeenCalledTimes(1);
     });

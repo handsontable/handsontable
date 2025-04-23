@@ -29,7 +29,7 @@ describe('TrimRows', () => {
   describe('fixedRowsBottom', () => {
     it('should render bottom overlay with the same amount of rows than a master overlay', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 2),
+        data: createSpreadsheetData(5, 2),
         rowHeaders: true,
         fixedRowsBottom: 2,
         trimRows: [0, 1, 2],
@@ -63,7 +63,7 @@ describe('TrimRows', () => {
 
     it('should shrink bottom overlay to a master overlay when defined overlay size is higher than total amount of rows', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 2),
+        data: createSpreadsheetData(5, 2),
         rowHeaders: true,
         fixedRowsBottom: 2,
         trimRows: [0, 1, 2, 3],
@@ -89,7 +89,7 @@ describe('TrimRows', () => {
 
     it('should shrink bottom overlay to a master overlay when all rows are trimmed', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 2),
+        data: createSpreadsheetData(5, 2),
         rowHeaders: true,
         fixedRowsBottom: 2,
         trimRows: [0, 1, 2, 3, 4],

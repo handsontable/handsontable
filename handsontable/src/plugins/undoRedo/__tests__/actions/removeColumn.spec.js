@@ -22,7 +22,7 @@ describe('UndoRedo -> RemoveColumn action', () => {
       afterUndo,
     });
 
-    alter('remove_col', 1, 2);
+    await alter('remove_col', 1, 2);
     getPlugin('undoRedo').undo();
 
     expect(afterUndo).toHaveBeenCalledWith({
@@ -45,15 +45,15 @@ describe('UndoRedo -> RemoveColumn action', () => {
     });
   });
 
-  it('should undo and redo the remove action after column moving (#dev-2071)', () => {
+  it('should undo and redo the remove action after column moving (#dev-2071)', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       manualColumnMove: true,
     });
 
     getPlugin('manualColumnMove').moveColumn(4, 0);
-    render();
-    alter('remove_col', 1, 1);
+    await render();
+    await alter('remove_col', 1, 1);
     getPlugin('undoRedo').undo();
 
     expect(getDataAtRow(0)).toEqual(['E1', 'A1', 'B1', 'C1', 'D1']);

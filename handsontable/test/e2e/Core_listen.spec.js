@@ -12,22 +12,22 @@ describe('Core_listen', () => {
     }
   });
 
-  it('should not listen by default after initialization', () => {
-    const hot = handsontable();
+  it('should not listen by default after initialization', async() => {
+    handsontable();
 
-    expect(hot.isListening()).toBe(false);
+    expect(isListening()).toBe(false);
   });
 
-  it('should listen to changes when cell is selected', () => {
-    const hot = handsontable();
+  it('should listen to changes when cell is selected', async() => {
+    handsontable();
 
-    hot.selectCell(0, 0);
+    await selectCell(0, 0);
 
-    expect(hot.isListening()).toBe(true);
+    expect(isListening()).toBe(true);
   });
 
-  it('should listen to changes when the dataset is empty and the corner is clicked', () => {
-    const hot = handsontable({
+  it('should listen to changes when the dataset is empty and the corner is clicked', async() => {
+    handsontable({
       data: [],
       rowHeaders: true,
       colHeaders: true,
@@ -39,61 +39,61 @@ describe('Core_listen', () => {
       .simulate('click')
     ;
 
-    expect(hot.isListening()).toBe(true);
+    expect(isListening()).toBe(true);
   });
 
-  it('should\'t listen to changes when cell is selected via `selectCell` when `changeListener` argument is `false`', () => {
-    const hot = handsontable();
+  it('should\'t listen to changes when cell is selected via `selectCell` when `changeListener` argument is `false`', async() => {
+    handsontable();
 
-    hot.unlisten();
+    await unlisten();
 
-    expect(hot.isListening()).toBe(false);
+    expect(isListening()).toBe(false);
 
-    hot.selectCell(0, 0, undefined, undefined, true, false);
+    await selectCell(0, 0, undefined, undefined, true, false);
 
-    expect(hot.isListening()).toBe(false);
+    expect(isListening()).toBe(false);
   });
 
-  it('should unlisten changes', () => {
-    const hot = handsontable();
+  it('should unlisten changes', async() => {
+    handsontable();
 
-    hot.selectCell(0, 0);
+    await selectCell(0, 0);
 
-    expect(hot.isListening()).toBe(true);
+    expect(isListening()).toBe(true);
 
-    hot.unlisten();
+    await unlisten();
 
-    expect(hot.isListening()).toBe(false);
+    expect(isListening()).toBe(false);
   });
 
-  it('should listen to changes, when called after unlisten', () => {
-    const hot = handsontable();
+  it('should listen to changes, when called after unlisten', async() => {
+    handsontable();
 
-    hot.selectCell(0, 0);
-    hot.unlisten();
-    hot.listen();
+    await selectCell(0, 0);
+    await unlisten();
+    await listen();
 
-    expect(hot.isListening()).toBe(true);
+    expect(isListening()).toBe(true);
   });
 
   // We have no idea why listen should change focus (behavior up to Handsontable 8.0).
-  it('should not change focus on active element, when listen was called', () => {
-    const hot = handsontable();
+  it('should not change focus on active element, when listen was called', async() => {
+    handsontable();
     const input = document.createElement('input');
 
     document.body.appendChild(input);
 
-    hot.selectCell(0, 0);
+    await selectCell(0, 0);
     input.focus();
-    hot.listen();
+    await listen();
 
-    expect(hot.isListening()).toBe(true);
+    expect(isListening()).toBe(true);
     expect(document.activeElement).toBe(input);
 
     document.body.removeChild(input);
   });
 
-  it('when second instance is created, first should unlisten automatically', () => {
+  it('when second instance is created, first should unlisten automatically', async() => {
     const $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable();
 
     $container1.handsontable('selectCell', 0, 0);
@@ -110,7 +110,7 @@ describe('Core_listen', () => {
     $container2.remove();
   });
 
-  it('when listen is called on first instance, second should unlisten automatically', () => {
+  it('when listen is called on first instance, second should unlisten automatically', async() => {
     const $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable();
 
     $container1.handsontable('selectCell', 0, 0);
@@ -162,7 +162,7 @@ describe('Core_listen', () => {
   });
 
   describe('hooks', () => {
-    it('should call `afterListen` after set listen on instance', () => {
+    it('should call `afterListen` after set listen on instance', async() => {
       const afterListenCallback = jasmine.createSpy('afterListenCallback');
 
       handsontable({
@@ -176,7 +176,7 @@ describe('Core_listen', () => {
       expect(afterListenCallback.calls.count()).toBe(1);
     });
 
-    it('should call `afterUnlisten` after unset listen on instance', () => {
+    it('should call `afterUnlisten` after unset listen on instance', async() => {
       const afterUnlistenCallback = jasmine.createSpy('afterListenCallback');
 
       handsontable({

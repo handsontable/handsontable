@@ -58,7 +58,8 @@ describe('cellTypes', () => {
     });
 
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
-    const hot = handsontable({
+
+    handsontable({
       data: [
         [1, 6, 10],
       ],
@@ -68,15 +69,15 @@ describe('cellTypes', () => {
       afterValidate: onAfterValidate
     });
 
-    hot.setDataAtCell(1, 0, 10);
-
+    await setDataAtCell(1, 0, 10);
     await sleep(100);
 
     expect(onAfterValidate).toHaveBeenCalledWith(true, 10, 1, 0);
     expect(getCell(1, 0).innerHTML).toBe('--10--');
 
-    selectCell(0, 0);
-    keyDownUp('enter');
+    await selectCell(0, 0);
+    await keyDownUp('enter');
+
     document.activeElement.value = 'hello';
     destroyEditor();
 
@@ -86,7 +87,7 @@ describe('cellTypes', () => {
     expect(getCell(0, 0).innerHTML).toBe('--**hello**--');
   });
 
-  it('should retrieve predefined cell types by its names', () => {
+  it('should retrieve predefined cell types by its names', async() => {
     const { editors, renderers, validators } = Handsontable;
 
     expect(getCellType('autocomplete').editor).toBe(editors.AutocompleteEditor);
@@ -132,7 +133,7 @@ describe('cellTypes', () => {
     expect(getCellType('time').validator).toBe(validators.TimeValidator);
   });
 
-  it('should register custom cell type into renderers, editors and validators', () => {
+  it('should register custom cell type into renderers, editors and validators', async() => {
     class MyEditor {}
     function myRenderer() {}
     function myValidator() {}
@@ -148,7 +149,7 @@ describe('cellTypes', () => {
     expect(getValidator('myCellType')).toBe(myValidator);
   });
 
-  it('should overwrite cell types under the same name', () => {
+  it('should overwrite cell types under the same name', async() => {
     class MyEditor {}
     function myRenderer() {}
     function myValidator() {}
@@ -176,7 +177,7 @@ describe('cellTypes', () => {
     expect(getValidator('myCellType')).toBe(myValidator2);
   });
 
-  it('should retrieve custom cell type by its names', () => {
+  it('should retrieve custom cell type by its names', async() => {
     class MyEditor {}
     function myRenderer() {}
     function myValidator() {}

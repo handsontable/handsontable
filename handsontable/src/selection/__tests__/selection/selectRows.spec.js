@@ -24,7 +24,7 @@ describe('Selection', () => {
   }
 
   describe('`selectRows` method', () => {
-    it('should highlight single row (default selectionMode, without headers)', () => {
+    it('should highlight single row (default selectionMode, without headers)', async() => {
       handsontable({
         data: createSpreadsheetObjectData(4, 6),
         colHeaders: false,
@@ -41,7 +41,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,0 from: 2,0 to: 2,5']);
     });
 
-    it('should highlight single row (default selectionMode, without headers, navigableHeaders on)', () => {
+    it('should highlight single row (default selectionMode, without headers, navigableHeaders on)', async() => {
       handsontable({
         data: createSpreadsheetObjectData(4, 6),
         colHeaders: false,
@@ -59,7 +59,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,0 from: 2,0 to: 2,5']);
     });
 
-    it('should highlight single row (default selectionMode)', () => {
+    it('should highlight single row (default selectionMode)', async() => {
       handsontable({
         data: createSpreadsheetObjectData(4, 6),
         colHeaders: true,
@@ -78,7 +78,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,0 from: 2,-1 to: 2,5']);
     });
 
-    it('should highlight single row (default selectionMode, navigableHeaders on)', () => {
+    it('should highlight single row (default selectionMode, navigableHeaders on)', async() => {
       handsontable({
         data: createSpreadsheetObjectData(4, 6),
         colHeaders: true,
@@ -98,7 +98,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,0 from: 2,-1 to: 2,5']);
     });
 
-    it('should highlight single row (default selectionMode, multiple headers)', () => {
+    it('should highlight single row (default selectionMode, multiple headers)', async() => {
       handsontable({
         data: createSpreadsheetObjectData(4, 6),
         colHeaders: true,
@@ -127,7 +127,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,0 from: 2,-1 to: 2,5']);
     });
 
-    it('should highlight single column (default selectionMode, multiple headers, navigableHeaders on)', () => {
+    it('should highlight single column (default selectionMode, multiple headers, navigableHeaders on)', async() => {
       handsontable({
         data: createSpreadsheetObjectData(4, 6),
         colHeaders: true,
@@ -157,7 +157,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,0 from: 2,-1 to: 2,5']);
     });
 
-    it('should highlight non-contiguous selection when CTRL key is pressed', () => {
+    it('should highlight non-contiguous selection when CTRL key is pressed', async() => {
       handsontable({
         data: createSpreadsheetObjectData(4, 6),
         colHeaders: true,
@@ -166,11 +166,11 @@ describe('Selection', () => {
 
       // After changes introduced in Handsontable 12.0.0 we handle shortcuts only by listening Handsontable.
       // Please keep in mind that selectRows/selectRows doesn't set instance to listening (see #7290).
-      listen();
+      await listen();
       hot().selection.selectRows(2);
-      keyDown('control/meta');
+      await keyDown('control/meta');
       hot().selection.selectRows(0);
-      keyUp('control/meta');
+      await keyUp('control/meta');
 
       expect(`
         |   ║ - : - : - : - : - : - |
@@ -186,7 +186,7 @@ describe('Selection', () => {
       ]);
     });
 
-    it('should highlight non-contiguous selection when CTRL key is pressed (multiple headers, navigableHeaders on)', () => {
+    it('should highlight non-contiguous selection when CTRL key is pressed (multiple headers, navigableHeaders on)', async() => {
       handsontable({
         data: createSpreadsheetObjectData(4, 6),
         colHeaders: true,
@@ -204,11 +204,11 @@ describe('Selection', () => {
 
       // After changes introduced in Handsontable 12.0.0 we handle shortcuts only by listening Handsontable.
       // Please keep in mind that selectRows/selectRows doesn't set instance to listening (see #7290).
-      listen();
+      await listen();
       hot().selection.selectRows(2);
-      keyDown('control/meta');
+      await keyDown('control/meta');
       hot().selection.selectRows(0);
-      keyUp('control/meta');
+      await keyUp('control/meta');
 
       expect(`
         |   :   :   ║   :   :   :   :   :   |
@@ -226,7 +226,7 @@ describe('Selection', () => {
       ]);
     });
 
-    it('should highlight single row (default selectionMode, fixedRowsTop enabled)', () => {
+    it('should highlight single row (default selectionMode, fixedRowsTop enabled)', async() => {
       handsontable({
         data: createSpreadsheetObjectData(4, 6),
         colHeaders: true,
@@ -247,7 +247,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: 1,-1 to: 2,5']);
     });
 
-    it('should highlight range of the rows (default selectionMode)', () => {
+    it('should highlight range of the rows (default selectionMode)', async() => {
       handsontable({
         data: createSpreadsheetObjectData(4, 6),
         colHeaders: true,
@@ -266,7 +266,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,0 from: 2,-1 to: 3,5']);
     });
 
-    it('should highlight range of the rows (default selectionMode, multiple headers, navigableHeaders on)', () => {
+    it('should highlight range of the rows (default selectionMode, multiple headers, navigableHeaders on)', async() => {
       handsontable({
         data: createSpreadsheetObjectData(4, 6),
         colHeaders: true,
@@ -296,7 +296,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,0 from: 2,-1 to: 3,5']);
     });
 
-    it('should highlight range of the rows (default selectionMode, reversed selection)', () => {
+    it('should highlight range of the rows (default selectionMode, reversed selection)', async() => {
       handsontable({
         data: createSpreadsheetObjectData(4, 6),
         colHeaders: true,
@@ -315,7 +315,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,0 from: 3,-1 to: 2,5']);
     });
 
-    it('should highlight range of the rows (default selectionMode, reversed selection, multiple headers, navigableHeaders on)', () => {
+    it('should highlight range of the rows (default selectionMode, reversed selection, multiple headers, navigableHeaders on)', async() => {
       handsontable({
         data: createSpreadsheetObjectData(4, 6),
         colHeaders: true,
@@ -345,7 +345,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,0 from: 3,-1 to: 2,5']);
     });
 
-    it('should be possible to move the focus (by passing a number) selection around cells range (navigableHeaders off, with headers)', () => {
+    it('should be possible to move the focus (by passing a number) selection around cells range (navigableHeaders off, with headers)', async() => {
       handsontable({
         data: createSpreadsheetObjectData(4, 3),
         colHeaders: true,
@@ -401,7 +401,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: 2,-1 to: 3,2']);
     });
 
-    it('should be possible to move the focus (by passing an object) selection around cells range (navigableHeaders off, with headers)', () => {
+    it('should be possible to move the focus (by passing an object) selection around cells range (navigableHeaders off, with headers)', async() => {
       handsontable({
         data: createSpreadsheetObjectData(4, 3),
         colHeaders: true,
@@ -457,7 +457,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,2 from: 2,-1 to: 3,2']);
     });
 
-    it('should not be possible to move the focus (by passing a number) selection around headers range (navigableHeaders off, with headers)', () => {
+    it('should not be possible to move the focus (by passing a number) selection around headers range (navigableHeaders off, with headers)', async() => {
       handsontable({
         data: createSpreadsheetObjectData(4, 3),
         colHeaders: true,
@@ -500,7 +500,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,0 from: 2,-3 to: 3,2']);
     });
 
-    it('should not be possible to move the focus (by passing an object) selection around headers range (navigableHeaders off, with headers)', () => {
+    it('should not be possible to move the focus (by passing an object) selection around headers range (navigableHeaders off, with headers)', async() => {
       handsontable({
         data: createSpreadsheetObjectData(4, 3),
         colHeaders: true,
@@ -543,7 +543,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,0 from: 2,-3 to: 3,2']);
     });
 
-    it('should be possible to move the focus (by passing a number) selection to header (navigableHeaders on, with headers)', () => {
+    it('should be possible to move the focus (by passing a number) selection to header (navigableHeaders on, with headers)', async() => {
       handsontable({
         data: createSpreadsheetObjectData(4, 3),
         colHeaders: true,
@@ -612,7 +612,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: 2,-1 to: 3,2']);
     });
 
-    it('should be possible to move the focus (by passing an object) selection to header (navigableHeaders on, with headers)', () => {
+    it('should be possible to move the focus (by passing an object) selection to header (navigableHeaders on, with headers)', async() => {
       handsontable({
         data: createSpreadsheetObjectData(4, 3),
         colHeaders: true,
@@ -681,7 +681,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,2 from: 2,-1 to: 3,2']);
     });
 
-    it('should be possible to move the focus (by passing a number) selection around cells range (navigableHeaders on, without headers)', () => {
+    it('should be possible to move the focus (by passing a number) selection around cells range (navigableHeaders on, without headers)', async() => {
       handsontable({
         data: createSpreadsheetObjectData(4, 6),
         colHeaders: false,
@@ -708,7 +708,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,4 from: 2,0 to: 3,5']);
     });
 
-    it('should be possible to move the focus (by passing an object) selection around cells range (navigableHeaders on, without headers)', () => {
+    it('should be possible to move the focus (by passing an object) selection around cells range (navigableHeaders on, without headers)', async() => {
       handsontable({
         data: createSpreadsheetObjectData(4, 6),
         colHeaders: false,
@@ -735,7 +735,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,4 from: 2,0 to: 3,5']);
     });
 
-    it('should not be possible to move the focus (by passing a number) selection around headers range (navigableHeaders on, without headers)', () => {
+    it('should not be possible to move the focus (by passing a number) selection around headers range (navigableHeaders on, without headers)', async() => {
       handsontable({
         data: createSpreadsheetObjectData(4, 6),
         colHeaders: false,
@@ -771,7 +771,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,5 from: 2,0 to: 3,5']);
     });
 
-    it('should not be possible to move the focus (by passing an object) selection around headers range (navigableHeaders on, without headers)', () => {
+    it('should not be possible to move the focus (by passing an object) selection around headers range (navigableHeaders on, without headers)', async() => {
       handsontable({
         data: createSpreadsheetObjectData(4, 6),
         colHeaders: false,
@@ -807,7 +807,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,5 from: 2,0 to: 3,5']);
     });
 
-    it('should highlight only single cell when selectionMode is set as `single`', () => {
+    it('should highlight only single cell when selectionMode is set as `single`', async() => {
       handsontable({
         data: createSpreadsheetObjectData(4, 6),
         colHeaders: true,
@@ -827,7 +827,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,0 from: 2,0 to: 2,0']);
     });
 
-    it('should highlight only single cell when selectionMode is set as `single` and navigableHeaders is enabled', () => {
+    it('should highlight only single cell when selectionMode is set as `single` and navigableHeaders is enabled', async() => {
       handsontable({
         data: createSpreadsheetObjectData(4, 6),
         colHeaders: true,
@@ -848,7 +848,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,0 from: 2,0 to: 2,0']);
     });
 
-    it('should highlight the range of the rows when selectionMode is set as `range`', () => {
+    it('should highlight the range of the rows when selectionMode is set as `range`', async() => {
       handsontable({
         data: createSpreadsheetObjectData(4, 6),
         colHeaders: true,
@@ -868,7 +868,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: 1,-1 to: 2,5']);
     });
 
-    it('should highlight the range of the rows when selectionMode is set as `range` and navigableHeaders is enabled', () => {
+    it('should highlight the range of the rows when selectionMode is set as `range` and navigableHeaders is enabled', async() => {
       handsontable({
         data: createSpreadsheetObjectData(4, 6),
         colHeaders: true,
@@ -889,7 +889,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: 1,-1 to: 2,5']);
     });
 
-    it('should not highlight headers as selected when there are no columns', () => {
+    it('should not highlight headers as selected when there are no columns', async() => {
       handsontable({
         data: [[], []],
         rowHeaders: true,
@@ -904,7 +904,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: 0,-1 to: 0,-1']);
       expect(wasSelected).toBeTrue();
 
-      deselectCell();
+      await deselectCell();
       wasSelected = hot().selection.selectRows(1);
 
       expect(`
@@ -914,7 +914,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: 1,-1 to: 1,-1']);
       expect(wasSelected).toBeTrue();
 
-      deselectCell();
+      await deselectCell();
       wasSelected = hot().selection.selectRows(1, 2);
 
       expect(`
@@ -925,7 +925,7 @@ describe('Selection', () => {
       expect(wasSelected).toBeFalse();
     });
 
-    it('should highlight headers as selected when there are no columns (navigableHeaders on)', () => {
+    it('should highlight headers as selected when there are no columns (navigableHeaders on)', async() => {
       handsontable({
         data: [[], []],
         navigableHeaders: true,
@@ -941,7 +941,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,-1 from: 0,-1 to: 0,-1']);
       expect(wasSelected).toBeTrue();
 
-      deselectCell();
+      await deselectCell();
       wasSelected = hot().selection.selectRows(1);
 
       expect(`
@@ -951,7 +951,7 @@ describe('Selection', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-1 from: 1,-1 to: 1,-1']);
       expect(wasSelected).toBeTrue();
 
-      deselectCell();
+      await deselectCell();
       wasSelected = hot().selection.selectRows(1, 2);
 
       expect(`
@@ -962,12 +962,12 @@ describe('Selection', () => {
       expect(wasSelected).toBeFalse();
     });
 
-    it('should not deselect current selection when selectRows is called without arguments', () => {
+    it('should not deselect current selection when selectRows is called without arguments', async() => {
       handsontable({
         data: createSpreadsheetObjectData(4, 6),
       });
 
-      selectCell(1, 1); // Initial selection.
+      await selectCell(1, 1); // Initial selection.
 
       expect(`
         |   :   :   :   :   :   |
@@ -1132,23 +1132,23 @@ describe('Selection', () => {
       expect(wasSelected).toBe(false);
     });
 
-    it('should not the scroll the viewport when row is selected', () => {
-      const hot = handsontable({
+    it('should not the scroll the viewport when row is selected', async() => {
+      handsontable({
         data: createSpreadsheetObjectData(20, 20),
         height: 300,
         width: 300,
       });
 
-      selectCell(1, 15); // Scroll to the right of the Hot viewport.
+      await selectCell(1, 15); // Scroll to the right of the Hot viewport.
 
-      const scrollLeft = hot.view._wt.wtTable.holder.scrollLeft;
+      const scrollLeft = tableView()._wt.wtTable.holder.scrollLeft;
 
-      hot.selection.selectRows(1);
+      selection().selectRows(1);
 
-      expect(hot.view._wt.wtTable.holder.scrollLeft).toBe(scrollLeft);
+      expect(tableView()._wt.wtTable.holder.scrollLeft).toBe(scrollLeft);
     });
 
-    it('should fire hooks with proper context', () => {
+    it('should fire hooks with proper context', async() => {
       const {
         afterSelection,
         afterSelectionByProp,
@@ -1180,7 +1180,7 @@ describe('Selection', () => {
         beforeSetRangeEnd,
       });
 
-      hot.selection.selectRows(1, 2);
+      selection().selectRows(1, 2);
 
       expect(afterSelection.calls.first().object).toBe(hot);
       expect(afterSelectionByProp.calls.first().object).toBe(hot);
@@ -1189,7 +1189,7 @@ describe('Selection', () => {
       expect(beforeSetRangeStartOnly.calls.first().object).toBe(hot);
     });
 
-    it('should fire hooks with proper arguments when a single row is selected', () => {
+    it('should fire hooks with proper arguments when a single row is selected', async() => {
       const {
         afterSelection,
         afterSelectionByProp,
@@ -1242,7 +1242,7 @@ describe('Selection', () => {
       expect(beforeSetRangeStartOnly.calls.argsFor(0)[0].col).toBe(0);
     });
 
-    it('should fire hooks with proper arguments when range of the rows are selected', () => {
+    it('should fire hooks with proper arguments when range of the rows are selected', async() => {
       const {
         afterSelection,
         afterSelectionByProp,

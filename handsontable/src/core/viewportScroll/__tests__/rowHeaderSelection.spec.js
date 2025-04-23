@@ -26,7 +26,7 @@ describe('Row header selection scroll', () => {
       });
 
       // make sure that the `A1` cell is partially visible on the top side of the table
-      await scrollOverlay(topOverlay(), 15);
+      await scrollViewportVertically(15);
       await simulateClick(getCell(0, -1));
 
       expect(topOverlay().getScrollPosition()).toBe(0);
@@ -47,7 +47,7 @@ describe('Row header selection scroll', () => {
       });
 
       // make sure that the `A1` cell is partially visible on the top side of the table
-      await scrollOverlay(topOverlay(), 15);
+      await scrollViewportVertically(15);
 
       await simulateClick(getCell(1, -1));
       await keyDown('shift');
@@ -71,10 +71,10 @@ describe('Row header selection scroll', () => {
         colHeaders: true,
       });
 
-      listen();
+      await listen();
 
       // make sure that the `A1` cell is partially visible on the top side of the table
-      await scrollOverlay(topOverlay(), 15);
+      await scrollViewportVertically(15);
       await selectRows(1);
       await keyDownUp(['shift', 'arrowup']);
 
@@ -97,7 +97,7 @@ describe('Row header selection scroll', () => {
       });
 
       // make sure that the `A1` cell is partially visible on the top side of the table
-      await scrollOverlay(topOverlay(), 15);
+      await scrollViewportVertically(15);
       await selectRows(1, 0);
 
       expect(topOverlay().getScrollPosition()).toBe(0);
@@ -118,7 +118,7 @@ describe('Row header selection scroll', () => {
       });
 
       // make sure that the `A1` cell is partially visible on the top side of the table
-      await scrollOverlay(topOverlay(), 15);
+      await scrollViewportVertically(15);
       await selectRows(0, 1);
 
       expect(topOverlay().getScrollPosition()).toBe(0);
@@ -181,7 +181,7 @@ describe('Row header selection scroll', () => {
         colHeaders: true,
       });
 
-      listen();
+      await listen();
 
       await selectRows(10);
       await keyDownUp(['shift', 'arrowdown']);
@@ -243,7 +243,7 @@ describe('Row header selection scroll', () => {
       colHeaders: true,
     });
 
-    await scrollOverlay(topOverlay(), getDefaultRowHeight() * 6);
+    await scrollViewportVertically(getDefaultRowHeight() * 6);
     await selectRows(0, 19);
 
     expect(topOverlay().getScrollPosition()).toBe(0);
@@ -264,7 +264,7 @@ describe('Row header selection scroll', () => {
     });
 
     // scroll to the middle of the table
-    await scrollOverlay(topOverlay(), getDefaultRowHeight() * 6);
+    await scrollViewportVertically(getDefaultRowHeight() * 6);
     await selectRows(19, 0);
 
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {

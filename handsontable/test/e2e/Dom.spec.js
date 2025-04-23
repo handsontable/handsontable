@@ -22,64 +22,64 @@ describe('Handsontable.Dom', () => {
     });
 
     describe('top', () => {
-      it('should return offset top with position absolute', function() {
-        this.$div.css({ position: 'absolute', top: 200 });
+      it('should return offset top with position absolute', async() => {
+        spec().$div.css({ position: 'absolute', top: 200 });
 
-        expect(Handsontable.dom.offset(this.div).top).toEqual(200);
+        expect(Handsontable.dom.offset(spec().div).top).toEqual(200);
       });
 
-      it('should return offset top with position absolute & scrolled window', function() {
-        this.$div.css({ position: 'absolute', top: 200 });
+      it('should return offset top with position absolute & scrolled window', async() => {
+        spec().$div.css({ position: 'absolute', top: 200 });
         $window.scrollTop(1900);
 
-        expect(Handsontable.dom.offset(this.div).top).toEqual(200);
+        expect(Handsontable.dom.offset(spec().div).top).toEqual(200);
 
         $window.scrollTop(0);
       });
 
-      it('should return offset top with position fixed', function() {
-        this.$div.css({ position: 'fixed', top: 200 });
+      it('should return offset top with position fixed', async() => {
+        spec().$div.css({ position: 'fixed', top: 200 });
 
-        expect(Handsontable.dom.offset(this.div).top).toEqual(200);
+        expect(Handsontable.dom.offset(spec().div).top).toEqual(200);
       });
 
-      it('should return offset top with position fixed & scrolled window', function() {
-        this.$div.css({ position: 'fixed', top: 200 });
+      it('should return offset top with position fixed & scrolled window', async() => {
+        spec().$div.css({ position: 'fixed', top: 200 });
         $window.scrollTop(1900);
 
-        expect(Handsontable.dom.offset(this.div).top).toEqual(2100); // this is the same jQuery offset returns
+        expect(Handsontable.dom.offset(spec().div).top).toEqual(2100); // spec() is the same jQuery offset returns
 
         $window.scrollTop(0);
       });
     });
 
     describe('left', () => {
-      it('should return offset left with position absolute', function() {
-        this.$div.css({ position: 'absolute', left: 200 });
+      it('should return offset left with position absolute', async() => {
+        spec().$div.css({ position: 'absolute', left: 200 });
 
-        expect(Handsontable.dom.offset(this.div).left).toEqual(200);
+        expect(Handsontable.dom.offset(spec().div).left).toEqual(200);
       });
 
-      it('should return offset left with position absolute & scrolled window', function() {
-        this.$div.css({ position: 'absolute', left: 200 });
+      it('should return offset left with position absolute & scrolled window', async() => {
+        spec().$div.css({ position: 'absolute', left: 200 });
         $window.scrollLeft(1900);
 
-        expect(Handsontable.dom.offset(this.div).left).toEqual(200);
+        expect(Handsontable.dom.offset(spec().div).left).toEqual(200);
 
         $window.scrollLeft(0);
       });
 
-      it('should return offset left with position fixed', function() {
-        this.$div.css({ position: 'fixed', left: 200 });
+      it('should return offset left with position fixed', async() => {
+        spec().$div.css({ position: 'fixed', left: 200 });
 
-        expect(Handsontable.dom.offset(this.div).left).toEqual(200);
+        expect(Handsontable.dom.offset(spec().div).left).toEqual(200);
       });
 
-      it('should return offset left with position fixed & scrolled window', function() {
-        this.$div.css({ position: 'fixed', left: 200 });
+      it('should return offset left with position fixed & scrolled window', async() => {
+        spec().$div.css({ position: 'fixed', left: 200 });
         $window.scrollLeft(1900);
 
-        expect(Handsontable.dom.offset(this.div).left).toEqual(2100); // this is the same jQuery offset returns
+        expect(Handsontable.dom.offset(spec().div).left).toEqual(2100); // spec() is the same jQuery offset returns
 
         $window.scrollLeft(0);
       });
@@ -87,7 +87,7 @@ describe('Handsontable.Dom', () => {
   });
 
   describe('isVisible', () => {
-    it('should return true for appended table', () => {
+    it('should return true for appended table', async() => {
       const $table = $('<table></table>').appendTo('body');
 
       expect(Handsontable.dom.isVisible($table[0])).toBe(true);
@@ -95,7 +95,7 @@ describe('Handsontable.Dom', () => {
       $table.remove();
     });
 
-    it('should return false for not appended table', () => {
+    it('should return false for not appended table', async() => {
       const $table = $('<table></table>');
 
       expect(Handsontable.dom.isVisible($table[0])).toBe(false);
@@ -103,7 +103,7 @@ describe('Handsontable.Dom', () => {
       $table.remove();
     });
 
-    it('should return false for table with `display: none`', () => {
+    it('should return false for table with `display: none`', async() => {
       const $table = $('<table style="display: none"></table>').appendTo('body');
 
       expect(Handsontable.dom.isVisible($table[0])).toBe(false);
@@ -111,7 +111,7 @@ describe('Handsontable.Dom', () => {
       $table.remove();
     });
 
-    it('should return false for table with parent `display: none`', () => {
+    it('should return false for table with parent `display: none`', async() => {
       const $div = $('<div style="display: none"></div>').appendTo('body');
       const $table = $('<table></table>').appendTo($div);
 
@@ -120,7 +120,7 @@ describe('Handsontable.Dom', () => {
       $div.remove();
     });
 
-    it('should return false for something detached from DOM', () => {
+    it('should return false for something detached from DOM', async() => {
       const $table = $('<table><tr><td></td></tr></table>').appendTo('body');
 
       const TD = $table.find('td')[0];
@@ -135,18 +135,18 @@ describe('Handsontable.Dom', () => {
   });
 
   describe('outerHeight', () => {
-    it('should return correct outerHeight for table', () => {
+    it('should return correct outerHeight for table', async() => {
       const $table = $('<table style="border-width: 0;"><tbody><tr><td style="border: 1px solid black">' +
                       '<div style="height: 30px">test</div></td>' +
                       '</tr></tbody></table>').appendTo('body');
 
-      expect(Handsontable.dom.outerHeight($table[0])).toBe(38); // this is according to current stylesheet
+      expect(Handsontable.dom.outerHeight($table[0])).toBe(38); // spec() is according to current stylesheet
       expect($table.outerHeight()).toBe(38); // jQuery check to confirm
 
       $table.remove();
     });
 
-    xit('should return correct outerHeight for table (with caption)', () => {
+    xit('should return correct outerHeight for table (with caption)', async() => {
       const $table = $('<table style="border-width: 0;"><caption style="padding: 0; margin:0">' +
                        '<div style="height: 30px">caption</div></caption><tbody>' +
                        '<tr><td style="border: 1px solid black">' +
@@ -170,26 +170,26 @@ describe('Handsontable.Dom', () => {
       element = null;
     });
 
-    it('should properly calculate element\'s width if it\'s an integer value', () => {
+    it('should properly calculate element\'s width if it\'s an integer value', async() => {
       element.css({ width: '10px' });
 
       expect(Handsontable.dom.outerWidth(element[0])).toBe(10);
     });
 
-    it('should properly calculate element\'s width if it\'s a floating value (less than x.5)', () => {
+    it('should properly calculate element\'s width if it\'s a floating value (less than x.5)', async() => {
       element.css({ width: '10.25px' });
 
       expect(Handsontable.dom.outerWidth(element[0])).toBe(10);
     });
 
-    it('should properly calculate element\'s width if it\'s a floating value (equal or greater than x.5)', () => {
+    it('should properly calculate element\'s width if it\'s a floating value (equal or greater than x.5)', async() => {
       element.css({ width: '10.5px' });
 
       expect(Handsontable.dom.outerWidth(element[0])).toBe(11);
     });
   });
 
-  xit('should return correct offset for table cell (table with caption)', () => {
+  xit('should return correct offset for table cell (table with caption)', async() => {
     const $table = $('<table style="border-width: 0;"><caption style="padding: 0; margin:0">' +
                      '<div style="height: 30px">caption</div></caption><tbody>' +
                      '<tr><td style="border: 1px solid black">' +
@@ -204,7 +204,7 @@ describe('Handsontable.Dom', () => {
     $table.remove();
   });
 
-  it('should return font size', () => {
+  it('should return font size', async() => {
     const $html = $('<style>.bigText{font: 12px serif;}</style><div class="bigText"><span id="testable"></span></div>')
       .appendTo('body');
 
@@ -216,7 +216,7 @@ describe('Handsontable.Dom', () => {
     $html.remove();
   });
 
-  it('should return top border width', () => {
+  it('should return top border width', async() => {
     const $html = $('<style>.redBorder{border: 10px solid red;}</style><div class="redBorder" id="testable"></div>')
       .appendTo('body');
 
@@ -228,7 +228,7 @@ describe('Handsontable.Dom', () => {
     $html.remove();
   });
 
-  it('should insert HTML properly', () => {
+  it('should insert HTML properly', async() => {
     const $html = $('<div id="testable"></div>').appendTo('body');
     const text = '<span>test<br>test</span>';
     const div = document.getElementById('testable');
@@ -241,7 +241,7 @@ describe('Handsontable.Dom', () => {
     $html.remove();
   });
 
-  it('should set the immediatePropagation properties properly for given event', () => {
+  it('should set the immediatePropagation properties properly for given event', async() => {
     const event = document.createEvent('MouseEvents');
 
     event.initMouseEvent('mousedown', true, true, window, null, null, null, null, null,
@@ -255,7 +255,7 @@ describe('Handsontable.Dom', () => {
   });
 
   describe('getScrollableElement', () => {
-    it('should return scrollable element with \'scroll\' value of \'overflow\', \'overflowX\' or \'overflowY\' property', () => {
+    it('should return scrollable element with \'scroll\' value of \'overflow\', \'overflowX\' or \'overflowY\' property', async() => {
       const $html = $([
         '<div style="overflow: scroll"><span class="overflow"></span></div>',
         '<div style="overflow-x: scroll"><span class="overflowX"></span></div>',
@@ -269,7 +269,7 @@ describe('Handsontable.Dom', () => {
       $html.remove();
     });
 
-    it('should return scrollable element with \'auto\' value of \'overflow\' or \'overflowY\' property', () => {
+    it('should return scrollable element with \'auto\' value of \'overflow\' or \'overflowY\' property', async() => {
       const $html = $([
         '<div style="overflow: auto; height: 50px;"><div class="knob" style="height: 100px"></div></div>',
         '<div style="overflow-y: auto; height: 50px;"><div class="knob" style="height: 100px"></div></div>',
@@ -287,7 +287,7 @@ describe('Handsontable.Dom', () => {
       $html.remove();
     });
 
-    it('should return scrollable element with \'auto\' value of \'overflow\' or \'overflowX\' property', () => {
+    it('should return scrollable element with \'auto\' value of \'overflow\' or \'overflowX\' property', async() => {
       const $html = $([
         '<div style="overflow: auto; width: 50px; height: 10px">' +
           '<div class="knob" style="width: 100px; height: 5px"></div></div>',
@@ -307,7 +307,7 @@ describe('Handsontable.Dom', () => {
       $html.remove();
     });
 
-    it('should return window object as scrollable element', () => {
+    it('should return window object as scrollable element', async() => {
       const $html = $([
         '<div style="overflow: hidden; width: 50px; height: 10px">' +
           '<div class="knob" style="width: 100px; height: 5px"></div></div>',
@@ -325,7 +325,7 @@ describe('Handsontable.Dom', () => {
   // Handsontable.dom.addClass
   //
   describe('addClass', () => {
-    it('should add class names as string to an element', () => {
+    it('should add class names as string to an element', async() => {
       const element = document.createElement('div');
 
       expect(element.className).toBe('');
@@ -347,7 +347,7 @@ describe('Handsontable.Dom', () => {
       expect(element.className).toBe('test test1 test2 test3');
     });
 
-    it('should add class names as array to an element', () => {
+    it('should add class names as array to an element', async() => {
       const element = document.createElement('div');
 
       expect(element.className).toBe('');
@@ -374,7 +374,7 @@ describe('Handsontable.Dom', () => {
   // Handsontable.dom.removeClass
   //
   describe('removeClass', () => {
-    it('should remove class names as string from an element', () => {
+    it('should remove class names as string from an element', async() => {
       const element = document.createElement('div');
 
       element.className = 'test test1 test2 test3 test4';
@@ -396,7 +396,7 @@ describe('Handsontable.Dom', () => {
       expect(element.className).toBe('test2 test3');
     });
 
-    it('should remove class names as array from an element', () => {
+    it('should remove class names as array from an element', async() => {
       const element = document.createElement('div');
 
       element.className = 'test test1 test2 test3 test4';
@@ -423,7 +423,7 @@ describe('Handsontable.Dom', () => {
   // Handsontable.dom.hasClass
   //
   describe('hasClass', () => {
-    it('should checks if an element has passed class name', () => {
+    it('should checks if an element has passed class name', async() => {
       const element = document.createElement('div');
 
       element.className = 'test test1 test2 test3 test4';

@@ -12,7 +12,7 @@ describe('MergeCells Selection', () => {
     }
   });
 
-  it('should leave the partially selected merged cells white (or any initial color), when selecting entire columns or rows', () => {
+  it('should leave the partially selected merged cells white (or any initial color), when selecting entire columns or rows', async() => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
       mergeCells: [
@@ -20,19 +20,19 @@ describe('MergeCells Selection', () => {
       ]
     });
 
-    selectColumns(0, 1);
+    await selectColumns(0, 1);
 
     const mergedCell = getCell(0, 0);
 
     expect(getComputedStyle(mergedCell, ':before').opacity).toEqual('0');
 
-    selectRows(0, 1);
+    await selectRows(0, 1);
 
     expect(getComputedStyle(mergedCell, ':before').opacity).toEqual('0');
   });
 
   it('should leave the partially selected merged cells with their initial color, when selecting entire columns or rows ' +
-    '(when the merged cells was previously fully selected)', () => {
+    '(when the merged cells was previously fully selected)', async() => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
       mergeCells: [
@@ -43,26 +43,26 @@ describe('MergeCells Selection', () => {
 
     // After changes introduced in Handsontable 12.0.0 we handle shortcuts only by listening Handsontable.
     // Please keep in mind that selectColumns/selectRows doesn't set instance to listening (see #7290).
-    listen();
-    selectColumns(0, 2);
+    await listen();
+    await selectColumns(0, 2);
 
     const mergedCell = getCell(0, 0);
     const selectedCellBackground = getComputedStyle(mergedCell, ':before').backgroundColor;
     const selectedCellOpacity = getComputedStyle(mergedCell, ':before').opacity;
     const firstRowHeader = getCell(0, -1, true);
 
-    keyDown('control/meta');
+    await keyDown('control/meta');
 
-    simulateClick(firstRowHeader);
+    await simulateClick(firstRowHeader);
 
-    keyUp('control/meta');
+    await keyUp('control/meta');
 
     expect(getComputedStyle(mergedCell, ':before').backgroundColor).toEqual(selectedCellBackground);
     expect(getComputedStyle(mergedCell, ':before').opacity).toEqual(selectedCellOpacity);
   });
 
   it('should make the entirely selected merged cells have the same background color as a regular selected area, when ' +
-    'selecting entire columns or rows', () => {
+    'selecting entire columns or rows', async() => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 6),
       mergeCells: [
@@ -70,27 +70,27 @@ describe('MergeCells Selection', () => {
       ]
     });
 
-    selectCell(4, 4, 5, 5);
+    await selectCell(4, 4, 5, 5);
 
     const selectedCell = getCell(4, 4);
     const selectedCellBackground = getComputedStyle(selectedCell, ':before').backgroundColor;
     const selectedCellOpacity = getComputedStyle(selectedCell, ':before').opacity;
 
-    selectColumns(0, 2);
+    await selectColumns(0, 2);
 
     const mergedCell = getCell(0, 0);
 
     expect(getComputedStyle(mergedCell, ':before').backgroundColor).toEqual(selectedCellBackground);
     expect(getComputedStyle(mergedCell, ':before').opacity).toEqual(selectedCellOpacity);
 
-    selectRows(0, 2);
+    await selectRows(0, 2);
 
     expect(getComputedStyle(mergedCell, ':before').backgroundColor).toEqual(selectedCellBackground);
     expect(getComputedStyle(mergedCell, ':before').opacity).toEqual(selectedCellOpacity);
   });
 
   it('should make the entirely selected merged cells have the same background color as a regular selected area, when ' +
-    'selecting entire columns or rows (using multiple selection layers)', () => {
+    'selecting entire columns or rows (using multiple selection layers)', async() => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
       mergeCells: [
@@ -101,7 +101,7 @@ describe('MergeCells Selection', () => {
     });
 
     // sample the selected background
-    selectCells([[5, 1, 5, 2]]);
+    await selectCells([[5, 1, 5, 2]]);
     const selectedCell = getCell(5, 1);
     const selectedCellBackground = getComputedStyle(selectedCell, ':before').backgroundColor;
     const selectedCellOpacity = getComputedStyle(selectedCell, ':before').opacity;
@@ -120,37 +120,37 @@ describe('MergeCells Selection', () => {
       spec().$container.find('.ht_clone_top tr:eq(0) th:eq(4)'),
     ];
 
-    deselectCell();
+    await deselectCell();
 
-    keyDown('control/meta');
-    mouseDown(rowHeaders[0]);
-    mouseOver(rowHeaders[1]);
-    mouseUp(rowHeaders[1]);
-    mouseDown(rowHeaders[2]);
-    mouseOver(rowHeaders[2]);
-    mouseUp(rowHeaders[2]);
-    keyUp('control/meta');
+    await keyDown('control/meta');
+    await mouseDown(rowHeaders[0]);
+    await mouseOver(rowHeaders[1]);
+    await mouseUp(rowHeaders[1]);
+    await mouseDown(rowHeaders[2]);
+    await mouseOver(rowHeaders[2]);
+    await mouseUp(rowHeaders[2]);
+    await keyUp('control/meta');
 
     expect(getComputedStyle(mergedCell, ':before').backgroundColor).toEqual(selectedCellBackground);
     expect(getComputedStyle(mergedCell, ':before').opacity).toEqual(selectedCellOpacity);
 
-    deselectCell();
+    await deselectCell();
 
-    keyDown('control/meta');
-    mouseDown(columnHeaders[0]);
-    mouseOver(columnHeaders[1]);
-    mouseUp(columnHeaders[1]);
-    mouseDown(columnHeaders[2]);
-    mouseOver(columnHeaders[3]);
-    mouseUp(columnHeaders[3]);
-    keyUp('control/meta');
+    await keyDown('control/meta');
+    await mouseDown(columnHeaders[0]);
+    await mouseOver(columnHeaders[1]);
+    await mouseUp(columnHeaders[1]);
+    await mouseDown(columnHeaders[2]);
+    await mouseOver(columnHeaders[3]);
+    await mouseUp(columnHeaders[3]);
+    await keyUp('control/meta');
 
     expect(getComputedStyle(mergedCell, ':before').backgroundColor).toEqual(selectedCellBackground);
     expect(getComputedStyle(mergedCell, ':before').opacity).toEqual(selectedCellOpacity);
   });
 
   it('should make the entirely selected merged cells have the same background color as a regular selected area, when ' +
-    'selecting entire columns or rows (when the merged cells was previously fully selected)', () => {
+    'selecting entire columns or rows (when the merged cells was previously fully selected)', async() => {
     handsontable({
       data: Handsontable.helper.createSpreadsheetObjectData(10, 5),
       mergeCells: [
@@ -160,41 +160,41 @@ describe('MergeCells Selection', () => {
     });
 
     // sample the double-selected background
-    selectCells([[5, 1, 5, 2], [5, 1, 5, 2]]);
+    await selectCells([[5, 1, 5, 2], [5, 1, 5, 2]]);
     const selectedCell = getCell(5, 1);
     const selectedCellBackground = getComputedStyle(selectedCell, ':before').backgroundColor;
     const selectedCellOpacity = getComputedStyle(selectedCell, ':before').opacity;
 
-    selectColumns(0, 2);
+    await selectColumns(0, 2);
 
     const mergedCell = getCell(0, 0);
     const firstRowHeader = getCell(0, -1, true);
     const thirdRowHeader = getCell(2, -1, true);
 
-    keyDown('control/meta');
+    await keyDown('control/meta');
 
-    mouseDown(firstRowHeader);
-    mouseOver(thirdRowHeader);
-    mouseUp(thirdRowHeader);
+    await mouseDown(firstRowHeader);
+    await mouseOver(thirdRowHeader);
+    await mouseUp(thirdRowHeader);
 
-    keyUp('control/meta');
+    await keyUp('control/meta');
 
     expect(getComputedStyle(mergedCell, ':before').backgroundColor).toEqual(selectedCellBackground);
     expect(getComputedStyle(mergedCell, ':before').opacity).toEqual(selectedCellOpacity);
   });
 
-  it('should keep headers\' selection after merging', () => {
+  it('should keep headers\' selection after merging', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
       colHeaders: true,
       rowHeaders: true,
       mergeCells: true,
       contextMenu: true,
     });
 
-    selectColumns(0, 2);
-    contextMenu();
-    selectContextMenuOption('Merge cells');
+    await selectColumns(0, 2);
+    await contextMenu();
+    await selectContextMenuOption('Merge cells');
 
     expect(getSelected()).toEqual([[-1, 0, 4, 2]]);
     expect(`
@@ -208,20 +208,20 @@ describe('MergeCells Selection', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it('should keep the selection on merged cells after inserting row above merged cells', () => {
+  it('should keep the selection on merged cells after inserting row above merged cells', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(3, 3),
+      data: createSpreadsheetData(3, 3),
       mergeCells: [
         { row: 1, col: 1, rowspan: 2, colspan: 2 }
       ],
     });
 
-    selectCell(1, 1);
+    await selectCell(1, 1);
 
     const $borderTop = spec().$container.find('.wtBorder.current').eq(1);
     const topPositionBefore = $borderTop.position().top;
 
-    alter('insert_row_above', 1);
+    await alter('insert_row_above', 1);
 
     expect(getSelected()).toEqual([[2, 1, 3, 2]]);
     expect($borderTop.position().top).forThemes(({ classic, main, horizon }) => {
@@ -231,29 +231,29 @@ describe('MergeCells Selection', () => {
     });
   });
 
-  it('should keep the selection on merged cells after inserting column to left to the merged cells', () => {
+  it('should keep the selection on merged cells after inserting column to left to the merged cells', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(3, 3),
+      data: createSpreadsheetData(3, 3),
       mergeCells: [
         { row: 1, col: 1, rowspan: 2, colspan: 2 }
       ],
     });
 
-    selectCell(1, 1);
+    await selectCell(1, 1);
 
     const $borderLeft = spec().$container.find('.wtBorder.current').eq(1);
     const leftPositionBefore = $borderLeft.position().left;
 
-    alter('insert_col_start', 1);
+    await alter('insert_col_start', 1);
 
     expect(getSelected()).toEqual([[1, 2, 2, 3]]);
 
     expect($borderLeft.position().left).toBe(leftPositionBefore + 50);
   });
 
-  it('should correctly indicate that the selected merged cell is not multiple selection', () => {
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+  it('should correctly indicate that the selected merged cell is not multiple selection', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       colHeaders: true,
       rowHeaders: true,
       mergeCells: [
@@ -261,9 +261,9 @@ describe('MergeCells Selection', () => {
       ]
     });
 
-    selectCell(1, 1, 2, 2);
+    await selectCell(1, 1, 2, 2);
 
-    expect(hot.selection.isMultiple()).toBe(false);
+    expect(selection().isMultiple()).toBe(false);
     expect(`
       |   ║   : - : - :   :   |
       |===:===:===:===:===:===|
@@ -274,9 +274,9 @@ describe('MergeCells Selection', () => {
       |   ║   :   :   :   :   |
     `).toBeMatchToSelectionPattern();
 
-    selectCell(2, 2, 1, 1);
+    await selectCell(2, 2, 1, 1);
 
-    expect(hot.selection.isMultiple()).toBe(false);
+    expect(selection().isMultiple()).toBe(false);
     expect(`
       |   ║   : - : - :   :   |
       |===:===:===:===:===:===|
@@ -288,7 +288,7 @@ describe('MergeCells Selection', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it('should correctly select the neighboring merged cells', () => {
+  it('should correctly select the neighboring merged cells', async() => {
     handsontable({
       data: createSpreadsheetData(5, 8),
       colHeaders: true,
@@ -300,7 +300,7 @@ describe('MergeCells Selection', () => {
       ]
     });
 
-    selectCell(1, 2, 2, 2);
+    await selectCell(1, 2, 2, 2);
 
     expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: 1,1 to: 3,6']);
     expect(`
@@ -326,7 +326,8 @@ describe('MergeCells Selection', () => {
     });
 
     getPlugin('mergeCells').merge(0, 0, 0, 20);
-    selectCells([[1, 20, 0, 0]]);
+
+    await selectCells([[1, 20, 0, 0]]);
 
     expect(`
       | 0             |
@@ -334,8 +335,7 @@ describe('MergeCells Selection', () => {
       |   :   :   :   |
     `).toBeMatchToSelectionPattern();
 
-    scrollViewportTo({ row: 0, col: 22 }); // the merged cell is partially visible
-    render();
+    await scrollViewportTo({ row: 0, col: 22 }); // the merged cell is partially visible
 
     expect(`
       | 0     :   :   |
@@ -357,17 +357,14 @@ describe('MergeCells Selection', () => {
     });
 
     getPlugin('mergeCells').merge(0, 0, 20, 0);
-    selectCells([[20, 1, 0, 0]]);
 
-    await sleep(10);
+    await selectCells([[20, 1, 0, 0]]);
 
     expect(`
       | 0 : 0 :   :   :   :   |
-      |   : 0 :   :   :   :   |
     `).toBeMatchToSelectionPattern();
 
-    scrollViewportTo({ row: 24, col: 0 }); // the merged cell is partially visible
-    render();
+    await scrollViewportTo({ row: 24, col: 0 }); // the merged cell is partially visible
 
     expect(`
       | 0 : 0 :   :   :   :   |
@@ -393,17 +390,14 @@ describe('MergeCells Selection', () => {
     });
 
     getPlugin('mergeCells').merge(0, 0, 20, 0);
-    selectCells([[20, 1, 0, 0]]);
 
-    await sleep(10);
+    await selectCells([[20, 1, 0, 0]]);
 
     expect(`
       | 0 : 0 :   :   :   :   |
-      |   : 0 :   :   :   :   |
     `).toBeMatchToSelectionPattern();
 
-    scrollViewportTo({ row: 24, col: 0 }); // the merged cell is partially visible
-    render();
+    await scrollViewportTo({ row: 24, col: 0 }); // the merged cell is partially visible
 
     expect(`
       | 0 : 0 :   :   :   :   |
@@ -429,17 +423,14 @@ describe('MergeCells Selection', () => {
     });
 
     getPlugin('mergeCells').merge(0, 0, 20, 0);
-    selectCells([[20, 1, 0, 0]]);
 
-    await sleep(10);
+    await selectCells([[20, 1, 0, 0]]);
 
     expect(`
       | 0 : 0 :   :   :   :   |
-      |   : 0 :   :   :   :   |
     `).toBeMatchToSelectionPattern();
 
-    scrollViewportTo({ row: 24, col: 0 }); // the merged cell is partially visible
-    render();
+    await scrollViewportTo({ row: 24, col: 0 }); // the merged cell is partially visible
 
     expect(`
       | 0 : 0 :   :   :   :   |
@@ -452,7 +443,7 @@ describe('MergeCells Selection', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it('should keep focus selection on the wide virtualized merged cell that intersects the left overlay', () => {
+  it('should keep focus selection on the wide virtualized merged cell that intersects the left overlay', async() => {
     handsontable({
       data: createSpreadsheetData(3, 30),
       width: 200,
@@ -465,7 +456,8 @@ describe('MergeCells Selection', () => {
     });
 
     getPlugin('mergeCells').merge(0, 0, 0, 20);
-    selectCell(0, 0);
+
+    await selectCell(0, 0);
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:first td:last').text()).toBe('A1');
@@ -476,8 +468,7 @@ describe('MergeCells Selection', () => {
       |   :   |   :   |
     `).toBeMatchToSelectionPattern();
 
-    scrollViewportTo({ row: 0, col: 22 }); // the merged cell is partially visible
-    render();
+    await scrollViewportTo({ row: 0, col: 22 }); // the merged cell is partially visible
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:first td:last').text()).toBe('X1');
@@ -488,8 +479,7 @@ describe('MergeCells Selection', () => {
       |   :   |   :   |
     `).toBeMatchToSelectionPattern();
 
-    scrollViewportTo({ row: 0, col: 25 }); // the merged cell is not visible (out of the viewport)
-    render();
+    await scrollViewportTo({ row: 0, col: 25 }); // the merged cell is not visible (out of the viewport)
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('X1');
     expect(getHtCore().find('tr:first td:last').text()).toBe('AA1');
@@ -501,7 +491,7 @@ describe('MergeCells Selection', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it('should keep area selection on the wide virtualized merged cell that intersects the left overlay', () => {
+  it('should keep area selection on the wide virtualized merged cell that intersects the left overlay', async() => {
     handsontable({
       data: createSpreadsheetData(3, 30),
       width: 200,
@@ -514,23 +504,22 @@ describe('MergeCells Selection', () => {
     });
 
     getPlugin('mergeCells').merge(0, 0, 0, 20);
-    selectCell(1, 0, 0, 0);
+
+    await selectCell(1, 0, 0, 0);
 
     expect(getInlineStartClone().find('tr:first td.area.fullySelectedMergedCell-0:first:visible').text()).toBe('A1');
 
-    scrollViewportTo({ row: 0, col: 22 }); // the merged cell is partially visible
-    render();
+    await scrollViewportTo({ row: 0, col: 22 }); // the merged cell is partially visible
 
     expect(getInlineStartClone().find('tr:first td.area.fullySelectedMergedCell-0:first:visible').text()).toBe('A1');
 
-    scrollViewportTo({ row: 0, col: 25 }); // the merged cell is not visible (out of the viewport)
-    render();
+    await scrollViewportTo({ row: 0, col: 25 }); // the merged cell is not visible (out of the viewport)
 
     expect(getInlineStartClone().find('tr:first td.area.fullySelectedMergedCell-0:first:visible').text()).toBe('A1');
   });
 
   it.forTheme('classic')('should keep focus selection on the high virtualized merged cell that ' +
-    'intersects the top overlay', () => {
+    'intersects the top overlay', async() => {
     handsontable({
       data: createSpreadsheetData(30, 3),
       width: 200,
@@ -543,7 +532,8 @@ describe('MergeCells Selection', () => {
     });
 
     getPlugin('mergeCells').merge(0, 0, 20, 0);
-    selectCell(0, 0);
+
+    await selectCell(0, 0);
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
@@ -561,8 +551,7 @@ describe('MergeCells Selection', () => {
       |   :   :   |
     `).toBeMatchToSelectionPattern();
 
-    scrollViewportTo({ row: 25, col: 0 }); // the merged cell is partially visible
-    render();
+    await scrollViewportTo({ row: 25, col: 0 }); // the merged cell is partially visible
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A28');
@@ -580,8 +569,7 @@ describe('MergeCells Selection', () => {
       |   :   :   |
     `).toBeMatchToSelectionPattern();
 
-    scrollViewportTo({ row: 29, col: 0 }); // the merged cell is not visible (out of the viewport)
-    render();
+    await scrollViewportTo({ row: 29, col: 0 }); // the merged cell is not visible (out of the viewport)
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A24');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A30');
@@ -613,7 +601,8 @@ describe('MergeCells Selection', () => {
     });
 
     getPlugin('mergeCells').merge(0, 0, 20, 0);
-    selectCell(0, 0);
+
+    await selectCell(0, 0);
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
@@ -631,8 +620,7 @@ describe('MergeCells Selection', () => {
       |   :   :   |
     `).toBeMatchToSelectionPattern();
 
-    scrollViewportTo({ row: 25, col: 0 }); // the merged cell is partially visible
-    render();
+    await scrollViewportTo({ row: 25, col: 0 }); // the merged cell is partially visible
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A28');
@@ -650,8 +638,7 @@ describe('MergeCells Selection', () => {
       |   :   :   |
     `).toBeMatchToSelectionPattern();
 
-    scrollViewportTo({ row: 29, col: 0 }); // the merged cell is not visible (out of the viewport)
-    render();
+    await scrollViewportTo({ row: 29, col: 0 }); // the merged cell is not visible (out of the viewport)
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A24');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A30');
@@ -669,7 +656,7 @@ describe('MergeCells Selection', () => {
   });
 
   it.forTheme('horizon')('should keep focus selection on the high virtualized merged cell that ' +
-    'intersects the top overlay', () => {
+    'intersects the top overlay', async() => {
     // TODO: The test is tightly bound to this specific table height. Probably worth looking into it.
     handsontable({
       data: createSpreadsheetData(30, 3),
@@ -683,7 +670,8 @@ describe('MergeCells Selection', () => {
     });
 
     getPlugin('mergeCells').merge(0, 0, 20, 0);
-    selectCell(0, 0);
+
+    await selectCell(0, 0);
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
@@ -701,8 +689,7 @@ describe('MergeCells Selection', () => {
       |   :   :   |
     `).toBeMatchToSelectionPattern();
 
-    scrollViewportTo({ row: 25, col: 0 }); // the merged cell is partially visible
-    render();
+    await scrollViewportTo({ row: 25, col: 0 }); // the merged cell is partially visible
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A28');
@@ -720,8 +707,7 @@ describe('MergeCells Selection', () => {
       |   :   :   |
     `).toBeMatchToSelectionPattern();
 
-    scrollViewportTo({ row: 29, col: 0 }); // the merged cell is not visible (out of the viewport)
-    render();
+    await scrollViewportTo({ row: 29, col: 0 }); // the merged cell is not visible (out of the viewport)
 
     expect(getHtCore().find('tr:first td:first').text()).toBe('A24');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A30');
@@ -738,7 +724,7 @@ describe('MergeCells Selection', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it('should keep area selection on the high virtualized merged cell that intersects the top overlay', () => {
+  it('should keep area selection on the high virtualized merged cell that intersects the top overlay', async() => {
     handsontable({
       data: createSpreadsheetData(30, 3),
       width: 200,
@@ -751,17 +737,16 @@ describe('MergeCells Selection', () => {
     });
 
     getPlugin('mergeCells').merge(0, 0, 20, 0);
-    selectCell(0, 1, 0, 0);
+
+    await selectCell(0, 1, 0, 0);
 
     expect(getTopClone().find('tr:first td.area.fullySelectedMergedCell-0:first:visible').text()).toBe('A1');
 
-    scrollViewportTo({ row: 25, col: 0 }); // the merged cell is partially visible
-    render();
+    await scrollViewportTo({ row: 25, col: 0 }); // the merged cell is partially visible
 
     expect(getTopClone().find('tr:first td.area.fullySelectedMergedCell-0:first:visible').text()).toBe('A1');
 
-    scrollViewportTo({ row: 29, col: 0 }); // the merged cell is not visible (out of the viewport)
-    render();
+    await scrollViewportTo({ row: 29, col: 0 }); // the merged cell is not visible (out of the viewport)
 
     expect(getTopClone().find('tr:first td.area.fullySelectedMergedCell-0:first:visible').text()).toBe('A1');
   });

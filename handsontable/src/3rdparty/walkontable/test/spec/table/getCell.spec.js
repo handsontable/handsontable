@@ -34,7 +34,7 @@ describe('WalkontableTable', () => {
     { rtlMode: false },
   ], ({ rtlMode }) => {
     describe('getCell()', () => {
-      it('should only return cells from rendered rows and columns', () => {
+      it('should only return cells from rendered rows and columns', async() => {
         const scrollbarWidth = getScrollbarWidth(); // normalize viewport size disregarding of the scrollbar size on any OS
 
         spec().$wrapper.width(100 + scrollbarWidth).height(201 + scrollbarWidth);
@@ -86,7 +86,7 @@ describe('WalkontableTable', () => {
         expect(results).toEqual(expectedGetCellOutputForRowsInFirstColumn);
       });
 
-      it('should only return cells from rendered rows and columns (with fixedRowsBottom)', () => {
+      it('should only return cells from rendered rows and columns (with fixedRowsBottom)', async() => {
         createDataArray(20, 20);
         const wt = walkontable({
           rtlMode,
@@ -104,7 +104,7 @@ describe('WalkontableTable', () => {
         expect(bottomTable.getCell(new Walkontable.CellCoords(19, 0)) instanceof HTMLTableCellElement).toBe(true);
       });
 
-      it('should return headers when they exist on a given overlay (no frozen rows)', () => {
+      it('should return headers when they exist on a given overlay (no frozen rows)', async() => {
         createDataArray(18, 18);
         spec().$wrapper.width(250).height(170);
 
@@ -275,7 +275,7 @@ describe('WalkontableTable', () => {
         expectWtTable(wt, wtTable => wtTable.getCell({ row: 18, col: 2 }), 'top').toBe(-2);
       });
 
-      it('should return headers when they exist on a given overlay (frozen rows and columns)', () => {
+      it('should return headers when they exist on a given overlay (frozen rows and columns)', async() => {
         createDataArray(18, 18);
         spec().$wrapper.width(250).height(170);
 
@@ -510,7 +510,7 @@ describe('WalkontableTable', () => {
         expectWtTable(wt, wtTable => wtTable.getCell({ row: 18, col: 2 }), 'top').toBe(-2);
       });
 
-      it('should return -1 error code if there are no rendered rows or columns', () => {
+      it('should return -1 error code if there are no rendered rows or columns', async() => {
         createDataArray(0, 0);
         spec().$wrapper.width(250).height(170);
 
@@ -580,7 +580,7 @@ describe('WalkontableTable', () => {
         expectWtTable(wt, wtTable => wtTable.getVisibleRowsCount(), 'top').toBe(0);
       });
 
-      it('should return relevant value for rows and columns', () => {
+      it('should return relevant value for rows and columns', async() => {
         createDataArray(18, 18);
         spec().$wrapper.width(250).height(170);
 

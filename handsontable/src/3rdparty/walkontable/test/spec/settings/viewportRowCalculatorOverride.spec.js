@@ -16,7 +16,7 @@ describe('viewportRowCalculatorOverride option', () => {
     this.wotInstance.destroy();
   });
 
-  it('should render offset when the first row is fully displayed in the viewport (default setting)', () => {
+  it('should render offset when the first row is fully displayed in the viewport (default setting)', async() => {
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
@@ -24,23 +24,23 @@ describe('viewportRowCalculatorOverride option', () => {
     });
 
     wt.draw();
-    setScrollTop(500);
+    await scrollViewportVertically(500);
     wt.draw(true);
 
     expect(getTableMaster().find('tr:first td:first').text()).toBe('21');
 
-    setScrollTop(480);
+    await scrollViewportVertically(480);
     wt.draw(true);
 
     expect(getTableMaster().find('tr:first td:first').text()).toBe('20');
 
-    setScrollTop(459);
+    await scrollViewportVertically(459);
     wt.draw(true);
 
     expect(getTableMaster().find('tr:first td:first').text()).toBe('19');
   });
 
-  it('should render offset when the last row is fully displayed in the viewport (default setting)', () => {
+  it('should render offset when the last row is fully displayed in the viewport (default setting)', async() => {
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
@@ -51,18 +51,18 @@ describe('viewportRowCalculatorOverride option', () => {
 
     expect(getTableMaster().find('tr:last td:first').text()).toBe('8');
 
-    setScrollTop(30);
+    await scrollViewportVertically(30);
     wt.draw(true);
 
     expect(getTableMaster().find('tr:last td:first').text()).toBe('9');
 
-    setScrollTop(60);
+    await scrollViewportVertically(60);
     wt.draw(true);
 
     expect(getTableMaster().find('tr:last td:first').text()).toBe('10');
   });
 
-  it('should render offset when the first row is fully displayed in the viewport (custom offset)', () => {
+  it('should render offset when the first row is fully displayed in the viewport (custom offset)', async() => {
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
@@ -73,23 +73,23 @@ describe('viewportRowCalculatorOverride option', () => {
     });
 
     wt.draw();
-    setScrollTop(500);
+    await scrollViewportVertically(500);
     wt.draw(true);
 
     expect(getTableMaster().find('tr:first td:first').text()).toBe('19');
 
-    setScrollTop(430);
+    await scrollViewportVertically(430);
     wt.draw(true);
 
     expect(getTableMaster().find('tr:first td:first').text()).toBe('16');
 
-    setScrollTop(360);
+    await scrollViewportVertically(360);
     wt.draw(true);
 
     expect(getTableMaster().find('tr:first td:first').text()).toBe('13');
   });
 
-  it('should render offset when the last row is fully displayed in the viewport (custom offset)', () => {
+  it('should render offset when the last row is fully displayed in the viewport (custom offset)', async() => {
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
@@ -103,12 +103,12 @@ describe('viewportRowCalculatorOverride option', () => {
 
     expect(getTableMaster().find('tr:last td:first').text()).toBe('11');
 
-    setScrollTop(100);
+    await scrollViewportVertically(100);
     wt.draw(true);
 
     expect(getTableMaster().find('tr:last td:first').text()).toBe('15');
 
-    setScrollTop(190);
+    await scrollViewportVertically(190);
     wt.draw(true);
 
     expect(getTableMaster().find('tr:last td:first').text()).toBe('19');

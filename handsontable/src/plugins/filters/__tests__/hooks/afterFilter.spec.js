@@ -12,7 +12,7 @@ describe('`afterFilter` hook', () => {
     }
   });
 
-  it('should be triggered with correct arguments', () => {
+  it('should be triggered with correct arguments', async() => {
     const afterFilter = jasmine.createSpy('afterFilter');
 
     handsontable({
@@ -53,7 +53,7 @@ describe('`afterFilter` hook', () => {
     );
   });
 
-  it('should not be triggered when `beforeFilter` blocks the filter operation', () => {
+  it('should not be triggered when `beforeFilter` blocks the filter operation', async() => {
     const afterFilter = jasmine.createSpy('afterFilter');
 
     handsontable({
@@ -81,7 +81,7 @@ describe('`afterFilter` hook', () => {
     expect(getData(0, 0, 0, 5)).toEqual([[1, 'Nannie Patel', 'Jenkinsville', '2014-01-29', 'green', 1261.6]]);
   });
 
-  it('should be possible to change the default selection after filter is applied', () => {
+  it('should be possible to change the default selection after filter is applied', async() => {
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),

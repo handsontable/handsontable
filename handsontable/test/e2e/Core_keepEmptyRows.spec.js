@@ -41,7 +41,7 @@ describe('Core_keepEmptyRows', () => {
     ];
   };
 
-  it('should remove columns if needed', () => {
+  it('should remove columns if needed', async() => {
     handsontable({
       data: arrayOfNestedObjects(),
       columns: [
@@ -53,7 +53,7 @@ describe('Core_keepEmptyRows', () => {
     expect(spec().$container.find('tbody tr:first td').length).toEqual(2);
   });
 
-  it('should remove columns if needed when columns is a function', () => {
+  it('should remove columns if needed when columns is a function', async() => {
     handsontable({
       data: arrayOfNestedObjects(),
       columns(column) {
@@ -76,7 +76,7 @@ describe('Core_keepEmptyRows', () => {
     expect(spec().$container.find('tbody tr:first td').length).toEqual(2);
   });
 
-  it('should create columns if needed', () => {
+  it('should create columns if needed', async() => {
     handsontable({
       data: arrayOfNestedObjects(),
       columns: [
@@ -92,7 +92,7 @@ describe('Core_keepEmptyRows', () => {
     expect(spec().$container.find('tbody tr:first td').length).toEqual(6);
   });
 
-  it('should create columns if needed when columns is a function', () => {
+  it('should create columns if needed when columns is a function', async() => {
     handsontable({
       data: arrayOfNestedObjects(),
       columns(column) {
@@ -126,7 +126,7 @@ describe('Core_keepEmptyRows', () => {
     expect(spec().$container.find('tbody tr:first td').length).toEqual(6);
   });
 
-  it('should create spare cols and rows on init (array data source)', () => {
+  it('should create spare cols and rows on init (array data source)', async() => {
     handsontable({
       data: [
         ['one', 'two'],
@@ -141,7 +141,7 @@ describe('Core_keepEmptyRows', () => {
     expect(countCells()).toEqual(36);
   });
 
-  it('should create spare cols and rows on init (object data source)', () => {
+  it('should create spare cols and rows on init (object data source)', async() => {
     handsontable({
       data: arrayOfNestedObjects(),
       minRows: 4,
@@ -153,7 +153,7 @@ describe('Core_keepEmptyRows', () => {
     expect(spec().$container.find('tbody tr:first td:last').text()).toEqual('City Name');
   });
 
-  it('should create new row when last cell in last row is edited', () => {
+  it('should create new row when last cell in last row is edited', async() => {
     const data = [
       ['one', 'two'],
       ['three', 'four']
@@ -165,12 +165,12 @@ describe('Core_keepEmptyRows', () => {
       minCols: 4,
       minSpareRows: 1
     });
-    setDataAtCell(3, 3, 'test');
+    await setDataAtCell(3, 3, 'test');
 
     expect(data.length).toEqual(5);
   });
 
-  it('should create new col when last cell in last row is edited', () => {
+  it('should create new col when last cell in last row is edited', async() => {
     const data = [
       ['one', 'two'],
       ['three', 'four']
@@ -182,12 +182,12 @@ describe('Core_keepEmptyRows', () => {
       minCols: 4,
       minSpareCols: 1
     });
-    setDataAtCell(3, 3, 'test');
+    await setDataAtCell(3, 3, 'test');
 
     expect(countCols()).toEqual(5);
   });
 
-  it('should create new row when last cell in last row is edited by autocomplete', (done) => {
+  it('should create new row when last cell in last row is edited by autocomplete', async() => {
     const data = [
       { id: 1, color: 'orange' }
     ];
@@ -213,19 +213,15 @@ describe('Core_keepEmptyRows', () => {
       ]
     });
 
-    selectCell(1, 1);
-    keyDownUp('enter');
+    await selectCell(1, 1);
+    await keyDownUp('enter');
+    await keyDownUp('arrowdown');
+    await keyDownUp('enter');
 
-    setTimeout(() => {
-      keyDownUp('arrowdown');
-      keyDownUp('enter');
-
-      expect(data.length).toEqual(3);
-      done();
-    }, 200);
+    expect(data.length).toEqual(3);
   });
 
-  it('should create new row when last cell in last row is edited by autocomplete when columns is a function', (done) => {
+  it('should create new row when last cell in last row is edited by autocomplete when columns is a function', async() => {
     const data = [
       { id: 1, color: 'orange' }
     ];
@@ -261,45 +257,41 @@ describe('Core_keepEmptyRows', () => {
       }
     });
 
-    selectCell(1, 1);
-    keyDownUp('enter');
+    await selectCell(1, 1);
+    await keyDownUp('enter');
+    await keyDownUp('arrowdown');
+    await keyDownUp('enter');
 
-    setTimeout(() => {
-      keyDownUp('arrowdown');
-      keyDownUp('enter');
-
-      expect(data.length).toEqual(3);
-      done();
-    }, 200);
+    expect(data.length).toEqual(3);
   });
 
-  it('should not create more rows that maxRows', () => {
+  it('should not create more rows that maxRows', async() => {
     handsontable({
       startRows: 4,
       maxRows: 6,
       minSpareRows: 1
     });
-    setDataAtCell(3, 0, 'test');
-    setDataAtCell(4, 0, 'test');
-    setDataAtCell(5, 0, 'test');
+    await setDataAtCell(3, 0, 'test');
+    await setDataAtCell(4, 0, 'test');
+    await setDataAtCell(5, 0, 'test');
 
     expect(countRows()).toEqual(6);
   });
 
-  it('should not create more cols that maxCols', () => {
+  it('should not create more cols that maxCols', async() => {
     handsontable({
       startCols: 4,
       maxCols: 6,
       minSpareCols: 1
     });
-    setDataAtCell(0, 3, 'test');
-    setDataAtCell(0, 4, 'test');
-    setDataAtCell(0, 5, 'test');
+    await setDataAtCell(0, 3, 'test');
+    await setDataAtCell(0, 4, 'test');
+    await setDataAtCell(0, 5, 'test');
 
     expect(countCols()).toEqual(6);
   });
 
-  it('should ignore minCols if columns is set', () => {
+  it('should ignore minCols if columns is set', async() => {
     handsontable({
       startCols: 1,
       minCols: 6,
@@ -312,7 +304,7 @@ describe('Core_keepEmptyRows', () => {
     expect(countCols()).toEqual(2);
   });
 
-  it('should ignore minCols if columns is set when columns is a function', () => {
+  it('should ignore minCols if columns is set when columns is a function', async() => {
     handsontable({
       startCols: 1,
       minCols: 6,
@@ -330,7 +322,7 @@ describe('Core_keepEmptyRows', () => {
     expect(countCols()).toEqual(1);
   });
 
-  it('columns should have priority over startCols', () => {
+  it('columns should have priority over startCols', async() => {
     handsontable({
       startCols: 3,
       minCols: 6,
@@ -343,7 +335,7 @@ describe('Core_keepEmptyRows', () => {
     expect(countCols()).toEqual(2);
   });
 
-  it('columns should have priority over startCols when columns is a function', () => {
+  it('columns should have priority over startCols when columns is a function', async() => {
     handsontable({
       startCols: 3,
       minCols: 6,

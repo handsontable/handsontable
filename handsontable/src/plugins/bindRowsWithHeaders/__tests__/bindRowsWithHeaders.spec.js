@@ -12,11 +12,11 @@ describe('BindRowsWithHeaders', () => {
     }
   });
 
-  it('should call rowHeader function with correct index as argument (strict mode)', () => {
+  it('should call rowHeader function with correct index as argument (strict mode)', async() => {
     const callback = jasmine.createSpy();
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 10),
+      data: createSpreadsheetData(5, 10),
       rowHeaders: callback,
       bindRowsWithHeaders: 'strict',
       width: 500,
@@ -29,14 +29,14 @@ describe('BindRowsWithHeaders', () => {
     expect(callback.calls.argsFor(3)).toEqual([3]);
     expect(callback.calls.argsFor(4)).toEqual([4]);
 
-    alter('remove_row', 1, 3);
+    await alter('remove_row', 1, 3);
 
     expect(callback.calls.argsFor(10)).toEqual([0]);
     expect(callback.calls.argsFor(11)).toEqual([4]);
     expect(callback.calls.argsFor(12)).toEqual([0]);
     expect(callback.calls.argsFor(13)).toEqual([4]);
 
-    alter('insert_row_above', 1, 1);
+    await alter('insert_row_above', 1, 1);
 
     expect(callback.calls.argsFor(14)).toEqual([0]);
     expect(callback.calls.argsFor(15)).toEqual([5]);
@@ -44,63 +44,63 @@ describe('BindRowsWithHeaders', () => {
   });
 
   it('should correct bind rows with headers after re-load data calling loadData method (strict mode)', async() => {
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 10),
+    handsontable({
+      data: createSpreadsheetData(10, 10),
       rowHeaders: true,
       bindRowsWithHeaders: 'strict',
       width: 500,
       height: 300
     });
 
-    alter('remove_row', 1, 4);
+    await alter('remove_row', 1, 4);
 
     await sleep(100);
 
-    hot.loadData(Handsontable.helper.createSpreadsheetData(5, 5));
+    await loadData(createSpreadsheetData(5, 5));
 
     expect(getRowHeader()).toEqual([1, 2, 3, 4, 5]);
   });
 
-  it('should correct bind rows with headers when row was removed (strict mode)', () => {
+  it('should correct bind rows with headers when row was removed (strict mode)', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 10),
+      data: createSpreadsheetData(10, 10),
       rowHeaders: true,
       bindRowsWithHeaders: 'strict',
       width: 500,
       height: 300
     });
 
-    alter('remove_row', 1, 4);
+    await alter('remove_row', 1, 4);
 
     expect(getRowHeader()).toEqual([1, 6, 7, 8, 9, 10]);
   });
 
-  it('should correct bind rows with headers when row was inserted (strict mode)', () => {
+  it('should correct bind rows with headers when row was inserted (strict mode)', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(4, 10),
+      data: createSpreadsheetData(4, 10),
       rowHeaders: true,
       bindRowsWithHeaders: 'strict',
       width: 500,
       height: 300
     });
 
-    alter('insert_row_above', 1, 4);
+    await alter('insert_row_above', 1, 4);
 
     expect(getRowHeader()).toEqual([1, 5, 6, 7, 8, 2, 3, 4]);
   });
 
-  it('should correct bind rows with headers when row was inserted and removed in mixed way (strict mode)', () => {
+  it('should correct bind rows with headers when row was inserted and removed in mixed way (strict mode)', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(4, 10),
+      data: createSpreadsheetData(4, 10),
       rowHeaders: true,
       bindRowsWithHeaders: 'strict',
       width: 500,
       height: 300
     });
 
-    alter('insert_row_above', 1, 4);
-    alter('remove_row', 0, 3);
-    alter('insert_row_above', 3, 1);
+    await alter('insert_row_above', 1, 4);
+    await alter('remove_row', 0, 3);
+    await alter('insert_row_above', 3, 1);
 
     expect(getRowHeader()).toEqual([7, 8, 2, 9, 3, 4]);
   });
@@ -108,7 +108,7 @@ describe('BindRowsWithHeaders', () => {
   describe('column sorting', () => {
     it('should correct bind rows with headers when row was removed after sorting (strict mode)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         columnSorting: true,
         rowHeaders: true,
         colHeaders: true,
@@ -122,18 +122,19 @@ describe('BindRowsWithHeaders', () => {
       getHtCore().find('th span.columnSorting:eq(2)').simulate('mousedown');
       getHtCore().find('th span.columnSorting:eq(2)').simulate('mouseup');
       getHtCore().find('th span.columnSorting:eq(2)').simulate('click');
-      alter('remove_row', 4, 1);
+
+      await alter('remove_row', 4, 1);
 
       expect(getRowHeader()).toEqual([1, 10, 2, 3, 5, 6, 7, 8, 9]);
 
-      alter('remove_row', 0, 5);
+      await alter('remove_row', 0, 5);
 
       expect(getRowHeader()).toEqual([6, 7, 8, 9]);
     });
 
     it('should correct bind rows with headers when row was inserted after sorting (strict mode)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         columnSorting: true,
         rowHeaders: true,
         colHeaders: true,
@@ -147,18 +148,19 @@ describe('BindRowsWithHeaders', () => {
       getHtCore().find('th span.columnSorting:eq(2)').simulate('mousedown');
       getHtCore().find('th span.columnSorting:eq(2)').simulate('mouseup');
       getHtCore().find('th span.columnSorting:eq(2)').simulate('click');
-      alter('insert_row_above', 4, 1);
+
+      await alter('insert_row_above', 4, 1);
 
       expect(getRowHeader()).toEqual([1, 10, 2, 3, 11, 4, 5, 6, 7, 8, 9]);
 
-      alter('insert_row_above', 0, 5);
+      await alter('insert_row_above', 0, 5);
 
       expect(getRowHeader()).toEqual([12, 13, 14, 15, 16, 1, 10, 2, 3, 11, 4, 5, 6, 7, 8, 9]);
     });
 
     it('should correct bind rows with headers when row was inserted and removed in mixed way (strict mode)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         columnSorting: true,
         rowHeaders: true,
         colHeaders: true,
@@ -172,8 +174,10 @@ describe('BindRowsWithHeaders', () => {
       getHtCore().find('th span.columnSorting:eq(2)').simulate('mousedown');
       getHtCore().find('th span.columnSorting:eq(2)').simulate('mouseup');
       getHtCore().find('th span.columnSorting:eq(2)').simulate('click');
-      alter('insert_row_above', 4, 1);
-      alter('remove_row', 0, 5);
+
+      await alter('insert_row_above', 4, 1);
+      await alter('remove_row', 0, 5);
+
       getHtCore().find('th span.columnSorting:eq(2)').simulate('mousedown');
       getHtCore().find('th span.columnSorting:eq(2)').simulate('mouseup');
       getHtCore().find('th span.columnSorting:eq(2)').simulate('click');

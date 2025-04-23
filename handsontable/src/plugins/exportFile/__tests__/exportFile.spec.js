@@ -13,7 +13,7 @@ describe('exportFile', () => {
   });
 
   describe('export options', () => {
-    it('should have prepared default general options', () => {
+    it('should have prepared default general options', async() => {
       handsontable();
       const csv = getPlugin('exportFile')._createTypeFormatter('csv');
 
@@ -29,7 +29,7 @@ describe('exportFile', () => {
   });
 
   describe('`exportAsString` method', () => {
-    it('should create formatter class and call `export` method on it', () => {
+    it('should create formatter class and call `export` method on it', async() => {
       handsontable();
       const plugin = getPlugin('exportFile');
       const formatter = jasmine.createSpyObj('formatter', ['export']);
@@ -46,7 +46,7 @@ describe('exportFile', () => {
   });
 
   describe('`exportAsBlob` method', () => {
-    it('should create formatter class and create blob object contains exported value', () => {
+    it('should create formatter class and create blob object contains exported value', async() => {
       handsontable();
       const plugin = getPlugin('exportFile');
       const formatter = jasmine.createSpy('formatter');
@@ -63,9 +63,9 @@ describe('exportFile', () => {
   });
 
   describe('`_createTypeFormatter` method', () => {
-    it('should create formatter type object', () => {
-      const hot = handsontable();
-      const plugin = hot.getPlugin('exportFile');
+    it('should create formatter type object', async() => {
+      handsontable();
+      const plugin = getPlugin('exportFile');
 
       const result = plugin._createTypeFormatter('csv');
 
@@ -73,7 +73,7 @@ describe('exportFile', () => {
       expect(result.options.fileExtension).toBeDefined('csv');
     });
 
-    it('should throw exception when specified formatter type is not exist', () => {
+    it('should throw exception when specified formatter type is not exist', async() => {
       handsontable();
       const plugin = getPlugin('exportFile');
 
@@ -84,7 +84,7 @@ describe('exportFile', () => {
   });
 
   describe('`_createBlob` method', () => {
-    it('should create blob object contains exported value', () => {
+    it('should create blob object contains exported value', async() => {
       handsontable();
       const plugin = getPlugin('exportFile');
       const formatter = jasmine.createSpyObj('formatter', ['export']);

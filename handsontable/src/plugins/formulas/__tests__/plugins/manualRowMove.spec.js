@@ -22,8 +22,8 @@ describe('Formulas', () => {
 
   describe('manualRowMove', () => {
     describe('should not move elements for some calls', () => {
-      it('[0, 1] -> 0', () => {
-        const hot = handsontable({
+      it('[0, 1] -> 0', async() => {
+        handsontable({
           data: dataset,
           formulas: {
             engine: HyperFormula,
@@ -31,8 +31,8 @@ describe('Formulas', () => {
           manualRowMove: true,
         });
 
-        hot.getPlugin('manualRowMove').moveRows([0, 1], 0);
-        hot.render();
+        getPlugin('manualRowMove').moveRows([0, 1], 0);
+        await render();
 
         expect(getData()).toEqual([
           [1, 2, 3, 4, 5],
@@ -51,8 +51,8 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[3, 4] -> 3', () => {
-        const hot = handsontable({
+      it('[3, 4] -> 3', async() => {
+        handsontable({
           data: dataset,
           formulas: {
             engine: HyperFormula,
@@ -60,8 +60,8 @@ describe('Formulas', () => {
           manualRowMove: true,
         });
 
-        hot.getPlugin('manualRowMove').moveRows([3, 4], 3);
-        hot.render();
+        getPlugin('manualRowMove').moveRows([3, 4], 3);
+        await render();
 
         expect(getData()).toEqual([
           [1, 2, 3, 4, 5],
@@ -80,8 +80,8 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[1, 2, 3, 4] -> 1', () => {
-        const hot = handsontable({
+      it('[1, 2, 3, 4] -> 1', async() => {
+        handsontable({
           data: dataset,
           formulas: {
             engine: HyperFormula,
@@ -89,8 +89,8 @@ describe('Formulas', () => {
           manualRowMove: true,
         });
 
-        hot.getPlugin('manualRowMove').moveRows([1, 2, 3, 4], 1);
-        hot.render();
+        getPlugin('manualRowMove').moveRows([1, 2, 3, 4], 1);
+        await render();
 
         expect(getData()).toEqual([
           [1, 2, 3, 4, 5],
@@ -109,8 +109,8 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[0, 1, 2, 3, 4] -> 0', () => {
-        const hot = handsontable({
+      it('[0, 1, 2, 3, 4] -> 0', async() => {
+        handsontable({
           data: dataset,
           formulas: {
             engine: HyperFormula,
@@ -118,8 +118,8 @@ describe('Formulas', () => {
           manualRowMove: true,
         });
 
-        hot.getPlugin('manualRowMove').moveRows([0, 1, 2, 3, 4], 0);
-        hot.render();
+        getPlugin('manualRowMove').moveRows([0, 1, 2, 3, 4], 0);
+        await render();
 
         expect(getData()).toEqual([
           [1, 2, 3, 4, 5],
@@ -140,8 +140,8 @@ describe('Formulas', () => {
     });
 
     describe('should move elements from top to bottom properly', () => {
-      it('[0, 1] -> 1', () => {
-        const hot = handsontable({
+      it('[0, 1] -> 1', async() => {
+        handsontable({
           data: dataset,
           formulas: {
             engine: HyperFormula,
@@ -149,8 +149,8 @@ describe('Formulas', () => {
           manualRowMove: true,
         });
 
-        hot.getPlugin('manualRowMove').moveRows([0, 1], 1);
-        hot.render();
+        getPlugin('manualRowMove').moveRows([0, 1], 1);
+        await render();
 
         expect(getData()).toEqual([
           [111, 112, 113, 114, 115],
@@ -171,8 +171,8 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[0, 1] -> 2', () => {
-        const hot = handsontable({
+      it('[0, 1] -> 2', async() => {
+        handsontable({
           data: dataset,
           formulas: {
             engine: HyperFormula,
@@ -180,8 +180,8 @@ describe('Formulas', () => {
           manualRowMove: true,
         });
 
-        hot.getPlugin('manualRowMove').moveRows([0, 1], 2);
-        hot.render();
+        getPlugin('manualRowMove').moveRows([0, 1], 2);
+        await render();
 
         expect(getData()).toEqual([
           [111, 112, 113, 114, 115],
@@ -202,8 +202,8 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[0, 1] -> 3', () => {
-        const hot = handsontable({
+      it('[0, 1] -> 3', async() => {
+        handsontable({
           data: dataset,
           formulas: {
             engine: HyperFormula,
@@ -211,8 +211,8 @@ describe('Formulas', () => {
           manualRowMove: true,
         });
 
-        hot.getPlugin('manualRowMove').moveRows([0, 1], 3);
-        hot.render();
+        getPlugin('manualRowMove').moveRows([0, 1], 3);
+        await render();
 
         expect(getData()).toEqual([
           [111, 112, 113, 114, 115],
@@ -233,8 +233,8 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[0, 2] -> 2', () => {
-        const hot = handsontable({
+      it('[0, 2] -> 2', async() => {
+        handsontable({
           data: dataset,
           formulas: {
             engine: HyperFormula,
@@ -242,8 +242,8 @@ describe('Formulas', () => {
           manualRowMove: true,
         });
 
-        hot.getPlugin('manualRowMove').moveRows([0, 2], 2);
-        hot.render();
+        getPlugin('manualRowMove').moveRows([0, 2], 2);
+        await render();
 
         expect(getData()).toEqual([
           [11, 12, 13, 14, 15],
@@ -264,8 +264,8 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[0, 2] -> 3', () => {
-        const hot = handsontable({
+      it('[0, 2] -> 3', async() => {
+        handsontable({
           data: dataset,
           formulas: {
             engine: HyperFormula,
@@ -273,8 +273,8 @@ describe('Formulas', () => {
           manualRowMove: true,
         });
 
-        hot.getPlugin('manualRowMove').moveRows([0, 2], 3);
-        hot.render();
+        getPlugin('manualRowMove').moveRows([0, 2], 3);
+        await render();
 
         expect(getData()).toEqual([
           [11, 12, 13, 14, 15],
@@ -295,8 +295,8 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[0, 3] -> 3', () => {
-        const hot = handsontable({
+      it('[0, 3] -> 3', async() => {
+        handsontable({
           data: dataset,
           formulas: {
             engine: HyperFormula,
@@ -304,8 +304,8 @@ describe('Formulas', () => {
           manualRowMove: true,
         });
 
-        hot.getPlugin('manualRowMove').moveRows([0, 3], 3);
-        hot.render();
+        getPlugin('manualRowMove').moveRows([0, 3], 3);
+        await render();
 
         expect(getData()).toEqual([
           [11, 12, 13, 14, 15],
@@ -326,8 +326,8 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[0, 1, 2] -> 2', () => {
-        const hot = handsontable({
+      it('[0, 1, 2] -> 2', async() => {
+        handsontable({
           data: dataset,
           formulas: {
             engine: HyperFormula,
@@ -335,8 +335,8 @@ describe('Formulas', () => {
           manualRowMove: true,
         });
 
-        hot.getPlugin('manualRowMove').moveRows([0, 1, 2], 2);
-        hot.render();
+        getPlugin('manualRowMove').moveRows([0, 1, 2], 2);
+        await render();
 
         expect(getData()).toEqual([
           [1111, 1112, 1113, 1114, 1115],
@@ -357,8 +357,8 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[0, 1, 2, 3] -> 1', () => {
-        const hot = handsontable({
+      it('[0, 1, 2, 3] -> 1', async() => {
+        handsontable({
           data: dataset,
           formulas: {
             engine: HyperFormula,
@@ -366,8 +366,8 @@ describe('Formulas', () => {
           manualRowMove: true,
         });
 
-        hot.getPlugin('manualRowMove').moveRows([0, 1, 2, 3], 1);
-        hot.render();
+        getPlugin('manualRowMove').moveRows([0, 1, 2, 3], 1);
+        await render();
 
         expect(getData()).toEqual([
           [1001111, 1001112, 1001113, 1001114, 1001115],
@@ -389,8 +389,8 @@ describe('Formulas', () => {
       });
 
       describe('moving mixed elements', () => {
-        it('[1, 0] -> 3', () => {
-          const hot = handsontable({
+        it('[1, 0] -> 3', async() => {
+          handsontable({
             data: dataset,
             formulas: {
               engine: HyperFormula,
@@ -398,8 +398,8 @@ describe('Formulas', () => {
             manualRowMove: true,
           });
 
-          hot.getPlugin('manualRowMove').moveRows([1, 0], 3);
-          hot.render();
+          getPlugin('manualRowMove').moveRows([1, 0], 3);
+          await render();
 
           expect(getData()).toEqual([
             [111, 112, 113, 114, 115],
@@ -420,8 +420,8 @@ describe('Formulas', () => {
           ]);
         });
 
-        it('[1, 0, 3] -> 2', () => {
-          const hot = handsontable({
+        it('[1, 0, 3] -> 2', async() => {
+          handsontable({
             data: dataset,
             formulas: {
               engine: HyperFormula,
@@ -429,8 +429,8 @@ describe('Formulas', () => {
             manualRowMove: true,
           });
 
-          hot.getPlugin('manualRowMove').moveRows([1, 0, 3], 2);
-          hot.render();
+          getPlugin('manualRowMove').moveRows([1, 0, 3], 2);
+          await render();
 
           expect(getData()).toEqual([
             [111, 112, 113, 114, 115],
@@ -451,8 +451,8 @@ describe('Formulas', () => {
           ]);
         });
 
-        it('[1, 0, 3, 2] -> 1', () => {
-          const hot = handsontable({
+        it('[1, 0, 3, 2] -> 1', async() => {
+          handsontable({
             data: dataset,
             formulas: {
               engine: HyperFormula,
@@ -460,8 +460,8 @@ describe('Formulas', () => {
             manualRowMove: true,
           });
 
-          hot.getPlugin('manualRowMove').moveRows([1, 0, 3, 2], 1);
-          hot.render();
+          getPlugin('manualRowMove').moveRows([1, 0, 3, 2], 1);
+          await render();
 
           expect(getData()).toEqual([
             [1001111, 1001112, 1001113, 1001114, 1001115],
@@ -485,8 +485,8 @@ describe('Formulas', () => {
     });
 
     describe('should move elements from bottom to top properly', () => {
-      it('[3, 4] -> 0', () => {
-        const hot = handsontable({
+      it('[3, 4] -> 0', async() => {
+        handsontable({
           data: dataset,
           formulas: {
             engine: HyperFormula,
@@ -494,8 +494,8 @@ describe('Formulas', () => {
           manualRowMove: true,
         });
 
-        hot.getPlugin('manualRowMove').moveRows([3, 4], 0);
-        hot.render();
+        getPlugin('manualRowMove').moveRows([3, 4], 0);
+        await render();
 
         expect(getData()).toEqual([
           [1111, 1112, 1113, 1114, 1115],
@@ -516,8 +516,8 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[3, 4] -> 1', () => {
-        const hot = handsontable({
+      it('[3, 4] -> 1', async() => {
+        handsontable({
           data: dataset,
           formulas: {
             engine: HyperFormula,
@@ -525,8 +525,8 @@ describe('Formulas', () => {
           manualRowMove: true,
         });
 
-        hot.getPlugin('manualRowMove').moveRows([3, 4], 1);
-        hot.render();
+        getPlugin('manualRowMove').moveRows([3, 4], 1);
+        await render();
 
         expect(getData()).toEqual([
           [1, 2, 3, 4, 5],
@@ -547,8 +547,8 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[3, 4] -> 2', () => {
-        const hot = handsontable({
+      it('[3, 4] -> 2', async() => {
+        handsontable({
           data: dataset,
           formulas: {
             engine: HyperFormula,
@@ -556,8 +556,8 @@ describe('Formulas', () => {
           manualRowMove: true,
         });
 
-        hot.getPlugin('manualRowMove').moveRows([3, 4], 2);
-        hot.render();
+        getPlugin('manualRowMove').moveRows([3, 4], 2);
+        await render();
 
         expect(getData()).toEqual([
           [1, 2, 3, 4, 5],
@@ -578,8 +578,8 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[2, 4] -> 0', () => {
-        const hot = handsontable({
+      it('[2, 4] -> 0', async() => {
+        handsontable({
           data: dataset,
           formulas: {
             engine: HyperFormula,
@@ -587,8 +587,8 @@ describe('Formulas', () => {
           manualRowMove: true,
         });
 
-        hot.getPlugin('manualRowMove').moveRows([2, 4], 0);
-        hot.render();
+        getPlugin('manualRowMove').moveRows([2, 4], 0);
+        await render();
 
         expect(getData()).toEqual([
           [111, 112, 113, 114, 115],
@@ -609,8 +609,8 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[2, 4] -> 1', () => {
-        const hot = handsontable({
+      it('[2, 4] -> 1', async() => {
+        handsontable({
           data: dataset,
           formulas: {
             engine: HyperFormula,
@@ -618,8 +618,8 @@ describe('Formulas', () => {
           manualRowMove: true,
         });
 
-        hot.getPlugin('manualRowMove').moveRows([2, 4], 1);
-        hot.render();
+        getPlugin('manualRowMove').moveRows([2, 4], 1);
+        await render();
 
         expect(getData()).toEqual([
           [1, 2, 3, 4, 5],
@@ -640,8 +640,8 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[2, 4] -> 2', () => {
-        const hot = handsontable({
+      it('[2, 4] -> 2', async() => {
+        handsontable({
           data: dataset,
           formulas: {
             engine: HyperFormula,
@@ -649,8 +649,8 @@ describe('Formulas', () => {
           manualRowMove: true,
         });
 
-        hot.getPlugin('manualRowMove').moveRows([2, 4], 2);
-        hot.render();
+        getPlugin('manualRowMove').moveRows([2, 4], 2);
+        await render();
 
         expect(getData()).toEqual([
           [1, 2, 3, 4, 5],
@@ -672,8 +672,8 @@ describe('Formulas', () => {
       });
 
       describe('moving mixed elements', () => {
-        it('[4, 2] -> 0', () => {
-          const hot = handsontable({
+        it('[4, 2] -> 0', async() => {
+          handsontable({
             data: dataset,
             formulas: {
               engine: HyperFormula,
@@ -681,8 +681,8 @@ describe('Formulas', () => {
             manualRowMove: true,
           });
 
-          hot.getPlugin('manualRowMove').moveRows([4, 2], 0);
-          hot.render();
+          getPlugin('manualRowMove').moveRows([4, 2], 0);
+          await render();
 
           expect(getData()).toEqual([
             [1001111, 1001112, 1001113, 1001114, 1001115],
@@ -703,8 +703,8 @@ describe('Formulas', () => {
           ]);
         });
 
-        it('[4, 3, 1] -> 0', () => {
-          const hot = handsontable({
+        it('[4, 3, 1] -> 0', async() => {
+          handsontable({
             data: dataset,
             formulas: {
               engine: HyperFormula,
@@ -712,8 +712,8 @@ describe('Formulas', () => {
             manualRowMove: true,
           });
 
-          hot.getPlugin('manualRowMove').moveRows([4, 3, 1], 0);
-          hot.render();
+          getPlugin('manualRowMove').moveRows([4, 3, 1], 0);
+          await render();
 
           expect(getData()).toEqual([
             [1001111, 1001112, 1001113, 1001114, 1001115],
@@ -734,8 +734,8 @@ describe('Formulas', () => {
           ]);
         });
 
-        it('[4, 3, 2, 1] -> 0', () => {
-          const hot = handsontable({
+        it('[4, 3, 2, 1] -> 0', async() => {
+          handsontable({
             data: dataset,
             formulas: {
               engine: HyperFormula,
@@ -743,8 +743,8 @@ describe('Formulas', () => {
             manualRowMove: true,
           });
 
-          hot.getPlugin('manualRowMove').moveRows([4, 3, 2, 1], 0);
-          hot.render();
+          getPlugin('manualRowMove').moveRows([4, 3, 2, 1], 0);
+          await render();
 
           expect(getData()).toEqual([
             [1001111, 1001112, 1001113, 1001114, 1001115],
@@ -765,8 +765,8 @@ describe('Formulas', () => {
           ]);
         });
 
-        it('[4, 2, 3, 1] -> 0', () => {
-          const hot = handsontable({
+        it('[4, 2, 3, 1] -> 0', async() => {
+          handsontable({
             data: dataset,
             formulas: {
               engine: HyperFormula,
@@ -774,8 +774,8 @@ describe('Formulas', () => {
             manualRowMove: true,
           });
 
-          hot.getPlugin('manualRowMove').moveRows([4, 2, 3, 1], 0);
-          hot.render();
+          getPlugin('manualRowMove').moveRows([4, 2, 3, 1], 0);
+          await render();
 
           expect(getData()).toEqual([
             [1001111, 1001112, 1001113, 1001114, 1001115],
@@ -796,8 +796,8 @@ describe('Formulas', () => {
           ]);
         });
 
-        it('[0, 3, 4, 1] -> 0', () => {
-          const hot = handsontable({
+        it('[0, 3, 4, 1] -> 0', async() => {
+          handsontable({
             data: dataset,
             formulas: {
               engine: HyperFormula,
@@ -805,8 +805,8 @@ describe('Formulas', () => {
             manualRowMove: true,
           });
 
-          hot.getPlugin('manualRowMove').moveRows([0, 3, 4, 1], 0);
-          hot.render();
+          getPlugin('manualRowMove').moveRows([0, 3, 4, 1], 0);
+          await render();
 
           expect(getData()).toEqual([
             [1, 2, 3, 4, 5],
@@ -827,8 +827,8 @@ describe('Formulas', () => {
           ]);
         });
 
-        it('[5, 4, 3, 2, 1, 0] -> 0', () => {
-          const hot = handsontable({
+        it('[5, 4, 3, 2, 1, 0] -> 0', async() => {
+          handsontable({
             data: [
               [1, 2, 3, 4, 5],
               ['=A1+10', '=B1+10', '=C1+10', '=D1+10', '=E1+10'],
@@ -843,8 +843,8 @@ describe('Formulas', () => {
             manualRowMove: true,
           });
 
-          hot.getPlugin('manualRowMove').moveRows([5, 4, 3, 2, 1, 0], 0);
-          hot.render();
+          getPlugin('manualRowMove').moveRows([5, 4, 3, 2, 1, 0], 0);
+          await render();
 
           expect(getData()).toEqual([
             [0, 0, 0, 0, 0],
@@ -870,8 +870,8 @@ describe('Formulas', () => {
     });
 
     describe('should move elements, placed on both sides, to the middle properly', () => {
-      it('[2, 4] -> 3', () => {
-        const hot = handsontable({
+      it('[2, 4] -> 3', async() => {
+        handsontable({
           data: dataset,
           formulas: {
             engine: HyperFormula,
@@ -879,8 +879,8 @@ describe('Formulas', () => {
           manualRowMove: true,
         });
 
-        hot.getPlugin('manualRowMove').moveRows([2, 4], 3);
-        hot.render();
+        getPlugin('manualRowMove').moveRows([2, 4], 3);
+        await render();
 
         expect(getData()).toEqual([
           [1, 2, 3, 4, 5],
@@ -901,8 +901,8 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[0, 3, 4] -> 1', () => {
-        const hot = handsontable({
+      it('[0, 3, 4] -> 1', async() => {
+        handsontable({
           data: dataset,
           formulas: {
             engine: HyperFormula,
@@ -910,8 +910,8 @@ describe('Formulas', () => {
           manualRowMove: true,
         });
 
-        hot.getPlugin('manualRowMove').moveRows([0, 3, 4], 1);
-        hot.render();
+        getPlugin('manualRowMove').moveRows([0, 3, 4], 1);
+        await render();
 
         expect(getData()).toEqual([
           [11, 12, 13, 14, 15],
@@ -934,8 +934,8 @@ describe('Formulas', () => {
     });
 
     describe('moving elements when there are some trimmed elements', () => {
-      it('[0] -> 1 (trimmed [0, 1])', () => {
-        const hot = handsontable({
+      it('[0] -> 1 (trimmed [0, 1])', async() => {
+        handsontable({
           data: dataset,
           formulas: {
             engine: HyperFormula,
@@ -944,8 +944,8 @@ describe('Formulas', () => {
           trimRows: [0, 1]
         });
 
-        hot.getPlugin('manualRowMove').moveRows([0], 1);
-        hot.render();
+        getPlugin('manualRowMove').moveRows([0], 1);
+        await render();
 
         expect(getData()).toEqual([
           [1111, 1112, 1113, 1114, 1115],
@@ -964,8 +964,8 @@ describe('Formulas', () => {
         ]);
       });
 
-      it('[2, 1] -> 0 (trimmed [0, 1])', () => {
-        const hot = handsontable({
+      it('[2, 1] -> 0 (trimmed [0, 1])', async() => {
+        handsontable({
           data: dataset,
           formulas: {
             engine: HyperFormula,
@@ -974,8 +974,8 @@ describe('Formulas', () => {
           trimRows: [0, 1]
         });
 
-        hot.getPlugin('manualRowMove').moveRows([2, 1], 0);
-        hot.render();
+        getPlugin('manualRowMove').moveRows([2, 1], 0);
+        await render();
 
         expect(getData()).toEqual([
           [1001111, 1001112, 1001113, 1001114, 1001115],
@@ -995,8 +995,8 @@ describe('Formulas', () => {
       });
     });
 
-    it('should cooperate with UndoRedo properly', () => {
-      const hot = handsontable({
+    it('should cooperate with UndoRedo properly', async() => {
+      handsontable({
         data: dataset,
         formulas: {
           engine: HyperFormula,
@@ -1004,8 +1004,8 @@ describe('Formulas', () => {
         manualRowMove: true,
       });
 
-      hot.getPlugin('manualRowMove').moveRows([0, 1, 2], 2);
-      hot.render();
+      getPlugin('manualRowMove').moveRows([0, 1, 2], 2);
+      await render();
 
       getPlugin('undoRedo').undo();
 
@@ -1027,7 +1027,7 @@ describe('Formulas', () => {
         ['=A4+1000000', '=B4+1000000', '=C4+1000000', '=D4+1000000', '=E4+1000000'],
       ]);
 
-      hot.getPlugin('undoRedo').redo();
+      getPlugin('undoRedo').redo();
 
       expect(getData()).toEqual([
         [1111, 1112, 1113, 1114, 1115],
@@ -1067,7 +1067,7 @@ describe('Formulas', () => {
         ['=A4+1000000', '=B4+1000000', '=C4+1000000', '=D4+1000000', '=E4+1000000'],
       ]);
 
-      hot.getPlugin('undoRedo').redo();
+      getPlugin('undoRedo').redo();
 
       expect(getData()).toEqual([
         [1111, 1112, 1113, 1114, 1115],

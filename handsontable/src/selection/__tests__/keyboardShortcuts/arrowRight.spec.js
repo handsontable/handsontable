@@ -26,19 +26,19 @@ describe('Selection navigation', () => {
   }
 
   describe('"ArrowRight"', () => {
-    it('should move the cell selection to the right', () => {
+    it('should move the cell selection to the right', async() => {
       handsontable({
         startRows: 5,
         startCols: 5
       });
 
-      selectCell(0, 0);
-      keyDownUp('arrowright');
+      await selectCell(0, 0);
+      await keyDownUp('arrowright');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: 0,1 to: 0,1']);
     });
 
-    it('should move the header selection to the right (navigableHeaders on)', () => {
+    it('should move the header selection to the right (navigableHeaders on)', async() => {
       handsontable({
         startRows: 5,
         startCols: 5,
@@ -46,13 +46,13 @@ describe('Selection navigation', () => {
         navigableHeaders: true,
       });
 
-      selectCell(-1, 1);
-      keyDownUp('arrowright');
+      await selectCell(-1, 1);
+      await keyDownUp('arrowright');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,2 from: -1,2 to: -1,2']);
     });
 
-    it('should move the header selection to the right when there is no rows (navigableHeaders on)', () => {
+    it('should move the header selection to the right when there is no rows (navigableHeaders on)', async() => {
       handsontable({
         data: [],
         columns: [{}, {}, {}, {}, {}],
@@ -60,13 +60,13 @@ describe('Selection navigation', () => {
         navigableHeaders: true,
       });
 
-      selectCell(-1, 1);
-      keyDownUp('arrowright');
+      await selectCell(-1, 1);
+      await keyDownUp('arrowright');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,2 from: -1,2 to: -1,2']);
     });
 
-    it('should move the header selection to the right from the corner when there is no rows (navigableHeaders on)', () => {
+    it('should move the header selection to the right from the corner when there is no rows (navigableHeaders on)', async() => {
       handsontable({
         data: [],
         columns: [{}, {}, {}, {}, {}],
@@ -75,8 +75,8 @@ describe('Selection navigation', () => {
         navigableHeaders: true,
       });
 
-      selectCell(-1, -1);
-      keyDownUp('arrowright');
+      await selectCell(-1, -1);
+      await keyDownUp('arrowright');
 
       expect(`
         |   ║ # :   :   :   :   |
@@ -85,7 +85,7 @@ describe('Selection navigation', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,0 from: -1,0 to: -1,0']);
     });
 
-    it('should move the header selection to the right when all rows are hidden (navigableHeaders on)', () => {
+    it('should move the header selection to the right when all rows are hidden (navigableHeaders on)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
@@ -93,44 +93,44 @@ describe('Selection navigation', () => {
       });
 
       rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
-      render();
+      await render();
 
-      selectCell(-1, 1);
-      keyDownUp('arrowright');
+      await selectCell(-1, 1);
+      await keyDownUp('arrowright');
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,2 from: -1,2 to: -1,2']);
     });
 
     describe('with autoWrap disabled', () => {
-      it('should NOT move the cell selection to the row below, if the last column is already selected', () => {
+      it('should NOT move the cell selection to the row below, if the last column is already selected', async() => {
         handsontable({
           startRows: 5,
           startCols: 5,
           autoWrapRow: false
         });
 
-        selectCell(0, 4);
-        keyDownUp('arrowright');
+        await selectCell(0, 4);
+        await keyDownUp('arrowright');
 
         expect(getSelectedRange()).toEqualCellRange(['highlight: 0,4 from: 0,4 to: 0,4']);
       });
     });
 
     describe('with autoWrap enabled', () => {
-      it('should move the cell selection to the first column of the row below, if the last column is already selected', () => {
+      it('should move the cell selection to the first column of the row below, if the last column is already selected', async() => {
         handsontable({
           startRows: 5,
           startCols: 5,
           autoWrapRow: true
         });
 
-        selectCell(0, 4);
-        keyDownUp('arrowright');
+        await selectCell(0, 4);
+        await keyDownUp('arrowright');
 
         expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: 1,0 to: 1,0']);
       });
 
-      it('should move the cell selection to the first column of the row below, if the last column is already selected (with headers, navigableHeaders off)', () => {
+      it('should move the cell selection to the first column of the row below, if the last column is already selected (with headers, navigableHeaders off)', async() => {
         handsontable({
           startRows: 5,
           startCols: 5,
@@ -139,13 +139,13 @@ describe('Selection navigation', () => {
           autoWrapRow: true
         });
 
-        selectCell(0, 4);
-        keyDownUp('arrowright');
+        await selectCell(0, 4);
+        await keyDownUp('arrowright');
 
         expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: 1,0 to: 1,0']);
       });
 
-      it('should move the cell selection to the first column of the row below, if the last column is already selected (with headers, navigableHeaders on)', () => {
+      it('should move the cell selection to the first column of the row below, if the last column is already selected (with headers, navigableHeaders on)', async() => {
         handsontable({
           startRows: 5,
           startCols: 5,
@@ -163,26 +163,26 @@ describe('Selection navigation', () => {
           },
         });
 
-        selectCell(0, 4);
-        keyDownUp('arrowright');
+        await selectCell(0, 4);
+        await keyDownUp('arrowright');
 
         expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-3 from: 1,-3 to: 1,-3']);
       });
 
-      it('should move the cell selection to the top-left corner, if the most bottom-right cell is selected', () => {
+      it('should move the cell selection to the top-left corner, if the most bottom-right cell is selected', async() => {
         handsontable({
           startRows: 5,
           startCols: 5,
           autoWrapRow: true
         });
 
-        selectCell(4, 4);
-        keyDownUp('arrowright');
+        await selectCell(4, 4);
+        await keyDownUp('arrowright');
 
         expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: 0,0 to: 0,0']);
       });
 
-      it('should move the cell selection to the top-left corner, if the most bottom-right cell is selected (with headers, navigableHeaders off)', () => {
+      it('should move the cell selection to the top-left corner, if the most bottom-right cell is selected (with headers, navigableHeaders off)', async() => {
         handsontable({
           startRows: 5,
           startCols: 5,
@@ -191,13 +191,13 @@ describe('Selection navigation', () => {
           autoWrapRow: true,
         });
 
-        selectCell(4, 4);
-        keyDownUp('arrowright');
+        await selectCell(4, 4);
+        await keyDownUp('arrowright');
 
         expect(getSelectedRange()).toEqualCellRange(['highlight: 0,0 from: 0,0 to: 0,0']);
       });
 
-      it('should move the cell selection to the top-left corner, if the most bottom-right cell is selected (with headers, navigableHeaders on)', () => {
+      it('should move the cell selection to the top-left corner, if the most bottom-right cell is selected (with headers, navigableHeaders on)', async() => {
         handsontable({
           startRows: 5,
           startCols: 5,
@@ -215,27 +215,27 @@ describe('Selection navigation', () => {
           },
         });
 
-        selectCell(4, 4);
-        keyDownUp('arrowright');
+        await selectCell(4, 4);
+        await keyDownUp('arrowright');
 
         expect(getSelectedRange()).toEqualCellRange(['highlight: -3,-3 from: -3,-3 to: -3,-3']);
       });
 
-      it('should traverse whole table by constantly selecting next cell in row', () => {
+      it('should traverse whole table by constantly selecting next cell in row', async() => {
         handsontable({
           startRows: 5,
           startCols: 5,
           autoWrapRow: true
         });
 
-        selectCell(0, 0);
+        await selectCell(0, 0);
 
         for (let row = 0, rlen = countRows(); row < rlen; row++) {
           for (let col = 0, clen = countCols(); col < clen; col++) {
             expect(getSelectedRange()).toEqualCellRange([
               `highlight: ${row},${col} from: ${row},${col} to: ${row},${col}`
             ]);
-            keyDownUp('arrowright');
+            await keyDownUp('arrowright');
           }
         }
 

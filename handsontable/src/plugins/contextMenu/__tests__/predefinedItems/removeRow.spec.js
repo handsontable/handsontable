@@ -13,7 +13,7 @@ describe('ContextMenu', () => {
   });
 
   describe('remove rows', () => {
-    it('should not remove row when the menu is triggered by column header', () => {
+    it('should not remove row when the menu is triggered by column header', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
@@ -21,15 +21,15 @@ describe('ContextMenu', () => {
         contextMenu: true,
       });
 
-      contextMenu(getCell(-1, 1, true));
+      await contextMenu(getCell(-1, 1, true));
 
-      const item = selectContextMenuOption('Remove row');
+      const item = await selectContextMenuOption('Remove row');
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5']);
     });
 
-    it('should remove row of the clicked row header', () => {
+    it('should remove row of the clicked row header', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
@@ -37,9 +37,9 @@ describe('ContextMenu', () => {
         contextMenu: true,
       });
 
-      contextMenu(getCell(1, -1, true));
+      await contextMenu(getCell(1, -1, true));
 
-      const item = selectContextMenuOption('Remove row');
+      const item = await selectContextMenuOption('Remove row');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtCol(0)).toEqual(['A1', 'A3', 'A4', 'A5']);
@@ -53,7 +53,7 @@ describe('ContextMenu', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should remove row when the menu is triggered by focused row header', () => {
+    it('should remove row when the menu is triggered by focused row header', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
@@ -62,16 +62,16 @@ describe('ContextMenu', () => {
         navigableHeaders: true,
       });
 
-      selectCell(1, -1);
+      await selectCell(1, -1);
       getPlugin('contextMenu').open({ top: 0, left: 0 });
 
-      const item = selectContextMenuOption('Remove row');
+      const item = await selectContextMenuOption('Remove row');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtCol(0)).toEqual(['A1', 'A3', 'A4', 'A5']);
     });
 
-    it('should not remove row when the menu is triggered by focused corner', () => {
+    it('should not remove row when the menu is triggered by focused corner', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
@@ -80,16 +80,16 @@ describe('ContextMenu', () => {
         navigableHeaders: true,
       });
 
-      selectCell(-1, -1);
+      await selectCell(-1, -1);
       getPlugin('contextMenu').open({ top: 0, left: 0 });
 
-      const item = selectContextMenuOption('Remove row');
+      const item = await selectContextMenuOption('Remove row');
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5']);
     });
 
-    it('should not remove row when the menu is triggered by focused column header', () => {
+    it('should not remove row when the menu is triggered by focused column header', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
@@ -98,16 +98,16 @@ describe('ContextMenu', () => {
         navigableHeaders: true,
       });
 
-      selectCell(-1, 1);
+      await selectCell(-1, 1);
       getPlugin('contextMenu').open({ top: 0, left: 0 });
 
-      const item = selectContextMenuOption('Remove row');
+      const item = await selectContextMenuOption('Remove row');
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5']);
     });
 
-    it('should remove all rows when the menu is triggered by corner', () => {
+    it('should remove all rows when the menu is triggered by corner', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
@@ -115,9 +115,9 @@ describe('ContextMenu', () => {
         contextMenu: true,
       });
 
-      contextMenu(getCell(-1, -1, true));
+      await contextMenu(getCell(-1, -1, true));
 
-      const item = selectContextMenuOption('Remove row');
+      const item = await selectContextMenuOption('Remove row');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getData()).toEqual([]);
@@ -127,7 +127,7 @@ describe('ContextMenu', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should not remove rows when the menu is triggered by corner and all rows are trimmed', () => {
+    it('should not remove rows when the menu is triggered by corner and all rows are trimmed', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
@@ -136,9 +136,9 @@ describe('ContextMenu', () => {
         trimRows: [0, 1, 2, 3, 4],
       });
 
-      contextMenu(getCell(-1, -1, true));
+      await contextMenu(getCell(-1, -1, true));
 
-      const item = selectContextMenuOption('Remove row');
+      const item = await selectContextMenuOption('Remove row');
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(`
@@ -147,7 +147,7 @@ describe('ContextMenu', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should remove all rows when the menu is triggered by corner and all columns are trimmed', () => {
+    it('should remove all rows when the menu is triggered by corner and all columns are trimmed', async() => {
       handsontable({
         data: createSpreadsheetData(5, 0),
         colHeaders: true,
@@ -155,9 +155,9 @@ describe('ContextMenu', () => {
         contextMenu: true,
       });
 
-      contextMenu(getCell(-1, -1, true));
+      await contextMenu(getCell(-1, -1, true));
 
-      const item = selectContextMenuOption('Remove row');
+      const item = await selectContextMenuOption('Remove row');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getData()).toEqual([]);
@@ -167,7 +167,7 @@ describe('ContextMenu', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should not remove rows when the menu is triggered by corner and dataset is empty', () => {
+    it('should not remove rows when the menu is triggered by corner and dataset is empty', async() => {
       handsontable({
         data: createSpreadsheetData(0, 0),
         colHeaders: true,
@@ -175,9 +175,9 @@ describe('ContextMenu', () => {
         contextMenu: true,
       });
 
-      contextMenu(getCell(-1, -1, true));
+      await contextMenu(getCell(-1, -1, true));
 
-      const item = selectContextMenuOption('Remove row');
+      const item = await selectContextMenuOption('Remove row');
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(`
@@ -186,7 +186,7 @@ describe('ContextMenu', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should remove row from the single cell', () => {
+    it('should remove row from the single cell', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
@@ -194,9 +194,9 @@ describe('ContextMenu', () => {
         contextMenu: true,
       });
 
-      contextMenu(getCell(1, 1));
+      await contextMenu(getCell(1, 1));
 
-      const item = selectContextMenuOption('Remove row');
+      const item = await selectContextMenuOption('Remove row');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtCol(0)).toEqual(['A1', 'A3', 'A4', 'A5']);
@@ -210,7 +210,7 @@ describe('ContextMenu', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should remove rows from the multiple selection range', () => {
+    it('should remove rows from the multiple selection range', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
@@ -218,10 +218,10 @@ describe('ContextMenu', () => {
         contextMenu: true,
       });
 
-      selectCell(2, 2, 4, 4);
-      contextMenu(getCell(2, 2));
+      await selectCell(2, 2, 4, 4);
+      await contextMenu(getCell(2, 2));
 
-      const item = selectContextMenuOption('Remove row');
+      const item = await selectContextMenuOption('Remove row');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtCol(0)).toEqual(['A1', 'A2']);
@@ -233,7 +233,7 @@ describe('ContextMenu', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should remove rows from the non-contiques selection range', () => {
+    it('should remove rows from the non-contiques selection range', async() => {
       handsontable({
         data: createSpreadsheetData(8, 8),
         colHeaders: true,
@@ -241,29 +241,29 @@ describe('ContextMenu', () => {
         contextMenu: true,
       });
 
-      mouseDown(getCell(0, 0));
-      mouseOver(getCell(1, 0));
-      mouseUp(getCell(1, 0));
+      await mouseDown(getCell(0, 0));
+      await mouseOver(getCell(1, 0));
+      await mouseUp(getCell(1, 0));
 
-      keyDown('control/meta');
+      await keyDown('control/meta');
 
-      mouseDown(getCell(2, 1));
-      mouseOver(getCell(2, 1));
-      mouseUp(getCell(2, 1));
+      await mouseDown(getCell(2, 1));
+      await mouseOver(getCell(2, 1));
+      await mouseUp(getCell(2, 1));
 
-      mouseDown(getCell(0, 3));
-      mouseOver(getCell(5, 3));
-      mouseUp(getCell(5, 3));
+      await mouseDown(getCell(0, 3));
+      await mouseOver(getCell(5, 3));
+      await mouseUp(getCell(5, 3));
 
-      mouseDown(getCell(5, 0));
-      mouseOver(getCell(5, 4));
-      mouseUp(getCell(5, 4));
+      await mouseDown(getCell(5, 0));
+      await mouseOver(getCell(5, 4));
+      await mouseUp(getCell(5, 4));
 
-      mouseDown(getCell(7, 4));
-      mouseOver(getCell(7, 4));
-      mouseUp(getCell(7, 4));
+      await mouseDown(getCell(7, 4));
+      await mouseOver(getCell(7, 4));
+      await mouseUp(getCell(7, 4));
 
-      keyUp('control/meta');
+      await keyUp('control/meta');
 
       expect(`
         |   ║ - : - : - : - : - :   :   :   |
@@ -278,9 +278,9 @@ describe('ContextMenu', () => {
         | - ║   :   :   :   : A :   :   :   |
         `).toBeMatchToSelectionPattern();
 
-      contextMenu();
+      await contextMenu();
 
-      const item = selectContextMenuOption('Remove row');
+      const item = await selectContextMenuOption('Remove row');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtCol(0)).toEqual(['A7']);
@@ -292,7 +292,7 @@ describe('ContextMenu', () => {
     });
 
     it('should not shift invalid row when removing a single row', async() => {
-      const hot = handsontable({
+      handsontable({
         data: [
           ['aaa', 2],
           ['bbb', 3],
@@ -313,15 +313,14 @@ describe('ContextMenu', () => {
         }
       });
 
-      hot.validateCells();
-
+      await validateCells();
       await sleep(150);
 
-      selectCell(1, 1);
-      contextMenu();
-      selectContextMenuOption('Remove row');
+      await selectCell(1, 1);
+      await contextMenu();
+      await selectContextMenuOption('Remove row');
 
-      expect($(hot.getCell(2, 1)).hasClass('htInvalid')).toBeTruthy();
+      expect($(getCell(2, 1)).hasClass('htInvalid')).toBeTruthy();
     });
   });
 });

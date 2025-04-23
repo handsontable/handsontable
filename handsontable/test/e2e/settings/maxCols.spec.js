@@ -14,9 +14,9 @@ describe('settings', () => {
     });
 
     describe('works on init', () => {
-      it('should show data properly when `maxCols` is set to 0', () => {
+      it('should show data properly when `maxCols` is set to 0', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           maxCols: 0
         });
 
@@ -31,9 +31,9 @@ describe('settings', () => {
         expect(getDataAtCol(1)).toEqual([]);
       });
 
-      it('should show data properly when `maxCols` is set to value > 0', () => {
+      it('should show data properly when `maxCols` is set to value > 0', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           maxCols: 5
         });
 
@@ -47,9 +47,9 @@ describe('settings', () => {
         expect(getDataAtCol(6)).toEqual([]);
       });
 
-      it('should show data properly when `maxCols` is set to infinity value', () => {
+      it('should show data properly when `maxCols` is set to infinity value', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           maxCols: Infinity
         });
 
@@ -64,7 +64,7 @@ describe('settings', () => {
       });
 
       describe('when `columns` property was set', () => {
-        it('should show data properly when `maxCols` is set to value > 0', () => {
+        it('should show data properly when `maxCols` is set to value > 0', async() => {
           handsontable({
             columns: [
               { type: 'text' },
@@ -89,12 +89,12 @@ describe('settings', () => {
     });
 
     describe('update settings works', () => {
-      it('should show data properly after maxCols is updated to 0', () => {
+      it('should show data properly after maxCols is updated to 0', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10)
+          data: createSpreadsheetData(10, 10)
         });
 
-        updateSettings({
+        await updateSettings({
           maxCols: 0
         });
 
@@ -108,12 +108,12 @@ describe('settings', () => {
         expect(getDataAtCol(1)).toEqual([]);
       });
 
-      it('should show data properly after maxCols is updated to value > 0 -> test no. 1', () => {
+      it('should show data properly after maxCols is updated to value > 0 -> test no. 1', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10)
+          data: createSpreadsheetData(10, 10)
         });
 
-        updateSettings({
+        await updateSettings({
           maxCols: 2
         });
 
@@ -127,13 +127,13 @@ describe('settings', () => {
         expect(getDataAtCol(3)).toEqual([]);
       });
 
-      it('should show data properly after maxCols is updated to value > 0 -> test no. 2', () => {
+      it('should show data properly after maxCols is updated to value > 0 -> test no. 2', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           maxCols: 5
         });
 
-        updateSettings({
+        await updateSettings({
           maxCols: 2
         });
 
@@ -147,13 +147,13 @@ describe('settings', () => {
         expect(getDataAtCol(3)).toEqual([]);
       });
 
-      it('should show data properly after maxCols is updated to value > 0 -> test no. 3', () => {
+      it('should show data properly after maxCols is updated to value > 0 -> test no. 3', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           maxCols: 2
         });
 
-        updateSettings({
+        await updateSettings({
           maxCols: 5
         });
 
@@ -167,12 +167,12 @@ describe('settings', () => {
         expect(getDataAtCol(6)).toEqual([]);
       });
 
-      it('should show data properly after maxCols is updated to infinity value -> test no. 1', () => {
+      it('should show data properly after maxCols is updated to infinity value -> test no. 1', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10)
+          data: createSpreadsheetData(10, 10)
         });
 
-        updateSettings({
+        await updateSettings({
           maxCols: Infinity
         });
 
@@ -186,13 +186,13 @@ describe('settings', () => {
         expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']);
       });
 
-      it('should show data properly after maxCols is updated to infinity value -> test no. 2', () => {
+      it('should show data properly after maxCols is updated to infinity value -> test no. 2', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           maxCols: 2
         });
 
-        updateSettings({
+        await updateSettings({
           maxCols: Infinity
         });
 
@@ -207,7 +207,7 @@ describe('settings', () => {
       });
 
       describe('works when `columns` property was set', () => {
-        it('should show data properly when `maxCols` is updated to value > 0', () => {
+        it('should show data properly when `maxCols` is updated to value > 0', async() => {
           handsontable({
             columns: [
               { type: 'text' },
@@ -219,7 +219,7 @@ describe('settings', () => {
             minRows: 10
           });
 
-          updateSettings({
+          await updateSettings({
             maxCols: 2
           });
 

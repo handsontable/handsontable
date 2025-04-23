@@ -24,8 +24,8 @@ describe('Corner selection scroll', () => {
       colHeaders: true,
     });
 
-    await scrollOverlay(inlineStartOverlay(), 25);
-    await scrollOverlay(topOverlay(), 50);
+    await scrollViewportHorizontally(25);
+    await scrollViewportVertically(50);
 
     await simulateClick(getCell(-1, -1));
 

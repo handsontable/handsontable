@@ -13,7 +13,7 @@ describe('Hook', () => {
   });
 
   describe('beforeViewportScrollVertically', () => {
-    it('should be fired when the viewport is scrolled vertically', () => {
+    it('should be fired when the viewport is scrolled vertically', async() => {
       const beforeViewportScrollVertically = jasmine.createSpy('beforeViewportScrollVertically');
 
       handsontable({
@@ -25,14 +25,14 @@ describe('Hook', () => {
         beforeViewportScrollVertically,
       });
 
-      scrollViewportTo({ row: 40 });
+      await scrollViewportTo({ row: 40 });
 
       expect(beforeViewportScrollVertically).toHaveBeenCalledOnceWith(40, jasmine.objectContaining({
         value: 'auto',
       }));
     });
 
-    it('should be fired when the viewport is scrolled vertically with snapping option', () => {
+    it('should be fired when the viewport is scrolled vertically with snapping option', async() => {
       const beforeViewportScrollVertically = jasmine.createSpy('beforeViewportScrollVertically');
 
       handsontable({
@@ -44,14 +44,14 @@ describe('Hook', () => {
         beforeViewportScrollVertically,
       });
 
-      scrollViewportTo({ row: 3, verticalSnap: 'end' });
+      await scrollViewportTo({ row: 3, verticalSnap: 'end' });
 
       expect(beforeViewportScrollVertically).toHaveBeenCalledOnceWith(3, jasmine.objectContaining({
         value: 'end',
       }));
     });
 
-    it('should be fired when the viewport is tried to scroll vertically (the row is already within the viewport)', () => {
+    it('should be fired when the viewport is tried to scroll vertically (the row is already within the viewport)', async() => {
       const beforeViewportScrollVertically = jasmine.createSpy('beforeViewportScrollVertically');
 
       handsontable({
@@ -63,14 +63,14 @@ describe('Hook', () => {
         beforeViewportScrollVertically,
       });
 
-      scrollViewportTo({ row: 3 });
+      await scrollViewportTo({ row: 3 });
 
       expect(beforeViewportScrollVertically).toHaveBeenCalledOnceWith(3, jasmine.objectContaining({
         value: 'auto',
       }));
     });
 
-    it('should not be fired when the viewport is scrolled horizontally', () => {
+    it('should not be fired when the viewport is scrolled horizontally', async() => {
       const beforeViewportScrollVertically = jasmine.createSpy('beforeViewportScrollVertically');
 
       handsontable({
@@ -82,12 +82,12 @@ describe('Hook', () => {
         beforeViewportScrollVertically,
       });
 
-      scrollViewportTo({ col: 3 });
+      await scrollViewportTo({ col: 3 });
 
       expect(beforeViewportScrollVertically).not.toHaveBeenCalledWith();
     });
 
-    it('should not be fired when the viewport is tried to scroll horizontally (the column is already within the viewport)', () => {
+    it('should not be fired when the viewport is tried to scroll horizontally (the column is already within the viewport)', async() => {
       const beforeViewportScrollVertically = jasmine.createSpy('beforeViewportScrollVertically');
 
       handsontable({
@@ -99,12 +99,12 @@ describe('Hook', () => {
         beforeViewportScrollVertically,
       });
 
-      scrollViewportTo({ col: 3 });
+      await scrollViewportTo({ col: 3 });
 
       expect(beforeViewportScrollVertically).not.toHaveBeenCalledWith();
     });
 
-    it('should be possible to change the snapping option', () => {
+    it('should be possible to change the snapping option', async() => {
       const beforeViewportScrollVertically = jasmine.createSpy('beforeViewportScrollVertically')
         .and
         .callFake((row, snapping) => {
@@ -120,14 +120,14 @@ describe('Hook', () => {
         beforeViewportScrollVertically,
       });
 
-      scrollViewportTo({ row: 10 });
+      await scrollViewportTo({ row: 10 });
 
       expect(beforeViewportScrollVertically).toHaveBeenCalledOnceWith(10, jasmine.objectContaining({
         value: 'start',
       }));
     });
 
-    it('should be possible to change row to which the viewport is scrolled', () => {
+    it('should be possible to change row to which the viewport is scrolled', async() => {
       const beforeViewportScrollVertically = jasmine.createSpy('beforeViewportScrollVertically')
         .and
         .returnValue(40);
@@ -141,7 +141,7 @@ describe('Hook', () => {
         beforeViewportScrollVertically,
       });
 
-      scrollViewportTo({ row: 10 });
+      await scrollViewportTo({ row: 10 });
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
       expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
@@ -151,7 +151,7 @@ describe('Hook', () => {
       });
     });
 
-    it('should be possible to change row to which the viewport is scrolled (case with hidden rows)', () => {
+    it('should be possible to change row to which the viewport is scrolled (case with hidden rows)', async() => {
       const beforeViewportScrollVertically = jasmine.createSpy('beforeViewportScrollVertically');
 
       handsontable({
@@ -169,9 +169,9 @@ describe('Hook', () => {
       hidingMap.setValueAtIndex(1, true);
       hidingMap.setValueAtIndex(2, true);
 
-      render();
+      await render();
 
-      scrollViewportTo({ row: 20 });
+      await scrollViewportTo({ row: 20 });
 
       expect(beforeViewportScrollVertically).toHaveBeenCalledOnceWith(20, jasmine.objectContaining({
         value: 'auto',
@@ -184,7 +184,7 @@ describe('Hook', () => {
       });
     });
 
-    it('should be possible to block viewport scrolling after returning `false`', () => {
+    it('should be possible to block viewport scrolling after returning `false`', async() => {
       const beforeViewportScrollVertically = jasmine.createSpy('beforeViewportScrollVertically')
         .and.returnValue(false);
 
@@ -197,7 +197,7 @@ describe('Hook', () => {
         beforeViewportScrollVertically,
       });
 
-      scrollViewportTo({ row: 90 });
+      await scrollViewportTo({ row: 90 });
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
       expect(topOverlay().getScrollPosition()).toBe(0);
