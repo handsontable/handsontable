@@ -26,13 +26,13 @@ describe('DragToScroll', () => {
     };
   }
 
-  it('exact top, exact left should be in boundaries', () => {
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(4, 4),
+  it('exact top, exact left should be in boundaries', async() => {
+    handsontable({
+      data: createSpreadsheetData(4, 4),
       dragToScroll: true
     });
 
-    const dragToScroll = hot.getPlugin('dragToScroll');
+    const dragToScroll = getPlugin('dragToScroll');
 
     dragToScroll.setBoundaries(createBoundaries());
 
@@ -44,13 +44,13 @@ describe('DragToScroll', () => {
     dragToScroll.check(100, 100);
   });
 
-  it('exact bottom, exact right should be in boundaries', () => {
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(4, 4),
+  it('exact bottom, exact right should be in boundaries', async() => {
+    handsontable({
+      data: createSpreadsheetData(4, 4),
       dragToScroll: true
     });
 
-    const dragToScroll = hot.getPlugin('dragToScroll');
+    const dragToScroll = getPlugin('dragToScroll');
 
     dragToScroll.setBoundaries(createBoundaries());
 
@@ -62,13 +62,13 @@ describe('DragToScroll', () => {
     dragToScroll.check(1000, 1000);
   });
 
-  it('less than top, less than left should be out in "top" direction', () => {
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(4, 4),
+  it('less than top, less than left should be out in "top" direction', async() => {
+    handsontable({
+      data: createSpreadsheetData(4, 4),
       dragToScroll: true
     });
 
-    const dragToScroll = hot.getPlugin('dragToScroll');
+    const dragToScroll = getPlugin('dragToScroll');
 
     dragToScroll.setBoundaries(createBoundaries());
 
@@ -80,13 +80,13 @@ describe('DragToScroll', () => {
     dragToScroll.check(99, 99);
   });
 
-  it('exact top, less than left should be out in "left" direction', () => {
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(4, 4),
+  it('exact top, less than left should be out in "left" direction', async() => {
+    handsontable({
+      data: createSpreadsheetData(4, 4),
       dragToScroll: true
     });
 
-    const dragToScroll = hot.getPlugin('dragToScroll');
+    const dragToScroll = getPlugin('dragToScroll');
 
     dragToScroll.setBoundaries(createBoundaries());
 
@@ -98,13 +98,13 @@ describe('DragToScroll', () => {
     dragToScroll.check(99, 100);
   });
 
-  it('less than top, more than right should be out in "top" direction', () => {
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(4, 4),
+  it('less than top, more than right should be out in "top" direction', async() => {
+    handsontable({
+      data: createSpreadsheetData(4, 4),
       dragToScroll: true
     });
 
-    const dragToScroll = hot.getPlugin('dragToScroll');
+    const dragToScroll = getPlugin('dragToScroll');
 
     dragToScroll.setBoundaries(createBoundaries());
 
@@ -116,13 +116,13 @@ describe('DragToScroll', () => {
     dragToScroll.check(1001, 99);
   });
 
-  it('more than bottom, more than right should be out in "bottom" direction', () => {
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(4, 4),
+  it('more than bottom, more than right should be out in "bottom" direction', async() => {
+    handsontable({
+      data: createSpreadsheetData(4, 4),
       dragToScroll: true
     });
 
-    const dragToScroll = hot.getPlugin('dragToScroll');
+    const dragToScroll = getPlugin('dragToScroll');
 
     dragToScroll.setBoundaries(createBoundaries());
 
@@ -134,13 +134,13 @@ describe('DragToScroll', () => {
     dragToScroll.check(1001, 1001);
   });
 
-  it('exact bottom, more than right should be out in "right" direction', () => {
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(4, 4),
+  it('exact bottom, more than right should be out in "right" direction', async() => {
+    handsontable({
+      data: createSpreadsheetData(4, 4),
       dragToScroll: true
     });
 
-    const dragToScroll = hot.getPlugin('dragToScroll');
+    const dragToScroll = getPlugin('dragToScroll');
 
     dragToScroll.setBoundaries(createBoundaries());
 
@@ -152,13 +152,13 @@ describe('DragToScroll', () => {
     dragToScroll.check(1001, 1000);
   });
 
-  it('more than bottom, less than left should be out in "bottom" direction', () => {
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(4, 4),
+  it('more than bottom, less than left should be out in "bottom" direction', async() => {
+    handsontable({
+      data: createSpreadsheetData(4, 4),
       dragToScroll: true
     });
 
-    const dragToScroll = hot.getPlugin('dragToScroll');
+    const dragToScroll = getPlugin('dragToScroll');
 
     dragToScroll.setBoundaries(createBoundaries());
 
@@ -171,19 +171,19 @@ describe('DragToScroll', () => {
   });
 
   describe('contextmenu', () => {
-    it('should not scroll if the \'mouseup\' event has not been fired after the \'contextmenu\' event', () => {
+    it('should not scroll if the \'mouseup\' event has not been fired after the \'contextmenu\' event', async() => {
       handsontable({
         dragToScroll: true
       });
 
-      contextMenu();
+      await contextMenu();
 
       expect(getPlugin('dragToScroll').isListening()).toBe(false);
     });
   });
 
   describe('drag to scroll (non-window scrollable element)', () => {
-    it('should scroll the table to the right, when dragging the selection in that direction outside the table', () => {
+    it('should scroll the table to the right, when dragging the selection in that direction outside the table', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
@@ -215,7 +215,7 @@ describe('DragToScroll', () => {
     });
 
     it.forTheme('classic')('should not scroll the table to the right, when dragging the selection ' +
-      'in that direction inside the table', () => {
+      'in that direction inside the table', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 215,
@@ -246,7 +246,7 @@ describe('DragToScroll', () => {
     });
 
     it.forTheme('main')('should not scroll the table to the right, when dragging the selection ' +
-      'in that direction inside the table', () => {
+      'in that direction inside the table', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 215,
@@ -277,7 +277,7 @@ describe('DragToScroll', () => {
     });
 
     it.forTheme('horizon')('should not scroll the table to the right, when dragging the selection ' +
-      'in that direction inside the table', () => {
+      'in that direction inside the table', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 227,
@@ -319,14 +319,12 @@ describe('DragToScroll', () => {
         colHeaders: true,
       });
 
-      scrollViewportTo({
+      await scrollViewportTo({
         row: 0,
         col: countCols() - 1,
         verticalSnap: 'top',
         horizontalSnap: 'start',
       });
-
-      await sleep(30);
 
       const $cell = $(getCell(0, 8));
       const $nextElement = $(document.body);
@@ -361,14 +359,12 @@ describe('DragToScroll', () => {
         colHeaders: true,
       });
 
-      scrollViewportTo({
+      await scrollViewportTo({
         row: 0,
         col: countCols() - 1,
         verticalSnap: 'top',
         horizontalSnap: 'start',
       });
-
-      await sleep(10);
 
       const $cell = $(getCell(0, 9));
       const $leftOverlayCell = $(getCell(0, 0));
@@ -402,14 +398,12 @@ describe('DragToScroll', () => {
         colHeaders: true,
       });
 
-      scrollViewportTo({
+      await scrollViewportTo({
         row: 0,
         col: countCols() - 1,
         verticalSnap: 'top',
         horizontalSnap: 'start',
       });
-
-      await sleep(10);
 
       const $cell = $(getCell(0, 9));
       const $nextCell = $(getCell(0, 8));
@@ -432,7 +426,7 @@ describe('DragToScroll', () => {
       expect(getMaster().find('.wtHolder').scrollLeft()).toBeGreaterThan(299);
     });
 
-    it('should scroll the table down, when dragging the selection in that direction outside the table', () => {
+    it('should scroll the table down, when dragging the selection in that direction outside the table', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
@@ -463,7 +457,7 @@ describe('DragToScroll', () => {
       expect(getMaster().find('.wtHolder').scrollTop()).toBe(20);
     });
 
-    it('should not scroll the table to down, when dragging the selection in that direction inside the table', () => {
+    it('should not scroll the table to down, when dragging the selection in that direction inside the table', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 215,
@@ -505,14 +499,12 @@ describe('DragToScroll', () => {
         colHeaders: true,
       });
 
-      scrollViewportTo({
+      await scrollViewportTo({
         row: countRows() - 1,
         col: 0,
         verticalSnap: 'bottom',
         horizontalSnap: 'start',
       });
-
-      await sleep(10);
 
       const $cell = $(getCell(8, 0));
       const $nextElement = $(document.body);
@@ -551,14 +543,12 @@ describe('DragToScroll', () => {
         colHeaders: true,
       });
 
-      scrollViewportTo({
+      await scrollViewportTo({
         row: countRows() - 1,
         col: 0,
         verticalSnap: 'bottom',
         horizontalSnap: 'start',
       });
-
-      await sleep(10);
 
       const $cell = $(getCell(9, 0));
       const $topOverlayCell = $(getCell(0, 0));
@@ -596,14 +586,12 @@ describe('DragToScroll', () => {
         colHeaders: true,
       });
 
-      scrollViewportTo({
+      await scrollViewportTo({
         row: countRows() - 1,
         col: 0,
         verticalSnap: 'bottom',
         horizontalSnap: 'start',
       });
-
-      await sleep(10);
 
       const $cell = $(getCell(9, 0));
       const $nextCell = $(getCell(8, 0));

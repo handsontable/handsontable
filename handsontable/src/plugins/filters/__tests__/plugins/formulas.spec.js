@@ -19,7 +19,7 @@ describe('Filters UI cooperation with Formulas', () => {
     ];
 
     it('should filter cell with relative formula in the first cell', async() => {
-      const hot = handsontable({
+      handsontable({
         data,
         colHeaders: true,
         filters: true,
@@ -29,7 +29,7 @@ describe('Filters UI cooperation with Formulas', () => {
         width: 500,
         height: 300
       });
-      const plugin = hot.getPlugin('filters');
+      const plugin = getPlugin('filters');
 
       plugin.addCondition(0, 'eq', ['3']);
       plugin.filter();
@@ -38,7 +38,7 @@ describe('Filters UI cooperation with Formulas', () => {
     });
 
     it('should filter cell with absolute formula in the first cell', async() => {
-      const hot = handsontable({
+      handsontable({
         data,
         columnHeaders: true,
         filters: true,
@@ -49,7 +49,7 @@ describe('Filters UI cooperation with Formulas', () => {
         width: 500,
         height: 300
       });
-      const plugin = hot.getPlugin('filters');
+      const plugin = getPlugin('filters');
 
       plugin.addCondition(1, 'eq', ['1']);
       plugin.filter();
@@ -58,7 +58,7 @@ describe('Filters UI cooperation with Formulas', () => {
     });
 
     it('should filter cell with absolute formula in the cell', async() => {
-      const hot = handsontable({
+      handsontable({
         data,
         columnHeaders: true,
         filters: true,
@@ -69,7 +69,7 @@ describe('Filters UI cooperation with Formulas', () => {
         width: 500,
         height: 300
       });
-      const plugin = hot.getPlugin('filters');
+      const plugin = getPlugin('filters');
 
       plugin.addCondition(2, 'eq', ['3']);
       plugin.filter();
@@ -78,7 +78,7 @@ describe('Filters UI cooperation with Formulas', () => {
     });
 
     it('should filter cell with relative formula in the cell', async() => {
-      const hot = handsontable({
+      handsontable({
         data,
         columnHeaders: true,
         filters: true,
@@ -89,7 +89,7 @@ describe('Filters UI cooperation with Formulas', () => {
         width: 500,
         height: 300
       });
-      const plugin = hot.getPlugin('filters');
+      const plugin = getPlugin('filters');
 
       plugin.addCondition(2, 'eq', ['4']);
       plugin.filter();
@@ -105,7 +105,7 @@ describe('Filters UI cooperation with Formulas', () => {
     ];
 
     it('should filter cell with relative formula in the first cell', async() => {
-      const hot = handsontable({
+      handsontable({
         data,
         colHeaders: true,
         filters: true,
@@ -115,7 +115,7 @@ describe('Filters UI cooperation with Formulas', () => {
         width: 500,
         height: 300
       });
-      const plugin = hot.getPlugin('filters');
+      const plugin = getPlugin('filters');
 
       plugin.addCondition(0, 'by_value', [['foobar']]);
       plugin.filter();
@@ -124,7 +124,7 @@ describe('Filters UI cooperation with Formulas', () => {
     });
 
     it('should filter cell with absolute formula in the first cell', async() => {
-      const hot = handsontable({
+      handsontable({
         data,
         columnHeaders: true,
         filters: true,
@@ -135,7 +135,7 @@ describe('Filters UI cooperation with Formulas', () => {
         width: 500,
         height: 300
       });
-      const plugin = hot.getPlugin('filters');
+      const plugin = getPlugin('filters');
 
       plugin.addCondition(1, 'by_value', [['foo']]);
       plugin.filter();
@@ -144,7 +144,7 @@ describe('Filters UI cooperation with Formulas', () => {
     });
 
     it('should filter cell with absolute formula in the cell', async() => {
-      const hot = handsontable({
+      handsontable({
         data,
         columnHeaders: true,
         filters: true,
@@ -155,7 +155,7 @@ describe('Filters UI cooperation with Formulas', () => {
         width: 500,
         height: 300
       });
-      const plugin = hot.getPlugin('filters');
+      const plugin = getPlugin('filters');
 
       plugin.addCondition(2, 'by_value', [['foobar']]);
       plugin.filter();
@@ -164,7 +164,7 @@ describe('Filters UI cooperation with Formulas', () => {
     });
 
     it('should filter cell with relative formula in the cell', async() => {
-      const hot = handsontable({
+      handsontable({
         data,
         columnHeaders: true,
         filters: true,
@@ -175,7 +175,7 @@ describe('Filters UI cooperation with Formulas', () => {
         width: 500,
         height: 300
       });
-      const plugin = hot.getPlugin('filters');
+      const plugin = getPlugin('filters');
 
       plugin.addCondition(2, 'by_value', [['foobarfoo']]);
       plugin.filter();

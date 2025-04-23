@@ -1,6 +1,7 @@
 export const command = {
   name: 'moveCellSelectionToMostBottom',
   callback(hot) {
+    const { selection } = hot;
     const { col } = hot.getSelectedRangeLast().highlight;
     let row = hot.rowIndexMapper.getNearestNotHiddenIndex(hot.countRows() - 1, -1);
 
@@ -8,6 +9,6 @@ export const command = {
       row = -1;
     }
 
-    hot.selection.setRangeStart(hot._createCellCoords(row, col));
+    selection.setRangeStart(hot._createCellCoords(row, col));
   },
 };

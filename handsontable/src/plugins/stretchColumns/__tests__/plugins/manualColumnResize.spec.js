@@ -10,7 +10,7 @@ describe('StretchColumns cooperation with ManualColumnResize', () => {
     }
   });
 
-  it('should skip columns stretching for columns that have defined size', () => {
+  it('should skip columns stretching for columns that have defined size', async() => {
     handsontable({
       data: createSpreadsheetData(5, 9),
       colHeaders: true,

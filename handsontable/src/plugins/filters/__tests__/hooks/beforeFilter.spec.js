@@ -12,7 +12,7 @@ describe('`beforeFilter` hook', () => {
     }
   });
 
-  it('should be triggered with correct arguments', () => {
+  it('should be triggered with correct arguments', async() => {
     const beforeFilter = jasmine.createSpy('beforeFilter');
 
     handsontable({
@@ -54,7 +54,7 @@ describe('`beforeFilter` hook', () => {
     );
   });
 
-  it('should be triggered with correct the 2nd argument (`previousConditionStack`) for each filter call', () => {
+  it('should be triggered with correct the 2nd argument (`previousConditionStack`) for each filter call', async() => {
     const beforeFilter = jasmine.createSpy('beforeFilter');
 
     handsontable({
@@ -146,7 +146,7 @@ describe('`beforeFilter` hook', () => {
     );
   });
 
-  it('should not filter values when returns `false`', () => {
+  it('should not filter values when returns `false`', async() => {
     const beforeFilter = jasmine.createSpy('beforeFilter');
 
     handsontable({
@@ -176,7 +176,7 @@ describe('`beforeFilter` hook', () => {
     expect(getData(0, 0, 0, 5)).toEqual([[1, 'Nannie Patel', 'Jenkinsville', '2014-01-29', 'green', 1261.6]]);
   });
 
-  it('should filter only one column (conditional filtering)', () => {
+  it('should filter only one column (conditional filtering)', async() => {
     const beforeFilter = jasmine.createSpy('beforeFilter');
 
     handsontable({

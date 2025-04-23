@@ -20,7 +20,7 @@ describe('DropdownMenu (RTL mode)', () => {
     });
 
     describe('UI', () => {
-      it('should render the dropdown button on the left side of the header', () => {
+      it('should render the dropdown button on the left side of the header', async() => {
         handsontable({
           layoutDirection,
           dropdownMenu: true,

@@ -19,14 +19,14 @@ describe('MultipleSelectionHandles (RTL mode)', () => {
       }
     });
 
-    it('should show selection handles in correct positions', () => {
+    it('should show selection handles in correct positions', async() => {
       handsontable({
         layoutDirection,
         width: 400,
         height: 400
       });
 
-      selectCell(1, 1);
+      await selectCell(1, 1);
 
       const topSelectionHandle = spec().$container
         .find('.ht_master .htBorders div:first-child .topSelectionHandle');
@@ -61,7 +61,7 @@ describe('MultipleSelectionHandles (RTL mode)', () => {
         height: 400
       });
 
-      selectCell(1, 1);
+      await selectCell(1, 1);
 
       await sleep(100);
 
@@ -70,10 +70,10 @@ describe('MultipleSelectionHandles (RTL mode)', () => {
       const cellToOffset = cellTo.offset();
       const cellToHeight = cellFrom.outerHeight();
 
-      triggerTouchEvent('touchstart', spec().$container.find('.htBorders .bottomSelectionHandle-HitArea')[0]);
-      triggerTouchEvent('touchmove', spec().$container.find('tbody tr:eq(1) td:eq(2)')[0]);
-      triggerTouchEvent('touchmove', cellTo[0]);
-      triggerTouchEvent('touchend', cellTo[0]);
+      await triggerTouchEvent('touchstart', spec().$container.find('.htBorders .bottomSelectionHandle-HitArea')[0]);
+      await triggerTouchEvent('touchmove', spec().$container.find('tbody tr:eq(1) td:eq(2)')[0]);
+      await triggerTouchEvent('touchmove', cellTo[0]);
+      await triggerTouchEvent('touchend', cellTo[0]);
 
       await sleep(100);
 
@@ -109,7 +109,7 @@ describe('MultipleSelectionHandles (RTL mode)', () => {
         height: 400
       });
 
-      selectCell(1, 1);
+      await selectCell(1, 1);
 
       await sleep(100);
 
@@ -118,10 +118,10 @@ describe('MultipleSelectionHandles (RTL mode)', () => {
       const cellToOffset = cellTo.offset();
       const cellToHeight = cellFrom.outerHeight();
 
-      triggerTouchEvent('touchstart', spec().$container.find('.htBorders .bottomSelectionHandle-HitArea')[0]);
-      triggerTouchEvent('touchmove', spec().$container.find('tbody tr:eq(2) td:eq(1)')[0]);
-      triggerTouchEvent('touchmove', cellTo[0]);
-      triggerTouchEvent('touchend', cellTo[0]);
+      await triggerTouchEvent('touchstart', spec().$container.find('.htBorders .bottomSelectionHandle-HitArea')[0]);
+      await triggerTouchEvent('touchmove', spec().$container.find('tbody tr:eq(2) td:eq(1)')[0]);
+      await triggerTouchEvent('touchmove', cellTo[0]);
+      await triggerTouchEvent('touchend', cellTo[0]);
 
       await sleep(100);
 

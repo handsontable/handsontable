@@ -13,8 +13,8 @@ describe('Hook', () => {
   });
 
   describe('beforeSelectColumns', () => {
-    it('should be fired with proper arguments', () => {
-      const hot = handsontable({
+    it('should be fired with proper arguments', async() => {
+      handsontable({
         data: createSpreadsheetData(10, 10),
         colHeaders: true,
         rowHeaders: true,
@@ -23,17 +23,17 @@ describe('Hook', () => {
       const beforeSelectColumns = jasmine.createSpy('beforeSelectColumns');
 
       addHook('beforeSelectColumns', beforeSelectColumns);
-      selectColumns(2, 4);
+      await selectColumns(2, 4);
 
       expect(beforeSelectColumns).toHaveBeenCalledTimes(1);
       expect(beforeSelectColumns).toHaveBeenCalledWith(
-        hot._createCellCoords(-1, 2),
-        hot._createCellCoords(9, 4),
-        hot._createCellCoords(0, 2),
+        cellCoords(-1, 2),
+        cellCoords(9, 4),
+        cellCoords(0, 2),
       );
     });
 
-    it('should be possible to modify columns range and change the position of the focus selection', () => {
+    it('should be possible to modify columns range and change the position of the focus selection', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         colHeaders: true,
@@ -46,12 +46,12 @@ describe('Hook', () => {
         }
       });
 
-      selectColumns(2, 4);
+      await selectColumns(2, 4);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: -1,1 to: 9,6']);
     });
 
-    it('should not be possible to modify rows range in columns selection', () => {
+    it('should not be possible to modify rows range in columns selection', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         colHeaders: true,
@@ -62,7 +62,7 @@ describe('Hook', () => {
         }
       });
 
-      selectColumns(2, 4);
+      await selectColumns(2, 4);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: -1,2 to: 9,4']);
     });

@@ -26,7 +26,7 @@ describe('autocompleteValidator', () => {
         afterValidate,
       });
 
-      setDataAtCell(0, 0, '');
+      await setDataAtCell(0, 0, '');
 
       await sleep(50);
 
@@ -47,7 +47,7 @@ describe('autocompleteValidator', () => {
         afterValidate,
       });
 
-      setDataAtCell(0, 0, '');
+      await setDataAtCell(0, 0, '');
 
       await sleep(50);
 
@@ -68,7 +68,7 @@ describe('autocompleteValidator', () => {
         afterValidate,
       });
 
-      setDataAtCell(0, 0, '');
+      await setDataAtCell(0, 0, '');
 
       await sleep(50);
 
@@ -103,9 +103,9 @@ describe('autocompleteValidator', () => {
         afterValidate,
       });
 
-      setDataAtCell(0, 0, '');
-      setDataAtCell(0, 1, '');
-      setDataAtCell(0, 2, '');
+      await setDataAtCell(0, 0, '');
+      await setDataAtCell(0, 1, '');
+      await setDataAtCell(0, 2, '');
 
       await sleep(50);
 
@@ -142,9 +142,9 @@ describe('autocompleteValidator', () => {
         afterValidate,
       });
 
-      setDataAtCell(0, 0, null);
-      setDataAtCell(0, 1);
-      setDataAtCell(0, 2, '');
+      await setDataAtCell(0, 0, null);
+      await setDataAtCell(0, 1);
+      await setDataAtCell(0, 2, '');
 
       await sleep(50);
 
@@ -168,7 +168,7 @@ describe('autocompleteValidator', () => {
         afterValidate,
       });
 
-      setDataAtCell(0, 0, 'Some');
+      await setDataAtCell(0, 0, 'Some');
 
       await sleep(50);
 

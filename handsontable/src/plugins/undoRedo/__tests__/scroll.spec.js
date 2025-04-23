@@ -22,10 +22,13 @@ describe('UndoRedo', () => {
         height: 400,
       });
 
-      selectCell(4, 4);
-      setDataAtCell(4, 4, 'aaaa');
-      selectCell(5, 4);
-      scrollViewportTo({ row: 25, col: 4, verticalSnap: 'top' });
+      await selectCell(4, 4);
+
+      await setDataAtCell(4, 4, 'aaaa');
+
+      await selectCell(5, 4);
+      await scrollViewportTo({ row: 25, col: 4, verticalSnap: 'top' });
+
       getPlugin('undoRedo').undo();
 
       expect(getFirstFullyVisibleRow()).toBe(5);
@@ -41,10 +44,13 @@ describe('UndoRedo', () => {
         height: 400,
       });
 
-      selectCell(4, 4);
-      setDataAtCell(4, 4, 'aaaa');
-      selectCell(5, 4);
-      scrollViewportTo({ row: 4, col: 25, horizontalSnap: 'start' });
+      await selectCell(4, 4);
+
+      await setDataAtCell(4, 4, 'aaaa');
+
+      await selectCell(5, 4);
+      await scrollViewportTo({ row: 4, col: 25, horizontalSnap: 'start' });
+
       getPlugin('undoRedo').undo();
 
       expect(getFirstFullyVisibleRow()).toBe(0);
@@ -60,10 +66,13 @@ describe('UndoRedo', () => {
         height: 400,
       });
 
-      selectCell(4, 4);
-      setDataAtCell(4, 4, 'aaaa');
-      selectCell(5, 4);
-      scrollViewportTo({ row: 25, col: 25 });
+      await selectCell(4, 4);
+
+      await setDataAtCell(4, 4, 'aaaa');
+
+      await selectCell(5, 4);
+      await scrollViewportTo({ row: 25, col: 25 });
+
       getPlugin('undoRedo').undo();
 
       expect(getFirstFullyVisibleRow()).toBe(5);
@@ -79,9 +88,12 @@ describe('UndoRedo', () => {
         height: 400,
       });
 
-      selectCell(4, 4);
-      setDataAtCell(4, 4, 'aaaa');
-      scrollViewportTo({ row: 25, col: 25, horizontalSnap: 'start', verticalSnap: 'top' });
+      await selectCell(4, 4);
+
+      await setDataAtCell(4, 4, 'aaaa');
+
+      await scrollViewportTo({ row: 25, col: 25, horizontalSnap: 'start', verticalSnap: 'top' });
+
       getPlugin('undoRedo').undo();
 
       expect(getFirstFullyVisibleRow()).toBe(4);

@@ -11,7 +11,7 @@ describe('CheckboxRenderer keyboard shortcut', () => {
   });
 
   describe('"Enter"', () => {
-    it('should reverse checkboxes state, when multiple non-contiguous cells are selected and they share the same value', () => {
+    it('should reverse checkboxes state, when multiple non-contiguous cells are selected and they share the same value', async() => {
       handsontable({
         data: [[true], [true], [true]],
         columns: [
@@ -30,9 +30,9 @@ describe('CheckboxRenderer keyboard shortcut', () => {
       expect(checkboxes.eq(2).prop('checked')).toBe(true);
       expect(getData()).toEqual([[true], [true], [true]]);
 
-      selectCells([[0, 0], [2, 0]]);
+      await selectCells([[0, 0], [2, 0]]);
 
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       checkboxes = spec().$container.find(':checkbox');
 
@@ -43,7 +43,7 @@ describe('CheckboxRenderer keyboard shortcut', () => {
       expect(afterChangeCallback.calls.count()).toEqual(2);
     });
 
-    it('should not change the checkboxes state, when multiple cells are selected', () => {
+    it('should not change the checkboxes state, when multiple cells are selected', async() => {
       handsontable({
         data: [[true], [true], [true]],
         columns: [
@@ -62,8 +62,8 @@ describe('CheckboxRenderer keyboard shortcut', () => {
       expect(checkboxes.eq(2).prop('checked')).toBe(true);
       expect(getData()).toEqual([[true], [true], [true]]);
 
-      selectCell(0, 0, 2, 0);
-      keyDownUp('enter');
+      await selectCell(0, 0, 2, 0);
+      await keyDownUp('enter');
 
       checkboxes = spec().$container.find(':checkbox');
 
@@ -74,7 +74,7 @@ describe('CheckboxRenderer keyboard shortcut', () => {
       expect(afterChangeCallback.calls.count()).toEqual(0);
     });
 
-    it('should not steal the event when the column header is selected', () => {
+    it('should not steal the event when the column header is selected', async() => {
       handsontable({
         data: [[true], [true], [true]],
         columns: [
@@ -92,13 +92,13 @@ describe('CheckboxRenderer keyboard shortcut', () => {
         callback,
       }], { group: 'grid' });
 
-      selectCell(-1, 0);
-      keyDownUp('enter');
+      await selectCell(-1, 0);
+      await keyDownUp('enter');
 
       expect(callback).toHaveBeenCalledTimes(1);
     });
 
-    it('should change checkbox state from checked to unchecked', () => {
+    it('should change checkbox state from checked to unchecked', async() => {
       handsontable({
         data: [[true], [true], [true]],
         columns: [
@@ -117,9 +117,9 @@ describe('CheckboxRenderer keyboard shortcut', () => {
       expect(checkboxes.eq(2).prop('checked')).toBe(true);
       expect(getData()).toEqual([[true], [true], [true]]);
 
-      selectCell(0, 0);
+      await selectCell(0, 0);
 
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       checkboxes = spec().$container.find(':checkbox');
 
@@ -132,7 +132,7 @@ describe('CheckboxRenderer keyboard shortcut', () => {
         .toHaveBeenCalledWith([[0, 0, true, false]], 'edit');
     });
 
-    it('should change checkbox state from checked to unchecked for merged cell', () => {
+    it('should change checkbox state from checked to unchecked for merged cell', async() => {
       handsontable({
         data: [
           [true, null, null],
@@ -160,8 +160,8 @@ describe('CheckboxRenderer keyboard shortcut', () => {
         [null, null, null],
       ]);
 
-      selectCell(0, 0);
-      keyDownUp('enter');
+      await selectCell(0, 0);
+      await keyDownUp('enter');
 
       checkboxes = spec().$container.find(':checkbox');
 
@@ -176,7 +176,7 @@ describe('CheckboxRenderer keyboard shortcut', () => {
         .toHaveBeenCalledWith([[0, 0, true, false]], 'edit');
     });
 
-    it('should move down without changing checkbox state when enterBeginsEditing equals false', () => {
+    it('should move down without changing checkbox state when enterBeginsEditing equals false', async() => {
       handsontable({
         enterBeginsEditing: false,
         data: [[true], [false], [true]],
@@ -196,9 +196,9 @@ describe('CheckboxRenderer keyboard shortcut', () => {
       expect(checkboxes.eq(2).prop('checked')).toBe(true);
       expect(getData()).toEqual([[true], [false], [true]]);
 
-      selectCell(0, 0);
+      await selectCell(0, 0);
 
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       checkboxes = spec().$container.find(':checkbox');
       const selection = getSelected();
@@ -211,7 +211,7 @@ describe('CheckboxRenderer keyboard shortcut', () => {
       expect(afterChangeCallback.calls.count()).toEqual(0);
     });
 
-    it('should begin editing and changing checkbox state when enterBeginsEditing equals true', () => {
+    it('should begin editing and changing checkbox state when enterBeginsEditing equals true', async() => {
       handsontable({
         enterBeginsEditing: true,
         data: [[true], [false], [true]],
@@ -231,9 +231,9 @@ describe('CheckboxRenderer keyboard shortcut', () => {
       expect(checkboxes.eq(2).prop('checked')).toBe(true);
       expect(getData()).toEqual([[true], [false], [true]]);
 
-      selectCell(0, 0);
+      await selectCell(0, 0);
 
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       checkboxes = spec().$container.find(':checkbox');
       const selection = getSelected();
@@ -246,7 +246,7 @@ describe('CheckboxRenderer keyboard shortcut', () => {
       expect(afterChangeCallback.calls.count()).toEqual(1);
     });
 
-    it('should change checkbox state from checked to unchecked using custom check/uncheck templates', () => {
+    it('should change checkbox state from checked to unchecked using custom check/uncheck templates', async() => {
       handsontable({
         data: [['yes'], ['yes'], ['no']],
         columns: [
@@ -269,9 +269,9 @@ describe('CheckboxRenderer keyboard shortcut', () => {
       expect(checkboxes.eq(2).prop('checked')).toBe(false);
       expect(getData()).toEqual([['yes'], ['yes'], ['no']]);
 
-      selectCell(0, 0);
+      await selectCell(0, 0);
 
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       checkboxes = spec().$container.find(':checkbox');
 
@@ -284,7 +284,7 @@ describe('CheckboxRenderer keyboard shortcut', () => {
         .toHaveBeenCalledWith([[0, 0, 'yes', 'no']], 'edit');
     });
 
-    it('should change checkbox state from checked to unchecked using custom check/uncheck templates in numeric format', () => {
+    it('should change checkbox state from checked to unchecked using custom check/uncheck templates in numeric format', async() => {
       handsontable({
         data: [[1], [1], [0]],
         columns: [
@@ -307,9 +307,9 @@ describe('CheckboxRenderer keyboard shortcut', () => {
       expect(checkboxes.eq(2).prop('checked')).toBe(false);
       expect(getData()).toEqual([[1], [1], [0]]);
 
-      selectCell(0, 0);
+      await selectCell(0, 0);
 
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       checkboxes = spec().$container.find(':checkbox');
 

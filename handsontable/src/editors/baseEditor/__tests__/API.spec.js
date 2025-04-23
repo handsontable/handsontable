@@ -30,7 +30,7 @@ describe('BaseEditor API', () => {
     describe('getEditedCellRect()', () => {
       describe('should return an object with provided correct information about size and position of the cell', () => {
         describe('for top overlay when viewport is scrolled to the top-left edge', () => {
-          it('and the scrollable element is not the Window object', () => {
+          it('and the scrollable element is not the Window object', async() => {
             handsontable({
               layoutDirection,
               data: createSpreadsheetData(10, 10),
@@ -40,7 +40,7 @@ describe('BaseEditor API', () => {
               fixedRowsTop: 2,
             });
 
-            selectCell(0, 0);
+            await selectCell(0, 0);
 
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual({
@@ -70,7 +70,7 @@ describe('BaseEditor API', () => {
             });
           });
 
-          it('and the scrollable element is the Window object', () => {
+          it('and the scrollable element is the Window object', async() => {
             handsontable({
               layoutDirection,
               data: createSpreadsheetData(100, 100),
@@ -78,7 +78,7 @@ describe('BaseEditor API', () => {
               fixedRowsTop: 2,
             });
 
-            selectCell(0, 0);
+            await selectCell(0, 0);
 
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual({
@@ -110,7 +110,7 @@ describe('BaseEditor API', () => {
         });
 
         describe('for top overlay when viewport is scrolled to the bottom-right edge', () => {
-          it('and the scrollable element is not the Window object', () => {
+          it('and the scrollable element is not the Window object', async() => {
             handsontable({
               layoutDirection,
               data: createSpreadsheetData(10, 10),
@@ -120,13 +120,13 @@ describe('BaseEditor API', () => {
               fixedRowsTop: 2,
             });
 
-            scrollViewportTo({
+            await scrollViewportTo({
               row: countRows() - 1,
               col: countCols() - 1,
               verticalSnap: 'top',
               horizontalSnap: 'start',
             });
-            selectCell(1, countRows() - 1);
+            await selectCell(1, countRows() - 1);
 
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
@@ -156,7 +156,7 @@ describe('BaseEditor API', () => {
             });
           });
 
-          it('and the scrollable element is the Window object', () => {
+          it('and the scrollable element is the Window object', async() => {
             // For this configuration object "{ htmlDir: 'rtl', layoutDirection: 'ltr'}" it's necessary to force
             // always RTL on document, otherwise the horizontal scrollbar won't appear and test fail.
             if (htmlDir === 'rtl' && layoutDirection === 'ltr') {
@@ -170,13 +170,13 @@ describe('BaseEditor API', () => {
               fixedRowsTop: 2,
             });
 
-            scrollViewportTo({
+            await scrollViewportTo({
               row: countRows() - 1,
               col: countCols() - 1,
               verticalSnap: 'top',
               horizontalSnap: 'start',
             });
-            selectCell(1, countCols() - 1);
+            await selectCell(1, countCols() - 1);
 
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
@@ -211,7 +211,7 @@ describe('BaseEditor API', () => {
         });
 
         describe('for top-left corner overlay when viewport is scrolled to the top-left edge', () => {
-          it('and the scrollable element is not the Window object', () => {
+          it('and the scrollable element is not the Window object', async() => {
             handsontable({
               layoutDirection,
               data: createSpreadsheetData(10, 10),
@@ -222,7 +222,7 @@ describe('BaseEditor API', () => {
               fixedRowsTop: 2,
             });
 
-            selectCell(0, 0);
+            await selectCell(0, 0);
 
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual({
@@ -252,7 +252,7 @@ describe('BaseEditor API', () => {
             });
           });
 
-          it('and the scrollable element is the Window object', () => {
+          it('and the scrollable element is the Window object', async() => {
             handsontable({
               layoutDirection,
               data: createSpreadsheetData(100, 100),
@@ -261,7 +261,7 @@ describe('BaseEditor API', () => {
               fixedRowsTop: 2,
             });
 
-            selectCell(0, 0);
+            await selectCell(0, 0);
 
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual({
@@ -293,7 +293,7 @@ describe('BaseEditor API', () => {
         });
 
         describe('for top-left corner overlay when viewport is scrolled to the bottom-right edge', () => {
-          it('and the scrollable element is not the Window object', () => {
+          it('and the scrollable element is not the Window object', async() => {
             handsontable({
               layoutDirection,
               data: createSpreadsheetData(10, 10),
@@ -304,13 +304,13 @@ describe('BaseEditor API', () => {
               fixedRowsTop: 2,
             });
 
-            scrollViewportTo({
+            await scrollViewportTo({
               row: countRows() - 1,
               col: countCols() - 1,
               verticalSnap: 'top',
               horizontalSnap: 'start',
             });
-            selectCell(1, 1);
+            await selectCell(1, 1);
 
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
@@ -340,7 +340,7 @@ describe('BaseEditor API', () => {
             });
           });
 
-          it('and the scrollable element is the Window object', () => {
+          it('and the scrollable element is the Window object', async() => {
             handsontable({
               layoutDirection,
               data: createSpreadsheetData(100, 100),
@@ -349,13 +349,13 @@ describe('BaseEditor API', () => {
               fixedRowsTop: 2,
             });
 
-            scrollViewportTo({
+            await scrollViewportTo({
               row: countRows() - 1,
               col: countCols() - 1,
               verticalSnap: 'top',
               horizontalSnap: 'start',
             });
-            selectCell(1, 1);
+            await selectCell(1, 1);
 
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
@@ -389,7 +389,7 @@ describe('BaseEditor API', () => {
         });
 
         describe('for left overlay when viewport is scrolled to the top-left edge', () => {
-          it('and the scrollable element is not the Window object', () => {
+          it('and the scrollable element is not the Window object', async() => {
             handsontable({
               layoutDirection,
               data: createSpreadsheetData(10, 10),
@@ -399,7 +399,7 @@ describe('BaseEditor API', () => {
               fixedColumnsStart: 2,
             });
 
-            selectCell(0, 0);
+            await selectCell(0, 0);
 
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual({
@@ -429,7 +429,7 @@ describe('BaseEditor API', () => {
             });
           });
 
-          it('and the scrollable element is the Window object', () => {
+          it('and the scrollable element is the Window object', async() => {
             handsontable({
               layoutDirection,
               data: createSpreadsheetData(100, 100),
@@ -437,7 +437,7 @@ describe('BaseEditor API', () => {
               fixedColumnsStart: 2,
             });
 
-            selectCell(0, 0);
+            await selectCell(0, 0);
 
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual({
@@ -469,7 +469,7 @@ describe('BaseEditor API', () => {
         });
 
         describe('for left overlay when viewport is scrolled to the bottom-right edge', () => {
-          it('and the scrollable element is not the Window object', () => {
+          it('and the scrollable element is not the Window object', async() => {
             handsontable({
               layoutDirection,
               data: createSpreadsheetData(10, 10),
@@ -479,13 +479,13 @@ describe('BaseEditor API', () => {
               fixedColumnsStart: 2,
             });
 
-            scrollViewportTo({
+            await scrollViewportTo({
               row: countRows() - 1,
               col: countCols() - 1,
               verticalSnap: 'top',
               horizontalSnap: 'start',
             });
-            selectCell(countRows() - 1, 1);
+            await selectCell(countRows() - 1, 1);
 
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
@@ -515,7 +515,7 @@ describe('BaseEditor API', () => {
             });
           });
 
-          it('and the scrollable element is the Window object', () => {
+          it('and the scrollable element is the Window object', async() => {
             handsontable({
               layoutDirection,
               data: createSpreadsheetData(100, 100),
@@ -523,13 +523,13 @@ describe('BaseEditor API', () => {
               fixedColumnsStart: 2,
             });
 
-            scrollViewportTo({
+            await scrollViewportTo({
               row: countRows() - 1,
               col: countCols() - 1,
               verticalSnap: 'top',
               horizontalSnap: 'start',
             });
-            selectCell(countRows() - 1, 1);
+            await selectCell(countRows() - 1, 1);
 
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
@@ -561,7 +561,7 @@ describe('BaseEditor API', () => {
         });
 
         describe('for bottom-left corner overlay when viewport is scrolled to the top-left edge', () => {
-          it('and the scrollable element is not the Window object', () => {
+          it('and the scrollable element is not the Window object', async() => {
             handsontable({
               layoutDirection,
               data: createSpreadsheetData(10, 10),
@@ -572,7 +572,7 @@ describe('BaseEditor API', () => {
               fixedRowsBottom: 2,
             });
 
-            selectCell(8, 0);
+            await selectCell(8, 0);
 
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
@@ -602,7 +602,7 @@ describe('BaseEditor API', () => {
             });
           });
 
-          it('and the scrollable element is the Window object', () => {
+          it('and the scrollable element is the Window object', async() => {
             handsontable({
               layoutDirection,
               data: createSpreadsheetData(100, 100),
@@ -611,7 +611,7 @@ describe('BaseEditor API', () => {
               fixedRowsBottom: 2,
             });
 
-            selectCell(countRows() - 2, 0);
+            await selectCell(countRows() - 2, 0);
 
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
@@ -643,7 +643,7 @@ describe('BaseEditor API', () => {
         });
 
         describe('for bottom-left corner overlay when viewport is scrolled to the bottom-right edge', () => {
-          it('and the scrollable element is not the Window object', () => {
+          it('and the scrollable element is not the Window object', async() => {
             handsontable({
               layoutDirection,
               data: createSpreadsheetData(10, 10),
@@ -654,13 +654,13 @@ describe('BaseEditor API', () => {
               fixedRowsBottom: 2,
             });
 
-            scrollViewportTo({
+            await scrollViewportTo({
               row: countRows() - 1,
               col: countCols() - 1,
               verticalSnap: 'top',
               horizontalSnap: 'start',
             });
-            selectCell(countRows() - 2, 0);
+            await selectCell(countRows() - 2, 0);
 
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
@@ -690,7 +690,7 @@ describe('BaseEditor API', () => {
             });
           });
 
-          it('and the scrollable element is the Window object', () => {
+          it('and the scrollable element is the Window object', async() => {
             handsontable({
               layoutDirection,
               data: createSpreadsheetData(100, 100),
@@ -699,13 +699,13 @@ describe('BaseEditor API', () => {
               fixedRowsBottom: 2,
             });
 
-            scrollViewportTo({
+            await scrollViewportTo({
               row: countRows() - 1,
               col: countCols() - 1,
               verticalSnap: 'top',
               horizontalSnap: 'start',
             });
-            selectCell(countRows() - 2, 0);
+            await selectCell(countRows() - 2, 0);
 
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
@@ -737,7 +737,7 @@ describe('BaseEditor API', () => {
         });
 
         describe('for bottom overlay when viewport is scrolled to the top-left edge', () => {
-          it('and the scrollable element is not the Window object', () => {
+          it('and the scrollable element is not the Window object', async() => {
             handsontable({
               layoutDirection,
               data: createSpreadsheetData(10, 10),
@@ -747,7 +747,7 @@ describe('BaseEditor API', () => {
               fixedRowsBottom: 2,
             });
 
-            selectCell(countRows() - 2, 0);
+            await selectCell(countRows() - 2, 0);
 
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
@@ -779,7 +779,7 @@ describe('BaseEditor API', () => {
             });
           });
 
-          it('and the scrollable element is the Window object', () => {
+          it('and the scrollable element is the Window object', async() => {
             handsontable({
               layoutDirection,
               data: createSpreadsheetData(100, 100),
@@ -787,7 +787,7 @@ describe('BaseEditor API', () => {
               fixedRowsBottom: 2,
             });
 
-            selectCell(countRows() - 2, 0);
+            await selectCell(countRows() - 2, 0);
 
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
@@ -819,7 +819,7 @@ describe('BaseEditor API', () => {
         });
 
         describe('for bottom overlay when viewport is scrolled to the bottom-right edge', () => {
-          it('and the scrollable element is not the Window object', () => {
+          it('and the scrollable element is not the Window object', async() => {
             handsontable({
               layoutDirection,
               data: createSpreadsheetData(10, 10),
@@ -829,13 +829,13 @@ describe('BaseEditor API', () => {
               fixedRowsBottom: 2,
             });
 
-            scrollViewportTo({
+            await scrollViewportTo({
               row: countRows() - 1,
               col: countCols() - 1,
               verticalSnap: 'top',
               horizontalSnap: 'start',
             });
-            selectCell(countRows() - 1, countCols() - 1);
+            await selectCell(countRows() - 1, countCols() - 1);
 
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
@@ -865,7 +865,7 @@ describe('BaseEditor API', () => {
             });
           });
 
-          it('and the scrollable element is the Window object', () => {
+          it('and the scrollable element is the Window object', async() => {
             // For this configuration object "{ htmlDir: 'rtl', layoutDirection: 'ltr'}" it's necessary to force
             // always RTL on document, otherwise the horizontal scrollbar won't appear and test fail.
             if (htmlDir === 'rtl' && layoutDirection === 'ltr') {
@@ -882,13 +882,13 @@ describe('BaseEditor API', () => {
               autoColumnSize: false
             });
 
-            scrollViewportTo({
+            await scrollViewportTo({
               row: countRows() - 1,
               col: countCols() - 1,
               verticalSnap: 'top',
               horizontalSnap: 'start',
             });
-            selectCell(countRows() - 1, countCols() - 1);
+            await selectCell(countRows() - 1, countCols() - 1);
 
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({

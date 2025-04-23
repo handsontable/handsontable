@@ -1,8 +1,11 @@
 describe('Corner selection scroll', () => {
   const id = 'testContainer';
+  let scrollIntoViewSpy;
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+
+    scrollIntoViewSpy = spyOn(Element.prototype, 'scrollIntoView');
   });
 
   afterEach(function() {
@@ -21,12 +24,13 @@ describe('Corner selection scroll', () => {
       colHeaders: true,
     });
 
-    await scrollOverlay(inlineStartOverlay(), 25);
-    await scrollOverlay(topOverlay(), 50);
+    await scrollViewportHorizontally(25);
+    await scrollViewportVertically(50);
 
-    simulateClick(getCell(-1, -1));
+    await simulateClick(getCell(-1, -1));
 
     expect(inlineStartOverlay().getScrollPosition()).toBe(25);
     expect(topOverlay().getScrollPosition()).toBe(50);
+    expect(scrollIntoViewSpy).not.toHaveBeenCalled();
   });
 });

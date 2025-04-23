@@ -16,14 +16,14 @@ describe('mergeCells (RTL mode)', () => {
   });
 
   describe('merged cells selection', () => {
-    it('should not change the selection after toggling the merge/unmerge state (#9362)', () => {
+    it('should not change the selection after toggling the merge/unmerge state (#9362)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         mergeCells: true
       });
 
-      selectCell(2, 2, 4, 4);
-      keyDownUp(['control', 'm']);
+      await selectCell(2, 2, 4, 4);
+      await keyDownUp(['control', 'm']);
 
       const mergedCell = getCell(2, 2);
 
@@ -31,7 +31,7 @@ describe('mergeCells (RTL mode)', () => {
       expect(mergedCell.colSpan).toBe(3);
       expect(getSelected()).toEqual([[2, 2, 4, 4]]);
 
-      keyDownUp(['control', 'm']);
+      await keyDownUp(['control', 'm']);
 
       expect(mergedCell.rowSpan).toBe(1);
       expect(mergedCell.colSpan).toBe(1);

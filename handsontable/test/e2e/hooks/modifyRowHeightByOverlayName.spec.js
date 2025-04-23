@@ -9,7 +9,7 @@ describe('Hook', () => {
   });
 
   describe('modifyRowHeightByOverlayName', () => {
-    it('should be possible to change the row height of the specific overlay only', () => {
+    it('should be possible to change the row height of the specific overlay only', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         width: 400,

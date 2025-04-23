@@ -12,7 +12,7 @@ describe('Core.getSourceDataAtCell', () => {
     }
   });
 
-  it('should return null when is call without arguments', () => {
+  it('should return null when is call without arguments', async() => {
     handsontable({
       data: [[1, 2, 3], ['a', 'b', 'c']],
     });
@@ -20,7 +20,7 @@ describe('Core.getSourceDataAtCell', () => {
     expect(getSourceDataAtCell()).toBeNull();
   });
 
-  it('should return cell value when provided data was an array of arrays', () => {
+  it('should return cell value when provided data was an array of arrays', async() => {
     handsontable({
       data: [[1, 2, 3], ['a', 'b', 'c']],
     });
@@ -28,7 +28,7 @@ describe('Core.getSourceDataAtCell', () => {
     expect(getSourceDataAtCell(1, 1)).toEqual('b');
   });
 
-  it('should return cell value when provided data was an array of objects', () => {
+  it('should return cell value when provided data was an array of objects', async() => {
     handsontable({
       data: [{ a: 1, b: 2, c: 3 }, { a: 'a', b: 'b', c: 'c' }],
       copyable: true
@@ -37,7 +37,7 @@ describe('Core.getSourceDataAtCell', () => {
     expect(getSourceDataAtCell(1, 'b')).toEqual('b');
   });
 
-  it('should return cell value when provided data was an array of objects (nested structure)', () => {
+  it('should return cell value when provided data was an array of objects (nested structure)', async() => {
     handsontable({
       data: [{ a: 1, b: { a: 21, b: 22 }, c: 3 }, { a: 'a', b: { a: 'ba', b: 'bb' }, c: 'c' }],
       columns: [
@@ -51,7 +51,7 @@ describe('Core.getSourceDataAtCell', () => {
     expect(getSourceDataAtCell(1, 'b.b')).toEqual('bb');
   });
 
-  it('should return cell value when data is provided by dataSchema', () => {
+  it('should return cell value when data is provided by dataSchema', async() => {
     handsontable({
       data: [
         model({ id: 1, name: 'Ted Right', address: '' }),
@@ -102,7 +102,7 @@ describe('Core.getSourceDataAtCell', () => {
   });
 
   describe('`modifyRowData` hook', () => {
-    it('should be possible to change data for row on the fly ', () => {
+    it('should be possible to change data for row on the fly ', async() => {
       handsontable({
         data: [
           ['', 'Kia', 'Nissan', 'Toyota', 'Honda'],
@@ -126,7 +126,7 @@ describe('Core.getSourceDataAtCell', () => {
   });
 
   describe('`modifySourceData` hook', () => {
-    it('should be possible to change source data for a cell on the fly', () => {
+    it('should be possible to change source data for a cell on the fly', async() => {
       let lastIoMode = null;
 
       handsontable({

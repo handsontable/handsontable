@@ -13,18 +13,18 @@ describe('settings', () => {
   });
 
   describe('viewportColumnRenderingThreshold', () => {
-    it('should be possible to change the threshold in the rendering engine', () => {
-      const hot = handsontable({
+    it('should be possible to change the threshold in the rendering engine', async() => {
+      handsontable({
         data: createSpreadsheetData(50, 50),
         width: 100,
         height: 100,
       });
 
-      expect(hot.view._wt.getSetting('viewportColumnRenderingThreshold')).toBe(0);
+      expect(tableView()._wt.getSetting('viewportColumnRenderingThreshold')).toBe(0);
 
-      updateSettings({ viewportColumnRenderingThreshold: 5 });
+      await updateSettings({ viewportColumnRenderingThreshold: 5 });
 
-      expect(hot.view._wt.getSetting('viewportColumnRenderingThreshold')).toBe(5);
+      expect(tableView()._wt.getSetting('viewportColumnRenderingThreshold')).toBe(5);
     });
   });
 });

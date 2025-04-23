@@ -13,7 +13,7 @@ describe('Hook', () => {
   });
 
   describe('beforeViewportScroll', () => {
-    it('should be fired when the viewport is scrolled horizontally', () => {
+    it('should be fired when the viewport is scrolled horizontally', async() => {
       const beforeViewportScroll = jasmine.createSpy('beforeViewportScroll');
 
       handsontable({
@@ -25,12 +25,12 @@ describe('Hook', () => {
         beforeViewportScroll,
       });
 
-      scrollViewportTo({ col: 40 });
+      await scrollViewportTo({ col: 40 });
 
       expect(beforeViewportScroll).toHaveBeenCalledOnceWith();
     });
 
-    it('should be fired when the viewport is scrolled vertically', () => {
+    it('should be fired when the viewport is scrolled vertically', async() => {
       const beforeViewportScroll = jasmine.createSpy('beforeViewportScroll');
 
       handsontable({
@@ -42,12 +42,12 @@ describe('Hook', () => {
         beforeViewportScroll,
       });
 
-      scrollViewportTo({ row: 40 });
+      await scrollViewportTo({ row: 40 });
 
       expect(beforeViewportScroll).toHaveBeenCalledOnceWith();
     });
 
-    it('should be fired when the viewport is scrolled horizontally and vertically', () => {
+    it('should be fired when the viewport is scrolled horizontally and vertically', async() => {
       const beforeViewportScroll = jasmine.createSpy('beforeViewportScroll');
 
       handsontable({
@@ -59,12 +59,12 @@ describe('Hook', () => {
         beforeViewportScroll,
       });
 
-      scrollViewportTo({ row: 40, col: 40 });
+      await scrollViewportTo({ row: 40, col: 40 });
 
       expect(beforeViewportScroll).toHaveBeenCalledTimes(2);
     });
 
-    it('should be fired when the viewport is scrolled horizontally and vertically', () => {
+    it('should be fired when the viewport is scrolled horizontally and vertically', async() => {
       const beforeViewportScroll = jasmine.createSpy('beforeViewportScroll');
 
       handsontable({
@@ -76,12 +76,12 @@ describe('Hook', () => {
         beforeViewportScroll,
       });
 
-      scrollViewportTo({ row: 40, col: 40 });
+      await scrollViewportTo({ row: 40, col: 40 });
 
       expect(beforeViewportScroll).toHaveBeenCalledTimes(2);
     });
 
-    it('should be fired when the viewport is scrolled horizontally and vertically (the coords are already within the viewport)', () => {
+    it('should be fired when the viewport is scrolled horizontally and vertically (the coords are already within the viewport)', async() => {
       const beforeViewportScroll = jasmine.createSpy('beforeViewportScroll');
 
       handsontable({
@@ -93,7 +93,7 @@ describe('Hook', () => {
         beforeViewportScroll,
       });
 
-      scrollViewportTo({ row: 1, col: 1 });
+      await scrollViewportTo({ row: 1, col: 1 });
 
       expect(beforeViewportScroll).toHaveBeenCalledTimes(2);
     });

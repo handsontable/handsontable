@@ -13,13 +13,13 @@ describe('DropdownMenu', () => {
   });
 
   describe('`close()` method', () => {
-    it('should close the dropdown menu', () => {
+    it('should close the dropdown menu', async() => {
       handsontable({
         dropdownMenu: true,
         colHeaders: true,
       });
 
-      dropdownMenu(0);
+      await dropdownMenu(0);
 
       expect($(document.body).find('.htDropdownMenu:visible').length).toBe(1);
 

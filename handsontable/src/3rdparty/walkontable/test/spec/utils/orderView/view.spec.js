@@ -10,7 +10,7 @@ describe('Walkontable.OrderView', () => {
     return { orderView, rootNode };
   }
 
-  it('should generate correct DOM structure', () => {
+  it('should generate correct DOM structure', async() => {
     const { orderView, rootNode } = createOrderView('tr', 'td');
 
     orderView.setSize(3);
@@ -30,7 +30,7 @@ describe('Walkontable.OrderView', () => {
       `);
   });
 
-  it('should generate correct DOM structure while increasing/decreasing view size', () => {
+  it('should generate correct DOM structure while increasing/decreasing view size', async() => {
     const { orderView, rootNode } = createOrderView('div', 'p');
 
     orderView.setSize(3);
@@ -95,7 +95,7 @@ describe('Walkontable.OrderView', () => {
       `);
   });
 
-  it('should reuse already created elements after rerendering the View', () => {
+  it('should reuse already created elements after rerendering the View', async() => {
     const { orderView, rootNode } = createOrderView('colgroup', 'col');
 
     orderView.setSize(3);
@@ -128,7 +128,7 @@ describe('Walkontable.OrderView', () => {
     expect(rootNode.childNodes[3]).toBe(undefined);
   });
 
-  it('should make created element accessible after each render cycle', () => {
+  it('should make created element accessible after each render cycle', async() => {
     const { orderView, rootNode } = createOrderView('tr', 'td');
 
     orderView.setSize(3);
@@ -164,7 +164,7 @@ describe('Walkontable.OrderView', () => {
     expect(orderView.getNode(2)).toBe(rootNode.childNodes[2]);
   });
 
-  it('should make created element accessible after each render cycle', () => {
+  it('should make created element accessible after each render cycle', async() => {
     const { orderView, rootNode } = createOrderView('tr', 'td');
 
     orderView.setSize(3);

@@ -12,39 +12,38 @@ describe('AutocompleteRenderer', () => {
     }
   });
 
-  it('should contain down arrow glyph', (done) => {
+  it('should contain down arrow glyph', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       type: 'autocomplete',
       afterValidate: onAfterValidate
     });
-    setDataAtCell(2, 2, 'string');
 
-    setTimeout(() => {
-      const html = getCell(2, 2).innerHTML;
+    await setDataAtCell(2, 2, 'string');
+    await sleep(100);
 
-      expect(html).toContain('string');
-      expect(html).toContain('\u25BC');
-      done();
-    }, 100);
+    const html = getCell(2, 2).innerHTML;
+
+    expect(html).toContain('string');
+    expect(html).toContain('\u25BC');
   });
 
-  it('should open cell editor after clicking on arrow glyph', () => {
-    const hot = handsontable({
+  it('should open cell editor after clicking on arrow glyph', async() => {
+    handsontable({
       renderer: 'autocomplete'
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
-    expect(hot.getActiveEditor().isOpened()).toBe(false);
+    expect(getActiveEditor().isOpened()).toBe(false);
 
     $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
 
-    expect(hot.getActiveEditor().isOpened()).toBe(true);
+    expect(getActiveEditor().isOpened()).toBe(true);
   });
 
-  it('should open cell editor after clicking on arrow glyph, after the table has been destroyed and reinitialized (#1367)', () => {
+  it('should open cell editor after clicking on arrow glyph, after the table has been destroyed and reinitialized (#1367)', async() => {
     handsontable({
       renderer: 'autocomplete'
     });
@@ -53,20 +52,20 @@ describe('AutocompleteRenderer', () => {
     $('body').find(`#${id}`).remove();
     spec().$container = $(`<div id="${id}"></div>`).appendTo('body');
 
-    const hot = handsontable({
+    handsontable({
       renderer: 'autocomplete'
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
-    expect(hot.getActiveEditor().isOpened()).toBe(false);
+    expect(getActiveEditor().isOpened()).toBe(false);
 
     $(getCell(0, 0)).find('.htAutocompleteArrow').simulate('mousedown');
 
-    expect(hot.getActiveEditor().isOpened()).toBe(true);
+    expect(getActiveEditor().isOpened()).toBe(true);
   });
 
-  it('should prepend the autocomplete arrow at the start of the cell element (#5124)', () => {
+  it('should prepend the autocomplete arrow at the start of the cell element (#5124)', async() => {
     handsontable({
       renderer: 'autocomplete'
     });
@@ -76,7 +75,7 @@ describe('AutocompleteRenderer', () => {
     expect($contents.eq(0).hasClass('htAutocompleteArrow')).toBe(true);
   });
 
-  it('should render the cell without messing with "dir" attribute', () => {
+  it('should render the cell without messing with "dir" attribute', async() => {
     handsontable({
       data: [['foo']],
       renderer: 'autocomplete'

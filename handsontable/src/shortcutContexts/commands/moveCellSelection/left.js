@@ -1,6 +1,10 @@
 export const command = {
   name: 'moveCellSelectionLeft',
   callback(hot) {
-    hot.selection.transformStart(0, -1 * hot.getDirectionFactor());
+    const { selection } = hot;
+
+    selection.markSource('keyboard');
+    selection.transformStart(0, -1 * hot.getDirectionFactor());
+    selection.markEndSource();
   },
 };

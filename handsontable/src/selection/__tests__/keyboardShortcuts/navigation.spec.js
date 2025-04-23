@@ -1,3 +1,4 @@
+/* eslint-disable handsontable/require-await */
 describe('Selection navigation', () => {
   const id = 'testContainer';
 
@@ -12,15 +13,16 @@ describe('Selection navigation', () => {
     }
   });
 
-  it('should not throw an error when dataset is empty', () => {
+  it('should not throw an error when dataset is empty', async() => {
     handsontable({
       data: [],
       rowHeaders: true,
       colHeaders: true,
     });
 
-    selectAll();
-    listen();
+    await listen();
+
+    await selectAll();
 
     expect(() => keyDownUp('home')).not.toThrow();
     expect(() => keyDownUp(['control/meta', 'home'])).not.toThrow();

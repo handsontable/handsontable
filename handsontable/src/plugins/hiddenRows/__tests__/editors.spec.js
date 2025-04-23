@@ -15,7 +15,7 @@ describe('HiddenRows', () => {
   describe('editors', () => {
     it('should properly detect if editor is in a viewport', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(30, 30),
+        data: createSpreadsheetData(30, 30),
         hiddenRows: {
           rows: [0, 1, 2, 3, 4, 5],
         },
@@ -24,21 +24,21 @@ describe('HiddenRows', () => {
         rowHeights: 50,
       });
 
-      selectCell(6, 0);
+      await selectCell(6, 0);
 
       const $mainHolder = spec().$container.find('.ht_master .wtHolder');
       const startScrollTop = $mainHolder.scrollTop();
 
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       await sleep(200);
 
       expect($mainHolder.scrollTop()).toBe(startScrollTop);
     });
 
-    it('should populate value from an editor properly when there are some hidden rows & column header was selected', () => {
+    it('should populate value from an editor properly when there are some hidden rows & column header was selected', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         colHeaders: true,
         rowHeaders: true,
         hiddenRows: {
@@ -49,10 +49,10 @@ describe('HiddenRows', () => {
 
       const firstHeader = spec().$container.find('.ht_clone_top tr:eq(0) th:eq(1)');
 
-      simulateClick(firstHeader, 'LMB');
+      await simulateClick(firstHeader, 'LMB');
 
-      keyDownUp('F2');
-      keyDownUp(['control/meta', 'enter']);
+      await keyDownUp('F2');
+      await keyDownUp(['control/meta', 'enter']);
 
       expect(getData()).toEqual([
         ['A3', 'B1', 'C1', 'D1', 'E1'],
@@ -63,9 +63,9 @@ describe('HiddenRows', () => {
       ]);
     });
 
-    it('should populate value from an editor properly when there are some hidden rows & corner was selected', () => {
+    it('should populate value from an editor properly when there are some hidden rows & corner was selected', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         colHeaders: true,
         rowHeaders: true,
         hiddenRows: {
@@ -76,10 +76,10 @@ describe('HiddenRows', () => {
 
       const corner = $('.ht_clone_top_inline_start_corner .htCore').find('thead').find('th').eq(0);
 
-      simulateClick(corner, 'LMB');
+      await simulateClick(corner, 'LMB');
 
-      keyDownUp('F2');
-      keyDownUp(['control/meta', 'enter']);
+      await keyDownUp('F2');
+      await keyDownUp(['control/meta', 'enter']);
 
       expect(getData()).toEqual([
         ['A3', 'A3', 'A3', 'A3', 'A3'],

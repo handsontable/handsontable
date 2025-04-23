@@ -30,7 +30,7 @@ describe('TrimRows', () => {
   describe('fixedColumnsStart', () => {
     it('should render left overlay with the same amount of columns than a master overlay', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(2, 5),
+        data: createSpreadsheetData(2, 5),
         colHeaders: true,
         fixedColumnsStart: 2,
         columns: [{}, {}],
@@ -67,7 +67,7 @@ describe('TrimRows', () => {
 
     it('should shrink left overlay to a master overlay when defined overlay size is higher than total amount of columns', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(2, 5),
+        data: createSpreadsheetData(2, 5),
         colHeaders: true,
         fixedColumnsStart: 2,
         columns: [{}],
@@ -100,7 +100,7 @@ describe('TrimRows', () => {
 
     it('should shrink top overlay to a master overlay when all rows are trimmed', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(2, 5),
+        data: createSpreadsheetData(2, 5),
         colHeaders: true,
         fixedColumnsStart: 2,
         columns: [],

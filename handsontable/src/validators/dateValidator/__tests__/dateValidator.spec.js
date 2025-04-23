@@ -34,7 +34,7 @@ describe('dateValidator', () => {
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(0, 0, '');
+    await setDataAtCell(0, 0, '');
 
     await sleep(100);
 
@@ -53,7 +53,7 @@ describe('dateValidator', () => {
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(1, 0, '2016-03-18');
+    await setDataAtCell(1, 0, '2016-03-18');
     await sleep(200);
 
     expect(onAfterValidate).toHaveBeenCalledWith(true, '2016-03-18', 1, 'date');
@@ -73,7 +73,7 @@ describe('dateValidator', () => {
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(0, 0, 'wat');
+    await setDataAtCell(0, 0, 'wat');
 
     await sleep(100);
 
@@ -92,7 +92,7 @@ describe('dateValidator', () => {
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(0, 0, '01/01/2015 ops');
+    await setDataAtCell(0, 0, '01/01/2015 ops');
     await sleep(200);
 
     expect(onAfterValidate).toHaveBeenCalledWith(false, '01/01/2015 ops', 0, 'date');
@@ -112,7 +112,7 @@ describe('dateValidator', () => {
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(0, 0, '33/01/2014');
+    await setDataAtCell(0, 0, '33/01/2014');
 
     await sleep(100);
 
@@ -132,7 +132,7 @@ describe('dateValidator', () => {
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(1, 0, '01/01/15');
+    await setDataAtCell(1, 0, '01/01/15');
 
     await sleep(100);
 
@@ -152,7 +152,7 @@ describe('dateValidator', () => {
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(1, 0, '01/01/2015');
+    await setDataAtCell(1, 0, '01/01/2015');
 
     await sleep(100);
 
@@ -172,7 +172,7 @@ describe('dateValidator', () => {
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(1, 0, '01/01/2015');
+    await setDataAtCell(1, 0, '01/01/2015');
 
     await sleep(100);
 
@@ -192,7 +192,7 @@ describe('dateValidator', () => {
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(1, 0, '23/03/15');
+    await setDataAtCell(1, 0, '23/03/15');
 
     await sleep(100);
 
@@ -213,7 +213,7 @@ describe('dateValidator', () => {
         afterValidate: onAfterValidate
       });
 
-      setDataAtCell(1, 0, '');
+      await setDataAtCell(1, 0, '');
 
       await sleep(100);
 
@@ -233,7 +233,7 @@ describe('dateValidator', () => {
         afterValidate: onAfterValidate
       });
 
-      setDataAtCell(1, 0, null);
+      await setDataAtCell(1, 0, null);
 
       await sleep(100);
 
@@ -253,7 +253,7 @@ describe('dateValidator', () => {
         afterValidate: onAfterValidate
       });
 
-      setDataAtCell(1, 0);
+      await setDataAtCell(1, 0);
 
       await sleep(100);
 
@@ -275,7 +275,7 @@ describe('dateValidator', () => {
         afterValidate: onAfterValidate
       });
 
-      setDataAtCell(1, 0, '11/23/2013');
+      await setDataAtCell(1, 0, '11/23/2013');
 
       await sleep(100);
 
@@ -295,7 +295,7 @@ describe('dateValidator', () => {
         afterValidate: onAfterValidate
       });
 
-      setDataAtCell(1, 0, '11/23/2013');
+      await setDataAtCell(1, 0, '11/23/2013');
 
       await sleep(100);
 
@@ -314,7 +314,7 @@ describe('dateValidator', () => {
         afterValidate: onAfterValidate
       });
 
-      setDataAtCell(1, 0, '1/10/15');
+      await setDataAtCell(1, 0, '1/10/15');
 
       await sleep(100);
 
@@ -337,7 +337,7 @@ describe('dateValidator', () => {
         afterValidate: onAfterValidate
       });
 
-      setDataAtCell(1, 0, '5.3.2016');
+      await setDataAtCell(1, 0, '5.3.2016');
 
       await sleep(100);
 
@@ -361,7 +361,7 @@ describe('dateValidator', () => {
         afterValidate: onAfterValidate
       });
 
-      setDataAtCell(1, 0, 'test non-date string');
+      await setDataAtCell(1, 0, 'test non-date string');
 
       await sleep(100);
 
@@ -377,7 +377,7 @@ describe('dateValidator', () => {
         ],
       });
 
-      setDataAtCell([
+      await setDataAtCell([
         [2, 0, '2/2/2018'],
         [3, 0, '2/11/2018'],
         [4, 0, '2/10/2017'],
@@ -417,7 +417,7 @@ describe('dateValidator', () => {
             afterValidate: onAfterValidateSpy
           });
 
-          setDataAtCell(0, 0, value);
+          await setDataAtCell(0, 0, value);
 
           await sleep(50);
 
@@ -451,7 +451,7 @@ describe('dateValidator', () => {
             afterValidate: onAfterValidateSpy
           });
 
-          setDataAtCell(0, 0, value);
+          await setDataAtCell(0, 0, value);
 
           await sleep(50);
 
@@ -494,7 +494,7 @@ describe('dateValidator', () => {
             afterValidate: onAfterValidateSpy
           });
 
-          setDataAtCell(0, 0, value);
+          await setDataAtCell(0, 0, value);
 
           await sleep(50);
 
@@ -520,7 +520,7 @@ describe('dateValidator', () => {
             afterValidate: onAfterValidateSpy
           });
 
-          setDataAtCell(0, 0, value);
+          await setDataAtCell(0, 0, value);
 
           await sleep(50);
 

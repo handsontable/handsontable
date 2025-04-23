@@ -13,9 +13,9 @@ describe('HiddenRows', () => {
   });
 
   describe('indicators', () => {
-    it('should add proper class names in row headers', () => {
+    it('should add proper class names in row headers', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         hiddenRows: {
           rows: [1, 3],
           indicators: true,
@@ -31,9 +31,9 @@ describe('HiddenRows', () => {
       expect(getCell(4, -1)).toHaveClass(CSS_CLASS_AFTER_HIDDEN_ROW);
     });
 
-    it('should render indicators after enabling them in updateSettings', () => {
+    it('should render indicators after enabling them in updateSettings', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        data: createSpreadsheetData(3, 3),
         hiddenRows: {
           rows: [0, 2],
         },
@@ -43,7 +43,7 @@ describe('HiddenRows', () => {
       expect(getCell(1, -1)).not.toHaveClass(CSS_CLASS_BEFORE_HIDDEN_ROW);
       expect(getCell(1, -1)).not.toHaveClass(CSS_CLASS_AFTER_HIDDEN_ROW);
 
-      updateSettings({
+      await updateSettings({
         hiddenRows: {
           rows: [0, 2],
           indicators: true,

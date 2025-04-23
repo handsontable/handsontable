@@ -16,7 +16,7 @@ describe('CopyPaste', () => {
   });
 
   describe('`afterCopyLimit` hook', () => {
-    it('should not be called when the rows limit is not reached', () => {
+    it('should not be called when the rows limit is not reached', async() => {
       const afterCopyLimit = jasmine.createSpy('afterCopyLimit');
 
       handsontable({
@@ -32,7 +32,7 @@ describe('CopyPaste', () => {
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
-      selectAll();
+      await selectAll();
 
       plugin.copyCellsOnly();
       plugin.onCopy(copyEvent); // emulate native "copy" event
@@ -40,7 +40,7 @@ describe('CopyPaste', () => {
       expect(afterCopyLimit).not.toHaveBeenCalledWith();
     });
 
-    it('should not be called when the columns limit is not reached', () => {
+    it('should not be called when the columns limit is not reached', async() => {
       const afterCopyLimit = jasmine.createSpy('afterCopyLimit');
 
       handsontable({
@@ -56,7 +56,7 @@ describe('CopyPaste', () => {
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
-      selectAll();
+      await selectAll();
 
       plugin.copyCellsOnly();
       plugin.onCopy(copyEvent); // emulate native "copy" event
@@ -64,7 +64,7 @@ describe('CopyPaste', () => {
       expect(afterCopyLimit).not.toHaveBeenCalledWith();
     });
 
-    it('should be called when the rows limit is reached', () => {
+    it('should be called when the rows limit is reached', async() => {
       const afterCopyLimit = jasmine.createSpy('afterCopyLimit');
 
       handsontable({
@@ -80,7 +80,8 @@ describe('CopyPaste', () => {
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
-      selectAll();
+      await selectAll();
+
       afterCopyLimit.calls.reset();
 
       plugin.copyCellsOnly();
@@ -90,7 +91,7 @@ describe('CopyPaste', () => {
       expect(afterCopyLimit).toHaveBeenCalledWith(5, 4, Infinity, 4);
     });
 
-    it('should be called when the columns limit is reached', () => {
+    it('should be called when the columns limit is reached', async() => {
       const afterCopyLimit = jasmine.createSpy('afterCopyLimit');
 
       handsontable({
@@ -106,7 +107,8 @@ describe('CopyPaste', () => {
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
-      selectAll();
+      await selectAll();
+
       afterCopyLimit.calls.reset();
 
       plugin.copyCellsOnly();

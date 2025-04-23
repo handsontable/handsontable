@@ -13,9 +13,9 @@ describe('manualRowMove', () => {
   });
 
   describe('cursor icon', () => {
-    it('should change the cursor to `grab` when mouse is over a selected header and `manualRowMove` is enabled', () => {
+    it('should change the cursor to `grab` when mouse is over a selected header and `manualRowMove` is enabled', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         manualRowMove: true
       });
@@ -39,9 +39,9 @@ describe('manualRowMove', () => {
       expect($cell.css('cursor')).toEqual('default');
     });
 
-    it('should change the cursor to `grabbing` when holding LMB over a selected header and `manualRowMove` is enabled', () => {
+    it('should change the cursor to `grabbing` when holding LMB over a selected header and `manualRowMove` is enabled', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         manualRowMove: true
       });
@@ -60,9 +60,9 @@ describe('manualRowMove', () => {
     });
 
     it('should change the cursor to `grabbing` when holding LMB on a selected header and moving the cursor anywhere ' +
-    'else within the table (and `manualRowMove` is enabled)', () => {
+    'else within the table (and `manualRowMove` is enabled)', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         manualRowMove: true
       });

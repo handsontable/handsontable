@@ -1,5 +1,6 @@
 import {
   fastInnerText,
+  hasZeroHeight,
 } from '../../../../helpers/dom/element';
 import { randomString } from '../../../../helpers/string';
 import EventManager from '../../../../eventManager';
@@ -123,8 +124,8 @@ export default class CoreAbstract {
   draw(fastDraw = false) {
     this.drawInterrupted = false;
 
-    if (!this.wtTable.isVisible()) {
-      // draw interrupted because TABLE is not visible
+    if (!this.wtTable.isVisible() || hasZeroHeight(this.wtTable.wtRootElement.parentNode)) {
+      // draw interrupted because TABLE is not visible or has the height set to 0
       this.drawInterrupted = true;
     } else {
       this.wtTable.draw(fastDraw);

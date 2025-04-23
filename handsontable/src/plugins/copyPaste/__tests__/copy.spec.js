@@ -16,15 +16,15 @@ describe('CopyPaste', () => {
   });
 
   describe('copy', () => {
-    xit('should be possible to copy data by keyboard shortcut', () => {
+    xit('should be possible to copy data by keyboard shortcut', async() => {
       // simulated keyboard shortcuts doesn't run the true events
     });
 
-    xit('should be possible to copy data by contextMenu option', () => {
+    xit('should be possible to copy data by contextMenu option', async() => {
       // simulated mouse events doesn't run the true browser event
     });
 
-    it('should reset the copy mode (internal state) to "cells-only" after each copy operation', () => {
+    it('should reset the copy mode (internal state) to "cells-only" after each copy operation', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -35,7 +35,7 @@ describe('CopyPaste', () => {
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
-      selectCell(1, 1);
+      await selectCell(1, 1);
 
       plugin.copyColumnHeadersOnly();
       plugin.onCopy(copyEvent); // emulate native "copy" event
@@ -59,7 +59,7 @@ describe('CopyPaste', () => {
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
-      selectCell(1, 1);
+      await selectCell(1, 1);
 
       plugin.copyCellsOnly();
       plugin.onCopy(copyEvent); // emulate native "copy" event
@@ -68,7 +68,7 @@ describe('CopyPaste', () => {
 
       await sleep(500);
 
-      selectCell(-1, 1);
+      await selectCell(-1, 1);
 
       plugin.copyCellsOnly();
       plugin.onCopy(copyEvent); // emulate native "copy" event
@@ -88,7 +88,7 @@ describe('CopyPaste', () => {
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
-      selectCell(1, 1);
+      await selectCell(1, 1);
 
       plugin.copyCellsOnly();
       plugin.onCopy(copyEvent); // emulate native "copy" event
@@ -96,8 +96,7 @@ describe('CopyPaste', () => {
       expect(copyEvent.clipboardData.getData('text/plain')).toBe('B2');
 
       await sleep(500);
-
-      selectCell(1, -1);
+      await selectCell(1, -1);
 
       plugin.copyCellsOnly();
       plugin.onCopy(copyEvent); // emulate native "copy" event
@@ -117,7 +116,7 @@ describe('CopyPaste', () => {
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
-      selectCell(1, 1);
+      await selectCell(1, 1);
 
       plugin.copyCellsOnly();
       plugin.onCopy(copyEvent); // emulate native "copy" event
@@ -125,8 +124,7 @@ describe('CopyPaste', () => {
       expect(copyEvent.clipboardData.getData('text/plain')).toBe('B2');
 
       await sleep(500);
-
-      selectCell(-1, -1);
+      await selectCell(-1, -1);
 
       plugin.copyCellsOnly();
       plugin.onCopy(copyEvent); // emulate native "copy" event
@@ -134,7 +132,7 @@ describe('CopyPaste', () => {
       expect(copyEvent.clipboardData.getData('text/plain')).toBe('');
     });
 
-    it('should copy special characters to the clipboard', () => {
+    it('should copy special characters to the clipboard', async() => {
       handsontable({
         colHeaders: ['!@#$%^&*()_+-={[', ']};:\'"\\|,<.>/?~&LTE'],
         data: [
@@ -145,7 +143,7 @@ describe('CopyPaste', () => {
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
-      selectAll();
+      await selectAll();
 
       plugin.copyWithColumnHeaders();
       plugin.onCopy(copyEvent); // emulate native "copy" event
@@ -162,7 +160,7 @@ describe('CopyPaste', () => {
       ].join(''));
     });
 
-    it('should copy text in quotes to the clipboard', () => {
+    it('should copy text in quotes to the clipboard', async() => {
       handsontable({
         colHeaders: ['{"test": "value"}'],
         data: [
@@ -175,7 +173,7 @@ describe('CopyPaste', () => {
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
-      selectAll();
+      await selectAll();
 
       plugin.copyWithColumnHeaders();
       plugin.onCopy(copyEvent); // emulate native "copy" event
@@ -194,7 +192,7 @@ describe('CopyPaste', () => {
       ].join(''));
     });
 
-    it('should copy 0 and false values to the clipboard', () => {
+    it('should copy 0 and false values to the clipboard', async() => {
       handsontable({
         colHeaders: ['', 0, false, undefined, null],
         data: [['', 0, false, undefined, null]],
@@ -203,7 +201,7 @@ describe('CopyPaste', () => {
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
-      selectAll();
+      await selectAll();
 
       plugin.copyWithColumnHeaders();
       plugin.onCopy(copyEvent); // emulate native "copy" event
@@ -220,7 +218,7 @@ describe('CopyPaste', () => {
       ].join(''));
     });
 
-    it('should handle spaces properly (creates Excel compatible HTML)', () => {
+    it('should handle spaces properly (creates Excel compatible HTML)', async() => {
       handsontable({
         colHeaders: ['a   b'],
         data: [
@@ -233,7 +231,7 @@ describe('CopyPaste', () => {
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
-      selectAll();
+      await selectAll();
 
       plugin.copyWithColumnHeaders();
       plugin.onCopy(copyEvent); // emulate native "copy" event
@@ -252,7 +250,7 @@ describe('CopyPaste', () => {
       ].join(''));
     });
 
-    it('should be possible to copy text outside the table when the `outsideClickDeselects` is disabled', () => {
+    it('should be possible to copy text outside the table when the `outsideClickDeselects` is disabled', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         outsideClickDeselects: false,
@@ -267,7 +265,8 @@ describe('CopyPaste', () => {
       });
       const plugin = getPlugin('CopyPaste');
 
-      selectCell(1, 1);
+      await selectCell(1, 1);
+      copyEvent.target = testElement[0]; // native copy event is triggered on the element outside the table
       plugin.onCopy(copyEvent); // trigger the plugin's method that is normally triggered by the native "copy" event
 
       // the result is that the clipboard data is not overwritten by the HoT
@@ -276,7 +275,7 @@ describe('CopyPaste', () => {
       testElement.remove();
     });
 
-    it('should skip processing the event when the target element has the "data-hot-input" attribute and it\'s not an editor', () => {
+    it('should skip processing the event when the target element has the "data-hot-input" attribute and it\'s not an editor', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
       });
@@ -288,20 +287,22 @@ describe('CopyPaste', () => {
 
       spyOn(copyEvent, 'preventDefault');
 
-      selectCell(1, 1);
+      await selectCell(1, 1);
+
+      copyEvent.target = $('<div id="testElement" data-hot-input="true">Test</div>')[0];
       plugin.onCopy(copyEvent); // trigger the plugin's method that is normally triggered by the native "copy" event
 
       expect(copyEvent.preventDefault).not.toHaveBeenCalled();
     });
 
-    it('should not skip processing the event when the target element has the "data-hot-input" attribute and it\'s an editor', () => {
+    it('should not skip processing the event when the target element has the "data-hot-input" attribute and it\'s an editor', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
       });
 
       const plugin = getPlugin('CopyPaste');
 
-      selectCell(1, 1);
+      await selectCell(1, 1);
 
       const copyEvent = getClipboardEvent({
         target: getActiveEditor().TEXTAREA,
@@ -309,12 +310,13 @@ describe('CopyPaste', () => {
 
       spyOn(copyEvent, 'preventDefault');
 
+      copyEvent.target = getActiveEditor().TEXTAREA;
       plugin.onCopy(copyEvent); // trigger the plugin's method that is normally triggered by the native "copy" event
 
       expect(copyEvent.preventDefault).toHaveBeenCalled();
     });
 
-    it('should skip processing the event when the target element does not have the "data-hot-input" attribute and it\'s not a BODY element', () => {
+    it('should skip processing the event when the target element does not have the "data-hot-input" attribute and it\'s not a BODY element', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
       });
@@ -326,13 +328,15 @@ describe('CopyPaste', () => {
 
       spyOn(copyEvent, 'preventDefault');
 
-      selectCell(1, 1);
+      await selectCell(1, 1);
+
+      copyEvent.target = $('<div id="testElement">Test</div>')[0];
       plugin.onCopy(copyEvent); // trigger the plugin's method that is normally triggered by the native "copy" event
 
       expect(copyEvent.preventDefault).not.toHaveBeenCalled();
     });
 
-    it('should not skip processing the event when the target element does not have the "data-hot-input" attribute and it\'s a BODY element', () => {
+    it('should not skip processing the event when the target element does not have the "data-hot-input" attribute and it\'s a BODY element', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
       });
@@ -344,13 +348,15 @@ describe('CopyPaste', () => {
 
       spyOn(copyEvent, 'preventDefault');
 
-      selectCell(1, 1);
+      await selectCell(1, 1);
+
+      copyEvent.target = document.body;
       plugin.onCopy(copyEvent); // trigger the plugin's method that is normally triggered by the native "copy" event
 
       expect(copyEvent.preventDefault).toHaveBeenCalled();
     });
 
-    it('should not skip processing the event when the target element does not have the "data-hot-input" attribute and it\'s a TD element (#dev-2225)', () => {
+    it('should not skip processing the event when the target element does not have the "data-hot-input" attribute and it\'s a TD element (#dev-2225)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
       });
@@ -362,7 +368,9 @@ describe('CopyPaste', () => {
 
       spyOn(copyEvent, 'preventDefault');
 
-      selectCell(1, 1);
+      await selectCell(1, 1);
+
+      copyEvent.target = getCell(1, 1);
       plugin.onCopy(copyEvent); // trigger the plugin's method that is normally triggered by the native "copy" event
 
       expect(copyEvent.preventDefault).toHaveBeenCalled();
@@ -378,8 +386,7 @@ describe('CopyPaste', () => {
       const plugin = getPlugin('CopyPaste');
       const expectedResult = getDataAtRow(0).join('\t');
 
-      selectCells([[0, 0, 0, 49]]);
-
+      await selectCells([[0, 0, 0, 49]]);
       await sleep(10);
 
       const copyEvent = getClipboardEvent({

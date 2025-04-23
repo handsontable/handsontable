@@ -20,10 +20,10 @@ describe('HiddenColumns (RTL mode)', () => {
     });
 
     describe('indicators', () => {
-      it.forTheme('classic')('should add proper class names in column headers', () => {
+      it.forTheme('classic')('should add proper class names in column headers', async() => {
         handsontable({
           layoutDirection,
-          data: Handsontable.helper.createSpreadsheetData(1, 5),
+          data: createSpreadsheetData(1, 5),
           hiddenColumns: {
             columns: [1, 3],
             indicators: true,
@@ -45,10 +45,10 @@ describe('HiddenColumns (RTL mode)', () => {
         expect(getComputedStyle(getCell(-1, 4), ':after').content).toBe('none');
       });
 
-      it.forTheme('main')('should add proper class names in column headers', () => {
+      it.forTheme('main')('should add proper class names in column headers', async() => {
         handsontable({
           layoutDirection,
-          data: Handsontable.helper.createSpreadsheetData(1, 5),
+          data: createSpreadsheetData(1, 5),
           hiddenColumns: {
             columns: [1, 3],
             indicators: true,
@@ -70,10 +70,10 @@ describe('HiddenColumns (RTL mode)', () => {
         expect(getComputedStyle(getCell(-1, 4), ':after').content).toBe('none');
       });
 
-      it.forTheme('horizon')('should add proper class names in column headers', () => {
+      it.forTheme('horizon')('should add proper class names in column headers', async() => {
         handsontable({
           layoutDirection,
-          data: Handsontable.helper.createSpreadsheetData(1, 5),
+          data: createSpreadsheetData(1, 5),
           hiddenColumns: {
             columns: [1, 3],
             indicators: true,
@@ -95,9 +95,9 @@ describe('HiddenColumns (RTL mode)', () => {
         expect(getComputedStyle(getCell(-1, 4), ':after').content).toBe('none');
       });
 
-      it('should render indicators after enabling them in updateSettings', () => {
+      it('should render indicators after enabling them in updateSettings', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(1, 3),
+          data: createSpreadsheetData(1, 3),
           hiddenColumns: {
             columns: [0, 2],
           },
@@ -107,7 +107,7 @@ describe('HiddenColumns (RTL mode)', () => {
         expect(getCell(-1, 1)).not.toHaveClass(CSS_CLASS_BEFORE_HIDDEN_COLUMN);
         expect(getCell(-1, 1)).not.toHaveClass(CSS_CLASS_AFTER_HIDDEN_COLUMN);
 
-        updateSettings({
+        await updateSettings({
           hiddenColumns: {
             columns: [0, 2],
             indicators: true,

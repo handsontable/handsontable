@@ -13,35 +13,37 @@ describe('settings', () => {
       }
     });
 
-    it('should not create a new column after TAB hit', () => {
+    it('should not create a new column after TAB hit', async() => {
       handsontable({
         data: createSpreadsheetData(2, 5),
         minSpareCols: 1,
       });
 
-      selectCell(0, 5);
-      keyDownUp('tab');
+      await selectCell(0, 5);
+      await keyDownUp('tab');
 
       expect(countCols()).toBe(6);
       expect(getSelected()).toBeUndefined();
     });
 
-    it('should create a new column after ENTER hit', () => {
+    it('should create a new column after ENTER hit', async() => {
       handsontable({
         data: createSpreadsheetData(2, 5),
         minSpareCols: 1,
       });
 
-      selectCell(0, 5);
-      keyDownUp('enter');
+      await selectCell(0, 5);
+      await keyDownUp('enter');
+
       getActiveEditor().TEXTAREA.value = 'test';
-      keyDownUp('enter');
+
+      await keyDownUp('enter');
 
       expect(countCols()).toBe(7);
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,5 from: 1,5 to: 1,5']);
     });
 
-    it('should create a spare column after removing all columns', () => {
+    it('should create a spare column after removing all columns', async() => {
       handsontable({
         data: createSpreadsheetData(1, 4),
         rowHeaders: true,
@@ -49,16 +51,16 @@ describe('settings', () => {
         minSpareCols: 1,
       });
 
-      alter('remove_col', 0, 5);
+      await alter('remove_col', 0, 5);
 
       expect(countCols()).toBe(1);
       expect(getCell(-1, 0)).toBeInstanceOf(HTMLTableCellElement);
     });
 
     describe('works on init', () => {
-      it('should show data properly when `minSpareCols` is set to 0', () => {
+      it('should show data properly when `minSpareCols` is set to 0', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(1, 1),
+          data: createSpreadsheetData(1, 1),
           minSpareCols: 0
         });
 
@@ -69,9 +71,9 @@ describe('settings', () => {
         expect(countEmptyCols()).toEqual(0);
       });
 
-      it('should show data properly when `minSpareCols` is set to value > 0', () => {
+      it('should show data properly when `minSpareCols` is set to value > 0', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(1, 1),
+          data: createSpreadsheetData(1, 1),
           minSpareCols: 5
         });
 
@@ -83,7 +85,7 @@ describe('settings', () => {
       });
 
       describe('when `columns` property was set', () => {
-        it('should render the number of columns defined in `column` properly ignoring `minSpareCols` option', () => {
+        it('should render the number of columns defined in `column` properly ignoring `minSpareCols` option', async() => {
           handsontable({
             columns: [
               { type: 'text' },
@@ -99,7 +101,7 @@ describe('settings', () => {
           expect(countEmptyCols()).toBe(2);
         });
 
-        it('should render the number of columns defined in `minSpareCols` properly ignoring `columns` option', () => {
+        it('should render the number of columns defined in `minSpareCols` properly ignoring `columns` option', async() => {
           handsontable({
             columns: [
               { type: 'text' },
@@ -121,12 +123,12 @@ describe('settings', () => {
     });
 
     describe('update settings works', () => {
-      it('should show data properly after `minSpareCols` is updated to 5', () => {
+      it('should show data properly after `minSpareCols` is updated to 5', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(1, 1)
+          data: createSpreadsheetData(1, 1)
         });
 
-        updateSettings({
+        await updateSettings({
           minSpareCols: 5
         });
 
@@ -138,13 +140,13 @@ describe('settings', () => {
       });
 
       // Currently this is a bug (#6571)
-      xit('should show data properly after `minSpareCols` is updated from 5 to 2', () => {
+      xit('should show data properly after `minSpareCols` is updated from 5 to 2', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(1, 1),
+          data: createSpreadsheetData(1, 1),
           minSpareCols: 5
         });
 
-        updateSettings({
+        await updateSettings({
           minSpareCols: 2
         });
 
@@ -155,13 +157,13 @@ describe('settings', () => {
         expect(countEmptyCols()).toBe(1);
       });
 
-      it('should show data properly after `minSpareCols` is updated from 2 to 5', () => {
+      it('should show data properly after `minSpareCols` is updated from 2 to 5', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(1, 1),
+          data: createSpreadsheetData(1, 1),
           minSpareCols: 2
         });
 
-        updateSettings({
+        await updateSettings({
           minSpareCols: 5
         });
 
@@ -174,16 +176,16 @@ describe('settings', () => {
     });
 
     describe('cell meta', () => {
-      it('should be rendered as is without shifting the cell meta objects', () => {
+      it('should be rendered as is without shifting the cell meta objects', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(1, 1),
+          data: createSpreadsheetData(1, 1),
           minSpareCols: 3,
         });
 
         getCellMeta(0, 4).test = 'foo';
         getCellMeta(0, 5).test = 'bar';
 
-        updateSettings({
+        await updateSettings({
           minSpareCols: 5
         });
 

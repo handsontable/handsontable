@@ -16,7 +16,7 @@ describe('Core_init', () => {
     $('body').find('hot-table').remove();
   });
 
-  it('should respect startRows and startCols when no data is provided', () => {
+  it('should respect startRows and startCols when no data is provided', async() => {
     $('body').find(`#${id}`).remove();
     spec().$container = $(`<div id="${id}"></div>`).appendTo('body');
     handsontable();
@@ -25,13 +25,13 @@ describe('Core_init', () => {
     expect(countCols()).toEqual(5); // as given in README.md
   });
 
-  it('should construct when container is not appended to document', () => {
+  it('should construct when container is not appended to document', async() => {
     $('body').find(`#${id}`).remove();
     handsontable();
     expect(getData()).toBeTruthy();
   });
 
-  it('should create an instance when the iframe is a container', () => {
+  it('should create an instance when the iframe is a container', async() => {
     const iframe = $('<iframe/>').appendTo(spec().$container);
     const doc = iframe[0].contentDocument;
 
@@ -51,7 +51,7 @@ describe('Core_init', () => {
     }).not.toThrow();
   });
 
-  it('should create table even if is launched inside custom element', () => {
+  it('should create table even if is launched inside custom element', async() => {
     const onErrorSpy = spyOn(window, 'onerror');
 
     $('body').find(`#${id}`).remove();
@@ -61,8 +61,8 @@ describe('Core_init', () => {
 
     const cell = spec().$container.find('tr:eq(0) td:eq(1)');
 
-    mouseOver(cell);
-    mouseDown(cell);
+    await mouseOver(cell);
+    await mouseDown(cell);
 
     expect(onErrorSpy).not.toHaveBeenCalled();
   });
@@ -74,7 +74,7 @@ describe('Core_init', () => {
     spec().$container.css('display', 'none');
 
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(15, 15),
+      data: createSpreadsheetData(15, 15),
       rowHeaders: true,
       colHeaders: true,
       stretchH: 'all'
@@ -112,7 +112,7 @@ describe('Core_init', () => {
     $testParentContainer.css('display', 'none');
 
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(15, 15),
+      data: createSpreadsheetData(15, 15),
       rowHeaders: true,
       colHeaders: true,
       stretchH: 'all'
@@ -148,7 +148,7 @@ describe('Core_init', () => {
     spec().$container.attr('id', 'test-hot');
 
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(15, 15),
+      data: createSpreadsheetData(15, 15),
       rowHeaders: true,
       colHeaders: true,
       stretchH: 'all'
@@ -187,7 +187,7 @@ describe('Core_init', () => {
     $testParentContainer.append(spec().$container);
 
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(15, 15),
+      data: createSpreadsheetData(15, 15),
       rowHeaders: true,
       colHeaders: true,
       stretchH: 'all'
@@ -218,28 +218,28 @@ describe('Core_init', () => {
   });
 
   describe('theme initialization', () => {
-    it('should enable a theme when a theme class name was added to the root element', () => {
+    it('should enable a theme when a theme class name was added to the root element', async() => {
       simulateModernThemeStylesheet(spec().$container);
       spec().$container.addClass('ht-theme-sth');
 
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(15, 15),
+      handsontable({
+        data: createSpreadsheetData(15, 15),
       }, true);
 
-      expect(hot.view.getStylesHandler().isClassicTheme()).toBe(false);
-      expect(hot.getCurrentThemeName()).toBe('ht-theme-sth');
+      expect(tableView().getStylesHandler().isClassicTheme()).toBe(false);
+      expect(getCurrentThemeName()).toBe('ht-theme-sth');
     });
 
-    it('should enable a theme when a theme class name was added to a parent of the root element', () => {
+    it('should enable a theme when a theme class name was added to a parent of the root element', async() => {
       simulateModernThemeStylesheet(spec().$container);
       spec().$parentContainer.addClass('ht-theme-sth');
 
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(15, 15),
+        data: createSpreadsheetData(15, 15),
       }, true);
 
-      expect(hot.view.getStylesHandler().isClassicTheme()).toBe(false);
-      expect(hot.getCurrentThemeName()).toBe('ht-theme-sth');
+      expect(tableView().getStylesHandler().isClassicTheme()).toBe(false);
+      expect(getCurrentThemeName()).toBe('ht-theme-sth');
       expect($(hot.rootElement.parentElement).hasClass('ht-theme-sth')).toBe(true);
     });
   });

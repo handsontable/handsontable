@@ -19,7 +19,7 @@ describe('Text Editor', () => {
       return;
     }
 
-    const hot = handsontable({
+    handsontable({
       columns: [
         {
           type: 'text',
@@ -29,9 +29,8 @@ describe('Text Editor', () => {
 
     const cell = hot.getCell(0, 0);
 
-    selectCell(0, 0);
-
-    keyDownUp('enter');
+    await selectCell(0, 0);
+    await keyDownUp('enter');
 
     const editor = getActiveEditor();
 
@@ -44,7 +43,7 @@ describe('Text Editor', () => {
   });
 
   it('should have correct border radius value in editor textarea', async() => {
-    const hot = handsontable({
+    handsontable({
       columns: [
         {
           type: 'text',
@@ -54,9 +53,8 @@ describe('Text Editor', () => {
 
     hot.getCell(0, 0);
 
-    selectCell(0, 0);
-
-    keyDownUp('enter');
+    await selectCell(0, 0);
+    await keyDownUp('enter');
 
     const editor = getActiveEditor();
     const compStyle = getComputedStyle(editor.TEXTAREA);

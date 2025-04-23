@@ -55,10 +55,11 @@ describe('ColumnSummarySpec', () => {
   });
 
   describe('parseSettings', () => {
-    it('should parse the settings from the Handsontable instance', () => {
+    it('should parse the settings from the Handsontable instance', async() => {
       const customFunction = function() {};
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(15, 15),
+
+      handsontable({
+        data: createSpreadsheetData(15, 15),
         height: 200,
         width: 200,
         columnSummary: [
@@ -88,7 +89,7 @@ describe('ColumnSummarySpec', () => {
         ]
       });
 
-      const plugin = hot.getPlugin('ColumnSummary');
+      const plugin = getPlugin('ColumnSummary');
       const endpoints = [
         plugin.endpoints.getEndpoint(0),
         plugin.endpoints.getEndpoint(1)
@@ -118,7 +119,7 @@ describe('ColumnSummarySpec', () => {
   });
 
   describe('calculateSum', () => {
-    it('should calculate sum of values from the provided range', () => {
+    it('should calculate sum of values from the provided range', async() => {
       handsontable({
         data: createNumericData(15, 15),
         height: 200,
@@ -141,7 +142,7 @@ describe('ColumnSummarySpec', () => {
   });
 
   describe('calculateMinMax', () => {
-    it('should calculate the minimum from the provided range', () => {
+    it('should calculate the minimum from the provided range', async() => {
       const dataset = createNumericData(15, 15);
 
       dataset[0][1] = 0;
@@ -177,7 +178,7 @@ describe('ColumnSummarySpec', () => {
       expect(getDataAtCell(14, 1)).toEqual(0);
     });
 
-    it('should calculate the minimum from the column when the destination row is empty and `forceNumeric` is enabled', () => {
+    it('should calculate the minimum from the column when the destination row is empty and `forceNumeric` is enabled', async() => {
       handsontable({
         data: [
           [0],
@@ -200,7 +201,7 @@ describe('ColumnSummarySpec', () => {
       expect(getDataAtCell(3, 0)).toBe(0);
     });
 
-    it('should calculate the maximum from the provided range', () => {
+    it('should calculate the maximum from the provided range', async() => {
       const dataset = createNumericData(15, 15);
 
       dataset.forEach((rowArr) => {
@@ -237,7 +238,7 @@ describe('ColumnSummarySpec', () => {
       expect(getDataAtCell(14, 1)).toEqual(0);
     });
 
-    it('should calculate the maximum from the column when the destination row is empty and `forceNumeric` is enabled', () => {
+    it('should calculate the maximum from the column when the destination row is empty and `forceNumeric` is enabled', async() => {
       handsontable({
         data: [
           [0],
@@ -262,7 +263,7 @@ describe('ColumnSummarySpec', () => {
   });
 
   describe('countEntries', () => {
-    it('should count non-empty entries from the provided range', () => {
+    it('should count non-empty entries from the provided range', async() => {
       const dataset = createNumericData(15, 15);
 
       dataset.forEach((rowArr) => {
@@ -299,7 +300,7 @@ describe('ColumnSummarySpec', () => {
       expect(getDataAtCell(14, 1)).toEqual(14);
     });
 
-    it('should count non-empty entries from the column when the destination row is empty and `forceNumeric` is enabled', () => {
+    it('should count non-empty entries from the column when the destination row is empty and `forceNumeric` is enabled', async() => {
       handsontable({
         data: [
           [4],
@@ -324,7 +325,7 @@ describe('ColumnSummarySpec', () => {
   });
 
   describe('calculateAverage', () => {
-    it('should get average value from entries in the provided range', () => {
+    it('should get average value from entries in the provided range', async() => {
       handsontable({
         data: createNumericData(15, 15),
         height: 200,
@@ -345,7 +346,7 @@ describe('ColumnSummarySpec', () => {
       expect(getDataAtCell(14, 0).toFixed(4)).toEqual((7.45454545454545).toFixed(4));
     });
 
-    it('should count average value from the column when the destination row is empty and `forceNumeric` is enabled', () => {
+    it('should count average value from the column when the destination row is empty and `forceNumeric` is enabled', async() => {
       handsontable({
         data: [
           [4],
@@ -370,7 +371,7 @@ describe('ColumnSummarySpec', () => {
   });
 
   describe('customFunction', () => {
-    it('should apply a custom function to the entries in the provided range', () => {
+    it('should apply a custom function to the entries in the provided range', async() => {
       handsontable({
         data: createNumericData(15, 15),
         height: 200,
@@ -433,12 +434,11 @@ describe('ColumnSummarySpec', () => {
       });
 
       expect(getDataAtCell(14, 0)).toEqual(3);
-
     });
   });
 
   describe('complex setups', () => {
-    it('should properly calculate values when many endpoints are declared', () => {
+    it('should properly calculate values when many endpoints are declared', async() => {
       handsontable({
         data: createNumericData(40, 40),
         height: 200,
@@ -483,8 +483,8 @@ describe('ColumnSummarySpec', () => {
       expect(getDataAtCell(0, 1)).toEqual(820);
     });
 
-    it('should accept endpoints configuration provided as a function', () => {
-      const hot = handsontable({
+    it('should accept endpoints configuration provided as a function', async() => {
+      handsontable({
         data: createNumericData(40, 40),
         height: 200,
         width: 200,
@@ -501,21 +501,21 @@ describe('ColumnSummarySpec', () => {
         }
       });
 
-      const plugin = hot.getPlugin('columnSummary');
+      const plugin = getPlugin('columnSummary');
 
-      expect(plugin.endpoints.getEndpoint(0).destinationRow).toEqual(parseInt(hot.countRows() / 2, 10));
-      expect(hot.getDataAtCell(parseInt(hot.countRows() / 2, 10), 1)).toEqual(820);
+      expect(plugin.endpoints.getEndpoint(0).destinationRow).toEqual(parseInt(countRows() / 2, 10));
+      expect(getDataAtCell(parseInt(countRows() / 2, 10), 1)).toEqual(820);
 
-      hot.alter('remove_row', 10, 3);
+      await alter('remove_row', 10, 3);
 
-      expect(plugin.endpoints.getEndpoint(0).destinationRow).toEqual(parseInt(hot.countRows() / 2, 10));
-      expect(hot.getDataAtCell(parseInt(hot.countRows() / 2, 10), 1)).toEqual(763);
+      expect(plugin.endpoints.getEndpoint(0).destinationRow).toEqual(parseInt(countRows() / 2, 10));
+      expect(getDataAtCell(parseInt(countRows() / 2, 10), 1)).toEqual(763);
     });
   });
 
   describe('structure alteration', () => {
-    it('should shift the endpoint coordinates when a new row was added above an endpoint', () => {
-      const hot = handsontable({
+    it('should shift the endpoint coordinates when a new row was added above an endpoint', async() => {
+      handsontable({
         data: createNumericData(40, 40),
         height: 200,
         width: 200,
@@ -530,7 +530,8 @@ describe('ColumnSummarySpec', () => {
           }]
       });
 
-      hot.alter('insert_row_above', 0, 1);
+      await alter('insert_row_above', 0, 1);
+
       expect(getDataAtCell(0, 0)).toEqual(null);
       expect(getCellMeta(0, 0).className).toEqual(undefined);
       expect(getCellMeta(0, 0).readOnly).toEqual(false);
@@ -539,8 +540,8 @@ describe('ColumnSummarySpec', () => {
       expect(getCellMeta(1, 0).readOnly).toEqual(true);
     });
 
-    it('should shift the endpoint coordinates when a new column was added on the left of an endpoint', () => {
-      const hot = handsontable({
+    it('should shift the endpoint coordinates when a new column was added on the left of an endpoint', async() => {
+      handsontable({
         data: createNumericData(40, 40),
         height: 200,
         width: 200,
@@ -555,7 +556,8 @@ describe('ColumnSummarySpec', () => {
           }]
       });
 
-      hot.alter('insert_col_start', 0, 1);
+      await alter('insert_col_start', 0, 1);
+
       expect(getDataAtCell(0, 0)).toEqual(null);
       expect(getCellMeta(0, 0).className).toEqual(undefined);
       expect(getCellMeta(0, 0).readOnly).toEqual(false);
@@ -564,8 +566,8 @@ describe('ColumnSummarySpec', () => {
       expect(getCellMeta(0, 1).readOnly).toEqual(true);
     });
 
-    it('should shift the endpoint coordinates when a row was removed above an endpoint', () => {
-      const hot = handsontable({
+    it('should shift the endpoint coordinates when a row was removed above an endpoint', async() => {
+      handsontable({
         data: createNumericData(40, 40),
         height: 520,
         rowHeaders: true,
@@ -581,7 +583,8 @@ describe('ColumnSummarySpec', () => {
           }]
       });
 
-      hot.alter('remove_row', 0, 1);
+      await alter('remove_row', 0, 1);
+
       expect(getDataAtCell(14, 0)).toEqual(16);
       expect(getCellMeta(14, 0).className).toEqual(undefined);
       expect(getCellMeta(14, 0).readOnly).toEqual(false);
@@ -590,8 +593,8 @@ describe('ColumnSummarySpec', () => {
       expect(getCellMeta(13, 0).readOnly).toEqual(true);
     });
 
-    it('should shift the endpoint coordinates when a column was removed on the left of an endpoint', () => {
-      const hot = handsontable({
+    it('should shift the endpoint coordinates when a column was removed on the left of an endpoint', async() => {
+      handsontable({
         data: createNumericData(40, 40),
         height: 200,
         width: 200,
@@ -606,7 +609,8 @@ describe('ColumnSummarySpec', () => {
           }]
       });
 
-      hot.alter('remove_col', 0, 1);
+      await alter('remove_col', 0, 1);
+
       expect(getDataAtCell(0, 3)).toEqual(1);
       expect(getCellMeta(0, 3).className).toEqual(undefined);
       expect(getCellMeta(0, 3).readOnly).toEqual(false);
@@ -616,8 +620,8 @@ describe('ColumnSummarySpec', () => {
     });
 
     describe('if range is undefined', () => {
-      it('should not throw an error if removing column', () => {
-        const hot = handsontable({
+      it('should not throw an error if removing column', async() => {
+        handsontable({
           data: createNumericData(3, 3),
           height: 200,
           width: 200,
@@ -628,13 +632,13 @@ describe('ColumnSummarySpec', () => {
           }],
         });
 
-        expect(() => {
-          hot.alter('remove_col', 0, 1);
+        expect(async() => {
+          await alter('remove_col', 0, 1);
         }).not.toThrow();
       });
 
-      it('should not throw an error if removing row', () => {
-        const hot = handsontable({
+      it('should not throw an error if removing row', async() => {
+        handsontable({
           data: createNumericData(3, 3),
           height: 200,
           width: 200,
@@ -645,14 +649,14 @@ describe('ColumnSummarySpec', () => {
           }],
         });
 
-        expect(() => {
-          hot.alter('remove_row', 0, 1);
+        expect(async() => {
+          await alter('remove_row', 0, 1);
         }).not.toThrow();
       });
     });
 
-    it('should modify the calculation row range when a row was moved outside the range', () => {
-      const hot = handsontable({
+    it('should modify the calculation row range when a row was moved outside the range', async() => {
+      handsontable({
         data: createNumericData(40, 40),
         height: 200,
         width: 200,
@@ -668,13 +672,13 @@ describe('ColumnSummarySpec', () => {
           }]
       });
 
-      expect(JSON.stringify(hot.getPlugin('columnSummary').endpoints.getEndpoint(0).ranges)).toEqual('[[0,6]]');
-      hot.getPlugin('manualRowMove').moveRow(3, 10);
-      expect(JSON.stringify(hot.getPlugin('columnSummary').endpoints.getEndpoint(0).ranges)).toEqual('[[0,2],[4,6]]');
+      expect(JSON.stringify(getPlugin('columnSummary').endpoints.getEndpoint(0).ranges)).toEqual('[[0,6]]');
+      getPlugin('manualRowMove').moveRow(3, 10);
+      expect(JSON.stringify(getPlugin('columnSummary').endpoints.getEndpoint(0).ranges)).toEqual('[[0,2],[4,6]]');
     });
 
-    it('should modify the calculation row range when a row was moved into the range', () => {
-      const hot = handsontable({
+    it('should modify the calculation row range when a row was moved into the range', async() => {
+      handsontable({
         data: createNumericData(40, 40),
         height: 200,
         width: 200,
@@ -690,18 +694,18 @@ describe('ColumnSummarySpec', () => {
           }]
       });
 
-      expect(JSON.stringify(hot.getPlugin('columnSummary').endpoints.getEndpoint(0).ranges))
+      expect(JSON.stringify(getPlugin('columnSummary').endpoints.getEndpoint(0).ranges))
         .toEqual('[[0,6]]');
 
-      hot.getPlugin('manualRowMove').moveRow(10, 3);
+      getPlugin('manualRowMove').moveRow(10, 3);
 
-      expect(JSON.stringify(hot.getPlugin('columnSummary').endpoints.getEndpoint(0).ranges))
+      expect(JSON.stringify(getPlugin('columnSummary').endpoints.getEndpoint(0).ranges))
         .toEqual('[[0,2],[10,10],[3,6]]');
     });
 
     it.forTheme('classic')('should shift the visual calculation result position when a row ' +
-      'was moved outside the endpoint range', function() {
-      const hot = handsontable({
+      'was moved outside the endpoint range', async() => {
+      handsontable({
         data: createNumericData(40, 40),
         height: 200,
         width: 200,
@@ -717,22 +721,22 @@ describe('ColumnSummarySpec', () => {
           }]
       });
 
-      expect(this.$container.find('.columnSummaryResult').size()).toEqual(1);
-      expect(this.$container.find('.htDimmed').size()).toEqual(1);
-      expect($(hot.getCell(7, 3)).hasClass('columnSummaryResult')).toBe(true);
-      expect($(hot.getCell(7, 3)).hasClass('htDimmed')).toBe(true);
+      expect(spec().$container.find('.columnSummaryResult').size()).toEqual(1);
+      expect(spec().$container.find('.htDimmed').size()).toEqual(1);
+      expect($(getCell(7, 3)).hasClass('columnSummaryResult')).toBe(true);
+      expect($(getCell(7, 3)).hasClass('htDimmed')).toBe(true);
 
-      hot.getPlugin('manualRowMove').moveRow(3, 10);
+      getPlugin('manualRowMove').moveRow(3, 10);
 
-      expect(this.$container.find('.columnSummaryResult').size()).toEqual(1);
-      expect(this.$container.find('.htDimmed').size()).toEqual(1);
-      expect($(hot.getCell(6, 3)).hasClass('columnSummaryResult')).toBe(true);
-      expect($(hot.getCell(6, 3)).hasClass('htDimmed')).toBe(true);
+      expect(spec().$container.find('.columnSummaryResult').size()).toEqual(1);
+      expect(spec().$container.find('.htDimmed').size()).toEqual(1);
+      expect($(getCell(6, 3)).hasClass('columnSummaryResult')).toBe(true);
+      expect($(getCell(6, 3)).hasClass('htDimmed')).toBe(true);
     });
 
     it.forTheme('main')('should shift the visual calculation result position when a row ' +
-      'was moved outside the endpoint range', function() {
-      const hot = handsontable({
+      'was moved outside the endpoint range', async() => {
+      handsontable({
         data: createNumericData(40, 40),
         height: 252,
         width: 200,
@@ -748,22 +752,22 @@ describe('ColumnSummarySpec', () => {
           }]
       });
 
-      expect(this.$container.find('.columnSummaryResult').size()).toEqual(1);
-      expect(this.$container.find('.htDimmed').size()).toEqual(1);
-      expect($(hot.getCell(7, 3)).hasClass('columnSummaryResult')).toBe(true);
-      expect($(hot.getCell(7, 3)).hasClass('htDimmed')).toBe(true);
+      expect(spec().$container.find('.columnSummaryResult').size()).toEqual(1);
+      expect(spec().$container.find('.htDimmed').size()).toEqual(1);
+      expect($(getCell(7, 3)).hasClass('columnSummaryResult')).toBe(true);
+      expect($(getCell(7, 3)).hasClass('htDimmed')).toBe(true);
 
-      hot.getPlugin('manualRowMove').moveRow(3, 10);
+      getPlugin('manualRowMove').moveRow(3, 10);
 
-      expect(this.$container.find('.columnSummaryResult').size()).toEqual(1);
-      expect(this.$container.find('.htDimmed').size()).toEqual(1);
-      expect($(hot.getCell(6, 3)).hasClass('columnSummaryResult')).toBe(true);
-      expect($(hot.getCell(6, 3)).hasClass('htDimmed')).toBe(true);
+      expect(spec().$container.find('.columnSummaryResult').size()).toEqual(1);
+      expect(spec().$container.find('.htDimmed').size()).toEqual(1);
+      expect($(getCell(6, 3)).hasClass('columnSummaryResult')).toBe(true);
+      expect($(getCell(6, 3)).hasClass('htDimmed')).toBe(true);
     });
 
     it.forTheme('horizon')('should shift the visual calculation result position when a row ' +
-      'was moved outside the endpoint range', function() {
-      const hot = handsontable({
+      'was moved outside the endpoint range', async() => {
+      handsontable({
         data: createNumericData(40, 40),
         height: 321,
         width: 200,
@@ -779,22 +783,22 @@ describe('ColumnSummarySpec', () => {
           }]
       });
 
-      expect(this.$container.find('.columnSummaryResult').size()).toEqual(1);
-      expect(this.$container.find('.htDimmed').size()).toEqual(1);
-      expect($(hot.getCell(7, 3)).hasClass('columnSummaryResult')).toBe(true);
-      expect($(hot.getCell(7, 3)).hasClass('htDimmed')).toBe(true);
+      expect(spec().$container.find('.columnSummaryResult').size()).toEqual(1);
+      expect(spec().$container.find('.htDimmed').size()).toEqual(1);
+      expect($(getCell(7, 3)).hasClass('columnSummaryResult')).toBe(true);
+      expect($(getCell(7, 3)).hasClass('htDimmed')).toBe(true);
 
-      hot.getPlugin('manualRowMove').moveRow(3, 10);
+      getPlugin('manualRowMove').moveRow(3, 10);
 
-      expect(this.$container.find('.columnSummaryResult').size()).toEqual(1);
-      expect(this.$container.find('.htDimmed').size()).toEqual(1);
-      expect($(hot.getCell(6, 3)).hasClass('columnSummaryResult')).toBe(true);
-      expect($(hot.getCell(6, 3)).hasClass('htDimmed')).toBe(true);
+      expect(spec().$container.find('.columnSummaryResult').size()).toEqual(1);
+      expect(spec().$container.find('.htDimmed').size()).toEqual(1);
+      expect($(getCell(6, 3)).hasClass('columnSummaryResult')).toBe(true);
+      expect($(getCell(6, 3)).hasClass('htDimmed')).toBe(true);
     });
 
     it.forTheme('classic')('should shift the visual calculation result position when a row ' +
-      'was moved inside the endpoint range', function() {
-      const hot = handsontable({
+      'was moved inside the endpoint range', async() => {
+      handsontable({
         data: createNumericData(40, 40),
         height: 200,
         width: 200,
@@ -810,22 +814,22 @@ describe('ColumnSummarySpec', () => {
           }]
       });
 
-      expect(this.$container.find('.columnSummaryResult').size()).toEqual(1);
-      expect(this.$container.find('.htDimmed').size()).toEqual(1);
-      expect($(hot.getCell(7, 3)).hasClass('columnSummaryResult')).toBe(true);
-      expect($(hot.getCell(7, 3)).hasClass('htDimmed')).toBe(true);
+      expect(spec().$container.find('.columnSummaryResult').size()).toEqual(1);
+      expect(spec().$container.find('.htDimmed').size()).toEqual(1);
+      expect($(getCell(7, 3)).hasClass('columnSummaryResult')).toBe(true);
+      expect($(getCell(7, 3)).hasClass('htDimmed')).toBe(true);
 
-      hot.getPlugin('manualRowMove').moveRow(10, 3);
+      getPlugin('manualRowMove').moveRow(10, 3);
 
-      expect(this.$container.find('.columnSummaryResult').size()).toEqual(1);
-      expect(this.$container.find('.htDimmed').size()).toEqual(1);
-      expect($(hot.getCell(8, 3)).hasClass('columnSummaryResult')).toBe(true);
-      expect($(hot.getCell(8, 3)).hasClass('htDimmed')).toBe(true);
+      expect(spec().$container.find('.columnSummaryResult').size()).toEqual(1);
+      expect(spec().$container.find('.htDimmed').size()).toEqual(1);
+      expect($(getCell(8, 3)).hasClass('columnSummaryResult')).toBe(true);
+      expect($(getCell(8, 3)).hasClass('htDimmed')).toBe(true);
     });
 
     it.forTheme('main')('should shift the visual calculation result position when a row ' +
-      'was moved inside the endpoint range', function() {
-      const hot = handsontable({
+      'was moved inside the endpoint range', async() => {
+      handsontable({
         data: createNumericData(40, 40),
         height: 252,
         width: 200,
@@ -841,22 +845,22 @@ describe('ColumnSummarySpec', () => {
           }]
       });
 
-      expect(this.$container.find('.columnSummaryResult').size()).toEqual(1);
-      expect(this.$container.find('.htDimmed').size()).toEqual(1);
-      expect($(hot.getCell(7, 3)).hasClass('columnSummaryResult')).toBe(true);
-      expect($(hot.getCell(7, 3)).hasClass('htDimmed')).toBe(true);
+      expect(spec().$container.find('.columnSummaryResult').size()).toEqual(1);
+      expect(spec().$container.find('.htDimmed').size()).toEqual(1);
+      expect($(getCell(7, 3)).hasClass('columnSummaryResult')).toBe(true);
+      expect($(getCell(7, 3)).hasClass('htDimmed')).toBe(true);
 
-      hot.getPlugin('manualRowMove').moveRow(10, 3);
+      getPlugin('manualRowMove').moveRow(10, 3);
 
-      expect(this.$container.find('.columnSummaryResult').size()).toEqual(1);
-      expect(this.$container.find('.htDimmed').size()).toEqual(1);
-      expect($(hot.getCell(8, 3)).hasClass('columnSummaryResult')).toBe(true);
-      expect($(hot.getCell(8, 3)).hasClass('htDimmed')).toBe(true);
+      expect(spec().$container.find('.columnSummaryResult').size()).toEqual(1);
+      expect(spec().$container.find('.htDimmed').size()).toEqual(1);
+      expect($(getCell(8, 3)).hasClass('columnSummaryResult')).toBe(true);
+      expect($(getCell(8, 3)).hasClass('htDimmed')).toBe(true);
     });
 
     it.forTheme('horizon')('should shift the visual calculation result position when a row ' +
-      'was moved inside the endpoint range', function() {
-      const hot = handsontable({
+      'was moved inside the endpoint range', async() => {
+      handsontable({
         data: createNumericData(40, 40),
         height: 321,
         width: 200,
@@ -872,24 +876,24 @@ describe('ColumnSummarySpec', () => {
           }]
       });
 
-      expect(this.$container.find('.columnSummaryResult').size()).toEqual(1);
-      expect(this.$container.find('.htDimmed').size()).toEqual(1);
-      expect($(hot.getCell(7, 3)).hasClass('columnSummaryResult')).toBe(true);
-      expect($(hot.getCell(7, 3)).hasClass('htDimmed')).toBe(true);
+      expect(spec().$container.find('.columnSummaryResult').size()).toEqual(1);
+      expect(spec().$container.find('.htDimmed').size()).toEqual(1);
+      expect($(getCell(7, 3)).hasClass('columnSummaryResult')).toBe(true);
+      expect($(getCell(7, 3)).hasClass('htDimmed')).toBe(true);
 
-      hot.getPlugin('manualRowMove').moveRow(10, 3);
+      getPlugin('manualRowMove').moveRow(10, 3);
 
-      expect(this.$container.find('.columnSummaryResult').size()).toEqual(1);
-      expect(this.$container.find('.htDimmed').size()).toEqual(1);
-      expect($(hot.getCell(8, 3)).hasClass('columnSummaryResult')).toBe(true);
-      expect($(hot.getCell(8, 3)).hasClass('htDimmed')).toBe(true);
+      expect(spec().$container.find('.columnSummaryResult').size()).toEqual(1);
+      expect(spec().$container.find('.htDimmed').size()).toEqual(1);
+      expect($(getCell(8, 3)).hasClass('columnSummaryResult')).toBe(true);
+      expect($(getCell(8, 3)).hasClass('htDimmed')).toBe(true);
     });
   });
 
   describe('compatibility with other plugins', () => {
     describe('nestedRows', () => {
-      it('should work properly with the nestedRows plugin', (done) => {
-        const hot = handsontable({
+      it('should work properly with the nestedRows plugin', async() => {
+        handsontable({
           data: getDataForColumnSummary(),
           height: 200,
           width: 200,
@@ -898,7 +902,7 @@ describe('ColumnSummarySpec', () => {
           columnSummary: columnSummaryFunction
         });
 
-        const nestedRowsPlugin = hot.getPlugin('nestedRows');
+        const nestedRowsPlugin = getPlugin('nestedRows');
 
         /**
          * @param row
@@ -919,24 +923,24 @@ describe('ColumnSummarySpec', () => {
           }
         }
 
-        setTimeout(() => {
-          toggle(0);
+        await sleep(300);
 
-          expect(getDataAtCell(0, 1)).toEqual(106);
-          expect(getDataAtCell(1, 1)).toEqual(3996);
-          setDataAtCell(2, 1, 0);
-          expect(getDataAtCell(0, 1)).toEqual(106);
-          expect(getDataAtCell(1, 1)).toEqual(3633);
-          expect(getCellMeta(0, 1).readOnly).toEqual(true);
-          expect(getCellMeta(1, 1).readOnly).toEqual(true);
+        toggle(0);
 
-          done();
-        }, 300);
+        expect(getDataAtCell(0, 1)).toEqual(106);
+        expect(getDataAtCell(1, 1)).toEqual(3996);
+
+        await setDataAtCell(2, 1, 0);
+
+        expect(getDataAtCell(0, 1)).toEqual(106);
+        expect(getDataAtCell(1, 1)).toEqual(3633);
+        expect(getCellMeta(0, 1).readOnly).toEqual(true);
+        expect(getCellMeta(1, 1).readOnly).toEqual(true);
       });
     });
 
-    it('should calculate the endpoints properly after moving rows between groups', function() {
-      const hot = handsontable({
+    it('should calculate the endpoints properly after moving rows between groups', async() => {
+      handsontable({
         data: getDataForColumnSummary(),
         height: 200,
         width: 200,
@@ -945,22 +949,22 @@ describe('ColumnSummarySpec', () => {
         columnSummary: columnSummaryFunction
       });
 
-      expect(hot.getDataAtCell(0, 1)).toEqual(106);
-      expect(hot.getDataAtCell(4, 1)).toEqual(3996);
-      expect(this.$container.find('.columnSummaryResult').size()).toEqual(3);
-      expect(this.$container.find('.htDimmed').size()).toEqual(3);
+      expect(getDataAtCell(0, 1)).toEqual(106);
+      expect(getDataAtCell(4, 1)).toEqual(3996);
+      expect(spec().$container.find('.columnSummaryResult').size()).toEqual(3);
+      expect(spec().$container.find('.htDimmed').size()).toEqual(3);
 
-      hot.getPlugin('manualRowMove').dragRow(2, 6);
+      getPlugin('manualRowMove').dragRow(2, 6);
 
-      expect(hot.getDataAtCell(0, 1)).toEqual(70);
-      expect(hot.getDataAtCell(3, 1)).toEqual(4032);
-      expect(this.$container.find('.columnSummaryResult').size()).toEqual(3);
-      expect(this.$container.find('.htDimmed').size()).toEqual(3);
+      expect(getDataAtCell(0, 1)).toEqual(70);
+      expect(getDataAtCell(3, 1)).toEqual(4032);
+      expect(spec().$container.find('.columnSummaryResult').size()).toEqual(3);
+      expect(spec().$container.find('.htDimmed').size()).toEqual(3);
     });
   });
 
   describe('maxRows options set', () => {
-    it('should apply summary operation only on rows which are < maxRows', () => {
+    it('should apply summary operation only on rows which are < maxRows', async() => {
       const rows = 9;
       const columns = 5;
 
@@ -997,7 +1001,7 @@ describe('ColumnSummarySpec', () => {
   });
 
   describe('`roundFloat` option', () => {
-    it('should not round the resultif `roundFloat` is set to `false`', () => {
+    it('should not round the resultif `roundFloat` is set to `false`', async() => {
       handsontable({
         data: createNumericData(15, 15),
         height: 200,
@@ -1019,7 +1023,7 @@ describe('ColumnSummarySpec', () => {
       expect(getDataAtCell(14, 0)).toEqual(7.454545454545454);
     });
 
-    it('should round the result to the provided number of decimal places', () => {
+    it('should round the result to the provided number of decimal places', async() => {
       handsontable({
         data: createNumericData(15, 15),
         height: 200,
@@ -1040,7 +1044,7 @@ describe('ColumnSummarySpec', () => {
 
       expect(getDataAtCell(14, 0)).toEqual('7.45');
 
-      updateSettings({
+      await updateSettings({
         columnSummary: [
           {
             destinationColumn: 0,
@@ -1058,7 +1062,7 @@ describe('ColumnSummarySpec', () => {
       expect(getDataAtCell(14, 0)).toEqual('7');
     });
 
-    it('should round the `roundFloat` value to range <0, 100> if its value is an integer outside of that range', () => {
+    it('should round the `roundFloat` value to range <0, 100> if its value is an integer outside of that range', async() => {
       handsontable({
         data: createNumericData(15, 15),
         height: 200,
@@ -1079,7 +1083,7 @@ describe('ColumnSummarySpec', () => {
 
       expect(getDataAtCell(14, 0)).toEqual('7');
 
-      updateSettings({
+      await updateSettings({
         columnSummary: [
           {
             destinationColumn: 0,
@@ -1099,7 +1103,7 @@ describe('ColumnSummarySpec', () => {
     });
   });
 
-  it('should warn user that provided destination points are beyond the table boundaries', () => {
+  it('should warn user that provided destination points are beyond the table boundaries', async() => {
     const warnSpy = spyOn(console, 'warn');
 
     handsontable({
@@ -1115,7 +1119,7 @@ describe('ColumnSummarySpec', () => {
     expect(warnSpy).toHaveBeenCalledWith(warnMessage);
   });
 
-  it('should not show endpoint when it\'s destination point is proper just after new row insertion', () => {
+  it('should not show endpoint when it\'s destination point is proper just after new row insertion', async() => {
     const warnSpy = spyOn(console, 'warn');
     let warnFirstArgs;
 
@@ -1133,7 +1137,7 @@ describe('ColumnSummarySpec', () => {
 
     expect(warnFirstArgs.filter(arg => arg === warnMessage).length).toBe(1);
 
-    alter('insert_row_above', 0);
+    await alter('insert_row_above', 0);
 
     warnFirstArgs = warnSpy.calls.allArgs().map(args => args[0]);
 
@@ -1146,7 +1150,7 @@ describe('ColumnSummarySpec', () => {
     ]);
   });
 
-  it('should not reset the cell meta information after `updateSettings` call', () => {
+  it('should not reset the cell meta information after `updateSettings` call', async() => {
     handsontable({
       data: [
         [1, 2, 3],
@@ -1164,12 +1168,12 @@ describe('ColumnSummarySpec', () => {
     expect(getCellMeta(3, 1).readOnly).toBe(true);
     expect(getCellMeta(3, 1).className).toBe('columnSummaryResult');
 
-    updateSettings({});
+    await updateSettings({});
 
     expect(getCellMeta(3, 1).readOnly).toBe(true);
     expect(getCellMeta(3, 1).className).toBe('columnSummaryResult');
 
-    updateSettings({ columns: [{}, {}, {}, {}] });
+    await updateSettings({ columns: [{}, {}, {}, {}] });
 
     expect(getCellMeta(3, 1).readOnly).toBe(true);
     expect(getCellMeta(3, 1).className).toBe('columnSummaryResult');

@@ -13,13 +13,13 @@ describe('ContextMenu', () => {
   });
 
   describe('`close()` method', () => {
-    it('should close the context menu', () => {
+    it('should close the context menu', async() => {
       handsontable({
         contextMenu: true,
       });
 
-      selectCell(0, 0);
-      contextMenu();
+      await selectCell(0, 0);
+      await contextMenu();
 
       expect($(document.body).find('.htContextMenu:visible').length).toBe(1);
 

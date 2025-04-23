@@ -27,7 +27,7 @@ describe('WalkontableBorder corner (modern themes)', () => {
     this.wotInstance.destroy();
   });
 
-  it('should render corner with proper styles', () => {
+  it('should render corner with proper styles', async() => {
     const selections = createSelectionController({
       border: {
         width: 2,

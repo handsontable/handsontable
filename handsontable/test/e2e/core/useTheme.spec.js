@@ -5,7 +5,7 @@ describe('useTheme', () => {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
     }, true);
   });
 
@@ -16,22 +16,22 @@ describe('useTheme', () => {
     }
   });
 
-  it('should change the theme to the one specified by the provided class name', () => {
+  it('should change the theme to the one specified by the provided class name', async() => {
     expect(getCurrentThemeName()).toBe(undefined);
 
-    useTheme('ht-theme-sth');
+    await useTheme('ht-theme-sth');
 
     expect(getCurrentThemeName()).toBe('ht-theme-sth');
 
-    useTheme(undefined);
+    await useTheme(undefined);
 
     expect(getCurrentThemeName()).toBe(undefined);
   });
 
-  it('should add the appropriate class names to the root element when enabling a theme', () => {
+  it('should add the appropriate class names to the root element when enabling a theme', async() => {
     expect(spec().$container.parent().hasClass('ht-theme-sth')).toBe(false);
 
-    useTheme('ht-theme-sth');
+    await useTheme('ht-theme-sth');
 
     expect(spec().$container.parent().hasClass('ht-theme-sth')).toBe(true);
   });

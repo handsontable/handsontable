@@ -14,11 +14,11 @@ describe('HiddenRows', () => {
 
   describe('plugin hooks', () => {
     describe('beforeHideRows', () => {
-      it('should fire the `beforeHideRows` hook before hiding a single row by plugin API', () => {
+      it('should fire the `beforeHideRows` hook before hiding a single row by plugin API', async() => {
         const beforeHideRows = jasmine.createSpy('beforeHideRows');
 
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           hiddenRows: {
             rows: [0],
           },
@@ -30,11 +30,11 @@ describe('HiddenRows', () => {
         expect(beforeHideRows).toHaveBeenCalledWith([0], [0, 2], true);
       });
 
-      it('should fire the `beforeHideRows` hook before hiding multiple rows by plugin API', () => {
+      it('should fire the `beforeHideRows` hook before hiding multiple rows by plugin API', async() => {
         const beforeHideRows = jasmine.createSpy('beforeHideRows');
 
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           hiddenRows: {
             rows: [0],
           },
@@ -46,9 +46,9 @@ describe('HiddenRows', () => {
         expect(beforeHideRows).toHaveBeenCalledWith([0], [0, 2, 3, 4], true);
       });
 
-      it('should be possible to cancel the hiding action by returning `false` from the `beforeHideRows` hook', () => {
+      it('should be possible to cancel the hiding action by returning `false` from the `beforeHideRows` hook', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           hiddenRows: true,
           beforeHideRows: () => false
         });
@@ -59,11 +59,11 @@ describe('HiddenRows', () => {
       });
 
       it('should not perform hiding and return `false` as the third parameter of the `beforeHideRows` hook' +
-        ' if any of the provided rows is out of scope of the table', () => {
+        ' if any of the provided rows is out of scope of the table', async() => {
         const beforeHideRows = jasmine.createSpy('beforeHideRows');
 
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           hiddenRows: true,
           beforeHideRows,
         });
@@ -79,11 +79,11 @@ describe('HiddenRows', () => {
       });
 
       it('should not perform hiding and return `false` as the third parameter of the `beforeHideRows` hook' +
-        ' if any of the provided rows is not integer', () => {
+        ' if any of the provided rows is not integer', async() => {
         const beforeHideRows = jasmine.createSpy('beforeHideRows');
 
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           hiddenRows: true,
           beforeHideRows,
         });
@@ -99,11 +99,11 @@ describe('HiddenRows', () => {
     });
 
     describe('afterHideRows', () => {
-      it('should fire the `afterHideRows` hook after hiding a single row by plugin API', () => {
+      it('should fire the `afterHideRows` hook after hiding a single row by plugin API', async() => {
         const afterHideRows = jasmine.createSpy('afterHideRows');
 
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           hiddenRows: true,
           afterHideRows,
         });
@@ -113,11 +113,11 @@ describe('HiddenRows', () => {
         expect(afterHideRows).toHaveBeenCalledWith([], [2], true, true);
       });
 
-      it('should fire the `afterHideRows` hook after hiding multiple columns by plugin API', () => {
+      it('should fire the `afterHideRows` hook after hiding multiple columns by plugin API', async() => {
         const afterHideRows = jasmine.createSpy('afterHideRows');
 
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           hiddenRows: true,
           afterHideRows,
         });
@@ -127,11 +127,11 @@ describe('HiddenRows', () => {
         expect(afterHideRows).toHaveBeenCalledWith([], [2, 3, 4], true, true);
       });
 
-      it('it should NOT fire the `afterHideRows` hook, if the `beforeHideRows` hook returned false', () => {
+      it('it should NOT fire the `afterHideRows` hook, if the `beforeHideRows` hook returned false', async() => {
         const afterHideRows = jasmine.createSpy('afterHideRows');
 
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           hiddenRows: true,
           beforeHideRows: () => false,
           afterHideRows,
@@ -142,11 +142,11 @@ describe('HiddenRows', () => {
         expect(afterHideRows).not.toHaveBeenCalled();
       });
 
-      it('should return `false` as the fourth parameter, if the hiding action did not change the state of the hiddenRows plugin', () => {
+      it('should return `false` as the fourth parameter, if the hiding action did not change the state of the hiddenRows plugin', async() => {
         const afterHideRows = jasmine.createSpy('afterHideRows');
 
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           hiddenRows: {
             rows: [0, 5]
           },
@@ -158,11 +158,11 @@ describe('HiddenRows', () => {
         expect(afterHideRows).toHaveBeenCalledWith([0, 5], [0, 5], true, false);
       });
 
-      it('should return `true` as the third and fourth parameter, if the hiding action changed the state of the hiddenRows plugin', () => {
+      it('should return `true` as the third and fourth parameter, if the hiding action changed the state of the hiddenRows plugin', async() => {
         const afterHideRows = jasmine.createSpy('afterHideRows');
 
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           hiddenRows: {
             rows: [0, 5]
           },
@@ -175,11 +175,11 @@ describe('HiddenRows', () => {
       });
 
       it('should not perform hiding and return `false` as the third and fourth parameter of the `afterHideRows` hook' +
-        ' if any of the provided rows is out of scope of the table', () => {
+        ' if any of the provided rows is out of scope of the table', async() => {
         const afterHideRows = jasmine.createSpy('afterHideRows');
 
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           hiddenRows: true,
           afterHideRows,
         });
@@ -195,11 +195,11 @@ describe('HiddenRows', () => {
       });
 
       it('should not perform hiding and return `false` as the third and fourth parameter of the `afterHideRows` hook' +
-        ' if any of the provided rows is not integer', () => {
+        ' if any of the provided rows is not integer', async() => {
         const afterHideRows = jasmine.createSpy('afterHideRows');
 
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           hiddenRows: true,
           afterHideRows,
         });
@@ -215,11 +215,11 @@ describe('HiddenRows', () => {
     });
 
     describe('beforeUnhideRows', () => {
-      it('should fire the `beforeUnhideRows` hook before unhiding a single, previously hidden column', () => {
+      it('should fire the `beforeUnhideRows` hook before unhiding a single, previously hidden column', async() => {
         const beforeUnhideRows = jasmine.createSpy('beforeUnhideRows');
 
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           hiddenRows: {
             rows: [0, 2]
           },
@@ -231,11 +231,11 @@ describe('HiddenRows', () => {
         expect(beforeUnhideRows).toHaveBeenCalledWith([0, 2], [0], true);
       });
 
-      it('should fire the `beforeUnhideRows` hook before unhiding the multiple, previously hidden rows ', () => {
+      it('should fire the `beforeUnhideRows` hook before unhiding the multiple, previously hidden rows ', async() => {
         const beforeUnhideRows = jasmine.createSpy('beforeUnhideRows');
 
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           hiddenRows: {
             rows: [0, 2, 3, 4]
           },
@@ -247,9 +247,9 @@ describe('HiddenRows', () => {
         expect(beforeUnhideRows).toHaveBeenCalledWith([0, 2, 3, 4], [0], true);
       });
 
-      it('should be possible to cancel the unhiding action by returning `false` from the `beforeUnhideRows` hook', () => {
+      it('should be possible to cancel the unhiding action by returning `false` from the `beforeUnhideRows` hook', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           hiddenRows: {
             rows: [2, 3, 4]
           },
@@ -262,11 +262,11 @@ describe('HiddenRows', () => {
       });
 
       it('should not perform unhiding and return `false` as the third parameter of the `beforeUnhideRows` hook' +
-        ' if any of the provided rows is out of scope of the table', () => {
+        ' if any of the provided rows is out of scope of the table', async() => {
         const beforeUnhideRows = jasmine.createSpy('beforeUnhideRows');
 
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           hiddenRows: {
             rows: [0, 5]
           },
@@ -283,11 +283,11 @@ describe('HiddenRows', () => {
       });
 
       it('should not perform unhiding and return `false` as the third parameter of the `beforeUnhideRows` hook' +
-        ' if any of the provided rows is out of scope of the table', () => {
+        ' if any of the provided rows is out of scope of the table', async() => {
         const beforeUnhideRows = jasmine.createSpy('beforeUnhideRows');
 
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           hiddenRows: {
             rows: [0, 5]
           },
@@ -305,11 +305,11 @@ describe('HiddenRows', () => {
     });
 
     describe('afterUnhideRows', () => {
-      it('should fire the `afterUnhideRows` hook after unhiding a previously hidden single row', () => {
+      it('should fire the `afterUnhideRows` hook after unhiding a previously hidden single row', async() => {
         const afterUnhideRows = jasmine.createSpy('afterUnhideRows');
 
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           hiddenRows: {
             rows: [2]
           },
@@ -321,11 +321,11 @@ describe('HiddenRows', () => {
         expect(afterUnhideRows).toHaveBeenCalledWith([2], [], true, true);
       });
 
-      it('should fire the `afterUnhideRows` hook after unhiding a multiple, previously hidden rows', () => {
+      it('should fire the `afterUnhideRows` hook after unhiding a multiple, previously hidden rows', async() => {
         const afterUnhideRows = jasmine.createSpy('afterUnhideRows');
 
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           hiddenRows: {
             rows: [2, 3, 4]
           },
@@ -337,11 +337,11 @@ describe('HiddenRows', () => {
         expect(afterUnhideRows).toHaveBeenCalledWith([2, 3, 4], [], true, true);
       });
 
-      it('it should NOT fire the `afterUnhideRows` hook, if the `beforeUnhideRows` hook returned false', () => {
+      it('it should NOT fire the `afterUnhideRows` hook, if the `beforeUnhideRows` hook returned false', async() => {
         const afterUnhideRows = jasmine.createSpy('afterUnhideRows');
 
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           hiddenRows: true,
           beforeUnhideRows: () => false,
           afterUnhideRows,
@@ -352,11 +352,11 @@ describe('HiddenRows', () => {
         expect(afterUnhideRows).not.toHaveBeenCalled();
       });
 
-      it('should return `false` as the fourth parameter, if the unhiding action did not change the state of the hiddenRows plugin', () => {
+      it('should return `false` as the fourth parameter, if the unhiding action did not change the state of the hiddenRows plugin', async() => {
         const afterUnhideRows = jasmine.createSpy('afterUnhideRows');
 
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           hiddenRows: true,
           afterUnhideRows,
         });
@@ -366,11 +366,11 @@ describe('HiddenRows', () => {
         expect(afterUnhideRows).toHaveBeenCalledWith([], [], true, false);
       });
 
-      it('should return `true` as the fourth parameter, if the unhiding action changed the state of the hiddenRows plugin', () => {
+      it('should return `true` as the fourth parameter, if the unhiding action changed the state of the hiddenRows plugin', async() => {
         const afterUnhideRows = jasmine.createSpy('afterUnhideRows');
 
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           hiddenRows: {
             rows: [0, 5]
           },
@@ -383,11 +383,11 @@ describe('HiddenRows', () => {
       });
 
       it('should not perform hiding and return `false` as the third and fourth parameter of the `afterUnhideRows` hook' +
-        ' if any of the provided rows is not integer', () => {
+        ' if any of the provided rows is not integer', async() => {
         const afterUnhideRows = jasmine.createSpy('afterUnhideRows');
 
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 7),
+          data: createSpreadsheetData(10, 7),
           hiddenRows: {
             rows: [0, 5]
           },

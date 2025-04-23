@@ -13,7 +13,7 @@ describe('Focus Manager', () => {
   });
 
   describe('`getRefocusDelay` method', () => {
-    it('should return default (very small) delay (#dev-1762)', () => {
+    it('should return default (very small) delay (#dev-1762)', async() => {
       handsontable({});
 
       expect(getFocusManager().getRefocusDelay()).toBe(1);
@@ -22,13 +22,13 @@ describe('Focus Manager', () => {
 
   describe('`getFocusMode` method', () => {
     it('should set it\'s internal `focusMode` property to "cell" after HOT initialization with `imeFastEdit` not' +
-      ' defined', () => {
+      ' defined', async() => {
       handsontable({});
 
       expect(getFocusManager().getFocusMode()).toEqual('cell');
     });
 
-    it('should set it\'s internal `focusMode` property to "mixed" after HOT initialization with `imeFastEdit` enabled', () => {
+    it('should set it\'s internal `focusMode` property to "mixed" after HOT initialization with `imeFastEdit` enabled', async() => {
       handsontable({
         imeFastEdit: true,
       });
@@ -36,7 +36,7 @@ describe('Focus Manager', () => {
       expect(getFocusManager().getFocusMode()).toEqual('mixed');
     });
 
-    it('should set it\'s internal `focusMode` property to "mixed" after HOT initialization with `imeFastEdit` disabled', () => {
+    it('should set it\'s internal `focusMode` property to "mixed" after HOT initialization with `imeFastEdit` disabled', async() => {
       handsontable({
         imeFastEdit: false,
       });
@@ -44,32 +44,32 @@ describe('Focus Manager', () => {
       expect(getFocusManager().getFocusMode()).toEqual('cell');
     });
 
-    it('should update it\'s internal `focusMode` config after calling `updateSettings` containing `imeFastEdit`', () => {
+    it('should update it\'s internal `focusMode` config after calling `updateSettings` containing `imeFastEdit`', async() => {
       handsontable({});
 
       expect(getFocusManager().getFocusMode()).toEqual('cell');
 
-      updateSettings({
+      await updateSettings({
         imeFastEdit: true,
       });
 
       expect(getFocusManager().getFocusMode()).toEqual('mixed');
 
-      updateSettings({
+      await updateSettings({
         imeFastEdit: false,
       });
 
       expect(getFocusManager().getFocusMode()).toEqual('cell');
     });
 
-    it('should not reset internal `focusMode` config after calling `updateSettings` with an empty object', () => {
+    it('should not reset internal `focusMode` config after calling `updateSettings` with an empty object', async() => {
       handsontable({
         imeFastEdit: true,
       });
 
       expect(getFocusManager().getFocusMode()).toEqual('mixed');
 
-      updateSettings({});
+      await updateSettings({});
 
       expect(getFocusManager().getFocusMode()).toEqual('mixed');
     });
@@ -80,15 +80,14 @@ describe('Focus Manager', () => {
         imeFastEdit: true,
       });
 
-      selectCell(0, 0);
-
+      await selectCell(0, 0);
       await sleep(10);
 
       expect(document.activeElement).toEqual(getActiveEditor().TEXTAREA);
       expect(getActiveEditor().TEXTAREA.value).toEqual('A1');
     });
 
-    it('should be able to get and set the current `focusMode` with appropriate API options', () => {
+    it('should be able to get and set the current `focusMode` with appropriate API options', async() => {
       handsontable({});
 
       expect(getFocusManager().getFocusMode()).toEqual('cell');
@@ -98,7 +97,7 @@ describe('Focus Manager', () => {
       expect(getFocusManager().getFocusMode()).toEqual('mixed');
     });
 
-    it('should display a warning when trying to set an invalid `focusMode`', () => {
+    it('should display a warning when trying to set an invalid `focusMode`', async() => {
       spyOn(console, 'warn');
 
       handsontable({});
@@ -132,9 +131,10 @@ describe('Focus Manager', () => {
       window.onerror = prevError;
     });
 
-    it('should focus the element provided in the argument', () => {
+    it('should focus the element provided in the argument', async() => {
       handsontable({});
-      selectCell(0, 0);
+
+      await selectCell(0, 0);
 
       getFocusManager().focusOnHighlightedCell(getCell(1, 1, true));
 
@@ -153,14 +153,13 @@ describe('Focus Manager', () => {
       });
 
       getFocusManager().setRefocusDelay(50);
-      selectCell(0, 0);
 
+      await selectCell(0, 0);
       await sleep(100);
 
       expect(document.activeElement).toEqual(getActiveEditor().TEXTAREA);
 
-      selectCell(0, 1);
-
+      await selectCell(0, 1);
       await sleep(100);
 
       expect(document.activeElement).toEqual(getActiveEditor().TEXTAREA);

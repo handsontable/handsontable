@@ -19,9 +19,9 @@ describe('DropdownMenu keyboard shortcut', () => {
         height: 100
       });
 
-      dropdownMenu();
-      keyDownUp('arrowdown');
-      keyDownUp('arrowright');
+      await dropdownMenu();
+      await keyDownUp('arrowdown');
+      await keyDownUp('arrowright');
 
       await sleep(300);
 

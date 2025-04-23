@@ -13,7 +13,7 @@ describe('Hook', () => {
   });
 
   describe('afterGetColHeader', () => {
-    it('should be fired for all displayed columns on init', () => {
+    it('should be fired for all displayed columns on init', async() => {
       const afterGetColHeader = jasmine.createSpy('afterGetColHeader');
 
       handsontable({

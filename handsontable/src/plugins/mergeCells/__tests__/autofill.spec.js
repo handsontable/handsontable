@@ -12,7 +12,7 @@ describe('MergeCells cooperation with autofill', () => {
     }
   });
 
-  it('should populate merged cells data down', () => {
+  it('should populate merged cells data down', async() => {
     handsontable({
       data: createSpreadsheetData(10, 10),
       mergeCells: [
@@ -22,7 +22,7 @@ describe('MergeCells cooperation with autofill', () => {
       ],
     });
 
-    selectCell(1, 1);
+    await selectCell(1, 1);
     spec().$container.find('.wtBorder.current.corner')
       .simulate('mousedown');
     spec().$container.find('tbody tr:eq(5) td:eq(1)')
@@ -34,7 +34,7 @@ describe('MergeCells cooperation with autofill', () => {
     expect(getDataAtCell(5, 1)).toBe('B2');
   });
 
-  it('should populate merged cells data up', () => {
+  it('should populate merged cells data up', async() => {
     handsontable({
       data: createSpreadsheetData(10, 10),
       mergeCells: [
@@ -44,7 +44,7 @@ describe('MergeCells cooperation with autofill', () => {
       ],
     });
 
-    selectCell(5, 1);
+    await selectCell(5, 1);
     spec().$container.find('.wtBorder.current.corner')
       .simulate('mousedown');
     spec().$container.find('tbody tr:eq(1) td:eq(1)')
@@ -56,7 +56,7 @@ describe('MergeCells cooperation with autofill', () => {
     expect(getDataAtCell(5, 1)).toBe('B6');
   });
 
-  it('should populate merged cells data right', () => {
+  it('should populate merged cells data right', async() => {
     handsontable({
       data: createSpreadsheetData(10, 10),
       mergeCells: [
@@ -66,7 +66,7 @@ describe('MergeCells cooperation with autofill', () => {
       ],
     });
 
-    selectCell(1, 1);
+    await selectCell(1, 1);
     spec().$container.find('.wtBorder.current.corner')
       .simulate('mousedown');
     spec().$container.find('tbody tr:eq(1) td:eq(5)')
@@ -78,7 +78,7 @@ describe('MergeCells cooperation with autofill', () => {
     expect(getDataAtCell(1, 5)).toBe('B2');
   });
 
-  it('should populate merged cells data left', () => {
+  it('should populate merged cells data left', async() => {
     handsontable({
       data: createSpreadsheetData(10, 10),
       mergeCells: [
@@ -88,7 +88,7 @@ describe('MergeCells cooperation with autofill', () => {
       ],
     });
 
-    selectCell(1, 5);
+    await selectCell(1, 5);
     spec().$container.find('.wtBorder.current.corner')
       .simulate('mousedown');
     spec().$container.find('tbody tr:eq(1) td:eq(1)')
@@ -100,7 +100,7 @@ describe('MergeCells cooperation with autofill', () => {
     expect(getDataAtCell(1, 5)).toBe('F2');
   });
 
-  it('should not populate data down when the merged cells bellow are wider than the fill selection', () => {
+  it('should not populate data down when the merged cells bellow are wider than the fill selection', async() => {
     handsontable({
       data: createSpreadsheetData(15, 5),
       mergeCells: [
@@ -111,7 +111,7 @@ describe('MergeCells cooperation with autofill', () => {
       ],
     });
 
-    selectCell(1, 1);
+    await selectCell(1, 1);
     spec().$container.find('.wtBorder.current.corner')
       .simulate('mousedown');
     spec().$container.find('tbody tr:eq(3) td:eq(1)')
@@ -124,7 +124,7 @@ describe('MergeCells cooperation with autofill', () => {
     expect(getDataAtCell(9, 1)).toBe('B10');
   });
 
-  it('should not populate data down when the merged cells in-between are wider than the fill selection and the last merged cell matches the size', () => {
+  it('should not populate data down when the merged cells in-between are wider than the fill selection and the last merged cell matches the size', async() => {
     handsontable({
       data: createSpreadsheetData(15, 5),
       mergeCells: [
@@ -135,7 +135,7 @@ describe('MergeCells cooperation with autofill', () => {
       ],
     });
 
-    selectCell(1, 1);
+    await selectCell(1, 1);
     spec().$container.find('.wtBorder.current.corner')
       .simulate('mousedown');
     spec().$container.find('tbody tr:eq(9) td:eq(1)')
@@ -148,7 +148,7 @@ describe('MergeCells cooperation with autofill', () => {
     expect(getDataAtCell(9, 1)).toBe('B10');
   });
 
-  it('should not populate data up when the merged cells above are wider than the fill selection', () => {
+  it('should not populate data up when the merged cells above are wider than the fill selection', async() => {
     handsontable({
       data: createSpreadsheetData(15, 5),
       mergeCells: [
@@ -159,7 +159,7 @@ describe('MergeCells cooperation with autofill', () => {
       ],
     });
 
-    selectCell(9, 1);
+    await selectCell(9, 1);
     spec().$container.find('.wtBorder.current.corner')
       .simulate('mousedown');
     spec().$container.find('tbody tr:eq(6) td:eq(1)')
@@ -172,7 +172,7 @@ describe('MergeCells cooperation with autofill', () => {
     expect(getDataAtCell(9, 1)).toBe('B10');
   });
 
-  it('should not populate data up when the merged cells in-between are wider than the fill selection and the last merged cell matches the size', () => {
+  it('should not populate data up when the merged cells in-between are wider than the fill selection and the last merged cell matches the size', async() => {
     handsontable({
       data: createSpreadsheetData(15, 5),
       mergeCells: [
@@ -183,7 +183,7 @@ describe('MergeCells cooperation with autofill', () => {
       ],
     });
 
-    selectCell(9, 1);
+    await selectCell(9, 1);
     spec().$container.find('.wtBorder.current.corner')
       .simulate('mousedown');
     spec().$container.find('tbody tr:eq(1) td:eq(1)')
@@ -196,7 +196,7 @@ describe('MergeCells cooperation with autofill', () => {
     expect(getDataAtCell(9, 1)).toBe('B10');
   });
 
-  it('should not populate data right when the merged cells on the right are higher than the fill selection', () => {
+  it('should not populate data right when the merged cells on the right are higher than the fill selection', async() => {
     handsontable({
       data: createSpreadsheetData(5, 15),
       mergeCells: [
@@ -207,7 +207,7 @@ describe('MergeCells cooperation with autofill', () => {
       ],
     });
 
-    selectCell(1, 1);
+    await selectCell(1, 1);
     spec().$container.find('.wtBorder.current.corner')
       .simulate('mousedown');
     spec().$container.find('tbody tr:eq(1) td:eq(3)')
@@ -220,7 +220,7 @@ describe('MergeCells cooperation with autofill', () => {
     expect(getDataAtCell(1, 9)).toBe('J2');
   });
 
-  it('should not populate data right when the merged cells in-between are higher than the fill selection and the last merged cell matches the size', () => {
+  it('should not populate data right when the merged cells in-between are higher than the fill selection and the last merged cell matches the size', async() => {
     handsontable({
       data: createSpreadsheetData(5, 15),
       mergeCells: [
@@ -231,7 +231,7 @@ describe('MergeCells cooperation with autofill', () => {
       ],
     });
 
-    selectCell(1, 1);
+    await selectCell(1, 1);
     spec().$container.find('.wtBorder.current.corner')
       .simulate('mousedown');
     spec().$container.find('tbody tr:eq(1) td:eq(9)')
@@ -244,7 +244,7 @@ describe('MergeCells cooperation with autofill', () => {
     expect(getDataAtCell(1, 9)).toBe('J2');
   });
 
-  it('should not populate data left when the merged cells on the left are higher than the fill selection', () => {
+  it('should not populate data left when the merged cells on the left are higher than the fill selection', async() => {
     handsontable({
       data: createSpreadsheetData(5, 15),
       mergeCells: [
@@ -255,7 +255,7 @@ describe('MergeCells cooperation with autofill', () => {
       ],
     });
 
-    selectCell(1, 9);
+    await selectCell(1, 9);
     spec().$container.find('.wtBorder.current.corner')
       .simulate('mousedown');
     spec().$container.find('tbody tr:eq(1) td:eq(6)')
@@ -268,7 +268,7 @@ describe('MergeCells cooperation with autofill', () => {
     expect(getDataAtCell(1, 9)).toBe('J2');
   });
 
-  it('should not populate data left when the merged cells in-between are higher than the fill selection and the last merged cell matches the size', () => {
+  it('should not populate data left when the merged cells in-between are higher than the fill selection and the last merged cell matches the size', async() => {
     handsontable({
       data: createSpreadsheetData(5, 15),
       mergeCells: [
@@ -279,7 +279,7 @@ describe('MergeCells cooperation with autofill', () => {
       ],
     });
 
-    selectCell(1, 9);
+    await selectCell(1, 9);
     spec().$container.find('.wtBorder.current.corner')
       .simulate('mousedown');
     spec().$container.find('tbody tr:eq(1) td:eq(1)')

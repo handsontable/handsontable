@@ -12,7 +12,7 @@ describe('Core.getSourceDataAtCol', () => {
     }
   });
 
-  it('should return col values when data is provided by dataSchema', () => {
+  it('should return col values when data is provided by dataSchema', async() => {
     handsontable({
       data: [
         model({ id: 1, name: 'Ted Right', address: '' }),

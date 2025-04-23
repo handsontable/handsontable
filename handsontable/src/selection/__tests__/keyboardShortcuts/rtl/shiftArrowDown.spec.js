@@ -16,14 +16,14 @@ describe('Selection extending (RTL mode)', () => {
   });
 
   describe('"Shift + ArrowDown"', () => {
-    it('should extend the cell selection down when the cell is selected', () => {
+    it('should extend the cell selection down when the cell is selected', async() => {
       handsontable({
         startRows: 5,
         startCols: 5
       });
 
-      selectCell(2, 1);
-      keyDownUp(['shift', 'arrowdown']);
+      await selectCell(2, 1);
+      await keyDownUp(['shift', 'arrowdown']);
 
       expect(`
         |   :   :   :   :   |

@@ -1,21 +1,26 @@
 export const command = {
   name: 'moveCellSelectionInlineStart',
   callback(hot, event) {
+    const { selection } = hot;
     const settings = hot.getSettings();
     const selectedRange = hot.getSelectedRangeLast();
     const tabMoves = typeof settings.tabMoves === 'function'
       ? settings.tabMoves(event)
       : settings.tabMoves;
 
+    selection.markSource('keyboard');
+
     if (
-      hot.selection.isMultiple() &&
+      selection.isMultiple() &&
       !selectedRange.isHeader() &&
       hot.countRenderedCols() > 0 &&
       hot.countRenderedRows() > 0
     ) {
-      hot.selection.transformFocus(tabMoves.row, tabMoves.col);
+      selection.transformFocus(tabMoves.row, tabMoves.col);
     } else {
-      hot.selection.transformStart(tabMoves.row, tabMoves.col);
+      selection.transformStart(tabMoves.row, tabMoves.col);
     }
+
+    selection.markEndSource();
   },
 };

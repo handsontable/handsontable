@@ -19,7 +19,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
       dropdownMenu: true,
     });
 
-    dropdownMenu(0);
+    await dropdownMenu(0);
 
     expect(document.querySelector('.htUISelectAll').getAttribute('role')).toEqual('button');
     expect(document.querySelector('.htUIClearAll').getAttribute('role')).toEqual('button');

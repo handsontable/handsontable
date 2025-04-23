@@ -13,13 +13,13 @@ describe('Core.getCellEditor', () => {
     }
   });
 
-  it('should return text-type editor when no `editor` or `type` is defined', () => {
+  it('should return text-type editor when no `editor` or `type` is defined', async() => {
     handsontable({});
 
     expect(getCellEditor(1, 1)).toBe(getCellType('text').editor);
   });
 
-  it('should return editor defined as custom function', () => {
+  it('should return editor defined as custom function', async() => {
     const myEditor = () => {};
 
     handsontable({
@@ -29,7 +29,7 @@ describe('Core.getCellEditor', () => {
     expect(getCellEditor(1, 1)).toBe(myEditor);
   });
 
-  it('should return `false` when the cell editor is disabled', () => {
+  it('should return `false` when the cell editor is disabled', async() => {
     handsontable({
       editor: false,
     });
@@ -37,7 +37,7 @@ describe('Core.getCellEditor', () => {
     expect(getCellEditor(1, 1)).toBe(false);
   });
 
-  it('should be possible to get editor using row, col coords or by passing the cell meta object', () => {
+  it('should be possible to get editor using row, col coords or by passing the cell meta object', async() => {
     handsontable({
       type: 'numeric',
     });
@@ -46,7 +46,7 @@ describe('Core.getCellEditor', () => {
     expect(getCellEditor(getCellMeta(1, 1))).toBe(getCellType('numeric').editor);
   });
 
-  it('should return editor defined by `editor` in the table settings and ignore the `type` setting', () => {
+  it('should return editor defined by `editor` in the table settings and ignore the `type` setting', async() => {
     handsontable({
       type: 'numeric',
       editor: 'password',
@@ -56,7 +56,7 @@ describe('Core.getCellEditor', () => {
     expect(getCellEditor(getCellMeta(1, 1))).toBe(getCellType('password').editor);
   });
 
-  it('should return editor defined by `editor` in the columns and cells setting and ignore the `type` setting', () => {
+  it('should return editor defined by `editor` in the columns and cells setting and ignore the `type` setting', async() => {
     const myEditor = () => {};
     const myEditor2 = () => {};
     const myEditor3 = () => {};
@@ -96,7 +96,7 @@ describe('Core.getCellEditor', () => {
     expect(getCellEditor(2, 2)).toBe(getCellType('text').editor);
   });
 
-  it('should return numeric-type editor when the `type` is defined in the global settings', () => {
+  it('should return numeric-type editor when the `type` is defined in the global settings', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       type: 'numeric',
@@ -109,7 +109,7 @@ describe('Core.getCellEditor', () => {
     expect(getCellEditor(4, 4)).toBe(getCellType('numeric').editor);
   });
 
-  it('should return numeric-type editor when the `editor` is defined in the global settings', () => {
+  it('should return numeric-type editor when the `editor` is defined in the global settings', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       editor: 'numeric',
@@ -122,7 +122,7 @@ describe('Core.getCellEditor', () => {
     expect(getCellEditor(4, 4)).toBe(getCellType('numeric').editor);
   });
 
-  it('should return correct type editors defined as `type` according to column settings', () => {
+  it('should return correct type editors defined as `type` according to column settings', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       type: 'numeric',
@@ -142,7 +142,7 @@ describe('Core.getCellEditor', () => {
     expect(getCellEditor(0, 4)).toBe(getCellType('numeric').editor);
   });
 
-  it('should return correct type editors defined as `editor` according to column settings', () => {
+  it('should return correct type editors defined as `editor` according to column settings', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       editor: 'numeric',
@@ -163,7 +163,7 @@ describe('Core.getCellEditor', () => {
   });
 
   it('should return type editor defined as `type` in the table setting when the coords targets beyond ' +
-     'the dataset range', () => {
+     'the dataset range', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       type: 'numeric',
@@ -175,7 +175,7 @@ describe('Core.getCellEditor', () => {
   });
 
   it('should return type editor defined as `editor` in the table setting when the coords targets beyond ' +
-     'the dataset range', () => {
+     'the dataset range', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       editor: 'numeric',
@@ -187,7 +187,7 @@ describe('Core.getCellEditor', () => {
   });
 
   it('should return type editor defined as `type` in the columns setting when the coords targets beyond ' +
-     'the dataset range', () => {
+     'the dataset range', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       type: 'numeric',
@@ -206,7 +206,7 @@ describe('Core.getCellEditor', () => {
   });
 
   it('should return type editor defined as `editor` in the columns setting when the coords targets beyond ' +
-     'the dataset range', () => {
+     'the dataset range', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       editor: 'numeric',

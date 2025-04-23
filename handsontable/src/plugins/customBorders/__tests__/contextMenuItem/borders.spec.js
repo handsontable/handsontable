@@ -13,7 +13,7 @@ describe('ContextMenu', () => {
   });
 
   describe('"Borders" entry', () => {
-    it('should be disabled when the single row header is selected', () => {
+    it('should be disabled when the single row header is selected', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -23,7 +23,7 @@ describe('ContextMenu', () => {
         navigableHeaders: true,
       });
 
-      selectCell(1, -1);
+      await selectCell(1, -1);
       getPlugin('contextMenu').open($(getCell(1, -1)).offset());
 
       const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
@@ -33,7 +33,7 @@ describe('ContextMenu', () => {
       expect(readOnlyItem.hasClass('htDisabled')).toBe(true);
     });
 
-    it('should be disabled when the single column header is selected', () => {
+    it('should be disabled when the single column header is selected', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -43,7 +43,7 @@ describe('ContextMenu', () => {
         navigableHeaders: true,
       });
 
-      selectCell(-1, 1);
+      await selectCell(-1, 1);
       getPlugin('contextMenu').open($(getCell(-1, 1)).offset());
 
       const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {
@@ -53,7 +53,7 @@ describe('ContextMenu', () => {
       expect(readOnlyItem.hasClass('htDisabled')).toBe(true);
     });
 
-    it('should be disabled when the single corner is selected', () => {
+    it('should be disabled when the single corner is selected', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -63,7 +63,7 @@ describe('ContextMenu', () => {
         navigableHeaders: true,
       });
 
-      selectCell(-1, -1);
+      await selectCell(-1, -1);
       getPlugin('contextMenu').open($(getCell(-1, -1)).offset());
 
       const readOnlyItem = $('.htContextMenu tbody tr td').filter(function() {

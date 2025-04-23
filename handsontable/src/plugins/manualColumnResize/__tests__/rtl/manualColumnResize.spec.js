@@ -18,7 +18,7 @@ describe('manualColumnResize (RTL)', () => {
 
   it('should resize (narrowing) selected columns', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 20),
+      data: createSpreadsheetData(10, 20),
       colHeaders: true,
       manualColumnResize: true
     });
@@ -63,7 +63,7 @@ describe('manualColumnResize (RTL)', () => {
 
   it('should resize (expanding) selected columns', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 20),
+      data: createSpreadsheetData(10, 20),
       colHeaders: true,
       manualColumnResize: true
     });
@@ -119,7 +119,8 @@ describe('manualColumnResize (RTL)', () => {
         $('html').attr('dir', 'ltr');
       });
 
-      it.forTheme('classic')('should display the resize handle in the proper position and with a proper size', () => {
+      it.forTheme('classic')(`should display the resize handle in the proper position and with
+ a proper size`, async() => {
         handsontable({
           layoutDirection,
           data: [
@@ -144,7 +145,8 @@ describe('manualColumnResize (RTL)', () => {
         expect($handle.height()).toEqual($headerTH.outerHeight());
       });
 
-      it.forTheme('main')('should display the resize handle in the proper position and with a proper size', () => {
+      it.forTheme('main')(`should display the resize handle in the proper position and with
+ a proper size`, async() => {
         handsontable({
           layoutDirection,
           data: [
@@ -169,7 +171,8 @@ describe('manualColumnResize (RTL)', () => {
         expect($handle.height()).toEqual($headerTH.outerHeight());
       });
 
-      it.forTheme('horizon')('should display the resize handle in the proper position and with a proper size', () => {
+      it.forTheme('horizon')(`should display the resize handle in the proper position and with
+ a proper size`, async() => {
         handsontable({
           layoutDirection,
           data: [
@@ -194,7 +197,7 @@ describe('manualColumnResize (RTL)', () => {
         expect($handle.height()).toEqual($headerTH.outerHeight());
       });
 
-      it('should display the resize handle in the proper z-index and be greater than top overlay z-index', () => {
+      it('should display the resize handle in the proper z-index and be greater than top overlay z-index', async() => {
         handsontable({
           layoutDirection,
           data: [

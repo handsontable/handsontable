@@ -19,7 +19,7 @@ describe('Context menu theme handling', () => {
       themeName: 'ht-theme-sth',
     });
 
-    contextMenu();
+    await contextMenu();
 
     await sleep(50);
 
@@ -36,7 +36,7 @@ describe('Context menu theme handling', () => {
       contextMenu: true,
     }, true);
 
-    contextMenu();
+    await contextMenu();
 
     await sleep(50);
 

@@ -20,13 +20,13 @@ describe('ContextMenu (RTL mode)', () => {
     });
 
     describe('`open()` method', () => {
-      it('should open context menu by default on the left-bottom position', () => {
+      it('should open context menu by default on the left-bottom position', async() => {
         handsontable({
           layoutDirection,
           contextMenu: true,
         });
 
-        selectCell(0, 0);
+        await selectCell(0, 0);
 
         const cell = getCell(0, 0);
         const cellOffset = $(cell).offset();
@@ -55,7 +55,7 @@ describe('ContextMenu (RTL mode)', () => {
       });
 
       it.forTheme('classic')('should open context menu on the left-top position if on the right and ' +
-        'bottom there is no space left', () => {
+        'bottom there is no space left', async() => {
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(Math.floor(window.innerHeight / 23), 4),
@@ -63,7 +63,7 @@ describe('ContextMenu (RTL mode)', () => {
         });
 
         // we have to be sure we will have no enough space on the bottom, select the last cell
-        selectCell(countRows() - 1, 0);
+        await selectCell(countRows() - 1, 0);
 
         const cell = getCell(countRows() - 1, 0);
         const cellOffset = $(cell).offset();
@@ -81,7 +81,7 @@ describe('ContextMenu (RTL mode)', () => {
       });
 
       it.forTheme('main')('should open context menu on the left-top position if on the right and ' +
-        'bottom there is no space left', () => {
+        'bottom there is no space left', async() => {
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(Math.floor(window.innerHeight / 29), 4),
@@ -89,7 +89,7 @@ describe('ContextMenu (RTL mode)', () => {
         });
 
         // we have to be sure we will have no enough space on the bottom, select the last cell
-        selectCell(countRows() - 1, 0);
+        await selectCell(countRows() - 1, 0);
 
         const cell = getCell(countRows() - 1, 0);
         const cellOffset = $(cell).offset();
@@ -107,7 +107,7 @@ describe('ContextMenu (RTL mode)', () => {
       });
 
       it.forTheme('horizon')('should open context menu on the left-top position if on the right and ' +
-        'bottom there is no space left', () => {
+        'bottom there is no space left', async() => {
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(Math.floor(window.innerHeight / 37), 4),
@@ -115,7 +115,7 @@ describe('ContextMenu (RTL mode)', () => {
         });
 
         // we have to be sure we will have no enough space on the bottom, select the last cell
-        selectCell(countRows() - 1, 0);
+        await selectCell(countRows() - 1, 0);
 
         const cell = getCell(countRows() - 1, 0);
         const cellOffset = $(cell).offset();
@@ -132,7 +132,7 @@ describe('ContextMenu (RTL mode)', () => {
         expect(menuOffset.left).toBeCloseTo(cellOffset.left - menuWidth - 1, 0);
       });
 
-      it('should open context menu on the right-bottom position if on the left there is no space left', () => {
+      it('should open context menu on the right-bottom position if on the left there is no space left', async() => {
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(4, Math.floor(window.innerWidth / 50)),
@@ -140,7 +140,7 @@ describe('ContextMenu (RTL mode)', () => {
         });
 
         // we have to be sure we will have no enough space on the left, select the last cell
-        selectCell(0, countCols() - 1);
+        await selectCell(0, countCols() - 1);
 
         const cell = getCell(0, countCols() - 1);
         const cellOffset = $(cell).offset();
@@ -168,7 +168,7 @@ describe('ContextMenu (RTL mode)', () => {
       });
 
       it.forTheme('classic')('should open context menu on the right-top position if on the left and ' +
-        'bottom there is no space left', () => {
+        'bottom there is no space left', async() => {
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(Math.floor(window.innerHeight / 23), Math.floor(window.innerWidth / 50)),
@@ -176,7 +176,7 @@ describe('ContextMenu (RTL mode)', () => {
         });
 
         // we have to be sure we will have no enough space on the bottom and the right, select the last cell
-        selectCell(countRows() - 1, countCols() - 1);
+        await selectCell(countRows() - 1, countCols() - 1);
 
         const cell = getCell(countRows() - 1, countCols() - 1);
         const cellOffset = $(cell).offset();
@@ -193,7 +193,7 @@ describe('ContextMenu (RTL mode)', () => {
       });
 
       it.forTheme('main')('should open context menu on the right-top position if on the left and ' +
-        'bottom there is no space left', () => {
+        'bottom there is no space left', async() => {
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(Math.floor(window.innerHeight / 29), Math.floor(window.innerWidth / 50)),
@@ -201,7 +201,7 @@ describe('ContextMenu (RTL mode)', () => {
         });
 
         // we have to be sure we will have no enough space on the bottom and the right, select the last cell
-        selectCell(countRows() - 1, countCols() - 1);
+        await selectCell(countRows() - 1, countCols() - 1);
 
         const cell = getCell(countRows() - 1, countCols() - 1);
         const cellOffset = $(cell).offset();
@@ -218,7 +218,7 @@ describe('ContextMenu (RTL mode)', () => {
       });
 
       it.forTheme('horizon')('should open context menu on the right-top position if on the left and ' +
-        'bottom there is no space left', () => {
+        'bottom there is no space left', async() => {
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(Math.floor(window.innerHeight / 37), Math.floor(window.innerWidth / 53)),
@@ -226,7 +226,7 @@ describe('ContextMenu (RTL mode)', () => {
         });
 
         // we have to be sure we will have no enough space on the bottom and the right, select the last cell
-        selectCell(countRows() - 1, countCols() - 1);
+        await selectCell(countRows() - 1, countCols() - 1);
 
         const cell = getCell(countRows() - 1, countCols() - 1);
         const cellOffset = $(cell).offset();

@@ -13,7 +13,7 @@ describe('settings', () => {
       }
     });
 
-    it('by default, CTRL+C should NOT copy the password value', () => {
+    it('by default, CTRL+C should NOT copy the password value', async() => {
       handsontable({
         data: [
           ['Joe', 'Secret', 'Jack']
@@ -30,7 +30,7 @@ describe('settings', () => {
       expect(getCopyableText(0, 0, 0, 2)).toMatch('Joe\t\tJack');
     });
 
-    it('with copyable=true, CTRL+C should copy the password value', () => {
+    it('with copyable=true, CTRL+C should copy the password value', async() => {
       handsontable({
         data: [
           ['Joe', 'Secret', 'Jack']
@@ -48,7 +48,7 @@ describe('settings', () => {
       expect(getCopyableText(0, 0, 0, 2)).toMatch('Joe\tSecret\tJack');
     });
 
-    it('with copyable=false, CTRL+C should NOT copy the password value', () => {
+    it('with copyable=false, CTRL+C should NOT copy the password value', async() => {
       handsontable({
         data: [
           ['Joe', 'Secret', 'Jack']

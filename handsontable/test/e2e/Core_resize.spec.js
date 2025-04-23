@@ -21,15 +21,15 @@ describe('Core resize', () => {
     }
   });
 
-  it('should not change table height after window is resized when a handsontable parent elements have not defined height', () => {
+  it('should not change table height after window is resized when a handsontable parent elements have not defined height', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 2),
+      data: createSpreadsheetData(10, 2),
       rowHeaders: true,
       colHeaders: true,
       fixedRowsBottom: 1,
     });
 
-    refreshDimensions();
+    await refreshDimensions();
 
     expect(getMaster().height()).toBe(0);
     expect(getTopClone().height()).toBe(0);
@@ -38,17 +38,17 @@ describe('Core resize', () => {
     expect(getBottomInlineStartClone().height()).toBe(0);
   });
 
-  it('should not change table height after window is resized when a handsontable parent elements have not defined height and has overflow scroll', () => {
+  it('should not change table height after window is resized when a handsontable parent elements have not defined height and has overflow scroll', async() => {
     spec().$wrapper.css({ overflow: 'scroll' });
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 2),
+      data: createSpreadsheetData(10, 2),
       rowHeaders: true,
       colHeaders: true,
       fixedRowsBottom: 1,
     });
 
-    refreshDimensions();
+    await refreshDimensions();
 
     expect(getMaster().height()).toBe(0);
     expect(getTopClone().height()).toBe(0);
@@ -57,9 +57,9 @@ describe('Core resize', () => {
     expect(getBottomInlineStartClone().height()).toBe(0);
   });
 
-  it('should change table height after changing parent element height', () => {
+  it('should change table height after changing parent element height', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 2),
+      data: createSpreadsheetData(10, 2),
       rowHeaders: true,
       colHeaders: true,
       fixedRowsBottom: 1,
@@ -86,7 +86,7 @@ describe('Core resize', () => {
       horizon.toBe(38);
     });
 
-    refreshDimensions();
+    await refreshDimensions();
 
     expect(getMaster().height()).toBe(200);
     expect(getInlineStartClone().height()).toBe(200);

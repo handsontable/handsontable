@@ -12,7 +12,7 @@ describe('Core_removeCellMeta', () => {
     }
   });
 
-  it('should remove meta for cell', () => {
+  it('should remove meta for cell', async() => {
     handsontable({
       data: [
         [1, 2, 3, 4],
@@ -29,29 +29,29 @@ describe('Core_removeCellMeta', () => {
       }
     };
 
-    setCellMeta(0, 0, 'borders', border);
+    await setCellMeta(0, 0, 'borders', border);
     expect(getCellMeta(0, 0).borders).toEqual(border);
 
     removeCellMeta(0, 0, 'borders');
     expect(getCellMeta(0, 0).borders).toBeUndefined();
   });
 
-  it('should remove proper cell meta when indexes was modified', () => {
-    const hot = handsontable({
+  it('should remove proper cell meta when indexes was modified', async() => {
+    handsontable({
       minRows: 5,
       minCols: 5
     });
 
-    hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
-    hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+    rowIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
+    columnIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
 
-    setCellMeta(0, 0, 'key', 'value');
+    await setCellMeta(0, 0, 'key', 'value');
     removeCellMeta(0, 0, 'key');
 
     expect(getCellMeta(0, 0).key).toBeUndefined();
   });
 
-  it('should trigger `beforeRemoveCellMeta` hook with proper parameters', () => {
+  it('should trigger `beforeRemoveCellMeta` hook with proper parameters', async() => {
     const beforeRemoveCellMeta = jasmine.createSpy('beforeRemoveCellMeta');
 
     handsontable({
@@ -63,13 +63,13 @@ describe('Core_removeCellMeta', () => {
       beforeRemoveCellMeta
     });
 
-    setCellMeta(0, 0, 'key', 'value');
+    await setCellMeta(0, 0, 'key', 'value');
     removeCellMeta(0, 0, 'key');
 
     expect(beforeRemoveCellMeta).toHaveBeenCalledWith(0, 0, 'key', 'value');
   });
 
-  it('should trigger `afterRemoveCellMeta` hook with proper parameters - case 1 (removed `key` existed)', () => {
+  it('should trigger `afterRemoveCellMeta` hook with proper parameters - case 1 (removed `key` existed)', async() => {
     const afterRemoveCellMeta = jasmine.createSpy('afterRemoveCellMeta');
 
     handsontable({
@@ -81,13 +81,13 @@ describe('Core_removeCellMeta', () => {
       afterRemoveCellMeta
     });
 
-    setCellMeta(0, 0, 'key', 'value');
+    await setCellMeta(0, 0, 'key', 'value');
     removeCellMeta(0, 0, 'key');
 
     expect(afterRemoveCellMeta).toHaveBeenCalledWith(0, 0, 'key', 'value');
   });
 
-  it('should trigger `afterRemoveCellMeta` hook with proper parameters - case 2  (removed `key` not existed)', () => {
+  it('should trigger `afterRemoveCellMeta` hook with proper parameters - case 2  (removed `key` not existed)', async() => {
     const afterRemoveCellMeta = jasmine.createSpy('afterRemoveCellMeta');
 
     handsontable({
@@ -104,11 +104,11 @@ describe('Core_removeCellMeta', () => {
     expect(afterRemoveCellMeta).toHaveBeenCalledWith(0, 0, 'key');
   });
 
-  it('should call `beforeRemoveCellMeta` plugin hook with visual indexes as parameters', () => {
+  it('should call `beforeRemoveCellMeta` plugin hook with visual indexes as parameters', async() => {
     let rowInsideHook;
     let colInsideHook;
 
-    const hot = handsontable({
+    handsontable({
       minRows: 5,
       minCols: 5,
       beforeRemoveCellMeta(row, col) {
@@ -117,8 +117,8 @@ describe('Core_removeCellMeta', () => {
       }
     });
 
-    hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
-    hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+    rowIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
+    columnIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
 
     removeCellMeta(0, 1, 'key');
 
@@ -126,11 +126,11 @@ describe('Core_removeCellMeta', () => {
     expect(colInsideHook).toEqual(1);
   });
 
-  it('should call `afterRemoveCellMeta` plugin hook with visual indexes as parameters', () => {
+  it('should call `afterRemoveCellMeta` plugin hook with visual indexes as parameters', async() => {
     let rowInsideHook;
     let colInsideHook;
 
-    const hot = handsontable({
+    handsontable({
       minRows: 5,
       minCols: 5,
       afterRemoveCellMeta(row, col) {
@@ -139,8 +139,8 @@ describe('Core_removeCellMeta', () => {
       }
     });
 
-    hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
-    hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+    rowIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
+    columnIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
 
     removeCellMeta(0, 1, 'key');
 
@@ -148,7 +148,7 @@ describe('Core_removeCellMeta', () => {
     expect(colInsideHook).toEqual(1);
   });
 
-  it('should block removing cell meta when hook `beforeRemoveCellMeta` return false', () => {
+  it('should block removing cell meta when hook `beforeRemoveCellMeta` return false', async() => {
     handsontable({
       beforeRemoveCellMeta(row, col) {
         if (row === 0 && col === 0) {
@@ -159,8 +159,8 @@ describe('Core_removeCellMeta', () => {
       }
     });
 
-    setCellMeta(0, 0, 'key', 'value');
-    setCellMeta(0, 1, 'key', 'value');
+    await setCellMeta(0, 0, 'key', 'value');
+    await setCellMeta(0, 1, 'key', 'value');
 
     removeCellMeta(0, 0, 'key');
     removeCellMeta(0, 1, 'key');

@@ -13,7 +13,7 @@ describe('HiddenColumns', () => {
   });
 
   describe('colHeaders', () => {
-    it('should show proper column headers for the table with hidden column', () => {
+    it('should show proper column headers for the table with hidden column', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: ['AA', 'BB', 'CC', 'DD', 'EE'],

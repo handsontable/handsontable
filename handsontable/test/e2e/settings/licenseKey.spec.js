@@ -14,7 +14,7 @@ describe('settings', () => {
       }
     });
 
-    it('should print information about key invalidation right after the Handsontable root element', () => {
+    it('should print information about key invalidation right after the Handsontable root element', async() => {
       handsontable({}, true);
 
       const info = spec().$container[0].nextSibling.nextSibling;
@@ -28,7 +28,7 @@ describe('settings', () => {
       ].join(''));
     });
 
-    it('should destroy all DOM elements related to the invalidation information for specific HoT instance only', () => {
+    it('should destroy all DOM elements related to the invalidation information for specific HoT instance only', async() => {
       const element2 = $('<div id="hot2"></div>').appendTo('body');
 
       const hot1 = handsontable({}, true);

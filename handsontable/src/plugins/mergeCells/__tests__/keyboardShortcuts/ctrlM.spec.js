@@ -13,7 +13,7 @@ describe('MergeCells keyboard shortcut', () => {
   });
 
   describe('"Control" + "M"', () => {
-    it('should not toggle the cell when it points to the single cell', () => {
+    it('should not toggle the cell when it points to the single cell', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         mergeCells: true,
@@ -21,8 +21,8 @@ describe('MergeCells keyboard shortcut', () => {
         colHeaders: true,
       });
 
-      selectCell(1, 1);
-      keyDownUp(['control', 'm']);
+      await selectCell(1, 1);
+      await keyDownUp(['control', 'm']);
 
       const cell = getCell(1, 1);
 
@@ -30,7 +30,7 @@ describe('MergeCells keyboard shortcut', () => {
       expect(cell.colSpan).toBe(1);
     });
 
-    it('should toggle the cells when it points to the whole column', () => {
+    it('should toggle the cells when it points to the whole column', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         mergeCells: true,
@@ -38,9 +38,9 @@ describe('MergeCells keyboard shortcut', () => {
         colHeaders: true,
       });
 
-      selectColumns(1);
-      listen();
-      keyDownUp(['control', 'm']);
+      await selectColumns(1);
+      await listen();
+      await keyDownUp(['control', 'm']);
 
       {
         const cell = getCell(1, 1);
@@ -49,7 +49,7 @@ describe('MergeCells keyboard shortcut', () => {
         expect(cell.colSpan).toBe(1);
       }
 
-      keyDownUp(['control', 'm']);
+      await keyDownUp(['control', 'm']);
 
       {
         const cell = getCell(1, 1);
@@ -59,7 +59,7 @@ describe('MergeCells keyboard shortcut', () => {
       }
     });
 
-    it('should toggle the cells when it points to the whole row', () => {
+    it('should toggle the cells when it points to the whole row', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         mergeCells: true,
@@ -67,9 +67,9 @@ describe('MergeCells keyboard shortcut', () => {
         colHeaders: true,
       });
 
-      selectRows(1);
-      listen();
-      keyDownUp(['control', 'm']);
+      await selectRows(1);
+      await listen();
+      await keyDownUp(['control', 'm']);
 
       {
         const cell = getCell(1, 1);
@@ -78,7 +78,7 @@ describe('MergeCells keyboard shortcut', () => {
         expect(cell.colSpan).toBe(5);
       }
 
-      keyDownUp(['control', 'm']);
+      await keyDownUp(['control', 'm']);
 
       {
         const cell = getCell(1, 1);
@@ -88,7 +88,7 @@ describe('MergeCells keyboard shortcut', () => {
       }
     });
 
-    it('should not toggle the cell when it points to the column header only', () => {
+    it('should not toggle the cell when it points to the column header only', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         mergeCells: true,
@@ -97,8 +97,8 @@ describe('MergeCells keyboard shortcut', () => {
         navigableHeaders: true,
       });
 
-      selectCell(-1, 1);
-      keyDownUp(['control', 'm']);
+      await selectCell(-1, 1);
+      await keyDownUp(['control', 'm']);
 
       {
         const cell = getCell(-1, 1);
@@ -114,7 +114,7 @@ describe('MergeCells keyboard shortcut', () => {
       }
     });
 
-    it('should not toggle the cell when it points to the row header only', () => {
+    it('should not toggle the cell when it points to the row header only', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         mergeCells: true,
@@ -123,8 +123,8 @@ describe('MergeCells keyboard shortcut', () => {
         navigableHeaders: true,
       });
 
-      selectCell(1, -1);
-      keyDownUp(['control', 'm']);
+      await selectCell(1, -1);
+      await keyDownUp(['control', 'm']);
 
       {
         const cell = getCell(1, -1);
@@ -140,7 +140,7 @@ describe('MergeCells keyboard shortcut', () => {
       }
     });
 
-    it('should not toggle the cell when it points to the corner', () => {
+    it('should not toggle the cell when it points to the corner', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         mergeCells: true,
@@ -149,8 +149,8 @@ describe('MergeCells keyboard shortcut', () => {
         navigableHeaders: true,
       });
 
-      selectCell(-1, -1);
-      keyDownUp(['control', 'm']);
+      await selectCell(-1, -1);
+      await keyDownUp(['control', 'm']);
 
       {
         const cell = getCell(-1, -1);
@@ -166,14 +166,14 @@ describe('MergeCells keyboard shortcut', () => {
       }
     });
 
-    it('should merge selected cells', () => {
+    it('should merge selected cells', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         mergeCells: true,
       });
 
-      selectCells([[1, 1, 3, 3]]);
-      keyDownUp(['control', 'm']);
+      await selectCells([[1, 1, 3, 3]]);
+      await keyDownUp(['control', 'm']);
 
       const cell = getCell(1, 1);
 
@@ -181,26 +181,26 @@ describe('MergeCells keyboard shortcut', () => {
       expect(cell.colSpan).toBe(3);
     });
 
-    it('should toggle the selected cells to merged/unmerged/merged state', () => {
+    it('should toggle the selected cells to merged/unmerged/merged state', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         mergeCells: true,
       });
 
-      selectCells([[1, 1, 3, 3]]);
-      keyDownUp(['control', 'm']);
+      await selectCells([[1, 1, 3, 3]]);
+      await keyDownUp(['control', 'm']);
 
       const cell = getCell(1, 1);
 
       expect(cell.rowSpan).toBe(3);
       expect(cell.colSpan).toBe(3);
 
-      keyDownUp(['control', 'm']);
+      await keyDownUp(['control', 'm']);
 
       expect(cell.rowSpan).toBe(1);
       expect(cell.colSpan).toBe(1);
 
-      keyDownUp(['control', 'm']);
+      await keyDownUp(['control', 'm']);
 
       expect(cell.rowSpan).toBe(3);
       expect(cell.colSpan).toBe(3);

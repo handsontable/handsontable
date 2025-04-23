@@ -10,7 +10,7 @@ describe('MergeCells scrolling', () => {
     }
   });
 
-  it('should scroll viewport vertically to the beginning of the merged cell when it\'s clicked', () => {
+  it('should scroll viewport vertically to the beginning of the merged cell when it\'s clicked', async() => {
     handsontable({
       data: createSpreadsheetObjectData(10, 5),
       mergeCells: [
@@ -20,21 +20,21 @@ describe('MergeCells scrolling', () => {
       width: 400
     });
 
-    setScrollTop(130);
-    render();
-    simulateClick(getCell(5, 0));
+    await scrollViewportVertically(130);
+    await render();
+    await simulateClick(getCell(5, 0));
 
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(115);
       main.toBe(130);
-      horizon.toBe(130);
+      horizon.toBe(159);
     });
 
-    setScrollTop(0);
-    render();
-    setScrollTop(130);
-    render();
-    simulateClick(getCell(5, 2));
+    await scrollViewportVertically(0);
+    await render();
+    await scrollViewportVertically(130);
+    await render();
+    await simulateClick(getCell(5, 2));
 
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(115);
@@ -43,7 +43,7 @@ describe('MergeCells scrolling', () => {
     });
   });
 
-  it('should scroll viewport horizontally to the beginning of the merged cell when it\'s clicked', () => {
+  it('should scroll viewport horizontally to the beginning of the merged cell when it\'s clicked', async() => {
     handsontable({
       data: createSpreadsheetObjectData(5, 10),
       mergeCells: [
@@ -53,22 +53,22 @@ describe('MergeCells scrolling', () => {
       width: 265
     });
 
-    setScrollLeft(300);
-    render();
-    simulateClick(getCell(0, 5));
+    await scrollViewportHorizontally(300);
+    await render();
+    await simulateClick(getCell(0, 5));
 
     expect(inlineStartOverlay().getScrollPosition()).toBe(250);
 
-    setScrollLeft(0);
-    render();
-    setScrollLeft(300);
-    render();
-    simulateClick(getCell(2, 5));
+    await scrollViewportHorizontally(0);
+    await render();
+    await scrollViewportHorizontally(300);
+    await render();
+    await simulateClick(getCell(2, 5));
 
     expect(inlineStartOverlay().getScrollPosition()).toBe(250);
   });
 
-  it('should scroll viewport vertically to the beginning of the merged cell when it\'s clicked (virtualized is on)', () => {
+  it('should scroll viewport vertically to the beginning of the merged cell when it\'s clicked (virtualized is on)', async() => {
     handsontable({
       data: createSpreadsheetObjectData(100, 5),
       mergeCells: {
@@ -81,19 +81,18 @@ describe('MergeCells scrolling', () => {
       width: 200
     });
 
-    setScrollTop(2000);
-    render();
-
-    simulateClick(getCell(5, 0));
+    await scrollViewportVertically(2000);
+    await render();
+    await simulateClick(getCell(5, 0));
 
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(115);
-      main.toBe(145);
-      horizon.toBe(185);
+      classic.toBe(116);
+      main.toBe(146);
+      horizon.toBe(186);
     });
   });
 
-  it('should scroll viewport horizontally to the beginning of the merged cell when it\'s clicked (virtualized is on)', () => {
+  it('should scroll viewport horizontally to the beginning of the merged cell when it\'s clicked (virtualized is on)', async() => {
     handsontable({
       data: createSpreadsheetObjectData(5, 100),
       mergeCells: {
@@ -106,16 +105,16 @@ describe('MergeCells scrolling', () => {
       width: 300
     });
 
-    setScrollLeft(2000);
-    render();
+    await scrollViewportHorizontally(2000);
 
-    simulateClick(getCell(0, 5));
+    await render();
+    await simulateClick(getCell(0, 5));
 
     expect(inlineStartOverlay().getScrollPosition()).toBe(250);
   });
 
-  it('should render whole merged cell even when most rows are not in the viewport - scrolled to top', () => {
-    const hot = handsontable({
+  it('should render whole merged cell even when most rows are not in the viewport - scrolled to top', async() => {
+    handsontable({
       data: createSpreadsheetObjectData(40, 5),
       mergeCells: [
         { row: 1, col: 0, rowspan: 21, colspan: 2 },
@@ -125,11 +124,11 @@ describe('MergeCells scrolling', () => {
       width: 400
     });
 
-    expect(hot.countRenderedRows()).toBe(39);
+    expect(countRenderedRows()).toBe(39);
   });
 
-  it('should render whole merged cell even when most rows are not in the viewport - scrolled to bottom', () => {
-    const hot = handsontable({
+  it('should render whole merged cell even when most rows are not in the viewport - scrolled to bottom', async() => {
+    handsontable({
       data: createSpreadsheetObjectData(40, 5),
       mergeCells: [
         { row: 1, col: 0, rowspan: 21, colspan: 2 },
@@ -139,16 +138,14 @@ describe('MergeCells scrolling', () => {
       width: 400
     });
 
-    const mainHolder = hot.view._wt.wtTable.holder;
+    await scrollViewportVertically(99999);
+    await render();
 
-    $(mainHolder).scrollTop(99999);
-    hot.render();
-
-    expect(hot.countRenderedRows()).toBe(39);
+    expect(countRenderedRows()).toBe(39);
   });
 
-  it('should render whole merged cell even when most columns are not in the viewport - scrolled to the left', () => {
-    const hot = handsontable({
+  it('should render whole merged cell even when most columns are not in the viewport - scrolled to the left', async() => {
+    handsontable({
       data: createSpreadsheetObjectData(5, 40),
       mergeCells: [
         { row: 0, col: 1, rowspan: 2, colspan: 21 },
@@ -158,11 +155,11 @@ describe('MergeCells scrolling', () => {
       width: 400
     });
 
-    expect(hot.countRenderedCols()).toBe(39);
+    expect(countRenderedCols()).toBe(39);
   });
 
-  it('should render whole merged cell even when most columns are not in the viewport - scrolled to the right', () => {
-    const hot = handsontable({
+  it('should render whole merged cell even when most columns are not in the viewport - scrolled to the right', async() => {
+    handsontable({
       data: createSpreadsheetObjectData(5, 40),
       mergeCells: [
         { row: 0, col: 1, rowspan: 2, colspan: 21 },
@@ -172,9 +169,9 @@ describe('MergeCells scrolling', () => {
       width: 400
     });
 
-    spec().$container.scrollLeft(99999);
-    hot.render();
+    await scrollViewportHorizontally(99999);
+    await render();
 
-    expect(hot.countRenderedCols()).toBe(39);
+    expect(countRenderedCols()).toBe(39);
   });
 });

@@ -13,22 +13,24 @@ describe('settings', () => {
       }
     });
 
-    it('should create a new row after ENTER hit', () => {
+    it('should create a new row after ENTER hit', async() => {
       handsontable({
         data: createSpreadsheetData(5, 2),
         minSpareRows: 1,
       });
 
-      selectCell(5, 0);
-      keyDownUp('enter');
+      await selectCell(5, 0);
+      await keyDownUp('enter');
+
       getActiveEditor().TEXTAREA.value = 'test';
-      keyDownUp('enter');
+
+      await keyDownUp('enter');
 
       expect(countRows()).toBe(7);
       expect(getSelectedRange()).toEqualCellRange(['highlight: 6,0 from: 6,0 to: 6,0']);
     });
 
-    it('should create a spare row after removing all rows', () => {
+    it('should create a spare row after removing all rows', async() => {
       handsontable({
         data: createSpreadsheetData(4, 1),
         rowHeaders: true,
@@ -36,16 +38,16 @@ describe('settings', () => {
         minSpareRows: 1,
       });
 
-      alter('remove_row', 0, 5);
+      await alter('remove_row', 0, 5);
 
       expect(countRows()).toBe(1);
       expect(getCell(0, -1)).toBeInstanceOf(HTMLTableCellElement);
     });
 
     describe('works on init', () => {
-      it('should show data properly when `minSpareRows` is set to 3', () => {
+      it('should show data properly when `minSpareRows` is set to 3', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(1, 1),
+          data: createSpreadsheetData(1, 1),
           minSpareRows: 3
         });
 
@@ -58,12 +60,12 @@ describe('settings', () => {
     });
 
     describe('update settings works', () => {
-      it('should show data properly after `minSpareRows` is updated to 3', () => {
+      it('should show data properly after `minSpareRows` is updated to 3', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(1, 1)
+          data: createSpreadsheetData(1, 1)
         });
 
-        updateSettings({
+        await updateSettings({
           minSpareRows: 3
         });
 
@@ -75,13 +77,13 @@ describe('settings', () => {
       });
 
       // Currently this is a bug (#6571)
-      xit('should show data properly after `minSpareRows` is updated from 5 to 3', () => {
+      xit('should show data properly after `minSpareRows` is updated from 5 to 3', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(1, 1),
+          data: createSpreadsheetData(1, 1),
           minSpareRows: 5
         });
 
-        updateSettings({
+        await updateSettings({
           minSpareRows: 3
         });
 
@@ -94,16 +96,16 @@ describe('settings', () => {
     });
 
     describe('cell meta', () => {
-      it('should be rendered as is without shifting the cell meta objects', () => {
+      it('should be rendered as is without shifting the cell meta objects', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(1, 1),
+          data: createSpreadsheetData(1, 1),
           minSpareRows: 3,
         });
 
         getCellMeta(4, 0).test = 'foo';
         getCellMeta(5, 0).test = 'bar';
 
-        updateSettings({
+        await updateSettings({
           minSpareRows: 5
         });
 

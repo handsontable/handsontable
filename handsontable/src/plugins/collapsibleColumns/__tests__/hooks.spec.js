@@ -47,11 +47,11 @@ describe('CollapsibleColumns Hooks', () => {
     }
   });
 
-  it('should set "successfullyCollapsed" argument of "afterColumnCollapse" hook as `false` after trying collapsing already collapsed column', () => {
+  it('should set "successfullyCollapsed" argument of "afterColumnCollapse" hook as `false` after trying collapsing already collapsed column', async() => {
     const afterColumnCollapse = jasmine.createSpy('afterColumnCollapse');
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 10),
+      data: createSpreadsheetData(10, 10),
       nestedHeaders: [
         ['A1', { label: 'B1', colspan: 4 }, 'F1', 'G1', 'H1', 'I1', 'J1'],
         ['A2', { label: 'B2', colspan: 2 }, { label: 'D2', colspan: 2 }, 'F2', 'G2', 'H2', 'I2', 'J2'],
@@ -71,11 +71,11 @@ describe('CollapsibleColumns Hooks', () => {
     expect(afterColumnCollapse).toHaveBeenCalledWith([3, 4], [3, 4], false, false);
   });
 
-  it('should set "successfullyExpanded" argument of "afterColumnExpand" hook as `false` after trying expanding already expanded column', () => {
+  it('should set "successfullyExpanded" argument of "afterColumnExpand" hook as `false` after trying expanding already expanded column', async() => {
     const afterColumnExpand = jasmine.createSpy('afterColumnExpand');
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 10),
+      data: createSpreadsheetData(10, 10),
       nestedHeaders: [
         ['A1', { label: 'B1', colspan: 4 }, 'F1', 'G1', 'H1', 'I1', 'J1'],
         ['A2', { label: 'B2', colspan: 2 }, { label: 'D2', colspan: 2 }, 'F2', 'G2', 'H2', 'I2', 'J2'],
@@ -98,12 +98,12 @@ describe('CollapsibleColumns Hooks', () => {
   });
 
   it('should set "successfullyCollapsed" and "collapsePossible" arguments in hooks as `false` when trying colapse headers ' +
-     'without "collapsible" attribute', () => {
+     'without "collapsible" attribute', async() => {
     const beforeColumnCollapse = jasmine.createSpy('beforeColumnCollapse');
     const afterColumnCollapse = jasmine.createSpy('afterColumnCollapse');
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 10),
+      data: createSpreadsheetData(10, 10),
       nestedHeaders: [
         ['A', { label: 'B', colspan: 8 }, 'C'],
         ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
@@ -130,12 +130,12 @@ describe('CollapsibleColumns Hooks', () => {
   });
 
   it('should set "successfullyExpanded" and "expandPossible" arguments in hooks as `false` when trying expand headers ' +
-     'without "collapsible" attribute', () => {
+     'without "collapsible" attribute', async() => {
     const beforeColumnExpand = jasmine.createSpy('beforeColumnExpand');
     const afterColumnExpand = jasmine.createSpy('afterColumnExpand');
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 10),
+      data: createSpreadsheetData(10, 10),
       nestedHeaders: [
         ['A', { label: 'B', colspan: 8 }, 'C'],
         ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
@@ -162,11 +162,11 @@ describe('CollapsibleColumns Hooks', () => {
     expect(afterColumnExpand).toHaveBeenCalledWith([2, 3, 4], [2, 3, 4], false, false);
   });
 
-  it('should not trigger "afterColumnCollapse" hook when "beforeColumnCollapse" returns `false`', () => {
+  it('should not trigger "afterColumnCollapse" hook when "beforeColumnCollapse" returns `false`', async() => {
     const afterColumnCollapse = jasmine.createSpy('afterColumnCollapse');
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 10),
+      data: createSpreadsheetData(10, 10),
       nestedHeaders: [
         ['A1', { label: 'B1', colspan: 4 }, 'F1', 'G1', 'H1', 'I1', 'J1'],
         ['A2', { label: 'B2', colspan: 2 }, { label: 'D2', colspan: 2 }, 'F2', 'G2', 'H2', 'I2', 'J2'],
@@ -227,11 +227,11 @@ describe('CollapsibleColumns Hooks', () => {
       `);
   });
 
-  it('should not trigger "afterColumnExpand" hook when "beforeColumnExpand" returns `false`', () => {
+  it('should not trigger "afterColumnExpand" hook when "beforeColumnExpand" returns `false`', async() => {
     const afterColumnExpand = jasmine.createSpy('afterColumnExpand');
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 10),
+      data: createSpreadsheetData(10, 10),
       nestedHeaders: [
         ['A1', { label: 'B1', colspan: 4 }, 'F1', 'G1', 'H1', 'I1', 'J1'],
         ['A2', { label: 'B2', colspan: 2 }, { label: 'D2', colspan: 2 }, 'F2', 'G2', 'H2', 'I2', 'J2'],
@@ -283,9 +283,9 @@ describe('CollapsibleColumns Hooks', () => {
       `);
   });
 
-  it('should block specified column from collapsing using custom logic from the "beforeColumnCollapse" hook', () => {
+  it('should block specified column from collapsing using custom logic from the "beforeColumnCollapse" hook', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 10),
+      data: createSpreadsheetData(10, 10),
       nestedHeaders: [
         ['A1', { label: 'B1', colspan: 4 }, 'F1', 'G1', 'H1', 'I1', 'J1'],
         ['A2', { label: 'B2', colspan: 2 }, { label: 'D2', colspan: 2 }, 'F2', 'G2', 'H2', 'I2', 'J2'],
@@ -380,9 +380,9 @@ describe('CollapsibleColumns Hooks', () => {
       `);
   });
 
-  it('should block specified column from expanding using custom logic from the "beforeColumnExpand" hook', () => {
+  it('should block specified column from expanding using custom logic from the "beforeColumnExpand" hook', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 10),
+      data: createSpreadsheetData(10, 10),
       nestedHeaders: [
         ['A1', { label: 'B1', colspan: 2 }, { label: 'D1', colspan: 2 }, 'F1', 'G1', 'H1', 'I1', 'J1'],
         ['A2', { label: 'B2', colspan: 2 }, { label: 'D2', colspan: 2 }, 'F2', 'G2', 'H2', 'I2', 'J2'],

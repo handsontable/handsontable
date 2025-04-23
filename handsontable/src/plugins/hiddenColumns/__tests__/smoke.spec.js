@@ -13,7 +13,7 @@ describe('HiddenColumns', () => {
   });
 
   describe('smoke test', () => {
-    it('should not throw an error when first 10k columns are hidden on table initialization', () => {
+    it('should not throw an error when first 10k columns are hidden on table initialization', async() => {
       expect(() => {
         handsontable({
           data: createSpreadsheetData(5, 10000),
@@ -26,7 +26,7 @@ describe('HiddenColumns', () => {
       }).not.toThrow();
     });
 
-    it('should not throw an error when first 10k columns are hidden and the row header is selected', () => {
+    it('should not throw an error when first 10k columns are hidden and the row header is selected', async() => {
       handsontable({
         data: createSpreadsheetData(5, 10001),
         rowHeaders: true,
@@ -36,8 +36,8 @@ describe('HiddenColumns', () => {
         },
       });
 
-      expect(() => {
-        selectRows(1);
+      expect(async() => {
+        await selectRows(1);
       }).not.toThrow();
 
       expect(getSelected()).toEqual([[1, -1, 1, 10000]]);

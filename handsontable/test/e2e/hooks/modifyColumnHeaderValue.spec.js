@@ -11,7 +11,7 @@ describe('Hook', () => {
   });
 
   describe('modifyColumnHeaderValue', () => {
-    it('should modify the value returned by the `getColHeader` method for multi-level headers', () => {
+    it('should modify the value returned by the `getColHeader` method for multi-level headers', async() => {
       handsontable({
         data: createSpreadsheetData(2, 4),
         colHeaders: true,
@@ -47,7 +47,7 @@ describe('Hook', () => {
       expect(getColHeader(50, -50)).toBe('50 x -50');
     });
 
-    it('should be called with correct arguments for single-level headers after `getColHeader` method call', () => {
+    it('should be called with correct arguments for single-level headers after `getColHeader` method call', async() => {
       const modifyColumnHeaderValue = jasmine.createSpy('modifyColumnHeaderValue')
         .and.returnValue('test');
 
@@ -94,7 +94,7 @@ describe('Hook', () => {
       expect(modifyColumnHeaderValue).toHaveBeenCalledWith('D', 3, 100);
     });
 
-    it('should be called with correct arguments for multi-level headers after `getColHeader` method call', () => {
+    it('should be called with correct arguments for multi-level headers after `getColHeader` method call', async() => {
       const modifyColumnHeaderValue = jasmine.createSpy('modifyColumnHeaderValue')
         .and.returnValue('test');
 

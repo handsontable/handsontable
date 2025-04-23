@@ -12,13 +12,13 @@ describe('MultipleSelectionHandles', () => {
     }
   });
 
-  it('should contain backward compatible CSS classes', () => {
+  it('should contain backward compatible CSS classes', async() => {
     handsontable({
       width: 400,
       height: 400
     });
 
-    selectCell(1, 1);
+    await selectCell(1, 1);
 
     const topSelectionHandle = spec().$container
       .find('.ht_master .htBorders div:first-child .topSelectionHandle');

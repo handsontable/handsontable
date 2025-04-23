@@ -1,18 +1,18 @@
 // this file is called MemoryLeakTest.js (not MemoryLeak.spec.js) to make sure it is manually executed as the last suite
 describe('MemoryLeakTest', () => {
-  it('after all Handsontable instances are destroy()\'d, there should be no more active listeners', () => {
+  it('after all Handsontable instances are destroy()\'d, there should be no more active listeners', async() => {
     expect(Handsontable._getListenersCounter()).toBe(0);
   });
 
-  it('after all Handsontable instances are destroy()\'d, there should be no more registered maps for index mappers', () => {
+  it('after all Handsontable instances are destroy()\'d, there should be no more registered maps for index mappers', async() => {
     expect(Handsontable._getRegisteredMapsCounter()).toBe(0);
   });
 
-  it('should not leave any `testContainer`s (created in `beforeEach`) after all the tests have finished', () => {
+  it('should not leave any `testContainer`s (created in `beforeEach`) after all the tests have finished', async() => {
     expect(document.querySelectorAll('#testContainer').length).toBe(0);
   });
 
-  it('should not leave any any DOM containers, except for those created by Jasmine', () => {
+  it('should not leave any any DOM containers, except for those created by Jasmine', async() => {
     let leftoverNodesCount = 0;
 
     Array.from(document.body.children).forEach((child) => {
@@ -51,7 +51,7 @@ describe('MemoryLeakTest', () => {
         const countListenersOfType = (listeners, type) =>
           (listeners.filter(listener => listener.type === type) || []).length;
 
-        const hot = handsontable({
+        handsontable({
           data: [['a', 'b'], ['c', 'd']],
           columns: [
             {
@@ -62,11 +62,11 @@ describe('MemoryLeakTest', () => {
           ],
         });
 
-        selectCell(0, 0);
-        keyDownUp('enter');
-        keyDownUp('enter');
+        await selectCell(0, 0);
+        await keyDownUp('enter');
+        await keyDownUp('enter');
 
-        hot.destroy();
+        destroy();
 
         const htmlListenersAfter = await getEventListeners('html');
         const bodyListenersAfter = await getEventListeners('body');

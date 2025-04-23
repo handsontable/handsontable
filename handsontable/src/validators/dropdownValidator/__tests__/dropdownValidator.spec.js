@@ -24,7 +24,7 @@ describe('dropdownValidator', () => {
       afterValidate,
     });
 
-    setDataAtCell(0, 0, 'Some');
+    await setDataAtCell(0, 0, 'Some');
 
     await sleep(50);
 
@@ -44,7 +44,7 @@ describe('dropdownValidator', () => {
       afterValidate,
     });
 
-    setDataAtCell([
+    await setDataAtCell([
       [0, 0, 'test1'],
       [0, 1, 'test2'],
       [0, 2, 'test3'],
@@ -74,7 +74,7 @@ describe('dropdownValidator', () => {
         afterValidate,
       });
 
-      setDataAtCell(0, 0, '');
+      await setDataAtCell(0, 0, '');
 
       await sleep(50);
 
@@ -94,7 +94,7 @@ describe('dropdownValidator', () => {
         afterValidate,
       });
 
-      setDataAtCell(0, 0, '');
+      await setDataAtCell(0, 0, '');
 
       await sleep(50);
 
@@ -114,7 +114,7 @@ describe('dropdownValidator', () => {
         afterValidate,
       });
 
-      setDataAtCell(0, 0, '');
+      await setDataAtCell(0, 0, '');
 
       await sleep(50);
 
@@ -146,9 +146,9 @@ describe('dropdownValidator', () => {
         afterValidate,
       });
 
-      setDataAtCell(0, 0, '');
-      setDataAtCell(0, 1, '');
-      setDataAtCell(0, 2, '');
+      await setDataAtCell(0, 0, '');
+      await setDataAtCell(0, 1, '');
+      await setDataAtCell(0, 2, '');
 
       await sleep(50);
 
@@ -182,9 +182,9 @@ describe('dropdownValidator', () => {
         afterValidate,
       });
 
-      setDataAtCell(0, 0, null);
-      setDataAtCell(0, 1);
-      setDataAtCell(0, 2, '');
+      await setDataAtCell(0, 0, null);
+      await setDataAtCell(0, 1);
+      await setDataAtCell(0, 2, '');
 
       await sleep(50);
 

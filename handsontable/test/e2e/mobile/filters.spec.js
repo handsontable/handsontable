@@ -23,12 +23,12 @@ describe('Filters', () => {
 
     const button = getCell(-1, 0).querySelector('.changeType');
 
-    simulateTouch(button);
+    await simulateTouch(button);
 
     const plugin = getPlugin('dropdownMenu');
     const input = plugin.menu.container.querySelector('.htUIMultipleSelectSearch input');
 
-    simulateTouch(input);
+    await simulateTouch(input);
 
     Object.defineProperty(window, 'innerWidth', { value: 390 });
     Object.defineProperty(window, 'innerHeight', { value: 600 });

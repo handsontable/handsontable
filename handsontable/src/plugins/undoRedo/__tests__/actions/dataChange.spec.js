@@ -22,7 +22,7 @@ describe('UndoRedo -> DataChange action', () => {
       afterUndo,
     });
 
-    setDataAtCell(1, 2, 'test');
+    await setDataAtCell(1, 2, 'test');
     getPlugin('undoRedo').undo();
 
     expect(afterUndo).toHaveBeenCalledWith({

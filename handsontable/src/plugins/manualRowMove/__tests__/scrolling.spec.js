@@ -13,7 +13,7 @@ describe('manualRowMove', () => {
   });
 
   describe('scrolling', () => {
-    it('should move the table\'s viewport down when the next mouse-overed element is below the table', () => {
+    it('should move the table\'s viewport down when the next mouse-overed element is below the table', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
@@ -46,7 +46,7 @@ describe('manualRowMove', () => {
     });
 
     it.forTheme('classic')('should move the table\'s viewport down when the next mouse-overed ' +
-      'element is a row that belongs to the bottom overlay', () => {
+      'element is a row that belongs to the bottom overlay', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
@@ -79,7 +79,7 @@ describe('manualRowMove', () => {
     });
 
     it.forTheme('main')('should move the table\'s viewport down when the next mouse-overed element ' +
-      'is a row that belongs to the bottom overlay', () => {
+      'is a row that belongs to the bottom overlay', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
@@ -112,7 +112,7 @@ describe('manualRowMove', () => {
     });
 
     it.forTheme('horizon')('should move the table\'s viewport down when the next mouse-overed element ' +
-      'is a row that belongs to the bottom overlay', () => {
+      'is a row that belongs to the bottom overlay', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
@@ -145,7 +145,7 @@ describe('manualRowMove', () => {
     });
 
     it('should move the table\'s viewport down when the next mouse-overed element is a row that belongs to ' +
-       'the bottom overlay (with hidden rows)', () => {
+       'the bottom overlay (with hidden rows)', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
@@ -181,7 +181,7 @@ describe('manualRowMove', () => {
     });
 
     it.forTheme('classic')('should not move the table\'s viewport when the next mouse-overed element' +
-      ' is the last row that belongs to the main table and there are some bottom overlay rows', () => {
+      ' is the last row that belongs to the main table and there are some bottom overlay rows', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
@@ -214,7 +214,7 @@ describe('manualRowMove', () => {
     });
 
     it.forTheme('main')('should not move the table\'s viewport when the next mouse-overed element ' +
-      'is the last row that belongs to the main table and there are some bottom overlay rows', () => {
+      'is the last row that belongs to the main table and there are some bottom overlay rows', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
@@ -247,7 +247,7 @@ describe('manualRowMove', () => {
     });
 
     it.forTheme('horizon')('should not move the table\'s viewport when the next mouse-overed element ' +
-      'is the last row that belongs to the main table and there are some bottom overlay rows', () => {
+      'is the last row that belongs to the main table and there are some bottom overlay rows', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
@@ -289,14 +289,12 @@ describe('manualRowMove', () => {
         manualRowMove: true,
       });
 
-      scrollViewportTo({
+      await scrollViewportTo({
         row: countRows() - 1,
         col: 0,
         verticalSnap: 'bottom',
         horizontalSnap: 'start',
       });
-
-      await sleep(10);
 
       const rowHeader = $(getCell(7, -1));
       const nextElement = $(document.body);
@@ -340,14 +338,12 @@ describe('manualRowMove', () => {
         manualRowMove: true,
       });
 
-      scrollViewportTo({
+      await scrollViewportTo({
         row: countRows() - 1,
         col: 0,
         verticalSnap: 'bottom',
         horizontalSnap: 'start',
       });
-
-      await sleep(10);
 
       const rowHeader = $(getCell(7, -1));
       const topOverlayLastRowHeader = $(getCell(1, -1));
@@ -393,14 +389,12 @@ describe('manualRowMove', () => {
         }
       });
 
-      scrollViewportTo({
+      await scrollViewportTo({
         row: countRows() - 1,
         col: 0,
         verticalSnap: 'bottom',
         horizontalSnap: 'start',
       });
-
-      await sleep(10);
 
       const rowHeader = $(getCell(7, -1));
       const topOverlayLastRowHeader = $(getCell(1, -1));
@@ -443,14 +437,12 @@ describe('manualRowMove', () => {
         manualRowMove: true,
       });
 
-      scrollViewportTo({
+      await scrollViewportTo({
         row: countRows() - 1,
         col: 0,
         verticalSnap: 'bottom',
         horizontalSnap: 'start',
       });
-
-      await sleep(10);
 
       const rowHeader = $(getCell(8, -1));
       const nextRowHeader = $(getCell(7, -1));

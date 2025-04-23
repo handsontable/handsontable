@@ -11,7 +11,7 @@ describe('NestedHeaders cooperation with ManualColumnMove', () => {
   });
 
   // hotfix for #dev-2038
-  it('should set up the selection correctly for moving column', () => {
+  it('should set up the selection correctly for moving column', async() => {
     handsontable({
       data: createSpreadsheetData(10, 10),
       colHeaders: true,
@@ -22,7 +22,7 @@ describe('NestedHeaders cooperation with ManualColumnMove', () => {
       manualColumnMove: true,
     });
 
-    selectColumns(1);
+    await selectColumns(1);
 
     $(getCell(-1, 1)).simulate('mousedown');
     $(getCell(-1, 2)).simulate('mouseover');

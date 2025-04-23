@@ -24,7 +24,7 @@ describe('parseTable', () => {
    * We have to verify it's working as expected in a browser environment.
    */
   describe('matchesCSSRules', () => {
-    it('should verify only STYLE_RULE type rules', () => {
+    it('should verify only STYLE_RULE type rules', async() => {
       const styleElem = $('<style/>').html('@page {} div {} * {} .test {}').appendTo(spec().$container);
       const testElem = $('<div/>').addClass('test').appendTo(spec().$container)[0];
       const { cssRules } = styleElem[0].sheet;

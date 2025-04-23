@@ -13,9 +13,9 @@ describe('manualRowMove', () => {
   });
 
   describe('UI', () => {
-    it('should append UI elements to wtHider after click on row header', () => {
+    it('should append UI elements to wtHider after click on row header', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(30, 30),
+        data: createSpreadsheetData(30, 30),
         rowHeaders: true,
         manualRowMove: true
       });
@@ -30,9 +30,9 @@ describe('manualRowMove', () => {
       expect(spec().$container.find('.ht__manualRowMove--backlight').length).toBe(1);
     });
 
-    it('should part of UI elements be visible on dragging action', () => {
+    it('should part of UI elements be visible on dragging action', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(30, 30),
+        data: createSpreadsheetData(30, 30),
         rowHeaders: true,
         manualRowMove: true
       });
@@ -47,9 +47,9 @@ describe('manualRowMove', () => {
       expect(spec().$container.find('.ht__manualRowMove--backlight:visible').length).toBe(1);
     });
 
-    it('should all of UI elements be visible on dragging action', () => {
+    it('should all of UI elements be visible on dragging action', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(30, 30),
+        data: createSpreadsheetData(30, 30),
         rowHeaders: true,
         manualRowMove: true
       });
@@ -70,9 +70,9 @@ describe('manualRowMove', () => {
       expect(spec().$container.find('.ht__manualRowMove--backlight:visible').length).toBe(1);
     });
 
-    it('should set proper z-index of the backlight and guideline element and be greater than left overlay z-index', () => {
+    it('should set proper z-index of the backlight and guideline element and be greater than left overlay z-index', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         manualRowMove: true,
         rowHeaders: true,
       });
@@ -88,9 +88,9 @@ describe('manualRowMove', () => {
     });
 
     describe('guideline', () => {
-      it('should set proper top position of element when target is first row and column headers are disabled', () => {
+      it('should set proper top position of element when target is first row and column headers are disabled', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           rowHeaders: true,
           colHeaders: false,
           manualRowMove: true,
@@ -117,16 +117,16 @@ describe('manualRowMove', () => {
     });
 
     describe('selection', () => {
-      it('should be shown properly when moving multiple rows from the top to the bottom', () => {
+      it('should be shown properly when moving multiple rows from the top to the bottom', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           rowHeaders: true,
           manualRowMove: true
         });
 
         const $rowHeader = spec().$container.find('tbody tr:eq(4) th:eq(0)');
 
-        selectRows(0, 2);
+        await selectRows(0, 2);
 
         spec().$container.find('tbody tr:eq(2) th:eq(0)').simulate('mousedown');
         spec().$container.find('tbody tr:eq(2) th:eq(0)').simulate('mouseup');
@@ -141,16 +141,16 @@ describe('manualRowMove', () => {
         expect(getSelected()).toEqual([[1, -1, 3, 9]]);
       });
 
-      it('should be shown properly when moving multiple rows from the bottom to the top', () => {
+      it('should be shown properly when moving multiple rows from the bottom to the top', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           rowHeaders: true,
           manualRowMove: true
         });
 
         const $rowHeader = spec().$container.find('tbody tr:eq(1) th:eq(0)');
 
-        selectRows(3, 5);
+        await selectRows(3, 5);
 
         spec().$container.find('tbody tr:eq(3) th:eq(0)').simulate('mousedown');
         spec().$container.find('tbody tr:eq(3) th:eq(0)').simulate('mouseup');
@@ -167,16 +167,16 @@ describe('manualRowMove', () => {
       });
 
       describe('should be shown properly after undo action', () => {
-        it('when moving multiple rows from the top to the bottom', () => {
+        it('when moving multiple rows from the top to the bottom', async() => {
           handsontable({
-            data: Handsontable.helper.createSpreadsheetData(10, 10),
+            data: createSpreadsheetData(10, 10),
             rowHeaders: true,
             manualRowMove: true
           });
 
           const $rowHeader = spec().$container.find('tbody tr:eq(4) th:eq(0)');
 
-          selectRows(0, 2);
+          await selectRows(0, 2);
 
           spec().$container.find('tbody tr:eq(2) th:eq(0)').simulate('mousedown');
           spec().$container.find('tbody tr:eq(2) th:eq(0)').simulate('mouseup');
@@ -193,16 +193,16 @@ describe('manualRowMove', () => {
           expect(getSelected()).toEqual([[0, -1, 2, 9]]);
         });
 
-        it('when moving multiple rows from the bottom to the top', () => {
+        it('when moving multiple rows from the bottom to the top', async() => {
           handsontable({
-            data: Handsontable.helper.createSpreadsheetData(10, 10),
+            data: createSpreadsheetData(10, 10),
             rowHeaders: true,
             manualRowMove: true
           });
 
           const $rowHeader = spec().$container.find('tbody tr:eq(1) th:eq(0)');
 
-          selectRows(3, 5);
+          await selectRows(3, 5);
 
           spec().$container.find('tbody tr:eq(3) th:eq(0)').simulate('mousedown');
           spec().$container.find('tbody tr:eq(3) th:eq(0)').simulate('mouseup');
@@ -222,16 +222,16 @@ describe('manualRowMove', () => {
       });
 
       describe('should be shown properly after redo action', () => {
-        it('when moving multiple rows from the top to the bottom', () => {
-          const hot = handsontable({
-            data: Handsontable.helper.createSpreadsheetData(10, 10),
+        it('when moving multiple rows from the top to the bottom', async() => {
+          handsontable({
+            data: createSpreadsheetData(10, 10),
             rowHeaders: true,
             manualRowMove: true
           });
 
           const $rowHeader = spec().$container.find('tbody tr:eq(4) th:eq(0)');
 
-          selectRows(0, 2);
+          await selectRows(0, 2);
 
           spec().$container.find('tbody tr:eq(2) th:eq(0)').simulate('mousedown');
           spec().$container.find('tbody tr:eq(2) th:eq(0)').simulate('mouseup');
@@ -244,21 +244,21 @@ describe('manualRowMove', () => {
           $rowHeader.simulate('mouseup');
 
           getPlugin('undoRedo').undo();
-          hot.getPlugin('undoRedo').redo();
+          getPlugin('undoRedo').redo();
 
           expect(getSelected()).toEqual([[1, -1, 3, 9]]);
         });
 
-        it('when moving multiple rows from the bottom to the top', () => {
-          const hot = handsontable({
-            data: Handsontable.helper.createSpreadsheetData(10, 10),
+        it('when moving multiple rows from the bottom to the top', async() => {
+          handsontable({
+            data: createSpreadsheetData(10, 10),
             rowHeaders: true,
             manualRowMove: true
           });
 
           const $rowHeader = spec().$container.find('tbody tr:eq(1) th:eq(0)');
 
-          selectRows(3, 5);
+          await selectRows(3, 5);
 
           spec().$container.find('tbody tr:eq(3) th:eq(0)').simulate('mousedown');
           spec().$container.find('tbody tr:eq(3) th:eq(0)').simulate('mouseup');
@@ -272,7 +272,7 @@ describe('manualRowMove', () => {
           $rowHeader.simulate('mouseup');
 
           getPlugin('undoRedo').undo();
-          hot.getPlugin('undoRedo').redo();
+          getPlugin('undoRedo').redo();
 
           expect(getSelected()).toEqual([[1, -1, 3, 9]]);
         });

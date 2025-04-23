@@ -10,7 +10,7 @@ describe('StretchColumns with `beforeStretchingColumnWidth` hook', () => {
     }
   });
 
-  it('should be triggered once per column', () => {
+  it('should be triggered once per column', async() => {
     const beforeStretchingColumnWidth = jasmine.createSpy('beforeStretchingColumnWidth');
 
     handsontable({
@@ -31,7 +31,7 @@ describe('StretchColumns with `beforeStretchingColumnWidth` hook', () => {
     ]);
   });
 
-  it('should be possible to change the stretched column width for stretching all strategy', () => {
+  it('should be possible to change the stretched column width for stretching all strategy', async() => {
     handsontable({
       data: createSpreadsheetData(5, 3),
       colHeaders: true,
@@ -49,7 +49,7 @@ describe('StretchColumns with `beforeStretchingColumnWidth` hook', () => {
     expect(getColWidth(2)).toBe(85);
   });
 
-  it('should not be possible to change the stretched column width for stretching last strategy', () => {
+  it('should not be possible to change the stretched column width for stretching last strategy', async() => {
     const beforeStretchingColumnWidth = jasmine.createSpy('beforeStretchingColumnWidth')
       .and.callFake(() => 120);
 

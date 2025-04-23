@@ -29,27 +29,27 @@ describe('a11y DOM attributes (ARIA tags)', () => {
   });
 
   it('should assign the `role=menu` attribute to the root element of the dropdown menu', async() => {
-    const hot = handsontable({
+    handsontable({
       dropdownMenu: true,
       colHeaders: true,
     });
 
-    dropdownMenu(0);
+    await dropdownMenu(0);
 
     await sleep(50);
 
-    expect(hot.getPlugin('dropdownMenu').menu.container.getAttribute('role')).toEqual('menu');
+    expect(getPlugin('dropdownMenu').menu.container.getAttribute('role')).toEqual('menu');
   });
 
-  it('should assign the `role=menuitem` attribute to all the options of the dropdown menu', () => {
-    const hot = handsontable({
+  it('should assign the `role=menuitem` attribute to all the options of the dropdown menu', async() => {
+    handsontable({
       dropdownMenu: true,
       colHeaders: true,
     });
 
-    dropdownMenu(0);
+    await dropdownMenu(0);
 
-    const cMenu = hot.getPlugin('dropdownMenu').menu;
+    const cMenu = getPlugin('dropdownMenu').menu;
 
     expect(filterElementsByAttribute(
       cMenu.container,
@@ -61,15 +61,15 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     expect(cMenu.hotMenu.getCell(0, 0).getAttribute('role')).toEqual('menuitem');
   });
 
-  it('should assign the `role=menuitemcheckbox` attribute to the `Read only` item', () => {
-    const hot = handsontable({
+  it('should assign the `role=menuitemcheckbox` attribute to the `Read only` item', async() => {
+    handsontable({
       dropdownMenu: true,
       colHeaders: true,
     });
 
-    dropdownMenu(0);
+    await dropdownMenu(0);
 
-    const cMenu = hot.getPlugin('dropdownMenu').menu;
+    const cMenu = getPlugin('dropdownMenu').menu;
 
     const menuItemCheckboxes = filterElementsByAttribute(
       cMenu.container,
@@ -82,13 +82,13 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     expect(menuItemCheckboxes[0].ariaLabel).toBe('Read only');
   });
 
-  it('should assign the `aria-label` attribute to all the options of the dropdown menu', () => {
+  it('should assign the `aria-label` attribute to all the options of the dropdown menu', async() => {
     handsontable({
       dropdownMenu: true,
       colHeaders: true,
     });
 
-    dropdownMenu(0);
+    await dropdownMenu(0);
 
     const cMenu = getPlugin('dropdownMenu').menu;
 
@@ -100,13 +100,13 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     expect(cMenu.hotMenu.getCell(0, 0).getAttribute('aria-label')).toBe('Insert column left');
   });
 
-  it('should assign the `tabindex` attribute to all the options of the dropdown menu', () => {
+  it('should assign the `tabindex` attribute to all the options of the dropdown menu', async() => {
     handsontable({
       dropdownMenu: true,
       colHeaders: true,
     });
 
-    dropdownMenu(0);
+    await dropdownMenu(0);
 
     const cMenu = getPlugin('dropdownMenu').menu;
 
@@ -118,16 +118,16 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     ).length).toBe(6);
   });
 
-  it('should assign the `aria-disabled` attribute to all the disabled options of the dropdown menu', () => {
-    const hot = handsontable({
+  it('should assign the `aria-disabled` attribute to all the disabled options of the dropdown menu', async() => {
+    handsontable({
       data: [{ a: 1 }],
       dropdownMenu: true,
       colHeaders: true,
     });
 
-    dropdownMenu(0);
+    await dropdownMenu(0);
 
-    const cMenu = hot.getPlugin('dropdownMenu').menu;
+    const cMenu = getPlugin('dropdownMenu').menu;
 
     // Undo and Redo options
     expect(cMenu.hotMenu.getCell(0, 0).getAttribute('aria-disabled')).toEqual('true');
@@ -136,14 +136,14 @@ describe('a11y DOM attributes (ARIA tags)', () => {
 
   it('should assign the `aria-expanded` attribute to all the expandable options of the dropdown menu and set it to' +
     ' either `true` of `false`, depending on their state (via mouse movement)', async() => {
-    const hot = handsontable({
+    handsontable({
       dropdownMenu: true,
       colHeaders: true,
     });
 
-    dropdownMenu(0);
+    await dropdownMenu(0);
 
-    const cMenu = hot.getPlugin('dropdownMenu').menu;
+    const cMenu = getPlugin('dropdownMenu').menu;
 
     expect(filterElementsByAttribute(
       cMenu.container,
@@ -177,7 +177,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
       dropdownMenu: ['remove_col', 'alignment']
     });
 
-    dropdownMenu();
+    await dropdownMenu();
 
     const cMenu = getPlugin('dropdownMenu').menu;
 
@@ -191,20 +191,20 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     const $unExpandableItem = $(cMenu.hotMenu.getCell(0, 0));
     const $expandableItem = $(cMenu.hotMenu.getCell(1, 0));
 
-    keyDownUp('arrowdown');
-    keyDownUp('arrowright');
+    await keyDownUp('arrowdown');
+    await keyDownUp('arrowright');
 
     expect($unExpandableItem.get(0).hasAttribute('aria-expanded')).toBe(false);
 
-    keyDownUp('arrowdown');
+    await keyDownUp('arrowdown');
 
     expect($expandableItem.get(0).getAttribute('aria-expanded')).toBe('false');
 
-    keyDownUp('arrowright');
+    await keyDownUp('arrowright');
 
     expect($expandableItem.get(0).getAttribute('aria-expanded')).toBe('true');
 
-    keyDownUp('arrowleft');
+    await keyDownUp('arrowleft');
 
     expect($expandableItem.get(0).getAttribute('aria-expanded')).toBe('false');
   });

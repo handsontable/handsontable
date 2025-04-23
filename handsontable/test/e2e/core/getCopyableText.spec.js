@@ -12,9 +12,9 @@ describe('Core.getCopyableText', () => {
     }
   });
 
-  it('should return copyable string when `copyable` option is enabled', () => {
+  it('should return copyable string when `copyable` option is enabled', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
       copyable: true
     });
 
@@ -22,9 +22,9 @@ describe('Core.getCopyableText', () => {
     expect(getCopyableText(0, 0, 1, 2)).toBe('A1\tB1\tC1\nA2\tB2\tC2');
   });
 
-  it('should return empty string as copyable data when `copyable` option is disabled', () => {
+  it('should return empty string as copyable data when `copyable` option is disabled', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
       copyable: false
     });
 

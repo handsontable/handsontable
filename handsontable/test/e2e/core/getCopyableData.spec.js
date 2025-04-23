@@ -12,9 +12,9 @@ describe('Core.getCopyableData', () => {
     }
   });
 
-  it('should return copyable data when `copyable` option is enabled', () => {
+  it('should return copyable data when `copyable` option is enabled', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 10),
+      data: createSpreadsheetData(10, 10),
       copyable: true
     });
 
@@ -24,9 +24,9 @@ describe('Core.getCopyableData', () => {
     expect(getCopyableData(8, 9)).toBe('J9');
   });
 
-  it('should return empty string as copyable data when `copyable` option is disabled', () => {
+  it('should return empty string as copyable data when `copyable` option is disabled', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 10),
+      data: createSpreadsheetData(10, 10),
       copyable: false
     });
 

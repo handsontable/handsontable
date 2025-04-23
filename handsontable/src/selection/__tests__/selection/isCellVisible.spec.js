@@ -24,8 +24,8 @@ describe('Selection', () => {
   }
 
   describe('`isCellVisible` method', () => {
-    it('should return `true` when the cell is visible', () => {
-      const hot = handsontable({
+    it('should return `true` when the cell is visible', async() => {
+      handsontable({
         data: createSpreadsheetData(6, 4),
         colHeaders: true,
         rowHeaders: true,
@@ -39,24 +39,24 @@ describe('Selection', () => {
         },
       });
 
-      expect(hot.selection.isCellVisible(cellCoords(-2, -2))).toBe(true);
-      expect(hot.selection.isCellVisible(cellCoords(0, 0))).toBe(true);
-      expect(hot.selection.isCellVisible(cellCoords(1, 1))).toBe(true);
-      expect(hot.selection.isCellVisible(cellCoords(5, 3))).toBe(true);
+      expect(selection().isCellVisible(cellCoords(-2, -2))).toBe(true);
+      expect(selection().isCellVisible(cellCoords(0, 0))).toBe(true);
+      expect(selection().isCellVisible(cellCoords(1, 1))).toBe(true);
+      expect(selection().isCellVisible(cellCoords(5, 3))).toBe(true);
     });
 
-    it('should return `false` for coords that points to the dataset beyond the range', () => {
-      const hot = handsontable({
+    it('should return `false` for coords that points to the dataset beyond the range', async() => {
+      handsontable({
         data: createSpreadsheetData(6, 4),
       });
 
-      expect(hot.selection.isCellVisible(cellCoords(100, 0))).toBe(false);
-      expect(hot.selection.isCellVisible(cellCoords(0, 100))).toBe(false);
-      expect(hot.selection.isCellVisible(cellCoords(100, 100))).toBe(false);
+      expect(selection().isCellVisible(cellCoords(100, 0))).toBe(false);
+      expect(selection().isCellVisible(cellCoords(0, 100))).toBe(false);
+      expect(selection().isCellVisible(cellCoords(100, 100))).toBe(false);
     });
 
-    it('should return `false` when row is not visible', () => {
-      const hot = handsontable({
+    it('should return `false` when row is not visible', async() => {
+      handsontable({
         data: createSpreadsheetData(6, 4),
       });
 
@@ -64,18 +64,18 @@ describe('Selection', () => {
 
       hidingMap.setValueAtIndex(2, true);
       hidingMap.setValueAtIndex(5, true);
-      render();
+      await render();
 
-      expect(hot.selection.isCellVisible(cellCoords(0, 0))).toBe(true);
-      expect(hot.selection.isCellVisible(cellCoords(1, 0))).toBe(true);
-      expect(hot.selection.isCellVisible(cellCoords(2, 0))).toBe(false);
-      expect(hot.selection.isCellVisible(cellCoords(3, 0))).toBe(true);
-      expect(hot.selection.isCellVisible(cellCoords(4, 0))).toBe(true);
-      expect(hot.selection.isCellVisible(cellCoords(5, 0))).toBe(false);
+      expect(selection().isCellVisible(cellCoords(0, 0))).toBe(true);
+      expect(selection().isCellVisible(cellCoords(1, 0))).toBe(true);
+      expect(selection().isCellVisible(cellCoords(2, 0))).toBe(false);
+      expect(selection().isCellVisible(cellCoords(3, 0))).toBe(true);
+      expect(selection().isCellVisible(cellCoords(4, 0))).toBe(true);
+      expect(selection().isCellVisible(cellCoords(5, 0))).toBe(false);
     });
 
-    it('should return `false` when column is not visible', () => {
-      const hot = handsontable({
+    it('should return `false` when column is not visible', async() => {
+      handsontable({
         data: createSpreadsheetData(4, 6),
       });
 
@@ -83,14 +83,14 @@ describe('Selection', () => {
 
       hidingMap.setValueAtIndex(2, true);
       hidingMap.setValueAtIndex(5, true);
-      render();
+      await render();
 
-      expect(hot.selection.isCellVisible(cellCoords(0, 0))).toBe(true);
-      expect(hot.selection.isCellVisible(cellCoords(0, 1))).toBe(true);
-      expect(hot.selection.isCellVisible(cellCoords(0, 2))).toBe(false);
-      expect(hot.selection.isCellVisible(cellCoords(0, 3))).toBe(true);
-      expect(hot.selection.isCellVisible(cellCoords(0, 4))).toBe(true);
-      expect(hot.selection.isCellVisible(cellCoords(0, 5))).toBe(false);
+      expect(selection().isCellVisible(cellCoords(0, 0))).toBe(true);
+      expect(selection().isCellVisible(cellCoords(0, 1))).toBe(true);
+      expect(selection().isCellVisible(cellCoords(0, 2))).toBe(false);
+      expect(selection().isCellVisible(cellCoords(0, 3))).toBe(true);
+      expect(selection().isCellVisible(cellCoords(0, 4))).toBe(true);
+      expect(selection().isCellVisible(cellCoords(0, 5))).toBe(false);
     });
   });
 });

@@ -13,7 +13,7 @@ describe('ContextMenu', () => {
   });
 
   describe('insert row below', () => {
-    it('should not insert row below when the menu is triggered by column header', () => {
+    it('should not insert row below when the menu is triggered by column header', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
@@ -21,15 +21,15 @@ describe('ContextMenu', () => {
         contextMenu: true,
       });
 
-      contextMenu(getCell(-1, 1, true));
+      await contextMenu(getCell(-1, 1, true));
 
-      const item = selectContextMenuOption('Insert row below');
+      const item = await selectContextMenuOption('Insert row below');
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5']);
     });
 
-    it('should insert row below of the clicked row header', () => {
+    it('should insert row below of the clicked row header', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
@@ -37,9 +37,9 @@ describe('ContextMenu', () => {
         contextMenu: true,
       });
 
-      contextMenu(getCell(1, -1, true));
+      await contextMenu(getCell(1, -1, true));
 
-      const item = selectContextMenuOption('Insert row below');
+      const item = await selectContextMenuOption('Insert row below');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtCol(0)).toEqual(['A1', 'A2', null, 'A3', 'A4', 'A5']);
@@ -55,7 +55,7 @@ describe('ContextMenu', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should insert row below when the menu is triggered by corner', () => {
+    it('should insert row below when the menu is triggered by corner', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
@@ -63,9 +63,9 @@ describe('ContextMenu', () => {
         contextMenu: true,
       });
 
-      contextMenu(getCell(-1, -1, true));
+      await contextMenu(getCell(-1, -1, true));
 
-      const item = selectContextMenuOption('Insert row below');
+      const item = await selectContextMenuOption('Insert row below');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', null]);
@@ -81,7 +81,7 @@ describe('ContextMenu', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should insert row above when the menu is triggered by focused row header', () => {
+    it('should insert row above when the menu is triggered by focused row header', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
@@ -90,16 +90,16 @@ describe('ContextMenu', () => {
         navigableHeaders: true,
       });
 
-      selectCell(1, -1);
+      await selectCell(1, -1);
       getPlugin('contextMenu').open({ top: 0, left: 0 });
 
-      const item = selectContextMenuOption('Insert row below');
+      const item = await selectContextMenuOption('Insert row below');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtCol(0)).toEqual(['A1', 'A2', null, 'A3', 'A4', 'A5']);
     });
 
-    it('should not insert row above when the menu is triggered by focused corner', () => {
+    it('should not insert row above when the menu is triggered by focused corner', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
@@ -108,16 +108,16 @@ describe('ContextMenu', () => {
         navigableHeaders: true,
       });
 
-      selectCell(-1, -1);
+      await selectCell(-1, -1);
       getPlugin('contextMenu').open({ top: 0, left: 0 });
 
-      const item = selectContextMenuOption('Insert row below');
+      const item = await selectContextMenuOption('Insert row below');
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5']);
     });
 
-    it('should not insert row above when the menu is triggered by focused column header', () => {
+    it('should not insert row above when the menu is triggered by focused column header', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
@@ -126,16 +126,16 @@ describe('ContextMenu', () => {
         navigableHeaders: true,
       });
 
-      selectCell(-1, 1);
+      await selectCell(-1, 1);
       getPlugin('contextMenu').open({ top: 0, left: 0 });
 
-      const item = selectContextMenuOption('Insert row below');
+      const item = await selectContextMenuOption('Insert row below');
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5']);
     });
 
-    it('should insert row below when the menu is triggered by corner and all rows are trimmed', () => {
+    it('should insert row below when the menu is triggered by corner and all rows are trimmed', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
@@ -144,9 +144,9 @@ describe('ContextMenu', () => {
         trimRows: [0, 1, 2, 3, 4],
       });
 
-      contextMenu(getCell(-1, -1, true));
+      await contextMenu(getCell(-1, -1, true));
 
-      const item = selectContextMenuOption('Insert row below');
+      const item = await selectContextMenuOption('Insert row below');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtCol(0)).toEqual([null]);
@@ -157,7 +157,7 @@ describe('ContextMenu', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should insert row below when the menu is triggered by corner and all columns are trimmed', () => {
+    it('should insert row below when the menu is triggered by corner and all columns are trimmed', async() => {
       handsontable({
         data: createSpreadsheetData(5, 0),
         colHeaders: true,
@@ -165,9 +165,9 @@ describe('ContextMenu', () => {
         contextMenu: true,
       });
 
-      contextMenu(getCell(-1, -1, true));
+      await contextMenu(getCell(-1, -1, true));
 
-      const item = selectContextMenuOption('Insert row below');
+      const item = await selectContextMenuOption('Insert row below');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       // Currently HoT doesn't support row headers shift as it support columns.
@@ -185,7 +185,7 @@ describe('ContextMenu', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should insert row below when the menu is triggered by corner and dataset is empty', () => {
+    it('should insert row below when the menu is triggered by corner and dataset is empty', async() => {
       handsontable({
         data: createSpreadsheetData(0, 0),
         colHeaders: true,
@@ -193,9 +193,9 @@ describe('ContextMenu', () => {
         contextMenu: true,
       });
 
-      contextMenu(getCell(-1, -1, true));
+      await contextMenu(getCell(-1, -1, true));
 
-      const item = selectContextMenuOption('Insert row below');
+      const item = await selectContextMenuOption('Insert row below');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       // Currently HoT doesn't support row headers shift as it support columns.
@@ -209,7 +209,7 @@ describe('ContextMenu', () => {
     });
 
     it('should not insert row below when the physical number of rows is the same as `maxRows` ' +
-       'and some indexes are trimmed', () => {
+       'and some indexes are trimmed', async() => {
       handsontable({
         data: createSpreadsheetData(5, 1),
         colHeaders: true,
@@ -221,11 +221,11 @@ describe('ContextMenu', () => {
       const rowMapper = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'trimming');
 
       rowMapper.setValueAtIndex(1, true);
-      render();
+      await render();
 
-      contextMenu(getCell(0, 0, true));
+      await contextMenu(getCell(0, 0, true));
 
-      const item = selectContextMenuOption('Insert row below');
+      const item = await selectContextMenuOption('Insert row below');
 
       expect(item.hasClass('htDisabled')).toBe(true);
       expect(`
@@ -238,7 +238,7 @@ describe('ContextMenu', () => {
         `).toBeMatchToSelectionPattern();
     });
 
-    it('should insert row below of the clicked cell', () => {
+    it('should insert row below of the clicked cell', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
@@ -246,9 +246,9 @@ describe('ContextMenu', () => {
         contextMenu: true,
       });
 
-      contextMenu(getCell(1, 1));
+      await contextMenu(getCell(1, 1));
 
-      const item = selectContextMenuOption('Insert row below');
+      const item = await selectContextMenuOption('Insert row below');
 
       expect(item.hasClass('htDisabled')).toBe(false);
       expect(getDataAtCol(0)).toEqual(['A1', 'A2', null, 'A3', 'A4', 'A5']);
@@ -265,7 +265,7 @@ describe('ContextMenu', () => {
     });
 
     describe('UI', () => {
-      it('should display a disabled entry, when there\'s nothing selected', () => {
+      it('should display a disabled entry, when there\'s nothing selected', async() => {
         handsontable({
           data: createSpreadsheetData(4, 4),
           contextMenu: true,
@@ -275,9 +275,9 @@ describe('ContextMenu', () => {
           }
         });
 
-        contextMenu();
+        await contextMenu();
 
-        const item = selectContextMenuOption('Insert row below');
+        const item = await selectContextMenuOption('Insert row below');
 
         expect(item.hasClass('htDisabled')).toBe(true);
       });

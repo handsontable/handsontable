@@ -10,7 +10,7 @@ describe('Core.getRowHeight', () => {
     }
   });
 
-  it('should call the `modifyRowHeight` internally', () => {
+  it('should call the `modifyRowHeight` internally', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       rowHeights: 50,
@@ -27,7 +27,7 @@ describe('Core.getRowHeight', () => {
     expect(modifyRowHeight).toHaveBeenCalledWith(50, 1);
   });
 
-  it('should return the same value as the `rowHeights` if the value is greater than minimum theme row height', () => {
+  it('should return the same value as the `rowHeights` if the value is greater than minimum theme row height', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       rowHeights: 50,
@@ -38,7 +38,7 @@ describe('Core.getRowHeight', () => {
     expect(getRowHeight(0)).toBe(50);
   });
 
-  it('should return the minimum theme row height if the lower value is defined', () => {
+  it('should return the minimum theme row height if the lower value is defined', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       rowHeights: 12,
@@ -49,7 +49,7 @@ describe('Core.getRowHeight', () => {
     expect(getRowHeight(0)).toBe(getDefaultRowHeight());
   });
 
-  it('should return the minimum theme row height if the value is equal to `0`', () => {
+  it('should return the minimum theme row height if the value is equal to `0`', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       rowHeights: 0,

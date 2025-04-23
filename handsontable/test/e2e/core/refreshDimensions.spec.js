@@ -1,4 +1,4 @@
-describe('Core.refreshDimensions', () => {
+describe('Core.await refreshDimensions()', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
@@ -12,7 +12,7 @@ describe('Core.refreshDimensions', () => {
     }
   });
 
-  it('should trigger `beforeRefreshDimensions` and `afterRefreshDimensions` hooks internally', () => {
+  it('should trigger `beforeRefreshDimensions` and `afterRefreshDimensions` hooks internally', async() => {
     const beforeRefreshDimensions = jasmine.createSpy('beforeRefreshDimensions');
     const afterRefreshDimensions = jasmine.createSpy('afterRefreshDimensions');
 
@@ -22,7 +22,7 @@ describe('Core.refreshDimensions', () => {
       afterRefreshDimensions,
     });
 
-    refreshDimensions();
+    await refreshDimensions();
 
     expect(beforeRefreshDimensions).forThemes(({ classic, main, horizon }) => {
       classic.toHaveBeenCalledOnceWith(
@@ -60,7 +60,7 @@ describe('Core.refreshDimensions', () => {
     });
   });
 
-  it('should trigger `render` and `adjustElementsSize` methods internally (#dev-1876)', () => {
+  it('should trigger `render` and `adjustElementsSize` methods internally (#dev-1876)', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(5, 5),
     });
@@ -68,7 +68,7 @@ describe('Core.refreshDimensions', () => {
     spyOn(hot, 'render');
     spyOn(hot.view, 'adjustElementsSize');
 
-    refreshDimensions();
+    await refreshDimensions();
 
     expect(hot.render).toHaveBeenCalledTimes(1);
     expect(hot.render).toHaveBeenCalledBefore(hot.view.adjustElementsSize);

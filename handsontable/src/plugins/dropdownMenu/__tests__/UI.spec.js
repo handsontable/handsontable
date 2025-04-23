@@ -25,7 +25,7 @@ describe('DropdownMenu', () => {
         $('html').attr('dir', 'ltr');
       });
 
-      it('should render the dropdown button on the right side of the header', () => {
+      it('should render the dropdown button on the right side of the header', async() => {
         handsontable({
           layoutDirection,
           dropdownMenu: true,
@@ -39,7 +39,7 @@ describe('DropdownMenu', () => {
       });
     });
 
-    it('should render dropdown menu trigger buttons with a proper type', () => {
+    it('should render dropdown menu trigger buttons with a proper type', async() => {
       handsontable({
         dropdownMenu: true,
         colHeaders: true,

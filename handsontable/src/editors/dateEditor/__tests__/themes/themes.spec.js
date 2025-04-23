@@ -19,10 +19,8 @@ describe('Date editor theme handling', () => {
       themeName: 'ht-theme-sth',
     });
 
-    selectCell(0, 0);
-    keyDownUp('enter');
-
-    await sleep(50);
+    await selectCell(0, 0);
+    await keyDownUp('enter');
 
     const $editor = $(getActiveEditor().datePicker);
 
@@ -36,10 +34,8 @@ describe('Date editor theme handling', () => {
       columns: [{ type: 'date' }],
     }, true);
 
-    selectCell(0, 0);
-    keyDownUp('enter');
-
-    await sleep(50);
+    await selectCell(0, 0);
+    await keyDownUp('enter');
 
     const $editor = $(getActiveEditor().datePicker);
 

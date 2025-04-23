@@ -6,7 +6,7 @@ describe('exportFile CSV type', () => {
    * @param y
    */
   function data(x, y) {
-    return Handsontable.helper.createSpreadsheetData(x, y);
+    return createSpreadsheetData(x, y);
   }
 
   /**
@@ -29,7 +29,7 @@ describe('exportFile CSV type', () => {
     }
   });
 
-  it('should export table when data source is defined as array of arrays', () => {
+  it('should export table when data source is defined as array of arrays', async() => {
     handsontable({
       data: [[1, 'Foo"s', 'He\nis\nvery\nkind'], [2, 'Bar"s', 'He\nis\nvery\nconfident']],
     });
@@ -39,7 +39,7 @@ describe('exportFile CSV type', () => {
     expect(csv).toBe('\ufeff1,"Foo""s","He\nis\nvery\nkind"\r\n2,"Bar""s","He\nis\nvery\nconfident"');
   });
 
-  it('should export table when data source is defined as array of objects', () => {
+  it('should export table when data source is defined as array of objects', async() => {
     handsontable({
       data: [
         {
@@ -65,7 +65,7 @@ describe('exportFile CSV type', () => {
     expect(csv).toBe('\ufeff1,"Foo""s","He\nis\nvery\nkind"\r\n2,"Bar""s","He\nis\nvery\nconfident"');
   });
 
-  it('should returns CSV type formatter object', () => {
+  it('should returns CSV type formatter object', async() => {
     handsontable();
     const type = getPlugin('exportFile')._createTypeFormatter('csv');
 
@@ -73,7 +73,7 @@ describe('exportFile CSV type', () => {
   });
 
   describe('export options', () => {
-    it('should have prepared default options', () => {
+    it('should have prepared default options', async() => {
       handsontable();
       const csv = getPlugin('exportFile')._createTypeFormatter('csv');
 
@@ -86,7 +86,7 @@ describe('exportFile CSV type', () => {
   });
 
   describe('`export` method', () => {
-    it('should returns string with corrected lines count', () => {
+    it('should returns string with corrected lines count', async() => {
       handsontable({
         data: data(10, 10),
         height: 396,
@@ -100,7 +100,7 @@ describe('exportFile CSV type', () => {
     });
 
     // BOM
-    it('should export with default BOM', () => {
+    it('should export with default BOM', async() => {
       handsontable({
         data: data(2, 2),
         height: 396,
@@ -113,7 +113,7 @@ describe('exportFile CSV type', () => {
       expect('\ufeffA1,B1\r\nA2,B2').toBe(csv);
     });
 
-    it('should export without any BOM', () => {
+    it('should export without any BOM', async() => {
       handsontable({
         data: data(2, 2),
         height: 396,
@@ -127,7 +127,7 @@ describe('exportFile CSV type', () => {
     });
 
     // columnDelimiter
-    it('should export with comma as the default columnDelimiter', () => {
+    it('should export with comma as the default columnDelimiter', async() => {
       handsontable({
         data: data(2, 2),
         height: 396,
@@ -140,7 +140,7 @@ describe('exportFile CSV type', () => {
       expect('\ufeffA1,B1\r\nA2,B2').toBe(csv);
     });
 
-    it('should export regarding to columnDelimiter option', () => {
+    it('should export regarding to columnDelimiter option', async() => {
       handsontable({
         data: data(2, 2),
         height: 396,
@@ -154,7 +154,7 @@ describe('exportFile CSV type', () => {
     });
 
     // rowDelimiter
-    it('should export with CRLF as the default rowDelimiter', () => {
+    it('should export with CRLF as the default rowDelimiter', async() => {
       handsontable({
         data: data(2, 2),
         height: 396,
@@ -167,7 +167,7 @@ describe('exportFile CSV type', () => {
       expect('\ufeffA1,B1\r\nA2,B2').toBe(csv);
     });
 
-    it('should export regarding to rowDelimiter option', () => {
+    it('should export regarding to rowDelimiter option', async() => {
       handsontable({
         data: data(2, 2),
         height: 396,
@@ -181,7 +181,7 @@ describe('exportFile CSV type', () => {
     });
 
     // columnHeaders
-    it('should export with `false` as the default columnHeaders', () => {
+    it('should export with `false` as the default columnHeaders', async() => {
       handsontable({
         data: data(2, 2),
         height: 396,
@@ -194,7 +194,7 @@ describe('exportFile CSV type', () => {
       expect('\ufeffA1,B1\r\nA2,B2').toBe(csv);
     });
 
-    it('should export regarding to columnHeaders option', () => {
+    it('should export regarding to columnHeaders option', async() => {
       handsontable({
         data: data(2, 2),
         height: 396,
@@ -208,7 +208,7 @@ describe('exportFile CSV type', () => {
     });
 
     // rowHeaders
-    it('should export with `false` as the default rowHeaders', () => {
+    it('should export with `false` as the default rowHeaders', async() => {
       handsontable({
         data: data(2, 2),
         height: 396,
@@ -221,7 +221,7 @@ describe('exportFile CSV type', () => {
       expect('\ufeffA1,B1\r\nA2,B2').toBe(csv);
     });
 
-    it('should export regarding to rowHeaders option', () => {
+    it('should export regarding to rowHeaders option', async() => {
       handsontable({
         data: data(2, 2),
         height: 396,
@@ -235,7 +235,7 @@ describe('exportFile CSV type', () => {
     });
 
     // exportHiddenRows
-    it('should export with `false` as the default exportHiddenRows', () => {
+    it('should export with `false` as the default exportHiddenRows', async() => {
       handsontable({
         data: data(5, 2),
         height: 396,
@@ -252,7 +252,7 @@ describe('exportFile CSV type', () => {
       expect('\ufeffA1,B1\r\nA4,B4').toBe(csv);
     });
 
-    it('should export regarding to exportHiddenRows option', () => {
+    it('should export regarding to exportHiddenRows option', async() => {
       handsontable({
         data: data(5, 2),
         height: 396,
@@ -270,7 +270,7 @@ describe('exportFile CSV type', () => {
     });
 
     // exportHiddenColumns
-    it('should export with `false` as the default exportHiddenColumns', () => {
+    it('should export with `false` as the default exportHiddenColumns', async() => {
       handsontable({
         data: data(2, 5),
         height: 396,
@@ -287,7 +287,7 @@ describe('exportFile CSV type', () => {
       expect('\ufeffA1,D1\r\nA2,D2').toBe(csv);
     });
 
-    it('should export regarding to exportHiddenColumns option', () => {
+    it('should export regarding to exportHiddenColumns option', async() => {
       handsontable({
         data: data(2, 5),
         height: 396,
@@ -305,7 +305,7 @@ describe('exportFile CSV type', () => {
     });
 
     // range
-    it('should export all data by default', () => {
+    it('should export all data by default', async() => {
       handsontable({
         data: data(5, 5),
         height: 396,
@@ -318,7 +318,7 @@ describe('exportFile CSV type', () => {
       expect('\ufeffA1,B1,C1,D1,E1\r\nA2,B2,C2,D2,E2\r\nA3,B3,C3,D3,E3\r\nA4,B4,C4,D4,E4\r\nA5,B5,C5,D5,E5').toBe(csv);
     });
 
-    it('should export specified range from the middle of table', () => {
+    it('should export specified range from the middle of table', async() => {
       handsontable({
         data: data(5, 5),
         height: 396,
@@ -331,7 +331,7 @@ describe('exportFile CSV type', () => {
       expect('\ufeffB2,C2\r\nB3,C3\r\nB4,C4').toBe(csv);
     });
 
-    it('should export only specified row', () => {
+    it('should export only specified row', async() => {
       handsontable({
         data: data(5, 5),
         height: 396,
@@ -344,7 +344,7 @@ describe('exportFile CSV type', () => {
       expect('\ufeffA2,B2,C2').toBe(csv);
     });
 
-    it('should export only specified column', () => {
+    it('should export only specified column', async() => {
       handsontable({
         data: data(5, 5),
         height: 396,
@@ -357,7 +357,7 @@ describe('exportFile CSV type', () => {
       expect('\ufeffB1\r\nB2\r\nB3\r\nB4\r\nB5').toBe(csv);
     });
 
-    it('should export only existing data if "range" has coordinates defined out of scope', () => {
+    it('should export only existing data if "range" has coordinates defined out of scope', async() => {
       handsontable({
         data: data(5, 5),
         height: 396,
@@ -372,7 +372,7 @@ describe('exportFile CSV type', () => {
   });
 
   describe('`_escapeCell` method', () => {
-    it('should not escape value if it is not necessary', () => {
+    it('should not escape value if it is not necessary', async() => {
       handsontable();
       const csv = getPlugin('exportFile')._createTypeFormatter('csv');
 
@@ -383,28 +383,28 @@ describe('exportFile CSV type', () => {
       expect(csv._escapeCell({})).toBe('[object Object]');
     });
 
-    it('should escape value if it includes Carriage Return (CR)', () => {
+    it('should escape value if it includes Carriage Return (CR)', async() => {
       handsontable();
       const csv = getPlugin('exportFile')._createTypeFormatter('csv');
 
       expect(csv._escapeCell('1234\r22')).toBe('"1234\r22"');
     });
 
-    it('should escape value if it includes Double Quote (")', () => {
+    it('should escape value if it includes Double Quote (")', async() => {
       handsontable();
       const csv = getPlugin('exportFile')._createTypeFormatter('csv');
 
       expect(csv._escapeCell('123"42')).toBe('"123""42"');
     });
 
-    it('should escape value if it includes Line Feed (LF)', () => {
+    it('should escape value if it includes Line Feed (LF)', async() => {
       handsontable();
       const csv = getPlugin('exportFile')._createTypeFormatter('csv');
 
       expect(csv._escapeCell('123\n4')).toBe('"123\n4"');
     });
 
-    it('should escape value if it includes char defined in `columnDelimiter` option', () => {
+    it('should escape value if it includes char defined in `columnDelimiter` option', async() => {
       handsontable();
       let csv = getPlugin('exportFile')._createTypeFormatter('csv', { columnDelimiter: ',' });
 

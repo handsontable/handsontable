@@ -13,9 +13,9 @@ describe('HiddenRows', () => {
   });
 
   describe('rowHeaders', () => {
-    it('should show proper row headers for the table with hidden row (hidden first row)', () => {
+    it('should show proper row headers for the table with hidden row (hidden first row)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         rowHeaders: ['AA', 'BB', 'CC', 'DD', 'EE'],
         colHeaders: true,
         hiddenRows: {
@@ -30,9 +30,9 @@ describe('HiddenRows', () => {
       expect(getCell(4, -1).textContent).toBe('EE');
     });
 
-    it('should show proper row headers for the table with hidden row (hidden row in the middle)', () => {
+    it('should show proper row headers for the table with hidden row (hidden row in the middle)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         rowHeaders: ['AA', 'BB', 'CC', 'DD', 'EE'],
         colHeaders: true,
         hiddenRows: {
@@ -47,9 +47,9 @@ describe('HiddenRows', () => {
       expect(getCell(4, -1).textContent).toBe('EE');
     });
 
-    it('should show proper row headers for the table with hidden row (hidden last row)', () => {
+    it('should show proper row headers for the table with hidden row (hidden last row)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         rowHeaders: ['AA', 'BB', 'CC', 'DD', 'EE'],
         colHeaders: true,
         hiddenRows: {

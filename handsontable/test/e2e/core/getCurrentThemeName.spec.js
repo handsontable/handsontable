@@ -5,7 +5,7 @@ describe('getCurrentThemeName', () => {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
     }, true);
   });
 
@@ -16,12 +16,12 @@ describe('getCurrentThemeName', () => {
     }
   });
 
-  it('should return `undefined` when asking for a theme name, when none is set', () => {
+  it('should return `undefined` when asking for a theme name, when none is set', async() => {
     expect(getCurrentThemeName()).toBe(undefined);
   });
 
-  it('should get the current theme name', () => {
-    useTheme('ht-theme-sth');
+  it('should get the current theme name', async() => {
+    await useTheme('ht-theme-sth');
 
     expect(getCurrentThemeName()).toBe('ht-theme-sth');
   });

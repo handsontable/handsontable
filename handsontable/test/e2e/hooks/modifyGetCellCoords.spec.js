@@ -9,26 +9,26 @@ describe('Hook', () => {
   });
 
   describe('modifyGetCellCoords', () => {
-    it('should be fired before the editor is prepared', () => {
+    it('should be fired before the editor is prepared', async() => {
       const modifyGetCellCoords = jasmine.createSpy('modifyGetCellCoords');
-
       const hot = handsontable({
         data: createSpreadsheetData(5, 5),
         modifyGetCellCoords,
       });
 
-      selectCell(1, 2);
+      await selectCell(1, 2);
+
       spyOn(hot, 'getCell').and.returnValue(null);
 
       modifyGetCellCoords.calls.reset();
 
-      hot._getEditorManager().prepareEditor();
+      _getEditorManager().prepareEditor();
 
       expect(modifyGetCellCoords).toHaveBeenCalledWith(1, 2, false, 'meta');
       expect(modifyGetCellCoords).toHaveBeenCalledTimes(1);
     });
 
-    it('should be fired after the editor saves the value', () => {
+    it('should be fired after the editor saves the value', async() => {
       const modifyGetCellCoords = jasmine.createSpy('modifyGetCellCoords');
 
       const hot = handsontable({
@@ -36,7 +36,8 @@ describe('Hook', () => {
         modifyGetCellCoords,
       });
 
-      selectCell(1, 2);
+      await selectCell(1, 2);
+
       spyOn(hot, 'populateFromArray');
 
       modifyGetCellCoords.calls.reset();
@@ -47,7 +48,7 @@ describe('Hook', () => {
       expect(modifyGetCellCoords).toHaveBeenCalledTimes(1);
     });
 
-    it('should be fired before the DOM element is being retrieved', () => {
+    it('should be fired before the DOM element is being retrieved', async() => {
       const modifyGetCellCoords = jasmine.createSpy('modifyGetCellCoords');
 
       handsontable({
@@ -62,7 +63,7 @@ describe('Hook', () => {
       expect(modifyGetCellCoords).toHaveBeenCalledTimes(1);
     });
 
-    it('should open editor for proper cell', () => {
+    it('should open editor for proper cell', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -85,7 +86,7 @@ describe('Hook', () => {
         }
       });
 
-      mouseDoubleClick(spec().$container.find('tr:eq(1) td:eq(1)'));
+      await mouseDoubleClick(spec().$container.find('tr:eq(1) td:eq(1)'));
 
       let editor = getActiveEditor();
 
@@ -95,14 +96,14 @@ describe('Hook', () => {
       expect(spec().$container.find('.handsontableInputHolder textarea').val()).toEqual('A2');
 
       // Closing the editor.
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       editor = getActiveEditor();
 
       expect(editor.isOpened()).toBe(false);
       expect(editor.isInFullEditMode()).toBe(false);
 
-      mouseDoubleClick(spec().$container.find('tr:eq(1) td:eq(2)'));
+      await mouseDoubleClick(spec().$container.find('tr:eq(1) td:eq(2)'));
 
       editor = getActiveEditor();
 
@@ -135,7 +136,7 @@ describe('Hook', () => {
         }
       });
 
-      mouseDoubleClick(spec().$container.find('tr:eq(1) td:eq(1)'));
+      await mouseDoubleClick(spec().$container.find('tr:eq(1) td:eq(1)'));
 
       const editor = getActiveEditor();
 

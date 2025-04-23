@@ -11,14 +11,14 @@ describe('ContextMenu keyboard shortcut', () => {
   });
 
   describe('"Tab"', () => {
-    it('should close the menu and move the selection of the main table to the next cell', () => {
+    it('should close the menu and move the selection of the main table to the next cell', async() => {
       handsontable({
         contextMenu: generateRandomContextMenuItems(10),
       });
 
-      selectCell(1, 2);
-      contextMenu();
-      keyDownUp('tab');
+      await selectCell(1, 2);
+      await contextMenu();
+      await keyDownUp('tab');
 
       expect(getPlugin('contextMenu').menu.isOpened()).toBe(false);
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,3 from: 1,3 to: 1,3']);

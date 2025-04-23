@@ -10,7 +10,7 @@ describe('StretchColumns', () => {
     }
   });
 
-  it('should be disabled by default', () => {
+  it('should be disabled by default', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
     });
@@ -21,7 +21,7 @@ describe('StretchColumns', () => {
     expect(getColWidth(0)).toBe(50);
   });
 
-  it('should be possible to change the stretch strategy via `updateSettings`', () => {
+  it('should be possible to change the stretch strategy via `updateSettings`', async() => {
     handsontable({
       data: createSpreadsheetData(3, 3),
       width: 200,
@@ -32,7 +32,7 @@ describe('StretchColumns', () => {
     expect(getColWidth(1)).toBe(50);
     expect(getColWidth(2)).toBe(50);
 
-    updateSettings({
+    await updateSettings({
       stretchH: 'all',
     });
 
@@ -52,7 +52,7 @@ describe('StretchColumns', () => {
       horizon.toBe(61);
     });
 
-    updateSettings({
+    await updateSettings({
       stretchH: 'last',
     });
 
@@ -64,7 +64,7 @@ describe('StretchColumns', () => {
       horizon.toBe(85);
     });
 
-    updateSettings({
+    await updateSettings({
       stretchH: 'none',
     });
 
@@ -73,7 +73,7 @@ describe('StretchColumns', () => {
     expect(getColWidth(2)).toBe(50);
   });
 
-  it('should not stretch the columns when the "none" is set', () => {
+  it('should not stretch the columns when the "none" is set', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       width: 220,
@@ -88,7 +88,7 @@ describe('StretchColumns', () => {
     expect(getColWidth(4)).toBe(50);
   });
 
-  it('should correctly stretch columns after table size change', () => {
+  it('should correctly stretch columns after table size change', async() => {
     handsontable({
       data: createSpreadsheetData(5, 3),
       colHeaders: true,
@@ -102,7 +102,7 @@ describe('StretchColumns', () => {
     expect(getColWidth(1)).toBe(90);
     expect(getColWidth(2)).toBe(90);
 
-    updateSettings({
+    await updateSettings({
       width: 500,
     });
 
@@ -123,7 +123,8 @@ describe('StretchColumns', () => {
     });
   });
 
-  it.forTheme('classic')('should correctly stretch columns after vertical scroll appears (defined table size)', () => {
+  it.forTheme('classic')(`should correctly stretch columns after vertical scroll appears
+ (defined table size)`, async() => {
     handsontable({
       data: createSpreadsheetData(5, 3),
       colHeaders: true,
@@ -149,7 +150,7 @@ describe('StretchColumns', () => {
       horizon.toBe(85);
     });
 
-    updateSettings({
+    await updateSettings({
       height: 141,
     });
 
@@ -157,7 +158,7 @@ describe('StretchColumns', () => {
     expect(getColWidth(1)).toBe(85);
     expect(getColWidth(2)).toBe(85);
 
-    updateSettings({
+    await updateSettings({
       height: 142,
     });
 
@@ -178,7 +179,8 @@ describe('StretchColumns', () => {
     });
   });
 
-  it.forTheme('main')('should correctly stretch columns after vertical scroll appears (defined table size)', () => {
+  it.forTheme('main')(`should correctly stretch columns after vertical scroll appears
+ (defined table size)`, async() => {
     handsontable({
       data: createSpreadsheetData(5, 3),
       colHeaders: true,
@@ -192,7 +194,7 @@ describe('StretchColumns', () => {
     expect(getColWidth(1)).toBe(90);
     expect(getColWidth(2)).toBe(90);
 
-    updateSettings({
+    await updateSettings({
       height: 165,
     });
 
@@ -200,7 +202,7 @@ describe('StretchColumns', () => {
     expect(getColWidth(1)).toBe(85);
     expect(getColWidth(2)).toBe(85);
 
-    updateSettings({
+    await updateSettings({
       height: 179,
     });
 
@@ -209,7 +211,8 @@ describe('StretchColumns', () => {
     expect(getColWidth(2)).toBe(90);
   });
 
-  it.forTheme('horizon')('should correctly stretch columns after vertical scroll appears (defined table size)', () => {
+  it.forTheme('horizon')(`should correctly stretch columns after vertical scroll appears
+ (defined table size)`, async() => {
     handsontable({
       data: createSpreadsheetData(5, 3),
       colHeaders: true,
@@ -223,7 +226,7 @@ describe('StretchColumns', () => {
     expect(getColWidth(1)).toBe(90);
     expect(getColWidth(2)).toBe(90);
 
-    updateSettings({
+    await updateSettings({
       height: 211,
     });
 
@@ -231,7 +234,7 @@ describe('StretchColumns', () => {
     expect(getColWidth(1)).toBe(85);
     expect(getColWidth(2)).toBe(85);
 
-    updateSettings({
+    await updateSettings({
       height: 228,
     });
 
@@ -308,7 +311,7 @@ describe('StretchColumns', () => {
     document.body.style.overflowY = 'scroll';
   });
 
-  it('should correctly stretch columns after window size change', () => {
+  it('should correctly stretch columns after window size change', async() => {
     handsontable({
       data: createSpreadsheetData(5, 3),
       stretchH: 'all',
@@ -321,7 +324,7 @@ describe('StretchColumns', () => {
     expect(getColWidth(2)).toBeAroundValue(getColWidth(0), 1);
   });
 
-  it('should correctly stretch columns when there are some rows with multi-line text', () => {
+  it('should correctly stretch columns when there are some rows with multi-line text', async() => {
     const data = createSpreadsheetData(5, 2);
 
     for (let i = 0; i < data.length; i++) {
@@ -349,7 +352,7 @@ describe('StretchColumns', () => {
     });
   });
 
-  it('should not stretch the columns when the sum of columns widths is wider than the viewport (stretch "all")', () => {
+  it('should not stretch the columns when the sum of columns widths is wider than the viewport (stretch "all")', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       width: 220,
@@ -364,7 +367,7 @@ describe('StretchColumns', () => {
     expect(getColWidth(4)).toBe(50);
   });
 
-  it('should not stretch the columns when the sum of columns widths is wider than the viewport (stretch "last")', () => {
+  it('should not stretch the columns when the sum of columns widths is wider than the viewport (stretch "last")', async() => {
     handsontable({
       data: createSpreadsheetData(5, 6),
       width: 220,
@@ -379,7 +382,7 @@ describe('StretchColumns', () => {
     expect(getColWidth(4)).toBe(50);
   });
 
-  it('should correctly stretch the column after changing the cell value (#dev-1727)', () => {
+  it('should correctly stretch the column after changing the cell value (#dev-1727)', async() => {
     const data = createSpreadsheetData(1, 5);
 
     data[0][4] = 'very long text is here to make the column wider';
@@ -397,11 +400,11 @@ describe('StretchColumns', () => {
       horizon.toBe(319);
     });
 
-    setDataAtCell(0, 4, 'text');
+    await setDataAtCell(0, 4, 'text');
 
     expect(getColWidth(4)).toBe(80);
 
-    setDataAtCell(0, 4, 'very long text is here to make the column wider');
+    await setDataAtCell(0, 4, 'very long text is here to make the column wider');
 
     expect(getColWidth(4)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(259);

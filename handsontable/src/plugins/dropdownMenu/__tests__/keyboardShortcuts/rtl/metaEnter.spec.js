@@ -28,8 +28,8 @@ describe('DropdownMenu keyboard shortcut (RTL mode)', () => {
           dropdownMenu: true
         });
 
-        selectCell(-1, 1);
-        keyDownUp(['control/meta', 'enter']);
+        await selectCell(-1, 1);
+        await keyDownUp(['control/meta', 'enter']);
 
         const cell = getCell(-1, 1, true);
         const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
@@ -61,8 +61,8 @@ describe('DropdownMenu keyboard shortcut (RTL mode)', () => {
 
         const lastColumn = countCols() - 1;
 
-        selectCell(-1, lastColumn);
-        keyDownUp(['control/meta', 'enter']);
+        await selectCell(-1, lastColumn);
+        await keyDownUp(['control/meta', 'enter']);
 
         const cell = getCell(-1, lastColumn, true);
         const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');

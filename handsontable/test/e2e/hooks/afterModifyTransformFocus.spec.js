@@ -9,25 +9,26 @@ describe('Hook', () => {
   });
 
   describe('afterModifyTransformFocus', () => {
-    it('should be fired after changing the coordinates using `transformStart` method only', () => {
+    it('should be fired after changing the coordinates using `transformStart` method only', async() => {
       const afterModifyTransformFocus = jasmine.createSpy('afterModifyTransformFocus');
 
-      const hot = handsontable({
+      handsontable({
         data: createSpreadsheetData(5, 5),
         afterModifyTransformFocus,
       });
 
-      selectCell(0, 0, 3, 3);
-      hot.selection.transformFocus(1, 2);
+      await selectCell(0, 0, 3, 3);
+
+      selection().transformFocus(1, 2);
 
       expect(afterModifyTransformFocus).toHaveBeenCalledWith(cellCoords(1, 2), 0, 0);
       expect(afterModifyTransformFocus).toHaveBeenCalledTimes(1);
 
-      hot.selection.transformStart(2, 3);
+      selection().transformStart(2, 3);
 
       expect(afterModifyTransformFocus).toHaveBeenCalledTimes(1);
 
-      hot.selection.transformEnd(4, 4);
+      selection().transformEnd(4, 4);
 
       expect(afterModifyTransformFocus).toHaveBeenCalledTimes(1);
     });

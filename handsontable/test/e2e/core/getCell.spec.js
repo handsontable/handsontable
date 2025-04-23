@@ -10,9 +10,9 @@ describe('Core.getCell', () => {
     }
   });
 
-  it('should return corner TH element from the correct overlay when all rows are hidden', () => {
+  it('should return corner TH element from the correct overlay when all rows are hidden', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetObjectData(5, 5),
+      data: createSpreadsheetObjectData(5, 5),
       rowHeaders: true,
       colHeaders: true,
       hiddenRows: {
@@ -25,9 +25,9 @@ describe('Core.getCell', () => {
     expect(getCell(-1, -1, true)).toBe(getTopInlineStartClone().find('thead tr:eq(0) th:eq(0)')[0]);
   });
 
-  it('should return corner TH element from the correct overlay when all columns are hidden', () => {
+  it('should return corner TH element from the correct overlay when all columns are hidden', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetObjectData(5, 5),
+      data: createSpreadsheetObjectData(5, 5),
       rowHeaders: true,
       colHeaders: true,
       hiddenColumns: {
@@ -40,9 +40,9 @@ describe('Core.getCell', () => {
     expect(getCell(-1, -1, true)).toBe(getTopInlineStartClone().find('thead tr:eq(0) th:eq(0)')[0]);
   });
 
-  it('should return corner TH element from the correct overlay when all indexes are hidden', () => {
+  it('should return corner TH element from the correct overlay when all indexes are hidden', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetObjectData(5, 5),
+      data: createSpreadsheetObjectData(5, 5),
       rowHeaders: true,
       colHeaders: true,
       hiddenColumns: {
@@ -59,9 +59,9 @@ describe('Core.getCell', () => {
     expect(getCell(-1, -1, true)).toBe(getTopInlineStartClone().find('thead tr:eq(0) th:eq(0)')[0]);
   });
 
-  it('should return row header TH element when all columns are hidden', () => {
+  it('should return row header TH element when all columns are hidden', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetObjectData(5, 5),
+      data: createSpreadsheetObjectData(5, 5),
       rowHeaders: true,
       colHeaders: true,
       hiddenColumns: {
@@ -74,9 +74,9 @@ describe('Core.getCell', () => {
     expect(getCell(2, -1, true)).toBe(getInlineStartClone().find('tbody tr:eq(2) th:eq(0)')[0]);
   });
 
-  it('should return row header TH element when all rows are hidden', () => {
+  it('should return row header TH element when all rows are hidden', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetObjectData(5, 5),
+      data: createSpreadsheetObjectData(5, 5),
       rowHeaders: true,
       colHeaders: true,
       hiddenRows: {

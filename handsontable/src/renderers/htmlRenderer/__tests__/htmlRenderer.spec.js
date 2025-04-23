@@ -12,7 +12,7 @@ describe('HTMLRenderer', () => {
     }
   });
 
-  it('should not fill empty rows with null values', () => {
+  it('should not fill empty rows with null values', async() => {
     handsontable({
       data: [['a', 'b', 'c', 'd', 'e', 'f']],
       colHeaders: true,
@@ -54,7 +54,7 @@ describe('HTMLRenderer', () => {
       .toBe('<a href="#" target="_blank">baz</a>');
   });
 
-  it('should render the cell without messing with "dir" attribute', () => {
+  it('should render the cell without messing with "dir" attribute', async() => {
     handsontable({
       data: [['foo']],
       renderer: 'html'

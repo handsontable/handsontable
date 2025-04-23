@@ -29,7 +29,7 @@ describe('Hook', () => {
   }
 
   describe('beforeHighlightingRowHeader', () => {
-    it('should be fired when the header selection is caused by selected cells', () => {
+    it('should be fired when the header selection is caused by selected cells', async() => {
       const spy = jasmine.createSpy();
 
       handsontable({
@@ -38,7 +38,7 @@ describe('Hook', () => {
         beforeHighlightingRowHeader: spy,
       });
 
-      selectCells([[2, 2, 4, 2]]);
+      await selectCells([[2, 2, 4, 2]]);
 
       const createHighlightMeta = highlightMetaFactory({
         selectionType: 'header',
@@ -55,7 +55,7 @@ describe('Hook', () => {
       ]);
     });
 
-    it('should be fired when the header selection is caused by selected row headers', () => {
+    it('should be fired when the header selection is caused by selected row headers', async() => {
       const spy = jasmine.createSpy();
 
       handsontable({
@@ -64,7 +64,7 @@ describe('Hook', () => {
         beforeHighlightingRowHeader: spy,
       });
 
-      selectRows(2, 5);
+      await selectRows(2, 5);
 
       const createHighlightMeta = highlightMetaFactory({
         selectionType: 'header',
@@ -95,7 +95,7 @@ describe('Hook', () => {
       ]);
     });
 
-    it('should forward the element highlighting to the another header element', () => {
+    it('should forward the element highlighting to the another header element', async() => {
       const headerRendererFactory = () => (index, TH) => {
         TH.innerHTML = '';
 
@@ -125,12 +125,12 @@ describe('Hook', () => {
         }
       });
 
-      selectCell(2, 4);
+      await selectCell(2, 4);
 
       expect(getInlineStartClone().find('tbody tr:nth(2) th:nth(2)').hasClass('ht__highlight')).toBeFalse();
       expect(getInlineStartClone().find('tbody tr:nth(4) th:nth(2)').hasClass('ht__highlight')).toBeTrue();
 
-      selectRows(3, 4);
+      await selectRows(3, 4);
 
       expect(getInlineStartClone().find('tbody tr:nth(3) th:nth(2)').hasClass('ht__active_highlight')).toBeFalse();
       expect(getInlineStartClone().find('tbody tr:nth(4) th:nth(2)').hasClass('ht__active_highlight')).toBeFalse();

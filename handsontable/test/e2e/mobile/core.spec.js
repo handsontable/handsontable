@@ -12,7 +12,7 @@ describe('Core', () => {
     }
   });
 
-  it('should apply "mobile" class to the HOT root element', () => {
+  it('should apply "mobile" class to the HOT root element', async() => {
     const hot = handsontable({
       columns: [
         {

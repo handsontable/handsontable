@@ -15,7 +15,7 @@ describe('HiddenColumns', () => {
   describe('editors', () => {
     it('should properly detect if editor is in a viewport', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(30, 30),
+        data: createSpreadsheetData(30, 30),
         hiddenColumns: {
           columns: [0, 1, 2, 3, 4, 5],
         },
@@ -24,21 +24,20 @@ describe('HiddenColumns', () => {
         colWidths: 50,
       });
 
-      selectCell(0, 6);
+      await selectCell(0, 6);
 
       const $mainHolder = spec().$container.find('.ht_master .wtHolder');
       const startScrollLeft = $mainHolder.scrollLeft();
 
-      keyDownUp('enter');
-
+      await keyDownUp('enter');
       await sleep(200);
 
       expect($mainHolder.scrollLeft()).toBe(startScrollLeft);
     });
 
-    it('should populate value from an editor properly when there are some hidden columns & row header was selected', () => {
+    it('should populate value from an editor properly when there are some hidden columns & row header was selected', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         colHeaders: true,
         rowHeaders: true,
         hiddenColumns: {
@@ -49,10 +48,10 @@ describe('HiddenColumns', () => {
 
       const firstHeader = spec().$container.find('.ht_clone_inline_start tr:eq(1) th:eq(0)');
 
-      simulateClick(firstHeader, 'LMB');
+      await simulateClick(firstHeader, 'LMB');
 
-      keyDownUp('F2');
-      keyDownUp(['control/meta', 'enter']);
+      await keyDownUp('F2');
+      await keyDownUp(['control/meta', 'enter']);
 
       expect(getData()).toEqual([
         ['C1', 'C1', 'C1', 'C1', 'C1'],
@@ -63,9 +62,9 @@ describe('HiddenColumns', () => {
       ]);
     });
 
-    it('should populate value from an editor properly when there are some hidden columns & corner was selected', () => {
+    it('should populate value from an editor properly when there are some hidden columns & corner was selected', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         colHeaders: true,
         rowHeaders: true,
         hiddenColumns: {
@@ -76,10 +75,10 @@ describe('HiddenColumns', () => {
 
       const corner = $('.ht_clone_top_inline_start_corner .htCore').find('thead').find('th').eq(0);
 
-      simulateClick(corner, 'LMB');
+      await simulateClick(corner, 'LMB');
 
-      keyDownUp('F2');
-      keyDownUp(['control/meta', 'enter']);
+      await keyDownUp('F2');
+      await keyDownUp(['control/meta', 'enter']);
 
       expect(getData()).toEqual([
         ['C1', 'C1', 'C1', 'C1', 'C1'],
@@ -93,7 +92,7 @@ describe('HiddenColumns', () => {
 
   describe('Data change by typing with hiddenColumns', () => {
     it('should correctly render the changed values subjected to validation when there is a hidden column next to it', async() => {
-      const hot = handsontable({
+      handsontable({
         data: [[1, 2, 'Smith']],
         hiddenColumns: {
           columns: [0], // hide the first column
@@ -108,18 +107,19 @@ describe('HiddenColumns', () => {
         ]
       });
 
-      hot.selectCell(0, 1);
-      keyDownUp('enter'); // open the editor
+      await selectCell(0, 1);
+      await keyDownUp('enter'); // open the editor
       await sleep(200);
 
       document.activeElement.value = 'aa'; // type incorect value
-      keyDownUp('enter'); // confirm change the value
+
+      await keyDownUp('enter'); // confirm change the value
       await sleep(200);
-      keyDownUp('escape'); // close the editor
+      await keyDownUp('escape'); // close the editor
       await sleep(200);
 
-      expect(hot.getDataAtCell(0, 1)).toBe(2);
-      expect(hot.getCell(0, 1).textContent).toBe('2');
+      expect(getDataAtCell(0, 1)).toBe(2);
+      expect(getCell(0, 1).textContent).toBe('2');
     });
   });
 });

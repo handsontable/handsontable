@@ -34,15 +34,16 @@ describe('Core_setDataAtCell', () => {
 
   const htmlText = 'Ben & Jerry\'s';
 
-  it('HTML special chars should be preserved in data map but escaped in DOM', () => {
+  it('HTML special chars should be preserved in data map but escaped in DOM', async() => {
     // https://github.com/handsontable/handsontable/issues/147
     handsontable();
-    const td = setDataAtCell(0, 0, htmlText);
 
-    selectCell(0, 0);
+    const td = await setDataAtCell(0, 0, htmlText);
+
+    await selectCell(0, 0);
 
     $(td).simulate('dblclick');
-    deselectCell();
+    await deselectCell();
 
     expect(getDataAtCell(0, 0)).toEqual(htmlText);
   });
@@ -50,17 +51,17 @@ describe('Core_setDataAtCell', () => {
   it('should correctly paste string that contains "quotes"', async() => {
     // https://github.com/handsontable/handsontable/issues/205
     handsontable({});
-    selectCell(0, 0);
-    triggerPaste('1\nThis is a "test" and a test\n2');
 
-    await sleep(200);
+    await selectCell(0, 0);
+
+    triggerPaste('1\nThis is a "test" and a test\n2');
 
     expect(getDataAtCell(0, 0)).toEqual('1');
     expect(getDataAtCell(1, 0)).toEqual('This is a "test" and a test');
     expect(getDataAtCell(2, 0)).toEqual('2');
   });
 
-  it('should correctly paste string when dataSchema is used', (done) => {
+  it('should correctly paste string when dataSchema is used', async() => {
     // https://github.com/handsontable/handsontable/issues/237
     handsontable({
       colHeaders: true,
@@ -70,15 +71,14 @@ describe('Core_setDataAtCell', () => {
         col3: null
       }
     });
-    selectCell(0, 0);
+
+    await selectCell(0, 0);
+
     triggerPaste('1\tTest\t2');
 
-    setTimeout(() => {
-      expect(getDataAtCell(0, 0)).toEqual('1');
-      expect(getDataAtCell(0, 1)).toEqual('Test');
-      expect(getDataAtCell(0, 2)).toEqual('2');
-      done();
-    }, 200);
+    expect(getDataAtCell(0, 0)).toEqual('1');
+    expect(getDataAtCell(0, 1)).toEqual('Test');
+    expect(getDataAtCell(0, 2)).toEqual('2');
   });
 
   it('should paste not more rows than maxRows', async() => {
@@ -87,32 +87,31 @@ describe('Core_setDataAtCell', () => {
       minRows: 5,
       maxRows: 10,
     });
-    selectCell(4, 0);
-    triggerPaste('1\n2\n3\n4\n5\n6\n7\n8\n9\n10');
 
-    await sleep(200);
+    await selectCell(4, 0);
+
+    triggerPaste('1\n2\n3\n4\n5\n6\n7\n8\n9\n10');
 
     expect(countRows()).toEqual(10);
     expect(getDataAtCell(9, 0)).toEqual('6');
   });
 
-  it('should paste not more cols than maxCols', (done) => {
+  it('should paste not more cols than maxCols', async() => {
     handsontable({
       minSpareCols: 1,
       minCols: 5,
       maxCols: 10,
     });
-    selectCell(0, 4);
+
+    await selectCell(0, 4);
+
     triggerPaste('1\t2\t3\t4\t5\t6\t7\t8\t9\t10');
 
-    setTimeout(() => {
-      expect(countCols()).toEqual(10);
-      expect(getDataAtCell(0, 9)).toEqual('6');
-      done();
-    }, 200);
+    expect(countCols()).toEqual(10);
+    expect(getDataAtCell(0, 9)).toEqual('6');
   });
 
-  it('should paste not more rows & cols than maxRows & maxCols', (done) => {
+  it('should paste not more rows & cols than maxRows & maxCols', async() => {
     handsontable({
       minSpareRows: 1,
       minSpareCols: 1,
@@ -121,19 +120,18 @@ describe('Core_setDataAtCell', () => {
       maxRows: 6,
       maxCols: 6,
     });
-    selectCell(4, 4);
+
+    await selectCell(4, 4);
+
     triggerPaste('1\t2\t3\n4\t5\t6\n7\t8\t9');
 
-    setTimeout(() => {
-      expect(countRows()).toEqual(6);
-      expect(countCols()).toEqual(6);
-      expect(getDataAtCell(5, 5)).toEqual('5');
-      done();
-    }, 200);
+    expect(countRows()).toEqual(6);
+    expect(countCols()).toEqual(6);
+    expect(getDataAtCell(5, 5)).toEqual('5');
   });
 
   // https://github.com/handsontable/handsontable/issues/250
-  it('should create new rows when pasting into grid with object data source', (done) => {
+  it('should create new rows when pasting into grid with object data source', async() => {
     handsontable({
       data: arrayOfNestedObjects(),
       colHeaders: true,
@@ -144,18 +142,17 @@ describe('Core_setDataAtCell', () => {
       ],
       minSpareRows: 1,
     });
-    selectCell(3, 0);
+
+    await selectCell(3, 0);
+
     triggerPaste('a\tb\tc\nd\te\tf\ng\th\ti');
 
-    setTimeout(() => {
-      expect(countRows()).toEqual(7);
-      expect(getDataAtCell(5, 2)).toEqual('i');
-      done();
-    }, 200);
+    expect(countRows()).toEqual(7);
+    expect(getDataAtCell(5, 2)).toEqual('i');
   });
 
   // https://handsontable.com/demo/datasources.html
-  it('should work with functional data source', () => {
+  it('should work with functional data source', async() => {
     handsontable({
       data: [
         model({ id: 1, name: 'Ted Right', address: '' }),
@@ -201,11 +198,11 @@ describe('Core_setDataAtCell', () => {
     }
 
     expect(getDataAtCell(1, 1)).toEqual('Frank Honest');
-    setDataAtCell(1, 1, 'Something Else');
+    await setDataAtCell(1, 1, 'Something Else');
     expect(getDataAtCell(1, 1)).toEqual('Something Else');
   });
 
-  it('should accept changes array as 1st param and source as 2nd param', () => {
+  it('should accept changes array as 1st param and source as 2nd param', async() => {
     let lastSource = '';
 
     handsontable({
@@ -214,12 +211,12 @@ describe('Core_setDataAtCell', () => {
       }
     });
 
-    setDataAtCell([[0, 0, 'new value']], 'customSource');
+    await setDataAtCell([[0, 0, 'new value']], 'customSource');
     expect(getDataAtCell(0, 0)).toEqual('new value');
     expect(lastSource).toEqual('customSource');
   });
 
-  it('should trigger `afterSetDataAtCell` hook with applied changes', () => {
+  it('should trigger `afterSetDataAtCell` hook with applied changes', async() => {
     let _changes;
     let _source;
 
@@ -230,14 +227,14 @@ describe('Core_setDataAtCell', () => {
       }
     });
 
-    setDataAtCell(0, 0, 'foo bar', 'customSource');
+    await setDataAtCell(0, 0, 'foo bar', 'customSource');
 
     expect(_changes).toEqual([[0, 0, null, 'foo bar']]);
     expect(_source).toBe('customSource');
     expect(getDataAtCell(0, 0)).toEqual('foo bar');
   });
 
-  it('should modify value on the fly using `afterSetDataAtCell` hook', () => {
+  it('should modify value on the fly using `afterSetDataAtCell` hook', async() => {
     handsontable({
       data: [['a', 'b', 'c'], [1, 2, 3]],
       afterSetDataAtCell(changes) {
@@ -250,15 +247,15 @@ describe('Core_setDataAtCell', () => {
       }
     });
 
-    setDataAtCell(0, 0, 'foo bar', 'customSource');
-    setDataAtCell(1, 2, 22, 'customSource');
+    await setDataAtCell(0, 0, 'foo bar', 'customSource');
+    await setDataAtCell(1, 2, 22, 'customSource');
 
     expect(getDataAtCell(0, 0)).toBe('bar');
     expect(getDataAtCell(1, 2)).toBe(33);
     expect(getData()).toEqual([['bar', 'b', 'c'], [1, 2, 33]]);
   });
 
-  it('should trigger `afterSetDataAtRowProp` hook with applied changes', () => {
+  it('should trigger `afterSetDataAtRowProp` hook with applied changes', async() => {
     let _changes;
     let _source;
 
@@ -270,14 +267,14 @@ describe('Core_setDataAtCell', () => {
       }
     });
 
-    setDataAtRowProp(0, 'name', 'foo bar', 'customSource');
+    await setDataAtRowProp(0, 'name', 'foo bar', 'customSource');
 
     expect(_changes).toEqual([[0, 'name', undefined, 'foo bar']]);
     expect(_source).toBe('customSource');
     expect(getDataAtCell(0, 0)).toBe('foo bar');
   });
 
-  it('should modify value on the fly using `afterSetDataAtRowProp` hook', () => {
+  it('should modify value on the fly using `afterSetDataAtRowProp` hook', async() => {
     handsontable({
       data: [{ name: 'a', id: 1 }, { name: 'b', id: 2 }, { name: 'c', id: 3 }],
       columns: [{ data: 'name' }, { data: 'id' }],
@@ -291,15 +288,15 @@ describe('Core_setDataAtCell', () => {
       }
     });
 
-    setDataAtRowProp(0, 'name', 'foo bar', 'customSource');
-    setDataAtRowProp(1, 'id', 22, 'customSource');
+    await setDataAtRowProp(0, 'name', 'foo bar', 'customSource');
+    await setDataAtRowProp(1, 'id', 22, 'customSource');
 
     expect(getDataAtRowProp(0, 'name')).toEqual('bar');
     expect(getDataAtRowProp(1, 'id')).toBe(33);
     expect(getData()).toEqual([['bar', 1], ['b', 33], ['c', 3]]);
   });
 
-  it('should not throw an error when trying set data after selection on cell read-only', () => {
+  it('should not throw an error when trying set data after selection on cell read-only', async() => {
     let errors = 0;
 
     handsontable({
@@ -308,8 +305,9 @@ describe('Core_setDataAtCell', () => {
     });
 
     try {
-      selectCell(0, 0);
-      setDataAtCell(0, 0, '333');
+      await selectCell(0, 0);
+
+      await setDataAtCell(0, 0, '333');
     } catch (e) {
       errors += 1;
     }
@@ -317,7 +315,7 @@ describe('Core_setDataAtCell', () => {
     expect(errors).toBe(0);
   });
 
-  it('should trigger `beforeChange` and `afterSetDataAtCell` in the correct order', () => {
+  it('should trigger `beforeChange` and `afterSetDataAtCell` in the correct order', async() => {
     const beforeChange = jasmine.createSpy('beforeChange');
     const afterSetDataAtCell = jasmine.createSpy('afterSetDataAtCell');
 
@@ -327,12 +325,12 @@ describe('Core_setDataAtCell', () => {
       afterSetDataAtCell,
     });
 
-    setDataAtCell(0, 0, 5);
+    await setDataAtCell(0, 0, 5);
 
     expect(beforeChange).toHaveBeenCalledBefore(afterSetDataAtCell);
   });
 
-  it('should trigger `beforeChange` and `afterSetDataAtRowProp` in the correct order', () => {
+  it('should trigger `beforeChange` and `afterSetDataAtRowProp` in the correct order', async() => {
     const beforeChange = jasmine.createSpy('beforeChange');
     const afterSetDataAtRowProp = jasmine.createSpy('afterSetDataAtRowProp');
 
@@ -342,12 +340,12 @@ describe('Core_setDataAtCell', () => {
       afterSetDataAtRowProp,
     });
 
-    setDataAtRowProp(0, 0, 5);
+    await setDataAtRowProp(0, 0, 5);
 
     expect(beforeChange).toHaveBeenCalledBefore(afterSetDataAtRowProp);
   });
 
-  it('should override set values using `beforeChange` hook', () => {
+  it('should override set values using `beforeChange` hook', async() => {
     handsontable({
       data: [
         [1, 2, 3, 4, 5, 6],
@@ -361,11 +359,11 @@ describe('Core_setDataAtCell', () => {
       }
     });
 
-    setDataAtCell(0, 0, 5);
-    setDataAtCell(1, 1, 6);
-    setDataAtCell(2, 2, 7);
-    setDataAtRowProp(3, 3, 8);
-    setDataAtRowProp(4, 4, 9);
+    await setDataAtCell(0, 0, 5);
+    await setDataAtCell(1, 1, 6);
+    await setDataAtCell(2, 2, 7);
+    await setDataAtRowProp(3, 3, 8);
+    await setDataAtRowProp(4, 4, 9);
 
     expect(getData()).toEqual([
       ['test', 2, 3, 4, 5, 6],
@@ -377,27 +375,29 @@ describe('Core_setDataAtCell', () => {
   });
 
   describe('Coordinates out of dataset', () => {
-    it('should insert new column', () => {
+    it('should insert new column', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 1)
+        data: createSpreadsheetData(1, 1)
       });
 
-      setDataAtCell([[0, 1, 'new column']], 'customSource');
+      await setDataAtCell([[0, 1, 'new column']], 'customSource');
+
       expect(countCols()).toBe(2);
     });
 
-    it('should insert new row', () => {
+    it('should insert new row', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 1)
+        data: createSpreadsheetData(1, 1)
       });
 
-      setDataAtCell([[1, 0, 'new row']], 'customSource');
+      await setDataAtCell([[1, 0, 'new row']], 'customSource');
+
       expect(countRows()).toBe(2);
     });
 
-    it('should not insert new column if `beforeCreateCol` returns false', () => {
+    it('should not insert new column if `beforeCreateCol` returns false', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 1),
+        data: createSpreadsheetData(1, 1),
         beforeCreateCol() {
           return false;
         }
@@ -405,13 +405,14 @@ describe('Core_setDataAtCell', () => {
 
       const countedColumns = countCols();
 
-      setDataAtCell([[0, 1, 'new column']], 'customSource');
+      await setDataAtCell([[0, 1, 'new column']], 'customSource');
+
       expect(countCols()).toBe(countedColumns);
     });
 
-    it('should not insert new row if `beforeCreateRow` returns false', () => {
+    it('should not insert new row if `beforeCreateRow` returns false', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 1),
+        data: createSpreadsheetData(1, 1),
         beforeCreateRow() {
           return false;
         }
@@ -419,17 +420,19 @@ describe('Core_setDataAtCell', () => {
 
       const countedRows = countRows();
 
-      setDataAtCell([[1, 0, 'new row']], 'customSource');
+      await setDataAtCell([[1, 0, 'new row']], 'customSource');
+
       expect(countRows()).toBe(countedRows);
     });
 
-    it('should work also when the `editor` option is set to `false`', () => {
+    it('should work also when the `editor` option is set to `false`', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(1, 1),
+        data: createSpreadsheetData(1, 1),
         editor: false,
       });
 
-      setDataAtCell(0, 0, 'aaa');
+      await setDataAtCell(0, 0, 'aaa');
+
       expect(getData()).toEqual([['aaa']]);
     });
   });

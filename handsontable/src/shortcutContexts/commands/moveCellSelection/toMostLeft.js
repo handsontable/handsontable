@@ -11,6 +11,8 @@ export const command = {
       column = hot.isRtl() ? -1 : -hot.countRowHeaders();
     }
 
+    selection.markSource('keyboard');
     selection.setRangeStart(hot._createCellCoords(row, column));
+    selection.markEndSource();
   },
 };

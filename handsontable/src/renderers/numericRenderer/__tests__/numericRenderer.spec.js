@@ -24,7 +24,7 @@ describe('NumericRenderer', () => {
       },
       afterValidate: onAfterValidate
     });
-    setDataAtCell(2, 2, '1000.234');
+    await setDataAtCell(2, 2, '1000.234');
 
     await sleep(100);
 
@@ -44,7 +44,7 @@ describe('NumericRenderer', () => {
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(2, 2, '-1000.234');
+    await setDataAtCell(2, 2, '-1000.234');
 
     await sleep(100);
 
@@ -61,14 +61,14 @@ describe('NumericRenderer', () => {
       },
     });
 
-    setDataAtCell(2, 2, '123 simple test');
+    await setDataAtCell(2, 2, '123 simple test');
 
     await sleep(100);
 
     expect(getCell(2, 2).innerHTML).toEqual('123 simple test');
   });
 
-  it('should render the cell with "dir" attribute set as "ltr" as long as the value is of a numeric-like type', () => {
+  it('should render the cell with "dir" attribute set as "ltr" as long as the value is of a numeric-like type', async() => {
     handsontable({
       data: [[1, '1', '1.1']],
       renderer: 'numeric'
@@ -79,7 +79,7 @@ describe('NumericRenderer', () => {
     expect(getCell(0, 2).getAttribute('dir')).toBe('ltr');
   });
 
-  it('should render the cell without messing "dir" attribute as long as the value is not of a numeric-like type', () => {
+  it('should render the cell without messing "dir" attribute as long as the value is not of a numeric-like type', async() => {
     handsontable({
       data: [['1z', 'z', true]],
       renderer: 'numeric'
@@ -90,7 +90,7 @@ describe('NumericRenderer', () => {
     expect(getCell(0, 2).getAttribute('dir')).toBeNull();
   });
 
-  it('should add class names `htNumeric` and `htRight` to the cell if it is a number', () => {
+  it('should add class names `htNumeric` and `htRight` to the cell if it is a number', async() => {
     handsontable({
       data: [[123]],
       renderer: 'numeric',
@@ -99,7 +99,7 @@ describe('NumericRenderer', () => {
     expect(getCell(0, 0).className).toEqual('htRight htNumeric');
   });
 
-  it('should add class names `htNumeric` and `htRight` to the cell if it is a number passed as string', () => {
+  it('should add class names `htNumeric` and `htRight` to the cell if it is a number passed as string', async() => {
     handsontable({
       data: [['123']],
       renderer: 'numeric',
@@ -108,7 +108,7 @@ describe('NumericRenderer', () => {
     expect(getCell(0, 0).className).toEqual('htRight htNumeric');
   });
 
-  it('should not add class name `htNumeric` to the cell if it is string (text)', () => {
+  it('should not add class name `htNumeric` to the cell if it is string (text)', async() => {
     handsontable({
       data: [['abc']],
       renderer: 'numeric',
@@ -117,7 +117,7 @@ describe('NumericRenderer', () => {
     expect(getCell(0, 0).className).toEqual('');
   });
 
-  it('should add class name `htDimmed` to the cell', () => {
+  it('should add class name `htDimmed` to the cell', async() => {
     handsontable({
       data: [[123]],
       renderer: 'numeric',
@@ -128,7 +128,7 @@ describe('NumericRenderer', () => {
     expect(getCell(0, 0).className).toEqual('htRight htNumeric htDimmed');
   });
 
-  it('should add custom class as string to the cell if it is a number', () => {
+  it('should add custom class as string to the cell if it is a number', async() => {
     handsontable({
       data: [[123]],
       renderer: 'numeric',
@@ -138,7 +138,7 @@ describe('NumericRenderer', () => {
     expect(getCell(0, 0).className).toEqual('someClass htRight htNumeric');
   });
 
-  it('should add custom class as an array to the cell if it is a number', () => {
+  it('should add custom class as an array to the cell if it is a number', async() => {
     handsontable({
       data: [[123]],
       renderer: 'numeric',
@@ -163,10 +163,10 @@ describe('NumericRenderer', () => {
         height: 100
       });
 
-      setDataAtCell(0, 0, '1000');
-      selectCell(0, 0);
+      await setDataAtCell(0, 0, '1000');
+      await selectCell(0, 0);
 
-      contextMenu();
+      await contextMenu();
 
       const menu = $('.htContextMenu .ht_master .htCore').find('tbody td').not('.htSeparator');
 

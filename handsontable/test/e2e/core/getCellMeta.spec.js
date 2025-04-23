@@ -12,14 +12,14 @@ describe('Core.getCellMeta', () => {
     }
   });
 
-  it('should get proper cell meta when indexes was modified', () => {
-    const hot = handsontable({
+  it('should get proper cell meta when indexes was modified', async() => {
+    handsontable({
       minRows: 5,
       minCols: 5,
     });
 
-    hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
-    hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+    columnIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
+    rowIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
 
     const cellMeta = getCellMeta(0, 1);
 
@@ -29,7 +29,7 @@ describe('Core.getCellMeta', () => {
     expect(cellMeta.visualCol).toBe(1);
   });
 
-  it('should not allow manual editing of a read only cell', () => {
+  it('should not allow manual editing of a read only cell', async() => {
     let allCellsReadOnly = false;
 
     handsontable({
@@ -39,15 +39,15 @@ describe('Core.getCellMeta', () => {
     });
     allCellsReadOnly = true;
 
-    render(); // It triggers the table "slow render" cycle that clears the cell meta cache
-    selectCell(2, 2);
+    await render(); // It triggers the table "slow render" cycle that clears the cell meta cache
 
-    keyDownUp('enter');
+    await selectCell(2, 2);
+    await keyDownUp('enter');
 
     expect(isEditorVisible()).toBe(false);
   });
 
-  it('should allow manual editing of cell that is no longer read only', () => {
+  it('should allow manual editing of cell that is no longer read only', async() => {
     let allCellsReadOnly = true;
 
     handsontable({
@@ -57,32 +57,32 @@ describe('Core.getCellMeta', () => {
     });
     allCellsReadOnly = false;
 
-    render(); // It triggers the table "slow render" cycle that clears the cell meta cache
-    selectCell(2, 2);
+    await render(); // It triggers the table "slow render" cycle that clears the cell meta cache
 
-    keyDownUp('enter');
+    await selectCell(2, 2);
+    await keyDownUp('enter');
 
     expect(isEditorVisible()).toBe(true);
   });
 
-  it('should move the selection to the cell below, when hitting the ENTER key on a read-only cell', () => {
+  it('should move the selection to the cell below, when hitting the ENTER key on a read-only cell', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(3, 3),
+      data: createSpreadsheetData(3, 3),
       cells() {
         return { readOnly: true };
       }
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
     expect(getCellMeta(0, 0).readOnly).toBe(true);
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(getSelected()).toEqual([[1, 0, 1, 0]]);
   });
 
-  it('should use default cell editor for a cell that has declared only cell renderer', () => {
+  it('should use default cell editor for a cell that has declared only cell renderer', async() => {
     handsontable({
       cells() {
         return {
@@ -96,16 +96,17 @@ describe('Core.getCellMeta', () => {
         };
       }
     });
-    selectCell(2, 2);
 
-    keyDownUp('enter');
+    await selectCell(2, 2);
+    await keyDownUp('enter');
+
     document.activeElement.value = 'new value';
     destroyEditor();
 
     expect(getDataAtCell(2, 2)).toBe('new value');
   });
 
-  it('should allow to use `type` and other type-related options in the same configuration level (using `beforeGetCellMeta` hook)', () => {
+  it('should allow to use `type` and other type-related options in the same configuration level (using `beforeGetCellMeta` hook)', async() => {
     const { getCellType } = Handsontable.cellTypes;
     const myRenderer = function(instance, td, row, col, prop, value) {
       td.innerHTML = `${value}-*`;
@@ -135,7 +136,7 @@ describe('Core.getCellMeta', () => {
     expect(getCellMeta(3, 0).editor).toBe(getCellType('text').editor);
   });
 
-  it('should allow to use `type` and other type-related options in the same configuration level (using `cells` option)', () => {
+  it('should allow to use `type` and other type-related options in the same configuration level (using `cells` option)', async() => {
     const { getCellType } = Handsontable.cellTypes;
     const myRenderer = function(instance, td, row, col, prop, value) {
       td.innerHTML = `${value}-*`;
@@ -169,7 +170,7 @@ describe('Core.getCellMeta', () => {
     expect(getCellMeta(3, 0).editor).toBe(getCellType('text').editor);
   });
 
-  it('should allow to use `type` and other type-related options in the same configuration level (using `columns` option)', () => {
+  it('should allow to use `type` and other type-related options in the same configuration level (using `columns` option)', async() => {
     const { getCellType } = Handsontable.cellTypes;
     const myRenderer = function(instance, td, row, col, prop, value) {
       td.innerHTML = `${value}-*`;
@@ -204,7 +205,7 @@ describe('Core.getCellMeta', () => {
     expect(getCellMeta(0, 2).copyable).toBe(true);
   });
 
-  it('"this" in cells should point to cellProperties', () => {
+  it('"this" in cells should point to cellProperties', async() => {
     let called = 0;
     let _row;
     let _this;
@@ -226,7 +227,7 @@ describe('Core.getCellMeta', () => {
     expect(_this.instance).toBe(HOT);
   });
 
-  it('should get proper cellProperties when order of displayed rows is different than order of stored data', () => {
+  it('should get proper cellProperties when order of displayed rows is different than order of stored data', async() => {
     handsontable({
       data: [
         ['C'],
@@ -255,7 +256,7 @@ describe('Core.getCellMeta', () => {
     expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').hasClass('htDimmed')).toBe(false);
 
     // Column sorting changes the order of displayed rows while keeping table data unchanged
-    updateSettings({
+    await updateSettings({
       columnSorting: {
         initialConfig: {
           column: 0,
@@ -274,11 +275,11 @@ describe('Core.getCellMeta', () => {
     expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').hasClass('htDimmed')).toBe(false);
   });
 
-  it('should call `beforeGetCellMeta` plugin hook with visual indexes as parameters', () => {
+  it('should call `beforeGetCellMeta` plugin hook with visual indexes as parameters', async() => {
     let rowInsideHook;
     let colInsideHook;
 
-    const hot = handsontable({
+    handsontable({
       minRows: 5,
       minCols: 5,
       beforeGetCellMeta(row, col) {
@@ -287,22 +288,23 @@ describe('Core.getCellMeta', () => {
       },
     });
 
-    hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
-    hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+    rowIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
+    columnIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
 
-    render(); // It triggers the table "slow render" cycle that clears the cell meta cache
-    hot.getCellMeta(0, 0);
+    await render(); // It triggers the table "slow render" cycle that clears the cell meta cache
+
+    getCellMeta(0, 0);
 
     // The last beforeGetCellMeta call should be called with visual index 4, 4
     expect(rowInsideHook).toBe(4);
     expect(colInsideHook).toBe(4);
   });
 
-  it('should call `afterGetCellMeta` plugin hook with visual indexes as parameters', () => {
+  it('should call `afterGetCellMeta` plugin hook with visual indexes as parameters', async() => {
     let rowInsideHook;
     let colInsideHook;
 
-    const hot = handsontable({
+    handsontable({
       minRows: 5,
       minCols: 5,
       afterGetCellMeta(row, col) {
@@ -311,11 +313,12 @@ describe('Core.getCellMeta', () => {
       }
     });
 
-    hot.rowIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
-    hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+    rowIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
+    columnIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
 
-    render(); // It triggers the table "slow render" cycle that clears the cell meta cache
-    hot.getCellMeta(0, 1);
+    await render(); // It triggers the table "slow render" cycle that clears the cell meta cache
+
+    getCellMeta(0, 1);
 
     // The last beforeGetCellMeta call should be called with visual index 4, 4
     expect(rowInsideHook).toBe(4);
@@ -349,7 +352,7 @@ describe('Core.getCellMeta', () => {
       afterGetCellMetaSpy.calls.reset();
     });
 
-    it('false (default), should call `cells`, `beforeGetCellMeta` and `afterGetCellMeta`', () => {
+    it('false (default), should call `cells`, `beforeGetCellMeta` and `afterGetCellMeta`', async() => {
       getCellMeta(0, 0);
 
       expect(cellsSpy).toHaveBeenCalledTimes(1);
@@ -357,7 +360,7 @@ describe('Core.getCellMeta', () => {
       expect(afterGetCellMetaSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('true, should not call `cells`, `beforeGetCellMeta` nor `afterGetCellMeta`', () => {
+    it('true, should not call `cells`, `beforeGetCellMeta` nor `afterGetCellMeta`', async() => {
       getCellMeta(0, 0, { skipMetaExtension: true });
 
       expect(cellsSpy).not.toHaveBeenCalled();

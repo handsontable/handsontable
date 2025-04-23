@@ -13,7 +13,7 @@ describe('Hook', () => {
   });
 
   describe('beforeViewportScrollHorizontally', () => {
-    it('should be fired when the viewport is scrolled horizontally', () => {
+    it('should be fired when the viewport is scrolled horizontally', async() => {
       const beforeViewportScrollHorizontally = jasmine.createSpy('beforeViewportScrollHorizontally');
 
       handsontable({
@@ -25,14 +25,14 @@ describe('Hook', () => {
         beforeViewportScrollHorizontally,
       });
 
-      scrollViewportTo({ col: 40 });
+      await scrollViewportTo({ col: 40 });
 
       expect(beforeViewportScrollHorizontally).toHaveBeenCalledOnceWith(40, jasmine.objectContaining({
         value: 'auto',
       }));
     });
 
-    it('should be fired when the viewport is scrolled horizontally with snapping option', () => {
+    it('should be fired when the viewport is scrolled horizontally with snapping option', async() => {
       const beforeViewportScrollHorizontally = jasmine.createSpy('beforeViewportScrollHorizontally');
 
       handsontable({
@@ -44,14 +44,14 @@ describe('Hook', () => {
         beforeViewportScrollHorizontally,
       });
 
-      scrollViewportTo({ col: 40, horizontalSnap: 'end' });
+      await scrollViewportTo({ col: 40, horizontalSnap: 'end' });
 
       expect(beforeViewportScrollHorizontally).toHaveBeenCalledOnceWith(40, jasmine.objectContaining({
         value: 'end',
       }));
     });
 
-    it('should be fired when the viewport is tried to scroll horizontally (the column is already within the viewport)', () => {
+    it('should be fired when the viewport is tried to scroll horizontally (the column is already within the viewport)', async() => {
       const beforeViewportScrollHorizontally = jasmine.createSpy('beforeViewportScrollHorizontally');
 
       handsontable({
@@ -63,14 +63,14 @@ describe('Hook', () => {
         beforeViewportScrollHorizontally,
       });
 
-      scrollViewportTo({ col: 3 });
+      await scrollViewportTo({ col: 3 });
 
       expect(beforeViewportScrollHorizontally).toHaveBeenCalledOnceWith(3, jasmine.objectContaining({
         value: 'auto',
       }));
     });
 
-    it('should not be fired when the viewport is scrolled vertically', () => {
+    it('should not be fired when the viewport is scrolled vertically', async() => {
       const beforeViewportScrollHorizontally = jasmine.createSpy('beforeViewportScrollHorizontally');
 
       handsontable({
@@ -82,12 +82,12 @@ describe('Hook', () => {
         beforeViewportScrollHorizontally,
       });
 
-      scrollViewportTo({ row: 3 });
+      await scrollViewportTo({ row: 3 });
 
       expect(beforeViewportScrollHorizontally).not.toHaveBeenCalledWith();
     });
 
-    it('should not be fired when the viewport is tried to scroll vertically (the row is already within the viewport)', () => {
+    it('should not be fired when the viewport is tried to scroll vertically (the row is already within the viewport)', async() => {
       const beforeViewportScrollHorizontally = jasmine.createSpy('beforeViewportScrollHorizontally');
 
       handsontable({
@@ -99,12 +99,12 @@ describe('Hook', () => {
         beforeViewportScrollHorizontally,
       });
 
-      scrollViewportTo({ row: 3 });
+      await scrollViewportTo({ row: 3 });
 
       expect(beforeViewportScrollHorizontally).not.toHaveBeenCalledWith();
     });
 
-    it('should be possible to change the snapping option', () => {
+    it('should be possible to change the snapping option', async() => {
       const beforeViewportScrollHorizontally = jasmine.createSpy('beforeViewportScrollHorizontally')
         .and
         .callFake((column, snapping) => {
@@ -121,14 +121,14 @@ describe('Hook', () => {
         beforeViewportScrollHorizontally,
       });
 
-      scrollViewportTo({ col: 10 });
+      await scrollViewportTo({ col: 10 });
 
       expect(beforeViewportScrollHorizontally).toHaveBeenCalledOnceWith(10, jasmine.objectContaining({
         value: 'start',
       }));
     });
 
-    it('should be possible to change column to which the viewport is scrolled', () => {
+    it('should be possible to change column to which the viewport is scrolled', async() => {
       const beforeViewportScrollHorizontally = jasmine.createSpy('beforeViewportScrollHorizontally')
         .and
         .returnValue(40);
@@ -143,14 +143,14 @@ describe('Hook', () => {
         beforeViewportScrollHorizontally,
       });
 
-      scrollViewportTo({ col: 10 });
+      await scrollViewportTo({ col: 10 });
 
       // 2050 column width - 250 viewport width + 15 scrollbar compensation + 1 header border compensation
       expect(inlineStartOverlay().getScrollPosition()).toBe(1816);
       expect(topOverlay().getScrollPosition()).toBe(0);
     });
 
-    it('should be possible to change column to which the viewport is scrolled (case with hidden columns)', () => {
+    it('should be possible to change column to which the viewport is scrolled (case with hidden columns)', async() => {
       const beforeViewportScrollHorizontally = jasmine.createSpy('beforeViewportScrollHorizontally');
 
       handsontable({
@@ -169,9 +169,9 @@ describe('Hook', () => {
       hidingMap.setValueAtIndex(1, true);
       hidingMap.setValueAtIndex(2, true);
 
-      render();
+      await render();
 
-      scrollViewportTo({ col: 20 });
+      await scrollViewportTo({ col: 20 });
 
       expect(beforeViewportScrollHorizontally).toHaveBeenCalledOnceWith(20, jasmine.objectContaining({
         value: 'auto',
@@ -182,7 +182,7 @@ describe('Hook', () => {
       expect(topOverlay().getScrollPosition()).toBe(0);
     });
 
-    it('should be possible to block viewport scrolling after returning `false`', () => {
+    it('should be possible to block viewport scrolling after returning `false`', async() => {
       const beforeViewportScrollHorizontally = jasmine.createSpy('beforeViewportScrollHorizontally')
         .and.returnValue(false);
 
@@ -195,13 +195,13 @@ describe('Hook', () => {
         beforeViewportScrollHorizontally,
       });
 
-      scrollViewportTo({ col: 90 });
+      await scrollViewportTo({ col: 90 });
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
       expect(topOverlay().getScrollPosition()).toBe(0);
     });
 
-    it('should not scroll the viewport when the returned value is not an integer', () => {
+    it('should not scroll the viewport when the returned value is not an integer', async() => {
       const beforeViewportScrollHorizontally = jasmine.createSpy('beforeViewportScrollHorizontally');
 
       handsontable({
@@ -215,31 +215,31 @@ describe('Hook', () => {
 
       beforeViewportScrollHorizontally.and.returnValue('foo');
 
-      expect(scrollViewportTo({ col: 90 })).toBe(false);
+      expect(await scrollViewportTo({ col: 90 })).toBe(false);
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
       expect(topOverlay().getScrollPosition()).toBe(0);
 
       beforeViewportScrollHorizontally.and.returnValue(1.5);
 
-      expect(scrollViewportTo({ col: 90 })).toBe(false);
+      expect(await scrollViewportTo({ col: 90 })).toBe(false);
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
       expect(topOverlay().getScrollPosition()).toBe(0);
 
       beforeViewportScrollHorizontally.and.returnValue(null);
 
-      expect(scrollViewportTo({ col: 90 })).toBe(false);
+      expect(await scrollViewportTo({ col: 90 })).toBe(false);
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
       expect(topOverlay().getScrollPosition()).toBe(0);
 
       beforeViewportScrollHorizontally.and.returnValue(-1);
 
-      expect(scrollViewportTo({ col: 90 })).toBe(false);
+      expect(await scrollViewportTo({ col: 90 })).toBe(false);
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
       expect(topOverlay().getScrollPosition()).toBe(0);
 
       beforeViewportScrollHorizontally.and.returnValue(100); // out of range
 
-      expect(scrollViewportTo({ col: 90 })).toBe(false);
+      expect(await scrollViewportTo({ col: 90 })).toBe(false);
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
       expect(topOverlay().getScrollPosition()).toBe(0);
     });

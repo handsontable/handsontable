@@ -12,7 +12,7 @@ describe('passwordRenderer', () => {
     }
   });
 
-  it('should render strings as a sequence of asterisks', () => {
+  it('should render strings as a sequence of asterisks', async() => {
     handsontable({
       data: [
         ['Joe'],
@@ -33,7 +33,7 @@ describe('passwordRenderer', () => {
     expect(getRenderedValue(3, 0)).toMatch(/^[*]+$/ig);
   });
 
-  it('should render numbers as a sequence of asterisks ', () => {
+  it('should render numbers as a sequence of asterisks ', async() => {
     handsontable({
       data: [
         [1],
@@ -54,7 +54,7 @@ describe('passwordRenderer', () => {
     expect(getRenderedValue(3, 0)).toMatch(/^[*]+$/ig);
   });
 
-  it('should be possible to set passwordRenderer with column \'type\' parameter', () => {
+  it('should be possible to set passwordRenderer with column \'type\' parameter', async() => {
     handsontable({
       data: [
         ['Joe'],
@@ -75,7 +75,7 @@ describe('passwordRenderer', () => {
     expect(getRenderedValue(3, 0)).toMatch(/^[*]+$/ig);
   });
 
-  it('should be possible to set passwordRenderer using alias \'password\'', () => {
+  it('should be possible to set passwordRenderer using alias \'password\'', async() => {
     handsontable({
       data: [
         ['Joe'],
@@ -96,7 +96,7 @@ describe('passwordRenderer', () => {
     expect(getRenderedValue(3, 0)).toMatch(/^[*]+$/ig);
   });
 
-  it('should render strings as a sequence of asterisks, of width matching the original value width', () => {
+  it('should render strings as a sequence of asterisks, of width matching the original value width', async() => {
     handsontable({
       data: [
         ['Joe'],
@@ -117,7 +117,7 @@ describe('passwordRenderer', () => {
     expect(getRenderedValue(3, 0).length).toEqual(getDataAtCell(3, 0).length);
   });
 
-  it('should render strings as a sequence of asterisks, of fixed width', () => {
+  it('should render strings as a sequence of asterisks, of fixed width', async() => {
     handsontable({
       data: [
         ['Joe'],
@@ -139,7 +139,7 @@ describe('passwordRenderer', () => {
     expect(getRenderedValue(3, 0).length).toEqual(10);
   });
 
-  it('should render strings as a sequence of custom symbols', () => {
+  it('should render strings as a sequence of custom symbols', async() => {
     handsontable({
       data: [
         [1, 'Joe'],
@@ -170,7 +170,7 @@ describe('passwordRenderer', () => {
     expect(getRenderedValue(3, 1)).toMatch(/^[x]+$/ig);
   });
 
-  it('should render the cell without messing with "dir" attribute', () => {
+  it('should render the cell without messing with "dir" attribute', async() => {
     handsontable({
       data: [['foo']],
       renderer: 'password'

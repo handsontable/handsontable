@@ -29,7 +29,7 @@ describe('Hook', () => {
         },
       });
 
-      setDataAtCell(0, 0, '3,45');
+      await setDataAtCell(0, 0, '3,45');
 
       await sleep(50);
 
@@ -37,7 +37,7 @@ describe('Hook', () => {
     });
 
     using('keyboard key', ['delete', 'backspace'], (keyCode) => {
-      it('should trigger the hook with `null`', () => {
+      it('should trigger the hook with `null`', async() => {
         let called = false;
 
         handsontable({
@@ -52,9 +52,10 @@ describe('Hook', () => {
           }
         });
 
-        setDataAtCell(0, 0, 'test');
-        selectCell(0, 0);
-        keyDownUp([keyCode]);
+        await setDataAtCell(0, 0, 'test');
+
+        await selectCell(0, 0);
+        await keyDownUp([keyCode]);
 
         expect(called).toBe(true);
       });
