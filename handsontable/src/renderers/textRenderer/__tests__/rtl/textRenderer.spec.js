@@ -11,7 +11,7 @@ describe('TextRenderer (RTL mode)', () => {
 
     if (this.$container) {
       destroy();
-      this.$container.remove();
+      $('body').find(`#${id}`).remove();
     }
   });
 

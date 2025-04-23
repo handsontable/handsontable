@@ -8,7 +8,7 @@ describe('UndoRedo', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-      this.$container.remove();
+      $('body').find(`#${id}`).remove();
     }
   });
 
@@ -1046,7 +1046,7 @@ describe('UndoRedo', () => {
         expect(hot1.getDataAtCell(0, 0)).toEqual(1);
 
         hot2.destroy();
-        spec().$container2.remove();
+        $('body').find(`#${id}-2`).remove();
       });
 
       it('should return the right amount after undo removal of single column', () => {
@@ -1650,7 +1650,7 @@ describe('UndoRedo', () => {
         expect(hot2.getDataAtCell(0, 0)).toEqual('A');
 
         hot2.destroy();
-        spec().$container2.remove();
+        $('body').find(`#${id}-2`).remove();
       });
     });
   });

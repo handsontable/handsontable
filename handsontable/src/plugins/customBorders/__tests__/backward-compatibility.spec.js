@@ -15,7 +15,7 @@ describe('CustomBorders (using backward compatible "left"/"right" options)', () 
   afterEach(function() {
     if (this.$container) {
       destroy();
-      this.$container.remove();
+      $('body').find(`#${id}`).remove();
     }
     this.$wrapper.remove();
   });

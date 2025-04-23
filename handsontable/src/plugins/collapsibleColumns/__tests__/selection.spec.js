@@ -15,7 +15,7 @@ describe('CollapsibleColumns', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-      this.$container.remove();
+      $('body').find(`#${id}`).remove();
     }
     if (this.$wrapper) {
       this.$wrapper.remove();

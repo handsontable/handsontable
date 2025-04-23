@@ -10,7 +10,7 @@ describe('AutoRowSize', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-      this.$container.remove();
+      $('body').find(`#${id}`).remove();
     }
   });
 
@@ -131,7 +131,7 @@ describe('AutoRowSize', () => {
     afterEach(function() {
       if (this.$container) {
         destroy();
-        this.$container.remove();
+        $('body').find(`#${id}`).remove();
       }
 
       if (style) {
@@ -359,9 +359,9 @@ describe('AutoRowSize', () => {
 
     $style.remove();
     $container1.handsontable('destroy');
-    $container1.remove();
+    $('body').find('#hot1').remove();
     $container2.handsontable('destroy');
-    $container2.remove();
+    $('body').find('#hot2').remove();
   });
 
   it('should consider CSS class of the <table> element (e.g. when used with Bootstrap)', () => {

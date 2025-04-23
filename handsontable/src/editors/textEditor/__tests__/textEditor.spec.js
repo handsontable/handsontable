@@ -7,7 +7,7 @@ describe('TextEditor', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-      this.$container.remove();
+      $('body').find('#testContainer').remove();
     }
   });
 
@@ -1698,7 +1698,7 @@ describe('TextEditor', () => {
     expect(isEditorVisible($(hot2.getActiveEditor().TEXTAREA))).toBe(true);
 
     spec().$container2.handsontable('destroy');
-    spec().$container2.remove();
+    $('body').find('#testContainer-2').remove();
 
     function handsontable2(options) {
       const container = spec().$container2;

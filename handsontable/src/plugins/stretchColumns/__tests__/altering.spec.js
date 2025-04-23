@@ -6,7 +6,7 @@ describe('StretchColumns cooperation with columns altering', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-      this.$container.remove();
+      $('body').find('#testContainer').remove();
     }
   });
 

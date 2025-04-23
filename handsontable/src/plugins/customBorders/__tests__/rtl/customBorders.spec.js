@@ -18,7 +18,7 @@ describe('CustomBorders (RTL mode)', () => {
 
     if (this.$container) {
       destroy();
-      this.$container.remove();
+      $('body').find(`#${id}`).remove();
     }
     this.$wrapper.remove();
   });

@@ -6,7 +6,7 @@ describe('Filters UI cooperation with DropdownMenu', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-      this.$container.remove();
+      $('body').find('#testContainer').remove();
     }
   });
 

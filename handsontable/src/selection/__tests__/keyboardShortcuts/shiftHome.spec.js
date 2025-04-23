@@ -6,7 +6,7 @@ describe('Selection extending', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-      this.$container.remove();
+      $('body').find('#testContainer').remove();
     }
   });
 

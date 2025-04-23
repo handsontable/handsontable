@@ -19,7 +19,7 @@ describe('Handsontable editor theme handling', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-      this.$container.remove();
+      $('body').find(`#${id}`).remove();
     }
   });
 
@@ -43,7 +43,7 @@ describe('Handsontable editor theme handling', () => {
 
     await sleep(50);
 
-    expect($(getActiveEditor().htEditor.rootElement).hasClass('ht-theme-sth')).toBe(true);
+    expect($(getActiveEditor().htEditor.rootElement).parent().parent().parent().hasClass('ht-theme-sth')).toBe(true);
     expect(getActiveEditor().htEditor.getCurrentThemeName()).toBe('ht-theme-sth');
   });
 
@@ -67,7 +67,9 @@ describe('Handsontable editor theme handling', () => {
 
     await sleep(50);
 
-    expect($(getActiveEditor().htEditor.rootElement).hasClass('ht-theme-sth-else')).toBe(true);
+    expect(
+      $(getActiveEditor().htEditor.rootElement).parent().parent().parent().hasClass('ht-theme-sth-else')
+    ).toBe(true);
     expect(getActiveEditor().htEditor.getCurrentThemeName()).toBe('ht-theme-sth-else');
   });
 

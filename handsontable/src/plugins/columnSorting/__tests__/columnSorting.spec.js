@@ -20,7 +20,7 @@ describe('ColumnSorting', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-      this.$container.remove();
+      $('body').find(`#${id}`).remove();
     }
   });
 
@@ -581,7 +581,7 @@ describe('ColumnSorting', () => {
 
     if (spec().$container) {
       destroy();
-      spec().$container.remove();
+      $('body').find(`#${id}`).remove();
     }
 
     handsontable({
@@ -671,7 +671,7 @@ describe('ColumnSorting', () => {
 
     if (spec().$container) {
       destroy();
-      spec().$container.remove();
+      $('body').find(`#${id}`).remove();
     }
 
     handsontable({
@@ -885,7 +885,7 @@ describe('ColumnSorting', () => {
 
       if (spec().$container) {
         destroy();
-        spec().$container.remove();
+        $('body').find(`#${id}`).remove();
       }
 
       handsontable({
@@ -2048,7 +2048,7 @@ describe('ColumnSorting', () => {
     expect($('.handsontableInput').val()).toEqual('A');
 
     spec().$container2.handsontable('destroy');
-    spec().$container2.remove();
+    $('body').find(`#${id}-2`).remove();
   });
 
   it('should return updated data at specified row after sorted', () => {

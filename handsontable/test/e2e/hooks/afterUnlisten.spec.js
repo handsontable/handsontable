@@ -7,11 +7,11 @@ describe('Hook', () => {
 
   afterEach(function() {
     this.$container.data('handsontable')?.destroy();
-    this.$container.remove();
+    $('body').find('#testContainer').remove();
     this.$container1.data('handsontable')?.destroy();
-    this.$container1.remove();
+    $('body').find('#testContainer1').remove();
     this.$container2.data('handsontable')?.destroy();
-    this.$container2.remove();
+    $('body').find('#testContainer2').remove();
   });
 
   describe('afterUnlisten', () => {

@@ -26,7 +26,7 @@ describe('Formulas memory leak check', () => {
         }
       }
 
-      this.$container.remove();
+      $('body').find('#testContainer').remove();
     }
 
     if (this.$container2) {
@@ -41,7 +41,8 @@ describe('Formulas memory leak check', () => {
           throw e;
         }
       }
-      this.$container2.remove();
+
+      $('body').find('#testContainer-2').remove();
     }
   });
 

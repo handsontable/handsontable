@@ -24,7 +24,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-      this.$container.remove();
+      $('body').find(`#${id}`).remove();
     }
   });
 

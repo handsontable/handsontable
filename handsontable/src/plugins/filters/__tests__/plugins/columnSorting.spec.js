@@ -6,7 +6,7 @@ describe('Filters UI cooperation with ColumnSorting', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-      this.$container.remove();
+      $('body').find('#testContainer').remove();
     }
   });
 

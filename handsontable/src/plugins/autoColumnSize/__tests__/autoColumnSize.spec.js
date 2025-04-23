@@ -10,7 +10,7 @@ describe('AutoColumnSize', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-      this.$container.remove();
+      $('body').find(`#${id}`).remove();
     }
   });
 
@@ -444,7 +444,7 @@ describe('AutoColumnSize', () => {
     expect(widths[2][1]).toBeLessThan(widths[2][2]);
 
     spec().$container2.handsontable('destroy');
-    spec().$container2.remove();
+    $('body').find(`#${id}-2`).remove();
   });
 
   it('should be possible to enable plugin using updateSettings', () => {
@@ -527,9 +527,9 @@ describe('AutoColumnSize', () => {
 
     $style.remove();
     $container1.handsontable('destroy');
-    $container1.remove();
+    $('body').find('#hot1').remove();
     $container2.handsontable('destroy');
-    $container2.remove();
+    $('body').find('#hot2').remove();
   });
 
   it('should consider CSS class of the <table> element (e.g. when used with Bootstrap)', () => {

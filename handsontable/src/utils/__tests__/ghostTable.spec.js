@@ -12,7 +12,7 @@ describe('GhostTable', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-      this.$container.remove();
+      $('body').find('#testContainer').remove();
     }
     if (gt) {
       gt.clean();

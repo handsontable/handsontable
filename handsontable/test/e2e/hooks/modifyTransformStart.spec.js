@@ -5,7 +5,7 @@ describe('Hook', () => {
 
   afterEach(function() {
     this.$container.data('handsontable')?.destroy();
-    this.$container.remove();
+    $('body').find('#testContainer').remove();
   });
 
   describe('modifyTransformStart', () => {

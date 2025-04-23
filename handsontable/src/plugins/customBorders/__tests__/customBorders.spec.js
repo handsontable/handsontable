@@ -15,7 +15,7 @@ describe('CustomBorders', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-      this.$container.remove();
+      $('body').find(`#${id}`).remove();
     }
     this.$wrapper.remove();
   });
@@ -1242,7 +1242,7 @@ describe('CustomBorders', () => {
     });
 
     it('should not render borders when the table is not rendered', async() => {
-      spec().$container.remove();
+      $('body').find(`#${id}`).remove();
       const data = Handsontable.helper.createSpreadsheetData(10, 2);
       const customBorders = generateCustomBordersForAllRows(data.length);
 

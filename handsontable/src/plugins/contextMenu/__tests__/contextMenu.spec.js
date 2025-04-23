@@ -8,7 +8,7 @@ describe('ContextMenu', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-      this.$container.remove();
+      $('body').find(`#${id}`).remove();
     }
   });
 
@@ -648,6 +648,8 @@ describe('ContextMenu', () => {
 
       test();
       destroy();
+      $('body').find(`#${id}`).remove();
+      spec().$container = $(`<div id="${id}"></div>`).appendTo('body');
       test();
     });
   });
@@ -2524,7 +2526,7 @@ describe('ContextMenu', () => {
     afterEach(function() {
       if (this.$container2) {
         this.$container2.handsontable('destroy');
-        this.$container2.remove();
+        $('body').find(`#${id}-2`).remove();
       }
     });
 
@@ -2681,7 +2683,7 @@ describe('ContextMenu', () => {
     afterEach(function() {
       if (this.$container) {
         destroy();
-        this.$container.remove();
+        $('body').find(`#${id}`).remove();
       }
       this.$wrapper.remove();
     });

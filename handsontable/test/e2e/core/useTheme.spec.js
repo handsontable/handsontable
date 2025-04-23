@@ -12,7 +12,7 @@ describe('useTheme', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-      this.$container.remove();
+      $('body').find(`#${id}`).remove();
     }
   });
 
@@ -29,10 +29,10 @@ describe('useTheme', () => {
   });
 
   it('should add the appropriate class names to the root element when enabling a theme', () => {
-    expect(spec().$container.hasClass('ht-theme-sth')).toBe(false);
+    expect(spec().$container.parent().hasClass('ht-theme-sth')).toBe(false);
 
     useTheme('ht-theme-sth');
 
-    expect(spec().$container.hasClass('ht-theme-sth')).toBe(true);
+    expect(spec().$container.parent().hasClass('ht-theme-sth')).toBe(true);
   });
 });
