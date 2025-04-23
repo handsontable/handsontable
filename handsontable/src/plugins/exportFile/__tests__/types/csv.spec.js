@@ -534,7 +534,7 @@ describe('exportFile CSV type', () => {
         expect(csv).toBe('\ufeff"42","=A1+B1","abba","BAR"');
       });
 
-      it('not provided, should not sanitize values', () => {
+      it('not provided, should not sanitize values', async() => {
         handsontable({
           data: [['=A1+B1', '=A2+B2']],
         });
