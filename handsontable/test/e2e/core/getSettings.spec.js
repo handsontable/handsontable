@@ -10,7 +10,7 @@ describe('Core.getSettings', () => {
     }
   });
 
-  it('should be possible to retrieve core-specific as well custom-specific setting and hooks', () => {
+  it('should be possible to retrieve core-specific as well custom-specific setting and hooks', async() => {
     const afterChanges = () => {};
 
     handsontable({
@@ -27,7 +27,7 @@ describe('Core.getSettings', () => {
     expect(getSettings().afterChanges).toBe(afterChanges);
   });
 
-  it('should reflect the new changes passed to `updateSettings` method', () => {
+  it('should reflect the new changes passed to `updateSettings` method', async() => {
     const afterChanges = () => {};
     const afterChangesMod = () => {};
 
@@ -39,7 +39,7 @@ describe('Core.getSettings', () => {
       afterChanges,
     });
 
-    updateSettings({
+    await updateSettings({
       customOption: 'updatedValue',
       rowHeaders: false,
       colHeaders: true,

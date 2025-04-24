@@ -57,11 +57,7 @@ const ExampleComponent = () => (
     height="auto"
     width="auto"
     colHeaders={['ID', 'Name', 'Address']}
-    columns={[
-      { data: property('id') },
-      { data: property('name') },
-      { data: property('address') },
-    ]}
+    columns={[{ data: property('id') }, { data: property('name') }, { data: property('address') }]}
     minSpareRows={1}
     autoWrapRow={true}
     autoWrapCol={true}

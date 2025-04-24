@@ -12,25 +12,25 @@ describe('Core.setSourceDataAtCell', () => {
     }
   });
 
-  it('should set the provided value in the source data set', () => {
+  it('should set the provided value in the source data set', async() => {
     handsontable({
       data: [[1, 2, 3], ['a', 'b', 'c']]
     });
 
-    setSourceDataAtCell(0, 0, 'foo');
+    await setSourceDataAtCell(0, 0, 'foo');
 
     expect(getSourceData()[0][0]).toBe('foo');
 
-    loadData([{ foo: 'bar' }]);
+    await loadData([{ foo: 'bar' }]);
 
     expect(getSourceData()[0].foo).toBe('bar');
 
-    setSourceDataAtCell(0, 'foo', 'foo');
+    await setSourceDataAtCell(0, 'foo', 'foo');
 
     expect(getSourceData()[0].foo).toBe('foo');
   });
 
-  it('should set the provided value in the source data set, using the physical coordinates', () => {
+  it('should set the provided value in the source data set, using the physical coordinates', async() => {
     handsontable({
       data: [
         { foo: 'bar', lorem: 'ipsum' },
@@ -42,41 +42,41 @@ describe('Core.setSourceDataAtCell', () => {
       trimRows: [0]
     });
 
-    setSourceDataAtCell(0, 'lorem', 'foo');
+    await setSourceDataAtCell(0, 'lorem', 'foo');
 
     expect(getSourceData()[0].lorem).toBe('foo');
     expect(getSourceData()[1].lorem).toBe('sit');
     expect(getSourceData()[2].lorem).toBe('amet');
   });
 
-  it('should trigger table render cycle after changing the data', () => {
+  it('should trigger table render cycle after changing the data', async() => {
     const hot = handsontable({
       data: [[1, 2, 3], ['a', 'b', 'c']],
     });
 
     spyOn(hot, 'render').and.callThrough();
 
-    setSourceDataAtCell(0, 1, 'foo');
+    await setSourceDataAtCell(0, 1, 'foo');
 
     expect(hot.render).toHaveBeenCalled();
   });
 
-  it('should call "refreshValue" method of the active editor when new data is set', () => {
-    const hot = handsontable({
+  it('should call "refreshValue" method of the active editor when new data is set', async() => {
+    handsontable({
       data: [[1, 2, 3], ['a', 'b', 'c']],
     });
 
-    selectCell(0, 1);
-    keyDownUp('enter');
+    await selectCell(0, 1);
+    await keyDownUp('enter');
 
-    spyOn(hot.getActiveEditor(), 'refreshValue').and.callThrough();
+    spyOn(getActiveEditor(), 'refreshValue').and.callThrough();
 
-    setSourceDataAtCell(0, 1, 'foo');
+    await setSourceDataAtCell(0, 1, 'foo');
 
-    expect(hot.getActiveEditor().refreshValue).toHaveBeenCalled();
+    expect(getActiveEditor().refreshValue).toHaveBeenCalled();
   });
 
-  it('should throw the `modifySourceData` hook (with the `set` argument) when calling the `setSourceDataAtCell` method', () => {
+  it('should throw the `modifySourceData` hook (with the `set` argument) when calling the `setSourceDataAtCell` method', async() => {
     const argumentHistory = [];
 
     handsontable({
@@ -92,7 +92,7 @@ describe('Core.setSourceDataAtCell', () => {
       }
     });
 
-    setSourceDataAtCell(0, 'foo', 'foo2');
+    await setSourceDataAtCell(0, 'foo', 'foo2');
 
     expect(argumentHistory[0][0]).toEqual(0);
     expect(argumentHistory[0][1]).toEqual('foo');
@@ -100,7 +100,7 @@ describe('Core.setSourceDataAtCell', () => {
     expect(argumentHistory[0][3]).toEqual('set');
   });
 
-  it('should be possible to change the value being saved using the `modifySourceData` hook', () => {
+  it('should be possible to change the value being saved using the `modifySourceData` hook', async() => {
     handsontable({
       data: [
         { foo: 'bar', lorem: 'ipsum' },
@@ -112,12 +112,12 @@ describe('Core.setSourceDataAtCell', () => {
       }
     });
 
-    setSourceDataAtCell(0, 'foo', 'foo2');
+    await setSourceDataAtCell(0, 'foo', 'foo2');
 
     expect(getSourceData()[0].foo).toEqual('CHANGED');
   });
 
-  it('should run the `afterSetSourceDataAtCell` hook', () => {
+  it('should run the `afterSetSourceDataAtCell` hook', async() => {
     const afterSetSourceDataAtCellSpy = jasmine.createSpy('afterSetSourceDataAtCell');
 
     handsontable({
@@ -129,13 +129,13 @@ describe('Core.setSourceDataAtCell', () => {
       afterSetSourceDataAtCell: afterSetSourceDataAtCellSpy
     });
 
-    setSourceDataAtCell(0, 'foo', 'foo2', 'caller-custom-source');
+    await setSourceDataAtCell(0, 'foo', 'foo2', 'caller-custom-source');
 
     expect(afterSetSourceDataAtCellSpy).toHaveBeenCalledWith([[0, 'foo', 'bar', 'foo2']], 'caller-custom-source');
 
     afterSetSourceDataAtCellSpy.calls.reset();
 
-    setSourceDataAtCell([[0, 'lorem', 'changed1'], [1, 'foo', 'changed2']]);
+    await setSourceDataAtCell([[0, 'lorem', 'changed1'], [1, 'foo', 'changed2']]);
 
     expect(afterSetSourceDataAtCellSpy).toHaveBeenCalledWith([
       [0, 'lorem', 'ipsum', 'changed1'],
@@ -143,59 +143,59 @@ describe('Core.setSourceDataAtCell', () => {
     ]);
   });
 
-  it('should be possible to change the data source by passing an array of changes and a string as row value (dataset as array of arrays)', () => {
+  it('should be possible to change the data source by passing an array of changes and a string as row value (dataset as array of arrays)', async() => {
     const changesList = [
       ['0', '0', 'a'], ['0', '1', 'b'], ['0', '2', 'c'],
     ];
 
-    const hot = handsontable({
-      data: Handsontable.helper.createEmptySpreadsheetData(1, 3)
+    handsontable({
+      data: createEmptySpreadsheetData(1, 3)
     });
 
-    setSourceDataAtCell(changesList);
+    await setSourceDataAtCell(changesList);
 
-    expect(hot.getSourceData()).toEqual([['a', 'b', 'c']]);
+    expect(getSourceData()).toEqual([['a', 'b', 'c']]);
   });
 
-  it('should be possible to change the data source by passing an array of changes and a string as row value (dataset as array of objects)', () => {
+  it('should be possible to change the data source by passing an array of changes and a string as row value (dataset as array of objects)', async() => {
     const changesList = [
       ['0', 'id', 'a'], ['0', 'name', 'b'], ['0', 'address', 'c'],
     ];
 
-    const hot = handsontable({
+    handsontable({
       data: { id: 1, name: 'Ted Right', address: '' }
     });
 
-    setSourceDataAtCell(changesList);
+    await setSourceDataAtCell(changesList);
 
-    expect(hot.getSourceData()).toEqual([{ id: 'a', name: 'b', address: 'c' }]);
+    expect(getSourceData()).toEqual([{ id: 'a', name: 'b', address: 'c' }]);
   });
 
-  it('should not replace the source value for row values as a `__proto__`, `constructor`, `prototype` with array of arrays data source', () => {
+  it('should not replace the source value for row values as a `__proto__`, `constructor`, `prototype` with array of arrays data source', async() => {
     const changesList = [
       ['__proto__', '0', 'a'], ['constructor', '1', 'b'], ['prototype', '2', 'c'],
     ];
 
-    const hot = handsontable({
-      data: Handsontable.helper.createEmptySpreadsheetData(1, 3)
+    handsontable({
+      data: createEmptySpreadsheetData(1, 3)
     });
 
-    setSourceDataAtCell(changesList);
+    await setSourceDataAtCell(changesList);
 
-    expect(hot.getSourceData()).toEqual([['', '', '']]);
+    expect(getSourceData()).toEqual([['', '', '']]);
   });
 
-  it('should not replace the source value for row values as a `__proto__`, `constructor`, `prototype` with array of object data source', () => {
+  it('should not replace the source value for row values as a `__proto__`, `constructor`, `prototype` with array of object data source', async() => {
     const changesList = [
       ['__proto__', 'id', 'a'], ['constructor', 'name', 'b'], ['prototype', 'address', 'c'],
     ];
 
-    const hot = handsontable({
+    handsontable({
       data: { id: 1, name: 'Ted Right', address: '' }
     });
 
-    setSourceDataAtCell(changesList);
+    await setSourceDataAtCell(changesList);
 
-    expect(hot.getSourceData()).toEqual([{ id: 1, name: 'Ted Right', address: '' }]);
+    expect(getSourceData()).toEqual([{ id: 1, name: 'Ted Right', address: '' }]);
   });
 });

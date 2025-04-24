@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Add optional formula sanitization for csv export to prevent CSV Injection attacks",
+  "type": "added",
+  "issueOrPR": 11592,
+  "breaking": false,
+  "framework": "none"
+}

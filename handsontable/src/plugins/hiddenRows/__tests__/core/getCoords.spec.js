@@ -13,7 +13,7 @@ describe('HiddenRows', () => {
   });
 
   describe('getCoords', () => {
-    it('should return visual coords of TD when some rows are hidden', () => {
+    it('should return visual coords of TD when some rows are hidden', async() => {
       handsontable({
         data: Handsontable.helper.createSpreadsheetObjectData(5, 5),
         rowHeaders: true,

@@ -12,7 +12,7 @@ describe('manualColumnResize', () => {
     }
   });
 
-  it('should change column widths at init', () => {
+  it('should change column widths at init', async() => {
     handsontable({
       manualColumnResize: [100, 150, 180]
     });
@@ -22,7 +22,7 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 2)).toBe(180);
   });
 
-  it('should show only single resize handler and not throw an error while performing a mouse down on HOT in HOT header', () => {
+  it('should show only single resize handler and not throw an error while performing a mouse down on HOT in HOT header', async() => {
     handsontable({
       colHeaders: true,
       manualColumnResize: true,
@@ -31,15 +31,15 @@ describe('manualColumnResize', () => {
           type: 'handsontable',
           handsontable: {
             colHeaders: true,
-            data: Handsontable.helper.createSpreadsheetData(5, 5),
+            data: createSpreadsheetData(5, 5),
             manualColumnResize: true,
           }
         },
       ],
     });
 
-    selectCell(0, 0);
-    keyDownUp('enter');
+    await selectCell(0, 0);
+    await keyDownUp('enter');
 
     const $hotInHot = $('.handsontableEditor');
 
@@ -60,7 +60,7 @@ describe('manualColumnResize', () => {
     }).not.toThrow();
   });
 
-  it('should be enabled after specifying it in updateSettings config', () => {
+  it('should be enabled after specifying it in updateSettings config', async() => {
     handsontable({
       data: [
         { id: 1, name: 'Ted', lastName: 'Right' },
@@ -72,14 +72,14 @@ describe('manualColumnResize', () => {
       colHeaders: true
     });
 
-    updateSettings({ manualColumnResize: true });
+    await updateSettings({ manualColumnResize: true });
 
     getTopClone().find('thead tr:eq(0) th:eq(0)').simulate('mouseover');
 
     expect($('.manualColumnResizer').size()).toBeGreaterThan(0);
   });
 
-  it('should change the default column widths with updateSettings', () => {
+  it('should change the default column widths with updateSettings', async() => {
     handsontable({
       manualColumnResize: true
     });
@@ -88,7 +88,7 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 1)).toBe(50);
     expect(colWidth(spec().$container, 2)).toBe(50);
 
-    updateSettings({
+    await updateSettings({
       manualColumnResize: [60, 50, 80]
     });
 
@@ -97,7 +97,7 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 2)).toBe(80);
   });
 
-  it('should change column widths with updateSettings', () => {
+  it('should change column widths with updateSettings', async() => {
     handsontable({
       manualColumnResize: [100, 150, 180]
     });
@@ -106,7 +106,7 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 1)).toBe(150);
     expect(colWidth(spec().$container, 2)).toBe(180);
 
-    updateSettings({
+    await updateSettings({
       manualColumnResize: [60, 50, 80]
     });
 
@@ -115,7 +115,7 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 2)).toBe(80);
   });
 
-  it('should reset column widths when undefined is passed', () => {
+  it('should reset column widths when undefined is passed', async() => {
     handsontable({
       manualColumnResize: [100, 150, 180]
     });
@@ -124,7 +124,7 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 1)).toBe(150);
     expect(colWidth(spec().$container, 2)).toBe(180);
 
-    updateSettings({
+    await updateSettings({
       manualColumnResize: undefined
     });
 
@@ -133,7 +133,7 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 2)).toBe(50);
   });
 
-  it('should not reset column widths when `true` is passed', () => {
+  it('should not reset column widths when `true` is passed', async() => {
     handsontable({
       manualColumnResize: [100, 150, 180]
     });
@@ -142,7 +142,7 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 1)).toBe(150);
     expect(colWidth(spec().$container, 2)).toBe(180);
 
-    updateSettings({
+    await updateSettings({
       manualColumnResize: true
     });
 
@@ -151,7 +151,7 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 2)).toBe(180);
   });
 
-  it('should keep proper column widths after inserting column', () => {
+  it('should keep proper column widths after inserting column', async() => {
     handsontable({
       manualColumnResize: [undefined, undefined, 120]
     });
@@ -162,7 +162,7 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 3)).toBe(50);
     expect(colWidth(spec().$container, 4)).toBe(50);
 
-    alter('insert_col_start', 0);
+    await alter('insert_col_start', 0);
 
     expect(colWidth(spec().$container, 0)).toBe(50); // Added new row here.
     expect(colWidth(spec().$container, 1)).toBe(50);
@@ -171,7 +171,7 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 4)).toBe(50);
     expect(colWidth(spec().$container, 5)).toBe(50);
 
-    alter('insert_col_start', 3);
+    await alter('insert_col_start', 3);
 
     expect(colWidth(spec().$container, 0)).toBe(50);
     expect(colWidth(spec().$container, 1)).toBe(50);
@@ -181,7 +181,7 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 5)).toBe(50);
     expect(colWidth(spec().$container, 6)).toBe(50);
 
-    alter('insert_col_start', 5);
+    await alter('insert_col_start', 5);
 
     expect(colWidth(spec().$container, 0)).toBe(50);
     expect(colWidth(spec().$container, 1)).toBe(50);
@@ -193,7 +193,7 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 7)).toBe(50);
   });
 
-  it('should keep proper column widths after removing column', () => {
+  it('should keep proper column widths after removing column', async() => {
     handsontable({
       manualColumnResize: [undefined, undefined, 120]
     });
@@ -203,7 +203,7 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 2)).toBe(120);
     expect(colWidth(spec().$container, 3)).toBe(50);
 
-    alter('remove_col', 0);
+    await alter('remove_col', 0);
 
     expect(colWidth(spec().$container, 0)).toBe(50);
     expect(colWidth(spec().$container, 1)).toBe(120);
@@ -211,7 +211,7 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 3)).toBe(50);
   });
 
-  it('should resize (narrowing) appropriate columns, even when stretchH `all` is enabled', () => {
+  it('should resize (narrowing) appropriate columns, even when stretchH `all` is enabled', async() => {
     spec().$container.css('width', '910px');
     handsontable({
       colHeaders: true,
@@ -219,7 +219,7 @@ describe('manualColumnResize', () => {
       stretchH: 'all'
     });
 
-    resizeColumn(1, 65);
+    await resizeColumn(1, 65);
 
     const $columnHeaders = spec().$container.find('thead tr:eq(1) th');
 
@@ -230,7 +230,7 @@ describe('manualColumnResize', () => {
     expect($columnHeaders.eq(4).width()).toBe(209);
   });
 
-  it('should resize (extending) appropriate columns, even when stretchH `all` is enabled', () => {
+  it('should resize (extending) appropriate columns, even when stretchH `all` is enabled', async() => {
     spec().$container.css('width', '910px');
     handsontable({
       colHeaders: true,
@@ -238,7 +238,7 @@ describe('manualColumnResize', () => {
       stretchH: 'all'
     });
 
-    resizeColumn(1, 400);
+    await resizeColumn(1, 400);
 
     const $columnHeaders = spec().$container.find('thead tr:eq(1) th');
 
@@ -251,7 +251,7 @@ describe('manualColumnResize', () => {
 
   it('should resize (narrowing) selected columns', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 20),
+      data: createSpreadsheetData(10, 20),
       colHeaders: true,
       manualColumnResize: true
     });
@@ -294,7 +294,7 @@ describe('manualColumnResize', () => {
     });
   });
 
-  it('should show resizer for fixed columns', () => {
+  it('should show resizer for fixed columns', async() => {
     handsontable({
       data: createSpreadsheetData(10, 20),
       colHeaders: true,
@@ -347,7 +347,7 @@ describe('manualColumnResize', () => {
 
   it('should resize (expanding) selected columns', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 20),
+      data: createSpreadsheetData(10, 20),
       colHeaders: true,
       manualColumnResize: true
     });
@@ -398,7 +398,7 @@ describe('manualColumnResize', () => {
       stretchH: 'all',
     });
 
-    resizeColumn(1, 65);
+    await resizeColumn(1, 65);
 
     const $columnHeaders = spec().$container.find('thead tr:eq(1) th');
 
@@ -415,7 +415,7 @@ describe('manualColumnResize', () => {
     const $resizer = spec().$container.find('.manualColumnResizer');
     const resizerPosition = $resizer.position();
 
-    mouseDoubleClick($resizer, { clientX: resizerPosition.left });
+    await mouseDoubleClick($resizer, { clientX: resizerPosition.left });
 
     await sleep(1000);
 
@@ -454,7 +454,7 @@ describe('manualColumnResize', () => {
       stretchH: 'last',
     });
 
-    resizeColumn(0, 65);
+    await resizeColumn(0, 65);
 
     const $columnHeaders = spec().$container.find('thead tr:eq(0) th');
 
@@ -475,8 +475,7 @@ describe('manualColumnResize', () => {
     const $resizer = spec().$container.find('.manualColumnResizer');
     const resizerPosition = $resizer.position();
 
-    mouseDoubleClick($resizer, { clientX: resizerPosition.left });
-
+    await mouseDoubleClick($resizer, { clientX: resizerPosition.left });
     await sleep(1000);
 
     expect($columnHeaders.eq(0).width()).forThemes(({ classic, main, horizon }) => {
@@ -509,16 +508,14 @@ describe('manualColumnResize', () => {
   it('should resize appropriate columns to calculated autoColumnSize width after double click on column handler after ' +
      'updateSettings usage with new `colWidths` values', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
       colHeaders: true,
       manualColumnResize: true,
     });
 
-    setDataAtCell(0, 1, 'Longer text');
-
+    await setDataAtCell(0, 1, 'Longer text');
     await sleep(50);
-
-    updateSettings({
+    await updateSettings({
       colWidths: [45, 120, 160, 60, 80],
     });
 
@@ -532,8 +529,7 @@ describe('manualColumnResize', () => {
       const $resizer = spec().$container.find('.manualColumnResizer');
       const resizerPosition = $resizer.position();
 
-      mouseDoubleClick($resizer, { clientX: resizerPosition.left });
-
+      await mouseDoubleClick($resizer, { clientX: resizerPosition.left });
       await sleep(1000);
 
       expect($columnHeaders.eq(0).width()).forThemes(({ classic, main, horizon }) => {
@@ -558,7 +554,7 @@ describe('manualColumnResize', () => {
       const $resizer = spec().$container.find('.manualColumnResizer');
       const resizerPosition = $resizer.position();
 
-      mouseDoubleClick($resizer, { clientX: resizerPosition.left });
+      await mouseDoubleClick($resizer, { clientX: resizerPosition.left });
 
       await sleep(1000);
 
@@ -578,7 +574,7 @@ describe('manualColumnResize', () => {
     }
   });
 
-  it('should resize appropriate columns, even if the column order was changed with manualColumnMove plugin', function() {
+  it('should resize appropriate columns, even if the column order was changed with manualColumnMove plugin', async() => {
     handsontable({
       colHeaders: ['First', 'Second', 'Third'],
       manualColumnMove: [2, 1, 0, 3],
@@ -605,11 +601,11 @@ describe('manualColumnResize', () => {
     }
   });
 
-  it('should trigger an beforeColumnResize event after column size changes', () => {
+  it('should trigger an beforeColumnResize event after column size changes', async() => {
     const beforeColumnResizeCallback = jasmine.createSpy('beforeColumnResizeCallback');
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(3, 3),
+      data: createSpreadsheetData(3, 3),
       colHeaders: true,
       manualColumnResize: true,
       beforeColumnResize: beforeColumnResizeCallback
@@ -617,25 +613,25 @@ describe('manualColumnResize', () => {
 
     expect(colWidth(spec().$container, 0)).toEqual(50);
 
-    resizeColumn(0, 100);
+    await resizeColumn(0, 100);
 
     expect(beforeColumnResizeCallback).toHaveBeenCalledWith(100, 0, false);
     expect(colWidth(spec().$container, 0)).toEqual(100);
   });
 
   it('should appropriate resize colWidth after beforeColumnResize call a few times', async() => {
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(3, 3),
+    handsontable({
+      data: createSpreadsheetData(3, 3),
       colHeaders: true,
       manualColumnResize: true
     });
 
     expect(colWidth(spec().$container, 0)).toEqual(50);
 
-    hot.addHook('beforeColumnResize', () => 100);
-    hot.addHook('beforeColumnResize', () => 200);
+    addHook('beforeColumnResize', () => 100);
+    addHook('beforeColumnResize', () => 200);
 
-    hot.addHook('beforeColumnResize', () => undefined);
+    addHook('beforeColumnResize', () => undefined);
 
     const $th = getTopClone().find('thead tr:eq(0) th:eq(0)');
 
@@ -644,18 +640,18 @@ describe('manualColumnResize', () => {
     const $resizer = spec().$container.find('.manualColumnResizer');
     const resizerPosition = $resizer.position();
 
-    mouseDoubleClick($resizer, { clientX: resizerPosition.left });
+    await mouseDoubleClick($resizer, { clientX: resizerPosition.left });
 
     await sleep(700);
 
     expect(colWidth(spec().$container, 0)).toEqual(200);
   });
 
-  it('should trigger an afterColumnResize event after column size changes', () => {
+  it('should trigger an afterColumnResize event after column size changes', async() => {
     const afterColumnResizeCallback = jasmine.createSpy('afterColumnResizeCallback');
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(3, 3),
+      data: createSpreadsheetData(3, 3),
       colHeaders: true,
       manualColumnResize: true,
       afterColumnResize: afterColumnResizeCallback
@@ -663,17 +659,17 @@ describe('manualColumnResize', () => {
 
     expect(colWidth(spec().$container, 0)).toEqual(50);
 
-    resizeColumn(0, 100);
+    await resizeColumn(0, 100);
 
     expect(afterColumnResizeCallback).toHaveBeenCalledWith(100, 0, false);
     expect(colWidth(spec().$container, 0)).toEqual(100);
   });
 
-  it('should not trigger an afterColumnResize event if column size does not change (mouseMove event width delta = 0)', () => {
+  it('should not trigger an afterColumnResize event if column size does not change (mouseMove event width delta = 0)', async() => {
     const afterColumnResizeCallback = jasmine.createSpy('afterColumnResizeCallback');
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(3, 3),
+      data: createSpreadsheetData(3, 3),
       colHeaders: true,
       manualColumnResize: true,
       afterColumnResize: afterColumnResizeCallback
@@ -681,17 +677,17 @@ describe('manualColumnResize', () => {
 
     expect(colWidth(spec().$container, 0)).toEqual(50);
 
-    resizeColumn(0, 50);
+    await resizeColumn(0, 50);
 
     expect(afterColumnResizeCallback).not.toHaveBeenCalled();
     expect(colWidth(spec().$container, 0)).toEqual(50);
   });
 
-  it('should not trigger an afterColumnResize event if column size does not change (no mouseMove event)', () => {
+  it('should not trigger an afterColumnResize event if column size does not change (no mouseMove event)', async() => {
     const afterColumnResizeCallback = jasmine.createSpy('afterColumnResizeCallback');
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(3, 3),
+      data: createSpreadsheetData(3, 3),
       colHeaders: true,
       manualColumnResize: true,
       afterColumnResize: afterColumnResizeCallback
@@ -706,7 +702,7 @@ describe('manualColumnResize', () => {
     const $resizer = spec().$container.find('.manualColumnResizer');
     const resizerPosition = $resizer.position();
 
-    simulateClick($resizer, { clientX: resizerPosition.left });
+    await simulateClick($resizer, { clientX: resizerPosition.left });
 
     expect(afterColumnResizeCallback).not.toHaveBeenCalled();
     expect(colWidth(spec().$container, 0)).toEqual(50);
@@ -716,7 +712,7 @@ describe('manualColumnResize', () => {
     const afterColumnResizeCallback = jasmine.createSpy('afterColumnResizeCallback');
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(3, 3),
+      data: createSpreadsheetData(3, 3),
       colHeaders: true,
       manualColumnResize: true,
       afterColumnResize: afterColumnResizeCallback
@@ -731,7 +727,7 @@ describe('manualColumnResize', () => {
     const $resizer = spec().$container.find('.manualColumnResizer');
     const resizerPosition = $resizer.position();
 
-    mouseDoubleClick($resizer, { clientX: resizerPosition.left });
+    await mouseDoubleClick($resizer, { clientX: resizerPosition.left });
 
     await sleep(1000);
 
@@ -750,7 +746,7 @@ describe('manualColumnResize', () => {
 
   it('should autosize column after double click (when initial width is not defined)', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(3, 3),
+      data: createSpreadsheetData(3, 3),
       colHeaders: true,
       manualColumnResize: true,
       columns: [{ width: 100 }, { width: 200 }, {}]
@@ -760,12 +756,12 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 1)).toEqual(200);
     expect(colWidth(spec().$container, 2)).toEqual(50);
 
-    resizeColumn(2, 300);
+    await resizeColumn(2, 300);
 
     const $resizer = spec().$container.find('.manualColumnResizer');
     const resizerPosition = $resizer.position();
 
-    mouseDoubleClick($resizer, { clientX: resizerPosition.left });
+    await mouseDoubleClick($resizer, { clientX: resizerPosition.left });
 
     await sleep(1000);
 
@@ -778,7 +774,7 @@ describe('manualColumnResize', () => {
 
   it('should autosize column after double click (when initial width is defined by the `colWidths` option)', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(3, 3),
+      data: createSpreadsheetData(3, 3),
       colHeaders: true,
       manualColumnResize: true,
       colWidths: 100
@@ -788,12 +784,12 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 1)).toEqual(100);
     expect(colWidth(spec().$container, 2)).toEqual(100);
 
-    resizeColumn(2, 300);
+    await resizeColumn(2, 300);
 
     const $resizer = spec().$container.find('.manualColumnResizer');
     const resizerPosition = $resizer.position();
 
-    mouseDoubleClick($resizer, { clientX: resizerPosition.left });
+    await mouseDoubleClick($resizer, { clientX: resizerPosition.left });
 
     await sleep(1000);
 
@@ -806,12 +802,12 @@ describe('manualColumnResize', () => {
 
   it('should autosize selected columns after double click on handler', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(9, 9),
+      data: createSpreadsheetData(9, 9),
       colHeaders: true,
       manualColumnResize: true,
     });
 
-    resizeColumn(2, 300);
+    await resizeColumn(2, 300);
 
     getTopClone().find('thead tr:eq(0) th:eq(1)').simulate('mousedown');
     getTopClone().find('thead tr:eq(0) th:eq(2)').simulate('mouseover');
@@ -823,9 +819,7 @@ describe('manualColumnResize', () => {
     const resizerPosition = $resizer.position();
 
     await sleep(600);
-
-    mouseDoubleClick($resizer, { clientX: resizerPosition.left });
-
+    await mouseDoubleClick($resizer, { clientX: resizerPosition.left });
     await sleep(600);
 
     expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
@@ -845,7 +839,7 @@ describe('manualColumnResize', () => {
     });
   });
 
-  it.forTheme('classic')('should adjust resize handles position after table size changed', () => {
+  it.forTheme('classic')('should adjust resize handles position after table size changed', async() => {
     let maxed = false;
 
     handsontable({
@@ -868,7 +862,7 @@ describe('manualColumnResize', () => {
 
     maxed = true;
 
-    render();
+    await render();
     getTopClone().find('thead th:eq(0)').simulate('mouseover');
 
     handleBox = handle[0].getBoundingClientRect();
@@ -877,7 +871,7 @@ describe('manualColumnResize', () => {
     expect(handleBox.left + handleBox.width).toEqual(thBox.left + thBox.width - 1);
   });
 
-  it.forTheme('main')('should adjust resize handles position after table size changed', () => {
+  it.forTheme('main')('should adjust resize handles position after table size changed', async() => {
     let maxed = false;
 
     handsontable({
@@ -900,7 +894,8 @@ describe('manualColumnResize', () => {
 
     maxed = true;
 
-    render();
+    await render();
+
     getTopClone().find('thead th:eq(0)').simulate('mouseover');
 
     handleBox = handle[0].getBoundingClientRect();
@@ -909,7 +904,7 @@ describe('manualColumnResize', () => {
     expect(handleBox.left).toEqual(thBox.left + thBox.width - (handleBox.width / 2) - 1);
   });
 
-  it.forTheme('horizon')('should adjust resize handles position after table size changed', () => {
+  it.forTheme('horizon')('should adjust resize handles position after table size changed', async() => {
     let maxed = false;
 
     handsontable({
@@ -932,7 +927,8 @@ describe('manualColumnResize', () => {
 
     maxed = true;
 
-    render();
+    await render();
+
     getTopClone().find('thead th:eq(0)').simulate('mouseover');
 
     handleBox = handle[0].getBoundingClientRect();
@@ -942,15 +938,14 @@ describe('manualColumnResize', () => {
   });
 
   it('should display the resize handle in the correct place after the table has been scrolled', async() => {
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 20),
+    handsontable({
+      data: createSpreadsheetData(10, 20),
       colHeaders: true,
       manualColumnResize: true,
       height: 100,
       width: 200
     });
 
-    const mainHolder = hot.view._wt.wtTable.holder;
     const $colHeader = getTopClone().find('thead tr:eq(0) th:eq(2)'); // Header "C"
 
     $colHeader.simulate('mouseover');
@@ -962,9 +957,7 @@ describe('manualColumnResize', () => {
     expect($colHeader.offset().left + $colHeader.width() - 5).toBeCloseTo($handle.offset().left, 0);
     expect($colHeader.offset().top).toBeCloseTo($handle.offset().top, 0);
 
-    $(mainHolder).scrollLeft(200);
-
-    await sleep(400);
+    await scrollViewportHorizontally(200);
 
     $colHeader.simulate('mouseover');
 
@@ -972,17 +965,18 @@ describe('manualColumnResize', () => {
     expect($colHeader.offset().top).toBeCloseTo($handle.offset().top, 0);
   });
 
-  it('should resize the correct column after resizing element adjacent to a selection', () => {
+  it('should resize the correct column after resizing element adjacent to a selection', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
       rowHeaders: true,
       colHeaders: true,
       manualColumnResize: true
     });
 
-    selectColumns(2, 3);
+    await selectColumns(2, 3);
 
     getTopClone().find('thead tr:eq(0) th:eq(2)').simulate('mouseover');
+
     const $resizer = spec().$container.find('.manualColumnResizer');
     const resizerPosition = $resizer.position();
 
@@ -995,9 +989,9 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 3)).toBe(50);
   });
 
-  it('should resize all columns after resize action when selected all cells', () => {
+  it('should resize all columns after resize action when selected all cells', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(3, 3),
+      data: createSpreadsheetData(3, 3),
       rowHeaders: true,
       colHeaders: true,
       manualColumnResize: true
@@ -1007,9 +1001,10 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 1)).toBe(50);
     expect(colWidth(spec().$container, 2)).toBe(50);
 
-    selectAll();
+    await selectAll();
 
     getTopClone().find('thead tr:eq(0) th:eq(2)').simulate('mouseover');
+
     const $resizer = spec().$container.find('.manualColumnResizer');
     const resizerPosition = $resizer.position();
 
@@ -1023,7 +1018,7 @@ describe('manualColumnResize', () => {
   });
 
   it('should not throw any errors, when selecting headers partially outside of viewport, when the header renderer' +
-    ' is meant to remove all header children and re-render them from scratch', () => {
+    ' is meant to remove all header children and re-render them from scratch', async() => {
     const nativeOnError = window.onerror;
     let errors = 0;
 
@@ -1034,7 +1029,7 @@ describe('manualColumnResize', () => {
     };
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(200, 20),
+      data: createSpreadsheetData(200, 20),
       colHeaders: true,
       rowHeaders: true,
       manualColumnResize: true,
@@ -1066,7 +1061,7 @@ describe('manualColumnResize', () => {
     window.onerror = nativeOnError;
   });
 
-  it('should not throw any errors, when the cell renderers use HTML table to present the value (#dev-1298)', () => {
+  it('should not throw any errors, when the cell renderers use HTML table to present the value (#dev-1298)', async() => {
     const onErrorSpy = spyOn(window, 'onerror').and.returnValue(true);
 
     handsontable({
@@ -1104,8 +1099,8 @@ describe('manualColumnResize', () => {
     it('should display the handles in the correct position, with holder as a scroll parent', async() => {
       spec().$container.css('transform', 'translate(50px, 120px)');
 
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 20),
+      handsontable({
+        data: createSpreadsheetData(10, 20),
         colHeaders: true,
         rowHeaders: true,
         manualColumnResize: true,
@@ -1113,7 +1108,6 @@ describe('manualColumnResize', () => {
         width: 400
       });
 
-      const mainHolder = hot.view._wt.wtTable.holder;
       let $colHeader = getTopClone().find('thead tr:eq(0) th:eq(2)');
 
       $colHeader.simulate('mouseover');
@@ -1123,9 +1117,7 @@ describe('manualColumnResize', () => {
       expect($colHeader.offset().left + $colHeader.width() - 5).toBeCloseTo($handle.offset().left, 0);
       expect($colHeader.offset().top).toBeCloseTo($handle.offset().top, 0);
 
-      $(mainHolder).scrollLeft(200);
-
-      await sleep(400);
+      await scrollViewportHorizontally(200);
 
       $colHeader = getTopClone().find('thead tr:eq(0) th:eq(7)');
       $colHeader.simulate('mouseover');
@@ -1138,7 +1130,7 @@ describe('manualColumnResize', () => {
       spec().$container.css('transform', 'translate(50px, 120px)');
 
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 80),
+        data: createSpreadsheetData(10, 80),
         colHeaders: true,
         rowHeaders: true,
         manualColumnResize: true
@@ -1153,17 +1145,13 @@ describe('manualColumnResize', () => {
       expect($colHeader.offset().left + $colHeader.width() - 5).toBeCloseTo($handle.offset().left, 0);
       expect($colHeader.offset().top).toBeCloseTo($handle.offset().top, 0);
 
-      $(window).scrollLeft(600);
-
-      await sleep(400);
+      await scrollViewportHorizontally(600);
 
       $colHeader = getTopClone().find('thead tr:eq(0) th:eq(7)');
       $colHeader.simulate('mouseover');
 
       expect($colHeader.offset().left + $colHeader.width() - 5).toBeCloseTo($handle.offset().left, 0);
       expect($colHeader.offset().top).toBeCloseTo($handle.offset().top, 0);
-
-      $(window).scrollLeft(0);
     });
   });
 
@@ -1171,8 +1159,8 @@ describe('manualColumnResize', () => {
     it('should resize (expanding) selected columns, with holder as a scroll parent', async() => {
       spec().$container.css('transform', 'translate(50px, 120px)');
 
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 20),
+      handsontable({
+        data: createSpreadsheetData(10, 20),
         colHeaders: true,
         manualColumnResize: true,
         width: 400,
@@ -1180,11 +1168,7 @@ describe('manualColumnResize', () => {
         viewportColumnRenderingOffset: 20
       });
 
-      const mainHolder = hot.view._wt.wtTable.holder;
-
-      $(mainHolder).scrollLeft(200);
-
-      await sleep(400);
+      await scrollViewportHorizontally(200);
 
       getTopClone().find('thead tr:eq(0) th:eq(5)').simulate('mousedown');
       getTopClone().find('thead tr:eq(0) th:eq(6)').simulate('mouseover');
@@ -1215,17 +1199,17 @@ describe('manualColumnResize', () => {
       });
     });
 
-    it('should resize (expanding) selected columns, with window as a scroll parent', () => {
+    it('should resize (expanding) selected columns, with window as a scroll parent', async() => {
       spec().$container.css('transform', 'translate(50px, 120px)');
 
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 50),
+        data: createSpreadsheetData(10, 50),
         colHeaders: true,
         manualColumnResize: true,
         viewportColumnRenderingOffset: 20
       });
 
-      $(window).scrollLeft(400);
+      await scrollViewportHorizontally(400);
 
       getTopClone().find('thead tr:eq(0) th:eq(9)').simulate('mousedown');
       getTopClone().find('thead tr:eq(0) th:eq(10)').simulate('mouseover');
@@ -1242,21 +1226,19 @@ describe('manualColumnResize', () => {
       expect(getTopClone().find('thead tr:eq(0) th:eq(9)').width()).toBe(79);
       expect(getTopClone().find('thead tr:eq(0) th:eq(10)').width()).toBe(79);
       expect(getTopClone().find('thead tr:eq(0) th:eq(11)').width()).toBe(79);
-
-      $(window).scrollLeft(0);
     });
   });
 
   describe('contiguous/non-contiguous selected columns resizing in a table', () => {
-    it('should resize (expanding) width of selected contiguous columns', () => {
+    it('should resize (expanding) width of selected contiguous columns', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 50),
+        data: createSpreadsheetData(10, 50),
         colHeaders: true,
         rowHeaders: true,
         manualColumnResize: true
       });
 
-      selectColumns(3, 5);
+      await selectColumns(3, 5);
       getTopClone().find('thead tr:eq(0) th:eq(4)').simulate('mouseover'); // Select 3rd Column
 
       const $resizer = spec().$container.find('.manualColumnResizer');
@@ -1293,9 +1275,9 @@ describe('manualColumnResize', () => {
       });
     });
 
-    it('should resize (expanding) width of selected non-contiguous columns', () => {
+    it('should resize (expanding) width of selected non-contiguous columns', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 50),
+        data: createSpreadsheetData(10, 50),
         colHeaders: true,
         rowHeaders: true,
         manualColumnResize: true
@@ -1303,15 +1285,15 @@ describe('manualColumnResize', () => {
 
       // After changes introduced in Handsontable 12.0.0 we handle shortcuts only by listening Handsontable.
       // Please keep in mind that selectColumns/selectRows doesn't set instance to listening (see #7290).
-      listen();
-      selectColumns(3);
+      await listen();
+      await selectColumns(3);
 
-      keyDown('control/meta');
+      await keyDown('control/meta');
 
-      selectColumns(7);
-      selectColumns(10);
+      await selectColumns(7);
+      await selectColumns(10);
 
-      keyUp('control/meta');
+      await keyUp('control/meta');
 
       getTopClone().find('thead tr:eq(0) th:eq(11)').simulate('mouseover'); // Select 10th Column
 
@@ -1362,14 +1344,14 @@ describe('manualColumnResize', () => {
       expect(colWidth(spec().$container, 11)).toBe(50);
     });
 
-    it('should not resize few columns when selected just single cells before resize action', () => {
+    it('should not resize few columns when selected just single cells before resize action', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         colHeaders: true,
         manualColumnResize: true
       });
 
-      selectCells([[1, 1, 2, 2]]);
+      await selectCells([[1, 1, 2, 2]]);
 
       getTopClone().find('thead tr:eq(0) th:eq(2)').simulate('mouseover');
 
@@ -1398,7 +1380,8 @@ describe('manualColumnResize', () => {
         $('html').attr('dir', 'ltr');
       });
 
-      it.forTheme('classic')('should display the resize handle in the proper position and with a proper size', () => {
+      it.forTheme('classic')(`should display the resize handle in the proper position and with
+ a proper size`, async() => {
         handsontable({
           layoutDirection,
           data: [
@@ -1423,7 +1406,8 @@ describe('manualColumnResize', () => {
         expect($handle.height()).toEqual($headerTH.outerHeight());
       });
 
-      it.forTheme('main')('should display the resize handle in the proper position and with a proper size', () => {
+      it.forTheme('main')(`should display the resize handle in the proper position and with
+ a proper size`, async() => {
         handsontable({
           layoutDirection,
           data: [
@@ -1448,7 +1432,8 @@ describe('manualColumnResize', () => {
         expect($handle.height()).toEqual($headerTH.outerHeight());
       });
 
-      it.forTheme('horizon')('should display the resize handle in the proper position and with a proper size', () => {
+      it.forTheme('horizon')(`should display the resize handle in the proper position and with
+ a proper size`, async() => {
         handsontable({
           layoutDirection,
           data: [
@@ -1473,7 +1458,7 @@ describe('manualColumnResize', () => {
         expect($handle.height()).toEqual($headerTH.outerHeight());
       });
 
-      it('should display the resize handle in the proper z-index and be greater than top overlay z-index', () => {
+      it('should display the resize handle in the proper z-index and be greater than top overlay z-index', async() => {
         handsontable({
           layoutDirection,
           data: [
@@ -1497,15 +1482,15 @@ describe('manualColumnResize', () => {
       });
 
       it('should display the resize guide in the correct size', async() => {
-        const hot = handsontable({
+        handsontable({
           layoutDirection,
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           colHeaders: true,
           manualColumnResize: true,
           height: 'auto',
           width: 200
         });
-        const tableHeight = parseInt(hot.view.getTableHeight(), 10);
+        const tableHeight = parseInt(tableView().getTableHeight(), 10);
         const $headerTH = getTopClone().find('thead tr:eq(0) th:eq(1)');
 
         $headerTH.simulate('mouseover');
@@ -1525,7 +1510,7 @@ describe('manualColumnResize', () => {
 
     it.forTheme('classic')('should remove resize handler when user clicks RMB', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         colHeaders: true,
         manualColumnResize: true
       });
@@ -1551,7 +1536,7 @@ describe('manualColumnResize', () => {
 
     it.forTheme('main')('should remove resize handler when user clicks RMB', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         colHeaders: true,
         manualColumnResize: true
       });
@@ -1576,7 +1561,7 @@ describe('manualColumnResize', () => {
 
     it.forTheme('horizon')('should remove resize handler when user clicks RMB', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         colHeaders: true,
         manualColumnResize: true
       });

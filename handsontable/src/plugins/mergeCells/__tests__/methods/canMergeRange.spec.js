@@ -11,7 +11,7 @@ describe('MergeCells', () => {
   });
 
   describe('`canMergeRange` method', () => {
-    it('should return false if coords point to negative values', () => {
+    it('should return false if coords point to negative values', async() => {
       handsontable({
         data: createSpreadsheetObjectData(10, 5)
       });
@@ -24,7 +24,7 @@ describe('MergeCells', () => {
       expect(plugin.canMergeRange({ row: 1, col: 1, rowspan: 2, colspan: -2 })).toBe(false);
     });
 
-    it('should return false if coords point out of table dataset range', () => {
+    it('should return false if coords point out of table dataset range', async() => {
       handsontable({
         data: createSpreadsheetObjectData(10, 5)
       });
@@ -37,7 +37,7 @@ describe('MergeCells', () => {
       expect(plugin.canMergeRange({ row: 1, col: 1, rowspan: 2, colspan: 50 })).toBe(false);
     });
 
-    it('should return false if coords point to single cell', () => {
+    it('should return false if coords point to single cell', async() => {
       handsontable({
         data: createSpreadsheetObjectData(10, 5)
       });
@@ -47,7 +47,7 @@ describe('MergeCells', () => {
       expect(plugin.canMergeRange({ row: 1, col: 1, rowspan: 1, colspan: 1 })).toBe(false);
     });
 
-    it('should return false if coords contain invalid rowspan/colspan', () => {
+    it('should return false if coords contain invalid rowspan/colspan', async() => {
       handsontable({
         data: createSpreadsheetObjectData(10, 5)
       });

@@ -47,7 +47,7 @@ describe('Formulas general', () => {
 
   describe('cooperation with validation', () => {
     it('should validate result of formula properly (opening and closing an editor)', async() => {
-      const hot = handsontable({
+      handsontable({
         data: [
           ['=B1+5', 2, '=D1', 'text']
         ],
@@ -57,25 +57,25 @@ describe('Formulas general', () => {
         type: 'numeric',
       });
 
-      selectCell(0, 0);
+      await selectCell(0, 0);
       // Opening an editor
-      keyDownUp('enter');
+      await keyDownUp('enter');
       // Closing the editor and saving changes.
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       await sleep(100); // Validator is asynchronous.
 
-      expect($(getCell(0, 0)).hasClass(hot.getSettings().invalidCellClassName)).toBe(false);
+      expect($(getCell(0, 0)).hasClass(getSettings().invalidCellClassName)).toBe(false);
 
-      selectCell(0, 2);
+      await selectCell(0, 2);
       // Opening an editor
-      keyDownUp('enter');
+      await keyDownUp('enter');
       // Closing the editor and saving changes.
-      keyDownUp('enter');
+      await keyDownUp('enter');
 
       await sleep(100); // Validator is asynchronous.
 
-      expect($(getCell(0, 2)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
+      expect($(getCell(0, 2)).hasClass(getSettings().invalidCellClassName)).toBe(true);
     });
 
     it('should validate result of formula for dependant cells properly (formula returns text)', async() => {
@@ -92,7 +92,7 @@ describe('Formulas general', () => {
         beforeValidate,
       });
 
-      setDataAtCell(0, 0, 'text');
+      await setDataAtCell(0, 0, 'text');
 
       await sleep(100); // Validator is asynchronous.
 
@@ -120,7 +120,7 @@ describe('Formulas general', () => {
         beforeValidate,
       });
 
-      setDataAtCell(0, 0, '=B1+5a');
+      await setDataAtCell(0, 0, '=B1+5a');
 
       await sleep(100); // Validator is asynchronous.
 
@@ -131,8 +131,7 @@ describe('Formulas general', () => {
       expect($(getCell(0, 2)).hasClass(getSettings().invalidCellClassName)).toBe(true);
       expect($(getCell(0, 3)).hasClass(getSettings().invalidCellClassName)).toBe(true);
 
-      setDataAtCell(0, 0, '=B1+5');
-
+      await setDataAtCell(0, 0, '=B1+5');
       await sleep(100); // Validator is asynchronous.
 
       expect(beforeValidate).toHaveBeenCalledWith(7, 0, 0);
@@ -157,8 +156,7 @@ describe('Formulas general', () => {
         beforeValidate,
       });
 
-      setDataAtCell(0, 0, '=C1');
-
+      await setDataAtCell(0, 0, '=C1');
       await sleep(100); // Validator is asynchronous.
 
       expect(beforeValidate).toHaveBeenCalledWith('#CYCLE!', 0, 0);
@@ -168,8 +166,7 @@ describe('Formulas general', () => {
       expect($(getCell(0, 2)).hasClass(getSettings().invalidCellClassName)).toBe(true);
       expect($(getCell(0, 3)).hasClass(getSettings().invalidCellClassName)).toBe(true);
 
-      setDataAtCell(0, 0, '=B1+5');
-
+      await setDataAtCell(0, 0, '=B1+5');
       await sleep(100); // Validator is asynchronous.
 
       expect(beforeValidate).toHaveBeenCalledWith(7, 0, 0);
@@ -194,8 +191,7 @@ describe('Formulas general', () => {
         beforeValidate,
       });
 
-      alter('remove_col', 4);
-
+      await alter('remove_col', 4);
       await sleep(100); // Validator is asynchronous.
 
       expect(beforeValidate).not.toHaveBeenCalled();
@@ -203,6 +199,7 @@ describe('Formulas general', () => {
       expect($(getCell(0, 2)).hasClass(getSettings().invalidCellClassName)).toBe(false);
       expect($(getCell(0, 3)).hasClass(getSettings().invalidCellClassName)).toBe(false);
 
+      // eslint-disable-next-line handsontable/require-await
       await new Promise(resolve => validateCells(resolve));
 
       expect(beforeValidate).toHaveBeenCalledWith('#REF!', 0, 0, 'validateCells');
@@ -214,7 +211,7 @@ describe('Formulas general', () => {
     });
 
     it('should not automatically validate changes when the engine is modified from the outside code', async() => {
-      const hot = handsontable({
+      handsontable({
         data: [
           ['=E1', 'text', '=A1', '=C1', 22]
         ],
@@ -224,24 +221,26 @@ describe('Formulas general', () => {
         type: 'numeric'
       });
 
-      hot.getPlugin('formulas').engine.setCellContents({ sheet: 0, row: 0, col: 0 }, '=B1');
+      getPlugin('formulas').engine.setCellContents({ sheet: 0, row: 0, col: 0 }, '=B1');
 
       await sleep(100); // Validator is asynchronous.
 
-      expect($(getCell(0, 0)).hasClass(hot.getSettings().invalidCellClassName)).toBe(false);
-      expect($(getCell(0, 2)).hasClass(hot.getSettings().invalidCellClassName)).toBe(false);
-      expect($(getCell(0, 3)).hasClass(hot.getSettings().invalidCellClassName)).toBe(false);
+      expect($(getCell(0, 0)).hasClass(getSettings().invalidCellClassName)).toBe(false);
+      expect($(getCell(0, 2)).hasClass(getSettings().invalidCellClassName)).toBe(false);
+      expect($(getCell(0, 3)).hasClass(getSettings().invalidCellClassName)).toBe(false);
 
-      await new Promise(resolve => hot.validateCells(resolve));
+      // eslint-disable-next-line handsontable/require-await
+      await new Promise(resolve => validateCells(resolve));
 
-      expect($(getCell(0, 0)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
-      expect($(getCell(0, 2)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
-      expect($(getCell(0, 3)).hasClass(hot.getSettings().invalidCellClassName)).toBe(true);
+      expect($(getCell(0, 0)).hasClass(getSettings().invalidCellClassName)).toBe(true);
+      expect($(getCell(0, 2)).hasClass(getSettings().invalidCellClassName)).toBe(true);
+      expect($(getCell(0, 3)).hasClass(getSettings().invalidCellClassName)).toBe(true);
     });
 
     it('should change the value type passed to the validator only when it is a formula', async() => {
       const afterValidate = jasmine.createSpy('afterValidate');
-      const hot = handsontable({
+
+      handsontable({
         data: [
           ['=E1', 'text', '=A1', '=C1', 22, '23', '\'=A1', '12/1/2016']
         ],
@@ -252,7 +251,8 @@ describe('Formulas general', () => {
         afterValidate,
       });
 
-      await new Promise(resolve => hot.validateCells(resolve));
+      // eslint-disable-next-line handsontable/require-await
+      await new Promise(resolve => validateCells(resolve));
 
       expect(afterValidate).toHaveBeenCalledTimes(8);
       expect(afterValidate).toHaveBeenCalledWith(true, 22, 0, 0, 'validateCells');
@@ -290,7 +290,7 @@ describe('Formulas general', () => {
         validator: validator2,
       });
 
-      setDataAtCell(0, 1, 6);
+      await setDataAtCell(0, 1, 6);
 
       await sleep(100); // Validator is asynchronous.
 
@@ -301,7 +301,7 @@ describe('Formulas general', () => {
       expect(validator2).toHaveBeenCalledWith(11, jasmine.any(Function));
       expect(validator2).toHaveBeenCalledWith(12, jasmine.any(Function));
 
-      setDataAtCell(0, 4, 'bar');
+      await setDataAtCell(0, 4, 'bar');
 
       await sleep(100); // Validator is asynchronous.
 
@@ -312,7 +312,8 @@ describe('Formulas general', () => {
 
     it('should validate correct visual cells', async() => {
       const beforeValidate = jasmine.createSpy('beforeValidate');
-      const hot = handsontable({
+
+      handsontable({
         data: [
           ['1', 2, '=D1', 'text1', 'foo1'],
           ['2', 2, '=D2', 'text2', 'foo2'],
@@ -329,12 +330,11 @@ describe('Formulas general', () => {
         beforeValidate,
       });
 
-      hot.columnIndexMapper.setIndexesSequence([0, 2, 3, 4, 1]);
-      hot.rowIndexMapper.setIndexesSequence([0, 2, 3, 4, 1]);
+      columnIndexMapper().setIndexesSequence([0, 2, 3, 4, 1]);
+      rowIndexMapper().setIndexesSequence([0, 2, 3, 4, 1]);
 
-      render();
-      setDataAtCell(3, 0, 6);
-
+      await render();
+      await setDataAtCell(3, 0, 6);
       await sleep(100); // Validator is asynchronous.
 
       expect(beforeValidate).toHaveBeenCalledTimes(2);
@@ -342,9 +342,10 @@ describe('Formulas general', () => {
       expect(beforeValidate).toHaveBeenCalledWith(9, 3, 4);
     });
 
-    it('should not try to validate cells outside of the table boundaries', () => {
+    it('should not try to validate cells outside of the table boundaries', async() => {
       let validatorCallsCount = 0;
-      const hot = handsontable({
+
+      handsontable({
         data: [
           [100, '=A1'],
           ['=A1', '=A1', '=A1'],
@@ -360,7 +361,7 @@ describe('Formulas general', () => {
       const errorList = [];
 
       try {
-        hot.setDataAtCell(0, 0, 1);
+        await setDataAtCell(0, 0, 1);
 
       } catch (e) {
         errorList.push(e);
@@ -371,7 +372,7 @@ describe('Formulas general', () => {
       expect(validatorCallsCount).toEqual(4);
     });
 
-    it('should not throw type error while validating sheets added through the HyperFormula instance', () => {
+    it('should not throw type error while validating sheets added through the HyperFormula instance', async() => {
       const hf = HyperFormula.buildEmpty();
 
       handsontable({
@@ -391,6 +392,7 @@ describe('Formulas general', () => {
       ]);
 
       expect(() => {
+        // eslint-disable-next-line handsontable/require-await
         setDataAtCell(0, 1, 'test');
       }).not.toThrowError();
     });

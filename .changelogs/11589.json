@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an error being thrown when editing a Autocomplete-typed cells with a long list of choices rendered in a small container.",
+  "type": "fixed",
+  "issueOrPR": 11589,
+  "breaking": false,
+  "framework": "none"
+}

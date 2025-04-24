@@ -12,7 +12,7 @@ describe('Core.getCellMetaAtRow', () => {
     }
   });
 
-  it('should return a row of cell meta in a form of an array', () => {
+  it('should return a row of cell meta in a form of an array', async() => {
     handsontable();
 
     const rowOfMeta = getCellMetaAtRow(0);

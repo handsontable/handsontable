@@ -9,7 +9,7 @@ describe('Walkontable.SharedOrderView', () => {
     return { orderView };
   }
 
-  it('should generate correct DOM structuree', () => {
+  it('should generate correct DOM structuree', async() => {
     const rootNode = document.createElement('tr');
     const { orderView } = createSharedOrderView(rootNode, 'th');
     const { orderView: secondOrderView } = createSharedOrderView(rootNode, 'td');
@@ -41,7 +41,7 @@ describe('Walkontable.SharedOrderView', () => {
       `);
   });
 
-  it('should generate correct DOM structure while decreasing first OrderView size', () => {
+  it('should generate correct DOM structure while decreasing first OrderView size', async() => {
     const rootNode = document.createElement('tr');
     const { orderView } = createSharedOrderView(rootNode, 'th');
     const { orderView: secondOrderView } = createSharedOrderView(rootNode, 'td');
@@ -115,7 +115,7 @@ describe('Walkontable.SharedOrderView', () => {
       `);
   });
 
-  it('should generate correct DOM structure while increasing first OrderView size', () => {
+  it('should generate correct DOM structure while increasing first OrderView size', async() => {
     const rootNode = document.createElement('tr');
     const { orderView } = createSharedOrderView(rootNode, 'th');
     const { orderView: secondOrderView } = createSharedOrderView(rootNode, 'td');
@@ -191,7 +191,7 @@ describe('Walkontable.SharedOrderView', () => {
       `);
   });
 
-  it('should generate correct DOM structure while decreasing last OrderView size', () => {
+  it('should generate correct DOM structure while decreasing last OrderView size', async() => {
     const rootNode = document.createElement('tr');
     const { orderView } = createSharedOrderView(rootNode, 'th');
     const { orderView: secondOrderView } = createSharedOrderView(rootNode, 'td');
@@ -261,7 +261,7 @@ describe('Walkontable.SharedOrderView', () => {
       `);
   });
 
-  it('should generate correct DOM structure while increasing last OrderView size', () => {
+  it('should generate correct DOM structure while increasing last OrderView size', async() => {
     const rootNode = document.createElement('tr');
     const { orderView } = createSharedOrderView(rootNode, 'th');
     const { orderView: secondOrderView } = createSharedOrderView(rootNode, 'td');
@@ -331,7 +331,7 @@ describe('Walkontable.SharedOrderView', () => {
       `);
   });
 
-  it('should reuse already created elements after rerendering the View', () => {
+  it('should reuse already created elements after rerendering the View', async() => {
     const rootNode = document.createElement('div');
     const { orderView } = createSharedOrderView(rootNode, 'p');
     const { orderView: secondOrderView } = createSharedOrderView(rootNode, 'div');

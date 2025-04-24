@@ -12,12 +12,12 @@ export default function undoItem() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_UNDO);
     },
     callback() {
-      this.undo();
+      this.getPlugin('undoRedo').undo();
     },
     hidden() {
-      const undoRedo = this.getPlugin('undoRedo');
+      const undoRedoPlugin = this.getPlugin('undoRedo');
 
-      return !undoRedo || !undoRedo.isEnabled();
+      return !undoRedoPlugin || !undoRedoPlugin.isEnabled();
     },
     disabled() {
       return !this.getPlugin('undoRedo').isUndoAvailable();

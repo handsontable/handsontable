@@ -4425,6 +4425,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *   col: 50,
    *   verticalSnap: 'bottom',
    *   horizontalSnap: 'end',
+   * }, () => {
+   *   // callback function executed after the viewport is scrolled
    * });
    * ```
    *
@@ -4447,9 +4449,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * be positioned at the start or end of the viewport.
    * @param {boolean} [options.considerHiddenIndexes=true] If `true`, we handle visual indexes, otherwise we handle only indexes which
    * may be rendered when they are in the viewport (we don't consider hidden indexes as they aren't rendered).
+   * @param {Function} [callback] The callback function to call after the viewport is scrolled.
    * @returns {boolean} `true` if viewport was scrolled, `false` otherwise.
    */
-  this.scrollViewportTo = function(options) {
+  this.scrollViewportTo = function(options, callback) {
     // Support for backward compatibility arguments: (row, col, snapToBottom, snapToRight, considerHiddenIndexes)
     if (typeof options === 'number') {
       /* eslint-disable prefer-rest-params */
@@ -4466,11 +4469,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     const {
       row,
       col,
-      considerHiddenIndexes
+      considerHiddenIndexes,
     } = options ?? {};
 
     let renderableRow = row;
     let renderableColumn = col;
+
+    if (isFunction(callback)) {
+      this.addHookOnce('afterScroll', callback);
+    }
 
     if (considerHiddenIndexes === undefined || considerHiddenIndexes) {
       const isValidRowGrid = Number.isInteger(row) && row >= 0;
@@ -4491,24 +4498,33 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     const isRowInteger = Number.isInteger(renderableRow);
     const isColumnInteger = Number.isInteger(renderableColumn);
+    let isScrolled = false;
 
     if (isRowInteger && renderableRow >= 0 && isColumnInteger && renderableColumn >= 0) {
-      return instance.view.scrollViewport(
+      isScrolled = instance.view.scrollViewport(
         instance._createCellCoords(renderableRow, renderableColumn),
         options.horizontalSnap,
         options.verticalSnap,
       );
+
+    } else if (isRowInteger && renderableRow >= 0 && (isColumnInteger && renderableColumn < 0 || !isColumnInteger)) {
+      isScrolled = instance.view.scrollViewportVertically(renderableRow, options.verticalSnap);
+
+    } else if (isColumnInteger && renderableColumn >= 0 && (isRowInteger && renderableRow < 0 || !isRowInteger)) {
+      isScrolled = instance.view.scrollViewportHorizontally(renderableColumn, options.horizontalSnap);
     }
 
-    if (isRowInteger && renderableRow >= 0 && (isColumnInteger && renderableColumn < 0 || !isColumnInteger)) {
-      return instance.view.scrollViewportVertically(renderableRow, options.verticalSnap);
+    if (isFunction(callback)) {
+      if (isScrolled) {
+        // fast render triggers `afterScroll` hook
+        this.view.render();
+      } else {
+        this.removeHook('afterScroll', callback);
+        this._registerMicrotask(() => callback());
+      }
     }
 
-    if (isColumnInteger && renderableColumn >= 0 && (isRowInteger && renderableRow < 0 || !isRowInteger)) {
-      return instance.view.scrollViewportHorizontally(renderableColumn, options.horizontalSnap);
-    }
-
-    return false;
+    return isScrolled;
   };
 
   /**
@@ -4518,24 +4534,31 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @fires Hooks#afterScroll
    * @function scrollToFocusedCell
-   * @param {Function} callback The callback function to call after the viewport is scrolled.
+   * @param {Function} [callback] The callback function to call after the viewport is scrolled.
+   * @returns {boolean} `true` if the viewport was scrolled, `false` otherwise.
    */
-  this.scrollToFocusedCell = function(callback = () => {}) {
+  this.scrollToFocusedCell = function(callback) {
     if (!this.selection.isSelected()) {
-      return;
+      return false;
     }
 
-    this.addHookOnce('afterScroll', callback);
+    if (isFunction(callback)) {
+      this.addHookOnce('afterScroll', callback);
+    }
 
     const { highlight } = this.getSelectedRangeLast();
     const isScrolled = this.scrollViewportTo(highlight.toObject());
 
     if (isScrolled) {
+      // fast render triggers `afterScroll` hook
       this.view.render();
-    } else {
+
+    } else if (isFunction(callback)) {
       this.removeHook('afterScroll', callback);
-      this._registerImmediate(() => callback());
+      this._registerMicrotask(() => callback());
     }
+
+    return isScrolled;
   };
 
   /**
@@ -5059,6 +5082,20 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this._clearImmediates = function() {
     arrayEach(this.immediates, (handler) => {
       clearImmediate(handler);
+    });
+  };
+
+  /**
+   * Registers a microtask callback.
+   *
+   * @param {Function} callback Function to be delayed in execution.
+   * @private
+   */
+  this._registerMicrotask = function(callback) {
+    this.rootWindow.queueMicrotask(() => {
+      if (!this.isDestroyed) {
+        callback();
+      }
     });
   };
 

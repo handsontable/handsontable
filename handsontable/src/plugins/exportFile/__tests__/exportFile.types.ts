@@ -15,6 +15,7 @@ const options = {
   exportHiddenColumns: true,
   exportHiddenRows: true,
   range: [1, 1, 6, 6],
+  sanitizeValues: true,
 };
 
 const csvText: string = exportFile.exportAsString('csv');

@@ -22,7 +22,7 @@ describe('UndoRedo -> CreateRow action', () => {
       afterUndo,
     });
 
-    alter('insert_row_above', 1, 2);
+    await alter('insert_row_above', 1, 2);
     getPlugin('undoRedo').undo();
 
     expect(afterUndo).toHaveBeenCalledWith({
@@ -32,7 +32,7 @@ describe('UndoRedo -> CreateRow action', () => {
     });
 
     afterUndo.calls.reset();
-    alter('insert_row_below', 2, 3);
+    await alter('insert_row_below', 2, 3);
     getPlugin('undoRedo').undo();
 
     expect(afterUndo).toHaveBeenCalledWith({

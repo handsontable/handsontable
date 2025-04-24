@@ -13,7 +13,7 @@ describe('Filters keyboard shortcut', () => {
   });
 
   describe('"Alt" + "A"', () => {
-    it('should remove filters condition from all columns (without any selection)', () => {
+    it('should remove filters condition from all columns (without any selection)', async() => {
       handsontable({
         data: getDataForFilters().splice(0, 10),
         rowHeaders: true,
@@ -29,14 +29,14 @@ describe('Filters keyboard shortcut', () => {
       plugin.addCondition(4, 'begins_with', ['green'], 'conjunction');
       plugin.filter();
 
-      listen();
-      keyDownUp(['alt', 'a']);
+      await listen();
+      await keyDownUp(['alt', 'a']);
 
       expect(plugin.conditionCollection.getFilteredColumns().length).toBe(0);
       expect(getSelected()).toBeUndefined();
     });
 
-    it('should remove filters condition from all columns (cell is selected)', () => {
+    it('should remove filters condition from all columns (cell is selected)', async() => {
       handsontable({
         data: getDataForFilters().splice(0, 10),
         rowHeaders: true,
@@ -52,14 +52,14 @@ describe('Filters keyboard shortcut', () => {
       plugin.addCondition(4, 'begins_with', ['green'], 'conjunction');
       plugin.filter();
 
-      selectCell(1, 3);
-      keyDownUp(['alt', 'a']);
+      await selectCell(1, 3);
+      await keyDownUp(['alt', 'a']);
 
       expect(plugin.conditionCollection.getFilteredColumns().length).toBe(0);
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,3 from: 1,3 to: 1,3']);
     });
 
-    it('should remove filters condition from all columns (column header is selected)', () => {
+    it('should remove filters condition from all columns (column header is selected)', async() => {
       handsontable({
         data: getDataForFilters().splice(0, 10),
         rowHeaders: true,
@@ -76,14 +76,14 @@ describe('Filters keyboard shortcut', () => {
       plugin.addCondition(4, 'begins_with', ['green'], 'conjunction');
       plugin.filter();
 
-      selectCell(-1, 3);
-      keyDownUp(['alt', 'a']);
+      await selectCell(-1, 3);
+      await keyDownUp(['alt', 'a']);
 
       expect(plugin.conditionCollection.getFilteredColumns().length).toBe(0);
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,3 from: -1,3 to: -1,3']);
     });
 
-    it('should remove filters condition from all columns (row header is selected)', () => {
+    it('should remove filters condition from all columns (row header is selected)', async() => {
       handsontable({
         data: getDataForFilters().splice(0, 10),
         rowHeaders: true,
@@ -100,14 +100,14 @@ describe('Filters keyboard shortcut', () => {
       plugin.addCondition(4, 'begins_with', ['green'], 'conjunction');
       plugin.filter();
 
-      selectCell(3, -1);
-      keyDownUp(['alt', 'a']);
+      await selectCell(3, -1);
+      await keyDownUp(['alt', 'a']);
 
       expect(plugin.conditionCollection.getFilteredColumns().length).toBe(0);
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,-1 from: 3,-1 to: 3,-1']);
     });
 
-    it('should remove filters condition from all columns (corner is selected)', () => {
+    it('should remove filters condition from all columns (corner is selected)', async() => {
       handsontable({
         data: getDataForFilters().splice(0, 10),
         rowHeaders: true,
@@ -124,8 +124,8 @@ describe('Filters keyboard shortcut', () => {
       plugin.addCondition(4, 'begins_with', ['green'], 'conjunction');
       plugin.filter();
 
-      selectCell(-1, -1);
-      keyDownUp(['alt', 'a']);
+      await selectCell(-1, -1);
+      await keyDownUp(['alt', 'a']);
 
       expect(plugin.conditionCollection.getFilteredColumns().length).toBe(0);
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,-1 from: -1,-1 to: -1,-1']);
@@ -144,14 +144,14 @@ describe('Filters keyboard shortcut', () => {
         navigableHeaders: true,
       });
 
-      dropdownMenu(1);
+      await dropdownMenu(1);
       const initialSelectionState = getSelectedRange();
 
       $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
 
       await sleep(10);
 
-      keyDownUp(['Control/Meta', 'A']);
+      await keyDownUp(['Control/Meta', 'A']);
 
       expect(getPlugin('dropdownMenu').menu.isOpened()).toBe(true);
       expect(getPlugin('filters').components.get('filter_by_condition').elements[0].getMenu().isOpened()).toBe(true);
@@ -177,29 +177,29 @@ describe('Filters keyboard shortcut', () => {
         navigableHeaders: true,
       });
 
-      dropdownMenu(1);
+      await dropdownMenu(1);
 
       document.querySelector('.htUIClearAll a').focus();
 
-      keyDownUp('enter');
+      await keyDownUp('enter');
       await sleep(15);
       expect(countCheckedCheckboxes()).toEqual(0);
 
       document.querySelector('.htUISelectAll a').focus();
 
-      keyDownUp('enter');
+      await keyDownUp('enter');
       await sleep(15);
       expect(countCheckedCheckboxes()).toEqual(10);
 
       document.querySelector('.htUIClearAll a').focus();
 
-      keyDownUp('space');
+      await keyDownUp('space');
       await sleep(15);
       expect(countCheckedCheckboxes()).toEqual(0);
 
       document.querySelector('.htUISelectAll a').focus();
 
-      keyDownUp('space');
+      await keyDownUp('space');
       await sleep(15);
       expect(countCheckedCheckboxes()).toEqual(10);
     });
@@ -220,29 +220,29 @@ describe('Filters keyboard shortcut', () => {
         navigableHeaders: true,
       });
 
-      dropdownMenu(1);
+      await dropdownMenu(1);
 
       document.querySelector('.htUIClearAll a').focus();
 
-      keyDownUp('enter');
+      await keyDownUp('enter');
       await sleep(15);
       expect(countCheckedCheckboxes()).toEqual(0);
 
       document.querySelector('.htUISelectAll a').focus();
 
-      keyDownUp('enter');
+      await keyDownUp('enter');
       await sleep(15);
       expect(countCheckedCheckboxes()).toEqual(8);
 
       document.querySelector('.htUIClearAll a').focus();
 
-      keyDownUp('space');
+      await keyDownUp('space');
       await sleep(15);
       expect(countCheckedCheckboxes()).toEqual(0);
 
       document.querySelector('.htUISelectAll a').focus();
 
-      keyDownUp('space');
+      await keyDownUp('space');
       await sleep(15);
       expect(countCheckedCheckboxes()).toEqual(8);
     });
@@ -263,29 +263,29 @@ describe('Filters keyboard shortcut', () => {
         navigableHeaders: true,
       });
 
-      dropdownMenu(1);
+      await dropdownMenu(1);
 
       document.querySelector('.htUIClearAll a').focus();
 
-      keyDownUp('enter');
+      await keyDownUp('enter');
       await sleep(15);
       expect(countCheckedCheckboxes()).toEqual(0);
 
       document.querySelector('.htUISelectAll a').focus();
 
-      keyDownUp('enter');
+      await keyDownUp('enter');
       await sleep(15);
       expect(countCheckedCheckboxes()).toEqual(8);
 
       document.querySelector('.htUIClearAll a').focus();
 
-      keyDownUp('space');
+      await keyDownUp('space');
       await sleep(15);
       expect(countCheckedCheckboxes()).toEqual(0);
 
       document.querySelector('.htUISelectAll a').focus();
 
-      keyDownUp('space');
+      await keyDownUp('space');
       await sleep(15);
       expect(countCheckedCheckboxes()).toEqual(8);
     });

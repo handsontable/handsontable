@@ -12,151 +12,143 @@ describe('noEditor', () => {
     }
   });
 
-  it('shouldn\'t begin editing when enterBeginsEditing equals true', () => {
+  it('shouldn\'t begin editing when enterBeginsEditing equals true', async() => {
     handsontable({
       enterBeginsEditing: true,
       editor: false
     });
-    selectCell(2, 2);
-    keyDownUp('enter');
+
+    await selectCell(2, 2);
+    await keyDownUp('enter');
 
     expect(getSelected()).toEqual([[2, 2, 2, 2]]);
     expect(isEditorVisible()).toEqual(false);
   });
 
-  it('shouldn\'t move down after editing', () => {
+  it('shouldn\'t move down after editing', async() => {
     handsontable({
       editor: false
     });
-    selectCell(2, 2);
-    keyDownUp('enter');
-    keyDownUp('enter');
+
+    await selectCell(2, 2);
+    await keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(getSelected()).toEqual([[2, 2, 2, 2]]);
   });
 
-  it('shouldn\'t move down when enterBeginsEditing equals false', () => {
+  it('shouldn\'t move down when enterBeginsEditing equals false', async() => {
     handsontable({
       enterBeginsEditing: false,
       editor: false
     });
-    selectCell(2, 2);
-    keyDownUp('enter');
+
+    await selectCell(2, 2);
+    await keyDownUp('enter');
 
     expect(getSelected()).toEqual([[3, 2, 3, 2]]);
     expect(isEditorVisible()).toEqual(false);
   });
 
-  it('shouldn\'t render any value in editor', () => {
+  it('shouldn\'t render any value in editor', async() => {
     handsontable({
       editor: false
     });
-    setDataAtCell(2, 2, 'string');
-    selectCell(2, 2);
-    keyDownUp('enter');
+
+    await setDataAtCell(2, 2, 'string');
+
+    await selectCell(2, 2);
+    await keyDownUp('enter');
 
     expect(keyProxy().length).toEqual(0);
   });
 
-  it('shouldn\'t open editor after hitting F2', () => {
+  it('shouldn\'t open editor after hitting F2', async() => {
     handsontable({
       editor: false
     });
-    selectCell(2, 2);
+
+    await selectCell(2, 2);
 
     expect(isEditorVisible()).toEqual(false);
 
-    keyDownUp('f2');
+    await keyDownUp('f2');
 
     expect(isEditorVisible()).toEqual(false);
   });
 
-  it('shouldn\'t open editor after hitting CapsLock', () => {
+  it('shouldn\'t open editor after hitting CapsLock', async() => {
     handsontable({
       editor: false
     });
-    selectCell(2, 2);
+
+    await selectCell(2, 2);
 
     expect(isEditorVisible()).toEqual(false);
 
-    keyDownUp('capslock');
+    await keyDownUp('capslock');
 
     expect(isEditorVisible()).toEqual(false);
   });
 
-  it('shouldn\'t open editor after double clicking on a cell', (done) => {
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 2),
+  it('shouldn\'t open editor after double clicking on a cell', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 2),
       editor: false
     });
 
     const cell = $(getCell(0, 0));
-    let clicks = 0;
 
-    window.scrollTo(0, cell.offset().top);
+    await mouseDoubleClick(cell);
 
-    setTimeout(() => {
-      mouseDown(cell);
-      mouseUp(cell);
-      clicks += 1;
-    }, 0);
-
-    setTimeout(() => {
-      mouseDown(cell);
-      mouseUp(cell);
-      clicks += 1;
-    }, 100);
-
-    setTimeout(() => {
-      expect(clicks).toBe(2);
-      expect(hot.getActiveEditor()).toBe(undefined);
-      expect(isEditorVisible()).toBe(false);
-      done();
-    }, 200);
+    expect(getActiveEditor()).toBe(undefined);
+    expect(isEditorVisible()).toBe(false);
   });
 
-  it('should not open editor after pressing a printable character', () => {
+  it('should not open editor after pressing a printable character', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(3, 3),
+      data: createSpreadsheetData(3, 3),
       editor: false
     });
-    selectCell(0, 0);
+
+    await selectCell(0, 0);
 
     expect(isEditorVisible()).toBe(false);
 
-    keyDownUp('a');
+    await keyDownUp('a');
 
     expect(isEditorVisible()).toBe(false);
   });
 
-  it('should not open editor after pressing a printable character with shift key', () => {
+  it('should not open editor after pressing a printable character with shift key', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(3, 3),
+      data: createSpreadsheetData(3, 3),
       editor: false
     });
-    selectCell(0, 0);
+
+    await selectCell(0, 0);
 
     expect(isEditorVisible()).toBe(false);
 
-    keyDownUp(['shift', 'a']);
+    await keyDownUp(['shift', 'a']);
 
     expect(isEditorVisible()).toBe(false);
   });
 
-  it('should not not open editor after hitting ALT', () => {
+  it('should not not open editor after hitting ALT', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(4, 4),
+      data: createSpreadsheetData(4, 4),
       editor: false
     });
     expect(getDataAtCell(0, 0)).toEqual('A1');
 
-    selectCell(0, 0);
-    keyDownUp('alt');
+    await selectCell(0, 0);
+    await keyDownUp('alt');
 
     expect(isEditorVisible()).toBe(false);
   });
 
-  it('should blur `activeElement` while preparing the editor to open', () => {
+  it('should blur `activeElement` while preparing the editor to open', async() => {
     const externalInputElement = document.createElement('input');
 
     document.body.appendChild(externalInputElement);
@@ -167,7 +159,8 @@ describe('noEditor', () => {
     });
 
     externalInputElement.select();
-    selectCell(2, 2);
+
+    await selectCell(2, 2);
 
     expect(externalInputElement.blur).toHaveBeenCalled();
     expect(document.activeElement).not.toBe(externalInputElement);

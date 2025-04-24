@@ -14,7 +14,7 @@ describe('Core_alter', () => {
   });
 
   describe('Direction detection', () => {
-    it('When no direction attr, helpers returns isLtr(): true, isRtl(): false, directionFactor(): 1 ', () => {
+    it('When no direction attr, helpers returns isLtr(): true, isRtl(): false, directionFactor(): 1 ', async() => {
       const instance = handsontable();
 
       expect(instance.isLtr()).toBe(true);
@@ -22,7 +22,7 @@ describe('Core_alter', () => {
       expect(instance.getDirectionFactor()).toBe(1);
     });
 
-    it('When direction attr is `ltr`, helpers returns isLtr(): true, isRtl(): false, directionFactor(): 1 ', () => {
+    it('When direction attr is `ltr`, helpers returns isLtr(): true, isRtl(): false, directionFactor(): 1 ', async() => {
       const instance = handsontable();
 
       expect(instance.isLtr()).toBe(true);
@@ -30,7 +30,7 @@ describe('Core_alter', () => {
       expect(instance.getDirectionFactor()).toBe(1);
     });
 
-    it('When direction attr is `rtl`, helpers returns isLtr(): false, isRtl(): true, directionFactor(): -1 ', () => {
+    it('When direction attr is `rtl`, helpers returns isLtr(): false, isRtl(): true, directionFactor(): -1 ', async() => {
       $('html').attr('dir', 'rtl');
 
       const instance = handsontable();

@@ -23,8 +23,8 @@ describe('UndoRedo -> CellAlignment action', () => {
       afterUndo,
     });
 
-    selectCells([[1, 1, 2, 2]]);
-    contextMenu();
+    await selectCells([[1, 1, 2, 2]]);
+    await contextMenu();
 
     await selectContextSubmenuOption('Alignment', 'Right');
 
@@ -43,7 +43,7 @@ describe('UndoRedo -> CellAlignment action', () => {
     });
   });
 
-  it('should undo a sequence of aligning cells', () => {
+  it('should undo a sequence of aligning cells', async() => {
     handsontable({
       data: createSpreadsheetData(9, 9),
       contextMenu: true,
@@ -52,23 +52,23 @@ describe('UndoRedo -> CellAlignment action', () => {
     });
 
     // top 3 rows center
-    selectCell(0, 0, 2, 8);
+    await selectCell(0, 0, 2, 8);
     getPlugin('contextMenu').executeCommand('alignment:center');
 
     // middle 3 rows unchanged - left
 
     // bottom 3 rows right
-    selectCell(6, 0, 8, 8);
+    await selectCell(6, 0, 8, 8);
     getPlugin('contextMenu').executeCommand('alignment:right');
 
     // left 3 columns - middle
-    selectCell(0, 0, 8, 2);
+    await selectCell(0, 0, 8, 2);
     getPlugin('contextMenu').executeCommand('alignment:middle');
 
     // middle 3 columns unchanged - top
 
     // right 3 columns - bottom
-    selectCell(0, 6, 8, 8);
+    await selectCell(0, 6, 8, 8);
     getPlugin('contextMenu').executeCommand('alignment:bottom');
 
     let cellMeta = getCellMeta(0, 0);
@@ -151,7 +151,7 @@ describe('UndoRedo -> CellAlignment action', () => {
     }
   });
 
-  it('should undo/redo row removal with cell meta', () => {
+  it('should undo/redo row removal with cell meta', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       cells(row, column) {
@@ -165,8 +165,8 @@ describe('UndoRedo -> CellAlignment action', () => {
       },
     });
 
-    alter('remove_row', 0, 1);
-    alter('remove_row', 0, 2);
+    await alter('remove_row', 0, 1);
+    await alter('remove_row', 0, 2);
     getPlugin('undoRedo').undo();
     getPlugin('undoRedo').undo();
 
@@ -212,7 +212,7 @@ describe('UndoRedo -> CellAlignment action', () => {
     expect(getCellMeta(2, 4).readOnly).toBe(true);
   });
 
-  it('should undo/redo column removal with cell meta', () => {
+  it('should undo/redo column removal with cell meta', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       cells(row, column) {
@@ -226,8 +226,8 @@ describe('UndoRedo -> CellAlignment action', () => {
       },
     });
 
-    alter('remove_col', 0, 1);
-    alter('remove_col', 0, 2);
+    await alter('remove_col', 0, 1);
+    await alter('remove_col', 0, 2);
     getPlugin('undoRedo').undo();
     getPlugin('undoRedo').undo();
 
@@ -273,13 +273,13 @@ describe('UndoRedo -> CellAlignment action', () => {
     expect(getCellMeta(2, 4).readOnly).toBe(true);
   });
 
-  it('should not throw an error after undoing the row header aligning', () => {
+  it('should not throw an error after undoing the row header aligning', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       contextMenu: true,
     });
 
-    selectRows(1);
+    await selectRows(1);
     getPlugin('contextMenu').executeCommand('alignment:center');
 
     expect(() => {
@@ -287,13 +287,13 @@ describe('UndoRedo -> CellAlignment action', () => {
     }).not.toThrowError();
   });
 
-  it('should not throw an error after undoing the column header aligning', () => {
+  it('should not throw an error after undoing the column header aligning', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       contextMenu: true,
     });
 
-    selectColumns(1);
+    await selectColumns(1);
     getPlugin('contextMenu').executeCommand('alignment:right');
 
     expect(() => {
@@ -301,7 +301,7 @@ describe('UndoRedo -> CellAlignment action', () => {
     }).not.toThrowError();
   });
 
-  it('should redo a sequence of aligning cells', () => {
+  it('should redo a sequence of aligning cells', async() => {
     handsontable({
       data: createSpreadsheetData(9, 9),
       contextMenu: true,
@@ -310,23 +310,23 @@ describe('UndoRedo -> CellAlignment action', () => {
     });
 
     // top 3 rows center
-    selectCell(0, 0, 2, 8);
+    await selectCell(0, 0, 2, 8);
     getPlugin('contextMenu').executeCommand('alignment:center');
 
     // middle 3 rows unchanged - left
 
     // bottom 3 rows right
-    selectCell(6, 0, 8, 8);
+    await selectCell(6, 0, 8, 8);
     getPlugin('contextMenu').executeCommand('alignment:right');
 
     // left 3 columns - middle
-    selectCell(0, 0, 8, 2);
+    await selectCell(0, 0, 8, 2);
     getPlugin('contextMenu').executeCommand('alignment:middle');
 
     // middle 3 columns unchanged - top
 
     // right 3 columns - bottom
-    selectCell(0, 6, 8, 8);
+    await selectCell(0, 6, 8, 8);
     getPlugin('contextMenu').executeCommand('alignment:bottom');
 
     let cellMeta = getCellMeta(0, 0);
@@ -410,13 +410,13 @@ describe('UndoRedo -> CellAlignment action', () => {
     expect(cellMeta.className.indexOf('htRight')).toBeGreaterThan(-1);
   });
 
-  it('should not throw an error after redoing the row header aligning', () => {
+  it('should not throw an error after redoing the row header aligning', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       contextMenu: true,
     });
 
-    selectRows(1);
+    await selectRows(1);
     getPlugin('contextMenu').executeCommand('alignment:center');
     getPlugin('undoRedo').undo();
 
@@ -425,13 +425,13 @@ describe('UndoRedo -> CellAlignment action', () => {
     }).not.toThrowError();
   });
 
-  it('should not throw an error after redoing the column header aligning', () => {
+  it('should not throw an error after redoing the column header aligning', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       contextMenu: true,
     });
 
-    selectColumns(1);
+    await selectColumns(1);
     getPlugin('contextMenu').executeCommand('alignment:right');
     getPlugin('undoRedo').undo();
 

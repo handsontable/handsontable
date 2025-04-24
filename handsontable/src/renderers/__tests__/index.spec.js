@@ -16,7 +16,7 @@ describe('renderers', () => {
     }
   });
 
-  it('should register custom renderer', () => {
+  it('should register custom renderer', async() => {
     registerRenderer('myRenderer', (hot, td, row, col, prop, value) => {
       td.innerHTML = `--${value}--`;
     });
@@ -33,7 +33,7 @@ describe('renderers', () => {
     expect(getCell(0, 0).innerHTML).toBe('--1--');
   });
 
-  it('should retrieve predefined renderers by its names', () => {
+  it('should retrieve predefined renderers by its names', async() => {
     expect(getRenderer('autocomplete')).toBeFunction();
     expect(getRenderer('base')).toBeFunction();
     expect(getRenderer('checkbox')).toBeFunction();
@@ -43,13 +43,13 @@ describe('renderers', () => {
     expect(getRenderer('text')).toBeFunction();
   });
 
-  it('should return the original renderer function when it was passed directly to the getter', () => {
+  it('should return the original renderer function when it was passed directly to the getter', async() => {
     const myRenderer = () => {};
 
     expect(getRenderer(myRenderer)).toBe(myRenderer);
   });
 
-  it('should retrieve custom renderer by its names', () => {
+  it('should retrieve custom renderer by its names', async() => {
     const spy = jasmine.createSpy();
 
     registerRenderer('myRenderer', spy);

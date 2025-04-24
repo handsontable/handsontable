@@ -10,8 +10,8 @@ describe('Filters UI cooperation with UndoRedo', () => {
     }
   });
 
-  it('should undo previously added filters', () => {
-    const hot = handsontable({
+  it('should undo previously added filters', async() => {
+    handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
       dropdownMenu: true,
@@ -19,7 +19,7 @@ describe('Filters UI cooperation with UndoRedo', () => {
       width: 500,
       height: 300
     });
-    const plugin = hot.getPlugin('filters');
+    const plugin = getPlugin('filters');
 
     plugin.addCondition(0, 'gt', [3]);
     plugin.filter();
@@ -43,8 +43,8 @@ describe('Filters UI cooperation with UndoRedo', () => {
     expect(getData().length).toEqual(39);
   });
 
-  it('should redo previously reverted filters', () => {
-    const hot = handsontable({
+  it('should redo previously reverted filters', async() => {
+    handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
       dropdownMenu: true,
@@ -52,7 +52,7 @@ describe('Filters UI cooperation with UndoRedo', () => {
       width: 500,
       height: 300
     });
-    const plugin = hot.getPlugin('filters');
+    const plugin = getPlugin('filters');
 
     plugin.addCondition(0, 'gt', [3]);
     plugin.filter();
@@ -90,31 +90,31 @@ describe('Filters UI cooperation with UndoRedo', () => {
       height: 300
     });
 
-    dropdownMenu(1);
-    openDropdownByConditionMenu();
-    selectDropdownByConditionMenuOption('Begins with');
+    await dropdownMenu(1);
+    await openDropdownByConditionMenu();
+    await selectDropdownByConditionMenuOption('Begins with');
 
     await sleep(20);
     document.activeElement.value = 'R';
-    keyUp('R');
+    await keyUp('R');
 
     $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
     expect(getData().length).toEqual(2);
 
-    setDataAtCell(0, 1, `${getDataAtCell(0, 1)}!`);
-    setDataAtCell(1, 1, `${getDataAtCell(1, 1)}!`);
+    await setDataAtCell(0, 1, `${getDataAtCell(0, 1)}!`);
+    await setDataAtCell(1, 1, `${getDataAtCell(1, 1)}!`);
 
     expect(getDataAtCell(0, 1).includes('!')).toBe(true);
     expect(getDataAtCell(1, 1).includes('!')).toBe(true);
 
-    dropdownMenu(1);
-    openDropdownByConditionMenu();
-    selectDropdownByConditionMenuOption('Begins with');
+    await dropdownMenu(1);
+    await openDropdownByConditionMenu();
+    await selectDropdownByConditionMenuOption('Begins with');
 
     await sleep(20);
     document.activeElement.value = '';
-    keyUp('Backspace');
+    await keyUp('Backspace');
 
     $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
@@ -149,8 +149,8 @@ describe('Filters UI cooperation with UndoRedo', () => {
     expect(getDataAtCell(33, 1).includes('!')).toBe(false);
   });
 
-  it('should undo and redo previously added filters with changed data between conditions (#dev-2079)', () => {
-    const hot = handsontable({
+  it('should undo and redo previously added filters with changed data between conditions (#dev-2079)', async() => {
+    handsontable({
       data: getDataForFilters().splice(0, 5),
       columns: getColumnsForFilters().splice(0, 3),
       dropdownMenu: true,
@@ -159,12 +159,12 @@ describe('Filters UI cooperation with UndoRedo', () => {
       height: 300
     });
     const undoPlugin = getPlugin('undoRedo');
-    const filtersPlugin = hot.getPlugin('filters');
+    const filtersPlugin = getPlugin('filters');
 
     filtersPlugin.addCondition(2, 'by_value', [['Gardiner']]);
     filtersPlugin.filter();
 
-    setDataAtCell(0, 2, null);
+    await setDataAtCell(0, 2, null);
 
     filtersPlugin.removeConditions(2);
     filtersPlugin.filter();

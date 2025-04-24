@@ -2,7 +2,7 @@ import { ViewDiffer } from 'walkontable/utils/orderView/viewDiffer';
 import { ViewSizeSet } from 'walkontable/utils/orderView/viewSizeSet';
 
 describe('ViewDiffer', () => {
-  it('should generate leads filled with "append" type when previous order wasn\'t exist', () => {
+  it('should generate leads filled with "append" type when previous order wasn\'t exist', async() => {
     const sizeSet = new ViewSizeSet();
     const differ = new ViewDiffer(sizeSet);
 
@@ -19,7 +19,7 @@ describe('ViewDiffer', () => {
     ]);
   });
 
-  it('should generate leads filled with "append" type when next order is longer than previous', () => {
+  it('should generate leads filled with "append" type when next order is longer than previous', async() => {
     const sizeSet = new ViewSizeSet();
     const differ = new ViewDiffer(sizeSet);
 
@@ -38,7 +38,7 @@ describe('ViewDiffer', () => {
     ]);
   });
 
-  it('should generate leads filled with "remove" type when next order is shorter than previous', () => {
+  it('should generate leads filled with "remove" type when next order is shorter than previous', async() => {
     const sizeSet = new ViewSizeSet();
     const differ = new ViewDiffer(sizeSet);
 
@@ -58,7 +58,7 @@ describe('ViewDiffer', () => {
   });
 
   describe('scroll down emulation', () => {
-    it('should generate correct leads when a new order is shifted by 1 step down according to the previous order', () => {
+    it('should generate correct leads when a new order is shifted by 1 step down according to the previous order', async() => {
       const sizeSet = new ViewSizeSet();
       const differ = new ViewDiffer(sizeSet);
 
@@ -77,7 +77,7 @@ describe('ViewDiffer', () => {
       ]);
     });
 
-    it('should generate correct leads when a new order is shifted by 3 steps down according to the previous order', () => {
+    it('should generate correct leads when a new order is shifted by 3 steps down according to the previous order', async() => {
       const sizeSet = new ViewSizeSet();
       const differ = new ViewDiffer(sizeSet);
 
@@ -96,7 +96,7 @@ describe('ViewDiffer', () => {
       ]);
     });
 
-    it('should generate correct leads when a new order is shifted by 5 steps down according to the previous order', () => {
+    it('should generate correct leads when a new order is shifted by 5 steps down according to the previous order', async() => {
       const sizeSet = new ViewSizeSet();
       const differ = new ViewDiffer(sizeSet);
 
@@ -115,7 +115,7 @@ describe('ViewDiffer', () => {
       ]);
     });
 
-    it('should generate correct leads when a new order is shifted by 10 steps down according to the previous order', () => {
+    it('should generate correct leads when a new order is shifted by 10 steps down according to the previous order', async() => {
       const sizeSet = new ViewSizeSet();
       const differ = new ViewDiffer(sizeSet);
 
@@ -134,7 +134,7 @@ describe('ViewDiffer', () => {
       ]);
     });
 
-    it('should generate correct leads when a new order is shifted by 3 steps down and is longer (by 4 items) according to the previous order', () => {
+    it('should generate correct leads when a new order is shifted by 3 steps down and is longer (by 4 items) according to the previous order', async() => {
       const sizeSet = new ViewSizeSet();
       const differ = new ViewDiffer(sizeSet);
 
@@ -157,7 +157,7 @@ describe('ViewDiffer', () => {
       ]);
     });
 
-    it('should generate correct leads when a new order is shifted by 7 steps down and is longer (by 2 items) according to the previous order', () => {
+    it('should generate correct leads when a new order is shifted by 7 steps down and is longer (by 2 items) according to the previous order', async() => {
       const sizeSet = new ViewSizeSet();
       const differ = new ViewDiffer(sizeSet);
 
@@ -178,7 +178,7 @@ describe('ViewDiffer', () => {
       ]);
     });
 
-    it('should generate correct leads when a new order is shifted by 3 steps down and is shorter (by 3 items) according to the previous order', () => {
+    it('should generate correct leads when a new order is shifted by 3 steps down and is shorter (by 3 items) according to the previous order', async() => {
       const sizeSet = new ViewSizeSet();
       const differ = new ViewDiffer(sizeSet);
 
@@ -194,7 +194,7 @@ describe('ViewDiffer', () => {
       ]);
     });
 
-    it('should generate correct leads when a new order is shifted by 30 steps down and is shorter (3 items) according to the previous order', () => {
+    it('should generate correct leads when a new order is shifted by 30 steps down and is shorter (3 items) according to the previous order', async() => {
       const sizeSet = new ViewSizeSet();
       const differ = new ViewDiffer(sizeSet);
 
@@ -214,7 +214,7 @@ describe('ViewDiffer', () => {
     });
 
     it(`should generate correct leads when a new order is shifted by 2 steps down, is shorter (by 1 item) according to the previous order
-        (force generating "replace" and "append" types)`, () => {
+        (force generating "replace" and "append" types)`, async() => {
       const sizeSet = new ViewSizeSet();
       const differ = new ViewDiffer(sizeSet);
 
@@ -237,7 +237,7 @@ describe('ViewDiffer', () => {
   });
 
   describe('scroll up emulation', () => {
-    it('should generate correct leads when a new order is shifted by 1 step up according to the previous order', () => {
+    it('should generate correct leads when a new order is shifted by 1 step up according to the previous order', async() => {
       const sizeSet = new ViewSizeSet();
       const differ = new ViewDiffer(sizeSet);
 
@@ -256,7 +256,7 @@ describe('ViewDiffer', () => {
       ]);
     });
 
-    it('should generate correct leads when a new order is shifted by 3 steps up according to the previous order', () => {
+    it('should generate correct leads when a new order is shifted by 3 steps up according to the previous order', async() => {
       const sizeSet = new ViewSizeSet();
       const differ = new ViewDiffer(sizeSet);
 
@@ -275,7 +275,7 @@ describe('ViewDiffer', () => {
       ]);
     });
 
-    it('should generate correct leads when a new order is shifted by 5 steps up according to the previous order', () => {
+    it('should generate correct leads when a new order is shifted by 5 steps up according to the previous order', async() => {
       const sizeSet = new ViewSizeSet();
       const differ = new ViewDiffer(sizeSet);
 
@@ -294,7 +294,7 @@ describe('ViewDiffer', () => {
       ]);
     });
 
-    it('should generate correct leads when a new order is shifted by 10 steps up according to the previous order', () => {
+    it('should generate correct leads when a new order is shifted by 10 steps up according to the previous order', async() => {
       const sizeSet = new ViewSizeSet();
       const differ = new ViewDiffer(sizeSet);
 
@@ -313,7 +313,7 @@ describe('ViewDiffer', () => {
       ]);
     });
 
-    it('should generate correct leads when a new order is shifted by 3 steps up and is longer (by 2 items) according to the previous order', () => {
+    it('should generate correct leads when a new order is shifted by 3 steps up and is longer (by 2 items) according to the previous order', async() => {
       const sizeSet = new ViewSizeSet();
       const differ = new ViewDiffer(sizeSet);
 
@@ -334,7 +334,7 @@ describe('ViewDiffer', () => {
       ]);
     });
 
-    it('should generate correct leads when a new order is shifted by 7 steps up and is longer (by 2 items) according to the previous order', () => {
+    it('should generate correct leads when a new order is shifted by 7 steps up and is longer (by 2 items) according to the previous order', async() => {
       const sizeSet = new ViewSizeSet();
       const differ = new ViewDiffer(sizeSet);
 
@@ -355,7 +355,7 @@ describe('ViewDiffer', () => {
       ]);
     });
 
-    it('should generate correct leads when a new order is shifted by 3 steps up and is shorter (by 4 items) according to the previous order', () => {
+    it('should generate correct leads when a new order is shifted by 3 steps up and is shorter (by 4 items) according to the previous order', async() => {
       {
         const sizeSet = new ViewSizeSet();
         const differ = new ViewDiffer(sizeSet);
@@ -393,7 +393,7 @@ describe('ViewDiffer', () => {
       }
     });
 
-    it('should generate correct leads when a new order is shifted by 20 steps up and is shorter (by 3 items) according to the previous order', () => {
+    it('should generate correct leads when a new order is shifted by 20 steps up and is shorter (by 3 items) according to the previous order', async() => {
       const sizeSet = new ViewSizeSet();
       const differ = new ViewDiffer(sizeSet);
 
@@ -418,7 +418,7 @@ describe('ViewDiffer', () => {
   // order (TD elements) and different for row headers (TH elements) these classes share one
   // root node and for them different commands should be generated.
   describe('shared root node emulation (shared view size)', () => {
-    it('should generate "prepend" leads for TH elements', () => {
+    it('should generate "prepend" leads for TH elements', async() => {
       const sizeSetTD = new ViewSizeSet();
       const sizeSetTH = new ViewSizeSet();
       const differTD = new ViewDiffer(sizeSetTD);
@@ -459,7 +459,7 @@ describe('ViewDiffer', () => {
       ]);
     });
 
-    it('should generate "remove" leads for TH elements', () => {
+    it('should generate "remove" leads for TH elements', async() => {
       const sizeSetTD = new ViewSizeSet();
       const sizeSetTH = new ViewSizeSet();
       const differTD = new ViewDiffer(sizeSetTD);

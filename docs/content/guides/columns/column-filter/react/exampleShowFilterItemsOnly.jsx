@@ -97,11 +97,7 @@ const ExampleComponent = () => {
       // enable filtering
       filters={true}
       // enable the column menu, but display only the filter menu items
-      dropdownMenu={[
-        'filter_by_condition',
-        'filter_by_value',
-        'filter_action_bar',
-      ]}
+      dropdownMenu={['filter_by_condition', 'filter_by_value', 'filter_action_bar']}
       height="auto"
       autoWrapRow={true}
       autoWrapCol={true}

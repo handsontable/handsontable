@@ -45,7 +45,7 @@ describe('Formulas memory leak check', () => {
     }
   });
 
-  it('should detach listeners from the engine after table destroying (one shared HF instances)', () => {
+  it('should detach listeners from the engine after table destroying (one shared HF instances)', async() => {
     const hfInstance1 = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
     const hot1 = handsontable({
       data: [['foo'], ['Sheet2!A1']],
@@ -87,7 +87,7 @@ describe('Formulas memory leak check', () => {
     expect(internalEvents).toEqual({});
   });
 
-  it('should detach listeners from the engine after table destroying (HF as class)', () => {
+  it('should detach listeners from the engine after table destroying (HF as class)', async() => {
     const hot1 = handsontable({
       data: [['foo'], ['Sheet2!A1']],
       formulas: {
@@ -132,7 +132,7 @@ describe('Formulas memory leak check', () => {
     expect(internalEvents.sheetRemoved.length).toBe(1);
   });
 
-  it('should detach listeners from the engine after disabling the plugin (one shared HF instances)', () => {
+  it('should detach listeners from the engine after disabling the plugin (one shared HF instances)', async() => {
     const hfInstance1 = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
     const hot1 = handsontable({
       data: [['foo'], ['Sheet2!A1']],
@@ -184,7 +184,7 @@ describe('Formulas memory leak check', () => {
     expect(internalEvents.valuesUpdated.length).toBe(1);
   });
 
-  it('should detach listeners from the engine after disabling the plugin (HF as class)', () => {
+  it('should detach listeners from the engine after disabling the plugin (HF as class)', async() => {
     const hot1 = handsontable({
       data: [['foo'], ['Sheet2!A1']],
       formulas: {

@@ -23,9 +23,9 @@ describe('CollapsibleColumns', () => {
   });
 
   describe('selection', () => {
-    it('should active highlight column header for collapsed column', () => {
+    it('should active highlight column header for collapsed column', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 10),
+        data: createSpreadsheetData(5, 10),
         nestedHeaders: [
           [{ label: 'A1', colspan: 9 }, 'J1'],
           ['A2', { label: 'B2', colspan: 4 }, { label: 'F2', colspan: 4 }, 'J2'],
@@ -158,9 +158,9 @@ describe('CollapsibleColumns', () => {
       ]);
     });
 
-    it('should active highlight column header for non-contiguous selection of the collapsed columns', () => {
+    it('should active highlight column header for non-contiguous selection of the collapsed columns', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 10),
+        data: createSpreadsheetData(5, 10),
         nestedHeaders: [
           ['A1', { label: 'B1', colspan: 8 }, 'J1', { label: 'K1', colspan: 3 }],
           ['A2', { label: 'B2', colspan: 8 }, 'J2', { label: 'K2', colspan: 3 }],
@@ -172,16 +172,16 @@ describe('CollapsibleColumns', () => {
         collapsibleColumns: true
       });
 
-      simulateClick(getCell(-2, 7)); // Select header "H4"
-      simulateClick(getCell(-2, 7).querySelector('.collapsibleIndicator')); // Collapse header "H4"
+      await simulateClick(getCell(-2, 7)); // Select header "H4"
+      await simulateClick(getCell(-2, 7).querySelector('.collapsibleIndicator')); // Collapse header "H4"
 
-      keyDown('control/meta');
+      await keyDown('control/meta');
 
-      simulateClick(getCell(-1, 5)); // Select header "F5"
-      simulateClick(getCell(-2, 1).querySelector('.collapsibleIndicator')); // Collapse header "B4"
-      simulateClick(getCell(-2, 3)); // Select header "D4"
+      await simulateClick(getCell(-1, 5)); // Select header "F5"
+      await simulateClick(getCell(-2, 1).querySelector('.collapsibleIndicator')); // Collapse header "B4"
+      await simulateClick(getCell(-2, 3)); // Select header "D4"
 
-      keyUp('control/meta');
+      await keyUp('control/meta');
 
       expect(`
         |   :                       :   |
@@ -202,7 +202,7 @@ describe('CollapsibleColumns', () => {
         'highlight: 0,3 from: -2,3 to: 4,4', // D4
       ]);
 
-      simulateClick(getCell(-4, 1).querySelector('.collapsibleIndicator')); // Collapse header "B1"
+      await simulateClick(getCell(-4, 1).querySelector('.collapsibleIndicator')); // Collapse header "B1"
 
       expect(`
         |   :           :   |
@@ -224,9 +224,9 @@ describe('CollapsibleColumns', () => {
       ]);
     });
 
-    it('should active highlight the column header when the header is collapsed to the same colspan width as its child', () => {
+    it('should active highlight the column header when the header is collapsed to the same colspan width as its child', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 10),
+        data: createSpreadsheetData(5, 10),
         nestedHeaders: [
           [{ label: 'A1', colspan: 10 }],
           ['A2', { label: 'B2', colspan: 4 }, { label: 'F2', colspan: 4 }, 'J2'],
@@ -298,7 +298,7 @@ describe('CollapsibleColumns', () => {
     });
 
     it('should highlight the whole column when the API is called with indexes that points to the columns ' +
-        'in-between the nested header', () => {
+        'in-between the nested header', async() => {
       handsontable({
         data: createSpreadsheetData(3, 10),
         colHeaders: true,
@@ -310,7 +310,7 @@ describe('CollapsibleColumns', () => {
         collapsibleColumns: true,
       });
 
-      selectColumns(2);
+      await selectColumns(2);
       $(getCell(-1, 2).querySelector('.collapsibleIndicator')) // Collapse header "C3"
         .simulate('mousedown')
         .simulate('mouseup')
@@ -327,7 +327,7 @@ describe('CollapsibleColumns', () => {
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: -1,2 to: 2,4']);
 
-      selectColumns(3);
+      await selectColumns(3);
 
       expect(`
         |   :           :   :   :   :   |
@@ -340,7 +340,7 @@ describe('CollapsibleColumns', () => {
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: -1,2 to: 2,4']);
 
-      selectColumns(4);
+      await selectColumns(4);
 
       expect(`
         |   :           :   :   :   :   |
@@ -354,7 +354,7 @@ describe('CollapsibleColumns', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: -1,2 to: 2,4']);
     });
 
-    it('should highlight the whole collapsed column when "Ctrl" + "Space" keyboard shortcuts are pressed', () => {
+    it('should highlight the whole collapsed column when "Ctrl" + "Space" keyboard shortcuts are pressed', async() => {
       handsontable({
         data: createSpreadsheetData(3, 10),
         colHeaders: true,
@@ -371,8 +371,8 @@ describe('CollapsibleColumns', () => {
         .simulate('mouseup')
         .simulate('click');
 
-      selectCell(2, 2);
-      keyDownUp(['control', 'space']);
+      await selectCell(2, 2);
+      await keyDownUp(['control', 'space']);
 
       expect(`
         |   :           :   :   :   :   |
@@ -386,7 +386,7 @@ describe('CollapsibleColumns', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: -1,2 to: 2,4']);
     });
 
-    it('should move focus to the nearest right column after collapsing (single cell selection)', () => {
+    it('should move focus to the nearest right column after collapsing (single cell selection)', async() => {
       handsontable({
         data: createSpreadsheetData(3, 10),
         colHeaders: true,
@@ -398,7 +398,8 @@ describe('CollapsibleColumns', () => {
         collapsibleColumns: true,
       });
 
-      selectCell(1, 3);
+      await selectCell(1, 3);
+
       $(getCell(-1, 2).querySelector('.collapsibleIndicator')) // Collapse header "C3"
         .simulate('mousedown')
         .simulate('mouseup')
@@ -432,7 +433,7 @@ describe('CollapsibleColumns', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,5 from: 1,5 to: 1,5']);
     });
 
-    it('should move focus to the nearest right column after collapsing (multiple selection)', () => {
+    it('should move focus to the nearest right column after collapsing (multiple selection)', async() => {
       handsontable({
         data: createSpreadsheetData(3, 10),
         colHeaders: true,
@@ -444,7 +445,8 @@ describe('CollapsibleColumns', () => {
         collapsibleColumns: true,
       });
 
-      selectCell(2, 4, 1, 3);
+      await selectCell(2, 4, 1, 3);
+
       $(getCell(-1, 2).querySelector('.collapsibleIndicator')) // Collapse header "C3"
         .simulate('mousedown')
         .simulate('mouseup')
@@ -478,7 +480,7 @@ describe('CollapsibleColumns', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,5 from: 2,5 to: 2,5']);
     });
 
-    it('should move focus to the nearest right column after collapsing (column header selection)', () => {
+    it('should move focus to the nearest right column after collapsing (column header selection)', async() => {
       handsontable({
         data: createSpreadsheetData(3, 10),
         colHeaders: true,
@@ -491,7 +493,8 @@ describe('CollapsibleColumns', () => {
         navigableHeaders: true,
       });
 
-      selectColumns(2, 2, -1);
+      await selectColumns(2, 2, -1);
+
       $(getCell(-2, 1).querySelector('.collapsibleIndicator')) // Collapse header "B2"
         .simulate('mousedown')
         .simulate('mouseup')
@@ -525,7 +528,7 @@ describe('CollapsibleColumns', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,5 from: -1,5 to: -1,5']);
     });
 
-    it('should move focus to the nearest left column when there is no column visible on the right after collapsing', () => {
+    it('should move focus to the nearest left column when there is no column visible on the right after collapsing', async() => {
       handsontable({
         data: createSpreadsheetData(3, 10),
         colHeaders: true,
@@ -544,9 +547,9 @@ describe('CollapsibleColumns', () => {
       columnMapper.setValueAtIndex(8, true);
       columnMapper.setValueAtIndex(9, true);
 
-      render();
+      await render();
 
-      selectCell(1, 3, 2, 5);
+      await selectCell(1, 3, 2, 5);
       $(getCell(-3, 1).querySelector('.collapsibleIndicator')) // Collapse header "B1"
         .simulate('mousedown')
         .simulate('mouseup')
