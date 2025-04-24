@@ -410,7 +410,7 @@ export class AutocompleteEditor extends HandsontableEditor {
   #fixDropdownWidth() {
     if (this.htEditor.view.hasVerticalScroll()) {
       this.htEditor.updateSettings({
-        width: this.getWidth() + getScrollbarWidth(this.hot.rootDocument),
+        width: this.getTargetEditorWidth() + getScrollbarWidth(this.hot.rootDocument),
       });
     }
   }
@@ -422,8 +422,8 @@ export class AutocompleteEditor extends HandsontableEditor {
    */
   updateDropdownDimensions() {
     this.htEditor.updateSettings({
-      width: this.calculateEditorWidth(),
-      height: this.calculateEditorHeight(),
+      width: this.getTargetEditorWidth(),
+      height: this.getTargetEditorHeight(),
     });
 
     this.#fixDropdownWidth();
@@ -465,26 +465,45 @@ export class AutocompleteEditor extends HandsontableEditor {
    * @private
    * @returns {number}
    */
-  calculateEditorHeight() {
+  getTargetEditorHeight() {
+    let borderVerticalCompensation = 0;
+
+    if (!this.hot.getCurrentThemeName()) {
+      const containerStyle = this.hot.rootWindow.getComputedStyle(this.htContainer.querySelector('.htCore'));
+
+      borderVerticalCompensation = parseInt(containerStyle.borderTopWidth, 10) +
+        parseInt(containerStyle.borderBottomWidth, 10);
+    }
+
     const maxItems = Math.min(this.cellProperties.visibleRows, this.strippedChoices.length);
     const height = Array.from({ length: maxItems }, (_, i) => i)
       .reduce((totalHeight, index) => {
+        // for the first row, we need to add 1px (border-top compensation)
         const rowHeight = this.htEditor.view.getDefaultRowHeight() + (index === 0 ? 1 : 0);
 
         return totalHeight + rowHeight;
       }, 0);
 
-    return height;
+    return height + borderVerticalCompensation;
   }
 
   /**
-   * Calculates and return the internal Handsontable's width.
+   * Calculates the proposed editor width that should be set once the editor is opened.
+   * The method may be overwritten in the child class to provide a custom logic.
    *
-   * @private
    * @returns {number}
    */
-  calculateEditorWidth() {
-    return this.htEditor.getColWidth(0);
+  getTargetEditorWidth() {
+    let borderHorizontalCompensation = 0;
+
+    if (!this.hot.getCurrentThemeName()) {
+      const containerStyle = this.hot.rootWindow.getComputedStyle(this.htContainer.querySelector('.htCore'));
+
+      borderHorizontalCompensation = parseInt(containerStyle.borderInlineStartWidth, 10) +
+        parseInt(containerStyle.borderInlineEndWidth, 10);
+    }
+
+    return this.htEditor.getColWidth(0) + borderHorizontalCompensation;
   }
 
   /**

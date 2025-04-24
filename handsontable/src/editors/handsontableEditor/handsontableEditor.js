@@ -67,8 +67,8 @@ export class HandsontableEditor extends TextEditor {
     setCaretPosition(this.TEXTAREA, 0, this.TEXTAREA.value.length);
 
     this.htEditor.updateSettings({
-      width: this.calculateEditorWidth(),
-      height: this.calculateEditorHeight(),
+      width: this.getTargetEditorWidth(),
+      height: this.getTargetEditorHeight(),
     });
 
     this.refreshDimensions();
@@ -207,9 +207,9 @@ export class HandsontableEditor extends TextEditor {
       spaceAbove = Math.max(spaceAbove + topOffset, 0);
     }
 
-    const workspaceHeight = view.getWorkspaceHeight();
-    const spaceBelow = workspaceHeight - spaceAbove - cellRect.height;
-    const flipNeeded = spaceBelow < this.getHeight() && spaceAbove > this.getHeight();
+    const dropdownTargetHeight = this.getTargetEditorHeight();
+    const spaceBelow = view.getWorkspaceHeight() - spaceAbove - cellRect.height;
+    const flipNeeded = dropdownTargetHeight > spaceBelow && spaceAbove > spaceBelow + cellRect.height;
 
     if (flipNeeded) {
       this.flipEditorVertically();
@@ -271,9 +271,9 @@ export class HandsontableEditor extends TextEditor {
       spaceInlineStart = Math.max(spaceInlineStart + inlineStartOffset, 0);
     }
 
-    const workspaceWidth = view.getWorkspaceWidth();
-    const spaceInlineEnd = workspaceWidth - spaceInlineStart + cellRect.width;
-    const flipNeeded = spaceInlineEnd < this.getWidth() && spaceInlineStart > this.getWidth();
+    const dropdownTargetWidth = this.getTargetEditorWidth();
+    const spaceInlineEnd = view.getWorkspaceWidth() - spaceInlineStart + cellRect.width;
+    const flipNeeded = dropdownTargetWidth > spaceInlineEnd && spaceInlineStart > spaceInlineEnd;
 
     if (flipNeeded) {
       this.flipEditorHorizontally();
@@ -338,22 +338,22 @@ export class HandsontableEditor extends TextEditor {
   }
 
   /**
-   * Calculates the proposed editor width that should be set once the editor is opened.
-   * The method may be overwritten in the child class to provide a custom logic.
+   * Calculates the proposed/target editor width that should be set once the editor is opened.
+   * The method may be overwritten in the child class to provide a custom size logic.
    *
    * @returns {number}
    */
-  calculateEditorWidth() {
+  getTargetEditorWidth() {
     return this.htEditor.view.getTableWidth();
   }
 
   /**
-   * Calculates the proposed editor height that should be set once the editor is opened.
-   * The method may be overwritten in the child class to provide a custom logic.
+   * Calculates the proposed/target editor height that should be set once the editor is opened.
+   * The method may be overwritten in the child class to provide a custom size logic.
    *
    * @returns {number}
    */
-  calculateEditorHeight() {
+  getTargetEditorHeight() {
     return this.htEditor.view.getTableHeight() + 1;
   }
 
