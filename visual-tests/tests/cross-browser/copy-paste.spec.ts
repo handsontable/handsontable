@@ -11,8 +11,8 @@ test('Copy between tables', async({ goto, tablePage, browserName }) => {
 
   await goto('/two-tables-demo');
 
-  const tableTop = tablePage.locator('#tableTop > .handsontable');
-  const tableBottom = tablePage.locator('#tableBottom > .handsontable');
+  const tableTop = tablePage.locator('#tableTop .ht-wrapper > .handsontable');
+  const tableBottom = tablePage.locator('#tableBottom .ht-wrapper > .handsontable');
 
   await tableTop.waitFor();
   await tableBottom.waitFor();
@@ -43,7 +43,7 @@ test('Copy/Paste/Cut inside table', async({ goto, tablePage, browserName }) => {
 
   await goto('/two-tables-demo');
 
-  const tableTop = tablePage.locator('#tableTop > .handsontable');
+  const tableTop = tablePage.locator('#tableTop .ht-wrapper > .handsontable');
 
   await tableTop.waitFor();
 
@@ -116,7 +116,7 @@ test('Cut and paste data in a scrolled table', async({ goto, tablePage, browserN
 
   await goto('/large-dataset-demo');
 
-  const table = tablePage.locator('#root > .ht-wrapper > .handsontable');
+  const table = tablePage.locator('#root .ht-wrapper > .handsontable');
   const scrollableElement = table.locator('.ht_master .wtHolder');
   let sourceCell = await selectCell(1, 1, table);
 
