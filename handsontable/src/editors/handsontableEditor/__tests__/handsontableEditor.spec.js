@@ -21,6 +21,8 @@ describe('HandsontableEditor', () => {
     ];
   }
 
+  // all other E2E tests are moved to visual tests. See ./visual-tests/tests/js-only/editors/handsontable/
+
   it('should render an editor in specified position at cell 0, 0', async() => {
     handsontable({
       columns: [
@@ -338,26 +340,6 @@ describe('HandsontableEditor', () => {
     await keyDownUp('enter');
 
     expect(spec().$container.find('.handsontableEditor:visible').length).toEqual(1);
-  });
-
-  it('should create an editor directly below the textarea element', async() => {
-    handsontable({
-      columns: [
-        {
-          type: 'handsontable',
-          handsontable: {
-            colHeaders: ['Marque', 'Country', 'Parent company'],
-            data: getManufacturerData()
-          }
-        }
-      ]
-    });
-
-    await selectCell(2, 0);
-    await keyDownUp('enter');
-
-    expect(spec().$container.find('.handsontableEditor')[0].offsetTop)
-      .toEqual(spec().$container.find('.handsontableInput')[0].offsetHeight);
   });
 
   it('should prepare the editor only once per instance', async() => {
