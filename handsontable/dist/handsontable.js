@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 15.3.0
- * Release date: 29/04/2025 (built at 24/04/2025 10:42:37)
+ * Release date: 29/04/2025 (built at 24/04/2025 10:59:02)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -104,7 +104,7 @@ Handsontable.hooks = _hooks.Hooks.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "24/04/2025 10:42:37";
+Handsontable.buildDate = "24/04/2025 10:59:02";
 Handsontable.version = "15.3.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
