@@ -8,9 +8,8 @@ describe('Core_validate', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
+      this.$container.remove();
     }
-
-    $('body').find(`#${id}`).remove();
   });
 
   const arrayOfObjects = function() {
@@ -42,7 +41,7 @@ describe('Core_validate', () => {
     await sleep(100);
 
     destroy();
-    $('body').find(`#${id}`).remove();
+    spec().$container.remove();
 
     expect(() => { validatorCallback(false); }).not.toThrow();
     expect(validatorCallback(false)).toBe(undefined);

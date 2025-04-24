@@ -8,9 +8,8 @@ describe('Core_onKeyDown', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
+      this.$container.remove();
     }
-
-    $('body').find(`#${id}`).remove();
   });
 
   it('should advance to next cell when TAB is pressed', async() => {

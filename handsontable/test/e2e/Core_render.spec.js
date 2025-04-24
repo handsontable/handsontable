@@ -8,9 +8,8 @@ describe('Core_render', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
+      this.$container.remove();
     }
-
-    $('body').find(`#${id}`).remove();
   });
 
   it('all cells should get green background', async() => {

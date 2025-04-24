@@ -8,9 +8,8 @@ describe('Core_destroyEditor', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
+      this.$container.remove();
     }
-
-    $('body').find(`#${id}`).remove();
   });
 
   it('editor should not be visible', async() => {
@@ -78,5 +77,7 @@ describe('Core_destroyEditor', () => {
     spec().$container.scroll();
 
     expect(editor.is(':visible')).toBe(true);
+
   });
+
 });

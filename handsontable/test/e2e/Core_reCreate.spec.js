@@ -8,9 +8,8 @@ describe('Core_reCreate', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
+      this.$container.remove();
     }
-
-    $('body').find(`#${id}`).remove();
   });
 
   it('should correctly re-render corner header when there is multiline content', async() => {
@@ -21,6 +20,8 @@ describe('Core_reCreate', () => {
       }
     };
 
+    handsontable(settings);
+    destroy();
     handsontable(settings);
 
     expect(getTopInlineStartClone().width()).toBeAroundValue(50); // default column width

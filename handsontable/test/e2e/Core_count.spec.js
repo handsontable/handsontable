@@ -6,11 +6,8 @@ describe('Core_count', () => {
   });
 
   afterEach(function() {
-    if (this.$container) {
-      destroy();
-
-      $('body').find(`#${id}`).remove();
-    }
+    destroy();
+    this.$container.remove();
   });
 
   describe('countVisibleRows', () => {
@@ -45,7 +42,7 @@ describe('Core_count', () => {
     });
 
     it('should return -1 if table is not rendered', async() => {
-      $('body').find(`#${id}`).remove();
+      spec().$container.remove();
       const instance = handsontable({
         data: createSpreadsheetData(10, 10),
         width: 100
@@ -120,7 +117,7 @@ describe('Core_count', () => {
     });
 
     it('should return -1 if table is not rendered', async() => {
-      $('body').find(`#${id}`).remove();
+      spec().$container.remove();
       const instance = handsontable({
         data: createSpreadsheetData(10, 10),
         width: 100
@@ -141,7 +138,7 @@ describe('Core_count', () => {
     });
 
     it('should return -1 if table is not rendered', async() => {
-      $('body').find(`#${id}`).remove();
+      spec().$container.remove();
       const instance = handsontable({
         data: createSpreadsheetData(10, 10),
         width: 100

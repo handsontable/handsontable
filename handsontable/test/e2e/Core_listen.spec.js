@@ -8,9 +8,8 @@ describe('Core_listen', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
+      this.$container.remove();
     }
-
-    $('body').find(`#${id}`).remove();
   });
 
   it('should not listen by default after initialization', async() => {
@@ -82,7 +81,7 @@ describe('Core_listen', () => {
     handsontable();
     const input = document.createElement('input');
 
-    $(input).appendTo('body');
+    document.body.appendChild(input);
 
     await selectCell(0, 0);
     input.focus();
@@ -91,7 +90,7 @@ describe('Core_listen', () => {
     expect(isListening()).toBe(true);
     expect(document.activeElement).toBe(input);
 
-    $(input).remove();
+    document.body.removeChild(input);
   });
 
   it('when second instance is created, first should unlisten automatically', async() => {
@@ -106,9 +105,9 @@ describe('Core_listen', () => {
     expect($container2.handsontable('isListening')).toBe(true);
 
     $container1.handsontable('destroy');
-    $('body').find('#hot1').remove();
+    $container1.remove();
     $container2.handsontable('destroy');
-    $('body').find('#hot2').remove();
+    $container2.remove();
   });
 
   it('when listen is called on first instance, second should unlisten automatically', async() => {
@@ -124,9 +123,9 @@ describe('Core_listen', () => {
     expect($container2.handsontable('isListening')).toBe(false);
 
     $container1.handsontable('destroy');
-    $('body').find('#hot1').remove();
+    $container1.remove();
     $container2.handsontable('destroy');
-    $('body').find('#hot2').remove();
+    $container2.remove();
   });
 
   it('should unlisten after click outside an iframe', async() => {

@@ -8,8 +8,7 @@ describe('Core_destroy', () => {
   afterEach(() => {
     if (spec().$container) {
       destroy();
-
-      $('body').find(`#${id}`).remove();
+      spec().$container.remove();
     }
   });
 
@@ -33,11 +32,12 @@ describe('Core_destroy', () => {
     // test based on Core_selectionSpec.js (should deselect currently selected cell)
     handsontable();
 
-    const $tmp = $('<div id="tmp"></div>').appendTo($('body'));
+    const $tmp = $('<div id="tmp"></div>').appendTo(document.body);
 
     $tmp.handsontable();
     $tmp.handsontable('destroy');
-    $('body').find('#tmp').remove();
+    $tmp.remove();
+
     await selectCell(0, 0);
 
     $('html').simulate('mousedown');
@@ -49,7 +49,7 @@ describe('Core_destroy', () => {
     const hot = handsontable();
 
     destroy();
-    $('body').find(`#${id}`).remove();
+    spec().$container.remove();
 
     expect(() => {
       hot.getDataAtCell(0, 0);

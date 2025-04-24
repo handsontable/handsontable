@@ -3,21 +3,18 @@ describe('Core_init', () => {
 
   beforeEach(function() {
     this.$parentContainer = $(`<div id="${id}"></div>`).appendTo('body');
-    this.$container = $(`<div id="${id}2"></div>`).appendTo(this.$parentContainer);
+    this.$container = $(`<div id="${id}"></div>`).appendTo(this.$parentContainer);
   });
 
   afterEach(function() {
     if (this.$container) {
       destroy();
+      this.$container.remove();
     }
-
-    $('body').find(`#${id}`).remove();
-    $('body').find(`#${id}2`).remove();
-    $('body').find('hot-table').remove();
   });
 
   it('should respect startRows and startCols when no data is provided', async() => {
-    $('body').find(`#${id}`).remove();
+    spec().$container.remove();
     spec().$container = $(`<div id="${id}"></div>`).appendTo('body');
     handsontable();
 
@@ -26,7 +23,7 @@ describe('Core_init', () => {
   });
 
   it('should construct when container is not appended to document', async() => {
-    $('body').find(`#${id}`).remove();
+    spec().$container.remove();
     handsontable();
     expect(getData()).toBeTruthy();
   });
@@ -240,7 +237,7 @@ describe('Core_init', () => {
 
       expect(tableView().getStylesHandler().isClassicTheme()).toBe(false);
       expect(getCurrentThemeName()).toBe('ht-theme-sth');
-      expect($(hot.rootElement.parentElement).hasClass('ht-theme-sth')).toBe(true);
+      expect($(hot.rootElement).hasClass('ht-theme-sth')).toBe(true);
     });
   });
 });

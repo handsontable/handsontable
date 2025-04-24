@@ -8,9 +8,8 @@ describe('Core_view', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
+      this.$container.remove();
     }
-
-    $('body').find(`#${id}`).remove();
   });
 
   it('should focus cell after viewport is scrolled using down arrow', async() => {
@@ -588,14 +587,13 @@ describe('Core_view', () => {
 
   it('should not shrink table when width and height is not specified for container', async() => {
     spec().$container[0].style.overflow = 'hidden';
+    spec().$container.wrap('<div style="width: 50px;"></div>');
     handsontable({
       startRows: 10,
       startCols: 10
     });
 
     await sleep(250);
-
-    spec().$container.wrap('<div style="width: 50px;"></div>');
 
     const initHeight = spec().$container.height();
 
@@ -744,8 +742,6 @@ describe('Core_view', () => {
       })
       .simulate('mouseup')
       .simulate('click');
-
-    await sleep(10000);
 
     expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: 1,2 to: 1,2']);
   });
