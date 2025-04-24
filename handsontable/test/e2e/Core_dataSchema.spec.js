@@ -8,7 +8,6 @@ describe('Core_dataSchema', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-
       this.$container.remove();
     }
   });

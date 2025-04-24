@@ -639,9 +639,9 @@ describe('ContextMenu', () => {
         expect(getData().length).toEqual(4);
       };
 
-      test();
-      destroy();
-      test();
+      await test();
+      await destroy();
+      await test();
     });
   });
 

@@ -8,7 +8,6 @@ describe('Core_datachange', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-
       this.$container.remove();
     }
   });

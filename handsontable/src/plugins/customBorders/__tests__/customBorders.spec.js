@@ -1245,7 +1245,7 @@ describe('CustomBorders', () => {
 
     it('should not render borders when the table is not rendered', async() => {
       spec().$container.remove();
-      const data = Handsontable.helper.createSpreadsheetData(10, 2);
+      const data = createSpreadsheetData(10, 2);
       const customBorders = generateCustomBordersForAllRows(data.length);
 
       handsontable({

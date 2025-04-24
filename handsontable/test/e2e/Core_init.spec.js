@@ -11,6 +11,8 @@ describe('Core_init', () => {
       destroy();
       this.$container.remove();
     }
+
+    this.$parentContainer.remove();
   });
 
   it('should respect startRows and startCols when no data is provided', async() => {
