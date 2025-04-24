@@ -66,7 +66,6 @@ import { registerAllModules } from 'handsontable/registry';
 import { HOT_GLOBAL_CONFIG, HotConfig, HotTableModule } from '@handsontable/angular-wrapper';
 import { CommonModule } from '@angular/common';
 import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
-
 /* start:skip-in-compilation */
 import { Example2SearchingValuesComponent } from './app.component';
 /* end:skip-in-compilation */
@@ -79,7 +78,7 @@ export const appConfig: ApplicationConfig = {
     {
       provide: HOT_GLOBAL_CONFIG,
       useValue: {
-        themeName: 'ht-theme-main',
+        themeName: 'ht-theme-main-dark-auto',
         license: NON_COMMERCIAL_LICENSE,
       } as HotConfig
     }

@@ -1,15 +1,13 @@
 /* file: app.component.ts */
-import { HttpClient } from '@angular/common/http';
 import { Component } from '@angular/core';
 import { GridSettings } from '@handsontable/angular-wrapper';
-import { take } from 'rxjs';
 
 @Component({
   selector: 'example3-autocomplete-cell-type',
   standalone: false,
   template: ` <div>
     <hot-table [data]="data" [settings]="gridSettings"></hot-table>
-  </div>`,
+  </div>`
 })
 export class Example3AutocompleteCellTypeComponent {
 
@@ -29,14 +27,9 @@ export class Example3AutocompleteCellTypeComponent {
       {
         type: 'autocomplete',
         source: (_query, process) => {
-          this.httpClient
-            .get<{ data: any[] }>(
-              'https://handsontable.com/docs/scripts/json/autocomplete.json'
-            )
-            .pipe(take(1))
-            .subscribe((response: { data: any[] }) => {
-              process(response.data);
-            });
+          fetch('https://handsontable.com/docs/scripts/json/autocomplete.json')
+              .then((response) => response.json())
+              .then((response) => process(response.data));
         },
         strict: true,
       },
@@ -45,8 +38,6 @@ export class Example3AutocompleteCellTypeComponent {
       {}, // Bumper color is a default text column
     ]
   };
-
-  constructor(private readonly httpClient: HttpClient) {}
 }
 /* end-file */
 
@@ -58,8 +49,6 @@ import { registerAllModules } from 'handsontable/registry';
 import { HOT_GLOBAL_CONFIG, HotConfig, HotTableModule } from '@handsontable/angular-wrapper';
 import { CommonModule } from '@angular/common';
 import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
-import { provideHttpClient } from '@angular/common/http';
-
 /* start:skip-in-compilation */
 import { Example3AutocompleteCellTypeComponent } from './app.component';
 /* end:skip-in-compilation */
@@ -69,11 +58,10 @@ registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideHttpClient(),
     {
       provide: HOT_GLOBAL_CONFIG,
       useValue: {
-        themeName: 'ht-theme-main',
+        themeName: 'ht-theme-main-dark-auto',
         license: NON_COMMERCIAL_LICENSE,
       } as HotConfig
     }
