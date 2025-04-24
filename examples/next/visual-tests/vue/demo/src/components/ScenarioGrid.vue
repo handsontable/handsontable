@@ -161,15 +161,15 @@ export default {
     color: #fcb515;
   }
 
-  .handsontable .htCore tr.selected td {
+  .ht-wrapper .handsontable .htCore tr.selected td {
     background: #edf3fd;
   }
 
-  .handsontable.ht-theme-main-dark .htCore tr.selected td {
+  .ht-wrapper.ht-theme-main-dark .handsontable .htCore tr.selected td {
     background: #081b3d;
   }
 
-  .handsontable.ht-theme-horizon-dark .htCore tr.selected td {
+  .ht-wrapper.ht-theme-horizon-dark .handsontable .htCore tr.selected td {
     background: #3a2901;
   }
 
