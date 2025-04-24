@@ -1,8 +1,9 @@
 / /docs
 
-/docs /docs/javascript-data-grid
-/docs/latest /docs/javascript-data-grid
-/docs/:major.:minor /docs/:major.:minor/javascript-data-grid
+# /docs /docs/javascript-data-grid
+# /docs/latest /docs/javascript-data-grid
+# /docs/:major.:minor /docs/:major.:minor/javascript-data-grid
+# handled by edge functions 
 
 /docs/ActionBarComponent.html /docs/javascript-data-grid/api/action-bar-component/
 /docs/AlterManager.html /docs/javascript-data-grid/api/alter-manager/
@@ -220,36 +221,34 @@
 /docs/:major.:minor/UnmergeCellsAction.html /docs/:major.:minor/javascript-data-grid/api/unmerge-cells-action/
 /docs/:major.:minor/ValueComponent.html /docs/:major.:minor/javascript-data-grid/valuecomponent.html
 
-/docs/react /docs/react-installation/
-/docs/angular /docs/angular-installation/
-/docs/vue /docs/vue-installation/
-/docs/vue3 /docs/vue3-installation/
+
  
-/docs/:major.:minor/tutorial-introduction/ /docs/javascript-data-grid/
-/docs/:major.:minor/tutorial-compatibility/ /docs/javascript-data-grid/supported-browsers/
-/docs/:major.:minor/tutorial-licensing/ /docs/javascript-data-grid/software-license/
-/docs/:major.:minor/tutorial-license-key/ /docs/javascript-data-grid/license-key/
-/docs/:major.:minor/tutorial-quick-start/ /docs/javascript-data-grid/installation/
-/docs/:major.:minor/tutorial-data-binding/ /docs/javascript-data-grid/binding-to-data/
-/docs/:major.:minor/tutorial-data-sources/ /docs/javascript-data-grid/binding-to-data/
-/docs/:major.:minor/tutorial-load-and-save/ /docs/javascript-data-grid/saving-data/
-/docs/:major.:minor/tutorial-setting-options/ /docs/javascript-data-grid/setting-options/
-/docs/:major.:minor/tutorial-grid-sizing/ /docs/javascript-data-grid/grid-size/
-/docs/:major.:minor/tutorial-using-callbacks/ /docs/javascript-data-grid/events-and-hooks/
-/docs/:major.:minor/tutorial-keyboard-navigation/ /docs/javascript-data-grid/keyboard-navigation/
-/docs/:major.:minor/tutorial-internationalization/ /docs/javascript-data-grid/internationalization-i18n/
-/docs/:major.:minor/tutorial-modules/ /docs/javascript-data-grid/modules/
-/docs/:major.:minor/tutorial-custom-build/ /docs/javascript-data-grid/building/
-/docs/:major.:minor/tutorial-custom-plugin/ /docs/javascript-data-grid/plugins/
-/docs/:major.:minor/tutorial-cell-types/ /docs/javascript-data-grid/cell-type/
-/docs/:major.:minor/tutorial-cell-editor/ /docs/javascript-data-grid/cell-editor/
-/docs/:major.:minor/tutorial-cell-function/ /docs/javascript-data-grid/cell-function/
-/docs/:major.:minor/tutorial-suspend-rendering/ /docs/javascript-data-grid/batch-operations/
-/docs/:major.:minor/tutorial-testing/ /docs/javascript-data-grid/testing/
-/docs/:major.:minor/tutorial-performance-tips/ /docs/javascript-data-grid/performance/
-/docs/:major.:minor/tutorial-release-notes/ /docs/javascript-data-grid/release-notes/
-/docs/:major.:minor/tutorial-migration-guide/ /docs/javascript-data-grid/migration-from-7.4-to-8.0/
-/docs/:major.:minor/tutorial-known-limitations/ /docs/javascript-data-grid/third-party-licenses/
+# /docs/:major.:minor/tutorial-introduction/ /docs/javascript-data-grid/
+# /docs/:major.:minor/tutorial-compatibility/ /docs/javascript-data-grid/supported-browsers/
+# /docs/:major.:minor/tutorial-licensing/ /docs/javascript-data-grid/software-license/
+# /docs/:major.:minor/tutorial-license-key/ /docs/javascript-data-grid/license-key/
+# /docs/:major.:minor/tutorial-quick-start/ /docs/javascript-data-grid/installation/
+# /docs/:major.:minor/tutorial-data-binding/ /docs/javascript-data-grid/binding-to-data/
+# /docs/:major.:minor/tutorial-data-sources/ /docs/javascript-data-grid/binding-to-data/
+# /docs/:major.:minor/tutorial-load-and-save/ /docs/javascript-data-grid/saving-data/
+# /docs/:major.:minor/tutorial-setting-options/ /docs/javascript-data-grid/setting-options/
+# /docs/:major.:minor/tutorial-grid-sizing/ /docs/javascript-data-grid/grid-size/
+# /docs/:major.:minor/tutorial-using-callbacks/ /docs/javascript-data-grid/events-and-hooks/
+# /docs/:major.:minor/tutorial-keyboard-navigation/ /docs/javascript-data-grid/keyboard-navigation/
+# /docs/:major.:minor/tutorial-internationalization/ /docs/javascript-data-grid/internationalization-i18n/
+# /docs/:major.:minor/tutorial-modules/ /docs/javascript-data-grid/modules/
+# /docs/:major.:minor/tutorial-custom-build/ /docs/javascript-data-grid/building/
+# /docs/:major.:minor/tutorial-custom-plugin/ /docs/javascript-data-grid/plugins/
+# /docs/:major.:minor/tutorial-cell-types/ /docs/javascript-data-grid/cell-type/
+# /docs/:major.:minor/tutorial-cell-editor/ /docs/javascript-data-grid/cell-editor/
+# /docs/:major.:minor/tutorial-cell-function/ /docs/javascript-data-grid/cell-function/
+# /docs/:major.:minor/tutorial-suspend-rendering/ /docs/javascript-data-grid/batch-operations/
+# /docs/:major.:minor/tutorial-testing/ /docs/javascript-data-grid/testing/
+# /docs/:major.:minor/tutorial-performance-tips/ /docs/javascript-data-grid/performance/
+# /docs/:major.:minor/tutorial-release-notes/ /docs/javascript-data-grid/release-notes/
+# /docs/:major.:minor/tutorial-migration-guide/ /docs/javascript-data-grid/migration-from-7.4-to-8.0/
+# /docs/:major.:minor/tutorial-known-limitations/ /docs/javascript-data-grid/third-party-licenses/
+# handled by netlify/edge-functions/rewrite_cookie_docs_x_x_page.mts
 
 /docs/tutorial-introduction/ /docs/javascript-data-grid/
 /docs/tutorial-compatibility/ /docs/javascript-data-grid/supported-browsers/
@@ -278,58 +277,56 @@
 /docs/tutorial-known-limitations/ /docs/javascript-data-grid/third-party-licenses/
 
 
-/docs/:major.:minor/demo-scrolling/ /docs/:major.:minor/row-virtualization/
-/docs/:major.:minor/demo-fixing/ /docs/:major.:minor/column-freezing/
-/docs/:major.:minor/demo-resizing/ /docs/:major.:minor/column-width/
-/docs/:major.:minor/demo-moving/ /docs/:major.:minor/column-moving/
-/docs/:major.:minor/demo-pre-populating/ /docs/:major.:minor/row-prepopulating/
-/docs/:major.:minor/demo-stretching/ /docs/:major.:minor/column-width/
-/docs/:major.:minor/demo-freezing/ /docs/:major.:minor/column-freezing/
-/docs/:major.:minor/demo-fixing-bottom/ /docs/:major.:minor/row-freezing/
-/docs/:major.:minor/demo-hiding-rows/ /docs/:major.:minor/row-hiding/
-/docs/:major.:minor/demo-hiding-columns/ /docs/:major.:minor/column-hiding/
-/docs/:major.:minor/demo-trimming-rows/ /docs/:major.:minor/row-trimming/
-/docs/:major.:minor/demo-bind-rows-headers/ /docs/:major.:minor/row-header/
-/docs/:major.:minor/demo-collapsing-columns/ /docs/:major.:minor/column-groups/
-/docs/:major.:minor/demo-nested-headers/ /docs/:major.:minor/column-groups/
-/docs/:major.:minor/demo-nested-rows/ /docs/:major.:minor/row-parent-child/
-/docs/:major.:minor/demo-dropdown-menu/ /docs/:major.:minor/column-menu/
-/docs/:major.:minor/demo-sorting/ /docs/:major.:minor/row-sorting/
-/docs/:major.:minor/demo-multicolumn-sorting/ /docs/:major.:minor/row-sorting/
-/docs/:major.:minor/demo-searching/ /docs/:major.:minor/searching-values/
-/docs/:major.:minor/demo-filtering/ /docs/:major.:minor/column-filter/
-/docs/:major.:minor/demo-summary-calculations/ /docs/:major.:minor/column-summary/
-/docs/:major.:minor/demo-data-validation/ /docs/:major.:minor/cell-validator/
-/docs/:major.:minor/demo-auto-fill/ /docs/:major.:minor/autofill-values/
-/docs/:major.:minor/demo-merged-cells/ /docs/:major.:minor/merge-cells/
-/docs/:major.:minor/demo-alignment/ /docs/:major.:minor/text-alignment/
-/docs/:major.:minor/demo-read-only/ /docs/:major.:minor/disabled-cells/
-/docs/:major.:minor/demo-disabled-editing/ /docs/:major.:minor/disabled-cells/
-/docs/:major.:minor/demo-custom-renderers/ /docs/:major.:minor/cell-renderer/
-/docs/:major.:minor/demo-numeric/ /docs/:major.:minor/numeric-cell-type/
-/docs/:major.:minor/demo-date/ /docs/:major.:minor/date-cell-type/
-/docs/:major.:minor/demo-time/ /docs/:major.:minor/time-cell-type/
-/docs/:major.:minor/demo-checkbox/ /docs/:major.:minor/checkbox-cell-type/
-/docs/:major.:minor/demo-select/ /docs/:major.:minor/select-cell-type/
-/docs/:major.:minor/demo-dropdown/ /docs/:major.:minor/dropdown-cell-type/
-/docs/:major.:minor/demo-autocomplete/ /docs/:major.:minor/autocomplete-cell-type/
-/docs/:major.:minor/demo-password/ /docs/:major.:minor/password-cell-type/
-/docs/:major.:minor/demo-handsontable/ /docs/:major.:minor/handsontable-cell-type/
-/docs/:major.:minor/demo-context-menu/ /docs/:major.:minor/context-menu/
-/docs/:major.:minor/demo-spreadsheet-icons/ /docs/:major.:minor/icon-pack/
-/docs/:major.:minor/demo-comments_/ /docs/:major.:minor/comments/
-/docs/:major.:minor/demo-copy-paste/ /docs/:major.:minor/basic-clipboard/
-/docs/:major.:minor/demo-export-file/ /docs/:major.:minor/export-to-csv/
-/docs/:major.:minor/demo-conditional-formatting/ /docs/:major.:minor/conditional-formatting/
-/docs/:major.:minor/demo-customizing-borders/ /docs/:major.:minor/formatting-cells/
-/docs/:major.:minor/demo-custom-borders/ /docs/:major.:minor/formatting-cells/
-/docs/:major.:minor/demo-selecting-ranges /docs/:major.:minor/selection/
-/docs/:major.:minor/demo-formula-support/ /docs/:major.:minor/formula-calculation/
-/docs/:major.:minor/demo-using-callbacks/ /docs/:major.:minor/events-and-hooks/
-/docs/:major.:minor/demo-react-simple-examples/ /docs/:major.:minor/react-simple-example/
-
-
-
+# /docs/:major.:minor/demo-scrolling/ /docs/:major.:minor/row-virtualization/
+# /docs/:major.:minor/demo-fixing/ /docs/:major.:minor/column-freezing/
+# /docs/:major.:minor/demo-resizing/ /docs/:major.:minor/column-width/
+# /docs/:major.:minor/demo-moving/ /docs/:major.:minor/column-moving/
+# /docs/:major.:minor/demo-pre-populating/ /docs/:major.:minor/row-prepopulating/
+# /docs/:major.:minor/demo-stretching/ /docs/:major.:minor/column-width/
+# /docs/:major.:minor/demo-freezing/ /docs/:major.:minor/column-freezing/
+# /docs/:major.:minor/demo-fixing-bottom/ /docs/:major.:minor/row-freezing/
+# /docs/:major.:minor/demo-hiding-rows/ /docs/:major.:minor/row-hiding/
+# /docs/:major.:minor/demo-hiding-columns/ /docs/:major.:minor/column-hiding/
+# /docs/:major.:minor/demo-trimming-rows/ /docs/:major.:minor/row-trimming/
+# /docs/:major.:minor/demo-bind-rows-headers/ /docs/:major.:minor/row-header/
+# /docs/:major.:minor/demo-collapsing-columns/ /docs/:major.:minor/column-groups/
+# /docs/:major.:minor/demo-nested-headers/ /docs/:major.:minor/column-groups/
+# /docs/:major.:minor/demo-nested-rows/ /docs/:major.:minor/row-parent-child/
+# /docs/:major.:minor/demo-dropdown-menu/ /docs/:major.:minor/column-menu/
+# /docs/:major.:minor/demo-sorting/ /docs/:major.:minor/row-sorting/
+# /docs/:major.:minor/demo-multicolumn-sorting/ /docs/:major.:minor/row-sorting/
+# /docs/:major.:minor/demo-searching/ /docs/:major.:minor/searching-values/
+# /docs/:major.:minor/demo-filtering/ /docs/:major.:minor/column-filter/
+# /docs/:major.:minor/demo-summary-calculations/ /docs/:major.:minor/column-summary/
+# /docs/:major.:minor/demo-data-validation/ /docs/:major.:minor/cell-validator/
+# /docs/:major.:minor/demo-auto-fill/ /docs/:major.:minor/autofill-values/
+# /docs/:major.:minor/demo-merged-cells/ /docs/:major.:minor/merge-cells/
+# /docs/:major.:minor/demo-alignment/ /docs/:major.:minor/text-alignment/
+# /docs/:major.:minor/demo-read-only/ /docs/:major.:minor/disabled-cells/
+# /docs/:major.:minor/demo-disabled-editing/ /docs/:major.:minor/disabled-cells/
+# /docs/:major.:minor/demo-custom-renderers/ /docs/:major.:minor/cell-renderer/
+# /docs/:major.:minor/demo-numeric/ /docs/:major.:minor/numeric-cell-type/
+# /docs/:major.:minor/demo-date/ /docs/:major.:minor/date-cell-type/
+# /docs/:major.:minor/demo-time/ /docs/:major.:minor/time-cell-type/
+# /docs/:major.:minor/demo-checkbox/ /docs/:major.:minor/checkbox-cell-type/
+# /docs/:major.:minor/demo-select/ /docs/:major.:minor/select-cell-type/
+# /docs/:major.:minor/demo-dropdown/ /docs/:major.:minor/dropdown-cell-type/
+# /docs/:major.:minor/demo-autocomplete/ /docs/:major.:minor/autocomplete-cell-type/
+# /docs/:major.:minor/demo-password/ /docs/:major.:minor/password-cell-type/
+# /docs/:major.:minor/demo-handsontable/ /docs/:major.:minor/handsontable-cell-type/
+# /docs/:major.:minor/demo-context-menu/ /docs/:major.:minor/context-menu/
+# /docs/:major.:minor/demo-spreadsheet-icons/ /docs/:major.:minor/icon-pack/
+# /docs/:major.:minor/demo-comments_/ /docs/:major.:minor/comments/
+# /docs/:major.:minor/demo-copy-paste/ /docs/:major.:minor/basic-clipboard/
+# /docs/:major.:minor/demo-export-file/ /docs/:major.:minor/export-to-csv/
+# /docs/:major.:minor/demo-conditional-formatting/ /docs/:major.:minor/conditional-formatting/
+# /docs/:major.:minor/demo-customizing-borders/ /docs/:major.:minor/formatting-cells/
+# /docs/:major.:minor/demo-custom-borders/ /docs/:major.:minor/formatting-cells/
+# /docs/:major.:minor/demo-selecting-ranges /docs/:major.:minor/selection/
+# /docs/:major.:minor/demo-formula-support/ /docs/:major.:minor/formula-calculation/
+# /docs/:major.:minor/demo-using-callbacks/ /docs/:major.:minor/events-and-hooks/
+# /docs/:major.:minor/demo-react-simple-examples/ /docs/:major.:minor/react-simple-example/
+# handled by netlify/edge-functions/rewrite_cookie_docs_x_x_page.mts
 
 /docs/:major.:minor/frameworks-wrapper-for-angular-custom-context-menu-example.html /docs/:major.:minor/javascript-data-grid/angular-custom-context-menu-example/
 /docs/:major.:minor/frameworks-wrapper-for-angular-custom-editor-example.html /docs/:major.:minor/javascript-data-grid/angular-custom-editor-example/
@@ -375,32 +372,38 @@
  
 /docs/hyperformula https://hyperformula.handsontable.com/
 /docs/hyperformula/* https://hyperformula.handsontable.com/:splat
-/docs/ /docs/javascript-data-grid/
-/docs/:major.:minor/ /docs/:major.:minor/javascript-data-grid/
+
 /docs/i18n/missing-language-code /docs/javascript-data-grid/language/
 /docs/react /docs/react-data-grid/installation/
 /docs/angular /docs/javascript-data-grid/angular-installation/
 /docs/vue /docs/javascript-data-grid/vue-installation/
 /docs/vue3 /docs/javascript-data-grid/vue3-installation/
-/docs/internationalization-i18n/ /docs/javascript-data-grid/language/
-/docs/keyboard-navigation/ /docs/javascript-data-grid/keyboard-shortcuts/
-/docs/hello-world/ /docs/javascript-data-grid/demo/
-/docs/building/ /docs/javascript-data-grid/custom-builds/
-/docs/plugins/ /docs/javascript-data-grid/custom-plugins/
-/docs/file-structure/ /docs/javascript-data-grid/folder-structure/
-/docs/examples/ /docs/javascript-data-grid/
-/docs/setting-options/ /docs/javascript-data-grid/configuration-options/
-/docs/angular-simple-example/ /docs/javascript-data-grid/angular-basic-example/
-/docs/angular-setting-up-a-language/ /docs/javascript-data-grid/angular-setting-up-a-translation/
-/docs/vue-simple-example/ /docs/javascript-data-grid/vue-basic-example/
-/docs/vue-setting-up-a-language/ /docs/javascript-data-grid/vue-setting-up-a-translation/
-/docs/vue3-simple-example/ /docs/javascript-data-grid/vue-setting-up-a-translation/
-/docs/row-sorting/ /docs/javascript-data-grid/rows-sorting/
-/docs/column-sorting/ /docs/javascript-data-grid/rows-sorting/
-/docs/javascript-data-grid/row-sorting/ /docs/javascript-data-grid/rows-sorting/
-/docs/react-data-grid/row-sorting/ /docs/javascript-data-grid/rows-sorting/
-/docs/javascript-data-grid/column-sorting/ /docs/javascript-data-grid/rows-sorting/
-/docs/react-data-grid/column-sorting/ /docs/javascript-data-grid/rows-sorting/
+
+# /docs/internationalization-i18n/ /docs/javascript-data-grid/language/
+# /docs/keyboard-navigation/ /docs/javascript-data-grid/keyboard-shortcuts/
+# /docs/hello-world/ /docs/javascript-data-grid/demo/
+# /docs/building/ /docs/javascript-data-grid/custom-builds/
+# /docs/plugins/ /docs/javascript-data-grid/custom-plugins/
+# /docs/file-structure/ /docs/javascript-data-grid/folder-structure/
+# /docs/examples/ /docs/javascript-data-grid/
+# /docs/setting-options/ /docs/javascript-data-grid/configuration-options/
+# /docs/angular-simple-example/ /docs/javascript-data-grid/angular-basic-example/
+# /docs/angular-setting-up-a-language/ /docs/javascript-data-grid/angular-setting-up-a-translation/
+# /docs/vue-simple-example/ /docs/javascript-data-grid/vue-basic-example/
+# /docs/vue-setting-up-a-language/ /docs/javascript-data-grid/vue-setting-up-a-translation/
+# /docs/vue3-simple-example/ /docs/javascript-data-grid/vue-setting-up-a-translation/
+# handled by netlify/edge-functions/rewrite_cookie_docs_page.mts
+
+# /docs/row-sorting/ /docs/javascript-data-grid/rows-sorting/
+# /docs/column-sorting/ /docs/javascript-data-grid/rows-sorting/
+# handled by netlify/edge-functions/rewrite_cookie_docs_page.mts
+
+# /docs/javascript-data-grid/row-sorting/ /docs/javascript-data-grid/rows-sorting/
+# /docs/react-data-grid/row-sorting/ /docs/javascript-data-grid/rows-sorting/
+# /docs/javascript-data-grid/column-sorting/ /docs/javascript-data-grid/rows-sorting/
+# /docs/react-data-grid/column-sorting/ /docs/javascript-data-grid/rows-sorting/
+# handled by netlify/edge-functions/rewrite_cookie_docs_data_grid_page.mts
+
 
 /docs/:major.:minor.:patch/AutoColumnSize.html /docs/javascript-data-grid/api/auto-column-size/ 301
 /docs/:major.:minor.:patch/Autofill.html /docs/javascript-data-grid/api/autofill/ 301
