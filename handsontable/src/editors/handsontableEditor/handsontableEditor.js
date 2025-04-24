@@ -67,8 +67,8 @@ export class HandsontableEditor extends TextEditor {
     setCaretPosition(this.TEXTAREA, 0, this.TEXTAREA.value.length);
 
     this.htEditor.updateSettings({
-      width: this.getTargetEditorWidth(),
-      height: this.getTargetEditorHeight(),
+      width: this.getTargetDropdownWidth(),
+      height: this.getTargetDropdownHeight(),
     });
 
     this.refreshDimensions();
@@ -207,7 +207,7 @@ export class HandsontableEditor extends TextEditor {
       spaceAbove = Math.max(spaceAbove + topOffset, 0);
     }
 
-    const dropdownTargetHeight = this.getTargetEditorHeight();
+    const dropdownTargetHeight = this.getTargetDropdownHeight();
     const spaceBelow = view.getWorkspaceHeight() - spaceAbove - cellRect.height;
     const flipNeeded = dropdownTargetHeight > spaceBelow && spaceAbove > spaceBelow + cellRect.height;
 
@@ -234,7 +234,7 @@ export class HandsontableEditor extends TextEditor {
     const dropdownStyle = this.htEditor.rootElement.style;
 
     dropdownStyle.position = 'absolute';
-    dropdownStyle.top = `${-this.getHeight()}px`;
+    dropdownStyle.top = `${-this.getDropdownHeight()}px`;
 
     this.isFlippedVertically = true;
   }
@@ -271,7 +271,7 @@ export class HandsontableEditor extends TextEditor {
       spaceInlineStart = Math.max(spaceInlineStart + inlineStartOffset, 0);
     }
 
-    const dropdownTargetWidth = this.getTargetEditorWidth();
+    const dropdownTargetWidth = this.getTargetDropdownWidth();
     const spaceInlineEnd = view.getWorkspaceWidth() - spaceInlineStart + cellRect.width;
     const flipNeeded = dropdownTargetWidth > spaceInlineEnd && spaceInlineStart > spaceInlineEnd;
 
@@ -299,7 +299,7 @@ export class HandsontableEditor extends TextEditor {
     const { width } = this.getEditedCellRect();
 
     dropdownStyle.position = 'absolute';
-    dropdownStyle[this.hot.isRtl() ? 'right' : 'left'] = `${-(this.getWidth() - width)}px`;
+    dropdownStyle[this.hot.isRtl() ? 'right' : 'left'] = `${-(this.getDropdownWidth() - width)}px`;
 
     this.isFlippedHorizontally = true;
   }
@@ -324,7 +324,7 @@ export class HandsontableEditor extends TextEditor {
    *
    * @returns {number}
    */
-  getHeight() {
+  getDropdownHeight() {
     return this.htEditor.getTableHeight();
   }
 
@@ -333,7 +333,7 @@ export class HandsontableEditor extends TextEditor {
    *
    * @returns {number}
    */
-  getWidth() {
+  getDropdownWidth() {
     return this.htEditor.getTableWidth();
   }
 
@@ -343,7 +343,7 @@ export class HandsontableEditor extends TextEditor {
    *
    * @returns {number}
    */
-  getTargetEditorWidth() {
+  getTargetDropdownWidth() {
     return this.htEditor.view.getTableWidth();
   }
 
@@ -353,7 +353,7 @@ export class HandsontableEditor extends TextEditor {
    *
    * @returns {number}
    */
-  getTargetEditorHeight() {
+  getTargetDropdownHeight() {
     return this.htEditor.view.getTableHeight() + 1;
   }
 

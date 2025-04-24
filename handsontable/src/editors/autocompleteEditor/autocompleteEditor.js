@@ -381,7 +381,7 @@ export class AutocompleteEditor extends HandsontableEditor {
    * @param {number} spaceAvailable The free space as height defined in px available for dropdown list.
    */
   limitDropdownIfNeeded(spaceAvailable) {
-    const dropdownHeight = this.getHeight();
+    const dropdownHeight = this.getDropdownHeight();
 
     if (dropdownHeight > spaceAvailable) {
       let tempHeight = 0;
