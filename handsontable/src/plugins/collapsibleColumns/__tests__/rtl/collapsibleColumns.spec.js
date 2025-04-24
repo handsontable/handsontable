@@ -16,7 +16,7 @@ describe('CollapsibleColumns (RTL)', () => {
 
       if (this.$container) {
         destroy();
-        $('body').find(`#${id}`).remove();
+        this.$container.remove();
       }
       if (this.$wrapper) {
         this.$wrapper.remove();

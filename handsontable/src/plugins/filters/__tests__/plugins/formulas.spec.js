@@ -8,7 +8,7 @@ describe('Filters UI cooperation with Formulas', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-      $('body').find('#testContainer').remove();
+      this.$container.remove();
     }
   });
 

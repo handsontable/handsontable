@@ -30,7 +30,7 @@ describe('Formulas general', () => {
         }
       }
 
-      $('body').find('#testContainer').remove();
+      this.$container.remove();
     }
 
     if (this.$container2) {
@@ -45,7 +45,7 @@ describe('Formulas general', () => {
           throw e;
         }
       }
-      $('body').find('#testContainer-2').remove();
+      this.$container2.remove();
     }
 
     if (this.$container3) {
@@ -60,7 +60,7 @@ describe('Formulas general', () => {
           throw e;
         }
       }
-      $('body').find('#testContainer-3').remove();
+      this.$container3.remove();
     }
   });
 

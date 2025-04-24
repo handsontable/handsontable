@@ -23,7 +23,7 @@ describe('NestedRows cooperation with ManualRowMove plugin', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-      $('body').find(`#${id}`).remove();
+      this.$container.remove();
     }
   });
 

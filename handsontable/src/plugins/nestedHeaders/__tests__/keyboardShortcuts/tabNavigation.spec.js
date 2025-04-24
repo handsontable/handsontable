@@ -6,9 +6,9 @@ describe('NestedHeaders navigation keyboard shortcuts', () => {
 
   afterEach(function() {
     this.$container.data('handsontable')?.destroy();
-    $('body').find('#testContainer').remove();
+    this.$container.remove();
     this.$container1.data('handsontable')?.destroy();
-    $('body').find('#testContainer1').remove();
+    this.$container1.remove();
   });
 
   describe('"Tab" with "Shift" + "Tab"', () => {

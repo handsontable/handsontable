@@ -8,7 +8,7 @@ describe('DropdownMenu', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-      $('body').find(`#${id}`).remove();
+      this.$container.remove();
     }
   });
 
@@ -637,7 +637,7 @@ describe('DropdownMenu', () => {
     afterEach(function() {
       if (this.$container2) {
         this.$container2.handsontable('destroy');
-        $('body').find(`#${id}-2`).remove();
+        this.$container2.remove();
       }
     });
 

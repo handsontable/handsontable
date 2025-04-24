@@ -20,7 +20,7 @@ describe('MultiColumnSorting', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-      $('body').find(`#${id}`).remove();
+      this.$container.remove();
     }
   });
 
@@ -550,7 +550,7 @@ describe('MultiColumnSorting', () => {
 
     if (spec().$container) {
       destroy();
-      $('body').find(`#${id}`).remove();
+      spec().$container.remove();
     }
 
     handsontable({
@@ -640,7 +640,7 @@ describe('MultiColumnSorting', () => {
 
     if (spec().$container) {
       destroy();
-      $('body').find(`#${id}`).remove();
+      spec().$container.remove();
     }
 
     handsontable({
@@ -836,7 +836,7 @@ describe('MultiColumnSorting', () => {
 
       if (spec().$container) {
         destroy();
-        $('body').find(`#${id}`).remove();
+        spec().$container.remove();
       }
 
       handsontable({
@@ -1953,7 +1953,7 @@ describe('MultiColumnSorting', () => {
     expect($('.handsontableInput').val()).toEqual('A');
 
     spec().$container2.handsontable('destroy');
-    $('body').find(`#${id}-2`).remove();
+    spec().$container2.remove();
   });
 
   it('should return updated data at specified row after sorted', async() => {

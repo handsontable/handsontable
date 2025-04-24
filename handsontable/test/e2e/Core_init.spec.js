@@ -54,7 +54,7 @@ describe('Core_init', () => {
   it('should create table even if is launched inside custom element', async() => {
     const onErrorSpy = spyOn(window, 'onerror');
 
-    $('body').find(`#${id}`).remove();
+    spec().$container.remove();
     spec().$container = $(`<hot-table><div id="${id}"></div></hot-table>`).appendTo('body');
 
     handsontable();

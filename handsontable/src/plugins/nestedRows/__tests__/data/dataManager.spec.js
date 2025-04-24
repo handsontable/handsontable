@@ -8,7 +8,7 @@ describe('NestedRows Data Manager', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-      $('body').find(`#${id}`).remove();
+      this.$container.remove();
     }
   });
 

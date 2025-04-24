@@ -6,7 +6,7 @@ describe('shortcutManager', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-      $('body').find('#testContainer').remove();
+      this.$container.remove();
     }
   });
 
@@ -586,7 +586,7 @@ describe('shortcutManager', () => {
       expect(hot1Spy).toHaveBeenCalledTimes(1);
 
       hot2.destroy();
-      $('body').find('#testContainer2').remove();
+      container2.remove();
     });
 
     it('should not forward the event to the other context when in the first context the event was cancelled', async() => {

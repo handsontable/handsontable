@@ -5,7 +5,7 @@ describe('Hook', () => {
 
   afterEach(function() {
     this.$container.data('handsontable')?.destroy();
-    $('body').find('#testContainer').remove();
+    this.$container.remove();
   });
 
   describe('beforeRowWrap', () => {

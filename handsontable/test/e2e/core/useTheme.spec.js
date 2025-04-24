@@ -12,7 +12,7 @@ describe('useTheme', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-      $('body').find(`#${id}`).remove();
+      this.$container.remove();
     }
   });
 
@@ -33,6 +33,6 @@ describe('useTheme', () => {
 
     await useTheme('ht-theme-sth');
 
-    expect(spec().$container.parent().hasClass('ht-theme-sth')).toBe(true);
+    expect(spec().$container.hasClass('ht-theme-sth')).toBe(true);
   });
 });

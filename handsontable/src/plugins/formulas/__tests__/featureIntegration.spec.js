@@ -8,7 +8,7 @@ describe('Formulas: Integration with other features', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-      $('body').find('#testContainer').remove();
+      this.$container.remove();
     }
   });
 

@@ -13,7 +13,7 @@ describe('DropdownMenu keyboard shortcut (RTL mode)', () => {
 
       if (this.$container) {
         destroy();
-        $('body').find('#testContainer').remove();
+        this.$container.remove();
       }
     });
 

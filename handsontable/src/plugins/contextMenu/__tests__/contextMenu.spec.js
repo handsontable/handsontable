@@ -8,7 +8,7 @@ describe('ContextMenu', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-      $('body').find(`#${id}`).remove();
+      this.$container.remove();
     }
   });
 
@@ -639,11 +639,9 @@ describe('ContextMenu', () => {
         expect(getData().length).toEqual(4);
       };
 
-      await test();
-      await destroy();
-      $('body').find(`#${id}`).remove();
-      spec().$container = $(`<div id="${id}"></div>`).appendTo('body');
-      await test();
+      test();
+      destroy();
+      test();
     });
   });
 
@@ -2521,7 +2519,7 @@ describe('ContextMenu', () => {
     afterEach(function() {
       if (this.$container2) {
         this.$container2.handsontable('destroy');
-        $('body').find(`#${id}-2`).remove();
+        this.$container2.remove();
       }
     });
 
@@ -2677,7 +2675,7 @@ describe('ContextMenu', () => {
     afterEach(function() {
       if (this.$container) {
         destroy();
-        $('body').find(`#${id}`).remove();
+        this.$container.remove();
       }
       this.$wrapper.remove();
     });

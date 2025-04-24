@@ -8,7 +8,7 @@ describe('Comments', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-      $('body').find(`#${id}`).remove();
+      this.$container.remove();
     }
   });
 
@@ -1285,7 +1285,7 @@ describe('Comments', () => {
       await contextMenu();
       await selectContextMenuOption('Edit comment');
 
-      const textarea = spec().$container[0].parentNode.parentNode.querySelector('.htCommentTextArea');
+      const textarea = spec().$container[0].parentNode.querySelector('.htCommentTextArea');
 
       textarea.focus();
       textarea.value = 'Edited comment';
@@ -1322,7 +1322,7 @@ describe('Comments', () => {
       await contextMenu();
       await selectContextMenuOption('Edit comment');
 
-      const textarea = spec().$container[0].parentNode.parentNode.querySelector('.htCommentTextArea');
+      const textarea = spec().$container[0].parentNode.querySelector('.htCommentTextArea');
 
       textarea.focus();
       textarea.value = 'Edited comment';

@@ -6,7 +6,7 @@ describe('Core.getFirstRenderedVisibleColumn', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-      $('body').find('#testContainer').remove();
+      this.$container.remove();
     }
   });
 

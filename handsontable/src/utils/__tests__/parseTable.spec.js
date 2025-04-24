@@ -15,7 +15,7 @@ describe('parseTable', () => {
 
   afterEach(function() {
     if (this.$container) {
-      $('body').find('#testContainer').remove();
+      this.$container.remove();
     }
   });
 

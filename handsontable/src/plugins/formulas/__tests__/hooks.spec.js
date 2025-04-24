@@ -9,7 +9,7 @@ describe('Formulas general', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-      $('body').find('#testContainer').remove();
+      this.$container.remove();
     }
 
     this.hfInstance.destroy();

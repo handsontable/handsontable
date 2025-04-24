@@ -5,7 +5,7 @@ describe('Core.unlisten', () => {
 
   afterEach(function() {
     this.$container.data('handsontable')?.destroy();
-    $('body').find('#testContainer').remove();
+    this.$container.remove();
   });
 
   it('should make the table inactive', async() => {

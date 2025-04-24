@@ -20,7 +20,7 @@ describe('Cell state-related a11y config', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-      $('body').find(`#${id}`).remove();
+      this.$container.remove();
     }
   });
 

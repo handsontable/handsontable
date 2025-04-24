@@ -6,7 +6,7 @@ describe('Hooks', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-      $('body').find('#testContainer').remove();
+      this.$container.remove();
     }
   });
 

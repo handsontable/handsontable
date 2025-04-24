@@ -10,7 +10,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-      $('body').find(`#${id}`).remove();
+      this.$container.remove();
     }
   });
 

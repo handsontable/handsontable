@@ -8,7 +8,7 @@ describe('Context menu theme handling', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-      $('body').find(`#${id}`).remove();
+      this.$container.remove();
     }
   });
 
@@ -23,7 +23,7 @@ describe('Context menu theme handling', () => {
 
     await sleep(50);
 
-    expect($(getPlugin('contextMenu').menu.container).parent().hasClass('ht-theme-sth')).toBe(true);
+    expect($(getPlugin('contextMenu').menu.container).hasClass('ht-theme-sth')).toBe(true);
     expect(getPlugin('contextMenu').menu.hotMenu.getCurrentThemeName()).toBe('ht-theme-sth');
 
     clearModernThemeStylesheetMock(spec().$container.parent());
@@ -40,7 +40,7 @@ describe('Context menu theme handling', () => {
 
     await sleep(50);
 
-    expect($(getPlugin('contextMenu').menu.container).parent().hasClass('ht-theme-sth-else')).toBe(true);
+    expect($(getPlugin('contextMenu').menu.container).hasClass('ht-theme-sth-else')).toBe(true);
     expect(getPlugin('contextMenu').menu.hotMenu.getCurrentThemeName()).toBe('ht-theme-sth-else');
 
     clearModernThemeStylesheetMock(spec().$container.parent());

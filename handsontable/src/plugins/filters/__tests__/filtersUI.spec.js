@@ -17,7 +17,7 @@ describe('Filters UI', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-      $('body').find(`#${id}`).remove();
+      this.$container.remove();
     }
   });
 
@@ -113,7 +113,7 @@ describe('Filters UI', () => {
       height: 300
     });
 
-    const hot2Container = $('<div id="hot2" />')[0];
+    const hot2Container = document.createElement('DIV');
 
     document.body.appendChild(hot2Container);
     const hot2 = new Handsontable(hot2Container, {
@@ -163,7 +163,7 @@ describe('Filters UI', () => {
     expect(hot2.getPlugin('dropdownMenu').menu.container.parentElement).not.toBe(null);
 
     hot2.destroy();
-    $('body').find('#hot2').remove();
+    hot2Container.parentElement.removeChild(hot2Container);
   });
 
   it('should display data and filter\'s box properly when there was the `clearConditions` call and the `loadData` call #5244', async() => {

@@ -8,7 +8,7 @@ describe('BaseEditor', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-      $('body').find(`#${id}`).remove();
+      this.$container.remove();
     }
   });
 
@@ -216,7 +216,7 @@ describe('BaseEditor', () => {
       expect(errorSpy.test).not.toHaveBeenCalled();
 
       hot2.destroy();
-      $('body').find(`#${id}2`).remove();
+      container2.remove();
       window.onerror = prevError;
     });
   });

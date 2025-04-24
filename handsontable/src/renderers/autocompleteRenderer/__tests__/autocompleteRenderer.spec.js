@@ -8,7 +8,7 @@ describe('AutocompleteRenderer', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-      $('body').find(`#${id}`).remove();
+      this.$container.remove();
     }
   });
 
@@ -49,8 +49,6 @@ describe('AutocompleteRenderer', () => {
     });
 
     destroy();
-    $('body').find(`#${id}`).remove();
-    spec().$container = $(`<div id="${id}"></div>`).appendTo('body');
 
     handsontable({
       renderer: 'autocomplete'

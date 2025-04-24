@@ -9,7 +9,7 @@ describe('settings', () => {
     afterEach(function() {
       if (this.$container) {
         destroy();
-        $('body').find(`#${id}`).remove();
+        this.$container.remove();
       }
     });
 
@@ -211,7 +211,7 @@ describe('settings', () => {
     afterEach(function() {
       if (this.$container) {
         destroy();
-        $('body').find(`#${id}`).remove();
+        this.$container.remove();
       }
     });
 
@@ -395,7 +395,7 @@ describe('settings', () => {
     afterEach(function() {
       if (this.$container) {
         destroy();
-        $('body').find(`#${id}`).remove();
+        this.$container.remove();
       }
     });
 
@@ -427,7 +427,7 @@ describe('settings', () => {
     afterEach(function() {
       if (this.$container) {
         destroy();
-        $('body').find(`#${id}`).remove();
+        this.$container.remove();
       }
     });
 

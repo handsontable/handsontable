@@ -8,7 +8,7 @@ describe('AutoFill', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-      $('body').find(`#${id}`).remove();
+      this.$container.remove();
     }
   });
 
@@ -1698,10 +1698,10 @@ describe('AutoFill', () => {
       // destroing containers
 
       $container1.handsontable('destroy');
-      $('body').find('#hot1').remove();
+      $container1.remove();
 
       $container2.handsontable('destroy');
-      $('body').find('#hot2').remove();
+      $container2.remove();
     });
   });
 

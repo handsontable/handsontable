@@ -6,7 +6,7 @@ describe('StretchColumns with `beforeStretchingColumnWidth` hook', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-      $('body').find('#testContainer').remove();
+      this.$container.remove();
     }
   });
 

@@ -8,7 +8,7 @@ describe('Selection', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-      $('body').find(`#${id}`).remove();
+      this.$container.remove();
     }
   });
 
@@ -1765,7 +1765,7 @@ describe('Selection', () => {
     await keyUp('control/meta');
 
     hot2.destroy();
-    $('body').find(`#${id}2`).remove();
+    container2.remove();
   });
 
   describe('running in iframe', () => {
