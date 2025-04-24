@@ -20,6 +20,21 @@ export class HandsontableEditor extends TextEditor {
   }
 
   /**
+   * The flag determining if the editor is flipped vertically (rendered on
+   * the top of the edited cell) or not.
+   *
+   * @type {boolean}
+   */
+  isFlippedVertically = false;
+  /**
+   * The flag determining if the editor is flipped horizontally (rendered on
+   * the inline start of the edited cell) or not.
+   *
+   * @type {boolean}
+   */
+  isFlippedHorizontally = false;
+
+  /**
    * Opens the editor and adjust its size.
    */
   open() {
@@ -52,11 +67,13 @@ export class HandsontableEditor extends TextEditor {
     setCaretPosition(this.TEXTAREA, 0, this.TEXTAREA.value.length);
 
     this.htEditor.updateSettings({
-      width: this.getWidth(),
-      height: this.getHeight(),
+      width: this.calculateEditorWidth(),
+      height: this.calculateEditorHeight(),
     });
 
     this.refreshDimensions();
+    this.flipEditorVerticallyIfNeeded();
+    this.flipEditorHorizontallyIfNeeded();
   }
 
   /**
@@ -174,23 +191,170 @@ export class HandsontableEditor extends TextEditor {
   }
 
   /**
-   * Calculates and return the internal Handsontable's height.
+   * Calculates the space above and below the editor and flips it vertically if needed.
    *
    * @private
-   * @returns {number}
+   * @returns {{ isFlipped: boolean, spaceAbove: number, spaceBelow: number}}
    */
-  getHeight() {
-    return this.htEditor.view.getTableHeight() + 1;
+  flipEditorVerticallyIfNeeded() {
+    const { view } = this.hot;
+    const cellRect = this.getEditedCellRect();
+    let spaceAbove = cellRect.top;
+
+    if (view.isVerticallyScrollableByWindow()) {
+      const topOffset = view.getTableOffset().top - this.hot.rootWindow.scrollY;
+
+      spaceAbove = Math.max(spaceAbove + topOffset, 0);
+    }
+
+    const workspaceHeight = view.getWorkspaceHeight();
+    const spaceBelow = workspaceHeight - spaceAbove - cellRect.height;
+    const flipNeeded = spaceBelow < this.getHeight() && spaceAbove > this.getHeight();
+
+    if (flipNeeded) {
+      this.flipEditorVertically();
+    } else {
+      this.unflipEditorVertically();
+    }
+
+    return {
+      isFlipped: flipNeeded,
+      spaceAbove,
+      spaceBelow,
+    };
   }
 
   /**
-   * Calculates and return the internal Handsontable's width.
+   * Adjusts the editor's container to flip vertically, positioning it from
+   * the bottom to the top of the edited cell.
    *
    * @private
+   */
+  flipEditorVertically() {
+    const dropdownStyle = this.htEditor.rootElement.style;
+
+    dropdownStyle.position = 'absolute';
+    dropdownStyle.top = `${-this.getHeight()}px`;
+
+    this.isFlippedVertically = true;
+  }
+
+  /**
+   * Adjusts the editor's container to unflip vertically, positioning it from
+   * the top to the bottom of the edited cell.
+   *
+   * @private
+   */
+  unflipEditorVertically() {
+    const dropdownStyle = this.htEditor.rootElement.style;
+
+    dropdownStyle.position = 'absolute';
+    dropdownStyle.top = '';
+
+    this.isFlippedVertically = false;
+  }
+
+  /**
+   * Calculates the space above and below the editor and flips it vertically if needed.
+   *
+   * @private
+   * @returns {{ isFlipped: boolean, spaceAbove: number, spaceBelow: number}}
+   */
+  flipEditorHorizontallyIfNeeded() {
+    const { view } = this.hot;
+    const cellRect = this.getEditedCellRect();
+    let spaceInlineStart = cellRect.start + cellRect.width;
+
+    if (view.isHorizontallyScrollableByWindow()) {
+      const inlineStartOffset = view.getTableOffset().left - this.hot.rootWindow.scrollX;
+
+      spaceInlineStart = Math.max(spaceInlineStart + inlineStartOffset, 0);
+    }
+
+    const workspaceWidth = view.getWorkspaceWidth();
+    const spaceInlineEnd = workspaceWidth - spaceInlineStart + cellRect.width;
+    const flipNeeded = spaceInlineEnd < this.getWidth() && spaceInlineStart > this.getWidth();
+
+    if (flipNeeded) {
+      this.flipEditorHorizontally();
+    } else {
+      this.unflipEditorHorizontally();
+    }
+
+    return {
+      isFlipped: flipNeeded,
+      spaceInlineStart,
+      spaceInlineEnd,
+    };
+  }
+
+  /**
+   * Adjusts the editor's container to flip horizontally, positioning it from
+   * the inline end (right) to the inline start (left) of the edited cell.
+   *
+   * @private
+   */
+  flipEditorHorizontally() {
+    const dropdownStyle = this.htEditor.rootElement.style;
+    const { width } = this.getEditedCellRect();
+
+    dropdownStyle.position = 'absolute';
+    dropdownStyle[this.hot.isRtl() ? 'right' : 'left'] = `${-(this.getWidth() - width)}px`;
+
+    this.isFlippedHorizontally = true;
+  }
+
+  /**
+   * Adjusts the editor's container to unflip horizontally, positioning it from
+   * the inline start (left) to the inline end (right) of the edited cell.
+   *
+   * @private
+   */
+  unflipEditorHorizontally() {
+    const dropdownStyle = this.htEditor.rootElement.style;
+
+    dropdownStyle.position = 'absolute';
+    dropdownStyle[this.hot.isRtl() ? 'right' : 'left'] = '';
+
+    this.isFlippedHorizontally = false;
+  }
+
+  /**
+   * Return the DOM height of the editor's container.
+   *
+   * @returns {number}
+   */
+  getHeight() {
+    return this.htEditor.getTableHeight();
+  }
+
+  /**
+   * Return the DOM width of the editor's container.
+   *
    * @returns {number}
    */
   getWidth() {
+    return this.htEditor.getTableWidth();
+  }
+
+  /**
+   * Calculates the proposed editor width that should be set once the editor is opened.
+   * The method may be overwritten in the child class to provide a custom logic.
+   *
+   * @returns {number}
+   */
+  calculateEditorWidth() {
     return this.htEditor.view.getTableWidth();
+  }
+
+  /**
+   * Calculates the proposed editor height that should be set once the editor is opened.
+   * The method may be overwritten in the child class to provide a custom logic.
+   *
+   * @returns {number}
+   */
+  calculateEditorHeight() {
+    return this.htEditor.view.getTableHeight() + 1;
   }
 
   /**
@@ -231,7 +395,7 @@ export class HandsontableEditor extends TextEditor {
       const innerHOT = this.htEditor;
 
       if (rowToSelect !== undefined) {
-        if (rowToSelect < 0 || (innerHOT.flipped && rowToSelect > innerHOT.countRows() - 1)) {
+        if (rowToSelect < 0 || (this.isFlippedVertically && rowToSelect > innerHOT.countRows() - 1)) {
           innerHOT.deselectCell();
         } else {
           innerHOT.selectCell(rowToSelect, 0);
@@ -255,11 +419,11 @@ export class HandsontableEditor extends TextEditor {
         let rowToSelect;
         let selectedRow;
 
-        if (!innerHOT.getSelectedLast() && innerHOT.flipped) {
+        if (!innerHOT.getSelectedLast() && this.isFlippedVertically) {
           rowToSelect = innerHOT.countRows() - 1;
 
         } else if (innerHOT.getSelectedLast()) {
-          if (innerHOT.flipped) {
+          if (this.isFlippedVertically) {
             selectedRow = innerHOT.getSelectedLast()[0];
             rowToSelect = Math.max(0, selectedRow - 1);
           } else {
@@ -278,14 +442,14 @@ export class HandsontableEditor extends TextEditor {
         let rowToSelect;
         let selectedRow;
 
-        if (!innerHOT.getSelectedLast() && !innerHOT.flipped) {
+        if (!innerHOT.getSelectedLast() && !this.isFlippedVertically) {
           rowToSelect = 0;
 
         } else if (innerHOT.getSelectedLast()) {
-          if (innerHOT.flipped) {
+          if (this.isFlippedVertically) {
             rowToSelect = innerHOT.getSelectedLast()[0] + 1;
 
-          } else if (!innerHOT.flipped) {
+          } else if (!this.isFlippedVertically) {
             const lastRow = innerHOT.countRows() - 1;
 
             selectedRow = innerHOT.getSelectedLast()[0];

@@ -343,7 +343,7 @@ export class AutocompleteEditor extends HandsontableEditor {
 
     if (choices.length > 0) {
       this.updateDropdownDimensions();
-      this.flipDropdownIfNeeded();
+      this.flipEditorVerticallyIfNeeded();
 
       if (this.cellProperties.strict === true) {
         this.highlightBestMatchingChoice(highlightIndex);
@@ -359,32 +359,19 @@ export class AutocompleteEditor extends HandsontableEditor {
    * Checks where is enough place to open editor.
    *
    * @private
-   * @returns {boolean}
+   * @returns {{ isFlipped: boolean, spaceAbove: number, spaceBelow: number}}
    */
-  flipDropdownIfNeeded() {
-    const editorRect = this.getEditedCellRect();
-    const editorHeight = editorRect.height;
-    let spaceAbove = editorRect.top;
+  flipEditorVerticallyIfNeeded() {
+    const result = super.flipEditorVerticallyIfNeeded();
+    const {
+      isFlipped,
+      spaceAbove,
+      spaceBelow,
+    } = result;
 
-    if (this.hot.view.isVerticallyScrollableByWindow()) {
-      const topOffset = this.hot.view.getTableOffset().top - this.hot.rootWindow.scrollY;
+    this.limitDropdownIfNeeded(isFlipped ? spaceAbove : spaceBelow);
 
-      spaceAbove = Math.max(spaceAbove + topOffset, 0);
-    }
-
-    const dropdownHeight = this.getHeight();
-    const spaceBelow = this.hot.view.getWorkspaceHeight() - spaceAbove - editorHeight;
-    const flipNeeded = dropdownHeight > spaceBelow && spaceAbove > spaceBelow + editorHeight;
-
-    if (flipNeeded) {
-      this.flipDropdown(dropdownHeight);
-    } else {
-      this.unflipDropdown();
-    }
-
-    this.limitDropdownIfNeeded(flipNeeded ? spaceAbove : spaceBelow, dropdownHeight);
-
-    return flipNeeded;
+    return result;
   }
 
   /**
@@ -392,59 +379,29 @@ export class AutocompleteEditor extends HandsontableEditor {
    *
    * @private
    * @param {number} spaceAvailable The free space as height defined in px available for dropdown list.
-   * @param {number} dropdownHeight The dropdown height.
    */
-  limitDropdownIfNeeded(spaceAvailable, dropdownHeight) {
+  limitDropdownIfNeeded(spaceAvailable) {
+    const dropdownHeight = this.getHeight();
+
     if (dropdownHeight > spaceAvailable) {
       let tempHeight = 0;
-      let i = 0;
       let lastRowHeight = 0;
       let height = null;
 
       do {
-        lastRowHeight = this.htEditor.getRowHeight(i) || this.htEditor.view.getDefaultRowHeight();
+        lastRowHeight = this.htEditor.view.getDefaultRowHeight();
         tempHeight += lastRowHeight;
-        i += 1;
       } while (tempHeight < spaceAvailable);
 
       height = tempHeight - lastRowHeight;
 
-      if (this.htEditor.flipped) {
+      if (this.isFlippedVertically) {
         this.htEditor.rootElement.style.top =
         `${parseInt(this.htEditor.rootElement.style.top, 10) + dropdownHeight - height}px`;
       }
 
       this.setDropdownHeight(tempHeight - lastRowHeight);
     }
-  }
-
-  /**
-   * Configures editor to open it at the top.
-   *
-   * @private
-   * @param {number} dropdownHeight The dropdown height.
-   */
-  flipDropdown(dropdownHeight) {
-    const dropdownStyle = this.htEditor.rootElement.style;
-
-    dropdownStyle.position = 'absolute';
-    dropdownStyle.top = `${-dropdownHeight}px`;
-
-    this.htEditor.flipped = true;
-  }
-
-  /**
-   * Configures editor to open it at the bottom.
-   *
-   * @private
-   */
-  unflipDropdown() {
-    const dropdownStyle = this.htEditor.rootElement.style;
-
-    dropdownStyle.position = 'absolute';
-    dropdownStyle.top = '';
-
-    this.htEditor.flipped = undefined;
   }
 
   /**
@@ -465,12 +422,11 @@ export class AutocompleteEditor extends HandsontableEditor {
    */
   updateDropdownDimensions() {
     this.htEditor.updateSettings({
-      width: this.getWidth(),
-      height: this.getHeight(),
+      width: this.calculateEditorWidth(),
+      height: this.calculateEditorHeight(),
     });
 
     this.#fixDropdownWidth();
-
     this.htEditor.view._wt.wtTable.alignOverlaysWithTrimmingContainer();
   }
 
@@ -486,7 +442,6 @@ export class AutocompleteEditor extends HandsontableEditor {
     });
 
     this.#fixDropdownWidth();
-
     this.htEditor.view._wt.wtTable.alignOverlaysWithTrimmingContainer();
   }
 
@@ -510,19 +465,16 @@ export class AutocompleteEditor extends HandsontableEditor {
    * @private
    * @returns {number}
    */
-  getHeight() {
-    const containerStyle = this.hot.rootWindow.getComputedStyle(this.htContainer.querySelector('.htCore'));
-    const borderVerticalCompensation = parseInt(containerStyle.borderTopWidth, 10) +
-      parseInt(containerStyle.borderBottomWidth, 10);
+  calculateEditorHeight() {
     const maxItems = Math.min(this.cellProperties.visibleRows, this.strippedChoices.length);
     const height = Array.from({ length: maxItems }, (_, i) => i)
       .reduce((totalHeight, index) => {
-        const rowHeight = this.htEditor.getRowHeight(index) || this.htEditor.view.getDefaultRowHeight();
+        const rowHeight = this.htEditor.view.getDefaultRowHeight() + (index === 0 ? 1 : 0);
 
         return totalHeight + rowHeight;
       }, 0);
 
-    return height + borderVerticalCompensation + 1;
+    return height;
   }
 
   /**
@@ -531,12 +483,8 @@ export class AutocompleteEditor extends HandsontableEditor {
    * @private
    * @returns {number}
    */
-  getWidth() {
-    const containerStyle = this.hot.rootWindow.getComputedStyle(this.htContainer.querySelector('.htCore'));
-    const borderHorizontalCompensation = parseInt(containerStyle.borderInlineStartWidth, 10) +
-      parseInt(containerStyle.borderInlineEndWidth, 10);
-
-    return this.htEditor.getColWidth(0) + borderHorizontalCompensation;
+  calculateEditorWidth() {
+    return this.htEditor.getColWidth(0);
   }
 
   /**
