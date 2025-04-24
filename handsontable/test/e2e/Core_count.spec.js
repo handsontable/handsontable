@@ -8,6 +8,7 @@ describe('Core_count', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
+
       $('body').find(`#${id}`).remove();
     }
   });

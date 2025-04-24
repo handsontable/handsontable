@@ -8,8 +8,9 @@ describe('Core_modifySourceData', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-      $('body').find(`#${id}`).remove();
     }
+
+    $('body').find(`#${id}`).remove();
   });
 
   describe('`get` mode', () => {

@@ -8,8 +8,9 @@ describe('Core_keepEmptyRows', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-      $('body').find(`#${id}`).remove();
     }
+
+    $('body').find(`#${id}`).remove();
   });
 
   const arrayOfNestedObjects = function() {

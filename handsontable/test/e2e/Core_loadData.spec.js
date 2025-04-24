@@ -8,8 +8,9 @@ describe('Core_loadData', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-      $('body').find(`#${id}`).remove();
     }
+
+    $('body').find(`#${id}`).remove();
   });
 
   const arrayOfArrays = function() {

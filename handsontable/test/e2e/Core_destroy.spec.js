@@ -8,6 +8,7 @@ describe('Core_destroy', () => {
   afterEach(() => {
     if (spec().$container) {
       destroy();
+
       $('body').find(`#${id}`).remove();
     }
   });

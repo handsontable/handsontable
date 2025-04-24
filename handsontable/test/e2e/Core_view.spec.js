@@ -8,8 +8,9 @@ describe('Core_view', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-      $('body').find(`#${id}`).remove();
     }
+
+    $('body').find(`#${id}`).remove();
   });
 
   it('should focus cell after viewport is scrolled using down arrow', async() => {
@@ -743,6 +744,8 @@ describe('Core_view', () => {
       })
       .simulate('mouseup')
       .simulate('click');
+
+    await sleep(10000);
 
     expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: 1,2 to: 1,2']);
   });

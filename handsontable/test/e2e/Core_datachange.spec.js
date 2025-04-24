@@ -8,6 +8,7 @@ describe('Core_datachange', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
+
       $('body').find(`#${id}`).remove();
     }
   });

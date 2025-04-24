@@ -8,6 +8,7 @@ describe('Core_dataSchema', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
+
       $('body').find(`#${id}`).remove();
     }
   });

@@ -8,8 +8,9 @@ describe('Core_reCreate', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-      $('body').find(`#${id}`).remove();
     }
+
+    $('body').find(`#${id}`).remove();
   });
 
   it('should correctly re-render corner header when there is multiline content', async() => {

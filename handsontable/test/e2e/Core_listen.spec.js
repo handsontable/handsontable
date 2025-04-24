@@ -8,8 +8,9 @@ describe('Core_listen', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-      $('body').find(`#${id}`).remove();
     }
+
+    $('body').find(`#${id}`).remove();
   });
 
   it('should not listen by default after initialization', async() => {
