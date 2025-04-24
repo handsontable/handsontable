@@ -7,7 +7,6 @@ export default async (req: Request, context: Context) => {
 
   /**
   # --- redirect /docs/ to /docs/javascript-data-grid/ ---
-  rewrite ^/docs/?$ /docs/$framework/ permanent;
   rewrite ^/docs/(\d+\.\d+|next)/?$ /docs/$1/$framework/ permanent;
   */
 
