@@ -1,3 +1,4 @@
+@charset "UTF-8";
 /*!
  * Copyright (c) HANDSONCODE sp. z o. o.
  *
@@ -25,8 +26,8 @@
  * INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING FROM
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
- * Version: 15.2.0
- * Release date: 19/03/2025 (built at 19/03/2025 09:42:04)
+ * Version: 15.3.0
+ * Release date: 29/04/2025 (built at 24/04/2025 10:42:45)
  */
 /**
  * Fix for bootstrap styles
@@ -367,8 +368,6 @@ innerBorderBottom - Property controlled by bottom overlay
 .ht_clone_bottom .wtHolder {
   overflow: hidden;
 }
-
-@charset "UTF-8";
 
 .handsontable {
   position: relative;
@@ -1165,8 +1164,6 @@ textarea.HandsontableCopyPaste {
   outline: 0 none !important;
 }
 
-@charset "UTF-8";
-
 /*!
  * Handsontable DropdownMenu
  */
@@ -1315,8 +1312,6 @@ textarea.HandsontableCopyPaste {
   overflow: hidden;
 }
 
-@charset "UTF-8";
-
 /*!
  * Handsontable Filters
  */
@@ -1458,7 +1453,7 @@ textarea.HandsontableCopyPaste {
 }
 
 .htUIMultipleSelect .ht_master .wtHolder {
-  overflow-y: scroll;
+  overflow: auto;
 }
 
 .handsontable .htFiltersActive .changeType {
@@ -1662,8 +1657,6 @@ textarea.HandsontableCopyPaste {
   padding-bottom: 5px;
 }
 
-@charset "UTF-8";
-
 /*
  * Handsontable HiddenColumns
  */
@@ -1721,8 +1714,6 @@ textarea.HandsontableCopyPaste {
   left: initial;
   content: "◀"; /* left arrow */
 }
-
-@charset "UTF-8";
 
 /*!
  * Handsontable HiddenRows
@@ -1993,8 +1984,6 @@ textarea.HandsontableCopyPaste {
 thead th.hiddenHeaderText .colHeader {
   opacity: 0;
 }
-
-@charset "UTF-8";
 
 .handsontable th.ht_nestingLevels {
   text-align: left;

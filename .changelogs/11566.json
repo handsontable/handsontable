@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed settings object not being updated after new hooks",
-  "type": "fixed",
-  "issueOrPR": 11566,
-  "breaking": false,
-  "framework": "none"
-}

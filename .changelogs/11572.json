@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed copy/paste/cut functionalities for web components",
-  "type": "fixed",
-  "issueOrPR": 11572,
-  "breaking": false,
-  "framework": "none"
-}
