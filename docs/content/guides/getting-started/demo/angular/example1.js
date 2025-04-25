@@ -1295,6 +1295,7 @@ export class Example1DemoComponent {
     imeFastEdit: true,
     columns: [
       { data: 1 },
+      { data: 3 },
       { data: 4, type: 'date', allowInvalid: false },
       { data: 6, type: 'checkbox', className: 'htCenter' },
       { data: 7, type: 'numeric' },
