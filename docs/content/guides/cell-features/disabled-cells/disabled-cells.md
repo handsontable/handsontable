@@ -100,6 +100,8 @@ To make a column read-only, declare it in the [`columns`](@/api/options.md#colum
 
 :::
 
+<!-- TODO: workaround for the template parsing problem for angular docs  -->
+
 ::: only-for angular
 
 ::: example #example1 :angular --js 1 --html 2
