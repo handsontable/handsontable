@@ -734,27 +734,27 @@ export const REGISTERED_HOOKS = [
    *
    * ::: only-for angular
    * ```ts
- * settings = {
- *   afterSelection: (
- *     row,
- *     column,
- *     row2,
- *     column2,
- *     preventScrolling,
- *     selectionLayerLevel
- *   ) => {
- *     // If set to `false` (default): when cell selection is outside the viewport,
- *     // Handsontable scrolls the viewport to cell selection's end corner.
- *     // If set to `true`: when cell selection is outside the viewport,
- *     // Handsontable doesn't scroll to cell selection's end corner.
- *     preventScrolling.value = true;
- *   },
- * };
- * ```
- *
- * ```html
- * <hot-table [settings]="settings"></hot-table>
- * ```
+   * settings = {
+   *   afterSelection: (
+   *     row,
+   *     column,
+   *     row2,
+   *     column2,
+   *     preventScrolling,
+   *     selectionLayerLevel
+   *   ) => {
+   *     // If set to `false` (default): when cell selection is outside the viewport,
+   *     // Handsontable scrolls the viewport to cell selection's end corner.
+   *     // If set to `true`: when cell selection is outside the viewport,
+   *     // Handsontable doesn't scroll to cell selection's end corner.
+   *     preventScrolling.value = true;
+   *   },
+   * };
+   * ```
+   *
+   * ```html
+   * <hot-table [settings]="settings"></hot-table>
+   * ```
    * :::
    */
   'afterSelection',
