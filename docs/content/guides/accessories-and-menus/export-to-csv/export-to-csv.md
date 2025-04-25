@@ -105,6 +105,20 @@ Open a console in browser developer tools to see the result for the below exampl
 
 :::
 
+### Prevent CSV Injection attack
+
+"CSV Injection, also known as Formula Injection, occurs when websites embed untrusted input inside CSV files. When a spreadsheet program such as Microsoft Excel or LibreOffice Calc is used to open a CSV, any cells starting with = will be interpreted by the software as a formula." (from [OWASP website](https://owasp.org/www-community/attacks/CSV_Injection))
+
+To prevent this attack, set the [`sanitizeValues` option](#sanitizevalues-boolean|regexp|function) when exporting your data in CSV format.
+
+::: example #example4 --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/accessories-and-menus/export-to-csv/javascript/example4.html)
+@[code](@/content/guides/accessories-and-menus/export-to-csv/javascript/example4.js)
+@[code](@/content/guides/accessories-and-menus/export-to-csv/javascript/example4.ts)
+
+:::
+
 ## Available methods
 
 ::: only-for react
@@ -209,7 +223,7 @@ You can use this property in the `downloadFile()` and `exportAsBlob()` methods.
 
 Default value: `'text/csv'`
 
-### sanitizeValues `boolean|RegExp|Function`
+### sanitizeValues `Boolean|RegExp|Function`
 
 Controls the value sanitization during the CSV export
 
