@@ -4,7 +4,8 @@ const TerserPlugin = require('terser-webpack-plugin');
 
 // Check if the locally linked Angular wrapper exists and use it, otherwise use the one from node_modules.
 const localAngularWrapperPath = '../../public/@handsontable/angular-wrapper/fesm2022/handsontable-angular-wrapper.mjs';
-const dependencyAngularWrapperPath = '../../../node_modules/@handsontable/angular-wrapper/fesm2022/handsontable-angular-wrapper.mjs';
+const dependencyAngularWrapperPath =
+'../../../node_modules/@handsontable/angular-wrapper/fesm2022/handsontable-angular-wrapper.mjs';
 const angularImportPath = fs.existsSync(path.resolve(__dirname, localAngularWrapperPath))
   ? localAngularWrapperPath
   : dependencyAngularWrapperPath;

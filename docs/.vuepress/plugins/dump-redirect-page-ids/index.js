@@ -25,7 +25,7 @@ module.exports = (options, context) => {
 
       if (pageIdsMap.has(pageId)) {
         // TODO temporary solution to avoid the error
-        //throw new Error(`The pageId (${pageId}) is already taken!`);
+        // throw new Error(`The pageId (${pageId}) is already taken!`);
       }
 
       pageIdsMap.set(pageId, `/${$page.frontmatter.permalink}/`.replace(/(\/)+/g, '$1'));
