@@ -48,7 +48,7 @@ export const appConfig: ApplicationConfig = {
     {
       provide: HOT_GLOBAL_CONFIG,
       useValue: {
-        themeName: 'ht-theme-main',
+        themeName: 'ht-theme-main-dark-auto',
         license: NON_COMMERCIAL_LICENSE,
       } as HotConfig
     }

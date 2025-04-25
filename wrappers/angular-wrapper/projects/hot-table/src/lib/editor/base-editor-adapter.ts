@@ -7,7 +7,8 @@ import {
 import { CustomEditorPlaceholderComponent } from './custom-editor-placeholder.component';
 import { ColumnSettingsInternal } from '../models/column-settings';
 import { HotCellEditorComponent } from './hot-cell-editor.component';
-import { Subscription, take } from 'rxjs';
+import { Subscription } from 'rxjs';
+import { take } from 'rxjs/operators';
 
 /**
  * Adapter for BaseEditor from Handsontable.

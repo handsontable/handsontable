@@ -21,7 +21,7 @@ const colors = [
   selector: 'example1-autocomplete-cell-type',
   standalone: false,
   template: ` <div>
-    <hot-table [settings]="gridSettings"></hot-table>
+    <hot-table [data]="data" [settings]="gridSettings"></hot-table>
   </div>`,
 })
 export class Example1AutocompleteCellTypeComponent {
@@ -70,7 +70,6 @@ import { registerAllModules } from 'handsontable/registry';
 import { HOT_GLOBAL_CONFIG, HotConfig, HotTableModule } from '@handsontable/angular-wrapper';
 import { CommonModule } from '@angular/common';
 import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
-
 /* start:skip-in-compilation */
 import { Example1AutocompleteCellTypeComponent } from './app.component';
 /* end:skip-in-compilation */
@@ -83,7 +82,7 @@ export const appConfig: ApplicationConfig = {
     {
       provide: HOT_GLOBAL_CONFIG,
       useValue: {
-        themeName: 'ht-theme-main',
+        themeName: 'ht-theme-main-dark-auto',
         license: NON_COMMERCIAL_LICENSE,
       } as HotConfig
     }
