@@ -14,7 +14,10 @@ beforeEach(function() {
   }
 
   specContext.spec = this;
-  this.loadedTheme = __ENV_ARGS__.HOT_THEME || 'classic';
+
+  if (!process.env.JEST_WORKER_ID) {
+    this.loadedTheme = __ENV_ARGS__.HOT_THEME || 'classic';
+  }
 });
 
 afterEach(() => {
