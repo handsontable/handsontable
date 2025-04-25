@@ -18,19 +18,6 @@ const stylingItems = [
   { path: 'guides/styling/design-system/design-system' }
 ];
 
-const integrateWithAngularItems = [
-  { path: 'guides/integrate-with-angular/angular-installation/angular-installation' },
-  { path: 'guides/integrate-with-angular/angular-simple-example/angular-simple-example' },
-  { path: 'guides/integrate-with-angular/angular-modules/angular-modules' },
-  { path: 'guides/integrate-with-angular/angular-custom-id/angular-custom-id' },
-  { path: 'guides/integrate-with-angular/angular-setting-up-a-translation/angular-setting-up-a-translation' },
-  { path: 'guides/integrate-with-angular/angular-custom-context-menu-example/angular-custom-context-menu-example' },
-  { path: 'guides/integrate-with-angular/angular-custom-editor-example/angular-custom-editor-example' },
-  { path: 'guides/integrate-with-angular/angular-custom-renderer-example/angular-custom-renderer-example' },
-  { path: 'guides/integrate-with-angular/angular-language-change-example/angular-language-change-example' },
-  { path: 'guides/integrate-with-angular/angular-hot-reference/angular-hot-reference' },
-];
-
 const integrateWithVueItems = [
   { path: 'guides/integrate-with-vue/vue-installation/vue-installation' },
   { path: 'guides/integrate-with-vue/vue-simple-example/vue-simple-example' },
@@ -204,7 +191,6 @@ module.exports = {
     { title: 'Accessibility', children: accessibilityItems },
     { title: 'Accessories and menus', children: accessoriesAndMenusItems },
     { title: 'Internationalization', children: internationalizationItems },
-    { title: 'Integrate with Angular', children: integrateWithAngularItems },
     { title: 'Integrate with Vue 2', children: integrateWithVueItems },
     { title: 'Integrate with Vue 3', children: integrateWithVue3Items },
     { title: 'Tools and building', children: buildingAndToolingItems },
