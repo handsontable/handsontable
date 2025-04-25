@@ -81,7 +81,12 @@ Click on one of the column names to sort the values in ascending (↑) or descen
 
 ::: only-for angular
 
-<!-- TODO: angular example example--04-08-01 -->
+::: example #example1 :angular --js 1 --html 2
+
+@[code](@/content/guides/rows/rows-sorting/angular/example1.js)
+@[code](@/content/guides/rows/rows-sorting/angular/example1.html)
+
+:::
 
 :::
 
@@ -156,7 +161,12 @@ the following example, only columns **Model**, **Date** and **In stock** are sor
 
 ::: only-for angular
 
-<!-- TODO: angular example example--04-08-02 -->
+::: example #example2 :angular --js 1 --html 2
+
+@[code](@/content/guides/rows/rows-sorting/angular/example2.js)
+@[code](@/content/guides/rows/rows-sorting/angular/example2.html)
+
+:::
 
 :::
 
@@ -313,7 +323,12 @@ You can configure the following types:
 
 ::: only-for angular
 
-<!-- TODO: angular example example--04-08-03 -->
+::: example #example3 :angular --js 1 --html 2
+
+@[code](@/content/guides/rows/rows-sorting/angular/example3.js)
+@[code](@/content/guides/rows/rows-sorting/angular/example3.html)
+
+:::
 
 :::
 
@@ -354,7 +369,12 @@ To try out sorting by multiple columns, see the following demo:
 
 ::: only-for angular
 
-<!-- TODO: angular example example--04-08-04 -->
+::: example #example4 :angular --js 1 --html 2
+
+@[code](@/content/guides/rows/rows-sorting/angular/example4.js)
+@[code](@/content/guides/rows/rows-sorting/angular/example4.html)
+
+:::
 
 :::
 
@@ -499,7 +519,12 @@ In the following demo, the data is initially sorted:
 
 ::: only-for angular
 
-<!-- TODO: angular example example--04-08-05 -->
+::: example #example5 :angular --js 1 --html 2
+
+@[code](@/content/guides/rows/rows-sorting/angular/example5.js)
+@[code](@/content/guides/rows/rows-sorting/angular/example5.html)
+
+:::
 
 :::
 
@@ -669,7 +694,12 @@ The default sort icons (↑↓) are encoded `url`. You can replace them by chang
 
 ::: only-for angular
 
-<!-- TODO: angular example example--04-08-06 -->
+::: example #example6 :angular --js 1 --html 2
+
+@[code](@/content/guides/rows/rows-sorting/angular/example6.js)
+@[code](@/content/guides/rows/rows-sorting/angular/example6.html)
+
+:::
 
 :::
 
@@ -704,7 +734,12 @@ subsequent pseudo-elements:
 
 ::: only-for angular
 
-<!-- TODO: angular example example--04-08-07 -->
+::: example #example7 :angular --js 1 --html 2
+
+@[code](@/content/guides/rows/rows-sorting/angular/example7.js)
+@[code](@/content/guides/rows/rows-sorting/angular/example7.html)
+
+:::
 
 :::
 
@@ -895,7 +930,12 @@ For example, if you [freeze](@/guides/rows/row-freezing/row-freezing.md) a row a
 
 ::: only-for angular
 
-<!-- TODO: angular example example--04-08-08 -->
+::: example #example8 :angular --js 1 --html 2
+
+@[code](@/content/guides/rows/rows-sorting/angular/example8.js)
+@[code](@/content/guides/rows/rows-sorting/angular/example8.html)
+
+:::
 
 :::
 
@@ -1187,7 +1227,12 @@ To see how it works, try out the following demo:
 
 ::: only-for angular
 
-<!-- TODO: angular example example--04-08-09 -->
+::: example #example9 :angular --js 1 --html 2
+
+@[code](@/content/guides/rows/rows-sorting/angular/example9.js)
+@[code](@/content/guides/rows/rows-sorting/angular/example9.html)
+
+:::
 
 :::
 
@@ -1331,7 +1376,12 @@ To see how it works, try out the following demo:
 
 ::: only-for angular
 
-<!-- TODO: angular example example--04-08-10 -->
+::: example #example10 :angular --js 1 --html 2
+
+@[code](@/content/guides/rows/rows-sorting/angular/example10.js)
+@[code](@/content/guides/rows/rows-sorting/angular/example10.html)
+
+:::
 
 :::
 

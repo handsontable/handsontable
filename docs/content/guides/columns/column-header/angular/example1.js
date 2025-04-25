@@ -1,34 +1,46 @@
 /* file: app.component.ts */
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
+import { GridSettings } from "@handsontable/angular-wrapper";
 
 @Component({
   selector: 'app-example1',
   template: `
     <hot-table
-      [settings]="hotSettings!" [data]="hotData">
+        [settings]="hotSettings!" [data]="hotData">
     </hot-table>
   `,
   standalone: false
 })
-export class AppComponent implements OnInit {
+export class AppComponent {
 
-  hotSettings;
+  readonly hotData = [
+    ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1'],
+    ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2', 'J2'],
+    ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3', 'I3', 'J3'],
+    ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4', 'H4', 'I4', 'J4'],
+    ['A5', 'B5', 'C5', 'D5', 'E5', 'F5', 'G5', 'H5', 'I5', 'J5'],
+  ];
 
-  hotData = [
-    ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1', 'K1'],
-    ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2', 'J2', 'K2'],
-    ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3', 'I3', 'J3', 'K3'],
-  ]
-
-  ngOnInit() {
-    this.hotSettings = {
-      colHeaders: true,
-      rowHeaders: true,
-      height: 'auto',
-      autoWrapRow: true,
-      autoWrapCol: true
-    }
-  }
+  readonly hotSettings: GridSettings = {
+    colHeaders: true,
+    rowHeaders: true,
+    height: 'auto',
+    nestedHeaders: [
+      ['A', { label: 'B', colspan: 8 }, 'C'],
+      ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
+      [
+        'H',
+        { label: 'I', colspan: 2 },
+        { label: 'J', colspan: 2 },
+        { label: 'K', colspan: 2 },
+        { label: 'L', colspan: 2 },
+        'M',
+      ],
+      ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W'],
+    ],
+    autoWrapRow: true,
+    autoWrapCol: true,
+  };
 }
 /* end-file */
 
@@ -53,7 +65,7 @@ export const appConfig: ApplicationConfig = {
     {
       provide: HOT_GLOBAL_CONFIG,
       useValue: {
-        themeName: 'ht-theme-main',
+        themeName: 'ht-theme-main-dark-auto',
         license: NON_COMMERCIAL_LICENSE,
       } as HotConfig
     }

@@ -66,7 +66,12 @@ This example calculates and displays five different column summaries:
 
 ::: only-for angular
 
-<!-- TODO: angular example example--03-08-01 -->
+::: example #example1 :angular --js 1 --html 2
+
+@[code](@/content/guides/columns/column-summary/angular/example1.js)
+@[code](@/content/guides/columns/column-summary/angular/example1.html)
+
+:::
 
 :::
 
@@ -503,7 +508,12 @@ To reverse row coordinates for your column summary, set the [`reversedRowCoords`
 
 ::: only-for angular
 
-<!-- TODO: angular example example--03-08-02 -->
+::: example #example2 :angular --js 1 --html 2
+
+@[code](@/content/guides/columns/column-summary/angular/example2.js)
+@[code](@/content/guides/columns/column-summary/angular/example2.html)
+
+:::
 
 :::
 
@@ -543,7 +553,12 @@ The example below sets up five different column summaries. To do this, it:
 
 ::: only-for angular
 
-<!-- TODO: angular example example--03-08-03 -->
+::: example #example3 :angular --js 1 --html 2
+
+@[code](@/content/guides/columns/column-summary/angular/example3.js)
+@[code](@/content/guides/columns/column-summary/angular/example3.html)
+
+:::
 
 :::
 
@@ -573,7 +588,12 @@ Using a function to provide a column summary configuration lets you set up all s
 
 ::: only-for angular
 
-<!-- TODO: angular example example--03-08-04 -->
+::: example #example4 :angular --js 1 --html 2
+
+@[code](@/content/guides/columns/column-summary/angular/example4.js)
+@[code](@/content/guides/columns/column-summary/angular/example4.html)
+
+:::
 
 :::
 
@@ -714,7 +734,12 @@ This example implements a function that counts the number of even values in a co
 
 ::: only-for angular
 
-<!-- TODO: angular example example--03-08-05 -->
+::: example #example5 :angular --js 1 --html 2
+
+@[code](@/content/guides/columns/column-summary/angular/example5.js)
+@[code](@/content/guides/columns/column-summary/angular/example5.html)
+
+:::
 
 :::
 
@@ -749,7 +774,12 @@ See the following example:
 
 ::: only-for angular
 
-<!-- TODO: angular example example--03-08-06 -->
+::: example #example6 :angular --js 1 --html 2
+
+@[code](@/content/guides/columns/column-summary/angular/example6.js)
+@[code](@/content/guides/columns/column-summary/angular/example6.html)
+
+:::
 
 :::
 
@@ -812,7 +842,12 @@ To enable this feature, set the [`forceNumeric`](@/api/columnSummary.md) option 
 
 ::: only-for angular
 
-<!-- TODO: angular example example--03-08-07 -->
+::: example #example7 :angular --js 1 --html 2
+
+@[code](@/content/guides/columns/column-summary/angular/example7.js)
+@[code](@/content/guides/columns/column-summary/angular/example7.html)
+
+:::
 
 :::
 
@@ -846,7 +881,12 @@ To throw data type errors, set the [`suppressDataTypeErrors`](@/api/columnSummar
 
 ::: only-for angular
 
-<!-- TODO: angular example example--03-08-08 -->
+::: example #example8 :angular --js 1 --html 2
+
+@[code](@/content/guides/columns/column-summary/angular/example8.js)
+@[code](@/content/guides/columns/column-summary/angular/example8.html)
+
+:::
 
 :::
 

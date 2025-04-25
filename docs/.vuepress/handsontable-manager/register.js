@@ -22,7 +22,7 @@ function createDestroyableResource(presetType, { rootExampleElement, hotInstance
           ReactDOM.unmountComponentAtNode(rootExampleElement.firstChild);
 
         } else if (presetType.startsWith('angular')) {
-          ng.core.getPlatform().destroy();
+          ng.core.getPlatform() && ng.core.getPlatform().destroy();
 
         } else if (!hotInstance.isDestroyed) {
           // Skip internal HoT-based components (e.g. context menu, dropdown menu). They

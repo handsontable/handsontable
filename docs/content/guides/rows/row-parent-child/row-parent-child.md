@@ -104,7 +104,12 @@ Here's an example:
 
 ::: only-for angular
 
-<!-- TODO: angular example example--04-02-01 -->
+::: example #example1 :angular --js 1 --html 2
+
+@[code](@/content/guides/rows/row-parent-child/angular/example1.js)
+@[code](@/content/guides/rows/row-parent-child/angular/example1.html)
+
+:::
 
 :::
 

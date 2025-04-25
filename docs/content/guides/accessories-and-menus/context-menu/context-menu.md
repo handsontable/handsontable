@@ -57,7 +57,12 @@ To see the context menu, right-click on a cell:
 
 ::: only-for angular
 
-<!-- TODO: angular example example--11-01-01 -->
+::: example #example1 :angular --js 1 --html 2
+
+@[code](@/content/guides/accessories-and-menus/context-menu/angular/example1.js)
+@[code](@/content/guides/accessories-and-menus/context-menu/angular/example1.html)
+
+:::
 
 :::
 
@@ -130,7 +135,12 @@ To see the context menu, right-click on a cell:
 
 ::: only-for angular
 
-<!-- TODO: angular example example--11-01-02 -->
+::: example #example2 :angular --js 1 --html 2
+
+@[code](@/content/guides/accessories-and-menus/context-menu/angular/example2.js)
+@[code](@/content/guides/accessories-and-menus/context-menu/angular/example2.html)
+
+:::
 
 :::
 
@@ -187,7 +197,12 @@ To see the context menu, right-click on a cell:
 
 ::: only-for angular
 
-<!-- TODO: angular example example--11-01-03 -->
+::: example #example3 :angular --js 1 --html 2
+
+@[code](@/content/guides/accessories-and-menus/context-menu/angular/example3.js)
+@[code](@/content/guides/accessories-and-menus/context-menu/angular/example3.html)
+
+:::
 
 :::
 

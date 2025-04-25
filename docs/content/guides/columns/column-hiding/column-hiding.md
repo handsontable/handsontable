@@ -60,7 +60,12 @@ To enable column hiding, use the [`hiddenColumns`](@/api/options.md#hiddencolumn
 
 ::: only-for angular
 
-<!-- TODO: angular example example--03-04-01 -->
+::: example #example1 :angular --js 1 --html 2
+
+@[code](@/content/guides/columns/column-hiding/angular/example1.js)
+@[code](@/content/guides/columns/column-hiding/angular/example1.html)
+
+:::
 
 :::
 
@@ -102,8 +107,12 @@ Now, those columns are hidden by default:
 
 ::: only-for angular
 
-<!-- TODO: angular example example--03-04-02 -->
+::: example #example2 :angular --js 1 --html 2
 
+@[code](@/content/guides/columns/column-hiding/angular/example2.js)
+@[code](@/content/guides/columns/column-hiding/angular/example2.html)
+
+:::
 :::
 
 ### Step 2: Show UI indicators
@@ -147,7 +156,12 @@ If you use both the [`NestedHeaders`](@/api/nestedHeaders.md) plugin and the
 
 ::: only-for angular
 
-<!-- TODO: angular example example--03-04-03 -->
+::: example #example3 :angular --js 1 --html 2
+
+@[code](@/content/guides/columns/column-hiding/angular/example3.js)
+@[code](@/content/guides/columns/column-hiding/angular/example3.html)
+
+:::
 
 :::
 
@@ -185,8 +199,12 @@ additional items for hiding and unhiding columns.
 
 ::: only-for angular
 
-<!-- TODO: angular example example--03-04-04 -->
+::: example #example4 :angular --js 1 --html 2
 
+@[code](@/content/guides/columns/column-hiding/angular/example4.js)
+@[code](@/content/guides/columns/column-hiding/angular/example4.html)
+
+:::
 :::
 
 You can also add the column hiding menu items individually, by adding the
@@ -220,8 +238,12 @@ strings to the[ `contextMenu`](@/api/contextMenu.md) parameter:
 
 ::: only-for angular
 
-<!-- TODO: angular example example--03-04-05 -->
+::: example #example5 :angular --js 1 --html 2
 
+@[code](@/content/guides/columns/column-hiding/angular/example5.js)
+@[code](@/content/guides/columns/column-hiding/angular/example5.html)
+
+:::
 :::
 
 ### Step 4: Set up copy and paste behavior
@@ -255,7 +277,12 @@ object, set the [`copyPasteEnabled`](@/api/hiddenColumns.md) property to `false`
 
 ::: only-for angular
 
-<!-- TODO: angular example example--03-04-06 -->
+::: example #example6 :angular --js 1 --html 2
+
+@[code](@/content/guides/columns/column-hiding/angular/example6.js)
+@[code](@/content/guides/columns/column-hiding/angular/example6.html)
+
+:::
 
 :::
 

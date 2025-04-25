@@ -142,6 +142,6 @@ export class HotSettingsResolver {
   }
 
   private isTemplateRef(renderer: any): renderer is TemplateRef<any> {
-    return renderer instanceof TemplateRef;
+    return renderer && typeof renderer.createEmbeddedView === 'function';
   }
 }

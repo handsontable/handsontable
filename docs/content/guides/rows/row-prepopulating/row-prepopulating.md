@@ -51,7 +51,12 @@ The example below shows how cell renderers can be used to populate the template 
 
 ::: only-for angular
 
-<!-- TODO: angular example example--04-10-01 -->
+::: example #example1 :angular --js 1 --html 2
+
+@[code](@/content/guides/rows/row-prepopulating/angular/example1.js)
+@[code](@/content/guides/rows/row-prepopulating/angular/example1.html)
+
+:::
 
 :::
 

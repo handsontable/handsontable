@@ -63,7 +63,12 @@ Make some changes to the grid below and the use the <kbd>**Ctrl**</kbd>/<kbd>**C
 
 ::: only-for angular
 
-<!-- TODO: angular example example--11-02-01 -->
+::: example #example1 :angular --js 1 --html 2
+
+@[code](@/content/guides/accessories-and-menus/undo-redo/angular/example1.js)
+@[code](@/content/guides/accessories-and-menus/undo-redo/angular/example1.html)
+
+:::
 
 :::
 

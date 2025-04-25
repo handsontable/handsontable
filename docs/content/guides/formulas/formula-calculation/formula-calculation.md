@@ -82,7 +82,12 @@ Double click on a cell to open the editor and preview the formula.
 
 ::: only-for angular
 
-<!-- TODO: angular example example--08-01-01 -->
+::: example #example1 :angular --js 1 --html 2
+
+@[code](@/content/guides/formulas/formula-calculation/angular/example1.js)
+@[code](@/content/guides/formulas/formula-calculation/angular/example1.html)
+
+:::
 
 :::
 
@@ -115,7 +120,12 @@ This example is more typical of data grids than spreadsheets. Calculations are p
 
 ::: only-for angular
 
-<!-- TODO: angular example example--08-01-02 -->
+::: example #example2 :angular --js 1 --html 2
+
+@[code](@/content/guides/formulas/formula-calculation/angular/example2.js)
+@[code](@/content/guides/formulas/formula-calculation/angular/example2.html)
+
+:::
 
 :::
 
@@ -613,6 +623,17 @@ pass an array with `name` and `expression` to your `formulas` configuration obje
 
 @[code](@/content/guides/formulas/formula-calculation/react/example-named-expressions1.jsx)
 @[code](@/content/guides/formulas/formula-calculation/react/example-named-expressions1.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example3 :angular --js 1 --html 2
+
+@[code](@/content/guides/formulas/formula-calculation/angular/example3.js)
+@[code](@/content/guides/formulas/formula-calculation/angular/example3.html)
 
 :::
 

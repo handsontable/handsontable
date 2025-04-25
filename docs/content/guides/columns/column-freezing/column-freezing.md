@@ -61,7 +61,12 @@ If your [layout direction](@/guides/internationalization/layout-direction/layout
 
 ::: only-for angular
 
-<!-- TODO: angular example example--03-06-01 -->
+::: example #example1 :angular --js 1 --html 2
+
+@[code](@/content/guides/columns/column-freezing/angular/example1.js)
+@[code](@/content/guides/columns/column-freezing/angular/example1.html)
+
+:::
 
 :::
 
@@ -95,7 +100,12 @@ Mind that when you unfreeze a frozen column, it doesn't go back to the original 
 
 ::: only-for angular
 
-<!-- TODO: angular example example--03-06-02 -->
+::: example #example2 :angular --js 1 --html 2
+
+@[code](@/content/guides/columns/column-freezing/angular/example2.js)
+@[code](@/content/guides/columns/column-freezing/angular/example2.html)
+
+:::
 
 :::
 

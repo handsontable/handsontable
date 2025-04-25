@@ -56,7 +56,12 @@ The following example specifies two fixed rows with `fixedRowsTop: 2`. Horizonta
 
 ::: only-for angular
 
-<!-- TODO: angular example example--04-05-01 -->
+::: example #example1 :angular --js 1 --html 2
+
+@[code](@/content/guides/rows/row-freezing/angular/example1.js)
+@[code](@/content/guides/rows/row-freezing/angular/example1.html)
+
+:::
 
 :::
 

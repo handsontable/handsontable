@@ -1,5 +1,6 @@
 /* file: app.component.ts */
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
+import { GridSettings } from "@handsontable/angular-wrapper";
 
 @Component({
   selector: 'app-example1',
@@ -10,25 +11,21 @@ import { Component, OnInit } from '@angular/core';
   `,
   standalone: false
 })
-export class AppComponent implements OnInit {
+export class AppComponent {
 
-  hotSettings;
-
-  hotData = [
+  readonly hotData = [
     ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1', 'K1'],
     ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2', 'J2', 'K2'],
     ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3', 'H3', 'I3', 'J3', 'K3'],
-  ]
-
-  ngOnInit() {
-    this.hotSettings = {
-      colHeaders: true,
-      rowHeaders: true,
-      height: 'auto',
-      autoWrapRow: true,
-      autoWrapCol: true
-    }
-  }
+  ];
+  
+  readonly hotSettings: GridSettings = {
+    colHeaders: true,
+    rowHeaders: true,
+    height: 'auto',
+    autoWrapRow: true,
+    autoWrapCol: true
+  };
 }
 /* end-file */
 
@@ -53,7 +50,7 @@ export const appConfig: ApplicationConfig = {
     {
       provide: HOT_GLOBAL_CONFIG,
       useValue: {
-        themeName: 'ht-theme-main',
+        themeName: 'ht-theme-main-dark-auto',
         license: NON_COMMERCIAL_LICENSE,
       } as HotConfig
     }

@@ -48,7 +48,12 @@ A draggable move handle appears above the selected row header. You can click and
 
 ::: only-for angular
 
-<!-- TODO: angular example example--04-04-01 -->
+::: example #example1 :angular --js 1 --html 2
+
+@[code](@/content/guides/rows/row-moving/angular/example1.js)
+@[code](@/content/guides/rows/row-moving/angular/example1.html)
+
+:::
 
 :::
 

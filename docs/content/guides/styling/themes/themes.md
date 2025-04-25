@@ -68,7 +68,12 @@ Keep in mind that starting from version `15.0`, importing a theme is required.
 
 ::: only-for angular
 
+::: example #example1 :angular --js 1 --html 2
 
+@[code](@/content/guides/styling/themes/angular/example1.js)
+@[code](@/content/guides/styling/themes/angular/example1.html)
+
+:::
 
 :::
 

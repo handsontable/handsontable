@@ -224,7 +224,12 @@ Callback console log:
 
 ::: only-for angular
 
-<!-- TODO: angular example example--0x-0x-01 -->
+::: example #example1 :angular --js 1 --html 2
+
+@[code](@/content/guides/cell-functions/cell-validator/angular/example1.js)
+@[code](@/content/guides/cell-functions/cell-validator/angular/example1.html)
+
+:::
 
 :::
 

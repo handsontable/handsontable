@@ -88,6 +88,12 @@ An array of labels can be used to set the [`colHeaders`](@/api/options.md#colhea
 
 ::: only-for angular
 
+::: example #example2 :angular --js 1 --html 2
+
+@[code](@/content/guides/columns/column-header/angular/example2.js)
+@[code](@/content/guides/columns/column-header/angular/example2.html)
+
+:::
 
 :::
 
@@ -118,7 +124,12 @@ The [`colHeaders`](@/api/options.md#colheaders) can also be populated using a fu
 
 ::: only-for angular
 
+::: example #example3 :angular --js 1 --html 2
 
+@[code](@/content/guides/columns/column-header/angular/example3.js)
+@[code](@/content/guides/columns/column-header/angular/example3.html)
+
+:::
 
 :::
 
@@ -152,7 +163,12 @@ You can also set the alignment for a specific column by using the [`columns`](@/
 
 ::: only-for angular
 
+::: example #example4 :angular --js 1 --html 2
 
+@[code](@/content/guides/columns/column-header/angular/example4.js)
+@[code](@/content/guides/columns/column-header/angular/example4.html)
+
+:::
 
 :::
 
@@ -184,7 +200,12 @@ If you want to style the header labels, you can pass any number of class names, 
 
 ::: only-for angular
 
+::: example #example5 :angular --js 1 --html 2
 
+@[code](@/content/guides/columns/column-header/angular/example5.js)
+@[code](@/content/guides/columns/column-header/angular/example5.html)
+
+:::
 
 :::
 

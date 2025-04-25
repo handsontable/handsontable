@@ -84,7 +84,12 @@ nestedHeaders={[
 
 ::: only-for angular
 
-<!-- TODO: angular example example--03-03-01 -->
+::: example #example1 :angular --js 1 --html 2
+
+@[code](@/content/guides/columns/column-groups/angular/example1.js)
+@[code](@/content/guides/columns/column-groups/angular/example1.html)
+
+:::
 
 :::
 
@@ -163,7 +168,12 @@ collapsibleColumns: [
 
 ::: only-for angular
 
-<!-- TODO: angular example example--03-03-02 -->
+::: example #example2 :angular --js 1 --html 2
+
+@[code](@/content/guides/columns/column-groups/angular/example2.js)
+@[code](@/content/guides/columns/column-groups/angular/example2.html)
+
+:::
 
 :::
 

@@ -26,10 +26,11 @@ Use Handsontable with plain JavaScript, TypeScript, or your favorite framework. 
 
 <div class="boxes-list gray small col3">
 
+- <i class="ico i-react"></i>
 [React](@/react/guides/getting-started/installation/installation.md)
 - <i class="ico i-javascript"></i> 
 [JavaScript](@/guides/getting-started/installation/installation.md)
-<i class="ico i-angular"></i>
+- <i class="ico i-angular"></i>
 [Angular](@/angular/guides/getting-started/installation/installation.md)
 - <i class="ico i-vue"></i> 
 [Vue 2](@/guides/integrate-with-vue/vue-installation/vue-installation.md)
