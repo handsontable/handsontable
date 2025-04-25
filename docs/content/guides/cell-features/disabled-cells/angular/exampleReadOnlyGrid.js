@@ -9,7 +9,7 @@ import { GridSettings } from '@handsontable/angular-wrapper';
     <hot-table [data]="data" [settings]="gridSettings"></hot-table>
   </div>`,
 })
-export class ExampleReadonlyGridCComponent {
+export class ExampleReadonlyGridComponent {
   readonly data = [
     { car: 'Tesla', year: 2017, chassis: 'black', bumper: 'black' },
     { car: 'Nissan', year: 2018, chassis: 'blue', bumper: 'blue' },
@@ -25,7 +25,6 @@ export class ExampleReadonlyGridCComponent {
     autoWrapCol: true
   };
 }
-
 /* end-file */
 
 /* file: app.module.ts */
@@ -37,7 +36,7 @@ import { CommonModule } from '@angular/common';
 import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
 /* start:skip-in-compilation */
-import { ExampleReadonlyGridCComponent } from './app.component';
+import { ExampleReadonlyGridComponent } from './app.component';
 /* end:skip-in-compilation */
 
 // register Handsontable's modules
@@ -57,9 +56,9 @@ export const appConfig: ApplicationConfig = {
 
 @NgModule({
   imports: [ BrowserModule, HotTableModule, CommonModule ],
-  declarations: [ ExampleReadonlyGridCComponent ],
+  declarations: [ ExampleReadonlyGridComponent ],
   providers: [...appConfig.providers],
-  bootstrap: [ ExampleReadonlyGridCComponent ]
+  bootstrap: [ ExampleReadonlyGridComponent ]
 })
 
 export class AppModule { }

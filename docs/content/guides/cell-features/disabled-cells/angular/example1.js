@@ -18,7 +18,7 @@ export class Example1DisabledCellsComponent {
     { car: 'Volvo', year: 2020, chassis: 'white', bumper: 'gray' },
   ];
 
-  readonly gridSettings: GridSettings ={
+  readonly gridSettings: GridSettings = {
     height: 'auto',
     colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
     autoWrapRow: true,
