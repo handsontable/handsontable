@@ -2,7 +2,8 @@ import { waitOnScroll } from './utils';
 
 /**
  * When `true` the test suite will not scroll to the top of the page before each test and
- * the spec will be not cleared.
+ * the spec will be not cleared which allows calling test helpers (`selectCell()` etc.) from
+ * the console.
  */
 const DEBUG = false;
 const specContext = {};
@@ -13,10 +14,7 @@ beforeEach(function() {
   }
 
   specContext.spec = this;
-
-  if (typeof __ENV_ARGS__ !== 'undefined') {
-    this.loadedTheme = __ENV_ARGS__.HOT_THEME;
-  }
+  this.loadedTheme = __ENV_ARGS__.HOT_THEME || 'classic';
 });
 
 afterEach(() => {
@@ -469,7 +467,7 @@ export function handsontable(options, explicitOptions = false, container = spec(
       loadedTheme &&
       loadedTheme !== 'classic'
     ) {
-      options.themeName = `ht-theme-${spec().loadedTheme}`;
+      options.themeName = `ht-theme-${loadedTheme}`;
     }
 
     options.licenseKey = 'non-commercial-and-evaluation';

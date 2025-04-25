@@ -207,7 +207,7 @@ export class HandsontableEditor extends TextEditor {
       spaceAbove = Math.max(spaceAbove + topOffset, 0);
     }
 
-    const dropdownTargetHeight = this.getTargetDropdownHeight();
+    const dropdownTargetHeight = this.getDropdownHeight();
     const spaceBelow = view.getWorkspaceHeight() - spaceAbove - cellRect.height;
     const flipNeeded = dropdownTargetHeight > spaceBelow && spaceAbove > spaceBelow + cellRect.height;
 
@@ -271,14 +271,14 @@ export class HandsontableEditor extends TextEditor {
       spaceInlineStart = Math.max(spaceInlineStart + inlineStartOffset, 0);
     }
 
-    const dropdownTargetWidth = this.getTargetDropdownWidth();
+    const dropdownTargetWidth = this.getDropdownWidth();
     const spaceInlineEnd = view.getWorkspaceWidth() - spaceInlineStart + cellRect.width;
     const flipNeeded = dropdownTargetWidth > spaceInlineEnd && spaceInlineStart > spaceInlineEnd;
 
     if (flipNeeded) {
       this.flipDropdownHorizontally();
     } else {
-      this.unflipDropdpwnHorizontally();
+      this.unflipDropdownHorizontally();
     }
 
     return {
@@ -310,7 +310,7 @@ export class HandsontableEditor extends TextEditor {
    *
    * @private
    */
-  unflipDropdpwnHorizontally() {
+  unflipDropdownHorizontally() {
     const dropdownStyle = this.htEditor.rootElement.style;
 
     dropdownStyle.position = 'absolute';

@@ -21,8 +21,6 @@ describe('HandsontableEditor', () => {
     ];
   }
 
-  // all other E2E tests are moved to visual tests. See ./visual-tests/tests/js-only/editors/handsontable/
-
   it('should render an editor in specified position at cell 0, 0', async() => {
     handsontable({
       columns: [
@@ -836,12 +834,12 @@ describe('HandsontableEditor', () => {
     const container = getActiveEditor().htContainer;
 
     expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(290);
+      classic.toBe(288);
       main.toBe(360);
       horizon.toBe(384);
     });
     expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(168);
+      classic.toBe(166);
       main.toBe(212);
       horizon.toBe(260);
     });
@@ -877,12 +875,12 @@ describe('HandsontableEditor', () => {
     const container = getActiveEditor().htContainer;
 
     expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(290);
+      classic.toBe(288);
       main.toBe(360);
       horizon.toBe(384);
     });
     expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(168);
+      classic.toBe(166);
       main.toBe(212);
       horizon.toBe(260);
     });
