@@ -1,9 +1,16 @@
 import { waitOnScroll } from './utils';
 
+/**
+ * When `true` the test suite will not scroll to the top of the page before each test and
+ * the spec will be not cleared.
+ */
+const DEBUG = false;
 const specContext = {};
 
 beforeEach(function() {
-  window.scrollTo(0, 0);
+  if (!DEBUG) {
+    window.scrollTo(0, 0);
+  }
 
   specContext.spec = this;
 
@@ -13,7 +20,9 @@ beforeEach(function() {
 });
 
 afterEach(() => {
-  specContext.spec = null;
+  if (!DEBUG) {
+    specContext.spec = null;
+  }
 });
 
 beforeAll(() => {
@@ -158,6 +167,8 @@ export const getSourceDataArray = handsontableMethodFactory('getSourceDataArray'
 export const getSourceDataAtCell = handsontableMethodFactory('getSourceDataAtCell');
 export const getSourceDataAtCol = handsontableMethodFactory('getSourceDataAtCol');
 export const getSourceDataAtRow = handsontableMethodFactory('getSourceDataAtRow');
+export const getTableHeight = handsontableMethodFactory('getTableHeight');
+export const getTableWidth = handsontableMethodFactory('getTableWidth');
 export const getValue = handsontableMethodFactory('getValue');
 export const hasHook = handsontableMethodFactory('hasHook');
 export const isExecutionSuspended = handsontableMethodFactory('isExecutionSuspended');

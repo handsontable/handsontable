@@ -113,6 +113,8 @@ export default class Core {
   getSourceDataAtCell(row: number, column: number): CellValue;
   getSourceDataAtCol(column: number): CellValue[];
   getSourceDataAtRow(row: number): CellValue[] | RowObject;
+  getTableWidth(): number;
+  getTableHeight(): number;
   getTranslatedPhrase(dictionaryKey: string, extraArguments: any): string | null;
   getValue(): CellValue;
   hasColHeaders(): boolean;

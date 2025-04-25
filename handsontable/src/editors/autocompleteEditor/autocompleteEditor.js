@@ -1,5 +1,6 @@
 import { HandsontableEditor } from '../handsontableEditor';
 import { arrayMap, pivot } from '../../helpers/array';
+import { warn } from '../../helpers/console';
 import {
   addClass,
   getCaretPosition,
@@ -260,7 +261,6 @@ export class AutocompleteEditor extends HandsontableEditor {
   /**
    * Prepares choices list based on applied argument.
    *
-   * @private
    * @param {string} query The query.
    */
   queryChoices(query) {
@@ -343,7 +343,7 @@ export class AutocompleteEditor extends HandsontableEditor {
 
     if (choices.length > 0) {
       this.updateDropdownDimensions();
-      this.flipEditorVerticallyIfNeeded();
+      this.flipDropdownVerticallyIfNeeded();
 
       if (this.cellProperties.strict === true) {
         this.highlightBestMatchingChoice(highlightIndex);
@@ -358,11 +358,46 @@ export class AutocompleteEditor extends HandsontableEditor {
   /**
    * Checks where is enough place to open editor.
    *
+   * @deprecated
+   * @private
+   * @returns {boolean}
+   */
+  flipDropdownIfNeeded() {
+    warn('The "flipDropdownIfNeeded" method is deprecated. Use "flipDropdownVerticallyIfNeeded" instead.');
+
+    return this.flipDropdownVerticallyIfNeeded().isFlipped;
+  }
+
+  /**
+   * Configures editor to open it at the top.
+   *
+   * @deprecated
+   * @private
+   */
+  flipDropdown() {
+    warn('The "flipDropdown" method is deprecated. Use "flipDropdownVertically" instead.');
+    this.flipDropdownVertically();
+  }
+
+  /**
+   * Configures editor to open it at the bottom.
+   *
+   * @deprecated
+   * @private
+   */
+  unflipDropdown() {
+    warn('The "unflipDropdown" method is deprecated. Use "unflipDropdownVertically" instead.');
+    this.unflipDropdownVertically();
+  }
+
+  /**
+   * Calculates the space above and below the editor and flips it vertically if needed.
+   *
    * @private
    * @returns {{ isFlipped: boolean, spaceAbove: number, spaceBelow: number}}
    */
-  flipEditorVerticallyIfNeeded() {
-    const result = super.flipEditorVerticallyIfNeeded();
+  flipDropdownVerticallyIfNeeded() {
+    const result = super.flipDropdownVerticallyIfNeeded();
     const {
       isFlipped,
       spaceAbove,
@@ -460,18 +495,18 @@ export class AutocompleteEditor extends HandsontableEditor {
   }
 
   /**
-   * Calculates and return the internal Handsontable's height.
+   * Calculates the proposed/target editor height that should be set once the editor is opened.
+   * The method may be overwritten in the child class to provide a custom size logic.
    *
-   * @private
    * @returns {number}
    */
   getTargetEditorHeight() {
-    let borderVerticalCompensation = 0;
+    let borderCompensation = 0;
 
     if (!this.hot.getCurrentThemeName()) {
       const containerStyle = this.hot.rootWindow.getComputedStyle(this.htContainer.querySelector('.htCore'));
 
-      borderVerticalCompensation = parseInt(containerStyle.borderTopWidth, 10) +
+      borderCompensation = parseInt(containerStyle.borderTopWidth, 10) +
         parseInt(containerStyle.borderBottomWidth, 10);
     }
 
@@ -484,26 +519,26 @@ export class AutocompleteEditor extends HandsontableEditor {
         return totalHeight + rowHeight;
       }, 0);
 
-    return height + borderVerticalCompensation;
+    return height + borderCompensation;
   }
 
   /**
-   * Calculates the proposed editor width that should be set once the editor is opened.
-   * The method may be overwritten in the child class to provide a custom logic.
+   * Calculates the proposed/target editor width that should be set once the editor is opened.
+   * The method may be overwritten in the child class to provide a custom size logic.
    *
    * @returns {number}
    */
   getTargetEditorWidth() {
-    let borderHorizontalCompensation = 0;
+    let borderCompensation = 0;
 
     if (!this.hot.getCurrentThemeName()) {
       const containerStyle = this.hot.rootWindow.getComputedStyle(this.htContainer.querySelector('.htCore'));
 
-      borderHorizontalCompensation = parseInt(containerStyle.borderInlineStartWidth, 10) +
+      borderCompensation = parseInt(containerStyle.borderInlineStartWidth, 10) +
         parseInt(containerStyle.borderInlineEndWidth, 10);
     }
 
-    return this.htEditor.getColWidth(0) + borderHorizontalCompensation;
+    return this.htEditor.getColWidth(0) + borderCompensation;
   }
 
   /**
@@ -636,7 +671,6 @@ export class AutocompleteEditor extends HandsontableEditor {
     }
 
     choicesRelevance.sort((a, b) => {
-
       if (b.index === -1) {
         return -1;
       }

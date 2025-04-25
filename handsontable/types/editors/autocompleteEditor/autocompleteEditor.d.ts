@@ -10,11 +10,10 @@ export class AutocompleteEditor extends HandsontableEditor {
   strippedChoices: string[];
   rawChoices: string[];
 
-  getValue(): string;
   queryChoices(query: string): void;
   updateChoicesList(choicesList: string[]): void;
   flipDropdownIfNeeded(): boolean;
-  limitDropdownIfNeeded(spaceAvailable: number, dropdownHeight: number): void;
+  limitDropdownIfNeeded(spaceAvailable: number): void;
   flipDropdown(dropdownHeight: number): void;
   unflipDropdown(): void;
   updateDropdownDimensions(): void;

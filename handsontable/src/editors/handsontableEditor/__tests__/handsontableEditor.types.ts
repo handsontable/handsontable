@@ -2,7 +2,7 @@ import Handsontable from 'handsontable';
 
 const element = document.createElement('div');
 const hot = new Handsontable(element, {});
-const editor = new Handsontable.editors.AutocompleteEditor(hot);
+const editor = new Handsontable.editors.HandsontableEditor(hot);
 
 // abstract ones
 editor.open();
@@ -31,18 +31,7 @@ editor.unflipDropdownVertically();
 }
 editor.flipDropdownHorizontally();
 editor.unflipDropdownHorizontally();
-editor.queryChoices('test');
-editor.updateChoicesList(['a', 'b', 'c']);
-editor.limitDropdownIfNeeded(100);
-editor.flipDropdown(100);
-editor.unflipDropdown();
-editor.updateDropdownDimensions();
-editor.setDropdownHeight(100);
-editor.highlightBestMatchingChoice(1);
-editor.stripValueIfNeeded('test');
-editor.stripValuesIfNeeded(['test1', 'test2']);
 
-const isFlipped: boolean = editor.flipDropdownIfNeeded();
 const dropdownHeight: number = editor.getDropdownHeight();
 const dropdownWidth: number = editor.getDropdownWidth();
 const targetDropdownWidth: number = editor.getTargetDropdownWidth();

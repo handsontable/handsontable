@@ -113,6 +113,8 @@ hot.getSourceDataAtCell(123, 123) === '';
 hot.getSourceDataAtCol(123)[0] === '';
 hot.getSourceDataAtRow(123) as any[];
 hot.getTranslatedPhrase('foo', 123)!.toLowerCase();
+const tableWidth: number = hot.getTableWidth();
+const tableHeight: number = hot.getTableHeight();
 hot.getValue() === '';
 
 const hasColHeaders: boolean = hot.hasColHeaders();
