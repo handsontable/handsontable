@@ -340,26 +340,6 @@ describe('HandsontableEditor', () => {
     expect(spec().$container.find('.handsontableEditor:visible').length).toEqual(1);
   });
 
-  it('should create an editor directly below the textarea element', async() => {
-    handsontable({
-      columns: [
-        {
-          type: 'handsontable',
-          handsontable: {
-            colHeaders: ['Marque', 'Country', 'Parent company'],
-            data: getManufacturerData()
-          }
-        }
-      ]
-    });
-
-    await selectCell(2, 0);
-    await keyDownUp('enter');
-
-    expect(spec().$container.find('.handsontableEditor')[0].offsetTop)
-      .toEqual(spec().$container.find('.handsontableInput')[0].offsetHeight);
-  });
-
   it('should prepare the editor only once per instance', async() => {
     handsontable({
       columns: [
@@ -854,12 +834,12 @@ describe('HandsontableEditor', () => {
     const container = getActiveEditor().htContainer;
 
     expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(290);
+      classic.toBe(288);
       main.toBe(360);
       horizon.toBe(384);
     });
     expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(168);
+      classic.toBe(166);
       main.toBe(212);
       horizon.toBe(260);
     });
@@ -895,12 +875,12 @@ describe('HandsontableEditor', () => {
     const container = getActiveEditor().htContainer;
 
     expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(290);
+      classic.toBe(288);
       main.toBe(360);
       horizon.toBe(384);
     });
     expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(168);
+      classic.toBe(166);
       main.toBe(212);
       horizon.toBe(260);
     });

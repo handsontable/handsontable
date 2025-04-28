@@ -16,6 +16,7 @@ import { init as initContextMenuDemo } from "./demos/contextMenu";
 import { init as initDropdownMenuDemo } from "./demos/dropdownMenu";
 import { init as initLargeDatasetDemo } from './demos/largeDataset';
 import { init as initWebComponentDemo } from './demos/webComponent';
+import { init as initEditorsDemo } from './demos/editors';
 
 // Function to dynamically load CSS
 function loadCSS(href) {
@@ -215,6 +216,15 @@ router
         loadThemeCSS(),
       ]).then(() => {
         initWebComponentDemo();
+      });
+    },
+    '/editors-demo': function () {
+      removeCSS();
+
+      Promise.all([
+        loadThemeCSS(),
+      ]).then(() => {
+        initEditorsDemo();
       });
     },
   })
