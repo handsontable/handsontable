@@ -507,7 +507,7 @@ class HotTableClass extends React.Component<HotTableProps, {}> {
   componentDidMount(): void {
     const newGlobalSettings = this.createNewGlobalSettings(true);
 
-    this.hotInstance = new Handsontable.Core(this.hotElementRef?.firstChild as HTMLElement, newGlobalSettings);
+    this.hotInstance = new Handsontable.Core(this.hotElementRef, newGlobalSettings);
 
     this.hotInstance.addHook('beforeViewRender', () => this.handsontableBeforeViewRender());
     this.hotInstance.addHook('afterViewRender', () => this.handsontableAfterViewRender());
@@ -570,10 +570,8 @@ class HotTableClass extends React.Component<HotTableProps, {}> {
 
     return (
       <React.Fragment>
-        <div ref={this.setHotElementRef.bind(this)}>
-          <div {...containerProps}>
-            {hotColumnClones}
-          </div>
+        <div ref={this.setHotElementRef.bind(this)} {...containerProps}>
+          {hotColumnClones}
         </div>
         <RenderersPortalManager ref={this.setRenderersPortalManagerRef.bind(this)} />
         {editorPortal}
