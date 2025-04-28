@@ -20,6 +20,18 @@ export class HandsontableEditor extends TextEditor {
   }
 
   /**
+   * The editor container element.
+   *
+   * @type {HTMLElement}
+   */
+  htContainer = null;
+  /**
+   * The Handsontable editor instance.
+   *
+   * @type {Handsontable}
+   */
+  htEditor = null;
+  /**
    * The flag determining if the editor is flipped vertically (rendered on
    * the top of the edited cell) or not.
    *

@@ -13,25 +13,8 @@ editor.finishEditing();
 const value: string = editor.getValue();
 
 // editor specific ones
-{
-  const result: {
-    isFlipped: boolean;
-    spaceAbove: number;
-    spaceBelow: number;
-  } = editor.flipDropdownVerticallyIfNeeded();
-}
-editor.flipDropdownVertically();
-editor.unflipDropdownVertically();
-{
-  const result: {
-    isFlipped: boolean;
-    spaceInlineStart: number;
-    spaceInlineEnd: number;
-  } = editor.flipDropdownHorizontallyIfNeeded();
-}
-editor.flipDropdownHorizontally();
-editor.unflipDropdownHorizontally();
-
+const isFlippedVertically: boolean = editor.isFlippedVertically;
+const isFlippedHorizontally: boolean = editor.isFlippedHorizontally;
 const dropdownHeight: number = editor.getDropdownHeight();
 const dropdownWidth: number = editor.getDropdownWidth();
 const targetDropdownWidth: number = editor.getTargetDropdownWidth();

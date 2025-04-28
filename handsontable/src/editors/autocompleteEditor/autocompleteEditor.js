@@ -1,6 +1,5 @@
 import { HandsontableEditor } from '../handsontableEditor';
 import { arrayMap, pivot } from '../../helpers/array';
-import { warn } from '../../helpers/console';
 import {
   addClass,
   getCaretPosition,
@@ -353,41 +352,6 @@ export class AutocompleteEditor extends HandsontableEditor {
     this.hot.listen();
 
     setCaretPosition(this.TEXTAREA, pos, (pos === endPos ? undefined : endPos));
-  }
-
-  /**
-   * Checks where is enough place to open editor.
-   *
-   * @deprecated
-   * @private
-   * @returns {boolean}
-   */
-  flipDropdownIfNeeded() {
-    warn('The "flipDropdownIfNeeded" method is deprecated. Use "flipDropdownVerticallyIfNeeded" instead.');
-
-    return this.flipDropdownVerticallyIfNeeded().isFlipped;
-  }
-
-  /**
-   * Configures editor to open it at the top.
-   *
-   * @deprecated
-   * @private
-   */
-  flipDropdown() {
-    warn('The "flipDropdown" method is deprecated. Use "flipDropdownVertically" instead.');
-    this.flipDropdownVertically();
-  }
-
-  /**
-   * Configures editor to open it at the bottom.
-   *
-   * @deprecated
-   * @private
-   */
-  unflipDropdown() {
-    warn('The "unflipDropdown" method is deprecated. Use "unflipDropdownVertically" instead.');
-    this.unflipDropdownVertically();
   }
 
   /**
