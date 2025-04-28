@@ -10,6 +10,7 @@ describe('settings', () => {
     afterEach(function() {
       if (this.$container) {
         destroy();
+        this.$container.remove();
       }
     });
 
@@ -33,7 +34,7 @@ describe('settings', () => {
       const element2 = $('<div id="hot2"></div>').appendTo('body');
 
       const hot1 = handsontable({}, true);
-      const hot2 = new Handsontable(spec().$container1[0], {});
+      const hot2 = new Handsontable(element2[0], {});
 
       expect(document.querySelectorAll('.hot-display-license-info').length).toBe(2);
 

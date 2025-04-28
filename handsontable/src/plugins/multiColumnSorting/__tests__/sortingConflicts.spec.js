@@ -20,7 +20,7 @@ describe('MultiColumnSorting cooperation with ColumnSorting', () => {
   afterEach(function() {
     if (this.$container) {
       destroy();
-      container2.remove();
+      this.$container.remove();
     }
   });
 
@@ -75,7 +75,7 @@ describe('MultiColumnSorting cooperation with ColumnSorting', () => {
     expect(warnSpy).not.toHaveBeenCalled();
 
     hot2.destroy();
-    $('body').find('#testContainer2').remove();
+    container2.remove();
   });
 
   it('should print warning and leave only ColumnSorting plugin enabled after MultiColumnSorting is tried to be enabled', async() => {
