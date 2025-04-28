@@ -111,11 +111,26 @@ Open a console in browser developer tools to see the result for the below exampl
 
 To prevent this attack, set the [`sanitizeValues` option](#sanitizevalues-boolean|regexp|function) when exporting your data in CSV format.
 
+::: only-for javascript
+
 ::: example #example4 --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/accessories-and-menus/export-to-csv/javascript/example4.html)
 @[code](@/content/guides/accessories-and-menus/export-to-csv/javascript/example4.js)
 @[code](@/content/guides/accessories-and-menus/export-to-csv/javascript/example4.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example4 :react --js 1 --ts 2
+
+@[code](@/content/guides/accessories-and-menus/export-to-csv/react/example4.jsx)
+@[code](@/content/guides/accessories-and-menus/export-to-csv/react/example4.tsx)
+
+:::
 
 :::
 
