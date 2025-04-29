@@ -315,6 +315,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * @member columnIndexMapper
    * @type {IndexMapper}
    */
+
   this.columnIndexMapper = new IndexMapper();
   /**
    * Instance of index mapper which is responsible for managing the row indexes.
