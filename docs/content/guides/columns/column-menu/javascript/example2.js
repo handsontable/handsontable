@@ -13,13 +13,7 @@ new Handsontable(container, {
   colHeaders: true,
   licenseKey: 'non-commercial-and-evaluation',
   height: 'auto',
-  dropdownMenu: [
-    'remove_col',
-    '---------',
-    'make_read_only',
-    '---------',
-    'alignment',
-  ],
+  dropdownMenu: ['remove_col', '---------', 'make_read_only', '---------', 'alignment'],
   autoWrapRow: true,
   autoWrapCol: true,
 });

@@ -1,4 +1,4 @@
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 import "./styles.css";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import DataGrid from "./DataGrid";
@@ -15,4 +15,4 @@ const App = () => {
   );
 }
 
-ReactDOM.render(<App />, document.getElementById("root"));
+createRoot(document.getElementById("root") as HTMLElement).render(<App />);

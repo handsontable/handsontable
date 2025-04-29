@@ -1,8 +1,8 @@
 {
   "issuesOrigin": "private",
-  "title": "Added horizontal scroll to the Filter's by value component",
+  "title": "Improve Handsontable editor types positioning",
   "type": "added",
-  "issueOrPR": 11561,
+  "issueOrPR": 11593,
   "breaking": false,
   "framework": "none"
 }

@@ -105,6 +105,35 @@ Open a console in browser developer tools to see the result for the below exampl
 
 :::
 
+### Prevent CSV Injection attack
+
+"CSV Injection, also known as Formula Injection, occurs when websites embed untrusted input inside CSV files. When a spreadsheet program such as Microsoft Excel or LibreOffice Calc is used to open a CSV, any cells starting with = will be interpreted by the software as a formula." (from [OWASP website](https://owasp.org/www-community/attacks/CSV_Injection))
+
+To prevent this attack, set the [`sanitizeValues` option](#sanitizevalues-boolean|regexp|function) when exporting your data in CSV format.
+
+::: only-for javascript
+
+::: example #example4 --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/accessories-and-menus/export-to-csv/javascript/example4.html)
+@[code](@/content/guides/accessories-and-menus/export-to-csv/javascript/example4.js)
+@[code](@/content/guides/accessories-and-menus/export-to-csv/javascript/example4.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example4 :react --js 1 --ts 2
+
+@[code](@/content/guides/accessories-and-menus/export-to-csv/react/example4.jsx)
+@[code](@/content/guides/accessories-and-menus/export-to-csv/react/example4.tsx)
+
+:::
+
+:::
+
 ## Available methods
 
 ::: only-for react
@@ -208,6 +237,17 @@ Allows you to define the MIME type.
 You can use this property in the `downloadFile()` and `exportAsBlob()` methods.
 
 Default value: `'text/csv'`
+
+### sanitizeValues `Boolean|RegExp|Function`
+
+Controls the value sanitization during the CSV export
+
+- when `sanitizeValues` is `false`, `ExportPlugin` doesn't sanitize the values
+- when `sanitizeValues` is `true`, `ExportPlugin` sanitizes values according to OWASP recommendations: https://owasp.org/www-community/attacks/CSV_Injection
+- when `sanitizeValues` is a regexp, `ExportPlugin` escapes values that match the regexp
+- when `sanitizeValues` is a function, `ExportPlugin` replaces values with the return value of the function
+
+Default value: `false`
 
 ### range `Array`
 

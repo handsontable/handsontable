@@ -1331,7 +1331,7 @@ describe('AutocompleteEditor', () => {
 
       expect(container.offset()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ top: 365, left: 0 });
-        main.toEqual({ top: 289, left: 0 });
+        main.toEqual({ top: 287, left: 0 });
         horizon.toEqual({ top: 184, left: 0 });
       });
     });
@@ -1364,7 +1364,7 @@ describe('AutocompleteEditor', () => {
 
       expect(container.offset()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ top: 480, left: 0 });
-        main.toEqual({ top: 434, left: 0 });
+        main.toEqual({ top: 432, left: 0 });
         horizon.toEqual({ top: 369, left: 0 });
       });
 
@@ -1406,7 +1406,7 @@ describe('AutocompleteEditor', () => {
 
       expect(container.offset()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ top: 2090, left: 0 });
-        main.toEqual({ top: 2638, left: 0 });
+        main.toEqual({ top: 2636, left: 0 });
         horizon.toEqual({ top: 3366, left: 0 });
       });
 

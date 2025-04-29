@@ -669,13 +669,23 @@ TextRenderer placeholder value
  * Handsontable listbox theme
  */
 .handsontable.listbox {
+  border: 1px solid #ccc;
   margin: 0;
 }
 
+.handsontable.listbox.autocompleteEditor,
+.handsontable.listbox.dropdownEditor {
+  border-width: 0;
+}
+
 .handsontable.listbox .ht_master table {
-  border: 1px solid #ccc;
   border-collapse: separate;
   background: white;
+}
+
+.handsontable.listbox.autocompleteEditor .ht_master table,
+.handsontable.listbox.dropdownEditor .ht_master table {
+  border: 1px solid #ccc;
 }
 
 .handsontable.listbox th,

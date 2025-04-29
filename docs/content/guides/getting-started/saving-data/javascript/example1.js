@@ -35,9 +35,7 @@ const hot = new Handsontable(container, {
       },
       body: JSON.stringify({ data: change }),
     }).then(() => {
-      exampleConsole.innerText = `Autosaved (${change.length} cell${
-        change.length > 1 ? 's' : ''
-      })`;
+      exampleConsole.innerText = `Autosaved (${change.length} cell${change.length > 1 ? 's' : ''})`;
       console.log('The POST request is only used here for the demo purposes');
     });
   },

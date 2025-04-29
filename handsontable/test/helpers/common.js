@@ -1,19 +1,29 @@
 import { waitOnScroll } from './utils';
 
+/**
+ * When `true` the test suite will not scroll to the top of the page before each test and
+ * the spec will be not cleared which allows calling test helpers (`selectCell()` etc.) from
+ * the console.
+ */
+const DEBUG = false;
 const specContext = {};
 
 beforeEach(function() {
-  window.scrollTo(0, 0);
+  if (!DEBUG) {
+    window.scrollTo(0, 0);
+  }
 
   specContext.spec = this;
 
-  if (typeof __ENV_ARGS__ !== 'undefined') {
-    this.loadedTheme = __ENV_ARGS__.HOT_THEME;
+  if (!process.env.JEST_WORKER_ID) {
+    this.loadedTheme = __ENV_ARGS__.HOT_THEME || 'classic';
   }
 });
 
 afterEach(() => {
-  specContext.spec = null;
+  if (!DEBUG) {
+    specContext.spec = null;
+  }
 });
 
 beforeAll(() => {
@@ -159,6 +169,8 @@ export const getSourceDataArray = handsontableMethodFactory('getSourceDataArray'
 export const getSourceDataAtCell = handsontableMethodFactory('getSourceDataAtCell');
 export const getSourceDataAtCol = handsontableMethodFactory('getSourceDataAtCol');
 export const getSourceDataAtRow = handsontableMethodFactory('getSourceDataAtRow');
+export const getTableHeight = handsontableMethodFactory('getTableHeight');
+export const getTableWidth = handsontableMethodFactory('getTableWidth');
 export const getValue = handsontableMethodFactory('getValue');
 export const hasHook = handsontableMethodFactory('hasHook');
 export const isExecutionSuspended = handsontableMethodFactory('isExecutionSuspended');
@@ -459,7 +471,7 @@ export function handsontable(options, explicitOptions = false, container = spec(
       loadedTheme &&
       loadedTheme !== 'classic'
     ) {
-      options.themeName = `ht-theme-${spec().loadedTheme}`;
+      options.themeName = `ht-theme-${loadedTheme}`;
     }
 
     options.licenseKey = 'non-commercial-and-evaluation';

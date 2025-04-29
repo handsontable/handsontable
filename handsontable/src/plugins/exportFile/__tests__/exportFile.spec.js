@@ -25,6 +25,7 @@ describe('exportFile', () => {
       expect(csv.options.exportHiddenColumns).toBe(false);
       expect(csv.options.exportHiddenRows).toBe(false);
       expect(csv.options.range).toEqual([]);
+      expect(csv.options.sanitizeValues).toEqual(false);
     });
   });
 

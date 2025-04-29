@@ -5108,6 +5108,30 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   };
 
   /**
+   * Gets the table's root container element height.
+   *
+   * @memberof Core#
+   * @function getTableHeight
+   * @since 16.0.0
+   * @returns {number}
+   */
+  this.getTableHeight = () => {
+    return this.rootElement.offsetHeight;
+  };
+
+  /**
+   * Gets the table's root container element width.
+   *
+   * @memberof Core#
+   * @function getTableWidth
+   * @since 16.0.0
+   * @returns {number}
+   */
+  this.getTableWidth = () => {
+    return this.rootElement.offsetWidth;
+  };
+
+  /**
    * Sets timeout. Purpose of this method is to clear all known timeouts when `destroy` method is called.
    *
    * @param {number|Function} handle Handler returned from setTimeout or function to execute (it will be automatically wraped

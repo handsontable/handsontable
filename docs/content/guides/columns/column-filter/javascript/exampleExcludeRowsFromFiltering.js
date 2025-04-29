@@ -178,10 +178,7 @@ new Handsontable(container, {
     const filtersRowsMap = filtersPlugin.filtersRowsMap;
 
     filtersRowsMap.setValueAtIndex(0, false);
-    filtersRowsMap.setValueAtIndex(
-      filtersRowsMap.indexedValues.length - 1,
-      false
-    );
+    filtersRowsMap.setValueAtIndex(filtersRowsMap.indexedValues.length - 1, false);
   },
   autoWrapRow: true,
   autoWrapCol: true,

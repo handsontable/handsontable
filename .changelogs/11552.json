@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed a problem with the autocomplete editor rendering very slowly when provided with a long list of choices.",
-  "type": "fixed",
-  "issueOrPR": 11552,
-  "breaking": false,
-  "framework": "none"
-}

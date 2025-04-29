@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed a problem with the table rendering all rows when it's configured to have `0px` height.",
-  "type": "fixed",
-  "issueOrPR": 11567,
-  "breaking": false,
-  "framework": "none"
-}
