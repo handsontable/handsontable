@@ -47,7 +47,6 @@ For more information about this release see:
 - Fixed an issue with the NestedRows plugin duplicating rows when moving child rows. [#11362](https://github.com/handsontable/handsontable/pull/11362)
 - Fixed an issue with row resize line alignment and resize handle flickering. [#11500](https://github.com/handsontable/handsontable/pull/11500)
 - Fixed an issue with the Autocomplete caret position after using scroll on a list of choices and a problem with the dropdown width. [#11503](https://github.com/handsontable/handsontable/pull/11503)
-- Fixed copy, cut and paste actions on tables with selection reaching outside of the rendered viewport. [#11504](https://github.com/handsontable/handsontable/pull/11504)
 - Fixed the submenu positioning for all themes. [#11505](https://github.com/handsontable/handsontable/pull/11505)
 - Fixed a problem where re-enabling the Hidden Columns configuration caused an error to be thrown if a selection was a part of the hidden range. [#11508](https://github.com/handsontable/handsontable/pull/11508)
 - Fixed an issue with an empty `parentNode` in the table's `getCords` method. [#11509](https://github.com/handsontable/handsontable/pull/11509)
