@@ -4,7 +4,7 @@
 
 @mixin output {
   // Required variables for bare theme
-  .ht-wrapper:not([class*="ht-theme"]), .ht-portal:not([class*="ht-theme"]) {
+  .ht-root-wrapper:not([class*="ht-theme"]), .ht-portal:not([class*="ht-theme"]) {
     --ht-gap-size: 4px;
     --ht-checkbox-size: 16px;
     --ht-cell-horizontal-padding: 8px;
@@ -28,6 +28,20 @@
     --ht-cell-selection-border-color: #1a42e8;
   }
 
+  // Root wrapper
+  .ht-root-wrapper {
+    .htFocusCatcher {
+      position: absolute;
+      width: 0;
+      height: 0;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      opacity: 0;
+      z-index: -1;
+    }
+  }
+
   // Wrapper
   .ht-wrapper {
     & > .handsontable {
@@ -46,22 +60,6 @@
         overflow: hidden;
       }
     }
-
-    .htFocusCatcher {
-      position: absolute;
-      width: 0;
-      height: 0;
-      margin: 0;
-      padding: 0;
-      border: 0;
-      opacity: 0;
-      z-index: -1;
-    }
-  }
-
-  .ht-dummy-element {
-    width: 0;
-    height: 0;
   }
 
   .handsontable {

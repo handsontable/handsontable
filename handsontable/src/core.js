@@ -43,6 +43,7 @@ import { createShortcutManager } from './shortcuts';
 import { registerAllShortcutContexts } from './shortcutContexts';
 import { getThemeClassName } from './helpers/themes';
 import { StylesHandler } from './utils/stylesHandler';
+import { warn } from './helpers/console';
 
 let activeGuid = null;
 
@@ -109,11 +110,11 @@ const deprecationWarns = new Set();
  * ```
  * :::
  *
- * @param {HTMLElement} rootElement The element to which the Handsontable instance is injected.
+ * @param {HTMLElement} rootContainer The element to which the Handsontable instance is injected.
  * @param {object} userSettings The user defined options.
  * @param {boolean} [rootInstanceSymbol=false] Indicates if the instance is root of all later instances created.
  */
-export default function Core(rootElement, userSettings, rootInstanceSymbol = false) {
+export default function Core(rootContainer, userSettings, rootInstanceSymbol = false) {
   let instance = this;
 
   const eventManager = new EventManager(instance);
@@ -124,13 +125,18 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   let focusManager;
   let viewportScroller;
   let firstRun = true;
-  let initialRootElement;
 
   if (hasValidParameter(rootInstanceSymbol)) {
-    initialRootElement = rootElement.cloneNode(false);
-
     registerAsRootInstance(this);
   }
+
+  /**
+   * Reference to the root container.
+   *
+   * @private
+   * @type {HTMLElement}
+   */
+  this.rootContainer = rootContainer;
 
   /**
    * Reference to the wrapper element.
@@ -155,14 +161,16 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @private
    * @type {HTMLElement}
    */
-  this.rootElement = rootElement;
+  this.rootElement = rootInstanceSymbol ? rootContainer.ownerDocument.createElement('div') : rootContainer;
+
   /**
    * The nearest document over container.
    *
    * @private
    * @type {Document}
    */
-  this.rootDocument = rootElement.ownerDocument;
+  this.rootDocument = rootContainer.ownerDocument;
+
   /**
    * Window object over container's document.
    *
@@ -170,6 +178,22 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @type {Window}
    */
   this.rootWindow = this.rootDocument.defaultView;
+
+  if (isRootInstance(this)) {
+    this.rootWrapperElement = this.rootDocument.createElement('div');
+    this.rootPortalElement = this.rootDocument.createElement('div');
+
+    addClass(this.rootElement, 'ht-wrapper');
+    addClass(this.rootWrapperElement, 'ht-root-wrapper');
+
+    this.rootWrapperElement.appendChild(this.rootElement);
+    this.rootContainer.appendChild(this.rootWrapperElement);
+
+    addClass(this.rootPortalElement, 'ht-portal');
+
+    this.rootDocument.body.appendChild(this.rootPortalElement);
+  }
+
   /**
    * A boolean to tell if the Handsontable has been fully destroyed. This is set to `true`
    * after `afterDestroy` hook is called.
@@ -179,6 +203,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @type {boolean}
    */
   this.isDestroyed = false;
+
   /**
    * The counter determines how many times the render suspending was called. It allows
    * tracking the nested suspending calls. For each render suspend resuming call the
@@ -188,6 +213,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @private
    * @type {number}
    */
+
   this.renderSuspendedCounter = 0;
   /**
    * The counter determines how many times the execution suspending was called. It allows
@@ -272,20 +298,9 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   this.container = this.rootDocument.createElement('div');
 
-  rootElement.insertBefore(this.container, rootElement.firstChild);
+  this.rootElement.insertBefore(this.container, this.rootElement.firstChild);
 
   if (isRootInstance(this)) {
-    this.rootWrapperElement = rootElement.ownerDocument.createElement('div');
-    this.rootPortalElement = rootElement.ownerDocument.createElement('div');
-
-    addClass(this.rootWrapperElement, 'ht-wrapper');
-    addClass(this.rootPortalElement, 'ht-portal');
-
-    rootElement.before(this.rootWrapperElement);
-    this.rootWrapperElement.appendChild(rootElement);
-
-    rootElement.ownerDocument.body.appendChild(this.rootPortalElement);
-
     _injectProductInfo(userSettings.licenseKey, this.rootWrapperElement);
   }
 
@@ -1167,7 +1182,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     this.view = new TableView(this);
 
-    const themeName = tableMeta.themeName || getThemeClassName(instance.rootElement);
+    const themeName = tableMeta.themeName || getThemeClassName(instance.rootContainer);
 
     // Use the theme defined as a root element class or in the settings (in that order).
     instance.useTheme(themeName);
@@ -3927,6 +3942,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this._getRowHeightFromSettings = function(row) {
     const defaultRowHeight = this.view.getDefaultRowHeight();
+
     let height = tableMeta.rowHeights;
 
     if (height !== undefined && height !== null) {
@@ -4611,20 +4627,18 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     metaManager.clearCache();
     foreignHotInstances.delete(this.guid);
 
-    if (instance.rootPortalElement) {
-      instance.rootPortalElement.remove();
-    }
-
-    if (instance.rootWrapperElement && initialRootElement) {
-      instance.rootWrapperElement.before(initialRootElement);
-      instance.rootWrapperElement.remove();
-    }
-
-    empty(instance.rootElement);
     eventManager.destroy();
 
     if (editorManager) {
       editorManager.destroy();
+    }
+
+    if (instance.rootContainer) {
+      empty(instance.rootContainer);
+    }
+
+    if (instance.rootPortalElement) {
+      instance.rootPortalElement.remove();
     }
 
     // The plugin's `destroy` method is called as a consequence and it should handle
@@ -5047,22 +5061,34 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.useTheme = (themeName) => {
     const isFirstRun = !!firstRun;
 
+    this.stylesHandler.useTheme(themeName);
+
     if (isRootInstance(this)) {
-      removeClass(this.rootElement, /ht-theme-.*/g);
       removeClass(this.rootWrapperElement, /ht-theme-.*/g);
       removeClass(this.rootPortalElement, /ht-theme-.*/g);
 
-      if (themeName) {
+      if (this.stylesHandler.getThemeName()) {
         addClass(this.rootWrapperElement, themeName);
         addClass(this.rootPortalElement, themeName);
+
+        if (!getComputedStyle(this.rootWrapperElement).getPropertyValue('--ht-line-height')) {
+          warn(`The "${themeName}" theme is enabled, but its stylesheets are missing or not imported correctly. \
+            Import the correct CSS files in order to use that theme.`);
+        }
       }
     }
-
-    this.stylesHandler.useTheme(themeName);
 
     if (!isFirstRun) {
       instance.render();
       instance.scrollViewportTo(0, 0);
+
+      if (getThemeClassName(this.rootContainer)) {
+        removeClass(this.rootContainer, /ht-theme-.*/g);
+
+        if (this.stylesHandler.getThemeName()) {
+          addClass(this.rootContainer, themeName);
+        }
+      }
     }
 
     this.runHooks('afterSetTheme', themeName, isFirstRun);

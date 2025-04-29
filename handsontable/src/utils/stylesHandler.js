@@ -1,4 +1,3 @@
-import { hasClass } from '../helpers/dom/element';
 import { warn } from '../helpers/console';
 
 const CLASSIC_THEME_DEFAULT_HEIGHT = 23;
@@ -128,13 +127,7 @@ export class StylesHandler {
 
     const calculatedRowHeight = this.#calculateRowHeight();
 
-    if (!calculatedRowHeight && hasClass(this.#rootElement, 'ht-wrapper')) {
-      warn(`The "${this.#themeName}" theme is enabled, but its stylesheets are missing or not imported correctly. \
-Import the correct CSS files in order to use that theme.`);
-
-      this.#isClassicTheme = true;
-      this.useTheme();
-
+    if (!calculatedRowHeight) {
       return CLASSIC_THEME_DEFAULT_HEIGHT;
     }
 
@@ -157,22 +150,31 @@ Import the correct CSS files in order to use that theme.`);
    */
   useTheme(themeName) {
     if (!themeName) {
-      this.#cacheStylesheetValues();
 
+      this.#themeName = undefined;
       this.#isClassicTheme = true;
-      this.#themeName = themeName || undefined;
+      this.#cacheStylesheetValues();
 
       return;
     }
 
     if (themeName && themeName !== this.#themeName) {
+      if (!/ht-theme-.*/.test(themeName)) {
+        warn(`Invalid theme name: ${themeName}. Please provide a valid theme name.`);
+
+        this.#themeName = undefined;
+        this.#isClassicTheme = false;
+        this.#cacheStylesheetValues();
+
+        return;
+      }
+
       if (this.#themeName) {
         this.#clearCachedValues();
       }
 
       this.#themeName = themeName;
       this.#isClassicTheme = false;
-
       this.#cacheStylesheetValues();
     }
   }
