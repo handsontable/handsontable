@@ -101,39 +101,36 @@ This information is applicable in React when using the non-component editor appr
 
 ## Component-based editors
 
-You can use Angular components to create custom editors. To do so, you'll need to create a component that extends from `HotCellEditorComponent<T>`, where `T` is a type of `number`, `boolean`, or `string`. Below is the code of `HotCellEditorComponent<T>`:
+You can use Angular components to create custom editors. To do so, you'll need to create a component that extends from `HotCellEditorComponent<T>`, where `T` is a type of `number`, `boolean`, or `string`. Below is implementation of custom editor:
 
 ```ts
-@Directive()
-export abstract class HotCellEditorComponent<
-  T extends string | number | boolean
-> {
-  @HostBinding("attr.tabindex") protected tabindex = -1;
-  @HostBinding("attr.data-hot-input") protected dataHotInput = "";
-  @HostBinding("class.handsontableInput") protected handsontableInputClass =
-    true;
-  @HostBinding("style.height.%") protected heightFitParentContainer = 100;
-  @HostBinding("style.width.%") protected widthFitParentContainer = 100;
+@Component({
+  selector: 'app-custom-editor',
+  imports: [FormsModule],
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+    <div style="width: 100%; overflow: hidden">
+      <input
+        #inputElement
+        type="text"
+        [value]="getValue()"
+        (keydown)="onKeyDown($event)"
+        style="width: 100%; box-sizing: border-box"
+      />
+    </div>
+  `,
+})
+export class CustomEditorComponent extends HotCellEditorComponent<number> {
+  @ViewChild('inputElement') inputElement!: ElementRef;
 
-  @Input() row: number;
-  @Input() column: number;
-  @Input() prop: string | number;
-  @Input() originalValue: T;
-  @Input() cellProperties: CellProperties;
-
-  @Output() finishEdit = new EventEmitter<void>();
-  @Output() cancelEdit = new EventEmitter<void>();
-
-  private _value: T;
-
-  onClose(): void {}
-  onOpen(event?: Event): void {}
-  abstract onFocus(): void;
-  getValue(): T {
-    return this._value;
+  onKeyDown(event: KeyboardEvent): void {
+    const target = event.target as HTMLInputElement;
+    this.setValue(Number(target.value));
   }
-  setValue(value: T): void {
-    this._value = value;
+
+  onFocus(): void {
+    this.inputElement.nativeElement.select();
   }
 }
 ```
