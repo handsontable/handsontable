@@ -165,11 +165,11 @@ export default {
     background: #edf3fd;
   }
 
-  .ht-wrapper.ht-theme-main-dark .handsontable .htCore tr.selected td {
+  .ht-theme-main-dark .ht-wrapper.handsontable .htCore tr.selected td {
     background: #081b3d;
   }
 
-  .ht-wrapper.ht-theme-horizon-dark .handsontable .htCore tr.selected td {
+  .ht-theme-horizon-dark .ht-wrapper.handsontable .htCore tr.selected td {
     background: #3a2901;
   }
 
