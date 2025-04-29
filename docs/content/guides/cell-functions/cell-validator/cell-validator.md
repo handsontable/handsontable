@@ -114,7 +114,7 @@ const hot = new Handsontable(container, {
 
 ::: only-for angular
 
-```angular17html
+```html
 <hot-table [settings]="{
     columns: [{
         validator: 'my.custom'

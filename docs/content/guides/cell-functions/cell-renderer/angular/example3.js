@@ -42,40 +42,32 @@ export class AppComponent {
         '<a href="https://www.amazon.com/Professional-JavaScript-Developers-Nicholas-Zakas/dp/1118026691">Professional JavaScript for Web Developers</a>',
       description:
         'This <a href="https://bit.ly/sM1bDf">book</a> provides a developer-level introduction along with more advanced and useful features of <b>JavaScript</b>.',
-      rate: 3,
-      comments: 'I would rate it &#x2605;&#x2605;&#x2605;&#x2605;&#x2606;',
-      cover:
-        'https://handsontable.com/docs/15.0/img/examples/professional-javascript-developers-nicholas-zakas.jpg',
+      rate: 3
     },
     {
       title:
         '<a href="https://shop.oreilly.com/product/9780596517748.do">JavaScript: The Good Parts</a>',
       description:
         'This book provides a developer-level introduction along with <b>more advanced</b> and useful features of JavaScript.',
-      rate: 9,
-      comments: 'This is the book about JavaScript',
-      cover: 'https://handsontable.com/docs/15.0/img/examples/javascript-the-good-parts.jpg',
+      rate: 9
     },
     {
       title:
         '<a href="https://shop.oreilly.com/product/9780596805531.do">JavaScript: The Definitive Guide</a>',
       description:
         '<em>JavaScript: The Definitive Guide</em> provides a thorough description of the core <b>JavaScript</b> language and both the legacy and standard DOMs implemented in web browsers.',
-      rate: 5,
-      comments:
-        'I\'ve never actually read it, but the <a href="https://shop.oreilly.com/product/9780596805531.do">comments</a> are highly <strong>positive</strong>.',
-      cover: 'https://handsontable.com/docs/15.0/img/examples/javascript-the-definitive-guide.jpg',
+      rate: 5
     },
   ];
 
   readonly hotSettings: GridSettings = {
-    colWidths: [200, 200, 200, 80],
+    colWidths: [200, 400, 80],
     colHeaders: ['Title', 'Description', 'Comments', 'Cover'],
     height: 'auto',
     columns: [
       { data: 'title', renderer: ColorRendererComponent, rendererProps: { textColor: 'blue' } },
       { data: 'description', renderer: ColorRendererComponent, rendererProps: { textColor: 'orange' } },
-      { data: 'rate', renderer: ColorRendererComponent, rendererProps: { textColorFn: (value: string) => +value <= 5 ? 'red' : 'black'  } },
+      { data: 'rate', renderer: ColorRendererComponent, rendererProps: { textColorFn: (value: string) => +value <= 5 ? 'red' : 'inherit' } },
     ],
     autoWrapRow: true,
     autoWrapCol: true,

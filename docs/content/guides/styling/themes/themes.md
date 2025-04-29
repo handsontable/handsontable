@@ -172,7 +172,7 @@ const hot = new Handsontable(container, {
 
 ::: only-for angular
 
-```angular17html
+```html
 <hot-table [settings]="{
   themeName: 'ht-theme-main-dark-auto'
 }">
@@ -284,7 +284,7 @@ const hot = new Handsontable(container, {
 
 ::: only-for angular
 
-```angular17html
+```html
 <hot-table [settings]="{
   themeName: 'ht-theme-falcon'
   // other options

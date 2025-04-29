@@ -59,7 +59,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit() {
     this.hotSettings = {
-      colWidths: [200, 200, 200],
+      colWidths: [200, 400, 80],
       colHeaders: ['Title', 'Description', 'Cover'],
       height: 'auto',
       columns: [

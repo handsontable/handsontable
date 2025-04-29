@@ -182,7 +182,7 @@ const configurationOptions: GridSettings = {
 };
 ```
 
-```angular17html
+```html
 <hot-table [data]="data" [settings]="configurationOptions"></hot-table>
 ```
 

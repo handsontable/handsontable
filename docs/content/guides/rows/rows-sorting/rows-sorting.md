@@ -127,7 +127,7 @@ const configurationOptions: GridSettings = {
 };
 ```
 
-```angular17html
+```html
 <hot-table [settings]="configurationOptions"></hot-table>
 ```
 
@@ -276,7 +276,7 @@ const configurationOptions: GridSettings = {
 };
 ```
 
-```angular17html
+```html
 <hot-table [settings]="configurationOptions"></hot-table>
 ```
 
@@ -413,7 +413,7 @@ const configurationOptions: GridSettings = {
 };
 ```
 
-```angular17html
+```html
 <hot-table [settings]="configurationOptions"></hot-table>
 ```
 
@@ -477,7 +477,7 @@ const configurationOptions: GridSettings = {
 };
 ```
 
-```angular17html
+```html
 <hot-table [settings]="configurationOptions"></hot-table>
 ```
 
@@ -576,7 +576,7 @@ const configurationOptions: GridSettings = {
 };
 ```
 
-```angular17html
+```html
 <hot-table [settings]="configurationOptions"></hot-table>
 ```
 
@@ -654,7 +654,7 @@ const configurationOptions: GridSettings = {
 };
 ```
 
-```angular17html
+```html
 <hot-table [settings]="configurationOptions"></hot-table>
 ```
 
@@ -828,7 +828,7 @@ const configurationOptions: GridSettings = {
 };
 ```
 
-```angular17html
+```html
 <hot-table [settings]="configurationOptions"></hot-table>
 ```
 
@@ -892,7 +892,7 @@ const configurationOptions: GridSettings = {
 };
 ```
 
-```angular17html
+```html
 <hot-table [settings]="configurationOptions"></hot-table>
 ```
 
@@ -1195,7 +1195,7 @@ ngAfterViewInit() {
 }
 ```
 
-```angular17html
+```html
 <hot-table [settings]="configurationOptions"></hot-table>
 ```
 :::
@@ -1343,7 +1343,7 @@ ngAfterViewInit() {
 }
 ```
 
-```angular17html
+```html
 <hot-table [settings]="configurationOptions"></hot-table>
 ```
 

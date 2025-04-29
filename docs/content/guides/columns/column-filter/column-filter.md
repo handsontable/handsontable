@@ -134,7 +134,7 @@ const configurationOptions = {
 };
 ```
 
-```angular17html
+```html
 <hot-table [settings]="configurationOptions"></hot-table>
 ```
 

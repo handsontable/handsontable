@@ -157,6 +157,7 @@ The following example implements `@handsontable/angular-wrapper` with a custom r
 @[code](@/content/guides/cell-functions/cell-renderer/angular/example4.html)
 
 :::
+
 :::
 
 ::: only-for javascript
@@ -167,7 +168,7 @@ Use the renderer name of your choice when configuring the column:
 
 :::
 
-::: only-for react
+::: only-for react angular
 
 ::: tip
 
@@ -257,7 +258,7 @@ const configurationOptions: GridSettings = {
 };
 ```
 
-```angular17html
+```html
 <hot-table [data]="data" [settings]="configurationOptions"></hot-table>
 ```
 
@@ -269,15 +270,9 @@ const configurationOptions: GridSettings = {
 
 :::
 
-::: only-for react
+::: only-for react angular
 
 ### Register custom cell renderer
-
-:::
-
-::: only-for angular
-
-## Register custom cell renderer
 
 :::
 
@@ -320,7 +315,7 @@ That's better.
 
 :::
 
-::: only-for react
+::: only-for react angular
 
 ### Use an alias
 
@@ -399,7 +394,7 @@ const configurationOptions: GridSettings = {
 };
 ```
 
-```angular17html
+```html
 <hot-table [data]="data" [settings]="configurationOptions"></hot-table>
 ```
 
@@ -411,15 +406,9 @@ const configurationOptions: GridSettings = {
 
 :::
 
-::: only-for react
+::: only-for react angular
 
 ### Render custom HTML in cells
-
-:::
-
-::: only-for angular
-
-## Render custom HTML in cells
 
 :::
 
@@ -454,7 +443,12 @@ This example shows how to use custom cell renderers to display HTML content in a
 
 ::: only-for angular
 
-<!-- TODO: angular example example--06-02-05 -->
+::: example #example5 :angular --js 1 --html 2
+
+@[code](@/content/guides/cell-functions/cell-renderer/angular/example5.js)
+@[code](@/content/guides/cell-functions/cell-renderer/angular/example5.html)
+
+:::
 
 :::
 
@@ -464,15 +458,9 @@ This example shows how to use custom cell renderers to display HTML content in a
 
 :::
 
-::: only-for react
+::: only-for react angular
 
 ### Render custom HTML in header
-
-:::
-
-::: only-for angular
-
-## Render custom HTML in header
 
 :::
 
@@ -503,7 +491,12 @@ You can also put HTML into row and column headers. If you need to attach events 
 
 ::: only-for angular
 
-<!-- TODO: angular example example--06-02-06 -->
+::: example #example6 :angular --js 1 --html 2
+
+@[code](@/content/guides/cell-functions/cell-renderer/angular/example6.js)
+@[code](@/content/guides/cell-functions/cell-renderer/angular/example6.html)
+
+:::
 
 :::
 
@@ -513,15 +506,9 @@ You can also put HTML into row and column headers. If you need to attach events 
 
 :::
 
-::: only-for react
+::: only-for react angular
 
 ### Add event listeners in cell renderer function
-
-:::
-
-::: only-for angular
-
-## Add event listeners in cell renderer function
 
 :::
 
@@ -559,17 +546,12 @@ Cell renderers are called separately for every displayed cell, during every tabl
 
 :::
 
-::: only-for react
+::: only-for react angular
 
 ## Related API reference
 
 :::
 
-::: only-for angular
-
-## Related API reference
-
-:::
 
 - APIs:
   - [`BasePlugin`](@/api/basePlugin.md)
