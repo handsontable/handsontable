@@ -4,7 +4,8 @@
 
 @mixin output {
   // Required variables for bare theme
-  .ht-root-wrapper:not([class*="ht-theme"]), .ht-portal:not([class*="ht-theme"]) {
+  .ht-root-wrapper:not([class*="ht-theme"]),
+  .ht-portal:not([class*="ht-theme"]) {
     --ht-gap-size: 4px;
     --ht-checkbox-size: 16px;
     --ht-cell-horizontal-padding: 8px;
@@ -42,26 +43,6 @@
     }
   }
 
-  // Wrapper
-  .ht-wrapper {
-    & > .handsontable {
-      border-radius: var(--ht-wrapper-border-radius, 0);
-
-      &::before {
-        @include mixins.pseudo();
-
-        position: absolute;
-        inset: 0;
-        border: var(--ht-wrapper-border-width) solid
-          var(--ht-wrapper-border-color);
-        border-radius: var(--ht-wrapper-border-radius, 0);
-        z-index: 999;
-        pointer-events: none;
-        overflow: hidden;
-      }
-    }
-  }
-
   .handsontable {
     @include mixins.font-family;
 
@@ -81,6 +62,24 @@
 
     &::-webkit-scrollbar-track {
       border-radius: var(--ht-scrollbar-border-radius);
+    }
+
+    // Wrapper
+    &.ht-wrapper {
+      border-radius: var(--ht-wrapper-border-radius, 0);
+
+      &::before {
+        @include mixins.pseudo();
+
+        position: absolute;
+        inset: 0;
+        border: var(--ht-wrapper-border-width) solid
+          var(--ht-wrapper-border-color);
+        border-radius: var(--ht-wrapper-border-radius, 0);
+        z-index: 999;
+        pointer-events: none;
+        overflow: hidden;
+      }
     }
 
     // Force the ghost table to ignore the additional 1px border for the first rows in the table
