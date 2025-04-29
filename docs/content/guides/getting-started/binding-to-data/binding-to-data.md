@@ -408,7 +408,7 @@ you). The easiest way to do it is by passing your data array as the value of `Ho
 
 ::: only-for angular
 You will probably want to initialize the table with some data (if you don't, the table will render an empty 5x5 grid for
-you). The easiest way to do it is by passing your data array as the value of `GridSettings`'s [`data`](@/api/options.md#data) prop:
+you). The easiest way to do it is by passing your data array as the value of `HotTable`'s [`data`](@/api/options.md#data) `@Input()`:
 
 ```ts
 import { GridSettings } from "@handsontable/angular-wrapper";
