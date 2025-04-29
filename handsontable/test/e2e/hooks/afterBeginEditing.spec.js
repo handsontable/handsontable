@@ -13,7 +13,7 @@ describe('Hook', () => {
   });
 
   describe('afterBeginEditing', () => {
-    it('should be fired after editing the editor\'s value', () => {
+    it('should be fired after editing the editor\'s value', async() => {
       const afterBeginEditing = jasmine.createSpy('afterBeginEditing');
 
       handsontable({
@@ -21,14 +21,14 @@ describe('Hook', () => {
         afterBeginEditing,
       });
 
-      selectCell(1, 2);
-      keyDownUp('enter'); // open editor
-      keyDownUp('enter'); // save and close editor
+      await selectCell(1, 2);
+      await keyDownUp('enter'); // open editor
+      await keyDownUp('enter'); // save and close editor
 
       expect(afterBeginEditing).toHaveBeenCalledWith(1, 2);
     });
 
-    it('should not be fired when editor was blocked by `beforeBeginEditing` hook', () => {
+    it('should not be fired when editor was blocked by `beforeBeginEditing` hook', async() => {
       const afterBeginEditing = jasmine.createSpy('afterBeginEditing');
 
       handsontable({
@@ -37,9 +37,9 @@ describe('Hook', () => {
         afterBeginEditing,
       });
 
-      selectCell(1, 2);
-      keyDownUp('enter'); // open editor
-      keyDownUp('enter'); // save and close editor
+      await selectCell(1, 2);
+      await keyDownUp('enter'); // open editor
+      await keyDownUp('enter'); // save and close editor
 
       expect(afterBeginEditing).not.toHaveBeenCalled();
     });

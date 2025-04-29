@@ -355,6 +355,15 @@ export const REGISTERED_HOOKS = [
   'beforeRemoveCellClassNames',
 
   /**
+   * Hook fired after `compositionstart` event is handled.
+   *
+   * @event Hooks#beforeCompositionStart
+   * @since 15.3.0
+   * @param {Event} event A native `composition` event object.
+   */
+  'beforeCompositionStart',
+
+  /**
    * Fired after getting the cell settings.
    *
    * @event Hooks#afterGetCellMeta

@@ -21,9 +21,7 @@ const ExampleComponent = () => {
       const columnValue = columnSelector.value;
 
       filtersPlugin?.removeConditions(Number(columnValue));
-      filtersPlugin?.addCondition(Number(columnValue), 'contains', [
-        event.target.value,
-      ]);
+      filtersPlugin?.addCondition(Number(columnValue), 'contains', [event.target.value]);
       filtersPlugin?.filter();
       handsontableInstance?.render();
     });

@@ -19,13 +19,7 @@ const ExampleComponent = () => {
       autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
       height="auto"
-      dropdownMenu={[
-        'remove_col',
-        '---------',
-        'make_read_only',
-        '---------',
-        'alignment',
-      ]}
+      dropdownMenu={['remove_col', '---------', 'make_read_only', '---------', 'alignment']}
     />
   );
 };

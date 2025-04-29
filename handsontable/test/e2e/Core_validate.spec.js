@@ -30,25 +30,24 @@ describe('Core_validate', () => {
   it('should not throw an exception if the instance was destroyed in the meantime when validator was called', async() => {
     let validatorCallback;
 
-    const hot = handsontable({
+    handsontable({
       data: arrayOfObjects(),
       validator(value, callback) {
         validatorCallback = callback;
       }
     });
 
-    hot.validateCells();
-
+    await validateCells();
     await sleep(100);
 
-    hot.destroy();
+    destroy();
     spec().$container.remove();
 
     expect(() => { validatorCallback(false); }).not.toThrow();
     expect(validatorCallback(false)).toBe(undefined);
   });
 
-  it('should call beforeValidate', () => {
+  it('should call beforeValidate', async() => {
     let fired = null;
 
     handsontable({
@@ -62,12 +61,12 @@ describe('Core_validate', () => {
         fired = true;
       }
     });
-    setDataAtCell(2, 0, 'test');
+    await setDataAtCell(2, 0, 'test');
 
     expect(fired).toEqual(true);
   });
 
-  it('should call beforeValidate when columns is a function', () => {
+  it('should call beforeValidate when columns is a function', async() => {
     let fired = null;
 
     handsontable({
@@ -95,12 +94,12 @@ describe('Core_validate', () => {
         fired = true;
       }
     });
-    setDataAtCell(2, 0, 'test');
+    await setDataAtCell(2, 0, 'test');
 
     expect(fired).toBe(true);
   });
 
-  it('should call afterValidate', (done) => {
+  it('should call afterValidate', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -112,15 +111,15 @@ describe('Core_validate', () => {
       ],
       afterValidate: onAfterValidate
     });
-    setDataAtCell(2, 0, 'test');
 
-    setTimeout(() => {
-      expect(onAfterValidate.calls.count()).toBe(1);
-      done();
-    }, 200);
+    await setDataAtCell(2, 0, 'test');
+
+    await sleep(100); // wait for async validation
+
+    expect(onAfterValidate.calls.count()).toBe(1);
   });
 
-  it('should call afterValidate when columns is a function', (done) => {
+  it('should call afterValidate when columns is a function', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -146,15 +145,15 @@ describe('Core_validate', () => {
       },
       afterValidate: onAfterValidate
     });
-    setDataAtCell(2, 0, 'test');
 
-    setTimeout(() => {
-      expect(onAfterValidate.calls.count()).toBe(1);
-      done();
-    }, 200);
+    await setDataAtCell(2, 0, 'test');
+
+    await sleep(100); // wait for async validation
+
+    expect(onAfterValidate.calls.count()).toBe(1);
   });
 
-  it('beforeValidate can manipulate value', (done) => {
+  it('beforeValidate can manipulate value', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
     let result = null;
 
@@ -174,15 +173,15 @@ describe('Core_validate', () => {
       },
       afterValidate: onAfterValidate
     });
-    setDataAtCell(2, 0, 123);
 
-    setTimeout(() => {
-      expect(result).toBe(999);
-      done();
-    }, 200);
+    await setDataAtCell(2, 0, 123);
+
+    await sleep(100); // wait for async validation
+
+    expect(result).toBe(999);
   });
 
-  it('beforeValidate can manipulate value when columns is a function', (done) => {
+  it('beforeValidate can manipulate value when columns is a function', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
     let result = null;
 
@@ -216,15 +215,15 @@ describe('Core_validate', () => {
       },
       afterValidate: onAfterValidate
     });
-    setDataAtCell(2, 0, 123);
 
-    setTimeout(() => {
-      expect(result).toBe(999);
-      done();
-    }, 200);
+    await setDataAtCell(2, 0, 123);
+
+    await sleep(100); // wait for async validation
+
+    expect(result).toBe(999);
   });
 
-  it('should be able to define custom validator function', (done) => {
+  it('should be able to define custom validator function', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -239,15 +238,15 @@ describe('Core_validate', () => {
       ],
       afterValidate: onAfterValidate
     });
-    setDataAtCell(2, 0, 123);
 
-    setTimeout(() => {
-      expect(onAfterValidate).toHaveBeenCalledWith(true, 123, 2, 'id');
-      done();
-    }, 200);
+    await setDataAtCell(2, 0, 123);
+
+    await sleep(100); // wait for async validation
+
+    expect(onAfterValidate).toHaveBeenCalledWith(true, 123, 2, 'id');
   });
 
-  it('should be able to define custom validator function when columns is a function', (done) => {
+  it('should be able to define custom validator function when columns is a function', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -274,15 +273,15 @@ describe('Core_validate', () => {
       },
       afterValidate: onAfterValidate
     });
-    setDataAtCell(2, 0, 123);
 
-    setTimeout(() => {
-      expect(onAfterValidate).toHaveBeenCalledWith(true, 123, 2, 'id');
-      done();
-    }, 200);
+    await setDataAtCell(2, 0, 123);
+
+    await sleep(100); // wait for async validation
+
+    expect(onAfterValidate).toHaveBeenCalledWith(true, 123, 2, 'id');
   });
 
-  it('should be able to define custom validator RegExp', (done) => {
+  it('should be able to define custom validator RegExp', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -295,15 +294,14 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(2, 0, 'test');
+    await setDataAtCell(2, 0, 'test');
 
-    setTimeout(() => {
-      expect(onAfterValidate).toHaveBeenCalledWith(false, 'test', 2, 'id');
-      done();
-    }, 200);
+    await sleep(100); // wait for async validation
+
+    expect(onAfterValidate).toHaveBeenCalledWith(false, 'test', 2, 'id');
   });
 
-  it('should be able to define custom validator RegExp when columns is a function', (done) => {
+  it('should be able to define custom validator RegExp when columns is a function', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -325,15 +323,15 @@ describe('Core_validate', () => {
       },
       afterValidate: onAfterValidate
     });
-    setDataAtCell(2, 0, 'test');
 
-    setTimeout(() => {
-      expect(onAfterValidate).toHaveBeenCalledWith(false, 'test', 2, 'id');
-      done();
-    }, 200);
+    await setDataAtCell(2, 0, 'test');
+
+    await sleep(100); // wait for async validation
+
+    expect(onAfterValidate).toHaveBeenCalledWith(false, 'test', 2, 'id');
   });
 
-  it('this in validator should point to cellProperties', (done) => {
+  it('this in validator should point to cellProperties', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
     let result = null;
 
@@ -352,15 +350,15 @@ describe('Core_validate', () => {
       ],
       afterValidate: onAfterValidate
     });
-    setDataAtCell(2, 0, 123);
 
-    setTimeout(() => {
-      expect(result.instance).toEqual(getInstance());
-      done();
-    }, 200);
+    await setDataAtCell(2, 0, 123);
+
+    await sleep(100); // wait for async validation
+
+    expect(result.instance).toEqual(getInstance());
   });
 
-  it('this in validator should point to cellProperties when columns is a function', (done) => {
+  it('this in validator should point to cellProperties when columns is a function', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
     let result = null;
 
@@ -389,18 +387,19 @@ describe('Core_validate', () => {
       },
       afterValidate: onAfterValidate
     });
-    setDataAtCell(2, 0, 123);
 
-    setTimeout(() => {
-      expect(result.instance).toEqual(getInstance());
-      done();
-    }, 200);
+    await setDataAtCell(2, 0, 123);
+
+    await sleep(100); // wait for async validation
+
+    expect(result.instance).toEqual(getInstance());
   });
 
-  it('should not throw error after calling validateCells without first argument', (done) => {
+  it('should not throw error after calling validateCells without first argument', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+
+    handsontable({
+      data: createSpreadsheetData(2, 2),
       validator(value, callb) {
         if (value === 'B1') {
           callb(false);
@@ -411,85 +410,130 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    expect(() => hot.validateCells()).not.toThrow();
+    expect(() => {
+      // eslint-disable-next-line handsontable/require-await
+      validateCells();
+    }).not.toThrow();
 
-    setTimeout(() => {
-      expect(spec().$container.find('td.htInvalid').length).toEqual(1);
-      expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(3);
-      done();
-    }, 200);
+    await sleep(100); // wait for async validation
+
+    expect(spec().$container.find('td.htInvalid').length).toEqual(1);
+    expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(3);
   });
 
-  it('should throw error after calling validateRows first argument not array', (done) => {
+  it('should throw error after calling validateRows first argument not array', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+
+    handsontable({
+      data: createSpreadsheetData(2, 2),
       validator(value, callb) {
         callb(true);
       },
       afterValidate: onAfterValidate
     });
 
-    expect(() => hot.validateRows()).toThrow();
-    expect(() => hot.validateRows(0, () => {})).toThrow();
-    expect(() => hot.validateRows({}, () => {})).toThrow();
-    expect(() => hot.validateRows(() => {})).toThrow();
-    done();
+    expect(() => {
+      // eslint-disable-next-line handsontable/require-await
+      validateRows();
+    }).toThrow();
+    expect(() => {
+      // eslint-disable-next-line handsontable/require-await
+      validateRows(0, () => {});
+    }).toThrow();
+    expect(() => {
+      // eslint-disable-next-line handsontable/require-await
+      validateRows({}, () => {});
+    }).toThrow();
+    expect(() => {
+      // eslint-disable-next-line handsontable/require-await
+      validateRows(() => {});
+    }).toThrow();
   });
 
-  it('should throw error after calling validateColumns first argument not array', (done) => {
+  it('should throw error after calling validateColumns first argument not array', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+
+    handsontable({
+      data: createSpreadsheetData(2, 2),
       validator(value, callb) {
         callb(true);
       },
       afterValidate: onAfterValidate
     });
 
-    expect(() => hot.validateColumns()).toThrow();
-    expect(() => hot.validateColumns(0, () => {})).toThrow();
-    expect(() => hot.validateColumns({}, () => {})).toThrow();
-    expect(() => hot.validateColumns(() => {})).toThrow();
-    done();
+    expect(() => {
+      // eslint-disable-next-line handsontable/require-await
+      validateColumns();
+    }).toThrow();
+    expect(() => {
+      // eslint-disable-next-line handsontable/require-await
+      validateColumns(0, () => {});
+    }).toThrow();
+    expect(() => {
+      // eslint-disable-next-line handsontable/require-await
+      validateColumns({}, () => {});
+    }).toThrow();
+    expect(() => {
+      // eslint-disable-next-line handsontable/require-await
+      validateColumns(() => {});
+    }).toThrow();
   });
 
-  it('should not throw error after calling validateRows without second argument', (done) => {
+  it('should not throw error after calling validateRows without second argument', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+
+    handsontable({
+      data: createSpreadsheetData(2, 2),
       validator(value, callb) {
         callb(true);
       },
       afterValidate: onAfterValidate
     });
 
-    expect(() => hot.validateRows([])).not.toThrow();
-    expect(() => hot.validateRows([0, 1])).not.toThrow();
-    expect(() => hot.validateRows([100, 101])).not.toThrow();
-    done();
+    expect(() => {
+      // eslint-disable-next-line handsontable/require-await
+      validateRows([]);
+    }).not.toThrow();
+    expect(() => {
+      // eslint-disable-next-line handsontable/require-await
+      validateRows([0, 1]);
+    }).not.toThrow();
+    expect(() => {
+      // eslint-disable-next-line handsontable/require-await
+      validateRows([100, 101]);
+    }).not.toThrow();
   });
 
-  it('should not throw error after calling validateColumns without second argument', (done) => {
+  it('should not throw error after calling validateColumns without second argument', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+
+    handsontable({
+      data: createSpreadsheetData(2, 2),
       validator(value, callb) {
         callb(true);
       },
       afterValidate: onAfterValidate
     });
 
-    expect(() => hot.validateColumns([])).not.toThrow();
-    expect(() => hot.validateColumns([0, 1])).not.toThrow();
-    expect(() => hot.validateColumns([100, 101])).not.toThrow();
-    done();
+    expect(() => {
+      // eslint-disable-next-line handsontable/require-await
+      validateColumns([]);
+    }).not.toThrow();
+    expect(() => {
+      // eslint-disable-next-line handsontable/require-await
+      validateColumns([0, 1]);
+    }).not.toThrow();
+    expect(() => {
+      // eslint-disable-next-line handsontable/require-await
+      validateColumns([100, 101]);
+    }).not.toThrow();
   });
 
-  it('should add class name `htInvalid` to an cell that does not validate - on validateCells', (done) => {
+  it('should add class name `htInvalid` to an cell that does not validate - on validateCells', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+
+    handsontable({
+      data: createSpreadsheetData(2, 2),
       validator(value, callb) {
         if (value === 'B1') {
           callb(false);
@@ -500,21 +544,22 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    hot.validateCells(() => {
-      hot.render();
+    await validateCells(() => {
+      // eslint-disable-next-line handsontable/require-await
+      render();
     });
 
-    setTimeout(() => {
-      expect(spec().$container.find('td.htInvalid').length).toEqual(1);
-      expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(3);
-      done();
-    }, 200);
+    await sleep(100); // wait for async validation
+
+    expect(spec().$container.find('td.htInvalid').length).toEqual(1);
+    expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(3);
   });
 
   it('should add class name `htInvalid` to an cell that does not validate - on validateRows', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+
+    handsontable({
+      data: createSpreadsheetData(2, 2),
       validator(value, callb) {
         if (value === 'B1') {
           callb(false);
@@ -525,69 +570,82 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    hot.validateRows([], () => {
-      hot.render();
+    await validateRows([], () => {
+      // eslint-disable-next-line handsontable/require-await
+      render();
     });
 
     await sleep(150);
+
     expect(spec().$container.find('td.htInvalid').length).toEqual(0);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(4);
 
-    hot.loadData(Handsontable.helper.createSpreadsheetData(2, 2));
+    await loadData(createSpreadsheetData(2, 2));
 
-    hot.validateRows([0], () => {
-      hot.render();
+    await validateRows([0], () => {
+      // eslint-disable-next-line handsontable/require-await
+      render();
     });
 
     await sleep(150);
+
     expect(spec().$container.find('td.htInvalid').length).toEqual(1);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(3);
 
-    hot.loadData(Handsontable.helper.createSpreadsheetData(2, 2));
+    await loadData(createSpreadsheetData(2, 2));
 
-    hot.validateRows([1], () => {
-      hot.render();
+    await validateRows([1], () => {
+      // eslint-disable-next-line handsontable/require-await
+      render();
     });
 
     await sleep(150);
+
     expect(spec().$container.find('td.htInvalid').length).toEqual(0);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(4);
 
-    hot.loadData(Handsontable.helper.createSpreadsheetData(2, 2));
+    await loadData(createSpreadsheetData(2, 2));
 
-    hot.validateRows([0, 1], () => {
-      hot.render();
+    await validateRows([0, 1], () => {
+      // eslint-disable-next-line handsontable/require-await
+      render();
     });
 
     await sleep(150);
+
     expect(spec().$container.find('td.htInvalid').length).toEqual(1);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(3);
 
-    hot.loadData(Handsontable.helper.createSpreadsheetData(2, 2));
+    await loadData(createSpreadsheetData(2, 2));
 
-    hot.validateRows([0, 1, 100], () => {
-      hot.render();
+    await validateRows([0, 1, 100], () => {
+      // eslint-disable-next-line handsontable/require-await
+      render();
     });
 
     await sleep(150);
+
     expect(spec().$container.find('td.htInvalid').length).toEqual(1);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(3);
 
-    hot.loadData(Handsontable.helper.createSpreadsheetData(2, 2));
+    await loadData(createSpreadsheetData(2, 2));
 
-    hot.validateRows([100, 101], () => {
-      hot.render();
+    await validateRows([100, 101], () => {
+      // eslint-disable-next-line handsontable/require-await
+      render();
     });
 
     await sleep(150);
+
     expect(spec().$container.find('td.htInvalid').length).toEqual(0);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(4);
   });
 
   it('should add class name `htInvalid` to an cell that does not validate - on validateColumns', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+
+    handsontable({
+      data: createSpreadsheetData(2, 2),
       validator(value, callb) {
         if (value === 'B1') {
           callb(false);
@@ -598,42 +656,48 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    await promisfy(resolve => hot.validateColumns([], resolve));
+    // eslint-disable-next-line handsontable/require-await
+    await promisfy(resolve => validateColumns([], resolve));
 
     expect(spec().$container.find('td.htInvalid').length).toEqual(0);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(4);
 
-    hot.loadData(Handsontable.helper.createSpreadsheetData(2, 2));
+    await loadData(createSpreadsheetData(2, 2));
 
-    await promisfy(resolve => hot.validateColumns([0], resolve));
+    // eslint-disable-next-line handsontable/require-await
+    await promisfy(resolve => validateColumns([0], resolve));
 
     expect(spec().$container.find('td.htInvalid').length).toEqual(0);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(4);
 
-    hot.loadData(Handsontable.helper.createSpreadsheetData(2, 2));
+    await loadData(createSpreadsheetData(2, 2));
 
-    await promisfy(resolve => hot.validateColumns([1], resolve));
-
-    expect(spec().$container.find('td.htInvalid').length).toEqual(1);
-    expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(3);
-
-    hot.loadData(Handsontable.helper.createSpreadsheetData(2, 2));
-
-    await promisfy(resolve => hot.validateColumns([0, 1], resolve));
+    // eslint-disable-next-line handsontable/require-await
+    await promisfy(resolve => validateColumns([1], resolve));
 
     expect(spec().$container.find('td.htInvalid').length).toEqual(1);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(3);
 
-    hot.loadData(Handsontable.helper.createSpreadsheetData(2, 2));
+    await loadData(createSpreadsheetData(2, 2));
 
-    await promisfy(resolve => hot.validateColumns([0, 1, 100], resolve));
+    // eslint-disable-next-line handsontable/require-await
+    await promisfy(resolve => validateColumns([0, 1], resolve));
 
     expect(spec().$container.find('td.htInvalid').length).toEqual(1);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(3);
 
-    hot.loadData(Handsontable.helper.createSpreadsheetData(2, 2));
+    await loadData(createSpreadsheetData(2, 2));
 
-    await promisfy(resolve => hot.validateColumns([100, 101], resolve));
+    // eslint-disable-next-line handsontable/require-await
+    await promisfy(resolve => validateColumns([0, 1, 100], resolve));
+
+    expect(spec().$container.find('td.htInvalid').length).toEqual(1);
+    expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(3);
+
+    await loadData(createSpreadsheetData(2, 2));
+
+    // eslint-disable-next-line handsontable/require-await
+    await promisfy(resolve => validateColumns([100, 101], resolve));
 
     expect(spec().$container.find('td.htInvalid').length).toEqual(0);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(4);
@@ -641,8 +705,9 @@ describe('Core_validate', () => {
 
   it('should add class name `htInvalid` to an cell that does not validate - when we trigger validateCell', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+
+    handsontable({
+      data: createSpreadsheetData(2, 2),
       validator(value, cb) {
         cb(false);
       },
@@ -651,51 +716,50 @@ describe('Core_validate', () => {
 
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(4);
 
-    hot.validateCell(hot.getDataAtCell(1, 1), hot.getCellMeta(1, 1), () => {});
-
+    await validateCell(getDataAtCell(1, 1), getCellMeta(1, 1), () => {});
     await sleep(200);
 
     expect(spec().$container.find('td.htInvalid').length).toEqual(1);
     expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(3);
   });
 
-  it('should remove class name `htInvalid` from an cell that does validate - when we change validator rules', (done) => {
+  it('should remove class name `htInvalid` from an cell that does validate - when we change validator rules', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
     let isValid = false;
     const validator = function() {
       return isValid;
     };
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+
+    handsontable({
+      data: createSpreadsheetData(2, 2),
       validator(value, cb) {
         cb(validator());
       },
       afterValidate: onAfterValidate
     });
 
-    hot.validateCells(() => {});
+    await validateCells(() => {});
 
-    setTimeout(() => {
-      expect(spec().$container.find('td.htInvalid').length).toEqual(4);
-      expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(0);
+    await sleep(100); // wait for async validation
 
-      isValid = true;
-      onAfterValidate.calls.reset();
-      hot.validateCell(hot.getDataAtCell(1, 1), hot.getCellMeta(1, 1), () => {});
-    }, 200);
+    expect(spec().$container.find('td.htInvalid').length).toEqual(4);
+    expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(0);
 
-    setTimeout(() => {
-      expect(spec().$container.find('td.htInvalid').length).toEqual(3);
-      expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(1);
-      done();
-    }, 400);
+    isValid = true;
+    onAfterValidate.calls.reset();
+
+    await validateCell(getDataAtCell(1, 1), getCellMeta(1, 1), () => {});
+    await sleep(100); // wait for async validation
+
+    expect(spec().$container.find('td.htInvalid').length).toEqual(3);
+    expect(spec().$container.find('td:not(.htInvalid)').length).toEqual(1);
   });
 
-  it('should add class name `htInvalid` to an cell that does not validate - on edit', (done) => {
+  it('should add class name `htInvalid` to an cell that does not validate - on edit', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      data: createSpreadsheetData(2, 2),
       validator(value, callb) {
         if (value === 'test') {
           callb(false);
@@ -706,20 +770,19 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(0, 0, 'test');
+    await setDataAtCell(0, 0, 'test');
 
-    setTimeout(() => {
-      expect(spec().$container.find('td.htInvalid').length).toEqual(1);
-      expect(spec().$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
-      done();
-    }, 200);
+    await sleep(100); // wait for async validation
+
+    expect(spec().$container.find('td.htInvalid').length).toEqual(1);
+    expect(spec().$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
   });
 
   it('should not add class name `htInvalid` for cancelled changes - on edit', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      data: createSpreadsheetData(2, 2),
       validator(value, callb) {
         if (value === 'test') {
           callb(false);
@@ -731,7 +794,7 @@ describe('Core_validate', () => {
       beforeChange: () => false
     });
 
-    setDataAtCell(0, 0, 'test');
+    await setDataAtCell(0, 0, 'test');
 
     await sleep(500);
 
@@ -749,7 +812,7 @@ describe('Core_validate', () => {
     let allowChange = true;
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      data: createSpreadsheetData(2, 2),
       validator(value, callb) {
         if (value === 'test') {
           callb(false);
@@ -761,7 +824,7 @@ describe('Core_validate', () => {
       beforeChange: () => allowChange
     });
 
-    setDataAtCell(0, 0, 'test');
+    await setDataAtCell(0, 0, 'test');
 
     await sleep(500);
 
@@ -774,7 +837,7 @@ describe('Core_validate', () => {
 
     // setting flag to have 'beforeChange' reject changes, then change value
     allowChange = false;
-    setDataAtCell(0, 0, 'test2');
+    await setDataAtCell(0, 0, 'test2');
 
     await sleep(500);
 
@@ -787,7 +850,7 @@ describe('Core_validate', () => {
     expect(spec().$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
   });
 
-  it('should add class name `htInvalid` to a cell without removing other classes', (done) => {
+  it('should add class name `htInvalid` to a cell without removing other classes', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
     const validator = jasmine.createSpy('validator');
 
@@ -800,131 +863,136 @@ describe('Core_validate', () => {
     });
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+      data: createSpreadsheetData(2, 2),
       type: 'numeric',
       validator,
       afterValidate: onAfterValidate
     });
-    setDataAtCell(0, 0, 123);
 
-    setTimeout(() => {
-      expect(validator.calls.count()).toEqual(1);
-      expect(spec().$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
-      expect(spec().$container.find('tr:eq(0) td:eq(0)').hasClass('htNumeric')).toEqual(true);
-      onAfterValidate.calls.reset();
-      setDataAtCell(0, 0, 124);
-    }, 200);
+    await setDataAtCell(0, 0, 123);
 
-    setTimeout(() => {
-      expect(spec().$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(false);
-      expect(spec().$container.find('tr:eq(0) td:eq(0)').hasClass('htNumeric')).toEqual(true);
-      done();
-    }, 400);
+    await sleep(100); // wait for async validation
+
+    expect(validator.calls.count()).toEqual(1);
+    expect(spec().$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
+    expect(spec().$container.find('tr:eq(0) td:eq(0)').hasClass('htNumeric')).toEqual(true);
+
+    onAfterValidate.calls.reset();
+    await setDataAtCell(0, 0, 124);
+
+    await sleep(100); // wait for async validation
+
+    expect(spec().$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(false);
+    expect(spec().$container.find('tr:eq(0) td:eq(0)').hasClass('htNumeric')).toEqual(true);
   });
 
-  it('should add class name `htInvalid` to an cell that does not validate - after validateCells', (done) => {
+  it('should add class name `htInvalid` to an cell that does not validate - after validateCells', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+
+    handsontable({
+      data: createSpreadsheetData(2, 2),
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(0, 0, 'test');
+    await setDataAtCell(0, 0, 'test');
 
-    setTimeout(() => {
-      expect(spec().$container.find('td.htInvalid').length).toEqual(0);
-      updateSettings({
-        validator(value, callb) {
-          if (value === 'test') {
-            callb(false);
-          } else {
-            callb(true);
-          }
+    await sleep(100); // wait for async validation
+
+    expect(spec().$container.find('td.htInvalid').length).toEqual(0);
+
+    await updateSettings({
+      validator(value, callb) {
+        if (value === 'test') {
+          callb(false);
+        } else {
+          callb(true);
         }
-      });
+      }
+    });
 
-      onAfterValidate.calls.reset();
+    onAfterValidate.calls.reset();
 
-      hot.validateCells(() => {});
-    }, 200);
+    await validateCells(() => {});
 
-    setTimeout(() => {
-      expect(spec().$container.find('td.htInvalid').length).toEqual(1);
-      expect(spec().$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
-      done();
-    }, 400);
+    await sleep(100); // wait for async validation
+
+    expect(spec().$container.find('td.htInvalid').length).toEqual(1);
+    expect(spec().$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
   });
 
-  it('should add class name `htInvalid` to an cell that does not validate - after validateRows', (done) => {
+  it('should add class name `htInvalid` to an cell that does not validate - after validateRows', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+
+    handsontable({
+      data: createSpreadsheetData(2, 2),
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(0, 0, 'test');
+    await setDataAtCell(0, 0, 'test');
 
-    setTimeout(() => {
-      expect(spec().$container.find('td.htInvalid').length).toEqual(0);
-      updateSettings({
-        validator(value, callb) {
-          if (value === 'test') {
-            callb(false);
-          } else {
-            callb(true);
-          }
+    await sleep(100); // wait for async validation
+
+    expect(spec().$container.find('td.htInvalid').length).toEqual(0);
+
+    await updateSettings({
+      validator(value, callb) {
+        if (value === 'test') {
+          callb(false);
+        } else {
+          callb(true);
         }
-      });
+      }
+    });
 
-      onAfterValidate.calls.reset();
+    onAfterValidate.calls.reset();
 
-      hot.validateRows([0], () => {});
-    }, 200);
+    await validateRows([0], () => {});
 
-    setTimeout(() => {
-      expect(spec().$container.find('td.htInvalid').length).toEqual(1);
-      expect(spec().$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
-      done();
-    }, 400);
+    await sleep(100); // wait for async validation
+
+    expect(spec().$container.find('td.htInvalid').length).toEqual(1);
+    expect(spec().$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
   });
 
-  it('should add class name `htInvalid` to an cell that does not validate - after validateColumns', (done) => {
+  it('should add class name `htInvalid` to an cell that does not validate - after validateColumns', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+
+    handsontable({
+      data: createSpreadsheetData(2, 2),
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(0, 0, 'test');
+    await setDataAtCell(0, 0, 'test');
 
-    setTimeout(() => {
-      expect(spec().$container.find('td.htInvalid').length).toEqual(0);
-      updateSettings({
-        validator(value, callb) {
-          if (value === 'test') {
-            callb(false);
-          } else {
-            callb(true);
-          }
+    await sleep(100); // wait for async validation
+
+    expect(spec().$container.find('td.htInvalid').length).toEqual(0);
+
+    await updateSettings({
+      validator(value, callb) {
+        if (value === 'test') {
+          callb(false);
+        } else {
+          callb(true);
         }
-      });
+      }
+    });
 
-      onAfterValidate.calls.reset();
+    onAfterValidate.calls.reset();
 
-      hot.validateColumns([0], () => {});
-    }, 200);
+    await validateColumns([0], () => {});
 
-    setTimeout(() => {
-      expect(spec().$container.find('td.htInvalid').length).toEqual(1);
-      expect(spec().$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
-      done();
-    }, 400);
+    await sleep(100); // wait for async validation
+
+    expect(spec().$container.find('td.htInvalid').length).toEqual(1);
+    expect(spec().$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
   });
 
-  it('should remove class name `htInvalid` when cell is edited to validate', (done) => {
+  it('should remove class name `htInvalid` when cell is edited to validate', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+
+    handsontable({
+      data: createSpreadsheetData(2, 2),
       validator(value, callb) {
         if (value === 'A1') {
           callb(false);
@@ -935,141 +1003,142 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    hot.validateCells(() => {
-      hot.render();
+    await validateCells(() => {
+      // eslint-disable-next-line handsontable/require-await
+      render();
     });
 
-    setTimeout(() => {
-      expect(spec().$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
-      onAfterValidate.calls.reset();
-      setDataAtCell(0, 0, 'test');
-    }, 200);
+    await sleep(100); // wait for async validation
 
-    setTimeout(() => {
-      expect(spec().$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(false);
-      done();
-    }, 400);
+    expect(spec().$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(true);
+
+    onAfterValidate.calls.reset();
+    await setDataAtCell(0, 0, 'test');
+
+    await sleep(100); // wait for async validation
+
+    expect(spec().$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(false);
   });
 
-  it('should call callback with first argument as `true` if all cells are valid', (done) => {
+  it('should call callback with first argument as `true` if all cells are valid', async() => {
     const onValidate = jasmine.createSpy('onValidate');
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+
+    handsontable({
+      data: createSpreadsheetData(2, 2),
       validator(value, callback) {
         callback(true);
       },
       afterValidate: onAfterValidate
     });
 
-    hot.validateCells(onValidate);
+    await validateCells(onValidate);
 
-    setTimeout(() => {
-      expect(onValidate).toHaveBeenCalledWith(true);
-      done();
-    }, 200);
+    await sleep(100); // wait for async validation
+
+    expect(onValidate).toHaveBeenCalledWith(true);
   });
 
-  it('should call callback with first argument as `true` if all cells are valid - on validateRows', (done) => {
+  it('should call callback with first argument as `true` if all cells are valid - on validateRows', async() => {
     const onValidate = jasmine.createSpy('onValidate');
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+
+    handsontable({
+      data: createSpreadsheetData(2, 2),
       validator(value, callback) {
         callback(true);
       },
       afterValidate: onAfterValidate
     });
 
-    hot.validateRows([0, 1], onValidate);
+    await validateRows([0, 1], onValidate);
 
-    setTimeout(() => {
-      expect(onValidate).toHaveBeenCalledWith(true);
-      done();
-    }, 200);
+    await sleep(100); // wait for async validation
+
+    expect(onValidate).toHaveBeenCalledWith(true);
   });
 
-  it('should call callback with first argument as `true` if all cells are valid - on validateColumns', (done) => {
+  it('should call callback with first argument as `true` if all cells are valid - on validateColumns', async() => {
     const onValidate = jasmine.createSpy('onValidate');
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+
+    handsontable({
+      data: createSpreadsheetData(2, 2),
       validator(value, callback) {
         callback(true);
       },
       afterValidate: onAfterValidate
     });
 
-    hot.validateColumns([0, 1], onValidate);
+    await validateColumns([0, 1], onValidate);
 
-    setTimeout(() => {
-      expect(onValidate).toHaveBeenCalledWith(true);
-      done();
-    }, 200);
+    await sleep(100); // wait for async validation
+
+    expect(onValidate).toHaveBeenCalledWith(true);
   });
 
-  it('should call callback with first argument as `false` if one of cells is invalid', (done) => {
+  it('should call callback with first argument as `false` if one of cells is invalid', async() => {
     const onValidate = jasmine.createSpy('onValidate');
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+
+    handsontable({
+      data: createSpreadsheetData(2, 2),
       validator(value, callback) {
         callback(false);
       },
       afterValidate: onAfterValidate
     });
 
-    hot.validateCells(onValidate);
+    await validateCells(onValidate);
 
-    setTimeout(() => {
-      expect(onValidate).toHaveBeenCalledWith(false);
-      done();
-    }, 200);
+    await sleep(100); // wait for async validation
+
+    expect(onValidate).toHaveBeenCalledWith(false);
   });
 
-  it('should call callback with first argument as `false` if one of cells is invalid - on validateRows', (done) => {
+  it('should call callback with first argument as `false` if one of cells is invalid - on validateRows', async() => {
     const onValidate = jasmine.createSpy('onValidate');
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+
+    handsontable({
+      data: createSpreadsheetData(2, 2),
       validator(value, callback) {
         callback(false);
       },
       afterValidate: onAfterValidate
     });
 
-    hot.validateRows([0, 1], onValidate);
+    await validateRows([0, 1], onValidate);
 
-    setTimeout(() => {
-      expect(onValidate).toHaveBeenCalledWith(false);
-      done();
-    }, 200);
+    await sleep(100); // wait for async validation
+
+    expect(onValidate).toHaveBeenCalledWith(false);
   });
 
-  it('should call callback with first argument as `false` if one of cells is invalid - on validateColumns', (done) => {
+  it('should call callback with first argument as `false` if one of cells is invalid - on validateColumns', async() => {
     const onValidate = jasmine.createSpy('onValidate');
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+
+    handsontable({
+      data: createSpreadsheetData(2, 2),
       validator(value, callback) {
         callback(false);
       },
       afterValidate: onAfterValidate
     });
 
-    hot.validateColumns([0, 1], onValidate);
+    await validateColumns([0, 1], onValidate);
 
-    setTimeout(() => {
-      expect(onValidate).toHaveBeenCalledWith(false);
-      done();
-    }, 200);
+    await sleep(100); // wait for async validation
+
+    expect(onValidate).toHaveBeenCalledWith(false);
   });
 
-  it('should not allow for changes where data is invalid (multiple changes, async)', (done) => {
+  it('should not allow for changes where data is invalid (multiple changes, async)', async() => {
     let validatedChanges;
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 2),
+      data: createSpreadsheetData(5, 2),
       allowInvalid: false,
       validator(value, callb) {
         setTimeout(() => {
@@ -1087,31 +1156,31 @@ describe('Core_validate', () => {
       }
     });
 
-    populateFromArray(0, 0, [
+    await populateFromArray(0, 0, [
       ['A1-new'],
       ['fail'],
       ['A3-new']
     ]);
 
-    setTimeout(() => {
-      expect(validatedChanges.length).toEqual(2);
-      expect(validatedChanges[0]).toEqual([0, 0, 'A1', 'A1-new']);
-      expect(validatedChanges[1]).toEqual([2, 0, 'A3', 'A3-new']);
-      expect(getDataAtCell(0, 0)).toEqual('A1-new');
-      expect(getDataAtCell(1, 0)).toEqual('A2');
-      expect(getDataAtCell(2, 0)).toEqual('A3-new');
-      expect(getCellMeta(0, 0).valid).toBe(true);
-      expect(getCellMeta(1, 0).valid).toBe(true);
-      expect(getCellMeta(2, 0).valid).toBe(true);
-      done();
-    }, 200);
+    await sleep(100); // wait for async validation
+
+    expect(validatedChanges.length).toEqual(2);
+    expect(validatedChanges[0]).toEqual([0, 0, 'A1', 'A1-new']);
+    expect(validatedChanges[1]).toEqual([2, 0, 'A3', 'A3-new']);
+    expect(getDataAtCell(0, 0)).toEqual('A1-new');
+    expect(getDataAtCell(1, 0)).toEqual('A2');
+    expect(getDataAtCell(2, 0)).toEqual('A3-new');
+    expect(getCellMeta(0, 0).valid).toBe(true);
+    expect(getCellMeta(1, 0).valid).toBe(true);
+    expect(getCellMeta(2, 0).valid).toBe(true);
   });
 
-  it('should call beforeChange exactly once after cell value edit and validator is synchronous', (done) => {
+  it('should call beforeChange exactly once after cell value edit and validator is synchronous', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
     const onBeforeChange = jasmine.createSpy('onBeforeChange');
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 2),
+
+    handsontable({
+      data: createSpreadsheetData(5, 2),
       allowInvalid: false,
       validator(value, callback) {
         callback(true);
@@ -1122,19 +1191,18 @@ describe('Core_validate', () => {
 
     expect(onBeforeChange.calls.count()).toEqual(0);
 
-    hot.setDataAtCell(0, 0, 10);
+    await setDataAtCell(0, 0, 10);
+    await sleep(100); // wait for async validation
 
-    setTimeout(() => {
-      expect(onBeforeChange.calls.count()).toEqual(1);
-      done();
-    }, 200);
+    expect(onBeforeChange.calls.count()).toEqual(1);
   });
 
-  it('should call beforeChange exactly once after cell value edit and validator is asynchronous', (done) => {
+  it('should call beforeChange exactly once after cell value edit and validator is asynchronous', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
     const onBeforeChange = jasmine.createSpy('onBeforeChange');
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 2),
+
+    handsontable({
+      data: createSpreadsheetData(5, 2),
       allowInvalid: false,
       validator(value, callback) {
         setTimeout(() => {
@@ -1147,19 +1215,18 @@ describe('Core_validate', () => {
 
     expect(onBeforeChange.calls.count()).toEqual(0);
 
-    hot.setDataAtCell(0, 0, 10);
+    await setDataAtCell(0, 0, 10);
+    await sleep(100); // wait for async validation
 
-    setTimeout(() => {
-      expect(onBeforeChange.calls.count()).toEqual(1);
-      done();
-    }, 200);
+    expect(onBeforeChange.calls.count()).toEqual(1);
   });
 
-  it('should call afterChange exactly once after cell value edit and validator is synchronous', (done) => {
+  it('should call afterChange exactly once after cell value edit and validator is synchronous', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
     const onAfterChange = jasmine.createSpy('onAfterChange');
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 2),
+
+    handsontable({
+      data: createSpreadsheetData(5, 2),
       allowInvalid: false,
       validator(value, callback) {
         callback(true);
@@ -1170,19 +1237,18 @@ describe('Core_validate', () => {
 
     expect(onAfterChange.calls.count()).toEqual(1); // loadData
 
-    hot.setDataAtCell(0, 0, 10);
+    await setDataAtCell(0, 0, 10);
+    await sleep(100); // wait for async validation
 
-    setTimeout(() => {
-      expect(onAfterChange.calls.count()).toEqual(2);
-      done();
-    }, 200);
+    expect(onAfterChange.calls.count()).toEqual(2);
   });
 
-  it('should call afterChange exactly once after cell value edit and validator is asynchronous', (done) => {
+  it('should call afterChange exactly once after cell value edit and validator is asynchronous', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
     const onAfterChange = jasmine.createSpy('onAfterChange');
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 2),
+
+    handsontable({
+      data: createSpreadsheetData(5, 2),
       allowInvalid: false,
       validator(value, callback) {
         setTimeout(() => {
@@ -1195,12 +1261,10 @@ describe('Core_validate', () => {
 
     expect(onAfterChange.calls.count()).toEqual(1); // loadData
 
-    hot.setDataAtCell(0, 0, 10);
+    await setDataAtCell(0, 0, 10);
+    await sleep(100); // wait for async validation
 
-    setTimeout(() => {
-      expect(onAfterChange.calls.count()).toEqual(2);
-      done();
-    }, 200);
+    expect(onAfterChange.calls.count()).toEqual(2);
   });
 
   it('edited cell should stay on screen until value is validated but should be closed before apply changes', async() => {
@@ -1217,7 +1281,7 @@ describe('Core_validate', () => {
     });
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 2),
+      data: createSpreadsheetData(5, 2),
       allowInvalid: false,
       afterValidate: onAfterValidate,
       afterChange: onAfterChange,
@@ -1228,14 +1292,15 @@ describe('Core_validate', () => {
       }
     });
 
-    selectCell(0, 0);
-    keyDownUp('enter');
+    await selectCell(0, 0);
+    await keyDownUp('enter');
+
     document.activeElement.value = 'Ted';
 
     onAfterValidate.calls.reset();
     onAfterChange.calls.reset();
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(document.activeElement.nodeName).toEqual('TEXTAREA');
 
@@ -1260,7 +1325,7 @@ describe('Core_validate', () => {
     });
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 2),
+      data: createSpreadsheetData(5, 2),
       allowInvalid: false,
       afterValidate: onAfterValidate,
       afterChange: onAfterChange,
@@ -1271,14 +1336,15 @@ describe('Core_validate', () => {
       }
     });
 
-    selectCell(0, 0);
-    keyDownUp('enter');
+    await selectCell(0, 0);
+    await keyDownUp('enter');
+
     document.activeElement.value = 'Ted';
 
     onAfterValidate.calls.reset();
     onAfterChange.calls.reset();
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(document.activeElement.nodeName).toEqual('TEXTAREA');
 
@@ -1293,7 +1359,7 @@ describe('Core_validate', () => {
     let validatedValue;
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 2),
+      data: createSpreadsheetData(5, 2),
       allowInvalid: false,
       validator(value, callback) {
         setTimeout(() => {
@@ -1303,50 +1369,48 @@ describe('Core_validate', () => {
       }
     });
 
-    selectCell(0, 0);
-    keyDownUp('enter');
+    await selectCell(0, 0);
+    await keyDownUp('enter');
 
     document.activeElement.value = 'Ted';
 
-    selectCell(0, 1);
+    await selectCell(0, 1);
     await sleep(150);
 
     expect(validatedValue).toEqual('Ted');
   });
 
-  it('should leave the new value in editor if it does not validate (async validation), after hitting ENTER', (done) => {
+  it('should leave the new value in editor if it does not validate (async validation), after hitting ENTER', async() => {
     let validationResult;
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 2),
+      data: createSpreadsheetData(5, 2),
       allowInvalid: false,
       validator(value, callback) {
         setTimeout(() => {
           validationResult = value.length === 2;
           callback(validationResult);
-        }, 100);
+        }, 50);
       }
     });
 
-    selectCell(0, 0);
-    keyDownUp('enter');
+    await selectCell(0, 0);
+    await keyDownUp('enter');
 
     document.activeElement.value = 'Ted';
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
+    await sleep(100); // wait for async validation
 
-    setTimeout(() => {
-      expect(validationResult).toBe(false);
-      expect(document.activeElement.value).toEqual('Ted');
-      done();
-    }, 200);
+    expect(validationResult).toBe(false);
+    expect(document.activeElement.value).toEqual('Ted');
   });
 
-  it('should leave the new value in editor if it does not validate (sync validation), after hitting ENTER', (done) => {
+  it('should leave the new value in editor if it does not validate (sync validation), after hitting ENTER', async() => {
     let validationResult;
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 2),
+      data: createSpreadsheetData(5, 2),
       allowInvalid: false,
       validator(value, callback) {
         validationResult = value.length === 2;
@@ -1354,75 +1418,71 @@ describe('Core_validate', () => {
       }
     });
 
-    selectCell(0, 0);
-    keyDownUp('enter');
+    await selectCell(0, 0);
+    await keyDownUp('enter');
 
     document.activeElement.value = 'Ted';
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
+    await sleep(100); // wait for async validation
 
-    setTimeout(() => {
-      expect(validationResult).toBe(false);
-      expect(document.activeElement.value).toEqual('Ted');
-      done();
-    }, 200);
+    expect(validationResult).toBe(false);
+    expect(document.activeElement.value).toEqual('Ted');
   });
 
-  it('should leave the new value in editor if it does not validate (async validation), after selecting another cell', (done) => {
+  it('should leave the new value in editor if it does not validate (async validation), after selecting another cell', async() => {
     let validationResult;
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 2),
+      data: createSpreadsheetData(5, 2),
       allowInvalid: false,
       validator(value, callback) {
         setTimeout(() => {
           validationResult = value.length === 2;
           callback(validationResult);
-        }, 100);
+        }, 50);
       }
     });
-    selectCell(0, 0);
-    keyDownUp('enter');
+
+    await selectCell(0, 0);
+    await keyDownUp('enter');
 
     document.activeElement.value = 'Ted';
 
-    selectCell(1, 0);
+    await selectCell(1, 0);
+    await sleep(100); // wait for async validation
 
-    setTimeout(() => {
-      expect(validationResult).toBe(false);
-      expect(document.activeElement.value).toEqual('Ted');
-      done();
-    }, 200);
+    expect(validationResult).toBe(false);
+    expect(document.activeElement.value).toEqual('Ted');
   });
 
-  it('should leave the new value in editor if it does not validate (sync validation), after selecting another cell', (done) => {
+  it('should leave the new value in editor if it does not validate (sync validation), after selecting another cell', async() => {
     let validationResult;
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 2),
+      data: createSpreadsheetData(5, 2),
       allowInvalid: false,
       validator(value, callback) {
         validationResult = value.length === 2;
         callback(validationResult);
       }
     });
-    selectCell(0, 0);
-    keyDownUp('enter');
+
+    await selectCell(0, 0);
+    await keyDownUp('enter');
 
     document.activeElement.value = 'Ted';
 
-    selectCell(1, 0);
+    await selectCell(1, 0);
+    await sleep(100); // wait for async validation
 
-    setTimeout(() => {
-      expect(validationResult).toBe(false);
-      expect(document.activeElement.value).toEqual('Ted');
-      done();
-    }, 200);
+    expect(validationResult).toBe(false);
+    expect(document.activeElement.value).toEqual('Ted');
   });
 
   it('should remove htInvalid class properly after cancelling change, when physical indexes are not equal to visual indexes', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 2),
+      data: createSpreadsheetData(5, 2),
       columnSorting: {
         column: 0,
         sortOrder: 'desc'
@@ -1431,27 +1491,26 @@ describe('Core_validate', () => {
       validator(value, callback) {
         setTimeout(() => {
           callback(value.length === 2);
-        }, 100);
+        }, 50);
       }
     });
 
-    selectCell(0, 0);
-    keyDownUp('enter');
+    await selectCell(0, 0);
+    await keyDownUp('enter');
 
     document.activeElement.value = 'Ted';
 
-    keyDownUp('enter');
-
-    await sleep(300);
+    await keyDownUp('enter');
+    await sleep(100); // wait for async validation
 
     const $cell = $(getCell(0, 0));
 
     expect($cell.hasClass('htInvalid')).toEqual(false);
   });
 
-  it('should not attempt to remove the htInvalid class if the validated cell is no longer rendered', (done) => {
+  it('should not attempt to remove the htInvalid class if the validated cell is no longer rendered', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(20, 2),
+      data: createSpreadsheetData(20, 2),
       columnSorting: {
         column: 0,
         sortOrder: 'desc'
@@ -1460,47 +1519,46 @@ describe('Core_validate', () => {
       validator(value, callback) {
         setTimeout(() => {
           callback(value.length === 2);
-        }, 100);
+        }, 50);
       },
       height: 40
     });
 
-    selectCell(0, 0);
-    keyDownUp('enter');
+    await selectCell(0, 0);
+    await keyDownUp('enter');
 
     document.activeElement.value = 'Ted';
 
-    selectCell(19, 0);
+    await selectCell(19, 0);
+    await sleep(100); // wait for async validation
 
-    setTimeout(() => {
-      const $cell = $(getCell(0, 0));
+    const $cell = $(getCell(0, 0));
 
-      expect($cell.hasClass('htInvalid')).toEqual(false);
-      done();
-    }, 200);
+    expect($cell.hasClass('htInvalid')).toEqual(false);
   });
 
   it('should close the editor and save the new value if validation fails and allowInvalid is set to "true"', async() => {
     let validationResult;
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 2),
+      data: createSpreadsheetData(5, 2),
       allowInvalid: true,
       validator(value, callback) {
         setTimeout(() => {
           validationResult = value.length === 2;
           callback(validationResult);
-        }, 100);
+        }, 50);
       }
     });
-    selectCell(0, 0);
-    keyDownUp('enter');
+
+    await selectCell(0, 0);
+    await keyDownUp('enter');
 
     document.activeElement.value = 'Ted';
 
-    selectCell(1, 0);
+    await selectCell(1, 0);
+    await sleep(100); // wait for async validation
 
-    await sleep(200);
     expect(validationResult).toBe(false);
     expect(getDataAtCell(0, 0)).toEqual('Ted');
     expect(getCell(0, 0).className).toMatch(/htInvalid/);
@@ -1510,19 +1568,19 @@ describe('Core_validate', () => {
     let validationResult;
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 2),
+      data: createSpreadsheetData(5, 2),
       allowInvalid: false,
       validator(value, callback) {
         setTimeout(() => {
 
           validationResult = value.length === 2;
           callback(validationResult);
-        }, 100);
+        }, 50);
       }
     });
 
-    selectCell(0, 0);
-    keyDownUp('enter');
+    await selectCell(0, 0);
+    await keyDownUp('enter');
 
     expect(isEditorVisible()).toBe(true);
 
@@ -1532,38 +1590,30 @@ describe('Core_validate', () => {
 
     const cell = $(getCell(1, 0));
 
-    await sleep();
-
-    mouseDown(cell);
-    mouseUp(cell);
-
-    await sleep(100);
-
-    mouseDown(cell);
-    mouseUp(cell);
-
-    await sleep(200);
+    await mouseDoubleClick(cell);
+    await sleep(100); // wait for async validation
 
     expect(isEditorVisible()).toBe(false);
     expect(validationResult).toBe(true);
     expect(getDataAtCell(0, 0)).toEqual('AA');
   });
 
-  it('should close the editor and restore the original value after double clicking on a cell, if the previously edited cell have not validated', (done) => {
+  it('should close the editor and restore the original value after double clicking on a cell, if the previously edited cell have not validated', async() => {
     let validationResult;
 
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 2),
+      data: createSpreadsheetData(5, 2),
       allowInvalid: false,
       validator(value, callback) {
         setTimeout(() => {
           validationResult = value.length === 2;
           callback(validationResult);
-        }, 100);
+        }, 50);
       }
     });
-    selectCell(0, 0);
-    keyDownUp('enter');
+
+    await selectCell(0, 0);
+    await keyDownUp('enter');
 
     document.activeElement.value = 'AAA';
 
@@ -1571,21 +1621,11 @@ describe('Core_validate', () => {
 
     const cell = $(getCell(1, 0));
 
-    setTimeout(() => {
-      mouseDown(cell);
-      mouseUp(cell);
-    }, 0);
+    await mouseDoubleClick(cell);
+    await sleep(100); // wait for async validation
 
-    setTimeout(() => {
-      mouseDown(cell);
-      mouseUp(cell);
-    }, 100);
-
-    setTimeout(() => {
-      expect(validationResult).toBe(false);
-      expect(getDataAtCell(0, 0)).toEqual('A1');
-      done();
-    }, 300);
+    expect(validationResult).toBe(false);
+    expect(getDataAtCell(0, 0)).toEqual('A1');
   });
 
   it('should listen to key changes after cell is corrected (allowInvalid: false)', async() => {
@@ -1607,29 +1647,30 @@ describe('Core_validate', () => {
       ],
       afterValidate: onAfterValidate
     });
-    selectCell(2, 0);
 
-    keyDownUp('enter');
+    await selectCell(2, 0);
+    await keyDownUp('enter');
+
     document.activeElement.value = '99';
 
     onAfterValidate.calls.reset();
 
-    keyDownUp('enter'); // should be ignored
-
+    await keyDownUp('enter'); // should be ignored
     await sleep(200);
 
     expect(isEditorVisible()).toBe(true);
     document.activeElement.value = '999';
 
     onAfterValidate.calls.reset();
-    keyDownUp('enter'); // should be accepted
 
+    await keyDownUp('enter'); // should be accepted
     await sleep(200);
 
     expect(isEditorVisible()).toBe(false);
     expect(getSelected()).toEqual([[3, 0, 3, 0]]);
 
-    keyDownUp('arrowup');
+    await keyDownUp('arrowup');
+
     expect(getSelected()).toEqual([[2, 0, 2, 0]]);
   });
 
@@ -1645,34 +1686,36 @@ describe('Core_validate', () => {
           validator(val, cb) {
             setTimeout(() => {
               cb(parseInt(val, 10) > 100);
-            }, 100);
+            }, 50);
           } },
         { data: 'name' },
         { data: 'lastName' }
       ],
       afterValidate: onAfterValidate
     });
-    selectCell(2, 0);
 
-    keyDownUp('enter');
+    await selectCell(2, 0);
+    await keyDownUp('enter');
+
     document.activeElement.value = '999';
-    keyDownUp('enter');
+
+    await keyDownUp('enter');
 
     expect(getSelected()).toEqual([[3, 0, 3, 0]]);
 
-    keyDownUp('arrowdown');
-    keyDownUp('arrowdown');
+    await keyDownUp('arrowdown');
+    await keyDownUp('arrowdown');
 
     expect(isEditorVisible()).toBe(true);
     expect(getSelected()).toEqual([[5, 0, 5, 0]]);
 
-    await sleep(200);
+    await sleep(100); // wait for async validation
 
     expect(isEditorVisible()).toBe(false);
     expect(getSelected()).toEqual([[5, 0, 5, 0]]); // only enterMove and first arrow_down is performed
   });
 
-  it('should not allow keyboard movement until cell is validated (move UP)', (done) => {
+  it('should not allow keyboard movement until cell is validated (move UP)', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -1684,7 +1727,7 @@ describe('Core_validate', () => {
           validator(val, cb) {
             setTimeout(() => {
               cb(parseInt(val, 10) > 100);
-            }, 100);
+            }, 50);
           } },
         { data: 'name' },
         { data: 'lastName' }
@@ -1692,27 +1735,28 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    selectCell(2, 0);
+    await selectCell(2, 0);
+    await keyDownUp('enter');
 
-    keyDownUp('enter');
     document.activeElement.value = '999';
-    keyDownUp('enter');
+
+    await keyDownUp('enter');
 
     expect(getSelected()).toEqual([[3, 0, 3, 0]]);
 
-    keyDownUp('arrowup');
-    keyDownUp('arrowup');
+    await keyDownUp('arrowup');
+    await keyDownUp('arrowup');
+
     expect(isEditorVisible()).toBe(true);
     expect(getSelected()).toEqual([[1, 0, 1, 0]]);
 
-    setTimeout(() => {
-      expect(isEditorVisible()).toBe(false);
-      expect(getSelected()).toEqual([[1, 0, 1, 0]]);
-      done();
-    }, 200);
+    await sleep(100); // wait for async validation
+
+    expect(isEditorVisible()).toBe(false);
+    expect(getSelected()).toEqual([[1, 0, 1, 0]]);
   });
 
-  it('should not allow keyboard movement until cell is validated (move RIGHT)', (done) => {
+  it('should not allow keyboard movement until cell is validated (move RIGHT)', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -1724,7 +1768,7 @@ describe('Core_validate', () => {
           validator(val, cb) {
             setTimeout(() => {
               cb(parseInt(val, 10) > 100);
-            }, 100);
+            }, 50);
           } },
         { data: 'name' },
         { data: 'lastName' }
@@ -1732,23 +1776,25 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    selectCell(2, 0);
+    await selectCell(2, 0);
+    await keyDownUp('enter');
 
-    keyDownUp('enter');
     document.activeElement.value = '999';
-    keyDownUp('enter'); // should be accepted but only after 100 ms
+
+    await keyDownUp('enter'); // should be accepted but only after 100 ms
+
     expect(getSelected()).toEqual([[3, 0, 3, 0]]);
 
-    keyDownUp('arrowright');
-    keyDownUp('arrowright');
+    await keyDownUp('arrowright');
+    await keyDownUp('arrowright');
+
     expect(isEditorVisible()).toBe(true);
     expect(getSelected()).toEqual([[3, 2, 3, 2]]);
 
-    setTimeout(() => {
-      expect(isEditorVisible()).toBe(false);
-      expect(getSelected()).toEqual([[3, 2, 3, 2]]);
-      done();
-    }, 200);
+    await sleep(100); // wait for async validation
+
+    expect(isEditorVisible()).toBe(false);
+    expect(getSelected()).toEqual([[3, 2, 3, 2]]);
   });
 
   it('should not allow keyboard movement until cell is validated (move LEFT)', async() => {
@@ -1765,32 +1811,34 @@ describe('Core_validate', () => {
           validator(val, cb) {
             setTimeout(() => {
               cb(parseInt(val, 10) > 100);
-            }, 100);
+            }, 50);
           } }
       ],
       afterValidate: onAfterValidate
     });
 
-    selectCell(2, 2);
+    await selectCell(2, 2);
+    await keyDownUp('enter');
 
-    keyDownUp('enter');
     document.activeElement.value = '999';
-    keyDownUp('enter'); // should be accepted but only after 100 ms
+
+    await keyDownUp('enter'); // should be accepted but only after 100 ms
+
     expect(getSelected()).toEqual([[3, 2, 3, 2]]);
 
-    keyDownUp('arrowleft');
-    keyDownUp('arrowleft');
+    await keyDownUp('arrowleft');
+    await keyDownUp('arrowleft');
 
     expect(isEditorVisible()).toBe(true);
     expect(getSelected()).toEqual([[3, 0, 3, 0]]);
 
-    await sleep(300);
+    await sleep(100); // wait for async validation
 
     expect(isEditorVisible()).toBe(false);
     expect(getSelected()).toEqual([[3, 0, 3, 0]]);
   });
 
-  it('should not validate cell if editing has been canceled', (done) => {
+  it('should not validate cell if editing has been canceled', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -1803,17 +1851,15 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    selectCell(0, 0);
-    keyDownUp('enter'); // open editor
-    keyDownUp('escape'); // cancel editing
+    await selectCell(0, 0);
+    await keyDownUp('enter'); // open editor
+    await keyDownUp('escape'); // cancel editing
+    await sleep(100);
 
-    setTimeout(() => {
-      expect(onAfterValidate).not.toHaveBeenCalled();
-      done();
-    }, 100);
+    expect(onAfterValidate).not.toHaveBeenCalled();
   });
 
-  it('should not validate cell if editing has been canceled when columns is a function', (done) => {
+  it('should not validate cell if editing has been canceled when columns is a function', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -1837,17 +1883,15 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    selectCell(0, 0);
-    keyDownUp('enter'); // open editor
-    keyDownUp('escape'); // cancel editing
+    await selectCell(0, 0);
+    await keyDownUp('enter'); // open editor
+    await keyDownUp('escape'); // cancel editing
+    await sleep(100);
 
-    setTimeout(() => {
-      expect(onAfterValidate).not.toHaveBeenCalled();
-      done();
-    }, 100);
+    expect(onAfterValidate).not.toHaveBeenCalled();
   });
 
-  it('should leave cell invalid if editing has been canceled', (done) => {
+  it('should leave cell invalid if editing has been canceled', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -1863,21 +1907,20 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(0, 0, 'foo');
+    await setDataAtCell(0, 0, 'foo');
 
-    setTimeout(() => {
-      expect(getCellMeta(0, 0).valid).toBe(false);
+    await sleep(100);
 
-      selectCell(0, 0);
-      keyDownUp('enter'); // open editor
-      keyDownUp('escape'); // cancel editing
+    expect(getCellMeta(0, 0).valid).toBe(false);
 
-      expect(getCellMeta(0, 0).valid).toBe(false);
-      done();
-    }, 200);
+    await selectCell(0, 0);
+    await keyDownUp('enter'); // open editor
+    await keyDownUp('escape'); // cancel editing
+
+    expect(getCellMeta(0, 0).valid).toBe(false);
   });
 
-  it('should leave cell invalid if editing has been canceled when columns is a function', (done) => {
+  it('should leave cell invalid if editing has been canceled when columns is a function', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -1905,24 +1948,23 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    setDataAtCell(0, 0, 'foo');
+    await setDataAtCell(0, 0, 'foo');
 
-    setTimeout(() => {
-      expect(getCellMeta(0, 0).valid).toBe(false);
+    await sleep(100);
 
-      selectCell(0, 0);
-      keyDownUp('enter'); // open editor
-      keyDownUp('escape'); // cancel editing
+    expect(getCellMeta(0, 0).valid).toBe(false);
 
-      expect(getCellMeta(0, 0).valid).toBe(false);
-      done();
-    }, 200);
+    await selectCell(0, 0);
+    await keyDownUp('enter'); // open editor
+    await keyDownUp('escape'); // cancel editing
+
+    expect(getCellMeta(0, 0).valid).toBe(false);
   });
 
-  it('should open an appropriate editor after cell value is valid again', (done) => {
+  it('should open an appropriate editor after cell value is valid again', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
-    const hot = handsontable({
+    handsontable({
       data: arrayOfObjects(),
       columns: [
         {
@@ -1939,44 +1981,44 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
-    let activeEditor = hot.getActiveEditor();
+    let activeEditor = getActiveEditor();
 
     expect(activeEditor.row).toEqual(0);
     expect(activeEditor.col).toEqual(0);
 
-    keyDownUp('enter'); // open editor
+    await keyDownUp('enter'); // open editor
+
     activeEditor.setValue('foo');
-    keyDownUp('enter'); // save changes, close editor
 
-    setTimeout(() => {
-      onAfterValidate.calls.reset();
-      activeEditor = hot.getActiveEditor();
+    await keyDownUp('enter'); // save changes, close editor
+    await sleep(200);
 
-      expect(activeEditor.isOpened()).toBe(true); // value is invalid, so editor stays opened
-      expect(activeEditor.row).toEqual(0);
-      expect(activeEditor.col).toEqual(0);
+    onAfterValidate.calls.reset();
+    activeEditor = getActiveEditor();
 
-      activeEditor.setValue(2);
+    expect(activeEditor.isOpened()).toBe(true); // value is invalid, so editor stays opened
+    expect(activeEditor.row).toEqual(0);
+    expect(activeEditor.col).toEqual(0);
 
-      keyDownUp('enter'); // save changes and move to cell below (row: 1, col: ś0)
-    }, 200);
+    activeEditor.setValue(2);
 
-    setTimeout(() => {
-      keyDownUp('enter'); // open editor
+    await keyDownUp('enter'); // save changes and move to cell below (row: 1, col: ś0)
+    await sleep(200);
 
-      activeEditor = hot.getActiveEditor();
-      expect(activeEditor.row).toEqual(1);
-      expect(activeEditor.col).toEqual(0);
-      done();
-    }, 400);
+    await keyDownUp('enter'); // open editor
+
+    activeEditor = getActiveEditor();
+
+    expect(activeEditor.row).toEqual(1);
+    expect(activeEditor.col).toEqual(0);
   });
 
-  it('should open an appropriate editor after cell value is valid again when columns is a function', (done) => {
+  it('should open an appropriate editor after cell value is valid again when columns is a function', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
-    const hot = handsontable({
+    handsontable({
       data: arrayOfObjects(),
       columns(column) {
         let colMeta = null;
@@ -2004,45 +2046,45 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
-    let activeEditor = hot.getActiveEditor();
+    let activeEditor = getActiveEditor();
 
     expect(activeEditor.row).toEqual(0);
     expect(activeEditor.col).toEqual(0);
 
-    keyDownUp('enter'); // open editor
+    await keyDownUp('enter'); // open editor
+
     activeEditor.setValue('foo');
-    keyDownUp('enter'); // save changes, close editor
 
-    setTimeout(() => {
-      onAfterValidate.calls.reset();
-      activeEditor = hot.getActiveEditor();
+    await keyDownUp('enter'); // save changes, close editor
+    await sleep(200);
 
-      expect(activeEditor.isOpened()).toBe(true); // value is invalid, so editor stays opened
-      expect(activeEditor.row).toEqual(0);
-      expect(activeEditor.col).toEqual(0);
+    onAfterValidate.calls.reset();
+    activeEditor = getActiveEditor();
 
-      activeEditor.setValue(2);
+    expect(activeEditor.isOpened()).toBe(true); // value is invalid, so editor stays opened
+    expect(activeEditor.row).toEqual(0);
+    expect(activeEditor.col).toEqual(0);
 
-      keyDownUp('enter'); // save changes and move to cell below (row: 1, col: ś0)
-    }, 200);
+    activeEditor.setValue(2);
 
-    setTimeout(() => {
-      keyDownUp('enter'); // open editor
+    await keyDownUp('enter'); // save changes and move to cell below (row: 1, col: ś0)
+    await sleep(200);
 
-      activeEditor = hot.getActiveEditor();
-      expect(activeEditor.row).toEqual(1);
-      expect(activeEditor.col).toEqual(0);
-      done();
-    }, 400);
+    await keyDownUp('enter'); // open editor
+
+    activeEditor = getActiveEditor();
+
+    expect(activeEditor.row).toEqual(1);
+    expect(activeEditor.col).toEqual(0);
   });
 
-  it('should call the validation callback only once, when using the validateCells method on a mixed set of data', (done) => {
+  it('should call the validation callback only once, when using the validateCells method on a mixed set of data', async() => {
     const onValidate = jasmine.createSpy('onValidate');
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
-    const hot = handsontable({
+    handsontable({
       data: [
         { id: 'sth', name: 'Steve' },
         { id: 'sth else', name: 'Bob' }
@@ -2059,20 +2101,21 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    hot.validateCells(onValidate);
+    // eslint-disable-next-line handsontable/require-await
+    await promisfy(resolve => validateCells((...args) => {
+      onValidate(...args);
+      resolve();
+    }));
 
-    setTimeout(() => {
-      expect(onValidate).toHaveBeenCalledWith(false);
-      expect(onValidate.calls.count()).toEqual(1);
-      done();
-    }, 200);
+    expect(onValidate).toHaveBeenCalledWith(false);
+    expect(onValidate.calls.count()).toEqual(1);
   });
 
-  it('should call the validation callback only once, when using the validateRows method on a mixed set of data', (done) => {
+  it('should call the validation callback only once, when using the validateRows method on a mixed set of data', async() => {
     const onValidate = jasmine.createSpy('onValidate');
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
-    const hot = handsontable({
+    handsontable({
       data: [
         { id: 'sth', name: 'Steve' },
         { id: 'sth else', name: 'Bob' }
@@ -2089,20 +2132,21 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    hot.validateRows([0, 1], onValidate);
+    // eslint-disable-next-line handsontable/require-await
+    await promisfy(resolve => validateRows([0, 1], (...args) => {
+      onValidate(...args);
+      resolve();
+    }));
 
-    setTimeout(() => {
-      expect(onValidate).toHaveBeenCalledWith(false);
-      expect(onValidate.calls.count()).toEqual(1);
-      done();
-    }, 200);
+    expect(onValidate).toHaveBeenCalledWith(false);
+    expect(onValidate.calls.count()).toEqual(1);
   });
 
-  it('should call the validation callback only once, when using the validateColumns method on a mixed set of data', (done) => {
+  it('should call the validation callback only once, when using the validateColumns method on a mixed set of data', async() => {
     const onValidate = jasmine.createSpy('onValidate');
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
-    const hot = handsontable({
+    handsontable({
       data: [
         { id: 'sth', name: 'Steve' },
         { id: 'sth else', name: 'Bob' }
@@ -2119,20 +2163,21 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    hot.validateColumns([0, 1], onValidate);
+    // eslint-disable-next-line handsontable/require-await
+    await promisfy(resolve => validateColumns([0, 1], (...args) => {
+      onValidate(...args);
+      resolve();
+    }));
 
-    setTimeout(() => {
-      expect(onValidate).toHaveBeenCalledWith(false);
-      expect(onValidate.calls.count()).toEqual(1);
-      done();
-    }, 200);
+    expect(onValidate).toHaveBeenCalledWith(false);
+    expect(onValidate.calls.count()).toEqual(1);
   });
 
-  it('should call the validation callback only once, when using the validateCells method on a mixed set of data and when columns is a function', (done) => {
+  it('should call the validation callback only once, when using the validateCells method on a mixed set of data and when columns is a function', async() => {
     const onValidate = jasmine.createSpy('onValidate');
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
-    const hot = handsontable({
+    handsontable({
       data: [
         { id: 'sth', name: 'Steve' },
         { id: 'sth else', name: 'Bob' }
@@ -2157,20 +2202,21 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    hot.validateCells(onValidate);
+    // eslint-disable-next-line handsontable/require-await
+    await promisfy(resolve => validateCells((...args) => {
+      onValidate(...args);
+      resolve();
+    }));
 
-    setTimeout(() => {
-      expect(onValidate).toHaveBeenCalledWith(false);
-      expect(onValidate.calls.count()).toEqual(1);
-      done();
-    }, 200);
+    expect(onValidate).toHaveBeenCalledWith(false);
+    expect(onValidate.calls.count()).toEqual(1);
   });
 
-  it('should call the validation callback only once, when using the validateRows method on a mixed set of data and when columns is a function', (done) => {
+  it('should call the validation callback only once, when using the validateRows method on a mixed set of data and when columns is a function', async() => {
     const onValidate = jasmine.createSpy('onValidate');
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
-    const hot = handsontable({
+    handsontable({
       data: [
         { id: 'sth', name: 'Steve' },
         { id: 'sth else', name: 'Bob' }
@@ -2195,20 +2241,21 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    hot.validateRows([0, 1], onValidate);
+    // eslint-disable-next-line handsontable/require-await
+    await promisfy(resolve => validateRows([0, 1], (...args) => {
+      onValidate(...args);
+      resolve();
+    }));
 
-    setTimeout(() => {
-      expect(onValidate).toHaveBeenCalledWith(false);
-      expect(onValidate.calls.count()).toEqual(1);
-      done();
-    }, 200);
+    expect(onValidate).toHaveBeenCalledWith(false);
+    expect(onValidate.calls.count()).toEqual(1);
   });
 
-  it('should call the validation callback only once, when using the validateColumns method on a mixed set of data and when columns is a function', (done) => {
+  it('should call the validation callback only once, when using the validateColumns method on a mixed set of data and when columns is a function', async() => {
     const onValidate = jasmine.createSpy('onValidate');
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
-    const hot = handsontable({
+    handsontable({
       data: [
         { id: 'sth', name: 'Steve' },
         { id: 'sth else', name: 'Bob' }
@@ -2233,18 +2280,19 @@ describe('Core_validate', () => {
       afterValidate: onAfterValidate
     });
 
-    hot.validateColumns([0, 1], onValidate);
+    // eslint-disable-next-line handsontable/require-await
+    await promisfy(resolve => validateColumns([0, 1], (...args) => {
+      onValidate(...args);
+      resolve();
+    }));
 
-    setTimeout(() => {
-      expect(onValidate).toHaveBeenCalledWith(false);
-      expect(onValidate.calls.count()).toEqual(1);
-      done();
-    }, 200);
+    expect(onValidate).toHaveBeenCalledWith(false);
+    expect(onValidate.calls.count()).toEqual(1);
   });
 
   it('should call the callback in the `done` function using the renderable indexes (passing them to the renderer)', async() => {
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(1, 4),
+    handsontable({
+      data: createSpreadsheetData(1, 4),
       hiddenColumns: {
         columns: [1]
       },
@@ -2256,13 +2304,12 @@ describe('Core_validate', () => {
       ]
     });
 
-    spyOn(hot.view._wt.wtSettings.settings, 'cellRenderer');
+    spyOn(tableView()._wt.wtSettings.settings, 'cellRenderer');
 
-    hot.validateCells();
+    // eslint-disable-next-line handsontable/require-await
+    await promisfy(resolve => validateCells(resolve));
 
-    await sleep(200);
-
-    const mostRecentRendererCallArgs = hot.view._wt.wtSettings.settings.cellRenderer.calls.mostRecent().args;
+    const mostRecentRendererCallArgs = tableView()._wt.wtSettings.settings.cellRenderer.calls.mostRecent().args;
 
     // The `date` column (the one that is being validated) should be described as the `1` (renderable) column.
     expect(mostRecentRendererCallArgs[1]).toEqual(1);

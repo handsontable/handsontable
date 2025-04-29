@@ -111,14 +111,9 @@ const ExampleComponent = () => {
               return false;
             }
             // capitalise first letter in column 1 and 2
-            else if (
-              cellChanges[i][1] === 'name.first' ||
-              cellChanges[i][1] === 'name.last'
-            ) {
+            else if (cellChanges[i][1] === 'name.first' || cellChanges[i][1] === 'name.last') {
               if (cellChanges[i][3] !== null) {
-                cellChanges[i][3] =
-                  cellChanges[i][3].charAt(0).toUpperCase() +
-                  cellChanges[i][3].slice(1);
+                cellChanges[i][3] = cellChanges[i][3].charAt(0).toUpperCase() + cellChanges[i][3].slice(1);
               }
             }
           }

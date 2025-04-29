@@ -13,13 +13,13 @@ describe('Core.getCellValidator', () => {
     }
   });
 
-  it('should return text-type validator when no `validator` or `type` is defined', () => {
+  it('should return text-type validator when no `validator` or `type` is defined', async() => {
     handsontable({});
 
     expect(getCellValidator(1, 1)).toBe(getCellType('text').validator);
   });
 
-  it('should return validator defined as custom function', () => {
+  it('should return validator defined as custom function', async() => {
     const myValidator = () => {};
 
     handsontable({
@@ -29,7 +29,7 @@ describe('Core.getCellValidator', () => {
     expect(getCellValidator(1, 1)).toBe(myValidator);
   });
 
-  it('should return `false` when the cell validator is disabled', () => {
+  it('should return `false` when the cell validator is disabled', async() => {
     handsontable({
       validator: false,
     });
@@ -37,7 +37,7 @@ describe('Core.getCellValidator', () => {
     expect(getCellValidator(1, 1)).toBe(false);
   });
 
-  it('should be possible to get validator using row, col coords or by passing the cell meta object', () => {
+  it('should be possible to get validator using row, col coords or by passing the cell meta object', async() => {
     handsontable({
       type: 'numeric',
     });
@@ -46,7 +46,7 @@ describe('Core.getCellValidator', () => {
     expect(getCellValidator(getCellMeta(1, 1))).toBe(getCellType('numeric').validator);
   });
 
-  it('should return validator defined by `validator` in the table settings and ignore the `type` setting', () => {
+  it('should return validator defined by `validator` in the table settings and ignore the `type` setting', async() => {
     handsontable({
       type: 'numeric',
       validator: 'time',
@@ -56,7 +56,7 @@ describe('Core.getCellValidator', () => {
     expect(getCellValidator(getCellMeta(1, 1))).toBe(getCellType('time').validator);
   });
 
-  it('should return validator defined by `validator` in the columns and cells setting and ignore the `type` setting', () => {
+  it('should return validator defined by `validator` in the columns and cells setting and ignore the `type` setting', async() => {
     const myValidator = () => {};
     const myValidator2 = () => {};
     const myValidator3 = () => {};
@@ -96,7 +96,7 @@ describe('Core.getCellValidator', () => {
     expect(getCellValidator(2, 2)).toBe(getCellType('text').validator);
   });
 
-  it('should return numeric-type validator when the `type` is defined in the global settings', () => {
+  it('should return numeric-type validator when the `type` is defined in the global settings', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       type: 'numeric',
@@ -109,7 +109,7 @@ describe('Core.getCellValidator', () => {
     expect(getCellValidator(4, 4)).toBe(getCellType('numeric').validator);
   });
 
-  it('should return numeric-type validator when the `validator` is defined in the global settings', () => {
+  it('should return numeric-type validator when the `validator` is defined in the global settings', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       validator: 'numeric',
@@ -122,7 +122,7 @@ describe('Core.getCellValidator', () => {
     expect(getCellValidator(4, 4)).toBe(getCellType('numeric').validator);
   });
 
-  it('should return correct type validators defined as `type` according to column settings', () => {
+  it('should return correct type validators defined as `type` according to column settings', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       type: 'numeric',
@@ -142,7 +142,7 @@ describe('Core.getCellValidator', () => {
     expect(getCellValidator(0, 4)).toBe(getCellType('numeric').validator);
   });
 
-  it('should return correct type validators defined as `validator` according to column settings', () => {
+  it('should return correct type validators defined as `validator` according to column settings', async() => {
     const myValidator = () => {};
     const myValidator2 = () => {};
 
@@ -166,7 +166,7 @@ describe('Core.getCellValidator', () => {
   });
 
   it('should return type validator defined as `type` in the table setting when the coords targets beyond ' +
-     'the dataset range', () => {
+     'the dataset range', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       type: 'numeric',
@@ -178,7 +178,7 @@ describe('Core.getCellValidator', () => {
   });
 
   it('should return type validator defined as `validator` in the table setting when the coords targets beyond ' +
-     'the dataset range', () => {
+     'the dataset range', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       validator: 'numeric',
@@ -190,7 +190,7 @@ describe('Core.getCellValidator', () => {
   });
 
   it('should return type validator defined as `type` in the columns setting when the coords targets beyond ' +
-     'the dataset range', () => {
+     'the dataset range', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       type: 'numeric',
@@ -209,7 +209,7 @@ describe('Core.getCellValidator', () => {
   });
 
   it('should return type validator defined as `validator` in the columns setting when the coords targets beyond ' +
-     'the dataset range', () => {
+     'the dataset range', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       validator: 'numeric',

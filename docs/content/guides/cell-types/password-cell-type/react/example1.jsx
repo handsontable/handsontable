@@ -23,12 +23,7 @@ const ExampleComponent = () => {
       autoWrapRow={true}
       autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
-      columns={[
-        { data: 'id' },
-        { data: 'name.first' },
-        { data: 'name.last' },
-        { data: 'password', type: 'password' },
-      ]}
+      columns={[{ data: 'id' }, { data: 'name.first' }, { data: 'name.last' }, { data: 'password', type: 'password' }]}
     />
   );
 };

@@ -14,7 +14,7 @@ describe('Core_modifySourceData', () => {
 
   describe('`get` mode', () => {
     describe('array of arrays datasource', () => {
-      it('should replace the source value for a cell using the `valueHolder` object of the hook callback', () => {
+      it('should replace the source value for a cell using the `valueHolder` object of the hook callback', async() => {
         const data = [
           [1, 2, 3],
           [4, 5, 6]
@@ -53,7 +53,7 @@ describe('Core_modifySourceData', () => {
     });
 
     describe('array of objects datasource', () => {
-      it('should replace the source value for a cell using the `valueHolder` object of the hook callback', () => {
+      it('should replace the source value for a cell using the `valueHolder` object of the hook callback', async() => {
         const data = [
           { a: 1, b: 2, c: 3 },
           { a: 4, b: 5, c: 6 },
@@ -92,7 +92,7 @@ describe('Core_modifySourceData', () => {
         });
       });
 
-      it('should be called only for cells not filtered using the `columns` option, when using the `getSourceDataArray` method', () => {
+      it('should be called only for cells not filtered using the `columns` option, when using the `getSourceDataArray` method', async() => {
         const data = [
           { a: { test: 1, x: 'c' }, b: 2, c: 3 },
           { a: { test: 4, x: 'd' }, b: 5, c: 6 },
@@ -114,7 +114,7 @@ describe('Core_modifySourceData', () => {
         expect(msdCallback).toHaveBeenCalledTimes(2);
       });
 
-      it('should be called only for cells not filtered using the `columns` option, when using the `getSourceData` method with a provided range', () => {
+      it('should be called only for cells not filtered using the `columns` option, when using the `getSourceData` method with a provided range', async() => {
         const data = [
           { a: { test: 1, x: 'c' }, b: 2, c: 3 },
           { a: { test: 4, x: 'd' }, b: 5, c: 6 },
@@ -142,7 +142,7 @@ describe('Core_modifySourceData', () => {
 
   describe('`set` mode', () => {
     describe('array of arrays datasource', () => {
-      it('should replace the source value for a cell using the `valueHolder` object of the hook callback', () => {
+      it('should replace the source value for a cell using the `valueHolder` object of the hook callback', async() => {
         const changesList = [
           [0, 0, 'a'], [0, 1, 'b'], [0, 2, 'c'],
           [1, 0, 'd'], [1, 1, 'e'], [1, 2, 'f'],
@@ -178,7 +178,7 @@ describe('Core_modifySourceData', () => {
         });
       });
 
-      it('should replace the source value for a cell using the `valueHolder` object of the hook callback for row values as a string', () => {
+      it('should replace the source value for a cell using the `valueHolder` object of the hook callback for row values as a string', async() => {
         const changesList = [
           ['0', '0', 'a'], ['0', '1', 'b'], ['0', '2', 'c'],
           ['1', '0', 'd'], ['1', '1', 'e'], ['1', '2', 'f'],
@@ -216,7 +216,7 @@ describe('Core_modifySourceData', () => {
     });
 
     describe('array of objects datasource', () => {
-      it('should replace the source value for a cell using the `valueHolder` object of the hook callback', () => {
+      it('should replace the source value for a cell using the `valueHolder` object of the hook callback', async() => {
         const changesList = [
           [0, 'x', 'a'], [0, 'y', 'b'], [0, 'z', 'c'],
           [1, 'x', 'd'], [1, 'y', 'e'], [1, 'z', 'f'],

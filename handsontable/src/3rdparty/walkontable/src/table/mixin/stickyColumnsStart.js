@@ -18,9 +18,9 @@ const stickyColumnsStart = {
    * @this Table
    */
   getFirstRenderedColumn() {
-    const totalColumns = this.wtSettings.getSetting('totalColumns');
+    const allStickyColumns = this.getRenderedColumnsCount();
 
-    if (totalColumns === 0) {
+    if (allStickyColumns === 0) {
       return -1;
     }
 
@@ -88,9 +88,10 @@ const stickyColumnsStart = {
    * @this Table
    */
   getRenderedColumnsCount() {
-    const totalColumns = this.wtSettings.getSetting('totalColumns');
-
-    return Math.min(this.wtSettings.getSetting('fixedColumnsStart'), totalColumns);
+    return Math.min(
+      this.wtSettings.getSetting('totalColumns'),
+      this.wtSettings.getSetting('fixedColumnsStart'),
+    );
   },
 
   /**

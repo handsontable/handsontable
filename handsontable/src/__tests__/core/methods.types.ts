@@ -56,6 +56,7 @@ hot.getActiveEditor();
 hot.getCell(123, 123, true)!.focus();
 hot.getCellEditor(123, 123);
 hot.getCellMeta(123, 123).type === "text";
+hot.getCellMeta(123, 123, { skipMetaExtension: true }).type === "text";
 hot.getCellMetaAtRow(123).forEach(meta => meta.type === "text");
 hot.getCellRenderer(123, 123)(hot, mockTD, 1, 2, 'prop', '', cellProperties);
 hot.getCellsMeta()[0].visualRow;
@@ -154,6 +155,9 @@ hot.scrollViewportTo({ row: 0, col: 0, verticalSnap: 'bottom' });
 hot.scrollViewportTo({ row: 0, col: 0, horizontalSnap: 'start' });
 hot.scrollViewportTo({ row: 0, col: 0, horizontalSnap: 'end' });
 hot.scrollViewportTo({ row: 0, col: 0, considerHiddenIndexes: false });
+hot.scrollViewportTo({ row: 0, col: 0 }, () => {
+  // callback
+});
 hot.scrollViewportTo(0, 10);
 hot.scrollViewportTo(0, 10, true, true, true);
 hot.scrollToFocusedCell();

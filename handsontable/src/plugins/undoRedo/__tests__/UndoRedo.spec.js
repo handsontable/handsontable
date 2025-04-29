@@ -12,20 +12,79 @@ describe('UndoRedo', () => {
     }
   });
 
+  it('should exposed new methods when plugin is enabled', async() => {
+    const hot = handsontable({
+      undo: false
+    });
+
+    expect(hot.undo).toBeUndefined();
+    expect(hot.redo).toBeUndefined();
+    expect(hot.isUndoAvailable).toBeUndefined();
+    expect(hot.isRedoAvailable).toBeUndefined();
+    expect(hot.clearUndo).toBeUndefined();
+
+    await updateSettings({
+      undo: true
+    });
+
+    expect(typeof hot.undo).toEqual('function');
+    expect(typeof hot.redo).toEqual('function');
+    expect(typeof hot.isUndoAvailable).toEqual('function');
+    expect(typeof hot.isRedoAvailable).toEqual('function');
+    expect(typeof hot.clearUndo).toEqual('function');
+  });
+
+  it('should remove exposed methods when plugin is disabled', async() => {
+    const hot = handsontable({
+      undo: true
+    });
+
+    expect(typeof hot.undo).toEqual('function');
+    expect(typeof hot.redo).toEqual('function');
+    expect(typeof hot.isUndoAvailable).toEqual('function');
+    expect(typeof hot.isRedoAvailable).toEqual('function');
+    expect(typeof hot.clearUndo).toEqual('function');
+
+    await updateSettings({
+      undo: false
+    });
+
+    expect(hot.undo).toBeUndefined();
+    expect(hot.redo).toBeUndefined();
+    expect(hot.isUndoAvailable).toBeUndefined();
+    expect(hot.isRedoAvailable).toBeUndefined();
+    expect(hot.clearUndo).toBeUndefined();
+  });
+
+  it('should not undo changes in the other cells if editor is open', async() => {
+    handsontable({
+      data: createSpreadsheetData(2, 2),
+    });
+
+    await selectCell(0, 0);
+    await setDataAtCell(0, 0, 'new value');
+
+    await selectCell(1, 0);
+    await keyDownUp('enter');
+    await keyDownUp(['control/meta', 'z']);
+
+    expect(getDataAtCell(0, 0)).toBe('new value');
+  });
+
   describe('updateSettings', () => {
-    it('should be possible to enable the undo/redo feature', () => {
+    it('should be possible to enable the undo/redo feature', async() => {
       handsontable({
         data: createSpreadsheetData(2, 2),
         undo: false,
       });
 
-      setDataAtCell(0, 0, 'X1');
+      await setDataAtCell(0, 0, 'X1');
 
-      updateSettings({
+      await updateSettings({
         undo: true,
       });
 
-      setDataAtCell(0, 0, 'X2');
+      await setDataAtCell(0, 0, 'X2');
 
       getPlugin('undoRedo').undo();
 
@@ -36,13 +95,13 @@ describe('UndoRedo', () => {
       expect(getDataAtCell(0, 0)).toBe('X2');
     });
 
-    it('should be possible to disable the undo/redo feature', () => {
+    it('should be possible to disable the undo/redo feature', async() => {
       handsontable({
         data: createSpreadsheetData(2, 2),
         undo: true,
       });
 
-      setDataAtCell(0, 0, 'X2');
+      await setDataAtCell(0, 0, 'X2');
 
       getPlugin('undoRedo').undo();
 
@@ -52,11 +111,11 @@ describe('UndoRedo', () => {
 
       expect(getDataAtCell(0, 0)).toBe('X2');
 
-      updateSettings({
+      await updateSettings({
         undo: false,
       });
 
-      setDataAtCell(1, 1, 'X2');
+      await setDataAtCell(1, 1, 'X2');
 
       getPlugin('undoRedo').undo();
 
@@ -66,26 +125,26 @@ describe('UndoRedo', () => {
 
   describe('Array data', () => {
     describe('undo', () => {
-      it('should undo single change', () => {
+      it('should undo single change', async() => {
         handsontable({
           data: createSpreadsheetData(2, 2)
         });
 
-        setDataAtCell(0, 0, 'X1');
+        await setDataAtCell(0, 0, 'X1');
         expect(getDataAtCell(0, 0)).toBe('X1');
 
         getPlugin('undoRedo').undo();
         expect(getDataAtCell(0, 0)).toBe('A1');
       });
 
-      it('should undo creation of a single row', () => {
+      it('should undo creation of a single row', async() => {
         handsontable({
           data: createSpreadsheetData(2, 2)
         });
 
         expect(countRows()).toEqual(2);
 
-        alter('insert_row_above');
+        await alter('insert_row_above');
 
         expect(countRows()).toEqual(3);
 
@@ -94,14 +153,14 @@ describe('UndoRedo', () => {
         expect(countRows()).toEqual(2);
       });
 
-      it('should undo creation of multiple rows', () => {
+      it('should undo creation of multiple rows', async() => {
         handsontable({
           data: createSpreadsheetData(2, 2)
         });
 
         expect(countRows()).toEqual(2);
 
-        alter('insert_row_above', 0, 5);
+        await alter('insert_row_above', 0, 5);
 
         expect(countRows()).toEqual(7);
 
@@ -110,14 +169,14 @@ describe('UndoRedo', () => {
         expect(countRows()).toEqual(2);
       });
 
-      it('should undo creation of multiple rows with minSpareRows', () => {
+      it('should undo creation of multiple rows with minSpareRows', async() => {
         handsontable({
           data: createSpreadsheetData(2, 1),
           minSpareRows: 2
         });
 
-        setDataAtCell(2, 0, 'A3');
-        setDataAtCell(4, 0, 'A4');
+        await setDataAtCell(2, 0, 'A3');
+        await setDataAtCell(4, 0, 'A4');
 
         expect(getData()).toEqual([['A1'], ['A2'], ['A3'], [null], ['A4'], [null], [null]]);
 
@@ -127,13 +186,13 @@ describe('UndoRedo', () => {
         expect(getData()).toEqual([['A1'], ['A2'], [null], [null]]);
       });
 
-      it('should undo and redo dataset change that expands the table with minSpareRows (#dev-381)', () => {
+      it('should undo and redo dataset change that expands the table with minSpareRows (#dev-381)', async() => {
         handsontable({
           data: createSpreadsheetData(3, 3),
           minSpareRows: 2,
         });
 
-        setDataAtCell([
+        await setDataAtCell([
           [4, 0, 'A1'], [4, 1, 'B1'],
           [5, 0, 'A2'], [5, 1, 'B2'],
           [6, 0, 'A3'], [6, 1, 'B3'],
@@ -164,7 +223,7 @@ describe('UndoRedo', () => {
         ]);
       });
 
-      it('should undo removal of single row', () => {
+      it('should undo removal of single row', async() => {
         handsontable({
           data: createSpreadsheetData(3, 2)
         });
@@ -177,7 +236,7 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(2, 0)).toEqual('A3');
         expect(getDataAtCell(2, 1)).toEqual('B3');
 
-        alter('remove_row', 1);
+        await alter('remove_row', 1);
 
         expect(countRows()).toEqual(2);
         expect(getDataAtCell(0, 0)).toEqual('A1');
@@ -196,7 +255,7 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(2, 1)).toEqual('B3');
       });
 
-      it('should undo removal of multiple rows', () => {
+      it('should undo removal of multiple rows', async() => {
         handsontable({
           data: createSpreadsheetData(4, 2)
         });
@@ -211,7 +270,7 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(3, 0)).toEqual('A4');
         expect(getDataAtCell(3, 1)).toEqual('B4');
 
-        alter('remove_row', 1, 2);
+        await alter('remove_row', 1, 2);
 
         expect(countRows()).toEqual(2);
         expect(getDataAtCell(0, 0)).toEqual('A1');
@@ -232,12 +291,12 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(3, 1)).toEqual('B4');
       });
 
-      it('should undo removal all rows', () => {
+      it('should undo removal all rows', async() => {
         handsontable({
           data: createSpreadsheetData(4, 2)
         });
 
-        alter('remove_row', 0, 4);
+        await alter('remove_row', 0, 4);
 
         expect(countRows()).toBe(0);
         expect(countCols()).toBe(0);
@@ -259,7 +318,7 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(3, 1)).toBe('B4');
       });
 
-      it('should undo removal of single row after column sorting', () => {
+      it('should undo removal of single row after column sorting', async() => {
         handsontable({
           data: createSpreadsheetData(3, 2),
           colHeaders: true,
@@ -284,7 +343,7 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(2, 0)).toEqual('A1');
         expect(getDataAtCell(2, 1)).toEqual('B1');
 
-        alter('remove_row', 0);
+        await alter('remove_row', 0);
 
         expect(countRows()).toEqual(2);
         expect(getDataAtCell(0, 0)).toEqual('A2');
@@ -303,7 +362,7 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(2, 1)).toEqual('B1');
       });
 
-      it('should undo the removal of rows when the instance is configured with the `columns` option', () => {
+      it('should undo the removal of rows when the instance is configured with the `columns` option', async() => {
         handsontable({
           data: createSpreadsheetData(3, 3),
           columns: [
@@ -311,7 +370,7 @@ describe('UndoRedo', () => {
           ]
         });
 
-        alter('remove_row', 0, 3);
+        await alter('remove_row', 0, 3);
 
         expect(countRows()).toEqual(0);
         expect(countSourceRows()).toEqual(0);
@@ -336,14 +395,14 @@ describe('UndoRedo', () => {
         ]);
       });
 
-      it('should undo creation of a single column (colHeaders: undefined)', () => {
+      it('should undo creation of a single column (colHeaders: undefined)', async() => {
         handsontable({
           data: createSpreadsheetData(2, 3)
         });
 
         expect(countCols()).toEqual(3);
 
-        alter('insert_col_start');
+        await alter('insert_col_start');
 
         expect(countCols()).toEqual(4);
 
@@ -352,7 +411,7 @@ describe('UndoRedo', () => {
         expect(countCols()).toEqual(3);
       });
 
-      it('should undo creation of a single column (colHeaders: true)', () => {
+      it('should undo creation of a single column (colHeaders: true)', async() => {
         handsontable({
           data: createSpreadsheetData(2, 3),
           colHeaders: true
@@ -361,7 +420,7 @@ describe('UndoRedo', () => {
         expect(countCols()).toEqual(3);
         expect(getColHeader()).toEqual(['A', 'B', 'C']);
 
-        alter('insert_col_start');
+        await alter('insert_col_start');
 
         expect(countCols()).toEqual(4);
         expect(getColHeader()).toEqual(['A', 'B', 'C', 'D']);
@@ -372,7 +431,7 @@ describe('UndoRedo', () => {
         expect(getColHeader()).toEqual(['A', 'B', 'C']);
       });
 
-      it('should undo creation of a single column (colHeaders: Array)', () => {
+      it('should undo creation of a single column (colHeaders: Array)', async() => {
         handsontable({
           data: createSpreadsheetData(2, 3),
           colHeaders: ['Header1', 'Header2', 'Header3']
@@ -381,7 +440,7 @@ describe('UndoRedo', () => {
         expect(countCols()).toEqual(3);
         expect(getColHeader()).toEqual(['Header1', 'Header2', 'Header3']);
 
-        alter('insert_col_start', 1);
+        await alter('insert_col_start', 1);
 
         expect(countCols()).toEqual(4);
         expect(getColHeader()).toEqual(['Header1', 'B', 'Header2', 'Header3']);
@@ -392,14 +451,14 @@ describe('UndoRedo', () => {
         expect(getColHeader()).toEqual(['Header1', 'Header2', 'Header3']);
       });
 
-      it('should undo creation of multiple columns (colHeaders: undefined)', () => {
+      it('should undo creation of multiple columns (colHeaders: undefined)', async() => {
         handsontable({
           data: createSpreadsheetData(2, 2)
         });
 
         expect(countCols()).toEqual(2);
 
-        alter('insert_col_start', 1, 5);
+        await alter('insert_col_start', 1, 5);
 
         expect(countCols()).toEqual(7);
 
@@ -408,7 +467,7 @@ describe('UndoRedo', () => {
         expect(countCols()).toEqual(2);
       });
 
-      it('should undo creation of multiple columns (colHeaders: true)', () => {
+      it('should undo creation of multiple columns (colHeaders: true)', async() => {
         handsontable({
           data: createSpreadsheetData(2, 2),
           colHeaders: true
@@ -417,7 +476,7 @@ describe('UndoRedo', () => {
         expect(countCols()).toEqual(2);
         expect(getColHeader()).toEqual(['A', 'B']);
 
-        alter('insert_col_start', 1, 5);
+        await alter('insert_col_start', 1, 5);
 
         expect(countCols()).toEqual(7);
         expect(getColHeader()).toEqual(['A', 'B', 'C', 'D', 'E', 'F', 'G']);
@@ -428,7 +487,7 @@ describe('UndoRedo', () => {
         expect(getColHeader()).toEqual(['A', 'B']);
       });
 
-      it('should undo creation of multiple columns (colHeaders: Array)', () => {
+      it('should undo creation of multiple columns (colHeaders: Array)', async() => {
         handsontable({
           data: createSpreadsheetData(2, 2),
           colHeaders: ['Header1', 'Header2']
@@ -437,7 +496,7 @@ describe('UndoRedo', () => {
         expect(countCols()).toEqual(2);
         expect(getColHeader()).toEqual(['Header1', 'Header2']);
 
-        alter('insert_col_start', 1, 5);
+        await alter('insert_col_start', 1, 5);
 
         expect(countCols()).toEqual(7);
         expect(getColHeader()).toEqual(['Header1', 'B', 'C', 'D', 'E', 'F', 'Header2']);
@@ -448,14 +507,14 @@ describe('UndoRedo', () => {
         expect(getColHeader()).toEqual(['Header1', 'Header2']);
       });
 
-      it('should undo creation of multiple columns with minSpareCols', () => {
+      it('should undo creation of multiple columns with minSpareCols', async() => {
         handsontable({
           data: createSpreadsheetData(1, 1),
           minSpareCols: 2
         });
 
-        setDataAtCell(0, 1, 'B1');
-        setDataAtCell(0, 3, 'C1');
+        await setDataAtCell(0, 1, 'B1');
+        await setDataAtCell(0, 3, 'C1');
 
         expect(getData()).toEqual([['A1', 'B1', null, 'C1', null, null]]);
 
@@ -468,14 +527,14 @@ describe('UndoRedo', () => {
         expect(getData()).toEqual([['A1', null, null]]);
       });
 
-      it('should undo removal of multiple columns with minSpareCols', () => {
+      it('should undo removal of multiple columns with minSpareCols', async() => {
         handsontable({
           data: createSpreadsheetData(1, 2),
           minSpareCols: 1,
         });
 
-        selectColumns(0, 2);
-        alter('remove_col', 0, 3);
+        await selectColumns(0, 2);
+        await alter('remove_col', 0, 3);
         getPlugin('undoRedo').undo();
 
         expect(getSelected()).toBeUndefined();
@@ -485,13 +544,13 @@ describe('UndoRedo', () => {
         ]);
       });
 
-      it('should undo and redo dataset change that expands the table with minSpareCols (#dev-381)', () => {
+      it('should undo and redo dataset change that expands the table with minSpareCols (#dev-381)', async() => {
         handsontable({
           data: createSpreadsheetData(3, 3),
           minSpareCols: 2,
         });
 
-        setDataAtCell([
+        await setDataAtCell([
           [0, 4, 'A1'], [0, 5, 'B1'],
           [1, 4, 'A2'], [1, 5, 'B2'],
           [2, 4, 'A3'], [2, 5, 'B3'],
@@ -514,7 +573,7 @@ describe('UndoRedo', () => {
         ]);
       });
 
-      it('should undo removal of single column (colHeaders: undefined)', () => {
+      it('should undo removal of single column (colHeaders: undefined)', async() => {
         handsontable({
           data: createSpreadsheetData(2, 3)
         });
@@ -527,7 +586,7 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(1, 1)).toEqual('B2');
         expect(getDataAtCell(1, 2)).toEqual('C2');
 
-        alter('remove_col', 1);
+        await alter('remove_col', 1);
 
         expect(countCols()).toEqual(2);
         expect(getDataAtCell(0, 0)).toEqual('A1');
@@ -546,7 +605,7 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(1, 2)).toEqual('C2');
       });
 
-      it('should undo removal of single column (colHeaders: true)', () => {
+      it('should undo removal of single column (colHeaders: true)', async() => {
         handsontable({
           data: createSpreadsheetData(2, 2),
           colHeaders: true
@@ -559,7 +618,7 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(1, 1)).toEqual('B2');
         expect(getColHeader()).toEqual(['A', 'B']);
 
-        alter('remove_col');
+        await alter('remove_col');
 
         expect(countCols()).toEqual(1);
         expect(getDataAtCell(0, 0)).toEqual('A1');
@@ -579,7 +638,7 @@ describe('UndoRedo', () => {
         expect(getColHeader()).toEqual(['A', 'B']);
       });
 
-      it('should undo removal of single column (colHeaders: Array)', () => {
+      it('should undo removal of single column (colHeaders: Array)', async() => {
         handsontable({
           data: createSpreadsheetData(2, 2),
           colHeaders: ['Header1', 'Header2']
@@ -592,7 +651,7 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(1, 1)).toEqual('B2');
         expect(getColHeader()).toEqual(['Header1', 'Header2']);
 
-        alter('remove_col');
+        await alter('remove_col');
 
         expect(countCols()).toEqual(1);
         expect(getDataAtCell(0, 0)).toEqual('A1');
@@ -612,7 +671,7 @@ describe('UndoRedo', () => {
         expect(getColHeader()).toEqual(['Header1', 'Header2']);
       });
 
-      it('should undo removal of multiple columns (colHeaders: undefined)', () => {
+      it('should undo removal of multiple columns (colHeaders: undefined)', async() => {
         handsontable({
           data: createSpreadsheetData(1, 15)
         });
@@ -622,7 +681,7 @@ describe('UndoRedo', () => {
           ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1', 'K1', 'L1', 'M1', 'N1', 'O1']
         ]);
 
-        alter('remove_col', 4, 7);
+        await alter('remove_col', 4, 7);
 
         expect(getData()).toEqual([
           ['A1', 'B1', 'C1', 'D1', 'L1', 'M1', 'N1', 'O1']
@@ -636,7 +695,7 @@ describe('UndoRedo', () => {
         ]);
       });
 
-      it('should undo removal of multiple columns (colHeaders: true)', () => {
+      it('should undo removal of multiple columns (colHeaders: true)', async() => {
         handsontable({
           data: createSpreadsheetData(2, 4),
           colHeaders: true
@@ -653,7 +712,7 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(1, 3)).toEqual('D2');
         expect(getColHeader()).toEqual(['A', 'B', 'C', 'D']);
 
-        alter('remove_col', 1, 3);
+        await alter('remove_col', 1, 3);
 
         expect(countCols()).toEqual(1);
         expect(getDataAtCell(0, 0)).toEqual('A1');
@@ -680,7 +739,7 @@ describe('UndoRedo', () => {
         expect(getColHeader()).toEqual(['A', 'B', 'C', 'D']);
       });
 
-      it('should undo removal of multiple columns (colHeaders: Array)', () => {
+      it('should undo removal of multiple columns (colHeaders: Array)', async() => {
         handsontable({
           data: createSpreadsheetData(2, 4),
           colHeaders: ['Header1', 'Header2', 'Header3', 'Header4']
@@ -697,7 +756,7 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(1, 3)).toEqual('D2');
         expect(getColHeader()).toEqual(['Header1', 'Header2', 'Header3', 'Header4']);
 
-        alter('remove_col', 1, 2);
+        await alter('remove_col', 1, 2);
 
         expect(countCols()).toEqual(2);
         expect(getDataAtCell(0, 0)).toEqual('A1');
@@ -724,14 +783,14 @@ describe('UndoRedo', () => {
         expect(getColHeader()).toEqual(['Header1', 'Header2', 'Header3', 'Header4']);
       });
 
-      it('should undo removal all columns', () => {
+      it('should undo removal all columns', async() => {
         handsontable({
           data: createSpreadsheetData(2, 4),
           colHeaders: ['Header1', 'Header2', 'Header3', 'Header4'],
           contextMenu: true,
         });
 
-        alter('remove_col', 0, 4);
+        await alter('remove_col', 0, 4);
 
         expect(countRows()).toBe(0);
         expect(countCols()).toBe(0);
@@ -754,7 +813,7 @@ describe('UndoRedo', () => {
         expect(getColHeader()).toEqual(['Header1', 'Header2', 'Header3', 'Header4']);
       });
 
-      xit('should undo removal of multiple columns (with a used manualColumnMove)', () => {
+      xit('should undo removal of multiple columns (with a used manualColumnMove)', async() => {
         handsontable({
           data: createSpreadsheetData(2, 7),
           manualColumnMove: [3, 2, 0, 6, 1, 5, 4]
@@ -763,7 +822,7 @@ describe('UndoRedo', () => {
         expect(countCols()).toEqual(7);
         expect(getDataAtRow(0)).toEqual(['D1', 'C1', 'A1', 'G1', 'B1', 'F1', 'E1']);
 
-        alter('remove_col', 1, 3);
+        await alter('remove_col', 1, 3);
 
         expect(countCols()).toEqual(4);
         expect(getDataAtRow(0)).toEqual(['D1', 'B1', 'F1', 'E1']);
@@ -774,15 +833,15 @@ describe('UndoRedo', () => {
         expect(getDataAtRow(0)).toEqual(['D1', 'C1', 'A1', 'G1', 'B1', 'F1', 'E1']);
       });
 
-      it('should undo multiple changes', () => {
+      it('should undo multiple changes', async() => {
         handsontable({
           data: createSpreadsheetData(2, 2)
         });
 
-        setDataAtCell(0, 0, 'X1');
-        setDataAtCell(1, 0, 'X2');
-        setDataAtCell(0, 1, 'Y1');
-        setDataAtCell(1, 1, 'Y2');
+        await setDataAtCell(0, 0, 'X1');
+        await setDataAtCell(1, 0, 'X2');
+        await setDataAtCell(0, 1, 'Y1');
+        await setDataAtCell(1, 1, 'Y2');
 
         expect(getDataAtCell(0, 0)).toBe('X1');
         expect(getDataAtCell(1, 0)).toBe('X2');
@@ -826,9 +885,9 @@ describe('UndoRedo', () => {
           validator: /^[A-Z]+[0-9]+$/
         });
 
-        setDataAtCell(0, 0, 'X1');
-        setDataAtCell(1, 0, 'X2');
-        setDataAtCell(0, 1, 'Y1');
+        await setDataAtCell(0, 0, 'X1');
+        await setDataAtCell(1, 0, 'X2');
+        await setDataAtCell(0, 1, 'Y1');
 
         await sleep(10);
 
@@ -861,17 +920,17 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(0, 1)).toBe('B1');
       });
 
-      it('should undo multiple row creations', () => {
+      it('should undo multiple row creations', async() => {
         handsontable({
           data: createSpreadsheetData(2, 2)
         });
 
         expect(countRows()).toEqual(2);
 
-        alter('insert_row_above');
-        alter('insert_row_above');
-        alter('insert_row_above');
-        alter('insert_row_above');
+        await alter('insert_row_above');
+        await alter('insert_row_above');
+        await alter('insert_row_above');
+        await alter('insert_row_above');
 
         expect(countRows()).toEqual(6);
 
@@ -891,7 +950,7 @@ describe('UndoRedo', () => {
         expect(countRows()).toEqual(2);
       });
 
-      it('should undo multiple row removals', () => {
+      it('should undo multiple row removals', async() => {
         handsontable({
           data: createSpreadsheetData(4, 2)
         });
@@ -906,9 +965,9 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(3, 0)).toEqual('A4');
         expect(getDataAtCell(3, 1)).toEqual('B4');
 
-        alter('remove_row');
-        alter('remove_row');
-        alter('remove_row');
+        await alter('remove_row');
+        await alter('remove_row');
+        await alter('remove_row');
 
         expect(countRows()).toEqual(1);
         expect(getDataAtCell(0, 0)).toEqual('A1');
@@ -953,7 +1012,7 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(3, 1)).toEqual('B4');
       });
 
-      it('should undo changes only for table where the change actually took place', () => {
+      it('should undo changes only for table where the change actually took place', async() => {
         spec().$container2 = $(`<div id="${id}-2"></div>`).appendTo('body');
 
         const hot1 = handsontable({
@@ -990,7 +1049,7 @@ describe('UndoRedo', () => {
         spec().$container2.remove();
       });
 
-      it('should return the right amount after undo removal of single column', () => {
+      it('should return the right amount after undo removal of single column', async() => {
         handsontable({
           data: createSpreadsheetData(2, 3)
         });
@@ -1007,7 +1066,7 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(1, 1)).toEqual('B2');
         expect(getDataAtCell(1, 2)).toEqual('C2');
 
-        alter('remove_col', 1);
+        await alter('remove_col', 1);
 
         expect(countCols()).toEqual(2);
         expect(getDataAtCell(0, 0)).toEqual('A1');
@@ -1028,7 +1087,7 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(1, 2)).toEqual('C2');
       });
 
-      it('should work with functional data source', () => {
+      it('should work with functional data source', async() => {
         handsontable({
           data: [
             model({ id: 1, name: 'Ted Right', address: '' }),
@@ -1080,7 +1139,7 @@ describe('UndoRedo', () => {
         }
 
         expect(getDataAtCell(1, 1)).toEqual('Frank Honest');
-        setDataAtCell(1, 1, 'Something Else');
+        await setDataAtCell(1, 1, 'Something Else');
         expect(getDataAtCell(1, 1)).toEqual('Something Else');
 
         getPlugin('undoRedo').undo();
@@ -1089,12 +1148,12 @@ describe('UndoRedo', () => {
     });
 
     describe('redo', () => {
-      it('should redo single change', () => {
+      it('should redo single change', async() => {
         handsontable({
           data: createSpreadsheetData(2, 2)
         });
 
-        setDataAtCell(0, 0, 'new value');
+        await setDataAtCell(0, 0, 'new value');
 
         expect(getDataAtCell(0, 0)).toBe('new value');
 
@@ -1111,9 +1170,9 @@ describe('UndoRedo', () => {
           validator: /^[A-Z]+[0-9]+$/
         });
 
-        setDataAtCell(0, 0, 'X1');
-        setDataAtCell(1, 0, 'X2');
-        setDataAtCell(0, 1, 'Y1');
+        await setDataAtCell(0, 0, 'X1');
+        await setDataAtCell(1, 0, 'X2');
+        await setDataAtCell(0, 1, 'Y1');
 
         await sleep(10);
         getPlugin('undoRedo').undo();
@@ -1144,14 +1203,14 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(0, 1)).toBe('Y1');
       });
 
-      it('should redo creation of a single row', () => {
+      it('should redo creation of a single row', async() => {
         handsontable({
           data: createSpreadsheetData(2, 2)
         });
 
         expect(countRows()).toEqual(2);
 
-        alter('insert_row_above');
+        await alter('insert_row_above');
 
         expect(countRows()).toEqual(3);
 
@@ -1164,14 +1223,14 @@ describe('UndoRedo', () => {
         expect(countRows()).toEqual(3);
       });
 
-      it('should redo creation of multiple rows', () => {
+      it('should redo creation of multiple rows', async() => {
         handsontable({
           data: createSpreadsheetData(2, 2)
         });
 
         expect(countRows()).toEqual(2);
 
-        alter('insert_row_above', 0, 5);
+        await alter('insert_row_above', 0, 5);
 
         expect(countRows()).toEqual(7);
 
@@ -1184,7 +1243,7 @@ describe('UndoRedo', () => {
         expect(countRows()).toEqual(7);
       });
 
-      it('should redo removal of single row', () => {
+      it('should redo removal of single row', async() => {
         handsontable({
           data: createSpreadsheetData(3, 2)
         });
@@ -1197,7 +1256,7 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(2, 0)).toEqual('A3');
         expect(getDataAtCell(2, 1)).toEqual('B3');
 
-        alter('remove_row', 1);
+        await alter('remove_row', 1);
 
         expect(countRows()).toEqual(2);
         expect(getDataAtCell(0, 0)).toEqual('A1');
@@ -1224,7 +1283,7 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(1, 1)).toEqual('B3');
       });
 
-      it('should redo removal of multiple rows', () => {
+      it('should redo removal of multiple rows', async() => {
         handsontable({
           data: createSpreadsheetData(4, 2)
         });
@@ -1239,7 +1298,7 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(3, 0)).toEqual('A4');
         expect(getDataAtCell(3, 1)).toEqual('B4');
 
-        alter('remove_row', 1, 2);
+        await alter('remove_row', 1, 2);
 
         expect(countRows()).toEqual(2);
         expect(getDataAtCell(0, 0)).toEqual('A1');
@@ -1268,14 +1327,14 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(1, 1)).toEqual('B4');
       });
 
-      it('should redo creation of a single column', () => {
+      it('should redo creation of a single column', async() => {
         handsontable({
           data: createSpreadsheetData(2, 2)
         });
 
         expect(countCols()).toEqual(2);
 
-        alter('insert_col_start');
+        await alter('insert_col_start');
 
         expect(countCols()).toEqual(3);
 
@@ -1288,14 +1347,14 @@ describe('UndoRedo', () => {
         expect(countCols()).toEqual(3);
       });
 
-      it('should redo creation of multiple columns', () => {
+      it('should redo creation of multiple columns', async() => {
         handsontable({
           data: createSpreadsheetData(2, 2)
         });
 
         expect(countCols()).toEqual(2);
 
-        alter('insert_col_start', 1, 5);
+        await alter('insert_col_start', 1, 5);
 
         expect(countCols()).toEqual(7);
 
@@ -1308,7 +1367,7 @@ describe('UndoRedo', () => {
         expect(countCols()).toEqual(7);
       });
 
-      it('should redo removal of single column', () => {
+      it('should redo removal of single column', async() => {
         handsontable({
           data: createSpreadsheetData(2, 2)
         });
@@ -1319,7 +1378,7 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(1, 0)).toEqual('A2');
         expect(getDataAtCell(1, 1)).toEqual('B2');
 
-        alter('remove_col');
+        await alter('remove_col');
 
         expect(countCols()).toEqual(1);
         expect(getDataAtCell(0, 0)).toEqual('A1');
@@ -1344,7 +1403,7 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(1, 1)).toBeNull();
       });
 
-      it('should redo removal of multiple columns', () => {
+      it('should redo removal of multiple columns', async() => {
         handsontable({
           data: createSpreadsheetData(2, 4)
         });
@@ -1359,7 +1418,7 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(1, 2)).toEqual('C2');
         expect(getDataAtCell(1, 3)).toEqual('D2');
 
-        alter('remove_col', 1, 3);
+        await alter('remove_col', 1, 3);
 
         expect(countCols()).toEqual(1);
         expect(getDataAtCell(0, 0)).toEqual('A1');
@@ -1396,15 +1455,15 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(1, 3)).toBeNull();
       });
 
-      it('should redo multiple changes', () => {
+      it('should redo multiple changes', async() => {
         handsontable({
           data: createSpreadsheetData(2, 2)
         });
 
-        setDataAtCell(0, 0, 'X1');
-        setDataAtCell(1, 0, 'X2');
-        setDataAtCell(0, 1, 'Y1');
-        setDataAtCell(1, 1, 'Y2');
+        await setDataAtCell(0, 0, 'X1');
+        await setDataAtCell(1, 0, 'X2');
+        await setDataAtCell(0, 1, 'Y1');
+        await setDataAtCell(1, 1, 'Y2');
 
         expect(getDataAtCell(0, 0)).toBe('X1');
         expect(getDataAtCell(1, 0)).toBe('X2');
@@ -1452,17 +1511,17 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(1, 1)).toBe('Y2');
       });
 
-      it('should redo multiple row creations', () => {
+      it('should redo multiple row creations', async() => {
         handsontable({
           data: createSpreadsheetData(2, 2)
         });
 
         expect(countRows()).toEqual(2);
 
-        alter('insert_row_above');
-        alter('insert_row_above');
-        alter('insert_row_above');
-        alter('insert_row_above');
+        await alter('insert_row_above');
+        await alter('insert_row_above');
+        await alter('insert_row_above');
+        await alter('insert_row_above');
 
         expect(countRows()).toEqual(6);
 
@@ -1489,7 +1548,7 @@ describe('UndoRedo', () => {
         expect(countRows()).toEqual(6);
       });
 
-      it('should undo multiple row removals', () => {
+      it('should undo multiple row removals', async() => {
         handsontable({
           data: createSpreadsheetData(4, 2)
         });
@@ -1504,9 +1563,9 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(3, 0)).toEqual('A4');
         expect(getDataAtCell(3, 1)).toEqual('B4');
 
-        alter('remove_row');
-        alter('remove_row');
-        alter('remove_row');
+        await alter('remove_row');
+        await alter('remove_row');
+        await alter('remove_row');
 
         expect(countRows()).toEqual(1);
         expect(getDataAtCell(0, 0)).toEqual('A1');
@@ -1553,7 +1612,7 @@ describe('UndoRedo', () => {
         expect(getDataAtCell(0, 1)).toEqual('B1');
       });
 
-      it('should redo changes only for table where the change actually took place', () => {
+      it('should redo changes only for table where the change actually took place', async() => {
         spec().$container2 = $(`<div id="${id}-2"></div>`).appendTo('body');
 
         const hot1 = handsontable({
@@ -1606,26 +1665,27 @@ describe('UndoRedo', () => {
     }
 
     describe('undo', () => {
-      it('should undo single change', () => {
+      it('should undo single change', async() => {
         handsontable({
           data: createObjectData()
         });
 
-        setDataAtRowProp(0, 0, 'Pearce');
+        await setDataAtRowProp(0, 0, 'Pearce');
+
         expect(getDataAtRowProp(0, 0)).toBe('Pearce');
 
         getPlugin('undoRedo').undo();
         expect(getDataAtCell(0, 0)).toBe('Timothy');
       });
 
-      it('should undo creation of a single row', () => {
+      it('should undo creation of a single row', async() => {
         handsontable({
           data: createObjectData().slice(0, 2)
         });
 
         expect(countRows()).toEqual(2);
 
-        alter('insert_row_above');
+        await alter('insert_row_above');
 
         expect(countRows()).toEqual(3);
 
@@ -1634,14 +1694,14 @@ describe('UndoRedo', () => {
         expect(countRows()).toEqual(2);
       });
 
-      it('should undo creation of multiple rows', () => {
+      it('should undo creation of multiple rows', async() => {
         handsontable({
           data: createObjectData().slice(0, 2)
         });
 
         expect(countRows()).toEqual(2);
 
-        alter('insert_row_above', 0, 5);
+        await alter('insert_row_above', 0, 5);
 
         expect(countRows()).toEqual(7);
 
@@ -1650,7 +1710,7 @@ describe('UndoRedo', () => {
         expect(countRows()).toEqual(2);
       });
 
-      it('should undo removal of single row', () => {
+      it('should undo removal of single row', async() => {
         handsontable({
           data: createObjectData().slice(0, 2)
         });
@@ -1661,7 +1721,7 @@ describe('UndoRedo', () => {
         expect(getDataAtRowProp(1, 'name')).toEqual('Sean');
         expect(getDataAtRowProp(1, 'surname')).toEqual('Connery');
 
-        alter('remove_row');
+        await alter('remove_row');
 
         expect(countRows()).toEqual(1);
         expect(getDataAtRowProp(0, 'name')).toEqual('Timothy');
@@ -1678,7 +1738,7 @@ describe('UndoRedo', () => {
         expect(getDataAtRowProp(1, 'surname')).toEqual('Connery');
       });
 
-      it('should undo removal of multiple rows', () => {
+      it('should undo removal of multiple rows', async() => {
         handsontable({
           data: createObjectData()
         });
@@ -1691,7 +1751,7 @@ describe('UndoRedo', () => {
         expect(getDataAtRowProp(2, 'name')).toEqual('Roger');
         expect(getDataAtRowProp(2, 'surname')).toEqual('Moore');
 
-        alter('remove_row', 1, 2);
+        await alter('remove_row', 1, 2);
 
         expect(countRows()).toEqual(1);
         expect(getDataAtRowProp(0, 'name')).toEqual('Timothy');
@@ -1712,7 +1772,7 @@ describe('UndoRedo', () => {
         expect(getDataAtRowProp(2, 'surname')).toEqual('Moore');
       });
 
-      it('should undo removal of fixed row on the bottom', () => {
+      it('should undo removal of fixed row on the bottom', async() => {
         handsontable({
           data: createSpreadsheetData(3, 3),
           columns: [
@@ -1725,7 +1785,7 @@ describe('UndoRedo', () => {
           height: 400,
         });
 
-        alter('remove_row', 0, 3);
+        await alter('remove_row', 0, 3);
         getPlugin('undoRedo').undo();
 
         expect(getSettings().fixedRowsBottom).toBe(1);
@@ -1734,7 +1794,7 @@ describe('UndoRedo', () => {
         expect($('.innerBorderTop').length).toBe(0);
       });
 
-      it('should undo removal of fixed row on the top', () => {
+      it('should undo removal of fixed row on the top', async() => {
         handsontable({
           data: createSpreadsheetData(3, 3),
           colHeaders: true,
@@ -1742,21 +1802,21 @@ describe('UndoRedo', () => {
           fixedRowsTop: 1,
         });
 
-        alter('remove_row', 0, 3);
+        await alter('remove_row', 0, 3);
         getPlugin('undoRedo').undo();
 
         expect(getSettings().fixedRowsTop).toBe(1);
       });
 
-      it('should undo multiple changes', () => {
+      it('should undo multiple changes', async() => {
         handsontable({
           data: createObjectData().slice(0, 2)
         });
 
-        setDataAtRowProp(0, 'name', 'Pierce');
-        setDataAtRowProp(0, 'surname', 'Brosnan');
-        setDataAtRowProp(1, 'name', 'Daniel');
-        setDataAtRowProp(1, 'surname', 'Craig');
+        await setDataAtRowProp(0, 'name', 'Pierce');
+        await setDataAtRowProp(0, 'surname', 'Brosnan');
+        await setDataAtRowProp(1, 'name', 'Daniel');
+        await setDataAtRowProp(1, 'surname', 'Craig');
 
         expect(getDataAtRowProp(0, 'name')).toBe('Pierce');
         expect(getDataAtRowProp(0, 'surname')).toBe('Brosnan');
@@ -1764,47 +1824,52 @@ describe('UndoRedo', () => {
         expect(getDataAtRowProp(1, 'surname')).toBe('Craig');
 
         getPlugin('undoRedo').undo();
+
         expect(getDataAtRowProp(0, 'name')).toBe('Pierce');
         expect(getDataAtRowProp(0, 'surname')).toBe('Brosnan');
         expect(getDataAtRowProp(1, 'name')).toBe('Daniel');
         expect(getDataAtRowProp(1, 'surname')).toBe('Connery');
 
         getPlugin('undoRedo').undo();
+
         expect(getDataAtRowProp(0, 'name')).toBe('Pierce');
         expect(getDataAtRowProp(0, 'surname')).toBe('Brosnan');
         expect(getDataAtRowProp(1, 'name')).toBe('Sean');
         expect(getDataAtRowProp(1, 'surname')).toBe('Connery');
 
         getPlugin('undoRedo').undo();
+
         expect(getDataAtRowProp(0, 'name')).toBe('Pierce');
         expect(getDataAtRowProp(0, 'surname')).toBe('Dalton');
         expect(getDataAtRowProp(1, 'name')).toBe('Sean');
         expect(getDataAtRowProp(1, 'surname')).toBe('Connery');
 
         getPlugin('undoRedo').undo();
+
         expect(getDataAtRowProp(0, 'name')).toBe('Timothy');
         expect(getDataAtRowProp(0, 'surname')).toBe('Dalton');
         expect(getDataAtRowProp(1, 'name')).toBe('Sean');
         expect(getDataAtRowProp(1, 'surname')).toBe('Connery');
 
         getPlugin('undoRedo').undo();
+
         expect(getDataAtRowProp(0, 'name')).toBe('Timothy');
         expect(getDataAtRowProp(0, 'surname')).toBe('Dalton');
         expect(getDataAtRowProp(1, 'name')).toBe('Sean');
         expect(getDataAtRowProp(1, 'surname')).toBe('Connery');
       });
 
-      it('should undo multiple row creations', () => {
+      it('should undo multiple row creations', async() => {
         handsontable({
           data: createObjectData().slice(0, 2)
         });
 
         expect(countRows()).toEqual(2);
 
-        alter('insert_row_above');
-        alter('insert_row_above');
-        alter('insert_row_above');
-        alter('insert_row_above');
+        await alter('insert_row_above');
+        await alter('insert_row_above');
+        await alter('insert_row_above');
+        await alter('insert_row_above');
 
         expect(countRows()).toEqual(6);
 
@@ -1824,7 +1889,7 @@ describe('UndoRedo', () => {
         expect(countRows()).toEqual(2);
       });
 
-      it('should undo multiple row removals', () => {
+      it('should undo multiple row removals', async() => {
         handsontable({
           data: createObjectData()
         });
@@ -1837,8 +1902,8 @@ describe('UndoRedo', () => {
         expect(getDataAtRowProp(2, 'name')).toEqual('Roger');
         expect(getDataAtRowProp(2, 'surname')).toEqual('Moore');
 
-        alter('remove_row');
-        alter('remove_row');
+        await alter('remove_row');
+        await alter('remove_row');
 
         expect(countRows()).toEqual(1);
         expect(getDataAtRowProp(0, 'name')).toEqual('Timothy');
@@ -1873,7 +1938,7 @@ describe('UndoRedo', () => {
         expect(getDataAtRowProp(2, 'surname')).toEqual('Moore');
       });
 
-      it('should undo removal row with readonly column', () => {
+      it('should undo removal row with readonly column', async() => {
         handsontable({
           data: createObjectData().slice(0, 2),
           cells(row, col) {
@@ -1891,7 +1956,7 @@ describe('UndoRedo', () => {
         expect(getDataAtRowProp(1, 'name')).toEqual('Sean');
         expect(getDataAtRowProp(1, 'surname')).toEqual('Connery');
 
-        alter('remove_row');
+        await alter('remove_row');
 
         expect(countRows()).toEqual(1);
         expect(getDataAtRowProp(0, 'name')).toEqual('Timothy');
@@ -1910,29 +1975,32 @@ describe('UndoRedo', () => {
     });
 
     describe('redo', () => {
-      it('should redo single change', () => {
+      it('should redo single change', async() => {
         handsontable({
           data: createObjectData()
         });
 
-        setDataAtRowProp(0, 0, 'Pearce');
+        await setDataAtRowProp(0, 0, 'Pearce');
+
         expect(getDataAtRowProp(0, 0)).toBe('Pearce');
 
         getPlugin('undoRedo').undo();
+
         expect(getDataAtCell(0, 0)).toBe('Timothy');
 
         getPlugin('undoRedo').redo();
+
         expect(getDataAtRowProp(0, 0)).toBe('Pearce');
       });
 
-      it('should redo creation of a single row', () => {
+      it('should redo creation of a single row', async() => {
         handsontable({
           data: createObjectData().slice(0, 2)
         });
 
         expect(countRows()).toEqual(2);
 
-        alter('insert_row_above');
+        await alter('insert_row_above');
 
         expect(countRows()).toEqual(3);
 
@@ -1945,14 +2013,14 @@ describe('UndoRedo', () => {
         expect(countRows()).toEqual(3);
       });
 
-      it('should redo creation of multiple rows', () => {
+      it('should redo creation of multiple rows', async() => {
         handsontable({
           data: createObjectData().slice(0, 2)
         });
 
         expect(countRows()).toEqual(2);
 
-        alter('insert_row_above', 0, 5);
+        await alter('insert_row_above', 0, 5);
 
         expect(countRows()).toEqual(7);
 
@@ -1965,7 +2033,7 @@ describe('UndoRedo', () => {
         expect(countRows()).toEqual(7);
       });
 
-      it('should redo removal of single row', () => {
+      it('should redo removal of single row', async() => {
         handsontable({
           data: createObjectData().slice(0, 2)
         });
@@ -1976,7 +2044,7 @@ describe('UndoRedo', () => {
         expect(getDataAtRowProp(1, 'name')).toEqual('Sean');
         expect(getDataAtRowProp(1, 'surname')).toEqual('Connery');
 
-        alter('remove_row');
+        await alter('remove_row');
 
         expect(countRows()).toEqual(1);
         expect(getDataAtRowProp(0, 'name')).toEqual('Timothy');
@@ -2001,7 +2069,7 @@ describe('UndoRedo', () => {
         expect(getDataAtRowProp(1, 'surname')).toBeNull();
       });
 
-      it('should redo removal of multiple rows', () => {
+      it('should redo removal of multiple rows', async() => {
         handsontable({
           data: createObjectData()
         });
@@ -2014,7 +2082,7 @@ describe('UndoRedo', () => {
         expect(getDataAtRowProp(2, 'name')).toEqual('Roger');
         expect(getDataAtRowProp(2, 'surname')).toEqual('Moore');
 
-        alter('remove_row', 1, 2);
+        await alter('remove_row', 1, 2);
 
         expect(countRows()).toEqual(1);
         expect(getDataAtRowProp(0, 'name')).toEqual('Timothy');
@@ -2045,15 +2113,15 @@ describe('UndoRedo', () => {
         expect(getDataAtRowProp(2, 'surname')).toBeNull();
       });
 
-      it('should redo multiple changes', () => {
+      it('should redo multiple changes', async() => {
         handsontable({
           data: createObjectData().slice(0, 2)
         });
 
-        setDataAtRowProp(0, 'name', 'Pierce');
-        setDataAtRowProp(0, 'surname', 'Brosnan');
-        setDataAtRowProp(1, 'name', 'Daniel');
-        setDataAtRowProp(1, 'surname', 'Craig');
+        await setDataAtRowProp(0, 'name', 'Pierce');
+        await setDataAtRowProp(0, 'surname', 'Brosnan');
+        await setDataAtRowProp(1, 'name', 'Daniel');
+        await setDataAtRowProp(1, 'surname', 'Craig');
 
         expect(getDataAtRowProp(0, 'name')).toBe('Pierce');
         expect(getDataAtRowProp(0, 'surname')).toBe('Brosnan');
@@ -2106,17 +2174,17 @@ describe('UndoRedo', () => {
         expect(getDataAtRowProp(1, 'surname')).toBe('Craig');
       });
 
-      it('should redo multiple row creations', () => {
+      it('should redo multiple row creations', async() => {
         handsontable({
           data: createObjectData().slice(0, 2)
         });
 
         expect(countRows()).toEqual(2);
 
-        alter('insert_row_above');
-        alter('insert_row_above');
-        alter('insert_row_above');
-        alter('insert_row_above');
+        await alter('insert_row_above');
+        await alter('insert_row_above');
+        await alter('insert_row_above');
+        await alter('insert_row_above');
 
         expect(countRows()).toEqual(6);
 
@@ -2148,7 +2216,7 @@ describe('UndoRedo', () => {
         expect(countRows()).toEqual(6);
       });
 
-      it('should undo multiple row removals', () => {
+      it('should undo multiple row removals', async() => {
         handsontable({
           data: createObjectData()
         });
@@ -2161,8 +2229,8 @@ describe('UndoRedo', () => {
         expect(getDataAtRowProp(2, 'name')).toEqual('Roger');
         expect(getDataAtRowProp(2, 'surname')).toEqual('Moore');
 
-        alter('remove_row');
-        alter('remove_row');
+        await alter('remove_row');
+        await alter('remove_row');
 
         expect(countRows()).toEqual(1);
         expect(getDataAtRowProp(0, 'name')).toEqual('Timothy');
@@ -2203,21 +2271,21 @@ describe('UndoRedo', () => {
     });
   });
 
-  it('should save the undo action only if a new value is different than the previous one', () => {
+  it('should save the undo action only if a new value is different than the previous one', async() => {
     handsontable({
       data: createSpreadsheetData(2, 2)
     });
 
     expect(getDataAtCell(0, 0)).toBe('A1');
-    setDataAtCell(0, 0, 'A1');
+    await setDataAtCell(0, 0, 'A1');
 
     expect(getPlugin('undoRedo').isUndoAvailable()).toBe(false);
 
-    setDataAtCell(0, 0, 'A');
+    await setDataAtCell(0, 0, 'A');
     expect(getPlugin('undoRedo').isUndoAvailable()).toBe(true);
   });
 
-  it('should not save the undo action if old and new values are not string, number or boolean', () => {
+  it('should not save the undo action if old and new values are not string, number or boolean', async() => {
     handsontable({
       data: [
         [{ key1: 'abc' }]
@@ -2226,7 +2294,7 @@ describe('UndoRedo', () => {
 
     expect(getPlugin('undoRedo').isUndoAvailable()).toBe(false);
     expect(getDataAtCell(0, 0)).toEqual({ key1: 'abc' });
-    setDataAtCell(0, 0, { key1: 'abc' });
+    await setDataAtCell(0, 0, { key1: 'abc' });
 
     expect(getPlugin('undoRedo').isUndoAvailable()).toBe(true);
   });

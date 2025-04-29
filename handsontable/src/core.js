@@ -1,6 +1,6 @@
 import { addClass, empty, observeVisibilityChangeOnce, removeClass } from './helpers/dom/element';
 import { isFunction } from './helpers/function';
-import { isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty } from './helpers/mixed';
+import { isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty, stringify } from './helpers/mixed';
 import { isMobileBrowser, isIpadOS } from './helpers/browser';
 import EditorManager from './editorManager';
 import EventManager from './eventManager';
@@ -224,7 +224,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   userSettings.language = getValidLanguageCode(userSettings.language);
 
-  const metaManager = new MetaManager(instance, userSettings, [
+  const settingsWithoutHooks = Object.fromEntries(
+    Object.entries(userSettings).filter(([key]) => {
+      return !(Hooks.getSingleton().isRegistered(key) || Hooks.getSingleton().isDeprecated(key));
+    })
+  );
+
+  const metaManager = new MetaManager(instance, settingsWithoutHooks, [
     DynamicCellMetaMod,
     ExtendMetaPropertiesMod,
   ]);
@@ -233,7 +239,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   const pluginsRegistry = createUniqueMap();
 
   this.container = this.rootDocument.createElement('div');
-  this.renderCall = false;
 
   rootElement.insertBefore(this.container, rootElement.firstChild);
 
@@ -270,6 +275,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   this.rowIndexMapper.addLocalHook('indexesSequenceChange', (source) => {
     instance.runHooks('afterRowSequenceChange', source);
+  });
+
+  eventManager.addEventListener(this.rootDocument.documentElement, 'compositionstart', (event) => {
+    instance.runHooks('beforeCompositionStart', event);
   });
 
   dataSource = new DataSource(instance);
@@ -356,6 +365,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.selection = selection;
 
   const onIndexMapperCacheUpdate = ({ hiddenIndexesChanged }) => {
+    this.forceFullRender = true;
+
     if (hiddenIndexesChanged) {
       this.selection.commit();
     }
@@ -624,17 +635,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               }
 
               const totalRows = instance.countRows();
-
-              if (totalRows === 0) {
-                selection.deselect();
-
-              } else if (source === 'ContextMenu.removeRow') {
-                selection.refresh();
-
-              } else {
-                selection.shiftRows(groupIndex, -groupAmount);
-              }
-
               const fixedRowsTop = tableMeta.fixedRowsTop;
 
               if (fixedRowsTop >= calcIndex + 1) {
@@ -645,6 +645,16 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
               if (fixedRowsBottom && calcIndex >= totalRows - fixedRowsBottom) {
                 tableMeta.fixedRowsBottom -= Math.min(groupAmount, fixedRowsBottom);
+              }
+
+              if (totalRows === 0) {
+                selection.deselect();
+
+              } else if (source === 'ContextMenu.removeRow') {
+                selection.refresh();
+
+              } else {
+                selection.shiftRows(groupIndex, -groupAmount);
               }
 
               offset += groupAmount;
@@ -1112,7 +1122,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       addClass(instance.rootElement, 'mobile');
     }
 
-    this.updateSettings(tableMeta, true);
+    this.updateSettings(userSettings, true);
 
     this.view = new TableView(this);
 
@@ -1136,8 +1146,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     instance.runHooks('init');
 
-    this.forceFullRender = true; // used when data was changed
-    this.view.render();
+    this.render();
 
     // Run the logic only if it's the table's initialization and the root element is not visible.
     if (!!firstRun && instance.rootElement.offsetParent === null) {
@@ -1328,13 +1337,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     const hasChanges = changes.length > 0;
 
-    instance.forceFullRender = true; // used when data was changed or when all cells need to be re-rendered
-
     if (hasChanges) {
       grid.adjustRowsAndCols();
       instance.runHooks('beforeChangeRender', changes, source);
       editorManager.closeEditor();
-      instance.view.render();
+      instance.render();
       editorManager.prepareEditor();
       instance.view.adjustElementsSize();
       instance.runHooks('afterChange', changes, source || 'edit');
@@ -1346,7 +1353,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       }
 
     } else {
-      instance.view.render();
+      instance.render();
     }
   }
 
@@ -1506,8 +1513,28 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         cellProperties = { ...Object.getPrototypeOf(tableMeta), ...tableMeta };
       }
 
-      if (cellProperties.type === 'numeric' && typeof newValue === 'string' && isNumericLike(newValue)) {
+      const {
+        type,
+        checkedTemplate,
+        uncheckedTemplate,
+      } = cellProperties;
+
+      if (
+        type === 'numeric' &&
+        typeof newValue === 'string' &&
+        isNumericLike(newValue)
+      ) {
         filteredChanges[i][3] = getParsedNumber(newValue);
+      }
+
+      if (type === 'checkbox') {
+        const stringifiedValue = stringify(newValue);
+        const isChecked = stringifiedValue === stringify(checkedTemplate);
+        const isUnchecked = stringifiedValue === stringify(uncheckedTemplate);
+
+        if (isChecked || isUnchecked) {
+          filteredChanges[i][3] = isChecked ? checkedTemplate : uncheckedTemplate;
+        }
       }
     }
 
@@ -1932,11 +1959,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this.renderSuspendedCounter = Math.max(nextValue, 0);
 
     if (!this.isRenderSuspended() && nextValue === this.renderSuspendedCounter) {
-      if (this.renderCall) {
-        this.render();
-      } else {
-        instance.view.render();
-      }
+      instance.view.render();
     }
   };
 
@@ -1952,8 +1975,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.render = function() {
     if (this.view) {
-      this.renderCall = true;
-      this.forceFullRender = true; // used when data was changed or when all cells need to be re-rendered
+      // used when data was changed or when all cells need to be re-rendered (slow render)
+      this.forceFullRender = true;
 
       if (!this.isRenderSuspended()) {
         instance.view.render();
@@ -2469,12 +2492,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       throw new Error('Since 8.0.0 the "ganttChart" setting is no longer supported.');
     }
 
+    if (settings.language) {
+      setLanguage(settings.language);
+    }
+
     // eslint-disable-next-line no-restricted-syntax
     for (i in settings) {
-      if (i === 'data') {
-        // Do nothing. loadData will be triggered later
-      } else if (i === 'language') {
-        setLanguage(settings.language);
+      if (i === 'data' || i === 'language') {
+        // Do nothing. loadData and language change will be triggered later
 
       } else if (i === 'className') {
         setClassName('className', settings.className);
@@ -2485,12 +2510,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         instance.view._wt.wtOverlays.syncOverlayTableClassNames();
 
       } else if (Hooks.getSingleton().isRegistered(i) || Hooks.getSingleton().isDeprecated(i)) {
+        const hook = settings[i];
 
-        if (isFunction(settings[i])) {
-          Hooks.getSingleton().addAsFixed(i, settings[i], instance);
+        if (isFunction(hook)) {
+          Hooks.getSingleton().addAsFixed(i, hook, instance);
+          tableMeta[i] = hook;
 
-        } else if (Array.isArray(settings[i])) {
-          Hooks.getSingleton().add(i, settings[i], instance);
+        } else if (Array.isArray(hook)) {
+          Hooks.getSingleton().add(i, hook, instance);
+          tableMeta[i] = hook;
         }
 
       } else if (!init && hasOwnProperty(settings, i)) { // Update settings
@@ -2628,8 +2656,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     grid.adjustRowsAndCols();
 
     if (instance.view && !firstRun) {
-      instance.forceFullRender = true; // used when data was changed
-      instance.view.render();
+      instance.render();
       instance.view._wt.wtOverlays.adjustElementsSize();
     }
 
@@ -3350,11 +3377,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @function getCellMeta
    * @param {number} row Visual row index.
    * @param {number} column Visual column index.
+   * @param {object} options Execution options for the `getCellMeta` method.
+   * @param {boolean} [options.skipMetaExtension=false] If `true`, skips extending the cell meta object. This means, the `cells` function, as well as the `afterGetCellMeta` and `beforeGetCellMeta` hooks, will not be called.
    * @returns {object} The cell properties object.
    * @fires Hooks#beforeGetCellMeta
    * @fires Hooks#afterGetCellMeta
    */
-  this.getCellMeta = function(row, column) {
+  this.getCellMeta = function(row, column, options = { skipMetaExtension: false }) {
     let physicalRow = this.toPhysicalRow(row);
     let physicalColumn = this.toPhysicalColumn(column);
 
@@ -3369,6 +3398,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     return metaManager.getCellMeta(physicalRow, physicalColumn, {
       visualRow: row,
       visualColumn: column,
+      ...options
     });
   };
 
@@ -4395,6 +4425,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *   col: 50,
    *   verticalSnap: 'bottom',
    *   horizontalSnap: 'end',
+   * }, () => {
+   *   // callback function executed after the viewport is scrolled
    * });
    * ```
    *
@@ -4417,9 +4449,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * be positioned at the start or end of the viewport.
    * @param {boolean} [options.considerHiddenIndexes=true] If `true`, we handle visual indexes, otherwise we handle only indexes which
    * may be rendered when they are in the viewport (we don't consider hidden indexes as they aren't rendered).
+   * @param {Function} [callback] The callback function to call after the viewport is scrolled.
    * @returns {boolean} `true` if viewport was scrolled, `false` otherwise.
    */
-  this.scrollViewportTo = function(options) {
+  this.scrollViewportTo = function(options, callback) {
     // Support for backward compatibility arguments: (row, col, snapToBottom, snapToRight, considerHiddenIndexes)
     if (typeof options === 'number') {
       /* eslint-disable prefer-rest-params */
@@ -4436,11 +4469,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     const {
       row,
       col,
-      considerHiddenIndexes
+      considerHiddenIndexes,
     } = options ?? {};
 
     let renderableRow = row;
     let renderableColumn = col;
+
+    if (isFunction(callback)) {
+      this.addHookOnce('afterScroll', callback);
+    }
 
     if (considerHiddenIndexes === undefined || considerHiddenIndexes) {
       const isValidRowGrid = Number.isInteger(row) && row >= 0;
@@ -4461,24 +4498,33 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     const isRowInteger = Number.isInteger(renderableRow);
     const isColumnInteger = Number.isInteger(renderableColumn);
+    let isScrolled = false;
 
     if (isRowInteger && renderableRow >= 0 && isColumnInteger && renderableColumn >= 0) {
-      return instance.view.scrollViewport(
+      isScrolled = instance.view.scrollViewport(
         instance._createCellCoords(renderableRow, renderableColumn),
         options.horizontalSnap,
         options.verticalSnap,
       );
+
+    } else if (isRowInteger && renderableRow >= 0 && (isColumnInteger && renderableColumn < 0 || !isColumnInteger)) {
+      isScrolled = instance.view.scrollViewportVertically(renderableRow, options.verticalSnap);
+
+    } else if (isColumnInteger && renderableColumn >= 0 && (isRowInteger && renderableRow < 0 || !isRowInteger)) {
+      isScrolled = instance.view.scrollViewportHorizontally(renderableColumn, options.horizontalSnap);
     }
 
-    if (isRowInteger && renderableRow >= 0 && (isColumnInteger && renderableColumn < 0 || !isColumnInteger)) {
-      return instance.view.scrollViewportVertically(renderableRow, options.verticalSnap);
+    if (isFunction(callback)) {
+      if (isScrolled) {
+        // fast render triggers `afterScroll` hook
+        this.view.render();
+      } else {
+        this.removeHook('afterScroll', callback);
+        this._registerMicrotask(() => callback());
+      }
     }
 
-    if (isColumnInteger && renderableColumn >= 0 && (isRowInteger && renderableRow < 0 || !isRowInteger)) {
-      return instance.view.scrollViewportHorizontally(renderableColumn, options.horizontalSnap);
-    }
-
-    return false;
+    return isScrolled;
   };
 
   /**
@@ -4488,24 +4534,31 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @fires Hooks#afterScroll
    * @function scrollToFocusedCell
-   * @param {Function} callback The callback function to call after the viewport is scrolled.
+   * @param {Function} [callback] The callback function to call after the viewport is scrolled.
+   * @returns {boolean} `true` if the viewport was scrolled, `false` otherwise.
    */
-  this.scrollToFocusedCell = function(callback = () => {}) {
+  this.scrollToFocusedCell = function(callback) {
     if (!this.selection.isSelected()) {
-      return;
+      return false;
     }
 
-    this.addHookOnce('afterScroll', callback);
+    if (isFunction(callback)) {
+      this.addHookOnce('afterScroll', callback);
+    }
 
     const { highlight } = this.getSelectedRangeLast();
     const isScrolled = this.scrollViewportTo(highlight.toObject());
 
     if (isScrolled) {
+      // fast render triggers `afterScroll` hook
       this.view.render();
-    } else {
+
+    } else if (isFunction(callback)) {
       this.removeHook('afterScroll', callback);
-      this._registerImmediate(() => callback());
+      this._registerMicrotask(() => callback());
     }
+
+    return isScrolled;
   };
 
   /**
@@ -5029,6 +5082,20 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this._clearImmediates = function() {
     arrayEach(this.immediates, (handler) => {
       clearImmediate(handler);
+    });
+  };
+
+  /**
+   * Registers a microtask callback.
+   *
+   * @param {Function} callback Function to be delayed in execution.
+   * @private
+   */
+  this._registerMicrotask = function(callback) {
+    this.rootWindow.queueMicrotask(() => {
+      if (!this.isDestroyed) {
+        callback();
+      }
     });
   };
 

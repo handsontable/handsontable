@@ -1,6 +1,7 @@
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
 const configFactory = require('./styles-classic-development');
-const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
 const { getClosest } = require('./helper/path');
+const CssCharsetCleanupPlugin = require('./plugin/webpack/css-charset-cleanup-plugin');
 
 module.exports.create = function create(envArgs) {
   const config = configFactory.create(envArgs);
@@ -22,6 +23,7 @@ module.exports.create = function create(envArgs) {
       minimize: true,
       minimizer: [
         new CssMinimizerPlugin(),
+        new CssCharsetCleanupPlugin(),
       ],
     };
   });

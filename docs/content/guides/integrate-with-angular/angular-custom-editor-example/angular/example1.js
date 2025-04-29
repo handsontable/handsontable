@@ -7,6 +7,7 @@ import { CustomEditor } from './CustomEditor';
 
 @Component({
   selector: 'app-root',
+  standalone: false,
   template: `
     <div>
       <hot-table [settings]="hotSettings"></hot-table>

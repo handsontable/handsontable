@@ -199,6 +199,13 @@ export class AutoColumnSize extends BasePlugin {
   columnWidthsMap = new IndexToValueMap();
 
   /**
+   * `true` value indicates that the #onInit() function has been already called.
+   *
+   * @type {boolean}
+   */
+  #isInitialized = false;
+
+  /**
    * Cached column header names. It is used to diff current column headers with previous state and detect which
    * columns width should be updated.
    *
@@ -295,7 +302,7 @@ export class AutoColumnSize extends BasePlugin {
       return;
     }
 
-    const overwriteCache = this.hot.renderCall;
+    const overwriteCache = this.hot.forceFullRender;
 
     this.calculateColumnsWidth({ from: firstVisibleColumn, to: lastVisibleColumn }, undefined, overwriteCache);
   }
@@ -324,21 +331,12 @@ export class AutoColumnSize extends BasePlugin {
 
       if (overwriteCache || (this.columnWidthsMap.getValueAtIndex(physicalColumn) === null &&
           !this.hot._getColWidthFromSettings(physicalColumn))) {
-        const samples = this.samplesGenerator.generateColumnSamples(visualColumn, rowsRange);
-
-        samples.forEach((sample, column) => this.ghostTable.addColumn(column, sample));
+        this.#fillGhostTableWithSamples(visualColumn, rowsRange);
       }
     });
 
     if (this.ghostTable.columns.length) {
-      this.hot.batchExecution(() => {
-        this.ghostTable.getWidths((visualColumn, width) => {
-          const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
-
-          this.columnWidthsMap.setValueAtIndex(physicalColumn, width);
-        });
-      }, true);
-
+      this.#updateColumnWidthsMapBasedOnGhostTable();
       this.measuredColumns = columnsRange.to + 1;
       this.ghostTable.clean();
     }
@@ -420,23 +418,40 @@ export class AutoColumnSize extends BasePlugin {
       }
 
       if (!this.hot._getColWidthFromSettings(physicalColumn)) {
-        const samples = this.samplesGenerator.generateColumnSamples(visualColumn, rowsRange);
-
-        samples.forEach((sample, column) => this.ghostTable.addColumn(column, sample));
+        this.#fillGhostTableWithSamples(visualColumn, rowsRange);
       }
     });
 
     if (this.ghostTable.columns.length) {
-      this.hot.batchExecution(() => {
-        this.ghostTable.getWidths((visualColumn, width) => {
-          const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
-
-          this.columnWidthsMap.setValueAtIndex(physicalColumn, width);
-        });
-      }, true);
-
+      this.#updateColumnWidthsMapBasedOnGhostTable();
       this.ghostTable.clean();
     }
+  }
+
+  /**
+   * Processes a single column for width calculation.
+   *
+   * @param {number} visualColumn Visual column index.
+   * @param {object} rowsRange Range of rows to process.
+   */
+  #fillGhostTableWithSamples(visualColumn, rowsRange) {
+    const samples = this.samplesGenerator.generateColumnSamples(visualColumn, rowsRange);
+
+    samples.forEach((sample, column) => this.ghostTable.addColumn(column, sample));
+  }
+
+  /**
+   * Updates the column widths map with calculated widths from the ghost table.
+   *
+   */
+  #updateColumnWidthsMapBasedOnGhostTable() {
+    this.hot.batchExecution(() => {
+      this.ghostTable.getWidths((visualColumn, width) => {
+        const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
+
+        this.columnWidthsMap.setValueAtIndex(physicalColumn, width);
+      });
+    }, true);
   }
 
   /**
@@ -639,6 +654,7 @@ export class AutoColumnSize extends BasePlugin {
   #onInit() {
     this.#cachedColumnHeaders = this.hot.getColHeader();
     this.recalculateAllColumnsWidth();
+    this.#isInitialized = true;
   }
 
   /**
@@ -647,6 +663,10 @@ export class AutoColumnSize extends BasePlugin {
    * @param {Array} changes An array of modified data.
    */
   #onAfterFormulasValuesUpdate(changes) {
+    if (!this.#isInitialized) {
+      return;
+    }
+
     const changedColumns = changes.reduce((acc, change) => {
       const physicalColumn = change.address?.col;
 

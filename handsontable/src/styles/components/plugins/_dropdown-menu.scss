@@ -250,12 +250,6 @@
       }
     }
 
-    // Submenu
-    &.htContextMenuSub_Alignment,
-    &.htDropdownMenuSub_Alignment {
-      margin-top: calc(var(--ht-menu-vertical-padding) * -1);
-    }
-
     // Filter
     .htUIClearAll a,
     .htUISelectAll a {

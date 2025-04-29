@@ -397,7 +397,6 @@ class DataMap {
     }
 
     this.hot.runHooks('afterCreateRow', newVisualRowIndex, numberOfCreatedRows, source);
-    this.hot.forceFullRender = true; // used when data was changed
 
     return {
       delta: numberOfCreatedRows,
@@ -499,8 +498,6 @@ class DataMap {
     const newVisualColumnIndex = this.hot.toVisualColumn(startPhysicalIndex);
 
     this.hot.runHooks('afterCreateCol', newVisualColumnIndex, numberOfCreatedCols, source);
-    this.hot.forceFullRender = true; // used when data was changed
-
     this.refreshDuckSchema();
 
     return {
@@ -558,7 +555,6 @@ class DataMap {
     });
 
     this.hot.runHooks('afterRemoveRow', rowIndex, numberOfRemovedIndexes, removedPhysicalIndexes, source);
-    this.hot.forceFullRender = true; // used when data was changed
 
     return true;
   }
@@ -630,7 +626,6 @@ class DataMap {
     }
 
     this.hot.runHooks('afterRemoveCol', columnIndex, amount, removedPhysicalIndexes, source);
-    this.hot.forceFullRender = true; // used when data was changed
     this.refreshDuckSchema();
 
     return true;

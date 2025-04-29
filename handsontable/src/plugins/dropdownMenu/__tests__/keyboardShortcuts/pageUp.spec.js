@@ -11,19 +11,16 @@ describe('DropdownMenu keyboard shortcut', () => {
   });
 
   describe('"PageUp"', () => {
-    it('should move the menu item selection to the first item that is visible in the browser viewport' +
+    it('should move the menu item selection to the first item that is visible in the browser viewport ' +
        'when there is no initial selection', async() => {
       handsontable({
         colHeaders: true,
         dropdownMenu: generateRandomDropdownMenuItems(200),
       });
 
-      dropdownMenu();
-      window.scrollTo(0, 1000);
-
-      await sleep(100);
-
-      keyDownUp('pageup');
+      await dropdownMenu();
+      await scrollWindowTo(0, 1000);
+      await keyDownUp('pageup');
 
       expect(getPlugin('dropdownMenu').menu.getSelectedItem().name).toBe('Test item 1');
       expect(window.scrollY).forThemes(({ classic, main, horizon }) => {
@@ -33,16 +30,16 @@ describe('DropdownMenu keyboard shortcut', () => {
       });
     });
 
-    it('should move the menu item selection to the first item when the menu fits within the browser viewport' +
-       'and there is initial selection', () => {
+    it('should move the menu item selection to the first item when the menu fits within the browser viewport ' +
+       'and there is initial selection', async() => {
       handsontable({
         colHeaders: true,
         dropdownMenu: generateRandomDropdownMenuItems(10),
       });
 
-      dropdownMenu();
+      await dropdownMenu();
       getPlugin('dropdownMenu').menu.getNavigator().toLastItem();
-      keyDownUp('pageup');
+      await keyDownUp('pageup');
 
       const hotMenu = getPlugin('dropdownMenu').menu.hotMenu;
 
@@ -56,14 +53,12 @@ describe('DropdownMenu keyboard shortcut', () => {
         dropdownMenu: generateRandomDropdownMenuItems(200),
       });
 
-      dropdownMenu();
+      await dropdownMenu();
+
       getPlugin('dropdownMenu').menu.getNavigator().toLastItem();
 
-      window.scrollTo(0, document.documentElement.scrollHeight);
-
-      await sleep(100);
-
-      keyDownUp('pageup');
+      await scrollWindowTo(0, document.documentElement.scrollHeight);
+      await keyDownUp('pageup');
 
       const menuView = getPlugin('dropdownMenu').menu.hotMenu.view;
       let lastVisibleRow = 199;
@@ -78,7 +73,7 @@ describe('DropdownMenu keyboard shortcut', () => {
         lastVisibleRow = startRow;
       }
 
-      keyDownUp('pageup');
+      await keyDownUp('pageup');
 
       {
         const startRow = menuView.getFirstPartiallyVisibleRow();
@@ -90,7 +85,7 @@ describe('DropdownMenu keyboard shortcut', () => {
         lastVisibleRow = startRow;
       }
 
-      keyDownUp('pageup');
+      await keyDownUp('pageup');
 
       {
         const startRow = menuView.getFirstPartiallyVisibleRow();
@@ -102,7 +97,7 @@ describe('DropdownMenu keyboard shortcut', () => {
         lastVisibleRow = startRow;
       }
 
-      keyDownUp('pageup');
+      await keyDownUp('pageup');
 
       {
         const startRow = menuView.getFirstPartiallyVisibleRow();

@@ -15,7 +15,7 @@ test.skip('Test merging', async({ goto, tablePage }) => {
   await createSelection(cellFrom, cellTo);
 
   await cellFrom.click({ button: 'right' });
-  await selectFromContextMenu('"Merge cells"');
+  await selectFromContextMenu('Merge cells');
 
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 });

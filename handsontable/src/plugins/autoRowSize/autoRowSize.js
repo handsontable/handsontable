@@ -197,6 +197,13 @@ export class AutoRowSize extends BasePlugin {
    */
   #visualRowsToRefresh = [];
 
+  /**
+   * `true` value indicates that the #onInit() function has been already called.
+   *
+   * @type {boolean}
+   */
+  #isInitialized = false;
+
   constructor(hotInstance) {
     super(hotInstance);
     this.hot.rowIndexMapper.registerMap(ROW_WIDTHS_MAP_NAME, this.rowHeightsMap);
@@ -275,7 +282,7 @@ export class AutoRowSize extends BasePlugin {
       return;
     }
 
-    const overwriteCache = this.hot.renderCall;
+    const overwriteCache = this.hot.forceFullRender;
 
     this.calculateRowsHeight({ from: firstVisibleRow, to: lastVisibleRow }, undefined, overwriteCache);
   }
@@ -371,11 +378,6 @@ export class AutoRowSize extends BasePlugin {
 
         // @TODO Should call once per render cycle, currently fired separately in different plugins
         this.hot.view.adjustElementsSize();
-
-        // tmp
-        if (this.hot.view._wt.wtOverlays.inlineStartOverlay.needFullRender) {
-          this.hot.view._wt.wtOverlays.inlineStartOverlay.clone.draw();
-        }
       }
     };
 
@@ -625,6 +627,7 @@ export class AutoRowSize extends BasePlugin {
    */
   #onInit() {
     this.recalculateAllRowsHeight();
+    this.#isInitialized = true;
   }
 
   /**
@@ -633,6 +636,10 @@ export class AutoRowSize extends BasePlugin {
    * @param {Array} changes An array of modified data.
    */
   #onAfterFormulasValuesUpdate(changes) {
+    if (!this.#isInitialized) {
+      return;
+    }
+
     const changedRows = changes.reduce((acc, change) => {
       const physicalRow = change.address?.row;
 

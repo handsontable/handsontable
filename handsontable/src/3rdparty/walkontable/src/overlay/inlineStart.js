@@ -99,13 +99,19 @@ export class InlineStartOverlay extends Overlay {
       pos = -pos;
     }
 
-    if (this.mainTableScrollableElement === rootWindow && rootWindow.scrollX !== pos) {
-      rootWindow.scrollTo(pos, getWindowScrollTop(rootWindow));
-      result = true;
+    const scrollableElement = this.mainTableScrollableElement;
 
-    } else if (this.mainTableScrollableElement.scrollLeft !== pos) {
-      this.mainTableScrollableElement.scrollLeft = pos;
-      result = true;
+    if (scrollableElement === rootWindow && pos !== rootWindow.scrollX) {
+      const oldScrollX = rootWindow.scrollX;
+
+      rootWindow.scrollTo(pos, getWindowScrollTop(rootWindow));
+      result = oldScrollX !== rootWindow.scrollX;
+
+    } else if (pos !== scrollableElement.scrollLeft) {
+      const oldScrollLeft = scrollableElement.scrollLeft;
+
+      scrollableElement.scrollLeft = pos;
+      result = oldScrollLeft !== scrollableElement.scrollLeft;
     }
 
     return result;

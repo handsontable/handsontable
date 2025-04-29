@@ -22,7 +22,7 @@ describe('WalkontableTable', () => {
   });
 
   describe('getCoords()', () => {
-    it('should return coords of TD', () => {
+    it('should return coords of TD', async() => {
       const wt = walkontable({
         data: getData,
         totalRows: getTotalRows,
@@ -36,7 +36,7 @@ describe('WalkontableTable', () => {
       expect(wt.wtTable.getCoords($td2[0])).toEqual(new Walkontable.CellCoords(1, 1));
     });
 
-    it('should return coords of TD (with row header)', () => {
+    it('should return coords of TD (with row header)', async() => {
       spec().$wrapper.width(300);
 
       function plusOne(i) {
@@ -59,7 +59,7 @@ describe('WalkontableTable', () => {
       expect(wt.wtTable.getCoords($td2[0])).toEqual(new Walkontable.CellCoords(1, 1));
     });
 
-    it('should return coords of TH', () => {
+    it('should return coords of TH', async() => {
       spec().$wrapper.width(300);
 
       const wt = walkontable({
@@ -78,7 +78,7 @@ describe('WalkontableTable', () => {
       expect(wt.wtTable.getCoords($th2[0])).toEqual(new Walkontable.CellCoords(-1, 1));
     });
 
-    it('should return coords of TD (with fixedColumnsStart)', () => {
+    it('should return coords of TD (with fixedColumnsStart)', async() => {
       const wt = walkontable({
         data: getData,
         totalRows: getTotalRows,
@@ -95,6 +95,22 @@ describe('WalkontableTable', () => {
       const $td2 = $cloneLeft.find('tbody tr:eq(1) td:eq(1)');
 
       expect(wt.wtTable.getCoords($td2[0])).toEqual(new Walkontable.CellCoords(1, 1));
+    });
+
+    it('should return `null` when the cell element doesn`t contain a parent node', async() => {
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns
+      });
+
+      wt.draw();
+
+      const $td2 = spec().$table.find('tbody tr:eq(1) td:eq(1)');
+
+      $td2.remove();
+
+      expect(wt.wtTable.getCoords($td2[0])).toEqual(null);
     });
   });
 });

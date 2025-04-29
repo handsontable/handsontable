@@ -156,7 +156,9 @@ class TableView {
    */
   render() {
     if (!this.hot.isRenderSuspended()) {
-      this.hot.runHooks('beforeRender', this.hot.forceFullRender);
+      const isFullRender = this.hot.forceFullRender;
+
+      this.hot.runHooks('beforeRender', isFullRender);
 
       if (this.postponedAdjustElementsSize) {
         this.postponedAdjustElementsSize = false;
@@ -164,13 +166,12 @@ class TableView {
         this.adjustElementsSize();
       }
 
-      this._wt.draw(!this.hot.forceFullRender);
+      this._wt.draw(!isFullRender);
 
       this.#updateScrollbarClassNames();
 
-      this.hot.runHooks('afterRender', this.hot.forceFullRender);
+      this.hot.runHooks('afterRender', isFullRender);
       this.hot.forceFullRender = false;
-      this.hot.renderCall = false;
     }
   }
 
@@ -1254,8 +1255,7 @@ class TableView {
     this.eventManager.addEventListener(this.hot.rootDocument.documentElement, 'click', () => {
       if (this.settings.observeDOMVisibility) {
         if (this._wt.drawInterrupted) {
-          this.hot.forceFullRender = true;
-          this.render();
+          this.hot.render();
         }
       }
     });
@@ -1330,7 +1330,6 @@ class TableView {
    */
   beforeRender(force, skipRender) {
     if (force) {
-      // this.hot.forceFullRender = did Handsontable request full render?
       this.hot.runHooks('beforeViewRender', this.hot.forceFullRender, skipRender);
     }
   }
@@ -1344,7 +1343,6 @@ class TableView {
    */
   afterRender(force) {
     if (force) {
-      // this.hot.forceFullRender = did Handsontable request full render?
       this.hot.runHooks('afterViewRender', this.hot.forceFullRender);
     }
   }

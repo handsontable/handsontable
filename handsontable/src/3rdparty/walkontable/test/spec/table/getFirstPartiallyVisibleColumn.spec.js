@@ -30,7 +30,7 @@ describe('WalkontableTable', () => {
   });
 
   describe('getFirstPartiallyVisibleColumn()', () => {
-    it('should return -1 error code if there are no rendered rows and columns', () => {
+    it('should return -1 error code if there are no rendered rows and columns', async() => {
       createDataArray(0, 0);
       spec().$wrapper.width(250).height(170);
 
@@ -69,7 +69,40 @@ describe('WalkontableTable', () => {
       expectWtTable(wt, wtTable => wtTable.getFirstPartiallyVisibleColumn(), 'top').toBe(-1);
     });
 
-    it('should return source index that is relevant to a given overlay', () => {
+    it('should return -1 error code if there are rendered rows and columns after fixed overlays are disabled', async() => {
+      createDataArray(4, 4);
+      spec().$wrapper.width(250).height(170);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        fixedColumnsStart: 2,
+        columnHeaders: [function(col, TH) {
+          TH.innerHTML = `${hotParentName(TH)}-header-of-col-${col}`;
+        }],
+        rowHeaders: [function(row, TH) {
+          TH.innerHTML = `${hotParentName(TH)}-header-of-row-${row}`;
+        }]
+      });
+
+      wt.draw();
+      wt.wtSettings.update('fixedColumnsStart', 0);
+      wt.draw();
+
+      expectWtTable(wt, wtTable => wtTable.getFirstPartiallyVisibleColumn(), 'master').toBe(0);
+
+      expect(wt.wtOverlays.topInlineStartCornerOverlay).not.toBe(undefined);
+      expectWtTable(wt, wtTable => wtTable.getFirstPartiallyVisibleColumn(), 'topInlineStartCorner').toBe(-1);
+
+      expect(wt.wtOverlays.inlineStartOverlay.clone).not.toBe(undefined);
+      expectWtTable(wt, wtTable => wtTable.getFirstPartiallyVisibleColumn(), 'inlineStart').toBe(-1);
+
+      expect(wt.wtOverlays.bottomInlineStartCornerOverlay).not.toBe(undefined);
+      expectWtTable(wt, wtTable => wtTable.getFirstPartiallyVisibleColumn(), 'bottomInlineStartCorner').toBe(-1);
+    });
+
+    it('should return source index that is relevant to a given overlay', async() => {
       createDataArray(18, 18);
       spec().$wrapper.width(250).height(170);
 
@@ -92,7 +125,7 @@ describe('WalkontableTable', () => {
       expectWtTable(wt, wtTable => wtTable.getFirstPartiallyVisibleColumn(), 'top').toBe(2);
     });
 
-    it('should return the same column index as for fully visible column when the column is aligned to the left edge of the table', () => {
+    it('should return the same column index as for fully visible column when the column is aligned to the left edge of the table', async() => {
       createDataArray(18, 18);
       spec().$wrapper.width(209).height(185);
 
@@ -110,7 +143,7 @@ describe('WalkontableTable', () => {
       expect(wt.wtTable.getFirstVisibleColumn()).toBe(1);
     });
 
-    it('should return source index only for partially visible column', () => {
+    it('should return source index only for partially visible column', async() => {
       createDataArray(18, 18);
       spec().$wrapper.width(209).height(185);
 

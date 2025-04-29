@@ -30,6 +30,7 @@ import {
   A11Y_SETSIZE,
   A11Y_TEXT
 } from '../../helpers/a11y';
+import { debounce } from '../../helpers/function';
 
 export const EDITOR_TYPE = 'autocomplete';
 
@@ -87,6 +88,13 @@ export class AutocompleteEditor extends HandsontableEditor {
   }
 
   /**
+   * Runs focus method after debounce.
+   */
+  #focusDebounced = debounce(() => {
+    this.focus();
+  }, 100);
+
+  /**
    * Creates an editor's elements and adds necessary CSS classnames.
    */
   createElements() {
@@ -141,11 +149,11 @@ export class AutocompleteEditor extends HandsontableEditor {
     this.showEditableElement();
     this.focus();
     this.addHook('beforeKeyDown', event => this.onBeforeKeyDown(event));
+    this.htEditor.addHook('afterScroll', this.#focusDebounced);
 
     this.htEditor.updateSettings({
       colWidths: trimDropdown ? [outerWidth(this.TEXTAREA) - 2] : undefined,
       autoColumnSize: true,
-      autoRowSize: true,
       renderer: (hotInstance, TD, row, col, prop, value, cellProperties) => {
         textRenderer(hotInstance, TD, row, col, prop, value, cellProperties);
 
@@ -179,13 +187,27 @@ export class AutocompleteEditor extends HandsontableEditor {
       },
       afterSelectionEnd: (startRow, startCol) => {
         if (rootInstanceAriaTagsEnabled) {
+          const setA11yAttributes = (TD) => {
+            setAttribute(TD, [
+              A11Y_SELECTED(),
+            ]);
+
+            setAttribute(this.TEXTAREA, ...A11Y_ACTIVEDESCENDANT(TD.id));
+          };
           const TD = this.htEditor.getCell(startRow, startCol, true);
 
-          setAttribute(TD, [
-            A11Y_SELECTED(),
-          ]);
+          if (TD !== null) {
+            setA11yAttributes(TD);
 
-          setAttribute(this.TEXTAREA, ...A11Y_ACTIVEDESCENDANT(TD.id));
+          } else {
+            // If TD is null, it means that the cell is not (yet) in the viewport.
+            // Moving the logic to after it's been scrolled to the requested cell.
+            this.htEditor.addHookOnce('afterScrollVertically', () => {
+              const renderedTD = this.htEditor.getCell(startRow, startCol, true);
+
+              setA11yAttributes(renderedTD);
+            });
+          }
         }
       },
     });
@@ -286,7 +308,9 @@ export class AutocompleteEditor extends HandsontableEditor {
     const orderByRelevanceLength = Array.isArray(orderByRelevance) ? orderByRelevance.length : 0;
 
     if (filterSetting === false) {
-      highlightIndex = orderByRelevanceLength > 0 ? orderByRelevance[0] : 0;
+      if (orderByRelevanceLength) {
+        highlightIndex = orderByRelevance[0];
+      }
 
     } else {
       const sorted = [];
@@ -429,7 +453,7 @@ export class AutocompleteEditor extends HandsontableEditor {
   #fixDropdownWidth() {
     if (this.htEditor.view.hasVerticalScroll()) {
       this.htEditor.updateSettings({
-        width: this.htEditor.getSettings().width + getScrollbarWidth(this.hot.rootDocument),
+        width: this.getWidth() + getScrollbarWidth(this.hot.rootDocument),
       });
     }
   }
@@ -492,7 +516,11 @@ export class AutocompleteEditor extends HandsontableEditor {
       parseInt(containerStyle.borderBottomWidth, 10);
     const maxItems = Math.min(this.cellProperties.visibleRows, this.strippedChoices.length);
     const height = Array.from({ length: maxItems }, (_, i) => i)
-      .reduce((h, index) => h + this.htEditor.getRowHeight(index), 0);
+      .reduce((totalHeight, index) => {
+        const rowHeight = this.htEditor.getRowHeight(index) || this.htEditor.view.getDefaultRowHeight();
+
+        return totalHeight + rowHeight;
+      }, 0);
 
     return height + borderVerticalCompensation + 1;
   }

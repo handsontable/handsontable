@@ -308,6 +308,7 @@ export class Menu {
       layoutDirection: this.hot.isRtl() ? 'rtl' : 'ltr',
       ariaTags: false,
       themeName: this.hot.getCurrentThemeName(),
+      beforeRefreshDimensions: () => false,
       beforeOnCellMouseOver: (event, coords) => {
         this.#navigator.setCurrentPage(coords.row);
       },

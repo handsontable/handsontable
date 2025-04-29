@@ -76,9 +76,7 @@ const ExampleComponent = () => {
             if (cellChanges[i][2] === null && cellChanges[i][3] !== null) {
               if (isEmptyRow(instance, cellChanges[i][0])) {
                 // add this row/col combination to the cache so it will not be overwritten by the template
-                rowColumnSeen[
-                  `${cellChanges[i][0]}/${cellChanges[i][1]}`
-                ] = true;
+                rowColumnSeen[`${cellChanges[i][0]}/${cellChanges[i][1]}`] = true;
                 rowsToFill[cellChanges[i][0]] = true;
               }
             }

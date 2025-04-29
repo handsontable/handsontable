@@ -13,7 +13,7 @@ describe('NestedRows', () => {
   });
 
   describe('Initialization', () => {
-    it('should display an error and disable the plugin, when no data was provided', () => {
+    it('should display an error and disable the plugin, when no data was provided', async() => {
       const errorSpy = spyOn(console, 'error');
 
       handsontable({
@@ -24,11 +24,11 @@ describe('NestedRows', () => {
         ' provided. The plugin has been disabled.');
     });
 
-    it('should display an error and disable the plugin, when an array of arrays was provided as a dataset', () => {
+    it('should display an error and disable the plugin, when an array of arrays was provided as a dataset', async() => {
       const errorSpy = spyOn(console, 'error');
 
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        data: createSpreadsheetData(3, 3),
         nestedRows: true
       });
 
@@ -37,24 +37,24 @@ describe('NestedRows', () => {
     });
 
     it('should prevent enabling the plugin after the updateSettings call when it was automatically disabled by ' +
-       'passing the wrong dataset', () => {
+       'passing the wrong dataset', async() => {
       const errorSpy = spyOn(console, 'error');
 
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        data: createSpreadsheetData(3, 3),
         nestedRows: true
       });
 
       expect(errorSpy).toHaveBeenCalledWith('The Nested Rows plugin requires an Array of Objects as a dataset to be' +
         ' provided. The plugin has been disabled.');
 
-      updateSettings({});
+      await updateSettings({});
 
       expect(getSettings().nestedRows).toBe(false);
       expect(getPlugin('nestedRows').enabled).toBe(false);
     });
 
-    it('should render the row header in correct width (based on the deepest dataset length)', () => {
+    it('should render the row header in correct width (based on the deepest dataset length)', async() => {
       handsontable({
         data: [{
           category: 'Best Rock Performance',

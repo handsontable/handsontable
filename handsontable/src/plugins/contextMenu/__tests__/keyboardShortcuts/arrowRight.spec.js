@@ -18,15 +18,36 @@ describe('ContextMenu keyboard shortcut', () => {
         height: 100
       });
 
-      contextMenu();
-      keyDownUp('arrowdown');
-      keyDownUp('arrowright');
+      await contextMenu();
+      await keyDownUp('arrowdown');
+      await keyDownUp('arrowright');
 
       await sleep(300);
 
       expect(getPlugin('contextMenu').menu.hotSubMenus.alignment.hotMenu.getSelected()).toEqual([
         [0, 0, 0, 0]
       ]);
+    });
+
+    it('should hide already opened subMenu when configured as `layoutDirection: rtl`', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        contextMenu: ['alignment'],
+        height: 100,
+        layoutDirection: 'rtl',
+      });
+
+      await contextMenu();
+      await keyDownUp('arrowdown');
+      await keyDownUp('arrowleft');
+
+      await sleep(300);
+
+      expect($('.htContextMenuSub_Alignment').is(':visible')).toBe(true);
+
+      await keyDownUp('arrowright');
+
+      expect($('.htContextMenuSub_Alignment').is(':visible')).toBe(false);
     });
   });
 });

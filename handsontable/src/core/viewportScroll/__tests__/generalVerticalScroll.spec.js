@@ -1,8 +1,11 @@
 describe('Vertical scroll', () => {
   const id = 'testContainer';
+  let scrollIntoViewSpy;
 
   beforeEach(function() {
     this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+
+    scrollIntoViewSpy = spyOn(Element.prototype, 'scrollIntoView');
   });
 
   afterEach(function() {
@@ -25,20 +28,20 @@ describe('Vertical scroll', () => {
     });
 
     // make sure that the `9` row is partially visible
-    topOverlay().setScrollPosition(195);
-
-    await sleep(10);
-
+    await scrollViewportVertically(195);
     // select the `9` row
-    selectCell(8, 0);
-
-    await sleep(10);
+    await selectCell(8, 0);
 
     // expect that the viewport is scrolled to the beginning of the `9` row
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(184);
       main.toBe(195);
       horizon.toBe(195);
+    });
+    expect(scrollIntoViewSpy.calls.thisFor(0)).toBe(getCell(8, 0, true));
+    expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+      block: 'nearest',
+      inline: 'nearest',
     });
   });
 });

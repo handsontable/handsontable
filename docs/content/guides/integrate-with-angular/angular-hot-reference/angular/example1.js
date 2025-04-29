@@ -5,6 +5,7 @@ import { HotTableRegisterer } from '@handsontable/angular';
 
 @Component({
   selector: 'app-root',
+  standalone: false,
   template: `
     <div class="controls">
       <button (click)="swapHotData()" class="controls">Load new data</button>

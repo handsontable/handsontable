@@ -81,7 +81,7 @@ You can also use [Yarn](https://yarnpkg.com/package/handsontable), [NuGet](https
 
   ```html
   <!-- Set the container's ID and apply the desired theme -->
-  <div id="handsontable-example" class="ht-theme-main-dark-auto"></div>
+  <div id="handsontable-grid" class="ht-theme-main-dark-auto"></div>
   ```
 
 ### Setup
