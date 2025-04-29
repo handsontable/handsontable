@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed an issue with row resize line alignment and resize handle flickering",
-  "type": "fixed",
-  "issueOrPR": 11500,
-  "breaking": false,
-  "framework": "none"
-}

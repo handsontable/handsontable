@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed an issue with the mobile keyboard closing after clicking the filter search input on Android devices ",
-  "type": "fixed",
-  "issueOrPR": 11532,
-  "breaking": false,
-  "framework": "none"
-}

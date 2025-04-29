@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Ensured that there's a single `@charset` entry in the classic theme's CSS files and that it's placed at the beginning of those files.",
-  "type": "fixed",
-  "issueOrPR": 11591,
-  "breaking": false,
-  "framework": "none"
-}
