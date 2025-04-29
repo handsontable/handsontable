@@ -30,7 +30,7 @@ describe('Handsontable initialization', () => {
     expect(hotInstance).not.toBe(null);
     expect(hotInstance).not.toBe(void 0);
 
-    expect(hotInstance.rootElement.id).toEqual('test-hot');
+    expect(hotInstance.rootContainer.id).toEqual('test-hot');
   });
 
   it('should pass the provided properties to the Handsontable instance', async () => {
@@ -44,7 +44,7 @@ describe('Handsontable initialization', () => {
         licenseKey="non-commercial-and-evaluation"/>
     )).hotInstance;
 
-    expect(hotInstance.rootElement.id).toBe('test-hot');
+    expect(hotInstance.rootContainer.id).toBe('test-hot');
     expect(hotInstance.getSettings().contextMenu).toBe(true);
     expect(hotInstance.getSettings().rowHeaders).toBe(true);
     expect(hotInstance.getSettings().colHeaders).toBe(true);
