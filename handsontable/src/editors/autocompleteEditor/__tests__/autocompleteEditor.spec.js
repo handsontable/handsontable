@@ -1207,6 +1207,8 @@ describe('AutocompleteEditor', () => {
     });
 
     it('should display the dropdown above the editor, when there is not enough space below (table has defined size)', async() => {
+      spec().$container.css('overflow', '');
+
       handsontable({
         data: createEmptySpreadsheetData(30, 30),
         editor: 'autocomplete',
@@ -1225,6 +1227,8 @@ describe('AutocompleteEditor', () => {
     });
 
     it('should display the dropdown once above and once below the editor after the choices list is changed (table has defined size)', async() => {
+      spec().$container.css('overflow', '');
+
       handsontable({
         data: createEmptySpreadsheetData(30, 5),
         editor: 'autocomplete',
