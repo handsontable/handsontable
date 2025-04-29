@@ -1748,7 +1748,7 @@ describe('AutocompleteEditor', () => {
       await keyDownUp('enter');
       await sleep(200);
 
-      expect($('#testContainer.handsontable > .handsontable .wtBorder.current.corner:visible').length).toEqual(1);
+      expect($('#testContainer .handsontable > .handsontable .wtBorder.current.corner:visible').length).toEqual(1);
     });
   });
 
@@ -2666,7 +2666,7 @@ describe('AutocompleteEditor', () => {
 
     spec().$container.simulate('mousedown');
 
-    expect(getDataAtCell(0, 0)).toBeNull();
+    expect(getDataAtCell(0, 0)).toEqual('');
   });
 
   it('should be able to use empty value ("")', async() => {

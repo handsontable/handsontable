@@ -206,19 +206,19 @@ describe('header-related a11y config', () => {
 
           expect(
             getTopInlineStartClone().get(0).querySelector('thead th:first-of-type').getAttribute('role')
-          ).toBe('row');
+          ).toBe('gridcell button');
 
           expect(
             getMaster().get(0).querySelector('thead th:first-of-type').getAttribute('role')
-          ).toBe('row');
+          ).toBe('gridcell button');
 
           expect(
             getInlineStartClone().get(0).querySelector('thead th:first-of-type').getAttribute('role')
-          ).toBe('row');
+          ).toBe('gridcell button');
 
           expect(
             getTopClone().get(0).querySelector('thead th:first-of-type').getAttribute('role')
-          ).toBe('row');
+          ).toBe('gridcell button');
         });
       });
     });

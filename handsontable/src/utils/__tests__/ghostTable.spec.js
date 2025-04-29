@@ -55,9 +55,9 @@ describe('GhostTable', () => {
 
       expect(gt.createContainer.calls.count()).toBe(1);
       expect(gt.createContainer.calls.mostRecent().args).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual(['handsontable']);
-        main.toEqual(['handsontable']);
-        horizon.toEqual(['handsontable']);
+        classic.toEqual(['ht-wrapper handsontable']);
+        main.toEqual(['ht-wrapper handsontable']);
+        horizon.toEqual(['ht-wrapper handsontable']);
       });
     });
 
@@ -174,9 +174,9 @@ describe('GhostTable', () => {
 
       expect(gt.createContainer.calls.count()).toBe(1);
       expect(gt.createContainer.calls.mostRecent().args).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual(['handsontable']);
-        main.toEqual(['handsontable']);
-        horizon.toEqual(['handsontable']);
+        classic.toEqual(['ht-wrapper handsontable']);
+        main.toEqual(['ht-wrapper handsontable']);
+        horizon.toEqual(['ht-wrapper handsontable']);
       });
     });
 

@@ -239,7 +239,7 @@ describe('Core_init', () => {
 
       expect(tableView().getStylesHandler().isClassicTheme()).toBe(false);
       expect(getCurrentThemeName()).toBe('ht-theme-sth');
-      expect($(hot.rootElement).hasClass('ht-theme-sth')).toBe(true);
+      expect($(hot.rootWrapperElement).hasClass('ht-theme-sth')).toBe(true);
     });
   });
 });

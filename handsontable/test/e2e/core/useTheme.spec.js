@@ -29,10 +29,10 @@ describe('useTheme', () => {
   });
 
   it('should add the appropriate class names to the root element when enabling a theme', async() => {
-    expect(spec().$container.parent().hasClass('ht-theme-sth')).toBe(false);
+    expect(spec().$container.children().first().hasClass('ht-theme-sth')).toBe(false);
 
     await useTheme('ht-theme-sth');
 
-    expect(spec().$container.hasClass('ht-theme-sth')).toBe(true);
+    expect(spec().$container.children().first().hasClass('ht-theme-sth')).toBe(true);
   });
 });
