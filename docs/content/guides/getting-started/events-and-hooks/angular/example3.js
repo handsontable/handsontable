@@ -1,5 +1,5 @@
 /* file: app.component.ts */
-import { Component, ViewChild } from '@angular/core';
+import {Component, ViewChild, ViewEncapsulation} from '@angular/core';
 import { HotTableComponent } from '@handsontable/angular-wrapper';
 
 @Component({
@@ -45,6 +45,7 @@ import { HotTableComponent } from '@handsontable/angular-wrapper';
     <div style="max-width: 440px">
       <hot-table [data]="data" [settings]="initialState"></hot-table>
     </div>`,
+  encapsulation: ViewEncapsulation.None
 })
 export class Example3EventsHooksComponent {
   @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;

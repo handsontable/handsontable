@@ -1,5 +1,5 @@
 /* file: app.component.ts */
-import { Component, ViewChild } from '@angular/core';
+import {Component, ViewChild, ViewEncapsulation} from '@angular/core';
 import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
 import Handsontable from 'handsontable';
 
@@ -14,7 +14,7 @@ import Handsontable from 'handsontable';
           (click)="loadClickCallback($event)"
         >
           Load data
-        </button>
+        </button>&nbsp;
         <button
           id="save"
           class="button button--primary button--blue"
@@ -38,6 +38,7 @@ import Handsontable from 'handsontable';
     <div>
       <hot-table [settings]="gridSettings"></hot-table>
     </div>`,
+  encapsulation: ViewEncapsulation.None
 })
 export class Example1SavingDataComponent {
   @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;

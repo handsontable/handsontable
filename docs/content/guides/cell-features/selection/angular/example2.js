@@ -1,5 +1,5 @@
 /* file: app.component.ts */
-import { Component, ViewChild } from '@angular/core';
+import {Component, ViewChild, ViewEncapsulation} from '@angular/core';
 import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
 import Handsontable from 'handsontable';
 
@@ -10,11 +10,12 @@ import Handsontable from 'handsontable';
       <div class="controls">
         <button id="getButton" (click)="getButtonClick()">Get data</button>
       </div>
-      <output class="console" id="output"> {{ output }} </output>
+      <output *ngIf="output" class="console" id="output"> {{ output }} </output>
     </div>
     <div>
       <hot-table [data]="data" [settings]="gridSettings"></hot-table>
     </div>`,
+  encapsulation: ViewEncapsulation.None
 })
 export class Example2SelectionComponent {
   @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;

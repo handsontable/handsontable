@@ -1,25 +1,30 @@
 /* file: app.component.ts */
-import { Component, ViewChild } from '@angular/core';
+import {Component, ViewChild, ViewEncapsulation} from '@angular/core';
 import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
 
 @Component({
   selector: 'example3-clipboard',
   standalone: false,
-  template: ` <div>
-      <hot-table [data]="data" [settings]="gridSettings"></hot-table>
+  template: `
+    <div class="example-controls-container">
+      <div class="controls">
+        <button
+          id="copy"
+          (mousedown)="copyBtnMousedown()"
+          (click)="copyBtnClick()"
+        >
+          Select and copy cell B2
+        </button>&nbsp;
+        <button id="cut" (mousedown)="cutBtnMousedown()" (click)="cutBtnClick()">
+          Select and cut cell B2
+        </button>
+      </div>
     </div>
-    <div className="controls">
-      <button
-        id="copy"
-        (mousedown)="copyBtnMousedown()"
-        (click)="copyBtnClick()"
-      >
-        Select and copy cell B2
-      </button>
-      <button id="cut" (mousedown)="cutBtnMousedown()" (click)="cutBtnClick()">
-        Select and cut cell B2
-      </button>
-    </div>`,
+    <div>
+      <hot-table [data]="data" [settings]="gridSettings"></hot-table>
+    </div>`
+  ,
+  encapsulation: ViewEncapsulation.None
 })
 export class Example3ClipboardComponent {
   @ViewChild(HotTableComponent, { static: false })

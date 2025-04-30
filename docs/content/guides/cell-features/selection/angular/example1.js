@@ -1,11 +1,11 @@
 /* file: app.component.ts */
-import { Component, ViewChild } from '@angular/core';
+import {Component, ViewChild, ViewEncapsulation} from '@angular/core';
 import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
 
 @Component({
   selector: 'example1-selection',
   standalone: false,
-  template: ` <div className="controls">
+  template: ` <div class="controls">
       <label>
         <select
           id="selectOption"
@@ -21,6 +21,7 @@ import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
     <div>
       <hot-table [data]="data" [settings]="gridSettings"></hot-table>
     </div>`,
+  encapsulation: ViewEncapsulation.None
 })
 export class Example1SelectionComponent {
   @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
