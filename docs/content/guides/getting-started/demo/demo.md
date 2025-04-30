@@ -55,8 +55,8 @@ Play around with a demo of Handsontable, in your favorite framework.
 
 - <Link :href="`https://github.com/handsontable/handsontable/tree/prod-docs/${$page.currentVersion}/examples/next/docs/js/demo/`">JavaScript demo app</Link>
 - <Link :href="`https://github.com/handsontable/handsontable/tree/prod-docs/${$page.currentVersion}/examples/next/docs/ts/demo/`">TypeScript demo app</Link>
-- <Link :href="`https://github.com/handsontable/handsontable/tree/prod-docs/${$page.currentVersion}/examples/next/docs/angular/demo/`">Angular demo app</Link>
-- <Link :href="`https://github.com/handsontable/handsontable/tree/prod-docs/${$page.currentVersion}/examples/next/docs/react/demo/`">React demo app</Link>
+- <Link :href="`https://github.com/handsontable/handsontable/tree/prod-docs/${$page.currentVersion}/examples/next/docs/angular-wrapper/demo/`">Angular demo app</Link>
+- <Link :href="`https://github.com/handsontable/handsontable/tree/prod-docs/${$page.currentVersion}/examples/next/docs/react-wrapper/demo/`">React demo app</Link>
 - <Link :href="`https://github.com/handsontable/handsontable/tree/prod-docs/${$page.currentVersion}/examples/next/docs/vue/demo/`">Vue demo app</Link>
 
 </div>
