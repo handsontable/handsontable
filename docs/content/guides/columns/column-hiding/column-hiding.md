@@ -57,6 +57,18 @@ To enable column hiding, use the [`hiddenColumns`](@/api/options.md#hiddencolumn
 
 :::
 
+
+::: only-for angular
+
+::: example #example1 :angular --js 1 --html 2
+
+@[code](@/content/guides/columns/column-hiding/angular/example1.js)
+@[code](@/content/guides/columns/column-hiding/angular/example1.html)
+
+:::
+
+:::
+
 ## Set up column hiding
 
 To set up your column hiding configuration, follow the steps below.
@@ -91,6 +103,16 @@ Now, those columns are hidden by default:
 
 :::
 
+:::
+
+::: only-for angular
+
+::: example #example2 :angular --js 1 --html 2
+
+@[code](@/content/guides/columns/column-hiding/angular/example2.js)
+@[code](@/content/guides/columns/column-hiding/angular/example2.html)
+
+:::
 :::
 
 ### Step 2: Show UI indicators
@@ -131,6 +153,18 @@ If you use both the [`NestedHeaders`](@/api/nestedHeaders.md) plugin and the
 
 :::
 
+
+::: only-for angular
+
+::: example #example3 :angular --js 1 --html 2
+
+@[code](@/content/guides/columns/column-hiding/angular/example3.js)
+@[code](@/content/guides/columns/column-hiding/angular/example3.html)
+
+:::
+
+:::
+
 ### Step 3: Set up context menu items
 
 To easily hide and unhide columns, add column hiding items to Handsontable's
@@ -162,6 +196,17 @@ additional items for hiding and unhiding columns.
 
 :::
 
+
+::: only-for angular
+
+::: example #example4 :angular --js 1 --html 2
+
+@[code](@/content/guides/columns/column-hiding/angular/example4.js)
+@[code](@/content/guides/columns/column-hiding/angular/example4.html)
+
+:::
+:::
+
 You can also add the column hiding menu items individually, by adding the
 [`hidden_columns_show`](@/guides/accessories-and-menus/context-menu/context-menu.md#context-menu-with-specific-options)
 and
@@ -190,6 +235,17 @@ strings to the[ `contextMenu`](@/api/contextMenu.md) parameter:
 
 :::
 
+
+::: only-for angular
+
+::: example #example5 :angular --js 1 --html 2
+
+@[code](@/content/guides/columns/column-hiding/angular/example5.js)
+@[code](@/content/guides/columns/column-hiding/angular/example5.html)
+
+:::
+:::
+
 ### Step 4: Set up copy and paste behavior
 
 By default, hidden columns are included in copying and pasting.
@@ -214,6 +270,17 @@ object, set the [`copyPasteEnabled`](@/api/hiddenColumns.md) property to `false`
 
 @[code](@/content/guides/columns/column-hiding/react/example6.jsx)
 @[code](@/content/guides/columns/column-hiding/react/example6.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example6 :angular --js 1 --html 2
+
+@[code](@/content/guides/columns/column-hiding/angular/example6.js)
+@[code](@/content/guides/columns/column-hiding/angular/example6.html)
 
 :::
 

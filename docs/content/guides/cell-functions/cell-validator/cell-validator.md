@@ -112,6 +112,19 @@ const hot = new Handsontable(container, {
 
 :::
 
+::: only-for angular
+
+```html
+<hot-table [settings]="{
+    columns: [{
+        validator: 'my.custom'
+    }]
+  }">
+</hot-table>
+```
+
+:::
+
 ## Full featured example
 
 Use the validator method to easily validate synchronous or asynchronous changes to a cell. If you need more control, [`beforeValidate`](@/api/hooks.md#beforevalidate) and [`afterValidate`](@/api/hooks.md#aftervalidate) hooks are available. In the below example, `email_validator_fn` is an async validator that resolves after 1000 ms.
@@ -136,6 +149,16 @@ invalidCellClassName: 'myInvalidClass'
 invalidCellClassName="myInvalidClass"
 ```
 
+:::
+
+::: only-for angular
+
+```ts
+invalidCellClassName: 'myInvalidClass'
+```
+
+:::
+
 For specific columns
 
 ::: only-for javascript
@@ -148,6 +171,7 @@ columns: [
 ]
 ```
 
+:::
 
 ::: only-for react
 
@@ -157,6 +181,18 @@ columns={[
   { data: 'lastName', invalidCellClassName: 'myInvalidSecondClass' },
   { data: 'address' }
 ]}
+```
+
+:::
+
+::: only-for angular
+
+```ts
+columns: [
+  { data: 'firstName', invalidCellClassName: 'myInvalidClass' },
+  { data: 'lastName', invalidCellClassName: 'myInvalidSecondClass' },
+  { data: 'address' }
+]
 ```
 
 :::
@@ -181,6 +217,17 @@ Callback console log:
 
 @[code](@/content/guides/cell-functions/cell-validator/react/example1.jsx)
 @[code](@/content/guides/cell-functions/cell-validator/react/example1.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --js 1 --html 2
+
+@[code](@/content/guides/cell-functions/cell-validator/angular/example1.js)
+@[code](@/content/guides/cell-functions/cell-validator/angular/example1.html)
 
 :::
 

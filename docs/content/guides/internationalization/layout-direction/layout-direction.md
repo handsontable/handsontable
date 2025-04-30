@@ -72,6 +72,17 @@ To try out Handsontable's RTL support, check out the demo below:
 
 :::
 
+::: only-for angular
+
+::: example #example1 :angular-languages --js 1 --html 2
+
+@[code](@/content/guides/internationalization/layout-direction/angular/example1.js)
+@[code](@/content/guides/internationalization/layout-direction/angular/example1.html)
+
+:::
+
+:::
+
 ### Elements affected by layout direction
 
 Setting a different layout direction affects the behavior of the following areas of Handsontable:
@@ -131,6 +142,17 @@ In the example below, the RTL layout direction is inherited from a `dir` attribu
 
 :::
 
+::: only-for angular
+
+::: example #example2 :angular --js 1 --html 2
+
+@[code](@/content/guides/internationalization/layout-direction/angular/example2.js)
+@[code](@/content/guides/internationalization/layout-direction/angular/example2.html)
+
+:::
+
+:::
+
 ### Set the layout direction to RTL
 
 You can render Handsontable from the right to the left, regardless of your HTML document's `dir` attribute.
@@ -155,6 +177,17 @@ and set it to `'rtl'`:
 
 @[code](@/content/guides/internationalization/layout-direction/react/example3.jsx)
 @[code](@/content/guides/internationalization/layout-direction/react/example3.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example3 :angular --js 1 --html 2
+
+@[code](@/content/guides/internationalization/layout-direction/angular/example3.js)
+@[code](@/content/guides/internationalization/layout-direction/angular/example3.html)
 
 :::
 
@@ -189,6 +222,17 @@ and set it to `'ltr'`:
 
 :::
 
+::: only-for angular
+
+::: example #example4 :angular --js 1 --html 2
+
+@[code](@/content/guides/internationalization/layout-direction/angular/example4.js)
+@[code](@/content/guides/internationalization/layout-direction/angular/example4.html)
+
+:::
+
+:::
+
 ## Set the horizontal text alignment
 
 You can apply different horizontal [text alignment](@/guides/cell-features/text-alignment/text-alignment.md) settings, overwriting the horizontal text alignment resulting from your grid's layout direction.
@@ -212,6 +256,17 @@ In the example below, some columns are explicitly aligned to the left, center, o
 
 @[code](@/content/guides/internationalization/layout-direction/react/example5.jsx)
 @[code](@/content/guides/internationalization/layout-direction/react/example5.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example5 :angular --js 1 --html 2
+
+@[code](@/content/guides/internationalization/layout-direction/angular/example5.js)
+@[code](@/content/guides/internationalization/layout-direction/angular/example5.html)
 
 :::
 

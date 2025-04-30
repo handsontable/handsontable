@@ -63,6 +63,22 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
  * />
  * ```
  * :::
+ *
+ * ::: only-for angular
+ * ```ts
+ * settings = {
+ *   data: getData(),
+ *   colHeaders: true,
+ *   rowHeaders: true,
+ *   dropdownMenu: true,
+ *   filters: true,
+ * };
+ * ```
+ *
+ * ```html
+ * <hot-table [settings]="settings"></hot-table>
+ * ```
+ * :::
  */
 export class Filters extends BasePlugin {
   static get PLUGIN_KEY() {
@@ -470,6 +486,64 @@ export class Filters extends BasePlugin {
    * filtersPlugin.addCondition(1, 'begins_with', ['de'], 'disjunction');
    * filtersPlugin.addCondition(1, 'not_contains', ['ing'], 'disjunction');
    * filtersPlugin.filter();
+   * ```
+   * :::
+   *
+   * ::: only-for angular
+   * ```ts
+   * import { AfterViewInit, Component, ViewChild } from "@angular/core";
+   * import {
+   *   GridSettings,
+   *   HotTableModule,
+   *   HotTableComponent,
+   * } from "@handsontable/angular-wrapper";
+   *
+   * `@Component`({
+   *   selector: "app-example",
+   *   standalone: true,
+   *   imports: [HotTableModule],
+   *   template: ` <div class="ht-theme-main">
+   *     <hot-table [settings]="gridSettings" />
+   *   </div>`,
+   * })
+   * export class ExampleComponent implements AfterViewInit {
+   *   `@ViewChild`(HotTableComponent, { static: false })
+   *   readonly hotTable!: HotTableComponent;
+   *
+   *   readonly gridSettings = <GridSettings>{
+   *     data: this.getData(),
+   *     filters: true,
+   *   };
+   *
+   *   ngAfterViewInit(): void {
+   *     // Access to filters plugin instance
+   *     const hot = this.hotTable.hotInstance;
+   *     const filtersPlugin = hot.getPlugin("filters");
+   *
+   *     // Add filter "Greater than" 95 to column at index 1
+   *     filtersPlugin.addCondition(1, "gt", [95]);
+   *     filtersPlugin.filter();
+   *
+   *     // Add filter "By value" to column at index 1
+   *     // In this case, all values that don't match will be filtered.
+   *     filtersPlugin.addCondition(1, "by_value", [["ing", "ed", "as", "on"]]);
+   *     filtersPlugin.filter();
+   *
+   *     // Add filter "Begins with" with value "de" AND "Not contains" with value "ing"
+   *     filtersPlugin.addCondition(1, "begins_with", ["de"], "conjunction");
+   *     filtersPlugin.addCondition(1, "not_contains", ["ing"], "conjunction");
+   *     filtersPlugin.filter();
+   *
+   *     // Add filter "Begins with" with value "de" OR "Not contains" with value "ing"
+   *     filtersPlugin.addCondition(1, "begins_with", ["de"], "disjunction");
+   *     filtersPlugin.addCondition(1, "not_contains", ["ing"], "disjunction");
+   *     filtersPlugin.filter();
+   *   }
+   *
+   *   private getData(): any[] {
+   *     // Get some data
+   *   }
+   * }
    * ```
    * :::
    *

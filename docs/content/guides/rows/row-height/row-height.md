@@ -64,6 +64,17 @@ We set the same height of `40px` for all rows across the entire grid in this exa
 
 :::
 
+::: only-for angular
+
+::: example #example1 :angular --js 1 --html 2
+
+@[code](@/content/guides/rows/row-height/angular/example1.js)
+@[code](@/content/guides/rows/row-height/angular/example1.html)
+
+:::
+
+:::
+
 ## Set row heights with an array
 
 In this example, the height is only set for the first rows. Each additional row would be automatically adjusted to the content.
@@ -85,6 +96,17 @@ In this example, the height is only set for the first rows. Each additional row 
 
 @[code](@/content/guides/rows/row-height/react/example2.jsx)
 @[code](@/content/guides/rows/row-height/react/example2.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example2 :angular --js 1 --html 2
+
+@[code](@/content/guides/rows/row-height/angular/example2.js)
+@[code](@/content/guides/rows/row-height/angular/example2.html)
 
 :::
 
@@ -116,6 +138,17 @@ The row height can be set using a function. In this example, the size of all row
 
 :::
 
+::: only-for angular
+
+::: example #example3 :angular --js 1 --html 2
+
+@[code](@/content/guides/rows/row-height/angular/example3.js)
+@[code](@/content/guides/rows/row-height/angular/example3.html)
+
+:::
+
+:::
+
 ## Adjust row heights manually
 
 Set the option [`manualRowResize`](@/api/options.md#manualrowresize) to `true` to allow users to manually resize the row height by dragging the handle between the adjacent row headers. Don't forget to enable row headers by setting [`rowHeaders`](@/api/options.md#rowheaders) to `true`.
@@ -139,6 +172,17 @@ You can adjust the size of one or multiple rows simultaneously, even if the sele
 
 @[code](@/content/guides/rows/row-height/react/example4.jsx)
 @[code](@/content/guides/rows/row-height/react/example4.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example4 :angular --js 1 --html 2
+
+@[code](@/content/guides/rows/row-height/angular/example4.js)
+@[code](@/content/guides/rows/row-height/angular/example4.html)
 
 :::
 

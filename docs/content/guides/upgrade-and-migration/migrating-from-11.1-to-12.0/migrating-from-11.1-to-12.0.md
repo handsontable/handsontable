@@ -84,7 +84,7 @@ Updating your [`data`](@/api/options.md#data) through a component property no lo
 To replace [`data`](@/api/options.md#data) and reset the states, call the [`loadData()`](@/api/core.md#loadData) method (the same way as above), referencing the Handsontable instance from the component.
 
 Read more on referencing the Handsontable instance:
-- [Referencing the Handsontable instance in Angular](@/guides/integrate-with-angular/angular-hot-reference/angular-hot-reference.md)
+- [Referencing the Handsontable instance in Angular](@/angular/guides/getting-started/angular-hot-instance/angular-hot-instance.md)
 - [Referencing the Handsontable instance in React](@/react/guides/getting-started/react-methods/react-methods.md)
 - [Referencing the Handsontable instance in Vue 2](@/guides/integrate-with-vue/vue-hot-reference/vue-hot-reference.md)
 - [Referencing the Handsontable instance in Vue 3](@/guides/integrate-with-vue3/vue3-hot-reference/vue3-hot-reference.md)

@@ -51,6 +51,17 @@ The example below handles data by using `fetch`. Note that this is just a mockup
 
 :::
 
+::: only-for angular
+
+::: example #example1 :angular --js 1 --html 2
+
+@[code](@/content/guides/getting-started/saving-data/angular/example1.js)
+@[code](@/content/guides/getting-started/saving-data/angular/example1.html)
+
+:::
+
+:::
+
 ## Save data locally
 
 You can save any type of data in local storage to preserve the table state after page reloads. The [`persistentState`](@/api/options.md#persistentstate) option must be set to `true` to enable the data storage mechanism. You can set it either during the Handsontable initialization or using the [`updateSettings()`](@/api/core.md#updatesettings) method.

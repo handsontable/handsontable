@@ -38,6 +38,14 @@ className="htCenter"
 
 :::
 
+::: only-for angular
+
+```ts
+settings = { className: "htCenter" };
+```
+
+:::
+
 You can also configure cells individually by setting up the [`cells`](@/api/options.md#cells) option. See the code sample below for an example.
 
 Available class names:
@@ -68,6 +76,17 @@ The following code sample configures the grid to use `htCenter` and configures i
 
 @[code](@/content/guides/cell-features/text-alignment/react/example1.jsx)
 @[code](@/content/guides/cell-features/text-alignment/react/example1.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --js 1 --html 2
+
+@[code](@/content/guides/cell-features/text-alignment/angular/example1.js)
+@[code](@/content/guides/cell-features/text-alignment/angular/example1.html)
 
 :::
 

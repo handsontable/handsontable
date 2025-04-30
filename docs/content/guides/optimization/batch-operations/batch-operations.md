@@ -69,6 +69,18 @@ For more information, see the [Instance methods](@/guides/getting-started/react-
 
 :::
 
+::: only-for angular
+
+::: tip
+
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+
+For more information, see the [Instance access](@/guides/getting-started/angular-hot-instance/angular-hot-instance.md) page.
+
+:::
+
+:::
+
 ```js
 // call the batch method on an instance
 hot.batch(() => {
@@ -213,6 +225,17 @@ The following examples show how much the [`batch()`](@/api/core.md#batch) method
 
 @[code](@/content/guides/optimization/batch-operations/react/example1.jsx)
 @[code](@/content/guides/optimization/batch-operations/react/example1.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --js 1 --html 2
+
+@[code](@/content/guides/optimization/batch-operations/angular/example1.js)
+@[code](@/content/guides/optimization/batch-operations/angular/example1.html)
 
 :::
 

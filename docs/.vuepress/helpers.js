@@ -12,6 +12,7 @@ let docsSHA = null;
 const fullyProcessedFrameworks = [
   'javascript',
   'react',
+  'angular'
 ];
 
 const frameworkToPrettyName = new Map([

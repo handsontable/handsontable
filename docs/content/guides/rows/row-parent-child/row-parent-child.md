@@ -50,6 +50,22 @@ const hot = new Handsontable(container, {
 
 :::
 
+::: only-for angular
+
+```ts
+import {GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
+
+const configurationOptions: GridSettings = {
+  nestedRows: true,
+};
+```
+
+```html
+<hot-table [settings]="configurationOptions"></hot-table>
+```
+
+:::
+
 Note that using all the functionalities provided by the plugin requires enabling the row headers and the Handsontable context menu. To do this set
 [`rowHeaders`](@/api/options.md#rowheaders) and [`contextMenu`](@/api/options.md#contextmenu) to `true`. The _collapse_ / _expand_ buttons are located in the
 row headers, and the row modification options _add row_, _insert child_, etc., are in the Context Menu.
@@ -81,6 +97,17 @@ Here's an example:
 
 @[code](@/content/guides/rows/row-parent-child/react/example1.jsx)
 @[code](@/content/guides/rows/row-parent-child/react/example1.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --js 1 --html 2
+
+@[code](@/content/guides/rows/row-parent-child/angular/example1.js)
+@[code](@/content/guides/rows/row-parent-child/angular/example1.html)
 
 :::
 
