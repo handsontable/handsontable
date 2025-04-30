@@ -165,6 +165,18 @@ To prevent this attack, set the [`sanitizeValues` option](#sanitizevalues-boolea
 
 :::
 
+
+::: only-for angular
+
+::: example #example4 :angular --js 1 --html 2
+
+@[code](@/content/guides/accessories-and-menus/export-to-csv/angular/example4.js)
+@[code](@/content/guides/accessories-and-menus/export-to-csv/angular/example4.html)
+
+:::
+
+:::
+
 ## Available methods
 
 ::: only-for react
