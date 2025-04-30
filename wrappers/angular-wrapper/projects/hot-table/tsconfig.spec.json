@@ -6,8 +6,9 @@
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
     "types": [
-      "jest"
+      "jest", "node"
     ],
+    "moduleResolution": "node",
     "esModuleInterop": true,
     "emitDecoratorMetadata": true
   },

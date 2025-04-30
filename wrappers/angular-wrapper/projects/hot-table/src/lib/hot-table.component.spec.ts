@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { SimpleChange, SimpleChanges } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, NgZone, SimpleChange, SimpleChanges } from '@angular/core';
 import Handsontable from 'handsontable';
 import { registerPlugin, CopyPaste } from 'handsontable/plugins';
 import { HotTableModule } from './hot-table.module';
@@ -12,6 +12,8 @@ import { NON_COMMERCIAL_LICENSE } from './services/hot-config.service';
 registerPlugin(CopyPaste);
 
 describe('HotTableComponent', () => {
+  let zone;
+
   let fixture: ComponentFixture<HotTableComponent>;
   const settings = <GridSettings>{
     licenseKey: NON_COMMERCIAL_LICENSE,
@@ -20,7 +22,10 @@ describe('HotTableComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [HotTableModule.forRoot()],
+      schemas: [CUSTOM_ELEMENTS_SCHEMA]
     }).compileComponents();
+
+    zone = TestBed.inject(NgZone)
   });
 
   it(`should render 'hot-table'`, () => {
@@ -35,6 +40,7 @@ describe('HotTableComponent', () => {
 
   it(`should set data`, () => {
     fixture = TestBed.createComponent(HotTableComponent);
+    fixture.componentInstance.settings = {};
     fixture.componentInstance.data = createSpreadsheetData(5, 5);
     fixture.detectChanges();
 
@@ -62,8 +68,9 @@ describe('HotTableComponent', () => {
 
   describe('ngOnChanges', () => {
     it('should update Handsontable settings if settings change and it is not the first change', () => {
-      const newSettings = { data: [[1, 2, 3]] };
+      const newSettings = { readOnly: true };
       fixture = TestBed.createComponent(HotTableComponent);
+      fixture.componentInstance.settings = {};
       fixture.detectChanges();
       const hotSettingsResolver = fixture.componentRef.injector.get(HotSettingsResolver);
       const component = fixture.componentInstance;
@@ -76,13 +83,14 @@ describe('HotTableComponent', () => {
 
       component.ngOnChanges(changes);
 
-      expect(applyCustomSettingsSpy).toHaveBeenCalledWith(newSettings);
+      expect(applyCustomSettingsSpy).toHaveBeenCalledWith(newSettings, zone);
       expect(updateHotTableSpy).toHaveBeenCalledWith(newSettings, false);
     });
 
     it('should not update Handsontable settings if it is the first change', () => {
       const newSettings = { data: [[1, 2, 3]] };
       fixture = TestBed.createComponent(HotTableComponent);
+      fixture.componentInstance.settings = {};
       fixture.detectChanges();
       const hotSettingsResolver = fixture.componentRef.injector.get(HotSettingsResolver);
       const applyCustomSettingsSpy = jest.spyOn(hotSettingsResolver, 'applyCustomSettings');
@@ -102,6 +110,7 @@ describe('HotTableComponent', () => {
     it('should update Handsontable data if data change and it is not the first change', () => {
       const newData = [[1, 2, 3]];
       fixture = TestBed.createComponent(HotTableComponent);
+      fixture.componentInstance.settings = {};
       fixture.detectChanges();
       const component = fixture.componentInstance;
 
@@ -118,6 +127,7 @@ describe('HotTableComponent', () => {
     it('should not update Handsontable data if data change and it is the first change', () => {
       const newData = [[1, 2, 3]];
       fixture = TestBed.createComponent(HotTableComponent);
+      fixture.componentInstance.settings = {};
       fixture.detectChanges();
       const component = fixture.componentInstance;
 

@@ -28,5 +28,5 @@
     "strictTemplates": true
   },
   "include": ["projects/**/*.ts"],
-  "exclude": ["node_modules",     "/projects/hot-table/coverage"]
+  "exclude": ["node_modules", "/projects/hot-table/coverage"]
 }

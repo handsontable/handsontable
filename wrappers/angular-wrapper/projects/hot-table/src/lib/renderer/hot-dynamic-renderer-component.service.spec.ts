@@ -1,4 +1,4 @@
-import { ApplicationRef, Component, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
+import {ApplicationRef, Component, CUSTOM_ELEMENTS_SCHEMA, TemplateRef, ViewChild, ViewContainerRef} from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { DynamicComponentService } from './hot-dynamic-renderer-component.service';
 import Handsontable from 'handsontable';
@@ -48,6 +48,7 @@ describe('DynamicComponentService - createRendererFromComponent', () => {
     await TestBed.configureTestingModule({
       declarations: [DummyRendererComponent, DummyTemplateHostComponent],
       providers: [DynamicComponentService],
+      schemas: [CUSTOM_ELEMENTS_SCHEMA]
     }).compileComponents();
 
     appRef = TestBed.inject(ApplicationRef);
