@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fix submenu positiongin for all themes.",
-  "type": "fixed",
-  "issueOrPR": 11505,
-  "breaking": false,
-  "framework": "none"
-}

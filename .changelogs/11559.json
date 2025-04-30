@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed unmerge cells action triggered form keyboard shortcut",
-  "type": "fixed",
-  "issueOrPR": 11559,
-  "breaking": false,
-  "framework": "none"
-}
