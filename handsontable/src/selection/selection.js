@@ -978,6 +978,10 @@ class Selection {
     this.highlight.clear();
   }
 
+  clearMatchingRanges(cellRanges) {
+    this.selectedRange.remove(cellRanges);
+  }
+
   /**
    * Deselects all selected cells.
    */
@@ -1245,8 +1249,10 @@ class Selection {
   }
 
   /**
-   * Refreshes the whole selection by clearing, reapplying and committing the renderable selection (Walkontable Selection API)
-   * by using already added visual ranges.
+   * Refreshes the whole selection by clearing, reapplying and committing (calculating visual to renderable indexes)
+   * the selection by using already added visual ranges. The method can be useful when underneath some indexes
+   * was hidden/showed or dataset size was changed or the range of the cell ranges was modified. Then, to see the
+   * changes in the selection the method may be needed to be called. The method modifies the visual ranges if needed.
    */
   refresh() {
     if (!this.isSelected()) {
@@ -1262,40 +1268,52 @@ class Selection {
       return;
     }
 
-    const range = this.selectedRange.peekByIndex(this.selectedRange.size() - 1);
-    const { from, to, highlight } = range;
+    const ranges = this.selectedRange.ranges.map(range => range.clone());
+
+    this.markSource('refresh');
+
+    const selectedByRowHeader = new Set(this.selectedByRowHeader);
+    const selectedByColumnHeader = new Set(this.selectedByColumnHeader);
 
     this.clear();
 
-    highlight.assign({
-      row: clamp(highlight.row, -Infinity, countRows - 1),
-      col: clamp(highlight.col, -Infinity, countColumns - 1),
-    });
-    from.assign({
-      row: clamp(from.row, -Infinity, countRows - 1),
-      col: clamp(from.col, -Infinity, countColumns - 1),
-    });
-    to.assign({
-      row: clamp(to.row, 0, countRows - 1),
-      col: clamp(to.col, 0, countColumns - 1),
+    ranges.forEach((range, index) => {
+      const { from, to, highlight } = range;
+      const maxRows = countRows - 1;
+      const maxColumns = countColumns - 1;
+
+      highlight.assign({
+        row: clamp(highlight.row, this.settings.navigableHeaders ? -Infinity : 0, maxRows),
+        col: clamp(highlight.col, this.settings.navigableHeaders ? -Infinity : 0, maxColumns),
+      });
+      from.assign({
+        row: clamp(from.row, -Infinity, maxRows),
+        col: clamp(from.col, -Infinity, maxColumns),
+      });
+      to.assign({
+        row: clamp(to.row, -Infinity, maxRows),
+        col: clamp(to.col, -Infinity, maxColumns),
+      });
+
+      this.setRangeStartOnly(from, true);
+      this.setRangeEnd(to);
+
+      if (index === ranges.length - 1) {
+        this.setRangeFocus(highlight);
+      }
     });
 
-    this.selectedRange.ranges.push(range);
+    this.selectedByRowHeader = selectedByRowHeader;
+    this.selectedByColumnHeader = selectedByColumnHeader;
 
-    if (this.highlight.isEnabledFor(FOCUS_TYPE, this.selectedRange.current().highlight)) {
-      this.highlight
-        .getFocus()
-        .add(highlight)
-        .commit()
-        .syncWith(range);
-    }
-
-    this.applyAndCommit(range);
+    this.markEndSource();
   }
 
   /**
-   * Refreshes the whole selection by recommitting (recalculating visual indexes to renderable ones) the renderable selection
-   * that was already added.
+   * Refreshes the whole selection by only recommitting values. In terms of the selection the committing
+   * values means that the cell ranges are again recalculated to the renderable indexes - the visual
+   * indexes are not touched. The method can be useful when underneath some indexes was hidden/showed
+   * which affects the selection. In that cases the method may be needed to be called.
    */
   commit() {
     const customSelections = this.highlight.getCustomSelections();

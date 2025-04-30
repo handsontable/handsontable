@@ -109,10 +109,35 @@ export function mouseOver({ isLeftClick, coords, selection, controller, cellCoor
   selection.markEndSource();
 }
 
+export function mouseUp({ isLeftClick, selection }) {
+  // if (!isLeftClick || selection.settings.selectionMode !== 'multiple') {
+  //   return;
+  // }
+
+  // const selectionRange = selection.getSelectedRange();
+  // const lastSelectionLayer = selectionRange.current();
+
+  // if (
+  //   selectionRange.size() > 1 &&
+  //   lastSelectionLayer.getWidth() === 1 &&
+  //   lastSelectionLayer.getHeight() === 1
+  // ) {
+  //   // console.log(222, selectionRange.find(lastSelectionLayer));
+
+  //   const ranges = selectionRange.find(lastSelectionLayer);
+
+  //   if (ranges.length > 1) {
+  //     selection.clearMatchingRanges(ranges);
+  //     selection.refresh();
+  //   }
+  // }
+}
+
 const handlers = new Map([
+  ['touchstart', mouseDown],
   ['mousedown', mouseDown],
   ['mouseover', mouseOver],
-  ['touchstart', mouseDown],
+  ['mouseup', mouseUp],
 ]);
 
 /**
@@ -126,14 +151,11 @@ const handlers = new Map([
  *                                    operation will be performed in later selection stages.
  * @param {Function} options.cellCoordsFactory The function factory for CellCoords objects.
  */
-export function handleMouseEvent(event, { coords, selection, controller, cellCoordsFactory }) {
+export function handleMouseEvent(event, options) {
   handlers.get(event.type)({
-    coords,
-    selection,
-    controller,
-    cellCoordsFactory,
     isShiftKey: event.shiftKey,
     isLeftClick: isLeftClickEvent(event) || event.type === 'touchstart',
     isRightClick: isRightClickEvent(event),
+    ...options,
   });
 }

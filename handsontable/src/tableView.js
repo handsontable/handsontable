@@ -982,6 +982,12 @@ class TableView {
           return;
         }
 
+        handleMouseEvent(event, {
+          coords: visualCoords,
+          selection: this.hot.selection,
+          cellCoordsFactory: (row, column) => this.hot._createCellCoords(row, column),
+        });
+
         this.hot.runHooks('afterOnCellMouseUp', event, visualCoords, TD);
         this.activeWt = this._wt;
       },

@@ -426,7 +426,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       removeClass(this.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
     }
 
-    if (selection.getSelectionSource() !== 'shift') {
+    if (!['shift', 'refresh'].includes(selection.getSelectionSource())) {
       editorManager.closeEditor(null);
     }
 
@@ -651,6 +651,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                 selection.deselect();
 
               } else if (source === 'ContextMenu.removeRow') {
+                const selectionRange = selection.getSelectedRange();
+                const lastSelection = selectionRange.pop();
+
+                selectionRange
+                  .clear()
+                  .set(lastSelection.from)
+                  .current()
+                  .setTo(lastSelection.to);
+
                 selection.refresh();
 
               } else {
@@ -707,6 +716,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                 selection.deselect();
 
               } else if (source === 'ContextMenu.removeColumn') {
+                const selectionRange = selection.getSelectedRange();
+                const lastSelection = selectionRange.pop();
+
+                selectionRange
+                  .clear()
+                  .set(lastSelection.from)
+                  .current()
+                  .setTo(lastSelection.to);
+
                 selection.refresh();
 
               } else {

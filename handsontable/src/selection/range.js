@@ -59,12 +59,10 @@ class SelectionRange {
   /**
    * Removes from the stack the last added coordinates.
    *
-   * @returns {SelectionRange}
+   * @returns {CellRange}
    */
   pop() {
-    this.ranges.pop();
-
-    return this;
+    return this.ranges.pop();
   }
 
   /**
@@ -94,6 +92,24 @@ class SelectionRange {
    */
   includes(coords) {
     return this.ranges.some(cellRange => cellRange.includes(coords));
+  }
+
+  find(cellRange) {
+    const ranges = [];
+
+    this.ranges.forEach((range) => {
+      if (range.isEqual(cellRange)) {
+        ranges.push(range);
+      }
+    });
+
+    return ranges;
+  }
+
+  remove(cellRanges) {
+    this.ranges = this.ranges.filter((range) => {
+      return !cellRanges.some((cellRange) => cellRange.isEqual(range));
+    });
   }
 
   /**
