@@ -10,8 +10,8 @@
     "directory": "docs"
   },
   "scripts": {
-    "docs:lint": "eslint --ext .js,.vue,.mjs,.ts .vuepress content netlify",
-    "docs:lint:fix": "eslint --ext .js,.vue,.mjs,.ts .vuepress content netlify --fix",
+    "docs:lint": "eslint --ext .js,.vue,.mjs,.ts,.mts .vuepress content netlify",
+    "docs:lint:fix": "eslint --ext .js,.vue,.mjs,.ts,.mts .vuepress content netlify --fix",
     "docs:scripts:link-assets": "node .vuepress/tools/link-assets.mjs",
     "docs:scripts:generate-legacy-docs-versions": "node .vuepress/tools/generate-legacy-docs-versions.mjs",
     "docs:code-examples:generate-js": "bash .vuepress/tools/code-examples-generator.sh",
