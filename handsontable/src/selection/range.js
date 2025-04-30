@@ -84,17 +84,25 @@ class SelectionRange {
   }
 
   /**
-   * Returns `true` if coords is within selection coords. This method iterates through all selection layers to check if
-   * the coords object is within selection range.
+   * Returns `true` if coords is within any selection coords. This method iterates through
+   * all selection layers to check if the coords object is within selection range.
    *
    * @param {CellCoords} coords The CellCoords instance with defined visual coordinates.
+   * @param {function(CellRange, number): boolean} [criteria] The function that allows injecting custom criteria.
    * @returns {boolean}
    */
-  includes(coords) {
-    return this.ranges.some(cellRange => cellRange.includes(coords));
+  includes(coords, criteria = () => true) {
+    return this.ranges
+      .some((cellRange, index) => cellRange.includes(coords) && criteria(cellRange, index));
   }
 
-  find(cellRange) {
+  /**
+   * Find all ranges that are equal to the provided range.
+   *
+   * @param {CellRange} cellRange The CellRange instance with defined visual coordinates.
+   * @returns {CellRange[]}
+   */
+  findAll(cellRange) {
     const ranges = [];
 
     this.ranges.forEach((range) => {
@@ -106,10 +114,14 @@ class SelectionRange {
     return ranges;
   }
 
+  /**
+   * Removes all ranges that are equal to the provided ranges.
+   *
+   * @param {CellRange[]} cellRanges The array of CellRange instances with defined visual coordinates.
+   */
   remove(cellRanges) {
-    this.ranges = this.ranges.filter((range) => {
-      return !cellRanges.some((cellRange) => cellRange.isEqual(range));
-    });
+    this.ranges = this.ranges
+      .filter(range => !cellRanges.some(cellRange => cellRange.isEqual(range)));
   }
 
   /**

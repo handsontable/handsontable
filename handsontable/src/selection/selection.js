@@ -978,10 +978,6 @@ class Selection {
     this.highlight.clear();
   }
 
-  clearMatchingRanges(cellRanges) {
-    this.selectedRange.remove(cellRanges);
-  }
-
   /**
    * Deselects all selected cells.
    */

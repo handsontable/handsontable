@@ -109,28 +109,47 @@ export function mouseOver({ isLeftClick, coords, selection, controller, cellCoor
   selection.markEndSource();
 }
 
+/**
+ * Mouse up handler.
+ *
+ * @param {object} options The handler options.
+ * @param {boolean} options.isLeftClick Indicates that event was fired using the left mouse button.
+ * @param {Selection} options.selection The Selection class instance.
+ */
 export function mouseUp({ isLeftClick, selection }) {
-  // if (!isLeftClick || selection.settings.selectionMode !== 'multiple') {
-  //   return;
-  // }
+  if (!isLeftClick || selection.settings.selectionMode !== 'multiple') {
+    return;
+  }
 
-  // const selectionRange = selection.getSelectedRange();
-  // const lastSelectionLayer = selectionRange.current();
+  const selectionRange = selection.getSelectedRange();
+  const lastSelectionRange = selectionRange.current();
 
-  // if (
-  //   selectionRange.size() > 1 &&
-  //   lastSelectionLayer.getWidth() === 1 &&
-  //   lastSelectionLayer.getHeight() === 1
-  // ) {
-  //   // console.log(222, selectionRange.find(lastSelectionLayer));
+  if (
+    selectionRange.size() > 1 &&
+    lastSelectionRange.getWidth() === 1 &&
+    lastSelectionRange.getHeight() === 1 &&
+    !selectionRange.includes(lastSelectionRange.highlight, (checkedRange, layerLevel) => {
+      // ignore the last selection layer to prevent checking the selection with itself
+      if (layerLevel === selectionRange.size() - 1) {
+        return false;
+      }
 
-  //   const ranges = selectionRange.find(lastSelectionLayer);
+      return checkedRange.getWidth() > 1 || checkedRange.getHeight() > 1;
+    })
+  ) {
+    const ranges = selectionRange.findAll(lastSelectionRange);
 
-  //   if (ranges.length > 1) {
-  //     selection.clearMatchingRanges(ranges);
-  //     selection.refresh();
-  //   }
-  // }
+    // if the last selection range is the same as the first one (case when the single cell
+    // is selected twice or more) remove duplicate ranges
+    if (ranges.length === selectionRange.size()) {
+      selectionRange.pop();
+      selection.refresh();
+
+    } else if (ranges.length > 1) {
+      selectionRange.remove(ranges);
+      selection.refresh();
+    }
+  }
 }
 
 const handlers = new Map([
