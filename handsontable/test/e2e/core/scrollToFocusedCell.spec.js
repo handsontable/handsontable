@@ -19,13 +19,13 @@ describe('Core.scrollToFocusedCell', () => {
       colHeaders: true,
     });
 
-    scrollViewportTo({
+    await scrollViewportTo({
       row: 250,
       col: 25,
       verticalSnap: 'top',
       horizontalSnap: 'start',
     });
-    selectCell(255, 27, 255, 27, false);
+    await selectCell(255, 27, 255, 27, false);
 
     expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(1250);
@@ -38,9 +38,7 @@ describe('Core.scrollToFocusedCell', () => {
       horizon.toBe(9250);
     });
 
-    scrollToFocusedCell();
-
-    await sleep(10);
+    await scrollToFocusedCell();
 
     expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(1250);
@@ -65,9 +63,7 @@ describe('Core.scrollToFocusedCell', () => {
 
     const callback = jasmine.createSpy('callback');
 
-    scrollToFocusedCell(callback);
-
-    await sleep(10);
+    await scrollToFocusedCell(callback);
 
     expect(callback).toHaveBeenCalledTimes(0);
   });
@@ -83,10 +79,8 @@ describe('Core.scrollToFocusedCell', () => {
 
     const callback = jasmine.createSpy('callback');
 
-    selectCell(1, 1, 1, 1, false);
-    scrollToFocusedCell(callback);
-
-    await sleep(10);
+    await selectCell(1, 1, 1, 1, false);
+    await scrollToFocusedCell(callback);
 
     expect(callback).toHaveBeenCalledTimes(1);
   });
@@ -102,10 +96,8 @@ describe('Core.scrollToFocusedCell', () => {
 
     const callback = jasmine.createSpy('callback');
 
-    selectCell(255, 49, 255, 49, false);
-    scrollToFocusedCell(callback);
-
-    await sleep(10);
+    await selectCell(255, 49, 255, 49, false);
+    await scrollToFocusedCell(callback);
 
     expect(callback).toHaveBeenCalledTimes(1);
   });
@@ -120,13 +112,13 @@ describe('Core.scrollToFocusedCell', () => {
       colHeaders: true,
     });
 
-    scrollViewportTo({
+    await scrollViewportTo({
       row: 250,
       col: 49,
       verticalSnap: 'top',
       horizontalSnap: 'start',
     });
-    selectCell(255, 0, 255, 0, false);
+    await selectCell(255, 0, 255, 0, false);
 
     expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(2765);
@@ -139,9 +131,7 @@ describe('Core.scrollToFocusedCell', () => {
       horizon.toBe(9250);
     });
 
-    scrollToFocusedCell();
-
-    await sleep(10);
+    await scrollToFocusedCell();
 
     expect(inlineStartOverlay().getScrollPosition()).toBe(0);
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
@@ -161,13 +151,13 @@ describe('Core.scrollToFocusedCell', () => {
       colHeaders: true,
     });
 
-    scrollViewportTo({
+    await scrollViewportTo({
       row: 250,
       col: 0,
       verticalSnap: 'top',
       horizontalSnap: 'start',
     });
-    selectCell(255, 49, 255, 49, false);
+    await selectCell(255, 49, 255, 49, false);
 
     expect(inlineStartOverlay().getScrollPosition()).toBe(0);
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
@@ -176,9 +166,7 @@ describe('Core.scrollToFocusedCell', () => {
       horizon.toBe(9250);
     });
 
-    scrollToFocusedCell();
-
-    await sleep(10);
+    await scrollToFocusedCell();
 
     // 2500 column width - 250 viewport width + 15 scrollbar compensation + 1 header border compensation
     expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
@@ -202,13 +190,13 @@ describe('Core.scrollToFocusedCell', () => {
       colHeaders: true,
     });
 
-    scrollViewportTo({
+    await scrollViewportTo({
       row: 255,
       col: 25,
       verticalSnap: 'top',
       horizontalSnap: 'start',
     });
-    selectCell(0, 27, 0, 27, false);
+    await selectCell(0, 27, 0, 27, false);
 
     expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(1250);
@@ -221,9 +209,7 @@ describe('Core.scrollToFocusedCell', () => {
       horizon.toBe(9435);
     });
 
-    scrollToFocusedCell();
-
-    await sleep(10);
+    await scrollToFocusedCell();
 
     expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(1250);
@@ -242,13 +228,13 @@ describe('Core.scrollToFocusedCell', () => {
       colHeaders: true,
     });
 
-    scrollViewportTo({
+    await scrollViewportTo({
       row: 255,
       col: 25,
       verticalSnap: 'top',
       horizontalSnap: 'start',
     });
-    selectCell(499, 27, 499, 27, false);
+    await selectCell(499, 27, 499, 27, false);
 
     expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(1250);
@@ -261,9 +247,7 @@ describe('Core.scrollToFocusedCell', () => {
       horizon.toBe(9435);
     });
 
-    scrollToFocusedCell();
-
-    await sleep(10);
+    await scrollToFocusedCell();
 
     expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(1250);

@@ -11,7 +11,7 @@ describe('StretchColumns', () => {
   });
 
   describe('`getColumnWidth` method', () => {
-    it('should return `null` when the stretching is disabled', () => {
+    it('should return `null` when the stretching is disabled', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
       });
@@ -23,7 +23,7 @@ describe('StretchColumns', () => {
       expect(plugin.getColumnWidth(2)).toBe(null);
     });
 
-    it('should return correct column widths when stretching "all" is enabled', () => {
+    it('should return correct column widths when stretching "all" is enabled', async() => {
       handsontable({
         data: createSpreadsheetData(3, 3),
         width: 200,
@@ -50,7 +50,7 @@ describe('StretchColumns', () => {
       });
     });
 
-    it('should return correct column widths when stretching "last" is enabled', () => {
+    it('should return correct column widths when stretching "last" is enabled', async() => {
       handsontable({
         data: createSpreadsheetData(3, 3),
         width: 200,

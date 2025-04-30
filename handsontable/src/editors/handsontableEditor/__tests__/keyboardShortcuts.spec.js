@@ -36,18 +36,14 @@ describe('keyboard navigation', () => {
       ],
     });
 
-    selectCell(0, 0);
-
-    keyDownUp('enter');
-
-    await sleep(15);
-
-    keyDownUp('arrowdown');
+    await selectCell(0, 0);
+    await keyDownUp('enter');
+    await keyDownUp('arrowdown');
 
     expect(getActiveEditor().htEditor.getSelectedLast()).toEqual([0, 0, 0, 0]);
     expect(getActiveEditor().isOpened()).toBe(true);
 
-    keyDownUp('arrowdown');
+    await keyDownUp('arrowdown');
 
     expect(getActiveEditor().htEditor.getSelectedLast()).toEqual([1, 0, 1, 0]);
     expect(getActiveEditor().isOpened()).toBe(true);
@@ -66,23 +62,16 @@ describe('keyboard navigation', () => {
       ],
     });
 
-    selectCell(0, 0);
-
-    keyDownUp('enter');
-
-    await sleep(15);
-
-    keyDownUp('arrowdown');
+    await selectCell(0, 0);
+    await keyDownUp('enter');
+    await keyDownUp('arrowdown');
 
     expect(getActiveEditor().htEditor.getSelectedLast()).toEqual([0, 0, 0, 0]);
     expect(getActiveEditor().isOpened()).toBe(true);
 
-    keyDownUp('enter');
-
-    await sleep(15);
+    await keyDownUp('enter');
 
     expect(getActiveEditor().isOpened()).toBe(false);
-
     expect(getDataAtCell(0, 0)).toEqual('BMW');
   });
 
@@ -100,23 +89,16 @@ describe('keyboard navigation', () => {
       ],
     });
 
-    selectCell(0, 0);
-
-    keyDownUp('enter');
-
-    await sleep(15);
-
-    keyDownUp('arrowdown');
+    await selectCell(0, 0);
+    await keyDownUp('enter');
+    await keyDownUp('arrowdown');
 
     expect(getActiveEditor().htEditor.getSelectedLast()).toEqual([0, 0, 0, 0]);
     expect(getActiveEditor().isOpened()).toBe(true);
 
-    keyDownUp('escape');
-
-    await sleep(15);
+    await keyDownUp('escape');
 
     expect(getActiveEditor().isOpened()).toBe(false);
-
     expect(getDataAtCell(0, 0)).toEqual(null);
   });
 });

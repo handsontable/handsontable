@@ -20,7 +20,7 @@ describe('Filters UI ActionBar component', () => {
       height: 300
     });
 
-    dropdownMenu(1);
+    await dropdownMenu(1);
 
     expect(dropdownMenuRootElement().querySelector('.htFiltersMenuActionBar .htUIButtonOK input').value)
       .toBe('OK');
@@ -38,7 +38,7 @@ describe('Filters UI ActionBar component', () => {
   });
 
   it('should close the menu after clicking the "OK" button when the dropdown is opened using API and ' +
-      'the table has no selection', () => {
+      'the table has no selection', async() => {
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -55,13 +55,13 @@ describe('Filters UI ActionBar component', () => {
 
     expect($(dropdownMenuRootElement()).is(':visible')).toBe(true);
 
-    mouseClick(dropdownMenuRootElement().querySelector('.htFiltersMenuActionBar .htUIButtonOK input'));
+    await mouseClick(dropdownMenuRootElement().querySelector('.htFiltersMenuActionBar .htUIButtonOK input'));
 
     expect($(dropdownMenuRootElement()).is(':visible')).toBe(false);
   });
 
   it('should close the menu after clicking the "OK" button when the dropdown is opened using API and ' +
-      'the table has non-contiguous selection', () => {
+      'the table has non-contiguous selection', async() => {
     handsontable({
       data: getDataForFilters(),
       columns: getColumnsForFilters(),
@@ -72,7 +72,7 @@ describe('Filters UI ActionBar component', () => {
     });
 
     // the highlight cell points to the 6, 3 (the selected column is 3)
-    selectCells([
+    await selectCells([
       [1, 0, 2, 1],
       [4, 2, 4, 4],
       [6, 3, 6, 1],
@@ -84,7 +84,7 @@ describe('Filters UI ActionBar component', () => {
 
     expect($(dropdownMenuRootElement()).is(':visible')).toBe(true);
 
-    mouseClick(dropdownMenuRootElement().querySelector('.htFiltersMenuActionBar .htUIButtonOK input'));
+    await mouseClick(dropdownMenuRootElement().querySelector('.htFiltersMenuActionBar .htUIButtonOK input'));
 
     expect($(dropdownMenuRootElement()).is(':visible')).toBe(false);
   });

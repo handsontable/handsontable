@@ -1,3 +1,4 @@
+/* eslint-disable handsontable/require-await */
 describe('Core.batchRender', () => {
   const id = 'testContainer';
 
@@ -14,7 +15,7 @@ describe('Core.batchRender', () => {
 
   it('should batch multi-line operations into one render call', async() => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
     });
 
     spyOn(hot, 'suspendRender').and.callThrough();
@@ -22,11 +23,11 @@ describe('Core.batchRender', () => {
     spyOn(hot.view._wt, 'draw');
     spyOn(hot.view._wt.wtOverlays, 'adjustElementsSize');
 
-    const result = hot.batchRender(() => {
+    const result = batchRender(() => {
       // fast render
-      hot.selectCell(1, 1);
+      selectCell(1, 1);
       // slow render
-      hot.setDataAtCell(2, 2, 'X');
+      setDataAtCell(2, 2, 'X');
 
       return hot.getDataAtCell(2, 2);
     });
@@ -42,7 +43,7 @@ describe('Core.batchRender', () => {
 
   it('should batch nested multi-line operations into one render call', async() => {
     const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      data: createSpreadsheetData(5, 5),
     });
 
     spyOn(hot, 'suspendRender').and.callThrough();
@@ -50,21 +51,21 @@ describe('Core.batchRender', () => {
     spyOn(hot.view._wt, 'draw');
     spyOn(hot.view._wt.wtOverlays, 'adjustElementsSize');
 
-    const result = hot.batchRender(() => {
-      hot.alter('insert_row_above', 1, 5);
-      hot.alter('insert_col_start', 1, 5);
+    const result = batchRender(() => {
+      alter('insert_row_above', 1, 5);
+      alter('insert_col_start', 1, 5);
 
-      hot.batchRender(() => {
-        hot.setDataAtCell(1, 1, 'x');
-        hot.setDataAtCell(2, 2, 'c');
-        hot.setDataAtCell(3, 3, 'v');
+      batchRender(() => {
+        setDataAtCell(1, 1, 'x');
+        setDataAtCell(2, 2, 'c');
+        setDataAtCell(3, 3, 'v');
 
-        hot.batchRender(() => {
-          hot.selectCell(1, 1);
+        batchRender(() => {
+          selectCell(1, 1);
         });
       });
 
-      return hot.getDataAtCell(1, 1);
+      return getDataAtCell(1, 1);
     });
 
     expect(result).toBe('x');

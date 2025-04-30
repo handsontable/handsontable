@@ -13,8 +13,8 @@ describe('Hook', () => {
   });
 
   describe('afterSelectRows', () => {
-    it('should be fired with proper arguments', () => {
-      const hot = handsontable({
+    it('should be fired with proper arguments', async() => {
+      handsontable({
         data: createSpreadsheetData(10, 10),
         colHeaders: true,
         rowHeaders: true,
@@ -23,17 +23,17 @@ describe('Hook', () => {
       const afterSelectRows = jasmine.createSpy('afterSelectRows');
 
       addHook('afterSelectRows', afterSelectRows);
-      selectRows(2, 4);
+      await selectRows(2, 4);
 
       expect(afterSelectRows).toHaveBeenCalledTimes(1);
       expect(afterSelectRows).toHaveBeenCalledWith(
-        hot._createCellCoords(2, -1),
-        hot._createCellCoords(4, 9),
-        hot._createCellCoords(2, 0),
+        cellCoords(2, -1),
+        cellCoords(4, 9),
+        cellCoords(2, 0),
       );
     });
 
-    it('should be fired after the `beforeSelectRows` hook', () => {
+    it('should be fired after the `beforeSelectRows` hook', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         colHeaders: true,
@@ -45,7 +45,7 @@ describe('Hook', () => {
 
       addHook('beforeSelectRows', beforeSelectRows);
       addHook('afterSelectRows', afterSelectRows);
-      selectRows(2, 4);
+      await selectRows(2, 4);
 
       expect(beforeSelectRows).toHaveBeenCalledBefore(afterSelectRows);
     });

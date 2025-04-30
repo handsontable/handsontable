@@ -20,7 +20,7 @@ describe('WalkontableBorder', () => {
     this.wotInstance.destroy();
   });
 
-  it('should add/remove border to selection when cell is clicked', () => {
+  it('should add/remove border to selection when cell is clicked', async() => {
     const selections = createSelectionController({
       border: {
         width: 1,
@@ -81,7 +81,7 @@ describe('WalkontableBorder', () => {
     expect($start.position().left).toBe(49);
   });
 
-  it('should add/remove border to selection when cell is clicked and the table has only one column', () => {
+  it('should add/remove border to selection when cell is clicked and the table has only one column', async() => {
     const selections = createSelectionController({
       border: {
         width: 1,
@@ -126,7 +126,7 @@ describe('WalkontableBorder', () => {
     expect($start.position().left).toBe(0);
   });
 
-  it('should properly add a selection border on an entirely selected column', () => {
+  it('should properly add a selection border on an entirely selected column', async() => {
     const selections = createSelectionController({
       border: {
         width: 1,
@@ -172,7 +172,7 @@ describe('WalkontableBorder', () => {
     expect($start.position().left).toBe(0);
   });
 
-  it('should add/remove corner to selection when cell is clicked', () => {
+  it('should add/remove corner to selection when cell is clicked', async() => {
     const selections = createSelectionController({
       border: {
         width: 2,
@@ -217,7 +217,7 @@ describe('WalkontableBorder', () => {
     expect($corner.position().left).toBe(95);
   });
 
-  it('should render selection corner in the correct position', () => {
+  it('should render selection corner in the correct position', async() => {
     const selections = createSelectionController({
       border: {
         width: 2,
@@ -254,7 +254,7 @@ describe('WalkontableBorder', () => {
     expect($corner.css('left')).toBe('95px');
   });
 
-  it('should properly render a selection corner on the edge of the left fixed column', () => {
+  it('should properly render a selection corner on the edge of the left fixed column', async() => {
     const selections = createSelectionController({
       border: {
         width: 2,
@@ -291,7 +291,7 @@ describe('WalkontableBorder', () => {
       .toBe($corner.position().left + $corner.outerWidth());
   });
 
-  it('should properly render a selection corner on the edge of the top fixed row', () => {
+  it('should properly render a selection corner on the edge of the top fixed row', async() => {
     const selections = createSelectionController({
       border: {
         width: 2,
@@ -328,7 +328,7 @@ describe('WalkontableBorder', () => {
       .toBe($corner.position().top + $corner.outerHeight());
   });
 
-  it('should draw only one corner if selection is added between overlays', () => {
+  it('should draw only one corner if selection is added between overlays', async() => {
     const selections = createSelectionController();
     const wt = walkontable({
       data: getData,
@@ -356,7 +356,7 @@ describe('WalkontableBorder', () => {
     expect(corners.length).toBe(1);
   });
 
-  it('should move the fill handle / corner border to the left, if in the position it would overlap the container (e.g.: far-right)', () => {
+  it('should move the fill handle / corner border to the left, if in the position it would overlap the container (e.g.: far-right)', async() => {
     spec().$wrapper.css({
       overflow: 'hidden',
       width: '200px',
@@ -417,7 +417,7 @@ describe('WalkontableBorder', () => {
     expect(spec().$wrapper[0].clientWidth === spec().$wrapper[0].scrollWidth).toBe(true);
   });
 
-  it('should move the fill handle / corner border to the top, if in the position it would overlap the container (e.g.: far-bottom)', () => {
+  it('should move the fill handle / corner border to the top, if in the position it would overlap the container (e.g.: far-bottom)', async() => {
     spec().$wrapper.css({
       height: '',
       marginTop: '2000px',
@@ -463,7 +463,7 @@ describe('WalkontableBorder', () => {
     expect(spec().$wrapper[0].clientHeight === spec().$wrapper[0].scrollHeight).toBe(true);
   });
 
-  it('should move the corner border to the top-left, if is not enough area on the bottom-right corner of container', () => {
+  it('should move the corner border to the top-left, if is not enough area on the bottom-right corner of container', async() => {
     spec().$wrapper.css({
       height: '',
       width: '50px',

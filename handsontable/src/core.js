@@ -263,7 +263,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   userSettings.language = getValidLanguageCode(userSettings.language);
 
-  const metaManager = new MetaManager(instance, userSettings, [
+  const settingsWithoutHooks = Object.fromEntries(
+    Object.entries(userSettings).filter(([key]) => {
+      return !(Hooks.getSingleton().isRegistered(key) || Hooks.getSingleton().isDeprecated(key));
+    })
+  );
+
+  const metaManager = new MetaManager(instance, settingsWithoutHooks, [
     DynamicCellMetaMod,
     ExtendMetaPropertiesMod,
   ]);
@@ -1155,7 +1161,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       addClass(instance.rootElement, 'mobile');
     }
 
-    this.updateSettings(tableMeta, true);
+    this.updateSettings(userSettings, true);
 
     this.view = new TableView(this);
 
@@ -2525,12 +2531,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       throw new Error('Since 8.0.0 the "ganttChart" setting is no longer supported.');
     }
 
+    if (settings.language) {
+      setLanguage(settings.language);
+    }
+
     // eslint-disable-next-line no-restricted-syntax
     for (i in settings) {
-      if (i === 'data') {
-        // Do nothing. loadData will be triggered later
-      } else if (i === 'language') {
-        setLanguage(settings.language);
+      if (i === 'data' || i === 'language') {
+        // Do nothing. loadData and language change will be triggered later
 
       } else if (i === 'className') {
         setClassName('className', settings.className);
@@ -2541,12 +2549,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         instance.view._wt.wtOverlays.syncOverlayTableClassNames();
 
       } else if (Hooks.getSingleton().isRegistered(i) || Hooks.getSingleton().isDeprecated(i)) {
+        const hook = settings[i];
 
-        if (isFunction(settings[i])) {
-          Hooks.getSingleton().addAsFixed(i, settings[i], instance);
+        if (isFunction(hook)) {
+          Hooks.getSingleton().addAsFixed(i, hook, instance);
+          tableMeta[i] = hook;
 
-        } else if (Array.isArray(settings[i])) {
-          Hooks.getSingleton().add(i, settings[i], instance);
+        } else if (Array.isArray(hook)) {
+          Hooks.getSingleton().add(i, hook, instance);
+          tableMeta[i] = hook;
         }
 
       } else if (!init && hasOwnProperty(settings, i)) { // Update settings
@@ -4453,6 +4464,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *   col: 50,
    *   verticalSnap: 'bottom',
    *   horizontalSnap: 'end',
+   * }, () => {
+   *   // callback function executed after the viewport is scrolled
    * });
    * ```
    *
@@ -4475,9 +4488,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * be positioned at the start or end of the viewport.
    * @param {boolean} [options.considerHiddenIndexes=true] If `true`, we handle visual indexes, otherwise we handle only indexes which
    * may be rendered when they are in the viewport (we don't consider hidden indexes as they aren't rendered).
+   * @param {Function} [callback] The callback function to call after the viewport is scrolled.
    * @returns {boolean} `true` if viewport was scrolled, `false` otherwise.
    */
-  this.scrollViewportTo = function(options) {
+  this.scrollViewportTo = function(options, callback) {
     // Support for backward compatibility arguments: (row, col, snapToBottom, snapToRight, considerHiddenIndexes)
     if (typeof options === 'number') {
       /* eslint-disable prefer-rest-params */
@@ -4494,11 +4508,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     const {
       row,
       col,
-      considerHiddenIndexes
+      considerHiddenIndexes,
     } = options ?? {};
 
     let renderableRow = row;
     let renderableColumn = col;
+
+    if (isFunction(callback)) {
+      this.addHookOnce('afterScroll', callback);
+    }
 
     if (considerHiddenIndexes === undefined || considerHiddenIndexes) {
       const isValidRowGrid = Number.isInteger(row) && row >= 0;
@@ -4519,24 +4537,33 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     const isRowInteger = Number.isInteger(renderableRow);
     const isColumnInteger = Number.isInteger(renderableColumn);
+    let isScrolled = false;
 
     if (isRowInteger && renderableRow >= 0 && isColumnInteger && renderableColumn >= 0) {
-      return instance.view.scrollViewport(
+      isScrolled = instance.view.scrollViewport(
         instance._createCellCoords(renderableRow, renderableColumn),
         options.horizontalSnap,
         options.verticalSnap,
       );
+
+    } else if (isRowInteger && renderableRow >= 0 && (isColumnInteger && renderableColumn < 0 || !isColumnInteger)) {
+      isScrolled = instance.view.scrollViewportVertically(renderableRow, options.verticalSnap);
+
+    } else if (isColumnInteger && renderableColumn >= 0 && (isRowInteger && renderableRow < 0 || !isRowInteger)) {
+      isScrolled = instance.view.scrollViewportHorizontally(renderableColumn, options.horizontalSnap);
     }
 
-    if (isRowInteger && renderableRow >= 0 && (isColumnInteger && renderableColumn < 0 || !isColumnInteger)) {
-      return instance.view.scrollViewportVertically(renderableRow, options.verticalSnap);
+    if (isFunction(callback)) {
+      if (isScrolled) {
+        // fast render triggers `afterScroll` hook
+        this.view.render();
+      } else {
+        this.removeHook('afterScroll', callback);
+        this._registerMicrotask(() => callback());
+      }
     }
 
-    if (isColumnInteger && renderableColumn >= 0 && (isRowInteger && renderableRow < 0 || !isRowInteger)) {
-      return instance.view.scrollViewportHorizontally(renderableColumn, options.horizontalSnap);
-    }
-
-    return false;
+    return isScrolled;
   };
 
   /**
@@ -4546,24 +4573,31 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @fires Hooks#afterScroll
    * @function scrollToFocusedCell
-   * @param {Function} callback The callback function to call after the viewport is scrolled.
+   * @param {Function} [callback] The callback function to call after the viewport is scrolled.
+   * @returns {boolean} `true` if the viewport was scrolled, `false` otherwise.
    */
-  this.scrollToFocusedCell = function(callback = () => {}) {
+  this.scrollToFocusedCell = function(callback) {
     if (!this.selection.isSelected()) {
-      return;
+      return false;
     }
 
-    this.addHookOnce('afterScroll', callback);
+    if (isFunction(callback)) {
+      this.addHookOnce('afterScroll', callback);
+    }
 
     const { highlight } = this.getSelectedRangeLast();
     const isScrolled = this.scrollViewportTo(highlight.toObject());
 
     if (isScrolled) {
+      // fast render triggers `afterScroll` hook
       this.view.render();
-    } else {
+
+    } else if (isFunction(callback)) {
       this.removeHook('afterScroll', callback);
-      this._registerImmediate(() => callback());
+      this._registerMicrotask(() => callback());
     }
+
+    return isScrolled;
   };
 
   /**
@@ -5039,6 +5073,30 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   };
 
   /**
+   * Gets the table's root container element height.
+   *
+   * @memberof Core#
+   * @function getTableHeight
+   * @since 16.0.0
+   * @returns {number}
+   */
+  this.getTableHeight = () => {
+    return this.rootElement.offsetHeight;
+  };
+
+  /**
+   * Gets the table's root container element width.
+   *
+   * @memberof Core#
+   * @function getTableWidth
+   * @since 16.0.0
+   * @returns {number}
+   */
+  this.getTableWidth = () => {
+    return this.rootElement.offsetWidth;
+  };
+
+  /**
    * Sets timeout. Purpose of this method is to clear all known timeouts when `destroy` method is called.
    *
    * @param {number|Function} handle Handler returned from setTimeout or function to execute (it will be automatically wraped
@@ -5087,6 +5145,20 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this._clearImmediates = function() {
     arrayEach(this.immediates, (handler) => {
       clearImmediate(handler);
+    });
+  };
+
+  /**
+   * Registers a microtask callback.
+   *
+   * @param {Function} callback Function to be delayed in execution.
+   * @private
+   */
+  this._registerMicrotask = function(callback) {
+    this.rootWindow.queueMicrotask(() => {
+      if (!this.isDestroyed) {
+        callback();
+      }
     });
   };
 

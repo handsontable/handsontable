@@ -21,12 +21,8 @@ const EditorComponent = () => {
       // any cell, we're updating the styles for the editor element,
       // so it shows up in the correct position.
       if (!mainElementRef.current) return;
-      mainElementRef.current.style.left = `${
-        tdPosition.left + window.pageXOffset
-      }px`;
-      mainElementRef.current.style.top = `${
-        tdPosition.top + window.pageYOffset
-      }px`;
+      mainElementRef.current.style.left = `${tdPosition.left + window.pageXOffset}px`;
+      mainElementRef.current.style.top = `${tdPosition.top + window.pageYOffset}px`;
     },
     onFocus: () => {},
   });
@@ -63,12 +59,8 @@ const EditorComponent = () => {
       }}
       onMouseDown={stopMousedownPropagation}
     >
-      <button onClick={setLowerCase.bind(this)}>
-        {buttonValue.toLowerCase()}
-      </button>
-      <button onClick={setUpperCase.bind(this)}>
-        {buttonValue.toUpperCase()}
-      </button>
+      <button onClick={setLowerCase.bind(this)}>{buttonValue.toLowerCase()}</button>
+      <button onClick={setUpperCase.bind(this)}>{buttonValue.toUpperCase()}</button>
     </div>
   );
 };

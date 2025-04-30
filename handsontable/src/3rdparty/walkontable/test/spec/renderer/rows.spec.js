@@ -22,7 +22,7 @@ describe('Walkontable.Renderer.RowsRenderer', () => {
     return { renderer, tableMock, rootNode };
   }
 
-  it('should generate as many rows as the `rowsToRender` is set', () => {
+  it('should generate as many rows as the `rowsToRender` is set', async() => {
     const { renderer, tableMock, rootNode } = createRenderer();
 
     tableMock.rowsToRender = 5;
@@ -74,7 +74,7 @@ describe('Walkontable.Renderer.RowsRenderer', () => {
       `);
   });
 
-  it('should add the `ht__rows_odd` and `ht__rows_even` classes to the appropriate rows', () => {
+  it('should add the `ht__rows_odd` and `ht__rows_even` classes to the appropriate rows', async() => {
     const { renderer, tableMock, rootNode } = createRenderer();
 
     spec().matchersConfig = {
@@ -99,7 +99,7 @@ describe('Walkontable.Renderer.RowsRenderer', () => {
       `);
   });
 
-  it('should reuse previously created elements on next render cycle', () => {
+  it('should reuse previously created elements on next render cycle', async() => {
     const { renderer, tableMock, rootNode } = createRenderer();
 
     tableMock.rowsToRender = 3;
@@ -127,7 +127,7 @@ describe('Walkontable.Renderer.RowsRenderer', () => {
     expect(rootNode.children[2]).toBe(prevChildren[2]);
   });
 
-  it('should reuse previously created elements when offset is changed', () => {
+  it('should reuse previously created elements when offset is changed', async() => {
     const { renderer, tableMock, rootNode } = createRenderer();
 
     tableMock.rowsToRender = 3;
@@ -157,7 +157,7 @@ describe('Walkontable.Renderer.RowsRenderer', () => {
     expect(rootNode.children[2]).toBe(prevChildren[2]);
   });
 
-  it('should return all rendered nodes using `getRenderedNode` method', () => {
+  it('should return all rendered nodes using `getRenderedNode` method', async() => {
     const { renderer, tableMock, rootNode } = createRenderer();
 
     tableMock.rowsToRender = 3;

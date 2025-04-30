@@ -1,3 +1,5 @@
+import { scrollWindowToCell } from '../utils';
+
 /**
  * Scroll strategy for changed the focus position of the selection.
  *
@@ -6,6 +8,10 @@
  */
 export function focusScrollStrategy(hot) {
   return (cellCoords) => {
-    hot.scrollViewportTo(cellCoords.toObject());
+    hot.scrollViewportTo(cellCoords.toObject(), () => {
+      const { row, col } = hot.getSelectedRangeLast().highlight;
+
+      scrollWindowToCell(hot.getCell(row, col, true));
+    });
   };
 }

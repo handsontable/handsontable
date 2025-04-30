@@ -3,7 +3,7 @@ export const command = {
   callback(hot) {
     const { selection, columnIndexMapper } = hot;
     const { highlight, from, to } = hot.getSelectedRangeLast();
-    const isFocusHighlightedByHeader = highlight.isHeader() && hot.selection.isSelectedByColumnHeader();
+    const isFocusHighlightedByHeader = highlight.isHeader() && selection.isSelectedByColumnHeader();
 
     if (highlight.isCell() || isFocusHighlightedByHeader) {
       const column = columnIndexMapper.getNearestNotHiddenIndex(
@@ -12,6 +12,8 @@ export const command = {
       const newFrom = from.clone();
 
       newFrom.col = highlight.col;
+
+      selection.markSource('keyboard');
       selection.setRangeStart(newFrom, undefined, false, highlight.clone());
 
       // Restore the column highlight by header flag after setting up a new selection.
@@ -20,6 +22,7 @@ export const command = {
       }
 
       selection.setRangeEnd(hot._createCellCoords(to.row, column));
+      selection.markEndSource();
     }
   },
 };

@@ -177,7 +177,7 @@ const presetMap = {
   'react-advanced': ['hot', 'react', 'react-dom', 'redux', 'react-redux', 'hot-react', 'fixer', 'react-colorful', 'react-star-rating-component'],
   angular: ['hot', 'rxjs', 'core-js', 'zone', 'angular-core-primitives-signals', 'angular-compiler', 'angular-core', 'angular-common', 'angular-platform-browser', 'angular-forms', 'angular-platform-browser-dynamic', 'hot-angular', 'fixer'],
   'angular-languages': ['hot', 'languages', 'rxjs', 'core-js', 'zone', 'angular-core-primitives-signals', 'angular-compiler', 'angular-core', 'angular-common', 'angular-forms', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular', 'fixer'],
-  'angular-numbro': ['hot', 'numbro', 'rxjs', 'core-js', 'zone', 'angular-core-primitives-signals', 'angular-compiler', 'angular-core', 'angular-common', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular', 'fixer'],
+  'angular-numbro': ['hot', 'numbro', 'rxjs', 'core-js', 'zone', 'angular-core-primitives-signals', 'angular-compiler', 'angular-core', 'angular-common', 'angular-forms', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular', 'fixer'],
   vue: ['hot', 'vue', 'hot-vue', 'fixer'],
   'vue-numbro': ['hot', 'numbro', 'vue', 'hot-vue', 'fixer'],
   'vue-languages': ['hot', 'languages', 'vue', 'hot-vue', 'fixer'],

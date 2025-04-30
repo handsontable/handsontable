@@ -10,7 +10,7 @@ describe('Core.addHook', () => {
     }
   });
 
-  it('should forward call to the internal Hooks module', () => {
+  it('should forward call to the internal Hooks module', async() => {
     const fn1 = jasmine.createSpy('fn1');
 
     handsontable({});

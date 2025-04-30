@@ -46,7 +46,7 @@ describe('Walkontable viewport columns calculator', () => {
         expect(calc.getResultsFor('rendered').isVisibleInTrimmingContainer).toBe(true);
       }
 
-      window.scrollBy(Math.floor(tableOffset + (tableWidth / 2)), 0);
+      await scrollWindowBy(Math.floor(tableOffset + (tableWidth / 2)), 0);
 
       await sleep(100);
 
@@ -58,7 +58,7 @@ describe('Walkontable viewport columns calculator', () => {
         expect(calc.getResultsFor('rendered').isVisibleInTrimmingContainer).toBe(true);
       }
 
-      window.scrollBy(Math.ceil(tableWidth / 2), 0);
+      await scrollWindowBy(Math.ceil(tableWidth / 2), 0);
 
       await sleep(100);
 
@@ -70,7 +70,7 @@ describe('Walkontable viewport columns calculator', () => {
         expect(calc.getResultsFor('rendered').isVisibleInTrimmingContainer).toBe(true);
       }
 
-      window.scrollBy(1, 0);
+      await scrollWindowBy(1, 0);
 
       await sleep(100);
 
@@ -82,7 +82,7 @@ describe('Walkontable viewport columns calculator', () => {
         expect(calc.getResultsFor('rendered').isVisibleInTrimmingContainer).toBe(false);
       }
 
-      window.scrollBy(1000, 0);
+      await scrollWindowBy(1000, 0);
 
       await sleep(100);
 
@@ -122,7 +122,7 @@ describe('Walkontable viewport columns calculator', () => {
         expect(calc.getResultsFor('rendered').isVisibleInTrimmingContainer).toBe(false);
       }
 
-      window.scrollBy(tableOffset - window.innerWidth + getScrollbarWidth() - 1, 0);
+      await scrollWindowBy(tableOffset - window.innerWidth + getScrollbarWidth() - 1, 0);
 
       await sleep(100);
 
@@ -134,7 +134,7 @@ describe('Walkontable viewport columns calculator', () => {
         expect(calc.getResultsFor('rendered').isVisibleInTrimmingContainer).toBe(false);
       }
 
-      window.scrollBy(1, 0);
+      await scrollWindowBy(1, 0);
 
       await sleep(100);
 
@@ -146,7 +146,7 @@ describe('Walkontable viewport columns calculator', () => {
         expect(calc.getResultsFor('rendered').isVisibleInTrimmingContainer).toBe(true);
       }
 
-      window.scrollBy(tableWidth / 2, 0);
+      await scrollWindowBy(tableWidth / 2, 0);
 
       await sleep(100);
 
@@ -158,7 +158,7 @@ describe('Walkontable viewport columns calculator', () => {
         expect(calc.getResultsFor('rendered').isVisibleInTrimmingContainer).toBe(true);
       }
 
-      window.scrollBy(tableWidth / 2, 0);
+      await scrollWindowBy(tableWidth / 2, 0);
 
       await sleep(100);
 

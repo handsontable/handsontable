@@ -21,7 +21,7 @@ describe('renderAllRows option', () => {
     this.wotInstance.destroy();
   });
 
-  it('should render all rows once without rerendering after fast render', () => {
+  it('should render all rows once without rerendering after fast render', async() => {
     const cellRenderer = jasmine.createSpy('cellRenderer');
     const wt = walkontable({
       data: getData,

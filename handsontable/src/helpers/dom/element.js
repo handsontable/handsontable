@@ -530,6 +530,28 @@ export function isVisible(element) {
 }
 
 /**
+ * Returns true if the element has the height set to `0` or `0px` and overflow to `hidden` (height deliberately set to be 0).
+ *
+ * @param {HTMLElement} element The element to check.
+ * @returns {boolean} `true` if the element has height set to `0` or `0px` and overflow is set to `hidden`, `false` otherwise.
+ */
+export function hasZeroHeight(element) {
+  const rootDocument = element.ownerDocument;
+  const rootWindow = rootDocument.defaultView;
+  let currentElement = element;
+
+  while (currentElement.parentNode) {
+    if (currentElement.style.height === '0px' || currentElement.style.height === '0') {
+      return rootWindow.getComputedStyle(currentElement).overflow === 'hidden';
+    }
+
+    currentElement = currentElement.parentNode;
+  }
+
+  return false;
+}
+
+/**
  * Returns elements top and left offset relative to the document. Function is not compatible with jQuery offset.
  *
  * @param {HTMLElement} element An element to get the offset position from.

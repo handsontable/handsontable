@@ -25,20 +25,14 @@ const ExampleComponent = () => {
   const exampleContainerMouseupCallback = (event) => {
     const hot = hotRef.current?.hotInstance;
 
-    if (
-      event.target.nodeName == 'INPUT' &&
-      event.target.className == 'checker'
-    ) {
+    if (event.target.nodeName == 'INPUT' && event.target.className == 'checker') {
       isChecked = !event.target.checked;
       hot?.render();
     }
   };
 
   return (
-    <div
-      id="exampleContainer5"
-      onMouseUp={(...args) => exampleContainerMouseupCallback(...args)}
-    >
+    <div id="exampleContainer5" onMouseUp={(...args) => exampleContainerMouseupCallback(...args)}>
       <HotTable
         ref={hotRef}
         height="auto"
@@ -48,9 +42,7 @@ const ExampleComponent = () => {
             case 0:
               return '<b>Bold</b> and <em>Beautiful</em>';
             case 1:
-              return `Some <input type="checkbox" class="checker" ${
-                isChecked ? `checked="checked"` : ''
-              }> checkbox`;
+              return `Some <input type="checkbox" class="checker" ${isChecked ? `checked="checked"` : ''}> checkbox`;
             default:
               return '';
           }

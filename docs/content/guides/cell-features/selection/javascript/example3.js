@@ -42,11 +42,7 @@ button.addEventListener('click', () => {
     const endCol = Math.max(column1, column2);
 
     for (let rowIndex = startRow; rowIndex <= endRow; rowIndex += 1) {
-      for (
-        let columnIndex = startCol;
-        columnIndex <= endCol;
-        columnIndex += 1
-      ) {
+      for (let columnIndex = startCol; columnIndex <= endCol; columnIndex += 1) {
         hot.setDataAtCell(rowIndex, columnIndex, 'data changed');
         hot.setCellMeta(rowIndex, columnIndex, 'className', 'c-red');
       }

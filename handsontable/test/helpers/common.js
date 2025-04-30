@@ -1,15 +1,29 @@
+import { waitOnScroll } from './utils';
+
+/**
+ * When `true` the test suite will not scroll to the top of the page before each test and
+ * the spec will be not cleared which allows calling test helpers (`selectCell()` etc.) from
+ * the console.
+ */
+const DEBUG = false;
 const specContext = {};
 
 beforeEach(function() {
+  if (!DEBUG) {
+    window.scrollTo(0, 0);
+  }
+
   specContext.spec = this;
 
-  if (typeof __ENV_ARGS__ !== 'undefined') {
-    this.loadedTheme = __ENV_ARGS__.HOT_THEME;
+  if (!process.env.JEST_WORKER_ID) {
+    this.loadedTheme = __ENV_ARGS__.HOT_THEME || 'classic';
   }
 });
 
 afterEach(() => {
-  specContext.spec = null;
+  if (!DEBUG) {
+    specContext.spec = null;
+  }
 });
 
 beforeAll(() => {
@@ -79,9 +93,13 @@ export function handsontableMethodFactory(method) {
 }
 
 export const _getColWidthFromSettings = handsontableMethodFactory('_getColWidthFromSettings');
+export const _getEditorManager = handsontableMethodFactory('_getEditorManager');
 export const addHook = handsontableMethodFactory('addHook');
 export const addHookOnce = handsontableMethodFactory('addHookOnce');
 export const alter = handsontableMethodFactory('alter');
+export const batch = handsontableMethodFactory('batch');
+export const batchExecution = handsontableMethodFactory('batchExecution');
+export const batchRender = handsontableMethodFactory('batchRender');
 export const clear = handsontableMethodFactory('clear');
 export const colToProp = handsontableMethodFactory('colToProp');
 export const countColHeaders = handsontableMethodFactory('countColHeaders');
@@ -150,9 +168,13 @@ export const getSourceDataArray = handsontableMethodFactory('getSourceDataArray'
 export const getSourceDataAtCell = handsontableMethodFactory('getSourceDataAtCell');
 export const getSourceDataAtCol = handsontableMethodFactory('getSourceDataAtCol');
 export const getSourceDataAtRow = handsontableMethodFactory('getSourceDataAtRow');
+export const getTableHeight = handsontableMethodFactory('getTableHeight');
+export const getTableWidth = handsontableMethodFactory('getTableWidth');
 export const getValue = handsontableMethodFactory('getValue');
 export const hasHook = handsontableMethodFactory('hasHook');
+export const isExecutionSuspended = handsontableMethodFactory('isExecutionSuspended');
 export const isListening = handsontableMethodFactory('isListening');
+export const isRenderSuspended = handsontableMethodFactory('isRenderSuspended');
 export const listen = handsontableMethodFactory('listen');
 export const loadData = handsontableMethodFactory('loadData');
 export const populateFromArray = handsontableMethodFactory('populateFromArray');
@@ -161,14 +183,16 @@ export const refreshDimensions = handsontableMethodFactory('refreshDimensions');
 export const removeCellMeta = handsontableMethodFactory('removeCellMeta');
 export const removeHook = handsontableMethodFactory('removeHook');
 export const render = handsontableMethodFactory('render');
+export const resumeExecution = handsontableMethodFactory('resumeExecution');
+export const resumeRender = handsontableMethodFactory('resumeRender');
 export const runHooks = handsontableMethodFactory('runHooks');
-export const scrollToFocusedCell = handsontableMethodFactory('scrollToFocusedCell');
-export const scrollViewportTo = handsontableMethodFactory('scrollViewportTo');
-export const selectAll = handsontableMethodFactory('selectAll');
-export const selectCell = handsontableMethodFactory('selectCell');
-export const selectCells = handsontableMethodFactory('selectCells');
-export const selectColumns = handsontableMethodFactory('selectColumns');
-export const selectRows = handsontableMethodFactory('selectRows');
+export const scrollToFocusedCell = waitOnScroll(handsontableMethodFactory('scrollToFocusedCell'));
+export const scrollViewportTo = waitOnScroll(handsontableMethodFactory('scrollViewportTo'));
+export const selectAll = waitOnScroll(handsontableMethodFactory('selectAll'));
+export const selectCell = waitOnScroll(handsontableMethodFactory('selectCell'));
+export const selectCells = waitOnScroll(handsontableMethodFactory('selectCells'));
+export const selectColumns = waitOnScroll(handsontableMethodFactory('selectColumns'));
+export const selectRows = waitOnScroll(handsontableMethodFactory('selectRows'));
 export const setCellMeta = handsontableMethodFactory('setCellMeta');
 export const setDataAtCell = handsontableMethodFactory('setDataAtCell');
 export const setDataAtRowProp = handsontableMethodFactory('setDataAtRowProp');
@@ -176,6 +200,13 @@ export const setSourceDataAtCell = handsontableMethodFactory('setSourceDataAtCel
 export const spliceCellsMeta = handsontableMethodFactory('spliceCellsMeta');
 export const spliceCol = handsontableMethodFactory('spliceCol');
 export const spliceRow = handsontableMethodFactory('spliceRow');
+export const suspendExecution = handsontableMethodFactory('suspendExecution');
+export const suspendRender = handsontableMethodFactory('suspendRender');
+export const toHTML = handsontableMethodFactory('toHTML');
+export const toPhysicalColumn = handsontableMethodFactory('toPhysicalColumn');
+export const toPhysicalRow = handsontableMethodFactory('toPhysicalRow');
+export const toTableElement = handsontableMethodFactory('toTableElement');
+export const toVisualColumn = handsontableMethodFactory('toVisualColumn');
 export const toVisualRow = handsontableMethodFactory('toVisualRow');
 export const unlisten = handsontableMethodFactory('unlisten');
 export const updateData = handsontableMethodFactory('updateData');
@@ -183,6 +214,8 @@ export const updateSettings = handsontableMethodFactory('updateSettings');
 export const useTheme = handsontableMethodFactory('useTheme');
 export const validateCell = handsontableMethodFactory('validateCell');
 export const validateCells = handsontableMethodFactory('validateCells');
+export const validateColumns = handsontableMethodFactory('validateColumns');
+export const validateRows = handsontableMethodFactory('validateRows');
 
 /**
  * @returns {number} Returns the default row height based on the current theme.
@@ -195,6 +228,20 @@ export function getDefaultRowHeight() {
       return 37;
     default:
       return 23; // classic
+  }
+}
+
+/**
+ * @returns {number} Returns the default row height based on the current theme.
+ */
+export function getDefaultColumnWidth() {
+  switch (__ENV_ARGS__.HOT_THEME) {
+    case 'main':
+      return 50;
+    case 'horizon':
+      return 51;
+    default:
+      return 50; // classic
   }
 }
 
@@ -213,6 +260,20 @@ export function getDefaultColumnHeaderHeight() {
 }
 
 /**
+ * @returns {number} Returns the default column header height based on the current theme.
+ */
+export function getDefaultRowHeaderWidth() {
+  switch (__ENV_ARGS__.HOT_THEME) {
+    case 'main':
+      return 49;
+    case 'horizon':
+      return 49;
+    default:
+      return 50; // classic
+  }
+}
+
+/**
  * @returns {object} Returns the spec object for currently running test.
  */
 export function spec() {
@@ -223,7 +284,31 @@ export function spec() {
  * @returns {Handsontable} Returns the Handsontable instance.
  */
 export function hot() {
-  return spec().$container.data('handsontable');
+  return spec().hotInstance ?? spec().$container?.data('handsontable');
+}
+
+/**
+ * @returns {Selection} Returns the Handsontable Selection instance.
+ */
+export function selection() {
+  return hot().selection;
+}
+
+/**
+ * @returns {TableView} Returns the Handsontable TableView instance.
+ */
+export function tableView() {
+  return hot().view;
+}
+
+/**
+ * Sets the Handsontable instance as a main instance that will be used in
+ * the helper functions (`simulateClick`, `selectCell` etc).
+ *
+ * @param {Handsontable} hotInstance The Handsontable instance.
+ */
+export function setCurrentHotInstance(hotInstance) {
+  spec().hotInstance = hotInstance;
 }
 
 /**
@@ -280,12 +365,24 @@ export function bottomInlineStartCornerOverlay() {
  *
  * @param {number} y The scroll position.
  */
-export function setScrollTop(y) {
-  if (hot().view._wt.wtOverlays.scrollableElement === hot().rootWindow) {
-    window.scrollTo(window.scrollX, y);
-  } else {
-    getMaster().find('.wtHolder')[0].scrollTop = y;
-  }
+export async function scrollViewportVertically(y) {
+  const isWindow = hot().view._wt.wtOverlays.scrollableElement === hot().rootWindow;
+  const scrollableElement = isWindow ? window : getMaster().find('.wtHolder')[0];
+
+  return new Promise((resolve) => {
+    const scrollHandler = () => {
+      scrollableElement.removeEventListener('scroll', scrollHandler);
+      resolve();
+    };
+
+    scrollableElement.addEventListener('scroll', scrollHandler);
+
+    if (isWindow) {
+      scrollableElement.scrollTo(scrollableElement.scrollX, y);
+    } else {
+      scrollableElement.scrollTop = y;
+    }
+  });
 }
 
 /**
@@ -293,12 +390,61 @@ export function setScrollTop(y) {
  *
  * @param {number} x The scroll position.
  */
-export function setScrollLeft(x) {
-  if (hot().view._wt.wtOverlays.scrollableElement === hot().rootWindow) {
-    window.scrollTo(x, window.scrollY);
-  } else {
-    getMaster().find('.wtHolder')[0].scrollLeft = x;
-  }
+export async function scrollViewportHorizontally(x) {
+  const isWindow = hot().view._wt.wtOverlays.scrollableElement === hot().rootWindow;
+  const scrollableElement = isWindow ? window : getMaster().find('.wtHolder')[0];
+
+  return new Promise((resolve) => {
+    const scrollHandler = () => {
+      scrollableElement.removeEventListener('scroll', scrollHandler);
+      resolve();
+    };
+
+    scrollableElement.addEventListener('scroll', scrollHandler);
+    x = hot().isRtl() ? -x : x;
+
+    if (isWindow) {
+      scrollableElement.scrollTo(x, scrollableElement.scrollY);
+    } else {
+      scrollableElement.scrollLeft = x;
+    }
+  });
+}
+
+/**
+ * Moves the browser's viewport to the specified x and y scroll position.
+ *
+ * @param {number} x The scroll vertical position.
+ * @param {number} y The scroll horizontal position.
+ */
+export async function scrollWindowTo(x, y) {
+  return new Promise((resolve) => {
+    const scrollHandler = () => {
+      window.removeEventListener('scroll', scrollHandler);
+      resolve();
+    };
+
+    window.addEventListener('scroll', scrollHandler);
+    window.scrollTo(hot().isRtl() ? -x : x, y);
+  });
+}
+
+/**
+ * Moves the browser's viewport to the specified x and y scroll position.
+ *
+ * @param {number} x The scroll vertical position.
+ * @param {number} y The scroll horizontal position.
+ */
+export async function scrollWindowBy(x, y) {
+  return new Promise((resolve) => {
+    const scrollHandler = () => {
+      window.removeEventListener('scroll', scrollHandler);
+      resolve();
+    };
+
+    window.addEventListener('scroll', scrollHandler);
+    window.scrollBy(x, y);
+  });
 }
 
 /**
@@ -324,7 +470,7 @@ export function handsontable(options, explicitOptions = false, container = spec(
       loadedTheme &&
       loadedTheme !== 'classic'
     ) {
-      options.themeName = `ht-theme-${spec().loadedTheme}`;
+      options.themeName = `ht-theme-${loadedTheme}`;
     }
 
     options.licenseKey = 'non-commercial-and-evaluation';
@@ -503,7 +649,7 @@ export function getCorrespondingOverlay(cell, container) {
  * @param {HTMLElement} cell The cell element to check.
  * @param {Handsontable} [instance] The Handsontable instance.
  */
-export function contextMenu(cell, instance) {
+export const contextMenu = waitOnScroll((cell, instance) => {
   const hotInstance = instance || spec().$container.data('handsontable');
   let clickedCell = cell;
   let selected = hotInstance.getSelectedLast();
@@ -524,7 +670,7 @@ export function contextMenu(cell, instance) {
     clientX: cellOffset.left - Handsontable.dom.getWindowScrollLeft(hotInstance.rootWindow),
     clientY: cellOffset.top - Handsontable.dom.getWindowScrollTop(hotInstance.rootWindow),
   });
-}
+});
 
 /**
  * Opens and executes the context menu item action and closes the menu.
@@ -595,7 +741,7 @@ export function closeContextMenu() {
  *
  * @param {number|HTMLTableCellElement} [columnIndexOrCell=0] The column index or TD element under which the dropdown menu is triggered.
  */
-export function dropdownMenu(columnIndexOrCell = 0) {
+export const dropdownMenu = waitOnScroll((columnIndexOrCell = 0) => {
   let th = columnIndexOrCell;
 
   if (!(columnIndexOrCell instanceof HTMLTableCellElement)) {
@@ -611,7 +757,7 @@ export function dropdownMenu(columnIndexOrCell = 0) {
     $(button).simulate('mouseup');
     $(button).simulate('click');
   }
-}
+});
 
 /**
  * Opens and executes the dropdown menu item action and closes the menu.
@@ -1148,28 +1294,6 @@ export function clearModernThemeStylesheetMock(container) {
 }
 
 /**
- * Scrolls the overlay to a specific position and waits for the scroll event to fire.
- *
- * @param {object} overlay The overlay object.
- * @param {number} amount The amount to scroll.
- * @returns {Promise} A promise that resolves when the scroll event fires.
- */
-export async function scrollOverlay(overlay, amount) {
-  const scrollPromise = new Promise((resolve) => {
-    const scrollHandler = () => {
-      overlay.mainTableScrollableElement.removeEventListener('scroll', scrollHandler);
-      resolve();
-    };
-
-    overlay.mainTableScrollableElement.addEventListener('scroll', scrollHandler);
-  });
-
-  overlay.setScrollPosition(amount);
-
-  return scrollPromise;
-}
-
-/**
  * Creates spreadsheet data as an array of arrays filled with spreadsheet-like label
  * values (e.q "A1", "A2"...).
  *
@@ -1181,6 +1305,7 @@ export function createSpreadsheetData(...args) {
 }
 
 /**
+ *
  * Creates spreadsheet data as an array of arrays filled with an empty string.
  *
  * @param {*} args The arguments passed directly to the Handsontable helper.

@@ -32,9 +32,9 @@ describe('HiddenRows', () => {
   });
 
   describe('fixedRowsBottom', () => {
-    it('should reduce fixed rows by the number of hidden rows (the first row from bottom overlay is hidden)', () => {
+    it('should reduce fixed rows by the number of hidden rows (the first row from bottom overlay is hidden)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 1),
+        data: createSpreadsheetData(10, 1),
         rowHeaders: true,
         hiddenRows: {
           rows: [7],
@@ -58,9 +58,9 @@ describe('HiddenRows', () => {
         `);
     });
 
-    it('should reduce fixed rows by the number of hidden rows (the second row from bottom overlay is hidden)', () => {
+    it('should reduce fixed rows by the number of hidden rows (the second row from bottom overlay is hidden)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 1),
+        data: createSpreadsheetData(10, 1),
         rowHeaders: true,
         hiddenRows: {
           rows: [8],
@@ -84,9 +84,9 @@ describe('HiddenRows', () => {
         `);
     });
 
-    it('should reduce fixed rows by the number of hidden rows (two last rows within bottom overlay are hidden)', () => {
+    it('should reduce fixed rows by the number of hidden rows (two last rows within bottom overlay are hidden)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 1),
+        data: createSpreadsheetData(10, 1),
         rowHeaders: true,
         hiddenRows: {
           rows: [8, 9],
@@ -107,9 +107,9 @@ describe('HiddenRows', () => {
     });
 
     it('should reduce fixed rows by the number of hidden rows (total hidden rows are greater ' +
-       'than fixedRowsBottom and one row is not hidden within fixed rows range)', () => {
+       'than fixedRowsBottom and one row is not hidden within fixed rows range)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 1),
+        data: createSpreadsheetData(10, 1),
         rowHeaders: true,
         hiddenRows: {
           rows: [2, 3, 4, 5, 6, 7, 9],
@@ -129,9 +129,9 @@ describe('HiddenRows', () => {
         `);
     });
 
-    it('should reduce fixed rows to 0 when all rows all hidden', () => {
+    it('should reduce fixed rows to 0 when all rows all hidden', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 1),
+        data: createSpreadsheetData(10, 1),
         rowHeaders: true,
         hiddenRows: {
           rows: [5, 6, 7, 8, 9],
@@ -147,15 +147,15 @@ describe('HiddenRows', () => {
         `);
     });
 
-    it('should not display cells after API call hiding all rows (headers disabled)', () => {
+    it('should not display cells after API call hiding all rows (headers disabled)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 1),
+        data: createSpreadsheetData(10, 1),
         hiddenRows: true,
         fixedRowsBottom: 3
       });
 
       getPlugin('hiddenRows').hideRows([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
-      render();
+      await render();
 
       expect(getBottomClone().find('tbody tr').length).toBe(0);
       expect(extractDOMStructure(getBottomClone())).toMatchHTML(`
@@ -164,9 +164,9 @@ describe('HiddenRows', () => {
       `);
     });
 
-    it('should not display cells after API call hiding all rows (headers enabled)', () => {
+    it('should not display cells after API call hiding all rows (headers enabled)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 1),
+        data: createSpreadsheetData(10, 1),
         hiddenRows: true,
         fixedRowsBottom: 3,
         rowHeaders: true,
@@ -174,7 +174,7 @@ describe('HiddenRows', () => {
       });
 
       getPlugin('hiddenRows').hideRows([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
-      render();
+      await render();
 
       expect(getBottomClone().find('tbody tr').length).toBe(0);
       expect(extractDOMStructure(getBottomClone())).toMatchHTML(`
@@ -188,15 +188,15 @@ describe('HiddenRows', () => {
       `);
     });
 
-    it('should not display cells after API call trimming all rows (headers disabled)', () => {
+    it('should not display cells after API call trimming all rows (headers disabled)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 1),
+        data: createSpreadsheetData(10, 1),
         trimRows: true,
         fixedRowsBottom: 3
       });
 
       getPlugin('trimRows').trimRows([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
-      render();
+      await render();
 
       expect(getBottomClone().find('tbody tr').length).toBe(0);
       expect(extractDOMStructure(getBottomClone())).toMatchHTML(`
@@ -205,9 +205,9 @@ describe('HiddenRows', () => {
       `);
     });
 
-    it('should not display cells after API call trimming all rows (headers enabled)', () => {
+    it('should not display cells after API call trimming all rows (headers enabled)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 1),
+        data: createSpreadsheetData(10, 1),
         trimRows: true,
         fixedRowsBottom: 3,
         rowHeaders: true,
@@ -215,7 +215,7 @@ describe('HiddenRows', () => {
       });
 
       getPlugin('trimRows').trimRows([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
-      render();
+      await render();
 
       expect(getBottomClone().find('tbody tr').length).toBe(0);
       expect(extractDOMStructure(getBottomClone())).toMatchHTML(`

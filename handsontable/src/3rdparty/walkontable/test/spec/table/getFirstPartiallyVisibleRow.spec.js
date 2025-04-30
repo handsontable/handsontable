@@ -30,7 +30,7 @@ describe('WalkontableTable', () => {
   });
 
   describe('getFirstPartiallyVisibleRow()', () => {
-    it('should return -1 error code if there are no rendered rows and columns', () => {
+    it('should return -1 error code if there are no rendered rows and columns', async() => {
       createDataArray(0, 0);
       spec().$wrapper.width(250).height(170);
 
@@ -69,7 +69,7 @@ describe('WalkontableTable', () => {
       expectWtTable(wt, wtTable => wtTable.getFirstPartiallyVisibleRow(), 'top').toBe(-1);
     });
 
-    it('should return -1 error code if there are rendered rows and columns after fixed overlays are disabled', () => {
+    it('should return -1 error code if there are rendered rows and columns after fixed overlays are disabled', async() => {
       createDataArray(4, 4);
       spec().$wrapper.width(250).height(170);
 
@@ -107,7 +107,7 @@ describe('WalkontableTable', () => {
       expectWtTable(wt, wtTable => wtTable.getFirstPartiallyVisibleRow(), 'top').toBe(-1);
     });
 
-    it('should return source index that is relevant to a given overlay', () => {
+    it('should return source index that is relevant to a given overlay', async() => {
       createDataArray(18, 18);
       spec().$wrapper.width(250).height(170);
 
@@ -130,7 +130,7 @@ describe('WalkontableTable', () => {
       expectWtTable(wt, wtTable => wtTable.getFirstPartiallyVisibleRow(), 'top').toBe(0);
     });
 
-    it('should return the same row index as for fully visible row when the row is aligned to the top edge of the table', () => {
+    it('should return the same row index as for fully visible row when the row is aligned to the top edge of the table', async() => {
       createDataArray(18, 18);
       spec().$wrapper.width(185).height(175);
 
@@ -148,7 +148,7 @@ describe('WalkontableTable', () => {
       expect(wt.wtTable.getFirstVisibleRow()).toBe(1);
     });
 
-    it('should return source index only for partially visible row', () => {
+    it('should return source index only for partially visible row', async() => {
       createDataArray(18, 18);
       spec().$wrapper.width(185).height(185);
 

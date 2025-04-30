@@ -12,7 +12,7 @@ describe('Core_beforeKeyDown', () => {
     }
   });
 
-  it('should run beforeKeyDown hook', () => {
+  it('should run beforeKeyDown hook', async() => {
     let called = false;
 
     handsontable({
@@ -21,14 +21,14 @@ describe('Core_beforeKeyDown', () => {
         called = true;
       }
     });
-    selectCell(0, 0);
 
-    keyDownUp('arrowright');
+    await selectCell(0, 0);
+    await keyDownUp('arrowright');
 
     expect(called).toEqual(true);
   });
 
-  it('should run afterDocumentKeyDown and beforeKeyDown hook', () => {
+  it('should run afterDocumentKeyDown and beforeKeyDown hook', async() => {
     const called = [];
 
     handsontable({
@@ -40,29 +40,29 @@ describe('Core_beforeKeyDown', () => {
         called.push('beforeKeyDown');
       }
     });
-    selectCell(0, 0);
 
-    keyDownUp('arrowright');
+    await selectCell(0, 0);
+    await keyDownUp('arrowright');
 
     expect(called).toEqual(['beforeKeyDown', 'afterDocumentKeyDown']);
   });
 
-  it('should prevent hook from running default action', () => {
+  it('should prevent hook from running default action', async() => {
     handsontable({
       data: [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]],
       beforeKeyDown(event) {
         serveImmediatePropagation(event).stopImmediatePropagation();
       }
     });
-    selectCell(0, 0);
 
-    keyDownUp('arrowright');
+    await selectCell(0, 0);
+    await keyDownUp('arrowright');
 
     expect(getSelected()).toEqual([[0, 0, 0, 0]]);
     expect(getSelected()).not.toEqual([[0, 1, 0, 1]]);
   });
 
-  it('should overwrite default behavior of delete key, but not this of right arrow', () => {
+  it('should overwrite default behavior of delete key, but not this of right arrow', async() => {
     handsontable({
       data: [[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]],
       beforeKeyDown(event) {
@@ -73,16 +73,15 @@ describe('Core_beforeKeyDown', () => {
       }
     });
 
-    selectCell(0, 0);
-
-    keyDownUp('backspace');
-    keyDownUp('arrowright');
+    await selectCell(0, 0);
+    await keyDownUp('backspace');
+    await keyDownUp('arrowright');
 
     expect(getData().length).toEqual(3);
     expect(getSelected()).toEqual([[0, 1, 0, 1]]);
   });
 
-  it('should run beforeKeyDown hook in cell editor handler', () => {
+  it('should run beforeKeyDown hook in cell editor handler', async() => {
     let called = 0;
 
     handsontable({
@@ -91,10 +90,10 @@ describe('Core_beforeKeyDown', () => {
         called += 1;
       }
     });
-    selectCell(0, 0);
 
-    keyDownUp('enter');
-    keyDownUp('enter');
+    await selectCell(0, 0);
+    await keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(called).toEqual(2);
   });

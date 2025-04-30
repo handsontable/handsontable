@@ -4,17 +4,18 @@ const element = document.createElement('div');
 const hot = new Handsontable(element, {});
 const editor = new Handsontable.editors.AutocompleteEditor(hot);
 
-editor.queryChoices('test');
-editor.updateChoicesList(['a', 'b', 'c']);
-editor.limitDropdownIfNeeded(100, 20);
-editor.flipDropdown(100);
-editor.unflipDropdown();
-editor.updateDropdownDimensions();
-editor.setDropdownHeight(100);
-editor.highlightBestMatchingChoice(1);
-editor.stripValueIfNeeded('test');
-editor.stripValuesIfNeeded(['test1', 'test2']);
-
+// abstract ones
+editor.open();
+editor.close();
+editor.beginEditing();
+editor.createElements();
+editor.finishEditing();
 const value: string = editor.getValue();
-const isFlipped: boolean = editor.flipDropdownIfNeeded();
+
+// editor specific ones
+editor.queryChoices('test');
+
 const dropdownHeight: number = editor.getDropdownHeight();
+const dropdownWidth: number = editor.getDropdownWidth();
+const targetDropdownWidth: number = editor.getTargetDropdownWidth();
+const targetDropdownHeight: number = editor.getTargetDropdownHeight();

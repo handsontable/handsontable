@@ -23,7 +23,7 @@ describe('WalkontableBorder (RTL mode)', () => {
     this.wotInstance.destroy();
   });
 
-  it('should add/remove border to selection when cell is clicked', () => {
+  it('should add/remove border to selection when cell is clicked', async() => {
     const selections = createSelectionController({
       border: {
         width: 1,
@@ -85,7 +85,7 @@ describe('WalkontableBorder (RTL mode)', () => {
     expect($start.css('right')).toBe('49px');
   });
 
-  it('should add/remove border to selection when cell is clicked and the table has only one column', () => {
+  it('should add/remove border to selection when cell is clicked and the table has only one column', async() => {
     const selections = createSelectionController({
       border: {
         width: 1,
@@ -131,7 +131,7 @@ describe('WalkontableBorder (RTL mode)', () => {
     expect($start.css('right')).toBe('0px');
   });
 
-  it('should properly add a selection border on an entirely selected column', () => {
+  it('should properly add a selection border on an entirely selected column', async() => {
     const selections = createSelectionController({
       border: {
         width: 1,
@@ -178,7 +178,7 @@ describe('WalkontableBorder (RTL mode)', () => {
     expect($start.css('right')).toBe('0px');
   });
 
-  it('should add/remove corner to selection when cell is clicked', () => {
+  it('should add/remove corner to selection when cell is clicked', async() => {
     const selections = createSelectionController({
       border: {
         width: 2,
@@ -224,7 +224,7 @@ describe('WalkontableBorder (RTL mode)', () => {
     expect($corner.css('right')).toBe('95px');
   });
 
-  it('should render selection corner in the correct position', () => {
+  it('should render selection corner in the correct position', async() => {
     const selections = createSelectionController({
       border: {
         width: 2,
@@ -262,7 +262,7 @@ describe('WalkontableBorder (RTL mode)', () => {
     expect($corner.css('right')).toBe('95px');
   });
 
-  it('should properly render a selection corner on the edge of the left fixed column', () => {
+  it('should properly render a selection corner on the edge of the left fixed column', async() => {
     const selections = createSelectionController({
       border: {
         width: 2,
@@ -299,7 +299,7 @@ describe('WalkontableBorder (RTL mode)', () => {
     expect(inlineStartOverlay.getBoundingClientRect().left).toBe($corner.getBoundingClientRect().left);
   });
 
-  it('should move the fill handle / corner border to the left, if in the position it would overlap the container (e.g.: far-right)', () => {
+  it('should move the fill handle / corner border to the left, if in the position it would overlap the container (e.g.: far-right)', async() => {
     spec().$wrapper.css({
       overflow: 'hidden',
       width: '200px',
@@ -361,7 +361,7 @@ describe('WalkontableBorder (RTL mode)', () => {
     expect(spec().$wrapper[0].clientWidth === spec().$wrapper[0].scrollWidth).toBe(true);
   });
 
-  it('should move the fill handle / corner border to the top, if in the position it would overlap the container (e.g.: far-bottom)', () => {
+  it('should move the fill handle / corner border to the top, if in the position it would overlap the container (e.g.: far-bottom)', async() => {
     spec().$wrapper.css({
       height: '',
       marginTop: '2000px',
@@ -408,7 +408,7 @@ describe('WalkontableBorder (RTL mode)', () => {
     expect(spec().$wrapper[0].clientHeight === spec().$wrapper[0].scrollHeight).toBe(true);
   });
 
-  it('should move the corner border to the top-right, if is not enough area on the bottom-left corner of container', () => {
+  it('should move the corner border to the top-right, if is not enough area on the bottom-left corner of container', async() => {
     spec().$wrapper.css({
       height: '',
       width: '50px',

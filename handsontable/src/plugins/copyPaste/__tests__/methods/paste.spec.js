@@ -14,24 +14,24 @@ describe('CopyPaste', () => {
   });
 
   describe('`paste` method', () => {
-    it('should be possible to paste a value', () => {
+    it('should be possible to paste a value', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
       });
 
-      selectCell(1, 1);
+      await selectCell(1, 1);
       getPlugin('CopyPaste').paste('test');
 
       expect(getDataAtCell(1, 1)).toBe('test');
     });
 
-    it('should be possible to paste a value when `outsideClickDeselects` is disabled (#dev-1935)', () => {
+    it('should be possible to paste a value when `outsideClickDeselects` is disabled (#dev-1935)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         outsideClickDeselects: false,
       });
 
-      selectCell(1, 1);
+      await selectCell(1, 1);
       getPlugin('CopyPaste').paste('test');
 
       expect(getDataAtCell(1, 1)).toBe('test');
