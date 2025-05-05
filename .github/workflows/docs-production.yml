@@ -44,11 +44,6 @@ jobs:
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login -u ${GITHUB_ACTOR} --password-stdin https://docker.pkg.github.com
 
-      - name: Install the monorepo dependencies (temporary)
-        run: |
-          cd ..
-          npm ci
-
       - name: Dependencies
         run: |
           npm ci
