@@ -6,13 +6,13 @@ env:
 
 on:
   pull_request:
-  # push:
-  #   branches-ignore:
-  #     - 'prod-docs/**'
-  #     - 'master'
-  #   paths:
-  #     - 'docs/**'
-  # workflow_dispatch:
+  push:
+    branches-ignore:
+      - 'prod-docs/**'
+      - 'master'
+    paths:
+      - 'docs/**'
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -24,8 +24,8 @@ defaults:
 
 jobs:
   preview:
-    # environment:
-    #   name: approvers
+    environment:
+      name: approvers
     name: Build and push Preview to Netlify
     if: ${{ github.ref != 'refs/heads/prod-docs/latest' }} # Exclude the prod-docs-latest branch from triggering the workflow
     runs-on: ubuntu-latest

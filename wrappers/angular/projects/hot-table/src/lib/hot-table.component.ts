@@ -279,7 +279,6 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() beforeColumnSort: Handsontable.GridSettings['beforeColumnSort'];
   @Input() beforeColumnWrap: Handsontable.GridSettings['beforeColumnWrap'];
   @Input() beforeColumnUnfreeze: Handsontable.GridSettings['beforeColumnUnfreeze'];
-  @Input() beforeCompositionStart: Handsontable.GridSettings['beforeCompositionStart'];
   @Input() beforeContextMenuSetItems: Handsontable.GridSettings['beforeContextMenuSetItems'];
   @Input() beforeContextMenuShow: Handsontable.GridSettings['beforeContextMenuShow'];
   @Input() beforeCopy: Handsontable.GridSettings['beforeCopy'];
