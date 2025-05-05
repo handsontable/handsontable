@@ -1272,8 +1272,9 @@ class Selection {
     const selectedByColumnHeader = new Set(this.selectedByColumnHeader);
 
     this.clear();
+    this.setExpectedLayers(ranges.length);
 
-    ranges.forEach((range, index) => {
+    ranges.forEach((range) => {
       const { from, to, highlight } = range;
       const maxRows = countRows - 1;
       const maxColumns = countColumns - 1;
@@ -1291,17 +1292,14 @@ class Selection {
         col: clamp(to.col, -Infinity, maxColumns),
       });
 
-      this.setRangeStartOnly(from, true);
+      this.setRangeStartOnly(from, true, highlight);
       this.setRangeEnd(to);
-
-      if (index === ranges.length - 1) {
-        this.setRangeFocus(highlight);
-      }
     });
 
     this.selectedByRowHeader = selectedByRowHeader;
     this.selectedByColumnHeader = selectedByColumnHeader;
 
+    this.finish();
     this.markEndSource();
   }
 

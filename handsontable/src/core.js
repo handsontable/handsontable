@@ -430,8 +430,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       editorManager.closeEditor(null);
     }
 
-    instance.view.render();
-    editorManager.prepareEditor();
+    if (selection.getSelectionSource() !== 'refresh') {
+      instance.view.render();
+      editorManager.prepareEditor();
+    }
   });
 
   this.selection.addLocalHook('beforeSetFocus', (cellCoords) => {
@@ -460,6 +462,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       from.row, from.col, to.row, to.col, selectionLayerLevel);
     this.runHooks('afterSelectionEndByProp',
       from.row, instance.colToProp(from.col), to.row, instance.colToProp(to.col), selectionLayerLevel);
+
+    if (selection.getSelectionSource() === 'refresh') {
+      instance.view.render();
+      editorManager.prepareEditor();
+    }
   });
 
   this.selection.addLocalHook('afterIsMultipleSelection', (isMultiple) => {

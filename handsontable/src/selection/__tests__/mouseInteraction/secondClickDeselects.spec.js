@@ -1,0 +1,315 @@
+describe('Selection using mouse interaction (cell deselect)', () => {
+  beforeEach(function() {
+    this.$container = $('<div id="testContainer"></div>').appendTo('body');
+  });
+
+  afterEach(function() {
+    if (this.$container) {
+      destroy();
+      this.$container.remove();
+    }
+  });
+
+  it('should be possible to deselect single cell (deselecting from top to bottom)', async() => {
+    handsontable({
+      data: createSpreadsheetData(9, 3),
+      colHeaders: true,
+      rowHeaders: true,
+    });
+
+    await selectCells([
+      [1, 1, 1, 1],
+      [3, 1, 3, 1],
+      [5, 1, 5, 1],
+      [7, 1, 7, 1],
+    ]);
+
+    await keyDown('control/meta');
+    await simulateClick(getCell(1, 1));
+
+    expect(getSelectedRange()).toEqualCellRange([
+      'highlight: 3,1 from: 3,1 to: 3,1',
+      'highlight: 5,1 from: 5,1 to: 5,1',
+      'highlight: 7,1 from: 7,1 to: 7,1',
+    ]);
+    expect(`
+      |   ║   : - :   |
+      |===:===:===:===|
+      |   ║   :   :   |
+      |   ║   :   :   |
+      |   ║   :   :   |
+      | - ║   : 0 :   |
+      |   ║   :   :   |
+      | - ║   : 0 :   |
+      |   ║   :   :   |
+      | - ║   : A :   |
+      |   ║   :   :   |
+      `).toBeMatchToSelectionPattern();
+
+    await keyDown('control/meta');
+    await simulateClick(getCell(3, 1));
+
+    expect(getSelectedRange()).toEqualCellRange([
+      'highlight: 5,1 from: 5,1 to: 5,1',
+      'highlight: 7,1 from: 7,1 to: 7,1',
+    ]);
+    expect(`
+      |   ║   : - :   |
+      |===:===:===:===|
+      |   ║   :   :   |
+      |   ║   :   :   |
+      |   ║   :   :   |
+      |   ║   :   :   |
+      |   ║   :   :   |
+      | - ║   : 0 :   |
+      |   ║   :   :   |
+      | - ║   : A :   |
+      |   ║   :   :   |
+      `).toBeMatchToSelectionPattern();
+
+    await keyDown('control/meta');
+    await simulateClick(getCell(5, 1));
+
+    expect(getSelectedRange()).toEqualCellRange([
+      'highlight: 7,1 from: 7,1 to: 7,1',
+    ]);
+    expect(`
+      |   ║   : - :   |
+      |===:===:===:===|
+      |   ║   :   :   |
+      |   ║   :   :   |
+      |   ║   :   :   |
+      |   ║   :   :   |
+      |   ║   :   :   |
+      |   ║   :   :   |
+      |   ║   :   :   |
+      | - ║   : # :   |
+      |   ║   :   :   |
+      `).toBeMatchToSelectionPattern();
+  });
+
+  it('should be possible to deselect single cell (deselecting from bottom to top)', async() => {
+    handsontable({
+      data: createSpreadsheetData(9, 3),
+      colHeaders: true,
+      rowHeaders: true,
+    });
+
+    await selectCells([
+      [1, 1, 1, 1],
+      [3, 1, 3, 1],
+      [5, 1, 5, 1],
+      [7, 1, 7, 1],
+    ]);
+
+    await keyDown('control/meta');
+    await simulateClick(getCell(7, 1));
+
+    expect(getSelectedRange()).toEqualCellRange([
+      'highlight: 1,1 from: 1,1 to: 1,1',
+      'highlight: 3,1 from: 3,1 to: 3,1',
+      'highlight: 5,1 from: 5,1 to: 5,1',
+    ]);
+    expect(`
+      |   ║   : - :   |
+      |===:===:===:===|
+      |   ║   :   :   |
+      | - ║   : 0 :   |
+      |   ║   :   :   |
+      | - ║   : 0 :   |
+      |   ║   :   :   |
+      | - ║   : A :   |
+      |   ║   :   :   |
+      |   ║   :   :   |
+      |   ║   :   :   |
+      `).toBeMatchToSelectionPattern();
+
+    await keyDown('control/meta');
+    await simulateClick(getCell(5, 1));
+
+    expect(getSelectedRange()).toEqualCellRange([
+      'highlight: 1,1 from: 1,1 to: 1,1',
+      'highlight: 3,1 from: 3,1 to: 3,1',
+    ]);
+    expect(`
+      |   ║   : - :   |
+      |===:===:===:===|
+      |   ║   :   :   |
+      | - ║   : 0 :   |
+      |   ║   :   :   |
+      | - ║   : A :   |
+      |   ║   :   :   |
+      |   ║   :   :   |
+      |   ║   :   :   |
+      |   ║   :   :   |
+      |   ║   :   :   |
+      `).toBeMatchToSelectionPattern();
+
+    await keyDown('control/meta');
+    await simulateClick(getCell(3, 1));
+
+    expect(getSelectedRange()).toEqualCellRange([
+      'highlight: 1,1 from: 1,1 to: 1,1',
+    ]);
+    expect(`
+      |   ║   : - :   |
+      |===:===:===:===|
+      |   ║   :   :   |
+      | - ║   : # :   |
+      |   ║   :   :   |
+      |   ║   :   :   |
+      |   ║   :   :   |
+      |   ║   :   :   |
+      |   ║   :   :   |
+      |   ║   :   :   |
+      |   ║   :   :   |
+      `).toBeMatchToSelectionPattern();
+  });
+
+  it('should not reset the focus position of the previous selection after deselecting a cell', async() => {
+    handsontable({
+      data: createSpreadsheetData(7, 7),
+      colHeaders: true,
+      rowHeaders: true,
+    });
+
+    await selectCell(1, 1, 3, 3);
+    await keyDownUp('tab');
+    await keyDownUp('enter');
+    await keyDown('control/meta');
+    await simulateClick(getCell(5, 5));
+
+    expect(getSelectedRange()).toEqualCellRange([
+      'highlight: 2,2 from: 1,1 to: 3,3',
+      'highlight: 5,5 from: 5,5 to: 5,5',
+    ]);
+    expect(`
+      |   ║   : - : - : - :   : - :   |
+      |===:===:===:===:===:===:===:===|
+      |   ║   :   :   :   :   :   :   |
+      | - ║   : 0 : 0 : 0 :   :   :   |
+      | - ║   : 0 : 0 : 0 :   :   :   |
+      | - ║   : 0 : 0 : 0 :   :   :   |
+      |   ║   :   :   :   :   :   :   |
+      | - ║   :   :   :   :   : A :   |
+      |   ║   :   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+
+    await keyDown('control/meta');
+    await simulateClick(getCell(5, 5));
+
+    expect(getSelectedRange()).toEqualCellRange([
+      'highlight: 2,2 from: 1,1 to: 3,3',
+    ]);
+    expect(`
+      |   ║   : - : - : - :   :   :   |
+      |===:===:===:===:===:===:===:===|
+      |   ║   :   :   :   :   :   :   |
+      | - ║   : 0 : 0 : 0 :   :   :   |
+      | - ║   : 0 : A : 0 :   :   :   |
+      | - ║   : 0 : 0 : 0 :   :   :   |
+      |   ║   :   :   :   :   :   :   |
+      |   ║   :   :   :   :   :   :   |
+      |   ║   :   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+  });
+
+  it('should not be possible to deselect single cell when there is only one selection layer', async() => {
+    handsontable({
+      data: createSpreadsheetData(3, 3),
+      colHeaders: true,
+      rowHeaders: true,
+    });
+
+    await selectCell(1, 1);
+
+    await keyDown('control/meta');
+    await simulateClick(getCell(1, 1));
+
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 1,1']);
+    expect(`
+      |   ║   : - :   |
+      |===:===:===:===|
+      |   ║   :   :   |
+      | - ║   : # :   |
+      |   ║   :   :   |
+      `).toBeMatchToSelectionPattern();
+  });
+
+  it('should not be possible to deselect single cell for `selectionMode` set as `single`', async() => {
+    handsontable({
+      data: createSpreadsheetData(3, 3),
+      selectionMode: 'single',
+      colHeaders: true,
+      rowHeaders: true,
+    });
+
+    await selectCell(1, 1);
+
+    await keyDown('control/meta');
+    await simulateClick(getCell(1, 1));
+
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 1,1']);
+    expect(`
+      |   ║   : - :   |
+      |===:===:===:===|
+      |   ║   :   :   |
+      | - ║   : # :   |
+      |   ║   :   :   |
+      `).toBeMatchToSelectionPattern();
+  });
+
+  it('should not be possible to deselect single cell for `selectionMode` set as `range`', async() => {
+    handsontable({
+      data: createSpreadsheetData(3, 3),
+      selectionMode: 'range',
+      colHeaders: true,
+      rowHeaders: true,
+    });
+
+    await selectCell(1, 1);
+
+    await keyDown('control/meta');
+    await simulateClick(getCell(1, 1));
+
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 1,1']);
+    expect(`
+      |   ║   : - :   |
+      |===:===:===:===|
+      |   ║   :   :   |
+      | - ║   : # :   |
+      |   ║   :   :   |
+      `).toBeMatchToSelectionPattern();
+  });
+
+  it('should not be possible to deselect single cell when it is defined within a bigger selection (selection should be stacked)', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      colHeaders: true,
+      rowHeaders: true,
+    });
+
+    await selectCell(1, 1, 3, 3);
+
+    await keyDown('control/meta');
+    await simulateClick(getCell(2, 2));
+    await simulateClick(getCell(2, 2));
+    await simulateClick(getCell(2, 2));
+
+    expect(getSelectedRange()).toEqualCellRange([
+      'highlight: 1,1 from: 1,1 to: 3,3',
+      'highlight: 2,2 from: 2,2 to: 2,2',
+      'highlight: 2,2 from: 2,2 to: 2,2',
+      'highlight: 2,2 from: 2,2 to: 2,2',
+    ]);
+    expect(`
+      |   ║   : - : - : - :   |
+      |===:===:===:===:===:===|
+      |   ║   :   :   :   :   |
+      | - ║   : 0 : 0 : 0 :   |
+      | - ║   : 0 : D : 0 :   |
+      | - ║   : 0 : 0 : 0 :   |
+      |   ║   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+  });
+});

@@ -1,6 +1,25 @@
 import { CellCoords, CellRange } from 'walkontable';
 import SelectionRange from '../range';
 
+function createCellCoords(row, column) {
+  return new CellCoords(row, column);
+}
+
+function createCellRange(
+  rowHighlight,
+  columnHighlight,
+  rowFrom = rowHighlight,
+  columnFrom = columnHighlight,
+  rowTo = rowHighlight,
+  columnTo = columnHighlight
+) {
+  return new CellRange(
+    createCellCoords(rowHighlight, columnHighlight),
+    createCellCoords(rowFrom, columnFrom),
+    createCellCoords(rowTo, columnTo),
+  );
+}
+
 describe('SelectionRange', () => {
   let selectionRange;
 
@@ -35,11 +54,11 @@ describe('SelectionRange', () => {
   describe('.set', () => {
     it('should reset an array of cell ranges and append new CellRange to this', () => {
       selectionRange.ranges.push(
-        new CellRange(new CellCoords(4, 4))
+        new CellRange(createCellCoords(4, 4))
       );
 
-      selectionRange.set(new CellCoords(0, 0));
-      selectionRange.set(new CellCoords(1, 2));
+      selectionRange.set(createCellCoords(0, 0));
+      selectionRange.set(createCellCoords(1, 2));
 
       expect(selectionRange.ranges.length).toBe(1);
       expect(selectionRange.ranges[0].toObject()).toEqual({
@@ -51,9 +70,9 @@ describe('SelectionRange', () => {
 
   describe('.add', () => {
     it('should append new CellRange to the ranges array', () => {
-      selectionRange.add(new CellCoords(0, 0));
-      selectionRange.add(new CellCoords(0, 0));
-      selectionRange.add(new CellCoords(1, 2));
+      selectionRange.add(createCellCoords(0, 0));
+      selectionRange.add(createCellCoords(0, 0));
+      selectionRange.add(createCellCoords(1, 2));
 
       expect(selectionRange.ranges.length).toBe(3);
       expect(selectionRange.ranges[0].toObject()).toEqual({
@@ -74,9 +93,9 @@ describe('SelectionRange', () => {
   describe('.pop', () => {
     it('should remove the last element from the ranges array', () => {
       selectionRange.ranges.push(
-        new CellRange(new CellCoords(4, 4)),
-        new CellRange(new CellCoords(0, 0)),
-        new CellRange(new CellCoords(1, 2))
+        createCellRange(4, 4),
+        createCellRange(0, 0),
+        createCellRange(1, 2),
       );
 
       selectionRange.pop();
@@ -116,9 +135,9 @@ describe('SelectionRange', () => {
 
     it('should return recently added cell range', () => {
       selectionRange.ranges.push(
-        new CellRange(new CellCoords(4, 4)),
-        new CellRange(new CellCoords(0, 0)),
-        new CellRange(new CellCoords(1, 2))
+        createCellRange(4, 4),
+        createCellRange(0, 0),
+        createCellRange(1, 2),
       );
 
       expect(selectionRange.current().toObject()).toEqual({
@@ -135,9 +154,9 @@ describe('SelectionRange', () => {
 
     it('should return previously added cell range', () => {
       selectionRange.ranges.push(
-        new CellRange(new CellCoords(4, 4)),
-        new CellRange(new CellCoords(0, 0)),
-        new CellRange(new CellCoords(1, 2))
+        createCellRange(4, 4),
+        createCellRange(0, 0),
+        createCellRange(1, 2),
       );
 
       expect(selectionRange.previous().toObject()).toEqual({
@@ -150,33 +169,88 @@ describe('SelectionRange', () => {
   describe('.includes', () => {
     it('should return `true` if the coords match the selection range', () => {
       selectionRange.ranges.push(
-        new CellRange(new CellCoords(1, 1), new CellCoords(1, 1), new CellCoords(3, 3)),
-        new CellRange(new CellCoords(11, 11), new CellCoords(11, 11), new CellCoords(11, 11))
+        createCellRange(1, 1, 1, 1, 3, 3),
+        createCellRange(11, 11),
       );
 
-      expect(selectionRange.includes(new CellCoords(1, 2))).toBe(true);
-      expect(selectionRange.includes(new CellCoords(1, 3))).toBe(true);
-      expect(selectionRange.includes(new CellCoords(11, 11))).toBe(true);
+      expect(selectionRange.includes(createCellCoords(1, 2))).toBe(true);
+      expect(selectionRange.includes(createCellCoords(1, 3))).toBe(true);
+      expect(selectionRange.includes(createCellCoords(11, 11))).toBe(true);
     });
 
     it('should return `false` if the coords doesn\'t match the selection range', () => {
       selectionRange.ranges.push(
-        new CellRange(new CellCoords(1, 1), new CellCoords(1, 1), new CellCoords(3, 3)),
-        new CellRange(new CellCoords(11, 11), new CellCoords(11, 11), new CellCoords(11, 11))
+        createCellRange(1, 1, 1, 1, 3, 3),
+        createCellRange(11, 11),
       );
 
-      expect(selectionRange.includes(new CellCoords(1, 4))).toBe(false);
-      expect(selectionRange.includes(new CellCoords(0, 0))).toBe(false);
-      expect(selectionRange.includes(new CellCoords(11, 12))).toBe(false);
+      expect(selectionRange.includes(createCellCoords(1, 4))).toBe(false);
+      expect(selectionRange.includes(createCellCoords(0, 0))).toBe(false);
+      expect(selectionRange.includes(createCellCoords(11, 12))).toBe(false);
+    });
+
+    it('should be possible to inject custom criteria to the method', () => {
+      selectionRange.ranges.push(
+        createCellRange(1, 1, 1, 1, 3, 3),
+        createCellRange(11, 11, 11, 11, 11, 11),
+      );
+
+      expect(selectionRange.includes(createCellCoords(1, 2), () => {
+        return false;
+      })).toBe(false);
+    });
+  });
+
+  describe('.findAll', () => {
+    it('should return all matching ranges', () => {
+      selectionRange.ranges.push(
+        createCellRange(1, 1, 1, 1, 3, 3),
+        createCellRange(2, 2, 2, 2, 5, 5),
+        createCellRange(11, 11),
+        createCellRange(11, 11),
+      );
+
+      expect(selectionRange.findAll(createCellRange(2, 2, 2, 2, 3, 3))).toEqual([]);
+      expect(selectionRange.findAll(createCellRange(1, 1, 1, 1, 3, 3))).toEqual([
+        createCellRange(1, 1, 1, 1, 3, 3),
+      ]);
+      expect(selectionRange.findAll(createCellRange(2, 2, 3, 3, 1, 1))).toEqual([
+        createCellRange(1, 1, 1, 1, 3, 3),
+      ]);
+      expect(selectionRange.findAll(createCellRange(11, 11))).toEqual([
+        createCellRange(11, 11),
+        createCellRange(11, 11),
+      ]);
+    });
+  });
+
+  describe('.remove', () => {
+    it('should remove all matching ranges from the collection', () => {
+      selectionRange.ranges.push(
+        createCellRange(1, 1, 1, 1, 3, 3),
+        createCellRange(2, 2, 2, 2, 5, 5),
+        createCellRange(11, 11),
+        createCellRange(11, 11),
+      );
+
+      selectionRange.remove([
+        createCellRange(1, 1, 1, 1, 3, 3),
+        createCellRange(2, 2),
+        createCellRange(11, 11),
+      ]);
+
+      expect(selectionRange.ranges).toEqual([
+        createCellRange(2, 2, 2, 2, 5, 5),
+      ]);
     });
   });
 
   describe('.clear', () => {
     it('should reset the ranges collection', () => {
       selectionRange.ranges.push(
-        new CellRange(new CellCoords(4, 4)),
-        new CellRange(new CellCoords(0, 0)),
-        new CellRange(new CellCoords(1, 2))
+        createCellRange(4, 4),
+        createCellRange(0, 0),
+        createCellRange(1, 2),
       );
 
       selectionRange.clear();
@@ -188,9 +262,9 @@ describe('SelectionRange', () => {
   describe('.size', () => {
     it('should return the length/size of the collected ranges', () => {
       selectionRange.ranges.push(
-        new CellRange(new CellCoords(4, 4)),
-        new CellRange(new CellCoords(0, 0)),
-        new CellRange(new CellCoords(1, 2))
+        createCellRange(4, 4),
+        createCellRange(0, 0),
+        createCellRange(1, 2),
       );
 
       expect(selectionRange.size()).toBe(3);
@@ -200,9 +274,9 @@ describe('SelectionRange', () => {
   describe('.peekByIndex', () => {
     it('should return the CellRange object from the beginning based on the index argument passed to the method', () => {
       selectionRange.ranges.push(
-        new CellRange(new CellCoords(4, 4)),
-        new CellRange(new CellCoords(0, 0)),
-        new CellRange(new CellCoords(1, 2))
+        createCellRange(4, 4),
+        createCellRange(0, 0),
+        createCellRange(1, 2),
       );
 
       expect(selectionRange.peekByIndex(-2)).not.toBeDefined();
@@ -230,9 +304,9 @@ describe('SelectionRange', () => {
 
   it('should have implemented iterator protocol', () => {
     selectionRange.ranges.push(
-      new CellRange(new CellCoords(4, 4)),
-      new CellRange(new CellCoords(0, 0)),
-      new CellRange(new CellCoords(1, 2))
+      createCellRange(4, 4),
+      createCellRange(0, 0),
+      createCellRange(1, 2),
     );
 
     expect(selectionRange[Symbol.iterator]).toBeDefined();
