@@ -12,7 +12,7 @@ export default async(req: Request, context: Context) => {
   rewrite ^/docs/(\d+\.\d+|next)/?$ /docs/$1/$framework/ permanent;.
    */
 
-  const major = parseInt(context.params['0'], 2);
+  const major = parseInt(context.params['0'], 0);
   const framework = getFrameworkFromCookie(context.cookies.get('docs_fw'));
   const version = `${context.params['0']}.${context.params['1']}`;
 
