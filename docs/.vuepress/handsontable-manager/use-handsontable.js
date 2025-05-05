@@ -31,6 +31,18 @@ const useHandsontable = (version, callback = () => {}, preset = 'hot', buildMode
     const _document = document; // eslint-disable-line no-restricted-globals
     let script = null;
 
+    // Ensure that `fixer.js` is not loaded while injecting new dependencies.
+    if (dep !== 'fixer') {
+      const fixerScript = _document.getElementById(`script-${getId('fixer')}`);
+
+      if (fixerScript) {
+        fixerScript.remove();
+
+        delete window.require;
+        delete window.exports;
+      }
+    }
+
     // As the documentation uses multiple versions of Vue (which reuse the same global variable - `Vue`), every
     // time the Vue dependency is loaded, the previously used version should be removed.
     if (globalVarSharedDependency) {
