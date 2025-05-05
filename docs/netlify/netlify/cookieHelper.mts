@@ -1,9 +1,10 @@
-export const getFrameworkFromCookie = (cookie_value: string) => {
-  if (cookie_value == "react") {
-    return "react-data-grid";
+export const getFrameworkFromCookie = (cookieValue: string) => {
+  if (cookieValue === 'react') {
+    return 'react-data-grid';
   }
-  if (cookie_value == "angular") {
-    return "angular-data-grid";
+  if (cookieValue === 'angular') {
+    return 'angular-data-grid';
   }
-  return "javascript-data-grid";
+
+  return 'javascript-data-grid';
 };
