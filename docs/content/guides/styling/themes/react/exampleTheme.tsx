@@ -1229,7 +1229,7 @@ const ExampleComponent = () => {
       return;
     }
 
-    hotRef.current.hotInstance.useTheme(themeName === 'ht-no-theme' ? undefined: themeName);
+    hotRef.current.hotInstance.useTheme(themeName === 'ht-no-theme' ? undefined : themeName);
   }, [themeName]);
 
   return (
