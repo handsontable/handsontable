@@ -3941,7 +3941,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * @returns {number}
    */
   this._getRowHeightFromSettings = function(row) {
-    const defaultRowHeight = this.view.getDefaultRowHeight();
+    const defaultRowHeight = instance.stylesHandler.getDefaultRowHeight();
     let height = tableMeta.rowHeights;
 
     if (height !== undefined && height !== null) {

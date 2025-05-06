@@ -651,26 +651,6 @@ class TableView {
   }
 
   /**
-   * Retrieves the styles handler from the Handsontable instance.
-   *
-   * @returns {StylesHandler} The styles handler instance.
-   */
-  getStylesHandler() {
-    return this.hot.stylesHandler;
-  }
-
-  /**
-   * Returns the default row height.
-   *
-   * This method retrieves the default row height from the Handsontable instance styles handler.
-   *
-   * @returns {number} The default row height.
-   */
-  getDefaultRowHeight() {
-    return this.hot.stylesHandler.getDefaultRowHeight();
-  }
-
-  /**
    * Add a class name to the license information element.
    *
    * @param {string} className The class name to add.
