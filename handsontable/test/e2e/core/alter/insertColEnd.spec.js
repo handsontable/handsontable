@@ -656,16 +656,18 @@ describe('Core.alter', () => {
 
       it('should not copy column filters from the source column to the new one', async() => {
         handsontable({
-          data: createSpreadsheetData(5, 5),
+          data: createSpreadsheetData(2, 2),
           filters: true,
         });
 
         await getPlugin('filters').addCondition(1, 'by_value', [['B1']]);
 
+        expect(columnIndexMapper().getIndexesSequence()).toEqual([0, 1]);
         expect(getPlugin('filters').conditionCollection.getConditions(1)[0].args).toEqual([['B1']]);
 
         await alter('insert_col_end', 1);
 
+        expect(columnIndexMapper().getIndexesSequence()).toEqual([0, 1, 2]);
         expect(getPlugin('filters').conditionCollection.getConditions(1)[0].args).toEqual([['B1']]);
         expect(getPlugin('filters').conditionCollection.getConditions(2)).toEqual([]);
       });
