@@ -79,7 +79,6 @@ jobs:
           BRANCH_NAME_PREFIX: dev-handsontable-
           BRANCH_NAME: ${{ steps.get-pr.outputs.source_branch }}     
 
-
       - name: Publish sticky comment in PR. Docs are being built
         uses: marocchino/sticky-pull-request-comment@adca94abcaf73c10466a71cc83ae561fd66d1a56 # https://github.com/marocchino/sticky-pull-request-comment/tree/v2.3.0
         with:
@@ -132,11 +131,8 @@ jobs:
           message: |
             ✅ Preview documentation is is available now
             Current staging version of documentation is available at: [${{ env.NETLIFY_SITE_URL }}/docs](${{ env.NETLIFY_SITE_URL }}/docs)
-      
-  
 
   preview-on-push-or-workflow-dispatch:
-
     name: Build and push Preview to Netlify (on push or workflow dispatch)
     #if: ${{ github.ref != 'refs/heads/prod-docs/latest' }} # Exclude the prod-docs-latest branch from triggering the workflow
     if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request' }}
@@ -150,7 +146,6 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
-
 
       - name: Install Netlify dependencies
         run: |

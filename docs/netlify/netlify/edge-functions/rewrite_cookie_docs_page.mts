@@ -27,7 +27,7 @@ export default async(req: Request, context: Context) => {
 
   // This function implements nginx dynamic redirect declarations into netlify edge functions.
   // https://github.com/handsontable/handsontable/blob/develop/docs/docker/redirects.conf#L27-L29
-  /** .........................................................
+  /*
   Rewrite ^/docs/internationalization-i18n/?$ /docs/$framework/language/ permanent;
   rewrite ^/docs/keyboard-navigation/?$ /docs/$framework/keyboard-shortcuts/ permanent;
   rewrite ^/docs/hello-world/?$ /docs/$framework/demo/ permanent;
@@ -43,8 +43,8 @@ export default async(req: Request, context: Context) => {
   rewrite ^/docs/vue3-simple-example/?$ /docs/javascript-data-grid/vue3-basic-example/ permanent;
   rewrite ^/docs/vue3-setting-up-a-language/?$ /docs/javascript-data-grid/vue3-setting-up-a-translation/ permanent;
   rewrite ^/docs/row-sorting/?$ /docs/$framework/rows-sorting/ permanent;
-  rewrite ^/docs/column-sorting/?$ /docs/$framework/rows-sorting/ permanent;.
-   */
+  rewrite ^/docs/column-sorting/?$ /docs/$framework/rows-sorting/ permanent;
+  */
 
   const framework = getFrameworkFromCookie(context.cookies.get('docs_fw'));
 
@@ -58,6 +58,6 @@ export default async(req: Request, context: Context) => {
 
 export const config: Config = {
   // eslint-disable-next-line max-len
-  path: '/docs/(i18n/missing-language-code|internationalization-i18n|keyboard-navigation|hello-world|building|plugins|file-structure|examples|setting-options|angular-simple-example|angular-setting-up-a-language|vue-simple-example|vue-setting-up-a-language|vue3-simple-example|vue3-setting-up-a-language|row-sorting|column-sorting|latest){/}?'
+  path: `/docs/(${Object.keys(redirectsMap).join('|')}).html`
 
 };
