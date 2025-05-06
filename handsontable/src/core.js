@@ -161,7 +161,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * @private
    * @type {HTMLElement}
    */
-  this.rootElement = rootInstanceSymbol ? rootContainer.ownerDocument.createElement('div') : rootContainer;
+  this.rootElement = isRootInstance(this) ? rootContainer.ownerDocument.createElement('div') : rootContainer;
 
   /**
    * The nearest document over container.
@@ -213,8 +213,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * @private
    * @type {number}
    */
-
   this.renderSuspendedCounter = 0;
+
   /**
    * The counter determines how many times the execution suspending was called. It allows
    * tracking the nested suspending calls. For each execution suspend resuming call the
@@ -271,8 +271,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   /**
    * Styles handler instance.
    *
-   * @memberof Core#
-   * @member stylesHandler
+   * @private
    * @type {StylesHandler}
    */
   this.stylesHandler = new StylesHandler(
@@ -315,8 +314,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * @member columnIndexMapper
    * @type {IndexMapper}
    */
-
   this.columnIndexMapper = new IndexMapper();
+
   /**
    * Instance of index mapper which is responsible for managing the row indexes.
    *
@@ -3943,7 +3942,6 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    */
   this._getRowHeightFromSettings = function(row) {
     const defaultRowHeight = this.view.getDefaultRowHeight();
-
     let height = tableMeta.rowHeights;
 
     if (height !== undefined && height !== null) {
@@ -5064,16 +5062,18 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
     this.stylesHandler.useTheme(themeName);
 
+    const validThemeName = this.stylesHandler.getThemeName();
+
     if (isRootInstance(this)) {
       removeClass(this.rootWrapperElement, /ht-theme-.*/g);
       removeClass(this.rootPortalElement, /ht-theme-.*/g);
 
-      if (this.stylesHandler.getThemeName()) {
-        addClass(this.rootWrapperElement, themeName);
-        addClass(this.rootPortalElement, themeName);
+      if (validThemeName) {
+        addClass(this.rootWrapperElement, validThemeName);
+        addClass(this.rootPortalElement, validThemeName);
 
         if (!getComputedStyle(this.rootWrapperElement).getPropertyValue('--ht-line-height')) {
-          warn(`The "${themeName}" theme is enabled, but its stylesheets are missing or not imported correctly. \
+          warn(`The "${validThemeName}" theme is enabled, but its stylesheets are missing or not imported correctly. \
             Import the correct CSS files in order to use that theme.`);
         }
       }
@@ -5086,13 +5086,13 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       if (getThemeClassName(this.rootContainer)) {
         removeClass(this.rootContainer, /ht-theme-.*/g);
 
-        if (this.stylesHandler.getThemeName()) {
-          addClass(this.rootContainer, themeName);
+        if (validThemeName) {
+          addClass(this.rootContainer, validThemeName);
         }
       }
     }
 
-    this.runHooks('afterSetTheme', themeName, isFirstRun);
+    this.runHooks('afterSetTheme', validThemeName, isFirstRun);
   };
 
   /**
