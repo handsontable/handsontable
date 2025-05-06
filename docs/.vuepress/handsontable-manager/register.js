@@ -1,4 +1,4 @@
-/* global Handsontable, ReactDOM, ng */
+/* global Handsontable, ng */
 /**
  * Returns a function that will destroy the demo resources.
  *
