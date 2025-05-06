@@ -29,7 +29,6 @@ Staging documentation is being deployed on `netlify` either automatic on manuall
 
 ```mermaid
 flowchart TD
-flowchart TD
     Docs[Documentation Stage on Netlify]
     Push[Push on files <pre>docs/*</pre>]
     Manual[Manual <pre>workflow_dispatch</pre>]
@@ -45,7 +44,7 @@ flowchart TD
     Docs --> Manual
     Docs --> PullRequest
     PullRequest --> PullRequestClose    
- ```
+```
 
 
 #### `workflow_dispatch` manual trigger on any branch
