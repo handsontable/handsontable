@@ -653,6 +653,22 @@ describe('Core.alter', () => {
         expect(getDataAtRow(0)).toEqual([null, 'E1', null, 'D1', 'C1', 'B1', 'A1', null]);
         expect(getSourceDataAtRow(0)).toEqual(['A1', 'B1', 'C1', null, 'D1', null, 'E1', null]);
       });
+
+      it('should not copy column filters from the source column to the new one', async() => {
+        handsontable({
+          data: createSpreadsheetData(5, 5),
+          filters: true,
+        });
+
+        await getPlugin('filters').addCondition(1, 'by_value', [['B1']]);
+
+        expect(getPlugin('filters').conditionCollection.getConditions(1)[0].args).toEqual([['B1']]);
+
+        await alter('insert_col_start', 1);
+
+        expect(getPlugin('filters').conditionCollection.getConditions(1)).toEqual([]);
+        expect(getPlugin('filters').conditionCollection.getConditions(2)[0].args).toEqual([['B1']]);
+      });
     });
   });
 });
