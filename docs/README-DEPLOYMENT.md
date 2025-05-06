@@ -20,13 +20,35 @@ Handsontable's [GitHub Actions setup](https://github.com/handsontable/handsontab
 
 | Docker image tag      | Build type | Triggered by                                          | Used for                                                                                                                                   |
 | --------------------- | ---------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `:[COMMIT_HASH]`      | Staging    | A push that changes `docs/**` on any branch           | [Manual local deployment](#deploying-the-documentation-locally-at-a-specific-commit)                                                       |
-| `:next`             | Staging    | A push that changes `docs/**` on the `develop` branch | [Manual staging deployment](#manually-deploying-the-documentation-to-the-staging-environment)          |
 | `:v12.1`, `v13.0` etc.         | Production | A push that changes `docs/**` on the Docs production branch e.g `prod-docs/12.1` | Automatic production deployment |
 | `:v12.1-[COMMIT_HASH]`, `:v13.0-[COMMIT_HASH]` etc. | Production | A push that changes `docs/**` on the Docs production branch e.g `prod-docs/12.1` | Images used for backups                                                                                                     |
 
-### Manually deploying the documentation to the staging environment
+### Deploying the documentation to the staging environment
 
+Staging documentation is being deployed on `netlify` either automatic on manually based on the following diagram. 
+
+```mermaid
+flowchart TD
+flowchart TD
+    Docs[Documentation Stage on Netlify]
+    Push[Push on files <pre>docs/*</pre>]
+    Manual[Manual <pre>workflow_dispatch</pre>]
+    PullRequest[Pull Request event] 
+    PullRequestClose[Pull Request close]
+    Generate[Generate a preview at <pre>dev-handsontable-BRANCH_NAME.netlify.app</pre>]
+    Destory[Destory, if exsist, a preview at <pre>dev-handsontable-BRANCH_NAME.netlify.app</pre>]
+    Push -->|Automatic| Generate
+    Manual -->|Manual trigger on selected branch| Generate
+    PullRequest --> |Manual approve on PR page| Comment[Bot comments on PR page with URL]  --> Generate
+    PullRequestClose --> |Automatic| Destory    
+    Docs --> Push
+    Docs --> Manual
+    Docs --> PullRequest
+    PullRequest --> PullRequestClose    
+ ```
+
+
+#### `workflow_dispatch` manual trigger on any branch
 To deploy the documentation to the [staging environment](https://dev.handsontable.com/docs), from GitHub Actions:
 
 1. Go to [github.com/handsontable/handsontable/actions](https://github.com/handsontable/handsontable/actions).
@@ -35,20 +57,12 @@ To deploy the documentation to the [staging environment](https://dev.handsontabl
 4. Select the branch that you want to deploy.
 5. Select **Run workflow**.
 
-To deploy the documentation to the [staging environment](https://dev.handsontable.com/docs), from the command line:
+#### Manual trigger on pull request page
 
-1. When deploying for the first time, log in to the GitHub Container Registry (ghcr.io):
-    ```bash
-    docker login --registry docker.pkg.github.com
-    ```
-    * Login: Your GitHub account email
-    * Password: PAT with the `write:packages` permission: https://github.com/settings/tokens/new
-2. Deploy the documentation:
-    ```bash
-    npm run docs:docker:build
+On pull request page there will be pipeline in waiting mode that once [approved](https://docs.github.com/en/actions/managing-workflow-runs-and-deployments/managing-deployments/managing-environments-for-deployment#required-reviewers
+) will (re)generate a staging version of documentation and bot will send url in PR comment. 
 
-    docker push docker.pkg.github.com/handsontable/handsontable/handsontable-documentation:next
-    ```
+When pull request is closed staged version will be delegated to destroy. 
 
 ### Manually deploying the documentation to the production environment
 

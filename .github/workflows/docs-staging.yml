@@ -1,9 +1,5 @@
 name: Docs Staging Deployment
 
-env:
-  GHA_DOCKER_TAG_NEXT: docker.pkg.github.com/${{ github.repository }}/handsontable-documentation:next
-  GHA_DOCKER_TAG_SHA: docker.pkg.github.com/${{ github.repository }}/handsontable-documentation:${{ github.sha }}
-
 on:
   pull_request:
   push:
