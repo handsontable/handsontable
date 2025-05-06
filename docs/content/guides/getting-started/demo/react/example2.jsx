@@ -189,9 +189,9 @@ const App = () => {
 
 const rootElement = document.getElementById('example2');
 const root = ReactDOM.createRoot(rootElement);
+
 rootElement._reactRoot = root;
 root.render(<App />);
-
 console.log(
   `Handsontable: v${Handsontable.version} (${Handsontable.buildDate}) Wrapper: v${HotTable.version} React: v${React.version}`
 );
