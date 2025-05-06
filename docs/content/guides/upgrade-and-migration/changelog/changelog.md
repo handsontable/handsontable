@@ -30,6 +30,7 @@ See the full history of changes made to Handsontable in each major, minor, and p
 Released on April 29, 2025
 
 For more information about this release see:
+- [Blog post (15.3.0)](https://handsontable.com/blog/handsontable-15.3.0-csv-sanitization-accessibility-updates-and-30-fixes)
 - [Documentation (15.3)](https://handsontable.com/docs/15.3)
 
 #### Added
