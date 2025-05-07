@@ -29,11 +29,7 @@ describe('NumericEditor', () => {
 
   it('should return true in the `isOpened` after open the numeric editor', async() => {
     handsontable({
-      columns: [
-        {
-          type: 'numeric'
-        }
-      ],
+      type: 'numeric',
     });
 
     await selectCell(0, 0);
