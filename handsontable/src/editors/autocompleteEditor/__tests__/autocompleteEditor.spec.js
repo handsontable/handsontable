@@ -3985,6 +3985,29 @@ describe('AutocompleteEditor', () => {
     expect(hot._registerTimeout).toHaveBeenCalledWith(jasmine.anything(), 10);
   });
 
+  it('should close the autocomplete editor after call `useTheme`', async() => {
+    const hot = handsontable({
+      columns: [
+        {
+          type: 'autocomplete',
+          source: choices
+        }
+      ],
+    });
+
+    await selectCell(0, 0);
+
+    const editor = getActiveEditor();
+
+    await keyDownUp('enter');
+
+    expect(editor.isOpened()).toBe(true);
+
+    hot.useTheme(undefined);
+
+    expect(editor.isOpened()).toBe(false);
+  });
+
   describe('IME support', () => {
     it('should focus the editable element after a timeout when selecting the cell if `imeFastEdit` is' +
       ' enabled', async() => {

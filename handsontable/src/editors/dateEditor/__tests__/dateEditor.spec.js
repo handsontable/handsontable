@@ -22,6 +22,40 @@ describe('DateEditor', () => {
     ];
   }
 
+  it('should return true in the `isOpened` after open the date editor', async() => {
+    handsontable({
+      columns: [{ type: 'date' }],
+    });
+
+    await selectCell(0, 0);
+
+    const editor = getActiveEditor();
+
+    editor.beginEditing();
+
+    expect(editor.isOpened()).toBe(true);
+  });
+
+  it('should return false in the `isOpened` after close the date editor', async() => {
+    handsontable({
+      columns: [{ type: 'date' }],
+    });
+
+    await selectCell(0, 0);
+
+    const editor = getActiveEditor();
+
+    editor.beginEditing();
+
+    expect(editor.isOpened()).toBe(true);
+
+    editor.finishEditing();
+
+    await sleep(30);
+
+    expect(editor.isOpened()).toBe(false);
+  });
+
   it('should render an editor in specified position at cell 0, 0', async() => {
     handsontable({
       columns: [{ type: 'date' }],
@@ -1890,6 +1924,23 @@ describe('DateEditor', () => {
 
       expect(datePickerDate).toEqual(undefined);
     });
+  });
+
+  it('should close the date picker editor after call `useTheme`', async() => {
+    const hot = handsontable({
+      columns: [{ type: 'date' }],
+    });
+
+    await selectCell(0, 0);
+    const editor = getActiveEditor();
+
+    editor.beginEditing();
+
+    expect(editor.isOpened()).toBe(true);
+
+    hot.useTheme(undefined);
+
+    expect(editor.isOpened()).toBe(false);
   });
 
   describe('IME support', () => {

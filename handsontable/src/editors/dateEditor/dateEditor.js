@@ -153,8 +153,6 @@ export class DateEditor extends TextEditor {
    * Close editor.
    */
   close() {
-    this._opened = false;
-
     // If the date picker was never initialized (e.g. during autofill), there's nothing to destroy.
     if (this.$datePicker?.destroy) {
       this.$datePicker.destroy();

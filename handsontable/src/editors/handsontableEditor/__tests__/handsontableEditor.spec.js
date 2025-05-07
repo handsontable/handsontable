@@ -21,6 +21,55 @@ describe('HandsontableEditor', () => {
     ];
   }
 
+  it('should return true in the `isOpened` after open the handsontable editor', async() => {
+    handsontable({
+      columns: [
+        {
+          type: 'handsontable',
+          handsontable: {
+            colHeaders: ['Marque', 'Country', 'Parent company'],
+            data: getManufacturerData()
+          }
+        }
+      ],
+    });
+
+    await selectCell(0, 0);
+
+    const editor = getActiveEditor();
+
+    await keyDownUp('enter');
+
+    expect(editor.isOpened()).toBe(true);
+  });
+
+  it('should return false in the `isOpened` after close the handsontable editor', async() => {
+    handsontable({
+      columns: [
+        {
+          type: 'handsontable',
+          handsontable: {
+            colHeaders: ['Marque', 'Country', 'Parent company'],
+            data: getManufacturerData()
+          }
+        }
+      ],
+    });
+
+    await selectCell(0, 0);
+
+    const editor = getActiveEditor();
+
+    await keyDownUp('enter');
+
+    expect(editor.isOpened()).toBe(true);
+
+    await selectCell(1, 0);
+    await sleep(30);
+
+    expect(editor.isOpened()).toBe(false);
+  });
+
   it('should render an editor in specified position at cell 0, 0', async() => {
     handsontable({
       columns: [
@@ -811,6 +860,32 @@ describe('HandsontableEditor', () => {
     await keyDownUp('arrowdown');
 
     expect(getSelected()).toEqual([[1, 2, 1, 2]]);
+  });
+
+  it('should close the handsontable editor after call `useTheme`', async() => {
+    const hot = handsontable({
+      columns: [
+        {
+          type: 'handsontable',
+          handsontable: {
+            colHeaders: ['Marque', 'Country', 'Parent company'],
+            data: getManufacturerData()
+          }
+        }
+      ],
+    });
+
+    await selectCell(0, 0);
+
+    const editor = getActiveEditor();
+
+    await keyDownUp('enter');
+
+    expect(editor.isOpened()).toBe(true);
+
+    hot.useTheme(undefined);
+
+    expect(editor.isOpened()).toBe(false);
   });
 
   it('should open editor with the correct size', async() => {
