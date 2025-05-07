@@ -1,0 +1,65 @@
+name: Docs Staging Deployment. Documentation Review Delete (if exist).
+
+on:
+    pull_request:
+      types: [closed]
+
+defaults:
+  run:
+    working-directory: ./docs/      
+
+jobs:
+    compile:
+        name: Delete Netlify Site if exist
+        runs-on: ubuntu-latest
+        steps:
+
+            - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
+
+            - name: Use Node.js
+              uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
+              with:
+                node-version-file: '.nvmrc'
+                cache: 'npm'
+      
+            - name: Find PR
+              uses: jwalton/gh-find-current-pr@7ada613939e2a233c83a1320679446fa1c6bdcb9 # https://github.com/jwalton/gh-find-current-pr/tree/v1.3.2
+              id: pr-finder
+      
+            - name: Get PR details
+              id: get-pr
+              uses: actions/github-script@v7
+              with:
+                script: |
+                  const { data: pullRequest } = await github.rest.pulls.get({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    pull_number: context.issue.number ||  ${{ steps.pr-finder.outputs.pr }}
+                  });
+                  
+                  console.log(`PR #${context.issue.number} details fetched`);
+                  console.log(`Source branch: ${pullRequest.head.ref}`);
+                  console.log(`Target branch: ${pullRequest.base.ref}`);
+                  
+                  // Set outputs to use in subsequent steps
+                  core.setOutput('source_branch', pullRequest.head.ref);
+                  core.setOutput('target_branch', pullRequest.base.ref);
+                  core.setOutput('pr_owner', pullRequest.head.repo.owner.login);
+                  core.setOutput('pr_repo', pullRequest.head.repo.name);
+                  
+                  return pullRequest;
+                result-encoding: string
+      
+            - name: Install Netlify dependencies
+              run: |
+                 cd netlify 
+                 npm i 
+
+            - name: Run the delete proccess
+            run: | 
+                cd netlify  
+                node deleteIfExist.mjs
+            env:
+                NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
+                BRANCH_NAME_PREFIX: dev-handsontable-
+                BRANCH_NAME: ${{ steps.get-pr.outputs.source_branch }}  
