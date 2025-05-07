@@ -16,12 +16,8 @@ describe('AutocompleteEditor', () => {
 
   it('should render an editor in specified position at cell 0, 0', async() => {
     handsontable({
-      columns: [
-        {
-          editor: 'autocomplete',
-          source: choices,
-        }
-      ],
+      editor: 'autocomplete',
+      source: choices,
     });
 
     await selectCell(0, 0);

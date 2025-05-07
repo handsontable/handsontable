@@ -24,7 +24,7 @@ describe('DateEditor', () => {
 
   it('should return true in the `isOpened` after open the date editor', async() => {
     handsontable({
-      columns: [{ type: 'date' }],
+      type: 'date'
     });
 
     await selectCell(0, 0);
@@ -38,7 +38,7 @@ describe('DateEditor', () => {
 
   it('should return false in the `isOpened` after close the date editor', async() => {
     handsontable({
-      columns: [{ type: 'date' }],
+      type: 'date'
     });
 
     await selectCell(0, 0);

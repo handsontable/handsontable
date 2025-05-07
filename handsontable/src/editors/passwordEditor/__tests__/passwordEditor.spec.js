@@ -14,11 +14,7 @@ describe('PasswordEditor', () => {
 
   it('should return true in the `isOpened` after open the password editor', async() => {
     handsontable({
-      columns: [
-        {
-          type: 'password',
-        }
-      ],
+      type: 'password',
     });
 
     await selectCell(0, 0);
@@ -32,11 +28,7 @@ describe('PasswordEditor', () => {
 
   it('should return false in the `isOpened` after close the password editor', async() => {
     handsontable({
-      columns: [
-        {
-          type: 'password',
-        }
-      ],
+      type: 'password',
     });
 
     await selectCell(0, 0);

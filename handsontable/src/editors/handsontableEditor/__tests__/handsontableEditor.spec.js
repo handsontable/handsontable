@@ -23,15 +23,11 @@ describe('HandsontableEditor', () => {
 
   it('should return true in the `isOpened` after open the handsontable editor', async() => {
     handsontable({
-      columns: [
-        {
-          type: 'handsontable',
-          handsontable: {
-            colHeaders: ['Marque', 'Country', 'Parent company'],
-            data: getManufacturerData()
-          }
-        }
-      ],
+      type: 'handsontable',
+      handsontable: {
+        colHeaders: ['Marque', 'Country', 'Parent company'],
+        data: getManufacturerData()
+      }
     });
 
     await selectCell(0, 0);
@@ -45,15 +41,11 @@ describe('HandsontableEditor', () => {
 
   it('should return false in the `isOpened` after close the handsontable editor', async() => {
     handsontable({
-      columns: [
-        {
-          type: 'handsontable',
-          handsontable: {
-            colHeaders: ['Marque', 'Country', 'Parent company'],
-            data: getManufacturerData()
-          }
-        }
-      ],
+      type: 'handsontable',
+      handsontable: {
+        colHeaders: ['Marque', 'Country', 'Parent company'],
+        data: getManufacturerData()
+      }
     });
 
     await selectCell(0, 0);
