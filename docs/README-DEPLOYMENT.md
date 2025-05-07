@@ -40,10 +40,11 @@ flowchart TD
     Manual -->|Manual trigger on selected branch| Generate
     PullRequest --> |Manual approve on PR page| Comment[Bot comments on PR page with URL]  --> Generate
     PullRequestClose --> |Automatic| Destory    
+    Generate -->|Manual trigger| Destory
     Docs --> Push
     Docs --> Manual
     Docs --> PullRequest
-    PullRequest --> PullRequestClose    
+    PullRequest --> PullRequestClose  
 ```
 
 
