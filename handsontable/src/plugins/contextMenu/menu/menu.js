@@ -646,7 +646,7 @@ export class Menu {
         return accumulator + (value.name === SEPARATOR ? 1 : currentRowHeight);
       }, 0);
 
-    if (this.hot.stylesHandler.isClassicTheme()) {
+    if (this.hotMenu.stylesHandler.isClassicTheme()) {
       // Additional 3px to menu's size because of additional border around its `table.htCore`.
       holderStyle.width = `${currentHiderWidth + 3}px`;
       holderStyle.height = `${realHeight + 3}px`;
