@@ -17,6 +17,7 @@ import {
 import { FocusManager } from './focusManager';
 import { arrayMap, arrayEach, arrayReduce, getDifferenceOfArrays, stringToArray, pivot } from './helpers/array';
 import { instanceToHTML } from './utils/parseTable';
+import { staticRegister } from './utils/staticRegister';
 import { getPlugin, getPluginsNames } from './plugins/registry';
 import { getRenderer } from './renderers/registry';
 import { getEditor } from './editors/registry';
@@ -42,6 +43,7 @@ import { createUniqueMap } from './utils/dataStructures/uniqueMap';
 import { createShortcutManager } from './shortcuts';
 import { registerAllShortcutContexts } from './shortcutContexts';
 import { getThemeClassName } from './helpers/themes';
+import { CellRangeToRenderableMapper } from './core/coordsMapper/rangeToRenderableMapper';
 
 let activeGuid = null;
 
@@ -282,6 +284,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   });
 
   dataSource = new DataSource(instance);
+
+  const moduleRegisterer = staticRegister(this.guid);
+
+  moduleRegisterer.register('cellRangeMapper', new CellRangeToRenderableMapper({
+    rowIndexMapper: this.rowIndexMapper,
+    columnIndexMapper: this.columnIndexMapper,
+  }));
 
   if (!this.rootElement.id || this.rootElement.id.substring(0, 3) === 'ht_') {
     this.rootElement.id = this.guid; // if root element does not have an id, assign a random id
@@ -4606,6 +4615,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     dataSource = null;
 
     this.getShortcutManager().destroy();
+    moduleRegisterer.clear();
     metaManager.clearCache();
     foreignHotInstances.delete(this.guid);
 

@@ -212,14 +212,14 @@ describe('SelectionRange', () => {
 
       expect(selectionRange.findAll(createCellRange(2, 2, 2, 2, 3, 3))).toEqual([]);
       expect(selectionRange.findAll(createCellRange(1, 1, 1, 1, 3, 3))).toEqual([
-        createCellRange(1, 1, 1, 1, 3, 3),
+        { range: createCellRange(1, 1, 1, 1, 3, 3), layer: 0 },
       ]);
       expect(selectionRange.findAll(createCellRange(2, 2, 3, 3, 1, 1))).toEqual([
-        createCellRange(1, 1, 1, 1, 3, 3),
+        { range: createCellRange(1, 1, 1, 1, 3, 3), layer: 0 },
       ]);
       expect(selectionRange.findAll(createCellRange(11, 11))).toEqual([
-        createCellRange(11, 11),
-        createCellRange(11, 11),
+        { range: createCellRange(11, 11), layer: 2 },
+        { range: createCellRange(11, 11), layer: 3 },
       ]);
     });
   });

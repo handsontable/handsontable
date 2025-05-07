@@ -100,28 +100,46 @@ class SelectionRange {
    * Find all ranges that are equal to the provided range.
    *
    * @param {CellRange} cellRange The CellRange instance with defined visual coordinates.
-   * @returns {CellRange[]}
+   * @returns {Array<{range: CellRange, layer: number}>}
    */
   findAll(cellRange) {
-    const ranges = [];
+    const result = [];
 
-    this.ranges.forEach((range) => {
+    this.ranges.forEach((range, layer) => {
       if (range.isEqual(cellRange)) {
-        ranges.push(range);
+        result.push({
+          range,
+          layer,
+        });
       }
     });
 
-    return ranges;
+    return result;
   }
 
   /**
    * Removes all ranges that are equal to the provided ranges.
    *
    * @param {CellRange[]} cellRanges The array of CellRange instances with defined visual coordinates.
+   * @returns {SelectionRange}
    */
   remove(cellRanges) {
     this.ranges = this.ranges
       .filter(range => !cellRanges.some(cellRange => cellRange.isEqual(range)));
+
+    return this;
+  }
+
+  /**
+   * Removes the ranges based on the provided index layers (0 no N).
+   *
+   * @param {number[]} layerIndexes The array of indexes that will be removed from the selection.
+   * @returns {SelectionRange}
+   */
+  removeLayers(layerIndexes) {
+    this.ranges = this.ranges.filter((_, index) => !layerIndexes.includes(index));
+
+    return this;
   }
 
   /**
@@ -142,6 +160,26 @@ class SelectionRange {
    */
   size() {
     return this.ranges.length;
+  }
+
+  clone() {
+    const clone = new SelectionRange(this.createCellRange);
+
+    clone.ranges = this.ranges.map(cellRange => cellRange.clone());
+
+    return clone;
+  }
+
+  /**
+   * Creates the clone and translates the range coordinates by the logic provided in the `mapFunction`.
+   *
+   * @param {function(CellRange): CellRange} mapFunction The function that allows injecting custom index translation logic.
+   * @returns {SelectionRange}
+   */
+  map(mapFunction) {
+    this.ranges = this.ranges.map((cellRange, index) => mapFunction(cellRange, index));
+
+    return this;
   }
 
   /**

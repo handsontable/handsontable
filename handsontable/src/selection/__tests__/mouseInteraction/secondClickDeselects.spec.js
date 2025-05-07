@@ -166,6 +166,106 @@ describe('Selection using mouse interaction (cell deselect)', () => {
       `).toBeMatchToSelectionPattern();
   });
 
+  it('should be possible to deselect single cell that is partially hidden (cut off by hidden columns)', async() => {
+    handsontable({
+      data: createSpreadsheetData(6, 5),
+      colHeaders: true,
+      rowHeaders: true,
+    });
+
+    const hidingMap = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+    hidingMap.setValueAtIndex(0, true);
+    hidingMap.setValueAtIndex(1, true);
+    hidingMap.setValueAtIndex(2, true);
+
+    await render();
+    await selectCells([
+      [1, 1, 1, 3],
+      [3, 1, 3, 3],
+      [5, 1, 5, 3],
+    ]);
+    await keyDown('control/meta');
+    await simulateClick(getCell(5, 3));
+
+    expect(getSelectedRange()).toEqualCellRange([
+      'highlight: 1,3 from: 1,3 to: 1,3',
+      'highlight: 3,3 from: 3,3 to: 3,3',
+    ]);
+    expect(`
+      |   ║ - :   |
+      |===:===:===|
+      |   ║   :   |
+      | - ║ 0 :   |
+      |   ║   :   |
+      | - ║ A :   |
+      |   ║   :   |
+      |   ║   :   |
+      `).toBeMatchToSelectionPattern();
+
+    await simulateClick(getCell(3, 3));
+
+    expect(getSelectedRange()).toEqualCellRange([
+      'highlight: 1,3 from: 1,3 to: 1,3',
+    ]);
+    expect(`
+      |   ║ - :   |
+      |===:===:===|
+      |   ║   :   |
+      | - ║ # :   |
+      |   ║   :   |
+      |   ║   :   |
+      |   ║   :   |
+      |   ║   :   |
+      `).toBeMatchToSelectionPattern();
+  });
+
+  it('should be possible to deselect single cell that is partially hidden (cut off by hidden rows)', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 6),
+      colHeaders: true,
+      rowHeaders: true,
+    });
+
+    const hidingMap = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+    hidingMap.setValueAtIndex(0, true);
+    hidingMap.setValueAtIndex(1, true);
+    hidingMap.setValueAtIndex(2, true);
+
+    await render();
+    await selectCells([
+      [1, 1, 3, 1],
+      [1, 3, 3, 3],
+      [1, 5, 3, 5],
+    ]);
+    await keyDown('control/meta');
+    await simulateClick(getCell(3, 5));
+
+    expect(getSelectedRange()).toEqualCellRange([
+      'highlight: 3,1 from: 3,1 to: 3,1',
+      'highlight: 3,3 from: 3,3 to: 3,3',
+    ]);
+    expect(`
+      |   ║   : - :   : - :   :   |
+      |===:===:===:===:===:===:===|
+      | - ║   : 0 :   : A :   :   |
+      |   ║   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+
+    await simulateClick(getCell(3, 3));
+
+    expect(getSelectedRange()).toEqualCellRange([
+      'highlight: 3,1 from: 3,1 to: 3,1',
+    ]);
+    expect(`
+      |   ║   : - :   :   :   :   |
+      |===:===:===:===:===:===:===|
+      | - ║   : # :   :   :   :   |
+      |   ║   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+  });
+
   it('should not reset the focus position of the previous selection after deselecting a cell', async() => {
     handsontable({
       data: createSpreadsheetData(7, 7),
@@ -233,6 +333,75 @@ describe('Selection using mouse interaction (cell deselect)', () => {
       |   ║   :   :   |
       | - ║   : # :   |
       |   ║   :   :   |
+      `).toBeMatchToSelectionPattern();
+  });
+
+  it('should not be possible to deselect single cell when there is only one selection layer and it is partially hidden (cut off by hidden columns)', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      colHeaders: true,
+      rowHeaders: true,
+    });
+
+    const hidingMap = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+    hidingMap.setValueAtIndex(0, true);
+    hidingMap.setValueAtIndex(1, true);
+    hidingMap.setValueAtIndex(2, true);
+
+    await render();
+    await selectCells([
+      [1, 1, 1, 3],
+    ]);
+    await keyDown('control/meta');
+    await simulateClick(getCell(1, 3));
+    await simulateClick(getCell(1, 3));
+    await simulateClick(getCell(1, 3));
+
+    expect(getSelectedRange()).toEqualCellRange([
+      'highlight: 1,3 from: 1,3 to: 1,3',
+    ]);
+    expect(`
+      |   ║ - :   |
+      |===:===:===|
+      |   ║   :   |
+      | - ║ # :   |
+      |   ║   :   |
+      |   ║   :   |
+      |   ║   :   |
+      `).toBeMatchToSelectionPattern();
+  });
+
+  it('should not be possible to deselect single cell when there is only one selection layer and it is partially hidden (cut off by hidden rows)', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      colHeaders: true,
+      rowHeaders: true,
+    });
+
+    const hidingMap = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+    hidingMap.setValueAtIndex(0, true);
+    hidingMap.setValueAtIndex(1, true);
+    hidingMap.setValueAtIndex(2, true);
+
+    await render();
+    await selectCells([
+      [1, 1, 3, 1],
+    ]);
+    await keyDown('control/meta');
+    await simulateClick(getCell(3, 1));
+    await simulateClick(getCell(3, 1));
+    await simulateClick(getCell(3, 1));
+
+    expect(getSelectedRange()).toEqualCellRange([
+      'highlight: 3,1 from: 3,1 to: 3,1',
+    ]);
+    expect(`
+      |   ║   : - :   :   :   |
+      |===:===:===:===:===:===|
+      | - ║   : # :   :   :   |
+      |   ║   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
   });
 

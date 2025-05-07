@@ -115,38 +115,43 @@ export function mouseOver({ isLeftClick, coords, selection, controller, cellCoor
  * @param {object} options The handler options.
  * @param {boolean} options.isLeftClick Indicates that event was fired using the left mouse button.
  * @param {Selection} options.selection The Selection class instance.
+ * @param {CellRangeToRenderableMapper} options.cellRangeMapper Mapper for converting cell ranges
+ * to renderable indexes.
  */
-export function mouseUp({ isLeftClick, selection }) {
+export function mouseUp({ isLeftClick, selection, cellRangeMapper }) {
   if (!isLeftClick || selection.settings.selectionMode !== 'multiple') {
     return;
   }
 
   const selectionRange = selection.getSelectedRange();
-  const lastSelectionRange = selectionRange.current();
+  const renderableRange = selectionRange
+    .clone()
+    .map(range => cellRangeMapper.toRenderable(range));
+  const lastRenderableRange = renderableRange.current();
 
   if (
-    selectionRange.size() > 1 &&
-    lastSelectionRange.getWidth() === 1 &&
-    lastSelectionRange.getHeight() === 1 &&
-    !selectionRange.includes(lastSelectionRange.highlight, (checkedRange, layerLevel) => {
+    renderableRange.size() > 1 &&
+    lastRenderableRange.getWidth() === 1 &&
+    lastRenderableRange.getHeight() === 1 &&
+    !renderableRange.includes(lastRenderableRange.highlight, (checkedRange, layerLevel) => {
       // ignore the last selection layer to prevent checking the selection with itself
-      if (layerLevel === selectionRange.size() - 1) {
+      if (layerLevel === renderableRange.size() - 1) {
         return false;
       }
 
       return checkedRange.getWidth() > 1 || checkedRange.getHeight() > 1;
     })
   ) {
-    const ranges = selectionRange.findAll(lastSelectionRange);
+    const ranges = renderableRange.findAll(lastRenderableRange);
 
     // if the last selection range is the same as the first one (case when the single cell
     // is selected twice or more) remove duplicate ranges
-    if (ranges.length === selectionRange.size()) {
+    if (ranges.length === renderableRange.size()) {
       selectionRange.pop();
       selection.refresh();
 
     } else if (ranges.length > 1) {
-      selectionRange.remove(ranges);
+      selectionRange.removeLayers(ranges.map(({ layer }) => layer));
       selection.refresh();
     }
   }
