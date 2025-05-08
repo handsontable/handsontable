@@ -403,6 +403,12 @@ innerBorderBottom - Property controlled by bottom overlay
   height: 0;
 }
 
+.handsontable .htTextEllipsis {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
 /* plugins */
 /* row + column resizer */
 .handsontable .manualColumnResizer {
