@@ -481,4 +481,79 @@ describe('Selection using mouse interaction (cell deselect)', () => {
       |   ║   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
   });
+
+  it('should not be possible to deselect selection when the range points to row headers only', async() => {
+    handsontable({
+      data: createSpreadsheetData(3, 0),
+      navigableHeaders: true,
+      colHeaders: true,
+      rowHeaders: true,
+    });
+
+    await simulateClick(getCell(0, -1));
+    await keyDown('control/meta');
+    await simulateClick(getCell(1, -1));
+
+    expect(getSelectedRange()).toEqualCellRange([
+      'highlight: 0,-1 from: 0,-1 to: 0,-1',
+      'highlight: 1,-1 from: 1,-1 to: 1,-1',
+    ]);
+    expect(`
+      |   |
+      |===|
+      | * |
+      | # |
+      |   |
+      `).toBeMatchToSelectionPattern();
+
+    await simulateClick(getCell(1, -1));
+
+    expect(getSelectedRange()).toEqualCellRange([
+      'highlight: 0,-1 from: 0,-1 to: 0,-1',
+      'highlight: 1,-1 from: 1,-1 to: 1,-1',
+      'highlight: 1,-1 from: 1,-1 to: 1,-1',
+    ]);
+    expect(`
+      |   |
+      |===|
+      | * |
+      | # |
+      |   |
+      `).toBeMatchToSelectionPattern();
+  });
+
+  it('should not be possible to deselect selection when the range points to column headers only', async() => {
+    handsontable({
+      data: createSpreadsheetData(0, 3),
+      columns: [{}, {}, {}],
+      navigableHeaders: true,
+      colHeaders: true,
+      rowHeaders: true,
+    });
+
+    await simulateClick(getCell(-1, 0));
+    await keyDown('control/meta');
+    await simulateClick(getCell(-1, 1));
+
+    expect(getSelectedRange()).toEqualCellRange([
+      'highlight: -1,0 from: -1,0 to: -1,0',
+      'highlight: -1,1 from: -1,1 to: -1,1',
+    ]);
+    expect(`
+      |   ║ * : # :   |
+      |===:===:===:===|
+      `).toBeMatchToSelectionPattern();
+
+    await simulateClick(getCell(-1, 1));
+
+    expect(getSelectedRange()).toEqualCellRange([
+      'highlight: -1,0 from: -1,0 to: -1,0',
+      'highlight: -1,1 from: -1,1 to: -1,1',
+      'highlight: -1,1 from: -1,1 to: -1,1',
+    ]);
+    expect(`
+      |   ║ * : # :   |
+      |===:===:===:===|
+      `).toBeMatchToSelectionPattern();
+  });
 });

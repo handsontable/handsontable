@@ -801,14 +801,15 @@ class Selection {
    * Returns information if we have a multi-selection. This method check multi-selection only on the latest layer of
    * the selection.
    *
+   * @param {CellRange} [cellRange] The cell range to check. If not provided, the latest selection layer is used.
    * @returns {boolean}
    */
-  isMultiple() {
+  isMultiple(cellRange = this.selectedRange.current()) {
     if (!this.isSelected()) {
       return false;
     }
 
-    const isMultipleListener = createObjectPropListener(!this.selectedRange.current().isSingle());
+    const isMultipleListener = createObjectPropListener(!cellRange.isSingle());
 
     this.runLocalHooks('afterIsMultipleSelection', isMultipleListener);
 
