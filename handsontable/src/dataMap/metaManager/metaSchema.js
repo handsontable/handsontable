@@ -4462,6 +4462,7 @@ export default () => {
      * | `false` (default) | Don't truncate text content with an ellipsis  |
      * | `true`            | Truncate text content with an ellipsis        |
      *
+     * @since 16.0
      * @memberof Options#
      * @type {boolean}
      * @default false
