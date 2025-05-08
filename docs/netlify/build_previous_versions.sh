@@ -1,8 +1,9 @@
 #/bin/bash
 mkdir -p docs/docs
-node getListOrPreviousVerions.mjs > VERSIONS_VARS
+node getListOrPreviousVersions.mjs > VERSIONS_VARS
 source VERSIONS_VARS
 rm VERSIONS_VARS
+echo "/docs/$LATEST_VERSION/* /docs/:splat 301" >> _redirects
 for version in $PREVIOUS_VERSIONS
 do
     echo "Building version $version"
