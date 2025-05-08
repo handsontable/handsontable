@@ -222,8 +222,6 @@ const redirectsMapfor12up = {
 };
 
 export default async(req: Request, context: Context) => {
-  // This function implements nginx dynamic redirect declarations into netlify edge functions.
-  // https://github.com/handsontable/handsontable/blob/develop/docs/docker/redirects.conf#L27-L29
 
   const major = parseInt(context.params['0'], 10);
   let framework = getFrameworkFromCookie(context.cookies.get('docs_fw'));
@@ -254,6 +252,5 @@ export default async(req: Request, context: Context) => {
 };
 
 export const config: Config = {
-  // eslint-disable-next-line max-len
   path: `/docs/(${Object.keys(redirectsMap).join('|')}).html`
 };

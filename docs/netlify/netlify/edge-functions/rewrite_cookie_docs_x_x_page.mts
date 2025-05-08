@@ -84,89 +84,6 @@ const redirectsMap = {
 
 export default async(req: Request, context: Context) => {
 
-  // This function implements nginx dynamic redirect declarations into netlify edge functions.
-  // https://github.com/handsontable/handsontable/blob/develop/docs/docker/redirects.conf#L27-L29
-
-  /**
-  # --- tutorials ---
-  rewrite ^/docs/((\d+\.\d+|next)/)?tutorial-introduction/?$ /docs/$1$framework/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?tutorial-compatibility/?$ /docs/$1$framework/supported-browsers/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?tutorial-licensing/?$ /docs/$1$framework/software-license/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?tutorial-license-key/?$ /docs/$1$framework/license-key/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?tutorial-quick-start/?$ /docs/$1$framework/installation/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?tutorial-data-binding/?$ /docs/$1$framework/binding-to-data/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?tutorial-data-sources/?$ /docs/$1$framework/binding-to-data/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?tutorial-load-and-save/?$ /docs/$1$framework/saving-data/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?tutorial-setting-options/?$ /docs/$1$framework/setting-options/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?tutorial-grid-sizing/?$ /docs/$1$framework/grid-size/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?tutorial-using-callbacks/?$ /docs/$1$framework/events-and-hooks/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?tutorial-keyboard-navigation/?$ /docs/$1$framework/keyboard-navigation/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?tutorial-internationalization/?$ /docs/$1$framework/internationalization-i18n/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?tutorial-modules/?$ /docs/$1$framework/modules/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?tutorial-custom-build/?$ /docs/$1$framework/building/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?tutorial-custom-plugin/?$ /docs/$1$framework/plugins/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?tutorial-cell-types/?$ /docs/$1$framework/cell-type/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?tutorial-cell-editor/?$ /docs/$1$framework/cell-editor/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?tutorial-cell-function/?$ /docs/$1$framework/cell-function/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?tutorial-suspend-rendering/?$ /docs/$1$framework/batch-operations/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?tutorial-testing/?$ /docs/$1$framework/testing/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?tutorial-performance-tips/?$ /docs/$1$framework/performance/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?tutorial-release-notes/?$ /docs/$1$framework/changelog/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?tutorial-changelog/?$ /docs/$1$framework/changelog/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?tutorial-migration-guide/?$ /docs/$1$framework/migration-from-7.4-to-8.0/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?tutorial-known-limitations/?$ /docs/$1$framework/third-party-licenses/ permanent;
-  # --- demos ---
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-scrolling/?$ /docs/$1$framework/row-virtualization/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-fixing/?$ /docs/$1$framework/column-freezing/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-resizing/?$ /docs/$1$framework/column-width/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-moving/?$ /docs/$1$framework/column-moving/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-pre-populating/?$ /docs/$1$framework/row-prepopulating/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-stretching/?$ /docs/$1$framework/column-width/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-freezing/?$ /docs/$1$framework/column-freezing/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-fixing-bottom/?$ /docs/$1$framework/row-freezing/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-hiding-rows/?$ /docs/$1$framework/row-hiding/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-hiding-columns/?$ /docs/$1$framework/column-hiding/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-trimming-rows/?$ /docs/$1$framework/row-trimming/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-bind-rows-headers/?$ /docs/$1$framework/row-header/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-collapsing-columns/?$ /docs/$1$framework/column-groups/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-nested-headers/?$ /docs/$1$framework/column-groups/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-nested-rows/?$ /docs/$1$framework/row-parent-child/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-dropdown-menu/?$ /docs/$1$framework/column-menu/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-sorting/?$ /docs/$1$framework/rows-sorting/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-multicolumn-sorting/?$ /docs/$1$framework/rows-sorting/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-searching/?$ /docs/$1$framework/searching-values/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-filtering/?$ /docs/$1$framework/column-filter/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-summary-calculations/?$ /docs/$1$framework/column-summary/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-data-validation/?$ /docs/$1$framework/cell-validator/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-auto-fill/?$ /docs/$1$framework/autofill-values/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-merged-cells/?$ /docs/$1$framework/merge-cells/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-alignment/?$ /docs/$1$framework/text-alignment/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-read-only/?$ /docs/$1$framework/disabled-cells/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-disabled-editing/?$ /docs/$1$framework/disabled-cells/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-custom-renderers/?$ /docs/$1$framework/cell-renderer/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-numeric/?$ /docs/$1$framework/numeric-cell-type/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-date/?$ /docs/$1$framework/date-cell-type/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-time/?$ /docs/$1$framework/time-cell-type/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-checkbox/?$ /docs/$1$framework/checkbox-cell-type/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-select/?$ /docs/$1$framework/select-cell-type/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-dropdown/?$ /docs/$1$framework/dropdown-cell-type/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-autocomplete/?$ /docs/$1$framework/autocomplete-cell-type/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-password/?$ /docs/$1$framework/password-cell-type/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-handsontable/?$ /docs/$1$framework/handsontable-cell-type/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-context-menu/?$ /docs/$1$framework/context-menu/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-spreadsheet-icons/?$ /docs/$1$framework/icon-pack/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-comments_/?$ /docs/$1$framework/comments/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-copy-paste/?$ /docs/$1$framework/basic-clipboard/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-export-file/?$ /docs/$1$framework/export-to-csv/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-conditional-formatting/?$ /docs/$1$framework/conditional-formatting/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-customizing-borders/?$ /docs/$1$framework/formatting-cells/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-custom-borders/?$ /docs/$1$framework/formatting-cells/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-selecting-ranges/?$ /docs/$1$framework/selection/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-formula-support/?$ /docs/$1$framework/formula-calculation/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-using-callbacks/?$ /docs/$1$framework/events-and-hooks/ permanent;
-  rewrite ^/docs/((\d+\.\d+|next)/)?demo-react-simple-examples/?$ /docs/$1$framework/react-simple-example/ permanent;.
-   */
-
   const framework = getFrameworkFromCookie(context.cookies.get('docs_fw'));
   const version = `${context.params[0]}.${context.params[1]}`;
   const page = context.params[2];
@@ -177,6 +94,5 @@ export default async(req: Request, context: Context) => {
 };
 
 export const config: Config = {
-  // eslint-disable-next-line max-len
   path: `/docs/(${Object.keys(redirectsMap).join('|')}).html`
 };
