@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added new textTruncate option to the core",
+  "type": "added",
+  "issueOrPR": 11609,
+  "breaking": false,
+  "framework": "none"
+}
