@@ -189,8 +189,8 @@ describe('Selection using mouse interaction (cell deselect)', () => {
     await simulateClick(getCell(5, 3));
 
     expect(getSelectedRange()).toEqualCellRange([
-      'highlight: 1,3 from: 1,3 to: 1,3',
-      'highlight: 3,3 from: 3,3 to: 3,3',
+      'highlight: 1,3 from: 1,1 to: 1,3',
+      'highlight: 3,3 from: 3,1 to: 3,3',
     ]);
     expect(`
       |   ║ - :   |
@@ -206,13 +206,13 @@ describe('Selection using mouse interaction (cell deselect)', () => {
     await simulateClick(getCell(3, 3));
 
     expect(getSelectedRange()).toEqualCellRange([
-      'highlight: 1,3 from: 1,3 to: 1,3',
+      'highlight: 1,3 from: 1,1 to: 1,3',
     ]);
     expect(`
       |   ║ - :   |
       |===:===:===|
       |   ║   :   |
-      | - ║ # :   |
+      | - ║ A :   |
       |   ║   :   |
       |   ║   :   |
       |   ║   :   |
@@ -243,8 +243,8 @@ describe('Selection using mouse interaction (cell deselect)', () => {
     await simulateClick(getCell(3, 5));
 
     expect(getSelectedRange()).toEqualCellRange([
-      'highlight: 3,1 from: 3,1 to: 3,1',
-      'highlight: 3,3 from: 3,3 to: 3,3',
+      'highlight: 3,1 from: 1,1 to: 3,1',
+      'highlight: 3,3 from: 1,3 to: 3,3',
     ]);
     expect(`
       |   ║   : - :   : - :   :   |
@@ -256,12 +256,12 @@ describe('Selection using mouse interaction (cell deselect)', () => {
     await simulateClick(getCell(3, 3));
 
     expect(getSelectedRange()).toEqualCellRange([
-      'highlight: 3,1 from: 3,1 to: 3,1',
+      'highlight: 3,1 from: 1,1 to: 3,1',
     ]);
     expect(`
       |   ║   : - :   :   :   :   |
       |===:===:===:===:===:===:===|
-      | - ║   : # :   :   :   :   |
+      | - ║   : A :   :   :   :   |
       |   ║   :   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
   });
@@ -359,13 +359,13 @@ describe('Selection using mouse interaction (cell deselect)', () => {
     await simulateClick(getCell(1, 3));
 
     expect(getSelectedRange()).toEqualCellRange([
-      'highlight: 1,3 from: 1,3 to: 1,3',
+      'highlight: 1,3 from: 1,1 to: 1,3',
     ]);
     expect(`
       |   ║ - :   |
       |===:===:===|
       |   ║   :   |
-      | - ║ # :   |
+      | - ║ A :   |
       |   ║   :   |
       |   ║   :   |
       |   ║   :   |
@@ -395,12 +395,12 @@ describe('Selection using mouse interaction (cell deselect)', () => {
     await simulateClick(getCell(3, 1));
 
     expect(getSelectedRange()).toEqualCellRange([
-      'highlight: 3,1 from: 3,1 to: 3,1',
+      'highlight: 3,1 from: 1,1 to: 3,1',
     ]);
     expect(`
       |   ║   : - :   :   :   |
       |===:===:===:===:===:===|
-      | - ║   : # :   :   :   |
+      | - ║   : A :   :   :   |
       |   ║   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
   });
