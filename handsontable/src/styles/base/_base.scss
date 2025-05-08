@@ -440,6 +440,12 @@
       z-index: -1;
     }
 
+    .htTextTruncate {
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
     table,
     tbody,
     thead,

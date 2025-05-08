@@ -10,6 +10,7 @@ import {
 import { A11Y_INVALID, A11Y_READONLY } from '../../helpers/a11y';
 
 export const RENDERER_TYPE = 'base';
+const TEXT_TRUNCATE_CLASS_NAME = 'htTextTruncate';
 
 /**
  * @param {Core} hotInstance The Handsontable instance.
@@ -63,6 +64,10 @@ export function baseRenderer(hotInstance, TD, row, col, prop, value, cellPropert
 
   if (!value && cellProperties.placeholder) {
     classesToAdd.push(cellProperties.placeholderCellClassName);
+  }
+
+  if (cellProperties.textTruncate) {
+    classesToAdd.push(TEXT_TRUNCATE_CLASS_NAME);
   }
 
   removeClass(TD, classesToRemove);

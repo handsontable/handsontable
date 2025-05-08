@@ -88,6 +88,16 @@ describe('baseRenderer', () => {
 
       expect(TD.outerHTML).toMatchHTML('<td class="placeholder"></td>', toMatchHTMLConfig);
     });
+
+    it('should manage text-truncate class name', () => {
+      const TD = document.createElement('td');
+
+      baseRenderer(undefined, TD, undefined, undefined, undefined, '', {
+        textTruncate: true,
+      });
+
+      expect(TD.outerHTML).toMatchHTML('<td class="htTextTruncate"></td>', toMatchHTMLConfig);
+    });
   });
 
 });

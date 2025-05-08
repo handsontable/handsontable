@@ -215,6 +215,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   strict: true,
   tableClassName: oneOf('foo', ['first-class-name', 'second-class-name']),
   tabMoves: oneOf({ col: 1, row: 1 }, (event: KeyboardEvent) => ({row: 2, col: 2})),
+  textTruncate: false,
   themeName: 'ht-theme-some-theme',
   title: 'foo',
   trimDropdown: true,

@@ -17,6 +17,7 @@ import { init as initDropdownMenuDemo } from "./demos/dropdownMenu";
 import { init as initLargeDatasetDemo } from './demos/largeDataset';
 import { init as initWebComponentDemo } from './demos/webComponent';
 import { init as initEditorsDemo } from './demos/editors';
+import { init as initTextTruncateDemo } from './demos/textTruncate';
 
 // Function to dynamically load CSS
 function loadCSS(href) {
@@ -225,6 +226,15 @@ router
         loadThemeCSS(),
       ]).then(() => {
         initEditorsDemo();
+      });
+    },
+    '/text-truncate-demo': function () {
+      removeCSS();
+
+      Promise.all([
+        loadThemeCSS(),
+      ]).then(() => {
+        initTextTruncateDemo();
       });
     },
   })
