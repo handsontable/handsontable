@@ -224,6 +224,24 @@ describe('SelectionRange', () => {
     });
   });
 
+  describe('.removeLayers', () => {
+    it('should remove ranges from provider layers', () => {
+      selectionRange.ranges.push(
+        createCellRange(1, 1, 1, 1, 3, 3),
+        createCellRange(2, 2, 2, 2, 5, 5),
+        createCellRange(11, 11),
+        createCellRange(11, 12),
+      );
+
+      selectionRange.removeLayers([0, 2]);
+
+      expect(selectionRange.ranges).toEqual([
+        createCellRange(2, 2, 2, 2, 5, 5),
+        createCellRange(11, 12),
+      ]);
+    });
+  });
+
   describe('.remove', () => {
     it('should remove all matching ranges from the collection', () => {
       selectionRange.ranges.push(
@@ -241,6 +259,49 @@ describe('SelectionRange', () => {
 
       expect(selectionRange.ranges).toEqual([
         createCellRange(2, 2, 2, 2, 5, 5),
+      ]);
+    });
+  });
+
+  describe('.clone', () => {
+    it('should be possible to clone the instance', () => {
+      selectionRange.ranges.push(
+        createCellRange(1, 1, 1, 1, 3, 3),
+        createCellRange(2, 2, 2, 2, 5, 5),
+        createCellRange(11, 11),
+        createCellRange(11, 12),
+      );
+
+      const clone = selectionRange.clone();
+
+      expect(clone).not.toBe(selectionRange);
+      expect(clone.ranges).toEqual(selectionRange.ranges);
+    });
+  });
+
+  describe('.map', () => {
+    it('should be possible to map the ranges with custom logic', () => {
+      selectionRange.ranges.push(
+        createCellRange(1, 1, 1, 1, 3, 3),
+        createCellRange(2, 2, 2, 2, 5, 5),
+        createCellRange(11, 11),
+        createCellRange(11, 12),
+      );
+
+      selectionRange.map((range, index) => {
+        if (index === 1) {
+          range.from.row = 1;
+          range.from.col = 0;
+        }
+
+        return range;
+      });
+
+      expect(selectionRange.ranges).toEqual([
+        createCellRange(1, 1, 1, 1, 3, 3),
+        createCellRange(2, 2, 1, 0, 5, 5),
+        createCellRange(11, 11),
+        createCellRange(11, 12),
       ]);
     });
   });

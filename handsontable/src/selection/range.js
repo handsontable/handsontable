@@ -162,6 +162,11 @@ class SelectionRange {
     return this.ranges.length;
   }
 
+  /**
+   * Creates a clone of this class.
+   *
+   * @returns {SelectionRange}
+   */
   clone() {
     const clone = new SelectionRange(this.createCellRange);
 
@@ -171,7 +176,7 @@ class SelectionRange {
   }
 
   /**
-   * Creates the clone and translates the range coordinates by the logic provided in the `mapFunction`.
+   * Allows applying custom index translations for any range within the class instance.
    *
    * @param {function(CellRange): CellRange} mapFunction The function that allows injecting custom index translation logic.
    * @returns {SelectionRange}

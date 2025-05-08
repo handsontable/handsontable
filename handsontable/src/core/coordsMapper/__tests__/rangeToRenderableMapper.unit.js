@@ -193,7 +193,7 @@ describe('CellRangeToRenderableMapper', () => {
     expect(range).toEqualCellRange('highlight: 5,2 from: 5,2 to: 1,1');
   });
 
-  it('should return `null` when whole range is hidden (hidden rows)', () => {
+  it('should return `null` when the whole range is hidden (hidden rows)', () => {
     const {
       rangeMapper,
       rowIndexMapper,
@@ -211,7 +211,7 @@ describe('CellRangeToRenderableMapper', () => {
     expect(rangeMapper.toRenderable(createCellRange(1, -1, 1, -1, -1, 2))).toBe(null);
   });
 
-  it('should return `null` when whole range is hidden (hidden columns)', () => {
+  it('should return `null` when the whole range is hidden (hidden columns)', () => {
     const {
       rangeMapper,
       columnIndexMapper,
