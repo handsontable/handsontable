@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Added new textTruncate option to the core",
+  "title": "Added new `textEllipsis` option to the core",
   "type": "added",
   "issueOrPR": 11609,
   "breaking": false,

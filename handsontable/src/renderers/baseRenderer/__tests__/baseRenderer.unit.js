@@ -93,10 +93,10 @@ describe('baseRenderer', () => {
       const TD = document.createElement('td');
 
       baseRenderer(undefined, TD, undefined, undefined, undefined, '', {
-        textTruncate: true,
+        textEllipsis: true,
       });
 
-      expect(TD.outerHTML).toMatchHTML('<td class="htTextTruncate"></td>', toMatchHTMLConfig);
+      expect(TD.outerHTML).toMatchHTML('<td class="htTextEllipsis"></td>', toMatchHTMLConfig);
     });
   });
 

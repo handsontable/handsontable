@@ -4453,16 +4453,16 @@ export default () => {
     tableClassName: undefined,
 
     /**
-     * The `textTruncate` option configures whether the text content in the cells should be truncated with an ellipsis (three dots).
+     * The `textEllipsis` option configures whether the text content in the cells should be truncated with an ellipsis (three dots).
      *
-     * You can set the `textTruncate` option to one of the following:
+     * You can set the `textEllipsis` option to one of the following:
      *
      * | Setting           | Description                                   |
      * | ----------------- | --------------------------------------------- |
      * | `false` (default) | Don't truncate text content with an ellipsis  |
      * | `true`            | Truncate text content with an ellipsis        |
      *
-     * @since 16.0
+     * @since 16.0.0
      * @memberof Options#
      * @type {boolean}
      * @default false
@@ -4473,16 +4473,16 @@ export default () => {
      * columns: [
      *   {
      *     // truncate text content with an ellipsis
-     *     textTruncate: true,
+     *     textEllipsis: true,
      *   },
      *   {
      *     // don't truncate text content with an ellipsis
-     *     textTruncate: false,
+     *     textEllipsis: false,
      *   }
      * ],
      * ```
      */
-    textTruncate: false,
+    textEllipsis: false,
 
     /**
      * The `themeName` option allows enabling a theme by that name.

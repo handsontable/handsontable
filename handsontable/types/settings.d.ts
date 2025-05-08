@@ -214,7 +214,7 @@ export interface GridSettings extends Events {
   strict?: boolean;
   tableClassName?: string | string[];
   tabMoves?: CellCoords | SimpleCellCoords | ((event: KeyboardEvent) => CellCoords | SimpleCellCoords);
-  textTruncate?: boolean;
+  textEllipsis?: boolean;
   themeName?: string;
   title?: string;
   trimDropdown?: boolean;

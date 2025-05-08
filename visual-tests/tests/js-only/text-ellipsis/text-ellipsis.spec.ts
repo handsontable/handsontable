@@ -6,10 +6,7 @@ test.skip(helpers.hotWrapper !== 'js', 'This test case is only for JavaScript fr
 test(__filename, async({ goto, tablePage }) => {
   await goto(
     helpers
-      .setBaseUrl('/text-truncate-demo')
-      .setPageParams({
-        truncateTextOption: 'row',
-      })
+      .setBaseUrl('/text-ellipsis-demo')
       .getFullUrl()
   );
 

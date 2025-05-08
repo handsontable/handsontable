@@ -17,7 +17,7 @@ import { init as initDropdownMenuDemo } from "./demos/dropdownMenu";
 import { init as initLargeDatasetDemo } from './demos/largeDataset';
 import { init as initWebComponentDemo } from './demos/webComponent';
 import { init as initEditorsDemo } from './demos/editors';
-import { init as initTextTruncateDemo } from './demos/textTruncate';
+import { init as initTextEllipsisDemo } from './demos/textEllipsis';
 
 // Function to dynamically load CSS
 function loadCSS(href) {
@@ -228,13 +228,13 @@ router
         initEditorsDemo();
       });
     },
-    '/text-truncate-demo': function () {
+    '/text-ellipsis-demo': function () {
       removeCSS();
 
       Promise.all([
         loadThemeCSS(),
       ]).then(() => {
-        initTextTruncateDemo();
+        initTextEllipsisDemo();
       });
     },
   })

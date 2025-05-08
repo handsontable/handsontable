@@ -403,7 +403,7 @@ innerBorderBottom - Property controlled by bottom overlay
   height: 0;
 }
 
-.handsontable .htTextTruncate {
+.handsontable .htTextEllipsis {
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
