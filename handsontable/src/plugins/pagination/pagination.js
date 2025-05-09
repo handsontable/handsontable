@@ -1,4 +1,5 @@
 import { BasePlugin } from '../base';
+import { clamp } from '../../helpers/number';
 
 export const PLUGIN_KEY = 'pagination';
 export const PLUGIN_PRIORITY = 500;
@@ -29,10 +30,36 @@ export class Pagination extends BasePlugin {
     };
   }
 
+  /**
+   * Map of hidden rows controlled by the pagination plugin.
+   *
+   * @type {HiddenMap | null}
+   */
   #pagedRowsMap = null;
+  /**
+   * Current page number.
+   *
+   * @type {number}
+   */
   #currentPage = 1;
+  /**
+   * Total number of pages.
+   *
+   * @type {number}
+   */
   #totalPages = 1;
+  /**
+   * Page size.
+   *
+   * @type {number}
+   */
   #pageSize = 10;
+  /**
+   * Flag indicating if the plugin is in the process of updating the index cache. Prevents
+   * circular calls when the index cache is updated.
+   *
+   * @type {boolean}
+   */
   #internalCall = false;
 
   /**
@@ -58,8 +85,6 @@ export class Pagination extends BasePlugin {
     this.#pagedRowsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap(PLUGIN_KEY, 'hiding');
 
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', () => this.#onIndexCacheUpdate());
-
-
     super.enablePlugin();
   }
 
@@ -82,6 +107,11 @@ export class Pagination extends BasePlugin {
     super.disablePlugin();
   }
 
+  /**
+   * Gets the pagination current state.
+   *
+   * @returns {{ currentPage: number, totalPages: number, pageSize: number }}
+   */
   getPaginationData() {
     return {
       currentPage: this.#currentPage,
@@ -90,72 +120,78 @@ export class Pagination extends BasePlugin {
     };
   }
 
+  /**
+   * Allows changing the page for specified page number.
+   *
+   * @param {number} pageNumber The page number to set (1 to N).
+   */
   setPage(pageNumber) {
-    if (pageNumber === 0) {
-      pageNumber = 1;
-    }
-
     this.hot.runHooks('beforePageChange', this.#currentPage, pageNumber);
 
     this.#currentPage = pageNumber;
-    this.#internalCall = true;
-
-    this.#pagedRowsMap.clear();
-
-    this.hot.batchExecution(() => {
-      const renderableIndexes = this.hot.rowIndexMapper.getRenderableIndexes();
-
-      renderableIndexes.splice((this.#currentPage - 1) * this.#pageSize, this.#pageSize);
-      renderableIndexes.forEach(idx => this.#pagedRowsMap.setValueAtIndex(idx, true));
-    }, true);
-
-    this.#internalCall = false;
+    this.#computeAndApply();
 
     this.hot.runHooks('afterPageChange', this.#currentPage);
     this.hot.render();
   }
 
+  /**
+   * Changes the page size for the pagination. The method recalculates the state based
+   * on the new page size and re-renders the table.
+   *
+   * @param {number} pageSize The page size to set.
+   */
   setPageSize(pageSize) {
     this.hot.runHooks('beforePageSizeChange', this.#pageSize, pageSize);
     this.#pageSize = pageSize;
+    this.#computeAndApply();
     this.hot.runHooks('afterPageSizeChange', this.#pageSize, pageSize);
   }
 
+  /**
+   * Switches the page to the next one.
+   */
   nextPage() {
-    this.goToPage(this.#currentPage + 1);
+    this.setPage(this.#currentPage + 1);
   }
 
+  /**
+   * Switches the page to the previous one.
+   */
   prevPage() {
-    this.goToPage(this.#currentPage - 1);
+    this.setPage(this.#currentPage - 1);
   }
 
+  /**
+   * Switches the page to the first one.
+   */
   firstPage() {
-    this.goToPage(0);
+    this.setPage(1);
   }
 
+  /**
+   * Switches the page to the last one.
+   */
   lastPage() {
-    this.goToPage(10);
+    this.setPage(this.#totalPages);
   }
 
+  /**
+   * Checks, based on the current internal state, if there will be a previous page.
+   *
+   * @returns {boolean}
+   */
   hasPreviousPage() {
-
+    return this.#currentPage > 1;
   }
 
+  /**
+   * Checks, based on the current internal state, if there will be a next page.
+   *
+   * @returns {boolean}
+   */
   hasNextPage() {
-
-  }
-
-  resetPageIndex() {
-    this.#currentPage = 1;
-  }
-
-  resetPageSize() {
-    this.#pageSize = this.getSetting('pageSize');
-  }
-
-  resetPagination() {
-    this.resetPageIndex();
-    this.resetPageSize();
+    return this.#currentPage < this.#totalPages;
   }
 
   showPageSizeSection() {
@@ -182,12 +218,44 @@ export class Pagination extends BasePlugin {
     this.hot.runHooks('afterPageNavigationVisibilityChange', false);
   }
 
+  /**
+   * Filters and calculates the pagination state and applies the changes to the
+   * IndexMapper.
+   */
+  #computeAndApply() {
+    const totalRows = this.hot.countRows();
+    const pageSize = this.#pageSize;
+
+    if (pageSize < 1) {
+      throw new Error('The `pageSize` must be greater than 0');
+    }
+
+    this.#totalPages = Math.ceil(totalRows / pageSize);
+    this.#currentPage = clamp(this.#currentPage, 1, this.#totalPages);
+
+    this.#internalCall = true;
+    this.#pagedRowsMap.clear();
+
+    this.hot.batchExecution(() => {
+      const renderableIndexes = this.hot.rowIndexMapper.getRenderableIndexes();
+
+      renderableIndexes.splice((this.#currentPage - 1) * this.#pageSize, this.#pageSize);
+      renderableIndexes.forEach(index => this.#pagedRowsMap.setValueAtIndex(index, true));
+    }, true);
+
+    this.#internalCall = false;
+  }
+
+  /**
+   * IndexMapper cache update listener. Once the cache is updated, we need to recompute
+   * the pagination state.
+   */
   #onIndexCacheUpdate() {
     if (this.#internalCall) {
       return;
     }
 
-    this.setPage(this.#currentPage);
+    this.#computeAndApply();
   }
 
   /**
