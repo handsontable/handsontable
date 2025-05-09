@@ -15,6 +15,7 @@ import {
   findFirstParentWithClass,
   isHTMLElement,
 } from 'handsontable/helpers/dom/element';
+import { setPlatformMeta } from 'handsontable/helpers/browser';
 
 describe('DomElement helper', () => {
   //
@@ -843,12 +844,11 @@ describe('DomElement helper', () => {
     it('should return 0 for non-Windows platforms', () => {
       const mockDocument = {
         defaultView: {
-          navigator: {
-            userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)'
-          },
           devicePixelRatio: 1.5
         }
       };
+
+      setPlatformMeta({ platform: 'MacIntel' });
 
       expect(getScrollbarFractionalScalingCompensation(mockDocument)).toBe(0);
     });
@@ -856,12 +856,11 @@ describe('DomElement helper', () => {
     it('should return 0 for Windows with integer devicePixelRatio', () => {
       const mockDocument = {
         defaultView: {
-          navigator: {
-            userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
-          },
           devicePixelRatio: 2
         }
       };
+
+      setPlatformMeta({ platform: 'Win32' });
 
       expect(getScrollbarFractionalScalingCompensation(mockDocument)).toBe(0);
     });
@@ -869,12 +868,11 @@ describe('DomElement helper', () => {
     it('should return 2 for Windows with fractional devicePixelRatio', () => {
       const mockDocument = {
         defaultView: {
-          navigator: {
-            userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
-          },
           devicePixelRatio: 1.5
         }
       };
+
+      setPlatformMeta({ platform: 'Win32' });
 
       expect(getScrollbarFractionalScalingCompensation(mockDocument)).toBe(2);
     });
