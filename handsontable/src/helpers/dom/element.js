@@ -1,5 +1,6 @@
 import { sanitize } from '../string';
 import { A11Y_HIDDEN } from '../a11y';
+import { isWindowsOS } from '../browser';
 
 /**
  * Get the parent of the specified node in the DOM tree.
@@ -977,18 +978,13 @@ let cachedScrollbarWidth;
  */
 // eslint-disable-next-line no-restricted-globals
 export function getScrollbarFractionalScalingCompensation(rootDocument = document) {
-  const rootWindow = rootDocument.defaultView;
-  const isWindows = rootWindow.navigator.userAgent.toLowerCase().includes('windows');
-
-  if (!isWindows) {
+  if (!isWindowsOS()) {
     return 0;
   }
 
-  const devicePixelRatio = rootWindow.devicePixelRatio || 1;
-
   // On Windows, fractional scaling makes the scrollbar wider to compensate for the anti-aliasing.
   // This is a workaround to calculate the correct scrollbar width.
-  return Number.isInteger(devicePixelRatio) ? 0 : 2;
+  return Number.isInteger((rootDocument.defaultView.devicePixelRatio || 1)) ? 0 : 2;
 }
 
 /**
