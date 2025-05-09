@@ -32,6 +32,7 @@ beforeAll(() => {
     $('.jasmine_html-reporter').hide();
   }
 });
+
 afterAll(() => {
   // After the test are finished show the test suite dots
   if (!process.env.JEST_WORKER_ID) {
@@ -542,7 +543,7 @@ export function getBottomInlineStartClone() {
  * @param {Handsontable} hotInstance The Handsontable instance to apply the event.
  */
 export function triggerTabNavigationFromTop(hotInstance = hot()) {
-  $(hotInstance.rootElement).find('.htFocusCatcher').first().focus();
+  $(hotInstance.rootWrapperElement).find('.htFocusCatcher').first().focus();
 }
 
 /**
@@ -551,7 +552,7 @@ export function triggerTabNavigationFromTop(hotInstance = hot()) {
  * @param {Handsontable} hotInstance The Handsontable instance to apply the event.
  */
 export function triggerTabNavigationFromBottom(hotInstance = hot()) {
-  $(hotInstance.rootElement).find('.htFocusCatcher').last().focus();
+  $(hotInstance.rootWrapperElement).find('.htFocusCatcher').last().focus();
 }
 
 /**

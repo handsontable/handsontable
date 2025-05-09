@@ -9,9 +9,9 @@
 }
 
 @mixin icons-map($icons) {
-  &.htDropdownMenu table tbody tr td.htSubmenu .htItemWrapper::after,
-  &.htContextMenu table tbody tr td.htSubmenu .htItemWrapper::after,
-  &.htFiltersConditionsMenu table tbody tr td.htSubmenu .htItemWrapper::after,
+  .htDropdownMenu table tbody tr td.htSubmenu .htItemWrapper::after,
+  .htContextMenu table tbody tr td.htSubmenu .htItemWrapper::after,
+  .htFiltersConditionsMenu table tbody tr td.htSubmenu .htItemWrapper::after,
   .pika-single .pika-next {
     @include icon($icons, "arrow-right");
   }
@@ -37,9 +37,9 @@
     @include icon($icons, "arrow-narrow-down");
   }
 
-  &.htDropdownMenu table tbody tr td .htItemWrapper span.selected::after,
-  &.htContextMenu table tbody tr td .htItemWrapper span.selected::after,
-  &.htFiltersConditionsMenu
+  .htDropdownMenu table tbody tr td .htItemWrapper span.selected::after,
+  .htContextMenu table tbody tr td .htItemWrapper span.selected::after,
+  .htFiltersConditionsMenu
     table
     tbody
     tr

@@ -113,7 +113,7 @@ export class StretchCalculator {
    * @returns {boolean}
    */
   #willVerticalScrollAppear() {
-    const { view } = this.#hot;
+    const { view, stylesHandler } = this.#hot;
 
     if (view.isVerticallyScrollableByWindow()) {
       return false;
@@ -121,7 +121,7 @@ export class StretchCalculator {
 
     const viewportHeight = view.getViewportHeight();
     const totalRows = this.#hot.countRows();
-    const defaultRowHeight = view.getStylesHandler().getDefaultRowHeight();
+    const defaultRowHeight = stylesHandler.getDefaultRowHeight();
     let totalHeight = 0;
     let hasVerticalScroll = false;
 

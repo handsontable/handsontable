@@ -58,17 +58,17 @@ describe('settings', () => {
     });
 
     it('should allow width to be a number', async() => {
-      handsontable({
+      const hot = handsontable({
         startRows: 10,
         startCols: 10,
         width: 107,
       });
 
-      expect(spec().$container.width()).toBe(107);
+      expect($(hot.rootElement).width()).toBe(107);
     });
 
     it('should allow width to be a function', async() => {
-      handsontable({
+      const hot = handsontable({
         startRows: 10,
         startCols: 10,
         width() {
@@ -76,11 +76,11 @@ describe('settings', () => {
         }
       });
 
-      expect(spec().$container.width()).toBe(107);
+      expect($(hot.rootElement).width()).toBe(107);
     });
 
     it('should allow width to be a string', async() => {
-      handsontable({
+      const hot = handsontable({
         startRows: 10,
         startCols: 10,
         width: '50%',
@@ -88,7 +88,7 @@ describe('settings', () => {
 
       const parentWidth = spec().$container.parent().width();
 
-      expect(spec().$container.width()).toBeAroundValue(parentWidth * 0.5, 0.5);
+      expect($(hot.rootElement).width()).toBeAroundValue(parentWidth * 0.5, 0.5);
     });
 
     it('should respect width provided in inline style', async() => {
@@ -96,25 +96,25 @@ describe('settings', () => {
         overflow: 'auto',
         width: '200px'
       });
-      handsontable({
+      const hot = handsontable({
         data: [
           ['ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC']
         ]
       });
 
-      expect(spec().$container.width()).toBe(200);
+      expect($(hot.rootElement).width()).toBe(200);
     });
 
     it('should respect width provided in CSS class', async() => {
       $('<style>.myTable {overflow: auto; width: 200px}</style>').appendTo('head');
       spec().$container.addClass('myTable');
-      handsontable({
+      const hot = handsontable({
         data: [
           ['ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC']
         ]
       });
 
-      expect(spec().$container.width()).toBe(200);
+      expect($(hot.rootElement).width()).toBe(200);
     });
 
     describe('for columns', () => {

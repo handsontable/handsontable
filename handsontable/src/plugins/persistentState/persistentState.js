@@ -72,7 +72,7 @@ export class PersistentState extends BasePlugin {
     }
 
     if (!this.storage) {
-      this.storage = new Storage(this.hot.rootElement.id, this.hot.rootWindow);
+      this.storage = new Storage(this.hot.rootContainer.id || this.hot.rootElement.id, this.hot.rootWindow);
     }
 
     this.addHook('persistentStateSave', (key, value) => this.saveValue(key, value));
