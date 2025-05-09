@@ -132,7 +132,15 @@ export function mouseUp({ isLeftClick, selection, cellRangeMapper }) {
   if (
     renderableRange.size() > 1 &&
     !lastRenderableRange.isHeader() &&
-    !selection.isMultiple(lastRenderableRange)
+    !selection.isMultiple(lastRenderableRange) &&
+    !renderableRange.includes(lastRenderableRange.highlight, (range, layerLevel) => {
+      // ignore the last selection layer to prevent checking the selection with itself
+      if (layerLevel === renderableRange.size() - 1) {
+        return false;
+      }
+
+      return selection.isMultiple(range);
+    })
   ) {
     const ranges = renderableRange.findAll(lastRenderableRange);
 
