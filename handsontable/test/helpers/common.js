@@ -9,14 +9,14 @@ const DEBUG = false;
 const specContext = {};
 
 beforeEach(function() {
-  if (!DEBUG) {
-    window.scrollTo(0, 0);
-  }
-
   specContext.spec = this;
 
   if (!process.env.JEST_WORKER_ID) {
     this.loadedTheme = __ENV_ARGS__.HOT_THEME || 'classic';
+
+    if (!DEBUG) {
+      window.scrollTo(0, 0);
+    }
   }
 });
 

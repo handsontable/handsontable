@@ -976,7 +976,7 @@ let cachedScrollbarWidth;
  * @returns {number} The compensation for the scrollbar width, when the device pixel ratio is not an integer.
  */
 // eslint-disable-next-line no-restricted-globals
-function getScrollbarFractionalScalingCompensation(rootDocument = document) {
+export function getScrollbarFractionalScalingCompensation(rootDocument = document) {
   const rootWindow = rootDocument.defaultView;
   const isWindows = rootWindow.navigator.userAgent.toLowerCase().includes('windows');
 

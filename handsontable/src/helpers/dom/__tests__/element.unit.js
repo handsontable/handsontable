@@ -3,6 +3,7 @@ import {
   closest,
   closestDown,
   getParent,
+  getScrollbarFractionalScalingCompensation,
   hasClass,
   isInput,
   removeAttribute,
@@ -832,6 +833,50 @@ describe('DomElement helper', () => {
       const element = document.createElement('div');
 
       expect(isHTMLElement(element)).toBe(true);
+    });
+  });
+
+  //
+  // Handsontable.helper.getScrollbarFractionalScalingCompensation
+  //
+  describe('getScrollbarFractionalScalingCompensation', () => {
+    it('should return 0 for non-Windows platforms', () => {
+      const mockDocument = {
+        defaultView: {
+          navigator: {
+            userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)'
+          },
+          devicePixelRatio: 1.5
+        }
+      };
+
+      expect(getScrollbarFractionalScalingCompensation(mockDocument)).toBe(0);
+    });
+
+    it('should return 0 for Windows with integer devicePixelRatio', () => {
+      const mockDocument = {
+        defaultView: {
+          navigator: {
+            userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
+          },
+          devicePixelRatio: 2
+        }
+      };
+
+      expect(getScrollbarFractionalScalingCompensation(mockDocument)).toBe(0);
+    });
+
+    it('should return 2 for Windows with fractional devicePixelRatio', () => {
+      const mockDocument = {
+        defaultView: {
+          navigator: {
+            userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
+          },
+          devicePixelRatio: 1.5
+        }
+      };
+
+      expect(getScrollbarFractionalScalingCompensation(mockDocument)).toBe(2);
     });
   });
 });
