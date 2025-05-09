@@ -17,7 +17,7 @@ describe('settings', () => {
     it('should print information about key invalidation right after the Handsontable root element', async() => {
       handsontable({}, true);
 
-      const info = spec().$container[0].nextSibling;
+      const info = spec().$container[0].querySelector('.hot-display-license-info');
 
       expect(info.className).toBe('handsontable hot-display-license-info');
       expect(info.innerText).toBe([

@@ -403,6 +403,8 @@ describe('settings', () => {
       expect(() => handsontable({
         fixedColumnsLeft: 3
       })).toThrowError('The `fixedColumnsLeft` is not supported for RTL. Please use option `fixedColumnsStart`.');
+
+      $('body').find('.ht-portal').remove();
     });
 
     it('updateSettings should throw Error', async() => {
@@ -414,6 +416,7 @@ describe('settings', () => {
           fixedColumnsLeft: 4
         });
       }).toThrowError('The `fixedColumnsLeft` is not supported for RTL. Please use option `fixedColumnsStart`.');
+      $('body').find('.ht-portal').remove();
     });
   });
 
@@ -439,6 +442,8 @@ describe('settings', () => {
         }
       )).toThrowError('The `fixedColumnsLeft` and `fixedColumnsStart` should not be used together.'
         + ' Please use only the option `fixedColumnsStart`.');
+
+      $('body').find('.ht-portal').remove();
     });
 
     it('defined `fixedColumnsLeft` in constructor, `fixedColumnsStart` in updateSettings should thrown an error', async() => {

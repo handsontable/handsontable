@@ -664,7 +664,7 @@ describe('Core_updateSettings', () => {
         data: createSpreadsheetData(15, 15),
       }, true);
 
-      expect(hot.view.getStylesHandler().isClassicTheme()).toBe(true);
+      expect(hot.stylesHandler.isClassicTheme()).toBe(true);
       expect(getCurrentThemeName()).toBe(undefined);
 
       simulateModernThemeStylesheet(spec().$container);
@@ -673,25 +673,25 @@ describe('Core_updateSettings', () => {
         themeName: 'ht-theme-sth'
       });
 
-      expect(hot.view.getStylesHandler().isClassicTheme()).toBe(false);
+      expect(hot.stylesHandler.isClassicTheme()).toBe(false);
       expect(getCurrentThemeName()).toBe('ht-theme-sth');
-      expect(spec().$container.hasClass('ht-theme-sth')).toBe(true);
+      expect($(hot.rootWrapperElement).hasClass('ht-theme-sth')).toBe(true);
 
       // `updateSettings` calls without `themeName` provided should not change the theme
       await updateSettings({});
 
-      expect(hot.view.getStylesHandler().isClassicTheme()).toBe(false);
+      expect(hot.stylesHandler.isClassicTheme()).toBe(false);
       expect(getCurrentThemeName()).toBe('ht-theme-sth');
-      expect(spec().$container.hasClass('ht-theme-sth')).toBe(true);
+      expect($(hot.rootWrapperElement).hasClass('ht-theme-sth')).toBe(true);
 
       // `updateSettings` calls with the theme name provided as the same that's currently applied should not change the theme
       await updateSettings({
         themeName: 'ht-theme-sth'
       });
 
-      expect(hot.view.getStylesHandler().isClassicTheme()).toBe(false);
+      expect(hot.stylesHandler.isClassicTheme()).toBe(false);
       expect(getCurrentThemeName()).toBe('ht-theme-sth');
-      expect(spec().$container.hasClass('ht-theme-sth')).toBe(true);
+      expect($(hot.rootWrapperElement).hasClass('ht-theme-sth')).toBe(true);
 
       // Calling `updateSettings` with `themeName` defined to `undefined` or `false` should
       // switch HOT back to the classic theme.
@@ -699,9 +699,9 @@ describe('Core_updateSettings', () => {
         themeName: undefined
       });
 
-      expect(hot.view.getStylesHandler().isClassicTheme()).toBe(true);
+      expect(hot.stylesHandler.isClassicTheme()).toBe(true);
       expect(getCurrentThemeName()).toBe(undefined);
-      expect(spec().$container.hasClass('ht-theme-sth')).toBe(false);
+      expect($(hot.rootWrapperElement).hasClass('ht-theme-sth')).toBe(false);
 
       await updateSettings({
         themeName: 'ht-theme-sth'
@@ -710,9 +710,9 @@ describe('Core_updateSettings', () => {
         themeName: false
       });
 
-      expect(hot.view.getStylesHandler().isClassicTheme()).toBe(true);
+      expect(hot.stylesHandler.isClassicTheme()).toBe(true);
       expect(getCurrentThemeName()).toBe(undefined);
-      expect(spec().$container.hasClass('ht-theme-sth')).toBe(false);
+      expect($(hot.rootWrapperElement).hasClass('ht-theme-sth')).toBe(false);
     });
 
     it('should update the theme based on the `themeName` option, even if a theme class is already applied to the container', async() => {
@@ -723,18 +723,18 @@ describe('Core_updateSettings', () => {
         data: createSpreadsheetData(15, 15),
       }, true);
 
-      expect(hot.view.getStylesHandler().isClassicTheme()).toBe(false);
+      expect(hot.stylesHandler.isClassicTheme()).toBe(false);
       expect(getCurrentThemeName()).toBe('ht-theme-sth');
-      expect(spec().$container.hasClass('ht-theme-sth')).toBe(true);
+      expect($(hot.rootWrapperElement).hasClass('ht-theme-sth')).toBe(true);
 
       await updateSettings({
         themeName: 'ht-theme-sth-else',
       });
 
-      expect(hot.view.getStylesHandler().isClassicTheme()).toBe(false);
+      expect(hot.stylesHandler.isClassicTheme()).toBe(false);
       expect(getCurrentThemeName()).toBe('ht-theme-sth-else');
-      expect(spec().$container.hasClass('ht-theme-sth')).toBe(false);
-      expect(spec().$container.hasClass('ht-theme-sth-else')).toBe(true);
+      expect($(hot.rootWrapperElement).hasClass('ht-theme-sth')).toBe(false);
+      expect($(hot.rootWrapperElement).hasClass('ht-theme-sth-else')).toBe(true);
     });
 
     it('should be possible to disable a "modern" theme by setting the `themeName` to `false` or `undefined`', async() => {
@@ -745,32 +745,32 @@ describe('Core_updateSettings', () => {
         data: createSpreadsheetData(15, 15),
       }, true);
 
-      expect(hot.view.getStylesHandler().isClassicTheme()).toBe(false);
+      expect(hot.stylesHandler.isClassicTheme()).toBe(false);
       expect(getCurrentThemeName()).toBe('ht-theme-sth');
-      expect(spec().$container.hasClass('ht-theme-sth')).toBe(true);
+      expect($(hot.rootWrapperElement).hasClass('ht-theme-sth')).toBe(true);
 
       await updateSettings({
         themeName: undefined,
       });
 
-      expect(hot.view.getStylesHandler().isClassicTheme()).toBe(true);
+      expect(hot.stylesHandler.isClassicTheme()).toBe(true);
       expect(getCurrentThemeName()).toBe(undefined);
-      expect(spec().$container.hasClass('ht-theme-sth')).toBe(false);
+      expect($(hot.rootWrapperElement).hasClass('ht-theme-sth')).toBe(false);
 
       spec().$container.addClass('ht-theme-sth');
       hot.useTheme('ht-theme-sth');
 
-      expect(hot.view.getStylesHandler().isClassicTheme()).toBe(false);
+      expect(hot.stylesHandler.isClassicTheme()).toBe(false);
       expect(getCurrentThemeName()).toBe('ht-theme-sth');
-      expect(spec().$container.hasClass('ht-theme-sth')).toBe(true);
+      expect($(hot.rootWrapperElement).hasClass('ht-theme-sth')).toBe(true);
 
       await updateSettings({
         themeName: false,
       });
 
-      expect(hot.view.getStylesHandler().isClassicTheme()).toBe(true);
+      expect(hot.stylesHandler.isClassicTheme()).toBe(true);
       expect(getCurrentThemeName()).toBe(undefined);
-      expect(spec().$container.hasClass('ht-theme-sth')).toBe(false);
+      expect($(hot.rootWrapperElement).hasClass('ht-theme-sth')).toBe(false);
     });
   });
 });

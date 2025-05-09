@@ -177,7 +177,7 @@ export function _injectProductInfo(key, element) {
     _notified = true;
   }
 
-  if (domMessageState !== 'valid' && element.parentNode) {
+  if (domMessageState !== 'valid' && element) {
     const message = domMessages[domMessageState]({
       keyValidityDate,
       hotVersion,
@@ -191,7 +191,8 @@ export function _injectProductInfo(key, element) {
         keyValidityDate,
         hotVersion,
       });
-      element.parentNode.insertBefore(messageNode, element.nextSibling);
+      
+      element.appendChild(messageNode);
     }
   }
 }
