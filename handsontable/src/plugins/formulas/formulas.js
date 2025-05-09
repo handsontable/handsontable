@@ -1,5 +1,5 @@
 import { BasePlugin } from '../base';
-import staticRegister from '../../utils/staticRegister';
+import { staticRegister } from '../../utils/staticRegister';
 import { error, warn } from '../../helpers/console';
 import { isNumeric } from '../../helpers/number';
 import { isDefined, isUndefined } from '../../helpers/mixed';

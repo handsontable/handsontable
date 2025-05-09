@@ -1068,7 +1068,7 @@ describe('Selection', () => {
       const hooks = jasmine.createSpyObj('hooks', ['afterSelection', 'afterSelectionEnd']);
 
       handsontable({
-        data: Handsontable.helper.createSpreadsheetObjectData(21, 30),
+        data: createSpreadsheetObjectData(21, 30),
         selectionMode: 'multiple',
         afterSelectionByProp: hooks.afterSelection,
         afterSelectionEndByProp: hooks.afterSelectionEnd,

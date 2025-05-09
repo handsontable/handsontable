@@ -2,7 +2,7 @@ import { isObject, deepClone } from '../helpers/object';
 import { arrayEach } from './../helpers/array';
 import { isUndefined } from '../helpers/mixed';
 import { extendNotExistingKeys, normalizeLanguageCode, warnUserAboutLanguageRegistration } from './utils';
-import staticRegister from '../utils/staticRegister';
+import { staticRegister } from '../utils/staticRegister';
 import { getPhraseFormatters } from './phraseFormatters';
 import DEFAULT_DICTIONARY from './languages/en-US';
 

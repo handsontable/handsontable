@@ -1,4 +1,4 @@
-import staticRegister from './../../utils/staticRegister';
+import { staticRegister } from './../../utils/staticRegister';
 import pluralizeFn from './pluralize';
 
 const {

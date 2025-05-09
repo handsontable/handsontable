@@ -1,4 +1,4 @@
-import staticRegister from '../../../utils/staticRegister';
+import { staticRegister } from '../../../utils/staticRegister';
 import { isUndefined } from '../../../helpers/mixed';
 import { toSingleLine } from '../../../helpers/templateLiteralTag';
 import { warn } from '../../../helpers/console';

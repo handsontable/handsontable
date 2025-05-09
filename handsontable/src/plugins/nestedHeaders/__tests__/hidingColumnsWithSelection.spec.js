@@ -275,7 +275,6 @@ describe('NestedHeaders', () => {
           |   : 0 :   : 0 : 0 : 0 :   : 0 : 0 |
           |   : 0 :   : 0 : 0 : 0 :   : 0 : 0 |
         `).toBeMatchToSelectionPattern();
-        window.hidingMap = hidingMap;
 
         hidingMap.setValueAtIndex(5, true); // Hide column that contains cells F{n}
         hidingMap.setValueAtIndex(11, true); // Hide column that contains cells L{n}

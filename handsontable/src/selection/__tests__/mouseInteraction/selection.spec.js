@@ -27,7 +27,7 @@ describe('Selection using mouse interaction', () => {
 
   it('should correctly render the selection using event simulation', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetObjectData(9, 8),
+      data: createSpreadsheetObjectData(9, 8),
       selectionMode: 'multiple',
       colHeaders: true,
       rowHeaders: true,
@@ -733,10 +733,10 @@ describe('Selection using mouse interaction', () => {
     $input.remove();
   });
 
-  it.forTheme('classic')('should select the entire column after column header is clicked', async() => {
+  it('should select the entire column after column header is clicked', async() => {
     handsontable({
       width: 200,
-      height: 100,
+      height: getDefaultRowHeight() * 5,
       startRows: 10,
       startCols: 5,
       colHeaders: true
@@ -761,137 +761,10 @@ describe('Selection using mouse interaction', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it.forTheme('main')('should select the entire column after column header is clicked', async() => {
+  it('should select the entire column and row after column header and row header is clicked', async() => {
     handsontable({
       width: 200,
-      height: 126,
-      startRows: 10,
-      startCols: 5,
-      colHeaders: true
-    });
-
-    spec().$container.find('thead th:eq(0)').simulate('mousedown');
-
-    expect(getSelected()).toEqual([[-1, 0, 9, 0]]);
-    expect(`
-      | * :   :   :   :   |
-      |===:===:===:===:===|
-      | A :   :   :   :   |
-      | 0 :   :   :   :   |
-      | 0 :   :   :   :   |
-      | 0 :   :   :   :   |
-      | 0 :   :   :   :   |
-      | 0 :   :   :   :   |
-      | 0 :   :   :   :   |
-      | 0 :   :   :   :   |
-      | 0 :   :   :   :   |
-      | 0 :   :   :   :   |
-    `).toBeMatchToSelectionPattern();
-  });
-
-  it.forTheme('horizon')('should select the entire column after column header is clicked', async() => {
-    handsontable({
-      width: 200,
-      height: 161,
-      startRows: 10,
-      startCols: 5,
-      colHeaders: true
-    });
-
-    spec().$container.find('thead th:eq(0)').simulate('mousedown');
-
-    expect(getSelected()).toEqual([[-1, 0, 9, 0]]);
-    expect(`
-      | * :   :   :   :   |
-      |===:===:===:===:===|
-      | A :   :   :   :   |
-      | 0 :   :   :   :   |
-      | 0 :   :   :   :   |
-      | 0 :   :   :   :   |
-      | 0 :   :   :   :   |
-      | 0 :   :   :   :   |
-      | 0 :   :   :   :   |
-      | 0 :   :   :   :   |
-      | 0 :   :   :   :   |
-      | 0 :   :   :   :   |
-    `).toBeMatchToSelectionPattern();
-  });
-
-  it.forTheme('classic')('should select the entire column and row after column header and row ' +
-    'header is clicked', async() => {
-    handsontable({
-      width: 200,
-      height: 100,
-      startRows: 10,
-      startCols: 5,
-      colHeaders: true,
-      rowHeaders: true,
-    });
-
-    spec().$container.find('thead th:eq(3)').simulate('mousedown');
-
-    await keyDown('control/meta');
-
-    await mouseDown(spec().$container.find('tr:eq(2) th:eq(0)')[0]);
-
-    await keyUp('control/meta');
-
-    expect(`
-      |   ║ - : - : * : - : - |
-      |===:===:===:===:===:===|
-      | - ║   :   : 0 :   :   |
-      | * ║ A : 0 : 1 : 0 : 0 |
-      | - ║   :   : 0 :   :   |
-      | - ║   :   : 0 :   :   |
-      | - ║   :   : 0 :   :   |
-      | - ║   :   : 0 :   :   |
-      | - ║   :   : 0 :   :   |
-      | - ║   :   : 0 :   :   |
-      | - ║   :   : 0 :   :   |
-      | - ║   :   : 0 :   :   |
-    `).toBeMatchToSelectionPattern();
-  });
-
-  it.forTheme('main')('should select the entire column and row after column header and row ' +
-    'header is clicked', async() => {
-    handsontable({
-      width: 200,
-      height: 126,
-      startRows: 10,
-      startCols: 5,
-      colHeaders: true,
-      rowHeaders: true,
-    });
-
-    spec().$container.find('thead th:eq(3)').simulate('mousedown');
-
-    await keyDown('control/meta');
-
-    await mouseDown(spec().$container.find('tr:eq(2) th:eq(0)')[0]);
-
-    await keyUp('control/meta');
-
-    expect(`
-      |   ║ - : - : * : - : - |
-      |===:===:===:===:===:===|
-      | - ║   :   : 0 :   :   |
-      | * ║ A : 0 : 1 : 0 : 0 |
-      | - ║   :   : 0 :   :   |
-      | - ║   :   : 0 :   :   |
-      | - ║   :   : 0 :   :   |
-      | - ║   :   : 0 :   :   |
-      | - ║   :   : 0 :   :   |
-      | - ║   :   : 0 :   :   |
-      | - ║   :   : 0 :   :   |
-      | - ║   :   : 0 :   :   |
-    `).toBeMatchToSelectionPattern();
-  });
-
-  it.forTheme('horizon')('should select the entire column and row after column header and row ' +
-    'header is clicked', async() => {
-    handsontable({
-      width: 200,
-      height: 161,
+      height: getDefaultRowHeight() * 5,
       startRows: 10,
       startCols: 5,
       colHeaders: true,
@@ -987,11 +860,10 @@ describe('Selection using mouse interaction', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it.forTheme('classic')('should select the entire fixed column after column header is clicked, ' +
-    'after scroll horizontally', async() => {
+  it('should select the entire fixed column after column header is clicked, after scroll horizontally', async() => {
     handsontable({
       width: 200,
-      height: 100,
+      height: getDefaultRowHeight() * 5,
       startRows: 10,
       startCols: 10,
       colHeaders: true,
@@ -1023,83 +895,10 @@ describe('Selection using mouse interaction', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it.forTheme('main')('should select the entire fixed column after column header is clicked, ' +
-    'after scroll horizontally', async() => {
+  it('should set the selection end to the first visible row, when dragging the selection from a cell to a column header', async() => {
     handsontable({
       width: 200,
-      height: 126,
-      startRows: 10,
-      startCols: 10,
-      colHeaders: true,
-      rowHeaders: true,
-      fixedColumnsStart: 2
-    });
-
-    await scrollViewportTo({
-      col: countCols() - 1,
-      verticalSnap: 'top',
-      horizontalSnap: 'start',
-    });
-    await simulateClick(spec().$container.find('.ht_master thead th:eq(2)'));
-
-    expect(getSelected()).toEqual([[-1, 1, 9, 1]]);
-    expect(`
-      |   ║   : * |   :   :   :   :   :   :   :   |
-      |===:===:===:===:===:===:===:===:===:===:===|
-      | - ║   : A |   :   :   :   :   :   :   :   |
-      | - ║   : 0 |   :   :   :   :   :   :   :   |
-      | - ║   : 0 |   :   :   :   :   :   :   :   |
-      | - ║   : 0 |   :   :   :   :   :   :   :   |
-      | - ║   : 0 |   :   :   :   :   :   :   :   |
-      | - ║   : 0 |   :   :   :   :   :   :   :   |
-      | - ║   : 0 |   :   :   :   :   :   :   :   |
-      | - ║   : 0 |   :   :   :   :   :   :   :   |
-      | - ║   : 0 |   :   :   :   :   :   :   :   |
-      | - ║   : 0 |   :   :   :   :   :   :   :   |
-    `).toBeMatchToSelectionPattern();
-  });
-
-  it.forTheme('horizon')('should select the entire fixed column after column header is clicked, ' +
-    'after scroll horizontally', async() => {
-    handsontable({
-      width: 200,
-      height: 161,
-      startRows: 10,
-      startCols: 10,
-      colHeaders: true,
-      rowHeaders: true,
-      fixedColumnsStart: 2
-    });
-
-    await scrollViewportTo({
-      col: countCols() - 1,
-      verticalSnap: 'top',
-      horizontalSnap: 'start',
-    });
-    await simulateClick(spec().$container.find('.ht_master thead th:eq(2)'));
-
-    expect(getSelected()).toEqual([[-1, 1, 9, 1]]);
-    expect(`
-      |   ║   : * |   :   :   :   :   :   :   :   |
-      |===:===:===:===:===:===:===:===:===:===:===|
-      | - ║   : A |   :   :   :   :   :   :   :   |
-      | - ║   : 0 |   :   :   :   :   :   :   :   |
-      | - ║   : 0 |   :   :   :   :   :   :   :   |
-      | - ║   : 0 |   :   :   :   :   :   :   :   |
-      | - ║   : 0 |   :   :   :   :   :   :   :   |
-      | - ║   : 0 |   :   :   :   :   :   :   :   |
-      | - ║   : 0 |   :   :   :   :   :   :   :   |
-      | - ║   : 0 |   :   :   :   :   :   :   :   |
-      | - ║   : 0 |   :   :   :   :   :   :   :   |
-      | - ║   : 0 |   :   :   :   :   :   :   :   |
-    `).toBeMatchToSelectionPattern();
-  });
-
-  it.forTheme('classic')('should set the selection end to the first visible row, when dragging the ' +
-    'selection from a cell to a column header', async() => {
-    handsontable({
-      width: 200,
-      height: 200,
+      height: getDefaultRowHeight() * 5,
       startRows: 20,
       startCols: 20,
       colHeaders: true,
@@ -1120,10 +919,8 @@ describe('Selection using mouse interaction', () => {
 
     expect(getSelected()).toEqual([[12, 11, 0, 11]]);
     expect(`
-      |   ║   :   :   :   :   : - :   :   :   :   :   |
+      | - ║   :   :   :   :   : - :   :   :   :   :   |
       |===:===:===:===:===:===:===:===:===:===:===:===|
-      | - ║   :   :   :   :   : 0 :   :   :   :   :   |
-      | - ║   :   :   :   :   : 0 :   :   :   :   :   |
       | - ║   :   :   :   :   : 0 :   :   :   :   :   |
       | - ║   :   :   :   :   : 0 :   :   :   :   :   |
       | - ║   :   :   :   :   : 0 :   :   :   :   :   |
@@ -1145,215 +942,10 @@ describe('Selection using mouse interaction', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it.forTheme('main')('should set the selection end to the first visible row, when dragging the ' +
-    'selection from a cell to a column header', async() => {
+  it('should set the selection end to the first visible column, when dragging the selection from a cell to a row header', async() => {
     handsontable({
       width: 200,
-      height: 252,
-      startRows: 20,
-      startCols: 20,
-      colHeaders: true,
-      rowHeaders: true
-    });
-
-    await scrollViewportTo({
-      row: 10,
-      col: 10,
-      verticalSnap: 'top',
-      horizontalSnap: 'start',
-    });
-    await mouseDown(getCell(12, 11));
-
-    spec().$container.find('.ht_clone_top thead th:eq(6)').simulate('mouseover'); // Header `L`
-
-    await sleep(30);
-
-    expect(getSelected()).toEqual([[12, 11, 0, 11]]);
-    expect(`
-      |   ║   :   :   :   :   : - :   :   :   :   :   |
-      |===:===:===:===:===:===:===:===:===:===:===:===|
-      | - ║   :   :   :   :   : 0 :   :   :   :   :   |
-      | - ║   :   :   :   :   : 0 :   :   :   :   :   |
-      | - ║   :   :   :   :   : 0 :   :   :   :   :   |
-      | - ║   :   :   :   :   : 0 :   :   :   :   :   |
-      | - ║   :   :   :   :   : 0 :   :   :   :   :   |
-      | - ║   :   :   :   :   : 0 :   :   :   :   :   |
-      | - ║   :   :   :   :   : 0 :   :   :   :   :   |
-      | - ║   :   :   :   :   : 0 :   :   :   :   :   |
-      | - ║   :   :   :   :   : 0 :   :   :   :   :   |
-      | - ║   :   :   :   :   : 0 :   :   :   :   :   |
-      | - ║   :   :   :   :   : 0 :   :   :   :   :   |
-      | - ║   :   :   :   :   : 0 :   :   :   :   :   |
-      | - ║   :   :   :   :   : A :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-    `).toBeMatchToSelectionPattern();
-  });
-
-  it.forTheme('horizon')('should set the selection end to the first visible row, when dragging the ' +
-    'selection from a cell to a column header', async() => {
-    handsontable({
-      width: 200,
-      height: 322,
-      startRows: 20,
-      startCols: 20,
-      colHeaders: true,
-      rowHeaders: true
-    });
-
-    await scrollViewportTo({
-      row: 10,
-      col: 10,
-      verticalSnap: 'top',
-      horizontalSnap: 'start',
-    });
-    await mouseDown(getCell(12, 11));
-
-    spec().$container.find('.ht_clone_top thead th:eq(6)').simulate('mouseover'); // Header `L`
-
-    await sleep(30);
-
-    expect(getSelected()).toEqual([[12, 11, 0, 11]]);
-    expect(`
-      |   ║   :   :   :   :   : - :   :   :   :   :   |
-      |===:===:===:===:===:===:===:===:===:===:===:===|
-      | - ║   :   :   :   :   : 0 :   :   :   :   :   |
-      | - ║   :   :   :   :   : 0 :   :   :   :   :   |
-      | - ║   :   :   :   :   : 0 :   :   :   :   :   |
-      | - ║   :   :   :   :   : 0 :   :   :   :   :   |
-      | - ║   :   :   :   :   : 0 :   :   :   :   :   |
-      | - ║   :   :   :   :   : 0 :   :   :   :   :   |
-      | - ║   :   :   :   :   : 0 :   :   :   :   :   |
-      | - ║   :   :   :   :   : 0 :   :   :   :   :   |
-      | - ║   :   :   :   :   : 0 :   :   :   :   :   |
-      | - ║   :   :   :   :   : 0 :   :   :   :   :   |
-      | - ║   :   :   :   :   : 0 :   :   :   :   :   |
-      | - ║   :   :   :   :   : 0 :   :   :   :   :   |
-      | - ║   :   :   :   :   : A :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-    `).toBeMatchToSelectionPattern();
-  });
-
-  it.forTheme('classic')('should set the selection end to the first visible column, when dragging ' +
-    'the selection from a cell to a row header', async() => {
-    handsontable({
-      width: 200,
-      height: 200,
-      startRows: 20,
-      startCols: 20,
-      colHeaders: true,
-      rowHeaders: true
-    });
-
-    await scrollViewportTo({
-      row: 10,
-      col: 10,
-      verticalSnap: 'top',
-      horizontalSnap: 'start',
-    });
-    await mouseDown(getCell(12, 11));
-
-    spec().$container.find('.ht_clone_inline_start tbody th:eq(12)')
-      .simulate('mouseover')
-      .simulate('mouseup');
-
-    await sleep(30);
-
-    expect(getSelected()).toEqual([[12, 11, 12, 0]]);
-    expect(`
-      | - ║ - : - : - : - : - : - :   :   :   :   :   |
-      |===:===:===:===:===:===:===:===:===:===:===:===|
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      | - ║ 0 : 0 : 0 : 0 : 0 : A :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-    `).toBeMatchToSelectionPattern();
-  });
-
-  it.forTheme('main')('should set the selection end to the first visible column, when dragging ' +
-    'the selection from a cell to a row header', async() => {
-    handsontable({
-      width: 200,
-      height: 245,
-      startRows: 20,
-      startCols: 20,
-      colHeaders: true,
-      rowHeaders: true
-    });
-
-    await scrollViewportTo({
-      row: 10,
-      col: 10,
-      verticalSnap: 'top',
-      horizontalSnap: 'start',
-    });
-    await mouseDown(getCell(12, 11));
-
-    spec().$container.find('.ht_clone_inline_start tbody th:eq(12)')
-      .simulate('mouseover')
-      .simulate('mouseup');
-
-    await sleep(30);
-
-    expect(getSelected()).toEqual([[12, 11, 12, 0]]);
-    expect(`
-      | - ║ - : - : - : - : - : - :   :   :   :   :   |
-      |===:===:===:===:===:===:===:===:===:===:===:===|
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      | - ║ 0 : 0 : 0 : 0 : 0 : A :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-    `).toBeMatchToSelectionPattern();
-  });
-
-  it.forTheme('horizon')('should set the selection end to the first visible column, when dragging ' +
-    'the selection from a cell to a row header', async() => {
-    handsontable({
-      width: 200,
-      height: 313,
+      height: getDefaultRowHeight() * 13,
       startRows: 20,
       startCols: 20,
       colHeaders: true,
