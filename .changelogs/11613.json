@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a problem with the dropdown editor having a horizontal scrollbar on Windows with fractional scaling applied.",
+  "type": "fixed",
+  "issueOrPR": 11613,
+  "breaking": false,
+  "framework": "none"
+}

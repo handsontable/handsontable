@@ -1,6 +1,7 @@
 export function getParent(element: HTMLElement, level?: number): HTMLElement;
 export function getFrameElement(frame: Window): HTMLIFrameElement;
 export function getParentWindow(frame: Window): Window;
+export function getScrollbarFractionalScalingCompensation(rootDocument?: Document): number;
 export function hasAccessToParentWindow(frame: Window): boolean;
 export function closest(element: HTMLElement, nodes?: Array<string | HTMLElement>, until?: HTMLElement): HTMLElement;
 export function closestDown(element: HTMLElement, nodes: HTMLElement[], until?: HTMLElement): HTMLElement;
