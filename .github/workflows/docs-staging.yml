@@ -19,7 +19,7 @@ defaults:
     working-directory: ./docs/
 
 jobs:
-  preview-on-pull-request: 
+  preview-on-pull-request:
     environment:
       name: approvers
     if: ${{ github.event_name == 'pull_request' }}
@@ -49,35 +49,35 @@ jobs:
               repo: context.repo.repo,
               pull_number: context.issue.number ||  ${{ steps.pr-finder.outputs.pr }}
             });
-            
+
             console.log(`PR #${context.issue.number} details fetched`);
             console.log(`Source branch: ${pullRequest.head.ref}`);
             console.log(`Target branch: ${pullRequest.base.ref}`);
-            
+
             // Set outputs to use in subsequent steps
             core.setOutput('source_branch', pullRequest.head.ref);
             core.setOutput('target_branch', pullRequest.base.ref);
             core.setOutput('pr_owner', pullRequest.head.repo.owner.login);
             core.setOutput('pr_repo', pullRequest.head.repo.name);
-            
+
             return pullRequest;
           result-encoding: string
 
       - name: Install Netlify dependencies
         run: |
-           cd netlify 
-           npm i 
+           cd netlify
+           npm i
            npm install netlify-cli -g
 
       - name: Run the create or get Netlify Page proccess. Save the Netlify vars in a file
-        run: | 
-          cd netlify  
-          node createOrGet.mjs  
-          cat NETLIFY_VARS >> $GITHUB_ENV 
+        run: |
+          cd netlify
+          node createOrGet.mjs
+          cat NETLIFY_VARS >> $GITHUB_ENV
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
           BRANCH_NAME_PREFIX: dev-handsontable-
-          BRANCH_NAME: ${{ steps.get-pr.outputs.source_branch }}     
+          BRANCH_NAME: ${{ steps.get-pr.outputs.source_branch }}
 
       - name: Publish sticky comment in PR. Docs are being built
         uses: marocchino/sticky-pull-request-comment@adca94abcaf73c10466a71cc83ae561fd66d1a56 # https://github.com/marocchino/sticky-pull-request-comment/tree/v2.3.0
@@ -107,22 +107,22 @@ jobs:
 
       - name: Build and deploy the preview to Netlify
         run: |
-          cd netlify  
+          cd netlify
           mkdir -p docs/docs
           mv ../.vuepress/dist/docs docs
-          
+
           ./build_previous_versions.sh
           echo "Building the documentation..." >> docs/index.html
           cp _redirects docs/_redirects
-          cp docs/docs/404.html docs/404.html    
+          cp docs/docs/404.html docs/404.html
 
       - name: Publish preview to Netlify
         run: |
-          cd netlify  
+          cd netlify
           netlify deploy --prod --build --context production
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ env.NETLIFY_SITE_ID }}    
+          NETLIFY_SITE_ID: ${{ env.NETLIFY_SITE_ID }}
 
       - name: Publish sticky comment in PR
         uses: marocchino/sticky-pull-request-comment@adca94abcaf73c10466a71cc83ae561fd66d1a56 # https://github.com/marocchino/sticky-pull-request-comment/tree/v2.3.0
@@ -135,7 +135,7 @@ jobs:
   preview-on-push-or-workflow-dispatch:
     name: Build and push Preview to Netlify (on push or workflow dispatch)
     #if: ${{ github.ref != 'refs/heads/prod-docs/latest' }} # Exclude the prod-docs-latest branch from triggering the workflow
-    if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request' }}
+    if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch'}}
 
     runs-on: ubuntu-latest
     steps:
@@ -149,19 +149,19 @@ jobs:
 
       - name: Install Netlify dependencies
         run: |
-           cd netlify 
-           npm i 
+           cd netlify
+           npm i
            npm install netlify-cli -g
 
       - name: Run the create or get Netlify Page proccess. Save the Netlify vars in a file
-        run: | 
-          cd netlify  
-          node createOrGet.mjs  
-          cat NETLIFY_VARS >> $GITHUB_ENV 
+        run: |
+          cd netlify
+          node createOrGet.mjs
+          cat NETLIFY_VARS >> $GITHUB_ENV
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
           BRANCH_NAME_PREFIX: dev-handsontable-
-          BRANCH_NAME: ${{ github.ref_name }}     
+          BRANCH_NAME: ${{ github.ref_name }}
 
       - name: Install the documentation dependencies
         run: |
@@ -183,22 +183,22 @@ jobs:
 
       - name: Build and deploy the preview to Netlify
         run: |
-          cd netlify  
+          cd netlify
           mkdir -p docs/docs
           mv ../.vuepress/dist/docs docs
-          
+
           ./build_previous_versions.sh
           echo "Building the documentation..." >> docs/index.html
           cp _redirects docs/_redirects
-          cp docs/docs/404.html docs/404.html    
+          cp docs/docs/404.html docs/404.html
 
       - name: Publish preview to Netlify
         run: |
-          cd netlify  
+          cd netlify
           netlify deploy --prod --build --context production
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ env.NETLIFY_SITE_ID }}    
+          NETLIFY_SITE_ID: ${{ env.NETLIFY_SITE_ID }}
 
 
-      
+
