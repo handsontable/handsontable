@@ -984,7 +984,7 @@ export function getScrollbarFractionalScalingCompensation(rootDocument = documen
 
   // On Windows, fractional scaling makes the scrollbar wider to compensate for the anti-aliasing.
   // This is a workaround to calculate the correct scrollbar width.
-  return Number.isInteger((rootDocument.defaultView.devicePixelRatio || 1)) ? 0 : 2;
+  return Number.isInteger(rootDocument.defaultView.devicePixelRatio || 1) ? 0 : 2;
 }
 
 /**
