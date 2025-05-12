@@ -109,8 +109,8 @@ export class Pagination extends BasePlugin {
     this.#currentPage = this.getSetting('initialPage');
     this.#pagedRowsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap(PLUGIN_KEY, 'hiding');
 
-    this.hot.addHook('beforeSelectColumns', this.#onBeforeSelectColumns.bind(this));
-    this.hot.addHook('beforeSetRangeEnd', this.#onBeforeSetRangeEnd.bind(this));
+    // this.hot.addHook('beforeSelectColumns', this.#onBeforeSelectColumns.bind(this));
+    // this.hot.addHook('beforeSetRangeEnd', this.#onBeforeSetRangeEnd.bind(this));
     this.hot.addHook('afterRender', () => {
       this.#elementRefs.container.style.width = `${this.hot.rootElement.offsetWidth}px`;
     });
