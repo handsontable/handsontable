@@ -1,6 +1,6 @@
 import { BasePlugin } from '../base';
 import { clamp } from '../../helpers/number';
-import { html } from '../../helpers/templateLiteralTag';
+import { PaginationUI } from './ui';
 
 export const PLUGIN_KEY = 'pagination';
 export const PLUGIN_PRIORITY = 500;
@@ -62,7 +62,12 @@ export class Pagination extends BasePlugin {
    * @type {boolean}
    */
   #internalCall = false;
-  #elementRefs;
+  /**
+   * UI instance of the pagination plugin.
+   *
+   * @type {PaginationUI}
+   */
+  #ui = new PaginationUI(this.hot.rootWrapperElement);
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -82,39 +87,27 @@ export class Pagination extends BasePlugin {
       return;
     }
 
-    const elements = html`
-      <div data-ref="container" class="htPaginationContainer">
-        <div data-ref="rangeDisplay" class="htPaginationInfo"></div>
-        <div class="htPaginationControls">
-          <button data-ref="first">&laquo;</button>
-          <button data-ref="prev">&lsaquo;</button>
-          <span data-ref="indicatorDisplay"></span>
-          <button data-ref="next">&rsaquo;</button>
-          <button data-ref="last">&raquo;</button>
-        </div>
-      </div>
-    `;
-
-    this.#elementRefs = elements.refs;
-
-    this.#elementRefs.first.addEventListener('click', () => this.firstPage());
-    this.#elementRefs.prev.addEventListener('click', () => this.prevPage());
-    this.#elementRefs.next.addEventListener('click', () => this.nextPage());
-    this.#elementRefs.last.addEventListener('click', () => this.lastPage());
-
-    this.hot.rootWrapperElement.appendChild(elements.fragment);
     this.hot.rootElement.style.borderRadius = '0px';
 
     this.#pageSize = this.getSetting('pageSize');
     this.#currentPage = this.getSetting('initialPage');
     this.#pagedRowsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap(PLUGIN_KEY, 'hiding');
 
-    // this.hot.addHook('beforeSelectColumns', this.#onBeforeSelectColumns.bind(this));
-    // this.hot.addHook('beforeSetRangeEnd', this.#onBeforeSetRangeEnd.bind(this));
-    this.hot.addHook('afterRender', () => {
-      this.#elementRefs.container.style.width = `${this.hot.rootElement.offsetWidth}px`;
-    });
+    this.#ui.setPageSizeSectionVisibility(this.getSetting('showPageSize'));
+    this.#ui.setCounterSectionVisibility(this.getSetting('showCounter'));
+    this.#ui.setNavigationSectionVisibility(this.getSetting('showNavigation'));
+
+    this.#ui.addLocalHook('firstPageClick', () => this.firstPage());
+    this.#ui.addLocalHook('prevPageClick', () => this.prevPage());
+    this.#ui.addLocalHook('nextPageClick', () => this.nextPage());
+    this.#ui.addLocalHook('lastPageClick', () => this.lastPage());
+    this.#ui.addLocalHook('pageSizeChange', pageSize => this.setPageSize(pageSize));
+
+    this.hot.addHook('beforeSelectColumns', this.#onBeforeSelectColumns.bind(this));
+    this.hot.addHook('beforeSetRangeEnd', this.#onBeforeSetRangeEnd.bind(this));
+    this.hot.addHook('afterRender', this.#onAfterRender.bind(this));
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', () => this.#onIndexCacheUpdate());
+
     super.enablePlugin();
   }
 
@@ -140,13 +133,16 @@ export class Pagination extends BasePlugin {
   /**
    * Gets the pagination current state.
    *
-   * @returns {{ currentPage: number, totalPages: number, pageSize: number }}
+   * @returns {{ currentPage: number, totalPages: number, pageSize: number, firstVisibleRow: number, lastVisibleRow: number }}
    */
   getPaginationData() {
     return {
       currentPage: this.#currentPage,
       totalPages: this.#totalPages,
       pageSize: this.#pageSize,
+      pageSizeList: this.getSetting('pageList'),
+      firstVisibleRow: (this.#currentPage - 1) * (this.#pageSize + 1),
+      lastVisibleRow: Math.min(this.#currentPage * this.#pageSize, this.hot.countRows()),
     };
   }
 
@@ -173,9 +169,12 @@ export class Pagination extends BasePlugin {
    */
   setPageSize(pageSize) {
     this.hot.runHooks('beforePageSizeChange', this.#pageSize, pageSize);
+
     this.#pageSize = pageSize;
     this.#computeAndApply();
+
     this.hot.runHooks('afterPageSizeChange', this.#pageSize, pageSize);
+    this.hot.render();
   }
 
   /**
@@ -225,26 +224,32 @@ export class Pagination extends BasePlugin {
   }
 
   showPageSizeSection() {
+    this.#ui.setPageSizeSectionVisibility(true);
     this.hot.runHooks('afterPageSizeVisibilityChange', true);
   }
 
   hidePageSizeSection() {
+    this.#ui.setPageSizeSectionVisibility(false);
     this.hot.runHooks('afterPageSizeVisibilityChange', false);
   }
 
   showPageCounterSection() {
+    this.#ui.setCounterSectionVisibility(true);
     this.hot.runHooks('afterPageCounterVisibilityChange', true);
   }
 
   hidePageCounterSection() {
+    this.#ui.setCounterSectionVisibility(false);
     this.hot.runHooks('afterPageCounterVisibilityChange', false);
   }
 
   showPageNavigationSection() {
+    this.#ui.setNavigationSectionVisibility(true);
     this.hot.runHooks('afterPageNavigationVisibilityChange', true);
   }
 
   hidePageNavigationSection() {
+    this.#ui.setNavigationSectionVisibility(false);
     this.hot.runHooks('afterPageNavigationVisibilityChange', false);
   }
 
@@ -276,33 +281,10 @@ export class Pagination extends BasePlugin {
 
     this.#internalCall = false;
 
-    this.#updateDOMState();
-  }
-
-  #updateDOMState() {
-    const pageSize = this.#pageSize;
-    const totalRows = this.hot.countRows();
-    const startRow = (this.#currentPage - 1) * (pageSize + 1);
-    const endRow = Math.min(this.#currentPage * pageSize, totalRows);
-
-    this.#elementRefs.rangeDisplay.textContent = `${startRow} - ${endRow} of ${totalRows}`;
-    this.#elementRefs.indicatorDisplay.textContent = `Page ${this.#currentPage} of ${this.#totalPages}`;
-
-    if (this.#currentPage === 1) {
-      this.#elementRefs.first.setAttribute('disabled', true);
-      this.#elementRefs.prev.setAttribute('disabled', true);
-    } else {
-      this.#elementRefs.first.removeAttribute('disabled');
-      this.#elementRefs.prev.removeAttribute('disabled');
-    }
-
-    if (this.#currentPage === this.#totalPages) {
-      this.#elementRefs.next.setAttribute('disabled', true);
-      this.#elementRefs.last.setAttribute('disabled', true);
-    } else {
-      this.#elementRefs.next.removeAttribute('disabled');
-      this.#elementRefs.last.removeAttribute('disabled');
-    }
+    this.#ui.updateState({
+      ...this.getPaginationData(),
+      totalRows,
+    });
   }
 
   /**
@@ -334,6 +316,14 @@ export class Pagination extends BasePlugin {
 
       coords.row = Math.min(rowStart + this.#pageSize - 1, this.hot.countRows() - 1);
     }
+  }
+
+  /**
+   * Called after the rendering of the table is completed. It updates the width of
+   * the pagination container to the same size as the table.
+   */
+  #onAfterRender() {
+    this.#ui.updateWidth(this.hot.rootElement.offsetWidth);
   }
 
   /**

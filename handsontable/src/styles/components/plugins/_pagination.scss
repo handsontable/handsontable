@@ -16,33 +16,56 @@
       box-sizing: border-box;
     }
 
-    .htPaginationInfo {
+    .htPageSizeSection {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      span {
+        color: #444;
+        white-space: nowrap;
+      }
+
+      select {
+        padding: 3px 24px 3px 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        background-color: white;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg fill='black' height='16' viewBox='0 0 24 24' width='16' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 8px center;
+        background-size: 16px;
+      }
+    }
+
+    .htPageCounterSection {
       color: #444;
     }
 
-    .htPaginationControls {
+    .htPageNavigationSection {
       display: flex;
       align-items: center;
       gap: 0.5rem;
-      color: #666;
-    }
+      color: #444;
 
-    .htPaginationControls button {
-      background: none;
-      border: none;
-      color: #666;
-      cursor: pointer;
-      font-size: 16px;
-      padding: 0.2rem 0.4rem;
-    }
+      button {
+        background: none;
+        border: none;
+        color: #444;
+        cursor: pointer;
+        font-size: 16px;
+        padding: 0.2rem 0.4rem;
+      }
 
-    .htPaginationControls button:disabled {
-      color: #ccc;
-      cursor: default;
-    }
+      button:disabled {
+        color: #ccc;
+        cursor: default;
+      }
 
-    .htPaginationControls span {
-      white-space: nowrap;
+      span {
+        white-space: nowrap;
+      }
     }
   }
 }
