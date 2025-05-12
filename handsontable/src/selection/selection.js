@@ -1170,8 +1170,8 @@ class Selection {
       this.runLocalHooks('beforeSelectColumns', from, to, highlight);
 
       // disallow modifying row axis for that hooks
-      from.row = fromRow;
-      to.row = toRow;
+      // from.row = fromRow;
+      // to.row = toRow;
 
       this.setRangeStartOnly(from, undefined, highlight);
       this.selectedByColumnHeader.add(this.getLayerLevel());

@@ -1,0 +1,48 @@
+@use "../../utils/mixins";
+
+// Pagination
+
+@mixin output {
+  .ht-root-wrapper {
+    .htPaginationContainer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f7f7f9;
+      border: 1px solid #e7e7e9;
+      border-radius: 0 0 6px 6px;
+      padding: 0.5rem 1rem;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+
+    .htPaginationInfo {
+      color: #444;
+    }
+
+    .htPaginationControls {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #666;
+    }
+
+    .htPaginationControls button {
+      background: none;
+      border: none;
+      color: #666;
+      cursor: pointer;
+      font-size: 16px;
+      padding: 0.2rem 0.4rem;
+    }
+
+    .htPaginationControls button:disabled {
+      color: #ccc;
+      cursor: default;
+    }
+
+    .htPaginationControls span {
+      white-space: nowrap;
+    }
+  }
+}

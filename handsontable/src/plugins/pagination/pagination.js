@@ -1,5 +1,6 @@
 import { BasePlugin } from '../base';
 import { clamp } from '../../helpers/number';
+import { html } from '../../helpers/templateLiteralTag';
 
 export const PLUGIN_KEY = 'pagination';
 export const PLUGIN_PRIORITY = 500;
@@ -61,6 +62,7 @@ export class Pagination extends BasePlugin {
    * @type {boolean}
    */
   #internalCall = false;
+  #elementRefs;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -80,10 +82,38 @@ export class Pagination extends BasePlugin {
       return;
     }
 
+    const elements = html`
+      <div data-ref="container" class="htPaginationContainer">
+        <div data-ref="rangeDisplay" class="htPaginationInfo"></div>
+        <div class="htPaginationControls">
+          <button data-ref="first">&laquo;</button>
+          <button data-ref="prev">&lsaquo;</button>
+          <span data-ref="indicatorDisplay"></span>
+          <button data-ref="next">&rsaquo;</button>
+          <button data-ref="last">&raquo;</button>
+        </div>
+      </div>
+    `;
+
+    this.#elementRefs = elements.refs;
+
+    this.#elementRefs.first.addEventListener('click', () => this.firstPage());
+    this.#elementRefs.prev.addEventListener('click', () => this.prevPage());
+    this.#elementRefs.next.addEventListener('click', () => this.nextPage());
+    this.#elementRefs.last.addEventListener('click', () => this.lastPage());
+
+    this.hot.rootWrapperElement.appendChild(elements.fragment);
+    this.hot.rootElement.style.borderRadius = '0px';
+
     this.#pageSize = this.getSetting('pageSize');
     this.#currentPage = this.getSetting('initialPage');
     this.#pagedRowsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap(PLUGIN_KEY, 'hiding');
 
+    this.hot.addHook('beforeSelectColumns', this.#onBeforeSelectColumns.bind(this));
+    this.hot.addHook('beforeSetRangeEnd', this.#onBeforeSetRangeEnd.bind(this));
+    this.hot.addHook('afterRender', () => {
+      this.#elementRefs.container.style.width = `${this.hot.rootElement.offsetWidth}px`;
+    });
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', () => this.#onIndexCacheUpdate());
     super.enablePlugin();
   }
@@ -237,6 +267,7 @@ export class Pagination extends BasePlugin {
     this.#pagedRowsMap.clear();
 
     this.hot.batchExecution(() => {
+      // TODO (perf tip): reverse the logic by showing only the visible indexes not hiding the rest - if possible
       const renderableIndexes = this.hot.rowIndexMapper.getRenderableIndexes();
 
       renderableIndexes.splice((this.#currentPage - 1) * this.#pageSize, this.#pageSize);
@@ -244,6 +275,65 @@ export class Pagination extends BasePlugin {
     }, true);
 
     this.#internalCall = false;
+
+    this.#updateDOMState();
+  }
+
+  #updateDOMState() {
+    const pageSize = this.#pageSize;
+    const totalRows = this.hot.countRows();
+    const startRow = (this.#currentPage - 1) * (pageSize + 1);
+    const endRow = Math.min(this.#currentPage * pageSize, totalRows);
+
+    this.#elementRefs.rangeDisplay.textContent = `${startRow} - ${endRow} of ${totalRows}`;
+    this.#elementRefs.indicatorDisplay.textContent = `Page ${this.#currentPage} of ${this.#totalPages}`;
+
+    if (this.#currentPage === 1) {
+      this.#elementRefs.first.setAttribute('disabled', true);
+      this.#elementRefs.prev.setAttribute('disabled', true);
+    } else {
+      this.#elementRefs.first.removeAttribute('disabled');
+      this.#elementRefs.prev.removeAttribute('disabled');
+    }
+
+    if (this.#currentPage === this.#totalPages) {
+      this.#elementRefs.next.setAttribute('disabled', true);
+      this.#elementRefs.last.setAttribute('disabled', true);
+    } else {
+      this.#elementRefs.next.removeAttribute('disabled');
+      this.#elementRefs.last.removeAttribute('disabled');
+    }
+  }
+
+  /**
+   * Called before the selection of columns is made. It modifies the selection to the range of
+   * the current page.
+   *
+   * @param {CellCoords} from Starting cell coordinates.
+   * @param {CellCoords} to Ending cell coordinates.
+   */
+  #onBeforeSelectColumns(from, to) {
+    const rowStart = (this.#currentPage - 1) * this.#pageSize;
+
+    if (this.#currentPage > 1 || from.row >= 0) {
+      from.row = rowStart;
+    }
+
+    to.row = Math.min(rowStart + this.#pageSize - 1, this.hot.countRows() - 1);
+  }
+
+  /**
+   * Called before the selection end is fired. It modifies the selection to the range of
+   * the current page.
+   *
+   * @param {CellCoords} coords Ending cell coordinates.
+   */
+  #onBeforeSetRangeEnd(coords) {
+    if (this.hot.selection.isSelectedByColumnHeader()) {
+      const rowStart = (this.#currentPage - 1) * this.#pageSize;
+
+      coords.row = Math.min(rowStart + this.#pageSize - 1, this.hot.countRows() - 1);
+    }
   }
 
   /**
@@ -262,6 +352,7 @@ export class Pagination extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
+    this.#pagedRowsMap = null;
     super.destroy();
   }
 }
