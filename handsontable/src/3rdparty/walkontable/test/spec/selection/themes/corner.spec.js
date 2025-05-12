@@ -50,8 +50,6 @@ describe('WalkontableBorder corner (modern themes)', () => {
       }
     });
 
-    wt.stylesHandler.useTheme('ht-theme-sth');
-
     wt.draw();
 
     let $td = spec().$table.find('tbody tr:eq(2) td:eq(1)');

@@ -392,7 +392,7 @@ innerBorderBottom - Property controlled by bottom overlay
   font-size: 10px;
 }
 
-.handsontable .htFocusCatcher {
+.ht-root-wrapper .htFocusCatcher {
   position: absolute;
   z-index: -1;
   opacity: 0;

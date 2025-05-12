@@ -6,11 +6,15 @@ describe('focusDetector', () => {
 
   beforeEach(() => {
     const rootElement = document.createElement('div');
+    const rootWrapperElement = document.createElement('div');
 
     rootElement.className = 'handsontable';
     rootElement.innerHTML = '<div></div><div></div>';
 
+    rootWrapperElement.appendChild(rootElement);
+
     hot = {
+      rootWrapperElement,
       rootElement,
       rootDocument: document,
       _registerTimeout: jest.fn(),
@@ -32,8 +36,8 @@ describe('focusDetector', () => {
   it('should add input traps with correct attributes to the Handsontable root element', () => {
     installFocusDetector(hot, hooks);
 
-    const inputTrapTop = hot.rootElement.firstChild;
-    const inputTrapBottom = hot.rootElement.lastChild;
+    const inputTrapTop = hot.rootWrapperElement.firstChild;
+    const inputTrapBottom = hot.rootWrapperElement.lastChild;
 
     expect(inputTrapTop.className).toBe('htFocusCatcher');
     expect(inputTrapTop.name).toBe('__htFocusCatcher');

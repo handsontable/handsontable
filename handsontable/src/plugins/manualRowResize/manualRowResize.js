@@ -203,7 +203,7 @@ export class ManualRowResize extends BasePlugin {
    */
   setManualSize(row, height) {
     const physicalRow = this.hot.toPhysicalRow(row);
-    const newHeight = Math.max(height, this.hot.view.getDefaultRowHeight());
+    const newHeight = Math.max(height, this.hot.stylesHandler.getDefaultRowHeight());
 
     this.#rowHeightsMap.setValueAtIndex(physicalRow, newHeight);
 

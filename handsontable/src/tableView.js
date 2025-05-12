@@ -651,26 +651,6 @@ class TableView {
   }
 
   /**
-   * Retrieves the styles handler from the Walkontable instance.
-   *
-   * @returns {StylesHandler} The styles handler instance.
-   */
-  getStylesHandler() {
-    return this._wt.stylesHandler;
-  }
-
-  /**
-   * Returns the default row height.
-   *
-   * This method retrieves the default row height from the Walkontable styles handler.
-   *
-   * @returns {number} The default row height.
-   */
-  getDefaultRowHeight() {
-    return this._wt.stylesHandler.getDefaultRowHeight();
-  }
-
-  /**
    * Add a class name to the license information element.
    *
    * @param {string} className The class name to add.
@@ -1224,6 +1204,9 @@ class TableView {
         const columnHeaderHeight = this.hot.runHooks('modifyColumnHeaderHeight');
 
         return this.settings.columnHeaderHeight || columnHeaderHeight;
+      },
+      stylesHandler: () => {
+        return this.hot.stylesHandler;
       }
     };
 

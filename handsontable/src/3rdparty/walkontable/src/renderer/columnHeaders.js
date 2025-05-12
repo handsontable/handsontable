@@ -7,6 +7,8 @@ import { BaseRenderer } from './_base';
 import {
   A11Y_COLINDEX,
   A11Y_COLUMNHEADER,
+  A11Y_GRIDCELL_BUTTON,
+  A11Y_LABEL,
   A11Y_ROW,
   A11Y_ROWGROUP,
   A11Y_ROWINDEX,
@@ -118,7 +120,8 @@ export class ColumnHeadersRenderer extends BaseRenderer {
             ] : [
               // Adding `role=row` to the corner headers to prevent
               // https://github.com/handsontable/dev-handsontable/issues/1574
-              A11Y_ROW()
+              A11Y_GRIDCELL_BUTTON(),
+              A11Y_LABEL('Select whole grid')
             ]),
           ]);
         }

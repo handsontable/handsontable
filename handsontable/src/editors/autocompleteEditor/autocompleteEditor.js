@@ -388,7 +388,7 @@ export class AutocompleteEditor extends HandsontableEditor {
       let height = null;
 
       do {
-        lastRowHeight = this.htEditor.view.getDefaultRowHeight();
+        lastRowHeight = this.htEditor.stylesHandler.getDefaultRowHeight();
         tempHeight += lastRowHeight;
       } while (tempHeight < spaceAvailable);
 
@@ -478,7 +478,7 @@ export class AutocompleteEditor extends HandsontableEditor {
     const height = Array.from({ length: maxItems }, (_, i) => i)
       .reduce((totalHeight, index) => {
         // for the first row, we need to add 1px (border-top compensation)
-        const rowHeight = this.htEditor.view.getDefaultRowHeight() + (index === 0 ? 1 : 0);
+        const rowHeight = this.hot.stylesHandler.getDefaultRowHeight() + (index === 0 ? 1 : 0);
 
         return totalHeight + rowHeight;
       }, 0);
