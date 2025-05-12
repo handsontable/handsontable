@@ -1,5 +1,6 @@
 import { sanitize } from '../string';
 import { A11Y_HIDDEN } from '../a11y';
+import { isSafari } from '../browser';
 
 /**
  * Get the parent of the specified node in the DOM tree.
@@ -985,6 +986,11 @@ function walkontableCalculateScrollbarWidth(rootDocument = document) {
   inner.style.width = '100%';
 
   const outer = rootDocument.createElement('div');
+
+  // Fix for Safari custom scrollbar size
+  if (isSafari()) {
+    outer.classList.add('htScrollbarSafariTest');
+  }
 
   outer.style.boxSizing = 'content-box';
   outer.style.height = '150px';
