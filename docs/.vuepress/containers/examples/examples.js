@@ -125,6 +125,7 @@ module.exports = function(docsVersion, base) {
   return {
     type: 'example',
     render(tokens, index, _opts, env) {
+      const isProduction = !base.includes('localhost');
       const token = tokens[index];
       const m = token.info.trim().match(EXAMPLE_REGEX);
 
@@ -148,9 +149,9 @@ module.exports = function(docsVersion, base) {
           : `<div id="${id}" ${!klass?.includes('disable-auto-theme')
             ? `class="hot ht-theme-main ${klass}"`
             : ''} ></div>`;
-        const htmlContentRoot = `<div 
-          data-preset-type="${preset}" 
-          data-example-id="${id}" 
+        const htmlContentRoot = `<div
+          data-preset-type="${preset}"
+          data-example-id="${id}"
           class="${!klass?.includes('disable-auto-theme') ? 'ht-theme-main-dark-auto' : ''}">
           ${htmlContent}
         </div>`;
@@ -199,8 +200,8 @@ module.exports = function(docsVersion, base) {
 
         tokens.splice(index + 1, 0, ...newTokens);
 
-        const codeForPreset = addCodeForPreset(codeToCompile, preset, id);
-        const tsCodeForPreset = addCodeForPreset(tsCodeToCompile, preset, id);
+        const codeForPreset = addCodeForPreset(codeToCompile, preset, id, isProduction);
+        const tsCodeForPreset = addCodeForPreset(tsCodeToCompile, preset, id, isProduction);
         const code = buildCode(
           id + (preset.includes('angular') ? '.ts' : '.jsx'),
           codeForPreset,
@@ -281,15 +282,15 @@ module.exports = function(docsVersion, base) {
     : ''}
                 </div>
                 <button
-                  aria-label="Reset the demo" 
-                  @click="$parent.$parent.resetDemo('${id}')" 
+                  aria-label="Reset the demo"
+                  @click="$parent.$parent.resetDemo('${id}')"
                   :disabled="$parent.$parent.isButtonInactive"
                 >
                   <i class="ico i-refresh"></i>
                 </button>
                 <button
-                  aria-label="View the source on GitHub" 
-                  @click="$parent.$parent.openExample('${env.relativePath}', '${preset}', '${id}')" 
+                  aria-label="View the source on GitHub"
+                  @click="$parent.$parent.openExample('${env.relativePath}', '${preset}', '${id}')"
                 >
                   <i class="ico i-github"></i>
                 </button>
