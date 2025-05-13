@@ -426,39 +426,22 @@ class DataMap {
     const dataSource = this.dataSource;
     const maxCols = this.tableMeta.maxCols;
     const countSourceCols = this.hot.countSourceCols();
-    let columnIndex = index;
-
-    if (typeof columnIndex !== 'number' || columnIndex >= countSourceCols) {
-      columnIndex = countSourceCols;
-    }
-
-    const continueProcess = this.hot.runHooks('beforeCreateCol', columnIndex, amount, source);
-
-    if (continueProcess === false) {
-      return {
-        delta: 0,
-      };
-    }
-
-    let physicalColumnIndex = countSourceCols;
-
-    if (columnIndex < this.hot.countCols()) {
-      physicalColumnIndex = this.hot.toPhysicalColumn(columnIndex);
-    }
-
+    const countVisualCols = this.hot.countCols();
     const numberOfSourceRows = this.hot.countSourceRows();
-    let nrOfColumns = this.hot.countCols();
-    let numberOfCreatedCols = 0;
-    let currentIndex = physicalColumnIndex;
 
-    if (mode === 'end') {
-      currentIndex = Math.min(currentIndex + 1, countSourceCols);
+    const visualColumnIndex = (typeof index === 'number' && index <= countSourceCols) ? index : countVisualCols;
+
+    if (this.hot.runHooks('beforeCreateCol', visualColumnIndex, amount, source) === false) {
+      return { delta: 0 };
     }
 
-    const startPhysicalIndex = currentIndex;
+    const physicalColumnIndex = (visualColumnIndex < countVisualCols) ? this.hot.toPhysicalColumn(visualColumnIndex) : countSourceCols;
+    const firstNewPhysicalColumnIndex = (mode === 'end') ? Math.min(physicalColumnIndex + 1, countSourceCols) : physicalColumnIndex;
 
-    while (numberOfCreatedCols < amount && nrOfColumns < maxCols) {
-      if (typeof columnIndex !== 'number' || columnIndex >= nrOfColumns) {
+    let numberOfCreatedCols = 0;
+
+    for (let col = firstNewPhysicalColumnIndex; numberOfCreatedCols < amount && countVisualCols + numberOfCreatedCols < maxCols; col++) {
+      if (typeof visualColumnIndex !== 'number' || visualColumnIndex >= countVisualCols + numberOfCreatedCols) {
         if (numberOfSourceRows > 0) {
           for (let row = 0; row < numberOfSourceRows; row += 1) {
             if (typeof dataSource[row] === 'undefined') {
@@ -473,16 +456,12 @@ class DataMap {
 
       } else {
         for (let row = 0; row < numberOfSourceRows; row++) {
-          dataSource[row].splice(currentIndex, 0, null);
+          dataSource[row].splice(col, 0, null);
         }
       }
 
       numberOfCreatedCols += 1;
-      currentIndex += 1;
-      nrOfColumns += 1;
     }
-
-    this.hot.columnIndexMapper.insertIndexes(columnIndex, numberOfCreatedCols);
 
     if (numberOfCreatedCols > 0) {
       if ((index === undefined || index === null)) {
@@ -491,18 +470,18 @@ class DataMap {
         this.metaManager.createColumn(null, numberOfCreatedCols);
 
       } else if (source !== 'auto') {
-        this.metaManager.createColumn(startPhysicalIndex, amount);
+        this.metaManager.createColumn(firstNewPhysicalColumnIndex, amount);
       }
     }
 
-    const newVisualColumnIndex = this.hot.toVisualColumn(startPhysicalIndex);
+    this.hot.columnIndexMapper.insertIndexes(visualColumnIndex, numberOfCreatedCols);
 
-    this.hot.runHooks('afterCreateCol', newVisualColumnIndex, numberOfCreatedCols, source);
+    this.hot.runHooks('afterCreateCol', this.hot.toVisualColumn(firstNewPhysicalColumnIndex), numberOfCreatedCols, source);
     this.refreshDuckSchema();
 
     return {
       delta: numberOfCreatedCols,
-      startPhysicalIndex,
+      startPhysicalIndex: firstNewPhysicalColumnIndex,
     };
   }
 
