@@ -115,8 +115,13 @@ export class LinkedPhysicalIndexToValueMap extends IndexMap {
    * @private
    * @param {number} insertionIndex Position inside the list.
    * @param {Array} insertedIndexes List of inserted indexes.
+   * @param {number} firstInsertedPhysicalIndex Physical index of the first inserted item.
    */
-  insert(insertionIndex, insertedIndexes) {
+  insert(insertionIndex, insertedIndexes, firstInsertedPhysicalIndex) {
+    if (insertedIndexes.length) {
+      insertedIndexes = insertedIndexes.map((_, positionInArray) => firstInsertedPhysicalIndex + positionInArray);
+    }
+
     this.indexedValues = getListWithInsertedItems(
       this.indexedValues,
       insertionIndex,
@@ -124,6 +129,11 @@ export class LinkedPhysicalIndexToValueMap extends IndexMap {
       this.initValueOrFn
     );
     this.orderOfIndexes = getIncreasedIndexes(this.orderOfIndexes, insertedIndexes);
+    this.orderOfIndexes = [
+      ...this.orderOfIndexes.slice(0, firstInsertedPhysicalIndex),
+      ...insertedIndexes,
+      ...this.orderOfIndexes.slice(firstInsertedPhysicalIndex),
+    ]
 
     super.insert(insertionIndex, insertedIndexes);
   }

@@ -474,7 +474,7 @@ class DataMap {
       }
     }
 
-    this.hot.columnIndexMapper.insertIndexes(visualColumnIndex, numberOfCreatedCols);
+    this.hot.columnIndexMapper.insertIndexes(visualColumnIndex, numberOfCreatedCols, firstNewPhysicalColumnIndex);
 
     this.hot.runHooks('afterCreateCol', this.hot.toVisualColumn(firstNewPhysicalColumnIndex), numberOfCreatedCols, source);
     this.refreshDuckSchema();
