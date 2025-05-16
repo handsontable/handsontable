@@ -45,6 +45,7 @@ import { registerAllShortcutContexts } from './shortcutContexts';
 import { getThemeClassName } from './helpers/themes';
 import { StylesHandler } from './utils/stylesHandler';
 import { warn } from './helpers/console';
+import { CellRangeToRenderableMapper } from './core/coordsMapper/rangeToRenderableMapper';
 
 let activeGuid = null;
 
