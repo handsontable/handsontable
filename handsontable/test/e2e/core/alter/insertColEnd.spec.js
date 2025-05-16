@@ -640,8 +640,6 @@ describe('Core.alter', () => {
 
         await alter('insert_col_end', 1, 1);
 
-        // index sequence after: [5, 3, 4, 2, 1, 0]
-
         expect(getDataAtRow(0)).toEqual(['E1', 'D1', null, 'C1', 'B1', 'A1']);
         expect(getSourceDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', null, 'E1']);
 
