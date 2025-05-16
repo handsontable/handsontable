@@ -451,7 +451,7 @@ describe('Selection using mouse interaction (cell deselect)', () => {
       `).toBeMatchToSelectionPattern();
   });
 
-  it('should not be possible to deselect single cell when it is defined within a bigger selection (selection should be stacked)', async() => {
+  it('should be possible to deselect single cell when it is defined within a bigger selection', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       colHeaders: true,
@@ -468,15 +468,13 @@ describe('Selection using mouse interaction (cell deselect)', () => {
     expect(getSelectedRange()).toEqualCellRange([
       'highlight: 1,1 from: 1,1 to: 3,3',
       'highlight: 2,2 from: 2,2 to: 2,2',
-      'highlight: 2,2 from: 2,2 to: 2,2',
-      'highlight: 2,2 from: 2,2 to: 2,2',
     ]);
     expect(`
       |   ║   : - : - : - :   |
       |===:===:===:===:===:===|
       |   ║   :   :   :   :   |
       | - ║   : 0 : 0 : 0 :   |
-      | - ║   : 0 : D : 0 :   |
+      | - ║   : 0 : B : 0 :   |
       | - ║   : 0 : 0 : 0 :   |
       |   ║   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
