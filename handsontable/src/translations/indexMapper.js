@@ -659,11 +659,10 @@ export class IndexMapper {
    * @param {number} firstInsertedPhysicalIndex First inserted physical index.
    */
   insertIndexes(firstInsertedVisualIndex, amountOfIndexes, firstInsertedPhysicalIndex) {
-    // this function inserts indexes into filter LinkedPhysicalIndexToValueMap the same way regardless of insert_col_start or insert_col_end
-    // this is incorrect in case of insert_col_end, because the indexes are inserted in the wrong place
-    // however, other index sequences seem to be correct
     const maybeNotTrimmedPhysicalIndex = this.getNotTrimmedIndexes()[firstInsertedVisualIndex];
-    const notTrimmedPhysicalIndex = isDefined(maybeNotTrimmedPhysicalIndex) ? maybeNotTrimmedPhysicalIndex : this.getNumberOfIndexes();
+    const notTrimmedPhysicalIndex = isDefined(maybeNotTrimmedPhysicalIndex)
+      ? maybeNotTrimmedPhysicalIndex
+      : this.getNumberOfIndexes();
     const visualInsertionIndex = this.getIndexesSequence().includes(maybeNotTrimmedPhysicalIndex) ?
       this.getIndexesSequence().indexOf(maybeNotTrimmedPhysicalIndex) : this.getNumberOfIndexes();
     const insertedIndexes = arrayMap(new Array(amountOfIndexes).fill(notTrimmedPhysicalIndex),
@@ -672,10 +671,7 @@ export class IndexMapper {
     this.suspendOperations();
     this.indexesChangeSource = 'insert';
 
-    console.log(this.getIndexesSequence())
-    console.log('insert to indexesSequence', visualInsertionIndex, insertedIndexes);
     this.indexesSequence.insert(visualInsertionIndex, insertedIndexes, firstInsertedPhysicalIndex);
-    console.log(this.getIndexesSequence())
     this.indexesChangeSource = undefined;
     this.trimmingMapsCollection.insertToEvery(visualInsertionIndex, insertedIndexes, firstInsertedPhysicalIndex);
     this.hidingMapsCollection.insertToEvery(visualInsertionIndex, insertedIndexes, firstInsertedPhysicalIndex);

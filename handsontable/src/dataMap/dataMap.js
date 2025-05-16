@@ -435,12 +435,16 @@ class DataMap {
       return { delta: 0 };
     }
 
-    const physicalColumnIndex = (visualColumnIndex < countVisualCols) ? this.hot.toPhysicalColumn(visualColumnIndex) : countSourceCols;
-    const firstNewPhysicalColumnIndex = (mode === 'end') ? Math.min(physicalColumnIndex + 1, countSourceCols) : physicalColumnIndex;
+    const physicalColumnIndex = (visualColumnIndex < countVisualCols) ?
+      this.hot.toPhysicalColumn(visualColumnIndex) : countSourceCols;
+    const firstNewPhysicalColumnIndex = (mode === 'end') ?
+      Math.min(physicalColumnIndex + 1, countSourceCols) : physicalColumnIndex;
 
     let numberOfCreatedCols = 0;
 
-    for (let col = firstNewPhysicalColumnIndex; numberOfCreatedCols < amount && countVisualCols + numberOfCreatedCols < maxCols; col++) {
+    for (let col = firstNewPhysicalColumnIndex;
+      numberOfCreatedCols < amount && countVisualCols + numberOfCreatedCols < maxCols;
+      col++) {
       if (typeof visualColumnIndex !== 'number' || visualColumnIndex >= countVisualCols + numberOfCreatedCols) {
         if (numberOfSourceRows > 0) {
           for (let row = 0; row < numberOfSourceRows; row += 1) {
@@ -476,7 +480,12 @@ class DataMap {
 
     this.hot.columnIndexMapper.insertIndexes(visualColumnIndex, numberOfCreatedCols, firstNewPhysicalColumnIndex);
 
-    this.hot.runHooks('afterCreateCol', this.hot.toVisualColumn(firstNewPhysicalColumnIndex), numberOfCreatedCols, source);
+    this.hot.runHooks(
+      'afterCreateCol',
+      this.hot.toVisualColumn(firstNewPhysicalColumnIndex),
+      numberOfCreatedCols,
+      source
+    );
     this.refreshDuckSchema();
 
     return {
@@ -558,8 +567,9 @@ class DataMap {
 
     const removedPhysicalIndexes = this.visualColumnsToPhysical(columnIndex, amount);
     const descendingPhysicalColumns = removedPhysicalIndexes.slice(0).sort((a, b) => b - a);
-    const actionWasNotCancelled = this.hot
-      .runHooks('beforeRemoveCol', columnIndex, amount, removedPhysicalIndexes, source);
+    const actionWasNotCancelled = this.hot.runHooks(
+      'beforeRemoveCol', columnIndex, amount, removedPhysicalIndexes, source
+    );
 
     if (actionWasNotCancelled === false) {
       return false;
