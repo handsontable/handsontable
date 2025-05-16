@@ -99,11 +99,11 @@ export class MapCollection {
    * @private
    * @param {number} insertionIndex Position inside the actual list.
    * @param {Array} insertedIndexes List of inserted indexes.
-   * @param {number} physicalIndexOffirstInsertedItem Physical index of the first inserted item.
+   * @param {number} firstInsertedPhysicalIndex Physical index of the first inserted item.
    */
-  insertToEvery(insertionIndex, insertedIndexes, physicalIndexOffirstInsertedItem) {
+  insertToEvery(insertionIndex, insertedIndexes, firstInsertedPhysicalIndex) {
     this.collection.forEach((indexMap) => {
-      indexMap.insert(insertionIndex, insertedIndexes, physicalIndexOffirstInsertedItem);
+      indexMap.insert(insertionIndex, insertedIndexes, firstInsertedPhysicalIndex);
     });
   }
 
