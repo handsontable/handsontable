@@ -114,6 +114,7 @@ export const countRows = handsontableMethodFactory('countRows');
 export const countSourceCols = handsontableMethodFactory('countSourceCols');
 export const countSourceRows = handsontableMethodFactory('countSourceRows');
 export const countVisibleCols = handsontableMethodFactory('countVisibleCols');
+export const countVisibleRows = handsontableMethodFactory('countVisibleRows');
 export const deselectCell = handsontableMethodFactory('deselectCell');
 export const destroy = handsontableMethodFactory('destroy');
 export const destroyEditor = handsontableMethodFactory('destroyEditor');
