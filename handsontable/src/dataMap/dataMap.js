@@ -425,27 +425,26 @@ class DataMap {
 
     const dataSource = this.dataSource;
     const maxCols = this.tableMeta.maxCols;
-    const countSourceCols = this.hot.countSourceCols();
-    const countVisualCols = this.hot.countCols();
+    const numberOfSourceCols = this.hot.countSourceCols();
+    const numberOfVisualCols = this.hot.countCols();
     const numberOfSourceRows = this.hot.countSourceRows();
-
-    const visualColumnIndex = (typeof index === 'number' && index <= countSourceCols) ? index : countVisualCols;
+    const visualColumnIndex = (typeof index === 'number' && index <= numberOfSourceCols) ? index : numberOfVisualCols;
 
     if (this.hot.runHooks('beforeCreateCol', visualColumnIndex, amount, source) === false) {
       return { delta: 0 };
     }
 
-    const physicalColumnIndex = (visualColumnIndex < countVisualCols) ?
-      this.hot.toPhysicalColumn(visualColumnIndex) : countSourceCols;
+    const physicalColumnIndex = (visualColumnIndex < numberOfVisualCols) ?
+      this.hot.toPhysicalColumn(visualColumnIndex) : numberOfSourceCols;
     const firstNewPhysicalColumnIndex = (mode === 'end') ?
-      Math.min(physicalColumnIndex + 1, countSourceCols) : physicalColumnIndex;
+      Math.min(physicalColumnIndex + 1, numberOfSourceCols) : physicalColumnIndex;
 
     let numberOfCreatedCols = 0;
 
     for (let col = firstNewPhysicalColumnIndex;
-      numberOfCreatedCols < amount && countVisualCols + numberOfCreatedCols < maxCols;
+      numberOfCreatedCols < amount && numberOfVisualCols + numberOfCreatedCols < maxCols;
       col++) {
-      if (typeof visualColumnIndex !== 'number' || visualColumnIndex >= countVisualCols + numberOfCreatedCols) {
+      if (typeof visualColumnIndex !== 'number' || visualColumnIndex >= numberOfVisualCols + numberOfCreatedCols) {
         if (numberOfSourceRows > 0) {
           for (let row = 0; row < numberOfSourceRows; row += 1) {
             if (typeof dataSource[row] === 'undefined') {
