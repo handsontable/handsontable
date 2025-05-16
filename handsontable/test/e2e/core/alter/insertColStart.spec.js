@@ -711,6 +711,7 @@ describe('Core.alter', () => {
         await getPlugin('filters').addCondition(4, 'by_value', [['A1']]);
 
         // getConditions works by physical index
+        expect(getSourceDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', 'E1']);
         expect(getPlugin('filters').conditionCollection.getConditions(4)[0].args).toEqual([['E1']]);
         expect(getPlugin('filters').conditionCollection.getConditions(3)[0].args).toEqual([['D1']]);
         expect(getPlugin('filters').conditionCollection.getConditions(2)[0].args).toEqual([['C1']]);
@@ -719,10 +720,10 @@ describe('Core.alter', () => {
 
         await alter('insert_col_start', 1);
 
-        expect(columnIndexMapper().getIndexesSequence()).toEqual([5, 3, 4, 2, 1, 0]);
+        expect(getSourceDataAtRow(0)).toEqual(['A1', 'B1', 'C1', null, 'D1', 'E1']);
         expect(getPlugin('filters').conditionCollection.getConditions(5)[0].args).toEqual([['E1']]);
-        expect(getPlugin('filters').conditionCollection.getConditions(4)).toEqual([]);
-        expect(getPlugin('filters').conditionCollection.getConditions(3)[0].args).toEqual([['D1']]);
+        expect(getPlugin('filters').conditionCollection.getConditions(3)).toEqual([]);
+        expect(getPlugin('filters').conditionCollection.getConditions(4)[0].args).toEqual([['D1']]);
         expect(getPlugin('filters').conditionCollection.getConditions(2)[0].args).toEqual([['C1']]);
         expect(getPlugin('filters').conditionCollection.getConditions(1)[0].args).toEqual([['B1']]);
         expect(getPlugin('filters').conditionCollection.getConditions(0)[0].args).toEqual([['A1']]);
