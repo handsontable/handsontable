@@ -43,7 +43,8 @@ import { createUniqueMap } from './utils/dataStructures/uniqueMap';
 import { createShortcutManager } from './shortcuts';
 import { registerAllShortcutContexts } from './shortcutContexts';
 import { getThemeClassName } from './helpers/themes';
-import { CellRangeToRenderableMapper } from './core/coordsMapper/rangeToRenderableMapper';
+import { StylesHandler } from './utils/stylesHandler';
+import { warn } from './helpers/console';
 
 let activeGuid = null;
 
@@ -110,11 +111,11 @@ const deprecationWarns = new Set();
  * ```
  * :::
  *
- * @param {HTMLElement} rootElement The element to which the Handsontable instance is injected.
+ * @param {HTMLElement} rootContainer The element to which the Handsontable instance is injected.
  * @param {object} userSettings The user defined options.
  * @param {boolean} [rootInstanceSymbol=false] Indicates if the instance is root of all later instances created.
  */
-export default function Core(rootElement, userSettings, rootInstanceSymbol = false) {
+export default function Core(rootContainer, userSettings, rootInstanceSymbol = false) {
   let instance = this;
 
   const eventManager = new EventManager(instance);
@@ -130,6 +131,30 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     registerAsRootInstance(this);
   }
 
+  /**
+   * Reference to the root container.
+   *
+   * @private
+   * @type {HTMLElement}
+   */
+  this.rootContainer = rootContainer;
+
+  /**
+   * Reference to the wrapper element.
+   *
+   * @private
+   * @type {HTMLElement}
+   */
+  this.rootWrapperElement = undefined;
+
+  /**
+   * Reference to the portal element.
+   *
+   * @private
+   * @type {HTMLElement}
+   */
+  this.rootPortalElement = undefined;
+
   // TODO: check if references to DOM elements should be move to UI layer (Walkontable)
   /**
    * Reference to the container element.
@@ -137,14 +162,16 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @private
    * @type {HTMLElement}
    */
-  this.rootElement = rootElement;
+  this.rootElement = isRootInstance(this) ? rootContainer.ownerDocument.createElement('div') : rootContainer;
+
   /**
    * The nearest document over container.
    *
    * @private
    * @type {Document}
    */
-  this.rootDocument = rootElement.ownerDocument;
+  this.rootDocument = rootContainer.ownerDocument;
+
   /**
    * Window object over container's document.
    *
@@ -152,6 +179,22 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @type {Window}
    */
   this.rootWindow = this.rootDocument.defaultView;
+
+  if (isRootInstance(this)) {
+    this.rootWrapperElement = this.rootDocument.createElement('div');
+    this.rootPortalElement = this.rootDocument.createElement('div');
+
+    addClass(this.rootElement, 'ht-wrapper');
+    addClass(this.rootWrapperElement, 'ht-root-wrapper');
+
+    this.rootWrapperElement.appendChild(this.rootElement);
+    this.rootContainer.appendChild(this.rootWrapperElement);
+
+    addClass(this.rootPortalElement, 'ht-portal');
+
+    this.rootDocument.body.appendChild(this.rootPortalElement);
+  }
+
   /**
    * A boolean to tell if the Handsontable has been fully destroyed. This is set to `true`
    * after `afterDestroy` hook is called.
@@ -161,6 +204,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @type {boolean}
    */
   this.isDestroyed = false;
+
   /**
    * The counter determines how many times the render suspending was called. It allows
    * tracking the nested suspending calls. For each render suspend resuming call the
@@ -171,6 +215,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @type {number}
    */
   this.renderSuspendedCounter = 0;
+
   /**
    * The counter determines how many times the execution suspending was called. It allows
    * tracking the nested suspending calls. For each execution suspend resuming call the
@@ -224,6 +269,17 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     return instance.isLtr() ? 1 : -1;
   };
 
+  /**
+   * Styles handler instance.
+   *
+   * @private
+   * @type {StylesHandler}
+   */
+  this.stylesHandler = new StylesHandler(
+    instance.rootElement,
+    instance.rootDocument
+  );
+
   userSettings.language = getValidLanguageCode(userSettings.language);
 
   const settingsWithoutHooks = Object.fromEntries(
@@ -242,12 +298,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   this.container = this.rootDocument.createElement('div');
 
-  rootElement.insertBefore(this.container, rootElement.firstChild);
+  this.rootElement.insertBefore(this.container, this.rootElement.firstChild);
 
   if (isRootInstance(this)) {
-    _injectProductInfo(userSettings.licenseKey, rootElement);
-
-    addClass(rootElement, 'ht-wrapper');
+    _injectProductInfo(userSettings.licenseKey, this.rootWrapperElement);
   }
 
   this.guid = `ht_${randomString()}`; // this is the namespace for global events
@@ -262,6 +316,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @type {IndexMapper}
    */
   this.columnIndexMapper = new IndexMapper();
+
   /**
    * Instance of index mapper which is responsible for managing the row indexes.
    *
@@ -1160,13 +1215,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     this.view = new TableView(this);
 
-    const themeName = tableMeta.themeName || getThemeClassName(instance.rootElement);
+    const themeName = tableMeta.themeName || getThemeClassName(instance.rootContainer);
 
     // Use the theme defined as a root element class or in the settings (in that order).
     instance.useTheme(themeName);
-
-    // Add the theme class name to the license info element.
-    instance.view.addClassNameToLicenseElement(instance.getCurrentThemeName());
 
     editorManager = EditorManager.getInstance(instance, tableMeta, selection);
 
@@ -2665,23 +2717,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         const themeNameOptionExists = hasOwnProperty(settings, 'themeName');
 
         if (
-          currentThemeName &&
           themeNameOptionExists &&
           currentThemeName !== settings.themeName
         ) {
-          instance.view.getStylesHandler().removeClassNames();
-          instance.view.removeClassNameFromLicenseElement(currentThemeName);
+          instance.useTheme(settings.themeName);
         }
-
-        const themeName =
-          (themeNameOptionExists && settings.themeName) ||
-          getThemeClassName(instance.rootElement);
-
-        // Use the theme defined as a root element class or in the settings (in that order).
-        instance.useTheme(themeName);
-
-        // Add the theme class name to the license info element.
-        instance.view.addClassNameToLicenseElement(instance.getCurrentThemeName());
       }
 
       instance.runHooks('afterUpdateSettings', settings);
@@ -3934,7 +3974,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {number}
    */
   this._getRowHeightFromSettings = function(row) {
-    const defaultRowHeight = this.view.getDefaultRowHeight();
+    const defaultRowHeight = instance.stylesHandler.getDefaultRowHeight();
     let height = tableMeta.rowHeights;
 
     if (height !== undefined && height !== null) {
@@ -4612,6 +4652,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (dataSource) {
       dataSource.destroy();
     }
+
     dataSource = null;
 
     this.getShortcutManager().destroy();
@@ -4619,18 +4660,18 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     metaManager.clearCache();
     foreignHotInstances.delete(this.guid);
 
-    if (isRootInstance(instance)) {
-      const licenseInfo = this.rootDocument.querySelector('.hot-display-license-info');
-
-      if (licenseInfo) {
-        licenseInfo.parentNode.removeChild(licenseInfo);
-      }
-    }
-    empty(instance.rootElement);
     eventManager.destroy();
 
     if (editorManager) {
       editorManager.destroy();
+    }
+
+    if (instance.rootContainer) {
+      empty(instance.rootContainer);
+    }
+
+    if (instance.rootPortalElement) {
+      instance.rootPortalElement.remove();
     }
 
     // The plugin's `destroy` method is called as a consequence and it should handle
@@ -5051,9 +5092,41 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {string|boolean|undefined} themeName The name of the theme to use.
    */
   this.useTheme = (themeName) => {
-    this.view.getStylesHandler().useTheme(themeName);
+    const isFirstRun = !!firstRun;
 
-    this.runHooks('afterSetTheme', themeName, !!firstRun);
+    this.stylesHandler.useTheme(themeName);
+
+    const validThemeName = this.stylesHandler.getThemeName();
+
+    if (isRootInstance(this)) {
+      removeClass(this.rootWrapperElement, /ht-theme-.*/g);
+      removeClass(this.rootPortalElement, /ht-theme-.*/g);
+
+      if (validThemeName) {
+        addClass(this.rootWrapperElement, validThemeName);
+        addClass(this.rootPortalElement, validThemeName);
+
+        if (!getComputedStyle(this.rootWrapperElement).getPropertyValue('--ht-line-height')) {
+          warn(`The "${validThemeName}" theme is enabled, but its stylesheets are missing or not imported correctly. \
+            Import the correct CSS files in order to use that theme.`);
+        }
+      }
+    }
+
+    if (!isFirstRun) {
+      instance.render();
+      instance.scrollViewportTo(0, 0);
+
+      if (getThemeClassName(this.rootContainer)) {
+        removeClass(this.rootContainer, /ht-theme-.*/g);
+
+        if (validThemeName) {
+          addClass(this.rootContainer, validThemeName);
+        }
+      }
+    }
+
+    this.runHooks('afterSetTheme', validThemeName, isFirstRun);
   };
 
   /**
@@ -5065,7 +5138,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {string|undefined} The name of the currently used theme.
    */
   this.getCurrentThemeName = () => {
-    return this.view.getStylesHandler().getThemeName();
+    return this.stylesHandler.getThemeName();
   };
 
   /**

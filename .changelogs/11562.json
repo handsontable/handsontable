@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed arrow left/right shortcuts for menu when the table was configured as `layoutDirection: rtl`.",
-  "type": "fixed",
-  "issueOrPR": 11562,
-  "breaking": false,
-  "framework": "none"
-}

@@ -26,7 +26,7 @@ describe('Comments theme handling', () => {
     await selectCell(1, 1);
     const $editorElement = $(getPlugin('comments').getEditorInputElement().parentElement);
 
-    expect($editorElement.hasClass('ht-theme-sth')).toBe(true);
+    expect($editorElement.parent().parent().hasClass('ht-theme-sth')).toBe(true);
   });
 
   it('should have the same theme as the parent Handsontable instance (if originally passed as a container class)', async() => {
@@ -42,6 +42,6 @@ describe('Comments theme handling', () => {
     await selectCell(1, 1);
     const $editorElement = $(getPlugin('comments').getEditorInputElement().parentElement);
 
-    expect($editorElement.hasClass('ht-theme-sth-else')).toBe(true);
+    expect($editorElement.parent().parent().hasClass('ht-theme-sth-else')).toBe(true);
   });
 });

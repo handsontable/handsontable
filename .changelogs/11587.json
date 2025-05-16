@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed the `allowInvalid` option (both `true` and `false`) for the Dropdown Editor. ",
-  "type": "fixed",
-  "issueOrPR": 11587,
-  "breaking": false,
-  "framework": "none"
-}

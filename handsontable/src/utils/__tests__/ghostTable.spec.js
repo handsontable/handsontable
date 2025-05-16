@@ -56,8 +56,8 @@ describe('GhostTable', () => {
       expect(gt.createContainer.calls.count()).toBe(1);
       expect(gt.createContainer.calls.mostRecent().args).forThemes(({ classic, main, horizon }) => {
         classic.toEqual(['ht-wrapper handsontable']);
-        main.toEqual(['ht-wrapper handsontable ht-theme-main']);
-        horizon.toEqual(['ht-wrapper handsontable ht-theme-horizon']);
+        main.toEqual(['ht-wrapper handsontable']);
+        horizon.toEqual(['ht-wrapper handsontable']);
       });
     });
 
@@ -175,8 +175,8 @@ describe('GhostTable', () => {
       expect(gt.createContainer.calls.count()).toBe(1);
       expect(gt.createContainer.calls.mostRecent().args).forThemes(({ classic, main, horizon }) => {
         classic.toEqual(['ht-wrapper handsontable']);
-        main.toEqual(['ht-wrapper handsontable ht-theme-main']);
-        horizon.toEqual(['ht-wrapper handsontable ht-theme-horizon']);
+        main.toEqual(['ht-wrapper handsontable']);
+        horizon.toEqual(['ht-wrapper handsontable']);
       });
     });
 

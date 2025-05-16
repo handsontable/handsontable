@@ -151,13 +151,13 @@ describe('settings', () => {
       });
 
       it('should disallow fragmentSelection of Handsontable chrome (anything that is not table) when set to false', async() => {
-        handsontable({
+        const hot = handsontable({
           data: createSpreadsheetData(4, 4),
           fragmentSelection: false
         });
         const $div = $('<div style="position: absolute; top: 0; left: 0">Text</div>');
 
-        spec().$container.append($div);
+        hot.rootElement.append($div);
         selectElementText($div[0], 1);
 
         $($div).simulate('mousedown');
@@ -168,13 +168,13 @@ describe('settings', () => {
       });
 
       it('should disallow fragmentSelection of Handsontable chrome (anything that is not table) when set to true', async() => {
-        handsontable({
+        const hot = handsontable({
           data: createSpreadsheetData(4, 4),
           fragmentSelection: true
         });
         const $div = $('<div style="position: absolute; top: 0; left: 0">Text</div>');
 
-        spec().$container.append($div);
+        hot.rootElement.append($div);
         selectElementText($div[0], 1);
 
         $($div).simulate('mousedown');
