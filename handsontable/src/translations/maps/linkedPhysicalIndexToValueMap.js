@@ -129,11 +129,6 @@ export class LinkedPhysicalIndexToValueMap extends IndexMap {
       this.initValueOrFn
     );
     this.orderOfIndexes = getIncreasedIndexes(this.orderOfIndexes, insertedIndexes);
-    this.orderOfIndexes = [
-      ...this.orderOfIndexes.slice(0, firstInsertedPhysicalIndex),
-      ...insertedIndexes,
-      ...this.orderOfIndexes.slice(firstInsertedPhysicalIndex),
-    ]
 
     super.insert(insertionIndex, insertedIndexes);
   }
