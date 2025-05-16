@@ -19,6 +19,7 @@ import { isImmediatePropagationStopped, isRightClick, isLeftClick } from './help
 import Walkontable from './3rdparty/walkontable/src';
 import { handleMouseEvent } from './selection/mouseEventHandler';
 import { isRootInstance } from './utils/rootInstance';
+import { resolveWithInstance } from './utils/staticRegister';
 import {
   A11Y_COLCOUNT,
   A11Y_MULTISELECTABLE,
@@ -961,6 +962,12 @@ class TableView {
         if (isImmediatePropagationStopped(event) || this.hot.isDestroyed) {
           return;
         }
+
+        handleMouseEvent(event, {
+          coords: visualCoords,
+          selection: this.hot.selection,
+          cellRangeMapper: resolveWithInstance(this.hot, 'cellRangeMapper'),
+        });
 
         this.hot.runHooks('afterOnCellMouseUp', event, visualCoords, TD);
         this.activeWt = this._wt;
