@@ -658,7 +658,7 @@ describe('HiddenColumns', () => {
     });
 
     describe('should not change position and call hook when single hidden cell was selected and' +
-      'navigating by any arrow key', async() => {
+      'navigating by any arrow key', () => {
       describe('without shift key pressed', () => {
         it('hidden cell at the table start', async() => {
           handsontable({
