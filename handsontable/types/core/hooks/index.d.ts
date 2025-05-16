@@ -107,6 +107,11 @@ export interface Events {
   afterOnCellMouseOut?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement) => void;
   afterOnCellMouseOver?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement) => void;
   afterOnCellMouseUp?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement) => void;
+  afterPageChange?: (oldPage: number, newPage: number) => void;
+  afterPageCounterVisibilityChange?: (isVisible: boolean) => void;
+  afterPageNavigationVisibilityChange?: (isVisible: boolean) => void;
+  afterPageSizeChange?: (oldPageSize: number, newPageSize: number) => void;
+  afterPageSizeVisibilityChange?: (isVisible: boolean) => void;
   afterPaste?: (data: CellValue[][], coords: RangeType[]) => void;
   afterPluginsInitialized?: () => void;
   afterRedo?: (action: UndoRedoAction) => void;
@@ -195,6 +200,8 @@ export interface Events {
   beforeOnCellMouseOut?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement) => void;
   beforeOnCellMouseOver?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement, controller: SelectionController) => void;
   beforeOnCellMouseUp?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement) => void;
+  beforePageChange?: (oldPage: number, newPage: number) => void | boolean;
+  beforePageSizeChange?: (oldPageSize: number, newPageSize: number) => void | boolean;
   beforePaste?: (data: CellValue[][], coords: RangeType[]) => void | boolean;
   beforeRedo?: (action: UndoRedoAction) => void;
   beforeRedoStackChange?: (undoneActions: UndoRedoAction[]) => void;

@@ -24,7 +24,7 @@ export class Pagination extends BasePlugin {
       pageSize: 10,
       pageList: [5, 10, 20, 50, 100],
       initialPage: 1,
-      autoPageSize: false,
+      autoPageSize: false, // TODO: implement
       showPageSize: true,
       showCounter: true,
       showNavigation: true,
@@ -91,22 +91,28 @@ export class Pagination extends BasePlugin {
 
     this.#pageSize = this.getSetting('pageSize');
     this.#currentPage = this.getSetting('initialPage');
-    this.#pagedRowsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap(PLUGIN_KEY, 'hiding');
+    this.#pagedRowsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap(this.pluginName, 'hiding');
 
-    this.#ui.setPageSizeSectionVisibility(this.getSetting('showPageSize'));
-    this.#ui.setCounterSectionVisibility(this.getSetting('showCounter'));
-    this.#ui.setNavigationSectionVisibility(this.getSetting('showNavigation'));
+    if (this.#ui) {
+      this.#ui.install();
 
-    this.#ui.addLocalHook('firstPageClick', () => this.firstPage());
-    this.#ui.addLocalHook('prevPageClick', () => this.prevPage());
-    this.#ui.addLocalHook('nextPageClick', () => this.nextPage());
-    this.#ui.addLocalHook('lastPageClick', () => this.lastPage());
-    this.#ui.addLocalHook('pageSizeChange', pageSize => this.setPageSize(pageSize));
+      this.#ui.setPageSizeSectionVisibility(this.getSetting('showPageSize'));
+      this.#ui.setCounterSectionVisibility(this.getSetting('showCounter'));
+      this.#ui.setNavigationSectionVisibility(this.getSetting('showNavigation'));
 
-    this.hot.addHook('beforeSelectColumns', this.#onBeforeSelectColumns.bind(this));
-    this.hot.addHook('beforeSetRangeEnd', this.#onBeforeSetRangeEnd.bind(this));
-    this.hot.addHook('afterRender', this.#onAfterRender.bind(this));
-    this.hot.rowIndexMapper.addLocalHook('cacheUpdated', () => this.#onIndexCacheUpdate());
+      this.#ui.addLocalHook('firstPageClick', () => this.firstPage());
+      this.#ui.addLocalHook('prevPageClick', () => this.prevPage());
+      this.#ui.addLocalHook('nextPageClick', () => this.nextPage());
+      this.#ui.addLocalHook('lastPageClick', () => this.lastPage());
+      this.#ui.addLocalHook('pageSizeChange', pageSize => this.setPageSize(pageSize));
+    }
+
+    this.addHook('beforeSelectAll', (...args) => this.#onBeforeSelectAllRows(...args));
+    this.addHook('beforeSelectColumns', (...args) => this.#onBeforeSelectAllRows(...args));
+    this.addHook('beforeSetRangeEnd', (...args) => this.#onBeforeSetRangeEnd(...args));
+    this.addHook('beforeSelectionHighlightSet', (...args) => this.#onBeforeSelectionHighlightSet(...args));
+    this.addHook('afterRender', (...args) => this.#onAfterRender(...args));
+    this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onIndexCacheUpdate);
 
     super.enablePlugin();
   }
@@ -117,6 +123,7 @@ export class Pagination extends BasePlugin {
   updatePlugin() {
     this.disablePlugin();
     this.enablePlugin();
+    this.#computeAndApply();
 
     super.updatePlugin();
   }
@@ -125,7 +132,10 @@ export class Pagination extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    this.hot.rowIndexMapper.unregisterMap(PLUGIN_KEY);
+    this.hot.rowIndexMapper
+      .removeLocalHook('cacheUpdated', this.#onIndexCacheUpdate)
+      .unregisterMap(this.pluginName);
+    this.#ui.uninstall();
 
     super.disablePlugin();
   }
@@ -133,31 +143,43 @@ export class Pagination extends BasePlugin {
   /**
    * Gets the pagination current state.
    *
-   * @returns {{ currentPage: number, totalPages: number, pageSize: number, firstVisibleRow: number, lastVisibleRow: number }}
+   * @returns {{ currentPage: number, totalPages: number, pageSize: number, numberOfRows: number, firstVisibleRow: number, lastVisibleRow: number }}
    */
   getPaginationData() {
+    const firstVisibleRow = ((this.#currentPage - 1) * this.#pageSize) + 1;
+    const lastVisibleRow = Math.min(this.#currentPage * this.#pageSize, this.hot.countRows());
+
     return {
       currentPage: this.#currentPage,
       totalPages: this.#totalPages,
       pageSize: this.#pageSize,
       pageSizeList: this.getSetting('pageList'),
-      firstVisibleRow: (this.#currentPage - 1) * (this.#pageSize + 1),
-      lastVisibleRow: Math.min(this.#currentPage * this.#pageSize, this.hot.countRows()),
+      numberOfVisibleRows: lastVisibleRow - firstVisibleRow + 1,
+      firstVisibleRow,
+      lastVisibleRow,
     };
   }
 
   /**
    * Allows changing the page for specified page number.
    *
-   * @param {number} pageNumber The page number to set (1 to N).
+   * @param {number} pageNumber The page number to set (from 1 to N). If `0` is passed, it
+   * will be transformed to `1`.
+   * @fires Hooks#beforePageChange
+   * @fires Hooks#afterPageChange
    */
   setPage(pageNumber) {
-    this.hot.runHooks('beforePageChange', this.#currentPage, pageNumber);
+    const oldPage = this.#currentPage;
+    const shouldProceed = this.hot.runHooks('beforePageChange', oldPage, pageNumber);
+
+    if (shouldProceed === false) {
+      return;
+    }
 
     this.#currentPage = pageNumber;
     this.#computeAndApply();
 
-    this.hot.runHooks('afterPageChange', this.#currentPage);
+    this.hot.runHooks('afterPageChange', oldPage, this.#currentPage);
     this.hot.render();
   }
 
@@ -166,14 +188,21 @@ export class Pagination extends BasePlugin {
    * on the new page size and re-renders the table.
    *
    * @param {number} pageSize The page size to set.
+   * @fires Hooks#beforePageSizeChange
+   * @fires Hooks#afterPageSizeChange
    */
   setPageSize(pageSize) {
-    this.hot.runHooks('beforePageSizeChange', this.#pageSize, pageSize);
+    const oldPageSize = this.#pageSize;
+    const shouldProceed = this.hot.runHooks('beforePageSizeChange', oldPageSize, pageSize);
+
+    if (shouldProceed === false) {
+      return;
+    }
 
     this.#pageSize = pageSize;
     this.#computeAndApply();
 
-    this.hot.runHooks('afterPageSizeChange', this.#pageSize, pageSize);
+    this.hot.runHooks('afterPageSizeChange', oldPageSize, this.#pageSize);
     this.hot.render();
   }
 
@@ -206,7 +235,7 @@ export class Pagination extends BasePlugin {
   }
 
   /**
-   * Checks, based on the current internal state, if there will be a previous page.
+   * Checks, based on the current internal state, if there is a previous page.
    *
    * @returns {boolean}
    */
@@ -215,7 +244,7 @@ export class Pagination extends BasePlugin {
   }
 
   /**
-   * Checks, based on the current internal state, if there will be a next page.
+   * Checks, based on the current internal state, if there is a next page.
    *
    * @returns {boolean}
    */
@@ -223,31 +252,61 @@ export class Pagination extends BasePlugin {
     return this.#currentPage < this.#totalPages;
   }
 
+  /**
+   * Shows the page size section in the pagination UI.
+   *
+   * @fires Hooks#afterPageSizeVisibilityChange
+   */
   showPageSizeSection() {
     this.#ui.setPageSizeSectionVisibility(true);
     this.hot.runHooks('afterPageSizeVisibilityChange', true);
   }
 
+  /**
+   * Hides the page size section in the pagination UI.
+   *
+   * @fires Hooks#afterPageSizeVisibilityChange
+   */
   hidePageSizeSection() {
     this.#ui.setPageSizeSectionVisibility(false);
     this.hot.runHooks('afterPageSizeVisibilityChange', false);
   }
 
+  /**
+   * Shows the page counter section in the pagination UI.
+   *
+   * @fires Hooks#afterPageCounterVisibilityChange
+   */
   showPageCounterSection() {
     this.#ui.setCounterSectionVisibility(true);
     this.hot.runHooks('afterPageCounterVisibilityChange', true);
   }
 
+  /**
+   * Hides the page counter section in the pagination UI.
+   *
+   * @fires Hooks#afterPageCounterVisibilityChange
+   */
   hidePageCounterSection() {
     this.#ui.setCounterSectionVisibility(false);
     this.hot.runHooks('afterPageCounterVisibilityChange', false);
   }
 
+  /**
+   * Shows the page navigation section in the pagination UI.
+   *
+   * @fires Hooks#afterPageNavigationVisibilityChange
+   */
   showPageNavigationSection() {
     this.#ui.setNavigationSectionVisibility(true);
     this.hot.runHooks('afterPageNavigationVisibilityChange', true);
   }
 
+  /**
+   * Hides the page navigation section in the pagination UI.
+   *
+   * @fires Hooks#afterPageNavigationVisibilityChange
+   */
   hidePageNavigationSection() {
     this.#ui.setNavigationSectionVisibility(false);
     this.hot.runHooks('afterPageNavigationVisibilityChange', false);
@@ -262,7 +321,7 @@ export class Pagination extends BasePlugin {
     const pageSize = this.#pageSize;
 
     if (pageSize < 1) {
-      throw new Error('The `pageSize` must be greater than 0');
+      throw new Error('The `pageSize` option must be greater than `0`.');
     }
 
     this.#totalPages = Math.ceil(totalRows / pageSize);
@@ -288,13 +347,13 @@ export class Pagination extends BasePlugin {
   }
 
   /**
-   * Called before the selection of columns is made. It modifies the selection to the range of
-   * the current page.
+   * Called before the selection of columns or all table is made. It modifies the selection rows range
+   * to the range of the current page.
    *
    * @param {CellCoords} from Starting cell coordinates.
    * @param {CellCoords} to Ending cell coordinates.
    */
-  #onBeforeSelectColumns(from, to) {
+  #onBeforeSelectAllRows(from, to) {
     const rowStart = (this.#currentPage - 1) * this.#pageSize;
 
     if (this.#currentPage > 1 || from.row >= 0) {
@@ -319,6 +378,26 @@ export class Pagination extends BasePlugin {
   }
 
   /**
+   * The hook corrects the focus position (before drawing it) after the selection was made
+   * (the visual coordinates was collected).
+   */
+  #onBeforeSelectionHighlightSet() {
+    if (this.hot.getSettings().navigableHeaders) {
+      const selectedRange = this.hot.getSelectedRangeLast();
+
+      if (!selectedRange.isSingle()) {
+        const { highlight } = selectedRange;
+
+        highlight.row = clamp(
+          highlight.row,
+          selectedRange.getTopStartCorner().row,
+          selectedRange.getBottomEndCorner().row
+        );
+      }
+    }
+  }
+
+  /**
    * Called after the rendering of the table is completed. It updates the width of
    * the pagination container to the same size as the table.
    */
@@ -329,13 +408,14 @@ export class Pagination extends BasePlugin {
   /**
    * IndexMapper cache update listener. Once the cache is updated, we need to recompute
    * the pagination state.
+   *
+   * The method uses arrow function to keep the reference to the class method. Necessary for
+   * the `removeLocalHook` method of the row index mapper.
    */
-  #onIndexCacheUpdate() {
-    if (this.#internalCall) {
-      return;
+  #onIndexCacheUpdate = () => {
+    if (!this.#internalCall && this.hot) {
+      this.#computeAndApply();
     }
-
-    this.#computeAndApply();
   }
 
   /**
@@ -343,6 +423,9 @@ export class Pagination extends BasePlugin {
    */
   destroy() {
     this.#pagedRowsMap = null;
+    this.#ui.uninstall();
+    this.#ui = null;
+
     super.destroy();
   }
 }

@@ -32,14 +32,12 @@ export class PaginationUI {
 
   constructor(rootWrapperElement) {
     this.#rootWrapperElement = rootWrapperElement;
-
-    this.create();
   }
 
   /**
    * Creates the pagination UI elements and sets up event listeners.
    */
-  create() {
+  install() {
     const elements = html`${TEMPLATE}`;
     const {
       first,
@@ -59,6 +57,13 @@ export class PaginationUI {
       () => this.runLocalHooks('pageSizeChange', parseInt(pageSizeSelect.value, 10)));
 
     this.#rootWrapperElement.appendChild(elements.fragment);
+  }
+
+  /**
+   * Removes the pagination UI elements from the DOM.
+   */
+  uninstall() {
+    this.#refs?.container.remove();
   }
 
   /**
