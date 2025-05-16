@@ -45,10 +45,10 @@ To run individual tests, go to the `/handsontable` directory, and use the follow
 - `npm run test:unit` - runs all unit tests.
 - `npm run test:walkontable` - runs only Walkontable tests.
 - `npm run test:e2e` - runs all end-to-end tests.
-- `npm run run test:e2e --testPathPattern=selection` - runs only end-to-end tests and suites matching the filename "selection".
-- `npm run run test:unit --testPathPattern=array` - runs only unit tests and suites matching the filename "array".
-- `npm run run test:e2e.dump` - generates the `test/E2ERunner.html` file which can by executed in the browser environment (Chrome, Firefox etc.) to check if tests passes.
-- `npm run run test:e2e.dump -- --watch` - generates the `E2ERunner.html` file on every change detected in test files. It can be helpful for debugging proposes.
+- `npm run test:e2e --testPathPattern=selection` - runs only end-to-end tests and suites matching the filename "selection".
+- `npm run test:unit --testPathPattern=array` - runs only unit tests and suites matching the filename "array".
+- `npm run test:e2e.dump` - generates the `test/E2ERunner.html` file which can by executed in the browser environment (Chrome, Firefox etc.) to check if tests passes.
+- `npm run test:e2e.dump -- --watch` - generates the `E2ERunner.html` file on every change detected in test files. It can be helpful for debugging proposes.
 
 ## Test specific themes
 To run the E2E tests with a theme different than "classic", you can use the `--theme` flag.

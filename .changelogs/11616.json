@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fix column filter behavior when adding new column",
+  "type": "fixed",
+  "issueOrPR": 11616,
+  "breaking": false,
+  "framework": "none"
+}

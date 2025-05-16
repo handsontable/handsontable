@@ -656,22 +656,26 @@ export class IndexMapper {
    * @private
    * @param {number} firstInsertedVisualIndex First inserted visual index.
    * @param {number} amountOfIndexes Amount of inserted indexes.
+   * @param {number} firstInsertedPhysicalIndex First inserted physical index.
    */
-  insertIndexes(firstInsertedVisualIndex, amountOfIndexes) {
-    const nthVisibleIndex = this.getNotTrimmedIndexes()[firstInsertedVisualIndex];
-    const firstInsertedPhysicalIndex = isDefined(nthVisibleIndex) ? nthVisibleIndex : this.getNumberOfIndexes();
-    const insertionIndex = this.getIndexesSequence().includes(nthVisibleIndex) ?
-      this.getIndexesSequence().indexOf(nthVisibleIndex) : this.getNumberOfIndexes();
-    const insertedIndexes = arrayMap(new Array(amountOfIndexes).fill(firstInsertedPhysicalIndex),
+  insertIndexes(firstInsertedVisualIndex, amountOfIndexes, firstInsertedPhysicalIndex) {
+    const maybeNotTrimmedPhysicalIndex = this.getNotTrimmedIndexes()[firstInsertedVisualIndex];
+    const notTrimmedPhysicalIndex = isDefined(maybeNotTrimmedPhysicalIndex)
+      ? maybeNotTrimmedPhysicalIndex
+      : this.getNumberOfIndexes();
+    const visualInsertionIndex = this.getIndexesSequence().includes(maybeNotTrimmedPhysicalIndex) ?
+      this.getIndexesSequence().indexOf(maybeNotTrimmedPhysicalIndex) : this.getNumberOfIndexes();
+    const insertedIndexes = arrayMap(new Array(amountOfIndexes).fill(notTrimmedPhysicalIndex),
       (nextIndex, stepsFromStart) => nextIndex + stepsFromStart);
 
     this.suspendOperations();
     this.indexesChangeSource = 'insert';
-    this.indexesSequence.insert(insertionIndex, insertedIndexes);
+
+    this.indexesSequence.insert(visualInsertionIndex, insertedIndexes, firstInsertedPhysicalIndex);
     this.indexesChangeSource = undefined;
-    this.trimmingMapsCollection.insertToEvery(insertionIndex, insertedIndexes);
-    this.hidingMapsCollection.insertToEvery(insertionIndex, insertedIndexes);
-    this.variousMapsCollection.insertToEvery(insertionIndex, insertedIndexes);
+    this.trimmingMapsCollection.insertToEvery(visualInsertionIndex, insertedIndexes, firstInsertedPhysicalIndex);
+    this.hidingMapsCollection.insertToEvery(visualInsertionIndex, insertedIndexes, firstInsertedPhysicalIndex);
+    this.variousMapsCollection.insertToEvery(visualInsertionIndex, insertedIndexes, firstInsertedPhysicalIndex);
     this.resumeOperations();
   }
 

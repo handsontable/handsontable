@@ -3,6 +3,7 @@ import { getListWithRemovedItems, getListWithInsertedItems } from './utils/physi
 import { getListWithRemovedItems as getListWithoutIndexes } from './utils/indexesSequence';
 import { getDecreasedIndexes, getIncreasedIndexes } from './utils/actionsOnIndexes';
 import { isFunction } from '../../helpers/function';
+import { isDefined } from '../../helpers/mixed';
 
 /**
  * Map for storing mappings from an physical index to a value. Those entries are linked and stored in a certain order.
@@ -115,8 +116,13 @@ export class LinkedPhysicalIndexToValueMap extends IndexMap {
    * @private
    * @param {number} insertionIndex Position inside the list.
    * @param {Array} insertedIndexes List of inserted indexes.
+   * @param {number|undefined} firstInsertedPhysicalIndex Physical index of the first inserted item.
    */
-  insert(insertionIndex, insertedIndexes) {
+  insert(insertionIndex, insertedIndexes, firstInsertedPhysicalIndex) {
+    if (isDefined(firstInsertedPhysicalIndex) && insertedIndexes.length) {
+      insertedIndexes = insertedIndexes.map((_, positionInArray) => firstInsertedPhysicalIndex + positionInArray);
+    }
+
     this.indexedValues = getListWithInsertedItems(
       this.indexedValues,
       insertionIndex,
