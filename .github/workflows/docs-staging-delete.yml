@@ -24,6 +24,9 @@ jobs:
       - name: Find PR
         uses: jwalton/gh-find-current-pr@7ada613939e2a233c83a1320679446fa1c6bdcb9 # https://github.com/jwalton/gh-find-current-pr/tree/v1.3.2
         id: pr-finder
+        with:
+          # Can be "open", "closed", or "all".  Defaults to "open".
+          state: closed
 
       - name: Get PR details
         id: get-pr
