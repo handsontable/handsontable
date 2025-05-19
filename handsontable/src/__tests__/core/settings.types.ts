@@ -177,6 +177,15 @@ const allSettings: Required<Handsontable.GridSettings> = {
   numericFormat: oneOf(legacyNumericFormat, numericFormatOptions),
   observeDOMVisibility: true,
   outsideClickDeselects: oneOf(true, (target: HTMLElement) => false),
+  pagination: oneOf(true, {
+    pageSize: 10,
+    pageList: [5, 10, 20, 50, 100],
+    initialPage: 1,
+    autoPageSize: false,
+    showPageSize: true,
+    showCounter: true,
+    showNavigation: true,
+  }),
   persistentState: true,
   placeholder: 'foo',
   placeholderCellClassName: 'foo',
@@ -352,6 +361,23 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterOnCellMouseOver: (event, coords, TD) => {},
   afterOnCellMouseOut: (event, coords, TD) => {},
   afterOnCellMouseUp: (event, coords, TD) => {},
+  afterPageChange(oldPage, newPage) {
+    const _oldPage: number = oldPage;
+    const _newPage: number = newPage;
+  },
+  afterPageSizeChange(oldPageSize, newPageSize) {
+    const _oldPageSize: number = oldPageSize;
+    const _newPageSize: number = newPageSize;
+  },
+  afterPageSizeVisibilityChange(isVisible) {
+    const _isVisible: boolean = isVisible;
+  },
+  afterPageCounterVisibilityChange(isVisible) {
+    const _isVisible: boolean = isVisible;
+  },
+  afterPageNavigationVisibilityChange(isVisible) {
+    const _isVisible: boolean = isVisible;
+  },
   afterPaste: (data, coords) => {},
   afterPluginsInitialized: () => {},
   afterRedo: (action) => {},
@@ -469,6 +495,18 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeOnCellMouseOut: (event, coords, TD) => {},
   beforeOnCellMouseOver: (event, coords, TD, controller) => {},
   beforeOnCellMouseUp: (event, coords, TD) => {},
+  beforePageChange(oldPage, newPage) {
+    const _oldPage: number = oldPage;
+    const _newPage: number = newPage;
+
+    return true;
+  },
+  beforePageSizeChange(oldPageSize, newPageSize) {
+    const _oldPageSize: number = oldPageSize;
+    const _newPageSize: number = newPageSize;
+
+    return true;
+  },
   beforePaste: (data, coords) => { data.splice(0, 1); return false; },
   beforeRedo: (action) => {},
   beforeRedoStackChange: (undoneActions) => {},
