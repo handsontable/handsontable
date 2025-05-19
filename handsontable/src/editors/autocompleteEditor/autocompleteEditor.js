@@ -3,6 +3,7 @@ import { arrayMap, pivot } from '../../helpers/array';
 import {
   addClass,
   getCaretPosition,
+  getFractionalScalingCompensation,
   getScrollbarWidth,
   getSelectionEndPosition,
   outerWidth,
@@ -420,9 +421,13 @@ export class AutocompleteEditor extends HandsontableEditor {
    * @private
    */
   updateDropdownDimensions() {
+    const fractionalScalingCompensation = getFractionalScalingCompensation();
+    const targetWidth = this.getTargetEditorWidth() + fractionalScalingCompensation;
+    const targetHeight = this.getTargetEditorHeight() + fractionalScalingCompensation;
+
     this.htEditor.updateSettings({
-      width: this.getTargetEditorWidth(),
-      height: this.getTargetEditorHeight(),
+      width: targetWidth,
+      height: targetHeight
     });
 
     this.#fixDropdownWidth();

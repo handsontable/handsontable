@@ -977,7 +977,7 @@ let cachedScrollbarWidth;
  * @returns {number} The compensation for the scrollbar width, when the device pixel ratio is not an integer.
  */
 // eslint-disable-next-line no-restricted-globals
-export function getScrollbarFractionalScalingCompensation(rootDocument = document) {
+export function getFractionalScalingCompensation(rootDocument = document) {
   if (!isWindowsOS()) {
     return 0;
   }
@@ -1025,7 +1025,7 @@ function walkontableCalculateScrollbarWidth(rootDocument = document) {
   }
   (rootDocument.body || rootDocument.documentElement).removeChild(outer);
 
-  return (w1 - w2) + getScrollbarFractionalScalingCompensation(rootDocument);
+  return (w1 - w2) + getFractionalScalingCompensation(rootDocument);
 }
 
 /**
