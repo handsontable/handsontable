@@ -21,9 +21,12 @@ jobs:
           node-version-file: ".nvmrc"
           cache: "npm"
 
-      - name: Find PR
-        uses: jwalton/gh-find-current-pr@7ada613939e2a233c83a1320679446fa1c6bdcb9 # https://github.com/jwalton/gh-find-current-pr/tree/v1.3.2
-        id: pr-finder
+      # - name: Find PR
+      #   uses: jwalton/gh-find-current-pr@7ada613939e2a233c83a1320679446fa1c6bdcb9 # https://github.com/jwalton/gh-find-current-pr/tree/v1.3.2
+      #   id: pr-finder
+      #   with:
+      #     # Can be "open", "closed", or "all".  Defaults to "open".
+      #     state: all
 
       - name: Get PR details
         id: get-pr
@@ -33,7 +36,7 @@ jobs:
             const { data: pullRequest } = await github.rest.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              pull_number: context.issue.number ||  ${{ steps.pr-finder.outputs.pr }}
+              pull_number: context.issue.number ||  ${{ github.event.pull_request.number }}
             });
 
             console.log(`PR #${context.issue.number} details fetched`);
