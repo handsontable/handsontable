@@ -113,16 +113,13 @@ export class HotGlobalConfigService {
   }
 
   /**
-   * Sets the configuration for Handsontable.
+   * Sets the global configuration for Handsontable.
    *
    * @param config - An object containing configuration options.
-   *                 If a some parameter is provided, it will override the current settings.
+   *                 Each Handsontable instance can override this configuration by providing its own settings.
    */
   setConfig(config: HotGlobalConfig) {
-    const currentConfig = this.configSubject.value;
-    const newConfig = { ...currentConfig, ...config };
-
-    this.configSubject.next(newConfig);
+    this.configSubject.next(config);
   }
 
   /**

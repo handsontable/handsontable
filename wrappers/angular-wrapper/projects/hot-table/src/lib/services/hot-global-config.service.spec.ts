@@ -56,7 +56,7 @@ describe('HotGlobalConfigService', () => {
     expect(config.layoutDirection).toEqual(inputConfig.layoutDirection);
   });
 
-  it('should not override existing settings if not provided', () => {
+  it('should replace the existing configuration', () => {
     // Set initial configuration
     service.setConfig({
       license: 'initial-license',
@@ -67,7 +67,7 @@ describe('HotGlobalConfigService', () => {
     service.setConfig({ license: 'updated-license' });
     const config = service.getConfig();
     expect(config.license).toEqual('updated-license');
-    expect(config.themeName).toEqual('ht-theme-horizon-dark');
+    expect(config.themeName).toEqual('');
   });
 
   it('should emit configuration changes via config$', (done) => {
