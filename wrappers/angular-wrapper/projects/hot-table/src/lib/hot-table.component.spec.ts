@@ -5,7 +5,7 @@ import { registerPlugin, CopyPaste } from 'handsontable/plugins';
 import { HotTableModule } from './hot-table.module';
 import { HotTableComponent } from './hot-table.component';
 import { GridSettings } from './models/grid-settings';
-import { createSpreadsheetData } from './helpers';
+import { createSpreadsheetData } from './test-helpers/create-spreadsheet-data';
 import { HotSettingsResolver } from './services/hot-settings-resolver.service';
 import { NON_COMMERCIAL_LICENSE } from './services/hot-config.service';
 
