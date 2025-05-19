@@ -26,7 +26,7 @@ jobs:
         id: pr-finder
         with:
           # Can be "open", "closed", or "all".  Defaults to "open".
-          state: closed
+          state: all
 
       - name: Get PR details
         id: get-pr
