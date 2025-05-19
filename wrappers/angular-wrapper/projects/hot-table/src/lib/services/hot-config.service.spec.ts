@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import {
   HotConfigService,
-  HotConfig,
+  HotGlobalConfig,
   NON_COMMERCIAL_LICENSE,
   ThemeName, HOT_GLOBAL_CONFIG,
 } from './hot-config.service';
@@ -42,7 +42,7 @@ describe('HotConfigService', () => {
   });
 
   it('should update whole config when provided', () => {
-    const inputConfig: HotConfig = {
+    const inputConfig: HotGlobalConfig = {
       license: 'sample-license',
       themeName: 'ht-theme-horizon',
       language: 'pl-PL',
@@ -103,7 +103,7 @@ describe('HotConfigService', () => {
 
   it('should reset configuration to default values', () => {
     // set and check initial configuration
-    const customConfig: HotConfig = {
+    const customConfig: HotGlobalConfig = {
       license: 'custom-license',
       themeName: 'ht-theme-main'
     };
@@ -135,7 +135,7 @@ describe('HotConfigService', () => {
             themeName: 'ht-theme-main',
             language: 'en-US',
             layoutDirection: 'ltr'
-          } as HotConfig }
+          } as HotGlobalConfig }
       ]
     });
     service = TestBed.inject(HotConfigService);

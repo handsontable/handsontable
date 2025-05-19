@@ -101,11 +101,11 @@ import { provideRouter } from "@angular/router";
 import { routes } from "./app.routes";
 import {
   HOT_GLOBAL_CONFIG,
-  HotConfig,
+  HotGlobalConfig,
   NON_COMMERCIAL_LICENSE,
 } from "@handsontable/angular-wrapper";
 
-const globalHotConfig: HotConfig = {
+const globalHotConfig: HotGlobalConfig = {
   license: NON_COMMERCIAL_LICENSE,
   layoutDirection: "ltr",
   language: "en",

@@ -194,13 +194,13 @@ You can use `ApplicationConfig` to provide a global configuration via the `HOT_G
 ```ts
 import { bootstrapApplication } from '@angular/platform-browser';
 import { ApplicationConfig } from '@angular/core';
-import { HOT_GLOBAL_CONFIG, HotConfig } from '@handsontable/angular-wrapper';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig } from '@handsontable/angular-wrapper';
 import { AppComponent } from './app/app.component';
 
 export const appConfig: ApplicationConfig = {
   providers: [{
     provide: HOT_GLOBAL_CONFIG,
-    useValue: { themeName: 'ht-theme-main-dark-auto' } as HotConfig
+    useValue: { themeName: 'ht-theme-main-dark-auto' } as HotGlobalConfig
   }],
 };
 
