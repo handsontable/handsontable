@@ -106,7 +106,7 @@ export class PaginationUI {
       pageSizeSelect,
     } = this.#refs;
 
-    pageCounterSection.textContent = `${firstVisibleRow} - ${lastVisibleRow} of ${totalRows}`;
+    pageCounterSection.textContent = `${firstVisibleRow + 1} - ${lastVisibleRow + 1} of ${totalRows}`;
     pageNavLabel.textContent = `Page ${currentPage} of ${totalPages}`;
     pageSizeSelect.innerHTML = '';
 

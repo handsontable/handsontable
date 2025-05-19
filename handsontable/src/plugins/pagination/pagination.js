@@ -3,7 +3,7 @@ import { clamp } from '../../helpers/number';
 import { PaginationUI } from './ui';
 
 export const PLUGIN_KEY = 'pagination';
-export const PLUGIN_PRIORITY = 500;
+export const PLUGIN_PRIORITY = 900;
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
@@ -146,8 +146,8 @@ export class Pagination extends BasePlugin {
    * @returns {{ currentPage: number, totalPages: number, pageSize: number, numberOfRows: number, firstVisibleRow: number, lastVisibleRow: number }}
    */
   getPaginationData() {
-    const firstVisibleRow = ((this.#currentPage - 1) * this.#pageSize) + 1;
-    const lastVisibleRow = Math.min(this.#currentPage * this.#pageSize, this.hot.countRows());
+    const firstVisibleRow = (this.#currentPage - 1) * this.#pageSize;
+    const lastVisibleRow = Math.min(this.#currentPage * this.#pageSize, this.hot.countRows()) - 1;
 
     return {
       currentPage: this.#currentPage,

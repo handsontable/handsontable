@@ -9,4 +9,37 @@ describe('Pagination `beforePageSizeChange` hook', () => {
       this.$container.remove();
     }
   });
+
+  it('should be fired before page size change', async() => {
+    const beforePageSizeChange = jasmine.createSpy('beforePageSizeChange');
+
+    handsontable({
+      data: createSpreadsheetData(45, 10),
+      pagination: true,
+      beforePageSizeChange,
+    });
+
+    const plugin = getPlugin('pagination');
+
+    plugin.setPageSize(13);
+
+    expect(beforePageSizeChange).toHaveBeenCalledTimes(1);
+    expect(beforePageSizeChange).toHaveBeenCalledWith(10, 13);
+  });
+
+  it('should be possible to abort the action', async() => {
+    handsontable({
+      data: createSpreadsheetData(45, 10),
+      pagination: true,
+      beforePageSizeChange() {
+        return false;
+      },
+    });
+
+    const plugin = getPlugin('pagination');
+
+    plugin.setPageSize(13);
+
+    expect(plugin.getPaginationData().pageSize).toBe(10);
+  });
 });

@@ -9,4 +9,38 @@ describe('Pagination `afterPageNavigationVisibilityChange` hook', () => {
       this.$container.remove();
     }
   });
+
+  it('should be fired after showing the component', async() => {
+    const afterPageNavigationVisibilityChange = jasmine.createSpy('afterPageNavigationVisibilityChange');
+
+    handsontable({
+      data: createSpreadsheetData(45, 10),
+      pagination: true,
+      afterPageNavigationVisibilityChange,
+    });
+
+    const plugin = getPlugin('pagination');
+
+    plugin.showPageNavigationSection();
+
+    expect(afterPageNavigationVisibilityChange).toHaveBeenCalledTimes(1);
+    expect(afterPageNavigationVisibilityChange).toHaveBeenCalledWith(true);
+  });
+
+  it('should be fired after hiding the component', async() => {
+    const afterPageNavigationVisibilityChange = jasmine.createSpy('afterPageNavigationVisibilityChange');
+
+    handsontable({
+      data: createSpreadsheetData(45, 10),
+      pagination: true,
+      afterPageNavigationVisibilityChange,
+    });
+
+    const plugin = getPlugin('pagination');
+
+    plugin.hidePageNavigationSection();
+
+    expect(afterPageNavigationVisibilityChange).toHaveBeenCalledTimes(1);
+    expect(afterPageNavigationVisibilityChange).toHaveBeenCalledWith(false);
+  });
 });
