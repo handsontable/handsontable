@@ -1,20 +1,20 @@
 import { TestBed } from '@angular/core/testing';
 import {
-  HotConfigService,
+  HotGlobalConfigService,
   HotGlobalConfig,
   NON_COMMERCIAL_LICENSE,
   ThemeName, HOT_GLOBAL_CONFIG,
-} from './hot-config.service';
+} from './hot-global-config.service';
 import {take} from 'rxjs';
 
-describe('HotConfigService', () => {
-  let service: HotConfigService;
+describe('HotGlobalConfigService', () => {
+  let service: HotGlobalConfigService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [HotConfigService],
+      providers: [HotGlobalConfigService],
     });
-    service = TestBed.inject(HotConfigService);
+    service = TestBed.inject(HotGlobalConfigService);
   });
 
   it('should be created', () => {
@@ -127,7 +127,7 @@ describe('HotConfigService', () => {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [
-        HotConfigService,
+        HotGlobalConfigService,
         {
           provide: HOT_GLOBAL_CONFIG,
           useValue: {
@@ -138,7 +138,7 @@ describe('HotConfigService', () => {
           } as HotGlobalConfig }
       ]
     });
-    service = TestBed.inject(HotConfigService);
+    service = TestBed.inject(HotGlobalConfigService);
 
     const config = service.getConfig();
     expect(config.license).toEqual('overridden-license');

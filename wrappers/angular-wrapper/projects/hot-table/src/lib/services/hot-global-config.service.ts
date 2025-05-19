@@ -65,7 +65,7 @@ export const HOT_GLOBAL_CONFIG = new InjectionToken<HotGlobalConfig>('HOT_GLOBAL
 @Injectable({
   providedIn: 'root',
 })
-export class HotConfigService {
+export class HotGlobalConfigService {
 
   /**
    * The default configuration object for Handsontable.

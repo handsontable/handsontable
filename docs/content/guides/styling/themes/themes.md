@@ -208,9 +208,9 @@ bootstrapApplication(AppComponent, appConfig);
 ```
 This global configuration is then merged with local settings when initializing each Handsontable instance.
 
-### Using HotConfigService
+### Using HotGlobalConfigService
 
-You can manage the global theme at runtime using the `HotConfigService`.
+You can manage the global theme at runtime using the `HotGlobalConfigService`.
 
 ```ts
 hotConfigService.setConfig({ themeName: 'ht-theme-horizon-dark' });

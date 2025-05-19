@@ -92,7 +92,7 @@ Or, to reduce the size of your JavaScript bundle, [import only the modules that 
 
 ## Configure global settings
 
-You can set global configuration values for the table during the application setup (`app.config.ts`). Using the `HOT_GLOBAL_CONFIG` token, you can define an object that will be read within the wrapper. At any time, you can modify these values using the `HotConfigService` or override them at the individual table level.
+You can set global configuration values for the table during the application setup (`app.config.ts`). Using the `HOT_GLOBAL_CONFIG` token, you can define an object that will be read within the wrapper. At any time, you can modify these values using the `HotGlobalConfigService` or override them at the individual table level.
 
 ```ts
 import { ApplicationConfig, provideZoneChangeDetection } from "@angular/core";
