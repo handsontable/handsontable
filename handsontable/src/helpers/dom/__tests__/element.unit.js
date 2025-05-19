@@ -3,7 +3,7 @@ import {
   closest,
   closestDown,
   getParent,
-  getScrollbarFractionalScalingCompensation,
+  getFractionalScalingCompensation,
   hasClass,
   isInput,
   removeAttribute,
@@ -838,9 +838,9 @@ describe('DomElement helper', () => {
   });
 
   //
-  // Handsontable.helper.getScrollbarFractionalScalingCompensation
+  // Handsontable.helper.getFractionalScalingCompensation
   //
-  describe('getScrollbarFractionalScalingCompensation', () => {
+  describe('getFractionalScalingCompensation', () => {
     it('should return 0 for non-Windows platforms', () => {
       const mockDocument = {
         defaultView: {
@@ -850,7 +850,7 @@ describe('DomElement helper', () => {
 
       setPlatformMeta({ platform: 'MacIntel' });
 
-      expect(getScrollbarFractionalScalingCompensation(mockDocument)).toBe(0);
+      expect(getFractionalScalingCompensation(mockDocument)).toBe(0);
     });
 
     it('should return 0 for Windows with integer devicePixelRatio', () => {
@@ -862,7 +862,7 @@ describe('DomElement helper', () => {
 
       setPlatformMeta({ platform: 'Win32' });
 
-      expect(getScrollbarFractionalScalingCompensation(mockDocument)).toBe(0);
+      expect(getFractionalScalingCompensation(mockDocument)).toBe(0);
     });
 
     it('should return 2 for Windows with fractional devicePixelRatio', () => {
@@ -874,7 +874,7 @@ describe('DomElement helper', () => {
 
       setPlatformMeta({ platform: 'Win32' });
 
-      expect(getScrollbarFractionalScalingCompensation(mockDocument)).toBe(2);
+      expect(getFractionalScalingCompensation(mockDocument)).toBe(2);
     });
   });
 });
