@@ -22,10 +22,8 @@ describe('Pagination `getPaginationData` method', () => {
       currentPage: 1,
       totalPages: 5,
       pageSize: 10,
-      pageSizeList: [5, 10, 20, 50, 100],
-      numberOfVisibleRows: 10,
-      firstVisibleRow: 0,
-      lastVisibleRow: 9,
+      pageList: [5, 10, 20, 50, 100],
+      numberOfRenderedRows: 10,
     });
   });
 
@@ -43,10 +41,8 @@ describe('Pagination `getPaginationData` method', () => {
       currentPage: 3,
       totalPages: 5,
       pageSize: 10,
-      pageSizeList: [5, 10, 20, 50, 100],
-      numberOfVisibleRows: 10,
-      firstVisibleRow: 20,
-      lastVisibleRow: 29,
+      pageList: [5, 10, 20, 50, 100],
+      numberOfRenderedRows: 10,
     });
   });
 
@@ -64,10 +60,48 @@ describe('Pagination `getPaginationData` method', () => {
       currentPage: 1,
       totalPages: 4,
       pageSize: 12,
-      pageSizeList: [5, 10, 20, 50, 100],
-      numberOfVisibleRows: 12,
-      firstVisibleRow: 0,
-      lastVisibleRow: 11,
+      pageList: [5, 10, 20, 50, 100],
+      numberOfRenderedRows: 12,
+    });
+  });
+
+  it('should return correct pagination data when the external hidden rows index mapper is used', async() => {
+    handsontable({
+      data: createSpreadsheetData(10, 10),
+      rowHeaders: true,
+      pagination: {
+        pageSize: 3,
+      },
+    });
+
+    const hidingMap = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+    hidingMap.setValueAtIndex(0, true);
+    hidingMap.setValueAtIndex(2, true);
+    hidingMap.setValueAtIndex(4, true);
+    hidingMap.setValueAtIndex(8, true);
+    hidingMap.setValueAtIndex(9, true);
+
+    await render();
+
+    const plugin = getPlugin('pagination');
+
+    expect(plugin.getPaginationData()).toEqual({
+      currentPage: 1,
+      totalPages: 2,
+      pageSize: 3,
+      pageList: [5, 10, 20, 50, 100],
+      numberOfRenderedRows: 3,
+    });
+
+    plugin.setPage(2);
+
+    expect(plugin.getPaginationData()).toEqual({
+      currentPage: 2,
+      totalPages: 2,
+      pageSize: 3,
+      pageList: [5, 10, 20, 50, 100],
+      numberOfRenderedRows: 2,
     });
   });
 });

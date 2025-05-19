@@ -143,20 +143,15 @@ export class Pagination extends BasePlugin {
   /**
    * Gets the pagination current state.
    *
-   * @returns {{ currentPage: number, totalPages: number, pageSize: number, numberOfRows: number, firstVisibleRow: number, lastVisibleRow: number }}
+   * @returns {{ currentPage: number, totalPages: number, pageSize: number, pageList: number[], numberOfRenderedRows: number }}
    */
   getPaginationData() {
-    const firstVisibleRow = (this.#currentPage - 1) * this.#pageSize;
-    const lastVisibleRow = Math.min(this.#currentPage * this.#pageSize, this.hot.countRows()) - 1;
-
     return {
       currentPage: this.#currentPage,
       totalPages: this.#totalPages,
       pageSize: this.#pageSize,
-      pageSizeList: this.getSetting('pageList'),
-      numberOfVisibleRows: lastVisibleRow - firstVisibleRow + 1,
-      firstVisibleRow,
-      lastVisibleRow,
+      pageList: this.getSetting('pageList'),
+      numberOfRenderedRows: this.hot.rowIndexMapper.getRenderableIndexesLength(),
     };
   }
 
@@ -180,6 +175,7 @@ export class Pagination extends BasePlugin {
     this.#computeAndApply();
 
     this.hot.runHooks('afterPageChange', oldPage, this.#currentPage);
+    this.hot.view.adjustElementsSize();
     this.hot.render();
   }
 
@@ -203,6 +199,7 @@ export class Pagination extends BasePlugin {
     this.#computeAndApply();
 
     this.hot.runHooks('afterPageSizeChange', oldPageSize, this.#pageSize);
+    this.hot.view.adjustElementsSize();
     this.hot.render();
   }
 
@@ -317,24 +314,25 @@ export class Pagination extends BasePlugin {
    * IndexMapper.
    */
   #computeAndApply() {
-    const totalRows = this.hot.countRows();
     const pageSize = this.#pageSize;
 
     if (pageSize < 1) {
       throw new Error('The `pageSize` option must be greater than `0`.');
     }
 
-    this.#totalPages = Math.ceil(totalRows / pageSize);
-    this.#currentPage = clamp(this.#currentPage, 1, this.#totalPages);
-
     this.#internalCall = true;
     this.#pagedRowsMap.clear();
 
+    const renderableIndexes = this.hot.rowIndexMapper.getRenderableIndexes();
+    const renderableRowsLength = renderableIndexes.length;
+
+    this.#totalPages = Math.ceil(renderableRowsLength / pageSize);
+    this.#currentPage = clamp(this.#currentPage, 1, this.#totalPages);
+
+    renderableIndexes.splice((this.#currentPage - 1) * this.#pageSize, this.#pageSize);
+
     this.hot.batchExecution(() => {
       // TODO (perf tip): reverse the logic by showing only the visible indexes not hiding the rest - if possible
-      const renderableIndexes = this.hot.rowIndexMapper.getRenderableIndexes();
-
-      renderableIndexes.splice((this.#currentPage - 1) * this.#pageSize, this.#pageSize);
       renderableIndexes.forEach(index => this.#pagedRowsMap.setValueAtIndex(index, true));
     }, true);
 
@@ -342,7 +340,7 @@ export class Pagination extends BasePlugin {
 
     this.#ui.updateState({
       ...this.getPaginationData(),
-      totalRows,
+      totalRenderedRows: renderableRowsLength,
     });
   }
 

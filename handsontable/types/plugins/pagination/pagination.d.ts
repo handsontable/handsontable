@@ -17,9 +17,8 @@ type PaginationData = {
   currentPage: number,
   totalPages: number,
   pageSize: number,
-  numberOfRows: number,
-  firstVisibleRow: number,
-  lastVisibleRow: number;
+  pageList: number[],
+  numberOfRenderedRows: number,
 }
 
 export class Pagination extends BasePlugin {

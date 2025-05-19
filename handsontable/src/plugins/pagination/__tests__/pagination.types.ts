@@ -49,9 +49,8 @@ const paginationData: {
   currentPage: number,
   totalPages: number,
   pageSize: number,
-  numberOfRows: number,
-  firstVisibleRow: number,
-  lastVisibleRow: number;
+  pageList: number[],
+  numberOfRenderedRows: number,
 } = plugin.getPaginationData();
 const hasPreviousPage: boolean = plugin.hasPreviousPage();
 const hasNextPage: boolean = plugin.hasNextPage();

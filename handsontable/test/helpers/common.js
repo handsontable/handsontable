@@ -241,7 +241,7 @@ export function getDefaultColumnWidth() {
     case 'main':
       return 50;
     case 'horizon':
-      return 51;
+      return 50;
     default:
       return 50; // classic
   }

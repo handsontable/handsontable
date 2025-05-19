@@ -16,7 +16,8 @@ const TEMPLATE = `
     <button data-ref="next">&rsaquo;</button>
     <button data-ref="last">&raquo;</button>
   </div>
-</div>`;
+</div>
+`;
 
 /**
  * PaginationUI is a UI component that renders and manages pagination controls.
@@ -27,7 +28,13 @@ const TEMPLATE = `
  * @class PaginationUI
  */
 export class PaginationUI {
+  /**
+   * @param {HTMLElement} rootWrapperElement The root element where the pagination UI will be installed.
+   */
   #rootWrapperElement;
+  /**
+   * @param {object} refs The references to the UI elements.
+   */
   #refs;
 
   constructor(rootWrapperElement) {
@@ -81,19 +88,17 @@ export class PaginationUI {
    * @param {object} state The pagination state.
    * @param {number} state.currentPage The current page number.
    * @param {number} state.totalPages The total number of pages.
-   * @param {number} state.firstVisibleRow The first visible row number.
-   * @param {number} state.lastVisibleRow The last visible row number.
-   * @param {number} state.totalRows The total number of rows.
-   * @param {number[]} state.pageSizeList The list of available page sizes.
+   * @param {number} state.numberOfRenderedRows The number of rows rendered on the current page.
+   * @param {number} state.totalRenderedRows The total number of renderable rows.
+   * @param {number[]} state.pageList The list of available page sizes.
    * @param {number} state.pageSize The current page size.
    */
   updateState({
     currentPage,
     totalPages,
-    firstVisibleRow,
-    lastVisibleRow,
-    totalRows,
-    pageSizeList,
+    numberOfRenderedRows,
+    totalRenderedRows,
+    pageList,
     pageSize,
   }) {
     const {
@@ -106,11 +111,14 @@ export class PaginationUI {
       pageSizeSelect,
     } = this.#refs;
 
-    pageCounterSection.textContent = `${firstVisibleRow + 1} - ${lastVisibleRow + 1} of ${totalRows}`;
+    const firstRenderedRow = (pageSize * (currentPage - 1)) + 1;
+    const lastRenderedRow = firstRenderedRow + numberOfRenderedRows - 1;
+
+    pageCounterSection.textContent = `${firstRenderedRow} - ${lastRenderedRow} of ${totalRenderedRows}`;
     pageNavLabel.textContent = `Page ${currentPage} of ${totalPages}`;
     pageSizeSelect.innerHTML = '';
 
-    pageSizeList.forEach((pageSizeItem) => {
+    pageList.forEach((pageSizeItem) => {
       const option = new Option(pageSizeItem, pageSizeItem);
 
       if (pageSizeItem === pageSize) {
