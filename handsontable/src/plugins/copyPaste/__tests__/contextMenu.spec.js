@@ -13,7 +13,7 @@ describe('CopyPaste', () => {
   });
 
   describe('context menu', () => {
-    it('should contain only "copy" and "cut" actions when the `copyPaste` option is set as `true`', () => {
+    it('should contain only "copy" and "cut" actions when the `copyPaste` option is set as `true`', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -22,7 +22,7 @@ describe('CopyPaste', () => {
         copyPaste: true,
       });
 
-      contextMenu(getCell(1, 1));
+      await contextMenu(getCell(1, 1));
 
       expect($('.htContextMenu tbody tr td').text()).toBe([
         'Insert row above',
@@ -40,7 +40,7 @@ describe('CopyPaste', () => {
       ].join(''));
     });
 
-    it('should contain all "copy" actions in right order', () => {
+    it('should contain all "copy" actions in right order', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -53,7 +53,7 @@ describe('CopyPaste', () => {
         },
       });
 
-      contextMenu(getCell(1, 1));
+      await contextMenu(getCell(1, 1));
 
       expect($('.htContextMenu tbody tr td').text()).toBe([
         'Insert row above',

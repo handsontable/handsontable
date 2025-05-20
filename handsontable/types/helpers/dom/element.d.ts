@@ -1,6 +1,7 @@
 export function getParent(element: HTMLElement, level?: number): HTMLElement;
 export function getFrameElement(frame: Window): HTMLIFrameElement;
 export function getParentWindow(frame: Window): Window;
+export function getFractionalScalingCompensation(rootDocument?: Document): number;
 export function hasAccessToParentWindow(frame: Window): boolean;
 export function closest(element: HTMLElement, nodes?: Array<string | HTMLElement>, until?: HTMLElement): HTMLElement;
 export function closestDown(element: HTMLElement, nodes: HTMLElement[], until?: HTMLElement): HTMLElement;
@@ -38,6 +39,7 @@ export function setCaretPosition(element: Element, pos: number, endPos: number):
 export function getScrollbarWidth(rootDocument?: Document): number;
 export function hasVerticalScrollbar(element: HTMLElement): boolean;
 export function hasHorizontalScrollbar(element: HTMLElement): boolean;
+export function hasZeroHeight(element: HTMLElement): boolean;
 export function setOverlayPosition(overlayElem: HTMLElement, left: string | number, top: string | number): void;
 export function getCssTransform(element: HTMLElement): number;
 export function resetCssTransform(element: HTMLElement): void;

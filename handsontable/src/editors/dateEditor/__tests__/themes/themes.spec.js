@@ -19,14 +19,12 @@ describe('Date editor theme handling', () => {
       themeName: 'ht-theme-sth',
     });
 
-    selectCell(0, 0);
-    keyDownUp('enter');
-
-    await sleep(50);
+    await selectCell(0, 0);
+    await keyDownUp('enter');
 
     const $editor = $(getActiveEditor().datePicker);
 
-    expect($editor.hasClass('ht-theme-sth')).toBe(true);
+    expect($editor.parent().hasClass('ht-theme-sth')).toBe(true);
   });
 
   it('should have the same theme as the parent Handsontable instance (if originally passed as a container class)', async() => {
@@ -36,13 +34,11 @@ describe('Date editor theme handling', () => {
       columns: [{ type: 'date' }],
     }, true);
 
-    selectCell(0, 0);
-    keyDownUp('enter');
-
-    await sleep(50);
+    await selectCell(0, 0);
+    await keyDownUp('enter');
 
     const $editor = $(getActiveEditor().datePicker);
 
-    expect($editor.hasClass('ht-theme-sth-else')).toBe(true);
+    expect($editor.parent().hasClass('ht-theme-sth-else')).toBe(true);
   });
 });

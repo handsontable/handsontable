@@ -22,7 +22,7 @@ describe('WalkontableOverlay', () => {
   });
 
   describe('bottom inline-start corner overlay', () => {
-    it('should have to have proper position when the table viewport is bigger than dataset', () => {
+    it('should have to have proper position when the table viewport is bigger than dataset', async() => {
       createDataArray(6, 6);
 
       spec().$wrapper.width(400).height(300);
@@ -41,7 +41,7 @@ describe('WalkontableOverlay', () => {
         .toBe(getBottom(wt.wtOverlays.bottomInlineStartCornerOverlay.clone.wtTable.TABLE));
     });
 
-    it('should have to have proper position when the vertical scrollbar appears', () => {
+    it('should have to have proper position when the vertical scrollbar appears', async() => {
       createDataArray(50, 6);
 
       spec().$wrapper.width(400).height(300);
@@ -60,7 +60,7 @@ describe('WalkontableOverlay', () => {
         .toBe('0px');
     });
 
-    it('should have to have proper position when the horizontal scrollbar appears', () => {
+    it('should have to have proper position when the horizontal scrollbar appears', async() => {
       createDataArray(6, 50);
 
       spec().$wrapper.width(400).height(300);
@@ -79,7 +79,7 @@ describe('WalkontableOverlay', () => {
         .toBe(getBottom(wt.wtOverlays.bottomInlineStartCornerOverlay.clone.wtTable.TABLE));
     });
 
-    it('should have to have proper position when the vertical and horizontal scrollbars appear', () => {
+    it('should have to have proper position when the vertical and horizontal scrollbars appear', async() => {
       createDataArray(50, 50);
 
       spec().$wrapper.width(400).height(300);

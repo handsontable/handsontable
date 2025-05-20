@@ -28,9 +28,7 @@ const UnconnectedColorPickerEditor = () => {
       const tdPosition = TD.getBoundingClientRect();
 
       if (!editorRef.current) return;
-      editorRef.current.style.left = `${
-        tdPosition.left + window.pageXOffset
-      }px`;
+      editorRef.current.style.left = `${tdPosition.left + window.pageXOffset}px`;
       editorRef.current.style.top = `${tdPosition.top + window.pageYOffset}px`;
     },
     onFocus: () => {},
@@ -87,10 +85,7 @@ const UnconnectedColorPickerEditor = () => {
       onKeyDown={stopKeyboardPropagation}
     >
       <HexColorPicker color={pickedColor || value} onChange={onPickedColor} />
-      <button
-        style={{ width: '100%', height: '33px', marginTop: '10px' }}
-        onClick={applyColor}
-      >
+      <button style={{ width: '100%', height: '33px', marginTop: '10px' }} onClick={applyColor}>
         Apply
       </button>
     </div>
@@ -143,9 +138,7 @@ const appReducer = (state = initialReduxStoreState, action) => {
     case 'updateActiveStarColor': {
       const rowIndex = action.row;
       const newColor = action.hexColor;
-      const activeColorArray = state.activeColors
-        ? [...state.activeColors]
-        : [];
+      const activeColorArray = state.activeColors ? [...state.activeColors] : [];
 
       activeColorArray[rowIndex] = newColor;
 
@@ -157,9 +150,7 @@ const appReducer = (state = initialReduxStoreState, action) => {
     case 'updateInactiveStarColor': {
       const rowIndex = action.row;
       const newColor = action.hexColor;
-      const inactiveColorArray = state.inactiveColors
-        ? [...state.inactiveColors]
-        : [];
+      const inactiveColorArray = state.inactiveColors ? [...state.inactiveColors] : [];
 
       inactiveColorArray[rowIndex] = newColor;
 
@@ -176,13 +167,7 @@ const appReducer = (state = initialReduxStoreState, action) => {
 const actionReducers = combineReducers({ appReducer });
 const reduxStore = createStore(actionReducers);
 // a custom renderer component
-const UnconnectedStarRatingRenderer = ({
-  row,
-  col,
-  value,
-  activeColors,
-  inactiveColors,
-}) => {
+const UnconnectedStarRatingRenderer = ({ row, col, value, activeColors, inactiveColors }) => {
   return (
     <StarRatingComponent
       name={`${row}-${col}`}
@@ -229,16 +214,8 @@ const ExampleComponent = () => {
         licenseKey="non-commercial-and-evaluation"
       >
         <HotColumn width={100} type="numeric" renderer={StarRatingRenderer} />
-        <HotColumn
-          width={150}
-          renderer={ColorPickerRenderer}
-          editor={ColorPickerEditor}
-        />
-        <HotColumn
-          width={150}
-          renderer={ColorPickerRenderer}
-          editor={ColorPickerEditor}
-        />
+        <HotColumn width={150} renderer={ColorPickerRenderer} editor={ColorPickerEditor} />
+        <HotColumn width={150} renderer={ColorPickerRenderer} editor={ColorPickerEditor} />
       </HotTable>
     </Provider>
   );

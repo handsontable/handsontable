@@ -10,7 +10,7 @@ describe('Hooks', () => {
     }
   });
 
-  it('should add few local hooks at init (defined as function)', () => {
+  it('should add few local hooks at init (defined as function)', async() => {
     const handler1 = jasmine.createSpy('handler1');
 
     handsontable({
@@ -20,7 +20,7 @@ describe('Hooks', () => {
     expect(handler1).toHaveBeenCalled();
   });
 
-  it('should add few local hooks at init (defined as array)', () => {
+  it('should add few local hooks at init (defined as array)', async() => {
     const handler1 = jasmine.createSpy('handler1');
     const handler2 = jasmine.createSpy('handler2');
     const handler3 = jasmine.createSpy('handler3');
@@ -34,7 +34,7 @@ describe('Hooks', () => {
     expect(handler3).toHaveBeenCalled();
   });
 
-  it('should be possible to list all available plugin hooks', () => {
+  it('should be possible to list all available plugin hooks', async() => {
     const hooks = Handsontable.hooks.getRegistered(); // this is used in demo/callbacks.html
 
     expect(hooks.indexOf('beforeInit')).toBeGreaterThan(-1);

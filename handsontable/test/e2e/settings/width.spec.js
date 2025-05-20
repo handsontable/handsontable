@@ -13,7 +13,7 @@ describe('settings', () => {
       }
     });
 
-    it('should update the table width', () => {
+    it('should update the table width', async() => {
       const hot = handsontable({
         startRows: 5,
         startCols: 10,
@@ -21,7 +21,7 @@ describe('settings', () => {
 
       const initialWidth = $(hot.rootElement).width();
 
-      updateSettings({
+      await updateSettings({
         width: 300
       });
 
@@ -29,7 +29,7 @@ describe('settings', () => {
       expect($(hot.rootElement).width()).not.toBe(initialWidth);
     });
 
-    it('should update the table width after setting the new value as "auto"', () => {
+    it('should update the table width after setting the new value as "auto"', async() => {
       const hot = handsontable({
         startRows: 5,
         startCols: 15,
@@ -39,7 +39,7 @@ describe('settings', () => {
 
       const initialWidth = $(hot.rootElement).width();
 
-      updateSettings({
+      await updateSettings({
         width: 'auto'
       });
 
@@ -47,7 +47,7 @@ describe('settings', () => {
       expect($(hot.rootElement).width()).not.toBe(initialWidth);
     });
 
-    it('should allow width to be a string', () => {
+    it('should allow width to be a string', async() => {
       handsontable({
         startRows: 10,
         startCols: 10,
@@ -57,18 +57,18 @@ describe('settings', () => {
       expect(spec().$container.height()).toBe(Math.ceil(window.innerHeight / 2));
     });
 
-    it('should allow width to be a number', () => {
-      handsontable({
+    it('should allow width to be a number', async() => {
+      const hot = handsontable({
         startRows: 10,
         startCols: 10,
         width: 107,
       });
 
-      expect(spec().$container.width()).toBe(107);
+      expect($(hot.rootElement).width()).toBe(107);
     });
 
-    it('should allow width to be a function', () => {
-      handsontable({
+    it('should allow width to be a function', async() => {
+      const hot = handsontable({
         startRows: 10,
         startCols: 10,
         width() {
@@ -76,11 +76,11 @@ describe('settings', () => {
         }
       });
 
-      expect(spec().$container.width()).toBe(107);
+      expect($(hot.rootElement).width()).toBe(107);
     });
 
-    it('should allow width to be a string', () => {
-      handsontable({
+    it('should allow width to be a string', async() => {
+      const hot = handsontable({
         startRows: 10,
         startCols: 10,
         width: '50%',
@@ -88,38 +88,38 @@ describe('settings', () => {
 
       const parentWidth = spec().$container.parent().width();
 
-      expect(spec().$container.width()).toBeAroundValue(parentWidth * 0.5, 0.5);
+      expect($(hot.rootElement).width()).toBeAroundValue(parentWidth * 0.5, 0.5);
     });
 
-    it('should respect width provided in inline style', () => {
+    it('should respect width provided in inline style', async() => {
       spec().$container.css({
         overflow: 'auto',
         width: '200px'
       });
-      handsontable({
+      const hot = handsontable({
         data: [
           ['ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC']
         ]
       });
 
-      expect(spec().$container.width()).toBe(200);
+      expect($(hot.rootElement).width()).toBe(200);
     });
 
-    it('should respect width provided in CSS class', () => {
+    it('should respect width provided in CSS class', async() => {
       $('<style>.myTable {overflow: auto; width: 200px}</style>').appendTo('head');
       spec().$container.addClass('myTable');
-      handsontable({
+      const hot = handsontable({
         data: [
           ['ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC', 'ABC']
         ]
       });
 
-      expect(spec().$container.width()).toBe(200);
+      expect($(hot.rootElement).width()).toBe(200);
     });
 
     describe('for columns', () => {
-      it('should set the width correctly after changes made during updateSettings', () => {
-        const hot = handsontable({
+      it('should set the width correctly after changes made during updateSettings', async() => {
+        handsontable({
           startRows: 2,
           fixedColumnsStart: 2,
           columns: [{
@@ -143,7 +143,7 @@ describe('settings', () => {
 
         expect(Handsontable.dom.outerWidth(leftClone.find('tbody tr:nth-child(1) td:nth-child(2)')[0])).toEqual(80);
 
-        hot.updateSettings({
+        await updateSettings({
           manualColumnMove: [2, 0, 1],
           fixedColumnsStart: 1
         });
@@ -151,7 +151,7 @@ describe('settings', () => {
         expect(Handsontable.dom.outerWidth(leftClone.find('tbody tr:nth-child(1) td:nth-child(1)')[0])).toEqual(110);
         expect(leftClone.find('tbody tr:nth-child(1) td:nth-child(2)')[0]).toBe(undefined);
 
-        hot.updateSettings({
+        await updateSettings({
           manualColumnMove: false,
           fixedColumnsStart: 2
         });
@@ -160,8 +160,8 @@ describe('settings', () => {
         expect(Handsontable.dom.outerWidth(leftClone.find('tbody tr:nth-child(1) td:nth-child(2)')[0])).toEqual(50);
       });
 
-      it('should set the width correctly after changes made during updateSettings when columns are a function', () => {
-        const hot = handsontable({
+      it('should set the width correctly after changes made during updateSettings when columns are a function', async() => {
+        handsontable({
           startCols: 7,
           startRows: 2,
           fixedColumnsStart: 2,
@@ -195,7 +195,7 @@ describe('settings', () => {
 
         expect(Handsontable.dom.outerWidth(leftClone.find('tbody tr:nth-child(1) td:nth-child(2)')[0])).toEqual(80);
 
-        hot.updateSettings({
+        await updateSettings({
           manualColumnMove: [2, 0, 1],
           fixedColumnsStart: 1
         });
@@ -203,7 +203,7 @@ describe('settings', () => {
         expect(Handsontable.dom.outerWidth(leftClone.find('tbody tr:nth-child(1) td:nth-child(1)')[0])).toEqual(110);
         expect(leftClone.find('tbody tr:nth-child(1) td:nth-child(2)')[0]).toBe(undefined);
 
-        hot.updateSettings({
+        await updateSettings({
           manualColumnMove: false,
           fixedColumnsStart: 2
         });

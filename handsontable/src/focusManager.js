@@ -186,7 +186,9 @@ export class FocusManager {
 
       if (!this.#debouncedSelect.has(delay)) {
         this.#debouncedSelect.set(delay, debounce(() => {
-          this.getRefocusElement()?.select();
+          if (!this.#hot.isDestroyed) {
+            this.getRefocusElement()?.select();
+          }
         }, delay));
       }
 

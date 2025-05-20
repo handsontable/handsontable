@@ -19,7 +19,10 @@ const addCodeForPreset = (code, preset, id) => {
 
   const renderCreatePart = () => {
     if (/react(-.*)?/.test(preset)) {
-      return `ReactDOM.render(<${exportId} />, document.getElementById("${id}"));`;
+      return `const container = document.getElementById("${id}");
+const root = ReactDOM.createRoot(container);
+container._reactRoot = root;
+root.render(<${exportId} />);`;
     } else if (/vue3(-.*)?/.test(preset)) {
       return `const app = createApp(${exportId});
 app.mount('#${id}');`;

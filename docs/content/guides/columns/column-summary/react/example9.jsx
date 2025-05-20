@@ -10,9 +10,7 @@ const ExampleComponent = () => {
   //  generate an array of arrays with dummy numeric data
   const generateData = (rows = 3, columns = 7, additionalRows = true) => {
     let counter = 0;
-    const array2d = [...new Array(rows)].map((_) =>
-      [...new Array(columns)].map((_) => counter++)
-    );
+    const array2d = [...new Array(rows)].map((_) => [...new Array(columns)].map((_) => counter++));
 
     if (additionalRows) {
       array2d.push([]);
@@ -50,14 +48,7 @@ const ExampleComponent = () => {
               let counter = 0;
 
               do {
-                if (
-                  parseInt(
-                    hotInstance.getDataAtCell(i, endpoint.sourceColumn),
-                    10
-                  ) %
-                    2 ===
-                  0
-                ) {
+                if (parseInt(hotInstance.getDataAtCell(i, endpoint.sourceColumn), 10) % 2 === 0) {
                   counter++;
                 }
 

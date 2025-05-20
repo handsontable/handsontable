@@ -11,14 +11,14 @@ describe('ContextMenu keyboard shortcut', () => {
   });
 
   describe('"Control/Meta" + "A"', () => {
-    it('should close the menu and move the selection of the main table to the previous cell', () => {
+    it('should close the menu and move the selection of the main table to the previous cell', async() => {
       handsontable({
         contextMenu: generateRandomContextMenuItems(10),
       });
 
-      selectCell(1, 2);
-      contextMenu();
-      keyDownUp(['Control/Meta', 'A']);
+      await selectCell(1, 2);
+      await contextMenu();
+      await keyDownUp(['Control/Meta', 'A']);
 
       expect(getPlugin('contextMenu').menu.isOpened()).toBe(false);
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,2 from: 0,0 to: 4,4']);

@@ -14,7 +14,7 @@ describe('settings', () => {
     });
 
     describe('defined in constructor', () => {
-      it('should show rows headers', () => {
+      it('should show rows headers', async() => {
         handsontable({
           fixedRowsBottom: 3
         });
@@ -22,7 +22,7 @@ describe('settings', () => {
         expect(getBottomClone().find('tbody tr').length).toEqual(3);
       });
 
-      it('should show rows headers when headers are enabled', () => {
+      it('should show rows headers when headers are enabled', async() => {
         handsontable({
           rowHeaders: true,
           colHeaders: true,
@@ -35,48 +35,48 @@ describe('settings', () => {
     });
 
     describe('defined in updateSettings', () => {
-      it('should increase fixed rows', () => {
+      it('should increase fixed rows', async() => {
         handsontable({
           fixedRowsBottom: 2
         });
 
-        updateSettings({
+        await updateSettings({
           fixedRowsBottom: 4
         });
 
         expect(getBottomClone().find('tbody tr').length).toEqual(4);
       });
 
-      it('should decrease fixed rows', () => {
+      it('should decrease fixed rows', async() => {
         handsontable({
           fixedRowsBottom: 4
         });
 
-        updateSettings({
+        await updateSettings({
           fixedRowsBottom: 2
         });
 
         expect(getBottomClone().find('tbody tr').length).toEqual(2);
       });
 
-      it('should create fixed rows when they are disabled earlier', () => {
+      it('should create fixed rows when they are disabled earlier', async() => {
         handsontable({
           fixedRowsBottom: 0
         });
 
-        updateSettings({
+        await updateSettings({
           fixedRowsBottom: 2
         });
 
         expect(getBottomClone().find('tbody tr').length).toEqual(2);
       });
 
-      it('should disable fixed rows', () => {
+      it('should disable fixed rows', async() => {
         handsontable({
           fixedRowsBottom: 2
         });
 
-        updateSettings({
+        await updateSettings({
           fixedRowsBottom: 0
         });
 
@@ -92,26 +92,24 @@ describe('settings', () => {
           spy.test();
         };
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(50, 50),
+          data: createSpreadsheetData(50, 50),
           width: 200,
           height: 200,
           rowHeaders: true,
         });
 
-        updateSettings({
+        await updateSettings({
           fixedRowsBottom: 2
         });
 
         await sleep(100);
 
-        scrollViewportTo({
+        await scrollViewportTo({
           row: 30,
           col: 30,
           verticalSnap: 'top',
           horizontalSnap: 'start',
         });
-
-        await sleep(100);
 
         expect(spy.test.calls.count()).toBe(0);
         window.onerror = prevError;
@@ -120,95 +118,93 @@ describe('settings', () => {
 
     it('should synchronize scroll with master table', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(50, 50),
+        data: createSpreadsheetData(50, 50),
         width: 200,
         height: 200,
         rowHeaders: true,
         fixedRowsBottom: 2,
       });
 
-      getMaster().find('.wtHolder').scrollLeft(100);
-
-      await sleep(10);
+      await scrollViewportHorizontally(100);
 
       expect(getBottomClone().find('.wtHolder').scrollLeft()).toBe(getMaster().find('.wtHolder').scrollLeft());
     });
 
-    it('should overwrite td value in fixed bottom rows when fixedRowsBottom is equal to one', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(20, 10),
+    it('should overwrite td value in fixed bottom rows when fixedRowsBottom is equal to one', async() => {
+      handsontable({
+        data: createSpreadsheetData(20, 10),
         fixedRowsBottom: 1
       });
 
       expect(getBottomClone().find('tbody tr:eq(0) td:eq(0)').html()).toEqual('A20');
 
-      const td = hot.getCell(19, 0, true);
+      const td = getCell(19, 0, true);
 
       td.innerHTML = 'test';
 
       expect(getBottomClone().find('tbody tr:eq(0) td:eq(0)').html()).toEqual('test');
     });
 
-    it('should limit fixed rows to dataset rows length', () => {
+    it('should limit fixed rows to dataset rows length', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        data: createSpreadsheetData(3, 3),
         fixedRowsBottom: 3
       });
 
       expect(getBottomClone().find('tbody tr').length).toBe(3);
 
-      updateSettings({
-        data: Handsontable.helper.createSpreadsheetData(2, 3),
+      await updateSettings({
+        data: createSpreadsheetData(2, 3),
       });
 
       expect(getBottomClone().find('tbody tr').length).toBe(2);
 
-      updateSettings({
-        data: Handsontable.helper.createSpreadsheetData(1, 3),
+      await updateSettings({
+        data: createSpreadsheetData(1, 3),
       });
 
       expect(getBottomClone().find('tbody tr').length).toBe(1);
 
-      updateSettings({
-        data: Handsontable.helper.createSpreadsheetData(0, 3),
+      await updateSettings({
+        data: createSpreadsheetData(0, 3),
       });
 
       expect(getBottomClone().find('tbody tr').length).toBe(0);
 
-      updateSettings({
-        data: Handsontable.helper.createSpreadsheetData(1, 3),
+      await updateSettings({
+        data: createSpreadsheetData(1, 3),
       });
 
       expect(getBottomClone().find('tbody tr').length).toBe(1);
 
-      updateSettings({
-        data: Handsontable.helper.createSpreadsheetData(2, 3),
+      await updateSettings({
+        data: createSpreadsheetData(2, 3),
       });
 
       expect(getBottomClone().find('tbody tr').length).toBe(2);
 
-      updateSettings({
-        data: Handsontable.helper.createSpreadsheetData(3, 3),
+      await updateSettings({
+        data: createSpreadsheetData(3, 3),
       });
 
       expect(getBottomClone().find('tbody tr').length).toBe(3);
 
-      updateSettings({
-        data: Handsontable.helper.createSpreadsheetData(4, 3),
+      await updateSettings({
+        data: createSpreadsheetData(4, 3),
       });
 
       expect(getBottomClone().find('tbody tr').length).toBe(3);
     });
 
-    it('should not render column header with doubled border after inserting a new row (#7065)', () => {
+    it('should not render column header with doubled border after inserting a new row (#7065)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(0, 0),
+        data: createSpreadsheetData(0, 0),
         colHeaders: true,
         rowHeaders: true,
         fixedRowsBottom: 3,
       });
 
-      alter('insert_row_above', 0);
+      await alter('insert_row_above', 0);
 
       expect(getMaster().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(50); // 25px corner + 25px added row
@@ -241,7 +237,7 @@ describe('settings', () => {
         horizon.toBe(38);
       });
 
-      alter('insert_row_above', 0);
+      await alter('insert_row_above', 0);
 
       expect(getMaster().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(73);
@@ -275,7 +271,7 @@ describe('settings', () => {
       });
     });
 
-    it('should not display double border when `window` is a scrollable container', () => {
+    it('should not display double border when `window` is a scrollable container', async() => {
       handsontable({
         startRows: 200,
         colHeaders: true,
@@ -289,7 +285,7 @@ describe('settings', () => {
         horizon.toBe(37);
       });
 
-      updateSettings({ fixedRowsBottom: 0 });
+      await updateSettings({ fixedRowsBottom: 0 });
 
       expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(26);
@@ -297,7 +293,7 @@ describe('settings', () => {
         horizon.toBe(37);
       });
 
-      updateSettings({ fixedRowsBottom: 1 });
+      await updateSettings({ fixedRowsBottom: 1 });
 
       expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(26);
@@ -305,7 +301,7 @@ describe('settings', () => {
         horizon.toBe(37);
       });
 
-      updateSettings({ data: [] });
+      await updateSettings({ data: [] });
 
       // The only header (when there is no cells - even when the `fixedRowsBottom` isn't defined) has such height.
       expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
@@ -313,6 +309,22 @@ describe('settings', () => {
         main.toBe(30);
         horizon.toBe(38);
       });
+    });
+
+    it('should not throw an error when the row is removed from the bottom overlay (#dev-2351)', async() => {
+      handsontable({
+        data: createSpreadsheetData(2, 4),
+        fixedRowsBottom: 1,
+        rowHeaders: true,
+        colHeaders: true,
+      });
+
+      await selectRows(1);
+
+      expect(() => {
+        // eslint-disable-next-line handsontable/require-await
+        alter('remove_row', 1);
+      }).not.toThrow();
     });
   });
 });

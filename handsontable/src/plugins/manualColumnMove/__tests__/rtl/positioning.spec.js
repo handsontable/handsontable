@@ -20,7 +20,7 @@ describe('manualColumnMove (RTL mode)', () => {
     });
 
     describe('positioning', () => {
-      it('should draw backlight element properly using Handsontable default settings', () => {
+      it('should draw backlight element properly using Handsontable default settings', async() => {
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(5, 10),
@@ -41,7 +41,7 @@ describe('manualColumnMove (RTL mode)', () => {
         expect(backlight.offset().left).toBe(TH.offset().left);
       });
 
-      it('should move backlight and guideline element with the movement of the mouse (move left)', () => {
+      it('should move backlight and guideline element with the movement of the mouse (move left)', async() => {
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(5, 10),
@@ -80,7 +80,7 @@ describe('manualColumnMove (RTL mode)', () => {
         });
       });
 
-      it('should move backlight and guideline element with the movement of the mouse (move right)', () => {
+      it('should move backlight and guideline element with the movement of the mouse (move right)', async() => {
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(5, 10),
@@ -119,7 +119,7 @@ describe('manualColumnMove (RTL mode)', () => {
         });
       });
 
-      it('should move guideline element to the last header when the mouse exceeds half of the width of that header', () => {
+      it('should move guideline element to the last header when the mouse exceeds half of the width of that header', async() => {
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(5, 10),
@@ -171,14 +171,12 @@ describe('manualColumnMove (RTL mode)', () => {
           colHeaders: true,
         });
 
-        scrollViewportTo({
+        await scrollViewportTo({
           row: 0,
           col: 20,
           verticalSnap: 'top',
           horizontalSnap: 'start',
         });
-
-        await sleep(100);
 
         const TH = $(getCell(-1, 22));
 
@@ -204,14 +202,12 @@ describe('manualColumnMove (RTL mode)', () => {
           colHeaders: true,
         });
 
-        scrollViewportTo({
+        await scrollViewportTo({
           row: 0,
           col: 20,
           verticalSnap: 'top',
           horizontalSnap: 'start',
         });
-
-        await sleep(100);
 
         const TH = $(getCell(-1, 20));
         const THNext = $(getCell(-1, 22));
@@ -255,14 +251,12 @@ describe('manualColumnMove (RTL mode)', () => {
           colHeaders: true,
         });
 
-        scrollViewportTo({
+        await scrollViewportTo({
           row: 0,
           col: 20,
           verticalSnap: 'top',
           horizontalSnap: 'start',
         });
-
-        await sleep(100);
 
         const TH = $(getCell(-1, 22));
         const THNext = $(getCell(-1, 20));
@@ -303,14 +297,12 @@ describe('manualColumnMove (RTL mode)', () => {
           colHeaders: true,
         });
 
-        scrollViewportTo({
+        await scrollViewportTo({
           row: 0,
           col: 20,
           verticalSnap: 'top',
           horizontalSnap: 'start',
         });
-
-        await sleep(100);
 
         const TH = $(getCell(-1, 22));
 
@@ -334,14 +326,12 @@ describe('manualColumnMove (RTL mode)', () => {
           colHeaders: true,
         });
 
-        scrollViewportTo({
+        await scrollViewportTo({
           row: 0,
           col: 20,
           verticalSnap: 'top',
           horizontalSnap: 'start',
         });
-
-        await sleep(100);
 
         const TH = $(getCell(-1, 24));
         const THNext = $(getCell(-1, 26));
@@ -383,14 +373,12 @@ describe('manualColumnMove (RTL mode)', () => {
           colHeaders: true,
         });
 
-        scrollViewportTo({
+        await scrollViewportTo({
           row: 0,
           col: 20,
           verticalSnap: 'top',
           horizontalSnap: 'start',
         });
-
-        await sleep(100);
 
         const TH = $(getCell(-1, 26));
         const THNext = $(getCell(-1, 24));
@@ -422,7 +410,7 @@ describe('manualColumnMove (RTL mode)', () => {
         });
       });
 
-      it('should draw backlight element properly when colWidths is defined', () => {
+      it('should draw backlight element properly when colWidths is defined', async() => {
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(5, 10),
@@ -444,7 +432,7 @@ describe('manualColumnMove (RTL mode)', () => {
         expect(backlight.offset().left).toBe(TH.offset().left);
       });
 
-      it('should draw backlight element properly when stretchH is enabled', () => {
+      it('should draw backlight element properly when stretchH is enabled', async() => {
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(5, 5),
@@ -466,7 +454,7 @@ describe('manualColumnMove (RTL mode)', () => {
         expect(backlight.offset().left).toBe(TH.offset().left);
       });
 
-      it('should draw backlight element properly when stretchH is enabled and column order is changed', () => {
+      it('should draw backlight element properly when stretchH is enabled and column order is changed', async() => {
         handsontable({
           layoutDirection,
           data: [
@@ -508,7 +496,7 @@ describe('manualColumnMove (RTL mode)', () => {
         expect(backlight.offset().left).toBe(TH.offset().left);
       });
 
-      it('should draw backlight element properly when there are hidden columns', () => {
+      it('should draw backlight element properly when there are hidden columns', async() => {
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(5, 5),
@@ -520,7 +508,7 @@ describe('manualColumnMove (RTL mode)', () => {
           }
         });
 
-        selectColumns(1, 4);
+        await selectColumns(1, 4);
 
         const TH = $(getCell(-1, 1));
         const THLast = $(getCell(-1, 4));

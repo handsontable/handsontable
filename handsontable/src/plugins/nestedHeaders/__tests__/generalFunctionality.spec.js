@@ -20,7 +20,7 @@ describe('NestedHeaders', () => {
   });
 
   describe('general functionality', () => {
-    it('should add `htColumnHeaders` to the table when nested headers are defined', () => {
+    it('should add `htColumnHeaders` to the table when nested headers are defined', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(10, 10),
         colHeaders: true,
@@ -33,9 +33,9 @@ describe('NestedHeaders', () => {
       expect(hot.rootElement.className).toContain('htColumnHeaders');
     });
 
-    it('should add as many header levels as the \'colHeaders\' property suggests', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+    it('should add as many header levels as the \'colHeaders\' property suggests', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
         colHeaders: true,
         nestedHeaders: [
           ['a', 'b', 'c', 'd'],
@@ -43,12 +43,12 @@ describe('NestedHeaders', () => {
         ]
       });
 
-      expect(hot.view._wt.wtTable.THEAD.querySelectorAll('tr').length).toEqual(2);
+      expect(tableView()._wt.wtTable.THEAD.querySelectorAll('tr').length).toEqual(2);
     });
 
-    it('should adjust headers widths', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+    it('should adjust headers widths', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
         colHeaders: true,
         nestedHeaders: [
           ['a', { label: 'b', colspan: 2 }, 'c', 'd'],
@@ -56,15 +56,15 @@ describe('NestedHeaders', () => {
         ]
       });
 
-      const headers = hot.view._wt.wtTable.THEAD.querySelectorAll('tr:first-of-type th');
+      const headers = tableView()._wt.wtTable.THEAD.querySelectorAll('tr:first-of-type th');
 
-      expect(hot.getColWidth(1)).toBeGreaterThan(50);
+      expect(getColWidth(1)).toBeGreaterThan(50);
       expect(headers[1].offsetWidth).toBeGreaterThan(100);
     });
 
-    it('should correctly render headers when loaded dataset is shorter (less columns) than nested headers settings', () => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+    it('should correctly render headers when loaded dataset is shorter (less columns) than nested headers settings', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
         colHeaders: true,
         nestedHeaders: generateComplexSetup(4, 100, true),
         width: 400,
@@ -138,7 +138,7 @@ describe('NestedHeaders', () => {
         </tbody>
         `);
 
-      hot.loadData(Handsontable.helper.createSpreadsheetData(5, 5));
+      await loadData(createSpreadsheetData(5, 5));
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -182,7 +182,7 @@ describe('NestedHeaders', () => {
         </tbody>
         `);
 
-      hot.loadData(Handsontable.helper.createSpreadsheetData(5, 2));
+      await loadData(createSpreadsheetData(5, 2));
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -211,7 +211,7 @@ describe('NestedHeaders', () => {
         </tbody>
         `);
 
-      hot.loadData(Handsontable.helper.createSpreadsheetData(5, 6));
+      await loadData(createSpreadsheetData(5, 6));
 
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
@@ -261,9 +261,9 @@ describe('NestedHeaders', () => {
         `);
     });
 
-    it('should render headers till the virtual dataset limit ("columns" array defines more columns than dataset)', () => {
+    it('should render headers till the virtual dataset limit ("columns" array defines more columns than dataset)', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        data: createSpreadsheetData(3, 3),
         // "columns" extends virtually the dataset to 8th columns.
         columns: [{}, {}, {}, {}, {}, {}, {}, {}],
         colHeaders: true,
@@ -311,7 +311,7 @@ describe('NestedHeaders', () => {
         `);
     });
 
-    it('should render headers till the virtual dataset limit (only "columns" array is defined)', () => {
+    it('should render headers till the virtual dataset limit (only "columns" array is defined)', async() => {
       handsontable({
         columns: [{}, {}, {}, {}, {}, {}, {}, {}],
         colHeaders: true,
@@ -359,7 +359,7 @@ describe('NestedHeaders', () => {
         `);
     });
 
-    it('should render headers till the virtual dataset limit (limit defined by the "startCols" option)', () => {
+    it('should render headers till the virtual dataset limit (limit defined by the "startCols" option)', async() => {
       handsontable({
         startCols: 3,
         colHeaders: true,
@@ -392,9 +392,9 @@ describe('NestedHeaders', () => {
         `);
     });
 
-    it('should allow creating a more complex nested setup when fixedColumnsStart option is enabled', () => {
+    it('should allow creating a more complex nested setup when fixedColumnsStart option is enabled', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 10),
+        data: createSpreadsheetData(10, 10),
         colHeaders: true,
         fixedColumnsStart: 2,
         nestedHeaders: [
@@ -427,7 +427,7 @@ describe('NestedHeaders', () => {
         expect(extractDOMStructure(getInlineStartClone(), getInlineStartClone())).toMatchHTML(htmlPattern);
       }
 
-      updateSettings({ fixedColumnsStart: 3 });
+      await updateSettings({ fixedColumnsStart: 3 });
 
       {
         const htmlPattern = `
@@ -456,7 +456,7 @@ describe('NestedHeaders', () => {
         expect(extractDOMStructure(getInlineStartClone(), getInlineStartClone())).toMatchHTML(htmlPattern);
       }
 
-      updateSettings({ fixedColumnsStart: 6 });
+      await updateSettings({ fixedColumnsStart: 6 });
 
       {
         const htmlPattern = `
@@ -495,9 +495,9 @@ describe('NestedHeaders', () => {
       }
     });
 
-    it('should return a relevant nested header element in hot.getCell()', () => {
+    it('should return a relevant nested header element in getCell()', async() => {
       const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 90),
+        data: createSpreadsheetData(10, 90),
         colHeaders: true,
         nestedHeaders: generateComplexSetup(4, 70, true),
         width: 400,
@@ -539,7 +539,7 @@ describe('NestedHeaders', () => {
 
     it.forTheme('classic')('should render the setup properly after the table being scrolled', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 90),
+        data: createSpreadsheetData(10, 90),
         colHeaders: true,
         nestedHeaders: generateComplexSetup(4, 70, true),
         width: 400,
@@ -608,12 +608,11 @@ describe('NestedHeaders', () => {
         </tbody>
         `);
 
-      scrollViewportTo({
+      await scrollViewportTo({
         col: 40,
         verticalSnap: 'top',
         horizontalSnap: 'start',
       });
-      render();
 
       // scrolled
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
@@ -716,7 +715,7 @@ describe('NestedHeaders', () => {
 
     it.forTheme('main')('should render the setup properly after the table being scrolled', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 90),
+        data: createSpreadsheetData(10, 90),
         colHeaders: true,
         nestedHeaders: generateComplexSetup(4, 70, true),
         width: 400,
@@ -785,12 +784,11 @@ describe('NestedHeaders', () => {
         </tbody>
         `);
 
-      scrollViewportTo({
+      await scrollViewportTo({
         col: 40,
         verticalSnap: 'top',
         horizontalSnap: 'start',
       });
-      render();
 
       // scrolled
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
@@ -893,7 +891,7 @@ describe('NestedHeaders', () => {
 
     it.forTheme('horizon')('should render the setup properly after the table being scrolled', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 90),
+        data: createSpreadsheetData(10, 90),
         colHeaders: true,
         nestedHeaders: generateComplexSetup(4, 70, true),
         width: 427,
@@ -962,12 +960,11 @@ describe('NestedHeaders', () => {
         </tbody>
         `);
 
-      scrollViewportTo({
+      await scrollViewportTo({
         col: 40,
         verticalSnap: 'top',
         horizontalSnap: 'start',
       });
-      render();
 
       // scrolled
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
@@ -1063,7 +1060,7 @@ describe('NestedHeaders', () => {
         `);
     });
 
-    it('should correctly point cell coords for nested corners', () => {
+    it('should correctly point cell coords for nested corners', async() => {
       const afterOnCellMouseDown = jasmine.createSpy('onAfterOnCellMouseDown');
 
       handsontable({
@@ -1089,7 +1086,7 @@ describe('NestedHeaders', () => {
     });
 
     describe('`afterGetColHeader` hook', () => {
-      it('should be fired for all displayed columns on init', () => {
+      it('should be fired for all displayed columns on init', async() => {
         const afterGetColHeader = jasmine.createSpy('afterGetColHeader');
 
         handsontable({

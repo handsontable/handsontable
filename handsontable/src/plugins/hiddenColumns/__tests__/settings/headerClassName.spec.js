@@ -13,7 +13,7 @@ describe('HiddenColumns', () => {
   });
 
   describe('headerClassName', () => {
-    it('should keep the `headerClassName` settings after hiding and showing columns', () => {
+    it('should keep the `headerClassName` settings after hiding and showing columns', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: ['Left', 'Right'],
@@ -30,7 +30,7 @@ describe('HiddenColumns', () => {
       });
 
       getPlugin('hiddenColumns').hideColumn(0);
-      render();
+      await render();
 
       let firstHeaderDiv = document.querySelector('.handsontable.ht_clone_top thead tr th:nth-of-type(2) div');
 
@@ -38,7 +38,7 @@ describe('HiddenColumns', () => {
       expect(firstHeaderDiv.className).not.toContain('htLeft');
 
       getPlugin('hiddenColumns').showColumn(0);
-      render();
+      await render();
 
       firstHeaderDiv = document.querySelector('.handsontable.ht_clone_top thead tr th:nth-of-type(2) div');
       const secondHeaderDiv = document.querySelector('.handsontable.ht_clone_top thead tr th:nth-of-type(3) div');

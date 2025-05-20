@@ -1,8 +1,0 @@
-{
-    "issuesOrigin": "private",
-    "title": "Fixing issue with NestedRows plugin duplicating rows when moving children",
-    "type": "fixed",
-    "issueOrPR": 11362,
-    "breaking": false,
-    "framework": "none"
-  }

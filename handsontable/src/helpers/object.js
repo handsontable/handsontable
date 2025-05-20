@@ -285,6 +285,10 @@ export function getProperty(object, name) {
  * @param {*} value Value to be assigned at the provided property.
  */
 export function setProperty(object, name, value) {
+  if (typeof name !== 'string') {
+    return;
+  }
+
   const names = name.split('.');
   let workingObject = object;
 

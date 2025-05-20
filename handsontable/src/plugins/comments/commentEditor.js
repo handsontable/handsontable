@@ -31,6 +31,10 @@ class CommentEditor {
    */
   #rootDocument;
   /**
+   * @type {HTMLElement}
+   */
+  #rootPortalElement;
+  /**
    * @type {boolean}
    */
   #isRtl = false;
@@ -55,8 +59,9 @@ class CommentEditor {
    */
   #resizeObserver = new EditorResizeObserver();
 
-  constructor(rootDocument, isRtl) {
+  constructor(rootDocument, isRtl, rootPortalElement) {
     this.#rootDocument = rootDocument;
+    this.#rootPortalElement = rootPortalElement;
     this.#isRtl = isRtl;
     this.#editor = this.createEditor();
     this.#editorStyle = this.#editor.style;
@@ -214,7 +219,7 @@ class CommentEditor {
 
     addClass(this.#container, CommentEditor.CLASS_EDITOR_CONTAINER);
 
-    this.#rootDocument.body.appendChild(this.#container);
+    this.#rootPortalElement.appendChild(this.#container);
 
     addClass(editor, CommentEditor.CLASS_EDITOR);
     addClass(textarea, CommentEditor.CLASS_INPUT);

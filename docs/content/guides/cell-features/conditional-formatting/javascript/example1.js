@@ -16,24 +16,8 @@ const firstRowRenderer = (instance, td, ...rest) => {
   td.style.background = '#CEC';
 };
 
-const negativeValueRenderer = (
-  instance,
-  td,
-  row,
-  col,
-  prop,
-  value,
-  cellProperties
-) => {
-  Handsontable.renderers.TextRenderer(
-    instance,
-    td,
-    row,
-    col,
-    prop,
-    value,
-    cellProperties
-  );
+const negativeValueRenderer = (instance, td, row, col, prop, value, cellProperties) => {
+  Handsontable.renderers.TextRenderer(instance, td, row, col, prop, value, cellProperties);
 
   // if the row contains a negative number
   if (parseInt(value, 10) < 0) {
@@ -53,10 +37,7 @@ const negativeValueRenderer = (
 };
 
 // maps function to a lookup string
-Handsontable.renderers.registerRenderer(
-  'negativeValueRenderer',
-  negativeValueRenderer
-);
+Handsontable.renderers.registerRenderer('negativeValueRenderer', negativeValueRenderer);
 
 const container = document.querySelector('#example1');
 

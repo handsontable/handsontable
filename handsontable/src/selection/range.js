@@ -59,12 +59,10 @@ class SelectionRange {
   /**
    * Removes from the stack the last added coordinates.
    *
-   * @returns {SelectionRange}
+   * @returns {CellRange}
    */
   pop() {
-    this.ranges.pop();
-
-    return this;
+    return this.ranges.pop();
   }
 
   /**
@@ -86,14 +84,62 @@ class SelectionRange {
   }
 
   /**
-   * Returns `true` if coords is within selection coords. This method iterates through all selection layers to check if
-   * the coords object is within selection range.
+   * Returns `true` if coords is within any selection coords. This method iterates through
+   * all selection layers to check if the coords object is within selection range.
    *
    * @param {CellCoords} coords The CellCoords instance with defined visual coordinates.
+   * @param {function(CellRange, number): boolean} [criteria] The function that allows injecting custom criteria.
    * @returns {boolean}
    */
-  includes(coords) {
-    return this.ranges.some(cellRange => cellRange.includes(coords));
+  includes(coords, criteria = () => true) {
+    return this.ranges
+      .some((cellRange, index) => cellRange.includes(coords) && criteria(cellRange, index));
+  }
+
+  /**
+   * Find all ranges that are equal to the provided range.
+   *
+   * @param {CellRange} cellRange The CellRange instance with defined visual coordinates.
+   * @returns {Array<{range: CellRange, layer: number}>}
+   */
+  findAll(cellRange) {
+    const result = [];
+
+    this.ranges.forEach((range, layer) => {
+      if (range.isEqual(cellRange)) {
+        result.push({
+          range,
+          layer,
+        });
+      }
+    });
+
+    return result;
+  }
+
+  /**
+   * Removes all ranges that are equal to the provided ranges.
+   *
+   * @param {CellRange[]} cellRanges The array of CellRange instances with defined visual coordinates.
+   * @returns {SelectionRange}
+   */
+  remove(cellRanges) {
+    this.ranges = this.ranges
+      .filter(range => !cellRanges.some(cellRange => cellRange.isEqual(range)));
+
+    return this;
+  }
+
+  /**
+   * Removes the ranges based on the provided index layers (0 no N).
+   *
+   * @param {number[]} layerIndexes The array of indexes that will be removed from the selection.
+   * @returns {SelectionRange}
+   */
+  removeLayers(layerIndexes) {
+    this.ranges = this.ranges.filter((_, index) => !layerIndexes.includes(index));
+
+    return this;
   }
 
   /**
@@ -114,6 +160,31 @@ class SelectionRange {
    */
   size() {
     return this.ranges.length;
+  }
+
+  /**
+   * Creates a clone of this class.
+   *
+   * @returns {SelectionRange}
+   */
+  clone() {
+    const clone = new SelectionRange(this.createCellRange);
+
+    clone.ranges = this.ranges.map(cellRange => cellRange.clone());
+
+    return clone;
+  }
+
+  /**
+   * Allows applying custom index translations for any range within the class instance.
+   *
+   * @param {function(CellRange): CellRange} mapFunction The function that allows injecting custom index translation logic.
+   * @returns {SelectionRange}
+   */
+  map(mapFunction) {
+    this.ranges = this.ranges.map((cellRange, index) => mapFunction(cellRange, index));
+
+    return this;
   }
 
   /**

@@ -6,6 +6,8 @@ export const command = {
     const row = hot.getSelectedRangeLast().highlight.row;
     const column = columnIndexMapper.getNearestNotHiddenIndex(fixedColumns, 1);
 
+    selection.markSource('keyboard');
     selection.setRangeStart(hot._createCellCoords(row, column));
+    selection.markEndSource();
   },
 };

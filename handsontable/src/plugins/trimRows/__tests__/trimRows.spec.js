@@ -6,7 +6,7 @@ describe('TrimRows', () => {
    * @param cols
    */
   function getMultilineData(rows, cols) {
-    const data = Handsontable.helper.createSpreadsheetData(rows, cols);
+    const data = createSpreadsheetData(rows, cols);
 
     // Column C
     data[0][2] += '\nline';
@@ -38,9 +38,9 @@ describe('TrimRows', () => {
     }
   });
 
-  it('should trim rows defined in `trimRows` property', () => {
+  it('should trim rows defined in `trimRows` property', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 10),
+      data: createSpreadsheetData(10, 10),
       trimRows: [2, 6, 7],
       cells(row) {
         const meta = {};
@@ -71,30 +71,30 @@ describe('TrimRows', () => {
     expect(getCellMeta(6, 0).type).toBe('text');
   });
 
-  it('should not add more source rows than defined in maxRows when trimming rows using the TrimRows plugin', () => {
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 4),
+  it('should not add more source rows than defined in maxRows when trimming rows using the TrimRows plugin', async() => {
+    handsontable({
+      data: createSpreadsheetData(10, 4),
       trimRows: [8, 9],
       maxRows: 10
     });
 
-    expect(hot.countRows()).toEqual(8);
+    expect(countRows()).toEqual(8);
 
-    hot.populateFromArray(7, 0, [['a'], ['b'], ['c']]);
+    await populateFromArray(7, 0, [['a'], ['b'], ['c']]);
 
-    expect(hot.countSourceRows()).toEqual(10);
-    expect(hot.getDataAtCell(7, 0)).toEqual('a');
+    expect(countSourceRows()).toEqual(10);
+    expect(getDataAtCell(7, 0)).toEqual('a');
   });
 
-  it('should trim rows after re-load data calling loadData method', () => {
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 10),
+  it('should trim rows after re-load data calling loadData method', async() => {
+    handsontable({
+      data: createSpreadsheetData(10, 10),
       trimRows: [0, 2],
       width: 500,
       height: 300
     });
 
-    hot.loadData(Handsontable.helper.createSpreadsheetData(5, 5));
+    await loadData(createSpreadsheetData(5, 5));
 
     expect(getDataAtCell(0, 0)).toBe('A2');
     expect(getDataAtCell(1, 0)).toBe('A4');
@@ -103,16 +103,16 @@ describe('TrimRows', () => {
     expect(getDataAtCell(4, 0)).toBe(null);
   });
 
-  it('should return to default state after call disablePlugin method', () => {
-    const hot = handsontable({
+  it('should return to default state after call disablePlugin method', async() => {
+    handsontable({
       data: getMultilineData(10, 10),
       trimRows: [2, 6, 7],
       width: 500,
       height: 300
     });
 
-    hot.getPlugin('trimRows').disablePlugin();
-    hot.render();
+    getPlugin('trimRows').disablePlugin();
+    await render();
 
     expect(getDataAtCell(0, 0)).toBe('A1');
     expect(getDataAtCell(1, 0)).toBe('A2');
@@ -123,17 +123,17 @@ describe('TrimRows', () => {
     expect(getDataAtCell(6, 0)).toBe('A7');
   });
 
-  it('should trim rows after call enablePlugin method', () => {
-    const hot = handsontable({
+  it('should trim rows after call enablePlugin method', async() => {
+    handsontable({
       data: getMultilineData(10, 10),
       trimRows: [2, 6, 7],
       width: 500,
       height: 300
     });
 
-    hot.getPlugin('hiddenRows').disablePlugin();
-    hot.getPlugin('hiddenRows').enablePlugin();
-    hot.render();
+    getPlugin('hiddenRows').disablePlugin();
+    getPlugin('hiddenRows').enablePlugin();
+    await render();
 
     expect(getDataAtCell(0, 0)).toBe('A1');
     expect(getDataAtCell(1, 0)).toBe('A2');
@@ -144,8 +144,8 @@ describe('TrimRows', () => {
     expect(getDataAtCell(6, 0)).toBe('A10');
   });
 
-  it('should trim row after call trimRow method', () => {
-    const hot = handsontable({
+  it('should trim row after call trimRow method', async() => {
+    handsontable({
       data: getMultilineData(5, 10),
       trimRows: true,
       width: 500,
@@ -154,14 +154,14 @@ describe('TrimRows', () => {
 
     expect(getDataAtCell(1, 0)).toBe('A2');
 
-    hot.getPlugin('trimRows').trimRow(1);
-    hot.render();
+    getPlugin('trimRows').trimRow(1);
+    await render();
 
     expect(getDataAtCell(1, 0)).toBe('A3');
   });
 
-  it('should untrim row after call untrimRow method', () => {
-    const hot = handsontable({
+  it('should untrim row after call untrimRow method', async() => {
+    handsontable({
       data: getMultilineData(5, 10),
       trimRows: [1],
       width: 500,
@@ -170,15 +170,15 @@ describe('TrimRows', () => {
 
     expect(getDataAtCell(1, 0)).toBe('A3');
 
-    hot.getPlugin('trimRows').untrimRow(1);
-    hot.render();
+    getPlugin('trimRows').untrimRow(1);
+    await render();
 
     expect(getDataAtCell(1, 0)).toBe('A2');
   });
 
-  it('should trim big data set', () => {
+  it('should trim big data set', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(1000, 5),
+      data: createSpreadsheetData(1000, 5),
       // leave first row and last 3 rows
       trimRows: Array(...Array(996)).map((v, i) => i + 1),
       width: 500,
@@ -192,7 +192,7 @@ describe('TrimRows', () => {
     expect(getDataAtCell(4, 0)).toBe(null);
   });
 
-  it('should remove correct rows', () => {
+  it('should remove correct rows', async() => {
     handsontable({
       data: getMultilineData(5, 10),
       trimRows: [1],
@@ -200,14 +200,14 @@ describe('TrimRows', () => {
       height: 300
     });
 
-    alter('remove_row', 0, 2);
+    await alter('remove_row', 0, 2);
 
     expect(getDataAtCell(0, 0)).toBe('A4');
     expect(getDataAtCell(1, 0)).toBe('A5');
     expect(getDataAtCell(2, 0)).toBe(null);
   });
 
-  it('should remove correct rows after inserting new ones', () => {
+  it('should remove correct rows after inserting new ones', async() => {
     handsontable({
       data: getMultilineData(6, 10),
       trimRows: [1, 4],
@@ -215,9 +215,9 @@ describe('TrimRows', () => {
       height: 300
     });
 
-    alter('insert_row_above', 1);
-    alter('insert_row_above', 3);
-    alter('remove_row', 0, 3);
+    await alter('insert_row_above', 1);
+    await alter('insert_row_above', 3);
+    await alter('remove_row', 0, 3);
 
     expect(getDataAtCell(0, 0)).toBe(null);
     expect(getDataAtCell(1, 0)).toBe('A4');
@@ -225,9 +225,9 @@ describe('TrimRows', () => {
     expect(getDataAtCell(3, 0)).toBe(null);
   });
 
-  it('should trim proper row when moved one using the `ManualRowMove` plugin #1', () => {
+  it('should trim proper row when moved one using the `ManualRowMove` plugin #1', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 1),
+      data: createSpreadsheetData(10, 1),
       trimRows: true,
       manualRowMove: [7]
     });
@@ -237,9 +237,9 @@ describe('TrimRows', () => {
     expect(getDataAtCol(0)).toEqual(['A8', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A9', 'A10']);
   });
 
-  it('should trim proper row when moved one using the `ManualRowMove` plugin #2', () => {
+  it('should trim proper row when moved one using the `ManualRowMove` plugin #2', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 1),
+      data: createSpreadsheetData(10, 1),
       trimRows: true,
       manualRowMove: [9]
     });
@@ -249,9 +249,9 @@ describe('TrimRows', () => {
     expect(getDataAtCol(0)).toEqual(['A10', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9']);
   });
 
-  it('should update trimmed row indexes after rows removal', () => {
+  it('should update trimmed row indexes after rows removal', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 1),
+      data: createSpreadsheetData(10, 1),
       trimRows: true,
       manualRowMove: [4, 0, 8, 5, 2, 6, 1, 7, 3, 9]
     });
@@ -259,7 +259,7 @@ describe('TrimRows', () => {
     const plugin = getPlugin('trimRows');
 
     plugin.trimRows([1, 7, 3]); // physical row indexes after move
-    alter('remove_row', 2, 3); // visual row indexes
+    await alter('remove_row', 2, 3); // visual row indexes
 
     expect(plugin.isTrimmed(1)).toBeTruthy();
     expect(plugin.isTrimmed(5)).toBeTruthy(); // 7 -> 5
@@ -269,9 +269,9 @@ describe('TrimRows', () => {
     expect(plugin.isTrimmed(3)).toBeFalsy();
   });
 
-  it('should update trimmed row indexes after insertion', () => {
+  it('should update trimmed row indexes after insertion', async() => {
     handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 1),
+      data: createSpreadsheetData(10, 1),
       trimRows: true,
       manualRowMove: [4, 0, 8, 5, 2, 6, 1, 7, 3, 9]
     });
@@ -279,7 +279,7 @@ describe('TrimRows', () => {
     const plugin = getPlugin('trimRows');
 
     plugin.trimRows([1, 7, 3]); // physical row indexes after move
-    alter('insert_row_above', 0, 3); // visual row indexes
+    await alter('insert_row_above', 0, 3); // visual row indexes
 
     expect(plugin.isTrimmed(1)).toBeTruthy();
     expect(plugin.isTrimmed(3)).toBeTruthy();
@@ -288,31 +288,29 @@ describe('TrimRows', () => {
     expect(plugin.isTrimmed(10)).toBeTruthy(); // 7 -> 10
   });
 
-  it('should clear cache after loading new data by `loadData` function, when plugin `trimRows` is enabled #92', function(done) {
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 5),
+  it('should clear cache after loading new data by `loadData` function, when plugin `trimRows` is enabled #92', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       trimRows: true
     });
 
-    hot.loadData(Handsontable.helper.createSpreadsheetData(10, 10));
+    await loadData(createSpreadsheetData(10, 10));
+    await sleep(100);
 
-    setTimeout(() => {
-      expect(this.$container.find('td').length).toEqual(100);
-      done();
-    }, 100);
+    expect(spec().$container.find('td').length).toEqual(100);
   });
 
   describe('plugin hooks', () => {
     it('should not affect `afterValidate` hook #11', async() => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 2),
+      handsontable({
+        data: createSpreadsheetData(5, 2),
         trimRows: true,
         cells() {
           return { type: 'numeric' };
         }
       });
 
-      hot.populateFromArray(5, 1, [
+      await populateFromArray(5, 1, [
         ['A1', 'A2'],
         ['B1', 'B2'],
         ['C1', 'C2'],
@@ -327,11 +325,11 @@ describe('TrimRows', () => {
     });
 
     describe('beforeTrimRow', () => {
-      it('should fire the `beforeTrimRow` hook before trimming a single row by plugin API', () => {
+      it('should fire the `beforeTrimRow` hook before trimming a single row by plugin API', async() => {
         const beforeTrimRowHookCallback = jasmine.createSpy('beforeTrimRowHookCallback');
 
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           trimRows: [0],
           beforeTrimRow: beforeTrimRowHookCallback
         });
@@ -341,11 +339,11 @@ describe('TrimRows', () => {
         expect(beforeTrimRowHookCallback).toHaveBeenCalledWith([0], [0, 2], true);
       });
 
-      it('should fire the `beforeTrimRow` hook before hiding multiple rows by plugin API', () => {
+      it('should fire the `beforeTrimRow` hook before hiding multiple rows by plugin API', async() => {
         const beforeTrimRowHookCallback = jasmine.createSpy('beforeTrimRowHookCallback');
 
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           trimRows: [0],
           beforeTrimRow: beforeTrimRowHookCallback
         });
@@ -355,9 +353,9 @@ describe('TrimRows', () => {
         expect(beforeTrimRowHookCallback).toHaveBeenCalledWith([0], [0, 2, 3, 4], true);
       });
 
-      it('should be possible to cancel the trimming action by returning `false` from the `beforeTrimRow` hook', () => {
+      it('should be possible to cancel the trimming action by returning `false` from the `beforeTrimRow` hook', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           trimRows: true,
           beforeTrimRow: () => false
         });
@@ -368,11 +366,11 @@ describe('TrimRows', () => {
       });
 
       it('should not perform trimming and return `false` as the third parameter of the `beforeTrimRow` hook' +
-        ' if any of the provided rows is out of scope of the table', () => {
+        ' if any of the provided rows is out of scope of the table', async() => {
         const beforeTrimRowHookCallback = jasmine.createSpy('beforeTrimRowHookCallback');
 
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           trimRows: true,
           beforeTrimRow: beforeTrimRowHookCallback
         });
@@ -388,11 +386,11 @@ describe('TrimRows', () => {
       });
 
       it('should not perform trimming and return `false` as the third parameter of the `beforeTrimRow` hook' +
-        ' if any of the provided rows is not integer', () => {
+        ' if any of the provided rows is not integer', async() => {
         const beforeTrimRowHookCallback = jasmine.createSpy('beforeTrimRowHookCallback');
 
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           trimRows: true,
           beforeTrimRow: beforeTrimRowHookCallback
         });
@@ -408,11 +406,11 @@ describe('TrimRows', () => {
     });
 
     describe('afterTrimRow', () => {
-      it('should fire the `afterTrimRow` hook after trimming a single row by plugin API', () => {
+      it('should fire the `afterTrimRow` hook after trimming a single row by plugin API', async() => {
         const afterTrimRowHookCallback = jasmine.createSpy('afterTrimRowHookCallback');
 
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           trimRows: true,
           afterTrimRow: afterTrimRowHookCallback
         });
@@ -422,11 +420,11 @@ describe('TrimRows', () => {
         expect(afterTrimRowHookCallback).toHaveBeenCalledWith([], [2], true, true);
       });
 
-      it('should fire the `afterTrimRow` hook after trimming multiple rows by plugin API', () => {
+      it('should fire the `afterTrimRow` hook after trimming multiple rows by plugin API', async() => {
         const afterTrimRowHookCallback = jasmine.createSpy('afterTrimRowHookCallback');
 
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           trimRows: true,
           afterTrimRow: afterTrimRowHookCallback
         });
@@ -436,11 +434,11 @@ describe('TrimRows', () => {
         expect(afterTrimRowHookCallback).toHaveBeenCalledWith([], [2, 3, 4], true, true);
       });
 
-      it('it should NOT fire the `afterTrimRow` hook, if the `beforeTrimRow` hook returned false', () => {
+      it('it should NOT fire the `afterTrimRow` hook, if the `beforeTrimRow` hook returned false', async() => {
         const afterTrimRowHookCallback = jasmine.createSpy('afterTrimRowHookCallback');
 
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           trimRows: true,
           beforeTrimRow: () => false,
           afterTrimRow: afterTrimRowHookCallback
@@ -451,11 +449,11 @@ describe('TrimRows', () => {
         expect(afterTrimRowHookCallback).not.toHaveBeenCalled();
       });
 
-      it('should return `false` as the fourth parameter, if the trimming action did not change the state of the trimRows plugin', () => {
+      it('should return `false` as the fourth parameter, if the trimming action did not change the state of the trimRows plugin', async() => {
         const afterTrimRowHookCallback = jasmine.createSpy('afterTrimRowHookCallback');
 
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           trimRows: [0, 5],
           afterTrimRow: afterTrimRowHookCallback
         });
@@ -467,11 +465,11 @@ describe('TrimRows', () => {
         expect(afterTrimRowHookCallback).toHaveBeenCalledWith([0, 5], [0, 5], true, false);
       });
 
-      it('should return `true` as the third and fourth parameter, if the trimming action changed the state of the trimRows plugin', () => {
+      it('should return `true` as the third and fourth parameter, if the trimming action changed the state of the trimRows plugin', async() => {
         const afterTrimRowHookCallback = jasmine.createSpy('afterTrimRowHookCallback');
 
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           trimRows: [0, 5],
           afterTrimRow: afterTrimRowHookCallback
         });
@@ -484,11 +482,11 @@ describe('TrimRows', () => {
       });
 
       it('should not perform trimming and return `false` as the third and fourth parameter of the `afterTrimRow` hook' +
-        ' if any of the provided rows is out of scope of the table', () => {
+        ' if any of the provided rows is out of scope of the table', async() => {
         const afterTrimRowHookCallback = jasmine.createSpy('afterTrimRowHookCallback');
 
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           trimRows: true,
           afterTrimRow: afterTrimRowHookCallback
         });
@@ -504,11 +502,11 @@ describe('TrimRows', () => {
       });
 
       it('should not perform trimming and return `false` as the third and fourth parameter of the `afterTrimRow` hook' +
-        ' if any of the provided rows is not integer', () => {
+        ' if any of the provided rows is not integer', async() => {
         const afterTrimRowHookCallback = jasmine.createSpy('afterTrimRowHookCallback');
 
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           trimRows: true,
           afterTrimRow: afterTrimRowHookCallback
         });
@@ -524,11 +522,11 @@ describe('TrimRows', () => {
     });
 
     describe('beforeUntrimRow', () => {
-      it('should fire the `beforeUntrimRow` hook before untrimming a single, previously trimmed row', () => {
+      it('should fire the `beforeUntrimRow` hook before untrimming a single, previously trimmed row', async() => {
         const beforeUntrimRowHookCallback = jasmine.createSpy('beforeUntrimRowHookCallback');
 
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           trimRows: [0, 2],
           beforeUntrimRow: beforeUntrimRowHookCallback
         });
@@ -538,11 +536,11 @@ describe('TrimRows', () => {
         expect(beforeUntrimRowHookCallback).toHaveBeenCalledWith([0, 2], [0], true);
       });
 
-      it('should fire the `beforeUntrimRow` hook before untrimming the multiple, previously trimmed rows ', () => {
+      it('should fire the `beforeUntrimRow` hook before untrimming the multiple, previously trimmed rows ', async() => {
         const beforeUntrimRowHookCallback = jasmine.createSpy('beforeUntrimRowHookCallback');
 
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           trimRows: [0, 2, 3, 4],
           beforeUntrimRow: beforeUntrimRowHookCallback
         });
@@ -552,9 +550,9 @@ describe('TrimRows', () => {
         expect(beforeUntrimRowHookCallback).toHaveBeenCalledWith([0, 2, 3, 4], [0], true);
       });
 
-      it('should be possible to cancel the untrimming action by returning `false` from the `beforeUntrimRow` hook', () => {
+      it('should be possible to cancel the untrimming action by returning `false` from the `beforeUntrimRow` hook', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           trimRows: [2, 3, 4],
           beforeUntrimRow: () => false
         });
@@ -565,11 +563,11 @@ describe('TrimRows', () => {
       });
 
       it('should not perform untrimming and return `false` as the third parameter of the `beforeUntrimRow` hook' +
-        ' if any of the provided rows is out of scope of the table', () => {
+        ' if any of the provided rows is out of scope of the table', async() => {
         const beforeUntrimRowHookCallback = jasmine.createSpy('beforeUntrimRowHookCallback');
 
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           trimRows: [0, 5],
           beforeUntrimRow: beforeUntrimRowHookCallback
         });
@@ -584,11 +582,11 @@ describe('TrimRows', () => {
       });
 
       it('should not perform untrimming and return `false` as the third parameter of the `beforeUntrimRow` hook' +
-        ' if any of the provided rows is out of scope of the table', () => {
+        ' if any of the provided rows is out of scope of the table', async() => {
         const beforeUntrimRowHookCallback = jasmine.createSpy('beforeUntrimRowHookCallback');
 
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           trimRows: [0, 5],
           beforeUntrimRow: beforeUntrimRowHookCallback
         });
@@ -604,11 +602,11 @@ describe('TrimRows', () => {
     });
 
     describe('afterUntrimRow', () => {
-      it('should fire the `afterUntrimRow` hook after untrimming a previously trimmed single row', () => {
+      it('should fire the `afterUntrimRow` hook after untrimming a previously trimmed single row', async() => {
         const afterUntrimRowHookCallback = jasmine.createSpy('afterUntrimRowHookCallback');
 
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           trimRows: [2],
           afterUntrimRow: afterUntrimRowHookCallback
         });
@@ -618,11 +616,11 @@ describe('TrimRows', () => {
         expect(afterUntrimRowHookCallback).toHaveBeenCalledWith([2], [], true, true);
       });
 
-      it('should fire the `afterUntrimRow` hook after untrimming a multiple, previously trimmed rows', () => {
+      it('should fire the `afterUntrimRow` hook after untrimming a multiple, previously trimmed rows', async() => {
         const afterUntrimRowHookCallback = jasmine.createSpy('afterUntrimRowHookCallback');
 
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           trimRows: [2, 3, 4],
           afterUntrimRow: afterUntrimRowHookCallback
         });
@@ -632,11 +630,11 @@ describe('TrimRows', () => {
         expect(afterUntrimRowHookCallback).toHaveBeenCalledWith([2, 3, 4], [], true, true);
       });
 
-      it('it should NOT fire the `afterUntrimRow` hook, if the `beforeUntrimRow` hook returned false', () => {
+      it('it should NOT fire the `afterUntrimRow` hook, if the `beforeUntrimRow` hook returned false', async() => {
         const afterUntrimRowHookCallback = jasmine.createSpy('afterUntrimRowHookCallback');
 
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           trimRows: true,
           beforeUntrimRow: () => false,
           afterUntrimRow: afterUntrimRowHookCallback
@@ -647,11 +645,11 @@ describe('TrimRows', () => {
         expect(afterUntrimRowHookCallback).not.toHaveBeenCalled();
       });
 
-      it('should return `false` as the fourth parameter, if the untrimming action did not change the state of the trimRows plugin', () => {
+      it('should return `false` as the fourth parameter, if the untrimming action did not change the state of the trimRows plugin', async() => {
         const afterUntrimRowHookCallback = jasmine.createSpy('afterUntrimRowHookCallback');
 
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           trimRows: true,
           afterUntrimRow: afterUntrimRowHookCallback
         });
@@ -663,11 +661,11 @@ describe('TrimRows', () => {
         expect(afterUntrimRowHookCallback).toHaveBeenCalledWith([], [], true, false);
       });
 
-      it('should return `true` as the fourth parameter, if the untrimming action changed the state of the trimRows plugin', () => {
+      it('should return `true` as the fourth parameter, if the untrimming action changed the state of the trimRows plugin', async() => {
         const afterUntrimRowHookCallback = jasmine.createSpy('afterUntrimRowHookCallback');
 
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 10),
+          data: createSpreadsheetData(10, 10),
           trimRows: [0, 5],
           afterUntrimRow: afterUntrimRowHookCallback
         });
@@ -680,11 +678,11 @@ describe('TrimRows', () => {
       });
 
       it('should not perform hiding and return `false` as the third and fourth parameter of the `afterUntrimRow` hook' +
-        ' if any of the provided rows is not integer', () => {
+        ' if any of the provided rows is not integer', async() => {
         const afterUntrimRowHookCallback = jasmine.createSpy('afterUntrimRowHookCallback');
 
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(10, 7),
+          data: createSpreadsheetData(10, 7),
           trimRows: [0, 5],
           afterUntrimRow: afterUntrimRowHookCallback
         });
@@ -699,61 +697,34 @@ describe('TrimRows', () => {
       });
     });
 
-    it('should not override the `index` parameter of the `beforeCreateRow` hook', () => {
+    it('should not override the `index` parameter of the `beforeCreateRow` hook', async() => {
       const onBeforeCreateRowCallback = jasmine.createSpy('beforeCreateRow');
 
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(3, 3),
+        data: createSpreadsheetData(3, 3),
         trimRows: true,
         beforeCreateRow: onBeforeCreateRowCallback
       });
 
-      alter('insert_row_above', 1);
+      await alter('insert_row_above', 1);
 
       expect(onBeforeCreateRowCallback).toHaveBeenCalledWith(1, 1);
     });
   });
 
   describe('copy-paste functionality', () => {
-    class DataTransferObject {
-      constructor() {
-        this.data = {
-          'text/plain': '',
-          'text/html': ''
-        };
-      }
-      getData(type) {
-        return this.data[type];
-      }
-      setData(type, value) {
-        this.data[type] = value;
-      }
-    }
-
-    /**
-     *
-     */
-    function getClipboardEventMock() {
-      const event = {};
-
-      event.clipboardData = new DataTransferObject();
-      event.preventDefault = () => {};
-
-      return event;
-    }
-
-    it('should skip trimmed rows, while copying data', () => {
-      const hot = handsontable({
+    it('should skip trimmed rows, while copying data', async() => {
+      handsontable({
         data: getMultilineData(10, 10),
         trimRows: [1, 5, 6, 7, 8],
         width: 500,
         height: 300
       });
 
-      const copyEvent = getClipboardEventMock('copy');
-      const plugin = hot.getPlugin('CopyPaste');
+      const copyEvent = getClipboardEvent('copy');
+      const plugin = getPlugin('CopyPaste');
 
-      selectCell(0, 0, 4, 9);
+      await selectCell(0, 0, 4, 9);
 
       plugin.setCopyableText();
       plugin.onCopy(copyEvent);
@@ -770,7 +741,7 @@ describe('TrimRows', () => {
   });
 
   describe('navigation', () => {
-    it('should ignore trimmed rows while navigating by arrow keys', () => {
+    it('should ignore trimmed rows while navigating by arrow keys', async() => {
       handsontable({
         data: getMultilineData(50, 10),
         trimRows: [1, 5, 6, 7, 8],
@@ -778,30 +749,30 @@ describe('TrimRows', () => {
         height: 300
       });
 
-      selectCell(0, 0, 0, 0);
+      await selectCell(0, 0, 0, 0);
 
       expect(getValue()).toEqual('A1');
 
-      keyDownUp('arrowdown');
+      await keyDownUp('arrowdown');
 
       expect(getValue()).toEqual('A3');
 
-      keyDownUp('arrowdown');
+      await keyDownUp('arrowdown');
 
       expect(getValue()).toEqual('A4');
 
-      keyDownUp('arrowdown');
+      await keyDownUp('arrowdown');
 
       expect(getValue()).toEqual('A5');
 
-      keyDownUp('arrowdown');
+      await keyDownUp('arrowdown');
 
       expect(getValue()).toEqual('A10');
     });
   });
 
   describe('column sorting', () => {
-    it('should remove correct rows after sorting', () => {
+    it('should remove correct rows after sorting', async() => {
       handsontable({
         data: getMultilineData(5, 10),
         columnSorting: {
@@ -814,14 +785,14 @@ describe('TrimRows', () => {
         width: 500,
         height: 300
       });
-      alter('remove_row', 2, 1);
+      await alter('remove_row', 2, 1);
 
       expect(getDataAtCell(0, 0)).toBe('A5');
       expect(getDataAtCell(1, 0)).toBe('A4');
       expect(getDataAtCell(2, 0)).toBe('A1');
     });
 
-    it('should remove correct rows after insert new rows in sorted column', (done) => {
+    it('should remove correct rows after insert new rows in sorted column', async() => {
       handsontable({
         data: getMultilineData(5, 10),
         colHeaders: true,
@@ -836,22 +807,23 @@ describe('TrimRows', () => {
         height: 300
       });
 
-      setTimeout(() => {
-        alter('insert_row_above', 2, 1);
-        getHtCore().find('th span.columnSorting:eq(2)').simulate('mousedown');
-        getHtCore().find('th span.columnSorting:eq(2)').simulate('mouseup');
-        getHtCore().find('th span.columnSorting:eq(2)').simulate('click');
-        alter('remove_row', 2, 1);
+      await sleep(100);
 
-        expect(getDataAtCell(0, 0)).toBe('A1');
-        expect(getDataAtCell(1, 0)).toBe('A3');
-        expect(getDataAtCell(2, 0)).toBe('A5');
-        expect(getDataAtCell(3, 0)).toBe(null);
-        done();
-      }, 100);
+      await alter('insert_row_above', 2, 1);
+
+      getHtCore().find('th span.columnSorting:eq(2)').simulate('mousedown');
+      getHtCore().find('th span.columnSorting:eq(2)').simulate('mouseup');
+      getHtCore().find('th span.columnSorting:eq(2)').simulate('click');
+
+      await alter('remove_row', 2, 1);
+
+      expect(getDataAtCell(0, 0)).toBe('A1');
+      expect(getDataAtCell(1, 0)).toBe('A3');
+      expect(getDataAtCell(2, 0)).toBe('A5');
+      expect(getDataAtCell(3, 0)).toBe(null);
     });
 
-    it('should remove correct rows after insert new rows in sorted column (multiple sort click)', (done) => {
+    it('should remove correct rows after insert new rows in sorted column (multiple sort click)', async() => {
       handsontable({
         data: getMultilineData(5, 10),
         colHeaders: true,
@@ -866,28 +838,31 @@ describe('TrimRows', () => {
         height: 300
       });
 
-      setTimeout(() => {
-        alter('insert_row_above', 2, 1);
-        getHtCore().find('th span.columnSorting:eq(2)').simulate('mousedown');
-        getHtCore().find('th span.columnSorting:eq(2)').simulate('mouseup');
-        getHtCore().find('th span.columnSorting:eq(2)').simulate('click');
-        alter('insert_row_above', 0, 1);
-        getHtCore().find('th span.columnSorting:eq(2)').simulate('mousedown');
-        getHtCore().find('th span.columnSorting:eq(2)').simulate('mouseup');
-        getHtCore().find('th span.columnSorting:eq(2)').simulate('click');
-        alter('remove_row', 0, 3);
+      await sleep(100);
 
-        expect(getDataAtCell(0, 0)).toBe('A1');
-        expect(getDataAtCell(1, 0)).toBe(null);
-        expect(getDataAtCell(2, 0)).toBe(null);
-        expect(getDataAtCell(3, 0)).toBe(null);
-        done();
-      }, 100);
+      await alter('insert_row_above', 2, 1);
+
+      getHtCore().find('th span.columnSorting:eq(2)').simulate('mousedown');
+      getHtCore().find('th span.columnSorting:eq(2)').simulate('mouseup');
+      getHtCore().find('th span.columnSorting:eq(2)').simulate('click');
+
+      await alter('insert_row_above', 0, 1);
+
+      getHtCore().find('th span.columnSorting:eq(2)').simulate('mousedown');
+      getHtCore().find('th span.columnSorting:eq(2)').simulate('mouseup');
+      getHtCore().find('th span.columnSorting:eq(2)').simulate('click');
+
+      await alter('remove_row', 0, 3);
+
+      expect(getDataAtCell(0, 0)).toBe('A1');
+      expect(getDataAtCell(1, 0)).toBe(null);
+      expect(getDataAtCell(2, 0)).toBe(null);
+      expect(getDataAtCell(3, 0)).toBe(null);
     });
 
-    it('should correctly solve toVisualRow calculations after sort', () => {
+    it('should correctly solve toVisualRow calculations after sort', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(2, 1),
+        data: createSpreadsheetData(2, 1),
         trimRows: [0],
         columnSorting: true,
       });
@@ -903,15 +878,15 @@ describe('TrimRows', () => {
 
   describe('maxRows option set', () => {
     it('should return properly data after trimming', async() => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 3),
+      handsontable({
+        data: createSpreadsheetData(10, 3),
         maxRows: 3,
         trimRows: [2, 3]
       });
 
       await sleep(100);
 
-      expect(hot.getData()).toEqual([
+      expect(getData()).toEqual([
         ['A1', 'B1', 'C1'],
         ['A2', 'B2', 'C2'],
         ['A5', 'B5', 'C5']
@@ -921,13 +896,13 @@ describe('TrimRows', () => {
 
   describe('should display data properly when minSpareRow or / and minRows or / and startRows options are set', () => {
     it('minRows is set', async() => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 3),
+      handsontable({
+        data: createSpreadsheetData(10, 3),
         minRows: 10,
         trimRows: [1, 2, 3, 4, 5, 6, 7, 8, 9]
       });
 
-      expect(hot.getData()).toEqual([
+      expect(getData()).toEqual([
         ['A1', 'B1', 'C1'],
         [null, null, null],
         [null, null, null],
@@ -940,11 +915,11 @@ describe('TrimRows', () => {
         [null, null, null],
       ]);
 
-      hot.setDataAtCell(9, 0, 'test');
+      await setDataAtCell(9, 0, 'test');
 
       await sleep(100);
 
-      expect(hot.getData()).toEqual([
+      expect(getData()).toEqual([
         ['A1', 'B1', 'C1'],
         [null, null, null],
         [null, null, null],
@@ -959,13 +934,13 @@ describe('TrimRows', () => {
     });
 
     it('minSpareRows is set', async() => {
-      const hot = handsontable({
-        data: Handsontable.helper.createSpreadsheetData(10, 3),
+      handsontable({
+        data: createSpreadsheetData(10, 3),
         minSpareRows: 4,
         trimRows: [1, 2, 3, 4, 5, 6, 7, 8, 9]
       });
 
-      expect(hot.getData()).toEqual([
+      expect(getData()).toEqual([
         ['A1', 'B1', 'C1'],
         [null, null, null],
         [null, null, null],
@@ -973,11 +948,11 @@ describe('TrimRows', () => {
         [null, null, null],
       ]);
 
-      hot.setDataAtCell(0, 0, 'test');
+      await setDataAtCell(0, 0, 'test');
 
       await sleep(100);
 
-      expect(hot.getData()).toEqual([
+      expect(getData()).toEqual([
         ['test', 'B1', 'C1'],
         [null, null, null],
         [null, null, null],
@@ -985,11 +960,11 @@ describe('TrimRows', () => {
         [null, null, null],
       ]);
 
-      hot.setDataAtCell(4, 0, 'test');
+      await setDataAtCell(4, 0, 'test');
 
       await sleep(100);
 
-      expect(hot.getData()).toEqual([
+      expect(getData()).toEqual([
         ['test', 'B1', 'C1'],
         [null, null, null],
         [null, null, null],
@@ -1003,14 +978,14 @@ describe('TrimRows', () => {
     });
 
     it('data.length < minRows; no empty cells in dataset, minSpareRows set', async() => {
-      const hot = handsontable({
+      handsontable({
         data: dataWithoutEmptyCells,
         trimRows: [0, 1],
         minRows: 5,
         minSpareRows: 2
       });
 
-      expect(hot.getData()).toEqual([
+      expect(getData()).toEqual([
         ['A3', 'B3', 'C3'],
         [null, null, null],
         [null, null, null],
@@ -1018,11 +993,11 @@ describe('TrimRows', () => {
         [null, null, null],
       ]);
 
-      hot.setDataAtCell(3, 0, 'test');
+      await setDataAtCell(3, 0, 'test');
 
       await sleep(100);
 
-      expect(hot.getData()).toEqual([
+      expect(getData()).toEqual([
         ['A3', 'B3', 'C3'],
         [null, null, null],
         [null, null, null],
@@ -1033,14 +1008,14 @@ describe('TrimRows', () => {
     });
 
     it('data.length < minRows; empty cells in dataset, minSpareRows set', async() => {
-      const hot = handsontable({
+      handsontable({
         data: dataWithEmptyRow,
         trimRows: [0, 1],
         minRows: 5,
         minSpareRows: 2
       });
 
-      expect(hot.getData()).toEqual([
+      expect(getData()).toEqual([
         [null, null, null],
         [null, null, null],
         [null, null, null],
@@ -1048,11 +1023,11 @@ describe('TrimRows', () => {
         [null, null, null],
       ]);
 
-      hot.setDataAtCell(3, 0, 'test');
+      await setDataAtCell(3, 0, 'test');
 
       await sleep(100);
 
-      expect(hot.getData()).toEqual([
+      expect(getData()).toEqual([
         [null, null, null],
         [null, null, null],
         [null, null, null],
@@ -1062,13 +1037,13 @@ describe('TrimRows', () => {
       ]);
     });
 
-    it('just the plugin is enabled and we load data #5707', () => {
+    it('just the plugin is enabled and we load data #5707', async() => {
       handsontable({
         minSpareRows: 3,
         trimRows: true,
       });
 
-      loadData(Handsontable.helper.createSpreadsheetData(5, 2));
+      await loadData(createSpreadsheetData(5, 2));
 
       expect(getData()).toEqual([
         ['A1', 'B1'],
@@ -1084,15 +1059,15 @@ describe('TrimRows', () => {
   });
 
   describe('updateSettings', () => {
-    it('should update list of trimmed rows when array of indexes is passed to the method - test no. 1', () => {
-      const hot = handsontable({
+    it('should update list of trimmed rows when array of indexes is passed to the method - test no. 1', async() => {
+      handsontable({
         data: getMultilineData(10, 10),
         trimRows: [2, 6, 7],
         width: 500,
         height: 300
       });
 
-      hot.updateSettings({
+      await updateSettings({
         trimRows: [1, 2, 3, 4, 5]
       });
 
@@ -1103,18 +1078,18 @@ describe('TrimRows', () => {
       expect(getDataAtCell(4, 0)).toBe('A10');
     });
 
-    it('should update list of trimmed rows when array of indexes is passed to the method - test no. 2', () => {
-      const hot = handsontable({
+    it('should update list of trimmed rows when array of indexes is passed to the method - test no. 2', async() => {
+      handsontable({
         data: getMultilineData(10, 10),
         trimRows: true,
         width: 500,
         height: 300
       });
 
-      hot.getPlugin('trimRows').trimRows([2, 6, 7]);
-      hot.render();
+      getPlugin('trimRows').trimRows([2, 6, 7]);
+      await render();
 
-      hot.updateSettings({
+      await updateSettings({
         trimRows: [1, 2, 3, 4, 5]
       });
 
@@ -1125,84 +1100,84 @@ describe('TrimRows', () => {
       expect(getDataAtCell(4, 0)).toBe('A10');
     });
 
-    it('should clear list of trimmed rows when empty array is passed to the method - test no. 1', function() {
-      const hot = handsontable({
+    it('should clear list of trimmed rows when empty array is passed to the method - test no. 1', async() => {
+      handsontable({
         data: getMultilineData(10, 10),
         trimRows: [2, 6, 7],
         width: 500,
         height: 300
       });
 
-      hot.updateSettings({
+      await updateSettings({
         trimRows: []
       });
 
-      expect(this.$container.find('td').length).toEqual(100);
+      expect(spec().$container.find('td').length).toEqual(100);
     });
 
-    it('should clear list of trimmed rows when empty array is passed to the method - test no. 2', function() {
-      const hot = handsontable({
+    it('should clear list of trimmed rows when empty array is passed to the method - test no. 2', async() => {
+      handsontable({
         data: getMultilineData(10, 10),
         trimRows: true,
         width: 500,
         height: 300
       });
 
-      hot.getPlugin('trimRows').trimRows([2, 6, 7]);
-      hot.render();
+      getPlugin('trimRows').trimRows([2, 6, 7]);
 
-      hot.updateSettings({
+      await render();
+      await updateSettings({
         trimRows: []
       });
 
-      expect(this.$container.find('td').length).toEqual(100);
+      expect(spec().$container.find('td').length).toEqual(100);
     });
 
     it('should clear list of trimmed rows when handled setting object has key `trimRows` with value ' +
-      'set to `false` - test no. 1', function() {
-      const hot = handsontable({
+      'set to `false` - test no. 1', async() => {
+      handsontable({
         data: getMultilineData(10, 10),
         trimRows: [2, 6, 7],
         width: 500,
         height: 300
       });
 
-      hot.updateSettings({
+      await updateSettings({
         trimRows: false
       });
 
-      expect(this.$container.find('td').length).toEqual(100);
+      expect(spec().$container.find('td').length).toEqual(100);
     });
 
     it('should clear list of trimmed rows when handled setting object has key `trimRows` with value ' +
-      'set to `false` - test no. 2', function() {
-      const hot = handsontable({
+      'set to `false` - test no. 2', async() => {
+      handsontable({
         data: getMultilineData(10, 10),
         trimRows: true,
         width: 500,
         height: 300
       });
 
-      hot.getPlugin('trimRows').trimRows([2, 6, 7]);
-      hot.render();
+      getPlugin('trimRows').trimRows([2, 6, 7]);
 
-      hot.updateSettings({
+      await render();
+      await updateSettings({
         trimRows: false
       });
 
-      expect(this.$container.find('td').length).toEqual(100);
+      expect(spec().$container.find('td').length).toEqual(100);
     });
 
     it('shouldn\'t clear list of trimmed rows when handled setting object has key `trimRows` with value ' +
-      'set to `true` - test no. 1', () => {
-      const hot = handsontable({
+      'set to `true` - test no. 1', async() => {
+      handsontable({
         data: getMultilineData(10, 10),
         trimRows: [2, 6, 7],
         width: 500,
         height: 300
       });
 
-      hot.updateSettings({
+      await updateSettings({
         trimRows: true
       });
 
@@ -1210,50 +1185,50 @@ describe('TrimRows', () => {
     });
 
     it('shouldn\'t clear list of trimmed rows when handled setting object has key `trimRows` with value ' +
-      'set to `true` - test no. 2', () => {
-      const hot = handsontable({
+      'set to `true` - test no. 2', async() => {
+      handsontable({
         data: getMultilineData(10, 10),
         trimRows: true,
         width: 500,
         height: 300
       });
 
-      hot.getPlugin('trimRows').trimRows([2, 6, 7]);
-      hot.render();
+      getPlugin('trimRows').trimRows([2, 6, 7]);
+      await render();
 
-      hot.updateSettings({
+      await updateSettings({
         trimRows: true
       });
 
       expect(getData().length).toEqual(7);
     });
 
-    it('shouldn\'t change list of trimmed rows when handled setting object don\'t have `trimRows` key - test no. 1', () => {
-      const hot = handsontable({
+    it('shouldn\'t change list of trimmed rows when handled setting object don\'t have `trimRows` key - test no. 1', async() => {
+      handsontable({
         data: getMultilineData(10, 10),
         trimRows: [2, 6, 7],
         width: 500,
         height: 300
       });
 
-      hot.updateSettings({});
+      await updateSettings({});
 
-      hot.render();
+      await render();
 
       expect(getData().length).toEqual(7);
     });
 
-    it('shouldn\'t change list of trimmed rows when handled setting object don\'t have `trimRows` key - test no. 2', () => {
-      const hot = handsontable({
+    it('shouldn\'t change list of trimmed rows when handled setting object don\'t have `trimRows` key - test no. 2', async() => {
+      handsontable({
         data: getMultilineData(10, 10),
         trimRows: true,
         width: 500,
         height: 300
       });
 
-      hot.getPlugin('trimRows').trimRows([2, 6, 7]);
-      hot.render();
-      hot.updateSettings({});
+      getPlugin('trimRows').trimRows([2, 6, 7]);
+      await render();
+      await updateSettings({});
 
       expect(getData().length).toEqual(7);
     });
@@ -1262,10 +1237,10 @@ describe('TrimRows', () => {
   describe('regression check - headers resizing', () => {
     const DEFAULT_ROW_HEIGHT = 23;
 
-    it.forTheme('classic')('should resize container for headers properly after insertion (pixel perfect)', () => {
+    it.forTheme('classic')('should resize container for headers properly after insertion (pixel perfect)', async() => {
       const insertedRows = 6;
 
-      const hot = handsontable({
+      handsontable({
         rowHeaders: true,
         colHeaders: true,
         trimRows: [0],
@@ -1275,22 +1250,22 @@ describe('TrimRows', () => {
 
       const rowHeadersHeightAtStart = spec().$container.find('.ht_clone_inline_start').eq(0).height();
 
-      hot.render(); // Extra `render` needed.
+      await render(); // Extra `render` needed.
 
       expect(spec().$container.find('.ht_clone_inline_start').eq(0).height()).toBe(rowHeadersHeightAtStart);
 
-      alter('insert_row_above', 0, insertedRows);
+      await alter('insert_row_above', 0, insertedRows);
 
       const newRowHeadersHeight = spec().$container.find('.ht_clone_inline_start').eq(0).height();
 
       expect(newRowHeadersHeight).toEqual(rowHeadersHeightAtStart + (insertedRows * DEFAULT_ROW_HEIGHT));
     });
 
-    it.forTheme('main')('should resize container for headers properly after insertion (pixel perfect)', () => {
+    it.forTheme('main')('should resize container for headers properly after insertion (pixel perfect)', async() => {
       const THEME_ROW_HEIGHT = 29;
       const insertedRows = 6;
 
-      const hot = handsontable({
+      handsontable({
         rowHeaders: true,
         colHeaders: true,
         trimRows: [0],
@@ -1300,22 +1275,22 @@ describe('TrimRows', () => {
 
       const rowHeadersHeightAtStart = spec().$container.find('.ht_clone_inline_start').eq(0).height();
 
-      hot.render(); // Extra `render` needed.
+      await render(); // Extra `render` needed.
 
       expect(spec().$container.find('.ht_clone_inline_start').eq(0).height()).toBe(rowHeadersHeightAtStart);
 
-      alter('insert_row_above', 0, insertedRows);
+      await alter('insert_row_above', 0, insertedRows);
 
       const newRowHeadersHeight = spec().$container.find('.ht_clone_inline_start').eq(0).height();
 
       expect(newRowHeadersHeight).toEqual(rowHeadersHeightAtStart + (insertedRows * THEME_ROW_HEIGHT));
     });
 
-    it.forTheme('horizon')('should resize container for headers properly after insertion (pixel perfect)', () => {
+    it.forTheme('horizon')('should resize container for headers properly after insertion (pixel perfect)', async() => {
       const THEME_ROW_HEIGHT = 37;
       const insertedRows = 6;
 
-      const hot = handsontable({
+      handsontable({
         rowHeaders: true,
         colHeaders: true,
         trimRows: [0],
@@ -1325,21 +1300,21 @@ describe('TrimRows', () => {
 
       const rowHeadersHeightAtStart = spec().$container.find('.ht_clone_inline_start').eq(0).height();
 
-      hot.render(); // Extra `render` needed.
+      await render(); // Extra `render` needed.
 
       expect(spec().$container.find('.ht_clone_inline_start').eq(0).height()).toBe(rowHeadersHeightAtStart);
 
-      alter('insert_row_above', 0, insertedRows);
+      await alter('insert_row_above', 0, insertedRows);
 
       const newRowHeadersHeight = spec().$container.find('.ht_clone_inline_start').eq(0).height();
 
       expect(newRowHeadersHeight).toEqual(rowHeadersHeightAtStart + (insertedRows * THEME_ROW_HEIGHT));
     });
 
-    it.forTheme('classic')('should resize container for headers properly after removal (pixel perfect)', () => {
+    it.forTheme('classic')('should resize container for headers properly after removal (pixel perfect)', async() => {
       const removedRows = 6;
 
-      const hot = handsontable({
+      handsontable({
         rowHeaders: true,
         colHeaders: true,
         trimRows: [0],
@@ -1349,22 +1324,22 @@ describe('TrimRows', () => {
 
       const rowHeadersHeightAtStart = spec().$container.find('.ht_clone_inline_start').eq(0).height();
 
-      hot.render(); // Extra `render` needed.
+      await render(); // Extra `render` needed.
 
       expect(spec().$container.find('.ht_clone_inline_start').eq(0).height()).toBe(rowHeadersHeightAtStart);
 
-      alter('remove_row', 0, removedRows);
+      await alter('remove_row', 0, removedRows);
 
       const newRowHeadersHeight = spec().$container.find('.ht_clone_inline_start').eq(0).height();
 
       expect(newRowHeadersHeight).toEqual(rowHeadersHeightAtStart - (removedRows * DEFAULT_ROW_HEIGHT));
     });
 
-    it.forTheme('main')('should resize container for headers properly after removal (pixel perfect)', () => {
+    it.forTheme('main')('should resize container for headers properly after removal (pixel perfect)', async() => {
       const THEME_ROW_HEIGHT = 29;
       const removedRows = 6;
 
-      const hot = handsontable({
+      handsontable({
         rowHeaders: true,
         colHeaders: true,
         trimRows: [0],
@@ -1374,22 +1349,22 @@ describe('TrimRows', () => {
 
       const rowHeadersHeightAtStart = spec().$container.find('.ht_clone_inline_start').eq(0).height();
 
-      hot.render(); // Extra `render` needed.
+      await render(); // Extra `render` needed.
 
       expect(spec().$container.find('.ht_clone_inline_start').eq(0).height()).toBe(rowHeadersHeightAtStart);
 
-      alter('remove_row', 0, removedRows);
+      await alter('remove_row', 0, removedRows);
 
       const newRowHeadersHeight = spec().$container.find('.ht_clone_inline_start').eq(0).height();
 
       expect(newRowHeadersHeight).toEqual(rowHeadersHeightAtStart - (removedRows * THEME_ROW_HEIGHT));
     });
 
-    it.forTheme('horizon')('should resize container for headers properly after removal (pixel perfect)', () => {
+    it.forTheme('horizon')('should resize container for headers properly after removal (pixel perfect)', async() => {
       const THEME_ROW_HEIGHT = 37;
       const removedRows = 6;
 
-      const hot = handsontable({
+      handsontable({
         rowHeaders: true,
         colHeaders: true,
         trimRows: [0],
@@ -1399,11 +1374,11 @@ describe('TrimRows', () => {
 
       const rowHeadersHeightAtStart = spec().$container.find('.ht_clone_inline_start').eq(0).height();
 
-      hot.render(); // Extra `render` needed.
+      await render(); // Extra `render` needed.
 
       expect(spec().$container.find('.ht_clone_inline_start').eq(0).height()).toBe(rowHeadersHeightAtStart);
 
-      alter('remove_row', 0, removedRows);
+      await alter('remove_row', 0, removedRows);
 
       const newRowHeadersHeight = spec().$container.find('.ht_clone_inline_start').eq(0).height();
 
@@ -1411,8 +1386,8 @@ describe('TrimRows', () => {
     });
 
     it.forTheme('classic')('should resize container for headers properly after untrimming row ' +
-      '(pixel perfect) #6276', () => {
-      const hot = handsontable({
+      '(pixel perfect) #6276', async() => {
+      handsontable({
         rowHeaders: true,
         colHeaders: true,
         trimRows: [0],
@@ -1422,12 +1397,12 @@ describe('TrimRows', () => {
 
       const rowHeadersHeightAtStart = spec().$container.find('.ht_clone_inline_start').eq(0).height();
 
-      hot.render(); // Extra `render` needed.
+      await render(); // Extra `render` needed.
 
       expect(spec().$container.find('.ht_clone_inline_start').eq(0).height()).toBe(rowHeadersHeightAtStart);
 
-      hot.getPlugin('trimRows').untrimAll();
-      hot.render();
+      getPlugin('trimRows').untrimAll();
+      await render();
 
       const newRowHeadersHeight = spec().$container.find('.ht_clone_inline_start').eq(0).height();
 
@@ -1435,10 +1410,10 @@ describe('TrimRows', () => {
     });
 
     it.forTheme('main')('should resize container for headers properly after untrimming row ' +
-      '(pixel perfect) #6276', () => {
+      '(pixel perfect) #6276', async() => {
       const THEME_ROW_HEIGHT = 29;
 
-      const hot = handsontable({
+      handsontable({
         rowHeaders: true,
         colHeaders: true,
         trimRows: [0],
@@ -1448,12 +1423,12 @@ describe('TrimRows', () => {
 
       const rowHeadersHeightAtStart = spec().$container.find('.ht_clone_inline_start').eq(0).height();
 
-      hot.render(); // Extra `render` needed.
+      await render(); // Extra `render` needed.
 
       expect(spec().$container.find('.ht_clone_inline_start').eq(0).height()).toBe(rowHeadersHeightAtStart);
 
-      hot.getPlugin('trimRows').untrimAll();
-      hot.render();
+      getPlugin('trimRows').untrimAll();
+      await render();
 
       const newRowHeadersHeight = spec().$container.find('.ht_clone_inline_start').eq(0).height();
 
@@ -1461,10 +1436,10 @@ describe('TrimRows', () => {
     });
 
     it.forTheme('horizon')('should resize container for headers properly after untrimming row ' +
-      '(pixel perfect) #6276', () => {
+      '(pixel perfect) #6276', async() => {
       const THEME_ROW_HEIGHT = 37;
 
-      const hot = handsontable({
+      handsontable({
         rowHeaders: true,
         colHeaders: true,
         trimRows: [0],
@@ -1474,12 +1449,12 @@ describe('TrimRows', () => {
 
       const rowHeadersHeightAtStart = spec().$container.find('.ht_clone_inline_start').eq(0).height();
 
-      hot.render(); // Extra `render` needed.
+      await render(); // Extra `render` needed.
 
       expect(spec().$container.find('.ht_clone_inline_start').eq(0).height()).toBe(rowHeadersHeightAtStart);
 
-      hot.getPlugin('trimRows').untrimAll();
-      hot.render();
+      getPlugin('trimRows').untrimAll();
+      await render();
 
       const newRowHeadersHeight = spec().$container.find('.ht_clone_inline_start').eq(0).height();
 

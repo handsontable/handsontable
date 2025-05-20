@@ -11,8 +11,8 @@ test('Copy between tables', async({ goto, tablePage, browserName }) => {
 
   await goto('/two-tables-demo');
 
-  const tableTop = tablePage.locator('#tableTop > .handsontable');
-  const tableBottom = tablePage.locator('#tableBottom > .handsontable');
+  const tableTop = tablePage.locator('#tableTop .ht-root-wrapper > .handsontable');
+  const tableBottom = tablePage.locator('#tableBottom .ht-root-wrapper > .handsontable');
 
   await tableTop.waitFor();
   await tableBottom.waitFor();
@@ -38,12 +38,12 @@ test('Copy between tables', async({ goto, tablePage, browserName }) => {
   expect(await tableTopCellReadOnly.innerText()).not.toBe(copiedText);
 });
 
-test('Copy inside table', async({ goto, tablePage, browserName }) => {
+test('Copy/Paste/Cut inside table', async({ goto, tablePage, browserName }) => {
   test.skip(browserName !== 'chromium', 'This test runs only on Chrome');
 
   await goto('/two-tables-demo');
 
-  const tableTop = tablePage.locator('#tableTop > .handsontable');
+  const tableTop = tablePage.locator('#tableTop .ht-root-wrapper > .handsontable');
 
   await tableTop.waitFor();
 
@@ -59,6 +59,14 @@ test('Copy inside table', async({ goto, tablePage, browserName }) => {
   await tablePage.keyboard.press(`${helpers.modifier}+v`);
 
   expect(await targetCell.innerText()).toBe(copiedText);
+  expect(copiedText).toBe('Subscription');
+
+  const cutCell = await selectCell(4, 4, tableTop);
+
+  await cutCell.click();
+  await tablePage.keyboard.press(`${helpers.modifier}+x`);
+
+  expect(await cutCell.innerText()).toBe('');
 });
 
 test('Copy and paste data in a scrolled table', async({ goto, tablePage, browserName }) => {
@@ -66,7 +74,7 @@ test('Copy and paste data in a scrolled table', async({ goto, tablePage, browser
 
   await goto('/large-dataset-demo');
 
-  const table = tablePage.locator('#root > .handsontable');
+  const table = tablePage.locator('#root .ht-root-wrapper > .handsontable');
   const scrollableElement = table.locator('.ht_master .wtHolder');
   const sourceCell = await selectCell(1, 1, table);
 
@@ -108,7 +116,7 @@ test('Cut and paste data in a scrolled table', async({ goto, tablePage, browserN
 
   await goto('/large-dataset-demo');
 
-  const table = tablePage.locator('#root > .handsontable');
+  const table = tablePage.locator('#root .ht-root-wrapper > .handsontable');
   const scrollableElement = table.locator('.ht_master .wtHolder');
   let sourceCell = await selectCell(1, 1, table);
 
@@ -148,4 +156,35 @@ test('Cut and paste data in a scrolled table', async({ goto, tablePage, browserN
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 
   expect(await targetCell.innerText()).toBe('B2');
+});
+
+test('Copy/Paste/Cut table initialized as web component', async({ goto, tablePage, browserName }) => {
+  test.skip(browserName !== 'chromium', 'This test runs only on Chrome');
+
+  await goto('/web-component-demo');
+
+  const tableTop = tablePage.locator('#root > hot-table');
+
+  await tableTop.waitFor();
+
+  const sourceCell = await selectCell(1, 1);
+
+  await sourceCell.click();
+  await tablePage.keyboard.press(`${helpers.modifier}+c`);
+
+  const copiedText = await tablePage.evaluate(() => navigator.clipboard.readText());
+  const targetCell = await selectCell(3, 1);
+
+  await targetCell.click();
+  await tablePage.keyboard.press(`${helpers.modifier}+v`);
+
+  expect(await targetCell.innerText()).toBe(copiedText);
+  expect(copiedText).toBe('Cycling Cap');
+
+  const cutCell = await selectCell(5, 1);
+
+  await cutCell.click();
+  await tablePage.keyboard.press(`${helpers.modifier}+x`);
+
+  expect(await cutCell.innerText()).toBe('');
 });

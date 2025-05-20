@@ -109,10 +109,51 @@ export function mouseOver({ isLeftClick, coords, selection, controller, cellCoor
   selection.markEndSource();
 }
 
+/**
+ * Mouse up handler.
+ *
+ * @param {object} options The handler options.
+ * @param {boolean} options.isLeftClick Indicates that event was fired using the left mouse button.
+ * @param {Selection} options.selection The Selection class instance.
+ * @param {CellRangeToRenderableMapper} options.cellRangeMapper Mapper for converting cell ranges
+ * to renderable indexes.
+ */
+export function mouseUp({ isLeftClick, selection, cellRangeMapper }) {
+  if (!isLeftClick || selection.settings.selectionMode !== 'multiple') {
+    return;
+  }
+
+  const selectionRange = selection.getSelectedRange();
+  const renderableRange = selectionRange
+    .clone()
+    .map(range => cellRangeMapper.toRenderable(range));
+  const lastRenderableRange = renderableRange.current();
+
+  if (
+    renderableRange.size() > 1 &&
+    !lastRenderableRange.isHeader() &&
+    !selection.isMultiple(lastRenderableRange)
+  ) {
+    const ranges = renderableRange.findAll(lastRenderableRange);
+
+    // if the last selection range is the same as the first one (case when the single cell
+    // is selected twice or more) remove duplicate ranges
+    if (ranges.length === renderableRange.size()) {
+      selectionRange.pop();
+      selection.refresh();
+
+    } else if (ranges.length > 1) {
+      selectionRange.removeLayers(ranges.map(({ layer }) => layer));
+      selection.refresh();
+    }
+  }
+}
+
 const handlers = new Map([
+  ['touchstart', mouseDown],
   ['mousedown', mouseDown],
   ['mouseover', mouseOver],
-  ['touchstart', mouseDown],
+  ['mouseup', mouseUp],
 ]);
 
 /**
@@ -126,14 +167,11 @@ const handlers = new Map([
  *                                    operation will be performed in later selection stages.
  * @param {Function} options.cellCoordsFactory The function factory for CellCoords objects.
  */
-export function handleMouseEvent(event, { coords, selection, controller, cellCoordsFactory }) {
+export function handleMouseEvent(event, options) {
   handlers.get(event.type)({
-    coords,
-    selection,
-    controller,
-    cellCoordsFactory,
     isShiftKey: event.shiftKey,
     isLeftClick: isLeftClickEvent(event) || event.type === 'touchstart',
     isRightClick: isRightClickEvent(event),
+    ...options,
   });
 }

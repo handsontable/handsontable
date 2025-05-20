@@ -26,9 +26,9 @@ describe('header-related a11y config', () => {
 
   describe('DOM structure', () => {
     describe('headers', () => {
-      it('should have the `tabindex=-1` attribute set', () => {
+      it('should have the `tabindex=-1` attribute set', async() => {
         handsontable({
-          data: Handsontable.helper.createSpreadsheetData(50, 50),
+          data: createSpreadsheetData(50, 50),
           rowHeaders: true,
           colHeaders: true,
           fixedRowsTop: 2,
@@ -61,9 +61,9 @@ describe('header-related a11y config', () => {
       });
 
       describe('row headers', () => {
-        it('should add the `role=rowheader` aria tag to every row headers in the table', () => {
+        it('should add the `role=rowheader` aria tag to every row headers in the table', async() => {
           handsontable({
-            data: Handsontable.helper.createSpreadsheetData(50, 15),
+            data: createSpreadsheetData(50, 15),
             rowHeaders: true,
             colHeaders: true,
             fixedRowsTop: 2,
@@ -95,9 +95,9 @@ describe('header-related a11y config', () => {
           expect(countElementsWithAriaRowHeader(getBottomClone())).toBe(2);
         });
 
-        it('should add the `scope=row` aria tag to every row headers in the table', () => {
+        it('should add the `scope=row` aria tag to every row headers in the table', async() => {
           handsontable({
-            data: Handsontable.helper.createSpreadsheetData(50, 15),
+            data: createSpreadsheetData(50, 15),
             rowHeaders: true,
             colHeaders: true,
             fixedRowsTop: 2,
@@ -131,9 +131,9 @@ describe('header-related a11y config', () => {
       });
 
       describe('column headers', () => {
-        it('should add the `role=columnheader` aria tag to every row headers in the table (except the corner header)', () => {
+        it('should add the `role=columnheader` aria tag to every row headers in the table (except the corner header)', async() => {
           handsontable({
-            data: Handsontable.helper.createSpreadsheetData(50, 50),
+            data: createSpreadsheetData(50, 50),
             rowHeaders: true,
             colHeaders: true,
             fixedRowsTop: 2,
@@ -158,9 +158,9 @@ describe('header-related a11y config', () => {
           expect(countElementsWithAriaColumnHeader(getTopInlineStartClone())).toBe(2);
         });
 
-        it('should add the `scope=col` aria tag to every row headers in the table', () => {
+        it('should add the `scope=col` aria tag to every row headers in the table', async() => {
           handsontable({
-            data: Handsontable.helper.createSpreadsheetData(50, 50),
+            data: createSpreadsheetData(50, 50),
             rowHeaders: true,
             colHeaders: true,
             fixedRowsTop: 2,
@@ -192,9 +192,9 @@ describe('header-related a11y config', () => {
       describe('corner headers', () => {
         // handsontable/dev-handsontable#1602
         // handsontable/dev-handsontable#1574
-        it('should add the `role=row` aria tag to the corner headers', () => {
+        it('should add the `role=row` aria tag to the corner headers', async() => {
           handsontable({
-            data: Handsontable.helper.createSpreadsheetData(50, 15),
+            data: createSpreadsheetData(50, 15),
             rowHeaders: true,
             colHeaders: true,
             fixedRowsTop: 2,
@@ -206,19 +206,19 @@ describe('header-related a11y config', () => {
 
           expect(
             getTopInlineStartClone().get(0).querySelector('thead th:first-of-type').getAttribute('role')
-          ).toBe('row');
+          ).toBe('gridcell button');
 
           expect(
             getMaster().get(0).querySelector('thead th:first-of-type').getAttribute('role')
-          ).toBe('row');
+          ).toBe('gridcell button');
 
           expect(
             getInlineStartClone().get(0).querySelector('thead th:first-of-type').getAttribute('role')
-          ).toBe('row');
+          ).toBe('gridcell button');
 
           expect(
             getTopClone().get(0).querySelector('thead th:first-of-type').getAttribute('role')
-          ).toBe('row');
+          ).toBe('gridcell button');
         });
       });
     });

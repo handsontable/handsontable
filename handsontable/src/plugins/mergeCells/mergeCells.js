@@ -270,7 +270,7 @@ export class MergeCells extends BasePlugin {
     this.hot._registerTimeout(() => {
       rowsToRefresh.forEach((rowElement) => {
         rowElement.style.background =
-          getStyle(rowElement, 'backgroundColor').replace(', 0.99)', ')');
+          getStyle(rowElement, 'backgroundColor')?.replace(', 0.99)', ')');
       });
     }, 1);
   }
@@ -526,11 +526,12 @@ export class MergeCells extends BasePlugin {
    * @param {CellRange} cellRange The cell range to merge or unmerged.
    */
   toggleMerge(cellRange) {
-    const mergedCell = this.mergedCellsCollection.get(cellRange.from.row, cellRange.from.col);
-    const mergedCellCoversWholeRange = mergedCell.row === cellRange.from.row &&
-      mergedCell.col === cellRange.from.col &&
-      mergedCell.row + mergedCell.rowspan - 1 === cellRange.to.row &&
-      mergedCell.col + mergedCell.colspan - 1 === cellRange.to.col;
+    const { from, to } = cellRange.clone().normalize();
+    const mergedCell = this.mergedCellsCollection.get(from.row, from.col);
+    const mergedCellCoversWholeRange = mergedCell.row === from.row &&
+      mergedCell.col === from.col &&
+      mergedCell.row + mergedCell.rowspan - 1 === to.row &&
+      mergedCell.col + mergedCell.colspan - 1 === to.col;
 
     if (mergedCellCoversWholeRange) {
       this.unmergeRange(cellRange);

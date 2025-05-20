@@ -1,3 +1,4 @@
+import { waitOnScroll } from './utils';
 import { pressedModifierKeys } from './keyboardEvents';
 
 const MOUSE_BUTTONS = new Map();
@@ -57,7 +58,7 @@ export const contextMenuEvent = handsontableMouseTriggerFactory('contextmenu');
  * @param {number} [buttonKey] Number representing mouse button key.
  * @param {object} [eventProps] Additional object with props to merge with the event.
  */
-export function simulateClick(element, buttonKey = 'LMB', eventProps = pressedModifierKeys) {
+export const simulateClick = waitOnScroll((element, buttonKey = 'LMB', eventProps = pressedModifierKeys) => {
   const mouseButton = getMouseButton(buttonKey);
 
   mouseDown(element, mouseButton, eventProps);
@@ -72,7 +73,7 @@ export function simulateClick(element, buttonKey = 'LMB', eventProps = pressedMo
   if (mouseButton === getMouseButton('RMB')) {
     contextMenuEvent(element, mouseButton, eventProps);
   }
-}
+});
 
 /**
  * Simulate double click (all mouse events).
@@ -80,12 +81,12 @@ export function simulateClick(element, buttonKey = 'LMB', eventProps = pressedMo
  * @param {Element} element An element on which there will be performed mouse events.
  * @param {object} [eventProps] Additional object with props to merge with the event.
  */
-export function mouseDoubleClick(element, eventProps = pressedModifierKeys) {
+export const mouseDoubleClick = waitOnScroll((element, eventProps = pressedModifierKeys) => {
   mouseDown(element, eventProps);
   mouseUp(element, eventProps);
   mouseDown(element, eventProps);
   mouseUp(element, eventProps);
-}
+});
 
-export const mouseRightDown = handsontableMouseTriggerFactory('mousedown', getMouseButton('RMB'));
-export const mouseRightUp = handsontableMouseTriggerFactory('mouseup', getMouseButton('RMB'));
+export const mouseRightDown = waitOnScroll(handsontableMouseTriggerFactory('mousedown', getMouseButton('RMB')));
+export const mouseRightUp = waitOnScroll(handsontableMouseTriggerFactory('mouseup', getMouseButton('RMB')));

@@ -22,7 +22,7 @@ describe('WalkontableTable', () => {
   });
 
   describe('isLastColumnFullyVisible()', () => {
-    it('should be false because it is only partially visible', () => {
+    it('should be false because it is only partially visible', async() => {
       createDataArray(18, 4);
       spec().$wrapper.width(209).height(185);
 
@@ -37,7 +37,7 @@ describe('WalkontableTable', () => {
       expect(wt.wtTable.isLastColumnFullyVisible()).toBe(false);
     });
 
-    it('should be true because it is fully visible', () => {
+    it('should be true because it is fully visible', async() => {
       createDataArray(18, 4);
       spec().$wrapper.width(180).height(185);
 

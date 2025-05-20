@@ -223,7 +223,8 @@ class Border {
    * Create multiple selector handler for mobile devices.
    */
   createMultipleSelectorHandles() {
-    const { rootDocument, stylesHandler } = this.wot;
+    const { rootDocument, wtSettings } = this.wot;
+    const stylesHandler = wtSettings.getSetting('stylesHandler');
     const cellMobileHandleSize = stylesHandler.getCSSVariableValue('cell-mobile-handle-size');
     const cellMobileHandleBorderRadius = stylesHandler.getCSSVariableValue('cell-mobile-handle-border-radius');
     const cellMobileHandleBackgroundColor = stylesHandler.getCSSVariableValue('cell-mobile-handle-background-color');
@@ -415,6 +416,16 @@ class Border {
     const firstRenderedColumn = wtTable.getFirstRenderedColumn();
     const lastRenderedColumn = wtTable.getLastRenderedColumn();
 
+    if (
+      firstRenderedColumn < 0 && lastRenderedColumn < 0 ||
+      firstRenderedRow < 0 && lastRenderedRow < 0
+    ) {
+      // ...also when overlays have rendered only headers skip it
+      this.disappear();
+
+      return;
+    }
+
     let fromTD;
 
     if (isMultiple) {
@@ -597,7 +608,7 @@ class Border {
         const toTdOffsetTop = trimToWindow ? toTD.getBoundingClientRect().top : toTD.offsetTop;
         const cornerBottomEdge = toTdOffsetTop + outerHeight(toTD) + (parseInt(this.cornerDefaultStyle.height, 10) / 2);
         const cornerOverlappingContainer = cornerBottomEdge >= innerHeight(trimmingContainer);
-        const isClassicTheme = this.wot.stylesHandler.isClassicTheme();
+        const isClassicTheme = this.wot.wtSettings.getSetting('stylesHandler').isClassicTheme();
 
         if (cornerOverlappingContainer) {
           const cornerTopPosition = Math.floor(

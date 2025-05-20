@@ -10,7 +10,7 @@ describe('Core.getLastFullyVisibleRow', () => {
     }
   });
 
-  it.forTheme('classic')('should return last partially visible row index', () => {
+  it.forTheme('classic')('should return last partially visible row index', async() => {
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
@@ -20,7 +20,7 @@ describe('Core.getLastFullyVisibleRow', () => {
     expect(getLastFullyVisibleRow()).toBe(7);
   });
 
-  it.forTheme('main')('should return last partially visible row index', () => {
+  it.forTheme('main')('should return last partially visible row index', async() => {
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
@@ -30,7 +30,7 @@ describe('Core.getLastFullyVisibleRow', () => {
     expect(getLastFullyVisibleRow()).toBe(7);
   });
 
-  it.forTheme('horizon')('should return last partially visible row index', () => {
+  it.forTheme('horizon')('should return last partially visible row index', async() => {
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
@@ -40,7 +40,7 @@ describe('Core.getLastFullyVisibleRow', () => {
     expect(getLastFullyVisibleRow()).toBe(7);
   });
 
-  it.forTheme('classic')('should return last partially visible and not hidden row index', () => {
+  it.forTheme('classic')('should return last partially visible and not hidden row index', async() => {
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
@@ -51,12 +51,12 @@ describe('Core.getLastFullyVisibleRow', () => {
 
     rowMapper.setValueAtIndex(0, true);
     rowMapper.setValueAtIndex(1, true);
-    render();
+    await render();
 
     expect(getLastFullyVisibleRow()).toBe(9);
   });
 
-  it.forTheme('main')('should return last partially visible and not hidden row index', () => {
+  it.forTheme('main')('should return last partially visible and not hidden row index', async() => {
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
@@ -67,12 +67,12 @@ describe('Core.getLastFullyVisibleRow', () => {
 
     rowMapper.setValueAtIndex(0, true);
     rowMapper.setValueAtIndex(1, true);
-    render();
+    await render();
 
     expect(getLastFullyVisibleRow()).toBe(9);
   });
 
-  it.forTheme('horizon')('should return last partially visible and not hidden row index', () => {
+  it.forTheme('horizon')('should return last partially visible and not hidden row index', async() => {
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
@@ -83,46 +83,46 @@ describe('Core.getLastFullyVisibleRow', () => {
 
     rowMapper.setValueAtIndex(0, true);
     rowMapper.setValueAtIndex(1, true);
-    render();
+    await render();
 
     expect(getLastFullyVisibleRow()).toBe(9);
   });
 
-  it.forTheme('classic')('should return last partially visible row index (scrolled viewport)', () => {
+  it.forTheme('classic')('should return last partially visible row index (scrolled viewport)', async() => {
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
       height: 200,
     });
 
-    setScrollTop(355); // row 23 (A24) is partially visible
-    render();
+    await scrollViewportVertically(355); // row 23 (A24) is partially visible
+    await render();
 
     expect(getLastFullyVisibleRow()).toBe(22);
   });
 
-  it.forTheme('main')('should return last partially visible row index (scrolled viewport)', () => {
+  it.forTheme('main')('should return last partially visible row index (scrolled viewport)', async() => {
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
       height: 250,
     });
 
-    setScrollTop(447); // row 23 (A24) is partially visible
-    render();
+    await scrollViewportVertically(447); // row 23 (A24) is partially visible
+    await render();
 
     expect(getLastFullyVisibleRow()).toBe(22);
   });
 
-  it.forTheme('horizon')('should return last partially visible row index (scrolled viewport)', () => {
+  it.forTheme('horizon')('should return last partially visible row index (scrolled viewport)', async() => {
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
       height: 319,
     });
 
-    setScrollTop(570); // row 23 (A24) is partially visible
-    render();
+    await scrollViewportVertically(570); // row 23 (A24) is partially visible
+    await render();
 
     expect(getLastFullyVisibleRow()).toBe(22);
   });

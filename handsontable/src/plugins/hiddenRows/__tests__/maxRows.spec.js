@@ -13,9 +13,9 @@ describe('HiddenRows', () => {
   });
 
   describe('maxRows', () => {
-    it('all rows are hidden', () => {
+    it('all rows are hidden', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         maxRows: 3,
         hiddenRows: {
           rows: [0, 1, 2],
@@ -36,9 +36,9 @@ describe('HiddenRows', () => {
       expect(spec().$container.find('.ht_master tbody td').length).toBe(0); // cells
     });
 
-    it('just some row is hidden #1', () => {
+    it('just some row is hidden #1', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         maxRows: 3,
         hiddenRows: {
           rows: [0],
@@ -77,9 +77,9 @@ describe('HiddenRows', () => {
       expect(spec().$container.find('.ht_master tbody td').length).toBe(10); // cells
     });
 
-    it('just some row is hidden #2', () => {
+    it('just some row is hidden #2', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         maxRows: 3,
         hiddenRows: {
           rows: [1],
@@ -118,9 +118,9 @@ describe('HiddenRows', () => {
       expect(spec().$container.find('.ht_master tbody td').length).toBe(10); // cells
     });
 
-    it('just some rows are hidden #1', () => {
+    it('just some rows are hidden #1', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         maxRows: 3,
         hiddenRows: {
           rows: [1, 2],
@@ -159,9 +159,9 @@ describe('HiddenRows', () => {
       expect(spec().$container.find('.ht_master tbody td').length).toBe(5); // cells
     });
 
-    it('just some rows are hidden #2', () => {
+    it('just some rows are hidden #2', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         maxRows: 3,
         hiddenRows: {
           rows: [0, 1],
@@ -200,9 +200,9 @@ describe('HiddenRows', () => {
       expect(spec().$container.find('.ht_master tbody td').length).toBe(5); // cells
     });
 
-    it('is set to Infinity value', () => {
+    it('is set to Infinity value', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         maxRows: Infinity,
         hiddenRows: {
           rows: [0, 1, 2],
@@ -255,9 +255,9 @@ describe('HiddenRows', () => {
       expect(spec().$container.find('.ht_master tbody td').length).toBe(10); // cells
     });
 
-    it('is set to value > nr of columns', () => {
+    it('is set to value > nr of columns', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        data: createSpreadsheetData(5, 5),
         maxRows: 10,
         hiddenRows: {
           rows: [0, 1, 2],

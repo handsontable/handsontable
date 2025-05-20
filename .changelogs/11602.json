@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Add second click deselects cell feature",
+  "type": "added",
+  "issueOrPR": 11602,
+  "breaking": false,
+  "framework": "none"
+}

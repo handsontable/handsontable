@@ -61,17 +61,17 @@ describe('Editor common cases', () => {
       },
     });
 
-    selectCell(0, 0);
+    await selectCell(0, 0);
 
     expect(getCellEditor(0, 1)).toBe(X100Editor);
 
-    keyDownUp('enter');
+    await keyDownUp('enter');
+
     getActiveEditor().TEXTAREA.value = 'x1';
-    keyDownUp('tab');
 
+    await keyDownUp('tab');
     await sleep(20);
-
-    keyDownUp('enter');
+    await keyDownUp('enter');
 
     expect(getActiveEditor()).toBeInstanceOf(X1Editor);
   });

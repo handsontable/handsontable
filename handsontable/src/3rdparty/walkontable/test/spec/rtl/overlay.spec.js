@@ -26,7 +26,7 @@ describe('WalkontableOverlay (RTL mode)', () => {
     this.wotInstance.destroy();
   });
 
-  it('should cloned overlays have to have proper dimensions (overflow hidden)', () => {
+  it('should cloned overlays have to have proper dimensions (overflow hidden)', async() => {
     const wt = walkontable({
       rtlMode: true,
       data: getData,
@@ -53,7 +53,7 @@ describe('WalkontableOverlay (RTL mode)', () => {
     expect($(wt.wtOverlays.bottomOverlay.clone.wtTable.holder).height()).toBe(47);
   });
 
-  it('should cloned overlays have to have proper dimensions (window object as scrollable element)', () => {
+  it('should cloned overlays have to have proper dimensions (window object as scrollable element)', async() => {
     spec().$wrapper
       .css('overflow', '')
       .css('width', '')
@@ -89,7 +89,7 @@ describe('WalkontableOverlay (RTL mode)', () => {
     expect($(wt.wtOverlays.bottomOverlay.clone.wtTable.holder).height()).toBe(47);
   });
 
-  it('should cloned overlays have to have proper dimensions after table scroll (overflow hidden)', () => {
+  it('should cloned overlays have to have proper dimensions after table scroll (overflow hidden)', async() => {
     const wt = walkontable({
       rtlMode: true,
       data: getData,
@@ -119,7 +119,7 @@ describe('WalkontableOverlay (RTL mode)', () => {
     expect($(wt.wtOverlays.bottomOverlay.clone.wtTable.holder).height()).toBe(47);
   });
 
-  it('should cloned overlays have to have proper dimensions after table scroll (window object as scrollable element)', () => {
+  it('should cloned overlays have to have proper dimensions after table scroll (window object as scrollable element)', async() => {
     spec().$wrapper
       .css('overflow', '')
       .css('width', '')
@@ -158,7 +158,7 @@ describe('WalkontableOverlay (RTL mode)', () => {
     expect($(wt.wtOverlays.bottomOverlay.clone.wtTable.holder).height()).toBe(47);
   });
 
-  it('should cloned overlays have to have proper positions (overflow hidden)', () => {
+  it('should cloned overlays have to have proper positions (overflow hidden)', async() => {
     const wt = walkontable({
       rtlMode: true,
       data: getData,
@@ -221,7 +221,7 @@ describe('WalkontableOverlay (RTL mode)', () => {
     }));
   });
 
-  it('should cloned overlays have to have proper positions (window object as scrollable element)', () => {
+  it('should cloned overlays have to have proper positions (window object as scrollable element)', async() => {
     spec().$wrapper
       .css('overflow', '')
       .css('width', '')
@@ -286,7 +286,7 @@ describe('WalkontableOverlay (RTL mode)', () => {
     }));
   });
 
-  it('should cloned overlays have to have proper positions after table scroll (overflow hidden)', () => {
+  it('should cloned overlays have to have proper positions after table scroll (overflow hidden)', async() => {
     const wt = walkontable({
       rtlMode: true,
       data: getData,
@@ -348,7 +348,7 @@ describe('WalkontableOverlay (RTL mode)', () => {
   });
 
   // Currently this test does not work. It will enabled after fixing scroll API
-  xit('should cloned overlays have to have proper positions after table scroll (window object as scrollable element)', () => {
+  xit('should cloned overlays have to have proper positions after table scroll (window object as scrollable element)', async() => {
     spec().$wrapper
       .css('overflow', '')
       .css('width', '')
@@ -417,7 +417,7 @@ describe('WalkontableOverlay (RTL mode)', () => {
     }));
   });
 
-  it('should cloned header overlays have to have proper dimensions (overflow hidden)', () => {
+  it('should cloned header overlays have to have proper dimensions (overflow hidden)', async() => {
     const wt = walkontable({
       rtlMode: true,
       data: getData,
@@ -443,7 +443,7 @@ describe('WalkontableOverlay (RTL mode)', () => {
     expect($(wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder).height()).toBe(200 - getScrollbarWidth());
   });
 
-  it('should cloned header overlays have to have proper dimensions (window object as scrollable element)', () => {
+  it('should cloned header overlays have to have proper dimensions (window object as scrollable element)', async() => {
     spec().$wrapper
       .css('overflow', '')
       .css('width', '')
@@ -478,7 +478,7 @@ describe('WalkontableOverlay (RTL mode)', () => {
     expect($(wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder).height()).toBe(clientHeight);
   });
 
-  it('should cloned header overlays have to have proper dimensions after table scroll (overflow hidden)', () => {
+  it('should cloned header overlays have to have proper dimensions after table scroll (overflow hidden)', async() => {
     const wt = walkontable({
       rtlMode: true,
       data: getData,
@@ -507,7 +507,7 @@ describe('WalkontableOverlay (RTL mode)', () => {
     expect($(wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder).height()).toBe(200 - getScrollbarWidth());
   });
 
-  it('should cloned header overlays have to have proper dimensions after table scroll (window object as scrollable element)', () => {
+  it('should cloned header overlays have to have proper dimensions after table scroll (window object as scrollable element)', async() => {
     spec().$wrapper
       .css('overflow', '')
       .css('width', '')
@@ -546,7 +546,7 @@ describe('WalkontableOverlay (RTL mode)', () => {
     expect($(wt.wtOverlays.inlineStartOverlay.clone.wtTable.holder).height()).toBe(clientHeight);
   });
 
-  it('should cloned header overlays have to have proper positions (overflow hidden)', () => {
+  it('should cloned header overlays have to have proper positions (overflow hidden)', async() => {
     const wt = walkontable({
       rtlMode: true,
       data: getData,
@@ -596,7 +596,7 @@ describe('WalkontableOverlay (RTL mode)', () => {
     }));
   });
 
-  it('should cloned header overlays have to have proper positions (window object as scrollable element)', () => {
+  it('should cloned header overlays have to have proper positions (window object as scrollable element)', async() => {
     spec().$wrapper
       .css('overflow', '')
       .css('width', '')
@@ -653,7 +653,7 @@ describe('WalkontableOverlay (RTL mode)', () => {
     }));
   });
 
-  it('should cloned header overlays have to have proper positions after table scroll (overflow hidden)', () => {
+  it('should cloned header overlays have to have proper positions after table scroll (overflow hidden)', async() => {
     const wt = walkontable({
       rtlMode: true,
       data: getData,
@@ -707,7 +707,7 @@ describe('WalkontableOverlay (RTL mode)', () => {
   });
 
   // Currently this test does not work. It will enabled after fixing scroll API
-  xit('should cloned header overlays have to have proper positions after table scroll (window object as scrollable element)', () => {
+  xit('should cloned header overlays have to have proper positions after table scroll (window object as scrollable element)', async() => {
     spec().$wrapper
       .css('overflow', '')
       .css('width', '')
@@ -788,7 +788,7 @@ describe('WalkontableOverlay (RTL mode)', () => {
       jQuery('.space-filler').remove();
     });
 
-    it('should reset top overlay\'s offset after the table is scroll out of the browser viewport (window object as scrollable element)', () => {
+    it('should reset top overlay\'s offset after the table is scroll out of the browser viewport (window object as scrollable element)', async() => {
       const wt = walkontable({
         rtlMode: true,
         data: getData,
@@ -802,18 +802,18 @@ describe('WalkontableOverlay (RTL mode)', () => {
       wt.draw();
 
       // scroll the viewport precisely 1px before the top overlay disappears
-      window.scrollBy(0, 23);
+      await scrollWindowBy(0, 23);
 
       expect(wt.wtOverlays.topOverlay.getOverlayOffset()).toBe(184);
 
       // it causes the overlay to be reset to the initial position
-      window.scrollBy(1, 1);
+      await scrollWindowBy(1, 1);
       wt.draw();
 
       expect(wt.wtOverlays.topOverlay.getOverlayOffset()).toBe(0);
     });
 
-    it('should reset right overlay\'s offset after the table is scroll out of the browser viewport (window object as scrollable element)', () => {
+    it('should reset right overlay\'s offset after the table is scroll out of the browser viewport (window object as scrollable element)', async() => {
       const wt = walkontable({
         rtlMode: true,
         data: getData,
@@ -829,17 +829,17 @@ describe('WalkontableOverlay (RTL mode)', () => {
       wt.draw();
 
       // scroll the viewport precisely 1px before the left overlay disappears
-      window.scrollBy(-50, 0);
+      await scrollWindowBy(-50, 0);
 
       expect(wt.wtOverlays.inlineStartOverlay.getOverlayOffset()).toBe(400);
 
       // it causes the overlay to be reset to the initial position
-      window.scrollBy(-1, 0);
+      await scrollWindowBy(-1, 0);
 
       expect(wt.wtOverlays.inlineStartOverlay.getOverlayOffset()).toBe(0);
     });
 
-    it('should reset bottom overlay\'s offset after the table is scroll out of the browser viewport (window object as scrollable element)', () => {
+    it('should reset bottom overlay\'s offset after the table is scroll out of the browser viewport (window object as scrollable element)', async() => {
       const wt = walkontable({
         rtlMode: true,
         data: getData,
@@ -853,18 +853,18 @@ describe('WalkontableOverlay (RTL mode)', () => {
       wt.draw();
 
       // scroll the viewport precisely 1px before the bottom overlay disappears
-      window.scrollBy(0, -230);
+      await scrollWindowBy(0, -230);
 
       expect(wt.wtOverlays.bottomOverlay.getOverlayOffset()).toBe(184);
 
       // it causes the overlay to be reset to the initial position
-      window.scrollBy(0, -1);
+      await scrollWindowBy(0, -1);
 
       expect(wt.wtOverlays.bottomOverlay.getOverlayOffset()).toBe(0);
     });
   });
 
-  it('should adjust the header overlays sizes after table scroll (window object as scrollable element)', () => {
+  it('should adjust the header overlays sizes after table scroll (window object as scrollable element)', async() => {
     spec().$wrapper
       .css('overflow', '')
       .css('width', '')
@@ -908,7 +908,7 @@ describe('WalkontableOverlay (RTL mode)', () => {
     $expander.remove();
   });
 
-  it('should cloned overlays have to have all borders when an empty dataset is passed', () => {
+  it('should cloned overlays have to have all borders when an empty dataset is passed', async() => {
     createDataArray(0, 0);
 
     const wt = walkontable({

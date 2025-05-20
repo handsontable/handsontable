@@ -12,7 +12,7 @@ describe('Comments theme handling', () => {
     }
   });
 
-  it('should have the same theme as the parent Handsontable instance (if originally passed as a config option)', () => {
+  it('should have the same theme as the parent Handsontable instance (if originally passed as a config option)', async() => {
     simulateModernThemeStylesheet(spec().$container);
     handsontable({
       data: createSpreadsheetData(4, 4),
@@ -23,13 +23,13 @@ describe('Comments theme handling', () => {
       themeName: 'ht-theme-sth',
     });
 
-    selectCell(1, 1);
+    await selectCell(1, 1);
     const $editorElement = $(getPlugin('comments').getEditorInputElement().parentElement);
 
-    expect($editorElement.hasClass('ht-theme-sth')).toBe(true);
+    expect($editorElement.parent().parent().hasClass('ht-theme-sth')).toBe(true);
   });
 
-  it('should have the same theme as the parent Handsontable instance (if originally passed as a container class)', () => {
+  it('should have the same theme as the parent Handsontable instance (if originally passed as a container class)', async() => {
     simulateModernThemeStylesheet(spec().$container);
     spec().$container.addClass('ht-theme-sth-else');
     handsontable({
@@ -39,9 +39,9 @@ describe('Comments theme handling', () => {
       ],
     }, true);
 
-    selectCell(1, 1);
+    await selectCell(1, 1);
     const $editorElement = $(getPlugin('comments').getEditorInputElement().parentElement);
 
-    expect($editorElement.hasClass('ht-theme-sth-else')).toBe(true);
+    expect($editorElement.parent().parent().hasClass('ht-theme-sth-else')).toBe(true);
   });
 });

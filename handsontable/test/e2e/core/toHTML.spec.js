@@ -12,14 +12,14 @@ describe('Core.toHTML', () => {
     }
   });
 
-  it('should convert instance into outerHTML of HTMLTableElement', () => {
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(2, 2),
+  it('should convert instance into outerHTML of HTMLTableElement', async() => {
+    handsontable({
+      data: createSpreadsheetData(2, 2),
       colHeaders: true,
       rowHeaders: true,
     });
 
-    expect(hot.toHTML()).toBe([
+    expect(toHTML()).toBe([
       '<table>',
       '<thead>',
       '<tr><th></th><th>A</th><th>B</th></tr>',

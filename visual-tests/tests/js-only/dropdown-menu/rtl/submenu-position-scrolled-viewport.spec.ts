@@ -22,13 +22,13 @@ test(__filename, async({ goto, tablePage }) => {
 
   await openHeaderDropdownMenu('AM');
   await tablePage.keyboard.press('ArrowUp');
-  await tablePage.keyboard.press('ArrowRight'); // selects "Left" submenu option
+  await tablePage.keyboard.press('ArrowLeft'); // selects "Left" submenu option
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 
   await closeTheMenu();
 
   await openHeaderDropdownMenu('AX');
   await tablePage.keyboard.press('ArrowUp');
-  await tablePage.keyboard.press('ArrowRight'); // selects "Left" submenu option
+  await tablePage.keyboard.press('ArrowLeft'); // selects "Left" submenu option
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 });

@@ -1,3 +1,4 @@
+@charset "UTF-8";
 /**
  * Fix for bootstrap styles
  */
@@ -348,8 +349,6 @@ innerBorderBottom - Property controlled by bottom overlay
   overflow: hidden;
 }
 
-@charset "UTF-8";
-
 .handsontable {
   position: relative;
   touch-action: manipulation;
@@ -403,7 +402,7 @@ innerBorderBottom - Property controlled by bottom overlay
   font-size: 10px;
 }
 
-.handsontable .htFocusCatcher {
+.ht-root-wrapper .htFocusCatcher {
   position: absolute;
   z-index: -1;
   opacity: 0;
@@ -412,6 +411,12 @@ innerBorderBottom - Property controlled by bottom overlay
   padding: 0;
   width: 0;
   height: 0;
+}
+
+.handsontable .htTextEllipsis {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 /* plugins */
@@ -680,13 +685,23 @@ TextRenderer placeholder value
  * Handsontable listbox theme
  */
 .handsontable.listbox {
+  border: 1px solid #ccc;
   margin: 0;
 }
 
+.handsontable.listbox.autocompleteEditor,
+.handsontable.listbox.dropdownEditor {
+  border-width: 0;
+}
+
 .handsontable.listbox .ht_master table {
-  border: 1px solid #ccc;
   border-collapse: separate;
   background: white;
+}
+
+.handsontable.listbox.autocompleteEditor .ht_master table,
+.handsontable.listbox.dropdownEditor .ht_master table {
+  border: 1px solid #ccc;
 }
 
 .handsontable.listbox th,
@@ -1145,8 +1160,6 @@ textarea.HandsontableCopyPaste {
   outline: 0 none !important;
 }
 
-@charset "UTF-8";
-
 /*!
  * Handsontable DropdownMenu
  */
@@ -1295,8 +1308,6 @@ textarea.HandsontableCopyPaste {
   overflow: hidden;
 }
 
-@charset "UTF-8";
-
 /*!
  * Handsontable Filters
  */
@@ -1438,7 +1449,7 @@ textarea.HandsontableCopyPaste {
 }
 
 .htUIMultipleSelect .ht_master .wtHolder {
-  overflow-y: scroll;
+  overflow: auto;
 }
 
 .handsontable .htFiltersActive .changeType {
@@ -1642,8 +1653,6 @@ textarea.HandsontableCopyPaste {
   padding-bottom: 5px;
 }
 
-@charset "UTF-8";
-
 /*
  * Handsontable HiddenColumns
  */
@@ -1701,8 +1710,6 @@ textarea.HandsontableCopyPaste {
   left: initial;
   content: "◀"; /* left arrow */
 }
-
-@charset "UTF-8";
 
 /*!
  * Handsontable HiddenRows
@@ -1973,8 +1980,6 @@ textarea.HandsontableCopyPaste {
 thead th.hiddenHeaderText .colHeader {
   opacity: 0;
 }
-
-@charset "UTF-8";
 
 .handsontable th.ht_nestingLevels {
   text-align: left;

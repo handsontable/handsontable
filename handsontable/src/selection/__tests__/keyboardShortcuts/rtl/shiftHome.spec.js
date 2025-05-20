@@ -16,14 +16,14 @@ describe('Selection extending (RTL mode)', () => {
   });
 
   describe('"Shift + Home"', () => {
-    it('should extend the cell selection to the left-most cell of the current row when the cell is selected', () => {
+    it('should extend the cell selection to the left-most cell of the current row when the cell is selected', async() => {
       handsontable({
         startRows: 5,
         startCols: 5
       });
 
-      selectCell(1, 3);
-      keyDownUp(['shift', 'home']);
+      await selectCell(1, 3);
+      await keyDownUp(['shift', 'home']);
 
       expect(`
         |   :   :   :   :   |
@@ -35,16 +35,16 @@ describe('Selection extending (RTL mode)', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,3 from: 1,3 to: 1,0']);
     });
 
-    it('should extend the cell selection to the left-most cell of the current row starting from the focus position', () => {
+    it('should extend the cell selection to the left-most cell of the current row starting from the focus position', async() => {
       handsontable({
         startRows: 5,
         startCols: 5,
         enterBeginsEditing: false,
       });
 
-      selectCell(1, 2, 3, 4);
-      keyDownUp('enter'); // Move focus down
-      keyDownUp(['shift', 'home']);
+      await selectCell(1, 2, 3, 4);
+      await keyDownUp('enter'); // Move focus down
+      await keyDownUp(['shift', 'home']);
 
       expect(`
         |   :   :   :   :   |
@@ -56,7 +56,7 @@ describe('Selection extending (RTL mode)', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: 1,2 to: 3,0']);
     });
 
-    it('should extend the column header selection to the left-most column header', () => {
+    it('should extend the column header selection to the left-most column header', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -64,9 +64,9 @@ describe('Selection extending (RTL mode)', () => {
         startCols: 5
       });
 
-      selectColumns(3);
-      listen();
-      keyDownUp(['shift', 'home']);
+      await selectColumns(3);
+      await listen();
+      await keyDownUp(['shift', 'home']);
 
       expect(`
         |   : * : * : * : * ║   |
@@ -80,15 +80,15 @@ describe('Selection extending (RTL mode)', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,3 from: -1,3 to: 4,0']);
     });
 
-    it('should extend the cell selection to the left-most non-frozen cell of the current row when the cell is selected', () => {
+    it('should extend the cell selection to the left-most non-frozen cell of the current row when the cell is selected', async() => {
       handsontable({
         startRows: 5,
         startCols: 5,
         fixedColumnsStart: 2,
       });
 
-      selectCell(1, 3);
-      keyDownUp(['shift', 'home']);
+      await selectCell(1, 3);
+      await keyDownUp(['shift', 'home']);
 
       expect(`
         |   :   :   |   :   |
@@ -100,15 +100,15 @@ describe('Selection extending (RTL mode)', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,3 from: 1,3 to: 1,2']);
     });
 
-    it('should extend the cell selection to the left-most non-frozen cell when left overlay is selected', () => {
+    it('should extend the cell selection to the left-most non-frozen cell when left overlay is selected', async() => {
       handsontable({
         startRows: 5,
         startCols: 5,
         fixedColumnsStart: 3,
       });
 
-      selectCell(1, 1);
-      keyDownUp(['shift', 'home']);
+      await selectCell(1, 1);
+      await keyDownUp(['shift', 'home']);
 
       expect(`
         |   :   |   :   :   |
@@ -120,7 +120,7 @@ describe('Selection extending (RTL mode)', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 1,1 to: 1,3']);
     });
 
-    it('should extend the cell selection to the left-most non-frozen cell of the current row starting from the focus position', () => {
+    it('should extend the cell selection to the left-most non-frozen cell of the current row starting from the focus position', async() => {
       handsontable({
         startRows: 5,
         startCols: 5,
@@ -128,9 +128,9 @@ describe('Selection extending (RTL mode)', () => {
         fixedColumnsStart: 1,
       });
 
-      selectCell(1, 2, 3, 4);
-      keyDownUp('enter'); // Move focus down
-      keyDownUp(['shift', 'home']);
+      await selectCell(1, 2, 3, 4);
+      await keyDownUp('enter'); // Move focus down
+      await keyDownUp(['shift', 'home']);
 
       expect(`
         |   :   :   :   |   |
@@ -142,7 +142,7 @@ describe('Selection extending (RTL mode)', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: 1,2 to: 3,1']);
     });
 
-    it('should extend the column header selection to the left-most non-frozen column header', () => {
+    it('should extend the column header selection to the left-most non-frozen column header', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -151,9 +151,9 @@ describe('Selection extending (RTL mode)', () => {
         fixedColumnsStart: 2,
       });
 
-      selectColumns(3);
-      listen();
-      keyDownUp(['shift', 'home']);
+      await selectColumns(3);
+      await listen();
+      await keyDownUp(['shift', 'home']);
 
       expect(`
         |   : * : * |   :   ║   |

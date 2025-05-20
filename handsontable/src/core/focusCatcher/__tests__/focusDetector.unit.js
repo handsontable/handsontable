@@ -6,11 +6,15 @@ describe('focusDetector', () => {
 
   beforeEach(() => {
     const rootElement = document.createElement('div');
+    const rootWrapperElement = document.createElement('div');
 
     rootElement.className = 'handsontable';
     rootElement.innerHTML = '<div></div><div></div>';
 
+    rootWrapperElement.appendChild(rootElement);
+
     hot = {
+      rootWrapperElement,
       rootElement,
       rootDocument: document,
       _registerTimeout: jest.fn(),
@@ -32,17 +36,15 @@ describe('focusDetector', () => {
   it('should add input traps with correct attributes to the Handsontable root element', () => {
     installFocusDetector(hot, hooks);
 
-    const inputTrapTop = hot.rootElement.firstChild;
-    const inputTrapBottom = hot.rootElement.lastChild;
+    const inputTrapTop = hot.rootWrapperElement.firstChild;
+    const inputTrapBottom = hot.rootWrapperElement.lastChild;
 
     expect(inputTrapTop.className).toBe('htFocusCatcher');
     expect(inputTrapTop.name).toBe('__htFocusCatcher');
-    expect(inputTrapTop.getAttribute('role')).toBe('presentation');
-    expect(inputTrapTop.getAttribute('aria-hidden')).toBe('true');
+    expect(inputTrapTop.getAttribute('aria-label')).toBe('Focus catcher');
     expect(inputTrapBottom.className).toBe('htFocusCatcher');
     expect(inputTrapBottom.name).toBe('__htFocusCatcher');
-    expect(inputTrapBottom.getAttribute('role')).toBe('presentation');
-    expect(inputTrapBottom.getAttribute('aria-hidden')).toBe('true');
+    expect(inputTrapTop.getAttribute('aria-label')).toBe('Focus catcher');
   });
 
   // More tests around the focusCatcher module you'll find here ./handsontable/test/e2e/keyboardShortcuts/tabNavigation.spec.js
