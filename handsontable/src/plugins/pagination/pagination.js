@@ -1,6 +1,7 @@
 import { BasePlugin } from '../base';
 import { clamp } from '../../helpers/number';
 import { PaginationUI } from './ui';
+import { checkPluginSettingsConflict } from './utils';
 
 export const PLUGIN_KEY = 'pagination';
 export const PLUGIN_PRIORITY = 900;
@@ -83,6 +84,12 @@ export class Pagination extends BasePlugin {
    * Enables the plugin functionality for this Handsontable instance.
    */
   enablePlugin() {
+    if (checkPluginSettingsConflict(this.hot.getSettings())) {
+      this.hot.getSettings()[PLUGIN_KEY] = false;
+
+      return;
+    }
+
     if (this.enabled) {
       return;
     }
