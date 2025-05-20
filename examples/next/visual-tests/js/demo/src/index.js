@@ -187,5 +187,14 @@ router
         initializeBasicTwoTablesDemo();
       });
     },
+    '/custom-borders-demo': function () {
+      removeCSS();
+
+      Promise.all([
+        loadThemeCSS(),
+      ]).then(() => {
+        initCustomBordersDemo();
+      });
+    },
   })
   .resolve();

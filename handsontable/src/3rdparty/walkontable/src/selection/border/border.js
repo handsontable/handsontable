@@ -508,27 +508,26 @@ class Border {
     }
 
     const inlinePosProperty = isRtl ? 'right' : 'left';
+    const delta = Math.ceil(this.settings.border.width / 2);
 
     this.topStyle.top = `${top}px`;
     this.topStyle[inlinePosProperty] = `${inlineStartPos}px`;
-    this.topStyle.width = `${width}px`;
+    this.topStyle.width = `${width + delta}px`;
     this.topStyle.display = 'block';
 
     this.startStyle.top = `${top}px`;
     this.startStyle[inlinePosProperty] = `${inlineStartPos}px`;
-    this.startStyle.height = `${height}px`;
+    this.startStyle.height = `${height + delta}px`;
     this.startStyle.display = 'block';
 
-    const delta = Math.floor(this.settings.border.width / 2);
-
-    this.bottomStyle.top = `${top + height - delta}px`;
+    this.bottomStyle.top = `${top + height - parseInt(this.bottomStyle.height, 10) + delta}px`;
     this.bottomStyle[inlinePosProperty] = `${inlineStartPos}px`;
-    this.bottomStyle.width = `${width}px`;
+    this.bottomStyle.width = `${width + delta}px`;
     this.bottomStyle.display = 'block';
 
     this.endStyle.top = `${top}px`;
-    this.endStyle[inlinePosProperty] = `${inlineStartPos + width - delta}px`;
-    this.endStyle.height = `${height + 1}px`;
+    this.endStyle[inlinePosProperty] = `${inlineStartPos + width - parseInt(this.endStyle.width, 10) + delta}px`;
+    this.endStyle.height = `${height + delta}px`;
     this.endStyle.display = 'block';
 
     let cornerVisibleSetting = this.settings.border.cornerVisible;
