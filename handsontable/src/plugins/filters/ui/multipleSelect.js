@@ -248,12 +248,6 @@ export class MultipleSelectUI extends BaseUI {
       });
       this.#itemsBox.init();
 
-      this.hot.addHook('afterSetTheme', (themeName, firstRun) => {
-        if (!firstRun) {
-          this.#itemsBox.useTheme(themeName);
-        }
-      });
-
       const shortcutManager = this.#itemsBox.getShortcutManager();
       const gridContext = shortcutManager.getContext('grid');
 

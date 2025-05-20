@@ -3097,4 +3097,22 @@ describe('ContextMenu', () => {
 
     expect(getPlugin('contextMenu').menu.hotMenu.getSettings().layoutDirection).toBe('ltr');
   });
+
+  it('should close the context menu after call `useTheme`', async() => {
+    const hot = handsontable({
+      contextMenu: true,
+      height: 100
+    });
+
+    expect(getPlugin('contextMenu')).toBeDefined();
+    expect($('.htContextMenu').is(':visible')).toBe(false);
+
+    await contextMenu();
+
+    expect($('.htContextMenu').is(':visible')).toBe(true);
+
+    hot.useTheme(undefined);
+
+    expect($('.htContextMenu').is(':visible')).toBe(false);
+  });
 });

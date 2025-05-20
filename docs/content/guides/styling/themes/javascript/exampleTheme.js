@@ -189,8 +189,7 @@ const currentTheme = document.querySelector('html')?.classList.contains('theme-d
 
 const setTheme = (theme) => {
   colorBox.classList.value = `color-box ${theme}`;
-  hotInstance.useTheme(theme);
-  hotInstance.render();
+  hotInstance.useTheme(theme === 'ht-no-theme' ? undefined : theme);
 };
 
 themeSelect.value = currentTheme;

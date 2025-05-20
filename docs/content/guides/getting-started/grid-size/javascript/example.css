@@ -1,3 +1,11 @@
 #exampleParent {
   height: 157px;
 }
+
+#example {
+  height: 100%;
+}
+
+#example .ht-root-wrapper {
+  height: 100%;
+}

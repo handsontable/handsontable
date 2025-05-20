@@ -75,18 +75,45 @@ describe('Core_datachange', () => {
     expect(output[0][3]).toEqual('test');
   });
 
-  it('this.rootElement should point to handsontable rootElement', async() => {
-    const $container = spec().$container;
-    let output = null;
+  it('this.rootWrapperElement should be placed in the container div provided by the user', async() => {
+    let rootWrapperElement = null;
 
     handsontable({
       afterChange() {
-        output = this.rootElement;
+        rootWrapperElement = this.rootWrapperElement;
       }
     });
     await setDataAtCell(0, 0, 'test');
 
-    expect(output).toEqual($container[0]);
+    expect(spec().$container[0].contains(rootWrapperElement)).toBeTrue();
+  });
+
+  it('this.rootElement should be placed in the container div provided by the user', async() => {
+    let rootElement = null;
+
+    handsontable({
+      afterChange() {
+        rootElement = this.rootElement;
+      }
+    });
+    await setDataAtCell(0, 0, 'test');
+
+    expect(spec().$container[0].contains(rootElement)).toBeTrue();
+  });
+
+  it('this.rootElement should be placed in the this.rootWrapperElement', async() => {
+    let rootWrapperElement = null;
+    let rootElement = null;
+
+    handsontable({
+      afterChange() {
+        rootWrapperElement = this.rootWrapperElement;
+        rootElement = this.rootElement;
+      }
+    });
+    await setDataAtCell(0, 0, 'test');
+
+    expect(rootWrapperElement.contains(rootElement)).toBeTrue();
   });
 
   it('afterChange should be triggered after data is rendered to DOM (init)', async() => {
