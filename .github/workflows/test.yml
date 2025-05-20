@@ -267,4 +267,3 @@ jobs:
           path: ./
       - run: tar -zxf dist.tar.gz ./handsontable/dist && rm dist.tar.gz
 
-
