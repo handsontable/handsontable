@@ -1,20 +1,21 @@
 import { html } from '../../helpers/templateLiteralTag';
 import { mixin } from '../../helpers/object';
+import { addClass, removeClass } from '../../helpers/dom/element';
 import localHooks from '../../mixins/localHooks';
 
 const TEMPLATE = `
-<div data-ref="container" class="htPaginationContainer">
-  <div data-ref="pageSizeSection" class="htPageSizeSection" style="display: none">
+<div data-ref="container" class="ht-pagination-container">
+  <div data-ref="pageSizeSection" class="ht-page-size-section" style="display: none">
     <span data-ref="pageSizeLabel">Page size:</span>
     <select data-ref="pageSizeSelect" name="pageSize"></select>
   </div>
-  <div data-ref="pageCounterSection" class="htPageCounterSection" style="display: none"></div>
-  <div data-ref="pageNavSection" class="htPageNavigationSection" style="display: none">
-    <button data-ref="first">&laquo;</button>
-    <button data-ref="prev">&lsaquo;</button>
+  <div data-ref="pageCounterSection" class="ht-page-counter-section" style="display: none"></div>
+  <div data-ref="pageNavSection" class="ht-page-navigation-section" style="display: none">
+    <button data-ref="first" class="ht-page-first"></button>
+    <button data-ref="prev" class="ht-page-prev"></button>
     <span data-ref="pageNavLabel"></span>
-    <button data-ref="next">&rsaquo;</button>
-    <button data-ref="last">&raquo;</button>
+    <button data-ref="next" class="ht-page-next"></button>
+    <button data-ref="last" class="ht-page-last"></button>
   </div>
 </div>
 `;
@@ -29,16 +30,16 @@ const TEMPLATE = `
  */
 export class PaginationUI {
   /**
-   * @param {HTMLElement} rootWrapperElement The root element where the pagination UI will be installed.
+   * @param {HTMLElement} rootElement The root element where the pagination UI will be installed.
    */
-  #rootWrapperElement;
+  #rootElement;
   /**
    * @param {object} refs The references to the UI elements.
    */
   #refs;
 
-  constructor(rootWrapperElement) {
-    this.#rootWrapperElement = rootWrapperElement;
+  constructor(rootElement) {
+    this.#rootElement = rootElement;
   }
 
   /**
@@ -63,7 +64,7 @@ export class PaginationUI {
     pageSizeSelect.addEventListener('change',
       () => this.runLocalHooks('pageSizeChange', parseInt(pageSizeSelect.value, 10)));
 
-    this.#rootWrapperElement.appendChild(elements.fragment);
+    this.#rootElement.after(elements.fragment);
   }
 
   /**
@@ -129,17 +130,25 @@ export class PaginationUI {
     });
 
     if (currentPage === 1) {
+      addClass(first, 'disabled');
+      addClass(prev, 'disabled');
       first.setAttribute('disabled', true);
       prev.setAttribute('disabled', true);
     } else {
+      removeClass(first, 'disabled');
+      removeClass(prev, 'disabled');
       first.removeAttribute('disabled');
       prev.removeAttribute('disabled');
     }
 
     if (currentPage === totalPages) {
+      addClass(next, 'disabled');
+      addClass(last, 'disabled');
       next.setAttribute('disabled', true);
       last.setAttribute('disabled', true);
     } else {
+      removeClass(next, 'disabled');
+      removeClass(last, 'disabled');
       next.removeAttribute('disabled');
       last.removeAttribute('disabled');
     }

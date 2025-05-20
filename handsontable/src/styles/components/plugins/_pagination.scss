@@ -4,63 +4,70 @@
 
 @mixin output {
   .ht-root-wrapper {
-    .htPaginationContainer {
+    .ht-pagination-container {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: #f7f7f9;
-      border: 1px solid #e7e7e9;
-      border-radius: 0 0 6px 6px;
-      padding: 0.5rem 1rem;
-      font-size: 14px;
+      background: var(--ht-pagination-bar-background-color);
+      border: 1px solid var(--ht-wrapper-border-color);
+      border-radius: 0 0 var(--ht-wrapper-border-radius) var(--ht-wrapper-border-radius);
+      padding-inline: var(--ht-pagination-bar-horizontal-padding);
+      padding-block: var(--ht-pagination-bar-vertical-padding);
+      color: var(--ht-foreground-color);
+      font-size: var(--ht-font-size);
       box-sizing: border-box;
     }
 
-    .htPageSizeSection {
+    .ht-page-size-section {
       display: flex;
       align-items: center;
       gap: 8px;
 
       span {
-        color: #444;
         white-space: nowrap;
       }
 
       select {
-        padding: 3px 24px 3px 8px;
-        border: 1px solid #ccc;
+        padding-inline: calc(var(--ht-gap-size) + 4px);
+        padding-block: calc(var(--ht-gap-size));
+        border: 1px solid var(--ht-wrapper-border-color);
         border-radius: 4px;
         background-color: white;
-        appearance: none;
-        background-image: url("data:image/svg+xml,%3Csvg fill='black' height='16' viewBox='0 0 24 24' width='16' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: right 8px center;
-        background-size: 16px;
       }
     }
 
-    .htPageCounterSection {
-      color: #444;
-    }
-
-    .htPageNavigationSection {
+    .ht-page-navigation-section {
       display: flex;
       align-items: center;
       gap: 0.5rem;
-      color: #444;
 
       button {
         background: none;
         border: none;
-        color: #444;
+        color: var(--ht-foreground-color);
         cursor: pointer;
-        font-size: 16px;
-        padding: 0.2rem 0.4rem;
-      }
+        padding: 4px;
+        border-radius: 4px;
 
-      button:disabled {
-        color: #ccc;
-        cursor: default;
+        &::before {
+          @include mixins.pseudo;
+
+          width: var(--ht-icon-size);
+        }
+
+        &:disabled {
+          background-color: transparent;
+          opacity: 0.4;
+          cursor: default;
+        }
+
+        &:hover:not(.disabled) {
+          background-color: #e3e3e5;
+        }
+
+        &:focus {
+          outline: 2px solid #1b42e8;
+        }
       }
 
       span {

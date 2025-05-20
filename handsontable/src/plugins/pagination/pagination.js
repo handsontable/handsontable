@@ -68,7 +68,7 @@ export class Pagination extends BasePlugin {
    *
    * @type {PaginationUI}
    */
-  #ui = new PaginationUI(this.hot.rootWrapperElement);
+  #ui = new PaginationUI(this.hot.rootElement);
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -338,10 +338,14 @@ export class Pagination extends BasePlugin {
 
     renderableIndexes.splice((this.#currentPage - 1) * this.#pageSize, this.#pageSize);
 
-    this.hot.batchExecution(() => {
-      // TODO (perf tip): reverse the logic by showing only the visible indexes not hiding the rest - if possible
-      renderableIndexes.forEach(index => this.#pagedRowsMap.setValueAtIndex(index, true));
-    }, true);
+    if (renderableIndexes.length > 0) {
+      this.hot.batchExecution(() => {
+        // TODO (perf tip): reverse the logic by showing only the visible indexes not hiding the rest - if possible
+        renderableIndexes.forEach(index => this.#pagedRowsMap.setValueAtIndex(index, true));
+      }, true);
+    } else {
+      this.hot.rowIndexMapper.updateCache(true); // TODO: test me
+    }
 
     this.#internalCall = false;
 

@@ -195,6 +195,9 @@
   --ht-menu-shadow-color: rgba(0, 0, 0, 0.08);
   --ht-menu-item-hover-color: rgba(0, 0, 0, 0.05);
   --ht-menu-item-active-color: rgba(0, 0, 0, 0.08);
+  --ht-pagination-bar-background-color: #f7f7f9;
+  --ht-pagination-bar-horizontal-padding: 12px;
+  --ht-pagination-bar-vertical-padding: 8px;
 }
 
 @mixin dark {
