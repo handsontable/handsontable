@@ -60,8 +60,27 @@
     scrollbar-color: var(--ht-scrollbar-thumb-color)
       var(--ht-scrollbar-track-color);
 
-    &::-webkit-scrollbar-track {
-      border-radius: var(--ht-scrollbar-border-radius);
+    // Styles for browsers that don't support scrollbar-width and scrollbar-color
+    .wtHolder {
+      &::-webkit-scrollbar {
+        width: 9px;
+        height: 9px;
+      }
+  
+      &::-webkit-scrollbar-track {
+        background: var(--ht-scrollbar-track-color);
+        border-radius: var(--ht-scrollbar-border-radius);
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background-color: var(--ht-scrollbar-thumb-color);
+        border-radius: var(--ht-scrollbar-border-radius);
+      }
+
+      &::-webkit-scrollbar-corner {
+        background: var(--ht-scrollbar-track-color);
+        border-end-end-radius: var(--ht-scrollbar-border-radius);
+      }
     }
 
     // Wrapper
@@ -593,6 +612,14 @@
     div[class^="ht_clone"] tbody .ht__highlight .relative::after {
       right: auto;
       left: -1px;
+    }
+  }
+
+  // Fix for Safari custom scrollbar size calculation
+  .htScrollbarSafariTest {
+    &::-webkit-scrollbar {
+      width: 9px;
+      height: 9px;
     }
   }
 }
