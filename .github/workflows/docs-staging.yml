@@ -148,6 +148,36 @@ jobs:
           node-version-file: '.nvmrc'
           cache: 'npm'
 
+      - name: Find PR
+        uses: jwalton/gh-find-current-pr@7ada613939e2a233c83a1320679446fa1c6bdcb9 # https://github.com/jwalton/gh-find-current-pr/tree/v1.3.2
+        id: pr-finder
+
+      - name: Get PR details
+        if: ${{ steps.pr-finder.outputs.pr }}
+        id: get-pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: pullRequest } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number ||  ${{ steps.pr-finder.outputs.pr }}
+            });
+
+            console.log(`PR #${context.issue.number} details fetched`);
+            console.log(`Source branch: ${pullRequest.head.ref}`);
+            console.log(`Target branch: ${pullRequest.base.ref}`);
+
+            // Set outputs to use in subsequent steps
+            core.setOutput('source_branch', pullRequest.head.ref);
+            core.setOutput('target_branch', pullRequest.base.ref);
+            core.setOutput('pr_owner', pullRequest.head.repo.owner.login);
+            core.setOutput('pr_repo', pullRequest.head.repo.name);
+
+            return pullRequest;
+          result-encoding: string
+
+
       - name: Install Netlify dependencies
         run: |
            cd netlify
@@ -163,6 +193,16 @@ jobs:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
           BRANCH_NAME_PREFIX: dev-handsontable-
           BRANCH_NAME: ${{ github.ref_name }}
+
+      - name: Publish sticky comment in PR. Docs are being built
+        uses: marocchino/sticky-pull-request-comment@adca94abcaf73c10466a71cc83ae561fd66d1a56 # https://github.com/marocchino/sticky-pull-request-comment/tree/v2.3.0
+        if: ${{ steps.pr-finder.outputs.pr }}
+        with:
+          number: ${{ steps.pr-finder.outputs.pr }}
+          message: |
+            🏗️ Preview documentation is being built/rebuilt.
+            Current staging version of documentation will be available at: [${{ env.NETLIFY_SITE_URL }}/docs](${{ env.NETLIFY_SITE_URL }}/docs)
+    
 
       - name: Install the documentation dependencies
         run: |
@@ -192,6 +232,9 @@ jobs:
           echo "Building the documentation..." >> docs/index.html
           cp _redirects docs/_redirects
           cp docs/docs/404.html docs/404.html
+          rm -rf ../../handsontable/node_modules
+          rm -rf ../../handsontable/tmp
+          cp -r ../../handsontable docs/docs
 
       - name: Publish preview to Netlify
         run: |
@@ -200,6 +243,15 @@ jobs:
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ env.NETLIFY_SITE_ID }}
+
+      - name: Publish sticky comment in PR
+        if: ${{ steps.pr-finder.outputs.pr }}
+        uses: marocchino/sticky-pull-request-comment@adca94abcaf73c10466a71cc83ae561fd66d1a56 # https://github.com/marocchino/sticky-pull-request-comment/tree/v2.3.0
+        with:
+          number: ${{ steps.pr-finder.outputs.pr }}
+          message: |
+            ✅ Preview documentation is is available now
+            Current staging version of documentation is available at: [${{ env.NETLIFY_SITE_URL }}/docs](${{ env.NETLIFY_SITE_URL }}/docs)    
 
 
 
