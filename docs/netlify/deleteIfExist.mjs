@@ -6,7 +6,7 @@ const branchNameProcess = (branchName, prefix = '') => {
 
 const branchName = branchNameProcess(
   process.env.GITHUB_HEAD_REF || process.env.BRANCH_NAME, process.env.BRANCH_NAME_PREFIX
-).substring(0,50);
+).substring(0, 50);
 
 const client = new NetlifyAPI(process.env.NETLIFY_AUTH_TOKEN);
 const sites = await client.listSites();
