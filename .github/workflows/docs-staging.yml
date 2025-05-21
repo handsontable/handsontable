@@ -2,7 +2,7 @@ name: Docs Staging Deployment
 
 on:
   pull_request:
-    types: [ labeled ]
+    types: [ labeled, synchronize ]
   push:
     branches-ignore:
       - 'prod-docs/**'
