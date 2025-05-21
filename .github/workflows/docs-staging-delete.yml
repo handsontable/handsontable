@@ -9,9 +9,10 @@ defaults:
     working-directory: ./docs/
 
 jobs:
-  compile:
+  delete-preview-on-pull-request:
     name: Delete Netlify Site if exist
     runs-on: ubuntu-latest
+    if: contains(github.event.pull_request.labels.*.name, 'Generated Documentation')
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
@@ -20,13 +21,6 @@ jobs:
         with:
           node-version-file: ".nvmrc"
           cache: "npm"
-
-      # - name: Find PR
-      #   uses: jwalton/gh-find-current-pr@7ada613939e2a233c83a1320679446fa1c6bdcb9 # https://github.com/jwalton/gh-find-current-pr/tree/v1.3.2
-      #   id: pr-finder
-      #   with:
-      #     # Can be "open", "closed", or "all".  Defaults to "open".
-      #     state: all
 
       - name: Get PR details
         id: get-pr

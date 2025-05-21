@@ -20,10 +20,8 @@ defaults:
 
 jobs:
   preview-on-pull-request:
-    environment:
-      name: approvers
-    if: ${{ github.event_name == 'pull_request' }}
-    name: Build and push Preview to Netlify (on pull request)
+    if: contains(github.event.pull_request.labels.*.name, 'Generated Documentation')
+    name: Build and push Preview to Netlify (on pull request label)
     runs-on: ubuntu-latest
 
     steps:
@@ -137,7 +135,6 @@ jobs:
 
   preview-on-push-or-workflow-dispatch:
     name: Build and push Preview to Netlify (on push or workflow dispatch)
-    #if: ${{ github.ref != 'refs/heads/prod-docs/latest' }} # Exclude the prod-docs-latest branch from triggering the workflow
     if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch'}}
 
     runs-on: ubuntu-latest
