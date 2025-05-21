@@ -83,7 +83,7 @@ These keyboard shortcuts help you select cells. They come from Handsontable's [`
 | <kbd>**Delete**</kbd>                                                                                 | <kbd>**Delete**</kbd>                                                                               | Clear the contents of the selected cells                                          | &check; | &check; |
 | <kbd>**Backspace**</kbd>                                                                              | <kbd>**Backspace**</kbd>                                                                            | Clear the contents of the selected cells                                          | &check; | &check; |
 
-<sup>\*</sup> Does not function on macOS with multiple keyboard setup.<br>
+<sup>*</sup> Does not work on macOS with multiple keyboard layouts. To work around this issue, add <kbd>Fn</kbd> to the key combination.<br>
 <sup>\*\*</sup> In case of multiple selection layers, only the last selection layer gets extended. <br>
 <sup>\*\*\*</sup> This action depends on your layout direction.<br> 
 
