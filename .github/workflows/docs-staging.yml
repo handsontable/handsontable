@@ -21,7 +21,7 @@ defaults:
 
 jobs:
   preview-on-pull-request:
-    if: contains(github.event.pull_request.labels.*.name, 'Generated Documentation')
+    if: contains(github.event.pull_request.labels.*.name, 'ci:docs-deploy')
     name: Build and push Preview to Netlify (on pull request label)
     runs-on: ubuntu-latest
 
