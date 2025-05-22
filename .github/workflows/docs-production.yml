@@ -87,6 +87,7 @@ jobs:
       - name: Publish preview to Netlify
         run: |
           cd netlify
+          npm install netlify-cli -gz
           netlify deploy --prod --build --context production
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
