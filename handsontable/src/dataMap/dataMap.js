@@ -441,9 +441,11 @@ class DataMap {
 
     let numberOfCreatedCols = 0;
 
-    for (let col = firstNewPhysicalColumnIndex;
+    for (
+      let col = firstNewPhysicalColumnIndex;
       numberOfCreatedCols < amount && numberOfVisualCols + numberOfCreatedCols < maxCols;
-      col++) {
+      col++
+    ) {
       if (typeof visualColumnIndex !== 'number' || visualColumnIndex >= numberOfVisualCols + numberOfCreatedCols) {
         if (numberOfSourceRows > 0) {
           for (let row = 0; row < numberOfSourceRows; row += 1) {
