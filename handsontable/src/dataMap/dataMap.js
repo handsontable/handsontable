@@ -479,7 +479,7 @@ class DataMap {
       }
     }
 
-    this.hot.columnIndexMapper.insertIndexes(visualColumnIndex, numberOfCreatedCols, firstNewPhysicalColumnIndex);
+    this.hot.columnIndexMapper.insertIndexes(visualColumnIndex, numberOfCreatedCols, mode);
 
     this.hot.runHooks(
       'afterCreateCol',

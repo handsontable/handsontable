@@ -656,9 +656,9 @@ export class IndexMapper {
    * @private
    * @param {number} firstInsertedVisualIndex First inserted visual index.
    * @param {number} amountOfIndexes Amount of inserted indexes.
-   * @param {number} firstInsertedPhysicalIndex First inserted physical index.
+   * @param {'start' | 'end'} [mode] Sets where the column is inserted: at the start of the passed index or at the end.
    */
-  insertIndexes(firstInsertedVisualIndex, amountOfIndexes, firstInsertedPhysicalIndex) {
+  insertIndexes(firstInsertedVisualIndex, amountOfIndexes, mode = 'start') {
     const nthVisibleIndex = this.getNotTrimmedIndexes()[firstInsertedVisualIndex];
     const notTrimmedPhysicalIndex = isDefined(nthVisibleIndex)
       ? nthVisibleIndex
@@ -671,11 +671,14 @@ export class IndexMapper {
     this.suspendOperations();
     this.indexesChangeSource = 'insert';
 
-    this.indexesSequence.insert(visualInsertionIndex, insertedIndexes, firstInsertedPhysicalIndex);
+    this.indexesSequence.insert(visualInsertionIndex, insertedIndexes);
     this.indexesChangeSource = undefined;
-    this.trimmingMapsCollection.insertToEvery(visualInsertionIndex, insertedIndexes, firstInsertedPhysicalIndex);
-    this.hidingMapsCollection.insertToEvery(visualInsertionIndex, insertedIndexes, firstInsertedPhysicalIndex);
-    this.variousMapsCollection.insertToEvery(visualInsertionIndex, insertedIndexes, firstInsertedPhysicalIndex);
+
+    const modInsertedIndexes = mode === 'end' ? insertedIndexes.map((index) => index + 1) : insertedIndexes;
+
+    this.trimmingMapsCollection.insertToEvery(visualInsertionIndex, modInsertedIndexes);
+    this.hidingMapsCollection.insertToEvery(visualInsertionIndex, modInsertedIndexes);
+    this.variousMapsCollection.insertToEvery(visualInsertionIndex, modInsertedIndexes);
     this.resumeOperations();
   }
 
