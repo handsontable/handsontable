@@ -23,6 +23,7 @@ if (site) {
   console.log(`Creating site: ${branchName}`);
   site = await client.createSite({
     body: {
+      account_slug: process.env.NETLIFY_ACCOUNT_SLUG,
       name: branchName,
     },
   });
