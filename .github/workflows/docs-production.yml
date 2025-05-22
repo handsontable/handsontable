@@ -77,3 +77,17 @@ jobs:
           username: ${{secrets.DOCS_DEPLOYMENT_USER}}
           password: ${{secrets.DOCS_DEPLOYMENT_PASSWORD}}
           payload: '{"token": "${{secrets.DOCS_DEPLOYMENT_TOKEN}}","docsVersion": "${{steps.get-docs-version.outputs.result}}"}'
+
+      - name: Build and deploy the production to Netlify (from Docker images)
+        run: |
+          cd netlify
+          mkdir -p docs/docs
+          ./build_current_version.sh
+       
+      - name: Publish preview to Netlify
+        run: |
+          cd netlify
+          netlify deploy --prod --build --context production
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_PROD_SITE_ID }}

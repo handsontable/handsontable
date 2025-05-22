@@ -17,6 +17,7 @@ import {
 import { FocusManager } from './focusManager';
 import { arrayMap, arrayEach, arrayReduce, getDifferenceOfArrays, stringToArray, pivot } from './helpers/array';
 import { instanceToHTML } from './utils/parseTable';
+import { staticRegister } from './utils/staticRegister';
 import { getPlugin, getPluginsNames } from './plugins/registry';
 import { getRenderer } from './renderers/registry';
 import { getEditor } from './editors/registry';
@@ -44,6 +45,7 @@ import { registerAllShortcutContexts } from './shortcutContexts';
 import { getThemeClassName } from './helpers/themes';
 import { StylesHandler } from './utils/stylesHandler';
 import { warn } from './helpers/console';
+import { CellRangeToRenderableMapper } from './core/coordsMapper/rangeToRenderableMapper';
 
 let activeGuid = null;
 
@@ -339,6 +341,13 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
   dataSource = new DataSource(instance);
 
+  const moduleRegisterer = staticRegister(this.guid);
+
+  moduleRegisterer.register('cellRangeMapper', new CellRangeToRenderableMapper({
+    rowIndexMapper: this.rowIndexMapper,
+    columnIndexMapper: this.columnIndexMapper,
+  }));
+
   if (!this.rootElement.id || this.rootElement.id.substring(0, 3) === 'ht_') {
     this.rootElement.id = this.guid; // if root element does not have an id, assign a random id
   }
@@ -482,12 +491,14 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       removeClass(this.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
     }
 
-    if (selection.getSelectionSource() !== 'shift') {
+    if (!['shift', 'refresh'].includes(selection.getSelectionSource())) {
       editorManager.closeEditor(null);
     }
 
-    instance.view.render();
-    editorManager.prepareEditor();
+    if (selection.getSelectionSource() !== 'refresh') {
+      instance.view.render();
+      editorManager.prepareEditor();
+    }
   });
 
   this.selection.addLocalHook('beforeSetFocus', (cellCoords) => {
@@ -516,6 +527,11 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       from.row, from.col, to.row, to.col, selectionLayerLevel);
     this.runHooks('afterSelectionEndByProp',
       from.row, instance.colToProp(from.col), to.row, instance.colToProp(to.col), selectionLayerLevel);
+
+    if (selection.getSelectionSource() === 'refresh') {
+      instance.view.render();
+      editorManager.prepareEditor();
+    }
   });
 
   this.selection.addLocalHook('afterIsMultipleSelection', (isMultiple) => {
@@ -709,6 +725,15 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
                 selection.deselect();
 
               } else if (source === 'ContextMenu.removeRow') {
+                const selectionRange = selection.getSelectedRange();
+                const lastSelection = selectionRange.pop();
+
+                selectionRange
+                  .clear()
+                  .set(lastSelection.from)
+                  .current()
+                  .setTo(lastSelection.to);
+
                 selection.refresh();
 
               } else {
@@ -765,6 +790,15 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
                 selection.deselect();
 
               } else if (source === 'ContextMenu.removeColumn') {
+                const selectionRange = selection.getSelectedRange();
+                const lastSelection = selectionRange.pop();
+
+                selectionRange
+                  .clear()
+                  .set(lastSelection.from)
+                  .current()
+                  .setTo(lastSelection.to);
+
                 selection.refresh();
 
               } else {
@@ -4625,6 +4659,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     dataSource = null;
 
     this.getShortcutManager().destroy();
+    moduleRegisterer.clear();
     metaManager.clearCache();
     foreignHotInstances.delete(this.guid);
 

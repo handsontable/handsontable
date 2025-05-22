@@ -4,7 +4,7 @@ export const collection = new Map();
  * @param {string} namespace The namespace for the storage.
  * @returns {object}
  */
-export default function staticRegister(namespace = 'common') {
+export function staticRegister(namespace = 'common') {
   if (!collection.has(namespace)) {
     collection.set(namespace, new Map());
   }
@@ -58,11 +58,31 @@ export default function staticRegister(namespace = 'common') {
     return [...subCollection.values()];
   }
 
+  /**
+   * Clear the collection.
+   */
+  function clear() {
+    collection.delete(namespace);
+    subCollection.clear();
+  }
+
   return {
     register,
     getItem,
     hasItem,
     getNames,
     getValues,
+    clear,
   };
+}
+
+/**
+ * Resolves item from the collection that is strictly connected with the Handsontable instance.
+ *
+ * @param {Core} hotInstance The Handsontable instance.
+ * @param {string} name The name of the item to retrieve.
+ * @returns {*}
+ */
+export function resolveWithInstance(hotInstance, name) {
+  return collection?.get(hotInstance.guid)?.get(name);
 }

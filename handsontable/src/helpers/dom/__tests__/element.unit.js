@@ -3,6 +3,7 @@ import {
   closest,
   closestDown,
   getParent,
+  getFractionalScalingCompensation,
   hasClass,
   isInput,
   removeAttribute,
@@ -14,6 +15,7 @@ import {
   findFirstParentWithClass,
   isHTMLElement,
 } from 'handsontable/helpers/dom/element';
+import { setPlatformMeta } from 'handsontable/helpers/browser';
 
 describe('DomElement helper', () => {
   //
@@ -832,6 +834,47 @@ describe('DomElement helper', () => {
       const element = document.createElement('div');
 
       expect(isHTMLElement(element)).toBe(true);
+    });
+  });
+
+  //
+  // Handsontable.helper.getFractionalScalingCompensation
+  //
+  describe('getFractionalScalingCompensation', () => {
+    it('should return 0 for non-Windows platforms', () => {
+      const mockDocument = {
+        defaultView: {
+          devicePixelRatio: 1.5
+        }
+      };
+
+      setPlatformMeta({ platform: 'MacIntel' });
+
+      expect(getFractionalScalingCompensation(mockDocument)).toBe(0);
+    });
+
+    it('should return 0 for Windows with integer devicePixelRatio', () => {
+      const mockDocument = {
+        defaultView: {
+          devicePixelRatio: 2
+        }
+      };
+
+      setPlatformMeta({ platform: 'Win32' });
+
+      expect(getFractionalScalingCompensation(mockDocument)).toBe(0);
+    });
+
+    it('should return 2 for Windows with fractional devicePixelRatio', () => {
+      const mockDocument = {
+        defaultView: {
+          devicePixelRatio: 1.5
+        }
+      };
+
+      setPlatformMeta({ platform: 'Win32' });
+
+      expect(getFractionalScalingCompensation(mockDocument)).toBe(2);
     });
   });
 });

@@ -27,6 +27,8 @@ Handsontable.dom.getScrollLeft(domElement, window);
 Handsontable.dom.getScrollTop(domElement);
 Handsontable.dom.getScrollTop(domElement, window);
 Handsontable.dom.getScrollableElement(domElement);
+Handsontable.dom.getFractionalScalingCompensation();
+Handsontable.dom.getFractionalScalingCompensation(document);
 Handsontable.dom.getScrollbarWidth();
 Handsontable.dom.getScrollbarWidth(document);
 Handsontable.dom.getSelectionEndPosition(domElement);
