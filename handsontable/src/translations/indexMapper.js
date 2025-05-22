@@ -659,12 +659,12 @@ export class IndexMapper {
    * @param {number} firstInsertedPhysicalIndex First inserted physical index.
    */
   insertIndexes(firstInsertedVisualIndex, amountOfIndexes, firstInsertedPhysicalIndex) {
-    const maybeNotTrimmedPhysicalIndex = this.getNotTrimmedIndexes()[firstInsertedVisualIndex];
-    const notTrimmedPhysicalIndex = isDefined(maybeNotTrimmedPhysicalIndex)
-      ? maybeNotTrimmedPhysicalIndex
+    const nthVisibleIndex = this.getNotTrimmedIndexes()[firstInsertedVisualIndex];
+    const notTrimmedPhysicalIndex = isDefined(nthVisibleIndex)
+      ? nthVisibleIndex
       : this.getNumberOfIndexes();
-    const visualInsertionIndex = this.getIndexesSequence().includes(maybeNotTrimmedPhysicalIndex) ?
-      this.getIndexesSequence().indexOf(maybeNotTrimmedPhysicalIndex) : this.getNumberOfIndexes();
+    const visualInsertionIndex = this.getIndexesSequence().includes(nthVisibleIndex) ?
+      this.getIndexesSequence().indexOf(nthVisibleIndex) : this.getNumberOfIndexes();
     const insertedIndexes = arrayMap(new Array(amountOfIndexes).fill(notTrimmedPhysicalIndex),
       (nextIndex, stepsFromStart) => nextIndex + stepsFromStart);
 
