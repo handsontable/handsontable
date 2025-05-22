@@ -10,7 +10,7 @@ const CONFLICTING_OPTIONS = [
 ];
 
 /**
- * Warns about the conflict between the pagination plugin and other plugins and options.
+ * Warns about the conflict between the pagination plugin and other plugins and/or options.
  *
  * @param {object} settings The settings object of the Handsontable.
  * @returns {boolean} Returns `true` if there is a conflict, `false` otherwise.
