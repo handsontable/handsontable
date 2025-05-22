@@ -7,9 +7,8 @@
  * @returns {number}
  */
 export function sumCellsHeights(hotInstance, row, rowspan) {
-  const { view, rowIndexMapper } = hotInstance;
-  const stylesHandler = view.getStylesHandler();
-  const defaultHeight = view.getDefaultRowHeight();
+  const { rowIndexMapper, stylesHandler } = hotInstance;
+  const defaultHeight = stylesHandler.getDefaultRowHeight();
   let height = 0;
 
   for (let i = row; i < row + rowspan; i++) {

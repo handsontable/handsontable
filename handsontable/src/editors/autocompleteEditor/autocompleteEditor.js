@@ -3,6 +3,7 @@ import { arrayMap, pivot } from '../../helpers/array';
 import {
   addClass,
   getCaretPosition,
+  getFractionalScalingCompensation,
   getScrollbarWidth,
   getSelectionEndPosition,
   outerWidth,
@@ -388,7 +389,7 @@ export class AutocompleteEditor extends HandsontableEditor {
       let height = null;
 
       do {
-        lastRowHeight = this.htEditor.view.getDefaultRowHeight();
+        lastRowHeight = this.htEditor.stylesHandler.getDefaultRowHeight();
         tempHeight += lastRowHeight;
       } while (tempHeight < spaceAvailable);
 
@@ -420,9 +421,13 @@ export class AutocompleteEditor extends HandsontableEditor {
    * @private
    */
   updateDropdownDimensions() {
+    const fractionalScalingCompensation = getFractionalScalingCompensation();
+    const targetWidth = this.getTargetEditorWidth() + fractionalScalingCompensation;
+    const targetHeight = this.getTargetEditorHeight() + fractionalScalingCompensation;
+
     this.htEditor.updateSettings({
-      width: this.getTargetEditorWidth(),
-      height: this.getTargetEditorHeight(),
+      width: targetWidth,
+      height: targetHeight
     });
 
     this.#fixDropdownWidth();
@@ -478,7 +483,7 @@ export class AutocompleteEditor extends HandsontableEditor {
     const height = Array.from({ length: maxItems }, (_, i) => i)
       .reduce((totalHeight, index) => {
         // for the first row, we need to add 1px (border-top compensation)
-        const rowHeight = this.htEditor.view.getDefaultRowHeight() + (index === 0 ? 1 : 0);
+        const rowHeight = this.hot.stylesHandler.getDefaultRowHeight() + (index === 0 ? 1 : 0);
 
         return totalHeight + rowHeight;
       }, 0);

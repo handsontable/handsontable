@@ -323,9 +323,6 @@ export default class CoreAbstract {
       get selectionManager() {
         return wot.selectionManager; // TODO refactoring: move outside dao, use IOC
       },
-      get stylesHandler() {
-        return wot.stylesHandler;
-      },
       get drawn() {
         return wot.drawn;
       },

@@ -1540,4 +1540,29 @@ describe('Comments', () => {
 
     expect(editorManager.openEditor).not.toHaveBeenCalled();
   });
+
+  it('should close the comment popup after call `useTheme`', async() => {
+    const hot = handsontable({
+      data: createSpreadsheetData(6, 6),
+      cell: [
+        { row: 1, col: 1, comment: { value: 'Hello world!' } }
+      ],
+      rowHeaders: true,
+      colHeaders: true,
+      comments: true,
+    });
+
+    const plugin = getPlugin('comments');
+    const editor = plugin.getEditorInputElement();
+
+    expect(editor.parentNode.style.display).toBe('none');
+
+    plugin.showAtCell(1, 1);
+
+    expect(editor.parentNode.style.display).toBe('block');
+
+    hot.useTheme(undefined);
+
+    expect(editor.parentNode.style.display).toBe('none');
+  });
 });
