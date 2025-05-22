@@ -660,12 +660,12 @@ export class IndexMapper {
    */
   insertIndexes(firstInsertedVisualIndex, amountOfIndexes, mode = 'start') {
     const nthVisibleIndex = this.getNotTrimmedIndexes()[firstInsertedVisualIndex];
-    const notTrimmedPhysicalIndex = isDefined(nthVisibleIndex)
+    const firstInsertedPhysicalIndex = isDefined(nthVisibleIndex)
       ? nthVisibleIndex
       : this.getNumberOfIndexes();
     const visualInsertionIndex = this.getIndexesSequence().includes(nthVisibleIndex) ?
       this.getIndexesSequence().indexOf(nthVisibleIndex) : this.getNumberOfIndexes();
-    const insertedIndexes = arrayMap(new Array(amountOfIndexes).fill(notTrimmedPhysicalIndex),
+    const insertedIndexes = arrayMap(new Array(amountOfIndexes).fill(firstInsertedPhysicalIndex),
       (nextIndex, stepsFromStart) => nextIndex + stepsFromStart);
 
     this.suspendOperations();
