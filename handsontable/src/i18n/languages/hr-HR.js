@@ -110,6 +110,14 @@ const dictionary = {
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'Vrijednost',
   [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Druga vrijednost',
 
+  [C.PAGINATION_PAGE]: 'Stranica',
+  [C.PAGINATION_PAGE_SIZE]: 'Broj redaka:',
+  [C.PAGINATION_OF]: 'od',
+  [C.PAGINATION_FIRST_PAGE]: 'Idi na prvu stranicu',
+  [C.PAGINATION_PREV_PAGE]: 'Idi na prethodnu stranicu',
+  [C.PAGINATION_NEXT_PAGE]: 'Idi na sljedeću stranicu',
+  [C.PAGINATION_LAST_PAGE]: 'Idi na posljednju stranicu',
+
   [C.CHECKBOX_CHECKED]: 'Označeno',
   [C.CHECKBOX_UNCHECKED]: 'Nije označeno',
 };

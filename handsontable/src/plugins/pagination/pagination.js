@@ -68,7 +68,10 @@ export class Pagination extends BasePlugin {
    *
    * @type {PaginationUI}
    */
-  #ui = new PaginationUI(this.hot.rootElement);
+  #ui = new PaginationUI(
+    this.hot.rootElement,
+    phraseId => this.hot.getTranslatedPhrase(phraseId)
+  );
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}

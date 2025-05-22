@@ -95,7 +95,15 @@ const dictionary = {
 
   [C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH]: '찾기',
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: '값',
-  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: '두번째 값'
+  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: '두번째 값',
+
+  [C.PAGINATION_PAGE]: '페이지',
+  [C.PAGINATION_PAGE_SIZE]: '행 수:',
+  [C.PAGINATION_OF]: '중',
+  [C.PAGINATION_FIRST_PAGE]: '첫 페이지로 이동',
+  [C.PAGINATION_PREV_PAGE]: '이전 페이지로 이동',
+  [C.PAGINATION_NEXT_PAGE]: '다음 페이지로 이동',
+  [C.PAGINATION_LAST_PAGE]: '마지막 페이지로 이동',
 };
 
 export default dictionary;

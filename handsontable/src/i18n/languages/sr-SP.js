@@ -99,7 +99,15 @@ const dictionary = {
 
   [C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH]: 'Pretraga',
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'Vrednost',
-  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Druga vrednost'
+  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Druga vrednost',
+
+  [C.PAGINATION_PAGE]: 'Stranica',
+  [C.PAGINATION_PAGE_SIZE]: 'Broj redova:',
+  [C.PAGINATION_OF]: 'od',
+  [C.PAGINATION_FIRST_PAGE]: 'Idi na prvu stranicu',
+  [C.PAGINATION_PREV_PAGE]: 'Idi na prethodnu stranicu',
+  [C.PAGINATION_NEXT_PAGE]: 'Idi na sledeću stranicu',
+  [C.PAGINATION_LAST_PAGE]: 'Idi na poslednju stranicu',
 };
 
 export default dictionary;

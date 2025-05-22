@@ -12,15 +12,15 @@ import { A11Y_LABEL } from '../../helpers/a11y';
  * @returns {{ activate: Function, deactivate: Function }}
  */
 export function installFocusDetector(hot, hooks = {}) {
-  const rootWrapperElement = hot.rootWrapperElement;
+  const rootElement = hot.rootElement;
   const inputTrapTop = createInputElement(hot);
   const inputTrapBottom = createInputElement(hot);
 
   inputTrapTop.addEventListener('focus', () => hooks?.onFocusFromTop());
   inputTrapBottom.addEventListener('focus', () => hooks?.onFocusFromBottom());
 
-  rootWrapperElement.firstChild.before(inputTrapTop);
-  rootWrapperElement.lastChild.after(inputTrapBottom);
+  rootElement.before(inputTrapTop);
+  rootElement.after(inputTrapBottom);
 
   return {
     /**

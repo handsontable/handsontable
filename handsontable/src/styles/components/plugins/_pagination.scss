@@ -61,7 +61,7 @@
           cursor: default;
         }
 
-        &:hover:not(.disabled) {
+        &:hover:not(:disabled) {
           background-color: #e3e3e5;
         }
 

@@ -1,22 +1,27 @@
 import { html } from '../../helpers/templateLiteralTag';
 import { mixin } from '../../helpers/object';
-import { addClass, removeClass } from '../../helpers/dom/element';
 import localHooks from '../../mixins/localHooks';
+import * as C from '../../i18n/constants';
+import {
+  removeAttribute,
+  setAttribute,
+} from '../../helpers/dom/element';
+import { A11Y_DISABLED, A11Y_LABEL } from '../../helpers/a11y';
 
 const TEMPLATE = `
 <div data-ref="container" class="ht-pagination-container">
   <div data-ref="pageSizeSection" class="ht-page-size-section" style="display: none">
-    <span data-ref="pageSizeLabel">Page size:</span>
+    <span data-ref="pageSizeLabel"></span>
     <select data-ref="pageSizeSelect" name="pageSize"></select>
   </div>
   <div data-ref="pageCounterSection" class="ht-page-counter-section" style="display: none"></div>
-  <div data-ref="pageNavSection" class="ht-page-navigation-section" style="display: none">
+  <nav data-ref="pageNavSection" role="navigation" class="ht-page-navigation-section" style="display: none">
     <button data-ref="first" class="ht-page-first"></button>
     <button data-ref="prev" class="ht-page-prev"></button>
     <span data-ref="pageNavLabel"></span>
     <button data-ref="next" class="ht-page-next"></button>
     <button data-ref="last" class="ht-page-last"></button>
-  </div>
+  </nav>
 </div>
 `;
 
@@ -30,16 +35,21 @@ const TEMPLATE = `
  */
 export class PaginationUI {
   /**
-   * @param {HTMLElement} rootElement The root element where the pagination UI will be installed.
+   * @type {HTMLElement} The root element where the pagination UI will be installed.
    */
   #rootElement;
   /**
-   * @param {object} refs The references to the UI elements.
+   * @type {object} The references to the UI elements.
    */
   #refs;
+  /**
+   * @type {function(string): string} The function to translate phrases used in the UI.
+   */
+  #phraseTranslator;
 
-  constructor(rootElement) {
+  constructor(rootElement, phraseTranslator) {
     this.#rootElement = rootElement;
+    this.#phraseTranslator = phraseTranslator;
   }
 
   /**
@@ -53,9 +63,17 @@ export class PaginationUI {
       next,
       last,
       pageSizeSelect,
+      pageNavSection,
+      pageSizeLabel,
     } = elements.refs;
 
     this.#refs = elements.refs;
+
+    setAttribute(pageNavSection, [
+      ...[A11Y_LABEL('Pagination')],
+    ]);
+
+    pageSizeLabel.textContent = this.#phraseTranslator(C.PAGINATION_PAGE_SIZE);
 
     first.addEventListener('click', () => this.runLocalHooks('firstPageClick'));
     prev.addEventListener('click', () => this.runLocalHooks('prevPageClick'));
@@ -115,8 +133,11 @@ export class PaginationUI {
     const firstRenderedRow = (pageSize * (currentPage - 1)) + 1;
     const lastRenderedRow = firstRenderedRow + numberOfRenderedRows - 1;
 
-    pageCounterSection.textContent = `${firstRenderedRow} - ${lastRenderedRow} of ${totalRenderedRows}`;
-    pageNavLabel.textContent = `Page ${currentPage} of ${totalPages}`;
+    const ofPhrase = this.#phraseTranslator(C.PAGINATION_OF);
+    const pagePhrase = this.#phraseTranslator(C.PAGINATION_PAGE);
+
+    pageCounterSection.textContent = `${firstRenderedRow} - ${lastRenderedRow} ${ofPhrase} ${totalRenderedRows}`;
+    pageNavLabel.textContent = `${pagePhrase} ${currentPage} ${ofPhrase} ${totalPages}`;
     pageSizeSelect.innerHTML = '';
 
     pageList.forEach((pageSizeItem) => {
@@ -129,29 +150,41 @@ export class PaginationUI {
       pageSizeSelect.add(option);
     });
 
-    if (currentPage === 1) {
-      addClass(first, 'disabled');
-      addClass(prev, 'disabled');
-      first.setAttribute('disabled', true);
-      prev.setAttribute('disabled', true);
+    const isFirstPage = currentPage === 1;
+    const isLastPage = currentPage === totalPages;
+
+    if (isFirstPage) {
+      setAttribute(first, 'disabled');
+      setAttribute(prev, 'disabled');
     } else {
-      removeClass(first, 'disabled');
-      removeClass(prev, 'disabled');
-      first.removeAttribute('disabled');
-      prev.removeAttribute('disabled');
+      removeAttribute(first, 'disabled');
+      removeAttribute(prev, 'disabled');
     }
 
-    if (currentPage === totalPages) {
-      addClass(next, 'disabled');
-      addClass(last, 'disabled');
-      next.setAttribute('disabled', true);
-      last.setAttribute('disabled', true);
+    if (isLastPage) {
+      setAttribute(next, 'disabled');
+      setAttribute(last, 'disabled');
     } else {
-      removeClass(next, 'disabled');
-      removeClass(last, 'disabled');
-      next.removeAttribute('disabled');
-      last.removeAttribute('disabled');
+      removeAttribute(next, 'disabled');
+      removeAttribute(last, 'disabled');
     }
+
+    setAttribute(first, [
+      ...[A11Y_LABEL(this.#phraseTranslator(C.PAGINATION_FIRST_PAGE))],
+      ...([A11Y_DISABLED(isFirstPage)]),
+    ]);
+    setAttribute(prev, [
+      ...[A11Y_LABEL(this.#phraseTranslator(C.PAGINATION_PREV_PAGE))],
+      ...([A11Y_DISABLED(isFirstPage)]),
+    ]);
+    setAttribute(next, [
+      ...[A11Y_LABEL(this.#phraseTranslator(C.PAGINATION_NEXT_PAGE))],
+      ...([A11Y_DISABLED(isLastPage)]),
+    ]);
+    setAttribute(last, [
+      ...[A11Y_LABEL(this.#phraseTranslator(C.PAGINATION_LAST_PAGE))],
+      ...([A11Y_DISABLED(isLastPage)]),
+    ]);
   }
 
   /**

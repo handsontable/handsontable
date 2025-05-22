@@ -101,7 +101,15 @@ const dictionary = {
 
   [C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH]: 'Buscar',
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'Valor',
-  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Valor secundario'
+  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Valor secundario',
+
+  [C.PAGINATION_PAGE]: 'Página',
+  [C.PAGINATION_PAGE_SIZE]: 'Filas por página:',
+  [C.PAGINATION_OF]: 'de',
+  [C.PAGINATION_FIRST_PAGE]: 'Ir a la primera página',
+  [C.PAGINATION_PREV_PAGE]: 'Ir a la página anterior',
+  [C.PAGINATION_NEXT_PAGE]: 'Ir a la siguiente página',
+  [C.PAGINATION_LAST_PAGE]: 'Ir a la última página',
 };
 
 export default dictionary;

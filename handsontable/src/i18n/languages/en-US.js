@@ -101,6 +101,14 @@ const dictionary = {
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'Value',
   [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Second value',
 
+  [C.PAGINATION_PAGE]: 'Page',
+  [C.PAGINATION_PAGE_SIZE]: 'Page size:',
+  [C.PAGINATION_OF]: 'of',
+  [C.PAGINATION_FIRST_PAGE]: 'Go to first page',
+  [C.PAGINATION_PREV_PAGE]: 'Go to previous page',
+  [C.PAGINATION_NEXT_PAGE]: 'Go to next page',
+  [C.PAGINATION_LAST_PAGE]: 'Go to last page',
+
   [C.CHECKBOX_CHECKED]: 'Checked',
   [C.CHECKBOX_UNCHECKED]: 'Unchecked',
 };

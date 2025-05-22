@@ -101,7 +101,15 @@ const dictionary = {
 
   [C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH]: '検索',
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: '値',
-  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: '値2'
+  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: '値2',
+
+  [C.PAGINATION_PAGE]: 'ページ',
+  [C.PAGINATION_PAGE_SIZE]: '行数：',
+  [C.PAGINATION_OF]: 'の',
+  [C.PAGINATION_FIRST_PAGE]: '最初のページへ移動',
+  [C.PAGINATION_PREV_PAGE]: '前のページへ移動',
+  [C.PAGINATION_NEXT_PAGE]: '次のページへ移動',
+  [C.PAGINATION_LAST_PAGE]: '最後のページへ移動',
 };
 
 export default dictionary;
