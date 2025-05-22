@@ -3,7 +3,7 @@ import { BasePlugin } from '../base';
 
 export interface DetailedSettings {
   pageSize: number;
-  pageList: number[];
+  pageSizeList: number[];
   initialPage: number;
   autoPageSize: boolean;
   showPageSize: boolean;
@@ -17,7 +17,7 @@ type PaginationData = {
   currentPage: number,
   totalPages: number,
   pageSize: number,
-  pageList: number[],
+  pageSizeList: number[],
   numberOfRenderedRows: number,
 }
 

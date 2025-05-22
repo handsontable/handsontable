@@ -6,7 +6,7 @@ const hot = new Handsontable(document.createElement('div'), {
 const hot2 = new Handsontable(document.createElement('div'), {
   pagination: {
     pageSize: 10,
-    pageList: [5, 10, 20, 50, 100],
+    pageSizeList: [5, 10, 20, 50, 100],
     initialPage: 1,
     autoPageSize: false,
     showPageSize: true,
@@ -49,7 +49,7 @@ const paginationData: {
   currentPage: number,
   totalPages: number,
   pageSize: number,
-  pageList: number[],
+  pageSizeList: number[],
   numberOfRenderedRows: number,
 } = plugin.getPaginationData();
 const hasPreviousPage: boolean = plugin.hasPreviousPage();

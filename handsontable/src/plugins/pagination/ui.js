@@ -15,7 +15,7 @@ const TEMPLATE = `
     <select data-ref="pageSizeSelect" name="pageSize"></select>
   </div>
   <div data-ref="pageCounterSection" class="ht-page-counter-section" style="display: none"></div>
-  <nav data-ref="pageNavSection" role="navigation" class="ht-page-navigation-section" style="display: none">
+  <nav data-ref="pageNavSection" class="ht-page-navigation-section" style="display: none">
     <button data-ref="first" class="ht-page-first"></button>
     <button data-ref="prev" class="ht-page-prev"></button>
     <span data-ref="pageNavLabel"></span>
@@ -109,7 +109,7 @@ export class PaginationUI {
    * @param {number} state.totalPages The total number of pages.
    * @param {number} state.numberOfRenderedRows The number of rows rendered on the current page.
    * @param {number} state.totalRenderedRows The total number of renderable rows.
-   * @param {number[]} state.pageList The list of available page sizes.
+   * @param {number[]} state.pageSizeList The list of available page sizes.
    * @param {number} state.pageSize The current page size.
    */
   updateState({
@@ -117,7 +117,7 @@ export class PaginationUI {
     totalPages,
     numberOfRenderedRows,
     totalRenderedRows,
-    pageList,
+    pageSizeList,
     pageSize,
   }) {
     const {
@@ -140,7 +140,7 @@ export class PaginationUI {
     pageNavLabel.textContent = `${pagePhrase} ${currentPage} ${ofPhrase} ${totalPages}`;
     pageSizeSelect.innerHTML = '';
 
-    pageList.forEach((pageSizeItem) => {
+    pageSizeList.forEach((pageSizeItem) => {
       const option = new Option(pageSizeItem, pageSizeItem);
 
       if (pageSizeItem === pageSize) {

@@ -9,4 +9,34 @@ describe('Pagination `hidePageSizeSection` method', () => {
       this.$container.remove();
     }
   });
+
+  it('should be possible to hide the section', async() => {
+    const hot = handsontable({
+      data: createSpreadsheetData(15, 10),
+      pagination: {
+        showPageSize: true,
+      },
+    });
+
+    const plugin = getPlugin('pagination');
+
+    plugin.hidePageSizeSection();
+
+    expect(hot.rootWrapperElement.querySelector('.ht-page-size-section')).not.toBeVisible();
+  });
+
+  it('should not affect the internal state or plugins settings', async() => {
+    handsontable({
+      data: createSpreadsheetData(15, 10),
+      pagination: {
+        showPageSize: true,
+      },
+    });
+
+    const plugin = getPlugin('pagination');
+
+    plugin.hidePageSizeSection();
+
+    expect(plugin.getSetting('showPageSize')).toBe(true);
+  });
 });

@@ -9,4 +9,34 @@ describe('Pagination `hidePageNavigationSection` method', () => {
       this.$container.remove();
     }
   });
+
+  it('should be possible to hide the section', async() => {
+    const hot = handsontable({
+      data: createSpreadsheetData(15, 10),
+      pagination: {
+        showNavigation: true,
+      },
+    });
+
+    const plugin = getPlugin('pagination');
+
+    plugin.hidePageNavigationSection();
+
+    expect(hot.rootWrapperElement.querySelector('.ht-page-navigation-section')).not.toBeVisible();
+  });
+
+  it('should not affect the internal state or plugins settings', async() => {
+    handsontable({
+      data: createSpreadsheetData(15, 10),
+      pagination: {
+        showNavigation: true,
+      },
+    });
+
+    const plugin = getPlugin('pagination');
+
+    plugin.hidePageNavigationSection();
+
+    expect(plugin.getSetting('showNavigation')).toBe(true);
+  });
 });

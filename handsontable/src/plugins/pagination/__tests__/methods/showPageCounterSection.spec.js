@@ -9,4 +9,34 @@ describe('Pagination `showPageCounterSection` method', () => {
       this.$container.remove();
     }
   });
+
+  it('should be possible to show the section', async() => {
+    const hot = handsontable({
+      data: createSpreadsheetData(15, 10),
+      pagination: {
+        showCounter: false,
+      },
+    });
+
+    const plugin = getPlugin('pagination');
+
+    plugin.showPageCounterSection();
+
+    expect(hot.rootWrapperElement.querySelector('.ht-page-counter-section')).toBeVisible();
+  });
+
+  it('should not affect the internal state or plugins settings', async() => {
+    handsontable({
+      data: createSpreadsheetData(15, 10),
+      pagination: {
+        showCounter: false,
+      },
+    });
+
+    const plugin = getPlugin('pagination');
+
+    plugin.showPageCounterSection();
+
+    expect(plugin.getSetting('showCounter')).toBe(false);
+  });
 });

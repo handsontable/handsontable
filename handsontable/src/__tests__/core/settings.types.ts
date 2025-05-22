@@ -179,7 +179,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   outsideClickDeselects: oneOf(true, (target: HTMLElement) => false),
   pagination: oneOf(true, {
     pageSize: 10,
-    pageList: [5, 10, 20, 50, 100],
+    pageSizeList: [5, 10, 20, 50, 100],
     initialPage: 1,
     autoPageSize: false,
     showPageSize: true,

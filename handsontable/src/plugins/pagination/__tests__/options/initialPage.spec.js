@@ -53,5 +53,87 @@ describe('Pagination `initialPage` option', () => {
     expect(countVisibleRows()).toBe(5);
   });
 
-  // TODO: add tests that checks UI when `initialPage` is changed
+  it('should not be possible to change value to invalid one', async() => {
+    handsontable({
+      data: createSpreadsheetData(45, 10),
+      pagination: {
+        initialPage: -10,
+      },
+    });
+
+    const plugin = getPlugin('pagination');
+
+    expect(plugin.getPaginationData().currentPage).toBe(1);
+
+    await updateSettings({
+      pagination: {
+        initialPage: 100,
+      },
+    });
+
+    expect(plugin.getPaginationData().currentPage).toBe(5);
+  });
+
+  it('should update UI elements according to the plugins changes', async() => {
+    handsontable({
+      data: createSpreadsheetData(45, 10),
+      pagination: {
+        initialPage: 1,
+      },
+    });
+
+    expect(visualizePageSections()).toEqual([
+      'Page size: [5, 10, 20, 50, 100]',
+      '1 - 10 of 45',
+      '|< < Page 1 of 5 [>] [>|]',
+    ]);
+
+    await updateSettings({
+      pagination: {
+        initialPage: 2,
+      },
+    });
+
+    expect(visualizePageSections()).toEqual([
+      'Page size: [5, 10, 20, 50, 100]',
+      '11 - 20 of 45',
+      '[|<] [<] Page 2 of 5 [>] [>|]',
+    ]);
+
+    await updateSettings({
+      pagination: {
+        initialPage: 3,
+      },
+    });
+
+    expect(visualizePageSections()).toEqual([
+      'Page size: [5, 10, 20, 50, 100]',
+      '21 - 30 of 45',
+      '[|<] [<] Page 3 of 5 [>] [>|]',
+    ]);
+
+    await updateSettings({
+      pagination: {
+        initialPage: 4,
+      },
+    });
+
+    expect(visualizePageSections()).toEqual([
+      'Page size: [5, 10, 20, 50, 100]',
+      '31 - 40 of 45',
+      '[|<] [<] Page 4 of 5 [>] [>|]',
+    ]);
+
+    await updateSettings({
+      pagination: {
+        initialPage: 5,
+      },
+    });
+
+    expect(visualizePageSections()).toEqual([
+      'Page size: [5, 10, 20, 50, 100]',
+      '41 - 45 of 45',
+      '[|<] [<] Page 5 of 5 > >|',
+    ]);
+  });
 });

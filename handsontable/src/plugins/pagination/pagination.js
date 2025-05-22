@@ -23,7 +23,7 @@ export class Pagination extends BasePlugin {
   static get DEFAULT_SETTINGS() {
     return {
       pageSize: 10,
-      pageList: [5, 10, 20, 50, 100],
+      pageSizeList: [5, 10, 20, 50, 100],
       initialPage: 1,
       autoPageSize: false, // TODO: implement
       showPageSize: true,
@@ -153,14 +153,14 @@ export class Pagination extends BasePlugin {
   /**
    * Gets the pagination current state.
    *
-   * @returns {{ currentPage: number, totalPages: number, pageSize: number, pageList: number[], numberOfRenderedRows: number }}
+   * @returns {{ currentPage: number, totalPages: number, pageSize: number, pageSizeList: number[], numberOfRenderedRows: number }}
    */
   getPaginationData() {
     return {
       currentPage: this.#currentPage,
       totalPages: this.#totalPages,
       pageSize: this.#pageSize,
-      pageList: this.getSetting('pageList'),
+      pageSizeList: this.getSetting('pageSizeList'),
       numberOfRenderedRows: this.hot.rowIndexMapper.getRenderableIndexesLength(),
     };
   }

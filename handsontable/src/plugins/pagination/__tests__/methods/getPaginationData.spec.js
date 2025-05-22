@@ -22,7 +22,7 @@ describe('Pagination `getPaginationData` method', () => {
       currentPage: 1,
       totalPages: 5,
       pageSize: 10,
-      pageList: [5, 10, 20, 50, 100],
+      pageSizeList: [5, 10, 20, 50, 100],
       numberOfRenderedRows: 10,
     });
   });
@@ -41,7 +41,7 @@ describe('Pagination `getPaginationData` method', () => {
       currentPage: 3,
       totalPages: 5,
       pageSize: 10,
-      pageList: [5, 10, 20, 50, 100],
+      pageSizeList: [5, 10, 20, 50, 100],
       numberOfRenderedRows: 10,
     });
   });
@@ -60,7 +60,7 @@ describe('Pagination `getPaginationData` method', () => {
       currentPage: 1,
       totalPages: 4,
       pageSize: 12,
-      pageList: [5, 10, 20, 50, 100],
+      pageSizeList: [5, 10, 20, 50, 100],
       numberOfRenderedRows: 12,
     });
   });
@@ -90,7 +90,7 @@ describe('Pagination `getPaginationData` method', () => {
       currentPage: 1,
       totalPages: 2,
       pageSize: 3,
-      pageList: [5, 10, 20, 50, 100],
+      pageSizeList: [5, 10, 20, 50, 100],
       numberOfRenderedRows: 3,
     });
 
@@ -100,7 +100,7 @@ describe('Pagination `getPaginationData` method', () => {
       currentPage: 2,
       totalPages: 2,
       pageSize: 3,
-      pageList: [5, 10, 20, 50, 100],
+      pageSizeList: [5, 10, 20, 50, 100],
       numberOfRenderedRows: 2,
     });
   });
