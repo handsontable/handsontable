@@ -2,12 +2,12 @@ describe('Filter plugin with Core.alter method', () => {
   using('configuration object', [{ htmlDir: 'ltr' }, { htmlDir: 'rtl' }], ({ htmlDir }) => {
     const id = 'testContainer';
 
-    beforeEach(function () {
+    beforeEach(function() {
       $('html').attr('dir', htmlDir);
       this.$container = $(`<div id="${id}"></div>`).appendTo('body');
     });
 
-    afterEach(function () {
+    afterEach(function() {
       $('html').attr('dir', 'ltr');
 
       if (this.$container) {
@@ -17,7 +17,7 @@ describe('Filter plugin with Core.alter method', () => {
     });
 
     describe('on `insert_col_start` action', () => {
-      it('should not copy column filters from the source column to the new one', async () => {
+      it('should not copy column filters from the source column to the new one', async() => {
         handsontable({
           data: createSpreadsheetData(2, 2),
           filters: true,
@@ -35,7 +35,7 @@ describe('Filter plugin with Core.alter method', () => {
         expect(getPlugin('filters').conditionCollection.getConditions(2)[0].args).toEqual([['B1']]);
       });
 
-      it('should keep the column filters when the index sequence is reversed', async () => {
+      it('should keep the column filters when the index sequence is reversed', async() => {
         handsontable({
           data: createSpreadsheetData(5, 5),
           filters: true
@@ -69,7 +69,7 @@ describe('Filter plugin with Core.alter method', () => {
         expect(getPlugin('filters').conditionCollection.getConditions(0)[0].args).toEqual([['A1']]);
       });
 
-      it('should keep the column filters when the index sequence is shifted', async () => {
+      it('should keep the column filters when the index sequence is shifted', async() => {
         handsontable({
           data: createSpreadsheetData(5, 5),
           filters: true
@@ -104,7 +104,7 @@ describe('Filter plugin with Core.alter method', () => {
     });
 
     describe('on `insert_col_end` action', () => {
-      it('should not copy column filters from the source column to the new one', async () => {
+      it('should not copy column filters from the source column to the new one', async() => {
         handsontable({
           data: createSpreadsheetData(2, 2),
           filters: true,
@@ -122,7 +122,7 @@ describe('Filter plugin with Core.alter method', () => {
         expect(getPlugin('filters').conditionCollection.getConditions(2)).toEqual([]);
       });
 
-      it('should keep the column filters when the index sequence is reversed', async () => {
+      it('should keep the column filters when the index sequence is reversed', async() => {
         handsontable({
           data: createSpreadsheetData(5, 5),
           filters: true
@@ -156,7 +156,7 @@ describe('Filter plugin with Core.alter method', () => {
         expect(getPlugin('filters').conditionCollection.getConditions(0)[0].args).toEqual([['A1']]);
       });
 
-      it('should keep the column filters when the index sequence is shifted', async () => {
+      it('should keep the column filters when the index sequence is shifted', async() => {
         handsontable({
           data: createSpreadsheetData(5, 5),
           filters: true

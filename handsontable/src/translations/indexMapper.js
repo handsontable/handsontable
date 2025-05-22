@@ -674,7 +674,7 @@ export class IndexMapper {
     this.indexesSequence.insert(visualInsertionIndex, insertedIndexes);
     this.indexesChangeSource = undefined;
 
-    const modInsertedIndexes = mode === 'end' ? insertedIndexes.map((index) => index + 1) : insertedIndexes;
+    const modInsertedIndexes = mode === 'end' ? insertedIndexes.map(index => index + 1) : insertedIndexes;
 
     this.trimmingMapsCollection.insertToEvery(visualInsertionIndex, modInsertedIndexes);
     this.hidingMapsCollection.insertToEvery(visualInsertionIndex, modInsertedIndexes);
