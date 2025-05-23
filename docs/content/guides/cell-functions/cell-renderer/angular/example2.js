@@ -67,7 +67,7 @@ export class AppComponent implements OnInit {
 import { NgModule, ApplicationConfig } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotConfig, HotTableModule } from '@handsontable/angular-wrapper';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
 import { CommonModule } from '@angular/common';
 import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
@@ -85,7 +85,7 @@ export const appConfig: ApplicationConfig = {
       useValue: {
         themeName: 'ht-theme-main-dark-auto',
         license: NON_COMMERCIAL_LICENSE,
-      } as HotConfig
+      } as HotGlobalConfig
     }
   ],
 };

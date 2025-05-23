@@ -12,7 +12,7 @@ import {
 } from '@angular/core';
 import Handsontable from 'handsontable/base';
 import { HotSettingsResolver } from './services/hot-settings-resolver.service';
-import { HotConfigService } from './services/hot-config.service';
+import { HotGlobalConfigService } from './services/hot-global-config.service';
 import { GridSettings } from './models/grid-settings';
 import { ColumnSettingsInternal } from './models/column-settings';
 import { Subscription } from 'rxjs';
@@ -47,7 +47,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   private __hotInstance: Handsontable | null = null;
   private configSubscription: Subscription;
 
-  constructor(private _hotSettingsResolver: HotSettingsResolver, private _hotConfig: HotConfigService, public ngZone: NgZone) {}
+  constructor(private _hotSettingsResolver: HotSettingsResolver, private _hotConfig: HotGlobalConfigService, public ngZone: NgZone) {}
 
   /**
    * Gets the Handsontable instance.
@@ -150,7 +150,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   /**
    * Merges the provided Handsontable grid settings with the global configuration.
    *
-   * This method retrieves the global configuration from the HotConfigService and negotiates the final
+   * This method retrieves the global configuration from the HotGlobalConfigService and negotiates the final
    * Handsontable settings by giving precedence to the provided settings.
    * Additionally, the `layoutDirection` is only merged if the Handsontable instance has not yet been initialized.
    *

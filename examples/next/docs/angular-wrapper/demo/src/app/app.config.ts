@@ -2,11 +2,11 @@ import { ApplicationConfig, provideZoneChangeDetection } from "@angular/core";
 
 import {
   HOT_GLOBAL_CONFIG,
-  HotConfig,
+  HotGlobalConfig,
   NON_COMMERCIAL_LICENSE,
 } from "@handsontable/angular-wrapper";
 
-const globalHotConfig: HotConfig = {
+const globalHotConfig: HotGlobalConfig = {
   themeName: "ht-theme-main-dark-auto",
   license: NON_COMMERCIAL_LICENSE,
 };
