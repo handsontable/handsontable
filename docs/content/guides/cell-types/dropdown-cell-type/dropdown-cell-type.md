@@ -38,6 +38,12 @@ Internally, cell `type="dropdown"` is equivalent to cell `type="autocomplete" st
 
 :::
 
+::: only-for angular
+
+Internally, cell `{ type: 'dropdown' }` is equivalent to cell `{ type:'autocomplete', strict: true, filter: false }`. Therefore you can think of `dropdown` as a searchable `<select>`.
+
+:::
+
 ::: only-for javascript
 
 ::: example #example1 .docs-height-small --js 1 --ts 2
@@ -55,6 +61,17 @@ Internally, cell `type="dropdown"` is equivalent to cell `type="autocomplete" st
 
 @[code](@/content/guides/cell-types/dropdown-cell-type/react/example1.jsx)
 @[code](@/content/guides/cell-types/dropdown-cell-type/react/example1.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 .docs-height-small :angular --js 1 --html 2
+
+@[code](@/content/guides/cell-types/dropdown-cell-type/angular/example1.js)
+@[code](@/content/guides/cell-types/dropdown-cell-type/angular/example1.html)
 
 :::
 

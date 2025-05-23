@@ -82,6 +82,17 @@ nestedHeaders={[
 
 :::
 
+::: only-for angular
+
+::: example #example1 :angular --js 1 --html 2
+
+@[code](@/content/guides/columns/column-groups/angular/example1.js)
+@[code](@/content/guides/columns/column-groups/angular/example1.html)
+
+:::
+
+:::
+
 ## Collapsible headers
 
 The [`CollapsibleColumns`](@/api/collapsibleColumns.md) plugin enables columns and their headers to be collapsed/expanded.
@@ -120,6 +131,17 @@ collapsibleColumns={[
 
 :::
 
+::: only-for angular
+
+```js
+collapsibleColumns: [
+  { row: -4, col: 1, collapsible: true }, // Add the button to the 4th-level header of the 1st column - counting from the first table row upwards.
+  { row: -3, col: 5, collapsible: true }, // Add the button to the 3rd-level header of the 5th column - counting from the first table row upwards.
+];
+```
+
+:::
+
 ### Example
 
 ::: only-for javascript
@@ -139,6 +161,17 @@ collapsibleColumns={[
 
 @[code](@/content/guides/columns/column-groups/react/example2.jsx)
 @[code](@/content/guides/columns/column-groups/react/example2.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example2 :angular --js 1 --html 2
+
+@[code](@/content/guides/columns/column-groups/angular/example2.js)
+@[code](@/content/guides/columns/column-groups/angular/example2.html)
 
 :::
 

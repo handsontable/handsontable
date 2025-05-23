@@ -54,6 +54,24 @@ const hot = new Handsontable(container, {
 
 :::
 
+::: only-for angular
+
+```ts
+data = [
+  ["A1", "B1", "C1"],
+  ["A2", "B2", "C2"],
+];
+settings = {
+  comments: true,
+};
+```
+
+```html
+<hot-table [data]="data" [settings]="settings" />
+```
+
+:::
+
 ## Add comments via the context menu
 
 After you've enabled the plugin, the [Context Menu](@/guides/accessories-and-menus/context-menu/context-menu.md) gains a few new items:
@@ -86,6 +104,16 @@ cell={[
 
 :::
 
+::: only-for angular
+
+```ts
+settings = {
+  cell: [{ row: 1, col: 1, comment: { value: "Hello world!" } }],
+};
+```
+
+:::
+
 In this example, the comment "Hello world!" is added to the cell at `(1,1)`.
 
 ## Basic example
@@ -107,6 +135,17 @@ In this example, the comment "Hello world!" is added to the cell at `(1,1)`.
 
 @[code](@/content/guides/cell-features/comments/react/example1.jsx)
 @[code](@/content/guides/cell-features/comments/react/example1.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --js 1 --html 2
+
+@[code](@/content/guides/cell-features/comments/angular/example1.js)
+@[code](@/content/guides/cell-features/comments/angular/example1.html)
 
 :::
 
@@ -138,6 +177,17 @@ By default, all comments are editable. To change this, set the [`readOnly`](@/ap
 
 :::
 
+::: only-for angular
+
+::: example #example2 :angular --js 1 --html 2
+
+@[code](@/content/guides/cell-features/comments/angular/example2.js)
+@[code](@/content/guides/cell-features/comments/angular/example2.html)
+
+:::
+
+:::
+
 ## Set a comment box's size
 
 To set the width and height of a comment box, use the [`style`](@/api/options.md#comments) parameter.
@@ -164,6 +214,17 @@ To set the width and height of a comment box, use the [`style`](@/api/options.md
 
 :::
 
+::: only-for angular
+
+::: example #example3 :angular --js 1 --html 2
+
+@[code](@/content/guides/cell-features/comments/angular/example3.js)
+@[code](@/content/guides/cell-features/comments/angular/example3.html)
+
+:::
+
+:::
+
 ## Set a delay for displaying comments
 
 To display comments after a pre-configured time delay, use the [`displayDelay`](@/api/options.md#comments) parameter.
@@ -185,6 +246,17 @@ To display comments after a pre-configured time delay, use the [`displayDelay`](
 
 @[code](@/content/guides/cell-features/comments/react/example4.jsx)
 @[code](@/content/guides/cell-features/comments/react/example4.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example4 :angular --js 1 --html 2
+
+@[code](@/content/guides/cell-features/comments/angular/example4.js)
+@[code](@/content/guides/cell-features/comments/angular/example4.html)
 
 :::
 

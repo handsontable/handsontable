@@ -50,6 +50,17 @@ Array of arrays is a good choice for the more grid-like scenarios where you need
 
 :::
 
+::: only-for angular
+
+::: example #example1 :angular --js 1 --html 2
+
+@[code](@/content/guides/getting-started/binding-to-data/angular/example1.js)
+@[code](@/content/guides/getting-started/binding-to-data/angular/example1.html)
+
+:::
+
+:::
+
 ### Array of arrays with a selective display of columns
 
 The following example shows how you would use the array of arrays with a selective display of columns. This scenario uses the same data source as in the previous example, this time omitting the `Tesla` column from the grid.
@@ -71,6 +82,17 @@ The following example shows how you would use the array of arrays with a selecti
 
 @[code](@/content/guides/getting-started/binding-to-data/react/example2.jsx)
 @[code](@/content/guides/getting-started/binding-to-data/react/example2.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example2 :angular --js 1 --html 2
+
+@[code](@/content/guides/getting-started/binding-to-data/angular/example2.js)
+@[code](@/content/guides/getting-started/binding-to-data/angular/example2.html)
 
 :::
 
@@ -102,6 +124,17 @@ An array of objects can be used as a data source as follows:
 
 :::
 
+::: only-for angular
+
+::: example #example3 :angular --js 1 --html 2
+
+@[code](@/content/guides/getting-started/binding-to-data/angular/example3.js)
+@[code](@/content/guides/getting-started/binding-to-data/angular/example3.html)
+
+:::
+
+:::
+
 ### Array of objects with column as a function
 
 You can set the [`columns`](@/api/options.md#columns) configuration option to a function. This is good practice when you want to bind data more dynamically.
@@ -128,6 +161,17 @@ You can set the [`columns`](@/api/options.md#columns) configuration option to a 
 
 :::
 
+::: only-for angular
+
+::: example #example4 :angular --js 1 --html 2
+
+@[code](@/content/guides/getting-started/binding-to-data/angular/example4.js)
+@[code](@/content/guides/getting-started/binding-to-data/angular/example4.html)
+
+:::
+
+:::
+
 ### Array of objects with column mapping
 
 In a scenario where you have nested objects, you can use them as the data source by mapping the columns using the [`columns`](@/api/options.md#columns) option.
@@ -149,6 +193,17 @@ In a scenario where you have nested objects, you can use them as the data source
 
 @[code](@/content/guides/getting-started/binding-to-data/react/example5.jsx)
 @[code](@/content/guides/getting-started/binding-to-data/react/example5.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example5 :angular --js 1 --html 2
+
+@[code](@/content/guides/getting-started/binding-to-data/angular/example5.js)
+@[code](@/content/guides/getting-started/binding-to-data/angular/example5.html)
 
 :::
 
@@ -182,6 +237,17 @@ In a scenario where you start with an empty data source, you will need to provid
 
 :::
 
+::: only-for angular
+
+::: example #example6 :angular --js 1 --html 2
+
+@[code](@/content/guides/getting-started/binding-to-data/angular/example6.js)
+@[code](@/content/guides/getting-started/binding-to-data/angular/example6.html)
+
+:::
+
+:::
+
 ### Function data source and schema
 
 If your [`dataSchema`](@/api/options.md#dataschema) is a constructor of an object that doesn't directly expose its members, you can specify functions for the [`data`](@/api/options.md#data) member of each [`columns`](@/api/options.md#columns) item.
@@ -210,6 +276,17 @@ The example below shows how to use such objects:
 
 :::
 
+::: only-for angular
+
+::: example #example7 :angular --js 1 --html 2
+
+@[code](@/content/guides/getting-started/binding-to-data/angular/example7.js)
+@[code](@/content/guides/getting-started/binding-to-data/angular/example7.html)
+
+:::
+
+:::
+
 ### No data
 
 By default, if you don't provide any data, Handsontable renders as an empty 5x5 grid.
@@ -231,6 +308,17 @@ By default, if you don't provide any data, Handsontable renders as an empty 5x5 
 
 @[code](@/content/guides/getting-started/binding-to-data/react/example9.jsx)
 @[code](@/content/guides/getting-started/binding-to-data/react/example9.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example9 :angular --js 1 --html 2
+
+@[code](@/content/guides/getting-started/binding-to-data/angular/example9.js)
+@[code](@/content/guides/getting-started/binding-to-data/angular/example9.html)
 
 :::
 
@@ -279,6 +367,17 @@ the [`setDataAtCell()`](@/api/core.md#setdataatcell) method.
 
 :::
 
+::: only-for angular
+
+::: example #example10 :angular --js 1 --html 2
+
+@[code](@/content/guides/getting-started/binding-to-data/angular/example10.js)
+@[code](@/content/guides/getting-started/binding-to-data/angular/example10.html)
+
+:::
+
+:::
+
 There are multiple ways you can insert your data into Handsontable. Let's go through the most useful ones:
 
 ### The [`data`](@/api/options.md#data) configuration option
@@ -286,6 +385,7 @@ There are multiple ways you can insert your data into Handsontable. Let's go thr
 ::: only-for javascript
 
 You will probably want to initialize the table with some data (if you don't, the table will render an empty 5x5 grid for you). The easiest way to do it is passing your data array as [`data`](@/api/options.md#data) option in the initial config object:
+
 ```js
 const hot = new Handsontable(container, {
   data: newDataset,
@@ -299,8 +399,26 @@ const hot = new Handsontable(container, {
 
 You will probably want to initialize the table with some data (if you don't, the table will render an empty 5x5 grid for
 you). The easiest way to do it is by passing your data array as the value of `HotTable`'s [`data`](@/api/options.md#data) prop:
+
 ```jsx
 <HotTable data={newDataset} />
+```
+
+:::
+
+::: only-for angular
+You will probably want to initialize the table with some data (if you don't, the table will render an empty 5x5 grid for
+you). The easiest way to do it is by passing your data array as the value of `HotTable`'s [`data`](@/api/options.md#data) `@Input()`:
+
+```ts
+import { GridSettings } from "@handsontable/angular-wrapper";
+
+data = newDatset,
+gridSettings: GridSettings = {};
+```
+
+```html
+<hot-table [data]="data" [settings]="gridSettings" />
 ```
 
 :::
@@ -319,7 +437,20 @@ For more information, see the [Instance methods](@/guides/getting-started/react-
 
 :::
 
+::: only-for angular
+
+::: tip
+
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference
+to the `HotTableComponent`, and reading its `hotInstance` property.
+
+For more information, see the [Instance access](@/guides/getting-started/angular-hot-instance/angular-hot-instance.md) page.
+:::
+
+:::
+
 To replace the entire data in an already-initialized Handsontable instance, you can use one of the data-loading API methods:
+
 - [`loadData()`](@/api/core.md#loaddata)<br>
   Replaces the data used in Handsontable with the dataset provided as the method argument. <br> **Note:** Since version `12.0.0` this method causes the table to reset its configuration options and index mapper information, so some of the work done on the table since its initialization might be lost.
   ```js
@@ -339,12 +470,19 @@ To replace the entire data in an already-initialized Handsontable instance, you 
   });
   ```
 
+::: only-for angular
+
+You can also use the built-in mechanism of the Angular wrapper to update data. When a change in the `@Input data` is detected by `ngOnChanges`, the wrapper will call `hot.updateData(newDataset);` with the data provided in the `@Input`.
+
+:::
+
 ### The data-modifying API methods
 
 To modify just a subset of data passed to Handsontable, these are the methods you might want to check out:
 
 - [`setDataAtCell()`](@/api/core.md#setdataatcell)<br>
   Replaces data in a single cell or to perform a series of single-cell data replacements:
+
   ```js
   // Replaces the cell contents at the (0, 2) visual coordinates (0 being the visual row index, 2 - the visual column index) with the supplied value.
   hot.setDataAtCell(0, 2, 'New Value');
@@ -360,6 +498,7 @@ To modify just a subset of data passed to Handsontable, these are the methods yo
 
 - [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop)<br>
   Replaces data in a single cell or to perform a series of single-cell data replacements, analogously to `setDataAtCell()`, but allows targeting the cells by the visual row index and data row *property*. Useful for the [Array of objects data type](#array-of-objects).
+
   ```js
   // Replaces the cell contents at the (0, 'title') coordinates (0 being the visual row index, 'title' - the data row object property) with the supplied value.
   hot.setDataAtRowProp(0, 'title', 'New Value');
@@ -375,6 +514,7 @@ To modify just a subset of data passed to Handsontable, these are the methods yo
 
 - [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell)<br>
   As the displayed data coordinates can differ from the way it's stored internally, sometimes you might need to target the cells more directly - that's when [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell) comes in handy. The `row` and `columns`/`prop` arguments represent the *physical* indexes.
+
   ```js
   // Replaces the cell contents at the (0, 2) coordinates (0 being the physical row index, 2 - the physical column index) with the supplied value.
   hot.setSourceDataAtCell(0, 2, 'New Value');
@@ -390,6 +530,7 @@ To modify just a subset of data passed to Handsontable, these are the methods yo
   ];
   hot.setSourceDataAtCell(changes);
   ```
+
 - [`populateFromArray()`](@/api/core.md#populatefromarray)<br>
   Replaces a chunk of the dataset by provided the start (and optionally end) coordinates and a two-dimensional data array of new values.
 
@@ -437,6 +578,16 @@ When working with a copy of data for Handsontable, it is best practice is to clo
 
 :::
 
+::: only-for angular
+
+::: example #example11 :angular --js 1 --html 2
+
+@[code](@/content/guides/getting-started/binding-to-data/angular/example11.js)
+@[code](@/content/guides/getting-started/binding-to-data/angular/example11.html)
+
+:::
+
+:::
 
 ## Related API reference
 

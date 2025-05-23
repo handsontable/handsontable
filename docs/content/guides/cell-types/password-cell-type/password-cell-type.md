@@ -44,6 +44,17 @@ The password cell type behaves like a text cell, the only difference being that 
 
 :::
 
+::: only-for angular
+
+::: example #example1 :angular --js 1 --html 2
+
+@[code](@/content/guides/cell-types/password-cell-type/angular/example1.js)
+@[code](@/content/guides/cell-types/password-cell-type/angular/example1.html)
+
+:::
+
+:::
+
 ## Fixed hash length
 
 By default, every hash has a length equal to the length of its corresponding value. Use option `hashLength` to set a fixed hash length.
@@ -70,6 +81,17 @@ By default, every hash has a length equal to the length of its corresponding val
 
 :::
 
+::: only-for angular
+
+::: example #example2 :angular --js 1 --html 2
+
+@[code](@/content/guides/cell-types/password-cell-type/angular/example2.js)
+@[code](@/content/guides/cell-types/password-cell-type/angular/example2.html)
+
+:::
+
+:::
+
 ## Custom hash symbol
 
 By default, every hash consists of asterisks `*`. Use the option `hashSymbol` to set a custom hash symbol. You can use any character, entity, or even HTML. Note that you can't change the symbol used by the input field due to browser limitations.
@@ -91,6 +113,17 @@ By default, every hash consists of asterisks `*`. Use the option `hashSymbol` to
 
 @[code](@/content/guides/cell-types/password-cell-type/react/example3.jsx)
 @[code](@/content/guides/cell-types/password-cell-type/react/example3.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example3 :angular --js 1 --html 2
+
+@[code](@/content/guides/cell-types/password-cell-type/angular/example3.js)
+@[code](@/content/guides/cell-types/password-cell-type/angular/example3.html)
 
 :::
 

@@ -49,6 +49,15 @@ trimRows: true,
 
 :::
 
+::: only-for angular
+
+```ts
+// enable the `TrimRows` plugin
+trimRows: true,
+```
+
+:::
+
 To both enable row trimming and trim selected rows at Handsontable's initialization, set the [`trimRows`](@/api/options.md#trimrows) option to an array of physical row indexes.
 
 ::: only-for javascript
@@ -70,6 +79,16 @@ trimRows: [5, 10, 15],
 <HotTable
   trimRows={[5, 10, 15]}
 />
+```
+
+:::
+
+::: only-for angular
+
+```ts
+// enable the `TrimRows` plugin
+// at Handsontable's initialization, trim rows 5, 10, and 15
+trimRows: [5, 10, 15],
 ```
 
 :::
@@ -100,6 +119,17 @@ Note that the second, third, and sixth rows are missing in the following example
 
 :::
 
+::: only-for angular
+
+::: example #example1 :angular --js 1 --html 2
+
+@[code](@/content/guides/rows/row-trimming/angular/example1.js)
+@[code](@/content/guides/rows/row-trimming/angular/example1.html)
+
+:::
+
+:::
+
 ## API examples
 
 ::: only-for react
@@ -111,6 +141,24 @@ To use the Handsontable API, you'll need access to the Handsontable instance. Yo
 For more information, see the [Instance methods](@/guides/getting-started/react-methods/react-methods.md) page.
 
 :::
+
+:::
+
+::: only-for angular
+
+To obtain the Handsontable instance from the Angular wrapper component, you can use Angular's `@ViewChild` decorator to reference the `HotTableComponent` and then access its `hotInstance` property.
+
+```ts
+@ViewChild(HotTableComponent, {static: false})
+hotTable!: HotTableComponent;
+
+ngAfterViewInit() {
+  // The Handsontable instance is available through the hotInstance property
+  const hot = this.hotTable.hotInstance;
+  // You can now use the "hot" instance to call Handsontable's API methods
+  // ...
+}
+```
 
 :::
 

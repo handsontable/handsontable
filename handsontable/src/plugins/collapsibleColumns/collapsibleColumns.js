@@ -106,6 +106,37 @@ const actionDictionary = new Map([
  * />
  * ```
  * :::
+ *
+ * ::: only-for angular
+ * ```ts
+ * // Enable the collapsibleColumns plugin
+ * settings = {
+ *   data: generateDataObj(),
+ *   colHeaders: true,
+ *   rowHeaders: true,
+ *   nestedHeaders: true,
+ *   // enable plugin
+ *   collapsibleColumns: true,
+ * };
+ *
+ * // Or enable and configure specific collapsible columns
+ * settings = {
+ *   data: generateDataObj(),
+ *   colHeaders: true,
+ *   rowHeaders: true,
+ *   nestedHeaders: true,
+ *   // enable and configure which columns can be collapsed
+ *   collapsibleColumns: [
+ *     { row: -4, col: 1, collapsible: true },
+ *     { row: -3, col: 5, collapsible: true },
+ *   ],
+ * };
+ * ```
+ *
+ * ```html
+ * <hot-table [settings]="settings"></hot-table>
+ * ```
+ * :::
  */
 export class CollapsibleColumns extends BasePlugin {
   static get PLUGIN_KEY() {

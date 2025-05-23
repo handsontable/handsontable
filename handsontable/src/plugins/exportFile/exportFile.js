@@ -81,6 +81,64 @@ export const PLUGIN_PRIORITY = 240;
  * });
  * ```
  * :::
+ *
+ * ::: only-for angular
+ * ```ts
+ * import { AfterViewInit, Component, ViewChild } from "@angular/core";
+ * import {
+ *   GridSettings,
+ *   HotTableModule,
+ *   HotTableComponent,
+ * } from "@handsontable/angular-wrapper";
+ *
+ * `@Component`({
+ *   selector: "app-example",
+ *   standalone: true,
+ *   imports: [HotTableModule],
+ *   template: ` <div class="ht-theme-main">
+ *     <hot-table [settings]="gridSettings" />
+ *   </div>`,
+ * })
+ * export class ExampleComponent implements AfterViewInit {
+ *   `@ViewChild`(HotTableComponent, { static: false })
+ *   readonly hotTable!: HotTableComponent;
+ *
+ *   readonly gridSettings = <GridSettings>{
+ *     data: this.getData(),
+ *   };
+ *
+ *   ngAfterViewInit(): void {
+ *     // Access to plugin instance:
+ *     const hot = this.hotTable.hotInstance;
+ *     // Access to exportFile plugin instance
+ *     const exportPlugin = hot.getPlugin("exportFile");
+ *
+ *     // Export as a string
+ *     exportPlugin.exportAsString("csv");
+ *
+ *     // Export as a blob object
+ *     exportPlugin.exportAsBlob("csv");
+ *
+ *     // Export to downloadable file (named: MyFile.csv)
+ *     exportPlugin.downloadFile("csv", { filename: "MyFile" });
+ *
+ *     // Export as a string (with specified data range):
+ *     exportPlugin.exportAsString("csv", {
+ *       exportHiddenRows: true, // default false
+ *       exportHiddenColumns: true, // default false
+ *       columnHeaders: true, // default false
+ *       rowHeaders: true, // default false
+ *       columnDelimiter: ";", // default ','
+ *       range: [1, 1, 6, 6], // [startRow, endRow, startColumn, endColumn]
+ *     });
+ *   }
+ *
+ *   private getData(): any[] {
+ *     // get some data
+ *   }
+ * }
+ * ```
+ * :::
  */
 export class ExportFile extends BasePlugin {
   static get PLUGIN_KEY() {

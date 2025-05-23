@@ -52,6 +52,17 @@ Using the tiny square known as the 'fill handle' in the corner of the selected c
 
 :::
 
+::: only-for angular
+
+::: example #example1 :angular --js 1 --html 2
+
+@[code](@/content/guides/cell-features/autofill-values/angular/example1.js)
+@[code](@/content/guides/cell-features/autofill-values/angular/example1.html)
+
+:::
+
+:::
+
 ## Autofill in a vertical direction only and creating new rows
 
 In this configuration, the fill handle is restricted to move only vertically. New rows are automatically added to the bottom of the table by changing [`autoInsertRow`](@/api/options.md#fillhandle) to `true`.
@@ -73,6 +84,17 @@ In this configuration, the fill handle is restricted to move only vertically. Ne
 
 @[code](@/content/guides/cell-features/autofill-values/react/example2.jsx)
 @[code](@/content/guides/cell-features/autofill-values/react/example2.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example2 :angular --js 1 --html 2
+
+@[code](@/content/guides/cell-features/autofill-values/angular/example2.js)
+@[code](@/content/guides/cell-features/autofill-values/angular/example2.html)
 
 :::
 

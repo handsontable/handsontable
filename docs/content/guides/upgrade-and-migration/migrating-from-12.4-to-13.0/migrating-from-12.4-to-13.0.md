@@ -29,7 +29,7 @@ Officially, Handsontable 13.0 supports only Angular 14-16. Handsontable 13.0 was
 
 To use Handsontable 13.0 with Angular, you need to update at least to Angular 12, but we recommend using the latest version of Angular.
 
-If you're having any issues with Handsontable's [Angular wrapper](@/guides/integrate-with-angular/angular-installation/angular-installation.md), contact our
+If you're having any issues with Handsontable's [Angular wrapper](@/angular/guides/getting-started/installation/installation.md), contact our
 [technical support](https://handsontable.com/contact?category=technical_support) for help.
 
 :::

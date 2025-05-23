@@ -62,6 +62,17 @@ To enable the plugin, set the [`bindRowsWithHeaders`](@/api/options.md#bindrowsw
 
 :::
 
+::: only-for angular
+
+::: example #example1 :angular --js 1 --html 2
+
+@[code](@/content/guides/rows/row-header/angular/example1.js)
+@[code](@/content/guides/rows/row-header/angular/example1.html)
+
+:::
+
+:::
+
 ## Tree grid
 
 A tree grid enables you to represent the nested data structures within the data grid. To learn more about this feature, see the [Row parent-child](@/guides/rows/row-parent-child/row-parent-child.md) page.

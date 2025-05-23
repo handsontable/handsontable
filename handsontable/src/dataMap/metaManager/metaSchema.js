@@ -81,6 +81,33 @@ import { isObjectEqual } from '../../helpers/object';
  * ```
  * :::
  *
+ * ::: only-for angular
+ * ```ts
+ * settings = {
+ *   data: [
+ *     ["A1", "B1", "C1", "D1", "E1"],
+ *     ["A2", "B2", "C2", "D2", "E2"],
+ *     ["A3", "B3", "C3", "D3", "E3"],
+ *     ["A4", "B4", "C4", "D4", "E4"],
+ *     ["A5", "B5", "C5", "D5", "E5"],
+ *   ],
+ *   width: 400,
+ *   height: 300,
+ *   colHeaders: true,
+ *   rowHeaders: true,
+ *   customBorders: true,
+ *   dropdownMenu: true,
+ *   multiColumnSorting: true,
+ *   filters: true,
+ *   manualRowMove: true,
+ * };
+ * ```
+ *
+ * ```html
+ * <hot-table [settings]="settings" />
+ * ```
+ * :::
+ *
  * Depending on your needs, you can apply [configuration options](@/api/options.md) to different elements of your grid:
  * - [The entire grid](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options)
  * - [Individual columns](@/guides/getting-started/configuration-options/configuration-options.md#set-column-options)

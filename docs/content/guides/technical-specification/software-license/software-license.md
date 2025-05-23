@@ -65,6 +65,16 @@ licenseKey="00000-00000-00000-00000-00000"
 
 :::
 
+::: only-for angular
+
+```ts
+settings = {
+  licenseKey: "00000-00000-00000-00000-00000",
+};
+```
+
+:::
+
 For more details on entering the license key, see the [License key](@/guides/getting-started/license-key/license-key.md) page.
 
 ## Open-source license

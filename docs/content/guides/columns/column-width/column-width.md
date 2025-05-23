@@ -59,6 +59,17 @@ In this example we set the same width of `100px` for all columns across the enti
 
 :::
 
+::: only-for angular
+
+::: example #example1 :angular --js 1 --html 2
+
+@[code](@/content/guides/columns/column-width/angular/example1.js)
+@[code](@/content/guides/columns/column-width/angular/example1.html)
+
+:::
+
+:::
+
 ## Set the column width in an array
 
 In this example, the width is only set for the first four columns. Each additional column would automatically adjust to the content.
@@ -80,6 +91,18 @@ In this example, the width is only set for the first four columns. Each addition
 
 @[code](@/content/guides/columns/column-width/react/example2.jsx)
 @[code](@/content/guides/columns/column-width/react/example2.tsx)
+
+:::
+
+:::
+
+
+::: only-for angular
+
+::: example #example2 :angular --js 1 --html 2
+
+@[code](@/content/guides/columns/column-width/angular/example2.js)
+@[code](@/content/guides/columns/column-width/angular/example2.html)
 
 :::
 
@@ -111,6 +134,17 @@ In this example, the size of all columns is set using a function by taking a col
 
 :::
 
+::: only-for angular
+
+::: example #example3 :angular --js 1 --html 2
+
+@[code](@/content/guides/columns/column-width/angular/example3.js)
+@[code](@/content/guides/columns/column-width/angular/example3.html)
+
+:::
+
+:::
+
 ## Adjust the column width manually
 
 Set the option [`manualColumnResize`](@/api/options.md#manualcolumnresize) to `true` to allow users to manually resize the column width by dragging the handle between the adjacent column headers. If you double-click on that handle, the width will be instantly adjusted to the size of the longest value in the column. Don't forget to enable column headers by setting [`colHeaders`](@/api/options.md#colheaders) to `true`.
@@ -134,6 +168,17 @@ You can adjust the size of one or multiple columns simultaneously, even if the s
 
 @[code](@/content/guides/columns/column-width/react/example4.jsx)
 @[code](@/content/guides/columns/column-width/react/example4.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example4 :angular --js 1 --html 2
+
+@[code](@/content/guides/columns/column-width/angular/example4.js)
+@[code](@/content/guides/columns/column-width/angular/example4.html)
 
 :::
 
@@ -175,6 +220,17 @@ This example fits all columns to the container's width equally by setting the op
 
 :::
 
+::: only-for angular
+
+::: example #example5 :angular --js 1 --html 2
+
+@[code](@/content/guides/columns/column-width/angular/example5.js)
+@[code](@/content/guides/columns/column-width/angular/example5.html)
+
+:::
+
+:::
+
 ### Stretch only the last column
 
 In this example, the first three columns are set to be 80px wide, and the last column automatically fills the remaining space. This is achieved by setting the option [`stretchH: 'last'`](@/api/options.md#stretchh).
@@ -196,6 +252,18 @@ In this example, the first three columns are set to be 80px wide, and the last c
 
 @[code](@/content/guides/columns/column-width/react/example6.jsx)
 @[code](@/content/guides/columns/column-width/react/example6.tsx)
+
+:::
+
+:::
+
+
+::: only-for angular
+
+::: example #example6 :angular --js 1 --html 2
+
+@[code](@/content/guides/columns/column-width/angular/example6.js)
+@[code](@/content/guides/columns/column-width/angular/example6.html)
 
 :::
 

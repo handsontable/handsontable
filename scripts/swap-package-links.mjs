@@ -18,7 +18,8 @@ if (pkgName) {
 
 const PACKAGE_LOCATIONS = new Map([
   ['handsontable', './handsontable/tmp'],
-  ['@handsontable/angular', './wrappers/angular/dist/hot-table']
+  ['@handsontable/angular', './wrappers/angular/dist/hot-table'],
+  ['@handsontable/angular-wrapper', './wrappers/angular-wrapper/dist/hot-table']
 ]);
 const linkPackage = (packageName, packageLocation) => {
   if (fse.pathExistsSync(`${packageLocation}`)) {
