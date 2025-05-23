@@ -18,8 +18,10 @@ describe('Smoke check', () => {
         await browser.close();
     });
 
-    it('should fail', async () => {
-      // failing assertion, this should encourage developers to write tests for new code snippets
-      await expect(false).toBeTruthy();
-    });
+    it('should render Handsontable', async () => {
+        const hotCell = await page.$('.handsontable td');
+    
+        // assertion
+        await expect(hotCell).toBeTruthy();
+      });
 });
