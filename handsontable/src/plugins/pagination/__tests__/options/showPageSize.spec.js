@@ -10,8 +10,6 @@ describe('Pagination `showPageSize` option', () => {
     }
   });
 
-  // TODO: add tests that checks UI when `showPageSize` is changed (maybe visual tests would be better)
-
   it('should have defined default value', async() => {
     handsontable({
       data: createSpreadsheetData(20, 10),

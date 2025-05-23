@@ -24,9 +24,11 @@ describe('Pagination `firstPage` method', () => {
 
     expect(plugin.getPaginationData().currentPage).toBe(1);
     expect(countVisibleRows()).toBe(10);
+    expect(stringifyPageCounterSection()).toBe('1 - 10 of 45');
+    expect(stringifyPageNavigationSection()).toBe('|< < Page 1 of 5 [>] [>|]');
   });
 
-  it('should change the page to last one (empty dataset)', async() => {
+  it('should change the page to first one (empty dataset)', async() => {
     handsontable({
       data: [[]],
       pagination: {
@@ -40,5 +42,7 @@ describe('Pagination `firstPage` method', () => {
 
     expect(plugin.getPaginationData().currentPage).toBe(1);
     expect(countVisibleRows()).toBe(1);
+    expect(stringifyPageCounterSection()).toBe('1 - 1 of 1');
+    expect(stringifyPageNavigationSection()).toBe('|< < Page 1 of 1 > >|');
   });
 });

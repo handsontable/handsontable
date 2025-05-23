@@ -1,4 +1,4 @@
-import Handsontable from 'handsontable';
+import Handsontable, { CellCoords } from 'handsontable';
 import HyperFormula from 'hyperformula';
 
 // Helpers to verify multiple different settings and prevent TS control-flow from eliminating unreachable values
@@ -396,7 +396,16 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterScrollHorizontally: () => {},
   afterScrollVertically: () => {},
   afterScroll: () => {},
-  afterSelectColumns: (from, to, highlight) => {},
+  afterSelectAll: (from, to, highlight) => {
+    const _from: CellCoords = from;
+    const _to: CellCoords = to;
+    const _highlight: CellCoords | undefined = highlight;
+  },
+  afterSelectColumns: (from, to, highlight) => {
+    const _from: CellCoords = from;
+    const _to: CellCoords = to;
+    const _highlight: CellCoords = highlight;
+  },
   afterSelection: (r, c, r2, c2, preventScrolling, selectionLayerLevel) => preventScrolling.value = true,
   afterSelectionByProp: (r, p, r2, p2, preventScrolling, selectionLayerLevel) => preventScrolling.value = true,
   afterSelectionEnd: (r, c, r2, c2, selectionLayerLevel) => {},
@@ -527,7 +536,16 @@ const allSettings: Required<Handsontable.GridSettings> = {
     isActionInterrupted.value = false;
     newCoords.clone();
   },
-  beforeSelectColumns: (from, to, highlight) => {},
+  beforeSelectAll: (from, to, highlight) => {
+    const _from: CellCoords = from;
+    const _to: CellCoords = to;
+    const _highlight: CellCoords | undefined = highlight;
+  },
+  beforeSelectColumns: (from, to, highlight) => {
+    const _from: CellCoords = from;
+    const _to: CellCoords = to;
+    const _highlight: CellCoords = highlight;
+  },
   beforeSelectionFocusSet: (coords) => {
     const row: number = coords.row;
     const col: number = coords.col;

@@ -65,5 +65,64 @@ describe('Pagination `pageSize` option', () => {
     }).toThrowError('The `pageSize` option must be greater than `0`.');
   });
 
-  // TODO: add tests that checks UI when `pageSize` is changed
+  it('should update UI elements according to the plugins changes', async() => {
+    handsontable({
+      data: createSpreadsheetData(45, 10),
+      pagination: true,
+    });
+
+    expect(visualizePageSections()).toEqual([
+      'Page size: [5, 10, 20, 50, 100]',
+      '1 - 10 of 45',
+      '|< < Page 1 of 5 [>] [>|]',
+    ]);
+
+    await updateSettings({
+      pagination: {
+        pageSize: 12,
+      },
+    });
+
+    expect(visualizePageSections()).toEqual([
+      'Page size: [5, 10, 20, 50, 100]',
+      '1 - 12 of 45',
+      '|< < Page 1 of 4 [>] [>|]',
+    ]);
+
+    await updateSettings({
+      pagination: {
+        pageSize: 40,
+      },
+    });
+
+    expect(visualizePageSections()).toEqual([
+      'Page size: [5, 10, 20, 50, 100]',
+      '1 - 40 of 45',
+      '|< < Page 1 of 2 [>] [>|]',
+    ]);
+
+    await updateSettings({
+      pagination: {
+        pageSize: 45,
+      },
+    });
+
+    expect(visualizePageSections()).toEqual([
+      'Page size: [5, 10, 20, 50, 100]',
+      '1 - 45 of 45',
+      '|< < Page 1 of 1 > >|',
+    ]);
+
+    await updateSettings({
+      pagination: {
+        pageSize: 50,
+      },
+    });
+
+    expect(visualizePageSections()).toEqual([
+      'Page size: [5, 10, 20, 50, 100]',
+      '1 - 45 of 45',
+      '|< < Page 1 of 1 > >|',
+    ]);
+  });
 });

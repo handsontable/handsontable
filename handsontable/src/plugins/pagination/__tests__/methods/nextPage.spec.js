@@ -24,6 +24,8 @@ describe('Pagination `nextPage` method', () => {
 
     expect(plugin.getPaginationData().currentPage).toBe(3);
     expect(countVisibleRows()).toBe(10);
+    expect(stringifyPageCounterSection()).toBe('21 - 30 of 45');
+    expect(stringifyPageNavigationSection()).toBe('[|<] [<] Page 3 of 5 [>] [>|]');
   });
 
   it('should not change the page to the next one if there are no more pages', async() => {
@@ -40,5 +42,7 @@ describe('Pagination `nextPage` method', () => {
 
     expect(plugin.getPaginationData().currentPage).toBe(5);
     expect(countVisibleRows()).toBe(5);
+    expect(stringifyPageCounterSection()).toBe('41 - 45 of 45');
+    expect(stringifyPageNavigationSection()).toBe('[|<] [<] Page 5 of 5 > >|');
   });
 });

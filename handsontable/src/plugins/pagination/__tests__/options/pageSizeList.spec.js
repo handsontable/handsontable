@@ -91,6 +91,4 @@ describe('Pagination `pageSizeList` option', () => {
       '|< < Page 1 of 5 [>] [>|]',
     ]);
   });
-
-  // TODO: add tests that checks UI when `pageSizeList` is changed (maybe visual tests would be better)
 });

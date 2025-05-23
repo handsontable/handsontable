@@ -24,6 +24,8 @@ describe('Pagination `lastPage` method', () => {
 
     expect(plugin.getPaginationData().currentPage).toBe(5);
     expect(countVisibleRows()).toBe(5);
+    expect(stringifyPageCounterSection()).toBe('41 - 45 of 45');
+    expect(stringifyPageNavigationSection()).toBe('[|<] [<] Page 5 of 5 > >|');
   });
 
   it('should change the page to last one (empty dataset)', async() => {
@@ -40,5 +42,7 @@ describe('Pagination `lastPage` method', () => {
 
     expect(plugin.getPaginationData().currentPage).toBe(1);
     expect(countVisibleRows()).toBe(1);
+    expect(stringifyPageCounterSection()).toBe('1 - 1 of 1');
+    expect(stringifyPageNavigationSection()).toBe('|< < Page 1 of 1 > >|');
   });
 });

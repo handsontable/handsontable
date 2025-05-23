@@ -24,6 +24,8 @@ describe('Pagination `prevPage` method', () => {
 
     expect(plugin.getPaginationData().currentPage).toBe(1);
     expect(countVisibleRows()).toBe(10);
+    expect(stringifyPageCounterSection()).toBe('1 - 10 of 45');
+    expect(stringifyPageNavigationSection()).toBe('|< < Page 1 of 5 [>] [>|]');
   });
 
   it('should not change the page to the previous one if there are no more pages', async() => {
@@ -40,5 +42,7 @@ describe('Pagination `prevPage` method', () => {
 
     expect(plugin.getPaginationData().currentPage).toBe(1);
     expect(countVisibleRows()).toBe(10);
+    expect(stringifyPageCounterSection()).toBe('1 - 10 of 45');
+    expect(stringifyPageNavigationSection()).toBe('|< < Page 1 of 5 [>] [>|]');
   });
 });

@@ -128,6 +128,7 @@ export interface Events {
   afterScrollHorizontally?: () => void;
   afterScrollVertically?: () => void;
   afterScroll?: () => void;
+  afterSelectAll?: (from: CellCoords, to: CellCoords, highlight?: CellCoords) => void;
   afterSelectColumns?: (from: CellCoords, to: CellCoords, highlight: CellCoords) => void;
   afterSelection?: (row: number, column: number, row2: number, column2: number, preventScrolling: { value: boolean }, selectionLayerLevel: number) => void;
   afterSelectionByProp?: (row: number, prop: string, row2: number, prop2: string, preventScrolling: { value: boolean }, selectionLayerLevel: number) => void;
@@ -215,6 +216,7 @@ export interface Events {
   beforeRowMove?: (movedRows: number[], finalIndex: number, dropIndex: number | undefined, movePossible: boolean) => void;
   beforeRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => number | void;
   beforeRowWrap?: (isActionInterrupted: { value: boolean }, newCoords: CellCoords, isRowFlipped: boolean) => void;
+  beforeSelectAll?: (from: CellCoords, to: CellCoords, highlight?: CellCoords) => void;
   beforeSelectColumns?: (from: CellCoords, to: CellCoords, highlight: CellCoords) => void;
   beforeSelectionFocusSet?: (coords: CellCoords) => void;
   beforeSelectionHighlightSet?: () => void;

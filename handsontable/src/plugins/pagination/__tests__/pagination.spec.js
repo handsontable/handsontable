@@ -39,4 +39,20 @@ describe('Pagination', () => {
     expect(plugin.isEnabled()).toBe(false);
     expect(countVisibleRows()).toBe(10);
   });
+
+  it('should translate UI text when different language pack is used', async() => {
+    handsontable({
+      data: createSpreadsheetData(10, 10),
+      language: 'pl-pl',
+      pagination: {
+        pageSize: 3,
+      },
+    });
+
+    expect(visualizePageSections()).toEqual([
+      'Liczba wierszy: [5, 10, 20, 50, 100]',
+      '1 - 3 z 10',
+      '|< < Strona 1 z 4 [>] [>|]',
+    ]);
+  });
 });

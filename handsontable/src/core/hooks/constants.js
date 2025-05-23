@@ -886,6 +886,56 @@ export const REGISTERED_HOOKS = [
   'afterSelectRows',
 
   /**
+   * Fired before all cells are selected (e.g. During mouse corner click or {@link Core#selectAll} API call).
+   *
+   * @since 16.0.0
+   * @event Hooks#beforeSelectAll
+   * @param {CellCoords} from Selection start coords object.
+   * @param {CellCoords} to Selection end coords object.
+   * @param {CellCoords} [highlight] Selection cell focus coords object.
+   * @example
+   * ::: only-for javascript
+   * ```js
+   * new Handsontable(element, {
+   *   beforeSelectAll: (from, to, highlight) => {
+   *     // moves the focus to a new position
+   *     if (highlight) {
+   *       highlight.row = 3;
+   *       highlight.col = 3;
+   *     }
+   *   }
+   * })
+   * ```
+   * :::
+   *
+   * ::: only-for react
+   * ```jsx
+   * <HotTable
+   *   beforeSelectAll={(from, to, highlight) => {
+   *     // moves the focus to a new position
+   *     if (highlight) {
+   *       highlight.row = 3;
+   *       highlight.col = 3;
+   *     }
+   *   }}
+   * />
+   * ```
+   * :::
+   */
+  'beforeSelectAll',
+
+  /**
+   * Fired after all cells are selected (e.g. during mouse corner click or {@link Core#selectAll} API call).
+   *
+   * @since 16.0.0
+   * @event Hooks#afterSelectAll
+   * @param {CellCoords} from Selection start coords object.
+   * @param {CellCoords} to Selection end coords object.
+   * @param {CellCoords} [highlight] Selection cell focus coords object.
+   */
+  'afterSelectAll',
+
+  /**
    * Fired after cell meta is changed.
    *
    * @event Hooks#afterSetCellMeta

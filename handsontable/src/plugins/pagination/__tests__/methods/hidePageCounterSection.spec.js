@@ -10,7 +10,7 @@ describe('Pagination `hidePageCounterSection` method', () => {
     }
   });
 
-  it('should be possible to show the section', async() => {
+  it('should be possible to hide the section', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(15, 10),
       pagination: {

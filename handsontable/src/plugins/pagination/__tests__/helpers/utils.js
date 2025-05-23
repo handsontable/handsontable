@@ -29,10 +29,10 @@ export function filterByValueMultipleSelect() {
 /**
  * Generates the string representation of the page size section.
  *
- * @param {HTMLElement} pageSection The element reference to the page size section.
  * @returns {string}
  */
-export function stringifyPageSizeSection(pageSection) {
+export function stringifyPageSizeSection() {
+  const pageSection = hot().rootWrapperElement.querySelector('.ht-page-size-section');
   const label = pageSection.querySelector('span').textContent.trim();
   const values = Array.from(pageSection.querySelectorAll('select option')).map(option => option.value);
 
@@ -42,20 +42,21 @@ export function stringifyPageSizeSection(pageSection) {
 /**
  * Generates the string representation of the page counter section.
  *
- * @param {HTMLElement} pageSection The element reference to the page counter section.
  * @returns {string}
  */
-export function stringifyPageCounterSection(pageSection) {
+export function stringifyPageCounterSection() {
+  const pageSection = hot().rootWrapperElement.querySelector('.ht-page-counter-section');
+
   return pageSection.textContent.trim();
 }
 
 /**
  * Generates the string representation of the page navigation section.
  *
- * @param {HTMLElement} pageSection The element reference to the page navigation section.
  * @returns {string}
  */
-export function stringifyPageNavigationSection(pageSection) {
+export function stringifyPageNavigationSection() {
+  const pageSection = hot().rootWrapperElement.querySelector('.ht-page-navigation-section');
   const [
     firstButtonState,
     prevButtonState,
@@ -88,13 +89,13 @@ export function visualizePageSections() {
 
   return Array.from(container.children).reduce((acc, element) => {
     if (element.classList.contains('ht-page-size-section')) {
-      acc.push(stringifyPageSizeSection(element));
+      acc.push(stringifyPageSizeSection());
 
     } else if (element.classList.contains('ht-page-counter-section')) {
-      acc.push(stringifyPageCounterSection(element));
+      acc.push(stringifyPageCounterSection());
 
     } else if (element.classList.contains('ht-page-navigation-section')) {
-      acc.push(stringifyPageNavigationSection(element));
+      acc.push(stringifyPageNavigationSection());
     }
 
     return acc;
