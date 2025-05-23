@@ -70,12 +70,13 @@ We regularly order security audits of the entire Handsontable codebase, carried 
 
 The latest security audits:
 
-| Handsontable version | Company   | Concluded on | Certificate                                             |
-|----------------------|-----------|--------------|---------------------------------------------------------|
-| 8.2.0                | Securitum | Nov 30, 2020 | [Download]({{$basePath}}/securitum-certificate.pdf)     |
-| 11.1.0               | Seqred    | Feb 21, 2022 | [Download]({{$basePath}}/seqred-certificate.pdf)        |
-| 12.3.3               | TestArmy  | Apr 28, 2023 | [Download]({{$basePath}}/testarmy-certificate.pdf)      |
-| 14.3.0               | TestArmy  | Apr 19, 2024 | [Download]({{$basePath}}/testarmy-certificate-2024.pdf) |                                                     |
+| Audit firm | Concluded on | Certificate                                              |
+|------------|--------------|----------------------------------------------------------|
+| Seqred     | Feb 21, 2022 | [Download]({{$basePath}}/seqred-certificate.pdf)         |
+| TestArmy   | Apr 28, 2023 | [Download]({{$basePath}}/testarmy-certificate.pdf)       |
+| TestArmy   | Apr 19, 2024 | [Download]({{$basePath}}/testarmy-certificate-2024.pdf)  |          
+| TestArmy   | May 13, 2025 | [Download]({{$basePath}}/testarmy-certificate-2025.pdf)  |
+                                           
 
 The security audits were carried out in accordance with industry-standard methodologies, including:
 - OWASP Top 10
