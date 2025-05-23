@@ -101,6 +101,14 @@ const dictionary = {
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'مقدار',
   [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'مقدار دوم',
 
+  [C.PAGINATION_PAGE]: 'صفحه',
+  [C.PAGINATION_PAGE_SIZE]: 'تعداد سطرها:',
+  [C.PAGINATION_OF]: 'از',
+  [C.PAGINATION_FIRST_PAGE]: 'به اولین صفحه بروید',
+  [C.PAGINATION_PREV_PAGE]: 'به صفحه قبلی بروید',
+  [C.PAGINATION_NEXT_PAGE]: 'به صفحه بعدی بروید',
+  [C.PAGINATION_LAST_PAGE]: 'به آخرین صفحه بروید',
+
   [C.CHECKBOX_CHECKED]: 'چک شده',
   [C.CHECKBOX_UNCHECKED]: 'چک نشده',
 };

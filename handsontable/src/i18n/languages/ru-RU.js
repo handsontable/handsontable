@@ -95,7 +95,15 @@ const dictionary = {
 
   [C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH]: 'Поиск',
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'Значение',
-  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Второе значение'
+  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Второе значение',
+
+  [C.PAGINATION_PAGE]: 'Страница',
+  [C.PAGINATION_PAGE_SIZE]: 'Количество строк:',
+  [C.PAGINATION_OF]: 'из',
+  [C.PAGINATION_FIRST_PAGE]: 'Перейти на первую страницу',
+  [C.PAGINATION_PREV_PAGE]: 'Перейти на предыдущую страницу',
+  [C.PAGINATION_NEXT_PAGE]: 'Перейти на следующую страницу',
+  [C.PAGINATION_LAST_PAGE]: 'Перейти на последнюю страницу',
 };
 
 export default dictionary;

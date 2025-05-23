@@ -101,7 +101,15 @@ const dictionary = {
 
   [C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH]: 'Zoeken',
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'Waarde',
-  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Tweede waarde'
+  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Tweede waarde',
+
+  [C.PAGINATION_PAGE]: 'Pagina',
+  [C.PAGINATION_PAGE_SIZE]: 'Aantal rijen:',
+  [C.PAGINATION_OF]: 'van',
+  [C.PAGINATION_FIRST_PAGE]: 'Ga naar eerste pagina',
+  [C.PAGINATION_PREV_PAGE]: 'Ga naar vorige pagina',
+  [C.PAGINATION_NEXT_PAGE]: 'Ga naar volgende pagina',
+  [C.PAGINATION_LAST_PAGE]: 'Ga naar laatste pagina',
 };
 
 export default dictionary;

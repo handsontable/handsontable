@@ -3557,6 +3557,33 @@ export default () => {
 
     /**
      * @description
+     * The `pagination` option configures the [`Pagination`](@/api/pagination.md) plugin.
+     *
+     * You can set the `pagination` option to one of the following:
+     *
+     * | Setting                          | Description                                                                                   |
+     * | -------------------------------- | --------------------------------------------------------------------------------------------- |
+     * | `false`                          | Disable the [`Pagination`](@/api/pagination.md) plugin                                            |
+     * | `true`                           | Enable the [`Pagination`](@/api/pagination.md) plugin                                             |
+     *
+     * Read more:
+     * - [Plugins: `Pagination`](@/api/pagination.md)
+     *
+     * @memberof Options#
+     * @type {boolean}
+     * @default undefined
+     * @category Pagination
+     *
+     * @example
+     * ```js
+     * // enable the `Pagination` plugin
+     * pagination: true,
+     * ```
+     */
+    pagination: undefined,
+
+    /**
+     * @description
      * The `persistentState` option configures the [`PersistentState`](@/api/persistentState.md) plugin.
      *
      * You can set the `persistentState` to one of the following:

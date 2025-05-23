@@ -9,6 +9,55 @@ describe('localHooks mixin', () => {
     it('should return itself to make method chainable', () => {
       expect(localHooks.addLocalHook('myHook', () => {})).toBe(localHooks);
     });
+
+    it('should add the hook to the collection', () => {
+      const callback1 = () => {};
+      const callback2 = () => {};
+
+      localHooks.addLocalHook('testHook', callback1);
+      localHooks.addLocalHook('testHook2', callback2);
+
+      expect(localHooks._localHooks).toEqual({
+        testHook: [callback1],
+        testHook2: [callback2],
+      });
+    });
+  });
+
+  describe('.removeLocalHook', () => {
+    it('should return itself to make method chainable', () => {
+      expect(localHooks.addLocalHook('myHook', () => {})).toBe(localHooks);
+    });
+
+    it('should not remove the hook when the callback reference does not match', () => {
+      const callback1 = () => {};
+      const callback2 = () => {};
+
+      localHooks.addLocalHook('testHook', callback1);
+      localHooks.addLocalHook('testHook2', callback2);
+
+      localHooks.removeLocalHook('testHook2', callback1);
+
+      expect(localHooks._localHooks).toEqual({
+        testHook: [callback1],
+        testHook2: [callback2],
+      });
+    });
+
+    it('should remove the hook', () => {
+      const callback1 = () => {};
+      const callback2 = () => {};
+
+      localHooks.addLocalHook('testHook', callback1);
+      localHooks.addLocalHook('testHook2', callback2);
+
+      localHooks.removeLocalHook('testHook', callback1);
+
+      expect(localHooks._localHooks).toEqual({
+        testHook: [],
+        testHook2: [callback2],
+      });
+    });
   });
 
   describe('.clearLocalHooks', () => {

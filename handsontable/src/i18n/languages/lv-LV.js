@@ -99,7 +99,15 @@ const dictionary = {
 
   [C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH]: 'Meklēt',
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'Vērtība',
-  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Otra vērtība'
+  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Otra vērtība',
+
+  [C.PAGINATION_PAGE]: 'Lapa',
+  [C.PAGINATION_PAGE_SIZE]: 'Rindu skaits:',
+  [C.PAGINATION_OF]: 'no',
+  [C.PAGINATION_FIRST_PAGE]: 'Pāriet uz pirmo lapu',
+  [C.PAGINATION_PREV_PAGE]: 'Pāriet uz iepriekšējo lapu',
+  [C.PAGINATION_NEXT_PAGE]: 'Pāriet uz nākamo lapu',
+  [C.PAGINATION_LAST_PAGE]: 'Pāriet uz pēdējo lapu',
 };
 
 export default dictionary;

@@ -1,0 +1,78 @@
+@use "../../utils/mixins";
+
+// Pagination
+
+@mixin output {
+  .ht-root-wrapper {
+    .ht-pagination-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--ht-pagination-bar-background-color);
+      border: 1px solid var(--ht-wrapper-border-color);
+      border-radius: 0 0 var(--ht-wrapper-border-radius) var(--ht-wrapper-border-radius);
+      padding-inline: var(--ht-pagination-bar-horizontal-padding);
+      padding-block: var(--ht-pagination-bar-vertical-padding);
+      color: var(--ht-foreground-color);
+      font-size: var(--ht-font-size);
+      box-sizing: border-box;
+    }
+
+    .ht-page-size-section {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      span {
+        white-space: nowrap;
+      }
+
+      select {
+        padding-inline: calc(var(--ht-gap-size) + 4px);
+        padding-block: calc(var(--ht-gap-size));
+        border: 1px solid var(--ht-wrapper-border-color);
+        border-radius: 4px;
+        background-color: white;
+      }
+    }
+
+    .ht-page-navigation-section {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      button {
+        background: none;
+        border: none;
+        color: var(--ht-foreground-color);
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 4px;
+
+        &::before {
+          @include mixins.pseudo;
+
+          width: var(--ht-icon-size);
+        }
+
+        &:disabled {
+          background-color: transparent;
+          opacity: 0.4;
+          cursor: default;
+        }
+
+        &:hover:not(:disabled) {
+          background-color: #e3e3e5;
+        }
+
+        &:focus {
+          outline: 2px solid #1b42e8;
+        }
+      }
+
+      span {
+        white-space: nowrap;
+      }
+    }
+  }
+}

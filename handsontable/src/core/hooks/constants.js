@@ -886,6 +886,56 @@ export const REGISTERED_HOOKS = [
   'afterSelectRows',
 
   /**
+   * Fired before all cells are selected (e.g. During mouse corner click or {@link Core#selectAll} API call).
+   *
+   * @since 16.0.0
+   * @event Hooks#beforeSelectAll
+   * @param {CellCoords} from Selection start coords object.
+   * @param {CellCoords} to Selection end coords object.
+   * @param {CellCoords} [highlight] Selection cell focus coords object.
+   * @example
+   * ::: only-for javascript
+   * ```js
+   * new Handsontable(element, {
+   *   beforeSelectAll: (from, to, highlight) => {
+   *     // moves the focus to a new position
+   *     if (highlight) {
+   *       highlight.row = 3;
+   *       highlight.col = 3;
+   *     }
+   *   }
+   * })
+   * ```
+   * :::
+   *
+   * ::: only-for react
+   * ```jsx
+   * <HotTable
+   *   beforeSelectAll={(from, to, highlight) => {
+   *     // moves the focus to a new position
+   *     if (highlight) {
+   *       highlight.row = 3;
+   *       highlight.col = 3;
+   *     }
+   *   }}
+   * />
+   * ```
+   * :::
+   */
+  'beforeSelectAll',
+
+  /**
+   * Fired after all cells are selected (e.g. during mouse corner click or {@link Core#selectAll} API call).
+   *
+   * @since 16.0.0
+   * @event Hooks#afterSelectAll
+   * @param {CellCoords} from Selection start coords object.
+   * @param {CellCoords} to Selection end coords object.
+   * @param {CellCoords} [highlight] Selection cell focus coords object.
+   */
+  'afterSelectAll',
+
+  /**
    * Fired after cell meta is changed.
    *
    * @event Hooks#afterSetCellMeta
@@ -2226,6 +2276,82 @@ export const REGISTERED_HOOKS = [
    * @param {object[]} conditionsStack An array of objects with your [column filters](@/api/filters.md#addcondition).
    */
   'afterFilter',
+
+  /**
+   * Fired by {@link Pagination} plugin before changing the page. This hook is fired when
+   * {@link Options#pagination} option is enabled.
+   *
+   * @since 16.0.0
+   * @event Hooks#beforePageChange
+   * @param {number} oldPage The old page number.
+   * @param {number} newPage The new page number.
+   * @returns {*|boolean} If false is returned the action is canceled.
+   */
+  'beforePageChange',
+
+  /**
+   * Fired by {@link Pagination} plugin after changing the page. This hook is fired when
+   * {@link Options#pagination} option is enabled.
+   *
+   * @since 16.0.0
+   * @event Hooks#afterPageChange
+   * @param {number} oldPage The old page number.
+   * @param {number} newPage The new page number.
+   */
+  'afterPageChange',
+
+  /**
+   * Fired by {@link Pagination} plugin before changing the page size. This hook is fired when
+   * {@link Options#pagination} option is enabled.
+   *
+   * @since 16.0.0
+   * @event Hooks#beforePageSizeChange
+   * @param {number} oldPageSize The old page size.
+   * @param {number} newPageSize The new page size.
+   * @returns {*|boolean} If false is returned the action is canceled.
+   */
+  'beforePageSizeChange',
+
+  /**
+   * Fired by {@link Pagination} plugin after changing the page size. This hook is fired when
+   * {@link Options#pagination} option is enabled.
+   *
+   * @since 16.0.0
+   * @event Hooks#afterPageSizeChange
+   * @param {number} oldPageSize The old page size.
+   * @param {number} newPageSize The new page size.
+   */
+  'afterPageSizeChange',
+
+  /**
+   * Fired by {@link Pagination} plugin after changing the visibility state of the page size section.
+   * This hook is fired when {@link Options#pagination} option is enabled.
+   *
+   * @since 16.0.0
+   * @event Hooks#afterPageSizeVisibilityChange
+   * @param {boolean} isVisible The visibility state of the page size section.
+   */
+  'afterPageSizeVisibilityChange',
+
+  /**
+   * Fired by {@link Pagination} plugin after changing the visibility state of the page counter section.
+   * This hook is fired when {@link Options#pagination} option is enabled.
+   *
+   * @since 16.0.0
+   * @event Hooks#afterPageCounterVisibilityChange
+   * @param {boolean} isVisible The visibility state of the page size section.
+   */
+  'afterPageCounterVisibilityChange',
+
+  /**
+   * Fired by {@link Pagination} plugin after changing the visibility state of the page navigation section.
+   * This hook is fired when {@link Options#pagination} option is enabled.
+   *
+   * @since 16.0.0
+   * @event Hooks#afterPageNavigationVisibilityChange
+   * @param {boolean} isVisible The visibility state of the page size section.
+   */
+  'afterPageNavigationVisibilityChange',
 
   /**
    * Fired by the {@link Formulas} plugin, when any cell value changes.

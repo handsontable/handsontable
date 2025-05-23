@@ -104,6 +104,14 @@ const dictionary = {
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'Wartość',
   [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Druga wartość',
 
+  [C.PAGINATION_PAGE]: 'Strona',
+  [C.PAGINATION_PAGE_SIZE]: 'Liczba wierszy:',
+  [C.PAGINATION_OF]: 'z',
+  [C.PAGINATION_FIRST_PAGE]: 'Przejdź do pierwszej strony',
+  [C.PAGINATION_PREV_PAGE]: 'Przejdź do poprzedniej strony',
+  [C.PAGINATION_NEXT_PAGE]: 'Przejdź do następnej strony',
+  [C.PAGINATION_LAST_PAGE]: 'Przejdź do ostatniej strony',
+
   [C.CHECKBOX_CHECKED]: 'Zaznaczony',
   [C.CHECKBOX_UNCHECKED]: 'Odznaczony',
 };

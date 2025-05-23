@@ -37,6 +37,22 @@
     @include icon($icons, "arrow-narrow-down");
   }
 
+  .ht-page-navigation-section .ht-page-first::before {
+    @include icon($icons, "arrow-left-with-bar");
+  }
+
+  .ht-page-navigation-section .ht-page-prev::before {
+    @include icon($icons, "arrow-left");
+  }
+
+  .ht-page-navigation-section .ht-page-next::before {
+    @include icon($icons, "arrow-right");
+  }
+
+  .ht-page-navigation-section .ht-page-last::before {
+    @include icon($icons, "arrow-right-with-bar");
+  }
+
   .htDropdownMenu table tbody tr td .htItemWrapper span.selected::after,
   .htContextMenu table tbody tr td .htItemWrapper span.selected::after,
   .htFiltersConditionsMenu

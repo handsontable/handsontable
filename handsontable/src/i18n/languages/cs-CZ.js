@@ -96,7 +96,15 @@ const dictionary = {
 
   [C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH]: 'Hledat',
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'Hodnota',
-  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Druhá hodnota'
+  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Druhá hodnota',
+
+  [C.PAGINATION_PAGE]: 'Stránka',
+  [C.PAGINATION_PAGE_SIZE]: 'Počet řádků:',
+  [C.PAGINATION_OF]: 'z',
+  [C.PAGINATION_FIRST_PAGE]: 'Přejít na první stránku',
+  [C.PAGINATION_PREV_PAGE]: 'Přejít na předchozí stránku',
+  [C.PAGINATION_NEXT_PAGE]: 'Přejít na další stránku',
+  [C.PAGINATION_LAST_PAGE]: 'Přejít na poslední stránku',
 };
 
 export default dictionary;

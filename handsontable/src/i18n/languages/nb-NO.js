@@ -96,6 +96,14 @@ const dictionary = {
   [C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH]: 'Søk',
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'Verdi',
   [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Andre verdi',
+
+  [C.PAGINATION_PAGE]: 'Side',
+  [C.PAGINATION_PAGE_SIZE]: 'Antall rader:',
+  [C.PAGINATION_OF]: 'av',
+  [C.PAGINATION_FIRST_PAGE]: 'Gå til første side',
+  [C.PAGINATION_PREV_PAGE]: 'Gå til forrige side',
+  [C.PAGINATION_NEXT_PAGE]: 'Gå til neste side',
+  [C.PAGINATION_LAST_PAGE]: 'Gå til siste side',
 };
 
 export default dictionary;
