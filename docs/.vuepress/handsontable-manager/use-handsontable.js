@@ -115,7 +115,6 @@ const useHandsontable = (version, callback = () => {}, preset = 'hot', buildMode
 
       // Ensure that `fixer.js` is not loaded while injecting new dependencies.
       if (dep !== 'fixer' && dep !== 'react-colorful') {
-        debugger;
         const _document = document; // eslint-disable-line no-restricted-globals
         const getId = depName => `dependency-reloader_${depName}`;
         const fixerScript = _document.getElementById(`script-${getId('fixer')}`);
@@ -133,7 +132,7 @@ const useHandsontable = (version, callback = () => {}, preset = 'hot', buildMode
   };
 
   // Add this preset loading to the global queue
-  const currentPresetPromise = globalLoadingChain.then(async () => {
+  const currentPresetPromise = globalLoadingChain.then(async() => {
     try {
       await loadPreset();
       callback();
