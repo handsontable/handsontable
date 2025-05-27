@@ -216,7 +216,7 @@ module.exports = function(docsVersion, base) {
         const isActive = `$parent.$parent.isScriptLoaderActivated('${id}')`;
         const isJavaScript = preset.includes('hot');
         const isReact = preset.includes('react');
-        const selectedLang = isAngular ? 'TypeScript' : '$parent.$parent.selectedLang';
+        const selectedLang = isAngular ? "'TypeScript'" : '$parent.$parent.selectedLang';
         const isReactOrJavaScriptOrAngular = isJavaScript || isReact || isAngular;
 
         return `
