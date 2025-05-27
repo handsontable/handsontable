@@ -19,8 +19,8 @@ export function installFocusDetector(hot, hooks = {}) {
   inputTrapTop.addEventListener('focus', () => hooks?.onFocusFromTop());
   inputTrapBottom.addEventListener('focus', () => hooks?.onFocusFromBottom());
 
-  rootElement.firstChild.before(inputTrapTop);
-  rootElement.lastChild.after(inputTrapBottom);
+  rootElement.before(inputTrapTop);
+  rootElement.after(inputTrapBottom);
 
   return {
     /**
@@ -60,7 +60,7 @@ function createInputElement(hot) {
 
   if (hot.getSettings().ariaTags) {
     setAttribute(input, [
-      A11Y_LABEL('Focus catcher'),
+      A11Y_LABEL('Focus catcher')
     ]);
   }
 

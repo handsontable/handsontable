@@ -1,10 +1,8 @@
 name: Docs Staging Deployment
 
-env:
-  GHA_DOCKER_TAG_NEXT: docker.pkg.github.com/${{ github.repository }}/handsontable-documentation:next
-  GHA_DOCKER_TAG_SHA: docker.pkg.github.com/${{ github.repository }}/handsontable-documentation:${{ github.sha }}
-
 on:
+  pull_request:
+    types: [ labeled, synchronize ]
   push:
     branches-ignore:
       - 'prod-docs/**'
@@ -22,10 +20,11 @@ defaults:
     working-directory: ./docs/
 
 jobs:
-  docker:
-    name: Build and push Docker image
-    if: ${{ github.ref != 'refs/heads/prod-docs/latest' }} # Exclude the prod-docs-latest branch from triggering the workflow
+  preview:
+    if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'ci:docs-deploy') }}
+    name: Build and push Preview to Netlify (on pull request label)
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
@@ -35,9 +34,59 @@ jobs:
           node-version-file: '.nvmrc'
           cache: 'npm'
 
-      - name: Docker login into GHCR
+      - name: Find PR
+        uses: jwalton/gh-find-current-pr@7ada613939e2a233c83a1320679446fa1c6bdcb9 # https://github.com/jwalton/gh-find-current-pr/tree/v1.3.2
+        id: pr-finder
+
+      - name: Get PR details
+        id: get-pr
+        if: ${{ steps.pr-finder.outputs.pr }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: pullRequest } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number ||  ${{ steps.pr-finder.outputs.pr }}
+            });
+
+            console.log(`PR #${context.issue.number} details fetched`);
+            console.log(`Source branch: ${pullRequest.head.ref}`);
+            console.log(`Target branch: ${pullRequest.base.ref}`);
+
+            // Set outputs to use in subsequent steps
+            core.setOutput('source_branch', pullRequest.head.ref);
+            core.setOutput('target_branch', pullRequest.base.ref);
+            core.setOutput('pr_owner', pullRequest.head.repo.owner.login);
+            core.setOutput('pr_repo', pullRequest.head.repo.name);
+
+            return pullRequest;
+          result-encoding: string
+
+      - name: Install Netlify dependencies
         run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | docker login -u ${GITHUB_ACTOR} --password-stdin https://docker.pkg.github.com
+           cd netlify
+           npm i
+           npm install netlify-cli -g
+
+      - name: Run the create or get Netlify Page proccess. Save the Netlify vars in a file
+        run: |
+          cd netlify
+          node createOrGet.mjs
+          cat NETLIFY_VARS >> $GITHUB_ENV
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
+          BRANCH_NAME_PREFIX: dev-handsontable-
+          BRANCH_NAME: ${{ steps.get-pr.outputs.source_branch || github.ref_name }}
+
+      - name: Publish sticky comment in PR. Docs are being built
+        uses: marocchino/sticky-pull-request-comment@adca94abcaf73c10466a71cc83ae561fd66d1a56 # https://github.com/marocchino/sticky-pull-request-comment/tree/v2.3.0
+        if: ${{ steps.pr-finder.outputs.pr }}
+        with:
+          number: ${{ steps.pr-finder.outputs.pr }}
+          message: |
+            🏗️ Preview documentation is being built/rebuilt.
+            Current staging version of documentation will be available at: [${{ env.NETLIFY_SITE_URL }}/docs](${{ env.NETLIFY_SITE_URL }}/docs)
 
       - name: Install the documentation dependencies
         run: |
@@ -53,44 +102,39 @@ jobs:
         run: |
           npm run docs:api
 
-      - name: Docker build (for staging deployment)
-        if: ${{ github.event_name == 'workflow_dispatch' }}
+      - name: Build docs (for staging preview)
         run: |
-          npm run docs:docker:build:staging
+          npm run docs:build:preview
 
-      - name: Docker build (for local testing)
-        if: ${{ github.event_name != 'workflow_dispatch' }}
+      - name: Build and deploy the preview to Netlify
         run: |
-          npm run docs:docker:build:testing
+          cd netlify
+          mkdir -p docs/docs
+          mv ../.vuepress/dist/docs docs
 
-      - name: Test examples
+          ./build_previous_versions.sh
+          echo "Building the documentation..." >> docs/index.html
+          cp _redirects docs/_redirects
+          cp docs/docs/404.html docs/404.html
+          rm -rf ../../handsontable/node_modules
+          rm -rf ../../handsontable/tmp
+          cp -r ../../handsontable docs/docs
+
+      - name: Publish preview to Netlify
         run: |
-          npm run docs:test:example-checker
-
-      - name: Docker tags
-        run: |
-          docker tag docs-md $GHA_DOCKER_TAG_NEXT
-          docker tag docs-md $GHA_DOCKER_TAG_SHA
-
-      - name: Docker push "next" into GHCR and deploy to the staging (only when manually dispatched)
-        if: ${{ github.event_name == 'workflow_dispatch' }}
-        run: |
-          docker push ${GHA_DOCKER_TAG_NEXT}
-
-      - name: Docker push SHA tagged into GHCR
-        run: |
-          docker push ${GHA_DOCKER_TAG_SHA}
-
-      - name: Find PR
-        uses: jwalton/gh-find-current-pr@7ada613939e2a233c83a1320679446fa1c6bdcb9 # https://github.com/jwalton/gh-find-current-pr/tree/v1.3.2
-        id: pr-finder
+          cd netlify
+          netlify deploy --prod --build --context production
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ env.NETLIFY_SITE_ID }}
 
       - name: Publish sticky comment in PR
         uses: marocchino/sticky-pull-request-comment@adca94abcaf73c10466a71cc83ae561fd66d1a56 # https://github.com/marocchino/sticky-pull-request-comment/tree/v2.3.0
+        if: ${{ steps.pr-finder.outputs.pr }}
         with:
           number: ${{ steps.pr-finder.outputs.pr }}
           message: |
-            Launch the local version of documentation by running:
-            ```bash
-            npm run docs:review ${{ github.sha }}
-            ```
+            ✅ Preview documentation is is available now
+            Current staging version of documentation is available at: [${{ env.NETLIFY_SITE_URL }}/docs](${{ env.NETLIFY_SITE_URL }}/docs)
+
+  

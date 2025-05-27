@@ -1153,7 +1153,7 @@ describe('Selection', () => {
 
     it('should highlight the headers when whole column and row is selected', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
+        data: createSpreadsheetObjectData(6, 4),
         colHeaders: true,
         rowHeaders: true,
       });
@@ -1479,7 +1479,7 @@ describe('Selection', () => {
 
     it('should not deselect current selection when it is called with undefined column property', async() => {
       handsontable({
-        data: Handsontable.helper.createSpreadsheetObjectData(6, 4),
+        data: createSpreadsheetObjectData(6, 4),
       });
 
       let wasSelected = hot().selection.selectCells([[0, 0, 2, 2], [1, 1, 3, 3]]); // Initial selection.
@@ -1582,7 +1582,7 @@ describe('Selection', () => {
       ]);
 
       handsontable({
-        data: Handsontable.helper.createSpreadsheetObjectData(20, 20),
+        data: createSpreadsheetObjectData(20, 20),
         height: 300,
         width: 300,
         afterSelection,
@@ -1635,7 +1635,7 @@ describe('Selection', () => {
       ]);
 
       handsontable({
-        data: Handsontable.helper.createSpreadsheetObjectData(20, 20),
+        data: createSpreadsheetObjectData(20, 20),
         height: 300,
         width: 300,
         afterSelection,
@@ -1688,7 +1688,7 @@ describe('Selection', () => {
       ]);
 
       handsontable({
-        data: Handsontable.helper.createSpreadsheetObjectData(20, 20),
+        data: createSpreadsheetObjectData(20, 20),
         height: 300,
         width: 300,
         afterSelection,

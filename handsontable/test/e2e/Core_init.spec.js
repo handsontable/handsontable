@@ -221,11 +221,11 @@ describe('Core_init', () => {
       simulateModernThemeStylesheet(spec().$container);
       spec().$container.addClass('ht-theme-sth');
 
-      handsontable({
+      const hot = handsontable({
         data: createSpreadsheetData(15, 15),
       }, true);
 
-      expect(tableView().getStylesHandler().isClassicTheme()).toBe(false);
+      expect(hot.stylesHandler.isClassicTheme()).toBe(false);
       expect(getCurrentThemeName()).toBe('ht-theme-sth');
     });
 
@@ -237,9 +237,9 @@ describe('Core_init', () => {
         data: createSpreadsheetData(15, 15),
       }, true);
 
-      expect(tableView().getStylesHandler().isClassicTheme()).toBe(false);
+      expect(hot.stylesHandler.isClassicTheme()).toBe(false);
       expect(getCurrentThemeName()).toBe('ht-theme-sth');
-      expect($(hot.rootElement).hasClass('ht-theme-sth')).toBe(true);
+      expect($(hot.rootWrapperElement).hasClass('ht-theme-sth')).toBe(true);
     });
   });
 });
