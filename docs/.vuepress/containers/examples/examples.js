@@ -191,15 +191,15 @@ module.exports = function(docsVersion, base) {
           tokens.splice(x, 1);
         });
 
+        const isAngular = preset.includes('angular');
         const newTokens = [
           ...tab('Code', tsToken && jsToken ? getCodeToken(jsToken, tsToken) : (tsToken ?? jsToken), id),
-          ...tab('HTML', htmlToken, id),
+          ...tab('HTML', isAngular ? undefined : htmlToken, id),
           ...tab('CSS', cssToken, id),
         ];
 
         tokens.splice(index + 1, 0, ...newTokens);
 
-        const isAngular = preset.includes('angular');
         const jsCodeForPreset = addCodeForPreset(jsCodeToCompile, preset, id);
         const tsCodeForPreset = addCodeForPreset(tsCodeToCompile, preset, id);
         const code = buildCode(
