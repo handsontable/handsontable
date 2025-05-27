@@ -153,15 +153,44 @@ export class Pagination extends BasePlugin {
   /**
    * Gets the pagination current state.
    *
-   * @returns {{ currentPage: number, totalPages: number, pageSize: number, pageSizeList: number[], numberOfRenderedRows: number }}
+   * @returns {{
+   *   currentPage: number,
+   *   totalPages: number,
+   *   pageSize: number,
+   *   pageSizeList: number[],
+   *   numberOfRenderedRows: number,
+   *   firstVisibleRow: number,
+   *   lastVisibleRow: number
+   * }}
    */
   getPaginationData() {
+    const firstRow = (this.#currentPage - 1) * this.#pageSize;
+    let firstVisibleRow = null;
+    let lastVisibleRow = null;
+    let visibleCount = 0;
+
+    for (let rowIndex = firstRow; visibleCount < this.#pageSize; rowIndex++) {
+      if (this.hot.rowIndexMapper.isHidden(this.hot.toPhysicalRow(rowIndex))) {
+        // eslint-disable-next-line no-continue
+        continue;
+      }
+
+      if (firstVisibleRow === null) {
+        firstVisibleRow = rowIndex;
+      }
+
+      lastVisibleRow = rowIndex;
+      visibleCount += 1;
+    }
+
     return {
       currentPage: this.#currentPage,
       totalPages: this.#totalPages,
       pageSize: this.#pageSize,
       pageSizeList: this.getSetting('pageSizeList'),
       numberOfRenderedRows: this.hot.rowIndexMapper.getRenderableIndexesLength(),
+      firstVisibleRow,
+      lastVisibleRow,
     };
   }
 
@@ -257,6 +286,21 @@ export class Pagination extends BasePlugin {
    */
   hasNextPage() {
     return this.#currentPage < this.#totalPages;
+  }
+
+  /**
+   * Gets the visual data for the current page. The returned data may be longer than the defined
+   * page size as the data may contain hidden rows (rows that are not rendered in the table).
+   *
+   * @returns {Array<Array>} Returns the data for the current page.
+   */
+  getCurrentPageData() {
+    const {
+      firstVisibleRow,
+      lastVisibleRow,
+    } = this.getPaginationData();
+
+    return this.hot.getData(firstVisibleRow, 0, lastVisibleRow, this.hot.countCols() - 1);
   }
 
   /**

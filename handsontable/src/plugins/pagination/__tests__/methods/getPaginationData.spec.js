@@ -24,6 +24,8 @@ describe('Pagination `getPaginationData` method', () => {
       pageSize: 10,
       pageSizeList: [5, 10, 20, 50, 100],
       numberOfRenderedRows: 10,
+      firstVisibleRow: 0,
+      lastVisibleRow: 9,
     });
   });
 
@@ -43,6 +45,8 @@ describe('Pagination `getPaginationData` method', () => {
       pageSize: 10,
       pageSizeList: [5, 10, 20, 50, 100],
       numberOfRenderedRows: 10,
+      firstVisibleRow: 20,
+      lastVisibleRow: 29,
     });
   });
 
@@ -62,6 +66,8 @@ describe('Pagination `getPaginationData` method', () => {
       pageSize: 12,
       pageSizeList: [5, 10, 20, 50, 100],
       numberOfRenderedRows: 12,
+      firstVisibleRow: 0,
+      lastVisibleRow: 11,
     });
   });
 
@@ -92,6 +98,8 @@ describe('Pagination `getPaginationData` method', () => {
       pageSize: 3,
       pageSizeList: [5, 10, 20, 50, 100],
       numberOfRenderedRows: 3,
+      firstVisibleRow: 1,
+      lastVisibleRow: 5,
     });
 
     plugin.setPage(2);
@@ -102,6 +110,70 @@ describe('Pagination `getPaginationData` method', () => {
       pageSize: 3,
       pageSizeList: [5, 10, 20, 50, 100],
       numberOfRenderedRows: 2,
+      firstVisibleRow: 6,
+      lastVisibleRow: 10,
+    });
+  });
+
+  it('should return correct pagination data when the rows order is changed', async() => {
+    handsontable({
+      data: createSpreadsheetData(10, 10),
+      rowHeaders: true,
+      pagination: {
+        pageSize: 3,
+      },
+    });
+
+    rowIndexMapper().setIndexesSequence([9, 7, 4, 2, 1, 3, 5, 6, 8, 0]);
+
+    await render();
+
+    const plugin = getPlugin('pagination');
+
+    expect(plugin.getPaginationData()).toEqual({
+      currentPage: 1,
+      totalPages: 4,
+      pageSize: 3,
+      pageSizeList: [5, 10, 20, 50, 100],
+      numberOfRenderedRows: 3,
+      firstVisibleRow: 0,
+      lastVisibleRow: 2,
+    });
+
+    plugin.setPage(2);
+
+    expect(plugin.getPaginationData()).toEqual({
+      currentPage: 2,
+      totalPages: 4,
+      pageSize: 3,
+      pageSizeList: [5, 10, 20, 50, 100],
+      numberOfRenderedRows: 3,
+      firstVisibleRow: 3,
+      lastVisibleRow: 5,
+    });
+
+    plugin.setPage(3);
+
+    expect(plugin.getPaginationData()).toEqual({
+      currentPage: 3,
+      totalPages: 4,
+      pageSize: 3,
+      pageSizeList: [5, 10, 20, 50, 100],
+      numberOfRenderedRows: 3,
+      firstVisibleRow: 6,
+      lastVisibleRow: 8,
+    });
+
+    plugin.setPage(4);
+
+    expect(plugin.getPaginationData()).toEqual({
+      currentPage: 4,
+      totalPages: 4,
+      pageSize: 3,
+      pageSizeList: [5, 10, 20, 50, 100],
+      numberOfRenderedRows: 1,
+      firstVisibleRow: 9,
+      lastVisibleRow: 11,
     });
   });
 });

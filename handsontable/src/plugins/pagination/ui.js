@@ -15,7 +15,7 @@ const TEMPLATE = `
     <select data-ref="pageSizeSelect" name="pageSize"></select>
   </div>
   <div data-ref="pageCounterSection" class="ht-page-counter-section" style="display: none"></div>
-  <nav data-ref="pageNavSection" class="ht-page-navigation-section" style="display: none">
+  <nav data-ref="pageNavSection" class="ht-page-navigation-section" aria-label="Pagination" style="display: none">
     <button data-ref="first" class="ht-page-first"></button>
     <button data-ref="prev" class="ht-page-prev"></button>
     <span data-ref="pageNavLabel"></span>

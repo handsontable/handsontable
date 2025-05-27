@@ -19,6 +19,8 @@ type PaginationData = {
   pageSize: number,
   pageSizeList: number[],
   numberOfRenderedRows: number,
+  firstVisibleRow: number,
+  lastVisibleRow: number,
 }
 
 export class Pagination extends BasePlugin {
@@ -34,6 +36,7 @@ export class Pagination extends BasePlugin {
   lastPage(): void;
   hasPreviousPage(): boolean;
   hasNextPage(): boolean;
+  getCurrentPageData(): any[];
   showPageSizeSection(): void;
   hidePageSizeSection(): void;
   showPageCounterSection(): void;
