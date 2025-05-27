@@ -48,6 +48,10 @@ Array of arrays is a good choice for the more grid-like scenarios where you need
 
 :::
 
+<!--  -->
+[//]: # (The empty HTML comment above is a workaround for the `example` container error.)
+[//]: # (DON'T REMOVE IT!)
+
 :::
 
 ::: only-for angular
