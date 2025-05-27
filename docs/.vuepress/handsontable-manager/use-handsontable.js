@@ -113,7 +113,7 @@ const useHandsontable = (version, callback = () => {}, preset = 'hot', buildMode
         break;
       }
 
-      // Ensure that `fixer.js` is not loaded while injecting new dependencies.
+      // Ensure that `fixer.js` is not loaded while injecting new dependencies (with an exception for `react-colorful`).
       if (dep !== 'fixer' && dep !== 'react-colorful') {
         const _document = document; // eslint-disable-line no-restricted-globals
         const getId = depName => `dependency-reloader_${depName}`;
