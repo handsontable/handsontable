@@ -82,9 +82,9 @@ Double click on a cell to open the editor and preview the formula.
 
 ::: only-for angular
 
-::: example #example1 :angular --js 1 --html 2
+::: example #example1 :angular --ts 1 --html 2
 
-@[code](@/content/guides/formulas/formula-calculation/angular/example1.js)
+@[code](@/content/guides/formulas/formula-calculation/angular/example1.ts)
 @[code](@/content/guides/formulas/formula-calculation/angular/example1.html)
 
 :::
