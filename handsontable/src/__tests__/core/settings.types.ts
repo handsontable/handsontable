@@ -181,7 +181,6 @@ const allSettings: Required<Handsontable.GridSettings> = {
     pageSize: 10,
     pageSizeList: [5, 10, 20, 50, 100],
     initialPage: 1,
-    autoPageSize: false,
     showPageSize: true,
     showCounter: true,
     showNavigation: true,

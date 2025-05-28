@@ -1,5 +1,6 @@
 import { BasePlugin } from '../base';
 import { clamp } from '../../helpers/number';
+import { addClass, removeClass } from '../../helpers/dom/element';
 import { PaginationUI } from './ui';
 import { checkPluginSettingsConflict } from './utils';
 
@@ -25,7 +26,6 @@ export class Pagination extends BasePlugin {
       pageSize: 10,
       pageSizeList: [5, 10, 20, 50, 100],
       initialPage: 1,
-      autoPageSize: false, // TODO: implement
       showPageSize: true,
       showCounter: true,
       showNavigation: true,
@@ -68,10 +68,7 @@ export class Pagination extends BasePlugin {
    *
    * @type {PaginationUI}
    */
-  #ui = new PaginationUI(
-    this.hot.rootElement,
-    phraseId => this.hot.getTranslatedPhrase(phraseId)
-  );
+  #ui = null;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -97,24 +94,30 @@ export class Pagination extends BasePlugin {
       return;
     }
 
-    this.hot.rootElement.style.borderRadius = '0px';
+    addClass(this.hot.rootElement, 'htPagination');
 
     this.#pageSize = this.getSetting('pageSize');
     this.#currentPage = this.getSetting('initialPage');
     this.#pagedRowsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap(this.pluginName, 'hiding');
 
-    if (this.#ui) {
-      this.#ui.install();
+    if (!this.#ui) {
+      this.#ui = new PaginationUI({
+        rootElement: this.hot.rootElement,
+        phraseTranslator: phraseId => this.hot.getTranslatedPhrase(phraseId),
+        shouldHaveBorder: () => this.#computeNeedsBorder(),
+      });
 
-      this.#ui.setPageSizeSectionVisibility(this.getSetting('showPageSize'));
-      this.#ui.setCounterSectionVisibility(this.getSetting('showCounter'));
-      this.#ui.setNavigationSectionVisibility(this.getSetting('showNavigation'));
+      this.#ui
+        .setPageSizeSectionVisibility(this.getSetting('showPageSize'))
+        .setCounterSectionVisibility(this.getSetting('showCounter'))
+        .setNavigationSectionVisibility(this.getSetting('showNavigation'));
 
-      this.#ui.addLocalHook('firstPageClick', () => this.firstPage());
-      this.#ui.addLocalHook('prevPageClick', () => this.prevPage());
-      this.#ui.addLocalHook('nextPageClick', () => this.nextPage());
-      this.#ui.addLocalHook('lastPageClick', () => this.lastPage());
-      this.#ui.addLocalHook('pageSizeChange', pageSize => this.setPageSize(pageSize));
+      this.#ui
+        .addLocalHook('firstPageClick', () => this.firstPage())
+        .addLocalHook('prevPageClick', () => this.prevPage())
+        .addLocalHook('nextPageClick', () => this.nextPage())
+        .addLocalHook('lastPageClick', () => this.lastPage())
+        .addLocalHook('pageSizeChange', pageSize => this.setPageSize(pageSize));
     }
 
     this.addHook('beforeSelectAll', (...args) => this.#onBeforeSelectAllRows(...args));
@@ -122,6 +125,7 @@ export class Pagination extends BasePlugin {
     this.addHook('beforeSetRangeEnd', (...args) => this.#onBeforeSetRangeEnd(...args));
     this.addHook('beforeSelectionHighlightSet', (...args) => this.#onBeforeSelectionHighlightSet(...args));
     this.addHook('afterRender', (...args) => this.#onAfterRender(...args));
+    this.addHook('afterScrollVertically', (...args) => this.#onAfterScrollVertically(...args));
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onIndexCacheUpdate);
 
     super.enablePlugin();
@@ -145,7 +149,11 @@ export class Pagination extends BasePlugin {
     this.hot.rowIndexMapper
       .removeLocalHook('cacheUpdated', this.#onIndexCacheUpdate)
       .unregisterMap(this.pluginName);
-    this.#ui.uninstall();
+
+    this.#ui.destroy();
+    this.#ui = null;
+
+    removeClass(this.hot.rootElement, 'htPagination');
 
     super.disablePlugin();
   }
@@ -403,6 +411,30 @@ export class Pagination extends BasePlugin {
   }
 
   /**
+   * Based on the external factors (like the scroll position of the table) it computes
+   * the need for the top border of the pagination UI container.
+   *
+   * @returns {boolean} Returns `true` if the pagination UI should have a top border, `false` otherwise.
+   */
+  #computeNeedsBorder() {
+    if (!this.hot.view) {
+      return true;
+    }
+
+    const { view } = this.hot;
+
+    if (view.isVerticallyScrollableByWindow()) {
+      return false;
+    }
+
+    const {
+      lastVisibleRow
+    } = this.getPaginationData();
+
+    return view.getLastFullyVisibleRow() !== lastVisibleRow;
+  }
+
+  /**
    * Called before the selection of columns or all table is made. It modifies the selection rows range
    * to the range of the current page.
    *
@@ -458,7 +490,17 @@ export class Pagination extends BasePlugin {
    * the pagination container to the same size as the table.
    */
   #onAfterRender() {
-    this.#ui.updateWidth(this.hot.rootElement.offsetWidth);
+    this.#ui
+      .updateWidth(this.hot.view.getTableWidth())
+      .refreshBorderState();
+  }
+
+  /**
+   * Called after the vertical scrolling of the table is completed. It refreshes
+   * the border state of the pagination UI.
+   */
+  #onAfterScrollVertically() {
+    this.#ui.refreshBorderState();
   }
 
   /**
@@ -479,7 +521,7 @@ export class Pagination extends BasePlugin {
    */
   destroy() {
     this.#pagedRowsMap = null;
-    this.#ui.uninstall();
+    this.#ui?.destroy();
     this.#ui = null;
 
     super.destroy();

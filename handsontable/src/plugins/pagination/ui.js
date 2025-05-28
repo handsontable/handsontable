@@ -3,6 +3,8 @@ import { mixin } from '../../helpers/object';
 import localHooks from '../../mixins/localHooks';
 import * as C from '../../i18n/constants';
 import {
+  addClass,
+  removeClass,
   removeAttribute,
   setAttribute,
 } from '../../helpers/dom/element';
@@ -43,19 +45,30 @@ export class PaginationUI {
    */
   #refs;
   /**
-   * @type {function(string): string} The function to translate phrases used in the UI.
+   * @type {function(string): string} A function to translate phrases used in the UI.
    */
   #phraseTranslator;
+  /**
+   * @type {function(): void} A function that determines whether the pagination should have a border.
+   */
+  #shouldHaveBorder;
 
-  constructor(rootElement, phraseTranslator) {
+  constructor({ rootElement, phraseTranslator, shouldHaveBorder }) {
     this.#rootElement = rootElement;
     this.#phraseTranslator = phraseTranslator;
+    this.#shouldHaveBorder = shouldHaveBorder;
+
+    this.install();
   }
 
   /**
    * Creates the pagination UI elements and sets up event listeners.
    */
   install() {
+    if (this.#refs?.container) {
+      return;
+    }
+
     const elements = html`${TEMPLATE}`;
     const {
       first,
@@ -86,19 +99,32 @@ export class PaginationUI {
   }
 
   /**
-   * Removes the pagination UI elements from the DOM.
-   */
-  uninstall() {
-    this.#refs?.container.remove();
-  }
-
-  /**
    * Updates the width of the pagination container.
    *
    * @param {number} width The new width of the pagination container.
+   * @returns {PaginationUI} The instance of the PaginationUI for method chaining.
    */
   updateWidth(width) {
     this.#refs.container.style.width = `${width}px`;
+
+    return this;
+  }
+
+  /**
+   * Refreshes the border state of the pagination container based on the external condition.
+   *
+   * @returns {PaginationUI} The instance of the PaginationUI for method chaining.
+   */
+  refreshBorderState() {
+    const { container } = this.#refs;
+
+    if (this.#shouldHaveBorder()) {
+      addClass(container, 'ht-pagination-container--bordered');
+    } else {
+      removeClass(container, 'ht-pagination-container--bordered');
+    }
+
+    return this;
   }
 
   /**
@@ -111,6 +137,7 @@ export class PaginationUI {
    * @param {number} state.totalRenderedRows The total number of renderable rows.
    * @param {number[]} state.pageSizeList The list of available page sizes.
    * @param {number} state.pageSize The current page size.
+   * @returns {PaginationUI} The instance of the PaginationUI for method chaining.
    */
   updateState({
     currentPage,
@@ -139,6 +166,8 @@ export class PaginationUI {
     pageCounterSection.textContent = `${firstRenderedRow} - ${lastRenderedRow} ${ofPhrase} ${totalRenderedRows}`;
     pageNavLabel.textContent = `${pagePhrase} ${currentPage} ${ofPhrase} ${totalPages}`;
     pageSizeSelect.innerHTML = '';
+
+    this.refreshBorderState();
 
     pageSizeList.forEach((pageSizeItem) => {
       const option = new Option(pageSizeItem, pageSizeItem);
@@ -185,33 +214,52 @@ export class PaginationUI {
       ...[A11Y_LABEL(this.#phraseTranslator(C.PAGINATION_LAST_PAGE))],
       ...([A11Y_DISABLED(isLastPage)]),
     ]);
+
+    return this;
   }
 
   /**
    * Sets the visibility of the page size section.
    *
    * @param {boolean} isVisible True to show the page size section, false to hide it.
+   * @returns {PaginationUI} The instance of the PaginationUI for method chaining.
    */
   setPageSizeSectionVisibility(isVisible) {
     this.#refs.pageSizeSection.style.display = isVisible ? '' : 'none';
+
+    return this;
   }
 
   /**
    * Sets the visibility of the page counter section.
    *
    * @param {boolean} isVisible True to show the page size section, false to hide it.
+   * @returns {PaginationUI} The instance of the PaginationUI for method chaining.
    */
   setCounterSectionVisibility(isVisible) {
     this.#refs.pageCounterSection.style.display = isVisible ? '' : 'none';
+
+    return this;
   }
 
   /**
    * Sets the visibility of the page navigation section.
    *
    * @param {boolean} isVisible True to show the page size section, false to hide it.
+   * @returns {PaginationUI} The instance of the PaginationUI for method chaining.
    */
   setNavigationSectionVisibility(isVisible) {
     this.#refs.pageNavSection.style.display = isVisible ? '' : 'none';
+
+    return this;
+  }
+
+  /**
+   * Removes the pagination UI elements from the DOM.
+   */
+  destroy() {
+    this.#refs?.container.remove();
+    this.#refs = null;
   }
 }
 
