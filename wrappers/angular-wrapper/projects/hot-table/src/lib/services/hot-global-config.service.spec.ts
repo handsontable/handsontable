@@ -1,20 +1,20 @@
 import { TestBed } from '@angular/core/testing';
 import {
-  HotConfigService,
-  HotConfig,
+  HotGlobalConfigService,
+  HotGlobalConfig,
   NON_COMMERCIAL_LICENSE,
   ThemeName, HOT_GLOBAL_CONFIG,
-} from './hot-config.service';
+} from './hot-global-config.service';
 import {take} from 'rxjs';
 
-describe('HotConfigService', () => {
-  let service: HotConfigService;
+describe('HotGlobalConfigService', () => {
+  let service: HotGlobalConfigService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [HotConfigService],
+      providers: [HotGlobalConfigService],
     });
-    service = TestBed.inject(HotConfigService);
+    service = TestBed.inject(HotGlobalConfigService);
   });
 
   it('should be created', () => {
@@ -42,7 +42,7 @@ describe('HotConfigService', () => {
   });
 
   it('should update whole config when provided', () => {
-    const inputConfig: HotConfig = {
+    const inputConfig: HotGlobalConfig = {
       license: 'sample-license',
       themeName: 'ht-theme-horizon',
       language: 'pl-PL',
@@ -56,7 +56,7 @@ describe('HotConfigService', () => {
     expect(config.layoutDirection).toEqual(inputConfig.layoutDirection);
   });
 
-  it('should not override existing settings if not provided', () => {
+  it('should replace the existing configuration', () => {
     // Set initial configuration
     service.setConfig({
       license: 'initial-license',
@@ -67,7 +67,7 @@ describe('HotConfigService', () => {
     service.setConfig({ license: 'updated-license' });
     const config = service.getConfig();
     expect(config.license).toEqual('updated-license');
-    expect(config.themeName).toEqual('ht-theme-horizon-dark');
+    expect(config.themeName).toEqual('');
   });
 
   it('should emit configuration changes via config$', (done) => {
@@ -103,7 +103,7 @@ describe('HotConfigService', () => {
 
   it('should reset configuration to default values', () => {
     // set and check initial configuration
-    const customConfig: HotConfig = {
+    const customConfig: HotGlobalConfig = {
       license: 'custom-license',
       themeName: 'ht-theme-main'
     };
@@ -127,7 +127,7 @@ describe('HotConfigService', () => {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [
-        HotConfigService,
+        HotGlobalConfigService,
         {
           provide: HOT_GLOBAL_CONFIG,
           useValue: {
@@ -135,10 +135,10 @@ describe('HotConfigService', () => {
             themeName: 'ht-theme-main',
             language: 'en-US',
             layoutDirection: 'ltr'
-          } as HotConfig }
+          } as HotGlobalConfig }
       ]
     });
-    service = TestBed.inject(HotConfigService);
+    service = TestBed.inject(HotGlobalConfigService);
 
     const config = service.getConfig();
     expect(config.license).toEqual('overridden-license');

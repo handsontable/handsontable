@@ -24,7 +24,7 @@ export type ThemeName = PredefinedTheme | string;
 /**
  * Interface for the Handsontable global configuration.
  */
-export interface HotConfig {
+export interface HotGlobalConfig {
   /**
    * The license key for Handsontable.
    */
@@ -53,7 +53,7 @@ export interface HotConfig {
 /**
  * Injection token for providing a global default configuration.
  */
-export const HOT_GLOBAL_CONFIG = new InjectionToken<HotConfig>('HOT_GLOBAL_CONFIG', {
+export const HOT_GLOBAL_CONFIG = new InjectionToken<HotGlobalConfig>('HOT_GLOBAL_CONFIG', {
   providedIn: 'root',
   factory: () => ({})
 });
@@ -65,7 +65,7 @@ export const HOT_GLOBAL_CONFIG = new InjectionToken<HotConfig>('HOT_GLOBAL_CONFI
 @Injectable({
   providedIn: 'root',
 })
-export class HotConfigService {
+export class HotGlobalConfigService {
 
   /**
    * The default configuration object for Handsontable.
@@ -75,9 +75,9 @@ export class HotConfigService {
    * {@link HOT_GLOBAL_CONFIG} injection token.
    *
    * @private
-   * @type {HotConfig}
+   * @type {HotGlobalConfig}
    */
-  private defaultConfig: HotConfig = {
+  private defaultConfig: HotGlobalConfig = {
     license: undefined,
     themeName: ''
   };
@@ -89,9 +89,9 @@ export class HotConfigService {
    * This allows subscribers to react to configuration changes dynamically.
    *
    * @private
-   * @type {BehaviorSubject<HotConfig>}
+   * @type {BehaviorSubject<HotGlobalConfig>}
    */
-  private configSubject = new BehaviorSubject<HotConfig>(this.defaultConfig);
+  private configSubject = new BehaviorSubject<HotGlobalConfig>(this.defaultConfig);
 
   /**
    * An Observable stream of the current Handsontable configuration.
@@ -100,12 +100,12 @@ export class HotConfigService {
    *
    * @returns The configuration as an observable stream.
    */
-  get config$(): Observable<HotConfig> {
+  get config$(): Observable<HotGlobalConfig> {
     return this.configSubject.asObservable();
   }
 
   constructor(
-    @Inject(HOT_GLOBAL_CONFIG) globalConfig: HotConfig
+    @Inject(HOT_GLOBAL_CONFIG) globalConfig: HotGlobalConfig
   ) {
     // Merge global configuration (if provided) into defaultConfig immutably.
     this.defaultConfig = { ...this.defaultConfig, ...globalConfig };
@@ -113,16 +113,13 @@ export class HotConfigService {
   }
 
   /**
-   * Sets the configuration for Handsontable.
+   * Sets the global configuration for Handsontable.
    *
    * @param config - An object containing configuration options.
-   *                 If a some parameter is provided, it will override the current settings.
+   *                 Each Handsontable instance can override this configuration by providing its own settings.
    */
-  setConfig(config: HotConfig) {
-    const currentConfig = this.configSubject.value;
-    const newConfig = { ...currentConfig, ...config };
-
-    this.configSubject.next(newConfig);
+  setConfig(config: HotGlobalConfig) {
+    this.configSubject.next({ ...this.defaultConfig, ...config });
   }
 
   /**
@@ -130,7 +127,7 @@ export class HotConfigService {
    *
    * @returns An object with the current settings.
    */
-  getConfig(): HotConfig {
+  getConfig(): HotGlobalConfig {
     return this.configSubject.value;
   }
 
