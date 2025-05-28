@@ -10,6 +10,7 @@ import { init as initCustomStyleDemo } from './demos/customStyle';
 import { init as initMergedCellsDemo } from './demos/mergedCells';
 import { init as initNestedHeadersDemo } from './demos/nestedHeaders';
 import { init as initNestedRowsDemo } from './demos/nestedRows';
+import { init as initPaginationDemo } from './demos/pagination';
 import { init as initComplexDemo } from './demos/complex';
 import { init as initBasicTwoTablesDemo } from "./demos/basicTwoTables";
 import { init as initContextMenuDemo } from "./demos/contextMenu";
@@ -245,6 +246,15 @@ router
         loadThemeCSS(),
       ]).then(() => {
         initCustomBordersDemo();
+      });
+    },
+    '/pagination-demo': function () {
+      removeCSS();
+
+      Promise.all([
+        loadThemeCSS(),
+      ]).then(() => {
+        initPaginationDemo();
       });
     },
   })
