@@ -105,8 +105,9 @@ const getPrebuiltUmdUrl = (scriptName) => {
 
   // eslint-disable-next-line global-require
   const { getDocsBaseFullUrl } = require('../helpers');
+  const docsBaseFullUrl = getDocsBaseFullUrl();
 
-  return `${getDocsBaseFullUrl()}/scripts/prebuilt-umd/${scriptName}`;
+  return `${docsBaseFullUrl}${docsBaseFullUrl.endsWith('/') ? '' : '/'}scripts/prebuilt-umd/${scriptName}`;
 };
 
 /**
