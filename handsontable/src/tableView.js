@@ -19,6 +19,7 @@ import { isImmediatePropagationStopped, isRightClick, isLeftClick } from './help
 import Walkontable from './3rdparty/walkontable/src';
 import { handleMouseEvent } from './selection/mouseEventHandler';
 import { isRootInstance } from './utils/rootInstance';
+import { resolveWithInstance } from './utils/staticRegister';
 import {
   A11Y_COLCOUNT,
   A11Y_MULTISELECTABLE,
@@ -651,26 +652,6 @@ class TableView {
   }
 
   /**
-   * Retrieves the styles handler from the Walkontable instance.
-   *
-   * @returns {StylesHandler} The styles handler instance.
-   */
-  getStylesHandler() {
-    return this._wt.stylesHandler;
-  }
-
-  /**
-   * Returns the default row height.
-   *
-   * This method retrieves the default row height from the Walkontable styles handler.
-   *
-   * @returns {number} The default row height.
-   */
-  getDefaultRowHeight() {
-    return this._wt.stylesHandler.getDefaultRowHeight();
-  }
-
-  /**
    * Add a class name to the license information element.
    *
    * @param {string} className The class name to add.
@@ -982,6 +963,12 @@ class TableView {
           return;
         }
 
+        handleMouseEvent(event, {
+          coords: visualCoords,
+          selection: this.hot.selection,
+          cellRangeMapper: resolveWithInstance(this.hot, 'cellRangeMapper'),
+        });
+
         this.hot.runHooks('afterOnCellMouseUp', event, visualCoords, TD);
         this.activeWt = this._wt;
       },
@@ -1224,6 +1211,9 @@ class TableView {
         const columnHeaderHeight = this.hot.runHooks('modifyColumnHeaderHeight');
 
         return this.settings.columnHeaderHeight || columnHeaderHeight;
+      },
+      stylesHandler: () => {
+        return this.hot.stylesHandler;
       }
     };
 

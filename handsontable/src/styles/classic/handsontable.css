@@ -263,6 +263,16 @@ innerBorderBottom - Property controlled by bottom overlay
   display: none !important;
 }
 
+.handsontable .wtBorder:nth-child(1),
+.handsontable .wtBorder:nth-child(3) {
+  z-index: 2;
+}
+
+.handsontable .wtBorder:nth-child(2),
+.handsontable .wtBorder:nth-child(4) {
+  z-index: 1;
+}
+
 /* A layer order of the selection types */
 .handsontable .wtBorder.current {
   z-index: 10;
@@ -392,7 +402,7 @@ innerBorderBottom - Property controlled by bottom overlay
   font-size: 10px;
 }
 
-.handsontable .htFocusCatcher {
+.ht-root-wrapper .htFocusCatcher {
   position: absolute;
   z-index: -1;
   opacity: 0;
@@ -401,6 +411,12 @@ innerBorderBottom - Property controlled by bottom overlay
   padding: 0;
   width: 0;
   height: 0;
+}
+
+.handsontable .htTextEllipsis {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 /* plugins */

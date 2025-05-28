@@ -446,7 +446,7 @@ describe('HiddenColumns', () => {
         });
 
         describe('should select column on the right side after hide action ' +
-          'when on the right there is visible column and', async() => {
+          'when on the right there is visible column and', () => {
           it('when there is no hidden column', async() => {
             handsontable({
               data: createSpreadsheetData(2, 5),
@@ -507,7 +507,7 @@ describe('HiddenColumns', () => {
         });
 
         describe('should select column on the left side after hide action ' +
-          'when on the right there is no more visible column and ', async() => {
+          'when on the right there is no more visible column and ', () => {
           it('there is no hidden column', async() => {
             handsontable({
               data: createSpreadsheetData(2, 5),

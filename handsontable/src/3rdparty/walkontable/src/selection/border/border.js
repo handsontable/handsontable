@@ -223,7 +223,8 @@ class Border {
    * Create multiple selector handler for mobile devices.
    */
   createMultipleSelectorHandles() {
-    const { rootDocument, stylesHandler } = this.wot;
+    const { rootDocument, wtSettings } = this.wot;
+    const stylesHandler = wtSettings.getSetting('stylesHandler');
     const cellMobileHandleSize = stylesHandler.getCSSVariableValue('cell-mobile-handle-size');
     const cellMobileHandleBorderRadius = stylesHandler.getCSSVariableValue('cell-mobile-handle-border-radius');
     const cellMobileHandleBackgroundColor = stylesHandler.getCSSVariableValue('cell-mobile-handle-background-color');
@@ -518,27 +519,26 @@ class Border {
     }
 
     const inlinePosProperty = isRtl ? 'right' : 'left';
+    const delta = Math.ceil(this.settings.border.width / 2);
 
     this.topStyle.top = `${top}px`;
     this.topStyle[inlinePosProperty] = `${inlineStartPos}px`;
-    this.topStyle.width = `${width}px`;
+    this.topStyle.width = `${width + delta}px`;
     this.topStyle.display = 'block';
 
     this.startStyle.top = `${top}px`;
     this.startStyle[inlinePosProperty] = `${inlineStartPos}px`;
-    this.startStyle.height = `${height}px`;
+    this.startStyle.height = `${height + delta}px`;
     this.startStyle.display = 'block';
 
-    const delta = Math.floor(this.settings.border.width / 2);
-
-    this.bottomStyle.top = `${top + height - delta}px`;
+    this.bottomStyle.top = `${top + height - parseInt(this.bottomStyle.height, 10) + delta}px`;
     this.bottomStyle[inlinePosProperty] = `${inlineStartPos}px`;
-    this.bottomStyle.width = `${width}px`;
+    this.bottomStyle.width = `${width + delta}px`;
     this.bottomStyle.display = 'block';
 
     this.endStyle.top = `${top}px`;
-    this.endStyle[inlinePosProperty] = `${inlineStartPos + width - delta}px`;
-    this.endStyle.height = `${height + 1}px`;
+    this.endStyle[inlinePosProperty] = `${inlineStartPos + width - parseInt(this.endStyle.width, 10) + delta}px`;
+    this.endStyle.height = `${height + delta}px`;
     this.endStyle.display = 'block';
 
     let cornerVisibleSetting = this.settings.border.cornerVisible;
@@ -608,7 +608,7 @@ class Border {
         const toTdOffsetTop = trimToWindow ? toTD.getBoundingClientRect().top : toTD.offsetTop;
         const cornerBottomEdge = toTdOffsetTop + outerHeight(toTD) + (parseInt(this.cornerDefaultStyle.height, 10) / 2);
         const cornerOverlappingContainer = cornerBottomEdge >= innerHeight(trimmingContainer);
-        const isClassicTheme = this.wot.stylesHandler.isClassicTheme();
+        const isClassicTheme = this.wot.wtSettings.getSetting('stylesHandler').isClassicTheme();
 
         if (cornerOverlappingContainer) {
           const cornerTopPosition = Math.floor(

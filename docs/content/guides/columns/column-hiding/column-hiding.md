@@ -57,6 +57,9 @@ To enable column hiding, use the [`hiddenColumns`](@/api/options.md#hiddencolumn
 
 :::
 
+<!--  -->
+[//]: # (The empty HTML comment above is a workaround for the `example` container error.)
+[//]: # (DON'T REMOVE IT!)
 
 ::: only-for angular
 

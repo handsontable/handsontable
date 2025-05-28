@@ -51,7 +51,7 @@ describe('DOM helpers', () => {
 
       await keyDownUp('enter');
 
-      rootElement.parentNode.appendChild(createDivWithId('rootSibling'));
+      rootElement.parentNode.parentNode.parentNode.appendChild(createDivWithId('rootSibling'));
       rootElement.appendChild(createDivWithId('rootChild'));
 
       // Overlay elements
@@ -75,7 +75,7 @@ describe('DOM helpers', () => {
       expect(isInternalElement(hot.getCell(9, 9, true), rootElement)).toBe(true);
 
       // Misc
-      expect(isInternalElement(document.querySelector('.htFocusCatcher'), rootElement)).toBe(true);
+      expect(isInternalElement(document.querySelector('.htFocusCatcher'), rootElement)).toBe(false);
       expect(isInternalElement(document.querySelector('.handsontableInputHolder'), rootElement)).toBe(true);
       expect(isInternalElement(document.querySelector('#rootChild'), rootElement)).toBe(true);
 

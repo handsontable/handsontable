@@ -6,7 +6,7 @@ import {
 } from '../sortFunction/checkbox';
 import { compareFunctionFactory as dateSort, COLUMN_DATA_TYPE as DATE_DATA_TYPE } from '../sortFunction/date';
 import { compareFunctionFactory as timeSort, COLUMN_DATA_TYPE as TIME_DATA_TYPE } from '../sortFunction/time';
-import staticRegister from '../../../utils/staticRegister';
+import { staticRegister } from '../../../utils/staticRegister';
 
 const {
   register: registerCompareFunctionFactory,

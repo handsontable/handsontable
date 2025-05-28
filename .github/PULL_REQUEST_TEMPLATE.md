@@ -19,6 +19,7 @@
 ### Affected project(s):
 - [ ] `handsontable`
 - [ ] `@handsontable/angular`
+- [ ] `@handsontable/angular-wrapper`
 - [ ] `@handsontable/react`
 - [ ] `@handsontable/react-wrapper`
 - [ ] `@handsontable/vue`

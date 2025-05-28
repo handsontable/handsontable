@@ -325,7 +325,11 @@ class EditorManager {
    */
   #onCellDblClick(event, coords) {
     if (coords.isCell()) {
-      this.openEditor(null, event, true);
+      if (this.hot.getShortcutManager().isCtrlPressed()) {
+        this.clearActiveEditor();
+      } else {
+        this.openEditor(null, event, true);
+      }
     }
   }
 
