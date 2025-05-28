@@ -119,7 +119,7 @@ export class HotGlobalConfigService {
    *                 Each Handsontable instance can override this configuration by providing its own settings.
    */
   setConfig(config: HotGlobalConfig) {
-    this.configSubject.next(config);
+    this.configSubject.next({ ...this.defaultConfig, ...config });
   }
 
   /**
