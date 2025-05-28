@@ -20,6 +20,7 @@ const data1 = [
 ];
 
 const data2 = [[11, 'Gavin Elle', 'Floppy socks', 'XS', 3, 'yes']];
+
 const data3 = [
   [12, 'Gary Erre', 'Happy dress', 'M', 1, 'no'],
   [13, 'Anna Moon', 'Unicorn shades', 'uni', 200, 'no'],

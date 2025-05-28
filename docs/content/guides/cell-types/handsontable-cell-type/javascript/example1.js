@@ -3,6 +3,7 @@ import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
 
 const colorData = [['yellow'], ['red'], ['orange'], ['green'], ['blue'], ['gray'], ['black'], ['white']];
+
 const manufacturerData = [
   { name: 'BMW', country: 'Germany', owner: 'Bayerische Motoren Werke AG' },
   { name: 'Chrysler', country: 'USA', owner: 'Chrysler Group LLC' },
