@@ -216,8 +216,8 @@ module.exports = function(docsVersion, base) {
         const isActive = `$parent.$parent.isScriptLoaderActivated('${id}')`;
         const isJavaScript = preset.includes('hot');
         const isReact = preset.includes('react');
-        const selectedLang = isAngular ? "'TypeScript'" : '$parent.$parent.selectedLang';
-        const isReactOrJavaScriptOrAngular = isJavaScript || isReact || isAngular;
+        const selectedLang = isAngular ? '\'TypeScript\'' : '$parent.$parent.selectedLang';
+        const isReactOrAngularOrJS = isJavaScript || isReact || isAngular;
 
         return `
           <div class="example-container">
@@ -233,7 +233,7 @@ module.exports = function(docsVersion, base) {
                 <i class="ico i-code"></i>Source code
               </button>
               <div class="example-controls">
-                <div class="examples-buttons" v-if="${selectedLang} === 'JavaScript' || !${isReactOrJavaScriptOrAngular}">
+                <div class="examples-buttons" v-if="${selectedLang} === 'JavaScript' || !${isReactOrAngularOrJS}">
                   ${!noEdit
     ? stackblitz(
       id,
@@ -257,7 +257,7 @@ module.exports = function(docsVersion, base) {
     )
     : ''}
                 </div>
-                <div class="examples-buttons" v-if="${selectedLang} === 'TypeScript' && ${isReactOrJavaScriptOrAngular}">
+                <div class="examples-buttons" v-if="${selectedLang} === 'TypeScript' && ${isReactOrAngularOrJS}">
                   ${!noEdit
     ? stackblitz(
       id,
