@@ -9,7 +9,6 @@ registerAllModules();
 
 const ExampleComponent = () => {
   const colors = ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white'];
-
   const yellowRenderer = (instance, td, ...rest) => {
     Handsontable.renderers.TextRenderer(instance, td, ...rest);
     td.style.backgroundColor = 'yellow';
