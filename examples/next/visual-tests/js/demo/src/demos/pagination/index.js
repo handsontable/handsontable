@@ -51,28 +51,28 @@ registerCellType(NumericCellType);
 
 registerLanguageDictionary(arAR);
 
-const root = document.getElementById('root');
-const example = document.createElement('div');
-
-root.appendChild(example);
-
-const inputTop = document.createElement('input');
-
-inputTop.style.margin = '10px';
-inputTop.name = 'inputTop';
-inputTop.placeholder = 'Input top';
-
-example.before(inputTop);
-
-const inputBottom = document.createElement('input');
-
-inputBottom.style.margin = '10px';
-inputBottom.name = 'inputBottom';
-inputBottom.placeholder = 'Input bottom';
-
-example.after(inputBottom);
-
 export function init() {
+  const root = document.getElementById('root');
+  const example = document.createElement('div');
+
+  root.appendChild(example);
+
+  const inputTop = document.createElement('input');
+
+  inputTop.style.margin = '10px';
+  inputTop.name = 'inputTop';
+  inputTop.placeholder = 'Input top';
+
+  example.before(inputTop);
+
+  const inputBottom = document.createElement('input');
+
+  inputBottom.style.margin = '10px';
+  inputBottom.name = 'inputBottom';
+  inputBottom.placeholder = 'Input bottom';
+
+  example.after(inputBottom);
+
   new Handsontable(example, {
     data: generateExampleData(),
     layoutDirection: getDirectionFromURL(),

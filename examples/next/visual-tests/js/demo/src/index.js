@@ -37,8 +37,8 @@ function loadCSS(href) {
 
 // Function to remove dynamically loaded CSS
 function removeCSS() {
-  const links = document.querySelectorAll('link.dynamic-css');
-  links.forEach(link => link.remove());
+  document.querySelectorAll('link.dynamic-css')
+    .forEach(link => link.remove());
 }
 
 function loadThemeCSS() {

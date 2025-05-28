@@ -173,11 +173,16 @@ export class Pagination extends BasePlugin {
    */
   getPaginationData() {
     const firstRow = (this.#currentPage - 1) * this.#pageSize;
+    const countRows = this.hot.countRows();
     let firstVisibleRow = null;
     let lastVisibleRow = null;
     let visibleCount = 0;
 
     for (let rowIndex = firstRow; visibleCount < this.#pageSize; rowIndex++) {
+      if (rowIndex >= countRows) {
+        break;
+      }
+
       if (this.hot.rowIndexMapper.isHidden(this.hot.toPhysicalRow(rowIndex))) {
         // eslint-disable-next-line no-continue
         continue;
@@ -427,6 +432,10 @@ export class Pagination extends BasePlugin {
       return false;
     }
 
+    if (view.getTableHeight() < view.getWorkspaceHeight()) {
+      return true;
+    }
+
     const {
       lastVisibleRow
     } = this.getPaginationData();
@@ -490,8 +499,10 @@ export class Pagination extends BasePlugin {
    * the pagination container to the same size as the table.
    */
   #onAfterRender() {
+    const width = Math.min(this.hot.view.getTableWidth(), this.hot.view.getWorkspaceWidth());
+
     this.#ui
-      .updateWidth(this.hot.view.getTableWidth())
+      .updateWidth(width)
       .refreshBorderState();
   }
 

@@ -158,8 +158,6 @@ describe('Pagination', () => {
 
     expect(plugin.getCurrentPageData()).toEqual([
       ['A7', 'B7', 'C7', 'D7', 'E7', 'F7', 'G7', 'H7', 'I7', 'J7'],
-      ['A9', 'B9', 'C9', 'D9', 'E9', 'F9', 'G9', 'H9', 'I9', 'J9'], // hidden row
-      ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1'], // hidden row
     ]);
     expect(countVisibleRows()).toBe(1);
   });

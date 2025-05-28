@@ -32,7 +32,7 @@ export function filterByValueMultipleSelect() {
  * @returns {string}
  */
 export function stringifyPageSizeSection() {
-  const pageSection = hot().rootWrapperElement.querySelector('.ht-page-size-section');
+  const pageSection = getPaginationContainerElement().querySelector('.ht-page-size-section');
   const label = pageSection.querySelector('span').textContent.trim();
   const values = Array.from(pageSection.querySelectorAll('select option')).map(option => option.value);
 
@@ -45,7 +45,7 @@ export function stringifyPageSizeSection() {
  * @returns {string}
  */
 export function stringifyPageCounterSection() {
-  const pageSection = hot().rootWrapperElement.querySelector('.ht-page-counter-section');
+  const pageSection = getPaginationContainerElement().querySelector('.ht-page-counter-section');
 
   return pageSection.textContent.trim();
 }
@@ -56,7 +56,7 @@ export function stringifyPageCounterSection() {
  * @returns {string}
  */
 export function stringifyPageNavigationSection() {
-  const pageSection = hot().rootWrapperElement.querySelector('.ht-page-navigation-section');
+  const pageSection = getPaginationContainerElement().querySelector('.ht-page-navigation-section');
   const [
     firstButtonState,
     prevButtonState,
@@ -85,9 +85,7 @@ export function stringifyPageNavigationSection() {
  * @returns {string[]}
  */
 export function visualizePageSections() {
-  const container = hot().rootWrapperElement.querySelector('.ht-pagination-container');
-
-  return Array.from(container.children).reduce((acc, element) => {
+  return Array.from(getPaginationContainerElement().children).reduce((acc, element) => {
     if (element.classList.contains('ht-page-size-section')) {
       acc.push(stringifyPageSizeSection());
 
@@ -100,4 +98,13 @@ export function visualizePageSections() {
 
     return acc;
   }, []);
+}
+
+/**
+ * Returns the pagination container element.
+ *
+ * @returns {HTMLElement}
+ */
+export function getPaginationContainerElement() {
+  return hot().rootWrapperElement.querySelector('.ht-pagination-container');
 }

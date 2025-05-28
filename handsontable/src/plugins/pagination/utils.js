@@ -4,6 +4,7 @@ import { warn } from '../../helpers/console';
 const CONFLICTING_OPTIONS = [
   // plugins
   'nestedRows',
+  'mergeCells',
   // options
   'fixedRowsTop',
   'fixedRowsBottom',

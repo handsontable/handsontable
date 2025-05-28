@@ -5,7 +5,6 @@ export interface DetailedSettings {
   pageSize: number;
   pageSizeList: number[];
   initialPage: number;
-  autoPageSize: boolean;
   showPageSize: boolean;
   showCounter: boolean;
   showNavigation: boolean;

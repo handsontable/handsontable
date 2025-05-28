@@ -10,41 +10,9 @@ describe('Pagination integration with MergeCells', () => {
     }
   });
 
-  it('should update the pagination state after merging a cell', async() => {
-    handsontable({
-      data: createSpreadsheetData(7, 5),
-      colHeaders: true,
-      mergeCells: true,
-      pagination: {
-        pageSize: 4,
-      },
-    });
+  it('should not be possible to enable the pagination', async() => {
+    spyOn(console, 'warn');
 
-    const pagination = getPlugin('pagination');
-    const mergeCells = getPlugin('mergeCells');
-
-    mergeCells.merge(0, 1, 6, 2);
-
-    expect(getMaster().find('tr:first-child td').map((_, td) => $(td).text().trim()).get()).toEqual([
-      'A1', 'B1', 'B1', 'D1', 'E1',
-    ]);
-    expect(getMaster().find('tr:last-child td').map((_, td) => $(td).text().trim()).get()).toEqual([
-      'A4', 'B1', 'B1', 'D4', 'E4',
-    ]);
-    expect(countVisibleRows()).toBe(4);
-
-    pagination.setPage(2);
-
-    expect(getMaster().find('tr:first-child td').map((_, td) => $(td).text().trim()).get()).toEqual([
-      'A5', 'B1', 'B1', 'D5', 'E5',
-    ]);
-    expect(getMaster().find('tr:last-child td').map((_, td) => $(td).text().trim()).get()).toEqual([
-      'A7', 'B1', 'B1', 'D7', 'E7',
-    ]);
-    expect(countVisibleRows()).toBe(3);
-  });
-
-  it('should update the pagination state after unmerging a cell', async() => {
     handsontable({
       data: createSpreadsheetData(7, 5),
       colHeaders: true,
@@ -56,27 +24,10 @@ describe('Pagination integration with MergeCells', () => {
       },
     });
 
-    const pagination = getPlugin('pagination');
-    const mergeCells = getPlugin('mergeCells');
-
-    mergeCells.unmerge(0, 1, 6, 2);
-
-    expect(getMaster().find('tr:first-child td').map((_, td) => $(td).text().trim()).get()).toEqual([
-      'A1', 'B1', '', 'D1', 'E1',
-    ]);
-    expect(getMaster().find('tr:last-child td').map((_, td) => $(td).text().trim()).get()).toEqual([
-      'A4', '', '', 'D4', 'E4',
-    ]);
-    expect(countVisibleRows()).toBe(4);
-
-    pagination.setPage(2);
-
-    expect(getMaster().find('tr:first-child td').map((_, td) => $(td).text().trim()).get()).toEqual([
-      'A5', '', '', 'D5', 'E5',
-    ]);
-    expect(getMaster().find('tr:last-child td').map((_, td) => $(td).text().trim()).get()).toEqual([
-      'A7', '', '', 'D7', 'E7',
-    ]);
-    expect(countVisibleRows()).toBe(3);
+    // eslint-disable-next-line no-console
+    expect(console.warn).toHaveBeenCalledWith('The `pagination` plugin cannot be used with ' +
+      'the `mergeCells` option. This combination is not supported. The plugin will remain disabled.');
+    expect(getSettings().pagination).toBe(false);
+    expect(getPlugin('pagination').isEnabled()).toBe(false);
   });
 });

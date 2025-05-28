@@ -13,7 +13,7 @@ test(__filename, async({ goto, tablePage }) => {
   await goto(
     helpers
       .setBaseUrl('/pagination-demo')
-      .setPageParams({ direction: 'rtl', theme: 'main' })
+      .setPageParams({ direction: 'rtl' })
       .getFullUrl()
   );
 

@@ -111,7 +111,7 @@ describe('Pagination `getPaginationData` method', () => {
       pageSizeList: [5, 10, 20, 50, 100],
       numberOfRenderedRows: 2,
       firstVisibleRow: 6,
-      lastVisibleRow: 10,
+      lastVisibleRow: 7,
     });
   });
 
@@ -173,7 +173,7 @@ describe('Pagination `getPaginationData` method', () => {
       pageSizeList: [5, 10, 20, 50, 100],
       numberOfRenderedRows: 1,
       firstVisibleRow: 9,
-      lastVisibleRow: 11,
+      lastVisibleRow: 9,
     });
   });
 });
