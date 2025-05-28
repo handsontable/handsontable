@@ -56,9 +56,9 @@ Array of arrays is a good choice for the more grid-like scenarios where you need
 
 ::: only-for angular
 
-::: example #example1 :angular --js 1 --html 2
+::: example #example1 :angular --ts 1 --html 2
 
-@[code](@/content/guides/getting-started/binding-to-data/angular/example1.js)
+@[code](@/content/guides/getting-started/binding-to-data/angular/example1.ts)
 @[code](@/content/guides/getting-started/binding-to-data/angular/example1.html)
 
 :::
@@ -93,9 +93,9 @@ The following example shows how you would use the array of arrays with a selecti
 
 ::: only-for angular
 
-::: example #example2 :angular --js 1 --html 2
+::: example #example2 :angular --ts 1 --html 2
 
-@[code](@/content/guides/getting-started/binding-to-data/angular/example2.js)
+@[code](@/content/guides/getting-started/binding-to-data/angular/example2.ts)
 @[code](@/content/guides/getting-started/binding-to-data/angular/example2.html)
 
 :::
@@ -130,9 +130,9 @@ An array of objects can be used as a data source as follows:
 
 ::: only-for angular
 
-::: example #example3 :angular --js 1 --html 2
+::: example #example3 :angular --ts 1 --html 2
 
-@[code](@/content/guides/getting-started/binding-to-data/angular/example3.js)
+@[code](@/content/guides/getting-started/binding-to-data/angular/example3.ts)
 @[code](@/content/guides/getting-started/binding-to-data/angular/example3.html)
 
 :::
@@ -167,9 +167,9 @@ You can set the [`columns`](@/api/options.md#columns) configuration option to a 
 
 ::: only-for angular
 
-::: example #example4 :angular --js 1 --html 2
+::: example #example4 :angular --ts 1 --html 2
 
-@[code](@/content/guides/getting-started/binding-to-data/angular/example4.js)
+@[code](@/content/guides/getting-started/binding-to-data/angular/example4.ts)
 @[code](@/content/guides/getting-started/binding-to-data/angular/example4.html)
 
 :::
@@ -204,9 +204,9 @@ In a scenario where you have nested objects, you can use them as the data source
 
 ::: only-for angular
 
-::: example #example5 :angular --js 1 --html 2
+::: example #example5 :angular --ts 1 --html 2
 
-@[code](@/content/guides/getting-started/binding-to-data/angular/example5.js)
+@[code](@/content/guides/getting-started/binding-to-data/angular/example5.ts)
 @[code](@/content/guides/getting-started/binding-to-data/angular/example5.html)
 
 :::
@@ -243,9 +243,9 @@ In a scenario where you start with an empty data source, you will need to provid
 
 ::: only-for angular
 
-::: example #example6 :angular --js 1 --html 2
+::: example #example6 :angular --ts 1 --html 2
 
-@[code](@/content/guides/getting-started/binding-to-data/angular/example6.js)
+@[code](@/content/guides/getting-started/binding-to-data/angular/example6.ts)
 @[code](@/content/guides/getting-started/binding-to-data/angular/example6.html)
 
 :::
@@ -282,9 +282,9 @@ The example below shows how to use such objects:
 
 ::: only-for angular
 
-::: example #example7 :angular --js 1 --html 2
+::: example #example7 :angular --ts 1 --html 2
 
-@[code](@/content/guides/getting-started/binding-to-data/angular/example7.js)
+@[code](@/content/guides/getting-started/binding-to-data/angular/example7.ts)
 @[code](@/content/guides/getting-started/binding-to-data/angular/example7.html)
 
 :::
@@ -319,9 +319,9 @@ By default, if you don't provide any data, Handsontable renders as an empty 5x5 
 
 ::: only-for angular
 
-::: example #example9 :angular --js 1 --html 2
+::: example #example9 :angular --ts 1 --html 2
 
-@[code](@/content/guides/getting-started/binding-to-data/angular/example9.js)
+@[code](@/content/guides/getting-started/binding-to-data/angular/example9.ts)
 @[code](@/content/guides/getting-started/binding-to-data/angular/example9.html)
 
 :::
@@ -373,9 +373,9 @@ the [`setDataAtCell()`](@/api/core.md#setdataatcell) method.
 
 ::: only-for angular
 
-::: example #example10 :angular --js 1 --html 2
+::: example #example10 :angular --ts 1 --html 2
 
-@[code](@/content/guides/getting-started/binding-to-data/angular/example10.js)
+@[code](@/content/guides/getting-started/binding-to-data/angular/example10.ts)
 @[code](@/content/guides/getting-started/binding-to-data/angular/example10.html)
 
 :::
@@ -584,9 +584,9 @@ When working with a copy of data for Handsontable, it is best practice is to clo
 
 ::: only-for angular
 
-::: example #example11 :angular --js 1 --html 2
+::: example #example11 :angular --ts 1 --html 2
 
-@[code](@/content/guides/getting-started/binding-to-data/angular/example11.js)
+@[code](@/content/guides/getting-started/binding-to-data/angular/example11.ts)
 @[code](@/content/guides/getting-started/binding-to-data/angular/example11.html)
 
 :::

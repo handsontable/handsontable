@@ -48,9 +48,9 @@ A draggable move handle appears above the selected column header. You can click 
 
 ::: only-for angular
 
-::: example #example1 :angular --js 1 --html 2
+::: example #example1 :angular --ts 1 --html 2
 
-@[code](@/content/guides/columns/column-moving/angular/example1.js)
+@[code](@/content/guides/columns/column-moving/angular/example1.ts)
 @[code](@/content/guides/columns/column-moving/angular/example1.html)
 
 :::
@@ -85,9 +85,9 @@ When you move columns, the default column headers (A, B, C) stay in place.
 
 ::: only-for angular
 
-::: example #example2 :angular --js 1 --html 2
+::: example #example2 :angular --ts 1 --html 2
 
-@[code](@/content/guides/columns/column-moving/angular/example2.js)
+@[code](@/content/guides/columns/column-moving/angular/example2.ts)
 @[code](@/content/guides/columns/column-moving/angular/example2.html)
 
 :::
@@ -120,9 +120,9 @@ But, if you configure the [`colHeaders`](@/api/options.md#colheaders) option wit
 
 ::: only-for angular
 
-::: example #example3 :angular --js 1 --html 2
+::: example #example3 :angular --ts 1 --html 2
 
-@[code](@/content/guides/columns/column-moving/angular/example3.js)
+@[code](@/content/guides/columns/column-moving/angular/example3.ts)
 @[code](@/content/guides/columns/column-moving/angular/example3.html)
 
 :::

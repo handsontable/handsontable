@@ -121,9 +121,9 @@ Note that the second, third, and sixth rows are missing in the following example
 
 ::: only-for angular
 
-::: example #example1 :angular --js 1 --html 2
+::: example #example1 :angular --ts 1 --html 2
 
-@[code](@/content/guides/rows/row-trimming/angular/example1.js)
+@[code](@/content/guides/rows/row-trimming/angular/example1.ts)
 @[code](@/content/guides/rows/row-trimming/angular/example1.html)
 
 :::

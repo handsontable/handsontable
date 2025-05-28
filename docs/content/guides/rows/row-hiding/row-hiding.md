@@ -54,9 +54,9 @@ To enable row hiding, use the [`hiddenRows`](@/api/options.md#hiddenrows) option
 
 ::: only-for angular
 
-::: example #example1 :angular --js 1 --html 2
+::: example #example1 :angular --ts 1 --html 2
 
-@[code](@/content/guides/rows/row-hiding/angular/example1.js)
+@[code](@/content/guides/rows/row-hiding/angular/example1.ts)
 @[code](@/content/guides/rows/row-hiding/angular/example1.html)
 
 :::
@@ -99,9 +99,9 @@ Now, those rows are hidden by default:
 
 ::: only-for angular
 
-::: example #example2 :angular --js 1 --html 2
+::: example #example2 :angular --ts 1 --html 2
 
-@[code](@/content/guides/rows/row-hiding/angular/example2.js)
+@[code](@/content/guides/rows/row-hiding/angular/example2.ts)
 @[code](@/content/guides/rows/row-hiding/angular/example2.html)
 
 :::
@@ -138,9 +138,9 @@ To enable the UI indicators, in the `hiddenRows` object, set the `indicators` pr
 
 ::: only-for angular
 
-::: example #example3 :angular --js 1 --html 2
+::: example #example3 :angular --ts 1 --html 2
 
-@[code](@/content/guides/rows/row-hiding/angular/example3.js)
+@[code](@/content/guides/rows/row-hiding/angular/example3.ts)
 @[code](@/content/guides/rows/row-hiding/angular/example3.html)
 
 :::
@@ -177,9 +177,9 @@ Enable both the [`ContextMenu`](@/api/contextMenu.md) plugin and the [`HiddenRow
 
 ::: only-for angular
 
-::: example #example4 :angular --js 1 --html 2
+::: example #example4 :angular --ts 1 --html 2
 
-@[code](@/content/guides/rows/row-hiding/angular/example4.js)
+@[code](@/content/guides/rows/row-hiding/angular/example4.ts)
 @[code](@/content/guides/rows/row-hiding/angular/example4.html)
 
 :::
@@ -212,9 +212,9 @@ You can also add the row hiding menu items individually, by adding the [`hidden_
 
 ::: only-for angular
 
-::: example #example5 :angular --js 1 --html 2
+::: example #example5 :angular --ts 1 --html 2
 
-@[code](@/content/guides/rows/row-hiding/angular/example5.js)
+@[code](@/content/guides/rows/row-hiding/angular/example5.ts)
 @[code](@/content/guides/rows/row-hiding/angular/example5.html)
 
 :::
@@ -251,9 +251,9 @@ To exclude hidden rows from copying and pasting, in the `hiddenRows` object, set
 
 ::: only-for angular
 
-::: example #example6 :angular --js 1 --html 2
+::: example #example6 :angular --ts 1 --html 2
 
-@[code](@/content/guides/rows/row-hiding/angular/example6.js)
+@[code](@/content/guides/rows/row-hiding/angular/example6.ts)
 @[code](@/content/guides/rows/row-hiding/angular/example6.html)
 
 :::

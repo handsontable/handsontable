@@ -71,9 +71,9 @@ The demo below presents a data grid displaying one million cells (1000 rows x 10
 
 ::: only-for angular
 
-::: example #example1 :angular --js 1 --html 2
+::: example #example1 :angular --ts 1 --html 2
 
-@[code](@/content/guides/columns/column-virtualization/angular/example1.js)
+@[code](@/content/guides/columns/column-virtualization/angular/example1.ts)
 @[code](@/content/guides/columns/column-virtualization/angular/example1.html)
 
 :::

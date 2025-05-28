@@ -224,9 +224,9 @@ Callback console log:
 
 ::: only-for angular
 
-::: example #example1 :angular --js 1 --html 2
+::: example #example1 :angular --ts 1 --html 2
 
-@[code](@/content/guides/cell-functions/cell-validator/angular/example1.js)
+@[code](@/content/guides/cell-functions/cell-validator/angular/example1.ts)
 @[code](@/content/guides/cell-functions/cell-validator/angular/example1.html)
 
 :::

@@ -52,9 +52,9 @@ Mind that CSV exports contain only raw data, and don't include formulas, styling
 
 ::: only-for angular
 
-::: example #example1 :angular --js 1 --html 2
+::: example #example1 :angular --ts 1 --html 2
 
-@[code](@/content/guides/accessories-and-menus/export-to-csv/angular/example1.js)
+@[code](@/content/guides/accessories-and-menus/export-to-csv/angular/example1.ts)
 @[code](@/content/guides/accessories-and-menus/export-to-csv/angular/example1.html)
 
 :::
@@ -90,9 +90,9 @@ Open a console in browser developer tools to see the result for the below exampl
 
 ::: only-for angular
 
-::: example #example2 :angular --js 1 --html 2
+::: example #example2 :angular --ts 1 --html 2
 
-@[code](@/content/guides/accessories-and-menus/export-to-csv/angular/example2.js)
+@[code](@/content/guides/accessories-and-menus/export-to-csv/angular/example2.ts)
 @[code](@/content/guides/accessories-and-menus/export-to-csv/angular/example2.html)
 
 :::
@@ -127,9 +127,9 @@ Open a console in browser developer tools to see the result for the below exampl
 
 ::: only-for angular
 
-::: example #example3 :angular --js 1 --html 2
+::: example #example3 :angular --ts 1 --html 2
 
-@[code](@/content/guides/accessories-and-menus/export-to-csv/angular/example3.js)
+@[code](@/content/guides/accessories-and-menus/export-to-csv/angular/example3.ts)
 @[code](@/content/guides/accessories-and-menus/export-to-csv/angular/example3.html)
 
 :::
@@ -168,9 +168,9 @@ To prevent this attack, set the [`sanitizeValues` option](#sanitizevalues-boolea
 
 ::: only-for angular
 
-::: example #example4 :angular --js 1 --html 2
+::: example #example4 :angular --ts 1 --html 2
 
-@[code](@/content/guides/accessories-and-menus/export-to-csv/angular/example4.js)
+@[code](@/content/guides/accessories-and-menus/export-to-csv/angular/example4.ts)
 @[code](@/content/guides/accessories-and-menus/export-to-csv/angular/example4.html)
 
 :::

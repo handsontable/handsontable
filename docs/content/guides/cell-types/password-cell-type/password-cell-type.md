@@ -46,9 +46,9 @@ The password cell type behaves like a text cell, the only difference being that 
 
 ::: only-for angular
 
-::: example #example1 :angular --js 1 --html 2
+::: example #example1 :angular --ts 1 --html 2
 
-@[code](@/content/guides/cell-types/password-cell-type/angular/example1.js)
+@[code](@/content/guides/cell-types/password-cell-type/angular/example1.ts)
 @[code](@/content/guides/cell-types/password-cell-type/angular/example1.html)
 
 :::
@@ -83,9 +83,9 @@ By default, every hash has a length equal to the length of its corresponding val
 
 ::: only-for angular
 
-::: example #example2 :angular --js 1 --html 2
+::: example #example2 :angular --ts 1 --html 2
 
-@[code](@/content/guides/cell-types/password-cell-type/angular/example2.js)
+@[code](@/content/guides/cell-types/password-cell-type/angular/example2.ts)
 @[code](@/content/guides/cell-types/password-cell-type/angular/example2.html)
 
 :::
@@ -120,9 +120,9 @@ By default, every hash consists of asterisks `*`. Use the option `hashSymbol` to
 
 ::: only-for angular
 
-::: example #example3 :angular --js 1 --html 2
+::: example #example3 :angular --ts 1 --html 2
 
-@[code](@/content/guides/cell-types/password-cell-type/angular/example3.js)
+@[code](@/content/guides/cell-types/password-cell-type/angular/example3.ts)
 @[code](@/content/guides/cell-types/password-cell-type/angular/example3.html)
 
 :::

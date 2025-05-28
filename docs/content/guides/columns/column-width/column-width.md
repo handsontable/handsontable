@@ -61,9 +61,9 @@ In this example we set the same width of `100px` for all columns across the enti
 
 ::: only-for angular
 
-::: example #example1 :angular --js 1 --html 2
+::: example #example1 :angular --ts 1 --html 2
 
-@[code](@/content/guides/columns/column-width/angular/example1.js)
+@[code](@/content/guides/columns/column-width/angular/example1.ts)
 @[code](@/content/guides/columns/column-width/angular/example1.html)
 
 :::
@@ -99,9 +99,9 @@ In this example, the width is only set for the first four columns. Each addition
 
 ::: only-for angular
 
-::: example #example2 :angular --js 1 --html 2
+::: example #example2 :angular --ts 1 --html 2
 
-@[code](@/content/guides/columns/column-width/angular/example2.js)
+@[code](@/content/guides/columns/column-width/angular/example2.ts)
 @[code](@/content/guides/columns/column-width/angular/example2.html)
 
 :::
@@ -136,9 +136,9 @@ In this example, the size of all columns is set using a function by taking a col
 
 ::: only-for angular
 
-::: example #example3 :angular --js 1 --html 2
+::: example #example3 :angular --ts 1 --html 2
 
-@[code](@/content/guides/columns/column-width/angular/example3.js)
+@[code](@/content/guides/columns/column-width/angular/example3.ts)
 @[code](@/content/guides/columns/column-width/angular/example3.html)
 
 :::
@@ -175,9 +175,9 @@ You can adjust the size of one or multiple columns simultaneously, even if the s
 
 ::: only-for angular
 
-::: example #example4 :angular --js 1 --html 2
+::: example #example4 :angular --ts 1 --html 2
 
-@[code](@/content/guides/columns/column-width/angular/example4.js)
+@[code](@/content/guides/columns/column-width/angular/example4.ts)
 @[code](@/content/guides/columns/column-width/angular/example4.html)
 
 :::
@@ -222,9 +222,9 @@ This example fits all columns to the container's width equally by setting the op
 
 ::: only-for angular
 
-::: example #example5 :angular --js 1 --html 2
+::: example #example5 :angular --ts 1 --html 2
 
-@[code](@/content/guides/columns/column-width/angular/example5.js)
+@[code](@/content/guides/columns/column-width/angular/example5.ts)
 @[code](@/content/guides/columns/column-width/angular/example5.html)
 
 :::
@@ -260,9 +260,9 @@ In this example, the first three columns are set to be 80px wide, and the last c
 
 ::: only-for angular
 
-::: example #example6 :angular --js 1 --html 2
+::: example #example6 :angular --ts 1 --html 2
 
-@[code](@/content/guides/columns/column-width/angular/example6.js)
+@[code](@/content/guides/columns/column-width/angular/example6.ts)
 @[code](@/content/guides/columns/column-width/angular/example6.html)
 
 :::

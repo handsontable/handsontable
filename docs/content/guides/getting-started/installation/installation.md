@@ -175,9 +175,9 @@ export class HotTableWrapperComponent {
 
 ### Preview the result
 
-::: example :angular --js 1 --html 2
+::: example :angular --ts 1 --html 2
 
-@[code](@/content/guides/getting-started/installation/angular/example1.js)
+@[code](@/content/guides/getting-started/installation/angular/example1.ts)
 @[code](@/content/guides/getting-started/installation/angular/example1.html)
 
 :::

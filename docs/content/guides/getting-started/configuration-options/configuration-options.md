@@ -263,9 +263,9 @@ As a result, each cell in the grid is read-only:
 
 ::: only-for angular
 
-::: example #example1 :angular --js 1 --html 2
+::: example #example1 :angular --ts 1 --html 2
 
-@[code](@/content/guides/getting-started/configuration-options/angular/example1.js)
+@[code](@/content/guides/getting-started/configuration-options/angular/example1.ts)
 @[code](@/content/guides/getting-started/configuration-options/angular/example1.html)
 
 :::
@@ -374,9 +374,9 @@ As a result, each cell in the third and ninth columns is read-only:
 
 ::: only-for angular
 
-::: example #example2 :angular --js 1 --html 2
+::: example #example2 :angular --ts 1 --html 2
 
-@[code](@/content/guides/getting-started/configuration-options/angular/example2.js)
+@[code](@/content/guides/getting-started/configuration-options/angular/example2.ts)
 @[code](@/content/guides/getting-started/configuration-options/angular/example2.html)
 
 :::
@@ -505,9 +505,9 @@ Options modified through [`cells`](@/api/options.md#cells) overwrite all other o
 
 ::: only-for angular
 
-::: example #example3 :angular --js 1 --html 2
+::: example #example3 :angular --ts 1 --html 2
 
-@[code](@/content/guides/getting-started/configuration-options/angular/example3.js)
+@[code](@/content/guides/getting-started/configuration-options/angular/example3.ts)
 @[code](@/content/guides/getting-started/configuration-options/angular/example3.html)
 
 :::
@@ -625,9 +625,9 @@ The modified [`cell`](@/api/options.md#cell) options:
 
 ::: only-for angular
 
-::: example #example4 :angular --js 1 --html 2
+::: example #example4 :angular --ts 1 --html 2
 
-@[code](@/content/guides/getting-started/configuration-options/angular/example4.js)
+@[code](@/content/guides/getting-started/configuration-options/angular/example4.ts)
 @[code](@/content/guides/getting-started/configuration-options/angular/example4.html)
 
 :::
@@ -1004,9 +1004,9 @@ In the example below, some cells are read-only, and some cells are editable:
 
 ::: only-for angular
 
-::: example #example6 :angular --js 1 --html 2
+::: example #example6 :angular --ts 1 --html 2
 
-@[code](@/content/guides/getting-started/configuration-options/angular/example6.js)
+@[code](@/content/guides/getting-started/configuration-options/angular/example6.ts)
 @[code](@/content/guides/getting-started/configuration-options/angular/example6.html)
 
 :::

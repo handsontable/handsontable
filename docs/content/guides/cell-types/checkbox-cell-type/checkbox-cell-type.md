@@ -56,9 +56,9 @@ This is the default usage scenario where column data has a `true` or `false` val
 
 ::: only-for angular
 
-::: example #example1 :angular --js 1 --html 2
+::: example #example1 :angular --ts 1 --html 2
 
-@[code](@/content/guides/cell-types/checkbox-cell-type/angular/example1.js)
+@[code](@/content/guides/cell-types/checkbox-cell-type/angular/example1.ts)
 @[code](@/content/guides/cell-types/checkbox-cell-type/angular/example1.html)
 
 :::
@@ -93,9 +93,9 @@ If you want to use values other than `true` and `false`, you have to provide thi
 
 ::: only-for angular
 
-::: example #example2 :angular --js 1 --html 2
+::: example #example2 :angular --ts 1 --html 2
 
-@[code](@/content/guides/cell-types/checkbox-cell-type/angular/example2.js)
+@[code](@/content/guides/cell-types/checkbox-cell-type/angular/example2.ts)
 @[code](@/content/guides/cell-types/checkbox-cell-type/angular/example2.html)
 
 :::
@@ -130,9 +130,9 @@ To add a label to the checkbox, use the [`label`](@/api/options.md#label) option
 
 ::: only-for angular
 
-::: example #example3 :angular --js 1 --html 2
+::: example #example3 :angular --ts 1 --html 2
 
-@[code](@/content/guides/cell-types/checkbox-cell-type/angular/example3.js)
+@[code](@/content/guides/cell-types/checkbox-cell-type/angular/example3.ts)
 @[code](@/content/guides/cell-types/checkbox-cell-type/angular/example3.html)
 
 :::

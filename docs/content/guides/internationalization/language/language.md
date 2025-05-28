@@ -180,9 +180,9 @@ Language files were loaded after loading Handsontable.
 
 ::: only-for angular
 
-::: example #example1 :angular-languages --js 1 --html 2
+::: example #example1 :angular-languages --ts 1 --html 2
 
-@[code](@/content/guides/internationalization/language/angular/example1.js)
+@[code](@/content/guides/internationalization/language/angular/example1.ts)
 @[code](@/content/guides/internationalization/language/angular/example1.html)
 
 :::
@@ -201,9 +201,9 @@ Language files were loaded after loading Handsontable.
 
 ::: only-for angular
 
-::: example #example2 :angular-languages --js 1 --html 2
+::: example #example2 :angular-languages --ts 1 --html 2
 
-@[code](@/content/guides/internationalization/language/angular/example2.js)
+@[code](@/content/guides/internationalization/language/angular/example2.ts)
 @[code](@/content/guides/internationalization/language/angular/example2.html)
 
 :::

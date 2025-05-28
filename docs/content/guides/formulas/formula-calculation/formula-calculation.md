@@ -120,9 +120,9 @@ This example is more typical of data grids than spreadsheets. Calculations are p
 
 ::: only-for angular
 
-::: example #example2 :angular --js 1 --html 2
+::: example #example2 :angular --ts 1 --html 2
 
-@[code](@/content/guides/formulas/formula-calculation/angular/example2.js)
+@[code](@/content/guides/formulas/formula-calculation/angular/example2.ts)
 @[code](@/content/guides/formulas/formula-calculation/angular/example2.html)
 
 :::
@@ -630,9 +630,9 @@ pass an array with `name` and `expression` to your `formulas` configuration obje
 
 ::: only-for angular
 
-::: example #example3 :angular --js 1 --html 2
+::: example #example3 :angular --ts 1 --html 2
 
-@[code](@/content/guides/formulas/formula-calculation/angular/example3.js)
+@[code](@/content/guides/formulas/formula-calculation/angular/example3.ts)
 @[code](@/content/guides/formulas/formula-calculation/angular/example3.html)
 
 :::

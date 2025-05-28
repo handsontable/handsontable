@@ -28,9 +28,9 @@ You can programmatically change the internal state of Handsontable beyond what's
 
 The following example implements the [`HotTable`](@/guides/getting-started/installation/installation.md#use-the-hottable-component) component showing how to reference the Handsontable instance from the wrapper component.
 
-::: example #example1 :angular --js 1 --html 2
+::: example #example1 :angular --ts 1 --html 2
 
-@[code](@/content/guides/getting-started/angular-hot-instance/angular/example1.js)
+@[code](@/content/guides/getting-started/angular-hot-instance/angular/example1.ts)
 @[code](@/content/guides/getting-started/angular-hot-instance/angular/example1.html)
 
 :::
