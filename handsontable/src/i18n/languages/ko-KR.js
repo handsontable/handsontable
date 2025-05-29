@@ -97,9 +97,9 @@ const dictionary = {
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: '값',
   [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: '두번째 값',
 
-  [C.PAGINATION_PAGE]: '페이지',
-  [C.PAGINATION_PAGE_SIZE]: '행 수:',
-  [C.PAGINATION_OF]: '중',
+  [C.PAGINATION_PAGE_SIZE_SECTION]: '행 수:',
+  [C.PAGINATION_COUNTER_SECTION]: '[start] - [end] / 총 [total]건',
+  [C.PAGINATION_NAV_SECTION]: '페이지 [currentPage] / [totalPages]',
   [C.PAGINATION_FIRST_PAGE]: '첫 페이지로 이동',
   [C.PAGINATION_PREV_PAGE]: '이전 페이지로 이동',
   [C.PAGINATION_NEXT_PAGE]: '다음 페이지로 이동',

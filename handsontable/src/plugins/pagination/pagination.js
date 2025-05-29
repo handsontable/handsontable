@@ -98,12 +98,12 @@ export class Pagination extends BasePlugin {
 
     this.#pageSize = this.getSetting('pageSize');
     this.#currentPage = this.getSetting('initialPage');
-    this.#pagedRowsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap(this.pluginName, 'hiding');
+    this.#pagedRowsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap(this.pluginName, 'hiding', false);
 
     if (!this.#ui) {
       this.#ui = new PaginationUI({
         rootElement: this.hot.rootElement,
-        phraseTranslator: phraseId => this.hot.getTranslatedPhrase(phraseId),
+        phraseTranslator: (...args) => this.hot.getTranslatedPhrase(...args),
         shouldHaveBorder: () => this.#computeNeedsBorder(),
       });
 
@@ -227,8 +227,8 @@ export class Pagination extends BasePlugin {
     this.#computeAndApply();
 
     this.hot.runHooks('afterPageChange', oldPage, this.#currentPage);
-    this.hot.view.adjustElementsSize();
     this.hot.render();
+    this.hot.view.adjustElementsSize();
   }
 
   /**
@@ -251,8 +251,8 @@ export class Pagination extends BasePlugin {
     this.#computeAndApply();
 
     this.hot.runHooks('afterPageSizeChange', oldPageSize, this.#pageSize);
-    this.hot.view.adjustElementsSize();
     this.hot.render();
+    this.hot.view.adjustElementsSize();
   }
 
   /**

@@ -99,9 +99,9 @@ const dictionary = {
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'القيمة',
   [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'القيمة الثانية',
 
-  [C.PAGINATION_PAGE]: 'صفحة',
-  [C.PAGINATION_PAGE_SIZE]: 'عدد الصفوف:',
-  [C.PAGINATION_OF]: 'من',
+  [C.PAGINATION_PAGE_SIZE_SECTION]: 'عدد الصفوف:',
+  [C.PAGINATION_COUNTER_SECTION]: '[start] - [end] من [total]',
+  [C.PAGINATION_NAV_SECTION]: 'صفحة [currentPage] من [totalPages]',
   [C.PAGINATION_FIRST_PAGE]: 'الانتقال إلى الصفحة الأولى',
   [C.PAGINATION_PREV_PAGE]: 'الانتقال إلى الصفحة السابقة',
   [C.PAGINATION_NEXT_PAGE]: 'الانتقال إلى الصفحة التالية',

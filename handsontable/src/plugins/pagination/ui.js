@@ -88,7 +88,7 @@ export class PaginationUI {
       ...[A11Y_LABEL('Pagination')],
     ]);
 
-    pageSizeLabel.textContent = this.#phraseTranslator(C.PAGINATION_PAGE_SIZE);
+    pageSizeLabel.textContent = this.#phraseTranslator(C.PAGINATION_PAGE_SIZE_SECTION);
 
     first.addEventListener('click', () => this.runLocalHooks('firstPageClick'));
     prev.addEventListener('click', () => this.runLocalHooks('prevPageClick'));
@@ -162,11 +162,15 @@ export class PaginationUI {
     const firstRenderedRow = (pageSize * (currentPage - 1)) + 1;
     const lastRenderedRow = firstRenderedRow + numberOfRenderedRows - 1;
 
-    const ofPhrase = this.#phraseTranslator(C.PAGINATION_OF);
-    const pagePhrase = this.#phraseTranslator(C.PAGINATION_PAGE);
-
-    pageCounterSection.textContent = `${firstRenderedRow} - ${lastRenderedRow} ${ofPhrase} ${totalRenderedRows}`;
-    pageNavLabel.textContent = `${pagePhrase} ${currentPage} ${ofPhrase} ${totalPages}`;
+    pageCounterSection.textContent = this.#phraseTranslator(C.PAGINATION_COUNTER_SECTION, {
+      start: firstRenderedRow,
+      end: lastRenderedRow,
+      total: totalRenderedRows,
+    });
+    pageNavLabel.textContent = this.#phraseTranslator(C.PAGINATION_NAV_SECTION, {
+      currentPage,
+      totalPages,
+    });
     pageSizeSelect.innerHTML = '';
 
     this.refreshBorderState();
