@@ -146,7 +146,7 @@ export default {
         }
 
         if (preset.includes('angular')) {
-          return `angular/${id}.js`;
+          return `angular/${id}.ts`;
         }
 
         if (preset.includes('react') && this.selectedLang === 'TypeScript') {

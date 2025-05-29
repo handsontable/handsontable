@@ -68,9 +68,9 @@ Internally, cell `{ type: 'dropdown' }` is equivalent to cell `{ type:'autocompl
 
 ::: only-for angular
 
-::: example #example1 .docs-height-small :angular --js 1 --html 2
+::: example #example1 .docs-height-small :angular --ts 1 --html 2
 
-@[code](@/content/guides/cell-types/dropdown-cell-type/angular/example1.js)
+@[code](@/content/guides/cell-types/dropdown-cell-type/angular/example1.ts)
 @[code](@/content/guides/cell-types/dropdown-cell-type/angular/example1.html)
 
 :::

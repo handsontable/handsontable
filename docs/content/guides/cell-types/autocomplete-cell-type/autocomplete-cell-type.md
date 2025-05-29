@@ -54,9 +54,9 @@ This example uses the `autocomplete` feature in the default flexible mode. In th
 
 ::: only-for angular
 
-::: example #example1 .docs-height-small :angular --js 1 --html 2
+::: example #example1 .docs-height-small :angular --ts 1 --html 2
 
-@[code](@/content/guides/cell-types/autocomplete-cell-type/angular/example1.js)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/angular/example1.ts)
 @[code](@/content/guides/cell-types/autocomplete-cell-type/angular/example1.html)
 
 :::
@@ -99,9 +99,9 @@ In strict mode, the [`allowInvalid`](@/api/options.md#allowinvalid) option deter
 
 ::: only-for angular
 
-::: example #example2 .docs-height-small :angular --js 1 --html 2
+::: example #example2 .docs-height-small :angular --ts 1 --html 2
 
-@[code](@/content/guides/cell-types/autocomplete-cell-type/angular/example2.js)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/angular/example2.ts)
 @[code](@/content/guides/cell-types/autocomplete-cell-type/angular/example2.html)
 
 :::
@@ -136,9 +136,9 @@ Autocomplete can also be used with Ajax data sources. In the example below, sugg
 
 ::: only-for angular
 
-::: example #example3 .docs-height-small :angular --js 1 --html 2
+::: example #example3 .docs-height-small :angular --ts 1 --html 2
 
-@[code](@/content/guides/cell-types/autocomplete-cell-type/angular/example3.js)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/angular/example3.ts)
 @[code](@/content/guides/cell-types/autocomplete-cell-type/angular/example3.html)
 
 :::

@@ -74,9 +74,9 @@ To initialize Handsontable with predefined merged cells, provide merged cells de
 
 ::: only-for angular
 
-::: example #example1 :angular --js 1 --html 2
+::: example #example1 :angular --ts 1 --html 2
 
-@[code](@/content/guides/cell-features/merge-cells/angular/example1.js)
+@[code](@/content/guides/cell-features/merge-cells/angular/example1.ts)
 @[code](@/content/guides/cell-features/merge-cells/angular/example1.html)
 
 :::
@@ -150,9 +150,9 @@ The example below uses virtualized merged cells. It's also recommended to increa
 
 ::: only-for angular
 
-::: example #example2 :angular --js 1 --html 2
+::: example #example2 :angular --ts 1 --html 2
 
-@[code](@/content/guides/cell-features/merge-cells/angular/example2.js)
+@[code](@/content/guides/cell-features/merge-cells/angular/example2.ts)
 @[code](@/content/guides/cell-features/merge-cells/angular/example2.html)
 
 :::

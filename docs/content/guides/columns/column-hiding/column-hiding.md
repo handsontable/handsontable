@@ -63,9 +63,9 @@ To enable column hiding, use the [`hiddenColumns`](@/api/options.md#hiddencolumn
 
 ::: only-for angular
 
-::: example #example1 :angular --js 1 --html 2
+::: example #example1 :angular --ts 1 --html 2
 
-@[code](@/content/guides/columns/column-hiding/angular/example1.js)
+@[code](@/content/guides/columns/column-hiding/angular/example1.ts)
 @[code](@/content/guides/columns/column-hiding/angular/example1.html)
 
 :::
@@ -110,9 +110,9 @@ Now, those columns are hidden by default:
 
 ::: only-for angular
 
-::: example #example2 :angular --js 1 --html 2
+::: example #example2 :angular --ts 1 --html 2
 
-@[code](@/content/guides/columns/column-hiding/angular/example2.js)
+@[code](@/content/guides/columns/column-hiding/angular/example2.ts)
 @[code](@/content/guides/columns/column-hiding/angular/example2.html)
 
 :::
@@ -159,9 +159,9 @@ If you use both the [`NestedHeaders`](@/api/nestedHeaders.md) plugin and the
 
 ::: only-for angular
 
-::: example #example3 :angular --js 1 --html 2
+::: example #example3 :angular --ts 1 --html 2
 
-@[code](@/content/guides/columns/column-hiding/angular/example3.js)
+@[code](@/content/guides/columns/column-hiding/angular/example3.ts)
 @[code](@/content/guides/columns/column-hiding/angular/example3.html)
 
 :::
@@ -202,9 +202,9 @@ additional items for hiding and unhiding columns.
 
 ::: only-for angular
 
-::: example #example4 :angular --js 1 --html 2
+::: example #example4 :angular --ts 1 --html 2
 
-@[code](@/content/guides/columns/column-hiding/angular/example4.js)
+@[code](@/content/guides/columns/column-hiding/angular/example4.ts)
 @[code](@/content/guides/columns/column-hiding/angular/example4.html)
 
 :::
@@ -241,9 +241,9 @@ strings to the[ `contextMenu`](@/api/contextMenu.md) parameter:
 
 ::: only-for angular
 
-::: example #example5 :angular --js 1 --html 2
+::: example #example5 :angular --ts 1 --html 2
 
-@[code](@/content/guides/columns/column-hiding/angular/example5.js)
+@[code](@/content/guides/columns/column-hiding/angular/example5.ts)
 @[code](@/content/guides/columns/column-hiding/angular/example5.html)
 
 :::
@@ -280,9 +280,9 @@ object, set the [`copyPasteEnabled`](@/api/hiddenColumns.md) property to `false`
 
 ::: only-for angular
 
-::: example #example6 :angular --js 1 --html 2
+::: example #example6 :angular --ts 1 --html 2
 
-@[code](@/content/guides/columns/column-hiding/angular/example6.js)
+@[code](@/content/guides/columns/column-hiding/angular/example6.ts)
 @[code](@/content/guides/columns/column-hiding/angular/example6.html)
 
 :::

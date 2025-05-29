@@ -615,9 +615,9 @@ The example below shows some of the built-in cell types, i.e. combinations of ce
 
 ::: only-for angular
 
-::: example #example1 :angular --js 1 --html 2
+::: example #example1 :angular --ts 1 --html 2
 
-@[code](@/content/guides/cell-types/cell-type/angular/example1.js)
+@[code](@/content/guides/cell-types/cell-type/angular/example1.ts)
 @[code](@/content/guides/cell-types/cell-type/angular/example1.html)
 
 :::
@@ -658,9 +658,9 @@ Please keep in mind that opening a cell with `undefined` and `null` values resul
 
 ::: only-for angular
 
-::: example #example2 :angular --js 1 --html 2
+::: example #example2 :angular --ts 1 --html 2
 
-@[code](@/content/guides/cell-types/cell-type/angular/example2.js)
+@[code](@/content/guides/cell-types/cell-type/angular/example2.ts)
 @[code](@/content/guides/cell-types/cell-type/angular/example2.html)
 
 :::

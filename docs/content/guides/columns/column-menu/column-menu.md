@@ -53,9 +53,9 @@ To enable the plugin, set the [`dropdownMenu`](@/api/options.md#dropdownmenu) co
 
 ::: only-for angular
 
-::: example #example1 :angular --js 1 --html 2
+::: example #example1 :angular --ts 1 --html 2
 
-@[code](@/content/guides/columns/column-menu/angular/example1.js)
+@[code](@/content/guides/columns/column-menu/angular/example1.ts)
 @[code](@/content/guides/columns/column-menu/angular/example1.html)
 
 :::
@@ -90,9 +90,9 @@ To use the default dropdown contents, set it to `true`, or to customize it by se
 
 ::: only-for angular
 
-::: example #example2 :angular --js 1 --html 2
+::: example #example2 :angular --ts 1 --html 2
 
-@[code](@/content/guides/columns/column-menu/angular/example2.js)
+@[code](@/content/guides/columns/column-menu/angular/example2.ts)
 @[code](@/content/guides/columns/column-menu/angular/example2.html)
 
 :::

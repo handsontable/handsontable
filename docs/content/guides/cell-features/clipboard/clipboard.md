@@ -77,9 +77,9 @@ You can use them in the same way as the rest of the predefined items in the [con
 
 ::: only-for angular
 
-::: example #example1 :angular --js 1 --html 2
+::: example #example1 :angular --ts 1 --html 2
 
-@[code](@/content/guides/cell-features/clipboard/angular/example1.js)
+@[code](@/content/guides/cell-features/clipboard/angular/example1.ts)
 @[code](@/content/guides/cell-features/clipboard/angular/example1.html)
 
 :::
@@ -150,9 +150,9 @@ The [`CopyPaste`](@/api/copyPaste.md) plugin listens to the browser's `copy` and
 
 ::: only-for angular
 
-::: example #example3 :angular --js 1 --html 2
+::: example #example3 :angular --ts 1 --html 2
 
-@[code](@/content/guides/cell-features/clipboard/angular/example3.js)
+@[code](@/content/guides/cell-features/clipboard/angular/example3.ts)
 @[code](@/content/guides/cell-features/clipboard/angular/example3.html)
 
 :::
@@ -212,9 +212,9 @@ Right-click on a cell to try it out:
 
 ::: only-for angular
 
-::: example #example2 :angular --js 1 --html 2
+::: example #example2 :angular --ts 1 --html 2
 
-@[code](@/content/guides/cell-features/clipboard/angular/example2.js)
+@[code](@/content/guides/cell-features/clipboard/angular/example2.ts)
 @[code](@/content/guides/cell-features/clipboard/angular/example2.html)
 
 :::

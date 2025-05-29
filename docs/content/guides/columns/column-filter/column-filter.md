@@ -78,9 +78,9 @@ this behavior, set
 
 ::: only-for angular
 
-::: example #example1 :angular --js 1 --html 2
+::: example #example1 :angular --ts 1 --html 2
 
-@[code](@/content/guides/columns/column-filter/angular/example1.js)
+@[code](@/content/guides/columns/column-filter/angular/example1.ts)
 @[code](@/content/guides/columns/column-filter/angular/example1.html)
 
 :::
@@ -172,9 +172,9 @@ the configuration.
 
 ::: only-for angular
 
-::: example #example2 :angular --js 1 --html 2
+::: example #example2 :angular --ts 1 --html 2
 
-@[code](@/content/guides/columns/column-filter/angular/example2.js)
+@[code](@/content/guides/columns/column-filter/angular/example2.ts)
 @[code](@/content/guides/columns/column-filter/angular/example2.html)
 
 :::
@@ -213,9 +213,9 @@ useful items in the menu such as **Clear column**.
 
 ::: only-for angular
 
-::: example #example3 :angular --js 1 --html 2
+::: example #example3 :angular --ts 1 --html 2
 
-@[code](@/content/guides/columns/column-filter/angular/example3.js)
+@[code](@/content/guides/columns/column-filter/angular/example3.ts)
 @[code](@/content/guides/columns/column-filter/angular/example3.html)
 
 :::
@@ -255,9 +255,9 @@ each data type.
 
 ::: only-for angular
 
-::: example #example4 :angular --js 1 --html 2
+::: example #example4 :angular --ts 1 --html 2
 
-@[code](@/content/guides/columns/column-filter/angular/example4.js)
+@[code](@/content/guides/columns/column-filter/angular/example4.ts)
 @[code](@/content/guides/columns/column-filter/angular/example4.html)
 
 :::
@@ -316,9 +316,9 @@ To do this, you can use Handsontable's [`afterInit()`](@/api/hooks.md#afterinit)
 the API provided by the Filters plugin. For instance, the demo below demonstrates how you can start
 with a pre-applied filter to display only items priced less than $200.
 
-::: example #example5 :angular --js 1 --html 2
+::: example #example5 :angular --ts 1 --html 2
 
-@[code](@/content/guides/columns/column-filter/angular/example5.js)
+@[code](@/content/guides/columns/column-filter/angular/example5.ts)
 @[code](@/content/guides/columns/column-filter/angular/example5.html)
 
 :::
@@ -359,9 +359,9 @@ accomplish this, use methods [`filters.addCondition()`](@/api/filters.md#addcond
 
 ::: only-for angular
 
-::: example #example6 :angular --js 1 --html 2
+::: example #example6 :angular --ts 1 --html 2
 
-@[code](@/content/guides/columns/column-filter/angular/example6.js)
+@[code](@/content/guides/columns/column-filter/angular/example6.ts)
 @[code](@/content/guides/columns/column-filter/angular/example6.html)
 
 :::
@@ -401,9 +401,9 @@ down icon.
 
 ::: only-for angular
 
-::: example #example7 :angular --js 1 --html 2
+::: example #example7 :angular --ts 1 --html 2
 
-@[code](@/content/guides/columns/column-filter/angular/example7.js)
+@[code](@/content/guides/columns/column-filter/angular/example7.ts)
 @[code](@/content/guides/columns/column-filter/angular/example7.html)
 
 :::
@@ -440,9 +440,9 @@ over the header, apply additional styling to `th .relative:hover .changeType`.
 
 ::: only-for angular
 
-::: example #example8 :angular --js 1 --html 2
+::: example #example8 :angular --ts 1 --html 2
 
-@[code](@/content/guides/columns/column-filter/angular/example8.js)
+@[code](@/content/guides/columns/column-filter/angular/example8.ts)
 @[code](@/content/guides/columns/column-filter/angular/example8.html)
 
 :::
@@ -493,9 +493,9 @@ filtering doesn't affect them.
 
 ::: only-for angular
 
-::: example #example9 :angular --js 1 --html 2
+::: example #example9 :angular --ts 1 --html 2
 
-@[code](@/content/guides/columns/column-filter/angular/example9.js)
+@[code](@/content/guides/columns/column-filter/angular/example9.ts)
 @[code](@/content/guides/columns/column-filter/angular/example9.html)
 
 :::
@@ -543,9 +543,9 @@ filters is logged to the console.
 
 ::: only-for angular
 
-::: example #example10 :angular --js 1 --html 2
+::: example #example10 :angular --ts 1 --html 2
 
-@[code](@/content/guides/columns/column-filter/angular/example10.js)
+@[code](@/content/guides/columns/column-filter/angular/example10.ts)
 @[code](@/content/guides/columns/column-filter/angular/example10.html)
 
 :::
@@ -750,9 +750,9 @@ Mind that before you apply new filter conditions, you need to clear the previous
 
 ::: only-for angular
 
-::: example #example11 :angular --js 1 --html 2
+::: example #example11 :angular --ts 1 --html 2
 
-@[code](@/content/guides/columns/column-filter/angular/example11.js)
+@[code](@/content/guides/columns/column-filter/angular/example11.ts)
 @[code](@/content/guides/columns/column-filter/angular/example11.html)
 
 :::

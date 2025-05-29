@@ -118,18 +118,18 @@ Be sure to turn those options off in your Handsontable configuration, as keeping
 
 :::
 
-::: example #example1 :angular --js 1 --html 2
+::: example #example1 :angular --ts 1 --html 2
 
-@[code](@/content/guides/cell-functions/cell-renderer/angular/example1.js)
+@[code](@/content/guides/cell-functions/cell-renderer/angular/example1.ts)
 @[code](@/content/guides/cell-functions/cell-renderer/angular/example1.html)
 
 :::
 
 You can create and use a custom cell renderer component that utilizes the `rendererProps` property and use them inside the renderer component.
 
-::: example #example3 :angular --js 1 --html 2
+::: example #example3 :angular --ts 1 --html 2
 
-@[code](@/content/guides/cell-functions/cell-renderer/angular/example3.js)
+@[code](@/content/guides/cell-functions/cell-renderer/angular/example3.ts)
 @[code](@/content/guides/cell-functions/cell-renderer/angular/example3.html)
 
 :::
@@ -138,9 +138,9 @@ You can create and use a custom cell renderer component that utilizes the `rende
 
 The Angular wrapper supports using an Angular `TemplateRef` as a renderer. This is particularly useful if you want to leverage the power of Angular templates directly, without creating a full component.
 
-::: example #example2 :angular --js 1 --html 2
+::: example #example2 :angular --ts 1 --html 2
 
-@[code](@/content/guides/cell-functions/cell-renderer/angular/example2.js)
+@[code](@/content/guides/cell-functions/cell-renderer/angular/example2.ts)
 @[code](@/content/guides/cell-functions/cell-renderer/angular/example2.html)
 
 :::
@@ -151,9 +151,9 @@ You can also declare a custom renderer for the `HotTable` component by declaring
 
 The following example implements `@handsontable/angular-wrapper` with a custom renderer added to one of the columns. It takes an image URL as the input and renders the image in the edited cell.
 
-::: example #example4 :angular --js 1 --html 2
+::: example #example4 :angular --ts 1 --html 2
 
-@[code](@/content/guides/cell-functions/cell-renderer/angular/example4.js)
+@[code](@/content/guides/cell-functions/cell-renderer/angular/example4.ts)
 @[code](@/content/guides/cell-functions/cell-renderer/angular/example4.html)
 
 :::
@@ -443,9 +443,9 @@ This example shows how to use custom cell renderers to display HTML content in a
 
 ::: only-for angular
 
-::: example #example5 :angular --js 1 --html 2
+::: example #example5 :angular --ts 1 --html 2
 
-@[code](@/content/guides/cell-functions/cell-renderer/angular/example5.js)
+@[code](@/content/guides/cell-functions/cell-renderer/angular/example5.ts)
 @[code](@/content/guides/cell-functions/cell-renderer/angular/example5.html)
 
 :::
@@ -491,9 +491,9 @@ You can also put HTML into row and column headers. If you need to attach events 
 
 ::: only-for angular
 
-::: example #example6 :angular --js 1 --html 2
+::: example #example6 :angular --ts 1 --html 2
 
-@[code](@/content/guides/cell-functions/cell-renderer/angular/example6.js)
+@[code](@/content/guides/cell-functions/cell-renderer/angular/example6.ts)
 @[code](@/content/guides/cell-functions/cell-renderer/angular/example6.html)
 
 :::

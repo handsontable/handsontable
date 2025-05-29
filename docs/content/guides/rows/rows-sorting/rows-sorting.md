@@ -81,9 +81,9 @@ Click on one of the column names to sort the values in ascending (↑) or descen
 
 ::: only-for angular
 
-::: example #example1 :angular --js 1 --html 2
+::: example #example1 :angular --ts 1 --html 2
 
-@[code](@/content/guides/rows/rows-sorting/angular/example1.js)
+@[code](@/content/guides/rows/rows-sorting/angular/example1.ts)
 @[code](@/content/guides/rows/rows-sorting/angular/example1.html)
 
 :::
@@ -161,9 +161,9 @@ the following example, only columns **Model**, **Date** and **In stock** are sor
 
 ::: only-for angular
 
-::: example #example2 :angular --js 1 --html 2
+::: example #example2 :angular --ts 1 --html 2
 
-@[code](@/content/guides/rows/rows-sorting/angular/example2.js)
+@[code](@/content/guides/rows/rows-sorting/angular/example2.ts)
 @[code](@/content/guides/rows/rows-sorting/angular/example2.html)
 
 :::
@@ -323,9 +323,9 @@ You can configure the following types:
 
 ::: only-for angular
 
-::: example #example3 :angular --js 1 --html 2
+::: example #example3 :angular --ts 1 --html 2
 
-@[code](@/content/guides/rows/rows-sorting/angular/example3.js)
+@[code](@/content/guides/rows/rows-sorting/angular/example3.ts)
 @[code](@/content/guides/rows/rows-sorting/angular/example3.html)
 
 :::
@@ -369,9 +369,9 @@ To try out sorting by multiple columns, see the following demo:
 
 ::: only-for angular
 
-::: example #example4 :angular --js 1 --html 2
+::: example #example4 :angular --ts 1 --html 2
 
-@[code](@/content/guides/rows/rows-sorting/angular/example4.js)
+@[code](@/content/guides/rows/rows-sorting/angular/example4.ts)
 @[code](@/content/guides/rows/rows-sorting/angular/example4.html)
 
 :::
@@ -519,9 +519,9 @@ In the following demo, the data is initially sorted:
 
 ::: only-for angular
 
-::: example #example5 :angular --js 1 --html 2
+::: example #example5 :angular --ts 1 --html 2
 
-@[code](@/content/guides/rows/rows-sorting/angular/example5.js)
+@[code](@/content/guides/rows/rows-sorting/angular/example5.ts)
 @[code](@/content/guides/rows/rows-sorting/angular/example5.html)
 
 :::
@@ -694,9 +694,9 @@ The default sort icons (↑↓) are encoded `url`. You can replace them by chang
 
 ::: only-for angular
 
-::: example #example6 :angular --js 1 --html 2
+::: example #example6 :angular --ts 1 --html 2
 
-@[code](@/content/guides/rows/rows-sorting/angular/example6.js)
+@[code](@/content/guides/rows/rows-sorting/angular/example6.ts)
 @[code](@/content/guides/rows/rows-sorting/angular/example6.html)
 
 :::
@@ -734,9 +734,9 @@ subsequent pseudo-elements:
 
 ::: only-for angular
 
-::: example #example7 :angular --js 1 --html 2
+::: example #example7 :angular --ts 1 --html 2
 
-@[code](@/content/guides/rows/rows-sorting/angular/example7.js)
+@[code](@/content/guides/rows/rows-sorting/angular/example7.ts)
 @[code](@/content/guides/rows/rows-sorting/angular/example7.html)
 
 :::
@@ -930,9 +930,9 @@ For example, if you [freeze](@/guides/rows/row-freezing/row-freezing.md) a row a
 
 ::: only-for angular
 
-::: example #example8 :angular --js 1 --html 2
+::: example #example8 :angular --ts 1 --html 2
 
-@[code](@/content/guides/rows/rows-sorting/angular/example8.js)
+@[code](@/content/guides/rows/rows-sorting/angular/example8.ts)
 @[code](@/content/guides/rows/rows-sorting/angular/example8.html)
 
 :::
@@ -1227,9 +1227,9 @@ To see how it works, try out the following demo:
 
 ::: only-for angular
 
-::: example #example9 :angular --js 1 --html 2
+::: example #example9 :angular --ts 1 --html 2
 
-@[code](@/content/guides/rows/rows-sorting/angular/example9.js)
+@[code](@/content/guides/rows/rows-sorting/angular/example9.ts)
 @[code](@/content/guides/rows/rows-sorting/angular/example9.html)
 
 :::
@@ -1376,9 +1376,9 @@ To see how it works, try out the following demo:
 
 ::: only-for angular
 
-::: example #example10 :angular --js 1 --html 2
+::: example #example10 :angular --ts 1 --html 2
 
-@[code](@/content/guides/rows/rows-sorting/angular/example10.js)
+@[code](@/content/guides/rows/rows-sorting/angular/example10.ts)
 @[code](@/content/guides/rows/rows-sorting/angular/example10.html)
 
 :::

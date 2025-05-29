@@ -137,9 +137,9 @@ The example below:
 
 ::: only-for angular
 
-::: example #example1 :angular --js 1 --html 2
+::: example #example1 :angular --ts 1 --html 2
 
-@[code](@/content/guides/navigation/searching-values/angular/example1.js)
+@[code](@/content/guides/navigation/searching-values/angular/example1.ts)
 @[code](@/content/guides/navigation/searching-values/angular/example1.html)
 
 :::
@@ -183,9 +183,9 @@ The example below highlights its search results in bold red. To do this, it:
 
 ::: only-for angular
 
-::: example #example2 :angular --js 1 --html 2
+::: example #example2 :angular --ts 1 --html 2
 
-@[code](@/content/guides/navigation/searching-values/angular/example2.js)
+@[code](@/content/guides/navigation/searching-values/angular/example2.ts)
 @[code](@/content/guides/navigation/searching-values/angular/example2.html)
 
 :::
@@ -227,9 +227,9 @@ The example below searches only for exact search query matches. To do this, it:
 
 ::: only-for angular
 
-::: example #example3 :angular --js 1 --html 2
+::: example #example3 :angular --ts 1 --html 2
 
-@[code](@/content/guides/navigation/searching-values/angular/example3.js)
+@[code](@/content/guides/navigation/searching-values/angular/example3.ts)
 @[code](@/content/guides/navigation/searching-values/angular/example3.html)
 
 :::
@@ -271,9 +271,9 @@ The example below displays the number of matching search results. To do this, it
 
 ::: only-for angular
 
-::: example #example4 :angular --js 1 --html 2
+::: example #example4 :angular --ts 1 --html 2
 
-@[code](@/content/guides/navigation/searching-values/angular/example4.js)
+@[code](@/content/guides/navigation/searching-values/angular/example4.ts)
 @[code](@/content/guides/navigation/searching-values/angular/example4.html)
 
 :::
