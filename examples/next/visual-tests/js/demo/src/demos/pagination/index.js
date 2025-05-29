@@ -131,7 +131,6 @@ export function init() {
       pageSize: 20,
       pageSizeList: [10, 20, 30, 40, 50],
     },
-    mergeCells: true,
     dropdownMenu: true,
     hiddenRows: {
       indicators: true
