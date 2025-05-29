@@ -17,8 +17,7 @@
       border-radius: 0 0 var(--ht-wrapper-border-radius) var(--ht-wrapper-border-radius);
       padding-inline: var(--ht-pagination-bar-horizontal-padding);
       padding-block: var(--ht-pagination-bar-vertical-padding);
-      color: var(--ht-foreground-color);
-      font-size: calc(var(--ht-font-size) - 2px);
+      font-size: var(--ht-font-size);
       box-sizing: border-box;
 
       &--bordered {
@@ -57,20 +56,20 @@
             opacity: 0.4;
             cursor: default;
           }
-  
+
           &:hover:not(:disabled) {
             background-color: var(--ht-secondary-button-hover-background-color);
           }
 
           &:focus {
             background-color: var(--ht-input-focus-background-color);
-            outline: 1px solid var(--ht-accent-color);
+            outline: 2px solid var(--ht-accent-color);
           }
         }
 
-        &:after {
+        &::after {
           @include mixins.pseudo;
-  
+
           position: absolute;
           inset-inline-end: var(--ht-gap-size);
           inset-block-end: 50%;
@@ -80,7 +79,7 @@
         }
       }
     }
-    
+
     .ht-page-counter-section {
       margin-inline-end: auto;
     }
@@ -113,7 +112,7 @@
         }
 
         &:focus {
-          outline: 1px solid var(--ht-accent-color);
+          outline: 2px solid var(--ht-accent-color);
         }
       }
 

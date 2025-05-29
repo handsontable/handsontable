@@ -400,7 +400,6 @@ export class Pagination extends BasePlugin {
 
     if (renderableIndexes.length > 0) {
       this.hot.batchExecution(() => {
-        // TODO (perf tip): reverse the logic by showing only the visible indexes not hiding the rest - if possible
         renderableIndexes.forEach(index => this.#pagedRowsMap.setValueAtIndex(index, true));
       }, true);
     } else {

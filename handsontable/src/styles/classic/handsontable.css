@@ -2086,22 +2086,27 @@ thead th.hiddenHeaderText .colHeader {
   font-weight: 400;
   box-sizing: border-box;
 }
+
 .ht-root-wrapper .ht-pagination-container--bordered {
   border-top: 1px solid #ccc;
 }
+
 .ht-root-wrapper .ht-page-size-section {
   display: flex;
   align-items: center;
   gap: 8px;
 }
+
 .ht-root-wrapper .ht-page-size-section span {
   white-space: nowrap;
 }
+
 .ht-root-wrapper .ht-page-size-section__select-wrapper {
   position: relative;
   border-radius: 2px;
   border: 1px solid #ccc;
 }
+
 .ht-root-wrapper .ht-page-size-section__select-wrapper select {
   padding-inline-start: 8px;
   padding-inline-end: 8px;
@@ -2114,13 +2119,16 @@ thead th.hiddenHeaderText .colHeader {
   font-size: inherit;
   cursor: pointer;
 }
+
 .ht-root-wrapper .ht-page-size-section__select-wrapper select:disabled {
   opacity: 0.4;
   cursor: default;
 }
+
 .ht-root-wrapper .ht-page-size-section__select-wrapper select:hover:not(:disabled) {
   background-color: #e0e0e0;
 }
+
 .ht-root-wrapper .ht-page-size-section__select-wrapper select:focus {
   background-color: #e0e0e0;
   outline: 1px solid #1a42e8;
@@ -2129,11 +2137,13 @@ thead th.hiddenHeaderText .colHeader {
 .ht-root-wrapper .ht-page-counter-section {
   margin-inline-end: auto;
 }
+
 .ht-root-wrapper .ht-page-navigation-section {
   display: flex;
   align-items: center;
   gap: 8px;
 }
+
 .ht-root-wrapper .ht-page-navigation-section button {
   font-size: inherit;
   color: #222;
@@ -2142,6 +2152,7 @@ thead th.hiddenHeaderText .colHeader {
   border-radius: 2px;
   cursor: pointer;
 }
+
 .ht-root-wrapper .ht-page-navigation-section button::before {
   display: block;
   width: 16px;
@@ -2149,6 +2160,7 @@ thead th.hiddenHeaderText .colHeader {
   line-height: 16px;
   text-align: center;
 }
+
 .ht-root-wrapper .ht-page-navigation-section .ht-page-first::before {
   content: "\21A4";
 }
@@ -2164,16 +2176,20 @@ thead th.hiddenHeaderText .colHeader {
 .ht-root-wrapper .ht-page-navigation-section .ht-page-last::before {
   content: "\21A6";
 }
+
 .ht-root-wrapper .ht-page-navigation-section button:disabled {
   opacity: 0.4;
   cursor: default;
 }
+
 .ht-root-wrapper .ht-page-navigation-section button:hover:not(:disabled) {
   background-color: #e0e0e0;
 }
+
 .ht-root-wrapper .ht-page-navigation-section button:focus {
   outline: 1px solid #1a42e8;
 }
+
 .ht-root-wrapper .ht-page-navigation-section span {
   white-space: nowrap;
 }

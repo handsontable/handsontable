@@ -20,7 +20,7 @@
     @include icon($icons, "arrow-left");
   }
 
-  .ht-page-size-section__select-wrapper:after {
+  .ht-page-size-section__select-wrapper::after {
     @include icon($icons, "arrow-down");
   }
 
