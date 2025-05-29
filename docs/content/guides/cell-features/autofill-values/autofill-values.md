@@ -16,6 +16,9 @@ tags:
 react:
   id: m4x3zpiw
   metaTitle: Autofill values - React Data Grid | Handsontable
+angular:
+  id: 8tftfxgq
+  metaTitle: Autofill values - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features
 ---

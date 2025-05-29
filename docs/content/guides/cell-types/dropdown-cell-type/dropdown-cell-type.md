@@ -8,6 +8,9 @@ canonicalUrl: /dropdown-cell-type
 react:
   id: 5i86kjqu
   metaTitle: Dropdown cell type - React Data Grid | Handsontable
+angular:
+  id: yatyane1
+  metaTitle: Dropdown cell type - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
 ---

@@ -8,6 +8,9 @@ canonicalUrl: /versioning-policy
 react:
   id: avrihx7w
   metaTitle: Versioning policy - React Data Grid | Handsontable
+angular:
+  id: 1q96vyfn
+  metaTitle: Versioning policy - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
 ---

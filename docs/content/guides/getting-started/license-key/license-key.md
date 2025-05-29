@@ -8,6 +8,9 @@ canonicalUrl: /license-key
 react:
   id: vyfski60
   metaTitle: License key - React Data Grid | Handsontable
+angular:
+  id: bcvwr25r
+  metaTitle: License key - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
 ---

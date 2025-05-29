@@ -18,6 +18,9 @@ tags:
 react:
   id: d966se98
   metaTitle: Events and hooks - React Data Grid | Handsontable
+angular:
+  id: iifvbgu0
+  metaTitle: Events and hooks - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
 ---

@@ -11,6 +11,9 @@ tags:
 react:
   id: sfxo3g54
   metaTitle: Export to CSV - React Data Grid | Handsontable
+angular:
+  id: hwhzgoir
+  metaTitle: Export to CSV - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Accessories and menus
 ---

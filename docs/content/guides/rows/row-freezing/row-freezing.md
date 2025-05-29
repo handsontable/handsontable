@@ -12,6 +12,9 @@ tags:
 react:
   id: y5wx1mrk
   metaTitle: Row freezing - React Data Grid | Handsontable
+angular:
+  id: mskor25j
+  metaTitle: Row freezing - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
 ---

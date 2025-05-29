@@ -12,6 +12,9 @@ tags:
 react:
   id: umdq9b9j
   metaTitle: Binding to data - React Data Grid | Handsontable
+angular:
+  id: xnqn2zg9
+  metaTitle: Binding to data - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
 ---

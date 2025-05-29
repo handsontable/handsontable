@@ -12,6 +12,9 @@ tags:
 react:
   id: pcflnieu
   metaTitle: Custom builds - React Data Grid | Handsontable
+angular:
+  id: 098p9wiw
+  metaTitle: Custom builds - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Tools and building
 ---

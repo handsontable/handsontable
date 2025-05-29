@@ -8,6 +8,9 @@ canonicalUrl: /row-trimming
 react:
   id: fkcjw0q1
   metaTitle: Row trimming - React Data Grid | Handsontable
+angular:
+  id: fhh1b0n6
+  metaTitle: Row trimming - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
 ---

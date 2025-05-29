@@ -8,6 +8,9 @@ canonicalUrl: /cell-renderer
 react:
   id: 2ej30mcg
   metaTitle: Cell renderer - React Data Grid | Handsontable
+angular:
+  id: 36rymylj
+  metaTitle: Cell renderer - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell functions
 ---

@@ -10,6 +10,9 @@ canonicalUrl: /column-hiding
 react:
   id: u1aw329h
   metaTitle: Column hiding - React Data Grid | Handsontable
+angular:
+  id: 69k5r1oh
+  metaTitle: Column hiding - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
 ---

@@ -10,6 +10,9 @@ tags:
 react:
   id: zqk2jjw3
   metaTitle: Installation - React Data Grid | Handsontable
+angular:
+  id: y52wtu7t
+  metaTitle: Installation - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
 ---

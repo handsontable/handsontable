@@ -21,6 +21,9 @@ tags:
 react:
   id: vz7ct2bv
   metaTitle: Column filter - React Data Grid | Handsontable
+angular:
+  id: woyi876m
+  metaTitle: Column filter - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
 ---

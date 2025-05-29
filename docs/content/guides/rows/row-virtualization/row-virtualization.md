@@ -12,6 +12,9 @@ tags:
 react:
   id: kjsl63sh
   metaTitle: Row virtualization - React Data Grid | Handsontable
+angular:
+  id: 2imqjvmp
+  metaTitle: Row virtualization - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
 ---

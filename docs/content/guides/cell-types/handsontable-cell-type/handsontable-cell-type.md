@@ -8,6 +8,9 @@ canonicalUrl: /handsontable-cell-type
 react:
   id: fcxtj167
   metaTitle: Handsontable cell type - React Data Grid | Handsontable
+angular:
+  id: cewiknc8
+  metaTitle: Handsontable cell type - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
 ---

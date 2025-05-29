@@ -8,6 +8,9 @@ canonicalUrl: /time-cell-type
 react:
   id: 34n5nwja
   metaTitle: Time cell type - React Data Grid | Handsontable
+angular:
+  id: fu9fqphw
+  metaTitle: Time cell type - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
 ---

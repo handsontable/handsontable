@@ -13,6 +13,9 @@ tags:
 react:
   id: kmqhr00y
   metaTitle: Row pre-populating - React Data Grid | Handsontable
+angular:
+  id: me99ozqr
+  metaTitle: Row pre-populating - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
 ---

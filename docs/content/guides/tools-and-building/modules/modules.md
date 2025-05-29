@@ -10,6 +10,9 @@ tags:
 react:
   id: weudz1vh
   metaTitle: Modules - React Data Grid | Handsontable
+angular:
+  id: 9i62e6cn
+  metaTitle: Modules - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Tools and building
 ---

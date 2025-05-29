@@ -8,6 +8,9 @@ canonicalUrl: /merge-cells
 react:
   id: ulndkavi
   metaTitle: Merge cells - React Data Grid | Handsontable
+angular:
+  id: pbcdsao1
+  metaTitle: Merge cells - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features
 ---

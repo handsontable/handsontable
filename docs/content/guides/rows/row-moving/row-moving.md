@@ -8,6 +8,9 @@ canonicalUrl: /row-moving
 react:
   id: g5mksyu1
   metaTitle: Row moving - React Data Grid | Handsontable
+angular:
+  id: ntz1a9ns
+  metaTitle: Row moving - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
 ---

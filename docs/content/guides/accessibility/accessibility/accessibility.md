@@ -20,6 +20,9 @@ tags:
 react:
   id: x82phf34
   metaTitle: Accessibility - React Data Grid | Handsontable
+angular:
+  id: 99l3uae8
+  metaTitle: Accessibility - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Accessibility
 ---

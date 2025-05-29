@@ -13,6 +13,9 @@ tags:
 react:
   id: 1ueuuazs
   metaTitle: Locale - React Data Grid | Handsontable
+angular:
+  id: arpg1wyq
+  metaTitle: Locale - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Internationalization
 ---

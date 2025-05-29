@@ -10,6 +10,9 @@ tags:
 react:
   id: c8onyes4
   metaTitle: Bundle size - React Data Grid | Handsontable
+angular:
+  id: qdq3dmts
+  metaTitle: Bundle size - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Optimization
 ---

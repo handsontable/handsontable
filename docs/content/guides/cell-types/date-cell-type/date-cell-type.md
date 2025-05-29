@@ -8,6 +8,9 @@ canonicalUrl: /date-cell-type
 react:
   id: u7t2rn0n
   metaTitle: Date cell type - React Data Grid | Handsontable
+angular:
+  id: 9vvupwbx
+  metaTitle: Date cell type - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
 ---

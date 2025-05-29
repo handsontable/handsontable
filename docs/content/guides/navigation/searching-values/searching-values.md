@@ -12,6 +12,9 @@ tags:
 react:
   id: 48lhnrbd
   metaTitle: Searching values - React Data Grid | Handsontable
+angular:
+  id: q7wwbzzr
+  metaTitle: Searching values - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Navigation
 ---

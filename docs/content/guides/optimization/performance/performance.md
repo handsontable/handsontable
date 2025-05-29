@@ -10,6 +10,9 @@ tags:
 react:
   id: gbdbrlc8
   metaTitle: Performance - React Data Grid | Handsontable
+angular:
+  id: 34wyxzpj
+  metaTitle: Performance - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Optimization
 ---

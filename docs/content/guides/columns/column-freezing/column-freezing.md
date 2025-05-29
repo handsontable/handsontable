@@ -13,6 +13,9 @@ tags:
 react:
   id: otumcpty
   metaTitle: Column freezing - React Data Grid | Handsontable
+angular:
+  id: i85vqeao
+  metaTitle: Column freezing - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
 ---
