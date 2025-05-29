@@ -8,6 +8,9 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
+      gap: calc(var(--ht-gap-size) * 4);
+      color: var(--ht-pagination-bar-foreground-color);
       background: var(--ht-pagination-bar-background-color);
       border: 1px solid var(--ht-wrapper-border-color);
       border-top: none;
@@ -15,10 +18,10 @@
       padding-inline: var(--ht-pagination-bar-horizontal-padding);
       padding-block: var(--ht-pagination-bar-vertical-padding);
       color: var(--ht-foreground-color);
-      font-size: var(--ht-font-size);
+      font-size: calc(var(--ht-font-size) - 2px);
       box-sizing: border-box;
 
-      &.ht-pagination-container--bordered {
+      &--bordered {
         border-top: 1px solid var(--ht-wrapper-border-color);
       }
     }
@@ -26,52 +29,91 @@
     .ht-page-size-section {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: calc(var(--ht-gap-size) * 2);
 
       span {
         white-space: nowrap;
       }
 
-      select {
-        padding-inline: calc(var(--ht-gap-size) + 4px);
-        padding-block: calc(var(--ht-gap-size));
-        border: 1px solid var(--ht-wrapper-border-color);
+      &__select-wrapper {
+        position: relative;
         border-radius: 4px;
-        background-color: white;
+        border: 1px solid var(--ht-input-border-color);
+
+        select {
+          padding-inline-start: calc(var(--ht-gap-size));
+          padding-inline-end: calc(var(--ht-gap-size) + var(--ht-icon-size));
+          padding-top: calc(var(--ht-gap-size));
+          padding-bottom: calc(var(--ht-gap-size));
+          border-radius: 4px;
+          color: var(--ht-input-foreground-color);
+          background-color: var(--ht-pagination-bar-background-color);
+          border: none;
+          -webkit-appearance: none;
+          font-size: inherit;
+          cursor: pointer;
+
+          &:disabled {
+            opacity: 0.4;
+            cursor: default;
+          }
+  
+          &:hover:not(:disabled) {
+            background-color: var(--ht-secondary-button-hover-background-color);
+          }
+
+          &:focus {
+            background-color: var(--ht-input-focus-background-color);
+            outline: 1px solid var(--ht-accent-color);
+          }
+        }
+
+        &:after {
+          @include mixins.pseudo;
+  
+          position: absolute;
+          inset-inline-end: var(--ht-gap-size);
+          inset-block-end: 50%;
+          transform: translateY(50%);
+          background-color: var(--ht-foreground-color);
+          pointer-events: none;
+        }
       }
+    }
+    
+    .ht-page-counter-section {
+      margin-inline-end: auto;
     }
 
     .ht-page-navigation-section {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: calc(var(--ht-gap-size) * 2);
 
       button {
-        background: none;
-        border: none;
+        font-size: inherit;
         color: var(--ht-foreground-color);
-        cursor: pointer;
+        background-color: var(--ht-pagination-bar-background-color);
+        border: none;
         padding: 4px;
         border-radius: 4px;
+        cursor: pointer;
 
         &::before {
           @include mixins.pseudo;
-
-          width: var(--ht-icon-size);
         }
 
         &:disabled {
-          background-color: transparent;
           opacity: 0.4;
           cursor: default;
         }
 
         &:hover:not(:disabled) {
-          background-color: #e3e3e5;
+          background-color: var(--ht-input-hover-background-color);
         }
 
         &:focus {
-          outline: 2px solid #1b42e8;
+          outline: 1px solid var(--ht-accent-color);
         }
       }
 

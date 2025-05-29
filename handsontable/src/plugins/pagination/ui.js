@@ -14,7 +14,9 @@ const TEMPLATE = `
 <div data-ref="container" class="ht-pagination-container">
   <div data-ref="pageSizeSection" class="ht-page-size-section" style="display: none">
     <span data-ref="pageSizeLabel"></span>
-    <select data-ref="pageSizeSelect" name="pageSize"></select>
+    <div class="ht-page-size-section__select-wrapper">
+      <select data-ref="pageSizeSelect" name="pageSize"></select>
+    </div>
   </div>
   <div data-ref="pageCounterSection" class="ht-page-counter-section" style="display: none"></div>
   <nav data-ref="pageNavSection" class="ht-page-navigation-section" aria-label="Pagination" style="display: none">

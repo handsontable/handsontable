@@ -2068,3 +2068,112 @@ thead th.hiddenHeaderText .colHeader {
   left: 0;
   right: unset;
 }
+
+.ht-root-wrapper .ht-pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: #222;
+  background: #f0f0f0;
+  border: 1px solid #ccc;
+  border-top: none;
+  padding-inline: 8px;
+  padding-block: 4px;
+  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Helvetica Neue, Arial, sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  box-sizing: border-box;
+}
+.ht-root-wrapper .ht-pagination-container--bordered {
+  border-top: 1px solid #ccc;
+}
+.ht-root-wrapper .ht-page-size-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ht-root-wrapper .ht-page-size-section span {
+  white-space: nowrap;
+}
+.ht-root-wrapper .ht-page-size-section__select-wrapper {
+  position: relative;
+  border-radius: 2px;
+  border: 1px solid #ccc;
+}
+.ht-root-wrapper .ht-page-size-section__select-wrapper select {
+  padding-inline-start: 8px;
+  padding-inline-end: 8px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  border-radius: 2px;
+  color: #222;
+  background-color: #f0f0f0;
+  border: none;
+  font-size: inherit;
+  cursor: pointer;
+}
+.ht-root-wrapper .ht-page-size-section__select-wrapper select:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.ht-root-wrapper .ht-page-size-section__select-wrapper select:hover:not(:disabled) {
+  background-color: #e0e0e0;
+}
+.ht-root-wrapper .ht-page-size-section__select-wrapper select:focus {
+  background-color: #e0e0e0;
+  outline: 1px solid #1a42e8;
+}
+
+.ht-root-wrapper .ht-page-counter-section {
+  margin-inline-end: auto;
+}
+.ht-root-wrapper .ht-page-navigation-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ht-root-wrapper .ht-page-navigation-section button {
+  font-size: inherit;
+  color: #222;
+  border: none;
+  padding: 4px;
+  border-radius: 2px;
+  cursor: pointer;
+}
+.ht-root-wrapper .ht-page-navigation-section button::before {
+  display: block;
+  width: 16px;
+  height: 16px;
+  line-height: 16px;
+  text-align: center;
+}
+.ht-root-wrapper .ht-page-navigation-section .ht-page-first::before {
+  content: "\21A4";
+}
+
+.ht-root-wrapper .ht-page-navigation-section .ht-page-prev::before {
+  content: "\21A2";
+}
+
+.ht-root-wrapper .ht-page-navigation-section .ht-page-next::before {
+  content: "\21A3";
+}
+
+.ht-root-wrapper .ht-page-navigation-section .ht-page-last::before {
+  content: "\21A6";
+}
+.ht-root-wrapper .ht-page-navigation-section button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.ht-root-wrapper .ht-page-navigation-section button:hover:not(:disabled) {
+  background-color: #e0e0e0;
+}
+.ht-root-wrapper .ht-page-navigation-section button:focus {
+  outline: 1px solid #1a42e8;
+}
+.ht-root-wrapper .ht-page-navigation-section span {
+  white-space: nowrap;
+}
