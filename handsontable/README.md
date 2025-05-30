@@ -80,8 +80,8 @@ You can also use [Yarn](https://yarnpkg.com/package/handsontable), [NuGet](https
 ### Provide an HTML container
 
   ```html
-  <!-- Set the container's ID and apply the desired theme -->
-  <div id="handsontable-grid" class="ht-theme-main-dark-auto"></div>
+  <!-- Set the container's ID -->
+  <div id="handsontable-grid"></div>
   ```
 
 ### Setup
@@ -96,6 +96,9 @@ You can also use [Yarn](https://yarnpkg.com/package/handsontable), [NuGet](https
   const element = document.getElementById('handsontable-grid');
   
   new Handsontable(element, {
+    // theme name with obligatory ht-theme-* prefix
+    themeName: 'ht-theme-main-dark-auto',
+    // other options
     data: [
       { company: 'Tagcat', country: 'United Kingdom', rating: 4.4 },
       { company: 'Zoomzone', country: 'Japan', rating: 4.5 },
@@ -143,12 +146,15 @@ You can also use [Yarn](https://yarnpkg.com/package/handsontable), [NuGet](https
       />
     </head>
     <body>
-      <div id="handsontable-grid" class="ht-theme-main-dark-auto"></div>
+      <div id="handsontable-grid"></div>
       <script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
       <script>
         const element = document.getElementById("handsontable-grid");
   
         new Handsontable(element, {
+          // theme name with obligatory ht-theme-* prefix
+          themeName: 'ht-theme-main-dark-auto',
+          // other options
           data: [
             { company: "Tagcat", country: "United Kingdom", rating: 4.4 },
             { company: "Zoomzone", country: "Japan", rating: 4.5 },

@@ -110,26 +110,25 @@ registerAllModules();
 
 const ExampleComponent = () => {
   return (
-    <div class="ht-theme-main-dark-auto">
-      <HotTable
-        data={[
-          { company: 'Tagcat', country: 'United Kingdom', rating: 4.4 },
-          { company: 'Zoomzone', country: 'Japan', rating: 4.5 },
-          { company: 'Meeveo', country: 'United States', rating: 4.6 },
-        ]}
-        rowHeaders={true}
-        colHeaders={true}
-        navigableHeaders={true}
-        tabNavigation={true}
-        multiColumnSorting={true}
-        headerClassName="htLeft"
-        licenseKey="non-commercial-and-evaluation"
-      >
-        <HotColumn title="Company" data="company" width="100"></HotColumn>
-        <HotColumn title="Country" data="country" width="170" type="dropdown" source={['United Kingdom', 'Japan', 'United States']}></HotColumn>
-        <HotColumn title="Rating" data="rating" width="100" type="numeric"></HotColumn>
-      </HotTable>
-    </div>
+    <HotTable
+      theme="ht-theme-main-dark-auto"
+      data={[
+        { company: 'Tagcat', country: 'United Kingdom', rating: 4.4 },
+        { company: 'Zoomzone', country: 'Japan', rating: 4.5 },
+        { company: 'Meeveo', country: 'United States', rating: 4.6 },
+      ]}
+      rowHeaders={true}
+      colHeaders={true}
+      navigableHeaders={true}
+      tabNavigation={true}
+      multiColumnSorting={true}
+      headerClassName="htLeft"
+      licenseKey="non-commercial-and-evaluation"
+    >
+      <HotColumn title="Company" data="company" width="100"></HotColumn>
+      <HotColumn title="Country" data="country" width="170" type="dropdown" source={['United Kingdom', 'Japan', 'United States']}></HotColumn>
+      <HotColumn title="Rating" data="rating" width="100" type="numeric"></HotColumn>
+    </HotTable>
   );
 };
 ```
