@@ -9,6 +9,9 @@ pageClass: migration-guide
 react:
   id: oh5ffbjc
   metaTitle: Migrate from 9.0 to 10.0 - React Data Grid | Handsontable
+angular:
+  id: a1bu3jwp
+  metaTitle: Migrate from 9.0 to 10.0 - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
 ---

@@ -9,6 +9,9 @@ searchCategory: API Reference
 react:
   id: iauj1mv1
   metaTitle: 'API reference: Plugins - React Data Grid | Handsontable'
+angular:
+  id: gueng7dm
+  metaTitle: 'API reference: Plugins - Angular Data Grid | Handsontable'
 ---
 
 # Available plugins

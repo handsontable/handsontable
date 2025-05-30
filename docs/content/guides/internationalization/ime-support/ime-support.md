@@ -14,6 +14,9 @@ tags:
 react:
   id: 8pqhhu5r
   metaTitle: IME support - React Data Grid | Handsontable
+angular:
+  id: 7u4izjbt
+  metaTitle: IME support - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Internationalization
 ---

@@ -8,6 +8,9 @@ canonicalUrl: /cell-renderer
 react:
   id: 2ej30mcg
   metaTitle: Cell renderer - React Data Grid | Handsontable
+angular:
+  id: 36rymylj
+  metaTitle: Cell renderer - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell functions
 ---
@@ -83,7 +86,7 @@ In this example, React's `Context` passes information available in the main app 
 ## Declare a custom renderer as a function
 
 You can also declare a custom renderer for the `HotTable` component by declaring it as a function. In the simplest scenario, you can pass the rendering function as the `hotRenderer` prop into `HotTable` or `HotColumn`.
-If you need the renderer to be a part of a `columns` config array, declare it under the `renderer` key. 
+If you need the renderer to be a part of a `columns` config array, declare it under the `renderer` key.
 
 The following example implements `@handsontable/react-wrapper` with a custom renderer added to one of the columns. It takes an image URL as the input and renders the image in the edited cell.
 
@@ -91,6 +94,70 @@ The following example implements `@handsontable/react-wrapper` with a custom ren
 
 @[code](@/content/guides/cell-functions/cell-renderer/react/example3.jsx)
 @[code](@/content/guides/cell-functions/cell-renderer/react/example3.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+## Overview
+
+A renderer is a function that determines how a cell looks.
+
+Set together, a renderer, [editor](@/guides/cell-functions/cell-editor/cell-editor.md) and [validator](@/guides/cell-functions/cell-validator/cell-validator.md) form a [cell type](@/guides/cell-types/cell-type/cell-type.md).
+
+## Declare a custom renderer as a component
+
+Handsontable's Angular wrapper lets you create custom cell renderers using Angular components. To do so, create a component that extends the base renderer class `HotCellRendererComponent`.
+
+In the Angular wrapper for Handsontable, a renderer can be provided either as an Angular component or as a function. To use your component as a Handsontable renderer, pass it in the `renderer` prop to the `HotTableComponent`, as you would with any other config option.
+
+::: tip
+
+Handsontable's [`autoRowSize`](@/api/options.md#autorowsize) and [`autoColumnSize`](@/api/options.md#autocolumnsize) options require calculating the widths/heights of some of the cells before rendering them into the table. For this reason, it's not currently possible to use them alongside component-based renderers, as they're created after the table's initialization.
+
+Be sure to turn those options off in your Handsontable configuration, as keeping them enabled may cause unexpected results. Please note that [`autoColumnSize`](@/api/options.md#autocolumnsize) is enabled by default.
+
+:::
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-functions/cell-renderer/angular/example1.ts)
+@[code](@/content/guides/cell-functions/cell-renderer/angular/example1.html)
+
+:::
+
+You can create and use a custom cell renderer component that utilizes the `rendererProps` property and use them inside the renderer component.
+
+::: example #example3 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-functions/cell-renderer/angular/example3.ts)
+@[code](@/content/guides/cell-functions/cell-renderer/angular/example3.html)
+
+:::
+
+## Declare a custom renderer as an Angular Template
+
+The Angular wrapper supports using an Angular `TemplateRef` as a renderer. This is particularly useful if you want to leverage the power of Angular templates directly, without creating a full component.
+
+::: example #example2 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-functions/cell-renderer/angular/example2.ts)
+@[code](@/content/guides/cell-functions/cell-renderer/angular/example2.html)
+
+:::
+
+## Declare a custom renderer as a function
+
+You can also declare a custom renderer for the `HotTable` component by declaring it as a function. In the simplest scenario, you can pass the rendering function as the `renderer` prop into `HotTableComponent`.
+
+The following example implements `@handsontable/angular-wrapper` with a custom renderer added to one of the columns. It takes an image URL as the input and renders the image in the edited cell.
+
+::: example #example4 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-functions/cell-renderer/angular/example4.ts)
+@[code](@/content/guides/cell-functions/cell-renderer/angular/example4.html)
 
 :::
 
@@ -104,7 +171,7 @@ Use the renderer name of your choice when configuring the column:
 
 :::
 
-::: only-for react
+::: only-for react angular
 
 ::: tip
 
@@ -151,12 +218,14 @@ It is possible to register your renderer and re-use it with the name you registe
 ::: only-for javascript
 
 ```js
-const container = document.querySelector('#container');
+const container = document.querySelector("#container");
 const hot = new Handsontable(container, {
   data: someData,
-  columns: [{
-    renderer: 'numeric'
-  }]
+  columns: [
+    {
+      renderer: "numeric",
+    },
+  ],
 });
 ```
 
@@ -167,10 +236,33 @@ const hot = new Handsontable(container, {
 ```jsx
 <HotTable
   data={someData}
-  columns={[{
-    renderer: 'numeric'
-  }]}
+  columns={[
+    {
+      renderer: "numeric",
+    },
+  ]}
 />
+```
+
+:::
+
+::: only-for angular
+
+```ts
+import { GridSettings, HotTableModule } from "@handsontable/angular-wrapper";
+
+const data = someData;
+const configurationOptions: GridSettings = {
+  columns: [
+    {
+      renderer: "numeric",
+    },
+  ],
+};
+```
+
+```html
+<hot-table [data]="data" [settings]="configurationOptions"></hot-table>
 ```
 
 :::
@@ -181,7 +273,7 @@ const hot = new Handsontable(container, {
 
 :::
 
-::: only-for react
+::: only-for react angular
 
 ### Register custom cell renderer
 
@@ -195,13 +287,13 @@ To register your own alias use `Handsontable.renderers.registerRenderer()` funct
 If you'd like to register `asterixDecoratorRenderer` under alias `asterix` you have to call:
 
 ```js
-Handsontable.renderers.registerRenderer('asterix', asterixDecoratorRenderer);
+Handsontable.renderers.registerRenderer("asterix", asterixDecoratorRenderer);
 ```
 
 Choose aliases wisely. If you register your renderer under name that is already registered, the target function will be overwritten:
 
 ```js
-Handsontable.renderers.registerRenderer('text', asterixDecoratorRenderer);
+Handsontable.renderers.registerRenderer("text", asterixDecoratorRenderer);
 ```
 
 Now 'text' alias points to `asterixDecoratorRenderer` function, not `Handsontable.renderers.TextRenderer`.
@@ -209,13 +301,13 @@ Now 'text' alias points to `asterixDecoratorRenderer` function, not `Handsontabl
 So, unless you intentionally want to overwrite an existing alias, try to choose a unique name. A good practice is prefixing your aliases with some custom name (for example your GitHub username) to minimize the possibility of name collisions. This is especially important if you want to publish your renderer, because you never know aliases has been registered by the user who uses your renderer.
 
 ```js
-Handsontable.renderers.registerRenderer('asterix', asterixDecoratorRenderer);
+Handsontable.renderers.registerRenderer("asterix", asterixDecoratorRenderer);
 ```
 
 Someone might already registered such alias
 
 ```js
-Handsontable.renderers.registerRenderer('my.asterix', asterixDecoratorRenderer);
+Handsontable.renderers.registerRenderer("my.asterix", asterixDecoratorRenderer);
 ```
 
 That's better.
@@ -226,7 +318,7 @@ That's better.
 
 :::
 
-::: only-for react
+::: only-for react angular
 
 ### Use an alias
 
@@ -237,7 +329,15 @@ The final touch is to use registered aliases. That way users can easily refer to
 To sum up, a well prepared renderer function should look like this:
 
 ```js
-function customRenderer(hotInstance, td, row, column, prop, value, cellProperties) {
+function customRenderer(
+  hotInstance,
+  td,
+  row,
+  column,
+  prop,
+  value,
+  cellProperties
+) {
   // Optionally include `BaseRenderer` which is responsible for
   // adding/removing CSS classes to/from the table cells.
   Handsontable.renderers.BaseRenderer.apply(this, arguments);
@@ -246,7 +346,7 @@ function customRenderer(hotInstance, td, row, column, prop, value, cellPropertie
 }
 
 // Register an alias
-Handsontable.renderers.registerRenderer('my.custom', customRenderer);
+Handsontable.renderers.registerRenderer("my.custom", customRenderer);
 ```
 
 From now on, you can use `customRenderer` like so:
@@ -254,12 +354,14 @@ From now on, you can use `customRenderer` like so:
 ::: only-for javascript
 
 ```js
-const container = document.querySelector('#container');
+const container = document.querySelector("#container");
 const hot = new Handsontable(container, {
   data: someData,
-  columns: [{
-    renderer: 'my.custom'
-  }]
+  columns: [
+    {
+      renderer: "my.custom",
+    },
+  ],
 });
 ```
 
@@ -270,10 +372,33 @@ const hot = new Handsontable(container, {
 ```jsx
 <HotTable
   data={someData}
-  columns={[{
-    renderer: 'my.custom'
-  }]}
+  columns={[
+    {
+      renderer: "my.custom",
+    },
+  ]}
 />
+```
+
+:::
+
+::: only-for angular
+
+```ts
+import { GridSettings, HotTableModule } from "@handsontable/angular-wrapper";
+
+const data = someData;
+const configurationOptions: GridSettings = {
+  columns: [
+    {
+      renderer: "my.custom",
+    },
+  ],
+};
+```
+
+```html
+<hot-table [data]="data" [settings]="configurationOptions"></hot-table>
 ```
 
 :::
@@ -284,7 +409,7 @@ const hot = new Handsontable(container, {
 
 :::
 
-::: only-for react
+::: only-for react angular
 
 ### Render custom HTML in cells
 
@@ -319,13 +444,24 @@ This example shows how to use custom cell renderers to display HTML content in a
 
 :::
 
+::: only-for angular
+
+::: example #example5 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-functions/cell-renderer/angular/example5.ts)
+@[code](@/content/guides/cell-functions/cell-renderer/angular/example5.html)
+
+:::
+
+:::
+
 ::: only-for javascript
 
 ## Render custom HTML in header
 
 :::
 
-::: only-for react
+::: only-for react angular
 
 ### Render custom HTML in header
 
@@ -356,13 +492,24 @@ You can also put HTML into row and column headers. If you need to attach events 
 
 :::
 
+::: only-for angular
+
+::: example #example6 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-functions/cell-renderer/angular/example6.ts)
+@[code](@/content/guides/cell-functions/cell-renderer/angular/example6.html)
+
+:::
+
+:::
+
 ::: only-for javascript
 
 ## Add event listeners in cell renderer function
 
 :::
 
-::: only-for react
+::: only-for react angular
 
 ### Add event listeners in cell renderer function
 
@@ -392,7 +539,7 @@ Cell renderers are called separately for every displayed cell, during every tabl
 <div class="boxes-list gray">
 
 - [Custom renderer in React](@/react/guides/cell-functions/cell-renderer/cell-renderer.md)
-- [Custom renderer in Angular](@/guides/integrate-with-angular/angular-custom-renderer-example/angular-custom-renderer-example.md)
+- [Custom renderer in Angular](@/angular/guides/cell-functions/cell-renderer/cell-renderer.md)
 - [Custom renderer in Vue 2](@/guides/integrate-with-vue/vue-custom-renderer-example/vue-custom-renderer-example.md)
 - [Custom renderer in Vue 3](@/guides/integrate-with-vue3/vue3-custom-renderer-example/vue3-custom-renderer-example.md)
 
@@ -402,11 +549,12 @@ Cell renderers are called separately for every displayed cell, during every tabl
 
 :::
 
-::: only-for react
+::: only-for react angular
 
 ## Related API reference
 
 :::
+
 
 - APIs:
   - [`BasePlugin`](@/api/basePlugin.md)

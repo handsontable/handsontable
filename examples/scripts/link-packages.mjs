@@ -28,6 +28,8 @@ const isPackageRequired = (packageName, packageLocation) => {
     packageLocation.includes(frameworkName) ||
     // If the required package is @handsontable/angular
     (frameworkName === 'angular' && packageName === '@handsontable/angular' && !isLegacyAngularExample) ||
+    // If the required package is @handsontable/angular-wrapper
+    (frameworkName === 'angular' && packageName === '@handsontable/angular-wrapper' && !isLegacyAngularExample) ||
     // If it's in the framework directory
     packageLocation.split('/').pop().includes(frameworkName) ||
     // If it's deeper in the framework directory
@@ -107,7 +109,7 @@ exampleFrameworkSubdirs.forEach((packagesLocation) => {
       }
 
       // Additional linking to all the examples for Angular (required to load css files from `angular.json`)
-      if (/^angular(-(\d+|next))?$/.test(frameworkLocationName)) {
+      if (/^angular(-(\d+|next|wrapper))?$/.test(frameworkLocationName)) {
         const angularPackageJson = fse.readJSONSync(`${packageLocation}/package.json`);
         const workspacesList = angularPackageJson?.workspaces.packages || angularPackageJson?.workspaces;
 

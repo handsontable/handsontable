@@ -12,6 +12,9 @@ tags:
 react:
   id: prlcpqk8
   metaTitle: Row headers - React Data Grid | Handsontable
+angular:
+  id: jtqk0t2p
+  metaTitle: Row headers - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
 ---
@@ -57,6 +60,17 @@ To enable the plugin, set the [`bindRowsWithHeaders`](@/api/options.md#bindrowsw
 
 @[code](@/content/guides/rows/row-header/react/example1.jsx)
 @[code](@/content/guides/rows/row-header/react/example1.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/guides/rows/row-header/angular/example1.ts)
+@[code](@/content/guides/rows/row-header/angular/example1.html)
 
 :::
 

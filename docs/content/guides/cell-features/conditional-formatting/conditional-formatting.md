@@ -8,6 +8,9 @@ canonicalUrl: /conditional-formatting
 react:
   id: eyatgywe
   metaTitle: Conditional formatting - React Data Grid | Handsontable
+angular:
+  id: uz3qc620
+  metaTitle: Conditional formatting - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features
 ---
@@ -50,6 +53,17 @@ This demo shows how to use the cell type renderer feature to make some condition
 @[code](@/content/guides/cell-features/conditional-formatting/react/example1.css)
 @[code](@/content/guides/cell-features/conditional-formatting/react/example1.jsx)
 @[code](@/content/guides/cell-features/conditional-formatting/react/example1.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-features/conditional-formatting/angular/example1.ts)
+@[code](@/content/guides/cell-features/conditional-formatting/angular/example1.html)
 
 :::
 

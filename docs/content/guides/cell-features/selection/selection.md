@@ -11,6 +11,9 @@ tags:
 react:
   id: k88lznt8
   metaTitle: Selection - React Data Grid | Handsontable
+angular:
+  id: 8l4fmyur
+  metaTitle: Selection - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features
 ---
@@ -64,6 +67,17 @@ Possible values of [`selectionMode`](@/api/options.md#selectionmode):
 
 :::
 
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-features/selection/angular/example1.ts)
+@[code](@/content/guides/cell-features/selection/angular/example1.html)
+
+:::
+
+:::
+
 ## Get data from the selected ranges
 
 To retrieve the selected cells as an array of arrays, you use the [`getSelected()`](@/api/core.md#getselected) or [`getSelectedRange()`](@/api/core.md#getselectedrange) methods.
@@ -86,6 +100,17 @@ To retrieve the selected cells as an array of arrays, you use the [`getSelected(
 
 @[code](@/content/guides/cell-features/selection/react/example2.jsx)
 @[code](@/content/guides/cell-features/selection/react/example2.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example2 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-features/selection/angular/example2.ts)
+@[code](@/content/guides/cell-features/selection/angular/example2.html)
 
 :::
 
@@ -120,6 +145,17 @@ You may want to delete, format, or otherwise change the selected cells. For exam
 
 :::
 
+::: only-for angular
+
+::: example #example3 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-features/selection/angular/example3.ts)
+@[code](@/content/guides/cell-features/selection/angular/example3.html)
+
+:::
+
+:::
+
 ## Style the selection area
 
 You can easily change the background color, using CSS styles. The main, light blue background color is defined in the `.area` class.
@@ -135,18 +171,22 @@ When you use keyboard navigation to cross an edge of the grid, you can set cell 
 #### Jump across vertical edges
 
 To enable jumping across the left and right edges:
+
 - Set the [`autoWrapRow`](@/api/options.md#autowraprow) configuration option to `true`.
 
 To jump across a vertical edge:
+
 - When cell selection is on a row's first cell, press the left arrow key.
 - When cell selection is on a row's last cell, press the right arrow key, or press <kbd>**Tab**</kbd>.
 
 #### Jump across horizontal edges
 
 To enable jumping across the top and bottom edges:
+
 - Set the [`autoWrapCol`](@/api/options.md#autowrapcol) configuration option to `true`.
 
 To jump across a horizontal edge:
+
 - When cell selection is on a column's first cell, press the up arrow key.
 - When cell selection is on a column's last cell, press the down arrow key, or press <kbd>**Enter**</kbd>.
 

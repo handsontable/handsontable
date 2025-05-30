@@ -12,6 +12,9 @@ tags:
 react:
   id: 24n21dwi
   metaTitle: Column virtualization - React Data Grid | Handsontable
+angular:
+  id: qhqjtdsr
+  metaTitle: Column virtualization - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
 ---
@@ -64,6 +67,17 @@ The demo below presents a data grid displaying one million cells (1000 rows x 10
 
 @[code](@/content/guides/columns/column-virtualization/react/example1.jsx)
 @[code](@/content/guides/columns/column-virtualization/react/example1.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-virtualization/angular/example1.ts)
+@[code](@/content/guides/columns/column-virtualization/angular/example1.html)
 
 :::
 

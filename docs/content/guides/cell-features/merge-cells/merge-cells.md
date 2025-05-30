@@ -8,6 +8,9 @@ canonicalUrl: /merge-cells
 react:
   id: ulndkavi
   metaTitle: Merge cells - React Data Grid | Handsontable
+angular:
+  id: pbcdsao1
+  metaTitle: Merge cells - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features
 ---
@@ -44,6 +47,12 @@ To initialize Handsontable with predefined merged cells, provide merged cells de
 
 :::
 
+::: only-for angular
+
+`settings = { mergeCells:[{ row: 1, col: 1, rowspan: 2, colspan: 2 }]}`
+
+:::
+
 ::: only-for javascript
 
 ::: example #example1 --js 1 --ts 2
@@ -61,6 +70,17 @@ To initialize Handsontable with predefined merged cells, provide merged cells de
 
 @[code](@/content/guides/cell-features/merge-cells/react/example1.jsx)
 @[code](@/content/guides/cell-features/merge-cells/react/example1.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-features/merge-cells/angular/example1.ts)
+@[code](@/content/guides/cell-features/merge-cells/angular/example1.html)
 
 :::
 
@@ -94,6 +114,19 @@ mergeCells={{
 
 :::
 
+::: only-for angular
+
+```ts
+settings = {
+  mergeCells: {
+    virtualized: true,
+    cells: [{ row: 1, col: 1, rowspan: 200, colspan: 2 }],
+  },
+};
+```
+
+:::
+
 The example below uses virtualized merged cells. It's also recommended to increase the buffer of rendered rows/columns to minimize the flickering effects.
 
 ::: only-for javascript
@@ -113,6 +146,17 @@ The example below uses virtualized merged cells. It's also recommended to increa
 
 @[code](@/content/guides/cell-features/merge-cells/react/example2.jsx)
 @[code](@/content/guides/cell-features/merge-cells/react/example2.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example2 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-features/merge-cells/angular/example2.ts)
+@[code](@/content/guides/cell-features/merge-cells/angular/example2.html)
 
 :::
 

@@ -11,6 +11,9 @@ tags:
 react:
   id: 24wgu6o9
   metaTitle: Icon pack - React Data Grid | Handsontable
+angular:
+  id: 5qu8t28e
+  metaTitle: Icon pack - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Accessories and menus
 ---

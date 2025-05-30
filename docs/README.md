@@ -66,8 +66,8 @@ From the `docs` directory, you can run the following npm scripts:
 * `npm run docs:review [COMMIT_HASH]` – Deploys the documentation locally at a `[COMMIT_HASH]` commit.
 * `npm run docs:test:example-checker` – Runs the tests that checks if all Docs examples work.
 * `npm run docs:code-examples:generate-js content/guides/path/to/example.ts` – Generate JS/JSX version of the code example (needs to be run before commiting any change to TS/TSX code example)
-* `npm run docs:code-examples:generate-all-js` – Generate all JS/JSX versions of the TS/TSX code examples in content/guides/ directory
-* `npm run docs:code-examples:format-all-ts"` – Runs the autoformatter on all TS and TSX example files in the content/guides/ directory
+* `npm run docs:code-examples:generate-all-js` – Generate all JS/JSX versions of the TS/TSX code examples in content/guides/ directory (ignores the angular examples)
+* `npm run docs:code-examples:format-all-ts"` – Runs the autoformatter on all TS and TSX example files in the content/guides/ directory (ignores the angular examples)
 
 ## Handsontable documentation directory structure
 

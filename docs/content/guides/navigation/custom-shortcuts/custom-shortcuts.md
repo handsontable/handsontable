@@ -19,6 +19,9 @@ tags:
 react:
   id: d5ay8gj1
   metaTitle: Custom shortcuts - React Data Grid | Handsontable
+angular:
+  id: lqk5kuws
+  metaTitle: Custom shortcuts - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Navigation
 ---
@@ -40,6 +43,18 @@ You can completely customize your keyboard shortcuts, using the [`ShortcutManage
 To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
 
 For more information, see the [Instance methods](@/guides/getting-started/react-methods/react-methods.md) page.
+
+:::
+
+:::
+
+::: only-for angular
+
+::: tip
+
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+
+For more information, see the [Instance access](@/guides/getting-started/angular-hot-instance/angular-hot-instance.md) page.
 
 :::
 
@@ -239,6 +254,25 @@ hot.addHook('beforeKeyDown', (event) => {
     }
   }}
 />
+```
+
+:::
+
+::: only-for angular
+
+```ts
+settings = {
+  beforeKeyDown: (event) => {
+    // the `Enter` shortcut won't work
+    if (event.key === "enter") {
+      return false;
+    }
+  },
+};
+```
+
+```html
+<hot-table [settings]="settings" />
 ```
 
 :::

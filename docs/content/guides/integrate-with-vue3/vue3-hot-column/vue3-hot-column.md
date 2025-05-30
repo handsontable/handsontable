@@ -8,6 +8,9 @@ canonicalUrl: /vue3-hot-column
 react:
   id: vevcltww
   metaTitle: HotColumn component - Vue 3 Data Grid | Handsontable
+angular:
+  id: 65dx0xyo
+  metaTitle: HotColumn component - Vue 3 Data Grid | Handsontable
 searchCategory: Guides
 category: Integrate with Vue 3
 ---

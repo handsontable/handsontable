@@ -96,7 +96,7 @@
         return window.exports;
 
       }
-      else if (key === '@handsontable/angular') {
+      else if (key === '@handsontable/angular-wrapper') {
         ns = 'Handsontable.angular';
 
       } else if (key === '@handsontable/react-wrapper') {

@@ -8,6 +8,9 @@ canonicalUrl: /vue-modules
 react:
   id: ijlm2nkx
   metaTitle: Modules - Vue 2 Data Grid | Handsontable
+angular:
+  id: nwf12mbz
+  metaTitle: Modules - Vue 2 Data Grid | Handsontable
 searchCategory: Guides
 category: Integrate with Vue 2
 ---

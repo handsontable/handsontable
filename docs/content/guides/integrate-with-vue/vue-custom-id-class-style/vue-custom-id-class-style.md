@@ -8,6 +8,9 @@ canonicalUrl: /vue-custom-id-class-style
 react:
   id: neeell9r
   metaTitle: Custom ID, class, and style - Vue 2 Data Grid | Handsontable
+angular:
+  id: 66xx8lni
+  metaTitle: Custom ID, class, and style - Vue 2 Data Grid | Handsontable
 searchCategory: Guides
 category: Integrate with Vue 2
 ---

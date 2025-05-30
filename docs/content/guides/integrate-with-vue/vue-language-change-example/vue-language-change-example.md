@@ -8,6 +8,9 @@ canonicalUrl: /vue-language-change-example
 react:
   id: kyfo402o
   metaTitle: Language change - Vue 2 Data Grid | Handsontable
+angular:
+  id: lqvafqid
+  metaTitle: Language change - Vue 2 Data Grid | Handsontable
 searchCategory: Guides
 category: Integrate with Vue 2
 ---

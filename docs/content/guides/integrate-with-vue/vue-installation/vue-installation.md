@@ -8,6 +8,9 @@ canonicalUrl: /vue-installation
 react:
   id: psozke11
   metaTitle: Installation - Vue 2 Data Grid | Handsontable
+angular:
+  id: 1yl06ihk
+  metaTitle: Installation - Vue 2 Data Grid | Handsontable
 searchCategory: Guides
 category: Integrate with Vue 2
 ---

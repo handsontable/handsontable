@@ -19,6 +19,9 @@ tags:
 react:
   id: g4mu790t
   metaTitle: Layout direction - React Data Grid | Handsontable
+angular:
+  id: orgwjmih
+  metaTitle: Layout direction - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Internationalization
 ---
@@ -67,6 +70,17 @@ To try out Handsontable's RTL support, check out the demo below:
 
 @[code](@/content/guides/internationalization/layout-direction/react/example1.jsx)
 @[code](@/content/guides/internationalization/layout-direction/react/example1.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular-languages --ts 1 --html 2
+
+@[code](@/content/guides/internationalization/layout-direction/angular/example1.ts)
+@[code](@/content/guides/internationalization/layout-direction/angular/example1.html)
 
 :::
 
@@ -131,6 +145,17 @@ In the example below, the RTL layout direction is inherited from a `dir` attribu
 
 :::
 
+::: only-for angular
+
+::: example #example2 :angular --ts 1 --html 2
+
+@[code](@/content/guides/internationalization/layout-direction/angular/example2.ts)
+@[code](@/content/guides/internationalization/layout-direction/angular/example2.html)
+
+:::
+
+:::
+
 ### Set the layout direction to RTL
 
 You can render Handsontable from the right to the left, regardless of your HTML document's `dir` attribute.
@@ -155,6 +180,17 @@ and set it to `'rtl'`:
 
 @[code](@/content/guides/internationalization/layout-direction/react/example3.jsx)
 @[code](@/content/guides/internationalization/layout-direction/react/example3.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example3 :angular --ts 1 --html 2
+
+@[code](@/content/guides/internationalization/layout-direction/angular/example3.ts)
+@[code](@/content/guides/internationalization/layout-direction/angular/example3.html)
 
 :::
 
@@ -189,6 +225,17 @@ and set it to `'ltr'`:
 
 :::
 
+::: only-for angular
+
+::: example #example4 :angular --ts 1 --html 2
+
+@[code](@/content/guides/internationalization/layout-direction/angular/example4.ts)
+@[code](@/content/guides/internationalization/layout-direction/angular/example4.html)
+
+:::
+
+:::
+
 ## Set the horizontal text alignment
 
 You can apply different horizontal [text alignment](@/guides/cell-features/text-alignment/text-alignment.md) settings, overwriting the horizontal text alignment resulting from your grid's layout direction.
@@ -212,6 +259,17 @@ In the example below, some columns are explicitly aligned to the left, center, o
 
 @[code](@/content/guides/internationalization/layout-direction/react/example5.jsx)
 @[code](@/content/guides/internationalization/layout-direction/react/example5.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example5 :angular --ts 1 --html 2
+
+@[code](@/content/guides/internationalization/layout-direction/angular/example5.ts)
+@[code](@/content/guides/internationalization/layout-direction/angular/example5.html)
 
 :::
 

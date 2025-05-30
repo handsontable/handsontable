@@ -8,6 +8,9 @@ canonicalUrl: /vue-setting-up-a-translation
 react:
   id: dt7dct4e
   metaTitle: Setting up a translation - Vue 2 Data Grid | Handsontable
+angular:
+  id: ctozuyy9
+  metaTitle: Setting up a translation - Vue 2 Data Grid | Handsontable
 searchCategory: Guides
 category: Integrate with Vue 2
 ---

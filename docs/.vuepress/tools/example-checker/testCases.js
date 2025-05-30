@@ -40,6 +40,7 @@ const testCases = [
       // The formula calculation page contains an example with two Handsontable instances, hence the compensation here.
       ['/javascript-data-grid/formula-calculation', { expectedCount: 1 }],
       ['/react-data-grid/formula-calculation', { expectedCount: 1 }],
+      ['/angular-data-grid/formula-calculation', { expectedCount: 1 }],
     ]);
 
     // ----------------------------------------

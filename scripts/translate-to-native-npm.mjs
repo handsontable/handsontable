@@ -45,6 +45,7 @@ switch (modifier) {
     let workspacesCommandList = '-w ' + [
       'handsontable',
       '@handsontable/angular',
+      '@handsontable/angular-wrapper',
       '@handsontable/react',
       '@handsontable/react-wrapper',
       '@handsontable/vue',

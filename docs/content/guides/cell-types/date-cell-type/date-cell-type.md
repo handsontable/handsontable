@@ -8,6 +8,9 @@ canonicalUrl: /date-cell-type
 react:
   id: u7t2rn0n
   metaTitle: Date cell type - React Data Grid | Handsontable
+angular:
+  id: 9vvupwbx
+  metaTitle: Date cell type - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
 ---
@@ -57,6 +60,16 @@ dateFormat={'YYYY-MM-DD'}
 
 :::
 
+::: only-for angular
+
+```ts
+settings = {
+  dateFormat: "YYYY-MM-DD",
+};
+```
+
+:::
+
 ### Autocorrect invalid dates
 
 By default, when the user enters a date in a format that doesn't match the [`dateFormat`](@/api/options.md#dateformat) setting, the date is treated as invalid.
@@ -93,6 +106,27 @@ correctFormat={true}
 
 :::
 
+::: only-for angular
+
+```ts
+settings = {
+  dateFormat: "YYYY-MM-DD",
+  // default behavior
+  // date entered as `30/12/2022` will be invalid
+  correctFormat: false,
+};
+```
+
+```ts
+settings = {
+  dateFormat: "YYYY-MM-DD",
+  // date entered as `30/12/2022` will be corrected to `2022/12/30`
+  correctFormat: true,
+};
+```
+
+:::
+
 ## Basic example
 
 Click on one of the ▼ icons to open an interactive date editor.
@@ -114,6 +148,17 @@ Click on one of the ▼ icons to open an interactive date editor.
 
 @[code](@/content/guides/cell-types/date-cell-type/react/example1.jsx)
 @[code](@/content/guides/cell-types/date-cell-type/react/example1.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-types/date-cell-type/angular/example1.ts)
+@[code](@/content/guides/cell-types/date-cell-type/angular/example1.html)
 
 :::
 

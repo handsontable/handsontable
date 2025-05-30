@@ -8,6 +8,9 @@ canonicalUrl: /cell-function
 react:
   id: i2sqtwh6
   metaTitle: Cell functions - React Data Grid | Handsontable
+angular:
+  id: 377lnttu
+  metaTitle: Cell functions - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell functions
 ---

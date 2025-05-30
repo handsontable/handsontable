@@ -14,6 +14,9 @@ tags:
 react:
   id: qz0qgi9f
   metaTitle: Language - React Data Grid | Handsontable
+angular:
+  id: eujz2e6s
+  metaTitle: Language - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Internationalization
 ---
@@ -41,6 +44,7 @@ To properly use the internationalization feature, you need to load the language 
 ::: only-for javascript
 
 1. **ES modules (ESM)**
+
   ```js
   import Handsontable from 'handsontable/base';
   import { registerLanguageDictionary, deDE } from 'handsontable/i18n';
@@ -53,6 +57,7 @@ To properly use the internationalization feature, you need to load the language 
   ```
 
 2. **CommonJS (CJS)**
+
   ```js
   const Handsontable = require('handsontable/base').default;
   const { registerLanguageDictionary, deDE } = require('handsontable/i18n');
@@ -82,6 +87,7 @@ To properly use the internationalization feature, you need to load the language 
 ::: only-for react
 
 1. **ES modules (ESM)**
+
   ```js
   import Handsontable from 'handsontable/base';
   import { HotTable } from '@handsontable/react-wrapper';
@@ -99,6 +105,7 @@ To properly use the internationalization feature, you need to load the language 
   ```
 
 2. **CommonJS (CJS)**
+
   ```js
   const Handsontable = require('handsontable/base').default;
   const { registerLanguageDictionary, deDE } = require('handsontable/i18n');
@@ -110,9 +117,39 @@ To properly use the internationalization feature, you need to load the language 
       <HotTable
         language={deDE.languageCode}
       />
-    );
-  };
+  });
   ```
+
+:::
+
+::: only-for angular
+
+1. **ES modules (ESM)**
+
+```ts
+import { Component } from "@angular/core";
+import {
+  GridSettings,
+  HotTableComponent,
+  HotTableModule,
+} from "@handsontable/angular-wrapper";
+import { registerLanguageDictionary, deDE } from "handsontable/i18n";
+
+registerLanguageDictionary(deDE);
+
+@Component({
+  standalone: true,
+  imports: [HotTableModule],
+  template: ` <div class="ht-theme-main">
+    <hot-table [settings]="settings" />
+  </div>`,
+})
+export class Component {
+  settings: GridSettings = {
+    language: deDE.languageCode,
+  };
+}
+```
 
 :::
 
@@ -144,11 +181,33 @@ Language files were loaded after loading Handsontable.
 
 :::
 
+::: only-for angular
+
+::: example #example1 :angular-languages --ts 1 --html 2
+
+@[code](@/content/guides/internationalization/language/angular/example1.ts)
+@[code](@/content/guides/internationalization/language/angular/example1.html)
+
+:::
+
+:::
+
 ::: only-for react
 
 ::: example #example2 :react-languages
 
 @[code](@/content/guides/internationalization/language/react/example2.jsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example2 :angular-languages --ts 1 --html 2
+
+@[code](@/content/guides/internationalization/language/angular/example2.ts)
+@[code](@/content/guides/internationalization/language/angular/example2.html)
 
 :::
 
