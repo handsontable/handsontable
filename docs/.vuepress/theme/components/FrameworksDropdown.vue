@@ -82,6 +82,7 @@ export default {
             link: this.getLink(id),
             target: '_self',
             isHtmlLink: true,
+            icon: `i-${id}`,
           };
         }
       );
