@@ -310,7 +310,7 @@ describe('Core navigation keyboard shortcuts', () => {
       expect(hot1.getSelectedRange()).toBeUndefined();
     });
 
-    it('should activate the table, select visible cell (there are some hidden rows), and then leave the table', async() => {
+    it('should activate the table, select visible not hidden cell, and then leave the table (there are some hidden rows)', async() => {
       const hot = handsontable({
         data: createSpreadsheetData(3, 3),
         rowHeaders: true,
@@ -354,6 +354,29 @@ describe('Core navigation keyboard shortcuts', () => {
 
       expect(hot.getSelectedRange()).toBeUndefined();
       expect(hot1.getSelectedRange()).toBeUndefined();
+    });
+
+    it('should activate the table, select visible not hidden cell, and then leave the table (previously selected cell is hidden)', async() => {
+      handsontable({
+        data: createSpreadsheetData(3, 3),
+        rowHeaders: true,
+        colHeaders: true,
+        navigableHeaders: true,
+        tabNavigation: true,
+      });
+
+      await selectCell(1, 2);
+      await keyDownUp('tab');
+
+      const map1 = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
+
+      map1.setValueAtIndex(2, false);
+
+      await render();
+
+      triggerTabNavigationFromBottom(); // emulates native browser Tab navigation
+
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: 2,2 to: 2,2']);
     });
 
     it('should activate the table, select header (there are no cells), and then leave the table', async() => {

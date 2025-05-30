@@ -1136,5 +1136,35 @@ describe('NestedHeaders', () => {
         expect(calls.argsFor(23)).toEqual([3, getCell(-1, 3), 2]);
       });
     });
+
+    it('should unregister the hooks from the index mappers after the plugin is enabled and disabled several times', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 90),
+        colHeaders: true,
+        nestedHeaders: generateComplexSetup(4, 70, true),
+        width: 400,
+        height: 300,
+      });
+
+      const rowMapperHooks = columnIndexMapper().__localHooks.cacheUpdated.length;
+      const columnMapperHooks = columnIndexMapper().__localHooks.cacheUpdated.length;
+
+      await updateSettings({
+        nestedHeaders: false,
+      });
+      await updateSettings({
+        nestedHeaders: generateComplexSetup(4, 70, true),
+      });
+
+      await updateSettings({
+        nestedHeaders: false,
+      });
+      await updateSettings({
+        nestedHeaders: generateComplexSetup(4, 70, true),
+      });
+
+      expect(rowMapperHooks).toBe(rowIndexMapper().__localHooks.cacheUpdated.length);
+      expect(columnMapperHooks).toBe(columnIndexMapper().__localHooks.cacheUpdated.length);
+    });
   });
 });
