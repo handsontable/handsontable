@@ -13,6 +13,7 @@
       vertical-align: middle;
       cursor: pointer;
       margin-top: -2px;
+      outline: none;
 
       &:first-child {
         margin-inline-end: var(--ht-gap-size);
@@ -79,7 +80,6 @@
           &::before {
             border-color: var(--ht-checkbox-checked-focus-border-color);
             background-color: var(--ht-checkbox-checked-focus-background-color);
-            outline: 1px solid var(--ht-checkbox-checked-focus-ring-color);
           }
 
           // Icon
@@ -119,8 +119,47 @@
       }
 
       &:indeterminate {
+        // Box
         &::before {
-          background-color: red;
+          border-color: var(--ht-checkbox-indeterminate-border-color);
+          background-color: var(--ht-checkbox-indeterminate-background-color);
+        }
+
+        // Icon
+        &::after {
+          color: var(--ht-checkbox-indeterminate-icon-color);
+        }
+
+        &:disabled {
+          // Box
+          &::before {
+            border-color: var(
+              --ht-checkbox-indeterminate-disabled-border-color
+            );
+            background-color: var(
+              --ht-checkbox-indeterminate-disabled-background-color
+            );
+          }
+
+          // Icon
+          &::after {
+            color: var(--ht-checkbox-indeterminate-disabled-icon-color);
+          }
+        }
+
+        &:focus {
+          // Box
+          &::before {
+            border-color: var(--ht-checkbox-indeterminate-focus-border-color);
+            background-color: var(
+              --ht-checkbox-indeterminate-focus-background-color
+            );
+          }
+
+          // Icon
+          &::after {
+            color: var(--ht-checkbox-indeterminate-focus-icon-color);
+          }
         }
       }
 
