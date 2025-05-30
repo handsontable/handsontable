@@ -425,40 +425,28 @@ class DataMap {
 
     const dataSource = this.dataSource;
     const maxCols = this.tableMeta.maxCols;
-    const countSourceCols = this.hot.countSourceCols();
-    let columnIndex = index;
-
-    if (typeof columnIndex !== 'number' || columnIndex >= countSourceCols) {
-      columnIndex = countSourceCols;
-    }
-
-    const continueProcess = this.hot.runHooks('beforeCreateCol', columnIndex, amount, source);
-
-    if (continueProcess === false) {
-      return {
-        delta: 0,
-      };
-    }
-
-    let physicalColumnIndex = countSourceCols;
-
-    if (columnIndex < this.hot.countCols()) {
-      physicalColumnIndex = this.hot.toPhysicalColumn(columnIndex);
-    }
-
+    const numberOfSourceCols = this.hot.countSourceCols();
+    const numberOfVisualCols = this.hot.countCols();
     const numberOfSourceRows = this.hot.countSourceRows();
-    let nrOfColumns = this.hot.countCols();
-    let numberOfCreatedCols = 0;
-    let currentIndex = physicalColumnIndex;
+    const visualColumnIndex = (typeof index === 'number' && index <= numberOfSourceCols) ? index : numberOfVisualCols;
 
-    if (mode === 'end') {
-      currentIndex = Math.min(currentIndex + 1, countSourceCols);
+    if (this.hot.runHooks('beforeCreateCol', visualColumnIndex, amount, source) === false) {
+      return { delta: 0 };
     }
 
-    const startPhysicalIndex = currentIndex;
+    const physicalColumnIndex = (visualColumnIndex < numberOfVisualCols) ?
+      this.hot.toPhysicalColumn(visualColumnIndex) : numberOfSourceCols;
+    const firstNewPhysicalColumnIndex = (mode === 'end') ?
+      Math.min(physicalColumnIndex + 1, numberOfSourceCols) : physicalColumnIndex;
 
-    while (numberOfCreatedCols < amount && nrOfColumns < maxCols) {
-      if (typeof columnIndex !== 'number' || columnIndex >= nrOfColumns) {
+    let numberOfCreatedCols = 0;
+
+    for (
+      let col = firstNewPhysicalColumnIndex;
+      numberOfCreatedCols < amount && numberOfVisualCols + numberOfCreatedCols < maxCols;
+      col++
+    ) {
+      if (typeof visualColumnIndex !== 'number' || visualColumnIndex >= numberOfVisualCols + numberOfCreatedCols) {
         if (numberOfSourceRows > 0) {
           for (let row = 0; row < numberOfSourceRows; row += 1) {
             if (typeof dataSource[row] === 'undefined') {
@@ -473,16 +461,12 @@ class DataMap {
 
       } else {
         for (let row = 0; row < numberOfSourceRows; row++) {
-          dataSource[row].splice(currentIndex, 0, null);
+          dataSource[row].splice(col, 0, null);
         }
       }
 
       numberOfCreatedCols += 1;
-      currentIndex += 1;
-      nrOfColumns += 1;
     }
-
-    this.hot.columnIndexMapper.insertIndexes(columnIndex, numberOfCreatedCols);
 
     if (numberOfCreatedCols > 0) {
       if ((index === undefined || index === null)) {
@@ -491,18 +475,23 @@ class DataMap {
         this.metaManager.createColumn(null, numberOfCreatedCols);
 
       } else if (source !== 'auto') {
-        this.metaManager.createColumn(startPhysicalIndex, amount);
+        this.metaManager.createColumn(firstNewPhysicalColumnIndex, amount);
       }
     }
 
-    const newVisualColumnIndex = this.hot.toVisualColumn(startPhysicalIndex);
+    this.hot.columnIndexMapper.insertIndexes(visualColumnIndex, numberOfCreatedCols, mode);
 
-    this.hot.runHooks('afterCreateCol', newVisualColumnIndex, numberOfCreatedCols, source);
+    this.hot.runHooks(
+      'afterCreateCol',
+      this.hot.toVisualColumn(firstNewPhysicalColumnIndex),
+      numberOfCreatedCols,
+      source
+    );
     this.refreshDuckSchema();
 
     return {
       delta: numberOfCreatedCols,
-      startPhysicalIndex,
+      startPhysicalIndex: firstNewPhysicalColumnIndex,
     };
   }
 
@@ -579,8 +568,9 @@ class DataMap {
 
     const removedPhysicalIndexes = this.visualColumnsToPhysical(columnIndex, amount);
     const descendingPhysicalColumns = removedPhysicalIndexes.slice(0).sort((a, b) => b - a);
-    const actionWasNotCancelled = this.hot
-      .runHooks('beforeRemoveCol', columnIndex, amount, removedPhysicalIndexes, source);
+    const actionWasNotCancelled = this.hot.runHooks(
+      'beforeRemoveCol', columnIndex, amount, removedPhysicalIndexes, source
+    );
 
     if (actionWasNotCancelled === false) {
       return false;

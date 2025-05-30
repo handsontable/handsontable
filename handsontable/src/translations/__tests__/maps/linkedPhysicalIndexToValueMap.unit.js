@@ -251,6 +251,25 @@ describe('LinkedPhysicalIndexToValueMap', () => {
     ]);
   });
 
+  // I think the behavior demonstrated in this unit test is a mistake.
+  // LinkedPhysicalIndexToValueMap extends IndexMap but doesn't override the method getValueAtIndex.
+  // I wanted to fix the bug, but a lot of code seems to rely on this behavior,
+  // so instead I created this unit test to cement the implementation and prevent future developers from mistakenly changing it.
+  it('should ignore orderOfIndexes when calling `getValueAtIndex`', () => {
+    const indexToValueMap = new IndexToValueMap();
+
+    indexToValueMap.init(5);
+    indexToValueMap.setValueAtIndex(0, 2, 0);
+    indexToValueMap.setValueAtIndex(1, 1, 0);
+    indexToValueMap.setValueAtIndex(2, 0, 0);
+
+    expect(indexToValueMap.indexedValues).toEqual([2, 1, 0, null, null]);
+    expect(indexToValueMap.orderOfIndexes).toEqual([2, 1, 0]);
+    expect(indexToValueMap.getValueAtIndex(0)).toBe(2);
+    expect(indexToValueMap.getValueAtIndex(1)).toBe(1);
+    expect(indexToValueMap.getValueAtIndex(2)).toBe(0);
+  });
+
   describe('Triggering `change` hook', () => {
     it('should trigger `change` hook on initialization once', () => {
       const indexToValueMap = new IndexToValueMap();
