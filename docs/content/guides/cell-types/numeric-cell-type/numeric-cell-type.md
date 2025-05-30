@@ -8,6 +8,9 @@ canonicalUrl: /numeric-cell-type
 react:
   id: e6zmmawj
   metaTitle: Numeric cell type - React Data Grid | Handsontable
+angular:
+  id: odhu846f
+  metaTitle: Numeric cell type - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
 ---

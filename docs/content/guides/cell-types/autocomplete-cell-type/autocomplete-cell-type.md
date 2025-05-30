@@ -8,6 +8,9 @@ canonicalUrl: /autocomplete-cell-type
 react:
   id: vnnvp396
   metaTitle: Autocomplete cell type - React Data Grid | Handsontable
+angular:
+  id: md3vhixm
+  metaTitle: Autocomplete cell type - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
 ---

@@ -13,6 +13,9 @@ tags:
 react:
   id: r2x6mh6h
   metaTitle: Context menu - React Data Grid | Handsontable
+angular:
+  id: 3xspgb3u
+  metaTitle: Context menu - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Accessories and menus
 ---

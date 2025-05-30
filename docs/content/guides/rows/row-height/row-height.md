@@ -19,6 +19,9 @@ tags:
 react:
   id: 87ulwfs2
   metaTitle: Row heights - React Data Grid | Handsontable
+angular:
+  id: h42skmvo
+  metaTitle: Row heights - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
 ---

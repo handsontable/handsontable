@@ -8,6 +8,9 @@ canonicalUrl: /column-moving
 react:
   id: zhlikwwh
   metaTitle: Column moving - React Data Grid | Handsontable
+angular:
+  id: fsfvsoi3
+  metaTitle: Column moving - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
 ---

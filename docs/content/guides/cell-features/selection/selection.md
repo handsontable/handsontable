@@ -11,6 +11,9 @@ tags:
 react:
   id: k88lznt8
   metaTitle: Selection - React Data Grid | Handsontable
+angular:
+  id: 8l4fmyur
+  metaTitle: Selection - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features
 ---

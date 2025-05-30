@@ -19,6 +19,9 @@ tags:
 react:
   id: d5ay8gj1
   metaTitle: Custom shortcuts - React Data Grid | Handsontable
+angular:
+  id: lqk5kuws
+  metaTitle: Custom shortcuts - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Navigation
 ---

@@ -8,6 +8,9 @@ canonicalUrl: /
 react:
   id: fexwrrj2
   metaTitle: React Data Grid - Documentation | Handsontable
+angular:
+  id: igd8lqh8
+  metaTitle: Angular Data Grid - Documentation | Handsontable
 searchCategory: Guides
 category: Getting started
 ---

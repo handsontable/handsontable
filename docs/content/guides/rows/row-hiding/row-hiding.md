@@ -8,6 +8,9 @@ canonicalUrl: /row-hiding
 react:
   id: al1djb6l
   metaTitle: Row hiding - React Data Grid | Handsontable
+angular:
+  id: 2dxb42jh
+  metaTitle: Row hiding - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
 ---

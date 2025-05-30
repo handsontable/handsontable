@@ -12,6 +12,10 @@ react:
   id: ccqbm8hn
   metaTitle: Demo - React Data Grid | Handsontable
   description: Play around with a demo of Handsontable in React.
+angular:
+  id: i2n378hh
+  metaTitle: Demo - Angular Data Grid | Handsontable
+  description: Play around with a demo of Handsontable in Angular.
 searchCategory: Guides
 category: Getting started
 ---

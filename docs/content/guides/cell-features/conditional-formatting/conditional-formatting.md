@@ -8,6 +8,9 @@ canonicalUrl: /conditional-formatting
 react:
   id: eyatgywe
   metaTitle: Conditional formatting - React Data Grid | Handsontable
+angular:
+  id: uz3qc620
+  metaTitle: Conditional formatting - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features
 ---

@@ -8,6 +8,9 @@ canonicalUrl: /vue3-setting-up-a-translation
 react:
   id: 5sootj6b
   metaTitle: Setting up a translation - Vue 3 Data Grid | Handsontable
+angular:
+  id: wangjjlr
+  metaTitle: Setting up a translation - Vue 3 Data Grid | Handsontable
 searchCategory: Guides
 category: Integrate with Vue 3
 ---

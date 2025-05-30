@@ -12,6 +12,9 @@ tags:
 react:
   id: rib1rhmf
   metaTitle: Saving data - React Data Grid | Handsontable
+angular:
+  id: uny2nvqk
+  metaTitle: Saving data - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
 ---

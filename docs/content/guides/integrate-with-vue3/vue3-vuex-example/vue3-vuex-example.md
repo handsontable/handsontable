@@ -8,6 +8,9 @@ canonicalUrl: /vue3-vuex-example
 react:
   id: z78880e4
   metaTitle: Integration with Vuex - Vue 3 Data Grid - Handsontable
+angular:
+  id: b16i0n4r
+  metaTitle: Integration with Vuex - Vue 3 Data Grid - Handsontable
 searchCategory: Guides
 category: Integrate with Vue 3
 ---

@@ -13,6 +13,9 @@ tags:
 react:
   id: 2ei1omu0
   metaTitle: Column groups - React Data Grid | Handsontable
+angular:
+  id: 2k8cam98
+  metaTitle: Column groups - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
 ---

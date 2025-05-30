@@ -8,6 +8,9 @@ canonicalUrl: /password-cell-type
 react:
   id: gydne13d
   metaTitle: Password cell type - React Data Grid | Handsontable
+angular:
+  id: 2x5025ww
+  metaTitle: Password cell type - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
 ---

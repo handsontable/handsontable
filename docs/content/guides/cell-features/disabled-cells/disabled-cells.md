@@ -14,6 +14,9 @@ tags:
 react:
   id: zhv7fs29
   metaTitle: Disabled cells - React Data Grid | Handsontable
+angular:
+  id: 2epog9e1
+  metaTitle: Disabled cells - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features
 ---

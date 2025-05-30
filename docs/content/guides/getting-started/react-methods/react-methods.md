@@ -13,6 +13,9 @@ tags:
   - methods
 react:
   metaTitle: Instance methods - React Data Grid | Handsontable
+angular:
+  id: 7a8puryp
+  metaTitle: Instance methods - Angular Data Grid | Handsontable
 searchCategory: Guides
 onlyFor: react
 category: Getting started

@@ -10,6 +10,9 @@ tags:
 react:
   id: uc7w8gu1
   metaTitle: Column menu - React Data Grid | Handsontable
+angular:
+  id: zclxcsij
+  metaTitle: Column menu - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
 ---

@@ -9,6 +9,9 @@ pageClass: migration-guide
 react:
   id: ncj9bstu
   metaTitle: Migrate from 11.1 to 12.0 - React Data Grid | Handsontable
+angular:
+  id: e9gbxrvk
+  metaTitle: Migrate from 11.1 to 12.0 - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
 ---

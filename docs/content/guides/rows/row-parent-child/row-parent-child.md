@@ -17,6 +17,9 @@ tags:
 react:
   id: vo8uukt2
   metaTitle: Row parent-child - React Data Grid | Handsontable
+angular:
+  id: ojdl5nkd
+  metaTitle: Row parent-child - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
 ---

@@ -16,6 +16,9 @@ tags:
 react:
   id: r3x4l0gp
   metaTitle: Column summary - React Data Grid | Handsontable
+angular:
+  id: 1rptt5bu
+  metaTitle: Column summary - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
 ---

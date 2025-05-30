@@ -8,6 +8,9 @@ canonicalUrl: /column-header
 react:
   id: 5e0tnexi
   metaTitle: Column headers - React Data Grid | Handsontable
+angular:
+  id: owl7h4t1
+  metaTitle: Column headers - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
 ---

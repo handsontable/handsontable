@@ -12,6 +12,9 @@ tags:
 react:
   id: prlcpqk8
   metaTitle: Row headers - React Data Grid | Handsontable
+angular:
+  id: jtqk0t2p
+  metaTitle: Row headers - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
 ---

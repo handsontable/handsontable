@@ -12,6 +12,9 @@ tags:
 react:
   id: y66k6b2h
   metaTitle: Custom plugins - React Data Grid | Handsontable
+angular:
+  id: ompl9j5i
+  metaTitle: Custom plugins - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Tools and building
 ---

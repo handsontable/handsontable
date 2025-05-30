@@ -12,6 +12,9 @@ tags:
 react:
   id: 24n21dwi
   metaTitle: Column virtualization - React Data Grid | Handsontable
+angular:
+  id: qhqjtdsr
+  metaTitle: Column virtualization - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
 ---

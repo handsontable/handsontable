@@ -12,6 +12,9 @@ tags:
 react:
   id: 3xqdvk3u
   metaTitle: Batch operations - React Data Grid | Handsontable
+angular:
+  id: tnvv2pjr
+  metaTitle: Batch operations - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Optimization
 ---

@@ -12,6 +12,9 @@ tags:
 react:
   id: gmpbmisy
   metaTitle: Configuration options - React Data Grid | Handsontable
+angular:
+  id: 16bofyho
+  metaTitle: Configuration options - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
 ---

@@ -8,6 +8,9 @@ canonicalUrl: /checkbox-cell-type
 react:
   id: tfr1gisf
   metaTitle: Checkbox cell type - React Data Grid | Handsontable
+angular:
+  id: 4cn9mp6z
+  metaTitle: Checkbox cell type - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
 ---

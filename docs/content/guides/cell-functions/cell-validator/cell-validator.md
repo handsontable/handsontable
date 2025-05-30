@@ -8,6 +8,9 @@ canonicalUrl: /cell-validator
 react:
   id: fvou30a5
   metaTitle: Cell validator - React Data Grid | Handsontable
+angular:
+  id: ut7amcaz
+  metaTitle: Cell validator - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell functions
 ---

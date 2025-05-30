@@ -14,6 +14,9 @@ tags:
 react:
   id: qz0qgi9f
   metaTitle: Language - React Data Grid | Handsontable
+angular:
+  id: eujz2e6s
+  metaTitle: Language - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Internationalization
 ---

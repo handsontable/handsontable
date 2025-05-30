@@ -8,6 +8,9 @@ canonicalUrl: /text-alignment
 react:
   id: 959g5cbf
   metaTitle: Text alignment - React Data Grid | Handsontable
+angular:
+  id: h6sbjq1g
+  metaTitle: Text alignment - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features
 ---

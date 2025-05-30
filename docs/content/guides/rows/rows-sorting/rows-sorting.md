@@ -27,6 +27,9 @@ tags:
 react:
   id: h4jfevxj
   metaTitle: Rows sorting - React Data Grid | Handsontable
+angular:
+  id: kzkj37v5
+  metaTitle: Rows sorting - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
 ---

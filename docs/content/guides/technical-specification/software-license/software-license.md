@@ -8,6 +8,9 @@ canonicalUrl: /software-license
 react:
   id: ea206i3o
   metaTitle: Software license - React Data Grid | Handsontable
+angular:
+  id: fe9wliki
+  metaTitle: Software license - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Technical specification
 ---

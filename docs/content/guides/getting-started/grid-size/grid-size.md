@@ -13,6 +13,9 @@ tags:
 react:
   id: cifepxzs
   metaTitle: Grid size - React Data Grid | Handsontable
+angular:
+  id: w6lvb55f
+  metaTitle: Grid size - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
 ---

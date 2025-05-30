@@ -12,6 +12,9 @@ tags:
 react:
   id: mlctr1ri
   metaTitle: Clipboard - React Data Grid | Handsontable
+angular:
+  id: q473yaal
+  metaTitle: Clipboard - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features
 ---

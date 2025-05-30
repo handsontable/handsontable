@@ -22,6 +22,9 @@ tags:
 react:
   id: jn2po47i
   metaTitle: Themes - React Data Grid | Handsontable
+angular:
+  id: 1sco6djp
+  metaTitle: Themes - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Styling
 ---

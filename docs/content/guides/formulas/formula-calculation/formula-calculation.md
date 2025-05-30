@@ -18,6 +18,9 @@ tags:
 react:
   id: 05z3cjez
   metaTitle: Formula calculation - React Data Grid | Handsontable
+angular:
+  id: hqzll0fz
+  metaTitle: Formula calculation - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Formulas
 ---
