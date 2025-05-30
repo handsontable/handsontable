@@ -98,7 +98,8 @@ const dictionary = {
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'Hodnota',
   [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Druhá hodnota',
 
-  [C.PAGINATION_PAGE_SIZE_SECTION]: 'Počet řádků:',
+  [C.PAGINATION_SECTION]: 'Stránkování',
+  [C.PAGINATION_PAGE_SIZE_SECTION]: 'Počet řádků',
   [C.PAGINATION_COUNTER_SECTION]: '[start] - [end] z [total]',
   [C.PAGINATION_NAV_SECTION]: 'Stránka [currentPage] z [totalPages]',
   [C.PAGINATION_FIRST_PAGE]: 'Přejít na první stránku',

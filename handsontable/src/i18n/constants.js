@@ -102,6 +102,7 @@ export const FILTERS_BUTTONS_PLACEHOLDER_VALUE = `${FILTERS_NAMESPACE}buttons.pl
 export const FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE = `${FILTERS_NAMESPACE}buttons.placeholder.secondValue`;
 
 export const PAGINATION_NAMESPACE = 'Pagination:';
+export const PAGINATION_SECTION = `${PAGINATION_NAMESPACE}section.pagination`;
 export const PAGINATION_PAGE_SIZE_SECTION = `${PAGINATION_NAMESPACE}section.pageSize`;
 export const PAGINATION_COUNTER_SECTION = `${PAGINATION_NAMESPACE}section.counter`;
 export const PAGINATION_NAV_SECTION = `${PAGINATION_NAMESPACE}section.navigation`;

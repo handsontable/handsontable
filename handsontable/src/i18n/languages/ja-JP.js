@@ -103,7 +103,8 @@ const dictionary = {
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: '値',
   [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: '値2',
 
-  [C.PAGINATION_PAGE_SIZE_SECTION]: '行数：',
+  [C.PAGINATION_SECTION]: 'ページネーション',
+  [C.PAGINATION_PAGE_SIZE_SECTION]: '行数',
   [C.PAGINATION_COUNTER_SECTION]: '[start] - [end] / 全[total]件',
   [C.PAGINATION_NAV_SECTION]: 'ページ [currentPage] / [totalPages]',
   [C.PAGINATION_FIRST_PAGE]: '最初のページへ移動',

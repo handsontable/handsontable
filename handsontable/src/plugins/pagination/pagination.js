@@ -3,6 +3,7 @@ import { clamp } from '../../helpers/number';
 import { addClass, removeClass } from '../../helpers/dom/element';
 import { PaginationUI } from './ui';
 import { checkPluginSettingsConflict } from './utils';
+import { announce } from '../../utils/a11yAnnouncer';
 
 export const PLUGIN_KEY = 'pagination';
 export const PLUGIN_PRIORITY = 900;
@@ -105,6 +106,7 @@ export class Pagination extends BasePlugin {
         rootElement: this.hot.rootElement,
         phraseTranslator: (...args) => this.hot.getTranslatedPhrase(...args),
         shouldHaveBorder: () => this.#computeNeedsBorder(),
+        a11yAnnouncer: message => announce(message),
       });
 
       this.#ui
@@ -403,7 +405,7 @@ export class Pagination extends BasePlugin {
         renderableIndexes.forEach(index => this.#pagedRowsMap.setValueAtIndex(index, true));
       }, true);
     } else {
-      this.hot.rowIndexMapper.updateCache(true); // TODO: test me
+      this.hot.rowIndexMapper.updateCache(true);
     }
 
     this.#internalCall = false;

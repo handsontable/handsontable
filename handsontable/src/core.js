@@ -46,6 +46,10 @@ import { getThemeClassName } from './helpers/themes';
 import { StylesHandler } from './utils/stylesHandler';
 import { warn } from './helpers/console';
 import { CellRangeToRenderableMapper } from './core/coordsMapper/rangeToRenderableMapper';
+import {
+  install as installAccessibilityAnnouncer,
+  uninstall as uninstallAccessibilityAnnouncer,
+} from './utils/a11yAnnouncer';
 
 let activeGuid = null;
 
@@ -1231,6 +1235,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
     if (isRootInstance(this)) {
       installFocusCatcher(instance);
+      installAccessibilityAnnouncer(instance.rootPortalElement);
     }
 
     instance.runHooks('init');
@@ -4657,6 +4662,10 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     }
 
     dataSource = null;
+
+    if (isRootInstance(this)) {
+      uninstallAccessibilityAnnouncer();
+    }
 
     this.getShortcutManager().destroy();
     moduleRegisterer.clear();

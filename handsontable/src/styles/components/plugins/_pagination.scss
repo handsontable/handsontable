@@ -18,6 +18,7 @@
       padding-inline: var(--ht-pagination-bar-horizontal-padding);
       padding-block: var(--ht-pagination-bar-vertical-padding);
       font-size: var(--ht-font-size);
+      line-height: var(--ht-line-height);
       box-sizing: border-box;
 
       &--bordered {
@@ -40,10 +41,10 @@
         border: 1px solid var(--ht-input-border-color);
 
         select {
-          padding-inline-start: calc(var(--ht-gap-size));
+          padding-inline-start: var(--ht-gap-size);
           padding-inline-end: calc(var(--ht-gap-size) + var(--ht-icon-size));
-          padding-top: calc(var(--ht-gap-size));
-          padding-bottom: calc(var(--ht-gap-size));
+          padding-top: var(--ht-gap-size);
+          padding-bottom: var(--ht-gap-size);
           border-radius: 4px;
           color: var(--ht-input-foreground-color);
           background-color: var(--ht-pagination-bar-background-color);
@@ -63,7 +64,7 @@
 
           &:focus {
             background-color: var(--ht-input-focus-background-color);
-            outline: 2px solid var(--ht-accent-color);
+            outline: 1px solid var(--ht-accent-color);
           }
         }
 
@@ -112,7 +113,7 @@
         }
 
         &:focus {
-          outline: 2px solid var(--ht-accent-color);
+          outline: 1px solid var(--ht-accent-color);
         }
       }
 

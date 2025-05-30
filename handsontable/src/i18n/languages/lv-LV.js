@@ -101,7 +101,8 @@ const dictionary = {
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'Vērtība',
   [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Otra vērtība',
 
-  [C.PAGINATION_PAGE_SIZE_SECTION]: 'Rindu skaits:',
+  [C.PAGINATION_SECTION]: 'Paginācija',
+  [C.PAGINATION_PAGE_SIZE_SECTION]: 'Rindu skaits',
   [C.PAGINATION_COUNTER_SECTION]: '[start] - [end] no [total]',
   [C.PAGINATION_NAV_SECTION]: 'Lapa [currentPage] no [totalPages]',
   [C.PAGINATION_FIRST_PAGE]: 'Pāriet uz pirmo lapu',

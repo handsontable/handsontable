@@ -101,7 +101,8 @@ const dictionary = {
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'Value',
   [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Second value',
 
-  [C.PAGINATION_PAGE_SIZE_SECTION]: 'Page size:',
+  [C.PAGINATION_SECTION]: 'Pagination',
+  [C.PAGINATION_PAGE_SIZE_SECTION]: 'Page size',
   [C.PAGINATION_COUNTER_SECTION]: '[start] - [end] of [total]',
   [C.PAGINATION_NAV_SECTION]: 'Page [currentPage] of [totalPages]',
   [C.PAGINATION_FIRST_PAGE]: 'Go to first page',

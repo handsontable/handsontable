@@ -103,7 +103,8 @@ const dictionary = {
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'Waarde',
   [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Tweede waarde',
 
-  [C.PAGINATION_PAGE_SIZE_SECTION]: 'Aantal rijen:',
+  [C.PAGINATION_SECTION]: 'Paginering',
+  [C.PAGINATION_PAGE_SIZE_SECTION]: 'Aantal rijen',
   [C.PAGINATION_COUNTER_SECTION]: '[start] - [end] van [total]',
   [C.PAGINATION_NAV_SECTION]: 'Pagina [currentPage] van [totalPages]',
   [C.PAGINATION_FIRST_PAGE]: 'Ga naar eerste pagina',

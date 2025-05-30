@@ -97,7 +97,8 @@ const dictionary = {
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'Verdi',
   [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Andre verdi',
 
-  [C.PAGINATION_PAGE_SIZE_SECTION]: 'Antall rader:',
+  [C.PAGINATION_SECTION]: 'Paginering',
+  [C.PAGINATION_PAGE_SIZE_SECTION]: 'Antall rader',
   [C.PAGINATION_COUNTER_SECTION]: '[start] - [end] av [total]',
   [C.PAGINATION_NAV_SECTION]: 'Side [currentPage] av [totalPages]',
   [C.PAGINATION_FIRST_PAGE]: 'Gå til første side',

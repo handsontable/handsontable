@@ -100,7 +100,8 @@ const dictionary = {
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: '值',
   [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: '第二值',
 
-  [C.PAGINATION_PAGE_SIZE_SECTION]: '每页行数：',
+  [C.PAGINATION_SECTION]: '分页',
+  [C.PAGINATION_PAGE_SIZE_SECTION]: '每页行数',
   [C.PAGINATION_COUNTER_SECTION]: '[start] - [end] 共 [total]',
   [C.PAGINATION_NAV_SECTION]: '第 [currentPage] 页，共 [totalPages] 页',
   [C.PAGINATION_FIRST_PAGE]: '转到第一页',

@@ -97,7 +97,8 @@ const dictionary = {
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'Значение',
   [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Второе значение',
 
-  [C.PAGINATION_PAGE_SIZE_SECTION]: 'Количество строк:',
+  [C.PAGINATION_SECTION]: 'Пагинация',
+  [C.PAGINATION_PAGE_SIZE_SECTION]: 'Количество строк',
   [C.PAGINATION_COUNTER_SECTION]: '[start] - [end] из [total]',
   [C.PAGINATION_NAV_SECTION]: 'Страница [currentPage] из [totalPages]',
   [C.PAGINATION_FIRST_PAGE]: 'Перейти на первую страницу',

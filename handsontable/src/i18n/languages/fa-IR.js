@@ -101,7 +101,8 @@ const dictionary = {
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'مقدار',
   [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'مقدار دوم',
 
-  [C.PAGINATION_PAGE_SIZE_SECTION]: 'تعداد سطرها:',
+  [C.PAGINATION_SECTION]: 'صفحه‌بندی',
+  [C.PAGINATION_PAGE_SIZE_SECTION]: 'تعداد سطرها',
   [C.PAGINATION_COUNTER_SECTION]: '[start] - [end] از [total]',
   [C.PAGINATION_NAV_SECTION]: 'صفحه [currentPage] از [totalPages]',
   [C.PAGINATION_FIRST_PAGE]: 'به اولین صفحه بروید',

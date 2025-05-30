@@ -19,7 +19,7 @@ const TEMPLATE = `
     </div>
   </div>
   <div data-ref="pageCounterSection" class="ht-page-counter-section" style="display: none"></div>
-  <nav data-ref="pageNavSection" class="ht-page-navigation-section" aria-label="Pagination" style="display: none">
+  <nav data-ref="pageNavSection" class="ht-page-navigation-section" style="display: none">
     <button data-ref="first" class="ht-page-first"></button>
     <button data-ref="prev" class="ht-page-prev"></button>
     <span data-ref="pageNavLabel"></span>
@@ -54,11 +54,16 @@ export class PaginationUI {
    * @type {function(): void} A function that determines whether the pagination should have a border.
    */
   #shouldHaveBorder;
+  /**
+   * @type {function(string): void} A function allowing to announce accessibility messages.
+   */
+  #a11yAnnouncer;
 
-  constructor({ rootElement, phraseTranslator, shouldHaveBorder }) {
+  constructor({ rootElement, phraseTranslator, shouldHaveBorder, a11yAnnouncer }) {
     this.#rootElement = rootElement;
     this.#phraseTranslator = phraseTranslator;
     this.#shouldHaveBorder = shouldHaveBorder;
+    this.#a11yAnnouncer = a11yAnnouncer;
 
     this.install();
   }
@@ -78,17 +83,9 @@ export class PaginationUI {
       next,
       last,
       pageSizeSelect,
-      pageNavSection,
-      pageSizeLabel,
     } = elements.refs;
 
     this.#refs = elements.refs;
-
-    setAttribute(pageNavSection, [
-      ...[A11Y_LABEL('Pagination')],
-    ]);
-
-    pageSizeLabel.textContent = this.#phraseTranslator(C.PAGINATION_PAGE_SIZE_SECTION);
 
     first.addEventListener('click', () => this.runLocalHooks('firstPageClick'));
     prev.addEventListener('click', () => this.runLocalHooks('prevPageClick'));
@@ -155,24 +152,39 @@ export class PaginationUI {
       next,
       last,
       pageCounterSection,
+      pageNavSection,
       pageNavLabel,
       pageSizeSelect,
+      pageSizeLabel,
     } = this.#refs;
 
     const firstRenderedRow = (pageSize * (currentPage - 1)) + 1;
     const lastRenderedRow = firstRenderedRow + numberOfRenderedRows - 1;
 
-    pageCounterSection.textContent = this.#phraseTranslator(C.PAGINATION_COUNTER_SECTION, {
+    const counterSectionText = this.#phraseTranslator(C.PAGINATION_COUNTER_SECTION, {
       start: firstRenderedRow,
       end: lastRenderedRow,
       total: totalRenderedRows,
     });
-    pageNavLabel.textContent = this.#phraseTranslator(C.PAGINATION_NAV_SECTION, {
+    const navLabelText = this.#phraseTranslator(C.PAGINATION_NAV_SECTION, {
       currentPage,
       totalPages,
     });
-    pageSizeSelect.innerHTML = '';
+    const pageSizeLabelText = this.#phraseTranslator(C.PAGINATION_PAGE_SIZE_SECTION);
 
+    pageCounterSection.textContent = counterSectionText;
+    pageNavLabel.textContent = navLabelText;
+    pageSizeSelect.textContent = '';
+    pageSizeLabel.textContent = `${pageSizeLabelText}:`;
+
+    setAttribute(pageNavSection, [
+      ...[A11Y_LABEL(this.#phraseTranslator(C.PAGINATION_SECTION))],
+    ]);
+    setAttribute(pageSizeSelect, [
+      ...[A11Y_LABEL(this.#phraseTranslator(C.PAGINATION_PAGE_SIZE_SECTION))],
+    ]);
+
+    this.#a11yAnnouncer(navLabelText);
     this.refreshBorderState();
 
     pageSizeList.forEach((pageSizeItem) => {
@@ -189,16 +201,16 @@ export class PaginationUI {
     const isLastPage = currentPage === totalPages;
 
     if (isFirstPage) {
-      setAttribute(first, 'disabled');
-      setAttribute(prev, 'disabled');
+      setAttribute(first, 'disabled', true);
+      setAttribute(prev, 'disabled', true);
     } else {
       removeAttribute(first, 'disabled');
       removeAttribute(prev, 'disabled');
     }
 
     if (isLastPage) {
-      setAttribute(next, 'disabled');
-      setAttribute(last, 'disabled');
+      setAttribute(next, 'disabled', true);
+      setAttribute(last, 'disabled', true);
     } else {
       removeAttribute(next, 'disabled');
       removeAttribute(last, 'disabled');

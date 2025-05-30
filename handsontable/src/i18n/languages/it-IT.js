@@ -100,7 +100,8 @@ const dictionary = {
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'Valore',
   [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Sostituisci con',
 
-  [C.PAGINATION_PAGE_SIZE_SECTION]: 'Numero righe:',
+  [C.PAGINATION_SECTION]: 'Paginazione',
+  [C.PAGINATION_PAGE_SIZE_SECTION]: 'Numero righe',
   [C.PAGINATION_COUNTER_SECTION]: '[start] - [end] di [total]',
   [C.PAGINATION_NAV_SECTION]: 'Pagina [currentPage] di [totalPages]',
   [C.PAGINATION_FIRST_PAGE]: 'Vai alla prima pagina',
