@@ -1,12 +1,4 @@
-import {
-  useRef,
-  MouseEvent,
-  JSXElementConstructor,
-  Key,
-  ReactElement,
-  ReactNode,
-  ReactPortal,
-} from 'react';
+import { useRef, MouseEvent, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal } from 'react';
 import { createStore } from 'redux';
 import { Provider, useSelector, useDispatch } from 'react-redux';
 import { HotTable } from '@handsontable/react-wrapper';
@@ -54,6 +46,7 @@ const ExampleComponentContent = () => {
           </div>
 
           <HotTable
+            themeName="ht-theme-main"
             ref={hotTableComponentRef}
             beforeChange={onBeforeHotChange}
             autoWrapRow={true}
@@ -76,10 +69,7 @@ const ExampleComponentContent = () => {
                             | string
                             | number
                             | boolean
-                            | ReactElement<
-                                any,
-                                string | JSXElementConstructor<any>
-                              >
+                            | ReactElement<any, string | JSXElementConstructor<any>>
                             | Iterable<ReactNode>
                             | ReactPortal
                             | null

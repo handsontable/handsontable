@@ -8,10 +8,7 @@ registerAllModules();
 
 const ExampleComponent = () => {
   // remove the column menu button from the 'Brand', 'Price', and 'Date' columns
-  const removeColumnMenuButton = (
-    col: number,
-    TH: { querySelector: (value: string) => any }
-  ) => {
+  const removeColumnMenuButton = (col: number, TH: { querySelector: (value: string) => any }) => {
     if (col > 1) {
       const button = TH.querySelector('.changeType');
 
@@ -25,6 +22,7 @@ const ExampleComponent = () => {
 
   return (
     <HotTable
+      themeName="ht-theme-main"
       data={[
         {
           brand: 'Jetpulse',

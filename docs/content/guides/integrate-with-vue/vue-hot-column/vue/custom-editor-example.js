@@ -91,6 +91,9 @@ const ExampleComponent = {
   data() {
     return {
       hotSettings: {
+        
+        themeName: 'ht-theme-main',
+        // other options
         data: [
           ['Obrien Fischer'], ['Alexandria Gordon'], ['John Stafford'], ['Regina Waters'], ['Kay Bentley'], ['Emerson Drake'], ['Deann Stapleton']
         ],

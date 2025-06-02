@@ -5,6 +5,7 @@ import 'handsontable/styles/ht-theme-main.css';
 const container = document.querySelector('#example4');
 
 new Handsontable(container, {
+  themeName: 'ht-theme-main',
   data: [
     ['', 'Tesla', 'Toyota', 'Honda', 'Ford'],
     ['2018', 10, 11, 12, 13, 15, 16],

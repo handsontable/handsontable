@@ -20,7 +20,7 @@ type Product = {
   standalone: false,
   template: `
     <div>
-      <hot-table [data]="dataset" [colHeaders]="true" height="auto" [autoWrapRow]="true" [autoWrapCol]="true" licenseKey="non-commercial-and-evaluation">
+      <hot-table theme="ht-theme-main" [data]="dataset" [colHeaders]="true" height="auto" [autoWrapRow]="true" [autoWrapCol]="true" licenseKey="non-commercial-and-evaluation">
         <hot-column
           data="productName"
           [readOnly]="true"

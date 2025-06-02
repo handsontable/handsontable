@@ -18,6 +18,7 @@ const data: Array<Array<string | number>> = [
 
 const ExampleComponent: FC = () => (
   <HotTable
+    themeName="ht-theme-main"
     data={structuredClone(data)}
     height="auto"
     autoWrapRow={true}

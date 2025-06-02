@@ -14,6 +14,7 @@ const data = new Array(100) // number of rows
 const container = document.querySelector('#example1');
 
 new Handsontable(container, {
+  themeName: 'ht-theme-main',
   data,
   colWidths: 100,
   width: '100%',

@@ -10,6 +10,7 @@ registerAllModules();
 const ExampleComponent = () => {
   return (
     <HotTable
+      themeName="ht-theme-main"
       id="hot"
       data={[
         ['A1', 'B1', 'C1', 'D1', 'E1'],

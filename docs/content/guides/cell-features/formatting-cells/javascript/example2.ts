@@ -11,14 +11,12 @@ const customStylesRenderer: BaseRenderer = (hotInstance, TD, ...rest) => {
   TD.style.background = '#d7f1e1';
 };
 
-Handsontable.renderers.registerRenderer(
-  'customStylesRenderer',
-  customStylesRenderer
-);
+Handsontable.renderers.registerRenderer('customStylesRenderer', customStylesRenderer);
 
 const container = document.querySelector('#example2')!;
 
 new Handsontable(container, {
+  themeName: 'ht-theme-main',
   data: [
     ['A1', 'B1', 'C1', 'D1', 'E1'],
     ['A2', 'B2', 'C2', 'D2', 'E2'],

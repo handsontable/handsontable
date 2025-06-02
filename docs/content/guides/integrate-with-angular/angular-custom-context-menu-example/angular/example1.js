@@ -15,6 +15,9 @@ import { ContextMenu } from 'handsontable/plugins/contextMenu';
 
 export class AppComponent {
   hotSettings: Handsontable.GridSettings = {
+    
+    themeName: 'ht-theme-main',
+    // other options
     data: [
       ['A1', 'B1', 'C1', 'D1', 'E1'],
       ['A2', 'B2', 'C2', 'D2', 'E2'],

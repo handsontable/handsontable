@@ -17,6 +17,7 @@ const data = [
 
 const ExampleComponent = () => (
   <HotTable
+    themeName="ht-theme-main"
     data={structuredClone(data)}
     height="auto"
     autoWrapRow={true}

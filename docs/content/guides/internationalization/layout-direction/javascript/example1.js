@@ -32,6 +32,7 @@ function generateArabicData() {
 const container = document.querySelector('#example1');
 
 new Handsontable(container, {
+  themeName: 'ht-theme-main',
   licenseKey: 'non-commercial-and-evaluation',
   data: generateArabicData(),
   colHeaders: true,

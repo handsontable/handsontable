@@ -6,6 +6,7 @@ import { ColumnSorting } from 'handsontable/plugins';
 const container = document.querySelector('#exampleSortByAPI')!;
 
 const hot = new Handsontable(container, {
+  themeName: 'ht-theme-main',
   data: [
     {
       brand: 'Jetpulse',

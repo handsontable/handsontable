@@ -19,6 +19,9 @@ const ExampleComponent = defineComponent({
         title: 'Second column header'
       },
       settings: {
+        
+        themeName: 'ht-theme-main',
+        // other options
         height: 'auto',
         autoWrapRow: true,
         autoWrapCol: true,

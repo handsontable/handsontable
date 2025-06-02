@@ -135,6 +135,7 @@ const ExampleComponent = () => {
 
   return (
     <HotTable
+      themeName="ht-theme-main"
       data={sourceDataObject}
       preventOverflow="horizontal"
       rowHeaders={true}

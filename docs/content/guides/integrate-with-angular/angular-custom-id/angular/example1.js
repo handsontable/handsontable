@@ -16,6 +16,9 @@ import Handsontable from 'handsontable/base';
 })
 export class AppComponent {
   hotSettings: Handsontable.GridSettings = {
+    
+    themeName: 'ht-theme-main',
+    // other options
     startRows: 5,
     startCols: 5,
     colHeaders: true,

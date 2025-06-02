@@ -14,6 +14,7 @@ numbro.registerLanguage(deDE);
 const ExampleComponent = () => {
   return (
     <HotTable
+      themeName="ht-theme-main"
       data={[
         { car: 'Mercedes A 160', year: 2017, price_usd: 7000, price_eur: 7000 },
         {

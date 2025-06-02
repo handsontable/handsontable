@@ -14,6 +14,9 @@ import Handsontable from 'handsontable/base';
 
 export class AppComponent {
   hotSettings: Handsontable.GridSettings = {
+    
+    themeName: 'ht-theme-main',
+    // other options
     data:
       [
         ['A1', '{{$basePath}}/img/examples/professional-javascript-developers-nicholas-zakas.jpg'],

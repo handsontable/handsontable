@@ -131,6 +131,9 @@ const ExampleComponent = {
   data() {
     return {
       hotSettings: {
+        
+        themeName: 'ht-theme-main',
+        // other options
         data: [
           [1, "#2269EC", "#E1E7F3"],
           [2, "#A1E3CD", "#E5ECE4"],

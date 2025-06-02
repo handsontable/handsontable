@@ -22,6 +22,7 @@ class CustomEditor extends TextEditor {
 const ExampleComponent = () => {
   return (
     <HotTable
+      themeName="ht-theme-main"
       id="hot"
       startRows={5}
       columns={[

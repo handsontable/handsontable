@@ -18,10 +18,10 @@ const colors = [
 ];
 
 const cars = ['BMW', 'Chrysler', 'Nissan', 'Suzuki', 'Toyota', 'Volvo'];
-
 const container = document.querySelector('#example2');
 
 new Handsontable(container, {
+  themeName: 'ht-theme-main',
   licenseKey: 'non-commercial-and-evaluation',
   data: [
     ['BMW', 2017, 'black', 'black'],

@@ -13,6 +13,7 @@ const data = [
 ];
 
 new Handsontable(container, {
+  themeName: 'ht-theme-main',
   data: structuredClone(data),
   height: 'auto',
   autoWrapRow: true,

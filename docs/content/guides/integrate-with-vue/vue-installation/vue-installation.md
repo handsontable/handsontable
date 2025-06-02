@@ -30,9 +30,13 @@ npm install handsontable @handsontable/vue
 
 ```js
 <template>
-  <div class="ht-theme-main-dark-auto">
-    <hot-table :data="data" :rowHeaders="true" :colHeaders="true"></hot-table>
-  </div>
+  <hot-table 
+    theme="ht-theme-main"
+    :data="data"
+    :rowHeaders="true"
+    :colHeaders="true"
+  >
+  </hot-table>
 </template>
 
 <script>

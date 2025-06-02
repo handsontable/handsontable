@@ -13,6 +13,7 @@ const data = [
 
 const container = document.querySelector('#example1');
 const hot = new Handsontable(container, {
+  themeName: 'ht-theme-main',
   rowHeaders: true,
   colHeaders: true,
   fillHandle: true,

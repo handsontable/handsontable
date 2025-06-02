@@ -23,6 +23,7 @@ const data: Person[] = [
 
 const ExampleComponent: FC = () => (
   <HotTable
+    themeName="ht-theme-main"
     data={data}
     colHeaders={true}
     height="auto"

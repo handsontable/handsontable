@@ -7,6 +7,7 @@ import { Component } from '@angular/core';
   template: `
     <div>
       <hot-table
+        theme="ht-theme-main"
         [data]="dataset"
         [colHeaders]="true"
         height="auto"

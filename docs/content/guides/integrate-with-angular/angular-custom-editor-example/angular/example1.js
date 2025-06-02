@@ -17,6 +17,9 @@ import { CustomEditor } from './CustomEditor';
 
 export class AppComponent {
   hotSettings: Handsontable.GridSettings = {
+    
+    themeName: 'ht-theme-main',
+    // other options
     startRows: 5,
     columns: [
       {

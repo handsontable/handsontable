@@ -9,6 +9,7 @@ registerAllModules();
 const ExampleComponent = () => {
   return (
     <HotTable
+      themeName="ht-theme-main"
       id="hot"
       data={[
         ['A1', '{{$basePath}}/img/examples/professional-javascript-developers-nicholas-zakas.jpg'],

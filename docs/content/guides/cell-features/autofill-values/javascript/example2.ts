@@ -14,6 +14,7 @@ const data: (string | number)[][] = [
 const container = document.querySelector('#example2')!;
 
 new Handsontable(container, {
+  themeName: 'ht-theme-main',
   data,
   rowHeaders: true,
   colHeaders: true,
