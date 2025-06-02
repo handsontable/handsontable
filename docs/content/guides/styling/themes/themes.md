@@ -102,19 +102,11 @@ Alternatively, you can import the necessary files from the recommended CDN such 
 
 ## Pass a theme name
 
-To use a theme in your app, you need to add the specific class name to the `div` container that holds Handsontable. For the `main` theme, you can choose from the following CSS classes:
+To use a theme in your app, you need to specify the theme name in the data grid's global settings object. For the `main` theme, you can choose from the following theme modes:
 
 - `ht-theme-main` - light mode
 - `ht-theme-main-dark` - dark mode
 - `ht-theme-main-dark-auto (recommended)` - auto dark mode
-
-```html
-<div id="handsontable-example" class="ht-theme-main-dark-auto"></div>
-```
-
-Alternatively, you can specify the theme name in the data grid's global settings object. This method will automatically inject the class name for you, overriding any class name passed in the `div` container.
-
-**Use either this method or the class name in the `div`, but not both.**
 
 ::: only-for javascript
 
@@ -159,20 +151,13 @@ import 'handsontable/styles/handsontable.min.css';
 import 'handsontable/styles/ht-theme-falcon.min.css';
 ```
 
-Apply the theme in one of two ways:
-
-- Using a CSS class: Add the theme class (e.g., `ht-theme-falcon-dark-auto`) to the container element that holds the data grid.
-
-```html
-<div id="handsontable-example" class="ht-theme-falcon-dark-auto"></div>
-```
-
-- Using the themeName option: Specify the theme in the configuration, like so:
+To apply a theme, use the `themeName` option by specifying it in the configuration, like this:
 
 ::: only-for javascript
 
 ```js
 const hot = new Handsontable(container, {
+  // theme name with obligatory `ht-theme-*` prefix
   themeName: 'ht-theme-falcon',
   // other options
 });
@@ -184,6 +169,7 @@ const hot = new Handsontable(container, {
 
 ```jsx
 <HotTable
+  // theme name with obligatory `ht-theme-*` prefix
   themeName="ht-theme-falcon"
   // other options
 />

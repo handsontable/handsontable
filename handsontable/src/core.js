@@ -1218,7 +1218,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
     const themeName = tableMeta.themeName || getThemeClassName(instance.rootContainer);
 
-    // Use the theme defined as a root element class or in the settings (in that order).
+    // Use the theme defined in the settings object or set as a root container class name (in that order).
     instance.useTheme(themeName);
 
     editorManager = EditorManager.getInstance(instance, tableMeta, selection);
