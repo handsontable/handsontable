@@ -7,7 +7,6 @@ import {
   hasHorizontalScrollbar,
   isChildOf,
   outerHeight,
-  removeClass,
 } from '../../helpers/dom/element';
 import { stopImmediatePropagation } from '../../helpers/dom/event';
 import { deepClone, deepExtend } from '../../helpers/object';
@@ -202,8 +201,13 @@ export class Comments extends BasePlugin {
     }
 
     if (!this.#editor) {
-      this.#editor = new CommentEditor(this.hot.rootDocument, this.hot.isRtl());
+      this.#editor = new CommentEditor(this.hot.rootDocument, this.hot.isRtl(), this.hot.rootPortalElement);
       this.#editor.addLocalHook('resize', (...args) => this.#onEditorResize(...args));
+      this.hot.addHook('afterSetTheme', (themeName, firstRun) => {
+        if (!firstRun) {
+          this.hide();
+        }
+      });
     }
 
     if (!this.#displaySwitch) {
@@ -216,7 +220,7 @@ export class Comments extends BasePlugin {
     this.addHook('afterScroll', () => this.#onAfterScroll());
     this.addHook('afterBeginEditing', () => this.hide());
     this.addHook('afterDocumentKeyDown', event => this.#onAfterDocumentKeyDown(event));
-    this.addHook('afterSetTheme', (...args) => this.#updateEditorThemeClassName(...args));
+    this.addHook('beforeCompositionStart', event => this.#onAfterDocumentKeyDown(event));
 
     this.#displaySwitch.addLocalHook('hide', () => this.hide());
     this.#displaySwitch.addLocalHook('show', (row, col) => this.showAtCell(row, col));
@@ -796,16 +800,6 @@ export class Comments extends BasePlugin {
     if (!this.#preventEditorHiding) {
       this.hide();
     }
-  }
-
-  /**
-   * Updates the editor theme class name.
-   */
-  #updateEditorThemeClassName() {
-    const editorElement = this.#editor.getEditorElement();
-
-    removeClass(editorElement, /ht-theme-.*/g);
-    addClass(editorElement, this.hot.getCurrentThemeName());
   }
 
   /**

@@ -72,7 +72,7 @@ function log_events(event, data) {
       }
 
       if (str.length > 20) {
-        str = data[d].toString();
+        str = typeof data[d] === 'object' ? `object: ${str.substr(0, 20)}...}` : str.toString();
       }
 
       if (d < data.length - 1) {

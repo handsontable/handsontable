@@ -9,10 +9,7 @@ const customStylesRenderer = (hotInstance, TD, ...rest) => {
   TD.style.background = '#d7f1e1';
 };
 
-Handsontable.renderers.registerRenderer(
-  'customStylesRenderer',
-  customStylesRenderer
-);
+Handsontable.renderers.registerRenderer('customStylesRenderer', customStylesRenderer);
 
 const container = document.querySelector('#example2');
 

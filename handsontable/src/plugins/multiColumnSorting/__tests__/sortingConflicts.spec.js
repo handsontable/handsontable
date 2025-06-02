@@ -4,7 +4,7 @@ describe('MultiColumnSorting cooperation with ColumnSorting', () => {
   beforeEach(function() {
     this.$container = $(`<div id="${id}" style="overflow: auto; width: 300px; height: 200px;"></div>`).appendTo('body');
 
-    this.sortByClickOnColumnHeader = (columnIndex) => {
+    this.sortByClickOnColumnHeader = async(columnIndex) => {
       const hot = this.$container.data('handsontable');
       const $columnHeader = $(hot.view._wt.wtTable.getColumnHeader(columnIndex));
       const $spanInsideHeader = $columnHeader.find('.columnSorting');
@@ -13,7 +13,7 @@ describe('MultiColumnSorting cooperation with ColumnSorting', () => {
         throw Error('Please check the test scenario. The header doesn\'t exist.');
       }
 
-      simulateClick($spanInsideHeader);
+      await simulateClick($spanInsideHeader);
     };
   });
 
@@ -37,7 +37,7 @@ describe('MultiColumnSorting cooperation with ColumnSorting', () => {
     { id: 10, name: 'Eve', lastName: 'Branson' }
   ];
 
-  it('should print warning and set the correct plugin\'s enabled state when the both plugins are enabled', () => {
+  it('should print warning and set the correct plugin\'s enabled state when the both plugins are enabled', async() => {
     const warnSpy = spyOn(console, 'warn');
 
     handsontable({
@@ -55,7 +55,7 @@ describe('MultiColumnSorting cooperation with ColumnSorting', () => {
     expect(getSettings().multiColumnSorting).toBe(false);
   });
 
-  it('should not print warnings when both plugins are enabled in different Handsontable instances', () => {
+  it('should not print warnings when both plugins are enabled in different Handsontable instances', async() => {
     const warnSpy = spyOn(console, 'warn');
 
     handsontable({
@@ -78,7 +78,7 @@ describe('MultiColumnSorting cooperation with ColumnSorting', () => {
     container2.remove();
   });
 
-  it('should print warning and leave only ColumnSorting plugin enabled after MultiColumnSorting is tried to be enabled', () => {
+  it('should print warning and leave only ColumnSorting plugin enabled after MultiColumnSorting is tried to be enabled', async() => {
     const warnSpy = spyOn(console, 'warn');
 
     handsontable({
@@ -87,7 +87,7 @@ describe('MultiColumnSorting cooperation with ColumnSorting', () => {
       columnSorting: true,
     });
 
-    updateSettings({ multiColumnSorting: true });
+    await updateSettings({ multiColumnSorting: true });
 
     expect(warnSpy).toHaveBeenCalledWith('Plugins `columnSorting` and `multiColumnSorting` should not be enabled ' +
       'simultaneously. Only `columnSorting` will work. The `multiColumnSorting` plugin will remain disabled.');
@@ -97,7 +97,7 @@ describe('MultiColumnSorting cooperation with ColumnSorting', () => {
     expect(getSettings().multiColumnSorting).toBe(false);
   });
 
-  it('should print warning and leave only MultiColumnSorting plugin enabled after ColumnSorting is tried to be enabled', () => {
+  it('should print warning and leave only MultiColumnSorting plugin enabled after ColumnSorting is tried to be enabled', async() => {
     const warnSpy = spyOn(console, 'warn');
 
     handsontable({
@@ -106,7 +106,7 @@ describe('MultiColumnSorting cooperation with ColumnSorting', () => {
       multiColumnSorting: true,
     });
 
-    updateSettings({ columnSorting: true });
+    await updateSettings({ columnSorting: true });
 
     expect(warnSpy).toHaveBeenCalledWith('Plugins `columnSorting` and `multiColumnSorting` should not be enabled ' +
       'simultaneously. Only `multiColumnSorting` will work. The `columnSorting` plugin will remain disabled.');
@@ -116,18 +116,16 @@ describe('MultiColumnSorting cooperation with ColumnSorting', () => {
     expect(getSettings().columnSorting).toBe(false);
   });
 
-  it('should column sorting (not multi-sorting) work correctly when both plugins are enabled', () => {
+  it('should column sorting (not multi-sorting) work correctly when both plugins are enabled', async() => {
     handsontable({
       colHeaders: true,
       columnSorting: true,
       multiColumnSorting: true,
     });
 
-    spec().sortByClickOnColumnHeader(2);
-
-    keyDown('control/meta');
-
-    spec().sortByClickOnColumnHeader(3);
+    await spec().sortByClickOnColumnHeader(2);
+    await keyDown('control/meta');
+    await spec().sortByClickOnColumnHeader(3);
 
     const sortedColumn1 = getCell(-1, 2, true).querySelector('span.columnSorting');
     const sortedColumn2 = getCell(-1, 3, true).querySelector('span.columnSorting');
@@ -139,19 +137,16 @@ describe('MultiColumnSorting cooperation with ColumnSorting', () => {
     ]);
   });
 
-  it('should not reset the state of the MultiColumnSorting plugin after ColumnSorting is tried to be enabled', () => {
+  it('should not reset the state of the MultiColumnSorting plugin after ColumnSorting is tried to be enabled', async() => {
     handsontable({
       colHeaders: true,
       multiColumnSorting: true,
     });
 
-    spec().sortByClickOnColumnHeader(2);
-
-    keyDown('control/meta');
-
-    spec().sortByClickOnColumnHeader(3);
-
-    updateSettings({ columnSorting: true });
+    await spec().sortByClickOnColumnHeader(2);
+    await keyDown('control/meta');
+    await spec().sortByClickOnColumnHeader(3);
+    await updateSettings({ columnSorting: true });
 
     const sortedColumn1 = getCell(-1, 2, true).querySelector('span.columnSorting');
     const sortedColumn2 = getCell(-1, 3, true).querySelector('span.columnSorting');
@@ -164,15 +159,14 @@ describe('MultiColumnSorting cooperation with ColumnSorting', () => {
     ]);
   });
 
-  it('should not reset the state of the ColumnSorting plugin after MultiColumnSorting is tried to be enabled', () => {
+  it('should not reset the state of the ColumnSorting plugin after MultiColumnSorting is tried to be enabled', async() => {
     handsontable({
       colHeaders: true,
       columnSorting: true,
     });
 
-    spec().sortByClickOnColumnHeader(2);
-
-    updateSettings({ multiColumnSorting: true });
+    await spec().sortByClickOnColumnHeader(2);
+    await updateSettings({ multiColumnSorting: true });
 
     const sortedColumn1 = getCell(-1, 2, true).querySelector('span.columnSorting');
 

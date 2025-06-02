@@ -111,6 +111,7 @@ export class ExportFile extends BasePlugin {
    * @property {boolean} [rowHeaders=false] Include row headers in the exported file.
    * @property {string} [columnDelimiter=','] Column delimiter.
    * @property {string} [range=[]] Cell range that will be exported to file.
+   * @property {boolean|RegExp|Function} [sanitizeValues=false] Controls the sanitization of cell value.
    */
 
   /**
@@ -138,7 +139,7 @@ export class ExportFile extends BasePlugin {
   /**
    * Exports table data as a downloadable file.
    *
-   * @param {string} format Export format type eq. `'csv'`.
+   * @param {string} format Export format type eg. `'csv'`.
    * @param {ExportOptions} options Export options.
    */
   downloadFile(format, options = {}) {

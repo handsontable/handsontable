@@ -1,4 +1,4 @@
-/* global Handsontable, ReactDOM, ng */
+/* global Handsontable, ng */
 /**
  * Returns a function that will destroy the demo resources.
  *
@@ -19,7 +19,7 @@ function createDestroyableResource(presetType, { rootExampleElement, hotInstance
           rootExampleElement.firstChild.__vue__.$root.$destroy();
 
         } else if (presetType.startsWith('react')) {
-          ReactDOM.unmountComponentAtNode(rootExampleElement.firstChild);
+          rootExampleElement.firstChild?._reactRoot.unmount();
 
         } else if (presetType.startsWith('angular')) {
           ng.core.getPlatform().destroy();

@@ -8,15 +8,15 @@ import { helpers } from '../../src/helpers';
 test('Test columns add/remove', async({ goto, tablePage }) => {
   await goto('/two-tables-demo');
 
-  const tableTop = tablePage.locator('#tableTop > .handsontable');
-  const tableBottom = tablePage.locator('#tableBottom > .handsontable');
+  const tableTop = tablePage.locator('#tableTop .ht-root-wrapper > .handsontable');
+  const tableBottom = tablePage.locator('#tableBottom .ht-root-wrapper > .handsontable');
 
   await tableTop.waitFor();
   await tableBottom.waitFor();
 
   await selectColumnHeaderByNameAndOpenMenu('Industry', tableBottom);
-  await selectFromContextMenu('"Insert column left"');
+  await selectFromContextMenu('Insert column left');
   await selectColumnHeaderByNameAndOpenMenu('Industry', tableBottom);
-  await selectFromContextMenu('"Insert column right"');
+  await selectFromContextMenu('Insert column right');
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 });

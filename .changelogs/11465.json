@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed an issue with row header misalignment",
-  "type": "fixed",
-  "issueOrPR": 11465,
-  "breaking": false,
-  "framework": "none"
-}

@@ -1,6 +1,7 @@
 export const command = {
   name: 'moveCellSelectionToMostTop',
   callback(hot) {
+    const { selection } = hot;
     const { col } = hot.getSelectedRangeLast().highlight;
     let row = hot.rowIndexMapper.getNearestNotHiddenIndex(0, 1);
 
@@ -8,6 +9,8 @@ export const command = {
       row = -hot.countColHeaders();
     }
 
-    hot.selection.setRangeStart(hot._createCellCoords(row, col));
+    selection.markSource('keyboard');
+    selection.setRangeStart(hot._createCellCoords(row, col));
+    selection.markEndSource();
   },
 };

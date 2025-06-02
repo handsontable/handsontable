@@ -19,11 +19,11 @@ describe('Context menu theme handling', () => {
       themeName: 'ht-theme-sth',
     });
 
-    contextMenu();
+    await contextMenu();
 
     await sleep(50);
 
-    expect($(getPlugin('contextMenu').menu.container).hasClass('ht-theme-sth')).toBe(true);
+    expect($(getPlugin('contextMenu').menu.container).parent().hasClass('ht-theme-sth')).toBe(true);
     expect(getPlugin('contextMenu').menu.hotMenu.getCurrentThemeName()).toBe('ht-theme-sth');
 
     clearModernThemeStylesheetMock(spec().$container.parent());
@@ -36,11 +36,11 @@ describe('Context menu theme handling', () => {
       contextMenu: true,
     }, true);
 
-    contextMenu();
+    await contextMenu();
 
     await sleep(50);
 
-    expect($(getPlugin('contextMenu').menu.container).hasClass('ht-theme-sth-else')).toBe(true);
+    expect($(getPlugin('contextMenu').menu.container).parent().hasClass('ht-theme-sth-else')).toBe(true);
     expect(getPlugin('contextMenu').menu.hotMenu.getCurrentThemeName()).toBe('ht-theme-sth-else');
 
     clearModernThemeStylesheetMock(spec().$container.parent());

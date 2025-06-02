@@ -16,14 +16,14 @@ describe('Selection extending (RTL mode)', () => {
   });
 
   describe('"Ctrl/Cmd + Shift + ArrowUp"', () => {
-    it('should extend the cell selection to the first cell of the current column', () => {
+    it('should extend the cell selection to the first cell of the current column', async() => {
       handsontable({
         startRows: 5,
         startCols: 5
       });
 
-      selectCell(3, 1);
-      keyDownUp(['control/meta', 'shift', 'arrowup']);
+      await selectCell(3, 1);
+      await keyDownUp(['control/meta', 'shift', 'arrowup']);
 
       expect(`
         |   :   :   : 0 :   |
@@ -35,7 +35,7 @@ describe('Selection extending (RTL mode)', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,1 from: 3,1 to: 0,1']);
     });
 
-    it('should extend the cell selection to the first cell of the current column when fixed overlays are enabled', () => {
+    it('should extend the cell selection to the first cell of the current column when fixed overlays are enabled', async() => {
       handsontable({
         fixedColumnsStart: 2,
         fixedRowsTop: 2,
@@ -44,8 +44,8 @@ describe('Selection extending (RTL mode)', () => {
         startCols: 5
       });
 
-      selectCell(3, 1);
-      keyDownUp(['control/meta', 'shift', 'arrowup']);
+      await selectCell(3, 1);
+      await keyDownUp(['control/meta', 'shift', 'arrowup']);
 
       expect(`
         |   :   :   | 0 :   |
@@ -59,14 +59,14 @@ describe('Selection extending (RTL mode)', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,1 from: 3,1 to: 0,1']);
     });
 
-    it('should extend the cells selection to the first cells of the current column', () => {
+    it('should extend the cells selection to the first cells of the current column', async() => {
       handsontable({
         startRows: 5,
         startCols: 5
       });
 
-      selectCells([[3, 1, 3, 3]]);
-      keyDownUp(['control/meta', 'shift', 'arrowup']);
+      await selectCells([[3, 1, 3, 3]]);
+      await keyDownUp(['control/meta', 'shift', 'arrowup']);
 
       expect(`
         |   : 0 : 0 : 0 :   |
@@ -78,7 +78,7 @@ describe('Selection extending (RTL mode)', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,1 from: 3,1 to: 0,3']);
     });
 
-    it('should extend the header selection to the top-most row header', () => {
+    it('should extend the header selection to the top-most row header', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -86,9 +86,9 @@ describe('Selection extending (RTL mode)', () => {
         startCols: 5
       });
 
-      selectRows(3);
-      listen();
-      keyDownUp(['control/meta', 'shift', 'arrowup']);
+      await selectRows(3);
+      await listen();
+      await keyDownUp(['control/meta', 'shift', 'arrowup']);
 
       expect(`
         | - : - : - : - : - ║   |
@@ -102,7 +102,7 @@ describe('Selection extending (RTL mode)', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,0 from: 3,-1 to: 0,4']);
     });
 
-    it('should extend the row header selection to the right-most row header when there is no columns (navigableHeaders on)', () => {
+    it('should extend the row header selection to the right-most row header when there is no columns (navigableHeaders on)', async() => {
       handsontable({
         data: [[], [], [], [], []],
         rowHeaders: true,
@@ -110,9 +110,9 @@ describe('Selection extending (RTL mode)', () => {
         navigableHeaders: true,
       });
 
-      selectRows(3, 3, -1);
-      listen();
-      keyDownUp(['control/meta', 'shift', 'arrowup']);
+      await selectRows(3, 3, -1);
+      await listen();
+      await keyDownUp(['control/meta', 'shift', 'arrowup']);
 
       expect(`
         |   |
@@ -126,7 +126,7 @@ describe('Selection extending (RTL mode)', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,-1 from: 3,-1 to: 0,-1']);
     });
 
-    it('should extend the row header selection to the right-most row header when all columns are hidden (navigableHeaders on)', () => {
+    it('should extend the row header selection to the right-most row header when all columns are hidden (navigableHeaders on)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -135,11 +135,11 @@ describe('Selection extending (RTL mode)', () => {
       });
 
       columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
-      render();
+      await render();
 
-      selectRows(3, 3, -1);
-      listen();
-      keyDownUp(['control/meta', 'shift', 'arrowup']);
+      await selectRows(3, 3, -1);
+      await listen();
+      await keyDownUp(['control/meta', 'shift', 'arrowup']);
 
       expect(`
         |   |
@@ -153,7 +153,7 @@ describe('Selection extending (RTL mode)', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,-1 from: 3,-1 to: 0,4']);
     });
 
-    it('should not change the selection when all cells are selected (triggered by corner click)', () => {
+    it('should not change the selection when all cells are selected (triggered by corner click)', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -161,9 +161,10 @@ describe('Selection extending (RTL mode)', () => {
         startCols: 5
       });
 
-      selectAll();
-      listen();
-      keyDownUp(['control/meta', 'shift', 'arrowup']);
+      await listen();
+
+      await selectAll();
+      await keyDownUp(['control/meta', 'shift', 'arrowup']);
 
       expect(`
         | * : * : * : * : * ║ * |

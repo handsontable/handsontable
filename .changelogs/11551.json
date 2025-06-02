@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed and issue with custom border overlapping",
+  "type": "fixed",
+  "issueOrPR": 11551,
+  "breaking": true,
+  "framework": "none"
+}

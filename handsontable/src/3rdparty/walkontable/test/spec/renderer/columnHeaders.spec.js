@@ -31,7 +31,7 @@ describe('Walkontable.Renderer.ColumnHeadersRenderer', () => {
     };
   });
 
-  it('should generate as many TR (with TH) as the `columnHeadersCount`, `rowHeadersCount` and `columnsToRender` is set', () => {
+  it('should generate as many TR (with TH) as the `columnHeadersCount`, `rowHeadersCount` and `columnsToRender` is set', async() => {
     const { renderer, tableMock, rootNode } = createRenderer();
 
     tableMock.columnsToRender = 2;
@@ -137,7 +137,7 @@ describe('Walkontable.Renderer.ColumnHeadersRenderer', () => {
       `);
   });
 
-  it('should reuse previously created elements on next render cycle', () => {
+  it('should reuse previously created elements on next render cycle', async() => {
     const { renderer, tableMock, rootNode } = createRenderer();
 
     tableMock.columnsToRender = 2;
@@ -187,7 +187,7 @@ describe('Walkontable.Renderer.ColumnHeadersRenderer', () => {
     expect(rootNode.children[1].children[1]).toBe(prevChildren[1].children[1]);
   });
 
-  it('should reuse previously created elements when offset is changed', () => {
+  it('should reuse previously created elements when offset is changed', async() => {
     const { renderer, tableMock, rootNode } = createRenderer();
 
     tableMock.columnsToRender = 2;
@@ -235,7 +235,7 @@ describe('Walkontable.Renderer.ColumnHeadersRenderer', () => {
     expect(rootNode.children[1].children[1]).toBe(prevChildren[1].children[1]);
   });
 
-  it('should call column headers renderers with valid arguments', () => {
+  it('should call column headers renderers with valid arguments', async() => {
     const { renderer, tableMock } = createRenderer();
 
     const headerRenderer1 = jasmine.createSpy();
@@ -257,7 +257,7 @@ describe('Walkontable.Renderer.ColumnHeadersRenderer', () => {
     expect(headerRenderer2.calls.argsFor(2)).toEqual([1, jasmine.any(HTMLTableCellElement), 1]);
   });
 
-  it('should call column headers renderers with valid arguments when offset is applied', () => {
+  it('should call column headers renderers with valid arguments when offset is applied', async() => {
     const { renderer, tableMock } = createRenderer();
 
     const headerRenderer1 = jasmine.createSpy();

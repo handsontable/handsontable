@@ -14,13 +14,13 @@ describe('ContextMenu keyboard shortcut', () => {
     ['Control/Meta', 'ArrowDown'],
     ['End'],
   ], (keyboardShortcut) => {
-    it('should move the menu item selection to the last item', () => {
+    it('should move the menu item selection to the last item', async() => {
       handsontable({
         contextMenu: generateRandomContextMenuItems(200),
       });
 
-      contextMenu();
-      keyDownUp(keyboardShortcut);
+      await contextMenu();
+      await keyDownUp(keyboardShortcut);
 
       expect(getPlugin('contextMenu').menu.getSelectedItem().name).toBe('Test item 200');
       // check if the viewport is scrolled to the bottom
@@ -28,7 +28,7 @@ describe('ContextMenu keyboard shortcut', () => {
         .toBe(window.scrollY + document.documentElement.clientHeight);
     });
 
-    it('should move the menu item selection to the last active item', () => {
+    it('should move the menu item selection to the last active item', async() => {
       handsontable({
         contextMenu: generateRandomContextMenuItems(200, (i, item) => {
           if (i !== 100 && i !== 101 && i !== 102) {
@@ -39,17 +39,17 @@ describe('ContextMenu keyboard shortcut', () => {
         }),
       });
 
-      contextMenu();
-      keyDownUp(keyboardShortcut);
+      await contextMenu();
+      await keyDownUp(keyboardShortcut);
 
       expect(getPlugin('contextMenu').menu.getSelectedItem().name).toBe('Test item 103');
 
-      keyDownUp(keyboardShortcut);
+      await keyDownUp(keyboardShortcut);
 
       expect(getPlugin('contextMenu').menu.getSelectedItem().name).toBe('Test item 103');
     });
 
-    it('should not select the menu when all items are disabled', () => {
+    it('should not select the menu when all items are disabled', async() => {
       handsontable({
         contextMenu: generateRandomContextMenuItems(200, (i, item) => {
           item.disabled = true;
@@ -58,8 +58,8 @@ describe('ContextMenu keyboard shortcut', () => {
         }),
       });
 
-      contextMenu();
-      keyDownUp(keyboardShortcut);
+      await contextMenu();
+      await keyDownUp(keyboardShortcut);
 
       expect(getPlugin('contextMenu').menu.getSelectedItem()).toBe(null);
     });

@@ -11,13 +11,13 @@ import {
 test('Test filtering', async({ tablePage }) => {
   expect(await rowsCount()).toBe(22);
 
-  await openHeaderDropdownMenu(9);
+  await openHeaderDropdownMenu('Country');
   await filterByValue('India');
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 
   expect(await rowsCount()).toBe(6);
 
-  await openHeaderDropdownMenu(3);
+  await openHeaderDropdownMenu('Sell date');
   await filterByCondition(FilterConditions.IsBetween, '01/01/2020', '30/06/2020');
 
   expect(await rowsCount()).toBe(3);

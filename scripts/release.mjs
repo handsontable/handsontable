@@ -6,6 +6,8 @@
  */
 import inquirer from 'inquirer';
 import execa from 'execa';
+import fs from 'fs';
+import path from 'path';
 import {
   displayErrorMessage,
   displaySeparator,
@@ -69,7 +71,8 @@ displaySeparator();
     await spawnProcess('git push origin master');
     await spawnProcess('git push --tags');
 
-    const docsVersion = `prod-docs/${releaseVersion.substring(0, 4)}`; // e.g. "prod-docs/12.1" (without patch)
+    const noPatchVersion = releaseVersion.substring(0, 4);
+    const docsVersion = `prod-docs/${noPatchVersion}`; // e.g. "prod-docs/12.1" (without patch)
     const remoteDocsBranchExists = await spawnProcess(
       `git ls-remote --heads origin --list ${docsVersion}`, { silent: true });
 
@@ -114,6 +117,40 @@ displaySeparator();
     await spawnProcess('npm run docs:api', { cwd: 'docs' });
     // Update all available Docs versions for legacy docs.
     await spawnProcess('npm run docs:scripts:generate-legacy-docs-versions', { cwd: 'docs' });
+
+    const docsPackageJsonLinesCount = parseInt((
+      await execa.command('wc -l < package.json', { cwd: 'docs', shell: true })
+    ).stdout, 10);
+
+    // Update @handsontable/angular version in docs/package.json to match the docs version.
+    const docsPackageJsonPath = 'docs/package.json';
+    const docsPackageJson = JSON.parse(
+      await execa.command(`cat ${docsPackageJsonPath}`, { shell: true }
+      ).then(result => result.stdout));
+
+    docsPackageJson.devDependencies['@handsontable/angular'] = `~${releaseVersion}`;
+
+    // Write updated package.json back to file with proper formatting
+    fs.writeFileSync(
+      path.resolve(process.cwd(), docsPackageJsonPath),
+      `${JSON.stringify(docsPackageJson, null, 2)}\n`,
+      'utf8'
+    );
+
+    const updatedDocsPackageJsonLinesCount = parseInt((
+      await execa.command('wc -l < package.json', { cwd: 'docs', shell: true })
+    ).stdout, 10);
+
+    if (
+      docsPackageJsonLinesCount !== updatedDocsPackageJsonLinesCount ||
+      Number.isNaN(updatedDocsPackageJsonLinesCount)
+    ) {
+      displayErrorMessage(
+        'The docs/package.json file modified by the release script is incorrect. Continuing the script' +
+        ' execution would result in a broken documentation build.'
+      );
+      process.exit(1);
+    }
 
     // Commit the Docs changes to the Docs Production branch.
     await spawnProcess('git add .');

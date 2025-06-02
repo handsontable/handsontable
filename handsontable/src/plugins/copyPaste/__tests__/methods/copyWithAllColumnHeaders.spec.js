@@ -14,7 +14,7 @@ describe('CopyPaste', () => {
   });
 
   describe('`copyWithAllColumnHeaders` method', () => {
-    it('should copy all column headers with cells to the clipboard', () => {
+    it('should copy all column headers with cells to the clipboard', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -44,7 +44,7 @@ describe('CopyPaste', () => {
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
-      selectCell(1, 0);
+      await selectCell(1, 0);
 
       plugin.copyWithAllColumnHeaders();
       plugin.onCopy(copyEvent); // emulate native "copy" event
@@ -62,7 +62,7 @@ describe('CopyPaste', () => {
       ].join(''));
     });
 
-    it('should copy all column headers with cells to the clipboard when all cells and headers are selected', () => {
+    it('should copy all column headers with cells to the clipboard when all cells and headers are selected', async() => {
       handsontable({
         data: createSpreadsheetData(2, 3),
         rowHeaders: true,
@@ -92,7 +92,7 @@ describe('CopyPaste', () => {
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
-      selectAll();
+      await selectAll();
 
       plugin.copyWithAllColumnHeaders();
       plugin.onCopy(copyEvent); // emulate native "copy" event
@@ -117,8 +117,8 @@ describe('CopyPaste', () => {
       ].join(''));
     });
 
-    it('should copy cells with all column headers to the clipboard when all rows are hidden', () => {
-      const hot = handsontable({
+    it('should copy cells with all column headers to the clipboard when all rows are hidden', async() => {
+      handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
         copyPaste: true,
@@ -140,11 +140,11 @@ describe('CopyPaste', () => {
         },
       });
 
-      selectCell(1, 1, 2, 3);
+      await selectCell(1, 1, 2, 3);
 
       // hide all rows
-      hot.rowIndexMapper.createAndRegisterIndexMap('map', 'hiding', true);
-      render();
+      rowIndexMapper().createAndRegisterIndexMap('map', 'hiding', true);
+      await render();
 
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
@@ -170,18 +170,18 @@ describe('CopyPaste', () => {
       ].join(''));
     });
 
-    it('should copy only cells to the clipboard when all rows are hidden and the `colHeaders` is disabled', () => {
-      const hot = handsontable({
+    it('should copy only cells to the clipboard when all rows are hidden and the `colHeaders` is disabled', async() => {
+      handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: false,
         copyPaste: true,
       });
 
-      selectCell(1, 1, 2, 3);
+      await selectCell(1, 1, 2, 3);
 
       // hide all rows
-      hot.rowIndexMapper.createAndRegisterIndexMap('map', 'hiding', true);
-      render();
+      rowIndexMapper().createAndRegisterIndexMap('map', 'hiding', true);
+      await render();
 
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
@@ -200,8 +200,8 @@ describe('CopyPaste', () => {
       ].join(''));
     });
 
-    it('should copy cells with all column headers to the clipboard when all columns are hidden', () => {
-      const hot = handsontable({
+    it('should copy cells with all column headers to the clipboard when all columns are hidden', async() => {
+      handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
         rowHeaders: true,
@@ -224,11 +224,11 @@ describe('CopyPaste', () => {
         },
       });
 
-      selectCell(1, 1, 2, 3);
+      await selectCell(1, 1, 2, 3);
 
       // hide all columns
-      hot.columnIndexMapper.createAndRegisterIndexMap('map', 'hiding', true);
-      render();
+      columnIndexMapper().createAndRegisterIndexMap('map', 'hiding', true);
+      await render();
 
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
@@ -254,19 +254,19 @@ describe('CopyPaste', () => {
       ].join(''));
     });
 
-    it('should copy only cells to the clipboard when all columns are hidden and the `colHeaders` is disabled', () => {
-      const hot = handsontable({
+    it('should copy only cells to the clipboard when all columns are hidden and the `colHeaders` is disabled', async() => {
+      handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: false,
         rowHeaders: true,
         copyPaste: true,
       });
 
-      selectCell(1, 1, 2, 3);
+      await selectCell(1, 1, 2, 3);
 
       // hide all columns
-      hot.columnIndexMapper.createAndRegisterIndexMap('map', 'hiding', true);
-      render();
+      columnIndexMapper().createAndRegisterIndexMap('map', 'hiding', true);
+      await render();
 
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
@@ -285,8 +285,8 @@ describe('CopyPaste', () => {
       ].join(''));
     });
 
-    it('should copy all column headers only to the clipboard when all rows are trimmed', () => {
-      const hot = handsontable({
+    it('should copy all column headers only to the clipboard when all rows are trimmed', async() => {
+      handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         colHeaders: true,
@@ -309,11 +309,11 @@ describe('CopyPaste', () => {
         },
       });
 
-      selectAll();
+      await selectAll();
 
       // trim all rows
-      hot.rowIndexMapper.createAndRegisterIndexMap('map', 'trimming', true);
-      render();
+      rowIndexMapper().createAndRegisterIndexMap('map', 'trimming', true);
+      await render();
 
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
@@ -335,19 +335,19 @@ describe('CopyPaste', () => {
       ].join(''));
     });
 
-    it('should copy an empty string to the clipboard when all rows are trimmed and the `colHeaders` is disabled', () => {
-      const hot = handsontable({
+    it('should copy an empty string to the clipboard when all rows are trimmed and the `colHeaders` is disabled', async() => {
+      handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         colHeaders: false,
         copyPaste: true,
       });
 
-      selectAll();
+      await selectAll();
 
       // trim all rows
-      hot.rowIndexMapper.createAndRegisterIndexMap('map', 'trimming', true);
-      render();
+      rowIndexMapper().createAndRegisterIndexMap('map', 'trimming', true);
+      await render();
 
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
@@ -363,8 +363,8 @@ describe('CopyPaste', () => {
       ].join(''));
     });
 
-    it('should copy an empty string to the clipboard when all columns are trimmed', () => {
-      const hot = handsontable({
+    it('should copy an empty string to the clipboard when all columns are trimmed', async() => {
+      handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         colHeaders: true,
@@ -387,11 +387,11 @@ describe('CopyPaste', () => {
         },
       });
 
-      selectAll();
+      await selectAll();
 
       // trim all columns
-      hot.columnIndexMapper.createAndRegisterIndexMap('map', 'trimming', true);
-      render();
+      columnIndexMapper().createAndRegisterIndexMap('map', 'trimming', true);
+      await render();
 
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
@@ -407,19 +407,19 @@ describe('CopyPaste', () => {
       ].join(''));
     });
 
-    it('should copy an empty string to the clipboard when all columns are trimmed and the `colHeaders` is disabled', () => {
-      const hot = handsontable({
+    it('should copy an empty string to the clipboard when all columns are trimmed and the `colHeaders` is disabled', async() => {
+      handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
         colHeaders: false,
         copyPaste: true,
       });
 
-      selectAll();
+      await selectAll();
 
       // trim all columns
-      hot.columnIndexMapper.createAndRegisterIndexMap('map', 'trimming', true);
-      render();
+      columnIndexMapper().createAndRegisterIndexMap('map', 'trimming', true);
+      await render();
 
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');

@@ -352,7 +352,8 @@ describe('HotTableComponent', () => {
         const app = fixture.componentInstance;
 
         app.prop['settings'] = {
-          data: createSpreadsheetData(5, 5)
+          data: createSpreadsheetData(5, 5),
+          licenseKey: 'non-commercial-and-evaluation',
         };
 
         fixture.detectChanges();

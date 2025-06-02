@@ -1,31 +1,19 @@
 import { BasePlugin } from '../base';
-import staticRegister from '../../utils/staticRegister';
+import { staticRegister } from '../../utils/staticRegister';
 import { error, warn } from '../../helpers/console';
 import { isNumeric } from '../../helpers/number';
+import { isDefined, isUndefined } from '../../helpers/mixed';
+import { getRegisteredHotInstances, setupEngine, setupSheet, unregisterEngine, } from './engine/register';
 import {
-  isDefined,
-  isUndefined
-} from '../../helpers/mixed';
-import {
-  setupEngine,
-  setupSheet,
-  unregisterEngine,
-  getRegisteredHotInstances,
-} from './engine/register';
-import {
-  isEscapedFormulaExpression,
-  unescapeFormulaExpression,
+  getDateFromExcelDate,
+  getDateInHfFormat,
+  getDateInHotFormat,
   isDate,
   isDateValid,
-  getDateInHfFormat,
-  getDateFromExcelDate,
-  getDateInHotFormat,
   isFormula,
+  unescapeFormulaExpression,
 } from './utils';
-import {
-  getEngineSettingsWithOverrides,
-  haveEngineSettingsChanged
-} from './engine/settings';
+import { getEngineSettingsWithOverrides, haveEngineSettingsChanged } from './engine/settings';
 import { isArrayOfArrays } from '../../helpers/data';
 import { toUpperCaseFirst } from '../../helpers/string';
 import { Hooks } from '../../core/hooks';
@@ -121,6 +109,12 @@ export class Formulas extends BasePlugin {
   engine = null;
 
   /**
+   * HyperFormula's sheet id.
+   *
+   * @type {number|null}
+   */
+  sheetId = null;
+  /**
    * HyperFormula's sheet name.
    *
    * @type {string|null}
@@ -144,16 +138,6 @@ export class Formulas extends BasePlugin {
    * @type {AxisSyncer|null}
    */
   columnAxisSyncer = null;
-
-  /**
-   * HyperFormula's sheet id.
-   *
-   * @type {number|null}
-   */
-  get sheetId() {
-    return this.sheetName === null ? null : this.engine.getSheetId(this.sheetName);
-  }
-
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link Formulas#enablePlugin} method is called.
@@ -187,7 +171,7 @@ export class Formulas extends BasePlugin {
       const newSheetName = this.addSheet(this.sheetName, this.hot.getSourceDataArray());
 
       if (newSheetName !== false) {
-        this.sheetName = newSheetName;
+        this.#updateSheetNameAndSheetId(newSheetName);
       }
     }
 
@@ -346,7 +330,9 @@ export class Formulas extends BasePlugin {
         this.switchSheet(this.sheetName);
 
       } else {
-        this.sheetName = this.addSheet(sheetName ?? undefined, this.hot.getSourceDataArray());
+        const newSheetName = this.addSheet(sheetName ?? undefined, this.hot.getSourceDataArray());
+
+        this.#updateSheetNameAndSheetId(newSheetName);
       }
     }
 
@@ -365,6 +351,16 @@ export class Formulas extends BasePlugin {
     this.engine = null;
 
     super.destroy();
+  }
+
+  /**
+   * Update sheetName and sheetId properties.
+   *
+   * @param {string} [sheetName] The new sheet name.
+   */
+  #updateSheetNameAndSheetId(sheetName) {
+    this.sheetName = sheetName;
+    this.sheetId = this.engine.getSheetId(this.sheetName);
   }
 
   /**
@@ -419,7 +415,7 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    this.sheetName = sheetName;
+    this.#updateSheetNameAndSheetId(sheetName);
 
     const serialized = this.engine.getSheetSerialized(this.sheetId);
 
@@ -730,22 +726,24 @@ export class Formulas extends BasePlugin {
    * Callback to `afterCellMetaReset` hook which is triggered after setting cell meta.
    */
   #onAfterCellMetaReset() {
+    if (this.#hotWasInitializedWithEmptyData) {
+      this.switchSheet(this.sheetName);
+
+      return;
+    }
+
     const sourceDataArray = this.hot.getSourceDataArray();
-    let valueChanged = false;
 
     sourceDataArray.forEach((rowData, rowIndex) => {
       rowData.forEach((cellValue, columnIndex) => {
-        const cellMeta = this.hot.getCellMeta(rowIndex, columnIndex);
+        const cellMeta = this.hot.getCellMeta(rowIndex, columnIndex, { skipMetaExtension: true });
         const dateFormat = cellMeta.dateFormat;
 
         if (isDate(cellValue, cellMeta.type)) {
-          valueChanged = true;
-
           if (isDateValid(cellValue, dateFormat)) {
             // Rewriting date in HOT format to HF format.
             sourceDataArray[rowIndex][columnIndex] = getDateInHfFormat(cellValue, dateFormat);
-
-          } else if (this.isFormulaCellType(rowIndex, columnIndex) === false) {
+          } else if (!cellValue.startsWith('=')) {
             // Escaping value from date parsing using "'" sign (HF feature).
             sourceDataArray[rowIndex][columnIndex] = `'${cellValue}`;
           }
@@ -753,13 +751,12 @@ export class Formulas extends BasePlugin {
       });
     });
 
-    if (valueChanged === true) {
-      this.#internalOperationPending = true;
+    this.#internalOperationPending = true;
+    const dependentCells = this.engine.setSheetContent(this.sheetId, sourceDataArray);
 
-      this.engine.setSheetContent(this.sheetId, sourceDataArray);
-
-      this.#internalOperationPending = false;
-    }
+    this.indexSyncer.setupSyncEndpoint(this.engine, this.sheetId);
+    this.renderDependentSheets(dependentCells);
+    this.#internalOperationPending = false;
   }
 
   /**
@@ -774,7 +771,14 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    this.sheetName = setupSheet(this.engine, this.hot.getSettings()[PLUGIN_KEY].sheetName);
+    const sheetName = setupSheet(this.engine, this.hot.getSettings()[PLUGIN_KEY].sheetName);
+
+    this.#updateSheetNameAndSheetId(sheetName);
+
+    if (source === 'updateSettings') {
+      // For performance reasons, the initialization will be done in afterCellMetaReset hook
+      return;
+    }
 
     if (!this.#hotWasInitializedWithEmptyData) {
       const sourceDataArray = this.hot.getSourceDataArray();
@@ -818,19 +822,12 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    // `column` is here as visual index because of inconsistencies related to hook execution in `src/dataMap`.
-    const isFormulaCellType = this.isFormulaCellType(visualRow, visualColumn);
+    const cellType = this.getCellType(visualRow, visualColumn);
 
-    if (!isFormulaCellType) {
-      const cellType = this.getCellType(visualRow, visualColumn);
+    if (cellType === 'VALUE' || cellType === 'EMPTY') {
+      valueHolder.value = unescapeFormulaExpression(valueHolder.value);
 
-      if (cellType !== 'ARRAY') {
-        if (isEscapedFormulaExpression(valueHolder.value)) {
-          valueHolder.value = unescapeFormulaExpression(valueHolder.value);
-        }
-
-        return;
-      }
+      return;
     }
 
     const address = {
@@ -840,25 +837,14 @@ export class Formulas extends BasePlugin {
     };
     let cellValue = this.engine.getCellValue(address); // Date as an integer (Excel like date).
 
-    // TODO: Workaround. We use HOT's `getCellsMeta` method instead of HOT's `getCellMeta` method. Getting cell meta
-    // using the second method lead to execution of the `cells` method. Using the `getDataAtCell` (which may be useful)
-    // in a callback to the `cells` method leads to triggering the `modifyData` hook. Thus, the `onModifyData` callback
-    // is executed once again and it cause creation of an infinite loop.
-    let cellMeta = this.hot.getCellsMeta().find(singleCellMeta => singleCellMeta.visualRow === visualRow &&
-      singleCellMeta.visualCol === visualColumn);
-
-    if (cellMeta === undefined) {
-      cellMeta = {};
-    }
+    const cellMeta = this.hot.getCellMeta(visualRow, visualColumn, { skipMetaExtension: true });
 
     if (cellMeta.type === 'date' && isNumeric(cellValue)) {
       cellValue = getDateFromExcelDate(cellValue, cellMeta.dateFormat);
     }
 
     // If `cellValue` is an object it is expected to be an error
-    const value = (typeof cellValue === 'object' && cellValue !== null) ? cellValue.value : cellValue;
-
-    valueHolder.value = value;
+    valueHolder.value = (typeof cellValue === 'object' && cellValue !== null) ? cellValue.value : cellValue;
   }
 
   /**
@@ -887,15 +873,10 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    // `column` is here as visual index because of inconsistencies related to hook execution in `src/dataMap`.
-    const isFormulaCellType = this.isFormulaCellType(visualRow, visualColumn);
+    const cellType = this.getCellType(visualRow, visualColumn);
 
-    if (!isFormulaCellType) {
-      const cellType = this.getCellType(visualRow, visualColumn);
-
-      if (cellType !== 'ARRAY') {
-        return;
-      }
+    if (cellType === 'VALUE' || cellType === 'EMPTY') {
+      return;
     }
 
     const dimensions = this.engine.getSheetDimensions(this.engine.getSheetId(this.sheetName));
@@ -1269,8 +1250,7 @@ export class Formulas extends BasePlugin {
    * @param {string} newDisplayName The new name of the sheet.
    */
   #onEngineSheetRenamed(oldDisplayName, newDisplayName) {
-    this.sheetName = newDisplayName;
-
+    this.#updateSheetNameAndSheetId(newDisplayName);
     this.hot.runHooks('afterSheetRenamed', oldDisplayName, newDisplayName);
   }
 

@@ -13,7 +13,7 @@ describe('Hook', () => {
   });
 
   describe('afterSetTheme', () => {
-    it('should be fired every time the theme is modified', () => {
+    it('should be fired every time the theme is modified', async() => {
       const afterSetThemeSpy = jasmine.createSpy('afterSetTheme');
 
       handsontable({
@@ -25,17 +25,17 @@ describe('Hook', () => {
       expect(afterSetThemeSpy.calls.count()).toBe(1);
       expect(afterSetThemeSpy.calls.mostRecent().args).toEqual(['ht-theme-sth', true]);
 
-      useTheme('ht-theme-sth2');
+      await useTheme('ht-theme-sth2');
 
       expect(afterSetThemeSpy.calls.count()).toBe(2);
       expect(afterSetThemeSpy.calls.mostRecent().args).toEqual(['ht-theme-sth2', false]);
 
-      useTheme();
+      await useTheme();
 
       expect(afterSetThemeSpy.calls.count()).toBe(3);
       expect(afterSetThemeSpy.calls.mostRecent().args).toEqual([undefined, false]);
 
-      updateSettings({
+      await updateSettings({
         themeName: 'ht-theme-sth3',
       });
 

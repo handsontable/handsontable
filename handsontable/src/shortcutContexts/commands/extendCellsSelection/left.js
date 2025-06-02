@@ -1,14 +1,17 @@
 export const command = {
   name: 'extendCellsSelectionLeft',
   callback(hot) {
+    const { selection } = hot;
     const { highlight } = hot.getSelectedRangeLast();
 
     if (
-      !hot.selection.isSelectedByRowHeader() &&
-      !hot.selection.isSelectedByCorner() &&
-      (highlight.isCell() || highlight.isHeader() && hot.selection.isSelectedByColumnHeader())
+      !selection.isSelectedByRowHeader() &&
+      !selection.isSelectedByCorner() &&
+      (highlight.isCell() || highlight.isHeader() && selection.isSelectedByColumnHeader())
     ) {
-      hot.selection.transformEnd(0, -1 * hot.getDirectionFactor());
+      selection.markSource('keyboard');
+      selection.transformEnd(0, -1 * hot.getDirectionFactor());
+      selection.markEndSource();
     }
   },
 };

@@ -18,7 +18,7 @@ describe('Formulas general', () => {
   describe('Engine-related hooks', () => {
     describe('afterNamedExpressionAdded', () => {
       it('should run the `afterNamedExpressionAdded` hook when there were new named expressions added to the engine' +
-        ' instance', () => {
+        ' instance', async() => {
         const afterNamedExpressionAdded = jasmine.createSpy('afterNamedExpressionAdded');
 
         handsontable({
@@ -38,7 +38,7 @@ describe('Formulas general', () => {
 
     describe('afterNamedExpressionRemoved', () => {
       it('should run the `afterNamedExpressionRemoved` hook when there were new named expressions removed from the engine' +
-        ' instance', () => {
+        ' instance', async() => {
         const afterNamedExpressionRemoved = jasmine.createSpy('afterNamedExpressionRemoved');
 
         spec().hfInstance.addNamedExpression('testExprerssion', '=Sheet1!$A$1+100');
@@ -59,7 +59,7 @@ describe('Formulas general', () => {
     });
 
     describe('afterSheetAdded', () => {
-      it('should run the `afterSheetAdded` hook when there was a new sheet added to the engine\'s instance', () => {
+      it('should run the `afterSheetAdded` hook when there was a new sheet added to the engine\'s instance', async() => {
         const afterSheetAdded = jasmine.createSpy('afterSheetAdded');
 
         handsontable({
@@ -79,7 +79,7 @@ describe('Formulas general', () => {
     });
 
     describe('afterSheetRemoved', () => {
-      it('should run the `afterSheetRemoved` hook when there was a sheet removed from the engine\'s instance', () => {
+      it('should run the `afterSheetRemoved` hook when there was a sheet removed from the engine\'s instance', async() => {
         const afterSheetRemoved = jasmine.createSpy('afterSheetRemoved');
 
         spec().hfInstance.addSheet('Test Sheet');
@@ -100,7 +100,7 @@ describe('Formulas general', () => {
     });
 
     describe('afterSheetRenamed', () => {
-      it('should run the `afterSheetRenamed` hook when there was a new sheet renamed in the engine\'s instance', () => {
+      it('should run the `afterSheetRenamed` hook when there was a new sheet renamed in the engine\'s instance', async() => {
         const afterSheetRenamed = jasmine.createSpy('afterSheetRenamed');
 
         spec().hfInstance.addSheet('Test Sheet');
@@ -121,7 +121,7 @@ describe('Formulas general', () => {
     });
 
     describe('afterFormulasValuesUpdate', () => {
-      it('should run the `afterFormulasValuesUpdate` hook when there was a value updated in the engine\'s instance', () => {
+      it('should run the `afterFormulasValuesUpdate` hook when there was a value updated in the engine\'s instance', async() => {
         const afterFormulasValuesUpdate = jasmine.createSpy('afterFormulasValuesUpdate');
 
         handsontable({
@@ -134,7 +134,7 @@ describe('Formulas general', () => {
           afterFormulasValuesUpdate,
         });
 
-        setDataAtCell(0, 0, 'test');
+        await setDataAtCell(0, 0, 'test');
 
         // First one is from filling the sheet with data
         expect(afterFormulasValuesUpdate.calls.count()).toEqual(2);

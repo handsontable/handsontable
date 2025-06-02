@@ -59,7 +59,7 @@ export default class Core {
   getCell(row: number, column: number, topmost?: boolean): HTMLTableCellElement | null;
   getCellEditor(cellMeta: CellMeta): BaseEditor;
   getCellEditor(row: number, column: number): BaseEditor;
-  getCellMeta(row: number, column: number): CellProperties;
+  getCellMeta(row: number, column: number, options?: { skipMetaExtension: boolean }): CellProperties;
   getCellMetaAtRow(row: number): CellProperties[];
   getCellRenderer(cellMeta: CellMeta): BaseRenderer;
   getCellRenderer(row: number, column: number): BaseRenderer;
@@ -113,6 +113,8 @@ export default class Core {
   getSourceDataAtCell(row: number, column: number): CellValue;
   getSourceDataAtCol(column: number): CellValue[];
   getSourceDataAtRow(row: number): CellValue[] | RowObject;
+  getTableWidth(): number;
+  getTableHeight(): number;
   getTranslatedPhrase(dictionaryKey: string, extraArguments: any): string | null;
   getValue(): CellValue;
   hasColHeaders(): boolean;
@@ -140,7 +142,6 @@ export default class Core {
   removeCellMeta(row: number, column: number, key: (keyof CellMeta) | string): void;
   removeHook<K extends keyof Events>(key: K, callback: Events[K]): void;
   render(): void;
-  renderCall: boolean;
   resumeExecution(): void;
   resumeRender(): void;
   rootDocument: Document;
@@ -148,7 +149,7 @@ export default class Core {
   rootWindow: Window;
   rowIndexMapper: IndexMapper;
   runHooks(key: keyof Events, p1?: any, p2?: any, p3?: any, p4?: any, p5?: any, p6?: any): any;
-  scrollViewportTo(options: { row?: number, col?: number, verticalSnap?: 'top' | 'bottom', horizontalSnap?: 'start' | 'end', considerHiddenIndexes?: boolean }): boolean;
+  scrollViewportTo(options: { row?: number, col?: number, verticalSnap?: 'top' | 'bottom', horizontalSnap?: 'start' | 'end', considerHiddenIndexes?: boolean }, callback?: () => void): boolean;
   scrollViewportTo(row?: number, column?: number, snapToBottom?: boolean, snapToRight?: boolean, considerHiddenIndexes?: boolean): boolean;
   scrollToFocusedCell(callback?: () => void): void;
   selectAll(includeRowHeaders?: boolean, includeColumnHeaders?: boolean, options?: { focusPosition?: SimpleCellCoords | CellCoords, disableHeadersHighlight?: boolean }): void;

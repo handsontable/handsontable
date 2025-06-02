@@ -65,8 +65,8 @@ describe('Formulas general', () => {
   });
 
   describe('Single Handsontable setup', () => {
-    it('should reset static registry while enabling and disabling the plugin using updateSettings (HF as class)', () => {
-      const hot = handsontable({
+    it('should reset static registry while enabling and disabling the plugin using updateSettings (HF as class)', async() => {
+      handsontable({
         data: getDataSimpleExampleFormulas(),
         width: 500,
         height: 300,
@@ -75,21 +75,21 @@ describe('Formulas general', () => {
         }
       });
 
-      const staticRegister = hot.getPlugin('formulas').staticRegister;
+      const staticRegister = getPlugin('formulas').staticRegister;
       const hotInstances = staticRegister.getItem('engine_relationship');
       const sharedHotIds = staticRegister.getItem('shared_engine_usage');
 
       expect(hotInstances.size).toBe(1);
       expect(sharedHotIds.size).toBe(1);
 
-      hot.updateSettings({
+      await updateSettings({
         formulas: false
       });
 
       expect(hotInstances.size).toBe(0);
       expect(sharedHotIds.size).toBe(0);
 
-      hot.updateSettings({
+      await updateSettings({
         formulas: {
           engine: HyperFormula
         }
@@ -98,7 +98,7 @@ describe('Formulas general', () => {
       expect(hotInstances.size).toBe(1);
       expect(sharedHotIds.size).toBe(1);
 
-      hot.updateSettings({
+      await updateSettings({
         formulas: false
       });
 
@@ -106,9 +106,10 @@ describe('Formulas general', () => {
       expect(sharedHotIds.size).toBe(0);
     });
 
-    it('should reset static registry while enabling and disabling the plugin using updateSettings (HF as instance)', () => {
+    it('should reset static registry while enabling and disabling the plugin using updateSettings (HF as instance)', async() => {
       const hfInstance = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
-      const hot = handsontable({
+
+      handsontable({
         data: getDataSimpleExampleFormulas(),
         width: 500,
         height: 300,
@@ -117,21 +118,21 @@ describe('Formulas general', () => {
         }
       });
 
-      const staticRegister = hot.getPlugin('formulas').staticRegister;
+      const staticRegister = getPlugin('formulas').staticRegister;
       const hotInstances = staticRegister.getItem('engine_relationship');
       const sharedHotIds = staticRegister.getItem('shared_engine_usage');
 
       expect(hotInstances.size).toBe(1);
       expect(sharedHotIds.size).toBe(0);
 
-      hot.updateSettings({
+      await updateSettings({
         formulas: false
       });
 
       expect(hotInstances.size).toBe(0);
       expect(sharedHotIds.size).toBe(0);
 
-      hot.updateSettings({
+      await updateSettings({
         formulas: {
           engine: hfInstance
         }
@@ -140,7 +141,7 @@ describe('Formulas general', () => {
       expect(hotInstances.size).toBe(1);
       expect(sharedHotIds.size).toBe(0);
 
-      hot.updateSettings({
+      await updateSettings({
         formulas: false
       });
 
@@ -148,10 +149,10 @@ describe('Formulas general', () => {
       expect(sharedHotIds.size).toBe(0);
     });
 
-    it('should throw a warning, when no `hyperformula` key was passed to the `formulas` settings', () => {
+    it('should throw a warning, when no `hyperformula` key was passed to the `formulas` settings', async() => {
       spyOn(console, 'warn');
 
-      const hot = handsontable({
+      handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: true,
       });
@@ -159,22 +160,23 @@ describe('Formulas general', () => {
       // eslint-disable-next-line no-console
       expect(console.warn).toHaveBeenCalledWith('Missing the required `engine` key in the Formulas settings. ' +
         'Please fill it with either an engine class or an engine instance.');
-      expect(hot.getPlugin('formulas').enabled).toBe(false);
+      expect(getPlugin('formulas').enabled).toBe(false);
     });
 
     it('should initialize a single working Handsontable instance and a single HyperFormula instance, when HF class' +
-      ' was passed to the `formulas` settings', () => {
+      ' was passed to the `formulas` settings', async() => {
       const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: {
           engine: HyperFormula
         },
       });
-      const staticRegister = hot.getPlugin('formulas').staticRegister;
+
+      const staticRegister = getPlugin('formulas').staticRegister;
       const hotInstances = staticRegister.getItem('engine_relationship');
       const sharedHotIds = staticRegister.getItem('shared_engine_usage');
-      const relatedHotInstanceEntry = hotInstances.get(hot.getPlugin('formulas').engine);
-      const sharedHotIdsEntry = sharedHotIds.get(hot.getPlugin('formulas').engine);
+      const relatedHotInstanceEntry = hotInstances.get(getPlugin('formulas').engine);
+      const sharedHotIdsEntry = sharedHotIds.get(getPlugin('formulas').engine);
 
       expect(getDataAtCell(4, 1)).toBe(8042);
       expect(hotInstances.size).toBe(1);
@@ -186,7 +188,7 @@ describe('Formulas general', () => {
     });
 
     it('should initialize a single working Handsontable instance, when an external HyperFormula instance was passed' +
-      ' to the `formulas` settings', () => {
+      ' to the `formulas` settings', async() => {
       const hfInstance = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
       const hot = handsontable({
         data: getDataSimpleExampleFormulas(),
@@ -195,12 +197,12 @@ describe('Formulas general', () => {
         },
       });
 
-      const staticRegister = hot.getPlugin('formulas').staticRegister;
+      const staticRegister = getPlugin('formulas').staticRegister;
       const hotInstances = staticRegister.getItem('engine_relationship');
       const sharedHotIds = staticRegister.getItem('shared_engine_usage');
-      const relatedHotInstanceEntry = hotInstances.get(hot.getPlugin('formulas').engine);
+      const relatedHotInstanceEntry = hotInstances.get(getPlugin('formulas').engine);
       const sharedHotIdsEntry = sharedHotIds ?
-        sharedHotIds.get(hot.getPlugin('formulas').engine) :
+        sharedHotIds.get(getPlugin('formulas').engine) :
         undefined;
       // The registry (for the related HF instance) can be empty or undefined, depending on the context:
       // - if it's the first HOT instance on the page, it will be undefined (no registry will be ever created, because
@@ -218,7 +220,7 @@ describe('Formulas general', () => {
   });
 
   describe('Multiple Handsontable setup', () => {
-    it('should reset static registry while enabling and disabling the plugin using updateSettings (HF as class)', () => {
+    it('should reset static registry while enabling and disabling the plugin using updateSettings (HF as class)', async() => {
       const hot1 = handsontable({
         data: getDataSimpleExampleFormulas(),
         formulas: {
@@ -273,7 +275,7 @@ describe('Formulas general', () => {
       expect(sharedHotIds.size).toBe(1);
     });
 
-    it('should reset static registry while enabling and disabling the plugin using updateSettings (HF as instance)', () => {
+    it('should reset static registry while enabling and disabling the plugin using updateSettings (HF as instance)', async() => {
       const hfInstance1 = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
       const hfInstance2 = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
       const hot1 = handsontable({
@@ -332,7 +334,7 @@ describe('Formulas general', () => {
 
     describe('with separate HF instances', () => {
       it('should create separate HF instances, when multiple HOT instances are initialized with HF classes passed' +
-        ' to the `formulas` settings.', () => {
+        ' to the `formulas` settings.', async() => {
         const hot1 = handsontable({
           data: getDataSimpleExampleFormulas(),
           formulas: {
@@ -371,7 +373,7 @@ describe('Formulas general', () => {
 
       it('should create separate HF instances, when multiple HOT instances are initialized with HF external' +
         ' instances' +
-        ' passed to the `formulas` settings.', () => {
+        ' passed to the `formulas` settings.', async() => {
         const hfInstance1 = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
         const hfInstance2 = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
         const hot1 = handsontable({
@@ -420,7 +422,7 @@ describe('Formulas general', () => {
       });
 
       it('should destroy the HF instance connected to a HOT instance after destroying said HOT instance if it was' +
-        ' created using a HF class', () => {
+        ' created using a HF class', async() => {
         const hot1 = handsontable({
           data: getDataSimpleExampleFormulas(),
           formulas: {
@@ -448,7 +450,7 @@ describe('Formulas general', () => {
 
       it('should NOT destroy the HF instance connected to a HOT instance after destroying said HOT instance if it' +
         ' was' +
-        ' created using a HF instance', () => {
+        ' created using a HF instance', async() => {
         const hfInstance1 = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
         const hfInstance2 = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
         const hot1 = handsontable({
@@ -476,7 +478,7 @@ describe('Formulas general', () => {
         expect(destroySpy2).not.toHaveBeenCalled();
       });
 
-      it('should render only related sheets when the dependent cells are updated', () => {
+      it('should render only related sheets when the dependent cells are updated', async() => {
         const afterViewRender1 = jasmine.createSpy('afterViewRender1');
         const afterViewRender2 = jasmine.createSpy('afterViewRender2');
         const afterViewRender3 = jasmine.createSpy('afterViewRender3');
@@ -579,7 +581,7 @@ describe('Formulas general', () => {
 
     describe('with a shared HF instances', () => {
       it('should create a global, shared HF instance, when one HOT instance is initialized with the HF class, and' +
-        ' others are set up with a reference to the first HOT instance', () => {
+        ' others are set up with a reference to the first HOT instance', async() => {
         const hot1 = handsontable({
           data: getDataSimpleExampleFormulas(),
           formulas: {
@@ -616,7 +618,7 @@ describe('Formulas general', () => {
       });
 
       it('should NOT destroy a shared HF instance if only one of the "connected" HOT instances i destroyed, but' +
-        ' should remove the HOT instance from the global registry', () => {
+        ' should remove the HOT instance from the global registry', async() => {
         const hot1 = handsontable({
           data: getDataSimpleExampleFormulas(),
           formulas: {
@@ -647,7 +649,7 @@ describe('Formulas general', () => {
       });
 
       it('should destroy a shared HF instance only after every "connected" HOT instances is destroyed and remove the' +
-        ' HF entry from the global registry', () => {
+        ' HF entry from the global registry', async() => {
         const hot1 = handsontable({
           data: getDataSimpleExampleFormulas(),
           formulas: {
@@ -681,7 +683,7 @@ describe('Formulas general', () => {
     describe('`data` key present', () => {
       describe('`sheetName` provided', () => {
         it('should overwrite the HF sheet data with the provided `data`, if there\'s an existing sheet with that name' +
-          ' in the connected HF instance', () => {
+          ' in the connected HF instance', async() => {
           const hfInstance1 = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
 
           hfInstance1.addSheet('Test Sheet');
@@ -703,7 +705,7 @@ describe('Formulas general', () => {
         });
 
         it('should create (and fill with data) a new HF sheet with an the provided name (and apply the sheet name and' +
-          ' sheet id to the plugin), when there\'s a `sheetName` defined in the plugin settings', () => {
+          ' sheet id to the plugin), when there\'s a `sheetName` defined in the plugin settings', async() => {
           const hfInstance1 = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
 
           handsontable({
@@ -724,7 +726,7 @@ describe('Formulas general', () => {
 
       describe('`sheetName` not provided', () => {
         it('should create (and fill with data) a new HF sheet with an auto-generated name (and apply the sheet name' +
-          ' and sheet id to the plugin), when there\'s no `sheetName` defined in the plugin settings', () => {
+          ' and sheet id to the plugin), when there\'s no `sheetName` defined in the plugin settings', async() => {
           const hfInstance1 = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
 
           handsontable({
@@ -745,7 +747,7 @@ describe('Formulas general', () => {
     describe('`data` key not present', () => {
       describe('`sheetName` provided', () => {
         it('should create a new empty HF sheet with a provided `sheetName`, if there\' one provided in the plugin' +
-          ' settings and no sheet exists in HF with the same name', () => {
+          ' settings and no sheet exists in HF with the same name', async() => {
           const hfInstance1 = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
 
           handsontable({
@@ -768,7 +770,7 @@ describe('Formulas general', () => {
         });
 
         it('should switch to an existing HF sheet, if it\'s already created with the same `sheetName` and the sheet' +
-          ' name is provided in the settings', () => {
+          ' name is provided in the settings', async() => {
           const hfInstance1 = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
 
           hfInstance1.addSheet('Test Sheet');
@@ -793,7 +795,7 @@ describe('Formulas general', () => {
 
       describe('`sheetName` not provided', () => {
         it('should create a new empty HF sheet with an auto-generated name, if `sheetName` is not provided in the' +
-          ' plugin settings', () => {
+          ' plugin settings', async() => {
           const hfInstance1 = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
 
           handsontable({
@@ -821,7 +823,7 @@ describe('Formulas general', () => {
   });
 
   describe('Updating HF settings', () => {
-    it('should initialize HyperFormula with the default set of settings', () => {
+    it('should initialize HyperFormula with the default set of settings', async() => {
       handsontable({
         formulas: {
           engine: HyperFormula
@@ -840,7 +842,7 @@ describe('Formulas general', () => {
       expect(hfConfig.leapYear1900).toEqual(false);
     });
 
-    it('should NOT update the HyperFormula config with the default set of settings', () => {
+    it('should NOT update the HyperFormula config with the default set of settings', async() => {
       const hfInstance1 = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
 
       hfInstance1.updateConfig({
@@ -863,7 +865,7 @@ describe('Formulas general', () => {
       expect(hfConfig.useStats).toEqual(true);
     });
 
-    it('should update the HyperFormula configuration with the options defined in `formulas.engine`', () => {
+    it('should update the HyperFormula configuration with the options defined in `formulas.engine`', async() => {
       handsontable({
         formulas: {
           engine: {
@@ -884,7 +886,7 @@ describe('Formulas general', () => {
     });
 
     it('should update the external HyperFormula instance config with the Handsontable/HF licenseKey, if none was' +
-      ' provided', () => {
+      ' provided', async() => {
       const hfInstance1 = HyperFormula.buildEmpty();
 
       handsontable({
@@ -897,7 +899,7 @@ describe('Formulas general', () => {
     });
 
     it('should NOT update the external HyperFormula instance config with the Handsontable/HF licenseKey, if it was' +
-      ' provided beforehand', () => {
+      ' provided beforehand', async() => {
       const hfInstance1 = HyperFormula.buildEmpty({ licenseKey: 'dummy-license-key' });
 
       handsontable({
@@ -909,71 +911,71 @@ describe('Formulas general', () => {
       expect(hfInstance1.getConfig().licenseKey).toEqual('dummy-license-key');
     });
 
-    it('should not update HyperFormula settings when Handsontable#updateSettings was called without the `formulas` key', () => {
-      const hot = handsontable({
+    it('should not update HyperFormula settings when Handsontable#updateSettings was called without the `formulas` key', async() => {
+      handsontable({
         formulas: {
           engine: HyperFormula
         }
       });
 
-      expect(hot.getPlugin('formulas').engine.getConfig().undoLimit).toEqual(20);
+      expect(getPlugin('formulas').engine.getConfig().undoLimit).toEqual(20);
 
-      hot.getPlugin('formulas').engine.updateConfig({
+      getPlugin('formulas').engine.updateConfig({
         undoLimit: 50
       });
 
-      hot.updateSettings({
+      await updateSettings({
         colWidths: () => 400
       });
 
-      expect(hot.getPlugin('formulas').engine.getConfig().undoLimit).toEqual(50);
+      expect(getPlugin('formulas').engine.getConfig().undoLimit).toEqual(50);
     });
 
     it('should not update HyperFormula\'s settings if the new Handsontable settings wouldn\'t change anything in the' +
-      ' HF settings', () => {
-      const hot = handsontable({
+      ' HF settings', async() => {
+      handsontable({
         formulas: {
           engine: HyperFormula
         }
       });
 
-      spyOn(hot.getPlugin('formulas').engine, 'updateConfig').and.callThrough();
+      spyOn(getPlugin('formulas').engine, 'updateConfig').and.callThrough();
 
-      hot.updateSettings({
+      await updateSettings({
         formulas: {
           engine: HyperFormula
         }
       });
 
-      expect(hot.getPlugin('formulas').engine.updateConfig).not.toHaveBeenCalled();
+      expect(getPlugin('formulas').engine.updateConfig).not.toHaveBeenCalled();
     });
 
-    it('should update HyperFormula\'s settings if the new Handsontable settings would change them', () => {
-      const hot = handsontable({
+    it('should update HyperFormula\'s settings if the new Handsontable settings would change them', async() => {
+      handsontable({
         formulas: {
           engine: HyperFormula
         }
       });
 
-      spyOn(hot.getPlugin('formulas').engine, 'updateConfig').and.callThrough();
+      spyOn(getPlugin('formulas').engine, 'updateConfig').and.callThrough();
 
-      hot.updateSettings({
+      await updateSettings({
         maxColumns: 27
       });
 
-      expect(hot.getPlugin('formulas').engine.updateConfig).toHaveBeenCalledTimes(1);
-      expect(hot.getPlugin('formulas').engine.getConfig().maxColumns).toEqual(27);
+      expect(getPlugin('formulas').engine.updateConfig).toHaveBeenCalledTimes(1);
+      expect(getPlugin('formulas').engine.getConfig().maxColumns).toEqual(27);
 
-      hot.updateSettings({
+      await updateSettings({
         maxRows: 27
       });
 
-      expect(hot.getPlugin('formulas').engine.updateConfig).toHaveBeenCalledTimes(2);
-      expect(hot.getPlugin('formulas').engine.getConfig().maxRows).toEqual(27);
+      expect(getPlugin('formulas').engine.updateConfig).toHaveBeenCalledTimes(2);
+      expect(getPlugin('formulas').engine.getConfig().maxRows).toEqual(27);
     });
 
-    it('should not update `sheetName` if `updateSettings` contains one that doesn\'t exist in the engine', () => {
-      const hot = handsontable({
+    it('should not update `sheetName` if `updateSettings` contains one that doesn\'t exist in the engine', async() => {
+      handsontable({
         formulas: {
           engine: HyperFormula,
           sheetName: 'init'
@@ -991,9 +993,9 @@ describe('Formulas general', () => {
         prevError(...args);
       };
 
-      expect(hot.getPlugin('formulas').sheetName).toEqual('init');
+      expect(getPlugin('formulas').sheetName).toEqual('init');
 
-      hot.updateSettings({
+      await updateSettings({
         formulas: {
           sheetName: 'void'
         }
@@ -1001,57 +1003,57 @@ describe('Formulas general', () => {
 
       expect(errorSpy).toHaveBeenCalledWith('The sheet named `void` does not exist, switch aborted.');
 
-      expect(hot.getPlugin('formulas').sheetName).toEqual('init');
+      expect(getPlugin('formulas').sheetName).toEqual('init');
     });
 
     it('should initialize the HF engine with a new sheet (when the name was provided) after enabling it in the' +
-      ' updateSettings object, when it was not set up before.', () => {
-      const hot = handsontable({
+      ' updateSettings object, when it was not set up before.', async() => {
+      handsontable({
         data: [
           [1, 2],
           ['=A1', '=A1 + B1']
         ]
       });
 
-      expect(hot.getDataAtCell(1, 0)).toEqual('=A1');
+      expect(getDataAtCell(1, 0)).toEqual('=A1');
 
-      hot.updateSettings({
+      await updateSettings({
         formulas: {
           engine: HyperFormula,
           sheetName: 'init'
         }
       });
 
-      expect(hot.getPlugin('formulas').sheetName).toEqual('init');
-      expect(hot.getDataAtCell(1, 0)).toEqual(1);
-      expect(hot.getDataAtCell(1, 1)).toEqual(3);
+      expect(getPlugin('formulas').sheetName).toEqual('init');
+      expect(getDataAtCell(1, 0)).toEqual(1);
+      expect(getDataAtCell(1, 1)).toEqual(3);
     });
 
     it('should initialize the HF engine with a new sheet (when the name was not provided) after enabling it in the' +
-      ' updateSettings object, when it was not set up before.', () => {
-      const hot = handsontable({
+      ' updateSettings object, when it was not set up before.', async() => {
+      handsontable({
         data: [
           [1, 2],
           ['=A1', '=A1 + B1']
         ]
       });
 
-      expect(hot.getDataAtCell(1, 0)).toEqual('=A1');
+      expect(getDataAtCell(1, 0)).toEqual('=A1');
 
-      hot.updateSettings({
+      await updateSettings({
         formulas: {
           engine: HyperFormula
         }
       });
 
-      expect(hot.getPlugin('formulas').sheetName).toEqual(hot.getPlugin('formulas').engine.getSheetName(0));
-      expect(hot.getDataAtCell(1, 0)).toEqual(1);
-      expect(hot.getDataAtCell(1, 1)).toEqual(3);
+      expect(getPlugin('formulas').sheetName).toEqual(getPlugin('formulas').engine.getSheetName(0));
+      expect(getDataAtCell(1, 0)).toEqual(1);
+      expect(getDataAtCell(1, 1)).toEqual(3);
     });
 
     it('should initialize the HF engine with a new sheet (when the name was not provided) after enabling it in the' +
-      ' updateSettings object, when it was already enabled, then disabled', () => {
-      const hot = handsontable({
+      ' updateSettings object, when it was already enabled, then disabled', async() => {
+      handsontable({
         data: [
           [1, 2],
           ['=A1', '=A1 + B1']
@@ -1061,26 +1063,26 @@ describe('Formulas general', () => {
         }
       });
 
-      hot.updateSettings({
+      await updateSettings({
         formulas: false
       });
 
-      expect(hot.getDataAtCell(1, 0)).toEqual('=A1');
+      expect(getDataAtCell(1, 0)).toEqual('=A1');
 
-      hot.updateSettings({
+      await updateSettings({
         formulas: {
           engine: HyperFormula
         }
       });
 
-      expect(hot.getPlugin('formulas').sheetName).toEqual(hot.getPlugin('formulas').engine.getSheetName(0));
-      expect(hot.getDataAtCell(1, 0)).toEqual(1);
-      expect(hot.getDataAtCell(1, 1)).toEqual(3);
+      expect(getPlugin('formulas').sheetName).toEqual(getPlugin('formulas').engine.getSheetName(0));
+      expect(getDataAtCell(1, 0)).toEqual(1);
+      expect(getDataAtCell(1, 1)).toEqual(3);
     });
   });
 
   describe('Cross-referencing', () => {
-    it('should allow cross-references between HOT instances', () => {
+    it('should allow cross-references between HOT instances', async() => {
       const hot1 = handsontable({
         data: [['hello from sheet 1'], ['=Sheet2!A2']],
         formulas: {
@@ -1101,7 +1103,7 @@ describe('Formulas general', () => {
       expect(hot2.getDataAtCell(0, 0)).toEqual('hello from sheet 1');
     });
 
-    it('should auto-update the cells referenced between "linked" HOT instances after one of the is modified', () => {
+    it('should auto-update the cells referenced between "linked" HOT instances after one of the is modified', async() => {
       const hot1 = handsontable({
         data: [['hello from sheet 1'], ['=Sheet2!A2']],
         formulas: {
@@ -1129,7 +1131,7 @@ describe('Formulas general', () => {
   });
 
   describe('Registering custom HF settings', () => {
-    it('should register the provided named expressions before creating the HF instance', () => {
+    it('should register the provided named expressions before creating the HF instance', async() => {
       handsontable({
         data: [['=MyLocal']],
         formulas: {
@@ -1148,7 +1150,7 @@ describe('Formulas general', () => {
     });
 
     it('should throw a warning when trying to register two named expressions under the same name (and register only' +
-      ' the first one)', () => {
+      ' the first one)', async() => {
       spyOn(console, 'warn');
 
       handsontable({
@@ -1174,7 +1176,7 @@ describe('Formulas general', () => {
       expect(console.warn).toHaveBeenCalledWith('Name of Named Expression \'MyLocal\' is already present');
     });
 
-    it('should register custom function plugins before creating the HF instance', () => {
+    it('should register custom function plugins before creating the HF instance', async() => {
       class CustomFP extends FunctionPlugin {
         customFP() {
           return 'customFP output';
@@ -1214,7 +1216,7 @@ describe('Formulas general', () => {
 
     // TODO: uncomment after it's throwing a duplicated name error on HF's side.
     xit('should throw a warning when trying to register two custom functions under the same name (and register only' +
-      ' the first one)', () => {
+      ' the first one)', async() => {
       spyOn(console, 'warn');
 
       class CustomFP extends FunctionPlugin {
@@ -1265,7 +1267,7 @@ describe('Formulas general', () => {
       HyperFormula.unregisterFunction('CUSTOMFP');
     });
 
-    it('should register a language applying it to the HF instance', () => {
+    it('should register a language applying it to the HF instance', async() => {
       handsontable({
         data: [['TEST'], ['=LITERY.MAŁE(A1)']],
         formulas: {
@@ -1282,7 +1284,7 @@ describe('Formulas general', () => {
     });
 
     it('should throw a warning when trying to register two languages under the same name (and register only' +
-      ' the first one)', () => {
+      ' the first one)', async() => {
       spyOn(console, 'warn');
 
       HyperFormula.registerLanguage(plPL.langCode, plPL);

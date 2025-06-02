@@ -1,6 +1,6 @@
 import { addClass, empty, observeVisibilityChangeOnce, removeClass } from './helpers/dom/element';
 import { isFunction } from './helpers/function';
-import { isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty } from './helpers/mixed';
+import { isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty, stringify } from './helpers/mixed';
 import { isMobileBrowser, isIpadOS } from './helpers/browser';
 import EditorManager from './editorManager';
 import EventManager from './eventManager';
@@ -17,6 +17,7 @@ import {
 import { FocusManager } from './focusManager';
 import { arrayMap, arrayEach, arrayReduce, getDifferenceOfArrays, stringToArray, pivot } from './helpers/array';
 import { instanceToHTML } from './utils/parseTable';
+import { staticRegister } from './utils/staticRegister';
 import { getPlugin, getPluginsNames } from './plugins/registry';
 import { getRenderer } from './renderers/registry';
 import { getEditor } from './editors/registry';
@@ -42,6 +43,9 @@ import { createUniqueMap } from './utils/dataStructures/uniqueMap';
 import { createShortcutManager } from './shortcuts';
 import { registerAllShortcutContexts } from './shortcutContexts';
 import { getThemeClassName } from './helpers/themes';
+import { StylesHandler } from './utils/stylesHandler';
+import { warn } from './helpers/console';
+import { CellRangeToRenderableMapper } from './core/coordsMapper/rangeToRenderableMapper';
 
 let activeGuid = null;
 
@@ -108,11 +112,11 @@ const deprecationWarns = new Set();
  * ```
  * :::
  *
- * @param {HTMLElement} rootElement The element to which the Handsontable instance is injected.
+ * @param {HTMLElement} rootContainer The element to which the Handsontable instance is injected.
  * @param {object} userSettings The user defined options.
  * @param {boolean} [rootInstanceSymbol=false] Indicates if the instance is root of all later instances created.
  */
-export default function Core(rootElement, userSettings, rootInstanceSymbol = false) {
+export default function Core(rootContainer, userSettings, rootInstanceSymbol = false) {
   let instance = this;
 
   const eventManager = new EventManager(instance);
@@ -128,6 +132,30 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     registerAsRootInstance(this);
   }
 
+  /**
+   * Reference to the root container.
+   *
+   * @private
+   * @type {HTMLElement}
+   */
+  this.rootContainer = rootContainer;
+
+  /**
+   * Reference to the wrapper element.
+   *
+   * @private
+   * @type {HTMLElement}
+   */
+  this.rootWrapperElement = undefined;
+
+  /**
+   * Reference to the portal element.
+   *
+   * @private
+   * @type {HTMLElement}
+   */
+  this.rootPortalElement = undefined;
+
   // TODO: check if references to DOM elements should be move to UI layer (Walkontable)
   /**
    * Reference to the container element.
@@ -135,14 +163,16 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @private
    * @type {HTMLElement}
    */
-  this.rootElement = rootElement;
+  this.rootElement = isRootInstance(this) ? rootContainer.ownerDocument.createElement('div') : rootContainer;
+
   /**
    * The nearest document over container.
    *
    * @private
    * @type {Document}
    */
-  this.rootDocument = rootElement.ownerDocument;
+  this.rootDocument = rootContainer.ownerDocument;
+
   /**
    * Window object over container's document.
    *
@@ -150,6 +180,22 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @type {Window}
    */
   this.rootWindow = this.rootDocument.defaultView;
+
+  if (isRootInstance(this)) {
+    this.rootWrapperElement = this.rootDocument.createElement('div');
+    this.rootPortalElement = this.rootDocument.createElement('div');
+
+    addClass(this.rootElement, 'ht-wrapper');
+    addClass(this.rootWrapperElement, 'ht-root-wrapper');
+
+    this.rootWrapperElement.appendChild(this.rootElement);
+    this.rootContainer.appendChild(this.rootWrapperElement);
+
+    addClass(this.rootPortalElement, 'ht-portal');
+
+    this.rootDocument.body.appendChild(this.rootPortalElement);
+  }
+
   /**
    * A boolean to tell if the Handsontable has been fully destroyed. This is set to `true`
    * after `afterDestroy` hook is called.
@@ -159,6 +205,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @type {boolean}
    */
   this.isDestroyed = false;
+
   /**
    * The counter determines how many times the render suspending was called. It allows
    * tracking the nested suspending calls. For each render suspend resuming call the
@@ -169,6 +216,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @type {number}
    */
   this.renderSuspendedCounter = 0;
+
   /**
    * The counter determines how many times the execution suspending was called. It allows
    * tracking the nested suspending calls. For each execution suspend resuming call the
@@ -222,9 +270,26 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     return instance.isLtr() ? 1 : -1;
   };
 
+  /**
+   * Styles handler instance.
+   *
+   * @private
+   * @type {StylesHandler}
+   */
+  this.stylesHandler = new StylesHandler(
+    instance.rootElement,
+    instance.rootDocument
+  );
+
   userSettings.language = getValidLanguageCode(userSettings.language);
 
-  const metaManager = new MetaManager(instance, userSettings, [
+  const settingsWithoutHooks = Object.fromEntries(
+    Object.entries(userSettings).filter(([key]) => {
+      return !(Hooks.getSingleton().isRegistered(key) || Hooks.getSingleton().isDeprecated(key));
+    })
+  );
+
+  const metaManager = new MetaManager(instance, settingsWithoutHooks, [
     DynamicCellMetaMod,
     ExtendMetaPropertiesMod,
   ]);
@@ -233,14 +298,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   const pluginsRegistry = createUniqueMap();
 
   this.container = this.rootDocument.createElement('div');
-  this.renderCall = false;
 
-  rootElement.insertBefore(this.container, rootElement.firstChild);
+  this.rootElement.insertBefore(this.container, this.rootElement.firstChild);
 
   if (isRootInstance(this)) {
-    _injectProductInfo(userSettings.licenseKey, rootElement);
-
-    addClass(rootElement, 'ht-wrapper');
+    _injectProductInfo(userSettings.licenseKey, this.rootWrapperElement);
   }
 
   this.guid = `ht_${randomString()}`; // this is the namespace for global events
@@ -255,6 +317,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @type {IndexMapper}
    */
   this.columnIndexMapper = new IndexMapper();
+
   /**
    * Instance of index mapper which is responsible for managing the row indexes.
    *
@@ -272,7 +335,18 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     instance.runHooks('afterRowSequenceChange', source);
   });
 
+  eventManager.addEventListener(this.rootDocument.documentElement, 'compositionstart', (event) => {
+    instance.runHooks('beforeCompositionStart', event);
+  });
+
   dataSource = new DataSource(instance);
+
+  const moduleRegisterer = staticRegister(this.guid);
+
+  moduleRegisterer.register('cellRangeMapper', new CellRangeToRenderableMapper({
+    rowIndexMapper: this.rowIndexMapper,
+    columnIndexMapper: this.columnIndexMapper,
+  }));
 
   if (!this.rootElement.id || this.rootElement.id.substring(0, 3) === 'ht_') {
     this.rootElement.id = this.guid; // if root element does not have an id, assign a random id
@@ -356,6 +430,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this.selection = selection;
 
   const onIndexMapperCacheUpdate = ({ hiddenIndexesChanged }) => {
+    this.forceFullRender = true;
+
     if (hiddenIndexesChanged) {
       this.selection.commit();
     }
@@ -415,12 +491,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       removeClass(this.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
     }
 
-    if (selection.getSelectionSource() !== 'shift') {
+    if (!['shift', 'refresh'].includes(selection.getSelectionSource())) {
       editorManager.closeEditor(null);
     }
 
-    instance.view.render();
-    editorManager.prepareEditor();
+    if (selection.getSelectionSource() !== 'refresh') {
+      instance.view.render();
+      editorManager.prepareEditor();
+    }
   });
 
   this.selection.addLocalHook('beforeSetFocus', (cellCoords) => {
@@ -449,6 +527,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       from.row, from.col, to.row, to.col, selectionLayerLevel);
     this.runHooks('afterSelectionEndByProp',
       from.row, instance.colToProp(from.col), to.row, instance.colToProp(to.col), selectionLayerLevel);
+
+    if (selection.getSelectionSource() === 'refresh') {
+      instance.view.render();
+      editorManager.prepareEditor();
+    }
   });
 
   this.selection.addLocalHook('afterIsMultipleSelection', (isMultiple) => {
@@ -624,17 +707,6 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
               }
 
               const totalRows = instance.countRows();
-
-              if (totalRows === 0) {
-                selection.deselect();
-
-              } else if (source === 'ContextMenu.removeRow') {
-                selection.refresh();
-
-              } else {
-                selection.shiftRows(groupIndex, -groupAmount);
-              }
-
               const fixedRowsTop = tableMeta.fixedRowsTop;
 
               if (fixedRowsTop >= calcIndex + 1) {
@@ -645,6 +717,25 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
               if (fixedRowsBottom && calcIndex >= totalRows - fixedRowsBottom) {
                 tableMeta.fixedRowsBottom -= Math.min(groupAmount, fixedRowsBottom);
+              }
+
+              if (totalRows === 0) {
+                selection.deselect();
+
+              } else if (source === 'ContextMenu.removeRow') {
+                const selectionRange = selection.getSelectedRange();
+                const lastSelection = selectionRange.pop();
+
+                selectionRange
+                  .clear()
+                  .set(lastSelection.from)
+                  .current()
+                  .setTo(lastSelection.to);
+
+                selection.refresh();
+
+              } else {
+                selection.shiftRows(groupIndex, -groupAmount);
               }
 
               offset += groupAmount;
@@ -697,6 +788,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                 selection.deselect();
 
               } else if (source === 'ContextMenu.removeColumn') {
+                const selectionRange = selection.getSelectedRange();
+                const lastSelection = selectionRange.pop();
+
+                selectionRange
+                  .clear()
+                  .set(lastSelection.from)
+                  .current()
+                  .setTo(lastSelection.to);
+
                 selection.refresh();
 
               } else {
@@ -1112,17 +1212,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       addClass(instance.rootElement, 'mobile');
     }
 
-    this.updateSettings(tableMeta, true);
+    this.updateSettings(userSettings, true);
 
     this.view = new TableView(this);
 
-    const themeName = tableMeta.themeName || getThemeClassName(instance.rootElement);
+    const themeName = tableMeta.themeName || getThemeClassName(instance.rootContainer);
 
     // Use the theme defined as a root element class or in the settings (in that order).
     instance.useTheme(themeName);
-
-    // Add the theme class name to the license info element.
-    instance.view.addClassNameToLicenseElement(instance.getCurrentThemeName());
 
     editorManager = EditorManager.getInstance(instance, tableMeta, selection);
 
@@ -1136,8 +1233,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     instance.runHooks('init');
 
-    this.forceFullRender = true; // used when data was changed
-    this.view.render();
+    this.render();
 
     // Run the logic only if it's the table's initialization and the root element is not visible.
     if (!!firstRun && instance.rootElement.offsetParent === null) {
@@ -1328,13 +1424,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     const hasChanges = changes.length > 0;
 
-    instance.forceFullRender = true; // used when data was changed or when all cells need to be re-rendered
-
     if (hasChanges) {
       grid.adjustRowsAndCols();
       instance.runHooks('beforeChangeRender', changes, source);
       editorManager.closeEditor();
-      instance.view.render();
+      instance.render();
       editorManager.prepareEditor();
       instance.view.adjustElementsSize();
       instance.runHooks('afterChange', changes, source || 'edit');
@@ -1346,7 +1440,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       }
 
     } else {
-      instance.view.render();
+      instance.render();
     }
   }
 
@@ -1506,8 +1600,28 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         cellProperties = { ...Object.getPrototypeOf(tableMeta), ...tableMeta };
       }
 
-      if (cellProperties.type === 'numeric' && typeof newValue === 'string' && isNumericLike(newValue)) {
+      const {
+        type,
+        checkedTemplate,
+        uncheckedTemplate,
+      } = cellProperties;
+
+      if (
+        type === 'numeric' &&
+        typeof newValue === 'string' &&
+        isNumericLike(newValue)
+      ) {
         filteredChanges[i][3] = getParsedNumber(newValue);
+      }
+
+      if (type === 'checkbox') {
+        const stringifiedValue = stringify(newValue);
+        const isChecked = stringifiedValue === stringify(checkedTemplate);
+        const isUnchecked = stringifiedValue === stringify(uncheckedTemplate);
+
+        if (isChecked || isUnchecked) {
+          filteredChanges[i][3] = isChecked ? checkedTemplate : uncheckedTemplate;
+        }
       }
     }
 
@@ -1932,11 +2046,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     this.renderSuspendedCounter = Math.max(nextValue, 0);
 
     if (!this.isRenderSuspended() && nextValue === this.renderSuspendedCounter) {
-      if (this.renderCall) {
-        this.render();
-      } else {
-        instance.view.render();
-      }
+      instance.view.render();
     }
   };
 
@@ -1952,8 +2062,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    */
   this.render = function() {
     if (this.view) {
-      this.renderCall = true;
-      this.forceFullRender = true; // used when data was changed or when all cells need to be re-rendered
+      // used when data was changed or when all cells need to be re-rendered (slow render)
+      this.forceFullRender = true;
 
       if (!this.isRenderSuspended()) {
         instance.view.render();
@@ -2469,12 +2579,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       throw new Error('Since 8.0.0 the "ganttChart" setting is no longer supported.');
     }
 
+    if (settings.language) {
+      setLanguage(settings.language);
+    }
+
     // eslint-disable-next-line no-restricted-syntax
     for (i in settings) {
-      if (i === 'data') {
-        // Do nothing. loadData will be triggered later
-      } else if (i === 'language') {
-        setLanguage(settings.language);
+      if (i === 'data' || i === 'language') {
+        // Do nothing. loadData and language change will be triggered later
 
       } else if (i === 'className') {
         setClassName('className', settings.className);
@@ -2485,12 +2597,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         instance.view._wt.wtOverlays.syncOverlayTableClassNames();
 
       } else if (Hooks.getSingleton().isRegistered(i) || Hooks.getSingleton().isDeprecated(i)) {
+        const hook = settings[i];
 
-        if (isFunction(settings[i])) {
-          Hooks.getSingleton().addAsFixed(i, settings[i], instance);
+        if (isFunction(hook)) {
+          Hooks.getSingleton().addAsFixed(i, hook, instance);
+          tableMeta[i] = hook;
 
-        } else if (Array.isArray(settings[i])) {
-          Hooks.getSingleton().add(i, settings[i], instance);
+        } else if (Array.isArray(hook)) {
+          Hooks.getSingleton().add(i, hook, instance);
+          tableMeta[i] = hook;
         }
 
       } else if (!init && hasOwnProperty(settings, i)) { // Update settings
@@ -2603,23 +2718,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         const themeNameOptionExists = hasOwnProperty(settings, 'themeName');
 
         if (
-          currentThemeName &&
           themeNameOptionExists &&
           currentThemeName !== settings.themeName
         ) {
-          instance.view.getStylesHandler().removeClassNames();
-          instance.view.removeClassNameFromLicenseElement(currentThemeName);
+          instance.useTheme(settings.themeName);
         }
-
-        const themeName =
-          (themeNameOptionExists && settings.themeName) ||
-          getThemeClassName(instance.rootElement);
-
-        // Use the theme defined as a root element class or in the settings (in that order).
-        instance.useTheme(themeName);
-
-        // Add the theme class name to the license info element.
-        instance.view.addClassNameToLicenseElement(instance.getCurrentThemeName());
       }
 
       instance.runHooks('afterUpdateSettings', settings);
@@ -2628,8 +2731,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     grid.adjustRowsAndCols();
 
     if (instance.view && !firstRun) {
-      instance.forceFullRender = true; // used when data was changed
-      instance.view.render();
+      instance.render();
       instance.view._wt.wtOverlays.adjustElementsSize();
     }
 
@@ -3350,11 +3452,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @function getCellMeta
    * @param {number} row Visual row index.
    * @param {number} column Visual column index.
+   * @param {object} options Execution options for the `getCellMeta` method.
+   * @param {boolean} [options.skipMetaExtension=false] If `true`, skips extending the cell meta object. This means, the `cells` function, as well as the `afterGetCellMeta` and `beforeGetCellMeta` hooks, will not be called.
    * @returns {object} The cell properties object.
    * @fires Hooks#beforeGetCellMeta
    * @fires Hooks#afterGetCellMeta
    */
-  this.getCellMeta = function(row, column) {
+  this.getCellMeta = function(row, column, options = { skipMetaExtension: false }) {
     let physicalRow = this.toPhysicalRow(row);
     let physicalColumn = this.toPhysicalColumn(column);
 
@@ -3369,6 +3473,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     return metaManager.getCellMeta(physicalRow, physicalColumn, {
       visualRow: row,
       visualColumn: column,
+      ...options
     });
   };
 
@@ -3870,7 +3975,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {number}
    */
   this._getRowHeightFromSettings = function(row) {
-    const defaultRowHeight = this.view.getDefaultRowHeight();
+    const defaultRowHeight = instance.stylesHandler.getDefaultRowHeight();
     let height = tableMeta.rowHeights;
 
     if (height !== undefined && height !== null) {
@@ -4395,6 +4500,8 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    *   col: 50,
    *   verticalSnap: 'bottom',
    *   horizontalSnap: 'end',
+   * }, () => {
+   *   // callback function executed after the viewport is scrolled
    * });
    * ```
    *
@@ -4417,9 +4524,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * be positioned at the start or end of the viewport.
    * @param {boolean} [options.considerHiddenIndexes=true] If `true`, we handle visual indexes, otherwise we handle only indexes which
    * may be rendered when they are in the viewport (we don't consider hidden indexes as they aren't rendered).
+   * @param {Function} [callback] The callback function to call after the viewport is scrolled.
    * @returns {boolean} `true` if viewport was scrolled, `false` otherwise.
    */
-  this.scrollViewportTo = function(options) {
+  this.scrollViewportTo = function(options, callback) {
     // Support for backward compatibility arguments: (row, col, snapToBottom, snapToRight, considerHiddenIndexes)
     if (typeof options === 'number') {
       /* eslint-disable prefer-rest-params */
@@ -4436,11 +4544,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     const {
       row,
       col,
-      considerHiddenIndexes
+      considerHiddenIndexes,
     } = options ?? {};
 
     let renderableRow = row;
     let renderableColumn = col;
+
+    if (isFunction(callback)) {
+      this.addHookOnce('afterScroll', callback);
+    }
 
     if (considerHiddenIndexes === undefined || considerHiddenIndexes) {
       const isValidRowGrid = Number.isInteger(row) && row >= 0;
@@ -4461,24 +4573,33 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     const isRowInteger = Number.isInteger(renderableRow);
     const isColumnInteger = Number.isInteger(renderableColumn);
+    let isScrolled = false;
 
     if (isRowInteger && renderableRow >= 0 && isColumnInteger && renderableColumn >= 0) {
-      return instance.view.scrollViewport(
+      isScrolled = instance.view.scrollViewport(
         instance._createCellCoords(renderableRow, renderableColumn),
         options.horizontalSnap,
         options.verticalSnap,
       );
+
+    } else if (isRowInteger && renderableRow >= 0 && (isColumnInteger && renderableColumn < 0 || !isColumnInteger)) {
+      isScrolled = instance.view.scrollViewportVertically(renderableRow, options.verticalSnap);
+
+    } else if (isColumnInteger && renderableColumn >= 0 && (isRowInteger && renderableRow < 0 || !isRowInteger)) {
+      isScrolled = instance.view.scrollViewportHorizontally(renderableColumn, options.horizontalSnap);
     }
 
-    if (isRowInteger && renderableRow >= 0 && (isColumnInteger && renderableColumn < 0 || !isColumnInteger)) {
-      return instance.view.scrollViewportVertically(renderableRow, options.verticalSnap);
+    if (isFunction(callback)) {
+      if (isScrolled) {
+        // fast render triggers `afterScroll` hook
+        this.view.render();
+      } else {
+        this.removeHook('afterScroll', callback);
+        this._registerMicrotask(() => callback());
+      }
     }
 
-    if (isColumnInteger && renderableColumn >= 0 && (isRowInteger && renderableRow < 0 || !isRowInteger)) {
-      return instance.view.scrollViewportHorizontally(renderableColumn, options.horizontalSnap);
-    }
-
-    return false;
+    return isScrolled;
   };
 
   /**
@@ -4488,24 +4609,31 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @memberof Core#
    * @fires Hooks#afterScroll
    * @function scrollToFocusedCell
-   * @param {Function} callback The callback function to call after the viewport is scrolled.
+   * @param {Function} [callback] The callback function to call after the viewport is scrolled.
+   * @returns {boolean} `true` if the viewport was scrolled, `false` otherwise.
    */
-  this.scrollToFocusedCell = function(callback = () => {}) {
+  this.scrollToFocusedCell = function(callback) {
     if (!this.selection.isSelected()) {
-      return;
+      return false;
     }
 
-    this.addHookOnce('afterScroll', callback);
+    if (isFunction(callback)) {
+      this.addHookOnce('afterScroll', callback);
+    }
 
     const { highlight } = this.getSelectedRangeLast();
     const isScrolled = this.scrollViewportTo(highlight.toObject());
 
     if (isScrolled) {
+      // fast render triggers `afterScroll` hook
       this.view.render();
-    } else {
+
+    } else if (isFunction(callback)) {
       this.removeHook('afterScroll', callback);
-      this._registerImmediate(() => callback());
+      this._registerMicrotask(() => callback());
     }
+
+    return isScrolled;
   };
 
   /**
@@ -4525,24 +4653,26 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (dataSource) {
       dataSource.destroy();
     }
+
     dataSource = null;
 
     this.getShortcutManager().destroy();
+    moduleRegisterer.clear();
     metaManager.clearCache();
     foreignHotInstances.delete(this.guid);
 
-    if (isRootInstance(instance)) {
-      const licenseInfo = this.rootDocument.querySelector('.hot-display-license-info');
-
-      if (licenseInfo) {
-        licenseInfo.parentNode.removeChild(licenseInfo);
-      }
-    }
-    empty(instance.rootElement);
     eventManager.destroy();
 
     if (editorManager) {
       editorManager.destroy();
+    }
+
+    if (instance.rootContainer) {
+      empty(instance.rootContainer);
+    }
+
+    if (instance.rootPortalElement) {
+      instance.rootPortalElement.remove();
     }
 
     // The plugin's `destroy` method is called as a consequence and it should handle
@@ -4963,9 +5093,41 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {string|boolean|undefined} themeName The name of the theme to use.
    */
   this.useTheme = (themeName) => {
-    this.view.getStylesHandler().useTheme(themeName);
+    const isFirstRun = !!firstRun;
 
-    this.runHooks('afterSetTheme', themeName, !!firstRun);
+    this.stylesHandler.useTheme(themeName);
+
+    const validThemeName = this.stylesHandler.getThemeName();
+
+    if (isRootInstance(this)) {
+      removeClass(this.rootWrapperElement, /ht-theme-.*/g);
+      removeClass(this.rootPortalElement, /ht-theme-.*/g);
+
+      if (validThemeName) {
+        addClass(this.rootWrapperElement, validThemeName);
+        addClass(this.rootPortalElement, validThemeName);
+
+        if (!getComputedStyle(this.rootWrapperElement).getPropertyValue('--ht-line-height')) {
+          warn(`The "${validThemeName}" theme is enabled, but its stylesheets are missing or not imported correctly. \
+            Import the correct CSS files in order to use that theme.`);
+        }
+      }
+    }
+
+    if (!isFirstRun) {
+      instance.render();
+      instance.scrollViewportTo(0, 0);
+
+      if (getThemeClassName(this.rootContainer)) {
+        removeClass(this.rootContainer, /ht-theme-.*/g);
+
+        if (validThemeName) {
+          addClass(this.rootContainer, validThemeName);
+        }
+      }
+    }
+
+    this.runHooks('afterSetTheme', validThemeName, isFirstRun);
   };
 
   /**
@@ -4977,7 +5139,31 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {string|undefined} The name of the currently used theme.
    */
   this.getCurrentThemeName = () => {
-    return this.view.getStylesHandler().getThemeName();
+    return this.stylesHandler.getThemeName();
+  };
+
+  /**
+   * Gets the table's root container element height.
+   *
+   * @memberof Core#
+   * @function getTableHeight
+   * @since 16.0.0
+   * @returns {number}
+   */
+  this.getTableHeight = () => {
+    return this.rootElement.offsetHeight;
+  };
+
+  /**
+   * Gets the table's root container element width.
+   *
+   * @memberof Core#
+   * @function getTableWidth
+   * @since 16.0.0
+   * @returns {number}
+   */
+  this.getTableWidth = () => {
+    return this.rootElement.offsetWidth;
   };
 
   /**
@@ -5029,6 +5215,20 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   this._clearImmediates = function() {
     arrayEach(this.immediates, (handler) => {
       clearImmediate(handler);
+    });
+  };
+
+  /**
+   * Registers a microtask callback.
+   *
+   * @param {Function} callback Function to be delayed in execution.
+   * @private
+   */
+  this._registerMicrotask = function(callback) {
+    this.rootWindow.queueMicrotask(() => {
+      if (!this.isDestroyed) {
+        callback();
+      }
     });
   };
 

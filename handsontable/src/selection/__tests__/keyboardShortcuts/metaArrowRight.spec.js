@@ -20,7 +20,7 @@ describe('Selection navigation', () => {
   }
 
   describe('"Ctrl/Cmd + ArrowRight"', () => {
-    it('should move the cell selection to the most right cell in a row', () => {
+    it('should move the cell selection to the most right cell in a row', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -28,8 +28,8 @@ describe('Selection navigation', () => {
         startCols: 5,
       });
 
-      selectCell(1, 3);
-      keyDownUp(['control/meta', 'arrowright']);
+      await selectCell(1, 3);
+      await keyDownUp(['control/meta', 'arrowright']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,4 from: 1,4 to: 1,4']);
       expect(`
@@ -42,8 +42,8 @@ describe('Selection navigation', () => {
         |   ║   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
 
-      selectCells([[3, 1, 1, 3]]);
-      keyDownUp(['control/meta', 'arrowright']);
+      await selectCells([[3, 1, 1, 3]]);
+      await keyDownUp(['control/meta', 'arrowright']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,4 from: 3,4 to: 3,4']);
       expect(`
@@ -56,8 +56,8 @@ describe('Selection navigation', () => {
         |   ║   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
 
-      selectRows(2);
-      keyDownUp(['control/meta', 'arrowright']);
+      await selectRows(2);
+      await keyDownUp(['control/meta', 'arrowright']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,4 from: 2,4 to: 2,4']);
       expect(`
@@ -71,7 +71,7 @@ describe('Selection navigation', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should move the header selection to the most right column header in a row (navigableHeaders on)', () => {
+    it('should move the header selection to the most right column header in a row (navigableHeaders on)', async() => {
       handsontable({
         startRows: 5,
         startCols: 5,
@@ -79,13 +79,13 @@ describe('Selection navigation', () => {
         navigableHeaders: true,
       });
 
-      selectCell(-1, 1);
-      keyDownUp(['control/meta', 'arrowright']);
+      await selectCell(-1, 1);
+      await keyDownUp(['control/meta', 'arrowright']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,4 from: -1,4 to: -1,4']);
     });
 
-    it('should move the header selection to the most right column header in a row when there is no rows (navigableHeaders on)', () => {
+    it('should move the header selection to the most right column header in a row when there is no rows (navigableHeaders on)', async() => {
       handsontable({
         data: [],
         columns: [{}, {}, {}, {}, {}],
@@ -93,13 +93,13 @@ describe('Selection navigation', () => {
         navigableHeaders: true,
       });
 
-      selectCell(-1, 1);
-      keyDownUp(['control/meta', 'arrowright']);
+      await selectCell(-1, 1);
+      await keyDownUp(['control/meta', 'arrowright']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,4 from: -1,4 to: -1,4']);
     });
 
-    it('should move the header selection to the most right column header in a row when all rows are hidden (navigableHeaders on)', () => {
+    it('should move the header selection to the most right column header in a row when all rows are hidden (navigableHeaders on)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
@@ -107,15 +107,15 @@ describe('Selection navigation', () => {
       });
 
       rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
-      render();
+      await render();
 
-      selectCell(-1, 1);
-      keyDownUp(['control/meta', 'arrowright']);
+      await selectCell(-1, 1);
+      await keyDownUp(['control/meta', 'arrowright']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,4 from: -1,4 to: -1,4']);
     });
 
-    it('should move the header selection to the most right row header in a row when there is no columns (navigableHeaders on)', () => {
+    it('should move the header selection to the most right row header in a row when there is no columns (navigableHeaders on)', async() => {
       handsontable({
         data: [[], [], [], [], []],
         rowHeaders: true,
@@ -126,13 +126,13 @@ describe('Selection navigation', () => {
         },
       });
 
-      selectCell(1, -3);
-      keyDownUp(['control/meta', 'arrowright']);
+      await selectCell(1, -3);
+      await keyDownUp(['control/meta', 'arrowright']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-1 from: 1,-1 to: 1,-1']);
     });
 
-    it('should move the header selection to the most right row header in a row when all columns are hidden (navigableHeaders on)', () => {
+    it('should move the header selection to the most right row header in a row when all columns are hidden (navigableHeaders on)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeaders: true,
@@ -144,10 +144,10 @@ describe('Selection navigation', () => {
       });
 
       columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
-      render();
+      await render();
 
-      selectCell(1, -3);
-      keyDownUp(['control/meta', 'arrowright']);
+      await selectCell(1, -3);
+      await keyDownUp(['control/meta', 'arrowright']);
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,-1 from: 1,-1 to: 1,-1']);
     });

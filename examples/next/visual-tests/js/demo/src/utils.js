@@ -1,4 +1,4 @@
-import { data } from './constants';
+import { data } from './data';
 
 const randomName = () =>
   ["عمر", "علي", "عبد الله", "معتصم"][Math.floor(Math.random() * 3)];
@@ -28,16 +28,18 @@ function generateArabicData() {
   ]);
 }
 
-export function getDirectionFromURL() {
-  const urlParams = new URLSearchParams(location.search);
+export function getFromURL(paramName, defaultValue) {
+  return new URLSearchParams(location.search).get(paramName) ?? defaultValue;
+}
 
-  return urlParams.get("direction") ?? "ltr";
+export function getDirectionFromURL() {
+  return getFromURL("direction", "ltr");
 }
 
 export function getThemeNameFromURL() {
-  const urlParams = new URLSearchParams(location.search);
+  const theme = getFromURL("theme");
 
-  return urlParams.get("theme") ? `ht-theme-${urlParams.get("theme")}` : undefined;
+  return theme ? `ht-theme-${theme}` : undefined;
 }
 
 export function generateExampleData() {

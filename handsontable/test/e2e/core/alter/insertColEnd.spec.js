@@ -17,7 +17,7 @@ describe('Core.alter', () => {
     });
 
     describe('`insert_col_end` action', () => {
-      it('should insert column on the right of the last column when there is missing the `index` argument', () => {
+      it('should insert column on the right of the last column when there is missing the `index` argument', async() => {
         handsontable({
           data: [
             ['a1', 'a2', 'a3'],
@@ -26,7 +26,7 @@ describe('Core.alter', () => {
           ]
         });
 
-        alter('insert_col_end');
+        await alter('insert_col_end');
 
         expect(countCols()).toBe(4);
         expect(getData()).toEqual([
@@ -35,7 +35,7 @@ describe('Core.alter', () => {
           ['c1', 'c2', 'c3', null],
         ]);
 
-        alter('insert_col_end', null, 3);
+        await alter('insert_col_end', null, 3);
 
         expect(countCols()).toBe(7);
         expect(getData()).toEqual([
@@ -45,7 +45,7 @@ describe('Core.alter', () => {
         ]);
       });
 
-      it('should insert column on the right of the last column when the index exceeds the data range', () => {
+      it('should insert column on the right of the last column when the index exceeds the data range', async() => {
         handsontable({
           data: [
             ['a1', 'a2', 'a3'],
@@ -54,7 +54,7 @@ describe('Core.alter', () => {
           ]
         });
 
-        alter('insert_col_end', 3);
+        await alter('insert_col_end', 3);
 
         expect(countCols()).toBe(4);
         expect(getData()).toEqual([
@@ -63,7 +63,7 @@ describe('Core.alter', () => {
           ['c1', 'c2', 'c3', null],
         ]);
 
-        alter('insert_col_end', 100);
+        await alter('insert_col_end', 100);
 
         expect(countCols()).toBe(5);
         expect(getData()).toEqual([
@@ -72,7 +72,7 @@ describe('Core.alter', () => {
           ['c1', 'c2', 'c3', null, null],
         ]);
 
-        alter('insert_col_end', 100, 3);
+        await alter('insert_col_end', 100, 3);
 
         expect(countCols()).toBe(8);
         expect(getData()).toEqual([
@@ -82,7 +82,7 @@ describe('Core.alter', () => {
         ]);
       });
 
-      it('should insert one column on the left of the given index (the `amount` argument is not provided)', () => {
+      it('should insert one column on the left of the given index (the `amount` argument is not provided)', async() => {
         handsontable({
           data: [
             ['a1', 'a2', 'a3'],
@@ -91,7 +91,7 @@ describe('Core.alter', () => {
           ]
         });
 
-        alter('insert_col_end', 1);
+        await alter('insert_col_end', 1);
 
         expect(countCols()).toBe(4);
         expect(getData()).toEqual([
@@ -101,7 +101,7 @@ describe('Core.alter', () => {
         ]);
       });
 
-      it('should insert 3 columns on the left of the given index', () => {
+      it('should insert 3 columns on the left of the given index', async() => {
         handsontable({
           data: [
             ['a1', 'a2', 'a3'],
@@ -110,7 +110,7 @@ describe('Core.alter', () => {
           ]
         });
 
-        alter('insert_col_end', 1, 3);
+        await alter('insert_col_end', 1, 3);
 
         expect(countCols()).toBe(6);
         expect(getData()).toEqual([
@@ -120,7 +120,7 @@ describe('Core.alter', () => {
         ]);
       });
 
-      it('should not create column if removing has been canceled by `beforeCreateCol` hook handler', () => {
+      it('should not create column if removing has been canceled by `beforeCreateCol` hook handler', async() => {
         handsontable({
           data: createSpreadsheetData(5, 5),
           beforeCreateCol: () => false
@@ -128,23 +128,23 @@ describe('Core.alter', () => {
 
         expect(countCols()).toBe(5);
 
-        alter('insert_col_end');
+        await alter('insert_col_end');
 
         expect(countCols()).toBe(5);
 
-        alter('insert_col_end', 1, 10);
+        await alter('insert_col_end', 1, 10);
 
         expect(countCols()).toBe(5);
       });
 
-      it('should not create/shift cell meta objects if creating has been canceled by `beforeCreateCol` hook handler', () => {
+      it('should not create/shift cell meta objects if creating has been canceled by `beforeCreateCol` hook handler', async() => {
         handsontable({
           beforeCreateCol: () => false,
         });
 
-        setCellMeta(0, 2, '_test', 'foo');
+        await setCellMeta(0, 2, '_test', 'foo');
 
-        alter('insert_col_end', 1, 1);
+        await alter('insert_col_end', 1, 1);
 
         expect(getCellMeta(0, 0)._test).toBeUndefined();
         expect(getCellMeta(0, 1)._test).toBeUndefined();
@@ -152,7 +152,7 @@ describe('Core.alter', () => {
         expect(getCellMeta(0, 3)._test).toBeUndefined();
       });
 
-      it('should add new column with cells type defined by cell meta options', () => {
+      it('should add new column with cells type defined by cell meta options', async() => {
         handsontable({
           data: [
             [0, 'a', true],
@@ -165,7 +165,7 @@ describe('Core.alter', () => {
           ],
         });
 
-        alter('insert_col_end');
+        await alter('insert_col_end');
 
         // a new column
         expect(getCellMeta(0, 3).type).toBe('text');
@@ -176,31 +176,31 @@ describe('Core.alter', () => {
         expect(getDataAtCell(0, 0)).toBe(0);
       });
 
-      it('should insert not more columns than maxCols', () => {
+      it('should insert not more columns than maxCols', async() => {
         handsontable({
           startCols: 5,
           maxCols: 7
         });
 
-        alter('insert_col_end', 1);
-        alter('insert_col_end', 1);
-        alter('insert_col_end', 1);
+        await alter('insert_col_end', 1);
+        await alter('insert_col_end', 1);
+        await alter('insert_col_end', 1);
 
         expect(countCols()).toBe(7);
       });
 
-      it('should not insert more columns than maxCols (when `amount` parameter is used)', () => {
+      it('should not insert more columns than maxCols (when `amount` parameter is used)', async() => {
         handsontable({
           data: createSpreadsheetData(3, 5),
           maxCols: 10
         });
 
-        alter('insert_col_end', 1, 10);
+        await alter('insert_col_end', 1, 10);
 
         expect(countCols()).toBe(10);
       });
 
-      it('should fire `beforeCreateCol` and `afterCreateCol` hooks', () => {
+      it('should fire `beforeCreateCol` and `afterCreateCol` hooks', async() => {
         const beforeCreateCol = jasmine.createSpy('beforeCreateCol');
         const afterCreateCol = jasmine.createSpy('afterCreateCol');
 
@@ -210,14 +210,14 @@ describe('Core.alter', () => {
           afterCreateCol,
         });
 
-        alter('insert_col_end');
+        await alter('insert_col_end');
 
         expect(beforeCreateCol).toHaveBeenCalledTimes(1);
         expect(beforeCreateCol).toHaveBeenCalledWith(8, 1);
         expect(afterCreateCol).toHaveBeenCalledTimes(1);
         expect(afterCreateCol).toHaveBeenCalledWith(8, 1);
 
-        alter('insert_col_end', 3, 2, 'customSource');
+        await alter('insert_col_end', 3, 2, 'customSource');
 
         expect(beforeCreateCol).toHaveBeenCalledTimes(2);
         expect(beforeCreateCol).toHaveBeenCalledWith(3, 2, 'customSource');
@@ -225,7 +225,7 @@ describe('Core.alter', () => {
         expect(afterCreateCol).toHaveBeenCalledWith(4, 2, 'customSource');
       });
 
-      it('should correctly shift cell meta object when they are defined in the `beforeCreateCol` hook', () => {
+      it('should correctly shift cell meta object when they are defined in the `beforeCreateCol` hook', async() => {
         handsontable({
           data: createSpreadsheetData(8, 8),
           beforeCreateCol(index, amount) {
@@ -235,9 +235,9 @@ describe('Core.alter', () => {
           },
         });
 
-        setCellMeta(0, 0, 'className', 'green-background');
-        setCellMeta(0, 1, 'className', 'green-background');
-        alter('insert_col_end', 1, 3);
+        await setCellMeta(0, 0, 'className', 'green-background');
+        await setCellMeta(0, 1, 'className', 'green-background');
+        await alter('insert_col_end', 1, 3);
 
         expect(getCellMeta(0, 0).className).toBe('green-background');
         expect(getCellMeta(0, 1).className).toBe('red-background');
@@ -250,7 +250,7 @@ describe('Core.alter', () => {
         expect(getCellMeta(0, 8).className).toBeUndefined();
       });
 
-      it('should correctly shift cell meta object when they are defined in the `afterCreateCol` hook', () => {
+      it('should correctly shift cell meta object when they are defined in the `afterCreateCol` hook', async() => {
         handsontable({
           data: createSpreadsheetData(8, 8),
           afterCreateCol(index, amount) {
@@ -260,9 +260,9 @@ describe('Core.alter', () => {
           },
         });
 
-        setCellMeta(0, 0, 'className', 'green-background');
-        setCellMeta(0, 1, 'className', 'green-background');
-        alter('insert_col_end', 1, 3);
+        await setCellMeta(0, 0, 'className', 'green-background');
+        await setCellMeta(0, 1, 'className', 'green-background');
+        await alter('insert_col_end', 1, 3);
 
         expect(getCellMeta(0, 0).className).toBe('green-background');
         expect(getCellMeta(0, 1).className).toBe('green-background');
@@ -275,14 +275,14 @@ describe('Core.alter', () => {
         expect(getCellMeta(0, 8).className).toBeUndefined();
       });
 
-      it('should shift right only the last selection layer when the column is inserted on the left of that selection', () => {
+      it('should shift right only the last selection layer when the column is inserted on the left of that selection', async() => {
         handsontable({
           data: createSpreadsheetData(8, 8),
           rowHeaders: true,
           colHeaders: true,
         });
 
-        selectCells([
+        await selectCells([
           [1, 1, 3, 2],
           [1, 4, 1, 4],
           [5, 3, 6, 4],
@@ -316,7 +316,7 @@ describe('Core.alter', () => {
           `).toBeMatchToSelectionPattern();
         }
 
-        alter('insert_col_end', 2, 2);
+        await alter('insert_col_end', 2, 2);
 
         if (htmlDir === 'rtl') {
           expect(`
@@ -347,14 +347,14 @@ describe('Core.alter', () => {
         }
       });
 
-      it('should not shift right the selection layers when the column is inserted on the right of that selection', () => {
+      it('should not shift right the selection layers when the column is inserted on the right of that selection', async() => {
         handsontable({
           data: createSpreadsheetData(8, 8),
           rowHeaders: true,
           colHeaders: true,
         });
 
-        selectCells([
+        await selectCells([
           [1, 1, 3, 2],
           [1, 4, 1, 4],
           [5, 3, 6, 4],
@@ -388,7 +388,7 @@ describe('Core.alter', () => {
           `).toBeMatchToSelectionPattern();
         }
 
-        alter('insert_col_end', 3, 2);
+        await alter('insert_col_end', 3, 2);
 
         if (htmlDir === 'rtl') {
           expect(`
@@ -419,14 +419,14 @@ describe('Core.alter', () => {
         }
       });
 
-      it('should shift right the selected column when the new column is inserted on the left of that selection', () => {
+      it('should shift right the selected column when the new column is inserted on the left of that selection', async() => {
         handsontable({
           data: createSpreadsheetData(5, 5),
           rowHeaders: true,
           colHeaders: true,
         });
 
-        selectColumns(2, 3);
+        await selectColumns(2, 3);
 
         if (htmlDir === 'rtl') {
           expect(`
@@ -450,7 +450,7 @@ describe('Core.alter', () => {
           `).toBeMatchToSelectionPattern();
         }
 
-        alter('insert_col_end', 1, 1);
+        await alter('insert_col_end', 1, 1);
 
         if (htmlDir === 'rtl') {
           expect(`
@@ -475,14 +475,14 @@ describe('Core.alter', () => {
         }
       });
 
-      it('should not shift right the selected column when the new column is inserted on the right of that selection', () => {
+      it('should not shift right the selected column when the new column is inserted on the right of that selection', async() => {
         handsontable({
           data: createSpreadsheetData(5, 5),
           rowHeaders: true,
           colHeaders: true,
         });
 
-        selectColumns(2, 3);
+        await selectColumns(2, 3);
 
         if (htmlDir === 'rtl') {
           expect(`
@@ -506,7 +506,7 @@ describe('Core.alter', () => {
           `).toBeMatchToSelectionPattern();
         }
 
-        alter('insert_col_end', 2, 1);
+        await alter('insert_col_end', 2, 1);
 
         if (htmlDir === 'rtl') {
           expect(`
@@ -531,14 +531,14 @@ describe('Core.alter', () => {
         }
       });
 
-      it('should keep the whole table selected when the new column is added', () => {
+      it('should keep the whole table selected when the new column is added', async() => {
         handsontable({
           data: createSpreadsheetData(3, 5),
           rowHeaders: true,
           colHeaders: true,
         });
 
-        selectAll();
+        await selectAll();
 
         if (htmlDir === 'rtl') {
           expect(`
@@ -558,7 +558,7 @@ describe('Core.alter', () => {
           `).toBeMatchToSelectionPattern();
         }
 
-        alter('insert_col_end', 0); // add to the beginning of the table
+        await alter('insert_col_end', 0); // add to the beginning of the table
 
         if (htmlDir === 'rtl') {
           expect(`
@@ -578,7 +578,7 @@ describe('Core.alter', () => {
           `).toBeMatchToSelectionPattern();
         }
 
-        alter('insert_col_end', 100); // add to the end of the table
+        await alter('insert_col_end', 100); // add to the end of the table
 
         if (htmlDir === 'rtl') {
           expect(`
@@ -599,7 +599,7 @@ describe('Core.alter', () => {
         }
       });
 
-      it('should not create column header together with the column, if headers were NOT specified explicitly', () => {
+      it('should not create column header together with the column, if headers were NOT specified explicitly', async() => {
         handsontable({
           startCols: 3,
           startRows: 2,
@@ -609,13 +609,13 @@ describe('Core.alter', () => {
         expect(getColHeader()).toEqual(['A', 'B', 'C']);
         expect(countCols()).toBe(3);
 
-        alter('insert_col_end', 1);
+        await alter('insert_col_end', 1);
 
         expect(getColHeader()).toEqual(['A', 'B', 'C', 'D']);
         expect(countCols()).toBe(4);
       });
 
-      it('should create column header together with the column, if headers were specified explicitly', () => {
+      it('should create column header together with the column, if headers were specified explicitly', async() => {
         handsontable({
           startCols: 3,
           startRows: 2,
@@ -625,32 +625,55 @@ describe('Core.alter', () => {
         expect(getColHeader()).toEqual(['Header0', 'Header1', 'Header2']);
         expect(countCols()).toBe(3);
 
-        alter('insert_col_end', 1);
+        await alter('insert_col_end', 1);
 
         expect(getColHeader()).toEqual(['Header0', 'Header1', 'C', 'Header2']);
         expect(countCols()).toBe(4);
       });
 
-      it('should insert column at proper position when there were some column sequence changes', () => {
-        const hot = handsontable({
+      it('should insert column at proper position when there were some column sequence changes', async() => {
+        handsontable({
           data: createSpreadsheetData(5, 5)
         });
 
-        hot.columnIndexMapper.setIndexesSequence([4, 3, 2, 1, 0]);
+        columnIndexMapper().setIndexesSequence([4, 3, 2, 1, 0]);
 
-        alter('insert_col_end', 1, 1);
+        await alter('insert_col_end', 1, 1);
 
         expect(getDataAtRow(0)).toEqual(['E1', 'D1', null, 'C1', 'B1', 'A1']);
         expect(getSourceDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', null, 'E1']);
 
-        alter('insert_col_end', 0, 1);
+        await alter('insert_col_end', 0, 1);
 
         expect(getDataAtRow(0)).toEqual(['E1', null, 'D1', null, 'C1', 'B1', 'A1']);
         expect(getSourceDataAtRow(0)).toEqual(['A1', 'B1', 'C1', 'D1', null, 'E1', null]);
 
-        alter('insert_col_end', 6, 1);
+        await alter('insert_col_end', 6, 1);
 
         expect(getDataAtRow(0)).toEqual(['E1', null, 'D1', null, 'C1', 'B1', 'A1', null]);
+        expect(getSourceDataAtRow(0)).toEqual(['A1', null, 'B1', 'C1', 'D1', null, 'E1', null]);
+      });
+
+      it('should insert column at proper position when column index sequence is shifted', async() => {
+        handsontable({
+          data: createSpreadsheetData(5, 5)
+        });
+
+        columnIndexMapper().setIndexesSequence([4, 0, 1, 2, 3]);
+
+        await alter('insert_col_end', 1, 1);
+
+        expect(getDataAtRow(0)).toEqual(['E1', 'A1', null, 'B1', 'C1', 'D1']);
+        expect(getSourceDataAtRow(0)).toEqual(['A1', null, 'B1', 'C1', 'D1', 'E1']);
+
+        await alter('insert_col_end', 0, 1);
+
+        expect(getDataAtRow(0)).toEqual(['E1', null, 'A1', null, 'B1', 'C1', 'D1']);
+        expect(getSourceDataAtRow(0)).toEqual(['A1', null, 'B1', 'C1', 'D1', 'E1', null]);
+
+        await alter('insert_col_end', 6, 1);
+
+        expect(getDataAtRow(0)).toEqual(['E1', null, 'A1', null, 'B1', 'C1', 'D1', null]);
         expect(getSourceDataAtRow(0)).toEqual(['A1', null, 'B1', 'C1', 'D1', null, 'E1', null]);
       });
     });

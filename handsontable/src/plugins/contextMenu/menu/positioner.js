@@ -140,7 +140,14 @@ export class Positioner {
     let top = this.#offset.above + this.#cursor.top - this.#container.offsetHeight;
 
     if (this.#parentContainer) {
-      top = this.#cursor.top + this.#cursor.cellHeight - this.#container.offsetHeight + 3;
+      const rootWindow = this.#parentContainer.ownerDocument.defaultView;
+      const style = rootWindow.getComputedStyle(this.#parentContainer
+        .querySelector('.ht_master'));
+      const paddingTop = Number.parseInt(style.paddingTop, 10);
+      const borderTop = Number.parseInt(style.borderTop, 10);
+
+      top = this.#cursor.top + this.#cursor.cellHeight -
+        this.#container.scrollHeight + paddingTop + borderTop;
     }
 
     this.#container.style.top = `${top}px`;
@@ -153,7 +160,13 @@ export class Positioner {
     let top = this.#offset.below + this.#cursor.top + 1;
 
     if (this.#parentContainer) {
-      top = this.#cursor.top - 1;
+      const rootWindow = this.#parentContainer.ownerDocument.defaultView;
+      const style = rootWindow.getComputedStyle(this.#parentContainer
+        .querySelector('.ht_master'));
+      const paddingTop = Number.parseInt(style.paddingTop, 10);
+      const borderTop = Number.parseInt(style.borderTop, 10);
+
+      top = this.#cursor.top - paddingTop - borderTop - 1;
     }
 
     this.#container.style.top = `${top}px`;

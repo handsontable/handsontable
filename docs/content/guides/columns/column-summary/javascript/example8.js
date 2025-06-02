@@ -22,10 +22,7 @@ new Handsontable(container, {
   columnSummary() {
     const endpoints = [];
     const nestedRowsPlugin = this.hot.getPlugin('nestedRows');
-    const getRowIndex = nestedRowsPlugin.dataManager.getRowIndex.bind(
-      nestedRowsPlugin.dataManager
-    );
-
+    const getRowIndex = nestedRowsPlugin.dataManager.getRowIndex.bind(nestedRowsPlugin.dataManager);
     const resultColumn = 0;
     let nestedRowsCache = null;
 
@@ -40,10 +37,7 @@ new Handsontable(container, {
     }
 
     for (let i = 0; i < nestedRowsCache.levels[0].length; i++) {
-      if (
-        !nestedRowsCache.levels[0][i].__children ||
-        nestedRowsCache.levels[0][i].__children.length === 0
-      ) {
+      if (!nestedRowsCache.levels[0][i].__children || nestedRowsCache.levels[0][i].__children.length === 0) {
         continue;
       }
 
@@ -57,11 +51,7 @@ new Handsontable(container, {
 
       tempEndpoint.ranges.push([
         getRowIndex(nestedRowsCache.levels[0][i].__children[0]),
-        getRowIndex(
-          nestedRowsCache.levels[0][i].__children[
-            nestedRowsCache.levels[0][i].__children.length - 1
-          ]
-        ),
+        getRowIndex(nestedRowsCache.levels[0][i].__children[nestedRowsCache.levels[0][i].__children.length - 1]),
       ]);
       endpoints.push(tempEndpoint);
     }

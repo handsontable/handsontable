@@ -26,20 +26,14 @@ const ExampleComponent = () => {
   useEffect(() => {
     // simulate layout change outside of React lifecycle
     // @ts-ignore
-    document.getElementById('exampleParent').style.height = isContainerExpanded
-      ? '410px'
-      : '157px';
+    document.getElementById('exampleParent').style.height = isContainerExpanded ? '410px' : '157px';
     hotRef.current?.hotInstance?.refreshDimensions();
   });
 
   return (
     <>
       <div className="controls">
-        <button
-          id="triggerBtn"
-          className="button button--primary"
-          onClick={() => triggerBtnClickCallback()}
-        >
+        <button id="triggerBtn" className="button button--primary" onClick={() => triggerBtnClickCallback()}>
           {isContainerExpanded ? 'Collapse container' : 'Expand container'}
         </button>
       </div>

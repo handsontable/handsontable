@@ -16,7 +16,7 @@ describe('CopyPaste', () => {
   });
 
   describe('`rowsLimit` setting', () => {
-    it('should be set to `Infinity` by default', () => {
+    it('should be set to `Infinity` by default', async() => {
       handsontable({
         copyPaste: true
       });
@@ -24,7 +24,7 @@ describe('CopyPaste', () => {
       expect(getPlugin('CopyPaste').rowsLimit).toBe(Infinity);
     });
 
-    it('should be the same as limit provided in the settings', () => {
+    it('should be the same as limit provided in the settings', async() => {
       handsontable({
         copyPaste: {
           rowsLimit: 100,
@@ -34,7 +34,7 @@ describe('CopyPaste', () => {
       expect(getPlugin('CopyPaste').rowsLimit).toBe(100);
     });
 
-    it('should trim the selected cells without modifying column headers to the limit', () => {
+    it('should trim the selected cells without modifying column headers to the limit', async() => {
       handsontable({
         data: createSpreadsheetData(10, 5),
         rowHeaders: true,
@@ -66,7 +66,7 @@ describe('CopyPaste', () => {
       const copyEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
-      selectCell(1, 1, 8, 2);
+      await selectCell(1, 1, 8, 2);
 
       plugin.copyWithAllColumnHeaders();
       plugin.onCopy(copyEvent); // emulate native "copy" event

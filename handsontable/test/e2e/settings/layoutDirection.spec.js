@@ -16,7 +16,7 @@ describe('settings', () => {
       }
     });
 
-    it('should set dir="rtl" attribute to the root element no matter in what document direction the table is initialized', () => {
+    it('should set dir="rtl" attribute to the root element no matter in what document direction the table is initialized', async() => {
       handsontable({
         layoutDirection: 'rtl'
       });
@@ -25,7 +25,7 @@ describe('settings', () => {
       expect(hot().isRtl()).toBe(true);
     });
 
-    it('should set dir="ltr" attribute to the root element no matter in what document direction the table is initialized', () => {
+    it('should set dir="ltr" attribute to the root element no matter in what document direction the table is initialized', async() => {
       $('html').attr('dir', 'rtl');
       handsontable({
         layoutDirection: 'ltr'
@@ -36,7 +36,7 @@ describe('settings', () => {
     });
 
     it('should set a proper "dir" attribute to the root element based on the detected document direction ' +
-       '("dir" defined in the HTML element)', () => {
+       '("dir" defined in the HTML element)', async() => {
       $('html').attr('dir', 'rtl');
       handsontable({
         layoutDirection: 'inherit'
@@ -47,7 +47,7 @@ describe('settings', () => {
     });
 
     it('should set a proper "dir" attribute to the root element based on the detected document direction ' +
-       '("dir" defined in the nearest component\'s parent element)', () => {
+       '("dir" defined in the nearest component\'s parent element)', async() => {
       spec().$container.attr('dir', 'rtl');
       handsontable({
         layoutDirection: 'inherit'
@@ -57,13 +57,14 @@ describe('settings', () => {
       expect(hot().isRtl()).toBe(true);
     });
 
-    it('should not be possible to change the layout direction after the table is initialized', () => {
+    it('should not be possible to change the layout direction after the table is initialized', async() => {
       spec().$container.attr('dir', 'rtl');
       handsontable({
         layoutDirection: 'ltr'
       });
 
       expect(() => {
+        // eslint-disable-next-line handsontable/require-await
         updateSettings({
           layoutDirection: 'rtl'
         });

@@ -30,7 +30,7 @@ describe('WalkontableTable', () => {
   });
 
   describe('getLastRenderedRow()', () => {
-    it('should return -1 error code if there are no rendered rows and columns', () => {
+    it('should return -1 error code if there are no rendered rows and columns', async() => {
       createDataArray(0, 0);
       spec().$wrapper.width(250).height(170);
 
@@ -69,7 +69,45 @@ describe('WalkontableTable', () => {
       expectWtTable(wt, wtTable => wtTable.getLastRenderedRow(), 'top').toBe(-1);
     });
 
-    it('should return source index that is relevant to a given overlay', () => {
+    it('should return -1 error code if there are rendered rows and columns after fixed overlays are disabled', async() => {
+      createDataArray(4, 4);
+      spec().$wrapper.width(250).height(170);
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        fixedRowsTop: 2,
+        fixedRowsBottom: 2,
+        columnHeaders: [function(col, TH) {
+          TH.innerHTML = `${hotParentName(TH)}-header-of-col-${col}`;
+        }],
+        rowHeaders: [function(row, TH) {
+          TH.innerHTML = `${hotParentName(TH)}-header-of-row-${row}`;
+        }]
+      });
+
+      wt.draw();
+      wt.wtSettings.update('fixedRowsTop', 0);
+      wt.wtSettings.update('fixedRowsBottom', 0);
+      wt.draw();
+
+      expectWtTable(wt, wtTable => wtTable.getLastRenderedRow(), 'master').toBe(3);
+
+      expect(wt.wtOverlays.bottomInlineStartCornerOverlay).not.toBe(undefined);
+      expectWtTable(wt, wtTable => wtTable.getLastRenderedRow(), 'bottomInlineStartCorner').toBe(-1);
+
+      expect(wt.wtOverlays.bottomOverlay).not.toBe(undefined);
+      expectWtTable(wt, wtTable => wtTable.getLastRenderedRow(), 'bottom').toBe(-1);
+
+      expect(wt.wtOverlays.topInlineStartCornerOverlay).not.toBe(undefined);
+      expectWtTable(wt, wtTable => wtTable.getLastRenderedRow(), 'topInlineStartCorner').toBe(-1);
+
+      expect(wt.wtOverlays.topOverlay).not.toBe(undefined);
+      expectWtTable(wt, wtTable => wtTable.getLastRenderedRow(), 'top').toBe(-1);
+    });
+
+    it('should return source index that is relevant to a given overlay', async() => {
       createDataArray(18, 18);
       spec().$wrapper.width(250).height(170);
 
@@ -92,7 +130,7 @@ describe('WalkontableTable', () => {
       expectWtTable(wt, wtTable => wtTable.getLastRenderedRow(), 'top').toBe(1);
     });
 
-    it('should return source index even for partially visible row (the last row is partially visible)', () => {
+    it('should return source index even for partially visible row (the last row is partially visible)', async() => {
       createDataArray(18, 18);
       spec().$wrapper.width(185).height(170);
 
@@ -107,7 +145,7 @@ describe('WalkontableTable', () => {
       expect(wt.wtTable.getLastRenderedRow()).toBe(7);
     });
 
-    it('should return source index even for partially visible row (the last row is fully visible)', () => {
+    it('should return source index even for partially visible row (the last row is fully visible)', async() => {
       createDataArray(18, 18);
       spec().$wrapper.width(185).height(170);
 

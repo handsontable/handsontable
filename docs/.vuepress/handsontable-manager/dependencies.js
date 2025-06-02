@@ -98,6 +98,17 @@ const getCommonScript = (scriptName, version) => {
   return [`${getDocsBaseFullUrl()}/scripts/${scriptName}.js`, ['require', 'exports']];
 };
 
+const getPrebuiltUmdUrl = (scriptName) => {
+  if (isBrowser) {
+    return `${window.location.origin}/docs/scripts/prebuilt-umd/${scriptName}`;
+  }
+
+  // eslint-disable-next-line global-require
+  const { getDocsBaseFullUrl } = require('../helpers');
+
+  return `${getDocsBaseFullUrl()}/scripts/prebuilt-umd/${scriptName}`;
+};
+
 /**
  * Some further version of Handsontable will needs different version of dependencies.
  * The function `buildDependencyGetter` is the best place to care about that.
@@ -124,17 +135,18 @@ const buildDependencyGetter = (version) => {
       'react-star-rating-component': ['https://cdn.jsdelivr.net/npm/react-star-rating-component@1.4.1/dist/react-star-rating-component.min.js'],
       numbro: ['https://cdn.jsdelivr.net/npm/numbro@2.5.0/dist/languages.min.js', ['numbro.allLanguages', 'numbro']],
       redux: ['https://cdn.jsdelivr.net/npm/redux@4/dist/redux.min.js', []],
-      rxjs: ['https://cdn.jsdelivr.net/npm/rxjs@6/bundles/rxjs.umd.js', [/* todo */]],
+      rxjs: ['https://cdn.jsdelivr.net/npm/rxjs@6/bundles/rxjs.umd.min.js', [/* todo */]],
       'core-js': ['https://cdn.jsdelivr.net/npm/core-js@2/client/core.min.js', [/* todo */]],
-      zone: ['https://cdn.jsdelivr.net/npm/zone.js@0.11.4/dist/zone.min.js', [/* todo */]],
-      'angular-compiler': ['https://cdn.jsdelivr.net/npm/@angular/compiler@12/bundles/compiler.umd.min.js', [/* todo
+      zone: ['https://cdn.jsdelivr.net/npm/zone.js@0.15.0/bundles/zone.umd.min.js', [/* todo */]],
+      'angular-compiler': [getPrebuiltUmdUrl('angular-compiler.umd.min.js'), [/* todo
        */]],
-      'angular-core': ['https://cdn.jsdelivr.net/npm/@angular/core@12/bundles/core.umd.min.js', [/* todo */]],
-      'angular-common': ['https://cdn.jsdelivr.net/npm/@angular/common@12/bundles/common.umd.min.js', [/* todo */]],
-      'angular-forms': ['https://cdn.jsdelivr.net/npm/@angular/forms@12/bundles/forms.umd.min.js', [/* todo */]],
-      'angular-platform-browser': ['https://cdn.jsdelivr.net/npm/@angular/platform-browser@12/bundles/platform-browser.umd.min.js', [/* todo */]],
-      'angular-platform-browser-dynamic': ['https://cdn.jsdelivr.net/npm/@angular/platform-browser-dynamic@12/bundles/platform-browser-dynamic.umd.min.js', [/* todo */]],
-      'hot-angular': ['https://cdn.jsdelivr.net/npm/@handsontable/angular@14.2.0/bundles/handsontable-angular.umd.min.js'],
+      'angular-core': [getPrebuiltUmdUrl('angular-core.umd.min.js'), [/* todo */]],
+      'angular-common': [getPrebuiltUmdUrl('angular-common.umd.min.js'), [/* todo */]],
+      'angular-forms': [getPrebuiltUmdUrl('angular-forms.umd.min.js'), [/* todo */]],
+      'angular-platform-browser': [getPrebuiltUmdUrl('angular-platformBrowser.umd.min.js'), [/* todo */]],
+      'angular-platform-browser-dynamic': [getPrebuiltUmdUrl('angular-platformBrowserDynamic.umd.min.js'), [/* todo */]],
+      'angular-core-primitives-signals': [getPrebuiltUmdUrl('angular-core-primitives-signals.umd.min.js'), [/* todo */]],
+      'hot-angular': [getPrebuiltUmdUrl('handsontable-angular.umd.min.js')],
       'hot-vue': [getPackageUrls('@handsontable/vue', version, 'js'), [/* todo */], null, 'hot-vue3'],
       'hot-vue3': [getPackageUrls('@handsontable/vue3', version, 'js'), [/* todo */], null, 'hot-vue'],
       vue: ['https://cdn.jsdelivr.net/npm/vue@2/dist/vue.min.js', [/* todo */], null, 'vue3'],
@@ -162,10 +174,10 @@ const presetMap = {
   'react-languages': ['hot', 'languages', 'react', 'react-dom', 'hot-react', 'fixer'],
   'react-numbro': ['hot', 'numbro', 'react', 'react-dom', 'hot-react', 'fixer'],
   'react-redux': ['hot', 'react', 'react-dom', 'redux', 'react-redux', 'hot-react', 'fixer'],
-  'react-advanced': ['hot', 'react', 'react-dom', 'redux', 'react-redux', 'hot-react', 'fixer', 'react-colorful', 'react-star-rating-component'],
-  angular: ['hot', 'fixer', 'rxjs', 'core-js', 'zone', 'angular-compiler', 'angular-core', 'angular-common', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular'],
-  'angular-languages': ['hot', 'languages', 'fixer', 'rxjs', 'core-js', 'zone', 'angular-compiler', 'angular-core', 'angular-common', 'angular-forms', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular'],
-  'angular-numbro': ['hot', 'numbro', 'fixer', 'rxjs', 'core-js', 'zone', 'angular-compiler', 'angular-core', 'angular-common', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular'],
+  'react-advanced': ['hot', 'react', 'react-dom', 'redux', 'react-redux', 'hot-react', 'react-colorful', 'react-star-rating-component', 'fixer'],
+  angular: ['hot', 'rxjs', 'core-js', 'zone', 'angular-core-primitives-signals', 'angular-compiler', 'angular-core', 'angular-common', 'angular-forms', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular', 'fixer'],
+  'angular-languages': ['hot', 'languages', 'rxjs', 'core-js', 'zone', 'angular-core-primitives-signals', 'angular-compiler', 'angular-core', 'angular-common', 'angular-forms', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular', 'fixer'],
+  'angular-numbro': ['hot', 'numbro', 'rxjs', 'core-js', 'zone', 'angular-core-primitives-signals', 'angular-compiler', 'angular-core', 'angular-common', 'angular-forms', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular', 'fixer'],
   vue: ['hot', 'vue', 'hot-vue', 'fixer'],
   'vue-numbro': ['hot', 'numbro', 'vue', 'hot-vue', 'fixer'],
   'vue-languages': ['hot', 'languages', 'vue', 'hot-vue', 'fixer'],

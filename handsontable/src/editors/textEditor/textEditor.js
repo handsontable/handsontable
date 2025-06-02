@@ -3,7 +3,7 @@ import EventManager from '../../eventManager';
 import { isEdge, isIOS } from '../../helpers/browser';
 import {
   addClass,
-  isThisHotChild,
+  isInternalElement,
   setCaretPosition,
   hasClass,
   removeClass,
@@ -117,6 +117,7 @@ export class TextEditor extends BaseEditor {
    * Opens the editor and adjust its size.
    */
   open() {
+    this._opened = true;
     this.refreshDimensions(); // need it instantly, to prevent https://github.com/handsontable/handsontable/issues/348
     this.showEditableElement();
     this.hot.getShortcutManager().setActiveContextName('editor');
@@ -127,9 +128,10 @@ export class TextEditor extends BaseEditor {
    * Closes the editor.
    */
   close() {
+    this._opened = false;
     this.autoResize.unObserve();
 
-    if (isThisHotChild(this.hot.rootDocument.activeElement, this.hot.rootElement)) {
+    if (isInternalElement(this.hot.rootDocument.activeElement, this.hot.rootElement)) {
       this.hot.listen(); // don't refocus the table if user focused some cell outside of HT on purpose
     }
 

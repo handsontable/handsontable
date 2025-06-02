@@ -19,6 +19,7 @@ import { isImmediatePropagationStopped, isRightClick, isLeftClick } from './help
 import Walkontable from './3rdparty/walkontable/src';
 import { handleMouseEvent } from './selection/mouseEventHandler';
 import { isRootInstance } from './utils/rootInstance';
+import { resolveWithInstance } from './utils/staticRegister';
 import {
   A11Y_COLCOUNT,
   A11Y_MULTISELECTABLE,
@@ -156,7 +157,9 @@ class TableView {
    */
   render() {
     if (!this.hot.isRenderSuspended()) {
-      this.hot.runHooks('beforeRender', this.hot.forceFullRender);
+      const isFullRender = this.hot.forceFullRender;
+
+      this.hot.runHooks('beforeRender', isFullRender);
 
       if (this.postponedAdjustElementsSize) {
         this.postponedAdjustElementsSize = false;
@@ -164,13 +167,12 @@ class TableView {
         this.adjustElementsSize();
       }
 
-      this._wt.draw(!this.hot.forceFullRender);
+      this._wt.draw(!isFullRender);
 
       this.#updateScrollbarClassNames();
 
-      this.hot.runHooks('afterRender', this.hot.forceFullRender);
+      this.hot.runHooks('afterRender', isFullRender);
       this.hot.forceFullRender = false;
-      this.hot.renderCall = false;
     }
   }
 
@@ -650,26 +652,6 @@ class TableView {
   }
 
   /**
-   * Retrieves the styles handler from the Walkontable instance.
-   *
-   * @returns {StylesHandler} The styles handler instance.
-   */
-  getStylesHandler() {
-    return this._wt.stylesHandler;
-  }
-
-  /**
-   * Returns the default row height.
-   *
-   * This method retrieves the default row height from the Walkontable styles handler.
-   *
-   * @returns {number} The default row height.
-   */
-  getDefaultRowHeight() {
-    return this._wt.stylesHandler.getDefaultRowHeight();
-  }
-
-  /**
    * Add a class name to the license information element.
    *
    * @param {string} className The class name to add.
@@ -981,6 +963,12 @@ class TableView {
           return;
         }
 
+        handleMouseEvent(event, {
+          coords: visualCoords,
+          selection: this.hot.selection,
+          cellRangeMapper: resolveWithInstance(this.hot, 'cellRangeMapper'),
+        });
+
         this.hot.runHooks('afterOnCellMouseUp', event, visualCoords, TD);
         this.activeWt = this._wt;
       },
@@ -1223,6 +1211,9 @@ class TableView {
         const columnHeaderHeight = this.hot.runHooks('modifyColumnHeaderHeight');
 
         return this.settings.columnHeaderHeight || columnHeaderHeight;
+      },
+      stylesHandler: () => {
+        return this.hot.stylesHandler;
       }
     };
 
@@ -1254,8 +1245,7 @@ class TableView {
     this.eventManager.addEventListener(this.hot.rootDocument.documentElement, 'click', () => {
       if (this.settings.observeDOMVisibility) {
         if (this._wt.drawInterrupted) {
-          this.hot.forceFullRender = true;
-          this.render();
+          this.hot.render();
         }
       }
     });
@@ -1330,7 +1320,6 @@ class TableView {
    */
   beforeRender(force, skipRender) {
     if (force) {
-      // this.hot.forceFullRender = did Handsontable request full render?
       this.hot.runHooks('beforeViewRender', this.hot.forceFullRender, skipRender);
     }
   }
@@ -1344,7 +1333,6 @@ class TableView {
    */
   afterRender(force) {
     if (force) {
-      // this.hot.forceFullRender = did Handsontable request full render?
       this.hot.runHooks('afterViewRender', this.hot.forceFullRender);
     }
   }

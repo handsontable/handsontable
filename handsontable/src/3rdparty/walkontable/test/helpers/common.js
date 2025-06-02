@@ -102,12 +102,8 @@ export function walkontable(options, table) {
   }
 
   options.table = table;
-
+  options.stylesHandler = createStylesHandler();
   currentSpec.wotInstance = new Walkontable.Core(options);
-
-  // Walkontable needs to have a theme initialized to properly render the table.
-  // (running `useTheme` without a theme name will use the classic theme)
-  currentSpec.wotInstance.stylesHandler.useTheme();
 
   return currentSpec.wotInstance;
 }
@@ -357,6 +353,25 @@ export function createSelectionController(options = {}) {
 }
 
 /**
+ * Creates the stylesHandler for the Walkontable to be used in the tests.
+ *
+ * @returns {object} Styles Handler.
+ */
+export function createStylesHandler() {
+  return {
+    getDefaultRowHeight() {
+      return 23;
+    },
+    isClassicTheme() {
+      return true;
+    },
+    areCellsBorderBox() {
+      return false;
+    },
+  };
+}
+
+/**
  * Internally creates, adds to the collection and returns the Selection instance.
  *
  * @param {Selection[]} collection The collection to update.
@@ -540,12 +555,24 @@ export function expectWtTable(wt, callb, name) {
  *
  * @param {number} y The scroll position.
  */
-export function setScrollTop(y) {
-  if (wot().wtOverlays.scrollableElement === window) {
-    window.scrollTo(window.scrollX, y);
-  } else {
-    getTableMaster().find('.wtHolder')[0].scrollTop = y;
-  }
+export async function scrollViewportVertically(y) {
+  const isWindow = wot().wtOverlays.scrollableElement === window;
+  const scrollableElement = isWindow ? window : getTableMaster().find('.wtHolder')[0];
+
+  return new Promise((resolve) => {
+    const scrollHandler = () => {
+      scrollableElement.removeEventListener('scroll', scrollHandler);
+      resolve();
+    };
+
+    scrollableElement.addEventListener('scroll', scrollHandler);
+
+    if (isWindow) {
+      scrollableElement.scrollTo(scrollableElement.scrollX, y);
+    } else {
+      scrollableElement.scrollTop = y;
+    }
+  });
 }
 
 /**
@@ -553,10 +580,58 @@ export function setScrollTop(y) {
  *
  * @param {number} x The scroll position.
  */
-export function setScrollLeft(x) {
-  if (wot().wtOverlays.scrollableElement === window) {
-    window.scrollTo(x, window.scrollY);
-  } else {
-    getTableMaster().find('.wtHolder')[0].scrollLeft = x;
-  }
+export async function scrollViewportHorizontally(x) {
+  const isWindow = wot().wtOverlays.scrollableElement === window;
+  const scrollableElement = isWindow ? window : getTableMaster().find('.wtHolder')[0];
+
+  return new Promise((resolve) => {
+    const scrollHandler = () => {
+      scrollableElement.removeEventListener('scroll', scrollHandler);
+      resolve();
+    };
+
+    scrollableElement.addEventListener('scroll', scrollHandler);
+
+    if (isWindow) {
+      scrollableElement.scrollTo(x, scrollableElement.scrollY);
+    } else {
+      scrollableElement.scrollLeft = x;
+    }
+  });
+}
+
+/**
+ * Moves the browser's viewport to the specified x and y scroll position.
+ *
+ * @param {number} x The scroll vertical position.
+ * @param {number} y The scroll horizontal position.
+ */
+export async function scrollWindowTo(x, y) {
+  return new Promise((resolve) => {
+    const scrollHandler = () => {
+      window.removeEventListener('scroll', scrollHandler);
+      resolve();
+    };
+
+    window.addEventListener('scroll', scrollHandler);
+    window.scrollTo(hot().isRtl() ? -x : x, y);
+  });
+}
+
+/**
+ * Moves the browser's viewport to the specified x and y scroll position.
+ *
+ * @param {number} x The scroll vertical position.
+ * @param {number} y The scroll horizontal position.
+ */
+export async function scrollWindowBy(x, y) {
+  return new Promise((resolve) => {
+    const scrollHandler = () => {
+      window.removeEventListener('scroll', scrollHandler);
+      resolve();
+    };
+
+    window.addEventListener('scroll', scrollHandler);
+    window.scrollBy(x, y);
+  });
 }

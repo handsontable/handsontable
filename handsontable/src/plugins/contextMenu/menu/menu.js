@@ -21,6 +21,7 @@ import {
   hasClass,
   setAttribute,
   outerHeight,
+  removeClass,
 } from '../../../helpers/dom/element';
 import { isRightClick } from '../../../helpers/dom/event';
 import { debounce, isFunction } from '../../../helpers/function';
@@ -153,7 +154,7 @@ export class Menu {
       keepInViewport: true,
       standalone: false,
       minWidth: MIN_WIDTH,
-      container: this.hot.rootDocument.documentElement,
+      container: this.hot.rootPortalElement,
     };
     this.container = this.createContainer(this.options.name);
     this.positioner = new Positioner(this.options.keepInViewport);
@@ -167,8 +168,13 @@ export class Menu {
     }
 
     this.hot.addHook('afterSetTheme', (themeName, firstRun) => {
+      if (this.options.container !== this.hot.rootPortalElement) {
+        removeClass(this.options.container, /ht-theme-.*/g);
+        addClass(this.options.container, themeName);
+      }
+
       if (!firstRun) {
-        this.hotMenu?.useTheme(themeName);
+        this.close();
       }
     });
   }
@@ -308,6 +314,7 @@ export class Menu {
       layoutDirection: this.hot.isRtl() ? 'rtl' : 'ltr',
       ariaTags: false,
       themeName: this.hot.getCurrentThemeName(),
+      beforeRefreshDimensions: () => false,
       beforeOnCellMouseOver: (event, coords) => {
         this.#navigator.setCurrentPage(coords.row);
       },
@@ -625,7 +632,6 @@ export class Menu {
    * and adjusts the width and height of the menu's holder and hider elements accordingly.
    */
   updateMenuDimensions() {
-    const stylesHandler = this.hotMenu.view.getStylesHandler();
     const { wtTable } = this.hotMenu.view._wt;
     const data = this.hotMenu.getSettings().data;
     const hiderStyle = wtTable.hider.style;
@@ -640,7 +646,7 @@ export class Menu {
         return accumulator + (value.name === SEPARATOR ? 1 : currentRowHeight);
       }, 0);
 
-    if (stylesHandler.isClassicTheme()) {
+    if (this.hotMenu.stylesHandler.isClassicTheme()) {
       // Additional 3px to menu's size because of additional border around its `table.htCore`.
       holderStyle.width = `${currentHiderWidth + 3}px`;
       holderStyle.height = `${realHeight + 3}px`;

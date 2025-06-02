@@ -11,13 +11,13 @@ export const helpers = {
 
   selectors: {
     anyTable: '#root .handsontable',
-    mainTable: '#root > .handsontable',
+    mainTable: '#root .ht-root-wrapper > .handsontable',
     themesMainTable: '#root',
-    mainTableBody: '> .ht_master.handsontable table tbody',
-    cloneTopTable: '> .ht_clone_top.handsontable table thead',
-    cloneInlineStartTable: '> .ht_clone_inline_start.handsontable table tbody',
+    mainTableBody: '.ht_master.handsontable table tbody',
+    cloneTopTable: '.ht_clone_top.handsontable table thead',
+    cloneInlineStartTable: '.ht_clone_inline_start.handsontable table tbody',
     cloneInlineStartCornerTable:
-      '> .ht_clone_top_inline_start_corner.handsontable table thead',
+      '.ht_clone_top_inline_start_corner.handsontable table thead',
     dropdownMenu: '.htMenu.htDropdownMenu.handsontable',
     contextMenu: '.htMenu.htContextMenu.handsontable',
   },
@@ -44,7 +44,7 @@ export const helpers = {
   testedPageUrl: '',
 
   cssPath(file: string) {
-    return `./tests-css/${file}`;
+    return path.resolve(__dirname, '../tests-css', file);
   },
 
   init() {

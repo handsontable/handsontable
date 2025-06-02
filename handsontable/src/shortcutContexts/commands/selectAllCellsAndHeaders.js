@@ -1,8 +1,10 @@
 export const command = {
   name: 'selectAllCellsAndHeaders',
-  callback(hot) {
-    hot.selection.selectAll(true, true, {
+  callback({ selection }) {
+    selection.markSource('keyboard');
+    selection.selectAll(true, true, {
       disableHeadersHighlight: false,
     });
+    selection.markEndSource();
   },
 };

@@ -44,12 +44,7 @@ const ExampleComponent = () => {
     <>
       <div className="example-controls-container">
         <div className="controls">
-          <input
-            id="search_field4"
-            type="search"
-            placeholder="Search"
-            onKeyUp={handleKeyUp}
-          />
+          <input id="search_field4" type="search" placeholder="Search" onKeyUp={handleKeyUp} />
         </div>
         <output className="console" id="output">
           {resultCount} results

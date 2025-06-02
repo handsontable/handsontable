@@ -1,5 +1,5 @@
 import { setAttribute } from '../../helpers/dom/element';
-import { A11Y_PRESENTATION, A11Y_HIDDEN } from '../../helpers/a11y';
+import { A11Y_LABEL } from '../../helpers/a11y';
 
 /**
  * Installs a focus detector module. The module appends two input elements into the DOM side by side.
@@ -19,8 +19,8 @@ export function installFocusDetector(hot, hooks = {}) {
   inputTrapTop.addEventListener('focus', () => hooks?.onFocusFromTop());
   inputTrapBottom.addEventListener('focus', () => hooks?.onFocusFromBottom());
 
-  rootElement.firstChild.before(inputTrapTop);
-  rootElement.lastChild.after(inputTrapBottom);
+  rootElement.before(inputTrapTop);
+  rootElement.after(inputTrapBottom);
 
   return {
     /**
@@ -60,8 +60,7 @@ function createInputElement(hot) {
 
   if (hot.getSettings().ariaTags) {
     setAttribute(input, [
-      A11Y_PRESENTATION(),
-      A11Y_HIDDEN(),
+      A11Y_LABEL('Focus catcher')
     ]);
   }
 

@@ -296,7 +296,8 @@ export class ManualRowMove extends BasePlugin {
       const renderableIndex = rowMapper.getRenderableFromVisualIndex(visualRowIndex);
 
       if (renderableIndex !== null) {
-        rowsHeight += this.hot.view._wt.wtTable.getRowHeight(renderableIndex) || this.hot.view.getDefaultRowHeight();
+        rowsHeight += this.hot.view._wt.wtTable.getRowHeight(renderableIndex)
+          || this.hot.stylesHandler.getDefaultRowHeight();
       }
     }
 

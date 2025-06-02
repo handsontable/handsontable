@@ -32,8 +32,6 @@ autocomplete.saveValue();
 autocomplete.setValue('test');
 autocomplete.setValue();
 
-autocomplete.flipDropdown(100);
-
 const checkbox = new Handsontable.editors.CheckboxEditor(hot);
 
 checkbox.beginEditing('test');
@@ -124,9 +122,6 @@ dropdown.saveValue('test', true);
 dropdown.saveValue();
 dropdown.setValue('test');
 dropdown.setValue();
-
-dropdown.flipDropdownIfNeeded();
-dropdown.updateChoicesList([]);
 
 const hansontable = new Handsontable.editors.HandsontableEditor(hot);
 

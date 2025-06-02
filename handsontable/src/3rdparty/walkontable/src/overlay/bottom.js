@@ -118,15 +118,20 @@ export class BottomOverlay extends Overlay {
    */
   setScrollPosition(pos) {
     const { rootWindow } = this.domBindings;
+    const scrollableElement = this.mainTableScrollableElement;
     let result = false;
 
-    if (this.mainTableScrollableElement === rootWindow) {
-      rootWindow.scrollTo(getWindowScrollLeft(rootWindow), pos);
-      result = true;
+    if (scrollableElement === rootWindow && pos !== rootWindow.scrollY) {
+      const oldScrollX = rootWindow.scrollY;
 
-    } else if (this.mainTableScrollableElement.scrollTop !== pos) {
-      this.mainTableScrollableElement.scrollTop = pos;
-      result = true;
+      rootWindow.scrollTo(getWindowScrollLeft(rootWindow), top);
+      result = oldScrollX !== rootWindow.scrollY;
+
+    } else if (pos !== scrollableElement.scrollTop) {
+      const oldScrollLeft = scrollableElement.scrollTop;
+
+      scrollableElement.scrollTop = pos;
+      result = oldScrollLeft !== scrollableElement.scrollTop;
     }
 
     return result;
@@ -147,8 +152,9 @@ export class BottomOverlay extends Overlay {
    * @returns {number} Height sum.
    */
   sumCellSizes(from, to) {
-    const { wtTable, stylesHandler } = this.wot;
-    const defaultRowHeight = stylesHandler.getDefaultRowHeight();
+    const { wtTable, wtSettings } = this.wot;
+    const defaultRowHeight = wtSettings.getSetting('stylesHandler').getDefaultRowHeight();
+
     let row = from;
     let sum = 0;
 

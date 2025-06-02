@@ -20,7 +20,7 @@ describe('NestedHeaders', () => {
   });
 
   describe('selection', () => {
-    it('should generate class names based on "currentHeaderClassName" and "activeHeaderClassName" settings', () => {
+    it('should generate class names based on "currentHeaderClassName" and "activeHeaderClassName" settings', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         colHeaders: true,
@@ -93,7 +93,7 @@ describe('NestedHeaders', () => {
         `);
     });
 
-    it('should highlight column header for selected cells', () => {
+    it('should highlight column header for selected cells', async() => {
       handsontable({
         data: createSpreadsheetData(3, 10),
         colHeaders: true,
@@ -104,7 +104,7 @@ describe('NestedHeaders', () => {
         ],
       });
 
-      selectCells([[0, 1, 0, 1]]); // B1
+      await selectCells([[0, 1, 0, 1]]); // B1
 
       expect(`
         |   :               :   :   :   :   :   |
@@ -116,7 +116,7 @@ describe('NestedHeaders', () => {
         |   :   :   :   :   :   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
 
-      selectCells([[1, 2, 1, 2]]); // C2
+      await selectCells([[1, 2, 1, 2]]); // C2
 
       expect(`
         |   :               :   :   :   :   :   |
@@ -128,7 +128,7 @@ describe('NestedHeaders', () => {
         |   :   :   :   :   :   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
 
-      selectCells([[1, 3, 1, 3]]); // D2
+      await selectCells([[1, 3, 1, 3]]); // D2
 
       expect(`
         |   :               :   :   :   :   :   |
@@ -140,7 +140,7 @@ describe('NestedHeaders', () => {
         |   :   :   :   :   :   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
 
-      selectCells([[1, 4, 1, 6]]); // E2 to G2
+      await selectCells([[1, 4, 1, 6]]); // E2 to G2
 
       expect(`
         |   :               :   :   :   :   :   |
@@ -153,7 +153,7 @@ describe('NestedHeaders', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should highlight column header for selected cells in-between nested headers', () => {
+    it('should highlight column header for selected cells in-between nested headers', async() => {
       handsontable({
         data: createSpreadsheetData(3, 10),
         colHeaders: true,
@@ -164,7 +164,7 @@ describe('NestedHeaders', () => {
         ],
       });
 
-      selectCells([[1, 2, 1, 5]]); // C2 to F2
+      await selectCells([[1, 2, 1, 5]]); // C2 to F2
 
       expect(`
         |   :               :   :   :   :   :   |
@@ -176,7 +176,7 @@ describe('NestedHeaders', () => {
         |   :   :   :   :   :   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
 
-      selectCells([[1, 3, 1, 6]]); // D2 to G2
+      await selectCells([[1, 3, 1, 6]]); // D2 to G2
 
       expect(`
         |   :               :   :   :   :   :   |
@@ -188,7 +188,7 @@ describe('NestedHeaders', () => {
         |   :   :   :   :   :   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
 
-      selectCells([[1, 0, 1, 2]]); // A2 to C2
+      await selectCells([[1, 0, 1, 2]]); // A2 to C2
 
       expect(`
         |   :               :   :   :   :   :   |
@@ -201,7 +201,7 @@ describe('NestedHeaders', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should highlight column header for non-contiguous selected cells', () => {
+    it('should highlight column header for non-contiguous selected cells', async() => {
       handsontable({
         data: createSpreadsheetData(3, 10),
         colHeaders: true,
@@ -212,7 +212,7 @@ describe('NestedHeaders', () => {
         ],
       });
 
-      selectCells([[1, 1, 1, 1], [1, 3, 1, 3], [1, 5, 1, 5]]); // B2, B4, B6
+      await selectCells([[1, 1, 1, 1], [1, 3, 1, 3], [1, 5, 1, 5]]); // B2, B4, B6
 
       expect(`
         |   :               :   :   :   :   :   |
@@ -224,7 +224,7 @@ describe('NestedHeaders', () => {
         |   :   :   :   :   :   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
 
-      selectCells([[1, 1, 1, 2], [2, 3, 2, 4]]); // B3 to C2, D3 to E3
+      await selectCells([[1, 1, 1, 2], [2, 3, 2, 4]]); // B3 to C2, D3 to E3
 
       expect(`
         |   :               :   :   :   :   :   |
@@ -237,7 +237,7 @@ describe('NestedHeaders', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should active highlight column header for selected column headers', () => {
+    it('should active highlight column header for selected column headers', async() => {
       handsontable({
         data: createSpreadsheetData(3, 10),
         colHeaders: true,
@@ -302,7 +302,7 @@ describe('NestedHeaders', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: -4,1 to: 2,8']);
     });
 
-    it('should active highlight column header for non-contiguous header selection', () => {
+    it('should active highlight column header for non-contiguous header selection', async() => {
       handsontable({
         data: createSpreadsheetData(3, 10),
         colHeaders: true,
@@ -314,7 +314,7 @@ describe('NestedHeaders', () => {
         ],
       });
 
-      simulateClick(getCell(-2, 1)); // Header "B3"
+      await simulateClick(getCell(-2, 1)); // Header "B3"
 
       expect(`
         |   :               :   :   :   :   :   |
@@ -329,11 +329,11 @@ describe('NestedHeaders', () => {
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: -2,1 to: 2,1']);
 
-      keyDown('control/meta');
+      await keyDown('control/meta');
 
-      simulateClick(getCell(-3, 5)); // Header "F2"
+      await simulateClick(getCell(-3, 5)); // Header "F2"
 
-      keyUp('control/meta');
+      await keyUp('control/meta');
 
       expect(`
         |   :               : * :   :   :   :   |
@@ -351,11 +351,11 @@ describe('NestedHeaders', () => {
         'highlight: 0,5 from: -3,5 to: 2,5',
       ]);
 
-      keyDown('control/meta');
+      await keyDown('control/meta');
 
-      simulateClick(getCell(-3, 1)); // Header "B2"
+      await simulateClick(getCell(-3, 1)); // Header "B2"
 
-      keyUp('control/meta');
+      await keyUp('control/meta');
 
       expect(`
         |   :               : * :   :   :   :   |
@@ -375,8 +375,8 @@ describe('NestedHeaders', () => {
       ]);
     });
 
-    it('should select every column header under the nested headers, when changing the selection by dragging the cursor', () => {
-      const hot = handsontable({
+    it('should select every column header under the nested headers, when changing the selection by dragging the cursor', async() => {
+      handsontable({
         data: createSpreadsheetData(3, 10),
         colHeaders: true,
         nestedHeaders: [
@@ -394,7 +394,7 @@ describe('NestedHeaders', () => {
         .simulate('mouseover')
         .simulate('mouseup');
 
-      expect(hot.getSelected()).toEqual([[-2, 3, hot.countRows() - 1, 6]]);
+      expect(getSelected()).toEqual([[-2, 3, countRows() - 1, 6]]);
       expect(`
         |   :                               :   |
         |   :               :               :   |
@@ -412,7 +412,7 @@ describe('NestedHeaders', () => {
         .simulate('mouseover')
         .simulate('mouseup');
 
-      expect(hot.getSelected()).toEqual([[-2, 4, hot.countRows() - 1, 1]]);
+      expect(getSelected()).toEqual([[-2, 4, countRows() - 1, 1]]);
       expect(`
         |   :                               :   |
         |   : *   *   *   * :               :   |
@@ -430,7 +430,7 @@ describe('NestedHeaders', () => {
       getTopClone().find('thead tr:eq(2) th:eq(5)').simulate('mouseover');
       getTopClone().find('thead tr:eq(2) th:eq(5)').simulate('mouseup');
 
-      expect(hot.getSelected()).toEqual([[-2, 3, hot.countRows() - 1, 6]]);
+      expect(getSelected()).toEqual([[-2, 3, countRows() - 1, 6]]);
       expect(`
         |   :                               :   |
         |   :               :               :   |
@@ -443,7 +443,7 @@ describe('NestedHeaders', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should not move the focus initial position while expanding the selection up in the tree (all nodes with the same colspan width)', () => {
+    it('should not move the focus initial position while expanding the selection up in the tree (all nodes with the same colspan width)', async() => {
       handsontable({
         data: createSpreadsheetData(3, 10),
         colHeaders: true,
@@ -494,7 +494,7 @@ describe('NestedHeaders', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should not move the focus initial position while expanding the selection up in the tree', () => {
+    it('should not move the focus initial position while expanding the selection up in the tree', async() => {
       handsontable({
         data: createSpreadsheetData(3, 10),
         colHeaders: true,
@@ -641,7 +641,7 @@ describe('NestedHeaders', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should update the focus initial position while changing the selection from right to the left', () => {
+    it('should update the focus initial position while changing the selection from right to the left', async() => {
       handsontable({
         data: createSpreadsheetData(3, 10),
         colHeaders: true,
@@ -769,7 +769,7 @@ describe('NestedHeaders', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should update the focus initial position while changing the selection from left to the right', () => {
+    it('should update the focus initial position while changing the selection from left to the right', async() => {
       handsontable({
         data: createSpreadsheetData(3, 10),
         colHeaders: true,
@@ -916,7 +916,7 @@ describe('NestedHeaders', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should select all column headers (on all levels) after clicking the corner header', function() {
+    it('should select all column headers (on all levels) after clicking the corner header', async() => {
       handsontable({
         data: createSpreadsheetData(3, 10),
         colHeaders: true,
@@ -930,7 +930,7 @@ describe('NestedHeaders', () => {
         ]
       });
 
-      const $cornerHeader = this.$container
+      const $cornerHeader = spec().$container
         .find('.ht_clone_top_inline_start_corner thead tr:eq(0) th:eq(0)');
 
       $cornerHeader.simulate('mousedown');
@@ -948,7 +948,7 @@ describe('NestedHeaders', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should add selection borders in the expected positions, when selecting multi-columned headers', function() {
+    it('should add selection borders in the expected positions, when selecting multi-columned headers', async() => {
       handsontable({
         data: createSpreadsheetData(4, 10),
         colHeaders: true,
@@ -966,27 +966,27 @@ describe('NestedHeaders', () => {
         .simulate('mouseup');
 
       const $headerLvl3 = getTopClone().find('thead tr:eq(2) th:eq(1)');
-      const $firstRow = this.$container.find('.ht_master tbody tr:eq(0)');
-      const $lastRow = this.$container.find('.ht_master tbody tr:eq(3)');
-      const $tbody = this.$container.find('.ht_master tbody');
+      const $firstRow = spec().$container.find('.ht_master tbody tr:eq(0)');
+      const $lastRow = spec().$container.find('.ht_master tbody tr:eq(3)');
+      const $tbody = spec().$container.find('.ht_master tbody');
 
-      const $topBorder = this.$container.find('.wtBorder.area').eq(0);
-      const $bottomBorder = this.$container.find('.wtBorder.area').eq(2);
-      const $leftBorder = this.$container.find('.wtBorder.area').eq(1);
-      const $rightBorder = this.$container.find('.wtBorder.area').eq(3);
+      const $topBorder = spec().$container.find('.wtBorder.area').eq(0);
+      const $bottomBorder = spec().$container.find('.wtBorder.area').eq(2);
+      const $leftBorder = spec().$container.find('.wtBorder.area').eq(1);
+      const $rightBorder = spec().$container.find('.wtBorder.area').eq(3);
 
       expect($topBorder.offset().top).toEqual($firstRow.offset().top);
       expect($bottomBorder.offset().top).toEqual($lastRow.offset().top + $lastRow.height() - 1);
-      expect($topBorder.width()).toEqual($headerLvl3.width() + 1);
-      expect($bottomBorder.width()).toEqual($headerLvl3.width() + 1);
+      expect($topBorder.width()).toEqual($headerLvl3.width() + 2);
+      expect($bottomBorder.width()).toEqual($headerLvl3.width() + 2);
 
       expect($leftBorder.offset().left).toEqual($headerLvl3.offset().left - 1);
       expect($rightBorder.offset().left).toEqual($headerLvl3.offset().left + $headerLvl3.width());
-      expect($leftBorder.height()).toEqual($tbody.height() - 1);
+      expect($leftBorder.height()).toEqual($tbody.height());
       expect($rightBorder.height()).toEqual($tbody.height());
     });
 
-    it('should not change the header selection when the header within selection range is clicked using RMB', () => {
+    it('should not change the header selection when the header within selection range is clicked using RMB', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         colHeaders: true,
@@ -1005,12 +1005,12 @@ describe('NestedHeaders', () => {
         .simulate('mouseover')
         .simulate('mouseup');
 
-      simulateClick(getCell(-1, 5), 'RMB'); // Header "K"
+      await simulateClick(getCell(-1, 5), 'RMB'); // Header "K"
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: -1,1 to: 9,6']);
     });
 
-    it('should be possible to select the column header with RMB when no column is selected', () => {
+    it('should be possible to select the column header with RMB when no column is selected', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         colHeaders: true,
@@ -1022,13 +1022,13 @@ describe('NestedHeaders', () => {
         ]
       });
 
-      simulateClick(getCell(-1, 5), 'RMB'); // Header "K"
+      await simulateClick(getCell(-1, 5), 'RMB'); // Header "K"
 
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,5 from: -1,5 to: 9,6']);
     });
 
     it('should scroll the viewport to the left edge of the clicked nested header when its right index extends beyond ' +
-       'the table\'s viewport and is wider than table width', () => {
+       'the table\'s viewport and is wider than table width', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
@@ -1042,7 +1042,7 @@ describe('NestedHeaders', () => {
         ]
       });
 
-      simulateClick(getCell(-3, 2), 'LMB'); // Header "B"
+      await simulateClick(getCell(-3, 2), 'LMB'); // Header "B"
 
       expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(50);
@@ -1066,11 +1066,8 @@ describe('NestedHeaders', () => {
         ]
       });
 
-      scrollViewportTo(0, 9);
-
-      await sleep(20);
-
-      simulateClick(getCell(-3, 7), 'LMB'); // Header "B"
+      await scrollViewportTo(0, 9);
+      await simulateClick(getCell(-3, 7), 'LMB'); // Header "B"
 
       expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(265);
@@ -1080,7 +1077,7 @@ describe('NestedHeaders', () => {
     });
 
     it('should scroll the viewport to the right edge of the clicked nested header when its right index extends beyond ' +
-        'the table\'s viewport and is narrower than the table width', () => {
+        'the table\'s viewport and is narrower than the table width', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
@@ -1094,7 +1091,7 @@ describe('NestedHeaders', () => {
         ]
       });
 
-      simulateClick(getCell(-1, 3), 'LMB'); // Header "J"
+      await simulateClick(getCell(-1, 3), 'LMB'); // Header "J"
 
       expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(65);
@@ -1118,11 +1115,8 @@ describe('NestedHeaders', () => {
         ]
       });
 
-      scrollViewportTo(0, 9);
-
-      await sleep(20);
-
-      simulateClick(getCell(-1, 6), 'LMB'); // Header "K"
+      await scrollViewportTo(0, 9);
+      await simulateClick(getCell(-1, 6), 'LMB'); // Header "K"
 
       expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(250);
@@ -1132,7 +1126,7 @@ describe('NestedHeaders', () => {
     });
 
     it('should scroll the viewport to the left edge of the clicked nested header when its right index extends beyond ' +
-       'the table\'s viewport and is wider than table width (navigableHeaders: true)', () => {
+       'the table\'s viewport and is wider than table width (navigableHeaders: true)', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
@@ -1147,7 +1141,7 @@ describe('NestedHeaders', () => {
         ]
       });
 
-      simulateClick(getCell(-3, 2), 'LMB'); // Header "B"
+      await simulateClick(getCell(-3, 2), 'LMB'); // Header "B"
 
       expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(50);
@@ -1172,11 +1166,8 @@ describe('NestedHeaders', () => {
         ]
       });
 
-      scrollViewportTo(0, 9);
-
-      await sleep(20);
-
-      simulateClick(getCell(-3, 7), 'LMB'); // Header "B"
+      await scrollViewportTo(0, 9);
+      await simulateClick(getCell(-3, 7), 'LMB'); // Header "B"
 
       expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(265);
@@ -1186,7 +1177,7 @@ describe('NestedHeaders', () => {
     });
 
     it('should scroll the viewport to the right edge of the clicked nested header when its right index extends beyond ' +
-        'the table\'s viewport and is narrower than the table width (navigableHeaders: true)', () => {
+        'the table\'s viewport and is narrower than the table width (navigableHeaders: true)', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         width: 200,
@@ -1201,7 +1192,7 @@ describe('NestedHeaders', () => {
         ]
       });
 
-      simulateClick(getCell(-1, 3), 'LMB'); // Header "J"
+      await simulateClick(getCell(-1, 3), 'LMB'); // Header "J"
 
       expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(65);
@@ -1226,11 +1217,8 @@ describe('NestedHeaders', () => {
         ]
       });
 
-      scrollViewportTo(0, 9);
-
-      await sleep(20);
-
-      simulateClick(getCell(-1, 6), 'LMB'); // Header "K"
+      await scrollViewportTo(0, 9);
+      await simulateClick(getCell(-1, 6), 'LMB'); // Header "K"
 
       expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
         classic.toBe(250);
@@ -1239,7 +1227,7 @@ describe('NestedHeaders', () => {
       });
     });
 
-    it('should be possible to back to the single column selection, when it was modified by the SHIFT key', () => {
+    it('should be possible to back to the single column selection, when it was modified by the SHIFT key', async() => {
       handsontable({
         data: createSpreadsheetData(3, 13),
         colHeaders: true,
@@ -1252,8 +1240,8 @@ describe('NestedHeaders', () => {
         ],
       });
 
-      simulateClick(getTopClone().find('thead tr:eq(3) th:eq(1)')); // select column B4
-      simulateClick(getTopClone().find('thead tr:eq(3) th:eq(11)'), 'LMB', {
+      await simulateClick(getTopClone().find('thead tr:eq(3) th:eq(1)')); // select column B4
+      await simulateClick(getTopClone().find('thead tr:eq(3) th:eq(11)'), 'LMB', {
         shiftKey: true
       }); // select column L4
 
@@ -1269,7 +1257,7 @@ describe('NestedHeaders', () => {
         |   : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 |
       `).toBeMatchToSelectionPattern();
 
-      simulateClick(getTopClone().find('thead tr:eq(3) th:eq(1)'), 'LMB', {
+      await simulateClick(getTopClone().find('thead tr:eq(3) th:eq(1)'), 'LMB', {
         shiftKey: true
       }); // Back to column B4
 
@@ -1287,7 +1275,7 @@ describe('NestedHeaders', () => {
     });
 
     it('should select every column header under the nested headers, when changing the selection using the SHIFT key ' +
-       '(expanding the column selection from the left to the right)', () => {
+       '(expanding the column selection from the left to the right)', async() => {
       handsontable({
         data: createSpreadsheetData(3, 13),
         colHeaders: true,
@@ -1300,8 +1288,8 @@ describe('NestedHeaders', () => {
         ],
       });
 
-      simulateClick(getTopClone().find('thead tr:eq(3) th:eq(1)')); // select column B4
-      simulateClick(getTopClone().find('thead tr:eq(3) th:eq(3)'), 'LMB', {
+      await simulateClick(getTopClone().find('thead tr:eq(3) th:eq(1)')); // select column B4
+      await simulateClick(getTopClone().find('thead tr:eq(3) th:eq(3)'), 'LMB', {
         shiftKey: true
       }); // select column D4
 
@@ -1317,7 +1305,7 @@ describe('NestedHeaders', () => {
         |   : 0 : 0 : 0 : 0 :   :   :   :   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
 
-      simulateClick(getTopClone().find('thead tr:eq(3) th:eq(5)'), 'LMB', {
+      await simulateClick(getTopClone().find('thead tr:eq(3) th:eq(5)'), 'LMB', {
         shiftKey: true
       }); // select column F4
 
@@ -1333,7 +1321,7 @@ describe('NestedHeaders', () => {
         |   : 0 : 0 : 0 : 0 : 0 : 0 :   :   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
 
-      simulateClick(getTopClone().find('thead tr:eq(3) th:eq(7)'), 'LMB', {
+      await simulateClick(getTopClone().find('thead tr:eq(3) th:eq(7)'), 'LMB', {
         shiftKey: true
       }); // select column H4
 
@@ -1349,7 +1337,7 @@ describe('NestedHeaders', () => {
         |   : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 :   :   :   :   |
       `).toBeMatchToSelectionPattern();
 
-      simulateClick(getTopClone().find('thead tr:eq(3) th:eq(10)'), 'LMB', {
+      await simulateClick(getTopClone().find('thead tr:eq(3) th:eq(10)'), 'LMB', {
         shiftKey: true
       }); // select column K4
 
@@ -1367,7 +1355,7 @@ describe('NestedHeaders', () => {
     });
 
     it('should select every column header under the nested headers, when changing the selection using the SHIFT key ' +
-       '(expanding the column selection from the right to the left)', () => {
+       '(expanding the column selection from the right to the left)', async() => {
       handsontable({
         data: createSpreadsheetData(3, 13),
         colHeaders: true,
@@ -1380,8 +1368,8 @@ describe('NestedHeaders', () => {
         ],
       });
 
-      simulateClick(getTopClone().find('thead tr:eq(3) th:eq(10)')); // select column K4
-      simulateClick(getTopClone().find('thead tr:eq(3) th:eq(9)'), 'LMB', {
+      await simulateClick(getTopClone().find('thead tr:eq(3) th:eq(10)')); // select column K4
+      await simulateClick(getTopClone().find('thead tr:eq(3) th:eq(9)'), 'LMB', {
         shiftKey: true
       }); // select column J4
 
@@ -1397,7 +1385,7 @@ describe('NestedHeaders', () => {
         |   :   :   :   :   :   :   :   :   : 0 : 0 :   :   |
       `).toBeMatchToSelectionPattern();
 
-      simulateClick(getTopClone().find('thead tr:eq(3) th:eq(7)'), 'LMB', {
+      await simulateClick(getTopClone().find('thead tr:eq(3) th:eq(7)'), 'LMB', {
         shiftKey: true
       }); // select column H4
 
@@ -1413,7 +1401,7 @@ describe('NestedHeaders', () => {
         |   :   :   :   :   :   :   : 0 : 0 : 0 : 0 :   :   |
       `).toBeMatchToSelectionPattern();
 
-      simulateClick(getTopClone().find('thead tr:eq(3) th:eq(5)'), 'LMB', {
+      await simulateClick(getTopClone().find('thead tr:eq(3) th:eq(5)'), 'LMB', {
         shiftKey: true
       }); // select column F4
 
@@ -1429,7 +1417,7 @@ describe('NestedHeaders', () => {
         |   :   :   :   :   : 0 : 0 : 0 : 0 : 0 : 0 :   :   |
       `).toBeMatchToSelectionPattern();
 
-      simulateClick(getTopClone().find('thead tr:eq(3) th:eq(3)'), 'LMB', {
+      await simulateClick(getTopClone().find('thead tr:eq(3) th:eq(3)'), 'LMB', {
         shiftKey: true
       }); // select column D4
 
@@ -1445,7 +1433,7 @@ describe('NestedHeaders', () => {
         |   :   :   : 0 : 0 : 0 : 0 : 0 : 0 : 0 : 0 :   :   |
       `).toBeMatchToSelectionPattern();
 
-      simulateClick(getTopClone().find('thead tr:eq(3) th:eq(1)'), 'LMB', {
+      await simulateClick(getTopClone().find('thead tr:eq(3) th:eq(1)'), 'LMB', {
         shiftKey: true
       }); // select column B4
 
@@ -1463,7 +1451,7 @@ describe('NestedHeaders', () => {
     });
 
     it('should highlight the whole column when the API is called with indexes that points to the columns ' +
-        'in-between the nested header', () => {
+        'in-between the nested header', async() => {
       handsontable({
         data: createSpreadsheetData(3, 10),
         colHeaders: true,
@@ -1474,7 +1462,7 @@ describe('NestedHeaders', () => {
         ],
       });
 
-      selectColumns(2);
+      await selectColumns(2);
 
       expect(`
         |   :                   :   :   :   :   |
@@ -1487,7 +1475,7 @@ describe('NestedHeaders', () => {
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: -1,2 to: 2,4']);
 
-      selectColumns(3);
+      await selectColumns(3);
 
       expect(`
         |   :                   :   :   :   :   |
@@ -1500,7 +1488,7 @@ describe('NestedHeaders', () => {
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,3 from: -1,2 to: 2,4']);
 
-      selectColumns(4);
+      await selectColumns(4);
 
       expect(`
         |   :                   :   :   :   :   |
@@ -1514,7 +1502,7 @@ describe('NestedHeaders', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,4 from: -1,2 to: 2,4']);
     });
 
-    it('should highlight the whole nested column when "Ctrl" + "Space" keyboard shortcuts are pressed', () => {
+    it('should highlight the whole nested column when "Ctrl" + "Space" keyboard shortcuts are pressed', async() => {
       handsontable({
         data: createSpreadsheetData(3, 10),
         colHeaders: true,
@@ -1525,8 +1513,8 @@ describe('NestedHeaders', () => {
         ],
       });
 
-      selectCell(2, 2);
-      keyDownUp(['control', 'space']);
+      await selectCell(2, 2);
+      await keyDownUp(['control', 'space']);
 
       expect(`
         |   :                   :   :   :   :   |
@@ -1539,8 +1527,8 @@ describe('NestedHeaders', () => {
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: -1,2 to: 2,4']);
 
-      selectCell(1, 3);
-      keyDownUp(['control', 'space']);
+      await selectCell(1, 3);
+      await keyDownUp(['control', 'space']);
 
       expect(`
         |   :                   :   :   :   :   |
@@ -1553,8 +1541,8 @@ describe('NestedHeaders', () => {
       `).toBeMatchToSelectionPattern();
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,3 from: -1,2 to: 2,4']);
 
-      selectCell(2, 4);
-      keyDownUp(['control', 'space']);
+      await selectCell(2, 4);
+      await keyDownUp(['control', 'space']);
 
       expect(`
         |   :                   :   :   :   :   |

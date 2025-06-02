@@ -30,7 +30,7 @@ describe('WalkontableTable', () => {
   });
 
   describe('getRowHeadersCount()', () => {
-    it('should return count that is relevant to given header layers', () => {
+    it('should return count that is relevant to given header layers', async() => {
       createDataArray(18, 18);
       spec().$wrapper.width(250).height(170);
 
@@ -61,7 +61,7 @@ describe('WalkontableTable', () => {
       expectWtTable(wt, wtTable => wtTable.getRowHeadersCount(), 'top').toBe(3);
     });
 
-    it('should return 0 for disabled column headers', () => {
+    it('should return 0 for disabled column headers', async() => {
       createDataArray(18, 18);
       spec().$wrapper.width(209).height(185);
 

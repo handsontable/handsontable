@@ -139,8 +139,8 @@ function hasChildElementOfType(children: ReactNode, type: 'hot-renderer' | 'hot-
  * @param {ComponentType} Editor Editor component or render function.
  * @returns {ReactPortal} The portal for the editor.
  */
-export function createEditorPortal(doc: Document | null, Editor: HotTableProps['editor'] | undefined): ReactPortal | null {
-  if (!doc || !Editor) {
+export function createEditorPortal(doc: Document | null, Editor: HotTableProps['editor'] | undefined | boolean): ReactPortal | null {
+  if (!doc || !Editor || typeof Editor === 'boolean') {
     return null;
   }
 

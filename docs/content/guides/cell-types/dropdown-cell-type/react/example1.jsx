@@ -21,29 +21,11 @@ const ExampleComponent = () => {
         { type: 'numeric' },
         {
           type: 'dropdown',
-          source: [
-            'yellow',
-            'red',
-            'orange',
-            'green',
-            'blue',
-            'gray',
-            'black',
-            'white',
-          ],
+          source: ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white'],
         },
         {
           type: 'dropdown',
-          source: [
-            'yellow',
-            'red',
-            'orange',
-            'green',
-            'blue',
-            'gray',
-            'black',
-            'white',
-          ],
+          source: ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white'],
         },
       ]}
       autoWrapRow={true}

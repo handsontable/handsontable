@@ -2721,6 +2721,7 @@ export default () => {
      * | `'de-CH'`           | German - Switzerland        |
      * | `'de-DE'`           | German - Germany            |
      * | `'es-MX'`           | Spanish - Mexico            |
+     * | `'fa-IR'`           | Persian - Iran              |
      * | `'fr-FR'`           | French - France             |
      * | `'hr-HR'`           | Croatian - Croatia          |
      * | `'it-IT'`           | Italian - Italy             |
@@ -4450,6 +4451,38 @@ export default () => {
      * ```
      */
     tableClassName: undefined,
+
+    /**
+     * The `textEllipsis` option configures whether the text content in the cells should be truncated with an ellipsis (three dots).
+     *
+     * You can set the `textEllipsis` option to one of the following:
+     *
+     * | Setting           | Description                                   |
+     * | ----------------- | --------------------------------------------- |
+     * | `false` (default) | Don't truncate text content with an ellipsis  |
+     * | `true`            | Truncate text content with an ellipsis        |
+     *
+     * @since 16.0.0
+     * @memberof Options#
+     * @type {boolean}
+     * @default false
+     * @category Core
+     *
+     * @example
+     * ```js
+     * columns: [
+     *   {
+     *     // truncate text content with an ellipsis
+     *     textEllipsis: true,
+     *   },
+     *   {
+     *     // don't truncate text content with an ellipsis
+     *     textEllipsis: false,
+     *   }
+     * ],
+     * ```
+     */
+    textEllipsis: false,
 
     /**
      * The `themeName` option allows enabling a theme by that name.

@@ -110,13 +110,7 @@ const ExampleComponent = () => {
     ['41', '739', '0.88', '11', '=A99*(B99*C99)+D99'],
     ['144', '289', '0.87', '13', '=A100*(B100*C100)+D100'],
     ['Sum', 'Average', 'Average', 'Sum', 'Sum'],
-    [
-      '=SUM(A1:A100)',
-      '=AVERAGE(B1:B100)',
-      '=AVERAGE(C1:C100)',
-      '=SUM(D1:D100)',
-      '=SUM(E1:E100)',
-    ],
+    ['=SUM(A1:A100)', '=AVERAGE(B1:B100)', '=AVERAGE(C1:C100)', '=SUM(D1:D100)', '=SUM(E1:E100)'],
   ];
 
   return (
@@ -125,13 +119,7 @@ const ExampleComponent = () => {
       formulas={{
         engine: HyperFormula,
       }}
-      colHeaders={[
-        'Qty',
-        'Unit price',
-        'Discount',
-        'Freight',
-        'Total due (fx)',
-      ]}
+      colHeaders={['Qty', 'Unit price', 'Discount', 'Freight', 'Total due (fx)']}
       fixedRowsBottom={2}
       stretchH="all"
       height={500}
