@@ -21,6 +21,9 @@ tags:
 react:
   id: vz7ct2bv
   metaTitle: Column filter - React Data Grid | Handsontable
+angular:
+  id: woyi876m
+  metaTitle: Column filter - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
 ---
@@ -76,6 +79,17 @@ this behavior, set
 
 :::
 
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-filter/angular/example1.ts)
+@[code](@/content/guides/columns/column-filter/angular/example1.html)
+
+:::
+
+:::
+
 ## Enable filtering
 
 To enable the filtering interface for all columns, you need to do two things:
@@ -112,6 +126,23 @@ const configurationOptions = {
 
 :::
 
+::: only-for angular
+
+```ts
+const configurationOptions = {
+  // enable filtering
+  filters: true,
+  // enable the column menu
+  dropdownMenu: true,
+};
+```
+
+```html
+<hot-table [settings]="configurationOptions"></hot-table>
+```
+
+:::
+
 <span style="display: none;"></span>
 
 By default, the column menu presents the filtering interface along with other default items such as
@@ -136,6 +167,18 @@ the configuration.
 
 @[code](@/content/guides/columns/column-filter/react/exampleShowFilterItemsOnly.jsx)
 @[code](@/content/guides/columns/column-filter/react/exampleShowFilterItemsOnly.tsx)
+
+:::
+
+:::
+
+
+::: only-for angular
+
+::: example #example2 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-filter/angular/example2.ts)
+@[code](@/content/guides/columns/column-filter/angular/example2.html)
 
 :::
 
@@ -171,6 +214,18 @@ useful items in the menu such as **Clear column**.
 
 :::
 
+::: only-for angular
+
+::: example #example3 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-filter/angular/example3.ts)
+@[code](@/content/guides/columns/column-filter/angular/example3.html)
+
+:::
+
+:::
+
+
 ## Filter different types of data
 
 With its built-in cell types, Handsontable makes it easy to handle common data types like text,
@@ -200,6 +255,18 @@ each data type.
 :::
 
 :::
+
+::: only-for angular
+
+::: example #example4 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-filter/angular/example4.ts)
+@[code](@/content/guides/columns/column-filter/angular/example4.html)
+
+:::
+
+:::
+
 
 The following table contains all available filter operators for each built-in data type.
 
@@ -246,6 +313,22 @@ than $200.
 
 :::
 
+::: only-for angular
+
+To do this, you can use Handsontable's [`afterInit()`](@/api/hooks.md#afterinit) hook, along with
+the API provided by the Filters plugin. For instance, the demo below demonstrates how you can start
+with a pre-applied filter to display only items priced less than $200.
+
+::: example #example5 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-filter/angular/example5.ts)
+@[code](@/content/guides/columns/column-filter/angular/example5.html)
+
+:::
+
+:::
+
+
 ## External quick filter
 
 Handsontable's quick filter feature lets you search for a particular phrase in a specific column. To
@@ -272,6 +355,17 @@ accomplish this, use methods [`filters.addCondition()`](@/api/filters.md#addcond
 @[code](@/content/guides/columns/column-filter/react/exampleQuickFilter.jsx)
 @[code](@/content/guides/columns/column-filter/react/exampleQuickFilter.css)
 @[code](@/content/guides/columns/column-filter/react/exampleQuickFilter.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example6 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-filter/angular/example6.ts)
+@[code](@/content/guides/columns/column-filter/angular/example6.html)
 
 :::
 
@@ -308,6 +402,17 @@ down icon.
 
 :::
 
+::: only-for angular
+
+::: example #example7 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-filter/angular/example7.ts)
+@[code](@/content/guides/columns/column-filter/angular/example7.html)
+
+:::
+
+:::
+
 The column menu button is always visible, but if you want it to appear only when the mouse cursor is
 over the header, apply additional styling to `th .relative:hover .changeType`.
 
@@ -331,6 +436,17 @@ over the header, apply additional styling to `th .relative:hover .changeType`.
 @[code](@/content/guides/columns/column-filter/react/exampleCustomFilterButton2.jsx)
 @[code](@/content/guides/columns/column-filter/react/exampleCustomFilterButton2.css)
 @[code](@/content/guides/columns/column-filter/react/exampleCustomFilterButton2.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example8 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-filter/angular/example8.ts)
+@[code](@/content/guides/columns/column-filter/angular/example8.html)
 
 :::
 
@@ -378,6 +494,17 @@ filtering doesn't affect them.
 
 :::
 
+::: only-for angular
+
+::: example #example9 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-filter/angular/example9.ts)
+@[code](@/content/guides/columns/column-filter/angular/example9.html)
+
+:::
+
+:::
+
 ## Server-side filtering
 
 You can decide to use Handsontable as an intuitive filtering interface, but perform the actual
@@ -412,6 +539,17 @@ filters is logged to the console.
 
 @[code](@/content/guides/columns/column-filter/react/exampleServerSideFilter.jsx)
 @[code](@/content/guides/columns/column-filter/react/exampleServerSideFilter.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example10 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-filter/angular/example10.ts)
+@[code](@/content/guides/columns/column-filter/angular/example10.html)
 
 :::
 
@@ -460,6 +598,26 @@ hotTableComponentRef.current.hotInstance.updateSettings({
 });
 
 hotTableComponentRef.current.hotInstance.updateSettings({
+  // disable filtering
+  filters: false,
+});
+```
+
+:::
+
+::: only-for angular
+
+```ts
+@ViewChild(HotTableComponent, {static: false}) hotTable!: HotTableComponent;
+
+this.hotTable.hotInstance!.updateSettings({
+  // enable filtering
+  filters: true,
+  // enable the column menu
+  dropdownMenu: true,
+});
+
+this.hotTable.hotInstance!.updateSettings({
   // disable filtering
   filters: false,
 });
@@ -530,6 +688,38 @@ hotTableComponentRef.current.hotInstance.updateSettings({
 
 :::
 
+::: only-for angular
+
+```ts
+@ViewChild(HotTableComponent, {static: false}) hotTable!: HotTableComponent;
+
+this.hotTable.hotInstance!.updateSettings({
+  // enable filtering, for all columns
+  filters: true,
+  // enable the column menu, for all columns
+  // but display only the 'Filter by value' list and the 'OK' and 'Cancel' buttons
+  dropdownMenu: {
+    items: {
+      filter_by_value: {
+        // hide the 'Filter by value' list from all columns but the first one
+        hidden() {
+          return this.getSelectedRangeLast().to.col > 0;
+        },
+      },
+      filter_action_bar: {
+        // hide the 'OK' and 'Cancel' buttons from all columns but the first one
+        hidden() {
+          return this.getSelectedRangeLast().to.col > 0;
+        },
+      },
+    },
+  },
+});
+```
+
+:::
+
+
 ### Filter data programmatically
 
 To filter data programmatically, use the [`Filters`](@/api/filters.md) plugin's API. Remember to
@@ -556,6 +746,17 @@ Mind that before you apply new filter conditions, you need to clear the previous
 
 @[code](@/content/guides/columns/column-filter/react/exampleFilterThroughAPI1.jsx)
 @[code](@/content/guides/columns/column-filter/react/exampleFilterThroughAPI1.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example11 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-filter/angular/example11.ts)
+@[code](@/content/guides/columns/column-filter/angular/example11.html)
 
 :::
 

@@ -94,6 +94,39 @@ export const PLUGIN_PRIORITY = 220;
  * />
  * ```
  * :::
+ *
+ * ::: only-for angular
+ * ```ts
+ * settings = {
+ *   data: getData(),
+ *   colHeaders: true,
+ *   rowHeaders: true,
+ *   columnSummary: [
+ *     {
+ *       type: "min",
+ *       destinationRow: 4,
+ *       destinationColumn: 1,
+ *     },
+ *     {
+ *       type: "max",
+ *       destinationRow: 0,
+ *       destinationColumn: 3,
+ *       reversedRowCoords: true,
+ *     },
+ *     {
+ *       type: "sum",
+ *       destinationRow: 4,
+ *       destinationColumn: 5,
+ *       forceNumeric: true,
+ *     },
+ *   ],
+ * };
+ * ```
+ *
+ * ```html
+ * <hot-table [settings]="settings"></hot-table>
+ * ```
+ * :::
  */
 export class ColumnSummary extends BasePlugin {
   static get PLUGIN_KEY() {

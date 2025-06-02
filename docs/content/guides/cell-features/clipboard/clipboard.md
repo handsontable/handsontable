@@ -12,6 +12,9 @@ tags:
 react:
   id: mlctr1ri
   metaTitle: Clipboard - React Data Grid | Handsontable
+angular:
+  id: q473yaal
+  metaTitle: Clipboard - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features
 ---
@@ -75,6 +78,17 @@ You can use them in the same way as the rest of the predefined items in the [con
 
 :::
 
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-features/clipboard/angular/example1.ts)
+@[code](@/content/guides/cell-features/clipboard/angular/example1.html)
+
+:::
+
+:::
+
 ### Trigger copy & cut programmatically
 
 ::: only-for react
@@ -84,6 +98,18 @@ You can use them in the same way as the rest of the predefined items in the [con
 To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
 
 For more information, see the [Instance methods](@/guides/getting-started/react-methods/react-methods.md) page.
+
+:::
+
+:::
+
+::: only-for angular
+
+::: tip
+
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+
+For more information, see the [Instance access](@/guides/getting-started/angular-hot-instance/angular-hot-instance.md) page.
 
 :::
 
@@ -120,6 +146,17 @@ The [`CopyPaste`](@/api/copyPaste.md) plugin listens to the browser's `copy` and
 
 @[code](@/content/guides/cell-features/clipboard/react/example3.jsx)
 @[code](@/content/guides/cell-features/clipboard/react/example3.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example3 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-features/clipboard/angular/example3.ts)
+@[code](@/content/guides/cell-features/clipboard/angular/example3.html)
 
 :::
 
@@ -176,7 +213,19 @@ Right-click on a cell to try it out:
 
 :::
 
+::: only-for angular
+
+::: example #example2 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-features/clipboard/angular/example2.ts)
+@[code](@/content/guides/cell-features/clipboard/angular/example2.html)
+
+:::
+
+:::
+
 To add the context menu items, configure the [`CopyPaste`](@/api/copyPaste.md) plugin with these options:
+
 - [`copyColumnHeaders`](@/api/options.md#copypaste-additional-options)
 - [`copyColumnGroupHeaders`](@/api/options.md#copypaste-additional-options)
 - [`copyColumnHeadersOnly`](@/api/options.md#copypaste-additional-options)
@@ -190,6 +239,7 @@ copyPaste: {
 ```
 
 To copy column headers programmatically, call the [`copyPaste.copy()`](@/api/copyPaste.md#copy) method with these arguments:
+
 - [`'with-column-headers'`](@/api/copyPaste.md#copy)
 - [`'with-all-column-headers'`](@/api/copyPaste.md#copy)
 - [`'column-headers-only'`](@/api/copyPaste.md#copy)
@@ -201,6 +251,18 @@ To copy column headers programmatically, call the [`copyPaste.copy()`](@/api/cop
 To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
 
 For more information, see the [Instance methods](@/guides/getting-started/react-methods/react-methods.md) page.
+
+:::
+
+:::
+
+::: only-for angular
+
+::: tip
+
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+
+For more information, see the [Instance access](@/guides/getting-started/angular-hot-instance/angular-hot-instance.md) page.
 
 :::
 

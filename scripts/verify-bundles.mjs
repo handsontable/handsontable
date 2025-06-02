@@ -30,6 +30,9 @@ const packagesInfo = {
   '@handsontable/angular': {
     className: 'HotTableModule'
   },
+  '@handsontable/angular-wrapper': {
+    className: 'HotTableModule'
+  },
   '@handsontable/react': {
     className: 'HotTable'
   },

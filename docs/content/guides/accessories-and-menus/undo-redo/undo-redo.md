@@ -16,6 +16,9 @@ tags:
 react:
   id: me8uxp3w
   metaTitle: Undo and redo - React Data Grid | Handsontable
+angular:
+  id: o21k5bjr
+  metaTitle: Undo and redo - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Accessories and menus
 ---
@@ -56,6 +59,17 @@ Make some changes to the grid below and the use the <kbd>**Ctrl**</kbd>/<kbd>**C
 
 @[code](@/content/guides/accessories-and-menus/undo-redo/react/example.jsx)
 @[code](@/content/guides/accessories-and-menus/undo-redo/react/example.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/guides/accessories-and-menus/undo-redo/angular/example1.ts)
+@[code](@/content/guides/accessories-and-menus/undo-redo/angular/example1.html)
 
 :::
 

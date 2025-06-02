@@ -11,6 +11,9 @@ tags:
 react:
   id: sfxo3g54
   metaTitle: Export to CSV - React Data Grid | Handsontable
+angular:
+  id: hwhzgoir
+  metaTitle: Export to CSV - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Accessories and menus
 ---
@@ -50,6 +53,16 @@ Mind that CSV exports contain only raw data, and don't include formulas, styling
 
 :::
 
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/guides/accessories-and-menus/export-to-csv/angular/example1.ts)
+@[code](@/content/guides/accessories-and-menus/export-to-csv/angular/example1.html)
+
+:::
+
+:::
 
 ### Export as a JavaScript Blob object
 
@@ -76,6 +89,16 @@ Open a console in browser developer tools to see the result for the below exampl
 
 :::
 
+:::
+
+::: only-for angular
+
+::: example #example2 :angular --ts 1 --html 2
+
+@[code](@/content/guides/accessories-and-menus/export-to-csv/angular/example2.ts)
+@[code](@/content/guides/accessories-and-menus/export-to-csv/angular/example2.html)
+
+:::
 :::
 
 ### Export as a string
@@ -105,6 +128,17 @@ Open a console in browser developer tools to see the result for the below exampl
 
 :::
 
+::: only-for angular
+
+::: example #example3 :angular --ts 1 --html 2
+
+@[code](@/content/guides/accessories-and-menus/export-to-csv/angular/example3.ts)
+@[code](@/content/guides/accessories-and-menus/export-to-csv/angular/example3.html)
+
+:::
+
+:::
+
 ### Prevent CSV Injection attack
 
 "CSV Injection, also known as Formula Injection, occurs when websites embed untrusted input inside CSV files. When a spreadsheet program such as Microsoft Excel or LibreOffice Calc is used to open a CSV, any cells starting with = will be interpreted by the software as a formula." (from [OWASP website](https://owasp.org/www-community/attacks/CSV_Injection))
@@ -129,6 +163,18 @@ To prevent this attack, set the [`sanitizeValues` option](#sanitizevalues-boolea
 
 @[code](@/content/guides/accessories-and-menus/export-to-csv/react/example4.jsx)
 @[code](@/content/guides/accessories-and-menus/export-to-csv/react/example4.tsx)
+
+:::
+
+:::
+
+
+::: only-for angular
+
+::: example #example4 :angular --ts 1 --html 2
+
+@[code](@/content/guides/accessories-and-menus/export-to-csv/angular/example4.ts)
+@[code](@/content/guides/accessories-and-menus/export-to-csv/angular/example4.html)
 
 :::
 

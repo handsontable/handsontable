@@ -8,6 +8,9 @@ canonicalUrl: /versioning-policy
 react:
   id: avrihx7w
   metaTitle: Versioning policy - React Data Grid | Handsontable
+angular:
+  id: 1q96vyfn
+  metaTitle: Versioning policy - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
 ---
@@ -40,7 +43,7 @@ Up to Handsontable 8.3.2, each framework variant of Handsontable was versioned s
 
 - [Vanilla JavaScript](@/guides/getting-started/introduction/introduction.md)
 - [React wrapper](@/react/guides/getting-started/introduction/introduction.md)
-- [Angular wrapper](@/guides/integrate-with-angular/angular-installation/angular-installation.md)
+- [Angular wrapper](@/angular/guides/getting-started/introduction/introduction.md)
 - [Vue 2 wrapper](@/guides/integrate-with-vue/vue-installation/vue-installation.md)
 - [Vue 3 wrapper](@/guides/integrate-with-vue3/vue3-installation/vue3-installation.md)
 

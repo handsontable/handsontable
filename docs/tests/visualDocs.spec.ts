@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { jsPaths, reactPaths } from './paths';
+import { jsPaths, reactPaths, angularPaths } from './paths';
 
 const pathsNeedingMoreTolerance = [
   'events-and-hooks',
@@ -41,6 +41,7 @@ test.beforeEach(async({ page, baseURL }) => {
 const testCases = [
   { paths: jsPaths, prefix: 'js', urlPath: 'javascript-data-grid' },
   { paths: reactPaths, prefix: 'react', urlPath: 'react-data-grid' },
+  { paths: angularPaths, prefix: 'angular', urlPath: 'angular-data-grid' },
 ];
 
 testCases.forEach(({ paths, prefix, urlPath }) => {

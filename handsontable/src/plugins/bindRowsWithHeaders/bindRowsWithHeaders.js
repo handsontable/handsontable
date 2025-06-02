@@ -43,6 +43,19 @@ const bindTypeToMapStrategy = new Map([
  * />
  * ```
  * :::
+ *
+ * ::: only-for angular
+ * ```ts
+ * settings = {
+ *   data: getData(),
+ *   bindRowsWithHeaders: true,
+ * };
+ * ```
+ *
+ * ```html
+ * <hot-table [settings]="settings" />
+ * ```
+ * :::
  */
 export class BindRowsWithHeaders extends BasePlugin {
   static get PLUGIN_KEY() {

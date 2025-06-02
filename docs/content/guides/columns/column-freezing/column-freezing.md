@@ -13,6 +13,9 @@ tags:
 react:
   id: otumcpty
   metaTitle: Column freezing - React Data Grid | Handsontable
+angular:
+  id: i85vqeao
+  metaTitle: Column freezing - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
 ---
@@ -59,6 +62,17 @@ If your [layout direction](@/guides/internationalization/layout-direction/layout
 
 :::
 
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-freezing/angular/example1.ts)
+@[code](@/content/guides/columns/column-freezing/angular/example1.html)
+
+:::
+
+:::
+
 ## User-triggered freeze
 
 To enable manual column freezing, set [`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze) to `true`. This lets you freeze and unfreeze columns by using the grid's [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md).
@@ -82,6 +96,17 @@ Mind that when you unfreeze a frozen column, it doesn't go back to the original 
 
 @[code](@/content/guides/columns/column-freezing/react/example2.jsx)
 @[code](@/content/guides/columns/column-freezing/react/example2.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example2 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-freezing/angular/example2.ts)
+@[code](@/content/guides/columns/column-freezing/angular/example2.html)
 
 :::
 

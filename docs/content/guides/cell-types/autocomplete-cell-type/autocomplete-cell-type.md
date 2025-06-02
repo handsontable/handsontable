@@ -8,6 +8,9 @@ canonicalUrl: /autocomplete-cell-type
 react:
   id: vnnvp396
   metaTitle: Autocomplete cell type - React Data Grid | Handsontable
+angular:
+  id: md3vhixm
+  metaTitle: Autocomplete cell type - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
 ---
@@ -21,6 +24,7 @@ Collect user input with a list of choices, by using the autocomplete cell type.
 ## Overview
 
 You can complete the autocomplete cell type in three different ways:
+
 - Flexible mode
 - Strict mode
 - Strict mode using Ajax
@@ -46,6 +50,17 @@ This example uses the `autocomplete` feature in the default flexible mode. In th
 
 @[code](@/content/guides/cell-types/autocomplete-cell-type/react/example1.jsx)
 @[code](@/content/guides/cell-types/autocomplete-cell-type/react/example1.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 .docs-height-small :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/angular/example1.ts)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/angular/example1.html)
 
 :::
 
@@ -85,6 +100,17 @@ In strict mode, the [`allowInvalid`](@/api/options.md#allowinvalid) option deter
 
 :::
 
+::: only-for angular
+
+::: example #example2 .docs-height-small :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/angular/example2.ts)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/angular/example2.html)
+
+:::
+
+:::
+
 ## Autocomplete strict mode (Ajax)
 
 Autocomplete can also be used with Ajax data sources. In the example below, suggestions for the "Car" column are loaded from the server. To load data from a remote *asynchronous* source, assign a function to the 'source' property. The function should perform the server-side request and call the callback function when the result is available.
@@ -106,6 +132,17 @@ Autocomplete can also be used with Ajax data sources. In the example below, sugg
 
 @[code](@/content/guides/cell-types/autocomplete-cell-type/react/example3.jsx)
 @[code](@/content/guides/cell-types/autocomplete-cell-type/react/example3.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example3 .docs-height-small :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/angular/example3.ts)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/angular/example3.html)
 
 :::
 
