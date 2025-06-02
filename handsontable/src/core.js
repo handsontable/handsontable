@@ -2630,7 +2630,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       instance.initIndexMappers();
     }
 
-    if (settings.language) {
+    if (!firstRun && settings.language) {
       setLanguage(settings.language);
     }
 
