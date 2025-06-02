@@ -14,6 +14,9 @@ tags:
 react:
   id: zhv7fs29
   metaTitle: Disabled cells - React Data Grid | Handsontable
+angular:
+  id: 2epog9e1
+  metaTitle: Disabled cells - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features
 ---
@@ -61,6 +64,17 @@ You can make the entire grid read-only by setting [`readOnly`](@/api/options.md#
 
 :::
 
+::: only-for angular
+
+::: example #exampleReadOnlyGrid :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-features/disabled-cells/angular/exampleReadOnlyGrid.ts)
+@[code](@/content/guides/cell-features/disabled-cells/angular/exampleReadOnlyGrid.html)
+
+:::
+
+:::
+
 ## Read-only columns
 
 In many use cases, you will need to configure a certain column to be read-only. This column will be available for keyboard navigation and copying data (<kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**C**</kbd>). Editing and pasting data will be disabled.
@@ -89,6 +103,19 @@ To make a column read-only, declare it in the [`columns`](@/api/options.md#colum
 
 :::
 
+<!-- TODO: workaround for the template parsing problem for angular docs  -->
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-features/disabled-cells/angular/example1.ts)
+@[code](@/content/guides/cell-features/disabled-cells/angular/example1.html)
+
+:::
+
+:::
+
 ## Read-only specific cells
 
 This example makes cells that contain the word "Nissan" read-only. It forces all cells to be processed by the [`cells`](@/api/options.md#cells) function which will decide whether a cell's metadata should have the [`readOnly`](@/api/options.md#readonly) property set.
@@ -110,6 +137,17 @@ This example makes cells that contain the word "Nissan" read-only. It forces all
 
 @[code](@/content/guides/cell-features/disabled-cells/react/example2.jsx)
 @[code](@/content/guides/cell-features/disabled-cells/react/example2.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example2 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-features/disabled-cells/angular/example2.ts)
+@[code](@/content/guides/cell-features/disabled-cells/angular/example2.html)
 
 :::
 
@@ -145,6 +183,17 @@ To make a column non-editable, declare it in the [`columns`](@/api/options.md#co
 
 :::
 
+::: only-for angular
+
+::: example #example3 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-features/disabled-cells/angular/example3.ts)
+@[code](@/content/guides/cell-features/disabled-cells/angular/example3.html)
+
+:::
+
+:::
+
 ## Non-editable specific cells
 
 The following example shows the table with non-editable cells containing the word "Nissan". This cell property is optional and you can easily set it in the Handsontable configuration.
@@ -166,6 +215,17 @@ The following example shows the table with non-editable cells containing the wor
 
 @[code](@/content/guides/cell-features/disabled-cells/react/example4.jsx)
 @[code](@/content/guides/cell-features/disabled-cells/react/example4.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example4 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-features/disabled-cells/angular/example4.ts)
+@[code](@/content/guides/cell-features/disabled-cells/angular/example4.html)
 
 :::
 

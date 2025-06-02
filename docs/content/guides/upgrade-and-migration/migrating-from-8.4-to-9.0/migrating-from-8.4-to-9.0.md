@@ -9,6 +9,9 @@ pageClass: migration-guide
 react:
   id: yns5r79k
   metaTitle: Migrate from 8.4 to 9.0 - React Data Grid | Handsontable
+angular:
+  id: tulale8x
+  metaTitle: Migrate from 8.4 to 9.0 - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
 ---

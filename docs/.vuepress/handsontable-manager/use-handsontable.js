@@ -9,6 +9,9 @@ const ATTR_VERSION = 'data-hot-version';
 
 class AbortError extends Error {}
 
+// Global promise chain to ensure sequential preset loading, when loading multiple presets in parallel (on the same page).
+let globalLoadingChain = Promise.resolve();
+
 const useHandsontable = (version, callback = () => {}, preset = 'hot', buildMode = 'production') => {
   const getDependency = buildDependencyGetter(version, buildMode);
   const abortSignal = register.getAbortSignal();
@@ -31,18 +34,6 @@ const useHandsontable = (version, callback = () => {}, preset = 'hot', buildMode
     const _document = document; // eslint-disable-line no-restricted-globals
     let script = null;
 
-    // Ensure that `fixer.js` is not loaded while injecting new dependencies.
-    if (dep !== 'fixer') {
-      const fixerScript = _document.getElementById(`script-${getId('fixer')}`);
-
-      if (fixerScript) {
-        fixerScript.remove();
-
-        delete window.require;
-        delete window.exports;
-      }
-    }
-
     // As the documentation uses multiple versions of Vue (which reuse the same global variable - `Vue`), every
     // time the Vue dependency is loaded, the previously used version should be removed.
     if (globalVarSharedDependency) {
@@ -53,7 +44,7 @@ const useHandsontable = (version, callback = () => {}, preset = 'hot', buildMode
     }
 
     // clear outdated version
-    if (script && (script.getAttribute(ATTR_VERSION) !== version || globalVarSharedDependency)) {
+    if (script && (script.getAttribute(ATTR_VERSION) !== version || (globalVarSharedDependency ?? false))) {
       dependentVars.forEach(x => delete x.split('.').reduce((p, c) => p[c] || {}, {}));
       script.remove();
       script = null;
@@ -122,18 +113,43 @@ const useHandsontable = (version, callback = () => {}, preset = 'hot', buildMode
         break;
       }
 
+      // Ensure that `fixer.js` is not loaded while injecting new dependencies (with an exception for `react-colorful`).
+      if (dep !== 'fixer' && dep !== 'react-colorful') {
+        const _document = document; // eslint-disable-line no-restricted-globals
+        const getId = depName => `dependency-reloader_${depName}`;
+        const fixerScript = _document.getElementById(`script-${getId('fixer')}`);
+
+        if (fixerScript) {
+          fixerScript.remove();
+          delete window.require;
+          delete window.exports;
+        }
+      }
+
       // The order of loading is really important. For that purpose await was used.
       await loadDependency(dep); // eslint-disable-line no-await-in-loop
     }
   };
 
-  loadPreset()
-    .then(callback)
-    .catch((err) => {
+  // Add this preset loading to the global queue
+  const currentPresetPromise = globalLoadingChain.then(async() => {
+    try {
+      await loadPreset();
+      callback();
+    } catch (err) {
       if (!(err instanceof AbortError)) {
         throw err;
       }
-    });
+    }
+  });
+
+  // Update the global chain to wait for this preset
+  globalLoadingChain = currentPresetPromise.finally(() => {
+    // This runs whether success or failure, maintaining the chain
+  });
+
+  // Return a promise for this specific preset loading
+  return currentPresetPromise;
 };
 
 module.exports = { useHandsontable };

@@ -8,6 +8,9 @@ canonicalUrl: /security
 react:
   id: h8zg4ign
   metaTitle: Security - React Data Grid | Handsontable
+angular:
+  id: 25m4fmia
+  metaTitle: Security - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Security
 ---

@@ -8,6 +8,9 @@ canonicalUrl: /vue-custom-context-menu-example
 react:
   id: 6218j2a1
   metaTitle: Custom context menu - Vue 2 Data Grid | Handsontable
+angular:
+  id: zl92lu7v
+  metaTitle: Custom context menu - Vue 2 Data Grid | Handsontable
 searchCategory: Guides
 category: Integrate with Vue 2
 ---

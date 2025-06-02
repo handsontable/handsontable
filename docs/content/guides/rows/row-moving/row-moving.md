@@ -8,6 +8,9 @@ canonicalUrl: /row-moving
 react:
   id: g5mksyu1
   metaTitle: Row moving - React Data Grid | Handsontable
+angular:
+  id: ntz1a9ns
+  metaTitle: Row moving - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
 ---
@@ -41,6 +44,17 @@ A draggable move handle appears above the selected row header. You can click and
 
 @[code](@/content/guides/rows/row-moving/react/example1.jsx)
 @[code](@/content/guides/rows/row-moving/react/example1.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/guides/rows/row-moving/angular/example1.ts)
+@[code](@/content/guides/rows/row-moving/angular/example1.html)
 
 :::
 

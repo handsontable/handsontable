@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Introduced a new Angular wrapper - `@handsontable/angular-wrapper`.",
+  "type": "added",
+  "issueOrPR": 11511,
+  "breaking": false,
+  "framework": "angular"
+}

@@ -17,6 +17,9 @@ tags:
 react:
   id: vo8uukt2
   metaTitle: Row parent-child - React Data Grid | Handsontable
+angular:
+  id: ojdl5nkd
+  metaTitle: Row parent-child - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
 ---
@@ -46,6 +49,22 @@ const hot = new Handsontable(container, {
 
 ```jsx
 <HotTable nestedRows={true} />
+```
+
+:::
+
+::: only-for angular
+
+```ts
+import {GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
+
+const configurationOptions: GridSettings = {
+  nestedRows: true,
+};
+```
+
+```html
+<hot-table [settings]="configurationOptions"></hot-table>
 ```
 
 :::
@@ -81,6 +100,17 @@ Here's an example:
 
 @[code](@/content/guides/rows/row-parent-child/react/example1.jsx)
 @[code](@/content/guides/rows/row-parent-child/react/example1.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/guides/rows/row-parent-child/angular/example1.ts)
+@[code](@/content/guides/rows/row-parent-child/angular/example1.html)
 
 :::
 

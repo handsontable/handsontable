@@ -13,6 +13,9 @@ tags:
 react:
   id: r2x6mh6h
   metaTitle: Context menu - React Data Grid | Handsontable
+angular:
+  id: 3xspgb3u
+  metaTitle: Context menu - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Accessories and menus
 ---
@@ -50,6 +53,17 @@ To see the context menu, right-click on a cell:
 
 @[code](@/content/guides/accessories-and-menus/context-menu/react/example1.jsx)
 @[code](@/content/guides/accessories-and-menus/context-menu/react/example1.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/guides/accessories-and-menus/context-menu/angular/example1.ts)
+@[code](@/content/guides/accessories-and-menus/context-menu/angular/example1.html)
 
 :::
 
@@ -122,6 +136,17 @@ To see the context menu, right-click on a cell:
 
 :::
 
+::: only-for angular
+
+::: example #example2 :angular --ts 1 --html 2
+
+@[code](@/content/guides/accessories-and-menus/context-menu/angular/example2.ts)
+@[code](@/content/guides/accessories-and-menus/context-menu/angular/example2.html)
+
+:::
+
+:::
+
 ::: only-for react
 
 ## Context menu with custom options
@@ -173,6 +198,17 @@ To see the context menu, right-click on a cell:
 
 :::
 
+::: only-for angular
+
+::: example #example3 :angular --ts 1 --html 2
+
+@[code](@/content/guides/accessories-and-menus/context-menu/angular/example3.ts)
+@[code](@/content/guides/accessories-and-menus/context-menu/angular/example3.html)
+
+:::
+
+:::
+
 ## Related keyboard shortcuts
 
 | Windows                                                                                               | macOS                                                                                                | Action                                                        |  Excel  | Sheets  |
@@ -195,7 +231,7 @@ To see the context menu, right-click on a cell:
 - [Icon pack](@/guides/accessories-and-menus/icon-pack/icon-pack.md)
 ::: only-for javascript
 - [Custom context menu in React](@/react/guides/accessories-and-menus/context-menu/context-menu.md)
-- [Custom context menu in Angular](@/guides/integrate-with-angular/angular-custom-context-menu-example/angular-custom-context-menu-example.md)
+- [Custom context menu in Angular](@/angular/guides/accessories-and-menus/context-menu/context-menu.md)
 - [Custom context menu in Vue 2](@/guides/integrate-with-vue/vue-custom-context-menu-example/vue-custom-context-menu-example.md)
 - [Custom context menu in Vue 3](@/guides/integrate-with-vue3/vue3-custom-context-menu-example/vue3-custom-context-menu-example.md)
 :::

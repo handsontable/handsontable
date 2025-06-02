@@ -33,6 +33,7 @@ function setCookie(name, value) {
 const frameworkIdToFullName = new Map([
   ['javascript', { name: 'JavaScript' }],
   ['react', { name: 'React' }],
+  ['angular', { name: 'Angular' }],
 ]);
 
 export default {
@@ -81,6 +82,7 @@ export default {
             link: this.getLink(id),
             target: '_self',
             isHtmlLink: true,
+            icon: `i-${id}`,
           };
         }
       );

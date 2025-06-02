@@ -8,6 +8,9 @@ canonicalUrl: /checkbox-cell-type
 react:
   id: tfr1gisf
   metaTitle: Checkbox cell type - React Data Grid | Handsontable
+angular:
+  id: 4cn9mp6z
+  metaTitle: Checkbox cell type - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
 ---
@@ -54,6 +57,17 @@ This is the default usage scenario where column data has a `true` or `false` val
 
 :::
 
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-types/checkbox-cell-type/angular/example1.ts)
+@[code](@/content/guides/cell-types/checkbox-cell-type/angular/example1.html)
+
+:::
+
+:::
+
 ## Checkbox template
 
 If you want to use values other than `true` and `false`, you have to provide this information using [`checkedTemplate`](@/api/options.md#checkedtemplate) and [`uncheckedTemplate`](@/api/options.md#uncheckedtemplate). Handsontable will then update your data using the appropriate template.
@@ -75,6 +89,17 @@ If you want to use values other than `true` and `false`, you have to provide thi
 
 @[code](@/content/guides/cell-types/checkbox-cell-type/react/example2.jsx)
 @[code](@/content/guides/cell-types/checkbox-cell-type/react/example2.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example2 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-types/checkbox-cell-type/angular/example2.ts)
+@[code](@/content/guides/cell-types/checkbox-cell-type/angular/example2.html)
 
 :::
 
@@ -106,6 +131,17 @@ To add a label to the checkbox, use the [`label`](@/api/options.md#label) option
 
 :::
 
+::: only-for angular
+
+::: example #example3 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-types/checkbox-cell-type/angular/example3.ts)
+@[code](@/content/guides/cell-types/checkbox-cell-type/angular/example3.html)
+
+:::
+
+:::
+
 ## Related keyboard shortcuts
 
 | Windows                  | macOS                    | Action                        |  Excel  | Sheets  |
@@ -118,6 +154,7 @@ To add a label to the checkbox, use the [`label`](@/api/options.md#label) option
 ## Related articles
 
 ### Related guides
+
 - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
 
 ### Related API reference

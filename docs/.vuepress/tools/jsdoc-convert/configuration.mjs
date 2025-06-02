@@ -13,6 +13,10 @@ export default {
         id: '6kcorabp',
         metaTitle: 'Core methods API reference - React Data Grid | Handsontable',
       },
+      angular: {
+        id: 'a8m3k9xz',
+        metaTitle: 'Core methods API reference - Angular Data Grid | Handsontable',
+      },
     },
     'Hooks.md': {
       id: 'js126u0h',
@@ -22,6 +26,10 @@ export default {
       react: {
         id: 'u5rih2o2',
         metaTitle: 'Hooks API reference - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: 'b7n4p2qw',
+        metaTitle: 'Hooks API reference - Angular Data Grid | Handsontable',
       },
     },
     'Options.md': {
@@ -33,6 +41,10 @@ export default {
         id: 'oga06iva',
         metaTitle: 'Options API reference - React Data Grid | Handsontable',
       },
+      angular: {
+        id: 'c9r5t8yx',
+        metaTitle: 'Options API reference - Angular Data Grid | Handsontable',
+      },
     },
     'AutoColumnSize.md': {
       id: 'hjr7zdxy',
@@ -41,6 +53,10 @@ export default {
       react: {
         id: '11f3lp0s',
         metaTitle: 'AutoColumnSize - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: 'd6w1v4zu',
+        metaTitle: 'AutoColumnSize - Angular Data Grid | Handsontable',
       },
     },
     'AutoRowSize.md': {
@@ -51,6 +67,10 @@ export default {
         id: '8bcocfq1',
         metaTitle: 'AutoRowSize - React Data Grid | Handsontable',
       },
+      angular: {
+        id: 'e3x7s0ab',
+        metaTitle: 'AutoRowSize - Angular Data Grid | Handsontable',
+      },
     },
     'Autofill.md': {
       id: 'gybdfu49',
@@ -59,6 +79,10 @@ export default {
       react: {
         id: 'het268ia',
         metaTitle: 'Autofill - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: 'f2y8u6cd',
+        metaTitle: 'Autofill - Angular Data Grid | Handsontable',
       },
     },
     'BindRowsWithHeaders.md': {
@@ -69,6 +93,10 @@ export default {
         id: '2mdpwy50',
         metaTitle: 'BindRowsWithHeaders - React Data Grid | Handsontable',
       },
+      angular: {
+        id: 'g1z9i5ef',
+        metaTitle: 'BindRowsWithHeaders - Angular Data Grid | Handsontable',
+      },
     },
     'CollapsibleColumns.md': {
       id: 'edkch5e6',
@@ -77,6 +105,10 @@ export default {
       react: {
         id: '6f5n1j47',
         metaTitle: 'CollapsibleColumns - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: 'h4a0j7gh',
+        metaTitle: 'CollapsibleColumns - Angular Data Grid | Handsontable',
       },
     },
     'ColumnSorting.md': {
@@ -87,6 +119,10 @@ export default {
         id: 'lpx62nle',
         metaTitle: 'ColumnSorting - React Data Grid | Handsontable',
       },
+      angular: {
+        id: 'i3b8k4ij',
+        metaTitle: 'ColumnSorting - Angular Data Grid | Handsontable',
+      },
     },
     'ColumnSummary.md': {
       id: 'wrwu7s6c',
@@ -95,6 +131,10 @@ export default {
       react: {
         id: '0iw5v2b5',
         metaTitle: 'ColumnSummary - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: 'j2c9l6kl',
+        metaTitle: 'ColumnSummary - Angular Data Grid | Handsontable',
       },
     },
     'Comments.md': {
@@ -105,6 +145,10 @@ export default {
         id: '3g0bkzza',
         metaTitle: 'Comments - React Data Grid | Handsontable',
       },
+      angular: {
+        id: 'k5d0m8mn',
+        metaTitle: 'Comments - Angular Data Grid | Handsontable',
+      },
     },
     'ContextMenu.md': {
       id: 'pczrlicw',
@@ -113,6 +157,10 @@ export default {
       react: {
         id: 'kx1mawmf',
         metaTitle: 'ContextMenu - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: 'l4e1n9op',
+        metaTitle: 'ContextMenu - Angular Data Grid | Handsontable',
       },
     },
     'CopyPaste.md': {
@@ -123,6 +171,10 @@ export default {
         id: 'g6fi2a6i',
         metaTitle: 'CopyPaste - React Data Grid | Handsontable',
       },
+      angular: {
+        id: 'm3f2o0qr',
+        metaTitle: 'CopyPaste - Angular Data Grid | Handsontable',
+      },
     },
     'CustomBorders.md': {
       id: 'gxm1a98b',
@@ -131,6 +183,10 @@ export default {
       react: {
         id: '93acldzf',
         metaTitle: 'CustomBorders - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: 'n6g3p2st',
+        metaTitle: 'CustomBorders - Angular Data Grid | Handsontable',
       },
     },
     'DragToScroll.md': {
@@ -141,6 +197,10 @@ export default {
         id: 'uawwix9r',
         metaTitle: 'DragToScroll - React Data Grid | Handsontable',
       },
+      angular: {
+        id: 'o5h4q1uv',
+        metaTitle: 'DragToScroll - Angular Data Grid | Handsontable',
+      },
     },
     'DropdownMenu.md': {
       id: 'snqjcwml',
@@ -149,6 +209,10 @@ export default {
       react: {
         id: 'zj3aru0b',
         metaTitle: 'DropdownMenu - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: 'p4i5r3wx',
+        metaTitle: 'DropdownMenu - Angular Data Grid | Handsontable',
       },
     },
     'ExportFile.md': {
@@ -159,6 +223,10 @@ export default {
         id: 'qsmpym52',
         metaTitle: 'ExportFile - React Data Grid | Handsontable',
       },
+      angular: {
+        id: 'q3j6s4yz',
+        metaTitle: 'ExportFile - Angular Data Grid | Handsontable',
+      },
     },
     'Filters.md': {
       id: '3alr8j85',
@@ -167,6 +235,10 @@ export default {
       react: {
         id: 'vxwvhi0e',
         metaTitle: 'Filters - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: 'r2k7t5ab',
+        metaTitle: 'Filters - Angular Data Grid | Handsontable',
       },
     },
     'Formulas.md': {
@@ -177,6 +249,10 @@ export default {
         id: 'of6l92wv',
         metaTitle: 'Formulas - React Data Grid | Handsontable',
       },
+      angular: {
+        id: 's1l8u6cd',
+        metaTitle: 'Formulas - Angular Data Grid | Handsontable',
+      },
     },
     'HiddenRows.md': {
       id: 'linbgjey',
@@ -185,6 +261,10 @@ export default {
       react: {
         id: 'ztxn1ekz',
         metaTitle: 'HiddenRows - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: 't0m9v7ef',
+        metaTitle: 'HiddenRows - Angular Data Grid | Handsontable',
       },
     },
     'HiddenColumns.md': {
@@ -195,6 +275,10 @@ export default {
         id: 'crwccrpj',
         metaTitle: 'HiddenColumns - React Data Grid | Handsontable',
       },
+      angular: {
+        id: 'u9n0w8gh',
+        metaTitle: 'HiddenColumns - Angular Data Grid | Handsontable',
+      },
     },
     'ManualColumnFreeze.md': {
       id: 'xn65u35f',
@@ -203,6 +287,10 @@ export default {
       react: {
         id: '5y6obv03',
         metaTitle: 'ManualColumnFreeze - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: 'v8o1x9ij',
+        metaTitle: 'ManualColumnFreeze - Angular Data Grid | Handsontable',
       },
     },
     'ManualColumnMove.md': {
@@ -213,6 +301,10 @@ export default {
         id: '41x190ra',
         metaTitle: 'ManualColumnMove - React Data Grid | Handsontable',
       },
+      angular: {
+        id: 'w7p2y0kl',
+        metaTitle: 'ManualColumnMove - Angular Data Grid | Handsontable',
+      },
     },
     'ManualColumnResize.md': {
       id: '4zjgoamn',
@@ -221,6 +313,10 @@ export default {
       react: {
         id: 'lszzwc0i',
         metaTitle: 'ManualColumnResize - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: 'x6q3z1mn',
+        metaTitle: 'ManualColumnResize - Angular Data Grid | Handsontable',
       },
     },
     'ManualRowMove.md': {
@@ -231,6 +327,10 @@ export default {
         id: '87xdqwwb',
         metaTitle: 'ManualRowMove - React Data Grid | Handsontable',
       },
+      angular: {
+        id: 'y5r4a2op',
+        metaTitle: 'ManualRowMove - Angular Data Grid | Handsontable',
+      },
     },
     'ManualRowResize.md': {
       id: 'la7wo1xh',
@@ -239,6 +339,10 @@ export default {
       react: {
         id: '7chricz2',
         metaTitle: 'ManualRowResize - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: 'z4s5b3qr',
+        metaTitle: 'ManualRowResize - Angular Data Grid | Handsontable',
       },
     },
     'MergeCells.md': {
@@ -249,6 +353,10 @@ export default {
         id: '62cv5ecx',
         metaTitle: 'MergeCells - React Data Grid | Handsontable',
       },
+      angular: {
+        id: 'a3t6c4st',
+        metaTitle: 'MergeCells - Angular Data Grid | Handsontable',
+      },
     },
     'MultiColumnSorting.md': {
       id: 'ypo7x8k9',
@@ -257,6 +365,10 @@ export default {
       react: {
         id: '8gqtvsrl',
         metaTitle: 'MultiColumnSorting - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: 'b2u7d5uv',
+        metaTitle: 'MultiColumnSorting - Angular Data Grid | Handsontable',
       },
     },
     'NestedHeaders.md': {
@@ -267,6 +379,10 @@ export default {
         id: '8qwzxi9i',
         metaTitle: 'NestedHeaders - React Data Grid | Handsontable',
       },
+      angular: {
+        id: 'c1v8e6wx',
+        metaTitle: 'NestedHeaders - Angular Data Grid | Handsontable',
+      },
     },
     'NestedRows.md': {
       id: 'iadurw6z',
@@ -275,6 +391,10 @@ export default {
       react: {
         id: 'fvo6cybt',
         metaTitle: 'NestedRows - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: 'd0w9f7yz',
+        metaTitle: 'NestedRows - Angular Data Grid | Handsontable',
       },
     },
     'PersistentState.md': {
@@ -285,6 +405,10 @@ export default {
         id: '8he28jcj',
         metaTitle: 'PersistentState - React Data Grid | Handsontable',
       },
+      angular: {
+        id: 'e9x0g8ab',
+        metaTitle: 'PersistentState - Angular Data Grid | Handsontable',
+      },
     },
     'Search.md': {
       id: '4r6t4j1z',
@@ -293,6 +417,10 @@ export default {
       react: {
         id: 'acamkuxd',
         metaTitle: 'Search - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: 'f8y1h9cd',
+        metaTitle: 'Search - Angular Data Grid | Handsontable',
       },
     },
     'StretchColumns.md': {
@@ -303,6 +431,10 @@ export default {
         id: 'a2b7ku2p',
         metaTitle: 'StretchColumns - React Data Grid | Handsontable',
       },
+      angular: {
+        id: 'g7z2i0ef',
+        metaTitle: 'StretchColumns - Angular Data Grid | Handsontable',
+      },
     },
     'TrimRows.md': {
       id: 'ks06q7cq',
@@ -311,6 +443,10 @@ export default {
       react: {
         id: 'ysqsy1ec',
         metaTitle: 'TrimRows - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: 'h6a3j1gh',
+        metaTitle: 'TrimRows - Angular Data Grid | Handsontable',
       },
     },
     'UndoRedo.md': {
@@ -321,6 +457,10 @@ export default {
         id: 't5lpzjly',
         metaTitle: 'UndoRedo - React Data Grid | Handsontable',
       },
+      angular: {
+        id: 'i5b4k2ij',
+        metaTitle: 'UndoRedo - Angular Data Grid | Handsontable',
+      },
     },
     'BaseEditor.md': {
       id: 'l025jsly',
@@ -329,6 +469,10 @@ export default {
       react: {
         id: 'snc3axwd',
         metaTitle: 'BaseEditor - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: 'j4c5l3kl',
+        metaTitle: 'BaseEditor - Angular Data Grid | Handsontable',
       },
     },
     'BasePlugin.md': {
@@ -339,6 +483,10 @@ export default {
         id: 'wi27fiwz',
         metaTitle: 'BasePlugin - React Data Grid | Handsontable',
       },
+      angular: {
+        id: 'k3d6m4mn',
+        metaTitle: 'BasePlugin - Angular Data Grid | Handsontable',
+      },
     },
     'CellCoords.md': {
       id: 'qthfdrss',
@@ -347,6 +495,10 @@ export default {
       react: {
         id: 'ufhe1gsm',
         metaTitle: 'CellCoords - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: 'l2e7n5op',
+        metaTitle: 'CellCoords - Angular Data Grid | Handsontable',
       },
     },
     'CellRange.md': {
@@ -357,6 +509,10 @@ export default {
         id: 'mpqwzjpm',
         metaTitle: 'CellRange - React Data Grid | Handsontable',
       },
+      angular: {
+        id: 'm1f8o6qr',
+        metaTitle: 'CellRange - Angular Data Grid | Handsontable',
+      },
     },
     'ChangesObserver.md': {
       id: 'n1d2orqc',
@@ -365,6 +521,10 @@ export default {
       react: {
         id: 'v5k5tou4',
         metaTitle: 'ChangesObserver - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: 'n0g9p7st',
+        metaTitle: 'ChangesObserver - Angular Data Grid | Handsontable',
       },
     },
     'createShortcutManager.md': {
@@ -375,6 +535,10 @@ export default {
         id: 'smdsdtby',
         metaTitle: 'CreateShortcutManager - React Data Grid | Handsontable',
       },
+      angular: {
+        id: 'o9h0q8uv',
+        metaTitle: 'CreateShortcutManager - Angular Data Grid | Handsontable',
+      },
     },
     'ShortcutManager.md': {
       id: 'qos98msl',
@@ -383,6 +547,10 @@ export default {
       react: {
         id: 'doot085y',
         metaTitle: 'ShortcutManager - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: 'p8i1r9wx',
+        metaTitle: 'ShortcutManager - Angular Data Grid | Handsontable',
       },
     },
     'DataMap.md': {
@@ -393,6 +561,10 @@ export default {
         id: 'a2342zyo',
         metaTitle: 'DataMap - React Data Grid | Handsontable',
       },
+      angular: {
+        id: 'q7j2s0yz',
+        metaTitle: 'DataMap - Angular Data Grid | Handsontable',
+      },
     },
     'GhostTable.md': {
       id: '1i74gjp4',
@@ -401,6 +573,10 @@ export default {
       react: {
         id: 'bbq83v9b',
         metaTitle: 'GhostTable - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: 'r6k3t1ab',
+        metaTitle: 'GhostTable - Angular Data Grid | Handsontable',
       },
     },
     'HidingMap.md': {
@@ -411,6 +587,10 @@ export default {
         id: '9k5ucjxx',
         metaTitle: 'HidingMap - React Data Grid | Handsontable',
       },
+      angular: {
+        id: 's5l4u2cd',
+        metaTitle: 'HidingMap - Angular Data Grid | Handsontable',
+      },
     },
     'IndexMap.md': {
       id: '8b008itj',
@@ -419,6 +599,10 @@ export default {
       react: {
         id: 'nwnemipo',
         metaTitle: 'IndexMap - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: 't4m5v3ef',
+        metaTitle: 'IndexMap - Angular Data Grid | Handsontable',
       },
     },
     'IndexMapper.md': {
@@ -429,6 +613,10 @@ export default {
         id: 'sbs3825t',
         metaTitle: 'IndexMapper - React Data Grid | Handsontable',
       },
+      angular: {
+        id: 'u3n6w4gh',
+        metaTitle: 'IndexMapper - Angular Data Grid | Handsontable',
+      },
     },
     'IndexesSequence.md': {
       id: 'huuybcbn',
@@ -437,6 +625,10 @@ export default {
       react: {
         id: '5nrvua89',
         metaTitle: 'IndexesSequence - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: 'v2o7x5ij',
+        metaTitle: 'IndexesSequence - Angular Data Grid | Handsontable',
       },
     },
     'LinkedPhysicalIndexToValueMap.md': {
@@ -447,6 +639,10 @@ export default {
         id: 'h10c2au0',
         metaTitle: 'LinkedPhysicalIndexToValueMap - React Data Grid | Handsontable',
       },
+      angular: {
+        id: 'w1p8y6kl',
+        metaTitle: 'LinkedPhysicalIndexToValueMap - Angular Data Grid | Handsontable',
+      },
     },
     'Menu.md': {
       id: '6a7q8pb9',
@@ -455,6 +651,10 @@ export default {
       react: {
         id: '2eifxhv3',
         metaTitle: 'Menu - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: 'x0q9z7mn',
+        metaTitle: 'Menu - Angular Data Grid | Handsontable',
       },
     },
     'PhysicalIndexToValueMap.md': {
@@ -465,6 +665,10 @@ export default {
         id: '8f31lcaa',
         metaTitle: 'PhysicalIndexToValueMap - React Data Grid | Handsontable',
       },
+      angular: {
+        id: 'y9r0a8op',
+        metaTitle: 'PhysicalIndexToValueMap - Angular Data Grid | Handsontable',
+      },
     },
     'SamplesGenerator.md': {
       id: 'n9lf8vn4',
@@ -473,6 +677,10 @@ export default {
       react: {
         id: 'gh3nicnu',
         metaTitle: 'SamplesGenerator - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: 'z8s1b9qr',
+        metaTitle: 'SamplesGenerator - Angular Data Grid | Handsontable',
       },
     },
     'ShortcutContext.md': {
@@ -483,6 +691,10 @@ export default {
         id: 'qhf0cz5d',
         metaTitle: 'ShortcutContext - React Data Grid | Handsontable',
       },
+      angular: {
+        id: 'a7t2c0st',
+        metaTitle: 'ShortcutContext - Angular Data Grid | Handsontable',
+      },
     },
     'TrimmingMap.md': {
       id: '8wnfx6b9',
@@ -492,6 +704,10 @@ export default {
         id: 'l3n89gff',
         metaTitle: 'TrimmingMap - React Data Grid | Handsontable',
       },
+      angular: {
+        id: 'b6u3d1uv',
+        metaTitle: 'TrimmingMap - Angular Data Grid | Handsontable',
+      },
     },
     'EventManager.md': {
       id: '3k9p5r7t',
@@ -500,6 +716,10 @@ export default {
       react: {
         id: '5j7d9k2r',
         metaTitle: 'EventManager - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: 'c5v4e2wx',
+        metaTitle: 'EventManager - Angular Data Grid | Handsontable',
       },
     },
   }

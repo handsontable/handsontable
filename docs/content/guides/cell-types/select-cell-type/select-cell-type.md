@@ -8,6 +8,9 @@ canonicalUrl: /select-cell-type
 react:
   id: xmdreeu3
   metaTitle: Select cell type - React Data Grid | Handsontable
+angular:
+  id: dtzqxytv
+  metaTitle: Select cell type - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
 ---
@@ -43,6 +46,17 @@ The select editor should be considered an example of how to write editors rather
 
 @[code](@/content/guides/cell-types/select-cell-type/react/example1.jsx)
 @[code](@/content/guides/cell-types/select-cell-type/react/example1.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-types/select-cell-type/angular/example1.ts)
+@[code](@/content/guides/cell-types/select-cell-type/angular/example1.html)
 
 :::
 

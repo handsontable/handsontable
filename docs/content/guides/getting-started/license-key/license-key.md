@@ -8,6 +8,9 @@ canonicalUrl: /license-key
 react:
   id: vyfski60
   metaTitle: License key - React Data Grid | Handsontable
+angular:
+  id: bcvwr25r
+  metaTitle: License key - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
 ---
@@ -80,6 +83,24 @@ To use it with a framework, pass the string to a [`licenseKey`](@/api/options.md
 
 :::
 
+::: only-for angular
+
+```ts
+import { GridSettings } from "@handsontable/angular-wrapper";
+
+gridSettings: GridSettings = {
+  licenseKey = "00000-00000-00000-00000-00000",
+};
+```
+
+```html
+<hot-table [settings]="gridSettings" />
+```
+
+or you can configure it in global object provided by [`HOT_GLOBAL_CONFIG`](@/guides/getting-started/installation/installation.md#configure-global-settings)
+
+:::
+
 ## Non-Commercial license
 
 If you use Handsontable for purposes not intended toward monetary compensation such as, but not limited to, teaching, academic research, evaluation, testing and experimentation, pass the string  `'non-commercial-and-evaluation'`.
@@ -104,6 +125,26 @@ const settings = {
   licenseKey="non-commercial-and-evaluation" />
 ```
 
+:::
+
+::: only-for angular
+
+```ts
+import {
+  GridSettings,
+  NON_COMMERCIAL_LICENSE,
+} from "@handsontable/angular-wrapper";
+
+gridSettings: GridSettings = {
+  licenseKey = NON_COMMERCIAL_LICENSE, // the value for this const is 'non-commercial-and-evaluation'
+};
+```
+
+```html
+<hot-table [settings]="gridSettings" />
+```
+
+or you can configure it in global object provided by [`HOT_GLOBAL_CONFIG`](@/guides/getting-started/installation/installation.md#configure-global-settings)
 :::
 
 ## The validation process

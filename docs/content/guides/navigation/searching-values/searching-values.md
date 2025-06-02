@@ -12,6 +12,9 @@ tags:
 react:
   id: 48lhnrbd
   metaTitle: Searching values - React Data Grid | Handsontable
+angular:
+  id: q7wwbzzr
+  metaTitle: Searching values - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Navigation
 ---
@@ -31,6 +34,18 @@ Search data across Handsontable, using the built-in API methods of the [`Search`
 To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
 
 For more information, see the [Instance methods](@/guides/getting-started/react-methods/react-methods.md) page.
+
+:::
+
+:::
+
+::: only-for angular
+
+::: tip
+
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+
+For more information, see the [Instance access](@/guides/getting-started/angular-hot-instance/angular-hot-instance.md) page.
 
 :::
 
@@ -94,6 +109,7 @@ const DEFAULT_CALLBACK = function(instance, row, col, data, testResult) {
 ## Simplest use case
 
 The example below:
+
 - Enables the [`Search`](@/api/search.md) plugin (by setting the [`search`](@/api/options.md#search) configuration option to `true`)
 - Adds a search input listener
 - Inside the search input listener, gets the [`Search`](@/api/search.md) plugin's instance
@@ -122,11 +138,23 @@ The example below:
 
 :::
 
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/guides/navigation/searching-values/angular/example1.ts)
+@[code](@/content/guides/navigation/searching-values/angular/example1.html)
+
+:::
+
+:::
+
 ## Custom search result class
 
 You can style your search results with a custom CSS class, using the [`Search`](@/api/search.md) plugin's [`searchResultClass`](@/api/options.md#search) option.
 
 The example below highlights its search results in bold red. To do this, it:
+
 - Defines a custom CSS class called `my-custom-search-result-class`
 - Enables the [`Search`](@/api/search.md) plugin (by setting the [`search`](@/api/options.md#search) configuration option to an object)
 - Sets the [`Search`](@/api/search.md) plugin's [`searchResultClass`](@/api/options.md#search) option to `'my-custom-search-result-class'`
@@ -156,11 +184,23 @@ The example below highlights its search results in bold red. To do this, it:
 
 :::
 
+::: only-for angular
+
+::: example #example2 :angular --ts 1 --html 2
+
+@[code](@/content/guides/navigation/searching-values/angular/example2.ts)
+@[code](@/content/guides/navigation/searching-values/angular/example2.html)
+
+:::
+
+:::
+
 ## Custom query method
 
 You can add a custom query method, using the [`Search`](@/api/search.md) plugin's [`queryMethod`](@/api/search.md#query).
 
 The example below searches only for exact search query matches. To do this, it:
+
 - Defines a custom query method called `onlyExactMatch`
 - Enables the [`Search`](@/api/search.md) plugin (by setting the [`search`](@/api/options.md#search) configuration option to an object)
 - Sets the [`Search`](@/api/search.md) plugin's [`queryMethod`](@/api/options.md#search) option to `onlyExactMatch`
@@ -188,11 +228,23 @@ The example below searches only for exact search query matches. To do this, it:
 
 :::
 
+::: only-for angular
+
+::: example #example3 :angular --ts 1 --html 2
+
+@[code](@/content/guides/navigation/searching-values/angular/example3.ts)
+@[code](@/content/guides/navigation/searching-values/angular/example3.html)
+
+:::
+
+:::
+
 ## Custom callback
 
 You can add a custom callback function, using the [`Search`](@/api/search.md) plugin's [`callback`](@/api/search.md) option.
 
 The example below displays the number of matching search results. To do this, it:
+
 - Defines a custom callback function called `searchResultCounter`
 - Enables the [`Search`](@/api/search.md) plugin (by setting the [`search`](@/api/options.md#search) configuration option to an object)
 - Sets the [`Search`](@/api/search.md) plugin's [`callback`](@/api/search.md) option to `searchResultCounter`
@@ -215,6 +267,17 @@ The example below displays the number of matching search results. To do this, it
 
 @[code](@/content/guides/navigation/searching-values/react/example4.jsx)
 @[code](@/content/guides/navigation/searching-values/react/example4.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example4 :angular --ts 1 --html 2
+
+@[code](@/content/guides/navigation/searching-values/angular/example4.ts)
+@[code](@/content/guides/navigation/searching-values/angular/example4.html)
 
 :::
 
