@@ -174,5 +174,31 @@ describe('Core_getDataAt*', () => {
       expect(getDataAtCell(1, 2)).toBe('foo');
       expect(getSourceDataAtCell(1, 2)).toBe('foo');
     });
+
+    it('should be fired with visual indexes for both row and column', async() => {
+      const spy = jasmine.createSpy();
+
+      handsontable({
+        data: [[1, 2], [3, 4]],
+        autoColumnSize: false,
+        modifyData: spy,
+      });
+
+      columnIndexMapper().setIndexesSequence([1, 0]);
+      rowIndexMapper().setIndexesSequence([1, 0]);
+
+      expect(getDataAtCell(0, 0)).toBe(4);
+      expect(getDataAtCell(0, 1)).toBe(3);
+      expect(getDataAtCell(1, 0)).toBe(2);
+      expect(getDataAtCell(1, 1)).toBe(1);
+
+      spy.calls.reset();
+      await setDataAtCell(0, 0, 'foo');
+
+      expect(spy.calls.count()).toBe(5);
+      expect(spy.calls.argsFor(0)[0]).toBe(0);
+      expect(spy.calls.argsFor(0)[1]).toBe(0);
+      expect(spy.calls.argsFor(0)[2].value).toBe('foo');
+    });
   });
 });
