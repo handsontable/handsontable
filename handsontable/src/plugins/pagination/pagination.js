@@ -109,10 +109,23 @@ export class Pagination extends BasePlugin {
         a11yAnnouncer: message => announce(message),
       });
 
-      this.#ui
-        .setPageSizeSectionVisibility(this.getSetting('showPageSize'))
-        .setCounterSectionVisibility(this.getSetting('showCounter'))
-        .setNavigationSectionVisibility(this.getSetting('showNavigation'));
+      if (this.getSetting('showPageSize')) {
+        this.showPageSizeSection();
+      } else {
+        this.hidePageSizeSection();
+      }
+
+      if (this.getSetting('showCounter')) {
+        this.showPageCounterSection();
+      } else {
+        this.hidePageCounterSection();
+      }
+
+      if (this.getSetting('showNavigation')) {
+        this.showPageNavigationSection();
+      } else {
+        this.hidePageNavigationSection();
+      }
 
       this.#ui
         .addLocalHook('firstPageClick', () => this.firstPage())
@@ -128,6 +141,7 @@ export class Pagination extends BasePlugin {
     this.addHook('beforeSelectionHighlightSet', (...args) => this.#onBeforeSelectionHighlightSet(...args));
     this.addHook('afterRender', (...args) => this.#onAfterRender(...args));
     this.addHook('afterScrollVertically', (...args) => this.#onAfterScrollVertically(...args));
+    this.addHook('afterLanguageChange', (...args) => this.#onAfterLanguageChange(...args));
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onIndexCacheUpdate);
 
     super.enablePlugin();
@@ -513,6 +527,13 @@ export class Pagination extends BasePlugin {
    */
   #onAfterScrollVertically() {
     this.#ui.refreshBorderState();
+  }
+
+  /**
+   * Called after the language change. It recomputes the pagination state which updates the UI.
+   */
+  #onAfterLanguageChange() {
+    this.#computeAndApply();
   }
 
   /**

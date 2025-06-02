@@ -10,7 +10,26 @@ describe('Pagination `afterPageNavigationVisibilityChange` hook', () => {
     }
   });
 
-  it('should be fired after showing the component', async() => {
+  it('should be fired after showing the component using `updateSettings`', async() => {
+    const afterPageNavigationVisibilityChange = jasmine.createSpy('afterPageNavigationVisibilityChange');
+
+    handsontable({
+      data: createSpreadsheetData(45, 10),
+      pagination: true,
+      afterPageNavigationVisibilityChange,
+    });
+
+    await updateSettings({
+      pagination: {
+        showNavigation: true,
+      },
+    });
+
+    expect(afterPageNavigationVisibilityChange).toHaveBeenCalledTimes(1);
+    expect(afterPageNavigationVisibilityChange).toHaveBeenCalledWith(true);
+  });
+
+  it('should be fired after showing the component using the plugins method', async() => {
     const afterPageNavigationVisibilityChange = jasmine.createSpy('afterPageNavigationVisibilityChange');
 
     handsontable({
@@ -27,7 +46,26 @@ describe('Pagination `afterPageNavigationVisibilityChange` hook', () => {
     expect(afterPageNavigationVisibilityChange).toHaveBeenCalledWith(true);
   });
 
-  it('should be fired after hiding the component', async() => {
+  it('should be fired after hiding the component using `updateSettings`', async() => {
+    const afterPageNavigationVisibilityChange = jasmine.createSpy('afterPageNavigationVisibilityChange');
+
+    handsontable({
+      data: createSpreadsheetData(45, 10),
+      pagination: true,
+      afterPageNavigationVisibilityChange,
+    });
+
+    await updateSettings({
+      pagination: {
+        showNavigation: false,
+      },
+    });
+
+    expect(afterPageNavigationVisibilityChange).toHaveBeenCalledTimes(1);
+    expect(afterPageNavigationVisibilityChange).toHaveBeenCalledWith(false);
+  });
+
+  it('should be fired after hiding the component using the plugins method', async() => {
     const afterPageNavigationVisibilityChange = jasmine.createSpy('afterPageNavigationVisibilityChange');
 
     handsontable({

@@ -13,7 +13,7 @@
       color: var(--ht-pagination-bar-foreground-color);
       background: var(--ht-pagination-bar-background-color);
       border: 1px solid var(--ht-wrapper-border-color);
-      border-top: none;
+      border-top-color: transparent;
       border-radius: 0 0 var(--ht-wrapper-border-radius) var(--ht-wrapper-border-radius);
       padding-inline: var(--ht-pagination-bar-horizontal-padding);
       padding-block: var(--ht-pagination-bar-vertical-padding);
@@ -22,7 +22,7 @@
       box-sizing: border-box;
 
       &--bordered {
-        border-top: 1px solid var(--ht-wrapper-border-color);
+        border-top-color: var(--ht-wrapper-border-color);
       }
     }
 

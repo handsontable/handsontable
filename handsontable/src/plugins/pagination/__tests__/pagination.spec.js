@@ -162,7 +162,7 @@ describe('Pagination', () => {
     expect(countVisibleRows()).toBe(1);
   });
 
-  it('should translate UI text when different language pack is used', async() => {
+  it('should translate UI text when different language pack is used on init', async() => {
     handsontable({
       data: createSpreadsheetData(10, 10),
       language: 'pl-pl',
@@ -176,5 +176,42 @@ describe('Pagination', () => {
       '1 - 3 z 10',
       '|< < Strona 1 z 4 [>] [>|]',
     ]);
+
+    const container = getPaginationContainerElement();
+
+    expect(container.querySelector('[name="pageSize"]').getAttribute('aria-label')).toBe('Liczba wierszy');
+    expect(container.querySelector('.ht-page-navigation-section').getAttribute('aria-label')).toBe('Paginacja');
+    expect(container.querySelector('.ht-page-first').getAttribute('aria-label')).toBe('Przejdź do pierwszej strony');
+    expect(container.querySelector('.ht-page-prev').getAttribute('aria-label')).toBe('Przejdź do poprzedniej strony');
+    expect(container.querySelector('.ht-page-next').getAttribute('aria-label')).toBe('Przejdź do następnej strony');
+    expect(container.querySelector('.ht-page-last').getAttribute('aria-label')).toBe('Przejdź do ostatniej strony');
+  });
+
+  it('should translate UI text when different language pack is used using `updateSettings`', async() => {
+    handsontable({
+      data: createSpreadsheetData(10, 10),
+      pagination: {
+        pageSize: 3,
+      },
+    });
+
+    await updateSettings({
+      language: 'pl-pl',
+    });
+
+    expect(visualizePageSections()).toEqual([
+      'Liczba wierszy: [5, 10, 20, 50, 100]',
+      '1 - 3 z 10',
+      '|< < Strona 1 z 4 [>] [>|]',
+    ]);
+
+    const container = getPaginationContainerElement();
+
+    expect(container.querySelector('[name="pageSize"]').getAttribute('aria-label')).toBe('Liczba wierszy');
+    expect(container.querySelector('.ht-page-navigation-section').getAttribute('aria-label')).toBe('Paginacja');
+    expect(container.querySelector('.ht-page-first').getAttribute('aria-label')).toBe('Przejdź do pierwszej strony');
+    expect(container.querySelector('.ht-page-prev').getAttribute('aria-label')).toBe('Przejdź do poprzedniej strony');
+    expect(container.querySelector('.ht-page-next').getAttribute('aria-label')).toBe('Przejdź do następnej strony');
+    expect(container.querySelector('.ht-page-last').getAttribute('aria-label')).toBe('Przejdź do ostatniej strony');
   });
 });

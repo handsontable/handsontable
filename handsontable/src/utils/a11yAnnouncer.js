@@ -61,6 +61,7 @@ export function announce(message) {
     return;
   }
 
+  // The value needs to be cleared first to ensure that screen readers announce the new message.
   announcerElement.textContent = '';
 
   setTimeout(() => {

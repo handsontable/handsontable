@@ -10,88 +10,102 @@ describe('Pagination UI', () => {
     }
   });
 
-  // it('should correctly calculate the width of the pagination container (table has defined size)', async() => {
-  //   handsontable({
-  //     data: createSpreadsheetData(15, 20),
-  //     width: 300,
-  //     height: 300,
-  //     pagination: true,
-  //   });
+  function isTopBorderVisible() {
+    const {
+      borderTopColor,
+    } = getComputedStyle(getPaginationContainerElement());
 
-  //   expect(getPaginationContainerElement().offsetWidth).toBe(300);
-  // });
+    if (!borderTopColor.startsWith('rgba')) {
+      return true;
+    }
 
-  // it('should correctly calculate the width of the pagination container (table has not defined size)', async() => {
-  //   handsontable({
-  //     data: createSpreadsheetData(15, 10),
-  //     pagination: true,
-  //   });
+    return borderTopColor.slice(borderTopColor.lastIndexOf(',') + 1, -1) > 0;
+  }
 
-  //   expect(getPaginationContainerElement().offsetWidth).toBe(500);
-  // });
+  it('should correctly calculate the width of the pagination container (table has defined size)', async() => {
+    handsontable({
+      data: createSpreadsheetData(15, 20),
+      width: 300,
+      height: 300,
+      pagination: true,
+    });
 
-  // it('should draw border-top of the pagination container when the workspace height is bigger than tables content height', async() => {
-  //   handsontable({
-  //     data: createSpreadsheetData(15, 10),
-  //     width: 600,
-  //     height: 400,
-  //     pagination: true,
-  //   });
+    expect(getPaginationContainerElement().offsetWidth).toBe(300);
+  });
 
-  //   expect(getComputedStyle(getPaginationContainerElement()).borderTopWidth).toBe('1px');
-  // });
+  it('should correctly calculate the width of the pagination container (table has not defined size)', async() => {
+    handsontable({
+      data: createSpreadsheetData(15, 10),
+      pagination: {
+        pageSize: 9,
+      },
+    });
 
-  // it('should not draw border-top of the pagination container when the workspace height is the same as tables content height', async() => {
-  //   handsontable({
-  //     data: createSpreadsheetData(15, 10),
-  //     width: 600,
-  //     height: (getDefaultRowHeight() * 10) + 1,
-  //     pagination: true,
-  //   });
+    expect(getPaginationContainerElement().offsetWidth).toBe(500);
+  });
 
-  //   expect(getComputedStyle(getPaginationContainerElement()).borderTopWidth).toBe('0px');
-  // });
+  it('should draw border-top of the pagination container when the workspace height is bigger than tables content height', async() => {
+    handsontable({
+      data: createSpreadsheetData(15, 10),
+      width: 600,
+      height: 400,
+      pagination: true,
+    });
 
-  // it('should draw border-top of the pagination container when the workspace height is smaller than tables content height', async() => {
-  //   handsontable({
-  //     data: createSpreadsheetData(15, 10),
-  //     width: 600,
-  //     height: 250,
-  //     pagination: true,
-  //   });
+    expect(isTopBorderVisible()).toBe(true);
+  });
 
-  //   expect(getComputedStyle(getPaginationContainerElement()).borderTopWidth).toBe('1px');
-  // });
+  it('should not draw border-top of the pagination container when the workspace height is the same as tables content height', async() => {
+    handsontable({
+      data: createSpreadsheetData(15, 10),
+      width: 600,
+      height: (getDefaultRowHeight() * 10) + 1,
+      pagination: true,
+    });
 
-  // it('should not draw border-top of the pagination container when the last row is fully visible (the viewport is scroll to most-bottom position)', async() => {
-  //   handsontable({
-  //     data: createSpreadsheetData(15, 10),
-  //     width: 600,
-  //     height: getDefaultRowHeight() * 5,
-  //     pagination: true,
-  //   });
+    expect(isTopBorderVisible()).toBe(false);
+  });
 
-  //   expect(getComputedStyle(getPaginationContainerElement()).borderTopWidth).toBe('1px');
+  it('should draw border-top of the pagination container when the workspace height is smaller than tables content height', async() => {
+    handsontable({
+      data: createSpreadsheetData(15, 10),
+      width: 600,
+      height: 250,
+      pagination: true,
+    });
 
-  //   await scrollViewportTo({ row: 8 });
+    expect(isTopBorderVisible()).toBe(true);
+  });
 
-  //   expect(getComputedStyle(getPaginationContainerElement()).borderTopWidth).toBe('1px');
+  it('should not draw border-top of the pagination container when the last row is fully visible (the viewport is scroll to most-bottom position)', async() => {
+    handsontable({
+      data: createSpreadsheetData(15, 10),
+      width: 600,
+      height: getDefaultRowHeight() * 5,
+      pagination: true,
+    });
 
-  //   await scrollViewportTo({ row: 9 });
+    expect(isTopBorderVisible()).toBe(true);
 
-  //   expect(getComputedStyle(getPaginationContainerElement()).borderTopWidth).toBe('0px');
-  // });
+    await scrollViewportTo({ row: 8 });
 
-  // it('should not draw border-top of the pagination container in any case when table has not defined size', async() => {
-  //   handsontable({
-  //     data: createSpreadsheetData(11, 10),
-  //     pagination: true,
-  //   });
+    expect(isTopBorderVisible()).toBe(true);
 
-  //   expect(getComputedStyle(getPaginationContainerElement()).borderTopWidth).toBe('0px');
+    await scrollViewportTo({ row: 9 });
 
-  //   getPlugin('pagination').nextPage();
+    expect(isTopBorderVisible()).toBe(false);
+  });
 
-  //   expect(getComputedStyle(getPaginationContainerElement()).borderTopWidth).toBe('0px');
-  // });
+  it('should not draw border-top of the pagination container in any case when table has not defined size', async() => {
+    handsontable({
+      data: createSpreadsheetData(11, 10),
+      pagination: true,
+    });
+
+    expect(isTopBorderVisible()).toBe(false);
+
+    getPlugin('pagination').nextPage();
+
+    expect(isTopBorderVisible()).toBe(false);
+  });
 });

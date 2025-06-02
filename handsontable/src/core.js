@@ -2586,10 +2586,6 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       throw new Error('Since 8.0.0 the "ganttChart" setting is no longer supported.');
     }
 
-    if (settings.language) {
-      setLanguage(settings.language);
-    }
-
     // eslint-disable-next-line no-restricted-syntax
     for (i in settings) {
       if (i === 'data' || i === 'language') {
@@ -2632,6 +2628,10 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
       // The `column` property has changed - dataset may be expanded or narrowed down. The `loadData` do the same.
       instance.initIndexMappers();
+    }
+
+    if (settings.language) {
+      setLanguage(settings.language);
     }
 
     const clen = instance.countCols();

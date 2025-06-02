@@ -10,7 +10,26 @@ describe('Pagination `afterPageCounterVisibilityChange` hook', () => {
     }
   });
 
-  it('should be fired after showing the component', async() => {
+  it('should be fired after showing the component using `updateSettings`', async() => {
+    const afterPageCounterVisibilityChange = jasmine.createSpy('afterPageCounterVisibilityChange');
+
+    handsontable({
+      data: createSpreadsheetData(45, 10),
+      pagination: true,
+      afterPageCounterVisibilityChange,
+    });
+
+    await updateSettings({
+      pagination: {
+        showCounter: true,
+      },
+    });
+
+    expect(afterPageCounterVisibilityChange).toHaveBeenCalledTimes(1);
+    expect(afterPageCounterVisibilityChange).toHaveBeenCalledWith(true);
+  });
+
+  it('should be fired after showing the component using the plugins method', async() => {
     const afterPageCounterVisibilityChange = jasmine.createSpy('afterPageCounterVisibilityChange');
 
     handsontable({
@@ -27,7 +46,26 @@ describe('Pagination `afterPageCounterVisibilityChange` hook', () => {
     expect(afterPageCounterVisibilityChange).toHaveBeenCalledWith(true);
   });
 
-  it('should be fired after hiding the component', async() => {
+  it('should be fired after hiding the component using `updateSettings`', async() => {
+    const afterPageCounterVisibilityChange = jasmine.createSpy('afterPageCounterVisibilityChange');
+
+    handsontable({
+      data: createSpreadsheetData(45, 10),
+      pagination: true,
+      afterPageCounterVisibilityChange,
+    });
+
+    await updateSettings({
+      pagination: {
+        showCounter: false,
+      },
+    });
+
+    expect(afterPageCounterVisibilityChange).toHaveBeenCalledTimes(1);
+    expect(afterPageCounterVisibilityChange).toHaveBeenCalledWith(false);
+  });
+
+  it('should be fired after hiding the component using the plugins method', async() => {
     const afterPageCounterVisibilityChange = jasmine.createSpy('afterPageCounterVisibilityChange');
 
     handsontable({

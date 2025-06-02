@@ -2078,7 +2078,7 @@ thead th.hiddenHeaderText .colHeader {
   color: #222;
   background: #f0f0f0;
   border: 1px solid #ccc;
-  border-top: none;
+  border-top-color: transparent;
   padding-inline: 8px;
   padding-block: 4px;
   font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Helvetica Neue, Arial, sans-serif;
@@ -2088,7 +2088,7 @@ thead th.hiddenHeaderText .colHeader {
 }
 
 .ht-root-wrapper .ht-pagination-container--bordered {
-  border-top: 1px solid #ccc;
+  border-top-color: #ccc;
 }
 
 .ht-root-wrapper .ht-page-size-section {
@@ -2131,7 +2131,7 @@ thead th.hiddenHeaderText .colHeader {
 
 .ht-root-wrapper .ht-page-size-section__select-wrapper select:focus {
   background-color: #e0e0e0;
-  outline: 1px solid #1a42e8;
+  outline: 1px solid #4b89ff;
 }
 
 .ht-root-wrapper .ht-page-counter-section {
@@ -2187,7 +2187,7 @@ thead th.hiddenHeaderText .colHeader {
 }
 
 .ht-root-wrapper .ht-page-navigation-section button:focus {
-  outline: 1px solid #1a42e8;
+  outline: 1px solid #4b89ff;
 }
 
 .ht-root-wrapper .ht-page-navigation-section span {
