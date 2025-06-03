@@ -127,6 +127,19 @@ describe('Pagination UI', () => {
     expect(isTopBorderVisible()).toBe(true);
   });
 
+  it('should draw border-top of the pagination container when there is horizontal scroll', async() => {
+    handsontable({
+      data: createSpreadsheetData(50, 50),
+      width: 300,
+      height: 200,
+      pagination: true,
+    });
+
+    await scrollViewportVertically(10000); // scroll to the most-bottom position
+
+    expect(isTopBorderVisible()).toBe(true);
+  });
+
   it('should not draw border-top of the pagination container when the workspace height is the same as tables content height', async() => {
     handsontable({
       data: createSpreadsheetData(15, 10),

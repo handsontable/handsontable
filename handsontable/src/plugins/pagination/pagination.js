@@ -427,7 +427,7 @@ export class Pagination extends BasePlugin {
   }
 
   /**
-   * Based on the external factors (like the scroll position of the table) it computes
+   * Based on the external factors (like the scroll position of the table, size etc.) it computes
    * the need for the top border of the pagination UI container.
    *
    * @returns {boolean} Returns `true` if the pagination UI should have a top border, `false` otherwise.
@@ -443,7 +443,7 @@ export class Pagination extends BasePlugin {
       return false;
     }
 
-    if (view.getTableHeight() < view.getWorkspaceHeight()) {
+    if (view.hasHorizontalScroll() || view.getTableHeight() < view.getWorkspaceHeight()) {
       return true;
     }
 
