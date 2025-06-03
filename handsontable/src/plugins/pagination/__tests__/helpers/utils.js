@@ -85,7 +85,11 @@ export function stringifyPageNavigationSection() {
  * @returns {string[]}
  */
 export function visualizePageSections() {
-  return Array.from(getPaginationContainerElement().children).reduce((acc, element) => {
+  const children = getPaginationContainerElement()
+    .querySelector('.ht-pagination-container__inner')
+    .children;
+
+  return Array.from(children).reduce((acc, element) => {
     if (element.classList.contains('ht-page-size-section')) {
       acc.push(stringifyPageSizeSection());
 

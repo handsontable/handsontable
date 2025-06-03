@@ -238,8 +238,8 @@ export class Pagination extends BasePlugin {
     this.#computeAndApply();
 
     this.hot.runHooks('afterPageChange', oldPage, this.#currentPage);
-    this.hot.render();
     this.hot.view.adjustElementsSize();
+    this.hot.render();
   }
 
   /**
@@ -262,8 +262,8 @@ export class Pagination extends BasePlugin {
     this.#computeAndApply();
 
     this.hot.runHooks('afterPageSizeChange', oldPageSize, this.#pageSize);
-    this.hot.render();
     this.hot.view.adjustElementsSize();
+    this.hot.render();
   }
 
   /**
@@ -509,7 +509,9 @@ export class Pagination extends BasePlugin {
    * the pagination container to the same size as the table.
    */
   #onAfterRender() {
-    const width = Math.min(this.hot.view.getTableWidth(), this.hot.view.getWorkspaceWidth());
+    const { view } = this.hot;
+    const width = view.isHorizontallyScrollableByWindow()
+      ? view.getTotalTableWidth() : view.getWorkspaceWidth();
 
     this.#ui
       .updateWidth(width)

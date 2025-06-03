@@ -841,8 +841,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
         grid.adjustRowsAndCols(); // makes sure that we did not add rows that will be removed in next refresh
       }
 
-      instance.view.render();
       instance.view.adjustElementsSize();
+      instance.view.render();
     },
 
     /**
@@ -1248,8 +1248,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       observeVisibilityChangeOnce(instance.rootElement, () => {
         // Update the spreader size cache before rendering.
         instance.view._wt.wtOverlays.updateLastSpreaderSize();
-        instance.render();
         instance.view.adjustElementsSize();
+        instance.render();
       });
     }
 
@@ -1436,9 +1436,9 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       grid.adjustRowsAndCols();
       instance.runHooks('beforeChangeRender', changes, source);
       editorManager.closeEditor();
+      instance.view.adjustElementsSize();
       instance.render();
       editorManager.prepareEditor();
-      instance.view.adjustElementsSize();
       instance.runHooks('afterChange', changes, source || 'edit');
 
       const activeEditor = instance.getActiveEditor();
@@ -2305,8 +2305,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
     if (isSizeChanged || view._wt.wtOverlays.scrollableElement === instance.rootWindow) {
       view.setLastSize(width, height);
-      instance.render();
       view.adjustElementsSize();
+      instance.render();
     }
 
     instance.runHooks(
