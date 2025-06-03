@@ -44,6 +44,78 @@ describe('Pagination UI', () => {
     expect(getPaginationContainerElement().offsetWidth).toBe(500);
   });
 
+  it('should hide the pagination container element when all sections are hidden', async() => {
+    handsontable({
+      data: createSpreadsheetData(11, 10),
+      pagination: true,
+    });
+
+    expect(getPaginationContainerElement()).toBeVisible();
+
+    await updateSettings({
+      pagination: {
+        showPageSize: false,
+      }
+    });
+
+    expect(getPaginationContainerElement()).toBeVisible();
+
+    await updateSettings({
+      pagination: {
+        showPageSize: false,
+        showCounter: false,
+      }
+    });
+
+    expect(getPaginationContainerElement()).toBeVisible();
+
+    await updateSettings({
+      pagination: {
+        showPageSize: false,
+        showCounter: false,
+        showNavigation: false,
+      }
+    });
+
+    expect(getPaginationContainerElement()).not.toBeVisible();
+
+    await updateSettings({
+      pagination: {
+        showPageSize: false,
+        showCounter: true,
+        showNavigation: false,
+      }
+    });
+
+    expect(getPaginationContainerElement()).toBeVisible();
+  });
+
+  it('should add `htPagination` CSS class to the root table element when pagination container is visible', async() => {
+    handsontable({
+      data: createSpreadsheetData(11, 10),
+      pagination: {
+        showPageSize: true,
+        showCounter: false,
+        showNavigation: true,
+      },
+    });
+
+    expect(hot().rootElement).toHaveClass('htPagination');
+  });
+
+  it('should remove `htPagination` CSS class from the root table element when pagination container is not visible', async() => {
+    handsontable({
+      data: createSpreadsheetData(11, 10),
+      pagination: {
+        showPageSize: false,
+        showCounter: false,
+        showNavigation: false,
+      },
+    });
+
+    expect(hot().rootElement).not.toHaveClass('htPagination');
+  });
+
   it('should draw border-top of the pagination container when the workspace height is bigger than tables content height', async() => {
     handsontable({
       data: createSpreadsheetData(15, 10),

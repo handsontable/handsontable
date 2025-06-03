@@ -45,6 +45,10 @@ export class PaginationUI {
    */
   #rootElement;
   /**
+   * @type {boolean} Indicates if the UI is in RTL mode.
+   */
+  #isRtl = false;
+  /**
    * @type {object} The references to the UI elements.
    */
   #refs;
@@ -61,8 +65,9 @@ export class PaginationUI {
    */
   #a11yAnnouncer;
 
-  constructor({ rootElement, phraseTranslator, shouldHaveBorder, a11yAnnouncer }) {
+  constructor({ rootElement, isRtl, phraseTranslator, shouldHaveBorder, a11yAnnouncer }) {
     this.#rootElement = rootElement;
+    this.#isRtl = isRtl;
     this.#phraseTranslator = phraseTranslator;
     this.#shouldHaveBorder = shouldHaveBorder;
     this.#a11yAnnouncer = a11yAnnouncer;
@@ -80,6 +85,7 @@ export class PaginationUI {
 
     const elements = html`${TEMPLATE}`;
     const {
+      container,
       first,
       prev,
       next,
@@ -88,6 +94,8 @@ export class PaginationUI {
     } = elements.refs;
 
     this.#refs = elements.refs;
+
+    container.setAttribute('dir', this.#isRtl ? 'rtl' : 'ltr');
 
     first.addEventListener('click', () => this.runLocalHooks('firstPageClick'));
     prev.addEventListener('click', () => this.runLocalHooks('prevPageClick'));

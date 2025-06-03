@@ -101,6 +101,7 @@ export class Pagination extends BasePlugin {
     if (!this.#ui) {
       this.#ui = new PaginationUI({
         rootElement: this.hot.rootElement,
+        isRtl: this.hot.isRtl(),
         phraseTranslator: (...args) => this.hot.getTranslatedPhrase(...args),
         shouldHaveBorder: () => this.#computeNeedsBorder(),
         a11yAnnouncer: message => announce(message),
