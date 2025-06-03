@@ -5,24 +5,30 @@
 @mixin output {
   .ht-root-wrapper {
     .ht-pagination-container {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: calc(var(--ht-gap-size) * 4);
       color: var(--ht-pagination-bar-foreground-color);
       background: var(--ht-pagination-bar-background-color);
       border: 1px solid var(--ht-wrapper-border-color);
       border-top-color: transparent;
       border-radius: 0 0 var(--ht-wrapper-border-radius) var(--ht-wrapper-border-radius);
-      padding-inline: var(--ht-pagination-bar-horizontal-padding);
-      padding-block: var(--ht-pagination-bar-vertical-padding);
       font-size: var(--ht-font-size);
       line-height: var(--ht-line-height);
       box-sizing: border-box;
+      overflow-x: auto;
 
       &--bordered {
         border-top-color: var(--ht-wrapper-border-color);
+      }
+
+      &__inner {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: calc(var(--ht-gap-size) * 4);
+        border-radius: 0 0 var(--ht-wrapper-border-radius) var(--ht-wrapper-border-radius);
+        padding-inline: var(--ht-pagination-bar-horizontal-padding);
+        padding-block: var(--ht-pagination-bar-vertical-padding);
+        min-width: 230px;
       }
     }
 

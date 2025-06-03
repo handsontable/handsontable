@@ -12,6 +12,7 @@ import { A11Y_DISABLED, A11Y_LABEL } from '../../helpers/a11y';
 
 const TEMPLATE = `
 <div data-ref="container" class="ht-pagination-container">
+  <div class="ht-pagination-container__inner">
   <div data-ref="pageSizeSection" class="ht-page-size-section" style="display: none">
     <span data-ref="pageSizeLabel"></span>
     <div class="ht-page-size-section__select-wrapper">
@@ -24,8 +25,9 @@ const TEMPLATE = `
     <button data-ref="prev" class="ht-page-prev"></button>
     <span data-ref="pageNavLabel"></span>
     <button data-ref="next" class="ht-page-next"></button>
-    <button data-ref="last" class="ht-page-last"></button>
-  </nav>
+      <button data-ref="last" class="ht-page-last"></button>
+    </nav>
+  </div>
 </div>
 `;
 
