@@ -2070,21 +2070,26 @@ thead th.hiddenHeaderText .colHeader {
 }
 
 .ht-root-wrapper .ht-pagination-container {
+  color: #222;
+  background: #f0f0f0;
+  border: 1px solid #ccc;
+  border-top-color: transparent;
+  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Helvetica Neue, Arial, sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  box-sizing: border-box;
+  overflow-x: auto;
+}
+
+.ht-root-wrapper .ht-pagination-container__inner {
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
-  color: #222;
-  background: #f0f0f0;
-  border: 1px solid #ccc;
-  border-top-color: transparent;
   padding-inline: 8px;
   padding-block: 4px;
-  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Helvetica Neue, Arial, sans-serif;
-  font-size: 12px;
-  font-weight: 400;
-  box-sizing: border-box;
+  min-width: 230px;
 }
 
 .ht-root-wrapper .ht-pagination-container--bordered {
@@ -2180,16 +2185,32 @@ thead th.hiddenHeaderText .colHeader {
   content: "\21A4";
 }
 
+[dir=rtl].ht-root-wrapper .ht-page-navigation-section .ht-page-first::before {
+  content: "\21A6";
+}
+
 .ht-root-wrapper .ht-page-navigation-section .ht-page-prev::before {
   content: "\21A2";
+}
+
+[dir=rtl].ht-root-wrapper .ht-page-navigation-section .ht-page-prev::before {
+  content: "\21A3";
 }
 
 .ht-root-wrapper .ht-page-navigation-section .ht-page-next::before {
   content: "\21A3";
 }
 
+[dir=rtl].ht-root-wrapper .ht-page-navigation-section .ht-page-next::before {
+  content: "\21A2";
+}
+
 .ht-root-wrapper .ht-page-navigation-section .ht-page-last::before {
   content: "\21A6";
+}
+
+[dir=rtl].ht-root-wrapper .ht-page-navigation-section .ht-page-last::before {
+  content: "\21A4";
 }
 
 .ht-root-wrapper .ht-page-navigation-section span {
