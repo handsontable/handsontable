@@ -150,4 +150,4 @@ describe('modifyData hook', () => {
     expect(spy.calls.argsFor(0)[1]).toBe(0);
     expect(spy.calls.argsFor(0)[2].value).toBe('foo');
   });
-}); 
+});
