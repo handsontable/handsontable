@@ -56,8 +56,8 @@ const DataGrid = () => {
       <HotColumn data={4} type="date" allowInvalid={false} />
       <HotColumn data={6} type="checkbox" className="htCenter" headerClassName="htCenter" />
       <HotColumn data={7} type="numeric" headerClassName="htRight" />
-      <HotColumn data={8} readOnly={true} className="htMiddle" renderer={ProgressBarRenderer}/>
-      <HotColumn data={9} readOnly={true} className="htCenter" headerClassName="htCenter" renderer={StarsRenderer} />
+      <HotColumn data={8} editor={false} className="htMiddle" renderer={ProgressBarRenderer}/>
+      <HotColumn data={9} editor={false} className="htCenter" headerClassName="htCenter" renderer={StarsRenderer} />
       <HotColumn data={5} />
       <HotColumn data={2} />
     </HotTable>
