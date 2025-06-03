@@ -9,7 +9,7 @@ export default async(req: Request, context: Context) => {
   const version = `${context.params['0']}.${context.params['1']}`;
   const isFrameworkVersion = (major === 12 && minor >= 1) || major >= 13;
 
-  if (major < 12) {
+  if (major < 12 || (major === 12 && minor < 1)) {
     // Get the page content
     const response = await context.next();
     const page = await response.text();
