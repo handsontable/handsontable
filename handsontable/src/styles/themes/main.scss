@@ -249,7 +249,7 @@
   --ht-cell-editor-shadow-color: #476af7;
   --ht-cell-success-background-color: rgba(66, 190, 101, 0.30);
   --ht-cell-error-background-color: rgba(255, 42, 52, 0.30);
-  --ht-cell-read-only-background-color: rgba(199, 199, 199, 0.04);
+  --ht-cell-read-only-background-color: rgba(199, 199, 199, 0.12);
   --ht-cell-selection-border-color: #476af7;
   --ht-cell-selection-background-color: #2e56fc;
   --ht-cell-autofill-border-color: #050506;
@@ -258,7 +258,7 @@
   --ht-cell-mobile-handle-border-color: #476af7;
   --ht-cell-mobile-handle-background-color: rgba(71, 106, 247, 0.40);
   --ht-resize-indicator-color: rgba(199, 199, 199, 0.40);
-  --ht-move-backlight-color: rgba(199, 199, 199, 0.08);
+  --ht-move-backlight-color: rgba(199, 199, 199, 0.16);
   --ht-move-indicator-color: #476af7;
   --ht-hidden-indicator-color: rgba(199, 199, 199, 0.40);
   --ht-scrollbar-track-color: #1e1e1f;
@@ -401,8 +401,8 @@
   --ht-input-focus-background-color: #050506;
   --ht-menu-border-color: #313132;
   --ht-menu-shadow-color: rgba(0, 0, 0, 0.80);
-  --ht-menu-item-hover-color: rgba(199, 199, 199, 0.04);
-  --ht-menu-item-active-color: rgba(199, 199, 199, 0.08);
+  --ht-menu-item-hover-color: rgba(199, 199, 199, 0.12);
+  --ht-menu-item-active-color: rgba(199, 199, 199, 0.16);
 }
 
 .ht-theme-main,
