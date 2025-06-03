@@ -244,6 +244,7 @@ export class PaginationUI {
    */
   setPageSizeSectionVisibility(isVisible) {
     this.#refs.pageSizeSection.style.display = isVisible ? '' : 'none';
+    this.#updateContainerVisibility();
 
     return this;
   }
@@ -256,6 +257,7 @@ export class PaginationUI {
    */
   setCounterSectionVisibility(isVisible) {
     this.#refs.pageCounterSection.style.display = isVisible ? '' : 'none';
+    this.#updateContainerVisibility();
 
     return this;
   }
@@ -268,12 +270,40 @@ export class PaginationUI {
    */
   setNavigationSectionVisibility(isVisible) {
     this.#refs.pageNavSection.style.display = isVisible ? '' : 'none';
+    this.#updateContainerVisibility();
 
     return this;
   }
 
   /**
-   * Removes the pagination UI elements from the DOM.
+   * Updates the visibility of the pagination container based on the visibility of its sections.
+   */
+  #updateContainerVisibility() {
+    const {
+      container,
+      pageSizeSection,
+      pageCounterSection,
+      pageNavSection,
+    } = this.#refs;
+
+    const isSectionVisible = (
+      pageSizeSection.style.display !== 'none' ||
+      pageCounterSection.style.display !== 'none' ||
+      pageNavSection.style.display !== 'none'
+    );
+
+    // adds or removes the corner around the Handsontable root element
+    if (isSectionVisible) {
+      addClass(this.#rootElement, 'htPagination');
+    } else {
+      removeClass(this.#rootElement, 'htPagination');
+    }
+
+    container.style.display = isSectionVisible ? '' : 'none';
+  }
+
+  /**
+   * Removes the pagination UI elements from the DOM and clears the refs.
    */
   destroy() {
     this.#refs?.container.remove();

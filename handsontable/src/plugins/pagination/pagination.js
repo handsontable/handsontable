@@ -1,6 +1,5 @@
 import { BasePlugin } from '../base';
 import { clamp } from '../../helpers/number';
-import { addClass, removeClass } from '../../helpers/dom/element';
 import { PaginationUI } from './ui';
 import { checkPluginSettingsConflict } from './utils';
 import { announce } from '../../utils/a11yAnnouncer';
@@ -95,8 +94,6 @@ export class Pagination extends BasePlugin {
       return;
     }
 
-    addClass(this.hot.rootElement, 'htPagination');
-
     this.#pageSize = this.getSetting('pageSize');
     this.#currentPage = this.getSetting('initialPage');
     this.#pagedRowsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap(this.pluginName, 'hiding', false);
@@ -168,8 +165,6 @@ export class Pagination extends BasePlugin {
 
     this.#ui.destroy();
     this.#ui = null;
-
-    removeClass(this.hot.rootElement, 'htPagination');
 
     super.disablePlugin();
   }

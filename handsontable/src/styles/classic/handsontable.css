@@ -2116,6 +2116,7 @@ thead th.hiddenHeaderText .colHeader {
   color: #222;
   background-color: #f0f0f0;
   border: none;
+  -webkit-appearance: none;
   font-size: inherit;
   cursor: pointer;
 }
@@ -2147,6 +2148,7 @@ thead th.hiddenHeaderText .colHeader {
 .ht-root-wrapper .ht-page-navigation-section button {
   font-size: inherit;
   color: #222;
+  background-color: transparent;
   border: none;
   padding: 4px;
   border-radius: 2px;
@@ -2159,6 +2161,19 @@ thead th.hiddenHeaderText .colHeader {
   height: 16px;
   line-height: 16px;
   text-align: center;
+}
+
+.ht-root-wrapper .ht-page-navigation-section button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.ht-root-wrapper .ht-page-navigation-section button:hover:not(:disabled) {
+  background-color: #e0e0e0;
+}
+
+.ht-root-wrapper .ht-page-navigation-section button:focus {
+  outline: 1px solid #4b89ff;
 }
 
 .ht-root-wrapper .ht-page-navigation-section .ht-page-first::before {
@@ -2175,19 +2190,6 @@ thead th.hiddenHeaderText .colHeader {
 
 .ht-root-wrapper .ht-page-navigation-section .ht-page-last::before {
   content: "\21A6";
-}
-
-.ht-root-wrapper .ht-page-navigation-section button:disabled {
-  opacity: 0.4;
-  cursor: default;
-}
-
-.ht-root-wrapper .ht-page-navigation-section button:hover:not(:disabled) {
-  background-color: #e0e0e0;
-}
-
-.ht-root-wrapper .ht-page-navigation-section button:focus {
-  outline: 1px solid #4b89ff;
 }
 
 .ht-root-wrapper .ht-page-navigation-section span {

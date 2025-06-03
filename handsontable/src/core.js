@@ -237,6 +237,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     layoutDirection : this.rootWindow.getComputedStyle(this.rootElement).direction;
 
   this.rootElement.setAttribute('dir', rootElementDirection);
+  this.rootWrapperElement?.setAttribute('dir', rootElementDirection);
 
   /**
    * Checks if the grid is rendered using the right-to-left layout direction.
