@@ -12,6 +12,8 @@ const branchName = branchNameProcess(
 const client = new NetlifyAPI(process.env.NETLIFY_AUTH_TOKEN);
 const sites = await client.listSites();
 
+console.log(sites);
+
 let site = sites.find(_site => _site.name === branchName);
 
 if (site) {
