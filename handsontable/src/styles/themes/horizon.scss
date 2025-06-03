@@ -14,7 +14,7 @@
   --ht-foreground-color: #353535;
   --ht-background-color: #ffffff;
   --ht-placeholder-color: #aeaeae;
-  --ht-read-only-color: #aeaeae;
+  --ht-read-only-color: #727272;
   --ht-disabled-color: #aeaeae;
   --ht-cell-horizontal-border-color: rgba(255, 255, 255, 0);
   --ht-cell-vertical-border-color: #e7e7e9;
@@ -22,9 +22,9 @@
   --ht-wrapper-border-radius: 12px;
   --ht-wrapper-border-color: #e7e7e9;
   --ht-row-header-odd-background-color: rgba(255, 255, 255, 0);
-  --ht-row-header-even-background-color: rgba(35, 35, 38, 0.06);
+  --ht-row-header-even-background-color: rgba(35, 35, 38, 0.04);
   --ht-row-cell-odd-background-color: rgba(255, 255, 255, 0);
-  --ht-row-cell-even-background-color: rgba(35, 35, 38, 0.06);
+  --ht-row-cell-even-background-color: rgba(35, 35, 38, 0.04);
   --ht-cell-horizontal-padding: 12px;
   --ht-cell-vertical-padding: 8px;
   --ht-cell-editor-border-width: 2px;
@@ -35,9 +35,10 @@
   --ht-cell-editor-shadow-color: #37bc6c;
   --ht-cell-success-background-color: rgba(55, 188, 108, 0.30);
   --ht-cell-error-background-color: rgba(250, 77, 50, 0.30);
+  --ht-cell-read-only-background-color: rgba(35, 35, 38, 0.04);
   --ht-cell-selection-border-color: #37bc6c;
   --ht-cell-selection-background-color: #37bc6c;
-  --ht-cell-autofill-size: 6px;
+  --ht-cell-autofill-size: 8px;
   --ht-cell-autofill-border-width: 1px;
   --ht-cell-autofill-border-radius: 4px;
   --ht-cell-autofill-border-color: #ffffff;
@@ -223,7 +224,7 @@
   --ht-menu-shadow-y: 8px;
   --ht-menu-shadow-blur: 16px;
   --ht-menu-shadow-color: rgba(35, 35, 38, 0.06);
-  --ht-menu-item-hover-color: rgba(55, 188, 108, 0.06);
+  --ht-menu-item-hover-color: rgba(55, 188, 108, 0.08);
   --ht-menu-item-active-color: rgba(55, 188, 108, 0.12);
 }
 
@@ -233,7 +234,7 @@
   --ht-foreground-color: #b5b5b9;
   --ht-background-color: #070604;
   --ht-placeholder-color: #727272;
-  --ht-read-only-color: #727272;
+  --ht-read-only-color: #aeaeae;
   --ht-disabled-color: #727272;
   --ht-cell-horizontal-border-color: rgba(0, 0, 0, 0);
   --ht-cell-vertical-border-color: #222222;
@@ -248,6 +249,7 @@
   --ht-cell-editor-shadow-color: #f1b93e;
   --ht-cell-success-background-color: rgba(68, 200, 121, 0.30);
   --ht-cell-error-background-color: rgba(251, 98, 75, 0.30);
+  --ht-cell-read-only-background-color: rgba(209, 209, 212, 0.04);
   --ht-cell-selection-border-color: #f1b93e;
   --ht-cell-selection-background-color: #f1b93e;
   --ht-cell-autofill-border-color: #070604;
@@ -287,7 +289,7 @@
   --ht-checkbox-disabled-icon-color: rgba(0, 0, 0, 0);
   --ht-checkbox-checked-border-color: #d7a52a;
   --ht-checkbox-checked-background-color: #f1b93e;
-  --ht-checkbox-checked-icon-color: #0f0f10;
+  --ht-checkbox-checked-icon-color: #050506;
   --ht-checkbox-checked-focus-border-color: #070604;
   --ht-checkbox-checked-focus-background-color: #f1b93e;
   --ht-checkbox-checked-focus-icon-color: #070604;
@@ -399,7 +401,7 @@
   --ht-input-focus-background-color: #070604;
   --ht-menu-border-color: #222222;
   --ht-menu-shadow-color: rgba(0, 0, 0, 0.80);
-  --ht-menu-item-hover-color: rgba(241, 185, 62, 0.06);
+  --ht-menu-item-hover-color: rgba(241, 185, 62, 0.08);
   --ht-menu-item-active-color: rgba(241, 185, 62, 0.12);
 }
 
