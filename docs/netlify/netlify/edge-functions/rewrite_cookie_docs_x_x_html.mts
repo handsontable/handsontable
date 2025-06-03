@@ -224,7 +224,7 @@ const redirectsMapfor12up = {
 export default async(req: Request, context: Context) => {
 
   const major = parseInt(context.params['0'], 10);
-  const minor = parseInt(context.params['2'], 10);
+  const minor = parseInt(context.params['1'], 10);
   const isFrameworkVersion = (major === 12 && minor >= 1) || major >= 13;
   let framework = getFrameworkFromCookie(context.cookies.get('docs_fw'));
   const version = `${context.params[0]}.${context.params[1]}`;
