@@ -1,7 +1,7 @@
 import { NetlifyAPI } from 'netlify';
 
 const branchNameProcess = (branchName, prefix = '') => {
-  return branchName ? prefix + branchName.replaceAll('_', '-').replaceAll('/', '-') : '';
+  return branchName ? prefix + branchName.replaceAll('_', '-').replaceAll('/', '-').replaceAll('.', '-') : '';
 };
 
 const branchName = branchNameProcess(

@@ -3,7 +3,7 @@ import { NetlifyAPI } from 'netlify';
 import { writeFileSync } from 'node:fs';
 
 const branchNameProcess = (branchName, prefix = '') => {
-  return branchName ? prefix + branchName.replaceAll('_', '-').replaceAll('/', '-') : '';
+  return branchName ? prefix + branchName.replaceAll('_', '-').replaceAll('/', '-').replaceAll('.', '-') : '';
 };
 
 const branchName = branchNameProcess(
