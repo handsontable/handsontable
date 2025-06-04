@@ -152,8 +152,8 @@ import {
 @Component({
   standalone: true,
   imports: [HotTableModule],
-  template: ` <div class="ht-theme-main">
-    <hot-table [data]="data" [settings]="gridSettings" />
+  template: ` <div>
+    <hot-table themeName="ht-theme-main" [data]="data" [settings]="gridSettings" />
   </div>`,
 })
 export class HotTableWrapperComponent {

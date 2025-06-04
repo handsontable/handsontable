@@ -252,8 +252,8 @@ registerCellType(NumericCellType);
 @Component({
   standalone: true,
   imports: [HotTableModule],
-  template: ` <div class="ht-theme-main">
-    <hot-table [settings]="gridSettings" />
+  template: ` <div>
+    <hot-table themeName="ht-theme-main" [settings]="gridSettings" />
   </div>`,
 })
 export class ExampleComponent {
@@ -367,8 +367,8 @@ registerValidator(numericValidator);
 @Component({
   standalone: true,
   imports: [HotTableModule],
-  template: ` <div class="ht-theme-main">
-    <hot-table [settings]="gridSettings" />
+  template: ` <div>
+    <hot-table themeName="ht-theme-main" [settings]="gridSettings" />
   </div>`,
 })
 export class ExampleComponent {
