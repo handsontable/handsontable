@@ -1152,7 +1152,8 @@ describe('UndoRedo', () => {
           data: [
             ['foo'],
             ['bar']
-          ]});
+          ]
+        });
 
         const copyEvent = getClipboardEvent();
         const copyPastePlugin = getPlugin('CopyPaste');
@@ -1182,7 +1183,8 @@ describe('UndoRedo', () => {
           data: [
             [42],
             [43]
-          ]});
+          ]
+        });
 
         const copyEvent = getClipboardEvent();
         const copyPastePlugin = getPlugin('CopyPaste');
@@ -2039,7 +2041,8 @@ describe('UndoRedo', () => {
           data: [
             { name: 'foo' },
             { name: 'bar' },
-          ]});
+          ]
+        });
 
         const copyEvent = getClipboardEvent();
         const copyPastePlugin = getPlugin('CopyPaste');
@@ -2069,7 +2072,8 @@ describe('UndoRedo', () => {
           data: [
             { value: 42 },
             { value: 43 },
-          ]});
+          ]
+        });
 
         const copyEvent = getClipboardEvent();
         const copyPastePlugin = getPlugin('CopyPaste');
