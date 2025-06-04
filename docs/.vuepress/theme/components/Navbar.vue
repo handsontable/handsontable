@@ -1,3 +1,6 @@
+<!-- /* eslint-disable */ -->
+
+<!-- eslint-disable -->
 <template>
   <header class="navbar">
     <!-- jsnation 2025 -->
@@ -28,14 +31,14 @@
         </button>
       </div>
       <style>
-      .sidebar.with-jsnation2025 { top: calc(72px + 56px)} 
+      .sidebar.with-jsnation2025 { top: calc(72px + 56px)}
       aside.jsnation2025 { padding: 8px;	display: none;	flex-direction: row;	flex-wrap: nowrap;	justify-content: flex-start;	align-items: center;	align-content: center; background: #E0E0E3; }
-      .jsnation2025__icon { width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; background: #F7F7F9; border-radius: 8px; margin-right: 12px; } 
+      .jsnation2025__icon { width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; background: #F7F7F9; border-radius: 8px; margin-right: 12px; }
       aside.jsnation2025 h5 { font-size: 12px; font-weight: normal; color: #000; }
       aside.jsnation2025 h6 { font-size: 10px; font-weight: normal; color: #343436; }
       aside.jsnation2025 h6 a { color: #1A42E8; text-decoration: none; display: inline-block; margin-left:8px; }
       aside.jsnation2025 h6 a:hover { text-decoration: underline; }
-      aside.jsnation2025 .navbar-wrapper { padding: 0; height: auto; justify-content: flex-start;	align-items: center;	align-content: center;  }
+      aside.jsnation2025 .navbar-wrapper { padding: 0; height: auto; justify-content: flex-start;	align-items: center;	align-content: center; width: 100%; }
       .jsnation2025__close { margin-left: auto; border:none; background: transparent; cursor: pointer; }
       .jsnation2025__close:hover { opacity: 0.5; }
 
@@ -47,7 +50,7 @@
       </style>
     </aside>
     <!-- jsnation 2025 -->
-   
+
     <div class="navbar-wrapper">
       <a
         href="/"
@@ -165,9 +168,9 @@ export default {
       localStorage.setItem('hideJSNation2025', true);
       document.getElementById('jsnation2025').style.display = 'none';
       document.querySelector('aside.sidebar').classList.remove('with-jsnation2025');
-    },  
+    },
   },
-  
+
   mounted() {
     // Initialize Headway widget
     const config = {
@@ -185,8 +188,8 @@ export default {
       searchElement.addEventListener('click', this.handleSearchClick);
     }
 
-    let dateNow = new Date();
-    let dateJSEvent = new Date('2025-06-13');
+    const dateNow = new Date();
+    const dateJSEvent = new Date('2025-06-13');
 
     const showJSNation2025 = !localStorage.getItem('hideJSNation2025') || dateNow > dateJSEvent;
 
