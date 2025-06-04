@@ -100,13 +100,13 @@ export function init() {
       {
         data: 8,
         renderer: progressBarRenderer,
-        readOnly: true,
+        editor: false,
         className: "htMiddle"
       },
       {
         data: 9,
         renderer: starRenderer,
-        readOnly: true,
+        editor: false,
         className: "star htCenter",
         headerClassName: "htCenter"
       },
