@@ -3,7 +3,7 @@ import { NetlifyAPI } from 'netlify';
 import { writeFileSync } from 'node:fs';
 
 const branchNameProcess = (branchName, prefix = '') => {
-  return branchName ? prefix + branchName.replaceAll('_', '-').replaceAll('/', '-') : '';
+  return branchName ? prefix + branchName.replaceAll('_', '-').replaceAll('/', '-').replaceAll('.', '-') : '';
 };
 
 const branchName = branchNameProcess(
@@ -23,6 +23,7 @@ if (site) {
   console.log(`Creating site: ${branchName}`);
   site = await client.createSite({
     body: {
+      account_slug: process.env.NETLIFY_ACCOUNT_SLUG,
       name: branchName,
     },
   });

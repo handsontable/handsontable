@@ -9,6 +9,9 @@ pageClass: migration-guide
 react:
   id: ivkac4xa
   metaTitle: Migrate from 7.4 to 8.0 - React Data Grid | Handsontable
+angular:
+  id: wo49dhyu
+  metaTitle: Migrate from 7.4 to 8.0 - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
 ---

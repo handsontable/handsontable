@@ -8,6 +8,9 @@ canonicalUrl: /cell-type
 react:
   id: m60w87tn
   metaTitle: Cell type - React Data Grid | Handsontable
+angular:
+  id: aho23taw
+  metaTitle: Cell type - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
 ---
@@ -23,6 +26,7 @@ Use Handsontable's built-in cell types such as autocomplete, date, time, and mor
 There are three functions associated with every table cell: [`renderer`](@/api/options.md#renderer), [`editor`](@/api/options.md#editor), and optionally [`validator`](@/api/options.md#validator). These functions are mostly used all together as they are strongly connected.
 
 Example scenario - To store a date in a cell, you would:
+
 - Use a [`renderer`](@/api/options.md#renderer) to display the date using appropriate formatting `dd/mm/yyyy`, `yyyy-mm-dd`, etc.
 - Use an [`editor`](@/api/options.md#editor) that displays a calendar instead of the default text input, allowing the user to easily pick the right date.
 - Use a [`validator`](@/api/options.md#validator) to check if the value entered by a user is valid.
@@ -32,7 +36,6 @@ Cell type is represented by a string i.e. `"text"`, `"numeric"`, `"date"`. Each 
 - `Handsontable.renderers.NumericRenderer`
 - `Handsontable.editors.TextEditor`
 - `Handsontable.validators.NumericValidator`
-
 
 When Handsontable encounters a cell with the [`type`](@/api/options.md#type) option defined, it checks which cell functions this type refers to and uses them. For example, when setting the column type to `'password'`:
 
@@ -52,6 +55,20 @@ columns: [{
 columns={[{
   type: 'password'
 }]}
+```
+
+:::
+
+::: only-for angular
+
+```ts
+settings = {
+  columns: [
+    {
+      type: "password",
+    },
+  ],
+};
 ```
 
 :::
@@ -81,6 +98,20 @@ columns={[{
 ```
 
 :::
+
+::: only-for angular
+
+```ts
+settings = {
+  columns: [
+    {
+      editor: Handsontable.editors.PasswordEditor
+      renderer: Handsontable.renderers.PasswordRenderer,
+      copyable: false,
+    },
+  ],
+};
+```
 
 ## Available cell types
 
@@ -134,18 +165,34 @@ columns={[{
 
 :::
 
+::: only-for angular
+
+```ts
+settings = {
+  columns: [
+    {
+      type: "custom",
+    },
+  ],
+};
+```
+
+:::
+
 Is an equivalent to defining them all:
 
 ::: only-for javascript
 
 ```js
-columns: [{
-  editor: false,
-  renderer: Handsontable.renderers.TextRenderer,
-  className: 'my-cell',
-  readOnly: true,
-  myCustomProperty: 'foo'
-}]
+columns: [
+  {
+    editor: false,
+    renderer: Handsontable.renderers.TextRenderer,
+    className: "my-cell",
+    readOnly: true,
+    myCustomProperty: "foo",
+  },
+];
 ```
 
 :::
@@ -160,6 +207,24 @@ columns={[{
   readOnly: true,
   myCustomProperty: 'foo',
 }]}
+```
+
+:::
+
+::: only-for angular
+
+```ts
+settings = {
+  columns: [
+    {
+      editor: false,
+      renderer: Handsontable.renderers.TextRenderer,
+      className: "my-cell",
+      readOnly: true,
+      myCustomProperty: "foo",
+    },
+  ],
+};
 ```
 
 :::
@@ -204,6 +269,7 @@ Handsontable.cellTypes.registerCellType('copyable-password', {
   renderer: copyablePasswordRenderer,
 });
 ```
+
 Someone might already registered such alias. It would be better use a unique prefix:
 
 ```js
@@ -262,10 +328,28 @@ const hot = new Handsontable(container, {
 
 ```jsx
 <HotTable
-  columns={[{
+  ccolumns={[{
     type: 'my.custom'
   }]}
 />
+```
+
+:::
+
+::: only-for angular
+
+```ts
+settings = {
+  columns: [
+    {
+      type: "my.custom",
+    },
+  ],
+};
+```
+
+```html
+<hot-table [settings]="settings" />
 ```
 
 :::
@@ -302,6 +386,26 @@ const hot = new Handsontable(container, {
 
 :::
 
+::: only-for angular
+
+```ts
+settings = {
+  columns: [
+    {
+      type: "numeric",
+      // validator function defined elsewhere
+      validator: customValidator,
+    },
+  ],
+};
+```
+
+```html
+<hot-table [settings]="settings" />
+```
+
+:::
+
 We defined the[`type`](@/api/options.md#type) for all cells in a column to be `numeric`. We also defined a validator function directly. In Handsontable, cell functions that are defined directly always take precedence over functions associated with cell type, so the above configuration is equivalent to:
 
 ::: only-for javascript
@@ -332,6 +436,26 @@ const hot = new Handsontable(container, {
 
 :::
 
+::: only-for angular
+
+```ts
+settings = {
+  columns: [
+    {
+      renderer: Handsontable.renderers.TextRenderer,
+      editor: Handsontable.editors.TextEditor,
+      validator: customValidator,
+    },
+  ],
+};
+```
+
+```html
+<hot-table [settings]="settings" />
+```
+
+:::
+
 There is one more way you can define the configuration using types:
 
 ::: only-for javascript
@@ -357,6 +481,27 @@ const hot = new Handsontable(container, {
     type: 'my.custom'
   }]}
 />
+```
+
+:::
+
+::: only-for angular
+
+```ts
+settings = {
+  validator: customValidator,
+  columns: [
+    {
+      renderer: Handsontable.renderers.TextRenderer,
+      editor: Handsontable.editors.TextEditor,
+      validator: customValidator,
+    },
+  ],
+};
+```
+
+```html
+<hot-table [settings]="settings" />
 ```
 
 :::
@@ -414,8 +559,33 @@ function customValidator(query, callback) {
     editor: Handsontable.editors.TextEditor,
     validator: customValidator
   },
-  ]}
-/>
+/>;
+```
+
+:::
+
+::: only-for angular
+
+```ts
+function customValidator(query, callback) {
+  // ...validator logic
+  callback(/* Pass `true` or `false` */);
+}
+
+settings = {
+  validator: customValidator,
+  columns: [
+    {
+      renderer: Handsontable.renderers.TextRenderer,
+      editor: Handsontable.editors.TextEditor,
+      validator: customValidator,
+    },
+  ],
+};
+```
+
+```html
+<hot-table [settings]="settings" />
 ```
 
 :::
@@ -446,6 +616,16 @@ The example below shows some of the built-in cell types, i.e. combinations of ce
 
 :::
 
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-types/cell-type/angular/example1.ts)
+@[code](@/content/guides/cell-types/cell-type/angular/example1.html)
+
+:::
+
+:::
 
 ## Empty cells
 
@@ -474,6 +654,17 @@ Please keep in mind that opening a cell with `undefined` and `null` values resul
 
 @[code](@/content/guides/cell-types/cell-type/react/example2.jsx)
 @[code](@/content/guides/cell-types/cell-type/react/example2.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example2 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-types/cell-type/angular/example2.ts)
+@[code](@/content/guides/cell-types/cell-type/angular/example2.html)
 
 :::
 

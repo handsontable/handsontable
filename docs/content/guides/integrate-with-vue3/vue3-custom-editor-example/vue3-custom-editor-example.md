@@ -8,6 +8,9 @@ canonicalUrl: /vue3-custom-editor-example
 react:
   id: vm94urge
   metaTitle: Custom cell editor - Vue 3 Data Grid | Handsontable
+angular:
+  id: nmw9ha36
+  metaTitle: Custom cell editor - Vue 3 Data Grid | Handsontable
 searchCategory: Guides
 category: Integrate with Vue 3
 ---

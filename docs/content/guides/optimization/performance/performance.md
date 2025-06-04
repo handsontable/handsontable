@@ -10,6 +10,9 @@ tags:
 react:
   id: gbdbrlc8
   metaTitle: Performance - React Data Grid | Handsontable
+angular:
+  id: 34wyxzpj
+  metaTitle: Performance - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Optimization
 ---
@@ -52,9 +55,25 @@ const hot = new Handsontable(obj, {
 
 :::
 
+::: only-for angular
+
+```ts
+settings = {
+  colWidths: [50, 150, 45],
+  rowHeights: [40, 40, 40, 40],
+};
+```
+
+```html
+<hot-table [settings]="settings"></hot-table>
+```
+
+:::
+
 When taking this approach, make sure that the contents of your cells fit in your row and column sizes, or let the user change [column widths](@/guides/columns/column-width/column-width.md#adjust-the-column-width-manually) and [row heights](@/guides/rows/row-height/row-height.md#adjust-row-heights-manually) manually.
 
 Read more:
+
 - [Grid size](@/guides/getting-started/grid-size/grid-size.md)
 - [Column widths](@/guides/columns/column-width/column-width.md)
 - [Row heights](@/guides/rows/row-height/row-height.md)
@@ -88,6 +107,18 @@ By default, Handsontable will call the render after each CRUD operation. Usually
 To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
 
 For more information, see the [Instance methods](@/guides/getting-started/react-methods/react-methods.md) page.
+
+:::
+
+:::
+
+::: only-for angular
+
+::: tip
+
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+
+For more information, see the [Instance access](@/guides/getting-started/angular-hot-instance/angular-hot-instance.md) page.
 
 :::
 

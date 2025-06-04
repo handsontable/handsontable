@@ -9,7 +9,8 @@
 
     // TextRenderer placeholder value
     .htDimmed {
-      color: var(--ht-read-only-color);
+      color: var(--ht-read-only-color) !important;
+      background-color: var(--ht-cell-read-only-background-color) !important;
     }
 
     // TextRenderer horizontal alignment
@@ -53,7 +54,7 @@
     }
 
     .htSearchResult {
-      background: var(--ht-cell-success-background-color) !important;
+      background-color: var(--ht-cell-success-background-color) !important;
     }
   }
 }

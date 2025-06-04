@@ -224,6 +224,8 @@ const redirectsMapfor12up = {
 export default async(req: Request, context: Context) => {
 
   const major = parseInt(context.params['0'], 10);
+  const minor = parseInt(context.params['1'], 10);
+  const isFrameworkVersion = (major === 12 && minor >= 1) || major >= 13;
   let framework = getFrameworkFromCookie(context.cookies.get('docs_fw'));
   const version = `${context.params[0]}.${context.params[1]}`;
   const page = context.params[2];
@@ -242,7 +244,7 @@ export default async(req: Request, context: Context) => {
     framework = 'javascript-data-grid';
   }
   const url = new URL(
-    major >= 12
+    isFrameworkVersion
       ? `/docs/${version}/${framework}/${redirectPath}`
       : `/docs/${version}/${redirectPath}`,
     req.url

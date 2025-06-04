@@ -8,6 +8,9 @@ canonicalUrl: /vue3-hot-reference
 react:
   id: h1s6hk2m
   metaTitle: Referencing Handsontable - Vue 3 Data Grid | Handsontable
+angular:
+  id: 7d76fp5u
+  metaTitle: Referencing Handsontable - Vue 3 Data Grid | Handsontable
 searchCategory: Guides
 category: Integrate with Vue 3
 ---

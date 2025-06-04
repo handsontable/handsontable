@@ -18,6 +18,9 @@ tags:
 react:
   id: d966se98
   metaTitle: Events and hooks - React Data Grid | Handsontable
+angular:
+  id: iifvbgu0
+  metaTitle: Events and hooks - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
 ---
@@ -56,6 +59,16 @@ hot.addHook('afterCreateRow', (row, amount) => {
 
 :::
 
+::: only-for angular
+
+```ts
+hotTable.hotInstance.addHook("afterCreateRow", (row, amount) => {
+  console.log(`${amount} row(s) were created, starting at index ${row}`);
+});
+```
+
+:::
+
 ## Middleware
 
 Middleware is a concept known in the JavaScript world from Node.js frameworks such as Express or Koa. Middleware is a callback that can pipe to a process and allow the developer to modify it. We're no longer just reacting to an emitted event, but we can influence what's happening inside the component and modify the process.
@@ -80,6 +93,26 @@ hot.addHook('modifyColWidth', (width, column) => {
     return 150;
   }
 })
+```
+
+:::
+
+::: only-for angular
+
+```ts
+import { GridSettings } from "@handsontable/angular-wrapper";
+
+gridSettings: GridSettings = {
+  modifyColWidth: (width, column) => {
+    if (column > 10) {
+      return 150;
+    }
+  },
+};
+```
+
+```html
+<hot-table [settings]="gridSettings" />
 ```
 
 :::
@@ -119,6 +152,26 @@ hot.addHook('beforeCreateRow', (row, amount) => {
 
 :::
 
+::: only-for angular
+
+```ts
+import { GridSettings } from "@handsontable/angular-wrapper";
+
+gridSettings: GridSettings = {
+  beforeCreateRow: (row, amount) => {
+    if (!hyperFormula.isItPossibleToAddRows(0, [row, amount])) {
+      return false;
+    }
+  },
+};
+```
+
+```html
+<hot-table [settings]="gridSettings" />
+```
+
+:::
+
 The first argument may be modified and passed on through the Handsontable hooks that are next in the queue. This characteristic is shared between `before` and `after` hooks but is more common with the former. Before something happens, we can run the data through a pipeline of hooks that may modify or reject the operation. This provides many possibilities to extend the default Handsontable functionality and customize it for your application.
 
 ::: only-for react
@@ -130,6 +183,17 @@ The first argument may be modified and passed on through the Handsontable hooks 
 @[code](@/content/guides/getting-started/events-and-hooks/react/example3.jsx)
 @[code](@/content/guides/getting-started/events-and-hooks/react/example3.tsx)
 @[code](@/content/guides/getting-started/events-and-hooks/react/example3.css)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example3 :angular --ts 1 --html 2
+
+@[code](@/content/guides/getting-started/events-and-hooks/angular/example3.ts)
+@[code](@/content/guides/getting-started/events-and-hooks/angular/example3.html)
 
 :::
 
@@ -178,7 +242,7 @@ It's worth mentioning that some Handsontable hooks are triggered from the Handso
 | [`UndoRedo.redo`](@/api/undoRedo.md)               | Action triggered by the UndoRedo plugin after the change has been redone.                                                                                                                                              |
 | [`UndoRedo.undo`](@/api/undoRedo.md)               | Action triggered by the UndoRedo plugin after the change has been undone.                                                                                                                                              |
 | [`ColumnSummary.set`](@/api/columnSummary.md)      | Action triggered by the ColumnSummary plugin after the calculation has been done.                                                                                                                                      |
-| [`ColumnSummary.reset`](@/api/columnSummary.md)    | Action triggered by the ColumnSummary plugin after the calculation has been reset.                                                                                                                                     |
+| [`ColumnSummary.reset`](@/api/columnSummary.md)    | Action triggered by the ColumnSummary plugin after the calculation has been reset.                                                                                                                                    |
 
 List of callbacks that operate on the `source` parameter:
 
@@ -225,6 +289,17 @@ The following demo uses [`beforeKeyDown`](@/api/hooks.md#beforekeydown) callback
 
 @[code](@/content/guides/getting-started/events-and-hooks/react/example2.jsx)
 @[code](@/content/guides/getting-started/events-and-hooks/react/example2.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example2 :angular --ts 1 --html 2
+
+@[code](@/content/guides/getting-started/events-and-hooks/angular/example2.ts)
+@[code](@/content/guides/getting-started/events-and-hooks/angular/example2.html)
 
 :::
 

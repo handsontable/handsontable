@@ -653,6 +653,29 @@ describe('Core.alter', () => {
         expect(getDataAtRow(0)).toEqual([null, 'E1', null, 'D1', 'C1', 'B1', 'A1', null]);
         expect(getSourceDataAtRow(0)).toEqual(['A1', 'B1', 'C1', null, 'D1', null, 'E1', null]);
       });
+
+      it('should insert column at proper position when column index sequence is shifted', async() => {
+        handsontable({
+          data: createSpreadsheetData(5, 5)
+        });
+
+        columnIndexMapper().setIndexesSequence([4, 0, 1, 2, 3]);
+
+        await alter('insert_col_start', 1, 1);
+
+        expect(getDataAtRow(0)).toEqual(['E1', null, 'A1', 'B1', 'C1', 'D1']);
+        expect(getSourceDataAtRow(0)).toEqual([null, 'A1', 'B1', 'C1', 'D1', 'E1']);
+
+        await alter('insert_col_start', 0, 1);
+
+        expect(getDataAtRow(0)).toEqual([null, 'E1', null, 'A1', 'B1', 'C1', 'D1']);
+        expect(getSourceDataAtRow(0)).toEqual([null, 'A1', 'B1', 'C1', 'D1', null, 'E1']);
+
+        await alter('insert_col_start', 7, 1);
+
+        expect(getDataAtRow(0)).toEqual([null, 'E1', null, 'A1', 'B1', 'C1', 'D1', null]);
+        expect(getSourceDataAtRow(0)).toEqual([null, 'A1', 'B1', 'C1', 'D1', null, 'E1', null]);
+      });
     });
   });
 });

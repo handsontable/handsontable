@@ -10,6 +10,9 @@ tags:
 react:
   id: 1e7f39og
   metaTitle: Supported browsers - React Data Grid | Handsontable
+angular:
+  id: a7fpjwud
+  metaTitle: Supported browsers - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Technical specification
 ---

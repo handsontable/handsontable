@@ -12,6 +12,7 @@ let docsSHA = null;
 const fullyProcessedFrameworks = [
   'javascript',
   'react',
+  'angular'
 ];
 
 const frameworkToPrettyName = new Map([
@@ -268,7 +269,7 @@ function getDocsBase() {
 function getDocsBaseFullUrl() {
 
   if (process.env.BUILD_MODE === 'preview') {
-    return '/docs/';
+    return `${process.env.NETLIFY_SITE_URL || ''}/docs/`;
   }
 
   return `${getDocsHostname()}${getDocsBase()}`;

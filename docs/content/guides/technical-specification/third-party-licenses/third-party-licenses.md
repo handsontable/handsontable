@@ -8,6 +8,9 @@ canonicalUrl: /third-party-licenses
 react:
   id: 5rt8dyg9
   metaTitle: Third-party licenses - React Data Grid | Handsontable
+angular:
+  id: kc0urkyj
+  metaTitle: Third-party licenses - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Technical specification
 ---

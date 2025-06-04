@@ -1,0 +1,11 @@
+{
+  "name": "examples-angular-wrapper",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "postinstall": "cd ../../.. && npm run link-packages -- --f angular-wrapper --examples-version next"
+  },
+  "workspaces": [
+    "@(!(node_modules))/"
+  ]
+}

@@ -76,6 +76,7 @@ jobs:
           cat NETLIFY_VARS >> $GITHUB_ENV
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
+          NETLIFY_ACCOUNT_SLUG: ${{ secrets.NETLIFY_ACCOUNT_SLUG }}
           BRANCH_NAME_PREFIX: dev-handsontable-
           BRANCH_NAME: ${{ steps.get-pr.outputs.source_branch || github.ref_name }}
 

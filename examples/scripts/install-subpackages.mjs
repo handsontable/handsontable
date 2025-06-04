@@ -49,9 +49,10 @@ for (const frameworkPackage of thisPackageJson.internal.framework_dirs) {
 
   // Link the main-level packages from the base ./node_modules to the local ./node_modules (to be read by the
   // examples).
+  
   await spawnProcess([
     'node ./scripts/link-packages.mjs',
-    '--f js ts angular angular-12 angular-13 angular-14 angular-15 angular-16 angular-17 react react-wrapper vue vue3',
+    '--f js ts angular angular-wrapper angular-12 angular-13 angular-14 angular-15 angular-16 angular-17 react react-wrapper vue vue3',
     `--examples-version ${version}`,
   ].join(' '));
 }
