@@ -55,10 +55,13 @@ const paginationData: {
 } = plugin.getPaginationData();
 const hasPreviousPage: boolean = plugin.hasPreviousPage();
 const hasNextPage: boolean = plugin.hasNextPage();
-const data: any[] = plugin.getCurrentPageData();
+const data: any[][] = plugin.getCurrentPageData();
 
 plugin.setPage(2);
+plugin.resetPage();
 plugin.setPageSize(20);
+plugin.resetPageSize();
+plugin.resetPagination();
 plugin.nextPage();
 plugin.prevPage();
 plugin.firstPage();

@@ -11,7 +11,7 @@ describe('Pagination `hidePageCounterSection` method', () => {
   });
 
   it('should be possible to hide the section', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(15, 10),
       pagination: {
         showCounter: true,
@@ -22,7 +22,7 @@ describe('Pagination `hidePageCounterSection` method', () => {
 
     plugin.hidePageCounterSection();
 
-    expect(hot.rootWrapperElement.querySelector('.ht-page-counter-section')).not.toBeVisible();
+    expect(getPaginationContainerElement().querySelector('.ht-page-counter-section')).not.toBeVisible();
   });
 
   it('should not affect the internal state or plugins settings', async() => {

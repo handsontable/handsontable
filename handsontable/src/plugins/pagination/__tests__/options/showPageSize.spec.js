@@ -22,14 +22,14 @@ describe('Pagination `showPageSize` option', () => {
   });
 
   it('should be possible to show the section and then hide', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(15, 10),
       pagination: {
         showPageSize: true,
       },
     });
 
-    expect(hot.rootWrapperElement.querySelector('.ht-page-size-section')).toBeVisible();
+    expect(getPaginationContainerElement().querySelector('.ht-page-size-section')).toBeVisible();
 
     await updateSettings({
       pagination: {
@@ -37,18 +37,18 @@ describe('Pagination `showPageSize` option', () => {
       },
     });
 
-    expect(hot.rootWrapperElement.querySelector('.ht-page-size-section')).not.toBeVisible();
+    expect(getPaginationContainerElement().querySelector('.ht-page-size-section')).not.toBeVisible();
   });
 
   it('should be possible to hide the section and then show', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(15, 10),
       pagination: {
         showPageSize: false,
       },
     });
 
-    expect(hot.rootWrapperElement.querySelector('.ht-page-size-section')).not.toBeVisible();
+    expect(getPaginationContainerElement().querySelector('.ht-page-size-section')).not.toBeVisible();
 
     await updateSettings({
       pagination: {
@@ -56,6 +56,6 @@ describe('Pagination `showPageSize` option', () => {
       },
     });
 
-    expect(hot.rootWrapperElement.querySelector('.ht-page-size-section')).toBeVisible();
+    expect(getPaginationContainerElement().querySelector('.ht-page-size-section')).toBeVisible();
   });
 });

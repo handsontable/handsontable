@@ -11,7 +11,7 @@ describe('Pagination `hidePageSizeSection` method', () => {
   });
 
   it('should be possible to hide the section', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(15, 10),
       pagination: {
         showPageSize: true,
@@ -22,7 +22,7 @@ describe('Pagination `hidePageSizeSection` method', () => {
 
     plugin.hidePageSizeSection();
 
-    expect(hot.rootWrapperElement.querySelector('.ht-page-size-section')).not.toBeVisible();
+    expect(getPaginationContainerElement().querySelector('.ht-page-size-section')).not.toBeVisible();
   });
 
   it('should not affect the internal state or plugins settings', async() => {

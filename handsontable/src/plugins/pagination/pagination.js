@@ -11,6 +11,60 @@ export const PLUGIN_PRIORITY = 900;
 /**
  * @plugin Pagination
  * @class Pagination
+ *
+ * @description
+ * The plugin adds full-featured pagination capabilities to a table component.
+ * It manages splitting rows into pages, rendering navigation controls, and exposing
+ * methods and configuration for initializing and updating pagination state.
+ *
+ * Core responsibilities:
+ *  - Calculate which rows should be visible based on current `page` and `pageSize`.
+ *  - Render a toolbar area containing:
+ *    – a page-size dropdown section (if `showPageSize` = true)
+ *    – a row counter section ("1 – 10 of 50", if `showCounter` = true)
+ *    – Page navigation sections (if `showNavigation` = true)
+ *  - Emit hooks when:
+ *     – the user navigates to a different page
+ *     – the user changes the number of rows per page
+ *     - the user changes the visibility of any sections
+ *  - Allow external code to programmatically:
+ *     – jump to a specific page
+ *     – change the page size
+ *     – change the visibility of UI sections
+ *
+ * @example
+ *
+ * ::: only-for javascript
+ * ```js
+ * const hot = new Handsontable(document.getElementById('example'), {
+ *   data: getData(),
+ *   pagination: {
+ *     pageSize: 10,
+ *     pageSizeList: [5, 10, 20, 50, 100],
+ *     initialPage: 1,
+ *     showPageSize: true,
+ *     showCounter: true,
+ *     showNavigation: true,
+ *  },
+ * });
+ * ```
+ * :::
+ *
+ * ::: only-for react
+ * ```jsx
+ * <HotTable
+ *   data={getData()}
+ *   pagination={{
+ *     pageSize: 10,
+ *     pageSizeList: [5, 10, 20, 50, 100],
+ *     initialPage: 1,
+ *     showPageSize: true,
+ *     showCounter: true,
+ *     showNavigation: true,
+ *   }}
+ * />
+ * ```
+ * :::
  */
 export class Pagination extends BasePlugin {
   static get PLUGIN_KEY() {
@@ -107,24 +161,7 @@ export class Pagination extends BasePlugin {
         a11yAnnouncer: message => announce(message),
       });
 
-      if (this.getSetting('showPageSize')) {
-        this.showPageSizeSection();
-      } else {
-        this.hidePageSizeSection();
-      }
-
-      if (this.getSetting('showCounter')) {
-        this.showPageCounterSection();
-      } else {
-        this.hidePageCounterSection();
-      }
-
-      if (this.getSetting('showNavigation')) {
-        this.showPageNavigationSection();
-      } else {
-        this.hidePageNavigationSection();
-      }
-
+      this.#updateSectionsVisibilityState();
       this.#ui
         .addLocalHook('firstPageClick', () => this.firstPage())
         .addLocalHook('prevPageClick', () => this.prevPage())
@@ -244,6 +281,13 @@ export class Pagination extends BasePlugin {
   }
 
   /**
+   * Resets the current page to the initial page (`initialValue`) defined in the settings.
+   */
+  resetPage() {
+    this.setPage(this.getSetting('initialPage'));
+  }
+
+  /**
    * Changes the page size for the pagination. The method recalculates the state based
    * on the new page size and re-renders the table.
    *
@@ -265,6 +309,22 @@ export class Pagination extends BasePlugin {
     this.hot.runHooks('afterPageSizeChange', oldPageSize, this.#pageSize);
     this.hot.view.adjustElementsSize();
     this.hot.render();
+  }
+
+  /**
+   * Resets the page size to the initial value (`pageSize`) defined in the settings.
+   */
+  resetPageSize() {
+    this.setPageSize(this.getSetting('pageSize'));
+  }
+
+  /**
+   * Resets the pagination state to the initial values defined in the settings.
+   */
+  resetPagination() {
+    this.resetPage();
+    this.resetPageSize();
+    this.#updateSectionsVisibilityState();
   }
 
   /**
@@ -386,6 +446,29 @@ export class Pagination extends BasePlugin {
   hidePageNavigationSection() {
     this.#ui.setNavigationSectionVisibility(false);
     this.hot.runHooks('afterPageNavigationVisibilityChange', false);
+  }
+
+  /**
+   * Updates the visibility state of the pagination sections based on the current settings.
+   */
+  #updateSectionsVisibilityState() {
+    if (this.getSetting('showPageSize')) {
+      this.showPageSizeSection();
+    } else {
+      this.hidePageSizeSection();
+    }
+
+    if (this.getSetting('showCounter')) {
+      this.showPageCounterSection();
+    } else {
+      this.hidePageCounterSection();
+    }
+
+    if (this.getSetting('showNavigation')) {
+      this.showPageNavigationSection();
+    } else {
+      this.hidePageNavigationSection();
+    }
   }
 
   /**

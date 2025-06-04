@@ -28,7 +28,10 @@ export class Pagination extends BasePlugin {
 
   getPaginationData(): PaginationData;
   setPage(pageNumber: number): void;
+  resetPage(): void;
   setPageSize(pageSize: number): void;
+  resetPageSize(): void;
+  resetPagination(): void;
   nextPage(): void;
   prevPage(): void;
   firstPage(): void;

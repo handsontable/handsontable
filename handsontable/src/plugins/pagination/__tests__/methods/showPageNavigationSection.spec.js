@@ -11,7 +11,7 @@ describe('Pagination `showPageNavigationSection` method', () => {
   });
 
   it('should be possible to show the section', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(15, 10),
       pagination: {
         showNavigation: false,
@@ -22,7 +22,7 @@ describe('Pagination `showPageNavigationSection` method', () => {
 
     plugin.showPageNavigationSection();
 
-    expect(hot.rootWrapperElement.querySelector('.ht-page-navigation-section')).toBeVisible();
+    expect(getPaginationContainerElement().querySelector('.ht-page-navigation-section')).toBeVisible();
   });
 
   it('should not affect the internal state or plugins settings', async() => {

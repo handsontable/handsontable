@@ -22,14 +22,14 @@ describe('Pagination `showCounter` option', () => {
   });
 
   it('should be possible to show the section and then hide', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(15, 10),
       pagination: {
         showCounter: true,
       },
     });
 
-    expect(hot.rootWrapperElement.querySelector('.ht-page-counter-section')).toBeVisible();
+    expect(getPaginationContainerElement().querySelector('.ht-page-counter-section')).toBeVisible();
 
     await updateSettings({
       pagination: {
@@ -37,18 +37,18 @@ describe('Pagination `showCounter` option', () => {
       },
     });
 
-    expect(hot.rootWrapperElement.querySelector('.ht-page-counter-section')).not.toBeVisible();
+    expect(getPaginationContainerElement().querySelector('.ht-page-counter-section')).not.toBeVisible();
   });
 
   it('should be possible to hide the section and then show', async() => {
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(15, 10),
       pagination: {
         showCounter: false,
       },
     });
 
-    expect(hot.rootWrapperElement.querySelector('.ht-page-counter-section')).not.toBeVisible();
+    expect(getPaginationContainerElement().querySelector('.ht-page-counter-section')).not.toBeVisible();
 
     await updateSettings({
       pagination: {
@@ -56,6 +56,6 @@ describe('Pagination `showCounter` option', () => {
       },
     });
 
-    expect(hot.rootWrapperElement.querySelector('.ht-page-counter-section')).toBeVisible();
+    expect(getPaginationContainerElement().querySelector('.ht-page-counter-section')).toBeVisible();
   });
 });
