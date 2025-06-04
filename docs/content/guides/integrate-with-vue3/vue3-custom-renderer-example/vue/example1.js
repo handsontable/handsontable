@@ -11,9 +11,7 @@ const ExampleComponent = defineComponent({
   data() {
     return {
       hotSettings: {
-        
         themeName: 'ht-theme-main',
-        // other options
         data:
           [
             ['A1', '{{$basePath}}/img/examples/professional-javascript-developers-nicholas-zakas.jpg'],

@@ -10,9 +10,7 @@ const ExampleComponent = {
   data() {
     return {
       hotSettings: {
-        
-        themeName: 'ht-theme-main',
-        // other options
+        themeName: 'ht-theme-main',   
         data: [
           ['A1', 'B1'],
           ['A2', 'B2'],

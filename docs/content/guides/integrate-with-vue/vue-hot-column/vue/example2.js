@@ -11,7 +11,6 @@ const ExampleComponent = {
     return {
       
       themeName: 'ht-theme-main',
-      // other options
       hotData: [
         { id: 1, name: 'Table tennis racket', payment: { price: 13, currency: 'PLN' } },
         { id: 2, name: 'Outdoor game ball', payment: { price: 14, currency: 'USD' } },
