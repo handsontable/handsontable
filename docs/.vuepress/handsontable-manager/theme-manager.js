@@ -1,23 +1,23 @@
-const STORAGE_KEY = "handsontable/docs::color-scheme";
+const STORAGE_KEY = 'handsontable/docs::color-scheme';
 
 const _getThemeClassName = (colorScheme) => {
   switch (colorScheme) {
-    case "dark":
-      return "ht-theme-main-dark";
-    case "light":
-      return "ht-theme-main";
+    case 'dark':
+      return 'ht-theme-main-dark';
+    case 'light':
+      return 'ht-theme-main';
     default:
-      return "ht-theme-main-dark-auto";
+      return 'ht-theme-main-dark-auto';
   }
 };
 
 const ensureCorrectHotThemes = () => {
-  if (typeof Handsontable !== "undefined") {
+  if (typeof Handsontable !== 'undefined') {
     // eslint-disable-next-line no-undef
-    Handsontable.hooks.add("afterSetTheme", function () {
+    Handsontable.hooks.add('afterSetTheme', function() {
       if (
-        this.rootElement.classList.contains("disable-auto-theme") ||
-        this.rootElement?.parentNode.classList.contains("disable-auto-theme")
+        this.rootElement.classList.contains('disable-auto-theme') ||
+        this.rootElement?.parentNode.classList.contains('disable-auto-theme')
       ) {
         return;
       }
@@ -34,8 +34,8 @@ const ensureCorrectHotThemes = () => {
 const switchExamplesTheme = (hotInstances) => {
   hotInstances.forEach((hotInstance) => {
     if (
-      hotInstance.rootElement.classList.contains("disable-auto-theme") ||
-      hotInstance.rootElement?.parentNode.classList.contains("disable-auto-theme")
+      hotInstance.rootElement.classList.contains('disable-auto-theme') ||
+      hotInstance.rootElement?.parentNode.classList.contains('disable-auto-theme')
     ) {
       return;
     }
@@ -44,15 +44,15 @@ const switchExamplesTheme = (hotInstances) => {
     const currentThemeName = hotInstance.getCurrentThemeName();
 
     // Remove the '-auto' suffix from the theme name.
-    const newThemeName = currentThemeName.replace("-auto", "");
-    const isCurrentlyDark = newThemeName.includes("dark");
+    const newThemeName = currentThemeName.replace('-auto', '');
+    const isCurrentlyDark = newThemeName.includes('dark');
 
     switch (version) {
-      case "dark":
+      case 'dark':
         hotInstance.useTheme(isCurrentlyDark ? newThemeName : `${newThemeName}-dark`);
         break;
-      case "light":
-        hotInstance.useTheme(isCurrentlyDark ? newThemeName.replace("-dark", "") : newThemeName);
+      case 'light':
+        hotInstance.useTheme(isCurrentlyDark ? newThemeName.replace('-dark', '') : newThemeName);
         break;
       default:
     }
