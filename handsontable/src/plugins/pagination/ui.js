@@ -14,18 +14,18 @@ const TEMPLATE = `
 <div data-ref="container" class="ht-pagination-container">
   <div class="ht-pagination-container__inner">
     <div data-ref="pageSizeSection" class="ht-page-size-section">
-      <span data-ref="pageSizeLabel"></span>
+      <span data-ref="pageSizeLabel" class="ht-page-size-section__label"></span>
       <div class="ht-page-size-section__select-wrapper">
         <select data-ref="pageSizeSelect" name="pageSize"></select>
       </div>
     </div>
     <div data-ref="pageCounterSection" class="ht-page-counter-section"></div>
     <nav data-ref="pageNavSection" class="ht-page-navigation-section">
-      <button data-ref="first" class="ht-page-first"></button>
-      <button data-ref="prev" class="ht-page-prev"></button>
-      <span data-ref="pageNavLabel"></span>
-      <button data-ref="next" class="ht-page-next"></button>
-      <button data-ref="last" class="ht-page-last"></button>
+      <button data-ref="first" class="ht-page-navigation-section__button ht-page-first"></button>
+      <button data-ref="prev" class="ht-page-navigation-section__button ht-page-prev"></button>
+      <span data-ref="pageNavLabel" class="ht-page-navigation-section__label"></span>
+      <button data-ref="next" class="ht-page-navigation-section__button ht-page-next"></button>
+      <button data-ref="last" class="ht-page-navigation-section__button ht-page-last"></button>
     </nav>
   </div>
 </div>

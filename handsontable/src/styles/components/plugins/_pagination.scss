@@ -37,13 +37,13 @@
       align-items: center;
       gap: calc(var(--ht-gap-size) * 2);
 
-      span {
+      &__label {
         white-space: nowrap;
       }
 
       &__select-wrapper {
         position: relative;
-        border-radius: 4px;
+        border-radius: var(--ht-input-border-radius);
         border: 1px solid var(--ht-input-border-color);
 
         select {
@@ -51,7 +51,7 @@
           padding-inline-end: calc(var(--ht-gap-size) + var(--ht-icon-size));
           padding-top: var(--ht-gap-size);
           padding-bottom: var(--ht-gap-size);
-          border-radius: 4px;
+          border-radius: var(--ht-input-border-radius);
           color: var(--ht-input-foreground-color);
           background-color: var(--ht-pagination-bar-background-color);
           border: none;
@@ -94,15 +94,15 @@
     .ht-page-navigation-section {
       display: flex;
       align-items: center;
-      gap: calc(var(--ht-gap-size) * 2);
+      gap: 1px;
 
-      button {
+      &__button {
         font-size: inherit;
         color: var(--ht-foreground-color);
         background-color: var(--ht-pagination-bar-background-color);
         border: none;
-        padding: 4px;
-        border-radius: 4px;
+        border-radius: var(--ht-icon-button-large-border-radius);
+        padding: var(--ht-icon-button-large-padding);
         cursor: pointer;
 
         &::before {
@@ -123,8 +123,10 @@
         }
       }
 
-      span {
+      &__label {
         white-space: nowrap;
+        min-width: 100px;
+        text-align: center;
       }
     }
   }
