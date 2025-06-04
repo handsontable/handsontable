@@ -73,11 +73,11 @@ In Handsontable 16.0, we've made significant improvements to our CSS variables s
 We've introduced new variables that allow for easier customization: 
 
 - `--ht-letter-spacing`: controls the spacing between letters for better readability and visual appearance
- - `--ht-radio-[]`: style radio inputs more accurate
- - `--ht-cell-read-only-background-color`: better adjust readonly cells.
+ - `--ht-radio-[]`: style radio input more accurate
+ - `--ht-cell-read-only-background-color`: better adjust readonly cells
  - `--ht-checkbox-indeterminate`: customize checkbox indeterminate state
 
-### Changed css variables
+### Renamed CSS variables
 We've renamed a few variables to ensure more consistent naming: 
 
 | Old variable name | New variable name |
@@ -89,17 +89,10 @@ We've renamed a few variables to ensure more consistent naming:
 | `--ht-icon-active-button-hover-background-color` | `--ht-icon-button-active-hover-background-color` |
 | `--ht-icon-active-button-hover-icon-color` | `--ht-icon-button-active-hover-icon-color` |
 
-### Accessibility improvements
-Checkbox variables have been added to support better accessibility:
-
-- `--hot-focus-outline-color`: Controls the color of focus indicators
-- `--hot-contrast-ratio`: Helps maintain proper contrast ratios for better readability
-
 ### Migration notes
 If you were using custom CSS variables in version 15.3, you'll need to:
 
 1. Review your custom variable names against the new naming convention
-2. Update any deprecated variable references to their new counterparts
-3. Take advantage of the new theme-specific variables for more granular control
+2. Update variable references to the new radio input (only if checkbox variables were changed)
+3. Take advantage of the new variables for more granular control
 
-For a complete list of new and changed CSS variables, please refer to our [CSS Customization](/guides/customize-theme/css-variables) guide.
