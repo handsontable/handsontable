@@ -72,7 +72,7 @@ In Handsontable 16.0, we've made significant improvements to our CSS variables s
 ### New css variables
 We've introduced new variables that allow for easier customization: 
 
-- `--ht-letter-spacing`: controls the spacing between letters for better readability and visual appearance
+ - `--ht-letter-spacing`: controls the spacing between letters for better readability and visual appearance
  - `--ht-radio-[]`: style radio input more accurate
  - `--ht-cell-read-only-background-color`: better adjust readonly cells
  - `--ht-checkbox-indeterminate`: customize checkbox indeterminate state
@@ -80,14 +80,14 @@ We've introduced new variables that allow for easier customization:
 ### Renamed CSS variables
 We've renamed a few variables to ensure more consistent naming: 
 
-| Old variable name | New variable name |
-|------------------|-------------------|
-| `--ht-icon-active-button-border-color` | `--ht-icon-button-active-border-color` |
-| `--ht-icon-active-button-background-color` | `--ht-icon-button-active-background-color` |
-| `--ht-icon-active-button-icon-color` | `--ht-icon-button-active-icon-color` |
-| `--ht-icon-active-button-hover-border-color` | `--ht-icon-button-active-hover-border-color` |
+| Old variable name                                | New variable name                                |
+|--------------------------------------------------|--------------------------------------------------|
+| `--ht-icon-active-button-border-color`           | `--ht-icon-button-active-border-color`           |
+| `--ht-icon-active-button-background-color`       | `--ht-icon-button-active-background-color`       |
+| `--ht-icon-active-button-icon-color`             | `--ht-icon-button-active-icon-color`             |
+| `--ht-icon-active-button-hover-border-color`     | `--ht-icon-button-active-hover-border-color`     |
 | `--ht-icon-active-button-hover-background-color` | `--ht-icon-button-active-hover-background-color` |
-| `--ht-icon-active-button-hover-icon-color` | `--ht-icon-button-active-hover-icon-color` |
+| `--ht-icon-active-button-hover-icon-color`       | `--ht-icon-button-active-hover-icon-color`       |
 
 ### Migration notes
 If you were using custom CSS variables in version 15.3, you'll need to:
