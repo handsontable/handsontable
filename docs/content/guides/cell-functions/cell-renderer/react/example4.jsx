@@ -54,6 +54,7 @@ const ExampleComponent = () => {
 
   return (
     <HotTable
+      themeName="ht-theme-main"
       data={data}
       colWidths={[200, 200, 200, 80]}
       colHeaders={['Title', 'Description', 'Comments', 'Cover']}

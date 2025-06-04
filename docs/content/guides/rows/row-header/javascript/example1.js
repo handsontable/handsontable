@@ -18,6 +18,7 @@ const generateData = (rows = 3, columns = 7, additionalRows = true) => {
 const container = document.querySelector('#example1');
 
 new Handsontable(container, {
+  themeName: 'ht-theme-main',
   data: generateData(),
   colHeaders: true,
   rowHeaders: true,

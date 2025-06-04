@@ -491,19 +491,12 @@ const app = document.getElementById('example1')!;
 
 // Define configuration options for the Handsontable
 const hotOptions: Handsontable.GridSettings = {
+  themeName: 'ht-theme-main',
   data: products,
   height: 464,
   colWidths: [160, 165, 130, 120, 100, 110, 216],
   autoRowSize: true,
-  colHeaders: [
-    'Company name',
-    'Product name',
-    'Sell date',
-    'In stock',
-    'Qty',
-    'Order ID',
-    'Country',
-  ],
+  colHeaders: ['Company name', 'Product name', 'Sell date', 'In stock', 'Qty', 'Order ID', 'Country'],
   columns: [
     { data: 'companyName', type: 'text' },
     { data: 'productName', type: 'text' },
@@ -555,119 +548,77 @@ const hotOptions: Handsontable.GridSettings = {
 let hot = new Handsontable(app, hotOptions);
 
 // Helper function to set up checkbox event handling
-const setupCheckbox = (
-  element: HTMLInputElement,
-  callback: (val: boolean) => void
-) => element.addEventListener('click', () => callback(element.checked));
+const setupCheckbox = (element: HTMLInputElement, callback: (val: boolean) => void) =>
+  element.addEventListener('click', () => callback(element.checked));
 
 // Set up event listeners for various checkboxes to update Handsontable settings.
 // This allows us to change the Handsontable settings from the UI, showcasing
 // the flexibility of Handsontable in configuring according to your needs.
 
 // Checkbox: Enable/Disable Tab Navigation
-setupCheckbox(
-  document.querySelector('#enable-tab-navigation') as HTMLInputElement,
-  (checked) => {
-    hotOptions.tabNavigation = checked;
-    hot.updateSettings({
-      tabNavigation: hotOptions.tabNavigation,
-    });
-    console.log(
-      'Updated setting: tabNavigation to',
-      hot.getSettings().tabNavigation
-    );
-  }
-);
+setupCheckbox(document.querySelector('#enable-tab-navigation') as HTMLInputElement, (checked) => {
+  hotOptions.tabNavigation = checked;
+  hot.updateSettings({
+    tabNavigation: hotOptions.tabNavigation,
+  });
+  console.log('Updated setting: tabNavigation to', hot.getSettings().tabNavigation);
+});
 
 // Checkbox: Enable/Disable Header Navigation
-setupCheckbox(
-  document.querySelector('#enable-header-navigation') as HTMLInputElement,
-  (checked) => {
-    hotOptions.navigableHeaders = checked;
-    hot.updateSettings({
-      navigableHeaders: hotOptions.navigableHeaders,
-    });
-    console.log(
-      'Updated setting: navigableHeaders to',
-      hot.getSettings().navigableHeaders
-    );
-  }
-);
+setupCheckbox(document.querySelector('#enable-header-navigation') as HTMLInputElement, (checked) => {
+  hotOptions.navigableHeaders = checked;
+  hot.updateSettings({
+    navigableHeaders: hotOptions.navigableHeaders,
+  });
+  console.log('Updated setting: navigableHeaders to', hot.getSettings().navigableHeaders);
+});
 
 // Checkbox: Enable/Disable Cell Virtualization
-setupCheckbox(
-  document.querySelector('#enable-cell-virtualization') as HTMLInputElement,
-  (checked) => {
-    hot.destroy();
-    hot = new Handsontable(document.getElementById('example1')!, {
-      ...hotOptions,
-      renderAllRows: !checked,
-      renderAllColumns: !checked,
-    });
-    console.log('Updated virtualization settings:', {
-      renderAllRows: hot.getSettings().renderAllRows,
-      renderAllColumns: hot.getSettings().renderAllColumns,
-    });
-  }
-);
+setupCheckbox(document.querySelector('#enable-cell-virtualization') as HTMLInputElement, (checked) => {
+  hot.destroy();
+  hot = new Handsontable(document.getElementById('example1')!, {
+    ...hotOptions,
+    renderAllRows: !checked,
+    renderAllColumns: !checked,
+  });
+  console.log('Updated virtualization settings:', {
+    renderAllRows: hot.getSettings().renderAllRows,
+    renderAllColumns: hot.getSettings().renderAllColumns,
+  });
+});
 
 // Checkbox: Enable/Disable Cell Enter Editing
-setupCheckbox(
-  document.querySelector('#enable-cell-enter-editing') as HTMLInputElement,
-  (checked) => {
-    hotOptions.enterBeginsEditing = checked;
-    hot.updateSettings({
-      enterBeginsEditing: hotOptions.enterBeginsEditing,
-    });
-    console.log(
-      'Updated setting: enable-cell-enter-editing to',
-      hot.getSettings().enterBeginsEditing
-    );
-  }
-);
+setupCheckbox(document.querySelector('#enable-cell-enter-editing') as HTMLInputElement, (checked) => {
+  hotOptions.enterBeginsEditing = checked;
+  hot.updateSettings({
+    enterBeginsEditing: hotOptions.enterBeginsEditing,
+  });
+  console.log('Updated setting: enable-cell-enter-editing to', hot.getSettings().enterBeginsEditing);
+});
 
 // Checkbox: Enable/Disable Arrow Navigation for First/Last Row
-setupCheckbox(
-  document.querySelector(
-    '#enable-arrow-rl-first-last-column'
-  ) as HTMLInputElement,
-  (checked) => {
-    hotOptions.autoWrapRow = checked;
-    hot.updateSettings({
-      autoWrapRow: hotOptions.autoWrapRow,
-    });
-    console.log(
-      'Updated setting: autoWrapRow to',
-      hot.getSettings().autoWrapRow
-    );
-  }
-);
+setupCheckbox(document.querySelector('#enable-arrow-rl-first-last-column') as HTMLInputElement, (checked) => {
+  hotOptions.autoWrapRow = checked;
+  hot.updateSettings({
+    autoWrapRow: hotOptions.autoWrapRow,
+  });
+  console.log('Updated setting: autoWrapRow to', hot.getSettings().autoWrapRow);
+});
 
 // Checkbox: Enable/Disable Arrow Navigation for First/Last Column
-setupCheckbox(
-  document.querySelector(
-    '#enable-arrow-td-first-last-column'
-  ) as HTMLInputElement,
-  (checked) => {
-    hotOptions.autoWrapCol = checked;
-    hot.updateSettings({
-      autoWrapCol: hotOptions.autoWrapCol,
-    });
-    console.log(
-      'Updated setting: autoWrapCol to',
-      hot.getSettings().autoWrapCol
-    );
-  }
-);
+setupCheckbox(document.querySelector('#enable-arrow-td-first-last-column') as HTMLInputElement, (checked) => {
+  hotOptions.autoWrapCol = checked;
+  hot.updateSettings({
+    autoWrapCol: hotOptions.autoWrapCol,
+  });
+  console.log('Updated setting: autoWrapCol to', hot.getSettings().autoWrapCol);
+});
 
 // Checkbox: Enable/Disable Enter Key Focus for Editing
-setupCheckbox(
-  document.querySelector('#enable-enter-focus-editing') as HTMLInputElement,
-  (checked) => {
-    hotOptions.enterMoves = checked ? { col: 0, row: 1 } : { col: 0, row: 0 };
-    hot.updateSettings({
-      enterMoves: hotOptions.enterMoves,
-    });
-    console.log('Updated setting: enterMoves to', hot.getSettings().enterMoves);
-  }
-);
+setupCheckbox(document.querySelector('#enable-enter-focus-editing') as HTMLInputElement, (checked) => {
+  hotOptions.enterMoves = checked ? { col: 0, row: 1 } : { col: 0, row: 0 };
+  hot.updateSettings({
+    enterMoves: hotOptions.enterMoves,
+  });
+  console.log('Updated setting: enterMoves to', hot.getSettings().enterMoves);
+});

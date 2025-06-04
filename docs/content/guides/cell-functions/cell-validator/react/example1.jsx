@@ -30,6 +30,7 @@ const ExampleComponent = () => {
         </output>
       </div>
       <HotTable
+        themeName="ht-theme-main"
         data={[
           {
             id: 1,

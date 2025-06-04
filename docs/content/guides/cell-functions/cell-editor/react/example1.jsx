@@ -78,6 +78,7 @@ const data = [
 const ExampleComponent = () => {
   return (
     <HotTable
+      themeName="ht-theme-main"
       data={data}
       rowHeaders={true}
       autoWrapRow={true}

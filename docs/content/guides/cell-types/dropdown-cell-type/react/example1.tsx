@@ -9,6 +9,7 @@ registerAllModules();
 const ExampleComponent = () => {
   return (
     <HotTable
+      themeName="ht-theme-main"
       data={[
         ['Tesla', 2017, 'black', 'black'],
         ['Nissan', 2018, 'blue', 'blue'],
@@ -21,29 +22,11 @@ const ExampleComponent = () => {
         { type: 'numeric' },
         {
           type: 'dropdown',
-          source: [
-            'yellow',
-            'red',
-            'orange',
-            'green',
-            'blue',
-            'gray',
-            'black',
-            'white',
-          ],
+          source: ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white'],
         },
         {
           type: 'dropdown',
-          source: [
-            'yellow',
-            'red',
-            'orange',
-            'green',
-            'blue',
-            'gray',
-            'black',
-            'white',
-          ],
+          source: ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white'],
         },
       ]}
       autoWrapRow={true}

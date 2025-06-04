@@ -9,6 +9,7 @@ registerAllModules();
 const ExampleComponent = () => {
   return (
     <HotTable
+      themeName="ht-theme-main"
       data={[
         {
           brand: 'Jetpulse',
@@ -104,12 +105,8 @@ const ExampleComponent = () => {
       beforeFilter={function (conditionsStack) {
         // gather information about the filters
         console.log(`The amount of filters: ${conditionsStack.length}`);
-        console.log(
-          `The last changed column index: ${conditionsStack[0].column}`
-        );
-        console.log(
-          `The amount of filters added to this column: ${conditionsStack[0].conditions.length}`
-        );
+        console.log(`The last changed column index: ${conditionsStack[0].column}`);
+        console.log(`The amount of filters added to this column: ${conditionsStack[0].conditions.length}`);
         // the list of filter conditions
         console.log(conditionsStack[0].conditions);
 

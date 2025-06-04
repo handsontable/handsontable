@@ -6,6 +6,7 @@ import { MultiColumnSorting } from 'handsontable/plugins';
 const container = document.querySelector('#exampleSortByAPIMultipleColumns')!;
 
 const hot = new Handsontable(container, {
+  themeName: 'ht-theme-main',
   data: [
     {
       brand: 'Jetpulse',
@@ -99,8 +100,7 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
 });
 
-const multiColumnSorting: MultiColumnSorting =
-  hot.getPlugin('multiColumnSorting');
+const multiColumnSorting: MultiColumnSorting = hot.getPlugin('multiColumnSorting');
 
 const buttonSort = document.querySelector('#sort')!;
 

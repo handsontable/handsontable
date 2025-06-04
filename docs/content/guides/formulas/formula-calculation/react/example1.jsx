@@ -35,6 +35,7 @@ const ExampleComponent = () => {
     <>
       <h3 className="demo-preview">Sheet 1</h3>
       <HotTable
+        themeName="ht-theme-main"
         data={data1}
         colHeaders={true}
         rowHeaders={true}

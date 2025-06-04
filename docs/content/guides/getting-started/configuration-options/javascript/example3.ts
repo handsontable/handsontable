@@ -13,6 +13,7 @@ const data: Handsontable.CellValue[][] = [
 ];
 
 const hot = new Handsontable(container, {
+  themeName: 'ht-theme-main',
   licenseKey: 'non-commercial-and-evaluation',
   data,
   width: 'auto',

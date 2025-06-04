@@ -73,6 +73,7 @@ const ExampleComponent = () => {
         </output>
       </div>
       <HotTable
+        themeName="ht-theme-main"
         ref={hotRef}
         startRows={8}
         startCols={6}

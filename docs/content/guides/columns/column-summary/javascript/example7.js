@@ -18,6 +18,7 @@ const generateData = (rows = 3, columns = 7, additionalRows = true) => {
 const container = document.querySelector('#example7');
 
 new Handsontable(container, {
+  themeName: 'ht-theme-main',
   licenseKey: 'non-commercial-and-evaluation',
   // initialize a Handsontable instance with the generated data
   data: generateData(5, 5, true),

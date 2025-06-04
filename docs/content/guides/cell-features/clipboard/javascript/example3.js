@@ -4,6 +4,7 @@ import 'handsontable/styles/ht-theme-main.css';
 
 const container = document.querySelector('#example3');
 const hot = new Handsontable(container, {
+  themeName: 'ht-theme-main',
   rowHeaders: true,
   colHeaders: true,
   data: [

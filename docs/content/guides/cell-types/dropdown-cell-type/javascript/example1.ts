@@ -5,6 +5,7 @@ import 'handsontable/styles/ht-theme-main.css';
 const container = document.querySelector('#example1')!;
 
 new Handsontable(container, {
+  themeName: 'ht-theme-main',
   data: [
     ['Tesla', 2017, 'black', 'black'],
     ['Nissan', 2018, 'blue', 'blue'],
@@ -17,29 +18,11 @@ new Handsontable(container, {
     { type: 'numeric' },
     {
       type: 'dropdown',
-      source: [
-        'yellow',
-        'red',
-        'orange',
-        'green',
-        'blue',
-        'gray',
-        'black',
-        'white',
-      ],
+      source: ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white'],
     },
     {
       type: 'dropdown',
-      source: [
-        'yellow',
-        'red',
-        'orange',
-        'green',
-        'blue',
-        'gray',
-        'black',
-        'white',
-      ],
+      source: ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white'],
     },
   ],
   autoWrapRow: true,

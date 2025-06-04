@@ -7,16 +7,7 @@ import 'handsontable/styles/ht-theme-main.css';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const colorData = [
-    ['yellow'],
-    ['red'],
-    ['orange'],
-    ['green'],
-    ['blue'],
-    ['gray'],
-    ['black'],
-    ['white'],
-  ];
+  const colorData = [['yellow'], ['red'], ['orange'], ['green'], ['blue'], ['gray'], ['black'], ['white']];
 
   const manufacturerData = [
     { name: 'BMW', country: 'Germany', owner: 'Bayerische Motoren Werke AG' },
@@ -29,6 +20,7 @@ const ExampleComponent = () => {
 
   return (
     <HotTable
+      themeName="ht-theme-main"
       autoWrapRow={true}
       autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"

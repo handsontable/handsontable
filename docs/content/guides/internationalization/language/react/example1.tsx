@@ -11,6 +11,7 @@ registerLanguageDictionary(deDE);
 const ExampleComponent = () => {
   return (
     <HotTable
+      themeName="ht-theme-main"
       data={[
         ['Lorem', 'ipsum', 'dolor', 'sit', '12/1/2015', 23],
         ['adipiscing', 'elit', 'Ut', 'imperdiet', '5/12/2015', 6],

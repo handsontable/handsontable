@@ -43,6 +43,7 @@ const ExampleComponentContent = () => {
           </div>
 
           <HotTable
+            themeName="ht-theme-main"
             ref={hotTableComponentRef}
             beforeChange={onBeforeHotChange}
             autoWrapRow={true}

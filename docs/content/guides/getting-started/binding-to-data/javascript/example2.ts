@@ -13,6 +13,7 @@ const data: (string | number)[][] = [
 ];
 
 new Handsontable(container, {
+  themeName: 'ht-theme-main',
   data,
   colHeaders: true,
   minSpareRows: 1,

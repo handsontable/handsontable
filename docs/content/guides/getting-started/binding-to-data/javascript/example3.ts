@@ -19,6 +19,7 @@ const data: Person[] = [
 ];
 
 new Handsontable(container, {
+  themeName: 'ht-theme-main',
   data,
   colHeaders: true,
   height: 'auto',

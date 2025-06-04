@@ -5,6 +5,7 @@ import 'handsontable/styles/ht-theme-main.css';
 const container = document.querySelector('#example6')!;
 
 new Handsontable(container, {
+  themeName: 'ht-theme-main',
   data: [],
   dataSchema: { id: null, name: { first: null, last: null }, address: null },
   startRows: 5,
@@ -12,12 +13,7 @@ new Handsontable(container, {
   colHeaders: ['ID', 'First Name', 'Last Name', 'Address'],
   height: 'auto',
   width: 'auto',
-  columns: [
-    { data: 'id' },
-    { data: 'name.first' },
-    { data: 'name.last' },
-    { data: 'address' },
-  ],
+  columns: [{ data: 'id' }, { data: 'name.first' }, { data: 'name.last' }, { data: 'address' }],
   minSpareRows: 1,
   autoWrapRow: true,
   autoWrapCol: true,

@@ -43,10 +43,7 @@ function model(opts: ModelOptions): Partial<Person> {
     }
   }
 
-  _pub.attr = function (
-    attr: keyof Person | string,
-    val?: Handsontable.CellValue
-  ) {
+  _pub.attr = function (attr: keyof Person | string, val?: Handsontable.CellValue) {
     if (typeof val === 'undefined') {
       window.console && console.log('GET the', attr, 'value of', _pub);
 
@@ -63,8 +60,7 @@ function model(opts: ModelOptions): Partial<Person> {
 }
 
 function property(attr: keyof Person | string) {
-  return (row: Handsontable.RowObject, value?: Handsontable.CellValue) =>
-    (row as Person).attr(attr, value);
+  return (row: Handsontable.RowObject, value?: Handsontable.CellValue) => (row as Person).attr(attr, value);
 }
 
 const data: Partial<Person>[] = [
@@ -77,16 +73,13 @@ const data: Partial<Person>[] = [
 
 const ExampleComponent: FC = () => (
   <HotTable
+    themeName="ht-theme-main"
     data={data}
     dataSchema={model}
     height="auto"
     width="auto"
     colHeaders={['ID', 'Name', 'Address']}
-    columns={[
-      { data: property('id') },
-      { data: property('name') },
-      { data: property('address') },
-    ]}
+    columns={[{ data: property('id') }, { data: property('name') }, { data: property('address') }]}
     minSpareRows={1}
     autoWrapRow={true}
     autoWrapCol={true}

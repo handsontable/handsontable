@@ -5,6 +5,7 @@ import 'handsontable/styles/ht-theme-main.css';
 const container = document.querySelector('#example4')!;
 
 const hot = new Handsontable(container, {
+  themeName: 'ht-theme-main',
   data: [
     { car: 'Tesla', year: 2017, chassis: 'black', bumper: 'black' },
     { car: 'Nissan', year: 2018, chassis: 'blue', bumper: 'blue' },
@@ -20,8 +21,6 @@ const hot = new Handsontable(container, {
 
 hot.updateSettings({
   cells(row, _col, prop) {
-    return hot.getDataAtRowProp(row, prop as string) === 'Nissan'
-      ? { editor: false }
-      : { editor: 'text' };
+    return hot.getDataAtRowProp(row, prop as string) === 'Nissan' ? { editor: false } : { editor: 'text' };
   },
 });

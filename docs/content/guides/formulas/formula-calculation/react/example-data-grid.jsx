@@ -115,6 +115,7 @@ const ExampleComponent = () => {
 
   return (
     <HotTable
+      themeName="ht-theme-main"
       data={data}
       formulas={{
         engine: HyperFormula,

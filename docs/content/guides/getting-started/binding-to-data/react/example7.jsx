@@ -52,6 +52,7 @@ const data = [
 
 const ExampleComponent = () => (
   <HotTable
+    themeName="ht-theme-main"
     data={data}
     dataSchema={model}
     height="auto"

@@ -19,6 +19,7 @@ const emailValidator = (value: string, callback: (value: boolean) => void) => {
 };
 
 new Handsontable(container, {
+  themeName: 'ht-theme-main',
   data: [
     {
       id: 1,
@@ -104,13 +105,9 @@ new Handsontable(container, {
         return false;
       }
       // capitalise first letter in column 1 and 2
-      else if (
-        currChange[1] === 'name.first' ||
-        currChange[1] === 'name.last'
-      ) {
+      else if (currChange[1] === 'name.first' || currChange[1] === 'name.last') {
         if (currChange[3] !== null) {
-          changes[i]![3] =
-            currChange[3].charAt(0).toUpperCase() + currChange[3].slice(1);
+          changes[i]![3] = currChange[3].charAt(0).toUpperCase() + currChange[3].slice(1);
         }
       }
     }

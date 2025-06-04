@@ -22,6 +22,7 @@ const ExampleComponent = () => {
 
   return (
     <HotTable
+      themeName="ht-theme-main"
       data={generateData()}
       colHeaders={true}
       rowHeaders={true}

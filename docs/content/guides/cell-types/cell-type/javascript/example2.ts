@@ -5,6 +5,7 @@ import 'handsontable/styles/ht-theme-main.css';
 const container = document.querySelector('#example2')!;
 
 new Handsontable(container, {
+  themeName: 'ht-theme-main',
   licenseKey: 'non-commercial-and-evaluation',
   data: [
     ['empty string', '', '', '', '', ''],
@@ -41,14 +42,7 @@ new Handsontable(container, {
     { type: 'password' },
   ],
   preventOverflow: 'horizontal',
-  colHeaders: [
-    'value<br>underneath',
-    'type:text',
-    'type:numeric',
-    'type:checkbox',
-    'type:dropdown',
-    'type:password',
-  ],
+  colHeaders: ['value<br>underneath', 'type:text', 'type:numeric', 'type:checkbox', 'type:dropdown', 'type:password'],
   autoWrapRow: true,
   autoWrapCol: true,
   height: 'auto',

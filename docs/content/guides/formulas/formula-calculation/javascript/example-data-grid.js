@@ -111,6 +111,7 @@ const data = [
 const container = document.querySelector('#example-data-grid');
 
 new Handsontable(container, {
+  themeName: 'ht-theme-main',
   data,
   formulas: {
     engine: HyperFormula,

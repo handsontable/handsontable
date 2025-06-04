@@ -9,6 +9,7 @@ registerAllModules();
 
 const ExampleComponent: FC = () => (
   <HotTable
+    themeName="ht-theme-main"
     autoWrapRow={true}
     autoWrapCol={true}
     height="auto"

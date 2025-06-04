@@ -26,6 +26,7 @@ const formatTR = {
 const ExampleComponent = () => {
   return (
     <HotTable
+      themeName="ht-theme-main"
       data={[
         {
           productName: 'Product A',

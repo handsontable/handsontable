@@ -5,6 +5,7 @@ import { Filters } from 'handsontable/plugins';
 
 const container = document.querySelector('#exampleFilterThroughAPI1')!;
 const hot = new Handsontable(container, {
+  themeName: 'ht-theme-main',
   data: [
     {
       brand: 'Jetpulse',

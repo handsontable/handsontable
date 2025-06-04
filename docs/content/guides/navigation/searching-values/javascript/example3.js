@@ -16,6 +16,7 @@ function onlyExactMatch(queryStr, value) {
 
 const container = document.querySelector('#example3');
 const hot = new Handsontable(container, {
+  themeName: 'ht-theme-main',
   data,
   colHeaders: true,
   // enable the `Search` plugin

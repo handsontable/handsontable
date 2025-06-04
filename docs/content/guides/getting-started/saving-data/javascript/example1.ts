@@ -9,16 +9,14 @@ const load = document.querySelector<HTMLButtonElement>('#load')!;
 const save = document.querySelector<HTMLButtonElement>('#save')!;
 
 const hot = new Handsontable(container, {
+  themeName: 'ht-theme-main',
   startRows: 8,
   startCols: 6,
   rowHeaders: true,
   colHeaders: true,
   height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
-  afterChange(
-    change: Handsontable.CellChange[] | null,
-    source: Handsontable.ChangeSource
-  ) {
+  afterChange(change: Handsontable.CellChange[] | null, source: Handsontable.ChangeSource) {
     if (source === 'loadData') {
       return; // don't save this change
     }
@@ -39,9 +37,7 @@ const hot = new Handsontable(container, {
       },
       body: JSON.stringify({ data: change }),
     }).then(() => {
-      exampleConsole.innerText = `Autosaved (${change.length} cell${
-        change.length > 1 ? 's' : ''
-      })`;
+      exampleConsole.innerText = `Autosaved (${change.length} cell${change.length > 1 ? 's' : ''})`;
       console.log('The POST request is only used here for the demo purposes');
     });
   },

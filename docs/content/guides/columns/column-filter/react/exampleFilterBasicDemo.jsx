@@ -10,6 +10,7 @@ registerAllModules();
 const ExampleComponent = () => {
   return (
     <HotTable
+      themeName="ht-theme-main"
       data={[
         {
           brand: 'Jetpulse',

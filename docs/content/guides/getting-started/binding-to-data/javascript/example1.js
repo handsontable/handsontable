@@ -13,6 +13,7 @@ const data = [
 ];
 
 new Handsontable(container, {
+  themeName: 'ht-theme-main',
   data,
   startRows: 5,
   startCols: 5,

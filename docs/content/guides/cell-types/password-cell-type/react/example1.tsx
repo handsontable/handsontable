@@ -9,6 +9,7 @@ registerAllModules();
 const ExampleComponent = () => {
   return (
     <HotTable
+      themeName="ht-theme-main"
       data={[
         {
           id: 1,
@@ -23,12 +24,7 @@ const ExampleComponent = () => {
       autoWrapRow={true}
       autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
-      columns={[
-        { data: 'id' },
-        { data: 'name.first' },
-        { data: 'name.last' },
-        { data: 'password', type: 'password' },
-      ]}
+      columns={[{ data: 'id' }, { data: 'name.first' }, { data: 'name.last' }, { data: 'password', type: 'password' }]}
     />
   );
 };

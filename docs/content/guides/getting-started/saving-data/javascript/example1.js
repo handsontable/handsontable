@@ -8,6 +8,7 @@ const autosave = document.querySelector('#autosave');
 const load = document.querySelector('#load');
 const save = document.querySelector('#save');
 const hot = new Handsontable(container, {
+  themeName: 'ht-theme-main',
   startRows: 8,
   startCols: 6,
   rowHeaders: true,

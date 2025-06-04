@@ -18,6 +18,7 @@ const emailValidator = (value, callback) => {
 };
 
 new Handsontable(container, {
+  themeName: 'ht-theme-main',
   data: [
     {
       id: 1,

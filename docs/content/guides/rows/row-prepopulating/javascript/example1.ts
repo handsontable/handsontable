@@ -23,15 +23,7 @@ function isEmptyRow(instance: Handsontable, row: number) {
   return true;
 }
 
-const defaultValueRenderer: BaseRenderer = (
-  instance,
-  td,
-  row,
-  col,
-  prop,
-  value,
-  cellProperties
-) => {
+const defaultValueRenderer: BaseRenderer = (instance, td, row, col, prop, value, cellProperties) => {
   if (value === null && isEmptyRow(instance, row)) {
     value = templateValues[col];
     td.style.color = '#999';
@@ -39,20 +31,13 @@ const defaultValueRenderer: BaseRenderer = (
     td.style.color = '';
   }
 
-  Handsontable.renderers.TextRenderer(
-    instance,
-    td,
-    row,
-    col,
-    prop,
-    value,
-    cellProperties
-  );
+  Handsontable.renderers.TextRenderer(instance, td, row, col, prop, value, cellProperties);
 };
 
 const container = document.querySelector('#example1')!;
 
 const hot = new Handsontable(container, {
+  themeName: 'ht-theme-main',
   startRows: 8,
   startCols: 5,
   minSpareRows: 1,

@@ -35,6 +35,7 @@ function generateArabicData() {
 const ExampleComponent = () => {
   return (
     <HotTable
+      themeName="ht-theme-main"
       autoWrapRow={true}
       autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"

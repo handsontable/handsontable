@@ -32,10 +32,7 @@ const ExampleComponent = () => {
   );
 
   //  define your custom query method
-  function onlyExactMatch(
-    queryStr: { toString: () => any },
-    value: { toString: () => any }
-  ) {
+  function onlyExactMatch(queryStr: { toString: () => any }, value: { toString: () => any }) {
     return queryStr.toString() === value.toString();
   }
 
@@ -52,6 +49,7 @@ const ExampleComponent = () => {
         </div>
       </div>
       <HotTable
+        themeName="ht-theme-main"
         ref={hotRef}
         data={data}
         colHeaders={true}

@@ -16,6 +16,7 @@ const data: string[][] = new Array(100) // number of rows
   );
 
 const hot = new Handsontable(example, {
+  themeName: 'ht-theme-main',
   data,
   rowHeaders: true,
   colHeaders: true,

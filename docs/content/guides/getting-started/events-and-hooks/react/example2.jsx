@@ -47,6 +47,7 @@ const ExampleComponent = () => {
 
   return (
     <HotTable
+      themeName="ht-theme-main"
       data={[
         ['Tesla', 2017, 'black', 'black'],
         ['Nissan', 2018, 'blue', 'blue'],

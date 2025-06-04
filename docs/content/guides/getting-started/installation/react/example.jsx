@@ -9,6 +9,7 @@ registerAllModules();
 const ExampleComponent = () => {
   return (
     <HotTable
+      themeName="ht-theme-main"
       data={[
         ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
         ['2019', 10, 11, 12, 13],

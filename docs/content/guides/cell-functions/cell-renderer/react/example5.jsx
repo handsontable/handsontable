@@ -34,6 +34,7 @@ const ExampleComponent = () => {
   return (
     <div id="exampleContainer5" onMouseUp={(...args) => exampleContainerMouseupCallback(...args)}>
       <HotTable
+        themeName="ht-theme-main"
         ref={hotRef}
         height="auto"
         columns={[{}, { renderer: customRenderer }]}

@@ -5,6 +5,7 @@ import 'handsontable/styles/ht-theme-main.css';
 const container = document.querySelector('#example9')!;
 
 new Handsontable(container, {
+  themeName: 'ht-theme-main',
   autoWrapRow: true,
   autoWrapCol: true,
   height: 'auto',

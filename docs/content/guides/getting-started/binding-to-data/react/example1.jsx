@@ -17,6 +17,7 @@ const data = [
 
 const ExampleComponent = () => (
   <HotTable
+    themeName="ht-theme-main"
     data={data}
     startRows={5}
     startCols={5}

@@ -12,6 +12,7 @@ interface Person {
 const container = document.querySelector('#example7')!;
 
 new Handsontable(container, {
+  themeName: 'ht-theme-main',
   data: [
     model({ id: 1, name: 'Ted Right', address: '' }),
     model({ id: 2, name: 'Frank Honest', address: '' }),
@@ -23,11 +24,7 @@ new Handsontable(container, {
   height: 'auto',
   width: 'auto',
   colHeaders: ['ID', 'Name', 'Address'],
-  columns: [
-    { data: property('id') },
-    { data: property('name') },
-    { data: property('address') },
-  ],
+  columns: [{ data: property('id') }, { data: property('name') }, { data: property('address') }],
   minSpareRows: 1,
   autoWrapRow: true,
   autoWrapCol: true,
@@ -67,6 +64,5 @@ function model(person: Partial<Person>) {
 }
 
 function property(attr: string) {
-  return (row: Handsontable.RowObject, value?: Handsontable.CellValue) =>
-    (row as Person).attr(attr, value);
+  return (row: Handsontable.RowObject, value?: Handsontable.CellValue) => (row as Person).attr(attr, value);
 }

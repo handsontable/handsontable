@@ -18,6 +18,7 @@ const data = new Array(100) // number of rows
 const ExampleComponent = () => {
   return (
     <HotTable
+      themeName="ht-theme-main"
       data={data}
       height={320}
       colWidths={50}

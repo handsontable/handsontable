@@ -12,6 +12,7 @@ const data: Handsontable.CellValue[][] = [
 ];
 
 new Handsontable(container, {
+  themeName: 'ht-theme-main',
   data,
   rowHeaders: true,
   colHeaders: true,

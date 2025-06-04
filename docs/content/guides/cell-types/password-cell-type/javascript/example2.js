@@ -5,6 +5,7 @@ import 'handsontable/styles/ht-theme-main.css';
 const container = document.querySelector('#example2');
 
 new Handsontable(container, {
+  themeName: 'ht-theme-main',
   data: [
     {
       id: 1,

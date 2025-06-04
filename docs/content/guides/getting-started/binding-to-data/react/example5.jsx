@@ -14,6 +14,7 @@ const data = [
 
 const ExampleComponent = () => (
   <HotTable
+    themeName="ht-theme-main"
     data={data}
     colHeaders={true}
     height="auto"

@@ -16,14 +16,12 @@ const ExampleComponent = () => {
     const filtersRowsMap = hotInstance?.getPlugin('filters').filtersRowsMap;
 
     filtersRowsMap.setValueAtIndex(0, false);
-    filtersRowsMap.setValueAtIndex(
-      filtersRowsMap.indexedValues.length - 1,
-      false
-    );
+    filtersRowsMap.setValueAtIndex(filtersRowsMap.indexedValues.length - 1, false);
   };
 
   return (
     <HotTable
+      themeName="ht-theme-main"
       ref={hotTableComponentRef}
       data={[
         {

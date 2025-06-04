@@ -15,20 +15,17 @@ const ExampleComponent = () => {
       description:
         'This <a href="https://bit.ly/sM1bDf">book</a> provides a developer-level introduction along with more advanced and useful features of <b>JavaScript</b>.',
       comments: 'I would rate it ★★★★☆',
-      cover:
-        '{{$basePath}}/img/examples/professional-javascript-developers-nicholas-zakas.jpg',
+      cover: '{{$basePath}}/img/examples/professional-javascript-developers-nicholas-zakas.jpg',
     },
     {
-      title:
-        '<a href="https://shop.oreilly.com/product/9780596517748.do">JavaScript: The Good Parts</a>',
+      title: '<a href="https://shop.oreilly.com/product/9780596517748.do">JavaScript: The Good Parts</a>',
       description:
         'This book provides a developer-level introduction along with <b>more advanced</b> and useful features of JavaScript.',
       comments: 'This is the book about JavaScript',
       cover: '{{$basePath}}/img/examples/javascript-the-good-parts.jpg',
     },
     {
-      title:
-        '<a href="https://shop.oreilly.com/product/9780596805531.do">JavaScript: The Definitive Guide</a>',
+      title: '<a href="https://shop.oreilly.com/product/9780596805531.do">JavaScript: The Definitive Guide</a>',
       description:
         '<em>JavaScript: The Definitive Guide</em> provides a thorough description of the core <b>JavaScript</b> language and both the legacy and standard DOMs implemented in web browsers.',
       comments:
@@ -76,6 +73,7 @@ const ExampleComponent = () => {
 
   return (
     <HotTable
+      themeName="ht-theme-main"
       data={data}
       colWidths={[200, 200, 200, 80]}
       colHeaders={['Title', 'Description', 'Comments', 'Cover']}

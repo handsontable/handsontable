@@ -29,6 +29,7 @@ const ExampleComponent = () => {
 
   return (
     <HotTable
+      themeName="ht-theme-main"
       ref={hotRef}
       data={[
         { car: 'Tesla', year: 2017, chassis: 'black', bumper: 'black' },

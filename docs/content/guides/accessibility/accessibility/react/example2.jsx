@@ -480,6 +480,7 @@ const countries = data.reduce((acc, curr) => {
 /* end:skip-in-preview */
 // Handsontable options
 const hotOptions = {
+  themeName: 'ht-theme-main',
   data,
   height: 464,
   colWidths: [160, 165, 130, 120, 100, 110, 216],

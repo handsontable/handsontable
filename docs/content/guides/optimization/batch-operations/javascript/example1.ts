@@ -20,9 +20,7 @@ const data1: (string | number)[][] = [
   [10, 'Archie Galvin', 'Regular shades', 'uni', 10, 'no'],
 ];
 
-const data2: (string | number)[][] = [
-  [11, 'Gavin Elle', 'Floppy socks', 'XS', 3, 'yes'],
-];
+const data2: (string | number)[][] = [[11, 'Gavin Elle', 'Floppy socks', 'XS', 3, 'yes']];
 
 const data3: (string | number)[][] = [
   [12, 'Gary Erre', 'Happy dress', 'M', 1, 'no'],
@@ -31,6 +29,7 @@ const data3: (string | number)[][] = [
 ];
 
 const hot = new Handsontable(container, {
+  themeName: 'ht-theme-main',
   data: data1,
   width: 'auto',
   height: 'auto',

@@ -10,6 +10,7 @@ const ExampleComponent = {
   data() {
     return {
       hotSettings: {
+        themeName: 'ht-theme-main',
         startRows: 5,
         startCols: 5,
         colHeaders: true,

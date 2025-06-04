@@ -10,6 +10,7 @@ const ExampleComponent = {
   data() {
     return {
       hotSettings: {
+        themeName: 'ht-theme-main',
         data: [
           ['', 'Ford', 'Volvo', 'Toyota', 'Honda'],
           ['2016', 10, 11, 12, 13],

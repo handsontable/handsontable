@@ -204,6 +204,7 @@ const ExampleComponent = () => {
   return (
     <Provider store={reduxStore}>
       <HotTable
+        themeName="ht-theme-main"
         data={data}
         rowHeaders={true}
         rowHeights={30}

@@ -13,6 +13,7 @@ const data: (string | number)[][] = [
 ];
 
 const settings = {
+  themeName: 'ht-theme-main',
   data,
   height: 'auto',
   autoWrapRow: true,

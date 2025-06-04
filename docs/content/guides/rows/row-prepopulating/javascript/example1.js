@@ -35,6 +35,7 @@ const defaultValueRenderer = (instance, td, row, col, prop, value, cellPropertie
 
 const container = document.querySelector('#example1');
 const hot = new Handsontable(container, {
+  themeName: 'ht-theme-main',
   startRows: 8,
   startCols: 5,
   minSpareRows: 1,

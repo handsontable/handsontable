@@ -35,6 +35,7 @@ const ExampleComponent = () => {
         </div>
       </div>
       <HotTable
+        themeName="ht-theme-main"
         ref={hotTableComponentRef}
         data={[
           {
