@@ -1145,6 +1145,66 @@ describe('UndoRedo', () => {
         getPlugin('undoRedo').undo();
         expect(getDataAtCell(1, 1)).toEqual('Frank Honest');
       });
+
+      it('should undo copy-and-paste action (text data)', async() => {
+        handsontable({
+          type: 'text',
+          data: [
+            ['foo'],
+            ['bar']
+          ]});
+
+        const copyEvent = getClipboardEvent();
+        const copyPastePlugin = getPlugin('CopyPaste');
+
+        await selectCell(0, 0, 1, 0);
+        await copyPastePlugin.onCopy(copyEvent);
+        await selectCell(1, 0);
+        await copyPastePlugin.onPaste(copyEvent);
+
+        expect(getData()).toEqual([
+          ['foo'],
+          ['foo'],
+          ['bar']
+        ]);
+
+        getPlugin('undoRedo').undo();
+
+        expect(getData()).toEqual([
+          ['foo'],
+          ['bar']
+        ]);
+      });
+
+      it('should undo copy-and-paste action (numeric data)', async() => {
+        handsontable({
+          type: 'numeric',
+          data: [
+            [42],
+            [43]
+          ]});
+
+        const copyEvent = getClipboardEvent();
+        const copyPastePlugin = getPlugin('CopyPaste');
+
+        await selectCell(0, 0, 1, 0);
+        await copyPastePlugin.onCopy(copyEvent);
+        await selectCell(1, 0);
+        await copyPastePlugin.onPaste(copyEvent);
+
+        expect(getData()).toEqual([
+          [42],
+          [42],
+          [43]
+        ]);
+
+        getPlugin('undoRedo').undo();
+
+        expect(getData()).toEqual([
+          [42],
+          [43]
+        ]);
+      });
     });
 
     describe('redo', () => {
@@ -1971,6 +2031,66 @@ describe('UndoRedo', () => {
         expect(getDataAtRowProp(0, 'surname')).toEqual('Dalton');
         expect(getDataAtRowProp(1, 'name')).toEqual('Sean');
         expect(getDataAtRowProp(1, 'surname')).toEqual('Connery');
+      });
+
+      it('should undo copy-and-paste action (text data)', async() => {
+        handsontable({
+          type: 'text',
+          data: [
+            { name: 'foo' },
+            { name: 'bar' },
+          ]});
+
+        const copyEvent = getClipboardEvent();
+        const copyPastePlugin = getPlugin('CopyPaste');
+
+        await selectCell(0, 0, 1, 0);
+        await copyPastePlugin.onCopy(copyEvent);
+        await selectCell(1, 0);
+        await copyPastePlugin.onPaste(copyEvent);
+
+        expect(getData()).toEqual([
+          ['foo'],
+          ['foo'],
+          ['bar']
+        ]);
+
+        getPlugin('undoRedo').undo();
+
+        expect(getData()).toEqual([
+          ['foo'],
+          ['bar']
+        ]);
+      });
+
+      it('should undo copy-and-paste action (numeric data)', async() => {
+        handsontable({
+          type: 'numeric',
+          data: [
+            { value: 42 },
+            { value: 43 },
+          ]});
+
+        const copyEvent = getClipboardEvent();
+        const copyPastePlugin = getPlugin('CopyPaste');
+
+        await selectCell(0, 0, 1, 0);
+        await copyPastePlugin.onCopy(copyEvent);
+        await selectCell(1, 0);
+        await copyPastePlugin.onPaste(copyEvent);
+
+        expect(getData()).toEqual([
+          [42],
+          [42],
+          [43]
+        ]);
+
+        getPlugin('undoRedo').undo();
+
+        expect(getData()).toEqual([
+          [42],
+          [43]
+        ]);
       });
     });
 
