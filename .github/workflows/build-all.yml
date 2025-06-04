@@ -43,6 +43,9 @@ jobs:
       - name: Install the dependencies
         run: npm ci
 
+      - name: Install examples' dependencies
+        run: npm run examples:install next
+
       - name: Build all packages
         run: npm run all build
 
