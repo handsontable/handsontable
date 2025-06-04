@@ -19,6 +19,9 @@ tags:
 react:
   id: 0mz9id0l
   metaTitle: Design System / UI Kit - React Data Grid | Handsontable
+angular:
+  id: vru7jook
+  metaTitle: Design System / UI Kit - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Styling
 ---

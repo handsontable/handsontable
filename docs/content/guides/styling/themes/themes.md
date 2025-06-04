@@ -22,6 +22,9 @@ tags:
 react:
   id: jn2po47i
   metaTitle: Themes - React Data Grid | Handsontable
+angular:
+  id: 1sco6djp
+  metaTitle: Themes - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Styling
 ---
@@ -65,6 +68,18 @@ Keep in mind that starting from version `15.0`, importing a theme is required.
 
 :::
 
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/guides/styling/themes/angular/example1.ts)
+@[code](@/content/guides/styling/themes/angular/example1.html)
+
+:::
+
+:::
+
 ## Light and dark modes
 
 Each theme comes with three modes:
@@ -92,6 +107,24 @@ import 'handsontable/styles/ht-theme-main.min.css';
 require('handsontable/styles/handsontable.min.css');
 require('handsontable/styles/ht-theme-main.min.css');
 ```
+
+::: only-for angular
+
+The recommended approach for applying global styles is to include them in the `styles` array defined in the `angular.json` configuration file.
+
+```json5
+{
+  // ...
+  "styles": [
+    "src/styles.css",
+    "node_modules/handsontable/styles/handsontable.min.css",
+    "node_modules/handsontable/styles/ht-theme-main.min.css"
+  ],
+  // ...
+}
+```
+
+:::
 
 Alternatively, you can import the necessary files from the recommended CDN such as [JSDelivr](https://jsdelivr.com/package/npm/handsontable) or [cdnjs](https://cdnjs.com/libraries/handsontable).
 
@@ -129,6 +162,67 @@ const hot = new Handsontable(container, {
   themeName="ht-theme-main-dark-auto"
 />
 ```
+
+:::
+
+::: only-for angular
+
+```html
+<hot-table [settings]="{
+  themeName: 'ht-theme-main-dark-auto'
+}">
+</hot-table>
+```
+
+:::
+
+::: only-for angular
+
+## Global Theme Management
+
+In addition to passing a theme name via the settings object for individual Handsontable instances, you can set a global default theme that applies to all instances. This can be accomplished in two ways:
+
+### Using ApplicationConfig
+
+You can use `ApplicationConfig` to provide a global configuration via the `HOT_GLOBAL_CONFIG` injection token.
+
+```ts
+import { bootstrapApplication } from '@angular/platform-browser';
+import { ApplicationConfig } from '@angular/core';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig } from '@handsontable/angular-wrapper';
+import { AppComponent } from './app/app.component';
+
+export const appConfig: ApplicationConfig = {
+  providers: [{
+    provide: HOT_GLOBAL_CONFIG,
+    useValue: { themeName: 'ht-theme-main-dark-auto' } as HotGlobalConfig
+  }],
+};
+
+bootstrapApplication(AppComponent, appConfig);
+```
+This global configuration is then merged with local settings when initializing each Handsontable instance.
+
+### Using HotGlobalConfigService
+
+You can manage the global theme at runtime using the `HotGlobalConfigService`.
+
+```ts
+hotConfigService.setConfig({ themeName: 'ht-theme-horizon-dark' });
+```
+When the configuration changes, all Handsontable instances will automatically update their settings.
+
+### Theme settings hierarchy
+
+When both a global theme and a local themeName are defined, the local setting takes precedence. This means:
+- Local Setting: If a `<hot-table>` component is provided with a `themeName` via its `settings` input, that value overrides the global default.
+- Global Setting: If no local theme is specified, the component falls back to the global configuration provided via the injection token or the configuration service.
+
+This hierarchy ensures that you can define a consistent default theme for your entire application while still allowing individual components to customize their appearance when needed.
+
+::: only-for angular
+
+<!-- TODO: angular example example--02-01-02 -->
 
 :::
 
@@ -173,6 +267,18 @@ const hot = new Handsontable(container, {
   themeName="ht-theme-falcon"
   // other options
 />
+```
+
+:::
+
+::: only-for angular
+
+```html
+<hot-table [settings]="{
+  themeName: 'ht-theme-falcon'
+  // other options
+}">
+</hot-table>
 ```
 
 :::

@@ -12,6 +12,10 @@ react:
   id: ccqbm8hn
   metaTitle: Demo - React Data Grid | Handsontable
   description: Play around with a demo of Handsontable in React.
+angular:
+  id: i2n378hh
+  metaTitle: Demo - Angular Data Grid | Handsontable
+  description: Play around with a demo of Handsontable in Angular.
 searchCategory: Guides
 category: Getting started
 ---
@@ -38,15 +42,26 @@ Play around with a demo of Handsontable, in your favorite framework.
 :::
 :::
 
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/guides/getting-started/demo/angular/example1.ts)
+@[code](@/content/guides/getting-started/demo/angular/example1.html)
+
+:::
+
+:::
+
 ## Find the code on GitHub
 
 <div class="boxes-list gray">
 
 - <Link :href="`https://github.com/handsontable/handsontable/tree/prod-docs/${$page.currentVersion}/examples/next/docs/js/demo/`">JavaScript demo app</Link>
 - <Link :href="`https://github.com/handsontable/handsontable/tree/prod-docs/${$page.currentVersion}/examples/next/docs/ts/demo/`">TypeScript demo app</Link>
-- <Link :href="`https://github.com/handsontable/handsontable/tree/prod-docs/${$page.currentVersion}/examples/next/docs/angular/demo/`">Angular demo app</Link>
-- <Link :href="`https://github.com/handsontable/handsontable/tree/prod-docs/${$page.currentVersion}/examples/next/docs/react/demo/`">React demo app</Link>
-- <Link :href="`https://github.com/handsontable/handsontable/tree/prod-docs/${$page.currentVersion}/examples/next/docs/vue/demo/`">Vue demo app</Link>
+- <Link :href="`https://github.com/handsontable/handsontable/tree/prod-docs/${$page.currentVersion}/examples/next/docs/angular-wrapper/demo/`">Angular demo app</Link>
+- <Link :href="`https://github.com/handsontable/handsontable/tree/prod-docs/${$page.currentVersion}/examples/next/docs/react-wrapper/demo/`">React demo app</Link>
+- <Link :href="`https://github.com/handsontable/handsontable/tree/prod-docs/${$page.currentVersion}/examples/next/docs/vue3/demo/`">Vue demo app</Link>
 
 </div>
 
@@ -66,6 +81,7 @@ Explore the demo and discover Handsontable's most popular features:
 ## Edit the demo's source code
 
 You can:
+
 - View the complete source code behind your framework's demo
 - Run your framework's demo on your local machine
 - Fork the directory with your framework's demo, and add changes of your own

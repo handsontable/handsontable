@@ -18,6 +18,9 @@ tags:
 react:
   id: ddjw4zt88
   metaTitle: Keyboard shortcuts - React Data Grid | Handsontable
+angular:
+  id: v7sq2x22
+  metaTitle: Keyboard shortcuts - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Navigation
 ---

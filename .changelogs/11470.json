@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Updated CSS theme variables and added input radio variables",
+  "type": "changed",
+  "issueOrPR": 11470,
+  "breaking": true,
+  "framework": "none"
+}

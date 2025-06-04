@@ -121,6 +121,70 @@ export const PLUGIN_PRIORITY = 320;
  * hot.render();
  * ```
  * :::
+ *
+ * ::: only-for angular
+ * ```ts
+ * import { AfterViewInit, Component, ViewChild } from "@angular/core";
+ * import {
+ *   GridSettings,
+ *   HotTableModule,
+ *   HotTableComponent,
+ * } from "@handsontable/angular-wrapper";
+ *
+ * `@Component`({
+ *   selector: "app-example",
+ *   standalone: true,
+ *   imports: [HotTableModule],
+ *   template: ` <div class="ht-theme-main">
+ *     <hot-table [settings]="gridSettings" />
+ *   </div>`,
+ * })
+ * export class ExampleComponent implements AfterViewInit {
+ *   `@ViewChild`(HotTableComponent, { static: false })
+ *   readonly hotTable!: HotTableComponent;
+ *
+ *   readonly gridSettings = <GridSettings>{
+ *     data: this.getData(),
+ *     hiddenRows: {
+ *       copyPasteEnabled: true,
+ *       indicators: true,
+ *       rows: [1, 2, 5],
+ *     },
+ *   };
+ *
+ *   ngAfterViewInit(): void {
+ *     // Access the `HiddenRows` plugin's instance
+ *     const hot = this.hotTable.hotInstance;
+ *     const hiddenRowsPlugin = hot.getPlugin("hiddenRows");
+ *
+ *     // Hide a single row
+ *     hiddenRowsPlugin.hideRow(1);
+ *
+ *     // Hide multiple rows
+ *     hiddenRowsPlugin.hideRow(1, 2, 9);
+ *
+ *     // Hide multiple rows as an array
+ *     hiddenRowsPlugin.hideRows([1, 2, 9]);
+ *
+ *     // Unhide a single row
+ *     hiddenRowsPlugin.showRow(1);
+ *
+ *     // Unhide multiple rows
+ *     hiddenRowsPlugin.showRow(1, 2, 9);
+ *
+ *     // Unhide multiple rows as an array
+ *     hiddenRowsPlugin.showRows([1, 2, 9]);
+ *
+ *     // To see your changes, re-render your Handsontable instance
+ *     hot.render();
+ *   }
+ *
+ *   private getData(): any[] {
+ *     // Get some data
+ *   }
+ * }
+ * ```
+ * :::
  */
 export class HiddenRows extends BasePlugin {
   static get PLUGIN_KEY() {

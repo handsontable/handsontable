@@ -91,6 +91,67 @@ export const PLUGIN_PRIORITY = 330;
  * hot.render();
  * ```
  * :::
+ *
+ * ::: only-for angular
+ * ```ts
+ * import { AfterViewInit, Component, ViewChild } from "@angular/core";
+ * import {
+ *   GridSettings,
+ *   HotTableModule,
+ *   HotTableComponent,
+ * } from "@handsontable/angular-wrapper";
+ *
+ * `@Component`({
+ *   selector: "app-example",
+ *   standalone: true,
+ *   imports: [HotTableModule],
+ *   template: ` <div class="ht-theme-main">
+ *     <hot-table [settings]="gridSettings" />
+ *   </div>`,
+ * })
+ * export class ExampleComponent implements AfterViewInit {
+ *   `@ViewChild`(HotTableComponent, { static: false })
+ *   readonly hotTable!: HotTableComponent;
+ *
+ *   readonly gridSettings = <GridSettings>{
+ *     data: this.getData(),
+ *     // Hide selected rows on table initialization
+ *     trimRows: [1, 2, 5],
+ *   };
+ *
+ *   ngAfterViewInit(): void {
+ *     // Access the trimRows plugin instance
+ *     const hot = this.hotTable.hotInstance;
+ *     const trimRowsPlugin = hot.getPlugin("trimRows");
+ *
+ *     // Hide a single row
+ *     trimRowsPlugin.trimRow(1);
+ *
+ *     // Hide multiple rows
+ *     trimRowsPlugin.trimRow(1, 2, 9);
+ *
+ *     // Or as an array
+ *     trimRowsPlugin.trimRows([1, 2, 9]);
+ *
+ *     // Show a single row
+ *     trimRowsPlugin.untrimRow(1);
+ *
+ *     // Show multiple rows
+ *     trimRowsPlugin.untrimRow(1, 2, 9);
+ *
+ *     // Or as an array
+ *     trimRowsPlugin.untrimRows([1, 2, 9]);
+ *
+ *     // Re-render table to see the changes
+ *     hot.render();
+ *   }
+ *
+ *   private getData(): any[] {
+ *     // Get some data
+ *   }
+ * }
+ * ```
+ * :::
  */
 export class TrimRows extends BasePlugin {
   static get PLUGIN_KEY() {

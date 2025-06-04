@@ -151,7 +151,7 @@ module.exports = function(docsVersion, base) {
         const cssToken = cssPos ? tokens[cssIndex] : undefined;
         const cssContent = cssToken ? cssToken.content : '';
 
-        const jsPos = args.match(/--js (\d*)/)?.[1] || 1;
+        const jsPos = args.match(/--js (\d*)/)?.[1];
         const jsIndex = jsPos ? index + Number.parseInt(jsPos, 10) : 0;
         const jsToken = jsPos ? tokens[jsIndex] : undefined;
 
@@ -162,39 +162,40 @@ module.exports = function(docsVersion, base) {
         // Parse code
         const jsTokenWithBasePath = jsToken?.content?.replaceAll('{{$basePath}}', base);
         const tsTokenWithBasePath = tsToken?.content?.replaceAll('{{$basePath}}', base);
-        const codeToCompile = parseCode(jsTokenWithBasePath);
+        const jsCodeToCompile = parseCode(jsTokenWithBasePath);
         const tsCodeToCompile = parseCode(tsTokenWithBasePath);
-        const codeToCompileSandbox = parseCodeSandbox(jsTokenWithBasePath);
+        const jsCodeToCompileSandbox = parseCodeSandbox(jsTokenWithBasePath);
         const tsCodeToCompileSandbox = parseCodeSandbox(tsTokenWithBasePath);
-        const codeToPreview = parsePreview(jsTokenWithBasePath);
+        const jsCodeToPreview = parsePreview(jsTokenWithBasePath);
         const tsCodeToPreview = parsePreview(tsTokenWithBasePath);
 
         // Replace token content
         if (jsToken) {
-          jsToken.content = codeToPreview;
+          jsToken.content = jsCodeToPreview;
         }
 
         if (tsToken) {
           tsToken.content = tsCodeToPreview;
         }
 
-        [htmlIndex, jsIndex, tsIndex, cssIndex].filter(x => !!x).sort().reverse().forEach((x) => {
+        [...new Set([htmlIndex, jsIndex, tsIndex, cssIndex])].filter(x => !!x).sort().reverse().forEach((x) => {
           tokens.splice(x, 1);
         });
 
+        const isAngular = preset.includes('angular');
         const newTokens = [
-          ...tab('Code', tsToken ? getCodeToken(jsToken, tsToken) : jsToken, id),
-          ...tab('HTML', htmlToken, id),
+          ...tab('Code', tsToken && jsToken ? getCodeToken(jsToken, tsToken) : (tsToken ?? jsToken), id),
+          ...tab('HTML', isAngular ? undefined : htmlToken, id),
           ...tab('CSS', cssToken, id),
         ];
 
         tokens.splice(index + 1, 0, ...newTokens);
 
-        const codeForPreset = addCodeForPreset(codeToCompile, preset, id, isProduction);
+        const jsCodeForPreset = addCodeForPreset(jsCodeToCompile, preset, id, isProduction);
         const tsCodeForPreset = addCodeForPreset(tsCodeToCompile, preset, id, isProduction);
         const code = buildCode(
-          id + (preset.includes('angular') ? '.ts' : '.jsx'),
-          codeForPreset,
+          id + (isAngular ? '.ts' : '.jsx'),
+          isAngular ? tsCodeForPreset : jsCodeForPreset,
           env.relativePath
         );
         const encodedCode = encodeURI(
@@ -202,12 +203,12 @@ module.exports = function(docsVersion, base) {
         );
         const activeTab = `${args.match(/--tab (code|html|css|preview)/)?.[1] ?? 'preview'}-tab-${id}`;
         const noEdit = !!args.match(/--no-edit/)?.[0];
-        const isRTL = /layoutDirection(.*)'rtl'/.test(codeToCompile) || /dir="rtl"/.test(htmlContent);
+        const isRTL = /layoutDirection(.*)'rtl'/.test(jsCodeToCompile) || /dir="rtl"/.test(htmlContent);
         const isActive = `$parent.$parent.isScriptLoaderActivated('${id}')`;
-        const selectedLang = '$parent.$parent.selectedLang';
         const isJavaScript = preset.includes('hot');
         const isReact = preset.includes('react');
-        const isReactOrJavaScript = isJavaScript || isReact;
+        const selectedLang = isAngular ? '\'TypeScript\'' : '$parent.$parent.selectedLang';
+        const isReactOrAngularOrJS = isJavaScript || isReact || isAngular;
 
         return `
           <div class="example-container">
@@ -223,12 +224,12 @@ module.exports = function(docsVersion, base) {
                 <i class="ico i-code"></i>Source code
               </button>
               <div class="example-controls">
-                <div class="examples-buttons" v-if="${selectedLang} === 'JavaScript' || !${isReactOrJavaScript}">
+                <div class="examples-buttons" v-if="${selectedLang} === 'JavaScript' || !${isReactOrAngularOrJS}">
                   ${!noEdit
     ? stackblitz(
       id,
       htmlContent,
-      codeToCompileSandbox,
+      jsCodeToCompileSandbox,
       cssContent,
       docsVersion,
       preset,
@@ -239,7 +240,7 @@ module.exports = function(docsVersion, base) {
     ? jsfiddle(
       id,
       htmlContent,
-      codeForPreset,
+      jsCodeForPreset,
       cssContent,
       docsVersion,
       preset,
@@ -247,7 +248,7 @@ module.exports = function(docsVersion, base) {
     )
     : ''}
                 </div>
-                <div class="examples-buttons" v-if="${selectedLang} === 'TypeScript' && ${isReactOrJavaScript}">
+                <div class="examples-buttons" v-if="${selectedLang} === 'TypeScript' && ${isReactOrAngularOrJS}">
                   ${!noEdit
     ? stackblitz(
       id,

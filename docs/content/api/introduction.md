@@ -9,6 +9,9 @@ searchCategory: API Reference
 react:
   id: 45svfigt
   metaTitle: API reference - React Data Grid | Handsontable
+angular:
+  id: 48gjbys8
+  metaTitle: API reference - Angular Data Grid | Handsontable
 ---
 
 # Handsontable API reference
@@ -33,11 +36,11 @@ The API enables you to control the data grid programmatically. With this API, yo
 
 - [Core](@/api/core.md)
 The `Handsontable` class controls the essential aspects of the data grid.
-- [Hooks](@/api/hooks.md) 
+- [Hooks](@/api/hooks.md)
 Handsontable hooks are events that fire whenever a specific action occurs within the instance of Handsontable.
-- [Options](@/api/options.md) 
+- [Options](@/api/options.md)
 These are the settings available to be registered for the `Core` features, in addition to those provided by plugins.
-- [Plugins](@/api/plugins.md) 
+- [Plugins](@/api/plugins.md)
 The plugins extend the capabilities of Handsontable.
 
 </div>

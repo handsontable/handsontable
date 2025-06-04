@@ -8,6 +8,9 @@ canonicalUrl: /vue3-installation
 react:
   id: fsggsowh
   metaTitle: Installation - Vue 3 Data Grid | Handsontable
+angular:
+  id: od7j5cpt
+  metaTitle: Installation - Vue 3 Data Grid | Handsontable
 searchCategory: Guides
 category: Integrate with Vue 3
 ---

@@ -3,8 +3,9 @@ const path = require('path');
 const TerserPlugin = require('terser-webpack-plugin');
 
 // Check if the locally linked Angular wrapper exists and use it, otherwise use the one from node_modules.
-const localAngularWrapperPath = '../../public/@handsontable/angular/fesm2022/handsontable-angular.mjs';
-const dependencyAngularWrapperPath = '../../../node_modules/@handsontable/angular/fesm2022/handsontable-angular.mjs';
+const localAngularWrapperPath = '../../public/@handsontable/angular-wrapper/fesm2022/handsontable-angular-wrapper.mjs';
+const dependencyAngularWrapperPath =
+'../../../node_modules/@handsontable/angular-wrapper/fesm2022/handsontable-angular-wrapper.mjs';
 const angularImportPath = fs.existsSync(path.resolve(__dirname, localAngularWrapperPath))
   ? localAngularWrapperPath
   : dependencyAngularWrapperPath;
@@ -22,7 +23,7 @@ module.exports = {
     'core-primitives-signals': '../../../node_modules/@angular/core/fesm2022/primitives/signals.mjs',
     'core-primitives-di': '../../../node_modules/@angular/core/fesm2022/primitives/di.mjs',
     'common-http': '../../../node_modules/@angular/common/fesm2022/http.mjs',
-    'handsontable-angular': {
+    'handsontable-angular-wrapper': {
       import: angularImportPath,
       library: {
         name: ['Handsontable', 'angular'],
@@ -33,8 +34,8 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, '../../public/scripts/prebuilt-umd'),
     filename: (pathData) => {
-      if (pathData.chunk.name === 'handsontable-angular') {
-        return 'handsontable-angular.umd.min.js';
+      if (pathData.chunk.name === 'handsontable-angular-wrapper') {
+        return 'handsontable-angular-wrapper.umd.min.js';
       }
 
       return 'angular-[name].umd.min.js';
@@ -79,11 +80,11 @@ module.exports = {
         commonjs2: 'rxjs.operators',
         amd: 'rxjs.operators'
       },
-      '@handsontable/angular': {
+      '@handsontable/angular-wrapper': {
         root: ['Handsontable', 'angular'],
-        commonjs: '@handsontable/angular',
-        commonjs2: '@handsontable/angular',
-        amd: '@handsontable/angular'
+        commonjs: '@handsontable/angular-wrapper',
+        commonjs2: '@handsontable/angular-wrapper',
+        amd: '@handsontable/angular-wrapper'
       },
       '@angular/core': {
         root: ['ng', 'core'],
