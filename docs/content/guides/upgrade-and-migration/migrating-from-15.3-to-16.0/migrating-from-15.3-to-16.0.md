@@ -96,3 +96,12 @@ If you were using custom CSS variables in version 15.3, you'll need to:
 2. Update variable references to the new radio input (only if checkbox variables were changed)
 3. Take advantage of the new variables for more granular control
 
+## 3. Update the placement of custom borders
+
+In Handsontable 16.0, we've updated how custom borders are positioned to improve accuracy and consistency.
+
+### Key changes in border placement
+- Borders are positioned to ensure that all borders remain within the table
+
+### Migration notes
+No code changes are required - the improvements are handled automatically by the new version.
