@@ -11,6 +11,8 @@ module.exports = {
     '**/guides/**/*.jsx',
     '**/guides/**/*.tsx',
     '**/public/scripts/prebuilt-umd/*.*',
+    // FIXME: this is a workaround for the issue with the vuepress theme on jsnation 2025ś
+    '.vuepress/theme/components/Navbar.vue'
   ],
   rules: {
     'no-restricted-globals': 'off',
