@@ -38,8 +38,9 @@
       .theme-dark aside.jsnation2025 h6 { color: #D1D1D2; }
       .theme-dark aside.jsnation2025 h6 a { color: #27C2FF }
       /* Layout fix */
-      .page { margin-top: calc(56px + 80px);}
-      .page .theme-default-content .table-of-contents { top: calc(56px + 80px);}
+      
+      .page.with-jsnation2025 { margin-top: calc(56px + 80px);}
+      .page.with-jsnation2025 .theme-default-content .table-of-contents { top: calc(56px + 80px);}
 
       /* Dark mode link fix */
       html.theme-dark aside.jsnation2025 h6 a { color: var(--color-lightblue); }
@@ -51,6 +52,7 @@
           padding: 0 24px;}
       }
       @media (max-width: 992px) {
+        
         /* no-mobile */
         .no-mobile { display:none }
           aside.jsnation2025 .navbar-wrapper {
@@ -186,6 +188,7 @@ export default {
       localStorage.setItem('hideJSNation2025', true);
       document.getElementById('jsnation2025').style.display = 'none';
       document.querySelector('aside.sidebar').classList.remove('with-jsnation2025');
+      document.querySelector('main.page').classList.remove('with-jsnation2025');
     },
   },
 
@@ -214,6 +217,7 @@ export default {
     if (showJSNation2025) {
       document.getElementById('jsnation2025').style.display = 'flex';
       document.querySelector('aside.sidebar').classList.add('with-jsnation2025');
+      document.querySelector('main.page').classList.add('with-jsnation2025');
     }
 
   }
