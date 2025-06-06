@@ -106,8 +106,8 @@ export class StretchColumns extends BasePlugin {
 
       entries.forEach(({ contentRect }) => {
         if (this.#previousTableWidth !== null && this.#previousTableWidth !== contentRect.width) {
-          this.hot.refreshDimensions();
           this.hot.view.adjustElementsSize();
+          this.hot.refreshDimensions();
         }
 
         this.#previousTableWidth = contentRect.width;

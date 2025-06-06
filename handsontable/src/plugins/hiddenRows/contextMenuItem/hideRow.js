@@ -43,8 +43,8 @@ export default function hideRowItem(hiddenRowsPlugin) {
         this.deselectCell();
       }
 
-      this.render();
       this.view.adjustElementsSize();
+      this.render();
     },
     disabled: false,
     hidden() {

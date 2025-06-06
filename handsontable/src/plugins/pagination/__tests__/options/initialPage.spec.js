@@ -1,0 +1,139 @@
+describe('Pagination `initialPage` option', () => {
+  beforeEach(function() {
+    this.$container = $('<div id="testContainer"></div>').appendTo('body');
+  });
+
+  afterEach(function() {
+    if (this.$container) {
+      destroy();
+      this.$container.remove();
+    }
+  });
+
+  it('should have defined default value', async() => {
+    handsontable({
+      data: createSpreadsheetData(20, 10),
+      pagination: true,
+    });
+
+    const plugin = getPlugin('pagination');
+
+    expect(plugin.getSetting('initialPage')).toBe(1);
+  });
+
+  it('should be possible to change value in settings', async() => {
+    handsontable({
+      data: createSpreadsheetData(45, 10),
+      pagination: {
+        initialPage: 5,
+      },
+    });
+
+    const plugin = getPlugin('pagination');
+
+    expect(plugin.getSetting('initialPage')).toBe(5);
+    expect(countVisibleRows()).toBe(5);
+  });
+
+  it('should be possible to change value via `updateSettings`', async() => {
+    handsontable({
+      data: createSpreadsheetData(45, 10),
+      pagination: true,
+    });
+
+    await updateSettings({
+      pagination: {
+        initialPage: 5,
+      },
+    });
+
+    const plugin = getPlugin('pagination');
+
+    expect(plugin.getSetting('initialPage')).toBe(5);
+    expect(countVisibleRows()).toBe(5);
+  });
+
+  it('should not be possible to change value to invalid one', async() => {
+    handsontable({
+      data: createSpreadsheetData(45, 10),
+      pagination: {
+        initialPage: -10,
+      },
+    });
+
+    const plugin = getPlugin('pagination');
+
+    expect(plugin.getPaginationData().currentPage).toBe(1);
+
+    await updateSettings({
+      pagination: {
+        initialPage: 100,
+      },
+    });
+
+    expect(plugin.getPaginationData().currentPage).toBe(5);
+  });
+
+  it('should update UI elements according to the plugins changes', async() => {
+    handsontable({
+      data: createSpreadsheetData(45, 10),
+      pagination: {
+        initialPage: 1,
+      },
+    });
+
+    expect(visualizePageSections()).toEqual([
+      'Page size: [5, 10, 20, 50, 100]',
+      '1 - 10 of 45',
+      '|< < Page 1 of 5 [>] [>|]',
+    ]);
+
+    await updateSettings({
+      pagination: {
+        initialPage: 2,
+      },
+    });
+
+    expect(visualizePageSections()).toEqual([
+      'Page size: [5, 10, 20, 50, 100]',
+      '11 - 20 of 45',
+      '[|<] [<] Page 2 of 5 [>] [>|]',
+    ]);
+
+    await updateSettings({
+      pagination: {
+        initialPage: 3,
+      },
+    });
+
+    expect(visualizePageSections()).toEqual([
+      'Page size: [5, 10, 20, 50, 100]',
+      '21 - 30 of 45',
+      '[|<] [<] Page 3 of 5 [>] [>|]',
+    ]);
+
+    await updateSettings({
+      pagination: {
+        initialPage: 4,
+      },
+    });
+
+    expect(visualizePageSections()).toEqual([
+      'Page size: [5, 10, 20, 50, 100]',
+      '31 - 40 of 45',
+      '[|<] [<] Page 4 of 5 [>] [>|]',
+    ]);
+
+    await updateSettings({
+      pagination: {
+        initialPage: 5,
+      },
+    });
+
+    expect(visualizePageSections()).toEqual([
+      'Page size: [5, 10, 20, 50, 100]',
+      '41 - 45 of 45',
+      '[|<] [<] Page 5 of 5 > >|',
+    ]);
+  });
+});
