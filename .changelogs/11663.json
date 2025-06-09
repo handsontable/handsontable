@@ -3,6 +3,6 @@
   "title": "Updated an fill handle styles",
   "type": "changed",
   "issueOrPR": 11663,
-  "breaking": false,
+  "breaking": true,
   "framework": "none"
 }
