@@ -110,42 +110,66 @@ No code changes are required - the improvements are handled automatically by the
 
 Version 16.0 introduces a completely new Angular wrapper for Handsontable. This wrapper is designed to provide better integration with modern Angular applications and improved developer experience. If your app uses the `@handsontable/angular` package, you need to switch to the new `@handsontable/angular-wrapper` package and adjust your code following these steps:
 
+### Notes
+
+1. **Breaking changes**: The new wrapper is not backward compatible with the old one. You'll need to update your code according to the steps above.
+
+2. **Component-based approach**: The new wrapper embraces Angular's component-based architecture, allowing you to create custom editors and renderers as Angular components.
+
+3. **Improved TypeScript support**: The new wrapper provides better TypeScript definitions with the `GridSettings` interface.
+
+4. **Standalone components**: The new wrapper fully supports Angular's standalone components, making it easier to use in modern Angular applications.
+
+5. **Global configuration**: The new wrapper provides better global configuration management through dependency injection.
+
+6. **Performance**: The new wrapper is optimized for better performance and follows Angular best practices.
+
+7. **Template syntax**: The simplified template syntax reduces boilerplate and makes configuration more maintainable.
+
+8. **Instance access**: Direct access to the Handsontable instance is now available through `ViewChild` instead of the registerer pattern.
+
 ### Step 1: Update package dependencies
 
-Replace the old Angular wrapper with the new one in your `package.json`:
+Replace the old Angular wrapper package with the new one:
 
-**Old dependency:**
-```json
-{
-  "dependencies": {
-    "@handsontable/angular": "^15.3.0"
-  }
-}
+**Remove the old package:**
+```bash
+npm uninstall @handsontable/angular
 ```
 
-**New dependency:**
-```json
-{
-  "dependencies": {
-    "@handsontable/angular-wrapper": "^16.0.0"
-  }
-}
+**Install the new package:**
+```bash
+npm install @handsontable/angular-wrapper
 ```
 
-### Step 2: Update imports and module registration
+### Step 2: Update imports
 
-The new wrapper has different import paths and module registration approach.
+The new wrapper uses a different package name and some different import paths.
 
-**Old wrapper (module-based approach):**
-```typescript
-// app.module.ts
+**Old wrapper imports:**
+```ts
+import { HotTableModule } from '@handsontable/angular';
+import { HotTableRegisterer } from '@handsontable/angular';
+```
+
+**New wrapper imports:**
+```ts
+import { HotTableModule, HotTableComponent, GridSettings } from '@handsontable/angular-wrapper';
+import { HotGlobalConfigService } from '@handsontable/angular-wrapper';
+```
+
+### Step 3: Update module configuration
+
+The module setup has changed to support both standalone components and traditional NgModules.
+
+**Old wrapper module setup:**
+```ts
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HotTableModule } from '@handsontable/angular';
 import { registerAllModules } from 'handsontable/registry';
 import { AppComponent } from './app.component';
 
-// register Handsontable's modules
 registerAllModules();
 
 @NgModule({
@@ -156,95 +180,138 @@ registerAllModules();
 export class AppModule { }
 ```
 
-**New wrapper (standalone components approach):**
-```typescript
-// app.config.ts
-import { ApplicationConfig } from '@angular/core';
-import { provideRouter } from '@angular/router';
-import { HOT_GLOBAL_CONFIG, HotConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
-import { routes } from './app.routes';
+**New wrapper module setup:**
+```ts
+import { NgModule } from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
+import { HotTableModule, HotGlobalConfigService } from '@handsontable/angular-wrapper';
+import { registerAllModules } from 'handsontable/registry';
+import { AppComponent } from './app.component';
 
-const globalHotConfig: HotConfig = {
-  license: NON_COMMERCIAL_LICENSE,
-  themeName: 'ht-theme-main-dark-auto'
-};
+registerAllModules();
 
-export const appConfig: ApplicationConfig = {
-  providers: [
-    provideRouter(routes),
-    { provide: HOT_GLOBAL_CONFIG, useValue: globalHotConfig }
-  ],
-};
+@NgModule({
+  imports: [BrowserModule, HotTableModule],
+  declarations: [AppComponent],
+  providers: [HotGlobalConfigService],
+  bootstrap: [AppComponent]
+})
+export class AppModule { }
 ```
 
-```typescript
-// app.component.ts
+**New wrapper standalone component setup:**
+```ts
 import { Component } from '@angular/core';
-import { HotTableModule } from '@handsontable/angular-wrapper';
+import { HotTableModule, GridSettings } from '@handsontable/angular-wrapper';
 
 @Component({
-  selector: 'app-root',
   standalone: true,
   imports: [HotTableModule],
-  template: `<hot-table [settings]="hotSettings"></hot-table>`
+  template: `<hot-table [data]="data" [settings]="gridSettings" />`
 })
 export class AppComponent {
-  // component implementation
+  // component logic
 }
 ```
 
-### Step 3: Update component template syntax
+### Step 4: Update component template syntax
 
-The new wrapper uses a different approach for configuring Handsontable.
+The new wrapper uses a simplified template syntax with a single `settings` property instead of individual properties.
 
-**Old wrapper (individual properties and hot-column):**
+**Old wrapper template:**
 ```html
 <hot-table
   [data]="dataset"
   [colHeaders]="true"
-  height="auto"
+  [rowHeaders]="true"
+  [height]="'auto'"
   [autoWrapRow]="true"
   [autoWrapCol]="true"
-  licenseKey="non-commercial-and-evaluation">
-    <hot-column data="id" [readOnly]="true" title="ID"></hot-column>
-    <hot-column data="name" title="Full name"></hot-column>
-    <hot-column data="address" title="Street name"></hot-column>
+  [licenseKey]="'non-commercial-and-evaluation'">
+  <hot-column data="id" [readOnly]="true" title="ID"></hot-column>
+  <hot-column data="name" title="Full name"></hot-column>
+  <hot-column data="address" title="Street name"></hot-column>
 </hot-table>
 ```
 
-**New wrapper (settings object):**
+**New wrapper template:**
 ```html
-<hot-table [settings]="hotSettings"></hot-table>
+<hot-table [data]="data" [settings]="gridSettings" />
 ```
 
-```typescript
+### Step 5: Update component configuration
+
+Move all configuration options to a `GridSettings` object in your component.
+
+**Old wrapper component:**
+```ts
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-root',
+  template: `
+    <hot-table
+      [data]="dataset"
+      [colHeaders]="true"
+      [rowHeaders]="true"
+      [height]="'auto'"
+      [autoWrapRow]="true"
+      [autoWrapCol]="true"
+      [licenseKey]="'non-commercial-and-evaluation'">
+      <hot-column data="id" [readOnly]="true" title="ID"></hot-column>
+      <hot-column data="name" title="Full name"></hot-column>
+      <hot-column data="address" title="Street name"></hot-column>
+    </hot-table>
+  `
+})
 export class AppComponent {
-  hotSettings: GridSettings = {
-    data: [
-      {id: 1, name: 'Ted Right', address: 'Wall Street'},
-      {id: 2, name: 'Frank Honest', address: 'Pennsylvania Avenue'},
-      // ... more data
-    ],
+  dataset = [
+    {id: 1, name: 'Ted Right', address: 'Wall Street'},
+    {id: 2, name: 'Frank Honest', address: 'Pennsylvania Avenue'},
+    // ... more data
+  ];
+}
+```
+
+**New wrapper component:**
+```ts
+import { Component } from '@angular/core';
+import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
+
+@Component({
+  standalone: true,
+  imports: [HotTableModule],
+  template: `<hot-table [data]="data" [settings]="gridSettings" />`
+})
+export class AppComponent {
+  data = [
+    {id: 1, name: 'Ted Right', address: 'Wall Street'},
+    {id: 2, name: 'Frank Honest', address: 'Pennsylvania Avenue'},
+    // ... more data
+  ];
+
+  gridSettings: GridSettings = {
+    colHeaders: true,
+    rowHeaders: true,
+    height: 'auto',
+    autoWrapRow: true,
+    autoWrapCol: true,
+    licenseKey: 'non-commercial-and-evaluation',
     columns: [
       { data: 'id', readOnly: true, title: 'ID' },
       { data: 'name', title: 'Full name' },
       { data: 'address', title: 'Street name' }
-    ],
-    colHeaders: true,
-    height: 'auto',
-    autoWrapRow: true,
-    autoWrapCol: true,
-    licenseKey: 'non-commercial-and-evaluation'
+    ]
   };
 }
 ```
 
-### Step 4: Update Handsontable instance referencing
+### Step 6: Update table instance references
 
-The way you access the Handsontable instance has changed significantly.
+The way you reference and interact with the Handsontable instance has changed.
 
-**Old wrapper (HotTableRegisterer):**
-```typescript
+**Old wrapper instance reference:**
+```ts
 import { HotTableRegisterer } from '@handsontable/angular';
 
 export class AppComponent {
@@ -257,91 +324,76 @@ export class AppComponent {
 }
 ```
 
-```html
-<hot-table [hotId]="id" [settings]="hotSettings"></hot-table>
-```
-
-**New wrapper (ViewChild approach):**
-```typescript
-import { Component, ViewChild } from '@angular/core';
+**New wrapper instance reference:**
+```ts
+import { ViewChild } from '@angular/core';
 import { HotTableComponent } from '@handsontable/angular-wrapper';
 
 export class AppComponent {
-  @ViewChild(HotTableComponent, {static: false}) 
-  readonly hotTable!: HotTableComponent;
+  @ViewChild(HotTableComponent, { static: false })
+  hotTable!: HotTableComponent;
 
   swapHotData() {
-    const hotInstance = this.hotTable.hotInstance;
-    hotInstance?.loadData([['new', 'data']]);
+    this.hotTable.hotInstance!.loadData([['new', 'data']]);
   }
 }
 ```
 
-```html
-<hot-table [settings]="hotSettings"></hot-table>
-```
+### Step 7: Update global configuration
 
-### Step 5: Update custom renderers
+The new wrapper provides better global configuration management.
 
-Custom renderers now use Angular components instead of functions.
-
-**Old wrapper (function-based renderers):**
-```typescript
+**Old wrapper global configuration:**
+```ts
+// Configuration was typically done per component
 export class AppComponent {
-  hotSettings: Handsontable.GridSettings = {
-    columns: [
-      {},
-      {
-        renderer(instance, td, row, col, prop, value, cellProperties) {
-          const img = document.createElement('img');
-          img.src = value;
-          td.innerText = '';
-          td.appendChild(img);
-          return td;
-        }
-      }
-    ]
+  hotSettings = {
+    licenseKey: 'non-commercial-and-evaluation',
+    // other settings
   };
 }
 ```
 
-**New wrapper (component-based renderers):**
-```typescript
-// custom-image-renderer.component.ts
-import { Component } from '@angular/core';
-import { HotCellRendererComponent } from '@handsontable/angular-wrapper';
+**New wrapper global configuration using ApplicationConfig:**
+```ts
+import { ApplicationConfig } from '@angular/core';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
-@Component({
-  selector: 'app-custom-image-renderer',
-  template: `<img [src]="value" alt="Image" />`,
-  standalone: true,
-})
-export class CustomImageRendererComponent extends HotCellRendererComponent<string> {
-}
+const globalHotConfig: HotGlobalConfig = {
+  license: NON_COMMERCIAL_LICENSE,
+  layoutDirection: 'ltr',
+  language: 'en',
+  themeName: 'ht-theme-main',
+};
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    { provide: HOT_GLOBAL_CONFIG, useValue: globalHotConfig },
+    // other providers
+  ],
+};
 ```
 
-```typescript
-// app.component.ts
+**New wrapper global configuration using service:**
+```ts
+import { HotGlobalConfigService, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
+
 export class AppComponent {
-  readonly CustomImageRenderer = CustomImageRendererComponent;
-  
-  hotSettings: GridSettings = {
-    columns: [
-      {},
-      {
-        renderer: this.CustomImageRenderer
-      }
-    ]
-  };
+  constructor(private hotConfig: HotGlobalConfigService) {
+    this.hotConfig.setConfig({
+      license: NON_COMMERCIAL_LICENSE,
+      themeName: 'ht-theme-main',
+    });
+  }
 }
 ```
 
-### Step 6: Update custom editors
+### Step 8: Update custom editors
 
-Custom editors also use Angular components in the new wrapper.
+The new wrapper introduces component-based editors alongside the traditional class-based approach.
 
-**Old wrapper (class-based editors):**
-```typescript
+**Old wrapper custom editor:**
+```ts
 import { TextEditor } from 'handsontable/editors/textEditor';
 
 export class CustomEditor extends TextEditor {
@@ -356,181 +408,187 @@ export class CustomEditor extends TextEditor {
   }
 }
 
-export class AppComponent {
-  hotSettings: Handsontable.GridSettings = {
-    columns: [
-      {
-        editor: CustomEditor
-      }
-    ]
-  };
-}
+// Usage in settings
+hotSettings = {
+  columns: [{ editor: CustomEditor }]
+};
 ```
 
-**New wrapper (component-based editors):**
-```typescript
-// custom-editor.component.ts
-import { Component } from '@angular/core';
-import { HotCellEditorComponent } from '@handsontable/angular-wrapper';
+**New wrapper component-based editor:**
+```ts
+import { Component, ViewChild, ElementRef, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { HotCellEditorComponent } from '@handsontable/angular-wrapper';
 
 @Component({
   selector: 'app-custom-editor',
   imports: [FormsModule],
-  template: `
-    <input 
-      type="text" 
-      [(ngModel)]="inputValue" 
-      placeholder="Custom placeholder"
-      style="width: 100%" 
-    />
-  `,
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+    <div style="width: 100%; overflow: hidden">
+      <input
+        #inputElement
+        type="text"
+        [value]="getValue()"
+        (keydown)="onKeyDown($event)"
+        style="width: 100%; box-sizing: border-box"
+      />
+    </div>
+  `,
 })
 export class CustomEditorComponent extends HotCellEditorComponent<string> {
-  inputValue!: string;
+  @ViewChild('inputElement') inputElement!: ElementRef;
 
-  override getValue(): string {
-    return this.inputValue;
-  }
-  
-  override setValue(value: string): void {
-    this.inputValue = value;
+  onKeyDown(event: KeyboardEvent): void {
+    const target = event.target as HTMLInputElement;
+    this.setValue(target.value);
   }
 
-  override onClose(): void {
-    // Handle editor close
-  }
-
-  override onFocus(): void {
-    // Handle editor focus
+  onFocus(): void {
+    this.inputElement.nativeElement.select();
   }
 }
+
+// Usage in settings
+gridSettings: GridSettings = {
+  columns: [{ editor: CustomEditorComponent }]
+};
 ```
 
-```typescript
-// app.component.ts
+### Step 9: Update custom renderers
+
+The new wrapper supports component-based renderers in addition to function-based renderers.
+
+**Old wrapper custom renderer:**
+```ts
 export class AppComponent {
-  readonly CustomEditor = CustomEditorComponent;
-  
-  hotSettings: GridSettings = {
-    columns: [
-      {
-        editor: this.CustomEditor
+  hotSettings = {
+    columns: [{
+      renderer(instance, td, row, col, prop, value, cellProperties) {
+        const img = document.createElement('img');
+        img.src = value;
+        td.innerText = '';
+        td.appendChild(img);
+        return td;
       }
-    ]
+    }]
   };
 }
 ```
 
-### Step 7: Update global configuration
+**New wrapper component-based renderer:**
+```ts
+import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { HotCellRendererComponent } from '@handsontable/angular-wrapper';
 
-The new wrapper provides a service-based approach for global configuration.
+@Component({
+  selector: 'app-custom-renderer',
+  template: `
+    <div class="container" [style.backgroundColor]="value">
+      {{ value }}
+    </div>
+  `,
+  styles: [`
+    .container {
+      height: 100%;
+      width: 100%;
+    }
+    :host {
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+      padding: 0;
+    }
+  `],
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush
+})
+export class CustomRendererComponent extends HotCellRendererComponent<string> {}
 
-**Old wrapper:**
-Global configuration was handled through Handsontable's native configuration or module imports.
-
-**New wrapper:**
-```typescript
-// Global configuration via injection token
-import { HOT_GLOBAL_CONFIG, HotConfig } from '@handsontable/angular-wrapper';
-
-const globalHotConfig: HotConfig = {
-  license: 'your-license-key',
-  themeName: 'ht-theme-main-dark-auto'
-};
-
-export const appConfig: ApplicationConfig = {
-  providers: [
-    { provide: HOT_GLOBAL_CONFIG, useValue: globalHotConfig }
-  ],
+// Usage in settings
+gridSettings: GridSettings = {
+  columns: [{ renderer: CustomRendererComponent }]
 };
 ```
 
-```typescript
-// Runtime configuration via service
-import { HotConfigService } from '@handsontable/angular-wrapper';
+### Step 10: Update language configuration
 
-@Component({
-  providers: [HotConfigService]
-})
+Language configuration has been simplified in the new wrapper.
+
+**Old wrapper language configuration:**
+```ts
+import { registerLanguageDictionary, plPL } from 'handsontable/i18n';
+
+registerLanguageDictionary(plPL);
+
 export class AppComponent {
-  constructor(private hotConfig: HotConfigService) {}
-
-  toggleTheme() {
-    const currentTheme = this.hotConfig.getConfig().themeName;
-    const newTheme = currentTheme === 'ht-theme-main' 
-      ? 'ht-theme-main-dark' 
-      : 'ht-theme-main';
-    
-    this.hotConfig.setConfig({
-      themeName: newTheme
-    });
-  }
+  hotSettings = {
+    language: 'pl-PL'
+  };
 }
 ```
 
-### Step 8: Update module registration
+**New wrapper language configuration:**
+```ts
+import { registerLanguageDictionary, plPL } from 'handsontable/i18n';
 
-The new wrapper handles module registration differently.
+registerLanguageDictionary(plPL);
 
-**Old wrapper:**
-```typescript
-import { registerAllModules } from 'handsontable/registry';
-import {
-  registerCellType,
-  NumericCellType,
-} from 'handsontable/cellTypes';
-import {
-  registerPlugin,
-  UndoRedo,
-} from 'handsontable/plugins';
-
-// Register all modules
-registerAllModules();
-
-// Or register specific modules
-registerCellType(NumericCellType);
-registerPlugin(UndoRedo);
+export class AppComponent {
+  gridSettings: GridSettings = {
+    language: 'pl-PL'
+  };
+}
 ```
 
-**New wrapper:**
-Module registration is handled automatically by the new wrapper. You no longer need to manually register modules in most cases. The wrapper automatically registers the modules you need based on your configuration.
+### Step 11: Update event handling
 
-### Step 9: Update styling and themes
+Event handling remains similar, but the context has changed slightly.
 
-Theme application has been simplified in the new wrapper.
+**Old wrapper event handling:**
+```ts
+export class AppComponent {
+  hotSettings = {
+    afterChange: (changes, source) => {
+      console.log('Data changed:', changes, source);
+    }
+  };
+}
+```
 
-**Old wrapper:**
+**New wrapper event handling:**
+```ts
+export class AppComponent {
+  gridSettings: GridSettings = {
+    afterChange: (changes, source) => {
+      console.log('Data changed:', changes, source);
+    }
+  };
+}
+```
+
+### Step 12: Update CSS imports
+
+Ensure you're importing the correct CSS files for themes.
+
+**CSS imports (same for both wrappers):**
 ```scss
-@import '~handsontable/styles/handsontable.min.css';
-@import '~handsontable/styles/ht-theme-main.min.css';
+@import 'handsontable/styles/handsontable.min.css';
+@import 'handsontable/styles/ht-theme-main.min.css';
 ```
 
-```html
-<div class="ht-theme-main">
-  <hot-table [settings]="hotSettings"></hot-table>
-</div>
-```
-
-**New wrapper:**
-```scss
-@import '~handsontable/styles/handsontable.min.css';
-@import '~handsontable/styles/ht-theme-main.min.css';
-```
-
-```typescript
-// Theme is applied via settings
-hotSettings: GridSettings = {
-  themeName: 'ht-theme-main',
-  // other settings...
-};
-```
-
-```html
-<!-- No wrapper div needed -->
-<hot-table [settings]="hotSettings"></hot-table>
-```
+**Or in angular.json:**
+```json
+{
+  "styles": [
+    "src/styles.scss",
+    "node_modules/handsontable/styles/handsontable.min.css",
+    "node_modules/handsontable/styles/ht-theme-main.min.css"
+  ]
+}
+``
 
 ### Common migration issues
 
