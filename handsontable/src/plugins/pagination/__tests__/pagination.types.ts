@@ -5,6 +5,12 @@ const hot = new Handsontable(document.createElement('div'), {
 });
 const hot2 = new Handsontable(document.createElement('div'), {
   pagination: {
+    pageSize: 'auto',
+    pageSizeList: ['auto', 10, 20, 50, 100],
+  },
+});
+const hot3 = new Handsontable(document.createElement('div'), {
+  pagination: {
     pageSize: 10,
     pageSizeList: [5, 10, 20, 50, 100],
     initialPage: 1,
@@ -47,8 +53,8 @@ const plugin = hot.getPlugin('pagination');
 const paginationData: {
   currentPage: number,
   totalPages: number,
-  pageSize: number,
-  pageSizeList: number[],
+  pageSize: number | 'auto',
+  pageSizeList: Array<number | 'auto'>,
   numberOfRenderedRows: number,
   firstVisibleRow: number;
   lastVisibleRow: number;
@@ -60,6 +66,7 @@ const data: any[][] = plugin.getCurrentPageData();
 plugin.setPage(2);
 plugin.resetPage();
 plugin.setPageSize(20);
+plugin.setPageSize('auto');
 plugin.resetPageSize();
 plugin.resetPagination();
 plugin.nextPage();

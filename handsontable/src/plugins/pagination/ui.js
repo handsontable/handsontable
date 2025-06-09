@@ -96,35 +96,27 @@ export class PaginationUI {
 
     container.setAttribute('dir', this.#isRtl ? 'rtl' : 'ltr');
 
-    const isDisabled = e => e.target.getAttribute('aria-disabled') === 'true';
+    const isDisabled = event => event.target.getAttribute('aria-disabled') === 'true';
 
-    first.addEventListener('click', (e) => {
-      if (isDisabled(e)) {
-        return;
+    first.addEventListener('click', (event) => {
+      if (!isDisabled(event)) {
+        this.runLocalHooks('firstPageClick');
       }
-
-      this.runLocalHooks('firstPageClick');
     });
-    prev.addEventListener('click', (e) => {
-      if (isDisabled(e)) {
-        return;
+    prev.addEventListener('click', (event) => {
+      if (!isDisabled(event)) {
+        this.runLocalHooks('prevPageClick');
       }
-
-      this.runLocalHooks('prevPageClick');
     });
-    next.addEventListener('click', (e) => {
-      if (isDisabled(e)) {
-        return;
+    next.addEventListener('click', (event) => {
+      if (!isDisabled(event)) {
+        this.runLocalHooks('nextPageClick');
       }
-
-      this.runLocalHooks('nextPageClick');
     });
-    last.addEventListener('click', (e) => {
-      if (isDisabled(e)) {
-        return;
+    last.addEventListener('click', (event) => {
+      if (!isDisabled(event)) {
+        this.runLocalHooks('lastPageClick');
       }
-
-      this.runLocalHooks('lastPageClick');
     });
     pageSizeSelect.addEventListener('change',
       () => this.runLocalHooks('pageSizeChange', parseInt(pageSizeSelect.value, 10)));
@@ -171,16 +163,18 @@ export class PaginationUI {
    * @param {object} state The pagination state.
    * @param {number} state.currentPage The current page number.
    * @param {number} state.totalPages The total number of pages.
-   * @param {number} state.numberOfRenderedRows The number of rows rendered on the current page.
+   * @param {number} state.firstVisibleRow The index of the first visible row on the current page.
+   * @param {number} state.lastVisibleRow The index of the last visible row on the current page.
    * @param {number} state.totalRenderedRows The total number of renderable rows.
-   * @param {number[]} state.pageSizeList The list of available page sizes.
+   * @param {Array<number | 'auto'>} state.pageSizeList The list of available page sizes.
    * @param {number} state.pageSize The current page size.
    * @returns {PaginationUI} The instance of the PaginationUI for method chaining.
    */
   updateState({
     currentPage,
     totalPages,
-    numberOfRenderedRows,
+    firstVisibleRow,
+    lastVisibleRow,
     totalRenderedRows,
     pageSizeList,
     pageSize,
@@ -197,12 +191,9 @@ export class PaginationUI {
       pageSizeLabel,
     } = this.#refs;
 
-    const firstRenderedRow = (pageSize * (currentPage - 1)) + 1;
-    const lastRenderedRow = firstRenderedRow + numberOfRenderedRows - 1;
-
     const counterSectionText = this.#phraseTranslator(C.PAGINATION_COUNTER_SECTION, {
-      start: firstRenderedRow,
-      end: lastRenderedRow,
+      start: firstVisibleRow + 1,
+      end: lastVisibleRow + 1,
       total: totalRenderedRows,
     });
     const navLabelText = this.#phraseTranslator(C.PAGINATION_NAV_SECTION, {

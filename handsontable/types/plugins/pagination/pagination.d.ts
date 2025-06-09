@@ -1,13 +1,15 @@
 import Core from '../../core';
 import { BasePlugin } from '../base';
 
+type PageSizeOption = number | 'auto';
+
 export interface DetailedSettings {
-  pageSize: number;
-  pageSizeList: number[];
-  initialPage: number;
-  showPageSize: boolean;
-  showCounter: boolean;
-  showNavigation: boolean;
+  pageSize?: PageSizeOption;
+  pageSizeList?: Array<PageSizeOption>,
+  initialPage?: number;
+  showPageSize?: boolean;
+  showCounter?: boolean;
+  showNavigation?: boolean;
 }
 
 export type Settings = boolean | DetailedSettings;
@@ -15,8 +17,8 @@ export type Settings = boolean | DetailedSettings;
 type PaginationData = {
   currentPage: number,
   totalPages: number,
-  pageSize: number,
-  pageSizeList: number[],
+  pageSize: PageSizeOption,
+  pageSizeList: Array<PageSizeOption>,
   numberOfRenderedRows: number,
   firstVisibleRow: number,
   lastVisibleRow: number,
@@ -29,7 +31,7 @@ export class Pagination extends BasePlugin {
   getPaginationData(): PaginationData;
   setPage(pageNumber: number): void;
   resetPage(): void;
-  setPageSize(pageSize: number): void;
+  setPageSize(pageSize: PageSizeOption): void;
   resetPageSize(): void;
   resetPagination(): void;
   nextPage(): void;
