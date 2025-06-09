@@ -48,8 +48,14 @@ class Border {
     this.endStyle = null;
 
     this.cornerDefaultStyle = getCornerStyle(this.instance);
+
     // Offset to moving the corner to be centered relative to the grid.
-    this.cornerCenterPointOffset = -Math.ceil((parseInt(this.cornerDefaultStyle.width, 10) / 2));
+    if (this.wot.wtSettings.getSetting('stylesHandler').isClassicTheme()) {
+      this.cornerCenterPointOffset = -Math.ceil((parseInt(this.cornerDefaultStyle.width, 10) / 2));
+    } else {
+      this.cornerCenterPointOffset = -parseInt(this.cornerDefaultStyle.width, 10);
+    }
+
     this.corner = null;
     this.cornerStyle = null;
 
@@ -619,9 +625,6 @@ class Border {
             // styles for classic theme
             this.cornerStyle.top = `${cornerTopPosition}px`;
             this.cornerStyle.borderBottomWidth = 0;
-          } else {
-            // styles for ht-theme
-            this.cornerStyle.top = `${cornerTopPosition - 1}px`;
           }
         }
       }
