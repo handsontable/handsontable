@@ -24,7 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest, macos-latest ]
+        os: [ ubuntu-latest ] # [ ubuntu-latest, macos-latest ]
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
@@ -43,29 +43,33 @@ jobs:
       - name: Install the dependencies
         run: npm ci
 
+      - name: 🔍 SSH Breakpoint
+        if: github.actor == 'jansiegel' && github.event_name == 'workflow_dispatch'
+        uses: mxschmitt/action-tmate@v3
+
       - name: Build all packages
         run: npm run all build
 
-  build-on-windows:
-    name: Build all packages in windows-latest
-    runs-on: windows-latest
-    timeout-minutes: 60
-    steps:
-      # on C drive there is more free space left to do this job (https://github.com/actions/runner-images/issues/1341#issuecomment-667478747)
-      - name: Checkout
-        run: |
-          mkdir C:/handsontable
-          git clone -b $env:GITHUB_REF_NAME https://github.com/handsontable/handsontable C:/handsontable --depth 1
-
-      - name: Use Node.js
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - name: Install the dependencies
-        working-directory: C:/handsontable
-        run: npm ci
-
-      - name: Build all packages
-        working-directory: C:/handsontable
-        run: npm run all build
+#  build-on-windows:
+#    name: Build all packages in windows-latest
+#    runs-on: windows-latest
+#    timeout-minutes: 60
+#    steps:
+#      # on C drive there is more free space left to do this job (https://github.com/actions/runner-images/issues/1341#issuecomment-667478747)
+#      - name: Checkout
+#        run: |
+#          mkdir C:/handsontable
+#          git clone -b $env:GITHUB_REF_NAME https://github.com/handsontable/handsontable C:/handsontable --depth 1
+#
+#      - name: Use Node.js
+#        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
+#        with:
+#          node-version: ${{ env.NODE_VERSION }}
+#
+#      - name: Install the dependencies
+#        working-directory: C:/handsontable
+#        run: npm ci
+#
+#      - name: Build all packages
+#        working-directory: C:/handsontable
+#        run: npm run all build
