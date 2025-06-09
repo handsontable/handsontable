@@ -5,7 +5,6 @@ import * as C from '../../i18n/constants';
 import {
   addClass,
   removeClass,
-  removeAttribute,
   setAttribute,
 } from '../../helpers/dom/element';
 import { A11Y_DISABLED, A11Y_LABEL } from '../../helpers/a11y';
@@ -97,10 +96,36 @@ export class PaginationUI {
 
     container.setAttribute('dir', this.#isRtl ? 'rtl' : 'ltr');
 
-    first.addEventListener('click', () => this.runLocalHooks('firstPageClick'));
-    prev.addEventListener('click', () => this.runLocalHooks('prevPageClick'));
-    next.addEventListener('click', () => this.runLocalHooks('nextPageClick'));
-    last.addEventListener('click', () => this.runLocalHooks('lastPageClick'));
+    const isDisabled = e => e.target.getAttribute('aria-disabled') === 'true';
+
+    first.addEventListener('click', (e) => {
+      if (isDisabled(e)) {
+        return;
+      }
+
+      this.runLocalHooks('firstPageClick');
+    });
+    prev.addEventListener('click', (e) => {
+      if (isDisabled(e)) {
+        return;
+      }
+
+      this.runLocalHooks('prevPageClick');
+    });
+    next.addEventListener('click', (e) => {
+      if (isDisabled(e)) {
+        return;
+      }
+
+      this.runLocalHooks('nextPageClick');
+    });
+    last.addEventListener('click', (e) => {
+      if (isDisabled(e)) {
+        return;
+      }
+
+      this.runLocalHooks('lastPageClick');
+    });
     pageSizeSelect.addEventListener('change',
       () => this.runLocalHooks('pageSizeChange', parseInt(pageSizeSelect.value, 10)));
 
@@ -215,19 +240,19 @@ export class PaginationUI {
     const isLastPage = currentPage === totalPages;
 
     if (isFirstPage) {
-      setAttribute(first, 'disabled', true);
-      setAttribute(prev, 'disabled', true);
+      addClass(first, 'ht-page-navigation-section__button--disabled');
+      addClass(prev, 'ht-page-navigation-section__button--disabled');
     } else {
-      removeAttribute(first, 'disabled');
-      removeAttribute(prev, 'disabled');
+      removeClass(first, 'ht-page-navigation-section__button--disabled');
+      removeClass(prev, 'ht-page-navigation-section__button--disabled');
     }
 
     if (isLastPage) {
-      setAttribute(next, 'disabled', true);
-      setAttribute(last, 'disabled', true);
+      addClass(next, 'ht-page-navigation-section__button--disabled');
+      addClass(last, 'ht-page-navigation-section__button--disabled');
     } else {
-      removeAttribute(next, 'disabled');
-      removeAttribute(last, 'disabled');
+      removeClass(next, 'ht-page-navigation-section__button--disabled');
+      removeClass(last, 'ht-page-navigation-section__button--disabled');
     }
 
     setAttribute(first, [
