@@ -46,7 +46,8 @@
           &.htDimmed {
             cursor: default;
             font-style: inherit;
-            color: inherit;
+            color: inherit !important;
+            background-color: inherit !important;
           }
         }
 
@@ -62,14 +63,14 @@
         tr {
           &:hover {
             td {
-              background: var(--ht-menu-item-hover-color, #e5e5e9);
+              background: var(--ht-menu-item-hover-color, #e5e5e9) !important;
               cursor: pointer;
             }
           }
 
           td {
             &:hover, &.current {
-              background: var(--ht-menu-item-hover-color, #e5e5e9);
+              background: var(--ht-menu-item-hover-color, #e5e5e9) !important;
               cursor: pointer;
             }
           }

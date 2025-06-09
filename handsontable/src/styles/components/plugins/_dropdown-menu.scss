@@ -154,13 +154,14 @@
 
         &.htDimmed {
           font-style: normal;
-          color: var(--ht-foreground-color);
+          color: inherit !important;
+          background-color: inherit !important;
         }
 
         &:not(&.htCustomMenuRenderer, &.htDisabled) {
           &:hover,
           &.current {
-            background: var(--ht-menu-item-hover-color, #e5e5e9);
+            background: var(--ht-menu-item-hover-color, #e5e5e9) !important;
             cursor: pointer;
           }
         }
