@@ -37,16 +37,14 @@ for (const frameworkPackage of thisPackageJson.internal.framework_dirs) {
     if ((version && frameworkUrl.startsWith(version))) {
       console.log(`\nRunning npm install for ${frameworkUrl}:\n`);
 
-      await execa('npm', ['install', '--no-audit'], {
-        cwd: frameworkUrl,
-        stdio: 'inherit'
+      await spawnProcess('npm install --no-audit', {
+        cwd: frameworkUrl
       });
     }
   }
 
   // Link the main-level packages from the base ./node_modules to the local ./node_modules (to be read by the
   // examples).
-
   await spawnProcess([
     'node ./scripts/link-packages.mjs',
     '--f js ts angular angular-wrapper angular-12 angular-13 angular-14 angular-15 angular-16 angular-17 react react-wrapper vue vue3',
