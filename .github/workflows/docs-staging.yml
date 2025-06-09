@@ -115,6 +115,7 @@ jobs:
 
           ./build_previous_versions.sh
           echo "Building the documentation..." >> docs/index.html
+          cp _dev_headers docs/_headers
           cp _redirects docs/_redirects
           cp docs/docs/404.html docs/404.html
           rm -rf ../../handsontable/node_modules
