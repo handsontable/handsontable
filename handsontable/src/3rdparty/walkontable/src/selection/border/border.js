@@ -605,19 +605,15 @@ class Border {
         }
 
         if (cornerOverlappingContainer) {
+          const cornerEndPosition = Math.floor(
+            inlineStartPos + width + this.cornerCenterPointOffset - cornerHalfWidth - cornerBorderCompensation
+          );
+
           if (isClassicTheme) {
             // styles for classic theme
-            this.cornerStyle[inlinePosProperty] = `${Math.floor(
-              inlineStartPos + width + this.cornerCenterPointOffset - cornerHalfWidth - cornerBorderCompensation
-            )}px`;
-          } else {
-            // styles for modern themes
-            this.cornerStyle[inlinePosProperty] = `${Math.floor(
-              inlineStartPos + width + this.cornerCenterPointOffset - cornerHalfWidth - cornerBorderCompensation + 2
-            )}px`;
+            this.cornerStyle[inlinePosProperty] = `${Math.floor(cornerEndPosition)}px`;
+            this.cornerStyle[isRtl ? 'borderLeftWidth' : 'borderRightWidth'] = 0;
           }
-
-          this.cornerStyle[isRtl ? 'borderLeftWidth' : 'borderRightWidth'] = 0;
         }
       }
 
