@@ -51,7 +51,7 @@ class Border {
 
     // Offset to moving the corner to be centered relative to the grid.
     if (this.wot.wtSettings.getSetting('stylesHandler').isClassicTheme()) {
-      this.cornerCenterPointOffset = -Math.ceil((parseInt(this.cornerDefaultStyle.width, 10) / 2));
+      this.cornerCenterPointOffset = -Math.ceil(parseInt(this.cornerDefaultStyle.width, 10) / 2);
     } else {
       // -1 was initially removed from the base position to compensate the lack of a corner border.
       this.cornerCenterPointOffset = -(parseInt(this.cornerDefaultStyle.width, 10) - 1);
