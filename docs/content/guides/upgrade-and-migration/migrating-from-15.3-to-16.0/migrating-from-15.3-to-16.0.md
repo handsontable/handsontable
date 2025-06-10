@@ -65,11 +65,11 @@ body
 - Portal Element: New div.ht-portal with ht-theme class for absolutely positioned elements
 - Root Element: rootElement is now created internally by Handsontable instead of using the user-provided container directly
 
-## 2. Update the css variables
+## 2. Update the CSS variables
 
 In Handsontable 16.0, we've made significant improvements to our CSS variables system to adjust themes colors, variable order and provide better customization options. Here are the key changes:
 
-### New css variables
+### New CSS variables
 We've introduced new variables that allow for easier customization: 
 
  - `--ht-letter-spacing`: controls the spacing between letters for better readability and visual appearance
@@ -77,7 +77,7 @@ We've introduced new variables that allow for easier customization:
  - `--ht-cell-read-only-background-color`: better adjust readonly cells
  - `--ht-checkbox-indeterminate`: customize checkbox indeterminate state
 
-### Removed css variables
+### Removed CSS variables
 
  - `--ht-cell-autofill-border-width`
  - `--ht-cell-autofill-border-radius`
