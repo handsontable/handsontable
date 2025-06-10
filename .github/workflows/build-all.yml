@@ -73,6 +73,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
+          cache-dependency-path: D:/handsontable/package-lock.json
 
       - name: Install the dependencies
         working-directory: D:/handsontable
