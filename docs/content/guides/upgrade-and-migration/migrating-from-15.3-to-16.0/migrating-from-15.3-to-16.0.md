@@ -1,5 +1,5 @@
 ---
-id: migrating-15.3-to-16.0
+id: 1k7arh9z
 title: Migrating from 15.3 to 16.0
 metaTitle: Migrating from 15.3 to 16.0 - JavaScript Data Grid | Handsontable
 description: Migrate from Handsontable 15.3 to Handsontable 16.0, released on [].
