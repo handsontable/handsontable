@@ -43,15 +43,27 @@ const linkPackage = (sourceLocation, linkLocation, packageName, exampleDir = fal
 
   if (isPackageRequired(packageName, linkLocation) && fse.pathExistsSync(path.resolve(mainDependencyLocationPath))) {
     try {
-      fse.removeSync(
-        path.resolve(destinationDependencyLocationPath),
-      );
+      const destinationPath = path.resolve(destinationDependencyLocationPath);
+
+      // Check if destination exists and remove it appropriately
+      if (fse.pathExistsSync(destinationPath)) {
+        const stats = fse.lstatSync(destinationPath);
+
+        if (stats.isSymbolicLink() || stats.isFile()) {
+          // Remove symlinks and files with unlinkSync
+          fse.unlinkSync(destinationPath);
+        } else if (stats.isDirectory()) {
+          // Remove directories with removeSync
+          fse.removeSync(destinationPath);
+        }
+      }
 
       fse.ensureSymlinkSync(
         path.resolve(mainDependencyLocationPath),
-        path.resolve(destinationDependencyLocationPath),
+        destinationPath,
         'junction',
       );
+
 
     } catch (e) {
       displayErrorMessage(e);

@@ -48,7 +48,7 @@
     "jasmine-console-reporter": "3.1.0",
     "puppeteer": "14.3.0",
     "ts-node": "8.3.0",
-    "typescript": "5.5.4"
+    "typescript": "~5.8.0"
   },
   "license": "SEE LICENSE IN LICENSE.txt"
 }

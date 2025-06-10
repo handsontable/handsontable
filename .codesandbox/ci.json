@@ -1,7 +1,7 @@
 {
-  "buildCommand": "build",
+  "buildCommand": "all build -- --e examples visual-tests",
   "packages": [
-    "wrappers/angular",
+    "wrappers/angular-wrapper",
     "handsontable",
     "wrappers/react-wrapper",
     "wrappers/vue",
@@ -9,7 +9,7 @@
   ],
   "publishDirectory": {
     "handsontable": "handsontable/tmp",
-    "@handsontable/angular": "wrappers/angular/dist/hot-table",
+    "@handsontable/angular-wrapper": "wrappers/angular-wrapper/dist/hot-table",
     "@handsontable/react-wrapper": "wrappers/react-wrapper",
     "@handsontable/vue": "wrappers/vue",
     "@handsontable/vue3": "wrappers/vue3"
