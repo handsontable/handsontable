@@ -15,6 +15,7 @@ const data: [string, string, string, string, string, number][] = [
 ];
 
 new Handsontable(container, {
+  themeName: 'ht-theme-main',
   data,
   contextMenu: true,
   height: 'auto',

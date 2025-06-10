@@ -96,22 +96,21 @@ Use this data grid as you would any other component in your application. [Option
 **Vue 3 Component**
 ```vue
 <template>
-  <div class="ht-theme-main-dark-auto">
-    <hot-table
-      :data="data"
-      :row-headers=true
-      :col-headers=true
-      :navigable-headers=true
-      :tab-navigation=true
-      :multi-column-sorting=true
-      header-class-name="htLeft"
-      license-key="non-commercial-and-evaluation"
-    >
-      <hot-column title="Company" data="company" width=100></hot-column>
-      <hot-column title="Country" data="country" width=170 type="dropdown" :source="['United Kingdom', 'Japan', 'United States']"></hot-column>
-      <hot-column title="Rating" data="rating" width=100 type="numeric"></hot-column>
-    </hot-table>
-  </div>
+  <hot-table
+    theme="ht-theme-main-dark-auto"
+    :data="data"
+    :row-headers=true
+    :col-headers=true
+    :navigable-headers=true
+    :tab-navigation=true
+    :multi-column-sorting=true
+    header-class-name="htLeft"
+    license-key="non-commercial-and-evaluation"
+  >
+    <hot-column title="Company" data="company" width=100></hot-column>
+    <hot-column title="Country" data="country" width=170 type="dropdown" :source="['United Kingdom', 'Japan', 'United States']"></hot-column>
+    <hot-column title="Rating" data="rating" width=100 type="numeric"></hot-column>
+  </hot-table>
 </template>
 
 <script>
@@ -191,7 +190,7 @@ At first glance, it might seem that a data table, spreadsheet, and data grid are
 If you're using Handsontable with a free, non-commercial license, you can:
 - Join the conversation on [GitHub Discussions](https://github.com/handsontable/handsontable/discussions) to share ideas, suggest features, or discuss changes.
 - Report any bugs you find on our [GitHub Issue Board](https://github.com/handsontable/handsontable/issues).
-- Connect with other developers and find answers on our [Developer Forum](https://handsontable.com/forum).
+- Connect with other developers and find answers on our [Developer Forum](https://forum.handsontable.com).
 
 If you have a commercial license, feel free to contact us directly at [support@handsontable.com](mailto:support@handsontable.com) or use our [contact form](https://handsontable.com/contact?category=technical_support).
 

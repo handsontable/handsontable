@@ -5,6 +5,7 @@ import 'handsontable/styles/ht-theme-main.css';
 const container = document.querySelector('#exampleServerSideFilter')!;
 
 new Handsontable(container, {
+  themeName: 'ht-theme-main',
   data: [
     {
       brand: 'Jetpulse',
@@ -101,11 +102,7 @@ new Handsontable(container, {
     // gather information about the filters
     console.log(`The amount of filters: ${conditionsStack.length}`);
     console.log(`The last changed column index: ${conditionsStack[0]!.column}`);
-    console.log(
-      `The amount of filters added to this column: ${
-        conditionsStack[0]!.conditions.length
-      }`
-    );
+    console.log(`The amount of filters added to this column: ${conditionsStack[0]!.conditions.length}`);
     // the list of filter conditions
     console.log(conditionsStack[0]!.conditions);
 

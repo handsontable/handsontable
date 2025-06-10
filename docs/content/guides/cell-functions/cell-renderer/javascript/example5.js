@@ -16,6 +16,7 @@ const customRenderer = (instance, td, ...rest) => {
 };
 
 const hot = new Handsontable(container, {
+  themeName: 'ht-theme-main',
   height: 'auto',
   columns: [{}, { renderer: customRenderer }],
   colHeaders(col) {

@@ -23,6 +23,7 @@ const formatTR = {
 const container = document.querySelector('#example3');
 
 new Handsontable(container, {
+  themeName: 'ht-theme-main',
   data: [
     {
       productName: 'Product A',

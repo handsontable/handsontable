@@ -143,18 +143,8 @@ module.exports = function(docsVersion, base) {
         const htmlToken = htmlPos ? tokens[htmlIndex] : undefined;
         const htmlContent = htmlToken
           ? htmlToken.content
-          : `<div id="${id}" class="hot ${klass}"></div>`;
-        const htmlContentSandbox = htmlToken
-          ? htmlToken.content
-          : `<div id="${id}" ${!klass?.includes('disable-auto-theme')
-            ? `class="hot ht-theme-main ${klass}"`
-            : ''} ></div>`;
-        const htmlContentRoot = `<div
-          data-preset-type="${preset}"
-          data-example-id="${id}"
-          class="${!klass?.includes('disable-auto-theme') ? 'ht-theme-main-dark-auto' : ''}">
-          ${htmlContent}
-        </div>`;
+          : `<div id="${id}" class="hot${klass ? ` ${klass}` : ''}"></div>`;
+        const htmlContentRoot = `<div data-preset-type="${preset}" data-example-id="${id}">${htmlContent}</div>`;
 
         const cssPos = args.match(/--css (\d*)/)?.[1];
         const cssIndex = cssPos ? index + Number.parseInt(cssPos, 10) : 0;
@@ -238,7 +228,7 @@ module.exports = function(docsVersion, base) {
                   ${!noEdit
     ? stackblitz(
       id,
-      htmlContentSandbox,
+      htmlContent,
       jsCodeToCompileSandbox,
       cssContent,
       docsVersion,
@@ -249,7 +239,7 @@ module.exports = function(docsVersion, base) {
                   ${!noEdit
     ? jsfiddle(
       id,
-      htmlContentSandbox,
+      htmlContent,
       jsCodeForPreset,
       cssContent,
       docsVersion,
@@ -262,7 +252,7 @@ module.exports = function(docsVersion, base) {
                   ${!noEdit
     ? stackblitz(
       id,
-      htmlContentSandbox,
+      htmlContent,
       tsCodeToCompileSandbox,
       cssContent,
       docsVersion,
@@ -273,7 +263,7 @@ module.exports = function(docsVersion, base) {
                   ${!noEdit && !isReact
     ? jsfiddle(
       id,
-      htmlContentSandbox,
+      htmlContent,
       tsCodeForPreset,
       cssContent,
       docsVersion,

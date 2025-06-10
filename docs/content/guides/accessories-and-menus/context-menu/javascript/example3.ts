@@ -1,8 +1,5 @@
 import Handsontable from 'handsontable';
-import {
-  DetailedSettings,
-  MenuItemConfig,
-} from 'handsontable/plugins/contextMenu';
+import { DetailedSettings, MenuItemConfig } from 'handsontable/plugins/contextMenu';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
 
@@ -85,6 +82,7 @@ const contextMenuSettings: DetailedSettings = {
 const container = document.querySelector('#example3')!;
 
 new Handsontable(container, {
+  themeName: 'ht-theme-main',
   data: [
     ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
     ['2017', 10, 11, 12, 13, 15, 16],

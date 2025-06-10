@@ -141,6 +141,7 @@ export function addClassesToRows(TD, row, column, _prop, _value, cellProperties)
 const App = () => {
   return (
     <HotTable
+      themeName="ht-theme-main"
       data={data}
       height={450}
       colWidths={[180, 220, 140, 120, 120, 120, 140]}

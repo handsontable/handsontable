@@ -70,18 +70,10 @@ const ExampleComponent = () => {
     <>
       <div className="example-controls-container">
         <div className="controls">
-          <button
-            id="buttonWithout"
-            className="button button--primary"
-            onClick={() => buttonWithoutClickCallback()}
-          >
+          <button id="buttonWithout" className="button button--primary" onClick={() => buttonWithoutClickCallback()}>
             Run without batch method
           </button>
-          <button
-            id="buttonWith"
-            className="button button--primary"
-            onClick={() => buttonWithClickCallback()}
-          >
+          <button id="buttonWith" className="button button--primary" onClick={() => buttonWithClickCallback()}>
             Run with batch method
           </button>
         </div>
@@ -90,6 +82,7 @@ const ExampleComponent = () => {
         </output>
       </div>
       <HotTable
+        themeName="ht-theme-main"
         ref={hotRef}
         data={[
           [1, 'Gary Nash', 'Speckled trousers', 'S', 1, 'yes'],
@@ -105,14 +98,7 @@ const ExampleComponent = () => {
         ]}
         width="auto"
         height="auto"
-        colHeaders={[
-          'ID',
-          'Customer name',
-          'Product name',
-          'Size',
-          'qty',
-          'Return',
-        ]}
+        colHeaders={['ID', 'Customer name', 'Product name', 'Size', 'qty', 'Return']}
         autoWrapRow={true}
         autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"

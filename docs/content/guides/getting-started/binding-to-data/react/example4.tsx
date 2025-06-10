@@ -22,6 +22,7 @@ const ExampleComponent: FC = () => {
 
   return (
     <HotTable
+      themeName="ht-theme-main"
       data={data}
       colHeaders={true}
       height="auto"

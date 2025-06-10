@@ -15,6 +15,7 @@ const data: (string | number)[][] = [
 const container = document.querySelector('#example-named-expressions1')!;
 
 const hot = new Handsontable(container, {
+  themeName: 'ht-theme-main',
   data,
   colHeaders: true,
   rowHeaders: true,
@@ -38,9 +39,6 @@ const formulasPlugin: Formulas = hot.getPlugin('formulas');
 const button = document.getElementById('named-expressions-button')!;
 
 button!.addEventListener('click', () => {
-  formulasPlugin.engine?.changeNamedExpression(
-    'ADDITIONAL_COST',
-    (input as HTMLInputElement).value
-  );
+  formulasPlugin.engine?.changeNamedExpression('ADDITIONAL_COST', (input as HTMLInputElement).value);
   hot.render();
 });

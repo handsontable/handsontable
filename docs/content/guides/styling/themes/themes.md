@@ -135,19 +135,11 @@ Alternatively, you can import the necessary files from the recommended CDN such 
 
 ## Pass a theme name
 
-To use a theme in your app, you need to add the specific class name to the `div` container that holds Handsontable. For the `main` theme, you can choose from the following CSS classes:
+To use a theme in your app, you need to specify the theme name in the data grid's global settings object. For the `main` theme, you can choose from the following theme modes:
 
 - `ht-theme-main` - light mode
 - `ht-theme-main-dark` - dark mode
 - `ht-theme-main-dark-auto (recommended)` - auto dark mode
-
-```html
-<div id="handsontable-example" class="ht-theme-main-dark-auto"></div>
-```
-
-Alternatively, you can specify the theme name in the data grid's global settings object. This method will automatically inject the class name for you, overriding any class name passed in the `div` container.
-
-**Use either this method or the class name in the `div`, but not both.**
 
 ::: only-for javascript
 
@@ -253,20 +245,13 @@ import 'handsontable/styles/handsontable.min.css';
 import 'handsontable/styles/ht-theme-falcon.min.css';
 ```
 
-Apply the theme in one of two ways:
-
-- Using a CSS class: Add the theme class (e.g., `ht-theme-falcon-dark-auto`) to the container element that holds the data grid.
-
-```html
-<div id="handsontable-example" class="ht-theme-falcon-dark-auto"></div>
-```
-
-- Using the themeName option: Specify the theme in the configuration, like so:
+To apply a theme, use the `themeName` option by specifying it in the configuration, like this:
 
 ::: only-for javascript
 
 ```js
 const hot = new Handsontable(container, {
+  // theme name with obligatory `ht-theme-*` prefix
   themeName: 'ht-theme-falcon',
   // other options
 });
@@ -278,6 +263,7 @@ const hot = new Handsontable(container, {
 
 ```jsx
 <HotTable
+  // theme name with obligatory `ht-theme-*` prefix
   themeName="ht-theme-falcon"
   // other options
 />
@@ -306,31 +292,7 @@ In some cases, global styles enforced by the browser or operating system can imp
 
 - **High contrast mode in Windows**: To style the component when Windows' high contrast mode is active, use the `forced-colors` media query. This allows you to detect and adapt to forced color settings. [Read more](https://blogs.windows.com/msedgedev/2020/09/17/styling-for-windows-high-contrast-with-new-standards-for-forced-colors/)
 - **Auto dark theme in Google Chrome**: Chrome automatically applies a dark theme in some scenarios. To detect and manage this behavior, refer to the official [Chrome guide](https://developer.chrome.com/blog/auto-dark-theme)
-- By default, Handsontable wraps overflowing text within cells. To crop the content, you can apply the following CSS targeting all cells:
 
-```scss
-#handsontable-example .handsontable td {
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
-}
-```
-
-    
-::: only-for angular
-
-When working with Angular components that use ViewEncapsulation (the default behavior), you might need to use the `:host` and `::ng-deep` selectors:
-
-```scss
-:host hot-table ::ng-deep .handsontable td {
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
-}
-```
-
-:::
-  
 ## Troubleshooting
 
 Didn't find what you need? Try this:

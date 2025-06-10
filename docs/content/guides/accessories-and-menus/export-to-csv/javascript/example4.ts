@@ -6,6 +6,7 @@ import { ExportFile } from 'handsontable/plugins';
 const container = document.querySelector('#example4')!;
 
 const hot = new Handsontable(container, {
+  themeName: 'ht-theme-main',
   data: [
     ['https://handsontable.com', '=WEBSERVICE(A1)'],
     ['https://github.com', '=WEBSERVICE(A2)'],

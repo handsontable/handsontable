@@ -46,6 +46,7 @@ const ExampleComponent = () => {
         <input id="filterField" type="text" placeholder="Filter" />
       </div>
       <HotTable
+        themeName="ht-theme-main"
         ref={hotTableComponentRef}
         data={[
           {

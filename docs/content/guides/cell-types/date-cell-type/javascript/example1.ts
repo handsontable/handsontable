@@ -5,6 +5,7 @@ import 'handsontable/styles/ht-theme-main.css';
 const container = document.querySelector('#example1')!;
 
 new Handsontable(container, {
+  themeName: 'ht-theme-main',
   licenseKey: 'non-commercial-and-evaluation',
   data: [
     ['Mercedes', 'A 160', '01/14/2021', 6999.95],

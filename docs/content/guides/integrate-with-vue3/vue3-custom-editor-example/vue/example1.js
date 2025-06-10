@@ -25,6 +25,7 @@ const ExampleComponent = defineComponent({
   data() {
     return {
       hotSettings: {
+        themeName: 'ht-theme-main',
         startRows: 5,
         columns: [
           {

@@ -48,6 +48,7 @@ const ExampleComponent = () => {
         <button onClick={clearAllFilters}>Clear filters</button>
       </div>
       <HotTable
+        themeName="ht-theme-main"
         ref={hotTableComponentRef}
         data={[
           {

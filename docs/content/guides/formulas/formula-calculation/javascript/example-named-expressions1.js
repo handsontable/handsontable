@@ -12,6 +12,7 @@ const data = [
 
 const container = document.querySelector('#example-named-expressions1');
 const hot = new Handsontable(container, {
+  themeName: 'ht-theme-main',
   data,
   colHeaders: true,
   rowHeaders: true,

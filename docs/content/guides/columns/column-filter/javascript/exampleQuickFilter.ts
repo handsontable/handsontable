@@ -7,6 +7,7 @@ const container = document.querySelector('#exampleQuickFilter')!;
 const filterField = document.querySelector('#filterField')!;
 
 const hot = new Handsontable(container, {
+  themeName: 'ht-theme-main',
   data: [
     {
       brand: 'Jetpulse',
@@ -105,9 +106,7 @@ filterField.addEventListener('keyup', (event) => {
   const columnValue = columnSelector.value as unknown as number;
 
   filters.removeConditions(columnValue);
-  filters.addCondition(columnValue, 'contains', [
-    (event.target as HTMLInputElement).value,
-  ]);
+  filters.addCondition(columnValue, 'contains', [(event.target as HTMLInputElement).value]);
   filters.filter();
 
   hot.render();

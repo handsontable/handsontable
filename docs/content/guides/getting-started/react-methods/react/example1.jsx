@@ -27,6 +27,7 @@ const ExampleComponent = () => {
         <button onClick={selectCell}>Select cell B2</button>
       </div>
       <HotTable
+        themeName="ht-theme-main"
         ref={hotTableComponentRef}
         data={data}
         colHeaders={true}
