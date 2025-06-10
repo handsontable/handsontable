@@ -112,11 +112,11 @@ export default async(req: Request, context: Context) => {
   const page = context.params[1];
   const redirectPath = redirectsMap[page];
 
-  const url = new URL(`${framework}${redirectPath}`, req.url);
+  const url = new URL(`/docs/${framework}${redirectPath}`, req.url);
 
   return Response.redirect(url);
 };
 
 export const config: Config = {
-  path: `(javascript|angular|react)-data-grid/(${Object.keys(redirectsMap).join('|')}){/}?`
+  path: `/docs/(javascript|angular|react)-data-grid/(${Object.keys(redirectsMap).join('|')}){/}?`
 };
