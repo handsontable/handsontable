@@ -24,9 +24,9 @@ Migrate from Handsontable 15.3 to Handsontable 16.0, released on [TODO].
 
 ## 1. Introducing the new DOM structure
 
-In Handsontable 16.0, we updated the DOM structure. The main change is how the table is mounted. Previously, the container `<div>` you provided became the root element of the table. In the new approach, that `<div>` is now just the element into which the Handsontable instance is injected.
+In Handsontable 16.0, we changed how the table is mounted in the DOM. Previously, the container `<div>` you provided became the root element of the table. Now, that container acts as a mounting point, and Handsontable creates and injects its own root element inside it.
 
-Here is a comparison of the old and new DOM structures:
+Here's a side-by-side comparison of the old and new DOM structures:
 
 Old DOM structure:
 
@@ -73,7 +73,7 @@ In Handsontable 16.0, we've made significant improvements to our CSS variables s
 We've introduced new variables that allow for easier customization: 
 
  - `--ht-letter-spacing`: controls the spacing between letters for better readability and visual appearance
- - `--ht-radio-[]`: style radio input more accurate
+ - `--ht-radio-*`: style radio input more accurate
  - `--ht-cell-read-only-background-color`: better adjust readonly cells
  - `--ht-checkbox-indeterminate`: customize checkbox indeterminate state
 
