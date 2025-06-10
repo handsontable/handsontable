@@ -17,46 +17,46 @@ env:
   PYTHON_VERSION: '3.11'
 
 jobs:
-  # build-on-unix:
-  #   name: Build all packages in ${{ matrix.os }}
-  #   runs-on: ${{ matrix.os }}
-  #   timeout-minutes: 60
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       os: [ ubuntu-latest, macos-latest ]
-  #   steps:
-  #     - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
+  build-on-unix:
+    name: Build all packages in ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macos-latest ]
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
-  #     # should resolve node-gyp issue we have been having with builds
-  #     - name: Set up Python ${{ env.PYTHON_VERSION }}
-  #       uses: actions/setup-python@61a6322f88396a6271a6ee3565807d608ecaddd1  # v4.7.0
-  #       with:
-  #        python-version: ${{ env.PYTHON_VERSION }}
+      # should resolve node-gyp issue we have been having with builds
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@61a6322f88396a6271a6ee3565807d608ecaddd1  # v4.7.0
+        with:
+         python-version: ${{ env.PYTHON_VERSION }}
 
-  #     - name: Use Node.js
-  #       uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
-  #       with:
-  #         node-version-file: '.nvmrc'
-  #         cache: 'npm'
+      - name: Use Node.js
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
 
-  #     - name: Install the dependencies
-  #       run: npm ci
+      - name: Install the dependencies
+        run: npm ci
 
-  #     - name: Build all packages
-  #       run: npm run all build
+      - name: Build all packages
+        run: npm run all build
 
   build-on-windows:
     name: Build all packages in windows-latest
     runs-on: windows-latest
     timeout-minutes: 60
     env:
-      # Force npm operations to use the D drive (potentially faster)
+      # Force npm operations to use the D drive (much faster)
       npm_config_cache: D:/npm-cache
       TEMP: D:/Temp
       TMP: D:/Temp
     steps:
-      # Use D drive for checkout (potentially faster)
+      # Use D drive for checkout (much faster)
       - name: Checkout to D drive
         run: |
           mkdir D:/handsontable
@@ -71,7 +71,8 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version-file: '.nvmrc'
+          cache: 'npm'
 
       - name: Install the dependencies
         working-directory: D:/handsontable
