@@ -7,10 +7,10 @@ permalink: /migration-from-15.3-to-16.0
 canonicalUrl: /migration-from-15.3-to-16.0
 pageClass: migration-guide
 react:
-  id: migrating-15.3-to-16.0-react
+  id: 4k7wrh9z
   metaTitle: Migrate from 15.3 to 16.0 - React Data Grid | Handsontable
 angular:
-  id: migrating-15.3-to-16.0-angular
+  id: 9v65a4pd
   metaTitle: Migrate from 15.3 to 16.0 - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
@@ -32,11 +32,11 @@ Old DOM structure:
 
 ```
 body
-├── #example.ht-wrapper.handsontable
-│   ├── Focus catcher (top)
+├── #example.ht-wrapper.handsontable // Root Container/Element
+│   ├── .htFocusCatcher // Focus Catcher (top)
 │   ├── Personal details table/grid content
-│   └── Focus catcher (bottom)
-├── License key notification bar
+│   └── .htFocusCatcher // Focus Catcher (down)
+├── .hot-display-license-info // License key notification bar
 └── Context menus, dropdowns, pop-ups, sidebars
     (absolutely positioned elements)
 ```
@@ -45,18 +45,18 @@ New DOM structure:
 
 ```
 body
-└── #example
-    └── .ht-root-wrapper
-        ├── Focus catcher (top)
-        ├── .ht-wrapper.handsontable
-        │   ├── Personal details table/grid content
-        │   ├── License key notification bar
-        │   ├── Future: Status bar
-        │   └── Future: Pagination bar
-        ├── Focus catcher (bottom)
-        └── .ht-portal
-            └── Context menus, dropdowns, pop-ups, sidebars
-                (absolutely positioned elements)
+├── #example // Root Wrapper
+│    └── .ht-root-wrapper // Root Element
+│        ├── .htFocusCatcher // Focus Catcher (top)
+│        ├── .ht-wrapper.handsontable // Root Container
+│        │   ├── Personal details table/grid content
+│        │   ├── .hot-display-license-info // License key notification bar
+│        │   ├── Future: Status bar
+│        │   └── Future: Pagination bar
+│        └── .htFocusCatcher // Focus Catcher (down)
+└── .ht-portal // Portal Element
+    └── Context menus, dropdowns, pop-ups, sidebars
+        (absolutely positioned elements)
 ```
 
 ### Key changes
@@ -76,6 +76,12 @@ We've introduced new variables that allow for easier customization:
  - `--ht-radio-*`: style radio input more accurate
  - `--ht-cell-read-only-background-color`: better adjust readonly cells
  - `--ht-checkbox-indeterminate`: customize checkbox indeterminate state
+
+### Removed css variables
+
+ - `--ht-cell-autofill-border-width`
+ - `--ht-cell-autofill-border-radius`
+ - `--ht-cell-autofill-border-color`
 
 ### Renamed CSS variables
 We've renamed a few variables to ensure more consistent naming: 
