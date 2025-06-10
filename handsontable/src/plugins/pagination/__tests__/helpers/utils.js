@@ -69,7 +69,7 @@ export function stringifyPageNavigationSection() {
     { selector: '.ht-page-last', icon: '>|' },
   ].map(({ selector, icon }) => {
     const button = pageSection.querySelector(selector);
-    const disabled = button.disabled && button.getAttribute('aria-disabled') === 'true';
+    const disabled = button.getAttribute('aria-disabled') === 'true';
 
     return disabled ? icon : `[${icon}]`;
   });

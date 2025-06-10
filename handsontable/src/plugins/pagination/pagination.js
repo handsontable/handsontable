@@ -183,7 +183,9 @@ export class Pagination extends BasePlugin {
         .addLocalHook('pageSizeChange', pageSize => this.setPageSize(pageSize));
     }
 
-    this.addHook('init', (...args) => this.#onInit(...args));
+    // Place the onInit hook before others to make sure that the pagination state is computed
+    // and applied to the index mapper before AutoColumnSize plugin begins calculate the column sizes.
+    this.addHook('init', (...args) => this.#onInit(...args), -1);
     this.addHook('beforeSelectAll', (...args) => this.#onBeforeSelectAllRows(...args));
     this.addHook('beforeSelectColumns', (...args) => this.#onBeforeSelectAllRows(...args));
     this.addHook('beforeSetRangeEnd', (...args) => this.#onBeforeSetRangeEnd(...args));
@@ -204,8 +206,7 @@ export class Pagination extends BasePlugin {
     this.disablePlugin();
     this.enablePlugin();
 
-    this.#computeState();
-    this.#applyState();
+    this.#computeAndApplyState();
 
     super.updatePlugin();
   }
@@ -292,9 +293,9 @@ export class Pagination extends BasePlugin {
       return;
     }
 
-    this.#computeState();
-    this.#currentPage = clamp(pageNumber, 1, this.#calcStrategy.getTotalPages());
-    this.#applyState();
+    this.#currentPage = pageNumber;
+
+    this.#computeAndApplyState();
 
     this.hot.runHooks('afterPageChange', oldPage, this.#currentPage);
     this.hot.view.adjustElementsSize();
@@ -329,8 +330,7 @@ export class Pagination extends BasePlugin {
     this.#calcStrategy = createPaginatorStrategy(pageSize === 'auto' ? 'auto' : 'fixed');
     this.#pageSize = pageSize;
 
-    this.#computeState();
-    this.#applyState();
+    this.#computeAndApplyState();
 
     this.hot.runHooks('afterPageSizeChange', oldPageSize, this.#pageSize);
     this.hot.view.adjustElementsSize();
@@ -498,17 +498,25 @@ export class Pagination extends BasePlugin {
   }
 
   /**
-   * Computes the pagination state based on the user-defined settings and chosen strategy.
+   * Applies the current pagination state to the internal index mapper and updates the UI.
    */
-  #computeState() {
-    const { view, stylesHandler } = this.hot;
-    const scrollbarWidthCompensation = view.hasHorizontalScroll() ? getScrollbarWidth() : 0;
-    const viewportHeight = view.getViewportHeight() - scrollbarWidthCompensation;
+  #computeAndApplyState() {
+    this.#internalExecutionCall = true;
+    this.#pagedRowsMap.clear();
+
+    const renderableIndexes = this.hot.rowIndexMapper.getRenderableIndexes();
+    const renderableRowsLength = renderableIndexes.length;
+    const { stylesHandler } = this.hot;
 
     this.#calcStrategy.calculate({
-      viewportSize: viewportHeight,
       pageSize: this.#pageSize,
-      totalItems: this.hot.countRows(),
+      totalItems: renderableRowsLength,
+      viewportSizeProvider: () => {
+        const { view } = this.hot;
+        const scrollbarWidthCompensation = view.hasHorizontalScroll() ? getScrollbarWidth() : 0;
+
+        return view.getViewportHeight() - scrollbarWidthCompensation;
+      },
       itemsSizeProvider: () => {
         const totalRows = this.hot.countRows();
         const defaultRowHeight = stylesHandler.getDefaultRowHeight();
@@ -521,12 +529,7 @@ export class Pagination extends BasePlugin {
         return rowHeights;
       },
     });
-  }
 
-  /**
-   * Applies the current pagination state to the internal index mapper and updates the UI.
-   */
-  #applyState() {
     this.#currentPage = clamp(this.#currentPage, 1, this.#calcStrategy.getTotalPages());
 
     const {
@@ -537,12 +540,6 @@ export class Pagination extends BasePlugin {
     if (pageSize < 1) {
       throw new Error('The `pageSize` option must be greater than `0`.');
     }
-
-    this.#internalExecutionCall = true;
-    this.#pagedRowsMap.clear();
-
-    const renderableIndexes = this.hot.rowIndexMapper.getRenderableIndexes();
-    const renderableRowsLength = renderableIndexes.length;
 
     renderableIndexes.splice(startIndex, pageSize);
 
@@ -657,8 +654,7 @@ export class Pagination extends BasePlugin {
       return;
     }
 
-    this.#computeState();
-    this.#applyState();
+    this.#computeAndApplyState();
 
     this.#internalRenderCall = true;
     // there is need to re-render the table as on the initial the engine returns incorrect
@@ -674,8 +670,7 @@ export class Pagination extends BasePlugin {
       return;
     }
 
-    this.#computeState();
-    this.#applyState();
+    this.#computeAndApplyState();
   }
 
   /**
@@ -704,7 +699,7 @@ export class Pagination extends BasePlugin {
    * Called after the language change. It recomputes the pagination state which updates the UI.
    */
   #onAfterLanguageChange() {
-    this.#applyState();
+    this.#computeAndApplyState();
   }
 
   /**
@@ -716,8 +711,7 @@ export class Pagination extends BasePlugin {
    */
   #onIndexCacheUpdate = () => {
     if (!this.#internalExecutionCall && this.hot?.view) {
-      this.#computeState();
-      this.#applyState();
+      this.#computeAndApplyState();
     }
   }
 
