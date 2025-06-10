@@ -34,7 +34,7 @@ Old DOM structure:
 body
 ├── #example.ht-wrapper.handsontable // Root Container/Element
 │   ├── .htFocusCatcher // Focus Catcher (top)
-│   ├── Personal details table/grid content
+│   ├── Data grid content
 │   └── .htFocusCatcher // Focus Catcher (down)
 ├── .hot-display-license-info // License key notification bar
 └── Context menus, dropdowns, pop-ups, sidebars
@@ -49,11 +49,11 @@ body
 │    └── .ht-root-wrapper // Root Element
 │        ├── .htFocusCatcher // Focus Catcher (top)
 │        ├── .ht-wrapper.handsontable // Root Container
-│        │   ├── Personal details table/grid content
-│        │   ├── .hot-display-license-info // License key notification bar
-│        │   ├── Future: Status bar
-│        │   └── Future: Pagination bar
-│        └── .htFocusCatcher // Focus Catcher (down)
+│        │   └── Data grid content
+│        ├── .htFocusCatcher // Focus Catcher (down)
+│        ├── .hot-display-license-info // License key notification bar
+│        ├── Future: Status bar
+│        └── Future: Pagination bar
 └── .ht-portal // Portal Element
     └── Context menus, dropdowns, pop-ups, sidebars
         (absolutely positioned elements)
