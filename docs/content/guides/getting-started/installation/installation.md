@@ -176,6 +176,14 @@ export class HotTableWrapperComponent {
 }
 ```
 
+::: tip
+
+`@handsontable/angular-wrapper` requires at least Angular@16. If you use a lower version of Angular, you can use the `@handsontable/angular` package instead.
+
+For more information on `@handsontable/angular`, see the [15.3 documentation](https://handsontable.com/docs/15.3/javascript-data-grid/angular-installation/).
+
+:::
+
 ### Preview the result
 
 ::: example :angular --ts 1 --html 2
