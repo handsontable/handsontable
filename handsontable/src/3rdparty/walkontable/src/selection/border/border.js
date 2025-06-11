@@ -48,8 +48,15 @@ class Border {
     this.endStyle = null;
 
     this.cornerDefaultStyle = getCornerStyle(this.instance);
+
     // Offset to moving the corner to be centered relative to the grid.
-    this.cornerCenterPointOffset = -Math.ceil((parseInt(this.cornerDefaultStyle.width, 10) / 2));
+    if (this.wot.wtSettings.getSetting('stylesHandler').isClassicTheme()) {
+      this.cornerCenterPointOffset = -Math.ceil(parseInt(this.cornerDefaultStyle.width, 10) / 2);
+    } else {
+      // -1 was initially removed from the base position to compensate the lack of a corner border.
+      this.cornerCenterPointOffset = -(parseInt(this.cornerDefaultStyle.width, 10) - 1);
+    }
+
     this.corner = null;
     this.cornerStyle = null;
 
@@ -571,12 +578,13 @@ class Border {
 
       let trimmingContainer = getTrimmingContainer(wtTable.TABLE);
       const trimToWindow = trimmingContainer === rootWindow;
+      const isClassicTheme = this.wot.wtSettings.getSetting('stylesHandler').isClassicTheme();
 
       if (trimToWindow) {
         trimmingContainer = rootDocument.documentElement;
       }
 
-      // -1 was initially removed from the base position to compansate for the table border. We need to exclude it from
+      // -1 was initially removed from the base position to compensate for the table border. We need to exclude it from
       // the corner width.
       const cornerBorderCompensation = parseInt(this.cornerDefaultStyle.borderWidth, 10) - 1;
       const cornerHalfWidth = Math.ceil(parseInt(this.cornerDefaultStyle.width, 10) / 2);
@@ -597,10 +605,15 @@ class Border {
         }
 
         if (cornerOverlappingContainer) {
-          this.cornerStyle[inlinePosProperty] = `${Math.floor(
+          const cornerEndPosition = Math.floor(
             inlineStartPos + width + this.cornerCenterPointOffset - cornerHalfWidth - cornerBorderCompensation
-          )}px`;
-          this.cornerStyle[isRtl ? 'borderLeftWidth' : 'borderRightWidth'] = 0;
+          );
+
+          if (isClassicTheme) {
+            // styles for classic theme
+            this.cornerStyle[inlinePosProperty] = `${Math.floor(cornerEndPosition)}px`;
+            this.cornerStyle[isRtl ? 'borderLeftWidth' : 'borderRightWidth'] = 0;
+          }
         }
       }
 
@@ -608,7 +621,6 @@ class Border {
         const toTdOffsetTop = trimToWindow ? toTD.getBoundingClientRect().top : toTD.offsetTop;
         const cornerBottomEdge = toTdOffsetTop + outerHeight(toTD) + (parseInt(this.cornerDefaultStyle.height, 10) / 2);
         const cornerOverlappingContainer = cornerBottomEdge >= innerHeight(trimmingContainer);
-        const isClassicTheme = this.wot.wtSettings.getSetting('stylesHandler').isClassicTheme();
 
         if (cornerOverlappingContainer) {
           const cornerTopPosition = Math.floor(
@@ -619,9 +631,6 @@ class Border {
             // styles for classic theme
             this.cornerStyle.top = `${cornerTopPosition}px`;
             this.cornerStyle.borderBottomWidth = 0;
-          } else {
-            // styles for ht-theme
-            this.cornerStyle.top = `${cornerTopPosition - 1}px`;
           }
         }
       }
