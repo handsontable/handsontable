@@ -159,10 +159,14 @@
         }
 
         &:not(&.htCustomMenuRenderer, &.htDisabled) {
-          &:hover,
-          &.current {
+          &:hover {
             background: var(--ht-menu-item-hover-color, #e5e5e9) !important;
             cursor: pointer;
+            box-shadow: none !important;
+          }
+
+          &.current:not([aria-expanded="true"]) {
+            box-shadow: inset 0 0 0 1px var(--ht-accent-color);
           }
         }
 

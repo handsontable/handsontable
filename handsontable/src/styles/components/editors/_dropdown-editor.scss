@@ -41,16 +41,6 @@
           text-overflow: ellipsis;
           border-radius: 0 !important;
         }
-
-        td {
-          &.htDimmed {
-            cursor: default;
-            font-style: inherit;
-            color: inherit !important;
-            background-color: inherit !important;
-          }
-        }
-
         .wtBorder {
           visibility: hidden;
         }
@@ -61,18 +51,36 @@
         }
 
         tr {
-          &:hover {
-            td {
-              background: var(--ht-menu-item-hover-color, #e5e5e9) !important;
-              cursor: pointer;
+          td {
+            &:hover {
+              td {
+                background: var(--ht-menu-item-hover-color, #e5e5e9) !important;
+                cursor: pointer;
+                box-shadow: none !important;
+              }
             }
           }
+        }
 
-          td {
-            &:hover, &.current {
-              background: var(--ht-menu-item-hover-color, #e5e5e9) !important;
-              cursor: pointer;
-            }
+        td {
+          &:hover {
+            background-color: var(--ht-menu-item-hover-color, #e5e5e9) !important;
+            cursor: pointer;
+            box-shadow: none !important;
+          }
+
+          &.current:not([aria-expanded="true"]) {
+            box-shadow: inset 0 0 0 1px var(--ht-accent-color);
+          }
+
+          &.htDimmed {
+            cursor: default;
+            font-style: inherit;
+            color: inherit !important;
+          }
+
+          &.htDimmed:not(&:hover) {
+            background-color: inherit !important;
           }
         }
 
