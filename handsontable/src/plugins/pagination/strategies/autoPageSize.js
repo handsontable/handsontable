@@ -29,36 +29,41 @@ export class AutoPageSizeStrategy {
    */
   calculate({ itemsSizeProvider, viewportSizeProvider }) {
     const itemSizes = itemsSizeProvider();
-    const itemSizesLength = itemSizes.length;
     const viewportSize = viewportSizeProvider();
-    let totalSize = 0;
+    const pages = [];
+
     let startIndex = 0;
-    let endIndex = 0;
+    let totalSize = 1; // 1px border compensation for the first row
     let pageSize = 0;
 
-    this.pages = [];
-
-    for (let index = 0; index < itemSizesLength; index++) {
+    for (let index = 0; index < itemSizes.length; index++) {
       const itemSize = itemSizes[index];
-      const isLastItem = index === itemSizesLength - 1;
 
-      totalSize += itemSize;
-
-      if (totalSize >= viewportSize || isLastItem) {
-        totalSize = itemSize;
-
-        this.pages.push({
+      if (pageSize > 0 && totalSize + itemSize > viewportSize) {
+        pages.push({
           startIndex,
-          endIndex,
+          endIndex: index - 1,
           pageSize,
         });
+
         startIndex = index;
+        totalSize = 1; // 1px border compensation for the first row
         pageSize = 0;
       }
 
-      endIndex = index;
+      totalSize += itemSize;
       pageSize += 1;
     }
+
+    if (pageSize > 0) {
+      pages.push({
+        startIndex,
+        endIndex: itemSizes.length - 1,
+        pageSize
+      });
+    }
+
+    this.pages = pages;
   }
 
   /**

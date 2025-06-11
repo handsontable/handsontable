@@ -96,7 +96,7 @@ export class PaginationUI {
 
     container.setAttribute('dir', this.#isRtl ? 'rtl' : 'ltr');
 
-    const isDisabled = event => event.target.getAttribute('aria-disabled') === 'true';
+    const isDisabled = event => event.currentTarget.getAttribute('aria-disabled') === 'true';
 
     first.addEventListener('click', (event) => {
       if (!isDisabled(event)) {
@@ -118,8 +118,11 @@ export class PaginationUI {
         this.runLocalHooks('lastPageClick');
       }
     });
-    pageSizeSelect.addEventListener('change',
-      () => this.runLocalHooks('pageSizeChange', parseInt(pageSizeSelect.value, 10)));
+    pageSizeSelect.addEventListener('change', () => {
+      const value = pageSizeSelect.value === 'auto' ? 'auto' : Number.parseInt(pageSizeSelect.value, 10);
+
+      this.runLocalHooks('pageSizeChange', value);
+    });
 
     this.setCounterSectionVisibility(false);
     this.setNavigationSectionVisibility(false);
@@ -138,6 +141,15 @@ export class PaginationUI {
     this.#refs.container.style.width = `${width}px`;
 
     return this;
+  }
+
+  /**
+   * Gets the height of the pagination container element.
+   *
+   * @returns {number}
+   */
+  getHeight() {
+    return this.#refs.container.offsetHeight;
   }
 
   /**
@@ -168,6 +180,7 @@ export class PaginationUI {
    * @param {number} state.totalRenderedRows The total number of renderable rows.
    * @param {Array<number | 'auto'>} state.pageSizeList The list of available page sizes.
    * @param {number} state.pageSize The current page size.
+   * @param {boolean} state.autoPageSize Indicates if the page size is set to 'auto'.
    * @returns {PaginationUI} The instance of the PaginationUI for method chaining.
    */
   updateState({
@@ -178,6 +191,7 @@ export class PaginationUI {
     totalRenderedRows,
     pageSizeList,
     pageSize,
+    autoPageSize,
   }) {
     const {
       first,
@@ -220,7 +234,7 @@ export class PaginationUI {
     pageSizeList.forEach((pageSizeItem) => {
       const option = new Option(pageSizeItem, pageSizeItem);
 
-      if (pageSizeItem === pageSize) {
+      if (pageSizeItem === pageSize || pageSizeItem === 'auto' && autoPageSize) {
         option.selected = true;
       }
 

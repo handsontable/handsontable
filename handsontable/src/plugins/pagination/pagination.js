@@ -194,6 +194,7 @@ export class Pagination extends BasePlugin {
     this.addHook('afterRender', (...args) => this.#onAfterRender(...args));
     this.addHook('afterScrollVertically', (...args) => this.#onAfterScrollVertically(...args));
     this.addHook('afterLanguageChange', (...args) => this.#onAfterLanguageChange(...args));
+    // this.addHook('modifyRowHeight', (...args) => this.#onModifyRowHeight(...args));
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onIndexCacheUpdate);
 
     super.enablePlugin();
@@ -231,8 +232,9 @@ export class Pagination extends BasePlugin {
    * @returns {{
    *   currentPage: number,
    *   totalPages: number,
-   *   pageSize: number | 'auto',
+   *   pageSize: number,
    *   pageSizeList: Array<number | 'auto'>,
+   *   autoPageSize: boolean,
    *   numberOfRenderedRows: number,
    *   firstVisibleRow: number,
    *   lastVisibleRow: number
@@ -271,6 +273,7 @@ export class Pagination extends BasePlugin {
       totalPages: this.#calcStrategy.getTotalPages(),
       pageSize,
       pageSizeList: this.getSetting('pageSizeList'),
+      autoPageSize: this.#pageSize === 'auto',
       numberOfRenderedRows: this.hot.rowIndexMapper.getRenderableIndexesLength(),
       firstVisibleRow,
       lastVisibleRow,
@@ -513,9 +516,21 @@ export class Pagination extends BasePlugin {
       totalItems: renderableRowsLength,
       viewportSizeProvider: () => {
         const { view } = this.hot;
-        const scrollbarWidthCompensation = view.hasHorizontalScroll() ? getScrollbarWidth() : 0;
 
-        return view.getViewportHeight() - scrollbarWidthCompensation;
+        if (view.isVerticallyScrollableByWindow()) {
+          const bodyStyle = getComputedStyle(this.hot.rootDocument.body);
+          const margin = Number.parseInt(bodyStyle.marginTop, 10) + Number.parseInt(bodyStyle.marginBottom, 10);
+          const columnHeaderHeight = this.hot.hasColHeaders()
+            ? view._wt.wtTable.getColumnHeaderHeight() : 0;
+          const paginationContainerHeight = this.#ui.getHeight();
+          const workspaceHeight = view.getWorkspaceHeight();
+
+          return workspaceHeight - paginationContainerHeight - columnHeaderHeight - margin;
+        }
+
+        const scrollbarWidth = view.hasHorizontalScroll() ? getScrollbarWidth() : 0;
+
+        return view.getViewportHeight() - scrollbarWidth;
       },
       itemsSizeProvider: () => {
         const totalRows = this.hot.countRows();
@@ -543,7 +558,7 @@ export class Pagination extends BasePlugin {
 
     renderableIndexes.splice(startIndex, pageSize);
 
-    if (renderableRowsLength > 0) {
+    if (renderableIndexes.length > 0) { // TODO: Test me (renderableIndexes.length vs renderableRowsLength)
       this.hot.batchExecution(() => {
         renderableIndexes.forEach(index => this.#pagedRowsMap.setValueAtIndex(index, true));
       }, true);
@@ -595,13 +610,14 @@ export class Pagination extends BasePlugin {
    * @param {CellCoords} to Ending cell coordinates.
    */
   #onBeforeSelectAllRows(from, to) {
-    const rowStart = (this.#currentPage - 1) * this.#pageSize;
+    const { pageSize } = this.#calcStrategy.getState(this.#currentPage);
+    const rowStart = (this.#currentPage - 1) * pageSize;
 
     if (this.#currentPage > 1 || from.row >= 0) {
       from.row = rowStart;
     }
 
-    to.row = Math.min(rowStart + this.#pageSize - 1, this.hot.countRows() - 1);
+    to.row = Math.min(rowStart + pageSize - 1, this.hot.countRows() - 1);
   }
 
   /**
@@ -612,9 +628,10 @@ export class Pagination extends BasePlugin {
    */
   #onBeforeSetRangeEnd(coords) {
     if (this.hot.selection.isSelectedByColumnHeader()) {
-      const rowStart = (this.#currentPage - 1) * this.#pageSize;
+      const { pageSize } = this.#calcStrategy.getState(this.#currentPage);
+      const rowStart = (this.#currentPage - 1) * pageSize;
 
-      coords.row = Math.min(rowStart + this.#pageSize - 1, this.hot.countRows() - 1);
+      coords.row = Math.min(rowStart + pageSize - 1, this.hot.countRows() - 1);
     }
   }
 
@@ -640,6 +657,22 @@ export class Pagination extends BasePlugin {
     }
   }
 
+  #onModifyRowHeight(height, row) {
+    if (!this.#calcStrategy.getState(this.#currentPage)) {
+      return;
+    }
+
+    const {
+      firstVisibleRow,
+    } = this.getPaginationData();
+
+    if (row !== 0 && row === firstVisibleRow) {
+      height += 1;
+    }
+
+    return height;
+  }
+
   /**
    * Called after the view is rendered. It recalculates the pagination state only when
    * the `pageSize` is set to `'auto'`. In this case, the plugin will compute the
@@ -659,6 +692,7 @@ export class Pagination extends BasePlugin {
     this.#internalRenderCall = true;
     // there is need to re-render the table as on the initial the engine returns incorrect
     // values about table and column header sizes.
+    this.hot.view.adjustElementsSize();
     this.hot.render();
   }
 

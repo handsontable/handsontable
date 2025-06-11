@@ -5,7 +5,7 @@ type PageSizeOption = number | 'auto';
 
 export interface DetailedSettings {
   pageSize?: PageSizeOption;
-  pageSizeList?: Array<PageSizeOption>,
+  pageSizeList?: Array<PageSizeOption>;
   initialPage?: number;
   showPageSize?: boolean;
   showCounter?: boolean;
@@ -15,13 +15,14 @@ export interface DetailedSettings {
 export type Settings = boolean | DetailedSettings;
 
 type PaginationData = {
-  currentPage: number,
-  totalPages: number,
-  pageSize: PageSizeOption,
-  pageSizeList: Array<PageSizeOption>,
-  numberOfRenderedRows: number,
-  firstVisibleRow: number,
-  lastVisibleRow: number,
+  currentPage: number;
+  totalPages: number;
+  pageSize: number;
+  pageSizeList: Array<PageSizeOption>;
+  autoPageSize: boolean;
+  numberOfRenderedRows: number;
+  firstVisibleRow: number;
+  lastVisibleRow: number;
 }
 
 export class Pagination extends BasePlugin {
