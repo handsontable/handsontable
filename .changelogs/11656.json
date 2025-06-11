@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fix undo with cell types other than text",
+  "type": "fixed",
+  "issueOrPR": 11656,
+  "breaking": false,
+  "framework": "none"
+}
