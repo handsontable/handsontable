@@ -205,8 +205,10 @@ describe('Paginator', () => {
     });
 
     it('should not change the page when the page is invalid', () => {
+      const onItemSelect = jasmine.createSpy();
       const p = createPaginator({
         size: () => 10,
+        onItemSelect,
       });
 
       p.setPageCursorAt(20);
@@ -220,6 +222,7 @@ describe('Paginator', () => {
       p.setPageCursorAt(-1);
 
       expect(p.getCurrentPage()).toBe(-1);
+      expect(onItemSelect).toHaveBeenCalledTimes(0);
     });
   });
 
