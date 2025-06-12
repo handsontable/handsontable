@@ -25,8 +25,8 @@ describe('Pagination `getPaginationData` method', () => {
       pageSizeList: [5, 10, 20, 50, 100],
       autoPageSize: false,
       numberOfRenderedRows: 10,
-      firstVisibleRow: 0,
-      lastVisibleRow: 9,
+      firstVisibleRowIndex: 0,
+      lastVisibleRowIndex: 9,
     });
   });
 
@@ -47,8 +47,8 @@ describe('Pagination `getPaginationData` method', () => {
       pageSizeList: [5, 10, 20, 50, 100],
       autoPageSize: false,
       numberOfRenderedRows: 10,
-      firstVisibleRow: 20,
-      lastVisibleRow: 29,
+      firstVisibleRowIndex: 20,
+      lastVisibleRowIndex: 29,
     });
   });
 
@@ -69,8 +69,8 @@ describe('Pagination `getPaginationData` method', () => {
       pageSizeList: [5, 10, 20, 50, 100],
       autoPageSize: false,
       numberOfRenderedRows: 12,
-      firstVisibleRow: 0,
-      lastVisibleRow: 11,
+      firstVisibleRowIndex: 0,
+      lastVisibleRowIndex: 11,
     });
   });
 
@@ -102,8 +102,8 @@ describe('Pagination `getPaginationData` method', () => {
       pageSizeList: [5, 10, 20, 50, 100],
       autoPageSize: false,
       numberOfRenderedRows: 3,
-      firstVisibleRow: 1,
-      lastVisibleRow: 5,
+      firstVisibleRowIndex: 1,
+      lastVisibleRowIndex: 5,
     });
 
     plugin.setPage(2);
@@ -115,8 +115,8 @@ describe('Pagination `getPaginationData` method', () => {
       pageSizeList: [5, 10, 20, 50, 100],
       autoPageSize: false,
       numberOfRenderedRows: 2,
-      firstVisibleRow: 6,
-      lastVisibleRow: 7,
+      firstVisibleRowIndex: 6,
+      lastVisibleRowIndex: 7,
     });
   });
 
@@ -142,8 +142,8 @@ describe('Pagination `getPaginationData` method', () => {
       pageSizeList: [5, 10, 20, 50, 100],
       autoPageSize: false,
       numberOfRenderedRows: 3,
-      firstVisibleRow: 0,
-      lastVisibleRow: 2,
+      firstVisibleRowIndex: 0,
+      lastVisibleRowIndex: 2,
     });
 
     plugin.setPage(2);
@@ -155,8 +155,8 @@ describe('Pagination `getPaginationData` method', () => {
       pageSizeList: [5, 10, 20, 50, 100],
       autoPageSize: false,
       numberOfRenderedRows: 3,
-      firstVisibleRow: 3,
-      lastVisibleRow: 5,
+      firstVisibleRowIndex: 3,
+      lastVisibleRowIndex: 5,
     });
 
     plugin.setPage(3);
@@ -168,8 +168,8 @@ describe('Pagination `getPaginationData` method', () => {
       pageSizeList: [5, 10, 20, 50, 100],
       autoPageSize: false,
       numberOfRenderedRows: 3,
-      firstVisibleRow: 6,
-      lastVisibleRow: 8,
+      firstVisibleRowIndex: 6,
+      lastVisibleRowIndex: 8,
     });
 
     plugin.setPage(4);
@@ -181,8 +181,8 @@ describe('Pagination `getPaginationData` method', () => {
       pageSizeList: [5, 10, 20, 50, 100],
       autoPageSize: false,
       numberOfRenderedRows: 1,
-      firstVisibleRow: 9,
-      lastVisibleRow: 9,
+      firstVisibleRowIndex: 9,
+      lastVisibleRowIndex: 9,
     });
   });
 });

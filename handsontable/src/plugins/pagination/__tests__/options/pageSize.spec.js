@@ -562,7 +562,7 @@ describe('Pagination `pageSize` option', () => {
         ]);
       });
 
-      const rowToChange = plugin.getPaginationData().firstVisibleRow + 1;
+      const rowToChange = plugin.getPaginationData().firstVisibleRowIndex + 1;
 
       hotInstance
         .setDataAtCell(rowToChange, 1, 'This\nis\nmulitline\ncell\nvalue\nthat\nmakes\nrow\nmuch\nmuch\nbigger');

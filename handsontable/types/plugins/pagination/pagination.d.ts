@@ -21,8 +21,8 @@ type PaginationData = {
   pageSizeList: Array<PageSizeOption>;
   autoPageSize: boolean;
   numberOfRenderedRows: number;
-  firstVisibleRow: number;
-  lastVisibleRow: number;
+  firstVisibleRowIndex: number;
+  lastVisibleRowIndex: number;
 }
 
 export class Pagination extends BasePlugin {

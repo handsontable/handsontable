@@ -175,8 +175,8 @@ export class PaginationUI {
    * @param {object} state The pagination state.
    * @param {number} state.currentPage The current page number.
    * @param {number} state.totalPages The total number of pages.
-   * @param {number} state.firstVisibleRow The index of the first visible row on the current page.
-   * @param {number} state.lastVisibleRow The index of the last visible row on the current page.
+   * @param {number} state.firstVisibleRowIndex The index of the first visible row on the current page.
+   * @param {number} state.lastVisibleRowIndex The index of the last visible row on the current page.
    * @param {number} state.totalRenderedRows The total number of renderable rows.
    * @param {Array<number | 'auto'>} state.pageSizeList The list of available page sizes.
    * @param {number} state.pageSize The current page size.
@@ -186,8 +186,8 @@ export class PaginationUI {
   updateState({
     currentPage,
     totalPages,
-    firstVisibleRow,
-    lastVisibleRow,
+    firstVisibleRowIndex,
+    lastVisibleRowIndex,
     totalRenderedRows,
     pageSizeList,
     pageSize,
@@ -206,8 +206,8 @@ export class PaginationUI {
     } = this.#refs;
 
     const counterSectionText = this.#phraseTranslator(C.PAGINATION_COUNTER_SECTION, {
-      start: firstVisibleRow + 1,
-      end: lastVisibleRow + 1,
+      start: firstVisibleRowIndex + 1,
+      end: lastVisibleRowIndex + 1,
       total: totalRenderedRows,
     });
     const navLabelText = this.#phraseTranslator(C.PAGINATION_NAV_SECTION, {

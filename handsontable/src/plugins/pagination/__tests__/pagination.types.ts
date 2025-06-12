@@ -57,8 +57,8 @@ const paginationData: {
   pageSizeList: Array<number | 'auto'>;
   autoPageSize: boolean;
   numberOfRenderedRows: number;
-  firstVisibleRow: number;
-  lastVisibleRow: number;
+  firstVisibleRowIndex: number;
+  lastVisibleRowIndex: number;
 } = plugin.getPaginationData();
 const hasPreviousPage: boolean = plugin.hasPreviousPage();
 const hasNextPage: boolean = plugin.hasNextPage();

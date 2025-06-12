@@ -194,7 +194,7 @@ export class Pagination extends BasePlugin {
     this.addHook('afterRender', (...args) => this.#onAfterRender(...args));
     this.addHook('afterScrollVertically', (...args) => this.#onAfterScrollVertically(...args));
     this.addHook('afterLanguageChange', (...args) => this.#onAfterLanguageChange(...args));
-    // this.addHook('modifyRowHeight', (...args) => this.#onModifyRowHeight(...args));
+    this.addHook('modifyRowHeight', (...args) => this.#onModifyRowHeight(...args));
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onIndexCacheUpdate);
 
     super.enablePlugin();
@@ -236,8 +236,8 @@ export class Pagination extends BasePlugin {
    *   pageSizeList: Array<number | 'auto'>,
    *   autoPageSize: boolean,
    *   numberOfRenderedRows: number,
-   *   firstVisibleRow: number,
-   *   lastVisibleRow: number
+   *   firstVisibleRowIndex: number,
+   *   lastVisibleRowIndex: number
    * }}
    */
   getPaginationData() {
@@ -246,8 +246,8 @@ export class Pagination extends BasePlugin {
       startIndex,
     } = this.#calcStrategy.getState(this.#currentPage);
     const countRows = this.hot.countRows();
-    let firstVisibleRow = null;
-    let lastVisibleRow = null;
+    let firstVisibleRowIndex = null;
+    let lastVisibleRowIndex = null;
     let visibleCount = 0;
 
     for (let rowIndex = startIndex; visibleCount < pageSize; rowIndex++) {
@@ -260,11 +260,11 @@ export class Pagination extends BasePlugin {
         continue;
       }
 
-      if (firstVisibleRow === null) {
-        firstVisibleRow = rowIndex;
+      if (firstVisibleRowIndex === null) {
+        firstVisibleRowIndex = rowIndex;
       }
 
-      lastVisibleRow = rowIndex;
+      lastVisibleRowIndex = rowIndex;
       visibleCount += 1;
     }
 
@@ -275,8 +275,8 @@ export class Pagination extends BasePlugin {
       pageSizeList: this.getSetting('pageSizeList'),
       autoPageSize: this.#pageSize === 'auto',
       numberOfRenderedRows: this.hot.rowIndexMapper.getRenderableIndexesLength(),
-      firstVisibleRow,
-      lastVisibleRow,
+      firstVisibleRowIndex,
+      lastVisibleRowIndex,
     };
   }
 
@@ -410,11 +410,11 @@ export class Pagination extends BasePlugin {
    */
   getCurrentPageData() {
     const {
-      firstVisibleRow,
-      lastVisibleRow,
+      firstVisibleRowIndex,
+      lastVisibleRowIndex,
     } = this.getPaginationData();
 
-    return this.hot.getData(firstVisibleRow, 0, lastVisibleRow, this.hot.countCols() - 1);
+    return this.hot.getData(firstVisibleRowIndex, 0, lastVisibleRowIndex, this.hot.countCols() - 1);
   }
 
   /**
@@ -657,17 +657,30 @@ export class Pagination extends BasePlugin {
     }
   }
 
+  /**
+   * Called when the row height is modified. It adds 1px border top compensation for
+   * the first row of the each page to make sure that the table's hider element
+   * height is correctly calculated.
+   *
+   * @param {number | undefined} height Row height.
+   * @param {number} row Visual row index.
+   * @returns {number}
+   */
   #onModifyRowHeight(height, row) {
     if (!this.#calcStrategy.getState(this.#currentPage)) {
       return;
     }
 
+    if (height === undefined) {
+      return;
+    }
+
     const {
-      firstVisibleRow,
+      firstVisibleRowIndex,
     } = this.getPaginationData();
 
-    if (row !== 0 && row === firstVisibleRow) {
-      height += 1;
+    if (row !== 0 && row === firstVisibleRowIndex) {
+      height += 1; // 1px border top compensation for the first row of the page.
     }
 
     return height;
