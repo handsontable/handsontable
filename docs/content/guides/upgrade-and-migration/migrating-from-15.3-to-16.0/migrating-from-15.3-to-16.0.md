@@ -72,10 +72,10 @@ In Handsontable 16.0, we've made significant improvements to our CSS variables s
 ### New CSS variables
 We've introduced new variables that allow for easier customization: 
 
- - `--ht-letter-spacing`: controls the spacing between letters for better readability and visual appearance
- - `--ht-radio-*`: style radio input more accurate
- - `--ht-cell-read-only-background-color`: better adjust readonly cells
- - `--ht-checkbox-indeterminate`: customize checkbox indeterminate state
+ - `--ht-letter-spacing`: Controls letter spacing for improved readability and visual appearance.
+ - `--ht-radio-*`: Enables more accurate styling of radio inputs.
+ - `--ht-cell-read-only-background-color`: Allows better customization of read-only cell backgrounds.
+ - `--ht-checkbox-indeterminate`: Lets you style the indeterminate state of checkboxes.
 
 ### Removed CSS variables
 
@@ -411,7 +411,7 @@ Ensure you're importing the correct CSS files for themes.
 - **Solution:** The new wrapper doesn't use `<hot-column>`. Move column configuration to the `columns` array in your settings object.
 
 **Issue: "HotTableRegisterer is not defined"**
-- **Solution:** Use `@ViewChild(HotTableComponent)` and access `hotInstance` property instead.
+- **Solution:** Use `@ViewChild(HotTableComponent)` and access the `hotInstance` property instead.
 
 **Issue: "Custom renderer not working"**
 - **Solution:** Convert your function-based renderer to a component extending `HotCellRendererComponent`.
