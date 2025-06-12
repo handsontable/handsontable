@@ -10,18 +10,28 @@ describe('Pagination `pageSize` option', () => {
     }
   });
 
-  function initHandsontableInFrame(options) {
+  async function initHandsontableInFrame(options) {
     const iframe = $('<iframe/>')
       .css({ width: '600px', height: '600px' })
       .appendTo(spec().$container);
     const doc = iframe[0].contentDocument;
+    let styles = '';
+
+    if (spec().loadedTheme === 'classic') {
+      styles = '<link type="text/css" rel="stylesheet" href="../dist/handsontable.css">';
+    } else {
+      styles = `
+        <link type="text/css" rel="stylesheet" href="../styles/handsontable.css">
+        <link type="text/css" rel="stylesheet" href="../styles/ht-theme-main.css">
+        <link type="text/css" rel="stylesheet" href="../styles/ht-theme-horizon.css">
+      `;
+    }
 
     doc.open('text/html', 'replace');
     doc.write(`
       <!doctype html>
       <head>
-        <link type="text/css" rel="stylesheet" href="../styles/handsontable.css">
-        <link type="text/css" rel="stylesheet" href="../styles/ht-theme-main.css">
+        ${styles}
       </head>
       <body>
         <div id="root"></div>
@@ -29,16 +39,30 @@ describe('Pagination `pageSize` option', () => {
     `);
     doc.close();
 
-    const container = $(doc.querySelector('#root'));
+    const win = iframe[0].contentWindow;
+    const {
+      promise,
+      resolve,
+    } = Promise.withResolvers();
 
-    return {
-      hotInstance: container.handsontable({
-        licenseKey: 'non-commercial-and-evaluation',
-        themeName: 'ht-theme-main',
-        ...options,
-      }).handsontable('getInstance'),
-      iframe,
+    win.onload = () => {
+      const container = $(doc.querySelector('#root'));
+      const themeName = spec().loadedTheme !== 'classic' ? `ht-theme-${spec().loadedTheme}` : null;
+
+      if (themeName) {
+        options.themeName = themeName;
+      }
+
+      resolve({
+        hotInstance: container.handsontable({
+          licenseKey: 'non-commercial-and-evaluation',
+          ...options,
+        }).handsontable('getInstance'),
+        iframe,
+      });
     };
+
+    return promise;
   }
 
   describe('as number', () => {
@@ -270,13 +294,13 @@ describe('Pagination `pageSize` option', () => {
       ]);
 
       await updateSettings({
-        height: getDefaultRowHeight() * 7.5,
+        height: getDefaultRowHeight() * 8,
       });
 
       expect(visualizePageSections()).toEqual([
         'Page size: [5, 10, 20, 50, 100]',
-        '1 - 6 of 45',
-        '|< < Page 1 of 8 [>] [>|]',
+        '1 - 7 of 45',
+        '|< < Page 1 of 7 [>] [>|]',
       ]);
 
       await updateSettings({
@@ -327,7 +351,7 @@ describe('Pagination `pageSize` option', () => {
         '[|<] [<] Page 3 of 13 [>] [>|]',
       ]);
 
-      await setDataAtCell(4, 1, 'This\nis\nmulitline\ncell\nvalue');
+      await setDataAtCell(4, 1, 'This\nis\nmulitline\ncell\nvalue\nthat\nmakes\nrow\nmuch\nmuch\nbigger');
 
       expect(visualizePageSections()).toEqual([
         'Page size: [5, 10, 20, 50, 100]',
@@ -345,7 +369,7 @@ describe('Pagination `pageSize` option', () => {
     });
 
     it('should update UI elements after changing the value from "auto" to a number and vice versa (table without defined size)', async() => {
-      const { hotInstance, iframe } = initHandsontableInFrame({
+      const { hotInstance, iframe } = await initHandsontableInFrame({
         data: createSpreadsheetData(100, 10),
         pagination: {
           pageSize: 'auto',
@@ -354,13 +378,25 @@ describe('Pagination `pageSize` option', () => {
 
       setCurrentHotInstance(hotInstance);
 
-      expect(visualizePageSections()).toEqual([
-        'Page size: [5, 10, 20, 50, 100]',
-        '1 - 23 of 100',
-        '|< < Page 1 of 5 [>] [>|]',
-      ]);
+      expect(visualizePageSections()).forThemes(({ classic, main, horizon }) => {
+        classic.toEqual([
+          'Page size: [5, 10, 20, 50, 100]',
+          '1 - 23 of 100',
+          '|< < Page 1 of 5 [>] [>|]',
+        ]);
+        main.toEqual([
+          'Page size: [5, 10, 20, 50, 100]',
+          '1 - 18 of 100',
+          '|< < Page 1 of 6 [>] [>|]',
+        ]);
+        horizon.toEqual([
+          'Page size: [5, 10, 20, 50, 100]',
+          '1 - 14 of 100',
+          '|< < Page 1 of 8 [>] [>|]',
+        ]);
+      });
 
-      await updateSettings({
+      hotInstance.updateSettings({
         pagination: {
           pageSize: 13,
         },
@@ -377,7 +413,7 @@ describe('Pagination `pageSize` option', () => {
     });
 
     it('should update UI elements after changing the window height (table without defined size)', async() => {
-      const { hotInstance, iframe } = initHandsontableInFrame({
+      const { hotInstance, iframe } = await initHandsontableInFrame({
         data: createSpreadsheetData(100, 10),
         pagination: {
           pageSize: 'auto',
@@ -386,49 +422,79 @@ describe('Pagination `pageSize` option', () => {
 
       setCurrentHotInstance(hotInstance);
 
-      expect(visualizePageSections()).toEqual([
-        'Page size: [5, 10, 20, 50, 100]',
-        '1 - 23 of 100',
-        '|< < Page 1 of 5 [>] [>|]',
-      ]);
-
       iframe.css({ height: '400px' });
       await sleep(100); // wait for the onresize event to trigger a render
 
-      expect(visualizePageSections()).toEqual([
-        'Page size: [5, 10, 20, 50, 100]',
-        '1 - 12 of 100',
-        '|< < Page 1 of 9 [>] [>|]',
-      ]);
+      expect(visualizePageSections()).forThemes(({ classic, main, horizon }) => {
+        classic.toEqual([
+          'Page size: [5, 10, 20, 50, 100]',
+          '1 - 15 of 100',
+          '|< < Page 1 of 7 [>] [>|]',
+        ]);
+        main.toEqual([
+          'Page size: [5, 10, 20, 50, 100]',
+          '1 - 11 of 100',
+          '|< < Page 1 of 10 [>] [>|]',
+        ]);
+        horizon.toEqual([
+          'Page size: [5, 10, 20, 50, 100]',
+          '1 - 9 of 100',
+          '|< < Page 1 of 12 [>] [>|]',
+        ]);
+      });
 
       iframe.css({ height: '200px' });
       await sleep(100); // wait for the onresize event to trigger a render
 
-      expect(visualizePageSections()).toEqual([
-        'Page size: [5, 10, 20, 50, 100]',
-        '1 - 4 of 100',
-        '|< < Page 1 of 25 [>] [>|]',
-      ]);
+      expect(visualizePageSections()).forThemes(({ classic, main, horizon }) => {
+        classic.toEqual([
+          'Page size: [5, 10, 20, 50, 100]',
+          '1 - 6 of 100',
+          '|< < Page 1 of 17 [>] [>|]',
+        ]);
+        main.toEqual([
+          'Page size: [5, 10, 20, 50, 100]',
+          '1 - 4 of 100',
+          '|< < Page 1 of 25 [>] [>|]',
+        ]);
+        horizon.toEqual([
+          'Page size: [5, 10, 20, 50, 100]',
+          '1 - 3 of 100',
+          '|< < Page 1 of 34 [>] [>|]',
+        ]);
+      });
 
       iframe.css({ height: '700px' });
       await sleep(100); // wait for the onresize event to trigger a render
 
-      expect(visualizePageSections()).toEqual([
-        'Page size: [5, 10, 20, 50, 100]',
-        '1 - 22 of 100',
-        '|< < Page 1 of 5 [>] [>|]',
-      ]);
+      expect(visualizePageSections()).forThemes(({ classic, main, horizon }) => {
+        classic.toEqual([
+          'Page size: [5, 10, 20, 50, 100]',
+          '1 - 28 of 100',
+          '|< < Page 1 of 4 [>] [>|]',
+        ]);
+        main.toEqual([
+          'Page size: [5, 10, 20, 50, 100]',
+          '1 - 22 of 100',
+          '|< < Page 1 of 5 [>] [>|]',
+        ]);
+        horizon.toEqual([
+          'Page size: [5, 10, 20, 50, 100]',
+          '1 - 17 of 100',
+          '|< < Page 1 of 6 [>] [>|]',
+        ]);
+      });
 
       hotInstance.destroy();
       iframe.remove();
     });
 
     it('should update UI elements after changing the row heights (table without defined size)', async() => {
-      const { hotInstance, iframe } = initHandsontableInFrame({
+      const { hotInstance, iframe } = await initHandsontableInFrame({
         data: createSpreadsheetData(45, 10),
         autoRowSize: true,
         // eslint-disable-next-line no-sparse-arrays
-        rowHeights: [getDefaultRowHeight() * 30,,,,, getDefaultRowHeight() * 15,,, getDefaultRowHeight() * 2],
+        rowHeights: [getDefaultRowHeight() * 30,,,,, getDefaultRowHeight() * 13,,, getDefaultRowHeight() * 3],
         pagination: {
           pageSize: 'auto',
         },
@@ -436,47 +502,108 @@ describe('Pagination `pageSize` option', () => {
 
       setCurrentHotInstance(hotInstance);
 
-      const plugin = getPlugin('pagination');
+      const plugin = hotInstance.getPlugin('pagination');
 
-      expect(visualizePageSections()).toEqual([
-        'Page size: [5, 10, 20, 50, 100]',
-        '1 - 1 of 45',
-        '|< < Page 1 of 4 [>] [>|]',
-      ]);
+      expect(visualizePageSections()).forThemes(({ classic, main, horizon }) => {
+        classic.toEqual([
+          'Page size: [5, 10, 20, 50, 100]',
+          '1 - 1 of 45',
+          '|< < Page 1 of 4 [>] [>|]',
+        ]);
+        main.toEqual([
+          'Page size: [5, 10, 20, 50, 100]',
+          '1 - 1 of 45',
+          '|< < Page 1 of 5 [>] [>|]',
+        ]);
+        horizon.toEqual([
+          'Page size: [5, 10, 20, 50, 100]',
+          '1 - 1 of 45',
+          '|< < Page 1 of 6 [>] [>|]',
+        ]);
+      });
 
       plugin.setPage(2);
-      await sleep(50); // wait for the pagination to update
 
-      expect(visualizePageSections()).toEqual([
-        'Page size: [5, 10, 20, 50, 100]',
-        '2 - 5 of 45',
-        '[|<] [<] Page 2 of 5 [>] [>|]',
-      ]);
+      expect(visualizePageSections()).forThemes(({ classic, main, horizon }) => {
+        classic.toEqual([
+          'Page size: [5, 10, 20, 50, 100]',
+          '2 - 10 of 45',
+          '[|<] [<] Page 2 of 4 [>] [>|]',
+        ]);
+        main.toEqual([
+          'Page size: [5, 10, 20, 50, 100]',
+          '2 - 7 of 45',
+          '[|<] [<] Page 2 of 5 [>] [>|]',
+        ]);
+        horizon.toEqual([
+          'Page size: [5, 10, 20, 50, 100]',
+          '2 - 5 of 45',
+          '[|<] [<] Page 2 of 6 [>] [>|]',
+        ]);
+      });
 
       plugin.setPage(3);
-      await sleep(50); // wait for the pagination to update
 
-      expect(visualizePageSections()).toEqual([
-        'Page size: [5, 10, 20, 50, 100]',
-        '6 - 8 of 45',
-        '[|<] [<] Page 3 of 5 [>] [>|]',
-      ]);
+      expect(visualizePageSections()).forThemes(({ classic, main, horizon }) => {
+        classic.toEqual([
+          'Page size: [5, 10, 20, 50, 100]',
+          '11 - 33 of 45',
+          '[|<] [<] Page 3 of 4 [>] [>|]',
+        ]);
+        main.toEqual([
+          'Page size: [5, 10, 20, 50, 100]',
+          '8 - 23 of 45',
+          '[|<] [<] Page 3 of 5 [>] [>|]',
+        ]);
+        horizon.toEqual([
+          'Page size: [5, 10, 20, 50, 100]',
+          '6 - 7 of 45',
+          '[|<] [<] Page 3 of 6 [>] [>|]',
+        ]);
+      });
 
-      await setDataAtCell(6, 1, 'This\nis\nmulitline\ncell\nvalue\nthat\nmakes\nrow\nmuch\nmuch\nbigger');
+      const rowToChange = plugin.getPaginationData().firstVisibleRow + 1;
 
-      expect(visualizePageSections()).toEqual([
-        'Page size: [5, 10, 20, 50, 100]',
-        '6 - 6 of 45',
-        '[|<] [<] Page 3 of 6 [>] [>|]',
-      ]);
+      hotInstance
+        .setDataAtCell(rowToChange, 1, 'This\nis\nmulitline\ncell\nvalue\nthat\nmakes\nrow\nmuch\nmuch\nbigger');
 
-      await setDataAtCell(6, 1, 'value');
+      expect(visualizePageSections()).forThemes(({ classic, main, horizon }) => {
+        classic.toEqual([
+          'Page size: [5, 10, 20, 50, 100]',
+          '11 - 24 of 45',
+          '[|<] [<] Page 3 of 4 [>] [>|]',
+        ]);
+        main.toEqual([
+          'Page size: [5, 10, 20, 50, 100]',
+          '8 - 18 of 45',
+          '[|<] [<] Page 3 of 5 [>] [>|]',
+        ]);
+        horizon.toEqual([
+          'Page size: [5, 10, 20, 50, 100]',
+          '6 - 6 of 45',
+          '[|<] [<] Page 3 of 7 [>] [>|]',
+        ]);
+      });
 
-      expect(visualizePageSections()).toEqual([
-        'Page size: [5, 10, 20, 50, 100]',
-        '6 - 8 of 45',
-        '[|<] [<] Page 3 of 5 [>] [>|]',
-      ]);
+      hotInstance.setDataAtCell(rowToChange, 1, 'value');
+
+      expect(visualizePageSections()).forThemes(({ classic, main, horizon }) => {
+        classic.toEqual([
+          'Page size: [5, 10, 20, 50, 100]',
+          '11 - 33 of 45',
+          '[|<] [<] Page 3 of 4 [>] [>|]',
+        ]);
+        main.toEqual([
+          'Page size: [5, 10, 20, 50, 100]',
+          '8 - 23 of 45',
+          '[|<] [<] Page 3 of 5 [>] [>|]',
+        ]);
+        horizon.toEqual([
+          'Page size: [5, 10, 20, 50, 100]',
+          '6 - 7 of 45',
+          '[|<] [<] Page 3 of 6 [>] [>|]',
+        ]);
+      });
 
       hotInstance.destroy();
       iframe.remove();
