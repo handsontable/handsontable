@@ -76,6 +76,18 @@ export function createPaginator({
   }
 
   /**
+   * Sets the internal page index as current one without calling the `onItemSelect` callback,
+   * without changing the page visually.
+   *
+   * @param {number} index The index to set as current.
+   */
+  function setPageCursorAt(index) {
+    if (index > -1 && index < getSize()) {
+      currentIndex = index;
+    }
+  }
+
+  /**
    * Gets the current page.
    *
    * @returns {number}
@@ -144,6 +156,7 @@ export function createPaginator({
 
   return {
     setCurrentPage,
+    setPageCursorAt,
     getCurrentPage,
     toFirstItem,
     toLastItem,
