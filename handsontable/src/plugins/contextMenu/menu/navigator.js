@@ -18,8 +18,6 @@ export function createMenuNavigator(hotMenu) {
       const cell = hotMenu.getCell(currentItem, 0);
 
       if (!cell || isSeparator(cell) || isDisabled(cell) || isSelectionDisabled(cell)) {
-        hotMenu.deselectCell();
-
         return false;
       }
 
