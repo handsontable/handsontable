@@ -313,12 +313,20 @@ describe('DropdownMenu', () => {
         .simulate('mouseover');
 
       expect(getPlugin('dropdownMenu').menu.getNavigator().getCurrentPage()).toBe(3);
-      expect(getPlugin('dropdownMenu').menu.getSelectedItem().key).toBe('remove_col');
+      expect(getPlugin('dropdownMenu').menu.getSelectedItem()?.key).forThemes(({ classic, main, horizon }) => {
+        classic.toEqual('remove_col');
+        main.toEqual(undefined);
+        horizon.toEqual(undefined);
+      });
 
       await keyDownUp('arrowDown');
 
       expect(getPlugin('dropdownMenu').menu.getNavigator().getCurrentPage()).toBe(5);
-      expect(getPlugin('dropdownMenu').menu.getSelectedItem().key).toBe('clear_column');
+      expect(getPlugin('dropdownMenu').menu.getSelectedItem()?.key).forThemes(({ classic, main, horizon }) => {
+        classic.toEqual('clear_column');
+        main.toEqual('clear_column');
+        horizon.toEqual('clear_column');
+      });
     });
   });
 
@@ -460,7 +468,11 @@ describe('DropdownMenu', () => {
         .simulate('mouseenter')
         .simulate('mouseover');
 
-      expect(getPlugin('dropdownMenu').menu.getSelectedItem().key).toBe('remove_col');
+      expect(getPlugin('dropdownMenu').menu.getSelectedItem()?.key).forThemes(({ classic, main, horizon }) => {
+        classic.toEqual('remove_col');
+        main.toEqual(undefined);
+        horizon.toEqual(undefined);
+      });
     });
   });
 

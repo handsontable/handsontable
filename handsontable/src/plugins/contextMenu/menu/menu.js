@@ -316,7 +316,11 @@ export class Menu {
       themeName: this.hot.getCurrentThemeName(),
       beforeRefreshDimensions: () => false,
       beforeOnCellMouseOver: (event, coords) => {
-        this.#navigator.setCurrentPage(coords.row);
+        if (this.hotMenu.stylesHandler.isClassicTheme()) {
+          this.#navigator.setCurrentPage(coords.row);
+        } else {
+          this.#navigator.setPageCursorAt(coords.row);
+        }
       },
       afterOnCellMouseOver: (event, coords) => {
         if (this.isAllSubMenusClosed()) {

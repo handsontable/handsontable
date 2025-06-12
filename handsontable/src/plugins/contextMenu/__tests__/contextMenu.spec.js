@@ -1717,7 +1717,11 @@ describe('ContextMenu', () => {
         .simulate('mouseenter')
         .simulate('mouseover');
 
-      expect(getPlugin('contextMenu').menu.getSelectedItem().key).toBe('col_left');
+      expect(getPlugin('contextMenu').menu.getSelectedItem()?.key).forThemes(({ classic, main, horizon }) => {
+        classic.toEqual('col_left');
+        main.toEqual(undefined);
+        horizon.toEqual(undefined);
+      });
     });
   });
 
@@ -2502,12 +2506,20 @@ describe('ContextMenu', () => {
         .simulate('mouseover');
 
       expect(getPlugin('contextMenu').menu.getNavigator().getCurrentPage()).toBe(3);
-      expect(getPlugin('contextMenu').menu.getSelectedItem().key).toBe('col_left');
+      expect(getPlugin('contextMenu').menu.getSelectedItem()?.key).forThemes(({ classic, main, horizon }) => {
+        classic.toEqual('col_left');
+        main.toEqual(undefined);
+        horizon.toEqual(undefined);
+      });
 
       await keyDownUp('arrowDown');
 
       expect(getPlugin('contextMenu').menu.getNavigator().getCurrentPage()).toBe(4);
-      expect(getPlugin('contextMenu').menu.getSelectedItem().key).toBe('col_right');
+      expect(getPlugin('contextMenu').menu.getSelectedItem()?.key).forThemes(({ classic, main, horizon }) => {
+        classic.toEqual('col_right');
+        main.toEqual('col_right');
+        horizon.toEqual('col_right');
+      });
     });
   });
 

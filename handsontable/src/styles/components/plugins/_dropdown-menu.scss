@@ -142,8 +142,7 @@
         text-overflow: ellipsis;
         background: var(--ht-background-color, #ffffff);
         cursor: pointer;
-        transition: background calc(0.5 * var(--ht-table-transition))
-          ease-in-out;
+        transition: var(--ht-table-transition) background ease-in-out;
 
         &:first-child {
           border-top-width: 0;
@@ -159,10 +158,13 @@
         }
 
         &:not(&.htCustomMenuRenderer, &.htDisabled) {
-          &:hover,
-          &.current {
+          &:hover {
             background: var(--ht-menu-item-hover-color, #e5e5e9) !important;
             cursor: pointer;
+          }
+
+          &.current:not([aria-expanded="true"]) {
+            box-shadow: inset 0 0 0 1px var(--ht-accent-color);
           }
         }
 
@@ -262,6 +264,7 @@
     .htUIMultipleSelect .ht_master .wtHolder {
       overflow-y: scroll !important;
       background: transparent;
+      border-radius: 0 !important;
 
       .htCore {
         box-shadow: none;
