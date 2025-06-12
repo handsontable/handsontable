@@ -315,9 +315,6 @@ export class Menu {
       ariaTags: false,
       themeName: this.hot.getCurrentThemeName(),
       beforeRefreshDimensions: () => false,
-      beforeOnCellMouseOver: (event, coords) => {
-        this.#navigator.setCurrentPage(coords.row);
-      },
       afterOnCellMouseOver: (event, coords) => {
         if (this.isAllSubMenusClosed()) {
           delayedOpenSubMenu(coords.row);

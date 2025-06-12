@@ -18,6 +18,7 @@
 
       .wtHolder {
         overflow: auto;
+        border-radius: 0 !important;
       }
 
       .wtHider, .htCore {
@@ -64,10 +65,11 @@
         }
 
         td {
+          transition: var(--ht-table-transition) background ease-in-out;
+
           &:hover {
             background-color: var(--ht-menu-item-hover-color, #e5e5e9) !important;
             cursor: pointer;
-            box-shadow: none !important;
           }
 
           &.current:not([aria-expanded="true"]) {
