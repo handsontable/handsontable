@@ -193,6 +193,36 @@ describe('Paginator', () => {
     });
   });
 
+  describe('calling `setPageCursorAt` method', () => {
+    it('should change the page index', () => {
+      const p = createPaginator({
+        size: () => 10,
+      });
+
+      p.setPageCursorAt(3);
+
+      expect(p.getCurrentPage()).toBe(3);
+    });
+
+    it('should not change the page when the page is invalid', () => {
+      const p = createPaginator({
+        size: () => 10,
+      });
+
+      p.setPageCursorAt(20);
+
+      expect(p.getCurrentPage()).toBe(-1);
+
+      p.setPageCursorAt(-10);
+
+      expect(p.getCurrentPage()).toBe(-1);
+
+      p.setPageCursorAt(-1);
+
+      expect(p.getCurrentPage()).toBe(-1);
+    });
+  });
+
   describe('calling `getCurrentPage` method', () => {
     it('should return current page index', () => {
       const p = createPaginator({
