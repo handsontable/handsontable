@@ -596,10 +596,10 @@ export class Pagination extends BasePlugin {
     }
 
     const {
-      lastVisibleRow
+      lastVisibleRowIndex
     } = this.getPaginationData();
 
-    return view.getLastFullyVisibleRow() !== lastVisibleRow;
+    return view.getLastFullyVisibleRow() !== lastVisibleRowIndex;
   }
 
   /**
