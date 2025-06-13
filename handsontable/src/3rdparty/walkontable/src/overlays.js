@@ -698,7 +698,13 @@ class Overlays {
     const totalRows = this.wtSettings.getSetting('totalRows');
     const headerRowSize = wtViewport.getRowHeaderWidth();
     const headerColumnSize = wtViewport.getColumnHeaderHeight();
-    const proposedHiderHeight = headerColumnSize + this.topOverlay.sumCellSizes(0, totalRows);
+    // The internal row height calculator contains a known issue that results in a 1px miscalculation.
+    // Ideally, this should be addressed at the core level. However, resolving it is non-trivial,
+    // as the flaw is embedded across multiple core modules and corresponding test cases.
+    // This limitation does not affect when the the external calculator is used (AutoRowSize), which
+    // computes heights accurately, so no adjustment is required when using it.
+    const hiderHeightComp = this.wtSettings.getSetting('externalRowCalculator') ? 0 : 1;
+    const proposedHiderHeight = headerColumnSize + this.topOverlay.sumCellSizes(0, totalRows) + hiderHeightComp;
     const proposedHiderWidth = headerRowSize + this.inlineStartOverlay.sumCellSizes(0, totalColumns);
     const hiderElement = wtTable.hider;
     const hiderStyle = hiderElement.style;
@@ -714,17 +720,11 @@ class Overlays {
     };
     const columnHeaderBorderCompensation = isScrolledBeyondHiderHeight() ? 1 : 0;
     const rowHeaderBorderCompensation = isScrolledBeyondHiderWidth() ? 1 : 0;
-    // In the internal row height calculator there is a bug that causes 1px miscalculation.
-    // In the future, we should consider fixing the bug in the core. It's not an easy task as
-    // the bug is cemented in the core logic (in different modules) and in the tests.
-    // External calculator (AutoRowSize) is free from these issues so there is no need to compensate
-    // the height in this case.
-    const hiderHeightComp = this.wtSettings.getSetting('externalRowCalculator') ? 0 : 1;
 
     // If the elements are being adjusted after scrolling the table from the very beginning to the very end,
     // we need to adjust the hider dimensions by the header border size. (https://github.com/handsontable/dev-handsontable/issues/1772)
     hiderStyle.width = `${proposedHiderWidth + rowHeaderBorderCompensation}px`;
-    hiderStyle.height = `${proposedHiderHeight + columnHeaderBorderCompensation + hiderHeightComp}px`;
+    hiderStyle.height = `${proposedHiderHeight + columnHeaderBorderCompensation}px`;
 
     this.topOverlay.adjustElementsSize();
     this.inlineStartOverlay.adjustElementsSize();
