@@ -10,7 +10,7 @@ describe('Pagination `afterPageSizeChange` hook', () => {
     }
   });
 
-  it('should be fired after page size change', async() => {
+  it('should be fired after page size change (as a number)', async() => {
     const afterPageSizeChange = jasmine.createSpy('afterPageSizeChange');
 
     handsontable({
@@ -25,6 +25,23 @@ describe('Pagination `afterPageSizeChange` hook', () => {
 
     expect(afterPageSizeChange).toHaveBeenCalledTimes(1);
     expect(afterPageSizeChange).toHaveBeenCalledWith(10, 13);
+  });
+
+  it('should be fired after page size change (as `auto`)', async() => {
+    const afterPageSizeChange = jasmine.createSpy('afterPageSizeChange');
+
+    handsontable({
+      data: createSpreadsheetData(45, 10),
+      pagination: true,
+      afterPageSizeChange,
+    });
+
+    const plugin = getPlugin('pagination');
+
+    plugin.setPageSize('auto');
+
+    expect(afterPageSizeChange).toHaveBeenCalledTimes(1);
+    expect(afterPageSizeChange).toHaveBeenCalledWith(10, 'auto');
   });
 
   it('should be fired after the `beforePageSizeChange` hook', async() => {

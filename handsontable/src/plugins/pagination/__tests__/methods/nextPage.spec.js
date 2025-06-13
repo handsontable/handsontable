@@ -23,7 +23,8 @@ describe('Pagination `nextPage` method', () => {
     plugin.nextPage();
 
     expect(plugin.getPaginationData().currentPage).toBe(3);
-    expect(countVisibleRows()).toBe(10);
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A21');
+    expect(getHtCore().find('tr:last td:first').text()).toBe('A30');
     expect(stringifyPageCounterSection()).toBe('21 - 30 of 45');
     expect(stringifyPageNavigationSection()).toBe('[|<] [<] Page 3 of 5 [>] [>|]');
   });
@@ -41,7 +42,8 @@ describe('Pagination `nextPage` method', () => {
     plugin.nextPage();
 
     expect(plugin.getPaginationData().currentPage).toBe(5);
-    expect(countVisibleRows()).toBe(5);
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A41');
+    expect(getHtCore().find('tr:last td:first').text()).toBe('A45');
     expect(stringifyPageCounterSection()).toBe('41 - 45 of 45');
     expect(stringifyPageNavigationSection()).toBe('[|<] [<] Page 5 of 5 > >|');
   });

@@ -23,7 +23,8 @@ describe('Pagination `prevPage` method', () => {
     plugin.prevPage();
 
     expect(plugin.getPaginationData().currentPage).toBe(1);
-    expect(countVisibleRows()).toBe(10);
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+    expect(getHtCore().find('tr:last td:first').text()).toBe('A10');
     expect(stringifyPageCounterSection()).toBe('1 - 10 of 45');
     expect(stringifyPageNavigationSection()).toBe('|< < Page 1 of 5 [>] [>|]');
   });
@@ -41,7 +42,8 @@ describe('Pagination `prevPage` method', () => {
     plugin.prevPage();
 
     expect(plugin.getPaginationData().currentPage).toBe(1);
-    expect(countVisibleRows()).toBe(10);
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+    expect(getHtCore().find('tr:last td:first').text()).toBe('A10');
     expect(stringifyPageCounterSection()).toBe('1 - 10 of 45');
     expect(stringifyPageNavigationSection()).toBe('|< < Page 1 of 5 [>] [>|]');
   });

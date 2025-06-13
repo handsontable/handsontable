@@ -74,16 +74,19 @@ describe('Pagination `initialPage` option', () => {
     expect(plugin.getPaginationData().currentPage).toBe(5);
   });
 
-  it('should update UI elements according to the plugins changes', async() => {
+  it('should render elements according to the plugins changes', async() => {
     handsontable({
       data: createSpreadsheetData(45, 10),
       pagination: {
         initialPage: 1,
       },
+      renderAllRows: true,
     });
 
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+    expect(getHtCore().find('tr:last td:first').text()).toBe('A10');
     expect(visualizePageSections()).toEqual([
-      'Page size: [5, 10, 20, 50, 100]',
+      'Page size: [5, [10], 20, 50, 100]',
       '1 - 10 of 45',
       '|< < Page 1 of 5 [>] [>|]',
     ]);
@@ -94,8 +97,10 @@ describe('Pagination `initialPage` option', () => {
       },
     });
 
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A11');
+    expect(getHtCore().find('tr:last td:first').text()).toBe('A20');
     expect(visualizePageSections()).toEqual([
-      'Page size: [5, 10, 20, 50, 100]',
+      'Page size: [5, [10], 20, 50, 100]',
       '11 - 20 of 45',
       '[|<] [<] Page 2 of 5 [>] [>|]',
     ]);
@@ -106,8 +111,10 @@ describe('Pagination `initialPage` option', () => {
       },
     });
 
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A21');
+    expect(getHtCore().find('tr:last td:first').text()).toBe('A30');
     expect(visualizePageSections()).toEqual([
-      'Page size: [5, 10, 20, 50, 100]',
+      'Page size: [5, [10], 20, 50, 100]',
       '21 - 30 of 45',
       '[|<] [<] Page 3 of 5 [>] [>|]',
     ]);
@@ -118,8 +125,10 @@ describe('Pagination `initialPage` option', () => {
       },
     });
 
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A31');
+    expect(getHtCore().find('tr:last td:first').text()).toBe('A40');
     expect(visualizePageSections()).toEqual([
-      'Page size: [5, 10, 20, 50, 100]',
+      'Page size: [5, [10], 20, 50, 100]',
       '31 - 40 of 45',
       '[|<] [<] Page 4 of 5 [>] [>|]',
     ]);
@@ -130,8 +139,10 @@ describe('Pagination `initialPage` option', () => {
       },
     });
 
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A41');
+    expect(getHtCore().find('tr:last td:first').text()).toBe('A45');
     expect(visualizePageSections()).toEqual([
-      'Page size: [5, 10, 20, 50, 100]',
+      'Page size: [5, [10], 20, 50, 100]',
       '41 - 45 of 45',
       '[|<] [<] Page 5 of 5 > >|',
     ]);

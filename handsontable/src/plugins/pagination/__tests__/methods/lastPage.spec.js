@@ -23,7 +23,8 @@ describe('Pagination `lastPage` method', () => {
     plugin.lastPage();
 
     expect(plugin.getPaginationData().currentPage).toBe(5);
-    expect(countVisibleRows()).toBe(5);
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A41');
+    expect(getHtCore().find('tr:last td:first').text()).toBe('A45');
     expect(stringifyPageCounterSection()).toBe('41 - 45 of 45');
     expect(stringifyPageNavigationSection()).toBe('[|<] [<] Page 5 of 5 > >|');
   });
@@ -41,7 +42,8 @@ describe('Pagination `lastPage` method', () => {
     plugin.lastPage();
 
     expect(plugin.getPaginationData().currentPage).toBe(1);
-    expect(countVisibleRows()).toBe(1);
+    expect(getHtCore().find('tr:first td:first').text()).toBe('');
+    expect(getHtCore().find('tr:last td:first').text()).toBe('');
     expect(stringifyPageCounterSection()).toBe('1 - 1 of 1');
     expect(stringifyPageNavigationSection()).toBe('|< < Page 1 of 1 > >|');
   });

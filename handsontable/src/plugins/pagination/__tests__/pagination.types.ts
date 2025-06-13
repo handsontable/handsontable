@@ -29,14 +29,14 @@ const hot3 = new Handsontable(document.createElement('div'), {
     const _newPage: number = newPage;
   },
   beforePageSizeChange(oldPageSize, newPageSize) {
-    const _oldPageSize: number = oldPageSize;
-    const _newPageSize: number = newPageSize;
+    const _oldPageSize: number | 'auto' = oldPageSize;
+    const _newPageSize: number | 'auto' = newPageSize;
 
     return true;
   },
   afterPageSizeChange(oldPageSize, newPageSize) {
-    const _oldPageSize: number = oldPageSize;
-    const _newPageSize: number = newPageSize;
+    const _oldPageSize: number | 'auto' = oldPageSize;
+    const _newPageSize: number | 'auto' = newPageSize;
   },
   afterPageSizeVisibilityChange(isVisible) {
     const _isVisible: boolean = isVisible;

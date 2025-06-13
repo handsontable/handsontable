@@ -538,7 +538,9 @@ export class Pagination extends BasePlugin {
         const rowHeights = [];
 
         for (let row = 0; row < totalRows; row++) {
-          rowHeights.push(this.hot.getRowHeight(row) ?? defaultRowHeight);
+          if (!this.hot.rowIndexMapper.isHidden(this.hot.toPhysicalRow(row))) {
+            rowHeights.push(this.hot.getRowHeight(row) ?? defaultRowHeight);
+          }
         }
 
         return rowHeights;

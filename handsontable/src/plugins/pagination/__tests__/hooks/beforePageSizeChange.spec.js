@@ -10,7 +10,7 @@ describe('Pagination `beforePageSizeChange` hook', () => {
     }
   });
 
-  it('should be fired before page size change', async() => {
+  it('should be fired before page size change (as a number)', async() => {
     const beforePageSizeChange = jasmine.createSpy('beforePageSizeChange');
 
     handsontable({
@@ -25,6 +25,23 @@ describe('Pagination `beforePageSizeChange` hook', () => {
 
     expect(beforePageSizeChange).toHaveBeenCalledTimes(1);
     expect(beforePageSizeChange).toHaveBeenCalledWith(10, 13);
+  });
+
+  it('should be fired before page size change (as `auto`)', async() => {
+    const beforePageSizeChange = jasmine.createSpy('beforePageSizeChange');
+
+    handsontable({
+      data: createSpreadsheetData(45, 10),
+      pagination: true,
+      beforePageSizeChange,
+    });
+
+    const plugin = getPlugin('pagination');
+
+    plugin.setPageSize('auto');
+
+    expect(beforePageSizeChange).toHaveBeenCalledTimes(1);
+    expect(beforePageSizeChange).toHaveBeenCalledWith(10, 'auto');
   });
 
   it('should be possible to abort the action', async() => {

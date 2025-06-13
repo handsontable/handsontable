@@ -34,7 +34,13 @@ export function filterByValueMultipleSelect() {
 export function stringifyPageSizeSection() {
   const pageSection = getPaginationContainerElement().querySelector('.ht-page-size-section');
   const label = pageSection.querySelector('span').textContent.trim();
-  const values = Array.from(pageSection.querySelectorAll('select option')).map(option => option.value);
+  const values = Array.from(pageSection.querySelectorAll('select option')).map((option) => {
+    if (option.selected) {
+      return `[${option.value}]`;
+    }
+
+    return option.value;
+  });
 
   return `${label} [${values.join(', ')}]`;
 }

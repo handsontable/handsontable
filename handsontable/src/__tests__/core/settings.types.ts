@@ -366,8 +366,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
     const _newPage: number = newPage;
   },
   afterPageSizeChange(oldPageSize, newPageSize) {
-    const _oldPageSize: number = oldPageSize;
-    const _newPageSize: number = newPageSize;
+    const _oldPageSize: number | 'auto' = oldPageSize;
+    const _newPageSize: number | 'auto' = newPageSize;
   },
   afterPageSizeVisibilityChange(isVisible) {
     const _isVisible: boolean = isVisible;
@@ -511,8 +511,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
     return true;
   },
   beforePageSizeChange(oldPageSize, newPageSize) {
-    const _oldPageSize: number = oldPageSize;
-    const _newPageSize: number = newPageSize;
+    const _oldPageSize: number | 'auto' = oldPageSize;
+    const _newPageSize: number | 'auto' = newPageSize;
 
     return true;
   },

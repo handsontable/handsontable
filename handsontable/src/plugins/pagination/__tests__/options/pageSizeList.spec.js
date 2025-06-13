@@ -25,13 +25,13 @@ describe('Pagination `pageSizeList` option', () => {
     handsontable({
       data: createSpreadsheetData(45, 10),
       pagination: {
-        pageSizeList: [10, 20, 30],
+        pageSizeList: [10, 'auto', 20, 30],
       },
     });
 
     const plugin = getPlugin('pagination');
 
-    expect(plugin.getSetting('pageSizeList')).toEqual([10, 20, 30]);
+    expect(plugin.getSetting('pageSizeList')).toEqual([10, 'auto', 20, 30]);
     expect(countVisibleRows()).toBe(10);
   });
 
@@ -43,50 +43,73 @@ describe('Pagination `pageSizeList` option', () => {
 
     await updateSettings({
       pagination: {
-        pageSizeList: [10, 20, 30],
+        pageSizeList: [10, 'auto', 20, 30],
       },
     });
 
     const plugin = getPlugin('pagination');
 
-    expect(plugin.getSetting('pageSizeList')).toEqual([10, 20, 30]);
+    expect(plugin.getSetting('pageSizeList')).toEqual([10, 'auto', 20, 30]);
     expect(countVisibleRows()).toBe(10);
   });
 
-  it('should update UI elements according to the plugins changes', async() => {
+  it('should render elements according to the plugins changes', async() => {
     handsontable({
       data: createSpreadsheetData(45, 10),
       pagination: {
         pageSizeList: [10, 20, 30],
       },
+      renderAllRows: true,
     });
 
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+    expect(getHtCore().find('tr:last td:first').text()).toBe('A10');
     expect(visualizePageSections()).toEqual([
-      'Page size: [10, 20, 30]',
+      'Page size: [[10], 20, 30]',
       '1 - 10 of 45',
       '|< < Page 1 of 5 [>] [>|]',
     ]);
 
     await updateSettings({
       pagination: {
-        pageSizeList: [100, 200],
+        pageSizeList: ['auto', 100, 200],
       },
     });
 
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+    expect(getHtCore().find('tr:last td:first').text()).toBe('A10');
     expect(visualizePageSections()).toEqual([
-      'Page size: [100, 200]',
+      'Page size: [[auto], 100, 200]',
       '1 - 10 of 45',
       '|< < Page 1 of 5 [>] [>|]',
     ]);
 
     await updateSettings({
       pagination: {
+        pageSize: 200,
+        pageSizeList: ['auto', 100, 200],
+      },
+    });
+
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+    expect(getHtCore().find('tr:last td:first').text()).toBe('A45');
+    expect(visualizePageSections()).toEqual([
+      'Page size: [auto, 100, [200]]',
+      '1 - 45 of 45',
+      '|< < Page 1 of 1 > >|',
+    ]);
+
+    await updateSettings({
+      pagination: {
+        pageSize: 10,
         pageSizeList: [20],
       },
     });
 
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+    expect(getHtCore().find('tr:last td:first').text()).toBe('A10');
     expect(visualizePageSections()).toEqual([
-      'Page size: [20]',
+      'Page size: [[20]]',
       '1 - 10 of 45',
       '|< < Page 1 of 5 [>] [>|]',
     ]);

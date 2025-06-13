@@ -121,14 +121,17 @@ describe('Pagination `pageSize` option', () => {
       }).toThrowError('The `pageSize` option must be greater than `0`.');
     });
 
-    it('should update UI elements according to the plugins changes', async() => {
+    it('should render elements according to the plugins changes', async() => {
       handsontable({
         data: createSpreadsheetData(45, 10),
         pagination: true,
+        renderAllRows: true,
       });
 
+      expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+      expect(getHtCore().find('tr:last td:first').text()).toBe('A10');
       expect(visualizePageSections()).toEqual([
-        'Page size: [5, 10, 20, 50, 100]',
+        'Page size: [5, [10], 20, 50, 100]',
         '1 - 10 of 45',
         '|< < Page 1 of 5 [>] [>|]',
       ]);
@@ -139,8 +142,10 @@ describe('Pagination `pageSize` option', () => {
         },
       });
 
+      expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+      expect(getHtCore().find('tr:last td:first').text()).toBe('A12');
       expect(visualizePageSections()).toEqual([
-        'Page size: [5, 10, 20, 50, 100]',
+        'Page size: [[5], 10, 20, 50, 100]',
         '1 - 12 of 45',
         '|< < Page 1 of 4 [>] [>|]',
       ]);
@@ -151,8 +156,10 @@ describe('Pagination `pageSize` option', () => {
         },
       });
 
+      expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+      expect(getHtCore().find('tr:last td:first').text()).toBe('A40');
       expect(visualizePageSections()).toEqual([
-        'Page size: [5, 10, 20, 50, 100]',
+        'Page size: [[5], 10, 20, 50, 100]',
         '1 - 40 of 45',
         '|< < Page 1 of 2 [>] [>|]',
       ]);
@@ -163,8 +170,10 @@ describe('Pagination `pageSize` option', () => {
         },
       });
 
+      expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+      expect(getHtCore().find('tr:last td:first').text()).toBe('A45');
       expect(visualizePageSections()).toEqual([
-        'Page size: [5, 10, 20, 50, 100]',
+        'Page size: [[5], 10, 20, 50, 100]',
         '1 - 45 of 45',
         '|< < Page 1 of 1 > >|',
       ]);
@@ -175,8 +184,10 @@ describe('Pagination `pageSize` option', () => {
         },
       });
 
+      expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+      expect(getHtCore().find('tr:last td:first').text()).toBe('A45');
       expect(visualizePageSections()).toEqual([
-        'Page size: [5, 10, 20, 50, 100]',
+        'Page size: [5, 10, 20, [50], 100]',
         '1 - 45 of 45',
         '|< < Page 1 of 1 > >|',
       ]);
@@ -238,16 +249,19 @@ describe('Pagination `pageSize` option', () => {
       expect(countRenderedRows()).toBe(1);
     });
 
-    it('should update UI elements after changing the value from "auto" to a number and vice versa (table with defined size)', async() => {
+    it('should render elements after changing the value from "auto" to a number and vice versa (table with defined size)', async() => {
       handsontable({
         data: createSpreadsheetData(45, 10),
         width: 300,
         height: getDefaultRowHeight() * 5,
         pagination: true,
+        renderAllRows: true,
       });
 
+      expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+      expect(getHtCore().find('tr:last td:first').text()).toBe('A10');
       expect(visualizePageSections()).toEqual([
-        'Page size: [5, 10, 20, 50, 100]',
+        'Page size: [5, [10], 20, 50, 100]',
         '1 - 10 of 45',
         '|< < Page 1 of 5 [>] [>|]',
       ]);
@@ -258,8 +272,10 @@ describe('Pagination `pageSize` option', () => {
         },
       });
 
+      expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+      expect(getHtCore().find('tr:last td:first').text()).toBe('A4');
       expect(visualizePageSections()).toEqual([
-        'Page size: [5, 10, 20, 50, 100]',
+        'Page size: [[5], 10, 20, 50, 100]',
         '1 - 4 of 45',
         '|< < Page 1 of 12 [>] [>|]',
       ]);
@@ -270,14 +286,16 @@ describe('Pagination `pageSize` option', () => {
         },
       });
 
+      expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+      expect(getHtCore().find('tr:last td:first').text()).toBe('A40');
       expect(visualizePageSections()).toEqual([
-        'Page size: [5, 10, 20, 50, 100]',
+        'Page size: [[5], 10, 20, 50, 100]',
         '1 - 40 of 45',
         '|< < Page 1 of 2 [>] [>|]',
       ]);
     });
 
-    it('should update UI elements after changing the viewport height (table with defined size)', async() => {
+    it('should render elements after changing the viewport height (table with defined size)', async() => {
       handsontable({
         data: createSpreadsheetData(45, 10),
         width: 300,
@@ -285,10 +303,13 @@ describe('Pagination `pageSize` option', () => {
         pagination: {
           pageSize: 'auto',
         },
+        renderAllRows: true,
       });
 
+      expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+      expect(getHtCore().find('tr:last td:first').text()).toBe('A4');
       expect(visualizePageSections()).toEqual([
-        'Page size: [5, 10, 20, 50, 100]',
+        'Page size: [[5], 10, 20, 50, 100]',
         '1 - 4 of 45',
         '|< < Page 1 of 12 [>] [>|]',
       ]);
@@ -297,8 +318,10 @@ describe('Pagination `pageSize` option', () => {
         height: getDefaultRowHeight() * 8,
       });
 
+      expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+      expect(getHtCore().find('tr:last td:first').text()).toBe('A7');
       expect(visualizePageSections()).toEqual([
-        'Page size: [5, 10, 20, 50, 100]',
+        'Page size: [[5], 10, 20, 50, 100]',
         '1 - 7 of 45',
         '|< < Page 1 of 7 [>] [>|]',
       ]);
@@ -307,14 +330,16 @@ describe('Pagination `pageSize` option', () => {
         height: getDefaultRowHeight() * 12,
       });
 
+      expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+      expect(getHtCore().find('tr:last td:first').text()).toBe('A11');
       expect(visualizePageSections()).toEqual([
-        'Page size: [5, 10, 20, 50, 100]',
+        'Page size: [[5], 10, 20, 50, 100]',
         '1 - 11 of 45',
         '|< < Page 1 of 5 [>] [>|]',
       ]);
     });
 
-    it('should update UI elements after changing the row heights (table with defined size)', async() => {
+    it('should render elements after changing the row heights (table with defined size)', async() => {
       handsontable({
         data: createSpreadsheetData(45, 10),
         autoRowSize: true,
@@ -325,72 +350,94 @@ describe('Pagination `pageSize` option', () => {
         pagination: {
           pageSize: 'auto',
         },
+        renderAllRows: true,
       });
 
       const plugin = getPlugin('pagination');
 
+      expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+      expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
       expect(visualizePageSections()).toEqual([
-        'Page size: [5, 10, 20, 50, 100]',
+        'Page size: [[5], 10, 20, 50, 100]',
         '1 - 1 of 45',
         '|< < Page 1 of 13 [>] [>|]',
       ]);
 
       plugin.setPage(2);
 
+      expect(getHtCore().find('tr:first td:first').text()).toBe('A2');
+      expect(getHtCore().find('tr:last td:first').text()).toBe('A3');
       expect(visualizePageSections()).toEqual([
-        'Page size: [5, 10, 20, 50, 100]',
+        'Page size: [[5], 10, 20, 50, 100]',
         '2 - 3 of 45',
         '[|<] [<] Page 2 of 13 [>] [>|]',
       ]);
 
       plugin.setPage(3);
 
+      expect(getHtCore().find('tr:first td:first').text()).toBe('A4');
+      expect(getHtCore().find('tr:last td:first').text()).toBe('A6');
       expect(visualizePageSections()).toEqual([
-        'Page size: [5, 10, 20, 50, 100]',
+        'Page size: [[5], 10, 20, 50, 100]',
         '4 - 6 of 45',
         '[|<] [<] Page 3 of 13 [>] [>|]',
       ]);
 
       await setDataAtCell(4, 1, 'This\nis\nmulitline\ncell\nvalue\nthat\nmakes\nrow\nmuch\nmuch\nbigger');
 
+      expect(getHtCore().find('tr:first td:first').text()).toBe('A4');
+      expect(getHtCore().find('tr:last td:first').text()).toBe('A4');
       expect(visualizePageSections()).toEqual([
-        'Page size: [5, 10, 20, 50, 100]',
+        'Page size: [[5], 10, 20, 50, 100]',
         '4 - 4 of 45',
         '[|<] [<] Page 3 of 15 [>] [>|]',
       ]);
 
       await setDataAtCell(4, 1, 'value');
 
+      expect(getHtCore().find('tr:first td:first').text()).toBe('A4');
+      expect(getHtCore().find('tr:last td:first').text()).toBe('A6');
       expect(visualizePageSections()).toEqual([
-        'Page size: [5, 10, 20, 50, 100]',
+        'Page size: [[5], 10, 20, 50, 100]',
         '4 - 6 of 45',
         '[|<] [<] Page 3 of 13 [>] [>|]',
       ]);
     });
 
-    it('should update UI elements after changing the value from "auto" to a number and vice versa (table without defined size)', async() => {
+    it('should render elements after changing the value from "auto" to a number and vice versa (table without defined size)', async() => {
       const { hotInstance, iframe } = await initHandsontableInFrame({
         data: createSpreadsheetData(100, 10),
         pagination: {
           pageSize: 'auto',
         },
+        renderAllRows: true,
       });
 
       setCurrentHotInstance(hotInstance);
 
+      expect(getHtCore().find('tr:first td:first').text()).forThemes(({ classic, main, horizon }) => {
+        classic.toBe('A1');
+        main.toBe('A1');
+        horizon.toBe('A1');
+      });
+      expect(getHtCore().find('tr:last td:first').text()).forThemes(({ classic, main, horizon }) => {
+        classic.toBe('A23');
+        main.toBe('A18');
+        horizon.toBe('A14');
+      });
       expect(visualizePageSections()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual([
-          'Page size: [5, 10, 20, 50, 100]',
+          'Page size: [[5], 10, 20, 50, 100]',
           '1 - 23 of 100',
           '|< < Page 1 of 5 [>] [>|]',
         ]);
         main.toEqual([
-          'Page size: [5, 10, 20, 50, 100]',
+          'Page size: [[5], 10, 20, 50, 100]',
           '1 - 18 of 100',
           '|< < Page 1 of 6 [>] [>|]',
         ]);
         horizon.toEqual([
-          'Page size: [5, 10, 20, 50, 100]',
+          'Page size: [[5], 10, 20, 50, 100]',
           '1 - 14 of 100',
           '|< < Page 1 of 8 [>] [>|]',
         ]);
@@ -402,8 +449,10 @@ describe('Pagination `pageSize` option', () => {
         },
       });
 
+      expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+      expect(getHtCore().find('tr:last td:first').text()).toBe('A13');
       expect(visualizePageSections()).toEqual([
-        'Page size: [5, 10, 20, 50, 100]',
+        'Page size: [[5], 10, 20, 50, 100]',
         '1 - 13 of 100',
         '|< < Page 1 of 8 [>] [>|]',
       ]);
@@ -412,7 +461,7 @@ describe('Pagination `pageSize` option', () => {
       iframe.remove();
     });
 
-    it('should update UI elements after changing the window height (table without defined size)', async() => {
+    it('should render elements after changing the window height (table without defined size)', async() => {
       const { hotInstance, iframe } = await initHandsontableInFrame({
         data: createSpreadsheetData(100, 10),
         pagination: {
@@ -425,19 +474,29 @@ describe('Pagination `pageSize` option', () => {
       iframe.css({ height: '400px' });
       await sleep(100); // wait for the onresize event to trigger a render
 
+      expect(getHtCore().find('tr:first td:first').text()).forThemes(({ classic, main, horizon }) => {
+        classic.toBe('A1');
+        main.toBe('A1');
+        horizon.toBe('A1');
+      });
+      expect(getHtCore().find('tr:last td:first').text()).forThemes(({ classic, main, horizon }) => {
+        classic.toBe('A15');
+        main.toBe('A11');
+        horizon.toBe('A9');
+      });
       expect(visualizePageSections()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual([
-          'Page size: [5, 10, 20, 50, 100]',
+          'Page size: [[5], 10, 20, 50, 100]',
           '1 - 15 of 100',
           '|< < Page 1 of 7 [>] [>|]',
         ]);
         main.toEqual([
-          'Page size: [5, 10, 20, 50, 100]',
+          'Page size: [[5], 10, 20, 50, 100]',
           '1 - 11 of 100',
           '|< < Page 1 of 10 [>] [>|]',
         ]);
         horizon.toEqual([
-          'Page size: [5, 10, 20, 50, 100]',
+          'Page size: [[5], 10, 20, 50, 100]',
           '1 - 9 of 100',
           '|< < Page 1 of 12 [>] [>|]',
         ]);
@@ -446,19 +505,29 @@ describe('Pagination `pageSize` option', () => {
       iframe.css({ height: '200px' });
       await sleep(100); // wait for the onresize event to trigger a render
 
+      expect(getHtCore().find('tr:first td:first').text()).forThemes(({ classic, main, horizon }) => {
+        classic.toBe('A1');
+        main.toBe('A1');
+        horizon.toBe('A1');
+      });
+      expect(getHtCore().find('tr:last td:first').text()).forThemes(({ classic, main, horizon }) => {
+        classic.toBe('A6');
+        main.toBe('A4');
+        horizon.toBe('A3');
+      });
       expect(visualizePageSections()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual([
-          'Page size: [5, 10, 20, 50, 100]',
+          'Page size: [[5], 10, 20, 50, 100]',
           '1 - 6 of 100',
           '|< < Page 1 of 17 [>] [>|]',
         ]);
         main.toEqual([
-          'Page size: [5, 10, 20, 50, 100]',
+          'Page size: [[5], 10, 20, 50, 100]',
           '1 - 4 of 100',
           '|< < Page 1 of 25 [>] [>|]',
         ]);
         horizon.toEqual([
-          'Page size: [5, 10, 20, 50, 100]',
+          'Page size: [[5], 10, 20, 50, 100]',
           '1 - 3 of 100',
           '|< < Page 1 of 34 [>] [>|]',
         ]);
@@ -467,19 +536,29 @@ describe('Pagination `pageSize` option', () => {
       iframe.css({ height: '700px' });
       await sleep(100); // wait for the onresize event to trigger a render
 
+      expect(getHtCore().find('tr:first td:first').text()).forThemes(({ classic, main, horizon }) => {
+        classic.toBe('A1');
+        main.toBe('A1');
+        horizon.toBe('A1');
+      });
+      expect(getHtCore().find('tr:last td:first').text()).forThemes(({ classic, main, horizon }) => {
+        classic.toBe('A28');
+        main.toBe('A22');
+        horizon.toBe('A17');
+      });
       expect(visualizePageSections()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual([
-          'Page size: [5, 10, 20, 50, 100]',
+          'Page size: [[5], 10, 20, 50, 100]',
           '1 - 28 of 100',
           '|< < Page 1 of 4 [>] [>|]',
         ]);
         main.toEqual([
-          'Page size: [5, 10, 20, 50, 100]',
+          'Page size: [[5], 10, 20, 50, 100]',
           '1 - 22 of 100',
           '|< < Page 1 of 5 [>] [>|]',
         ]);
         horizon.toEqual([
-          'Page size: [5, 10, 20, 50, 100]',
+          'Page size: [[5], 10, 20, 50, 100]',
           '1 - 17 of 100',
           '|< < Page 1 of 6 [>] [>|]',
         ]);
@@ -489,7 +568,7 @@ describe('Pagination `pageSize` option', () => {
       iframe.remove();
     });
 
-    it('should update UI elements after changing the row heights (table without defined size)', async() => {
+    it('should render elements after changing the row heights (table without defined size)', async() => {
       const { hotInstance, iframe } = await initHandsontableInFrame({
         data: createSpreadsheetData(45, 10),
         autoRowSize: true,
@@ -504,19 +583,29 @@ describe('Pagination `pageSize` option', () => {
 
       const plugin = hotInstance.getPlugin('pagination');
 
+      expect(getHtCore().find('tr:first td:first').text()).forThemes(({ classic, main, horizon }) => {
+        classic.toBe('A1');
+        main.toBe('A1');
+        horizon.toBe('A1');
+      });
+      expect(getHtCore().find('tr:last td:first').text()).forThemes(({ classic, main, horizon }) => {
+        classic.toBe('A1');
+        main.toBe('A1');
+        horizon.toBe('A1');
+      });
       expect(visualizePageSections()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual([
-          'Page size: [5, 10, 20, 50, 100]',
+          'Page size: [[5], 10, 20, 50, 100]',
           '1 - 1 of 45',
           '|< < Page 1 of 4 [>] [>|]',
         ]);
         main.toEqual([
-          'Page size: [5, 10, 20, 50, 100]',
+          'Page size: [[5], 10, 20, 50, 100]',
           '1 - 1 of 45',
           '|< < Page 1 of 5 [>] [>|]',
         ]);
         horizon.toEqual([
-          'Page size: [5, 10, 20, 50, 100]',
+          'Page size: [[5], 10, 20, 50, 100]',
           '1 - 1 of 45',
           '|< < Page 1 of 6 [>] [>|]',
         ]);
@@ -524,19 +613,29 @@ describe('Pagination `pageSize` option', () => {
 
       plugin.setPage(2);
 
+      expect(getHtCore().find('tr:first td:first').text()).forThemes(({ classic, main, horizon }) => {
+        classic.toBe('A2');
+        main.toBe('A2');
+        horizon.toBe('A2');
+      });
+      expect(getHtCore().find('tr:last td:first').text()).forThemes(({ classic, main, horizon }) => {
+        classic.toBe('A10');
+        main.toBe('A7');
+        horizon.toBe('A5');
+      });
       expect(visualizePageSections()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual([
-          'Page size: [5, 10, 20, 50, 100]',
+          'Page size: [[5], 10, 20, 50, 100]',
           '2 - 10 of 45',
           '[|<] [<] Page 2 of 4 [>] [>|]',
         ]);
         main.toEqual([
-          'Page size: [5, 10, 20, 50, 100]',
+          'Page size: [[5], 10, 20, 50, 100]',
           '2 - 7 of 45',
           '[|<] [<] Page 2 of 5 [>] [>|]',
         ]);
         horizon.toEqual([
-          'Page size: [5, 10, 20, 50, 100]',
+          'Page size: [[5], 10, 20, 50, 100]',
           '2 - 5 of 45',
           '[|<] [<] Page 2 of 6 [>] [>|]',
         ]);
@@ -544,19 +643,29 @@ describe('Pagination `pageSize` option', () => {
 
       plugin.setPage(3);
 
+      expect(getHtCore().find('tr:first td:first').text()).forThemes(({ classic, main, horizon }) => {
+        classic.toBe('A11');
+        main.toBe('A8');
+        horizon.toBe('A6');
+      });
+      expect(getHtCore().find('tr:last td:first').text()).forThemes(({ classic, main, horizon }) => {
+        classic.toBe('A33');
+        main.toBe('A23');
+        horizon.toBe('A7');
+      });
       expect(visualizePageSections()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual([
-          'Page size: [5, 10, 20, 50, 100]',
+          'Page size: [[5], 10, 20, 50, 100]',
           '11 - 33 of 45',
           '[|<] [<] Page 3 of 4 [>] [>|]',
         ]);
         main.toEqual([
-          'Page size: [5, 10, 20, 50, 100]',
+          'Page size: [[5], 10, 20, 50, 100]',
           '8 - 23 of 45',
           '[|<] [<] Page 3 of 5 [>] [>|]',
         ]);
         horizon.toEqual([
-          'Page size: [5, 10, 20, 50, 100]',
+          'Page size: [[5], 10, 20, 50, 100]',
           '6 - 7 of 45',
           '[|<] [<] Page 3 of 6 [>] [>|]',
         ]);
@@ -567,19 +676,29 @@ describe('Pagination `pageSize` option', () => {
       hotInstance
         .setDataAtCell(rowToChange, 1, 'This\nis\nmulitline\ncell\nvalue\nthat\nmakes\nrow\nmuch\nmuch\nbigger');
 
+      expect(getHtCore().find('tr:first td:first').text()).forThemes(({ classic, main, horizon }) => {
+        classic.toBe('A11');
+        main.toBe('A8');
+        horizon.toBe('A6');
+      });
+      expect(getHtCore().find('tr:last td:first').text()).forThemes(({ classic, main, horizon }) => {
+        classic.toBe('A24');
+        main.toBe('A18');
+        horizon.toBe('A6');
+      });
       expect(visualizePageSections()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual([
-          'Page size: [5, 10, 20, 50, 100]',
+          'Page size: [[5], 10, 20, 50, 100]',
           '11 - 24 of 45',
           '[|<] [<] Page 3 of 4 [>] [>|]',
         ]);
         main.toEqual([
-          'Page size: [5, 10, 20, 50, 100]',
+          'Page size: [[5], 10, 20, 50, 100]',
           '8 - 18 of 45',
           '[|<] [<] Page 3 of 5 [>] [>|]',
         ]);
         horizon.toEqual([
-          'Page size: [5, 10, 20, 50, 100]',
+          'Page size: [[5], 10, 20, 50, 100]',
           '6 - 6 of 45',
           '[|<] [<] Page 3 of 7 [>] [>|]',
         ]);
@@ -587,19 +706,29 @@ describe('Pagination `pageSize` option', () => {
 
       hotInstance.setDataAtCell(rowToChange, 1, 'value');
 
+      expect(getHtCore().find('tr:first td:first').text()).forThemes(({ classic, main, horizon }) => {
+        classic.toBe('A11');
+        main.toBe('A8');
+        horizon.toBe('A6');
+      });
+      expect(getHtCore().find('tr:last td:first').text()).forThemes(({ classic, main, horizon }) => {
+        classic.toBe('A33');
+        main.toBe('A23');
+        horizon.toBe('A7');
+      });
       expect(visualizePageSections()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual([
-          'Page size: [5, 10, 20, 50, 100]',
+          'Page size: [[5], 10, 20, 50, 100]',
           '11 - 33 of 45',
           '[|<] [<] Page 3 of 4 [>] [>|]',
         ]);
         main.toEqual([
-          'Page size: [5, 10, 20, 50, 100]',
+          'Page size: [[5], 10, 20, 50, 100]',
           '8 - 23 of 45',
           '[|<] [<] Page 3 of 5 [>] [>|]',
         ]);
         horizon.toEqual([
-          'Page size: [5, 10, 20, 50, 100]',
+          'Page size: [[5], 10, 20, 50, 100]',
           '6 - 7 of 45',
           '[|<] [<] Page 3 of 6 [>] [>|]',
         ]);
