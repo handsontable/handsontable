@@ -32,6 +32,7 @@ export enum FilterConditions {
   Tomorrow = 'Tomorrow',
   Today = 'Today',
   Yesterday = 'Yesterday',
+  Contains = 'Contains',
 }
 
 // eslint-disable-next-line no-shadow
@@ -229,7 +230,6 @@ export async function clickWithPosition(cell: Locator) {
  * @param {Locator} cell Cell locator.
  */
 export async function clickCell(cell:Locator) {
-
   await cell
     .click();
 }
@@ -740,4 +740,18 @@ export async function waitForContextSubmenuToAppear(submenuName: string) {
  */
 export async function waitForDropdownSubmenuToAppear(submenuName: string) {
   await getPageInstance().waitForSelector(`.htDropdownMenuSub_${submenuName}`);
+}
+
+/**
+ * Updates Handsontable settings.
+ *
+ * @param {object} options Handsontable settings options.
+ */
+export async function forHandsontableUpdateSettings(options) {
+  await getPageInstance().evaluate(async(hotOptions) => {
+    // eslint-disable-next-line no-restricted-globals
+    const hotInstance = document.defaultView?.hotInstance;
+
+    hotInstance.updateSettings(hotOptions);
+  }, options);
 }

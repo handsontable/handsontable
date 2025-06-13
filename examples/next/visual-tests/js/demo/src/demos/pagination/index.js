@@ -1,6 +1,6 @@
 import Handsontable from "handsontable/base";
 
-import { generateExampleData, getDirectionFromURL, getThemeNameFromURL } from "../../utils";
+import { generateExampleData, getDirectionFromURL, getThemeNameFromURL, getFromURL } from "../../utils";
 import { progressBarRenderer, starRenderer } from "./customRenderers";
 import { registerLanguageDictionary, arAR } from "handsontable/i18n";
 
@@ -57,29 +57,38 @@ export function init() {
 
   root.appendChild(example);
 
-  const inputTop = document.createElement('input');
+  if (getFromURL("hideInputs") !== "true") {
+    const inputTop = document.createElement('input');
 
-  inputTop.style.margin = '10px';
-  inputTop.name = 'inputTop';
-  inputTop.placeholder = 'Input top';
+    inputTop.style.margin = '10px';
+    inputTop.name = 'inputTop';
+    inputTop.placeholder = 'Input top';
 
-  example.before(inputTop);
+    example.before(inputTop);
 
-  const inputBottom = document.createElement('input');
+    const inputBottom = document.createElement('input');
 
-  inputBottom.style.margin = '10px';
-  inputBottom.name = 'inputBottom';
-  inputBottom.placeholder = 'Input bottom';
+    inputBottom.style.margin = '10px';
+    inputBottom.name = 'inputBottom';
+    inputBottom.placeholder = 'Input bottom';
 
-  example.after(inputBottom);
+    example.after(inputBottom);
+  }
 
-  new Handsontable(example, {
+  const options = {
+    height: 450,
+  };
+
+  if (getFromURL("ignoreTableSize") === "true") {
+    delete options.height;
+  }
+
+  window.hotInstance = new Handsontable(example, {
     data: generateExampleData(),
     layoutDirection: getDirectionFromURL(),
     language: getDirectionFromURL() === "rtl" ? arAR.languageCode : "en-US",
     themeName: getThemeNameFromURL(),
-    height: 450,
-    colWidths: [160, 210, 135, 100, 90, 110, 120, 115, 140],
+    colWidths: [160, 100, 135, 100, 90, 110, 120, 115, 140],
     colHeaders: [
       "Company name",
       "Name",
@@ -127,9 +136,10 @@ export function init() {
       { data: 5, type: "text" },
       { data: 2, type: "text" }
     ],
+    autoRowSize: true,
     pagination: {
-      pageSize: 20,
-      pageSizeList: [10, 20, 30, 40, 50],
+      pageSize: getFromURL("pageSize") === "auto" ? "auto" : parseInt(getFromURL("pageSize"), 10) || 10,
+      pageSizeList: ['auto', 10, 20, 30, 40, 50],
     },
     dropdownMenu: true,
     hiddenRows: {
@@ -143,7 +153,8 @@ export function init() {
     cell: [
       { row: 2, col: 1, comment: { value: 'Note: To be checked if the name is valid' } }
     ],
-    licenseKey: "non-commercial-and-evaluation"
+    licenseKey: "non-commercial-and-evaluation",
+    ...options,
   });
 
   console.log(`Handsontable: v${Handsontable.version} (${Handsontable.buildDate})`);

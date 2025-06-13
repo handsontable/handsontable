@@ -30,19 +30,19 @@ test(__filename, async({ goto, tablePage }) => {
 
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 
+  await tablePage.keyboard.press('Tab'); // focus is on the "go to first page" button
+
+  await tablePage.screenshot({ path: helpers.screenshotPath() });
+
+  await tablePage.keyboard.press('Tab'); // focus is on the "go to prev page" button
+
+  await tablePage.screenshot({ path: helpers.screenshotPath() });
+
   await tablePage.keyboard.press('Tab'); // focus is on the "go to next page" button
 
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 
   await tablePage.keyboard.press('Tab'); // focus is on the "go to last page" button
-
-  await tablePage.screenshot({ path: helpers.screenshotPath() });
-
-  await tablePage.keyboard.press('Enter'); // trigger last page
-
-  await tablePage.screenshot({ path: helpers.screenshotPath() });
-
-  await tablePage.keyboard.press('Shift+Tab'); // focus is on the "go to prev page" button
 
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 

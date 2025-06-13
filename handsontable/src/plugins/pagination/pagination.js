@@ -533,17 +533,12 @@ export class Pagination extends BasePlugin {
         return view.getViewportHeight() - scrollbarWidth;
       },
       itemsSizeProvider: () => {
-        const totalRows = this.hot.countRows();
         const defaultRowHeight = stylesHandler.getDefaultRowHeight();
-        const rowHeights = [];
 
-        for (let row = 0; row < totalRows; row++) {
-          if (!this.hot.rowIndexMapper.isHidden(this.hot.toPhysicalRow(row))) {
-            rowHeights.push(this.hot.getRowHeight(row) ?? defaultRowHeight);
-          }
-        }
-
-        return rowHeights;
+        return this.hot.rowIndexMapper
+          .getRenderableIndexes()
+          .map(physicalIndex => this.hot
+            .getRowHeight(this.hot.toVisualRow(physicalIndex)) ?? defaultRowHeight);
       },
     });
 
@@ -669,11 +664,7 @@ export class Pagination extends BasePlugin {
    * @returns {number}
    */
   #onModifyRowHeight(height, row) {
-    if (!this.#calcStrategy.getState(this.#currentPage)) {
-      return;
-    }
-
-    if (height === undefined) {
+    if (height === undefined || !this.#calcStrategy.getState(this.#currentPage)) {
       return;
     }
 
