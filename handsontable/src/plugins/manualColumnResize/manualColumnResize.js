@@ -261,7 +261,7 @@ export class ManualColumnResize extends BasePlugin {
    * @param {HTMLCellElement} TH TH HTML element.
    */
   setupHandlePosition(TH) {
-    if (!TH.parentNode) {
+    if (!TH.parentNode || this.#dblclick > 1) {
       return;
     }
 
