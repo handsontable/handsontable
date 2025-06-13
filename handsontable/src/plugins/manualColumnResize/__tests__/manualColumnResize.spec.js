@@ -852,10 +852,7 @@ describe('manualColumnResize', () => {
     const resizerPosition = $resizer.position();
 
     await sleep(600);
-    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
-    $resizer.simulate('mouseup', { clientX: resizerPosition.left });
-    $resizer.simulate('mousedown', { clientX: resizerPosition.left });
-    $resizer.simulate('mouseup', { clientX: resizerPosition.left });
+    await mouseDoubleClick($resizer, { clientX: resizerPosition.left });
     getTopClone().find('tr:eq(0) th:eq(2)').simulate('mouseover');
     await sleep(600);
 
