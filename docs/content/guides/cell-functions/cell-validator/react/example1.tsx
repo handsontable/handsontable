@@ -14,10 +14,7 @@ const ExampleComponent = () => {
   const ipValidatorRegexp =
     /^(?:\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b|null)$/;
 
-  const emailValidator = (
-    value: string,
-    callback: (value: boolean) => void
-  ) => {
+  const emailValidator = (value: string, callback: (value: boolean) => void) => {
     setTimeout(() => {
       if (/.+@.+/.test(value)) {
         callback(true);
@@ -35,6 +32,7 @@ const ExampleComponent = () => {
         </output>
       </div>
       <HotTable
+        themeName="ht-theme-main"
         data={[
           {
             id: 1,
@@ -116,14 +114,9 @@ const ExampleComponent = () => {
               return false;
             }
             // capitalise first letter in column 1 and 2
-            else if (
-              cellChanges[i][1] === 'name.first' ||
-              cellChanges[i][1] === 'name.last'
-            ) {
+            else if (cellChanges[i][1] === 'name.first' || cellChanges[i][1] === 'name.last') {
               if (cellChanges[i][3] !== null) {
-                cellChanges[i][3] =
-                  cellChanges[i][3].charAt(0).toUpperCase() +
-                  cellChanges[i][3].slice(1);
+                cellChanges[i][3] = cellChanges[i][3].charAt(0).toUpperCase() + cellChanges[i][3].slice(1);
               }
             }
           }

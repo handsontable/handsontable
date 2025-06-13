@@ -1,3 +1,4 @@
+
 <template>
   <header class="navbar">
     <div class="navbar-wrapper">

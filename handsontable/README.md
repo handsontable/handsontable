@@ -80,8 +80,8 @@ You can also use [Yarn](https://yarnpkg.com/package/handsontable), [NuGet](https
 ### Provide an HTML container
 
   ```html
-  <!-- Set the container's ID and apply the desired theme -->
-  <div id="handsontable-grid" class="ht-theme-main-dark-auto"></div>
+  <!-- Set the container's ID -->
+  <div id="handsontable-grid"></div>
   ```
 
 ### Setup
@@ -96,6 +96,9 @@ You can also use [Yarn](https://yarnpkg.com/package/handsontable), [NuGet](https
   const element = document.getElementById('handsontable-grid');
   
   new Handsontable(element, {
+    // theme name with obligatory ht-theme-* prefix
+    themeName: 'ht-theme-main-dark-auto',
+    // other options
     data: [
       { company: 'Tagcat', country: 'United Kingdom', rating: 4.4 },
       { company: 'Zoomzone', country: 'Japan', rating: 4.5 },
@@ -143,12 +146,15 @@ You can also use [Yarn](https://yarnpkg.com/package/handsontable), [NuGet](https
       />
     </head>
     <body>
-      <div id="handsontable-grid" class="ht-theme-main-dark-auto"></div>
+      <div id="handsontable-grid"></div>
       <script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
       <script>
         const element = document.getElementById("handsontable-grid");
   
         new Handsontable(element, {
+          // theme name with obligatory ht-theme-* prefix
+          themeName: 'ht-theme-main-dark-auto',
+          // other options
           data: [
             { company: "Tagcat", country: "United Kingdom", rating: 4.4 },
             { company: "Zoomzone", country: "Japan", rating: 4.5 },
@@ -218,7 +224,7 @@ At first glance, it might seem that a data table, spreadsheet, and data grid are
 If you're using Handsontable with a free, non-commercial license, you can:
 - Join the conversation on [GitHub Discussions](https://github.com/handsontable/handsontable/discussions) to share ideas, suggest features, or discuss changes.
 - Report any bugs you find on our [GitHub Issue Board](https://github.com/handsontable/handsontable/issues).
-- Connect with other developers and find answers on our [Developer Forum](https://handsontable.com/forum).
+- Connect with other developers and find answers on our [Developer Forum](https://forum.handsontable.com).
 
 If you have a commercial license, feel free to contact us directly at [support@handsontable.com](mailto:support@handsontable.com) or use our [contact form](https://handsontable.com/contact?category=technical_support).
 

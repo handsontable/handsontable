@@ -6,6 +6,7 @@ import { Filters } from 'handsontable/plugins';
 const container = document.querySelector('#exampleExcludeRowsFromFiltering')!;
 
 new Handsontable(container, {
+  themeName: 'ht-theme-main',
   data: [
     {
       brand: 'Gigabox',
@@ -179,10 +180,7 @@ new Handsontable(container, {
     const filtersRowsMap = filtersPlugin.filtersRowsMap;
 
     filtersRowsMap.setValueAtIndex(0, false);
-    filtersRowsMap.setValueAtIndex(
-      filtersRowsMap.indexedValues.length - 1,
-      false
-    );
+    filtersRowsMap.setValueAtIndex(filtersRowsMap.indexedValues.length - 1, false);
   },
   autoWrapRow: true,
   autoWrapCol: true,

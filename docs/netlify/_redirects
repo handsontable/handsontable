@@ -179,3 +179,12 @@
 /docs/react-modules	/docs/react-data-grid/modules
 /docs/react-setting-up-a-locale	/docs/react-data-grid/language
 /docs/angular-simple-example	/docs/javascript-data-grid/angular-simple-example
+
+/docs/7.1.0/frameworks-wrapper-for-angular-installation.html /docs/javascript-data-grid/angular-installation/
+/docs/7.1.0/frameworks-wrapper-for-vue-hot-column.html /docs/javascript-data-grid/vue-hot-column/
+/docs/7.1.0/tutorial-introduction.html /docs/javascript-data-grid/
+/docs/7.2.2/frameworks-wrapper-for-react-hot-column.html /docs/react-data-grid/hot-column/
+/docs/8.0.0/tutorial-migration-guide.html /docs/javascript-data-grid/changelog/
+/docs/8.2.0/tutorial-introduction.html /docs/javascript-data-grid/
+/docs/8.3.0/tutorial-modules.html /docs/javascript-data-grid/modules/
+/docs/8.3.0/tutorial-suspend-rendering.html /docs/javascript-data-grid/batch-operations/

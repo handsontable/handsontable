@@ -11,9 +11,7 @@ registerAllModules();
 const ExampleComponent = () => {
   const hotRef = useRef<HotTableRef>(null);
 
-  const selectOptionChangeCallback = (
-    event: ChangeEvent<HTMLSelectElement>
-  ) => {
+  const selectOptionChangeCallback = (event: ChangeEvent<HTMLSelectElement>) => {
     const hot = hotRef.current?.hotInstance;
 
     const value = (event.target as HTMLSelectElement).value;
@@ -26,11 +24,7 @@ const ExampleComponent = () => {
     <>
       <div className="controls">
         <label>
-          <select
-            id="selectOption"
-            onChange={(...args) => selectOptionChangeCallback(...args)}
-            defaultValue="multiple"
-          >
+          <select id="selectOption" onChange={(...args) => selectOptionChangeCallback(...args)} defaultValue="multiple">
             <option value="single">Single selection</option>
             <option value="range">Range selection</option>
             <option value="multiple">Multiple ranges selection</option>
@@ -38,6 +32,7 @@ const ExampleComponent = () => {
         </label>
       </div>
       <HotTable
+        themeName="ht-theme-main"
         ref={hotRef}
         data={[
           ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1'],

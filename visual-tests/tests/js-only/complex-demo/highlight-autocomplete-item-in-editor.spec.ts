@@ -28,5 +28,7 @@ test(__filename, async({ goto, tablePage }) => {
   await cellEditor.clear();
   await cellEditor.type('to');
 
+  await tablePage.waitForTimeout(300);
+
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 });

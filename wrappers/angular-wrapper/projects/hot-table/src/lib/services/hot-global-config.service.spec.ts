@@ -5,7 +5,7 @@ import {
   NON_COMMERCIAL_LICENSE,
   ThemeName, HOT_GLOBAL_CONFIG,
 } from './hot-global-config.service';
-import {take} from 'rxjs';
+import { take } from 'rxjs/operators';
 
 describe('HotGlobalConfigService', () => {
   let service: HotGlobalConfigService;

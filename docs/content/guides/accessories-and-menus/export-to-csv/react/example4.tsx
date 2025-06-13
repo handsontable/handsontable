@@ -87,9 +87,7 @@ const ExampleComponent = () => {
     <>
       <div className="example-controls-container">
         <div className="controls">
-          <button onClick={() => downloadWithNoSanitizationCallback()}>
-            Download CSV with no sanitization
-          </button>
+          <button onClick={() => downloadWithNoSanitizationCallback()}>Download CSV with no sanitization</button>
           <button onClick={() => downloadWithRecommendedSanitizationCallback()}>
             Download CSV with recommended sanitization
           </button>
@@ -102,6 +100,7 @@ const ExampleComponent = () => {
         </div>
       </div>
       <HotTable
+        themeName="ht-theme-main"
         ref={hotRef}
         data={[
           ['https://handsontable.com', '=WEBSERVICE(A1)'],

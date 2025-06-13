@@ -152,8 +152,8 @@ import {
 @Component({
   standalone: true,
   imports: [HotTableModule],
-  template: ` <div class="ht-theme-main">
-    <hot-table [data]="data" [settings]="gridSettings" />
+  template: ` <div>
+    <hot-table themeName="ht-theme-main" [data]="data" [settings]="gridSettings" />
   </div>`,
 })
 export class HotTableWrapperComponent {
@@ -175,6 +175,14 @@ export class HotTableWrapperComponent {
   };
 }
 ```
+
+::: tip
+
+`@handsontable/angular-wrapper` requires at least Angular@16. If you use a lower version of Angular, you can use the `@handsontable/angular` package instead.
+
+For more information on `@handsontable/angular`, see the [15.3 documentation](https://handsontable.com/docs/15.3/javascript-data-grid/angular-installation/).
+
+:::
 
 ### Preview the result
 
@@ -288,7 +296,7 @@ You can also import Handsontable's CSS using a link tag:
 In your HTML, add an empty `div`, which serves as a container for your Handsontable instance.
 
 ```html
-<div id="example" class="ht-theme-main-dark-auto"></div>
+<div id="example"></div>
 ```
 
 ## Initialize your grid
@@ -299,6 +307,9 @@ Now turn your container into a data grid with sample data.
 const container = document.querySelector('#example');
 
 const hot = new Handsontable(container, {
+  // theme name with obligatory ht-theme-* prefix
+  themeName: 'ht-theme-main-dark-auto',
+  // other options
   data: [
     ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
     ['2019', 10, 11, 12, 13],
@@ -388,22 +399,23 @@ import { HotTable } from '@handsontable/react-wrapper';
 To set Handsontable's [configuration options](@/guides/getting-started/configuration-options/configuration-options.md), use `HotTable`'s props. For example:
 
 ```jsx
-<div class="ht-theme-main-dark-auto">
-  <HotTable
-    data={[
-      ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
-      ['2019', 10, 11, 12, 13],
-      ['2020', 20, 11, 14, 13],
-      ['2021', 30, 15, 12, 13]
-    ]}
-    rowHeaders={true}
-    colHeaders={true}
-    height="auto"
-    autoWrapRow={true}
-    autoWrapCol={true}
-    licenseKey="non-commercial-and-evaluation" // for non-commercial use only
-  />
-</div>
+<HotTable
+  
+  themeName="ht-theme-main-dark-auto"
+  // other options
+  data={[
+    ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
+    ['2019', 10, 11, 12, 13],
+    ['2020', 20, 11, 14, 13],
+    ['2021', 30, 15, 12, 13]
+  ]}
+  rowHeaders={true}
+  colHeaders={true}
+  height="auto"
+  autoWrapRow={true}
+  autoWrapCol={true}
+  licenseKey="non-commercial-and-evaluation" // for non-commercial use only
+/>
 ```
 
 ::: tip

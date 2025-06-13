@@ -21,9 +21,7 @@ const ExampleComponent = () => {
       const columnValue = (columnSelector as HTMLSelectElement).value;
 
       filtersPlugin?.removeConditions(Number(columnValue));
-      filtersPlugin?.addCondition(Number(columnValue), 'contains', [
-        (event.target as HTMLInputElement).value,
-      ]);
+      filtersPlugin?.addCondition(Number(columnValue), 'contains', [(event.target as HTMLInputElement).value]);
       filtersPlugin?.filter();
 
       handsontableInstance?.render();
@@ -49,6 +47,7 @@ const ExampleComponent = () => {
         <input id="filterField" type="text" placeholder="Filter" />
       </div>
       <HotTable
+        themeName="ht-theme-main"
         ref={hotTableComponentRef}
         data={[
           {

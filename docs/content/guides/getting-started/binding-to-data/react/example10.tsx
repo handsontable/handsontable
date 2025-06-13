@@ -29,6 +29,7 @@ const ExampleComponent: FC = () => {
 
   return (
     <HotTable
+      themeName="ht-theme-main"
       ref={hotRef}
       data={data}
       height="auto"

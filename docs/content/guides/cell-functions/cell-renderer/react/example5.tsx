@@ -14,11 +14,7 @@ const ExampleComponent = () => {
 
   let isChecked = false;
 
-  function customRenderer(
-    this: Handsontable,
-    _instance: Handsontable,
-    td: HTMLTableCellElement
-  ) {
+  function customRenderer(this: Handsontable, _instance: Handsontable, td: HTMLTableCellElement) {
     textRenderer.apply(this, arguments as any);
 
     if (isChecked) {
@@ -41,11 +37,9 @@ const ExampleComponent = () => {
   };
 
   return (
-    <div
-      id="exampleContainer5"
-      onMouseUp={(...args) => exampleContainerMouseupCallback(...args)}
-    >
+    <div id="exampleContainer5" onMouseUp={(...args) => exampleContainerMouseupCallback(...args)}>
       <HotTable
+        themeName="ht-theme-main"
         ref={hotRef}
         height="auto"
         columns={[{}, { renderer: customRenderer }]}
@@ -55,9 +49,7 @@ const ExampleComponent = () => {
               return '<b>Bold</b> and <em>Beautiful</em>';
 
             case 1:
-              return `Some <input type="checkbox" class="checker" ${
-                isChecked ? `checked="checked"` : ''
-              }> checkbox`;
+              return `Some <input type="checkbox" class="checker" ${isChecked ? `checked="checked"` : ''}> checkbox`;
 
             default:
               return '';

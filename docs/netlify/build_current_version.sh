@@ -16,3 +16,4 @@ img_id=$(docker create ghcr.io/handsontable/handsontable/handsontable-documentat
 docker cp $img_id:/usr/share/nginx/html/docs  ./docs
 
 cp _redirects docs/_redirects
+cp docs/docs/404.html docs/404.html

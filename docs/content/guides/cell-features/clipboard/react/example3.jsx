@@ -32,6 +32,7 @@ const ExampleComponent = () => {
   return (
     <>
       <HotTable
+        themeName="ht-theme-main"
         ref={hotRef}
         rowHeaders={true}
         colHeaders={true}

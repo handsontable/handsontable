@@ -27,6 +27,7 @@
       text-overflow: ellipsis;
       white-space: nowrap;
       overflow: hidden;
+      transition: var(--ht-table-transition) all ease-in-out;
 
       &::after {
         @include mixins.pseudo;

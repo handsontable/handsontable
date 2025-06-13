@@ -7,7 +7,13 @@ import 'handsontable/styles/ht-theme-main.css';
 registerAllModules();
 
 const ExampleComponent = () => (
-  <HotTable autoWrapRow={true} autoWrapCol={true} height="auto" licenseKey="non-commercial-and-evaluation" />
+  <HotTable
+    themeName="ht-theme-main"
+    autoWrapRow={true}
+    autoWrapCol={true}
+    height="auto"
+    licenseKey="non-commercial-and-evaluation"
+  />
 );
 
 export default ExampleComponent;

@@ -42,6 +42,7 @@ const ExampleComponent = {
         },
       ],
       settings: {
+        themeName: 'ht-theme-main',
         height: 'auto',
         autoWrapRow: true,
         autoWrapCol: true,

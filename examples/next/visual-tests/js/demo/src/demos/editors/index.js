@@ -40,6 +40,23 @@ export function init() {
     });
   }
 
+  if (cellType === 'dropdown') {
+    Object.assign(editorSettings, {
+      source: [
+        "Electronics",
+        "Fashion",
+        "Tech Gadgets",
+        "Home Decor",
+        "Sports & Fitness",
+        "Books & Literature",
+        "Beauty & Personal Care",
+        "Food & Cooking",
+        "Travel & Adventure",
+        "Art & Collectibles",
+      ],
+    });
+  }
+
   new Handsontable(example, {
     data: Handsontable.helper.createEmptySpreadsheetData(100, 50),
     layoutDirection: getDirectionFromURL(),

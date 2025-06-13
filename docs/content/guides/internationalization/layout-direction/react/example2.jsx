@@ -10,6 +10,7 @@ const ExampleComponent = () => {
   return (
     <section dir="rtl">
       <HotTable
+        themeName="ht-theme-main"
         autoWrapRow={true}
         autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"

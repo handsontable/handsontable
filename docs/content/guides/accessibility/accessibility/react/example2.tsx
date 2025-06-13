@@ -503,19 +503,12 @@ const countries = data.reduce<string[]>((acc, curr) => {
 
 // Handsontable options
 const hotOptions = {
+  themeName: 'ht-theme-main',
   data,
   height: 464,
   colWidths: [160, 165, 130, 120, 100, 110, 216],
   autoRowSize: true,
-  colHeaders: [
-    'Company name',
-    'Product name',
-    'Sell date',
-    'In stock',
-    'Qty',
-    'Order ID',
-    'Country',
-  ],
+  colHeaders: ['Company name', 'Product name', 'Sell date', 'In stock', 'Qty', 'Order ID', 'Country'],
   dropdownMenu: true,
   hiddenColumns: {
     indicators: true,
@@ -528,9 +521,7 @@ const hotOptions = {
 };
 
 const ExampleComponent = () => {
-  const [toggleableOptions, setToggleableOptions] = useState<
-    Omit<Toggle, 'changeToggleOptions'>
-  >({
+  const [toggleableOptions, setToggleableOptions] = useState<Omit<Toggle, 'changeToggleOptions'>>({
     tabNavigation: true,
     navigableHeaders: true,
     renderAllRows: false,
@@ -545,16 +536,9 @@ const ExampleComponent = () => {
   return (
     <div className="example-container">
       {/* DemoOptions component for changing Handsontable options */}
-      <DemoOptions
-        changeToggleOptions={setToggleableOptions}
-        {...toggleableOptions}
-      />
+      <DemoOptions changeToggleOptions={setToggleableOptions} {...toggleableOptions} />
 
-      <input
-        className="placeholder-input"
-        type="text"
-        placeholder="Focusable text input"
-      />
+      <input className="placeholder-input" type="text" placeholder="Focusable text input" />
 
       {/* Handsontable component with dynamic options */}
       <HotTable
@@ -568,28 +552,13 @@ const ExampleComponent = () => {
         {/* Define HotColumns for the data */}
         <HotColumn data="companyName" type="text" />
         <HotColumn data="productName" type="text" />
-        <HotColumn
-          data="sellDate"
-          dateFormat="DD/MM/YYYY"
-          correctFormat
-          type="date"
-          allowInvalid={false}
-        />
-        <HotColumn
-          data="inStock"
-          type="checkbox"
-          className="htCenter"
-          headerClassName="htCenter"
-        />
+        <HotColumn data="sellDate" dateFormat="DD/MM/YYYY" correctFormat type="date" allowInvalid={false} />
+        <HotColumn data="inStock" type="checkbox" className="htCenter" headerClassName="htCenter" />
         <HotColumn data="qty" type="numeric" headerClassName="htRight" />
         <HotColumn data="orderId" type="text" />
         <HotColumn data="country" type="dropdown" source={countries} />
       </HotTable>
-      <input
-        className="placeholder-input"
-        type="text"
-        placeholder="Focusable text input"
-      />
+      <input className="placeholder-input" type="text" placeholder="Focusable text input" />
     </div>
   );
 };
@@ -657,8 +626,7 @@ function DemoOptions({
       case 'enable-enter-focus-editing':
         changeToggleOptions((existing: any) => ({
           ...existing,
-          enterMoves:
-            enterMoves.row !== 1 ? { col: 0, row: 1 } : { col: 0, row: 0 },
+          enterMoves: enterMoves.row !== 1 ? { col: 0, row: 1 } : { col: 0, row: 0 },
         }));
 
         break;
@@ -672,11 +640,7 @@ function DemoOptions({
       <div className="checkbox-container">
         <div className="checkbox-group">
           <div>
-            <label
-              className="option-label"
-              htmlFor="enable-tab-navigation"
-              id="tab-navigation-label"
-            >
+            <label className="option-label" htmlFor="enable-tab-navigation" id="tab-navigation-label">
               <input
                 checked={tabNavigation}
                 type="checkbox"
@@ -717,20 +681,14 @@ function DemoOptions({
             </a>
           </div>
           <div>
-            <label
-              className="option-label"
-              htmlFor="enable-header-navigation"
-              id="header-navigation-label"
-            >
+            <label className="option-label" htmlFor="enable-header-navigation" id="header-navigation-label">
               <input
                 checked={navigableHeaders}
                 type="checkbox"
                 id="enable-header-navigation"
                 name="enable-header-navigation"
                 aria-labelledby="header-navigation-label"
-                onChange={() =>
-                  handleCheckboxChange('enable-header-navigation')
-                }
+                onChange={() => handleCheckboxChange('enable-header-navigation')}
               />
               Enable navigation across headers
             </label>
@@ -764,20 +722,14 @@ function DemoOptions({
             </a>
           </div>
           <div>
-            <label
-              className="option-label"
-              htmlFor="enable-cell-virtualization"
-              id="cell-virtualization-label"
-            >
+            <label className="option-label" htmlFor="enable-cell-virtualization" id="cell-virtualization-label">
               <input
                 checked={!renderAllRows}
                 type="checkbox"
                 id="enable-cell-virtualization"
                 name="enable-cell-virtualization"
                 aria-labelledby="cell-virtualization-label"
-                onChange={() =>
-                  handleCheckboxChange('enable-cell-virtualization')
-                }
+                onChange={() => handleCheckboxChange('enable-cell-virtualization')}
               />
               Enable cells virtualization
             </label>
@@ -811,20 +763,14 @@ function DemoOptions({
             </a>
           </div>
           <div>
-            <label
-              className="option-label"
-              htmlFor="enable-cell-enter-editing"
-              id="cell-enter-editing-label"
-            >
+            <label className="option-label" htmlFor="enable-cell-enter-editing" id="cell-enter-editing-label">
               <input
                 checked={enterBeginsEditing}
                 type="checkbox"
                 id="enable-cell-enter-editing"
                 name="enable-cell-enter-editing"
                 aria-labelledby="cell-enter-editing-label"
-                onChange={() =>
-                  handleCheckboxChange('enable-cell-enter-editing')
-                }
+                onChange={() => handleCheckboxChange('enable-cell-enter-editing')}
               />
               The Enter key begins cell editing
             </label>
@@ -871,9 +817,7 @@ function DemoOptions({
                 id="enable-arrow-rl-first-last-column"
                 name="enableArrowFirstLastColumn"
                 aria-labelledby="arrow-rl-first-last-column-label"
-                onChange={() =>
-                  handleCheckboxChange('enable-arrow-rl-first-last-column')
-                }
+                onChange={() => handleCheckboxChange('enable-arrow-rl-first-last-column')}
               />
               The right/left arrow keys move the focus to the first/last column
             </label>
@@ -918,9 +862,7 @@ function DemoOptions({
                 id="enable-arrow-td-first-last-column"
                 name="enable-arrow-td-first-last-column"
                 aria-labelledby="arrow-td-first-last-column-label"
-                onChange={() =>
-                  handleCheckboxChange('enable-arrow-td-first-last-column')
-                }
+                onChange={() => handleCheckboxChange('enable-arrow-td-first-last-column')}
               />
               The up/down arrow keys move the focus to the first/last row
             </label>
@@ -954,20 +896,14 @@ function DemoOptions({
             </a>
           </div>
           <div>
-            <label
-              className="option-label"
-              htmlFor="enable-enter-focus-editing"
-              id="enter-focus-editing-label"
-            >
+            <label className="option-label" htmlFor="enable-enter-focus-editing" id="enter-focus-editing-label">
               <input
                 checked={enterMoves.row !== 0}
                 type="checkbox"
                 id="enable-enter-focus-editing"
                 name="enable-enter-focus-editing"
                 aria-labelledby="enter-focus-editing-label"
-                onChange={() =>
-                  handleCheckboxChange('enable-enter-focus-editing')
-                }
+                onChange={() => handleCheckboxChange('enable-enter-focus-editing')}
               />
               The Enter key moves the focus after cell edition
             </label>

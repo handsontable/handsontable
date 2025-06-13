@@ -26,7 +26,7 @@
     "@angular/platform-browser": "^19.0.0",
     "@angular/platform-browser-dynamic": "^19.0.0",
     "@angular/router": "^19.0.0",
-    "@handsontable/angular-wrapper": "next",
+    "@handsontable/angular-wrapper": "latest",
     "handsontable": "latest",
     "moment": "^2.30.1",
     "rxjs": "~7.8.0",

@@ -9,6 +9,7 @@ registerAllModules();
 const ExampleComponent = () => {
   return (
     <HotTable
+      themeName="ht-theme-main"
       data={[
         { car: 'Tesla', year: 2017, chassis: 'black', bumper: 'black' },
         { car: 'Nissan', year: 2018, chassis: 'blue', bumper: 'blue' },
