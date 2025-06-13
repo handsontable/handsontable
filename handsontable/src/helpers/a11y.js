@@ -19,7 +19,7 @@ export const A11Y_SCOPE_ROW = () => ['scope', 'row'];
 export const A11Y_TEXT = () => ['type', 'text'];
 export const A11Y_LABEL = val => ['aria-label', val];
 export const A11Y_HIDDEN = () => ['aria-hidden', 'true'];
-export const A11Y_DISABLED = () => ['aria-disabled', 'true'];
+export const A11Y_DISABLED = (val = true) => ['aria-disabled', val];
 export const A11Y_MULTISELECTABLE = () => ['aria-multiselectable', 'true'];
 export const A11Y_HASPOPUP = val => ['aria-haspopup', val];
 export const A11Y_ROWCOUNT = val => ['aria-rowcount', val];

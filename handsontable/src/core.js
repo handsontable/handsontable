@@ -46,6 +46,10 @@ import { getThemeClassName } from './helpers/themes';
 import { StylesHandler } from './utils/stylesHandler';
 import { warn } from './helpers/console';
 import { CellRangeToRenderableMapper } from './core/coordsMapper/rangeToRenderableMapper';
+import {
+  install as installAccessibilityAnnouncer,
+  uninstall as uninstallAccessibilityAnnouncer,
+} from './utils/a11yAnnouncer';
 
 let activeGuid = null;
 
@@ -272,6 +276,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     layoutDirection : this.rootWindow.getComputedStyle(this.rootElement).direction;
 
   this.rootElement.setAttribute('dir', rootElementDirection);
+  this.rootWrapperElement?.setAttribute('dir', rootElementDirection);
 
   /**
    * Checks if the grid is rendered using the right-to-left layout direction.
@@ -599,6 +604,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     .addLocalHook('afterSelectColumns', (...args) => this.runHooks('afterSelectColumns', ...args))
     .addLocalHook('beforeSelectRows', (...args) => this.runHooks('beforeSelectRows', ...args))
     .addLocalHook('afterSelectRows', (...args) => this.runHooks('afterSelectRows', ...args))
+    .addLocalHook('beforeSelectAll', (...args) => this.runHooks('beforeSelectAll', ...args))
+    .addLocalHook('afterSelectAll', (...args) => this.runHooks('afterSelectAll', ...args))
     .addLocalHook('beforeModifyTransformStart', (...args) => this.runHooks('modifyTransformStart', ...args))
     .addLocalHook('afterModifyTransformStart', (...args) => this.runHooks('afterModifyTransformStart', ...args))
     .addLocalHook('beforeModifyTransformFocus', (...args) => this.runHooks('modifyTransformFocus', ...args))
@@ -873,8 +880,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
         grid.adjustRowsAndCols(); // makes sure that we did not add rows that will be removed in next refresh
       }
 
-      instance.view.render();
       instance.view.adjustElementsSize();
+      instance.view.render();
     },
 
     /**
@@ -1268,6 +1275,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
     if (isRootInstance(this)) {
       installFocusCatcher(instance);
+      installAccessibilityAnnouncer(instance.rootPortalElement);
     }
 
     instance.runHooks('init');
@@ -1279,8 +1287,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       observeVisibilityChangeOnce(instance.rootElement, () => {
         // Update the spreader size cache before rendering.
         instance.view._wt.wtOverlays.updateLastSpreaderSize();
-        instance.render();
         instance.view.adjustElementsSize();
+        instance.render();
       });
     }
 
@@ -1467,9 +1475,9 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       grid.adjustRowsAndCols();
       instance.runHooks('beforeChangeRender', changes, source);
       editorManager.closeEditor();
+      instance.view.adjustElementsSize();
       instance.render();
       editorManager.prepareEditor();
-      instance.view.adjustElementsSize();
       instance.runHooks('afterChange', changes, source || 'edit');
 
       const activeEditor = instance.getActiveEditor();
@@ -2336,8 +2344,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
     if (isSizeChanged || view._wt.wtOverlays.scrollableElement === instance.rootWindow) {
       view.setLastSize(width, height);
-      instance.render();
       view.adjustElementsSize();
+      instance.render();
     }
 
     instance.runHooks(
@@ -2618,10 +2626,6 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       throw new Error('Since 8.0.0 the "ganttChart" setting is no longer supported.');
     }
 
-    if (settings.language) {
-      setLanguage(settings.language);
-    }
-
     // eslint-disable-next-line no-restricted-syntax
     for (i in settings) {
       if (i === 'data' || i === 'language') {
@@ -2664,6 +2668,10 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
       // The `column` property has changed - dataset may be expanded or narrowed down. The `loadData` do the same.
       instance.initIndexMappers();
+    }
+
+    if (!firstRun && settings.language) {
+      setLanguage(settings.language);
     }
 
     const clen = instance.countCols();
@@ -4694,6 +4702,10 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     }
 
     dataSource = null;
+
+    if (isRootInstance(this)) {
+      uninstallAccessibilityAnnouncer();
+    }
 
     this.getShortcutManager().destroy();
     moduleRegisterer.clear();
