@@ -534,17 +534,10 @@ export class Pagination extends BasePlugin {
       },
       itemsSizeProvider: () => {
         const defaultRowHeight = stylesHandler.getDefaultRowHeight();
-        const { samplesGenerator } = this.hot.getPlugin('autoRowSize');
-        const origIncludedHidden = samplesGenerator.includeHidden;
-
-        samplesGenerator.setIncludeHidden(true);
-
         const rowHeights = this.hot.rowIndexMapper
           .getRenderableIndexes()
           .map(physicalIndex => this.hot
             .getRowHeight(this.hot.toVisualRow(physicalIndex)) ?? defaultRowHeight);
-
-        samplesGenerator.setIncludeHidden(origIncludedHidden);
 
         return rowHeights;
       },

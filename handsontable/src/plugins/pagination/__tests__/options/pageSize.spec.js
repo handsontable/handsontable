@@ -737,5 +737,36 @@ describe('Pagination `pageSize` option', () => {
       hotInstance.destroy();
       iframe.remove();
     });
+
+    it('should correctly calculate all pages when rows are rendered with different height', async() => {
+      handsontable({
+        data: createSpreadsheetData(100, 5).map((row, index) => {
+          if (index % 5 === 0) {
+            row[1] = 'This\nis\nmulitline\ncell\nvalue';
+          }
+
+          return row;
+        }),
+        width: 500,
+        height: (getDefaultRowHeight() * 5) + (spec().loadedTheme === 'classic' ? 15 : 0),
+        autoRowSize: true,
+        pagination: {
+          pageSizeList: ['auto', 10, 20, 50, 100],
+        },
+        renderAllRows: true,
+      });
+
+      const plugin = getPlugin('pagination');
+
+      plugin.setPageSize('auto');
+
+      expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+      expect(getHtCore().find('tr:last td:first').text()).toBe('A2');
+      expect(visualizePageSections()).toEqual([
+        'Page size: [[auto], 10, 20, 50, 100]',
+        '1 - 2 of 100',
+        '|< < Page 1 of 40 [>] [>|]',
+      ]);
+    });
   });
 });
