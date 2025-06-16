@@ -1,4 +1,4 @@
-name: Docs Staging Deployment
+name: Docs Staging Deployment (OVH)
 
 env:
   GHA_DOCKER_TAG_NEXT: docker.pkg.github.com/${{ github.repository }}/handsontable-documentation:next
@@ -6,6 +6,11 @@ env:
 
 on:
   workflow_dispatch:
+    inputs:
+      run_tests_job:
+        description: 'Run the "Test examples" job?'
+        required: false
+        default: 'true'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -58,6 +63,7 @@ jobs:
           npm run docs:docker:build:testing
 
       - name: Test examples
+        if: ${{ github.event.inputs.run_tests_job == 'true' }}
         run: |
           npm run docs:test:example-checker
 
