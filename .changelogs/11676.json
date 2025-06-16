@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added an backward compatibility for renamed CSS variables",
+  "type": "added",
+  "issueOrPR": 11676,
+  "breaking": false,
+  "framework": "none"
+}
