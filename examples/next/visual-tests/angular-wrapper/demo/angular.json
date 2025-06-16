@@ -26,13 +26,26 @@
             "polyfills": ["zone.js"],
             "tsConfig": "tsconfig.app.json",
             "aot": true,
-            "styles": ["src/styles.scss"],
+            "styles": [],
             "scripts": [],
             "preserveSymlinks": true,
             "allowedCommonJsDependencies": [
               "core-js",
-              "pikaday",
-              "@handsontable/formulajs"
+              "@handsontable/pikaday"
+            ],
+            "assets": [
+              "src/favicon.ico",
+              "src/assets",
+              {
+                "glob": "*.css",
+                "input": "../node_modules/handsontable/dist/",
+                "output": "/assets/handsontable/dist/"
+              },
+              {
+                "glob": "*.css",
+                "input": "../node_modules/handsontable/styles/",
+                "output": "/assets/handsontable/styles/"
+              }
             ]
           },
           "configurations": {
