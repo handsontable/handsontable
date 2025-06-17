@@ -423,6 +423,11 @@ class Overlays {
    * @param {boolean} preventDefault If `true`, the `preventDefault` will be called on event object.
    */
   onCloneWheel(event, preventDefault) {
+    // Fix for Windows OS, where the ctrl key is used to zoom the page (issue #2405).
+    if (event.ctrlKey) {
+      return;
+    }
+
     const { rootWindow } = this.domBindings;
 
     // There was if statement which controlled flow of this function. It avoided the execution of the next lines
