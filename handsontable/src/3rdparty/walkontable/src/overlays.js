@@ -423,7 +423,7 @@ class Overlays {
    * @param {boolean} preventDefault If `true`, the `preventDefault` will be called on event object.
    */
   onCloneWheel(event, preventDefault) {
-    // Fix for Windows OS, where the ctrl key is used to zoom the page (issue #2405).
+    // Fix for Windows OS, where the ctrl key is used to zoom the page (issue #dev-2405).
     if (event.ctrlKey) {
       return;
     }
