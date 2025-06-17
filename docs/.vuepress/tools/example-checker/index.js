@@ -68,10 +68,9 @@ const CHECK_TRIES = 20;
   const searchResults = await findExampleContainersInFiles();
   const pathsWithConditions = fetchPathsWithConditions();
   const permalinks = fetchPermalinks(searchResults, pathsWithConditions);
-  let {
-    browser,
-    page
-  } = await setupBrowser();
+  const browserInstance = await setupBrowser();
+  const browser = browserInstance.browser;
+  let page = browserInstance.page;
 
   logger.log('Checking if the examples rendered correctly:');
 
@@ -96,8 +95,8 @@ const CHECK_TRIES = 20;
           // 'networkidle2' wait until there are no more than 2 network connections for at least 500 milliseconds
           waitUntil: 'networkidle2'
         });
-      } catch(error) {
-        console.error('Caught an error:', error.message, 'Permalink:', permalink);
+      } catch (error) {
+        logger.error(`Caught an error: ${error.message}, Permalink: ${permalink}`);
         throw error;
       }
 
