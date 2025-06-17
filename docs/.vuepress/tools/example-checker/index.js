@@ -43,7 +43,7 @@ const PORT = 8088;
 const FILE_SERVE_TIMEOUT = 300;
 
 /**
- * Timout for the examples to get initialized after loading the page.
+ * Timeout for the examples to get initialized after loading the page.
  *
  * @type {number}
  */
@@ -68,10 +68,9 @@ const CHECK_TRIES = 20;
   const searchResults = await findExampleContainersInFiles();
   const pathsWithConditions = fetchPathsWithConditions();
   const permalinks = fetchPermalinks(searchResults, pathsWithConditions);
-  const {
-    browser,
-    page
-  } = await setupBrowser();
+  const browserInstance = await setupBrowser();
+  const browser = browserInstance.browser;
+  let page = browserInstance.page;
 
   logger.log('Checking if the examples rendered correctly:');
 
@@ -88,9 +87,18 @@ const CHECK_TRIES = 20;
 
       const permalink = extendPermalink(permalinks[i].permalink, framework);
 
-      await page.goto(`http://localhost:${PORT}/docs${permalink}`, {
-        waitUntil: 'networkidle0'
-      });
+      await page.setCacheEnabled(true);
+
+      try {
+        await page.goto(`http://localhost:${PORT}/docs${permalink}`, {
+          // 'networkidle0' wait until there are no more than 0 network connections for at least 500 milliseconds
+          // 'networkidle2' wait until there are no more than 2 network connections for at least 500 milliseconds
+          waitUntil: 'networkidle2'
+        });
+      } catch (error) {
+        logger.error(`Caught an error: ${error.message}, Permalink: ${permalink}`);
+        throw error;
+      }
 
       for (let testIndex = 0; testIndex < testCases.length; testIndex++) {
         let pageEvaluation = await page.evaluate(testCases[testIndex], permalink);
@@ -126,6 +134,9 @@ const CHECK_TRIES = 20;
           }
         }
       }
+
+      await page.close();
+      page = await browser.newPage();
     }
   }
   /* eslint-enable no-await-in-loop */
