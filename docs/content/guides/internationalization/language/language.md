@@ -194,7 +194,7 @@ Language files were loaded after loading Handsontable.
 
 ::: only-for react
 
-::: example #example2 :react-languages
+::: example #example2 :react-languages --js 1 --ts 2
 
 @[code](@/content/guides/internationalization/language/react/example2.jsx)
 @[code](@/content/guides/internationalization/language/react/example2.tsx)
