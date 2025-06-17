@@ -411,6 +411,7 @@ class Border {
 
     const { wtTable, rootDocument, rootWindow } = this.wot;
     const isMultiple = (fromRow !== toRow || fromColumn !== toColumn);
+    const isClassicTheme = this.wot.wtSettings.getSetting('stylesHandler').isClassicTheme();
     const firstRenderedRow = wtTable.getFirstRenderedRow();
     const lastRenderedRow = wtTable.getLastRenderedRow();
     const firstRenderedColumn = wtTable.getFirstRenderedColumn();
@@ -600,7 +601,10 @@ class Border {
           this.cornerStyle[inlinePosProperty] = `${Math.floor(
             inlineStartPos + width + this.cornerCenterPointOffset - cornerHalfWidth - cornerBorderCompensation
           )}px`;
-          this.cornerStyle[isRtl ? 'borderLeftWidth' : 'borderRightWidth'] = 0;
+
+          if (isClassicTheme) {
+            this.cornerStyle[isRtl ? 'borderLeftWidth' : 'borderRightWidth'] = 0;
+          }
         }
       }
 
@@ -608,7 +612,6 @@ class Border {
         const toTdOffsetTop = trimToWindow ? toTD.getBoundingClientRect().top : toTD.offsetTop;
         const cornerBottomEdge = toTdOffsetTop + outerHeight(toTD) + (parseInt(this.cornerDefaultStyle.height, 10) / 2);
         const cornerOverlappingContainer = cornerBottomEdge >= innerHeight(trimmingContainer);
-        const isClassicTheme = this.wot.wtSettings.getSetting('stylesHandler').isClassicTheme();
 
         if (cornerOverlappingContainer) {
           const cornerTopPosition = Math.floor(
