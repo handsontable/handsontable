@@ -989,7 +989,7 @@ describe('WalkontableOverlay', () => {
     expect(topOverlay().getScrollPosition()).toBe(300);
   });
 
-  it('should not scroll the table when the ctrl key is pressed on Windows OS (#2405)', async() => {
+  it('should not scroll the table when the ctrl key is pressed on Windows OS (#dev-2405)', async() => {
     const wt = walkontable({
       data: getData,
       totalRows: getTotalRows,
