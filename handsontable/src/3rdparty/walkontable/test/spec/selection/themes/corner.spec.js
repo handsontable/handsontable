@@ -13,6 +13,8 @@ describe('WalkontableBorder corner (modern themes)', () => {
     this.$wrapper[0].style.setProperty('--ht-line-height', '22px');
     this.$wrapper[0].style.setProperty('--ht-cell-vertical-padding', '0px');
     this.$wrapper[0].style.setProperty('--ht-cell-autofill-size', '10px');
+    this.$wrapper[0].style.setProperty('--ht-cell-autofill-border-width', '4px');
+    this.$wrapper[0].style.setProperty('--ht-cell-autofill-border-color', '#FF0000');
 
     createDataArray();
   });
