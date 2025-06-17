@@ -39,6 +39,9 @@
   --ht-cell-selection-border-color: #1a42e8;
   --ht-cell-selection-background-color: #5371ee;
   --ht-cell-autofill-size: 6px;
+  --ht-cell-autofill-border-width: 1px;
+  --ht-cell-autofill-border-radius: 4px;
+  --ht-cell-autofill-border-color: #ffffff;
   --ht-cell-autofill-background-color: #1a42e8;
   --ht-cell-autofill-fill-border-color: #222222;
   --ht-cell-mobile-handle-size: 12px;
@@ -249,6 +252,7 @@
   --ht-cell-read-only-background-color: rgba(199, 199, 199, 0.12);
   --ht-cell-selection-border-color: #476af7;
   --ht-cell-selection-background-color: #2e56fc;
+  --ht-cell-autofill-border-color: #050506;
   --ht-cell-autofill-background-color: #476af7;
   --ht-cell-autofill-fill-border-color: #c7c7c7;
   --ht-cell-mobile-handle-border-color: #476af7;
