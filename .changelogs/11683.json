@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed an issue with scrollbar calculation on mobile devices",
-  "type": "fixed",
-  "issueOrPR": 11683,
-  "breaking": false,
-  "framework": "none"
-}
