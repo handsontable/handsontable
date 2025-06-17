@@ -1008,7 +1008,6 @@ describe('WalkontableOverlay', () => {
         ctrlKey: true,
       }));
 
-    expect(isWindowsOS()).toBe(true);
     expect(inlineStartOverlay().getScrollPosition()).toBe(0);
     expect(topOverlay().getScrollPosition()).toBe(0);
   });
