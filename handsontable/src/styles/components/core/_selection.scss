@@ -65,10 +65,12 @@
 
       // Fill handle
       &.corner {
+        border-radius: var(--ht-cell-autofill-border-radius) !important;
         background-color: var(
           --ht-cell-autofill-background-color,
           #1a42e8
         ) !important;
+        border-color: var(--ht-cell-autofill-border-color) !important;;
         font-size: 0;
         cursor: crosshair;
         z-index: 10;
