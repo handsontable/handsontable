@@ -1,6 +1,6 @@
 import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import Handsontable from 'handsontable';
 import { HotTableModule } from '@handsontable/angular-wrapper';
+import Handsontable from 'handsontable';
 
 @Component({
   standalone: true,
