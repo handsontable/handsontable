@@ -47,19 +47,19 @@
 
     .ht__active_highlight {
       .changeType {
-        box-shadow: 0 0 0 1px var(--ht-icon-button-active-border-color);
-        background-color: var(--ht-icon-button-active-background-color);
+        box-shadow: 0 0 0 1px var(--ht-icon-button-active-border-color, var(--ht-icon-active-button-border-color));
+        background-color: var(--ht-icon-button-active-background-color, var(--ht-icon-active-button-background-color));
 
         &::before {
-          color: var(--ht-icon-button-active-icon-color);
+          color: var(--ht-icon-button-active-icon-color, var(--ht-icon-active-button-icon-color));
         }
 
         &:hover {
-          box-shadow: 0 0 0 1px var(--ht-icon-button-active-hover-border-color);
-          background-color: var(--ht-icon-button-active-hover-background-color);
+          box-shadow: 0 0 0 1px var(--ht-icon-button-active-hover-border-color, var(--ht-icon-active-button-hover-border-color));
+          background-color: var(--ht-icon-button-active-hover-background-color, var(--ht-icon-active-button-hover-background-color));
 
           &::before {
-            color: var(--ht-icon-button-active-hover-icon-color);
+            color: var(--ht-icon-button-active-hover-icon-color, var(--ht-icon-active-button-hover-icon-color));
           }
         }
       }
