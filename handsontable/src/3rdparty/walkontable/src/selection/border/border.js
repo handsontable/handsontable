@@ -598,12 +598,16 @@ class Border {
         }
 
         if (cornerOverlappingContainer) {
-          this.cornerStyle[inlinePosProperty] = `${Math.floor(
+          const inlineStartPosition = Math.floor(
             inlineStartPos + width + this.cornerCenterPointOffset - cornerHalfWidth - cornerBorderCompensation
-          )}px`;
+          );
 
           if (isClassicTheme) {
+            this.cornerStyle[inlinePosProperty] = `${inlineStartPosition}px`;
             this.cornerStyle[isRtl ? 'borderLeftWidth' : 'borderRightWidth'] = 0;
+
+          } else {
+            this.cornerStyle[inlinePosProperty] = `${inlineStartPosition - 1}px`;
           }
         }
       }
@@ -622,6 +626,7 @@ class Border {
             // styles for classic theme
             this.cornerStyle.top = `${cornerTopPosition}px`;
             this.cornerStyle.borderBottomWidth = 0;
+
           } else {
             // styles for ht-theme
             this.cornerStyle.top = `${cornerTopPosition - 1}px`;
