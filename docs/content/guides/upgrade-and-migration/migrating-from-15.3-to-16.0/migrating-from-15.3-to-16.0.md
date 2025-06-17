@@ -77,12 +77,6 @@ We've introduced new variables that allow for easier customization:
  - `--ht-cell-read-only-background-color`: Allows better customization of read-only cell backgrounds.
  - `--ht-checkbox-indeterminate`: Lets you style the indeterminate state of checkboxes.
 
-### Removed CSS variables
-
- - `--ht-cell-autofill-border-width`
- - `--ht-cell-autofill-border-radius`
- - `--ht-cell-autofill-border-color`
-
 ### Renamed CSS variables
 We've renamed a few variables to ensure more consistent naming: 
 
