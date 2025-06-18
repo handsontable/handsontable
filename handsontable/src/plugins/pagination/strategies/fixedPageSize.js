@@ -24,6 +24,12 @@ export class FixedPageSizeStrategy {
    * @type {number}
    */
   totalItems = 0;
+  /**
+   * Total number of pages.
+   *
+   * @type {number}
+   */
+  totalPages = 0;
 
   /**
    * Calculates the state of pagination.
@@ -33,8 +39,9 @@ export class FixedPageSizeStrategy {
    * @param {number} options.totalItems The total number of items in the dataset.
    */
   calculate({ pageSize, totalItems }) {
-    this.pageSize = pageSize;
+    this.pageSize = Math.max(pageSize, 1);
     this.totalItems = totalItems;
+    this.totalPages = Math.ceil(this.totalItems / this.pageSize);
   }
 
   /**
@@ -43,18 +50,24 @@ export class FixedPageSizeStrategy {
    * @returns {number} The total number of pages.
    */
   getTotalPages() {
-    return Math.ceil(this.totalItems / this.pageSize);
+    return this.totalPages;
   }
 
   /**
    * Gets the state of a specific page.
    *
    * @param {number} currentPage The current page number (1-based index).
-   * @returns {PageInfo}
+   * @returns {PageInfo | undefined}
    */
   getState(currentPage) {
-    const startIndex = (currentPage - 1) * this.pageSize;
-    const endIndex = startIndex + this.pageSize;
+    currentPage -= 1;
+
+    if (currentPage < 0 || currentPage >= this.getTotalPages()) {
+      return;
+    }
+
+    const startIndex = currentPage * this.pageSize;
+    const endIndex = Math.min(startIndex + this.pageSize - 1, this.totalItems - 1);
 
     return {
       startIndex,

@@ -103,6 +103,7 @@ const dictionary = {
 
   [C.PAGINATION_SECTION]: 'صفحه‌بندی',
   [C.PAGINATION_PAGE_SIZE_SECTION]: 'تعداد سطرها',
+  [C.PAGINATION_PAGE_SIZE_AUTO]: 'خودکار',
   [C.PAGINATION_COUNTER_SECTION]: '[start] - [end] از [total]',
   [C.PAGINATION_NAV_SECTION]: 'صفحه [currentPage] از [totalPages]',
   [C.PAGINATION_FIRST_PAGE]: 'به اولین صفحه بروید',

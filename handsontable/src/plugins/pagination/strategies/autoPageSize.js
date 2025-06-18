@@ -79,9 +79,15 @@ export class AutoPageSizeStrategy {
    * Gets the state of a specific page.
    *
    * @param {number} currentPage The current page number (1-based index).
-   * @returns {PageInfo}
+   * @returns {PageInfo | undefined}
    */
   getState(currentPage) {
-    return this.pages[currentPage - 1];
+    currentPage -= 1;
+
+    if (currentPage < 0 || currentPage >= this.getTotalPages()) {
+      return;
+    }
+
+    return this.pages[currentPage];
   }
 }

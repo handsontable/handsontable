@@ -99,6 +99,7 @@ const dictionary = {
 
   [C.PAGINATION_SECTION]: 'Пагинация',
   [C.PAGINATION_PAGE_SIZE_SECTION]: 'Количество строк',
+  [C.PAGINATION_PAGE_SIZE_AUTO]: 'Авто',
   [C.PAGINATION_COUNTER_SECTION]: '[start] - [end] из [total]',
   [C.PAGINATION_NAV_SECTION]: 'Страница [currentPage] из [totalPages]',
   [C.PAGINATION_FIRST_PAGE]: 'Перейти на первую страницу',

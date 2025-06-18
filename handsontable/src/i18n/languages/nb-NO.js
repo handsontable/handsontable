@@ -99,6 +99,7 @@ const dictionary = {
 
   [C.PAGINATION_SECTION]: 'Paginering',
   [C.PAGINATION_PAGE_SIZE_SECTION]: 'Antall rader',
+  [C.PAGINATION_PAGE_SIZE_AUTO]: 'Auto',
   [C.PAGINATION_COUNTER_SECTION]: '[start] - [end] av [total]',
   [C.PAGINATION_NAV_SECTION]: 'Side [currentPage] av [totalPages]',
   [C.PAGINATION_FIRST_PAGE]: 'Gå til første side',

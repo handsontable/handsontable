@@ -5,9 +5,14 @@ import { PaginationUI } from './ui';
 import { checkPluginSettingsConflict } from './utils';
 import { announce } from '../../utils/a11yAnnouncer';
 import { createPaginatorStrategy } from './strategies';
+import { toSingleLine } from '../../helpers/templateLiteralTag';
+import { warn } from '../../helpers/console';
 
 export const PLUGIN_KEY = 'pagination';
 export const PLUGIN_PRIORITY = 900;
+
+const AUTO_PAGE_SIZE_WARNING = toSingleLine`The \`auto\` page size setting requires the \`autoRowSize\`\x20
+  plugin to be enabled. Set the \`autoRowSize: true\` in the configuration to ensure correct behavior.`;
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
@@ -163,6 +168,11 @@ export class Pagination extends BasePlugin {
     this.#pageSize = this.getSetting('pageSize');
     this.#currentPage = this.getSetting('initialPage');
     this.#pagedRowsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap(this.pluginName, 'hiding', false);
+
+    if (this.#pageSize === 'auto' && !this.hot.getPlugin('autoRowSize')?.enabled) {
+      warn(AUTO_PAGE_SIZE_WARNING);
+    }
+
     this.#calcStrategy = createPaginatorStrategy(this.#pageSize === 'auto' ? 'auto' : 'fixed');
 
     if (!this.#ui) {
@@ -272,7 +282,7 @@ export class Pagination extends BasePlugin {
       currentPage: this.#currentPage,
       totalPages: this.#calcStrategy.getTotalPages(),
       pageSize,
-      pageSizeList: this.getSetting('pageSizeList'),
+      pageSizeList: [...this.getSetting('pageSizeList')],
       autoPageSize: this.#pageSize === 'auto',
       numberOfRenderedRows: this.hot.rowIndexMapper.getRenderableIndexesLength(),
       firstVisibleRowIndex,
@@ -299,6 +309,7 @@ export class Pagination extends BasePlugin {
     this.#currentPage = pageNumber;
 
     this.#computeAndApplyState();
+    this.hot.scrollViewportTo({ row: 0 });
 
     this.hot.runHooks('afterPageChange', oldPage, this.#currentPage);
     this.hot.view.adjustElementsSize();
@@ -328,6 +339,10 @@ export class Pagination extends BasePlugin {
 
     if (shouldProceed === false) {
       return;
+    }
+
+    if (pageSize === 'auto' && !this.hot.getPlugin('autoRowSize')?.enabled) {
+      warn(AUTO_PAGE_SIZE_WARNING);
     }
 
     this.#calcStrategy = createPaginatorStrategy(pageSize === 'auto' ? 'auto' : 'fixed');
@@ -550,13 +565,9 @@ export class Pagination extends BasePlugin {
       pageSize,
     } = this.#calcStrategy.getState(this.#currentPage);
 
-    if (pageSize < 1) {
-      throw new Error('The `pageSize` option must be greater than `0`.');
-    }
-
     renderableIndexes.splice(startIndex, pageSize);
 
-    if (renderableIndexes.length > 0) { // TODO: Test me (renderableIndexes.length vs renderableRowsLength)
+    if (renderableIndexes.length > 0) {
       this.hot.batchExecution(() => {
         renderableIndexes.forEach(index => this.#pagedRowsMap.setValueAtIndex(index, true));
       }, true);

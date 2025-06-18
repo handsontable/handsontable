@@ -103,6 +103,7 @@ const dictionary = {
 
   [C.PAGINATION_SECTION]: 'Paginacija',
   [C.PAGINATION_PAGE_SIZE_SECTION]: 'Broj redova',
+  [C.PAGINATION_PAGE_SIZE_AUTO]: 'Auto',
   [C.PAGINATION_COUNTER_SECTION]: '[start] - [end] od [total]',
   [C.PAGINATION_NAV_SECTION]: 'Stranica [currentPage] od [totalPages]',
   [C.PAGINATION_FIRST_PAGE]: 'Idi na prvu stranicu',

@@ -172,7 +172,7 @@ describe('Pagination', () => {
     });
 
     expect(visualizePageSections()).toEqual([
-      'Liczba wierszy: [[5], 10, 20, 50, 100]',
+      'Liczba wierszy: [[...], 5, 10, 20, 50, 100]',
       '1 - 3 z 10',
       '|< < Strona 1 z 4 [>] [>|]',
     ]);
@@ -200,7 +200,7 @@ describe('Pagination', () => {
     });
 
     expect(visualizePageSections()).toEqual([
-      'Liczba wierszy: [[5], 10, 20, 50, 100]',
+      'Liczba wierszy: [[...], 5, 10, 20, 50, 100]',
       '1 - 3 z 10',
       '|< < Strona 1 z 4 [>] [>|]',
     ]);
@@ -213,5 +213,59 @@ describe('Pagination', () => {
     expect(container.querySelector('.ht-page-prev').getAttribute('aria-label')).toBe('Przejdź do poprzedniej strony');
     expect(container.querySelector('.ht-page-next').getAttribute('aria-label')).toBe('Przejdź do następnej strony');
     expect(container.querySelector('.ht-page-last').getAttribute('aria-label')).toBe('Przejdź do ostatniej strony');
+  });
+
+  it('should scroll the viewport to the top when the page is changed', async() => {
+    handsontable({
+      data: createSpreadsheetData(50, 20),
+      width: 300,
+      height: 200,
+      pagination: {
+        pageSize: 25,
+      },
+    });
+
+    await scrollViewportTo({ row: 10, col: 10 });
+
+    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(69);
+      main.toBe(135);
+      horizon.toBe(223);
+    });
+    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(265);
+      main.toBe(265);
+      horizon.toBe(279);
+    });
+
+    getPlugin('pagination').setPage(2);
+
+    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(0);
+      main.toBe(0);
+      horizon.toBe(0);
+    });
+    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(265);
+      main.toBe(265);
+      horizon.toBe(279);
+    });
+  });
+
+  it('should update the internal cache after changing the page size to the state where there is only one page', async() => {
+    handsontable({
+      data: createSpreadsheetData(50, 20),
+      width: 300,
+      height: 200,
+      pagination: {
+        pageSize: 25,
+      },
+    });
+
+    expect(rowIndexMapper().getRenderableIndexesLength()).toBe(25);
+
+    getPlugin('pagination').setPageSize(50);
+
+    expect(rowIndexMapper().getRenderableIndexesLength()).toBe(50);
   });
 });

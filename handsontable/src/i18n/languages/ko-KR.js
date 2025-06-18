@@ -99,6 +99,7 @@ const dictionary = {
 
   [C.PAGINATION_SECTION]: '페이지 매김',
   [C.PAGINATION_PAGE_SIZE_SECTION]: '행 수',
+  [C.PAGINATION_PAGE_SIZE_AUTO]: '자동',
   [C.PAGINATION_COUNTER_SECTION]: '[start] - [end] / 총 [total]건',
   [C.PAGINATION_NAV_SECTION]: '페이지 [currentPage] / [totalPages]',
   [C.PAGINATION_FIRST_PAGE]: '첫 페이지로 이동',

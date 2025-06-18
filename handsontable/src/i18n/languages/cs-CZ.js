@@ -100,6 +100,7 @@ const dictionary = {
 
   [C.PAGINATION_SECTION]: 'Stránkování',
   [C.PAGINATION_PAGE_SIZE_SECTION]: 'Počet řádků',
+  [C.PAGINATION_PAGE_SIZE_AUTO]: 'Auto',
   [C.PAGINATION_COUNTER_SECTION]: '[start] - [end] z [total]',
   [C.PAGINATION_NAV_SECTION]: 'Stránka [currentPage] z [totalPages]',
   [C.PAGINATION_FIRST_PAGE]: 'Přejít na první stránku',

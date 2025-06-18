@@ -10,7 +10,7 @@ describe('Pagination with selection', () => {
     }
   });
 
-  it('should be possible to select only visible rows', async() => {
+  it('should be possible to select only visible columns (pageSize as a number)', async() => {
     handsontable({
       data: createSpreadsheetData(10, 5),
       rowHeaders: true,
@@ -33,7 +33,32 @@ describe('Pagination with selection', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it('should be possible to select only visible rows (navigableHeaders: true)', async() => {
+  it('should be possible to select only visible columns (pageSize as "auto")', async() => {
+    handsontable({
+      data: createSpreadsheetData(10, 5),
+      width: 300,
+      height: getDefaultRowHeight() * 5,
+      rowHeaders: true,
+      colHeaders: true,
+      pagination: {
+        pageSize: 'auto',
+        initialPage: 2,
+      },
+    });
+
+    await selectColumns(2, 2, -1);
+
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 3,2 from: 3,2 to: 5,2']);
+    expect(`
+      |   ║   :   : - :   :   |
+      |===:===:===:===:===:===|
+      | - ║   :   : A :   :   |
+      | - ║   :   : 0 :   :   |
+      | - ║   :   : 0 :   :   |
+    `).toBeMatchToSelectionPattern();
+  });
+
+  it('should be possible to select only visible columns (navigableHeaders: true)', async() => {
     handsontable({
       data: createSpreadsheetData(10, 5),
       rowHeaders: true,
@@ -57,7 +82,7 @@ describe('Pagination with selection', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it('should be possible to select only visible rows by extending a column selection', async() => {
+  it('should be possible to select only visible columns by extending a column selection', async() => {
     handsontable({
       data: createSpreadsheetData(10, 5),
       rowHeaders: true,
@@ -82,7 +107,7 @@ describe('Pagination with selection', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it('should be possible to select only visible rows by extending a column selection (navigableHeaders: true)', async() => {
+  it('should be possible to select only visible columns by extending a column selection (navigableHeaders: true)', async() => {
     handsontable({
       data: createSpreadsheetData(10, 5),
       rowHeaders: true,
@@ -108,7 +133,7 @@ describe('Pagination with selection', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it('should be possible to select only visible rows by clicking a corner', async() => {
+  it('should be possible to select only visible columns by clicking a corner', async() => {
     handsontable({
       data: createSpreadsheetData(10, 5),
       rowHeaders: true,
@@ -131,7 +156,7 @@ describe('Pagination with selection', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it('should be possible to select only visible rows by clicking a corner (navigableHeaders: true)', async() => {
+  it('should be possible to select only visible columns by clicking a corner (navigableHeaders: true)', async() => {
     handsontable({
       data: createSpreadsheetData(10, 5),
       rowHeaders: true,

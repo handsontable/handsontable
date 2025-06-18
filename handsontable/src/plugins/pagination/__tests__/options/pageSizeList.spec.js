@@ -79,7 +79,7 @@ describe('Pagination `pageSizeList` option', () => {
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A10');
     expect(visualizePageSections()).toEqual([
-      'Page size: [[auto], 100, 200]',
+      'Page size: [[...], auto, 100, 200]',
       '1 - 10 of 45',
       '|< < Page 1 of 5 [>] [>|]',
     ]);
@@ -109,7 +109,7 @@ describe('Pagination `pageSizeList` option', () => {
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A10');
     expect(visualizePageSections()).toEqual([
-      'Page size: [[20]]',
+      'Page size: [[...], 20]',
       '1 - 10 of 45',
       '|< < Page 1 of 5 [>] [>|]',
     ]);

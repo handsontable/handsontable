@@ -231,8 +231,16 @@ export class PaginationUI {
     this.#a11yAnnouncer(navLabelText);
     this.refreshBorderState();
 
+    const pageSizeValue = autoPageSize ? 'auto' : pageSize;
+
+    if (!pageSizeList.includes(pageSizeValue)) {
+      pageSizeList.unshift('...');
+    }
+
     pageSizeList.forEach((pageSizeItem) => {
-      const option = new Option(pageSizeItem, pageSizeItem);
+      const label = pageSizeItem === 'auto' ?
+        this.#phraseTranslator(C.PAGINATION_PAGE_SIZE_AUTO) : pageSizeItem;
+      const option = new Option(label, pageSizeItem);
 
       if (pageSizeItem === pageSize || pageSizeItem === 'auto' && autoPageSize) {
         option.selected = true;

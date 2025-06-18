@@ -193,4 +193,24 @@ describe('Pagination UI', () => {
 
     expect(isTopBorderVisible()).toBe(false);
   });
+
+  it('should keep the table height stable when the page is changed', async() => {
+    handsontable({
+      data: createSpreadsheetData(50, 10),
+      pagination: true,
+      autoRowSize: true,
+    });
+
+    const height = (getDefaultRowHeight() * 10) + 1;
+
+    expect(hot().rootElement.offsetHeight).toBe(height - (spec().loadedTheme === 'classic' ? 1 : 0));
+
+    getPlugin('pagination').setPage(2);
+
+    expect(hot().rootElement.offsetHeight).toBe(height);
+
+    getPlugin('pagination').setPage(3);
+
+    expect(hot().rootElement.offsetHeight).toBe(height);
+  });
 });

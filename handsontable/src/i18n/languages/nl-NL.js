@@ -105,6 +105,7 @@ const dictionary = {
 
   [C.PAGINATION_SECTION]: 'Paginering',
   [C.PAGINATION_PAGE_SIZE_SECTION]: 'Aantal rijen',
+  [C.PAGINATION_PAGE_SIZE_AUTO]: 'Auto',
   [C.PAGINATION_COUNTER_SECTION]: '[start] - [end] van [total]',
   [C.PAGINATION_NAV_SECTION]: 'Pagina [currentPage] van [totalPages]',
   [C.PAGINATION_FIRST_PAGE]: 'Ga naar eerste pagina',

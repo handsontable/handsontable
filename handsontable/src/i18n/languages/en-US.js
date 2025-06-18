@@ -103,6 +103,7 @@ const dictionary = {
 
   [C.PAGINATION_SECTION]: 'Pagination',
   [C.PAGINATION_PAGE_SIZE_SECTION]: 'Page size',
+  [C.PAGINATION_PAGE_SIZE_AUTO]: 'Auto',
   [C.PAGINATION_COUNTER_SECTION]: '[start] - [end] of [total]',
   [C.PAGINATION_NAV_SECTION]: 'Page [currentPage] of [totalPages]',
   [C.PAGINATION_FIRST_PAGE]: 'Go to first page',

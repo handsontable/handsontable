@@ -10,6 +10,21 @@ describe('Pagination `setPageSize` method', () => {
     }
   });
 
+  it('should warn when `autoRowSize` plugin is not enabled', async() => {
+    handsontable({
+      data: createSpreadsheetData(20, 10),
+      pagination: true,
+    });
+
+    const warnSpy = spyOn(console, 'warn');
+    const plugin = getPlugin('pagination');
+
+    plugin.setPageSize('auto');
+
+    expect(warnSpy).toHaveBeenCalledWith('The `auto` page size setting requires the `autoRowSize` ' +
+      'plugin to be enabled. Set the `autoRowSize: true` in the configuration to ensure correct behavior.');
+  });
+
   it('should be possible to change the page size', async() => {
     handsontable({
       data: createSpreadsheetData(15, 10),
@@ -38,7 +53,7 @@ describe('Pagination `setPageSize` method', () => {
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
     expect(visualizePageSections()).toEqual([
-      'Page size: [[5], 10, 20, 50, 100]',
+      'Page size: [[...], 5, 10, 20, 50, 100]',
       '1 - 1 of 15',
       '|< < Page 1 of 15 [>] [>|]'
     ]);
@@ -49,7 +64,7 @@ describe('Pagination `setPageSize` method', () => {
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A12');
     expect(visualizePageSections()).toEqual([
-      'Page size: [[5], 10, 20, 50, 100]',
+      'Page size: [[...], 5, 10, 20, 50, 100]',
       '1 - 12 of 15',
       '|< < Page 1 of 2 [>] [>|]'
     ]);
@@ -60,7 +75,7 @@ describe('Pagination `setPageSize` method', () => {
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A15');
     expect(visualizePageSections()).toEqual([
-      'Page size: [[5], 10, 20, 50, 100]',
+      'Page size: [[...], 5, 10, 20, 50, 100]',
       '1 - 15 of 15',
       '|< < Page 1 of 1 > >|'
     ]);
@@ -84,17 +99,17 @@ describe('Pagination `setPageSize` method', () => {
     });
     expect(visualizePageSections()).forThemes(({ classic, main, horizon }) => {
       classic.toEqual([
-        'Page size: [[5], 10, 20, 50, 100]',
+        'Page size: [[...], 5, 10, 20, 50, 100]',
         '1 - 12 of 15',
         '|< < Page 1 of 2 [>] [>|]'
       ]);
       main.toEqual([
-        'Page size: [[5], 10, 20, 50, 100]',
+        'Page size: [[...], 5, 10, 20, 50, 100]',
         '1 - 9 of 15',
         '|< < Page 1 of 2 [>] [>|]'
       ]);
       horizon.toEqual([
-        'Page size: [[5], 10, 20, 50, 100]',
+        'Page size: [[...], 5, 10, 20, 50, 100]',
         '1 - 7 of 15',
         '|< < Page 1 of 3 [>] [>|]'
       ]);
@@ -112,7 +127,7 @@ describe('Pagination `setPageSize` method', () => {
     ]);
   });
 
-  it('should throw an error when page size is lower than `0`', async() => {
+  it('should not be possible to set page size to 0 or lower', async() => {
     handsontable({
       data: createSpreadsheetData(15, 10),
       pagination: true,
@@ -120,11 +135,12 @@ describe('Pagination `setPageSize` method', () => {
 
     const plugin = getPlugin('pagination');
 
-    expect(() => {
-      plugin.setPageSize(0);
-    }).toThrowError('The `pageSize` option must be greater than `0`.');
-    expect(() => {
-      plugin.setPageSize(-1);
-    }).toThrowError('The `pageSize` option must be greater than `0`.');
+    plugin.setPageSize(0);
+
+    expect(plugin.getPaginationData().pageSize).toBe(1);
+
+    plugin.setPageSize(-3);
+
+    expect(plugin.getPaginationData().pageSize).toBe(1);
   });
 });
