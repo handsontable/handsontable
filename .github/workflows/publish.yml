@@ -28,5 +28,5 @@ jobs:
           cache: 'npm'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_AUTOMATION }}
-      - run: npm install
+      - run: pnpm install
       - run: npm run pre-release

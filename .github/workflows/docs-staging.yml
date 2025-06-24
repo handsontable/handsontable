@@ -96,7 +96,7 @@ jobs:
       - name: Install the monorepo dependencies and build the packages
         run: |
           cd ..
-          npm ci
+          pnpm install
           npm run all build -- --e examples visual-tests
 
       - name: Generate API references
@@ -139,4 +139,3 @@ jobs:
             ✅ Preview documentation is is available now
             Current staging version of documentation is available at: [${{ env.NETLIFY_SITE_URL }}/docs](${{ env.NETLIFY_SITE_URL }}/docs)
 
-  

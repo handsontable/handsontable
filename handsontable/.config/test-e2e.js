@@ -41,9 +41,7 @@ module.exports.create = function create(envArgs) {
     c.plugins.push(
       new JasmineHtml({
         filename: path.resolve(__dirname, '../test/E2ERunner.html'),
-        baseJasminePath: `${
-          fsExtra.pathExistsSync('./node_modules/jasmine-core') ? '../' : '../../'
-        }`,
+        baseJasminePath: '../../',
         externalCssFiles: [
           'lib/normalize.css',
           ...((envArgs.HOT_THEME && envArgs.HOT_THEME !== 'classic') ? [

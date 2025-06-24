@@ -45,7 +45,7 @@ jobs:
       - name: Install the monorepo dependencies and build the packages
         run: |
           cd ..
-          npm ci
+          pnpm install
           npm run all build -- --e examples visual-tests
 
       - name: Generate API references

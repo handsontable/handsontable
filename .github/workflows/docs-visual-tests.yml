@@ -50,7 +50,7 @@ jobs:
         if: ${{inputs.test_env == 'http://localhost:8080/docs'}}
         run: |
           cd ..
-          npm ci
+          pnpm install
           npm run all build -- --e examples visual-tests
 
       - name: Generate API refs

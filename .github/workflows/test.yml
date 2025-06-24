@@ -130,7 +130,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
-      - run: npm ci --no-audit
+      - run: pnpm install
 
       - name: Build
         run: |
@@ -162,7 +162,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
-      - run: npm ci --no-audit
+      - run: pnpm install
 
       - name: Build
         run: |
@@ -196,7 +196,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
-      - run: npm ci --no-audit
+      - run: pnpm install
 
       - name: Test
         run: |
@@ -218,7 +218,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
-      - run: npm ci --no-audit
+      - run: pnpm install
 
       - name: Test
         run: |
@@ -240,7 +240,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
-      - run: npm ci --no-audit
+      - run: pnpm install
 
       - name: Test
         run: |
@@ -262,7 +262,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
-      - run: npm ci --no-audit
+      - run: pnpm install
 
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # https://github.com/actions/download-artifact/releases/tag/v4.1.3
@@ -291,7 +291,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
-      - run: npm ci --no-audit
+      - run: pnpm install
 
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # https://github.com/actions/download-artifact/releases/tag/v4.1.3
@@ -320,7 +320,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
-      - run: npm ci --no-audit
+      - run: pnpm install
 
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # https://github.com/actions/download-artifact/releases/tag/v4.1.3
@@ -349,7 +349,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
-      - run: npm ci --no-audit
+      - run: pnpm install
 
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # https://github.com/actions/download-artifact/releases/tag/v4.1.3
@@ -378,7 +378,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
-      - run: npm ci --no-audit
+      - run: pnpm install
 
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # https://github.com/actions/download-artifact/releases/tag/v4.1.3
@@ -407,7 +407,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
-      - run: npm ci --no-audit
+      - run: pnpm install
 
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # https://github.com/actions/download-artifact/releases/tag/v4.1.3
@@ -434,7 +434,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
-      - run: npm ci --no-audit
+      - run: pnpm install
 
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # https://github.com/actions/download-artifact/releases/tag/v4.1.3
@@ -472,7 +472,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
-      - run: npm ci --no-audit
+      - run: pnpm install
 
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # https://github.com/actions/download-artifact/releases/tag/v4.1.3
@@ -513,7 +513,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
-      - run: npm ci --no-audit
+      - run: pnpm install
 
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # https://github.com/actions/download-artifact/releases/tag/v4.1.3
@@ -550,7 +550,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
-      - run: npm ci --no-audit
+      - run: pnpm install
 
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # https://github.com/actions/download-artifact/releases/tag/v4.1.3
@@ -587,7 +587,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
-      - run: npm ci --no-audit
+      - run: pnpm install
 
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # https://github.com/actions/download-artifact/releases/tag/v4.1.3
@@ -623,7 +623,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
-      - run: npm ci --no-audit
+      - run: pnpm install
 
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # https://github.com/actions/download-artifact/releases/tag/v4.1.3
@@ -659,7 +659,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
-      - run: npm ci --no-audit
+      - run: pnpm install
 
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # https://github.com/actions/download-artifact/releases/tag/v4.1.3
@@ -695,7 +695,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
-      - run: npm ci --no-audit
+      - run: pnpm install
 
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # https://github.com/actions/download-artifact/releases/tag/v4.1.3
@@ -754,7 +754,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
-      - run: npm ci --no-audit
+      - run: pnpm install
 
       - name: Install system dependencies
         run: npm run in visual-tests install-system-dependencies

@@ -33,7 +33,7 @@ jobs:
 
       - name: Install Handsontable dependencies
         run: |
-          npm ci --no-audit
+          pnpm install
 
       - name: Lint
         run: |

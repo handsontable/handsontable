@@ -41,7 +41,7 @@ jobs:
           cache: 'npm'
 
       - name: Install the dependencies
-        run: npm ci
+        run: pnpm install
 
       - name: Build all packages
         run: npm run all build
@@ -75,7 +75,7 @@ jobs:
 
       - name: Install the dependencies
         working-directory: D:/handsontable
-        run: npm ci
+        run: pnpm install
 
       - name: Build all packages
         working-directory: D:/handsontable

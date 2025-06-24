@@ -33,7 +33,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci --no-audit
+        run: pnpm install
 
       - name: Assert that a new changelog was added, or that the check is skipped
         env:

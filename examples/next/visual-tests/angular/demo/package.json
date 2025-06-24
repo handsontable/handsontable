@@ -27,9 +27,12 @@
     "@angular/platform-browser-dynamic": "latest",
     "@angular/router": "latest",
     "@handsontable/angular": "latest",
+    "@handsontable/pikaday": "latest",
     "connect-history-api-fallback": "^2.0.0",
     "express": "^4.19.2",
     "handsontable": "latest",
+    "hyperformula": "latest",
+    "numbro": "2.5.0",
     "rxjs": "6.6.7",
     "tslib": "2.1.0",
     "zone.js": "~0.15.0"

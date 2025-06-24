@@ -18,6 +18,10 @@ export function cleanNodeModules() {
 
     rimraf.sync('./package-lock.json');
 
+    console.log('- Removing the ./pnpm-lock.yaml file.');
+
+    rimraf.sync('./pnpm-lock.yaml');
+
   } catch (error) {
     console.error(`Error deleting ./node_modules or ./package-lock.json - ${error}.`);
 
@@ -27,6 +31,7 @@ export function cleanNodeModules() {
   workspaces.forEach((packagesLocation) => {
     const nodeModulesLocation = `${packagesLocation}/node_modules`;
     const lockfileLocation = `${packagesLocation}/package-lock.json`;
+    const pnpmLockfileLocation = `${packagesLocation}/pnpm-lock.yaml`;
     const printRelative = path => path.replace('./', '');
 
     try {
@@ -47,6 +52,17 @@ export function cleanNodeModules() {
 
     } catch (error) {
       console.error(`Error deleting ${printRelative(lockfileLocation)} - ${error}`);
+
+      process.exit(1);
+    }
+
+    try {
+      console.log(`- Removing the ${printRelative(pnpmLockfileLocation)} file.`);
+
+      rimraf.sync(lockfileLocation);
+
+    } catch (error) {
+      console.error(`Error deleting ${printRelative(pnpmLockfileLocation)} - ${error}`);
 
       process.exit(1);
     }

@@ -31,7 +31,7 @@ jobs:
 
       - name: Install Handsontable dependencies
         run: |
-          npm ci --no-audit
+          pnpm install
 
       - name: Generate JS code examples
         run: |

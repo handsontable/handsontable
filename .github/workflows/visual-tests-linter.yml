@@ -26,7 +26,7 @@ jobs:
 
       - name: Install monorepo dependencies
         run: |
-          npm ci --no-audit
+          pnpm install
 
       - name: Lint
         run: |
