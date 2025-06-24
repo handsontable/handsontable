@@ -1,6 +1,7 @@
 import { TextEditor } from '../textEditor';
 import { createInputElementResizer } from '../../utils/autoResize';
 import { empty } from '../../helpers/dom/element';
+import { A11Y_TABINDEX } from '../../helpers/a11y';
 
 export const EDITOR_TYPE = 'password';
 
@@ -36,6 +37,7 @@ export class PasswordEditor extends TextEditor {
     this.textareaStyle.height = 0;
 
     empty(this.TEXTAREA_PARENT);
+    this.TEXTAREA.setAttribute(...A11Y_TABINDEX(-1));
     this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
   }
 }

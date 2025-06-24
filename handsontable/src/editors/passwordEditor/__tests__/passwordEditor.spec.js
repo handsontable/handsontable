@@ -522,6 +522,19 @@ describe('PasswordEditor', () => {
     expect(editableElement.getAttribute('dir')).toBeNull();
   });
 
+  it('should render an editable editor\'s element with "tabindex" attribute set to "-1"', async() => {
+    handsontable({
+      data: createSpreadsheetData(2, 5),
+      editor: 'password',
+    });
+
+    await selectCell(0, 0);
+
+    const editableElement = getActiveEditor().TEXTAREA;
+
+    expect(editableElement.getAttribute('tabindex')).toBe('-1');
+  });
+
   describe('IME support', () => {
     it('should focus editable element after a timeout when selecting the cell if `imeFastEdit` is enabled', async() => {
       handsontable({
