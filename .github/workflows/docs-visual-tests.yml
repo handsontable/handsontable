@@ -46,6 +46,11 @@ jobs:
           npm install
           npx playwright install --with-deps
 
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+        name: Install pnpm
+        with:
+          version: 10
+
       - name: Install the monorepo dependencies and build the packages
         if: ${{inputs.test_env == 'http://localhost:8080/docs'}}
         run: |

@@ -65,7 +65,6 @@
     "global-jsdom": "^8.7.0",
     "inquirer": "^7.3.3",
     "moment": "2.29.4",
-    "pnpm": "^10.12.2",
     "replace-in-file": "^6.1.0",
     "rimraf": "^3.0.2",
     "semver": "^5.7.1",
