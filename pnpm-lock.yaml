@@ -7,7 +7,7 @@ settings:
 overrides:
   '@babel/core': ^7.11.4
 
-packageExtensionsChecksum: sha256-7sjfhRT8T2S0TFsgAL4RvB8mCZngt8qINK7o/AR27u8=
+packageExtensionsChecksum: sha256-9JFNa7pkBsdoAjsvrmjweKxGvz+RVlrYGZfOOm2WjAU=
 
 importers:
 
@@ -393,7 +393,7 @@ importers:
         version: 17.3.17(@angular/compiler-cli@17.3.12(@angular/compiler@17.3.12(@angular/core@17.3.12(rxjs@7.8.2)(zone.js@0.14.10)))(typescript@5.2.2))(@angular/localize@17.3.12(@angular/compiler-cli@17.3.12(@angular/compiler@17.3.12(@angular/core@17.3.12(rxjs@7.8.2)(zone.js@0.14.10)))(typescript@5.2.2))(@angular/compiler@17.3.12(@angular/core@17.3.12(rxjs@7.8.2)(zone.js@0.14.10))))(@angular/service-worker@17.3.12(@angular/common@17.3.12(@angular/core@17.3.12(rxjs@7.8.2)(zone.js@0.14.10))(rxjs@7.8.2))(@angular/core@17.3.12(rxjs@7.8.2)(zone.js@0.14.10)))(@types/express@4.17.23)(@types/node@12.20.7)(chokidar@3.6.0)(jest-environment-jsdom@29.7.0)(jest@29.7.0(@types/node@12.20.7)(node-notifier@8.0.2)(ts-node@8.3.0(typescript@5.2.2)))(karma@6.4.4)(ng-packagr@17.3.0(@angular/compiler-cli@17.3.12(@angular/compiler@17.3.12(@angular/core@17.3.12(rxjs@7.8.2)(zone.js@0.14.10)))(typescript@5.2.2))(tslib@2.8.1)(typescript@5.2.2))(stylus@0.54.8)(typescript@5.2.2)
       '@angular-eslint/builder':
         specifier: ~17.3.0
-        version: 17.3.0(eslint@8.57.1)(typescript@5.2.2)
+        version: 17.3.0(eslint@8.57.1)(rxjs@7.8.2)(typescript@5.2.2)
       '@angular-eslint/eslint-plugin':
         specifier: ~17.3.0
         version: 17.3.0(eslint@8.57.1)(typescript@5.2.2)
@@ -402,7 +402,7 @@ importers:
         version: 17.3.0(eslint@8.57.1)(typescript@5.2.2)
       '@angular-eslint/schematics':
         specifier: ~17.3.0
-        version: 17.3.0(@angular/cli@17.3.17(chokidar@3.6.0))(eslint@8.57.1)(typescript@5.2.2)
+        version: 17.3.0(@angular/cli@17.3.17(chokidar@3.6.0))(eslint@8.57.1)(rxjs@7.8.2)(typescript@5.2.2)
       '@angular-eslint/template-parser':
         specifier: ~17.3.0
         version: 17.3.0(eslint@8.57.1)(typescript@5.2.2)
@@ -524,7 +524,7 @@ importers:
         version: 16.2.16(@angular/compiler-cli@16.2.12(@angular/compiler@16.2.12(@angular/core@16.2.12(rxjs@7.8.2)(zone.js@0.13.3)))(typescript@5.1.6))(@angular/localize@16.2.12(@angular/compiler-cli@16.2.12(@angular/compiler@16.2.12(@angular/core@16.2.12(rxjs@7.8.2)(zone.js@0.13.3)))(typescript@5.1.6))(@angular/compiler@16.2.12(@angular/core@16.2.12(rxjs@7.8.2)(zone.js@0.13.3))))(@angular/service-worker@16.2.12(@angular/common@16.2.12(@angular/core@16.2.12(rxjs@7.8.2)(zone.js@0.13.3))(rxjs@7.8.2))(@angular/core@16.2.12(rxjs@7.8.2)(zone.js@0.13.3)))(@types/node@12.20.7)(jest-environment-jsdom@29.5.0)(jest@29.5.0(@types/node@12.20.7)(node-notifier@8.0.2)(ts-node@8.3.0(typescript@5.1.6)))(karma@6.4.4)(ng-packagr@16.2.3(@angular/compiler-cli@16.2.12(@angular/compiler@16.2.12(@angular/core@16.2.12(rxjs@7.8.2)(zone.js@0.13.3)))(typescript@5.1.6))(tslib@2.8.1)(typescript@5.1.6))(stylus@0.54.8)(typescript@5.1.6)
       '@angular-eslint/builder':
         specifier: ~16.3.1
-        version: 16.3.1(eslint@8.57.1)(typescript@5.1.6)
+        version: 16.3.1(eslint@8.57.1)(rxjs@7.8.2)(typescript@5.1.6)
       '@angular-eslint/eslint-plugin':
         specifier: ~16.3.1
         version: 16.3.1(eslint@8.57.1)(typescript@5.1.6)
@@ -533,7 +533,7 @@ importers:
         version: 16.3.1(eslint@8.57.1)(typescript@5.1.6)
       '@angular-eslint/schematics':
         specifier: ~16.3.1
-        version: 16.3.1(@angular/cli@16.2.16(chokidar@3.5.3))(eslint@8.57.1)(typescript@5.1.6)
+        version: 16.3.1(@angular/cli@16.2.16(chokidar@3.5.3))(eslint@8.57.1)(rxjs@7.8.2)(typescript@5.1.6)
       '@angular-eslint/template-parser':
         specifier: ~16.3.1
         version: 16.3.1(eslint@8.57.1)(typescript@5.1.6)
@@ -605,7 +605,7 @@ importers:
         version: 29.5.0
       jest-preset-angular:
         specifier: ^14.3.0
-        version: 14.6.0(@angular/compiler-cli@16.2.12(@angular/compiler@16.2.12(@angular/core@16.2.12(rxjs@7.8.2)(zone.js@0.13.3)))(typescript@5.1.6))(@angular/core@16.2.12(rxjs@7.8.2)(zone.js@0.13.3))(@angular/platform-browser-dynamic@16.2.12(@angular/common@16.2.12(@angular/core@16.2.12(rxjs@7.8.2)(zone.js@0.13.3))(rxjs@7.8.2))(@angular/compiler@16.2.12(@angular/core@16.2.12(rxjs@7.8.2)(zone.js@0.13.3)))(@angular/core@16.2.12(rxjs@7.8.2)(zone.js@0.13.3))(@angular/platform-browser@16.2.12(@angular/animations@16.2.12(@angular/core@16.2.12(rxjs@7.8.2)(zone.js@0.13.3)))(@angular/common@16.2.12(@angular/core@16.2.12(rxjs@7.8.2)(zone.js@0.13.3))(rxjs@7.8.2))(@angular/core@16.2.12(rxjs@7.8.2)(zone.js@0.13.3))))(@babel/core@7.27.4)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.27.4))(jest@29.5.0(@types/node@12.20.7)(node-notifier@8.0.2)(ts-node@8.3.0(typescript@5.1.6)))(jsdom@24.1.3)(typescript@5.1.6)
+        version: 14.6.0(@angular/compiler-cli@16.2.12(@angular/compiler@16.2.12(@angular/core@16.2.12(rxjs@7.8.2)(zone.js@0.13.3)))(typescript@5.1.6))(@angular/core@16.2.12(rxjs@7.8.2)(zone.js@0.13.3))(@angular/platform-browser-dynamic@16.2.12(@angular/common@16.2.12(@angular/core@16.2.12(rxjs@7.8.2)(zone.js@0.13.3))(rxjs@7.8.2))(@angular/compiler@16.2.12(@angular/core@16.2.12(rxjs@7.8.2)(zone.js@0.13.3)))(@angular/core@16.2.12(rxjs@7.8.2)(zone.js@0.13.3))(@angular/platform-browser@16.2.12(@angular/animations@16.2.12(@angular/core@16.2.12(rxjs@7.8.2)(zone.js@0.13.3)))(@angular/common@16.2.12(@angular/core@16.2.12(rxjs@7.8.2)(zone.js@0.13.3))(rxjs@7.8.2))(@angular/core@16.2.12(rxjs@7.8.2)(zone.js@0.13.3))))(@babel/core@7.27.4)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.27.4))(jest@29.5.0(@types/node@12.20.7)(node-notifier@8.0.2)(ts-node@8.3.0(typescript@5.1.6)))(jsdom@24.1.3)(typescript@5.1.6)(zone.js@0.13.3)
       moment:
         specifier: 2.29.4
         version: 2.29.4
@@ -997,6 +997,9 @@ importers:
       cross-env:
         specifier: ^7.0.3
         version: 7.0.3
+      eslint:
+        specifier: ^8.57.1
+        version: 8.57.1
       eslint-plugin-vue:
         specifier: ^8.0.3
         version: 8.7.1(eslint@8.57.1)
@@ -3689,11 +3692,13 @@ packages:
     resolution: {integrity: sha512-T1acZrVVmJw/sJ4PIGidCBYBiBqlg/jT9e8nIGXLSDS20xcLvfo4zBQf8UZLrmHglnwwpDpOWuVJCp2rYA5aDg==}
     peerDependencies:
       nx: '>= 15 <= 17'
+      rxjs: '*'
 
   '@nx/devkit@18.3.5':
     resolution: {integrity: sha512-9I0L17t0MN87fL4m4MjDiBxJIx7h5RQY/pTYtt5TBjye0ANb165JeE4oh3ibzfjMzXv42Aej2Gm+cOuSPwzT9g==}
     peerDependencies:
       nx: '>= 16 <= 19'
+      rxjs: '*'
 
   '@nx/nx-darwin-arm64@16.5.1':
     resolution: {integrity: sha512-q98TFI4B/9N9PmKUr1jcbtD4yAFs1HfYd9jUXXTQOlfO9SbDjnrYJgZ4Fp9rMNfrBhgIQ4x1qx0AukZccKmH9Q==}
@@ -5464,8 +5469,8 @@ packages:
   caniuse-api@3.0.0:
     resolution: {integrity: sha512-bsTwuIg/BZZK/vreVTYYbSWoe2F+71P7K5QGEX+pT250DZbfU1MQ5prOKpPR+LL6uWKK3KMwMCAS74QB3Um1uw==}
 
-  caniuse-lite@1.0.30001725:
-    resolution: {integrity: sha512-OllFBaEDJx2nwkQSHdScjdRGCCLb9cb4fq50W3A/njtnJFRaRDQfGIl+J8vqAvwwKtbWB4Ptf4YdPXEculKdwg==}
+  caniuse-lite@1.0.30001726:
+    resolution: {integrity: sha512-VQAUIUzBiZ/UnlM28fSp2CRF3ivUn1BWEvxMcVTNwpw91Py1pGbPIyIKtd+tzct9C3ouceCVdGAXxZOpZAsgdw==}
 
   capture-exit@2.0.0:
     resolution: {integrity: sha512-PiT/hQmTonHhl/HFGN+Lx3JJUznrVYJ3+AQsnthneZbvW7x+f08Tk7yLJTLEOUvBTbduLeeBkxEaYXUOUrRq6g==}
@@ -8203,6 +8208,7 @@ packages:
       jest: ^29.0.0
       jsdom: '>=20.0.0'
       typescript: '>=4.8'
+      zone.js: '*'
     peerDependenciesMeta:
       jsdom:
         optional: true
@@ -12266,7 +12272,7 @@ snapshots:
     dependencies:
       '@ampproject/remapping': 2.3.0
       '@angular-devkit/architect': 0.1703.17(chokidar@3.6.0)
-      '@angular-devkit/build-webpack': 0.1703.17(chokidar@3.6.0)(webpack-dev-server@4.15.1(webpack@5.94.0))(webpack@5.94.0(esbuild@0.20.1))
+      '@angular-devkit/build-webpack': 0.1703.17(chokidar@3.6.0)(webpack-dev-server@4.15.1(webpack@5.94.0))(webpack@5.94.0)
       '@angular-devkit/core': 17.3.17(chokidar@3.6.0)
       '@angular/compiler-cli': 17.3.12(@angular/compiler@17.3.12(@angular/core@17.3.12(rxjs@7.8.2)(zone.js@0.14.10)))(typescript@5.2.2)
       '@babel/core': 7.27.4
@@ -12279,16 +12285,16 @@ snapshots:
       '@babel/preset-env': 7.26.9(@babel/core@7.27.4)
       '@babel/runtime': 7.26.10
       '@discoveryjs/json-ext': 0.5.7
-      '@ngtools/webpack': 17.3.17(@angular/compiler-cli@17.3.12(@angular/compiler@17.3.12(@angular/core@17.3.12(rxjs@7.8.2)(zone.js@0.14.10)))(typescript@5.2.2))(typescript@5.2.2)(webpack@5.94.0(esbuild@0.20.1))
+      '@ngtools/webpack': 17.3.17(@angular/compiler-cli@17.3.12(@angular/compiler@17.3.12(@angular/core@17.3.12(rxjs@7.8.2)(zone.js@0.14.10)))(typescript@5.2.2))(typescript@5.2.2)(webpack@5.94.0)
       '@vitejs/plugin-basic-ssl': 1.1.0(vite@5.4.19(@types/node@12.20.7)(less@4.2.0)(sass@1.71.1)(stylus@0.54.8)(terser@5.29.1))
       ansi-colors: 4.1.3
       autoprefixer: 10.4.18(postcss@8.4.35)
-      babel-loader: 9.1.3(@babel/core@7.27.4)(webpack@5.94.0(esbuild@0.20.1))
+      babel-loader: 9.1.3(@babel/core@7.27.4)(webpack@5.94.0)
       babel-plugin-istanbul: 6.1.1
       browserslist: 4.25.0
-      copy-webpack-plugin: 11.0.0(webpack@5.94.0(esbuild@0.20.1))
+      copy-webpack-plugin: 11.0.0(webpack@5.94.0)
       critters: 0.0.22
-      css-loader: 6.10.0(webpack@5.94.0(esbuild@0.20.1))
+      css-loader: 6.10.0(webpack@5.94.0)
       esbuild-wasm: 0.20.1
       fast-glob: 3.3.2
       http-proxy-middleware: 2.0.8(@types/express@4.17.23)
@@ -12297,11 +12303,11 @@ snapshots:
       jsonc-parser: 3.2.1
       karma-source-map-support: 1.4.0
       less: 4.2.0
-      less-loader: 11.1.0(less@4.2.0)(webpack@5.94.0(esbuild@0.20.1))
-      license-webpack-plugin: 4.0.2(webpack@5.94.0(esbuild@0.20.1))
+      less-loader: 11.1.0(less@4.2.0)(webpack@5.94.0)
+      license-webpack-plugin: 4.0.2(webpack@5.94.0)
       loader-utils: 3.2.1
       magic-string: 0.30.8
-      mini-css-extract-plugin: 2.8.1(webpack@5.94.0(esbuild@0.20.1))
+      mini-css-extract-plugin: 2.8.1(webpack@5.94.0)
       mrmime: 2.0.0
       open: 8.4.2
       ora: 5.4.1
@@ -12309,13 +12315,13 @@ snapshots:
       picomatch: 4.0.1
       piscina: 4.4.0
       postcss: 8.4.35
-      postcss-loader: 8.1.1(postcss@8.4.35)(typescript@5.2.2)(webpack@5.94.0(esbuild@0.20.1))
+      postcss-loader: 8.1.1(postcss@8.4.35)(typescript@5.2.2)(webpack@5.94.0)
       resolve-url-loader: 5.0.0
       rxjs: 7.8.1
       sass: 1.71.1
-      sass-loader: 14.1.1(sass@1.71.1)(webpack@5.94.0(esbuild@0.20.1))
+      sass-loader: 14.1.1(sass@1.71.1)(webpack@5.94.0)
       semver: 7.6.0
-      source-map-loader: 5.0.0(webpack@5.94.0(esbuild@0.20.1))
+      source-map-loader: 5.0.0(webpack@5.94.0)
       source-map-support: 0.5.21
       terser: 5.29.1
       tree-kill: 1.2.2
@@ -12324,10 +12330,10 @@ snapshots:
       vite: 5.4.19(@types/node@12.20.7)(less@4.2.0)(sass@1.71.1)(stylus@0.54.8)(terser@5.29.1)
       watchpack: 2.4.0
       webpack: 5.94.0(esbuild@0.20.1)
-      webpack-dev-middleware: 6.1.2(webpack@5.94.0(esbuild@0.20.1))
+      webpack-dev-middleware: 6.1.2(webpack@5.94.0)
       webpack-dev-server: 4.15.1(webpack@5.94.0)
       webpack-merge: 5.10.0
-      webpack-subresource-integrity: 5.1.0(webpack@5.94.0(esbuild@0.20.1))
+      webpack-subresource-integrity: 5.1.0(webpack@5.94.0)
     optionalDependencies:
       '@angular/localize': 17.3.12(@angular/compiler-cli@17.3.12(@angular/compiler@17.3.12(@angular/core@17.3.12(rxjs@7.8.2)(zone.js@0.14.10)))(typescript@5.2.2))(@angular/compiler@17.3.12(@angular/core@17.3.12(rxjs@7.8.2)(zone.js@0.14.10)))
       '@angular/service-worker': 17.3.12(@angular/common@17.3.12(@angular/core@17.3.12(rxjs@7.8.2)(zone.js@0.14.10))(rxjs@7.8.2))(@angular/core@17.3.12(rxjs@7.8.2)(zone.js@0.14.10))
@@ -12364,7 +12370,7 @@ snapshots:
     transitivePeerDependencies:
       - chokidar
 
-  '@angular-devkit/build-webpack@0.1703.17(chokidar@3.6.0)(webpack-dev-server@4.15.1(webpack@5.94.0))(webpack@5.94.0(esbuild@0.20.1))':
+  '@angular-devkit/build-webpack@0.1703.17(chokidar@3.6.0)(webpack-dev-server@4.15.1(webpack@5.94.0))(webpack@5.94.0)':
     dependencies:
       '@angular-devkit/architect': 0.1703.17(chokidar@3.6.0)
       rxjs: 7.8.1
@@ -12415,9 +12421,9 @@ snapshots:
     transitivePeerDependencies:
       - chokidar
 
-  '@angular-eslint/builder@16.3.1(eslint@8.57.1)(typescript@5.1.6)':
+  '@angular-eslint/builder@16.3.1(eslint@8.57.1)(rxjs@7.8.2)(typescript@5.1.6)':
     dependencies:
-      '@nx/devkit': 16.5.1(nx@16.5.1)
+      '@nx/devkit': 16.5.1(nx@16.5.1)(rxjs@7.8.2)
       eslint: 8.57.1
       nx: 16.5.1
       typescript: 5.1.6
@@ -12425,10 +12431,11 @@ snapshots:
       - '@swc-node/register'
       - '@swc/core'
       - debug
+      - rxjs
 
-  '@angular-eslint/builder@17.3.0(eslint@8.57.1)(typescript@5.2.2)':
+  '@angular-eslint/builder@17.3.0(eslint@8.57.1)(rxjs@7.8.2)(typescript@5.2.2)':
     dependencies:
-      '@nx/devkit': 18.3.5(nx@18.3.5)
+      '@nx/devkit': 18.3.5(nx@18.3.5)(rxjs@7.8.2)
       eslint: 8.57.1
       nx: 18.3.5
       typescript: 5.2.2
@@ -12436,6 +12443,7 @@ snapshots:
       - '@swc-node/register'
       - '@swc/core'
       - debug
+      - rxjs
 
   '@angular-eslint/bundled-angular-compiler@16.3.1': {}
 
@@ -12485,12 +12493,12 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@angular-eslint/schematics@16.3.1(@angular/cli@16.2.16(chokidar@3.5.3))(eslint@8.57.1)(typescript@5.1.6)':
+  '@angular-eslint/schematics@16.3.1(@angular/cli@16.2.16(chokidar@3.5.3))(eslint@8.57.1)(rxjs@7.8.2)(typescript@5.1.6)':
     dependencies:
       '@angular-eslint/eslint-plugin': 16.3.1(eslint@8.57.1)(typescript@5.1.6)
       '@angular-eslint/eslint-plugin-template': 16.3.1(eslint@8.57.1)(typescript@5.1.6)
       '@angular/cli': 16.2.16(chokidar@3.5.3)
-      '@nx/devkit': 16.5.1(nx@16.5.1)
+      '@nx/devkit': 16.5.1(nx@16.5.1)(rxjs@7.8.2)
       ignore: 5.2.4
       nx: 16.5.1
       strip-json-comments: 3.1.1
@@ -12500,15 +12508,16 @@ snapshots:
       - '@swc/core'
       - debug
       - eslint
+      - rxjs
       - supports-color
       - typescript
 
-  '@angular-eslint/schematics@17.3.0(@angular/cli@17.3.17(chokidar@3.6.0))(eslint@8.57.1)(typescript@5.2.2)':
+  '@angular-eslint/schematics@17.3.0(@angular/cli@17.3.17(chokidar@3.6.0))(eslint@8.57.1)(rxjs@7.8.2)(typescript@5.2.2)':
     dependencies:
       '@angular-eslint/eslint-plugin': 17.3.0(eslint@8.57.1)(typescript@5.2.2)
       '@angular-eslint/eslint-plugin-template': 17.3.0(eslint@8.57.1)(typescript@5.2.2)
       '@angular/cli': 17.3.17(chokidar@3.6.0)
-      '@nx/devkit': 18.3.5(nx@18.3.5)
+      '@nx/devkit': 18.3.5(nx@18.3.5)(rxjs@7.8.2)
       ignore: 5.3.1
       nx: 18.3.5
       strip-json-comments: 3.1.1
@@ -12518,6 +12527,7 @@ snapshots:
       - '@swc/core'
       - debug
       - eslint
+      - rxjs
       - supports-color
       - typescript
 
@@ -15084,7 +15094,7 @@ snapshots:
       typescript: 5.1.6
       webpack: 5.94.0(esbuild@0.18.17)
 
-  '@ngtools/webpack@17.3.17(@angular/compiler-cli@17.3.12(@angular/compiler@17.3.12(@angular/core@17.3.12(rxjs@7.8.2)(zone.js@0.14.10)))(typescript@5.2.2))(typescript@5.2.2)(webpack@5.94.0(esbuild@0.20.1))':
+  '@ngtools/webpack@17.3.17(@angular/compiler-cli@17.3.12(@angular/compiler@17.3.12(@angular/core@17.3.12(rxjs@7.8.2)(zone.js@0.14.10)))(typescript@5.2.2))(typescript@5.2.2)(webpack@5.94.0)':
     dependencies:
       '@angular/compiler-cli': 17.3.12(@angular/compiler@17.3.12(@angular/core@17.3.12(rxjs@7.8.2)(zone.js@0.14.10)))(typescript@5.2.2)
       typescript: 5.2.2
@@ -15221,17 +15231,19 @@ snapshots:
       - bluebird
       - supports-color
 
-  '@nrwl/devkit@16.5.1(nx@16.5.1)':
+  '@nrwl/devkit@16.5.1(nx@16.5.1)(rxjs@7.8.2)':
     dependencies:
-      '@nx/devkit': 16.5.1(nx@16.5.1)
+      '@nx/devkit': 16.5.1(nx@16.5.1)(rxjs@7.8.2)
     transitivePeerDependencies:
       - nx
+      - rxjs
 
-  '@nrwl/devkit@18.3.5(nx@18.3.5)':
+  '@nrwl/devkit@18.3.5(nx@18.3.5)(rxjs@7.8.2)':
     dependencies:
-      '@nx/devkit': 18.3.5(nx@18.3.5)
+      '@nx/devkit': 18.3.5(nx@18.3.5)(rxjs@7.8.2)
     transitivePeerDependencies:
       - nx
+      - rxjs
 
   '@nrwl/tao@16.5.1':
     dependencies:
@@ -15250,23 +15262,25 @@ snapshots:
       - '@swc/core'
       - debug
 
-  '@nx/devkit@16.5.1(nx@16.5.1)':
+  '@nx/devkit@16.5.1(nx@16.5.1)(rxjs@7.8.2)':
     dependencies:
-      '@nrwl/devkit': 16.5.1(nx@16.5.1)
+      '@nrwl/devkit': 16.5.1(nx@16.5.1)(rxjs@7.8.2)
       ejs: 3.1.10
       ignore: 5.3.2
       nx: 16.5.1
+      rxjs: 7.8.2
       semver: 7.5.3
       tmp: 0.2.3
       tslib: 2.8.1
 
-  '@nx/devkit@18.3.5(nx@18.3.5)':
+  '@nx/devkit@18.3.5(nx@18.3.5)(rxjs@7.8.2)':
     dependencies:
-      '@nrwl/devkit': 18.3.5(nx@18.3.5)
+      '@nrwl/devkit': 18.3.5(nx@18.3.5)(rxjs@7.8.2)
       ejs: 3.1.10
       enquirer: 2.3.6
       ignore: 5.3.2
       nx: 18.3.5
+      rxjs: 7.8.2
       semver: 7.7.2
       tmp: 0.2.3
       tslib: 2.8.1
@@ -17247,7 +17261,7 @@ snapshots:
   autoprefixer@10.4.14(postcss@8.4.31):
     dependencies:
       browserslist: 4.25.0
-      caniuse-lite: 1.0.30001725
+      caniuse-lite: 1.0.30001726
       fraction.js: 4.3.7
       normalize-range: 0.1.2
       picocolors: 1.1.1
@@ -17257,7 +17271,7 @@ snapshots:
   autoprefixer@10.4.18(postcss@8.4.35):
     dependencies:
       browserslist: 4.25.0
-      caniuse-lite: 1.0.30001725
+      caniuse-lite: 1.0.30001726
       fraction.js: 4.3.7
       normalize-range: 0.1.2
       picocolors: 1.1.1
@@ -17267,7 +17281,7 @@ snapshots:
   autoprefixer@10.4.21(postcss@8.5.6):
     dependencies:
       browserslist: 4.25.0
-      caniuse-lite: 1.0.30001725
+      caniuse-lite: 1.0.30001726
       fraction.js: 4.3.7
       normalize-range: 0.1.2
       picocolors: 1.1.1
@@ -17335,7 +17349,7 @@ snapshots:
       schema-utils: 4.3.2
       webpack: 5.94.0(esbuild@0.18.17)
 
-  babel-loader@9.1.3(@babel/core@7.27.4)(webpack@5.94.0(esbuild@0.20.1)):
+  babel-loader@9.1.3(@babel/core@7.27.4)(webpack@5.94.0):
     dependencies:
       '@babel/core': 7.27.4
       find-cache-dir: 4.0.0
@@ -17583,7 +17597,7 @@ snapshots:
 
   browserslist@4.25.0:
     dependencies:
-      caniuse-lite: 1.0.30001725
+      caniuse-lite: 1.0.30001726
       electron-to-chromium: 1.5.173
       node-releases: 2.0.19
       update-browserslist-db: 1.1.3(browserslist@4.25.0)
@@ -17742,11 +17756,11 @@ snapshots:
   caniuse-api@3.0.0:
     dependencies:
       browserslist: 4.25.0
-      caniuse-lite: 1.0.30001725
+      caniuse-lite: 1.0.30001726
       lodash.memoize: 4.1.2
       lodash.uniq: 4.5.0
 
-  caniuse-lite@1.0.30001725: {}
+  caniuse-lite@1.0.30001726: {}
 
   capture-exit@2.0.0:
     dependencies:
@@ -18076,7 +18090,7 @@ snapshots:
       serialize-javascript: 6.0.2
       webpack: 5.94.0(esbuild@0.18.17)
 
-  copy-webpack-plugin@11.0.0(webpack@5.94.0(esbuild@0.20.1)):
+  copy-webpack-plugin@11.0.0(webpack@5.94.0):
     dependencies:
       fast-glob: 3.3.2
       glob-parent: 6.0.2
@@ -18228,7 +18242,7 @@ snapshots:
 
   css-functions-list@3.2.3: {}
 
-  css-loader@6.10.0(webpack@5.94.0(esbuild@0.20.1)):
+  css-loader@6.10.0(webpack@5.94.0):
     dependencies:
       icss-utils: 5.1.0(postcss@8.5.6)
       postcss: 8.5.6
@@ -21067,11 +21081,7 @@ snapshots:
       pretty-format: 26.6.2
       throat: 5.0.0
     transitivePeerDependencies:
-      - bufferutil
-      - canvas
       - supports-color
-      - ts-node
-      - utf-8-validate
 
   jest-leak-detector@26.6.2:
     dependencies:
@@ -21140,7 +21150,7 @@ snapshots:
     optionalDependencies:
       jest-resolve: 29.7.0
 
-  jest-preset-angular@14.6.0(@angular/compiler-cli@16.2.12(@angular/compiler@16.2.12(@angular/core@16.2.12(rxjs@7.8.2)(zone.js@0.13.3)))(typescript@5.1.6))(@angular/core@16.2.12(rxjs@7.8.2)(zone.js@0.13.3))(@angular/platform-browser-dynamic@16.2.12(@angular/common@16.2.12(@angular/core@16.2.12(rxjs@7.8.2)(zone.js@0.13.3))(rxjs@7.8.2))(@angular/compiler@16.2.12(@angular/core@16.2.12(rxjs@7.8.2)(zone.js@0.13.3)))(@angular/core@16.2.12(rxjs@7.8.2)(zone.js@0.13.3))(@angular/platform-browser@16.2.12(@angular/animations@16.2.12(@angular/core@16.2.12(rxjs@7.8.2)(zone.js@0.13.3)))(@angular/common@16.2.12(@angular/core@16.2.12(rxjs@7.8.2)(zone.js@0.13.3))(rxjs@7.8.2))(@angular/core@16.2.12(rxjs@7.8.2)(zone.js@0.13.3))))(@babel/core@7.27.4)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.27.4))(jest@29.5.0(@types/node@12.20.7)(node-notifier@8.0.2)(ts-node@8.3.0(typescript@5.1.6)))(jsdom@24.1.3)(typescript@5.1.6):
+  jest-preset-angular@14.6.0(@angular/compiler-cli@16.2.12(@angular/compiler@16.2.12(@angular/core@16.2.12(rxjs@7.8.2)(zone.js@0.13.3)))(typescript@5.1.6))(@angular/core@16.2.12(rxjs@7.8.2)(zone.js@0.13.3))(@angular/platform-browser-dynamic@16.2.12(@angular/common@16.2.12(@angular/core@16.2.12(rxjs@7.8.2)(zone.js@0.13.3))(rxjs@7.8.2))(@angular/compiler@16.2.12(@angular/core@16.2.12(rxjs@7.8.2)(zone.js@0.13.3)))(@angular/core@16.2.12(rxjs@7.8.2)(zone.js@0.13.3))(@angular/platform-browser@16.2.12(@angular/animations@16.2.12(@angular/core@16.2.12(rxjs@7.8.2)(zone.js@0.13.3)))(@angular/common@16.2.12(@angular/core@16.2.12(rxjs@7.8.2)(zone.js@0.13.3))(rxjs@7.8.2))(@angular/core@16.2.12(rxjs@7.8.2)(zone.js@0.13.3))))(@babel/core@7.27.4)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.27.4))(jest@29.5.0(@types/node@12.20.7)(node-notifier@8.0.2)(ts-node@8.3.0(typescript@5.1.6)))(jsdom@24.1.3)(typescript@5.1.6)(zone.js@0.13.3):
     dependencies:
       '@angular/compiler-cli': 16.2.12(@angular/compiler@16.2.12(@angular/core@16.2.12(rxjs@7.8.2)(zone.js@0.13.3)))(typescript@5.1.6)
       '@angular/core': 16.2.12(rxjs@7.8.2)(zone.js@0.13.3)
@@ -21153,6 +21163,7 @@ snapshots:
       pretty-format: 29.7.0
       ts-jest: 29.4.0(@babel/core@7.27.4)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.27.4))(esbuild@0.25.5)(jest-util@29.7.0)(jest@29.5.0(@types/node@12.20.7)(node-notifier@8.0.2)(ts-node@8.3.0(typescript@5.1.6)))(typescript@5.1.6)
       typescript: 5.1.6
+      zone.js: 0.13.3
     optionalDependencies:
       esbuild: 0.25.5
       jsdom: 24.1.3
@@ -21790,7 +21801,7 @@ snapshots:
       less: 4.1.3
       webpack: 5.94.0(esbuild@0.18.17)
 
-  less-loader@11.1.0(less@4.2.0)(webpack@5.94.0(esbuild@0.20.1)):
+  less-loader@11.1.0(less@4.2.0)(webpack@5.94.0):
     dependencies:
       klona: 2.0.6
       less: 4.2.0
@@ -21865,7 +21876,7 @@ snapshots:
     optionalDependencies:
       webpack: 5.94.0(esbuild@0.18.17)
 
-  license-webpack-plugin@4.0.2(webpack@5.94.0(esbuild@0.20.1)):
+  license-webpack-plugin@4.0.2(webpack@5.94.0):
     dependencies:
       webpack-sources: 3.3.3
     optionalDependencies:
@@ -22164,7 +22175,7 @@ snapshots:
       schema-utils: 4.3.2
       webpack: 5.94.0(esbuild@0.18.17)
 
-  mini-css-extract-plugin@2.8.1(webpack@5.94.0(esbuild@0.20.1)):
+  mini-css-extract-plugin@2.8.1(webpack@5.94.0):
     dependencies:
       schema-utils: 4.3.2
       tapable: 2.2.2
@@ -23205,7 +23216,7 @@ snapshots:
     transitivePeerDependencies:
       - typescript
 
-  postcss-loader@8.1.1(postcss@8.4.35)(typescript@5.2.2)(webpack@5.94.0(esbuild@0.20.1)):
+  postcss-loader@8.1.1(postcss@8.4.35)(typescript@5.2.2)(webpack@5.94.0):
     dependencies:
       cosmiconfig: 9.0.0(typescript@5.2.2)
       jiti: 1.21.7
@@ -24229,7 +24240,7 @@ snapshots:
     optionalDependencies:
       sass: 1.64.1
 
-  sass-loader@14.1.1(sass@1.71.1)(webpack@5.94.0(esbuild@0.20.1)):
+  sass-loader@14.1.1(sass@1.71.1)(webpack@5.94.0):
     dependencies:
       neo-async: 2.6.2
     optionalDependencies:
@@ -24615,7 +24626,7 @@ snapshots:
       source-map-js: 1.2.1
       webpack: 5.94.0(esbuild@0.18.17)
 
-  source-map-loader@5.0.0(webpack@5.94.0(esbuild@0.20.1)):
+  source-map-loader@5.0.0(webpack@5.94.0):
     dependencies:
       iconv-lite: 0.6.3
       source-map-js: 1.2.1
@@ -25855,7 +25866,7 @@ snapshots:
     optionalDependencies:
       webpack: 5.94.0(esbuild@0.18.17)
 
-  webpack-dev-middleware@6.1.2(webpack@5.94.0(esbuild@0.20.1)):
+  webpack-dev-middleware@6.1.2(webpack@5.94.0):
     dependencies:
       colorette: 2.0.20
       memfs: 3.5.3
@@ -25933,7 +25944,7 @@ snapshots:
       typed-assert: 1.0.9
       webpack: 5.94.0(esbuild@0.18.17)
 
-  webpack-subresource-integrity@5.1.0(webpack@5.94.0(esbuild@0.20.1)):
+  webpack-subresource-integrity@5.1.0(webpack@5.94.0):
     dependencies:
       typed-assert: 1.0.9
       webpack: 5.94.0(esbuild@0.20.1)
