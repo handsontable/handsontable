@@ -26,7 +26,6 @@ const frameworksToTest = getFrameworkList();
 
 for (let i = 0; i < frameworksToTest.length; ++i) {
   const frameworkName = frameworksToTest[i];
-  const packageName = frameworkName === 'js' ? 'handsontable' : `@handsontable/${frameworkName}`;
 
   console.log(chalk.green(`Building "${frameworkName}" examples...`));
 
