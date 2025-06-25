@@ -14,7 +14,7 @@ import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
         {{ isContainerExpanded ? 'Collapse container' : 'Expand container' }}
       </button>
     </div>
-    <div [style.height.px]="currentHeight">
+    <div class="table-container" [style.height.px]="currentHeight">
       <hot-table [data]="data" [settings]="gridSettings"></hot-table>
     </div>`,
 })
