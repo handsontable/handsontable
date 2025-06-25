@@ -9,15 +9,6 @@ packages:
   - visual-tests
   - examples
 
-hoistPattern:
-  - '*'
-  - '!jest*'
-  - '!@jest/*'
-  - '!vue'
-  - '!@vue/*'
-  - '!vue-*'
-  - '!*vue*'
-
 ignoredBuiltDependencies:
   - nice-napi
   - sharp
