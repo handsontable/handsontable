@@ -88,5 +88,6 @@
     "wrappers/*",
     "visual-tests",
     "examples"
-  ]
+  ],
+  "packageManager": "pnpm@10"
 }

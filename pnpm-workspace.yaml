@@ -33,7 +33,7 @@ packageExtensions:
       '@vue/compiler-sfc': '3.5.16'
   '@nx/devkit': # Add a missing peer dependency of rxjs used by the Nx devkit.
     peerDependencies:
-      'rxjs': '*'    
+      'rxjs': '*'
   'jest-preset-angular@14.6.0': # Add a missing peer dependency of zone.js used by the jest preset.
     peerDependencies:
       'zone.js': '*'
