@@ -89,5 +89,5 @@
     "visual-tests",
     "examples"
   ],
-  "packageManager": "pnpm@10"
+  "packageManager": "pnpm@10.12.2"
 }
