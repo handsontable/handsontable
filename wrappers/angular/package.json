@@ -43,7 +43,7 @@
     "prebuild": "npm run clean && node scripts/pre-build.js",
     "build": "ng build hot-table",
     "watch": "ng build --watch --configuration development",
-    "postbuild": "node scripts/post-build.js && cd ../.. && node ./scripts/swap-package-links.mjs @handsontable/angular",
+    "postbuild": "node scripts/post-build.js",
     "pretest": "npm run lint && npm run build",
     "test": "cross-env NODE_OPTIONS=--openssl-legacy-provider ng test hot-table --browsers=Chrome",
     "test:ci": "cross-env NODE_OPTIONS=--openssl-legacy-provider ng test hot-table --browsers=ChromeHeadlessCI",

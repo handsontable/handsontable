@@ -125,7 +125,29 @@ importers:
         specifier: ^16.2.0
         version: 16.2.0
 
-  examples: {}
+  examples:
+    devDependencies:
+      '@handsontable/angular':
+        specifier: latest
+        version: link:../wrappers/angular/dist/hot-table
+      '@handsontable/angular-wrapper':
+        specifier: latest
+        version: link:../wrappers/angular-wrapper/dist/hot-table
+      '@handsontable/react':
+        specifier: latest
+        version: link:../wrappers/react
+      '@handsontable/react-wrapper':
+        specifier: latest
+        version: link:../wrappers/react-wrapper
+      '@handsontable/vue':
+        specifier: latest
+        version: link:../wrappers/vue
+      '@handsontable/vue3':
+        specifier: latest
+        version: link:../wrappers/vue3
+      handsontable:
+        specifier: latest
+        version: link:../handsontable/tmp
 
   handsontable:
     dependencies:
@@ -393,7 +415,7 @@ importers:
     devDependencies:
       '@angular-devkit/build-angular':
         specifier: ^17.0.0
-        version: 17.3.17(@angular/compiler-cli@17.3.12(@angular/compiler@17.3.12(@angular/core@17.3.12(rxjs@7.8.2)(zone.js@0.14.10)))(typescript@5.2.2))(@angular/localize@17.3.12(@angular/compiler-cli@17.3.12(@angular/compiler@17.3.12(@angular/core@17.3.12(rxjs@7.8.2)(zone.js@0.14.10)))(typescript@5.2.2))(@angular/compiler@17.3.12(@angular/core@17.3.12(rxjs@7.8.2)(zone.js@0.14.10))))(@angular/service-worker@17.3.12(@angular/common@17.3.12(@angular/core@17.3.12(rxjs@7.8.2)(zone.js@0.14.10))(rxjs@7.8.2))(@angular/core@17.3.12(rxjs@7.8.2)(zone.js@0.14.10)))(@types/express@4.17.23)(@types/node@12.20.7)(chokidar@3.6.0)(jest-environment-jsdom@29.7.0)(jest@29.7.0(@types/node@12.20.7)(node-notifier@8.0.2)(ts-node@8.3.0(typescript@5.2.2)))(karma@6.4.4)(ng-packagr@17.3.0(@angular/compiler-cli@17.3.12(@angular/compiler@17.3.12(@angular/core@17.3.12(rxjs@7.8.2)(zone.js@0.14.10)))(typescript@5.2.2))(tslib@2.8.1)(typescript@5.2.2))(stylus@0.54.8)(typescript@5.2.2)
+        version: 17.3.17(@angular/compiler-cli@17.3.12(@angular/compiler@17.3.12(@angular/core@17.3.12(rxjs@7.8.2)(zone.js@0.14.10)))(typescript@5.2.2))(@angular/localize@17.3.12(@angular/compiler-cli@17.3.12(@angular/compiler@17.3.12(@angular/core@17.3.12(rxjs@7.8.2)(zone.js@0.14.10)))(typescript@5.2.2))(@angular/compiler@17.3.12(@angular/core@17.3.12(rxjs@7.8.2)(zone.js@0.14.10))))(@angular/service-worker@17.3.12(@angular/common@17.3.12(@angular/core@17.3.12(rxjs@7.8.2)(zone.js@0.14.10))(rxjs@7.8.2))(@angular/core@17.3.12(rxjs@7.8.2)(zone.js@0.14.10)))(@types/express@4.17.23)(@types/node@12.20.7)(chokidar@3.6.0)(jest-environment-jsdom@29.7.0)(jest@29.5.0(@types/node@12.20.7)(node-notifier@8.0.2)(ts-node@8.3.0(typescript@5.2.2)))(karma@6.4.4)(ng-packagr@17.3.0(@angular/compiler-cli@17.3.12(@angular/compiler@17.3.12(@angular/core@17.3.12(rxjs@7.8.2)(zone.js@0.14.10)))(typescript@5.2.2))(tslib@2.8.1)(typescript@5.2.2))(stylus@0.54.8)(typescript@5.2.2)
       '@angular-eslint/builder':
         specifier: ~17.3.0
         version: 17.3.0(eslint@8.57.1)(rxjs@7.8.2)(typescript@5.2.2)
@@ -5391,8 +5413,8 @@ packages:
   browser-process-hrtime@1.0.0:
     resolution: {integrity: sha512-9o5UecI3GhkpM6DrXr69PblIuWxPKk9Y0jHBRhdocZ2y7YECBFCsHm79Pr3OyR2AvjhDkabFJaDJMYRazHgsow==}
 
-  browserslist@4.25.0:
-    resolution: {integrity: sha512-PJ8gYKeS5e/whHBh8xrwYK+dAvEj7JXtz6uTucnMRB8OiGTsKccFekoRrjajPBHV8oOY+2tI4uxeceSimKwMFA==}
+  browserslist@4.25.1:
+    resolution: {integrity: sha512-KGj0KoOMXLpSNkkEI6Z6mShmQy0bc1I+T7K9N81k4WWMrfz+6fQ6es80B/YLAeRoKvjYE1YSHHOW1qe9xIVzHw==}
     engines: {node: ^6 || ^7 || ^8 || ^9 || ^10 || ^11 || ^12 || >=13.7}
     hasBin: true
 
@@ -6515,8 +6537,8 @@ packages:
     engines: {node: '>=0.10.0'}
     hasBin: true
 
-  electron-to-chromium@1.5.173:
-    resolution: {integrity: sha512-2bFhXP2zqSfQHugjqJIDFVwa+qIxyNApenmXTp9EjaKtdPrES5Qcn9/aSFy/NaP2E+fWG/zxKu/LBvY36p5VNQ==}
+  electron-to-chromium@1.5.174:
+    resolution: {integrity: sha512-HE43yYdUUiJVjewV2A9EP8o89Kb4AqMKplMQP2IxEPUws1Etu/ZkdsgUDabUZ/WmbP4ZbvJDOcunvbBUPPIfmw==}
 
   emittery@0.13.1:
     resolution: {integrity: sha512-DeWwawk6r5yR9jFgnDKYt4sLS0LmHJJi3ZOnb5/JdbYwj3nW+FxQnHIjhBKz8YLC7oRNPVM9NQ47I3CVx34eqQ==}
@@ -7523,15 +7545,6 @@ packages:
       '@types/express':
         optional: true
 
-  http-proxy-middleware@2.0.9:
-    resolution: {integrity: sha512-c1IyJYLYppU574+YI7R4QyX2ystMtVXZwIdzazUIPIJsHuWNd+mho2j+bKoHftndicGj9yh+xjd+l0yj7VeT1Q==}
-    engines: {node: '>=12.0.0'}
-    peerDependencies:
-      '@types/express': ^4.17.13
-    peerDependenciesMeta:
-      '@types/express':
-        optional: true
-
   http-proxy@1.18.1:
     resolution: {integrity: sha512-7mz/721AbnJwIVbnaSv1Cz3Am0ZLT/UBwkC92VlxhXv/k/BBQfM2fXElQNC27BVGr0uwUpplYPQM9LnaBMR5NQ==}
     engines: {node: '>=8.0.0'}
@@ -8333,16 +8346,6 @@ packages:
 
   jest@29.5.0:
     resolution: {integrity: sha512-juMg3he2uru1QoXX078zTa7pO85QyB9xajZc6bU+d9yEGwrKX6+vGmJQ3UdVZsvTEUARIdObzH68QItim6OSSQ==}
-    engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
-    hasBin: true
-    peerDependencies:
-      node-notifier: ^8.0.1 || ^9.0.0 || ^10.0.0
-    peerDependenciesMeta:
-      node-notifier:
-        optional: true
-
-  jest@29.7.0:
-    resolution: {integrity: sha512-NIy3oAFp9shda19hy4HK0HRTWKtPJmGdnvywu01nOqNC2vZg+Z+fvJDxpMQA88eb2I9EcafcdjYgsDthnYTvGw==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
     hasBin: true
     peerDependencies:
@@ -12222,7 +12225,7 @@ snapshots:
       autoprefixer: 10.4.14(postcss@8.4.31)
       babel-loader: 9.1.3(@babel/core@7.27.4)(webpack@5.94.0(esbuild@0.18.17))
       babel-plugin-istanbul: 6.1.1
-      browserslist: 4.25.0
+      browserslist: 4.25.1
       chokidar: 3.5.3
       copy-webpack-plugin: 11.0.0(webpack@5.94.0(esbuild@0.18.17))
       critters: 0.0.20
@@ -12292,7 +12295,7 @@ snapshots:
       - utf-8-validate
       - webpack-cli
 
-  '@angular-devkit/build-angular@17.3.17(@angular/compiler-cli@17.3.12(@angular/compiler@17.3.12(@angular/core@17.3.12(rxjs@7.8.2)(zone.js@0.14.10)))(typescript@5.2.2))(@angular/localize@17.3.12(@angular/compiler-cli@17.3.12(@angular/compiler@17.3.12(@angular/core@17.3.12(rxjs@7.8.2)(zone.js@0.14.10)))(typescript@5.2.2))(@angular/compiler@17.3.12(@angular/core@17.3.12(rxjs@7.8.2)(zone.js@0.14.10))))(@angular/service-worker@17.3.12(@angular/common@17.3.12(@angular/core@17.3.12(rxjs@7.8.2)(zone.js@0.14.10))(rxjs@7.8.2))(@angular/core@17.3.12(rxjs@7.8.2)(zone.js@0.14.10)))(@types/express@4.17.23)(@types/node@12.20.7)(chokidar@3.6.0)(jest-environment-jsdom@29.7.0)(jest@29.7.0(@types/node@12.20.7)(node-notifier@8.0.2)(ts-node@8.3.0(typescript@5.2.2)))(karma@6.4.4)(ng-packagr@17.3.0(@angular/compiler-cli@17.3.12(@angular/compiler@17.3.12(@angular/core@17.3.12(rxjs@7.8.2)(zone.js@0.14.10)))(typescript@5.2.2))(tslib@2.8.1)(typescript@5.2.2))(stylus@0.54.8)(typescript@5.2.2)':
+  '@angular-devkit/build-angular@17.3.17(@angular/compiler-cli@17.3.12(@angular/compiler@17.3.12(@angular/core@17.3.12(rxjs@7.8.2)(zone.js@0.14.10)))(typescript@5.2.2))(@angular/localize@17.3.12(@angular/compiler-cli@17.3.12(@angular/compiler@17.3.12(@angular/core@17.3.12(rxjs@7.8.2)(zone.js@0.14.10)))(typescript@5.2.2))(@angular/compiler@17.3.12(@angular/core@17.3.12(rxjs@7.8.2)(zone.js@0.14.10))))(@angular/service-worker@17.3.12(@angular/common@17.3.12(@angular/core@17.3.12(rxjs@7.8.2)(zone.js@0.14.10))(rxjs@7.8.2))(@angular/core@17.3.12(rxjs@7.8.2)(zone.js@0.14.10)))(@types/express@4.17.23)(@types/node@12.20.7)(chokidar@3.6.0)(jest-environment-jsdom@29.7.0)(jest@29.5.0(@types/node@12.20.7)(node-notifier@8.0.2)(ts-node@8.3.0(typescript@5.2.2)))(karma@6.4.4)(ng-packagr@17.3.0(@angular/compiler-cli@17.3.12(@angular/compiler@17.3.12(@angular/core@17.3.12(rxjs@7.8.2)(zone.js@0.14.10)))(typescript@5.2.2))(tslib@2.8.1)(typescript@5.2.2))(stylus@0.54.8)(typescript@5.2.2)':
     dependencies:
       '@ampproject/remapping': 2.3.0
       '@angular-devkit/architect': 0.1703.17(chokidar@3.6.0)
@@ -12315,7 +12318,7 @@ snapshots:
       autoprefixer: 10.4.18(postcss@8.4.35)
       babel-loader: 9.1.3(@babel/core@7.27.4)(webpack@5.94.0(esbuild@0.20.1))
       babel-plugin-istanbul: 6.1.1
-      browserslist: 4.25.0
+      browserslist: 4.25.1
       copy-webpack-plugin: 11.0.0(webpack@5.94.0(esbuild@0.20.1))
       critters: 0.0.22
       css-loader: 6.10.0(webpack@5.94.0(esbuild@0.20.1))
@@ -12362,7 +12365,7 @@ snapshots:
       '@angular/localize': 17.3.12(@angular/compiler-cli@17.3.12(@angular/compiler@17.3.12(@angular/core@17.3.12(rxjs@7.8.2)(zone.js@0.14.10)))(typescript@5.2.2))(@angular/compiler@17.3.12(@angular/core@17.3.12(rxjs@7.8.2)(zone.js@0.14.10)))
       '@angular/service-worker': 17.3.12(@angular/common@17.3.12(@angular/core@17.3.12(rxjs@7.8.2)(zone.js@0.14.10))(rxjs@7.8.2))(@angular/core@17.3.12(rxjs@7.8.2)(zone.js@0.14.10))
       esbuild: 0.20.1
-      jest: 29.7.0(@types/node@12.20.7)(node-notifier@8.0.2)(ts-node@8.3.0(typescript@5.2.2))
+      jest: 29.5.0(@types/node@12.20.7)(node-notifier@8.0.2)(ts-node@8.3.0(typescript@5.2.2))
       jest-environment-jsdom: 29.7.0
       karma: 6.4.4
       ng-packagr: 17.3.0(@angular/compiler-cli@17.3.12(@angular/compiler@17.3.12(@angular/core@17.3.12(rxjs@7.8.2)(zone.js@0.14.10)))(typescript@5.2.2))(tslib@2.8.1)(typescript@5.2.2)
@@ -12950,7 +12953,7 @@ snapshots:
     dependencies:
       '@babel/compat-data': 7.27.5
       '@babel/helper-validator-option': 7.27.1
-      browserslist: 4.25.0
+      browserslist: 4.25.1
       lru-cache: 5.1.1
       semver: 6.3.1
 
@@ -17058,7 +17061,7 @@ snapshots:
 
   agent-base@6.0.2:
     dependencies:
-      debug: 4.4.1
+      debug: 4.3.4
     transitivePeerDependencies:
       - supports-color
 
@@ -17284,7 +17287,7 @@ snapshots:
 
   autoprefixer@10.4.14(postcss@8.4.31):
     dependencies:
-      browserslist: 4.25.0
+      browserslist: 4.25.1
       caniuse-lite: 1.0.30001726
       fraction.js: 4.3.7
       normalize-range: 0.1.2
@@ -17294,7 +17297,7 @@ snapshots:
 
   autoprefixer@10.4.18(postcss@8.4.35):
     dependencies:
-      browserslist: 4.25.0
+      browserslist: 4.25.1
       caniuse-lite: 1.0.30001726
       fraction.js: 4.3.7
       normalize-range: 0.1.2
@@ -17304,7 +17307,7 @@ snapshots:
 
   autoprefixer@10.4.21(postcss@8.5.6):
     dependencies:
-      browserslist: 4.25.0
+      browserslist: 4.25.1
       caniuse-lite: 1.0.30001726
       fraction.js: 4.3.7
       normalize-range: 0.1.2
@@ -17619,12 +17622,12 @@ snapshots:
 
   browser-process-hrtime@1.0.0: {}
 
-  browserslist@4.25.0:
+  browserslist@4.25.1:
     dependencies:
       caniuse-lite: 1.0.30001726
-      electron-to-chromium: 1.5.173
+      electron-to-chromium: 1.5.174
       node-releases: 2.0.19
-      update-browserslist-db: 1.1.3(browserslist@4.25.0)
+      update-browserslist-db: 1.1.3(browserslist@4.25.1)
 
   bs-logger@0.2.6:
     dependencies:
@@ -17779,7 +17782,7 @@ snapshots:
 
   caniuse-api@3.0.0:
     dependencies:
-      browserslist: 4.25.0
+      browserslist: 4.25.1
       caniuse-lite: 1.0.30001726
       lodash.memoize: 4.1.2
       lodash.uniq: 4.5.0
@@ -18106,7 +18109,7 @@ snapshots:
 
   copy-webpack-plugin@11.0.0(webpack@5.94.0(esbuild@0.18.17)):
     dependencies:
-      fast-glob: 3.3.1
+      fast-glob: 3.3.2
       glob-parent: 6.0.2
       globby: 13.2.2
       normalize-path: 3.0.0
@@ -18116,7 +18119,7 @@ snapshots:
 
   copy-webpack-plugin@11.0.0(webpack@5.94.0(esbuild@0.20.1)):
     dependencies:
-      fast-glob: 3.3.1
+      fast-glob: 3.3.2
       glob-parent: 6.0.2
       globby: 13.2.2
       normalize-path: 3.0.0
@@ -18143,7 +18146,7 @@ snapshots:
 
   core-js-compat@3.43.0:
     dependencies:
-      browserslist: 4.25.0
+      browserslist: 4.25.1
 
   core-js@2.6.12: {}
 
@@ -18368,7 +18371,7 @@ snapshots:
 
   cssnano-preset-default@6.1.2(postcss@8.5.6):
     dependencies:
-      browserslist: 4.25.0
+      browserslist: 4.25.1
       css-declaration-sorter: 7.2.0(postcss@8.5.6)
       cssnano-utils: 4.0.2(postcss@8.5.6)
       postcss: 8.5.6
@@ -18738,7 +18741,7 @@ snapshots:
     dependencies:
       jake: 10.9.2
 
-  electron-to-chromium@1.5.173: {}
+  electron-to-chromium@1.5.174: {}
 
   emittery@0.13.1: {}
 
@@ -19963,7 +19966,7 @@ snapshots:
   globby@13.2.2:
     dependencies:
       dir-glob: 3.0.1
-      fast-glob: 3.3.1
+      fast-glob: 3.3.2
       ignore: 5.3.2
       merge2: 1.4.1
       slash: 4.0.0
@@ -20196,18 +20199,6 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
-  http-proxy-middleware@2.0.9(@types/express@4.17.23):
-    dependencies:
-      '@types/http-proxy': 1.17.16
-      http-proxy: 1.18.1
-      is-glob: 4.0.3
-      is-plain-obj: 3.0.0
-      micromatch: 4.0.8
-    optionalDependencies:
-      '@types/express': 4.17.23
-    transitivePeerDependencies:
-      - debug
-
   http-proxy@1.18.1:
     dependencies:
       eventemitter3: 4.0.7
@@ -20238,7 +20229,7 @@ snapshots:
   https-proxy-agent@5.0.1:
     dependencies:
       agent-base: 6.0.2
-      debug: 4.4.1
+      debug: 4.3.4
     transitivePeerDependencies:
       - supports-color
 
@@ -21530,7 +21521,7 @@ snapshots:
       - supports-color
       - ts-node
 
-  jest@29.7.0(@types/node@12.20.7)(node-notifier@8.0.2)(ts-node@8.3.0(typescript@5.2.2)):
+  jest@29.5.0(@types/node@12.20.7)(node-notifier@8.0.2)(ts-node@8.3.0(typescript@5.2.2)):
     dependencies:
       '@jest/core': 29.7.0(node-notifier@8.0.2)(ts-node@8.3.0(typescript@5.2.2))
       '@jest/types': 29.6.3
@@ -22390,7 +22381,7 @@ snapshots:
       ajv: 8.17.1
       ansi-colors: 4.1.3
       autoprefixer: 10.4.21(postcss@8.5.6)
-      browserslist: 4.25.0
+      browserslist: 4.25.1
       cacache: 18.0.4
       chokidar: 3.6.0
       commander: 11.1.0
@@ -22422,7 +22413,7 @@ snapshots:
       '@rollup/wasm-node': 4.44.0
       ajv: 8.17.1
       ansi-colors: 4.1.3
-      browserslist: 4.25.0
+      browserslist: 4.25.1
       cacache: 18.0.4
       chokidar: 3.6.0
       commander: 12.1.0
@@ -22573,7 +22564,7 @@ snapshots:
 
   npm-install-checks@6.3.0:
     dependencies:
-      semver: 7.5.4
+      semver: 7.6.0
 
   npm-normalize-package-bin@3.0.1: {}
 
@@ -23204,7 +23195,7 @@ snapshots:
 
   postcss-colormin@6.1.0(postcss@8.5.6):
     dependencies:
-      browserslist: 4.25.0
+      browserslist: 4.25.1
       caniuse-api: 3.0.0
       colord: 2.9.3
       postcss: 8.5.6
@@ -23212,7 +23203,7 @@ snapshots:
 
   postcss-convert-values@6.1.0(postcss@8.5.6):
     dependencies:
-      browserslist: 4.25.0
+      browserslist: 4.25.1
       postcss: 8.5.6
       postcss-value-parser: 4.2.0
 
@@ -23263,7 +23254,7 @@ snapshots:
 
   postcss-merge-rules@6.1.1(postcss@8.5.6):
     dependencies:
-      browserslist: 4.25.0
+      browserslist: 4.25.1
       caniuse-api: 3.0.0
       cssnano-utils: 4.0.2(postcss@8.5.6)
       postcss: 8.5.6
@@ -23283,7 +23274,7 @@ snapshots:
 
   postcss-minify-params@6.1.0(postcss@8.5.6):
     dependencies:
-      browserslist: 4.25.0
+      browserslist: 4.25.1
       cssnano-utils: 4.0.2(postcss@8.5.6)
       postcss: 8.5.6
       postcss-value-parser: 4.2.0
@@ -23385,7 +23376,7 @@ snapshots:
 
   postcss-normalize-unicode@6.1.0(postcss@8.5.6):
     dependencies:
-      browserslist: 4.25.0
+      browserslist: 4.25.1
       postcss: 8.5.6
       postcss-value-parser: 4.2.0
 
@@ -23407,7 +23398,7 @@ snapshots:
 
   postcss-reduce-initial@6.1.0(postcss@8.5.6):
     dependencies:
-      browserslist: 4.25.0
+      browserslist: 4.25.1
       caniuse-api: 3.0.0
       postcss: 8.5.6
 
@@ -23985,7 +23976,7 @@ snapshots:
       adjust-sourcemap-loader: 4.0.0
       convert-source-map: 1.9.0
       loader-utils: 2.0.4
-      postcss: 8.4.31
+      postcss: 8.4.35
       source-map: 0.6.1
 
   resolve-url@0.2.1: {}
@@ -24889,7 +24880,7 @@ snapshots:
 
   stylehacks@6.1.1(postcss@8.5.6):
     dependencies:
-      browserslist: 4.25.0
+      browserslist: 4.25.1
       postcss: 8.5.6
       postcss-selector-parser: 6.1.2
 
@@ -25572,9 +25563,9 @@ snapshots:
       has-value: 0.3.1
       isobject: 3.0.1
 
-  update-browserslist-db@1.1.3(browserslist@4.25.0):
+  update-browserslist-db@1.1.3(browserslist@4.25.1):
     dependencies:
-      browserslist: 4.25.0
+      browserslist: 4.25.1
       escalade: 3.2.0
       picocolors: 1.1.1
 
@@ -25913,7 +25904,7 @@ snapshots:
       '@types/ws': 8.18.1
       ansi-html-community: 0.0.8
       bonjour-service: 1.3.0
-      chokidar: 3.5.3
+      chokidar: 3.6.0
       colorette: 2.0.20
       compression: 1.8.0
       connect-history-api-fallback: 2.0.0
@@ -25921,7 +25912,7 @@ snapshots:
       express: 4.21.2
       graceful-fs: 4.2.11
       html-entities: 2.6.0
-      http-proxy-middleware: 2.0.9(@types/express@4.17.23)
+      http-proxy-middleware: 2.0.8(@types/express@4.17.23)
       ipaddr.js: 2.2.0
       launch-editor: 2.10.0
       open: 8.4.2
@@ -25983,7 +25974,7 @@ snapshots:
       '@webassemblyjs/wasm-parser': 1.14.1
       acorn: 8.15.0
       acorn-import-attributes: 1.9.5(acorn@8.15.0)
-      browserslist: 4.25.0
+      browserslist: 4.25.1
       chrome-trace-event: 1.0.4
       enhanced-resolve: 5.18.2
       es-module-lexer: 1.7.0
@@ -26013,7 +26004,7 @@ snapshots:
       '@webassemblyjs/wasm-parser': 1.14.1
       acorn: 8.15.0
       acorn-import-attributes: 1.9.5(acorn@8.15.0)
-      browserslist: 4.25.0
+      browserslist: 4.25.1
       chrome-trace-event: 1.0.4
       enhanced-resolve: 5.18.2
       es-module-lexer: 1.7.0
@@ -26044,7 +26035,7 @@ snapshots:
       '@webassemblyjs/wasm-edit': 1.14.1
       '@webassemblyjs/wasm-parser': 1.14.1
       acorn: 8.15.0
-      browserslist: 4.25.0
+      browserslist: 4.25.1
       chrome-trace-event: 1.0.4
       enhanced-resolve: 5.18.2
       es-module-lexer: 1.7.0
