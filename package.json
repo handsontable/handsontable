@@ -36,6 +36,7 @@
   "devDependencies": {
     "@actions/core": "^1.2.6",
     "@actions/github": "^4.0.0",
+    "@angular/compiler": "^17.3.12",
     "@babel/cli": "^7.8.3",
     "@babel/core": "^7.11.4",
     "@babel/eslint-parser": "^7.13.14",
@@ -64,6 +65,7 @@
     "glob": "^7.1.2",
     "global-jsdom": "^8.7.0",
     "inquirer": "^7.3.3",
+    "lodash": "^4.17.21",
     "moment": "2.29.4",
     "replace-in-file": "^6.1.0",
     "rimraf": "^3.0.2",
