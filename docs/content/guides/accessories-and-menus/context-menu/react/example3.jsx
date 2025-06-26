@@ -71,7 +71,7 @@ const contextMenuSettings = {
       renderer() {
         const elem = document.createElement('marquee');
 
-        elem.style.cssText = 'background: lightgray;';
+        elem.style.cssText = 'background: lightgray; color: #222222;';
         elem.textContent = 'Brought to you by...';
 
         return elem;
