@@ -49,7 +49,7 @@ Keep in mind that starting from version `15.0`, importing a theme is required.
 
 ::: only-for javascript
 
-::: example #exampleTheme .disable-auto-theme --html 1 --js 2 --ts 3 --css 4
+::: example #exampleTheme --html 1 --js 2 --ts 3 --css 4
 @[code](@/content/guides/styling/themes/javascript/exampleTheme.html)
 @[code](@/content/guides/styling/themes/javascript/exampleTheme.js)
 @[code](@/content/guides/styling/themes/javascript/exampleTheme.ts)
