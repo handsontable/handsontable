@@ -28,7 +28,11 @@ if (version) {
   removes.push(rimrafPromisified(`${version}/@(!(node_modules))/+(angular|angular-*)/@(!(node_modules))/.angular`));
 
   await Promise.all(removes);
-
 } else {
-  console.log('Provide the examples version as an argument.');
+  console.log(`Removing:
+  ./node_modules
+  ./package-lock.json`);
+
+  rimraf.sync('./node_modules');
+  rimraf.sync('./package-lock.json');
 }

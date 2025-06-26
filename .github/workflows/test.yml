@@ -564,6 +564,7 @@ jobs:
           path: ./
       - run: tar -zxf tmp.tar.gz ./handsontable/tmp && rm tmp.tar.gz
       - run: cd handsontable
+      - run: npm run swap-package-links
       - run: npm run in angular build
       - run: tar --exclude='node_modules' -zcf angular.tar.gz ./wrappers/angular
 
@@ -603,6 +604,7 @@ jobs:
           path: ./
       - run: tar -zxf tmp.tar.gz ./handsontable/tmp && rm tmp.tar.gz
       - run: cd handsontable
+      - run: npm run swap-package-links
       - run: npm run in angular-wrapper build
       - run: tar --exclude='node_modules' -zcf angular-wrapper.tar.gz ./wrappers/angular-wrapper
 
@@ -642,6 +644,7 @@ jobs:
           path: ./
       - run: tar -zxf tmp.tar.gz ./handsontable/tmp && rm tmp.tar.gz
       - run: cd handsontable
+      - run: npm run swap-package-links
       - run: npm run in react build
       - run: tar --exclude='node_modules' -zcf react.tar.gz ./wrappers/react
 
@@ -680,6 +683,7 @@ jobs:
           path: ./
       - run: tar -zxf tmp.tar.gz ./handsontable/tmp && rm tmp.tar.gz
       - run: cd handsontable
+      - run: npm run swap-package-links
       - run: npm run in react-wrapper build
       - run: tar --exclude='node_modules' -zcf react-wrapper.tar.gz ./wrappers/react-wrapper
 
@@ -718,6 +722,7 @@ jobs:
           path: ./
       - run: tar -zxf tmp.tar.gz ./handsontable/tmp && rm tmp.tar.gz
       - run: cd handsontable
+      - run: npm run swap-package-links
       - run: npm run in vue build
       - run: tar --exclude='node_modules' -zcf vue.tar.gz ./wrappers/vue
 
@@ -756,6 +761,7 @@ jobs:
           path: ./
       - run: tar -zxf tmp.tar.gz ./handsontable/tmp && rm tmp.tar.gz
       - run: cd handsontable
+      - run: npm run swap-package-links
       - run: npm run in vue3 build
       - run: tar --exclude='node_modules' -zcf vue3.tar.gz ./wrappers/vue3
 

@@ -113,7 +113,7 @@ exampleFrameworkSubdirs.forEach((packagesLocation) => {
       if (argv.examplesVersion.startsWith('next')) {
         packagesToLink.forEach((packageName) => {
           linkPackage(
-            path.resolve('./node_modules'),
+            path.resolve('../node_modules'),
             path.resolve(packageLocation, './node_modules'),
             packageName
           );
