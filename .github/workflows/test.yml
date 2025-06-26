@@ -847,6 +847,7 @@ jobs:
         run: npm run build -- -e handsontable
 
       - name: TEMP - Add a ssh breakpoint
+        if: github.actor == 'jansiegel'
         uses: mxschmitt/action-tmate@v3
 
       - name: Run visual multi-framework tests
