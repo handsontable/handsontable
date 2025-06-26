@@ -14,7 +14,6 @@ import Handsontable from 'handsontable/base';
 import { HotSettingsResolver } from './services/hot-settings-resolver.service';
 import { HotGlobalConfigService } from './services/hot-global-config.service';
 import { GridSettings } from './models/grid-settings';
-import { ColumnSettingsInternal } from './models/column-settings';
 import { Subscription } from 'rxjs';
 
 export const HOT_DESTROYED_WARNING = 'The Handsontable instance bound to this component was destroyed and cannot be' + ' used properly.';
@@ -84,7 +83,6 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
     this.ngZone.runOutsideAngular(() => {
       this.hotInstance = new Handsontable.Core(this.container.nativeElement, options);
 
-      // @ts-ignore
       this.hotInstance.init();
     });
 
@@ -120,14 +118,21 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
    */
   ngOnDestroy(): void {
     this.ngZone.runOutsideAngular(() => {
-      if (this.hotInstance) {
-        (this.hotInstance.getSettings().columns as ColumnSettingsInternal[])
-          ?.filter((column) => column._editorComponentReference)
-          .forEach((column) => {
-            column._editorComponentReference?.destroy();
-          });
-        this.hotInstance.destroy();
+      if (!this.hotInstance) {
+        return;
       }
+
+      const columns = this.hotInstance.getSettings().columns;
+
+      if (columns && Array.isArray(columns)) {
+        columns.forEach((column) => {
+          if (column._editorComponentReference) {
+            column._editorComponentReference.destroy();
+          }
+        });
+      }
+
+      this.hotInstance.destroy();
     });
 
     this.configSubscription.unsubscribe();
