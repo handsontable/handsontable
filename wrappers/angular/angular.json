@@ -31,7 +31,7 @@
             "tsConfig": "projects/hot-table/tsconfig.spec.json",
             "karmaConfig": "projects/hot-table/karma.conf.js",
             "styles": [
-              "../../node_modules/handsontable/dist/handsontable.full.css"
+              "./node_modules/handsontable/dist/handsontable.full.css"
             ]
           }
         },
