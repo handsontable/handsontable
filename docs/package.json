@@ -41,9 +41,11 @@
   "devDependencies": {
     "@angular/core": "^19.2.6",
     "@angular/common": "^19.2.6",
+    "@angular/animations": "^19.2.6",
     "@angular/forms": "^19.2.6",
     "@angular/platform-browser": "^19.2.6",
     "@angular/platform-browser-dynamic": "^19.2.6",
+    "@angular/router": "^19.2.6",
     "@babel/eslint-parser": "^7.18.2",
     "@babel/plugin-proposal-class-properties": "^7.13.0",
     "@babel/plugin-proposal-decorators": "^7.13.5",
