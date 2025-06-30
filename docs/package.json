@@ -2,7 +2,7 @@
   "name": "handsontable-documentation",
   "private": true,
   "version": "0.0.0",
-  "description": "Handsontable documentation.",
+  "description": "Handsontable documentation",
   "main": "index.js",
   "author": "Handsoncode <hello@handsontable.com>",
   "repository": {
