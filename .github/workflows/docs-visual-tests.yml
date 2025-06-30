@@ -37,7 +37,7 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # https://github.com/actions/setup-node/releases/tag/v4.4.0
         with:
-          cache: npm
+          cache: 'pnpm'
           node-version: "20"
           check-latest: true
 

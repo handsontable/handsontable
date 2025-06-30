@@ -30,6 +30,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
+          cache-dependency-path: docs/package-lock.json
 
       - uses: actions/github-script@d556feaca394842dc55e4734bf3bb9f685482fa0 # https://github.com/actions/github-script/releases/tag/v6.3.3
         id: get-docs-version

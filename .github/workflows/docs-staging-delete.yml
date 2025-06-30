@@ -20,6 +20,7 @@ jobs:
         with:
           node-version-file: ".nvmrc"
           cache: "npm"
+          cache-dependency-path: docs/package-lock.json
 
       - name: Get PR details
         id: get-pr

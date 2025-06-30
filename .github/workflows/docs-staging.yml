@@ -32,7 +32,7 @@ jobs:
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # https://github.com/actions/setup-node/releases/tag/v4.4.0
         with:
           node-version-file: '.nvmrc'
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Find PR
         uses: jwalton/gh-find-current-pr@7ada613939e2a233c83a1320679446fa1c6bdcb9 # https://github.com/jwalton/gh-find-current-pr/tree/v1.3.2
