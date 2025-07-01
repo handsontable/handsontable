@@ -1,4 +1,6 @@
 import { BasePlugin } from '../base';
+import { toSingleLine } from '../../helpers/templateLiteralTag';
+import { isNullishOrNaN } from './utils';
 
 export const PLUGIN_KEY = 'columnSummary';
 export const PLUGIN_PRIORITY = 220;
@@ -153,9 +155,10 @@ export class ColumnSummary extends BasePlugin {
 
     this.settings = this.hot.getSettings()[PLUGIN_KEY];
 
-    this.addHook('afterInit', (...args) => this.#onAfterInit(...args));
+    this.addHook('afterInit', () => this.updateResults());
     this.addHook('afterChange', (...args) => this.#onAfterChange(...args));
-    this.addHook('afterRemoveRow', (...args) => this.#onAfterRemoveRow(...args));
+    this.addHook('afterRowMove', () => this.updateResults());
+    this.addHook('afterRemoveRow', () => this.updateResults());
 
     super.enablePlugin();
   }
@@ -210,69 +213,119 @@ export class ColumnSummary extends BasePlugin {
     }
   }
 
-  setResult(physicalColumnIndex, physicalRowIndex) {
-    if (physicalColumnIndex < 0) {
+  setResult(physicalColumnIndex) {
+    if (physicalColumnIndex < 0 && !Array.isArray(this.settings)) {
       return;
     }
 
+    const filteredSettings = this.settings.filter(colSetting => colSetting.destinationColumn === physicalColumnIndex);
     const visualColumnIndex = this.hot.toVisualColumn(physicalColumnIndex);
-    let visualRowIndex;
 
-    if (physicalRowIndex !== undefined && physicalRowIndex >= 0) {
-      visualRowIndex = this.hot.toVisualRow(physicalRowIndex);
-    } else {
-      const rowCount = this.hot.countRows();
+    filteredSettings.forEach((setting) => {
+      const { destinationRow, destinationColumn, reversedRowCoords } = setting;
 
-      for (let row = rowCount - 1; row >= 0; row--) {
-        const cellMeta = this.hot.getCellMeta(row, visualColumnIndex);
+      const visualRowIndex = this.hot.toVisualRow(
+        reversedRowCoords
+          ? this.hot.countRows() - destinationRow - 1
+          : destinationRow
+      );
 
-        if (cellMeta.resValue) {
-          visualRowIndex = row;
-          break;
+      this.hot.setCellMetaObject(visualRowIndex, visualColumnIndex, {
+        readOnly: true,
+        className: 'columnSummaryResult',
+        columnSummaryResult: true,
+      });
+
+      let columnValues = this.hot.getDataAtCol(visualColumnIndex);
+
+      columnValues = setting.ranges
+        ? setting.ranges.flatMap(
+          ([start, end]) => columnValues.slice(start, (end ?? start) + 1)
+        ) : columnValues;
+
+      const filteredColumnValues = columnValues
+        .filter((_, rowIndex) => {
+          const cellMeta = this.hot.getCellMeta(rowIndex, visualColumnIndex);
+
+          return !cellMeta.columnSummaryResult;
+        })
+        .map((value) => {
+          if (setting.forceNumeric) {
+
+            let val = value;
+
+            if (typeof val === 'string') {
+              val = val.replace(/,/, '.');
+            }
+
+            val = parseFloat(val);
+
+            return isNullishOrNaN(val) ? null : val;
+          }
+
+          if (isNaN(value)) {
+            if (setting.suppressDataTypeErrors === false) {
+              throw new Error(
+                toSingleLine`ColumnSummary plugin: cell at (${destinationRow}, ${destinationColumn}) is not in a\x20
+                numeric format. Cannot do the calculation.`);
+            }
+          }
+
+          return Number(value);
+        });
+
+      let result = this.calculate({
+        type: setting.type,
+        values: filteredColumnValues,
+        customFunction: setting.customFunction,
+      });
+
+      if (
+        (
+          setting.roundFloat === true ||
+          Number.isInteger(setting.roundFloat)
+        )
+        && !isNaN(result)
+      ) {
+        const roundFloatValue = setting.roundFloat;
+        let decimalPlacesCount = 0;
+
+        // `toFixed` method accepts only values between 0 and 100
+        if (Number.isInteger(roundFloatValue)) {
+          decimalPlacesCount = Math.min(Math.max(0, roundFloatValue), 100);
         }
+
+        result = result.toFixed(decimalPlacesCount);
       }
-    }
 
-    if (visualRowIndex === undefined || visualRowIndex < 0) {
-      return;
-    }
-
-    const columnValues = this.hot.getDataAtCol(visualColumnIndex);
-
-    const filteredColumnValues = columnValues.filter(
-      (_, rowIndex) => rowIndex !== visualRowIndex
-    );
-
-    const result = this.calculate({
-      type: this.settings.find(setting => setting.destinationColumn === physicalColumnIndex).type,
-      values: filteredColumnValues,
-      customFunction: this.settings.find(setting => setting.destinationColumn === physicalColumnIndex).customFunction,
+      this.hot.setDataAtCell(visualRowIndex, visualColumnIndex, result, 'ColumnSummary.result');
     });
 
-    const cellMeta = this.hot.getCellMeta(
-      visualRowIndex,
-      visualColumnIndex,
-    );
+    // if (physicalRowIndex !== undefined && physicalRowIndex >= 0) {
+    //   visualRowIndex = this.hot.toVisualRow(physicalRowIndex);
+    // } else {
+    //   const rowCount = this.hot.countRows();
 
-    cellMeta.resValue = result;
-    cellMeta.readOnly = true;
-    cellMeta.className = 'columnSummaryResult';
+    //   for (let row = rowCount - 1; row >= 0; row--) {
+    //     const cellMeta = this.hot.getCellMeta(row, visualColumnIndex);
 
-    this.hot.setDataAtCell(visualRowIndex, visualColumnIndex, result, 'ColumnSummary.result');
+    //     if (cellMeta.resRowCell) {
+    //       visualRowIndex = row;
+    //       break;
+    //     }
+    //   }
+    // }
+
+    // if (visualRowIndex === undefined || visualRowIndex < 0) {
+    //   return;
+    // }
   }
 
-  /**
-   * `afterInit` hook callback.
-   */
-  #onAfterInit() {
-    this.settings.forEach((setting) => {
-      if (setting.destinationColumn >= 0) {
-        this.setResult(
-          setting.destinationColumn,
-          setting.reversedRowCoords
-            ? this.hot.countRows() - setting.destinationRow - 1
-            : setting.destinationRow);
-      }
+  updateResults() {
+    const columnVisualToPhysical = this.hot.columnIndexMapper.getIndexesSequence();
+
+    columnVisualToPhysical.forEach((columnPhysicalIndex) => {
+      this.setResult(columnPhysicalIndex);
     });
   }
 
@@ -292,14 +345,6 @@ export class ColumnSummary extends BasePlugin {
       const physicalColIndex = this.hot.toPhysicalColumn(visualColIndex);
 
       this.setResult(physicalColIndex);
-    });
-  }
-
-  #onAfterRemoveRow() {
-    const columnVisualToPhysical = this.hot.columnIndexMapper.getIndexesSequence();
-
-    columnVisualToPhysical.forEach((columnPhysicalIndex) => {
-      this.setResult(columnPhysicalIndex);
     });
   }
 }
