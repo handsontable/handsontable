@@ -143,7 +143,7 @@ describe('HotTableComponent', () => {
   });
 
   describe('ngOnDestroy', () => {
-    it('should destroy Handsontable instance and editor component references on ngOnDestroy', () => {
+    it('should destroy Handsontable instance and editor component references, when columns property is an array', () => {
       fixture = TestBed.createComponent(HotTableComponent);
       const editorRefMock = {
         destroy: jest.fn(),
@@ -163,6 +163,37 @@ describe('HotTableComponent', () => {
       fixture.componentInstance.ngOnDestroy();
 
       expect(editorRefMock.destroy).toHaveBeenCalled();
+      expect(destroySpy).toHaveBeenCalled();
+    });
+
+    it('should destroy Handsontable instance, when columns property is a function', () => {
+      fixture = TestBed.createComponent(HotTableComponent);
+
+      fixture.componentInstance.settings = {
+        ...settings,
+        columns: () => ({ data: 'id' }),
+      };
+
+      fixture.detectChanges();
+      const hotInstance = fixture.componentInstance.hotInstance;
+      const destroySpy = jest.spyOn(hotInstance, 'destroy');
+
+      fixture.componentInstance.ngOnDestroy();
+      expect(destroySpy).toHaveBeenCalled();
+    });
+
+    it('should destroy Handsontable instance, when columns property is undefined', () => {
+      fixture = TestBed.createComponent(HotTableComponent);
+
+      fixture.componentInstance.settings = {
+        ...settings,
+      };
+
+      fixture.detectChanges();
+      const hotInstance = fixture.componentInstance.hotInstance;
+      const destroySpy = jest.spyOn(hotInstance, 'destroy');
+
+      fixture.componentInstance.ngOnDestroy();
       expect(destroySpy).toHaveBeenCalled();
     });
   });
