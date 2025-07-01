@@ -125,12 +125,15 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+        name: Install pnpm
+
       - name: Use Node.js
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # https://github.com/actions/setup-node/releases/tag/v4.4.0
         with:
           node-version-file: '.nvmrc'
-          cache: 'npm'
-      - run: npm ci --no-audit
+          cache: 'pnpm'
+      - run: pnpm install && pnpm -r rebuild
 
       - name: Build
         run: |
@@ -157,12 +160,15 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+        name: Install pnpm
+
       - name: Use Node.js
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # https://github.com/actions/setup-node/releases/tag/v4.4.0
         with:
           node-version-file: '.nvmrc'
-          cache: 'npm'
-      - run: npm ci --no-audit
+          cache: 'pnpm'
+      - run: pnpm install && pnpm -r rebuild
 
       - name: Build
         run: |
@@ -191,12 +197,15 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+        name: Install pnpm
+
       - name: Use Node.js
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # https://github.com/actions/setup-node/releases/tag/v4.4.0
         with:
           node-version-file: '.nvmrc'
-          cache: 'npm'
-      - run: npm ci --no-audit
+          cache: 'pnpm'
+      - run: pnpm install && pnpm -r rebuild
 
       - name: Test
         run: |
@@ -213,12 +222,15 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+        name: Install pnpm
+
       - name: Use Node.js
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # https://github.com/actions/setup-node/releases/tag/v4.4.0
         with:
           node-version-file: '.nvmrc'
-          cache: 'npm'
-      - run: npm ci --no-audit
+          cache: 'pnpm'
+      - run: pnpm install && pnpm -r rebuild
 
       - name: Test
         run: |
@@ -235,12 +247,15 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+        name: Install pnpm
+
       - name: Use Node.js
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # https://github.com/actions/setup-node/releases/tag/v4.4.0
         with:
           node-version-file: '.nvmrc'
-          cache: 'npm'
-      - run: npm ci --no-audit
+          cache: 'pnpm'
+      - run: pnpm install && pnpm -r rebuild
 
       - name: Test
         run: |
@@ -257,12 +272,15 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+        name: Install pnpm
+
       - name: Use Node.js
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # https://github.com/actions/setup-node/releases/tag/v4.4.0
         with:
           node-version-file: '.nvmrc'
-          cache: 'npm'
-      - run: npm ci --no-audit
+          cache: 'pnpm'
+      - run: pnpm install && pnpm -r rebuild
 
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # https://github.com/actions/download-artifact/releases/tag/v4.1.3
@@ -286,12 +304,15 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+        name: Install pnpm
+
       - name: Use Node.js
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # https://github.com/actions/setup-node/releases/tag/v4.4.0
         with:
           node-version-file: '.nvmrc'
-          cache: 'npm'
-      - run: npm ci --no-audit
+          cache: 'pnpm'
+      - run: pnpm install && pnpm -r rebuild
 
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # https://github.com/actions/download-artifact/releases/tag/v4.1.3
@@ -315,12 +336,15 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+        name: Install pnpm
+
       - name: Use Node.js
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # https://github.com/actions/setup-node/releases/tag/v4.4.0
         with:
           node-version-file: '.nvmrc'
-          cache: 'npm'
-      - run: npm ci --no-audit
+          cache: 'pnpm'
+      - run: pnpm install && pnpm -r rebuild
 
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # https://github.com/actions/download-artifact/releases/tag/v4.1.3
@@ -344,12 +368,15 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+        name: Install pnpm
+
       - name: Use Node.js
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # https://github.com/actions/setup-node/releases/tag/v4.4.0
         with:
           node-version-file: '.nvmrc'
-          cache: 'npm'
-      - run: npm ci --no-audit
+          cache: 'pnpm'
+      - run: pnpm install && pnpm -r rebuild
 
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # https://github.com/actions/download-artifact/releases/tag/v4.1.3
@@ -373,12 +400,15 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+        name: Install pnpm
+
       - name: Use Node.js
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # https://github.com/actions/setup-node/releases/tag/v4.4.0
         with:
           node-version-file: '.nvmrc'
-          cache: 'npm'
-      - run: npm ci --no-audit
+          cache: 'pnpm'
+      - run: pnpm install && pnpm -r rebuild
 
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # https://github.com/actions/download-artifact/releases/tag/v4.1.3
@@ -402,12 +432,15 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+        name: Install pnpm
+
       - name: Use Node.js
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # https://github.com/actions/setup-node/releases/tag/v4.4.0
         with:
           node-version-file: '.nvmrc'
-          cache: 'npm'
-      - run: npm ci --no-audit
+          cache: 'pnpm'
+      - run: pnpm install && pnpm -r rebuild
 
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # https://github.com/actions/download-artifact/releases/tag/v4.1.3
@@ -429,12 +462,15 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+        name: Install pnpm
+
       - name: Use Node.js
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # https://github.com/actions/setup-node/releases/tag/v4.4.0
         with:
           node-version-file: '.nvmrc'
-          cache: 'npm'
-      - run: npm ci --no-audit
+          cache: 'pnpm'
+      - run: pnpm install && pnpm -r rebuild
 
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # https://github.com/actions/download-artifact/releases/tag/v4.1.3
@@ -467,12 +503,15 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+        name: Install pnpm
+
       - name: Use Node.js
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # https://github.com/actions/setup-node/releases/tag/v4.4.0
         with:
           node-version-file: '.nvmrc'
-          cache: 'npm'
-      - run: npm ci --no-audit
+          cache: 'pnpm'
+      - run: pnpm install && pnpm -r rebuild
 
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # https://github.com/actions/download-artifact/releases/tag/v4.1.3
@@ -508,12 +547,15 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+        name: Install pnpm
+
       - name: Use Node.js
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # https://github.com/actions/setup-node/releases/tag/v4.4.0
         with:
           node-version-file: '.nvmrc'
-          cache: 'npm'
-      - run: npm ci --no-audit
+          cache: 'pnpm'
+      - run: pnpm install && pnpm -r rebuild
 
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # https://github.com/actions/download-artifact/releases/tag/v4.1.3
@@ -522,7 +564,6 @@ jobs:
           path: ./
       - run: tar -zxf tmp.tar.gz ./handsontable/tmp && rm tmp.tar.gz
       - run: cd handsontable
-      - run: npm run swap-package-links
       - run: npm run in angular build
       - run: tar --exclude='node_modules' -zcf angular.tar.gz ./wrappers/angular
 
@@ -545,12 +586,15 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+        name: Install pnpm
+
       - name: Use Node.js
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # https://github.com/actions/setup-node/releases/tag/v4.4.0
         with:
           node-version-file: '.nvmrc'
-          cache: 'npm'
-      - run: npm ci --no-audit
+          cache: 'pnpm'
+      - run: pnpm install && pnpm -r rebuild
 
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # https://github.com/actions/download-artifact/releases/tag/v4.1.3
@@ -559,7 +603,6 @@ jobs:
           path: ./
       - run: tar -zxf tmp.tar.gz ./handsontable/tmp && rm tmp.tar.gz
       - run: cd handsontable
-      - run: npm run swap-package-links
       - run: npm run in angular-wrapper build
       - run: tar --exclude='node_modules' -zcf angular-wrapper.tar.gz ./wrappers/angular-wrapper
 
@@ -582,12 +625,15 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+        name: Install pnpm
+
       - name: Use Node.js
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # https://github.com/actions/setup-node/releases/tag/v4.4.0
         with:
           node-version-file: '.nvmrc'
-          cache: 'npm'
-      - run: npm ci --no-audit
+          cache: 'pnpm'
+      - run: pnpm install && pnpm -r rebuild
 
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # https://github.com/actions/download-artifact/releases/tag/v4.1.3
@@ -596,7 +642,6 @@ jobs:
           path: ./
       - run: tar -zxf tmp.tar.gz ./handsontable/tmp && rm tmp.tar.gz
       - run: cd handsontable
-      - run: npm run swap-package-links
       - run: npm run in react build
       - run: tar --exclude='node_modules' -zcf react.tar.gz ./wrappers/react
 
@@ -618,12 +663,15 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+        name: Install pnpm
+
       - name: Use Node.js
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # https://github.com/actions/setup-node/releases/tag/v4.4.0
         with:
           node-version-file: '.nvmrc'
-          cache: 'npm'
-      - run: npm ci --no-audit
+          cache: 'pnpm'
+      - run: pnpm install && pnpm -r rebuild
 
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # https://github.com/actions/download-artifact/releases/tag/v4.1.3
@@ -632,7 +680,6 @@ jobs:
           path: ./
       - run: tar -zxf tmp.tar.gz ./handsontable/tmp && rm tmp.tar.gz
       - run: cd handsontable
-      - run: npm run swap-package-links
       - run: npm run in react-wrapper build
       - run: tar --exclude='node_modules' -zcf react-wrapper.tar.gz ./wrappers/react-wrapper
 
@@ -654,12 +701,15 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+        name: Install pnpm
+
       - name: Use Node.js
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # https://github.com/actions/setup-node/releases/tag/v4.4.0
         with:
           node-version-file: '.nvmrc'
-          cache: 'npm'
-      - run: npm ci --no-audit
+          cache: 'pnpm'
+      - run: pnpm install && pnpm -r rebuild
 
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # https://github.com/actions/download-artifact/releases/tag/v4.1.3
@@ -668,7 +718,6 @@ jobs:
           path: ./
       - run: tar -zxf tmp.tar.gz ./handsontable/tmp && rm tmp.tar.gz
       - run: cd handsontable
-      - run: npm run swap-package-links
       - run: npm run in vue build
       - run: tar --exclude='node_modules' -zcf vue.tar.gz ./wrappers/vue
 
@@ -690,12 +739,15 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+        name: Install pnpm
+
       - name: Use Node.js
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # https://github.com/actions/setup-node/releases/tag/v4.4.0
         with:
           node-version-file: '.nvmrc'
-          cache: 'npm'
-      - run: npm ci --no-audit
+          cache: 'pnpm'
+      - run: pnpm install && pnpm -r rebuild
 
       - name: Download the Handsontable build artifact
         uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # https://github.com/actions/download-artifact/releases/tag/v4.1.3
@@ -704,7 +756,6 @@ jobs:
           path: ./
       - run: tar -zxf tmp.tar.gz ./handsontable/tmp && rm tmp.tar.gz
       - run: cd handsontable
-      - run: npm run swap-package-links
       - run: npm run in vue3 build
       - run: tar --exclude='node_modules' -zcf vue3.tar.gz ./wrappers/vue3
 
@@ -749,12 +800,15 @@ jobs:
         with:
           fetch-depth: 2
 
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+        name: Install pnpm
+
       - name: Use Node.js
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # https://github.com/actions/setup-node/releases/tag/v4.4.0
         with:
           node-version-file: '.nvmrc'
-          cache: 'npm'
-      - run: npm ci --no-audit
+          cache: 'pnpm'
+      - run: pnpm install && pnpm -r rebuild
 
       - name: Install system dependencies
         run: npm run in visual-tests install-system-dependencies

@@ -28,11 +28,14 @@ jobs:
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+        name: Install pnpm
+
       - name: Use Node.js
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # https://github.com/actions/setup-node/releases/tag/v4.4.0
         with:
           node-version-file: '.nvmrc'
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Find PR
         uses: jwalton/gh-find-current-pr@7ada613939e2a233c83a1320679446fa1c6bdcb9 # https://github.com/jwalton/gh-find-current-pr/tree/v1.3.2
@@ -96,7 +99,7 @@ jobs:
       - name: Install the monorepo dependencies and build the packages
         run: |
           cd ..
-          npm ci
+          pnpm install
           npm run all build -- --e examples visual-tests
 
       - name: Generate API references
@@ -139,4 +142,3 @@ jobs:
             ✅ Preview documentation is is available now
             Current staging version of documentation is available at: [${{ env.NETLIFY_SITE_URL }}/docs](${{ env.NETLIFY_SITE_URL }}/docs)
 
-  

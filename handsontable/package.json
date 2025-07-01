@@ -64,8 +64,7 @@
     "build:languages.es": "cross-env-shell BABEL_ENV=es_languages babel src/i18n/languages --out-file-extension .mjs --out-dir languages",
     "build:languages.min": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=languages-production env-cmd -f ../hot.config.js webpack",
     "publish-package": "cd tmp && npm publish",
-    "postbuild": "node ./scripts/prepare-package-for-publish.mjs && npm run swap-package-links",
-    "swap-package-links": "node ./scripts/swap-package-links.mjs handsontable"
+    "postbuild": "node ./scripts/prepare-package-for-publish.mjs"
   },
   "keywords": [
     "data",
@@ -96,12 +95,16 @@
     "@babel/cli": "^7.8.3",
     "@babel/core": "^7.11.4",
     "@babel/eslint-parser": "^7.13.14",
+    "@babel/helper-plugin-utils": "^7.27.1",
     "@babel/eslint-plugin": "^7.13.16",
     "@babel/plugin-transform-runtime": "^7.11.0",
     "@babel/preset-env": "^7.11.0",
     "@babel/register": "^7.8.3",
     "@babel/runtime": "^7.11.2",
     "@babel/types": "^7.12.12",
+    "@types/node": "^12.20.7",
+    "@typescript-eslint/eslint-plugin": "^4.33.0",
+    "@typescript-eslint/parser": "^4.33.0",
     "babel-jest": "^26.6.3",
     "babel-loader": "^8.0.4",
     "babel-plugin-forbidden-imports": "^0.1.2",
@@ -130,8 +133,10 @@
     "jasmine-console-reporter": "^3.1.0",
     "jasmine-core": "^3.4.0",
     "jasmine-terminal-reporter": "^1.0.3",
-    "jest": "29.7.0",
+    "jest": "^26.6.3",
     "jest-cli": "^26.6.3",
+    "jest-environment-jsdom": "^26.6.2",
+    "jest-matcher-utils": "^26.6.2",
     "jsdom": "^24.0.0",
     "loader-utils": "^1.1.0",
     "lodash": "^4.17.20",
@@ -147,10 +152,10 @@
     "stylelint-config-standard": "^36.0.1",
     "stylelint-config-standard-scss": "^13.1.0",
     "typescript": "3.8.2",
-    "@typescript-eslint/eslint-plugin": "^4.33.0",
     "webpack": "^5.88.1",
     "webpack-cli": "^5.1.4",
-    "webpack-remove-empty-scripts": "^1.0.4"
+    "webpack-remove-empty-scripts": "^1.0.4",
+    "webpack-sources": "^3.3.3"
   },
   "license": "SEE LICENSE IN LICENSE.txt",
   "resolutions": {
@@ -254,5 +259,9 @@
   "sideEffects": [
     "**/*.css",
     "./languages/*"
-  ]
+  ],
+  "publishConfig": {
+    "directory": "tmp",
+    "linkDirectory": true
+  }
 }

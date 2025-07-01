@@ -23,10 +23,7 @@
     "release": "node scripts/release.mjs",
     "changelog": "bin/changelog",
     "publish-all": "npm run all publish-package -- -e=examples",
-    "prein": "npm run swap-package-links",
-    "preall": "npm run swap-package-links",
     "pre-release": "node scripts/pre-release.mjs && npm run all build -- -e=examples visual-tests && npm run publish-all --tag next",
-    "swap-package-links": "node ./scripts/swap-package-links.mjs handsontable",
     "examples:version": "node examples/scripts/code-examples.mjs version",
     "examples:install": "node examples/scripts/code-examples.mjs install",
     "examples:build": "node examples/scripts/code-examples.mjs build",
@@ -36,6 +33,7 @@
   "devDependencies": {
     "@actions/core": "^1.2.6",
     "@actions/github": "^4.0.0",
+    "@angular/compiler": "^17.3.12",
     "@babel/cli": "^7.8.3",
     "@babel/core": "^7.11.4",
     "@babel/eslint-parser": "^7.13.14",
@@ -61,8 +59,10 @@
     "eslint-plugin-jsdoc": "^32.3.3",
     "execa": "^5.0.0",
     "fs-extra": "^4.0.2",
+    "glob": "^7.1.2",
     "global-jsdom": "^8.7.0",
     "inquirer": "^7.3.3",
+    "lodash": "^4.17.21",
     "moment": "2.29.4",
     "replace-in-file": "^6.1.0",
     "rimraf": "^3.0.2",
@@ -85,5 +85,6 @@
     "wrappers/*",
     "visual-tests",
     "examples"
-  ]
+  ],
+  "packageManager": "pnpm@10.12.2"
 }

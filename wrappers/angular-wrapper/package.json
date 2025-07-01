@@ -43,7 +43,7 @@
     "prebuild": "npm run clean && node scripts/pre-build.js",
     "build": "ng build hot-table",
     "watch": "ng build --watch --configuration development",
-    "postbuild": "node scripts/post-build.js && cd ../.. && node ./scripts/swap-package-links.mjs @handsontable/angular-wrapper",
+    "postbuild": "node scripts/post-build.js",
     "pretest": "npm run lint && npm run build",
     "test:lib": "cross-env NODE_OPTIONS=--openssl-legacy-provider jest --config projects/hot-table/jest.config.js --verbose",
     "test": "cross-env NODE_OPTIONS=--openssl-legacy-provider jest --config projects/hot-table/jest.config.js",
@@ -106,5 +106,9 @@
     "ts-jest": "^29.1.1",
     "ts-node": "8.3.0",
     "typescript": "5.1.6"
+  },
+  "publishConfig": {
+    "directory": "dist/hot-table",
+    "linkDirectory": true
   }
 }
