@@ -38,7 +38,7 @@ To run the Jasmine tests in your browser, go to the following pages:
 
 ## Test with NPM (CLI)
 
-To run Jasmine tests in your command line (using Puppeteer), first install all necessary dependencies by executing `npm install`. After the `NPM` finishes fetching required modules, your workspace is ready to test.
+To run Jasmine tests in your command line (using Puppeteer), first install all necessary dependencies by executing `pnpm install`. After pnpm finishes fetching required modules, your workspace is ready to test.
 
 To run all tests from the monorepo's root directory, use the following command:
 - `npm run test`

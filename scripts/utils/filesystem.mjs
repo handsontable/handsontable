@@ -1,7 +1,13 @@
 import rimraf from 'rimraf';
 import mainPackageJSON from '../../package.json' with { type: 'json' };
+import yargs from 'yargs';
+import { hideBin } from 'yargs/helpers';
 
 const workspaces = mainPackageJSON.workspaces;
+const argv = yargs(hideBin(process.argv))
+  .boolean('keep-lockfiles')
+  .default('keep-lockfiles', false)
+  .argv;
 
 /**
  * Cleans the `node_modules` directory and `package-lock.json` files for all the packages declared as npm workspaces.
@@ -11,16 +17,15 @@ export function cleanNodeModules() {
 
   try {
     console.log('- Removing the ./node_modules directory.');
-
     rimraf.sync('./node_modules');
 
-    console.log('- Removing the ./package-lock.json file.');
+    if (!argv.keepLockfiles) {
+      console.log('- Removing the ./package-lock.json file.');
+      rimraf.sync('./package-lock.json');
 
-    rimraf.sync('./package-lock.json');
-
-    console.log('- Removing the ./pnpm-lock.yaml file.');
-
-    rimraf.sync('./pnpm-lock.yaml');
+      console.log('- Removing the ./pnpm-lock.yaml file.');
+      rimraf.sync('./pnpm-lock.yaml');
+    }
 
   } catch (error) {
     console.error(`Error deleting ./node_modules or ./package-lock.json - ${error}.`);
@@ -45,26 +50,28 @@ export function cleanNodeModules() {
       process.exit(1);
     }
 
-    try {
-      console.log(`- Removing the ${printRelative(lockfileLocation)} file.`);
-
-      rimraf.sync(lockfileLocation);
-
-    } catch (error) {
-      console.error(`Error deleting ${printRelative(lockfileLocation)} - ${error}`);
-
-      process.exit(1);
-    }
-
-    try {
-      console.log(`- Removing the ${printRelative(pnpmLockfileLocation)} file.`);
-
-      rimraf.sync(lockfileLocation);
-
-    } catch (error) {
-      console.error(`Error deleting ${printRelative(pnpmLockfileLocation)} - ${error}`);
-
-      process.exit(1);
+    if (!argv.keepLockfiles) {
+      try {
+        console.log(`- Removing the ${printRelative(lockfileLocation)} file.`);
+  
+        rimraf.sync(lockfileLocation);
+  
+      } catch (error) {
+        console.error(`Error deleting ${printRelative(lockfileLocation)} - ${error}`);
+  
+        process.exit(1);
+      }
+  
+      try {
+        console.log(`- Removing the ${printRelative(pnpmLockfileLocation)} file.`);
+  
+        rimraf.sync(lockfileLocation);
+  
+      } catch (error) {
+        console.error(`Error deleting ${printRelative(pnpmLockfileLocation)} - ${error}`);
+  
+        process.exit(1);
+      }
     }
   });
 
