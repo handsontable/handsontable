@@ -1,7 +1,7 @@
 import rimraf from 'rimraf';
-import mainPackageJSON from '../../package.json' with { type: 'json' };
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
+import mainPackageJSON from '../../package.json' with { type: 'json' };
 
 const workspaces = mainPackageJSON.workspaces;
 const argv = yargs(hideBin(process.argv))
@@ -53,23 +53,23 @@ export function cleanNodeModules() {
     if (!argv.keepLockfiles) {
       try {
         console.log(`- Removing the ${printRelative(lockfileLocation)} file.`);
-  
+
         rimraf.sync(lockfileLocation);
-  
+
       } catch (error) {
         console.error(`Error deleting ${printRelative(lockfileLocation)} - ${error}`);
-  
+
         process.exit(1);
       }
-  
+
       try {
         console.log(`- Removing the ${printRelative(pnpmLockfileLocation)} file.`);
-  
+
         rimraf.sync(lockfileLocation);
-  
+
       } catch (error) {
         console.error(`Error deleting ${printRelative(pnpmLockfileLocation)} - ${error}`);
-  
+
         process.exit(1);
       }
     }
