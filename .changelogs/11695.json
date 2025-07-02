@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed error `this.hotInstance.getSettings(...).columns?.filter is not a function` in angular-wrapper.",
-  "type": "fixed",
-  "issueOrPR": 11695,
-  "breaking": false,
-  "framework": "angular"
-}

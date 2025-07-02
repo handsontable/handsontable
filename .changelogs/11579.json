@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed an issue with accessibility and new DOM structure with wrapper and portal",
-  "type": "fixed",
-  "issueOrPR": 11579,
-  "breaking": true,
-  "framework": "none"
-}

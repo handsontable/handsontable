@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Change `modifyData` hook to use visual indxes for both row and column.",
-  "type": "changed",
-  "issueOrPR": 11501,
-  "breaking": true,
-  "framework": "none"
-}
