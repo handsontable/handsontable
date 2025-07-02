@@ -11,14 +11,14 @@
     "prebuild": "npm run install:version next -- --skip-clean"
   },
   "devDependencies": {
-    "handsontable": "latest",
+    "handsontable": "15.3.0",
     "http-server": "^14.1.1",
-    "@handsontable/angular": "latest",
-    "@handsontable/angular-wrapper": "latest",
-    "@handsontable/react": "latest",
-    "@handsontable/react-wrapper": "latest",
-    "@handsontable/vue": "latest",
-    "@handsontable/vue3": "latest"
+    "@handsontable/angular": "15.3.0",
+    "@handsontable/angular-wrapper": "15.3.0",
+    "@handsontable/react": "15.3.0",
+    "@handsontable/react-wrapper": "15.3.0",
+    "@handsontable/vue": "15.3.0",
+    "@handsontable/vue3": "15.3.0"
   },
   "eslintConfig": {
     "root": true,
