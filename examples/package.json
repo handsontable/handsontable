@@ -12,6 +12,7 @@
   },
   "devDependencies": {
     "handsontable": "latest",
+    "http-server": "^14.1.1",
     "@handsontable/angular": "latest",
     "@handsontable/angular-wrapper": "latest",
     "@handsontable/react": "latest",
