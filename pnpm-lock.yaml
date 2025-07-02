@@ -148,6 +148,9 @@ importers:
       handsontable:
         specifier: latest
         version: link:../handsontable/tmp
+      http-server:
+        specifier: ^14.1.1
+        version: 14.1.1
 
   handsontable:
     dependencies:
