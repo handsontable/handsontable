@@ -73,13 +73,14 @@ for (const packagesLocation of workspacePackages) {
     const packageName = packageJson.name;
 
     if (!packagesInfo[packageName]) {
+      // eslint-disable-next-line no-continue
       continue;
     }
 
     if (packagesInfo[packageName]) {
       const defaultPackage = await import(
         packagesInfo[packageName].entryFile ? `../${subdir}/${packagesInfo[packageName].entryFile}` : packageName
-        );
+      );
       let defaultPackageVersion = null;
       let umdPackageVersion = null;
       let umdPackage = null;
