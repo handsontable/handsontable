@@ -28,22 +28,28 @@ const packagesInfo = {
     defaultExport: true
   },
   '@handsontable/angular': {
-    className: 'HotTableModule'
+    className: 'HotTableModule',
+    entryFile: 'dist/hot-table/fesm2022/handsontable-angular.mjs',
   },
   '@handsontable/angular-wrapper': {
-    className: 'HotTableModule'
+    className: 'HotTableModule',
+    entryFile: 'dist/hot-table/fesm2022/handsontable-angular-wrapper.mjs',
   },
   '@handsontable/react': {
-    className: 'HotTable'
+    className: 'HotTable',
+    entryFile: 'dist/react-handsontable.js',
   },
   '@handsontable/react-wrapper': {
-    className: 'HotTable'
+    className: 'HotTable',
+    entryFile: 'dist/react-handsontable.js',
   },
   '@handsontable/vue': {
-    className: 'HotTable'
+    className: 'HotTable',
+    entryFile: 'dist/vue-handsontable.js',
   },
   '@handsontable/vue3': {
-    className: 'HotTable'
+    className: 'HotTable',
+    entryFile: 'dist/vue-handsontable.js',
   }
 };
 const {
@@ -66,6 +72,11 @@ for (const packagesLocation of workspacePackages) {
     const { default: packageJson } = await import(packageJsonLocation, { with: { type: 'json' } });
     const packageName = packageJson.name;
 
+    if (!packagesInfo[packageName]) {
+      // eslint-disable-next-line no-continue
+      continue;
+    }
+
     if (packagesInfo[packageName]) {
       const defaultPackage = await import(
         packagesInfo[packageName].entryFile ? `../${subdir}/${packagesInfo[packageName].entryFile}` : packageName
@@ -76,9 +87,9 @@ for (const packagesLocation of workspacePackages) {
 
       if (packagesInfo[packageName].umd || packageJson.jsdelivr) {
         umdPackage = await import(
-          packagesInfo[packageName].entryFile ?
+          packagesInfo[packageName].umd ?
             `../${subdir}/${packagesInfo[packageName].umd}` :
-            `${packageName}/${packageJson.jsdelivr.replace('./', '')}`);
+            `../${subdir}/${packageJson.jsdelivr.replace('./', '')}`);
         umdPackage = umdPackage.default;
       }
 

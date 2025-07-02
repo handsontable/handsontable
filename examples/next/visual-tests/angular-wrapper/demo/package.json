@@ -43,6 +43,7 @@
     "@ngneat/falso": "^7.2.0",
     "@types/jasmine": "3.6.9",
     "@types/node": "^22.14.0",
+    "http-server": "^14.1.1",
     "jasmine": "3.7.0",
     "jasmine-console-reporter": "3.1.0",
     "puppeteer": "14.3.0",
