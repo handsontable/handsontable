@@ -212,4 +212,4 @@
 /docs/javascript-data-grid/angular-language-change-example/ /docs/angular-data-grid/language/
 /docs/javascript-data-grid/angular-hot-reference/ /docs/angular-data-grid/api/core/
 
-/docs/next/:splat /docs/:splats
+/docs/next/:splat /docs/:splat
