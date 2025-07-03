@@ -141,17 +141,6 @@
       }
     }
 
-    // Background
-    &.htHasScrollX,
-    &.htHasScrollY {
-      .ht_master {
-        .wtHolder {
-          background-color: var(--ht-background-color);
-          border-radius: var(--ht-wrapper-border-radius, 0);
-        }
-      }
-    }
-
     // Row even & odd
     tr {
       &.ht__row_even {

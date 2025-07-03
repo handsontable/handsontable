@@ -1910,7 +1910,7 @@ class TableView {
    * Updates the class names on the root element based on the presence of scrollbars.
    *
    * This method checks if the table has vertical and/or horizontal scrollbars and
-   * adds or removes the corresponding class names (`htHasScrollY` and `htHasScrollX`)
+   * adds or removes the corresponding class names (`htHasScrollY`, `htHasScrollX` and more)
    * to/from the root element.
    */
   #updateScrollbarClassNames() {
@@ -1922,10 +1922,22 @@ class TableView {
       removeClass(rootElement, 'htHasScrollY');
     }
 
+    if (this.isVerticallyScrollableByWindow()) {
+      addClass(rootElement, 'htVerticallyScrollableByWindow');
+    } else {
+      removeClass(rootElement, 'htVerticallyScrollableByWindow');
+    }
+
     if (this.hasHorizontalScroll()) {
       addClass(rootElement, 'htHasScrollX');
     } else {
       removeClass(rootElement, 'htHasScrollX');
+    }
+
+    if (this.isHorizontallyScrollableByWindow()) {
+      addClass(rootElement, 'htHorizontallyScrollableByWindow');
+    } else {
+      removeClass(rootElement, 'htHorizontallyScrollableByWindow');
     }
   }
 
