@@ -1417,6 +1417,54 @@ describe('AutocompleteEditor', () => {
         horizon.toEqual({ top: 3590, left: 0 });
       });
     });
+
+    it('should not sort the choices list, when the `sortByRelevance` option is set to `true`', async() => {
+      handsontable({
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: choices,
+            sortByRelevance: true
+          }
+        ]
+      });
+
+      await selectCell(0, 0);
+
+      const editor = $('.autocompleteEditor');
+
+      await keyDownUp('enter');
+      await sleep(200);
+
+      for (let i = 0; i < choices.length; i++) {
+        expect(editor.find(`tbody td:eq(${i})`).text()).toEqual(choices[i]);
+      }
+    });
+
+    it('should sort alphabetically the choices list, when the `sortByRelevance` option is set to `false`', async() => {
+      handsontable({
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: choices,
+            sortByRelevance: false
+          }
+        ]
+      });
+
+      await selectCell(0, 0);
+
+      const editor = $('.autocompleteEditor');
+
+      await keyDownUp('enter');
+      await sleep(200);
+
+      const sortedChoices = choices.toSorted();
+
+      for (let i = 0; i < choices.length; i++) {
+        expect(editor.find(`tbody td:eq(${i})`).text()).toEqual(sortedChoices[i]);
+      }
+    });
   });
 
   describe('closing editor', () => {
@@ -2251,15 +2299,15 @@ describe('AutocompleteEditor', () => {
         const innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
-          ['red'],
           ['yellow'],
+          ['red'],
+          ['orange'],
           ['green'],
           ['blue'],
-          ['lime'],
           ['white'],
+          ['purple'],
+          ['lime'],
           ['olive'],
-          ['orange'],
-          ['purple']
         ]);
 
         syncSources.calls.reset();
@@ -2308,15 +2356,15 @@ describe('AutocompleteEditor', () => {
         const innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
-          ['red'],
           ['yellow'],
+          ['red'],
+          ['orange'],
           ['green'],
           ['blue'],
-          ['lime'],
           ['white'],
+          ['purple'],
+          ['lime'],
           ['olive'],
-          ['orange'],
-          ['purple']
         ]);
 
         editorInput.val('e');
@@ -2331,20 +2379,20 @@ describe('AutocompleteEditor', () => {
         const innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
-          ['red'],
           ['yellow'],
+          ['red'],
+          ['orange'],
           ['green'],
           ['blue'],
-          ['lime'],
           ['white'],
+          ['purple'],
+          ['lime'],
           ['olive'],
-          ['orange'],
-          ['purple']
         ]);
       }
     });
 
-    it('default filtering should be case sensitive when filteringCaseSensitive is false', async() => {
+    it('default filtering should be case sensitive when filteringCaseSensitive is true', async() => {
       handsontable({
         columns: [
           {
@@ -2373,15 +2421,15 @@ describe('AutocompleteEditor', () => {
         const innerHot = ac.htEditor;
 
         expect(innerHot.getData()).toEqual([
-          ['red'],
           ['yellow'],
+          ['red'],
+          ['orange'],
           ['green'],
           ['blue'],
-          ['lime'],
           ['white'],
+          ['purple'],
+          ['lime'],
           ['olive'],
-          ['orange'],
-          ['purple']
         ]);
 
         editorInput.val('E');
@@ -2634,7 +2682,7 @@ describe('AutocompleteEditor', () => {
       const ac = getActiveEditor();
       const innerHot = ac.htEditor;
 
-      expect(innerHot.getSelected()).toEqual([[1, 0, 1, 0]]);
+      expect(innerHot.getSelected()).toEqual([[0, 0, 0, 0]]);
     });
   });
 
@@ -3026,10 +3074,10 @@ describe('AutocompleteEditor', () => {
     let listLength = $trs.size();
 
     expect($trs.eq(0).text()).toBe('Wayne');
-    expect($trs.eq(1).text()).toBe('Banner');
-    expect($trs.eq(2).text()).toBe('Parker');
+    expect($trs.eq(1).text()).toBe('Draven');
+    expect($trs.eq(2).text()).toBe('Banner');
     expect($trs.eq(3).text()).toBe('Stark');
-    expect($trs.eq(4).text()).toBe('Draven');
+    expect($trs.eq(4).text()).toBe('Parker');
     expect(listLength).toBe(5);
 
     await keyDownUp('escape');
@@ -3072,7 +3120,7 @@ describe('AutocompleteEditor', () => {
     expect(listLength).toBe(2);
   });
 
-  it('should not modify the suggestion lists\' order, when the `sortByRelevance` option is set to `false`', async() => {
+  it('should alphabetically sort the suggestion lists, when the `sortByRelevance` option is set to `false`', async() => {
     const choicesList = [
       'Wayne', 'Draven', 'Banner', 'Stark', 'Parker', 'Kent', 'Gordon', 'Kyle', 'Simmons'
     ];
@@ -3101,17 +3149,20 @@ describe('AutocompleteEditor', () => {
     await sleep(30);
 
     const dropdownList = $('.autocompleteEditor tbody').first();
-    const listLength = dropdownList.find('tr').size();
+    const trs = dropdownList.find('tr');
+    const listLength = trs.size();
 
     expect(listLength).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(9);
-      main.toBe(9);
-      horizon.toBe(8);
+      classic.toBe(5);
+      main.toBe(5);
+      horizon.toBe(5);
     });
 
-    for (let i = 1; i <= listLength; i++) {
-      expect(dropdownList.find(`tr:nth-child(${i}) td`).text()).toEqual(choicesList[i - 1]);
-    }
+    expect(trs.eq(0).text()).toBe('Banner');
+    expect(trs.eq(1).text()).toBe('Draven');
+    expect(trs.eq(2).text()).toBe('Parker');
+    expect(trs.eq(3).text()).toBe('Stark');
+    expect(trs.eq(4).text()).toBe('Wayne');
   });
 
   it('should fire one afterChange event when value is changed', async() => {

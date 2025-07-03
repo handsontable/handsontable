@@ -294,47 +294,40 @@ export class AutocompleteEditor extends HandsontableEditor {
     const endPos = getSelectionEndPosition(this.TEXTAREA);
     const sortByRelevanceSetting = this.cellProperties.sortByRelevance;
     const filterSetting = this.cellProperties.filter;
-    let orderByRelevance = null;
+    const value = this.stripValueIfNeeded(this.getValue());
+
     let highlightIndex = null;
     let choices = choicesList;
 
-    if (sortByRelevanceSetting) {
-      orderByRelevance = this.sortByRelevance(
-        this.stripValueIfNeeded(this.getValue()),
-        choices,
-        this.cellProperties.filteringCaseSensitive
-      );
+    if (!sortByRelevanceSetting) {
+      choices = choices.toSorted();
     }
-    const orderByRelevanceLength = Array.isArray(orderByRelevance) ? orderByRelevance.length : 0;
+
+    const filteredChoiceIndexes = [];
+    const locale = this.cellProperties.locale;
+    const filteringCaseSensitive = this.cellProperties.filteringCaseSensitive;
+    const valueToMatch = filteringCaseSensitive ? value : value.toLocaleLowerCase(locale);
+
+    for (let i = 0; i < choices.length; i++) {
+      const currentItem = stripTags(stringify(choices[i]));
+      const itemToMatch = filteringCaseSensitive ? currentItem : currentItem.toLocaleLowerCase(locale);
+
+      if (itemToMatch.indexOf(valueToMatch) !== -1) {
+        filteredChoiceIndexes.push(i);
+      }
+    }
 
     if (filterSetting === false) {
-      if (orderByRelevanceLength) {
-        highlightIndex = orderByRelevance[0];
-      }
-
+      highlightIndex = filteredChoiceIndexes[0];
     } else {
-      const sorted = [];
-
-      for (let i = 0, choicesCount = choices.length; i < choicesCount; i++) {
-        if (sortByRelevanceSetting && orderByRelevanceLength <= i) {
-          break;
-        }
-        if (orderByRelevanceLength) {
-          sorted.push(choices[orderByRelevance[i]]);
-        } else {
-          sorted.push(choices[i]);
-        }
-      }
-
-      highlightIndex = 0;
-      choices = sorted;
+      choices = choices.filter((_, index) => filteredChoiceIndexes.includes(index));
+      highlightIndex = choices.indexOf(valueToMatch) > -1 ? choices.indexOf(valueToMatch) : 0;
     }
 
     this.strippedChoices = choices;
 
     if (choices.length === 0) {
       this.htEditor.rootElement.style.display = 'none';
-
     } else {
       this.htEditor.rootElement.style.display = '';
     }
@@ -588,84 +581,5 @@ export class AutocompleteEditor extends HandsontableEditor {
         }, timeOffset);
       }
     }
-  }
-
-  /**
-   * Filters and sorts by relevance.
-   *
-   * @param {*} value The selected value.
-   * @param {string[]} choices The list of available choices.
-   * @param {boolean} caseSensitive Indicates if it's sorted by case.
-   * @returns {number[]} Array of indexes in original choices array.
-   */
-  sortByRelevance = function(value, choices, caseSensitive) {
-    const choicesRelevance = [];
-    const result = [];
-    const valueLength = value.length;
-    let choicesCount = choices.length;
-    let charsLeft;
-    let currentItem;
-    let i;
-    let valueIndex;
-
-    if (valueLength === 0) {
-      for (i = 0; i < choicesCount; i++) {
-        result.push(i);
-      }
-
-      return result;
-    }
-
-    for (i = 0; i < choicesCount; i++) {
-      currentItem = stripTags(stringify(choices[i]));
-
-      if (caseSensitive) {
-        valueIndex = currentItem.indexOf(value);
-      } else {
-        const locale = this.cellProperties.locale;
-
-        valueIndex = currentItem.toLocaleLowerCase(locale).indexOf(value.toLocaleLowerCase(locale));
-      }
-
-      if (valueIndex !== -1) {
-        charsLeft = currentItem.length - valueIndex - valueLength;
-
-        choicesRelevance.push({
-          baseIndex: i,
-          index: valueIndex,
-          charsLeft,
-          value: currentItem
-        });
-      }
-    }
-
-    choicesRelevance.sort((a, b) => {
-      if (b.index === -1) {
-        return -1;
-      }
-      if (a.index === -1) {
-        return 1;
-      }
-
-      if (a.index < b.index) {
-        return -1;
-      } else if (b.index < a.index) {
-        return 1;
-      } else if (a.index === b.index) {
-        if (a.charsLeft < b.charsLeft) {
-          return -1;
-        } else if (a.charsLeft > b.charsLeft) {
-          return 1;
-        }
-      }
-
-      return 0;
-    });
-
-    for (i = 0, choicesCount = choicesRelevance.length; i < choicesCount; i++) {
-      result.push(choicesRelevance[i].baseIndex);
-    }
-
-    return result;
   }
 }
