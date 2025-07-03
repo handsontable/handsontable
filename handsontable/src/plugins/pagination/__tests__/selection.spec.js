@@ -58,6 +58,67 @@ describe('Pagination with selection', () => {
     `).toBeMatchToSelectionPattern();
   });
 
+  it('should correctly select columns for different pages when pageSize is "auto"', async() => {
+    handsontable({
+      data: createSpreadsheetData(10, 5),
+      width: 300,
+      height: getDefaultRowHeight() * 5,
+      rowHeaders: true,
+      colHeaders: true,
+      pagination: {
+        pageSize: 'auto',
+        initialPage: 1,
+      },
+    });
+
+    await selectColumns(2);
+
+    const plugin = getPlugin('pagination');
+
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: -1,2 to: 2,2']);
+    expect(`
+      |   ║   :   : - :   :   |
+      |===:===:===:===:===:===|
+      | - ║   :   : A :   :   |
+      | - ║   :   : 0 :   :   |
+      | - ║   :   : 0 :   :   |
+    `).toBeMatchToSelectionPattern();
+
+    await plugin.nextPage();
+    await selectColumns(2);
+
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 3,2 from: 3,2 to: 5,2']);
+    expect(`
+      |   ║   :   : - :   :   |
+      |===:===:===:===:===:===|
+      | - ║   :   : A :   :   |
+      | - ║   :   : 0 :   :   |
+      | - ║   :   : 0 :   :   |
+    `).toBeMatchToSelectionPattern();
+
+    await plugin.nextPage();
+    await selectColumns(2);
+
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 6,2 from: 6,2 to: 8,2']);
+    expect(`
+      |   ║   :   : - :   :   |
+      |===:===:===:===:===:===|
+      | - ║   :   : A :   :   |
+      | - ║   :   : 0 :   :   |
+      | - ║   :   : 0 :   :   |
+    `).toBeMatchToSelectionPattern();
+
+    await plugin.nextPage();
+    await selectColumns(2);
+
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 9,2 from: 9,2 to: 9,2']);
+    expect(`
+      |   ║   :   : - :   :   |
+      |===:===:===:===:===:===|
+      | - ║   :   : # :   :   |
+    `).toBeMatchToSelectionPattern();
+  });
+
   it('should be possible to select only visible columns (navigableHeaders: true)', async() => {
     handsontable({
       data: createSpreadsheetData(10, 5),

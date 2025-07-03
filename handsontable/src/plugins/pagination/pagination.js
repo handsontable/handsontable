@@ -619,14 +619,13 @@ export class Pagination extends BasePlugin {
    * @param {CellCoords} to Ending cell coordinates.
    */
   #onBeforeSelectAllRows(from, to) {
-    const { pageSize } = this.#calcStrategy.getState(this.#currentPage);
-    const rowStart = (this.#currentPage - 1) * pageSize;
+    const { firstVisibleRowIndex, lastVisibleRowIndex } = this.getPaginationData();
 
     if (this.#currentPage > 1 || from.row >= 0) {
-      from.row = rowStart;
+      from.row = firstVisibleRowIndex;
     }
 
-    to.row = Math.min(rowStart + pageSize - 1, this.hot.countRows() - 1);
+    to.row = lastVisibleRowIndex;
   }
 
   /**
@@ -637,10 +636,9 @@ export class Pagination extends BasePlugin {
    */
   #onBeforeSetRangeEnd(coords) {
     if (this.hot.selection.isSelectedByColumnHeader()) {
-      const { pageSize } = this.#calcStrategy.getState(this.#currentPage);
-      const rowStart = (this.#currentPage - 1) * pageSize;
+      const { lastVisibleRowIndex } = this.getPaginationData();
 
-      coords.row = Math.min(rowStart + pageSize - 1, this.hot.countRows() - 1);
+      coords.row = lastVisibleRowIndex;
     }
   }
 
