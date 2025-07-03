@@ -242,7 +242,10 @@ export class PaginationUI {
         this.#phraseTranslator(C.PAGINATION_PAGE_SIZE_AUTO) : pageSizeItem;
       const option = new Option(label, pageSizeItem);
 
-      if (pageSizeItem === pageSize || pageSizeItem === 'auto' && autoPageSize) {
+      if (
+        (autoPageSize && pageSizeItem === 'auto') ||
+        (!autoPageSize && pageSizeItem === pageSize)
+      ) {
         option.selected = true;
       }
 
