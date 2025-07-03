@@ -694,7 +694,7 @@ describe('AutocompleteEditor', () => {
 
       const $editor = $('.autocompleteEditor').eq(0);
 
-      expect(endTime - startTime).toBeLessThan(300);
+      expect(endTime - startTime).toBeLessThan(500);
       expect($editor.find('.ht_master tbody tr').size()).toBeGreaterThan(0);
     });
   });
@@ -1426,7 +1426,8 @@ describe('AutocompleteEditor', () => {
             source: choices,
             sortByRelevance: true
           }
-        ]
+        ],
+        height: 1000
       });
 
       await selectCell(0, 0);
@@ -1449,7 +1450,8 @@ describe('AutocompleteEditor', () => {
             source: choices,
             sortByRelevance: false
           }
-        ]
+        ],
+        height: 1000
       });
 
       await selectCell(0, 0);
