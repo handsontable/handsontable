@@ -54,7 +54,7 @@ The building processes transform the source files located in the `/handsontable/
 - `/handsontable/styles/`
     - modern theme CSS files, including minified versions
 - `handsontable/tmp/`
-    - ESM, CommonJS and UMD builds, type definition files etc. 
+    - ESM, CommonJS and UMD builds, type definition files etc.
 
 ::: tip
 
@@ -69,8 +69,9 @@ For more information on the distribution packages, see [this file](https://githu
 Handsontable building processes require:
 
 - [Node.js](https://nodejs.org/) (version defined in `.nvmrc` in the root of the repository)
+- [pnpm](https://pnpm.io/) (in version relevant to the one defined in the `packageManager` field of the root's `package.json`)
 - [npm](https://www.npmjs.com/) (version corresponding to the Node.js version)
-- Node modules installed through `npm install` (e.g. [webpack](https://webpack.js.org/) and [Babel](https://babeljs.io/))
+- Node modules installed through `pnpm install` (e.g. [webpack](https://webpack.js.org/) and [Babel](https://babeljs.io/))
 
 ### `package.json` files
 
@@ -91,10 +92,11 @@ Each Handsontable [project](#monorepo) has its own building processes defined in
 To run your first build:
 
 1. Install [Node.js](https://nodejs.org/).
-2. Install [npm](https://www.npmjs.com/).
-3. Clone the [Handsontable repository](https://github.com/handsontable/handsontable).
-4. From the root directory, run `npm install`.<br>All the required dependencies get installed.
-5. From the root directory, run `npm run build`.<br>All the Handsontable packages get built.
+2. Install [npm](https://www.npmjs.com/) (needed for the `examples` and `docs` packages).
+3. Install [pnpm](https://pnpm.io/) (needed for the monorepo dependency management). <br>The version should correspond to the one defined in the `packageManager` field of the root's `package.json`.
+4. Clone the [Handsontable repository](https://github.com/handsontable/handsontable).
+5. From the root directory, run `pnpm install`.<br>All the required dependencies get installed.
+6. From the root directory, run `pnpm run build`.<br>All the Handsontable packages get built.
 
 ## Build the packages
 

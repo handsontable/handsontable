@@ -43,7 +43,7 @@ export default {
   },
   methods: {
     onFrameworkClick(item) {
-      setCookie('docs_fw', item.id === 'react' ? 'react' : 'javascript');
+      setCookie('docs_fw', item.id);
     },
     getAlt(framework) {
       return frameworkIdToFullName.get(framework).alt;

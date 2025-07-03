@@ -15,10 +15,7 @@ const ensureCorrectHotThemes = () => {
   if (typeof Handsontable !== 'undefined') {
     // eslint-disable-next-line no-undef
     Handsontable.hooks.add('afterSetTheme', function() {
-      if (
-        this.rootContainer.classList.contains('disable-auto-theme') ||
-        this.rootContainer?.parentNode.classList.contains('disable-auto-theme')
-      ) {
+      if (this.rootContainer.closest('.disable-auto-theme')) {
         return;
       }
 
@@ -33,10 +30,7 @@ const ensureCorrectHotThemes = () => {
 
 const switchExamplesTheme = (hotInstances) => {
   hotInstances.forEach((hotInstance) => {
-    if (
-      hotInstance.rootContainer.classList.contains('disable-auto-theme') ||
-      hotInstance.rootContainer?.parentNode.classList.contains('disable-auto-theme')
-    ) {
+    if (hotInstance.rootContainer.closest('.disable-auto-theme')) {
       return;
     }
 

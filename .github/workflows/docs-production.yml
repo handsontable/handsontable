@@ -26,10 +26,11 @@ jobs:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
       - name: Use Node.js
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # https://github.com/actions/setup-node/releases/tag/v4.4.0
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
+          cache-dependency-path: docs/package-lock.json
 
       - uses: actions/github-script@d556feaca394842dc55e4734bf3bb9f685482fa0 # https://github.com/actions/github-script/releases/tag/v6.3.3
         id: get-docs-version
@@ -83,7 +84,7 @@ jobs:
           cd netlify
           mkdir -p docs/docs
           ./build_current_version.sh
-       
+
       - name: Publish preview to Netlify
         run: |
           cd netlify

@@ -16,10 +16,11 @@ jobs:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
       - name: Use Node.js
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # https://github.com/actions/setup-node/releases/tag/v4.4.0
         with:
           node-version-file: ".nvmrc"
           cache: "npm"
+          cache-dependency-path: docs/package-lock.json
 
       - name: Get PR details
         id: get-pr
@@ -47,12 +48,12 @@ jobs:
 
       - name: Install Netlify dependencies
         run: |
-          cd netlify 
+          cd netlify
           npm i
 
       - name: Run the delete proccess
         run: |
-          cd netlify  
+          cd netlify
           node deleteIfExist.mjs
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}

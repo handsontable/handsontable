@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "angular": {
+    "angular-visual-tests-basic-example": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -70,11 +70,11 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "angular:build"
+            "buildTarget": "angular-visual-tests-basic-example:build:production"
           },
           "configurations": {
             "production": {
-              "browserTarget": "angular:build:production"
+              "buildTarget": "angular-visual-tests-basic-example:build:production"
             }
           }
         },
@@ -87,7 +87,7 @@
       }
     }
   },
-  "defaultProject": "angular",
+  "defaultProject": "angular-visual-tests-basic-example",
   "cli": {
     "analytics": false
   }

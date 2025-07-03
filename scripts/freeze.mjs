@@ -101,7 +101,7 @@ displaySeparator();
   cleanNodeModules();
 
   // Install fresh dependencies
-  await spawnProcess('npm i --no-audit');
+  await spawnProcess('pnpm install --force');
 
   // Clear old package builds.
   await spawnProcess('npm run all clean -- --e examples');
