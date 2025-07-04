@@ -31,6 +31,14 @@ const ExampleComponent = () => {
 
   return (
     <>
+      <div className="controls">
+        <button id="copy" onMouseDown={() => copyBtnMousedownCallback()} onClick={() => copyBtnClickCallback()}>
+          Select and copy cell B2
+        </button>
+        <button id="cut" onMouseDown={() => cutBtnMousedownCallback()} onClick={() => cutBtnClickCallback()}>
+          Select and cut cell B2
+        </button>
+      </div>
       <HotTable
         themeName="ht-theme-main"
         ref={hotRef}
@@ -49,14 +57,6 @@ const ExampleComponent = () => {
         autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       />
-      <div className="controls">
-        <button id="copy" onMouseDown={() => copyBtnMousedownCallback()} onClick={() => copyBtnClickCallback()}>
-          Select and copy cell B2
-        </button>
-        <button id="cut" onMouseDown={() => cutBtnMousedownCallback()} onClick={() => cutBtnClickCallback()}>
-          Select and cut cell B2
-        </button>
-      </div>
     </>
   );
 };
