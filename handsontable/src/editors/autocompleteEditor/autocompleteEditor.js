@@ -314,6 +314,10 @@ export class AutocompleteEditor extends HandsontableEditor {
 
       if (itemToMatch.indexOf(valueToMatch) !== -1) {
         filteredChoiceIndexes.push(i);
+
+        if (filterSetting === false) {
+          break;
+        }
       }
     }
 
