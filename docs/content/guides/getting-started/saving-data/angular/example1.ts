@@ -14,7 +14,7 @@ import Handsontable from 'handsontable';
           (click)="loadClickCallback($event)"
         >
           Load data
-        </button>&nbsp;
+        </button>
         <button
           id="save"
           class="button button--primary button--blue"
