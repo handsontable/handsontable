@@ -400,7 +400,6 @@ To set Handsontable's [configuration options](@/guides/getting-started/configura
 
 ```jsx
 <HotTable
-  
   themeName="ht-theme-main-dark-auto"
   // other options
   data={[
