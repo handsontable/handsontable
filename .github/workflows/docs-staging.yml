@@ -116,6 +116,9 @@ jobs:
           mkdir -p docs/docs
           mv ../.vuepress/dist/docs docs
 
+          ls -la docs/docs
+          ls -la docs
+
           ./build_previous_versions.sh
           echo "Building the documentation..." >> docs/index.html
           cp _dev_headers docs/_headers
