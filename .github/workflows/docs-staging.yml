@@ -114,6 +114,9 @@ jobs:
         run: |
           cd netlify
           mkdir -p docs/docs
+
+          ls -la ../.vuepress/dist/docs
+
           mv ../.vuepress/dist/docs docs
 
           ls -la docs/docs
