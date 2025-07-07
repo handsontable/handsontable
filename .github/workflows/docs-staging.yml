@@ -130,6 +130,9 @@ jobs:
           rm -rf ../../handsontable/node_modules
           rm -rf ../../handsontable/tmp
           cp -r ../../handsontable docs/docs
+          mkdir docs/@handsontable
+          cp -r ../../wrappers/react-wrapper docs/@handsontable
+
 
       - name: Publish preview to Netlify
         run: |
