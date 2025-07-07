@@ -130,8 +130,19 @@ jobs:
           rm -rf ../../handsontable/node_modules
           rm -rf ../../handsontable/tmp
           cp -r ../../handsontable docs/docs
-          mkdir docs/@handsontable
-          cp -r ../../wrappers/react-wrapper docs/@handsontable
+          mkdir -p docs/@handsontable
+          cp -r ../../wrappers docs/@handsontable
+
+          rm -rf ../../@handsontable/angular/node_modules
+          rm -rf ../../@handsontable/angular-wrapper/node_modules
+          rm -rf ../../@handsontable/react/node_modules
+          rm -rf ../../@handsontable/react-wrapper/node_modules
+          rm -rf ../../@handsontable/vue/node_modules
+          rm -rf ../../@handsontable/vue3/node_modules
+
+
+          ls -la docs/docs
+          ls -la docs
 
 
       - name: Publish preview to Netlify
