@@ -115,7 +115,8 @@ describe('Pagination integration with HiddenRows', () => {
         pageSize: 'auto',
       },
       width: 500,
-      height: (getDefaultRowHeight() * 3) + getDefaultColumnHeaderHeight() + 5, // 5px gap/buffer
+      // 5px gap/buffer
+      height: (getDefaultRowHeight() * 3) + getPaginationContainerHeight() + getDefaultColumnHeaderHeight() + 5,
     });
 
     const pagination = getPlugin('pagination');
@@ -161,7 +162,8 @@ describe('Pagination integration with HiddenRows', () => {
         pageSize: 3,
       },
       width: 500,
-      height: (getDefaultRowHeight() * 3) + getDefaultColumnHeaderHeight() + 5, // 5px gap/buffer
+      // 5px gap/buffer
+      height: (getDefaultRowHeight() * 3) + getPaginationContainerHeight() + getDefaultColumnHeaderHeight() + 5,
     });
 
     const pagination = getPlugin('pagination');

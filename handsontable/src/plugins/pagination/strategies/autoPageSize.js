@@ -39,7 +39,7 @@ export class AutoPageSizeStrategy {
     for (let index = 0; index < itemSizes.length; index++) {
       const itemSize = itemSizes[index];
 
-      if (pageSize > 0 && totalSize + itemSize > viewportSize) {
+      if (pageSize > 0 && totalSize + itemSize >= viewportSize) {
         pages.push({
           startIndex,
           endIndex: index - 1,

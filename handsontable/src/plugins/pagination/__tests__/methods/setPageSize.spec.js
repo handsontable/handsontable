@@ -29,8 +29,8 @@ describe('Pagination `setPageSize` method', () => {
     handsontable({
       data: createSpreadsheetData(15, 10),
       pagination: true,
-      width: 300,
-      height: 300,
+      width: 550,
+      height: (getDefaultRowHeight() * 8) + getPaginationContainerHeight(),
       renderAllRows: true,
     });
 
@@ -83,9 +83,9 @@ describe('Pagination `setPageSize` method', () => {
     plugin.setPageSize('auto');
 
     expect(plugin.getPaginationData().pageSize).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(12);
-      main.toBe(9);
-      horizon.toBe(7);
+      classic.toBe(7);
+      main.toBe(8);
+      horizon.toBe(8);
     });
     expect(getHtCore().find('tr:first td:first').text()).forThemes(({ classic, main, horizon }) => {
       classic.toBe('A1');
@@ -93,25 +93,25 @@ describe('Pagination `setPageSize` method', () => {
       horizon.toBe('A1');
     });
     expect(getHtCore().find('tr:last td:first').text()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe('A12');
-      main.toBe('A9');
-      horizon.toBe('A7');
+      classic.toBe('A7');
+      main.toBe('A8');
+      horizon.toBe('A8');
     });
     expect(visualizePageSections()).forThemes(({ classic, main, horizon }) => {
       classic.toEqual([
         'Page size: [[...], 5, 10, 20, 50, 100]',
-        '1 - 12 of 15',
-        '|< < Page 1 of 2 [>] [>|]'
+        '1 - 7 of 15',
+        '|< < Page 1 of 3 [>] [>|]'
       ]);
       main.toEqual([
         'Page size: [[...], 5, 10, 20, 50, 100]',
-        '1 - 9 of 15',
+        '1 - 8 of 15',
         '|< < Page 1 of 2 [>] [>|]'
       ]);
       horizon.toEqual([
         'Page size: [[...], 5, 10, 20, 50, 100]',
-        '1 - 7 of 15',
-        '|< < Page 1 of 3 [>] [>|]'
+        '1 - 8 of 15',
+        '|< < Page 1 of 2 [>] [>|]'
       ]);
     });
 

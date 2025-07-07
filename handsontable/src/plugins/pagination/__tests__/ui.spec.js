@@ -25,12 +25,12 @@ describe('Pagination UI', () => {
   it('should correctly calculate the width of the pagination container (table has defined size)', async() => {
     handsontable({
       data: createSpreadsheetData(15, 20),
-      width: 300,
+      width: 500,
       height: 300,
       pagination: true,
     });
 
-    expect(getPaginationContainerElement().offsetWidth).toBe(300);
+    expect(getPaginationContainerElement().offsetWidth).toBe(500);
   });
 
   it('should correctly calculate the width of the pagination container (table has not defined size)', async() => {
@@ -130,7 +130,7 @@ describe('Pagination UI', () => {
   it('should draw border-top of the pagination container when there is horizontal scroll', async() => {
     handsontable({
       data: createSpreadsheetData(50, 50),
-      width: 300,
+      width: 500,
       height: 200,
       pagination: true,
     });
@@ -144,7 +144,8 @@ describe('Pagination UI', () => {
     handsontable({
       data: createSpreadsheetData(15, 10),
       width: 600,
-      height: (getDefaultRowHeight() * 10) + 1,
+      height: (getDefaultRowHeight() * 10) + getPaginationContainerHeight() +
+        (spec().loadedTheme === 'classic' ? 1 : 0),
       pagination: true,
     });
 
@@ -212,5 +213,35 @@ describe('Pagination UI', () => {
     getPlugin('pagination').setPage(3);
 
     expect(hot().rootElement.offsetHeight).toBe(height);
+  });
+
+  it('should adjust the table height to fit the pagination container in declared height (all sections are visible)', async() => {
+    handsontable({
+      data: createSpreadsheetData(50, 10),
+      width: 500,
+      height: 400,
+      pagination: true,
+    });
+
+    expect(tableView().getViewportHeight()).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(366);
+      main.toBe(356);
+      horizon.toBe(352);
+    });
+  });
+
+  it('should adjust the table height to fit the pagination container in declared height (all sections are hidden)', async() => {
+    handsontable({
+      data: createSpreadsheetData(50, 10),
+      width: 500,
+      height: 400,
+      pagination: {
+        showPageSize: false,
+        showCounter: false,
+        showNavigation: false,
+      },
+    });
+
+    expect(tableView().getViewportHeight()).toBe(400);
   });
 });

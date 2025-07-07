@@ -92,7 +92,7 @@ describe('Pagination `pageSize` option', () => {
       expect(countVisibleRows()).toBe(5);
     });
 
-    it('should be possible to change value via `updateSettings`', async() => {
+    it('should be possible to change value via `updateSettings` (change from number to number)', async() => {
       handsontable({
         data: createSpreadsheetData(20, 10),
         pagination: true,
@@ -108,6 +108,26 @@ describe('Pagination `pageSize` option', () => {
 
       expect(plugin.getSetting('pageSize')).toBe(3);
       expect(countVisibleRows()).toBe(3);
+    });
+
+    it('should be possible to change value via `updateSettings` (change from number to "auto")', async() => {
+      handsontable({
+        data: createSpreadsheetData(20, 10),
+        width: 550,
+        height: (getDefaultRowHeight() * 5) + getPaginationContainerHeight() + 10, // 10px gap/buffer
+        pagination: true,
+      });
+
+      await updateSettings({
+        pagination: {
+          pageSize: 'auto',
+        },
+      });
+
+      const plugin = getPlugin('pagination');
+
+      expect(plugin.getSetting('pageSize')).toBe('auto');
+      expect(countVisibleRows()).toBe(5);
     });
 
     it('should not be possible to set page size to 0 or lower', async() => {
@@ -208,8 +228,8 @@ describe('Pagination `pageSize` option', () => {
     it('should be possible to change value in settings', async() => {
       handsontable({
         data: createSpreadsheetData(20, 10),
-        width: 300,
-        height: getDefaultRowHeight() * 5,
+        width: 500,
+        height: (getDefaultRowHeight() * 5) + getPaginationContainerHeight(),
         pagination: {
           pageSize: 'auto',
         },
@@ -235,31 +255,11 @@ describe('Pagination `pageSize` option', () => {
         'plugin to be enabled. Set the `autoRowSize: true` in the configuration to ensure correct behavior.');
     });
 
-    it('should be possible to change value via `updateSettings`', async() => {
-      handsontable({
-        data: createSpreadsheetData(20, 10),
-        width: 300,
-        height: getDefaultRowHeight() * 5,
-        pagination: true,
-      });
-
-      await updateSettings({
-        pagination: {
-          pageSize: 'auto',
-        },
-      });
-
-      const plugin = getPlugin('pagination');
-
-      expect(plugin.getSetting('pageSize')).toBe('auto');
-      expect(countVisibleRows()).toBe(4);
-    });
-
     it('should display at least one row when its size exceeds the table viewport height', async() => {
       handsontable({
         data: createSpreadsheetData(20, 10),
-        width: 300,
-        height: getDefaultRowHeight() * 5,
+        width: 500,
+        height: (getDefaultRowHeight() * 5) + getPaginationContainerHeight(),
         rowHeights: getDefaultRowHeight() * 10,
         pagination: {
           pageSize: 'auto',
@@ -276,8 +276,8 @@ describe('Pagination `pageSize` option', () => {
     it('should render elements after changing the value from "auto" to a number and vice versa (table with defined size)', async() => {
       handsontable({
         data: createSpreadsheetData(45, 10),
-        width: 300,
-        height: getDefaultRowHeight() * 5,
+        width: 550,
+        height: (getDefaultRowHeight() * 5) + getPaginationContainerHeight() + 10, // 10px gap/buffer
         pagination: true,
         renderAllRows: true,
       });
@@ -297,11 +297,11 @@ describe('Pagination `pageSize` option', () => {
       });
 
       expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
-      expect(getHtCore().find('tr:last td:first').text()).toBe('A4');
+      expect(getHtCore().find('tr:last td:first').text()).toBe('A5');
       expect(visualizePageSections()).toEqual([
         'Page size: [[...], 5, 10, 20, 50, 100]',
-        '1 - 4 of 45',
-        '|< < Page 1 of 12 [>] [>|]',
+        '1 - 5 of 45',
+        '|< < Page 1 of 9 [>] [>|]',
       ]);
 
       await updateSettings({
@@ -322,8 +322,8 @@ describe('Pagination `pageSize` option', () => {
     it('should render elements after changing the viewport height (table with defined size)', async() => {
       handsontable({
         data: createSpreadsheetData(45, 10),
-        width: 300,
-        height: getDefaultRowHeight() * 5,
+        width: 550,
+        height: (getDefaultRowHeight() * 5) + getPaginationContainerHeight() + 10, // 10px gap/buffer
         pagination: {
           pageSize: 'auto',
         },
@@ -331,35 +331,35 @@ describe('Pagination `pageSize` option', () => {
       });
 
       expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
-      expect(getHtCore().find('tr:last td:first').text()).toBe('A4');
+      expect(getHtCore().find('tr:last td:first').text()).toBe('A5');
       expect(visualizePageSections()).toEqual([
         'Page size: [[...], 5, 10, 20, 50, 100]',
-        '1 - 4 of 45',
-        '|< < Page 1 of 12 [>] [>|]',
+        '1 - 5 of 45',
+        '|< < Page 1 of 9 [>] [>|]',
       ]);
 
       await updateSettings({
-        height: getDefaultRowHeight() * 8,
+        height: (getDefaultRowHeight() * 8) + getPaginationContainerHeight() + 10, // 10px gap/buffer
       });
 
       expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
-      expect(getHtCore().find('tr:last td:first').text()).toBe('A7');
+      expect(getHtCore().find('tr:last td:first').text()).toBe('A8');
       expect(visualizePageSections()).toEqual([
         'Page size: [[...], 5, 10, 20, 50, 100]',
-        '1 - 7 of 45',
-        '|< < Page 1 of 7 [>] [>|]',
+        '1 - 8 of 45',
+        '|< < Page 1 of 6 [>] [>|]',
       ]);
 
       await updateSettings({
-        height: getDefaultRowHeight() * 12,
+        height: (getDefaultRowHeight() * 12) + getPaginationContainerHeight() + 10, // 10px gap/buffer
       });
 
       expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
-      expect(getHtCore().find('tr:last td:first').text()).toBe('A11');
+      expect(getHtCore().find('tr:last td:first').text()).toBe('A12');
       expect(visualizePageSections()).toEqual([
         'Page size: [[...], 5, 10, 20, 50, 100]',
-        '1 - 11 of 45',
-        '|< < Page 1 of 5 [>] [>|]',
+        '1 - 12 of 45',
+        '|< < Page 1 of 4 [>] [>|]',
       ]);
     });
 
@@ -367,8 +367,8 @@ describe('Pagination `pageSize` option', () => {
       handsontable({
         data: createSpreadsheetData(45, 10),
         autoRowSize: true,
-        width: 300,
-        height: getDefaultRowHeight() * 5,
+        width: 550,
+        height: (getDefaultRowHeight() * 5) + getPaginationContainerHeight(),
         // eslint-disable-next-line no-sparse-arrays
         rowHeights: [getDefaultRowHeight() * 5,, getDefaultRowHeight() * 3,,, getDefaultRowHeight() * 2],
         pagination: {
@@ -446,7 +446,7 @@ describe('Pagination `pageSize` option', () => {
       });
       expect(getHtCore().find('tr:last td:first').text()).forThemes(({ classic, main, horizon }) => {
         classic.toBe('A23');
-        main.toBe('A18');
+        main.toBe('A19');
         horizon.toBe('A14');
       });
       expect(visualizePageSections()).forThemes(({ classic, main, horizon }) => {
@@ -457,7 +457,7 @@ describe('Pagination `pageSize` option', () => {
         ]);
         main.toEqual([
           'Page size: [[...], 5, 10, 20, 50, 100]',
-          '1 - 18 of 100',
+          '1 - 19 of 100',
           '|< < Page 1 of 6 [>] [>|]',
         ]);
         horizon.toEqual([
@@ -505,7 +505,7 @@ describe('Pagination `pageSize` option', () => {
       });
       expect(getHtCore().find('tr:last td:first').text()).forThemes(({ classic, main, horizon }) => {
         classic.toBe('A15');
-        main.toBe('A11');
+        main.toBe('A12');
         horizon.toBe('A9');
       });
       expect(visualizePageSections()).forThemes(({ classic, main, horizon }) => {
@@ -516,8 +516,8 @@ describe('Pagination `pageSize` option', () => {
         ]);
         main.toEqual([
           'Page size: [[...], 5, 10, 20, 50, 100]',
-          '1 - 11 of 100',
-          '|< < Page 1 of 10 [>] [>|]',
+          '1 - 12 of 100',
+          '|< < Page 1 of 9 [>] [>|]',
         ]);
         horizon.toEqual([
           'Page size: [[...], 5, 10, 20, 50, 100]',
@@ -772,7 +772,8 @@ describe('Pagination `pageSize` option', () => {
           return row;
         }),
         width: 500,
-        height: (getDefaultRowHeight() * 5) + (spec().loadedTheme === 'classic' ? 15 : 0),
+        height: (getDefaultRowHeight() * 5) + getPaginationContainerHeight() +
+          (spec().loadedTheme === 'classic' ? 20 : 0),
         autoRowSize: true,
         pagination: {
           pageSizeList: ['auto', 10, 20, 50, 100],

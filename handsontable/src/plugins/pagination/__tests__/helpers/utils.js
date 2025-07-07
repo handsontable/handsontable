@@ -118,3 +118,19 @@ export function visualizePageSections() {
 export function getPaginationContainerElement() {
   return hot().rootWrapperElement.querySelector('.ht-pagination-container');
 }
+
+/**
+ * Returns the pagination container height.
+ *
+ * @returns {number}
+ */
+export function getPaginationContainerHeight() {
+  switch (spec().loadedTheme) {
+    case 'main':
+      return 45;
+    case 'horizon':
+      return 49;
+    default:
+      return 34;
+  }
+}

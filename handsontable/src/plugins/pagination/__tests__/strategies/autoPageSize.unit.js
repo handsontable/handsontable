@@ -18,7 +18,8 @@ describe('AutoPageSizeStrategy', () => {
       });
 
       expect(strategy.pages).toEqual([
-        { startIndex: 0, endIndex: 1, pageSize: 2 },
+        { startIndex: 0, endIndex: 0, pageSize: 1 },
+        { startIndex: 1, endIndex: 1, pageSize: 1 },
         { startIndex: 2, endIndex: 3, pageSize: 2 },
         { startIndex: 4, endIndex: 4, pageSize: 1 },
       ]);
@@ -64,7 +65,7 @@ describe('AutoPageSizeStrategy', () => {
 
     it('should start calculating total height from 1px (border top compensation)', () => {
       const itemSizes = [50, 50, 50, 50];
-      const viewportSize = 101; // Just enough for both rows + 1px border
+      const viewportSize = 102; // Just enough for both rows + 2px border compensation
 
       strategy.calculate({
         itemsSizeProvider: () => itemSizes,

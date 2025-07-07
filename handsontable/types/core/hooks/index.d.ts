@@ -89,6 +89,7 @@ export interface Events {
   afterGetRowHeaderRenderers?: (renderers: Array<(row: number, TH: HTMLTableHeaderCellElement) => void>) => void;
   afterHideColumns?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
   afterHideRows?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
+  afterHeightChange?: (height: number | string) => number | string;
   afterInit?: () => void;
   afterLanguageChange?: (languageCode: string) => void;
   afterListen?: () => void;
@@ -158,6 +159,7 @@ export interface Events {
   afterViewportColumnCalculatorOverride?: (calc: ViewportColumnsCalculator) => void;
   afterViewportRowCalculatorOverride?: (calc: ViewportColumnsCalculator) => void;
   afterViewRender?: (isForced: boolean) => void;
+  afterWidthChange?: (width: number | string) => number | string;
   beforeAddChild?: (parent: RowObject, element?: RowObject, index?: number) => void;
   beforeAutofill?: (selectionData: CellValue[][], sourceRange: CellRange, targetRange: CellRange, direction: 'up' | 'down' | 'left' | 'right') => CellValue[][] | boolean | void;
   beforeBeginEditing?: (row: number, column: number, initialValue: any, event: MouseEvent | KeyboardEvent, fullEditMode: boolean) => boolean | void;

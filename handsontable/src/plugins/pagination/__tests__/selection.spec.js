@@ -36,8 +36,8 @@ describe('Pagination with selection', () => {
   it('should be possible to select only visible columns (pageSize as "auto")', async() => {
     handsontable({
       data: createSpreadsheetData(10, 5),
-      width: 300,
-      height: getDefaultRowHeight() * 5,
+      width: 500,
+      height: (getDefaultRowHeight() * 5) + getPaginationContainerHeight() + 10, // 10px gap/buffer
       rowHeaders: true,
       colHeaders: true,
       pagination: {
@@ -48,11 +48,12 @@ describe('Pagination with selection', () => {
 
     await selectColumns(2, 2, -1);
 
-    expect(getSelectedRange()).toEqualCellRange(['highlight: 3,2 from: 3,2 to: 5,2']);
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 4,2 from: 4,2 to: 7,2']);
     expect(`
       |   ║   :   : - :   :   |
       |===:===:===:===:===:===|
       | - ║   :   : A :   :   |
+      | - ║   :   : 0 :   :   |
       | - ║   :   : 0 :   :   |
       | - ║   :   : 0 :   :   |
     `).toBeMatchToSelectionPattern();
@@ -61,8 +62,8 @@ describe('Pagination with selection', () => {
   it('should correctly select columns for different pages when pageSize is "auto"', async() => {
     handsontable({
       data: createSpreadsheetData(10, 5),
-      width: 300,
-      height: getDefaultRowHeight() * 5,
+      width: 500,
+      height: (getDefaultRowHeight() * 5) + getPaginationContainerHeight() + 10, // 10px gap/buffer
       rowHeaders: true,
       colHeaders: true,
       pagination: {
@@ -75,11 +76,12 @@ describe('Pagination with selection', () => {
 
     const plugin = getPlugin('pagination');
 
-    expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: -1,2 to: 2,2']);
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: -1,2 to: 3,2']);
     expect(`
       |   ║   :   : - :   :   |
       |===:===:===:===:===:===|
       | - ║   :   : A :   :   |
+      | - ║   :   : 0 :   :   |
       | - ║   :   : 0 :   :   |
       | - ║   :   : 0 :   :   |
     `).toBeMatchToSelectionPattern();
@@ -87,11 +89,12 @@ describe('Pagination with selection', () => {
     await plugin.nextPage();
     await selectColumns(2);
 
-    expect(getSelectedRange()).toEqualCellRange(['highlight: 3,2 from: 3,2 to: 5,2']);
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 4,2 from: 4,2 to: 7,2']);
     expect(`
       |   ║   :   : - :   :   |
       |===:===:===:===:===:===|
       | - ║   :   : A :   :   |
+      | - ║   :   : 0 :   :   |
       | - ║   :   : 0 :   :   |
       | - ║   :   : 0 :   :   |
     `).toBeMatchToSelectionPattern();
@@ -99,23 +102,12 @@ describe('Pagination with selection', () => {
     await plugin.nextPage();
     await selectColumns(2);
 
-    expect(getSelectedRange()).toEqualCellRange(['highlight: 6,2 from: 6,2 to: 8,2']);
+    expect(getSelectedRange()).toEqualCellRange(['highlight: 8,2 from: 8,2 to: 9,2']);
     expect(`
       |   ║   :   : - :   :   |
       |===:===:===:===:===:===|
       | - ║   :   : A :   :   |
       | - ║   :   : 0 :   :   |
-      | - ║   :   : 0 :   :   |
-    `).toBeMatchToSelectionPattern();
-
-    await plugin.nextPage();
-    await selectColumns(2);
-
-    expect(getSelectedRange()).toEqualCellRange(['highlight: 9,2 from: 9,2 to: 9,2']);
-    expect(`
-      |   ║   :   : - :   :   |
-      |===:===:===:===:===:===|
-      | - ║   :   : # :   :   |
     `).toBeMatchToSelectionPattern();
   });
 

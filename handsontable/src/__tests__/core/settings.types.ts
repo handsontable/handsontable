@@ -327,6 +327,9 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterGetRowHeaderRenderers: (array) => {},
   afterHideColumns: (currentHideConfig, destinationHideConfig, actionPossible, stateChanged) => {},
   afterHideRows: (currentHideConfig, destinationHideConfig, actionPossible, stateChanged) => {},
+  afterHeightChange: (height) => {
+    const _height: number | string = height;
+  },
   afterInit: () => {},
   afterLanguageChange: (languageCode) => {},
   afterListen: () => {},
@@ -437,6 +440,9 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterViewportColumnCalculatorOverride: (calc) => {},
   afterViewportRowCalculatorOverride: (calc) => {},
   afterViewRender: (isForced) => {},
+  afterWidthChange: (width) => {
+    const _width: number | string = width;
+  },
   beforeAddChild: (parent, element, index) => {},
   beforeAutofill: (start, end, data) => {},
   beforeBeginEditing: (row: number, column: number, initialValue, event, fullEditMode: boolean) => {

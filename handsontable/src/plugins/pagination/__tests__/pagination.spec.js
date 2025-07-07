@@ -218,8 +218,8 @@ describe('Pagination', () => {
   it('should scroll the viewport to the top when the page is changed', async() => {
     handsontable({
       data: createSpreadsheetData(50, 20),
-      width: 300,
-      height: 200,
+      width: 500,
+      height: 200 + getPaginationContainerHeight(),
       pagination: {
         pageSize: 25,
       },
@@ -229,13 +229,13 @@ describe('Pagination', () => {
 
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(69);
-      main.toBe(135);
-      horizon.toBe(223);
+      main.toBe(125);
+      horizon.toBe(213);
     });
     expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(265);
-      main.toBe(265);
-      horizon.toBe(279);
+      classic.toBe(65);
+      main.toBe(65);
+      horizon.toBe(79);
     });
 
     getPlugin('pagination').setPage(2);
@@ -246,16 +246,16 @@ describe('Pagination', () => {
       horizon.toBe(0);
     });
     expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(265);
-      main.toBe(265);
-      horizon.toBe(279);
+      classic.toBe(65);
+      main.toBe(65);
+      horizon.toBe(79);
     });
   });
 
   it('should update the internal cache after changing the page size to the state where there is only one page', async() => {
     handsontable({
       data: createSpreadsheetData(50, 20),
-      width: 300,
+      width: 500,
       height: 200,
       pagination: {
         pageSize: 25,
