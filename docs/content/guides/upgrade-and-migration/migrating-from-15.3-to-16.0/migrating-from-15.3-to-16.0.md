@@ -106,7 +106,7 @@ In version 16.0, we've updated how custom borders are positioned to improve accu
 #### Why is this a breaking change?
 It's very unlikely, but if your application relies on specific border positioning or you've implemented custom styling based on border positions, you may need to update your styles. 
 
-The visual appearance of borders will be slightly different from version 15.3.
+The visual appearance of borders in version `16.0` will be slightly different compared to version `15.3`.
 
 ### Migration notes
 No code changes are required - the improvements are handled automatically by the new version.
