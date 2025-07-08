@@ -400,6 +400,7 @@ Handsontable provides a comprehensive set of CSS variables that allow you to cus
 ### Basic customization by overriding css variables
 
 ```css
+/* Override for light main theme */
 .ht-theme-main-dark {
   --ht-accent-color: #007bff;
   --ht-foreground-color: #333333;
