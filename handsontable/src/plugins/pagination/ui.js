@@ -231,12 +231,6 @@ export class PaginationUI {
     this.#a11yAnnouncer(navLabelText);
     this.refreshBorderState();
 
-    const pageSizeValue = autoPageSize ? 'auto' : pageSize;
-
-    if (!pageSizeList.includes(pageSizeValue)) {
-      pageSizeList.unshift('...');
-    }
-
     pageSizeList.forEach((pageSizeItem) => {
       const label = pageSizeItem === 'auto' ?
         this.#phraseTranslator(C.PAGINATION_PAGE_SIZE_AUTO) : pageSizeItem;
@@ -258,17 +252,36 @@ export class PaginationUI {
     if (isFirstPage) {
       addClass(first, 'ht-page-navigation-section__button--disabled');
       addClass(prev, 'ht-page-navigation-section__button--disabled');
+      first.disabled = true;
+      prev.disabled = true;
     } else {
       removeClass(first, 'ht-page-navigation-section__button--disabled');
       removeClass(prev, 'ht-page-navigation-section__button--disabled');
+      first.disabled = false;
+      prev.disabled = false;
     }
 
     if (isLastPage) {
       addClass(next, 'ht-page-navigation-section__button--disabled');
       addClass(last, 'ht-page-navigation-section__button--disabled');
+      next.disabled = true;
+      last.disabled = true;
     } else {
       removeClass(next, 'ht-page-navigation-section__button--disabled');
       removeClass(last, 'ht-page-navigation-section__button--disabled');
+      next.disabled = false;
+      last.disabled = false;
+    }
+
+    const activeElement = this.#rootElement.ownerDocument.activeElement;
+
+    if ([first, prev, next, last].includes(activeElement)) {
+      if (prev.disabled) {
+        next.focus();
+
+      } else if (next.disabled) {
+        prev.focus();
+      }
     }
 
     setAttribute(first, [

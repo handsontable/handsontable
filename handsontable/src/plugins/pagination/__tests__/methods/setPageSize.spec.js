@@ -53,7 +53,7 @@ describe('Pagination `setPageSize` method', () => {
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
     expect(visualizePageSections()).toEqual([
-      'Page size: [[...], 5, 10, 20, 50, 100]',
+      'Page size: [[5], 10, 20, 50, 100]',
       '1 - 1 of 15',
       '|< < Page 1 of 15 [>] [>|]'
     ]);
@@ -64,7 +64,7 @@ describe('Pagination `setPageSize` method', () => {
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A12');
     expect(visualizePageSections()).toEqual([
-      'Page size: [[...], 5, 10, 20, 50, 100]',
+      'Page size: [[5], 10, 20, 50, 100]',
       '1 - 12 of 15',
       '|< < Page 1 of 2 [>] [>|]'
     ]);
@@ -75,7 +75,7 @@ describe('Pagination `setPageSize` method', () => {
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A15');
     expect(visualizePageSections()).toEqual([
-      'Page size: [[...], 5, 10, 20, 50, 100]',
+      'Page size: [[5], 10, 20, 50, 100]',
       '1 - 15 of 15',
       '|< < Page 1 of 1 > >|'
     ]);
@@ -86,7 +86,7 @@ describe('Pagination `setPageSize` method', () => {
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A7');
     expect(visualizePageSections()).toEqual([
-      'Page size: [[...], 5, 10, 20, 50, 100]',
+      'Page size: [[5], 10, 20, 50, 100]',
       '1 - 7 of 15',
       '|< < Page 1 of 3 [>] [>|]'
     ]);
