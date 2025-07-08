@@ -212,6 +212,11 @@ module.exports = function(docsVersion, base) {
 
         return `
           <div class="example-container">
+            ${!isAngular ? '' : `
+              <div class="examples-loader-container">
+                <div class="examples-loader"></div>
+              </div>
+            `}
             <template v-if="${isActive}">
               <style v-pre>${cssContent}</style>
               <div v-pre>${htmlContentRoot}</div>
