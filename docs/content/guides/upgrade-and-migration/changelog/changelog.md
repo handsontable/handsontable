@@ -34,7 +34,7 @@ See the full history of changes made to Handsontable in each major, minor, and p
 Released on July 9, 2025
 
 For more information about this release see:
-- [Blog post (16.0.0)](https://handsontable.com/blog/handsontable-16.0.0-accessibility-improvements-and-30-fixes)
+- [Blog post (16.0.0)](https://handsontable.com/blog/handsontable-16-new-angular-wrapper-and-core-improvements)
 - [Documentation (16.0)](https://handsontable.com/docs/16.0)
 
 #### Added
