@@ -20,6 +20,8 @@ category: Upgrade and migration
 
 Migrate from Handsontable 15.3 to Handsontable 16.0, released on 09/07/2025.
 
+More information about this release can be found in the [`16.0.0` release blog post](https://handsontable.com/blog/handsontable-16-new-angular-wrapper-and-core-improvements]).
+
 [[toc]]
 
 ## 1. Introducing the new DOM structure
@@ -52,8 +54,6 @@ body
 │        │   └── Data grid content
 │        ├── .htFocusCatcher // Focus Catcher (down)
 │        ├── .hot-display-license-info // License key notification bar
-│        ├── Future: Status bar
-│        └── Future: Pagination bar
 └── .ht-portal // Portal Element
     └── Context menus, dropdowns, pop-ups, sidebars
         (absolutely positioned elements)
@@ -65,7 +65,7 @@ body
 - Portal Element: New div.ht-portal with ht-theme class for absolutely positioned elements
 - Root Element: rootElement is now created internally by Handsontable instead of using the user-provided container directly
 
-## 2. Update the CSS variables
+## 2. Updated the CSS variables
 
 In Handsontable 16.0, we've made significant improvements to our CSS variables system to adjust themes colors, variable order and provide better customization options. Here are the key changes:
 
@@ -96,17 +96,22 @@ If you were using custom CSS variables in version 15.3, you'll need to:
 2. Update variable references to the new radio input (only if checkbox variables were changed)
 3. Take advantage of the new variables for more granular control
 
-## 3. Update the placement of custom borders
+## 3. Updated the placement of custom borders
 
-In Handsontable 16.0, we've updated how custom borders are positioned to improve accuracy and consistency.
+In version 16.0, we've updated how custom borders are positioned to improve accuracy and consistency. This change affects the visual positioning of borders, particularly for cells with custom borders.
 
-### Key changes in border placement
-- Borders are positioned to ensure that all borders remain within the table
+#### What changed?
+- Border positions were adjusted to prevent overlapping with adjacent cells and headers.
+
+#### Why is this a breaking change?
+It's very unlikely, but if your application relies on specific border positioning or you've implemented custom styling based on border positions, you may need to update your styles. 
+
+The visual appearance of borders will be slightly different from version 15.3.
 
 ### Migration notes
 No code changes are required - the improvements are handled automatically by the new version.
 
-## 4. Switch to the new Angular wrapper (for Angular 16+)
+## 4. Switched to the new Angular wrapper (for Angular 16+)
 
 Handsontable 16.0 introduces a completely new Angular wrapper for Handsontable. This wrapper is designed to provide better integration with modern Angular applications and improved developer experience. If you use Angular 16 or higher, we recommend migrating to the new wrapper.
 
