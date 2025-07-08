@@ -114,9 +114,7 @@ jobs:
         run: |
           cd netlify
           mkdir -p docs/docs
-
-          ls -la ../.vuepress/dist/docs
-
+          
           mv ../.vuepress/dist/docs docs
 
           ./build_previous_versions.sh
@@ -142,9 +140,6 @@ jobs:
           cp -r ../../wrappers/react-wrapper docs/docs/@handsontable/
           cp -r ../../wrappers/vue docs/docs/@handsontable/
           cp -r ../../wrappers/vue3 docs/docs/@handsontable/
-
-          cp -r ../../wrappers docs/docs/@handsontable/
-
 
       - name: Publish preview to Netlify
         run: |
