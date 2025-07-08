@@ -143,6 +143,7 @@ jobs:
           cp -r ../../wrappers/vue docs/docs/@handsontable/
           cp -r ../../wrappers/vue3 docs/docs/@handsontable/
 
+          cp -r ../../wrappers docs/docs/@handsontable/
 
 
       - name: Publish preview to Netlify
