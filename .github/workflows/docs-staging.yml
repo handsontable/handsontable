@@ -114,6 +114,7 @@ jobs:
         run: |
           cd netlify
           mkdir -p docs/docs
+          
           mv ../.vuepress/dist/docs docs
 
           ./build_previous_versions.sh
@@ -121,9 +122,24 @@ jobs:
           cp _dev_headers docs/_headers
           cp _redirects docs/_redirects
           cp docs/docs/404.html docs/404.html
+          
           rm -rf ../../handsontable/node_modules
           rm -rf ../../handsontable/tmp
           cp -r ../../handsontable docs/docs
+          
+          mkdir -p docs/docs/@handsontable
+          rm -rf ../../@handsontable/angular/node_modules
+          rm -rf ../../@handsontable/angular-wrapper/node_modules
+          rm -rf ../../@handsontable/react/node_modules
+          rm -rf ../../@handsontable/react-wrapper/node_modules
+          rm -rf ../../@handsontable/vue/node_modules
+          rm -rf ../../@handsontable/vue3/node_modules
+          cp -r ../../wrappers/angular docs/docs/@handsontable/
+          cp -r ../../wrappers/angular-wrapper docs/docs/@handsontable/
+          cp -r ../../wrappers/react docs/docs/@handsontable/
+          cp -r ../../wrappers/react-wrapper docs/docs/@handsontable/
+          cp -r ../../wrappers/vue docs/docs/@handsontable/
+          cp -r ../../wrappers/vue3 docs/docs/@handsontable/
 
       - name: Publish preview to Netlify
         run: |
