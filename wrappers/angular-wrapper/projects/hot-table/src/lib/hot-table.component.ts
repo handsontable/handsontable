@@ -36,7 +36,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   /** The data for the Handsontable instance. */
   @Input() data: Handsontable.GridSettings['data'] | null = null;
   /** The settings for the Handsontable instance. */
-  @Input() settings: GridSettings;
+  @Input() settings: GridSettings = {};
 
   /** The container element for the Handsontable instance. */
   @ViewChild('container', { static: false })
