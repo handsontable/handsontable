@@ -119,9 +119,6 @@ jobs:
 
           mv ../.vuepress/dist/docs docs
 
-          ls -la docs/docs
-          ls -la docs
-
           ./build_previous_versions.sh
           echo "Building the documentation..." >> docs/index.html
           cp _dev_headers docs/_headers
@@ -139,10 +136,13 @@ jobs:
           rm -rf ../../@handsontable/react-wrapper/node_modules
           rm -rf ../../@handsontable/vue/node_modules
           rm -rf ../../@handsontable/vue3/node_modules
-          cp -r ../../wrappers docs/docs/@handsontable/
+          cp -r ../../wrappers/angular docs/docs/@handsontable/
+          cp -r ../../wrappers/angular-wrapper docs/docs/@handsontable/
+          cp -r ../../wrappers/react docs/docs/@handsontable/
+          cp -r ../../wrappers/react-wrapper docs/docs/@handsontable/
+          cp -r ../../wrappers/vue docs/docs/@handsontable/
+          cp -r ../../wrappers/vue3 docs/docs/@handsontable/
 
-          ls -la docs/docs
-          ls -la docs
 
 
       - name: Publish preview to Netlify
