@@ -139,7 +139,7 @@ jobs:
           rm -rf ../../@handsontable/react-wrapper/node_modules
           rm -rf ../../@handsontable/vue/node_modules
           rm -rf ../../@handsontable/vue3/node_modules
-          cp -r ../../wrappers/ docs/docs/@handsontable
+          cp -r ../../wrappers docs/docs/@handsontable/
 
           ls -la docs/docs
           ls -la docs
