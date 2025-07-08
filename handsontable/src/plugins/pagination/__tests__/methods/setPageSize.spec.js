@@ -82,38 +82,14 @@ describe('Pagination `setPageSize` method', () => {
 
     plugin.setPageSize('auto');
 
-    expect(plugin.getPaginationData().pageSize).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(7);
-      main.toBe(8);
-      horizon.toBe(8);
-    });
-    expect(getHtCore().find('tr:first td:first').text()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe('A1');
-      main.toBe('A1');
-      horizon.toBe('A1');
-    });
-    expect(getHtCore().find('tr:last td:first').text()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe('A7');
-      main.toBe('A8');
-      horizon.toBe('A8');
-    });
-    expect(visualizePageSections()).forThemes(({ classic, main, horizon }) => {
-      classic.toEqual([
-        'Page size: [[...], 5, 10, 20, 50, 100]',
-        '1 - 7 of 15',
-        '|< < Page 1 of 3 [>] [>|]'
-      ]);
-      main.toEqual([
-        'Page size: [[...], 5, 10, 20, 50, 100]',
-        '1 - 8 of 15',
-        '|< < Page 1 of 2 [>] [>|]'
-      ]);
-      horizon.toEqual([
-        'Page size: [[...], 5, 10, 20, 50, 100]',
-        '1 - 8 of 15',
-        '|< < Page 1 of 2 [>] [>|]'
-      ]);
-    });
+    expect(plugin.getPaginationData().pageSize).toBe(7);
+    expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+    expect(getHtCore().find('tr:last td:first').text()).toBe('A7');
+    expect(visualizePageSections()).toEqual([
+      'Page size: [[...], 5, 10, 20, 50, 100]',
+      '1 - 7 of 15',
+      '|< < Page 1 of 3 [>] [>|]'
+    ]);
 
     plugin.setPageSize(20);
 

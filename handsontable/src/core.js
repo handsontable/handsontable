@@ -228,7 +228,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     this.rootWrapperElement = this.rootDocument.createElement('div');
     this.rootPortalElement = this.rootDocument.createElement('div');
 
-    addClass(this.rootElement, 'ht-wrapper');
+    addClass(this.rootElement, ['ht-wrapper', 'handsontable']);
     addClass(this.rootWrapperElement, 'ht-root-wrapper');
 
     this.rootWrapperElement.appendChild(this.rootElement);
@@ -320,10 +320,26 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * @private
    * @type {StylesHandler}
    */
-  this.stylesHandler = new StylesHandler(
-    instance.rootElement,
-    instance.rootDocument
-  );
+  this.stylesHandler = new StylesHandler({
+    rootElement: instance.rootElement,
+    rootDocument: instance.rootDocument,
+    onThemeChange: (validThemeName) => {
+      if (isRootInstance(this)) {
+        removeClass(this.rootWrapperElement, /ht-theme-.*/g);
+        removeClass(this.rootPortalElement, /ht-theme-.*/g);
+
+        if (validThemeName) {
+          addClass(this.rootWrapperElement, validThemeName);
+          addClass(this.rootPortalElement, validThemeName);
+
+          if (!getComputedStyle(this.rootWrapperElement).getPropertyValue('--ht-line-height')) {
+            warn(`The "${validThemeName}" theme is enabled, but its stylesheets are missing or not imported correctly. \
+              Import the correct CSS files in order to use that theme.`);
+          }
+        }
+      }
+    }
+  });
 
   userSettings.language = getValidLanguageCode(userSettings.language);
 
@@ -1262,15 +1278,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
     this.view = new TableView(this);
 
-    const themeName = tableMeta.themeName || getThemeClassName(instance.rootContainer);
-
-    // Use the theme defined in the settings object or set as a root container class name (in that order).
-    instance.useTheme(themeName);
-
     editorManager = EditorManager.getInstance(instance, tableMeta, selection);
-
     viewportScroller = createViewportScroller(instance);
-
     focusManager = new FocusManager(instance);
 
     if (isRootInstance(this)) {
@@ -2656,6 +2665,22 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       }
     }
 
+    if (init) {
+      // Use the theme defined in the settings object or set as a root container class name (in that order).
+      instance.useTheme(tableMeta.themeName || getThemeClassName(instance.rootContainer));
+
+    } else {
+      const currentThemeName = instance.getCurrentThemeName();
+      const themeNameOptionExists = hasOwnProperty(settings, 'themeName');
+
+      if (
+        themeNameOptionExists &&
+        currentThemeName !== settings.themeName
+      ) {
+        instance.useTheme(settings.themeName);
+      }
+    }
+
     // Load data or create data map
     if (settings.data === undefined && tableMeta.data === undefined) {
       dataUpdateFunction(null, 'updateSettings'); // data source created just now
@@ -2716,12 +2741,6 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       currentHeight = parseInt(instance.rootElement.style.height, 10);
     }
 
-    let height = settings.height;
-
-    if (isFunction(height)) {
-      height = height();
-    }
-
     if (init) {
       const initialStyle = instance.rootElement.getAttribute('style');
 
@@ -2730,20 +2749,30 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       }
     }
 
-    if (height === null) {
-      const initialStyle = instance.rootElement.getAttribute('data-initialstyle');
+    let height = settings.height;
 
-      if (initialStyle && (initialStyle.indexOf('height') > -1 || initialStyle.indexOf('overflow') > -1)) {
-        instance.rootElement.setAttribute('style', initialStyle);
-
-      } else {
-        instance.rootElement.style.height = '';
-        instance.rootElement.style.overflow = '';
+    if (typeof settings.height !== 'undefined') {
+      if (isFunction(height)) {
+        height = height();
       }
 
-    } else if (height !== undefined) {
-      instance.rootElement.style.height = isNaN(height) ? `${height}` : `${height}px`;
-      instance.rootElement.style.overflow = 'hidden';
+      height = instance.runHooks('beforeHeightChange', height);
+
+      if (height === null) {
+        const initialStyle = instance.rootElement.getAttribute('data-initialstyle');
+
+        if (initialStyle && (initialStyle.indexOf('height') > -1 || initialStyle.indexOf('overflow') > -1)) {
+          instance.rootElement.setAttribute('style', initialStyle);
+
+        } else {
+          instance.rootElement.style.height = '';
+          instance.rootElement.style.overflow = '';
+        }
+
+      } else if (height !== undefined) {
+        instance.rootElement.style.height = isNaN(height) ? `${height}` : `${height}px`;
+        instance.rootElement.style.overflow = 'hidden';
+      }
     }
 
     if (typeof settings.width !== 'undefined') {
@@ -2753,6 +2782,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
         width = width();
       }
 
+      width = instance.runHooks('beforeWidthChange', width);
       instance.rootElement.style.width = isNaN(width) ? `${width}` : `${width}px`;
     }
 
@@ -2760,16 +2790,6 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       if (instance.view) {
         instance.view._wt.wtViewport.resetHasOversizedColumnHeadersMarked();
         instance.view._wt.exportSettingsAsClassNames();
-
-        const currentThemeName = instance.getCurrentThemeName();
-        const themeNameOptionExists = hasOwnProperty(settings, 'themeName');
-
-        if (
-          themeNameOptionExists &&
-          currentThemeName !== settings.themeName
-        ) {
-          instance.useTheme(settings.themeName);
-        }
       }
 
       instance.runHooks('afterUpdateSettings', settings);
@@ -5149,21 +5169,6 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     this.stylesHandler.useTheme(themeName);
 
     const validThemeName = this.stylesHandler.getThemeName();
-
-    if (isRootInstance(this)) {
-      removeClass(this.rootWrapperElement, /ht-theme-.*/g);
-      removeClass(this.rootPortalElement, /ht-theme-.*/g);
-
-      if (validThemeName) {
-        addClass(this.rootWrapperElement, validThemeName);
-        addClass(this.rootPortalElement, validThemeName);
-
-        if (!getComputedStyle(this.rootWrapperElement).getPropertyValue('--ht-line-height')) {
-          warn(`The "${validThemeName}" theme is enabled, but its stylesheets are missing or not imported correctly. \
-            Import the correct CSS files in order to use that theme.`);
-        }
-      }
-    }
 
     if (!isFirstRun) {
       instance.render();

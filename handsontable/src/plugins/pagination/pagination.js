@@ -205,7 +205,7 @@ export class Pagination extends BasePlugin {
     this.addHook('afterScrollVertically', (...args) => this.#onAfterScrollVertically(...args));
     this.addHook('afterLanguageChange', (...args) => this.#onAfterLanguageChange(...args));
     this.addHook('modifyRowHeight', (...args) => this.#onModifyRowHeight(...args));
-    this.addHook('afterHeightChange', (...args) => this.#onAfterHeightChange(...args));
+    this.addHook('beforeHeightChange', (...args) => this.#onBeforeHeightChange(...args));
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onIndexCacheUpdate);
 
     super.enablePlugin();
@@ -754,13 +754,13 @@ export class Pagination extends BasePlugin {
   }
 
   /**
-   * Called after the height of the table is changed. It adjusts the table height to fit the pagination container
+   * Called before the height of the table is changed. It adjusts the table height to fit the pagination container
    * in declared height.
    *
    * @param {number} height Table height.
    * @returns {string} Returns the new table height.
    */
-  #onAfterHeightChange(height) {
+  #onBeforeHeightChange(height) {
     return `calc(${height}${/[0-9]$/.test(height) ? 'px' : ''} - ${this.#ui.getHeight()}px)`;
   }
 

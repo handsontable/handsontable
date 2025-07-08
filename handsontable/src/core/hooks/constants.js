@@ -450,26 +450,6 @@ export const REGISTERED_HOOKS = [
   'afterInit',
 
   /**
-   * Fired after the height of the table is changed.
-   *
-   * @since 16.1.0
-   * @event Hooks#afterHeightChange
-   * @param {number | string} height Table height.
-   * @returns {number | string} Modified table height.
-   */
-  'afterHeightChange',
-
-  /**
-   * Fired after the width of the table is changed.
-   *
-   * @since 16.1.0
-   * @event Hooks#afterWidthChange
-   * @param {number | string} width Table width.
-   * @returns {number | string} Modified table width.
-   */
-  'afterWidthChange',
-
-  /**
    * Fired after Handsontable's [`data`](@/api/options.md#data)
    * gets modified by the [`loadData()`](@/api/core.md#loaddata) method
    * or the [`updateSettings()`](@/api/core.md#updatesettings) method.
@@ -1368,6 +1348,26 @@ export const REGISTERED_HOOKS = [
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
    */
   'beforeChangeRender',
+
+  /**
+   * Fired before the height of the table is changed.
+   *
+   * @since 16.1.0
+   * @event Hooks#beforeHeightChange
+   * @param {number | string} height Table height.
+   * @returns {number | string} Modified table height.
+   */
+  'beforeHeightChange',
+
+  /**
+   * Fired before the width of the table is changed.
+   *
+   * @since 16.1.0
+   * @event Hooks#beforeWidthChange
+   * @param {number | string} width Table width.
+   * @returns {number | string} Modified table width.
+   */
+  'beforeWidthChange',
 
   /**
    * Fired before drawing the borders.

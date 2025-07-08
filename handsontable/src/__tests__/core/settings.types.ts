@@ -327,9 +327,6 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterGetRowHeaderRenderers: (array) => {},
   afterHideColumns: (currentHideConfig, destinationHideConfig, actionPossible, stateChanged) => {},
   afterHideRows: (currentHideConfig, destinationHideConfig, actionPossible, stateChanged) => {},
-  afterHeightChange: (height) => {
-    const _height: number | string = height;
-  },
   afterInit: () => {},
   afterLanguageChange: (languageCode) => {},
   afterListen: () => {},
@@ -440,9 +437,6 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterViewportColumnCalculatorOverride: (calc) => {},
   afterViewportRowCalculatorOverride: (calc) => {},
   afterViewRender: (isForced) => {},
-  afterWidthChange: (width) => {
-    const _width: number | string = width;
-  },
   beforeAddChild: (parent, element, index) => {},
   beforeAutofill: (start, end, data) => {},
   beforeBeginEditing: (row: number, column: number, initialValue, event, fullEditMode: boolean) => {
@@ -479,6 +473,11 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeDropdownMenuShow: (instance) => {},
   beforeFilter: (conditionsStack, previousConditionStack) => { conditionsStack[0].conditions[0].name === 'begins_with'; },
   beforeGetCellMeta: (row, col, cellProperties) => {},
+  beforeHeightChange: (height) => {
+    const _height: number | string = height;
+
+    return height;
+  },
   beforeHideColumns: (currentHideConfig, destinationHideConfig, actionPossible) => {},
   beforeHideRows: (currentHideConfig, destinationHideConfig, actionPossible) => {},
   beforeHighlightingColumnHeader: (column, headerLevel, highlightMeta) => {
@@ -588,6 +587,11 @@ const allSettings: Required<Handsontable.GridSettings> = {
   },
   beforeViewportScroll: () => {},
   beforeViewRender: (isForced, skipRender) => {},
+  beforeWidthChange: (width) => {
+    const _width: number | string = width;
+
+    return width;
+  },
   construct: () => {},
   init: () => {},
   modifyAutoColumnSizeSeed: (seed, cellProperties, cellValue) => '1',

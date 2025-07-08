@@ -229,8 +229,8 @@ describe('Pagination', () => {
 
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(69);
-      main.toBe(125);
-      horizon.toBe(213);
+      main.toBe(134);
+      horizon.toBe(222);
     });
     expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(65);

@@ -446,7 +446,7 @@ describe('Pagination `pageSize` option', () => {
       });
       expect(getHtCore().find('tr:last td:first').text()).forThemes(({ classic, main, horizon }) => {
         classic.toBe('A23');
-        main.toBe('A19');
+        main.toBe('A18');
         horizon.toBe('A14');
       });
       expect(visualizePageSections()).forThemes(({ classic, main, horizon }) => {
@@ -457,7 +457,7 @@ describe('Pagination `pageSize` option', () => {
         ]);
         main.toEqual([
           'Page size: [[...], 5, 10, 20, 50, 100]',
-          '1 - 19 of 100',
+          '1 - 18 of 100',
           '|< < Page 1 of 6 [>] [>|]',
         ]);
         horizon.toEqual([
@@ -505,7 +505,7 @@ describe('Pagination `pageSize` option', () => {
       });
       expect(getHtCore().find('tr:last td:first').text()).forThemes(({ classic, main, horizon }) => {
         classic.toBe('A15');
-        main.toBe('A12');
+        main.toBe('A11');
         horizon.toBe('A9');
       });
       expect(visualizePageSections()).forThemes(({ classic, main, horizon }) => {
@@ -516,8 +516,8 @@ describe('Pagination `pageSize` option', () => {
         ]);
         main.toEqual([
           'Page size: [[...], 5, 10, 20, 50, 100]',
-          '1 - 12 of 100',
-          '|< < Page 1 of 9 [>] [>|]',
+          '1 - 11 of 100',
+          '|< < Page 1 of 10 [>] [>|]',
         ]);
         horizon.toEqual([
           'Page size: [[...], 5, 10, 20, 50, 100]',

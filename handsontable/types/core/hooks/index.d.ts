@@ -89,7 +89,6 @@ export interface Events {
   afterGetRowHeaderRenderers?: (renderers: Array<(row: number, TH: HTMLTableHeaderCellElement) => void>) => void;
   afterHideColumns?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
   afterHideRows?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean, stateChanged: boolean) => void;
-  afterHeightChange?: (height: number | string) => number | string;
   afterInit?: () => void;
   afterLanguageChange?: (languageCode: string) => void;
   afterListen?: () => void;
@@ -159,7 +158,6 @@ export interface Events {
   afterViewportColumnCalculatorOverride?: (calc: ViewportColumnsCalculator) => void;
   afterViewportRowCalculatorOverride?: (calc: ViewportColumnsCalculator) => void;
   afterViewRender?: (isForced: boolean) => void;
-  afterWidthChange?: (width: number | string) => number | string;
   beforeAddChild?: (parent: RowObject, element?: RowObject, index?: number) => void;
   beforeAutofill?: (selectionData: CellValue[][], sourceRange: CellRange, targetRange: CellRange, direction: 'up' | 'down' | 'left' | 'right') => CellValue[][] | boolean | void;
   beforeBeginEditing?: (row: number, column: number, initialValue: any, event: MouseEvent | KeyboardEvent, fullEditMode: boolean) => boolean | void;
@@ -188,6 +186,7 @@ export interface Events {
   beforeDropdownMenuShow?: (instance: DropdownMenu) => void;
   beforeFilter?: (conditionsStack: FiltersColumnConditions[], previousConditionsStack: FiltersColumnConditions[]) => void | boolean;
   beforeGetCellMeta?: (row: number, column: number, cellProperties: CellProperties) => void;
+  beforeHeightChange?: (height: number | string) => number | string;
   beforeHideColumns?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean) => void | boolean;
   beforeHideRows?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean) => void | boolean;
   beforeHighlightingColumnHeader?: (column: number, headerLevel: number, highlightMeta: HookHighlightColumnHeaderMeta) => number | void;
@@ -243,6 +242,7 @@ export interface Events {
   beforeViewportScrollHorizontally?: (visualColumn: number, snapping: 'auto' | 'start' | 'end') => number | boolean | null;
   beforeViewportScroll?: () => void;
   beforeViewRender?: (isForced: boolean, skipRender: { skipRender?: boolean }) => void;
+  beforeWidthChange?: (width: number | string) => number | string;
   construct?: () => void;
   init?: () => void;
   modifyAutoColumnSizeSeed?: (seed: string, cellProperties: CellProperties, cellValue: CellValue) => string | void;
