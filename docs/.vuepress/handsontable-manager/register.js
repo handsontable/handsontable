@@ -93,7 +93,8 @@ function createRegister() {
                 register.get(exampleId)()?.hotInstance :
                 null;
 
-            const loader = rootExampleElement.closest('.example-container')?.querySelector('.examples-loader-container');
+            const loader = rootExampleElement.closest('.example-container')
+              ?.querySelector('.examples-loader-container');
 
             if (loader) {
               loader.remove();
