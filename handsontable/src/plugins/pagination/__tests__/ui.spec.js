@@ -244,4 +244,59 @@ describe('Pagination UI', () => {
 
     expect(tableView().getViewportHeight()).toBe(400);
   });
+
+  it('should focus the previous button when the next button is disabled while navigating to the next page', async() => {
+    handsontable({
+      data: createSpreadsheetData(50, 10),
+      width: 500,
+      height: 400,
+      pagination: true,
+    });
+
+    const plugin = getPlugin('pagination');
+    const prevButton = getPaginationContainerElement().querySelector('.ht-page-prev');
+    const nextButton = getPaginationContainerElement().querySelector('.ht-page-next');
+    const lastButton = getPaginationContainerElement().querySelector('.ht-page-last');
+
+    nextButton.focus();
+
+    plugin.lastPage();
+
+    expect(document.activeElement).toBe(prevButton);
+
+    plugin.firstPage();
+    lastButton.focus();
+
+    plugin.lastPage();
+
+    expect(document.activeElement).toBe(prevButton);
+  });
+
+  it('should focus the next button when the previous button is disabled while navigating to the previous page', async() => {
+    handsontable({
+      data: createSpreadsheetData(50, 10),
+      width: 500,
+      height: 400,
+      pagination: true,
+    });
+
+    const plugin = getPlugin('pagination');
+    const firstButton = getPaginationContainerElement().querySelector('.ht-page-first');
+    const prevButton = getPaginationContainerElement().querySelector('.ht-page-prev');
+    const nextButton = getPaginationContainerElement().querySelector('.ht-page-next');
+
+    plugin.lastPage();
+    prevButton.focus();
+
+    plugin.firstPage();
+
+    expect(document.activeElement).toBe(nextButton);
+
+    plugin.lastPage();
+    firstButton.focus();
+
+    plugin.firstPage();
+
+    expect(document.activeElement).toBe(nextButton);
+  });
 });
