@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Added deprecation messages to the deprecated packages (`@handsontable/angular`, `@handsontable/react`).",
-  "type": "deprecated",
-  "issueOrPR": 11727,
-  "breaking": false,
-  "framework": "react"
-}
