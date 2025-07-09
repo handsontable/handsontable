@@ -193,10 +193,15 @@ Handsontable provides a comprehensive set of CSS variables that allow you to cus
 | `--ht-cell-success-background-color` | Background color for successful cell operations |
 | `--ht-cell-error-background-color` | Background color for error states in cells |
 | `--ht-cell-read-only-background-color` | Background color for read-only cells |
+
+### Cell Selection Variables
+
+| Variable | Description |
+|----------|-------------|
 | `--ht-cell-selection-border-color` | Border color for selected cells |
 | `--ht-cell-selection-background-color` | Background color for selected cells |
 
-### Autofill Variables
+### Cell Autofill Variables
 
 | Variable | Description |
 |----------|-------------|
@@ -207,7 +212,7 @@ Handsontable provides a comprehensive set of CSS variables that allow you to cus
 | `--ht-cell-autofill-background-color` | Background color of autofill elements |
 | `--ht-cell-autofill-fill-border-color` | Border color of autofill fill indicator |
 
-### Mobile Handle Variables
+### Cell Mobile Handle Variables
 
 | Variable | Description |
 |----------|-------------|
