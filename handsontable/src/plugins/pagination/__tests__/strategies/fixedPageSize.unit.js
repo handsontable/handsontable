@@ -32,7 +32,7 @@ describe('FixedPageSizeStrategy', () => {
         pageSize: 20,
       });
 
-      expect(strategy.totalPages).toBe(0);
+      expect(strategy.totalPages).toBe(1);
     });
 
     it('should handle page size larger than total items', () => {

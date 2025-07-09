@@ -55,13 +55,11 @@ export class AutoPageSizeStrategy {
       pageSize += 1;
     }
 
-    if (pageSize > 0) {
-      pages.push({
-        startIndex,
-        endIndex: itemSizes.length - 1,
-        pageSize
-      });
-    }
+    pages.push({
+      startIndex,
+      endIndex: Math.max(0, itemSizes.length - 1),
+      pageSize
+    });
 
     this.pages = pages;
   }

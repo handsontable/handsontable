@@ -187,4 +187,23 @@ describe('Pagination integration with HiddenRows', () => {
     ]);
     expect(countVisibleRows()).toBe(2);
   });
+
+  it('should render the pagination state correctly when all rows are hidden', async() => {
+    handsontable({
+      data: createSpreadsheetData(6, 10),
+      pagination: {
+        pageSize: 3,
+      },
+    });
+
+    rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
+
+    await render();
+
+    expect(visualizePageSections()).toEqual([
+      'Page size: [[5], 10, 20, 50, 100]',
+      '0 - 0 of 0',
+      '|< < Page 1 of 1 > >|',
+    ]);
+  });
 });

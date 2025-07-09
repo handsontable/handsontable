@@ -74,6 +74,58 @@ describe('Pagination `getPaginationData` method', () => {
     });
   });
 
+  it('should return correct pagination data when all rows are hidden (fixed page size)', async() => {
+    handsontable({
+      data: createSpreadsheetData(6, 10),
+      pagination: {
+        pageSize: 3,
+      },
+    });
+
+    rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
+
+    await render();
+
+    const plugin = getPlugin('pagination');
+
+    expect(plugin.getPaginationData()).toEqual({
+      currentPage: 1,
+      totalPages: 1,
+      pageSize: 3,
+      pageSizeList: [5, 10, 20, 50, 100],
+      autoPageSize: false,
+      numberOfRenderedRows: 0,
+      firstVisibleRowIndex: -1,
+      lastVisibleRowIndex: -1,
+    });
+  });
+
+  it('should return correct pagination data when all rows are hidden (auto page size)', async() => {
+    handsontable({
+      data: createSpreadsheetData(6, 10),
+      pagination: {
+        pageSize: 'auto',
+      },
+    });
+
+    rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
+
+    await render();
+
+    const plugin = getPlugin('pagination');
+
+    expect(plugin.getPaginationData()).toEqual({
+      currentPage: 1,
+      totalPages: 1,
+      pageSize: 0,
+      pageSizeList: [5, 10, 20, 50, 100],
+      autoPageSize: true,
+      numberOfRenderedRows: 0,
+      firstVisibleRowIndex: -1,
+      lastVisibleRowIndex: -1,
+    });
+  });
+
   it('should return correct pagination data when the external hidden rows index mapper is used', async() => {
     handsontable({
       data: createSpreadsheetData(10, 10),

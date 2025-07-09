@@ -31,7 +31,9 @@ describe('AutoPageSizeStrategy', () => {
         viewportSizeProvider: () => 100,
       });
 
-      expect(strategy.pages).toEqual([]);
+      expect(strategy.pages).toEqual([
+        { startIndex: 0, endIndex: 0, pageSize: 0 },
+      ]);
     });
 
     it('should handle viewport size larger than total items size', () => {

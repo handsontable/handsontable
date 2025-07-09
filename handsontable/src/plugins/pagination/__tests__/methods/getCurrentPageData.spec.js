@@ -149,4 +149,19 @@ describe('Pagination `getCurrentPageData` method', () => {
       ['A19', 'B19', 'C19', 'D19', 'E19'],
     ]);
   });
+
+  it('should return empty array when all rows are hidden', async() => {
+    handsontable({
+      data: createSpreadsheetData(6, 10),
+      pagination: {
+        pageSize: 3,
+      },
+    });
+
+    rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
+
+    await render();
+
+    expect(getPlugin('pagination').getCurrentPageData()).toEqual([]);
+  });
 });

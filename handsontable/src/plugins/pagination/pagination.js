@@ -256,13 +256,16 @@ export class Pagination extends BasePlugin {
    * }}
    */
   getPaginationData() {
+    const totalPages = this.#calcStrategy.getTotalPages();
+    let firstVisibleRowIndex = -1;
+    let lastVisibleRowIndex = -1;
+
     const {
       pageSize,
       startIndex,
     } = this.#calcStrategy.getState(this.#currentPage);
+
     const countRows = this.hot.countRows();
-    let firstVisibleRowIndex = null;
-    let lastVisibleRowIndex = null;
     let visibleCount = 0;
 
     for (let rowIndex = startIndex; visibleCount < pageSize; rowIndex++) {
@@ -275,7 +278,7 @@ export class Pagination extends BasePlugin {
         continue;
       }
 
-      if (firstVisibleRowIndex === null) {
+      if (firstVisibleRowIndex === -1) {
         firstVisibleRowIndex = rowIndex;
       }
 
@@ -285,7 +288,7 @@ export class Pagination extends BasePlugin {
 
     return {
       currentPage: this.#currentPage,
-      totalPages: this.#calcStrategy.getTotalPages(),
+      totalPages,
       pageSize,
       pageSizeList: [...this.getSetting('pageSizeList')],
       autoPageSize: this.#pageSize === 'auto',
@@ -434,6 +437,10 @@ export class Pagination extends BasePlugin {
       lastVisibleRowIndex,
     } = this.getPaginationData();
 
+    if (firstVisibleRowIndex === -1 || lastVisibleRowIndex === -1) {
+      return [];
+    }
+
     return this.hot.getData(firstVisibleRowIndex, 0, lastVisibleRowIndex, this.hot.countCols() - 1);
   }
 
@@ -563,14 +570,18 @@ export class Pagination extends BasePlugin {
       },
     });
 
-    this.#currentPage = clamp(this.#currentPage, 1, this.#calcStrategy.getTotalPages());
+    const totalPages = this.#calcStrategy.getTotalPages();
 
-    const {
-      startIndex,
-      pageSize,
-    } = this.#calcStrategy.getState(this.#currentPage);
+    this.#currentPage = clamp(this.#currentPage, 1, totalPages);
 
-    renderableIndexes.splice(startIndex, pageSize);
+    if (renderableIndexes.length > 0) {
+      const {
+        startIndex,
+        pageSize,
+      } = this.#calcStrategy.getState(this.#currentPage);
+
+      renderableIndexes.splice(startIndex, pageSize);
+    }
 
     if (renderableIndexes.length > 0) {
       this.hot.batchExecution(() => {

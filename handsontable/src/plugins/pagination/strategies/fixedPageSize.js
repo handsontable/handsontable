@@ -41,7 +41,7 @@ export class FixedPageSizeStrategy {
   calculate({ pageSize, totalItems }) {
     this.pageSize = Math.max(pageSize, 1);
     this.totalItems = totalItems;
-    this.totalPages = Math.ceil(this.totalItems / this.pageSize);
+    this.totalPages = Math.max(1, Math.ceil(this.totalItems / this.pageSize));
   }
 
   /**
@@ -67,7 +67,7 @@ export class FixedPageSizeStrategy {
     }
 
     const startIndex = currentPage * this.pageSize;
-    const endIndex = Math.min(startIndex + this.pageSize - 1, this.totalItems - 1);
+    const endIndex = Math.max(0, Math.min(startIndex + this.pageSize - 1, this.totalItems - 1));
 
     return {
       startIndex,
