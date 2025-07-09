@@ -26,7 +26,7 @@ searchCategory: Guides
 category: Styling
 ---
 
-# Handsontable Design System
+# CSS Variables
 
 Customize Handsontable's appearance using CSS variables to create consistent themes and styles across your application.
 
