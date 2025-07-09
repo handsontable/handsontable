@@ -228,30 +228,6 @@ This hierarchy ensures that you can define a consistent default theme for your e
 
 :::
 
-::: only-for react
-
-```jsx
-<HotTable
-  // theme name with obligatory `ht-theme-*` prefix
-  themeName="ht-theme-falcon"
-  // other options
-/>
-```
-
-:::
-
-::: only-for angular
-
-```html
-<hot-table [settings]="{
-  themeName: 'ht-theme-falcon'
-  // other options
-}">
-</hot-table>
-```
-
-:::
-
 ## The classic theme
 The classic CSS file ([`handsontable.full.min.css`](https://github.com/handsontable/handsontable/blob/master/handsontable/dist/handsontable.full.min.css)) was the default theme up until `version 15` (released in December 2024). While it will still be supported and tested in future Handsontable updates, it is no longer recommended for new projects.
   

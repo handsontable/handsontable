@@ -32,6 +32,85 @@ Customize Handsontable's appearance using CSS variables to create consistent the
 
 [[toc]]
 
+## Usage Examples
+
+### Basic customization by overriding css variables
+
+Follow the [steps](@/guides/styling/themes/themes.md#use-a-theme) to apply a theme, then override the variables for your chosen theme.
+
+Here’s an example for `.ht-theme-main`:
+
+```css
+.ht-theme-main {
+  --ht-accent-color: #007bff;
+  --ht-foreground-color: #333333;
+  --ht-background-color: #ffffff;
+  ...
+}
+```
+
+### Create a custom theme based on an existing CSS file
+
+Creating a custom theme is straightforward. Follow these steps to set up your custom design:
+
+#### 1. Create a new CSS file
+
+Start by copying one of the CSS files provided with Handsontable, such as [`ht-theme-main.css`](https://github.com/handsontable/handsontable/blob/develop/handsontable/src/styles/themes/main.scss). Rename it to something unique for your project. For this example, let’s name the new theme `falcon`, making the full file name `ht-theme-falcon.css`.
+
+Next, customize the existing variables to match your design requirements. If you need icons, you can use the ones available in the [GitHub repository](https://github.com/handsontable/handsontable/blob/develop/handsontable/src/styles/utils/_icons.scss) or create your own icon set using the `@use "utils/[theme]/icons";` directive.
+
+#### 2. Load and apply the theme
+
+Include the new CSS file in your project, ensuring it’s loaded after the base CSS file (`styles/handsontable.min.css`). If you’re using imports, it might look like this:
+
+```js
+import 'handsontable/styles/handsontable.min.css';
+import 'handsontable/styles/ht-theme-falcon.min.css';
+```
+
+To apply a theme, use the `themeName` option by specifying it in the configuration, like this:
+
+::: only-for javascript
+
+```js
+const hot = new Handsontable(container, {
+  // theme name with obligatory `ht-theme-*` prefix
+  themeName: 'ht-theme-falcon',
+  // other options
+});
+```
+
+:::
+
+::: only-for react
+
+```jsx
+<HotTable
+  // theme name with obligatory `ht-theme-*` prefix
+  themeName="ht-theme-falcon"
+  // other options
+/>
+```
+
+:::
+
+::: only-for angular
+
+```html
+<hot-table [settings]="{
+  // theme name with obligatory `ht-theme-*` prefix
+  themeName: 'ht-theme-falcon'
+  // other options
+}">
+</hot-table>
+```
+
+:::
+
+### Generate a CSS theme file from Figma
+
+To create a new theme or modify an existing one in Figma, visit [Handsontable Theme Generator](https://github.com/handsontable/handsontable-figma) and follow the instructions to convert your Figma tokens into a CSS theme file that works with Handsontable. The Theme Generator will help you transform the JSON tokens exported from Figma into a properly formatted CSS theme file.
+
 ## CSS Variables Reference
 
 Handsontable provides a comprehensive set of CSS variables that allow you to customize the appearance of every component. These variables are organized into logical categories for easy reference.
@@ -394,60 +473,3 @@ Handsontable provides a comprehensive set of CSS variables that allow you to cus
 | `--ht-menu-shadow-color` | Shadow color of menus |
 | `--ht-menu-item-hover-color` | Background color of hovered menu items |
 | `--ht-menu-item-active-color` | Background color of active menu items |
-
-## Usage Examples
-
-### Basic customization by overriding css variables
-
-```css
-/* Override for light main theme */
-.ht-theme-main-dark {
-  --ht-accent-color: #007bff;
-  --ht-foreground-color: #333333;
-  --ht-background-color: #ffffff;
-}
-```
-
-```css
-/* Override for dark main theme */
-.ht-theme-main-dark {
-  --ht-accent-color: #4dabf7;
-  --ht-foreground-color: #e9ecef;
-  --ht-background-color: #212529;
-}
-```
-
-### Create a custom theme based on an existing one
-
-Creating a custom theme is straightforward. Follow these steps to set up your custom design:
-
-#### ① Create a new CSS file
-
-Start by copying one of the CSS files provided with Handsontable, such as [`ht-theme-main.css`](https://github.com/handsontable/handsontable/blob/develop/handsontable/src/styles/themes/main.scss). Rename it to something unique for your project. For this example, let’s name the new theme `falcon`, making the full file name `ht-theme-falcon.css`.
-
-Next, customize the existing variables to match your design requirements. If you need icons, you can use the ones available in the [GitHub repository](https://github.com/handsontable/handsontable/blob/develop/handsontable/src/styles/utils/_icons.scss) or create your own icon set using the `@use "utils/[theme]/icons";` directive.
-
-#### ② Load and apply the theme
-
-Include the new CSS file in your project, ensuring it’s loaded after the base CSS file (`styles/handsontable.min.css`). If you’re using imports, it might look like this:
-
-```js
-import 'handsontable/styles/handsontable.min.css';
-import 'handsontable/styles/ht-theme-falcon.min.css';
-```
-
-To apply a theme, use the `themeName` option by specifying it in the configuration, like this:
-
-::: only-for javascript
-
-```js
-const hot = new Handsontable(container, {
-  // theme name with obligatory `ht-theme-*` prefix
-  themeName: 'ht-theme-falcon',
-  // other options
-});
-```
-
-### Export Tokens in JSON format form Figma
-
-TODO
