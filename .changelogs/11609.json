@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Added new `textEllipsis` option to the core",
-  "type": "added",
-  "issueOrPR": 11609,
-  "breaking": false,
-  "framework": "none"
-}

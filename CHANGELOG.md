@@ -9,6 +9,29 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- UNVERSIONED -->
 
+## [16.0.0] - 2025-07-09
+
+### Added
+- **Breaking change**: Added a focus outline to the context and dropdown menus. [#11669](https://github.com/handsontable/handsontable/pull/11669)
+- Improved Handsontable editor positioning. [#11593](https://github.com/handsontable/handsontable/pull/11593)
+- Added a second-click cell deselection feature. [#11602](https://github.com/handsontable/handsontable/pull/11602)
+- Added a new `textEllipsis` option. [#11609](https://github.com/handsontable/handsontable/pull/11609)
+- Added backward compatibility for the renamed CSS variables. [#11676](https://github.com/handsontable/handsontable/pull/11676)
+- Angular: Introduced a new Angular wrapper - `@handsontable/angular-wrapper`. [#11511](https://github.com/handsontable/handsontable/pull/11511)
+
+### Changed
+- **Breaking change**: Updated the CSS theme variables and added `--ht-radio-*` variables. [#11470](https://github.com/handsontable/handsontable/pull/11470)
+- **Breaking change**: Changed the `modifyData` hook to use visual indexes for both rows and columns. [#11501](https://github.com/handsontable/handsontable/pull/11501)
+
+### Fixed
+- **Breaking change**: Fixed an issue with custom border overlapping row headers. [#11551](https://github.com/handsontable/handsontable/pull/11551)
+- **Breaking change**: Fixed accessibility issues and introduced a new DOM structure with a wrapper and a portal. [#11579](https://github.com/handsontable/handsontable/pull/11579)
+- Fixed a problem with the dropdown editor having a horizontal scrollbar on Windows with fractional scaling applied. [#11613](https://github.com/handsontable/handsontable/pull/11613)
+- Fixed an issue with scrollbar styles on the Safari browser. [#11614](https://github.com/handsontable/handsontable/pull/11614)
+- Fixed the column filter behavior when adding new columns. [#11616](https://github.com/handsontable/handsontable/pull/11616)
+- Fixed an issue with the dropdown elements' colors. [#11661](https://github.com/handsontable/handsontable/pull/11661)
+- Angular: Fixed an error of `this.hotInstance.getSettings(...).columns?.filter is not a function` in `angular-wrapper`. [#11695](https://github.com/handsontable/handsontable/pull/11695)
+
 ## [15.3.0] - 2025-04-29
 
 ### Added
