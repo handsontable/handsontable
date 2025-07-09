@@ -340,6 +340,7 @@ export class PaginationUI {
     if ([first, prev, next, last].includes(activeElement)) {
       if (prev.disabled) {
         next.focus();
+
       } else if (next.disabled) {
         prev.focus();
       }
