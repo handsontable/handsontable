@@ -9,6 +9,7 @@ registerAllModules();
 const ExampleComponent = () => {
   return (
     <HotTable
+      themeName="ht-theme-main"
       autoWrapRow={true}
       autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
@@ -48,7 +49,7 @@ const ExampleComponent = () => {
         {
           type: 'numeric',
           numericFormat: {
-            pattern: '$ 0,0.00',
+            pattern: '$0,0.00',
           },
         },
       ]}

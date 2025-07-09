@@ -81,6 +81,7 @@ const ExampleComponent = () => {
         </output>
       </div>
       <HotTable
+        themeName="ht-theme-main"
         ref={hotRef}
         data={[
           [1, 'Gary Nash', 'Speckled trousers', 'S', 1, 'yes'],

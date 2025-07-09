@@ -12,6 +12,9 @@ tags:
 react:
   id: rib1rhmf
   metaTitle: Saving data - React Data Grid | Handsontable
+angular:
+  id: uny2nvqk
+  metaTitle: Saving data - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
 ---
@@ -30,9 +33,10 @@ The example below handles data by using `fetch`. Note that this is just a mockup
 
 ::: only-for javascript
 
-::: example #example1 --html 1 --js 2 --ts 3
+::: example #example1 --html 1 --css 2 --js 3 --ts 4
 
 @[code](@/content/guides/getting-started/saving-data/javascript/example1.html)
+@[code](@/content/guides/getting-started/saving-data/javascript/example1.css)
 @[code](@/content/guides/getting-started/saving-data/javascript/example1.js)
 @[code](@/content/guides/getting-started/saving-data/javascript/example1.ts)
 
@@ -42,10 +46,22 @@ The example below handles data by using `fetch`. Note that this is just a mockup
 
 ::: only-for react
 
-::: example #example1 :react --js 1 --ts 2
+::: example #example1 :react --css 1 --js 2 --ts 3
 
+@[code](@/content/guides/getting-started/saving-data/react/example1.css)
 @[code](@/content/guides/getting-started/saving-data/react/example1.jsx)
 @[code](@/content/guides/getting-started/saving-data/react/example1.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/guides/getting-started/saving-data/angular/example1.ts)
+@[code](@/content/guides/getting-started/saving-data/angular/example1.html)
 
 :::
 

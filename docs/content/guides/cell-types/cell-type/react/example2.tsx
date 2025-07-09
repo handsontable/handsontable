@@ -9,6 +9,7 @@ registerAllModules();
 const ExampleComponent = () => {
   return (
     <HotTable
+      themeName="ht-theme-main"
       autoWrapRow={true}
       autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
@@ -16,14 +17,7 @@ const ExampleComponent = () => {
         ['empty string', '', '', '', '', ''],
         ['null', null, null, null, null, null],
         ['undefined', undefined, undefined, undefined, undefined, undefined],
-        [
-          'non-empty value',
-          'non-empty text',
-          13000,
-          true,
-          'orange',
-          'password',
-        ],
+        ['non-empty value', 'non-empty text', 13000, true, 'orange', 'password'],
       ]}
       columnSorting={{
         sortEmptyCells: true,

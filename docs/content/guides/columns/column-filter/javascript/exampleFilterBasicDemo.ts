@@ -6,6 +6,7 @@ import 'handsontable/styles/ht-theme-main.css';
 const container = document.querySelector('#exampleFilterBasicDemo')!;
 
 new Handsontable(container, {
+  themeName: 'ht-theme-main',
   data: [
     {
       brand: 'Jetpulse',
@@ -64,7 +65,7 @@ new Handsontable(container, {
       type: 'numeric',
       data: 'price',
       numericFormat: {
-        pattern: '$ 0,0.00',
+        pattern: '$0,0.00',
         culture: 'en-US',
       },
     },

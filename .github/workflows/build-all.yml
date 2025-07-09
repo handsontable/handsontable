@@ -34,14 +34,17 @@ jobs:
         with:
          python-version: ${{ env.PYTHON_VERSION }}
 
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+        name: Install pnpm
+
       - name: Use Node.js
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # https://github.com/actions/setup-node/releases/tag/v4.4.0
         with:
           node-version-file: '.nvmrc'
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Install the dependencies
-        run: npm ci
+        run: pnpm install
 
       - name: Build all packages
         run: npm run all build
@@ -50,22 +53,38 @@ jobs:
     name: Build all packages in windows-latest
     runs-on: windows-latest
     timeout-minutes: 60
+    env:
+      # Force npm operations to use the D drive (much faster)
+      npm_config_cache: D:/npm-cache
+      TEMP: D:/Temp
+      TMP: D:/Temp
     steps:
-      # on C drive there is more free space left to do this job (https://github.com/actions/runner-images/issues/1341#issuecomment-667478747)
-      - name: Checkout
+      # Use D drive for checkout (much faster)
+      - name: Checkout to D drive
         run: |
-          mkdir C:/handsontable
-          git clone -b $env:GITHUB_REF_NAME https://github.com/handsontable/handsontable C:/handsontable --depth 1
+          mkdir D:/handsontable
+          git clone -b $env:GITHUB_REF_NAME https://github.com/handsontable/handsontable D:/handsontable --depth 1
+
+      # Create temp and cache directories on D drive
+      - name: Setup D drive directories
+        run: |
+          mkdir D:/Temp -Force
+          mkdir D:/npm-cache -Force
+
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+        name: Install pnpm
+        with:
+          version: 10 # On Windows the `packageManager` field of `package.json` seems to not be recognized.
 
       - name: Use Node.js
-        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # https://github.com/actions/setup-node/releases/tag/v4.0.2
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # https://github.com/actions/setup-node/releases/tag/v4.4.0
         with:
           node-version: ${{ env.NODE_VERSION }}
 
       - name: Install the dependencies
-        working-directory: C:/handsontable
-        run: npm ci
+        working-directory: D:/handsontable
+        run: pnpm install
 
       - name: Build all packages
-        working-directory: C:/handsontable
+        working-directory: D:/handsontable
         run: npm run all build

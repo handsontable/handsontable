@@ -15,6 +15,9 @@ tags:
 react:
   id: y3wp74jh
   metaTitle: Testing - React Data Grid | Handsontable
+angular:
+  id: zggveqea
+  metaTitle: Testing - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Tools and building
 ---
@@ -35,7 +38,7 @@ To run the Jasmine tests in your browser, go to the following pages:
 
 ## Test with NPM (CLI)
 
-To run Jasmine tests in your command line (using Puppeteer), first install all necessary dependencies by executing `npm install`. After the `NPM` finishes fetching required modules, your workspace is ready to test.
+To run Jasmine tests in your command line (using Puppeteer), first install all necessary dependencies by executing `pnpm install`. After pnpm finishes fetching required modules, your workspace is ready to test.
 
 To run all tests from the monorepo's root directory, use the following command:
 - `npm run test`
@@ -45,10 +48,10 @@ To run individual tests, go to the `/handsontable` directory, and use the follow
 - `npm run test:unit` - runs all unit tests.
 - `npm run test:walkontable` - runs only Walkontable tests.
 - `npm run test:e2e` - runs all end-to-end tests.
-- `npm run run test:e2e --testPathPattern=selection` - runs only end-to-end tests and suites matching the filename "selection".
-- `npm run run test:unit --testPathPattern=array` - runs only unit tests and suites matching the filename "array".
-- `npm run run test:e2e.dump` - generates the `test/E2ERunner.html` file which can by executed in the browser environment (Chrome, Firefox etc.) to check if tests passes.
-- `npm run run test:e2e.dump -- --watch` - generates the `E2ERunner.html` file on every change detected in test files. It can be helpful for debugging proposes.
+- `npm run test:e2e --testPathPattern=selection` - runs only end-to-end tests and suites matching the filename "selection".
+- `npm run test:unit --testPathPattern=array` - runs only unit tests and suites matching the filename "array".
+- `npm run test:e2e.dump` - generates the `test/E2ERunner.html` file which can by executed in the browser environment (Chrome, Firefox etc.) to check if tests passes.
+- `npm run test:e2e.dump -- --watch` - generates the `E2ERunner.html` file on every change detected in test files. It can be helpful for debugging proposes.
 
 ## Test specific themes
 To run the E2E tests with a theme different than "classic", you can use the `--theme` flag.

@@ -21,6 +21,7 @@ const ExampleComponent = () => {
 
   return (
     <HotTable
+      themeName="ht-theme-main"
       data={[
         {
           id: 1,

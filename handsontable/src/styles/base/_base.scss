@@ -4,13 +4,15 @@
 
 @mixin output {
   // Required variables for bare theme
-  .ht-wrapper:not([class*="ht-theme"]) {
+  .ht-root-wrapper:not([class*="ht-theme"]),
+  .ht-portal:not([class*="ht-theme"]) {
     --ht-gap-size: 4px;
     --ht-checkbox-size: 16px;
     --ht-cell-horizontal-padding: 8px;
     --ht-cell-vertical-padding: 4px;
     --ht-font-size: 14px;
     --ht-line-height: 20px;
+    --ht-letter-spacing: 0;
     --ht-border-color: #222222;
     --ht-foreground-color: #222222;
     --ht-background-color: #ffffff;
@@ -28,6 +30,20 @@
     --ht-cell-selection-border-color: #1a42e8;
   }
 
+  // Root wrapper
+  .ht-root-wrapper {
+    .htFocusCatcher {
+      position: absolute;
+      width: 0;
+      height: 0;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      opacity: 0;
+      z-index: -1;
+    }
+  }
+
   .handsontable {
     @include mixins.font-family;
 
@@ -35,7 +51,7 @@
     font-size: var(--ht-font-size);
     line-height: var(--ht-line-height);
     font-weight: var(--ht-font-weight);
-    letter-spacing: 0;
+    letter-spacing: var(--ht-letter-spacing);
     color: var(--ht-foreground-color);
     /* Miscellaneous */
     touch-action: manipulation;
@@ -45,8 +61,27 @@
     scrollbar-color: var(--ht-scrollbar-thumb-color)
       var(--ht-scrollbar-track-color);
 
-    &::-webkit-scrollbar-track {
-      border-radius: var(--ht-scrollbar-border-radius);
+    // Styles for browsers that don't support scrollbar-width and scrollbar-color
+    .wtHolder {
+      &::-webkit-scrollbar {
+        width: 9px;
+        height: 9px;
+      }
+  
+      &::-webkit-scrollbar-track {
+        background: var(--ht-scrollbar-track-color);
+        border-radius: var(--ht-scrollbar-border-radius);
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background-color: var(--ht-scrollbar-thumb-color);
+        border-radius: var(--ht-scrollbar-border-radius);
+      }
+
+      &::-webkit-scrollbar-corner {
+        background: var(--ht-scrollbar-track-color);
+        border-end-end-radius: var(--ht-scrollbar-border-radius);
+      }
     }
 
     // Wrapper
@@ -82,7 +117,8 @@
             td {
               border-top-width: 0;
               height: calc(
-                var(--ht-cell-vertical-padding) * 2 + var(--ht-line-height) + 1px
+                var(--ht-cell-vertical-padding) * 2 + var(--ht-line-height) +
+                  1px
               );
             }
           }
@@ -94,7 +130,8 @@
             td {
               border-top-width: 1px;
               height: calc(
-                var(--ht-cell-vertical-padding) * 2 + var(--ht-line-height) + 2px
+                var(--ht-cell-vertical-padding) * 2 + var(--ht-line-height) +
+                  2px
               );
             }
           }
@@ -429,15 +466,10 @@
       visibility: hidden;
     }
 
-    .htFocusCatcher {
-      position: absolute;
-      width: 0;
-      height: 0;
-      margin: 0;
-      padding: 0;
-      border: 0;
-      opacity: 0;
-      z-index: -1;
+    .htTextEllipsis {
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
     }
 
     table,
@@ -581,6 +613,14 @@
     div[class^="ht_clone"] tbody .ht__highlight .relative::after {
       right: auto;
       left: -1px;
+    }
+  }
+
+  // Fix for Safari custom scrollbar size calculation
+  .htScrollbarSafariTest {
+    &::-webkit-scrollbar {
+      width: 9px;
+      height: 9px;
     }
   }
 }

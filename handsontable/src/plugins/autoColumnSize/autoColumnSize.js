@@ -110,6 +110,53 @@ const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
  * }
  * ```
  * :::
+ *
+ * ::: only-for angular
+ *
+ * ```ts
+ * import { AfterViewInit, Component, ViewChild } from "@angular/core";
+ * import {
+ *   GridSettings,
+ *   HotTableModule,
+ *   HotTableComponent,
+ * } from "@handsontable/angular-wrapper";
+ *
+ * `@Component`({
+ *   selector: "app-example",
+ *   standalone: true,
+ *   imports: [HotTableModule],
+ *   template: ` <div>
+ *     <hot-table themeName="ht-theme-main" [settings]="gridSettings" />
+ *   </div>`,
+ * })
+ * export class ExampleComponent implements AfterViewInit {
+ *   `@ViewChild`(HotTableComponent, { static: false })
+ *   readonly hotTable!: HotTableComponent;
+ *
+ *   readonly gridSettings = <GridSettings>{
+ *     data: this.getData(),
+ *     autoColumnSize: true,
+ *   };
+ *
+ *   ngAfterViewInit(): void {
+ *     // Access to plugin instance:
+ *     const hot = this.hotTable.hotInstance;
+ *     const plugin = hot.getPlugin("autoColumnSize");
+ *
+ *     plugin.getColumnWidth(4);
+ *
+ *     if (plugin.isEnabled()) {
+ *       // code...
+ *     }
+ *   }
+ *
+ *   private getData(): any[] {
+ *     //get some data
+ *   }
+ * }
+ * ```
+ *
+ * :::
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
 export class AutoColumnSize extends BasePlugin {

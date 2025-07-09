@@ -8,6 +8,9 @@ canonicalUrl: /time-cell-type
 react:
   id: 34n5nwja
   metaTitle: Time cell type - React Data Grid | Handsontable
+angular:
+  id: fu9fqphw
+  metaTitle: Time cell type - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
 ---
@@ -19,6 +22,7 @@ Use the time cell type to display, format, and validate values as times. The tim
 [[toc]]
 
 ## Usage
+
 To use the time cell type, set the `type: 'time'` option in the [`columns`](@/api/options.md#columns) array or the [`cells`](@/api/options.md#cells) function.
 The time cell uses [Moment.js](https://github.com/moment/moment) as the time formatter, therefore you must add the following required dependency:
 
@@ -54,6 +58,17 @@ By default, the values entered into the time-type column are not validated, so i
 
 @[code](@/content/guides/cell-types/time-cell-type/react/example1.jsx)
 @[code](@/content/guides/cell-types/time-cell-type/react/example1.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-types/time-cell-type/angular/example1.ts)
+@[code](@/content/guides/cell-types/time-cell-type/angular/example1.html)
 
 :::
 

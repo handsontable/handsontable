@@ -5,13 +5,19 @@
  */
 const EXPORT_DEFAULT_REGEX = /export default (?:function ([\w]*)|([\w]*))(?:;)/;
 
-const addCodeForPreset = (code, preset, id) => {
+const addCodeForPreset = (code, preset, id, isProduction) => {
   const match = code.match(EXPORT_DEFAULT_REGEX);
   const exportId = match?.[1] || match?.[2] || code.includes('export class AppModule');
 
   const renderImportPart = () => {
     if (/vue3(-.*)?/.test(preset)) {
       return 'import { createApp } from \'vue\';';
+
+    } else if (/angular(-.*)?/.test(preset) && isProduction) {
+      return `import { enableProdMode } from '@angular/core';
+
+enableProdMode();
+`;
     }
 
     return '';
@@ -19,7 +25,10 @@ const addCodeForPreset = (code, preset, id) => {
 
   const renderCreatePart = () => {
     if (/react(-.*)?/.test(preset)) {
-      return `ReactDOM.render(<${exportId} />, document.getElementById("${id}"));`;
+      return `const container = document.getElementById("${id}");
+const root = ReactDOM.createRoot(container);
+container._reactRoot = root;
+root.render(<${exportId} />);`;
     } else if (/vue3(-.*)?/.test(preset)) {
       return `const app = createApp(${exportId});
 app.mount('#${id}');`;

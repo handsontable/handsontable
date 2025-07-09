@@ -8,6 +8,9 @@ canonicalUrl: /handsontable-cell-type
 react:
   id: fcxtj167
   metaTitle: Handsontable cell type - React Data Grid | Handsontable
+angular:
+  id: cewiknc8
+  metaTitle: Handsontable cell type - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
 ---
@@ -57,6 +60,17 @@ While HOT-in-HOT is opened, the text field above the HOT-in-HOT remains focused 
 
 @[code](@/content/guides/cell-types/handsontable-cell-type/react/example1.jsx)
 @[code](@/content/guides/cell-types/handsontable-cell-type/react/example1.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 .docs-height-small :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-types/handsontable-cell-type/angular/example1.ts)
+@[code](@/content/guides/cell-types/handsontable-cell-type/angular/example1.html)
 
 :::
 

@@ -78,6 +78,10 @@ export function setVersion(version, packages = workspacePackages) {
 
   // Set the new version number to all the packages.
   packages.forEach((packagesLocation) => {
+    if (packagesLocation.includes('examples')) {
+      return;
+    }
+
     validateReplacementStatus(replace.sync({
       files: `${packagesLocation}${packagesLocation === '.' ? '' : '*'}/package.json`,
       from: [/"version": "(.*)"/, /"handsontable": "([^\d]*)((\d+)\.(\d+).(\d+)(.*))"/g],

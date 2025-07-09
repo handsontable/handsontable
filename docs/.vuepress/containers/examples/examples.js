@@ -125,6 +125,7 @@ module.exports = function(docsVersion, base) {
   return {
     type: 'example',
     render(tokens, index, _opts, env) {
+      const isProduction = !base.includes('localhost');
       const token = tokens[index];
       const m = token.info.trim().match(EXAMPLE_REGEX);
 
@@ -142,25 +143,15 @@ module.exports = function(docsVersion, base) {
         const htmlToken = htmlPos ? tokens[htmlIndex] : undefined;
         const htmlContent = htmlToken
           ? htmlToken.content
-          : `<div id="${id}" class="hot ${klass}"></div>`;
-        const htmlContentSandbox = htmlToken
-          ? htmlToken.content
-          : `<div id="${id}" ${!klass?.includes('disable-auto-theme')
-            ? `class="hot ht-theme-main ${klass}"`
-            : ''} ></div>`;
-        const htmlContentRoot = `<div 
-          data-preset-type="${preset}" 
-          data-example-id="${id}" 
-          class="${!klass?.includes('disable-auto-theme') ? 'ht-theme-main-dark-auto' : ''}">
-          ${htmlContent}
-        </div>`;
+          : `<div id="${id}" class="hot${klass ? ` ${klass}` : ''}"></div>`;
+        const htmlContentRoot = `<div data-preset-type="${preset}" data-example-id="${id}">${htmlContent}</div>`;
 
         const cssPos = args.match(/--css (\d*)/)?.[1];
         const cssIndex = cssPos ? index + Number.parseInt(cssPos, 10) : 0;
         const cssToken = cssPos ? tokens[cssIndex] : undefined;
         const cssContent = cssToken ? cssToken.content : '';
 
-        const jsPos = args.match(/--js (\d*)/)?.[1] || 1;
+        const jsPos = args.match(/--js (\d*)/)?.[1];
         const jsIndex = jsPos ? index + Number.parseInt(jsPos, 10) : 0;
         const jsToken = jsPos ? tokens[jsIndex] : undefined;
 
@@ -171,39 +162,40 @@ module.exports = function(docsVersion, base) {
         // Parse code
         const jsTokenWithBasePath = jsToken?.content?.replaceAll('{{$basePath}}', base);
         const tsTokenWithBasePath = tsToken?.content?.replaceAll('{{$basePath}}', base);
-        const codeToCompile = parseCode(jsTokenWithBasePath);
+        const jsCodeToCompile = parseCode(jsTokenWithBasePath);
         const tsCodeToCompile = parseCode(tsTokenWithBasePath);
-        const codeToCompileSandbox = parseCodeSandbox(jsTokenWithBasePath);
+        const jsCodeToCompileSandbox = parseCodeSandbox(jsTokenWithBasePath);
         const tsCodeToCompileSandbox = parseCodeSandbox(tsTokenWithBasePath);
-        const codeToPreview = parsePreview(jsTokenWithBasePath);
+        const jsCodeToPreview = parsePreview(jsTokenWithBasePath);
         const tsCodeToPreview = parsePreview(tsTokenWithBasePath);
 
         // Replace token content
         if (jsToken) {
-          jsToken.content = codeToPreview;
+          jsToken.content = jsCodeToPreview;
         }
 
         if (tsToken) {
           tsToken.content = tsCodeToPreview;
         }
 
-        [htmlIndex, jsIndex, tsIndex, cssIndex].filter(x => !!x).sort().reverse().forEach((x) => {
+        [...new Set([htmlIndex, jsIndex, tsIndex, cssIndex])].filter(x => !!x).sort().reverse().forEach((x) => {
           tokens.splice(x, 1);
         });
 
+        const isAngular = preset.includes('angular');
         const newTokens = [
-          ...tab('Code', tsToken ? getCodeToken(jsToken, tsToken) : jsToken, id),
-          ...tab('HTML', htmlToken, id),
+          ...tab('Code', tsToken && jsToken ? getCodeToken(jsToken, tsToken) : (tsToken ?? jsToken), id),
+          ...tab('HTML', isAngular ? undefined : htmlToken, id),
           ...tab('CSS', cssToken, id),
         ];
 
         tokens.splice(index + 1, 0, ...newTokens);
 
-        const codeForPreset = addCodeForPreset(codeToCompile, preset, id);
-        const tsCodeForPreset = addCodeForPreset(tsCodeToCompile, preset, id);
+        const jsCodeForPreset = addCodeForPreset(jsCodeToCompile, preset, id, isProduction);
+        const tsCodeForPreset = addCodeForPreset(tsCodeToCompile, preset, id, isProduction);
         const code = buildCode(
-          id + (preset.includes('angular') ? '.ts' : '.jsx'),
-          codeForPreset,
+          id + (isAngular ? '.ts' : '.jsx'),
+          isAngular ? tsCodeForPreset : jsCodeForPreset,
           env.relativePath
         );
         const encodedCode = encodeURI(
@@ -211,15 +203,20 @@ module.exports = function(docsVersion, base) {
         );
         const activeTab = `${args.match(/--tab (code|html|css|preview)/)?.[1] ?? 'preview'}-tab-${id}`;
         const noEdit = !!args.match(/--no-edit/)?.[0];
-        const isRTL = /layoutDirection(.*)'rtl'/.test(codeToCompile) || /dir="rtl"/.test(htmlContent);
+        const isRTL = /layoutDirection(.*)'rtl'/.test(jsCodeToCompile) || /dir="rtl"/.test(htmlContent);
         const isActive = `$parent.$parent.isScriptLoaderActivated('${id}')`;
-        const selectedLang = '$parent.$parent.selectedLang';
         const isJavaScript = preset.includes('hot');
         const isReact = preset.includes('react');
-        const isReactOrJavaScript = isJavaScript || isReact;
+        const selectedLang = isAngular ? '\'TypeScript\'' : '$parent.$parent.selectedLang';
+        const isReactOrAngularOrJS = isJavaScript || isReact || isAngular;
 
         return `
           <div class="example-container">
+            ${!isAngular ? '' : `
+              <div class="examples-loader-container">
+                <div class="examples-loader"></div>
+              </div>
+            `}
             <template v-if="${isActive}">
               <style v-pre>${cssContent}</style>
               <div v-pre>${htmlContentRoot}</div>
@@ -232,12 +229,12 @@ module.exports = function(docsVersion, base) {
                 <i class="ico i-code"></i>Source code
               </button>
               <div class="example-controls">
-                <div class="examples-buttons" v-if="${selectedLang} === 'JavaScript' || !${isReactOrJavaScript}">
+                <div class="examples-buttons" v-if="${selectedLang} === 'JavaScript' || !${isReactOrAngularOrJS}">
                   ${!noEdit
     ? stackblitz(
       id,
-      htmlContentSandbox,
-      codeToCompileSandbox,
+      htmlContent,
+      jsCodeToCompileSandbox,
       cssContent,
       docsVersion,
       preset,
@@ -247,8 +244,8 @@ module.exports = function(docsVersion, base) {
                   ${!noEdit
     ? jsfiddle(
       id,
-      htmlContentSandbox,
-      codeForPreset,
+      htmlContent,
+      jsCodeForPreset,
       cssContent,
       docsVersion,
       preset,
@@ -256,11 +253,11 @@ module.exports = function(docsVersion, base) {
     )
     : ''}
                 </div>
-                <div class="examples-buttons" v-if="${selectedLang} === 'TypeScript' && ${isReactOrJavaScript}">
+                <div class="examples-buttons" v-if="${selectedLang} === 'TypeScript' && ${isReactOrAngularOrJS}">
                   ${!noEdit
     ? stackblitz(
       id,
-      htmlContentSandbox,
+      htmlContent,
       tsCodeToCompileSandbox,
       cssContent,
       docsVersion,
@@ -271,7 +268,7 @@ module.exports = function(docsVersion, base) {
                   ${!noEdit && !isReact
     ? jsfiddle(
       id,
-      htmlContentSandbox,
+      htmlContent,
       tsCodeForPreset,
       cssContent,
       docsVersion,
@@ -281,15 +278,15 @@ module.exports = function(docsVersion, base) {
     : ''}
                 </div>
                 <button
-                  aria-label="Reset the demo" 
-                  @click="$parent.$parent.resetDemo('${id}')" 
+                  aria-label="Reset the demo"
+                  @click="$parent.$parent.resetDemo('${id}')"
                   :disabled="$parent.$parent.isButtonInactive"
                 >
                   <i class="ico i-refresh"></i>
                 </button>
                 <button
-                  aria-label="View the source on GitHub" 
-                  @click="$parent.$parent.openExample('${env.relativePath}', '${preset}', '${id}')" 
+                  aria-label="View the source on GitHub"
+                  @click="$parent.$parent.openExample('${env.relativePath}', '${preset}', '${id}')"
                 >
                   <i class="ico i-github"></i>
                 </button>

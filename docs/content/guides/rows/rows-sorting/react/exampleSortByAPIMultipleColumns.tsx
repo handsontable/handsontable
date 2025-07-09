@@ -11,10 +11,7 @@ const ExampleComponent = () => {
   const hotTableComponentRef = useRef<HotTableRef>(null);
   const sort = () => {
     // get the `MultiColumnSorting` plugin
-    const multiColumnSorting =
-      hotTableComponentRef.current?.hotInstance?.getPlugin(
-        'multiColumnSorting'
-      );
+    const multiColumnSorting = hotTableComponentRef.current?.hotInstance?.getPlugin('multiColumnSorting');
 
     multiColumnSorting?.sort([
       {
@@ -31,6 +28,7 @@ const ExampleComponent = () => {
   return (
     <>
       <HotTable
+        themeName="ht-theme-main"
         ref={hotTableComponentRef}
         data={[
           {
@@ -90,7 +88,7 @@ const ExampleComponent = () => {
             type: 'numeric',
             data: 'price',
             numericFormat: {
-              pattern: '$ 0,0.00',
+              pattern: '$0,0.00',
               culture: 'en-US',
             },
           },

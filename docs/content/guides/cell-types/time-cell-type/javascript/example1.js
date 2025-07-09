@@ -4,6 +4,7 @@ import 'handsontable/styles/ht-theme-main.css';
 
 const container = document.querySelector('#example1');
 const hot = new Handsontable(container, {
+  themeName: 'ht-theme-main',
   data: [
     ['Mercedes', 'A 160', 1332284400000, 6999.95],
     ['Citroen', 'C4 Coupe', '10 30', 8330],
@@ -30,7 +31,7 @@ const hot = new Handsontable(container, {
     {
       type: 'numeric',
       numericFormat: {
-        pattern: '$ 0,0.00',
+        pattern: '$0,0.00',
       },
     },
   ],

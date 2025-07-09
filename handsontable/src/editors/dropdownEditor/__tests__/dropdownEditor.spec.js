@@ -855,6 +855,29 @@ describe('DropdownEditor', () => {
     expect(editableElement.getAttribute('dir')).toBeNull();
   });
 
+  it('should close the dropdown editor after call `useTheme`', async() => {
+    const hot = handsontable({
+      columns: [
+        {
+          type: 'dropdown',
+          source: choices
+        }
+      ],
+    });
+
+    await selectCell(0, 0);
+
+    const editor = getActiveEditor();
+
+    await keyDownUp('enter');
+
+    expect(editor.isOpened()).toBe(true);
+
+    hot.useTheme(undefined);
+
+    expect(editor.isOpened()).toBe(false);
+  });
+
   describe('IME support', () => {
     it('should focus editable element after a timeout when selecting the cell if `imeFastEdit` is enabled', async() => {
       handsontable({

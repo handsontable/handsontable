@@ -13,6 +13,9 @@ tags:
 react:
   id: kmqhr00y
   metaTitle: Row pre-populating - React Data Grid | Handsontable
+angular:
+  id: me99ozqr
+  metaTitle: Row pre-populating - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
 ---
@@ -44,6 +47,17 @@ The example below shows how cell renderers can be used to populate the template 
 
 @[code](@/content/guides/rows/row-prepopulating/react/example1.jsx)
 @[code](@/content/guides/rows/row-prepopulating/react/example1.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/guides/rows/row-prepopulating/angular/example1.ts)
+@[code](@/content/guides/rows/row-prepopulating/angular/example1.html)
 
 :::
 

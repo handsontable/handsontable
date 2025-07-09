@@ -8,6 +8,9 @@ canonicalUrl: /vue3-installation
 react:
   id: fsggsowh
   metaTitle: Installation - Vue 3 Data Grid | Handsontable
+angular:
+  id: od7j5cpt
+  metaTitle: Installation - Vue 3 Data Grid | Handsontable
 searchCategory: Guides
 category: Integrate with Vue 3
 ---
@@ -39,9 +42,13 @@ npm install handsontable @handsontable/vue3
 
 ```js
 <template>
-  <div class="ht-theme-main-dark-auto">
-    <hot-table :data="data" :rowHeaders="true" :colHeaders="true"></hot-table>
-  </div>
+  <hot-table 
+    theme="ht-theme-main"
+    :data="data"
+    :rowHeaders="true"
+    :colHeaders="true"
+  >
+  </hot-table>
 </template>
 
 <script>

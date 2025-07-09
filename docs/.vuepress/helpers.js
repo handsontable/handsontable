@@ -12,6 +12,7 @@ let docsSHA = null;
 const fullyProcessedFrameworks = [
   'javascript',
   'react',
+  'angular',
 ];
 
 const frameworkToPrettyName = new Map([
@@ -206,7 +207,7 @@ function parseFramework(url) {
  * @returns {string|null}
  */
 function parsePartialFramework(filePath) {
-  const frameworkMatch = filePath.match(/guides\/integrate-with-(vue3|vue|angular)?/);
+  const frameworkMatch = filePath.match(/guides\/integrate-with-(vue3|vue)?/);
 
   return frameworkMatch ? frameworkMatch[1] : null;
 }
@@ -266,6 +267,11 @@ function getDocsBase() {
  * @returns {string}
  */
 function getDocsBaseFullUrl() {
+
+  if (process.env.BUILD_MODE === 'preview') {
+    return `${process.env.NETLIFY_SITE_URL || ''}/docs/`;
+  }
+
   return `${getDocsHostname()}${getDocsBase()}`;
 }
 

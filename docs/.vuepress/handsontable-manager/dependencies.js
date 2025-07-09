@@ -32,8 +32,8 @@ const getPackageUrls = (packageName, version, fileSelection) => {
       js: 'react-handsontable.min.js',
       subDir: 'dist/',
     },
-    '@handsontable/angular': {
-      js: 'handsontable-angular.mjs',
+    '@handsontable/angular-wrapper': {
+      js: 'handsontable-angular-wrapper.mjs',
       subDir: 'fesm2022/'
     },
     '@handsontable/vue': {
@@ -105,8 +105,9 @@ const getPrebuiltUmdUrl = (scriptName) => {
 
   // eslint-disable-next-line global-require
   const { getDocsBaseFullUrl } = require('../helpers');
+  const docsBaseFullUrl = getDocsBaseFullUrl();
 
-  return `${getDocsBaseFullUrl()}/scripts/prebuilt-umd/${scriptName}`;
+  return `${docsBaseFullUrl}${docsBaseFullUrl.endsWith('/') ? '' : '/'}scripts/prebuilt-umd/${scriptName}`;
 };
 
 /**
@@ -146,7 +147,7 @@ const buildDependencyGetter = (version) => {
       'angular-platform-browser': [getPrebuiltUmdUrl('angular-platformBrowser.umd.min.js'), [/* todo */]],
       'angular-platform-browser-dynamic': [getPrebuiltUmdUrl('angular-platformBrowserDynamic.umd.min.js'), [/* todo */]],
       'angular-core-primitives-signals': [getPrebuiltUmdUrl('angular-core-primitives-signals.umd.min.js'), [/* todo */]],
-      'hot-angular': [getPrebuiltUmdUrl('handsontable-angular.umd.min.js')],
+      'hot-angular': [getPrebuiltUmdUrl('handsontable-angular-wrapper.umd.min.js')],
       'hot-vue': [getPackageUrls('@handsontable/vue', version, 'js'), [/* todo */], null, 'hot-vue3'],
       'hot-vue3': [getPackageUrls('@handsontable/vue3', version, 'js'), [/* todo */], null, 'hot-vue'],
       vue: ['https://cdn.jsdelivr.net/npm/vue@2/dist/vue.min.js', [/* todo */], null, 'vue3'],
@@ -174,7 +175,7 @@ const presetMap = {
   'react-languages': ['hot', 'languages', 'react', 'react-dom', 'hot-react', 'fixer'],
   'react-numbro': ['hot', 'numbro', 'react', 'react-dom', 'hot-react', 'fixer'],
   'react-redux': ['hot', 'react', 'react-dom', 'redux', 'react-redux', 'hot-react', 'fixer'],
-  'react-advanced': ['hot', 'react', 'react-dom', 'redux', 'react-redux', 'hot-react', 'fixer', 'react-colorful', 'react-star-rating-component'],
+  'react-advanced': ['hot', 'react', 'react-dom', 'redux', 'react-redux', 'hot-react', 'react-star-rating-component', 'fixer', 'react-colorful'],
   angular: ['hot', 'rxjs', 'core-js', 'zone', 'angular-core-primitives-signals', 'angular-compiler', 'angular-core', 'angular-common', 'angular-forms', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular', 'fixer'],
   'angular-languages': ['hot', 'languages', 'rxjs', 'core-js', 'zone', 'angular-core-primitives-signals', 'angular-compiler', 'angular-core', 'angular-common', 'angular-forms', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular', 'fixer'],
   'angular-numbro': ['hot', 'numbro', 'rxjs', 'core-js', 'zone', 'angular-core-primitives-signals', 'angular-compiler', 'angular-core', 'angular-common', 'angular-forms', 'angular-platform-browser', 'angular-platform-browser-dynamic', 'hot-angular', 'fixer'],

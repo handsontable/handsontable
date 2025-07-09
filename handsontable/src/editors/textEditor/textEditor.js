@@ -117,6 +117,7 @@ export class TextEditor extends BaseEditor {
    * Opens the editor and adjust its size.
    */
   open() {
+    this._opened = true;
     this.refreshDimensions(); // need it instantly, to prevent https://github.com/handsontable/handsontable/issues/348
     this.showEditableElement();
     this.hot.getShortcutManager().setActiveContextName('editor');
@@ -127,6 +128,7 @@ export class TextEditor extends BaseEditor {
    * Closes the editor.
    */
   close() {
+    this._opened = false;
     this.autoResize.unObserve();
 
     if (isInternalElement(this.hot.rootDocument.activeElement, this.hot.rootElement)) {

@@ -1,6 +1,6 @@
 import { sanitize } from '../string';
 import { A11Y_HIDDEN } from '../a11y';
-
+import { isWindowsOS, isSafari, isMobileBrowser } from '../browser';
 /**
  * Get the parent of the specified node in the DOM tree.
  *
@@ -970,6 +970,23 @@ export function setCaretPosition(element, pos, endPos) {
 let cachedScrollbarWidth;
 
 /**
+ * Returns the fractional scaling compensation for scrollbar width calculation.
+ *
+ * @param {Document} rootDocument The onwer of the document.
+ * @returns {number} The compensation for the scrollbar width, when the device pixel ratio is not an integer.
+ */
+// eslint-disable-next-line no-restricted-globals
+export function getFractionalScalingCompensation(rootDocument = document) {
+  if (!isWindowsOS()) {
+    return 0;
+  }
+
+  // On Windows, fractional scaling makes the scrollbar wider to compensate for the anti-aliasing.
+  // This is a workaround to calculate the correct scrollbar width.
+  return Number.isInteger(rootDocument.defaultView.devicePixelRatio || 1) ? 0 : 2;
+}
+
+/**
  * Helper to calculate scrollbar width.
  * Source: https://stackoverflow.com/questions/986937/how-can-i-get-the-browsers-scrollbar-sizes.
  *
@@ -985,6 +1002,11 @@ function walkontableCalculateScrollbarWidth(rootDocument = document) {
   inner.style.width = '100%';
 
   const outer = rootDocument.createElement('div');
+
+  // Fix for Safari custom scrollbar size
+  if (isSafari() && !isMobileBrowser()) {
+    outer.classList.add('htScrollbarSafariTest');
+  }
 
   outer.style.boxSizing = 'content-box';
   outer.style.height = '150px';
@@ -1007,7 +1029,7 @@ function walkontableCalculateScrollbarWidth(rootDocument = document) {
   }
   (rootDocument.body || rootDocument.documentElement).removeChild(outer);
 
-  return (w1 - w2);
+  return (w1 - w2) + getFractionalScalingCompensation(rootDocument);
 }
 
 /**

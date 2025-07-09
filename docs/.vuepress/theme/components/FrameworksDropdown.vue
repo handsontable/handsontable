@@ -33,6 +33,7 @@ function setCookie(name, value) {
 const frameworkIdToFullName = new Map([
   ['javascript', { name: 'JavaScript' }],
   ['react', { name: 'React' }],
+  ['angular', { name: 'Angular' }],
 ]);
 
 export default {
@@ -42,7 +43,7 @@ export default {
   },
   methods: {
     onFrameworkClick(item) {
-      setCookie('docs_fw', item.id === 'react' ? 'react' : 'javascript');
+      setCookie('docs_fw', item.id);
     },
     getAlt(framework) {
       return frameworkIdToFullName.get(framework).alt;
@@ -81,6 +82,7 @@ export default {
             link: this.getLink(id),
             target: '_self',
             isHtmlLink: true,
+            icon: `i-${id}`,
           };
         }
       );

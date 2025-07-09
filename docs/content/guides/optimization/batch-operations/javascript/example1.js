@@ -27,6 +27,7 @@ const data3 = [
 ];
 
 const hot = new Handsontable(container, {
+  themeName: 'ht-theme-main',
   data: data1,
   width: 'auto',
   height: 'auto',

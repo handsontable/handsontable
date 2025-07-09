@@ -40,11 +40,12 @@
     "@angular/compiler-cli": "latest",
     "@types/jasmine": "3.6.9",
     "@types/node": "12.20.7",
+    "http-server": "^14.1.1",
     "jasmine": "3.7.0",
     "jasmine-console-reporter": "3.1.0",
     "puppeteer": "14.3.0",
     "ts-node": "8.3.0",
-    "typescript": "5.5.4"
+    "typescript": "~5.8.0"
   },
   "license": "SEE LICENSE IN LICENSE.txt"
 }

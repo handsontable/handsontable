@@ -16,12 +16,8 @@ describe('AutocompleteEditor', () => {
 
   it('should render an editor in specified position at cell 0, 0', async() => {
     handsontable({
-      columns: [
-        {
-          editor: 'autocomplete',
-          source: choices,
-        }
-      ],
+      editor: 'autocomplete',
+      source: choices,
     });
 
     await selectCell(0, 0);
@@ -1207,6 +1203,8 @@ describe('AutocompleteEditor', () => {
     });
 
     it('should display the dropdown above the editor, when there is not enough space below (table has defined size)', async() => {
+      spec().$container.css('overflow', '');
+
       handsontable({
         data: createEmptySpreadsheetData(30, 30),
         editor: 'autocomplete',
@@ -1225,6 +1223,8 @@ describe('AutocompleteEditor', () => {
     });
 
     it('should display the dropdown once above and once below the editor after the choices list is changed (table has defined size)', async() => {
+      spec().$container.css('overflow', '');
+
       handsontable({
         data: createEmptySpreadsheetData(30, 5),
         editor: 'autocomplete',
@@ -1327,7 +1327,7 @@ describe('AutocompleteEditor', () => {
 
       expect(container.offset()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ top: 365, left: 0 });
-        main.toEqual({ top: 289, left: 0 });
+        main.toEqual({ top: 287, left: 0 });
         horizon.toEqual({ top: 184, left: 0 });
       });
     });
@@ -1360,7 +1360,7 @@ describe('AutocompleteEditor', () => {
 
       expect(container.offset()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ top: 480, left: 0 });
-        main.toEqual({ top: 434, left: 0 });
+        main.toEqual({ top: 432, left: 0 });
         horizon.toEqual({ top: 369, left: 0 });
       });
 
@@ -1402,7 +1402,7 @@ describe('AutocompleteEditor', () => {
 
       expect(container.offset()).forThemes(({ classic, main, horizon }) => {
         classic.toEqual({ top: 2090, left: 0 });
-        main.toEqual({ top: 2638, left: 0 });
+        main.toEqual({ top: 2636, left: 0 });
         horizon.toEqual({ top: 3366, left: 0 });
       });
 
@@ -1748,7 +1748,7 @@ describe('AutocompleteEditor', () => {
       await keyDownUp('enter');
       await sleep(200);
 
-      expect($('#testContainer.handsontable > .handsontable .wtBorder.current.corner:visible').length).toEqual(1);
+      expect($('#testContainer .handsontable > .handsontable .wtBorder.current.corner:visible').length).toEqual(1);
     });
   });
 
@@ -2666,7 +2666,7 @@ describe('AutocompleteEditor', () => {
 
     spec().$container.simulate('mousedown');
 
-    expect(getDataAtCell(0, 0)).toBeNull();
+    expect(getDataAtCell(0, 0)).toEqual('');
   });
 
   it('should be able to use empty value ("")', async() => {
@@ -3979,6 +3979,29 @@ describe('AutocompleteEditor', () => {
 
     expect(hot._registerTimeout).toHaveBeenCalledTimes(1);
     expect(hot._registerTimeout).toHaveBeenCalledWith(jasmine.anything(), 10);
+  });
+
+  it('should close the autocomplete editor after call `useTheme`', async() => {
+    const hot = handsontable({
+      columns: [
+        {
+          type: 'autocomplete',
+          source: choices
+        }
+      ],
+    });
+
+    await selectCell(0, 0);
+
+    const editor = getActiveEditor();
+
+    await keyDownUp('enter');
+
+    expect(editor.isOpened()).toBe(true);
+
+    hot.useTheme(undefined);
+
+    expect(editor.isOpened()).toBe(false);
   });
 
   describe('IME support', () => {

@@ -7,6 +7,7 @@ const gettingStartedItems = [
   { path: 'guides/getting-started/configuration-options/configuration-options' },
   { path: 'guides/getting-started/grid-size/grid-size' },
   { path: 'guides/getting-started/react-methods/react-methods', onlyFor: ['react'] },
+  { path: 'guides/getting-started/angular-hot-instance/angular-hot-instance', onlyFor: ['angular'] },
   { path: 'guides/getting-started/events-and-hooks/events-and-hooks' },
   { path: 'guides/getting-started/license-key/license-key' },
   { path: 'guides/getting-started/react-redux/react-redux', onlyFor: ['react'] },
@@ -15,19 +16,6 @@ const gettingStartedItems = [
 const stylingItems = [
   { path: 'guides/styling/themes/themes' },
   { path: 'guides/styling/design-system/design-system' }
-];
-
-const integrateWithAngularItems = [
-  { path: 'guides/integrate-with-angular/angular-installation/angular-installation' },
-  { path: 'guides/integrate-with-angular/angular-simple-example/angular-simple-example' },
-  { path: 'guides/integrate-with-angular/angular-modules/angular-modules' },
-  { path: 'guides/integrate-with-angular/angular-custom-id/angular-custom-id' },
-  { path: 'guides/integrate-with-angular/angular-setting-up-a-translation/angular-setting-up-a-translation' },
-  { path: 'guides/integrate-with-angular/angular-custom-context-menu-example/angular-custom-context-menu-example' },
-  { path: 'guides/integrate-with-angular/angular-custom-editor-example/angular-custom-editor-example' },
-  { path: 'guides/integrate-with-angular/angular-custom-renderer-example/angular-custom-renderer-example' },
-  { path: 'guides/integrate-with-angular/angular-language-change-example/angular-language-change-example' },
-  { path: 'guides/integrate-with-angular/angular-hot-reference/angular-hot-reference' },
 ];
 
 const integrateWithVueItems = [
@@ -179,6 +167,7 @@ const technicalSpecificationItems = [
 const upgradeAndMigrationItems = [
   { path: 'guides/upgrade-and-migration/changelog/changelog' },
   { path: 'guides/upgrade-and-migration/versioning-policy/versioning-policy' },
+  { path: 'guides/upgrade-and-migration/migrating-from-15.3-to-16.0/migrating-from-15.3-to-16.0' },
   { path: 'guides/upgrade-and-migration/migrating-from-14.6-to-15.0/migrating-from-14.6-to-15.0' },
   { path: 'guides/upgrade-and-migration/migrating-from-13.1-to-14.0/migrating-from-13.1-to-14.0' },
   { path: 'guides/upgrade-and-migration/migrating-from-12.4-to-13.0/migrating-from-12.4-to-13.0' },
@@ -203,7 +192,6 @@ module.exports = {
     { title: 'Accessibility', children: accessibilityItems },
     { title: 'Accessories and menus', children: accessoriesAndMenusItems },
     { title: 'Internationalization', children: internationalizationItems },
-    { title: 'Integrate with Angular', children: integrateWithAngularItems },
     { title: 'Integrate with Vue 2', children: integrateWithVueItems },
     { title: 'Integrate with Vue 3', children: integrateWithVue3Items },
     { title: 'Tools and building', children: buildingAndToolingItems },

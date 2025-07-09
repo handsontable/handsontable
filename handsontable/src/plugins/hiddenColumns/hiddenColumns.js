@@ -121,6 +121,70 @@ export const PLUGIN_PRIORITY = 310;
  * hot.render();
  * ```
  * :::
+ *
+ * ::: only-for angular
+ * ```ts
+ * import { AfterViewInit, Component, ViewChild } from "@angular/core";
+ * import {
+ *   GridSettings,
+ *   HotTableModule,
+ *   HotTableComponent,
+ * } from "@handsontable/angular-wrapper";
+ *
+ * `@Component`({
+ *   selector: "app-example",
+ *   standalone: true,
+ *   imports: [HotTableModule],
+ *   template: ` <div>
+ *     <hot-table themeName="ht-theme-main" [settings]="gridSettings" />
+ *   </div>`,
+ * })
+ * export class ExampleComponent implements AfterViewInit {
+ *   `@ViewChild`(HotTableComponent, { static: false })
+ *   readonly hotTable!: HotTableComponent;
+ *
+ *   readonly gridSettings = <GridSettings>{
+ *     data: this.getData(),
+ *     hiddenColumns: {
+ *       copyPasteEnabled: true,
+ *       indicators: true,
+ *       columns: [1, 2, 5],
+ *     },
+ *   };
+ *
+ *   ngAfterViewInit(): void {
+ *     // Access the `HiddenColumns` plugin's instance
+ *     const hot = this.hotTable.hotInstance;
+ *     const hiddenColumnsPlugin = hot.getPlugin("hiddenColumns");
+ *
+ *     // Hide a single column
+ *     hiddenColumnsPlugin.hideColumn(1);
+ *
+ *     // Hide multiple columns
+ *     hiddenColumnsPlugin.hideColumn(1, 2, 9);
+ *
+ *     // Hide multiple columns as an array
+ *     hiddenColumnsPlugin.hideColumns([1, 2, 9]);
+ *
+ *     // Unhide a single column
+ *     hiddenColumnsPlugin.showColumn(1);
+ *
+ *     // Unhide multiple columns
+ *     hiddenColumnsPlugin.showColumn(1, 2, 9);
+ *
+ *     // Unhide multiple columns as an array
+ *     hiddenColumnsPlugin.showColumns([1, 2, 9]);
+ *
+ *     // To see your changes, re-render your Handsontable instance
+ *     hot.render();
+ *   }
+ *
+ *   private getData(): any[] {
+ *     // Get some data
+ *   }
+ * }
+ * ```
+ * :::
  */
 export class HiddenColumns extends BasePlugin {
   static get PLUGIN_KEY() {

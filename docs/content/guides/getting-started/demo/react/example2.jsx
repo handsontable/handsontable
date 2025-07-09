@@ -141,6 +141,7 @@ export function addClassesToRows(TD, row, column, _prop, _value, cellProperties)
 const App = () => {
   return (
     <HotTable
+      themeName="ht-theme-main"
       data={data}
       height={450}
       colWidths={[180, 220, 140, 120, 120, 120, 140]}
@@ -188,8 +189,10 @@ const App = () => {
 };
 
 const rootElement = document.getElementById('example2');
+const root = ReactDOM.createRoot(rootElement);
 
-ReactDOM.createRoot(rootElement).render(<App />);
+rootElement._reactRoot = root;
+root.render(<App />);
 console.log(
   `Handsontable: v${Handsontable.version} (${Handsontable.buildDate}) Wrapper: v${HotTable.version} React: v${React.version}`
 );

@@ -8,16 +8,7 @@ interface Manufacturer {
   owner: string;
 }
 
-const colorData: [string][] = [
-  ['yellow'],
-  ['red'],
-  ['orange'],
-  ['green'],
-  ['blue'],
-  ['gray'],
-  ['black'],
-  ['white'],
-];
+const colorData: [string][] = [['yellow'], ['red'], ['orange'], ['green'], ['blue'], ['gray'], ['black'], ['white']];
 
 const manufacturerData: Manufacturer[] = [
   { name: 'BMW', country: 'Germany', owner: 'Bayerische Motoren Werke AG' },
@@ -31,6 +22,7 @@ const manufacturerData: Manufacturer[] = [
 const container = document.querySelector('#example1')!;
 
 new Handsontable(container, {
+  themeName: 'ht-theme-main',
   licenseKey: 'non-commercial-and-evaluation',
   data: [
     ['Tesla', 2017, 'black', 'black'],

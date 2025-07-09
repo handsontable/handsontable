@@ -10,9 +10,7 @@ registerAllModules();
 
 const ExampleComponent: React.FC = () => {
   const hotRef = useRef<HotTableRef>(null);
-  const [output, setOutput] = useState<string>(
-    'Click "Load" to load data from server'
-  );
+  const [output, setOutput] = useState<string>('Click "Load" to load data from server');
 
   const [isAutosave, setIsAutosave] = useState<boolean>(false);
 
@@ -61,29 +59,14 @@ const ExampleComponent: React.FC = () => {
     <>
       <div className="example-controls-container">
         <div className="controls">
-          <button
-            id="load"
-            className="button button--primary button--blue"
-            onClick={loadClickCallback}
-          >
+          <button id="load" className="button button--primary button--blue" onClick={loadClickCallback}>
             Load data
           </button>
-          &nbsp;
-          <button
-            id="save"
-            className="button button--primary button--blue"
-            onClick={saveClickCallback}
-          >
+          <button id="save" className="button button--primary button--blue" onClick={saveClickCallback}>
             Save data
           </button>
           <label>
-            <input
-              type="checkbox"
-              name="autosave"
-              id="autosave"
-              checked={isAutosave}
-              onClick={autosaveClickCallback}
-            />
+            <input type="checkbox" name="autosave" id="autosave" checked={isAutosave} onClick={autosaveClickCallback} />
             Autosave
           </label>
         </div>
@@ -92,6 +75,7 @@ const ExampleComponent: React.FC = () => {
         </output>
       </div>
       <HotTable
+        themeName="ht-theme-main"
         ref={hotRef}
         startRows={8}
         startCols={6}
@@ -101,10 +85,7 @@ const ExampleComponent: React.FC = () => {
         autoWrapRow={true}
         autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
-        afterChange={function (
-          change: Handsontable.CellChange[] | null,
-          source: Handsontable.ChangeSource
-        ) {
+        afterChange={function (change: Handsontable.CellChange[] | null, source: Handsontable.ChangeSource) {
           if (source === 'loadData') {
             return; // don't save this change
           }
@@ -121,14 +102,8 @@ const ExampleComponent: React.FC = () => {
             },
             body: JSON.stringify({ data: change }),
           }).then(() => {
-            setOutput(
-              `Autosaved (${change?.length} cell${
-                (change?.length || 0) > 1 ? 's' : ''
-              })`
-            );
-            console.log(
-              'The POST request is only used here for the demo purposes'
-            );
+            setOutput(`Autosaved (${change?.length} cell${(change?.length || 0) > 1 ? 's' : ''})`);
+            console.log('The POST request is only used here for the demo purposes');
           });
         }}
       />

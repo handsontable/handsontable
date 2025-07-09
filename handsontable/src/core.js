@@ -17,6 +17,7 @@ import {
 import { FocusManager } from './focusManager';
 import { arrayMap, arrayEach, arrayReduce, getDifferenceOfArrays, stringToArray, pivot } from './helpers/array';
 import { instanceToHTML } from './utils/parseTable';
+import { staticRegister } from './utils/staticRegister';
 import { getPlugin, getPluginsNames } from './plugins/registry';
 import { getRenderer } from './renderers/registry';
 import { getEditor } from './editors/registry';
@@ -42,6 +43,9 @@ import { createUniqueMap } from './utils/dataStructures/uniqueMap';
 import { createShortcutManager } from './shortcuts';
 import { registerAllShortcutContexts } from './shortcutContexts';
 import { getThemeClassName } from './helpers/themes';
+import { StylesHandler } from './utils/stylesHandler';
+import { warn } from './helpers/console';
+import { CellRangeToRenderableMapper } from './core/coordsMapper/rangeToRenderableMapper';
 
 let activeGuid = null;
 
@@ -78,6 +82,12 @@ const deprecationWarns = new Set();
  * by using React's `ref` feature (read more on the [Instance methods](@/guides/getting-started/react-methods/react-methods.md) page).
  * :::
  *
+ * ::: only-for angular
+ * To use these methods, associate a Handsontable instance with your instance
+ * of the [`HotTable` component](@/guides/getting-started/installation/installation.md#5-use-the-hottable-component),
+ * by using `@ViewChild` decorator (read more on the [Instance access](@/guides/getting-started/angular-hot-instance/angular-hot-instance.md) page).
+ * :::
+ *
  * ## How to call a method
  *
  * ::: only-for javascript
@@ -108,11 +118,44 @@ const deprecationWarns = new Set();
  * ```
  * :::
  *
- * @param {HTMLElement} rootElement The element to which the Handsontable instance is injected.
+ * ::: only-for angular
+ * ```ts
+ * import { Component, ViewChild, AfterViewInit } from "@angular/core";
+ * import {
+ *   GridSettings,
+ *   HotTableComponent,
+ *   HotTableModule,
+ * } from "@handsontable/angular-wrapper";
+ *
+ * `@Component`({
+ *   standalone: true,
+ *   imports: [HotTableModule],
+ *   template: ` <div>
+ *     <hot-table themeName="ht-theme-main" [settings]="gridSettings" />
+ *   </div>`,
+ * })
+ * export class ExampleComponent implements AfterViewInit {
+ *   `@ViewChild`(HotTableComponent, { static: false })
+ *   readonly hotTable!: HotTableComponent;
+ *
+ *   readonly gridSettings = <GridSettings>{
+ *     columns: [{}],
+ *   };
+ *
+ *   ngAfterViewInit(): void {
+ *     // Access the Handsontable instance
+ *     // Call a method
+ *     this.hotTable?.hotInstance?.setDataAtCell(0, 0, "new value");
+ *   }
+ * }
+ * ```
+ * :::
+ *
+ * @param {HTMLElement} rootContainer The element to which the Handsontable instance is injected.
  * @param {object} userSettings The user defined options.
  * @param {boolean} [rootInstanceSymbol=false] Indicates if the instance is root of all later instances created.
  */
-export default function Core(rootElement, userSettings, rootInstanceSymbol = false) {
+export default function Core(rootContainer, userSettings, rootInstanceSymbol = false) {
   let instance = this;
 
   const eventManager = new EventManager(instance);
@@ -128,6 +171,30 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     registerAsRootInstance(this);
   }
 
+  /**
+   * Reference to the root container.
+   *
+   * @private
+   * @type {HTMLElement}
+   */
+  this.rootContainer = rootContainer;
+
+  /**
+   * Reference to the wrapper element.
+   *
+   * @private
+   * @type {HTMLElement}
+   */
+  this.rootWrapperElement = undefined;
+
+  /**
+   * Reference to the portal element.
+   *
+   * @private
+   * @type {HTMLElement}
+   */
+  this.rootPortalElement = undefined;
+
   // TODO: check if references to DOM elements should be move to UI layer (Walkontable)
   /**
    * Reference to the container element.
@@ -135,14 +202,16 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @private
    * @type {HTMLElement}
    */
-  this.rootElement = rootElement;
+  this.rootElement = isRootInstance(this) ? rootContainer.ownerDocument.createElement('div') : rootContainer;
+
   /**
    * The nearest document over container.
    *
    * @private
    * @type {Document}
    */
-  this.rootDocument = rootElement.ownerDocument;
+  this.rootDocument = rootContainer.ownerDocument;
+
   /**
    * Window object over container's document.
    *
@@ -150,6 +219,22 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @type {Window}
    */
   this.rootWindow = this.rootDocument.defaultView;
+
+  if (isRootInstance(this)) {
+    this.rootWrapperElement = this.rootDocument.createElement('div');
+    this.rootPortalElement = this.rootDocument.createElement('div');
+
+    addClass(this.rootElement, 'ht-wrapper');
+    addClass(this.rootWrapperElement, 'ht-root-wrapper');
+
+    this.rootWrapperElement.appendChild(this.rootElement);
+    this.rootContainer.appendChild(this.rootWrapperElement);
+
+    addClass(this.rootPortalElement, 'ht-portal');
+
+    this.rootDocument.body.appendChild(this.rootPortalElement);
+  }
+
   /**
    * A boolean to tell if the Handsontable has been fully destroyed. This is set to `true`
    * after `afterDestroy` hook is called.
@@ -159,6 +244,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @type {boolean}
    */
   this.isDestroyed = false;
+
   /**
    * The counter determines how many times the render suspending was called. It allows
    * tracking the nested suspending calls. For each render suspend resuming call the
@@ -169,6 +255,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @type {number}
    */
   this.renderSuspendedCounter = 0;
+
   /**
    * The counter determines how many times the execution suspending was called. It allows
    * tracking the nested suspending calls. For each execution suspend resuming call the
@@ -222,6 +309,17 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     return instance.isLtr() ? 1 : -1;
   };
 
+  /**
+   * Styles handler instance.
+   *
+   * @private
+   * @type {StylesHandler}
+   */
+  this.stylesHandler = new StylesHandler(
+    instance.rootElement,
+    instance.rootDocument
+  );
+
   userSettings.language = getValidLanguageCode(userSettings.language);
 
   const settingsWithoutHooks = Object.fromEntries(
@@ -240,12 +338,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
   this.container = this.rootDocument.createElement('div');
 
-  rootElement.insertBefore(this.container, rootElement.firstChild);
+  this.rootElement.insertBefore(this.container, this.rootElement.firstChild);
 
   if (isRootInstance(this)) {
-    _injectProductInfo(userSettings.licenseKey, rootElement);
-
-    addClass(rootElement, 'ht-wrapper');
+    _injectProductInfo(userSettings.licenseKey, this.rootWrapperElement);
   }
 
   this.guid = `ht_${randomString()}`; // this is the namespace for global events
@@ -260,6 +356,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @type {IndexMapper}
    */
   this.columnIndexMapper = new IndexMapper();
+
   /**
    * Instance of index mapper which is responsible for managing the row indexes.
    *
@@ -282,6 +379,13 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
   });
 
   dataSource = new DataSource(instance);
+
+  const moduleRegisterer = staticRegister(this.guid);
+
+  moduleRegisterer.register('cellRangeMapper', new CellRangeToRenderableMapper({
+    rowIndexMapper: this.rowIndexMapper,
+    columnIndexMapper: this.columnIndexMapper,
+  }));
 
   if (!this.rootElement.id || this.rootElement.id.substring(0, 3) === 'ht_') {
     this.rootElement.id = this.guid; // if root element does not have an id, assign a random id
@@ -426,12 +530,14 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       removeClass(this.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
     }
 
-    if (selection.getSelectionSource() !== 'shift') {
+    if (!['shift', 'refresh'].includes(selection.getSelectionSource())) {
       editorManager.closeEditor(null);
     }
 
-    instance.view.render();
-    editorManager.prepareEditor();
+    if (selection.getSelectionSource() !== 'refresh') {
+      instance.view.render();
+      editorManager.prepareEditor();
+    }
   });
 
   this.selection.addLocalHook('beforeSetFocus', (cellCoords) => {
@@ -460,6 +566,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
       from.row, from.col, to.row, to.col, selectionLayerLevel);
     this.runHooks('afterSelectionEndByProp',
       from.row, instance.colToProp(from.col), to.row, instance.colToProp(to.col), selectionLayerLevel);
+
+    if (selection.getSelectionSource() === 'refresh') {
+      instance.view.render();
+      editorManager.prepareEditor();
+    }
   });
 
   this.selection.addLocalHook('afterIsMultipleSelection', (isMultiple) => {
@@ -651,6 +762,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                 selection.deselect();
 
               } else if (source === 'ContextMenu.removeRow') {
+                const selectionRange = selection.getSelectedRange();
+                const lastSelection = selectionRange.pop();
+
+                selectionRange
+                  .clear()
+                  .set(lastSelection.from)
+                  .current()
+                  .setTo(lastSelection.to);
+
                 selection.refresh();
 
               } else {
@@ -707,6 +827,15 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
                 selection.deselect();
 
               } else if (source === 'ContextMenu.removeColumn') {
+                const selectionRange = selection.getSelectedRange();
+                const lastSelection = selectionRange.pop();
+
+                selectionRange
+                  .clear()
+                  .set(lastSelection.from)
+                  .current()
+                  .setTo(lastSelection.to);
+
                 selection.refresh();
 
               } else {
@@ -1126,13 +1255,10 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
 
     this.view = new TableView(this);
 
-    const themeName = tableMeta.themeName || getThemeClassName(instance.rootElement);
+    const themeName = tableMeta.themeName || getThemeClassName(instance.rootContainer);
 
-    // Use the theme defined as a root element class or in the settings (in that order).
+    // Use the theme defined in the settings object or set as a root container class name (in that order).
     instance.useTheme(themeName);
-
-    // Add the theme class name to the license info element.
-    instance.view.addClassNameToLicenseElement(instance.getCurrentThemeName());
 
     editorManager = EditorManager.getInstance(instance, tableMeta, selection);
 
@@ -2631,23 +2757,11 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
         const themeNameOptionExists = hasOwnProperty(settings, 'themeName');
 
         if (
-          currentThemeName &&
           themeNameOptionExists &&
           currentThemeName !== settings.themeName
         ) {
-          instance.view.getStylesHandler().removeClassNames();
-          instance.view.removeClassNameFromLicenseElement(currentThemeName);
+          instance.useTheme(settings.themeName);
         }
-
-        const themeName =
-          (themeNameOptionExists && settings.themeName) ||
-          getThemeClassName(instance.rootElement);
-
-        // Use the theme defined as a root element class or in the settings (in that order).
-        instance.useTheme(themeName);
-
-        // Add the theme class name to the license info element.
-        instance.view.addClassNameToLicenseElement(instance.getCurrentThemeName());
       }
 
       instance.runHooks('afterUpdateSettings', settings);
@@ -3900,7 +4014,7 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {number}
    */
   this._getRowHeightFromSettings = function(row) {
-    const defaultRowHeight = this.view.getDefaultRowHeight();
+    const defaultRowHeight = instance.stylesHandler.getDefaultRowHeight();
     let height = tableMeta.rowHeights;
 
     if (height !== undefined && height !== null) {
@@ -4578,24 +4692,26 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
     if (dataSource) {
       dataSource.destroy();
     }
+
     dataSource = null;
 
     this.getShortcutManager().destroy();
+    moduleRegisterer.clear();
     metaManager.clearCache();
     foreignHotInstances.delete(this.guid);
 
-    if (isRootInstance(instance)) {
-      const licenseInfo = this.rootDocument.querySelector('.hot-display-license-info');
-
-      if (licenseInfo) {
-        licenseInfo.parentNode.removeChild(licenseInfo);
-      }
-    }
-    empty(instance.rootElement);
     eventManager.destroy();
 
     if (editorManager) {
       editorManager.destroy();
+    }
+
+    if (instance.rootContainer) {
+      empty(instance.rootContainer);
+    }
+
+    if (instance.rootPortalElement) {
+      instance.rootPortalElement.remove();
     }
 
     // The plugin's `destroy` method is called as a consequence and it should handle
@@ -5016,9 +5132,41 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @param {string|boolean|undefined} themeName The name of the theme to use.
    */
   this.useTheme = (themeName) => {
-    this.view.getStylesHandler().useTheme(themeName);
+    const isFirstRun = !!firstRun;
 
-    this.runHooks('afterSetTheme', themeName, !!firstRun);
+    this.stylesHandler.useTheme(themeName);
+
+    const validThemeName = this.stylesHandler.getThemeName();
+
+    if (isRootInstance(this)) {
+      removeClass(this.rootWrapperElement, /ht-theme-.*/g);
+      removeClass(this.rootPortalElement, /ht-theme-.*/g);
+
+      if (validThemeName) {
+        addClass(this.rootWrapperElement, validThemeName);
+        addClass(this.rootPortalElement, validThemeName);
+
+        if (!getComputedStyle(this.rootWrapperElement).getPropertyValue('--ht-line-height')) {
+          warn(`The "${validThemeName}" theme is enabled, but its stylesheets are missing or not imported correctly. \
+            Import the correct CSS files in order to use that theme.`);
+        }
+      }
+    }
+
+    if (!isFirstRun) {
+      instance.render();
+      instance.scrollViewportTo(0, 0);
+
+      if (getThemeClassName(this.rootContainer)) {
+        removeClass(this.rootContainer, /ht-theme-.*/g);
+
+        if (validThemeName) {
+          addClass(this.rootContainer, validThemeName);
+        }
+      }
+    }
+
+    this.runHooks('afterSetTheme', validThemeName, isFirstRun);
   };
 
   /**
@@ -5030,7 +5178,31 @@ export default function Core(rootElement, userSettings, rootInstanceSymbol = fal
    * @returns {string|undefined} The name of the currently used theme.
    */
   this.getCurrentThemeName = () => {
-    return this.view.getStylesHandler().getThemeName();
+    return this.stylesHandler.getThemeName();
+  };
+
+  /**
+   * Gets the table's root container element height.
+   *
+   * @memberof Core#
+   * @function getTableHeight
+   * @since 16.0.0
+   * @returns {number}
+   */
+  this.getTableHeight = () => {
+    return this.rootElement.offsetHeight;
+  };
+
+  /**
+   * Gets the table's root container element width.
+   *
+   * @memberof Core#
+   * @function getTableWidth
+   * @since 16.0.0
+   * @returns {number}
+   */
+  this.getTableWidth = () => {
+    return this.rootElement.offsetWidth;
   };
 
   /**

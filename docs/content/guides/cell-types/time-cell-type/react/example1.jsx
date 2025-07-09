@@ -18,6 +18,7 @@ const ExampleComponent = () => {
 
   return (
     <HotTable
+      themeName="ht-theme-main"
       ref={hotRef}
       data={[
         ['Mercedes', 'A 160', 1332284400000, 6999.95],
@@ -47,7 +48,7 @@ const ExampleComponent = () => {
         {
           type: 'numeric',
           numericFormat: {
-            pattern: '$ 0,0.00',
+            pattern: '$0,0.00',
           },
         },
       ]}

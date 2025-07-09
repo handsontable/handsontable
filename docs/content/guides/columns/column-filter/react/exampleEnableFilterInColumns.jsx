@@ -22,6 +22,7 @@ const ExampleComponent = () => {
 
   return (
     <HotTable
+      themeName="ht-theme-main"
       data={[
         {
           brand: 'Jetpulse',
@@ -80,7 +81,7 @@ const ExampleComponent = () => {
           type: 'numeric',
           data: 'price',
           numericFormat: {
-            pattern: '$ 0,0.00',
+            pattern: '$0,0.00',
             culture: 'en-US',
           },
         },

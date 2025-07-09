@@ -9,16 +9,7 @@ import { BaseRenderer } from 'handsontable/renderers';
 registerAllModules();
 
 const ExampleComponent = () => {
-  const colors: string[] = [
-    'yellow',
-    'red',
-    'orange',
-    'green',
-    'blue',
-    'gray',
-    'black',
-    'white',
-  ];
+  const colors: string[] = ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white'];
 
   const yellowRenderer: BaseRenderer = (instance, td, ...rest) => {
     Handsontable.renderers.TextRenderer(instance, td, ...rest);
@@ -33,6 +24,7 @@ const ExampleComponent = () => {
 
   return (
     <HotTable
+      themeName="ht-theme-main"
       data={[
         {
           id: 1,

@@ -9,6 +9,7 @@ registerAllModules();
 const ExampleComponent = () => {
   return (
     <HotTable
+      themeName="ht-theme-main"
       data={[
         {
           brand: 'Jetpulse',
@@ -67,7 +68,7 @@ const ExampleComponent = () => {
           type: 'numeric',
           data: 'price',
           numericFormat: {
-            pattern: '$ 0,0.00',
+            pattern: '$0,0.00',
             culture: 'en-US',
           },
         },
@@ -97,11 +98,7 @@ const ExampleComponent = () => {
       // enable filtering
       filters={true}
       // enable the column menu, but display only the filter menu items
-      dropdownMenu={[
-        'filter_by_condition',
-        'filter_by_value',
-        'filter_action_bar',
-      ]}
+      dropdownMenu={['filter_by_condition', 'filter_by_value', 'filter_action_bar']}
       height="auto"
       autoWrapRow={true}
       autoWrapCol={true}

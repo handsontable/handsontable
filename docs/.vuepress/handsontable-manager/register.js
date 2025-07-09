@@ -1,4 +1,4 @@
-/* global Handsontable, ReactDOM, ng */
+/* global Handsontable, ng */
 /**
  * Returns a function that will destroy the demo resources.
  *
@@ -19,10 +19,12 @@ function createDestroyableResource(presetType, { rootExampleElement, hotInstance
           rootExampleElement.firstChild.__vue__.$root.$destroy();
 
         } else if (presetType.startsWith('react')) {
-          ReactDOM.unmountComponentAtNode(rootExampleElement.firstChild);
+          rootExampleElement.firstChild?._reactRoot.unmount();
 
         } else if (presetType.startsWith('angular')) {
-          ng.core.getPlatform().destroy();
+          if (ng.core.getPlatform()) {
+            ng.core.getPlatform().destroy();
+          }
 
         } else if (!hotInstance.isDestroyed) {
           // Skip internal HoT-based components (e.g. context menu, dropdown menu). They
@@ -90,6 +92,13 @@ function createRegister() {
               typeof currentEntry === 'function' ?
                 register.get(exampleId)()?.hotInstance :
                 null;
+
+            const loader = rootExampleElement.closest('.example-container')
+              ?.querySelector('.examples-loader-container');
+
+            if (loader) {
+              loader.remove();
+            }
 
             register.set(exampleId, createDestroyableResource(examplePresetType, {
               rootExampleElement,

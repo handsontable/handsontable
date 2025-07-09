@@ -5,6 +5,7 @@ import 'handsontable/styles/ht-theme-main.css';
 const container = document.querySelector('#example3');
 
 new Handsontable(container, {
+  themeName: 'ht-theme-main',
   data: [
     { car: 'Mercedes A 160', year: 2017, available: true, comesInBlack: 'yes' },
     {

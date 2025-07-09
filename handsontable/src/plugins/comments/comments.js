@@ -7,7 +7,6 @@ import {
   hasHorizontalScrollbar,
   isChildOf,
   outerHeight,
-  removeClass,
 } from '../../helpers/dom/element';
 import { stopImmediatePropagation } from '../../helpers/dom/event';
 import { deepClone, deepExtend } from '../../helpers/object';
@@ -117,6 +116,59 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
  * commentsPlugin.removeComment();
  * ```
  * :::
+ *
+ * ::: only-for angular
+ * ```ts
+ * import { AfterViewInit, Component, ViewChild } from "@angular/core";
+ * import {
+ *   GridSettings,
+ *   HotTableModule,
+ *   HotTableComponent,
+ * } from "@handsontable/angular-wrapper";
+ *
+ * `@Component`({
+ *   selector: "app-example",
+ *   standalone: true,
+ *   imports: [HotTableModule],
+ *   template: ` <div>
+ *     <hot-table themeName="ht-theme-main" [settings]="gridSettings" />
+ *   </div>`,
+ * })
+ * export class ExampleComponent implements AfterViewInit {
+ *   `@ViewChild`(HotTableComponent, { static: false })
+ *   readonly hotTable!: HotTableComponent;
+ *
+ *   readonly gridSettings = <GridSettings>{
+ *     data: this.getData(),
+ *     comments: true,
+ *     cell: [
+ *       { row: 1, col: 1, comment: { value: "Foo" } },
+ *       { row: 2, col: 2, comment: { value: "Bar" } },
+ *     ],
+ *   };
+ *
+ *   ngAfterViewInit(): void {
+ *     // Access to plugin instance:
+ *     const hot = this.hotTable.hotInstance;
+ *     const commentsPlugin = hot.getPlugin("comments");
+ *
+ *     // Manage comments programmatically:
+ *     commentsPlugin.setCommentAtCell(1, 6, "Comment contents");
+ *     commentsPlugin.showAtCell(1, 6);
+ *     commentsPlugin.removeCommentAtCell(1, 6);
+ *
+ *     // You can also set range once and use proper methods:
+ *     commentsPlugin.setRange({ from: { row: 1, col: 6 } });
+ *     commentsPlugin.setComment("Comment contents");
+ *     commentsPlugin.show();
+ *   }
+ *
+ *   private getData(): any[] {
+ *     // get some data
+ *   }
+ * }
+ * ```
+ * :::
  */
 export class Comments extends BasePlugin {
   static get PLUGIN_KEY() {
@@ -202,8 +254,13 @@ export class Comments extends BasePlugin {
     }
 
     if (!this.#editor) {
-      this.#editor = new CommentEditor(this.hot.rootDocument, this.hot.isRtl());
+      this.#editor = new CommentEditor(this.hot.rootDocument, this.hot.isRtl(), this.hot.rootPortalElement);
       this.#editor.addLocalHook('resize', (...args) => this.#onEditorResize(...args));
+      this.hot.addHook('afterSetTheme', (themeName, firstRun) => {
+        if (!firstRun) {
+          this.hide();
+        }
+      });
     }
 
     if (!this.#displaySwitch) {
@@ -217,7 +274,6 @@ export class Comments extends BasePlugin {
     this.addHook('afterBeginEditing', () => this.hide());
     this.addHook('afterDocumentKeyDown', event => this.#onAfterDocumentKeyDown(event));
     this.addHook('beforeCompositionStart', event => this.#onAfterDocumentKeyDown(event));
-    this.addHook('afterSetTheme', (...args) => this.#updateEditorThemeClassName(...args));
 
     this.#displaySwitch.addLocalHook('hide', () => this.hide());
     this.#displaySwitch.addLocalHook('show', (row, col) => this.showAtCell(row, col));
@@ -797,16 +853,6 @@ export class Comments extends BasePlugin {
     if (!this.#preventEditorHiding) {
       this.hide();
     }
-  }
-
-  /**
-   * Updates the editor theme class name.
-   */
-  #updateEditorThemeClassName() {
-    const editorElement = this.#editor.getEditorElement();
-
-    removeClass(editorElement, /ht-theme-.*/g);
-    addClass(editorElement, this.hot.getCurrentThemeName());
   }
 
   /**

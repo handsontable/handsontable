@@ -8,6 +8,7 @@ registerAllModules();
 
 const ExampleComponent = () => (
   <HotTable
+    themeName="ht-theme-main"
     data={[]}
     dataSchema={{
       id: null,

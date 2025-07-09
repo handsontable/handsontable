@@ -21,6 +21,47 @@ describe('HandsontableEditor', () => {
     ];
   }
 
+  it('should return true in the `isOpened` after open the handsontable editor', async() => {
+    handsontable({
+      type: 'handsontable',
+      handsontable: {
+        colHeaders: ['Marque', 'Country', 'Parent company'],
+        data: getManufacturerData()
+      }
+    });
+
+    await selectCell(0, 0);
+
+    const editor = getActiveEditor();
+
+    await keyDownUp('enter');
+
+    expect(editor.isOpened()).toBe(true);
+  });
+
+  it('should return false in the `isOpened` after close the handsontable editor', async() => {
+    handsontable({
+      type: 'handsontable',
+      handsontable: {
+        colHeaders: ['Marque', 'Country', 'Parent company'],
+        data: getManufacturerData()
+      }
+    });
+
+    await selectCell(0, 0);
+
+    const editor = getActiveEditor();
+
+    await keyDownUp('enter');
+
+    expect(editor.isOpened()).toBe(true);
+
+    await selectCell(1, 0);
+    await sleep(30);
+
+    expect(editor.isOpened()).toBe(false);
+  });
+
   it('should render an editor in specified position at cell 0, 0', async() => {
     handsontable({
       columns: [
@@ -338,26 +379,6 @@ describe('HandsontableEditor', () => {
     await keyDownUp('enter');
 
     expect(spec().$container.find('.handsontableEditor:visible').length).toEqual(1);
-  });
-
-  it('should create an editor directly below the textarea element', async() => {
-    handsontable({
-      columns: [
-        {
-          type: 'handsontable',
-          handsontable: {
-            colHeaders: ['Marque', 'Country', 'Parent company'],
-            data: getManufacturerData()
-          }
-        }
-      ]
-    });
-
-    await selectCell(2, 0);
-    await keyDownUp('enter');
-
-    expect(spec().$container.find('.handsontableEditor')[0].offsetTop)
-      .toEqual(spec().$container.find('.handsontableInput')[0].offsetHeight);
   });
 
   it('should prepare the editor only once per instance', async() => {
@@ -833,6 +854,32 @@ describe('HandsontableEditor', () => {
     expect(getSelected()).toEqual([[1, 2, 1, 2]]);
   });
 
+  it('should close the handsontable editor after call `useTheme`', async() => {
+    const hot = handsontable({
+      columns: [
+        {
+          type: 'handsontable',
+          handsontable: {
+            colHeaders: ['Marque', 'Country', 'Parent company'],
+            data: getManufacturerData()
+          }
+        }
+      ],
+    });
+
+    await selectCell(0, 0);
+
+    const editor = getActiveEditor();
+
+    await keyDownUp('enter');
+
+    expect(editor.isOpened()).toBe(true);
+
+    hot.useTheme(undefined);
+
+    expect(editor.isOpened()).toBe(false);
+  });
+
   it('should open editor with the correct size', async() => {
     handsontable({
       colWidths: 120,
@@ -854,12 +901,12 @@ describe('HandsontableEditor', () => {
     const container = getActiveEditor().htContainer;
 
     expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(290);
+      classic.toBe(288);
       main.toBe(360);
       horizon.toBe(384);
     });
     expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(168);
+      classic.toBe(166);
       main.toBe(212);
       horizon.toBe(260);
     });
@@ -895,12 +942,12 @@ describe('HandsontableEditor', () => {
     const container = getActiveEditor().htContainer;
 
     expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(290);
+      classic.toBe(288);
       main.toBe(360);
       horizon.toBe(384);
     });
     expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(168);
+      classic.toBe(166);
       main.toBe(212);
       horizon.toBe(260);
     });

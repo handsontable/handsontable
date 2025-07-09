@@ -28,13 +28,7 @@ const ExampleComponent = () => {
     _value: any,
     result: any
   ) {
-    const DEFAULT_CALLBACK = function (
-      instance: Handsontable,
-      row: number,
-      col: number,
-      _data: any,
-      testResult: any
-    ) {
+    const DEFAULT_CALLBACK = function (instance: Handsontable, row: number, col: number, _data: any, testResult: any) {
       instance.getCellMeta(row, col).isSearchResult = testResult;
     };
 
@@ -60,18 +54,14 @@ const ExampleComponent = () => {
     <>
       <div className="example-controls-container">
         <div className="controls">
-          <input
-            id="search_field4"
-            type="search"
-            placeholder="Search"
-            onKeyUp={handleKeyUp}
-          />
+          <input id="search_field4" type="search" placeholder="Search" onKeyUp={handleKeyUp} />
         </div>
         <output className="console" id="output">
           {resultCount} results
         </output>
       </div>
       <HotTable
+        themeName="ht-theme-main"
         ref={hot4Ref}
         data={data}
         colHeaders={true}

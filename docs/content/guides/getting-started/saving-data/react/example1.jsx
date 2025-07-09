@@ -59,7 +59,6 @@ const ExampleComponent = () => {
           <button id="load" className="button button--primary button--blue" onClick={loadClickCallback}>
             Load data
           </button>
-          &nbsp;
           <button id="save" className="button button--primary button--blue" onClick={saveClickCallback}>
             Save data
           </button>
@@ -73,6 +72,7 @@ const ExampleComponent = () => {
         </output>
       </div>
       <HotTable
+        themeName="ht-theme-main"
         ref={hotRef}
         startRows={8}
         startCols={6}

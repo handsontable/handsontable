@@ -11,6 +11,9 @@ tags:
 react:
   id: sfxo3g54
   metaTitle: Export to CSV - React Data Grid | Handsontable
+angular:
+  id: hwhzgoir
+  metaTitle: Export to CSV - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Accessories and menus
 ---
@@ -50,6 +53,16 @@ Mind that CSV exports contain only raw data, and don't include formulas, styling
 
 :::
 
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/guides/accessories-and-menus/export-to-csv/angular/example1.ts)
+@[code](@/content/guides/accessories-and-menus/export-to-csv/angular/example1.html)
+
+:::
+
+:::
 
 ### Export as a JavaScript Blob object
 
@@ -78,6 +91,16 @@ Open a console in browser developer tools to see the result for the below exampl
 
 :::
 
+::: only-for angular
+
+::: example #example2 :angular --ts 1 --html 2
+
+@[code](@/content/guides/accessories-and-menus/export-to-csv/angular/example2.ts)
+@[code](@/content/guides/accessories-and-menus/export-to-csv/angular/example2.html)
+
+:::
+:::
+
 ### Export as a string
 
 Open a console in browser developer tools to see the result for the below example.
@@ -100,6 +123,58 @@ Open a console in browser developer tools to see the result for the below exampl
 
 @[code](@/content/guides/accessories-and-menus/export-to-csv/react/example3.jsx)
 @[code](@/content/guides/accessories-and-menus/export-to-csv/react/example3.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example3 :angular --ts 1 --html 2
+
+@[code](@/content/guides/accessories-and-menus/export-to-csv/angular/example3.ts)
+@[code](@/content/guides/accessories-and-menus/export-to-csv/angular/example3.html)
+
+:::
+
+:::
+
+### Prevent CSV Injection attack
+
+"CSV Injection, also known as Formula Injection, occurs when websites embed untrusted input inside CSV files. When a spreadsheet program such as Microsoft Excel or LibreOffice Calc is used to open a CSV, any cells starting with = will be interpreted by the software as a formula." (from [OWASP website](https://owasp.org/www-community/attacks/CSV_Injection))
+
+To prevent this attack, set the [`sanitizeValues` option](#sanitizevalues-boolean|regexp|function) when exporting your data in CSV format.
+
+::: only-for javascript
+
+::: example #example4 --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/accessories-and-menus/export-to-csv/javascript/example4.html)
+@[code](@/content/guides/accessories-and-menus/export-to-csv/javascript/example4.js)
+@[code](@/content/guides/accessories-and-menus/export-to-csv/javascript/example4.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example4 :react --js 1 --ts 2
+
+@[code](@/content/guides/accessories-and-menus/export-to-csv/react/example4.jsx)
+@[code](@/content/guides/accessories-and-menus/export-to-csv/react/example4.tsx)
+
+:::
+
+:::
+
+
+::: only-for angular
+
+::: example #example4 :angular --ts 1 --html 2
+
+@[code](@/content/guides/accessories-and-menus/export-to-csv/angular/example4.ts)
+@[code](@/content/guides/accessories-and-menus/export-to-csv/angular/example4.html)
 
 :::
 
@@ -209,12 +284,12 @@ You can use this property in the `downloadFile()` and `exportAsBlob()` methods.
 
 Default value: `'text/csv'`
 
-### sanitizeValues `boolean|RegExp|Function`
+### sanitizeValues `Boolean|RegExp|Function`
 
 Controls the value sanitization during the CSV export
 
 - when `sanitizeValues` is `false`, `ExportPlugin` doesn't sanitize the values
-- when `sanitizeValues` is `true`, `ExportPlugin` sanitizes values according to OWASP recommendations: https://owasp.org/www-community/attacks/CSV_Injection
+- when `sanitizeValues` is `true`, `ExportPlugin` sanitizes values according to [OWASP recommendations](https://owasp.org/www-community/attacks/CSV_Injection).
 - when `sanitizeValues` is a regexp, `ExportPlugin` escapes values that match the regexp
 - when `sanitizeValues` is a function, `ExportPlugin` replaces values with the return value of the function
 

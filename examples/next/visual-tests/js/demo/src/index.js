@@ -15,7 +15,10 @@ import { init as initBasicTwoTablesDemo } from "./demos/basicTwoTables";
 import { init as initContextMenuDemo } from "./demos/contextMenu";
 import { init as initDropdownMenuDemo } from "./demos/dropdownMenu";
 import { init as initLargeDatasetDemo } from './demos/largeDataset';
+import { init as initCustomBordersDemo } from './demos/customBorders';
 import { init as initWebComponentDemo } from './demos/webComponent';
+import { init as initEditorsDemo } from './demos/editors';
+import { init as initTextEllipsisDemo } from './demos/textEllipsis';
 
 // Function to dynamically load CSS
 function loadCSS(href) {
@@ -215,6 +218,33 @@ router
         loadThemeCSS(),
       ]).then(() => {
         initWebComponentDemo();
+      });
+    },
+    '/editors-demo': function () {
+      removeCSS();
+
+      Promise.all([
+        loadThemeCSS(),
+      ]).then(() => {
+        initEditorsDemo();
+      });
+    },
+    '/text-ellipsis-demo': function () {
+      removeCSS();
+
+      Promise.all([
+        loadThemeCSS(),
+      ]).then(() => {
+        initTextEllipsisDemo();
+      });
+    },
+    '/custom-borders-demo': function () {
+      removeCSS();
+
+      Promise.all([
+        loadThemeCSS(),
+      ]).then(() => {
+        initCustomBordersDemo();
       });
     },
   })

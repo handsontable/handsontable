@@ -18,6 +18,9 @@ tags:
 react:
   id: ddjw4zt88
   metaTitle: Keyboard shortcuts - React Data Grid | Handsontable
+angular:
+  id: v7sq2x22
+  metaTitle: Keyboard shortcuts - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Navigation
 ---
@@ -68,22 +71,24 @@ These keyboard shortcuts help you select cells. They come from Handsontable's [`
 | ----------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | :-----: | :-----: |
 | <kbd>**Ctrl**</kbd>+<kbd>**A**</kbd> | <kbd>**Cmd**</kbd>+<kbd>**A**</kbd>  | Select all cells                                                      | &check; | &check; |
 |<kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**Space**</kbd> |<kbd>**Cmd**</kbd>+<kbd>**Shift**</kbd>+<kbd>**Space**</kbd> | Select all cells and headers                                                      | &check; | &check; |
-| <kbd>**Ctrl**</kbd>+<kbd>**Space**</kbd>                                                              | <kbd>**Ctrl**</kbd>+<kbd>**Space**</kbd>                                                            | Select the entire column                                                          | &check; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Space**</kbd>                                                              | <kbd>**Ctrl**</kbd>+<kbd>**Space**</kbd>                                                            | Select the entire column<sup>\*</sup>                                             | &check; | &check; |
 | <kbd>**Shift**</kbd>+<kbd>**Space**</kbd>                                                             | <kbd>**Shift**</kbd>+<kbd>**Space**</kbd>                                                           | Select the entire row                                                             | &check; | &check; |
 | <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**↑**</kbd>                                             | <kbd>**Cmd**</kbd>+<kbd>**Shift**</kbd>+<kbd>**↑**</kbd>                                            | Extend the selection to the first cell of the current column<sup>\*\*</sup>       | &check; | &check; |
 | <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**↓**</kbd>                                             | <kbd>**Cmd**</kbd>+<kbd>**Shift**</kbd>+<kbd>**↓**</kbd>                                            | Extend the selection to the last cell of the current column<sup>\*\*</sup>        | &check; | &check; |
 | <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**←**</kbd>                                             | <kbd>**Cmd**</kbd>+<kbd>**Shift**</kbd>+<kbd>**←**</kbd>                                            | Extend the selection to the leftmost cell of the current row<sup>\*\*</sup>       | &check; | &check; |
 | <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**→**</kbd>                                             | <kbd>**Cmd**</kbd>+<kbd>**Shift**</kbd>+<kbd>**→**</kbd>                                            | Extend the selection to the rightmost cell of the current row<sup>\*\*</sup>      | &check; | &check; |
 | <kbd>**Shift**</kbd> + Arrow keys                                                                     | <kbd>**Shift**</kbd> + Arrow keys                                                                   | Extend the selection by one cell                                                  | &check; | &check; |
-| <kbd>**Shift**</kbd>+<kbd>**Home**</kbd>                                                              | <kbd>**Shift**</kbd>+<kbd>**Home**</kbd>                                                            | Extend the selection to the first non-frozen cell of the current row<sup>\*</sup> | &check; | &cross; |
-| <kbd>**Shift**</kbd>+<kbd>**End**</kbd>                                                               | <kbd>**Shift**</kbd>+<kbd>**End**</kbd>                                                             | Extend the selection to the last non-frozen cell of the current row<sup>\*</sup>  | &cross; | &cross; |
+| <kbd>**Shift**</kbd>+<kbd>**Home**</kbd>                                                              | <kbd>**Shift**</kbd>+<kbd>**Home**</kbd>                                                            | Extend the selection to the first non-frozen cell of the current row<sup>\*\*\*</sup> | &check; | &cross; |
+| <kbd>**Shift**</kbd>+<kbd>**End**</kbd>                                                               | <kbd>**Shift**</kbd>+<kbd>**End**</kbd>                                                             | Extend the selection to the last non-frozen cell of the current row<sup>\*\*\*</sup>  | &cross; | &cross; |
 | <kbd>**Shift**</kbd>+<kbd>**Page Up**</kbd>                                                           | <kbd>**Shift**</kbd>+<kbd>**Page Up**</kbd>                                                         | Extend the selection by one screen up                                             | &check; | &check; |
 | <kbd>**Shift**</kbd>+<kbd>**Page Down**</kbd>                                                         | <kbd>**Shift**</kbd>+<kbd>**Page Down**</kbd>                                                       | Extend the selection by one screen down                                           | &check; | &check; |
 | <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd>                                                              | <kbd>**Cmd**</kbd>+<kbd>**Enter**</kbd>                                                             | Fill the selected range of cells with the value of the active cell                | &cross; | &check; |
 | <kbd>**Delete**</kbd>                                                                                 | <kbd>**Delete**</kbd>                                                                               | Clear the contents of the selected cells                                          | &check; | &check; |
 | <kbd>**Backspace**</kbd>                                                                              | <kbd>**Backspace**</kbd>                                                                            | Clear the contents of the selected cells                                          | &check; | &check; |
 
-<sup>\*</sup> This action depends on your layout direction.<br> <sup>\*\*</sup> In case of multiple selection layers, only the last selection layer gets extended.
+<sup>*</sup> Does not work on macOS with multiple keyboard layouts. To work around this issue, add <kbd>Fn</kbd> to the key combination.<br>
+<sup>\*\*</sup> In case of multiple selection layers, only the last selection layer gets extended.<br>
+<sup>\*\*\*</sup> This action depends on your layout direction.<br> 
 
 ## Edition keyboard shortcuts
 

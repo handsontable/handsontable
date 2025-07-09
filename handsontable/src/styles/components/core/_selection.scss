@@ -30,6 +30,16 @@
       position: absolute;
       font-size: 0;
 
+      &:nth-child(1),
+      &:nth-child(3) {
+        z-index: 2;
+      }
+
+      &:nth-child(2),
+      &:nth-child(4) {
+        z-index: 1;
+      }
+      
       &.hidden {
         display: none !important;
       }
@@ -60,7 +70,7 @@
           --ht-cell-autofill-background-color,
           #1a42e8
         ) !important;
-        border-color: var(--ht-cell-autofill-border-color) !important;;
+        border-color: var(--ht-cell-autofill-border-color) !important;
         font-size: 0;
         cursor: crosshair;
         z-index: 10;

@@ -11,8 +11,7 @@ const ExampleComponent = () => {
   const hotTableComponentRef = useRef<HotTableRef>(null);
   const filterBelow200 = () => {
     // get the `Filters` plugin, so you can use its API
-    const filters =
-      hotTableComponentRef.current?.hotInstance?.getPlugin('filters');
+    const filters = hotTableComponentRef.current?.hotInstance?.getPlugin('filters');
 
     // clear any existing filters
     filters?.clearConditions();
@@ -24,8 +23,7 @@ const ExampleComponent = () => {
 
   const filterAbove200 = () => {
     // get the `Filters` plugin, so you can use its API
-    const filters =
-      hotTableComponentRef.current?.hotInstance?.getPlugin('filters');
+    const filters = hotTableComponentRef.current?.hotInstance?.getPlugin('filters');
 
     filters?.clearConditions();
     // display only items that are more than ('gt') $200
@@ -35,8 +33,7 @@ const ExampleComponent = () => {
 
   const clearAllFilters = () => {
     // get the `Filters` plugin, so you can use its API
-    const filters =
-      hotTableComponentRef.current?.hotInstance?.getPlugin('filters');
+    const filters = hotTableComponentRef.current?.hotInstance?.getPlugin('filters');
 
     // clear all filters
     filters?.clearConditions();
@@ -51,6 +48,7 @@ const ExampleComponent = () => {
         <button onClick={clearAllFilters}>Clear filters</button>
       </div>
       <HotTable
+        themeName="ht-theme-main"
         ref={hotTableComponentRef}
         data={[
           {
@@ -110,7 +108,7 @@ const ExampleComponent = () => {
             type: 'numeric',
             data: 'price',
             numericFormat: {
-              pattern: '$ 0,0.00',
+              pattern: '$0,0.00',
               culture: 'en-US',
             },
           },

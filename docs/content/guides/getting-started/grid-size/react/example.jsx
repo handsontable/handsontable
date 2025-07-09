@@ -39,6 +39,7 @@ const ExampleComponent = () => {
       </div>
       <div id="exampleParent" className="exampleParent">
         <HotTable
+          themeName="ht-theme-main"
           data={data}
           rowHeaders={true}
           colHeaders={true}

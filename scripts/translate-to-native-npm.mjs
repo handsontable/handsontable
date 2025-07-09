@@ -8,7 +8,13 @@ import {
   spawnProcess
 } from './utils/index.mjs';
 
-const argv = yargs(hideBin(process.argv))
+let commandArr = hideBin(process.argv);
+
+if (process.env.npm_config_user_agent?.includes('pnpm')) {
+  commandArr = commandArr.filter(arg => arg !== '--');
+}
+
+const argv = yargs(commandArr)
   .boolean('if-present')
   .array('exclude')
   .alias('exclude', 'e')
@@ -45,6 +51,7 @@ switch (modifier) {
     let workspacesCommandList = '-w ' + [
       'handsontable',
       '@handsontable/angular',
+      '@handsontable/angular-wrapper',
       '@handsontable/react',
       '@handsontable/react-wrapper',
       '@handsontable/vue',

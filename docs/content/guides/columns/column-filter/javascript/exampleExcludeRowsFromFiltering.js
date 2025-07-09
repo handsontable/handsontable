@@ -5,6 +5,7 @@ import 'handsontable/styles/ht-theme-main.css';
 const container = document.querySelector('#exampleExcludeRowsFromFiltering');
 
 new Handsontable(container, {
+  themeName: 'ht-theme-main',
   data: [
     {
       brand: 'Gigabox',
@@ -135,7 +136,7 @@ new Handsontable(container, {
       type: 'numeric',
       data: 'price',
       numericFormat: {
-        pattern: '$ 0,0.00',
+        pattern: '$0,0.00',
         culture: 'en-US',
       },
       className: 'htRight',

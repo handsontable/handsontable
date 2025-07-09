@@ -42,6 +42,7 @@ Handsontable.renderers.registerRenderer('negativeValueRenderer', negativeValueRe
 const container = document.querySelector('#example1');
 
 new Handsontable(container, {
+  themeName: 'ht-theme-main',
   data,
   licenseKey: 'non-commercial-and-evaluation',
   height: 'auto',

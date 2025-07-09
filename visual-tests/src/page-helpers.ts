@@ -649,6 +649,27 @@ export async function scrollTableToTheInlineEnd() {
 }
 
 /**
+ * Scrolls the browser window to the specified coordinates.
+ *
+ * @param {number} x The x-coordinate to scroll to.
+ * @param {number} y The y-coordinate to scroll to.
+ */
+export async function scrollWindowTo(x: number, y: number) {
+  /* eslint-disable no-restricted-globals */
+  await getPageInstance().evaluate(([xPos, yPos]) => {
+    return new Promise((resolve) => {
+      const listener = () => {
+        window.removeEventListener('scroll', listener);
+        resolve([xPos, yPos]);
+      };
+
+      window.addEventListener('scroll', listener);
+      window.scrollTo(xPos, yPos);
+    });
+  }, [x, y]);
+}
+
+/**
  * Waits for the context submenu to appear on the page.
  *
  * @param {string} submenuName The name of the submenu.

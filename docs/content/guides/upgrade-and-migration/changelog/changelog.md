@@ -15,6 +15,9 @@ tags:
 react:
   id: 7y9fco03
   metaTitle: Changelog - React Data Grid | Handsontable
+angular:
+  id: um6ros3a
+  metaTitle: Changelog - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
 ---
@@ -25,11 +28,42 @@ See the full history of changes made to Handsontable in each major, minor, and p
 
 [[toc]]
 
+
+## 16.0.0
+
+Released on July 9, 2025
+
+For more information about this release see:
+- [Blog post (16.0.0)](https://handsontable.com/blog/handsontable-16-new-angular-wrapper-and-core-improvements)
+- [Documentation (16.0)](https://handsontable.com/docs/16.0)
+
+#### Added
+- **Breaking change**: Added a focus outline to the context and dropdown menus. [#11669](https://github.com/handsontable/handsontable/pull/11669)
+- Improved Handsontable editor positioning. [#11593](https://github.com/handsontable/handsontable/pull/11593)
+- Added a second-click cell deselection feature. [#11602](https://github.com/handsontable/handsontable/pull/11602)
+- Added a new `textEllipsis` option. [#11609](https://github.com/handsontable/handsontable/pull/11609)
+- Added backward compatibility for the renamed CSS variables. [#11676](https://github.com/handsontable/handsontable/pull/11676)
+- Angular: Introduced a new Angular wrapper - `@handsontable/angular-wrapper`. [#11511](https://github.com/handsontable/handsontable/pull/11511)
+
+#### Changed
+- **Breaking change**: Updated the CSS theme variables and added `--ht-radio-*` variables. [#11470](https://github.com/handsontable/handsontable/pull/11470)
+- **Breaking change**: Changed the `modifyData` hook to use visual indexes for both rows and columns. [#11501](https://github.com/handsontable/handsontable/pull/11501)
+
+#### Fixed
+- **Breaking change**: Fixed an issue with custom border overlapping row headers. [#11551](https://github.com/handsontable/handsontable/pull/11551)
+- **Breaking change**: Fixed accessibility issues and introduced a new DOM structure with a wrapper and a portal. [#11579](https://github.com/handsontable/handsontable/pull/11579)
+- Fixed a problem with the dropdown editor having a horizontal scrollbar on Windows with fractional scaling applied. [#11613](https://github.com/handsontable/handsontable/pull/11613)
+- Fixed an issue with scrollbar styles on the Safari browser. [#11614](https://github.com/handsontable/handsontable/pull/11614)
+- Fixed the column filter behavior when adding new columns. [#11616](https://github.com/handsontable/handsontable/pull/11616)
+- Fixed an issue with the dropdown elements' colors. [#11661](https://github.com/handsontable/handsontable/pull/11661)
+- Angular: Fixed an error of `this.hotInstance.getSettings(...).columns?.filter is not a function` in `angular-wrapper`. [#11695](https://github.com/handsontable/handsontable/pull/11695)
+
 ## 15.3.0
 
 Released on April 29, 2025
 
 For more information about this release see:
+- [Blog post (15.3.0)](https://handsontable.com/blog/handsontable-15.3.0-csv-sanitization-accessibility-updates-and-30-fixes)
 - [Documentation (15.3)](https://handsontable.com/docs/15.3)
 
 #### Added

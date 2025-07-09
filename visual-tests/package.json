@@ -1,7 +1,7 @@
 {
   "name": "handsontable-visual-tests",
   "private": true,
-  "version": "15.3.0",
+  "version": "16.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -26,6 +26,7 @@
     "execa": "^5.0.0",
     "fs-extra": "^4.0.2",
     "ps-tree": "^1.2.0",
-    "rimraf": "^4.1.2"
+    "rimraf": "^4.1.2",
+    "typescript": "5.1.3"
   }
 }

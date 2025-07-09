@@ -28,9 +28,7 @@ const UnconnectedColorPickerEditor = () => {
   const { value, setValue, isOpen, finishEditing, col, row } = useHotEditor({
     onOpen: () => {
       if (editorRef.current) editorRef.current.style.display = 'block';
-      (
-        document.querySelector('.react-colorful__interactive') as HTMLDivElement
-      )?.focus();
+      (document.querySelector('.react-colorful__interactive') as HTMLDivElement)?.focus();
     },
     onClose: () => {
       if (editorRef.current) editorRef.current.style.display = 'none';
@@ -42,9 +40,7 @@ const UnconnectedColorPickerEditor = () => {
 
       if (!editorRef.current) return;
 
-      editorRef.current.style.left = `${
-        tdPosition.left + window.pageXOffset
-      }px`;
+      editorRef.current.style.left = `${tdPosition.left + window.pageXOffset}px`;
       editorRef.current.style.top = `${tdPosition.top + window.pageYOffset}px`;
     },
     onFocus: () => {},
@@ -101,10 +97,7 @@ const UnconnectedColorPickerEditor = () => {
       onKeyDown={stopKeyboardPropagation}
     >
       <HexColorPicker color={pickedColor || value} onChange={onPickedColor} />
-      <button
-        style={{ width: '100%', height: '33px', marginTop: '10px' }}
-        onClick={applyColor}
-      >
+      <button style={{ width: '100%', height: '33px', marginTop: '10px' }} onClick={applyColor}>
         Apply
       </button>
     </div>
@@ -166,9 +159,7 @@ const appReducer = (
       const rowIndex = action.row;
       const newColor = action.hexColor;
 
-      const activeColorArray = state.activeColors
-        ? [...state.activeColors]
-        : [];
+      const activeColorArray = state.activeColors ? [...state.activeColors] : [];
 
       activeColorArray[rowIndex] = newColor;
 
@@ -182,9 +173,7 @@ const appReducer = (
       const rowIndex = action.row;
       const newColor = action.hexColor;
 
-      const inactiveColorArray = state.inactiveColors
-        ? [...state.inactiveColors]
-        : [];
+      const inactiveColorArray = state.inactiveColors ? [...state.inactiveColors] : [];
 
       inactiveColorArray[rowIndex] = newColor;
 
@@ -254,6 +243,7 @@ const ExampleComponent = () => {
   return (
     <Provider store={reduxStore}>
       <HotTable
+        themeName="ht-theme-main"
         data={data}
         rowHeaders={true}
         rowHeights={30}
@@ -264,16 +254,8 @@ const ExampleComponent = () => {
         licenseKey="non-commercial-and-evaluation"
       >
         <HotColumn width={100} type="numeric" renderer={StarRatingRenderer} />
-        <HotColumn
-          width={150}
-          renderer={ColorPickerRenderer}
-          editor={ColorPickerEditor}
-        />
-        <HotColumn
-          width={150}
-          renderer={ColorPickerRenderer}
-          editor={ColorPickerEditor}
-        />
+        <HotColumn width={150} renderer={ColorPickerRenderer} editor={ColorPickerEditor} />
+        <HotColumn width={150} renderer={ColorPickerRenderer} editor={ColorPickerEditor} />
       </HotTable>
     </Provider>
   );

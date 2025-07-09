@@ -43,6 +43,7 @@ const ExampleComponent = defineComponent({
         },
       ],
       settings: {
+        themeName: 'ht-theme-main',        
         height: 'auto',
         autoWrapRow: true,
         autoWrapCol: true,

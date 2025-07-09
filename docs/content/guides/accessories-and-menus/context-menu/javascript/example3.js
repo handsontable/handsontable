@@ -67,7 +67,7 @@ const contextMenuSettings = {
       renderer() {
         const elem = document.createElement('marquee');
 
-        elem.style.cssText = 'background: lightgray;';
+        elem.style.cssText = 'background: lightgray; color: #222222;';
         elem.textContent = 'Brought to you by...';
 
         return elem;
@@ -81,6 +81,7 @@ const contextMenuSettings = {
 const container = document.querySelector('#example3');
 
 new Handsontable(container, {
+  themeName: 'ht-theme-main',
   data: [
     ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
     ['2017', 10, 11, 12, 13, 15, 16],

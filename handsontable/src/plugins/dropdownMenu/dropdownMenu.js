@@ -78,6 +78,21 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
  * />
  * ```
  * :::
+ *
+ * ::: only-for angular
+ * ```ts
+ * settings = {
+ *   data: data,
+ *   comments: true,
+ *   // enable and configure dropdown menu
+ *   dropdownMenu: ["remove_col", "---------", "make_read_only", "alignment"],
+ * };
+ * ```
+ *
+ * ```html
+ * <hot-table [settings]="settings"></hot-table>
+ * ```
+ * :::
  */
 
 export class DropdownMenu extends BasePlugin {
@@ -202,7 +217,7 @@ export class DropdownMenu extends BasePlugin {
       this.menu = new Menu(this.hot, {
         className: 'htDropdownMenu',
         keepInViewport: true,
-        container: settings.uiContainer || this.hot.rootDocument.body,
+        container: settings.uiContainer || this.hot.rootPortalElement,
       });
       this.hot.runHooks('beforeDropdownMenuSetItems', menuItems);
 

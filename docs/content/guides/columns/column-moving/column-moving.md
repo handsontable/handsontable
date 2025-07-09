@@ -8,6 +8,9 @@ canonicalUrl: /column-moving
 react:
   id: zhlikwwh
   metaTitle: Column moving - React Data Grid | Handsontable
+angular:
+  id: fsfvsoi3
+  metaTitle: Column moving - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
 ---
@@ -46,6 +49,17 @@ A draggable move handle appears above the selected column header. You can click 
 
 :::
 
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-moving/angular/example1.ts)
+@[code](@/content/guides/columns/column-moving/angular/example1.html)
+
+:::
+
+:::
+
 #### Move column headers
 
 When you move columns, the default column headers (A, B, C) stay in place.
@@ -72,6 +86,17 @@ When you move columns, the default column headers (A, B, C) stay in place.
 
 :::
 
+::: only-for angular
+
+::: example #example2 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-moving/angular/example2.ts)
+@[code](@/content/guides/columns/column-moving/angular/example2.html)
+
+:::
+
+:::
+
 But, if you configure the [`colHeaders`](@/api/options.md#colheaders) option with your own column labels (e.g., One, Two, Three), your headers move along with the columns.
 
 ::: only-for javascript
@@ -91,6 +116,17 @@ But, if you configure the [`colHeaders`](@/api/options.md#colheaders) option wit
 
 @[code](@/content/guides/columns/column-moving/react/example3.jsx)
 @[code](@/content/guides/columns/column-moving/react/example3.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example3 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-moving/angular/example3.ts)
+@[code](@/content/guides/columns/column-moving/angular/example3.html)
 
 :::
 
