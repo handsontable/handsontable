@@ -36,7 +36,7 @@ Customize Handsontable's appearance using CSS variables to create consistent the
 
 ### Basic customization by overriding css variables
 
-Follow the [steps](@/guides/styling/themes/themes.md#use-a-theme) to apply a theme, then override the variables for your chosen theme.
+Follow these [steps](@/guides/styling/themes/themes.md#use-a-theme) to apply a theme, then override the variables for your chosen theme.
 
 Here’s an example for `.ht-theme-main`:
 
@@ -109,7 +109,7 @@ const hot = new Handsontable(container, {
 
 ### Generate a CSS theme file from Figma
 
-To create a new theme or modify an existing one in Figma, visit [Handsontable Theme Generator](https://github.com/handsontable/handsontable-figma) and follow the instructions to convert your Figma tokens into a CSS theme file that works with Handsontable. The Theme Generator will help you transform the JSON tokens exported from Figma into a properly formatted CSS theme file.
+To create a new theme or modify an existing one in Figma, visit the [Handsontable Theme Generator](https://github.com/handsontable/handsontable-figma) and follow the instructions to convert your Figma tokens into a CSS theme file that works with Handsontable. The Theme Generator will help you transform the JSON tokens exported from Figma into a properly formatted CSS theme file.
 
 ## CSS Variables Reference
 
