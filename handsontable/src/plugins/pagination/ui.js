@@ -40,33 +40,68 @@ const TEMPLATE = `
  */
 export class PaginationUI {
   /**
-   * @type {HTMLElement} The root element where the pagination UI will be installed.
+   * The root element where the pagination UI will be installed.
+   *
+   * @type {HTMLElement}
    */
   #rootElement;
   /**
-   * @type {boolean} Indicates if the UI is in RTL mode.
+   * The container element where the pagination UI will be installed.
+   * If not provided, the pagination container will be injected after the root element.
+   *
+   * @type {HTMLElement}
+   */
+  #uiContainer;
+  /**
+   * Indicates if the UI is in RTL mode.
+   *
+   * @type {boolean}
    */
   #isRtl = false;
   /**
-   * @type {object} The references to the UI elements.
+   * The references to the UI elements.
+   *
+   * @type {object}
    */
   #refs;
   /**
-   * @type {function(string): string} A function to translate phrases used in the UI.
+   * The name of the current theme.
+   *
+   * @type {string | undefined}
+   */
+  #themeName;
+  /**
+   * A function to translate phrases used in the UI.
+   *
+   * @type {function(string): string}
    */
   #phraseTranslator;
   /**
-   * @type {function(): void} A function that determines whether the pagination should have a border.
+   * A function that determines whether the pagination should have a border.
+   *
+   * @type {function(): void}
    */
   #shouldHaveBorder;
   /**
-   * @type {function(string): void} A function allowing to announce accessibility messages.
+   * A function allowing to announce accessibility messages.
+   *
+   * @type {function(string): void}
    */
   #a11yAnnouncer;
 
-  constructor({ rootElement, isRtl, phraseTranslator, shouldHaveBorder, a11yAnnouncer }) {
+  constructor({
+    rootElement,
+    uiContainer,
+    isRtl,
+    themeName,
+    phraseTranslator,
+    shouldHaveBorder,
+    a11yAnnouncer,
+  }) {
     this.#rootElement = rootElement;
+    this.#uiContainer = uiContainer;
     this.#isRtl = isRtl;
+    this.#themeName = themeName;
     this.#phraseTranslator = phraseTranslator;
     this.#shouldHaveBorder = shouldHaveBorder;
     this.#a11yAnnouncer = a11yAnnouncer;
@@ -96,7 +131,7 @@ export class PaginationUI {
 
     container.setAttribute('dir', this.#isRtl ? 'rtl' : 'ltr');
 
-    const isDisabled = event => event.currentTarget.getAttribute('aria-disabled') === 'true';
+    const isDisabled = event => event.currentTarget.disabled;
 
     first.addEventListener('click', (event) => {
       if (!isDisabled(event)) {
@@ -128,7 +163,13 @@ export class PaginationUI {
     this.setNavigationSectionVisibility(false);
     this.setPageSizeSectionVisibility(false);
 
-    this.#rootElement.after(elements.fragment);
+    if (this.#uiContainer) {
+      this.#uiContainer.appendChild(elements.fragment);
+
+      addClass(container, [this.#themeName, 'handsontable']);
+    } else {
+      this.#rootElement.after(elements.fragment);
+    }
   }
 
   /**
@@ -139,6 +180,28 @@ export class PaginationUI {
    */
   updateWidth(width) {
     this.#refs.container.style.width = `${width}px`;
+
+    return this;
+  }
+
+  /**
+   * Updates the theme of the pagination container.
+   *
+   * @param {string | false | undefined} themeName The name of the theme to use.
+   * @returns {PaginationUI} The instance of the PaginationUI for method chaining.
+   */
+  updateTheme(themeName) {
+    this.#themeName = themeName;
+
+    if (this.#uiContainer) {
+      const { container } = this.#refs;
+
+      removeClass(container, /ht-theme-.*/g);
+
+      if (this.#themeName) {
+        addClass(container, this.#themeName);
+      }
+    }
 
     return this;
   }
@@ -160,7 +223,7 @@ export class PaginationUI {
   refreshBorderState() {
     const { container } = this.#refs;
 
-    if (this.#shouldHaveBorder()) {
+    if (this.#uiContainer || this.#shouldHaveBorder()) {
       addClass(container, 'ht-pagination-container--bordered');
     } else {
       removeClass(container, 'ht-pagination-container--bordered');
@@ -361,10 +424,12 @@ export class PaginationUI {
     );
 
     // adds or removes the corner around the Handsontable root element
-    if (isSectionVisible) {
-      addClass(this.#rootElement, 'htPagination');
-    } else {
-      removeClass(this.#rootElement, 'htPagination');
+    if (!this.#uiContainer) {
+      if (isSectionVisible) {
+        addClass(this.#rootElement, 'htPagination');
+      } else {
+        removeClass(this.#rootElement, 'htPagination');
+      }
     }
 
     container.style.display = isSectionVisible ? '' : 'none';

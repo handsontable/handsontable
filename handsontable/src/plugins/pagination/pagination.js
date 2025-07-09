@@ -90,6 +90,7 @@ export class Pagination extends BasePlugin {
       showPageSize: true,
       showCounter: true,
       showNavigation: true,
+      uiContainer: null,
     };
   }
 
@@ -178,7 +179,9 @@ export class Pagination extends BasePlugin {
     if (!this.#ui) {
       this.#ui = new PaginationUI({
         rootElement: this.hot.rootElement,
+        uiContainer: this.getSetting('uiContainer'),
         isRtl: this.hot.isRtl(),
+        themeName: this.hot.getSettings().themeName,
         phraseTranslator: (...args) => this.hot.getTranslatedPhrase(...args),
         shouldHaveBorder: () => this.#computeNeedsBorder(),
         a11yAnnouncer: message => announce(message),
@@ -206,6 +209,7 @@ export class Pagination extends BasePlugin {
     this.addHook('afterLanguageChange', (...args) => this.#onAfterLanguageChange(...args));
     this.addHook('modifyRowHeight', (...args) => this.#onModifyRowHeight(...args));
     this.addHook('beforeHeightChange', (...args) => this.#onBeforeHeightChange(...args));
+    this.addHook('afterSetTheme', (...args) => this.#onAfterSetTheme(...args));
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onIndexCacheUpdate);
 
     super.enablePlugin();
@@ -761,7 +765,20 @@ export class Pagination extends BasePlugin {
    * @returns {string} Returns the new table height.
    */
   #onBeforeHeightChange(height) {
+    if (this.getSetting('uiContainer')) {
+      return height;
+    }
+
     return `calc(${height}${/[0-9]$/.test(height) ? 'px' : ''} - ${this.#ui.getHeight()}px)`;
+  }
+
+  /**
+   * Called after the theme is set. It updates the theme of the pagination container.
+   *
+   * @param {string | undefined} themeName The name of the theme to use.
+   */
+  #onAfterSetTheme(themeName) {
+    this.#ui.updateTheme(themeName);
   }
 
   /**

@@ -10,6 +10,7 @@ export interface DetailedSettings {
   showPageSize?: boolean;
   showCounter?: boolean;
   showNavigation?: boolean;
+  uiContainer?: HTMLElement;
 }
 
 export type Settings = boolean | DetailedSettings;

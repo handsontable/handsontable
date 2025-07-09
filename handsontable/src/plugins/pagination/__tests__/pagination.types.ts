@@ -17,6 +17,7 @@ const hot3 = new Handsontable(document.createElement('div'), {
     showPageSize: true,
     showCounter: true,
     showNavigation: true,
+    uiContainer: document.createElement('div'),
   },
   beforePageChange(oldPage, newPage) {
     const _oldPage: number = oldPage;
