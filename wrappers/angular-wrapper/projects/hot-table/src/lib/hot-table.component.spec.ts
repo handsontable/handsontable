@@ -38,6 +38,15 @@ describe('HotTableComponent', () => {
     expect(fixture.componentInstance.hotInstance).toBeDefined();
   });
 
+  it(`should render 'hot-table' even when settings are not provided`, () => {
+    fixture = TestBed.createComponent(HotTableComponent);
+    fixture.detectChanges();
+
+    const elem = fixture.nativeElement;
+    expect(elem.querySelectorAll('.handsontable').length).toBeGreaterThan(0);
+    expect(fixture.componentInstance.hotInstance).toBeDefined();
+  });
+
   it(`should set data`, () => {
     fixture = TestBed.createComponent(HotTableComponent);
     fixture.componentInstance.settings = {};

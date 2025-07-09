@@ -18,7 +18,9 @@ category: Upgrade and migration
 
 # Migrate from 15.3 to 16.0
 
-Migrate from Handsontable 15.3 to Handsontable 16.0, released on [TODO].
+Migrate from Handsontable 15.3 to Handsontable 16.0, released on 09/07/2025.
+
+More information about this release can be found in the [`16.0.0` release blog post](https://handsontable.com/blog/handsontable-16-new-angular-wrapper-and-core-improvements]).
 
 [[toc]]
 
@@ -52,8 +54,6 @@ body
 │        │   └── Data grid content
 │        ├── .htFocusCatcher // Focus Catcher (down)
 │        ├── .hot-display-license-info // License key notification bar
-│        ├── Future: Status bar
-│        └── Future: Pagination bar
 └── .ht-portal // Portal Element
     └── Context menus, dropdowns, pop-ups, sidebars
         (absolutely positioned elements)
@@ -65,12 +65,12 @@ body
 - Portal Element: New div.ht-portal with ht-theme class for absolutely positioned elements
 - Root Element: rootElement is now created internally by Handsontable instead of using the user-provided container directly
 
-## 2. Update the CSS variables
+## 2. Updated the CSS variables
 
 In Handsontable 16.0, we've made significant improvements to our CSS variables system to adjust themes colors, variable order and provide better customization options. Here are the key changes:
 
 ### New CSS variables
-We've introduced new variables that allow for easier customization: 
+We've introduced new variables that allow for easier customization:
 
  - `--ht-letter-spacing`: Controls letter spacing for improved readability and visual appearance.
  - `--ht-radio-*`: Enables more accurate styling of radio inputs.
@@ -78,7 +78,7 @@ We've introduced new variables that allow for easier customization:
  - `--ht-checkbox-indeterminate`: Lets you style the indeterminate state of checkboxes.
 
 ### Renamed CSS variables
-We've renamed a few variables to ensure more consistent naming: 
+We've renamed a few variables to ensure more consistent naming:
 
 | Old variable name                                | New variable name                                |
 |--------------------------------------------------|--------------------------------------------------|
@@ -96,17 +96,22 @@ If you were using custom CSS variables in version 15.3, you'll need to:
 2. Update variable references to the new radio input (only if checkbox variables were changed)
 3. Take advantage of the new variables for more granular control
 
-## 3. Update the placement of custom borders
+## 3. Updated the placement of custom borders
 
-In Handsontable 16.0, we've updated how custom borders are positioned to improve accuracy and consistency.
+In version 16.0, we've updated how custom borders are positioned to improve accuracy and consistency. This change affects the visual positioning of borders, particularly for cells with custom borders.
 
-### Key changes in border placement
-- Borders are positioned to ensure that all borders remain within the table
+#### What changed?
+- Border positions were adjusted to prevent overlapping with adjacent cells and headers.
+
+#### Why is this a breaking change?
+It's very unlikely, but if your application relies on specific border positioning or you've implemented custom styling based on border positions, you may need to update your styles. 
+
+The visual appearance of borders in version `16.0` will be slightly different compared to version `15.3`.
 
 ### Migration notes
 No code changes are required - the improvements are handled automatically by the new version.
 
-## 4. Switch to the new Angular wrapper (for Angular 16+)
+## 4. Switched to the new Angular wrapper (for Angular 16+)
 
 Handsontable 16.0 introduces a completely new Angular wrapper for Handsontable. This wrapper is designed to provide better integration with modern Angular applications and improved developer experience. If you use Angular 16 or higher, we recommend migrating to the new wrapper.
 
@@ -128,7 +133,7 @@ npm uninstall @handsontable/angular
 npm install @handsontable/angular-wrapper
 ```
 
-### Step 2: Update component configuration 
+### Step 2: Update component configuration
 
 Move all configuration options to a `GridSettings` object in your component.
 
@@ -414,3 +419,28 @@ Ensure you're importing the correct CSS files for themes.
 - **Solution:** Convert your class-based editor to a component extending `HotCellEditorComponent`.
 
 This migration guide covers the major changes between the old and new Angular wrappers. The new wrapper provides better integration with modern Angular patterns, improved type safety, and a more maintainable codebase.
+
+## 5. Introducing `pnpm` as the repository package manager
+
+Starting on July 1st, 2025, we've switched to `pnpm` as the repository's main package manager.
+
+As the number of packages in the repository grew, so did the number of dependencies. This made it difficult to manage dependencies and install them in a consistent way. To address this, we've switched to `pnpm` as the main package manager.
+
+### Will this affect me?
+
+Unless you're not creating custom builds of Handsontable or any of the wrappers, this change will not affect you.
+
+If you are, however, you'll need to utilize `pnpm` to install the main repository dependencies.
+
+**Note**: The `examples` and `docs` packages are still managed with `npm`, and are not a part of the main `pnpm` workspace.
+
+### How to migrate?
+
+1. [Install `pnpm`](https://pnpm.io/installation) with a version corresponding to the one defined in the `packageManager` field of the root's `package.json`.
+2. If you worked on your clone of the repository before, you'll need to remove the `node_modules` directory, `package-lock.json` files etc.
+
+    You can do this by running `npm run clean:node_modules -- --keep-lockfiles`.
+3. Run `pnpm install` to install the dependencies.
+4. All the `npm` commands are still available, so you can build the packages as you did before, for example, by running `npm run build`.
+
+You can always find more information on the custom build process in the [Custom builds](https://handsontable.com/docs/custom-builds/) documentation page.

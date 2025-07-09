@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Added an context and dropdown menu focus outline",
-  "type": "added",
-  "issueOrPR": 11669,
-  "breaking": true,
-  "framework": "none"
-}
