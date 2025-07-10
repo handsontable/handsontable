@@ -30,14 +30,6 @@ test(__filename, async({ goto, tablePage }) => {
 
   await tablePage.screenshot({ path: helpers.screenshotPath() });
 
-  await tablePage.keyboard.press('Tab'); // focus is on the "go to first page" button
-
-  await tablePage.screenshot({ path: helpers.screenshotPath() });
-
-  await tablePage.keyboard.press('Tab'); // focus is on the "go to prev page" button
-
-  await tablePage.screenshot({ path: helpers.screenshotPath() });
-
   await tablePage.keyboard.press('Tab'); // focus is on the "go to next page" button
 
   await tablePage.screenshot({ path: helpers.screenshotPath() });

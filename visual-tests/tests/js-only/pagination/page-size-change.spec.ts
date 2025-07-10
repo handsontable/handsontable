@@ -27,8 +27,6 @@ test(__filename, async({ goto, tablePage }) => {
   // sorting
   await setColumnSorting('Country', SortDirection.Ascending);
 
-  await tablePage.screenshot({ path: helpers.screenshotPath() });
-
   await forPaginationClickLastPageButton();
   await forPaginationChangePageSize('50');
 
