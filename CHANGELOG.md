@@ -9,6 +9,11 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- UNVERSIONED -->
 
+## [16.0.1] - 2025-07-10
+
+### Fixed
+- Fixed a missing `touchend` entry handler that prevented the editor from opening on mobile devices. [#11729](https://github.com/handsontable/handsontable/pull/11729)
+
 ## [16.0.0] - 2025-07-09
 
 ### Added
