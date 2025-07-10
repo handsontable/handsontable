@@ -32,19 +32,17 @@ Customize Handsontable's appearance using CSS variables to create consistent the
 
 [[toc]]
 
-## Usage Examples
-
 CSS variables provide a powerful and flexible way to customize Handsontable's appearance by adjusting design elements such as colors, spacing, borders, and typography to match your application's design system. Those variables gives you granular control over every visual aspect of the data grid, from basic styling to advanced component customization.
 
 We provide multiple approaches for leveraging CSS variables to create any look that your designer can imagine. From quick theme modifications to completely custom designs, your options include:
-
 
 1. **Override built-in theme variables** to quickly customize existing themes like `ht-theme-main`.
 2. **Create custom theme files** by copying and modifying existing theme CSS files.
 3. Use the **Figma Theme Generator** to convert design tokens into CSS variables automatically.
 
-
 The data grid's styling system is built entirely on CSS variables, with over 200 variables organized into logical categories covering typography, colors, spacing, borders, and component-specific styling listed below.
+
+## Usage Examples
 
 ### Basic customization by overriding css variables
 
