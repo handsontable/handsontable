@@ -34,6 +34,18 @@ Customize Handsontable's appearance using CSS variables to create consistent the
 
 ## Usage Examples
 
+CSS variables provide a powerful and flexible way to customize Handsontable's appearance by adjusting design elements such as colors, spacing, borders, and typography to match your application's design system. Those variables gives you granular control over every visual aspect of the data grid, from basic styling to advanced component customization.
+
+We provide multiple approaches for leveraging CSS variables to create any look that your designer can imagine. From quick theme modifications to completely custom designs, your options include:
+
+
+1. **Override built-in theme variables** to quickly customize existing themes like `ht-theme-main`.
+2. **Create custom theme files** by copying and modifying existing theme CSS files.
+3. Use the **Figma Theme Generator** to convert design tokens into CSS variables automatically.
+
+
+The data grid's styling system is built entirely on CSS variables, with over 200 variables organized into logical categories covering typography, colors, spacing, borders, and component-specific styling listed below.
+
 ### Basic customization by overriding css variables
 
 Follow these [steps](@/guides/styling/themes/themes.md#use-a-theme) to apply a theme, then override the variables for your chosen theme.
@@ -49,23 +61,28 @@ Here’s an example for `.ht-theme-main`:
 }
 ```
 
-### Create a custom theme based on an existing CSS file
+### Create a custom theme based on an existing SCSS file
 
 Creating a custom theme is straightforward. Follow these steps to set up your custom design:
 
-#### 1. Create a new CSS file
+#### 1. Create a new SCSS file
 
-Start by copying one of the CSS files provided with Handsontable, such as [`ht-theme-main.css`](https://github.com/handsontable/handsontable/blob/develop/handsontable/src/styles/themes/main.scss). Rename it to something unique for your project. For this example, let’s name the new theme `falcon`, making the full file name `ht-theme-falcon.css`.
+Start by copying one of the SCSS files provided with Handsontable in the `handsontable/src/styles/themes` directory, such as [`main.scss`](https://github.com/handsontable/handsontable/blob/develop/handsontable/src/styles/themes/main.scss). Rename it to something unique for your project. For this example, let’s name the new theme `falcon.scss`.
 
-Next, customize the existing variables to match your design requirements. If you need icons, you can use the ones available in the [GitHub repository](https://github.com/handsontable/handsontable/blob/develop/handsontable/src/styles/utils/_icons.scss) or create your own icon set using the `@use "utils/[theme]/icons";` directive.
+Next, customize the existing variables to match your design requirements. If you need icons, you can use the ones already declared such as the `main` theme icons in this example or create your own icons in the `handsontable/src/styles/themes/utils/[theme]/_icons.scss` directory. To use your custom icons, update the `@use "utils/[theme]/icons";` directive accordingly.
 
-#### 2. Load and apply the theme
+#### 2. Compile your SCSS file
 
-Include the new CSS file in your project, ensuring it’s loaded after the base CSS file (`styles/handsontable.min.css`). If you’re using imports, it might look like this:
+After customizing your theme file, you'll need to compile it into CSS. To do this, run the build command in the `handsontable/handsontable` directory.
+
+
+#### 3. Load and apply the theme
+
+Include the new CSS file into your project, ensuring it’s loaded after the base CSS file (`handsontable/styles/handsontable.min.css`). If you’re using imports, it might look like this:
 
 ```js
 import 'handsontable/styles/handsontable.min.css';
-import 'handsontable/styles/ht-theme-falcon.min.css';
+import './ht-theme-falcon.min.css';
 ```
 
 To apply a theme, use the `themeName` option by specifying it in the configuration, like this:
