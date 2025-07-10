@@ -163,7 +163,7 @@ export class ExampleComponent implements AfterViewInit {
 
 ### comments
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/04254eca89b5219454a89b3ac2d0000c7d3eb317/handsontable/src/dataMap/metaManager/metaSchema.js#L1122
+::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/dataMap/metaManager/metaSchema.js#L1122
 
 :::
 
@@ -220,7 +220,7 @@ comments: {
 
 ### range
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/04254eca89b5219454a89b3ac2d0000c7d3eb317/handsontable/src/plugins/comments/comments.js#L193
+::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/plugins/comments/comments.js#L193
 
 :::
 
@@ -233,7 +233,7 @@ Current cell range, an object with `from` property, with `row` and `col` propert
 
 ### clearRange
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/04254eca89b5219454a89b3ac2d0000c7d3eb317/handsontable/src/plugins/comments/comments.js#L415
+::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/plugins/comments/comments.js#L415
 
 :::
 
@@ -245,7 +245,7 @@ Clears the currently selected cell.
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/04254eca89b5219454a89b3ac2d0000c7d3eb317/handsontable/src/plugins/comments/comments.js#L886
+::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/plugins/comments/comments.js#L886
 
 :::
 
@@ -257,7 +257,7 @@ Destroys the plugin instance.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/04254eca89b5219454a89b3ac2d0000c7d3eb317/handsontable/src/plugins/comments/comments.js#L300
+::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/plugins/comments/comments.js#L300
 
 :::
 
@@ -269,7 +269,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/04254eca89b5219454a89b3ac2d0000c7d3eb317/handsontable/src/plugins/comments/comments.js#L251
+::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/plugins/comments/comments.js#L251
 
 :::
 
@@ -281,7 +281,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### focusEditor
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/04254eca89b5219454a89b3ac2d0000c7d3eb317/handsontable/src/plugins/comments/comments.js#L684
+::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/plugins/comments/comments.js#L684
 
 :::
 
@@ -293,7 +293,7 @@ Focuses the comments editor element.
 
 ### getComment
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/04254eca89b5219454a89b3ac2d0000c7d3eb317/handsontable/src/plugins/comments/comments.js#L520
+::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/plugins/comments/comments.js#L520
 
 :::
 
@@ -306,7 +306,7 @@ Gets comment from a cell according to previously set range (see [Comments#setRan
 
 ### getCommentAtCell
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/04254eca89b5219454a89b3ac2d0000c7d3eb317/handsontable/src/plugins/comments/comments.js#L534
+::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/plugins/comments/comments.js#L534
 
 :::
 
@@ -325,7 +325,7 @@ Gets comment from a cell at the provided coordinates.
 
 ### getCommentMeta
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/04254eca89b5219454a89b3ac2d0000c7d3eb317/handsontable/src/plugins/comments/comments.js#L717
+::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/plugins/comments/comments.js#L717
 
 :::
 
@@ -344,7 +344,7 @@ Gets the comment related meta information.
 
 ### hide
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/04254eca89b5219454a89b3ac2d0000c7d3eb317/handsontable/src/plugins/comments/comments.js#L582
+::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/plugins/comments/comments.js#L582
 
 :::
 
@@ -356,7 +356,7 @@ Hides the comment editor.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/04254eca89b5219454a89b3ac2d0000c7d3eb317/handsontable/src/plugins/comments/comments.js#L244
+::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/plugins/comments/comments.js#L244
 
 :::
 
@@ -369,7 +369,7 @@ hook and if it returns `true` then the [Comments#enablePlugin](@/api/comments.md
 
 ### refreshEditor
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/04254eca89b5219454a89b3ac2d0000c7d3eb317/handsontable/src/plugins/comments/comments.js#L591
+::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/plugins/comments/comments.js#L591
 
 :::
 
@@ -386,7 +386,7 @@ Refreshes comment editor position and styling.
 
 ### removeComment
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/04254eca89b5219454a89b3ac2d0000c7d3eb317/handsontable/src/plugins/comments/comments.js#L487
+::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/plugins/comments/comments.js#L487
 
 :::
 
@@ -403,7 +403,7 @@ Removes a comment from a cell according to previously set range (see [Comments#s
 
 ### removeCommentAtCell
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/04254eca89b5219454a89b3ac2d0000c7d3eb317/handsontable/src/plugins/comments/comments.js#L508
+::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/plugins/comments/comments.js#L508
 
 :::
 
@@ -422,7 +422,7 @@ Removes a comment from a specified cell.
 
 ### setComment
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/04254eca89b5219454a89b3ac2d0000c7d3eb317/handsontable/src/plugins/comments/comments.js#L448
+::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/plugins/comments/comments.js#L448
 
 :::
 
@@ -439,7 +439,7 @@ Sets a comment for a cell according to the previously set range (see [Comments#s
 
 ### setCommentAtCell
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/04254eca89b5219454a89b3ac2d0000c7d3eb317/handsontable/src/plugins/comments/comments.js#L475
+::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/plugins/comments/comments.js#L475
 
 :::
 
@@ -458,7 +458,7 @@ Sets a comment for a specified cell.
 
 ### setRange
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/04254eca89b5219454a89b3ac2d0000c7d3eb317/handsontable/src/plugins/comments/comments.js#L408
+::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/plugins/comments/comments.js#L408
 
 :::
 
@@ -475,7 +475,7 @@ Sets the current cell range to be able to use general methods like [Comments#set
 
 ### show
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/04254eca89b5219454a89b3ac2d0000c7d3eb317/handsontable/src/plugins/comments/comments.js#L543
+::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/plugins/comments/comments.js#L543
 
 :::
 
@@ -488,7 +488,7 @@ Shows the comment editor accordingly to the previously set range (see [Comments#
 
 ### showAtCell
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/04254eca89b5219454a89b3ac2d0000c7d3eb317/handsontable/src/plugins/comments/comments.js#L571
+::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/plugins/comments/comments.js#L571
 
 :::
 
@@ -507,7 +507,7 @@ Shows comment editor according to cell coordinates.
 
 ### updateCommentMeta
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/04254eca89b5219454a89b3ac2d0000c7d3eb317/handsontable/src/plugins/comments/comments.js#L695
+::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/plugins/comments/comments.js#L695
 
 :::
 
@@ -526,7 +526,7 @@ Sets or update the comment-related cell meta.
 
 ### updatePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/04254eca89b5219454a89b3ac2d0000c7d3eb317/handsontable/src/plugins/comments/comments.js#L292
+::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/plugins/comments/comments.js#L292
 
 :::
 

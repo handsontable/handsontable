@@ -74,7 +74,7 @@ customBorders: [
 
 ### customBorders
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/04254eca89b5219454a89b3ac2d0000c7d3eb317/handsontable/src/dataMap/metaManager/metaSchema.js#L1555
+::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/dataMap/metaManager/metaSchema.js#L1555
 
 :::
 
@@ -189,7 +189,7 @@ customBorders: [
 
 ### clearBorders
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/04254eca89b5219454a89b3ac2d0000c7d3eb317/handsontable/src/plugins/customBorders/customBorders.js#L268
+::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/plugins/customBorders/customBorders.js#L268
 
 :::
 
@@ -217,7 +217,7 @@ customBordersPlugin.clearBorders();
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/04254eca89b5219454a89b3ac2d0000c7d3eb317/handsontable/src/plugins/customBorders/customBorders.js#L829
+::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/plugins/customBorders/customBorders.js#L829
 
 :::
 
@@ -229,7 +229,7 @@ Destroys the plugin instance.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/04254eca89b5219454a89b3ac2d0000c7d3eb317/handsontable/src/plugins/customBorders/customBorders.js#L129
+::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/plugins/customBorders/customBorders.js#L129
 
 :::
 
@@ -241,7 +241,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/04254eca89b5219454a89b3ac2d0000c7d3eb317/handsontable/src/plugins/customBorders/customBorders.js#L115
+::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/plugins/customBorders/customBorders.js#L115
 
 :::
 
@@ -253,7 +253,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### getBorders
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/04254eca89b5219454a89b3ac2d0000c7d3eb317/handsontable/src/plugins/customBorders/customBorders.js#L226
+::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/plugins/customBorders/customBorders.js#L226
 
 :::
 
@@ -282,7 +282,7 @@ customBordersPlugin.getBorders();
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/04254eca89b5219454a89b3ac2d0000c7d3eb317/handsontable/src/plugins/customBorders/customBorders.js#L108
+::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/plugins/customBorders/customBorders.js#L108
 
 :::
 
@@ -295,7 +295,7 @@ hook and if it returns `true` then the [CustomBorders#enablePlugin](@/api/custom
 
 ### setBorders
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/04254eca89b5219454a89b3ac2d0000c7d3eb317/handsontable/src/plugins/customBorders/customBorders.js#L170
+::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/plugins/customBorders/customBorders.js#L170
 
 :::
 
@@ -326,7 +326,7 @@ customBordersPlugin.setBorders(hot.getSelectedRange(), {start: {hide: false, wid
 
 ### updatePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/04254eca89b5219454a89b3ac2d0000c7d3eb317/handsontable/src/plugins/customBorders/customBorders.js#L141
+::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/plugins/customBorders/customBorders.js#L141
 
 :::
 

@@ -30,7 +30,7 @@ included in a dataset, but skipped in the process of rendering.
 
 ### getHiddenIndexes
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/04254eca89b5219454a89b3ac2d0000c7d3eb317/handsontable/src/translations/maps/hidingMap.js#L22
+::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/translations/maps/hidingMap.js#L22
 
 :::
 
