@@ -25,8 +25,8 @@
  * INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING FROM
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
- * Version: 16.0.0
- * Release date: 09/07/2025 (built at 02/07/2025 10:10:12)
+ * Version: 16.0.1
+ * Release date: 10/07/2025 (built at 10/07/2025 10:14:02)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -104,8 +104,8 @@ Handsontable.hooks = _hooks.Hooks.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "02/07/2025 10:10:12";
-Handsontable.version = "16.0.0";
+Handsontable.buildDate = "10/07/2025 10:14:02";
+Handsontable.version = "16.0.1";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
   getLanguageDictionary: _registry.getLanguageDictionary,
@@ -10537,7 +10537,7 @@ const domMessages = {
 function _injectProductInfo(key, element) {
   const hasValidType = !isEmpty(key);
   const isNonCommercial = typeof key === 'string' && key.toLowerCase() === 'non-commercial-and-evaluation';
-  const hotVersion = "16.0.0";
+  const hotVersion = "16.0.1";
   let keyValidityDate;
   let consoleMessageState = 'invalid';
   let domMessageState = 'invalid';
@@ -10545,7 +10545,7 @@ function _injectProductInfo(key, element) {
   const schemaValidity = _checkKeySchema(key);
   if (hasValidType || isNonCommercial || schemaValidity) {
     if (schemaValidity) {
-      const releaseDate = (0, _moment.default)("09/07/2025", 'DD/MM/YYYY');
+      const releaseDate = (0, _moment.default)("10/07/2025", 'DD/MM/YYYY');
       const releaseDays = Math.floor(releaseDate.toDate().getTime() / 8.64e7);
       const keyValidityDays = _extractTime(key);
       keyValidityDate = (0, _moment.default)((keyValidityDays + 1) * 8.64e7, 'x').format('MMMM DD, YYYY');
