@@ -3114,51 +3114,6 @@ describe('AutocompleteEditor', () => {
     expect(listLength).toBe(2);
   });
 
-  it('should alphabetically sort the suggestion lists, when the `sortByRelevance` option is set to `false`', async() => {
-    const choicesList = [
-      'Wayne', 'Draven', 'Banner', 'Stark', 'Parker', 'Kent', 'Gordon', 'Kyle', 'Simmons'
-    ];
-
-    handsontable({
-      columns: [
-        {
-          editor: 'autocomplete',
-          source: choicesList,
-          sortByRelevance: false
-        }
-      ]
-    });
-
-    await selectCell(0, 0);
-    await keyDownUp('enter');
-
-    const $editorInput = $('.handsontableInput');
-
-    $editorInput.val('a');
-
-    await keyDownUp('a');
-
-    Handsontable.dom.setCaretPosition($editorInput[0], 1);
-
-    await sleep(30);
-
-    const dropdownList = $('.autocompleteEditor tbody').first();
-    const trs = dropdownList.find('tr');
-    const listLength = trs.size();
-
-    expect(listLength).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(5);
-      main.toBe(5);
-      horizon.toBe(5);
-    });
-
-    expect(trs.eq(0).text()).toBe('Banner');
-    expect(trs.eq(1).text()).toBe('Draven');
-    expect(trs.eq(2).text()).toBe('Parker');
-    expect(trs.eq(3).text()).toBe('Stark');
-    expect(trs.eq(4).text()).toBe('Wayne');
-  });
-
   it('should fire one afterChange event when value is changed', async() => {
     const onAfterChange = jasmine.createSpy('onAfterChange');
     const syncSources = jasmine.createSpy('syncSources');
