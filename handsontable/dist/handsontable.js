@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 16.0.1
- * Release date: 10/07/2025 (built at 10/07/2025 10:14:02)
+ * Release date: 10/07/2025 (built at 10/07/2025 10:59:04)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -104,7 +104,7 @@ Handsontable.hooks = _hooks.Hooks.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "10/07/2025 10:14:02";
+Handsontable.buildDate = "10/07/2025 10:59:04";
 Handsontable.version = "16.0.1";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -33183,7 +33183,7 @@ function mouseUp(_ref3) {
     }
   }
 }
-const handlers = new Map([['touchstart', mouseDown], ['mousedown', mouseDown], ['mouseover', mouseOver], ['mouseup', mouseUp]]);
+const handlers = new Map([['touchstart', mouseDown], ['touchend', mouseUp], ['mousedown', mouseDown], ['mouseover', mouseOver], ['mouseup', mouseUp]]);
 
 /**
  * Mouse handler for selection functionality.
