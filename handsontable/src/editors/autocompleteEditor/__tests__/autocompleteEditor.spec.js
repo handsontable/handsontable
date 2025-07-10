@@ -1440,13 +1440,9 @@ describe('AutocompleteEditor', () => {
 
     it('should sort alphabetically the choices list, when the `sortByRelevance` option is set to `false`', async() => {
       handsontable({
-        columns: [
-          {
-            editor: 'autocomplete',
-            source: choices,
-            sortByRelevance: false
-          }
-        ],
+        editor: 'autocomplete',
+        source: choices,
+        sortByRelevance: false,
         height: 1000
       });
 
