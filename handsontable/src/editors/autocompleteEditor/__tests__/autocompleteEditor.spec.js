@@ -1420,13 +1420,9 @@ describe('AutocompleteEditor', () => {
 
     it('should not sort the choices list, when the `sortByRelevance` option is set to `true`', async() => {
       handsontable({
-        columns: [
-          {
-            editor: 'autocomplete',
-            source: choices,
-            sortByRelevance: true
-          }
-        ],
+        editor: 'autocomplete',
+        source: choices,
+        sortByRelevance: true,
         height: 1000
       });
 
