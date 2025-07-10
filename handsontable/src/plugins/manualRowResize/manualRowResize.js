@@ -226,6 +226,10 @@ export class ManualRowResize extends BasePlugin {
    * @param {HTMLCellElement} TH TH HTML element.
    */
   setupHandlePosition(TH) {
+    if (this.#dblclick > 1) {
+      return;
+    }
+
     this.#currentTH = TH;
 
     const { view } = this.hot;
