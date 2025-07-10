@@ -37,7 +37,7 @@ For more information about this release see:
 - [Documentation (16.0)](https://handsontable.com/docs/16.0)
 
 #### Fixed
-- Fixed a missing `touchend` entry handler that prevented the editor from opening on mobile devices. [#11729](https://github.com/handsontable/handsontable/pull/11729)
+- Fixed a missing `touchend` handler that prevented the editor from opening on mobile devices. [#11729](https://github.com/handsontable/handsontable/pull/11729)
 
 ## 16.0.0
 
