@@ -61,4 +61,19 @@ describe('Text Editor', () => {
 
     expect(compStyle.borderRadius).toBe('0px');
   });
+
+  it('should open an editor on double tap', async() => {
+    handsontable({});
+
+    await selectCell(0, 0);
+
+    const cell = getCell(0, 0);
+
+    await triggerTouchEvent('touchstart', cell);
+    await triggerTouchEvent('touchend', cell);
+    await triggerTouchEvent('touchstart', cell);
+    await triggerTouchEvent('touchend', cell);
+
+    expect(getActiveEditor().isOpened()).toBe(true);
+  });
 });

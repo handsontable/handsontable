@@ -151,6 +151,7 @@ export function mouseUp({ isLeftClick, selection, cellRangeMapper }) {
 
 const handlers = new Map([
   ['touchstart', mouseDown],
+  ['touchend', mouseUp],
   ['mousedown', mouseDown],
   ['mouseover', mouseOver],
   ['mouseup', mouseUp],
