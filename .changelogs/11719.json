@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Make angular-wrapper handle situation when settings object is not provided",
-  "type": "fixed",
-  "issueOrPR": 11719,
-  "breaking": false,
-  "framework": "angular"
-}
