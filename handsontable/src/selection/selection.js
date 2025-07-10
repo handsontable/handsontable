@@ -1172,10 +1172,6 @@ class Selection {
 
       this.runLocalHooks('beforeSelectColumns', from, to, highlight);
 
-      // disallow modifying row axis for that hooks
-      // from.row = fromRow;
-      // to.row = toRow;
-
       this.setRangeStartOnly(from, undefined, highlight);
       this.selectedByColumnHeader.add(this.getLayerLevel());
       this.setRangeEnd(to);
@@ -1232,10 +1228,6 @@ class Selection {
       const to = this.tableProps.createCellCoords(endRow, toColumn);
 
       this.runLocalHooks('beforeSelectRows', from, to, highlight);
-
-      // disallow modifying column axis for that hooks
-      // from.col = fromColumn;
-      // to.col = toColumn;
 
       this.setRangeStartOnly(from, undefined, highlight);
       this.selectedByRowHeader.add(this.getLayerLevel());

@@ -1030,9 +1030,9 @@ export const REGISTERED_HOOKS = [
   'afterSelectRows',
 
   /**
-   * Fired before all cells are selected (e.g. During mouse corner click or {@link Core#selectAll} API call).
+   * Fired before all cells are selected (e.g. during mouse corner click or {@link Core#selectAll} API call).
    *
-   * @since 16.0.0
+   * @since 16.1.0
    * @event Hooks#beforeSelectAll
    * @param {CellCoords} from Selection start coords object.
    * @param {CellCoords} to Selection end coords object.
@@ -1065,13 +1065,27 @@ export const REGISTERED_HOOKS = [
    * />
    * ```
    * :::
+   *
+   * ::: only-for angular
+   *```ts
+   * settings = {
+   *   beforeSelectAll: (from, to, highlight) => {
+   *     // moves the focus to a new position
+   *     if (highlight) {
+   *       highlight.row = 3;
+   *       highlight.col = 3;
+   *     }
+   *   },
+   * };
+   * ```
+   * :::
    */
   'beforeSelectAll',
 
   /**
    * Fired after all cells are selected (e.g. during mouse corner click or {@link Core#selectAll} API call).
    *
-   * @since 16.0.0
+   * @since 16.1.0
    * @event Hooks#afterSelectAll
    * @param {CellCoords} from Selection start coords object.
    * @param {CellCoords} to Selection end coords object.
@@ -2563,7 +2577,7 @@ export const REGISTERED_HOOKS = [
    * @event Hooks#beforePageChange
    * @param {number} oldPage The old page number.
    * @param {number} newPage The new page number.
-   * @returns {*|boolean} If false is returned the action is canceled.
+   * @returns {*|boolean} If `false` is returned the action is canceled.
    */
   'beforePageChange',
 
@@ -2586,7 +2600,7 @@ export const REGISTERED_HOOKS = [
    * @event Hooks#beforePageSizeChange
    * @param {number | 'auto'} oldPageSize The old page size.
    * @param {number | 'auto'} newPageSize The new page size.
-   * @returns {*|boolean} If false is returned the action is canceled.
+   * @returns {*|boolean} If `false` is returned the action is canceled.
    */
   'beforePageSizeChange',
 

@@ -3610,6 +3610,7 @@ export default () => {
      * Read more:
      * - [Plugins: `Pagination`](@/api/pagination.md)
      *
+     * @since 16.1.0
      * @memberof Options#
      * @type {boolean}
      * @default undefined

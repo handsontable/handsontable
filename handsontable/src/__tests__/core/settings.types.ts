@@ -184,6 +184,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     showPageSize: true,
     showCounter: true,
     showNavigation: true,
+    uiContainer: document.body,
   }),
   persistentState: true,
   placeholder: 'foo',

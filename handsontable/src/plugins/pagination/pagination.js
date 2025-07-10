@@ -72,6 +72,21 @@ const AUTO_PAGE_SIZE_WARNING = toSingleLine`The \`auto\` page size setting requi
  * />
  * ```
  * :::
+ *
+ * ::: only-for angular
+ * ```ts
+ * settings = {
+ *   pagination: {
+ *     pageSize: 10,
+ *     pageSizeList: [5, 10, 20, 50, 100],
+ *     initialPage: 1,
+ *     showPageSize: true,
+ *     showCounter: true,
+ *     showNavigation: true,
+ *   },
+ * };
+ * ```
+ * :::
  */
 export class Pagination extends BasePlugin {
   static get PLUGIN_KEY() {
