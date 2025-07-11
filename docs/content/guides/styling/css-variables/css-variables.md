@@ -48,7 +48,7 @@ The data grid's styling system is built entirely on CSS variables, with over 200
 
 Follow these [steps](@/guides/styling/themes/themes.md#use-a-theme) to apply a theme, then override the variables for your chosen theme.
 
-Here’s an example for `.ht-theme-main`:
+Here's an example for `.ht-theme-main`:
 
 ```css
 .ht-theme-main {
