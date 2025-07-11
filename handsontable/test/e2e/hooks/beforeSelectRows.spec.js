@@ -51,7 +51,7 @@ describe('Hook', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,1 from: 1,-1 to: 6,9']);
     });
 
-    it('should not be possible to modify rows range in columns selection', async() => {
+    it('should be possible to modify rows range in columns selection', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         colHeaders: true,
@@ -64,7 +64,7 @@ describe('Hook', () => {
 
       await selectRows(2, 4);
 
-      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,0 from: 2,-1 to: 4,9']);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,0 from: 2,-2 to: 4,11']);
     });
   });
 });

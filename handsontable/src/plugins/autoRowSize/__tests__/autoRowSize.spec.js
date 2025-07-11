@@ -100,7 +100,7 @@ describe('AutoRowSize', () => {
   });
 
   describe('should draw scrollbar correctly (proper height) after calculation when autoRowSize option ' +
-           'is set (`table td` element height set by CSS) #4000', async() => {
+           'is set (`table td` element height set by CSS) #4000', () => {
     const cellHeightInPx = 100;
     const nrOfColumns = 200;
     let style;
@@ -151,9 +151,9 @@ describe('AutoRowSize', () => {
       const newHeight = spec().$container[0].scrollHeight;
 
       expect(newHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual((((cellHeightInPx + 1) * nrOfRows) + 1));
-        main.toEqual(((cellHeightInPx * nrOfRows) + 1));
-        horizon.toEqual(((cellHeightInPx * nrOfRows) + 1));
+        classic.toEqual((cellHeightInPx + 1) * nrOfRows);
+        main.toEqual(cellHeightInPx * nrOfRows);
+        horizon.toEqual(cellHeightInPx * nrOfRows);
       });
     });
 
@@ -169,9 +169,9 @@ describe('AutoRowSize', () => {
       const newHeight = spec().$container[0].scrollHeight;
 
       expect(newHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual((((cellHeightInPx + 1) * nrOfRows) + 1));
-        main.toEqual(((cellHeightInPx * nrOfRows) + 1));
-        horizon.toEqual(((cellHeightInPx * nrOfRows) + 1));
+        classic.toEqual((cellHeightInPx + 1) * nrOfRows);
+        main.toEqual(cellHeightInPx * nrOfRows);
+        horizon.toEqual(cellHeightInPx * nrOfRows);
       });
     });
 
@@ -188,9 +188,9 @@ describe('AutoRowSize', () => {
       const newHeight = spec().$container[0].scrollHeight;
 
       expect(newHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual((((cellHeightInPx + 1) * nrOfRows) + 1));
-        main.toEqual(((cellHeightInPx * nrOfRows) + 1));
-        horizon.toEqual(((cellHeightInPx * nrOfRows) + 1));
+        classic.toEqual((cellHeightInPx + 1) * nrOfRows);
+        main.toEqual(cellHeightInPx * nrOfRows);
+        horizon.toEqual(cellHeightInPx * nrOfRows);
       });
     });
 
@@ -206,9 +206,9 @@ describe('AutoRowSize', () => {
       const newHeight = spec().$container[0].scrollHeight;
 
       expect(newHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual((((cellHeightInPx + 1) * nrOfRows) + 1));
-        main.toEqual(((cellHeightInPx * nrOfRows) + 1));
-        horizon.toEqual(((cellHeightInPx * nrOfRows) + 1));
+        classic.toEqual((cellHeightInPx + 1) * nrOfRows);
+        main.toEqual(cellHeightInPx * nrOfRows);
+        horizon.toEqual(cellHeightInPx * nrOfRows);
       });
     });
   });
@@ -314,14 +314,14 @@ describe('AutoRowSize', () => {
     await keyDownUp('enter');
 
     expect(getInlineStartClone().find('.wtHolder').scrollTop()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(90);
-      main.toBe(217);
-      horizon.toBe(265);
+      classic.toBe(89);
+      main.toBe(216);
+      horizon.toBe(264);
     });
     expect(getMaster().find('.wtHolder').scrollTop()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(90);
-      main.toBe(217);
-      horizon.toBe(265);
+      classic.toBe(89);
+      main.toBe(216);
+      horizon.toBe(264);
     });
   });
 
@@ -720,9 +720,9 @@ describe('AutoRowSize', () => {
     const cloneLeft = spec().$container.find('.handsontable.ht_clone_inline_start .wtHider');
 
     expect(cloneLeft.height()).forThemes(({ classic, main, horizon }) => {
-      classic.toEqual(70);
-      main.toEqual(80);
-      horizon.toEqual(96);
+      classic.toEqual(69);
+      main.toEqual(79);
+      horizon.toEqual(95);
     });
   });
 
@@ -845,9 +845,9 @@ describe('AutoRowSize', () => {
     await scrollViewportTo(49, 0);
 
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(833);
-      main.toBe(1136);
-      horizon.toBe(1544);
+      classic.toBe(832);
+      main.toBe(1135);
+      horizon.toBe(1543);
     });
 
     await listen();
@@ -855,9 +855,9 @@ describe('AutoRowSize', () => {
     await keyDownUp('delete');
 
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(833);
-      main.toBe(1136);
-      horizon.toBe(1544);
+      classic.toBe(832);
+      main.toBe(1135);
+      horizon.toBe(1543);
     });
   });
 
