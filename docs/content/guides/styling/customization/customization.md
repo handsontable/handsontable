@@ -1,10 +1,10 @@
 ---
 id: x2u15qpx
-title: CSS Variables
-metaTitle: CSS Variables - JavaScript Data Grid | Handsontable
+title: Customization
+metaTitle: Customization - JavaScript Data Grid | Handsontable
 description: Customize Handsontable's appearance using CSS variables to create consistent themes and styles across your application.
-permalink: /css-variables
-canonicalUrl: /css-variables
+permalink: /customization
+canonicalUrl: /customization
 tags:
   - styling
   - figma
@@ -18,15 +18,15 @@ tags:
   - tokens
 react:
   id: 0m19ic0d
-  metaTitle: CSS Variables - React Data Grid | Handsontable
+  metaTitle: Customization - React Data Grid | Handsontable
 angular:
   id: xau2jfok
-  metaTitle: CSS Variables - Angular Data Grid | Handsontable
+  metaTitle: Customization - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Styling
 ---
 
-# CSS Variables
+# Customization
 
 Customize Handsontable's appearance using CSS variables to create consistent themes and styles across your application.
 
@@ -50,14 +50,33 @@ Follow these [steps](@/guides/styling/themes/themes.md#use-a-theme) to apply a t
 
 Here's an example for `.ht-theme-main`:
 
-```css
-.ht-theme-main {
-  --ht-accent-color: #007bff;
-  --ht-foreground-color: #333333;
-  --ht-background-color: #ffffff;
-  ...
-}
-```
+::: only-for javascript
+
+::: example #example1 --html 1 --js 2 --ts 3
+@[code](@/content/guides/styling/customization/javascript/example1.html)
+@[code](@/content/guides/styling/customization/javascript/example1.js)
+@[code](@/content/guides/styling/customization/javascript/example1.ts)
+:::
+
+:::
+
+::: only-for react
+
+::: example #example1 .disable-auto-theme :react --js 1 --ts 2
+@[code](@/content/guides/styling/customization/react/example1.jsx)
+@[code](@/content/guides/styling/customization/react/example1.tsx)
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+@[code](@/content/guides/styling/customization/angular/example1.ts)
+@[code](@/content/guides/styling/customization/angular/example1.html)
+:::
+
+:::
 
 ### Create a custom theme based on an existing SCSS file
 
