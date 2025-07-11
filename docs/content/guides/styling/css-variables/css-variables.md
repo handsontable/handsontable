@@ -76,7 +76,7 @@ After customizing your theme file, you'll need to compile it into CSS. To do thi
 
 #### 3. Load and apply the theme
 
-Include the new CSS file into your project, ensuring it’s loaded after the base CSS file (`handsontable/styles/handsontable.min.css`). If you’re using imports, it might look like this:
+Include the new CSS file into your project, ensuring it's loaded after the base CSS file (`handsontable/styles/handsontable.min.css`). If you're using imports, it might look like this:
 
 ```js
 import 'handsontable/styles/handsontable.min.css';
