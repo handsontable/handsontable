@@ -418,7 +418,4 @@ export class ExampleComponent implements AfterViewInit {
   - [`getPlugin()`](@/api/core.md#getplugin)
 - Hooks:
   - [`afterPluginsInitialized`](@/api/hooks.md#afterpluginsinitialized)
-
-```
-
-```
+  
