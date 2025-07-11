@@ -65,7 +65,7 @@ Creating a custom theme is straightforward. You just need a local clone of the [
 
 #### 1. Create a new SCSS file
 
-Start by copying one of the SCSS files in the `handsontable/src/styles/themes` directory, such as [`main.scss`](https://github.com/handsontable/handsontable/blob/develop/handsontable/src/styles/themes/main.scss). Rename it to something unique for your project. For this example, let’s name the new theme `falcon.scss`.
+Start by copying one of the SCSS files in the `handsontable/src/styles/themes` directory, such as [`main.scss`](https://github.com/handsontable/handsontable/blob/develop/handsontable/src/styles/themes/main.scss). Rename it to something unique for your project. For this example, let's name the new theme `falcon.scss`.
 
 Next, customize the existing variables to match your design requirements. If you need icons, you can use the ones already declared such as the `main` theme icons in this example or create your own icons in the `handsontable/src/styles/themes/utils/[theme]/_icons.scss` directory. To use your custom icons, update the `@use "utils/[theme]/icons";` directive accordingly.
 
