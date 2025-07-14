@@ -226,61 +226,6 @@ This hierarchy ensures that you can define a consistent default theme for your e
 
 :::
 
-## Create a custom theme
-
-Creating a custom theme is straightforward. Follow these steps to set up your custom design:
-
-### ① Create a new CSS file
-
-Start by copying one of the CSS files provided with Handsontable, such as [`ht-theme-main.css`](https://github.com/handsontable/handsontable/blob/develop/handsontable/src/styles/themes/main.scss). Rename it to something unique for your project. For this example, let’s name the new theme `falcon`, making the full file name `ht-theme-falcon.css`.
-
-Next, customize the existing variables to match your design requirements. If you need icons, you can use the ones available in the [GitHub repository](https://github.com/handsontable/handsontable/blob/develop/handsontable/src/styles/utils/_icons.scss) or create your own icon set using the `@use "utils/[theme]/icons";` directive.
-
-### ② Load and apply the theme
-
-Include the new CSS file in your project, ensuring it’s loaded after the base CSS file (`styles/handsontable.min.css`). If you’re using imports, it might look like this:
-
-```js
-import 'handsontable/styles/handsontable.min.css';
-import 'handsontable/styles/ht-theme-falcon.min.css';
-```
-
-To apply a theme, use the `themeName` option by specifying it in the configuration, like this:
-
-::: only-for javascript
-
-```js
-const hot = new Handsontable(container, {
-  // theme name with obligatory `ht-theme-*` prefix
-  themeName: 'ht-theme-falcon',
-  // other options
-});
-```
-
-:::
-
-::: only-for react
-
-```jsx
-<HotTable
-  // theme name with obligatory `ht-theme-*` prefix
-  themeName="ht-theme-falcon"
-  // other options
-/>
-```
-
-:::
-
-::: only-for angular
-
-```html
-<hot-table [settings]="{
-  themeName: 'ht-theme-falcon'
-  // other options
-}">
-</hot-table>
-```
-
 :::
 
 ## The classic theme
