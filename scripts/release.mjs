@@ -128,7 +128,7 @@ displaySeparator();
       await execa.command(`cat ${docsPackageJsonPath}`, { shell: true }
       ).then(result => result.stdout));
 
-    docsPackageJson.devDependencies['@handsontable/angular'] = `~${releaseVersion}`;
+    docsPackageJson.devDependencies['@handsontable/angular-wrapper'] = `~${releaseVersion}`;
 
     // Write updated package.json back to file with proper formatting
     fs.writeFileSync(
