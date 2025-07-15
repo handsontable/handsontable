@@ -15,7 +15,8 @@ const gettingStartedItems = [
 
 const stylingItems = [
   { path: 'guides/styling/themes/themes' },
-  { path: 'guides/styling/design-system/design-system' }
+  { path: 'guides/styling/design-system/design-system' },
+  { path: 'guides/styling/customization/customization' },
 ];
 
 const integrateWithVueItems = [

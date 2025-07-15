@@ -47,7 +47,7 @@ const AUTO_PAGE_SIZE_WARNING = toSingleLine`The \`auto\` page size setting requi
  *   data: getData(),
  *   pagination: {
  *     pageSize: 10,
- *     pageSizeList: [5, 10, 20, 50, 100],
+ *     pageSizeList: ['auto', 5, 10, 20, 50, 100],
  *     initialPage: 1,
  *     showPageSize: true,
  *     showCounter: true,
@@ -63,7 +63,7 @@ const AUTO_PAGE_SIZE_WARNING = toSingleLine`The \`auto\` page size setting requi
  *   data={getData()}
  *   pagination={{
  *     pageSize: 10,
- *     pageSizeList: [5, 10, 20, 50, 100],
+ *     pageSizeList: ['auto', 5, 10, 20, 50, 100],
  *     initialPage: 1,
  *     showPageSize: true,
  *     showCounter: true,
@@ -78,7 +78,7 @@ const AUTO_PAGE_SIZE_WARNING = toSingleLine`The \`auto\` page size setting requi
  * settings = {
  *   pagination: {
  *     pageSize: 10,
- *     pageSizeList: [5, 10, 20, 50, 100],
+ *     pageSizeList: ['auto', 5, 10, 20, 50, 100],
  *     initialPage: 1,
  *     showPageSize: true,
  *     showCounter: true,
@@ -257,7 +257,15 @@ export class Pagination extends BasePlugin {
   }
 
   /**
-   * Gets the pagination current state.
+   * Gets the pagination current state. Returns an object with the following properties:
+   *  - `currentPage`: The current page number.
+   *  - `totalPages`: The total number of pages.
+   *  - `pageSize`: The page size.
+   *  - `pageSizeList`: The list of page sizes.
+   *  - `autoPageSize`: Whether the page size is calculated automatically.
+   *  - `numberOfRenderedRows`: The number of rendered rows.
+   *  - `firstVisibleRowIndex`: The index of the first visible row.
+   *  - `lastVisibleRowIndex`: The index of the last visible row.
    *
    * @returns {{
    *   currentPage: number,
