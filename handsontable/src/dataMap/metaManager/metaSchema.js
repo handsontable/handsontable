@@ -3605,7 +3605,7 @@ export default () => {
      * | `showPageSize`           | Boolean (default: `true`)                          | Controls visibility of the "page size" section                                                                                                                   |
      * | `showCounter`            | Boolean (default: `true`)                          | Controls visibility of the "page counter" section (e.g., "1 - 10 of 50");                                                                                        |
      * | `showNavigation`         | Boolean (default: `true`)                          | Controls visibility of the "page navigation" section                                                                                                             |
-     * | `uiContainer`            | An HTML element                                    | The container element where the pagination UI will be installed. If not provided, the pagination container will be injected below the root table element.        |
+     * | `uiContainer`            | An HTML element (default: `null`)                  | The container element where the pagination UI will be installed. If not provided, the pagination container will be injected below the root table element.        |
      *
      * Read more:
      * - [Plugins: `Pagination`](@/api/pagination.md)
