@@ -131,7 +131,7 @@ describe('Hook', () => {
         afterRefreshDimensions,
       });
 
-      await sleep(5000);
+      await sleep(6000);
 
       expect(afterRefreshDimensions).toHaveBeenCalledTimes(300);
       // eslint-disable-next-line no-console
