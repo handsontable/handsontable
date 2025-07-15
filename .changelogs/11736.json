@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue with rows being misaligned with row headers when using `autoRowSize`.",
+  "type": "fixed",
+  "issueOrPR": 11736,
+  "breaking": false,
+  "framework": "none"
+}
