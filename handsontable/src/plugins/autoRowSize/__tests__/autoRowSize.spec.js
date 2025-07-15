@@ -535,8 +535,8 @@ describe('AutoRowSize', () => {
     });
     expect(parseInt(getCell(2, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(22);
-      main.toBe(49);
-      horizon.toBe(57);
+      main.toBe(29);
+      horizon.toBe(37);
     });
   });
 
