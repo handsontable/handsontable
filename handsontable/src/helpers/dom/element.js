@@ -1029,7 +1029,7 @@ function walkontableCalculateScrollbarWidth(rootDocument = document) {
   }
   (rootDocument.body || rootDocument.documentElement).removeChild(outer);
 
-  return (w1 - w2) + getFractionalScalingCompensation(rootDocument);
+  return w1 - w2;
 }
 
 /**

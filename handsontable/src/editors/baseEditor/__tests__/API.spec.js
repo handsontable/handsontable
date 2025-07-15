@@ -577,7 +577,7 @@ describe('BaseEditor API', () => {
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
                 start: 0,
-                top: 138,
+                top: 139,
                 width: 50,
                 maxWidth: 285,
                 height: 24,
@@ -585,7 +585,7 @@ describe('BaseEditor API', () => {
               }));
               main.toEqual(jasmine.objectContaining({
                 start: 0,
-                top: 126,
+                top: 127,
                 width: 50,
                 maxWidth: 285,
                 height: 30,
@@ -593,7 +593,7 @@ describe('BaseEditor API', () => {
               }));
               horizon.toEqual(jasmine.objectContaining({
                 start: 0,
-                top: 110,
+                top: 111,
                 width: 51,
                 maxWidth: 285,
                 height: 38,
@@ -665,7 +665,7 @@ describe('BaseEditor API', () => {
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
                 start: 0,
-                top: 138,
+                top: 139,
                 width: 50,
                 maxWidth: 285,
                 height: 24,
@@ -673,7 +673,7 @@ describe('BaseEditor API', () => {
               }));
               main.toEqual(jasmine.objectContaining({
                 start: 0,
-                top: 126,
+                top: 127,
                 width: 50,
                 maxWidth: 285,
                 height: 30,
@@ -681,7 +681,7 @@ describe('BaseEditor API', () => {
               }));
               horizon.toEqual(jasmine.objectContaining({
                 start: 0,
-                top: 110,
+                top: 111,
                 width: 51,
                 maxWidth: 285,
                 height: 38,
@@ -752,7 +752,7 @@ describe('BaseEditor API', () => {
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
                 start: 0,
-                top: 138,
+                top: 139,
                 width: 50, // 48px (the default cell width closest to the left side of the table) - 8px (padding)
                 maxWidth: 285,
                 height: 24,
@@ -762,7 +762,7 @@ describe('BaseEditor API', () => {
               // Not sure about the values below - can be modified if found they're wrong (implemented after introducing the new themes).
               main.toEqual(jasmine.objectContaining({
                 start: 0,
-                top: 126,
+                top: 127,
                 width: 50, // 48px (the default cell width closest to the left side of the table) - 8px (padding)
                 maxWidth: 285,
                 height: 30,
@@ -770,7 +770,7 @@ describe('BaseEditor API', () => {
               }));
               horizon.toEqual(jasmine.objectContaining({
                 start: 0,
-                top: 110,
+                top: 111,
                 width: 51, // 48px (the default cell width closest to the left side of the table) - 8px (padding)
                 maxWidth: 285,
                 height: 38,
@@ -840,7 +840,7 @@ describe('BaseEditor API', () => {
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
                 start: 234,
-                top: 161,
+                top: 162,
                 width: 51,
                 maxWidth: 51,
                 height: 24,
@@ -848,7 +848,7 @@ describe('BaseEditor API', () => {
               }));
               main.toEqual(jasmine.objectContaining({
                 start: 234,
-                top: 155,
+                top: 156,
                 width: 51,
                 maxWidth: 51,
                 height: 30,
@@ -856,7 +856,7 @@ describe('BaseEditor API', () => {
               }));
               horizon.toEqual(jasmine.objectContaining({
                 start: 234,
-                top: 147,
+                top: 148,
                 width: 51,
                 maxWidth: 51,
                 height: 38,
