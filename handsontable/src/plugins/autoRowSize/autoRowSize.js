@@ -309,6 +309,9 @@ export class AutoRowSize extends BasePlugin {
 
     super.disablePlugin();
 
+    // Remove the "first dataset column not rendered" class name when the plugin is disabled.
+    this.#toggleFirstDatasetColumnRenderedClassName(false);
+
     // Leave the listener active to allow auto-sizing the rows when the plugin is disabled.
     // This is necessary for height recalculation for resize handler doubleclick (ManualRowResize).
     this.addHook('beforeRowResize', (size, row, isDblClick) => this.#onBeforeRowResize(size, row, isDblClick));
@@ -612,12 +615,17 @@ export class AutoRowSize extends BasePlugin {
   /**
    * Toggles the "first dataset column not rendered" class name.
    * Used to apply special styling when the first column is visible (used only in the classic theme, with the AutoRowSize plugin enabled).
+   *
+   * @param {boolean} [forceState] Force the class to be added or removed (`true` to add, `false` to remove).
    */
-  #toggleFirstDatasetColumnRenderedClassName() {
+  #toggleFirstDatasetColumnRenderedClassName(forceState) {
     if (this.hot.stylesHandler.isClassicTheme()) {
       const firstRenderedColumn = this.hot.getFirstRenderedVisibleColumn();
 
-      if (firstRenderedColumn === this.hot.columnIndexMapper.getPhysicalFromRenderableIndex(0)) {
+      if (
+        forceState === false || 
+        firstRenderedColumn === this.hot.columnIndexMapper.getPhysicalFromRenderableIndex(0)
+      ) {
         removeClass(this.hot.rootElement, FIRST_COLUMN_NOT_RENDERED_CLASS_NAME);
 
       } else {
