@@ -100,7 +100,7 @@ export class Pagination extends BasePlugin {
   static get DEFAULT_SETTINGS() {
     return {
       pageSize: 10,
-      pageSizeList: [5, 10, 20, 50, 100],
+      pageSizeList: ['auto', 5, 10, 20, 50, 100],
       initialPage: 1,
       showPageSize: true,
       showCounter: true,

@@ -201,7 +201,7 @@ describe('Pagination integration with HiddenRows', () => {
     await render();
 
     expect(visualizePageSections()).toEqual([
-      'Page size: [[5], 10, 20, 50, 100]',
+      'Page size: [[auto], 5, 10, 20, 50, 100]',
       '0 - 0 of 0',
       '|< < Page 1 of 1 > >|',
     ]);

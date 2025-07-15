@@ -44,7 +44,7 @@ describe('Pagination `uiContainer` option', () => {
 
     expect(externalContainer.className).toBe('');
     expect(visualizePageSections(externalContainer)).toEqual([
-      'Page size: [5, [10], 20, 50, 100]',
+      'Page size: [auto, 5, [10], 20, 50, 100]',
       '1 - 10 of 45',
       '|< < Page 1 of 5 [>] [>|]',
     ]);
