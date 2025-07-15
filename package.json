@@ -21,7 +21,7 @@
     "build": "npm run all build -- -e=examples",
     "freeze": "node scripts/freeze.mjs",
     "release": "node scripts/release.mjs",
-    "changelog": "bin/changelog",
+    "changelog": "node bin/changelog",
     "publish-all": "npm run all publish-package -- -e=examples",
     "prein": "npm run swap-package-links",
     "preall": "npm run swap-package-links",

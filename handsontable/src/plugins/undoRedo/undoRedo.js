@@ -68,7 +68,7 @@ export class UndoRedo extends BasePlugin {
 
   constructor(hotInstance) {
     super(hotInstance);
-    registerActions(hotInstance, this);
+    registerActions(this.hot, this);
   }
 
   /**
@@ -158,6 +158,8 @@ export class UndoRedo extends BasePlugin {
    * @param {string} [source] Source of the action. It is defined just for more general actions (not related to plugins).
    */
   done(wrappedAction, source) {
+    console.log('done', this.doneActions.length, this.hot.countRows());
+    
     if (this.ignoreNewActions) {
       return;
     }
@@ -178,6 +180,7 @@ export class UndoRedo extends BasePlugin {
     const newAction = wrappedAction();
     const undoneActionsCopy = this.undoneActions.slice();
 
+    console.log('newAction', newAction);
     this.doneActions.push(newAction);
 
     this.hot.runHooks('afterUndoStackChange', doneActionsCopy, this.doneActions.slice());
@@ -199,6 +202,7 @@ export class UndoRedo extends BasePlugin {
    * @fires Hooks#afterUndo
    */
   undo() {
+    console.log('undo', this.doneActions.length, this.hot.countRows());
     if (!this.isUndoAvailable()) {
       return;
     }
@@ -208,6 +212,7 @@ export class UndoRedo extends BasePlugin {
     this.hot.runHooks('beforeUndoStackChange', doneActionsCopy);
 
     const action = this.doneActions.pop();
+    console.log('action to undo', action);
 
     this.hot.runHooks('afterUndoStackChange', doneActionsCopy, this.doneActions.slice());
 
@@ -225,11 +230,12 @@ export class UndoRedo extends BasePlugin {
     this.hot.runHooks('beforeRedoStackChange', undoneActionsCopy);
 
     action.undo(this.hot, () => {
+      console.log('undone callback - hot.countRows', this.hot.countRows());
       this.ignoreNewActions = false;
       this.undoneActions.push(action);
+      this.hot.runHooks('afterRedoStackChange', undoneActionsCopy, this.undoneActions.slice());
     });
 
-    this.hot.runHooks('afterRedoStackChange', undoneActionsCopy, this.undoneActions.slice());
     this.hot.runHooks('afterUndo', actionClone);
   }
 
@@ -244,6 +250,7 @@ export class UndoRedo extends BasePlugin {
    * @fires Hooks#afterRedo
    */
   redo() {
+    console.log('redo', this.doneActions.length, this.hot.countRows());
     if (!this.isRedoAvailable()) {
       return;
     }
@@ -285,6 +292,7 @@ export class UndoRedo extends BasePlugin {
    * @returns {boolean} Return `true` if undo can be performed, `false` otherwise.
    */
   isUndoAvailable() {
+    console.log('isUndoAvailable', this.doneActions.length, this.hot.countRows());
     return this.doneActions.length > 0;
   }
 
@@ -294,6 +302,7 @@ export class UndoRedo extends BasePlugin {
    * @returns {boolean} Return `true` if redo can be performed, `false` otherwise.
    */
   isRedoAvailable() {
+    console.log('isRedoAvailable', this.undoneActions.length);
     return this.undoneActions.length > 0;
   }
 
@@ -312,6 +321,7 @@ export class UndoRedo extends BasePlugin {
    * @param {string} source The source of the change.
    */
   #onAfterChange(changes, source) {
+    console.log('onAfterChange - doneActions', this.doneActions.length, 'hot.countRows', this.hot.countRows());
     if (source === 'loadData') {
       this.clear();
     }
@@ -392,6 +402,7 @@ export class UndoRedo extends BasePlugin {
    * Removes the plugin API from the Core. It is for backward compatibility and it should be removed in the future.
    */
   #removeAPIFromCore() {
+    console.log('removeAPIFromCore', this.doneActions.length, this.hot.countRows());
     delete this.hot.undo;
     delete this.hot.redo;
     delete this.hot.isUndoAvailable;

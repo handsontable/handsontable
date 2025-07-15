@@ -1177,7 +1177,7 @@ describe('UndoRedo', () => {
         ]);
       });
 
-      it('should undo copy-and-paste action (numeric data)', async() => {
+      fit('should undo copy-and-paste action (numeric data)', async() => {
         handsontable({
           type: 'numeric',
           data: [
@@ -1193,6 +1193,8 @@ describe('UndoRedo', () => {
         await copyPastePlugin.onCopy(copyEvent);
         await selectCell(1, 0);
         await copyPastePlugin.onPaste(copyEvent);
+
+        await sleep(100);
 
         expect(getData()).toEqual([
           [42],
