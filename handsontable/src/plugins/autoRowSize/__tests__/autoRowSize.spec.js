@@ -946,9 +946,7 @@ describe('AutoRowSize', () => {
       width: 300,
     });
 
-    selectCell(0, 18);
-
-    await sleep(10);
+    await selectCell(0, 18);
 
     const rowHeaderHeight = getCell(0, -1, true).offsetHeight;
     const cellsHeight = getCell(0, 18, true).offsetHeight;
@@ -978,9 +976,7 @@ describe('AutoRowSize', () => {
       },
     });
 
-    selectCell(0, 18);
-
-    await sleep(10);
+    await selectCell(0, 18);
 
     const rowHeaderHeight = getCell(0, -1, true).offsetHeight;
     const cellsHeight = getCell(0, 18, true).offsetHeight;

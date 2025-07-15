@@ -292,7 +292,7 @@ export class AutoRowSize extends BasePlugin {
     this.addHook('beforeChangeRender', (...args) => this.#onBeforeChange(...args));
     this.addHook('beforeColumnResize', () => this.recalculateAllRowsHeight());
     this.addHook('afterFormulasValuesUpdate', (...args) => this.#onAfterFormulasValuesUpdate(...args));
-    this.addHook('beforeViewRender', (...args) => this.#onBeforeViewRender());
+    this.addHook('beforeViewRender', () => this.#onBeforeViewRender());
     this.addHook('beforeRender', () => this.#onBeforeRender());
     this.addHook('modifyRowHeight', (height, row) => this.getRowHeight(row, height));
     this.addHook('init', () => this.#onInit());
@@ -623,7 +623,7 @@ export class AutoRowSize extends BasePlugin {
       const firstRenderedColumn = this.hot.getFirstRenderedVisibleColumn();
 
       if (
-        forceState === false || 
+        forceState === false ||
         firstRenderedColumn === this.hot.columnIndexMapper.getPhysicalFromRenderableIndex(0)
       ) {
         removeClass(this.hot.rootElement, FIRST_COLUMN_NOT_RENDERED_CLASS_NAME);
