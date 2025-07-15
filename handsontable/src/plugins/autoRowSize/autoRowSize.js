@@ -617,7 +617,7 @@ export class AutoRowSize extends BasePlugin {
     if (this.hot.stylesHandler.isClassicTheme()) {
       const firstRenderedColumn = this.hot.getFirstRenderedVisibleColumn();
 
-      if (firstRenderedColumn === 0) {
+      if (firstRenderedColumn === this.hot.columnIndexMapper.getPhysicalFromRenderableIndex(0)) {
         removeClass(this.hot.rootElement, FIRST_COLUMN_NOT_RENDERED_CLASS_NAME);
 
       } else {
