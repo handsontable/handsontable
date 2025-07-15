@@ -241,14 +241,9 @@ lastPageElement.addEventListener('click', () => {
 });
 
 pageNumberElement.addEventListener('input', (event) => {
-  const { totalPages } = paginationPlugin.getPaginationData();
   const pageNumber = parseInt(event.target.value, 10);
 
-  if (isNaN(pageNumber)) {
-    return;
+  if (!isNaN(pageNumber)) {
+    paginationPlugin.setPage(pageNumber);
   }
-
-  const clampedPageNumber = Math.max(1, Math.min(pageNumber, totalPages));
-
-  paginationPlugin.setPage(clampedPageNumber);
 });
