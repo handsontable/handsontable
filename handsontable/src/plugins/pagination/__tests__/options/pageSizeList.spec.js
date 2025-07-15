@@ -18,7 +18,7 @@ describe('Pagination `pageSizeList` option', () => {
 
     const plugin = getPlugin('pagination');
 
-    expect(plugin.getSetting('pageSizeList')).toEqual([5, 10, 20, 50, 100]);
+    expect(plugin.getSetting('pageSizeList')).toEqual(['auto', 5, 10, 20, 50, 100]);
   });
 
   it('should be possible to change value in settings', async() => {

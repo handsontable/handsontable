@@ -172,7 +172,7 @@ describe('Pagination', () => {
     });
 
     expect(visualizePageSections()).toEqual([
-      'Liczba wierszy: [[5], 10, 20, 50, 100]',
+      'Liczba wierszy: [[auto], 5, 10, 20, 50, 100]',
       '1 - 3 z 10',
       '|< < Strona 1 z 4 [>] [>|]',
     ]);
@@ -200,7 +200,7 @@ describe('Pagination', () => {
     });
 
     expect(visualizePageSections()).toEqual([
-      'Liczba wierszy: [[5], 10, 20, 50, 100]',
+      'Liczba wierszy: [[auto], 5, 10, 20, 50, 100]',
       '1 - 3 z 10',
       '|< < Strona 1 z 4 [>] [>|]',
     ]);
