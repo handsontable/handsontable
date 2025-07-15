@@ -469,6 +469,8 @@ describe('AutoRowSize', () => {
       colHeaders: true
     });
 
+    const manualColumnResizePlugin = getPlugin('manualColumnResize');
+
     expect(parseInt(getCell(0, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(22); // -1px of cell border
       main.toBe(30);
@@ -485,7 +487,9 @@ describe('AutoRowSize', () => {
       horizon.toBe(37);
     });
 
-    resizeColumn.call(this, 1, 90);
+    await resizeColumn(1, 90);
+
+    manualColumnResizePlugin.afterMouseDownTimeout(); // fix for misinterpretation of the double click event
 
     expect(parseInt(getCell(0, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(22);
@@ -503,7 +507,9 @@ describe('AutoRowSize', () => {
       horizon.toBe(97);
     });
 
-    resizeColumn.call(this, 1, 50);
+    await resizeColumn(1, 50);
+
+    manualColumnResizePlugin.afterMouseDownTimeout(); // fix for misinterpretation of the double click event
 
     expect(parseInt(getCell(0, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(22);
@@ -521,7 +527,9 @@ describe('AutoRowSize', () => {
       horizon.toBe(137);
     });
 
-    resizeColumn.call(this, 1, 200);
+    await resizeColumn(1, 200);
+
+    manualColumnResizePlugin.afterMouseDownTimeout();
 
     expect(parseInt(getCell(0, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(22);
@@ -535,8 +543,8 @@ describe('AutoRowSize', () => {
     });
     expect(parseInt(getCell(2, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(22);
-      main.toBe(29);
-      horizon.toBe(37);
+      main.toBe(49);
+      horizon.toBe(57);
     });
   });
 
