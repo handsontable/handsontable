@@ -10,7 +10,7 @@ import {
 import { A11Y_DISABLED, A11Y_LABEL } from '../../helpers/a11y';
 
 const TEMPLATE = `
-<div data-ref="container" class="ht-pagination-container">
+<div data-ref="container" class="ht-pagination-container handsontable">
   <div class="ht-pagination-container__inner">
     <div data-ref="pageSizeSection" class="ht-page-size-section">
       <span data-ref="pageSizeLabel" class="ht-page-size-section__label"></span>

@@ -126,7 +126,7 @@ class Overlays {
 
       this.#containerDomResizeCount += 1;
 
-      if (this.#containerDomResizeCount === 100) {
+      if (this.#containerDomResizeCount === 300) {
         warn('The ResizeObserver callback was fired too many times in direct succession.' +
           '\nThis may be due to an infinite loop caused by setting a dynamic height/width (for example, ' +
           'with the `dvh` units) to a Handsontable container\'s parent. ' +
