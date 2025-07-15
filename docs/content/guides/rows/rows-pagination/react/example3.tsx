@@ -1,4 +1,5 @@
-import Handsontable from 'handsontable/base';
+import React, { useRef, useState, useEffect } from 'react';
+import { HotTable, HotColumn, HotTableRef } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
@@ -109,69 +110,175 @@ const data = [
   { model: 'Cycling Cap', price: 444.79, sellDate: 'Sep 11, 2025', sellTime: '10:05 AM', inStock: false }
 ];
 
-const container = document.querySelector('#example1');
+const ExampleComponent = () => {
+  const hotTableRef = useRef<HotTableRef>(null);
+  const [paginationData, setPaginationData] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    firstVisibleRowIndex: 0,
+    lastVisibleRowIndex: 0,
+    totalRenderedRows: 0
+  });
 
-new Handsontable(container, {
-  themeName: 'ht-theme-main',
-  data,
-  pagination: true,
-  autoRowSize: true,
-  columns: [
-    {
-      title: 'Model',
-      type: 'text',
-      data: 'model',
-      width: 150,
-      headerClassName: 'htLeft',
-    },
-    {
-      title: 'Price',
-      type: 'numeric',
-      data: 'price',
-      width: 80,
-      numericFormat: {
-        pattern: '$0,0.00',
-        culture: 'en-US',
-      },
-      className: 'htRight',
-      headerClassName: 'htRight',
-    },
-    {
-      title: 'Date',
-      type: 'date',
-      data: 'sellDate',
-      width: 130,
-      dateFormat: 'MMM D, YYYY',
-      correctFormat: true,
-      className: 'htRight',
-      headerClassName: 'htRight',
+  const updatePaginationState = () => {
+    if (hotTableRef.current) {
+      const state = hotTableRef.current.hotInstance
+        .getPlugin('pagination')
+        .getPaginationData();
 
-    },
-    {
-      title: 'Time',
-      type: 'time',
-      data: 'sellTime',
-      width: 90,
-      timeFormat: 'hh:mm A',
-      correctFormat: true,
-      className: 'htRight',
-      headerClassName: 'htRight',
-    },
-    {
-      title: 'In stock',
-      type: 'checkbox',
-      data: 'inStock',
-      className: 'htCenter',
-      headerClassName: 'htCenter',
-    },
-  ],
-  width: '100%',
-  height: 300,
-  stretchH: 'all',
-  contextMenu: true,
-  rowHeaders: true,
-  colHeaders: true,
-  autoWrapRow: true,
-  autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation',
-});
+      setPaginationData(state);
+    }
+  };
+
+  useEffect(() => {
+    updatePaginationState();
+  }, []);
+
+  const handleFirstPage = () => {
+    hotTableRef.current?.hotInstance.getPlugin('pagination').firstPage();
+  };
+
+  const handlePrevPage = () => {
+    hotTableRef.current?.hotInstance.getPlugin('pagination').prevPage();
+  };
+
+  const handleNextPage = () => {
+    hotTableRef.current?.hotInstance.getPlugin('pagination').nextPage();
+  };
+
+  const handleLastPage = () => {
+    hotTableRef.current?.hotInstance.getPlugin('pagination').lastPage();
+  };
+
+  const handlePageNumberChange = (event) => {
+    const pageNumber = parseInt(event.target.value, 10);
+
+    if (!isNaN(pageNumber)) {
+      hotTableRef.current?.hotInstance.getPlugin('pagination').setPage(pageNumber);
+    }
+  };
+
+  const isFirstPage = paginationData.currentPage === 1;
+  const isLastPage = paginationData.currentPage === paginationData.totalPages;
+
+  return (
+    <>
+      <HotTable
+        ref={hotTableRef}
+        themeName="ht-theme-main"
+        pagination={{
+          pageSize: 25,
+          showPageSize: false,
+          showCounter: false,
+          showNavigation: false,
+        }}
+        autoRowSize={true}
+        data={data}
+        width="100%"
+        height={300}
+        stretchH="all"
+        contextMenu={true}
+        rowHeaders={true}
+        colHeaders={true}
+        autoWrapRow={true}
+        autoWrapCol={true}
+        licenseKey="non-commercial-and-evaluation"
+        afterPageChange={updatePaginationState}
+      >
+        <HotColumn
+          title="Model"
+          type="text"
+          data="model"
+          width={150}
+          headerClassName="htLeft"
+        />
+        <HotColumn
+          title="Price"
+          type="numeric"
+          data="price"
+          width={80}
+          numericFormat={{ pattern: '$0,0.00', culture: 'en-US' }}
+          className="htRight"
+          headerClassName="htRight"
+        />
+        <HotColumn
+          title="Date"
+          type="date"
+          data="sellDate"
+          width={130}
+          dateFormat="MMM D, YYYY"
+          correctFormat={true}
+          className="htRight"
+          headerClassName="htRight"
+        />
+        <HotColumn
+          title="Time"
+          type="time"
+          data="sellTime"
+          width={90}
+          timeFormat="hh:mm A"
+          correctFormat={true}
+          className="htRight"
+          headerClassName="htRight"
+        />
+        <HotColumn
+          title="In stock"
+          type="checkbox"
+          data="inStock"
+          className="htCenter"
+          headerClassName="htCenter"
+        />
+      </HotTable>
+
+      <div className="example-controls-container">
+        <div className="controls-row">
+          <button
+            className="pagination-btn"
+            onClick={handleFirstPage}
+            disabled={isFirstPage}
+          >
+            First page
+          </button>
+          <button
+            className="pagination-btn"
+            onClick={handlePrevPage}
+            disabled={isFirstPage}
+          >
+            Previous page
+          </button>
+          <button
+            className="pagination-btn"
+            onClick={handleNextPage}
+            disabled={isLastPage}
+          >
+            Next page
+          </button>
+          <button
+            className="pagination-btn"
+            onClick={handleLastPage}
+            disabled={isLastPage}
+          >
+            Last page
+          </button>
+        </div>
+        <div className="status-row">
+          <div className="page-input-group">
+            <label htmlFor="pageNumber">Page:</label>
+            <input
+              type="number"
+              id="pageNumber"
+              value={paginationData.currentPage}
+              onChange={handlePageNumberChange}
+              className="page-input"
+            />
+          </div>
+          <div className="page-stats">
+            <span>{paginationData.firstVisibleRowIndex + 1}</span> - <span>{paginationData.lastVisibleRowIndex + 1}</span> of <span>{paginationData.totalRenderedRows}</span> rows
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
+
+export default ExampleComponent;

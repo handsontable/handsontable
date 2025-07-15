@@ -1,4 +1,5 @@
-import Handsontable from 'handsontable/base';
+import React, { useRef, useState, useEffect } from 'react';
+import { HotTable, HotColumn } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
@@ -109,69 +110,85 @@ const data = [
   { model: 'Cycling Cap', price: 444.79, sellDate: 'Sep 11, 2025', sellTime: '10:05 AM', inStock: false }
 ];
 
-const container = document.querySelector('#example1');
+const ExampleComponent = () => {
+  const containerRef = useRef<HTMLElement>(null);
+  const [paginationConfig, setPaginationConfig] = useState(null);
 
-new Handsontable(container, {
-  themeName: 'ht-theme-main',
-  data,
-  pagination: true,
-  autoRowSize: true,
-  columns: [
-    {
-      title: 'Model',
-      type: 'text',
-      data: 'model',
-      width: 150,
-      headerClassName: 'htLeft',
-    },
-    {
-      title: 'Price',
-      type: 'numeric',
-      data: 'price',
-      width: 80,
-      numericFormat: {
-        pattern: '$0,0.00',
-        culture: 'en-US',
-      },
-      className: 'htRight',
-      headerClassName: 'htRight',
-    },
-    {
-      title: 'Date',
-      type: 'date',
-      data: 'sellDate',
-      width: 130,
-      dateFormat: 'MMM D, YYYY',
-      correctFormat: true,
-      className: 'htRight',
-      headerClassName: 'htRight',
+  useEffect(() => {
+    // Wait for the container to be available in the DOM
+    if (containerRef.current) {
+      setPaginationConfig({
+        uiContainer: containerRef.current,
+      });
+    }
+  }, []);
 
-    },
-    {
-      title: 'Time',
-      type: 'time',
-      data: 'sellTime',
-      width: 90,
-      timeFormat: 'hh:mm A',
-      correctFormat: true,
-      className: 'htRight',
-      headerClassName: 'htRight',
-    },
-    {
-      title: 'In stock',
-      type: 'checkbox',
-      data: 'inStock',
-      className: 'htCenter',
-      headerClassName: 'htCenter',
-    },
-  ],
-  width: '100%',
-  height: 300,
-  stretchH: 'all',
-  contextMenu: true,
-  rowHeaders: true,
-  colHeaders: true,
-  autoWrapRow: true,
-  autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation',
-});
+  return (
+    <>
+      <HotTable
+        themeName="ht-theme-main"
+        pagination={paginationConfig}
+        autoRowSize={true}
+        data={data}
+        width="100%"
+        height={300}
+        stretchH="all"
+        contextMenu={true}
+        rowHeaders={true}
+        colHeaders={true}
+        autoWrapRow={true}
+        autoWrapCol={true}
+        licenseKey="non-commercial-and-evaluation"
+      >
+        <HotColumn
+          title="Model"
+          type="text"
+          data="model"
+          width={150}
+          headerClassName="htLeft"
+        />
+        <HotColumn
+          title="Price"
+          type="numeric"
+          data="price"
+          width={80}
+          numericFormat={{ pattern: '$0,0.00', culture: 'en-US' }}
+          className="htRight"
+          headerClassName="htRight"
+        />
+        <HotColumn
+          title="Date"
+          type="date"
+          data="sellDate"
+          width={130}
+          dateFormat="MMM D, YYYY"
+          correctFormat={true}
+          className="htRight"
+          headerClassName="htRight"
+        />
+        <HotColumn
+          title="Time"
+          type="time"
+          data="sellTime"
+          width={90}
+          timeFormat="hh:mm A"
+          correctFormat={true}
+          className="htRight"
+          headerClassName="htRight"
+        />
+        <HotColumn
+          title="In stock"
+          type="checkbox"
+          data="inStock"
+          className="htCenter"
+          headerClassName="htCenter"
+        />
+      </HotTable>
+
+      <p>As you can see, the pagination component is detached from the grid and displayed in a custom container.</p>
+      <div ref={containerRef} id="example4-custom-container"></div>
+    </>
+  );
+};
+
+export default ExampleComponent;

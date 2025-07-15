@@ -1,6 +1,10 @@
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
+
+// register Handsontable's modules
+registerAllModules();
 
 const data = [
   { model: 'Trail Helmet', price: 1298.14, sellDate: 'Aug 31, 2025', sellTime: '02:12 PM', inStock: true },

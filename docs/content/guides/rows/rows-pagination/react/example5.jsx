@@ -1,4 +1,5 @@
-import Handsontable from 'handsontable/base';
+import { useRef } from 'react';
+import { HotTable, HotColumn } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
@@ -109,69 +110,105 @@ const data = [
   { model: 'Cycling Cap', price: 444.79, sellDate: 'Sep 11, 2025', sellTime: '10:05 AM', inStock: false }
 ];
 
-const container = document.querySelector('#example1');
+const ExampleComponent = () => {
+  const hotTableRef = useRef(null);
 
-new Handsontable(container, {
-  themeName: 'ht-theme-main',
-  data,
-  pagination: true,
-  autoRowSize: true,
-  columns: [
-    {
-      title: 'Model',
-      type: 'text',
-      data: 'model',
-      width: 150,
-      headerClassName: 'htLeft',
-    },
-    {
-      title: 'Price',
-      type: 'numeric',
-      data: 'price',
-      width: 80,
-      numericFormat: {
-        pattern: '$0,0.00',
-        culture: 'en-US',
-      },
-      className: 'htRight',
-      headerClassName: 'htRight',
-    },
-    {
-      title: 'Date',
-      type: 'date',
-      data: 'sellDate',
-      width: 130,
-      dateFormat: 'MMM D, YYYY',
-      correctFormat: true,
-      className: 'htRight',
-      headerClassName: 'htRight',
+  const handleClearData = () => {
+    const hotInstance = hotTableRef.current?.hotInstance;
 
-    },
-    {
-      title: 'Time',
-      type: 'time',
-      data: 'sellTime',
-      width: 90,
-      timeFormat: 'hh:mm A',
-      correctFormat: true,
-      className: 'htRight',
-      headerClassName: 'htRight',
-    },
-    {
-      title: 'In stock',
-      type: 'checkbox',
-      data: 'inStock',
-      className: 'htCenter',
-      headerClassName: 'htCenter',
-    },
-  ],
-  width: '100%',
-  height: 300,
-  stretchH: 'all',
-  contextMenu: true,
-  rowHeaders: true,
-  colHeaders: true,
-  autoWrapRow: true,
-  autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation',
-});
+    if (!hotInstance) {
+      return;
+    }
+
+    const {
+      firstVisibleRowIndex,
+      lastVisibleRowIndex,
+    } = hotInstance.getPlugin('pagination').getPaginationData();
+
+    if (firstVisibleRowIndex === -1 || lastVisibleRowIndex === -1) {
+      return;
+    }
+
+    const data = [];
+    const columnIndex = 1;
+
+    for (let row = firstVisibleRowIndex; row <= lastVisibleRowIndex; row++) {
+      data.push([row, columnIndex, '']);
+    }
+
+    hotInstance.setDataAtCell(data);
+  };
+
+  return (
+    <>
+      <div className="example-modify-pagedata-container">
+        <button className="pagination-btn" onClick={handleClearData}>
+          Clear the second column of the current page
+        </button>
+      </div>
+
+      <HotTable
+        ref={hotTableRef}
+        themeName="ht-theme-main"
+        pagination={true}
+        autoRowSize={true}
+        data={data}
+        width="100%"
+        height={300}
+        stretchH="all"
+        contextMenu={true}
+        rowHeaders={true}
+        colHeaders={true}
+        autoWrapRow={true}
+        autoWrapCol={true}
+        licenseKey="non-commercial-and-evaluation"
+      >
+        <HotColumn
+          title="Model"
+          type="text"
+          data="model"
+          width={150}
+          headerClassName="htLeft"
+        />
+        <HotColumn
+          title="Price"
+          type="numeric"
+          data="price"
+          width={80}
+          numericFormat={{ pattern: '$0,0.00', culture: 'en-US' }}
+          className="htRight"
+          headerClassName="htRight"
+        />
+        <HotColumn
+          title="Date"
+          type="date"
+          data="sellDate"
+          width={130}
+          dateFormat="MMM D, YYYY"
+          correctFormat={true}
+          className="htRight"
+          headerClassName="htRight"
+        />
+        <HotColumn
+          title="Time"
+          type="time"
+          data="sellTime"
+          width={90}
+          timeFormat="hh:mm A"
+          correctFormat={true}
+          className="htRight"
+          headerClassName="htRight"
+        />
+        <HotColumn
+          title="In stock"
+          type="checkbox"
+          data="inStock"
+          className="htCenter"
+          headerClassName="htCenter"
+        />
+      </HotTable>
+    </>
+  );
+};
+
+export default ExampleComponent;

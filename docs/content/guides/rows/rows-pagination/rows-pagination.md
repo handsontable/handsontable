@@ -57,6 +57,15 @@ Use the controls below the grid to switch between pages.
 :::
 :::
 
+::: only-for react
+::: example #example1 :react --js 1 --ts 2
+
+@[code](@/content/guides/rows/rows-pagination/react/example1.jsx)
+@[code](@/content/guides/rows/rows-pagination/react/example1.tsx)
+
+:::
+:::
+
 ## Enable pagination
 
 To enable pagination set the [`pagination`](@/api/options.md#pagination) option to `true` or define particular options within an object.
@@ -108,6 +117,16 @@ In the data grid below, several pagination options are applied to provide a cust
 :::
 :::
 
+::: only-for react
+::: example #example2 :react --js 1 --css 2 --ts 3
+
+@[code](@/content/guides/rows/rows-pagination/react/example2.jsx)
+@[code](@/content/guides/rows/rows-pagination/react/example2.css)
+@[code](@/content/guides/rows/rows-pagination/react/example2.tsx)
+
+:::
+:::
+
 ## Control pagination programmatically
 
 Build your own pagination UI using API methods such as [`setPage()`](@/api/pagination.md#setpage), [`nextPage()`](@/api/pagination.md#nextpage), [`prevPage()`](@/api/pagination.md#prevpage), and more. For a complete list of available methods and hooks, see the [`Pagination`](@/api/pagination.md) plugin API reference.
@@ -118,6 +137,16 @@ Build your own pagination UI using API methods such as [`setPage()`](@/api/pagin
 @[code](@/content/guides/rows/rows-pagination/javascript/example3.html)
 @[code](@/content/guides/rows/rows-pagination/javascript/example3.js)
 @[code](@/content/guides/rows/rows-pagination/javascript/example3.ts)
+
+:::
+:::
+
+::: only-for react
+::: example #example3 :react --js 1 --css 2 --ts 3
+
+@[code](@/content/guides/rows/rows-pagination/react/example3.jsx)
+@[code](@/content/guides/rows/rows-pagination/react/example3.css)
+@[code](@/content/guides/rows/rows-pagination/react/example3.tsx)
 
 :::
 :::
@@ -136,6 +165,16 @@ By default, the pagination UI is displayed at the bottom of the grid. You can ch
 :::
 :::
 
+::: only-for react
+::: example #example4 :react --js 1 --css 2 --ts 3
+
+@[code](@/content/guides/rows/rows-pagination/react/example4.jsx)
+@[code](@/content/guides/rows/rows-pagination/react/example4.css)
+@[code](@/content/guides/rows/rows-pagination/react/example4.tsx)
+
+:::
+:::
+
 ## Modify paged data
 
 Sometimes you need to modify data only on the currently visible page. Core method like [`setDataAtCell`](@/api/core.md#setdataatcell) operates on all rows, including those hidden by pagination. To modify data only on the current page, you can use the [`getPaginationData`](@/api/pagination.md#getpaginationdata) method to get the pagination state and use it in conjunction with Core method.
@@ -146,6 +185,16 @@ Sometimes you need to modify data only on the currently visible page. Core metho
 @[code](@/content/guides/rows/rows-pagination/javascript/example5.html)
 @[code](@/content/guides/rows/rows-pagination/javascript/example5.js)
 @[code](@/content/guides/rows/rows-pagination/javascript/example5.ts)
+
+:::
+:::
+
+::: only-for react
+::: example #example5 :react --js 1 --css 2 --ts 3
+
+@[code](@/content/guides/rows/rows-pagination/react/example5.jsx)
+@[code](@/content/guides/rows/rows-pagination/react/example5.css)
+@[code](@/content/guides/rows/rows-pagination/react/example5.tsx)
 
 :::
 :::
@@ -181,6 +230,25 @@ const configurationOptions = {
 ```
 :::
 
+::: only-for react
+```jsx
+<HotTable
+  beforePageChange={() => {
+    // add your code here
+    return false; // to block page change
+  }}
+  afterPageChange={() => {
+    // add your code here
+  }}
+  beforePageSizeChange={() => {
+    // add your code here
+    return false; // to block page size change
+  }}
+  // ...
+/>
+```
+:::
+
 ## Localize pagination
 
 Translate default pagination labels - such as "Page size:", "Page" and more - using the global translations mechanism. The pagination introduces the following keys to the language dictionary that you can use to translate the pagination UI:
@@ -203,6 +271,15 @@ The example below demonstrates how to translate the pagination counter and navig
 
 @[code](@/content/guides/rows/rows-pagination/javascript/example6.js)
 @[code](@/content/guides/rows/rows-pagination/javascript/example6.ts)
+
+:::
+:::
+
+::: only-for react
+::: example #example6 :react --js 1 --ts 2
+
+@[code](@/content/guides/rows/rows-pagination/react/example6.jsx)
+@[code](@/content/guides/rows/rows-pagination/react/example6.tsx)
 
 :::
 :::

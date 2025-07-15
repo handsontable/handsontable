@@ -1,4 +1,4 @@
-import Handsontable from 'handsontable/base';
+import { HotTable, HotColumn } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
@@ -109,69 +109,78 @@ const data = [
   { model: 'Cycling Cap', price: 444.79, sellDate: 'Sep 11, 2025', sellTime: '10:05 AM', inStock: false }
 ];
 
-const container = document.querySelector('#example1');
+const ExampleComponent = () => {
+  return (
+    <HotTable
+      themeName="ht-theme-main"
+      pagination={{
+        pageSize: 'auto',
+        pageSizeList: ['auto', 5, 10, 20, 50, 100],
+        initialPage: 2,
+        showPageSize: true,
+        showCounter: false,
+        showNavigation: true,
+      }}
+      autoRowSize={true}
+      data={data}
+      width="100%"
+      height="100%"
+      stretchH="all"
+      contextMenu={true}
+      dropdownMenu={true}
+      filters={true}
+      columnSorting={true}
+      rowHeaders={true}
+      colHeaders={true}
+      autoWrapRow={true}
+      autoWrapCol={true}
+      licenseKey="non-commercial-and-evaluation"
+    >
+      <HotColumn
+        title="Model"
+        type="text"
+        data="model"
+        width={150}
+        headerClassName="htLeft"
+      />
+      <HotColumn
+        title="Price"
+        type="numeric"
+        data="price"
+        width={80}
+        numericFormat={{ pattern: '$0,0.00', culture: 'en-US' }}
+        className="htRight"
+        headerClassName="htRight"
+      />
+      <HotColumn
+        title="Date"
+        type="date"
+        data="sellDate"
+        width={130}
+        dateFormat="MMM D, YYYY"
+        correctFormat={true}
+        className="htRight"
+        headerClassName="htRight"
+      />
+      <HotColumn
+        title="Time"
+        type="time"
+        data="sellTime"
+        width={90}
+        timeFormat="hh:mm A"
+        correctFormat={true}
+        className="htRight"
+        headerClassName="htRight"
+      />
+      <HotColumn
+        title="In stock"
+        type="checkbox"
+        data="inStock"
+        className="htCenter"
+        headerClassName="htCenter"
+      />
+    </HotTable>
+  );
+};
 
-new Handsontable(container, {
-  themeName: 'ht-theme-main',
-  data,
-  pagination: true,
-  autoRowSize: true,
-  columns: [
-    {
-      title: 'Model',
-      type: 'text',
-      data: 'model',
-      width: 150,
-      headerClassName: 'htLeft',
-    },
-    {
-      title: 'Price',
-      type: 'numeric',
-      data: 'price',
-      width: 80,
-      numericFormat: {
-        pattern: '$0,0.00',
-        culture: 'en-US',
-      },
-      className: 'htRight',
-      headerClassName: 'htRight',
-    },
-    {
-      title: 'Date',
-      type: 'date',
-      data: 'sellDate',
-      width: 130,
-      dateFormat: 'MMM D, YYYY',
-      correctFormat: true,
-      className: 'htRight',
-      headerClassName: 'htRight',
-
-    },
-    {
-      title: 'Time',
-      type: 'time',
-      data: 'sellTime',
-      width: 90,
-      timeFormat: 'hh:mm A',
-      correctFormat: true,
-      className: 'htRight',
-      headerClassName: 'htRight',
-    },
-    {
-      title: 'In stock',
-      type: 'checkbox',
-      data: 'inStock',
-      className: 'htCenter',
-      headerClassName: 'htCenter',
-    },
-  ],
-  width: '100%',
-  height: 300,
-  stretchH: 'all',
-  contextMenu: true,
-  rowHeaders: true,
-  colHeaders: true,
-  autoWrapRow: true,
-  autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation',
-});
+export default ExampleComponent;
