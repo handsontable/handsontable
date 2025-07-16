@@ -106,7 +106,7 @@ const data = [
   { model: 'Cycling Cap', price: 981.24, sellDate: 'Aug 9, 2025', sellTime: '07:52 PM', inStock: false },
   { model: 'Comfort Saddle', price: 779.4, sellDate: 'Jun 12, 2025', sellTime: '05:08 PM', inStock: true },
   { model: 'Carbon Handlebar', price: 1512.24, sellDate: 'Jul 27, 2025', sellTime: '07:02 AM', inStock: true },
-  { model: 'Cycling Cap', price: 444.79, sellDate: 'Sep 11, 2025', sellTime: '10:05 AM', inStock: false }
+  { model: 'Cycling Cap', price: 444.79, sellDate: 'Sep 11, 2025', sellTime: '10:05 AM', inStock: false },
 ];
 
 const ExampleComponent = () => {
@@ -136,13 +136,7 @@ const ExampleComponent = () => {
       autoWrapCol={true}
       licenseKey="non-commercial-and-evaluation"
     >
-      <HotColumn
-        title="Model"
-        type="text"
-        data="model"
-        width={150}
-        headerClassName="htLeft"
-      />
+      <HotColumn title="Model" type="text" data="model" width={150} headerClassName="htLeft" />
       <HotColumn
         title="Price"
         type="numeric"
@@ -172,13 +166,7 @@ const ExampleComponent = () => {
         className="htRight"
         headerClassName="htRight"
       />
-      <HotColumn
-        title="In stock"
-        type="checkbox"
-        data="inStock"
-        className="htCenter"
-        headerClassName="htCenter"
-      />
+      <HotColumn title="In stock" type="checkbox" data="inStock" className="htCenter" headerClassName="htCenter" />
     </HotTable>
   );
 };

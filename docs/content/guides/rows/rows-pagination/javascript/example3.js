@@ -106,7 +106,7 @@ const data = [
   { model: 'Cycling Cap', price: 981.24, sellDate: 'Aug 9, 2025', sellTime: '07:52 PM', inStock: false },
   { model: 'Comfort Saddle', price: 779.4, sellDate: 'Jun 12, 2025', sellTime: '05:08 PM', inStock: true },
   { model: 'Carbon Handlebar', price: 1512.24, sellDate: 'Jul 27, 2025', sellTime: '07:02 AM', inStock: true },
-  { model: 'Cycling Cap', price: 444.79, sellDate: 'Sep 11, 2025', sellTime: '10:05 AM', inStock: false }
+  { model: 'Cycling Cap', price: 444.79, sellDate: 'Sep 11, 2025', sellTime: '10:05 AM', inStock: false },
 ];
 
 const container = document.querySelector('#example3');
@@ -151,7 +151,6 @@ const hot = new Handsontable(container, {
       correctFormat: true,
       className: 'htRight',
       headerClassName: 'htRight',
-
     },
     {
       title: 'Time',
@@ -193,13 +192,9 @@ const totalRowsElement = document.querySelector('#totalRows');
 const paginationPlugin = hot.getPlugin('pagination');
 
 function updateUI() {
-  const {
-    currentPage,
-    totalPages,
-    firstVisibleRowIndex,
-    lastVisibleRowIndex,
-    totalRenderedRows,
-  } = paginationPlugin.getPaginationData();
+  const { currentPage, totalPages, firstVisibleRowIndex, lastVisibleRowIndex, totalRenderedRows } =
+    paginationPlugin.getPaginationData();
+
   const isFirstPage = currentPage === 1;
   const isLastPage = currentPage === totalPages;
 

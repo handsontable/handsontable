@@ -107,7 +107,7 @@ const data = [
   { model: 'Cycling Cap', price: 981.24, sellDate: 'Aug 9, 2025', sellTime: '07:52 PM', inStock: false },
   { model: 'Comfort Saddle', price: 779.4, sellDate: 'Jun 12, 2025', sellTime: '05:08 PM', inStock: true },
   { model: 'Carbon Handlebar', price: 1512.24, sellDate: 'Jul 27, 2025', sellTime: '07:02 AM', inStock: true },
-  { model: 'Cycling Cap', price: 444.79, sellDate: 'Sep 11, 2025', sellTime: '10:05 AM', inStock: false }
+  { model: 'Cycling Cap', price: 444.79, sellDate: 'Sep 11, 2025', sellTime: '10:05 AM', inStock: false },
 ];
 
 const ExampleComponent = () => {
@@ -117,14 +117,12 @@ const ExampleComponent = () => {
     totalPages: 1,
     firstVisibleRowIndex: 0,
     lastVisibleRowIndex: 0,
-    totalRenderedRows: 0
+    totalRenderedRows: 0,
   });
 
   const updatePaginationState = () => {
     if (hotTableRef.current) {
-      const state = hotTableRef.current.hotInstance
-        .getPlugin('pagination')
-        .getPaginationData();
+      const state = hotTableRef.current.hotInstance.getPlugin('pagination').getPaginationData();
 
       setPaginationData(state);
     }
@@ -185,13 +183,7 @@ const ExampleComponent = () => {
         licenseKey="non-commercial-and-evaluation"
         afterPageChange={updatePaginationState}
       >
-        <HotColumn
-          title="Model"
-          type="text"
-          data="model"
-          width={150}
-          headerClassName="htLeft"
-        />
+        <HotColumn title="Model" type="text" data="model" width={150} headerClassName="htLeft" />
         <HotColumn
           title="Price"
           type="numeric"
@@ -221,43 +213,21 @@ const ExampleComponent = () => {
           className="htRight"
           headerClassName="htRight"
         />
-        <HotColumn
-          title="In stock"
-          type="checkbox"
-          data="inStock"
-          className="htCenter"
-          headerClassName="htCenter"
-        />
+        <HotColumn title="In stock" type="checkbox" data="inStock" className="htCenter" headerClassName="htCenter" />
       </HotTable>
 
       <div className="example-controls-container">
         <div className="controls-row">
-          <button
-            className="pagination-btn"
-            onClick={handleFirstPage}
-            disabled={isFirstPage}
-          >
+          <button className="pagination-btn" onClick={handleFirstPage} disabled={isFirstPage}>
             First page
           </button>
-          <button
-            className="pagination-btn"
-            onClick={handlePrevPage}
-            disabled={isFirstPage}
-          >
+          <button className="pagination-btn" onClick={handlePrevPage} disabled={isFirstPage}>
             Previous page
           </button>
-          <button
-            className="pagination-btn"
-            onClick={handleNextPage}
-            disabled={isLastPage}
-          >
+          <button className="pagination-btn" onClick={handleNextPage} disabled={isLastPage}>
             Next page
           </button>
-          <button
-            className="pagination-btn"
-            onClick={handleLastPage}
-            disabled={isLastPage}
-          >
+          <button className="pagination-btn" onClick={handleLastPage} disabled={isLastPage}>
             Last page
           </button>
         </div>
@@ -273,7 +243,9 @@ const ExampleComponent = () => {
             />
           </div>
           <div className="page-stats">
-            <span>{paginationData.firstVisibleRowIndex + 1}</span> - <span>{paginationData.lastVisibleRowIndex + 1}</span> of <span>{paginationData.totalRenderedRows}</span> rows
+            <span>{paginationData.firstVisibleRowIndex + 1}</span> -{' '}
+            <span>{paginationData.lastVisibleRowIndex + 1}</span> of <span>{paginationData.totalRenderedRows}</span>{' '}
+            rows
           </div>
         </div>
       </div>
