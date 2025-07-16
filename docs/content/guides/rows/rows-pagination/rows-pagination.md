@@ -66,6 +66,15 @@ Use the controls below the grid to switch between pages.
 :::
 :::
 
+::: only-for angular
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/guides/rows/rows-pagination/angular/example1.ts)
+@[code](@/content/guides/rows/rows-pagination/angular/example1.html)
+
+:::
+:::
+
 ## Enable pagination
 
 To enable pagination set the [`pagination`](@/api/options.md#pagination) option to `true` or define particular options within an object.
@@ -127,6 +136,15 @@ In the data grid below, several pagination options are applied to provide a cust
 :::
 :::
 
+::: only-for angular
+::: example #example2 :angular --ts 1 --html 2
+
+@[code](@/content/guides/rows/rows-pagination/angular/example2.ts)
+@[code](@/content/guides/rows/rows-pagination/angular/example2.html)
+
+:::
+:::
+
 ## Control pagination programmatically
 
 Build your own pagination UI using API methods such as [`setPage()`](@/api/pagination.md#setpage), [`nextPage()`](@/api/pagination.md#nextpage), [`prevPage()`](@/api/pagination.md#prevpage), and more. For a complete list of available methods and hooks, see the [`Pagination`](@/api/pagination.md) plugin API reference.
@@ -147,6 +165,15 @@ Build your own pagination UI using API methods such as [`setPage()`](@/api/pagin
 @[code](@/content/guides/rows/rows-pagination/react/example3.jsx)
 @[code](@/content/guides/rows/rows-pagination/react/example3.css)
 @[code](@/content/guides/rows/rows-pagination/react/example3.tsx)
+
+:::
+:::
+
+::: only-for angular
+::: example #example3 :angular --ts 1 --html 2
+
+@[code](@/content/guides/rows/rows-pagination/angular/example3.ts)
+@[code](@/content/guides/rows/rows-pagination/angular/example3.html)
 
 :::
 :::
@@ -175,6 +202,15 @@ By default, the pagination UI is displayed at the bottom of the grid. You can ch
 :::
 :::
 
+::: only-for angular
+::: example #example4 :angular --ts 1 --html 2
+
+@[code](@/content/guides/rows/rows-pagination/angular/example4.ts)
+@[code](@/content/guides/rows/rows-pagination/angular/example4.html)
+
+:::
+:::
+
 ## Modify paged data
 
 Sometimes you need to modify data only on the currently visible page. Core method like [`setDataAtCell`](@/api/core.md#setdataatcell) operates on all rows, including those hidden by pagination. To modify data only on the current page, you can use the [`getPaginationData`](@/api/pagination.md#getpaginationdata) method to get the pagination state and use it in conjunction with Core method.
@@ -195,6 +231,15 @@ Sometimes you need to modify data only on the currently visible page. Core metho
 @[code](@/content/guides/rows/rows-pagination/react/example5.jsx)
 @[code](@/content/guides/rows/rows-pagination/react/example5.css)
 @[code](@/content/guides/rows/rows-pagination/react/example5.tsx)
+
+:::
+:::
+
+::: only-for angular
+::: example #example5 :angular --ts 1 --html 2
+
+@[code](@/content/guides/rows/rows-pagination/angular/example5.ts)
+@[code](@/content/guides/rows/rows-pagination/angular/example5.html)
 
 :::
 :::
@@ -264,7 +309,7 @@ Translate default pagination labels - such as "Page size:", "Page" and more - us
 
 To learn more about the translation mechanism, see the [Languages guide](@/guides/internationalization/language/language.md).
 
-The example below demonstrates how to translate the pagination counter and navigation sections.
+The example below demonstrates how to customize the translation of the pagination counter and navigation sections.
 
 ::: only-for javascript
 ::: example #example6 --js 1 --ts 2
@@ -280,6 +325,15 @@ The example below demonstrates how to translate the pagination counter and navig
 
 @[code](@/content/guides/rows/rows-pagination/react/example6.jsx)
 @[code](@/content/guides/rows/rows-pagination/react/example6.tsx)
+
+:::
+:::
+
+::: only-for angular
+::: example #example6 :angular --ts 1 --html 2
+
+@[code](@/content/guides/rows/rows-pagination/angular/example6.ts)
+@[code](@/content/guides/rows/rows-pagination/angular/example6.html)
 
 :::
 :::
