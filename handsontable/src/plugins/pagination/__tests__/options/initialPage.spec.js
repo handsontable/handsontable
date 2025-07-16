@@ -35,6 +35,25 @@ describe('Pagination `initialPage` option', () => {
     expect(countVisibleRows()).toBe(5);
   });
 
+  it('should not change the internal currentPage state when the initialPage setting is not provided', async() => {
+    handsontable({
+      data: createSpreadsheetData(45, 10),
+      pagination: {
+        initialPage: 4,
+      },
+    });
+
+    await updateSettings({
+      pagination: {
+        pageSize: 12,
+      },
+    });
+
+    const plugin = getPlugin('pagination');
+
+    expect(plugin.getPaginationData().currentPage).toBe(4);
+  });
+
   it('should be possible to change value via `updateSettings`', async() => {
     handsontable({
       data: createSpreadsheetData(45, 10),

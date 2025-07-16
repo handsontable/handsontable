@@ -181,8 +181,15 @@ export class Pagination extends BasePlugin {
       return;
     }
 
-    this.#pageSize = this.getSetting('pageSize');
-    this.#currentPage = this.getSetting('initialPage');
+    const settings = this.hot.getSettings()[PLUGIN_KEY];
+
+    if (settings?.initialPage !== undefined) {
+      this.#currentPage = this.getSetting('initialPage');
+    }
+    if (settings?.pageSize !== undefined) {
+      this.#pageSize = this.getSetting('pageSize');
+    }
+
     this.#pagedRowsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap(this.pluginName, 'hiding', false);
 
     if (this.#pageSize === 'auto' && !this.hot.getPlugin('autoRowSize')?.enabled) {
