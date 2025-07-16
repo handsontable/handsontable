@@ -43,7 +43,7 @@ async function buildVersion(version) {
 
   await spawnProcess(
     `node --max-old-space-size=${NODE_MAX_OLD_SPACE_SIZE} ` +
-      `node_modules/.bin/vuepress build ` +
+      'node_modules/.bin/vuepress build ' +
       `-d .vuepress/dist/pre-latest-${versionEscaped}` +
       `${NO_CACHE ? ' --no-cache' : ''}`,
     { cwd, env: { DOCS_BASE: 'latest' } }
