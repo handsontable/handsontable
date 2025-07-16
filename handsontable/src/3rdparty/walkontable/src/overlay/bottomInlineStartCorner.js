@@ -107,7 +107,11 @@ export class BottomInlineStartCornerOverlay extends Overlay {
     }
 
     if (wtViewport.hasVerticalScroll() && wtViewport.hasHorizontalScroll()) {
-      bottomOffset += getScrollbarWidth(rootDocument) - 1;
+      const scrollbarWidth = getScrollbarWidth(rootDocument);
+
+      if (scrollbarWidth > 0) {
+        bottomOffset += scrollbarWidth - 1;
+      }
     }
 
     cloneRoot.style.bottom = `${bottomOffset}px`;
