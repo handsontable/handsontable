@@ -81,6 +81,7 @@ export class DataChangeAction extends BaseAction {
    * @param {function(): void} undoneCallback The callback to be called after the action is undone.
    */
   undo(hot, undoneCallback) {
+    //...
     const data = deepClone(this.changes);
 
     for (let i = 0, len = data.length; i < len; i++) {
@@ -90,10 +91,12 @@ export class DataChangeAction extends BaseAction {
     hot.addHookOnce('afterChange', undoneCallback);
     hot.setDataAtCell(data, null, null, 'UndoRedo.undo');
 
+    console.log('inside undo - hot.countRows', hot.countRows(), 'this.countRows', this.countRows);
     const rowsToRemove = hot.countRows() - this.countRows;
 
     if (rowsToRemove > 0) {
       hot.alter('remove_row', null, rowsToRemove, 'UndoRedo.undo');
+      console.log('removed rows', rowsToRemove, 'hot.countRows', hot.countRows(), 'this.countRows', this.countRows);
     }
 
     const columnsToRemove = hot.countCols() - this.countCols;
