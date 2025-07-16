@@ -92,6 +92,25 @@ describe('Pagination `pageSize` option', () => {
       expect(countVisibleRows()).toBe(5);
     });
 
+    it('should not change the internal pageSize state when the pageSize setting is not provided', async() => {
+      handsontable({
+        data: createSpreadsheetData(45, 10),
+        pagination: {
+          pageSize: 12,
+        },
+      });
+
+      await updateSettings({
+        pagination: {
+          initialPage: 2,
+        },
+      });
+
+      const plugin = getPlugin('pagination');
+
+      expect(plugin.getPaginationData().pageSize).toBe(12);
+    });
+
     it('should be possible to change value via `updateSettings` (change from number to number)', async() => {
       handsontable({
         data: createSpreadsheetData(20, 10),

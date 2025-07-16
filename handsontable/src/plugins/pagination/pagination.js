@@ -181,8 +181,15 @@ export class Pagination extends BasePlugin {
       return;
     }
 
-    this.#pageSize = this.getSetting('pageSize');
-    this.#currentPage = this.getSetting('initialPage');
+    const settings = this.hot.getSettings()[PLUGIN_KEY];
+
+    if (settings?.initialPage !== undefined) {
+      this.#currentPage = this.getSetting('initialPage');
+    }
+    if (settings?.pageSize !== undefined) {
+      this.#pageSize = this.getSetting('pageSize');
+    }
+
     this.#pagedRowsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap(this.pluginName, 'hiding', false);
 
     if (this.#pageSize === 'auto' && !this.hot.getPlugin('autoRowSize')?.enabled) {
@@ -218,6 +225,7 @@ export class Pagination extends BasePlugin {
     this.addHook('beforeSelectColumns', (...args) => this.#onBeforeSelectAllRows(...args));
     this.addHook('beforeSetRangeEnd', (...args) => this.#onBeforeSetRangeEnd(...args));
     this.addHook('beforeSelectionHighlightSet', (...args) => this.#onBeforeSelectionHighlightSet(...args));
+    this.addHook('beforePaste', (...args) => this.#onBeforePaste(...args));
     this.addHook('afterViewRender', (...args) => this.#onAfterViewRender(...args));
     this.addHook('afterRender', (...args) => this.#onAfterRender(...args));
     this.addHook('afterScrollVertically', (...args) => this.#onAfterScrollVertically(...args));
@@ -701,6 +709,38 @@ export class Pagination extends BasePlugin {
         selectedRange.getBottomEndCorner().row
       );
     }
+  }
+
+  /**
+   * Called before the paste operation is performed. It removes the rows that are not visible
+   * from the pasted data.
+   *
+   * @param {Array} pastedData The data that was pasted.
+   * @param {Array<{startRow: number, endRow: number}>} ranges The ranges of the pasted data.
+   * @returns {boolean} Returns `false` to prevent the paste operation.
+   */
+  #onBeforePaste(pastedData, ranges) {
+    const {
+      firstVisibleRowIndex,
+      lastVisibleRowIndex,
+    } = this.getPaginationData();
+
+    if (firstVisibleRowIndex === -1 || lastVisibleRowIndex === -1) {
+      return false;
+    }
+
+    ranges.forEach(({ startRow }) => {
+      if (pastedData.length === 0) {
+        return;
+      }
+
+      const rowsToRemove = Math.min(
+        pastedData.length - (lastVisibleRowIndex - startRow + 1),
+        pastedData.length,
+      );
+
+      pastedData.splice(0, rowsToRemove);
+    });
   }
 
   /**

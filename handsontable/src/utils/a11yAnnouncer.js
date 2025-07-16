@@ -16,7 +16,7 @@ export function install(rootPortalElement) {
   if (!announcerElement) {
     announcerElement = document.createElement('div');
     announcerElement.setAttribute('role', 'status');
-    announcerElement.setAttribute('aria-live', 'polite');
+    announcerElement.setAttribute('aria-live', 'assertive');
     announcerElement.setAttribute('aria-atomic', 'true');
 
     const style = announcerElement.style;
