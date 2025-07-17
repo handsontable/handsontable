@@ -154,6 +154,7 @@ For more information, see our [Pagination guide](@/guides/rows/pagination/pagina
 - [Batch operations](@/guides/optimization/batch-operations/batch-operations.md)
 - [Row virtualization](@/guides/rows/row-virtualization/row-virtualization.md)
 - [Column virtualization](@/guides/columns/column-virtualization/column-virtualization.md)
+- [Pagination](@/guides/rows/pagination/pagination.md)
 - [Modules](@/guides/tools-and-building/modules/modules.md)
 - [Bundle size](@/guides/optimization/bundle-size/bundle-size.md)
 
