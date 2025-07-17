@@ -77,11 +77,27 @@ Use the controls below the grid to switch between pages.
 
 ## Enable pagination
 
-To enable pagination set the [`pagination`](@/api/options.md#pagination) option to `true` or define particular options within an object.
+To enable pagination set the [`pagination`](@/api/options.md#pagination) option to `true`.
 
 ```javascript
 const configurationOptions = {
   pagination: true,
+};
+```
+
+Defining the option as `true` is equivalent to defining the following options:
+
+```javascript
+const configurationOptions = {
+  pagination: {
+    pageSize: 10,
+    pageSizeList: ['auto', 5, 10, 20, 50, 100],
+    initialPage: 1,
+    showPageSize: true,
+    showCounter: true,
+    showNavigation: true,
+    uiContainer: null,
+  },
 };
 ```
 
@@ -95,18 +111,18 @@ You can configure the following options:
 ```javascript
 const configurationOptions = {
   pagination: {
-    // Set number of rows per page (default is `10`). If the value is `auto` then the page size is calculated
+    // Set number of rows per page. If the value is `auto` then the page size is calculated
     // based on available height.
     pageSize: 20,
     // Provide a list of selectable page sizes
     pageSizeList: ['auto', 10, 20, 50],
-    // Set the initial page when the grid loads (default is `1`)
+    // Set the initial page when the grid loads
     initialPage: 2,
-    // Show or hide the page size section (default is `true`)
+    // Show or hide the page size section
     showPageSize: false,
-    // Show or hide the page counter section (default is `true`)
+    // Show or hide the page counter section
     showCounter: true,
-    // Show or hide the page navigation section (default is `true`)
+    // Show or hide the page navigation section
     showNavigation: true,
     // Custom container where the pagination UI will be injected (optional)
     uiContainer: null,
