@@ -189,15 +189,11 @@ class Viewport {
       return documentElement.scrollWidth > documentElement.clientWidth;
     }
 
-    const { holder, hider } = this.wtTable;
-    const holderWidth = holder.clientWidth;
+    const { hider } = this.wtTable;
     const hiderOffsetWidth = hider.offsetWidth;
+    const scrollbarWidth = this.hasVerticalScroll() ? getScrollbarWidth() : 0;
 
-    if (holderWidth < hiderOffsetWidth) {
-      return true;
-    }
-
-    return hiderOffsetWidth > this.getWorkspaceWidth();
+    return hiderOffsetWidth > this.getWorkspaceWidth() - scrollbarWidth;
   }
 
   /**

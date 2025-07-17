@@ -20,6 +20,10 @@
     @include icon($icons, "arrow-left");
   }
 
+  .ht-page-size-section__select-wrapper::after {
+    @include icon($icons, "arrow-down");
+  }
+
   .changeType::before {
     @include icon($icons, "menu");
   }
@@ -35,6 +39,38 @@
 
   .columnSorting.sortAction.descending::before {
     @include icon($icons, "arrow-narrow-down");
+  }
+
+  .ht-page-navigation-section .ht-page-first::before {
+    @include icon($icons, "arrow-left-with-bar");
+  }
+
+  [dir="rtl"] .ht-page-navigation-section .ht-page-first::before {
+    @include icon($icons, "arrow-right-with-bar");
+  }
+
+  .ht-page-navigation-section .ht-page-prev::before {
+    @include icon($icons, "arrow-left");
+  }
+
+  [dir="rtl"] .ht-page-navigation-section .ht-page-prev::before {
+    @include icon($icons, "arrow-right");
+  }
+
+  .ht-page-navigation-section .ht-page-next::before {
+    @include icon($icons, "arrow-right");
+  }
+
+  [dir="rtl"] .ht-page-navigation-section .ht-page-next::before {
+    @include icon($icons, "arrow-left");
+  }
+
+  .ht-page-navigation-section .ht-page-last::before {
+    @include icon($icons, "arrow-right-with-bar");
+  }
+
+  [dir="rtl"] .ht-page-navigation-section .ht-page-last::before {
+    @include icon($icons, "arrow-left-with-bar");
   }
 
   .htDropdownMenu table tbody tr td .htItemWrapper span.selected::after,
