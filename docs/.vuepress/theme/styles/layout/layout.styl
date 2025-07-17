@@ -11,7 +11,7 @@ html {
 	}
 }
 
-body { 
+body {
 	font-family: $font
 	background: $bgColor
 	-webkit-font-smoothing: antialiased
@@ -20,15 +20,15 @@ body {
 .Inter { font-family: $font }
 h1,h2,h3,h4,h5,h6 { font-family: $font-aeonik }
 .whitespace-nowrap { white-space nowrap}
-	
-a { 
-	color: $accentColor 
+
+a {
+	color: $accentColor
 	font-weight: 400
 }
 
 #app,
 .layout-container,
-.theme-container { 
+.theme-container {
 	min-height:100vh
 	min-height:100dvh
 }
@@ -40,30 +40,27 @@ a {
 }
 
 ::selection {
-		//background-color: $accentColor
-		//color: $bgColor
+  // background-color: $accentColor
+  // color: $bgColor
 }
 
-:not(.handsontable) {
-	* { 
-		outline: $accentColor solid 0 
-		outline-offset: -2px;
-	}
-
-	:focus-visible {
-		outline: $accentColor solid 1px 
-	}
+*:not(.handsontable):not(.handsontable *) {
+  outline: $accentColor solid 0;
+  outline-offset: -2px;
 }
 
-
-#nprogress .bar { 
-	background: $accentColor 
+*:not(.handsontable):not(.handsontable *):focus-visible {
+  outline: $accentColor solid 1px;
 }
-.hidden { 
+
+#nprogress .bar {
+	background: $accentColor
+}
+.hidden {
 	display:none
 }
 
-.visually-hidden { 
+.visually-hidden {
 	border: 0
 	clip: rect(0, 0, 0, 0)
 	height: 1px
@@ -76,21 +73,21 @@ a {
 }
 
 @media (min-width: $xxxLarge) {
-	#app { 
+	#app {
 		width:$xxxLarge
 		margin: 0 auto
 
-		.navbar .navbar-wrapper { 
+		.navbar .navbar-wrapper {
 			width:$xxxLarge
 			margin: 0 auto
 		}
-		.sidebar { 
+		.sidebar {
 			left: 50%
-			transform: translateX(16 + $xxxLarge/-2)  
+			transform: translateX(16 + $xxxLarge/-2)
 		}
-		.table-of-contents { 
+		.table-of-contents {
 			right:50%
-			transform: translateX(0 + $xxxLarge/2)  
+			transform: translateX(0 + $xxxLarge/2)
 		}
 	}
 }
@@ -102,10 +99,10 @@ a {
 
 			.footer-links {
 				flex-wrap: wrap
-				
-				.edit-link { 
+
+				.edit-link {
 					order: -1
-					margin-left: 0	
+					margin-left: 0
 				}
 			}
 		}

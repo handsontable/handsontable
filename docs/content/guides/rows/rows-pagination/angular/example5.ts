@@ -1,0 +1,264 @@
+/* file: app.component.ts */
+import { Component, ViewChild } from '@angular/core';
+import { GridSettings } from "@handsontable/angular-wrapper";
+import { HotTableComponent } from '@handsontable/angular-wrapper';
+
+@Component({
+  selector: 'app-example5',
+  template: `
+    <div class="example-modify-pagedata-container">
+      <button (click)="clearColumn()" class="pagination-btn">Clear the second column of the current page</button>
+    </div>
+    <hot-table
+      #hotTable
+      [settings]="hotSettings!" [data]="hotData">
+    </hot-table>
+  `,
+  styles: `
+    .example-modify-pagedata-container {
+      display: flex;
+      flex-direction: column;
+      align-items: self-start;
+      background: transparent;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      padding: 12px 30px;
+    }
+  `,
+  standalone: false
+})
+export class AppComponent {
+  @ViewChild('hotTable') hotTable!: HotTableComponent;
+
+  readonly hotData = [
+    { model: 'Trail Helmet', price: 1298.14, sellDate: 'Aug 31, 2025', sellTime: '02:12 PM', inStock: true },
+    { model: 'Windbreaker Jacket', price: 178.9, sellDate: 'May 10, 2025', sellTime: '10:26 PM', inStock: false },
+    { model: 'Cycling Cap', price: 288.1, sellDate: 'Sep 15, 2025', sellTime: '09:37 AM', inStock: true },
+    { model: 'HL Mountain Frame', price: 94.49, sellDate: 'Jan 17, 2025', sellTime: '02:19 PM', inStock: false },
+    { model: 'Racing Socks', price: 430.38, sellDate: 'May 10, 2025', sellTime: '01:42 PM', inStock: true },
+    { model: 'Racing Socks', price: 138.85, sellDate: 'Sep 20, 2025', sellTime: '02:48 PM', inStock: true },
+    { model: 'HL Mountain Frame', price: 1909.63, sellDate: 'Sep 5, 2025', sellTime: '09:35 AM', inStock: false },
+    { model: 'Carbon Handlebar', price: 1080.7, sellDate: 'Oct 24, 2025', sellTime: '10:58 PM', inStock: false },
+    { model: 'Aero Bottle', price: 1571.13, sellDate: 'May 24, 2025', sellTime: '12:24 AM', inStock: true },
+    { model: 'Windbreaker Jacket', price: 919.09, sellDate: 'Jul 16, 2025', sellTime: '07:11 PM', inStock: true },
+    { model: 'HL Road Tire', price: 886.22, sellDate: 'Sep 9, 2025', sellTime: '12:42 AM', inStock: false },
+    { model: 'Speed Gloves', price: 635.13, sellDate: 'Nov 17, 2025', sellTime: '12:45 PM', inStock: true },
+    { model: 'Trail Helmet', price: 1440.64, sellDate: 'Jan 3, 2025', sellTime: '08:16 PM', inStock: false },
+    { model: 'Aero Bottle', price: 944.63, sellDate: 'Nov 15, 2025', sellTime: '04:14 PM', inStock: false },
+    { model: 'Windbreaker Jacket', price: 1161.43, sellDate: 'Jun 24, 2025', sellTime: '01:19 PM', inStock: false },
+    { model: 'LED Bike Light', price: 1012.5, sellDate: 'May 1, 2025', sellTime: '05:30 PM', inStock: false },
+    { model: 'Windbreaker Jacket', price: 635.37, sellDate: 'May 14, 2025', sellTime: '09:05 AM', inStock: true },
+    { model: 'Road Tire Tube', price: 1421.27, sellDate: 'Jan 31, 2025', sellTime: '01:33 PM', inStock: true },
+    { model: 'Action Camera', price: 1019.05, sellDate: 'Dec 7, 2025', sellTime: '01:26 AM', inStock: false },
+    { model: 'Carbon Handlebar', price: 603.96, sellDate: 'Sep 13, 2025', sellTime: '04:10 AM', inStock: false },
+    { model: 'Aero Bottle', price: 1334.03, sellDate: 'Jan 24, 2025', sellTime: '03:29 AM', inStock: false },
+    { model: 'Road Tire Tube', price: 1841.17, sellDate: 'May 22, 2025', sellTime: '01:45 AM', inStock: false },
+    { model: 'Aero Bottle', price: 1622.05, sellDate: 'Jan 13, 2025', sellTime: '08:30 AM', inStock: true },
+    { model: 'Comfort Saddle', price: 1456.24, sellDate: 'Jul 20, 2025', sellTime: '03:39 AM', inStock: false },
+    { model: 'Windbreaker Jacket', price: 1736.96, sellDate: 'Sep 25, 2025', sellTime: '12:43 AM', inStock: true },
+    { model: 'Fitness Watch', price: 1075.31, sellDate: 'Nov 7, 2025', sellTime: '05:47 PM', inStock: true },
+    { model: 'Cycling Cap', price: 726.01, sellDate: 'Oct 28, 2025', sellTime: '12:44 PM', inStock: true },
+    { model: 'Road Tire Tube', price: 601.99, sellDate: 'Sep 22, 2025', sellTime: '12:26 AM', inStock: true },
+    { model: 'Speed Gloves', price: 1758.26, sellDate: 'Oct 4, 2025', sellTime: '04:59 AM', inStock: true },
+    { model: 'Speed Gloves', price: 564.35, sellDate: 'Jul 10, 2025', sellTime: '06:21 PM', inStock: true },
+    { model: 'Hydration Pack', price: 954.84, sellDate: 'Nov 2, 2025', sellTime: '12:59 AM', inStock: false },
+    { model: 'Cycling Cap', price: 1511.5, sellDate: 'Feb 11, 2025', sellTime: '02:38 AM', inStock: false },
+    { model: 'HL Road Tire', price: 269.6, sellDate: 'Jun 18, 2025', sellTime: '04:58 AM', inStock: false },
+    { model: 'Road Tire Tube', price: 435.07, sellDate: 'Jul 22, 2025', sellTime: '11:12 PM', inStock: false },
+    { model: 'Fitness Watch', price: 1187.8, sellDate: 'Aug 13, 2025', sellTime: '10:19 AM', inStock: true },
+    { model: 'Racing Socks', price: 770.19, sellDate: 'Feb 2, 2025', sellTime: '08:37 PM', inStock: true },
+    { model: 'Carbon Handlebar', price: 60.41, sellDate: 'Dec 27, 2025', sellTime: '08:30 PM', inStock: true },
+    { model: 'Racing Socks', price: 944.21, sellDate: 'May 23, 2025', sellTime: '06:43 PM', inStock: false },
+    { model: 'Racing Socks', price: 621.96, sellDate: 'Dec 12, 2025', sellTime: '04:59 AM', inStock: false },
+    { model: 'HL Road Tire', price: 774.91, sellDate: 'Jun 2, 2025', sellTime: '03:48 AM', inStock: true },
+    { model: 'LED Bike Light', price: 1205.29, sellDate: 'Apr 15, 2025', sellTime: '10:08 PM', inStock: false },
+    { model: 'Racing Socks', price: 388.19, sellDate: 'May 24, 2025', sellTime: '08:36 AM', inStock: true },
+    { model: 'Windbreaker Jacket', price: 267.88, sellDate: 'May 25, 2025', sellTime: '03:00 PM', inStock: true },
+    { model: 'LED Bike Light', price: 283.72, sellDate: 'Sep 26, 2025', sellTime: '02:16 AM', inStock: true },
+    { model: 'Comfort Saddle', price: 1782.91, sellDate: 'Mar 7, 2025', sellTime: '09:43 AM', inStock: false },
+    { model: 'Trail Helmet', price: 1943.46, sellDate: 'Jun 5, 2025', sellTime: '01:49 AM', inStock: true },
+    { model: 'Speed Gloves', price: 1737.8, sellDate: 'Sep 18, 2025', sellTime: '02:21 PM', inStock: true },
+    { model: 'Road Tire Tube', price: 354.89, sellDate: 'Aug 11, 2025', sellTime: '02:03 AM', inStock: true },
+    { model: 'Hydration Pack', price: 1490.45, sellDate: 'Dec 4, 2025', sellTime: '02:23 AM', inStock: true },
+    { model: 'LED Bike Light', price: 844.48, sellDate: 'Sep 22, 2025', sellTime: '02:29 AM', inStock: true },
+    { model: 'Road Tire Tube', price: 1965.77, sellDate: 'Feb 10, 2025', sellTime: '11:52 PM', inStock: false },
+    { model: 'Action Camera', price: 522.33, sellDate: 'Nov 11, 2025', sellTime: '04:50 PM', inStock: false },
+    { model: 'Comfort Saddle', price: 109.4, sellDate: 'May 13, 2025', sellTime: '11:41 AM', inStock: true },
+    { model: 'Hydration Pack', price: 1067.76, sellDate: 'Aug 7, 2025', sellTime: '05:04 AM', inStock: false },
+    { model: 'Speed Gloves', price: 1738.77, sellDate: 'Jan 28, 2025', sellTime: '08:38 AM', inStock: false },
+    { model: 'Aero Bottle', price: 1600.35, sellDate: 'Jan 29, 2025', sellTime: '12:36 AM', inStock: false },
+    { model: 'Speed Gloves', price: 524.91, sellDate: 'Dec 15, 2025', sellTime: '12:56 PM', inStock: true },
+    { model: 'Windbreaker Jacket', price: 1780.51, sellDate: 'Sep 23, 2025', sellTime: '05:02 AM', inStock: false },
+    { model: 'Comfort Saddle', price: 1955.0, sellDate: 'Sep 29, 2025', sellTime: '01:03 PM', inStock: false },
+    { model: 'Speed Gloves', price: 957.4, sellDate: 'Aug 6, 2025', sellTime: '03:19 AM', inStock: true },
+    { model: 'Fitness Watch', price: 193.72, sellDate: 'Apr 1, 2025', sellTime: '07:49 PM', inStock: false },
+    { model: 'Speed Gloves', price: 677.94, sellDate: 'Oct 11, 2025', sellTime: '10:25 PM', inStock: false },
+    { model: 'LED Bike Light', price: 1155.9, sellDate: 'Mar 2, 2025', sellTime: '11:36 AM', inStock: false },
+    { model: 'LED Bike Light', price: 586.82, sellDate: 'Nov 22, 2025', sellTime: '08:29 PM', inStock: false },
+    { model: 'Action Camera', price: 406.41, sellDate: 'Oct 25, 2025', sellTime: '11:10 AM', inStock: false },
+    { model: 'Road Tire Tube', price: 595.55, sellDate: 'May 24, 2025', sellTime: '01:30 AM', inStock: false },
+    { model: 'Racing Socks', price: 1078.63, sellDate: 'Apr 28, 2025', sellTime: '02:57 AM', inStock: true },
+    { model: 'Cycling Cap', price: 1781.04, sellDate: 'Oct 7, 2025', sellTime: '06:58 AM', inStock: false },
+    { model: 'Trail Helmet', price: 181.8, sellDate: 'Oct 2, 2025', sellTime: '08:04 PM', inStock: false },
+    { model: 'HL Mountain Frame', price: 489.39, sellDate: 'Jul 20, 2025', sellTime: '10:51 AM', inStock: true },
+    { model: 'HL Road Tire', price: 1964.04, sellDate: 'Jul 10, 2025', sellTime: '03:01 PM', inStock: true },
+    { model: 'Action Camera', price: 1321.19, sellDate: 'Feb 2, 2025', sellTime: '01:39 PM', inStock: true },
+    { model: 'Trail Helmet', price: 1311.09, sellDate: 'Dec 27, 2025', sellTime: '02:45 PM', inStock: false },
+    { model: 'Windbreaker Jacket', price: 1573.57, sellDate: 'Sep 20, 2025', sellTime: '08:31 PM', inStock: false },
+    { model: 'Speed Gloves', price: 338.01, sellDate: 'Oct 22, 2025', sellTime: '06:56 PM', inStock: false },
+    { model: 'Carbon Handlebar', price: 309.18, sellDate: 'Nov 10, 2025', sellTime: '03:20 PM', inStock: true },
+    { model: 'LED Bike Light', price: 1289.0, sellDate: 'Aug 22, 2025', sellTime: '03:34 PM', inStock: true },
+    { model: 'Action Camera', price: 1655.66, sellDate: 'Jun 12, 2025', sellTime: '03:38 PM', inStock: false },
+    { model: 'Hydration Pack', price: 1126.33, sellDate: 'Sep 15, 2025', sellTime: '06:29 AM', inStock: false },
+    { model: 'Racing Socks', price: 157.45, sellDate: 'Jan 26, 2025', sellTime: '07:25 PM', inStock: true },
+    { model: 'Aero Bottle', price: 1707.67, sellDate: 'Feb 2, 2025', sellTime: '05:34 PM', inStock: true },
+    { model: 'Road Tire Tube', price: 601.95, sellDate: 'Apr 14, 2025', sellTime: '08:02 AM', inStock: true },
+    { model: 'HL Road Tire', price: 118.42, sellDate: 'Feb 8, 2025', sellTime: '06:08 AM', inStock: false },
+    { model: 'Racing Socks', price: 1721.99, sellDate: 'Oct 13, 2025', sellTime: '09:01 AM', inStock: true },
+    { model: 'Action Camera', price: 1620.39, sellDate: 'Jul 18, 2025', sellTime: '05:53 AM', inStock: false },
+    { model: 'Trail Helmet', price: 1051.16, sellDate: 'Jan 21, 2025', sellTime: '09:44 AM', inStock: true },
+    { model: 'Fitness Watch', price: 1534.64, sellDate: 'Feb 27, 2025', sellTime: '09:19 AM', inStock: true },
+    { model: 'Comfort Saddle', price: 984.12, sellDate: 'Mar 16, 2025', sellTime: '07:24 AM', inStock: false },
+    { model: 'Comfort Saddle', price: 1316.13, sellDate: 'Feb 11, 2025', sellTime: '11:01 AM', inStock: true },
+    { model: 'Carbon Handlebar', price: 774.69, sellDate: 'Oct 17, 2025', sellTime: '11:38 AM', inStock: false },
+    { model: 'Road Tire Tube', price: 1887.19, sellDate: 'Oct 19, 2025', sellTime: '06:02 AM', inStock: true },
+    { model: 'Cycling Cap', price: 519.44, sellDate: 'Oct 21, 2025', sellTime: '03:54 AM', inStock: true },
+    { model: 'Trail Helmet', price: 1149.2, sellDate: 'Apr 24, 2025', sellTime: '04:40 AM', inStock: false },
+    { model: 'Carbon Handlebar', price: 915.24, sellDate: 'Jul 10, 2025', sellTime: '05:22 AM', inStock: true },
+    { model: 'Comfort Saddle', price: 1625.63, sellDate: 'Mar 31, 2025', sellTime: '11:55 PM', inStock: true },
+    { model: 'Racing Socks', price: 143.76, sellDate: 'Dec 2, 2025', sellTime: '07:25 AM', inStock: true },
+    { model: 'Cycling Cap', price: 981.24, sellDate: 'Aug 9, 2025', sellTime: '07:52 PM', inStock: false },
+    { model: 'Comfort Saddle', price: 779.4, sellDate: 'Jun 12, 2025', sellTime: '05:08 PM', inStock: true },
+    { model: 'Carbon Handlebar', price: 1512.24, sellDate: 'Jul 27, 2025', sellTime: '07:02 AM', inStock: true },
+    { model: 'Cycling Cap', price: 444.79, sellDate: 'Sep 11, 2025', sellTime: '10:05 AM', inStock: false }
+  ];
+
+  readonly hotSettings: GridSettings = {
+    pagination: true,
+    autoRowSize: true,
+    columns: [
+      {
+        title: 'Model',
+        type: 'text',
+        data: 'model',
+        width: 150,
+        headerClassName: 'htLeft',
+      },
+      {
+        title: 'Price',
+        type: 'numeric',
+        data: 'price',
+        width: 80,
+        numericFormat: {
+          pattern: '$0,0.00',
+          culture: 'en-US',
+        },
+        className: 'htRight',
+        headerClassName: 'htRight',
+      },
+      {
+        title: 'Date',
+        type: 'date',
+        data: 'sellDate',
+        width: 130,
+        dateFormat: 'MMM D, YYYY',
+        correctFormat: true,
+        className: 'htRight',
+        headerClassName: 'htRight',
+
+      },
+      {
+        title: 'Time',
+        type: 'time',
+        data: 'sellTime',
+        width: 90,
+        timeFormat: 'hh:mm A',
+        correctFormat: true,
+        className: 'htRight',
+        headerClassName: 'htRight',
+      },
+      {
+        title: 'In stock',
+        type: 'checkbox',
+        data: 'inStock',
+        className: 'htCenter',
+        headerClassName: 'htCenter',
+      },
+    ],
+    width: '100%',
+    height: 300,
+    stretchH: 'all',
+    contextMenu: true,
+    rowHeaders: true,
+    colHeaders: true,
+    autoWrapRow: true,
+    autoWrapCol: true,
+  };
+
+  clearColumn() {
+    const hotInstance = this.hotTable.hotInstance;
+
+    if (!hotInstance) {
+      return;
+    }
+
+    const paginationPlugin = hotInstance.getPlugin('pagination');
+
+    const {
+      firstVisibleRowIndex,
+      lastVisibleRowIndex,
+    } = paginationPlugin.getPaginationData();
+
+    if (firstVisibleRowIndex === -1 || lastVisibleRowIndex === -1) {
+      return;
+    }
+
+    const data: [number, number, string][] = [];
+    const columnIndex = 1;
+
+    for (let row = firstVisibleRowIndex; row <= lastVisibleRowIndex; row++) {
+      data.push([row, columnIndex, '']);
+    }
+
+    hotInstance.setDataAtCell(data);
+  }
+}
+/* end-file */
+
+
+/* file: app.module.ts */
+import { NgModule, ApplicationConfig } from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
+import { registerAllModules } from 'handsontable/registry';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
+import { CommonModule } from '@angular/common';
+import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
+
+/* start:skip-in-compilation */
+import { AppComponent } from './app.component';
+/* end:skip-in-compilation */
+
+// register Handsontable's modules
+registerAllModules();
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    {
+      provide: HOT_GLOBAL_CONFIG,
+      useValue: {
+        themeName: 'ht-theme-main',
+        license: NON_COMMERCIAL_LICENSE,
+      } as HotGlobalConfig
+    }
+  ],
+};
+
+@NgModule({
+  imports: [ BrowserModule, HotTableModule, CommonModule ],
+  declarations: [ AppComponent ],
+  providers: [...appConfig.providers],
+  bootstrap: [ AppComponent ]
+})
+
+export class AppModule { }
+/* end-file */
