@@ -27,17 +27,17 @@ const AUTO_PAGE_SIZE_WARNING = toSingleLine`The \`auto\` page size setting requi
  * Core responsibilities:
  *  - Calculate which rows should be visible based on current `page` and `pageSize`.
  *  - Render a toolbar area containing:
- *    – a page-size dropdown section (if `showPageSize` = true)
- *    – a row counter section ("1 – 10 of 50", if `showCounter` = true)
- *    – Page navigation sections (if `showNavigation` = true)
+ *    - a page size dropdown section (if `showPageSize` = `true`)
+ *    - a row counter section ("1 - 10 of 50", if `showCounter` = `true`)
+ *    - page navigation section (if `showNavigation` = `true`)
  *  - Emit hooks when:
- *     – the user navigates to a different page
- *     – the user changes the number of rows per page
- *     - the user changes the visibility of any sections
+ *    - the user navigates to a different page
+ *    - the user changes the number of rows per page
+ *    - the user changes the visibility of any sections
  *  - Allow external code to programmatically:
- *     – jump to a specific page
- *     – change the page size
- *     – change the visibility of UI sections
+ *    - jump to a specific page
+ *    - change the page size
+ *    - change the visibility of UI sections
  *
  * @example
  *
