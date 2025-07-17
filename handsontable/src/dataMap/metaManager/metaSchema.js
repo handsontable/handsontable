@@ -3608,6 +3608,7 @@ export default () => {
      * | `uiContainer`            | An HTML element (default: `null`)                  | The container element where the pagination UI will be installed. If not provided, the pagination container will be injected below the root table element.        |
      *
      * Read more:
+     * - [Rows pagination](@/guides/rows/rows-pagination/rows-pagination.md)
      * - [Plugins: `Pagination`](@/api/pagination.md)
      *
      * @since 16.1.0
