@@ -831,7 +831,7 @@ export function outerWidth(element) {
  * @returns {number} Element's outer height.
  */
 export function outerHeight(element) {
-  return element.offsetHeight;
+  return element.getBoundingClientRect().height;
 }
 
 /**
