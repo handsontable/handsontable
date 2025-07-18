@@ -107,7 +107,7 @@ export class BottomOverlay extends Overlay {
       const scrollbarWidth = getScrollbarWidth(rootDocument);
 
       if (scrollbarWidth > 0) {
-        bottomOffset += scrollbarWidth - 1;
+        bottomOffset += scrollbarWidth;
       }
     }
 
