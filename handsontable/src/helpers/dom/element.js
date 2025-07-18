@@ -831,7 +831,7 @@ export function outerWidth(element) {
  * @returns {number} Element's outer height.
  */
 export function outerHeight(element) {
-  return element.offsetHeight;
+  return element.getBoundingClientRect().height;
 }
 
 /**
@@ -1019,17 +1019,17 @@ function walkontableCalculateScrollbarWidth(rootDocument = document) {
   outer.appendChild(inner);
 
   (rootDocument.body || rootDocument.documentElement).appendChild(outer);
-  const w1 = inner.offsetWidth;
+  const w1 = inner.getBoundingClientRect().width;
 
   outer.style.overflow = 'scroll';
-  let w2 = inner.offsetWidth;
+  let w2 = inner.getBoundingClientRect().width;
 
   if (w1 === w2) {
     w2 = outer.clientWidth;
   }
   (rootDocument.body || rootDocument.documentElement).removeChild(outer);
 
-  return (w1 - w2) + getFractionalScalingCompensation(rootDocument);
+  return parseFloat((w1 - w2).toFixed(3));
 }
 
 /**

@@ -21,7 +21,10 @@ const ExampleComponent = () => {
       themeName="ht-theme-main"
       data={data}
       height={320}
-      colWidths={50}
+      autoColumnSize={{
+        allowSampleDuplicates: true,
+        samplingRatio: 100,
+      }}
       rowHeaders={true}
       colHeaders={true}
       contextMenu={true}

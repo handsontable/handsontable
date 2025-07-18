@@ -90,8 +90,8 @@ describe('manualRowMove', () => {
       });
       expect(guideline.offset().top).forThemes(({ classic, main, horizon }) => {
         classic.toBe(THNext.offset().top - 2);
-        main.toBe(THNext.offset().top - 1.5);
-        horizon.toBe(THNext.offset().top - 1.5);
+        main.toBe(THNext.offset().top - 1);
+        horizon.toBe(THNext.offset().top - 1);
       });
     });
 
@@ -128,8 +128,8 @@ describe('manualRowMove', () => {
       });
       expect(guideline.offset().top).forThemes(({ classic, main, horizon }) => {
         classic.toBe(THNext.offset().top - 2);
-        main.toBe(THNext.offset().top - 1.5);
-        horizon.toBe(THNext.offset().top - 1.5);
+        main.toBe(THNext.offset().top - 1);
+        horizon.toBe(THNext.offset().top - 1);
       });
     });
 
@@ -168,8 +168,8 @@ describe('manualRowMove', () => {
       });
       expect(guideline.offset().top).forThemes(({ classic, main, horizon }) => {
         classic.toBe(THLast.offset().top - 2);
-        main.toBe(THLast.offset().top - 1.5);
-        horizon.toBe(THLast.offset().top - 1.5);
+        main.toBe(THLast.offset().top - 1);
+        horizon.toBe(THLast.offset().top - 1);
       });
     });
 
@@ -245,8 +245,8 @@ describe('manualRowMove', () => {
       });
       expect(guideline.offset().top).forThemes(({ classic, main, horizon }) => {
         classic.toBe(THNext.offset().top - 2);
-        main.toBe(THNext.offset().top - 1.5);
-        horizon.toBe(THNext.offset().top - 1.5);
+        main.toBe(THNext.offset().top - 1);
+        horizon.toBe(THNext.offset().top - 1);
       });
     });
 
@@ -293,8 +293,8 @@ describe('manualRowMove', () => {
       });
       expect(guideline.offset().top).forThemes(({ classic, main, horizon }) => {
         classic.toBe(THNext.offset().top - 2);
-        main.toBe(THNext.offset().top - 1.5);
-        horizon.toBe(THNext.offset().top - 1.5);
+        main.toBe(THNext.offset().top - 1);
+        horizon.toBe(THNext.offset().top - 1);
       });
     });
 
@@ -366,8 +366,8 @@ describe('manualRowMove', () => {
       });
       expect(guideline.offset().top).forThemes(({ classic, main, horizon }) => {
         classic.toBe(THNext.offset().top - 2);
-        main.toBe(THNext.offset().top - 1.5);
-        horizon.toBe(THNext.offset().top - 1.5);
+        main.toBe(THNext.offset().top - 1);
+        horizon.toBe(THNext.offset().top - 1);
       });
     });
 
@@ -412,8 +412,8 @@ describe('manualRowMove', () => {
       });
       expect(guideline.offset().top).forThemes(({ classic, main, horizon }) => {
         classic.toBe(THNext.offset().top - 2);
-        main.toBe(THNext.offset().top - 1.5);
-        horizon.toBe(THNext.offset().top - 1.5);
+        main.toBe(THNext.offset().top - 1);
+        horizon.toBe(THNext.offset().top - 1);
       });
     });
 
