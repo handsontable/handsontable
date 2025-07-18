@@ -95,7 +95,7 @@ describe('WalkontableOverlay', () => {
       wt.draw();
 
       expect(wt.wtOverlays.bottomInlineStartCornerOverlay.clone.wtTable.wtRootElement.style.bottom)
-        .toBe('14px'); // scrollbar height - 1px border
+        .toBe('15px'); // scrollbar height
     });
   });
 });

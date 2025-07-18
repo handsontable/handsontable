@@ -210,13 +210,13 @@ describe('WalkontableOverlay (RTL mode)', () => {
       right: DOCUMENT_MOST_RIGHT_POSITION,
     }));
     expect(getTableRect(wt.wtOverlays.bottomInlineStartCornerOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
-      top: CLIENT_HEIGHT + BODY_MARGIN - expectedFixedTopBottomHeight + 1,
-      bottom: CLIENT_HEIGHT + BODY_MARGIN + 1,
+      top: CLIENT_HEIGHT + BODY_MARGIN - expectedFixedTopBottomHeight,
+      bottom: CLIENT_HEIGHT + BODY_MARGIN,
       right: DOCUMENT_MOST_RIGHT_POSITION,
     }));
     expect(getTableRect(wt.wtOverlays.bottomOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
-      top: CLIENT_HEIGHT + BODY_MARGIN - expectedFixedTopBottomHeight + 1,
-      bottom: CLIENT_HEIGHT + BODY_MARGIN + 1,
+      top: CLIENT_HEIGHT + BODY_MARGIN - expectedFixedTopBottomHeight,
+      bottom: CLIENT_HEIGHT + BODY_MARGIN,
       right: DOCUMENT_MOST_RIGHT_POSITION,
     }));
   });
@@ -336,13 +336,13 @@ describe('WalkontableOverlay (RTL mode)', () => {
       right: DOCUMENT_MOST_RIGHT_POSITION,
     }));
     expect(getTableRect(wt.wtOverlays.bottomInlineStartCornerOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
-      top: CLIENT_HEIGHT - expectedFixedTopBottomHeight + BODY_MARGIN + 1,
-      bottom: CLIENT_HEIGHT + BODY_MARGIN + 1,
+      top: CLIENT_HEIGHT - expectedFixedTopBottomHeight + BODY_MARGIN,
+      bottom: CLIENT_HEIGHT + BODY_MARGIN,
       right: DOCUMENT_MOST_RIGHT_POSITION,
     }));
     expect(getTableRect(wt.wtOverlays.bottomOverlay.clone.wtTable)).toEqual(jasmine.objectContaining({
-      top: CLIENT_HEIGHT - expectedFixedTopBottomHeight + BODY_MARGIN + 1,
-      bottom: CLIENT_HEIGHT + BODY_MARGIN + 1,
+      top: CLIENT_HEIGHT - expectedFixedTopBottomHeight + BODY_MARGIN,
+      bottom: CLIENT_HEIGHT + BODY_MARGIN,
       right: DOCUMENT_MOST_RIGHT_POSITION,
     }));
   });
