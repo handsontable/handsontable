@@ -574,7 +574,7 @@ describe('BaseEditor API (RTL mode)', () => {
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
                 start: 0,
-                top: 139,
+                top: 138,
                 width: 50,
                 maxWidth: 285,
                 height: 24,
@@ -582,7 +582,7 @@ describe('BaseEditor API (RTL mode)', () => {
               }));
               main.toEqual(jasmine.objectContaining({
                 start: 0,
-                top: 127,
+                top: 126,
                 width: 50,
                 maxWidth: 285,
                 height: 30,
@@ -590,7 +590,7 @@ describe('BaseEditor API (RTL mode)', () => {
               }));
               horizon.toEqual(jasmine.objectContaining({
                 start: 0,
-                top: 111,
+                top: 110,
                 width: 51,
                 maxWidth: 285,
                 height: 38,
@@ -662,7 +662,7 @@ describe('BaseEditor API (RTL mode)', () => {
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
                 start: 0,
-                top: 139,
+                top: 138,
                 width: 50,
                 // maxWidth: ?, // returns wrong value! it will be fixed within #9206
                 height: 24,
@@ -670,7 +670,7 @@ describe('BaseEditor API (RTL mode)', () => {
               }));
               main.toEqual(jasmine.objectContaining({
                 start: 0,
-                top: 127,
+                top: 126,
                 width: 50,
                 // maxWidth: ?, // returns wrong value! it will be fixed within #9206
                 height: 30,
@@ -678,7 +678,7 @@ describe('BaseEditor API (RTL mode)', () => {
               }));
               horizon.toEqual(jasmine.objectContaining({
                 start: 0,
-                top: 111,
+                top: 110,
                 width: 51,
                 // maxWidth: ?, // returns wrong value! it will be fixed within #9206
                 height: 38,
@@ -749,7 +749,7 @@ describe('BaseEditor API (RTL mode)', () => {
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
                 start: 0,
-                top: 139,
+                top: 138,
                 width: 50,
                 maxWidth: 285,
                 height: 24,
@@ -757,7 +757,7 @@ describe('BaseEditor API (RTL mode)', () => {
               }));
               main.toEqual(jasmine.objectContaining({
                 start: 0,
-                top: 127,
+                top: 126,
                 width: 50,
                 maxWidth: 285,
                 height: 30,
@@ -765,7 +765,7 @@ describe('BaseEditor API (RTL mode)', () => {
               }));
               horizon.toEqual(jasmine.objectContaining({
                 start: 0,
-                top: 111,
+                top: 110,
                 width: 51,
                 maxWidth: 285,
                 height: 38,
@@ -835,7 +835,7 @@ describe('BaseEditor API (RTL mode)', () => {
             expect(getActiveEditor().getEditedCellRect()).forThemes(({ classic, main, horizon }) => {
               classic.toEqual(jasmine.objectContaining({
                 start: 234,
-                top: 162,
+                top: 161,
                 width: 51,
                 maxWidth: 51,
                 height: 24,
@@ -843,7 +843,7 @@ describe('BaseEditor API (RTL mode)', () => {
               }));
               main.toEqual(jasmine.objectContaining({
                 start: 234,
-                top: 156,
+                top: 155,
                 width: 51,
                 maxWidth: 51,
                 height: 30,
@@ -851,7 +851,7 @@ describe('BaseEditor API (RTL mode)', () => {
               }));
               horizon.toEqual(jasmine.objectContaining({
                 start: 234,
-                top: 148,
+                top: 147,
                 width: 51,
                 maxWidth: 51,
                 height: 38,
