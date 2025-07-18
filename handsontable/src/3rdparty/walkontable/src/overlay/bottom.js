@@ -104,11 +104,7 @@ export class BottomOverlay extends Overlay {
     }
 
     if (wtViewport.hasVerticalScroll() && wtViewport.hasHorizontalScroll()) {
-      const scrollbarWidth = getScrollbarWidth(rootDocument);
-
-      if (scrollbarWidth > 0) {
-        bottomOffset += scrollbarWidth;
-      }
+      bottomOffset += getScrollbarWidth(rootDocument);
     }
 
     cloneRoot.style.bottom = `${bottomOffset}px`;
