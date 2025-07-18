@@ -172,11 +172,11 @@
 }
 
 .handsontable th:first-child,
-.handsontable td:first-of-type {
+.handsontable.ht-wrapper:not(.htFirstDatasetColumnNotRendered) td:first-of-type {
   border-left: 1px solid #ccc;
 }
 
-[dir=rtl].handsontable th:first-child, [dir=rtl].handsontable td:first-of-type {
+[dir=rtl].handsontable th:first-child, [dir=rtl].handsontable.ht-wrapper:not(.htFirstDatasetColumnNotRendered) td:first-of-type {
   border-right: 1px solid #ccc;
 }
 
