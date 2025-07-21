@@ -620,11 +620,13 @@ export class AutoRowSize extends BasePlugin {
    */
   #toggleFirstDatasetColumnRenderedClassName(forceState) {
     if (this.hot.stylesHandler.isClassicTheme()) {
-      const firstRenderedColumn = this.hot.getFirstRenderedVisibleColumn();
+      const firstRenderedColumnVisualIndex = this.hot.getFirstRenderedVisibleColumn();
+      const firstRenderedColumnPhysicalIndex =
+        this.hot.columnIndexMapper.getPhysicalFromVisualIndex(firstRenderedColumnVisualIndex);
 
       if (
         forceState === false ||
-        firstRenderedColumn === this.hot.columnIndexMapper.getPhysicalFromRenderableIndex(0)
+        firstRenderedColumnPhysicalIndex === this.hot.columnIndexMapper.getPhysicalFromRenderableIndex(0)
       ) {
         removeClass(this.hot.rootElement, FIRST_COLUMN_NOT_RENDERED_CLASS_NAME);
 
