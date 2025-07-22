@@ -1842,6 +1842,45 @@ export default () => {
 
     /**
      * @description
+     * The `dialog` option configures the [`Dialog`](@/api/dialog.md) plugin.
+     *
+     * You can set the `dialog` option to one of the following:
+     *
+     * | Setting   | Description                                                                 |
+     * | --------- | --------------------------------------------------------------------------- |
+     * | `false`   | Disable the [`Dialog`](@/api/dialog.md) plugin                           |
+     * | `true`    | Enable the [`Dialog`](@/api/dialog.md) plugin with default options     |
+     * | An object | Enable the [`Dialog`](@/api/dialog.md) plugin with custom configuration |
+     *
+     * Read more:
+     * - [Plugins: `Dialog`](@/api/dialog.md)
+     *
+     * @memberof Options#
+     * @type {boolean|object}
+     * @default true
+     * @category Dialog
+     *
+     * @example
+     * ```js
+     * // enable the Dialog plugin with default options
+     * dialog: true,
+     *
+     * // enable the Dialog plugin with custom configuration
+     * dialog: {
+     *   variant: 'modal',
+     *   contentBackground: false,
+     *   contentDirections: 'column',
+     *   animation: false,
+     *   closable: true,
+     *   closeOnOverlayClick: true,
+     *   closeOnEscape: true,
+     * }
+     * ```
+     */
+    dialog: false,
+
+    /**
+     * @description
      * The `dragToScroll` option configures the [`DragToScroll`](@/api/dragToScroll.md) plugin.
      *
      * You can set the `dragToScroll` option to one of the following:

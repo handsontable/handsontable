@@ -173,6 +173,7 @@ export class BasePlugin {
    * Enable plugin for this Handsontable instance.
    */
   enablePlugin() {
+    console.log(this.pluginName);
     this.enabled = true;
   }
 

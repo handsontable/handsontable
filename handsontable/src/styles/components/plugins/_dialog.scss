@@ -1,0 +1,73 @@
+@use "../../utils/mixins";
+
+// Dialog
+
+@mixin output {
+  .ht-dialog {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: none;
+    width: 100%;
+    height: 100%;
+    z-index: 1060;
+    opacity: 0;
+    background-color: #fff;
+    overflow-y: auto;
+    box-sizing: border-box !important;
+
+    & > * {
+      box-sizing: border-box !important;
+    }
+
+    &--with-animation {
+      transition: opacity 0.3s ease-in-out;
+    }
+
+    &--show {
+      opacity: 1;
+    }
+
+    &__content-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      min-height: 100%;
+      padding: 20px;
+    }
+    
+    &__content {
+      position: relative;
+      padding: 10px;
+      display: flex;
+      gap: 8px;
+      max-width: 480px;
+      border-radius: 8px;
+      background-color: rgba(255, 255, 255, 0.5);
+      box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
+
+      &--flex {
+        &-row {
+          flex-direction: row;
+        }
+
+        &-row-reverse {
+          flex-direction: row-reverse;
+        }
+
+        &-column {
+          flex-direction: column;
+        }
+
+        &-column-reverse {
+          flex-direction: column-reverse;
+        }
+      }
+    }
+  }
+
+  .ht-root-wrapper {
+    position: relative;
+  }
+}
