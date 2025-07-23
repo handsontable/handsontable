@@ -15,6 +15,8 @@
     background-color: #fff;
     overflow-y: auto;
     box-sizing: border-box !important;
+    border-radius: var(--ht-wrapper-border-radius);
+    border: 1px solid var(--ht-border-color);
 
     & > * {
       box-sizing: border-box !important;
@@ -44,7 +46,7 @@
       gap: 8px;
       max-width: 480px;
       border-radius: 8px;
-      background-color: rgba(255, 255, 255, 0.5);
+      background-color: #fff;
       box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
 
       &--flex {

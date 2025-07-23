@@ -1,9 +1,20 @@
 import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
-import { removeClass, addClass, hasClass } from '../../helpers/dom/element';
+import { removeClass, addClass, hasClass, fastInnerHTML } from '../../helpers/dom/element';
+import { warn } from '../../helpers/console';
 
 export const PLUGIN_KEY = 'dialog';
 export const PLUGIN_PRIORITY = 55;
+const DIALOG_CLASS_NAME = 'ht-dialog';
+const DIALOG_CONFIG_VALIDATORS = {
+  content: val => typeof val === 'string' || (typeof HTMLElement !== 'undefined' && val instanceof HTMLElement),
+  customClassName: val => typeof val === 'string',
+  background: val => ['semi-transparent', 'solid'].includes(val),
+  contentBackground: val => typeof val === 'boolean',
+  contentDirections: val => ['row', 'row-reverse', 'column', 'column-reverse'].includes(val),
+  animation: val => typeof val === 'boolean',
+  closable: val => typeof val === 'boolean',
+};
 
 Hooks.getSingleton().register('beforeDialogShow');
 Hooks.getSingleton().register('afterDialogShow');
@@ -23,7 +34,8 @@ Hooks.getSingleton().register('afterDialogHide');
  *
  * The plugin provides several configuration options to customize the dialog behavior and appearance:
  * - `content`: The HTML content to display in the dialog
- * - `variant`: Dialog variant ('modal' by default)
+ * - `customClassName`: Custom class name to apply to the dialog
+ * - `background`: Dialog variant ('solid' by default)
  * - `contentBackground`: Whether to show content background
  * - `contentDirections`: Content layout direction 'row' | 'row-reverse' | 'column' | 'column-reverse'
  * - `animation`: Whether to enable animations
@@ -36,7 +48,8 @@ Hooks.getSingleton().register('afterDialogHide');
  *
  * // Enable dialog plugin with custom configuration
  * dialog: {
- *   variant: 'modal',
+ *   customClassName: 'custom-dialog',
+ *   background: 'semi-transparent',
  *   contentBackground: false,
  *   contentDirections: 'column',
  *   animation: false,
@@ -48,8 +61,9 @@ Hooks.getSingleton().register('afterDialogHide');
  *
  * // Show a dialog programmatically:
  * dialogPlugin.show({
- *   content: '<h2>Custom Dialog</h2><p>This is a custom dialog content.</p>',
- *   closable: true
+ *    content: '<h2>Custom Dialog</h2><p>This is a custom dialog content.</p>',
+ *    closable: true,
+ *    contentDirections: 'column',
  * });
  *
  * // Hide the dialog programmatically:
@@ -59,6 +73,7 @@ Hooks.getSingleton().register('afterDialogHide');
  * const isVisible = dialogPlugin.isVisible();
  * ```
  */
+
 export class Dialog extends BasePlugin {
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
@@ -76,7 +91,8 @@ export class Dialog extends BasePlugin {
   static get DEFAULT_CONFIG() {
     return {
       content: '',
-      variant: 'modal',
+      customClassName: '',
+      background: 'solid',
       contentBackground: false,
       contentDirections: 'row',
       animation: true,
@@ -114,7 +130,7 @@ export class Dialog extends BasePlugin {
    * @private
    * @type {boolean}
    */
-  isVisible = false;
+  #isVisible = false;
 
   /**
    * Check if the plugin is enabled in the handsontable settings.
@@ -133,10 +149,9 @@ export class Dialog extends BasePlugin {
       return;
     }
 
-    this.currentConfig = { ...Dialog.DEFAULT_CONFIG, ...this.hot.getSettings()[PLUGIN_KEY] };
-
-    this.addHook('afterInit', () => this.#onAfterInit());
-    this.addHook('beforeDestroy', () => this.#onBeforeDestroy());
+    this.currentConfig = Dialog.DEFAULT_CONFIG;
+    this.#updateDialogConfig(this.hot.getSettings()[PLUGIN_KEY]);
+    this.#createDialogElements();
 
     super.enablePlugin();
   }
@@ -145,8 +160,7 @@ export class Dialog extends BasePlugin {
    * Disable plugin for this Handsontable instance.
    */
   disablePlugin() {
-    this.hide();
-    this.destroyDialog();
+    this.#destroyDialog();
 
     super.disablePlugin();
   }
@@ -167,7 +181,7 @@ export class Dialog extends BasePlugin {
    * @returns {boolean}
    */
   isVisible() {
-    return this.isVisible;
+    return this.#isVisible;
   }
 
   /**
@@ -176,14 +190,19 @@ export class Dialog extends BasePlugin {
    * @param {object} config Dialog configuration
    */
   show(config = {}) {
-    if (!this.isEnabled() || this.isVisible) {
+    if (!this.enabled || this.isVisible()) {
       return;
     }
 
-    this.hot.runHooks('beforeDialogShow', config);
-
     this.#updateDialogConfig(config);
-    this.#updateDialogContent(this.currentConfig);
+
+    this.hot.runHooks('beforeDialogShow', this.currentConfig);
+
+    this.#updateDialogContent({
+      content: this.currentConfig.content,
+      contentDirections: this.currentConfig.contentDirections,
+    });
+
     this.#attachEventListeners();
     this.#showDialog();
 
@@ -194,7 +213,7 @@ export class Dialog extends BasePlugin {
    * Hide the currently open dialog.
    */
   hide() {
-    if (!this.isVisible) {
+    if (!this.isVisible()) {
       return;
     }
 
@@ -212,12 +231,29 @@ export class Dialog extends BasePlugin {
    * @param {object} config - The configuration to update the dialog with.
    */
   update(config) {
-    if (!this.isEnabled()) {
+    if (!this.enabled) {
       return;
     }
 
+    this.#updateCustomClassName(config.customClassName);
     this.#updateDialogConfig(config);
-    this.#updateDialogContent(this.currentConfig);
+    this.#updateDialogContent({
+      content: this.currentConfig.content,
+      contentDirections: this.currentConfig.contentDirections,
+    });
+  }
+
+  /**
+   * Update dialog custom class name.
+   *
+   * @param {string} customClassName - The custom class name to update the dialog with.
+   * @private
+   */
+  #updateCustomClassName(customClassName) {
+    if (customClassName !== this.currentConfig.customClassName) {
+      removeClass(this.dialogElement, this.currentConfig.customClassName);
+      addClass(this.dialogElement, customClassName);
+    }
   }
 
   /**
@@ -228,16 +264,20 @@ export class Dialog extends BasePlugin {
   #createDialogElements() {
     // Create dialog
     this.dialogElement = this.hot.rootDocument.createElement('div');
-    this.dialogElement.className = 'ht-dialog';
+    this.dialogElement.className = DIALOG_CLASS_NAME;
+
+    if (this.currentConfig.customClassName) {
+      addClass(this.dialogElement, this.currentConfig.customClassName);
+    }
 
     // Create content wrapper
     const contentWrapperElement = this.hot.rootDocument.createElement('div');
 
-    contentWrapperElement.className = 'ht-dialog__content-wrapper';
+    contentWrapperElement.className = `${DIALOG_CLASS_NAME}__content-wrapper`;
 
     // Create content
     this.contentElement = this.hot.rootDocument.createElement('div');
-    this.contentElement.className = 'ht-dialog__content';
+    this.contentElement.className = `${DIALOG_CLASS_NAME}__content`;
 
     // Append content wrapper to dialog
     contentWrapperElement.appendChild(this.contentElement);
@@ -259,23 +299,44 @@ export class Dialog extends BasePlugin {
    */
   #updateDialogConfig(config) {
     Object.keys(config).forEach((key) => {
-      if (key in this.currentConfig) {
-        this.currentConfig[key] = config[key];
+      if (!(key in this.currentConfig)) {
+        return;
       }
+
+      const isValid = DIALOG_CONFIG_VALIDATORS[key]?.(config[key]);
+
+      if (isValid === false) {
+        warn(`Dialog: "${key}" option is not valid and it will be ignored.`);
+
+        return;
+      }
+
+      this.currentConfig[key] = config[key];
     });
   }
 
   /**
    * Update dialog content.
    *
-   * @param {string} content - The content to render in the dialog.
+   * @param {string|HTMLElement} content - The content to render in the dialog.
    * @private
    */
   #updateDialogContent({ content, contentDirections = 'row' }) {
-    this.contentElement.innerHTML = content;
+    // Clear existing content
+    this.contentElement.innerHTML = '';
 
-    removeClass(this.contentElement, /ht-dialog__content--flex-.*/g);
-    addClass(this.contentElement, `ht-dialog__content--flex-${contentDirections}`);
+    if (typeof content === 'string') {
+      fastInnerHTML(this.contentElement, content);
+
+    } else if (content instanceof HTMLElement) {
+      // Safely append HTMLElement by cloning it to avoid DOM manipulation issues
+      const clonedElement = content.cloneNode(true);
+
+      this.contentElement.appendChild(clonedElement);
+    }
+
+    removeClass(this.contentElement, /${DIALOG_CLASS_NAME}__content--flex-.*/g);
+    addClass(this.contentElement, `${DIALOG_CLASS_NAME}__content--flex-${contentDirections}`);
   }
 
   /**
@@ -287,15 +348,15 @@ export class Dialog extends BasePlugin {
     this.dialogElement.style.display = 'block';
 
     if (this.currentConfig.animation) {
-      addClass(this.dialogElement, 'ht-dialog--with-animation');
+      addClass(this.dialogElement, `${DIALOG_CLASS_NAME}--with-animation`);
       // Triggers style and layout recalculation, so the display: flex is fully committed before adding
       // the class ht-dialog--show.
       // eslint-disable-next-line no-unused-expressions
       this.dialogElement.offsetHeight;
     }
 
-    addClass(this.dialogElement, 'ht-dialog--show');
-    this.isVisible = true;
+    addClass(this.dialogElement, `${DIALOG_CLASS_NAME}--show`);
+    this.#isVisible = true;
   }
 
   /**
@@ -304,20 +365,20 @@ export class Dialog extends BasePlugin {
    * @private
    */
   #hideDialog() {
-    removeClass(this.dialogElement, 'ht-dialog--show');
+    removeClass(this.dialogElement, `${DIALOG_CLASS_NAME}--show`);
 
     if (this.currentConfig.animation) {
       this.dialogElement.addEventListener('transitionend', () => {
-        if (!hasClass(this.dialogElement, 'ht-dialog--show')) {
+        if (!hasClass(this.dialogElement, `${DIALOG_CLASS_NAME}--show`)) {
           this.dialogElement.style.display = 'none';
-          removeClass(this.dialogElement, 'ht-dialog--with-animation');
+          removeClass(this.dialogElement, `${DIALOG_CLASS_NAME}--with-animation`);
         }
       }, { once: true });
     } else {
       this.dialogElement.style.display = 'none';
     }
 
-    this.isVisible = false;
+    this.#isVisible = false;
   }
 
   /**
@@ -360,6 +421,10 @@ export class Dialog extends BasePlugin {
    * @private
    */
   #destroyDialog() {
+    if (this.isVisible()) {
+      this.hide();
+    }
+
     if (this.dialogElement && this.dialogElement.parentNode) {
       this.dialogElement.parentNode.removeChild(this.dialogElement);
     }
@@ -367,25 +432,7 @@ export class Dialog extends BasePlugin {
     this.dialogElement = null;
     this.contentElement = null;
     this.currentConfig = null;
-    this.isVisible = false;
-  }
-
-  /**
-   * Hook fired after Handsontable initialization.
-   *
-   * @private
-   */
-  #onAfterInit() {
-    this.#createDialogElements();
-  }
-
-  /**
-   * Hook fired before Handsontable destruction.
-   *
-   * @private
-   */
-  #onBeforeDestroy() {
-    this.hide();
+    this.#isVisible = false;
   }
 
   /**
