@@ -40,17 +40,13 @@ describe('ContextMenu (RTL mode)', () => {
         expect($contextMenu.length).toBe(1);
         expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
           classic.toBeCloseTo(cellOffset.top + 1, 0);
-
-          // https://github.com/handsontable/dev-handsontable/issues/2200#issuecomment-2612221115
-          main.toBeCloseTo(cellOffset.top + 2, 0);
-          horizon.toBeCloseTo(cellOffset.top + 2, 0);
+          main.toBeCloseTo(cellOffset.top + 1, 0);
+          horizon.toBeCloseTo(cellOffset.top + 1, 0);
         });
         expect(menuOffset.left).forThemes(({ classic, main, horizon }) => {
           classic.toBeCloseTo(cellOffset.left - menuWidth, 0);
-
-          // https://github.com/handsontable/dev-handsontable/issues/2200#issuecomment-2612221115
-          main.toBeCloseTo(cellOffset.left - menuWidth - 1, 0);
-          horizon.toBeCloseTo(cellOffset.left - menuWidth - 1, 0);
+          main.toBeCloseTo(cellOffset.left - menuWidth, 0);
+          horizon.toBeCloseTo(cellOffset.left - menuWidth, 0);
         });
       });
 
@@ -102,8 +98,8 @@ describe('ContextMenu (RTL mode)', () => {
         const menuWidth = $contextMenu.outerWidth();
 
         expect($contextMenu.length).toBe(1);
-        expect(menuOffset.top).toBeCloseTo(cellOffset.top - menuHeight - 1, 0);
-        expect(menuOffset.left).toBeCloseTo(cellOffset.left - menuWidth - 1, 0);
+        expect(menuOffset.top).toBeCloseTo(cellOffset.top - menuHeight, 0);
+        expect(menuOffset.left).toBeCloseTo(cellOffset.left - menuWidth, 0);
       });
 
       it.forTheme('horizon')('should open context menu on the left-top position if on the right and ' +
@@ -128,8 +124,8 @@ describe('ContextMenu (RTL mode)', () => {
         const menuWidth = $contextMenu.outerWidth();
 
         expect($contextMenu.length).toBe(1);
-        expect(menuOffset.top).toBeCloseTo(cellOffset.top - menuHeight - 1, 0);
-        expect(menuOffset.left).toBeCloseTo(cellOffset.left - menuWidth - 1, 0);
+        expect(menuOffset.top).toBeCloseTo(cellOffset.top - menuHeight, 0);
+        expect(menuOffset.left).toBeCloseTo(cellOffset.left - menuWidth, 0);
       });
 
       it('should open context menu on the right-bottom position if on the left there is no space left', async() => {
@@ -153,17 +149,13 @@ describe('ContextMenu (RTL mode)', () => {
         expect($contextMenu.length).toBe(1);
         expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
           classic.toBeCloseTo(cellOffset.top + 1, 0);
-
-          // https://github.com/handsontable/dev-handsontable/issues/2200#issuecomment-2612221115
-          main.toBeCloseTo(cellOffset.top + 2, 0);
-          horizon.toBeCloseTo(cellOffset.top + 2, 0);
+          main.toBeCloseTo(cellOffset.top + 1, 0);
+          horizon.toBeCloseTo(cellOffset.top + 1, 0);
         });
         expect(menuOffset.left).forThemes(({ classic, main, horizon }) => {
           classic.toBeCloseTo(cellOffset.left, 0);
-
-          // https://github.com/handsontable/dev-handsontable/issues/2200#issuecomment-2612221115
-          main.toBeCloseTo(cellOffset.left + 1, 0);
-          horizon.toBeCloseTo(cellOffset.left + 1, 0);
+          main.toBeCloseTo(cellOffset.left, 0);
+          horizon.toBeCloseTo(cellOffset.left, 0);
         });
       });
 
@@ -213,8 +205,8 @@ describe('ContextMenu (RTL mode)', () => {
         const menuHeight = $contextMenu.outerHeight();
 
         expect($contextMenu.length).toBe(1);
-        expect(menuOffset.top).toBeCloseTo(cellOffset.top - menuHeight - 1, 0);
-        expect(menuOffset.left).toBeCloseTo(cellOffset.left + 1, 0);
+        expect(menuOffset.top).toBeCloseTo(cellOffset.top - menuHeight, 0);
+        expect(menuOffset.left).toBeCloseTo(cellOffset.left, 0);
       });
 
       it.forTheme('horizon')('should open context menu on the right-top position if on the left and ' +
@@ -238,8 +230,8 @@ describe('ContextMenu (RTL mode)', () => {
         const menuHeight = $contextMenu.outerHeight();
 
         expect($contextMenu.length).toBe(1);
-        expect(menuOffset.top).toBeCloseTo(cellOffset.top - menuHeight - 1, 0);
-        expect(menuOffset.left).toBeCloseTo(cellOffset.left + 1, 0);
+        expect(menuOffset.top).toBeCloseTo(cellOffset.top - menuHeight, 0);
+        expect(menuOffset.left).toBeCloseTo(cellOffset.left, 0);
       });
     });
   });
