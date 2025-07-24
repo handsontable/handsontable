@@ -1648,7 +1648,7 @@ describe('AutoFill', () => {
   });
 
   describe('should works properly when two or more instances of Handsontable was initialized with ' +
-           'other settings (#3257)', async() => {
+           'other settings (#3257)', () => {
     let getData;
     let $container1;
     let $container2;
