@@ -1862,18 +1862,18 @@ export default () => {
      *
      * @example
      * ```js
-     * // enable the Dialog plugin with default options
+     * // enable the Dialog plugin with default option
      * dialog: true,
      *
      * // enable the Dialog plugin with custom configuration
      * dialog: {
-     *   variant: 'modal',
+     *   content: 'Dialog content',
+     *   customClassName: 'custom-dialog',
+     *   background: 'semi-transparent',
      *   contentBackground: false,
      *   contentDirections: 'column',
      *   animation: false,
      *   closable: true,
-     *   closeOnOverlayClick: true,
-     *   closeOnEscape: true,
      * }
      * ```
      */
