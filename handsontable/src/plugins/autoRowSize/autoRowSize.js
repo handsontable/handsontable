@@ -191,10 +191,9 @@ export class AutoRowSize extends BasePlugin {
    * @type {SamplesGenerator}
    */
   samplesGenerator = new SamplesGenerator((row, column) => {
-    const physicalRow = this.hot.toPhysicalRow(row);
     const physicalColumn = this.hot.toPhysicalColumn(column);
 
-    if (this.hot.rowIndexMapper.isHidden(physicalRow) || this.hot.columnIndexMapper.isHidden(physicalColumn)) {
+    if (this.hot.columnIndexMapper.isHidden(physicalColumn)) {
       return false;
     }
 
@@ -528,11 +527,21 @@ export class AutoRowSize extends BasePlugin {
    * @param {number} [defaultHeight] If no height is found, `defaultHeight` is returned instead.
    * @returns {number} The height of the specified row, in pixels.
    */
-  getRowHeight(row, defaultHeight) {
-    const cachedHeight = row < 0 ? this.headerHeight : this.rowHeightsMap.getValueAtIndex(this.hot.toPhysicalRow(row));
+  getRowHeight(row, defaultHeight = this.hot.stylesHandler.getDefaultRowHeight()) {
+    if (row < 0) {
+      return this.headerHeight ?? defaultHeight;
+    }
+
+    const physicalRow = this.hot.toPhysicalRow(row);
+
+    if (this.hot.rowIndexMapper.isHidden(physicalRow)) {
+      return defaultHeight;
+    }
+
+    const cachedHeight = this.rowHeightsMap.getValueAtIndex(physicalRow);
     let height = defaultHeight;
 
-    if (cachedHeight !== null && cachedHeight > (defaultHeight || 0)) {
+    if (cachedHeight !== null && cachedHeight > defaultHeight) {
       height = cachedHeight;
     }
 

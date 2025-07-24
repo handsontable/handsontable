@@ -38,7 +38,7 @@ describe('Core.batchRender', () => {
     expect(hot.resumeRender).toHaveBeenCalledOnceWith();
     expect(hot.view._wt.draw).toHaveBeenCalledOnceWith(false); // fast redraw?
     expect(hot.view._wt.wtOverlays.adjustElementsSize).toHaveBeenCalledTimes(1);
-    expect(hot.view._wt.wtOverlays.adjustElementsSize).toHaveBeenCalledBefore(hot.view._wt.draw);
+    expect(hot.view._wt.draw).toHaveBeenCalledBefore(hot.view._wt.wtOverlays.adjustElementsSize);
   });
 
   it('should batch nested multi-line operations into one render call', async() => {

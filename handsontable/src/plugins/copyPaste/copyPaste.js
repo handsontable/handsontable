@@ -525,7 +525,7 @@ export class CopyPaste extends BasePlugin {
    */
   populateValues(inputArray, selection = this.hot.getSelectedRangeLast()) {
     if (!inputArray.length) {
-      return;
+      return [null, null, null, null];
     }
 
     const populatedRowsLength = inputArray.length;
@@ -786,12 +786,14 @@ export class CopyPaste extends BasePlugin {
 
     const [startRow, startColumn, endRow, endColumn] = this.populateValues(pastedData);
 
-    this.hot.selectCell(
-      startRow,
-      startColumn,
-      Math.min(this.hot.countRows() - 1, endRow),
-      Math.min(this.hot.countCols() - 1, endColumn),
-    );
+    if (startRow !== null && startColumn !== null) {
+      this.hot.selectCell(
+        startRow,
+        startColumn,
+        Math.min(this.hot.countRows() - 1, endRow),
+        Math.min(this.hot.countCols() - 1, endColumn),
+      );
+    }
 
     this.hot.runHooks('afterPaste', pastedData, this.copyableRanges);
   }

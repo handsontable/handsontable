@@ -37,6 +37,7 @@ import { Settings as MergeCellsSettings } from './plugins/mergeCells';
 import { Settings as MultiColumnSortingSettings } from './plugins/multiColumnSorting';
 import { Settings as NestedHeadersSettings } from './plugins/nestedHeaders';
 import { Settings as NestedRowsSettings } from './plugins/nestedRows';
+import { Settings as PaginationSettings } from './plugins/pagination';
 import { Settings as PersistentStateSettings } from './plugins/persistentState';
 import { Settings as SearchSettings } from './plugins/search';
 import { Settings as TrimRowsSettings } from './plugins/trimRows';
@@ -188,6 +189,7 @@ export interface GridSettings extends Events {
   numericFormat?: NumericFormatOptions;
   observeDOMVisibility?: boolean;
   outsideClickDeselects?: boolean | ((target: HTMLElement) => boolean);
+  pagination?: PaginationSettings;
   persistentState?: PersistentStateSettings;
   placeholder?: string;
   placeholderCellClassName?: string;
