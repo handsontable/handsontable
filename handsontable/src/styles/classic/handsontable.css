@@ -2086,21 +2086,27 @@ thead th.hiddenHeaderText .colHeader {
   border: 1px solid #ccc;
   box-sizing: border-box !important;
 }
+
 .ht-dialog * {
   box-sizing: border-box !important;
 }
+
 .ht-dialog--background-solid {
   background-color: #fff;
 }
+
 .ht-dialog--background-semi-transparent {
   background-color: rgba(255, 255, 255, 0.5);
 }
+
 .ht-dialog--animation {
   transition: opacity 0.15s ease-in-out;
 }
+
 .ht-dialog--show {
   opacity: 1;
 }
+
 .ht-dialog__content-wrapper {
   display: flex;
   align-items: center;
@@ -2109,6 +2115,7 @@ thead th.hiddenHeaderText .colHeader {
   min-height: 100%;
   padding: 16px;
 }
+
 .ht-dialog__content {
   position: relative;
   padding: 8px;
@@ -2117,19 +2124,24 @@ thead th.hiddenHeaderText .colHeader {
   max-width: 480px;
   color: #222;
 }
+
 .ht-dialog__content--background {
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
   background-color: #f7f7f9;
 }
+
 .ht-dialog__content--flex-row {
   flex-direction: row;
 }
+
 .ht-dialog__content--flex-row-reverse {
   flex-direction: row-reverse;
 }
+
 .ht-dialog__content--flex-column {
   flex-direction: column;
 }
+
 .ht-dialog__content--flex-column-reverse {
   flex-direction: column-reverse;
 }
