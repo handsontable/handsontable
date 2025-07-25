@@ -32,6 +32,7 @@ import { Search } from './search';
 import { StretchColumns } from './stretchColumns';
 import { TouchScroll } from './touchScroll';
 import { TrimRows } from './trimRows';
+import { Dialog } from './dialog';
 import { UndoRedo } from './undoRedo';
 
 export interface Plugins {
@@ -69,6 +70,7 @@ export interface Plugins {
   stretchColumns: StretchColumns;
   touchScroll: TouchScroll;
   trimRows: TrimRows;
+  dialog: Dialog;
   undoRedo: UndoRedo;
 }
 
@@ -110,5 +112,6 @@ export {
   StretchColumns,
   TouchScroll,
   TrimRows,
+  Dialog,
   UndoRedo
 };
