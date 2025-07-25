@@ -33,6 +33,7 @@ import { StretchColumns } from './stretchColumns';
 import { TouchScroll } from './touchScroll';
 import { TrimRows } from './trimRows';
 import { UndoRedo } from './undoRedo';
+import { Dialog } from './dialog';
 import {
   registerPlugin,
 } from './registry';
@@ -75,6 +76,7 @@ export function registerAllPlugins() {
   registerPlugin(TouchScroll);
   registerPlugin(TrimRows);
   registerPlugin(UndoRedo);
+  registerPlugin(Dialog);
 }
 
 export {
@@ -113,6 +115,7 @@ export {
   TouchScroll,
   TrimRows,
   UndoRedo,
+  Dialog,
 };
 
 export {

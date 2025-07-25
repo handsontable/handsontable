@@ -60,3 +60,9 @@
   box-shadow: var(--ht-menu-shadow-x, 0) var(--ht-menu-shadow-y, 0)
     var(--ht-menu-shadow-blur, 8px) var(--ht-menu-shadow-color, rgba(0, 0, 0, 0.08));
 }
+
+@mixin box-shadow {
+  box-shadow: var(--ht-shadow-x, 0) var(--ht-shadow-y, 0)
+    var(--ht-shadow-blur, 8px) var(--ht-shadow-color, rgba(0, 0, 0, 0.08));
+}
+
