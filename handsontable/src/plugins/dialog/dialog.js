@@ -1,7 +1,8 @@
 import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
-import { removeClass, addClass, hasClass, fastInnerHTML } from '../../helpers/dom/element';
+import { removeClass, addClass, hasClass, fastInnerHTML, setAttribute } from '../../helpers/dom/element';
 import { warn } from '../../helpers/console';
+import { A11Y_DIALOG, A11Y_MODAL } from '../../helpers/a11y';
 
 export const PLUGIN_KEY = 'dialog';
 export const PLUGIN_PRIORITY = 340;
@@ -144,14 +145,6 @@ export class Dialog extends BasePlugin {
   #isVisible = false;
 
   /**
-   * Event handler for escape key to close dialog.
-   *
-   * @private
-   * @type {Function|null}
-   */
-  #escapeHandler = null;
-
-  /**
    * Check if the plugin is enabled in the handsontable settings.
    *
    * @returns {boolean}
@@ -176,15 +169,6 @@ export class Dialog extends BasePlugin {
   }
 
   /**
-   * Disable plugin for this Handsontable instance.
-   */
-  disablePlugin() {
-    this.#destroyDialog();
-
-    super.disablePlugin();
-  }
-
-  /**
    * Update plugin state after Handsontable settings update.
    */
   updatePlugin() {
@@ -192,6 +176,15 @@ export class Dialog extends BasePlugin {
     this.enablePlugin();
 
     super.updatePlugin();
+  }
+
+  /**
+   * Disable plugin for this Handsontable instance.
+   */
+  disablePlugin() {
+    this.#destroyDialog();
+
+    super.disablePlugin();
   }
 
   /**
@@ -214,16 +207,9 @@ export class Dialog extends BasePlugin {
       return;
     }
 
-    this.#updateDialogConfig(config);
-
     this.hot.runHooks('beforeDialogShow', this.currentConfig);
 
-    this.#updateDialogContent({
-      content: this.currentConfig.content,
-      contentDirections: this.currentConfig.contentDirections,
-      contentBackground: this.currentConfig.contentBackground,
-    });
-
+    this.update(config);
     this.#attachEventListeners();
     this.#showDialog();
 
@@ -257,38 +243,15 @@ export class Dialog extends BasePlugin {
       return;
     }
 
-    const oldConfig = {
-      customClassName: this.currentConfig.customClassName,
-      background: this.currentConfig.background,
-    };
-
     this.#updateDialogConfig(config);
+    this.#updateDialogClassName();
 
-    // Update custom class name if changed
-    if (config.customClassName !== undefined &&
-      config.customClassName !== oldConfig.customClassName) {
-      this.#updateDialogClassName(oldConfig.customClassName, config.customClassName);
-    }
-
-    // Update background class if changed
-    if (config.background !== undefined &&
-      config.background !== oldConfig.background) {
-      this.#updateDialogClassName(
-        `${DIALOG_CLASS_NAME}--${oldConfig.background}`,
-        `${DIALOG_CLASS_NAME}--${config.background}`,
-      );
-    }
-
-    // Update content if provided
-    if (config.content !== undefined ||
-      config.contentDirections !== undefined ||
-      config.contentBackground !== undefined) {
-      this.#updateDialogContent({
-        content: this.currentConfig.content,
-        contentDirections: this.currentConfig.contentDirections,
-        contentBackground: this.currentConfig.contentBackground,
-      });
-    }
+    // Update content
+    this.#updateDialogContent({
+      content: this.currentConfig.content,
+      contentDirections: this.currentConfig.contentDirections,
+      contentBackground: this.currentConfig.contentBackground,
+    });
   }
 
   /**
@@ -300,7 +263,13 @@ export class Dialog extends BasePlugin {
   #createDialogElements() {
     // Create main dialog container
     this.dialogElement = this.hot.rootDocument.createElement('div');
-    this.dialogElement.className = this.#buildDialogClassName();
+    this.#updateDialogClassName();
+
+    // Set ARIA attributes
+    setAttribute(this.dialogElement, [
+      A11Y_DIALOG(),
+      A11Y_MODAL(),
+    ]);
 
     // Create content wrapper
     const contentWrapperElement = this.hot.rootDocument.createElement('div');
@@ -350,31 +319,18 @@ export class Dialog extends BasePlugin {
   }
 
   /**
-   * Build the complete class name for the dialog element.
+   * Update dialog class name.
    *
    * @private
-   * @returns {string} The complete class name string.
    */
-  #buildDialogClassName() {
+  #updateDialogClassName() {
     const baseClass = DIALOG_CLASS_NAME;
     const customClass = this.currentConfig.customClassName ? ` ${this.currentConfig.customClassName}` : '';
-    const backgroundClass = ` ${DIALOG_CLASS_NAME}--${this.currentConfig.background}-background`;
+    const backgroundClass = ` ${DIALOG_CLASS_NAME}--background-${this.currentConfig.background}`;
+    const animationClass = this.currentConfig.animation ? ` ${DIALOG_CLASS_NAME}--animation` : '';
+    const showClass = this.isVisible() ? ` ${DIALOG_CLASS_NAME}--show` : '';
 
-    return `${baseClass}${customClass}${backgroundClass}`;
-  }
-
-  /**
-   * Update dialog custom class name.
-   *
-   * @param {string} oldClassName - The old custom class name to remove.
-   * @param {string} newClassName - The new custom class name to add.
-   * @private
-   */
-  #updateDialogClassName(oldClassName, newClassName) {
-    if (oldClassName !== newClassName) {
-      removeClass(this.dialogElement, oldClassName);
-      addClass(this.dialogElement, newClassName);
-    }
+    this.dialogElement.className = `${baseClass}${customClass}${backgroundClass}${animationClass}${showClass}`;
   }
 
   /**
@@ -418,14 +374,14 @@ export class Dialog extends BasePlugin {
     this.dialogElement.style.display = 'block';
 
     if (this.currentConfig.animation) {
-      addClass(this.dialogElement, `${DIALOG_CLASS_NAME}--with-animation`);
-      // Triggers style and layout recalculation, so the display: flex is fully committed before adding
+      // Triggers style and layout recalculation, so the display: block is fully committed before adding
       // the class ht-dialog--show.
       // eslint-disable-next-line no-unused-expressions
       this.dialogElement.offsetHeight;
     }
 
     addClass(this.dialogElement, `${DIALOG_CLASS_NAME}--show`);
+
     this.#isVisible = true;
   }
 
@@ -441,7 +397,6 @@ export class Dialog extends BasePlugin {
       this.dialogElement.addEventListener('transitionend', () => {
         if (!hasClass(this.dialogElement, `${DIALOG_CLASS_NAME}--show`)) {
           this.dialogElement.style.display = 'none';
-          removeClass(this.dialogElement, `${DIALOG_CLASS_NAME}--with-animation`);
         }
       }, { once: true });
     } else {
@@ -450,6 +405,18 @@ export class Dialog extends BasePlugin {
 
     this.#isVisible = false;
   }
+
+  /**
+   * Escape key handler.
+   *
+   * @param {KeyboardEvent} event - The keyboard event.
+   * @private
+   */
+  #escapeHandler = (event) => {
+    if (event.key === 'Escape') {
+      this.hide();
+    }
+  };
 
   /**
    * Attach event listeners to dialog elements.
@@ -461,14 +428,7 @@ export class Dialog extends BasePlugin {
       return;
     }
 
-    // Create escape key handler
-    this.#escapeHandler = (event) => {
-      if (event.key === 'Escape') {
-        this.hide();
-      }
-    };
-
-    this.hot.rootDocument.addEventListener('keydown', this.#escapeHandler);
+    this.eventManager.addEventListener(this.hot.rootDocument, 'keydown', event => this.#escapeHandler(event));
   }
 
   /**
@@ -477,10 +437,7 @@ export class Dialog extends BasePlugin {
    * @private
    */
   #detachEventListeners() {
-    if (this.#escapeHandler) {
-      this.hot.rootDocument.removeEventListener('keydown', this.#escapeHandler);
-      this.#escapeHandler = null;
-    }
+    this.eventManager.clear();
   }
 
   /**
@@ -501,7 +458,6 @@ export class Dialog extends BasePlugin {
     this.contentElement = null;
     this.currentConfig = null;
     this.#isVisible = false;
-    this.#escapeHandler = null;
   }
 
   /**
