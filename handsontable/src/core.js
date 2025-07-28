@@ -1307,7 +1307,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
         this.validatorsInQueue += 1;
         resolved = false;
       },
-      removeValidatorFormQueue() {
+      removeValidatorFromQueue() {
         this.validatorsInQueue = this.validatorsInQueue - 1 < 0 ? 0 : this.validatorsInQueue - 1;
         this.checkIfQueueIsEmpty();
       },
@@ -1315,6 +1315,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       checkIfQueueIsEmpty() {
         if (this.validatorsInQueue === 0 && resolved === false) {
           resolved = true;
+          console.log('calling onQueueEmpty', this.valid);
           this.onQueueEmpty(this.valid);
         }
       }
@@ -1379,6 +1380,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
         cellProperties = { ...Object.getPrototypeOf(tableMeta), ...tableMeta };
       }
 
+      // commenting out this block fixes the error
       /* eslint-disable no-loop-func */
       if (instance.getCellValidator(cellProperties)) {
         waitingForValidator.addValidatorToQueue();
@@ -1393,7 +1395,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
               changes.splice(index, 1); // cancel the change
               cellPropertiesReference.valid = true; // we cancelled the change, so cell value is still valid
             }
-            waitingForValidator.removeValidatorFormQueue();
+            waitingForValidator.removeValidatorFromQueue();
           };
         }(i, cellProperties)), source);
       }
@@ -1529,11 +1531,11 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     // the `canBeValidated = false` argument suggests, that the cell passes validation by default.
     /**
      * @private
-     * @function done
+     * @function setValidity
      * @param {boolean} valid Indicates if the validation was successful.
      * @param {boolean} [canBeValidated=true] Flag which controls the validation process.
      */
-    function done(valid, canBeValidated = true) {
+    function setValidity(valid, canBeValidated = true) {
       // Fixes GH#3903
       if (!canBeValidated || cellProperties.hidden === true) {
         callback(valid);
@@ -1578,7 +1580,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
             .runHooks('afterValidate', valid, value, cellProperties.visualRow, cellProperties.prop, source);
           cellProperties.valid = valid;
 
-          done(valid);
+          setValidity(valid);
           instance.runHooks('postAfterValidate', valid, value, cellProperties.visualRow, cellProperties.prop, source);
         });
       });
@@ -1587,7 +1589,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       // resolve callback even if validator function was not found
       instance._registerImmediate(() => {
         cellProperties.valid = true;
-        done(cellProperties.valid, false);
+        setValidity(cellProperties.valid, false);
       });
     }
   };
@@ -3763,7 +3765,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
           if (result === false) {
             waitingForValidator.valid = false;
           }
-          waitingForValidator.removeValidatorFormQueue();
+          waitingForValidator.removeValidatorFromQueue();
         }, 'validateCells');
         j -= 1;
       }

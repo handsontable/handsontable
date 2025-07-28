@@ -42,11 +42,13 @@ const cleanupFactory = (browser, server) => async(exitCode) => {
 };
 
 const browser = await puppeteer.launch({
-  // devtools: true, // Turn it on to debug the tests.
+  devtools: process.env.DEBUG_E2E === 'true',
   headless: false,
   // Puppeteer by default hide the scrollbars in headless mode (https://github.com/GoogleChrome/puppeteer/blob/master/lib/Launcher.js#L86).
   // To prevent this the custom arguments are provided.
-  args: ['--no-sandbox', '--disable-setuid-sandbox', '--headless', '--disable-gpu', '--mute-audio'],
+  args: process.env.DEBUG_E2E === 'true' 
+    ? ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu', '--mute-audio', '--remote-debugging-port=9222']
+    : ['--no-sandbox', '--disable-setuid-sandbox', '--headless', '--disable-gpu', '--mute-audio'],
 });
 
 console.log(`Started Puppeteer with version: ${await browser.version()}`);
