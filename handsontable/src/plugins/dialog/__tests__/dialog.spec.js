@@ -140,7 +140,9 @@ describe('Dialog', () => {
     it('should hide dialog', async() => {
       const hot = handsontable({
         data: [['A1', 'B1'], ['A2', 'B2']],
-        dialog: true,
+        dialog: {
+          closable: true,
+        },
       });
 
       const dialogPlugin = hot.getPlugin('dialog');
@@ -151,6 +153,24 @@ describe('Dialog', () => {
       dialogPlugin.hide();
       expect(dialogPlugin.isVisible()).toBe(false);
       expect($('.ht-dialog').length).toBe(1);
+    });
+
+    it('should not hide dialog when "closable" is false', async() => {
+      const hot = handsontable({
+        data: [['A1', 'B1'], ['A2', 'B2']],
+        dialog: {
+          closable: false,
+        },
+      });
+
+      const dialogPlugin = hot.getPlugin('dialog');
+
+      dialogPlugin.show();
+      expect(dialogPlugin.isVisible()).toBe(true);
+
+      dialogPlugin.hide();
+      expect(dialogPlugin.isVisible()).toBe(true);
+      expect($('.ht-dialog').hasClass('ht-dialog--show')).toBe(true);
     });
 
     it('should not show dialog when plugin is disabled', async() => {
@@ -172,7 +192,9 @@ describe('Dialog', () => {
     it('should contain "ht-dialog--show" class name when dialog is visible', async() => {
       const hot = handsontable({
         data: [['A1', 'B1'], ['A2', 'B2']],
-        dialog: true,
+        dialog: {
+          closable: true,
+        },
       });
 
       const dialogPlugin = hot.getPlugin('dialog');
@@ -185,7 +207,9 @@ describe('Dialog', () => {
     it('should not contain "ht-dialog--show" class name when dialog is hidden', async() => {
       const hot = handsontable({
         data: [['A1', 'B1'], ['A2', 'B2']],
-        dialog: true,
+        dialog: {
+          closable: true,
+        },
       });
 
       const dialogPlugin = hot.getPlugin('dialog');
@@ -563,7 +587,9 @@ describe('Dialog', () => {
       const beforeDialogHideSpy = jasmine.createSpy('beforeDialogHide');
       const hot = handsontable({
         data: [['A1', 'B1'], ['A2', 'B2']],
-        dialog: true,
+        dialog: {
+          closable: true,
+        },
         beforeDialogHide: beforeDialogHideSpy,
       });
 
@@ -579,7 +605,9 @@ describe('Dialog', () => {
       const afterDialogHideSpy = jasmine.createSpy('afterDialogHide');
       const hot = handsontable({
         data: [['A1', 'B1'], ['A2', 'B2']],
-        dialog: true,
+        dialog: {
+          closable: true,
+        },
         afterDialogHide: afterDialogHideSpy,
       });
 

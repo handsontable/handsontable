@@ -221,7 +221,7 @@ export class Dialog extends BasePlugin {
    * Closes the dialog and cleans up event listeners.
    */
   hide() {
-    if (!this.isVisible()) {
+    if (!this.isVisible() || !this.currentConfig.closable) {
       return;
     }
 
