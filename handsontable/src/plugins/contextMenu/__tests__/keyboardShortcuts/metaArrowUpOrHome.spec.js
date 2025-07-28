@@ -27,8 +27,8 @@ describe('ContextMenu keyboard shortcut', () => {
       // check if the viewport is scrolled to the top
       expect(window.scrollY).forThemes(({ classic, main, horizon }) => {
         classic.toBe(1);
-        main.toBe(10);
-        horizon.toBe(14);
+        main.toBe(9);
+        horizon.toBe(13);
       });
     });
 

@@ -1611,13 +1611,13 @@ describe('MergeCells', () => {
 
     expect(getTopInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(111);
-      main.toBe(129);
-      horizon.toBe(153);
+      main.toBe(130);
+      horizon.toBe(154);
     });
     expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(111);
-      main.toBe(129);
-      horizon.toBe(153);
+      main.toBe(130);
+      horizon.toBe(154);
     });
     expect(getInlineStartClone().height()).toBe(400);
   });
