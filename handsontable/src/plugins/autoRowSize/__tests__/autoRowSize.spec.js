@@ -478,13 +478,13 @@ describe('AutoRowSize', () => {
     });
     expect(parseInt(getCell(1, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(22); // -1px of cell border
-      main.toBe(29);
-      horizon.toBe(37);
+      main.toBe(30);
+      horizon.toBe(38);
     });
     expect(parseInt(getCell(2, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(22); // -1px of cell border
-      main.toBe(29);
-      horizon.toBe(37);
+      main.toBe(30);
+      horizon.toBe(38);
     });
 
     await resizeColumn(1, 90);
@@ -538,8 +538,8 @@ describe('AutoRowSize', () => {
     });
     expect(parseInt(getCell(1, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(22);
-      main.toBe(29);
-      horizon.toBe(37);
+      main.toBe(30);
+      horizon.toBe(38);
     });
     expect(parseInt(getCell(2, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(22);
@@ -572,8 +572,8 @@ describe('AutoRowSize', () => {
     });
     expect(parseInt(getCell(2, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBeInArray([22, 42]); // -1px of cell border
-      main.toBeInArray([29, 49]);
-      horizon.toBeInArray([37, 63]);
+      main.toBeInArray([30, 49]);
+      horizon.toBeInArray([38, 63]);
     });
 
     plugin.moveColumn(0, 1);
@@ -619,8 +619,8 @@ describe('AutoRowSize', () => {
     });
     expect(parseInt(getCell(2, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBeInArray([22, 42]); // -1px of cell border
-      main.toBeInArray([29, 49]);
-      horizon.toBeInArray([37, 63]);
+      main.toBeInArray([30, 49]);
+      horizon.toBeInArray([38, 63]);
     });
 
     await setDataAtCell(1, 0, 'A\nB\nC\nD\nE');
@@ -637,8 +637,8 @@ describe('AutoRowSize', () => {
     });
     expect(parseInt(getCell(2, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBeInArray([22, 42]);
-      main.toBeInArray([29, 49]);
-      horizon.toBeInArray([37, 63]);
+      main.toBeInArray([30, 49]);
+      horizon.toBeInArray([38, 63]);
     });
   });
 
@@ -665,8 +665,8 @@ describe('AutoRowSize', () => {
     });
     expect(parseInt(getCell(2, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBeInArray([22, 42]); // -1px of cell border
-      main.toBeInArray([29, 49]);
-      horizon.toBeInArray([37, 63]);
+      main.toBeInArray([30, 49]);
+      horizon.toBeInArray([38, 63]);
     });
 
     const plugin = getPlugin('manualRowMove');
@@ -682,13 +682,13 @@ describe('AutoRowSize', () => {
     });
     expect(parseInt(getCell(1, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(22);
-      main.toBe(29);
-      horizon.toBe(37);
+      main.toBe(30);
+      horizon.toBe(38);
     });
     expect(parseInt(getCell(2, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBeInArray([22, 42]); // -1px of cell border
-      main.toBeInArray([29, 49]);
-      horizon.toBeInArray([37, 63]);
+      main.toBeInArray([30, 49]);
+      horizon.toBeInArray([38, 63]);
     });
   });
 
@@ -773,13 +773,13 @@ describe('AutoRowSize', () => {
     });
     expect(getRowHeight(1)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(23);
-      main.toBe(29);
-      horizon.toBe(37);
+      main.toBe(30);
+      horizon.toBe(38);
     });
     expect(getRowHeight(2)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(23);
-      main.toBe(29);
-      horizon.toBe(37);
+      main.toBe(30);
+      horizon.toBe(38);
     });
   });
 
@@ -854,8 +854,8 @@ describe('AutoRowSize', () => {
 
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(833);
-      main.toBe(1136);
-      horizon.toBe(1544);
+      main.toBe(1185);
+      horizon.toBe(1593);
     });
 
     await listen();
@@ -864,8 +864,8 @@ describe('AutoRowSize', () => {
 
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(833);
-      main.toBe(1136);
-      horizon.toBe(1544);
+      main.toBe(1185);
+      horizon.toBe(1593);
     });
   });
 
