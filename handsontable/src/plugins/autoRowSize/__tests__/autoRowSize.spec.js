@@ -935,6 +935,63 @@ describe('AutoRowSize', () => {
     $(style).remove();
   });
 
+  it('should not cause a misalignment between the first column and the first row header when scrolling horizontally (dev-2512)', async() => {
+    const data = Array(1).fill().map(() => Array(20).fill('test'));
+
+    for (let i = 5; i < 10; i++) {
+      // The oversized entries have to fit exactly in the cells, so that adding a border to a cell will break the lines and make it higher.
+      data[0][i] = '0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000';
+    }
+
+    handsontable({
+      data,
+      colHeaders: true,
+      rowHeaders: true,
+      autoRowSize: true,
+      colWidths: 65,
+      wordWrap: true,
+      height: 500,
+      width: 300,
+    });
+
+    await selectCell(0, 18);
+
+    const rowHeaderHeight = getCell(0, -1, true).offsetHeight;
+    const cellsHeight = getCell(0, 18, true).offsetHeight;
+
+    expect(rowHeaderHeight).toBe(cellsHeight);
+  });
+
+  it('should not cause a misalignment between the first column and the first row header when scrolling horizontally (with hidden columns) (dev-2512)', async() => {
+    const data = Array(1).fill().map(() => Array(21).fill('test'));
+
+    for (let i = 5; i < 10; i++) {
+      // The oversized entries have to fit exactly in the cells, so that adding a border to a cell will break the lines and make it higher.
+      data[0][i] = '0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000';
+    }
+
+    handsontable({
+      data,
+      colHeaders: true,
+      rowHeaders: true,
+      autoRowSize: true,
+      colWidths: 65,
+      wordWrap: true,
+      height: 500,
+      width: 300,
+      hiddenColumns: {
+        columns: [0],
+      },
+    });
+
+    await selectCell(0, 18);
+
+    const rowHeaderHeight = getCell(0, -1, true).offsetHeight;
+    const cellsHeight = getCell(0, 18, true).offsetHeight;
+
+    expect(rowHeaderHeight).toBe(cellsHeight);
+  });
+
   describe('should work together with formulas plugin', () => {
     it('should calculate heights only once during the initialization of Handsontable with formulas plugin enabled', async() => {
       const beforeInit = function() {
