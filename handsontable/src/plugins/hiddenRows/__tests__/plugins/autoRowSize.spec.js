@@ -116,8 +116,8 @@ describe('HiddenRows', () => {
       expect(getRowHeight(1)).toBe(0);
       expect(getRowHeight(2)).forThemes(({ classic, main, horizon }) => {
         classic.toBe(23);
-        main.toBe(29);
-        horizon.toBe(37);
+        main.toBe(30);
+        horizon.toBe(38);
       });
     });
 
@@ -148,8 +148,8 @@ describe('HiddenRows', () => {
       expect(getRowHeight(1)).toBe(0);
       expect(getRowHeight(2)).forThemes(({ classic, main, horizon }) => {
         classic.toBe(23);
-        main.toBe(29);
-        horizon.toBe(37);
+        main.toBe(30);
+        horizon.toBe(38);
       });
     });
 

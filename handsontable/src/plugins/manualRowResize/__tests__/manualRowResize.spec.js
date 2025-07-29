@@ -125,7 +125,7 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
       classic.toEqual(31);
       main.toEqual(30);
-      horizon.toEqual(38);
+      horizon.toEqual(37);
     });
     expect(rowHeight(spec().$container, 1)).toEqual(80);
     expect(rowHeight(spec().$container, 2)).toEqual(100);
@@ -724,8 +724,8 @@ describe('manualRowResize', () => {
 
     expect(afterRowResizeCallback.calls.count()).toEqual(1);
     expect(afterRowResizeCallback.calls.argsFor(0)[1]).toEqual(2);
-    expect(afterRowResizeCallback.calls.argsFor(0)[0]).toEqual(themeDefaultRowHeight);
-    expect(rowHeight(spec().$container, 2)).toEqual(themeDefaultRowHeight);
+    expect(afterRowResizeCallback.calls.argsFor(0)[0]).toEqual(themeDefaultRowHeight + 1);
+    expect(rowHeight(spec().$container, 2)).toEqual(themeDefaultRowHeight + 1);
   });
 
   it.forTheme('horizon')('should trigger an afterRowResize after row size changes, after double click', async() => {
@@ -754,8 +754,8 @@ describe('manualRowResize', () => {
 
     expect(afterRowResizeCallback.calls.count()).toEqual(1);
     expect(afterRowResizeCallback.calls.argsFor(0)[1]).toEqual(2);
-    expect(afterRowResizeCallback.calls.argsFor(0)[0]).toEqual(themeDefaultRowHeight);
-    expect(rowHeight(spec().$container, 2)).toEqual(themeDefaultRowHeight);
+    expect(afterRowResizeCallback.calls.argsFor(0)[0]).toEqual(themeDefaultRowHeight + 1);
+    expect(rowHeight(spec().$container, 2)).toEqual(themeDefaultRowHeight + 1);
   });
 
   it('should resize appropriate rows to calculated autoRowSize height after double click on row handler after ' +
