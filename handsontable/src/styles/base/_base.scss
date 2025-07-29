@@ -115,13 +115,23 @@
 
         tbody {
           tr {
+            &:first-of-type {
+              th,
+              td {
+                &:first-child {
+                  height: calc(
+                    var(--ht-cell-vertical-padding) * 2 + var(--ht-line-height) + 1px
+                  )
+                }
+              }
+            }
+
             th,
             td {
               border-top-width: 0;
               height: calc(
-                var(--ht-cell-vertical-padding) * 2 + var(--ht-line-height) +
-                  1px
-              );
+                var(--ht-cell-vertical-padding) * 2 + var(--ht-line-height) + 1px
+              )
             }
           }
         }
