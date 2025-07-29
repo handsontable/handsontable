@@ -1,0 +1,7 @@
+#example4-custom-container {
+  margin-top: 10px;
+}
+
+#example4-custom-container .ht-pagination-container {
+  border-radius: 4px;
+}

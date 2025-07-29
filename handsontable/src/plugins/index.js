@@ -27,6 +27,7 @@ import { MultiColumnSorting } from './multiColumnSorting';
 import { MultipleSelectionHandles } from './multipleSelectionHandles';
 import { NestedHeaders } from './nestedHeaders';
 import { NestedRows } from './nestedRows';
+import { Pagination } from './pagination';
 import { PersistentState } from './persistentState';
 import { Search } from './search';
 import { StretchColumns } from './stretchColumns';
@@ -69,6 +70,7 @@ export function registerAllPlugins() {
   registerPlugin(MultipleSelectionHandles);
   registerPlugin(NestedHeaders);
   registerPlugin(NestedRows);
+  registerPlugin(Pagination);
   registerPlugin(PersistentState);
   registerPlugin(Search);
   registerPlugin(StretchColumns);
@@ -107,6 +109,7 @@ export {
   MultipleSelectionHandles,
   NestedHeaders,
   NestedRows,
+  Pagination,
   PersistentState,
   Search,
   StretchColumns,

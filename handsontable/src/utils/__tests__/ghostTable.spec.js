@@ -54,11 +54,8 @@ describe('GhostTable', () => {
       gt.addRow(2, samples);
 
       expect(gt.createContainer.calls.count()).toBe(1);
-      expect(gt.createContainer.calls.mostRecent().args).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual(['ht-wrapper handsontable']);
-        main.toEqual(['ht-wrapper handsontable']);
-        horizon.toEqual(['ht-wrapper handsontable']);
-      });
+      expect(gt.createContainer.calls.mostRecent().args)
+        .toEqual(['ht-wrapper handsontable htVerticallyScrollableByWindow htHorizontallyScrollableByWindow']);
     });
 
     it('should add row to rows collection after call `addRow` method', async() => {
@@ -173,11 +170,8 @@ describe('GhostTable', () => {
       gt.addColumn(2, samples);
 
       expect(gt.createContainer.calls.count()).toBe(1);
-      expect(gt.createContainer.calls.mostRecent().args).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual(['ht-wrapper handsontable']);
-        main.toEqual(['ht-wrapper handsontable']);
-        horizon.toEqual(['ht-wrapper handsontable']);
-      });
+      expect(gt.createContainer.calls.mostRecent().args)
+        .toEqual(['ht-wrapper handsontable htVerticallyScrollableByWindow htHorizontallyScrollableByWindow']);
     });
 
     it('should add column to columns collection after call `addColumn` method', async() => {

@@ -123,6 +123,8 @@
   --ht-radio-checked-disabled-background-color: #d1d1d5;
   --ht-radio-checked-disabled-icon-color: #a3a3a3;
   --ht-icon-button-border-radius: 2px;
+  --ht-icon-button-large-border-radius: 4px;
+  --ht-icon-button-large-padding: 4px;
   --ht-icon-button-border-color: #f7f7f9;
   --ht-icon-button-background-color: #f7f7f9;
   --ht-icon-button-icon-color: rgba(34, 34, 34, 0.40);
@@ -226,6 +228,10 @@
   --ht-menu-shadow-color: rgba(34, 34, 34, 0.08);
   --ht-menu-item-hover-color: rgba(34, 34, 34, 0.04);
   --ht-menu-item-active-color: rgba(34, 34, 34, 0.08);
+  --ht-pagination-bar-foreground-color: #222222;
+  --ht-pagination-bar-background-color: #f7f7f9;
+  --ht-pagination-bar-horizontal-padding: 16px;
+  --ht-pagination-bar-vertical-padding: 8px;
 }
 
 @mixin dark {
@@ -403,6 +409,10 @@
   --ht-menu-shadow-color: rgba(0, 0, 0, 0.80);
   --ht-menu-item-hover-color: rgba(199, 199, 199, 0.12);
   --ht-menu-item-active-color: rgba(199, 199, 199, 0.16);
+  --ht-pagination-bar-foreground-color: #c7c7c7;
+  --ht-pagination-bar-background-color: #1e1e1f;
+  --ht-pagination-bar-horizontal-padding: 16px;
+  --ht-pagination-bar-vertical-padding: 8px;
 }
 
 .ht-theme-main,

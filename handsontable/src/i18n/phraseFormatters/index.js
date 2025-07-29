@@ -1,5 +1,6 @@
 import { staticRegister } from './../../utils/staticRegister';
 import pluralizeFn from './pluralize';
+import substituteFn from './substituteVariables';
 
 const {
   register: registerGloballyPhraseFormatter,
@@ -31,3 +32,4 @@ export {
 };
 
 register('pluralize', pluralizeFn);
+register('substitute', substituteFn);
