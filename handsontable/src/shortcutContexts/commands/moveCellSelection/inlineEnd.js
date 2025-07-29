@@ -11,7 +11,7 @@ export const command = {
     selection.markSource('keyboard');
 
     if (
-      selection.isMultiple() &&
+      // selection.isMultiple() &&
       !selectedRange.isHeader() &&
       hot.countRenderedCols() > 0 &&
       hot.countRenderedRows() > 0

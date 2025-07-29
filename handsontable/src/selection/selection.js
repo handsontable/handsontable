@@ -9,7 +9,7 @@ import { isUndefined } from './../helpers/mixed';
 import { clamp } from './../helpers/number';
 import { arrayEach } from './../helpers/array';
 import localHooks from './../mixins/localHooks';
-import Transformation from './transformation';
+import { ExtenderTransformation, FocusTransformation } from './transformation';
 import {
   detectSelectionType,
   normalizeSelectionFactory,
@@ -61,7 +61,7 @@ class Selection {
    *
    * @type {Transformation}
    */
-  #transformation;
+  #extenderTransformation;
   /**
    * The module for modifying coordinates of the focus selection.
    *
@@ -127,40 +127,31 @@ class Selection {
       createCellCoords: (row, column) => this.tableProps.createCellCoords(row, column),
       createCellRange: (highlight, from, to) => this.tableProps.createCellRange(highlight, from, to),
     });
-    this.#transformation = new Transformation(this.selectedRange, {
+
+    const transformationDeps = {
       rowIndexMapper: this.tableProps.rowIndexMapper,
       columnIndexMapper: this.tableProps.columnIndexMapper,
       countRenderableRows: () => this.tableProps.countRenderableRows(),
       countRenderableColumns: () => this.tableProps.countRenderableColumns(),
+      countRenderableRowsInRange: (...args) => this.tableProps.countRenderableRowsInRange(...args),
+      countRenderableColumnsInRange: (...args) => this.tableProps.countRenderableColumnsInRange(...args),
       visualToRenderableCoords: coords => this.tableProps.visualToRenderableCoords(coords),
       renderableToVisualCoords: coords => this.tableProps.renderableToVisualCoords(coords),
       findFirstNonHiddenRenderableRow: (...args) => this.tableProps.findFirstNonHiddenRenderableRow(...args),
       findFirstNonHiddenRenderableColumn: (...args) => this.tableProps.findFirstNonHiddenRenderableColumn(...args),
       createCellCoords: (row, column) => this.tableProps.createCellCoords(row, column),
+    };
+
+    this.#extenderTransformation = new ExtenderTransformation(this.selectedRange, {
+      ...transformationDeps,
       fixedRowsBottom: () => settings.fixedRowsBottom,
       minSpareRows: () => settings.minSpareRows,
       minSpareCols: () => settings.minSpareCols,
       autoWrapRow: () => settings.autoWrapRow,
       autoWrapCol: () => settings.autoWrapCol,
     });
-    this.#focusTransformation = new Transformation(this.selectedRange, {
-      rowIndexMapper: this.tableProps.rowIndexMapper,
-      columnIndexMapper: this.tableProps.columnIndexMapper,
-      countRenderableRows: () => {
-        const range = this.selectedRange.current();
-
-        return this.tableProps.countRenderableRowsInRange(0, range.getOuterBottomEndCorner().row);
-      },
-      countRenderableColumns: () => {
-        const range = this.selectedRange.current();
-
-        return this.tableProps.countRenderableColumnsInRange(0, range.getOuterBottomEndCorner().col);
-      },
-      visualToRenderableCoords: coords => this.tableProps.visualToRenderableCoords(coords),
-      renderableToVisualCoords: coords => this.tableProps.renderableToVisualCoords(coords),
-      findFirstNonHiddenRenderableRow: (...args) => this.tableProps.findFirstNonHiddenRenderableRow(...args),
-      findFirstNonHiddenRenderableColumn: (...args) => this.tableProps.findFirstNonHiddenRenderableColumn(...args),
-      createCellCoords: (row, column) => this.tableProps.createCellCoords(row, column),
+    this.#focusTransformation = new FocusTransformation(this.selectedRange, {
+      ...transformationDeps,
       fixedRowsBottom: () => 0,
       minSpareRows: () => 0,
       minSpareCols: () => 0,
@@ -168,21 +159,21 @@ class Selection {
       autoWrapCol: () => true,
     });
 
-    this.#transformation.addLocalHook('beforeTransformStart',
+    this.#extenderTransformation.addLocalHook('beforeTransformStart',
       (...args) => this.runLocalHooks('beforeModifyTransformStart', ...args));
-    this.#transformation.addLocalHook('afterTransformStart',
+    this.#extenderTransformation.addLocalHook('afterTransformStart',
       (...args) => this.runLocalHooks('afterModifyTransformStart', ...args));
-    this.#transformation.addLocalHook('beforeTransformEnd',
+    this.#extenderTransformation.addLocalHook('beforeTransformEnd',
       (...args) => this.runLocalHooks('beforeModifyTransformEnd', ...args));
-    this.#transformation.addLocalHook('afterTransformEnd',
+    this.#extenderTransformation.addLocalHook('afterTransformEnd',
       (...args) => this.runLocalHooks('afterModifyTransformEnd', ...args));
-    this.#transformation.addLocalHook('insertRowRequire',
+    this.#extenderTransformation.addLocalHook('insertRowRequire',
       (...args) => this.runLocalHooks('insertRowRequire', ...args));
-    this.#transformation.addLocalHook('insertColRequire',
+    this.#extenderTransformation.addLocalHook('insertColRequire',
       (...args) => this.runLocalHooks('insertColRequire', ...args));
-    this.#transformation.addLocalHook('beforeRowWrap',
+    this.#extenderTransformation.addLocalHook('beforeRowWrap',
       (...args) => this.runLocalHooks('beforeRowWrap', ...args));
-    this.#transformation.addLocalHook('beforeColumnWrap',
+    this.#extenderTransformation.addLocalHook('beforeColumnWrap',
       (...args) => this.runLocalHooks('beforeColumnWrap', ...args));
 
     this.#focusTransformation.addLocalHook('beforeTransformStart',
@@ -387,6 +378,11 @@ class Selection {
     this.setRangeFocus(this.selectedRange.current().highlight);
     this.applyAndCommit();
 
+    const layerIndex = this.selectedRange.size() - 1;
+
+    this.#extenderTransformation.setActiveLayerIndex(layerIndex);
+    this.#focusTransformation.setActiveLayerIndex(layerIndex);
+
     const isLastLayer = this.#expectedLayersCount === -1 || this.selectedRange.size() === this.#expectedLayersCount;
 
     this.runLocalHooks('afterSetRangeEnd', coords, isLastLayer);
@@ -546,13 +542,14 @@ class Selection {
    * Sets the selection focus position at the specified coordinates.
    *
    * @param {CellCoords} coords The CellCoords instance with defined visual coordinates.
+   * @param {number} [layerIndex] The layer index to set the focus on.
    */
-  setRangeFocus(coords) {
+  setRangeFocus(coords, layerIndex = this.getLayerLevel()) {
     if (this.selectedRange.isEmpty()) {
       return;
     }
 
-    const cellRange = this.selectedRange.current();
+    const cellRange = this.selectedRange.peekByIndex(layerIndex);
 
     if (!this.inProgress) {
       this.runLocalHooks('beforeSetFocus', coords);
@@ -589,17 +586,11 @@ class Selection {
    * Otherwise, row/column will be created according to `minSpareRows/minSpareCols` settings of Handsontable.
    */
   transformStart(rowDelta, colDelta, createMissingRecords = false) {
-    if (this.settings.navigableHeaders) {
-      this.#transformation.setOffsetSize({
-        x: this.tableProps.countRowHeaders(),
-        y: this.tableProps.countColHeaders(),
-      });
+    const {
+      visualCoords
+    } = this.#extenderTransformation.transformStart(rowDelta, colDelta, createMissingRecords);
 
-    } else {
-      this.#transformation.resetOffsetSize();
-    }
-
-    this.setRangeStart(this.#transformation.transformStart(rowDelta, colDelta, createMissingRecords));
+    this.setRangeStart(visualCoords);
   }
 
   /**
@@ -609,17 +600,11 @@ class Selection {
    * @param {number} colDelta Columns number to move, value can be passed as negative number.
    */
   transformEnd(rowDelta, colDelta) {
-    if (this.settings.navigableHeaders) {
-      this.#transformation.setOffsetSize({
-        x: this.tableProps.countRowHeaders(),
-        y: this.tableProps.countColHeaders(),
-      });
+    const {
+      visualCoords,
+    } = this.#extenderTransformation.transformEnd(rowDelta, colDelta);
 
-    } else {
-      this.#transformation.resetOffsetSize();
-    }
-
-    this.setRangeEnd(this.#transformation.transformEnd(rowDelta, colDelta));
+    this.setRangeEnd(visualCoords);
   }
 
   /**
@@ -629,28 +614,12 @@ class Selection {
    * @param {number} colDelta Columns number to move, value can be passed as negative number.
    */
   transformFocus(rowDelta, colDelta) {
-    const range = this.selectedRange.current();
-    const { row, col } = range.getOuterTopStartCorner();
-    const columnsInRange = this.tableProps.countRenderableColumnsInRange(0, col - 1);
-    const rowsInRange = this.tableProps.countRenderableRowsInRange(0, row - 1);
+    const {
+      selectionLayer,
+      visualCoords,
+    } = this.#focusTransformation.transformStart(rowDelta, colDelta);
 
-    if (range.highlight.isHeader()) {
-      // for header focus selection calculate the new coords based on the selection including headers
-      this.#focusTransformation.setOffsetSize({
-        x: col < 0 ? Math.abs(col) : -columnsInRange,
-        y: row < 0 ? Math.abs(row) : -rowsInRange,
-      });
-    } else {
-      // for focus selection in cells calculate the new coords only based on the selected cells
-      this.#focusTransformation.setOffsetSize({
-        x: col < 0 ? 0 : -columnsInRange,
-        y: row < 0 ? 0 : -rowsInRange,
-      });
-    }
-
-    const focusCoords = this.#focusTransformation.transformStart(rowDelta, colDelta);
-
-    this.setRangeFocus(focusCoords.normalize());
+    this.setRangeFocus(visualCoords.normalize(), selectionLayer);
   }
 
   /**

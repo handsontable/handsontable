@@ -9,7 +9,7 @@ export const command = {
 
     // supports for navigating with enter key when multiple cells are selected
     if (
-      hot.selection.isMultiple() &&
+      // hot.selection.isMultiple() &&
       !selectedRange.isHeader() &&
       hot.countRenderedCols() > 0 &&
       hot.countRenderedRows() > 0
