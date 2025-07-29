@@ -479,12 +479,12 @@ jobs:
           path: ./
       - run: tar -zxf tmp.tar.gz ./handsontable/tmp && rm tmp.tar.gz
 
-      - name: Download the Handsontable UMD build artifact and only extract CSS files
+      - name: Download the Handsontable UMD build artifact and only extract CSS and languages files
         uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # https://github.com/actions/download-artifact/releases/tag/v4.1.3
         with:
           name: handsontable-build-umd
           path: ./
-      - run: tar -zxf dist.tar.gz --overwrite --wildcards '*.css' && rm dist.tar.gz
+      - run: tar -zxf dist.tar.gz --overwrite --wildcards '*.css' './dist/languages/*' && rm dist.tar.gz
 
       - name: Build UMD from ESM
         run: |
@@ -520,12 +520,12 @@ jobs:
           path: ./
       - run: tar -zxf tmp.tar.gz ./handsontable/tmp && rm tmp.tar.gz
 
-      - name: Download the Handsontable UMD build artifact and only extract CSS files
+      - name: Download the Handsontable UMD build artifact and only extract CSS and languages files
         uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # https://github.com/actions/download-artifact/releases/tag/v4.1.3
         with:
           name: handsontable-build-umd
           path: ./
-      - run: tar -zxf dist.tar.gz --overwrite --wildcards '*.css' && rm dist.tar.gz
+      - run: tar -zxf dist.tar.gz --overwrite --wildcards '*.css' './dist/languages/*' && rm dist.tar.gz
 
       - name: Build UMD from CJS
         run: |
