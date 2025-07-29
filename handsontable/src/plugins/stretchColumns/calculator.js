@@ -126,6 +126,11 @@ export class StretchCalculator {
     let hasVerticalScroll = false;
 
     for (let row = 0; row < totalRows; row++) {
+      if (this.#hot.rowIndexMapper.isHidden(this.#hot.toPhysicalRow(row))) {
+        // eslint-disable-next-line no-continue
+        continue;
+      }
+
       totalHeight += (this.#hot.getRowHeight(row) ?? defaultRowHeight) + (row === 0 ? 1 : 0);
 
       if (totalHeight > viewportHeight) {

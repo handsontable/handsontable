@@ -10,6 +10,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const buildMode = process.env.BUILD_MODE;
 const [...cliArgs] = process.argv.slice(2);
 const NO_CACHE = cliArgs.some(opt => opt.includes('--no-cache'));
+const NODE_MAX_OLD_SPACE_SIZE = 8192;
 
 /**
  * Cleans the dist.
@@ -33,16 +34,19 @@ async function buildVersion(version) {
 
   if (version !== 'next' || buildMode === 'staging') {
     await spawnProcess(
-      'node node_modules/.bin/vuepress build -d .vuepress/dist/pre-' +
-        `${versionEscaped}/${NO_CACHE ? ' --no-cache' : ''}`,
-      { cwd, env: { DOCS_BASE: version }, }
+      `node --max-old-space-size=${NODE_MAX_OLD_SPACE_SIZE} ` +
+        `node_modules/.bin/vuepress build -d .vuepress/dist/pre-${versionEscaped}` +
+        `${NO_CACHE ? ' --no-cache' : ''}`,
+      { cwd, env: { DOCS_BASE: version } }
     );
   }
 
   await spawnProcess(
-    'node node_modules/.bin/vuepress build -d .vuepress/dist/pre-latest-' +
-      `${versionEscaped}/${NO_CACHE ? ' --no-cache' : ''}`,
-    { cwd, env: { DOCS_BASE: 'latest' }, }
+    `node --max-old-space-size=${NODE_MAX_OLD_SPACE_SIZE} ` +
+      'node_modules/.bin/vuepress build ' +
+      `-d .vuepress/dist/pre-latest-${versionEscaped}` +
+      `${NO_CACHE ? ' --no-cache' : ''}`,
+    { cwd, env: { DOCS_BASE: 'latest' } }
   );
 
   logger.success(`Version "${version}" build finished at`, new Date().toString());

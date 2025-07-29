@@ -51,6 +51,7 @@ describe('`registerAllPlugins`', () => {
       'HiddenColumns',
       'HiddenRows',
       'TrimRows',
+      'Pagination',
       'UndoRedo',
     ]);
     expect(getRegisteredRendererNames()).toEqual([

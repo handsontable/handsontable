@@ -41,6 +41,13 @@ class SamplesGenerator {
    * @default {false}
    */
   allowDuplicates = false;
+  /**
+   * `true` if hidden samples should be included, `false` otherwise.
+   *
+   * @type {boolean}
+   * @default {false}
+   */
+  includeHidden = false;
 
   constructor(dataFactory) {
     this.dataFactory = dataFactory;
@@ -75,6 +82,15 @@ class SamplesGenerator {
    */
   setAllowDuplicates(allowDuplicates) {
     this.allowDuplicates = allowDuplicates;
+  }
+
+  /**
+   * Sets the sampler to the mode where it will generate samples for hidden indexes.
+   *
+   * @param {boolean} includeHidden `true` to include hidden indexes, `false` otherwise.
+   */
+  setIncludeHidden(includeHidden) {
+    this.includeHidden = includeHidden;
   }
 
   /**
@@ -140,7 +156,7 @@ class SamplesGenerator {
 
     rangeEach(range.from, range.to, (index) => {
       const data = type === 'row' ?
-        this.dataFactory(specifierValue, index) : this.dataFactory(index, specifierValue);
+        this.dataFactory(specifierValue, index, this) : this.dataFactory(index, specifierValue, this);
 
       if (data === false) {
         return;

@@ -34,8 +34,8 @@ export default function showColumnItem(hiddenColumnsPlugin) {
 
       // We render columns at first. It was needed for getting fixed columns.
       // Please take a look at #6864 for broader description.
-      this.render();
       this.view.adjustElementsSize();
+      this.render();
 
       const allColumnsSelected = endVisualColumn - startVisualColumn + 1 === this.countCols();
 
