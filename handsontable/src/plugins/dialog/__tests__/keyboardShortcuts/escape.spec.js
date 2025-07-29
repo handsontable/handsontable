@@ -1,0 +1,182 @@
+describe('Dialog keyboard shortcut', () => {
+  const id = 'testContainer';
+
+  beforeEach(function() {
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+  });
+
+  afterEach(function() {
+    if (this.$container) {
+      destroy();
+      this.$container.remove();
+    }
+  });
+
+  describe('"Escape"', () => {
+    it('should close the dialog when closable is true', async() => {
+      const hot = handsontable({
+        data: [['A1', 'B1'], ['A2', 'B2']],
+        dialog: {
+          closable: true,
+        },
+      });
+
+      const dialogPlugin = hot.getPlugin('dialog');
+
+      dialogPlugin.show({
+        content: 'Test dialog content',
+      });
+
+      expect(dialogPlugin.isVisible()).toBe(true);
+      expect($('.ht-dialog').is(':visible')).toBe(true);
+
+      await keyDownUp('escape');
+
+      expect(dialogPlugin.isVisible()).toBe(false);
+      expect($('.ht-dialog').hasClass('ht-dialog--show')).toBe(false);
+    });
+
+    it('should not close the dialog when closable is false', async() => {
+      const hot = handsontable({
+        data: [['A1', 'B1'], ['A2', 'B2']],
+        dialog: {
+          closable: false,
+        },
+      });
+
+      const dialogPlugin = hot.getPlugin('dialog');
+
+      dialogPlugin.show({
+        content: 'Test dialog content',
+      });
+
+      expect(dialogPlugin.isVisible()).toBe(true);
+      expect($('.ht-dialog').is(':visible')).toBe(true);
+
+      await keyDownUp('escape');
+
+      expect(dialogPlugin.isVisible()).toBe(true);
+      expect($('.ht-dialog').hasClass('ht-dialog--show')).toBe(true);
+    });
+
+    it('should not close the dialog when not visible', async() => {
+      const hot = handsontable({
+        data: [['A1', 'B1'], ['A2', 'B2']],
+        dialog: {
+          closable: true,
+        },
+      });
+
+      const dialogPlugin = hot.getPlugin('dialog');
+
+      expect(dialogPlugin.isVisible()).toBe(false);
+
+      await keyDownUp('escape');
+
+      expect(dialogPlugin.isVisible()).toBe(false);
+    });
+
+    it('should run beforeDialogHide and afterDialogHide hooks when closing with escape', async() => {
+      const beforeDialogHideSpy = jasmine.createSpy('beforeDialogHide');
+      const afterDialogHideSpy = jasmine.createSpy('afterDialogHide');
+
+      const hot = handsontable({
+        data: [['A1', 'B1'], ['A2', 'B2']],
+        dialog: {
+          closable: true,
+        },
+        beforeDialogHide: beforeDialogHideSpy,
+        afterDialogHide: afterDialogHideSpy,
+      });
+
+      const dialogPlugin = hot.getPlugin('dialog');
+
+      dialogPlugin.show({
+        content: 'Test dialog content',
+      });
+
+      expect(dialogPlugin.isVisible()).toBe(true);
+
+      await keyDownUp('escape');
+
+      expect(beforeDialogHideSpy).toHaveBeenCalled();
+      expect(afterDialogHideSpy).toHaveBeenCalled();
+      expect(dialogPlugin.isVisible()).toBe(false);
+    });
+
+    it('should switch back to grid context after closing dialog with escape', async() => {
+      const hot = handsontable({
+        data: [['A1', 'B1'], ['A2', 'B2']],
+        dialog: {
+          closable: true,
+        },
+      });
+
+      const dialogPlugin = hot.getPlugin('dialog');
+      const shortcutManager = hot.getShortcutManager();
+
+      dialogPlugin.show({
+        content: 'Test dialog content',
+      });
+
+      // Dialog context should be active when dialog is shown
+      expect(shortcutManager.getActiveContextName()).toBe('plugin:dialog');
+
+      await keyDownUp('escape');
+
+      // Should switch back to grid context after closing
+      expect(shortcutManager.getActiveContextName()).toBe('grid');
+      expect(dialogPlugin.isVisible()).toBe(false);
+    });
+
+    it('should work with custom dialog configuration', async() => {
+      const hot = handsontable({
+        data: [['A1', 'B1'], ['A2', 'B2']],
+        dialog: {
+          closable: true,
+          content: 'Custom content',
+          background: 'semi-transparent',
+          contentBackground: true,
+          contentDirections: 'column',
+          animation: false,
+        },
+      });
+
+      const dialogPlugin = hot.getPlugin('dialog');
+
+      dialogPlugin.show();
+
+      expect(dialogPlugin.isVisible()).toBe(true);
+      expect($('.ht-dialog').hasClass('ht-dialog--background-semi-transparent')).toBe(true);
+      expect($('.ht-dialog__content').hasClass('ht-dialog__content--background')).toBe(true);
+      expect($('.ht-dialog__content').hasClass('ht-dialog__content--flex-column')).toBe(true);
+
+      await keyDownUp('escape');
+
+      expect(dialogPlugin.isVisible()).toBe(false);
+    });
+
+    it('should not interfere with other keyboard shortcuts when dialog is not visible', async() => {
+      const hot = handsontable({
+        data: [['A1', 'B1'], ['A2', 'B2']],
+        dialog: {
+          closable: true,
+        },
+      });
+
+      const dialogPlugin = hot.getPlugin('dialog');
+
+      // Dialog is not visible initially
+      expect(dialogPlugin.isVisible()).toBe(false);
+
+      // Select a cell
+      await selectCell(0, 0);
+
+      // Press escape - should not affect the dialog since it's not visible
+      await keyDownUp('escape');
+
+      expect(dialogPlugin.isVisible()).toBe(false);
+      // The escape key should still work for other purposes (like canceling cell editing)
+    });
+  });
+});

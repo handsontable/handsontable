@@ -7,6 +7,8 @@ import { A11Y_DIALOG, A11Y_MODAL } from '../../helpers/a11y';
 export const PLUGIN_KEY = 'dialog';
 export const PLUGIN_PRIORITY = 340;
 const DIALOG_CLASS_NAME = 'ht-dialog';
+const SHORTCUTS_GROUP = PLUGIN_KEY;
+const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
 
 // Register dialog hooks
 Hooks.getSingleton().register('beforeDialogShow');
@@ -164,6 +166,7 @@ export class Dialog extends BasePlugin {
     this.currentConfig = { ...Dialog.DEFAULT_CONFIG };
     this.#updateDialogConfig(this.hot.getSettings()[PLUGIN_KEY]);
     this.#createDialogElements();
+    this.registerShortcuts();
 
     super.enablePlugin();
   }
@@ -183,6 +186,7 @@ export class Dialog extends BasePlugin {
    */
   disablePlugin() {
     this.#destroyDialog();
+    this.unregisterShortcuts();
 
     super.disablePlugin();
   }
@@ -194,6 +198,37 @@ export class Dialog extends BasePlugin {
    */
   isVisible() {
     return this.#isVisible;
+  }
+
+  /**
+   * Register shortcuts responsible for toggling a merge.
+   *
+   * @private
+   */
+  registerShortcuts() {
+    const manager = this.hot.getShortcutManager();
+    const pluginContext = manager.addContext(SHORTCUTS_CONTEXT_NAME, 'global');
+
+    pluginContext.addShortcut({
+      keys: [['Escape']],
+      callback: () => {
+        this.hide();
+      },
+      runOnlyIf: () => this.#isVisible && this.currentConfig.closable,
+      group: SHORTCUTS_GROUP,
+    });
+  }
+
+  /**
+   * Unregister shortcuts responsible for toggling a merge.
+   *
+   * @private
+   */
+  unregisterShortcuts() {
+    const shortcutManager = this.hot.getShortcutManager();
+    const pluginContext = shortcutManager.getContext(SHORTCUTS_CONTEXT_NAME);
+
+    pluginContext.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   /**
@@ -210,7 +245,7 @@ export class Dialog extends BasePlugin {
     this.hot.runHooks('beforeDialogShow', this.currentConfig);
 
     this.update(config);
-    this.#attachEventListeners();
+    this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
     this.#showDialog();
 
     this.hot.runHooks('afterDialogShow', this.currentConfig);
@@ -228,7 +263,7 @@ export class Dialog extends BasePlugin {
     this.hot.runHooks('beforeDialogHide');
 
     this.#hideDialog();
-    this.#detachEventListeners();
+    this.hot.getShortcutManager().setActiveContextName('grid');
 
     this.hot.runHooks('afterDialogHide');
   }
@@ -324,13 +359,12 @@ export class Dialog extends BasePlugin {
    * @private
    */
   #updateDialogClassName() {
-    const baseClass = DIALOG_CLASS_NAME;
     const customClass = this.currentConfig.customClassName ? ` ${this.currentConfig.customClassName}` : '';
     const backgroundClass = ` ${DIALOG_CLASS_NAME}--background-${this.currentConfig.background}`;
     const animationClass = this.currentConfig.animation ? ` ${DIALOG_CLASS_NAME}--animation` : '';
     const showClass = this.isVisible() ? ` ${DIALOG_CLASS_NAME}--show` : '';
 
-    this.dialogElement.className = `${baseClass}${customClass}${backgroundClass}${animationClass}${showClass}`;
+    this.dialogElement.className = `${DIALOG_CLASS_NAME}${customClass}${backgroundClass}${animationClass}${showClass}`;
   }
 
   /**
@@ -404,40 +438,6 @@ export class Dialog extends BasePlugin {
     }
 
     this.#isVisible = false;
-  }
-
-  /**
-   * Escape key handler.
-   *
-   * @param {KeyboardEvent} event - The keyboard event.
-   * @private
-   */
-  #escapeHandler = (event) => {
-    if (event.key === 'Escape') {
-      this.hide();
-    }
-  };
-
-  /**
-   * Attach event listeners to dialog elements.
-   *
-   * @private
-   */
-  #attachEventListeners() {
-    if (!this.currentConfig.closable) {
-      return;
-    }
-
-    this.eventManager.addEventListener(this.hot.rootDocument, 'keydown', event => this.#escapeHandler(event));
-  }
-
-  /**
-   * Detach event listeners from dialog elements.
-   *
-   * @private
-   */
-  #detachEventListeners() {
-    this.eventManager.clear();
   }
 
   /**

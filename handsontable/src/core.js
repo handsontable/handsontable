@@ -5282,8 +5282,12 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   };
 
   const shortcutManager = createShortcutManager({
-    handleEvent() {
-      return instance.isListening();
+    handleEvent(_, scope) {
+      if (scope === 'table') {
+        return instance.isListening();
+      }
+
+      return true;
     },
     beforeKeyDown: (event) => {
       return this.runHooks('beforeKeyDown', event);

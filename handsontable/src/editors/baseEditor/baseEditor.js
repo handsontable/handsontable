@@ -121,7 +121,9 @@ export class BaseEditor {
   /**
    * Initializes an editor's intance.
    */
-  init() {}
+  init() {
+    this.addHook('beforeDialogShow', () => this.close());
+  }
 
   /**
    * Required method to get current value from editable element.
