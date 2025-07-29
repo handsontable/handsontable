@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issues with visual layout inconsistencies with browser zoom and scaling",
+  "type": "fixed",
+  "issueOrPR": 11739,
+  "breaking": false,
+  "framework": "none"
+}

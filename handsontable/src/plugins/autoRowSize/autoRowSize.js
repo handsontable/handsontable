@@ -6,10 +6,12 @@ import { valueAccordingPercent, rangeEach } from '../../helpers/number';
 import SamplesGenerator from '../../utils/samplesGenerator';
 import { isPercentValue } from '../../helpers/string';
 import { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
+import { addClass, removeClass } from '../../helpers/dom/element';
 
 export const PLUGIN_KEY = 'autoRowSize';
 export const PLUGIN_PRIORITY = 40;
 const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
+const FIRST_COLUMN_NOT_RENDERED_CLASS_NAME = 'htFirstDatasetColumnNotRendered';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
@@ -290,6 +292,7 @@ export class AutoRowSize extends BasePlugin {
     this.addHook('beforeChangeRender', (...args) => this.#onBeforeChange(...args));
     this.addHook('beforeColumnResize', () => this.recalculateAllRowsHeight());
     this.addHook('afterFormulasValuesUpdate', (...args) => this.#onAfterFormulasValuesUpdate(...args));
+    this.addHook('beforeViewRender', () => this.#onBeforeViewRender());
     this.addHook('beforeRender', () => this.#onBeforeRender());
     this.addHook('modifyRowHeight', (height, row) => this.getRowHeight(row, height));
     this.addHook('init', () => this.#onInit());
@@ -305,6 +308,9 @@ export class AutoRowSize extends BasePlugin {
     this.headerHeight = null;
 
     super.disablePlugin();
+
+    // Remove the "first dataset column not rendered" class name when the plugin is disabled.
+    this.#toggleFirstDatasetColumnRenderedClassName(false);
 
     // Leave the listener active to allow auto-sizing the rows when the plugin is disabled.
     // This is necessary for height recalculation for resize handler doubleclick (ManualRowResize).
@@ -607,7 +613,38 @@ export class AutoRowSize extends BasePlugin {
   }
 
   /**
-   * On before view render listener.
+   * Toggles the "first dataset column not rendered" class name.
+   * Used to apply special styling when the first column is visible (used only in the classic theme, with the AutoRowSize plugin enabled).
+   *
+   * @param {boolean} [forceState] Force the class to be added or removed (`true` to add, `false` to remove).
+   */
+  #toggleFirstDatasetColumnRenderedClassName(forceState) {
+    if (this.hot.stylesHandler.isClassicTheme()) {
+      const firstRenderedColumnVisualIndex = this.hot.getFirstRenderedVisibleColumn();
+      const firstRenderedColumnPhysicalIndex =
+        this.hot.columnIndexMapper.getPhysicalFromVisualIndex(firstRenderedColumnVisualIndex);
+
+      if (
+        forceState === false ||
+        firstRenderedColumnPhysicalIndex === this.hot.columnIndexMapper.getPhysicalFromRenderableIndex(0)
+      ) {
+        removeClass(this.hot.rootElement, FIRST_COLUMN_NOT_RENDERED_CLASS_NAME);
+
+      } else {
+        addClass(this.hot.rootElement, FIRST_COLUMN_NOT_RENDERED_CLASS_NAME);
+      }
+    }
+  }
+
+  /**
+   * `beforeViewRender` hook listener.
+   */
+  #onBeforeViewRender() {
+    this.#toggleFirstDatasetColumnRenderedClassName();
+  }
+
+  /**
+   * `beforeRender` hook listener.
    */
   #onBeforeRender() {
     this.calculateVisibleRowsHeight();

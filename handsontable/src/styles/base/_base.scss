@@ -28,6 +28,8 @@
     --ht-header-row-active-foreground-color: #fff;
     --ht-header-row-active-background-color: #1a42e8;
     --ht-cell-selection-border-color: #1a42e8;
+    --ht-scrollbar-track-color: #f7f7f9;
+    --ht-scrollbar-thumb-color: #a3a3a3;
   }
 
   // Root wrapper
@@ -117,13 +119,23 @@
 
         tbody {
           tr {
+            &:first-of-type {
+              th,
+              td {
+                &:first-child {
+                  height: calc(
+                    var(--ht-cell-vertical-padding) * 2 + var(--ht-line-height) + 1px
+                  )
+                }
+              }
+            }
+
             th,
             td {
               border-top-width: 0;
               height: calc(
-                var(--ht-cell-vertical-padding) * 2 + var(--ht-line-height) +
-                  1px
-              );
+                var(--ht-cell-vertical-padding) * 2 + var(--ht-line-height) + 1px
+              )
             }
           }
         }
@@ -300,9 +312,11 @@
         &:first-of-type {
           th,
           td {
-            height: calc(
-              var(--ht-cell-vertical-padding) * 2 + var(--ht-line-height) + 2px
-            );
+            &:first-child {
+              height: calc(
+                var(--ht-cell-vertical-padding) * 2 + var(--ht-line-height) + 2px
+              );
+            }
           }
         }
 
@@ -572,6 +586,28 @@
       thead tr.lastChild th,
       & ~ .handsontable thead tr.lastChild th {
         border-bottom-width: 0;
+      }
+    }
+
+    .ht_master.innerBorderTop {
+      tbody {
+        tr:first-child {
+          th,
+          td {
+            border-top-width: 0;
+          }
+        }
+      }
+
+      & ~ .ht_clone_inline_start {
+        tbody {
+          tr:first-child {
+            th,
+            td {
+              border-top-width: 0;
+            }
+          }
+        }
       }
     }
 

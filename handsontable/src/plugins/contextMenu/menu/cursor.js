@@ -124,7 +124,7 @@ export class Cursor {
    * @param {number} [viewportWidth] The viewport width.
    * @returns {boolean}
    */
-  fitsOnRight(element, viewportWidth = this.rootWindow.innerWidth) {
+  fitsOnRight(element, viewportWidth = this.rootWindow.document.documentElement.clientWidth) {
     return this.leftRelative + this.cellWidth + element.offsetWidth <= viewportWidth;
   }
 
