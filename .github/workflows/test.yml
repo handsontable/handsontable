@@ -533,7 +533,7 @@ jobs:
           name: handsontable-build-umd
           path: ./
       - run: tar -tvf dist.tar.gz
-      - run: tar -zxf dist.tar.gz --overwrite --wildcards '*.css' 'handsontable/dist/languages/*' && rm dist.tar.gz
+      - run: tar -zxf dist.tar.gz --overwrite --wildcards *.css handsontable/dist/languages/* && rm dist.tar.gz
 
       - name: Build UMD from CJS
         run: |
