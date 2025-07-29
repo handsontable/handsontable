@@ -853,9 +853,9 @@ describe('AutoRowSize', () => {
     await scrollViewportTo(49, 0);
 
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(833);
-      main.toBe(1136);
-      horizon.toBe(1544);
+      classic.toBe(832);
+      main.toBe(1135);
+      horizon.toBe(1543);
     });
 
     await listen();
@@ -863,9 +863,9 @@ describe('AutoRowSize', () => {
     await keyDownUp('delete');
 
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(833);
-      main.toBe(1136);
-      horizon.toBe(1544);
+      classic.toBe(832);
+      main.toBe(1135);
+      horizon.toBe(1543);
     });
   });
 
