@@ -36,8 +36,8 @@ describe('MergeCells', () => {
     });
     expect(getRowHeight(1)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(23);
-      main.toBe(30);
-      horizon.toBe(38);
+      main.toBe(29);
+      horizon.toBe(37);
     });
   });
 });
