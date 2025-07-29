@@ -12,6 +12,11 @@ on:
       - 'develop'
       - 'release/**'
   workflow_dispatch:
+    inputs:
+      test-all:
+        description: 'Test all?'
+        type: boolean
+        default: false
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -25,7 +30,8 @@ jobs:
       run-all: ${{
           endsWith(github.ref, '/master') ||
           endsWith(github.ref, '/develop') ||
-          contains(github.ref, '/release/')
+          contains(github.ref, '/release/') ||
+          github.event_name == 'workflow_dispatch' && inputs.test-all == true
         }}
       build-handsontable-es-cjs: ${{ steps.path-filter.outputs.build-handsontable-es-cjs }}
       build-handsontable-umd: ${{ steps.path-filter.outputs.build-handsontable-umd }}
