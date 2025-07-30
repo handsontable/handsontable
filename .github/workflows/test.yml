@@ -12,6 +12,11 @@ on:
       - 'develop'
       - 'release/**'
   workflow_dispatch:
+    inputs:
+      test-all:
+        description: 'Test all?'
+        type: boolean
+        default: false
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -25,7 +30,8 @@ jobs:
       run-all: ${{
           endsWith(github.ref, '/master') ||
           endsWith(github.ref, '/develop') ||
-          contains(github.ref, '/release/')
+          contains(github.ref, '/release/') ||
+          github.event_name == 'workflow_dispatch' && inputs.test-all == true
         }}
       build-handsontable-es-cjs: ${{ steps.path-filter.outputs.build-handsontable-es-cjs }}
       build-handsontable-umd: ${{ steps.path-filter.outputs.build-handsontable-umd }}
@@ -479,12 +485,12 @@ jobs:
           path: ./
       - run: tar -zxf tmp.tar.gz ./handsontable/tmp && rm tmp.tar.gz
 
-      - name: Download the Handsontable UMD build artifact and only extract CSS files
+      - name: Download the Handsontable UMD build artifact and only extract CSS and languages files
         uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # https://github.com/actions/download-artifact/releases/tag/v4.1.3
         with:
           name: handsontable-build-umd
           path: ./
-      - run: tar -zxf dist.tar.gz --overwrite --wildcards '*.css' && rm dist.tar.gz
+      - run: tar -zxf dist.tar.gz --overwrite --wildcards --no-anchored '*.css' 'handsontable/dist/languages/*.js' && rm dist.tar.gz
 
       - name: Build UMD from ESM
         run: |
@@ -520,12 +526,12 @@ jobs:
           path: ./
       - run: tar -zxf tmp.tar.gz ./handsontable/tmp && rm tmp.tar.gz
 
-      - name: Download the Handsontable UMD build artifact and only extract CSS files
+      - name: Download the Handsontable UMD build artifact and only extract CSS and languages files
         uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # https://github.com/actions/download-artifact/releases/tag/v4.1.3
         with:
           name: handsontable-build-umd
           path: ./
-      - run: tar -zxf dist.tar.gz --overwrite --wildcards '*.css' && rm dist.tar.gz
+      - run: tar -zxf dist.tar.gz --overwrite --wildcards --no-anchored '*.css' 'handsontable/dist/languages/*.js' && rm dist.tar.gz
 
       - name: Build UMD from CJS
         run: |
