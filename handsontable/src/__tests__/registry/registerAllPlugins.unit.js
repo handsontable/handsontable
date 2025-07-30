@@ -52,6 +52,7 @@ describe('`registerAllPlugins`', () => {
       'HiddenRows',
       'TrimRows',
       'Dialog',
+      'Pagination',
       'UndoRedo',
     ]);
     expect(getRegisteredRendererNames()).toEqual([

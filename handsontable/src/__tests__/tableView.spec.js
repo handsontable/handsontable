@@ -461,6 +461,28 @@ describe('TableView', () => {
     });
   });
 
+  describe('getTotalTableWidth()', () => {
+    it('should internally call `getTotalTableWidth` method of the Table module of the Walkontable', async() => {
+      handsontable({});
+
+      spyOn(tableView()._wt.wtTable, 'getTotalWidth').and.returnValue(100);
+
+      expect(tableView().getTotalTableWidth()).toBe(100);
+      expect(tableView()._wt.wtTable.getTotalWidth).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('getTotalTableHeight()', () => {
+    it('should internally call `getTotalTableHeight` method of the Table module of the Walkontable', async() => {
+      handsontable({});
+
+      spyOn(tableView()._wt.wtTable, 'getTotalHeight').and.returnValue(100);
+
+      expect(tableView().getTotalTableHeight()).toBe(100);
+      expect(tableView()._wt.wtTable.getTotalHeight).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('getRowHeaderWidth()', () => {
     it('should internally call `getRowHeaderWidth` method of the Viewport module of the Walkontable', async() => {
       handsontable({});

@@ -1,5 +1,10 @@
 import { GRID_GROUP } from '../../shortcutContexts';
 import { installFocusDetector } from './focusDetector';
+import {
+  normalizeCoordsIfNeeded,
+  getMostTopStartPosition,
+  getMostBottomEndPosition,
+} from './utils';
 
 /**
  * Installs a focus catcher module. The module observes when the table is focused and depending on
@@ -128,98 +133,4 @@ export function installFocusCatcher(hot) {
         position: 'after',
       }
     ]);
-}
-
-/**
- * Gets the coordinates of the most top-start cell or header (depends on the table settings and its size).
- *
- * @param {Core} hot The Handsontable instance.
- * @returns {CellCoords|null}
- */
-function getMostTopStartPosition(hot) {
-  const { rowIndexMapper, columnIndexMapper } = hot;
-  const { navigableHeaders } = hot.getSettings();
-  let topRow = navigableHeaders && hot.countColHeaders() > 0 ? -hot.countColHeaders() : 0;
-  let startColumn = navigableHeaders && hot.countRowHeaders() > 0 ? -hot.countRowHeaders() : 0;
-
-  if (topRow === 0) {
-    topRow = rowIndexMapper.getVisualFromRenderableIndex(topRow);
-  }
-
-  if (startColumn === 0) {
-    startColumn = columnIndexMapper.getVisualFromRenderableIndex(startColumn);
-  }
-
-  if (topRow === null || startColumn === null) {
-    return null;
-  }
-
-  return hot._createCellCoords(topRow, startColumn);
-}
-
-/**
- * Gets the coordinates of the most bottom-end cell or header (depends on the table settings and its size).
- *
- * @param {Core} hot The Handsontable instance.
- * @returns {CellCoords|null}
- */
-function getMostBottomEndPosition(hot) {
-  const { rowIndexMapper, columnIndexMapper } = hot;
-  const { navigableHeaders } = hot.getSettings();
-  let bottomRow = rowIndexMapper.getRenderableIndexesLength() - 1;
-  let endColumn = columnIndexMapper.getRenderableIndexesLength() - 1;
-
-  if (bottomRow < 0) {
-    if (!navigableHeaders || hot.countColHeaders() === 0) {
-      return null;
-    }
-
-    bottomRow = -1;
-  }
-
-  if (endColumn < 0) {
-    if (!navigableHeaders || hot.countColHeaders() === 0) {
-      return null;
-    }
-
-    endColumn = -1;
-  }
-
-  return hot._createCellCoords(
-    rowIndexMapper.getVisualFromRenderableIndex(bottomRow) ?? bottomRow,
-    columnIndexMapper.getVisualFromRenderableIndex(endColumn) ?? endColumn,
-  );
-}
-
-/**
- * Normalizes the coordinates (clamps to nearest visible cell position within dataset range).
- *
- * @param {Core} hot The Handsontable instance.
- * @returns {function(Coords | undefined): Coords | null}
- */
-function normalizeCoordsIfNeeded(hot) {
-  return (coords) => {
-    if (!coords) {
-      return null;
-    }
-
-    const mostTopStartCoords = getMostTopStartPosition(hot);
-    const mostBottomEndCoords = getMostBottomEndPosition(hot);
-
-    if (coords.col < mostTopStartCoords.col) {
-      coords.col = mostTopStartCoords.col;
-    }
-    if (coords.col > mostBottomEndCoords.col) {
-      coords.col = mostBottomEndCoords.col;
-    }
-
-    if (coords.row < mostTopStartCoords.row) {
-      coords.row = mostTopStartCoords.row;
-    }
-    if (coords.row > mostBottomEndCoords.row) {
-      coords.row = mostBottomEndCoords.row;
-    }
-
-    return coords;
-  };
 }

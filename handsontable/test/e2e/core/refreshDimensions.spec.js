@@ -71,7 +71,7 @@ describe('Core.await refreshDimensions()', () => {
     await refreshDimensions();
 
     expect(hot.render).toHaveBeenCalledTimes(1);
-    expect(hot.render).toHaveBeenCalledBefore(hot.view.adjustElementsSize);
+    expect(hot.view.adjustElementsSize).toHaveBeenCalledBefore(hot.render);
     expect(hot.view.adjustElementsSize).toHaveBeenCalledTimes(1);
   });
 });

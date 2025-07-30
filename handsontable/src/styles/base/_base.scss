@@ -73,7 +73,7 @@
         width: 9px;
         height: 9px;
       }
-  
+
       &::-webkit-scrollbar-track {
         background: var(--ht-scrollbar-track-color);
         border-radius: var(--ht-scrollbar-border-radius);
@@ -156,8 +156,8 @@
     }
 
     // Background
-    &.htHasScrollX,
-    &.htHasScrollY {
+    &.htHasScrollX:not(.htHorizontallyScrollableByWindow),
+    &.htHasScrollY:not(.htVerticallyScrollableByWindow) {
       .ht_master {
         .wtHolder {
           background-color: var(--ht-background-color);

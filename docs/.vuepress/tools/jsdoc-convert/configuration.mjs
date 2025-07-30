@@ -397,6 +397,19 @@ export default {
         metaTitle: 'NestedRows - Angular Data Grid | Handsontable',
       },
     },
+    'Pagination.md': {
+      id: 'x4x6yo42',
+      metaTitle: 'Pagination - JavaScript Data Grid | Handsontable',
+      description: 'Use the Pagination plugin with its API options, members and methods to splitting rows into pages and rendering navigation controls.',
+      react: {
+        id: 'gffcvsd3',
+        metaTitle: 'Pagination - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: 'mkvijvro',
+        metaTitle: 'Pagination - Angular Data Grid | Handsontable',
+      },
+    },
     'PersistentState.md': {
       id: 'eh8nz1kw',
       metaTitle: 'PersistentState - JavaScript Data Grid | Handsontable',

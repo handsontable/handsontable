@@ -27,6 +27,7 @@ import { MultiColumnSorting } from './multiColumnSorting';
 import { MultipleSelectionHandles } from './multipleSelectionHandles';
 import { NestedHeaders } from './nestedHeaders';
 import { NestedRows } from './nestedRows';
+import { Pagination } from './pagination';
 import { PersistentState } from './persistentState';
 import { Search } from './search';
 import { StretchColumns } from './stretchColumns';
@@ -65,6 +66,7 @@ export interface Plugins {
   multipleSelectionHandles: MultipleSelectionHandles;
   nestedHeaders: NestedHeaders;
   nestedRows: NestedRows;
+  pagination: Pagination;
   persistentState: PersistentState;
   search: Search;
   stretchColumns: StretchColumns;
@@ -107,6 +109,7 @@ export {
   MultipleSelectionHandles,
   NestedHeaders,
   NestedRows,
+  Pagination,
   PersistentState,
   Search,
   StretchColumns,
