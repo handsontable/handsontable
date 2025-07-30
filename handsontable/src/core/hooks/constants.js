@@ -3139,6 +3139,40 @@ export const REGISTERED_HOOKS = [
   'beforeBeginEditing',
 
   /**
+   * Fired by {@link Dialog} plugin after hiding the dialog. This hook is fired when {@link Options#dialog}
+   * option is enabled.
+   *
+   * @event Hooks#afterDialogHide
+   */
+  'afterDialogHide',
+
+  /**
+   * Fired by {@link Dialog} plugin after showing the dialog. This hook is fired when {@link Options#dialog}
+   * option is enabled.
+   *
+   * @event Hooks#afterDialogShow
+   * @param {object} config The dialog configuration object.
+   */
+  'afterDialogShow',
+
+  /**
+   * Fired by {@link Dialog} plugin before hiding the dialog. This hook is fired when {@link Options#dialog}
+   * option is enabled.
+   *
+   * @event Hooks#beforeDialogHide
+   */
+  'beforeDialogHide',
+
+  /**
+   * Fired by {@link Dialog} plugin before showing the dialog. This hook is fired when {@link Options#dialog}
+   * option is enabled.
+   *
+   * @event Hooks#beforeDialogShow
+   * @param {object} config The dialog configuration object.
+   */
+  'beforeDialogShow',
+
+  /**
    * Fired after the editor is opened and rendered.
    *
    * @event Hooks#afterBeginEditing

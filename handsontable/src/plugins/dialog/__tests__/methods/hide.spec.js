@@ -25,7 +25,11 @@ describe('Dialog - hide method', () => {
     dialogPlugin.show();
     expect(dialogPlugin.isVisible()).toBe(true);
 
+    dialogPlugin.show();
+
+    expect(dialogPlugin.isVisible()).toBe(true);
     dialogPlugin.hide();
+
     expect(dialogPlugin.isVisible()).toBe(false);
     expect($('.ht-dialog').length).toBe(1);
   });

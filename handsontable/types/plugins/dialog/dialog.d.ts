@@ -19,7 +19,6 @@ export class Dialog extends BasePlugin {
   static DEFAULT_CONFIG: DialogConfig;
 
   constructor(hotInstance: Core);
-  isEnabled(): boolean;
   isVisible(): boolean;
   show(config?: DialogConfig): void;
   hide(): void;

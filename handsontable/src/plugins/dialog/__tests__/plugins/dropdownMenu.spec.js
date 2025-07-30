@@ -12,31 +12,6 @@ describe('Dialog - dropdown menu integration', () => {
     }
   });
 
-  it('should not open dropdown menu when dialog is visible', async() => {
-    const hot = handsontable({
-      colHeaders: true,
-      data: [['A1', 'B1'], ['A2', 'B2']],
-      dialog: {
-        closable: true,
-      },
-      dropdownMenu: true,
-    });
-
-    const dialogPlugin = hot.getPlugin('dialog');
-
-    dialogPlugin.show({
-      content: 'Test dialog content',
-    });
-
-    expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog').is(':visible')).toBe(true);
-
-    // Try to open dropdown menu while dialog is visible
-    await dropdownMenu();
-
-    expect($('.htDropdownMenu').is(':visible')).toBe(false);
-  });
-
   it('should open dropdown menu when dialog is hidden', async() => {
     const hot = handsontable({
       colHeaders: true,

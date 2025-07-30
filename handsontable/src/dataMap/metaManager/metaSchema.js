@@ -1855,9 +1855,10 @@ export default () => {
      * Read more:
      * - [Plugins: `Dialog`](@/api/dialog.md)
      *
+     * @since 16.1.0
      * @memberof Options#
      * @type {boolean|object}
-     * @default true
+     * @default false
      * @category Dialog
      *
      * @example

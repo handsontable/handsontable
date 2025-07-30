@@ -12,30 +12,6 @@ describe('Dialog - context menu integration', () => {
     }
   });
 
-  it('should not open context menu when dialog is visible', async() => {
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
-      dialog: {
-        closable: true,
-      },
-      contextMenu: true,
-    });
-
-    const dialogPlugin = hot.getPlugin('dialog');
-
-    dialogPlugin.show({
-      content: 'Test dialog content',
-    });
-
-    expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog').is(':visible')).toBe(true);
-
-    // Try to open context menu while dialog is visible
-    await contextMenu();
-
-    expect($('.htContextMenu').is(':visible')).toBe(false);
-  });
-
   it('should open context menu when dialog is hidden', async() => {
     const hot = handsontable({
       data: [['A1', 'B1'], ['A2', 'B2']],

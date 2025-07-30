@@ -27,6 +27,6 @@ describe('Dialog - afterDialogHide hook', () => {
     dialogPlugin.show();
     dialogPlugin.hide();
 
-    expect(afterDialogHideSpy).toHaveBeenCalled();
+    expect(afterDialogHideSpy).toHaveBeenCalledTimes(1);
   });
 });

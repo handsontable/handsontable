@@ -36,4 +36,21 @@ describe('Dialog - beforeDialogShow hook', () => {
       closable: false,
     });
   });
+
+  it('should run beforeDialogShow before afterDialogShow', async() => {
+    const beforeDialogShowSpy = jasmine.createSpy('beforeDialogShow');
+    const afterDialogShowSpy = jasmine.createSpy('afterDialogShow');
+    const hot = handsontable({
+      data: [['A1', 'B1'], ['A2', 'B2']],
+      dialog: true,
+      beforeDialogShow: beforeDialogShowSpy,
+      afterDialogShow: afterDialogShowSpy,
+    });
+
+    const dialogPlugin = hot.getPlugin('dialog');
+
+    dialogPlugin.show();
+
+    expect(beforeDialogShowSpy).toHaveBeenCalledBefore(afterDialogShowSpy);
+  });
 });

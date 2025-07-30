@@ -37,6 +37,8 @@ Hooks.getSingleton().register('afterDialogHide');
  * - `closable`: Whether the dialog can be closed
  *
  * @example
+ *
+ * ::: only-for javascript
  * ```js
  * // Enable dialog plugin with default options
  * dialog: true,
@@ -68,6 +70,82 @@ Hooks.getSingleton().register('afterDialogHide');
  * // Check if dialog is visible:
  * const isVisible = dialogPlugin.isVisible();
  * ```
+ * :::
+ *
+ * ::: only-for react
+ * ```jsx
+ * const MyComponent = () => {
+ *   const hotRef = useRef(null);
+ *
+ *   useEffect(() => {
+ *     const hot = hotRef.current.hotInstance;
+ *     const dialogPlugin = hot.getPlugin('dialog');
+ *
+ *     dialogPlugin.show({
+ *       content: <div>
+ *         <h2>React Dialog</h2>
+ *         <p>Dialog content rendered with React</p>
+ *       </div>,
+ *       closable: true
+ *     });
+ *   }, []);
+ *
+ *   return (
+ *     <HotTable
+ *       ref={hotRef}
+ *       settings={{
+ *         data: data,
+ *         dialog: {
+ *           customClassName: 'react-dialog',
+ *           contentDirections: 'column',
+ *           closable: true
+ *         }
+ *       }}
+ *     />
+ *   );
+ * }
+ * ```
+ * :::
+ *
+ * ::: only-for angular
+ * ```html
+ * <hot-table
+ *   [settings]="hotSettings">
+ * </hot-table>
+ * ```
+ *
+ * ```ts
+ * @Component({
+ *   // ... component decorator
+ * })
+ * export class MyComponent implements OnInit {
+ *   @ViewChild('hot') hot: HotTableComponent;
+ *
+ *   hotSettings: Handsontable.GridSettings = {
+ *     data: data,
+ *     dialog: {
+ *       customClassName: 'angular-dialog',
+ *       contentDirections: 'column',
+ *       closable: true
+ *     }
+ *   };
+ *
+ *   ngOnInit() {
+ *     const dialogPlugin = this.hot.hotInstance.getPlugin('dialog');
+ *
+ *     dialogPlugin.show({
+ *       content: `
+ *         <div>
+ *           <h2>Angular Dialog</h2>
+ *           <p>Dialog content in Angular component</p>
+ *         </div>
+ *       `,
+ *       closable: true
+ *     });
+ *   }
+ * }
+ * ```
+ * :::
  */
 
 export class Dialog extends BasePlugin {
@@ -84,7 +162,7 @@ export class Dialog extends BasePlugin {
    *
    * @returns {object}
    */
-  static get DEFAULT_CONFIG() {
+  static get DEFAULT_SETTINGS() {
     return {
       content: '',
       customClassName: '',
@@ -104,13 +182,14 @@ export class Dialog extends BasePlugin {
    */
   static get DIALOG_CONFIG_VALIDATORS() {
     return {
-      content: val => typeof val === 'string' || (typeof HTMLElement !== 'undefined' && val instanceof HTMLElement),
-      customClassName: val => typeof val === 'string',
-      background: val => ['solid', 'semi-transparent'].includes(val),
-      contentBackground: val => typeof val === 'boolean',
-      contentDirections: val => ['row', 'row-reverse', 'column', 'column-reverse'].includes(val),
-      animation: val => typeof val === 'boolean',
-      closable: val => typeof val === 'boolean',
+      content: value => typeof value === 'string' ||
+        (typeof HTMLElement !== 'undefined' && value instanceof HTMLElement),
+      customClassName: value => typeof value === 'string',
+      background: value => ['solid', 'semi-transparent'].includes(value),
+      contentBackground: value => typeof value === 'boolean',
+      contentDirections: value => ['row', 'row-reverse', 'column', 'column-reverse'].includes(value),
+      animation: value => typeof value === 'boolean',
+      closable: value => typeof value === 'boolean',
     };
   }
 
@@ -163,7 +242,7 @@ export class Dialog extends BasePlugin {
       return;
     }
 
-    this.currentConfig = { ...Dialog.DEFAULT_CONFIG };
+    this.currentConfig = { ...Dialog.DEFAULT_SETTINGS };
     this.#updateDialogConfig(this.hot.getSettings()[PLUGIN_KEY]);
     this.#createDialogElements();
     this.registerShortcuts();

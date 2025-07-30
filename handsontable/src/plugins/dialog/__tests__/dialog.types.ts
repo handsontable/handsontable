@@ -43,7 +43,6 @@ new Handsontable(document.createElement('div'), {
 
 const dialog = hot.getPlugin('dialog');
 
-dialog.isEnabled();
 dialog.isVisible();
 dialog.show();
 dialog.show({

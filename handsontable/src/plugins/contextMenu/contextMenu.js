@@ -246,12 +246,6 @@ export class ContextMenu extends BasePlugin {
    * @fires Hooks#afterContextMenuShow
    */
   open(position, offset = { above: 0, below: 0, left: 0, right: 0 }) {
-    const dialogPlugin = this.hot.getPlugin('dialog');
-
-    if (this.menu?.isOpened() || dialogPlugin?.isVisible()) {
-      return;
-    }
-
     this.prepareMenuItems();
     this.menu.open();
 

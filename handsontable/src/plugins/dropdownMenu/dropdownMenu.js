@@ -351,12 +351,6 @@ export class DropdownMenu extends BasePlugin {
    * @fires Hooks#afterDropdownMenuShow
    */
   open(position, offset = { above: 0, below: 0, left: 0, right: 0 }) {
-    const dialogPlugin = this.hot.getPlugin('dialog');
-
-    if (this.menu?.isOpened() || dialogPlugin?.isVisible()) {
-      return;
-    }
-
     this.menu.open();
 
     objectEach(offset, (value, key) => {
