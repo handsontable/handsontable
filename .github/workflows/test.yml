@@ -28,7 +28,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       run-all: ${{
-          true ||
           endsWith(github.ref, '/master') ||
           endsWith(github.ref, '/develop') ||
           contains(github.ref, '/release/') ||
@@ -491,7 +490,7 @@ jobs:
         with:
           name: handsontable-build-umd
           path: ./
-      - run: tar -zxf dist.tar.gz --overwrite --wildcards '*.css' 'handsontable/dist/languages/*' && rm dist.tar.gz
+      - run: tar -zxf dist.tar.gz --overwrite --wildcards --no-anchored '*.css' 'handsontable/dist/languages/*.js' && rm dist.tar.gz
 
       - name: Build UMD from ESM
         run: |
@@ -532,7 +531,6 @@ jobs:
         with:
           name: handsontable-build-umd
           path: ./
-      - run: tar -tvf dist.tar.gz
       - run: tar -zxf dist.tar.gz --overwrite --wildcards --no-anchored '*.css' 'handsontable/dist/languages/*.js' && rm dist.tar.gz
 
       - name: Build UMD from CJS
