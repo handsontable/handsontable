@@ -1314,6 +1314,7 @@ export const REGISTERED_HOOKS = [
    * />
    * ```
    * :::
+   *
    * ::: only-for angular
    *```ts
    * // To alter a single change, overwrite the desired value with `changes[i][3]`
