@@ -239,9 +239,9 @@ const allSettings: Required<Handsontable.GridSettings> = {
     content: 'foo',
     customClassName: 'foo',
     animation: true,
-    background: 'solid',
+    background: 'solid' as const,
     contentBackground: true,
-    contentDirections: 'row',
+    contentDirections: 'row' as const,
   }),
   validator: oneOf(
     (value: any, callback: (valid: boolean) => void) => callback(true),

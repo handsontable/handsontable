@@ -174,8 +174,8 @@ export class DialogUI {
    * Removes the dialog UI elements from the DOM and clears the refs.
    */
   destroyDialog() {
-    if (this.#refs.dialogElement && this.#refs.dialogElement.parentNode) {
-      this.#refs.dialogElement.parentNode.removeChild(this.#refs.dialogElement);
+    if (this.#rootElement && this.#refs.dialogElement) {
+      this.#rootElement.removeChild(this.#refs.dialogElement);
     }
 
     this.#refs = null;
