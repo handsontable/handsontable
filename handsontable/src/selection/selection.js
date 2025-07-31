@@ -128,22 +128,9 @@ class Selection {
       createCellRange: (highlight, from, to) => this.tableProps.createCellRange(highlight, from, to),
     });
 
-    const transformationDeps = {
-      rowIndexMapper: this.tableProps.rowIndexMapper,
-      columnIndexMapper: this.tableProps.columnIndexMapper,
-      countRenderableRows: () => this.tableProps.countRenderableRows(),
-      countRenderableColumns: () => this.tableProps.countRenderableColumns(),
-      countRenderableRowsInRange: (...args) => this.tableProps.countRenderableRowsInRange(...args),
-      countRenderableColumnsInRange: (...args) => this.tableProps.countRenderableColumnsInRange(...args),
-      visualToRenderableCoords: coords => this.tableProps.visualToRenderableCoords(coords),
-      renderableToVisualCoords: coords => this.tableProps.renderableToVisualCoords(coords),
-      findFirstNonHiddenRenderableRow: (...args) => this.tableProps.findFirstNonHiddenRenderableRow(...args),
-      findFirstNonHiddenRenderableColumn: (...args) => this.tableProps.findFirstNonHiddenRenderableColumn(...args),
-      createCellCoords: (row, column) => this.tableProps.createCellCoords(row, column),
-    };
-
     this.#extenderTransformation = new ExtenderTransformation(this.selectedRange, {
-      ...transformationDeps,
+      ...this.tableProps,
+      navigableHeaders: () => settings.navigableHeaders,
       fixedRowsBottom: () => settings.fixedRowsBottom,
       minSpareRows: () => settings.minSpareRows,
       minSpareCols: () => settings.minSpareCols,
@@ -151,7 +138,8 @@ class Selection {
       autoWrapCol: () => settings.autoWrapCol,
     });
     this.#focusTransformation = new FocusTransformation(this.selectedRange, {
-      ...transformationDeps,
+      ...this.tableProps,
+      navigableHeaders: () => settings.navigableHeaders,
       fixedRowsBottom: () => 0,
       minSpareRows: () => 0,
       minSpareCols: () => 0,

@@ -18,8 +18,8 @@ export class FocusTransformation extends BaseTransformation {
   calculateOffset() {
     const range = this.getCurrentSelection();
     const { row, col } = range.getOuterTopStartCorner();
-    const columnsInRange = this._options.countRenderableColumnsInRange(0, col - 1);
-    const rowsInRange = this._options.countRenderableRowsInRange(0, row - 1);
+    const columnsInRange = this.tableApi.countRenderableColumnsInRange(0, col - 1);
+    const rowsInRange = this.tableApi.countRenderableRowsInRange(0, row - 1);
     const isHeaderSelection = range.highlight.isHeader();
     const headerX = isHeaderSelection ? Math.abs(col) : 0;
     const headerY = isHeaderSelection ? Math.abs(row) : 0;
@@ -39,7 +39,7 @@ export class FocusTransformation extends BaseTransformation {
   countRenderableRows() {
     const range = this.getCurrentSelection();
 
-    return this._options.countRenderableRowsInRange(0, range.getOuterBottomEndCorner().row);
+    return this.tableApi.countRenderableRowsInRange(0, range.getOuterBottomEndCorner().row);
   }
 
   /**
@@ -51,7 +51,7 @@ export class FocusTransformation extends BaseTransformation {
   countRenderableColumns() {
     const range = this.getCurrentSelection();
 
-    return this._options.countRenderableColumnsInRange(0, range.getOuterBottomEndCorner().col);
+    return this.tableApi.countRenderableColumnsInRange(0, range.getOuterBottomEndCorner().col);
   }
 
   /**
@@ -59,5 +59,15 @@ export class FocusTransformation extends BaseTransformation {
    */
   transformEnd() {
     throw new Error('`transformEnd` is not valid for focus selection use `transformStart` instead');
+  }
+
+  /**
+   * Changes the behavior of the transformation logic by switching the selection layer
+   * when the selection is out of range.
+   *
+   * @returns {boolean}
+   */
+  shouldSwitchSelectionLayer() {
+    return true;
   }
 }

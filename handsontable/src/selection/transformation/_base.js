@@ -37,16 +37,15 @@ export class BaseTransformation {
    */
   #offset = { x: 0, y: 0 };
   /**
-   * Additional options which define the state of the settings which can infer transformation and
-   * give the possibility to translate indexes.
+   * An object containing the table API methods and settings.
    *
    * @type {object}
    */
-  _options;
+  tableApi;
 
-  constructor(range, options) {
+  constructor(range, tableApi) {
     this.#range = range;
-    this._options = options;
+    this.tableApi = tableApi;
   }
 
   /**
@@ -56,7 +55,6 @@ export class BaseTransformation {
    */
   setActiveLayerIndex(layerIndex) {
     this.#activeLayerIndex = layerIndex;
-    this.#offset = this.calculateOffset();
   }
 
   /**
@@ -78,9 +76,11 @@ export class BaseTransformation {
    * @returns {{selectionLayer: number, visualCoords: CellCoords}} Visual coordinates with selection layer after transformation.
    */
   transformStart(rowDelta, colDelta, createMissingRecords = false) {
-    const delta = this._options.createCellCoords(rowDelta, colDelta);
+    this.#offset = this.calculateOffset();
+
+    const delta = this.tableApi.createCellCoords(rowDelta, colDelta);
     let visualCoords = this.getCurrentSelection().highlight;
-    const highlightRenderableCoords = this._options.visualToRenderableCoords(visualCoords);
+    const highlightRenderableCoords = this.tableApi.visualToRenderableCoords(visualCoords);
     let rowTransformDir = 0;
     let colTransformDir = 0;
 
@@ -90,13 +90,13 @@ export class BaseTransformation {
       let { width, height } = this.#getTableSize();
       const { row, col } = this.#visualToZeroBasedCoords(visualCoords);
 
-      const fixedRowsBottom = this._options.fixedRowsBottom();
-      const minSpareRows = this._options.minSpareRows();
-      const minSpareCols = this._options.minSpareCols();
-      const autoWrapRow = this._options.autoWrapRow();
-      const autoWrapCol = this._options.autoWrapCol();
+      const fixedRowsBottom = this.tableApi.fixedRowsBottom();
+      const minSpareRows = this.tableApi.minSpareRows();
+      const minSpareCols = this.tableApi.minSpareCols();
+      const autoWrapRow = this.tableApi.autoWrapRow();
+      const autoWrapCol = this.tableApi.autoWrapCol();
 
-      const zeroBasedCoords = this._options.createCellCoords(
+      const zeroBasedCoords = this.tableApi.createCellCoords(
         row + delta.row,
         col + delta.col,
       );
@@ -107,7 +107,7 @@ export class BaseTransformation {
         );
         const nextColumn = zeroBasedCoords.col + 1;
         const isColumnOutOfRange = nextColumn >= width;
-        const newCoords = this._options.createCellCoords(
+        const newCoords = this.tableApi.createCellCoords(
           zeroBasedCoords.row - height,
           isColumnOutOfRange ? nextColumn - width : nextColumn,
         );
@@ -123,12 +123,14 @@ export class BaseTransformation {
           this.runLocalHooks('insertRowRequire', this.countRenderableRows());
 
         } else if (autoWrapCol) {
-          if (isColumnOutOfRange) {
+          if (this.shouldSwitchSelectionLayer() && isColumnOutOfRange && this.#range.size() > 1) {
             this.#chooseNextSelectionLayer();
 
-            const topStartCoords = this.getCurrentSelection().getTopStartCorner();
+            const nextLayerCoords = this.#findNonHiddenZeroBasedCoordsInSelection('forward');
 
-            newCoords.assign(this.#visualToZeroBasedCoords(topStartCoords));
+            if (nextLayerCoords !== null) {
+              newCoords.assign(nextLayerCoords);
+            }
           }
 
           zeroBasedCoords.assign(newCoords);
@@ -138,7 +140,7 @@ export class BaseTransformation {
         const isActionInterrupted = createObjectPropListener(autoWrapCol);
         const previousColumn = zeroBasedCoords.col - 1;
         const isColumnOutOfRange = previousColumn < 0;
-        const newCoords = this._options.createCellCoords(
+        const newCoords = this.tableApi.createCellCoords(
           height + zeroBasedCoords.row,
           isColumnOutOfRange ? width + previousColumn : previousColumn,
         );
@@ -151,12 +153,14 @@ export class BaseTransformation {
         );
 
         if (autoWrapCol) {
-          if (isColumnOutOfRange) {
+          if (this.shouldSwitchSelectionLayer() && isColumnOutOfRange && this.#range.size() > 1) {
             this.#choosePreviousSelectionLayer();
 
-            const bottomEndCoords = this.getCurrentSelection().getBottomEndCorner();
+            const nextLayerCoords = this.#findNonHiddenZeroBasedCoordsInSelection('backward');
 
-            newCoords.assign(this.#visualToZeroBasedCoords(bottomEndCoords));
+            if (nextLayerCoords !== null) {
+              newCoords.assign(nextLayerCoords);
+            }
           }
 
           zeroBasedCoords.assign(newCoords);
@@ -172,7 +176,7 @@ export class BaseTransformation {
         );
         const nextRow = zeroBasedCoords.row + 1;
         const isRowOutOfRange = nextRow >= height;
-        const newCoords = this._options.createCellCoords(
+        const newCoords = this.tableApi.createCellCoords(
           isRowOutOfRange ? nextRow - height : nextRow,
           zeroBasedCoords.col - width,
         );
@@ -188,12 +192,14 @@ export class BaseTransformation {
           this.runLocalHooks('insertColRequire', this.countRenderableColumns());
 
         } else if (autoWrapRow) {
-          if (isRowOutOfRange) {
+          if (this.shouldSwitchSelectionLayer() && isRowOutOfRange && this.#range.size() > 1) {
             this.#chooseNextSelectionLayer();
 
-            const topStartCoords = this.getCurrentSelection().getTopStartCorner();
+            const nextLayerCoords = this.#findNonHiddenZeroBasedCoordsInSelection('forward');
 
-            newCoords.assign(this.#visualToZeroBasedCoords(topStartCoords));
+            if (nextLayerCoords !== null) {
+              newCoords.assign(nextLayerCoords);
+            }
           }
 
           zeroBasedCoords.assign(newCoords);
@@ -203,7 +209,7 @@ export class BaseTransformation {
         const isActionInterrupted = createObjectPropListener(autoWrapRow);
         const previousRow = zeroBasedCoords.row - 1;
         const isRowOutOfRange = previousRow < 0;
-        const newCoords = this._options.createCellCoords(
+        const newCoords = this.tableApi.createCellCoords(
           isRowOutOfRange ? height + previousRow : previousRow,
           width + zeroBasedCoords.col,
         );
@@ -216,12 +222,14 @@ export class BaseTransformation {
         );
 
         if (autoWrapRow) {
-          if (isRowOutOfRange) {
+          if (this.shouldSwitchSelectionLayer() && isRowOutOfRange && this.#range.size() > 1) {
             this.#choosePreviousSelectionLayer();
 
-            const bottomEndCoords = this.getCurrentSelection().getBottomEndCorner();
+            const nextLayerCoords = this.#findNonHiddenZeroBasedCoordsInSelection('backward');
 
-            newCoords.assign(this.#visualToZeroBasedCoords(bottomEndCoords));
+            if (nextLayerCoords !== null) {
+              newCoords.assign(nextLayerCoords);
+            }
           }
 
           zeroBasedCoords.assign(newCoords);
@@ -251,9 +259,11 @@ export class BaseTransformation {
    * @returns {{selectionLayer: number, visualCoords: CellCoords}} Visual coordinates with selection layer after transformation.
    */
   transformEnd(rowDelta, colDelta) {
-    const delta = this._options.createCellCoords(rowDelta, colDelta);
+    this.#offset = this.calculateOffset();
+
+    const delta = this.tableApi.createCellCoords(rowDelta, colDelta);
     const cellRange = this.getCurrentSelection();
-    const highlightRenderableCoords = this._options.visualToRenderableCoords(cellRange.highlight);
+    const highlightRenderableCoords = this.tableApi.visualToRenderableCoords(cellRange.highlight);
     const toRow = this.#findFirstNonHiddenZeroBasedRow(cellRange.to.row, cellRange.from.row);
     const toColumn = this.#findFirstNonHiddenZeroBasedColumn(cellRange.to.col, cellRange.from.col);
     const visualCoords = cellRange.to.clone();
@@ -270,7 +280,7 @@ export class BaseTransformation {
         row: highlightRow,
         col: highlightColumn,
       } = this.#visualToZeroBasedCoords(cellRange.highlight);
-      const coords = this._options.createCellCoords(toRow + delta.row, toColumn + delta.col);
+      const coords = this.tableApi.createCellCoords(toRow + delta.row, toColumn + delta.col);
       const topStartCorner = cellRange.getTopStartCorner();
       const topEndCorner = cellRange.getTopEndCorner();
       const bottomEndCorner = cellRange.getBottomEndCorner();
@@ -351,29 +361,33 @@ export class BaseTransformation {
   }
 
   /**
+   * Determines whether selection layer switching should occur during transformation.
+   * Child classes can override this method to control the behavior.
+   */
+  shouldSwitchSelectionLayer() {
+    throw new Error('`shouldSwitchSelectionLayer` is not implemented');
+  }
+
+  /**
    * Chooses the next selection layer as active one.
    */
   #chooseNextSelectionLayer() {
-    let layerIndex = this.#activeLayerIndex + 1;
+    const layerIndex = this.#activeLayerIndex + 1;
 
-    if (layerIndex >= this.#range.size()) {
-      layerIndex = 0;
-    }
+    this.setActiveLayerIndex(layerIndex >= this.#range.size() ? 0 : layerIndex);
 
-    this.setActiveLayerIndex(layerIndex);
+    this.#offset = this.calculateOffset();
   }
 
   /**
    * Chooses the previous selection layer as active one.
    */
   #choosePreviousSelectionLayer() {
-    let layerIndex = this.#activeLayerIndex - 1;
+    const layerIndex = this.#activeLayerIndex - 1;
 
-    if (layerIndex < 0) {
-      layerIndex = this.#range.size() - 1;
-    }
+    this.setActiveLayerIndex(layerIndex < 0 ? this.#range.size() - 1 : layerIndex);
 
-    this.setActiveLayerIndex(layerIndex);
+    this.#offset = this.calculateOffset();
   }
 
   /**
@@ -422,6 +436,38 @@ export class BaseTransformation {
   }
 
   /**
+   * Finds non-hidden zero-based coordinates in the current selection range.
+   *
+   * @param {'forward' | 'backward'} direction The direction to search within the selection.
+   * @returns {CellCoords | null} Zero-based coordinates or null if not found.
+   */
+  #findNonHiddenZeroBasedCoordsInSelection(direction) {
+    if (!['forward', 'backward'].includes(direction)) {
+      return null;
+    }
+
+    const topStartCoords = this.getCurrentSelection().getTopStartCorner();
+    const bottomEndCoords = this.getCurrentSelection().getBottomEndCorner();
+    const [
+      visualRowFrom,
+      visualRowTo,
+      visualColumnFrom,
+      visualColumnTo,
+    ] = direction === 'forward'
+      ? [topStartCoords.row, bottomEndCoords.row, topStartCoords.col, bottomEndCoords.col]
+      : [bottomEndCoords.row, topStartCoords.row, bottomEndCoords.col, topStartCoords.col];
+
+    const zeroBasedRow = this.#findFirstNonHiddenZeroBasedRow(visualRowFrom, visualRowTo);
+    const zeroBasedCol = this.#findFirstNonHiddenZeroBasedColumn(visualColumnFrom, visualColumnTo);
+
+    if (zeroBasedRow === null || zeroBasedCol === null) {
+      return null;
+    }
+
+    return this.tableApi.createCellCoords(zeroBasedRow, zeroBasedCol);
+  }
+
+  /**
    * Finds the first non-hidden zero-based row in the table range.
    *
    * @param {number} visualRowFrom The visual row from which the search should start.
@@ -429,7 +475,7 @@ export class BaseTransformation {
    * @returns {number | null}
    */
   #findFirstNonHiddenZeroBasedRow(visualRowFrom, visualRowTo) {
-    const row = this._options.findFirstNonHiddenRenderableRow(visualRowFrom, visualRowTo);
+    const row = this.tableApi.findFirstNonHiddenRenderableRow(visualRowFrom, visualRowTo);
 
     if (row === null) {
       return null;
@@ -446,7 +492,7 @@ export class BaseTransformation {
    * @returns {number | null}
    */
   #findFirstNonHiddenZeroBasedColumn(visualColumnFrom, visualColumnTo) {
-    const column = this._options.findFirstNonHiddenRenderableColumn(visualColumnFrom, visualColumnTo);
+    const column = this.tableApi.findFirstNonHiddenRenderableColumn(visualColumnFrom, visualColumnTo);
 
     if (column === null) {
       return null;
@@ -462,13 +508,13 @@ export class BaseTransformation {
    * @returns {CellCoords}
    */
   #visualToZeroBasedCoords(visualCoords) {
-    const { row, col } = this._options.visualToRenderableCoords(visualCoords);
+    const { row, col } = this.tableApi.visualToRenderableCoords(visualCoords);
 
     if (row === null || col === null) {
       throw new Error('Renderable coords are not visible.');
     }
 
-    return this._options.createCellCoords(this.#offset.y + row, this.#offset.x + col);
+    return this.tableApi.createCellCoords(this.#offset.y + row, this.#offset.x + col);
   }
 
   /**
@@ -483,7 +529,7 @@ export class BaseTransformation {
     coords.col = zeroBasedCoords.col - this.#offset.x;
     coords.row = zeroBasedCoords.row - this.#offset.y;
 
-    return this._options.renderableToVisualCoords(coords);
+    return this.tableApi.renderableToVisualCoords(coords);
   }
 }
 

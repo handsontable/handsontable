@@ -15,8 +15,8 @@ export class ExtenderTransformation extends BaseTransformation {
    */
   calculateOffset() {
     return {
-      x: this._options.navigableHeaders ? this._options.countRowHeaders() : 0,
-      y: this._options.navigableHeaders ? this._options.countColHeaders() : 0,
+      x: this.tableApi.navigableHeaders() ? this.tableApi.countRowHeaders() : 0,
+      y: this.tableApi.navigableHeaders() ? this.tableApi.countColHeaders() : 0,
     };
   }
 
@@ -27,7 +27,7 @@ export class ExtenderTransformation extends BaseTransformation {
    * @returns {number}
    */
   countRenderableRows() {
-    return this._options.countRenderableRows();
+    return this.tableApi.countRenderableRows();
   }
 
   /**
@@ -37,6 +37,16 @@ export class ExtenderTransformation extends BaseTransformation {
    * @returns {number}
    */
   countRenderableColumns() {
-    return this._options.countRenderableColumns();
+    return this.tableApi.countRenderableColumns();
+  }
+
+  /**
+   * Changes the behavior of the transformation logic by not switching the selection layer
+   * when the selection is out of range.
+   *
+   * @returns {boolean}
+   */
+  shouldSwitchSelectionLayer() {
+    return false;
   }
 }
