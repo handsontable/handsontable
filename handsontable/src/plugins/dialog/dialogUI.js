@@ -92,6 +92,7 @@ export class DialogUI {
     contentDirections,
     animation,
   }) {
+    // Dialog class name
     const customClass = customClassName ?
       ` ${customClassName}` : '';
     const backgroundClass = background ?
@@ -104,16 +105,7 @@ export class DialogUI {
     this.#refs.dialogElement.className =
       `${DIALOG_CLASS_NAME}${customClass}${backgroundClass}${animationClass}${showClass}`;
 
-    // Clear existing content
-    this.#refs.contentElement.innerHTML = '';
-
-    // Render new content
-    if (typeof content === 'string') {
-      fastInnerHTML(this.#refs.contentElement, content);
-    } else if (content instanceof HTMLElement) {
-      this.#refs.contentElement.appendChild(content);
-    }
-
+    // Dialog content class name
     const contentBackgroundClass = contentBackground ?
       ` ${DIALOG_CLASS_NAME}__content--background` : '';
     const contentDirectionsClass = contentDirections ?
@@ -122,6 +114,16 @@ export class DialogUI {
     // Update content class name
     this.#refs.contentElement.className =
       `${DIALOG_CLASS_NAME}__content${contentBackgroundClass}${contentDirectionsClass}`;
+
+    // Clear existing dialog content
+    this.#refs.contentElement.innerHTML = '';
+
+    // Render new dialog content
+    if (typeof content === 'string') {
+      fastInnerHTML(this.#refs.contentElement, content);
+    } else if (content instanceof HTMLElement) {
+      this.#refs.contentElement.appendChild(content);
+    }
 
     return this;
   }
