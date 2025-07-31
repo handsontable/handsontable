@@ -1,10 +1,10 @@
 ---
 id: x2u15qpx
-title: Customization
-metaTitle: Customization - JavaScript Data Grid | Handsontable
+title: Theme Customization
+metaTitle: Theme Customization - JavaScript Data Grid | Handsontable
 description: Customize Handsontable's appearance using CSS variables to create consistent themes and styles across your application.
-permalink: /customization
-canonicalUrl: /customization
+permalink: /theme-customization
+canonicalUrl: /theme-customization
 tags:
   - styling
   - figma
@@ -18,15 +18,15 @@ tags:
   - tokens
 react:
   id: 0m19ic0d
-  metaTitle: Customization - React Data Grid | Handsontable
+  metaTitle: Theme Customization - React Data Grid | Handsontable
 angular:
   id: xau2jfok
-  metaTitle: Customization - Angular Data Grid | Handsontable
+  metaTitle: Theme Customization - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Styling
 ---
 
-# Customization
+# Theme Customization
 
 Customize Handsontable's appearance using CSS variables to create consistent themes and styles across your application.
 
@@ -44,7 +44,7 @@ The data grid's styling system is built entirely on CSS variables, with over 200
 
 ## Usage Examples
 
-### Basic customization by overriding css variables
+### Basic theme customization by overriding css variables
 
 Follow these [steps](@/guides/styling/themes/themes.md#use-a-theme) to apply a theme, then override the variables for your chosen theme.
 
@@ -53,9 +53,9 @@ Here's an example for `.ht-theme-main`:
 ::: only-for javascript
 
 ::: example #example1 --html 1 --js 2 --ts 3
-@[code](@/content/guides/styling/customization/javascript/example1.html)
-@[code](@/content/guides/styling/customization/javascript/example1.js)
-@[code](@/content/guides/styling/customization/javascript/example1.ts)
+@[code](@/content/guides/styling/theme-customization/javascript/example1.html)
+@[code](@/content/guides/styling/theme-customization/javascript/example1.js)
+@[code](@/content/guides/styling/theme-customization/javascript/example1.ts)
 :::
 
 :::
@@ -63,8 +63,8 @@ Here's an example for `.ht-theme-main`:
 ::: only-for react
 
 ::: example #example1 .disable-auto-theme :react --js 1 --ts 2
-@[code](@/content/guides/styling/customization/react/example1.jsx)
-@[code](@/content/guides/styling/customization/react/example1.tsx)
+@[code](@/content/guides/styling/theme-customization/react/example1.jsx)
+@[code](@/content/guides/styling/theme-customization/react/example1.tsx)
 :::
 
 :::
@@ -72,8 +72,8 @@ Here's an example for `.ht-theme-main`:
 ::: only-for angular
 
 ::: example #example1 :angular --ts 1 --html 2
-@[code](@/content/guides/styling/customization/angular/example1.ts)
-@[code](@/content/guides/styling/customization/angular/example1.html)
+@[code](@/content/guides/styling/theme-customization/angular/example1.ts)
+@[code](@/content/guides/styling/theme-customization/angular/example1.html)
 :::
 
 :::
@@ -173,10 +173,20 @@ Handsontable provides a comprehensive set of CSS variables that allow you to cus
 | `--ht-border-color` | Default border color for all elements |
 | `--ht-accent-color` | Primary accent color used for highlights and active states |
 | `--ht-foreground-color` | Primary text color |
+| `--ht-foreground-secondary-color` | Secondary text color |
 | `--ht-background-color` | Primary background color |
 | `--ht-placeholder-color` | Color for placeholder text |
 | `--ht-read-only-color` | Color for read-only text |
 | `--ht-disabled-color` | Color for disabled elements |
+
+### Shadow Variables
+
+| Variable | Description |
+|----------|-------------|
+| `--ht-shadow-color` | Base color used for shadows |
+| `--ht-shadow-x` | Horizontal offset of shadows |
+| `--ht-shadow-y` | Vertical offset of shadows |
+| `--ht-shadow-blur` | Blur radius of shadows |
 
 ### Cell Border Variables
 
@@ -364,6 +374,8 @@ Handsontable provides a comprehensive set of CSS variables that allow you to cus
 | Variable | Description |
 |----------|-------------|
 | `--ht-icon-button-border-radius` | Border radius of icon buttons |
+| `--ht-icon-button-large-border-radius` | Border radius of large icon buttons |
+| `--ht-icon-button-large-padding` | Padding of large icon buttons |
 | `--ht-icon-button-border-color` | Border color of icon buttons |
 | `--ht-icon-button-background-color` | Background color of icon buttons |
 | `--ht-icon-button-icon-color` | Color of icon button icons |
@@ -512,3 +524,24 @@ Handsontable provides a comprehensive set of CSS variables that allow you to cus
 | `--ht-menu-shadow-color` | Shadow color of menus |
 | `--ht-menu-item-hover-color` | Background color of hovered menu items |
 | `--ht-menu-item-active-color` | Background color of active menu items |
+
+### Dialog Variables
+
+| Variable | Description |
+|----------|-------------|
+| `--ht-dialog-semi-transparent-background-color` | Semi-transparent background color of dialog overlay |
+| `--ht-dialog-solid-background-color` | Solid background color of dialog overlay |
+| `--ht-dialog-content-padding-horizontal` | Horizontal padding of dialog content |
+| `--ht-dialog-content-padding-vertical` | Vertical padding of dialog content |
+| `--ht-dialog-content-gap` | Gap between dialog content elements |
+| `--ht-dialog-content-border-radius` | Border radius of dialog content |
+| `--ht-dialog-content-background-color` | Background color of dialog content |
+
+### Pagination Variables
+
+| Variable | Description |
+|----------|-------------|
+| `--ht-pagination-bar-foreground-color` | Text color of pagination bar |
+| `--ht-pagination-bar-background-color` | Background color of pagination bar |
+| `--ht-pagination-bar-horizontal-padding` | Horizontal padding of pagination bar |
+| `--ht-pagination-bar-vertical-padding` | Vertical padding of pagination bar |
