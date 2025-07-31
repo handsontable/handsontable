@@ -1,12 +1,10 @@
 import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
-import { removeClass, addClass, hasClass, fastInnerHTML, setAttribute } from '../../helpers/dom/element';
 import { warn } from '../../helpers/console';
-import { A11Y_DIALOG, A11Y_MODAL } from '../../helpers/a11y';
+import { DialogUI } from './dialogUI';
 
 export const PLUGIN_KEY = 'dialog';
 export const PLUGIN_PRIORITY = 340;
-const DIALOG_CLASS_NAME = 'ht-dialog';
 const SHORTCUTS_GROUP = PLUGIN_KEY;
 const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
 
@@ -194,28 +192,20 @@ export class Dialog extends BasePlugin {
   }
 
   /**
-   * Instance of the dialog element.
-   *
-   * @private
-   * @type {HTMLElement}
-   */
-  dialogElement = null;
-
-  /**
-   * Instance of the content element.
-   *
-   * @private
-   * @type {HTMLElement}
-   */
-  contentElement = null;
-
-  /**
    * Current dialog configuration.
    *
    * @private
    * @type {object}
    */
   currentConfig = null;
+
+  /**
+   * UI instance of the dialog plugin.
+   *
+   * @private
+   * @type {DialogUI}
+   */
+  #ui = null;
 
   /**
    * Flag indicating if dialog is currently visible.
@@ -244,7 +234,9 @@ export class Dialog extends BasePlugin {
 
     this.currentConfig = { ...Dialog.DEFAULT_SETTINGS };
     this.#updateDialogConfig(this.hot.getSettings()[PLUGIN_KEY]);
-    this.#createDialogElements();
+    this.#ui = new DialogUI({
+      rootElement: this.hot.rootWrapperElement,
+    });
     this.registerShortcuts();
 
     super.enablePlugin();
@@ -323,9 +315,10 @@ export class Dialog extends BasePlugin {
 
     this.hot.runHooks('beforeDialogShow', this.currentConfig);
 
-    this.update(config);
     this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
-    this.#showDialog();
+    this.update(config);
+    this.#ui.showDialog(this.currentConfig.animation);
+    this.#isVisible = true;
 
     this.hot.runHooks('afterDialogShow', this.currentConfig);
   }
@@ -341,8 +334,9 @@ export class Dialog extends BasePlugin {
 
     this.hot.runHooks('beforeDialogHide');
 
-    this.#hideDialog();
+    this.#ui.hideDialog(this.currentConfig.animation);
     this.hot.getShortcutManager().setActiveContextName('grid');
+    this.#isVisible = false;
 
     this.hot.runHooks('afterDialogHide');
   }
@@ -358,49 +352,17 @@ export class Dialog extends BasePlugin {
     }
 
     this.#updateDialogConfig(config);
-    this.#updateDialogClassName();
-
-    // Update content
-    this.#updateDialogContent({
+    this.#ui.updateDialogClassName(
+      this.currentConfig.customClassName,
+      this.currentConfig.background,
+      this.currentConfig.animation,
+      this.isVisible(),
+    );
+    this.#ui.updateDialogContent({
       content: this.currentConfig.content,
       contentDirections: this.currentConfig.contentDirections,
       contentBackground: this.currentConfig.contentBackground,
     });
-  }
-
-  /**
-   * Create dialog DOM elements.
-   * Builds the dialog structure and appends it to the Handsontable root wrapper.
-   *
-   * @private
-   */
-  #createDialogElements() {
-    // Create main dialog container
-    this.dialogElement = this.hot.rootDocument.createElement('div');
-    this.#updateDialogClassName();
-
-    // Set ARIA attributes
-    setAttribute(this.dialogElement, [
-      A11Y_DIALOG(),
-      A11Y_MODAL(),
-    ]);
-
-    // Create content wrapper
-    const contentWrapperElement = this.hot.rootDocument.createElement('div');
-
-    contentWrapperElement.className = `${DIALOG_CLASS_NAME}__content-wrapper`;
-
-    // Create content container
-    this.contentElement = this.hot.rootDocument.createElement('div');
-
-    this.contentElement.className = `${DIALOG_CLASS_NAME}__content`;
-
-    // Assemble dialog structure
-    contentWrapperElement.appendChild(this.contentElement);
-    this.dialogElement.appendChild(contentWrapperElement);
-
-    // Append to Handsontable root wrapper
-    this.hot.rootWrapperElement.appendChild(this.dialogElement);
   }
 
   /**
@@ -433,94 +395,7 @@ export class Dialog extends BasePlugin {
   }
 
   /**
-   * Update dialog class name.
-   *
-   * @private
-   */
-  #updateDialogClassName() {
-    const customClass = this.currentConfig.customClassName ? ` ${this.currentConfig.customClassName}` : '';
-    const backgroundClass = ` ${DIALOG_CLASS_NAME}--background-${this.currentConfig.background}`;
-    const animationClass = this.currentConfig.animation ? ` ${DIALOG_CLASS_NAME}--animation` : '';
-    const showClass = this.isVisible() ? ` ${DIALOG_CLASS_NAME}--show` : '';
-
-    this.dialogElement.className = `${DIALOG_CLASS_NAME}${customClass}${backgroundClass}${animationClass}${showClass}`;
-  }
-
-  /**
-   * Update dialog content and styling.
-   *
-   * @param {object} options - Content update options.
-   * @param {string|HTMLElement} options.content - The content to render in the dialog.
-   * @param {string} options.contentDirections - The flex direction for content layout.
-   * @param {boolean} options.contentBackground - Whether to show content background.
-   * @private
-   */
-  #updateDialogContent({ content, contentDirections, contentBackground }) {
-    // Clear existing content
-    this.contentElement.innerHTML = '';
-
-    // Render new content
-    if (typeof content === 'string') {
-      fastInnerHTML(this.contentElement, content);
-    } else if (content instanceof HTMLElement) {
-      this.contentElement.appendChild(content);
-    }
-
-    // Update content background styling
-    if (contentBackground) {
-      addClass(this.contentElement, `${DIALOG_CLASS_NAME}__content--background`);
-    } else {
-      removeClass(this.contentElement, `${DIALOG_CLASS_NAME}__content--background`);
-    }
-
-    // Update content direction styling
-    removeClass(this.contentElement, new RegExp(`${DIALOG_CLASS_NAME}__content--flex-.*`, 'g'));
-    addClass(this.contentElement, `${DIALOG_CLASS_NAME}__content--flex-${contentDirections}`);
-  }
-
-  /**
-   * Show dialog elements with optional animation.
-   *
-   * @private
-   */
-  #showDialog() {
-    this.dialogElement.style.display = 'block';
-
-    if (this.currentConfig.animation) {
-      // Triggers style and layout recalculation, so the display: block is fully committed before adding
-      // the class ht-dialog--show.
-      // eslint-disable-next-line no-unused-expressions
-      this.dialogElement.offsetHeight;
-    }
-
-    addClass(this.dialogElement, `${DIALOG_CLASS_NAME}--show`);
-
-    this.#isVisible = true;
-  }
-
-  /**
-   * Hide dialog elements with optional animation.
-   *
-   * @private
-   */
-  #hideDialog() {
-    removeClass(this.dialogElement, `${DIALOG_CLASS_NAME}--show`);
-
-    if (this.currentConfig.animation) {
-      this.dialogElement.addEventListener('transitionend', () => {
-        if (!hasClass(this.dialogElement, `${DIALOG_CLASS_NAME}--show`)) {
-          this.dialogElement.style.display = 'none';
-        }
-      }, { once: true });
-    } else {
-      this.dialogElement.style.display = 'none';
-    }
-
-    this.#isVisible = false;
-  }
-
-  /**
-   * Destroy dialog DOM elements and reset plugin state.
+   * Destroy dialog and reset plugin state.
    *
    * @private
    */
@@ -529,14 +404,9 @@ export class Dialog extends BasePlugin {
       this.hide();
     }
 
-    if (this.dialogElement && this.dialogElement.parentNode) {
-      this.dialogElement.parentNode.removeChild(this.dialogElement);
-    }
-
-    this.dialogElement = null;
-    this.contentElement = null;
     this.currentConfig = null;
-    this.#isVisible = false;
+    this.#ui.destroyDialog();
+    this.#ui = null;
   }
 
   /**
