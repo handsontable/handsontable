@@ -400,13 +400,10 @@ export class Dialog extends BasePlugin {
    * @private
    */
   #destroyDialog() {
-    if (this.isVisible()) {
-      this.hide();
-    }
-
-    this.currentConfig = null;
-    this.#ui.destroyDialog();
+    this.hide();
+    this.#ui?.destroyDialog();
     this.#ui = null;
+    this.currentConfig = null;
   }
 
   /**

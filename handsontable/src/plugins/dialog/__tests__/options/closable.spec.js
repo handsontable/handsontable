@@ -114,7 +114,7 @@ describe('Dialog - closable option', () => {
     });
 
     expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog').text()).toEqual('Updated content');
+    expect($('.ht-dialog .ht-dialog__content').text()).toEqual('Updated content');
 
     dialogPlugin.hide();
 

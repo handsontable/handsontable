@@ -24,13 +24,13 @@ describe('Dialog - update method', () => {
       content: 'Initial content',
     });
 
-    expect($('.ht-dialog').text()).toEqual('Initial content');
+    expect($('.ht-dialog .ht-dialog__content').text()).toEqual('Initial content');
 
     dialogPlugin.update({
       content: 'Updated content',
     });
 
-    expect($('.ht-dialog').text()).toEqual('Updated content');
+    expect($('.ht-dialog .ht-dialog__content').text()).toEqual('Updated content');
   });
 
   it('should update dialog custom class name', async() => {

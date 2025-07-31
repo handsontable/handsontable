@@ -116,6 +116,6 @@ describe('Dialog - contentBackground option', () => {
     });
 
     expect($('.ht-dialog__content').hasClass('ht-dialog__content--background')).toBe(true);
-    expect($('.ht-dialog').text()).toEqual('Updated content');
+    expect($('.ht-dialog .ht-dialog__content').text()).toEqual('Updated content');
   });
 });

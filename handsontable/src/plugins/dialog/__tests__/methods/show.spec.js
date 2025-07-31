@@ -48,7 +48,7 @@ describe('Dialog - show method', () => {
     });
 
     expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog').text()).toEqual('Custom dialog content');
+    expect($('.ht-dialog .ht-dialog__content').text()).toEqual('Custom dialog content');
   });
 
   it('should show dialog with HTML content', async() => {
@@ -64,8 +64,8 @@ describe('Dialog - show method', () => {
     });
 
     expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog h2').text()).toBe('Title');
-    expect($('.ht-dialog p').text()).toBe('Paragraph');
+    expect($('.ht-dialog .ht-dialog__content h2').text()).toBe('Title');
+    expect($('.ht-dialog .ht-dialog__content p').text()).toBe('Paragraph');
   });
 
   it('should not show dialog when plugin is disabled', async() => {

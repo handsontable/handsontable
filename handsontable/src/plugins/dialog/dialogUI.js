@@ -1,6 +1,4 @@
 import { html } from '../../helpers/templateLiteralTag';
-import { mixin } from '../../helpers/object';
-import localHooks from '../../mixins/localHooks';
 import {
   addClass,
   removeClass,
@@ -174,12 +172,7 @@ export class DialogUI {
    * Removes the dialog UI elements from the DOM and clears the refs.
    */
   destroyDialog() {
-    if (this.#rootElement && this.#refs.dialogElement) {
-      this.#rootElement.removeChild(this.#refs.dialogElement);
-    }
-
+    this.#refs?.dialogElement.remove();
     this.#refs = null;
   }
 }
-
-mixin(DialogUI, localHooks);

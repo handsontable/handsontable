@@ -116,7 +116,7 @@ describe('Dialog - animation option', () => {
     });
 
     expect($('.ht-dialog').hasClass('ht-dialog--animation')).toBe(false);
-    expect($('.ht-dialog').text()).toEqual('Updated content');
+    expect($('.ht-dialog .ht-dialog__content').text()).toEqual('Updated content');
   });
 });
 

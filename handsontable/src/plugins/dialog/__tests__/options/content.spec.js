@@ -23,7 +23,7 @@ describe('Dialog - content option', () => {
     dialogPlugin.show();
 
     expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog').text()).toEqual('');
+    expect($('.ht-dialog .ht-dialog__content').text()).toEqual('');
   });
 
   it('should show dialog with string content', async() => {
@@ -39,7 +39,7 @@ describe('Dialog - content option', () => {
     dialogPlugin.show();
 
     expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog').text()).toEqual('Simple dialog content');
+    expect($('.ht-dialog .ht-dialog__content').text()).toEqual('Simple dialog content');
   });
 
   it('should show dialog with HTML content', async() => {
@@ -95,7 +95,7 @@ describe('Dialog - content option', () => {
     });
 
     expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog').text()).toEqual('Updated content');
+    expect($('.ht-dialog .ht-dialog__content').text()).toEqual('Updated content');
   });
 
   it('should update content when using update method', async() => {
@@ -109,13 +109,13 @@ describe('Dialog - content option', () => {
     const dialogPlugin = hot.getPlugin('dialog');
 
     dialogPlugin.show();
-    expect($('.ht-dialog').text()).toEqual('Initial content');
+    expect($('.ht-dialog .ht-dialog__content').text()).toEqual('Initial content');
 
     dialogPlugin.update({
       content: 'Updated content via update method',
     });
 
-    expect($('.ht-dialog').text()).toEqual('Updated content via update method');
+    expect($('.ht-dialog .ht-dialog__content').text()).toEqual('Updated content via update method');
   });
 
   it('should handle complex HTML content with multiple elements', async() => {
@@ -165,7 +165,7 @@ describe('Dialog - content option', () => {
     dialogPlugin.show();
 
     expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog').text()).toEqual('Content with special chars: <>&"\'');
+    expect($('.ht-dialog .ht-dialog__content').text()).toEqual('Content with special chars: <>&"\'');
   });
 
   it('should handle very long content', async() => {
@@ -183,6 +183,6 @@ describe('Dialog - content option', () => {
     dialogPlugin.show();
 
     expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog').text()).toEqual(longContent);
+    expect($('.ht-dialog .ht-dialog__content').text()).toEqual(longContent);
   });
 });
