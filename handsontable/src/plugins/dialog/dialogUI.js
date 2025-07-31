@@ -73,14 +73,25 @@ export class DialogUI {
    * Updates the dialog class name based on current configuration.
    *
    * @param {object} options - Class name update options.
+   * @param {boolean} options.isVisible - Whether the dialog is visible.
+   * @param {string|HTMLElement} options.content - The content to render in the dialog.
    * @param {string} options.customClassName - The custom class name to add to the dialog.
    * @param {string} options.background - The background to add to the dialog.
+   * @param {boolean} options.contentBackground - Whether to show content background.
+   * @param {string} options.contentDirections - The flex direction for content layout.
    * @param {boolean} options.animation - Whether to add the animation class to the dialog.
-   * @param {boolean} options.isVisible - Whether the dialog is visible.
    *
    * @returns {DialogUI} The instance of the DialogUI for method chaining.
    */
-  updateDialogClassName({ customClassName, background, animation, isVisible }) {
+  updateDialog({
+    isVisible,
+    content,
+    customClassName,
+    background,
+    contentBackground,
+    contentDirections,
+    animation,
+  }) {
     const customClass = customClassName ?
       ` ${customClassName}` : '';
     const backgroundClass = background ?
@@ -89,22 +100,10 @@ export class DialogUI {
       ` ${DIALOG_CLASS_NAME}--animation` : '';
     const showClass = isVisible ? ` ${DIALOG_CLASS_NAME}--show` : '';
 
+    // Update dialog class name
     this.#refs.dialogElement.className =
       `${DIALOG_CLASS_NAME}${customClass}${backgroundClass}${animationClass}${showClass}`;
 
-    return this;
-  }
-
-  /**
-   * Updates the dialog content and styling.
-   *
-   * @param {object} options - Content update options.
-   * @param {string|HTMLElement} options.content - The content to render in the dialog.
-   * @param {string} options.contentDirections - The flex direction for content layout.
-   * @param {boolean} options.contentBackground - Whether to show content background.
-   * @returns {DialogUI} The instance of the DialogUI for method chaining.
-   */
-  updateDialogContent({ content, contentDirections, contentBackground }) {
     // Clear existing content
     this.#refs.contentElement.innerHTML = '';
 
@@ -120,6 +119,7 @@ export class DialogUI {
     const contentDirectionsClass = contentDirections ?
       ` ${DIALOG_CLASS_NAME}__content--flex-${contentDirections}` : '';
 
+    // Update content class name
     this.#refs.contentElement.className =
       `${DIALOG_CLASS_NAME}__content${contentBackgroundClass}${contentDirectionsClass}`;
 
