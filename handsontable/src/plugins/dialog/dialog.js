@@ -352,12 +352,12 @@ export class Dialog extends BasePlugin {
     }
 
     this.#updateDialogConfig(config);
-    this.#ui.updateDialogClassName(
-      this.currentConfig.customClassName,
-      this.currentConfig.background,
-      this.currentConfig.animation,
-      this.isVisible(),
-    );
+    this.#ui.updateDialogClassName({
+      customClassName: this.currentConfig.customClassName,
+      background: this.currentConfig.background,
+      animation: this.currentConfig.animation,
+      isVisible: this.isVisible(),
+    });
     this.#ui.updateDialogContent({
       content: this.currentConfig.content,
       contentDirections: this.currentConfig.contentDirections,

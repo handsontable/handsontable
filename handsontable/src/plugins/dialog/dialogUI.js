@@ -72,14 +72,15 @@ export class DialogUI {
   /**
    * Updates the dialog class name based on current configuration.
    *
-   * @param {string} customClassName - The custom class name to add to the dialog.
-   * @param {string} background - The background to add to the dialog.
-   * @param {boolean} animation - Whether to add the animation class to the dialog.
-   * @param {boolean} isVisible - Whether the dialog is visible.
+   * @param {object} options - Class name update options.
+   * @param {string} options.customClassName - The custom class name to add to the dialog.
+   * @param {string} options.background - The background to add to the dialog.
+   * @param {boolean} options.animation - Whether to add the animation class to the dialog.
+   * @param {boolean} options.isVisible - Whether the dialog is visible.
    *
    * @returns {DialogUI} The instance of the DialogUI for method chaining.
    */
-  updateDialogClassName(customClassName, background, animation, isVisible) {
+  updateDialogClassName({ customClassName, background, animation, isVisible }) {
     const customClass = customClassName ?
       ` ${customClassName}` : '';
     const backgroundClass = background ?
