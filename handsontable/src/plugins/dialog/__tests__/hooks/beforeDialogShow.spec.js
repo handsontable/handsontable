@@ -26,15 +26,7 @@ describe('Dialog - beforeDialogShow hook', () => {
       content: 'Test content',
     });
 
-    expect(beforeDialogShowSpy).toHaveBeenCalledWith({
-      content: 'Test content',
-      customClassName: '',
-      background: 'solid',
-      contentBackground: false,
-      contentDirections: 'row',
-      animation: true,
-      closable: false,
-    });
+    expect(beforeDialogShowSpy).toHaveBeenCalledTimes(1);
   });
 
   it('should run beforeDialogShow before afterDialogShow', async() => {

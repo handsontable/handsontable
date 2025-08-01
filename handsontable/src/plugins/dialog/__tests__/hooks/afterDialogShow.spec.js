@@ -26,14 +26,6 @@ describe('Dialog - afterDialogShow hook', () => {
       content: 'Test content',
     });
 
-    expect(afterDialogShowSpy).toHaveBeenCalledWith({
-      content: 'Test content',
-      customClassName: '',
-      background: 'solid',
-      contentBackground: false,
-      contentDirections: 'row',
-      animation: true,
-      closable: false,
-    });
+    expect(afterDialogShowSpy).toHaveBeenCalledTimes(1);
   });
 });

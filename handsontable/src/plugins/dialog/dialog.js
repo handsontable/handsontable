@@ -1,6 +1,5 @@
 import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
-import { warn } from '../../helpers/console';
 import { DialogUI } from './dialogUI';
 
 export const PLUGIN_KEY = 'dialog';
@@ -155,11 +154,6 @@ export class Dialog extends BasePlugin {
     return PLUGIN_PRIORITY;
   }
 
-  /**
-   * Dialog default configuration.
-   *
-   * @returns {object}
-   */
   static get DEFAULT_SETTINGS() {
     return {
       content: '',
@@ -172,13 +166,7 @@ export class Dialog extends BasePlugin {
     };
   }
 
-  /**
-   * Validators for dialog configuration options.
-   *
-   * @private
-   * @type {object}
-   */
-  static get DIALOG_CONFIG_VALIDATORS() {
+  static get SETTINGS_VALIDATORS() {
     return {
       content: value => typeof value === 'string' ||
         (typeof HTMLElement !== 'undefined' && value instanceof HTMLElement),
@@ -190,14 +178,6 @@ export class Dialog extends BasePlugin {
       closable: value => typeof value === 'boolean',
     };
   }
-
-  /**
-   * Current dialog configuration.
-   *
-   * @private
-   * @type {object}
-   */
-  currentConfig = null;
 
   /**
    * UI instance of the dialog plugin.
@@ -232,8 +212,6 @@ export class Dialog extends BasePlugin {
       return;
     }
 
-    this.currentConfig = { ...Dialog.DEFAULT_SETTINGS };
-    this.#updateDialogConfig(this.hot.getSettings()[PLUGIN_KEY]);
     this.#ui = new DialogUI({
       rootElement: this.hot.rootWrapperElement,
     });
@@ -285,7 +263,7 @@ export class Dialog extends BasePlugin {
       callback: () => {
         this.hide();
       },
-      runOnlyIf: () => this.#isVisible && this.currentConfig.closable,
+      runOnlyIf: () => this.#isVisible && this.getSetting('closable'),
       group: SHORTCUTS_GROUP,
     });
   }
@@ -306,21 +284,21 @@ export class Dialog extends BasePlugin {
    * Show dialog with given configuration.
    * Displays the dialog with the specified content and settings.
    *
-   * @param {object} config Dialog configuration object containing content and display options.
+   * @param {object} settings Dialog configuration object containing content and display options.
    */
-  show(config = {}) {
+  show(settings = {}) {
     if (!this.enabled || this.isVisible()) {
       return;
     }
 
-    this.hot.runHooks('beforeDialogShow', this.currentConfig);
+    this.hot.runHooks('beforeDialogShow');
 
     this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
-    this.update(config);
-    this.#ui.showDialog(this.currentConfig.animation);
+    this.update(settings);
+    this.#ui.showDialog(this.getSetting('animation'));
     this.#isVisible = true;
 
-    this.hot.runHooks('afterDialogShow', this.currentConfig);
+    this.hot.runHooks('afterDialogShow');
   }
 
   /**
@@ -328,13 +306,13 @@ export class Dialog extends BasePlugin {
    * Closes the dialog and cleans up event listeners.
    */
   hide() {
-    if (!this.isVisible() || !this.currentConfig.closable) {
+    if (!this.isVisible() || !this.getSetting('closable')) {
       return;
     }
 
     this.hot.runHooks('beforeDialogHide');
 
-    this.#ui.hideDialog(this.currentConfig.animation);
+    this.#ui.hideDialog(this.getSetting('animation'));
     this.hot.getShortcutManager().setActiveContextName('grid');
     this.#isVisible = false;
 
@@ -344,51 +322,23 @@ export class Dialog extends BasePlugin {
   /**
    * Update the dialog configuration.
    *
-   * @param {object} config - The configuration to update the dialog with.
+   * @param {object} settings - The configuration to update the dialog with.
    */
-  update(config) {
+  update(settings) {
     if (!this.enabled) {
       return;
     }
 
-    this.#updateDialogConfig(config);
+    this.updatePluginSettings(settings);
+
     this.#ui.updateDialog({
       isVisible: this.isVisible(),
-      content: this.currentConfig.content,
-      customClassName: this.currentConfig.customClassName,
-      background: this.currentConfig.background,
-      contentBackground: this.currentConfig.contentBackground,
-      contentDirections: this.currentConfig.contentDirections,
-      animation: this.currentConfig.animation,
-    });
-  }
-
-  /**
-   * Update dialog configuration with validation.
-   *
-   * @param {object} config - The configuration to update the dialog with.
-   * @private
-   */
-  #updateDialogConfig(config) {
-    if (!config || typeof config !== 'object') {
-      return;
-    }
-
-    Object.keys(config).forEach((key) => {
-      if (!(key in this.currentConfig)) {
-        return;
-      }
-
-      const validator = Dialog.DIALOG_CONFIG_VALIDATORS[key];
-      const isValid = validator ? validator(config[key]) : true;
-
-      if (isValid === false) {
-        warn(`Dialog: "${key}" option is not valid and it will be ignored.`);
-
-        return;
-      }
-
-      this.currentConfig[key] = config[key];
+      content: this.getSetting('content'),
+      customClassName: this.getSetting('customClassName'),
+      background: this.getSetting('background'),
+      contentBackground: this.getSetting('contentBackground'),
+      contentDirections: this.getSetting('contentDirections'),
+      animation: this.getSetting('animation'),
     });
   }
 
@@ -401,7 +351,6 @@ export class Dialog extends BasePlugin {
     this.hide();
     this.#ui?.destroyDialog();
     this.#ui = null;
-    this.currentConfig = null;
   }
 
   /**
