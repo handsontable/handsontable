@@ -20,6 +20,14 @@ export default {
         ? [...this.$page.versionsWithPatches]
         : [];
 
+      if (this.$page.currentVersion !== 'next') {
+        const findVersion = versions.find(version => version[0] === this.$page.currentVersion);
+
+        if (findVersion) {
+          return findVersion[1][0];
+        }
+      }
+
       if (versions.length && versions[0].length >= 2 && versions[0][1].length) {
         return `${versions[0][1][0]}`;
       }
