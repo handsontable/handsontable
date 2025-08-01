@@ -267,12 +267,11 @@ export class BasePlugin {
       return this.pluginSettings;
     }
 
-    if (settingsValidators && typeof newSettings === 'object' && typeof settingsValidators === 'object') {
-      if (this.pluginSettings === null) {
-        this.pluginSettings = {
-          ...this.constructor.DEFAULT_SETTINGS,
-          ...this.hot.getSettings()[this.constructor.PLUGIN_KEY],
-        };
+    if (settingsValidators && typeof settingsValidators === 'object' && typeof newSettings === 'object') {
+      if (this.pluginSettings === null || typeof this.pluginSettings !== 'object') {
+        this.pluginSettings = typeof this.hot.getSettings()[this.constructor.PLUGIN_KEY] === 'object' ?
+          this.hot.getSettings()[this.constructor.PLUGIN_KEY] :
+          { ...this.constructor.DEFAULT_SETTINGS };
       }
 
       Object.keys(newSettings).forEach((key) => {
