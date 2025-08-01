@@ -704,4 +704,69 @@ describe('shortcutManager', () => {
       expect(callback).toHaveBeenCalledTimes(0);
     });
   });
+
+  describe('`scope` option', () => {
+    it('should create a context with the `table` scope by default', async() => {
+      handsontable();
+
+      const shortcutManager = getShortcutManager();
+      const gridContext = shortcutManager.addContext('test');
+
+      expect(gridContext.scope).toBe('table');
+    });
+
+    it('should create a context with the `global` scope when the `scope` option is set to `global`', async() => {
+      handsontable();
+
+      const shortcutManager = getShortcutManager();
+      const gridContext = shortcutManager.addContext('test', 'global');
+
+      expect(gridContext.scope).toBe('global');
+    });
+
+    it('should handle shortcuts with `table` scope only when Handsontable is listening', async() => {
+      handsontable();
+
+      const shortcutManager = getShortcutManager();
+      const callback = jasmine.createSpy();
+      const gridContext = shortcutManager.addContext('test');
+
+      gridContext.addShortcut({
+        keys: [['enter']],
+        callback,
+        group: 'spy',
+      });
+
+      shortcutManager.setActiveContextName('test');
+
+      // When Handsontable is listening, table-scoped shortcuts should work
+      await keyDownUp('enter');
+      expect(callback).toHaveBeenCalledTimes(0);
+
+      await listen();
+
+      await keyDownUp('enter');
+      expect(callback).toHaveBeenCalledTimes(1);
+    });
+
+    it('should handle shortcuts with `global` scope when Handsontable is not listening', async() => {
+      handsontable();
+
+      const shortcutManager = getShortcutManager();
+      const callback = jasmine.createSpy();
+      const gridContext = shortcutManager.addContext('test', 'global');
+
+      gridContext.addShortcut({
+        keys: [['enter']],
+        callback,
+        group: 'spy',
+      });
+
+      shortcutManager.setActiveContextName('test');
+
+      // When Handsontable is listening, global shortcuts should work
+      await keyDownUp('enter');
+      expect(callback).toHaveBeenCalledTimes(1);
+    });
+  });
 });

@@ -112,6 +112,8 @@ export class AutocompleteEditor extends HandsontableEditor {
         A11Y_AUTOCOMPLETE(),
       ]);
     }
+
+    this.addHook('beforeDialogShow', () => this.close());
   }
 
   /**

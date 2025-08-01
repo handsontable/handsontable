@@ -234,6 +234,15 @@ const allSettings: Required<Handsontable.GridSettings> = {
     'text', 'time', 'custom.cell.type'),
   uncheckedTemplate: oneOf(true, 'foo', 123),
   undo: true,
+  dialog: oneOf(true, {
+    closable: true,
+    content: 'foo',
+    customClassName: 'foo',
+    animation: true,
+    background: 'solid' as const,
+    contentBackground: true,
+    contentDirections: 'row' as const,
+  }),
   validator: oneOf(
     (value: any, callback: (valid: boolean) => void) => callback(true),
     /^[0-9]$/,

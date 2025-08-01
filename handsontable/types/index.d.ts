@@ -232,6 +232,10 @@ import {
   Settings as TrimRowsSettings,
 } from './plugins/trimRows';
 import {
+  Dialog as _Dialog,
+  Settings as DialogSettings,
+} from './plugins/dialog';
+import {
   UndoRedo as _UndoRedo,
   Settings as UndoRedoSettings,
 } from './plugins/undoRedo';
@@ -384,6 +388,7 @@ declare namespace Handsontable {
     export class Search extends _Search {}
     export class TouchScroll extends _TouchScroll {}
     export class TrimRows extends _TrimRows {}
+    export class Dialog extends _Dialog {}
     export class UndoRedo extends _UndoRedo {}
 
     export namespace AutoColumnSize {
@@ -536,6 +541,10 @@ declare namespace Handsontable {
 
     export namespace TrimRows {
       export { TrimRowsSettings as Settings };
+    }
+
+    export namespace Dialog {
+      export { DialogSettings as Settings };
     }
 
     export namespace UndoRedo {

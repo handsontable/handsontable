@@ -21,6 +21,7 @@
 @use "./plugins/merge-cells";
 @use "./plugins/manual-column-move";
 @use "./plugins/manual-row-move";
+@use "./plugins/dialog";
 @use "./plugins/pagination";
 
 // Renderers
@@ -80,5 +81,6 @@
   @include merge-cells.output();
   @include manual-column-move.output();
   @include manual-row-move.output();
+  @include dialog.output();
   @include pagination.output();
 }

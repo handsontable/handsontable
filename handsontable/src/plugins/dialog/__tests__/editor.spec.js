@@ -1,0 +1,167 @@
+
+describe('Dialog Plugin - Editor Interactions', () => {
+  const id = 'testContainer';
+
+  beforeEach(function() {
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+  });
+
+  afterEach(function() {
+    if (this.$container) {
+      destroy();
+      this.$container.remove();
+    }
+  });
+
+  describe('AutocompleteEditor', () => {
+    it('should close autocomplete editor when dialog is shown', async() => {
+      const hot = handsontable({
+        data: [['A1', 'B1'], ['A2', 'B2']],
+        dialog: true,
+        columns: [
+          { type: 'autocomplete', source: ['Option 1', 'Option 2', 'Option 3'] },
+          { type: 'text' }
+        ],
+      });
+
+      const dialogPlugin = hot.getPlugin('dialog');
+
+      // Open autocomplete editor
+      await selectCell(0, 0);
+      await keyDown('enter');
+
+      // Verify autocomplete dropdown is visible
+      expect(hot.getActiveEditor()._opened).toBe(true);
+
+      // Show dialog
+      dialogPlugin.show({
+        content: 'Test dialog content',
+        closable: true,
+        animation: false,
+      });
+
+      // Verify autocomplete editor is closed
+      expect(hot.getActiveEditor()._opened).toBe(false);
+      expect(dialogPlugin.isVisible()).toBe(true);
+    });
+  });
+
+  describe('DateEditor', () => {
+    it('should close date editor when dialog is shown', async() => {
+      const hot = handsontable({
+        data: [['2023-01-01', 'B1'], ['2023-01-02', 'B2']],
+        dialog: true,
+        columns: [
+          { type: 'date', dateFormat: 'YYYY-MM-DD' },
+          { type: 'text' }
+        ],
+      });
+
+      const dialogPlugin = hot.getPlugin('dialog');
+
+      // Open date editor
+      await selectCell(0, 0);
+      await keyDown('enter');
+
+      // Verify date picker is visible
+      expect(hot.getActiveEditor()._opened).toBe(true);
+
+      // Show dialog
+      dialogPlugin.show({
+        content: 'Test dialog content',
+        closable: true,
+      });
+
+      // Verify date editor is closed
+      expect(hot.getActiveEditor()._opened).toBe(false);
+      expect(dialogPlugin.isVisible()).toBe(true);
+    });
+  });
+
+  describe('HandsontableEditor', () => {
+    it('should close handsontable editor when dialog is shown', async() => {
+      const hot = handsontable({
+        data: [['A1', 'B1'], ['A2', 'B2']],
+        dialog: true,
+        columns: [
+          {
+            type: 'handsontable',
+            handsontable: {
+              data: [['Sub A1', 'Sub B1'], ['Sub A2', 'Sub B2']],
+              colHeaders: ['Col 1', 'Col 2'],
+              rowHeaders: false
+            }
+          },
+          { type: 'text' }
+        ],
+      });
+
+      const dialogPlugin = hot.getPlugin('dialog');
+
+      // Open handsontable editor
+      await selectCell(0, 0);
+      await keyDown('enter');
+
+      // Verify handsontable editor is visible
+      expect(hot.getActiveEditor()._opened).toBe(true);
+
+      // Show dialog
+      dialogPlugin.show({
+        content: 'Test dialog content',
+        closable: true,
+      });
+
+      // Verify handsontable editor is closed
+      expect(hot.getActiveEditor()._opened).toBe(false);
+      expect(dialogPlugin.isVisible()).toBe(true);
+    });
+  });
+
+  describe('Multiple Editors', () => {
+    it('should close all open editors when dialog is shown', async() => {
+      const hot = handsontable({
+        data: [['A1', '2023-01-01', 'C1'], ['A2', '2023-01-02', 'C2']],
+        dialog: true,
+        columns: [
+          { type: 'autocomplete', source: ['Option 1', 'Option 2', 'Option 3'] },
+          { type: 'date', dateFormat: 'YYYY-MM-DD' },
+          {
+            type: 'handsontable',
+            handsontable: {
+              data: [['Sub A1', 'Sub B1'], ['Sub A2', 'Sub B2']],
+              colHeaders: ['Col 1', 'Col 2'],
+              rowHeaders: false
+            }
+          }
+        ],
+      });
+
+      const dialogPlugin = hot.getPlugin('dialog');
+
+      // Open autocomplete editor
+      await selectCell(0, 0);
+      await keyDown('enter');
+      expect(hot.getActiveEditor()._opened).toBe(true);
+
+      // Open date editor
+      await selectCell(0, 1);
+      await keyDown('enter');
+      expect(hot.getActiveEditor()._opened).toBe(true);
+
+      // Open handsontable editor
+      await selectCell(0, 2);
+      await keyDown('enter');
+      expect(hot.getActiveEditor()._opened).toBe(true);
+
+      // Show dialog
+      dialogPlugin.show({
+        content: 'Test dialog content',
+        closable: true,
+      });
+
+      // Verify all editors are closed
+      expect(hot.getActiveEditor()._opened).toBe(false);
+      expect(dialogPlugin.isVisible()).toBe(true);
+    });
+  });
+});
