@@ -253,7 +253,10 @@ export class BasePlugin {
   updatePluginSettings(newSettings) {
     const settingsValidators = this.constructor.SETTINGS_VALIDATORS;
 
-    if (settingsValidators && typeof settingsValidators === 'function' && typeof newSettings !== 'object') {
+    if (settingsValidators &&
+      typeof settingsValidators === 'function' &&
+      typeof newSettings !== 'object'
+    ) {
       const isValid = settingsValidators(newSettings);
 
       if (isValid === false) {
@@ -267,15 +270,16 @@ export class BasePlugin {
       return this.pluginSettings;
     }
 
-    if (settingsValidators && typeof settingsValidators === 'object' && typeof newSettings === 'object') {
+    if (settingsValidators &&
+       typeof settingsValidators === 'object' &&
+       typeof newSettings === 'object'
+    ) {
       if (this.pluginSettings === null || typeof this.pluginSettings !== 'object') {
-        this.pluginSettings = typeof this.hot.getSettings()[this.constructor.PLUGIN_KEY] === 'object' ?
-          this.hot.getSettings()[this.constructor.PLUGIN_KEY] :
-          { ...this.constructor.DEFAULT_SETTINGS };
+        this.pluginSettings = { ...this.constructor.DEFAULT_SETTINGS };
       }
 
-      Object.keys(newSettings).forEach((key) => {
-        if (!(key in this.pluginSettings)) {
+      Object.keys(settingsValidators).forEach((key) => {
+        if (!(key in newSettings)) {
           return;
         }
 
