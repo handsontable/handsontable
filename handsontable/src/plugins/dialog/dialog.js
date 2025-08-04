@@ -169,7 +169,8 @@ export class Dialog extends BasePlugin {
   static get SETTINGS_VALIDATORS() {
     return {
       content: value => typeof value === 'string' ||
-        (typeof HTMLElement !== 'undefined' && value instanceof HTMLElement),
+        (typeof HTMLElement !== 'undefined' && value instanceof HTMLElement) ||
+        (typeof DocumentFragment !== 'undefined' && value instanceof DocumentFragment),
       customClassName: value => typeof value === 'string',
       background: value => ['solid', 'semi-transparent'].includes(value),
       contentBackground: value => typeof value === 'boolean',

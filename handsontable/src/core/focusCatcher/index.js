@@ -48,6 +48,8 @@ export function installFocusCatcher(hot) {
   let isTabOrShiftTabPressed = false;
   let preventViewportScroll = false;
 
+  hot.addHook('afterDialogShow', () => deactivate());
+  hot.addHook('afterDialogHide', () => activate());
   hot.addHook('afterListen', () => deactivate());
   hot.addHook('afterUnlisten', () => activate());
   hot.addHook('afterSelection', (row, column, row2, column2, preventScrolling) => {

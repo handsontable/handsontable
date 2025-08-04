@@ -12,6 +12,8 @@ const DIALOG_CLASS_NAME = 'ht-dialog';
 
 const TEMPLATE = `
 <div data-ref="dialogElement" class="${DIALOG_CLASS_NAME}">
+  <input type="text" name="dialog-input-focus-catcher" data-ref="inputFocusCatcher" 
+    class="${DIALOG_CLASS_NAME}__input-focus-catcher"/>
   <div data-ref="contentWrapperElement" class="${DIALOG_CLASS_NAME}__content-wrapper">
     <div data-ref="contentElement" class="${DIALOG_CLASS_NAME}__content"></div>
   </div>
@@ -70,6 +72,13 @@ export class DialogUI {
   }
 
   /**
+   * Focuses the input element.
+   */
+  focusInput() {
+    this.#refs.inputFocusCatcher.focus();
+  }
+
+  /**
    * Updates the dialog class name based on current configuration.
    *
    * @param {object} options - Class name update options.
@@ -121,7 +130,7 @@ export class DialogUI {
     // Render new dialog content
     if (typeof content === 'string') {
       fastInnerHTML(this.#refs.contentElement, content);
-    } else if (content instanceof HTMLElement) {
+    } else if (content instanceof HTMLElement || content instanceof DocumentFragment) {
       this.#refs.contentElement.appendChild(content);
     }
 
@@ -145,6 +154,7 @@ export class DialogUI {
     }
 
     addClass(this.#refs.dialogElement, `${DIALOG_CLASS_NAME}--show`);
+    this.focusInput();
 
     return this;
   }

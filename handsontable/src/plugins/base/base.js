@@ -238,6 +238,7 @@ export class BasePlugin {
   /**
    * Get plugin settings.
    *
+   * @private
    * @returns {object} Plugin settings.
    */
   getPluginSettings() {
@@ -260,7 +261,7 @@ export class BasePlugin {
       const isValid = settingsValidators(newSettings);
 
       if (isValid === false) {
-        warn(`${this.pluginName}: option is not valid and it will be ignored.`);
+        warn(`${this.pluginName} Plugin: option is not valid and it will be ignored.`);
 
         return;
       }
@@ -287,7 +288,7 @@ export class BasePlugin {
         const isValid = validator ? validator(newSettings[key]) : true;
 
         if (isValid === false) {
-          warn(`${this.pluginName}: "${key}" option is not valid and it will be ignored.`);
+          warn(`${this.pluginName} Plugin: "${key}" option is not valid and it will be ignored.`);
 
           return;
         }
