@@ -372,8 +372,6 @@ export class HandsontableEditor extends TextEditor {
         this.close();
       }
     });
-
-    this.addHook('beforeDialogShow', () => this.close());
   }
 
   /**

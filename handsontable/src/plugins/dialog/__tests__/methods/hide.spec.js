@@ -36,7 +36,7 @@ describe('Dialog - hide method', () => {
     expect($('.ht-dialog').length).toBe(1);
   });
 
-  it('should not hide dialog when closable is false', async() => {
+  it('should hide dialog when closable is false', async() => {
     const hot = handsontable({
       data: [['A1', 'B1'], ['A2', 'B2']],
       dialog: {
@@ -52,8 +52,8 @@ describe('Dialog - hide method', () => {
 
     dialogPlugin.hide();
 
-    expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog').hasClass('ht-dialog--show')).toBe(true);
+    expect(dialogPlugin.isVisible()).toBe(false);
+    expect($('.ht-dialog').hasClass('ht-dialog--show')).toBe(false);
   });
 
   it('should not hide dialog when not visible', async() => {

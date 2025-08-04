@@ -27,9 +27,9 @@ Hooks.getSingleton().register('afterDialogHide');
  * The plugin provides several configuration options to customize the dialog behavior and appearance:
  * - `content`: The string or HTMLElement content to display in the dialog
  * - `customClassName`: Custom class name to apply to the dialog
- * - `background`: Dialog background variant ('solid' by default)
+ * - `background`: Dialog background variant 'solid' | 'semi-transparent' (default: 'solid')
  * - `contentBackground`: Whether to show content background
- * - `contentDirections`: Content layout direction 'row' | 'row-reverse' | 'column' | 'column-reverse'
+ * - `contentDirections`: Content layout direction 'row' | 'row-reverse' | 'column' | 'column-reverse' (default: 'row')
  * - `animation`: Whether to enable animations
  * - `closable`: Whether the dialog can be closed
  *
@@ -256,7 +256,8 @@ export class Dialog extends BasePlugin {
    */
   registerShortcuts() {
     const manager = this.hot.getShortcutManager();
-    const pluginContext = manager.addContext(SHORTCUTS_CONTEXT_NAME, 'global');
+    const pluginContext = manager.getContext(SHORTCUTS_CONTEXT_NAME) ||
+      manager.addContext(SHORTCUTS_CONTEXT_NAME, 'global');
 
     pluginContext.addShortcut({
       keys: [['Escape']],
@@ -306,7 +307,7 @@ export class Dialog extends BasePlugin {
    * Closes the dialog and cleans up event listeners.
    */
   hide() {
-    if (!this.isVisible() || !this.getSetting('closable')) {
+    if (!this.isVisible()) {
       return;
     }
 

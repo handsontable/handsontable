@@ -26,7 +26,7 @@ describe('Dialog - closable option', () => {
 
     dialogPlugin.hide();
 
-    expect(dialogPlugin.isVisible()).toBe(true);
+    expect(dialogPlugin.isVisible()).toBe(false);
   });
 
   it('should be closable when set to true', async() => {
@@ -85,7 +85,7 @@ describe('Dialog - closable option', () => {
 
     dialogPlugin.hide();
 
-    expect(dialogPlugin.isVisible()).toBe(true);
+    expect(dialogPlugin.isVisible()).toBe(false);
 
     dialogPlugin.update({
       closable: true,

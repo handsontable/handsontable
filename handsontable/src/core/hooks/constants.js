@@ -3142,6 +3142,7 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link Dialog} plugin after hiding the dialog. This hook is fired when {@link Options#dialog}
    * option is enabled.
    *
+   * @since 16.1.0
    * @event Hooks#afterDialogHide
    */
   'afterDialogHide',
@@ -3150,6 +3151,7 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link Dialog} plugin after showing the dialog. This hook is fired when {@link Options#dialog}
    * option is enabled.
    *
+   * @since 16.1.0
    * @event Hooks#afterDialogShow
    * @param {object} config The dialog configuration object.
    */
@@ -3159,6 +3161,7 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link Dialog} plugin before hiding the dialog. This hook is fired when {@link Options#dialog}
    * option is enabled.
    *
+   * @since 16.1.0
    * @event Hooks#beforeDialogHide
    */
   'beforeDialogHide',
@@ -3167,6 +3170,7 @@ export const REGISTERED_HOOKS = [
    * Fired by {@link Dialog} plugin before showing the dialog. This hook is fired when {@link Options#dialog}
    * option is enabled.
    *
+   * @since 16.1.0
    * @event Hooks#beforeDialogShow
    * @param {object} config The dialog configuration object.
    */
