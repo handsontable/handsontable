@@ -23,7 +23,7 @@ angular:
 
 ### allowDuplicates
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/utils/samplesGenerator.js#L43
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/utils/samplesGenerator.js#L43
 
 :::
 
@@ -36,7 +36,7 @@ _samplesGenerator.allowDuplicates : boolean_
 
 ### customSampleCount
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/utils/samplesGenerator.js#L36
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/utils/samplesGenerator.js#L36
 
 :::
 
@@ -49,7 +49,7 @@ Custom number of samples to take of each value length.
 
 ### dataFactory
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/utils/samplesGenerator.js#L29
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/utils/samplesGenerator.js#L29
 
 :::
 
@@ -61,7 +61,7 @@ Function which give the data to collect samples.
 
 ### SAMPLE_COUNT
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/utils/samplesGenerator.js#L14
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/utils/samplesGenerator.js#L14
 
 :::
 
@@ -73,7 +73,7 @@ Number of samples to take of each value length.
 
 ### samples
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/utils/samplesGenerator.js#L23
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/utils/samplesGenerator.js#L23
 
 :::
 
@@ -87,7 +87,7 @@ Samples prepared for calculations.
 
 ### generateColumnSamples
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/utils/samplesGenerator.js#L98
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/utils/samplesGenerator.js#L98
 
 :::
 
@@ -105,7 +105,7 @@ Generate samples for column. You can control which area should be sampled by pas
 
 ### generateRowSamples
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/utils/samplesGenerator.js#L87
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/utils/samplesGenerator.js#L87
 
 :::
 
@@ -123,7 +123,7 @@ Generate samples for row. You can control which area should be sampled by passin
 
 ### generateSample
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/utils/samplesGenerator.js#L132
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/utils/samplesGenerator.js#L132
 
 :::
 
@@ -142,7 +142,7 @@ Generate sample for specified type (`row` or `col`).
 
 ### generateSamples
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/utils/samplesGenerator.js#L110
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/utils/samplesGenerator.js#L110
 
 :::
 
@@ -161,7 +161,7 @@ Generate collection of samples.
 
 ### getSampleCount
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/utils/samplesGenerator.js#L54
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/utils/samplesGenerator.js#L54
 
 :::
 
@@ -173,7 +173,7 @@ Get the sample count for this instance.
 
 ### setAllowDuplicates
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/utils/samplesGenerator.js#L76
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/utils/samplesGenerator.js#L76
 
 :::
 
@@ -190,7 +190,7 @@ Set if the generator should accept duplicate values.
 
 ### setSampleCount
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/utils/samplesGenerator.js#L67
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/utils/samplesGenerator.js#L67
 
 :::
 

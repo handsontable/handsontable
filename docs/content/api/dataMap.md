@@ -30,7 +30,7 @@ Utility class that gets and saves data from/to the data source using mapping of 
 
 ### colToPropCache
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/dataMap/dataMap.js#L103
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/dataMap/dataMap.js#L103
 
 :::
 
@@ -42,7 +42,7 @@ Cached array of properties to columns.
 
 ### dataSource
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/dataMap/dataMap.js#L91
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/dataMap/dataMap.js#L91
 
 :::
 
@@ -54,7 +54,7 @@ Reference to the original dataset.
 
 ### DESTINATION_CLIPBOARD_GENERATOR
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/dataMap/dataMap.js#L61
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/dataMap/dataMap.js#L61
 
 :::
 
@@ -64,7 +64,7 @@ _DataMap.DESTINATION\_CLIPBOARD\_GENERATOR : number_
 
 ### DESTINATION_RENDERER
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/dataMap/dataMap.js#L54
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/dataMap/dataMap.js#L54
 
 :::
 
@@ -74,7 +74,7 @@ _DataMap.DESTINATION\_RENDERER : number_
 
 ### duckSchema
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/dataMap/dataMap.js#L97
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/dataMap/dataMap.js#L97
 
 :::
 
@@ -86,7 +86,7 @@ Generated schema based on the first row from the source data.
 
 ### propToColCache
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/dataMap/dataMap.js#L109
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/dataMap/dataMap.js#L109
 
 :::
 
@@ -99,7 +99,7 @@ Cached map of properties to columns.
 
 ### clear
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/dataMap/dataMap.js#L914
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/dataMap/dataMap.js#L914
 
 :::
 
@@ -111,7 +111,7 @@ Clears the data array.
 
 ### colToProp
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/dataMap/dataMap.js#L228
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/dataMap/dataMap.js#L228
 
 :::
 
@@ -129,7 +129,7 @@ Returns property name that corresponds with the given column index.
 
 ### countCachedColumns
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/dataMap/dataMap.js#L971
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/dataMap/dataMap.js#L971
 
 :::
 
@@ -142,7 +142,7 @@ Count the number of columns cached in the `colToProp` cache.
 
 ### countFirstRowKeys
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/dataMap/dataMap.js#L184
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/dataMap/dataMap.js#L184
 
 :::
 
@@ -155,7 +155,7 @@ Get the amount of physical columns in the first data row.
 
 ### createCol
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/dataMap/dataMap.js#L419
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/dataMap/dataMap.js#L419
 
 :::
 
@@ -178,7 +178,7 @@ Creates column at the right of the data array.
 
 ### createDuckSchema
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/dataMap/dataMap.js#L297
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/dataMap/dataMap.js#L297
 
 :::
 
@@ -190,7 +190,7 @@ Creates the duck schema based on the current dataset.
 
 ### createMap
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/dataMap/dataMap.js#L129
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/dataMap/dataMap.js#L129
 
 :::
 
@@ -202,7 +202,7 @@ Generates cache for property to and from column addressation.
 
 ### createRow
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/dataMap/dataMap.js#L319
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/dataMap/dataMap.js#L319
 
 :::
 
@@ -225,7 +225,7 @@ Creates row at the bottom of the data array.
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/dataMap/dataMap.js#L1046
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/dataMap/dataMap.js#L1046
 
 :::
 
@@ -237,7 +237,7 @@ Destroy instance.
 
 ### filterData
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/dataMap/dataMap.js#L706
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/dataMap/dataMap.js#L706
 
 :::
 
@@ -256,7 +256,7 @@ Filter unwanted data elements from the data source.
 
 ### get
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/dataMap/dataMap.js#L726
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/dataMap/dataMap.js#L726
 
 :::
 
@@ -274,7 +274,7 @@ Returns single value from the data array.
 
 ### getAll
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/dataMap/dataMap.js#L948
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/dataMap/dataMap.js#L948
 
 :::
 
@@ -286,7 +286,7 @@ Returns the data array.
 
 ### getCopyable
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/dataMap/dataMap.js#L786
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/dataMap/dataMap.js#L786
 
 :::
 
@@ -304,7 +304,7 @@ Returns single value from the data array (intended for clipboard copy to an exte
 
 ### getCopyableText
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/dataMap/dataMap.js#L1039
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/dataMap/dataMap.js#L1039
 
 :::
 
@@ -322,7 +322,7 @@ Return data as copyable text (tab separated columns intended for clipboard copy 
 
 ### getLength
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/dataMap/dataMap.js#L927
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/dataMap/dataMap.js#L927
 
 :::
 
@@ -334,7 +334,7 @@ Get data length.
 
 ### getRange
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/dataMap/dataMap.js#L983
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/dataMap/dataMap.js#L983
 
 :::
 
@@ -353,7 +353,7 @@ Returns data range as array.
 
 ### getSchema
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/dataMap/dataMap.js#L278
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/dataMap/dataMap.js#L278
 
 :::
 
@@ -365,7 +365,7 @@ Returns data's schema.
 
 ### getText
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/dataMap/dataMap.js#L1028
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/dataMap/dataMap.js#L1028
 
 :::
 
@@ -383,7 +383,7 @@ Return data as text (tab separated columns).
 
 ### propToCol
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/dataMap/dataMap.js#L256
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/dataMap/dataMap.js#L256
 
 :::
 
@@ -401,7 +401,7 @@ Translates property into visual column index.
 
 ### recursiveDuckColumns
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/dataMap/dataMap.js#L196
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/dataMap/dataMap.js#L196
 
 :::
 
@@ -420,7 +420,7 @@ Generates columns' translation cache.
 
 ### refreshDuckSchema
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/dataMap/dataMap.js#L304
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/dataMap/dataMap.js#L304
 
 :::
 
@@ -432,7 +432,7 @@ Refresh the data schema.
 
 ### removeCol
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/dataMap/dataMap.js#L561
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/dataMap/dataMap.js#L561
 
 :::
 
@@ -453,7 +453,7 @@ Removes column from the data array.
 
 ### removeRow
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/dataMap/dataMap.js#L508
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/dataMap/dataMap.js#L508
 
 :::
 
@@ -474,7 +474,7 @@ Removes row from the data array.
 
 ### set
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/dataMap/dataMap.js#L801
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/dataMap/dataMap.js#L801
 
 :::
 
@@ -493,7 +493,7 @@ Saves single value to the data array.
 
 ### spliceCol
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/dataMap/dataMap.js#L633
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/dataMap/dataMap.js#L633
 
 :::
 
@@ -514,7 +514,7 @@ Add/Removes data from the column.
 
 ### spliceData
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/dataMap/dataMap.js#L684
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/dataMap/dataMap.js#L684
 
 :::
 
@@ -533,7 +533,7 @@ Add/remove row(s) to/from the data source.
 
 ### spliceRow
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/dataMap/dataMap.js#L660
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/dataMap/dataMap.js#L660
 
 :::
 
@@ -554,7 +554,7 @@ Add/Removes data from the row.
 
 ### visualColumnsToPhysical
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/dataMap/dataMap.js#L893
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/dataMap/dataMap.js#L893
 
 :::
 
@@ -570,7 +570,7 @@ _dataMap.visualColumnsToPhysical(index, amount) ⇒ Array_
 
 ### visualRowsToPhysical
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/dataMap/dataMap.js#L869
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/dataMap/dataMap.js#L869
 
 :::
 

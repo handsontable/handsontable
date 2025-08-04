@@ -32,7 +32,7 @@ such changes.
 
 ### clearValue
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/translations/maps/linkedPhysicalIndexToValueMap.js#L78
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/translations/maps/linkedPhysicalIndexToValueMap.js#L78
 
 :::
 
@@ -49,7 +49,7 @@ Clear value for particular index.
 
 ### getEntries
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/translations/maps/linkedPhysicalIndexToValueMap.js#L150
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/translations/maps/linkedPhysicalIndexToValueMap.js#L150
 
 :::
 
@@ -61,7 +61,7 @@ Get every entry containing index and value, respecting order of indexes.
 
 ### getLength
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/translations/maps/linkedPhysicalIndexToValueMap.js#L94
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/translations/maps/linkedPhysicalIndexToValueMap.js#L94
 
 :::
 
@@ -73,7 +73,7 @@ Get length of the index map.
 
 ### getValues
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/translations/maps/linkedPhysicalIndexToValueMap.js#L29
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/translations/maps/linkedPhysicalIndexToValueMap.js#L29
 
 :::
 
@@ -85,7 +85,7 @@ Get full list of ordered values for particular indexes.
 
 ### setValueAtIndex
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/translations/maps/linkedPhysicalIndexToValueMap.js#L57
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/translations/maps/linkedPhysicalIndexToValueMap.js#L57
 
 :::
 
@@ -106,7 +106,7 @@ Note: Value will be added at the end of the queue.
 
 ### setValues
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/bff4acf7f781a19fb0e0e3ae0a823741f77b8112/handsontable/src/translations/maps/linkedPhysicalIndexToValueMap.js#L40
+::: source-code-link https://github.com/handsontable/handsontable/blob/577bac9e3b34c32e246c526d8ade7791f8b3bf2b/handsontable/src/translations/maps/linkedPhysicalIndexToValueMap.js#L40
 
 :::
 
