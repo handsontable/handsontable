@@ -1952,7 +1952,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    *
    * @memberof Core#
    * @function getSelectedRange
-   * @returns {CellRange[]|undefined} Selected range object or undefined if there is no selection.
+   * @returns {CellRange[]|undefined} Selected range object or `undefined` if there is no selection.
    */
   this.getSelectedRange = function() { // https://github.com/handsontable/handsontable/issues/44  //cjl
     if (selection.isSelected()) {
@@ -1966,7 +1966,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * @memberof Core#
    * @function getSelectedRangeLast
    * @since 0.36.0
-   * @returns {CellRange|undefined} Selected range object or undefined` if there is no selection.
+   * @returns {CellRange|undefined} Selected range object or `undefined` if there is no selection.
    */
   this.getSelectedRangeLast = function() {
     const selectedRange = this.getSelectedRange();
@@ -1977,6 +1977,32 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     }
 
     return result;
+  };
+
+  /**
+   * Returns the range coordinates of the active selection layer. Active selection layer is the layer that
+   * has visible focus highlight.
+   *
+   * @memberof Core#
+   * @function getSelectedRangeActive
+   * @since 16.1.0
+   * @returns {CellRange|undefined} Selected range object or `undefined` if there is no selection.
+   */
+  this.getSelectedRangeActive = function() {
+    return selection.getActiveSelectedRange();
+  };
+
+  /**
+   * Returns the index of the active selection layer. Active selection layer is the layer that
+   * has visible focus highlight.
+   *
+   * @memberof Core#
+   * @function getActiveSelectionLayerIndex
+   * @since 16.1.0
+   * @returns {number} The index of the active selection layer. `0` to `N` where `0` is the last (oldest) layer and `N` is the first (newest) layer.
+   */
+  this.getActiveSelectionLayerIndex = function() {
+    return selection.getActiveSelectionLayerIndex();
   };
 
   /**

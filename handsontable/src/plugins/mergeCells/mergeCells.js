@@ -990,37 +990,44 @@ export class MergeCells extends BasePlugin {
    * @param {number} column The visual column index.
    */
   #onAfterSelectionFocusSet(row, column) {
-    const selectedRange = this.hot.getSelectedRangeLast();
     const { columnIndexMapper, rowIndexMapper } = this.hot;
+    let activeSelectionLayerIndex = this.hot.getActiveSelectionLayerIndex();
     let notHiddenRowIndex = null;
     let notHiddenColumnIndex = null;
 
     if (this.#lastFocusDelta.col < 0) {
-      const { rowEnd, colEnd } = this.#focusOrder.getPrevHorizontalNode();
+      const { rowEnd, colEnd, selectionLayer } = this.#focusOrder.getPrevHorizontalNode();
 
       notHiddenColumnIndex = columnIndexMapper.getNearestNotHiddenIndex(colEnd, -1);
       notHiddenRowIndex = rowIndexMapper.getNearestNotHiddenIndex(rowEnd, -1);
+      activeSelectionLayerIndex = selectionLayer;
 
     } else if (this.#lastFocusDelta.col > 0) {
-      const { rowStart, colStart } = this.#focusOrder.getNextHorizontalNode();
+      const { rowStart, colStart, selectionLayer } = this.#focusOrder.getNextHorizontalNode();
 
       notHiddenColumnIndex = columnIndexMapper.getNearestNotHiddenIndex(colStart, 1);
       notHiddenRowIndex = rowIndexMapper.getNearestNotHiddenIndex(rowStart, 1);
+      activeSelectionLayerIndex = selectionLayer;
 
     } else if (this.#lastFocusDelta.row < 0) {
-      const { rowEnd, colEnd } = this.#focusOrder.getPrevVerticalNode();
+      const { rowEnd, colEnd, selectionLayer } = this.#focusOrder.getPrevVerticalNode();
 
       notHiddenColumnIndex = columnIndexMapper.getNearestNotHiddenIndex(colEnd, -1);
       notHiddenRowIndex = rowIndexMapper.getNearestNotHiddenIndex(rowEnd, -1);
+      activeSelectionLayerIndex = selectionLayer;
 
     } else if (this.#lastFocusDelta.row > 0) {
-      const { rowStart, colStart } = this.#focusOrder.getNextVerticalNode();
+      const { rowStart, colStart, selectionLayer } = this.#focusOrder.getNextVerticalNode();
 
       notHiddenColumnIndex = columnIndexMapper.getNearestNotHiddenIndex(colStart, 1);
       notHiddenRowIndex = rowIndexMapper.getNearestNotHiddenIndex(rowStart, 1);
+      activeSelectionLayerIndex = selectionLayer;
     }
 
     if (notHiddenRowIndex !== null || notHiddenColumnIndex !== null) {
+      this.hot.selection.setActiveSelectionLayerIndex(activeSelectionLayerIndex);
+
+      const selectedRange = this.hot.getSelectedRangeActive();
       const coords = this.hot._createCellCoords(notHiddenRowIndex, notHiddenColumnIndex);
       const mergeParent = this.mergedCellsCollection.get(coords.row, coords.col);
       const focusHighlight = this.hot.selection.highlight.getFocus();
@@ -1043,7 +1050,7 @@ export class MergeCells extends BasePlugin {
         .commit();
     }
 
-    this.#focusOrder.setActiveNode(row, column);
+    this.#focusOrder.setActiveNode(row, column, activeSelectionLayerIndex);
     this.#lastFocusDelta = { row: 0, col: 0 };
   }
 
@@ -1051,11 +1058,7 @@ export class MergeCells extends BasePlugin {
    * Creates the horizontal and vertical cells order matrix (linked lists) for focused cell.
    */
   #onAfterSelectionEnd() {
-    const selection = this.hot.getSelectedRangeLast();
-
-    if (!selection.isHeader()) {
-      this.#focusOrder.buildFocusOrder(this.hot.getSelectedRangeLast());
-    }
+    this.#focusOrder.buildFocusOrder(this.hot.getSelectedRange());
   }
 
   /**

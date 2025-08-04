@@ -107,6 +107,13 @@ class Selection {
    * @param {number}
    */
   #expectedLayersCount = -1;
+  /**
+   * The index of the active range layer. Active range layer is the layer that has visible focus highlight.
+   * Focus highlight may jump between selection range layers.
+   *
+   * @type {number}
+   */
+  #activeSelectionLayer = 0;
 
   constructor(settings, tableProps) {
     this.settings = settings;
@@ -171,12 +178,39 @@ class Selection {
   }
 
   /**
-   * Get data layer for current selection.
+   * Gets all selection range layers of the selection.
    *
    * @returns {SelectionRange}
    */
   getSelectedRange() {
     return this.selectedRange;
+  }
+
+  /**
+   * Gets the active selection range layer.
+   *
+   * @returns {CellRange}
+   */
+  getActiveSelectedRange() {
+    return this.selectedRange.peekByIndex(this.#activeSelectionLayer);
+  }
+
+  /**
+   * Gets the index of the active selection range layer.
+   *
+   * @returns {number}
+   */
+  getActiveSelectionLayerIndex() {
+    return this.#activeSelectionLayer;
+  }
+
+  /**
+   * Sets the index of the active selection range layer.
+   *
+   * @param {number} layerIndex The index of the active selection range layer.
+   */
+  setActiveSelectionLayerIndex(layerIndex) {
+    this.#activeSelectionLayer = layerIndex;
   }
 
   /**
@@ -366,10 +400,8 @@ class Selection {
     this.setRangeFocus(this.selectedRange.current().highlight);
     this.applyAndCommit();
 
-    const layerIndex = this.selectedRange.size() - 1;
-
-    this.#extenderTransformation.setActiveLayerIndex(layerIndex);
-    this.#focusTransformation.setActiveLayerIndex(layerIndex);
+    this.#extenderTransformation.setActiveLayerIndex(this.getLayerLevel());
+    this.#focusTransformation.setActiveLayerIndex(this.getLayerLevel());
 
     const isLastLayer = this.#expectedLayersCount === -1 || this.selectedRange.size() === this.#expectedLayersCount;
 
@@ -537,7 +569,9 @@ class Selection {
       return;
     }
 
-    const cellRange = this.selectedRange.peekByIndex(layerIndex);
+    this.setActiveSelectionLayerIndex(layerIndex);
+
+    const cellRange = this.getActiveSelectedRange();
 
     if (!this.inProgress) {
       this.runLocalHooks('beforeSetFocus', coords);
