@@ -177,7 +177,7 @@ export class BaseEditor {
    * @returns {Function}
    */
   extend() {
-    return (class Editor extends this.constructor { });
+    return (class Editor extends this.constructor {});
   }
 
   /**
@@ -603,7 +603,7 @@ export class BaseEditor {
         section = 'top';
       }
     } else if (this.hot.getSettings().fixedRowsBottom &&
-      this.row >= totalRows - this.hot.getSettings().fixedRowsBottom) {
+               this.row >= totalRows - this.hot.getSettings().fixedRowsBottom) {
       if (this.col < this.hot.getSettings().fixedColumnsStart) {
         section = 'bottom-inline-start-corner';
       } else {
