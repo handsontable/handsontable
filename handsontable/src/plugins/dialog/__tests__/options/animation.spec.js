@@ -87,6 +87,7 @@ describe('Dialog - animation option', () => {
     const dialogPlugin = hot.getPlugin('dialog');
 
     dialogPlugin.show();
+
     expect($('.ht-dialog').hasClass('ht-dialog--animation')).toBe(false);
 
     dialogPlugin.update({
@@ -108,6 +109,7 @@ describe('Dialog - animation option', () => {
     const dialogPlugin = hot.getPlugin('dialog');
 
     dialogPlugin.show();
+
     expect($('.ht-dialog').hasClass('ht-dialog--animation')).toBe(false);
 
     dialogPlugin.update({

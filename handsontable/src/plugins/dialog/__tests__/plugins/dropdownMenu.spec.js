@@ -30,12 +30,10 @@ describe('Dialog - dropdown menu integration', () => {
 
     expect(dialogPlugin.isVisible()).toBe(true);
 
-    // Hide the dialog
     dialogPlugin.hide();
 
     expect(dialogPlugin.isVisible()).toBe(false);
 
-    // Now try to open dropdown menu
     await dropdownMenu();
 
     expect($('.htDropdownMenu').is(':visible')).toBe(true);
@@ -53,12 +51,10 @@ describe('Dialog - dropdown menu integration', () => {
 
     const dialogPlugin = hot.getPlugin('dialog');
 
-    // Open dropdown menu first
     await dropdownMenu();
 
     expect($('.htDropdownMenu').is(':visible')).toBe(true);
 
-    // Show dialog while dropdown menu is open
     dialogPlugin.show({
       content: 'Test dialog content',
     });
@@ -84,7 +80,6 @@ describe('Dialog - dropdown menu integration', () => {
 
     expect(dialogPlugin.isVisible()).toBe(true);
 
-    // Try to open dropdown menu on the dialog element
     const dialogElement = $('.ht-dialog')[0];
     const clickEvent = new MouseEvent('click', {
       bubbles: true,
@@ -116,12 +111,10 @@ describe('Dialog - dropdown menu integration', () => {
 
     expect(dialogPlugin.isVisible()).toBe(true);
 
-    // Close dialog with escape key
     await keyDownUp('escape');
 
     expect(dialogPlugin.isVisible()).toBe(false);
 
-    // Now try to open dropdown menu
     await dropdownMenu();
 
     expect($('.htDropdownMenu').is(':visible')).toBe(true);

@@ -23,11 +23,13 @@ describe('Dialog - hide method', () => {
     const dialogPlugin = hot.getPlugin('dialog');
 
     dialogPlugin.show();
+
     expect(dialogPlugin.isVisible()).toBe(true);
 
     dialogPlugin.show();
 
     expect(dialogPlugin.isVisible()).toBe(true);
+
     dialogPlugin.hide();
 
     expect(dialogPlugin.isVisible()).toBe(false);
@@ -45,9 +47,11 @@ describe('Dialog - hide method', () => {
     const dialogPlugin = hot.getPlugin('dialog');
 
     dialogPlugin.show();
+
     expect(dialogPlugin.isVisible()).toBe(true);
 
     dialogPlugin.hide();
+
     expect(dialogPlugin.isVisible()).toBe(true);
     expect($('.ht-dialog').hasClass('ht-dialog--show')).toBe(true);
   });
@@ -65,6 +69,7 @@ describe('Dialog - hide method', () => {
     expect(dialogPlugin.isVisible()).toBe(false);
 
     dialogPlugin.hide();
+
     expect(dialogPlugin.isVisible()).toBe(false);
   });
 
@@ -79,9 +84,11 @@ describe('Dialog - hide method', () => {
     const dialogPlugin = hot.getPlugin('dialog');
 
     dialogPlugin.show();
+
     expect($('.ht-dialog').hasClass('ht-dialog--show')).toBe(true);
 
     dialogPlugin.hide();
+
     expect($('.ht-dialog').hasClass('ht-dialog--show')).toBe(false);
   });
 });

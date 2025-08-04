@@ -80,9 +80,11 @@ describe('Dialog - closable option', () => {
     const dialogPlugin = hot.getPlugin('dialog');
 
     dialogPlugin.show();
+
     expect(dialogPlugin.isVisible()).toBe(true);
 
     dialogPlugin.hide();
+
     expect(dialogPlugin.isVisible()).toBe(true);
 
     dialogPlugin.update({
@@ -106,6 +108,7 @@ describe('Dialog - closable option', () => {
     const dialogPlugin = hot.getPlugin('dialog');
 
     dialogPlugin.show();
+
     expect(dialogPlugin.isVisible()).toBe(true);
 
     dialogPlugin.update({

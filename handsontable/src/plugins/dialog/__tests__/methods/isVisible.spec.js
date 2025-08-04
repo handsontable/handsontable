@@ -47,9 +47,11 @@ describe('Dialog - isVisible method', () => {
     const dialogPlugin = hot.getPlugin('dialog');
 
     dialogPlugin.show();
+
     expect(dialogPlugin.isVisible()).toBe(true);
 
     dialogPlugin.hide();
+
     expect(dialogPlugin.isVisible()).toBe(false);
   });
 

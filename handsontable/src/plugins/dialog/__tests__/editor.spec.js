@@ -26,21 +26,17 @@ describe('Dialog Plugin - Editor Interactions', () => {
 
       const dialogPlugin = hot.getPlugin('dialog');
 
-      // Open autocomplete editor
       await selectCell(0, 0);
       await keyDown('enter');
 
-      // Verify autocomplete dropdown is visible
       expect(hot.getActiveEditor()._opened).toBe(true);
 
-      // Show dialog
       dialogPlugin.show({
         content: 'Test dialog content',
         closable: true,
         animation: false,
       });
 
-      // Verify autocomplete editor is closed
       expect(hot.getActiveEditor()._opened).toBe(false);
       expect(dialogPlugin.isVisible()).toBe(true);
     });
@@ -59,20 +55,16 @@ describe('Dialog Plugin - Editor Interactions', () => {
 
       const dialogPlugin = hot.getPlugin('dialog');
 
-      // Open date editor
       await selectCell(0, 0);
       await keyDown('enter');
 
-      // Verify date picker is visible
       expect(hot.getActiveEditor()._opened).toBe(true);
 
-      // Show dialog
       dialogPlugin.show({
         content: 'Test dialog content',
         closable: true,
       });
 
-      // Verify date editor is closed
       expect(hot.getActiveEditor()._opened).toBe(false);
       expect(dialogPlugin.isVisible()).toBe(true);
     });
@@ -98,20 +90,16 @@ describe('Dialog Plugin - Editor Interactions', () => {
 
       const dialogPlugin = hot.getPlugin('dialog');
 
-      // Open handsontable editor
       await selectCell(0, 0);
       await keyDown('enter');
 
-      // Verify handsontable editor is visible
       expect(hot.getActiveEditor()._opened).toBe(true);
 
-      // Show dialog
       dialogPlugin.show({
         content: 'Test dialog content',
         closable: true,
       });
 
-      // Verify handsontable editor is closed
       expect(hot.getActiveEditor()._opened).toBe(false);
       expect(dialogPlugin.isVisible()).toBe(true);
     });
@@ -138,28 +126,26 @@ describe('Dialog Plugin - Editor Interactions', () => {
 
       const dialogPlugin = hot.getPlugin('dialog');
 
-      // Open autocomplete editor
       await selectCell(0, 0);
       await keyDown('enter');
+
       expect(hot.getActiveEditor()._opened).toBe(true);
 
-      // Open date editor
       await selectCell(0, 1);
       await keyDown('enter');
+
       expect(hot.getActiveEditor()._opened).toBe(true);
 
-      // Open handsontable editor
       await selectCell(0, 2);
       await keyDown('enter');
+
       expect(hot.getActiveEditor()._opened).toBe(true);
 
-      // Show dialog
       dialogPlugin.show({
         content: 'Test dialog content',
         closable: true,
       });
 
-      // Verify all editors are closed
       expect(hot.getActiveEditor()._opened).toBe(false);
       expect(dialogPlugin.isVisible()).toBe(true);
     });

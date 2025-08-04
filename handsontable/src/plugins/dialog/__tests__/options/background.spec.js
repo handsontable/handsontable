@@ -74,6 +74,7 @@ describe('Dialog - background option', () => {
     const dialogPlugin = hot.getPlugin('dialog');
 
     dialogPlugin.show();
+
     expect($('.ht-dialog').hasClass('ht-dialog--background-solid')).toBe(true);
 
     dialogPlugin.update({
@@ -95,6 +96,7 @@ describe('Dialog - background option', () => {
     const dialogPlugin = hot.getPlugin('dialog');
 
     dialogPlugin.show();
+
     expect($('.ht-dialog').hasClass('ht-dialog--background-semi-transparent')).toBe(true);
 
     dialogPlugin.hide();
@@ -114,6 +116,7 @@ describe('Dialog - background option', () => {
     const dialogPlugin = hot.getPlugin('dialog');
 
     dialogPlugin.show();
+
     expect($('.ht-dialog').hasClass('ht-dialog--background-solid')).toBe(true);
 
     dialogPlugin.update({
@@ -136,6 +139,7 @@ describe('Dialog - background option', () => {
     const dialogPlugin = hot.getPlugin('dialog');
 
     dialogPlugin.show();
+
     expect($('.ht-dialog').hasClass('ht-dialog--background-solid')).toBe(true);
     expect($('.ht-dialog').hasClass('custom-dialog')).toBe(true);
 

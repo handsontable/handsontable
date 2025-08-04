@@ -89,6 +89,7 @@ describe('Dialog - customClassName option', () => {
     const dialogPlugin = hot.getPlugin('dialog');
 
     dialogPlugin.show();
+
     expect($('.ht-dialog').hasClass('initial-class')).toBe(true);
 
     dialogPlugin.update({
@@ -110,6 +111,7 @@ describe('Dialog - customClassName option', () => {
     const dialogPlugin = hot.getPlugin('dialog');
 
     dialogPlugin.show();
+
     expect($('.ht-dialog').hasClass('initial-class')).toBe(true);
 
     dialogPlugin.update({

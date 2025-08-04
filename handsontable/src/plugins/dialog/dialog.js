@@ -344,8 +344,6 @@ export class Dialog extends BasePlugin {
 
   /**
    * Destroy dialog and reset plugin state.
-   *
-   * @private
    */
   #destroyDialog() {
     this.hide();

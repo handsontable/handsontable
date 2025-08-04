@@ -29,12 +29,10 @@ describe('Dialog - context menu integration', () => {
 
     expect(dialogPlugin.isVisible()).toBe(true);
 
-    // Hide the dialog
     dialogPlugin.hide();
 
     expect(dialogPlugin.isVisible()).toBe(false);
 
-    // Now try to open context menu
     await contextMenu();
 
     expect($('.htContextMenu').is(':visible')).toBe(true);
@@ -51,12 +49,10 @@ describe('Dialog - context menu integration', () => {
 
     const dialogPlugin = hot.getPlugin('dialog');
 
-    // Open context menu first
     await contextMenu();
 
     expect($('.htContextMenu').is(':visible')).toBe(true);
 
-    // Show dialog while context menu is open
     dialogPlugin.show({
       content: 'Test dialog content',
     });
@@ -81,7 +77,6 @@ describe('Dialog - context menu integration', () => {
 
     expect(dialogPlugin.isVisible()).toBe(true);
 
-    // Try to open context menu on the dialog element
     const dialogElement = $('.ht-dialog')[0];
     const contextmenuEvent = new MouseEvent('contextmenu', {
       bubbles: true,
@@ -112,12 +107,10 @@ describe('Dialog - context menu integration', () => {
 
     expect(dialogPlugin.isVisible()).toBe(true);
 
-    // Close dialog with escape key
     await keyDownUp('escape');
 
     expect(dialogPlugin.isVisible()).toBe(false);
 
-    // Now try to open context menu
     await contextMenu();
 
     expect($('.htContextMenu').is(':visible')).toBe(true);

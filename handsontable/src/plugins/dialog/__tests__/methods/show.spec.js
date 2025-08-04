@@ -93,14 +93,13 @@ describe('Dialog - show method', () => {
     const dialogPlugin = hot.getPlugin('dialog');
 
     dialogPlugin.show();
+
     expect(dialogPlugin.isVisible()).toBe(true);
 
-    // Try to show again
     dialogPlugin.show({
       content: 'New content',
     });
 
-    // Should still be visible but content should not change
     expect(dialogPlugin.isVisible()).toBe(true);
   });
 

@@ -119,12 +119,10 @@ describe('Dialog keyboard shortcut', () => {
         content: 'Test dialog content',
       });
 
-      // Dialog context should be active when dialog is shown
       expect(shortcutManager.getActiveContextName()).toBe('plugin:dialog');
 
       await keyDownUp('escape');
 
-      // Should switch back to grid context after closing
       expect(shortcutManager.getActiveContextName()).toBe('grid');
       expect(dialogPlugin.isVisible()).toBe(false);
     });
@@ -166,17 +164,12 @@ describe('Dialog keyboard shortcut', () => {
 
       const dialogPlugin = hot.getPlugin('dialog');
 
-      // Dialog is not visible initially
       expect(dialogPlugin.isVisible()).toBe(false);
 
-      // Select a cell
       await selectCell(0, 0);
-
-      // Press escape - should not affect the dialog since it's not visible
       await keyDownUp('escape');
 
       expect(dialogPlugin.isVisible()).toBe(false);
-      // The escape key should still work for other purposes (like canceling cell editing)
     });
   });
 });

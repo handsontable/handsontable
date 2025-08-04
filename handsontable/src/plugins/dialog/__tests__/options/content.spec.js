@@ -109,6 +109,7 @@ describe('Dialog - content option', () => {
     const dialogPlugin = hot.getPlugin('dialog');
 
     dialogPlugin.show();
+
     expect($('.ht-dialog .ht-dialog__content').text()).toEqual('Initial content');
 
     dialogPlugin.update({

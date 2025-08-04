@@ -87,6 +87,7 @@ describe('Dialog - contentBackground option', () => {
     const dialogPlugin = hot.getPlugin('dialog');
 
     dialogPlugin.show();
+
     expect($('.ht-dialog__content').hasClass('ht-dialog__content--background')).toBe(false);
 
     dialogPlugin.update({
@@ -108,6 +109,7 @@ describe('Dialog - contentBackground option', () => {
     const dialogPlugin = hot.getPlugin('dialog');
 
     dialogPlugin.show();
+
     expect($('.ht-dialog__content').hasClass('ht-dialog__content--background')).toBe(true);
 
     dialogPlugin.update({

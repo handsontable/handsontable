@@ -1848,9 +1848,20 @@ export default () => {
      *
      * | Setting   | Description                                                                 |
      * | --------- | --------------------------------------------------------------------------- |
-     * | `false`   | Disable the [`Dialog`](@/api/dialog.md) plugin                           |
-     * | `true`    | Enable the [`Dialog`](@/api/dialog.md) plugin with default options     |
-     * | An object | Enable the [`Dialog`](@/api/dialog.md) plugin with custom configuration |
+     * | `false`   | Disable the [`Dialog`](@/api/dialog.md) plugin                              |
+     * | `true`    | Enable the [`Dialog`](@/api/dialog.md) plugin with default options          |
+     *
+     * ##### dialog: Additional options
+     *
+     * | Option                   | Possible settings                                  | Description                                                                                                                                                      |
+     * | ------------------------ | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `content`                | A string or HTML element (default: `''`)           | The content of the dialog                                                                                                                                        |
+     * | `customClassName`        | A string (default: `''`)                           | The custom class name of the dialog                                                                                                                              |
+     * | `background`             | A string (default: `'semi-transparent'`)           | The background of the dialog                                                                                                                                     |
+     * | `contentBackground`      | Boolean (default: `true`)                          | Whether to show the content background                                                                                                                           |
+     * | `contentDirections`      | A string (default: `'column'`)                     | The direction of the content                                                                                                                                      |
+     * | `animation`              | Boolean (default: `true`)                          | Whether to show the animation                                                                                                                                    |
+     * | `closable`               | Boolean (default: `true`)                          | Whether to show the close button                                                                                                                                 |
      *
      * Read more:
      * - [Plugins: `Dialog`](@/api/dialog.md)
@@ -1862,6 +1873,7 @@ export default () => {
      * @category Dialog
      *
      * @example
+     * ::: only-for javascript
      * ```js
      * // enable the Dialog plugin with default option
      * dialog: true,
@@ -1877,6 +1889,50 @@ export default () => {
      *   closable: true,
      * }
      * ```
+     * :::
+     *
+     * ::: only-for react
+     * ```jsx
+     * // enable the Dialog plugin with default option
+     * <HotTable
+     *   dialog={true}
+     * />
+     *
+     * // enable the Dialog plugin with custom configuration
+     * <HotTable
+     *   dialog={{
+     *     content: 'Dialog content',
+     *     customClassName: 'custom-dialog',
+     *     background: 'semi-transparent',
+     *     contentBackground: false,
+     *     contentDirections: 'column',
+     *     animation: false,
+     *     closable: true,
+     *   }}
+     * />
+     * ```
+     * :::
+     *
+     * ::: only-for angular
+     * ```ts
+     * settings = {
+     *   dialog: {
+     *     content: 'Dialog content',
+     *     customClassName: 'custom-dialog',
+     *     background: 'semi-transparent',
+     *     contentBackground: false,
+     *     contentDirections: 'column',
+     *     animation: false,
+     *     closable: true,
+     *   }
+     * };
+     * ```
+     *
+     * ```html
+     * <hot-table [settings]="settings" />
+     * ```
+     * :::
+     *
      */
     dialog: false,
 

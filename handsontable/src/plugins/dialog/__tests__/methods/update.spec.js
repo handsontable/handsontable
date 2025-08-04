@@ -170,6 +170,7 @@ describe('Dialog - update method', () => {
     const dialogPlugin = hot.getPlugin('dialog');
 
     dialogPlugin.show();
+
     expect(dialogPlugin.isVisible()).toBe(true);
 
     dialogPlugin.update({
