@@ -10,14 +10,6 @@ export default {
   name: 'AlgoliaSearch',
   props: ['options'],
   mounted() {
-    // this.options = {
-    //   indexName: 'handsontable-with-versions',
-    //   apiKey: 'c2430302c91e0162df988d4b383c9d8b',
-    //   appId: 'MMN6OTJMGX',
-    //   searchParameters: {
-    //     facetFilters: [`version:15.3`]
-    //   },
-    // }
     this.initialize(this.options, this.$lang);
   },
   methods: {
