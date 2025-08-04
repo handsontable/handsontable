@@ -28,7 +28,7 @@ export default {
         return;
       }
 
-      const latestReleasedVersion = this.$page.versions.find(version => !isNaN(parseInt(version)));
+      const latestReleasedVersion = this.$page.versions.find(version => !isNaN(parseInt(version, 10)));
       const isLatestReleasedVersion = latestReleasedVersion === this.$page.currentVersion;
 
       docsearch({
@@ -45,6 +45,7 @@ export default {
           },
         },
         searchParameters: {
+          // eslint-disable-next-line max-len
           facetFilters: isLatestReleasedVersion ? [`lang:${lang}`, `tags:${this.$page.currentFramework}`] : [`lang:${lang}`, `tags:${this.$page.currentFramework}`, `version:${this.$page.currentVersion}`],
         },
       });
