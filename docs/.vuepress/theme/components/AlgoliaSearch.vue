@@ -19,8 +19,8 @@ export default {
         // Disable search for next version as it's not crawled by Algolia
         return;
       }
-      
-      const isLatestReleasedVersion = this.$page.currentVersion === this.$page.latestVersion
+
+      const isLatestReleasedVersion = this.$page.currentVersion === this.$page.latestVersion;
 
       docsearch({
         container: '#algolia-search',
