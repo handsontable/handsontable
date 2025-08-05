@@ -82,14 +82,16 @@ describe('Dialog', () => {
       dialog: true,
     });
 
+    await updateSettings({
+      dialog: false,
+    });
+
     const dialogPlugin = hot.getPlugin('dialog');
 
-    expect(dialogPlugin.isEnabled()).toBe(true);
+    expect(dialogPlugin.isEnabled()).toBe(false);
 
     await updateSettings({
-      dialog: {
-        content: 'Test content',
-      },
+      dialog: true,
     });
 
     expect(dialogPlugin.isEnabled()).toBe(true);
