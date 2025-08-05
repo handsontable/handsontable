@@ -768,6 +768,7 @@ describe('shortcutManager', () => {
 
       // When Handsontable is listening, global shortcuts should work
       await keyDownUp('enter');
+      
       expect(callback).toHaveBeenCalledTimes(1);
     });
   });
