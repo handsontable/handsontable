@@ -1855,7 +1855,7 @@ export default () => {
      *
      * | Option                   | Possible settings                                                                           | Description                             |
      * | ------------------------ | ------------------------------------------------------------------------------------------- | ----------------------------------------|
-     * | `content`                | A string or HTMLElement (default: `''`)                                                     | The content of the dialog               |
+     * | `content`                | A string, HTMLElement or DocumentFragment (default: `''`)                                                     | The content of the dialog               |
      * | `customClassName`        | A string (default: `''`)                                                                    | The custom class name of the dialog     |
      * | `background`             | One of the options: 'solid' | 'semi-transparent' (default: `'solid'`)                       | The background of the dialog            |
      * | `contentBackground`      | Boolean (default: `false`)                                                                  | Whether to show the content background  |
