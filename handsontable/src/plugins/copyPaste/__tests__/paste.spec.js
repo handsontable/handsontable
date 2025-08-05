@@ -25,6 +25,61 @@ describe('CopyPaste', () => {
   };
 
   describe('paste', () => {
+    it('should paste the data by default to the last selection layer', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        copyPaste: true,
+        navigableHeaders: true,
+      });
+
+      await selectCells([
+        [0, 0, 2, 2],
+        [2, 1, 2, 3],
+        [1, 4, 3, 4],
+      ]);
+
+      triggerPaste('Kia\nNissan\nToyota');
+
+      expect(getData()).toEqual([
+        ['A1', 'B1', 'C1', 'D1', 'E1'],
+        ['A2', 'B2', 'C2', 'D2', 'Kia'],
+        ['A3', 'B3', 'C3', 'D3', 'Nissan'],
+        ['A4', 'B4', 'C4', 'D4', 'Toyota'],
+        ['A5', 'B5', 'C5', 'D5', 'E5'],
+      ]);
+    });
+
+    it('should paste the data to the active selection layer', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        copyPaste: true,
+        navigableHeaders: true,
+      });
+
+      await selectCells([
+        [0, 0, 2, 2],
+        [2, 1, 2, 3],
+        [1, 4, 3, 4],
+      ]);
+
+      await keyDownUp(['shift', 'tab']);
+      await keyDownUp(['shift', 'tab']); // select C3 of the second layer
+
+      triggerPaste('Kia\nNissan\nToyota');
+
+      expect(getData()).toEqual([
+        ['A1', 'B1', 'C1', 'D1', 'E1'],
+        ['A2', 'B2', 'C2', 'D2', 'E2'],
+        ['A3', 'Kia', 'Kia', 'Kia', 'E3'],
+        ['A4', 'Nissan', 'Nissan', 'Nissan', 'E4'],
+        ['A5', 'Toyota', 'Toyota', 'Toyota', 'E5'],
+      ]);
+    });
+
     it('should not create new rows or columns when allowInsertRow and allowInsertColumn equal false', async() => {
       handsontable({
         data: arrayOfArrays(),
