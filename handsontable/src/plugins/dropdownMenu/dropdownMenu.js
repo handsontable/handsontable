@@ -351,6 +351,10 @@ export class DropdownMenu extends BasePlugin {
    * @fires Hooks#afterDropdownMenuShow
    */
   open(position, offset = { above: 0, below: 0, left: 0, right: 0 }) {
+    if (this.menu?.isOpened()) {
+      return;
+    }
+
     this.menu.open();
 
     objectEach(offset, (value, key) => {

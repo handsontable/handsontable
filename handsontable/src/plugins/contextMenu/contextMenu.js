@@ -246,6 +246,10 @@ export class ContextMenu extends BasePlugin {
    * @fires Hooks#afterContextMenuShow
    */
   open(position, offset = { above: 0, below: 0, left: 0, right: 0 }) {
+    if (this.menu?.isOpened()) {
+      return;
+    }
+
     this.prepareMenuItems();
     this.menu.open();
 
