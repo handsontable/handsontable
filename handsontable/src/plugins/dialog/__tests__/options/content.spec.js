@@ -77,6 +77,32 @@ describe('Dialog - content option', () => {
     dialogPlugin.show();
 
     expect(dialogPlugin.isVisible()).toBe(true);
+    expect(contentElement instanceof HTMLElement).toBe(true);
+    expect($('.ht-dialog span').text()).toBe('Custom element content');
+  });
+
+  it('should show dialog with DocumentFragment content', async() => {
+    const contentElement = document.createDocumentFragment();
+
+    const span = document.createElement('span');
+
+    span.textContent = 'Custom element content';
+
+    contentElement.appendChild(span);
+
+    const hot = handsontable({
+      data: [['A1', 'B1'], ['A2', 'B2']],
+      dialog: {
+        content: contentElement,
+      },
+    });
+
+    const dialogPlugin = hot.getPlugin('dialog');
+
+    dialogPlugin.show();
+
+    expect(dialogPlugin.isVisible()).toBe(true);
+    expect(contentElement instanceof DocumentFragment).toBe(true);
     expect($('.ht-dialog span').text()).toBe('Custom element content');
   });
 

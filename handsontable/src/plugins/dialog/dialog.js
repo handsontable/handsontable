@@ -211,9 +211,12 @@ export class Dialog extends BasePlugin {
       return;
     }
 
-    this.#ui = new DialogUI({
-      rootElement: this.hot.rootWrapperElement,
-    });
+    if (!this.#ui) {
+      this.#ui = new DialogUI({
+        rootElement: this.hot.rootWrapperElement,
+      });
+    }
+
     this.registerShortcuts();
 
     super.enablePlugin();
@@ -233,7 +236,7 @@ export class Dialog extends BasePlugin {
    * Disable plugin for this Handsontable instance.
    */
   disablePlugin() {
-    this.#destroyDialog();
+    this.hide();
     this.unregisterShortcuts();
 
     super.disablePlugin();
@@ -282,11 +285,18 @@ export class Dialog extends BasePlugin {
 
   /**
    * Show dialog with given configuration.
-   * Displays the dialog with the specified content and settings.
+   * Displays the dialog with the specified content and options.
    *
-   * @param {object} settings Dialog configuration object containing content and display options.
+   * @param {object} options Dialog configuration object containing content and display options.
+   * @param {string|HTMLElement|DocumentFragment} options.content The content to display in the dialog. Can be a string, HTMLElement, or DocumentFragment. Default: ''
+   * @param {string} options.customClassName Custom CSS class name to apply to the dialog container. Default: ''
+   * @param {'solid'|'semi-transparent'} options.background Dialog background variant. Default: 'solid'.
+   * @param {boolean} options.contentBackground Whether to show content background. Default: false.
+   * @param {'row'|'row-reverse'|'column'|'column-reverse'} options.contentDirections Content layout direction. Default: 'row'.
+   * @param {boolean} options.animation Whether to enable animations when showing/hiding the dialog. Default: true.
+   * @param {boolean} options.closable Whether the dialog can be closed by user interaction. Default: false.
    */
-  show(settings = {}) {
+  show(options = {}) {
     if (!this.enabled || this.isVisible()) {
       return;
     }
@@ -294,7 +304,7 @@ export class Dialog extends BasePlugin {
     this.hot.runHooks('beforeDialogShow');
 
     this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
-    this.update(settings);
+    this.update(options);
     this.#ui.showDialog(this.getSetting('animation'));
     this.#isVisible = true;
 
@@ -322,14 +332,21 @@ export class Dialog extends BasePlugin {
   /**
    * Update the dialog configuration.
    *
-   * @param {object} settings - The configuration to update the dialog with.
+   * @param {object} options Dialog configuration object containing content and display options.
+   * @param {string|HTMLElement|DocumentFragment} options.content The content to display in the dialog. Can be a string, HTMLElement, or DocumentFragment. Default: ''
+   * @param {string} options.customClassName Custom CSS class name to apply to the dialog container. Default: ''
+   * @param {'solid'|'semi-transparent'} options.background Dialog background variant. Default: 'solid'.
+   * @param {boolean} options.contentBackground Whether to show content background. Default: false.
+   * @param {'row'|'row-reverse'|'column'|'column-reverse'} options.contentDirections Content layout direction. Default: 'row'.
+   * @param {boolean} options.animation Whether to enable animations when showing/hiding the dialog. Default: true.
+   * @param {boolean} options.closable Whether the dialog can be closed by user interaction. Default: false.
    */
-  update(settings) {
+  update(options) {
     if (!this.enabled) {
       return;
     }
 
-    this.updatePluginSettings(settings);
+    this.updatePluginSettings(options);
 
     this.#ui.updateDialog({
       isVisible: this.isVisible(),

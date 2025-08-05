@@ -24,7 +24,7 @@ describe('Dialog - show method', () => {
 
     expect(dialogPlugin.isVisible()).toBe(true);
     expect($('.ht-dialog').length).toBe(1);
-    expect(dialogPlugin.getPluginSettings()).toEqual({
+    expect(dialogPlugin.getSetting()).toEqual({
       content: '',
       customClassName: '',
       background: 'solid',

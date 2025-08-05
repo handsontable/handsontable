@@ -68,7 +68,7 @@ export class BasePlugin {
    *
    * @type {object|null}
    */
-  pluginSettings = null;
+  #pluginSettings = null;
   /**
    * The instance of the {@link EventManager} class.
    *
@@ -212,37 +212,27 @@ export class BasePlugin {
    */
   getSetting(settingName) {
     if (settingName === undefined) {
-      return this.pluginSettings;
+      return this.#pluginSettings;
     }
 
     const defaultSettings = this.constructor.DEFAULT_SETTINGS;
 
     if (
-      (Array.isArray(this.pluginSettings) || isObject(this.pluginSettings)) &&
+      (Array.isArray(this.#pluginSettings) || isObject(this.#pluginSettings)) &&
       defaultSettings[defaultMainSettingSymbol] === settingName
     ) {
-      if (Array.isArray(this.pluginSettings)) {
-        return this.pluginSettings;
+      if (Array.isArray(this.#pluginSettings)) {
+        return this.#pluginSettings;
       }
 
-      return this.pluginSettings[settingName] ?? defaultSettings[settingName];
+      return this.#pluginSettings[settingName] ?? defaultSettings[settingName];
     }
 
-    if (isObject(this.pluginSettings)) {
-      return this.pluginSettings[settingName] ?? defaultSettings[settingName];
+    if (isObject(this.#pluginSettings)) {
+      return this.#pluginSettings[settingName] ?? defaultSettings[settingName];
     }
 
     return defaultSettings[settingName];
-  }
-
-  /**
-   * Get plugin settings.
-   *
-   * @private
-   * @returns {object} Plugin settings.
-   */
-  getPluginSettings() {
-    return this.pluginSettings;
   }
 
   /**
@@ -266,17 +256,17 @@ export class BasePlugin {
         return;
       }
 
-      this.pluginSettings = newSettings;
+      this.#pluginSettings = newSettings;
 
-      return this.pluginSettings;
+      return this.#pluginSettings;
     }
 
     if (settingsValidators &&
        typeof settingsValidators === 'object' &&
        typeof newSettings === 'object'
     ) {
-      if (this.pluginSettings === null || typeof this.pluginSettings !== 'object') {
-        this.pluginSettings = { ...this.constructor.DEFAULT_SETTINGS };
+      if (this.#pluginSettings === null || typeof this.#pluginSettings !== 'object') {
+        this.#pluginSettings = { ...this.constructor.DEFAULT_SETTINGS };
       }
 
       Object.keys(settingsValidators).forEach((key) => {
@@ -293,13 +283,13 @@ export class BasePlugin {
           return;
         }
 
-        this.pluginSettings[key] = newSettings[key];
+        this.#pluginSettings[key] = newSettings[key];
       });
 
-      return this.pluginSettings;
+      return this.#pluginSettings;
     }
 
-    this.pluginSettings = newSettings;
+    this.#pluginSettings = newSettings;
 
     return newSettings;
   }
@@ -444,7 +434,7 @@ export class BasePlugin {
    * Destroy plugin.
    */
   destroy() {
-    this.pluginSettings = null;
+    this.#pluginSettings = null;
     this.eventManager?.destroy();
     this.clearHooks();
 

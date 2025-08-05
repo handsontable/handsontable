@@ -75,4 +75,23 @@ describe('Dialog', () => {
 
     expect($('.ht-dialog').length).toBe(0);
   });
+
+  it('should update dialog via updateSettings', async() => {
+    const hot = handsontable({
+      data: [['A1', 'B1'], ['A2', 'B2']],
+      dialog: true,
+    });
+
+    const dialogPlugin = hot.getPlugin('dialog');
+
+    expect(dialogPlugin.isEnabled()).toBe(true);
+
+    await updateSettings({
+      dialog: {
+        content: 'Test content',
+      },
+    });
+
+    expect(dialogPlugin.isEnabled()).toBe(true);
+  });
 });
