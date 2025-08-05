@@ -183,7 +183,6 @@ export class Dialog extends BasePlugin {
   /**
    * UI instance of the dialog plugin.
    *
-   * @private
    * @type {DialogUI}
    */
   #ui = null;
@@ -191,7 +190,6 @@ export class Dialog extends BasePlugin {
   /**
    * Flag indicating if dialog is currently visible.
    *
-   * @private
    * @type {boolean}
    */
   #isVisible = false;
@@ -257,7 +255,7 @@ export class Dialog extends BasePlugin {
    */
   registerShortcuts() {
     const manager = this.hot.getShortcutManager();
-    const pluginContext = manager.getContext(SHORTCUTS_CONTEXT_NAME) ||
+    const pluginContext = manager.getContext(SHORTCUTS_CONTEXT_NAME) ??
       manager.addContext(SHORTCUTS_CONTEXT_NAME, 'global');
 
     pluginContext.addShortcut({
