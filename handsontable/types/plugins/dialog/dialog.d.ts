@@ -14,9 +14,6 @@ export interface DialogConfig {
 export type Settings = boolean | DialogConfig;
 
 export class Dialog extends BasePlugin {
-  static PLUGIN_KEY: string;
-  static PLUGIN_PRIORITY: number;
-  static DEFAULT_CONFIG: DialogConfig;
 
   constructor(hotInstance: Core);
   isVisible(): boolean;
