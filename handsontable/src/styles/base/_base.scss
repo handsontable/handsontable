@@ -36,6 +36,8 @@
   .ht-root-wrapper {
     @include mixins.font-family;
 
+    height: 100%;
+
     .htFocusCatcher {
       position: absolute;
       width: 0;
