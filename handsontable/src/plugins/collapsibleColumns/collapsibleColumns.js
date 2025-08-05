@@ -280,7 +280,7 @@ export class CollapsibleColumns extends BasePlugin {
       .addShortcut({
         keys: [['Enter']],
         callback: () => {
-          const { row, col } = this.hot.getSelectedRangeLast().highlight;
+          const { row, col } = this.hot.getSelectedRangeActive().highlight;
           const {
             collapsible,
             isCollapsed,
@@ -300,8 +300,8 @@ export class CollapsibleColumns extends BasePlugin {
           // prevent default Enter behavior (move to the next row within a selection range)
           return false;
         },
-        runOnlyIf: () => this.hot.getSelectedRangeLast()?.isSingle() &&
-          this.hot.getSelectedRangeLast()?.highlight.isHeader(),
+        runOnlyIf: () => this.hot.getSelectedRangeActive()?.isSingle() &&
+          this.hot.getSelectedRangeActive()?.highlight.isHeader(),
         group: SHORTCUTS_GROUP,
         relativeToGroup: SHORTCUTS_GROUP_EDITOR,
         position: 'before',
@@ -511,7 +511,7 @@ export class CollapsibleColumns extends BasePlugin {
     }, true);
 
     const isActionPerformed = this.getCollapsedColumns().length !== currentCollapsedColumns.length;
-    const selectionRange = this.hot.getSelectedRangeLast();
+    const selectionRange = this.hot.getSelectedRangeActive();
 
     if (action === 'collapse' && isActionPerformed && selectionRange) {
       const { row, col } = selectionRange.highlight;

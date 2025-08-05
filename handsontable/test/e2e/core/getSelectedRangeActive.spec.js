@@ -15,7 +15,7 @@ describe('Core.getSelectedRangeActive', () => {
       data: createSpreadsheetData(10, 10),
     });
 
-    spyOn(selection(), 'getSelectedRangeActive').and.returnValue('test');
+    spyOn(selection(), 'getActiveSelectedRange').and.returnValue('test');
 
     expect(getSelectedRangeActive()).toBe('test');
   });

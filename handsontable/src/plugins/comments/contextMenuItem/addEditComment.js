@@ -8,7 +8,7 @@ export default function addEditCommentItem(plugin) {
   return {
     key: 'commentsAddEdit',
     name() {
-      const highlight = this.getSelectedRangeLast()?.highlight;
+      const highlight = this.getSelectedRangeActive()?.highlight;
 
       if (highlight?.isCell() && plugin.getCommentAtCell(highlight.row, highlight.col)) {
         return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_EDIT_COMMENT);
@@ -17,14 +17,14 @@ export default function addEditCommentItem(plugin) {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ADD_COMMENT);
     },
     callback() {
-      const range = this.getSelectedRangeLast();
+      const range = this.getSelectedRangeActive();
 
       plugin.setRange(range);
       plugin.show();
       plugin.focusEditor();
     },
     disabled() {
-      const range = this.getSelectedRangeLast();
+      const range = this.getSelectedRangeActive();
 
       if (
         !range ||
