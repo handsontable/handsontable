@@ -409,7 +409,7 @@ module.exports = {
     },
     searchPlaceholder: 'Search...',
     algolia: {
-      indexName: 'handsontable',
+      indexName: 'handsontable', // or 'handsontable-with-versions'
       apiKey: 'c2430302c91e0162df988d4b383c9d8b',
       appId: 'MMN6OTJMGX'
     }
