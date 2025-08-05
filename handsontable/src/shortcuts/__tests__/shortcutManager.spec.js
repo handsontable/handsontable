@@ -741,13 +741,13 @@ describe('shortcutManager', () => {
 
       // When Handsontable is listening, table-scoped shortcuts should work
       await keyDownUp('enter');
-      
+
       expect(callback).toHaveBeenCalledTimes(0);
 
       await listen();
 
       await keyDownUp('enter');
-      
+
       expect(callback).toHaveBeenCalledTimes(1);
     });
 
@@ -768,7 +768,7 @@ describe('shortcutManager', () => {
 
       // When Handsontable is listening, global shortcuts should work
       await keyDownUp('enter');
-      
+
       expect(callback).toHaveBeenCalledTimes(1);
     });
   });
