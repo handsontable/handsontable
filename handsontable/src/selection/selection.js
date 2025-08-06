@@ -59,13 +59,13 @@ class Selection {
   /**
    * The module for modifying coordinates of the start and end selection.
    *
-   * @type {Transformation}
+   * @type {ExtenderTransformation}
    */
   #extenderTransformation;
   /**
    * The module for modifying coordinates of the focus selection.
    *
-   * @type {Transformation}
+   * @type {FocusTransformation}
    */
   #focusTransformation;
   /**
@@ -297,6 +297,16 @@ class Selection {
 
     if (!isMultipleMode || (isMultipleMode && !isMultipleSelection && isUndefined(multipleSelection))) {
       this.selectedRange.clear();
+
+      arrayEach(this.highlight.getAreas(), highlight => void highlight.clear());
+      arrayEach(this.highlight.getLayeredAreas(), highlight => void highlight.clear());
+      arrayEach(this.highlight.getRowHeaders(), highlight => void highlight.clear());
+      arrayEach(this.highlight.getColumnHeaders(), highlight => void highlight.clear());
+      arrayEach(this.highlight.getActiveRowHeaders(), highlight => void highlight.clear());
+      arrayEach(this.highlight.getActiveColumnHeaders(), highlight => void highlight.clear());
+      arrayEach(this.highlight.getActiveCornerHeaders(), highlight => void highlight.clear());
+      arrayEach(this.highlight.getRowHighlights(), highlight => void highlight.clear());
+      arrayEach(this.highlight.getColumnHighlights(), highlight => void highlight.clear());
     }
 
     this.selectedRange
@@ -330,16 +340,19 @@ class Selection {
    * Ends selection range on given coordinate object.
    *
    * @param {CellCoords} coords Visual coords.
+   * @param {number} [layerIndex] The layer index to set the end on. If not provided, the current layer level is used.
    */
-  setRangeEnd(coords) {
+  setRangeEnd(coords, layerIndex = this.getLayerLevel()) {
     if (this.selectedRange.isEmpty()) {
       return;
     }
 
+    this.setActiveSelectionLayerIndex(layerIndex);
+
     const coordsClone = coords.clone();
     const countRows = this.tableProps.countRows();
     const countCols = this.tableProps.countCols();
-    const isSingle = this.selectedRange.current().clone().setTo(coords).isSingleHeader();
+    const isSingle = this.getActiveSelectedRange().clone().setTo(coords).isSingleHeader();
 
     // Ignore processing the end range when the header selection starts overlapping the corner and
     // the selection is not a single header highlight.
@@ -352,7 +365,7 @@ class Selection {
     this.runLocalHooks('beforeSetRangeEnd', coordsClone);
     this.begin();
 
-    const cellRange = this.selectedRange.current();
+    const cellRange = this.getActiveSelectedRange();
 
     if (!this.settings.navigableHeaders) {
       cellRange.highlight.normalize();
@@ -397,11 +410,8 @@ class Selection {
     }
 
     this.runLocalHooks('beforeHighlightSet');
-    this.setRangeFocus(this.selectedRange.current().highlight);
-    this.applyAndCommit();
-
-    this.#extenderTransformation.setActiveLayerIndex(this.getLayerLevel());
-    this.#focusTransformation.setActiveLayerIndex(this.getLayerLevel());
+    this.setRangeFocus(this.getActiveSelectedRange().highlight, layerIndex);
+    this.applyAndCommit(this.getActiveSelectedRange(), layerIndex);
 
     const isLastLayer = this.#expectedLayersCount === -1 || this.selectedRange.size() === this.#expectedLayersCount;
 
@@ -415,23 +425,9 @@ class Selection {
    * @param {CellRange} [cellRange] The cell range to apply. If not provided, the current selection is used.
    * @param {number} [layerLevel] The layer level to apply. If not provided, the current layer level is used.
    */
-  applyAndCommit(cellRange = this.selectedRange.current(), layerLevel = this.getLayerLevel()) {
+  applyAndCommit(cellRange = this.getActiveSelectedRange(), layerLevel = this.getLayerLevel()) {
     const countRows = this.tableProps.countRows();
     const countCols = this.tableProps.countCols();
-
-    // If the next layer level is lower than previous then clear all area and header highlights. This is the
-    // indication that the new selection is performing.
-    if (layerLevel < this.highlight.layerLevel) {
-      arrayEach(this.highlight.getAreas(), highlight => void highlight.clear());
-      arrayEach(this.highlight.getLayeredAreas(), highlight => void highlight.clear());
-      arrayEach(this.highlight.getRowHeaders(), highlight => void highlight.clear());
-      arrayEach(this.highlight.getColumnHeaders(), highlight => void highlight.clear());
-      arrayEach(this.highlight.getActiveRowHeaders(), highlight => void highlight.clear());
-      arrayEach(this.highlight.getActiveColumnHeaders(), highlight => void highlight.clear());
-      arrayEach(this.highlight.getActiveCornerHeaders(), highlight => void highlight.clear());
-      arrayEach(this.highlight.getRowHighlights(), highlight => void highlight.clear());
-      arrayEach(this.highlight.getColumnHighlights(), highlight => void highlight.clear());
-    }
 
     this.highlight.useLayerLevel(layerLevel);
 
@@ -469,7 +465,7 @@ class Selection {
         // For single cell selection in the same layer, we do not create area selection to prevent blue background.
         // When non-consecutive selection is performed we have to add that missing area selection to the previous layer
         // based on previous coordinates. It only occurs when the previous selection wasn't select multiple cells.
-        const previousRange = this.selectedRange.previous();
+        const previousRange = this.selectedRange.peekByIndex(layerLevel - 1);
 
         this.highlight.useLayerLevel(layerLevel - 1);
         this.highlight
@@ -570,6 +566,8 @@ class Selection {
     }
 
     this.setActiveSelectionLayerIndex(layerIndex);
+    this.#extenderTransformation.setActiveLayerIndex(layerIndex);
+    this.#focusTransformation.setActiveLayerIndex(layerIndex);
 
     const cellRange = this.getActiveSelectedRange();
 
@@ -624,9 +622,10 @@ class Selection {
   transformEnd(rowDelta, colDelta) {
     const {
       visualCoords,
+      selectionLayer,
     } = this.#extenderTransformation.transformEnd(rowDelta, colDelta);
 
-    this.setRangeEnd(visualCoords);
+    this.setRangeEnd(visualCoords, selectionLayer);
   }
 
   /**
@@ -655,7 +654,7 @@ class Selection {
       return;
     }
 
-    const range = this.selectedRange.current();
+    const range = this.getActiveSelectedRange();
 
     if (this.isSelectedByCorner()) {
       this.selectAll(true, true, {
@@ -718,7 +717,7 @@ class Selection {
       return;
     }
 
-    const range = this.selectedRange.current();
+    const range = this.getActiveSelectedRange();
 
     if (this.isSelectedByCorner()) {
       this.selectAll(true, true, {
@@ -795,7 +794,7 @@ class Selection {
    * @param {CellRange} [cellRange] The cell range to check. If not provided, the latest selection layer is used.
    * @returns {boolean}
    */
-  isMultiple(cellRange = this.selectedRange.current()) {
+  isMultiple(cellRange = this.getActiveSelectedRange()) {
     if (!this.isSelected()) {
       return false;
     }
@@ -1015,7 +1014,7 @@ class Selection {
       return;
     }
 
-    let highlight = this.getSelectedRange().current()?.highlight;
+    let highlight = this.getActiveSelectedRange()?.highlight;
     const {
       focusPosition,
       disableHeadersHighlight
@@ -1307,7 +1306,7 @@ class Selection {
     }
 
     const currentLayer = this.getLayerLevel();
-    const cellRange = this.selectedRange.current();
+    const cellRange = this.getActiveSelectedRange();
 
     if (this.highlight.isEnabledFor(FOCUS_TYPE, cellRange.highlight)) {
       this.highlight

@@ -293,6 +293,73 @@ describe('Selection extending', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 13,1 from: 13,1 to: 0,1']);
     });
 
+    it('should extend the cell selection up only for active selection layer', async() => {
+      handsontable({
+        startRows: 5,
+        startCols: 8,
+      });
+
+      await selectCells([[4, 0, 4, 1], [3, 3, 3, 4], [2, 6, 2, 7]]);
+      await keyDownUp(['shift', 'tab']); // move focus to the previous layer
+
+      // eslint-disable-next-line handsontable/require-await
+      keyDownUp(['shift', 'pageup']); // with await it triggers timeout error
+
+      expect(`
+        |   :   :   : 0 : 0 :   :   :   |
+        |   :   :   : 0 : 0 :   :   :   |
+        |   :   :   : 0 : 0 :   : 0 : 0 |
+        |   :   :   : 0 : A :   :   :   |
+        | 0 : 0 :   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange([
+        'highlight: 4,0 from: 4,0 to: 4,1',
+        'highlight: 3,4 from: 3,3 to: 0,4',
+        'highlight: 2,6 from: 2,6 to: 2,7',
+      ]);
+
+      await keyDownUp(['shift', 'enter']);
+      await keyDownUp(['shift', 'enter']);
+      await keyDownUp(['shift', 'enter']);
+      await keyDownUp(['shift', 'tab']);
+      await keyDownUp(['shift', 'tab']); // move focus to the previous layer
+      await keyDownUp(['shift', 'pageup']);
+
+      expect(`
+        | 0 : 0 :   : 0 : 0 :   :   :   |
+        | 0 : 0 :   : 0 : 0 :   :   :   |
+        | 0 : 0 :   : 0 : 0 :   : 0 : 0 |
+        | 0 : 0 :   : 0 : 0 :   :   :   |
+        | 0 : A :   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange([
+        'highlight: 4,1 from: 4,0 to: 0,1',
+        'highlight: 0,3 from: 3,3 to: 0,4',
+        'highlight: 2,6 from: 2,6 to: 2,7',
+      ]);
+
+      await keyDownUp(['shift', 'enter']);
+      await keyDownUp(['shift', 'enter']);
+      await keyDownUp(['shift', 'enter']);
+      await keyDownUp(['shift', 'enter']);
+      await keyDownUp(['shift', 'tab']);
+      await keyDownUp(['shift', 'tab']); // move focus to the previous layer
+      await keyDownUp(['shift', 'pageup']);
+
+      expect(`
+        | 0 : 0 :   : 0 : 0 :   : 0 : 0 |
+        | 0 : 0 :   : 0 : 0 :   : 0 : 0 |
+        | 0 : 0 :   : 0 : 0 :   : 0 : A |
+        | 0 : 0 :   : 0 : 0 :   :   :   |
+        | 0 : 0 :   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange([
+        'highlight: 0,0 from: 4,0 to: 0,1',
+        'highlight: 0,3 from: 3,3 to: 0,4',
+        'highlight: 2,7 from: 2,6 to: 0,7',
+      ]);
+    });
+
     it.forTheme('classic')('should scroll the viewport repeatedly by the same number of pixels with ' +
       'keeping the initial selection viewport offset', async() => {
       handsontable({

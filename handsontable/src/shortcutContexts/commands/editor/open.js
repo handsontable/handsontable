@@ -6,7 +6,7 @@ export const command = {
     const { selection } = hot;
     const editorManager = hot._getEditorManager();
     const selectedRanges = hot.getSelectedRange();
-    const selectedRange = hot.getSelectedRangeLast();
+    const selectedRange = hot.getSelectedRangeActive();
     const { highlight } = selectedRange;
 
     // supports for navigating with enter key when multiple cells are selected

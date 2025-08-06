@@ -83,6 +83,30 @@ describe('Selection extending', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,3 from: 3,-1 to: 0,4']);
     });
 
+    it('should select the rows from multiple cells selection when the focus is on the non-last layer', async() => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 5,
+        startCols: 5
+      });
+
+      await selectCells([[0, 1, 1, 1], [3, 2, 4, 3]]);
+      await keyDownUp(['shift', 'tab']); // move focus to the previous layer
+      await keyDownUp(['shift', 'space']);
+
+      expect(`
+        |   ║ - : - : - : - : - |
+        |===:===:===:===:===:===|
+        | * ║ 0 : 0 : 0 : 0 : 0 |
+        | * ║ 0 : A : 0 : 0 : 0 |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+        |   ║   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,1 from: 0,-1 to: 1,4']);
+    });
+
     it('should select the rows only from the last selection layer of the non-contiguous cells selection', async() => {
       handsontable({
         rowHeaders: true,
