@@ -22,7 +22,7 @@ export default function hideRowItem(hiddenRowsPlugin) {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_HIDE_ROW, pluralForm);
     },
     callback() {
-      const { from, to } = this.getSelectedRangeLast();
+      const { from, to } = this.getSelectedRangeActive();
       const start = Math.max(Math.min(from.row, to.row), 0);
       const end = Math.max(from.row, to.row);
       const rowsToHide = [];

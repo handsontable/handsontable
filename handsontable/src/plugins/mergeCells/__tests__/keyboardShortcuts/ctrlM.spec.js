@@ -181,6 +181,28 @@ describe('MergeCells keyboard shortcut', () => {
       expect(cell.colSpan).toBe(3);
     });
 
+    it('should merge selected cells only for the active selection layer', async() => {
+      handsontable({
+        data: createSpreadsheetData(6, 6),
+        mergeCells: true,
+      });
+
+      await selectCells([
+        [0, 0, 1, 1],
+        [2, 2, 3, 3],
+        [4, 4, 5, 5],
+      ]);
+      await keyDownUp(['shift', 'tab']);
+      await keyDownUp(['shift', 'tab']); // move focus to the previous layer (C4)
+      await keyDownUp(['control', 'm']);
+
+      const cell = getCell(2, 2);
+
+      expect(cell.rowSpan).toBe(2);
+      expect(cell.colSpan).toBe(2);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: 2,2 to: 3,3']);
+    });
+
     it('should toggle the selected cells to merged/unmerged/merged state', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),

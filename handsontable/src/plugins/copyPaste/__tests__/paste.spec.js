@@ -562,14 +562,7 @@ describe('CopyPaste', () => {
         ['A9', 'A9', 'A9', 'A9', 'E9', 'F9', 'A9', 'A9', 'A9', 'A9'],
         ['A10', 'A10', 'A10', 'A10', 'E10', 'F10', 'A10', 'A10', 'A10', 'A10'],
       ]);
-
-      expect(getSelected()).toEqual([[0, 1, 9, 9]]);
-      expect(getSelectedRangeLast().highlight.row).toBe(0);
-      expect(getSelectedRangeLast().highlight.col).toBe(1);
-      expect(getSelectedRangeLast().from.row).toBe(0);
-      expect(getSelectedRangeLast().from.col).toBe(1);
-      expect(getSelectedRangeLast().to.row).toBe(9);
-      expect(getSelectedRangeLast().to.col).toBe(9);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: 0,1 to: 9,9']);
     });
 
     it.forTheme('classic')('should paste data without scrolling the viewport', async() => {

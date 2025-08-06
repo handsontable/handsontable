@@ -22,7 +22,7 @@ export default function hideColumnItem(hiddenColumnsPlugin) {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_HIDE_COLUMN, pluralForm);
     },
     callback() {
-      const { from, to } = this.getSelectedRangeLast();
+      const { from, to } = this.getSelectedRangeActive();
       const start = Math.max(Math.min(from.col, to.col), 0);
       const end = Math.max(from.col, to.col);
       const columnsToHide = [];
