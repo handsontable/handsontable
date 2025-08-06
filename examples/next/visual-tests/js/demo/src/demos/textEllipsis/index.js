@@ -2,12 +2,12 @@ import Handsontable from "handsontable";
 import { getDirectionFromURL, getThemeNameFromURL, getFromURL } from "../../utils";
 import { data } from './data';
 
-const root = document.getElementById('root');
-const example = document.createElement('div');
-
-root.appendChild(example);
-
 export function init() {
+  const root = document.getElementById('root');
+  const example = document.createElement('div');
+
+  root.appendChild(example);
+
   new Handsontable(example, {
     data,
     layoutDirection: getDirectionFromURL(),

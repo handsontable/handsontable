@@ -3,15 +3,16 @@ import { registerAllModules } from "handsontable/registry";
 import { getDirectionFromURL, getThemeNameFromURL, getFromURL } from "../../utils";
 import { registerLanguageDictionary, arAR } from "handsontable/i18n";
 
-registerAllModules();
-registerLanguageDictionary(arAR);
-
-const root = document.getElementById('root');
-const example = document.createElement('div');
-
-root.appendChild(example);
-
 export function init() {
+  registerAllModules();
+  registerLanguageDictionary(arAR);
+
+  const root = document.getElementById('root');
+  const example = document.createElement('div');
+
+  root.appendChild(example);
+
+
   const sizeSettings = {};
 
   if (getFromURL('hasDefinedSize')) {
