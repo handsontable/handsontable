@@ -51,6 +51,19 @@ describe('Selection navigation', () => {
           expect(getSelectedRange()).toEqualCellRange(['highlight: 3,0 from: 3,0 to: 3,0']);
         });
 
+        it('while the currently selected cell is in the non-last selection layer', async() => {
+          handsontable({
+            startRows: 5,
+            startCols: 5
+          });
+
+          await selectCells([[0, 2, 1, 2], [3, 2, 4, 2]]);
+          await keyDownUp(['shift', 'tab']); // move focus to the previous layer
+          await keyDownUp('home');
+
+          expect(getSelectedRange()).toEqualCellRange(['highlight: 1,0 from: 1,0 to: 1,0']);
+        });
+
         it('while the currently selected cell is in the main table (with headers)', async() => {
           handsontable({
             startRows: 5,

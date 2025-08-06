@@ -4,7 +4,7 @@ export const command = {
     const { selection } = hot;
     const settings = hot.getSettings();
     const selectedRanges = hot.getSelectedRange();
-    const selectedRange = hot.getSelectedRangeLast();
+    const selectedRange = hot.getSelectedRangeActive();
     const tabMoves = typeof settings.tabMoves === 'function'
       ? settings.tabMoves(event)
       : settings.tabMoves;
