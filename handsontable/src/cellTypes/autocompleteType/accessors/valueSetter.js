@@ -6,11 +6,11 @@ import { isDefined } from '../../../helpers/mixed';
  *
  * @param {*} newValue The value to be set.
  * @param {number} row The row index.
- * @param {number} col The column index.
+ * @param {number} column The column index.
  * @returns {*} The new value to be set.
  */
-export function valueSetter(newValue, row, col) {
-  const sourceDataAtCell = this.getSourceDataAtCell(row, col);
+export function valueSetter(newValue, row, column) {
+  const sourceDataAtCell = this.getSourceDataAtCell(row, column);
   const isKeyValueObject = obj => isObject(obj) && isDefined(obj.key) && isDefined(obj.value);
 
   if (isKeyValueObject(sourceDataAtCell)) {

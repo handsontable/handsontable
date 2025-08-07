@@ -1,4 +1,4 @@
-import { valueGetter as autocompleteValueGetter } from '../../autocompleteEditor';
+import { valueGetter as autocompleteValueGetter } from '../../autocompleteType/accessors';
 
 /**
  * Defines the value being displayed in an dropdown-typed cells.

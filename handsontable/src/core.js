@@ -1349,25 +1349,6 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   }
 
   /**
-   * Get parsed number from numeric string.
-   *
-   * @private
-   * @param {string} numericData Float (separated by a dot or a comma) or integer.
-   * @returns {number} Number if we get data in parsable format, not changed value otherwise.
-   */
-  function getParsedNumber(numericData) {
-    // Unifying "float like" string. Change from value with comma determiner to value with dot determiner,
-    // for example from `450,65` to `450.65`.
-    const unifiedNumericData = numericData.replace(',', '.');
-
-    if (isNaN(parseFloat(unifiedNumericData)) === false) {
-      return parseFloat(unifiedNumericData);
-    }
-
-    return numericData;
-  }
-
-  /**
    * @ignore
    * @param {Array} changes The 2D array containing information about each of the edited cells.
    * @param {string} source The string that identifies source of validation.
@@ -1591,6 +1572,11 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     }
 
     if (isFunction(validator)) {
+      const valueSetter = cellProperties.valueSetter;
+
+      // Get the actual value being set to pass it for validation.
+      value = isFunction(valueSetter) ? valueSetter.call(instance, value, cellProperties.row, cellProperties.col) : value;
+
       // eslint-disable-next-line no-param-reassign
       value = instance.runHooks('beforeValidate', value, cellProperties.visualRow, cellProperties.prop, source);
 
@@ -1664,30 +1650,6 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       } else {
         // If there's no requested visual column, we can use the table meta as the cell properties
         cellProperties = { ...Object.getPrototypeOf(tableMeta), ...tableMeta };
-      }
-
-      const {
-        type,
-        checkedTemplate,
-        uncheckedTemplate,
-      } = cellProperties;
-
-      if (
-        type === 'numeric' &&
-        typeof newValue === 'string' &&
-        isNumericLike(newValue)
-      ) {
-        filteredChanges[i][3] = getParsedNumber(newValue);
-      }
-
-      if (type === 'checkbox') {
-        const stringifiedValue = stringify(newValue);
-        const isChecked = stringifiedValue === stringify(checkedTemplate);
-        const isUnchecked = stringifiedValue === stringify(uncheckedTemplate);
-
-        if (isChecked || isUnchecked) {
-          filteredChanges[i][3] = isChecked ? checkedTemplate : uncheckedTemplate;
-        }
       }
     }
 

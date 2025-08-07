@@ -1,6 +1,7 @@
-import { DropdownEditor, valueGetter, valueSetter } from '../../editors/dropdownEditor';
+import { DropdownEditor } from '../../editors/dropdownEditor';
 import { dropdownRenderer } from '../../renderers/dropdownRenderer';
 import { dropdownValidator } from '../../validators/dropdownValidator';
+import { valueGetter, valueSetter } from './accessors';
 
 export const CELL_TYPE = 'dropdown';
 export const DropdownCellType = {
