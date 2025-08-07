@@ -3,15 +3,15 @@ import { registerAllModules } from "handsontable/registry";
 import { getDirectionFromURL, getThemeNameFromURL } from "../../utils";
 import { registerLanguageDictionary, arAR } from "handsontable/i18n";
 
-registerAllModules();
-registerLanguageDictionary(arAR);
-
-const root = document.getElementById('root');
-const example = document.createElement('div');
-
-root.appendChild(example);
-
 export function init() {
+  registerAllModules();
+  registerLanguageDictionary(arAR);
+
+  const root = document.getElementById('root');
+  const example = document.createElement('div');
+
+  root.appendChild(example);
+
   new Handsontable(example, {
     data: Handsontable.helper.createSpreadsheetData(100, 50),
     layoutDirection: getDirectionFromURL(),
