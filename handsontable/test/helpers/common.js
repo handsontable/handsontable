@@ -162,6 +162,7 @@ export const getRowHeight = handsontableMethodFactory('getRowHeight');
 export const getSchema = handsontableMethodFactory('getSchema');
 export const getSelected = handsontableMethodFactory('getSelected');
 export const getSelectedLast = handsontableMethodFactory('getSelectedLast');
+export const getSelectedActive = handsontableMethodFactory('getSelectedActive');
 export const getSelectedRange = handsontableMethodFactory('getSelectedRange');
 export const getSelectedRangeLast = handsontableMethodFactory('getSelectedRangeLast');
 export const getSelectedRangeActive = handsontableMethodFactory('getSelectedRangeActive');

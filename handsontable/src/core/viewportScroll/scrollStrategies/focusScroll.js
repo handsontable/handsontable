@@ -9,7 +9,13 @@ import { scrollWindowToCell } from '../utils';
 export function focusScrollStrategy(hot) {
   return (cellCoords) => {
     hot.scrollViewportTo(cellCoords.toObject(), () => {
-      const { row, col } = hot.getSelectedRangeLast().highlight;
+      const activeRange = hot.getSelectedRangeActive();
+
+      if (!activeRange) {
+        return;
+      }
+
+      const { row, col } = activeRange.highlight;
 
       scrollWindowToCell(hot.getCell(row, col, true));
     });

@@ -104,6 +104,7 @@ hot.getRowHeight(123, 'my_source') === 123;
 hot.getSchema()['foo'];
 hot.getSelected()![0][0] === 123;
 hot.getSelectedLast()![0] === 123;
+hot.getSelectedActive()![0] === 123;
 hot.getSelectedRange()![0].from.row === 123;
 hot.getSelectedRangeLast()!.to.col === 123;
 hot.getSelectedRangeActive()!.from.row === 123;

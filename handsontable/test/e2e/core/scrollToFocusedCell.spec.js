@@ -260,4 +260,29 @@ describe('Core.scrollToFocusedCell', () => {
       horizon.toBe(18254);
     });
   });
+
+  it('should scroll the viewport to the cell of the active selection layer', async() => {
+    handsontable({
+      data: createSpreadsheetData(500, 50),
+      width: 300,
+      height: 300,
+      rowHeaders: true,
+      colHeaders: true,
+    });
+
+    await selectCells([[84, 29, 85, 30], [118, 29, 119, 30], [184, 29, 185, 30]]);
+    await keyDownUp(['shift', 'tab']); // move to the focus to the previous layer
+    await scrollToFocusedCell();
+
+    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(1316);
+      main.toBe(1410);
+      horizon.toBe(1653);
+    });
+    expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(2737);
+      main.toBe(3451);
+      horizon.toBe(4403);
+    });
+  });
 });

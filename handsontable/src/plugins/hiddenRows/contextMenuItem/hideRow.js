@@ -8,7 +8,7 @@ export default function hideRowItem(hiddenRowsPlugin) {
   return {
     key: 'hidden_rows_hide',
     name() {
-      const selection = this.getSelectedLast();
+      const selection = this.getSelectedActive();
       let pluralForm = 0;
 
       if (Array.isArray(selection)) {

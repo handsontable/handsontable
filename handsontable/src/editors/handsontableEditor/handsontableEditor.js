@@ -179,7 +179,7 @@ export class HandsontableEditor extends TextEditor {
       this.hot.listen(); // return the focus to the parent HOT instance
     }
 
-    if (this.htEditor && this.htEditor.getSelectedLast()) {
+    if (this.htEditor && this.htEditor.getSelectedActive()) {
       const value = this.htEditor.getValue();
 
       if (value !== undefined) { // if the value is undefined then it means we don't want to set the value
@@ -419,15 +419,15 @@ export class HandsontableEditor extends TextEditor {
         let rowToSelect;
         let selectedRow;
 
-        if (!innerHOT.getSelectedLast() && this.isFlippedVertically) {
+        if (!innerHOT.getSelectedActive() && this.isFlippedVertically) {
           rowToSelect = innerHOT.countRows() - 1;
 
-        } else if (innerHOT.getSelectedLast()) {
+        } else if (innerHOT.getSelectedActive()) {
           if (this.isFlippedVertically) {
-            selectedRow = innerHOT.getSelectedLast()[0];
+            selectedRow = innerHOT.getSelectedActive()[0];
             rowToSelect = Math.max(0, selectedRow - 1);
           } else {
-            selectedRow = innerHOT.getSelectedLast()[0];
+            selectedRow = innerHOT.getSelectedActive()[0];
             rowToSelect = selectedRow - 1;
           }
         }
@@ -442,17 +442,17 @@ export class HandsontableEditor extends TextEditor {
         let rowToSelect;
         let selectedRow;
 
-        if (!innerHOT.getSelectedLast() && !this.isFlippedVertically) {
+        if (!innerHOT.getSelectedActive() && !this.isFlippedVertically) {
           rowToSelect = 0;
 
-        } else if (innerHOT.getSelectedLast()) {
+        } else if (innerHOT.getSelectedActive()) {
           if (this.isFlippedVertically) {
-            rowToSelect = innerHOT.getSelectedLast()[0] + 1;
+            rowToSelect = innerHOT.getSelectedActive()[0] + 1;
 
           } else if (!this.isFlippedVertically) {
             const lastRow = innerHOT.countRows() - 1;
 
-            selectedRow = innerHOT.getSelectedLast()[0];
+            selectedRow = innerHOT.getSelectedActive()[0];
             rowToSelect = Math.min(lastRow, selectedRow + 1);
           }
         }

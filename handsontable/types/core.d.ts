@@ -105,6 +105,7 @@ export default class Core {
   getSchema(): RowObject;
   getSelected(): Array<[number, number, number, number]> | undefined;
   getSelectedLast(): number[] | undefined;
+  getSelectedActive(): number[] | undefined;
   getSelectedRange(): CellRange[] | undefined;
   getSelectedRangeLast(): CellRange | undefined;
   getSelectedRangeActive(): CellRange | undefined;
