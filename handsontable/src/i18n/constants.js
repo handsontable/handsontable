@@ -101,6 +101,17 @@ export const FILTERS_BUTTONS_PLACEHOLDER_SEARCH = `${FILTERS_NAMESPACE}buttons.p
 export const FILTERS_BUTTONS_PLACEHOLDER_VALUE = `${FILTERS_NAMESPACE}buttons.placeholder.value`;
 export const FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE = `${FILTERS_NAMESPACE}buttons.placeholder.secondValue`;
 
+export const PAGINATION_NAMESPACE = 'Pagination:';
+export const PAGINATION_SECTION = `${PAGINATION_NAMESPACE}section.pagination`;
+export const PAGINATION_PAGE_SIZE_AUTO = `${PAGINATION_NAMESPACE}.pageSize.auto`;
+export const PAGINATION_PAGE_SIZE_SECTION = `${PAGINATION_NAMESPACE}section.pageSize`;
+export const PAGINATION_COUNTER_SECTION = `${PAGINATION_NAMESPACE}section.counter`;
+export const PAGINATION_NAV_SECTION = `${PAGINATION_NAMESPACE}section.navigation`;
+export const PAGINATION_FIRST_PAGE = `${PAGINATION_NAMESPACE}firstPage`;
+export const PAGINATION_PREV_PAGE = `${PAGINATION_NAMESPACE}prevPage`;
+export const PAGINATION_NEXT_PAGE = `${PAGINATION_NAMESPACE}nextPage`;
+export const PAGINATION_LAST_PAGE = `${PAGINATION_NAMESPACE}lastPage`;
+
 export const CHECKBOX_RENDERER_NAMESPACE = 'CheckboxRenderer:';
 export const CHECKBOX_CHECKED = `${CHECKBOX_RENDERER_NAMESPACE}checked`;
 export const CHECKBOX_UNCHECKED = `${CHECKBOX_RENDERER_NAMESPACE}unchecked`;

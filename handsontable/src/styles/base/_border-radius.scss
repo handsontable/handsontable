@@ -229,7 +229,7 @@
         .htCore {
           border-end-start-radius: var(--ht-wrapper-border-radius);
           border-end-end-radius: var(--ht-wrapper-border-radius);
-          
+
           tr {
             &:last-child {
               th,
@@ -266,7 +266,7 @@
         }
       }
 
-      &.htHasScrollY {
+      &.htHasScrollY:not(.htVerticallyScrollableByWindow) {
         .htCore {
           border-start-end-radius: 0;
           border-end-end-radius: 0;

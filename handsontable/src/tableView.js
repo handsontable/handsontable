@@ -161,15 +161,14 @@ class TableView {
 
       this.hot.runHooks('beforeRender', isFullRender);
 
+      this._wt.draw(!isFullRender);
+      this.#updateScrollbarClassNames();
+
       if (this.postponedAdjustElementsSize) {
         this.postponedAdjustElementsSize = false;
 
-        this.adjustElementsSize();
+        this.adjustElementsSize(true);
       }
-
-      this._wt.draw(!isFullRender);
-
-      this.#updateScrollbarClassNames();
 
       this.hot.runHooks('afterRender', isFullRender);
       this.hot.forceFullRender = false;
@@ -177,13 +176,20 @@ class TableView {
   }
 
   /**
-   * Adjust overlays elements size and master table size.
+   * Adjust overlays elements size and master table size. By default the internal `adjustElementsSize`
+   * call of the Walkontable is postponed to the next render cycle. If `flush` is set to `true`, the method
+   * will be executed immediately.
+   *
+   * TODO: This method should not exist. It is a workaround for the issue with updating the elements
+   * size after render. It should be calculated and updated automatically in Walkontable.
+   *
+   * @param {boolean} [flush=false] If `true`, the method will be executed immediately.
    */
-  adjustElementsSize() {
-    if (this.hot.isRenderSuspended()) {
-      this.postponedAdjustElementsSize = true;
-    } else {
+  adjustElementsSize(flush = false) {
+    if (flush) {
       this._wt.wtOverlays.adjustElementsSize();
+    } else {
+      this.postponedAdjustElementsSize = true;
     }
   }
 
@@ -1794,7 +1800,8 @@ class TableView {
   }
 
   /**
-   * Gets the table's width.
+   * Gets table's width. The returned width is the width of the rendered cells that fit in the
+   * current viewport. The value may change depends on the viewport position (scroll position).
    *
    * @returns {boolean}
    */
@@ -1803,12 +1810,33 @@ class TableView {
   }
 
   /**
-   * Gets the table's height.
+   * Gets table's height. The returned height is the height of the rendered cells that fit in the
+   * current viewport. The value may change depends on the viewport position (scroll position).
    *
    * @returns {boolean}
    */
   getTableHeight() {
     return this._wt.wtTable.getHeight();
+  }
+
+  /**
+   * Gets table's total width. The returned width is the width of all rendered cells (including headers)
+   * that can be displayed in the table.
+   *
+   * @returns {boolean}
+   */
+  getTotalTableWidth() {
+    return this._wt.wtTable.getTotalWidth();
+  }
+
+  /**
+   * Gets table's total height. The returned height is the height of all rendered cells (including headers)
+   * that can be displayed in the table.
+   *
+   * @returns {boolean}
+   */
+  getTotalTableHeight() {
+    return this._wt.wtTable.getTotalHeight();
   }
 
   /**
@@ -1882,7 +1910,7 @@ class TableView {
    * Updates the class names on the root element based on the presence of scrollbars.
    *
    * This method checks if the table has vertical and/or horizontal scrollbars and
-   * adds or removes the corresponding class names (`htHasScrollY` and `htHasScrollX`)
+   * adds or removes the corresponding class names (`htHasScrollY`, `htHasScrollX` and more)
    * to/from the root element.
    */
   #updateScrollbarClassNames() {
@@ -1894,10 +1922,22 @@ class TableView {
       removeClass(rootElement, 'htHasScrollY');
     }
 
+    if (this.isVerticallyScrollableByWindow()) {
+      addClass(rootElement, 'htVerticallyScrollableByWindow');
+    } else {
+      removeClass(rootElement, 'htVerticallyScrollableByWindow');
+    }
+
     if (this.hasHorizontalScroll()) {
       addClass(rootElement, 'htHasScrollX');
     } else {
       removeClass(rootElement, 'htHasScrollX');
+    }
+
+    if (this.isHorizontallyScrollableByWindow()) {
+      addClass(rootElement, 'htHorizontallyScrollableByWindow');
+    } else {
+      removeClass(rootElement, 'htHorizontallyScrollableByWindow');
     }
   }
 

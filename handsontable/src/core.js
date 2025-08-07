@@ -46,6 +46,10 @@ import { getThemeClassName } from './helpers/themes';
 import { StylesHandler } from './utils/stylesHandler';
 import { warn } from './helpers/console';
 import { CellRangeToRenderableMapper } from './core/coordsMapper/rangeToRenderableMapper';
+import {
+  install as installAccessibilityAnnouncer,
+  uninstall as uninstallAccessibilityAnnouncer,
+} from './utils/a11yAnnouncer';
 
 let activeGuid = null;
 
@@ -224,7 +228,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     this.rootWrapperElement = this.rootDocument.createElement('div');
     this.rootPortalElement = this.rootDocument.createElement('div');
 
-    addClass(this.rootElement, 'ht-wrapper');
+    addClass(this.rootElement, ['ht-wrapper', 'handsontable']);
     addClass(this.rootWrapperElement, 'ht-root-wrapper');
 
     this.rootWrapperElement.appendChild(this.rootElement);
@@ -272,6 +276,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     layoutDirection : this.rootWindow.getComputedStyle(this.rootElement).direction;
 
   this.rootElement.setAttribute('dir', rootElementDirection);
+  this.rootWrapperElement?.setAttribute('dir', rootElementDirection);
 
   /**
    * Checks if the grid is rendered using the right-to-left layout direction.
@@ -315,10 +320,26 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * @private
    * @type {StylesHandler}
    */
-  this.stylesHandler = new StylesHandler(
-    instance.rootElement,
-    instance.rootDocument
-  );
+  this.stylesHandler = new StylesHandler({
+    rootElement: instance.rootElement,
+    rootDocument: instance.rootDocument,
+    onThemeChange: (validThemeName) => {
+      if (isRootInstance(this)) {
+        removeClass(this.rootWrapperElement, /ht-theme-.*/g);
+        removeClass(this.rootPortalElement, /ht-theme-.*/g);
+
+        if (validThemeName) {
+          addClass(this.rootWrapperElement, validThemeName);
+          addClass(this.rootPortalElement, validThemeName);
+
+          if (!getComputedStyle(this.rootWrapperElement).getPropertyValue('--ht-line-height')) {
+            warn(`The "${validThemeName}" theme is enabled, but its stylesheets are missing or not imported correctly. \
+              Import the correct CSS files in order to use that theme.`);
+          }
+        }
+      }
+    }
+  });
 
   userSettings.language = getValidLanguageCode(userSettings.language);
 
@@ -599,6 +620,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     .addLocalHook('afterSelectColumns', (...args) => this.runHooks('afterSelectColumns', ...args))
     .addLocalHook('beforeSelectRows', (...args) => this.runHooks('beforeSelectRows', ...args))
     .addLocalHook('afterSelectRows', (...args) => this.runHooks('afterSelectRows', ...args))
+    .addLocalHook('beforeSelectAll', (...args) => this.runHooks('beforeSelectAll', ...args))
+    .addLocalHook('afterSelectAll', (...args) => this.runHooks('afterSelectAll', ...args))
     .addLocalHook('beforeModifyTransformStart', (...args) => this.runHooks('modifyTransformStart', ...args))
     .addLocalHook('afterModifyTransformStart', (...args) => this.runHooks('afterModifyTransformStart', ...args))
     .addLocalHook('beforeModifyTransformFocus', (...args) => this.runHooks('modifyTransformFocus', ...args))
@@ -873,8 +896,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
         grid.adjustRowsAndCols(); // makes sure that we did not add rows that will be removed in next refresh
       }
 
-      instance.view.render();
       instance.view.adjustElementsSize();
+      instance.view.render();
     },
 
     /**
@@ -1265,19 +1288,13 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
     this.view = new TableView(this);
 
-    const themeName = tableMeta.themeName || getThemeClassName(instance.rootContainer);
-
-    // Use the theme defined in the settings object or set as a root container class name (in that order).
-    instance.useTheme(themeName);
-
     editorManager = EditorManager.getInstance(instance, tableMeta, selection);
-
     viewportScroller = createViewportScroller(instance);
-
     focusManager = new FocusManager(instance);
 
     if (isRootInstance(this)) {
       installFocusCatcher(instance);
+      installAccessibilityAnnouncer(instance.rootPortalElement);
     }
 
     instance.runHooks('init');
@@ -1289,8 +1306,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       observeVisibilityChangeOnce(instance.rootElement, () => {
         // Update the spreader size cache before rendering.
         instance.view._wt.wtOverlays.updateLastSpreaderSize();
-        instance.render();
         instance.view.adjustElementsSize();
+        instance.render();
       });
     }
 
@@ -1477,9 +1494,9 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       grid.adjustRowsAndCols();
       instance.runHooks('beforeChangeRender', changes, source);
       editorManager.closeEditor();
+      instance.view.adjustElementsSize();
       instance.render();
       editorManager.prepareEditor();
-      instance.view.adjustElementsSize();
       instance.runHooks('afterChange', changes, source || 'edit');
 
       const activeEditor = instance.getActiveEditor();
@@ -2346,8 +2363,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
     if (isSizeChanged || view._wt.wtOverlays.scrollableElement === instance.rootWindow) {
       view.setLastSize(width, height);
-      instance.render();
       view.adjustElementsSize();
+      instance.render();
     }
 
     instance.runHooks(
@@ -2628,10 +2645,6 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       throw new Error('Since 8.0.0 the "ganttChart" setting is no longer supported.');
     }
 
-    if (settings.language) {
-      setLanguage(settings.language);
-    }
-
     // eslint-disable-next-line no-restricted-syntax
     for (i in settings) {
       if (i === 'data' || i === 'language') {
@@ -2662,6 +2675,22 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       }
     }
 
+    if (init) {
+      // Use the theme defined in the settings object or set as a root container class name (in that order).
+      instance.useTheme(tableMeta.themeName || getThemeClassName(instance.rootContainer));
+
+    } else {
+      const currentThemeName = instance.getCurrentThemeName();
+      const themeNameOptionExists = hasOwnProperty(settings, 'themeName');
+
+      if (
+        themeNameOptionExists &&
+        currentThemeName !== settings.themeName
+      ) {
+        instance.useTheme(settings.themeName);
+      }
+    }
+
     // Load data or create data map
     if (settings.data === undefined && tableMeta.data === undefined) {
       dataUpdateFunction(null, 'updateSettings'); // data source created just now
@@ -2674,6 +2703,10 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
       // The `column` property has changed - dataset may be expanded or narrowed down. The `loadData` do the same.
       instance.initIndexMappers();
+    }
+
+    if (!firstRun && settings.language) {
+      setLanguage(settings.language);
     }
 
     const clen = instance.countCols();
@@ -2718,12 +2751,6 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       currentHeight = parseInt(instance.rootElement.style.height, 10);
     }
 
-    let height = settings.height;
-
-    if (isFunction(height)) {
-      height = height();
-    }
-
     if (init) {
       const initialStyle = instance.rootElement.getAttribute('style');
 
@@ -2732,20 +2759,30 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       }
     }
 
-    if (height === null) {
-      const initialStyle = instance.rootElement.getAttribute('data-initialstyle');
+    let height = settings.height;
 
-      if (initialStyle && (initialStyle.indexOf('height') > -1 || initialStyle.indexOf('overflow') > -1)) {
-        instance.rootElement.setAttribute('style', initialStyle);
-
-      } else {
-        instance.rootElement.style.height = '';
-        instance.rootElement.style.overflow = '';
+    if (typeof settings.height !== 'undefined') {
+      if (isFunction(height)) {
+        height = height();
       }
 
-    } else if (height !== undefined) {
-      instance.rootElement.style.height = isNaN(height) ? `${height}` : `${height}px`;
-      instance.rootElement.style.overflow = 'hidden';
+      height = instance.runHooks('beforeHeightChange', height);
+
+      if (height === null) {
+        const initialStyle = instance.rootElement.getAttribute('data-initialstyle');
+
+        if (initialStyle && (initialStyle.indexOf('height') > -1 || initialStyle.indexOf('overflow') > -1)) {
+          instance.rootElement.setAttribute('style', initialStyle);
+
+        } else {
+          instance.rootElement.style.height = '';
+          instance.rootElement.style.overflow = '';
+        }
+
+      } else if (height !== undefined) {
+        instance.rootElement.style.height = isNaN(height) ? `${height}` : `${height}px`;
+        instance.rootElement.style.overflow = 'hidden';
+      }
     }
 
     if (typeof settings.width !== 'undefined') {
@@ -2755,6 +2792,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
         width = width();
       }
 
+      width = instance.runHooks('beforeWidthChange', width);
       instance.rootElement.style.width = isNaN(width) ? `${width}` : `${width}px`;
     }
 
@@ -2762,16 +2800,6 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       if (instance.view) {
         instance.view._wt.wtViewport.resetHasOversizedColumnHeadersMarked();
         instance.view._wt.exportSettingsAsClassNames();
-
-        const currentThemeName = instance.getCurrentThemeName();
-        const themeNameOptionExists = hasOwnProperty(settings, 'themeName');
-
-        if (
-          themeNameOptionExists &&
-          currentThemeName !== settings.themeName
-        ) {
-          instance.useTheme(settings.themeName);
-        }
       }
 
       instance.runHooks('afterUpdateSettings', settings);
@@ -4705,6 +4733,10 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
     dataSource = null;
 
+    if (isRootInstance(this)) {
+      uninstallAccessibilityAnnouncer();
+    }
+
     this.getShortcutManager().destroy();
     moduleRegisterer.clear();
     metaManager.clearCache();
@@ -5147,21 +5179,6 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     this.stylesHandler.useTheme(themeName);
 
     const validThemeName = this.stylesHandler.getThemeName();
-
-    if (isRootInstance(this)) {
-      removeClass(this.rootWrapperElement, /ht-theme-.*/g);
-      removeClass(this.rootPortalElement, /ht-theme-.*/g);
-
-      if (validThemeName) {
-        addClass(this.rootWrapperElement, validThemeName);
-        addClass(this.rootPortalElement, validThemeName);
-
-        if (!getComputedStyle(this.rootWrapperElement).getPropertyValue('--ht-line-height')) {
-          warn(`The "${validThemeName}" theme is enabled, but its stylesheets are missing or not imported correctly. \
-            Import the correct CSS files in order to use that theme.`);
-        }
-      }
-    }
 
     if (!isFirstRun) {
       instance.render();

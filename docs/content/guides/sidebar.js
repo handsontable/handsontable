@@ -16,7 +16,7 @@ const gettingStartedItems = [
 const stylingItems = [
   { path: 'guides/styling/themes/themes' },
   { path: 'guides/styling/design-system/design-system' },
-  { path: 'guides/styling/customization/customization' },
+  { path: 'guides/styling/theme-customization/theme-customization' },
 ];
 
 const integrateWithVueItems = [
@@ -72,6 +72,7 @@ const rowsItems = [
   { path: 'guides/rows/row-height/row-height' },
   { path: 'guides/rows/row-virtualization/row-virtualization' },
   { path: 'guides/rows/rows-sorting/rows-sorting' },
+  { path: 'guides/rows/rows-pagination/rows-pagination' },
   { path: 'guides/rows/row-trimming/row-trimming' },
   { path: 'guides/rows/row-prepopulating/row-prepopulating' },
 ];

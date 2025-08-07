@@ -122,6 +122,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() numericFormat: Handsontable.GridSettings['numericFormat'];
   @Input() observeDOMVisibility: Handsontable.GridSettings['observeDOMVisibility'];
   @Input() outsideClickDeselects: Handsontable.GridSettings['outsideClickDeselects'];
+  @Input() pagination: Handsontable.GridSettings['pagination'];
   @Input() persistentState: Handsontable.GridSettings['persistentState'];
   @Input() placeholder: Handsontable.GridSettings['placeholder'];
   @Input() placeholderCellClassName: Handsontable.GridSettings['placeholderCellClassName'];
@@ -220,6 +221,11 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() afterOnCellMouseOut: Handsontable.GridSettings['afterOnCellMouseOut'];
   @Input() afterOnCellMouseOver: Handsontable.GridSettings['afterOnCellMouseOver'];
   @Input() afterOnCellMouseUp: Handsontable.GridSettings['afterOnCellMouseUp'];
+  @Input() afterPageChange: Handsontable.GridSettings['afterPageChange'];
+  @Input() afterPageSizeChange: Handsontable.GridSettings['afterPageSizeChange'];
+  @Input() afterPageSizeVisibilityChange: Handsontable.GridSettings['afterPageSizeVisibilityChange'];
+  @Input() afterPageCounterVisibilityChange: Handsontable.GridSettings['afterPageCounterVisibilityChange'];
+  @Input() afterPageNavigationVisibilityChange: Handsontable.GridSettings['afterPageNavigationVisibilityChange'];
   @Input() afterPaste: Handsontable.GridSettings['afterPaste'];
   @Input() afterPluginsInitialized: Handsontable.GridSettings['afterPluginsInitialized'];
   @Input() afterRedo: Handsontable.GridSettings['afterRedo'];
@@ -292,6 +298,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() beforeDropdownMenuShow: Handsontable.GridSettings['beforeDropdownMenuShow'];
   @Input() beforeFilter: Handsontable.GridSettings['beforeFilter'];
   @Input() beforeGetCellMeta: Handsontable.GridSettings['beforeGetCellMeta'];
+  @Input() beforeHeightChange: Handsontable.GridSettings['beforeHeightChange'];
   @Input() beforeHideColumns: Handsontable.GridSettings['beforeHideColumns'];
   @Input() beforeHideRows: Handsontable.GridSettings['beforeHideRows'];
   @Input() beforeHighlightingColumnHeader: Handsontable.GridSettings['beforeHighlightingColumnHeader'];
@@ -307,6 +314,8 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() beforeOnCellMouseOut: Handsontable.GridSettings['beforeOnCellMouseOut'];
   @Input() beforeOnCellMouseOver: Handsontable.GridSettings['beforeOnCellMouseOver'];
   @Input() beforeOnCellMouseUp: Handsontable.GridSettings['beforeOnCellMouseUp'];
+  @Input() beforePageChange: Handsontable.GridSettings['beforePageChange'];
+  @Input() beforePageSizeChange: Handsontable.GridSettings['beforePageSizeChange'];
   @Input() beforePaste: Handsontable.GridSettings['beforePaste'];
   @Input() beforeRedo: Handsontable.GridSettings['beforeRedo'];
   @Input() beforeRedoStackChange: Handsontable.GridSettings['beforeRedoStackChange'];
@@ -344,6 +353,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() beforeViewportScrollHorizontally: Handsontable.GridSettings['beforeViewportScrollHorizontally'];
   @Input() beforeViewportScrollVertically: Handsontable.GridSettings['beforeViewportScrollVertically'];
   @Input() beforeViewRender: Handsontable.GridSettings['beforeViewRender'];
+  @Input() beforeWidthChange: Handsontable.GridSettings['beforeWidthChange'];
   @Input() construct: Handsontable.GridSettings['construct'];
   @Input() init: Handsontable.GridSettings['init'];
   @Input() modifyAutoColumnSizeSeed: Handsontable.GridSettings['modifyAutoColumnSizeSeed'];

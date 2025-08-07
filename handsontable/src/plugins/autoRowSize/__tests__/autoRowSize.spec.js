@@ -100,7 +100,7 @@ describe('AutoRowSize', () => {
   });
 
   describe('should draw scrollbar correctly (proper height) after calculation when autoRowSize option ' +
-           'is set (`table td` element height set by CSS) #4000', async() => {
+           'is set (`table td` element height set by CSS) #4000', () => {
     const cellHeightInPx = 100;
     const nrOfColumns = 200;
     let style;
@@ -151,9 +151,9 @@ describe('AutoRowSize', () => {
       const newHeight = spec().$container[0].scrollHeight;
 
       expect(newHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual((((cellHeightInPx + 1) * nrOfRows) + 1));
-        main.toEqual(((cellHeightInPx * nrOfRows) + 1));
-        horizon.toEqual(((cellHeightInPx * nrOfRows) + 1));
+        classic.toEqual((cellHeightInPx + 1) * nrOfRows);
+        main.toEqual(cellHeightInPx * nrOfRows);
+        horizon.toEqual(cellHeightInPx * nrOfRows);
       });
     });
 
@@ -169,9 +169,9 @@ describe('AutoRowSize', () => {
       const newHeight = spec().$container[0].scrollHeight;
 
       expect(newHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual((((cellHeightInPx + 1) * nrOfRows) + 1));
-        main.toEqual(((cellHeightInPx * nrOfRows) + 1));
-        horizon.toEqual(((cellHeightInPx * nrOfRows) + 1));
+        classic.toEqual((cellHeightInPx + 1) * nrOfRows);
+        main.toEqual(cellHeightInPx * nrOfRows);
+        horizon.toEqual(cellHeightInPx * nrOfRows);
       });
     });
 
@@ -188,9 +188,9 @@ describe('AutoRowSize', () => {
       const newHeight = spec().$container[0].scrollHeight;
 
       expect(newHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual((((cellHeightInPx + 1) * nrOfRows) + 1));
-        main.toEqual(((cellHeightInPx * nrOfRows) + 1));
-        horizon.toEqual(((cellHeightInPx * nrOfRows) + 1));
+        classic.toEqual((cellHeightInPx + 1) * nrOfRows);
+        main.toEqual(cellHeightInPx * nrOfRows);
+        horizon.toEqual(cellHeightInPx * nrOfRows);
       });
     });
 
@@ -206,9 +206,9 @@ describe('AutoRowSize', () => {
       const newHeight = spec().$container[0].scrollHeight;
 
       expect(newHeight).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual((((cellHeightInPx + 1) * nrOfRows) + 1));
-        main.toEqual(((cellHeightInPx * nrOfRows) + 1));
-        horizon.toEqual(((cellHeightInPx * nrOfRows) + 1));
+        classic.toEqual((cellHeightInPx + 1) * nrOfRows);
+        main.toEqual(cellHeightInPx * nrOfRows);
+        horizon.toEqual(cellHeightInPx * nrOfRows);
       });
     });
   });
@@ -314,14 +314,14 @@ describe('AutoRowSize', () => {
     await keyDownUp('enter');
 
     expect(getInlineStartClone().find('.wtHolder').scrollTop()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(90);
-      main.toBe(217);
-      horizon.toBe(265);
+      classic.toBe(89);
+      main.toBe(216);
+      horizon.toBe(264);
     });
     expect(getMaster().find('.wtHolder').scrollTop()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(90);
-      main.toBe(217);
-      horizon.toBe(265);
+      classic.toBe(89);
+      main.toBe(216);
+      horizon.toBe(264);
     });
   });
 
@@ -469,6 +469,8 @@ describe('AutoRowSize', () => {
       colHeaders: true
     });
 
+    const manualColumnResizePlugin = getPlugin('manualColumnResize');
+
     expect(parseInt(getCell(0, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(22); // -1px of cell border
       main.toBe(30);
@@ -485,7 +487,9 @@ describe('AutoRowSize', () => {
       horizon.toBe(37);
     });
 
-    resizeColumn.call(this, 1, 90);
+    await resizeColumn(1, 90);
+
+    manualColumnResizePlugin.afterMouseDownTimeout(); // fix for misinterpretation of the double click event
 
     expect(parseInt(getCell(0, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(22);
@@ -503,7 +507,9 @@ describe('AutoRowSize', () => {
       horizon.toBe(97);
     });
 
-    resizeColumn.call(this, 1, 50);
+    await resizeColumn(1, 50);
+
+    manualColumnResizePlugin.afterMouseDownTimeout(); // fix for misinterpretation of the double click event
 
     expect(parseInt(getCell(0, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(22);
@@ -521,7 +527,9 @@ describe('AutoRowSize', () => {
       horizon.toBe(137);
     });
 
-    resizeColumn.call(this, 1, 200);
+    await resizeColumn(1, 200);
+
+    manualColumnResizePlugin.afterMouseDownTimeout();
 
     expect(parseInt(getCell(0, -1).style.height, 10)).forThemes(({ classic, main, horizon }) => {
       classic.toBe(22);
@@ -720,9 +728,9 @@ describe('AutoRowSize', () => {
     const cloneLeft = spec().$container.find('.handsontable.ht_clone_inline_start .wtHider');
 
     expect(cloneLeft.height()).forThemes(({ classic, main, horizon }) => {
-      classic.toEqual(70);
-      main.toEqual(80);
-      horizon.toEqual(96);
+      classic.toEqual(69);
+      main.toEqual(79);
+      horizon.toEqual(95);
     });
   });
 
@@ -845,9 +853,9 @@ describe('AutoRowSize', () => {
     await scrollViewportTo(49, 0);
 
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(833);
-      main.toBe(1136);
-      horizon.toBe(1544);
+      classic.toBe(832);
+      main.toBe(1135);
+      horizon.toBe(1543);
     });
 
     await listen();
@@ -855,9 +863,9 @@ describe('AutoRowSize', () => {
     await keyDownUp('delete');
 
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(833);
-      main.toBe(1136);
-      horizon.toBe(1544);
+      classic.toBe(832);
+      main.toBe(1135);
+      horizon.toBe(1543);
     });
   });
 
@@ -925,6 +933,63 @@ describe('AutoRowSize', () => {
     });
 
     $(style).remove();
+  });
+
+  it('should not cause a misalignment between the first column and the first row header when scrolling horizontally (dev-2512)', async() => {
+    const data = Array(1).fill().map(() => Array(20).fill('test'));
+
+    for (let i = 5; i < 10; i++) {
+      // The oversized entries have to fit exactly in the cells, so that adding a border to a cell will break the lines and make it higher.
+      data[0][i] = '0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000';
+    }
+
+    handsontable({
+      data,
+      colHeaders: true,
+      rowHeaders: true,
+      autoRowSize: true,
+      colWidths: 65,
+      wordWrap: true,
+      height: 500,
+      width: 300,
+    });
+
+    await selectCell(0, 18);
+
+    const rowHeaderHeight = getCell(0, -1, true).offsetHeight;
+    const cellsHeight = getCell(0, 18, true).offsetHeight;
+
+    expect(rowHeaderHeight).toBe(cellsHeight);
+  });
+
+  it('should not cause a misalignment between the first column and the first row header when scrolling horizontally (with hidden columns) (dev-2512)', async() => {
+    const data = Array(1).fill().map(() => Array(21).fill('test'));
+
+    for (let i = 5; i < 10; i++) {
+      // The oversized entries have to fit exactly in the cells, so that adding a border to a cell will break the lines and make it higher.
+      data[0][i] = '0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000';
+    }
+
+    handsontable({
+      data,
+      colHeaders: true,
+      rowHeaders: true,
+      autoRowSize: true,
+      colWidths: 65,
+      wordWrap: true,
+      height: 500,
+      width: 300,
+      hiddenColumns: {
+        columns: [0],
+      },
+    });
+
+    await selectCell(0, 18);
+
+    const rowHeaderHeight = getCell(0, -1, true).offsetHeight;
+    const cellsHeight = getCell(0, 18, true).offsetHeight;
+
+    expect(rowHeaderHeight).toBe(cellsHeight);
   });
 
   describe('should work together with formulas plugin', () => {

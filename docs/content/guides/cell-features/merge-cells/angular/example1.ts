@@ -21,7 +21,10 @@ export class Example1MergeCellsComponent {
 
   readonly gridSettings: GridSettings = {
     height: 320,
-    colWidths: 50,
+    autoColumnSize: {
+      allowSampleDuplicates: true,
+      samplingRatio: 100,
+    },
     rowHeaders: true,
     colHeaders: true,
     contextMenu: true,

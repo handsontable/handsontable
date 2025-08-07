@@ -3584,6 +3584,49 @@ export default () => {
 
     /**
      * @description
+     * The `pagination` option configures the [`Pagination`](@/api/pagination.md) plugin.
+     *
+     * You can set the `pagination` option to one of the following:
+     *
+     * | Setting                          | Description                                                                                   |
+     * | -------------------------------- | --------------------------------------------------------------------------------------------- |
+     * | `false`                          | Disable the [`Pagination`](@/api/pagination.md) plugin                                            |
+     * | `true`                           | Enable the [`Pagination`](@/api/pagination.md) plugin                                             |
+     *
+     * ##### pagination: Additional options
+     *
+     * If you set the `pagination` option to an object, you can set the following `Pagination` plugin options:
+     *
+     * | Option                   | Possible settings                                  | Description                                                                                                                                                      |
+     * | ------------------------ | -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `pageSize`               | A number or `auto` (default: `10`)                 | Sets the number of rows displayed per page. If `'auto'` is set, the page size will be calculated to match all rows to the currently set table's viewport height  |
+     * | `pageSizeList`           | An array (default: `['auto', 5, 10, 20, 50, 100]`) | Defines the selectable values for page size in the UI                                                                                                            |
+     * | `initialPage`            | A number (default: `1`)                            | Specifies which page to display on initial load                                                                                                                  |
+     * | `showPageSize`           | Boolean (default: `true`)                          | Controls visibility of the "page size" section                                                                                                                   |
+     * | `showCounter`            | Boolean (default: `true`)                          | Controls visibility of the "page counter" section (e.g., "1 - 10 of 50");                                                                                        |
+     * | `showNavigation`         | Boolean (default: `true`)                          | Controls visibility of the "page navigation" section                                                                                                             |
+     * | `uiContainer`            | An HTML element (default: `null`)                  | The container element where the pagination UI will be installed. If not provided, the pagination container will be injected below the root table element.        |
+     *
+     * Read more:
+     * - [Rows pagination](@/guides/rows/rows-pagination/rows-pagination.md)
+     * - [Plugins: `Pagination`](@/api/pagination.md)
+     *
+     * @since 16.1.0
+     * @memberof Options#
+     * @type {boolean}
+     * @default undefined
+     * @category Pagination
+     *
+     * @example
+     * ```js
+     * // enable the `Pagination` plugin
+     * pagination: true,
+     * ```
+     */
+    pagination: undefined,
+
+    /**
+     * @description
      * The `persistentState` option configures the [`PersistentState`](@/api/persistentState.md) plugin.
      *
      * You can set the `persistentState` to one of the following:

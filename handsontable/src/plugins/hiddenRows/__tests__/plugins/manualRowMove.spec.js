@@ -522,8 +522,8 @@ describe('HiddenRows', () => {
 
           expect($guideline.offset().top).forThemes(({ classic, main, horizon }) => {
             classic.toBe($secondHeaderTH.offset().top - 2);
-            main.toBe($secondHeaderTH.offset().top - 1.5);
-            horizon.toBe($secondHeaderTH.offset().top - 1.5);
+            main.toBe($secondHeaderTH.offset().top - 1);
+            horizon.toBe($secondHeaderTH.offset().top - 1);
           });
         });
 
@@ -557,8 +557,8 @@ describe('HiddenRows', () => {
 
           expect($guideline.offset().top).forThemes(({ classic, main, horizon }) => {
             classic.toBe($firstHeaderTH.offset().top + $firstHeaderTH.height() - 1);
-            main.toBe($firstHeaderTH.offset().top + $firstHeaderTH.height() - 0.5);
-            horizon.toBe($firstHeaderTH.offset().top + $firstHeaderTH.height() - 0.5);
+            main.toBe($firstHeaderTH.offset().top + $firstHeaderTH.height());
+            horizon.toBe($firstHeaderTH.offset().top + $firstHeaderTH.height());
           });
         });
 
@@ -593,8 +593,8 @@ describe('HiddenRows', () => {
 
           expect($guideline.offset().top).forThemes(({ classic, main, horizon }) => {
             classic.toBe($secondHeaderTH.offset().top - 2);
-            main.toBe($secondHeaderTH.offset().top - 1.5);
-            horizon.toBe($secondHeaderTH.offset().top - 1.5);
+            main.toBe($secondHeaderTH.offset().top - 1);
+            horizon.toBe($secondHeaderTH.offset().top - 1);
           });
         });
 
@@ -628,8 +628,8 @@ describe('HiddenRows', () => {
 
           expect($guideline.offset().top).forThemes(({ classic, main, horizon }) => {
             classic.toBe($firstHeaderTH.offset().top + $firstHeaderTH.height() - 1);
-            main.toBe($firstHeaderTH.offset().top + $firstHeaderTH.height() - 0.5);
-            horizon.toBe($firstHeaderTH.offset().top + $firstHeaderTH.height() - 0.5);
+            main.toBe($firstHeaderTH.offset().top + $firstHeaderTH.height());
+            horizon.toBe($firstHeaderTH.offset().top + $firstHeaderTH.height());
           });
         });
       });

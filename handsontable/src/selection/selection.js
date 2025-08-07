@@ -1044,6 +1044,7 @@ class Selection {
     const endCoords = this.tableProps.createCellCoords(nrOfRows - 1, nrOfColumns - 1);
 
     this.clear();
+    this.runLocalHooks('beforeSelectAll', startCoords, endCoords, highlight);
     this.setRangeStartOnly(startCoords, undefined, highlight);
 
     if (columnFrom < 0) {
@@ -1054,6 +1055,7 @@ class Selection {
     }
 
     this.setRangeEnd(endCoords);
+    this.runLocalHooks('afterSelectAll', startCoords, endCoords, highlight);
     this.finish();
 
     this.#disableHeadersHighlight = false;
@@ -1170,10 +1172,6 @@ class Selection {
 
       this.runLocalHooks('beforeSelectColumns', from, to, highlight);
 
-      // disallow modifying row axis for that hooks
-      from.row = fromRow;
-      to.row = toRow;
-
       this.setRangeStartOnly(from, undefined, highlight);
       this.selectedByColumnHeader.add(this.getLayerLevel());
       this.setRangeEnd(to);
@@ -1230,10 +1228,6 @@ class Selection {
       const to = this.tableProps.createCellCoords(endRow, toColumn);
 
       this.runLocalHooks('beforeSelectRows', from, to, highlight);
-
-      // disallow modifying column axis for that hooks
-      from.col = fromColumn;
-      to.col = toColumn;
 
       this.setRangeStartOnly(from, undefined, highlight);
       this.selectedByRowHeader.add(this.getLayerLevel());

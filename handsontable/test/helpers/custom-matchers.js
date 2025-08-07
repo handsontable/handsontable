@@ -175,6 +175,19 @@ beforeEach(function() {
         }
       };
     },
+    toBeVisible() {
+      return {
+        compare(actual) {
+          const style = window.getComputedStyle(actual);
+          const pass = style.visibility !== 'hidden' && style.display !== 'none';
+
+          return {
+            pass,
+            message: 'Expected the element to be visible'
+          };
+        }
+      };
+    },
     toBeAroundValue() {
       return {
         compare(actual, expected, diff) {

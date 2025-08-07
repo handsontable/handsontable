@@ -27,28 +27,28 @@ import {
   UndoRedo,
 } from 'handsontable/plugins';
 
-// register imported cell types and plugins
-registerPlugin(AutoColumnSize);
-registerPlugin(ContextMenu);
-registerPlugin(CopyPaste);
-registerPlugin(DropdownMenu);
-registerPlugin(Filters);
-registerPlugin(HiddenColumns);
-registerPlugin(HiddenRows);
-registerPlugin(ManualRowMove);
-registerPlugin(MergeCells);
-registerPlugin(MultiColumnSorting);
-registerPlugin(UndoRedo);
-
-// register imported cell types and plugins
-registerCellType(DateCellType);
-registerCellType(DropdownCellType);
-registerCellType(CheckboxCellType);
-registerCellType(NumericCellType);
-
-registerLanguageDictionary(arAR);
-
 export function init() {
+  // register imported cell types and plugins
+  registerPlugin(AutoColumnSize);
+  registerPlugin(ContextMenu);
+  registerPlugin(CopyPaste);
+  registerPlugin(DropdownMenu);
+  registerPlugin(Filters);
+  registerPlugin(HiddenColumns);
+  registerPlugin(HiddenRows);
+  registerPlugin(ManualRowMove);
+  registerPlugin(MergeCells);
+  registerPlugin(MultiColumnSorting);
+  registerPlugin(UndoRedo);
+
+  // register imported cell types and plugins
+  registerCellType(DateCellType);
+  registerCellType(DropdownCellType);
+  registerCellType(CheckboxCellType);
+  registerCellType(NumericCellType);
+
+  registerLanguageDictionary(arAR);
+
   const root = document.getElementById('root');
 
   const topTable = document.createElement('div');

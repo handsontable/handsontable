@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Add row pagination functionality",
+  "type": "added",
+  "issueOrPR": 11612,
+  "breaking": false,
+  "framework": "none"
+}

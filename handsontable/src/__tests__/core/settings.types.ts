@@ -1,4 +1,4 @@
-import Handsontable from 'handsontable';
+import Handsontable, { CellCoords } from 'handsontable';
 import HyperFormula from 'hyperformula';
 
 // Helpers to verify multiple different settings and prevent TS control-flow from eliminating unreachable values
@@ -177,6 +177,15 @@ const allSettings: Required<Handsontable.GridSettings> = {
   numericFormat: oneOf(legacyNumericFormat, numericFormatOptions),
   observeDOMVisibility: true,
   outsideClickDeselects: oneOf(true, (target: HTMLElement) => false),
+  pagination: oneOf(true, {
+    pageSize: 10,
+    pageSizeList: [5, 10, 20, 50, 100],
+    initialPage: 1,
+    showPageSize: true,
+    showCounter: true,
+    showNavigation: true,
+    uiContainer: document.body,
+  }),
   persistentState: true,
   placeholder: 'foo',
   placeholderCellClassName: 'foo',
@@ -353,6 +362,23 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterOnCellMouseOver: (event, coords, TD) => {},
   afterOnCellMouseOut: (event, coords, TD) => {},
   afterOnCellMouseUp: (event, coords, TD) => {},
+  afterPageChange(oldPage, newPage) {
+    const _oldPage: number = oldPage;
+    const _newPage: number = newPage;
+  },
+  afterPageSizeChange(oldPageSize, newPageSize) {
+    const _oldPageSize: number | 'auto' = oldPageSize;
+    const _newPageSize: number | 'auto' = newPageSize;
+  },
+  afterPageSizeVisibilityChange(isVisible) {
+    const _isVisible: boolean = isVisible;
+  },
+  afterPageCounterVisibilityChange(isVisible) {
+    const _isVisible: boolean = isVisible;
+  },
+  afterPageNavigationVisibilityChange(isVisible) {
+    const _isVisible: boolean = isVisible;
+  },
   afterPaste: (data, coords) => {},
   afterPluginsInitialized: () => {},
   afterRedo: (action) => {},
@@ -370,7 +396,16 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterScrollHorizontally: () => {},
   afterScrollVertically: () => {},
   afterScroll: () => {},
-  afterSelectColumns: (from, to, highlight) => {},
+  afterSelectAll: (from, to, highlight) => {
+    const _from: CellCoords = from;
+    const _to: CellCoords = to;
+    const _highlight: CellCoords | undefined = highlight;
+  },
+  afterSelectColumns: (from, to, highlight) => {
+    const _from: CellCoords = from;
+    const _to: CellCoords = to;
+    const _highlight: CellCoords = highlight;
+  },
   afterSelection: (r, c, r2, c2, preventScrolling, selectionLayerLevel) => preventScrolling.value = true,
   afterSelectionByProp: (r, p, r2, p2, preventScrolling, selectionLayerLevel) => preventScrolling.value = true,
   afterSelectionEnd: (r, c, r2, c2, selectionLayerLevel) => {},
@@ -439,6 +474,11 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeDropdownMenuShow: (instance) => {},
   beforeFilter: (conditionsStack, previousConditionStack) => { conditionsStack[0].conditions[0].name === 'begins_with'; },
   beforeGetCellMeta: (row, col, cellProperties) => {},
+  beforeHeightChange: (height) => {
+    const _height: number | string = height;
+
+    return height;
+  },
   beforeHideColumns: (currentHideConfig, destinationHideConfig, actionPossible) => {},
   beforeHideRows: (currentHideConfig, destinationHideConfig, actionPossible) => {},
   beforeHighlightingColumnHeader: (column, headerLevel, highlightMeta) => {
@@ -470,6 +510,18 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeOnCellMouseOut: (event, coords, TD) => {},
   beforeOnCellMouseOver: (event, coords, TD, controller) => {},
   beforeOnCellMouseUp: (event, coords, TD) => {},
+  beforePageChange(oldPage, newPage) {
+    const _oldPage: number = oldPage;
+    const _newPage: number = newPage;
+
+    return true;
+  },
+  beforePageSizeChange(oldPageSize, newPageSize) {
+    const _oldPageSize: number | 'auto' = oldPageSize;
+    const _newPageSize: number | 'auto' = newPageSize;
+
+    return true;
+  },
   beforePaste: (data, coords) => { data.splice(0, 1); return false; },
   beforeRedo: (action) => {},
   beforeRedoStackChange: (undoneActions) => {},
@@ -489,7 +541,16 @@ const allSettings: Required<Handsontable.GridSettings> = {
     isActionInterrupted.value = false;
     newCoords.clone();
   },
-  beforeSelectColumns: (from, to, highlight) => {},
+  beforeSelectAll: (from, to, highlight) => {
+    const _from: CellCoords = from;
+    const _to: CellCoords = to;
+    const _highlight: CellCoords | undefined = highlight;
+  },
+  beforeSelectColumns: (from, to, highlight) => {
+    const _from: CellCoords = from;
+    const _to: CellCoords = to;
+    const _highlight: CellCoords = highlight;
+  },
   beforeSelectionFocusSet: (coords) => {
     const row: number = coords.row;
     const col: number = coords.col;
@@ -527,6 +588,11 @@ const allSettings: Required<Handsontable.GridSettings> = {
   },
   beforeViewportScroll: () => {},
   beforeViewRender: (isForced, skipRender) => {},
+  beforeWidthChange: (width) => {
+    const _width: number | string = width;
+
+    return width;
+  },
   construct: () => {},
   init: () => {},
   modifyAutoColumnSizeSeed: (seed, cellProperties, cellValue) => '1',

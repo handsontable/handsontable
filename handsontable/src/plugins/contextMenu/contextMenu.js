@@ -252,12 +252,8 @@ export class ContextMenu extends BasePlugin {
     this.prepareMenuItems();
     this.menu.open();
 
-    const themeHasTableBorder = this.menu.tableBorderWidth > 0;
-
     objectEach(offset, (value, key) => {
-      const valueWithoutBorder = ['below', 'right'].includes(key) ? value + 1 : value - 1;
-
-      this.menu.setOffset(key, themeHasTableBorder ? value : valueWithoutBorder);
+      this.menu.setOffset(key, value);
     });
 
     this.menu.setPosition(position);

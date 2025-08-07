@@ -6,11 +6,11 @@
   font-size: 13px;
   color #222222;
 
-  *:not(a) { 
+  *:not(a):not(button):not(select) {
     outline: blue solid 0 !important
   }
 
-  *:not(a):focus-visible {
+  *:not(a):not(button):not(select):focus-visible {
     outline: blue solid 0 !important
   }
 
@@ -21,7 +21,7 @@
   .handsontable tr {
     background: none;
   }
-  
+
   .htFocusCatcher {
     border: 0 !important;
   }

@@ -289,7 +289,7 @@ describe('WalkontableViewport', () => {
   });
 
   describe('hasHorizontalScroll()', () => {
-    it('should return `false` when the table\'s viewport is bigger than dataset', async() => {
+    it('should return `false` when the table\'s viewport is bigger than dataset width', async() => {
       createDataArray(6, 6);
 
       spec().$wrapper.width(400).height(300);
@@ -307,7 +307,39 @@ describe('WalkontableViewport', () => {
       expect(wt.wtViewport.hasHorizontalScroll()).toBe(false);
     });
 
-    it('should return `true` when the dataset is bigger than table\'s viewport', async() => {
+    it('should return `false` when the table\'s viewport is the same as dataset width', async() => {
+      createDataArray(50, 10);
+
+      spec().$wrapper.width(515).height(300); // +15px scrollbar width
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+      });
+
+      wt.draw();
+
+      expect(wt.wtViewport.hasHorizontalScroll()).toBe(false);
+    });
+
+    it('should return `true` when the table\'s viewport is 1px bigger than dataset width', async() => {
+      createDataArray(50, 10);
+
+      spec().$wrapper.width(514).height(300); // +15px scrollbar width - 1px to trigger horizontal scroll
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+      });
+
+      wt.draw();
+
+      expect(wt.wtViewport.hasHorizontalScroll()).toBe(true);
+    });
+
+    it('should return `true` when the dataset is much bigger than table\'s viewport', async() => {
       createDataArray(6, 50);
 
       spec().$wrapper.width(400).height(300);

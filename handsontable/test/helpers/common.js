@@ -114,6 +114,7 @@ export const countRows = handsontableMethodFactory('countRows');
 export const countSourceCols = handsontableMethodFactory('countSourceCols');
 export const countSourceRows = handsontableMethodFactory('countSourceRows');
 export const countVisibleCols = handsontableMethodFactory('countVisibleCols');
+export const countVisibleRows = handsontableMethodFactory('countVisibleRows');
 export const deselectCell = handsontableMethodFactory('deselectCell');
 export const destroy = handsontableMethodFactory('destroy');
 export const destroyEditor = handsontableMethodFactory('destroyEditor');
@@ -240,7 +241,7 @@ export function getDefaultColumnWidth() {
     case 'main':
       return 50;
     case 'horizon':
-      return 51;
+      return 50;
     default:
       return 50; // classic
   }
@@ -492,49 +493,49 @@ export function handsontable(options, explicitOptions = false, container = spec(
  * @returns {jQuery} The reference to the original htCore.
  */
 export function getHtCore() {
-  return spec().$container.find('.htCore').first();
+  return $(hot().rootElement).find('.htCore').first();
 }
 
 /**
  * @returns {jQuery}
  */
 export function getMaster() {
-  return spec().$container.find('.ht_master');
+  return $(hot().rootElement).find('.ht_master');
 }
 
 /**
  * @returns {jQuery}
  */
 export function getTopClone() {
-  return spec().$container.find('.ht_clone_top');
+  return $(hot().rootElement).find('.ht_clone_top');
 }
 
 /**
  * @returns {jQuery}
  */
 export function getTopInlineStartClone() {
-  return spec().$container.find('.ht_clone_top_inline_start_corner');
+  return $(hot().rootElement).find('.ht_clone_top_inline_start_corner');
 }
 
 /**
  * @returns {jQuery}
  */
 export function getInlineStartClone() {
-  return spec().$container.find('.ht_clone_inline_start');
+  return $(hot().rootElement).find('.ht_clone_inline_start');
 }
 
 /**
  * @returns {jQuery}
  */
 export function getBottomClone() {
-  return spec().$container.find('.ht_clone_bottom');
+  return $(hot().rootElement).find('.ht_clone_bottom');
 }
 
 /**
  * @returns {jQuery}
  */
 export function getBottomInlineStartClone() {
-  return spec().$container.find('.ht_clone_bottom_inline_start_corner');
+  return $(hot().rootElement).find('.ht_clone_bottom_inline_start_corner');
 }
 
 /**

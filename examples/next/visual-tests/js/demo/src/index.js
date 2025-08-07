@@ -10,6 +10,7 @@ import { init as initCustomStyleDemo } from './demos/customStyle';
 import { init as initMergedCellsDemo } from './demos/mergedCells';
 import { init as initNestedHeadersDemo } from './demos/nestedHeaders';
 import { init as initNestedRowsDemo } from './demos/nestedRows';
+import { init as initPaginationDemo } from './demos/pagination';
 import { init as initComplexDemo } from './demos/complex';
 import { init as initBasicTwoTablesDemo } from "./demos/basicTwoTables";
 import { init as initContextMenuDemo } from "./demos/contextMenu";
@@ -19,6 +20,7 @@ import { init as initCustomBordersDemo } from './demos/customBorders';
 import { init as initWebComponentDemo } from './demos/webComponent';
 import { init as initEditorsDemo } from './demos/editors';
 import { init as initTextEllipsisDemo } from './demos/textEllipsis';
+import { init as initWrapperDemo } from './demos/wrapper';
 
 // Function to dynamically load CSS
 function loadCSS(href) {
@@ -36,8 +38,8 @@ function loadCSS(href) {
 
 // Function to remove dynamically loaded CSS
 function removeCSS() {
-  const links = document.querySelectorAll('link.dynamic-css');
-  links.forEach(link => link.remove());
+  document.querySelectorAll('link.dynamic-css')
+    .forEach(link => link.remove());
 }
 
 function loadThemeCSS() {
@@ -245,6 +247,24 @@ router
         loadThemeCSS(),
       ]).then(() => {
         initCustomBordersDemo();
+      });
+    },
+    '/pagination-demo': function () {
+      removeCSS();
+
+      Promise.all([
+        loadThemeCSS(),
+      ]).then(() => {
+        initPaginationDemo();
+      });
+    },
+    '/wrapper-demo': function () {
+      removeCSS();
+
+      Promise.all([
+        loadThemeCSS(),
+      ]).then(() => {
+        initWrapperDemo();
       });
     },
   })

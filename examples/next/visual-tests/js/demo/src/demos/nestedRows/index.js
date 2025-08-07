@@ -2,26 +2,26 @@ import Handsontable from 'handsontable';
 import { scenarioDataBottom } from './data';
 import { getThemeNameFromURL } from '../../utils';
 
-const mergeCells = [];
-let rowIndex = 0;
+export function init() {
+  const mergeCells = [];
+  let rowIndex = 0;
 
-scenarioDataBottom.forEach(() => {
-  mergeCells.push({
-    row: rowIndex,
-    col: 0,
-    rowspan: 1,
-    colspan: 11,
+  scenarioDataBottom.forEach(() => {
+    mergeCells.push({
+      row: rowIndex,
+      col: 0,
+      rowspan: 1,
+      colspan: 11,
+    });
+
+    rowIndex += 10;
   });
 
-  rowIndex += 10;
-});
+  const root = document.getElementById('root');
 
-const root = document.getElementById('root');
+  const container = document.createElement('div');
+  root.appendChild(container);
 
-const container = document.createElement('div');
-root.appendChild(container);
-
-export function init() {
   const hot = new Handsontable(container, {
     data: scenarioDataBottom,
     themeName: getThemeNameFromURL(),

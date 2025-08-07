@@ -192,8 +192,8 @@ export class NestedHeaders extends BasePlugin {
       (...args) => this.#onAfterViewportColumnCalculatorOverride(...args)
     );
     this.addHook('modifyFocusedElement', (...args) => this.#onModifyFocusedElement(...args));
-    this.hot.columnIndexMapper.addLocalHook('cacheUpdated', () => this.#updateFocusHighlightPosition());
-    this.hot.rowIndexMapper.addLocalHook('cacheUpdated', () => this.#updateFocusHighlightPosition());
+    this.hot.columnIndexMapper.addLocalHook('cacheUpdated', this.#updateFocusHighlightPosition);
+    this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#updateFocusHighlightPosition);
 
     super.enablePlugin();
     this.updatePlugin(); // @TODO: Workaround for broken plugin initialization abstraction.
@@ -264,6 +264,11 @@ export class NestedHeaders extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    this.hot.rowIndexMapper
+      .removeLocalHook('cacheUpdated', this.#updateFocusHighlightPosition);
+    this.hot.columnIndexMapper
+      .removeLocalHook('cacheUpdated', this.#updateFocusHighlightPosition);
+
     this.clearColspans();
     this.#stateManager.clear();
     this.#hidingIndexMapObserver.unsubscribe();
@@ -451,8 +456,11 @@ export class NestedHeaders extends BasePlugin {
   /**
    * Updates the selection focus highlight position to point to the nested header root element (TH)
    * even when the logical coordinates point in-between the header.
+   *
+   * The method uses arrow function to keep the reference to the class method. Necessary for
+   * the `removeLocalHook` method of the row and column index mapper.
    */
-  #updateFocusHighlightPosition() {
+  #updateFocusHighlightPosition = () => {
     const selection = this.hot?.getSelectedRangeLast();
 
     if (!selection) {
