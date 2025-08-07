@@ -95,12 +95,14 @@ describe('MetaManager utils', () => {
       });
 
       expect(metaObject).toEqual({
-        _automaticallyAssignedMetaProps: new Set(['editor', 'validator']),
+        _automaticallyAssignedMetaProps: new Set(['editor', 'validator', 'valueGetter', 'valueSetter']),
         copyPaste: true,
         test: 'foo',
         renderer: 'type-renderer',
         editor: getCellType('autocomplete').editor,
         validator: getCellType('autocomplete').validator,
+        valueGetter: getCellType('autocomplete').valueGetter,
+        valueSetter: getCellType('autocomplete').valueSetter,
       });
 
       extendByMetaType(metaObject, {
@@ -108,13 +110,15 @@ describe('MetaManager utils', () => {
       });
 
       expect(metaObject).toEqual({
-        _automaticallyAssignedMetaProps: new Set(['editor', 'validator', 'dataType']),
+        _automaticallyAssignedMetaProps: new Set(['editor', 'validator', 'dataType', 'valueGetter', 'valueSetter']),
         copyPaste: true,
         test: 'foo',
         renderer: 'type-renderer',
         dataType: 'number',
         editor: getCellType('numeric').editor,
         validator: getCellType('numeric').validator,
+        valueGetter: getCellType('autocomplete').valueGetter,
+        valueSetter: getCellType('autocomplete').valueSetter,
       });
 
       extendByMetaType(metaObject, {
@@ -122,13 +126,15 @@ describe('MetaManager utils', () => {
       });
 
       expect(metaObject).toEqual({
-        _automaticallyAssignedMetaProps: new Set(['editor', 'validator', 'dataType']),
+        _automaticallyAssignedMetaProps: new Set(['editor', 'validator', 'dataType', 'valueGetter', 'valueSetter']),
         copyPaste: true,
         test: 'foo',
         renderer: 'type-renderer',
         dataType: 'number',
         editor: getCellType('text').editor,
         validator: getCellType('numeric').validator,
+        valueGetter: getCellType('autocomplete').valueGetter,
+        valueSetter: getCellType('autocomplete').valueSetter,
       });
     });
 
@@ -140,10 +146,12 @@ describe('MetaManager utils', () => {
       });
 
       expect(metaObject).toEqual({
-        _automaticallyAssignedMetaProps: new Set(['editor', 'renderer', 'validator']),
+        _automaticallyAssignedMetaProps: new Set(['editor', 'renderer', 'validator', 'valueGetter', 'valueSetter']),
         renderer: getCellType('autocomplete').renderer,
         editor: getCellType('autocomplete').editor,
         validator: getCellType('autocomplete').validator,
+        valueGetter: getCellType('autocomplete').valueGetter,
+        valueSetter: getCellType('autocomplete').valueSetter,
       });
 
       metaObject.renderer = 'my-renderer';
@@ -153,10 +161,12 @@ describe('MetaManager utils', () => {
       });
 
       expect(metaObject).toEqual({
-        _automaticallyAssignedMetaProps: new Set(['editor', 'validator']),
+        _automaticallyAssignedMetaProps: new Set(['editor', 'validator', 'valueGetter', 'valueSetter']),
         renderer: 'my-renderer',
         editor: getCellType('autocomplete').editor,
         validator: getCellType('autocomplete').validator,
+        valueGetter: getCellType('autocomplete').valueGetter,
+        valueSetter: getCellType('autocomplete').valueSetter,
       });
     });
 

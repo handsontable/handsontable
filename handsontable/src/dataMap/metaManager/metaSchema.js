@@ -4889,6 +4889,35 @@ export default () => {
 
     /**
      * @description
+     * The `valueGetter` option configures a function that returns a value of a cell.
+     * It can be used to modify the value of a cell before it is displayed (for example, for object-based data).
+     *
+     * @memberof Options#
+     * @type {Function}
+     * @since 16.1.0
+     * @default undefined
+     * @category Core
+     */
+    valueGetter: undefined,
+
+    /**
+     * @description
+     * The `valueSetter` option configures a function that defines what value is set to a cell.
+     * It can be used to modify the value of a cell before it is set (for example, for object-based data).
+     *
+     * @memberof Options#
+     * @type {Function}
+     * @param {*} value The value to be set to a cell.
+     * @param {number} row The physical row index of the cell.
+     * @param {number} column The physical column index of the cell.
+     * @since 16.1.0
+     * @default undefined
+     * @category Core
+     */
+    valueSetter: undefined,
+
+    /**
+     * @description
      * The `viewportColumnRenderingOffset` option configures the number of columns
      * to be rendered outside of the grid's viewport.
      *

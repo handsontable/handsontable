@@ -1,4 +1,4 @@
-import { DropdownEditor } from '../../editors/dropdownEditor';
+import { DropdownEditor, valueGetter, valueSetter } from '../../editors/dropdownEditor';
 import { dropdownRenderer } from '../../renderers/dropdownRenderer';
 import { dropdownValidator } from '../../validators/dropdownValidator';
 
@@ -10,4 +10,6 @@ export const DropdownCellType = {
   validator: dropdownValidator,
   filter: false,
   strict: true,
+  valueGetter,
+  valueSetter,
 };

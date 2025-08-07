@@ -47,7 +47,7 @@ function process(value, callback) {
     let found = false;
 
     for (let s = 0, slen = source.length; s < slen; s++) {
-      if (originalVal === source[s]) {
+      if (JSON.stringify(originalVal) === JSON.stringify((source[s]))) {
         found = true; // perfect match
         break;
       }

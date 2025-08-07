@@ -59,6 +59,8 @@ describe('AutocompleteCellType', () => {
         editor: getEditor('autocomplete'),
         renderer: getRenderer('autocomplete'),
         validator: getValidator('autocomplete'),
+        valueGetter: AutocompleteCellType.valueGetter,
+        valueSetter: AutocompleteCellType.valueSetter,
       });
     });
   });

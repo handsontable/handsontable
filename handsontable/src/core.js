@@ -1133,6 +1133,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
               }
 
               const visualColumn = c - skippedColumn;
+              const hasValueSetter = !!cellMeta?.valueSetter;
+
               let value = getInputValue(visualRow, visualColumn);
               let orgValue = instance.getDataAtCell(current.row, current.col);
 
@@ -1144,7 +1146,9 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
                   orgValue = [];
                 }
 
-                if (orgValue === null || typeof orgValue !== 'object') {
+                if (
+                  (typeof orgValue !== 'object' && !hasValueSetter) || orgValue === null
+                ) {
                   pushData = false;
 
                 } else {
@@ -1153,8 +1157,11 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
                   // Allow overwriting values with the same object-based schema or any array-based schema.
                   if (
-                    isObjectEqual(orgValueSchema, valueSchema) ||
-                    (Array.isArray(orgValueSchema) && Array.isArray(valueSchema))
+                    hasValueSetter || // If the cell has a value setter, we don't know the value schema (it's dynamic)
+                    (
+                      isObjectEqual(orgValueSchema, valueSchema) ||
+                      (Array.isArray(orgValueSchema) && Array.isArray(valueSchema))
+                    )
                   ) {
                     value = deepClone(value);
 
@@ -1166,12 +1173,15 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
               } else if (orgValue !== null && typeof orgValue === 'object') {
                 pushData = false;
               }
+
               if (pushData) {
                 setData.push([current.row, current.col, value]);
               }
+
               pushData = true;
               current.col += 1;
             }
+
             current.row += 1;
           }
           instance.setDataAtCell(setData, null, null, source || 'populateFromArray');

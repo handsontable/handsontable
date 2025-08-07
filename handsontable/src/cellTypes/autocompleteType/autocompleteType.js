@@ -1,4 +1,4 @@
-import { AutocompleteEditor } from '../../editors/autocompleteEditor';
+import { AutocompleteEditor, valueGetter, valueSetter } from '../../editors/autocompleteEditor';
 import { autocompleteRenderer } from '../../renderers/autocompleteRenderer';
 import { autocompleteValidator } from '../../validators/autocompleteValidator';
 
@@ -8,4 +8,6 @@ export const AutocompleteCellType = {
   editor: AutocompleteEditor,
   renderer: autocompleteRenderer,
   validator: autocompleteValidator,
+  valueGetter,
+  valueSetter,
 };

@@ -15,6 +15,8 @@ import {
 import { extendArray, to2dArray } from '../helpers/array';
 import { rangeEach } from '../helpers/number';
 import { isDefined } from '../helpers/mixed';
+import { isFunction } from '../helpers/function';
+import { isUnsignedNumber } from './metaManager/utils';
 
 /*
 This class contains open-source contributions covered by the MIT license.
@@ -763,6 +765,22 @@ class DataMap {
       value = prop(this.dataSource.slice(physicalRow, physicalRow + 1)[0]);
     }
 
+    const physicalColumn = this.hot.toPhysicalColumn(this.hot.propToCol(prop));
+    const valueGetter =
+      isUnsignedNumber(physicalColumn) &&
+      isUnsignedNumber(physicalRow) ?
+        this.metaManager.getCellMeta(
+          physicalRow,
+          physicalColumn,
+          {
+            skipMetaExtension: true
+          }
+        ).valueGetter : null;
+
+    if (isFunction(valueGetter)) {
+      value = valueGetter(value);
+    }
+
     if (this.hot.hasHook('modifyData')) {
       const valueHolder = createObjectPropListener(value);
 
@@ -795,11 +813,22 @@ class DataMap {
    * Saves single value to the data array.
    *
    * @param {number} row Visual row index.
-   * @param {number} prop The column property.
+   * @param {number|string} prop The column property.
    * @param {string} value The value to set.
    */
   set(row, prop, value) {
     const physicalRow = this.hot.toPhysicalRow(row);
+    const physicalColumn = this.hot.toPhysicalColumn(this.hot.propToCol(prop));
+    const valueSetter =
+      isUnsignedNumber(physicalColumn) &&
+      isUnsignedNumber(physicalRow) ?
+        this.metaManager.getCellMeta(
+          physicalRow,
+          physicalColumn,
+          {
+            skipMetaExtension: true
+          }
+        ).valueSetter : null;
     let newValue = value;
     let dataRow = this.dataSource[physicalRow];
     // TODO: To remove, use 'modifyData' hook instead (see below)
@@ -807,6 +836,10 @@ class DataMap {
 
     dataRow = isNaN(modifiedRowData) ? modifiedRowData : dataRow;
     //
+
+    if (isFunction(valueSetter)) {
+      newValue = valueSetter.call(this.hot, newValue, physicalRow, physicalColumn);
+    }
 
     if (this.hot.hasHook('modifyData')) {
       const valueHolder = createObjectPropListener(newValue);
