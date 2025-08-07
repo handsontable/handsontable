@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue with root-wrapper height",
+  "type": "fixed",
+  "issueOrPR": 11769,
+  "breaking": false,
+  "framework": "none"
+}

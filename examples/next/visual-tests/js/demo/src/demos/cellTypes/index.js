@@ -2,44 +2,44 @@ import Handsontable from 'handsontable';
 import { data, subData } from './data';
 import { getThemeNameFromURL } from '../../utils';
 
-const root = document.getElementById('root');
-
-const container = document.createElement('div');
-root.appendChild(container);
-
-function operationalStatusRenderer(
-  instance,
-  td,
-  row,
-  col,
-  prop,
-  value,
-  cellProperties
-) {
-  Handsontable.renderers.TextRenderer.apply(this, arguments);
-
-  td.style.backgroundColor = '';
-  td.style.color = '';
-
-  if (value === 'Operational') {
-    td.style.backgroundColor = 'green';
-    td.style.color = 'white';
-  } else if (value === 'In Maintenance') {
-    td.style.backgroundColor = 'orange';
-    td.style.color = 'white';
-  } else if (value === 'Awaiting Parts') {
-    td.style.backgroundColor = 'red';
-    td.style.color = 'white';
-  } else if (value === 'Ready for Testing') {
-    td.style.backgroundColor = 'blue';
-    td.style.color = 'white';
-  } else if (value === 'Decommissioned') {
-    td.style.backgroundColor = 'gray';
-    td.style.color = 'white';
-  }
-}
-
 export function init() {
+  const root = document.getElementById('root');
+
+  const container = document.createElement('div');
+  root.appendChild(container);
+
+  function operationalStatusRenderer(
+    instance,
+    td,
+    row,
+    col,
+    prop,
+    value,
+    cellProperties
+  ) {
+    Handsontable.renderers.TextRenderer.apply(this, arguments);
+
+    td.style.backgroundColor = '';
+    td.style.color = '';
+
+    if (value === 'Operational') {
+      td.style.backgroundColor = 'green';
+      td.style.color = 'white';
+    } else if (value === 'In Maintenance') {
+      td.style.backgroundColor = 'orange';
+      td.style.color = 'white';
+    } else if (value === 'Awaiting Parts') {
+      td.style.backgroundColor = 'red';
+      td.style.color = 'white';
+    } else if (value === 'Ready for Testing') {
+      td.style.backgroundColor = 'blue';
+      td.style.color = 'white';
+    } else if (value === 'Decommissioned') {
+      td.style.backgroundColor = 'gray';
+      td.style.color = 'white';
+    }
+  }
+
   new Handsontable(container, {
     data,
     colHeaders: [

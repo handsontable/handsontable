@@ -2069,6 +2069,10 @@ thead th.hiddenHeaderText .colHeader {
   right: unset;
 }
 
+.ht-root-wrapper {
+  height: 100%;
+}
+
 .ht-root-wrapper .ht-pagination-container {
   color: #222;
   background: #f0f0f0;
