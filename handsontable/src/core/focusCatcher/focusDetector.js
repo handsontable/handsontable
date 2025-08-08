@@ -55,7 +55,7 @@ function createInputElement(hot) {
   const input = rootDocument.createElement('input');
 
   input.type = 'text';
-  input.name = '__htFocusCatcher';
+  input.name = 'htFocusCatcher';
   input.classList.add('htFocusCatcher');
 
   if (hot.getSettings().ariaTags) {
