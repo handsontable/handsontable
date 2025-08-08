@@ -4380,7 +4380,7 @@ export default () => {
      *     value: 'Label B'
      *   }]
      * }],
-     * 
+     *
      * // set `source` to a function
      * columns: [{
      *   // set the `type` of each cell in this column to `autocomplete`
