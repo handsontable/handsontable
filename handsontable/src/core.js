@@ -1,6 +1,6 @@
 import { addClass, empty, observeVisibilityChangeOnce, removeClass } from './helpers/dom/element';
 import { isFunction } from './helpers/function';
-import { isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty, stringify } from './helpers/mixed';
+import { isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty } from './helpers/mixed';
 import { isMobileBrowser, isIpadOS } from './helpers/browser';
 import EditorManager from './editorManager';
 import EventManager from './eventManager';
@@ -23,7 +23,7 @@ import { getRenderer } from './renderers/registry';
 import { getEditor } from './editors/registry';
 import { getValidator } from './validators/registry';
 import { randomString, toUpperCaseFirst } from './helpers/string';
-import { rangeEach, rangeEachReverse, isNumericLike } from './helpers/number';
+import { rangeEach, rangeEachReverse } from './helpers/number';
 import TableView from './tableView';
 import DataSource from './dataMap/dataSource';
 import { spreadsheetColumnLabel } from './helpers/data';
@@ -50,6 +50,7 @@ import {
   install as installAccessibilityAnnouncer,
   uninstall as uninstallAccessibilityAnnouncer,
 } from './utils/a11yAnnouncer';
+import { getValueSetterValue } from './utils/valueAccessors';
 
 let activeGuid = null;
 
@@ -1572,11 +1573,6 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     }
 
     if (isFunction(validator)) {
-      const valueSetter = cellProperties.valueSetter;
-
-      // Get the actual value being set to pass it for validation.
-      value = isFunction(valueSetter) ? valueSetter.call(instance, value, cellProperties.row, cellProperties.col) : value;
-
       // eslint-disable-next-line no-param-reassign
       value = instance.runHooks('beforeValidate', value, cellProperties.visualRow, cellProperties.prop, source);
 
@@ -1651,6 +1647,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
         // If there's no requested visual column, we can use the table meta as the cell properties
         cellProperties = { ...Object.getPrototypeOf(tableMeta), ...tableMeta };
       }
+
+      filteredChanges[i][3] = getValueSetterValue(newValue, cellProperties);
     }
 
     return filteredChanges;
@@ -1677,25 +1675,27 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     let prop;
 
     for (i = 0, ilen = input.length; i < ilen; i++) {
+      const [visualRow, visualColumn, newValue] = input[i];
+
       if (typeof input[i] !== 'object') {
         throw new Error('Method `setDataAtCell` accepts row number or changes array of arrays as its first parameter');
       }
-      if (typeof input[i][1] !== 'number') {
+      if (typeof visualColumn !== 'number') {
         throw new Error('Method `setDataAtCell` accepts row and column number as its parameters. If you want to use object property name, use method `setDataAtRowProp`'); // eslint-disable-line max-len
       }
 
-      if (input[i][1] >= this.countCols()) {
-        prop = input[i][1];
+      if (visualColumn >= this.countCols()) {
+        prop = visualColumn;
 
       } else {
-        prop = datamap.colToProp(input[i][1]);
+        prop = datamap.colToProp(visualColumn);
       }
 
       changes.push([
-        input[i][0],
+        visualRow,
         prop,
-        dataSource.getAtCell(this.toPhysicalRow(input[i][0]), input[i][1]),
-        input[i][2],
+        dataSource.getAtCell(this.toPhysicalRow(visualRow), visualColumn),
+        newValue,
       ]);
     }
 
@@ -1732,11 +1732,13 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     let ilen;
 
     for (i = 0, ilen = input.length; i < ilen; i++) {
+      const [visualRow, inputProp, newValue] = input[i];
+
       changes.push([
-        input[i][0],
-        input[i][1],
-        dataSource.getAtCell(this.toPhysicalRow(input[i][0]), input[i][1]),
-        input[i][2],
+        visualRow,
+        inputProp,
+        dataSource.getAtCell(this.toPhysicalRow(visualRow), inputProp),
+        newValue,
       ]);
     }
 

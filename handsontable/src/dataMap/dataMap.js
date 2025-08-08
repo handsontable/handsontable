@@ -15,7 +15,7 @@ import {
 import { extendArray, to2dArray } from '../helpers/array';
 import { rangeEach } from '../helpers/number';
 import { isDefined } from '../helpers/mixed';
-import { isFunction } from '../helpers/function';
+import { getValueGetterValue } from '../utils/valueAccessors';
 import { isUnsignedNumber } from './metaManager/utils';
 
 /*
@@ -766,19 +766,12 @@ class DataMap {
     }
 
     const physicalColumn = this.hot.toPhysicalColumn(this.hot.propToCol(prop));
-    const valueGetter =
-      isUnsignedNumber(physicalColumn) &&
-      isUnsignedNumber(physicalRow) ?
-        this.metaManager.getCellMeta(
-          physicalRow,
-          physicalColumn,
-          {
-            skipMetaExtension: true
-          }
-        ).valueGetter : null;
 
-    if (isFunction(valueGetter)) {
-      value = valueGetter(value);
+    if (isUnsignedNumber(physicalRow) && isUnsignedNumber(physicalColumn)) {
+      value = getValueGetterValue(
+        value,
+        this.metaManager.getCellMeta(physicalRow, physicalColumn, { skipMetaExtension: true })
+      );
     }
 
     if (this.hot.hasHook('modifyData')) {
@@ -818,17 +811,6 @@ class DataMap {
    */
   set(row, prop, value) {
     const physicalRow = this.hot.toPhysicalRow(row);
-    const physicalColumn = this.hot.toPhysicalColumn(this.hot.propToCol(prop));
-    const valueSetter =
-      isUnsignedNumber(physicalColumn) &&
-      isUnsignedNumber(physicalRow) ?
-        this.metaManager.getCellMeta(
-          physicalRow,
-          physicalColumn,
-          {
-            skipMetaExtension: true
-          }
-        ).valueSetter : null;
     let newValue = value;
     let dataRow = this.dataSource[physicalRow];
     // TODO: To remove, use 'modifyData' hook instead (see below)
@@ -836,10 +818,6 @@ class DataMap {
 
     dataRow = isNaN(modifiedRowData) ? modifiedRowData : dataRow;
     //
-
-    if (isFunction(valueSetter)) {
-      newValue = valueSetter.call(this.hot, newValue, physicalRow, physicalColumn);
-    }
 
     if (this.hot.hasHook('modifyData')) {
       const valueHolder = createObjectPropListener(newValue);

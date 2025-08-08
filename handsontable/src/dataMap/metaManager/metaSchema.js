@@ -4951,8 +4951,8 @@ export default () => {
      * @memberof Options#
      * @type {Function}
      * @param {*} value The value to be set to a cell.
-     * @param {number} row The physical row index of the cell.
-     * @param {number} column The physical column index of the cell.
+     * @param {number} row The visual row index of the cell.
+     * @param {number} column The visual column index of the cell.
      * @since 16.1.0
      * @default undefined
      * @category Core
