@@ -35,6 +35,27 @@ describe('Selection extending (RTL mode)', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 1,3 from: 1,3 to: 1,0']);
     });
 
+    it('should extend the cell selection to the right-most cell starting from the active selection layer', async() => {
+      handsontable({
+        startRows: 5,
+        startCols: 5,
+        enterBeginsEditing: false,
+      });
+
+      await selectCells([[2, 3, 3, 3], [0, 1, 1, 1]]);
+      await keyDownUp(['shift', 'tab']); // move focus to the previous layer
+      await keyDownUp(['control/meta', 'shift', 'arrowright']);
+
+      expect(`
+        |   :   :   :   :   |
+        |   :   :   :   :   |
+        |   : 0 : 0 : 0 : 0 |
+        |   : A : 0 : 0 : 0 |
+        |   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 3,3 from: 2,3 to: 3,0']);
+    });
+
     it('should extend the cell selection to the right-most cell of the current row when fixed overlays are enabled and the cell is selected', async() => {
       handsontable({
         fixedColumnsStart: 2,

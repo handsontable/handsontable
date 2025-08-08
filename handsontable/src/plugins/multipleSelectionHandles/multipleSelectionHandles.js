@@ -87,7 +87,7 @@ export class MultipleSelectionHandles extends BasePlugin {
       let selectedRange;
 
       if (hasClass(event.target, 'topSelectionHandle-HitArea')) {
-        selectedRange = _this.hot.getSelectedRangeLast();
+        selectedRange = _this.hot.getSelectedRangeActive();
 
         _this.dragged.push('top');
 
@@ -102,7 +102,7 @@ export class MultipleSelectionHandles extends BasePlugin {
         return false;
 
       } else if (hasClass(event.target, 'bottomSelectionHandle-HitArea')) {
-        selectedRange = _this.hot.getSelectedRangeLast();
+        selectedRange = _this.hot.getSelectedRangeActive();
 
         _this.dragged.push('bottom');
 
@@ -165,7 +165,7 @@ export class MultipleSelectionHandles extends BasePlugin {
           targetCoords.col = 0;
         }
 
-        selectedRange = _this.hot.getSelectedRangeLast();
+        selectedRange = _this.hot.getSelectedRangeActive();
         rangeWidth = selectedRange.getWidth();
         rangeHeight = selectedRange.getHeight();
         rangeDirection = selectedRange.getDirection();

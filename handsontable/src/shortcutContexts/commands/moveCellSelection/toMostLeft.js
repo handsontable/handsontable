@@ -2,7 +2,7 @@ export const command = {
   name: 'moveCellSelectionToMostLeft',
   callback(hot) {
     const { selection, columnIndexMapper } = hot;
-    const row = hot.getSelectedRangeLast().highlight.row;
+    const row = hot.getSelectedRangeActive().highlight.row;
     let column = columnIndexMapper.getNearestNotHiddenIndex(
       ...(hot.isRtl() ? [hot.countCols() - 1, -1] : [0, 1])
     );

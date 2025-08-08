@@ -71,6 +71,26 @@ describe('Selection navigation', () => {
       `).toBeMatchToSelectionPattern();
     });
 
+    it('should move the cell selection to the first cell (first row) starting from the active selection layer', async() => {
+      handsontable({
+        startRows: 5,
+        startCols: 5,
+      });
+
+      await selectCells([[1, 1, 1, 2], [2, 3, 2, 4]]);
+      await keyDownUp(['shift', 'tab']); // move focus to the previous layer
+      await keyDownUp(['control/meta', 'arrowup']);
+
+      expect(`
+        |   :   : # :   :   |
+        |   :   :   :   :   |
+        |   :   :   :   :   |
+        |   :   :   :   :   |
+        |   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: 0,2 to: 0,2']);
+    });
+
     it('should move the header selection to the most top header in a column (navigableHeaders on)', async() => {
       handsontable({
         startRows: 5,

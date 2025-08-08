@@ -2,7 +2,7 @@ export const command = {
   name: 'extendCellsSelectionLeft',
   callback(hot) {
     const { selection } = hot;
-    const { highlight } = hot.getSelectedRangeLast();
+    const { highlight } = hot.getSelectedRangeActive();
 
     if (
       !selection.isSelectedByRowHeader() &&

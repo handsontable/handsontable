@@ -5,7 +5,7 @@ export const command = {
 
     selection.markSource('keyboard');
     selection.setRangeStart(hot._createCellCoords(
-      hot.getSelectedRangeLast().highlight.row,
+      hot.getSelectedRangeActive().highlight.row,
       columnIndexMapper.getNearestNotHiddenIndex(hot.countCols() - 1, -1),
     ));
     selection.markEndSource();

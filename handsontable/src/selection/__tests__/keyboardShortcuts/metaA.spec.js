@@ -34,6 +34,31 @@ describe('Selection extending', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: -1,-1 to: 4,4']);
     });
 
+    it('should reset the current selection and select all cells keeping the focus position unchanged', async() => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 5,
+        startCols: 5
+      });
+
+      await selectCells([[0, 0, 2, 2], [3, 3, 4, 4]]);
+      await keyDownUp(['shift', 'tab']);
+      await keyDownUp(['shift', 'tab']); // move focus to the previous layer
+      await keyDownUp(['control/meta', 'a']);
+
+      expect(`
+        |   ║ - : - : - : - : - |
+        |===:===:===:===:===:===|
+        | - ║ 0 : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 |
+        | - ║ 0 : A : 0 : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 |
+        | - ║ 0 : 0 : 0 : 0 : 0 |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 2,1 from: -1,-1 to: 4,4']);
+    });
+
     it('should do nothing when pressing the shortcut with a header being selected', async() => {
       handsontable({
         rowHeaders: true,

@@ -47,13 +47,13 @@ class ContextMenuUI extends BaseUI {
           return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD);
         },
         callback: () => {
-          const translatedRowIndex = this.dataManager.translateTrimmedRow(this.hot.getSelectedLast()[0]);
+          const translatedRowIndex = this.dataManager.translateTrimmedRow(this.hot.getSelectedActive()[0]);
           const parent = this.dataManager.getDataObject(translatedRowIndex);
 
           this.dataManager.addChild(parent);
         },
         disabled: () => {
-          const selected = this.hot.getSelectedLast();
+          const selected = this.hot.getSelectedActive();
 
           return !selected || selected[0] < 0 || this.hot.selection.isSelectedByColumnHeader() ||
             this.hot.countRows() >= this.hot.getSettings().maxRows;
@@ -65,10 +65,10 @@ class ContextMenuUI extends BaseUI {
           return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD);
         },
         callback: () => {
-          this.dataManager.detachFromParent(this.hot.getSelectedLast());
+          this.dataManager.detachFromParent(this.hot.getSelectedActive());
         },
         disabled: () => {
-          const selected = this.hot.getSelectedLast();
+          const selected = this.hot.getSelectedActive();
           const translatedRowIndex = this.dataManager.translateTrimmedRow(selected[0]);
           const parent = this.dataManager.getRowParent(translatedRowIndex);
 

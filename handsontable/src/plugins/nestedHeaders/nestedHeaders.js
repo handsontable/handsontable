@@ -461,7 +461,7 @@ export class NestedHeaders extends BasePlugin {
    * the `removeLocalHook` method of the row and column index mapper.
    */
   #updateFocusHighlightPosition = () => {
-    const selection = this.hot?.getSelectedRangeLast();
+    const selection = this.hot?.getSelectedRangeActive();
 
     if (!selection) {
       return;
@@ -494,7 +494,7 @@ export class NestedHeaders extends BasePlugin {
    * @returns {number}
    */
   #onBeforeViewportScrollHorizontally(visualColumn, snapping) {
-    const selection = this.hot.getSelectedRangeLast();
+    const selection = this.hot.getSelectedRangeActive();
 
     if (!selection) {
       return visualColumn;
@@ -732,7 +732,7 @@ export class NestedHeaders extends BasePlugin {
       origColspan,
     } = headerNodeData;
 
-    const selectedRange = this.hot.getSelectedRangeLast();
+    const selectedRange = this.hot.getSelectedRangeActive();
     const topStartCoords = selectedRange.getTopStartCorner();
     const bottomEndCoords = selectedRange.getBottomEndCorner();
     const { from } = selectedRange;
@@ -807,7 +807,7 @@ export class NestedHeaders extends BasePlugin {
    * @param {object} delta The transformation delta.
    */
   #onModifyTransformStart(delta) {
-    const { highlight } = this.hot.getSelectedRangeLast();
+    const { highlight } = this.hot.getSelectedRangeActive();
     const nextCoords = this.hot._createCellCoords(highlight.row + delta.row, highlight.col + delta.col);
     const isNestedHeadersRange = nextCoords.isHeader() && nextCoords.col >= 0;
 

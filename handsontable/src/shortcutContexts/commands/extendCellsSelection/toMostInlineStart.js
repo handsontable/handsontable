@@ -2,7 +2,7 @@ export const command = {
   name: 'extendCellsSelectionToMostInlineStart',
   callback(hot) {
     const { selection, columnIndexMapper } = hot;
-    const { highlight, from, to } = hot.getSelectedRangeLast();
+    const { highlight, from, to } = hot.getSelectedRangeActive();
 
     if (
       !selection.isSelectedByRowHeader() &&

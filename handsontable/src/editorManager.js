@@ -92,7 +92,7 @@ class EditorManager {
       return;
     }
 
-    const highlight = this.hot.getSelectedRangeLast()?.highlight;
+    const highlight = this.hot.getSelectedRangeActive()?.highlight;
 
     if (!highlight || highlight.isHeader()) {
       return;
@@ -157,7 +157,7 @@ class EditorManager {
       return;
     }
 
-    const selection = this.hot.getSelectedRangeLast();
+    const selection = this.hot.getSelectedRangeActive();
     let allowOpening = this.hot.runHooks(
       'beforeBeginEditing',
       selection.highlight.row,
@@ -248,7 +248,7 @@ class EditorManager {
    * @returns {boolean}
    */
   isCellEditable() {
-    const selection = this.hot.getSelectedRangeLast();
+    const selection = this.hot.getSelectedRangeActive();
 
     if (!selection) {
       return false;
@@ -298,7 +298,7 @@ class EditorManager {
    * @param {KeyboardEvent} event The keyboard event object.
    */
   #onAfterDocumentKeyDown(event) {
-    const selection = this.hot.getSelectedRangeLast();
+    const selection = this.hot.getSelectedRangeActive();
 
     if (!this.hot.isListening() || !selection || selection.highlight.isHeader() ||
         isImmediatePropagationStopped(event)) {

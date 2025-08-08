@@ -21,14 +21,35 @@ describe('editorManager', () => {
         it(`if ${key} was pressed`, async() => {
           handsontable();
 
-          await selectCell(0, 0);
+          await selectCell(1, 2);
 
           const activeEditor = getActiveEditor();
 
           await keyDownUp(key);
 
           expect(activeEditor.isOpened()).toBe(true);
+          expect(activeEditor.row).toBe(1);
+          expect(activeEditor.col).toBe(2);
         });
+      });
+
+      it('should begin editing correct cell when focus is moved to the next selection layer', async() => {
+        handsontable();
+
+        await selectCells([
+          [0, 0, 1, 1],
+          [2, 2, 3, 3],
+        ]);
+
+        await keyDownUp(['shift', 'tab']);
+        await keyDownUp(['shift', 'tab']); // move focus to the previous layer
+        await keyDownUp('f2');
+
+        const activeEditor = getActiveEditor();
+
+        expect(activeEditor.isOpened()).toBe(true);
+        expect(activeEditor.row).toBe(1);
+        expect(activeEditor.col).toBe(0);
       });
     });
 

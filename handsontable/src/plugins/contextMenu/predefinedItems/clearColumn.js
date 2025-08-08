@@ -21,7 +21,7 @@ export default function clearColumnItem() {
       }
     },
     disabled() {
-      const range = this.getSelectedRangeLast();
+      const range = this.getSelectedRangeActive();
 
       if (
         !range ||

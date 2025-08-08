@@ -12,17 +12,17 @@ export default function columnLeftItem() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_INSERT_LEFT);
     },
     callback() {
-      const latestSelection = this.getSelectedRangeLast().getTopLeftCorner();
+      const activeSelection = this.getSelectedRangeActive().getTopLeftCorner();
       const alterAction = this.isRtl() ? 'insert_col_end' : 'insert_col_start';
 
-      this.alter(alterAction, latestSelection.col, 1, 'ContextMenu.columnLeft');
+      this.alter(alterAction, activeSelection.col, 1, 'ContextMenu.columnLeft');
     },
     disabled() {
       if (!this.isColumnModificationAllowed()) {
         return true;
       }
 
-      const range = this.getSelectedRangeLast();
+      const range = this.getSelectedRangeActive();
 
       if (
         !range ||

@@ -162,7 +162,7 @@ export class NestedRows extends BasePlugin {
       .addShortcut({
         keys: [['Enter']],
         callback: () => {
-          const { highlight } = this.hot.getSelectedRangeLast();
+          const { highlight } = this.hot.getSelectedRangeActive();
           const row = this.collapsingUI.translateTrimmedRow(highlight.row);
 
           if (this.collapsingUI.areChildrenCollapsed(row)) {
@@ -175,9 +175,9 @@ export class NestedRows extends BasePlugin {
           return false;
         },
         runOnlyIf: () => {
-          const highlight = this.hot.getSelectedRangeLast()?.highlight;
+          const highlight = this.hot.getSelectedRangeActive()?.highlight;
 
-          return highlight && this.hot.getSelectedRangeLast()?.isSingle() &&
+          return highlight && this.hot.getSelectedRangeActive()?.isSingle() &&
             this.hot.selection.isCellVisible(highlight) && highlight.col === -1 && highlight.row >= 0;
         },
         group: SHORTCUTS_GROUP,

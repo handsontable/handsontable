@@ -9,8 +9,8 @@ export default function copyWithColumnGroupHeadersItem(copyPastePlugin) {
   return {
     key: 'copy_with_column_group_headers',
     name() {
-      const selectedRange = this.getSelectedRangeLast();
-      const nounForm = selectedRange ? clamp(selectedRange.getWidth() - 1, 0, 1) : 0;
+      const activeSelectedRange = this.getSelectedRangeActive();
+      const nounForm = activeSelectedRange ? clamp(activeSelectedRange.getWidth() - 1, 0, 1) : 0;
 
       return this.getTranslatedPhrase(CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_GROUP_HEADERS, nounForm);
     },
@@ -22,7 +22,7 @@ export default function copyWithColumnGroupHeadersItem(copyPastePlugin) {
         return true;
       }
 
-      const range = this.getSelectedRangeLast();
+      const range = this.getSelectedRangeActive();
 
       if (!range) {
         return true;

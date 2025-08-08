@@ -21,7 +21,7 @@ export default function alignmentItem() {
         return true;
       }
 
-      const range = this.getSelectedRangeLast();
+      const range = this.getSelectedRangeActive();
 
       if (!range) {
         return true;

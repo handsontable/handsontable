@@ -56,6 +56,7 @@ export default class Core {
   emptySelectedCells(): void;
   forceFullRender: boolean;
   getActiveEditor(): BaseEditor | undefined;
+  getActiveSelectionLayerIndex(): number;
   getCell(row: number, column: number, topmost?: boolean): HTMLTableCellElement | null;
   getCellEditor(cellMeta: CellMeta): BaseEditor;
   getCellEditor(row: number, column: number): BaseEditor;
@@ -104,8 +105,10 @@ export default class Core {
   getSchema(): RowObject;
   getSelected(): Array<[number, number, number, number]> | undefined;
   getSelectedLast(): number[] | undefined;
+  getSelectedActive(): number[] | undefined;
   getSelectedRange(): CellRange[] | undefined;
   getSelectedRangeLast(): CellRange | undefined;
+  getSelectedRangeActive(): CellRange | undefined;
   getSettings(): GridSettings;
   getShortcutManager(): ShortcutManager;
   getSourceData(row?: number, column?: number, row2?: number, column2?: number): CellValue[][] | RowObject[];

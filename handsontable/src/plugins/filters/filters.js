@@ -689,7 +689,7 @@ export class Filters extends BasePlugin {
     if (this.hot.selection.isSelected()) {
       this.hot.selectCell(
         navigableHeaders ? -1 : 0,
-        this.hot.getSelectedRangeLast().highlight.col,
+        this.hot.getSelectedRangeActive().highlight.col,
       );
     }
 
@@ -708,7 +708,7 @@ export class Filters extends BasePlugin {
    * the index of the column.
    */
   getSelectedColumn() {
-    const highlight = this.hot.getSelectedRangeLast()?.highlight;
+    const highlight = this.hot.getSelectedRangeActive()?.highlight;
 
     if (!highlight) {
       return null;

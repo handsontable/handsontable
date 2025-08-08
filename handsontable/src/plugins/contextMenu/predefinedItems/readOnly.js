@@ -55,7 +55,7 @@ export default function readOnlyItem() {
       this.render();
     },
     disabled() {
-      const range = this.getSelectedRangeLast();
+      const range = this.getSelectedRangeActive();
 
       if (!range) {
         return true;

@@ -229,7 +229,7 @@ export class Menu {
    * @returns {object|null}
    */
   getSelectedItem() {
-    return this.hasSelectedItem() ? this.hotMenu.getSourceDataAtRow(this.hotMenu.getSelectedLast()[0]) : null;
+    return this.hasSelectedItem() ? this.hotMenu.getSourceDataAtRow(this.hotMenu.getSelectedActive()[0]) : null;
   }
 
   /**
@@ -238,7 +238,7 @@ export class Menu {
    * @returns {boolean}
    */
   hasSelectedItem() {
-    return Array.isArray(this.hotMenu.getSelectedLast());
+    return Array.isArray(this.hotMenu.getSelectedActive());
   }
 
   /**
@@ -421,7 +421,7 @@ export class Menu {
 
       if (this.isSubMenu()) {
         if (this.hot.getSettings().ariaTags) {
-          const selection = this.parentMenu.hotMenu.getSelectedLast();
+          const selection = this.parentMenu.hotMenu.getSelectedActive();
 
           if (selection) {
             const cell = this.parentMenu.hotMenu.getCell(selection[0], 0);

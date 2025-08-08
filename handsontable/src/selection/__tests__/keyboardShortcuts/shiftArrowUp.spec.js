@@ -49,6 +49,68 @@ describe('Selection extending', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 3,2 from: 3,2 to: 1,1']);
     });
 
+    it('should extend the cells selection up of the another active selection layer', async() => {
+      handsontable({
+        startRows: 5,
+        startCols: 5
+      });
+
+      await selectCells([[2, 1, 2, 2], [3, 2, 3, 3], [4, 3, 4, 4]]);
+      await keyDownUp(['shift', 'tab']); // move focus to the previous layer
+      await keyDownUp(['shift', 'arrowup']);
+
+      expect(`
+        |   :   :   :   :   |
+        |   :   :   :   :   |
+        |   : 0 : 1 : 0 :   |
+        |   :   : 0 : A :   |
+        |   :   :   : 0 : 0 |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange([
+        'highlight: 2,1 from: 2,1 to: 2,2',
+        'highlight: 3,3 from: 3,2 to: 2,3',
+        'highlight: 4,3 from: 4,3 to: 4,4',
+      ]);
+
+      await keyDownUp(['shift', 'tab']);
+      await keyDownUp(['shift', 'tab']);
+      await keyDownUp(['shift', 'tab']);
+      await keyDownUp(['shift', 'tab']); // move focus to the previous layer
+      await keyDownUp(['shift', 'arrowup']);
+
+      expect(`
+        |   :   :   :   :   |
+        |   : 0 : 0 :   :   |
+        |   : 0 : B : 0 :   |
+        |   :   : 0 : 0 :   |
+        |   :   :   : 0 : 0 |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange([
+        'highlight: 2,2 from: 2,1 to: 1,2',
+        'highlight: 2,2 from: 3,2 to: 2,3',
+        'highlight: 4,3 from: 4,3 to: 4,4',
+      ]);
+
+      await keyDownUp(['shift', 'tab']);
+      await keyDownUp(['shift', 'tab']);
+      await keyDownUp(['shift', 'tab']);
+      await keyDownUp(['shift', 'tab']); // move focus to the previous layer
+      await keyDownUp(['shift', 'arrowup']);
+
+      expect(`
+        |   :   :   :   :   |
+        |   : 0 : 0 :   :   |
+        |   : 0 : 1 : 0 :   |
+        |   :   : 0 : 1 : 0 |
+        |   :   :   : 0 : A |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange([
+        'highlight: 1,1 from: 2,1 to: 1,2',
+        'highlight: 2,2 from: 3,2 to: 2,3',
+        'highlight: 4,4 from: 4,3 to: 3,4',
+      ]);
+    });
+
     it('should extend the row header selection up to the previous row header', async() => {
       handsontable({
         rowHeaders: true,

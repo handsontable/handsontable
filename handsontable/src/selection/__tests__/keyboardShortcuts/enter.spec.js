@@ -112,7 +112,7 @@ describe('Selection navigation', () => {
       `).toBeMatchToSelectionPattern();
     });
 
-    it('should move the selection down within a non-contiguous selection only for the last layer', async() => {
+    it('should move the selection down within a non-contiguous selection and jump to the next layers (selected multiple cells)', async() => {
       handsontable({
         rowHeaders: true,
         colHeaders: true,
@@ -122,39 +122,7 @@ describe('Selection navigation', () => {
 
       await selectCells([[0, 0, 2, 2], [4, 2, 4, 4], [1, 1, 2, 2]]);
       await keyDownUp('enter');
-
-      expect(getSelectedRange()).toEqualCellRange([
-        'highlight: 0,0 from: 0,0 to: 2,2',
-        'highlight: 4,2 from: 4,2 to: 4,4',
-        'highlight: 2,1 from: 1,1 to: 2,2',
-      ]);
-      expect(`
-        |   ║ - : - : - : - : - |
-        |===:===:===:===:===:===|
-        | - ║ 0 : 0 : 0 :   :   |
-        | - ║ 0 : 1 : 1 :   :   |
-        | - ║ 0 : B : 1 :   :   |
-        |   ║   :   :   :   :   |
-        | - ║   :   : 0 : 0 : 0 |
-      `).toBeMatchToSelectionPattern();
-
       await keyDownUp('enter');
-
-      expect(getSelectedRange()).toEqualCellRange([
-        'highlight: 0,0 from: 0,0 to: 2,2',
-        'highlight: 4,2 from: 4,2 to: 4,4',
-        'highlight: 1,2 from: 1,1 to: 2,2',
-      ]);
-      expect(`
-        |   ║ - : - : - : - : - |
-        |===:===:===:===:===:===|
-        | - ║ 0 : 0 : 0 :   :   |
-        | - ║ 0 : 1 : B :   :   |
-        | - ║ 0 : 1 : 1 :   :   |
-        |   ║   :   :   :   :   |
-        | - ║   :   : 0 : 0 : 0 |
-      `).toBeMatchToSelectionPattern();
-
       await keyDownUp('enter');
 
       expect(getSelectedRange()).toEqualCellRange([
@@ -172,11 +140,55 @@ describe('Selection navigation', () => {
         | - ║   :   : 0 : 0 : 0 |
       `).toBeMatchToSelectionPattern();
 
-      await keyDownUp('enter');
+      await keyDownUp('enter'); // moves focus to the next layer
 
       expect(getSelectedRange()).toEqualCellRange([
         'highlight: 0,0 from: 0,0 to: 2,2',
         'highlight: 4,2 from: 4,2 to: 4,4',
+        'highlight: 2,2 from: 1,1 to: 2,2',
+      ]);
+      expect(`
+        |   ║ - : - : - : - : - |
+        |===:===:===:===:===:===|
+        | - ║ A : 0 : 0 :   :   |
+        | - ║ 0 : 1 : 1 :   :   |
+        | - ║ 0 : 1 : 1 :   :   |
+        |   ║   :   :   :   :   |
+        | - ║   :   : 0 : 0 : 0 |
+      `).toBeMatchToSelectionPattern();
+
+      await keyDownUp('enter');
+      await keyDownUp('enter');
+      await keyDownUp('enter');
+      await keyDownUp('enter');
+      await keyDownUp('enter');
+      await keyDownUp('enter');
+      await keyDownUp('enter');
+      await keyDownUp('enter');
+      await keyDownUp('enter'); // moves focus to the next layer
+
+      expect(getSelectedRange()).toEqualCellRange([
+        'highlight: 2,2 from: 0,0 to: 2,2',
+        'highlight: 4,2 from: 4,2 to: 4,4',
+        'highlight: 2,2 from: 1,1 to: 2,2',
+      ]);
+      expect(`
+        |   ║ - : - : - : - : - |
+        |===:===:===:===:===:===|
+        | - ║ 0 : 0 : 0 :   :   |
+        | - ║ 0 : 1 : 1 :   :   |
+        | - ║ 0 : 1 : 1 :   :   |
+        |   ║   :   :   :   :   |
+        | - ║   :   : A : 0 : 0 |
+      `).toBeMatchToSelectionPattern();
+
+      await keyDownUp('enter');
+      await keyDownUp('enter');
+      await keyDownUp('enter'); // moves focus to the next layer
+
+      expect(getSelectedRange()).toEqualCellRange([
+        'highlight: 2,2 from: 0,0 to: 2,2',
+        'highlight: 4,4 from: 4,2 to: 4,4',
         'highlight: 1,1 from: 1,1 to: 2,2',
       ]);
       expect(`
@@ -187,6 +199,109 @@ describe('Selection navigation', () => {
         | - ║ 0 : 1 : 1 :   :   |
         |   ║   :   :   :   :   |
         | - ║   :   : 0 : 0 : 0 |
+      `).toBeMatchToSelectionPattern();
+    });
+
+    it('should move the selection down within a non-contiguous selection and jump to the next layers (selected multiple single cells)', async() => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        startRows: 5,
+        startCols: 5,
+      });
+
+      await selectCells([[0, 0, 1, 1], [4, 4, 4, 4], [2, 2, 2, 2], [4, 1, 4, 1]]);
+      await keyDownUp('enter'); // moves focus to the next layer
+
+      expect(getSelectedRange()).toEqualCellRange([
+        'highlight: 0,0 from: 0,0 to: 1,1',
+        'highlight: 4,4 from: 4,4 to: 4,4',
+        'highlight: 2,2 from: 2,2 to: 2,2',
+        'highlight: 4,1 from: 4,1 to: 4,1',
+      ]);
+      expect(`
+        |   ║ - : - : - :   : - |
+        |===:===:===:===:===:===|
+        | - ║ A : 0 :   :   :   |
+        | - ║ 0 : 0 :   :   :   |
+        | - ║   :   : 0 :   :   |
+        |   ║   :   :   :   :   |
+        | - ║   : 0 :   :   : 0 |
+      `).toBeMatchToSelectionPattern();
+
+      await keyDownUp('enter');
+      await keyDownUp('enter');
+      await keyDownUp('enter');
+      await keyDownUp('enter'); // moves focus to the next layer
+
+      expect(getSelectedRange()).toEqualCellRange([
+        'highlight: 1,1 from: 0,0 to: 1,1',
+        'highlight: 4,4 from: 4,4 to: 4,4',
+        'highlight: 2,2 from: 2,2 to: 2,2',
+        'highlight: 4,1 from: 4,1 to: 4,1',
+      ]);
+      expect(`
+        |   ║ - : - : - :   : - |
+        |===:===:===:===:===:===|
+        | - ║ 0 : 0 :   :   :   |
+        | - ║ 0 : 0 :   :   :   |
+        | - ║   :   : 0 :   :   |
+        |   ║   :   :   :   :   |
+        | - ║   : 0 :   :   : A |
+      `).toBeMatchToSelectionPattern();
+
+      await keyDownUp('enter'); // moves focus to the next layer
+
+      expect(getSelectedRange()).toEqualCellRange([
+        'highlight: 1,1 from: 0,0 to: 1,1',
+        'highlight: 4,4 from: 4,4 to: 4,4',
+        'highlight: 2,2 from: 2,2 to: 2,2',
+        'highlight: 4,1 from: 4,1 to: 4,1',
+      ]);
+      expect(`
+        |   ║ - : - : - :   : - |
+        |===:===:===:===:===:===|
+        | - ║ 0 : 0 :   :   :   |
+        | - ║ 0 : 0 :   :   :   |
+        | - ║   :   : A :   :   |
+        |   ║   :   :   :   :   |
+        | - ║   : 0 :   :   : 0 |
+      `).toBeMatchToSelectionPattern();
+
+      await keyDownUp('enter'); // moves focus to the next layer
+
+      expect(getSelectedRange()).toEqualCellRange([
+        'highlight: 1,1 from: 0,0 to: 1,1',
+        'highlight: 4,4 from: 4,4 to: 4,4',
+        'highlight: 2,2 from: 2,2 to: 2,2',
+        'highlight: 4,1 from: 4,1 to: 4,1',
+      ]);
+      expect(`
+        |   ║ - : - : - :   : - |
+        |===:===:===:===:===:===|
+        | - ║ 0 : 0 :   :   :   |
+        | - ║ 0 : 0 :   :   :   |
+        | - ║   :   : 0 :   :   |
+        |   ║   :   :   :   :   |
+        | - ║   : A :   :   : 0 |
+      `).toBeMatchToSelectionPattern();
+
+      await keyDownUp('enter'); // moves focus to the next layer
+
+      expect(getSelectedRange()).toEqualCellRange([
+        'highlight: 0,0 from: 0,0 to: 1,1',
+        'highlight: 4,4 from: 4,4 to: 4,4',
+        'highlight: 2,2 from: 2,2 to: 2,2',
+        'highlight: 4,1 from: 4,1 to: 4,1',
+      ]);
+      expect(`
+        |   ║ - : - : - :   : - |
+        |===:===:===:===:===:===|
+        | - ║ A : 0 :   :   :   |
+        | - ║ 0 : 0 :   :   :   |
+        | - ║   :   : 0 :   :   |
+        |   ║   :   :   :   :   |
+        | - ║   : 0 :   :   : 0 |
       `).toBeMatchToSelectionPattern();
     });
 

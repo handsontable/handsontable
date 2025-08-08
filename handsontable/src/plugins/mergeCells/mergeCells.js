@@ -394,7 +394,7 @@ export class MergeCells extends BasePlugin {
    *
    * @param {CellRange} [cellRange] Selection cell range.
    */
-  mergeSelection(cellRange = this.hot.getSelectedRangeLast()) {
+  mergeSelection(cellRange = this.hot.getSelectedRangeActive()) {
     if (!cellRange) {
       return;
     }
@@ -413,7 +413,7 @@ export class MergeCells extends BasePlugin {
    *
    * @param {CellRange} [cellRange] Selection cell range.
    */
-  unmergeSelection(cellRange = this.hot.getSelectedRangeLast()) {
+  unmergeSelection(cellRange = this.hot.getSelectedRangeActive()) {
     if (!cellRange) {
       return;
     }
@@ -613,7 +613,7 @@ export class MergeCells extends BasePlugin {
     gridContext.addShortcut({
       keys: [['Control', 'm']],
       callback: () => {
-        const range = this.hot.getSelectedRangeLast();
+        const range = this.hot.getSelectedRangeActive();
 
         if (range && !range.isSingleHeader()) {
           this.toggleMerge(range);
@@ -647,7 +647,7 @@ export class MergeCells extends BasePlugin {
   #onAfterIsMultipleSelection(isMultiple) {
     if (isMultiple) {
       const mergedCells = this.mergedCellsCollection.mergedCells;
-      const selectionRange = this.hot.getSelectedRangeLast();
+      const selectionRange = this.hot.getSelectedRangeActive();
       const topStartCoords = selectionRange.getTopStartCorner();
       const bottomEndCoords = selectionRange.getBottomEndCorner();
 
@@ -682,7 +682,7 @@ export class MergeCells extends BasePlugin {
    * @param {object} delta The transformation delta.
    */
   #onModifyTransformStart(delta) {
-    const selectedRange = this.hot.getSelectedRangeLast();
+    const selectedRange = this.hot.getSelectedRangeActive();
     const { highlight } = selectedRange;
     const { columnIndexMapper, rowIndexMapper } = this.hot;
 
@@ -772,7 +772,7 @@ export class MergeCells extends BasePlugin {
    * @param {{ row: number, col: number }} delta The transformation delta.
    */
   #onModifyTransformEnd(delta) {
-    const selectedRange = this.hot.getSelectedRangeLast();
+    const selectedRange = this.hot.getSelectedRangeActive();
     const cloneRange = selectedRange.clone();
     const { to } = selectedRange;
     const { columnIndexMapper, rowIndexMapper } = this.hot;
@@ -965,7 +965,7 @@ export class MergeCells extends BasePlugin {
       return;
     }
 
-    const selectedRange = this.hot.getSelectedRangeLast();
+    const selectedRange = this.hot.getSelectedRangeActive();
     const verticalDir = selectedRange.getVerticalDirection();
     const horizontalDir = selectedRange.getHorizontalDirection();
     const focusCoords = this.#lastSelectedFocus.clone().normalize();
@@ -990,37 +990,44 @@ export class MergeCells extends BasePlugin {
    * @param {number} column The visual column index.
    */
   #onAfterSelectionFocusSet(row, column) {
-    const selectedRange = this.hot.getSelectedRangeLast();
     const { columnIndexMapper, rowIndexMapper } = this.hot;
+    let activeSelectionLayerIndex = this.hot.getActiveSelectionLayerIndex();
     let notHiddenRowIndex = null;
     let notHiddenColumnIndex = null;
 
     if (this.#lastFocusDelta.col < 0) {
-      const { rowEnd, colEnd } = this.#focusOrder.getPrevHorizontalNode();
+      const { rowEnd, colEnd, selectionLayer } = this.#focusOrder.getPrevHorizontalNode();
 
       notHiddenColumnIndex = columnIndexMapper.getNearestNotHiddenIndex(colEnd, -1);
       notHiddenRowIndex = rowIndexMapper.getNearestNotHiddenIndex(rowEnd, -1);
+      activeSelectionLayerIndex = selectionLayer;
 
     } else if (this.#lastFocusDelta.col > 0) {
-      const { rowStart, colStart } = this.#focusOrder.getNextHorizontalNode();
+      const { rowStart, colStart, selectionLayer } = this.#focusOrder.getNextHorizontalNode();
 
       notHiddenColumnIndex = columnIndexMapper.getNearestNotHiddenIndex(colStart, 1);
       notHiddenRowIndex = rowIndexMapper.getNearestNotHiddenIndex(rowStart, 1);
+      activeSelectionLayerIndex = selectionLayer;
 
     } else if (this.#lastFocusDelta.row < 0) {
-      const { rowEnd, colEnd } = this.#focusOrder.getPrevVerticalNode();
+      const { rowEnd, colEnd, selectionLayer } = this.#focusOrder.getPrevVerticalNode();
 
       notHiddenColumnIndex = columnIndexMapper.getNearestNotHiddenIndex(colEnd, -1);
       notHiddenRowIndex = rowIndexMapper.getNearestNotHiddenIndex(rowEnd, -1);
+      activeSelectionLayerIndex = selectionLayer;
 
     } else if (this.#lastFocusDelta.row > 0) {
-      const { rowStart, colStart } = this.#focusOrder.getNextVerticalNode();
+      const { rowStart, colStart, selectionLayer } = this.#focusOrder.getNextVerticalNode();
 
       notHiddenColumnIndex = columnIndexMapper.getNearestNotHiddenIndex(colStart, 1);
       notHiddenRowIndex = rowIndexMapper.getNearestNotHiddenIndex(rowStart, 1);
+      activeSelectionLayerIndex = selectionLayer;
     }
 
     if (notHiddenRowIndex !== null || notHiddenColumnIndex !== null) {
+      this.hot.selection.setActiveSelectionLayerIndex(activeSelectionLayerIndex);
+
+      const selectedRange = this.hot.getSelectedRangeActive();
       const coords = this.hot._createCellCoords(notHiddenRowIndex, notHiddenColumnIndex);
       const mergeParent = this.mergedCellsCollection.get(coords.row, coords.col);
       const focusHighlight = this.hot.selection.highlight.getFocus();
@@ -1043,7 +1050,7 @@ export class MergeCells extends BasePlugin {
         .commit();
     }
 
-    this.#focusOrder.setActiveNode(row, column);
+    this.#focusOrder.setActiveNode(row, column, activeSelectionLayerIndex);
     this.#lastFocusDelta = { row: 0, col: 0 };
   }
 
@@ -1051,11 +1058,7 @@ export class MergeCells extends BasePlugin {
    * Creates the horizontal and vertical cells order matrix (linked lists) for focused cell.
    */
   #onAfterSelectionEnd() {
-    const selection = this.hot.getSelectedRangeLast();
-
-    if (!selection.isHeader()) {
-      this.#focusOrder.buildFocusOrder(this.hot.getSelectedRangeLast());
-    }
+    this.#focusOrder.buildFocusOrder(this.hot.getSelectedRange());
   }
 
   /**
@@ -1372,7 +1375,7 @@ export class MergeCells extends BasePlugin {
    */
   #onBeforeDrawAreaBorders(corners, className) {
     if (className && className === 'area') {
-      const selectedRange = this.hot.getSelectedRangeLast();
+      const selectedRange = this.hot.getSelectedRangeActive();
       const mergedCellsWithinRange = this.mergedCellsCollection.getWithinRange(selectedRange);
 
       arrayEach(mergedCellsWithinRange, (mergedCell) => {
@@ -1430,7 +1433,7 @@ export class MergeCells extends BasePlugin {
       return;
     }
 
-    const selection = this.hot.getSelectedRangeLast();
+    const selection = this.hot.getSelectedRangeActive();
     const mergeCell = this.mergedCellsCollection.getByRange(selection);
 
     if (!mergeCell) {

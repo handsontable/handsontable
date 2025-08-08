@@ -246,7 +246,7 @@ export class ColumnSorting extends BasePlugin {
       .addShortcut({
         keys: [['Enter']],
         callback: () => {
-          const { highlight } = this.hot.getSelectedRangeLast();
+          const { highlight } = this.hot.getSelectedRangeActive();
 
           this.sort(this.getColumnNextConfig(highlight.col));
 
@@ -254,9 +254,9 @@ export class ColumnSorting extends BasePlugin {
           return false;
         },
         runOnlyIf: () => {
-          const highlight = this.hot.getSelectedRangeLast()?.highlight;
+          const highlight = this.hot.getSelectedRangeActive()?.highlight;
 
-          return highlight && this.hot.getSelectedRangeLast()?.isSingle() &&
+          return highlight && this.hot.getSelectedRangeActive()?.isSingle() &&
             this.hot.selection.isCellVisible(highlight) && highlight.row === -1 && highlight.col >= 0;
         },
         relativeToGroup: SHORTCUTS_GROUP_EDITOR,

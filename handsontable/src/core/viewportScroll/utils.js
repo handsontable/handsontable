@@ -23,7 +23,7 @@ export function scrollWindowToCell(element) {
  */
 export function createScrollTargetCalculator(hotInstance) {
   const { selection, view } = hotInstance;
-  const cellRange = hotInstance.getSelectedRangeLast();
+  const cellRange = hotInstance.getSelectedRangeActive();
   const source = selection.getSelectionSource();
 
   const firstVisibleColumn = view.getFirstFullyVisibleColumn();

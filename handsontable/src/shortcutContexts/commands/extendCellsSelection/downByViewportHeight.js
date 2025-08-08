@@ -2,7 +2,7 @@ export const command = {
   name: 'extendCellsSelectionDownByViewportHeight',
   callback(hot) {
     const { selection, rowIndexMapper } = hot;
-    const { to } = hot.getSelectedRangeLast();
+    const { to } = hot.getSelectedRangeActive();
     const nextRowIndexToSelect = Math.min(to.row + hot.countVisibleRows(), hot.countRows() - 1);
     const row = rowIndexMapper.getNearestNotHiddenIndex(nextRowIndexToSelect, -1);
 
@@ -12,7 +12,7 @@ export const command = {
       const nextVerticalScroll = Math.min(coords.row - scrollPadding, hot.countRows() - 1);
 
       selection.markSource('keyboard');
-      selection.setRangeEnd(coords);
+      selection.setRangeEnd(coords, hot.getActiveSelectionLayerIndex());
       selection.markEndSource();
 
       hot.scrollViewportTo({

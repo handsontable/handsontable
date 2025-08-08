@@ -119,6 +119,26 @@ describe('Selection navigation (RTL mode)', () => {
       `).toBeMatchToSelectionPattern();
     });
 
+    it('should move the cell selection to the most left cell starting from the active selection layer', async() => {
+      handsontable({
+        startRows: 5,
+        startCols: 5,
+      });
+
+      await selectCells([[0, 2, 1, 2], [3, 2, 4, 2]]);
+      await keyDownUp(['shift', 'tab']); // move focus to the previous layer
+      await keyDownUp(['control/meta', 'arrowleft']);
+
+      expect(`
+        |   :   :   :   :   |
+        | # :   :   :   :   |
+        |   :   :   :   :   |
+        |   :   :   :   :   |
+        |   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 1,4 from: 1,4 to: 1,4']);
+    });
+
     it('should move the header selection to the most left header in a row (navigableHeaders on)', async() => {
       handsontable({
         startRows: 5,
