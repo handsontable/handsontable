@@ -4337,8 +4337,12 @@ export default () => {
      *
      * You can set the `source` option to one of the following:
      *
-     * - An array
+     * - An array of string values
+     * - An array of objects with `key` and `value` properties
      * - A function
+     *
+     * Note: When defining the `source` option as an array of objects of `key` and `value` properties, the data format for that cell
+     * needs to be an object with `key` and `value` properties as well.
      *
      * Read more:
      * - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)
@@ -4355,7 +4359,7 @@ export default () => {
      *
      * @example
      * ```js
-     * // set `source` to an array
+     * // set `source` to an array of string values
      * columns: [{
      *   // set the `type` of each cell in this column to `autocomplete`
      *   type: 'autocomplete',
@@ -4363,6 +4367,20 @@ export default () => {
      *   source: ['A', 'B', 'C', 'D']
      * }],
      *
+     * // set `source` to an array of objects with `key` and `value` properties
+     * columns: [{
+     *   // set the `type` of each cell in this column to `autocomplete`
+     *   type: 'autocomplete',
+     *   // set options available in every `autocomplete` cell of this column
+     *   source: [{
+     *     key: 'A',
+     *     value: 'Label A'
+     *   }, {
+     *     key: 'B',
+     *     value: 'Label B'
+     *   }]
+     * }],
+     * 
      * // set `source` to a function
      * columns: [{
      *   // set the `type` of each cell in this column to `autocomplete`
