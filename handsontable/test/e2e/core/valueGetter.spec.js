@@ -48,4 +48,31 @@ describe('valueGetter', () => {
     expect(getCell(1, 0, true).textContent).toEqual(`Value: ${data[1][0]}`);
     expect(getCell(1, 1, true).textContent).toEqual(`Value: ${data[1][1]}`);
   });
+
+  it('should allow modifying the values received from the dataset for a single column or cell using the `valueGetter` option', async() => {
+    const data = createSpreadsheetData(2, 2);
+
+    handsontable({
+      data,
+      columns: [
+        {
+          valueGetter: value => `Value: ${value} first column`,
+        },
+        {}
+      ],
+      cells: (row, column) => {
+        if (row === 0 && column === 1) {
+          return {
+            valueGetter: value => `Value: ${value} at a cell`,
+          };
+        }
+      },
+    });
+
+    expect(getSourceData()).toEqual(data);
+    expect(getData()).toEqual([
+      ['Value: A1 first column', 'Value: B1 at a cell'],
+      ['Value: A2 first column', 'B2'],
+    ]);
+  });
 });
