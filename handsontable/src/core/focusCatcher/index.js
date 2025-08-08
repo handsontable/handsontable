@@ -22,8 +22,11 @@ export function installFocusCatcher(hot) {
       const mostTopStartCoords = clampCoordsIfNeeded(recentlyAddedFocusCoords) ?? getMostTopStartPosition(hot);
 
       if (mostTopStartCoords) {
-        hot.runHooks('modifyFocusOnTabNavigation', 'from_above', mostTopStartCoords);
-        hot.selectCell(mostTopStartCoords.row, mostTopStartCoords.col);
+        const result = hot.runHooks('modifyFocusOnTabNavigation', 'from_above', mostTopStartCoords);
+
+        if (result !== false) {
+          hot.selectCell(mostTopStartCoords.row, mostTopStartCoords.col);
+        }
       }
 
       hot.listen();
@@ -32,8 +35,11 @@ export function installFocusCatcher(hot) {
       const mostBottomEndCoords = clampCoordsIfNeeded(recentlyAddedFocusCoords) ?? getMostBottomEndPosition(hot);
 
       if (mostBottomEndCoords) {
-        hot.runHooks('modifyFocusOnTabNavigation', 'from_below', mostBottomEndCoords);
-        hot.selectCell(mostBottomEndCoords.row, mostBottomEndCoords.col);
+        const result = hot.runHooks('modifyFocusOnTabNavigation', 'from_below', mostBottomEndCoords);
+
+        if (result !== false) {
+          hot.selectCell(mostBottomEndCoords.row, mostBottomEndCoords.col);
+        }
       }
 
       hot.listen();
@@ -48,8 +54,6 @@ export function installFocusCatcher(hot) {
   let isTabOrShiftTabPressed = false;
   let preventViewportScroll = false;
 
-  hot.addHook('afterDialogShow', () => deactivate());
-  hot.addHook('afterDialogHide', () => activate());
   hot.addHook('afterListen', () => deactivate());
   hot.addHook('afterUnlisten', () => activate());
   hot.addHook('afterSelection', (row, column, row2, column2, preventScrolling) => {
@@ -74,7 +78,6 @@ export function installFocusCatcher(hot) {
     rowWrapState.wrapped = false;
     rowWrapState.flipped = false;
     hot.deselectCell();
-    hot.unlisten();
   }
 
   const shortcutOptions = {
@@ -124,9 +127,15 @@ export function installFocusCatcher(hot) {
                 ? getMostTopStartPosition(hot) : getMostBottomEndPosition(hot);
             }
 
+            const result = hot.runHooks('modifyUnfocusOnTabNavigation', event.shiftKey ? 'to_above' : 'to_below');
+
             deactivateTable();
 
-            return false;
+            if (result !== false) {
+              hot.unlisten();
+
+              return false;
+            }
           }
 
           // if the selection is still within the table's range then prevent default action

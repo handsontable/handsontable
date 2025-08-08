@@ -2109,17 +2109,6 @@ thead th.hiddenHeaderText .colHeader {
   opacity: 1;
 }
 
-.ht-dialog__input-focus-catcher {
-  position: absolute;
-  order: 0;
-  width: 0;
-  height: 0;
-  margin: 0;
-  opacity: 0;
-  padding: 0;
-  z-index: -1;
-}
-
 .ht-dialog__content-wrapper {
   display: flex;
   align-items: center;

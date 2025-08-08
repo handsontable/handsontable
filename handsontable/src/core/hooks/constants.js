@@ -1886,6 +1886,16 @@ export const REGISTERED_HOOKS = [
   'modifyFocusOnTabNavigation',
 
   /**
+   * Used to modify the cell coordinates when the table is deactivated (going out of the listen mode).
+   *
+   * @event Hooks#modifyUnfocusOnTabNavigation
+   * @since 16.1.0
+   * @param {'to_above' | 'to_below'} tabActivationDir The browsers Tab navigation direction. Depending on
+   * whether the user deactivated the table from the element above or below, another cell can be selected.
+   */
+  'modifyUnfocusOnTabNavigation',
+
+  /**
    * Allows modify the visual row index that is used to retrieve the row header element (TH) before it's
    * highlighted (proper CSS class names are added). Modifying the visual row index allows building a custom
    * implementation of the nested headers feature or other features that require highlighting other DOM
@@ -3153,7 +3163,6 @@ export const REGISTERED_HOOKS = [
    *
    * @since 16.1.0
    * @event Hooks#afterDialogShow
-   * @param {object} config The dialog configuration object.
    */
   'afterDialogShow',
 
@@ -3172,9 +3181,26 @@ export const REGISTERED_HOOKS = [
    *
    * @since 16.1.0
    * @event Hooks#beforeDialogShow
-   * @param {object} config The dialog configuration object.
    */
   'beforeDialogShow',
+
+  /**
+   * Fired by {@link Dialog} plugin before focusing the previous element. This hook is fired when {@link Options#dialog}
+   * option is enabled.
+   *
+   * @since 16.1.0
+   * @event Hooks#dialogFocusPreviousElement
+   */
+  'dialogFocusPreviousElement',
+
+  /**
+   * Fired by {@link Dialog} plugin before focusing the next element. This hook is fired when {@link Options#dialog}
+   * option is enabled.
+   *
+   * @since 16.1.0
+   * @event Hooks#dialogFocusNextElement
+   */
+  'dialogFocusNextElement',
 
   /**
    * Fired after the editor is opened and rendered.

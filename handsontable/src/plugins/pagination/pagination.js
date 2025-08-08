@@ -7,9 +7,12 @@ import { announce } from '../../utils/a11yAnnouncer';
 import { createPaginatorStrategy } from './strategies';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
+import { getMostBottomEndPosition } from '../../core/focusCatcher/utils';
 
 export const PLUGIN_KEY = 'pagination';
 export const PLUGIN_PRIORITY = 900;
+const SHORTCUTS_GROUP = PLUGIN_KEY;
+const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
 
 const AUTO_PAGE_SIZE_WARNING = toSingleLine`The \`auto\` page size setting requires the \`autoRowSize\`\x20
   plugin to be enabled. Set the \`autoRowSize: true\` in the configuration to ensure correct behavior.`;
@@ -209,6 +212,15 @@ export class Pagination extends BasePlugin {
         a11yAnnouncer: message => announce(message),
       });
 
+      this.#ui.focusableElements.forEach((element) => {
+        element.addEventListener('click', () => {
+          if (!this.hot.isListening()) {
+            this.hot.listen();
+            this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
+          }
+        });
+      });
+
       this.#updateSectionsVisibilityState();
       this.#ui
         .addLocalHook('firstPageClick', () => this.firstPage())
@@ -217,6 +229,8 @@ export class Pagination extends BasePlugin {
         .addLocalHook('lastPageClick', () => this.lastPage())
         .addLocalHook('pageSizeChange', pageSize => this.setPageSize(pageSize));
     }
+
+    this.registerShortcuts();
 
     // Place the onInit hook before others to make sure that the pagination state is computed
     // and applied to the index mapper before AutoColumnSize plugin begins calculate the column sizes.
@@ -233,6 +247,9 @@ export class Pagination extends BasePlugin {
     this.addHook('modifyRowHeight', (...args) => this.#onModifyRowHeight(...args));
     this.addHook('beforeHeightChange', (...args) => this.#onBeforeHeightChange(...args));
     this.addHook('afterSetTheme', (...args) => this.#onAfterSetTheme(...args));
+    this.addHook('modifyFocusOnTabNavigation', from => this.#onFocusTabNavigation(from), 2);
+    this.addHook('modifyUnfocusOnTabNavigation', to => this.#onUnfocusTabNavigation(to));
+    this.addHook('afterSelection', () => this.#onAfterSelection());
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onIndexCacheUpdate);
 
     super.enablePlugin();
@@ -260,8 +277,77 @@ export class Pagination extends BasePlugin {
 
     this.#ui.destroy();
     this.#ui = null;
+    this.unregisterShortcuts();
 
     super.disablePlugin();
+  }
+
+  /**
+   * Register shortcuts responsible for navigating through the pagination.
+   *
+   * @private
+   */
+  registerShortcuts() {
+    const manager = this.hot.getShortcutManager();
+    const pluginContext = manager.getContext(SHORTCUTS_CONTEXT_NAME) ??
+      manager.addContext(SHORTCUTS_CONTEXT_NAME, 'global');
+
+    pluginContext.addShortcut({
+      keys: [['Shift', 'Tab'], ['Tab']],
+      preventDefault: false,
+      callback: (event) => {
+        const { activeElement } = this.hot.rootDocument;
+        const index = this.#ui.focusableElements.indexOf(activeElement);
+
+        if (event.shiftKey) {
+          const reversedIndex = this.#ui.focusableElements.length - 1 - index;
+          const previousElement = this.#ui.focusableElements
+            .toReversed()
+            .find((element, elementIndex) => elementIndex > reversedIndex && !element.disabled);
+
+          if (!previousElement) {
+            const mostBottomEndCoords = getMostBottomEndPosition(this.hot);
+
+            if (mostBottomEndCoords) {
+              this.hot.getShortcutManager().setActiveContextName('grid');
+              this.hot.selectCell(mostBottomEndCoords.row, mostBottomEndCoords.col);
+            }
+
+            event.preventDefault();
+
+            return;
+          }
+
+          previousElement.focus();
+        } else {
+          const nextElement = this.#ui.focusableElements
+            .find((element, elementIndex) => elementIndex > index && !element.disabled);
+
+          if (!nextElement) {
+            this.hot.unlisten();
+
+            return;
+          }
+
+          nextElement.focus();
+        }
+
+        event.preventDefault();
+      },
+      group: SHORTCUTS_GROUP,
+    });
+  }
+
+  /**
+   * Unregister shortcuts responsible for navigating through the pagination.
+   *
+   * @private
+   */
+  unregisterShortcuts() {
+    const shortcutManager = this.hot.getShortcutManager();
+    const pluginContext = shortcutManager.getContext(SHORTCUTS_CONTEXT_NAME);
+
+    pluginContext.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   /**
@@ -865,6 +951,56 @@ export class Pagination extends BasePlugin {
   #onIndexCacheUpdate = () => {
     if (!this.#internalExecutionCall && this.hot?.view) {
       this.#computeAndApplyState();
+    }
+  }
+
+  /**
+   * Called when the focus is modified on the table. It sets the active context for the shortcuts.
+   *
+   * @param {'from_above' | 'from_below'} from The direction from which the focus was modified.
+   * @returns {boolean} Returns `false` to prevent the default focus behavior.
+   */
+  #onFocusTabNavigation(from) {
+    if (from === 'from_below') {
+      this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
+
+      const lastNonDisabledElement = this.#ui.focusableElements.toReversed().find(element => !element.disabled);
+
+      if (lastNonDisabledElement) {
+        lastNonDisabledElement.focus();
+      }
+
+      return false;
+    }
+  }
+
+  /**
+   * Called when the focus is modified on the table. It sets the active context for the shortcuts.
+   *
+   * @param {'to_above' | 'to_below'} to The direction to which the focus was modified.
+   * @returns {boolean} Returns `false` to prevent the default focus behavior.
+   */
+  #onUnfocusTabNavigation(to) {
+    if (to === 'to_below') {
+      this.hot.deselectCell();
+      this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
+
+      const firstNonDisabledElement = this.#ui.focusableElements.find(element => !element.disabled);
+
+      if (firstNonDisabledElement) {
+        firstNonDisabledElement.focus();
+      }
+
+      return false;
+    }
+  }
+
+  /**
+   * Called after the selection is made. It sets the active context for the shortcuts.
+   */
+  #onAfterSelection() {
+    if (this.hot.getShortcutManager().getActiveContextName() === SHORTCUTS_CONTEXT_NAME) {
+      this.hot.getShortcutManager().setActiveContextName('grid');
     }
   }
 

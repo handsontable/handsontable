@@ -12,6 +12,8 @@ Hooks.getSingleton().register('beforeDialogShow');
 Hooks.getSingleton().register('afterDialogShow');
 Hooks.getSingleton().register('beforeDialogHide');
 Hooks.getSingleton().register('afterDialogHide');
+Hooks.getSingleton().register('dialogFocusPreviousElement');
+Hooks.getSingleton().register('dialogFocusNextElement');
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
@@ -213,11 +215,14 @@ export class Dialog extends BasePlugin {
 
     if (!this.#ui) {
       this.#ui = new DialogUI({
-        rootElement: this.hot.rootWrapperElement,
+        rootElement: this.hot.rootElement,
       });
     }
 
     this.registerShortcuts();
+
+    this.addHook('modifyFocusOnTabNavigation', () => this.#onFocusTabNavigation(), 1);
+    this.#ui.addLocalHook('clickDialogElement', () => this.#onDialogClick());
 
     super.enablePlugin();
   }
@@ -243,16 +248,7 @@ export class Dialog extends BasePlugin {
   }
 
   /**
-   * Check if the dialog is currently visible.
-   *
-   * @returns {boolean} True if the dialog is visible, false otherwise.
-   */
-  isVisible() {
-    return this.#isVisible;
-  }
-
-  /**
-   * Register shortcuts responsible for toggling a merge.
+   * Register shortcuts responsible for closing the dialog and navigating through the dialog.
    *
    * @private
    */
@@ -269,10 +265,31 @@ export class Dialog extends BasePlugin {
       runOnlyIf: () => this.#isVisible && this.getSetting('closable'),
       group: SHORTCUTS_GROUP,
     });
+
+    pluginContext.addShortcut({
+      keys: [['Shift', 'Tab'], ['Tab']],
+      preventDefault: false,
+      callback: (event) => {
+        const { activeElement } = this.hot.rootDocument;
+
+        if (!this.#ui.isInsideDialog(activeElement)) {
+          this.hot.unlisten();
+
+          return;
+        }
+
+        if (event.shiftKey) {
+          this.hot.runHooks('dialogFocusPreviousElement');
+        } else {
+          this.hot.runHooks('dialogFocusNextElement');
+        }
+      },
+      group: SHORTCUTS_GROUP,
+    });
   }
 
   /**
-   * Unregister shortcuts responsible for toggling a merge.
+   * Unregister shortcuts responsible for closing the dialog and navigating through the dialog.
    *
    * @private
    */
@@ -281,6 +298,15 @@ export class Dialog extends BasePlugin {
     const pluginContext = shortcutManager.getContext(SHORTCUTS_CONTEXT_NAME);
 
     pluginContext.removeShortcutsByGroup(SHORTCUTS_GROUP);
+  }
+
+  /**
+   * Check if the dialog is currently visible.
+   *
+   * @returns {boolean} True if the dialog is visible, false otherwise.
+   */
+  isVisible() {
+    return this.#isVisible;
   }
 
   /**
@@ -303,6 +329,7 @@ export class Dialog extends BasePlugin {
 
     this.hot.runHooks('beforeDialogShow');
 
+    this.hot.listen();
     this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
     this.update(options);
     this.#ui.showDialog(this.getSetting('animation'));
@@ -357,6 +384,29 @@ export class Dialog extends BasePlugin {
       contentDirections: this.getSetting('contentDirections'),
       animation: this.getSetting('animation'),
     });
+  }
+
+  /**
+   * Handle focus tab navigation event.
+   *
+   * @returns {boolean} Returns `false` to prevent the default focus behavior.
+   */
+  #onFocusTabNavigation() {
+    if (this.isVisible()) {
+      this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
+
+      return false;
+    }
+  }
+
+  /**
+   * Handle dialog click event.
+   *
+   */
+  #onDialogClick() {
+    if (this.isVisible() && !this.hot.isListening()) {
+      this.hot.listen();
+    }
   }
 
   /**

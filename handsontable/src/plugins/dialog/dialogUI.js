@@ -1,4 +1,6 @@
 import { html } from '../../helpers/templateLiteralTag';
+import { mixin } from '../../helpers/object';
+import localHooks from '../../mixins/localHooks';
 import {
   addClass,
   removeClass,
@@ -12,8 +14,6 @@ const DIALOG_CLASS_NAME = 'ht-dialog';
 
 const TEMPLATE = `
 <div data-ref="dialogElement" class="${DIALOG_CLASS_NAME}">
-  <input type="text" name="dialog-input-focus-catcher" data-ref="inputFocusCatcher" 
-    class="${DIALOG_CLASS_NAME}__input-focus-catcher"/>
   <div data-ref="contentWrapperElement" class="${DIALOG_CLASS_NAME}__content-wrapper">
     <div data-ref="contentElement" class="${DIALOG_CLASS_NAME}__content"></div>
   </div>
@@ -61,21 +61,26 @@ export class DialogUI {
 
     this.#refs = elements.refs;
 
+    this.#refs.dialogElement.addEventListener('click', () => this.runLocalHooks('clickDialogElement'));
+
     // Set ARIA attributes
     setAttribute(this.#refs.dialogElement, [
       A11Y_DIALOG(),
       A11Y_MODAL(),
     ]);
 
-    // Append to Handsontable root wrapper
-    this.#rootElement.appendChild(elements.fragment);
+    // Append to Handsontable after table root element
+    this.#rootElement.after(elements.fragment);
   }
 
   /**
-   * Focuses the input element.
+   * Checks if the given element is inside the dialog.
+   *
+   * @param {HTMLElement} element - The element to check.
+   * @returns {boolean} Returns `true` if the element is inside the dialog, `false` otherwise.
    */
-  focusInput() {
-    this.#refs.inputFocusCatcher.focus();
+  isInsideDialog(element) {
+    return this.#refs.dialogElement.contains(element);
   }
 
   /**
@@ -154,7 +159,6 @@ export class DialogUI {
     }
 
     addClass(this.#refs.dialogElement, `${DIALOG_CLASS_NAME}--show`);
-    this.focusInput();
 
     return this;
   }
@@ -189,3 +193,5 @@ export class DialogUI {
     this.#refs = null;
   }
 }
+
+mixin(DialogUI, localHooks);

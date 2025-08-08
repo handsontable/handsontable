@@ -41,17 +41,6 @@
       opacity: 1;
     }
 
-    &__input-focus-catcher {
-      position: absolute;
-      order: 0;
-      width: 0;
-      height: 0;
-      margin: 0;
-      opacity: 0;
-      padding: 0;
-      z-index: -1;
-    }
-
     &__content-wrapper {
       display: flex;
       align-items: center;

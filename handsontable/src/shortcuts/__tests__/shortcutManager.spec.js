@@ -723,53 +723,5 @@ describe('shortcutManager', () => {
 
       expect(gridContext.scope).toBe('global');
     });
-
-    it('should handle shortcuts with `table` scope only when Handsontable is listening', async() => {
-      handsontable();
-
-      const shortcutManager = getShortcutManager();
-      const callback = jasmine.createSpy();
-      const gridContext = shortcutManager.addContext('test');
-
-      gridContext.addShortcut({
-        keys: [['enter']],
-        callback,
-        group: 'spy',
-      });
-
-      shortcutManager.setActiveContextName('test');
-
-      // When Handsontable is listening, table-scoped shortcuts should work
-      await keyDownUp('enter');
-
-      expect(callback).toHaveBeenCalledTimes(0);
-
-      await listen();
-
-      await keyDownUp('enter');
-
-      expect(callback).toHaveBeenCalledTimes(1);
-    });
-
-    it('should handle shortcuts with `global` scope when Handsontable is not listening', async() => {
-      handsontable();
-
-      const shortcutManager = getShortcutManager();
-      const callback = jasmine.createSpy();
-      const gridContext = shortcutManager.addContext('test', 'global');
-
-      gridContext.addShortcut({
-        keys: [['enter']],
-        callback,
-        group: 'spy',
-      });
-
-      shortcutManager.setActiveContextName('test');
-
-      // When Handsontable is listening, global shortcuts should work
-      await keyDownUp('enter');
-
-      expect(callback).toHaveBeenCalledTimes(1);
-    });
   });
 });
