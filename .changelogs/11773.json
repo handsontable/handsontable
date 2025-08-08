@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Implemented the `key`/`value` feature for the Autocomplete and Dropdown editors and the new `valueGetter` and `valueSetter` options.",
+  "type": "added",
+  "issueOrPR": 11773,
+  "breaking": false,
+  "framework": "none"
+}

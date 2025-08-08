@@ -239,6 +239,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
     /^[0-9]$/,
     'autocomplete', 'date', 'numeric', 'time', 'custom.validator'
   ),
+  valueGetter: (value: any) => value,
+  valueSetter: (value: any, row: number, column: number) => `${value} at row ${row}, column ${column}`,
   viewportColumnRenderingOffset: oneOf(100, 'auto'),
   viewportRowRenderingOffset: oneOf(100, 'auto'),
   viewportColumnRenderingThreshold: oneOf(100, 'auto'),

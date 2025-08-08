@@ -239,8 +239,10 @@ export class BaseEditor {
       // Set the editor value only in the full edit mode. In other mode the focusable element has to be empty,
       // otherwise IME (editor for Asia users) doesn't work.
       if (this.isInFullEditMode()) {
+        const originalValue =
+          this.cellProperties.valueGetter ? this.cellProperties.valueGetter(this.originalValue) : this.originalValue;
         const stringifiedInitialValue = typeof newInitialValue === 'string' ?
-          newInitialValue : stringify(this.originalValue);
+          newInitialValue : stringify(originalValue);
 
         this.setValue(stringifiedInitialValue);
       }

@@ -4337,8 +4337,12 @@ export default () => {
      *
      * You can set the `source` option to one of the following:
      *
-     * - An array
+     * - An array of string values
+     * - An array of objects with `key` and `value` properties
      * - A function
+     *
+     * Note: When defining the `source` option as an array of objects with `key` and `value` properties, the data format for that cell
+     * needs to be an object with `key` and `value` properties as well.
      *
      * Read more:
      * - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)
@@ -4355,12 +4359,26 @@ export default () => {
      *
      * @example
      * ```js
-     * // set `source` to an array
+     * // set `source` to an array of string values
      * columns: [{
      *   // set the `type` of each cell in this column to `autocomplete`
      *   type: 'autocomplete',
      *   // set options available in every `autocomplete` cell of this column
      *   source: ['A', 'B', 'C', 'D']
+     * }],
+     *
+     * // set `source` to an array of objects with `key` and `value` properties
+     * columns: [{
+     *   // set the `type` of each cell in this column to `autocomplete`
+     *   type: 'autocomplete',
+     *   // set options available in every `autocomplete` cell of this column
+     *   source: [{
+     *     key: 'A',
+     *     value: 'Label A'
+     *   }, {
+     *     key: 'B',
+     *     value: 'Label B'
+     *   }]
      * }],
      *
      * // set `source` to a function
@@ -4929,6 +4947,35 @@ export default () => {
      * ```
      */
     validator: undefined,
+
+    /**
+     * @description
+     * The `valueGetter` option configures a function that returns a value of a cell.
+     * It can be used to modify the value of a cell before it is displayed (for example, for object-based data).
+     *
+     * @memberof Options#
+     * @type {Function}
+     * @since 16.1.0
+     * @default undefined
+     * @category Core
+     */
+    valueGetter: undefined,
+
+    /**
+     * @description
+     * The `valueSetter` option configures a function that defines what value is set to a cell.
+     * It can be used to modify the value of a cell before it is set (for example, for object-based data).
+     *
+     * @memberof Options#
+     * @type {Function}
+     * @param {*} value The value to be set to a cell.
+     * @param {number} row The visual row index of the cell.
+     * @param {number} column The visual column index of the cell.
+     * @since 16.1.0
+     * @default undefined
+     * @category Core
+     */
+    valueSetter: undefined,
 
     /**
      * @description
