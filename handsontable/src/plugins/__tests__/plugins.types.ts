@@ -32,6 +32,7 @@ import {
   Search,
   TouchScroll,
   TrimRows,
+  Dialog,
   UndoRedo,
   getPlugin,
   registerAllPlugins,
@@ -72,6 +73,7 @@ registerPlugin(PersistentState);
 registerPlugin(Search);
 registerPlugin(TouchScroll);
 registerPlugin(TrimRows);
+registerPlugin(Dialog);
 registerPlugin(UndoRedo);
 registerPlugin('custom', class CustomPlugin extends BasePlugin {});
 
@@ -107,5 +109,6 @@ const persistentState: PersistentState = getPlugin('persistentState');
 const search: Search = getPlugin('search');
 const touchScroll: TouchScroll = getPlugin('touchScroll');
 const trimRows: TrimRows = getPlugin('trimRows');
+const dialog: Dialog = getPlugin('dialog');
 const undoRedo: UndoRedo = getPlugin('undoRedo');
 const custom: BasePlugin = getPlugin('custom');

@@ -12,10 +12,15 @@
   --ht-border-color: #e7e7e9;
   --ht-accent-color: #37bc6c;
   --ht-foreground-color: #353535;
+  --ht-foreground-secondary-color: #727272;
   --ht-background-color: #ffffff;
   --ht-placeholder-color: #aeaeae;
   --ht-read-only-color: #727272;
   --ht-disabled-color: #aeaeae;
+  --ht-shadow-color: rgba(35, 35, 38, 0.06);
+  --ht-shadow-x: 0;
+  --ht-shadow-y: 8px;
+  --ht-shadow-blur: 16px;
   --ht-cell-horizontal-border-color: rgba(255, 255, 255, 0);
   --ht-cell-vertical-border-color: #e7e7e9;
   --ht-wrapper-border-width: 0;
@@ -228,6 +233,13 @@
   --ht-menu-shadow-color: rgba(35, 35, 38, 0.06);
   --ht-menu-item-hover-color: rgba(55, 188, 108, 0.08);
   --ht-menu-item-active-color: rgba(55, 188, 108, 0.12);
+  --ht-dialog-semi-transparent-background-color: rgba(255, 255, 255, 0.80);
+  --ht-dialog-solid-background-color: #ffffff;
+  --ht-dialog-content-padding-horizontal: 12px;
+  --ht-dialog-content-padding-vertical: 12px;
+  --ht-dialog-content-gap: 8px;
+  --ht-dialog-content-border-radius: 16px;
+  --ht-dialog-content-background-color: #f7f7f9;
   --ht-pagination-bar-foreground-color: #353535;
   --ht-pagination-bar-background-color: #f7f7f9;
   --ht-pagination-bar-horizontal-padding: 16px;
@@ -238,10 +250,12 @@
   --ht-border-color: #222222;
   --ht-accent-color: #f1b93e;
   --ht-foreground-color: #b5b5b9;
+  --ht-foreground-secondary-color: #aeaeae;
   --ht-background-color: #070604;
   --ht-placeholder-color: #727272;
   --ht-read-only-color: #aeaeae;
   --ht-disabled-color: #727272;
+  --ht-shadow-color: rgba(0, 0, 0, 0.80);
   --ht-cell-horizontal-border-color: rgba(0, 0, 0, 0);
   --ht-cell-vertical-border-color: #222222;
   --ht-wrapper-border-color: #222222;
@@ -409,10 +423,11 @@
   --ht-menu-shadow-color: rgba(0, 0, 0, 0.80);
   --ht-menu-item-hover-color: rgba(241, 185, 62, 0.08);
   --ht-menu-item-active-color: rgba(241, 185, 62, 0.12);
+  --ht-dialog-semi-transparent-background-color: rgba(0, 0, 0, 0.80);
+  --ht-dialog-solid-background-color: #070604;
+  --ht-dialog-content-background-color: #19191c;
   --ht-pagination-bar-foreground-color: #b5b5b9;
   --ht-pagination-bar-background-color: #19191c;
-  --ht-pagination-bar-horizontal-padding: 16px;
-  --ht-pagination-bar-vertical-padding: 8px;
 }
 
 .ht-theme-horizon,

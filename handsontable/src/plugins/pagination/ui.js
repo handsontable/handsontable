@@ -7,7 +7,7 @@ import {
   removeClass,
   setAttribute,
 } from '../../helpers/dom/element';
-import { A11Y_DISABLED, A11Y_LABEL } from '../../helpers/a11y';
+import { A11Y_DISABLED, A11Y_LABEL, A11Y_TABINDEX } from '../../helpers/a11y';
 
 const TEMPLATE = `
 <div data-ref="container" class="ht-pagination-container handsontable">
@@ -88,6 +88,12 @@ export class PaginationUI {
    * @type {function(string): void}
    */
   #a11yAnnouncer;
+  /**
+   * The focusable elements.
+   *
+   * @type {number | null}
+   */
+  focusableElements = null;
 
   constructor({
     rootElement,
@@ -126,6 +132,14 @@ export class PaginationUI {
       last,
       pageSizeSelect,
     } = elements.refs;
+
+    this.focusableElements = [
+      pageSizeSelect,
+      first,
+      prev,
+      next,
+      last,
+    ];
 
     this.#refs = elements.refs;
 
@@ -289,6 +303,7 @@ export class PaginationUI {
     ]);
     setAttribute(pageSizeSelect, [
       ...[A11Y_LABEL(this.#phraseTranslator(C.PAGINATION_PAGE_SIZE_SECTION))],
+      ...([A11Y_TABINDEX(-1)]),
     ]);
 
     this.#a11yAnnouncer(navLabelText);
@@ -349,18 +364,22 @@ export class PaginationUI {
     setAttribute(first, [
       ...[A11Y_LABEL(this.#phraseTranslator(C.PAGINATION_FIRST_PAGE))],
       ...([A11Y_DISABLED(isFirstPage)]),
+      ...([A11Y_TABINDEX(-1)]),
     ]);
     setAttribute(prev, [
       ...[A11Y_LABEL(this.#phraseTranslator(C.PAGINATION_PREV_PAGE))],
       ...([A11Y_DISABLED(isFirstPage)]),
+      ...([A11Y_TABINDEX(-1)]),
     ]);
     setAttribute(next, [
       ...[A11Y_LABEL(this.#phraseTranslator(C.PAGINATION_NEXT_PAGE))],
       ...([A11Y_DISABLED(isLastPage)]),
+      ...([A11Y_TABINDEX(-1)]),
     ]);
     setAttribute(last, [
       ...[A11Y_LABEL(this.#phraseTranslator(C.PAGINATION_LAST_PAGE))],
       ...([A11Y_DISABLED(isLastPage)]),
+      ...([A11Y_TABINDEX(-1)]),
     ]);
 
     return this;
