@@ -226,6 +226,8 @@ export interface GridSettings extends Events {
   uncheckedTemplate?: boolean | string | number;
   undo?: UndoRedoSettings;
   validator?: BaseValidator | RegExp | ValidatorType | string;
+  valueGetter?: (this: Core, value: CellValue) => CellValue;
+  valueSetter?: (this: Core, value: CellValue, row: number, column: number) => CellValue;
   viewportColumnRenderingOffset?: number | 'auto';
   viewportRowRenderingOffset?: number | 'auto';
   viewportColumnRenderingThreshold?: number | 'auto';
