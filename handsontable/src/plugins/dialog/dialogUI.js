@@ -186,6 +186,18 @@ export class DialogUI {
   }
 
   /**
+   * Updates the width of the dialog container to the same size as the table.
+   *
+   * @param {number} width - The width of the table.
+   * @returns {DialogUI} The instance of the DialogUI for method chaining.
+   */
+  updateWidth(width) {
+    this.#refs.dialogElement.style.width = `${width}px`;
+
+    return this;
+  }
+
+  /**
    * Removes the dialog UI elements from the DOM and clears the refs.
    */
   destroyDialog() {

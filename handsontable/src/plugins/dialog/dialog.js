@@ -223,6 +223,7 @@ export class Dialog extends BasePlugin {
 
     this.addHook('modifyFocusOnTabNavigation', () => this.#onFocusTabNavigation(), 1);
     this.#ui.addLocalHook('clickDialogElement', () => this.#onDialogClick());
+    this.addHook('afterViewRender', () => this.#onAfterRender());
 
     super.enablePlugin();
   }
@@ -407,6 +408,19 @@ export class Dialog extends BasePlugin {
     if (this.isVisible() && !this.hot.isListening()) {
       this.hot.listen();
     }
+  }
+
+  /**
+   * Called after the rendering of the table is completed. It updates the width of
+   * the dialog container to the same size as the table.
+   */
+  #onAfterRender() {
+    const { view } = this.hot;
+    const width = view.isHorizontallyScrollableByWindow()
+      ? view.getTotalTableWidth() : view.getWorkspaceWidth();
+
+    this.#ui
+      .updateWidth(width);
   }
 
   /**

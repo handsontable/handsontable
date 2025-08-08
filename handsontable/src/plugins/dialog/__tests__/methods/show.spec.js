@@ -123,4 +123,20 @@ describe('Dialog - show method', () => {
     expect(beforeDialogShowSpy).toHaveBeenCalled();
     expect(afterDialogShowSpy).toHaveBeenCalled();
   });
+
+  it('should update the width of the dialog container to the same size as the table', async() => {
+    const hot = handsontable({
+      data: [['A1', 'B1'], ['A2', 'B2']],
+      dialog: true,
+      width: 300,
+      height: 300,
+    });
+
+    const dialogPlugin = hot.getPlugin('dialog');
+
+    dialogPlugin.show();
+
+    expect(dialogPlugin.isVisible()).toBe(true);
+    expect($('.ht-dialog').outerWidth()).toBe(hot.view.getWorkspaceWidth());
+  });
 });
