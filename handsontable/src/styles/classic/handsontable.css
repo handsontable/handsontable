@@ -2071,6 +2071,7 @@ thead th.hiddenHeaderText .colHeader {
 
 .ht-root-wrapper {
   position: relative;
+  height: 100%;
 }
 
 .ht-dialog {

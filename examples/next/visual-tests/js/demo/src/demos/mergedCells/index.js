@@ -2,19 +2,19 @@ import Handsontable from 'handsontable';
 import { data } from './data';
 import { getThemeNameFromURL } from '../../utils';
 
-const root = document.getElementById('root');
-
-const container = document.createElement('div');
-root.appendChild(container);
-
-const mergedCells = [
-  { row: 1, col: 0, rowspan: 1, colspan: 2 },
-  { row: 2, col: 0, rowspan: 1, colspan: 2 },
-  { row: 5, col: 1, rowspan: 2, colspan: 2 },
-  { row: 10, col: 0, rowspan: 3, colspan: 3 },
-];
-
 export function init() {
+  const root = document.getElementById('root');
+
+  const container = document.createElement('div');
+  root.appendChild(container);
+
+  const mergedCells = [
+    { row: 1, col: 0, rowspan: 1, colspan: 2 },
+    { row: 2, col: 0, rowspan: 1, colspan: 2 },
+    { row: 5, col: 1, rowspan: 2, colspan: 2 },
+    { row: 10, col: 0, rowspan: 3, colspan: 3 },
+  ];
+
   const hot = new Handsontable(container, {
     data,
     themeName: getThemeNameFromURL(),

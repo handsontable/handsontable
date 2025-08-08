@@ -1,14 +1,14 @@
 import Handsontable from 'handsontable';
 import { getThemeNameFromURL } from '../../utils';
 
-const root = document.getElementById('root');
-
-const container = document.createElement('div');
-container.id = 'hot';
-
-root.appendChild(container);
-
 export function init() {
+  const root = document.getElementById('root');
+
+  const container = document.createElement('div');
+  container.id = 'hot';
+
+  root.appendChild(container);
+
   new Handsontable(container, {
     data: Handsontable.helper.createSpreadsheetData(150, 150),
     colHeaders: true,

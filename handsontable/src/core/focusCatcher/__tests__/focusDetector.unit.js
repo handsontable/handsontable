@@ -40,10 +40,10 @@ describe('focusDetector', () => {
     const inputTrapBottom = hot.rootWrapperElement.lastChild;
 
     expect(inputTrapTop.className).toBe('htFocusCatcher');
-    expect(inputTrapTop.name).toBe('__htFocusCatcher');
+    expect(inputTrapTop.name).toBe('htFocusCatcher');
     expect(inputTrapTop.getAttribute('aria-label')).toBe('Focus catcher');
     expect(inputTrapBottom.className).toBe('htFocusCatcher');
-    expect(inputTrapBottom.name).toBe('__htFocusCatcher');
+    expect(inputTrapBottom.name).toBe('htFocusCatcher');
     expect(inputTrapTop.getAttribute('aria-label')).toBe('Focus catcher');
   });
 

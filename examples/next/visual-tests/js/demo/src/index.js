@@ -21,6 +21,7 @@ import { init as initWebComponentDemo } from './demos/webComponent';
 import { init as initEditorsDemo } from './demos/editors';
 import { init as initTextEllipsisDemo } from './demos/textEllipsis';
 import { init as initDialogDemo } from './demos/dialog';
+import { init as initWrapperDemo } from './demos/wrapper';
 
 // Function to dynamically load CSS
 function loadCSS(href) {
@@ -265,6 +266,15 @@ router
         loadThemeCSS(),
       ]).then(() => {
         initDialogDemo();
+      });
+    },
+    '/wrapper-demo': function () {
+      removeCSS();
+
+      Promise.all([
+        loadThemeCSS(),
+      ]).then(() => {
+        initWrapperDemo();
       });
     },
   })
