@@ -72,7 +72,7 @@ jobs:
            npm i
            npm install netlify-cli -g
 
-      - name: Run the create or get Netlify Page proccess. Save the Netlify vars in a file
+      - name: Run the create or get Netlify Page process. Save the Netlify vars in a file
         run: |
           cd netlify
           node createOrGet.mjs
@@ -114,7 +114,7 @@ jobs:
         run: |
           cd netlify
           mkdir -p docs/docs
-          
+
           mv ../.vuepress/dist/docs docs
 
           ./build_previous_versions.sh
@@ -122,11 +122,11 @@ jobs:
           cp _dev_headers docs/_headers
           cp _redirects docs/_redirects
           cp docs/docs/404.html docs/404.html
-          
+
           rm -rf ../../handsontable/node_modules
           rm -rf ../../handsontable/tmp
           cp -r ../../handsontable docs/docs
-          
+
           mkdir -p docs/docs/@handsontable
           rm -rf ../../@handsontable/angular/node_modules
           rm -rf ../../@handsontable/angular-wrapper/node_modules
@@ -157,4 +157,3 @@ jobs:
           message: |
             ✅ Preview documentation is is available now
             Current staging version of documentation is available at: [${{ env.NETLIFY_SITE_URL }}/docs](${{ env.NETLIFY_SITE_URL }}/docs)
-
