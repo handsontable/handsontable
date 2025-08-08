@@ -82,7 +82,7 @@ describe('DropdownEditor key/value source', () => {
         airportKVChoices.filter(item => item.value.toLowerCase().includes('du'));
 
       expect(editor.htEditor.getCell(...editor.htEditor.getSelectedLast().slice(0, 2)).textContent)
-      .toEqual(filteredChoices[0].value);
+        .toEqual(filteredChoices[0].value);
     });
 
     it('should display the `value` property from the source object as the visible cell value', async() => {
