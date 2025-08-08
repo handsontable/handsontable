@@ -4341,7 +4341,7 @@ export default () => {
      * - An array of objects with `key` and `value` properties
      * - A function
      *
-     * Note: When defining the `source` option as an array of objects of `key` and `value` properties, the data format for that cell
+     * Note: When defining the `source` option as an array of objects with `key` and `value` properties, the data format for that cell
      * needs to be an object with `key` and `value` properties as well.
      *
      * Read more:
