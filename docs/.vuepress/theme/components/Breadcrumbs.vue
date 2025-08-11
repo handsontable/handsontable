@@ -29,6 +29,10 @@ export default {
         }
       }
 
+      if (versions.length) {
+        return `${this.$page.currentVersion}.0`;
+      }
+
       if (versions.length && versions[0].length >= 2 && versions[0][1].length) {
         return `${versions[0][1][0]}`;
       }
