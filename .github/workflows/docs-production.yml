@@ -84,3 +84,13 @@ jobs:
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_PROD_SITE_ID }}
+
+      - name: Algolia crawler creation and crawl
+        uses: algolia/algoliasearch-crawler-github-actions@v1.0.10
+        id: algolia_crawler
+        with: # mandatory parameters
+          crawler-user-id: ${{ secrets.CRAWLER_USER_ID }}
+          crawler-api-key: ca8887570d787058fe18765d1486bd80
+          algolia-app-id: ${{ secrets.ALGOLIA_APP_ID }}
+          algolia-api-key: 8466a7400a102e7bfaed2a5d7c6a8f73
+          site-url: 'https://handsontable.com'

@@ -26,6 +26,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
+      - name: Algolia crawler creation and crawl
+        uses: algolia/algoliasearch-crawler-github-actions@v1.0.10
+        id: algolia_crawler
+        with: # mandatory parameters
+          crawler-user-id: ${{ secrets.CRAWLER_USER_ID }}
+          crawler-api-key: ca8887570d787058fe18765d1486bd80
+          algolia-app-id: ${{ secrets.ALGOLIA_APP_ID }}
+          algolia-api-key: 8466a7400a102e7bfaed2a5d7c6a8f73
+          site-url: 'https://handsontable.com'
+
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
       - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
