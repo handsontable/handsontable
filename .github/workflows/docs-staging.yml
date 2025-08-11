@@ -31,10 +31,10 @@ jobs:
         uses: algolia/algoliasearch-crawler-github-actions@v1.0.10
         id: algolia_crawler
         with: # mandatory parameters
-          crawler-user-id: ${{ secrets.CRAWLER_USER_ID }}
-          crawler-api-key: ca8887570d787058fe18765d1486bd80
-          algolia-app-id: ${{ secrets.ALGOLIA_APP_ID }}
-          algolia-api-key: 8466a7400a102e7bfaed2a5d7c6a8f73
+          crawler-user-id: 61f462d3-fa0d-465f-8fc1-e39231615539
+          crawler-api-key: ${{ secrets.CRAWLER_API_KEY }}
+          algolia-app-id: MMN6OTJMGX
+          algolia-api-key: ${{ secrets.ALGOLIA_API_KEY }}
           site-url: 'https://handsontable.com'
 
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
