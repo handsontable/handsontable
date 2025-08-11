@@ -27,6 +27,10 @@ jobs:
 
     steps:
 
+      
+
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
+
       - name: Algolia crawler creation and crawl
         env: 
           crawler-name: Github Crawler 
@@ -41,8 +45,6 @@ jobs:
             --password='${{ env.crawler-api-key}}'  \
             'https://crawler.algolia.com/api/1/crawlers/${{ env.crawler-id }}/reindex'
 
-
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
       - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
         name: Install pnpm
