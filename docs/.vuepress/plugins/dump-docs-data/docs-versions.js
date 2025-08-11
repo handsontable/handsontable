@@ -12,10 +12,6 @@ const { logger } = require('@vuepress/shared-utils');
  * Min docs version that is used for creating canonicals.
  */
 const MIN_DOCS_VERSION = '9.0';
-/**
- * Max number of minors displayed in the drop-down.
- */
-const MAX_MINORS_COUNT = 6;
 
 /**
  * Reads the list of Docs versions from the latest Docs image.
@@ -73,7 +69,7 @@ async function readFromGitHub() {
   const tags = Array.from(tagsSet);
   const versions = tags.slice(0, tags.indexOf(MIN_DOCS_VERSION) + 1);
   // Converting the map, as it's later changed to JSON.
-  const versionsWithPatches = Array.from(minorsToPatches).slice(0, MAX_MINORS_COUNT);
+  const versionsWithPatches = Array.from(minorsToPatches);
 
   logger.info(`Fetched the following Docs versions: ${versions.join(', ')}`);
   logger.info(`GitHub API rate limits:
