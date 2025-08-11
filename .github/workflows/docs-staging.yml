@@ -30,7 +30,8 @@ jobs:
       - name: Algolia crawler creation and crawl
         uses: algolia/algoliasearch-crawler-github-actions@v1.0.10
         id: algolia_crawler
-        with: # mandatory parameters
+        with: 
+          crawler-name: Github Crawler 
           crawler-user-id: 61f462d3-fa0d-465f-8fc1-e39231615539
           crawler-api-key: ${{ secrets.CRAWLER_API_KEY }}
           algolia-app-id: MMN6OTJMGX
