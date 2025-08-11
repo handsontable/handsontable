@@ -26,25 +26,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-
-      
-
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
-
-      - name: Algolia crawler creation and crawl
-        env: 
-          crawler-name: Github Crawler 
-          crawler-id: 8062e3d3-ea11-422a-a31a-3b8003bef6f6
-          crawler-user-id: 61f462d3-fa0d-465f-8fc1-e39231615539
-          crawler-api-key: ${{ secrets.CRAWLER_API_KEY }}
-          site-url: 'https://handsontable.com'
-        run: |
-          wget --method POST \
-            --auth-no-challenge \
-            --user='${{ env.crawler-user-id }}' \
-            --password='${{ env.crawler-api-key}}'  \
-            'https://crawler.algolia.com/api/1/crawlers/${{ env.crawler-id }}/reindex'
-
 
       - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
         name: Install pnpm

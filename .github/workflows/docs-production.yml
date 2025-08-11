@@ -85,12 +85,16 @@ jobs:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_PROD_SITE_ID }}
 
-      - name: Algolia crawler creation and crawl
-        uses: algolia/algoliasearch-crawler-github-actions@v1.0.10
-        id: algolia_crawler
-        with: # mandatory parameters
-          crawler-user-id: ${{ secrets.CRAWLER_USER_ID }}
-          crawler-api-key: ca8887570d787058fe18765d1486bd80
-          algolia-app-id: ${{ secrets.ALGOLIA_APP_ID }}
-          algolia-api-key: 8466a7400a102e7bfaed2a5d7c6a8f73
+      - name: Algolia crawler start
+        env: 
+          crawler-name: Github Crawler 
+          crawler-id: 8062e3d3-ea11-422a-a31a-3b8003bef6f6
+          crawler-user-id: 61f462d3-fa0d-465f-8fc1-e39231615539
+          crawler-api-key: ${{ secrets.CRAWLER_API_KEY }}
           site-url: 'https://handsontable.com'
+        run: |
+          wget --method POST \
+            --auth-no-challenge \
+            --user='${{ env.crawler-user-id }}' \
+            --password='${{ env.crawler-api-key}}'  \
+            'https://crawler.algolia.com/api/1/crawlers/${{ env.crawler-id }}/reindex'
