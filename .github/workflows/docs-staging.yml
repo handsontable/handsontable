@@ -37,7 +37,7 @@ jobs:
           site-url: 'https://handsontable.com'
         with:
           curl: |
-            curl --location --request POST 'https://crawler.algolia.com/api/1/crawlers/${{ env.crawler-id }}/reindex' -u "${{ env.crawler-user-id }}:${{ env.crawler-api-key }}"  
+            --location --request POST 'https://crawler.algolia.com/api/1/crawlers/${{ env.crawler-id }}/reindex' -u "${{ env.crawler-user-id }}:${{ env.crawler-api-key }}"  
 
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
