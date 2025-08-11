@@ -26,8 +26,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Setup curl
-        uses: kordlib/setup-curl@v1.0.0
+
       - name: Algolia crawler creation and crawl
         env: 
           crawler-name: Github Crawler 
@@ -36,7 +35,12 @@ jobs:
           crawler-api-key: ${{ secrets.CRAWLER_API_KEY }}
           site-url: 'https://handsontable.com'
         run: |
-          curl --location --request POST 'https://crawler.algolia.com/api/1/crawlers/${{ env.crawler-id }}/reindex' -u "${{ env.crawler-user-id }}:${{ env.crawler-api-key}}"  
+          wget --method POST \
+            --auth-no-challenge \
+            --user='${{ env.crawler-user-id }}' \
+            --password='${{ env.crawler-api-key}}'  \
+            'https://crawler.algolia.com/api/1/crawlers/${{ env.crawler-id }}/reindex'
+
 
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
 
