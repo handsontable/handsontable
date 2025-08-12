@@ -19,11 +19,6 @@ export class ExtendMetaPropertiesMod {
         initOnly: true,
       },
     ],
-    [
-      'initialState', {
-        initOnly: true,
-      },
-    ],
     ['fixedColumnsLeft', {
       target: 'fixedColumnsStart',
       onChange(propName) {
