@@ -117,24 +117,3 @@ export function assert(condition, errorMessage) {
 export function isNullish(variable) {
   return variable === null || variable === undefined;
 }
-
-/**
- * Proxy getter for the meta object that handles `initialState` logic.
- *
- * @param {object} target The target object.
- * @param {string} prop The property to get.
- * @param {object} receiver The receiver object.
- * @param {boolean} initialStateMode Whether to enable initial state mode.
- * @returns {any} The value of the property.
- */
-export function proxyGetter(target, prop, receiver, initialStateMode) {
-  if (prop === 'constructor' || prop === '__proto__' || prop === 'hasOwnProperty') {
-    return Reflect.get(target, prop, receiver);
-  }
-
-  if (initialStateMode && target?.initialState?.[prop] !== undefined) {
-    return target.initialState[prop];
-  }
-
-  return Reflect.get(target, prop, receiver);
-}
