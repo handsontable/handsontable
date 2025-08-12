@@ -14,6 +14,7 @@ Hooks.getSingleton().register('beforeDialogHide');
 Hooks.getSingleton().register('afterDialogHide');
 Hooks.getSingleton().register('dialogFocusPreviousElement');
 Hooks.getSingleton().register('dialogFocusNextElement');
+Hooks.getSingleton().register('afterDialogFocus');
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
@@ -217,12 +218,13 @@ export class Dialog extends BasePlugin {
       this.#ui = new DialogUI({
         rootElement: this.hot.rootElement,
       });
+
+      this.#ui.addLocalHook('clickDialogElement', () => this.#onDialogClick());
     }
 
     this.registerShortcuts();
 
-    this.addHook('modifyFocusOnTabNavigation', () => this.#onFocusTabNavigation(), 1);
-    this.#ui.addLocalHook('clickDialogElement', () => this.#onDialogClick());
+    this.addHook('modifyFocusOnTabNavigation', from => this.#onFocusTabNavigation(from), 1);
     this.addHook('afterViewRender', () => this.#onAfterRender());
 
     super.enablePlugin();
@@ -271,19 +273,22 @@ export class Dialog extends BasePlugin {
       keys: [['Shift', 'Tab'], ['Tab']],
       preventDefault: false,
       callback: (event) => {
-        const { activeElement } = this.hot.rootDocument;
+        this.hot._registerTimeout(() => {
+          const { activeElement } = this.hot.rootDocument;
 
-        if (!this.#ui.isInsideDialog(activeElement)) {
-          this.hot.unlisten();
+          if (!this.#ui.isInsideDialog(activeElement)) {
+            this.hot.getShortcutManager().setActiveContextName('grid');
+            this.hot.unlisten();
 
-          return;
-        }
+            return;
+          }
 
-        if (event.shiftKey) {
-          this.hot.runHooks('dialogFocusPreviousElement');
-        } else {
-          this.hot.runHooks('dialogFocusNextElement');
-        }
+          if (event.shiftKey) {
+            this.hot.runHooks('dialogFocusPreviousElement');
+          } else {
+            this.hot.runHooks('dialogFocusNextElement');
+          }
+        }, 0);
       },
       group: SHORTCUTS_GROUP,
     });
@@ -337,6 +342,9 @@ export class Dialog extends BasePlugin {
     this.#isVisible = true;
 
     this.hot.runHooks('afterDialogShow');
+
+    this.#ui.focusDialog();
+    this.hot.runHooks('afterDialogFocus', 'show');
   }
 
   /**
@@ -390,11 +398,15 @@ export class Dialog extends BasePlugin {
   /**
    * Handle focus tab navigation event.
    *
+   * @param {'from_above' | 'from_below'} from The direction from which the focus was modified.
    * @returns {boolean} Returns `false` to prevent the default focus behavior.
    */
-  #onFocusTabNavigation() {
+  #onFocusTabNavigation(from) {
     if (this.isVisible()) {
       this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
+
+      this.#ui.focusDialog();
+      this.hot.runHooks('afterDialogFocus', `tab_${from}`);
 
       return false;
     }
@@ -407,6 +419,8 @@ export class Dialog extends BasePlugin {
   #onDialogClick() {
     if (this.isVisible() && !this.hot.isListening()) {
       this.hot.listen();
+      this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
+      this.hot.runHooks('afterDialogFocus', 'click');
     }
   }
 

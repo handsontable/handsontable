@@ -256,7 +256,7 @@ export interface Events {
   modifyFocusedElement?: (row: number, column: number, focusedElement: HTMLElement) => void | HTMLElement;
   modifyData?: (row: number, column: number, valueHolder: { value: CellValue }, ioMode: 'get' | 'set') => void;
   modifyFocusOnTabNavigation?: (tabActivationDir: 'from_above' | 'from_below', visualCoords: CellCoords) => void;
-  modifyUnfocusOnTabNavigation?: (tabActivationDir: 'to_above' | 'to_below') => void;
+  tableFocusExit?: (exitDirection: 'top' | 'bottom') => void;
   modifyGetCellCoords?: (row: number, column: number, topmost: boolean, source: string | undefined) => void | [number, number] | [number, number, number, number];
   modifyGetCoordsElement?: (row: number, column: number) => void | [number, number];
   modifyRowData?: (row: number) => void;

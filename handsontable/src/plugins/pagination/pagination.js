@@ -7,7 +7,8 @@ import { announce } from '../../utils/a11yAnnouncer';
 import { createPaginatorStrategy } from './strategies';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
-import { getMostBottomEndPosition } from '../../core/focusCatcher/utils';
+import { getMostBottomEndPosition } from '../../helpers/mixed';
+import { createPaginationController } from './paginationController';
 
 export const PLUGIN_KEY = 'pagination';
 export const PLUGIN_PRIORITY = 900;
@@ -159,6 +160,12 @@ export class Pagination extends BasePlugin {
    * @type {boolean}
    */
   #internalRenderCall = false;
+  /**
+   * Pagination focus controller instance.
+   *
+   * @type {PaginationController}
+   */
+  #focusController = null;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -212,13 +219,12 @@ export class Pagination extends BasePlugin {
         a11yAnnouncer: message => announce(message),
       });
 
-      this.#ui.focusableElements.forEach((element) => {
-        element.addEventListener('click', () => {
-          if (!this.hot.isListening()) {
-            this.hot.listen();
-            this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
-          }
-        });
+      this.#focusController = createPaginationController(this.#ui.getFocusableElements(), this.hot.rootDocument);
+      this.#focusController.onElementClick(() => {
+        if (!this.hot.isListening()) {
+          this.hot.listen();
+          this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
+        }
       });
 
       this.#updateSectionsVisibilityState();
@@ -248,7 +254,7 @@ export class Pagination extends BasePlugin {
     this.addHook('beforeHeightChange', (...args) => this.#onBeforeHeightChange(...args));
     this.addHook('afterSetTheme', (...args) => this.#onAfterSetTheme(...args));
     this.addHook('modifyFocusOnTabNavigation', from => this.#onFocusTabNavigation(from), 2);
-    this.addHook('modifyUnfocusOnTabNavigation', to => this.#onUnfocusTabNavigation(to));
+    this.addHook('tableFocusExit', exitDirection => this.#onTableFocusExit(exitDirection));
     this.addHook('afterSelection', () => this.#onAfterSelection());
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onIndexCacheUpdate);
 
@@ -296,16 +302,10 @@ export class Pagination extends BasePlugin {
       keys: [['Shift', 'Tab'], ['Tab']],
       preventDefault: false,
       callback: (event) => {
-        const { activeElement } = this.hot.rootDocument;
-        const index = this.#ui.focusableElements.indexOf(activeElement);
-
         if (event.shiftKey) {
-          const reversedIndex = this.#ui.focusableElements.length - 1 - index;
-          const previousElement = this.#ui.focusableElements
-            .toReversed()
-            .find((element, elementIndex) => elementIndex > reversedIndex && !element.disabled);
+          const isPreviousElementFocused = this.#focusController.focusPreviousElement();
 
-          if (!previousElement) {
+          if (!isPreviousElementFocused) {
             const mostBottomEndCoords = getMostBottomEndPosition(this.hot);
 
             if (mostBottomEndCoords) {
@@ -314,22 +314,15 @@ export class Pagination extends BasePlugin {
             }
 
             event.preventDefault();
-
-            return;
           }
-
-          previousElement.focus();
         } else {
-          const nextElement = this.#ui.focusableElements
-            .find((element, elementIndex) => elementIndex > index && !element.disabled);
+          const isNextElementFocused = this.#focusController.focusNextElement();
 
-          if (!nextElement) {
+          if (!isNextElementFocused) {
             this.hot.unlisten();
 
             return;
           }
-
-          nextElement.focus();
         }
 
         event.preventDefault();
@@ -964,11 +957,7 @@ export class Pagination extends BasePlugin {
     if (from === 'from_below') {
       this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
 
-      const lastNonDisabledElement = this.#ui.focusableElements.toReversed().find(element => !element.disabled);
-
-      if (lastNonDisabledElement) {
-        lastNonDisabledElement.focus();
-      }
+      this.#focusController.focusLastElement();
 
       return false;
     }
@@ -977,19 +966,15 @@ export class Pagination extends BasePlugin {
   /**
    * Called when the focus is modified on the table. It sets the active context for the shortcuts.
    *
-   * @param {'to_above' | 'to_below'} to The direction to which the focus was modified.
+   * @param {'top' | 'bottom'} exitDirection The direction to which the focus was modified.
    * @returns {boolean} Returns `false` to prevent the default focus behavior.
    */
-  #onUnfocusTabNavigation(to) {
-    if (to === 'to_below') {
+  #onTableFocusExit(exitDirection) {
+    if (exitDirection === 'bottom') {
       this.hot.deselectCell();
       this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
 
-      const firstNonDisabledElement = this.#ui.focusableElements.find(element => !element.disabled);
-
-      if (firstNonDisabledElement) {
-        firstNonDisabledElement.focus();
-      }
+      this.#focusController.focusFirstElement();
 
       return false;
     }

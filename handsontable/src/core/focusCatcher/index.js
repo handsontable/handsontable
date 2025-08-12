@@ -3,8 +3,8 @@ import { installFocusDetector } from './focusDetector';
 import {
   normalizeCoordsIfNeeded,
   getMostTopStartPosition,
-  getMostBottomEndPosition,
 } from './utils';
+import { getMostBottomEndPosition } from '../../helpers/mixed';
 
 /**
  * Installs a focus catcher module. The module observes when the table is focused and depending on
@@ -127,7 +127,7 @@ export function installFocusCatcher(hot) {
                 ? getMostTopStartPosition(hot) : getMostBottomEndPosition(hot);
             }
 
-            const result = hot.runHooks('modifyUnfocusOnTabNavigation', event.shiftKey ? 'to_above' : 'to_below');
+            const result = hot.runHooks('tableFocusExit', event.shiftKey ? 'top' : 'bottom');
 
             deactivateTable();
 

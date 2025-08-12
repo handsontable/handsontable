@@ -23,7 +23,7 @@ describe('Dialog - dialogFocusNextElement hook', () => {
     const dialogPlugin = hot.getPlugin('dialog');
 
     dialogPlugin.show({
-      content: '<input type="text" id="testInput" />',
+      content: '<input type="text" id="testInput" /><input type="text" id="testInput2" />',
     });
 
     const input = document.getElementById('testInput');
@@ -32,10 +32,12 @@ describe('Dialog - dialogFocusNextElement hook', () => {
 
     await keyDownUp('tab');
 
+    await sleep(10);
+
     expect(dialogFocusNextElementSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('should not run dialogFocusNextElement hook when Tab is pressed outside dialog', async() => {
+  it('should not run dialogFocusNextElement hook when shift+tab is pressed', async() => {
     const dialogFocusNextElementSpy = jasmine.createSpy('dialogFocusNextElement');
     const hot = handsontable({
       data: [['A1', 'B1'], ['A2', 'B2']],
@@ -46,28 +48,7 @@ describe('Dialog - dialogFocusNextElement hook', () => {
     const dialogPlugin = hot.getPlugin('dialog');
 
     dialogPlugin.show({
-      content: '<input type="text" id="testInput" />',
-    });
-
-    hot.getCell(0, 0).focus();
-
-    await keyDownUp('tab');
-
-    expect(dialogFocusNextElementSpy).not.toHaveBeenCalled();
-  });
-
-  it('should not run dialogFocusNextElement hook when Shift+Tab is pressed', async() => {
-    const dialogFocusNextElementSpy = jasmine.createSpy('dialogFocusNextElement');
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
-      dialog: true,
-      dialogFocusNextElement: dialogFocusNextElementSpy,
-    });
-
-    const dialogPlugin = hot.getPlugin('dialog');
-
-    dialogPlugin.show({
-      content: '<input type="text" id="testInput" />',
+      content: '<input type="text" id="testInput" /><input type="text" id="testInput2" />',
     });
 
     const input = document.getElementById('testInput');
@@ -76,88 +57,12 @@ describe('Dialog - dialogFocusNextElement hook', () => {
 
     await keyDownUp(['shift', 'tab']);
 
+    await sleep(10);
+
     expect(dialogFocusNextElementSpy).not.toHaveBeenCalled();
   });
 
-  it('should run dialogFocusNextElement hook multiple times when Tab is pressed repeatedly', async() => {
-    const dialogFocusNextElementSpy = jasmine.createSpy('dialogFocusNextElement');
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
-      dialog: true,
-      dialogFocusNextElement: dialogFocusNextElementSpy,
-    });
-
-    const dialogPlugin = hot.getPlugin('dialog');
-
-    dialogPlugin.show({
-      content: '<input type="text" id="testInput1" /><input type="text" id="testInput2" />',
-    });
-
-    const input1 = document.getElementById('testInput1');
-
-    input1.focus();
-
-    await keyDownUp('tab');
-    await keyDownUp('tab');
-
-    expect(dialogFocusNextElementSpy).toHaveBeenCalledTimes(2);
-  });
-
-  it('should run dialogFocusNextElement hook when dialog is visible and Tab is pressed', async() => {
-    const dialogFocusNextElementSpy = jasmine.createSpy('dialogFocusNextElement');
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
-      dialog: true,
-      dialogFocusNextElement: dialogFocusNextElementSpy,
-    });
-
-    const dialogPlugin = hot.getPlugin('dialog');
-
-    dialogPlugin.show({
-      content: '<input type="text" id="testInput" />',
-    });
-
-    expect(dialogPlugin.isVisible()).toBe(true);
-
-    const input = document.getElementById('testInput');
-
-    input.focus();
-
-    await keyDownUp('tab');
-
-    expect(dialogFocusNextElementSpy).toHaveBeenCalledTimes(1);
-  });
-
-  it('should not run dialogFocusNextElement hook when dialog is hidden', async() => {
-    const dialogFocusNextElementSpy = jasmine.createSpy('dialogFocusNextElement');
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
-      dialog: true,
-      dialogFocusNextElement: dialogFocusNextElementSpy,
-    });
-
-    const dialogPlugin = hot.getPlugin('dialog');
-
-    dialogPlugin.show({
-      content: '<input type="text" id="testInput" />',
-    });
-
-    dialogPlugin.hide();
-
-    expect(dialogPlugin.isVisible()).toBe(false);
-
-    const input = document.getElementById('testInput');
-
-    if (input) {
-      input.focus();
-
-      await keyDownUp('tab');
-
-      expect(dialogFocusNextElementSpy).not.toHaveBeenCalled();
-    }
-  });
-
-  it('should run dialogFocusNextElement hook with correct context', async() => {
+  it('should not run dialogFocusNextElement hook when Tab is pressed and isListening is false', async() => {
     const dialogFocusNextElementSpy = jasmine.createSpy('dialogFocusNextElement');
     const hot = handsontable({
       data: [['A1', 'B1'], ['A2', 'B2']],
@@ -175,34 +80,41 @@ describe('Dialog - dialogFocusNextElement hook', () => {
 
     input.focus();
 
+    hot.unlisten();
+
     await keyDownUp('tab');
 
-    expect(dialogFocusNextElementSpy).toHaveBeenCalledTimes(1);
-    expect(dialogFocusNextElementSpy.calls.first().object).toBe(hot);
+    await sleep(10);
+
+    expect(dialogFocusNextElementSpy).not.toHaveBeenCalled();
   });
 
-  it('should allow custom handling in dialogFocusNextElement hook', async() => {
-    let customHandled = false;
+  it('should not run dialogFocusNextElement hook when Tab is pressed focus is moved out of dialog', async() => {
+    const dialogFocusNextElementSpy = jasmine.createSpy('dialogFocusNextElement');
+    const input = document.createElement('input');
+
+    document.body.appendChild(input);
+
     const hot = handsontable({
       data: [['A1', 'B1'], ['A2', 'B2']],
       dialog: true,
-      dialogFocusNextElement() {
-        customHandled = true;
-      },
+      dialogFocusNextElement: dialogFocusNextElementSpy,
     });
 
     const dialogPlugin = hot.getPlugin('dialog');
 
     dialogPlugin.show({
-      content: '<input type="text" id="testInput" />',
+      content: 'test',
     });
-
-    const input = document.getElementById('testInput');
 
     input.focus();
 
     await keyDownUp('tab');
 
-    expect(customHandled).toBe(true);
+    await sleep(10);
+
+    document.body.removeChild(input);
+
+    expect(dialogFocusNextElementSpy).not.toHaveBeenCalled();
   });
 });

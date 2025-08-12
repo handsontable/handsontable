@@ -2,14 +2,26 @@ import Handsontable from "handsontable";
 import { getDirectionFromURL, getThemeNameFromURL, getFromURL } from "../../utils";
 import { data } from './data';
 
-const root = document.getElementById('root');
-const example = document.createElement('div');
-
-root.appendChild(example);
-
 export function init() {
+  const root = document.getElementById('root');
+  const example = document.createElement('div');
+
+  const input = document.createElement('input');
+  input.style.margin = '10px';
+  input.placeholder = 'Input';
+  root.appendChild(input);
+
+  root.appendChild(example);
+  
+  const input2 = document.createElement('input');
+  input2.style.margin = '10px';
+  input2.placeholder = 'Input 2';
+  root.appendChild(input2);
+
   const background = getFromURL('background', 'solid');
   const contentBackground = getFromURL('contentbackground', false);
+  const pagination = getFromURL('pagination', false);
+  const focus = getFromURL('focus', false);
 
   const content = document.createElement("div");
   const button = document.createElement("button");
@@ -18,9 +30,24 @@ export function init() {
   content.innerHTML = `<h6>Hello world</h6><p>Lorem ipsum</p>`;
   content.appendChild(button);
 
+  if (Boolean(focus)) {
+    const inputContent1 = document.createElement('input');
+    inputContent1.id = 'testInput';
+    inputContent1.style.margin = '10px';
+    inputContent1.placeholder = 'Input 1';
+    content.appendChild(inputContent1);
+
+    const inputContent2 = document.createElement('input');
+    inputContent2.style.margin = '10px';
+    inputContent2.placeholder = 'Input 2';
+
+    content.appendChild(inputContent2);
+  }
+
   const dialogSettings = {
     background,
     contentBackground: Boolean(contentBackground),
+    pagination: Boolean(pagination),
     content,
   };
 
@@ -70,6 +97,14 @@ export function init() {
     height: 400,
     licenseKey: "non-commercial-and-evaluation",
   });
+
+  if (Boolean(focus)) {
+    hot.addHook("afterDialogFocus", (placement) => {
+      if (placement !== "click") {
+        document.getElementById("testInput").focus();
+      }
+    });
+  }
 
   hot.getPlugin('dialog').show();
 

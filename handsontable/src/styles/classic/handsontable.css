@@ -2119,6 +2119,11 @@ thead th.hiddenHeaderText .colHeader {
   padding: 16px;
 }
 
+.ht-dialog__content-wrapper:focus {
+  border: 1px solid #4b89ff;
+  outline: none;
+}
+
 .ht-dialog__content {
   position: relative;
   padding: 8px;

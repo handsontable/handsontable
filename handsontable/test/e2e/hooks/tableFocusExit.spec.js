@@ -8,13 +8,13 @@ describe('Hook', () => {
     this.$container.remove();
   });
 
-  describe('modifyUnfocusOnTabNavigation', () => {
+  describe('tableFocusExit', () => {
     it('should be fired when the table is deactivated by TAB navigation (going to element above)', async() => {
-      const modifyUnfocusOnTabNavigation = jasmine.createSpy('modifyUnfocusOnTabNavigation');
+      const tableFocusExit = jasmine.createSpy('tableFocusExit');
 
       handsontable({
         data: createSpreadsheetData(5, 5),
-        modifyUnfocusOnTabNavigation,
+        tableFocusExit,
       });
 
       await selectCell(0, 0);
@@ -22,16 +22,16 @@ describe('Hook', () => {
 
       triggerTabNavigationToAbove();
 
-      expect(modifyUnfocusOnTabNavigation).toHaveBeenCalledWith('to_above');
-      expect(modifyUnfocusOnTabNavigation).toHaveBeenCalledTimes(1);
+      expect(tableFocusExit).toHaveBeenCalledWith('top');
+      expect(tableFocusExit).toHaveBeenCalledTimes(1);
     });
 
     it('should be fired when the table is deactivated by TAB navigation (going to element below)', async() => {
-      const modifyUnfocusOnTabNavigation = jasmine.createSpy('modifyUnfocusOnTabNavigation');
+      const tableFocusExit = jasmine.createSpy('tableFocusExit');
 
       handsontable({
         data: createSpreadsheetData(5, 5),
-        modifyUnfocusOnTabNavigation,
+        tableFocusExit,
       });
 
       await selectCell(5, 5);
@@ -39,14 +39,14 @@ describe('Hook', () => {
 
       triggerTabNavigationToBelow();
 
-      expect(modifyUnfocusOnTabNavigation).toHaveBeenCalledWith('to_below');
-      expect(modifyUnfocusOnTabNavigation).toHaveBeenCalledTimes(1);
+      expect(tableFocusExit).toHaveBeenCalledWith('bottom');
+      expect(tableFocusExit).toHaveBeenCalledTimes(1);
     });
 
     it('should prevent table deactivation when hook returns false (going to element above)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
-        modifyUnfocusOnTabNavigation() {
+        tableFocusExit() {
           return false;
         },
       });
@@ -62,7 +62,7 @@ describe('Hook', () => {
     it('should prevent table deactivation when hook returns false (going to element below)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
-        modifyUnfocusOnTabNavigation() {
+        tableFocusExit() {
           return false;
         },
       });
@@ -78,7 +78,7 @@ describe('Hook', () => {
     it('should allow table deactivation when hook returns undefined (going to element above)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
-        modifyUnfocusOnTabNavigation() {
+        tableFocusExit() {
           return undefined;
         },
       });
@@ -94,7 +94,7 @@ describe('Hook', () => {
     it('should allow table deactivation when hook returns undefined (going to element below)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
-        modifyUnfocusOnTabNavigation() {
+        tableFocusExit() {
           return undefined;
         },
       });
@@ -108,11 +108,11 @@ describe('Hook', () => {
     });
 
     it('should be fired with correct direction based on Shift+Tab vs Tab', async() => {
-      const modifyUnfocusOnTabNavigation = jasmine.createSpy('modifyUnfocusOnTabNavigation');
+      const tableFocusExit = jasmine.createSpy('tableFocusExit');
 
       handsontable({
         data: createSpreadsheetData(5, 5),
-        modifyUnfocusOnTabNavigation,
+        tableFocusExit,
       });
 
       await selectCell(0, 0);
@@ -120,16 +120,16 @@ describe('Hook', () => {
 
       // Test Shift+Tab (going to element above)
       triggerTabNavigationToAbove();
-      expect(modifyUnfocusOnTabNavigation).toHaveBeenCalledWith('to_above');
+      expect(tableFocusExit).toHaveBeenCalledWith('top');
 
       // Reset spy
-      modifyUnfocusOnTabNavigation.calls.reset();
+      tableFocusExit.calls.reset();
 
       // Test Tab (going to element below)
       await selectCell(5, 5);
       await listen();
       triggerTabNavigationToBelow();
-      expect(modifyUnfocusOnTabNavigation).toHaveBeenCalledWith('to_below');
+      expect(tableFocusExit).toHaveBeenCalledWith('bottom');
     });
   });
 });

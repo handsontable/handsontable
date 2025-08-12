@@ -19,6 +19,11 @@
     border: 1px solid var(--ht-border-color);
     box-sizing: border-box !important;
 
+    &:focus {
+      border: 1px solid var(--ht-accent-color);
+      outline: none;
+    }
+
     & * {
       box-sizing: border-box !important;
     }
@@ -48,6 +53,7 @@
       width: 100%;
       min-height: 100%;
       padding: calc(var(--ht-gap-size) * 4);
+      border-radius: var(--ht-wrapper-border-radius);
     }
     
     &__content {

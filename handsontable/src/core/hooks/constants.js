@@ -1883,18 +1883,20 @@ export const REGISTERED_HOOKS = [
    * @param {'from_above' | 'from_below'} tabActivationDir The browsers Tab navigation direction. Depending on
    * whether the user activated the table from the element above or below, another cell can be selected.
    * @param {CellCoords} visualCoords The coords that will be used to select a cell.
+   * @returns {undefined|boolean} If `false` is returned, the table will not be focused.
    */
   'modifyFocusOnTabNavigation',
 
   /**
-   * Used to modify the cell coordinates when the table is deactivated (going out of the listen mode).
+   * Used to modify the cell coordinates when the focus is moved out of the table.
    *
-   * @event Hooks#modifyUnfocusOnTabNavigation
+   * @event Hooks#tableFocusExit
    * @since 16.1.0
-   * @param {'to_above' | 'to_below'} tabActivationDir The browsers Tab navigation direction. Depending on
-   * whether the user deactivated the table from the element above or below, another cell can be selected.
+   * @param {'top' | 'bottom'} exitDirection The browsers Tab navigation direction. Depending on
+   * whether the user move out of the table from the top or bottom.
+   * @returns {undefined|boolean} If `false` is returned, the table will not be unfocused.
    */
-  'modifyUnfocusOnTabNavigation',
+  'tableFocusExit',
 
   /**
    * Allows modify the visual row index that is used to retrieve the row header element (TH) before it's
@@ -3202,6 +3204,16 @@ export const REGISTERED_HOOKS = [
    * @event Hooks#dialogFocusNextElement
    */
   'dialogFocusNextElement',
+
+  /**
+   * Fired by {@link Dialog} plugin when the focus is set. This hook is fired when {@link Options#dialog}
+   * option is enabled.
+   *
+   * @since 16.1.0
+   * @event Hooks#afterDialogFocus
+   * @param {'tab_from_above' | 'tab_from_below' | 'click' | 'show'} focusSource The source of the focus.
+   */
+  'afterDialogFocus',
 
   /**
    * Fired after the editor is opened and rendered.

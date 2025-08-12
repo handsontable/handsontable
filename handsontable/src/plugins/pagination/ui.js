@@ -15,7 +15,7 @@ const TEMPLATE = `
     <div data-ref="pageSizeSection" class="ht-page-size-section">
       <span data-ref="pageSizeLabel" class="ht-page-size-section__label"></span>
       <div class="ht-page-size-section__select-wrapper">
-        <select data-ref="pageSizeSelect" name="pageSize"></select>
+        <select data-ref="pageSizeSelect" name="pageSize" data-hot-input></select>
       </div>
     </div>
     <div data-ref="pageCounterSection" class="ht-page-counter-section"></div>
@@ -93,7 +93,7 @@ export class PaginationUI {
    *
    * @type {number | null}
    */
-  focusableElements = null;
+  #focusableElements = null;
 
   constructor({
     rootElement,
@@ -133,7 +133,7 @@ export class PaginationUI {
       pageSizeSelect,
     } = elements.refs;
 
-    this.focusableElements = [
+    this.#focusableElements = [
       pageSizeSelect,
       first,
       prev,
@@ -422,6 +422,15 @@ export class PaginationUI {
     this.#updateContainerVisibility();
 
     return this;
+  }
+
+  /**
+   * Gets the focusable elements.
+   *
+   * @returns {HTMLElement[]} The focusable elements.
+   */
+  getFocusableElements() {
+    return this.#focusableElements;
   }
 
   /**

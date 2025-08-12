@@ -305,7 +305,7 @@ class TableView {
    * @private
    */
   registerEvents() {
-    const { rootElement, rootDocument, selection, rootWindow } = this.hot;
+    const { rootWrapperElement, rootElement, rootDocument, selection, rootWindow } = this.hot;
     const documentElement = rootDocument.documentElement;
 
     this.eventManager.addEventListener(rootElement, 'mousedown', (event) => {
@@ -346,14 +346,15 @@ class TableView {
 
       this.#mouseDown = false;
 
+      const isInsideDialog = rootWrapperElement?.querySelector('.ht-dialog')?.contains(event.target);
       const isOutsideInputElement = isOutsideInput(rootDocument.activeElement);
 
-      if (isInput(rootDocument.activeElement) && !isOutsideInputElement) {
+      if (isInput(rootDocument.activeElement) && !isOutsideInputElement || isInsideDialog) {
         return;
       }
 
       if (isOutsideInputElement || (!selection.isSelected() && !selection.isSelectedByAnyHeader() &&
-          !rootElement.contains(event.target) && !isRightClick(event))) {
+          !(rootWrapperElement ?? rootElement).contains(event.target) && !isRightClick(event))) {
         this.hot.unlisten();
       }
     });
