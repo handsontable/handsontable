@@ -34,7 +34,12 @@ import { Hooks } from './core/hooks';
 import { hasLanguageDictionary, getValidLanguageCode, getTranslatedPhrase } from './i18n/registry';
 import { warnUserAboutLanguageRegistration, normalizeLanguageCode } from './i18n/utils';
 import { Selection } from './selection';
-import { MetaManager, DynamicCellMetaMod, ExtendMetaPropertiesMod, replaceData } from './dataMap';
+import {
+  MetaManager,
+  DynamicCellMetaMod,
+  ExtendMetaPropertiesMod,
+  replaceData,
+} from './dataMap';
 import {
   installFocusCatcher,
   createViewportScroller,
@@ -2624,6 +2629,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     let columnsAsFunc = false;
     let i;
     let j;
+
+    metaManager.initialStateMode(init);
 
     if (isDefined(settings.rows)) {
       throw new Error('The "rows" setting is no longer supported. Do you mean startRows, minRows or maxRows?');

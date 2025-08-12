@@ -41,7 +41,7 @@ export default class MetaManager {
     /**
      * @type {GlobalMeta}
      */
-    this.globalMeta = new GlobalMeta(hot);
+    this.globalMeta = new GlobalMeta(hot, customSettings);
     /**
      * @type {TableMeta}
      */
@@ -61,8 +61,19 @@ export default class MetaManager {
   }
 
   /**
+   * Sets the initial state mode for global meta layer. When sets to `true`, the options at
+   * first will be taken from the `initialState` object then from the `meta` object. When sets to
+   * `false`, the options will be taken from the `meta` object only.
+   *
+   * @param {boolean} enabled Whether to enable initial state mode.
+   */
+  initialStateMode(enabled) {
+    this.globalMeta.initialStateMode(enabled);
+  }
+
+  /**
    * Gets the global meta object that is a root of all default settings, which are recognizable by Handsontable.
-   * Other layers inherites all properties from this. Adding, removing, or changing property in that
+   * Other layers inherits all properties from this. Adding, removing, or changing property in that
    * object has a direct reflection to all layers.
    *
    * @returns {object}
