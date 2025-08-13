@@ -61,10 +61,12 @@ export class DialogUI {
 
     this.#refs = elements.refs;
 
-    this.#refs.dialogElement.addEventListener('click', () => this.runLocalHooks('clickDialogElement'));
+    const { dialogElement } = this.#refs;
+
+    dialogElement.addEventListener('click', () => this.runLocalHooks('clickDialogElement'));
 
     // Set ARIA attributes
-    setAttribute(this.#refs.dialogElement, [
+    setAttribute(dialogElement, [
       A11Y_DIALOG(),
       A11Y_MODAL(),
       A11Y_TABINDEX(-1),
@@ -114,6 +116,8 @@ export class DialogUI {
     contentDirections,
     animation,
   }) {
+    const { dialogElement, contentElement } = this.#refs;
+
     // Dialog class name
     const customClass = customClassName ?
       ` ${customClassName}` : '';
@@ -124,7 +128,7 @@ export class DialogUI {
     const showClass = isVisible ? ` ${DIALOG_CLASS_NAME}--show` : '';
 
     // Update dialog class name
-    this.#refs.dialogElement.className =
+    dialogElement.className =
       `${DIALOG_CLASS_NAME}${customClass}${backgroundClass}${animationClass}${showClass}`;
 
     // Dialog content class name
@@ -134,17 +138,17 @@ export class DialogUI {
       ` ${DIALOG_CLASS_NAME}__content--flex-${contentDirections}` : '';
 
     // Update content class name
-    this.#refs.contentElement.className =
+    contentElement.className =
       `${DIALOG_CLASS_NAME}__content${contentBackgroundClass}${contentDirectionsClass}`;
 
     // Clear existing dialog content
-    this.#refs.contentElement.innerHTML = '';
+    contentElement.innerHTML = '';
 
     // Render new dialog content
     if (typeof content === 'string') {
-      fastInnerHTML(this.#refs.contentElement, content);
+      fastInnerHTML(contentElement, content);
     } else if (content instanceof HTMLElement || content instanceof DocumentFragment) {
-      this.#refs.contentElement.appendChild(content);
+      contentElement.appendChild(content);
     }
 
     return this;
@@ -157,16 +161,18 @@ export class DialogUI {
    * @returns {DialogUI} The instance of the DialogUI for method chaining.
    */
   showDialog(animation) {
-    this.#refs.dialogElement.style.display = 'block';
+    const { dialogElement } = this.#refs;
+
+    dialogElement.style.display = 'block';
 
     if (animation) {
       // Triggers style and layout recalculation, so the display: block is fully committed before adding
       // the class ht-dialog--show.
       // eslint-disable-next-line no-unused-expressions
-      this.#refs.dialogElement.offsetHeight;
+      dialogElement.offsetHeight;
     }
 
-    addClass(this.#refs.dialogElement, `${DIALOG_CLASS_NAME}--show`);
+    addClass(dialogElement, `${DIALOG_CLASS_NAME}--show`);
 
     return this;
   }
@@ -178,16 +184,18 @@ export class DialogUI {
    * @returns {DialogUI} The instance of the DialogUI for method chaining.
    */
   hideDialog(animation) {
-    removeClass(this.#refs.dialogElement, `${DIALOG_CLASS_NAME}--show`);
+    const { dialogElement } = this.#refs;
+
+    removeClass(dialogElement, `${DIALOG_CLASS_NAME}--show`);
 
     if (animation) {
-      this.#refs.dialogElement.addEventListener('transitionend', () => {
-        if (!hasClass(this.#refs.dialogElement, `${DIALOG_CLASS_NAME}--show`)) {
-          this.#refs.dialogElement.style.display = 'none';
+      dialogElement.addEventListener('transitionend', () => {
+        if (!hasClass(dialogElement, `${DIALOG_CLASS_NAME}--show`)) {
+          dialogElement.style.display = 'none';
         }
       }, { once: true });
     } else {
-      this.#refs.dialogElement.style.display = 'none';
+      dialogElement.style.display = 'none';
     }
 
     return this;
