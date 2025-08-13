@@ -49,10 +49,10 @@ describe('plugins', () => {
 
       expect(() => {
         registerPlugin('pluginH', pluginRef, 0);
-      }).toThrowWithCause(`There is already registered plugin on priority "0".`, { handsontable: true });
+      }).toThrowWithCause('There is already registered plugin on priority "0".', { handsontable: true });
       expect(() => {
         registerPlugin('pluginI', pluginRef, 0);
-      }).toThrowWithCause(`There is already registered plugin on priority "0".`, { handsontable: true });
+      }).toThrowWithCause('There is already registered plugin on priority "0".', { handsontable: true });
     });
 
     it('should not throw an error if there is already registered plugin at the same name but different priority', () => {

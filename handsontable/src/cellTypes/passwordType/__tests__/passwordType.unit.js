@@ -29,12 +29,10 @@ describe('PasswordCellType', () => {
         getRenderer('password');
       }).toThrow();
 
-
       expect(getRegisteredValidatorNames()).toEqual([]);
       expect(() => {
         getValidator('password');
       }).toThrow();
-
 
       expect(getRegisteredCellTypeNames()).toEqual([]);
       expect(() => {

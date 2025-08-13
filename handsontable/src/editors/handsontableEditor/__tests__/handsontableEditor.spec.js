@@ -544,7 +544,8 @@ describe('HandsontableEditor', () => {
     expect(spy.test.calls.count()).toBe(0);
     expect(async() => {
       await keyDownUp('delete');
-    }).not.toThrowWithCause('Uncaught TypeError: Cannot read property "rootElement" of undefined', { handsontable: true });
+    }).not.toThrowWithCause('Uncaught TypeError: Cannot read property "rootElement" of undefined',
+      { handsontable: true });
 
     window.onerror = prevError;
   });

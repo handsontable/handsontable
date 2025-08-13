@@ -1716,10 +1716,13 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
     for (i = 0, ilen = input.length; i < ilen; i++) {
       if (typeof input[i] !== 'object') {
-        throw new Error('Method `setDataAtCell` accepts row number or changes array of arrays as its first parameter', { cause: { handsontable: true } });
+        throw new Error('Method `setDataAtCell` accepts row number or changes array of arrays as its first parameter',
+          { cause: { handsontable: true } });
       }
       if (typeof input[i][1] !== 'number') {
-        throw new Error('Method `setDataAtCell` accepts row and column number as its parameters. If you want to use object property name, use method `setDataAtRowProp`', { cause: { handsontable: true } }); // eslint-disable-line max-len
+        // eslint-disable-next-line max-len
+        throw new Error('Method `setDataAtCell` accepts row and column number as its parameters. If you want to use object property name, use method `setDataAtRowProp`',
+          { cause: { handsontable: true } });
       }
 
       if (input[i][1] >= this.countCols()) {
@@ -1877,7 +1880,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    */
   this.populateFromArray = function(row, column, input, endRow, endCol, source, method) {
     if (!(typeof input === 'object' && typeof input[0] === 'object')) {
-      throw new Error('populateFromArray parameter `input` must be an array of arrays', { cause: { handsontable: true } }); // API changed in 0.9-beta2, let's check if you use it correctly
+      throw new Error('populateFromArray parameter `input` must be an array of arrays',
+        { cause: { handsontable: true } }); // API changed in 0.9-beta2, let's check if you use it correctly
     }
 
     const c = typeof endRow === 'number' ? instance._createCellCoords(endRow, endCol) : null;
@@ -2683,13 +2687,16 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     let j;
 
     if (isDefined(settings.rows)) {
-      throw new Error('The "rows" setting is no longer supported. Do you mean startRows, minRows or maxRows?', { cause: { handsontable: true } });
+      throw new Error('The "rows" setting is no longer supported. Do you mean startRows, minRows or maxRows?',
+        { cause: { handsontable: true } });
     }
     if (isDefined(settings.cols)) {
-      throw new Error('The "cols" setting is no longer supported. Do you mean startCols, minCols or maxCols?', { cause: { handsontable: true } });
+      throw new Error('The "cols" setting is no longer supported. Do you mean startCols, minCols or maxCols?',
+        { cause: { handsontable: true } });
     }
     if (isDefined(settings.ganttChart)) {
-      throw new Error('Since 8.0.0 the "ganttChart" setting is no longer supported.', { cause: { handsontable: true } });
+      throw new Error('Since 8.0.0 the "ganttChart" setting is no longer supported.',
+        { cause: { handsontable: true } });
     }
 
     // eslint-disable-next-line no-restricted-syntax
@@ -3492,7 +3499,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    */
   this.spliceCellsMeta = function(visualIndex, deleteAmount = 0, ...cellMetaRows) {
     if (cellMetaRows.length > 0 && !Array.isArray(cellMetaRows[0])) {
-      throw new Error('The 3rd argument (cellMetaRows) has to be passed as an array of cell meta objects array.', { cause: { handsontable: true } });
+      throw new Error('The 3rd argument (cellMetaRows) has to be passed as an array of cell meta objects array.',
+        { cause: { handsontable: true } });
     }
 
     if (deleteAmount > 0) {
@@ -4860,7 +4868,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    */
   function postMortem(method) {
     return () => {
-      throw new Error(`The "${method}" method cannot be called because this Handsontable instance has been destroyed`, { cause: { handsontable: true } });
+      throw new Error(`The "${method}" method cannot be called because this Handsontable instance has been destroyed`,
+        { cause: { handsontable: true } });
     };
   }
 

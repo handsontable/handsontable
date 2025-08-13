@@ -21,7 +21,8 @@ const alterStrategies = new Map([
 
 const alterUtilsFactory = (indexationStrategy) => {
   if (alterStrategies.has(indexationStrategy) === false) {
-    throw new Error(`Alter strategy with ID '${indexationStrategy}' does not exist.`, { cause: { handsontable: true } });
+    throw new Error(`Alter strategy with ID '${indexationStrategy}' does not exist.`,
+      { cause: { handsontable: true } });
   }
 
   return alterStrategies.get(indexationStrategy);

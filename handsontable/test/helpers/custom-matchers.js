@@ -549,41 +549,38 @@ match to the visual state of the rendered selection \n${asciiTable}\n`;
         },
       };
     },
-    toThrowWithCause(/*received, expectedMessage, expectedCause*/) {
-      return  { compare: (received, expectedMessage, expectedCause) => {
+    toThrowWithCause(/* received, expectedMessage, expectedCause */) {
+      return { compare: (received, expectedMessage, expectedCause) => {
 
+        try {
+          received();
 
-        console.log('received', received);
-        console.log('expectedMessage', expectedMessage);
-        console.log('expectedCause', expectedCause);
-
-      try {
-        received();
-        return {
-          pass: false,
-          message: () => 'Expected function to throw',
-        };
-      } catch (error) {
+          return {
+            pass: false,
+            message: () => 'Expected function to throw',
+          };
+        } catch (error) {
         // In this method you only can compare strings and objects or regular expressions
-        const messageMatches = expectedMessage === undefined || error.message === expectedMessage;
-        const causeMatches = JSON.stringify(error.cause) === JSON.stringify(expectedCause);
+          const messageMatches = expectedMessage === undefined || error.message === expectedMessage;
+          const causeMatches = JSON.stringify(error.cause) === JSON.stringify(expectedCause);
 
-        let messages = [];
+          const messages = [];
 
-        if (!messageMatches) {
-          messages.push(`Expected error with message "${expectedMessage}" but got message "${error.message}"`)
+          if (!messageMatches) {
+            messages.push(`Expected error with message "${expectedMessage}" but got message "${error.message}"`);
+          }
+
+          if (!causeMatches) {
+            // eslint-disable-next-line max-len
+            messages.push(`Expected error with cause ${JSON.stringify(expectedCause)} but got cause ${JSON.stringify(error.cause)}`);
+          }
+
+          return {
+            pass: messageMatches && causeMatches,
+            message: messages.join('\n')
+          };
         }
-
-        if (!causeMatches) {
-          messages.push(`Expected error with cause ${JSON.stringify(expectedCause)} but got cause ${JSON.stringify(error.cause)}`);
-        }
-
-        return {
-          pass: messageMatches && causeMatches,
-          message: messages.join('\n')
-        };
-      }
-    }};
+      } };
     },
   };
 

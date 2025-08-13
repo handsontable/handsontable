@@ -48,7 +48,8 @@ describe('CustomBorders (RTL mode)', () => {
             right: RED_BORDER,
           }]
         });
-      }).toThrowWithCause('The "left"/"right" properties are not supported for RTL. Please use option "start"/"end".', { handsontable: true });
+      }).toThrowWithCause('The "left"/"right" properties are not supported for RTL. Please use option "start"/"end".',
+        { handsontable: true });
     });
 
     it('should not be possible to use backward compatible API ("left"/"right") in RTL mode (updateSettings call)', async() => {
@@ -69,7 +70,8 @@ describe('CustomBorders (RTL mode)', () => {
             right: RED_BORDER,
           }]
         });
-      }).toThrowWithCause('The "left"/"right" properties are not supported for RTL. Please use option "start"/"end".', { handsontable: true });
+      }).toThrowWithCause('The "left"/"right" properties are not supported for RTL. Please use option "start"/"end".',
+        { handsontable: true });
     });
   });
 
@@ -125,7 +127,8 @@ describe('CustomBorders (RTL mode)', () => {
       customBorders.setBorders([1, 1, 2, 2], {
         left: GREEN_BORDER,
       });
-    }).toThrowWithCause('The "left"/"right" properties are not supported for RTL. Please use option "start"/"end".', { handsontable: true });
+    }).toThrowWithCause('The "left"/"right" properties are not supported for RTL. Please use option "start"/"end".',
+      { handsontable: true });
   });
 
   it('should draw new borders by use setBorders method (while selected)', async() => {

@@ -29,7 +29,7 @@ describe('plugins dependencies', () => {
  - NonExistingRenderer (renderer)
  - NonExistingValidator (validator)
 
-You have to import and register them manually.`,  { handsontable: true } );
+You have to import and register them manually.`, { handsontable: true });
     expect(hot).toBeUndefined();
   });
 

@@ -25,7 +25,8 @@ export class ExtendMetaPropertiesMod {
         const isRtl = this.metaManager.hot.isRtl();
 
         if (isRtl && propName === 'fixedColumnsLeft') {
-          throw new Error('The `fixedColumnsLeft` is not supported for RTL. Please use option `fixedColumnsStart`.', { cause: { handsontable: true } });
+          throw new Error('The `fixedColumnsLeft` is not supported for RTL. Please use option `fixedColumnsStart`.',
+            { cause: { handsontable: true } });
         }
 
         if (this.usageTracker.has('fixedColumnsLeft') && this.usageTracker.has('fixedColumnsStart')) {
@@ -60,7 +61,8 @@ export class ExtendMetaPropertiesMod {
    */
   #initOnlyCallback = (propName, value, isInitialChange) => {
     if (!isInitialChange) {
-      throw new Error(`The \`${propName}\` option can not be updated after the Handsontable is initialized.`, { cause: { handsontable: true } });
+      throw new Error(`The \`${propName}\` option can not be updated after the Handsontable is initialized.`,
+        { cause: { handsontable: true } });
     }
   }
 
