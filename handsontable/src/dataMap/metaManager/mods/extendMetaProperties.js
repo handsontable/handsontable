@@ -17,7 +17,8 @@ export class ExtendMetaPropertiesMod {
     [
       'ariaTags', {
         initOnly: true,
-      }],
+      },
+    ],
     ['fixedColumnsLeft', {
       target: 'fixedColumnsStart',
       onChange(propName) {
