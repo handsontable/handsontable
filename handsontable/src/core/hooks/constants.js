@@ -1888,7 +1888,7 @@ export const REGISTERED_HOOKS = [
   'modifyFocusOnTabNavigation',
 
   /**
-   * Used to modify the cell coordinates when the focus is moved out of the table.
+   * Used to transfer the focus when the focus is moved out of the table.
    *
    * @event Hooks#tableFocusExit
    * @since 16.1.0

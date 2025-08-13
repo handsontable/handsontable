@@ -20,6 +20,8 @@ describe('Dialog - afterDialogFocus hook', () => {
       afterDialogFocus: afterDialogFocusSpy,
     });
 
+    await selectCell(0, 0);
+
     const dialogPlugin = hot.getPlugin('dialog');
 
     dialogPlugin.show({
@@ -43,6 +45,8 @@ describe('Dialog - afterDialogFocus hook', () => {
     });
 
     const dialogPlugin = hot.getPlugin('dialog');
+
+    await selectCell(0, 0);
 
     dialogPlugin.show({
       content: 'Test content',
@@ -73,6 +77,8 @@ describe('Dialog - afterDialogFocus hook', () => {
     });
 
     const dialogPlugin = hot.getPlugin('dialog');
+
+    await selectCell(0, 0);
 
     dialogPlugin.show({
       content: 'Test content',
@@ -107,5 +113,30 @@ describe('Dialog - afterDialogFocus hook', () => {
     await simulateClick($('#clickableContent'));
 
     expect(afterDialogFocusSpy).toHaveBeenCalledWith('click');
+  });
+
+  it('should not run afterDialogFocus hook with "show" parameter when dialog is displayed and active element is outside of the rootWrapperElement', async() => {
+    const afterDialogFocusSpy = jasmine.createSpy('afterDialogFocus');
+    const input = document.createElement('input');
+
+    document.body.appendChild(input);
+
+    const hot = handsontable({
+      data: [['A1', 'B1'], ['A2', 'B2']],
+      dialog: true,
+      afterDialogFocus: afterDialogFocusSpy,
+    });
+
+    const dialogPlugin = hot.getPlugin('dialog');
+
+    input.focus();
+
+    dialogPlugin.show({
+      content: 'Test content',
+    });
+
+    document.body.removeChild(input);
+
+    expect(afterDialogFocusSpy).not.toHaveBeenCalled();
   });
 });

@@ -1,10 +1,7 @@
 import { GRID_GROUP } from '../../shortcutContexts';
 import { installFocusDetector } from './focusDetector';
-import {
-  normalizeCoordsIfNeeded,
-  getMostTopStartPosition,
-} from './utils';
-import { getMostBottomEndPosition } from '../../helpers/mixed';
+import { normalizeCoordsIfNeeded } from './utils';
+import { getMostTopStartPosition, getMostBottomEndPosition } from '../../helpers/mixed';
 
 /**
  * Installs a focus catcher module. The module observes when the table is focused and depending on

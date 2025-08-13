@@ -1,5 +1,5 @@
 import { clamp } from '../../helpers/number';
-import { getMostBottomEndPosition } from '../../helpers/mixed';
+import { getMostTopStartPosition, getMostBottomEndPosition } from '../../helpers/mixed';
 
 /**
  * Normalizes the coordinates (clamps to nearest visible cell position within dataset range).
@@ -27,31 +27,4 @@ export function normalizeCoordsIfNeeded(hot) {
 
     return coords;
   };
-}
-
-/**
- * Gets the coordinates of the most top-start cell or header (depends on the table settings and its size).
- *
- * @param {Core} hot The Handsontable instance.
- * @returns {CellCoords|null}
- */
-export function getMostTopStartPosition(hot) {
-  const { rowIndexMapper, columnIndexMapper } = hot;
-  const { navigableHeaders } = hot.getSettings();
-  let topRow = navigableHeaders && hot.countColHeaders() > 0 ? -hot.countColHeaders() : 0;
-  let startColumn = navigableHeaders && hot.countRowHeaders() > 0 ? -hot.countRowHeaders() : 0;
-
-  if (topRow === 0) {
-    topRow = rowIndexMapper.getVisualFromRenderableIndex(topRow);
-  }
-
-  if (startColumn === 0) {
-    startColumn = columnIndexMapper.getVisualFromRenderableIndex(startColumn);
-  }
-
-  if (topRow === null || startColumn === null) {
-    return null;
-  }
-
-  return hot._createCellCoords(topRow, startColumn);
 }
