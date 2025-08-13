@@ -429,12 +429,20 @@ export class Dialog extends BasePlugin {
    * the dialog container to the same size as the table.
    */
   #onAfterRender() {
-    const { view } = this.hot;
+    const { view, rootWrapperElement, rootWindow } = this.hot;
     const width = view.isHorizontallyScrollableByWindow()
       ? view.getTotalTableWidth() : view.getWorkspaceWidth();
 
-    this.#ui
-      .updateWidth(width);
+    this.#ui.updateWidth(width);
+
+    const dialogInfo = rootWrapperElement.querySelector('.hot-display-license-info');
+
+    if (dialogInfo) {
+      const height = dialogInfo.offsetHeight;
+      const marginTop = parseFloat(rootWindow.getComputedStyle(dialogInfo).marginTop);
+
+      this.#ui.updateHeight(height + marginTop);
+    }
   }
 
   /**

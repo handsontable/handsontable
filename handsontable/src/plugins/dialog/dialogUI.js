@@ -206,6 +206,18 @@ export class DialogUI {
   }
 
   /**
+   * Updates the height of the dialog container.
+   *
+   * @param {number} licenseInfoHeight - The height of the license info.
+   * @returns {DialogUI} The instance of the DialogUI for method chaining.
+   */
+  updateHeight(licenseInfoHeight) {
+    this.#refs.dialogElement.style.height = `calc(100% - ${licenseInfoHeight}px)`;
+
+    return this;
+  }
+
+  /**
    * Removes the dialog UI elements from the DOM and clears the refs.
    */
   destroyDialog() {
