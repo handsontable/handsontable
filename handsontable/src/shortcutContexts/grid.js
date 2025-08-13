@@ -37,11 +37,11 @@ export function shortcutsGridContext(hot) {
   context.addShortcuts([{
     keys: [['Control/Meta', 'A']],
     callback: () => commandsPool.selectAllCells(),
-    runOnlyIf: () => !hot.getSelectedRangeLast()?.highlight.isHeader(),
+    runOnlyIf: () => !hot.getSelectedRangeActive()?.highlight.isHeader(),
   }, {
     keys: [['Control/Meta', 'A']],
     callback: () => {},
-    runOnlyIf: () => hot.getSelectedRangeLast()?.highlight.isHeader(),
+    runOnlyIf: () => hot.getSelectedRangeActive()?.highlight.isHeader(),
     preventDefault: true,
   }, {
     keys: [['Control/Meta', 'Shift', 'Space']],
@@ -50,7 +50,7 @@ export function shortcutsGridContext(hot) {
     keys: [['Control/Meta', 'Enter']],
     callback: () => commandsPool.populateSelectedCellsData(),
     runOnlyIf: () => {
-      return !hot.getSelectedRangeLast()?.highlight.isHeader() && hot.getSelectedRangeLast()?.getCellsCount() > 1;
+      return !hot.getSelectedRangeActive()?.highlight.isHeader() && hot.getSelectedRangeActive()?.getCellsCount() > 1;
     },
   }, {
     keys: [['Control', 'Space']],

@@ -113,6 +113,125 @@ describe('MergeCells keyboard shortcut', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,5 from: 1,1 to: 5,5']);
     });
 
+    it('should correctly navigate forward vertically through the merged cells within the multiple ranges', async() => {
+      handsontable({
+        data: createSpreadsheetData(7, 7),
+        colHeaders: true,
+        rowHeaders: true,
+        mergeCells: [
+          { row: 0, col: 0, rowspan: 2, colspan: 3 },
+          { row: 3, col: 3, rowspan: 3, colspan: 2 },
+          { row: 1, col: 6, rowspan: 3, colspan: 1 },
+        ]
+      });
+
+      await selectCells([
+        [0, 0, 2, 2],
+        [3, 3, 5, 5],
+        [1, 6, 3, 5],
+      ]);
+
+      await keyDownUp('enter');
+
+      expect(getActiveSelectionLayerIndex()).toBe(0);
+      expect(getSelectedRange()).toEqualCellRange([
+        'highlight: 0,0 from: 0,0 to: 2,2',
+        'highlight: 3,3 from: 3,3 to: 5,5',
+        'highlight: 1,6 from: 1,6 to: 3,5',
+      ]);
+
+      await keyDownUp('enter');
+      await keyDownUp('enter');
+      await keyDownUp('enter');
+      await keyDownUp('enter'); // moves focus to the next layer
+
+      expect(getActiveSelectionLayerIndex()).toBe(1);
+      expect(getSelectedRange()).toEqualCellRange([
+        'highlight: 2,2 from: 0,0 to: 2,2',
+        'highlight: 3,3 from: 3,3 to: 5,5',
+        'highlight: 1,6 from: 1,6 to: 3,5',
+      ]);
+
+      await keyDownUp('enter');
+      await keyDownUp('enter');
+      await keyDownUp('enter');
+      await keyDownUp('enter'); // moves focus to the next layer
+
+      expect(getActiveSelectionLayerIndex()).toBe(2);
+      expect(getSelectedRange()).toEqualCellRange([
+        'highlight: 2,2 from: 0,0 to: 2,2',
+        'highlight: 5,5 from: 3,3 to: 5,5',
+        'highlight: 1,5 from: 1,6 to: 3,5',
+      ]);
+
+      await keyDownUp('enter');
+      await keyDownUp('enter');
+      await keyDownUp('enter');
+      await keyDownUp('enter'); // moves focus to the next layer
+
+      expect(getActiveSelectionLayerIndex()).toBe(0);
+      expect(getSelectedRange()).toEqualCellRange([
+        'highlight: 0,0 from: 0,0 to: 2,2',
+        'highlight: 5,5 from: 3,3 to: 5,5',
+        'highlight: 1,6 from: 1,6 to: 3,5',
+      ]);
+    });
+
+    it('should correctly navigate forward vertically through the merged cells within the multiple ranges (selected only merged cells)', async() => {
+      handsontable({
+        data: createSpreadsheetData(7, 7),
+        colHeaders: true,
+        rowHeaders: true,
+        mergeCells: [
+          { row: 0, col: 0, rowspan: 2, colspan: 3 },
+          { row: 3, col: 3, rowspan: 3, colspan: 2 },
+          { row: 1, col: 6, rowspan: 3, colspan: 1 },
+        ]
+      });
+
+      await selectCells([
+        [0, 0, 1, 2],
+        [3, 3, 5, 4],
+        [1, 6, 3, 6],
+      ]);
+
+      await keyDownUp('enter');
+
+      expect(getActiveSelectionLayerIndex()).toBe(0);
+      expect(getSelectedRange()).toEqualCellRange([
+        'highlight: 0,0 from: 0,0 to: 1,2',
+        'highlight: 3,3 from: 3,3 to: 5,4',
+        'highlight: 1,6 from: 1,6 to: 3,6',
+      ]);
+
+      await keyDownUp('enter'); // moves focus to the next layer
+
+      expect(getActiveSelectionLayerIndex()).toBe(1);
+      expect(getSelectedRange()).toEqualCellRange([
+        'highlight: 0,0 from: 0,0 to: 1,2',
+        'highlight: 3,3 from: 3,3 to: 5,4',
+        'highlight: 1,6 from: 1,6 to: 3,6',
+      ]);
+
+      await keyDownUp('enter'); // moves focus to the next layer
+
+      expect(getActiveSelectionLayerIndex()).toBe(2);
+      expect(getSelectedRange()).toEqualCellRange([
+        'highlight: 0,0 from: 0,0 to: 1,2',
+        'highlight: 3,3 from: 3,3 to: 5,4',
+        'highlight: 1,6 from: 1,6 to: 3,6',
+      ]);
+
+      await keyDownUp('enter'); // moves focus to the next layer
+
+      expect(getActiveSelectionLayerIndex()).toBe(0);
+      expect(getSelectedRange()).toEqualCellRange([
+        'highlight: 0,0 from: 0,0 to: 1,2',
+        'highlight: 3,3 from: 3,3 to: 5,4',
+        'highlight: 1,6 from: 1,6 to: 3,6',
+      ]);
+    });
+
     it('should correctly navigate forward vertically through two adjacent vertically merged cells', async() => {
       handsontable({
         data: createSpreadsheetData(6, 3),

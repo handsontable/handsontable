@@ -771,7 +771,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
               }
 
               if (selection.isSelected()) {
-                const { row } = instance.getSelectedRangeLast().highlight;
+                const { row } = instance.getSelectedRangeActive().highlight;
 
                 if (row >= groupIndex && row <= groupIndex + groupAmount - 1) {
                   editorManager.closeEditor(true);
@@ -847,7 +847,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
               }
 
               if (selection.isSelected()) {
-                const { col } = instance.getSelectedRangeLast().highlight;
+                const { col } = instance.getSelectedRangeActive().highlight;
 
                 if (col >= groupIndex && col <= groupIndex + groupAmount - 1) {
                   editorManager.closeEditor(true);
@@ -1954,15 +1954,36 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   };
 
   /**
+   * Returns the range coordinates of the active selection layer as an array. Active selection layer is the layer that
+   * has visible focus highlight.
+   *
+   * @memberof Core#
+   * @function getSelectedRangeActive
+   * @since 16.1.0
+   * @returns {number[]|undefined} Selected range as an array of coordinates or `undefined` if there is no selection.
+   */
+  this.getSelectedActive = function() {
+    const activeRange = this.getSelectedRangeActive();
+
+    if (!activeRange) {
+      return;
+    }
+
+    const { from, to } = activeRange;
+
+    return [from.row, from.col, to.row, to.col];
+  };
+
+  /**
    * Returns the current selection as an array of CellRange objects.
    *
    * The version 0.36.0 adds a non-consecutive selection feature. Since this version, the method returns an array of arrays.
-   * Additionally to collect the coordinates of the currently selected area (as it was previously done by the method)
-   * you need to use `getSelectedRangeLast` method.
+   * Additionally to collect the coordinates of the active selected area (as it was previously done by the method)
+   * you need to use `getSelectedRangeActive()` method.
    *
    * @memberof Core#
    * @function getSelectedRange
-   * @returns {CellRange[]|undefined} Selected range object or undefined if there is no selection.
+   * @returns {CellRange[]|undefined} Selected range object or `undefined` if there is no selection.
    */
   this.getSelectedRange = function() { // https://github.com/handsontable/handsontable/issues/44  //cjl
     if (selection.isSelected()) {
@@ -1976,7 +1997,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * @memberof Core#
    * @function getSelectedRangeLast
    * @since 0.36.0
-   * @returns {CellRange|undefined} Selected range object or undefined` if there is no selection.
+   * @returns {CellRange|undefined} Selected range object or `undefined` if there is no selection.
    */
   this.getSelectedRangeLast = function() {
     const selectedRange = this.getSelectedRange();
@@ -1987,6 +2008,32 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     }
 
     return result;
+  };
+
+  /**
+   * Returns the range coordinates of the active selection layer. Active selection layer is the layer that
+   * has visible focus highlight.
+   *
+   * @memberof Core#
+   * @function getSelectedRangeActive
+   * @since 16.1.0
+   * @returns {CellRange|undefined} Selected range object or `undefined` if there is no selection.
+   */
+  this.getSelectedRangeActive = function() {
+    return selection.getActiveSelectedRange();
+  };
+
+  /**
+   * Returns the index of the active selection layer. Active selection layer is the layer that
+   * has visible focus highlight.
+   *
+   * @memberof Core#
+   * @function getActiveSelectionLayerIndex
+   * @since 16.1.0
+   * @returns {number} The index of the active selection layer. `0` to `N` where `0` is the last (oldest) layer and `N` is the first (newest) layer.
+   */
+  this.getActiveSelectionLayerIndex = function() {
+    return selection.getActiveSelectionLayerIndex();
   };
 
   /**
@@ -2828,17 +2875,21 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * @returns {*} The value of the focused cell.
    */
   this.getValue = function() {
-    const sel = instance.getSelectedLast();
+    const activeSelection = instance.getSelectedRangeActive();
 
     if (tableMeta.getValue) {
       if (isFunction(tableMeta.getValue)) {
         return tableMeta.getValue.call(instance);
-      } else if (sel) {
-        return instance.getData()[sel[0][0]][tableMeta.getValue];
+
+      } else if (activeSelection) {
+        return instance.getData()[activeSelection.highlight.row][tableMeta.getValue];
       }
-    } else if (sel) {
-      return instance.getDataAtCell(sel[0], sel[1]);
+
+    } else if (activeSelection) {
+      return instance.getDataAtCell(activeSelection.highlight.row, activeSelection.highlight.col);
     }
+
+    return null;
   };
 
   /**
@@ -4698,7 +4749,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       this.addHookOnce('afterScroll', callback);
     }
 
-    const { highlight } = this.getSelectedRangeLast();
+    const { highlight } = this.getSelectedRangeActive();
     const isScrolled = this.scrollViewportTo(highlight.toObject());
 
     if (isScrolled) {

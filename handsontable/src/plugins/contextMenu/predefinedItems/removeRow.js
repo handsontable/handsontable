@@ -33,7 +33,7 @@ export default function removeRowItem() {
       this.alter('remove_row', transformSelectionToRowDistance(this), 1, 'ContextMenu.removeRow');
     },
     disabled() {
-      const range = this.getSelectedRangeLast();
+      const range = this.getSelectedRangeActive();
 
       if (!range) {
         return true;

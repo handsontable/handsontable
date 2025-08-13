@@ -18,7 +18,7 @@ export default function copyItem(copyPastePlugin) {
         return true;
       }
 
-      const range = this.getSelectedRangeLast();
+      const range = this.getSelectedRangeActive();
 
       if (!range) {
         return true;

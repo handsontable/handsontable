@@ -792,7 +792,7 @@ export class CustomBorders extends BasePlugin {
         return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_BORDERS);
       },
       disabled() {
-        const range = this.getSelectedRangeLast();
+        const range = this.getSelectedRangeActive();
 
         if (!range) {
           return true;
