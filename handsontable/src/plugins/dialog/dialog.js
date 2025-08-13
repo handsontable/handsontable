@@ -28,13 +28,13 @@ Hooks.getSingleton().register('afterDialogFocus');
  * In order to enable the dialog mechanism, {@link Options#dialog} option must be set to `true`.
  *
  * The plugin provides several configuration options to customize the dialog behavior and appearance:
- * - `content`: The string or HTMLElement content to display in the dialog
- * - `customClassName`: Custom class name to apply to the dialog
+ * - `content`: The string or HTMLElement content to display in the dialog (default: '')
+ * - `customClassName`: Custom class name to apply to the dialog (default: '')
  * - `background`: Dialog background variant 'solid' | 'semi-transparent' (default: 'solid')
- * - `contentBackground`: Whether to show content background
+ * - `contentBackground`: Whether to show content background (default: false)
  * - `contentDirections`: Content layout direction 'row' | 'row-reverse' | 'column' | 'column-reverse' (default: 'row')
- * - `animation`: Whether to enable animations
- * - `closable`: Whether the dialog can be closed
+ * - `animation`: Whether to enable animations (default: true)
+ * - `closable`: Whether the dialog can be closed (default: false)
  *
  * @example
  *
