@@ -328,7 +328,6 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterDeselect: () => {},
   afterDestroy: () => {},
   afterDetachChild: (parent, element) => {},
-  afterDialogClose: () => {},
   afterDialogFocus: (focusSource) => {},
   afterDialogHide: () => {},
   afterDialogShow: () => {},
