@@ -186,8 +186,6 @@ export interface Events {
   beforeCreateRow?: (index: number, amount: number, source?: ChangeSource) => void | boolean;
   beforeCut?: (data: CellValue[][], coords: RangeType[]) => void | boolean;
   beforeDetachChild?: (parent: RowObject, element: RowObject) => void;
-  dialogFocusNextElement?: () => void;
-  dialogFocusPreviousElement?: () => void;
   beforeDrawBorders?: (corners: number[], borderClassName: 'current' | 'area' | 'highlight' | undefined) => void;
   beforeDropdownMenuSetItems?: (menuItems: ContextMenuMenuItemConfig[]) => void;
   beforeDropdownMenuShow?: (instance: DropdownMenu) => void;
@@ -251,6 +249,8 @@ export interface Events {
   beforeViewRender?: (isForced: boolean, skipRender: { skipRender?: boolean }) => void;
   beforeWidthChange?: (width: number | string) => number | string;
   construct?: () => void;
+  dialogFocusNextElement?: () => void;
+  dialogFocusPreviousElement?: () => void;
   init?: () => void;
   modifyAutoColumnSizeSeed?: (seed: string, cellProperties: CellProperties, cellValue: CellValue) => string | void;
   modifyAutofillRange?: (startArea: Array<[number, number, number, number]>, entireArea: Array<[number, number, number, number]>) => void;
@@ -264,7 +264,6 @@ export interface Events {
   modifyData?: (row: number, column: number, valueHolder: { value: CellValue }, ioMode: 'get' | 'set') => void;
   modifyFocusOnTabNavigation?: (tabActivationDir: 'from_above' | 'from_below', visualCoords: CellCoords) => void;
   modifyGetCellCoords?: (row: number, column: number, topmost: boolean, source: string | undefined) => void | [number, number] | [number, number, number, number];
-  tableFocusExit?: (exitDirection: 'top' | 'bottom') => void;
   modifyGetCoordsElement?: (row: number, column: number) => void | [number, number];
   modifyRowData?: (row: number) => void;
   modifyRowHeader?: (row: number) => void;
@@ -278,6 +277,7 @@ export interface Events {
   persistentStateLoad?: (key: string, valuePlaceholder: { value: any }) => void;
   persistentStateReset?: (key: string) => void;
   persistentStateSave?: (key: string, value: any) => void;
+  tableFocusExit?: (exitDirection: 'top' | 'bottom') => void;
 }
 
 export class Hooks {
