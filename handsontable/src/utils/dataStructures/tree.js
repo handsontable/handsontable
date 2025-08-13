@@ -194,7 +194,7 @@ export default class TreeNode {
    */
   walkDown(callback, traversalStrategy = DEFAULT_TRAVERSAL_STRATEGY) {
     if (!TRAVERSAL_STRATEGIES.has(traversalStrategy)) {
-      throw new Error(`Traversal strategy "${traversalStrategy}" does not exist`);
+      throw new Error(`Traversal strategy "${traversalStrategy}" does not exist`, { cause: { handsontable: true } });
     }
 
     TRAVERSAL_STRATEGIES.get(traversalStrategy).call(this, callback, this);

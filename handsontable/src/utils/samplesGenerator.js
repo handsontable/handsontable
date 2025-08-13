@@ -147,7 +147,7 @@ class SamplesGenerator {
    */
   generateSample(type, range, specifierValue) {
     if (type !== 'row' && type !== 'col') {
-      throw new Error('Unsupported sample type');
+      throw new Error('Unsupported sample type', { cause: { handsontable: true } });
     }
 
     const samples = new Map();

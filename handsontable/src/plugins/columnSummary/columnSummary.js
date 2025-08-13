@@ -468,7 +468,7 @@ export class ColumnSummary extends BasePlugin {
     if (isNaN(cellValue)) {
       if (!this.endpoints.currentEndpoint.suppressDataTypeErrors) {
         throw new Error(toSingleLine`ColumnSummary plugin: cell at (${row}, ${col}) is not in a\x20
-          numeric format. Cannot do the calculation.`);
+          numeric format. Cannot do the calculation.`, { cause: { handsontable: true } });
       }
     }
 

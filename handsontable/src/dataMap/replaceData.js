@@ -96,7 +96,7 @@ function replaceData(data, setDataMapFunction, callbackFunction, config) {
     }
 
   } else {
-    throw new Error(`${internalSource} only accepts array of objects or array of arrays (${typeof data} given)`);
+    throw new Error(`${internalSource} only accepts array of objects or array of arrays (${typeof data} given)`, { cause: { handsontable: true } });
   }
 
   if (Array.isArray(data[0])) {

@@ -149,7 +149,7 @@ export function mixin(Base, ...mixins) {
 
     objectEach(mixinItem, (value, key) => {
       if (Base.prototype[key] !== undefined) {
-        throw new Error(`Mixin conflict. Property '${key}' already exist and cannot be overwritten.`);
+        throw new Error(`Mixin conflict. Property '${key}' already exist and cannot be overwritten.`, { cause: { handsontable: true } });
       }
       if (typeof value === 'function') {
         Base.prototype[key] = value;

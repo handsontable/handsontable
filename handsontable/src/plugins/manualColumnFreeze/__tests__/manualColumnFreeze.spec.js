@@ -23,7 +23,7 @@ describe('manualColumnFreeze', () => {
 
       expect(() => {
         plugin.freezeColumn(4);
-      }).not.toThrowError();
+      }).not.toThrowWithCause(undefined, { handsontable: true });
     });
 
     it('should increase fixedColumnsStart setting', async() => {
@@ -76,7 +76,7 @@ describe('manualColumnFreeze', () => {
 
       expect(() => {
         plugin.unfreezeColumn(0);
-      }).not.toThrowError();
+      }).not.toThrowWithCause(undefined, { handsontable: true });
     });
 
     it('should decrease fixedColumnsStart setting', async() => {

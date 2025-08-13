@@ -217,7 +217,7 @@ export class InlineStartOverlay extends Overlay {
       this.spreader.style[styleProperty] = '0';
 
     } else {
-      throw new Error('Incorrect value of the columnsRenderCalculator');
+      throw new Error('Incorrect value of the columnsRenderCalculator', { cause: { handsontable: true } });
     }
 
     if (this.isRtl()) {

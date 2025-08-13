@@ -36,15 +36,15 @@ describe('NodeModifiers', () => {
       expect(() => {
         // A1
         triggerNodeModification('show-column', tree.getNode(0, 0), 0);
-      }).toThrowError(expectedErrorMsg);
+      }).toThrowWithCause(expectedErrorMsg, { handsontable: true });
       expect(() => {
         // F1
         triggerNodeModification('show-column', tree.getNode(0, 5), 0);
-      }).toThrowError(expectedErrorMsg);
+      }).toThrowWithCause(expectedErrorMsg, { handsontable: true });
       expect(() => {
         // B2
         triggerNodeModification('show-column', tree.getNode(1, 1), 0);
-      }).not.toThrowError(expectedErrorMsg);
+      }).not.toThrowWithCause(expectedErrorMsg, { handsontable: true });
     });
 
     it('should throw an error when the grid column index is not a number', () => {
@@ -67,19 +67,19 @@ describe('NodeModifiers', () => {
 
       expect(() => {
         triggerNodeModification('show-column', tree.getNode(1, 0));
-      }).toThrowError(expectedErrorMsg);
+      }).toThrowWithCause(expectedErrorMsg, { handsontable: true });
       expect(() => {
         triggerNodeModification('show-column', tree.getNode(1, 0), null);
-      }).toThrowError(expectedErrorMsg);
+      }).toThrowWithCause(expectedErrorMsg, { handsontable: true });
       expect(() => {
         triggerNodeModification('show-column', tree.getNode(1, 0), '1');
-      }).toThrowError(expectedErrorMsg);
+      }).toThrowWithCause(expectedErrorMsg, { handsontable: true });
       expect(() => {
         triggerNodeModification('show-column', tree.getNode(1, 0), 1.5);
-      }).toThrowError(expectedErrorMsg);
+      }).toThrowWithCause(expectedErrorMsg, { handsontable: true });
       expect(() => {
         triggerNodeModification('show-column', tree.getNode(1, 0), 1);
-      }).not.toThrowError(expectedErrorMsg);
+      }).not.toThrowWithCause(expectedErrorMsg, { handsontable: true });
     });
 
     describe('variant #1 (basic example)', () => {

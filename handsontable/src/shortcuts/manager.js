@@ -81,7 +81,7 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
   const setActiveContextName = (contextName) => {
     if (!CONTEXTS.hasItem(contextName)) {
       throw new Error(toSingleLine`You've tried to activate the "${contextName}" shortcut context\x20
-        that does not exist. Before activation, register the context using the "addContext" method.`);
+        that does not exist. Before activation, register the context using the "addContext" method.`, { cause: { handsontable: true } });
     }
 
     activeContextName = contextName;

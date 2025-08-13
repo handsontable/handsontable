@@ -19,7 +19,7 @@ function _getItem(name) {
     return name;
   }
   if (!hasItem(name)) {
-    throw Error(`No registered validator found under "${name}" name`);
+    throw Error(`No registered validator found under "${name}" name`, { cause: { handsontable: true } });
   }
 
   return getItem(name);

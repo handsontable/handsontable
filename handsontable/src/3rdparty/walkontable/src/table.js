@@ -561,13 +561,13 @@ class Table {
     const TR = this.getRow(row);
 
     if (!TR && row >= 0) {
-      throw new Error('TR was expected to be rendered but is not');
+      throw new Error('TR was expected to be rendered but is not', { cause: { handsontable: true } });
     }
 
     const TD = TR.childNodes[this.columnFilter.sourceColumnToVisibleRowHeadedColumn(column)];
 
     if (!TD && column >= 0) {
-      throw new Error('TD or TH was expected to be rendered but is not');
+      throw new Error('TD or TH was expected to be rendered but is not', { cause: { handsontable: true } });
     }
 
     return TD;

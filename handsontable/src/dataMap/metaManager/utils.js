@@ -104,7 +104,7 @@ export function isUnsignedNumber(value) {
  */
 export function assert(condition, errorMessage) {
   if (!condition()) {
-    throw new Error(`Assertion failed: ${errorMessage}`);
+    throw new Error(`Assertion failed: ${errorMessage}`, { cause: { handsontable: true } });
   }
 }
 

@@ -899,7 +899,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
           }
           break;
         default:
-          throw new Error(`There is no such action "${action}"`);
+          throw new Error(`There is no such action "${action}"`, { cause: { handsontable: true } });
       }
 
       if (!keepEmptyRows) {
@@ -1412,7 +1412,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
         instance.validateCell(changes[i][3], cellProperties, (function(index, cellPropertiesReference) {
           return function(result) {
             if (typeof result !== 'boolean') {
-              throw new Error('Validation error: result is not boolean');
+              throw new Error('Validation error: result is not boolean', { cause: { handsontable: true } });
             }
 
             if (result === false && cellPropertiesReference.allowInvalid === false) {
@@ -1716,10 +1716,10 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
     for (i = 0, ilen = input.length; i < ilen; i++) {
       if (typeof input[i] !== 'object') {
-        throw new Error('Method `setDataAtCell` accepts row number or changes array of arrays as its first parameter');
+        throw new Error('Method `setDataAtCell` accepts row number or changes array of arrays as its first parameter', { cause: { handsontable: true } });
       }
       if (typeof input[i][1] !== 'number') {
-        throw new Error('Method `setDataAtCell` accepts row and column number as its parameters. If you want to use object property name, use method `setDataAtRowProp`'); // eslint-disable-line max-len
+        throw new Error('Method `setDataAtCell` accepts row and column number as its parameters. If you want to use object property name, use method `setDataAtRowProp`', { cause: { handsontable: true } }); // eslint-disable-line max-len
       }
 
       if (input[i][1] >= this.countCols()) {
@@ -1877,7 +1877,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    */
   this.populateFromArray = function(row, column, input, endRow, endCol, source, method) {
     if (!(typeof input === 'object' && typeof input[0] === 'object')) {
-      throw new Error('populateFromArray parameter `input` must be an array of arrays'); // API changed in 0.9-beta2, let's check if you use it correctly
+      throw new Error('populateFromArray parameter `input` must be an array of arrays', { cause: { handsontable: true } }); // API changed in 0.9-beta2, let's check if you use it correctly
     }
 
     const c = typeof endRow === 'number' ? instance._createCellCoords(endRow, endCol) : null;
@@ -2683,13 +2683,13 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     let j;
 
     if (isDefined(settings.rows)) {
-      throw new Error('The "rows" setting is no longer supported. Do you mean startRows, minRows or maxRows?');
+      throw new Error('The "rows" setting is no longer supported. Do you mean startRows, minRows or maxRows?', { cause: { handsontable: true } });
     }
     if (isDefined(settings.cols)) {
-      throw new Error('The "cols" setting is no longer supported. Do you mean startCols, minCols or maxCols?');
+      throw new Error('The "cols" setting is no longer supported. Do you mean startCols, minCols or maxCols?', { cause: { handsontable: true } });
     }
     if (isDefined(settings.ganttChart)) {
-      throw new Error('Since 8.0.0 the "ganttChart" setting is no longer supported.');
+      throw new Error('Since 8.0.0 the "ganttChart" setting is no longer supported.', { cause: { handsontable: true } });
     }
 
     // eslint-disable-next-line no-restricted-syntax
@@ -3492,7 +3492,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    */
   this.spliceCellsMeta = function(visualIndex, deleteAmount = 0, ...cellMetaRows) {
     if (cellMetaRows.length > 0 && !Array.isArray(cellMetaRows[0])) {
-      throw new Error('The 3rd argument (cellMetaRows) has to be passed as an array of cell meta objects array.');
+      throw new Error('The 3rd argument (cellMetaRows) has to be passed as an array of cell meta objects array.', { cause: { handsontable: true } });
     }
 
     if (deleteAmount > 0) {
@@ -3777,7 +3777,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    */
   this.validateRows = function(rows, callback) {
     if (!Array.isArray(rows)) {
-      throw new Error('validateRows parameter `rows` must be an array');
+      throw new Error('validateRows parameter `rows` must be an array', { cause: { handsontable: true } });
     }
     this._validateCells(callback, rows);
   };
@@ -3803,7 +3803,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    */
   this.validateColumns = function(columns, callback) {
     if (!Array.isArray(columns)) {
-      throw new Error('validateColumns parameter `columns` must be an array');
+      throw new Error('validateColumns parameter `columns` must be an array', { cause: { handsontable: true } });
     }
     this._validateCells(callback, undefined, columns);
   };
@@ -3847,7 +3847,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
         instance.validateCell(instance.getDataAtCell(i, j), instance.getCellMeta(i, j), (result) => {
           if (typeof result !== 'boolean') {
-            throw new Error('Validation error: result is not boolean');
+            throw new Error('Validation error: result is not boolean', { cause: { handsontable: true } });
           }
           if (result === false) {
             waitingForValidator.valid = false;
@@ -4860,7 +4860,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    */
   function postMortem(method) {
     return () => {
-      throw new Error(`The "${method}" method cannot be called because this Handsontable instance has been destroyed`);
+      throw new Error(`The "${method}" method cannot be called because this Handsontable instance has been destroyed`, { cause: { handsontable: true } });
     };
   }
 

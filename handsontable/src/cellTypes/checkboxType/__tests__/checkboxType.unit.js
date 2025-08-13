@@ -22,22 +22,22 @@ describe('CheckboxCellType', () => {
       expect(getRegisteredEditorNames()).toEqual([]);
       expect(() => {
         getEditor('checkbox');
-      }).toThrowError();
+      }).toThrow();
 
       expect(getRegisteredRendererNames()).toEqual([]);
       expect(() => {
         getRenderer('checkbox');
-      }).toThrowError();
+      }).toThrow();
 
       expect(getRegisteredValidatorNames()).toEqual([]);
       expect(() => {
         getValidator('checkbox');
-      }).toThrowError();
+      }).toThrow();
 
       expect(getRegisteredCellTypeNames()).toEqual([]);
       expect(() => {
         getCellType('checkbox');
-      }).toThrowError();
+      }).toThrow();
     });
     it('should register cell type', () => {
       registerCellType(CELL_TYPE, CheckboxCellType);

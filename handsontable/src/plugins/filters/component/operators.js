@@ -86,7 +86,7 @@ export class OperatorsComponent extends BaseComponent {
    */
   setChecked(searchedIndex) {
     if (this.elements.length < searchedIndex) {
-      throw Error(toSingleLine`Radio button with index ${searchedIndex} doesn't exist.`);
+      throw Error(toSingleLine`Radio button with index ${searchedIndex} doesn't exist.`, { cause: { handsontable: true } });
     }
 
     arrayEach(this.elements, (element, index) => {

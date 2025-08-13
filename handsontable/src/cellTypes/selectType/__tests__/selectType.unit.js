@@ -25,22 +25,22 @@ describe('SelectCellType', () => {
       expect(getRegisteredEditorNames()).toEqual([]);
       expect(() => {
         getEditor('select');
-      }).toThrowError();
+      }).toThrow();
 
       expect(getRegisteredRendererNames()).toEqual([]);
       expect(() => {
         getRenderer('select');
-      }).toThrowError();
+      }).toThrow();
 
       expect(getRegisteredValidatorNames()).toEqual([]);
       expect(() => {
         getValidator('select');
-      }).toThrowError();
+      }).toThrow();
 
       expect(getRegisteredCellTypeNames()).toEqual([]);
       expect(() => {
         getCellType('select');
-      }).toThrowError();
+      }).toThrow();
     });
     it('should register cell type', () => {
       registerCellType(CELL_TYPE, SelectCellType);

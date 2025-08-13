@@ -58,11 +58,11 @@ export function _getEditorInstance(name, hotInstance) {
     editor = getItem(name);
 
   } else {
-    throw Error('Only strings and functions can be passed as "editor" parameter');
+    throw Error('Only strings and functions can be passed as "editor" parameter', { cause: { handsontable: true } });
   }
 
   if (!editor) {
-    throw Error(`No editor registered under name "${name}"`);
+    throw Error(`No editor registered under name "${name}"`, { cause: { handsontable: true } });
   }
 
   return editor.getInstance(hotInstance);
@@ -79,7 +79,7 @@ function _getItem(name) {
     return name;
   }
   if (!hasItem(name)) {
-    throw Error(`No registered editor found under "${name}" name`);
+    throw Error(`No registered editor found under "${name}" name`, { cause: { handsontable: true } });
   }
 
   return getItem(name).getConstructor();

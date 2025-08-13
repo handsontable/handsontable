@@ -14,7 +14,7 @@ const strategies = new Map([
  */
 export function createPaginatorStrategy(strategyType) {
   if (!strategies.has(strategyType)) {
-    throw new Error(`Unknown pagination strategy type: ${strategyType}`);
+    throw new Error(`Unknown pagination strategy type: ${strategyType}`, { cause: { handsontable: true } });
   }
 
   const Strategy = strategies.get(strategyType);

@@ -25,13 +25,13 @@ describe('shortcutManager', () => {
 
     expect(() => {
       shortcutManager.addContext('grid');
-    }).toThrowError();
+    }).toThrowWithCause(undefined, { handsontable: true });
 
     shortcutManager.addContext('name');
 
     expect(() => {
       shortcutManager.addContext('name');
-    }).toThrowError();
+    }).toThrowWithCause(undefined, { handsontable: true });
   });
 
   describe('should properly determine whether key is pressed (public method)', () => {

@@ -30,7 +30,7 @@ const availableModifiers = new Map([
  */
 export function triggerNodeModification(actionName, nodeToProcess, gridColumnIndex) {
   if (!availableModifiers.has(actionName)) {
-    throw new Error(`The node modifier action ("${actionName}") does not exist.`);
+    throw new Error(`The node modifier action ("${actionName}") does not exist.`, { cause: { handsontable: true } });
   }
 
   return availableModifiers.get(actionName)(nodeToProcess, gridColumnIndex);

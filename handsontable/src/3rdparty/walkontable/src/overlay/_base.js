@@ -278,7 +278,7 @@ export class Overlay {
    */
   makeClone() {
     if (CLONE_TYPES.indexOf(this.type) === -1) {
-      throw new Error(`Clone type "${this.type}" is not supported.`);
+      throw new Error(`Clone type "${this.type}" is not supported.`, { cause: { handsontable: true } });
     }
     const {
       wtTable,

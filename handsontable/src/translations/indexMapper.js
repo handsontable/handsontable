@@ -226,7 +226,7 @@ export class IndexMapper {
    */
   createChangesObserver(indexMapType) {
     if (indexMapType !== 'hiding') {
-      throw new Error(`Unsupported index map type "${indexMapType}".`);
+      throw new Error(`Unsupported index map type "${indexMapType}".`, { cause: { handsontable: true } });
     }
 
     return this.hidingChangesObservable.createObserver();
@@ -255,7 +255,7 @@ export class IndexMapper {
     if (this.trimmingMapsCollection.get(uniqueName) ||
         this.hidingMapsCollection.get(uniqueName) ||
         this.variousMapsCollection.get(uniqueName)) {
-      throw Error(`Map with name "${uniqueName}" has been already registered.`);
+      throw Error(`Map with name "${uniqueName}" has been already registered.`, { cause: { handsontable: true } });
     }
 
     if (indexMap instanceof TrimmingMap) {

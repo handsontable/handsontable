@@ -450,7 +450,7 @@ export class Comments extends BasePlugin {
    */
   setComment(value) {
     if (!this.range.from) {
-      throw new Error('Before using this method, first set cell range (hot.getPlugin("comment").setRange())');
+      throw new Error('Before using this method, first set cell range (hot.getPlugin("comment").setRange())', { cause: { handsontable: true } });
     }
     const editorValue = this.#editor.getValue();
     let comment = '';
@@ -488,7 +488,7 @@ export class Comments extends BasePlugin {
    */
   removeComment(forceRender = true) {
     if (!this.range.from) {
-      throw new Error('Before using this method, first set cell range (hot.getPlugin("comment").setRange())');
+      throw new Error('Before using this method, first set cell range (hot.getPlugin("comment").setRange())', { cause: { handsontable: true } });
     }
 
     const { row, col } = this.#getRangeCoords();
@@ -545,7 +545,7 @@ export class Comments extends BasePlugin {
    */
   show() {
     if (!this.range.from) {
-      throw new Error('Before using this method, first set cell range (hot.getPlugin("comment").setRange())');
+      throw new Error('Before using this method, first set cell range (hot.getPlugin("comment").setRange())', { cause: { handsontable: true } });
     }
 
     const { row, col } = this.#getRangeCoords();

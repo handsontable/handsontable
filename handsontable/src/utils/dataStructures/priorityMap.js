@@ -37,10 +37,10 @@ export function createPriorityMap({ errorPriorityExists, errorPriorityNaN } = {}
    */
   function addItem(priority, item) {
     if (!isNumeric(priority)) {
-      throw new Error(errorPriorityNaN(priority));
+      throw new Error(errorPriorityNaN(priority), { cause: { handsontable: true } });
     }
     if (priorityMap.has(priority)) {
-      throw new Error(errorPriorityExists(priority));
+      throw new Error(errorPriorityExists(priority), { cause: { handsontable: true } });
     }
 
     priorityMap.set(priority, item);

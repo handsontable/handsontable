@@ -26,7 +26,7 @@ export function createUniqueSet({ errorItemExists } = {}) {
    */
   function addItem(item) {
     if (uniqueSet.has(item)) {
-      throw new Error(errorItemExists(item));
+      throw new Error(errorItemExists(item), { cause: { handsontable: true } });
     }
 
     uniqueSet.add(item);

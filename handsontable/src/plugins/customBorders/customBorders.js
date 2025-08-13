@@ -766,11 +766,11 @@ export class CustomBorders extends BasePlugin {
 
     if (hasLeftOrRight && hasStartOrEnd) {
       throw new Error('The "left"/"right" and "start"/"end" options should not be used together. ' +
-                      'Please use only the option "start"/"end".');
+                      'Please use only the option "start"/"end".', { cause: { handsontable: true } });
     }
 
     if (this.hot.isRtl() && hasLeftOrRight) {
-      throw new Error('The "left"/"right" properties are not supported for RTL. Please use option "start"/"end".');
+      throw new Error('The "left"/"right" properties are not supported for RTL. Please use option "start"/"end".', { cause: { handsontable: true } });
     }
   }
 

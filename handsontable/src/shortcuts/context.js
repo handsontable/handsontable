@@ -67,17 +67,17 @@ export const createContext = (name) => {
     } = {}) => {
 
     if (isUndefined(group)) {
-      throw new Error('You need to define the shortcut\'s group.');
+      throw new Error('You need to define the shortcut\'s group.', { cause: { handsontable: true } });
     }
 
     if (isFunction(callback) === false) {
-      throw new Error('The shortcut\'s callback needs to be a function.');
+      throw new Error('The shortcut\'s callback needs to be a function.', { cause: { handsontable: true } });
     }
 
     if (Array.isArray(keys) === false) {
       throw new Error(toSingleLine`Pass the shortcut\'s keys as an array of arrays,\x20
       using the KeyboardEvent.key properties:\x20
-      https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values.`);
+      https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values.`, { cause: { handsontable: true } });
     }
 
     const newShortcut = {

@@ -109,7 +109,7 @@ export default class Settings {
         this.settings[key] = settings[key];
 
       } else if (value === undefined) {
-        throw new Error(`A required setting "${key}" was not provided`);
+        throw new Error(`A required setting "${key}" was not provided`, { cause: { handsontable: true } });
 
       } else {
         this.settings[key] = value;

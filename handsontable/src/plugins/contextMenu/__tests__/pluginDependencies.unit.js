@@ -19,10 +19,10 @@ describe('ContextMenu', () => {
 
       expect(() => {
         hot = new Handsontable(document.createElement('div'), {});
-      }).toThrowError(`The ContextMenu plugin requires the following modules:
+      }).toThrowWithCause(`The ContextMenu plugin requires the following modules:
  - AutoColumnSize (plugin)
 
-You have to import and register them manually.`);
+You have to import and register them manually.`, { handsontable: true });
       expect(hot).toBeUndefined();
     });
   });
