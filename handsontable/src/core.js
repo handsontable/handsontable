@@ -361,10 +361,6 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
   this.rootElement.insertBefore(this.container, this.rootElement.firstChild);
 
-  if (isRootInstance(this)) {
-    _injectProductInfo(userSettings.licenseKey, this.rootWrapperElement);
-  }
-
   this.guid = `ht_${randomString()}`; // this is the namespace for global events
 
   foreignHotInstances.set(this.guid, this);
@@ -1285,6 +1281,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     if (isRootInstance(this)) {
       installFocusCatcher(instance);
       installAccessibilityAnnouncer(instance.rootPortalElement);
+      _injectProductInfo(userSettings.licenseKey, this.rootWrapperElement);
     }
 
     instance.runHooks('init');
