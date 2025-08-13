@@ -34,7 +34,12 @@ import { Hooks } from './core/hooks';
 import { hasLanguageDictionary, getValidLanguageCode, getTranslatedPhrase } from './i18n/registry';
 import { warnUserAboutLanguageRegistration, normalizeLanguageCode } from './i18n/utils';
 import { Selection } from './selection';
-import { MetaManager, DynamicCellMetaMod, ExtendMetaPropertiesMod, replaceData } from './dataMap';
+import {
+  MetaManager,
+  DynamicCellMetaMod,
+  ExtendMetaPropertiesMod,
+  replaceData,
+} from './dataMap';
 import {
   installFocusCatcher,
   createViewportScroller,
@@ -171,6 +176,11 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   let viewportScroller;
   let firstRun = true;
 
+  const mergedUserSettings = {
+    ...userSettings.initialState,
+    ...userSettings,
+  };
+
   if (hasValidParameter(rootInstanceSymbol)) {
     registerAsRootInstance(this);
   }
@@ -271,7 +281,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    */
   this.executionSuspendedCounter = 0;
 
-  const layoutDirection = userSettings?.layoutDirection ?? 'inherit';
+  const layoutDirection = mergedUserSettings?.layoutDirection ?? 'inherit';
   const rootElementDirection = ['rtl', 'ltr'].includes(layoutDirection) ?
     layoutDirection : this.rootWindow.getComputedStyle(this.rootElement).direction;
 
@@ -341,10 +351,10 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     }
   });
 
-  userSettings.language = getValidLanguageCode(userSettings.language);
+  mergedUserSettings.language = getValidLanguageCode(mergedUserSettings.language);
 
   const settingsWithoutHooks = Object.fromEntries(
-    Object.entries(userSettings).filter(([key]) => {
+    Object.entries(mergedUserSettings).filter(([key]) => {
       return !(Hooks.getSingleton().isRegistered(key) || Hooks.getSingleton().isDeprecated(key));
     })
   );
@@ -1270,7 +1280,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       addClass(instance.rootElement, 'mobile');
     }
 
-    this.updateSettings(userSettings, true);
+    this.updateSettings(mergedUserSettings, true);
 
     this.view = new TableView(this);
 
@@ -1281,7 +1291,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     if (isRootInstance(this)) {
       installFocusCatcher(instance);
       installAccessibilityAnnouncer(instance.rootPortalElement);
-      _injectProductInfo(userSettings.licenseKey, this.rootWrapperElement);
+      _injectProductInfo(mergedUserSettings.licenseKey, this.rootWrapperElement);
     }
 
     instance.runHooks('init');

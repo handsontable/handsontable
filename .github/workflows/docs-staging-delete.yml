@@ -51,7 +51,7 @@ jobs:
           cd netlify
           npm i
 
-      - name: Run the delete proccess
+      - name: Run the delete process
         run: |
           cd netlify
           node deleteIfExist.mjs

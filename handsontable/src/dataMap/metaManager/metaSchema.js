@@ -2676,6 +2676,29 @@ export default () => {
     hiddenRows: undefined,
 
     /**
+     * The `initialState` option configures the grid's initial state.
+     * This object accepts any grid configuration option. In case of conflicts between
+     * `initialState` and table settings, the table settings take precedence.
+     * Note: The `initialState` option is ignored when passed to the
+     * [`updateSettings()`](@/api/core.md#updatesettings) method.
+     *
+     * @since 16.1.0
+     * @memberof Options#
+     * @type {object | undefined}
+     * @default undefined
+     * @category Core
+     *
+     * @example
+     * ```js
+     * initialState: {
+     *   // configure initial column order
+     *   manualColumnMove: [1, 0],
+     * },
+     * ```
+     */
+    initialState: undefined,
+
+    /**
      * The `invalidCellClassName` option lets you add a CSS class name to cells
      * that were marked as `invalid` by the [cell validator](@/guides/cell-functions/cell-validator/cell-validator.md).
      *

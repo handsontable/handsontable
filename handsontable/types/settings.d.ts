@@ -161,6 +161,7 @@ export interface GridSettings extends Events {
   height?: number | string | (() => number | string);
   hiddenColumns?: HiddenColumnsSettings;
   hiddenRows?: HiddenRowsSettings;
+  initialState?: Partial<GridSettings>;
   invalidCellClassName?: string;
   imeFastEdit?: boolean;
   isEmptyCol?: (this: Core, column: number) => boolean;
