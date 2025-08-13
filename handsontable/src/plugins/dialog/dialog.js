@@ -343,8 +343,12 @@ export class Dialog extends BasePlugin {
 
     this.hot.runHooks('afterDialogShow');
 
-    this.#ui.focusDialog();
-    this.hot.runHooks('afterDialogFocus', 'show');
+    const { activeElement } = this.hot.rootDocument;
+
+    if (this.hot.rootWrapperElement.contains(activeElement)) {
+      this.#ui.focusDialog();
+      this.hot.runHooks('afterDialogFocus', 'show');
+    }
   }
 
   /**
