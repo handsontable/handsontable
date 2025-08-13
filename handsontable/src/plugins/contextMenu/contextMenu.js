@@ -195,7 +195,7 @@ export class ContextMenu extends BasePlugin {
       .addShortcut({
         keys: [['Control/Meta', 'Shift', 'Backslash'], ['Shift', 'F10']],
         callback: () => {
-          const { highlight } = this.hot.getSelectedRangeLast();
+          const { highlight } = this.hot.getSelectedRangeActive();
 
           this.hot.scrollToFocusedCell();
 
@@ -214,7 +214,7 @@ export class ContextMenu extends BasePlugin {
           this.menu.getNavigator().toFirstItem();
         },
         runOnlyIf: () => {
-          const highlight = this.hot.getSelectedRangeLast()?.highlight;
+          const highlight = this.hot.getSelectedRangeActive()?.highlight;
 
           return highlight && this.hot.selection.isCellVisible(highlight) && !this.menu.isOpened();
         },

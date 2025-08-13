@@ -312,7 +312,6 @@ class TableView {
       this.#selectionMouseDown = true;
 
       if (!this.isTextSelectionAllowed(event.target)) {
-
         clearTextSelection(rootWindow);
         event.preventDefault();
         rootWindow.focus(); // make sure that window that contains HOT is active. Important when HOT is in iframe.
@@ -1269,15 +1268,20 @@ class TableView {
     if (isInput(el)) {
       return true;
     }
+
     const isChildOfTableBody = isChildOf(el, this._wt.wtTable.spreader);
 
     if (this.settings.fragmentSelection === true && isChildOfTableBody) {
       return true;
     }
-    if (this.settings.fragmentSelection === 'cell' && this.isSelectedOnlyCell() && isChildOfTableBody) {
+
+    const isSingleCell = this.hot.getSelectedRangeActive()?.isSingleCell() ?? false;
+
+    if (this.settings.fragmentSelection === 'cell' && isSingleCell && isChildOfTableBody) {
       return true;
     }
-    if (!this.settings.fragmentSelection && this.isCellEdited() && this.isSelectedOnlyCell()) {
+
+    if (!this.settings.fragmentSelection && this.isCellEdited() && isSingleCell) {
       return true;
     }
 
@@ -1292,16 +1296,6 @@ class TableView {
    */
   isMouseDown() {
     return this.#mouseDown;
-  }
-
-  /**
-   * Check if selected only one cell.
-   *
-   * @private
-   * @returns {boolean}
-   */
-  isSelectedOnlyCell() {
-    return this.hot.getSelectedRangeLast()?.isSingleCell() ?? false;
   }
 
   /**

@@ -50,6 +50,32 @@ describe('CheckboxRenderer', () => {
         .toHaveBeenCalledWith([[0, 0, true, false]], 'edit');
     });
 
+    it('should be possible to change the state of the cell in the active selection layer', async() => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        navigableHeaders: true,
+        data: [
+          [true], [true], [true], [true], [true], [true],
+        ],
+        columns: [
+          { type: 'checkbox' }
+        ]
+      });
+
+      await simulateClick(getCell(1, 0));
+      await keyDown('control/meta');
+      await simulateClick(getCell(3, -1));
+      await keyDownUp('control/meta');
+      await keyDownUp(['shift', 'tab']); // select the previous selection layer
+
+      await keyDownUp(key);
+
+      expect(getData()).toEqual([
+        [true], [false], [true], [false], [true], [true],
+      ]);
+    });
+
     it('should change state to unchecked (from #bad-value# state)', async() => {
       handsontable({
         data: [['foo'], ['bar']],

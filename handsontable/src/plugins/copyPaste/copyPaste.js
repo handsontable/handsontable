@@ -403,7 +403,7 @@ export class CopyPaste extends BasePlugin {
    * Prepares copyable text from the cells selection in the invisible textarea.
    */
   setCopyableText() {
-    const selectionRange = this.hot.getSelectedRangeLast();
+    const selectionRange = this.hot.getSelectedRangeActive();
 
     if (!selectionRange) {
       return;
@@ -472,10 +472,10 @@ export class CopyPaste extends BasePlugin {
   #ensureClipboardEventsGetTriggered(eventName) {
     // Without this workaround Safari (tested on Safari@16.5.2) does not trigger the 'copy' event.
     if (isSafari()) {
-      const lastSelectedRange = this.hot.getSelectedRangeLast();
+      const activeSelectedRange = this.hot.getSelectedRangeActive();
 
-      if (lastSelectedRange) {
-        const { row: highlightRow, col: highlightColumn } = lastSelectedRange.highlight;
+      if (activeSelectedRange) {
+        const { row: highlightRow, col: highlightColumn } = activeSelectedRange.highlight;
         const currentlySelectedCell = this.hot.getCell(highlightRow, highlightColumn, true);
 
         if (currentlySelectedCell) {
@@ -523,7 +523,7 @@ export class CopyPaste extends BasePlugin {
    * @param {Array} [selection] The selection which indicates from what position the data will be populated.
    * @returns {Array} Range coordinates after populate data.
    */
-  populateValues(inputArray, selection = this.hot.getSelectedRangeLast()) {
+  populateValues(inputArray, selection = this.hot.getSelectedRangeActive()) {
     if (!inputArray.length) {
       return [null, null, null, null];
     }
@@ -589,10 +589,10 @@ export class CopyPaste extends BasePlugin {
    */
   #addContentEditableToHighlightedCell() {
     if (this.hot.isListening()) {
-      const lastSelectedRange = this.hot.getSelectedRangeLast();
+      const activeSelectedRange = this.hot.getSelectedRangeActive();
 
-      if (lastSelectedRange) {
-        const { row: highlightRow, col: highlightColumn } = lastSelectedRange.highlight;
+      if (activeSelectedRange) {
+        const { row: highlightRow, col: highlightColumn } = activeSelectedRange.highlight;
         const currentlySelectedCell = this.hot.getCell(highlightRow, highlightColumn, true);
 
         if (currentlySelectedCell) {
@@ -608,10 +608,10 @@ export class CopyPaste extends BasePlugin {
   #removeContentEditableFromHighlightedCell() {
     // If the instance is not listening, the workaround is not needed.
     if (this.hot.isListening()) {
-      const lastSelectedRange = this.hot.getSelectedRangeLast();
+      const activeSelectedRange = this.hot.getSelectedRangeActive();
 
-      if (lastSelectedRange) {
-        const { row: highlightRow, col: highlightColumn } = lastSelectedRange.highlight;
+      if (activeSelectedRange) {
+        const { row: highlightRow, col: highlightColumn } = activeSelectedRange.highlight;
         const currentlySelectedCell = this.hot.getCell(highlightRow, highlightColumn, true);
 
         if (currentlySelectedCell?.hasAttribute('contenteditable')) {

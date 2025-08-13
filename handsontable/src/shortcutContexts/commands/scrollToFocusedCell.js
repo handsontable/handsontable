@@ -1,7 +1,7 @@
 export const command = {
   name: 'scrollToFocusedCell',
   callback(hot) {
-    const { highlight } = hot.getSelectedRangeLast();
+    const { highlight } = hot.getSelectedRangeActive();
     const firstVisibleRow = hot.getFirstFullyVisibleRow() - 1;
     const firstVisibleColumn = hot.getFirstFullyVisibleColumn() - 1;
     const lastVisibleRow = hot.getLastFullyVisibleRow() + 1;

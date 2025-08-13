@@ -139,7 +139,7 @@ export class FocusManager {
    */
   focusOnHighlightedCell(selectedCell) {
     const focusElement = (element) => {
-      const currentHighlightCoords = this.#hot.getSelectedRangeLast()?.highlight;
+      const currentHighlightCoords = this.#hot.getSelectedRangeActive()?.highlight;
 
       if (!currentHighlightCoords) {
         return;
@@ -202,7 +202,7 @@ export class FocusManager {
    * @param {Function} callback Callback function to be called after the cell element is retrieved.
    */
   #getSelectedCell(callback) {
-    const highlight = this.#hot.getSelectedRangeLast()?.highlight;
+    const highlight = this.#hot.getSelectedRangeActive()?.highlight;
 
     if (!highlight || !this.#hot.selection.isCellVisible(highlight)) {
       callback(null);

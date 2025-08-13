@@ -3,7 +3,8 @@ export const command = {
   callback(hot, event) {
     const { selection } = hot;
     const settings = hot.getSettings();
-    const selectedRange = hot.getSelectedRangeLast();
+    const selectedRanges = hot.getSelectedRange();
+    const selectedRange = hot.getSelectedRangeActive();
     const tabMoves = typeof settings.tabMoves === 'function'
       ? settings.tabMoves(event)
       : settings.tabMoves;
@@ -11,7 +12,10 @@ export const command = {
     selection.markSource('keyboard');
 
     if (
-      selection.isMultiple() &&
+      (
+        selectedRanges.some(range => selection.isMultiple(range)) ||
+        selectedRanges.length > 1
+      ) &&
       !selectedRange.isHeader() &&
       hot.countRenderedCols() > 0 &&
       hot.countRenderedRows() > 0

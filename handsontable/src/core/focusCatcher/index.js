@@ -60,7 +60,7 @@ export function installFocusCatcher(hot) {
     }
 
     if (isSavingCoordsEnabled) {
-      recentlyAddedFocusCoords = hot.getSelectedRangeLast()?.highlight;
+      recentlyAddedFocusCoords = hot.getSelectedRangeActive()?.highlight;
     }
   });
   hot.addHook('beforeRowWrap', (interruptedByAutoInsertMode, newCoords, isFlipped) => {
@@ -95,7 +95,7 @@ export function installFocusCatcher(hot) {
 
           isTabOrShiftTabPressed = true;
 
-          if (hot.getSelectedRangeLast() && !tabNavigation) {
+          if (hot.getSelectedRangeActive() && !tabNavigation) {
             isSavingCoordsEnabled = false;
           }
 

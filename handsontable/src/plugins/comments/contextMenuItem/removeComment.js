@@ -11,7 +11,7 @@ export default function removeCommentItem(plugin) {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_REMOVE_COMMENT);
     },
     callback() {
-      const range = this.getSelectedRangeLast();
+      const range = this.getSelectedRangeActive();
 
       range.forAll((row, column) => {
         if (row >= 0 && column >= 0) {
@@ -22,7 +22,7 @@ export default function removeCommentItem(plugin) {
       this.render();
     },
     disabled() {
-      const range = this.getSelectedRangeLast();
+      const range = this.getSelectedRangeActive();
 
       if (
         !range ||

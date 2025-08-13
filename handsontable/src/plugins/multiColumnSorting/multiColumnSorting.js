@@ -120,7 +120,7 @@ export class MultiColumnSorting extends ColumnSorting {
       .addShortcut({
         keys: [['Shift', 'Enter']],
         callback: () => {
-          const { highlight } = this.hot.getSelectedRangeLast();
+          const { highlight } = this.hot.getSelectedRangeActive();
 
           if (highlight.row === -1 && highlight.col >= 0) {
             this.sort(this.getNextSortConfig(highlight.col, APPEND_COLUMN_CONFIG_STRATEGY));
@@ -130,9 +130,9 @@ export class MultiColumnSorting extends ColumnSorting {
           return false;
         },
         runOnlyIf: () => {
-          const highlight = this.hot.getSelectedRangeLast()?.highlight;
+          const highlight = this.hot.getSelectedRangeActive()?.highlight;
 
-          return highlight && this.hot.getSelectedRangeLast()?.isSingle() &&
+          return highlight && this.hot.getSelectedRangeActive()?.isSingle() &&
             this.hot.selection.isCellVisible(highlight) && highlight.isHeader();
         },
         relativeToGroup: SHORTCUTS_GROUP_EDITOR,
