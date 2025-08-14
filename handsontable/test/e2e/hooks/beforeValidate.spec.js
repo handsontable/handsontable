@@ -12,6 +12,21 @@ describe('Hook', () => {
     }
   });
 
+  const arrayOfObjects = function() {
+    return [
+      { id: 1, name: 'Ted', lastName: 'Right' },
+      { id: 2, name: 'Frank', lastName: 'Honest' },
+      { id: 3, name: 'Joan', lastName: 'Well' },
+      { id: 4, name: 'Sid', lastName: 'Strong' },
+      { id: 5, name: 'Jane', lastName: 'Neat' },
+      { id: 6, name: 'Chuck', lastName: 'Jackson' },
+      { id: 7, name: 'Meg', lastName: 'Jansen' },
+      { id: 8, name: 'Rob', lastName: 'Norris' },
+      { id: 9, name: 'Sean', lastName: 'O\'Hara' },
+      { id: 10, name: 'Eve', lastName: 'Branson' }
+    ];
+  };
+
   describe('beforeValidate', () => {
     it('should call beforeValidate', async() => {
       let fired = null;
