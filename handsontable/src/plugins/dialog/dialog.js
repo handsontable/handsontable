@@ -206,6 +206,13 @@ export class Dialog extends BasePlugin {
   #focusDetector = null;
 
   /**
+   * Selected cell.
+   *
+   * @type {object}
+   */
+  #selectedCells = null;
+
+  /**
    * Check if the plugin is enabled in the handsontable settings.
    *
    * @returns {boolean}
@@ -352,6 +359,8 @@ export class Dialog extends BasePlugin {
     this.#ui.showDialog(this.getSetting('animation'));
     this.#isVisible = true;
 
+    this.#selectedCells = this.hot.getSelected();
+
     this.hot.runHooks('afterDialogShow');
 
     const { activeElement } = this.hot.rootDocument;
@@ -378,6 +387,13 @@ export class Dialog extends BasePlugin {
     this.#ui.hideDialog(this.getSetting('animation'));
     this.hot.getShortcutManager().setActiveContextName('grid');
     this.#isVisible = false;
+
+    if (this.#selectedCells) {
+      this.hot.selectCells(this.#selectedCells);
+      this.#selectedCells = null;
+    } else {
+      this.hot.selectCell(0, 0);
+    }
 
     this.hot.runHooks('afterDialogHide');
   }

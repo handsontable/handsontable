@@ -266,7 +266,7 @@ export class BaseEditor {
       openEditor();
     }
 
-    this.addHook('beforeDialogShow', () => this.close());
+    this.addHook('beforeDialogShow', () => this.cancelChanges());
   }
 
   /**
