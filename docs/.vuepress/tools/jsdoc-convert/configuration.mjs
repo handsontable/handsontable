@@ -735,5 +735,18 @@ export default {
         metaTitle: 'EventManager - Angular Data Grid | Handsontable',
       },
     },
+    'Dialog.md': {
+      id: 'fk91r7t',
+      metaTitle: 'Dialog - JavaScript Data Grid | Handsontable',
+      description: 'Options, members, and methods of Handsontable\'s Dialog API.',
+      react: {
+        id: '5j79k2r2',
+        metaTitle: 'Dialog - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: 'c5v4e21x',
+        metaTitle: 'Dialog - Angular Data Grid | Handsontable',
+      },
+    },
   }
 };

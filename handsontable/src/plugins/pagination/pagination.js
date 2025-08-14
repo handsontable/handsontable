@@ -7,9 +7,13 @@ import { announce } from '../../utils/a11yAnnouncer';
 import { createPaginatorStrategy } from './strategies';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
+import { createPaginationFocusController } from './focusController';
+import { installFocusDetector } from '../../utils/focusDetector';
 
 export const PLUGIN_KEY = 'pagination';
 export const PLUGIN_PRIORITY = 900;
+const SHORTCUTS_GROUP = PLUGIN_KEY;
+const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
 
 const AUTO_PAGE_SIZE_WARNING = toSingleLine`The \`auto\` page size setting requires the \`autoRowSize\`\x20
   plugin to be enabled. Set the \`autoRowSize: true\` in the configuration to ensure correct behavior.`;
@@ -156,6 +160,18 @@ export class Pagination extends BasePlugin {
    * @type {boolean}
    */
   #internalRenderCall = false;
+  /**
+   * Pagination focus controller instance.
+   *
+   * @type {PaginationController}
+   */
+  #focusController = null;
+  /**
+   * Pagination focus detector instance.
+   *
+   * @type {object}
+   */
+  #focusDetector = null;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -200,13 +216,44 @@ export class Pagination extends BasePlugin {
 
     if (!this.#ui) {
       this.#ui = new PaginationUI({
-        rootElement: this.hot.rootElement,
+        rootElement: this.hot.rootGridElement,
         uiContainer: this.getSetting('uiContainer'),
         isRtl: this.hot.isRtl(),
         themeName: this.hot.getSettings().themeName,
         phraseTranslator: (...args) => this.hot.getTranslatedPhrase(...args),
         shouldHaveBorder: () => this.#computeNeedsBorder(),
         a11yAnnouncer: message => announce(message),
+      });
+
+      this.#focusController = createPaginationFocusController({
+        focusableElements: this.#ui.getFocusableElements(),
+        onElementClick: () => {
+          this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
+
+          if (!this.hot.isListening()) {
+            this.hot.listen();
+          }
+
+          this.#focusDetector.deactivate();
+        },
+      });
+
+      this.#focusDetector = installFocusDetector(this.hot, this.#ui.getPaginationElement(), {
+        onFocus: (from) => {
+          this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
+
+          if (!this.hot.isListening()) {
+            this.hot.listen();
+          }
+
+          if (from === 'from_above') {
+            this.#focusController.toFirstItem();
+          } else {
+            this.#focusController.toLastItem();
+          }
+
+          this.#focusDetector.deactivate();
+        },
       });
 
       this.#updateSectionsVisibilityState();
@@ -217,6 +264,8 @@ export class Pagination extends BasePlugin {
         .addLocalHook('lastPageClick', () => this.lastPage())
         .addLocalHook('pageSizeChange', pageSize => this.setPageSize(pageSize));
     }
+
+    this.registerShortcuts();
 
     // Place the onInit hook before others to make sure that the pagination state is computed
     // and applied to the index mapper before AutoColumnSize plugin begins calculate the column sizes.
@@ -233,6 +282,8 @@ export class Pagination extends BasePlugin {
     this.addHook('modifyRowHeight', (...args) => this.#onModifyRowHeight(...args));
     this.addHook('beforeHeightChange', (...args) => this.#onBeforeHeightChange(...args));
     this.addHook('afterSetTheme', (...args) => this.#onAfterSetTheme(...args));
+    this.addHook('afterSelection', () => this.#onAfterSelection());
+    this.addHook('afterDialogShow', (...args) => this.#afterDialogShow(...args));
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onIndexCacheUpdate);
 
     super.enablePlugin();
@@ -260,8 +311,73 @@ export class Pagination extends BasePlugin {
 
     this.#ui.destroy();
     this.#ui = null;
+    this.unregisterShortcuts();
 
     super.disablePlugin();
+  }
+
+  /**
+   * Register shortcuts responsible for navigating through the pagination.
+   *
+   * @private
+   */
+  registerShortcuts() {
+    const manager = this.hot.getShortcutManager();
+    const pluginContext = manager.getContext(SHORTCUTS_CONTEXT_NAME) ??
+      manager.addContext(SHORTCUTS_CONTEXT_NAME, 'global');
+
+    pluginContext.addShortcut({
+      keys: [['Shift', 'Tab'], ['Tab']],
+      preventDefault: false,
+      callback: (event) => {
+        let previousIndex = this.#focusController.getCurrentPage();
+
+        if (event.shiftKey) {
+          this.#focusController.toPreviousItem();
+
+          const currentPage = this.#focusController.getCurrentPage();
+
+          if (currentPage >= previousIndex) {
+            this.#focusDetector.activate();
+            this.#focusController.clear();
+            this.hot.unlisten();
+
+            return;
+          }
+
+          previousIndex = currentPage;
+        } else {
+          this.#focusController.toNextItem();
+
+          const currentPage = this.#focusController.getCurrentPage();
+
+          if (currentPage <= previousIndex) {
+            this.#focusDetector.activate();
+            this.#focusController.clear();
+            this.hot.unlisten();
+
+            return;
+          }
+
+          previousIndex = currentPage;
+        }
+
+        event.preventDefault();
+      },
+      group: SHORTCUTS_GROUP,
+    });
+  }
+
+  /**
+   * Unregister shortcuts responsible for navigating through the pagination.
+   *
+   * @private
+   */
+  unregisterShortcuts() {
+    const shortcutManager = this.hot.getShortcutManager();
+    const pluginContext = shortcutManager.getContext(SHORTCUTS_CONTEXT_NAME);
+
+    pluginContext.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   /**
@@ -866,6 +982,22 @@ export class Pagination extends BasePlugin {
     if (!this.#internalExecutionCall && this.hot?.view) {
       this.#computeAndApplyState();
     }
+  }
+
+  /**
+   * Called after the selection is made. It sets the active context for the shortcuts.
+   */
+  #onAfterSelection() {
+    this.hot.getShortcutManager().setActiveContextName('grid');
+    this.#focusDetector.activate();
+    this.#focusController.clear();
+  }
+
+  /**
+   * Called after the dialog is focused. It sets the active context for the shortcuts.
+   */
+  #afterDialogShow() {
+    this.#focusDetector.deactivate();
   }
 
   /**

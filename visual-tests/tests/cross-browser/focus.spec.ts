@@ -4,8 +4,8 @@ import { helpers } from '../../src/helpers';
 test('Test focus on Shift+Tab navigation', async({ goto, tablePage }) => {
   await goto('/basic-two-tables-demo');
 
-  const tableTop = tablePage.locator('#tableTop .ht-root-wrapper > .handsontable');
-  const tableBottom = tablePage.locator('#tableBottom .ht-root-wrapper > .handsontable');
+  const tableTop = tablePage.locator('#tableTop .ht-root-wrapper > .ht-grid > .handsontable');
+  const tableBottom = tablePage.locator('#tableBottom .ht-root-wrapper > .ht-grid > .handsontable');
 
   await tableTop.waitFor();
   await tableBottom.waitFor();

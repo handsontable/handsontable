@@ -1842,6 +1842,102 @@ export default () => {
 
     /**
      * @description
+     * The `dialog` option configures the [`Dialog`](@/api/dialog.md) plugin.
+     *
+     * You can set the `dialog` option to one of the following:
+     *
+     * | Setting   | Description                                                                 |
+     * | --------- | --------------------------------------------------------------------------- |
+     * | `false`   | Disable the [`Dialog`](@/api/dialog.md) plugin                              |
+     * | `true`    | Enable the [`Dialog`](@/api/dialog.md) plugin with default options          |
+     *
+     * ##### dialog: Additional options
+     *
+     * | Option                   | Possible settings                                                                                      | Description                             |
+     * | ------------------------ | ------------------------------------------------------------------------------------------------------ | ----------------------------------------|
+     * | `content`                | A string, HTMLElement or DocumentFragment (default: `''`)                                              | The content of the dialog               |
+     * | `customClassName`        | A string (default: `''`)                                                                               | The custom class name of the dialog     |
+     * | `background`             | One of the options: `'solid'` or `'semi-transparent'` (default: `'solid'`)                             | The background of the dialog            |
+     * | `contentBackground`      | Boolean (default: `false`)                                                                             | Whether to show the content background  |
+     * | `contentDirections`      | One of the options: `'row'` or `'row-reverse'` or `'column'` or `'column-reverse'` (default: `'row'`)  | The direction of the content            |
+     * | `animation`              | Boolean (default: `true`)                                                                              | Whether to show the animation           |
+     * | `closable`               | Boolean (default: `false`)                                                                             | Whether to show the close button        |
+     *
+     * Read more:
+     * - [Plugins: `Dialog`](@/api/dialog.md)
+     *
+     * @since 16.1.0
+     * @memberof Options#
+     * @type {boolean|object}
+     * @default false
+     * @category Dialog
+     *
+     * @example
+     * ::: only-for javascript
+     * ```js
+     * // enable the Dialog plugin with default option
+     * dialog: true,
+     *
+     * // enable the Dialog plugin with custom configuration
+     * dialog: {
+     *   content: 'Dialog content',
+     *   customClassName: 'custom-dialog',
+     *   background: 'semi-transparent',
+     *   contentBackground: false,
+     *   contentDirections: 'column',
+     *   animation: false,
+     *   closable: true,
+     * }
+     * ```
+     * :::
+     *
+     * ::: only-for react
+     * ```jsx
+     * // enable the Dialog plugin with default option
+     * <HotTable
+     *   dialog={true}
+     * />
+     *
+     * // enable the Dialog plugin with custom configuration
+     * <HotTable
+     *   dialog={{
+     *     content: 'Dialog content',
+     *     customClassName: 'custom-dialog',
+     *     background: 'semi-transparent',
+     *     contentBackground: false,
+     *     contentDirections: 'column',
+     *     animation: false,
+     *     closable: true,
+     *   }}
+     * />
+     * ```
+     * :::
+     *
+     * ::: only-for angular
+     * ```ts
+     * settings = {
+     *   dialog: {
+     *     content: 'Dialog content',
+     *     customClassName: 'custom-dialog',
+     *     background: 'semi-transparent',
+     *     contentBackground: false,
+     *     contentDirections: 'column',
+     *     animation: false,
+     *     closable: true,
+     *   }
+     * };
+     * ```
+     *
+     * ```html
+     * <hot-table [settings]="settings" />
+     * ```
+     * :::
+     *
+     */
+    dialog: false,
+
+    /**
+     * @description
      * The `dragToScroll` option configures the [`DragToScroll`](@/api/dragToScroll.md) plugin.
      *
      * You can set the `dragToScroll` option to one of the following:

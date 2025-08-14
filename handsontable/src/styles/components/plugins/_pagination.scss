@@ -4,7 +4,7 @@
 
 @mixin output {
   .handsontable {
-    &.ht-pagination-container {
+    &.ht-pagination {
       color: var(--ht-pagination-bar-foreground-color);
       background: var(--ht-pagination-bar-background-color);
       border: 1px solid var(--ht-wrapper-border-color);
@@ -19,7 +19,7 @@
         border-top-color: var(--ht-wrapper-border-color);
       }
 
-      .ht-pagination-container__inner {
+      .ht-pagination__inner {
         display: flex;
         justify-content: space-between;
         align-items: center;

@@ -96,7 +96,7 @@ export function stringifyPageNavigationSection(container = getPaginationContaine
  */
 export function visualizePageSections(container = getPaginationContainerElement()) {
   const children = container
-    .querySelector('.ht-pagination-container__inner')
+    .querySelector('.ht-pagination__inner')
     .children;
 
   return Array.from(children).reduce((acc, element) => {
@@ -120,7 +120,7 @@ export function visualizePageSections(container = getPaginationContainerElement(
  * @returns {HTMLElement}
  */
 export function getPaginationContainerElement() {
-  return hot().rootWrapperElement.querySelector('.ht-pagination-container');
+  return hot().rootWrapperElement.querySelector('.ht-pagination');
 }
 
 /**

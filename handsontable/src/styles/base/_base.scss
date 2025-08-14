@@ -36,6 +36,7 @@
   .ht-root-wrapper {
     @include mixins.font-family;
 
+    position: relative;
     height: 100%;
 
     .htFocusCatcher {
@@ -48,6 +49,10 @@
       opacity: 0;
       z-index: -1;
     }
+  }
+
+  .ht-grid {
+    height: 100%;
   }
 
   .handsontable {

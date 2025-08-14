@@ -11,7 +11,7 @@ export const helpers = {
 
   selectors: {
     anyTable: '#root .handsontable',
-    mainTable: '#root .ht-root-wrapper > .handsontable',
+    mainTable: '#root .ht-root-wrapper > .ht-grid > .handsontable',
     themesMainTable: '#root',
     mainTableBody: '.ht_master.handsontable table tbody',
     cloneTopTable: '.ht_clone_top.handsontable table thead',

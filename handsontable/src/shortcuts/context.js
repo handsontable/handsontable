@@ -26,9 +26,10 @@ export function isContextObject(objectToCheck) {
  * @alias ShortcutContext
  * @class ShortcutContext
  * @param {string} name The name of the keyboard shortcut context
+ * @param {string} [scope='table'] The scope of the shortcut: `'table'` or `'global'`
  * @returns {object}
  */
-export const createContext = (name) => {
+export const createContext = (name, scope = 'table') => {
   const SHORTCUTS = createUniqueMap({
     errorIdExists: keys => `The "${keys}" shortcut is already registered in the "${name}" context.`
   });
@@ -224,6 +225,7 @@ export const createContext = (name) => {
 
   return {
     __kindOf,
+    scope,
     addShortcut,
     addShortcuts,
     getShortcuts,

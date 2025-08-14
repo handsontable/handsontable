@@ -1883,8 +1883,20 @@ export const REGISTERED_HOOKS = [
    * @param {'from_above' | 'from_below'} tabActivationDir The browsers Tab navigation direction. Depending on
    * whether the user activated the table from the element above or below, another cell can be selected.
    * @param {CellCoords} visualCoords The coords that will be used to select a cell.
+   * @returns {undefined|boolean} If `false` is returned, the table will not be focused.
    */
   'modifyFocusOnTabNavigation',
+
+  /**
+   * Used to transfer the focus when the focus is moved out of the table.
+   *
+   * @event Hooks#tableFocusExit
+   * @since 16.1.0
+   * @param {'top' | 'bottom'} exitDirection The browsers Tab navigation direction. Depending on
+   * whether the user move out of the table from the top or bottom.
+   * @returns {undefined|boolean} If `false` is returned, the table will not be unfocused.
+   */
+  'tableFocusExit',
 
   /**
    * Allows modify the visual row index that is used to retrieve the row header element (TH) before it's
@@ -3138,6 +3150,70 @@ export const REGISTERED_HOOKS = [
    * Returning `true` removes those restrictions.
    */
   'beforeBeginEditing',
+
+  /**
+   * Fired by {@link Dialog} plugin after hiding the dialog. This hook is fired when {@link Options#dialog}
+   * option is enabled.
+   *
+   * @since 16.1.0
+   * @event Hooks#afterDialogHide
+   */
+  'afterDialogHide',
+
+  /**
+   * Fired by {@link Dialog} plugin after showing the dialog. This hook is fired when {@link Options#dialog}
+   * option is enabled.
+   *
+   * @since 16.1.0
+   * @event Hooks#afterDialogShow
+   */
+  'afterDialogShow',
+
+  /**
+   * Fired by {@link Dialog} plugin before hiding the dialog. This hook is fired when {@link Options#dialog}
+   * option is enabled.
+   *
+   * @since 16.1.0
+   * @event Hooks#beforeDialogHide
+   */
+  'beforeDialogHide',
+
+  /**
+   * Fired by {@link Dialog} plugin before showing the dialog. This hook is fired when {@link Options#dialog}
+   * option is enabled.
+   *
+   * @since 16.1.0
+   * @event Hooks#beforeDialogShow
+   */
+  'beforeDialogShow',
+
+  /**
+   * Fired by {@link Dialog} plugin before focusing the previous element. This hook is fired when {@link Options#dialog}
+   * option is enabled.
+   *
+   * @since 16.1.0
+   * @event Hooks#dialogFocusPreviousElement
+   */
+  'dialogFocusPreviousElement',
+
+  /**
+   * Fired by {@link Dialog} plugin before focusing the next element. This hook is fired when {@link Options#dialog}
+   * option is enabled.
+   *
+   * @since 16.1.0
+   * @event Hooks#dialogFocusNextElement
+   */
+  'dialogFocusNextElement',
+
+  /**
+   * Fired by {@link Dialog} plugin when the focus is set. This hook is fired when {@link Options#dialog}
+   * option is enabled.
+   *
+   * @since 16.1.0
+   * @event Hooks#afterDialogFocus
+   * @param {'tab_from_above' | 'tab_from_below' | 'click' | 'show'} focusSource The source of the focus.
+   */
+  'afterDialogFocus',
 
   /**
    * Fired after the editor is opened and rendered.

@@ -7,15 +7,15 @@ import {
   removeClass,
   setAttribute,
 } from '../../helpers/dom/element';
-import { A11Y_DISABLED, A11Y_LABEL } from '../../helpers/a11y';
+import { A11Y_DISABLED, A11Y_LABEL, A11Y_TABINDEX } from '../../helpers/a11y';
 
 const TEMPLATE = `
-<div data-ref="container" class="ht-pagination-container handsontable">
-  <div class="ht-pagination-container__inner">
+<div data-ref="container" class="ht-pagination handsontable">
+  <div class="ht-pagination__inner">
     <div data-ref="pageSizeSection" class="ht-page-size-section">
       <span data-ref="pageSizeLabel" class="ht-page-size-section__label"></span>
       <div class="ht-page-size-section__select-wrapper">
-        <select data-ref="pageSizeSelect" name="pageSize"></select>
+        <select data-ref="pageSizeSelect" name="pageSize" data-hot-input></select>
       </div>
     </div>
     <div data-ref="pageCounterSection" class="ht-page-counter-section"></div>
@@ -88,6 +88,12 @@ export class PaginationUI {
    * @type {function(string): void}
    */
   #a11yAnnouncer;
+  /**
+   * The focusable elements.
+   *
+   * @type {number | null}
+   */
+  #focusableElements = null;
 
   constructor({
     rootElement,
@@ -126,6 +132,14 @@ export class PaginationUI {
       last,
       pageSizeSelect,
     } = elements.refs;
+
+    this.#focusableElements = [
+      pageSizeSelect,
+      first,
+      prev,
+      next,
+      last,
+    ];
 
     this.#refs = elements.refs;
 
@@ -170,6 +184,15 @@ export class PaginationUI {
     } else {
       this.#rootElement.after(elements.fragment);
     }
+  }
+
+  /**
+   * Gets the pagination element.
+   *
+   * @returns {HTMLElement} The pagination element.
+   */
+  getPaginationElement() {
+    return this.#refs.container;
   }
 
   /**
@@ -224,9 +247,9 @@ export class PaginationUI {
     const { container } = this.#refs;
 
     if (this.#uiContainer || this.#shouldHaveBorder()) {
-      addClass(container, 'ht-pagination-container--bordered');
+      addClass(container, 'ht-pagination--bordered');
     } else {
-      removeClass(container, 'ht-pagination-container--bordered');
+      removeClass(container, 'ht-pagination--bordered');
     }
 
     return this;
@@ -289,6 +312,7 @@ export class PaginationUI {
     ]);
     setAttribute(pageSizeSelect, [
       ...[A11Y_LABEL(this.#phraseTranslator(C.PAGINATION_PAGE_SIZE_SECTION))],
+      ...([A11Y_TABINDEX(-1)]),
     ]);
 
     this.#a11yAnnouncer(navLabelText);
@@ -349,18 +373,22 @@ export class PaginationUI {
     setAttribute(first, [
       ...[A11Y_LABEL(this.#phraseTranslator(C.PAGINATION_FIRST_PAGE))],
       ...([A11Y_DISABLED(isFirstPage)]),
+      ...([A11Y_TABINDEX(-1)]),
     ]);
     setAttribute(prev, [
       ...[A11Y_LABEL(this.#phraseTranslator(C.PAGINATION_PREV_PAGE))],
       ...([A11Y_DISABLED(isFirstPage)]),
+      ...([A11Y_TABINDEX(-1)]),
     ]);
     setAttribute(next, [
       ...[A11Y_LABEL(this.#phraseTranslator(C.PAGINATION_NEXT_PAGE))],
       ...([A11Y_DISABLED(isLastPage)]),
+      ...([A11Y_TABINDEX(-1)]),
     ]);
     setAttribute(last, [
       ...[A11Y_LABEL(this.#phraseTranslator(C.PAGINATION_LAST_PAGE))],
       ...([A11Y_DISABLED(isLastPage)]),
+      ...([A11Y_TABINDEX(-1)]),
     ]);
 
     return this;
@@ -406,6 +434,15 @@ export class PaginationUI {
   }
 
   /**
+   * Gets the focusable elements.
+   *
+   * @returns {HTMLElement[]} The focusable elements.
+   */
+  getFocusableElements() {
+    return this.#focusableElements;
+  }
+
+  /**
    * Updates the visibility of the pagination container based on the visibility of its sections.
    */
   #updateContainerVisibility() {
@@ -425,9 +462,9 @@ export class PaginationUI {
     // adds or removes the corner around the Handsontable root element
     if (!this.#uiContainer) {
       if (isSectionVisible) {
-        addClass(this.#rootElement, 'htPagination');
+        addClass(this.#rootElement.querySelector('.ht-wrapper'), 'htPagination');
       } else {
-        removeClass(this.#rootElement, 'htPagination');
+        removeClass(this.#rootElement.querySelector('.ht-wrapper'), 'htPagination');
       }
     }
 

@@ -51,7 +51,7 @@ describe('DOM helpers', () => {
 
       await keyDownUp('enter');
 
-      rootElement.parentNode.parentNode.parentNode.appendChild(createDivWithId('rootSibling'));
+      rootElement.parentNode.parentNode.parentNode.parentNode.appendChild(createDivWithId('rootSibling'));
       rootElement.appendChild(createDivWithId('rootChild'));
 
       // Overlay elements

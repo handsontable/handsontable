@@ -6,6 +6,7 @@ import { hasEditor } from '../../editors/registry';
 import { hasRenderer } from '../../renderers/registry';
 import { hasValidator } from '../../validators/registry';
 import EventManager from '../../eventManager';
+import { warn } from '../../helpers/console';
 
 const DEPS_TYPE_CHECKERS = new Map([
   ['plugin', hasPlugin],
@@ -53,6 +54,21 @@ export class BasePlugin {
     return {};
   }
 
+  /**
+   * Validators for plugin settings.
+   *
+   * @type {Function|object|null}
+   */
+  static get SETTINGS_VALIDATORS() {
+    return null;
+  }
+
+  /**
+   * Plugin settings.
+   *
+   * @type {object|null}
+   */
+  #pluginSettings = null;
   /**
    * The instance of the {@link EventManager} class.
    *
@@ -106,6 +122,7 @@ export class BasePlugin {
 
   init() {
     this.pluginName = this.hot.getPluginName(this);
+    this.updatePluginSettings(this.hot.getSettings()[this.constructor.PLUGIN_KEY]);
 
     const pluginDeps = this.constructor.PLUGIN_DEPS;
     const deps = Array.isArray(pluginDeps) ? pluginDeps : [];
@@ -194,30 +211,87 @@ export class BasePlugin {
    * @returns {*}
    */
   getSetting(settingName) {
-    const pluginSettings = this.hot.getSettings()[this.constructor.PLUGIN_KEY];
-
     if (settingName === undefined) {
-      return pluginSettings;
+      return this.#pluginSettings;
     }
 
     const defaultSettings = this.constructor.DEFAULT_SETTINGS;
 
     if (
-      (Array.isArray(pluginSettings) || isObject(pluginSettings)) &&
+      (Array.isArray(this.#pluginSettings) || isObject(this.#pluginSettings)) &&
       defaultSettings[defaultMainSettingSymbol] === settingName
     ) {
-      if (Array.isArray(pluginSettings)) {
-        return pluginSettings;
+      if (Array.isArray(this.#pluginSettings)) {
+        return this.#pluginSettings;
       }
 
-      return pluginSettings[settingName] ?? defaultSettings[settingName];
+      return this.#pluginSettings[settingName] ?? defaultSettings[settingName];
     }
 
-    if (isObject(pluginSettings)) {
-      return pluginSettings[settingName] ?? defaultSettings[settingName];
+    if (isObject(this.#pluginSettings)) {
+      return this.#pluginSettings[settingName] ?? defaultSettings[settingName];
     }
 
     return defaultSettings[settingName];
+  }
+
+  /**
+   * Update plugin settings.
+   *
+   * @param {*} newSettings New settings.
+   * @returns {object} Updated settings object.
+   */
+  updatePluginSettings(newSettings) {
+    const settingsValidators = this.constructor.SETTINGS_VALIDATORS;
+
+    if (settingsValidators &&
+      typeof settingsValidators === 'function' &&
+      typeof newSettings !== 'object'
+    ) {
+      const isValid = settingsValidators(newSettings);
+
+      if (isValid === false) {
+        warn(`${this.pluginName} Plugin: option is not valid and it will be ignored.`);
+
+        return;
+      }
+
+      this.#pluginSettings = newSettings;
+
+      return this.#pluginSettings;
+    }
+
+    if (settingsValidators &&
+       typeof settingsValidators === 'object' &&
+       typeof newSettings === 'object'
+    ) {
+      if (this.#pluginSettings === null || typeof this.#pluginSettings !== 'object') {
+        this.#pluginSettings = { ...this.constructor.DEFAULT_SETTINGS };
+      }
+
+      Object.keys(settingsValidators).forEach((key) => {
+        if (!(key in newSettings)) {
+          return;
+        }
+
+        const validator = settingsValidators[key];
+        const isValid = validator ? validator(newSettings[key]) : true;
+
+        if (isValid === false) {
+          warn(`${this.pluginName} Plugin: "${key}" option is not valid and it will be ignored.`);
+
+          return;
+        }
+
+        this.#pluginSettings[key] = newSettings[key];
+      });
+
+      return this.#pluginSettings;
+    }
+
+    this.#pluginSettings = newSettings;
+
+    return newSettings;
   }
 
   /**
@@ -341,6 +415,7 @@ export class BasePlugin {
         this.isEnabled() &&
         relevantToSettings
       ) {
+        this.updatePluginSettings(newSettings[this.constructor.PLUGIN_KEY]);
         this.updatePlugin(newSettings);
       }
     }
@@ -359,6 +434,7 @@ export class BasePlugin {
    * Destroy plugin.
    */
   destroy() {
+    this.#pluginSettings = null;
     this.eventManager?.destroy();
     this.clearHooks();
 

@@ -262,4 +262,5 @@ const search: BasePlugin = hot.getPlugin('search');
 const touchScroll: BasePlugin = hot.getPlugin('touchScroll');
 const trimRows: BasePlugin = hot.getPlugin('trimRows');
 const undoRedo: BasePlugin = hot.getPlugin('undoRedo');
+const dialog: BasePlugin = hot.getPlugin('dialog');
 const custom: BasePlugin = hot.getPlugin('custom');
