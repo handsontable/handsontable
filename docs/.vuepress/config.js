@@ -123,6 +123,18 @@ module.exports = {
       `
       window.sentryOnLoad = function () {
         Sentry.init({
+          beforeSend(event, hint) {
+            const error = hint.originalException;
+            if (error) {
+              if (error.cause?.handsontable) {
+                return null;
+              }
+              if (error.message.match(/ColumnSummary plugin: cell at/i)) {
+                return null;
+              }
+            }
+            return event;
+          },
           environment: '${buildMode || 'testing'}',
           tracesSampleRate: 0,
           profilesSampleRate: 0,
