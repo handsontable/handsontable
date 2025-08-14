@@ -26,11 +26,11 @@ export function getValueSetterValue(value, cellMeta) {
  * @returns {*} The value to be displayed in the cell.
  */
 export function getValueGetterValue(value, cellMeta) {
-  const { instance } = cellMeta;
+  const { instance, visualRow, visualCol } = cellMeta;
   const valueGetter = cellMeta.valueGetter ?? null;
 
   if (isFunction(valueGetter)) {
-    return valueGetter.call(instance, value);
+    return valueGetter.call(instance, value, visualRow, visualCol);
   }
 
   return value;

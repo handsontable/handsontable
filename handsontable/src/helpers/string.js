@@ -52,6 +52,27 @@ export function randomString() {
 }
 
 /**
+ * Checks if a string is a valid JSON object.
+ *
+ * @param {string} string The string to check.
+ * @returns {boolean}
+ */
+export function isJSON(string) {
+  if (typeof string !== 'string') {
+    return false;
+  }
+
+  try {
+    const parsed = JSON.parse(string);
+
+    return typeof parsed === 'object' && parsed !== null;
+
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Checks if value is valid percent.
  *
  * @param {string} value The value to check.

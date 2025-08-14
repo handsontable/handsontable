@@ -765,19 +765,24 @@ class DataMap {
       value = prop(this.dataSource.slice(physicalRow, physicalRow + 1)[0]);
     }
 
-    const physicalColumn = this.hot.toPhysicalColumn(this.hot.propToCol(prop));
+    const visualColumnIndex = this.propToCol(prop);
+    const physicalColumn = this.hot.toPhysicalColumn(visualColumnIndex);
 
     if (isUnsignedNumber(physicalRow) && isUnsignedNumber(physicalColumn)) {
       value = getValueGetterValue(
         value,
-        this.metaManager.getCellMeta(physicalRow, physicalColumn, { skipMetaExtension: true })
+        this.metaManager.getCellMeta(physicalRow, physicalColumn, {
+          visualRow: row,
+          visualColumn: visualColumnIndex,
+          skipMetaExtension: true
+        })
       );
     }
 
     if (this.hot.hasHook('modifyData')) {
       const valueHolder = createObjectPropListener(value);
 
-      this.hot.runHooks('modifyData', row, this.propToCol(prop), valueHolder, 'get');
+      this.hot.runHooks('modifyData', row, visualColumnIndex, valueHolder, 'get');
 
       if (valueHolder.isTouched()) {
         value = valueHolder.value;
@@ -790,7 +795,7 @@ class DataMap {
   /**
    * Returns single value from the data array (intended for clipboard copy to an external application).
    *
-   * @param {number} row Physical row index.
+   * @param {number} row Visual row index.
    * @param {number} prop The column property.
    * @returns {string}
    */

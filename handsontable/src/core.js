@@ -1160,7 +1160,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
               const hasValueSetter = !!cellMeta?.valueSetter;
 
               let value = getInputValue(visualRow, visualColumn);
-              let orgValue = instance.getDataAtCell(current.row, current.col);
+              let orgValue = instance.getSourceDataAtCell(current.row, current.col) ?? null;
 
               if (value !== null && typeof value === 'object') {
                 // when 'value' is array and 'orgValue' is null, set 'orgValue' to
@@ -1170,12 +1170,10 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
                   orgValue = [];
                 }
 
-                if (
-                  (typeof orgValue !== 'object' && !hasValueSetter) || orgValue === null
-                ) {
+                if (!hasValueSetter && (typeof orgValue !== 'object' || orgValue === null)) {
                   pushData = false;
 
-                } else {
+                } else if (orgValue !== null) {
                   const orgValueSchema = duckSchema(Array.isArray(orgValue) ? orgValue : (orgValue[0] || orgValue));
                   const valueSchema = duckSchema(Array.isArray(value) ? value : (value[0] || value));
 
@@ -2551,6 +2549,20 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    */
   this.getCopyableData = function(row, column) {
     return datamap.getCopyable(row, datamap.colToProp(column));
+  };
+
+  /**
+   * Returns the source data's copyable value at specified `row` and `column` index.
+   *
+   * @memberof Core#
+   * @function getCopyableSourceData
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @since 16.1.0
+   * @returns {string}
+   */
+  this.getCopyableSourceData = function(row, column) {
+    return dataSource.getCopyable(row, datamap.colToProp(column));
   };
 
   /**

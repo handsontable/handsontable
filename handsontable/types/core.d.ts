@@ -72,6 +72,7 @@ export default class Core {
   getColWidth(column: number, source?: string): number;
   getCoords(element: Element | null): CellCoords;
   getCopyableData(row: number, column: number): string;
+  getCopyableSourceData(row: number, column: number): string;
   getCopyableText(startRow: number, startColumn: number, endRow: number, endColumn: number): string;
   getCurrentThemeName(): string | undefined;
   getData(row?: number, column?: number, row2?: number, column2?: number): CellValue[];

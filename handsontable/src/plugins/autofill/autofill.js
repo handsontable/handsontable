@@ -1,6 +1,7 @@
 import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
 import { offset, outerHeight, outerWidth } from '../../helpers/dom/element';
+import { isObject } from '../../helpers/object';
 import { arrayEach, arrayMap } from '../../helpers/array';
 import { isEmpty } from '../../helpers/mixed';
 import { getDragDirectionAndRange, DIRECTIONS, getMappedFillHandleSetting } from './utils';
@@ -141,9 +142,10 @@ export class Autofill extends BasePlugin {
    * Gets selection data.
    *
    * @private
+   * @param {boolean} [useSource=false] If `true`, returns copyable source data instead of copyable data.
    * @returns {object[]} Ranges Array of objects with properties `startRow`, `startCol`, `endRow` and `endCol`.
    */
-  getSelectionData() {
+  getSelectionData(useSource = false) {
     const selection = this.hot.getSelectedRangeLast();
     const { row: startRow, col: startCol } = selection.getTopStartCorner();
     const { row: endRow, col: endCol } = selection.getBottomEndCorner();
@@ -176,7 +178,15 @@ export class Autofill extends BasePlugin {
       const rowSet = [];
 
       arrayEach(copyableColumns, (column) => {
-        rowSet.push(this.hot.getCopyableData(row, column));
+        const sourceDataAtSource = useSource ? this.hot.getSourceDataAtCell(row, column) : null;
+
+        if (useSource && isObject(sourceDataAtSource)) {
+          rowSet.push(this.hot.getCopyableSourceData(row, column));
+
+        } else {
+          rowSet.push(this.hot.getCopyableData(row, column));
+        }
+
       });
 
       data.push(rowSet);
@@ -242,6 +252,7 @@ export class Autofill extends BasePlugin {
 
     if (startOfDragCoords && startOfDragCoords.row > -1 && startOfDragCoords.col > -1) {
       const selectionData = this.getSelectionData();
+      const selectionSourceData = this.getSelectionData(true);
       const sourceRange = selectionRangeLast.clone();
       const targetRange = this.hot._createCellRange(startOfDragCoords, startOfDragCoords, endOfDragCoords);
 
@@ -289,6 +300,21 @@ export class Autofill extends BasePlugin {
                 .push(res[i][(j + (res[i].length - fillOffset)) % res[i].length]);
             }
           }
+        }
+      }
+
+      // If the source data contains objects, we need to check every taget cell for the data type.
+      if (selectionSourceData.some(row => row.some(cell => isObject(cell)))) {
+        const fullFillData = this.#extendFillDataWithSourceData(
+          fillData,
+          selectionSourceData,
+          startOfDragCoords,
+          endOfDragCoords,
+          directionOfDrag,
+        );
+
+        if (fullFillData.length) {
+          fillData = fullFillData;
         }
       }
 
@@ -549,6 +575,49 @@ export class Autofill extends BasePlugin {
 
     this.eventManager.addEventListener(documentElement, 'mouseup', () => this.#onMouseUp());
     this.eventManager.addEventListener(documentElement, 'mousemove', event => this.#onMouseMove(event));
+  }
+
+  /**
+   * Extends the fill data with the source data based on the content of the target cells.
+   *
+   * @param {Array} fillData The fill data to extend.
+   * @param {Array} selectionSourceData The source data to extend the fill data with.
+   * @param {CellCoords} startOfDragCoords The start of the drag area.
+   * @param {CellCoords} endOfDragCoords The end of the drag area.
+   * @returns {Array} The extended fill data.
+   */
+  #extendFillDataWithSourceData(fillData, selectionSourceData, startOfDragCoords, endOfDragCoords) {
+    const fullFillData = [];
+
+    for (
+      let rowIndex = Math.min(startOfDragCoords.row, endOfDragCoords.row);
+      rowIndex <= Math.max(startOfDragCoords.row, endOfDragCoords.row);
+      rowIndex += 1
+    ) {
+      fullFillData.push([]);
+
+      for (
+        let columnIndex = Math.min(startOfDragCoords.col, endOfDragCoords.col);
+        columnIndex <= Math.max(startOfDragCoords.col, endOfDragCoords.col);
+        columnIndex += 1
+      ) {
+        const sourceCell = this.hot.getSourceDataAtCell(rowIndex, columnIndex);
+        const relativeRowIndex = rowIndex - Math.min(startOfDragCoords.row, endOfDragCoords.row);
+        const relativeColumnIndex = columnIndex - Math.min(startOfDragCoords.col, endOfDragCoords.col);
+        const modRelativeRowIndex = relativeRowIndex % selectionSourceData.length;
+        const modRelativeColumnIndex = relativeColumnIndex % selectionSourceData[0].length;
+
+        if (isObject(sourceCell)) {
+          fullFillData[relativeRowIndex][relativeColumnIndex] =
+            selectionSourceData[modRelativeRowIndex][modRelativeColumnIndex];
+
+        } else {
+          fullFillData[relativeRowIndex][relativeColumnIndex] = fillData[modRelativeRowIndex][modRelativeColumnIndex];
+        }
+      }
+    }
+
+    return fullFillData;
   }
 
   /**

@@ -132,6 +132,7 @@ export const getColumnMeta = handsontableMethodFactory('getColumnMeta');
 export const getColWidth = handsontableMethodFactory('getColWidth');
 export const getCoords = handsontableMethodFactory('getCoords');
 export const getCopyableData = handsontableMethodFactory('getCopyableData');
+export const getCopyableSourceData = handsontableMethodFactory('getCopyableSourceData');
 export const getCopyableText = handsontableMethodFactory('getCopyableText');
 export const getCurrentThemeName = handsontableMethodFactory('getCurrentThemeName');
 export const getData = handsontableMethodFactory('getData');
