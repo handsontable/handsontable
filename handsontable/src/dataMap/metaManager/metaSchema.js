@@ -1853,15 +1853,15 @@ export default () => {
      *
      * ##### dialog: Additional options
      *
-     * | Option                   | Possible settings                                                                                   | Description                             |
-     * | ------------------------ | --------------------------------------------------------------------------------------------------- | ----------------------------------------|
-     * | `content`                | A string, HTMLElement or DocumentFragment (default: `''`)                                           | The content of the dialog               |
-     * | `customClassName`        | A string (default: `''`)                                                                            | The custom class name of the dialog     |
-     * | `background`             | One of the options: `'solid'` | `'semi-transparent'` (default: `'solid'`)                           | The background of the dialog            |
-     * | `contentBackground`      | Boolean (default: `false`)                                                                          | Whether to show the content background  |
-     * | `contentDirections`      | One of the options: `'row'` | `'row-reverse'` | `'column'` | `'column-reverse'` (default: `'row'`)  | The direction of the content            |
-     * | `animation`              | Boolean (default: `true`)                                                                           | Whether to show the animation           |
-     * | `closable`               | Boolean (default: `false`)                                                                          | Whether to show the close button        |
+     * | Option                   | Possible settings                                                                                      | Description                             |
+     * | ------------------------ | ------------------------------------------------------------------------------------------------------ | ----------------------------------------|
+     * | `content`                | A string, HTMLElement or DocumentFragment (default: `''`)                                              | The content of the dialog               |
+     * | `customClassName`        | A string (default: `''`)                                                                               | The custom class name of the dialog     |
+     * | `background`             | One of the options: `'solid'` or `'semi-transparent'` (default: `'solid'`)                             | The background of the dialog            |
+     * | `contentBackground`      | Boolean (default: `false`)                                                                             | Whether to show the content background  |
+     * | `contentDirections`      | One of the options: `'row'` or `'row-reverse'` or `'column'` or `'column-reverse'` (default: `'row'`)  | The direction of the content            |
+     * | `animation`              | Boolean (default: `true`)                                                                              | Whether to show the animation           |
+     * | `closable`               | Boolean (default: `false`)                                                                             | Whether to show the close button        |
      *
      * Read more:
      * - [Plugins: `Dialog`](@/api/dialog.md)
