@@ -1374,7 +1374,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * @param {Function} callback The callback function fot async validation.
    */
   function validateChanges(changes, source, callback) {
-    if (!changes.length) {
+    if (!changes.length || source === 'UndoRedo.undo' || source === 'UndoRedo.redo') {
       callback();
 
       return;
