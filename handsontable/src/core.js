@@ -1202,7 +1202,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
                   }
                 }
 
-              } else if (orgValue !== null && typeof orgValue === 'object') {
+              } else if (!hasValueSetter && orgValue !== null && typeof orgValue === 'object') {
                 pushData = false;
               }
 
