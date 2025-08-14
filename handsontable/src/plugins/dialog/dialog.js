@@ -483,7 +483,7 @@ export class Dialog extends BasePlugin {
    * Destroy dialog and reset plugin state.
    */
   #destroyDialog() {
-    this.hide();
+    this.#selectedCells = null;
     this.#ui?.destroyDialog();
     this.#ui = null;
   }
