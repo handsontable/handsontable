@@ -8,11 +8,10 @@ import { isFunction } from '../helpers/function';
  * @returns {*} The value to be set in the cell.
  */
 export function getValueSetterValue(value, cellMeta) {
-  const { instance, visualRow, visualCol } = cellMeta;
-  const valueSetter = cellMeta.valueSetter ?? null;
+  const { instance, visualRow, visualCol, valueSetter } = cellMeta;
 
   if (isFunction(valueSetter)) {
-    return valueSetter.call(instance, value, visualRow, visualCol);
+    return valueSetter.call(instance, value, visualRow, visualCol, cellMeta);
   }
 
   return value;
@@ -26,11 +25,10 @@ export function getValueSetterValue(value, cellMeta) {
  * @returns {*} The value to be displayed in the cell.
  */
 export function getValueGetterValue(value, cellMeta) {
-  const { instance, visualRow, visualCol } = cellMeta;
-  const valueGetter = cellMeta.valueGetter ?? null;
+  const { instance, visualRow, visualCol, valueGetter } = cellMeta;
 
   if (isFunction(valueGetter)) {
-    return valueGetter.call(instance, value, visualRow, visualCol);
+    return valueGetter.call(instance, value, visualRow, visualCol, cellMeta);
   }
 
   return value;

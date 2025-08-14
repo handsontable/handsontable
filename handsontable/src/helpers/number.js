@@ -156,3 +156,13 @@ export function getParsedNumber(numericData) {
 
   return null;
 }
+
+/**
+ * Check if the provided argument is an unsigned number.
+ *
+ * @param {*} value Value to check.
+ * @returns {boolean}
+ */
+export function isUnsignedNumber(value) {
+  return Number.isInteger(value) && value >= 0;
+}

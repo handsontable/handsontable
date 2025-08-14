@@ -15,8 +15,7 @@ export function valueSetter(newValue, row, column) {
 
   if (isKeyValueObject(sourceDataAtCell)) {
     return isKeyValueObject(newValue) ? newValue : { key: newValue, value: newValue };
-
-  } else {
-    return newValue;
   }
+
+  return newValue;
 }

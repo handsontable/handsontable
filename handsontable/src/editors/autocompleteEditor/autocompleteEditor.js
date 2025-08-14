@@ -130,7 +130,7 @@ export class AutocompleteEditor extends HandsontableEditor {
 
     this.htOptions = {
       ...this.htOptions,
-      valueGetter: val => (this.#isKeyValueObject(val) ? val.value : val),
+      valueGetter: cellValue => (this.#isKeyValueObject(cellValue) ? cellValue.value : cellValue),
     };
   }
 

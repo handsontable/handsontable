@@ -4950,11 +4950,23 @@ export default () => {
 
     /**
      * @description
-     * The `valueGetter` option configures a function that returns a value of a cell.
+     * The `valueGetter` option configures a function that defines what value will be used when displaying the cell content.
      * It can be used to modify the value of a cell before it is displayed (for example, for object-based data).
      *
+     * @example
+     * ```js
+     * // use the `label` property of the value object with a fallback to the value itself
+     * valueGetter: (value, row, column, cellMeta) => {
+     *   return value?.label ?? value;
+     * }
+     * ```
+     *
      * @memberof Options#
-     * @type {Function}
+     * @type {function(any, number, number): any}
+     * @param {*} value The value to be displayed in the cell.
+     * @param {number} row The visual row index of the cell.
+     * @param {number} column The visual column index of the cell.
+     * @param {object} cellMeta The cell meta object.
      * @since 16.1.0
      * @default undefined
      * @category Core
@@ -4963,14 +4975,23 @@ export default () => {
 
     /**
      * @description
-     * The `valueSetter` option configures a function that defines what value is set to a cell.
-     * It can be used to modify the value of a cell before it is set (for example, for object-based data).
+     * The `valueSetter` option configures a function that defines what value will be used when setting the cell content.
+     * It can be used to modify the value of a cell before it is saved (for example, for object-based data).
+     *
+     * @example
+     * ```js
+     * // Modify the value of a cell before it is saved
+     * valueSetter: (value, row, column, cellMeta) => {
+     *   return { id: value?.id ?? value, value: `${value?.value ?? value} at ${row}, ${column}` }
+     * },
+     * ```
      *
      * @memberof Options#
-     * @type {Function}
+     * @type {function(any, number, number): any}
      * @param {*} value The value to be set to a cell.
      * @param {number} row The visual row index of the cell.
      * @param {number} column The visual column index of the cell.
+     * @param {object} cellMeta The cell meta object.
      * @since 16.1.0
      * @default undefined
      * @category Core

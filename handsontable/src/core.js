@@ -3245,20 +3245,41 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     const input = setDataInputToArray(row, column, value);
     const isThereAnySetSourceListener = this.hasHook('afterSetSourceDataAtCell');
     const changesForHook = [];
+    const getCellProperties = (changeRow, changeProp) => {
+      const visualRow = this.toVisualRow(changeRow);
+      const visualColumn = this.toVisualColumn(changeProp);
+
+      if (Number.isInteger(visualColumn)) {
+        return this.getCellMeta(visualRow, visualColumn);
+      }
+
+      // If there's no requested visual column, we can use the table meta as the cell properties
+      return { ...Object.getPrototypeOf(tableMeta), ...tableMeta };
+    };
 
     if (isThereAnySetSourceListener) {
       arrayEach(input, ([changeRow, changeProp, changeValue]) => {
+        const newValue = getValueSetterValue(
+          changeValue,
+          getCellProperties(changeRow, changeProp),
+        );
+
         changesForHook.push([
           changeRow,
           changeProp,
           dataSource.getAtCell(changeRow, changeProp), // The previous value.
-          changeValue,
+          newValue,
         ]);
       });
     }
 
     arrayEach(input, ([changeRow, changeProp, changeValue]) => {
-      dataSource.setAtCell(changeRow, changeProp, changeValue);
+      const newValue = getValueSetterValue(
+        changeValue,
+        getCellProperties(changeRow, changeProp)
+      );
+
+      dataSource.setAtCell(changeRow, changeProp, newValue);
     });
 
     if (isThereAnySetSourceListener) {

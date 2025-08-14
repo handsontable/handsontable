@@ -63,4 +63,72 @@ describe('valueSetter', () => {
       ['Value: A2 first column', 'B2'],
     ]);
   });
+
+  it('should call valueSetter only when necessary when using the data-setting/getting API methods', async() => {
+    const data = createSpreadsheetData(2, 3);
+    const valueSetterSpy = jasmine.createSpy('valueSetter').and.callFake(value => `Value: ${value}`);
+
+    handsontable({
+      data,
+      valueSetter: valueSetterSpy,
+      autoRowSize: false,
+      autoColumnSize: false,
+    });
+
+    valueSetterSpy.calls.reset();
+
+    // `get*` methods -> no calls
+    getDataAtCell(0, 0);
+    expect(valueSetterSpy.calls.count()).toBe(0);
+
+    valueSetterSpy.calls.reset();
+
+    getSourceDataAtCell(0, 0);
+    expect(valueSetterSpy.calls.count()).toBe(0);
+
+    valueSetterSpy.calls.reset();
+
+    getDataAtRow(0);
+    expect(valueSetterSpy.calls.count()).toBe(0);
+
+    valueSetterSpy.calls.reset();
+
+    getSourceDataAtRow(0);
+    expect(valueSetterSpy.calls.count()).toBe(0);
+
+    valueSetterSpy.calls.reset();
+
+    getDataAtCol(0);
+    expect(valueSetterSpy.calls.count()).toBe(0);
+
+    valueSetterSpy.calls.reset();
+
+    getSourceDataAtCol(0);
+    expect(valueSetterSpy.calls.count()).toBe(0);
+
+    valueSetterSpy.calls.reset();
+
+    getData();
+    expect(valueSetterSpy.calls.count()).toBe(0);
+
+    // `set*` methods -> 1 call each cell
+    await setDataAtCell(0, 0, 'New Value');
+    expect(valueSetterSpy.calls.count()).toBe(1);
+
+    valueSetterSpy.calls.reset();
+
+    await setDataAtRowProp(0, 0, 'New Value');
+    expect(valueSetterSpy.calls.count()).toBe(1);
+
+    valueSetterSpy.calls.reset();
+
+    await setSourceDataAtCell(0, 0, 'New Value');
+    expect(valueSetterSpy.calls.count()).toBe(1);
+
+    valueSetterSpy.calls.reset();
+
+    // loadData should NOT call the `valueSetter`
+    await loadData([['A1', 'B1', 'C1'], ['A2', 'B2', 'C2']]);
+    expect(valueSetterSpy.calls.count()).toBe(0);
+  });
 });

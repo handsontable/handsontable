@@ -75,4 +75,70 @@ describe('valueGetter', () => {
       ['Value: A2 first column', 'B2'],
     ]);
   });
+
+  it('should call valueGetter only when necessary when using the data-setting/getting API methods', async() => {
+    const data = createSpreadsheetData(2, 3);
+    const valueGetterSpy = jasmine.createSpy('valueGetter').and.callFake(value => `Value: ${value}`);
+
+    handsontable({
+      data,
+      valueGetter: valueGetterSpy,
+      autoRowSize: false,
+      autoColumnSize: false,
+    });
+
+    valueGetterSpy.calls.reset();
+
+    // `get*` methods -> 1 call each cell
+    getDataAtCell(0, 0);
+    expect(valueGetterSpy.calls.count()).toBe(1);
+
+    valueGetterSpy.calls.reset();
+
+    getDataAtRow(0);
+    expect(valueGetterSpy.calls.count()).toBe(3); // 3 columns
+
+    valueGetterSpy.calls.reset();
+
+    getDataAtCol(0);
+    expect(valueGetterSpy.calls.count()).toBe(2); // 2 rows
+
+    valueGetterSpy.calls.reset();
+
+    // getData should call valueGetter for each cell -> 3x2 = 6 cells
+    getData();
+    expect(valueGetterSpy.calls.count()).toBe(6);
+
+    valueGetterSpy.calls.reset();
+
+    // `getSource*` methods -> no calls
+    getSourceDataAtCell(0, 0);
+    expect(valueGetterSpy.calls.count()).toBe(0);
+
+    valueGetterSpy.calls.reset();
+
+    getSourceDataAtRow(0);
+    expect(valueGetterSpy.calls.count()).toBe(0); // 3 columns
+
+    valueGetterSpy.calls.reset();
+
+    getSourceDataAtCol(0);
+    expect(valueGetterSpy.calls.count()).toBe(0); // 2 rows
+
+    valueGetterSpy.calls.reset();
+
+    // `set*` methods -> 1 call each cell (because of the `render` method triggered by the `setData*` methods)
+    await setDataAtCell(0, 0, 'New Value');
+    expect(valueGetterSpy.calls.count()).toBe(6);
+
+    valueGetterSpy.calls.reset();
+
+    await setSourceDataAtCell(0, 0, 'New Value');
+    expect(valueGetterSpy.calls.count()).toBe(6);
+
+    valueGetterSpy.calls.reset();
+
+    await setDataAtRowProp(0, 0, 'New Value');
+    expect(valueGetterSpy.calls.count()).toBe(6);
+  });
 });

@@ -1,7 +1,6 @@
 import {
   extendByMetaType,
   columnFactory,
-  isUnsignedNumber,
   assert,
   isNullish,
 } from '../utils';
@@ -215,25 +214,6 @@ describe('MetaManager utils', () => {
       expect(column.data).toBeUndefined();
       expect(column.width).toBeUndefined();
       expect(column.copyPaste).toBe(true);
-    });
-  });
-
-  describe('isUnsignedNumber', () => {
-    it('should return true only for valid signed numbers', () => {
-      expect(isUnsignedNumber()).toBe(false);
-      expect(isUnsignedNumber(null)).toBe(false);
-      expect(isUnsignedNumber(false)).toBe(false);
-      expect(isUnsignedNumber('')).toBe(false);
-      expect(isUnsignedNumber('1')).toBe(false);
-      expect(isUnsignedNumber({ a: 1 })).toBe(false);
-      expect(isUnsignedNumber(Infinity)).toBe(false);
-      expect(isUnsignedNumber(-1)).toBe(false);
-      expect(isUnsignedNumber(-999)).toBe(false);
-
-      expect(isUnsignedNumber(0)).toBe(true);
-      expect(isUnsignedNumber(1)).toBe(true);
-      expect(isUnsignedNumber(100)).toBe(true);
-      expect(isUnsignedNumber(Number.MAX_SAFE_INTEGER)).toBe(true);
     });
   });
 

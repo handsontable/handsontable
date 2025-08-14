@@ -1,3 +1,5 @@
+import { isObjectEqual } from '../../helpers/object';
+
 export const VALIDATOR_TYPE = 'autocomplete';
 
 /**
@@ -47,7 +49,7 @@ function process(value, callback) {
     let found = false;
 
     for (let s = 0, slen = source.length; s < slen; s++) {
-      if (JSON.stringify(originalVal) === JSON.stringify((source[s]))) {
+      if (isObjectEqual(originalVal, source[s])) {
         found = true; // perfect match
         break;
       }
