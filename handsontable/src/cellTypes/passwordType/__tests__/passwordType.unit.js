@@ -22,22 +22,23 @@ describe('PasswordCellType', () => {
       expect(getRegisteredEditorNames()).toEqual([]);
       expect(() => {
         getEditor('password');
-      }).toThrowError();
+      }).toThrow();
 
       expect(getRegisteredRendererNames()).toEqual([]);
       expect(() => {
         getRenderer('password');
-      }).toThrowError();
+      }).toThrow();
 
       expect(getRegisteredValidatorNames()).toEqual([]);
       expect(() => {
         getValidator('password');
-      }).toThrowError();
+      }).toThrow();
 
       expect(getRegisteredCellTypeNames()).toEqual([]);
       expect(() => {
         getCellType('password');
-      }).toThrowError();
+      }).toThrow();
+
     });
     it('should register cell type', () => {
       registerCellType(CELL_TYPE, PasswordCellType);

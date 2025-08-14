@@ -45,7 +45,7 @@ describe('createUniqueMap', () => {
 
       expect(() => {
         uniqueMap.addItem('A', 'ItemA');
-      }).toThrowError('The id \'A\' is already declared in a map.');
+      }).toThrowWithCause('The id \'A\' is already declared in a map.', { handsontable: true });
     });
 
     it('should throw the custom error message if item is already in unique map', () => {
@@ -57,7 +57,7 @@ describe('createUniqueMap', () => {
 
       expect(() => {
         uniqueMap.addItem('A', 'ItemA');
-      }).toThrowError('"A" is already registered');
+      }).toThrowWithCause('"A" is already registered', { handsontable: true });
     });
 
     it('should return "null" if the getting item is not registered in unique map', () => {

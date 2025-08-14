@@ -26,7 +26,7 @@ describe('createUniqueSet', () => {
 
       expect(() => {
         uniqueSet.addItem('A');
-      }).toThrowError('\'A\' value is already declared in a unique set.');
+      }).toThrowWithCause('\'A\' value is already declared in a unique set.', { handsontable: true });
     });
 
     it('should throw the custom error message if item is already in set', () => {
@@ -38,7 +38,7 @@ describe('createUniqueSet', () => {
 
       expect(() => {
         uniqueSet.addItem('A');
-      }).toThrowError('"A" is already registered');
+      }).toThrowWithCause('"A" is already registered', { handsontable: true });
     });
 
     it('should get items in the registering order', () => {

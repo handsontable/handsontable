@@ -13,10 +13,10 @@ describe('Shortcut Manager', () => {
 
       expect(() => {
         manager.setActiveContextName('not_existed_context');
-      }).toThrowError([
+      }).toThrowWithCause([
         'You\'ve tried to activate the "not_existed_context" shortcut context that does not exist. ',
         'Before activation, register the context using the "addContext" method.',
-      ].join(''));
+      ].join(''), { handsontable: true });
     });
   });
 });

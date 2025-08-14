@@ -15,10 +15,10 @@ export class BaseAction {
   }
 
   undo() {
-    throw new Error('Not implemented');
+    throw new Error('Not implemented', { cause: { handsontable: true } });
   }
 
   redo() {
-    throw new Error('Not implemented');
+    throw new Error('Not implemented', { cause: { handsontable: true } });
   }
 }

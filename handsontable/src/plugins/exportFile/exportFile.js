@@ -238,7 +238,7 @@ export class ExportFile extends BasePlugin {
    */
   _createTypeFormatter(format, options = {}) {
     if (!EXPORT_TYPES[format]) {
-      throw new Error(`Export format type "${format}" is not supported.`);
+      throw new Error(`Export format type "${format}" is not supported.`, { cause: { handsontable: true } });
     }
 
     return typeFactory(format, new DataProvider(this.hot), options);

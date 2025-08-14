@@ -455,22 +455,22 @@ describe('SourceSettings', () => {
 
       expect(() => {
         settings.getHeadersSettings(0, 2);
-      }).toThrowError('The first column settings cannot overlap the other header layers');
+      }).toThrowWithCause('The first column settings cannot overlap the other header layers', { handsontable: true });
       expect(() => {
         settings.getHeadersSettings(0, 8);
-      }).toThrowError('The first column settings cannot overlap the other header layers');
+      }).toThrowWithCause('The first column settings cannot overlap the other header layers', { handsontable: true });
       expect(() => {
         settings.getHeadersSettings(1, 2);
-      }).toThrowError('The first column settings cannot overlap the other header layers');
+      }).toThrowWithCause('The first column settings cannot overlap the other header layers', { handsontable: true });
       expect(() => {
         settings.getHeadersSettings(1, 3);
-      }).toThrowError('The first column settings cannot overlap the other header layers');
+      }).toThrowWithCause('The first column settings cannot overlap the other header layers', { handsontable: true });
       expect(() => {
         settings.getHeadersSettings(2, 2);
-      }).toThrowError('The first column settings cannot overlap the other header layers');
+      }).toThrowWithCause('The first column settings cannot overlap the other header layers', { handsontable: true });
       expect(() => {
         settings.getHeadersSettings(2, 4);
-      }).toThrowError('The first column settings cannot overlap the other header layers');
+      }).toThrowWithCause('The first column settings cannot overlap the other header layers', { handsontable: true });
     });
 
     it('should throw an exception when the last retrieved column settings overlaps the passed "columnIndex"+"columnsLength" arguments', () => {
@@ -485,16 +485,16 @@ describe('SourceSettings', () => {
 
       expect(() => {
         settings.getHeadersSettings(0, 1, 4);
-      }).toThrowError('The last column settings cannot overlap the other header layers');
+      }).toThrowWithCause('The last column settings cannot overlap the other header layers', { handsontable: true });
       expect(() => {
         settings.getHeadersSettings(1, 1, 1);
-      }).toThrowError('The last column settings cannot overlap the other header layers');
+      }).toThrowWithCause('The last column settings cannot overlap the other header layers', { handsontable: true });
       expect(() => {
         settings.getHeadersSettings(1, 5, 3);
-      }).toThrowError('The last column settings cannot overlap the other header layers');
+      }).toThrowWithCause('The last column settings cannot overlap the other header layers', { handsontable: true });
       expect(() => {
         settings.getHeadersSettings(2, 3, 1);
-      }).toThrowError('The last column settings cannot overlap the other header layers');
+      }).toThrowWithCause('The last column settings cannot overlap the other header layers', { handsontable: true });
     });
   });
 

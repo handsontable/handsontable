@@ -108,7 +108,7 @@ export class BaseComponent {
    * The custom logic for component state restoring.
    */
   setState() {
-    throw new Error('The state setting logic is not implemented');
+    throw new Error('The state setting logic is not implemented', { cause: { handsontable: true } });
   }
 
   /**
@@ -128,7 +128,7 @@ export class BaseComponent {
    * The custom logic for component state gathering (for stateful components).
    */
   getState() {
-    throw new Error('The state gathering logic is not implemented');
+    throw new Error('The state gathering logic is not implemented', { cause: { handsontable: true } });
   }
 
   /**

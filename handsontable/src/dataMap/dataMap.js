@@ -130,7 +130,8 @@ class DataMap {
     const schema = this.getSchema();
 
     if (typeof schema === 'undefined') {
-      throw new Error('trying to create `columns` definition but you didn\'t provide `schema` nor `data`');
+      throw new Error('trying to create `columns` definition but you didn\'t provide `schema` nor `data`',
+        { cause: { handsontable: true } });
     }
 
     const columns = this.tableMeta.columns;
@@ -419,8 +420,10 @@ class DataMap {
   createCol(index, amount = 1, { source, mode = 'start' } = {}) {
     if (!this.hot.isColumnModificationAllowed()) {
       throw new Error('Cannot create new column. When data source in an object, ' +
+        // eslint-disable-next-line max-len
         'you can only have as much columns as defined in first data row, data schema or in the \'columns\' setting.' +
-        'If you want to be able to add new columns, you have to use array datasource.');
+        'If you want to be able to add new columns, you have to use array datasource.',
+      { cause: { handsontable: true } });
     }
 
     const dataSource = this.dataSource;
@@ -560,7 +563,8 @@ class DataMap {
    */
   removeCol(index, amount = 1, source) {
     if (this.hot.dataType === 'object' || this.tableMeta.columns) {
-      throw new Error('cannot remove column with object data source or columns option specified');
+      throw new Error('cannot remove column with object data source or columns option specified',
+        { cause: { handsontable: true } });
     }
     let columnIndex = typeof index !== 'number' ? -amount : index;
 

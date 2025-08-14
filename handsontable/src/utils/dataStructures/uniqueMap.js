@@ -32,7 +32,7 @@ export function createUniqueMap({ errorIdExists } = {}) {
    */
   function addItem(id, item) {
     if (hasItem(id)) {
-      throw new Error(errorIdExists(id));
+      throw new Error(errorIdExists(id), { cause: { handsontable: true } });
     }
 
     uniqueMap.set(id, item);

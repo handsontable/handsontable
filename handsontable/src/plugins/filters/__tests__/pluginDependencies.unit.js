@@ -21,12 +21,12 @@ describe('Filters', () => {
 
       expect(() => {
         hot = new Handsontable(document.createElement('div'), {});
-      }).toThrowError(`The Filters plugin requires the following modules:
+      }).toThrowWithCause(`The Filters plugin requires the following modules:
  - DropdownMenu (plugin)
  - HiddenRows (plugin)
  - checkbox (cell-type)
 
-You have to import and register them manually.`);
+You have to import and register them manually.`, { handsontable: true });
       expect(hot).toBeUndefined();
     });
   });

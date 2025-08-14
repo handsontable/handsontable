@@ -513,7 +513,7 @@ export function isVisible(element) {
         } else if (next.host) { // Chrome 33.0.1723.0 canary (2013-11-29) Web Platform features enabled
           return isVisible(next.host);
         }
-        throw new Error('Lost in Web Components world');
+        throw new Error('Lost in Web Components world', { cause: { handsontable: true } });
 
       } else {
         return false; // this is a node detached from document in IE8

@@ -184,8 +184,8 @@ describe('CustomBorders', () => {
             top: GREEN_BORDER
           }]
         });
-      }).toThrowError('The "left"/"right" and "start"/"end" options should not be used together. ' +
-                      'Please use only the option "start"/"end".');
+      }).toThrowWithCause('The "left"/"right" and "start"/"end" options should not be used together. ' +
+                      'Please use only the option "start"/"end".', { handsontable: true });
     });
 
     it('should throw an error while calling the `updateSettings` method when the mixed API is used ("start"/"end" and "left"/"right")', async() => {
@@ -208,8 +208,8 @@ describe('CustomBorders', () => {
             right: RED_BORDER,
           }]
         });
-      }).toThrowError('The "left"/"right" and "start"/"end" options should not be used together. ' +
-                      'Please use only the option "start"/"end".');
+      }).toThrowWithCause('The "left"/"right" and "start"/"end" options should not be used together. ' +
+                      'Please use only the option "start"/"end".', { handsontable: true });
     });
 
     it('should create a deep clone of the borders object configuration', async() => {

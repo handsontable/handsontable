@@ -6,7 +6,7 @@ describe('SamplesGenerator', () => {
 
     expect(() => {
       sg.generateSample('unsupported');
-    }).toThrowError('Unsupported sample type');
+    }).toThrowWithCause('Unsupported sample type', { handsontable: true });
   });
 
   it('should be possible to set samples count', () => {

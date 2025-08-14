@@ -101,11 +101,11 @@ describe('selection utils', () => {
     it('should throw an exception on invalid type', () => {
       const message = 'Unsupported selection ranges schema type was provided.';
 
-      expect(() => normalizeSelectionFactory()).toThrowError(message);
-      expect(() => normalizeSelectionFactory(0)).toThrowError(message);
-      expect(() => normalizeSelectionFactory('0')).toThrowError(message);
-      expect(() => normalizeSelectionFactory(null)).toThrowError(message);
-      expect(() => normalizeSelectionFactory('foo')).toThrowError(message);
+      expect(() => normalizeSelectionFactory()).toThrowWithCause(message, { handsontable: true });
+      expect(() => normalizeSelectionFactory(0)).toThrowWithCause(message, { handsontable: true });
+      expect(() => normalizeSelectionFactory('0')).toThrowWithCause(message, { handsontable: true });
+      expect(() => normalizeSelectionFactory(null)).toThrowWithCause(message, { handsontable: true });
+      expect(() => normalizeSelectionFactory('foo')).toThrowWithCause(message, { handsontable: true });
     });
 
     it('should create normalizer function', () => {

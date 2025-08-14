@@ -22,22 +22,22 @@ describe('HandsontableCellType', () => {
       expect(getRegisteredEditorNames()).toEqual([]);
       expect(() => {
         getEditor('handsontable');
-      }).toThrowError();
+      }).toThrow();
 
       expect(getRegisteredRendererNames()).toEqual([]);
       expect(() => {
         getRenderer('handsontable');
-      }).toThrowError();
+      }).toThrow();
 
       expect(getRegisteredValidatorNames()).toEqual([]);
       expect(() => {
         getValidator('handsontable');
-      }).toThrowError();
+      }).toThrow();
 
       expect(getRegisteredCellTypeNames()).toEqual([]);
       expect(() => {
         getCellType('handsontable');
-      }).toThrowError();
+      }).toThrow();
     });
     it('should register cell type', () => {
       registerCellType(CELL_TYPE, HandsontableCellType);

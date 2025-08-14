@@ -25,7 +25,7 @@ describe('createPriorityMap', () => {
 
       expect(() => {
         priorityMap.addItem('a', 'A');
-      }).toThrowError('The priority \'a\' is not a number.');
+      }).toThrowWithCause('The priority \'a\' is not a number.', { handsontable: true });
     });
 
     it('should be possible to throw a custom error message if priority is not a number', () => {
@@ -35,7 +35,7 @@ describe('createPriorityMap', () => {
 
       expect(() => {
         priorityMap.addItem('a', 'A');
-      }).toThrowError('"a" is not a valid priority key.');
+      }).toThrowWithCause('"a" is not a valid priority key.', { handsontable: true });
     });
 
     it('should throw an error if priority is already registered', () => {
@@ -45,7 +45,7 @@ describe('createPriorityMap', () => {
 
       expect(() => {
         priorityMap.addItem(1, 'A');
-      }).toThrowError('The priority \'1\' is already declared in a map.');
+      }).toThrowWithCause('The priority \'1\' is already declared in a map.', { handsontable: true });
     });
 
     it('should throw an error if priority is already registered', () => {
@@ -57,7 +57,7 @@ describe('createPriorityMap', () => {
 
       expect(() => {
         priorityMap.addItem(1, 'A');
-      }).toThrowError('Choose other priority than "1"');
+      }).toThrowWithCause('Choose other priority than "1"', { handsontable: true });
     });
 
     it('should be possible to get items in ASC order', () => {

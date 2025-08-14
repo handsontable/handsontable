@@ -127,28 +127,28 @@ export class BaseEditor {
    * Required method to get current value from editable element.
    */
   getValue() {
-    throw Error('Editor getValue() method unimplemented');
+    throw Error('Editor getValue() method unimplemented', { cause: { handsontable: true } });
   }
 
   /**
    * Required method to set new value into editable element.
    */
   setValue() {
-    throw Error('Editor setValue() method unimplemented');
+    throw Error('Editor setValue() method unimplemented', { cause: { handsontable: true } });
   }
 
   /**
    * Required method to open editor.
    */
   open() {
-    throw Error('Editor open() method unimplemented');
+    throw Error('Editor open() method unimplemented', { cause: { handsontable: true } });
   }
 
   /**
    * Required method to close editor.
    */
   close() {
-    throw Error('Editor close() method unimplemented');
+    throw Error('Editor close() method unimplemented', { cause: { handsontable: true } });
   }
 
   /**

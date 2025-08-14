@@ -93,7 +93,7 @@ function _registerPlugin(pluginName, pluginClass, priority) {
   const unifiedPluginName = toUpperCaseFirst(pluginName);
 
   if (uniquePluginsList.hasItem(unifiedPluginName)) {
-    throw new Error(ERROR_PLUGIN_REGISTERED(unifiedPluginName));
+    throw new Error(ERROR_PLUGIN_REGISTERED(unifiedPluginName), { cause: { handsontable: true } });
   }
 
   if (priority === undefined) {

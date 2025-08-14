@@ -12,7 +12,7 @@ export const SHORT_NAME_FOR_COMPONENT = C.FILTERS_LABELS_DISJUNCTION;
  */
 export function operationResult(conditions, value) {
   if (conditions.length < 3) {
-    throw Error('Operation doesn\'t work on less then three conditions.');
+    throw Error('Operation doesn\'t work on less then three conditions.', { cause: { handsontable: true } });
   }
 
   return conditions.slice(0, conditions.length - 1).some(condition => condition.func(value))

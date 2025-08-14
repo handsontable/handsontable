@@ -59,7 +59,7 @@ export class CommandExecutor {
     let command = this.commands[commandNamePrimary];
 
     if (!command) {
-      throw new Error(`Menu command '${commandNamePrimary}' not exists.`);
+      throw new Error(`Menu command '${commandNamePrimary}' not exists.`, { cause: { handsontable: true } });
     }
     if (subCommandName && command.submenu) {
       command = findSubCommand(subCommandName, command.submenu.items);

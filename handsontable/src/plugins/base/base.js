@@ -117,7 +117,7 @@ export class BasePlugin {
         const [type, moduleName] = dependency.split(':');
 
         if (!DEPS_TYPE_CHECKERS.has(type)) {
-          throw new Error(`Unknown plugin dependency type "${type}" was found.`);
+          throw new Error(`Unknown plugin dependency type "${type}" was found.`, { cause: { handsontable: true } });
         }
 
         if (!DEPS_TYPE_CHECKERS.get(type)(moduleName)) {
@@ -160,7 +160,7 @@ export class BasePlugin {
 
         missingDepsMsgs.length = 0;
 
-        throw new Error(errorMsg);
+        throw new Error(errorMsg, { cause: { handsontable: true } });
       }
 
       this.hot.runHooks('afterPluginsInitialized');

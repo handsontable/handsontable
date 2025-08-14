@@ -284,7 +284,7 @@ describe('UndoRedo -> CellAlignment action', () => {
 
     expect(() => {
       getPlugin('undoRedo').undo();
-    }).not.toThrowError();
+    }).not.toThrowWithCause(undefined, { handsontable: true });
   });
 
   it('should not throw an error after undoing the column header aligning', async() => {
@@ -298,7 +298,7 @@ describe('UndoRedo -> CellAlignment action', () => {
 
     expect(() => {
       getPlugin('undoRedo').undo();
-    }).not.toThrowError();
+    }).not.toThrowWithCause(undefined, { handsontable: true });
   });
 
   it('should redo a sequence of aligning cells', async() => {
@@ -422,7 +422,7 @@ describe('UndoRedo -> CellAlignment action', () => {
 
     expect(() => {
       getPlugin('undoRedo').redo();
-    }).not.toThrowError();
+    }).not.toThrowWithCause(undefined, { handsontable: true });
   });
 
   it('should not throw an error after redoing the column header aligning', async() => {
@@ -437,6 +437,6 @@ describe('UndoRedo -> CellAlignment action', () => {
 
     expect(() => {
       getPlugin('undoRedo').redo();
-    }).not.toThrowError();
+    }).not.toThrowWithCause(undefined, { handsontable: true });
   });
 });

@@ -11,14 +11,14 @@ describe('context', () => {
           // Callback for shortcut.
         },
       });
-    }).toThrowError();
+    }).toThrowWithCause(undefined, { handsontable: true });
 
     expect(() => {
       context.addShortcut({
         group: 'helloWorld',
         keys: [['control/meta', 'a']],
       });
-    }).toThrowError();
+    }).toThrowWithCause(undefined, { handsontable: true });
 
     expect(() => {
       context.addShortcut({
@@ -27,7 +27,7 @@ describe('context', () => {
           // Callback for shortcut.
         },
       });
-    }).toThrowError();
+    }).toThrowWithCause(undefined, { handsontable: true });
 
     context.addShortcut({
       group: 'helloWorld',

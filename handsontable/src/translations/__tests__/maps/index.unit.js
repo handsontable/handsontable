@@ -11,7 +11,7 @@ describe('createIndexMap', () => {
   it('should throw an error when not supported map type is passed', () => {
     expect(() => {
       createIndexMap('hidding2');
-    }).toThrowError('The provided map type ("hidding2") does not exist.');
+    }).toThrowWithCause('The provided map type ("hidding2") does not exist.', { handsontable: true });
   });
 
   it('should create and return a new index map by its type', () => {

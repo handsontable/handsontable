@@ -64,7 +64,7 @@ class GhostTable {
    */
   addRow(row, samples) {
     if (this.columns.length) {
-      throw new Error('Doesn\'t support multi-dimensional table');
+      throw new Error('Doesn\'t support multi-dimensional table', { cause: { handsontable: true } });
     }
     if (!this.rows.length) {
       this.container = this.createContainer(this.hot.rootElement.className);
@@ -122,7 +122,7 @@ class GhostTable {
    */
   addColumn(column, samples) {
     if (this.rows.length) {
-      throw new Error('Doesn\'t support multi-dimensional table');
+      throw new Error('Doesn\'t support multi-dimensional table', { cause: { handsontable: true } });
     }
     if (!this.columns.length) {
       this.container = this.createContainer(this.hot.rootElement.className);

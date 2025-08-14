@@ -164,7 +164,7 @@ export default class MetaManager {
    */
   getCellMetaKeyValue(physicalRow, physicalColumn, key) {
     if (typeof key !== 'string') {
-      throw new Error('The passed cell meta object key is not a string');
+      throw new Error('The passed cell meta object key is not a string', { cause: { handsontable: true } });
     }
 
     return this.cellMeta.getMeta(physicalRow, physicalColumn, key);
