@@ -7,7 +7,6 @@ import { announce } from '../../utils/a11yAnnouncer';
 import { createPaginatorStrategy } from './strategies';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
-import { getMostBottomEndPosition } from '../../helpers/mixed';
 import { createPaginationFocusController } from './focusController';
 import { installFocusDetector } from '../../utils/focusDetector';
 
@@ -217,7 +216,7 @@ export class Pagination extends BasePlugin {
 
     if (!this.#ui) {
       this.#ui = new PaginationUI({
-        rootElement: this.hot.rootElement,
+        rootElement: this.hot.rootGridElement,
         uiContainer: this.getSetting('uiContainer'),
         isRtl: this.hot.isRtl(),
         themeName: this.hot.getSettings().themeName,
@@ -229,18 +228,31 @@ export class Pagination extends BasePlugin {
       this.#focusController = createPaginationFocusController({
         focusableElements: this.#ui.getFocusableElements(),
         onElementClick: () => {
+          this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
+
           if (!this.hot.isListening()) {
             this.hot.listen();
           }
 
-          this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
           this.#focusDetector.deactivate();
         },
       });
 
       this.#focusDetector = installFocusDetector(this.hot, this.#ui.getPaginationElement(), {
-        onFocus: () => {
+        onFocus: (from) => {
           this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
+
+          if (!this.hot.isListening()) {
+            this.hot.listen();
+          }
+
+          if (from === 'from_above') {
+            this.#focusController.toFirstItem();
+          } else {
+            this.#focusController.toLastItem();
+          }
+
+          this.#focusDetector.deactivate();
         },
       });
 
@@ -270,8 +282,6 @@ export class Pagination extends BasePlugin {
     this.addHook('modifyRowHeight', (...args) => this.#onModifyRowHeight(...args));
     this.addHook('beforeHeightChange', (...args) => this.#onBeforeHeightChange(...args));
     this.addHook('afterSetTheme', (...args) => this.#onAfterSetTheme(...args));
-    this.addHook('modifyFocusOnTabNavigation', (...args) => this.#onFocusTabNavigation(...args), 2);
-    this.addHook('tableFocusExit', (...args) => this.#onTableFocusExit(...args));
     this.addHook('afterSelection', () => this.#onAfterSelection());
     this.addHook('afterDialogShow', (...args) => this.#afterDialogShow(...args));
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onIndexCacheUpdate);
@@ -328,14 +338,11 @@ export class Pagination extends BasePlugin {
           const currentPage = this.#focusController.getCurrentPage();
 
           if (currentPage >= previousIndex) {
-            const mostBottomEndCoords = getMostBottomEndPosition(this.hot);
+            this.#focusDetector.activate();
+            this.#focusController.clear();
+            this.hot.unlisten();
 
-            if (mostBottomEndCoords) {
-              this.#focusDetector.activate();
-              this.#focusController.clear();
-              this.hot.getShortcutManager().setActiveContextName('grid');
-              this.hot.selectCell(mostBottomEndCoords.row, mostBottomEndCoords.col);
-            }
+            return;
           }
 
           previousIndex = currentPage;
@@ -974,38 +981,6 @@ export class Pagination extends BasePlugin {
   #onIndexCacheUpdate = () => {
     if (!this.#internalExecutionCall && this.hot?.view) {
       this.#computeAndApplyState();
-    }
-  }
-
-  /**
-   * Called when the focus is modified on the table. It sets the active context for the shortcuts.
-   *
-   * @param {'from_above' | 'from_below'} from The direction from which the focus was modified.
-   * @returns {boolean} Returns `false` to prevent the default focus behavior.
-   */
-  #onFocusTabNavigation(from) {
-    if (from === 'from_below') {
-      this.#focusDetector.focus(from);
-      this.#focusController.toLastItem();
-      this.#focusDetector.deactivate();
-
-      return false;
-    }
-  }
-
-  /**
-   * Called when the focus is modified on the table. It sets the active context for the shortcuts.
-   *
-   * @param {'top' | 'bottom'} exitDirection The direction to which the focus was modified.
-   * @returns {boolean} Returns `false` to prevent the default focus behavior.
-   */
-  #onTableFocusExit(exitDirection) {
-    if (exitDirection === 'bottom') {
-      this.#focusDetector.focus('from_above');
-      this.#focusController.toFirstItem();
-      this.#focusDetector.deactivate();
-
-      return false;
     }
   }
 

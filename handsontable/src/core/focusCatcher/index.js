@@ -14,7 +14,7 @@ export function installFocusCatcher(hot) {
   const clampCoordsIfNeeded = normalizeCoordsIfNeeded(hot);
   let recentlyAddedFocusCoords;
 
-  const { activate, deactivate } = installFocusDetector(hot, hot.rootWrapperElement, {
+  const { activate, deactivate } = installFocusDetector(hot, hot.rootGridElement, {
     onFocus(from) {
       if (from === 'from_above') {
         const mostTopStartCoords = clampCoordsIfNeeded(recentlyAddedFocusCoords) ?? getMostTopStartPosition(hot);
@@ -51,8 +51,16 @@ export function installFocusCatcher(hot) {
   let isTabOrShiftTabPressed = false;
   let preventViewportScroll = false;
 
-  hot.addHook('afterListen', () => deactivate());
-  hot.addHook('afterUnlisten', () => activate());
+  hot.addHook('afterListen', () => {
+    if (hot.getShortcutManager().getActiveContextScope() === 'table') {
+      deactivate();
+    }
+  });
+  hot.addHook('afterUnlisten', () => {
+    if (hot.getShortcutManager().getActiveContextScope() === 'table') {
+      activate();
+    }
+  });
   hot.addHook('afterSelection', (row, column, row2, column2, preventScrolling) => {
     if (isTabOrShiftTabPressed && (rowWrapState.wrapped && rowWrapState.flipped || preventViewportScroll)) {
       preventViewportScroll = false;

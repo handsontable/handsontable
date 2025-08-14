@@ -2154,7 +2154,7 @@ thead th.hiddenHeaderText .colHeader {
   flex-direction: column-reverse;
 }
 
-.ht-root-wrapper .ht-pagination-container {
+.ht-root-wrapper .ht-pagination {
   color: #222;
   background: #f0f0f0;
   border: 1px solid #ccc;
@@ -2166,7 +2166,7 @@ thead th.hiddenHeaderText .colHeader {
   overflow-x: auto;
 }
 
-.ht-root-wrapper .ht-pagination-container__inner {
+.ht-root-wrapper .ht-pagination__inner {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -2177,7 +2177,7 @@ thead th.hiddenHeaderText .colHeader {
   min-width: 230px;
 }
 
-.ht-root-wrapper .ht-pagination-container--bordered {
+.ht-root-wrapper .ht-pagination--bordered {
   border-top-color: #ccc;
 }
 

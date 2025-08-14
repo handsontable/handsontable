@@ -51,6 +51,10 @@
     }
   }
 
+  .ht-grid {
+    height: 100%;
+  }
+
   .handsontable {
     @include mixins.font-family;
 

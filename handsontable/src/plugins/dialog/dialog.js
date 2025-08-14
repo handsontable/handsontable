@@ -231,13 +231,18 @@ export class Dialog extends BasePlugin {
 
     if (!this.#ui) {
       this.#ui = new DialogUI({
-        rootElement: this.hot.rootElement,
+        rootElement: this.hot.rootGridElement,
       });
 
       this.#ui.addLocalHook('clickDialogElement', () => this.#onDialogClick());
 
       this.#focusDetector = installFocusDetector(this.hot, this.#ui.getDialogElement(), {
-        onFocus: from => this.hot.runHooks('afterDialogFocus', `tab_${from}`)
+        onFocus: (from) => {
+          this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
+          this.#focusDetector.deactivate();
+          this.hot.runHooks('afterDialogFocus', `tab_${from}`);
+          this.hot.listen();
+        }
       });
     }
 
@@ -277,7 +282,7 @@ export class Dialog extends BasePlugin {
   registerShortcuts() {
     const manager = this.hot.getShortcutManager();
     const pluginContext = manager.getContext(SHORTCUTS_CONTEXT_NAME) ??
-      manager.addContext(SHORTCUTS_CONTEXT_NAME, 'global');
+      manager.addContext(SHORTCUTS_CONTEXT_NAME);
 
     pluginContext.addShortcut({
       keys: [['Escape']],
@@ -297,8 +302,7 @@ export class Dialog extends BasePlugin {
 
           if (!this.#ui.isInsideDialogContent(activeElement)) {
             this.#focusDetector.activate();
-            this.hot.getShortcutManager().setActiveContextName('grid');
-            this.hot.unlisten();
+            this.hot.listen();
 
             return;
           }
@@ -435,10 +439,8 @@ export class Dialog extends BasePlugin {
    * @returns {boolean} Returns `false` to prevent the default focus behavior.
    */
   #onFocusTabNavigation(from) {
-    if (this.isVisible()) {
-      this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
+    if (this.isVisible() && from === 'from_above') {
       this.#focusDetector.focus(from);
-      this.#focusDetector.deactivate();
 
       return false;
     }
@@ -450,9 +452,10 @@ export class Dialog extends BasePlugin {
    */
   #onDialogClick() {
     if (this.isVisible() && !this.hot.isListening()) {
-      this.hot.listen();
       this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
+      this.#focusDetector.deactivate();
       this.hot.runHooks('afterDialogFocus', 'click');
+      this.hot.listen();
     }
 
     this.#focusDetector.deactivate();

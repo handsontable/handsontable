@@ -74,6 +74,16 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
   };
 
   /**
+   * Get the scope of the active [`ShortcutContext`](@/api/shortcutContext.md).
+   *
+   * @memberof ShortcutManager#
+   * @returns {string}
+   */
+  const getActiveContextScope = () => {
+    return getContext(activeContextName)?.scope;
+  };
+
+  /**
    * Start listening to keyboard shortcuts within a given [`ShortcutContext`](@/api/shortcutContext.md).
    *
    * @memberof ShortcutManager#
@@ -186,6 +196,7 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
   return {
     addContext,
     getActiveContextName,
+    getActiveContextScope,
     getContext,
     setActiveContextName,
     /**

@@ -71,7 +71,7 @@ export class DialogUI {
       A11Y_MODAL(),
     ]);
 
-    // Append to Handsontable after table root element
+    // Append to Handsontable after table grid element
     this.#rootElement.after(elements.fragment);
   }
 
