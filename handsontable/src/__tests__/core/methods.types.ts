@@ -72,6 +72,7 @@ hot.getColWidth(123) === 123;
 hot.getColWidth(123, 'my_source') === 123;
 hot.getCoords(elem.querySelector('td')).row === 0;
 hot.getCopyableData(123, 123).toUpperCase();
+hot.getCopyableSourceData(123, 123).toUpperCase();
 hot.getCopyableText(123, 123, 123, 123).toUpperCase();
 hot.getData(123, 123, 123, 123).forEach(v => v === '');
 hot.getDataAtCell(123, 123) === '';

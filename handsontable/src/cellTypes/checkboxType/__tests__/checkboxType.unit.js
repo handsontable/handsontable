@@ -56,6 +56,7 @@ describe('CheckboxCellType', () => {
         CELL_TYPE,
         editor: getEditor('checkbox'),
         renderer: getRenderer('checkbox'),
+        valueSetter: CheckboxCellType.valueSetter,
       });
     });
   });
