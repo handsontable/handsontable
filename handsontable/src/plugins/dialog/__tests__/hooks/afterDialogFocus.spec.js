@@ -59,6 +59,7 @@ describe('Dialog - afterDialogFocus hook', () => {
 
     document.body.removeChild(input);
 
+    expect(afterDialogFocusSpy).toHaveBeenCalledTimes(1);
     expect(afterDialogFocusSpy).toHaveBeenCalledWith('tab_from_above');
   });
 
@@ -91,6 +92,7 @@ describe('Dialog - afterDialogFocus hook', () => {
 
     document.body.removeChild(input);
 
+    expect(afterDialogFocusSpy).toHaveBeenCalledTimes(1);
     expect(afterDialogFocusSpy).toHaveBeenCalledWith('tab_from_below');
   });
 

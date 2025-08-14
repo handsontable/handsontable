@@ -1,5 +1,5 @@
-import { setAttribute } from '../../helpers/dom/element';
-import { A11Y_LABEL } from '../../helpers/a11y';
+import { setAttribute } from '../helpers/dom/element';
+import { A11Y_LABEL } from '../helpers/a11y';
 
 /**
  * Installs a focus detector module. The module appends two input elements into the DOM side by side.
@@ -8,21 +8,28 @@ import { A11Y_LABEL } from '../../helpers/a11y';
  * the element below the table. Each action, once detected, triggers the specific hook.
  *
  * @param {Handsontable} hot The Handsontable instance.
- * @param {{ onFocusFromTop: Function, onFocusFromBottom: Function }} hooks An object with defined callbacks to call.
+ * @param {HTMLElement} wrapperElement The wrapper element to install the focus detector into.
+ * @param {{ onFocus: Function }} hooks An object with defined callbacks to call.
  * @returns {{ activate: Function, deactivate: Function }}
  */
-export function installFocusDetector(hot, hooks = {}) {
-  const rootWrapper = hot.rootWrapperElement;
+export function installFocusDetector(hot, wrapperElement, hooks = {}) {
   const inputTrapTop = createInputElement(hot);
   const inputTrapBottom = createInputElement(hot);
 
-  inputTrapTop.addEventListener('focus', () => hooks?.onFocusFromTop());
-  inputTrapBottom.addEventListener('focus', () => hooks?.onFocusFromBottom());
+  inputTrapTop.addEventListener('focus', () => hooks?.onFocus('from_above'));
+  inputTrapBottom.addEventListener('focus', () => hooks?.onFocus('from_below'));
 
-  rootWrapper.prepend(inputTrapTop);
-  rootWrapper.append(inputTrapBottom);
+  wrapperElement.prepend(inputTrapTop);
+  wrapperElement.append(inputTrapBottom);
 
   return {
+    focus(direction) {
+      if (direction === 'from_above') {
+        inputTrapTop.focus();
+      } else {
+        inputTrapBottom.focus();
+      }
+    },
     /**
      * Activates the detector by resetting the tabIndex of the input elements.
      */

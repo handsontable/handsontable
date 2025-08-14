@@ -20,6 +20,8 @@ describe('Dialog - dialogFocusPreviousElement hook', () => {
       dialogFocusPreviousElement: dialogFocusPreviousElementSpy,
     });
 
+    await selectCell(0, 0);
+
     const dialogPlugin = hot.getPlugin('dialog');
 
     dialogPlugin.show({
@@ -45,6 +47,8 @@ describe('Dialog - dialogFocusPreviousElement hook', () => {
       dialogFocusPreviousElement: dialogFocusPreviousElementSpy,
     });
 
+    await selectCell(0, 0);
+
     const dialogPlugin = hot.getPlugin('dialog');
 
     dialogPlugin.show({
@@ -69,6 +73,8 @@ describe('Dialog - dialogFocusPreviousElement hook', () => {
       dialog: true,
       dialogFocusPreviousElement: dialogFocusPreviousElementSpy,
     });
+
+    await selectCell(0, 0);
 
     const dialogPlugin = hot.getPlugin('dialog');
 
@@ -100,6 +106,8 @@ describe('Dialog - dialogFocusPreviousElement hook', () => {
       dialog: true,
       dialogFocusPreviousElement: dialogFocusPreviousElementSpy,
     });
+
+    await selectCell(0, 0);
 
     const dialogPlugin = hot.getPlugin('dialog');
 

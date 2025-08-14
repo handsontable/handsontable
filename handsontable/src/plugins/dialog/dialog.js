@@ -1,6 +1,7 @@
 import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
 import { DialogUI } from './dialogUI';
+import { installFocusDetector } from '../../utils/focusDetector';
 
 export const PLUGIN_KEY = 'dialog';
 export const PLUGIN_PRIORITY = 340;
@@ -198,6 +199,13 @@ export class Dialog extends BasePlugin {
   #isVisible = false;
 
   /**
+   * Focus detector instance.
+   *
+   * @type {object}
+   */
+  #focusDetector = null;
+
+  /**
    * Check if the plugin is enabled in the handsontable settings.
    *
    * @returns {boolean}
@@ -220,6 +228,10 @@ export class Dialog extends BasePlugin {
       });
 
       this.#ui.addLocalHook('clickDialogElement', () => this.#onDialogClick());
+
+      this.#focusDetector = installFocusDetector(this.hot, this.#ui.getDialogElement(), {
+        onFocus: from => this.hot.runHooks('afterDialogFocus', `tab_${from}`)
+      });
     }
 
     this.registerShortcuts();
@@ -276,7 +288,8 @@ export class Dialog extends BasePlugin {
         this.hot._registerTimeout(() => {
           const { activeElement } = this.hot.rootDocument;
 
-          if (!this.#ui.isInsideDialog(activeElement)) {
+          if (!this.#ui.isInsideDialogContent(activeElement)) {
+            this.#focusDetector.activate();
             this.hot.getShortcutManager().setActiveContextName('grid');
             this.hot.unlisten();
 
@@ -335,8 +348,6 @@ export class Dialog extends BasePlugin {
 
     this.hot.runHooks('beforeDialogShow');
 
-    this.hot.listen();
-    this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
     this.update(options);
     this.#ui.showDialog(this.getSetting('animation'));
     this.#isVisible = true;
@@ -345,9 +356,11 @@ export class Dialog extends BasePlugin {
 
     const { activeElement } = this.hot.rootDocument;
 
-    if (this.hot.rootWrapperElement.contains(activeElement)) {
-      this.#ui.focusDialog();
+    if (this.hot.rootWrapperElement.contains(activeElement) || this.hot.rootPortalElement.contains(activeElement)) {
+      this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
       this.hot.runHooks('afterDialogFocus', 'show');
+
+      this.#focusDetector.deactivate();
     }
   }
 
@@ -408,9 +421,8 @@ export class Dialog extends BasePlugin {
   #onFocusTabNavigation(from) {
     if (this.isVisible()) {
       this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
-
-      this.#ui.focusDialog();
-      this.hot.runHooks('afterDialogFocus', `tab_${from}`);
+      this.#focusDetector.focus(from);
+      this.#focusDetector.deactivate();
 
       return false;
     }
@@ -426,6 +438,8 @@ export class Dialog extends BasePlugin {
       this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
       this.hot.runHooks('afterDialogFocus', 'click');
     }
+
+    this.#focusDetector.deactivate();
   }
 
   /**

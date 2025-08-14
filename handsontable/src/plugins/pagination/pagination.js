@@ -8,7 +8,8 @@ import { createPaginatorStrategy } from './strategies';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
 import { getMostBottomEndPosition } from '../../helpers/mixed';
-import { createPaginationController } from './paginationController';
+import { createPaginationFocusController } from './focusController';
+import { installFocusDetector } from '../../utils/focusDetector';
 
 export const PLUGIN_KEY = 'pagination';
 export const PLUGIN_PRIORITY = 900;
@@ -166,6 +167,12 @@ export class Pagination extends BasePlugin {
    * @type {PaginationController}
    */
   #focusController = null;
+  /**
+   * Pagination focus detector instance.
+   *
+   * @type {object}
+   */
+  #focusDetector = null;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -219,12 +226,22 @@ export class Pagination extends BasePlugin {
         a11yAnnouncer: message => announce(message),
       });
 
-      this.#focusController = createPaginationController(this.#ui.getFocusableElements(), this.hot.rootDocument);
-      this.#focusController.onElementClick(() => {
-        if (!this.hot.isListening()) {
-          this.hot.listen();
+      this.#focusController = createPaginationFocusController({
+        focusableElements: this.#ui.getFocusableElements(),
+        onElementClick: () => {
+          if (!this.hot.isListening()) {
+            this.hot.listen();
+          }
+
           this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
-        }
+          this.#focusDetector.deactivate();
+        },
+      });
+
+      this.#focusDetector = installFocusDetector(this.hot, this.#ui.getPaginationElement(), {
+        onFocus: () => {
+          this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
+        },
       });
 
       this.#updateSectionsVisibilityState();
@@ -253,9 +270,10 @@ export class Pagination extends BasePlugin {
     this.addHook('modifyRowHeight', (...args) => this.#onModifyRowHeight(...args));
     this.addHook('beforeHeightChange', (...args) => this.#onBeforeHeightChange(...args));
     this.addHook('afterSetTheme', (...args) => this.#onAfterSetTheme(...args));
-    this.addHook('modifyFocusOnTabNavigation', from => this.#onFocusTabNavigation(from), 2);
-    this.addHook('tableFocusExit', exitDirection => this.#onTableFocusExit(exitDirection));
+    this.addHook('modifyFocusOnTabNavigation', (...args) => this.#onFocusTabNavigation(...args), 2);
+    this.addHook('tableFocusExit', (...args) => this.#onTableFocusExit(...args));
     this.addHook('afterSelection', () => this.#onAfterSelection());
+    this.addHook('afterDialogShow', (...args) => this.#afterDialogShow(...args));
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onIndexCacheUpdate);
 
     super.enablePlugin();
@@ -302,27 +320,39 @@ export class Pagination extends BasePlugin {
       keys: [['Shift', 'Tab'], ['Tab']],
       preventDefault: false,
       callback: (event) => {
-        if (event.shiftKey) {
-          const isPreviousElementFocused = this.#focusController.focusPreviousElement();
+        let previousIndex = this.#focusController.getCurrentPage();
 
-          if (!isPreviousElementFocused) {
+        if (event.shiftKey) {
+          this.#focusController.toPreviousItem();
+
+          const currentPage = this.#focusController.getCurrentPage();
+
+          if (currentPage >= previousIndex) {
             const mostBottomEndCoords = getMostBottomEndPosition(this.hot);
 
             if (mostBottomEndCoords) {
+              this.#focusDetector.activate();
+              this.#focusController.clear();
               this.hot.getShortcutManager().setActiveContextName('grid');
               this.hot.selectCell(mostBottomEndCoords.row, mostBottomEndCoords.col);
             }
-
-            event.preventDefault();
           }
-        } else {
-          const isNextElementFocused = this.#focusController.focusNextElement();
 
-          if (!isNextElementFocused) {
+          previousIndex = currentPage;
+        } else {
+          this.#focusController.toNextItem();
+
+          const currentPage = this.#focusController.getCurrentPage();
+
+          if (currentPage <= previousIndex) {
+            this.#focusDetector.activate();
+            this.#focusController.clear();
             this.hot.unlisten();
 
             return;
           }
+
+          previousIndex = currentPage;
         }
 
         event.preventDefault();
@@ -955,9 +985,9 @@ export class Pagination extends BasePlugin {
    */
   #onFocusTabNavigation(from) {
     if (from === 'from_below') {
-      this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
-
-      this.#focusController.focusLastElement();
+      this.#focusDetector.focus(from);
+      this.#focusController.toLastItem();
+      this.#focusDetector.deactivate();
 
       return false;
     }
@@ -971,10 +1001,9 @@ export class Pagination extends BasePlugin {
    */
   #onTableFocusExit(exitDirection) {
     if (exitDirection === 'bottom') {
-      this.hot.deselectCell();
-      this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
-
-      this.#focusController.focusFirstElement();
+      this.#focusDetector.focus('from_above');
+      this.#focusController.toFirstItem();
+      this.#focusDetector.deactivate();
 
       return false;
     }
@@ -984,9 +1013,16 @@ export class Pagination extends BasePlugin {
    * Called after the selection is made. It sets the active context for the shortcuts.
    */
   #onAfterSelection() {
-    if (this.hot.getShortcutManager().getActiveContextName() === SHORTCUTS_CONTEXT_NAME) {
-      this.hot.getShortcutManager().setActiveContextName('grid');
-    }
+    this.hot.getShortcutManager().setActiveContextName('grid');
+    this.#focusDetector.activate();
+    this.#focusController.clear();
+  }
+
+  /**
+   * Called after the dialog is focused. It sets the active context for the shortcuts.
+   */
+  #afterDialogShow() {
+    this.#focusDetector.deactivate();
   }
 
   /**

@@ -8,7 +8,7 @@ import {
   fastInnerHTML,
   setAttribute,
 } from '../../helpers/dom/element';
-import { A11Y_DIALOG, A11Y_MODAL, A11Y_TABINDEX } from '../../helpers/a11y';
+import { A11Y_DIALOG, A11Y_MODAL } from '../../helpers/a11y';
 
 const DIALOG_CLASS_NAME = 'ht-dialog';
 
@@ -69,7 +69,6 @@ export class DialogUI {
     setAttribute(dialogElement, [
       A11Y_DIALOG(),
       A11Y_MODAL(),
-      A11Y_TABINDEX(-1),
     ]);
 
     // Append to Handsontable after table root element
@@ -77,20 +76,22 @@ export class DialogUI {
   }
 
   /**
-   * Focuses the dialog content wrapper element.
+   * Returns the dialog element.
+   *
+   * @returns {HTMLElement} The dialog element.
    */
-  focusDialog() {
-    this.#refs.dialogElement.focus();
+  getDialogElement() {
+    return this.#refs.dialogElement;
   }
 
   /**
-   * Checks if the given element is inside the dialog.
+   * Checks if the given element is inside the dialog content.
    *
    * @param {HTMLElement} element - The element to check.
-   * @returns {boolean} Returns `true` if the element is inside the dialog, `false` otherwise.
+   * @returns {boolean} Returns `true` if the element is inside the dialog content, `false` otherwise.
    */
-  isInsideDialog(element) {
-    return this.#refs.dialogElement.contains(element);
+  isInsideDialogContent(element) {
+    return this.#refs.contentElement.contains(element);
   }
 
   /**

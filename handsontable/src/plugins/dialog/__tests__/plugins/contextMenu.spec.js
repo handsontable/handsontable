@@ -99,6 +99,8 @@ describe('Dialog - context menu integration', () => {
       contextMenu: true,
     });
 
+    await selectCell(0, 0);
+
     const dialogPlugin = hot.getPlugin('dialog');
 
     dialogPlugin.show({

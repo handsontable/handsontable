@@ -1,5 +1,5 @@
 import { GRID_GROUP } from '../../shortcutContexts';
-import { installFocusDetector } from './focusDetector';
+import { installFocusDetector } from '../../utils/focusDetector';
 import { normalizeCoordsIfNeeded } from './utils';
 import { getMostTopStartPosition, getMostBottomEndPosition } from '../../helpers/mixed';
 
@@ -14,28 +14,28 @@ export function installFocusCatcher(hot) {
   const clampCoordsIfNeeded = normalizeCoordsIfNeeded(hot);
   let recentlyAddedFocusCoords;
 
-  const { activate, deactivate } = installFocusDetector(hot, {
-    onFocusFromTop() {
-      const mostTopStartCoords = clampCoordsIfNeeded(recentlyAddedFocusCoords) ?? getMostTopStartPosition(hot);
+  const { activate, deactivate } = installFocusDetector(hot, hot.rootWrapperElement, {
+    onFocus(from) {
+      if (from === 'from_above') {
+        const mostTopStartCoords = clampCoordsIfNeeded(recentlyAddedFocusCoords) ?? getMostTopStartPosition(hot);
 
-      if (mostTopStartCoords) {
-        const result = hot.runHooks('modifyFocusOnTabNavigation', 'from_above', mostTopStartCoords);
+        if (mostTopStartCoords) {
+          const result = hot.runHooks('modifyFocusOnTabNavigation', 'from_above', mostTopStartCoords);
 
-        if (result !== false) {
-          hot.selectCell(mostTopStartCoords.row, mostTopStartCoords.col);
+          if (result !== false) {
+            hot.selectCell(mostTopStartCoords.row, mostTopStartCoords.col);
+          }
         }
-      }
 
-      hot.listen();
-    },
-    onFocusFromBottom() {
-      const mostBottomEndCoords = clampCoordsIfNeeded(recentlyAddedFocusCoords) ?? getMostBottomEndPosition(hot);
+      } else {
+        const mostBottomEndCoords = clampCoordsIfNeeded(recentlyAddedFocusCoords) ?? getMostBottomEndPosition(hot);
 
-      if (mostBottomEndCoords) {
-        const result = hot.runHooks('modifyFocusOnTabNavigation', 'from_below', mostBottomEndCoords);
+        if (mostBottomEndCoords) {
+          const result = hot.runHooks('modifyFocusOnTabNavigation', 'from_below', mostBottomEndCoords);
 
-        if (result !== false) {
-          hot.selectCell(mostBottomEndCoords.row, mostBottomEndCoords.col);
+          if (result !== false) {
+            hot.selectCell(mostBottomEndCoords.row, mostBottomEndCoords.col);
+          }
         }
       }
 

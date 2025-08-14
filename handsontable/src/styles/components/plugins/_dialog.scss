@@ -19,7 +19,7 @@
     border: 1px solid var(--ht-border-color);
     box-sizing: border-box !important;
 
-    &:focus {
+    &:has(.htFocusCatcher:focus) {
       border: 1px solid var(--ht-accent-color);
       outline: none;
     }

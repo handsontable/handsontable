@@ -345,10 +345,9 @@ class TableView {
 
       this.#mouseDown = false;
 
-      const isInsideDialog = rootWrapperElement?.querySelector('.ht-dialog')?.contains(event.target);
       const isOutsideInputElement = isOutsideInput(rootDocument.activeElement);
 
-      if (isInput(rootDocument.activeElement) && !isOutsideInputElement || isInsideDialog) {
+      if (isInput(rootDocument.activeElement) && !isOutsideInputElement) {
         return;
       }
 

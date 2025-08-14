@@ -1,4 +1,4 @@
-import { installFocusDetector } from './../focusDetector';
+import { installFocusDetector } from '../focusDetector';
 
 describe('focusDetector', () => {
   let hot;
@@ -23,8 +23,7 @@ describe('focusDetector', () => {
       }),
     };
     hooks = {
-      onFocusFromTop: jest.fn(),
-      onFocusFromBottom: jest.fn(),
+      onFocus: jest.fn(),
     };
   });
 
@@ -33,8 +32,8 @@ describe('focusDetector', () => {
     hooks = null;
   });
 
-  it('should add input traps with correct attributes to the Handsontable root element', () => {
-    installFocusDetector(hot, hooks);
+  it('should add input traps with correct attributes to the wrapper element', () => {
+    installFocusDetector(hot, hot.rootWrapperElement, hooks);
 
     const inputTrapTop = hot.rootWrapperElement.firstChild;
     const inputTrapBottom = hot.rootWrapperElement.lastChild;

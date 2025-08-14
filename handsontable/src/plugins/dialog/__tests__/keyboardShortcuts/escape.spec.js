@@ -21,6 +21,8 @@ describe('Dialog keyboard shortcut', () => {
         },
       });
 
+      await selectCell(0, 0);
+
       const dialogPlugin = hot.getPlugin('dialog');
 
       dialogPlugin.show({
@@ -43,6 +45,8 @@ describe('Dialog keyboard shortcut', () => {
           closable: false,
         },
       });
+
+      await selectCell(0, 0);
 
       const dialogPlugin = hot.getPlugin('dialog');
 
@@ -67,6 +71,8 @@ describe('Dialog keyboard shortcut', () => {
         },
       });
 
+      await selectCell(0, 0);
+
       const dialogPlugin = hot.getPlugin('dialog');
 
       expect(dialogPlugin.isVisible()).toBe(false);
@@ -88,6 +94,8 @@ describe('Dialog keyboard shortcut', () => {
         beforeDialogHide: beforeDialogHideSpy,
         afterDialogHide: afterDialogHideSpy,
       });
+
+      await selectCell(0, 0);
 
       const dialogPlugin = hot.getPlugin('dialog');
 
@@ -111,6 +119,8 @@ describe('Dialog keyboard shortcut', () => {
           closable: true,
         },
       });
+
+      await selectCell(0, 0);
 
       const dialogPlugin = hot.getPlugin('dialog');
       const shortcutManager = hot.getShortcutManager();
@@ -140,6 +150,8 @@ describe('Dialog keyboard shortcut', () => {
         },
       });
 
+      await selectCell(0, 0);
+
       const dialogPlugin = hot.getPlugin('dialog');
 
       dialogPlugin.show();
@@ -161,6 +173,8 @@ describe('Dialog keyboard shortcut', () => {
           closable: true,
         },
       });
+
+      await selectCell(0, 0);
 
       const dialogPlugin = hot.getPlugin('dialog');
 

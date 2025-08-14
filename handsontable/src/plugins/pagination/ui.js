@@ -187,6 +187,15 @@ export class PaginationUI {
   }
 
   /**
+   * Gets the pagination element.
+   *
+   * @returns {HTMLElement} The pagination element.
+   */
+  getPaginationElement() {
+    return this.#refs.container;
+  }
+
+  /**
    * Updates the width of the pagination container.
    *
    * @param {number} width The new width of the pagination container.

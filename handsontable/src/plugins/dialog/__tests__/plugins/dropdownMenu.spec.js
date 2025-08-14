@@ -103,6 +103,8 @@ describe('Dialog - dropdown menu integration', () => {
       dropdownMenu: true,
     });
 
+    await selectCell(0, 0);
+
     const dialogPlugin = hot.getPlugin('dialog');
 
     dialogPlugin.show({

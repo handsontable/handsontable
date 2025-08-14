@@ -560,28 +560,6 @@ export function triggerTabNavigationFromBottom(hotInstance = hot()) {
 }
 
 /**
- * Emulates the browser's TAB navigation out of the Handsontable (to element above).
- */
-export function triggerTabNavigationToAbove() {
-  // Trigger Shift+Tab to navigate to element above
-  // We'll use the global keyDownUp function that should be available in test environment
-  if (typeof keyDownUp === 'function') {
-    keyDownUp(['shift', 'tab']);
-  }
-}
-
-/**
- * Emulates the browser's TAB navigation out of the Handsontable (to element below).
- */
-export function triggerTabNavigationToBelow() {
-  // Trigger Tab to navigate to element below
-  // We'll use the global keyDownUp function that should be available in test environment
-  if (typeof keyDownUp === 'function') {
-    keyDownUp('tab');
-  }
-}
-
-/**
  * Returns an instance of the CellCoords class.
  *
  * @param {number} row The row index.

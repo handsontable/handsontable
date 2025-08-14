@@ -20,7 +20,7 @@ describe('Hook', () => {
       await selectCell(0, 0);
       await listen();
 
-      triggerTabNavigationToAbove();
+      await keyDownUp(['shift', 'tab']);
 
       expect(tableFocusExit).toHaveBeenCalledWith('top');
       expect(tableFocusExit).toHaveBeenCalledTimes(1);
@@ -37,7 +37,7 @@ describe('Hook', () => {
       await selectCell(5, 5);
       await listen();
 
-      triggerTabNavigationToBelow();
+      await keyDownUp('tab');
 
       expect(tableFocusExit).toHaveBeenCalledWith('bottom');
       expect(tableFocusExit).toHaveBeenCalledTimes(1);
@@ -54,7 +54,7 @@ describe('Hook', () => {
       await selectCell(0, 0);
       await listen();
 
-      triggerTabNavigationToAbove();
+      await keyDownUp(['shift', 'tab']);
 
       expect(isListening()).toBe(true);
     });
@@ -70,7 +70,7 @@ describe('Hook', () => {
       await selectCell(5, 5);
       await listen();
 
-      triggerTabNavigationToBelow();
+      await keyDownUp('tab');
 
       expect(isListening()).toBe(true);
     });
@@ -86,7 +86,7 @@ describe('Hook', () => {
       await selectCell(0, 0);
       await listen();
 
-      triggerTabNavigationToAbove();
+      await keyDownUp(['shift', 'tab']);
 
       expect(isListening()).toBe(false);
     });
@@ -102,7 +102,7 @@ describe('Hook', () => {
       await selectCell(5, 5);
       await listen();
 
-      triggerTabNavigationToBelow();
+      await keyDownUp('tab');
 
       expect(isListening()).toBe(false);
     });
@@ -119,7 +119,7 @@ describe('Hook', () => {
       await listen();
 
       // Test Shift+Tab (going to element above)
-      triggerTabNavigationToAbove();
+      await keyDownUp(['shift', 'tab']);
       expect(tableFocusExit).toHaveBeenCalledWith('top');
 
       // Reset spy
@@ -128,7 +128,7 @@ describe('Hook', () => {
       // Test Tab (going to element below)
       await selectCell(5, 5);
       await listen();
-      triggerTabNavigationToBelow();
+      await keyDownUp('tab');
       expect(tableFocusExit).toHaveBeenCalledWith('bottom');
     });
   });
