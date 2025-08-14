@@ -2074,6 +2074,10 @@ thead th.hiddenHeaderText .colHeader {
   height: 100%;
 }
 
+.ht-grid {
+  height: 100%;
+}
+
 .ht-dialog {
   position: absolute;
   top: 0;

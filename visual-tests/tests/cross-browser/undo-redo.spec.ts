@@ -21,7 +21,7 @@ urls.forEach((url) => {
   test(`Test rows resizing for: ${url}`, async({ goto, tablePage }) => {
     await goto(url);
 
-    const table = tablePage.locator('#root .ht-root-wrapper .ht-grid > .handsontable');
+    const table = tablePage.locator('#root .ht-root-wrapper > .ht-grid > .handsontable');
 
     await table.waitFor();
     const cell = await selectCell(2, 2, table);
