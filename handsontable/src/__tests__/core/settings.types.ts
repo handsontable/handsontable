@@ -149,6 +149,16 @@ const allSettings: Required<Handsontable.GridSettings> = {
   height: oneOf(500, () => 500),
   hiddenColumns: true,
   hiddenRows: true,
+  initialState: {
+    manualColumnMove: [1, 0],
+    fragmentSelection: true,
+    columns: [
+      {
+        type: 'numeric',
+      },
+    ],
+    cells: () => ({ readOnly: true }),
+  },
   invalidCellClassName: 'foo',
   imeFastEdit: true,
   isEmptyCol: (col) => col === 0,

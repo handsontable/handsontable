@@ -53,6 +53,27 @@ describe('Selection extending', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 2,2 from: 2,1 to: 0,3']);
     });
 
+    it('should extend the cell selection to the first cell starting from the active selection layer', async() => {
+      handsontable({
+        startRows: 5,
+        startCols: 5,
+        enterBeginsEditing: false,
+      });
+
+      await selectCells([[3, 0, 3, 1], [1, 3, 1, 4]]);
+      await keyDownUp(['shift', 'tab']); // move focus to the previous layer
+      await keyDownUp(['control/meta', 'shift', 'arrowup']);
+
+      expect(`
+        | 0 : 0 :   :   :   |
+        | 0 : 0 :   :   :   |
+        | 0 : 0 :   :   :   |
+        | 0 : A :   :   :   |
+        |   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 3,1 from: 3,0 to: 0,1']);
+    });
+
     it('should extend the cell selection to the first cell of the current column when fixed overlays are enabled and the cell is selected', async() => {
       handsontable({
         fixedColumnsStart: 2,

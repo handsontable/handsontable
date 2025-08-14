@@ -3,13 +3,18 @@ import { stopImmediatePropagation } from '../../../helpers/dom/event';
 export const command = {
   name: 'editorOpen',
   callback(hot, event, keys) {
+    const { selection } = hot;
     const editorManager = hot._getEditorManager();
-    const selectedRange = hot.getSelectedRangeLast();
+    const selectedRanges = hot.getSelectedRange();
+    const selectedRange = hot.getSelectedRangeActive();
     const { highlight } = selectedRange;
 
     // supports for navigating with enter key when multiple cells are selected
     if (
-      hot.selection.isMultiple() &&
+      (
+        selectedRanges.some(range => selection.isMultiple(range)) ||
+        selectedRanges.length > 1
+      ) &&
       !selectedRange.isHeader() &&
       hot.countRenderedCols() > 0 &&
       hot.countRenderedRows() > 0
@@ -20,9 +25,9 @@ export const command = {
         : settings.enterMoves;
 
       if (keys.includes('shift')) {
-        hot.selection.transformFocus(-enterMoves.row, -enterMoves.col);
+        selection.transformFocus(-enterMoves.row, -enterMoves.col);
       } else {
-        hot.selection.transformFocus(enterMoves.row, enterMoves.col);
+        selection.transformFocus(enterMoves.row, enterMoves.col);
       }
 
       return;

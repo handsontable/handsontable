@@ -2,7 +2,7 @@ export const command = {
   name: 'extendCellsSelectionToMostBottom',
   callback(hot) {
     const { selection, rowIndexMapper } = hot;
-    const { highlight, from, to } = hot.getSelectedRangeLast();
+    const { highlight, from, to } = hot.getSelectedRangeActive();
     const isFocusHighlightedByHeader = highlight.isHeader() && selection.isSelectedByRowHeader();
 
     if (highlight.isCell() || isFocusHighlightedByHeader) {

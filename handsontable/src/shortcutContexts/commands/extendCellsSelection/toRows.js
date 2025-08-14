@@ -2,7 +2,7 @@ export const command = {
   name: 'extendCellsSelectionToRows',
   callback(hot) {
     const { selection } = hot;
-    const { highlight, from, to } = hot.getSelectedRangeLast();
+    const { highlight, from, to } = hot.getSelectedRangeActive();
 
     selection.markSource('keyboard');
 

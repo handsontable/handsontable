@@ -12,12 +12,12 @@ export default function rowBelowItem() {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ROW_BELOW);
     },
     callback() {
-      const latestSelection = this.getSelectedRangeLast().getBottomRightCorner();
+      const activeSelection = this.getSelectedRangeActive().getBottomRightCorner();
 
-      this.alter('insert_row_below', latestSelection.row, 1, 'ContextMenu.rowBelow');
+      this.alter('insert_row_below', activeSelection.row, 1, 'ContextMenu.rowBelow');
     },
     disabled() {
-      const range = this.getSelectedRangeLast();
+      const range = this.getSelectedRangeActive();
 
       if (
         !range ||

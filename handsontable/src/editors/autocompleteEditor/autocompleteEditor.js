@@ -534,28 +534,6 @@ export class AutocompleteEditor extends HandsontableEditor {
   }
 
   /**
-   * Captures use of arrow down and up to control their behaviour.
-   *
-   * @private
-   * @param {number} keyCode The keyboard keycode.
-   * @returns {boolean}
-   */
-  allowKeyEventPropagation(keyCode) {
-    const selectedRange = this.htEditor.getSelectedRangeLast();
-    const selected = { row: selectedRange ? selectedRange.from.row : -1 };
-    let allowed = false;
-
-    if (keyCode === KEY_CODES.ARROW_DOWN && selected.row > 0 && selected.row < this.htEditor.countRows() - 1) {
-      allowed = true;
-    }
-    if (keyCode === KEY_CODES.ARROW_UP && selected.row > -1) {
-      allowed = true;
-    }
-
-    return allowed;
-  }
-
-  /**
    * Runs focus method after debounce.
    */
   #focusDebounced = debounce(() => {
