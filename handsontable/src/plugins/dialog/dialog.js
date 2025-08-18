@@ -371,7 +371,9 @@ export class Dialog extends BasePlugin {
 
     if (this.hot.rootWrapperElement.contains(activeElement) || this.hot.rootPortalElement.contains(activeElement)) {
       this.hot.unlisten();
-      this.#focusDetector.focus('from_above');
+      this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
+      this.hot.listen();
+      this.#focusDetector.deactivate();
       this.hot.runHooks('afterDialogFocus', 'show');
     }
   }
