@@ -285,6 +285,7 @@ export class Pagination extends BasePlugin {
     this.addHook('afterSelection', () => this.#onAfterSelection());
     this.addHook('afterDialogShow', (...args) => this.#afterDialogShow(...args));
     this.addHook('beforeDialogHide', (...args) => this.#afterDialogHide(...args));
+
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onIndexCacheUpdate);
 
     super.enablePlugin();
@@ -358,7 +359,7 @@ export class Pagination extends BasePlugin {
             this.#focusController.clear();
             this.hot.unlisten();
             this.hot.getShortcutManager().setActiveContextName('grid');
-  
+
             return;
           }
 
