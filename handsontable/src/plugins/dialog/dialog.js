@@ -302,7 +302,7 @@ export class Dialog extends BasePlugin {
 
           if (!this.#ui.isInsideDialog(activeElement)) {
             this.#focusDetector.activate();
-            this.hot.listen();
+            this.hot.unlisten();
 
             return;
           }

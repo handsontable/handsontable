@@ -185,5 +185,34 @@ describe('Dialog keyboard shortcut', () => {
 
       expect(dialogPlugin.isVisible()).toBe(false);
     });
+
+    it('should not close the dialog when active element is outside of the rootWrapperElement', async() => {
+      const input = document.createElement('input');
+
+      document.body.appendChild(input);
+  
+      const hot = handsontable({
+        data: [['A1', 'B1'], ['A2', 'B2']],
+        dialog: {
+          closable: true,
+        },
+      });
+
+      const dialogPlugin = hot.getPlugin('dialog');
+
+      input.focus();
+
+      dialogPlugin.show({
+        content: 'Test dialog content',
+      });
+
+      document.body.removeChild(input);
+
+      expect(dialogPlugin.isVisible()).toBe(true);
+
+      await keyDownUp('escape');
+
+      expect(dialogPlugin.isVisible()).toBe(true);
+    });
   });
 });
