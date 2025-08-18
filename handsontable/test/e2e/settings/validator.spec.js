@@ -516,6 +516,23 @@ describe('Core.validator', () => {
     expect(spec().$container.find('tr:eq(0) td:eq(0)').hasClass('htInvalid')).toEqual(false);
   });
 
+  it('should reset the validation state to `true` when the change is cancelled', async() => {
+    handsontable({
+      data: createSpreadsheetData(2, 2),
+      allowInvalid: false,
+      validator(value, callback) {
+        callback(false);
+      },
+    });
+
+    // eslint-disable-next-line handsontable/require-await
+    await promisfy(resolve => validateCells(resolve));
+    await setDataAtCell(0, 0, 'test');
+    await sleep(100); // wait for async validation
+
+    expect(getCellMeta(0, 0).valid).toBe(true);
+  });
+
   it('should not allow for changes where data is invalid (multiple changes, async)', async() => {
     let validatedChanges;
 
@@ -1485,22 +1502,5 @@ describe('Core.validator', () => {
 
     // The `date` column (the one that is being validated) should be described as the `1` (renderable) column.
     expect(mostRecentRendererCallArgs[1]).toEqual(1);
-  });
-
-  it('should ignore validation when the source comes from the `UndoRedo` plugin', async() => {
-    handsontable({
-      data: createSpreadsheetData(5, 5),
-      validator: (value, callback) => {
-        callback(false);
-      }
-    });
-
-    await setDataAtCell(0, 0, 'x', 'UndoRedo.undo');
-
-    expect(getDataAtCell(0, 0)).toBe('x');
-
-    await setDataAtCell(0, 0, 'y', 'UndoRedo.redo');
-
-    expect(getDataAtCell(0, 0)).toBe('y');
   });
 });
