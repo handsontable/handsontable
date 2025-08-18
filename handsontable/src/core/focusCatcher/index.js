@@ -89,6 +89,7 @@ export function installFocusCatcher(hot) {
     rowWrapState.wrapped = false;
     rowWrapState.flipped = false;
     hot.deselectCell();
+    hot.unlisten();
   }
 
   const shortcutOptions = {
@@ -138,15 +139,9 @@ export function installFocusCatcher(hot) {
                 ? getMostTopStartPosition(hot) : getMostBottomEndPosition(hot);
             }
 
-            const result = hot.runHooks('tableFocusExit', event.shiftKey ? 'top' : 'bottom');
-
             deactivateTable();
 
-            if (result !== false) {
-              hot.unlisten();
-
-              return false;
-            }
+            return false;
           }
 
           // if the selection is still within the table's range then prevent default action

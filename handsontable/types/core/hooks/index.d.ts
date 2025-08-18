@@ -277,7 +277,6 @@ export interface Events {
   persistentStateLoad?: (key: string, valuePlaceholder: { value: any }) => void;
   persistentStateReset?: (key: string) => void;
   persistentStateSave?: (key: string, value: any) => void;
-  tableFocusExit?: (exitDirection: 'top' | 'bottom') => void;
 }
 
 export class Hooks {

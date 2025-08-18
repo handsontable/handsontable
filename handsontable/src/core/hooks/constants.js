@@ -1888,17 +1888,6 @@ export const REGISTERED_HOOKS = [
   'modifyFocusOnTabNavigation',
 
   /**
-   * Used to transfer the focus when the focus is moved out of the table.
-   *
-   * @event Hooks#tableFocusExit
-   * @since 16.1.0
-   * @param {'top' | 'bottom'} exitDirection The browsers Tab navigation direction. Depending on
-   * whether the user move out of the table from the top or bottom.
-   * @returns {undefined|boolean} If `false` is returned, the table will not be unfocused.
-   */
-  'tableFocusExit',
-
-  /**
    * Allows modify the visual row index that is used to retrieve the row header element (TH) before it's
    * highlighted (proper CSS class names are added). Modifying the visual row index allows building a custom
    * implementation of the nested headers feature or other features that require highlighting other DOM

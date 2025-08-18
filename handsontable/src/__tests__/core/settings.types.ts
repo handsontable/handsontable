@@ -678,5 +678,4 @@ const allSettings: Required<Handsontable.GridSettings> = {
   persistentStateLoad: () => {},
   persistentStateReset: () => {},
   persistentStateSave: () => {},
-  tableFocusExit: (exitDirection) => {},
 };
