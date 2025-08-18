@@ -190,7 +190,7 @@ describe('Dialog keyboard shortcut', () => {
       const input = document.createElement('input');
 
       document.body.appendChild(input);
-  
+
       const hot = handsontable({
         data: [['A1', 'B1'], ['A2', 'B2']],
         dialog: {
