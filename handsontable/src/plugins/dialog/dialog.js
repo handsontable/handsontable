@@ -206,9 +206,9 @@ export class Dialog extends BasePlugin {
   #focusDetector = null;
 
   /**
-   * Selected cell.
+   * Keeps the recently selected cells that will be restored after the dialog is closed.
    *
-   * @type {object}
+   * @type {number[] | null}
    */
   #selectedCells = null;
 
@@ -485,19 +485,12 @@ export class Dialog extends BasePlugin {
   /**
    * Destroy dialog and reset plugin state.
    */
-  #destroyDialog() {
+  destroy() {
     this.#ui?.destroyDialog();
     this.#ui = null;
     this.#isVisible = false;
     this.#focusDetector = null;
     this.#selectedCells = null;
-  }
-
-  /**
-   * Destroy plugin instance.
-   */
-  destroy() {
-    this.#destroyDialog();
 
     super.destroy();
   }
