@@ -402,6 +402,8 @@ export class PaginationUI {
    */
   setPageSizeSectionVisibility(isVisible) {
     this.#refs.pageSizeSection.style.display = isVisible ? '' : 'none';
+    this.#refs.pageSizeSelect.disabled = !isVisible;
+
     this.#updateContainerVisibility();
 
     return this;

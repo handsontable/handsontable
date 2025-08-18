@@ -340,10 +340,7 @@ export class Pagination extends BasePlugin {
           const currentPage = this.#focusController.getCurrentPage();
 
           if (currentPage >= previousIndex) {
-            this.#focusDetector.activate();
-            this.#focusController.clear();
-            this.hot.unlisten();
-            this.hot.getShortcutManager().setActiveContextName('grid');
+            this.#unFocusPagination();
 
             return;
           }
@@ -355,10 +352,7 @@ export class Pagination extends BasePlugin {
           const currentPage = this.#focusController.getCurrentPage();
 
           if (currentPage <= previousIndex) {
-            this.#focusDetector.activate();
-            this.#focusController.clear();
-            this.hot.unlisten();
-            this.hot.getShortcutManager().setActiveContextName('grid');
+            this.#unFocusPagination();
 
             return;
           }
@@ -996,11 +990,18 @@ export class Pagination extends BasePlugin {
       return;
     }
 
+    this.#unFocusPagination();
+    this.hot.listen();
+  }
+
+  /**
+   * Unfocuses the pagination and sets the active context for the shortcuts.
+   */
+  #unFocusPagination() {
     this.#focusDetector.activate();
     this.#focusController.clear();
     this.hot.unlisten();
     this.hot.getShortcutManager().setActiveContextName('grid');
-    this.hot.listen();
   }
 
   /**
