@@ -23,6 +23,11 @@ export function installFocusDetector(hot, wrapperElement, hooks = {}) {
   wrapperElement.append(inputTrapBottom);
 
   return {
+    /**
+     * Focuses the input element in the given direction.
+     *
+     * @param {string} direction The direction to focus the input element in.
+     */
     focus(direction) {
       if (direction === 'from_above') {
         inputTrapTop.focus();

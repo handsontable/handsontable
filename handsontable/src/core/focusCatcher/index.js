@@ -52,12 +52,18 @@ export function installFocusCatcher(hot) {
   let preventViewportScroll = false;
 
   hot.addHook('afterListen', () => {
-    if (hot.getShortcutManager().getActiveContextScope() === 'table') {
+    const activeContextName = hot.getShortcutManager().getActiveContextName();
+    const activeContext = hot.getShortcutManager().getContext(activeContextName);
+
+    if (activeContext?.scope === 'table') {
       deactivate();
     }
   });
   hot.addHook('afterUnlisten', () => {
-    if (hot.getShortcutManager().getActiveContextScope() === 'table') {
+    const activeContextName = hot.getShortcutManager().getActiveContextName();
+    const activeContext = hot.getShortcutManager().getContext(activeContextName);
+
+    if (activeContext?.scope === 'table') {
       activate();
     }
   });

@@ -239,8 +239,8 @@ export class Dialog extends BasePlugin {
       this.#focusDetector = installFocusDetector(this.hot, this.#ui.getDialogElement(), {
         onFocus: (from) => {
           this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
-          this.#focusDetector.deactivate();
           this.hot.runHooks('afterDialogFocus', `tab_${from}`);
+          this.#focusDetector.deactivate();
           this.hot.listen();
         }
       });
@@ -453,7 +453,6 @@ export class Dialog extends BasePlugin {
   #onDialogClick() {
     if (this.isVisible() && !this.hot.isListening()) {
       this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
-      this.#focusDetector.deactivate();
       this.hot.runHooks('afterDialogFocus', 'click');
       this.hot.listen();
     }
