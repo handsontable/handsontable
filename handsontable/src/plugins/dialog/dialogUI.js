@@ -85,13 +85,13 @@ export class DialogUI {
   }
 
   /**
-   * Checks if the given element is inside the dialog content.
+   * Checks if the given element is inside the dialog.
    *
    * @param {HTMLElement} element - The element to check.
-   * @returns {boolean} Returns `true` if the element is inside the dialog content, `false` otherwise.
+   * @returns {boolean} Returns `true` if the element is inside the dialog, `false` otherwise.
    */
-  isInsideDialogContent(element) {
-    return this.#refs.contentElement.contains(element);
+  isInsideDialog(element) {
+    return this.#refs.dialogElement.contains(element);
   }
 
   /**

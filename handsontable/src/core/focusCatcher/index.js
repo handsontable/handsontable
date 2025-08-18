@@ -26,7 +26,6 @@ export function installFocusCatcher(hot) {
             hot.selectCell(mostTopStartCoords.row, mostTopStartCoords.col);
           }
         }
-
       } else {
         const mostBottomEndCoords = clampCoordsIfNeeded(recentlyAddedFocusCoords) ?? getMostBottomEndPosition(hot);
 

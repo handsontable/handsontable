@@ -300,7 +300,7 @@ export class Dialog extends BasePlugin {
         this.hot._registerTimeout(() => {
           const { activeElement } = this.hot.rootDocument;
 
-          if (!this.#ui.isInsideDialogContent(activeElement)) {
+          if (!this.#ui.isInsideDialog(activeElement)) {
             this.#focusDetector.activate();
             this.hot.listen();
 
@@ -370,10 +370,9 @@ export class Dialog extends BasePlugin {
     const { activeElement } = this.hot.rootDocument;
 
     if (this.hot.rootWrapperElement.contains(activeElement) || this.hot.rootPortalElement.contains(activeElement)) {
-      this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
+      this.hot.unlisten();
+      this.#focusDetector.focus('from_above');
       this.hot.runHooks('afterDialogFocus', 'show');
-
-      this.#focusDetector.deactivate();
     }
   }
 

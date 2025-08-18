@@ -284,6 +284,7 @@ export class Pagination extends BasePlugin {
     this.addHook('afterSetTheme', (...args) => this.#onAfterSetTheme(...args));
     this.addHook('afterSelection', () => this.#onAfterSelection());
     this.addHook('afterDialogShow', (...args) => this.#afterDialogShow(...args));
+    this.addHook('beforeDialogHide', (...args) => this.#afterDialogHide(...args));
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onIndexCacheUpdate);
 
     super.enablePlugin();
@@ -341,6 +342,7 @@ export class Pagination extends BasePlugin {
             this.#focusDetector.activate();
             this.#focusController.clear();
             this.hot.unlisten();
+            this.hot.getShortcutManager().setActiveContextName('grid');
 
             return;
           }
@@ -355,7 +357,8 @@ export class Pagination extends BasePlugin {
             this.#focusDetector.activate();
             this.#focusController.clear();
             this.hot.unlisten();
-
+            this.hot.getShortcutManager().setActiveContextName('grid');
+  
             return;
           }
 
@@ -988,16 +991,29 @@ export class Pagination extends BasePlugin {
    * Called after the selection is made. It sets the active context for the shortcuts.
    */
   #onAfterSelection() {
-    this.hot.getShortcutManager().setActiveContextName('grid');
+    if (this.hot.getShortcutManager().getActiveContextName() !== SHORTCUTS_CONTEXT_NAME) {
+      return;
+    }
+
     this.#focusDetector.activate();
     this.#focusController.clear();
+    this.hot.unlisten();
+    this.hot.getShortcutManager().setActiveContextName('grid');
+    this.hot.listen();
   }
 
   /**
-   * Called after the dialog is focused. It sets the active context for the shortcuts.
+   * Called after the dialog is shown. It sets the active context for the shortcuts.
    */
   #afterDialogShow() {
     this.#focusDetector.deactivate();
+  }
+
+  /**
+   * Called after the dialog is hidden. It sets the active context for the shortcuts.
+   */
+  #afterDialogHide() {
+    this.#focusDetector.activate();
   }
 
   /**
