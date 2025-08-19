@@ -229,11 +229,7 @@ export class Pagination extends BasePlugin {
         focusableElements: this.#ui.getFocusableElements(),
         onElementClick: () => {
           this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
-
-          if (!this.hot.isListening()) {
-            this.hot.listen();
-          }
-
+          this.hot.listen();
           this.#focusDetector.deactivate();
         },
       });
@@ -241,10 +237,7 @@ export class Pagination extends BasePlugin {
       this.#focusDetector = installFocusDetector(this.hot, this.#ui.getPaginationElement(), {
         onFocus: (from) => {
           this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
-
-          if (!this.hot.isListening()) {
-            this.hot.listen();
-          }
+          this.hot.listen();
 
           if (from === 'from_above') {
             this.#focusController.toFirstItem();

@@ -95,7 +95,7 @@ export class DialogUI {
   }
 
   /**
-   * Updates the dialog class name based on current configuration.
+   * Updates the dialog content and class name.
    *
    * @param {object} options - Class name update options.
    * @param {boolean} options.isVisible - Whether the dialog is visible.
@@ -106,7 +106,7 @@ export class DialogUI {
    * @param {string} options.contentDirections - The flex direction for content layout.
    * @param {boolean} options.animation - Whether to add the animation class to the dialog.
    *
-   * @returns {DialogUI} The instance of the DialogUI for method chaining.
+   * @returns {DialogUI} The instance of the DialogUI.
    */
   updateDialog({
     isVisible,
@@ -159,7 +159,7 @@ export class DialogUI {
    * Shows the dialog with optional animation.
    *
    * @param {boolean} animation - Whether to add the animation class to the dialog.
-   * @returns {DialogUI} The instance of the DialogUI for method chaining.
+   * @returns {DialogUI} The instance of the DialogUI.
    */
   showDialog(animation) {
     const { dialogElement } = this.#refs;
@@ -182,7 +182,7 @@ export class DialogUI {
    * Hides the dialog with optional animation.
    *
    * @param {boolean} animation - Whether to add the animation class to the dialog.
-   * @returns {DialogUI} The instance of the DialogUI for method chaining.
+   * @returns {DialogUI} The instance of the DialogUI.
    */
   hideDialog(animation) {
     const { dialogElement } = this.#refs;
@@ -206,7 +206,7 @@ export class DialogUI {
    * Updates the width of the dialog container to the same size as the table.
    *
    * @param {number} width - The width of the table.
-   * @returns {DialogUI} The instance of the DialogUI for method chaining.
+   * @returns {DialogUI} The instance of the DialogUI.
    */
   updateWidth(width) {
     this.#refs.dialogElement.style.width = `${width}px`;
@@ -218,7 +218,7 @@ export class DialogUI {
    * Updates the height of the dialog container.
    *
    * @param {number} licenseInfoHeight - The height of the license info.
-   * @returns {DialogUI} The instance of the DialogUI for method chaining.
+   * @returns {DialogUI} The instance of the DialogUI.
    */
   updateHeight(licenseInfoHeight) {
     this.#refs.dialogElement.style.height = `calc(100% - ${licenseInfoHeight}px)`;

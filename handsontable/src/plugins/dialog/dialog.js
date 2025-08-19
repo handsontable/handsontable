@@ -364,6 +364,7 @@ export class Dialog extends BasePlugin {
     this.#isVisible = true;
 
     this.#selectedCells = this.hot.getSelected();
+    this.hot.deselectCell();
 
     this.hot.runHooks('afterDialogShow');
 
@@ -380,7 +381,7 @@ export class Dialog extends BasePlugin {
 
   /**
    * Hide the currently open dialog.
-   * Closes the dialog and cleans up event listeners.
+   * Closes the dialog and restores the focus to the table.
    */
   hide() {
     if (!this.isVisible()) {
@@ -462,8 +463,8 @@ export class Dialog extends BasePlugin {
   }
 
   /**
-   * Called after the rendering of the table is completed. It updates the width of
-   * the dialog container to the same size as the table.
+   * Called after the rendering of the table is completed. It updates the width and
+   * height of the dialog container to the same size as the table.
    */
   #onAfterRender() {
     const { view, rootWrapperElement, rootWindow } = this.hot;
