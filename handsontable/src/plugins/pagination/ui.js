@@ -445,6 +445,15 @@ export class PaginationUI {
   }
 
   /**
+   * Gets the pagination container.
+   *
+   * @returns {HTMLElement} The pagination container.
+   */
+  getContainer() {
+    return this.#refs?.container;
+  }
+
+  /**
    * Updates the visibility of the pagination container based on the visibility of its sections.
    */
   #updateContainerVisibility() {

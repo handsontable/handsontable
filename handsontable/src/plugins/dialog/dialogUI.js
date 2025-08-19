@@ -8,7 +8,7 @@ import {
   fastInnerHTML,
   setAttribute,
 } from '../../helpers/dom/element';
-import { A11Y_DIALOG, A11Y_MODAL } from '../../helpers/a11y';
+import { A11Y_DIALOG, A11Y_MODAL, A11Y_TABINDEX } from '../../helpers/a11y';
 
 const DIALOG_CLASS_NAME = 'ht-dialog';
 
@@ -69,6 +69,7 @@ export class DialogUI {
     setAttribute(dialogElement, [
       A11Y_DIALOG(),
       A11Y_MODAL(),
+      A11Y_TABINDEX(-1),
     ]);
 
     // Append to Handsontable after table grid element

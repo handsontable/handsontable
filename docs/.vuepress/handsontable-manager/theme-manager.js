@@ -15,15 +15,18 @@ const ensureCorrectHotThemes = () => {
   if (typeof Handsontable !== 'undefined') {
     // eslint-disable-next-line no-undef
     Handsontable.hooks.add('afterSetTheme', function() {
-      if (this.rootContainer.closest('.disable-auto-theme')) {
-        return;
-      }
+      setTimeout(() => {
+        if (this.rootContainer.closest('.disable-auto-theme')) {
+          
+          return;
+        }
 
-      const themeName = _getThemeClassName(localStorage.getItem(STORAGE_KEY));
+        const themeName = _getThemeClassName(localStorage.getItem(STORAGE_KEY));
 
-      if (this.getCurrentThemeName() !== themeName) {
-        this.useTheme(themeName);
-      }
+        if (this.getCurrentThemeName() !== themeName) {
+          this.useTheme(themeName);
+        }
+      }, 0);
     });
   }
 };

@@ -249,6 +249,19 @@ export class Pagination extends BasePlugin {
         },
       });
 
+      this.eventManager.addEventListener(this.hot.rootDocument, 'mouseup', (event) => {
+        const container = this.#ui.getContainer();
+
+        if (
+          !container.contains(event.target) &&
+          this.hot.getShortcutManager().getActiveContextName() === SHORTCUTS_CONTEXT_NAME
+        ) {
+          this.#focusDetector.activate();
+          this.#focusController.clear();
+          this.hot.getShortcutManager().setActiveContextName('grid');
+        }
+      });
+
       this.#updateSectionsVisibilityState();
       this.#ui
         .addLocalHook('firstPageClick', () => this.firstPage())
@@ -275,7 +288,6 @@ export class Pagination extends BasePlugin {
     this.addHook('modifyRowHeight', (...args) => this.#onModifyRowHeight(...args));
     this.addHook('beforeHeightChange', (...args) => this.#onBeforeHeightChange(...args));
     this.addHook('afterSetTheme', (...args) => this.#onAfterSetTheme(...args));
-    this.addHook('afterSelection', () => this.#onAfterSelection());
     this.addHook('afterDialogShow', (...args) => this.#afterDialogShow(...args));
     this.addHook('beforeDialogHide', (...args) => this.#afterDialogHide(...args));
 
@@ -735,6 +747,13 @@ export class Pagination extends BasePlugin {
       ...this.getPaginationData(),
       totalRenderedRows: renderableRowsLength,
     });
+
+    // check if all focusable elements are disabled
+    if (!this.#ui.getFocusableElements().some(element => !element.disabled)) {
+      this.#focusDetector.deactivate();
+    } else {
+      this.#focusDetector.activate();
+    }
   }
 
   /**
@@ -950,7 +969,10 @@ export class Pagination extends BasePlugin {
       return height;
     }
 
-    return `calc(${height}${/[0-9]$/.test(height) ? 'px' : ''} - ${this.#ui.getHeight()}px)`;
+    this.hot.rootGridElement.style.height = 
+      `calc(${height}${/[0-9]$/.test(height) ? 'px' : ''} - ${this.#ui.getHeight()}px)`;
+
+    return '100%';
   }
 
   /**
@@ -973,18 +995,6 @@ export class Pagination extends BasePlugin {
     if (!this.#internalExecutionCall && this.hot?.view) {
       this.#computeAndApplyState();
     }
-  }
-
-  /**
-   * Called after the selection is made. It sets the active context for the shortcuts.
-   */
-  #onAfterSelection() {
-    if (this.hot.getShortcutManager().getActiveContextName() !== SHORTCUTS_CONTEXT_NAME) {
-      return;
-    }
-
-    this.#unFocusPagination();
-    this.hot.listen();
   }
 
   /**
