@@ -393,6 +393,7 @@ export class Dialog extends BasePlugin {
     this.#ui.hideDialog(this.getSetting('animation'));
     this.hot.getShortcutManager().setActiveContextName('grid');
     this.#isVisible = false;
+    this.#focusDetector.activate();
 
     if (this.#selectedCells) {
       this.hot.selectCells(this.#selectedCells);
