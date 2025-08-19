@@ -139,4 +139,19 @@ describe('Dialog - show method', () => {
     expect(dialogPlugin.isVisible()).toBe(true);
     expect($('.ht-dialog').outerWidth()).toBe(hot.view.getWorkspaceWidth());
   });
+
+  it('should deselect all cells when dialog is shown', async() => {
+    const hot = handsontable({
+      data: [['A1', 'B1'], ['A2', 'B2']],
+      dialog: true,
+    });
+
+    hot.selectCell(0, 0);
+
+    const dialogPlugin = hot.getPlugin('dialog');
+
+    dialogPlugin.show();
+
+    expect(hot.getSelected()).toEqual(undefined);
+  });
 });
