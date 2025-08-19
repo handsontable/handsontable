@@ -36,7 +36,7 @@ The dialog system is designed to be flexible and customizable, supporting variou
 
 ## Basic configuration
 
-To enable the Dialog plugin, set the [`dialog`](@/api/options.md#dialog) option to `true` or provide a [`configuration object`](@/guides/dialog/dialog/dialog.md#configuration-options).
+To enable the Dialog plugin, set the [`dialog`](@/api/options.md#dialog) option to `true` or provide a configuration object.
 
 ::: only-for javascript
 
@@ -334,41 +334,6 @@ You can control the dialog programmatically using the plugin's methods.
 :::
 
 :::
-
-## API reference
-
-### Plugin methods
-
-| Method           | Description                                    |
-|------------------|------------------------------------------------|
-| `show(options?)` | Shows the dialog with optional configuration   |
-| `hide()`         | Hides the currently open dialog                |
-| `isVisible()`    | Returns whether the dialog is currently visible|
-| `update(options)`| Updates the dialog configuration               |
-
-### Configuration options
-
-| Option             | Type                                                                            | Default  | Description                                                 |
-|--------------------|---------------------------------------------------------------------------------|----------|-------------------------------------------------------------|
-| `content`          | <code>string &#124; HTMLElement &#124; DocumentFragment</code>                  | `''`     | The content to display in the dialog                        |
-| `customClassName`  | `string`                                                                        | `''`     | Custom CSS class name to apply to the dialog container      |
-| `background`       | <code>'solid' &#124; 'semi-transparent'</code>                                  | `'solid'`| Dialog background variant                                   |
-| `contentBackground`| `boolean`                                                                       | `false`  | Whether to show content background                          |
-| `contentDirections`| <code>'row' &#124; 'row-reverse' &#124; 'column' &#124; 'column-reverse'</code> | `'row'`  | Content layout direction                                    |
-| `animation`        | `boolean`                                                                       | `true`   | Whether to enable animations when showing/hiding the dialog |
-| `closable`         | `boolean`                                                                       | `false`  | Whether the dialog can be closed by user interaction        |
-
-### Hooks
-
-The Dialog plugin provides several hooks:
-
-| Hook               | Description                           |
-|--------------------|---------------------------------------|
-| `beforeDialogShow` | Fired before the dialog is shown      |
-| `afterDialogShow`  | Fired after the dialog is shown       |
-| `beforeDialogHide` | Fired before the dialog is hidden     |
-| `afterDialogHide`  | Fired after the dialog is hidden      |
-| `afterDialogFocus` | Fired after the dialog receives focus |
 
 ## Related API reference
 
