@@ -2,6 +2,12 @@ import { setAttribute } from '../helpers/dom/element';
 import { A11Y_LABEL } from '../helpers/a11y';
 
 /**
+ * @typedef {object} FocusDetector
+ * @property {() => void} activate Activates the focus detector.
+ * @property {() => void} deactivate Deactivates the focus detector.
+ * @property {(direction: 'from_above' | 'from_below') => void} focus Focuses the input element in the given direction.
+ */
+/**
  * Installs a focus detector module. The module appends two input elements into the DOM side by side.
  * When the first input is focused, then it means that a user entered to the component using the TAB key
  * from the element above. When the second input is focused, a user enters to the component from
@@ -10,7 +16,7 @@ import { A11Y_LABEL } from '../helpers/a11y';
  * @param {Handsontable} hot The Handsontable instance.
  * @param {HTMLElement} wrapperElement The wrapper element to install the focus detector into.
  * @param {{ onFocus: Function }} hooks An object with defined callbacks to call.
- * @returns {{ activate: Function, deactivate: Function }}
+ * @returns {FocusDetector}
  */
 export function installFocusDetector(hot, wrapperElement, hooks = {}) {
   const inputTrapTop = createInputElement(hot);

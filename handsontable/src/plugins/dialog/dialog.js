@@ -201,7 +201,7 @@ export class Dialog extends BasePlugin {
   /**
    * Focus detector instance.
    *
-   * @type {object}
+   * @type {FocusDetector}
    */
   #focusDetector = null;
 
@@ -374,7 +374,7 @@ export class Dialog extends BasePlugin {
       this.hot.unlisten();
       this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
       this.hot.listen();
-      this.#focusDetector.deactivate();
+      this.#focusDetector.activate();
       this.hot.runHooks('afterDialogFocus', 'show');
     }
   }
@@ -443,7 +443,7 @@ export class Dialog extends BasePlugin {
    * @returns {boolean} Returns `false` to prevent the default focus behavior.
    */
   #onFocusTabNavigation(from) {
-    if (this.isVisible() && from === 'from_above') {
+    if (this.isVisible()) {
       this.#focusDetector.focus(from);
 
       return false;
@@ -458,10 +458,10 @@ export class Dialog extends BasePlugin {
     if (this.isVisible() && !this.hot.isListening()) {
       this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
       this.hot.runHooks('afterDialogFocus', 'click');
-      this.hot.listen();
     }
 
-    this.#focusDetector.deactivate();
+    this.#focusDetector.activate();
+    this.hot.listen();
   }
 
   /**
