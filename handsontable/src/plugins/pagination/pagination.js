@@ -534,6 +534,7 @@ export class Pagination extends BasePlugin {
    */
   nextPage() {
     this.setPage(this.#currentPage + 1);
+    this.#focusButtonOnPageChange(-1);
   }
 
   /**
@@ -541,6 +542,7 @@ export class Pagination extends BasePlugin {
    */
   prevPage() {
     this.setPage(this.#currentPage - 1);
+    this.#focusButtonOnPageChange(1);
   }
 
   /**
@@ -548,6 +550,7 @@ export class Pagination extends BasePlugin {
    */
   firstPage() {
     this.setPage(1);
+    this.#focusButtonOnPageChange(2);
   }
 
   /**
@@ -555,6 +558,7 @@ export class Pagination extends BasePlugin {
    */
   lastPage() {
     this.setPage(this.#calcStrategy.getTotalPages());
+    this.#focusButtonOnPageChange(-2);
   }
 
   /**
@@ -782,6 +786,20 @@ export class Pagination extends BasePlugin {
     } = this.getPaginationData();
 
     return view.getLastFullyVisibleRow() !== lastVisibleRowIndex;
+  }
+
+  /**
+   * Focuses on the button on the page change.
+   *
+   * @param {number} focusOffsetFromCurrentButton The number of elements to move relative to current button.
+   *                                           Negative values move focus backwards, positive forwards.
+   */
+  #focusButtonOnPageChange(focusOffsetFromCurrentButton) {
+    const { activeElement } = this.hot.rootDocument;
+
+    if (!this.#ui.getFocusableElements().includes(activeElement)) {
+      this.#focusController.setCurrentPage(this.#focusController.getCurrentPage() + focusOffsetFromCurrentButton);
+    }
   }
 
   /**

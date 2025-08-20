@@ -335,7 +335,6 @@ export class PaginationUI {
 
     const isFirstPage = currentPage === 1;
     const isLastPage = currentPage === totalPages;
-    const activeElement = this.#rootElement.ownerDocument.activeElement;
 
     if (isFirstPage) {
       addClass(first, 'ht-page-navigation-section__button--disabled');
@@ -359,15 +358,6 @@ export class PaginationUI {
       removeClass(last, 'ht-page-navigation-section__button--disabled');
       next.disabled = false;
       last.disabled = false;
-    }
-
-    if ([first, prev, next, last].includes(activeElement)) {
-      if (prev.disabled) {
-        next.focus();
-
-      } else if (next.disabled) {
-        prev.focus();
-      }
     }
 
     setAttribute(first, [
