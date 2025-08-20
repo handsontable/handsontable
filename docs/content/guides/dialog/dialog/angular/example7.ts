@@ -1,26 +1,24 @@
 /* file: app.component.ts */
-import { AfterViewInit, Component, ViewChild } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { GridSettings, HotTableComponent } from "@handsontable/angular-wrapper";
 
 @Component({
   selector: 'app-example7',
   template: `
+    <div style="margin-bottom: 16px; display: flex; gap: 10px;">
+      <button (click)="showDialog()">Show Dialog</button>
+      <button (click)="hideDialog()">Hide Dialog</button>
+    </div>
     <hot-table
       #hotTable
       [settings]="hotSettings!" 
       [data]="hotData"
     >
     </hot-table>
-    <div style="margin-top: 10px; display: flex; gap: 10px;">
-      <button (click)="columnLayout()">Column Layout</button>
-      <button (click)="columnReverseLayout()">Column Reverse Layout</button>
-      <button (click)="rowLayout()">Row Layout</button>
-      <button (click)="rowReverseLayout()">Row Reverse Layout</button>
-    </div>
   `,
   standalone: false
 })
-export class AppComponent implements AfterViewInit {
+export class AppComponent {
   @ViewChild('hotTable') hotTable!: HotTableComponent;
 
   readonly hotData = [
@@ -106,51 +104,24 @@ export class AppComponent implements AfterViewInit {
     autoWrapCol: true,
     autoRowSize: true,
     dialog: {
-      content: '<p>This dialog uses column direction for content layout.</p><button>Button 1</button><button>Button 2</button>',
-      contentDirections: 'column',
+      content: 'This dialog can be controlled programmatically.',
       closable: true,
     },
   };
 
-  ngAfterViewInit() {
+  showDialog() {
     const hotInstance = this.hotTable.hotInstance;
 
     if (hotInstance) {
-      // Show dialog after initialization
-      const dialogPlugin = hotInstance.getPlugin('dialog');
-      dialogPlugin.show();
+      hotInstance.getPlugin('dialog').show();
     }
   }
 
-  columnLayout() {
+  hideDialog() {
     const hotInstance = this.hotTable.hotInstance;
 
     if (hotInstance) {
-      hotInstance.getPlugin('dialog').update({ contentDirections: 'column' });
-    }
-  }
-  
-  columnReverseLayout() {
-    const hotInstance = this.hotTable.hotInstance;
-
-    if (hotInstance) {
-      hotInstance.getPlugin('dialog').update({ contentDirections: 'column-reverse' });
-    }
-  }
-  
-  rowLayout() {
-    const hotInstance = this.hotTable.hotInstance;
-
-    if (hotInstance) {
-      hotInstance.getPlugin('dialog').update({ contentDirections: 'row' });
-    }
-  }
-  
-  rowReverseLayout() {
-    const hotInstance = this.hotTable.hotInstance;
-
-    if (hotInstance) {
-      hotInstance.getPlugin('dialog').update({ contentDirections: 'row-reverse' });
+      hotInstance.getPlugin('dialog').hide();
     }
   }
 }

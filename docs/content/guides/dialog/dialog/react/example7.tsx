@@ -1,78 +1,64 @@
-import React, { useRef, useEffect } from 'react';
-import { HotTable, HotColumn } from '@handsontable/react-wrapper';
-import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/handsontable.css';
-import 'handsontable/styles/ht-theme-main.css';
+import React, { useRef } from "react";
+import { HotTable, HotColumn, HotTableRef } from "@handsontable/react-wrapper";
+import { registerAllModules } from "handsontable/registry";
+import "handsontable/styles/handsontable.css";
+import "handsontable/styles/ht-theme-main.css";
 
 // register Handsontable's modules
 registerAllModules();
 
 const data = [
-  { model: 'Trail Helmet', price: 1298.14, sellDate: 'Aug 31, 2025', sellTime: '02:12 PM', inStock: true },
-  { model: 'Windbreaker Jacket', price: 178.9, sellDate: 'May 10, 2025', sellTime: '10:26 PM', inStock: false },
-  { model: 'Cycling Cap', price: 288.1, sellDate: 'Sep 15, 2025', sellTime: '09:37 AM', inStock: true },
-  { model: 'HL Mountain Frame', price: 94.49, sellDate: 'Jan 17, 2025', sellTime: '02:19 PM', inStock: false },
-  { model: 'Racing Socks', price: 430.38, sellDate: 'May 10, 2025', sellTime: '01:42 PM', inStock: true },
-  { model: 'Racing Socks', price: 138.85, sellDate: 'Sep 20, 2025', sellTime: '02:48 PM', inStock: true },
-  { model: 'HL Mountain Frame', price: 1909.63, sellDate: 'Sep 5, 2025', sellTime: '09:35 AM', inStock: false },
-  { model: 'Carbon Handlebar', price: 1080.7, sellDate: 'Oct 24, 2025', sellTime: '10:58 PM', inStock: false },
-  { model: 'Aero Bottle', price: 1571.13, sellDate: 'May 24, 2025', sellTime: '12:24 AM', inStock: true },
-  { model: 'Windbreaker Jacket', price: 919.09, sellDate: 'Jul 16, 2025', sellTime: '07:11 PM', inStock: true },
-  { model: 'HL Road Tire', price: 886.22, sellDate: 'Sep 9, 2025', sellTime: '12:42 AM', inStock: false },
-  { model: 'Speed Gloves', price: 635.13, sellDate: 'Nov 17, 2025', sellTime: '12:45 PM', inStock: true },
-  { model: 'Trail Helmet', price: 1440.64, sellDate: 'Jan 3, 2025', sellTime: '08:16 PM', inStock: false },
-  { model: 'Aero Bottle', price: 944.63, sellDate: 'Nov 15, 2025', sellTime: '04:14 PM', inStock: false },
-  { model: 'Windbreaker Jacket', price: 1161.43, sellDate: 'Jun 24, 2025', sellTime: '01:19 PM', inStock: false },
-  { model: 'LED Bike Light', price: 1012.5, sellDate: 'May 1, 2025', sellTime: '05:30 PM', inStock: false },
-  { model: 'Windbreaker Jacket', price: 635.37, sellDate: 'May 14, 2025', sellTime: '09:05 AM', inStock: true },
-  { model: 'Road Tire Tube', price: 1421.27, sellDate: 'Jan 31, 2025', sellTime: '01:33 PM', inStock: true },
-  { model: 'Action Camera', price: 1019.05, sellDate: 'Dec 7, 2025', sellTime: '01:26 AM', inStock: false },
-  { model: 'Carbon Handlebar', price: 603.96, sellDate: 'Sep 13, 2025', sellTime: '04:10 AM', inStock: false },
+  { model: "Trail Helmet", price: 1298.14, sellDate: "Aug 31, 2025", sellTime: "02:12 PM", inStock: true },
+  { model: "Windbreaker Jacket", price: 178.9, sellDate: "May 10, 2025", sellTime: "10:26 PM", inStock: false },
+  { model: "Cycling Cap", price: 288.1, sellDate: "Sep 15, 2025", sellTime: "09:37 AM", inStock: true },
+  { model: "HL Mountain Frame", price: 94.49, sellDate: "Jan 17, 2025", sellTime: "02:19 PM", inStock: false },
+  { model: "Racing Socks", price: 430.38, sellDate: "May 10, 2025", sellTime: "01:42 PM", inStock: true },
+  { model: "Racing Socks", price: 138.85, sellDate: "Sep 20, 2025", sellTime: "02:48 PM", inStock: true },
+  { model: "HL Mountain Frame", price: 1909.63, sellDate: "Sep 5, 2025", sellTime: "09:35 AM", inStock: false },
+  { model: "Carbon Handlebar", price: 1080.7, sellDate: "Oct 24, 2025", sellTime: "10:58 PM", inStock: false },
+  { model: "Aero Bottle", price: 1571.13, sellDate: "May 24, 2025", sellTime: "12:24 AM", inStock: true },
+  { model: "Windbreaker Jacket", price: 919.09, sellDate: "Jul 16, 2025", sellTime: "07:11 PM", inStock: true },
+  { model: "HL Road Tire", price: 886.22, sellDate: "Sep 9, 2025", sellTime: "12:42 AM", inStock: false },
+  { model: "Speed Gloves", price: 635.13, sellDate: "Nov 17, 2025", sellTime: "12:45 PM", inStock: true },
+  { model: "Trail Helmet", price: 1440.64, sellDate: "Jan 3, 2025", sellTime: "08:16 PM", inStock: false },
+  { model: "Aero Bottle", price: 944.63, sellDate: "Nov 15, 2025", sellTime: "04:14 PM", inStock: false },
+  { model: "Windbreaker Jacket", price: 1161.43, sellDate: "Jun 24, 2025", sellTime: "01:19 PM", inStock: false },
+  { model: "LED Bike Light", price: 1012.5, sellDate: "May 1, 2025", sellTime: "05:30 PM", inStock: false },
+  { model: "Windbreaker Jacket", price: 635.37, sellDate: "May 14, 2025", sellTime: "09:05 AM", inStock: true },
+  { model: "Road Tire Tube", price: 1421.27, sellDate: "Jan 31, 2025", sellTime: "01:33 PM", inStock: true },
+  { model: "Action Camera", price: 1019.05, sellDate: "Dec 7, 2025", sellTime: "01:26 AM", inStock: false },
+  { model: "Carbon Handlebar", price: 603.96, sellDate: "Sep 13, 2025", sellTime: "04:10 AM", inStock: false },
 ];
 
 const ExampleComponent = () => {
-  const hotTableRef = useRef(null);
+  const hotTableRef = useRef<HotTableRef>(null);
 
-  useEffect(() => {
+  const showDialog = () => {
     const hotInstance = hotTableRef.current?.hotInstance;
 
-    hotInstance.getPlugin('dialog').show();
-  }, []);
-
-  const columnLayout = () => {
-    const hotInstance = hotTableRef.current?.hotInstance;
-
-    if (hotInstance) {
-      hotInstance.getPlugin('dialog').update({ contentDirections: 'column' });
+    if (!hotInstance) {
+      return;
     }
+
+    hotInstance.getPlugin("dialog").show();
   };
 
-  const columnReverseLayout = () => {
+  const hideDialog = () => {
     const hotInstance = hotTableRef.current?.hotInstance;
 
-    if (hotInstance) {
-      hotInstance.getPlugin('dialog').update({ contentDirections: 'column-reverse' });
+    if (!hotInstance) {
+      return;
     }
-  };
 
-  const rowLayout = () => {
-    const hotInstance = hotTableRef.current?.hotInstance;
-
-    if (hotInstance) {
-      hotInstance.getPlugin('dialog').update({ contentDirections: 'row' });
-    }
-  };
-
-  const rowReverseLayout = () => {
-    const hotInstance = hotTableRef.current?.hotInstance;
-
-    if (hotInstance) {
-      hotInstance.getPlugin('dialog').update({ contentDirections: 'row-reverse' });
-    }
+    hotInstance.getPlugin("dialog").hide();
   };
 
   return (
     <>
+      <div style={{ marginBottom: "16px", display: "flex", gap: "10px" }}>
+        <button onClick={showDialog}>Show Dialog</button>
+        <button onClick={hideDialog}>Hide Dialog</button>
+      </div>
       <HotTable
         ref={hotTableRef}
         themeName="ht-theme-main"
@@ -87,9 +73,7 @@ const ExampleComponent = () => {
         autoWrapCol={true}
         autoRowSize={true}
         dialog={{
-          content:
-            '<p>This dialog uses column direction for content layout.</p><button>Button 1</button><button>Button 2</button>',
-          contentDirections: 'column',
+          content: "This dialog can be controlled programmatically.",
           closable: true,
         }}
         licenseKey="non-commercial-and-evaluation"
@@ -100,7 +84,7 @@ const ExampleComponent = () => {
           type="numeric"
           data="price"
           width={80}
-          numericFormat={{ pattern: '$0,0.00', culture: 'en-US' }}
+          numericFormat={{ pattern: "$0,0.00", culture: "en-US" }}
           className="htRight"
           headerClassName="htRight"
         />
@@ -126,12 +110,6 @@ const ExampleComponent = () => {
         />
         <HotColumn title="In stock" type="checkbox" data="inStock" className="htCenter" headerClassName="htCenter" />
       </HotTable>
-      <div style={{ marginTop: '10px', display: 'flex', gap: '10px' }}>
-        <button onClick={columnLayout}>Column Layout</button>
-        <button onClick={columnReverseLayout}>Column Reverse Layout</button>
-        <button onClick={rowLayout}>Row Layout</button>
-        <button onClick={rowReverseLayout}>Row Reverse Layout</button>
-      </div>
     </>
   );
 };

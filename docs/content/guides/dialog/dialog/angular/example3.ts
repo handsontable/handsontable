@@ -100,7 +100,7 @@ export class AppComponent implements AfterViewInit {
     autoWrapCol: true,
     autoRowSize: true,
     dialog: {
-      content: '<p>This dialog contains <strong>HTML</strong> content with formatting.</p><button onclick="alert(\'Button clicked!\')">Click me</button>',
+      content: '<p>This dialog contains <strong>HTML</strong> content with formatting.</p><button id="example3-button">Hide dialog</button>',
       contentDirections: 'column',
       closable: true,
     },
@@ -113,6 +113,10 @@ export class AppComponent implements AfterViewInit {
       // Show dialog after initialization
       const dialogPlugin = hotInstance.getPlugin('dialog');
       dialogPlugin.show();
+
+      document.getElementById('example3-button')?.addEventListener('click', () => {
+        dialogPlugin.hide();
+      });
     }
   }
 }

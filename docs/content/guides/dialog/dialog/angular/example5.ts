@@ -100,7 +100,8 @@ export class AppComponent implements AfterViewInit {
     autoWrapCol: true,
     autoRowSize: true,
     dialog: {
-      content: 'This dialog uses a semi-transparent background.',
+      content: 'This dialog uses a semi-transparent and content background.',
+      contentBackground: true,
       background: 'semi-transparent',
       closable: true,
     },

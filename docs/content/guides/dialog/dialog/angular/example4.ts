@@ -5,6 +5,16 @@ import { GridSettings, HotTableComponent } from "@handsontable/angular-wrapper";
 @Component({
   selector: 'app-example4',
   template: `
+    <div class="example-controls-container" style="padding-bottom: 16px">
+      <div class="controlsQuickFilter">
+        <label for="background-select" class="selectColumn">Select a background:
+          <select id="background-select" (change)="onBackgroundChange($event)">
+            <option value="solid">Solid</option>
+            <option value="semi-transparent">Semi-transparent</option>
+          </select>
+        </label>
+      </div>
+    </div>
     <hot-table
       #hotTable
       [settings]="hotSettings!" 
@@ -113,6 +123,21 @@ export class AppComponent implements AfterViewInit {
       // Show dialog after initialization
       const dialogPlugin = hotInstance.getPlugin('dialog');
       dialogPlugin.show();
+    }
+  }
+
+  onBackgroundChange(event: Event) {
+    const hotInstance = this.hotTable.hotInstance;
+
+    if (hotInstance) {
+      const background = (event.target as HTMLSelectElement).value;
+      const content = background === 'solid' ? 'This dialog uses a solid background (default).' : 'This dialog uses a semi-transparent background.';
+      const dialogPlugin = hotInstance.getPlugin('dialog');
+
+      dialogPlugin.update({
+        content,
+        background,
+      });
     }
   }
 }

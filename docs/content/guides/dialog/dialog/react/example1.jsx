@@ -36,6 +36,10 @@ const ExampleComponent = () => {
   useEffect(() => {
     const hotInstance = hotTableRef.current?.hotInstance;
 
+    if (!hotInstance) {
+      return;
+    }
+
     hotInstance.getPlugin('dialog').show({
       content: 'This is a basic dialog with default configuration.',
       closable: true,

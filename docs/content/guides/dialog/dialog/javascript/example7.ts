@@ -88,40 +88,22 @@ const hot = new Handsontable(container, {
   height: 300,
   stretchH: 'all',
   dialog: {
-    content:
-      '<p>This dialog uses column direction for content layout.</p><button>Button 1</button><button>Button 2</button>',
-    contentDirections: 'column',
+    content: 'This dialog can be controlled programmatically.',
     closable: true,
   },
   licenseKey: 'non-commercial-and-evaluation',
 });
 
-// Show dialog after initialization
 const dialogPlugin = hot.getPlugin('dialog');
 
-dialogPlugin.show();
-
 // Add event listeners for buttons
-(document.getElementById('columnLayout') as HTMLElement).addEventListener('click', () => {
-  dialogPlugin.update({
-    contentDirections: 'column',
+(document.getElementById('showDialog') as HTMLElement).addEventListener('click', () => {
+  dialogPlugin.show({
+    content: 'Dialog shown programmatically!',
+    closable: true,
   });
 });
 
-(document.getElementById('columnReverseLayout') as HTMLElement).addEventListener('click', () => {
-  dialogPlugin.update({
-    contentDirections: 'column-reverse',
-  });
-});
-
-(document.getElementById('rowLayout') as HTMLElement).addEventListener('click', () => {
-  dialogPlugin.update({
-    contentDirections: 'row',
-  });
-});
-
-(document.getElementById('rowReverseLayout') as HTMLElement).addEventListener('click', () => {
-  dialogPlugin.update({
-    contentDirections: 'row-reverse',
-  });
+(document.getElementById('hideDialog') as HTMLElement).addEventListener('click', () => {
+  dialogPlugin.hide();
 });

@@ -149,12 +149,11 @@ The dialog supports multiple content types including plain text, HTML strings, a
 
 The dialog supports two background variants: `solid` and `semi-transparent`.
 
-### Solid background
-
 ::: only-for javascript
 
-::: example #example4 --js 1 --ts 2
+::: example #example4 --html 1 --js 2 --ts 3
 
+@[code](@/content/guides/dialog/dialog/javascript/example4.html)
 @[code](@/content/guides/dialog/dialog/javascript/example4.js)
 @[code](@/content/guides/dialog/dialog/javascript/example4.ts)
 
@@ -184,7 +183,9 @@ The dialog supports two background variants: `solid` and `semi-transparent`.
 
 :::
 
-### Semi-transparent background
+## Content background
+
+The dialog content can have a background color using the `contentBackground` option.
 
 ::: only-for javascript
 
@@ -219,14 +220,16 @@ The dialog supports two background variants: `solid` and `semi-transparent`.
 
 :::
 
-## Content background
 
-The dialog content can have a background color using the `contentBackground` option.
+## Content layout directions
+
+The dialog content can be arranged in different directions using the `contentDirections` option.
 
 ::: only-for javascript
 
-::: example #example6 --js 1 --ts 2
+::: example #example6 --html 1 --js 2 --ts 3
 
+@[code](@/content/guides/dialog/dialog/javascript/example6.html)
 @[code](@/content/guides/dialog/dialog/javascript/example6.js)
 @[code](@/content/guides/dialog/dialog/javascript/example6.ts)
 
@@ -256,10 +259,11 @@ The dialog content can have a background color using the `contentBackground` opt
 
 :::
 
+## Programmatic control
 
-## Content layout directions
+You can control the dialog programmatically using the plugin's methods.
 
-The dialog content can be arranged in different directions using the `contentDirections` option.
+### Show and hide dialog
 
 ::: only-for javascript
 
@@ -290,46 +294,6 @@ The dialog content can be arranged in different directions using the `contentDir
 
 @[code](@/content/guides/dialog/dialog/angular/example7.ts)
 @[code](@/content/guides/dialog/dialog/angular/example7.html)
-
-:::
-
-:::
-
-## Programmatic control
-
-You can control the dialog programmatically using the plugin's methods.
-
-### Show and hide dialog
-
-::: only-for javascript
-
-::: example #example8 --html 1 --js 2 --ts 3
-
-@[code](@/content/guides/dialog/dialog/javascript/example8.html)
-@[code](@/content/guides/dialog/dialog/javascript/example8.js)
-@[code](@/content/guides/dialog/dialog/javascript/example8.ts)
-
-:::
-
-:::
-
-::: only-for react
-
-::: example #example8 :react --js 1 --ts 2
-
-@[code](@/content/guides/dialog/dialog/react/example8.jsx)
-@[code](@/content/guides/dialog/dialog/react/example8.tsx)
-
-:::
-
-:::
-
-::: only-for angular
-
-::: example #example8 :angular --ts 1 --html 2
-
-@[code](@/content/guides/dialog/dialog/angular/example8.ts)
-@[code](@/content/guides/dialog/dialog/angular/example8.html)
 
 :::
 

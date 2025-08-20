@@ -88,9 +88,9 @@ const hot = new Handsontable(container, {
   height: 300,
   stretchH: 'all',
   dialog: {
-    content: 'This dialog uses a semi-transparent background.',
-    contentBackground: true,
-    background: 'semi-transparent',
+    content:
+      '<p>This dialog uses column direction for content layout.</p><button>Button 1</button><button>Button 2</button>',
+    contentDirections: 'column',
     closable: true,
   },
   licenseKey: 'non-commercial-and-evaluation',
@@ -100,3 +100,10 @@ const hot = new Handsontable(container, {
 const dialogPlugin = hot.getPlugin('dialog');
 
 dialogPlugin.show();
+
+// Add event listeners for select
+document.getElementById('content-direction-select').addEventListener('change', (event) => {
+  dialogPlugin.update({
+    contentDirections: event.target.value,
+  });
+});

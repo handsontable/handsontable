@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef } from 'react';
 import { HotTable, HotColumn } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
@@ -33,46 +33,32 @@ const data = [
 const ExampleComponent = () => {
   const hotTableRef = useRef(null);
 
-  useEffect(() => {
+  const showDialog = () => {
     const hotInstance = hotTableRef.current?.hotInstance;
+
+    if (!hotInstance) {
+      return;
+    }
 
     hotInstance.getPlugin('dialog').show();
-  }, []);
-
-  const columnLayout = () => {
-    const hotInstance = hotTableRef.current?.hotInstance;
-
-    if (hotInstance) {
-      hotInstance.getPlugin('dialog').update({ contentDirections: 'column' });
-    }
   };
 
-  const columnReverseLayout = () => {
+  const hideDialog = () => {
     const hotInstance = hotTableRef.current?.hotInstance;
 
-    if (hotInstance) {
-      hotInstance.getPlugin('dialog').update({ contentDirections: 'column-reverse' });
+    if (!hotInstance) {
+      return;
     }
-  };
 
-  const rowLayout = () => {
-    const hotInstance = hotTableRef.current?.hotInstance;
-
-    if (hotInstance) {
-      hotInstance.getPlugin('dialog').update({ contentDirections: 'row' });
-    }
-  };
-
-  const rowReverseLayout = () => {
-    const hotInstance = hotTableRef.current?.hotInstance;
-
-    if (hotInstance) {
-      hotInstance.getPlugin('dialog').update({ contentDirections: 'row-reverse' });
-    }
+    hotInstance.getPlugin('dialog').hide();
   };
 
   return (
     <>
+      <div style={{ marginBottom: '16px', display: 'flex', gap: '10px' }}>
+        <button onClick={showDialog}>Show Dialog</button>
+        <button onClick={hideDialog}>Hide Dialog</button>
+      </div>
       <HotTable
         ref={hotTableRef}
         themeName="ht-theme-main"
@@ -87,9 +73,7 @@ const ExampleComponent = () => {
         autoWrapCol={true}
         autoRowSize={true}
         dialog={{
-          content:
-            '<p>This dialog uses column direction for content layout.</p><button>Button 1</button><button>Button 2</button>',
-          contentDirections: 'column',
+          content: 'This dialog can be controlled programmatically.',
           closable: true,
         }}
         licenseKey="non-commercial-and-evaluation"
@@ -126,12 +110,6 @@ const ExampleComponent = () => {
         />
         <HotColumn title="In stock" type="checkbox" data="inStock" className="htCenter" headerClassName="htCenter" />
       </HotTable>
-      <div style={{ marginTop: '10px', display: 'flex', gap: '10px' }}>
-        <button onClick={columnLayout}>Column Layout</button>
-        <button onClick={columnReverseLayout}>Column Reverse Layout</button>
-        <button onClick={rowLayout}>Row Layout</button>
-        <button onClick={rowReverseLayout}>Row Reverse Layout</button>
-      </div>
     </>
   );
 };

@@ -88,40 +88,22 @@ const hot = new Handsontable(container, {
   height: 300,
   stretchH: 'all',
   dialog: {
-    content:
-      '<p>This dialog uses column direction for content layout.</p><button>Button 1</button><button>Button 2</button>',
-    contentDirections: 'column',
+    content: 'This dialog can be controlled programmatically.',
     closable: true,
   },
   licenseKey: 'non-commercial-and-evaluation',
 });
 
-// Show dialog after initialization
 const dialogPlugin = hot.getPlugin('dialog');
 
-dialogPlugin.show();
-
 // Add event listeners for buttons
-document.getElementById('columnLayout').addEventListener('click', () => {
-  dialogPlugin.update({
-    contentDirections: 'column',
+document.getElementById('showDialog').addEventListener('click', () => {
+  dialogPlugin.show({
+    content: 'Dialog shown programmatically!',
+    closable: true,
   });
 });
 
-document.getElementById('columnReverseLayout').addEventListener('click', () => {
-  dialogPlugin.update({
-    contentDirections: 'column-reverse',
-  });
-});
-
-document.getElementById('rowLayout').addEventListener('click', () => {
-  dialogPlugin.update({
-    contentDirections: 'row',
-  });
-});
-
-document.getElementById('rowReverseLayout').addEventListener('click', () => {
-  dialogPlugin.update({
-    contentDirections: 'row-reverse',
-  });
+document.getElementById('hideDialog').addEventListener('click', () => {
+  dialogPlugin.hide();
 });

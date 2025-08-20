@@ -5,6 +5,18 @@ import { GridSettings, HotTableComponent } from "@handsontable/angular-wrapper";
 @Component({
   selector: 'app-example6',
   template: `
+    <div class="example-controls-container" style="padding-bottom: 16px">
+      <div class="controlsQuickFilter">
+        <label for="content-direction-select" class="selectColumn">Select a content direction:
+          <select id="content-direction-select" (change)="onContentDirectionChange($event)">
+            <option value="column">Column Layout</option>
+            <option value="column-reverse">Column Reverse Layout</option>
+            <option value="row">Row Layout</option>
+            <option value="row-reverse">Row Reverse Layout</option>
+          </select>
+        </label>
+      </div>
+    </div>
     <hot-table
       #hotTable
       [settings]="hotSettings!" 
@@ -100,8 +112,8 @@ export class AppComponent implements AfterViewInit {
     autoWrapCol: true,
     autoRowSize: true,
     dialog: {
-      content: 'This dialog uses a semi-transparent background.',
-      background: 'semi-transparent',
+      content: '<p>This dialog uses column direction for content layout.</p><button>Button 1</button><button>Button 2</button>',
+      contentDirections: 'column',
       closable: true,
     },
   };
@@ -113,6 +125,17 @@ export class AppComponent implements AfterViewInit {
       // Show dialog after initialization
       const dialogPlugin = hotInstance.getPlugin('dialog');
       dialogPlugin.show();
+    }
+  }
+
+  onContentDirectionChange(event: Event) {
+    const hotInstance = this.hotTable.hotInstance;
+
+    if (hotInstance) {
+      const contentDirections = (event.target as HTMLSelectElement).value;
+      const dialogPlugin = hotInstance.getPlugin('dialog');
+
+      dialogPlugin.update({ contentDirections });
     }
   }
 }

@@ -89,7 +89,7 @@ const hot = new Handsontable(container, {
   stretchH: 'all',
   dialog: {
     content:
-      '<p>This dialog contains <strong>HTML</strong> content with formatting.</p><button onclick="alert(\'Button clicked!\')">Click me</button>',
+      '<p>This dialog contains <strong>HTML</strong> content with formatting.</p><button id="example3-button">Hide dialog</button>',
     contentDirections: 'column',
     closable: true,
   },
@@ -100,3 +100,7 @@ const hot = new Handsontable(container, {
 const dialogPlugin = hot.getPlugin('dialog');
 
 dialogPlugin.show();
+
+document.getElementById('example3-button').addEventListener('click', () => {
+  dialogPlugin.hide();
+});

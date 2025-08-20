@@ -88,7 +88,8 @@ const hot = new Handsontable(container, {
   height: 300,
   stretchH: 'all',
   dialog: {
-    content: 'This dialog uses a semi-transparent background.',
+    content: 'This dialog uses a semi-transparent and content background.',
+    contentBackground: true,
     background: 'semi-transparent',
     closable: true,
   },

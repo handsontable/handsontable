@@ -36,6 +36,10 @@ const ExampleComponent = () => {
   useEffect(() => {
     const hotInstance = hotTableRef.current?.hotInstance;
 
+    if (!hotInstance) {
+      return;
+    }
+
     hotInstance.getPlugin('dialog').show();
   }, []);
 
@@ -54,7 +58,8 @@ const ExampleComponent = () => {
       autoWrapCol={true}
       autoRowSize={true}
       dialog={{
-        content: 'This dialog uses a semi-transparent background.',
+        content: 'This dialog uses a semi-transparent and content background.',
+        contentBackground: true,
         background: 'semi-transparent',
         closable: true,
       }}

@@ -36,7 +36,15 @@ const ExampleComponent = () => {
   useEffect(() => {
     const hotInstance = hotTableRef.current?.hotInstance;
 
+    if (!hotInstance) {
+      return;
+    }
+
     hotInstance.getPlugin('dialog').show();
+
+    document.getElementById('example3-button')?.addEventListener('click', () => {
+      hotInstance.getPlugin('dialog').hide();
+    });
   }, []);
 
   return (
@@ -55,7 +63,7 @@ const ExampleComponent = () => {
       autoRowSize={true}
       dialog={{
         content:
-          '<p>This dialog contains <strong>HTML</strong> content with formatting.</p><button onclick="alert(\'Button clicked!\')">Click me</button>',
+          '<p>This dialog contains <strong>HTML</strong> content with formatting.</p><button id="example3-button">Hide dialog</button>',
         contentDirections: 'column',
         closable: true,
       }}
