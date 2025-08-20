@@ -346,8 +346,11 @@ class TableView {
       this.#mouseDown = false;
 
       const isOutsideInputElement = isOutsideInput(rootDocument.activeElement);
+      // TODO: This is a workaround to prevent the unlisten event from being triggered when the active element is inside a dialog.
+      // Should be removed when the focus manager is implemented.
+      const isInsideDialog = rootDocument.querySelector('.ht-dialog')?.contains(rootDocument.activeElement);
 
-      if (isInput(rootDocument.activeElement) && !isOutsideInputElement) {
+      if (isInput(rootDocument.activeElement) && !isOutsideInputElement || isInsideDialog) {
         return;
       }
 
