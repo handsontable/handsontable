@@ -13,12 +13,12 @@ describe('Dialog - background option', () => {
   });
 
   it('should have solid background by default', async() => {
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: true,
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show();
 
@@ -28,14 +28,14 @@ describe('Dialog - background option', () => {
   });
 
   it('should apply semi-transparent background when specified', async() => {
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: {
         background: 'semi-transparent',
       },
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show();
 
@@ -45,14 +45,14 @@ describe('Dialog - background option', () => {
   });
 
   it('should update background when using show method', async() => {
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: {
         background: 'solid',
       },
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show({
       background: 'semi-transparent',
@@ -64,14 +64,14 @@ describe('Dialog - background option', () => {
   });
 
   it('should update background when using update method', async() => {
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: {
         background: 'solid',
       },
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show();
 
@@ -86,14 +86,14 @@ describe('Dialog - background option', () => {
   });
 
   it('should preserve background when showing dialog without specifying background', async() => {
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: {
         background: 'semi-transparent',
       },
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show();
 
@@ -106,14 +106,14 @@ describe('Dialog - background option', () => {
   });
 
   it('should switch from solid to semi-transparent background', async() => {
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: {
         background: 'solid',
       },
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show();
 
@@ -128,15 +128,15 @@ describe('Dialog - background option', () => {
   });
 
   it('should maintain other dialog classes when changing background', async() => {
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: {
         background: 'solid',
         customClassName: 'custom-dialog',
       },
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show();
 
@@ -151,4 +151,3 @@ describe('Dialog - background option', () => {
     expect($('.ht-dialog').hasClass('custom-dialog')).toBe(true);
   });
 });
-

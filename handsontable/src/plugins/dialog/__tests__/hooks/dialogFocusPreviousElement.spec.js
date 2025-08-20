@@ -14,15 +14,16 @@ describe('Dialog - dialogFocusPreviousElement hook', () => {
 
   it('should run dialogFocusPreviousElement hook when Tab is pressed inside dialog', async() => {
     const dialogFocusPreviousElementSpy = jasmine.createSpy('dialogFocusPreviousElement');
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: true,
       dialogFocusPreviousElement: dialogFocusPreviousElementSpy,
     });
 
     await selectCell(0, 0);
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show({
       content: '<input type="text" id="testInput" /><input type="text" id="testInput2" />',
@@ -33,7 +34,6 @@ describe('Dialog - dialogFocusPreviousElement hook', () => {
     input.focus();
 
     await keyDownUp(['shift', 'tab']);
-
     await sleep(10);
 
     expect(dialogFocusPreviousElementSpy).toHaveBeenCalledTimes(1);
@@ -41,15 +41,16 @@ describe('Dialog - dialogFocusPreviousElement hook', () => {
 
   it('should not run dialogFocusPreviousElement hook when tab is pressed', async() => {
     const dialogFocusPreviousElementSpy = jasmine.createSpy('dialogFocusPreviousElement');
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: true,
       dialogFocusPreviousElement: dialogFocusPreviousElementSpy,
     });
 
     await selectCell(0, 0);
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show({
       content: '<input type="text" id="testInput" /><input type="text" id="testInput2" />',
@@ -60,7 +61,6 @@ describe('Dialog - dialogFocusPreviousElement hook', () => {
     input.focus();
 
     await keyDownUp('tab');
-
     await sleep(10);
 
     expect(dialogFocusPreviousElementSpy).not.toHaveBeenCalled();
@@ -68,15 +68,16 @@ describe('Dialog - dialogFocusPreviousElement hook', () => {
 
   it('should not run dialogFocusPreviousElement hook when Tab is pressed and isListening is false', async() => {
     const dialogFocusPreviousElementSpy = jasmine.createSpy('dialogFocusPreviousElement');
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: true,
       dialogFocusPreviousElement: dialogFocusPreviousElementSpy,
     });
 
     await selectCell(0, 0);
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show({
       content: '<input type="text" id="testInput" />',
@@ -86,10 +87,9 @@ describe('Dialog - dialogFocusPreviousElement hook', () => {
 
     input.focus();
 
-    hot.unlisten();
+    await unlisten();
 
     await keyDownUp(['shift', 'tab']);
-
     await sleep(10);
 
     expect(dialogFocusPreviousElementSpy).not.toHaveBeenCalled();
@@ -101,15 +101,15 @@ describe('Dialog - dialogFocusPreviousElement hook', () => {
 
     document.body.prepend(input);
 
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: true,
       dialogFocusPreviousElement: dialogFocusPreviousElementSpy,
     });
 
     await selectCell(0, 0);
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show({
       content: 'test',
@@ -118,7 +118,6 @@ describe('Dialog - dialogFocusPreviousElement hook', () => {
     input.focus();
 
     await keyDownUp(['shift', 'tab']);
-
     await sleep(10);
 
     document.body.removeChild(input);

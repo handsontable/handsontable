@@ -14,13 +14,14 @@ describe('Dialog - beforeDialogShow hook', () => {
 
   it('should run beforeDialogShow hook', async() => {
     const beforeDialogShowSpy = jasmine.createSpy('beforeDialogShow');
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: true,
       beforeDialogShow: beforeDialogShowSpy,
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show({
       content: 'Test content',
@@ -32,14 +33,15 @@ describe('Dialog - beforeDialogShow hook', () => {
   it('should run beforeDialogShow before afterDialogShow', async() => {
     const beforeDialogShowSpy = jasmine.createSpy('beforeDialogShow');
     const afterDialogShowSpy = jasmine.createSpy('afterDialogShow');
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: true,
       beforeDialogShow: beforeDialogShowSpy,
       afterDialogShow: afterDialogShowSpy,
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show();
 

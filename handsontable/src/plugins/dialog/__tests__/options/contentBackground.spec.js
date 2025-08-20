@@ -13,12 +13,12 @@ describe('Dialog - contentBackground option', () => {
   });
 
   it('should not have content background by default', async() => {
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: true,
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show();
 
@@ -27,14 +27,14 @@ describe('Dialog - contentBackground option', () => {
   });
 
   it('should apply content background when set to true', async() => {
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: {
         contentBackground: true,
       },
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show();
 
@@ -43,14 +43,14 @@ describe('Dialog - contentBackground option', () => {
   });
 
   it('should not apply content background when set to false', async() => {
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: {
         contentBackground: false,
       },
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show();
 
@@ -59,14 +59,14 @@ describe('Dialog - contentBackground option', () => {
   });
 
   it('should update content background when using show method', async() => {
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: {
         contentBackground: false,
       },
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show({
       contentBackground: true,
@@ -77,14 +77,14 @@ describe('Dialog - contentBackground option', () => {
   });
 
   it('should update content background when using update method', async() => {
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: {
         contentBackground: false,
       },
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show();
 
@@ -98,15 +98,15 @@ describe('Dialog - contentBackground option', () => {
   });
 
   it('should maintain content background when changing other options', async() => {
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: {
         contentBackground: true,
         content: 'Initial content',
       },
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show();
 

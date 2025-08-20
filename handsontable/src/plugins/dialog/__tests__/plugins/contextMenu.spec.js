@@ -13,15 +13,15 @@ describe('Dialog - context menu integration', () => {
   });
 
   it('should open context menu when dialog is hidden', async() => {
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: {
         closable: true,
       },
       contextMenu: true,
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show({
       content: 'Test dialog content',
@@ -39,15 +39,15 @@ describe('Dialog - context menu integration', () => {
   });
 
   it('should close context menu when dialog is shown', async() => {
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: {
         closable: true,
       },
       contextMenu: true,
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     await contextMenu();
 
@@ -62,8 +62,8 @@ describe('Dialog - context menu integration', () => {
   });
 
   it('should not open context menu on dialog element', async() => {
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: {
         closable: true,
         content: 'Test dialog content',
@@ -71,7 +71,7 @@ describe('Dialog - context menu integration', () => {
       contextMenu: true,
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show();
 
@@ -91,8 +91,8 @@ describe('Dialog - context menu integration', () => {
   });
 
   it('should allow context menu to open after dialog is closed via escape key', async() => {
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: {
         closable: true,
       },
@@ -101,7 +101,7 @@ describe('Dialog - context menu integration', () => {
 
     await selectCell(0, 0);
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show({
       content: 'Test dialog content',

@@ -14,13 +14,14 @@ describe('Dialog - afterDialogShow hook', () => {
 
   it('should run afterDialogShow hook', async() => {
     const afterDialogShowSpy = jasmine.createSpy('afterDialogShow');
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: true,
       afterDialogShow: afterDialogShowSpy,
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show({
       content: 'Test content',

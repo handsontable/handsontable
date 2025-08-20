@@ -13,12 +13,12 @@ describe('Dialog - animation option', () => {
   });
 
   it('should have animation enabled by default', async() => {
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: true,
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show();
 
@@ -27,14 +27,14 @@ describe('Dialog - animation option', () => {
   });
 
   it('should apply animation when set to true', async() => {
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: {
         animation: true,
       },
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show();
 
@@ -43,14 +43,14 @@ describe('Dialog - animation option', () => {
   });
 
   it('should not apply animation when set to false', async() => {
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: {
         animation: false,
       },
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show();
 
@@ -59,14 +59,14 @@ describe('Dialog - animation option', () => {
   });
 
   it('should update animation when using show method', async() => {
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: {
         animation: false,
       },
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show({
       animation: true,
@@ -77,14 +77,14 @@ describe('Dialog - animation option', () => {
   });
 
   it('should update animation when using update method', async() => {
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: {
         animation: false,
       },
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show();
 
@@ -98,15 +98,15 @@ describe('Dialog - animation option', () => {
   });
 
   it('should maintain animation when changing other options', async() => {
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: {
         animation: false,
         content: 'Initial content',
       },
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show();
 
@@ -121,4 +121,3 @@ describe('Dialog - animation option', () => {
     expect($('.ht-dialog .ht-dialog__content').text()).toEqual('Updated content');
   });
 });
-

@@ -15,8 +15,8 @@ describe('Dialog Plugin - Editor Interactions', () => {
 
   describe('AutocompleteEditor', () => {
     it('should close autocomplete editor when dialog is shown', async() => {
-      const hot = handsontable({
-        data: [['A1', 'B1'], ['A2', 'B2']],
+      handsontable({
+        data: createSpreadsheetData(5, 5),
         dialog: true,
         columns: [
           { type: 'autocomplete', source: ['Option 1', 'Option 2', 'Option 3'] },
@@ -24,12 +24,12 @@ describe('Dialog Plugin - Editor Interactions', () => {
         ],
       });
 
-      const dialogPlugin = hot.getPlugin('dialog');
+      const dialogPlugin = getPlugin('dialog');
 
       await selectCell(0, 0);
       await keyDown('enter');
 
-      expect(hot.getActiveEditor()._opened).toBe(true);
+      expect(getActiveEditor()._opened).toBe(true);
 
       dialogPlugin.show({
         content: 'Test dialog content',
@@ -37,14 +37,14 @@ describe('Dialog Plugin - Editor Interactions', () => {
         animation: false,
       });
 
-      expect(hot.getActiveEditor()._opened).toBe(false);
+      expect(getActiveEditor()._opened).toBe(false);
       expect(dialogPlugin.isVisible()).toBe(true);
     });
   });
 
   describe('DateEditor', () => {
     it('should close date editor when dialog is shown', async() => {
-      const hot = handsontable({
+      handsontable({
         data: [['2023-01-01', 'B1'], ['2023-01-02', 'B2']],
         dialog: true,
         columns: [
@@ -53,27 +53,27 @@ describe('Dialog Plugin - Editor Interactions', () => {
         ],
       });
 
-      const dialogPlugin = hot.getPlugin('dialog');
+      const dialogPlugin = getPlugin('dialog');
 
       await selectCell(0, 0);
       await keyDown('enter');
 
-      expect(hot.getActiveEditor()._opened).toBe(true);
+      expect(getActiveEditor()._opened).toBe(true);
 
       dialogPlugin.show({
         content: 'Test dialog content',
         closable: true,
       });
 
-      expect(hot.getActiveEditor()._opened).toBe(false);
+      expect(getActiveEditor()._opened).toBe(false);
       expect(dialogPlugin.isVisible()).toBe(true);
     });
   });
 
   describe('HandsontableEditor', () => {
     it('should close handsontable editor when dialog is shown', async() => {
-      const hot = handsontable({
-        data: [['A1', 'B1'], ['A2', 'B2']],
+      handsontable({
+        data: createSpreadsheetData(5, 5),
         dialog: true,
         columns: [
           {
@@ -88,26 +88,26 @@ describe('Dialog Plugin - Editor Interactions', () => {
         ],
       });
 
-      const dialogPlugin = hot.getPlugin('dialog');
+      const dialogPlugin = getPlugin('dialog');
 
       await selectCell(0, 0);
       await keyDown('enter');
 
-      expect(hot.getActiveEditor()._opened).toBe(true);
+      expect(getActiveEditor()._opened).toBe(true);
 
       dialogPlugin.show({
         content: 'Test dialog content',
         closable: true,
       });
 
-      expect(hot.getActiveEditor()._opened).toBe(false);
+      expect(getActiveEditor()._opened).toBe(false);
       expect(dialogPlugin.isVisible()).toBe(true);
     });
   });
 
   describe('Multiple Editors', () => {
     it('should close all open editors when dialog is shown', async() => {
-      const hot = handsontable({
+      handsontable({
         data: [['A1', '2023-01-01', 'C1'], ['A2', '2023-01-02', 'C2']],
         dialog: true,
         columns: [
@@ -124,29 +124,29 @@ describe('Dialog Plugin - Editor Interactions', () => {
         ],
       });
 
-      const dialogPlugin = hot.getPlugin('dialog');
+      const dialogPlugin = getPlugin('dialog');
 
       await selectCell(0, 0);
       await keyDown('enter');
 
-      expect(hot.getActiveEditor()._opened).toBe(true);
+      expect(getActiveEditor()._opened).toBe(true);
 
       await selectCell(0, 1);
       await keyDown('enter');
 
-      expect(hot.getActiveEditor()._opened).toBe(true);
+      expect(getActiveEditor()._opened).toBe(true);
 
       await selectCell(0, 2);
       await keyDown('enter');
 
-      expect(hot.getActiveEditor()._opened).toBe(true);
+      expect(getActiveEditor()._opened).toBe(true);
 
       dialogPlugin.show({
         content: 'Test dialog content',
         closable: true,
       });
 
-      expect(hot.getActiveEditor()._opened).toBe(false);
+      expect(getActiveEditor()._opened).toBe(false);
       expect(dialogPlugin.isVisible()).toBe(true);
     });
   });

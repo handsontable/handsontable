@@ -14,15 +14,16 @@ describe('Dialog - afterDialogFocus hook', () => {
 
   it('should run afterDialogFocus hook with "show" parameter when dialog is displayed', async() => {
     const afterDialogFocusSpy = jasmine.createSpy('afterDialogFocus');
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: true,
       afterDialogFocus: afterDialogFocusSpy,
     });
 
     await selectCell(0, 0);
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show({
       content: 'Test content',
@@ -38,13 +39,13 @@ describe('Dialog - afterDialogFocus hook', () => {
 
     document.body.prepend(input);
 
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: true,
       afterDialogFocus: afterDialogFocusSpy,
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     await selectCell(0, 0);
 
@@ -69,15 +70,15 @@ describe('Dialog - afterDialogFocus hook', () => {
 
     document.body.appendChild(input);
 
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       width: 300,
       height: 300,
       dialog: true,
       afterDialogFocus: afterDialogFocusSpy,
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     await selectCell(0, 0);
 
@@ -99,13 +100,13 @@ describe('Dialog - afterDialogFocus hook', () => {
   it('should run afterDialogFocus hook with "click" parameter when dialog is clicked', async() => {
     const afterDialogFocusSpy = jasmine.createSpy('afterDialogFocus');
 
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: true,
       afterDialogFocus: afterDialogFocusSpy,
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show({
       content: '<button id="clickableContent">Click me</button>',
@@ -123,13 +124,13 @@ describe('Dialog - afterDialogFocus hook', () => {
 
     document.body.appendChild(input);
 
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: true,
       afterDialogFocus: afterDialogFocusSpy,
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     input.focus();
 

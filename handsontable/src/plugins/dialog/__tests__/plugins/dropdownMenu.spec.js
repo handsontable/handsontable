@@ -13,16 +13,16 @@ describe('Dialog - dropdown menu integration', () => {
   });
 
   it('should open dropdown menu when dialog is hidden', async() => {
-    const hot = handsontable({
+    handsontable({
       colHeaders: true,
-      data: [['A1', 'B1'], ['A2', 'B2']],
+      data: createSpreadsheetData(5, 5),
       dialog: {
         closable: true,
       },
       dropdownMenu: true,
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show({
       content: 'Test dialog content',
@@ -40,16 +40,16 @@ describe('Dialog - dropdown menu integration', () => {
   });
 
   it('should close dropdown menu when dialog is shown', async() => {
-    const hot = handsontable({
+    handsontable({
       colHeaders: true,
-      data: [['A1', 'B1'], ['A2', 'B2']],
+      data: createSpreadsheetData(5, 5),
       dialog: {
         closable: true,
       },
       dropdownMenu: true,
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     await dropdownMenu();
 
@@ -64,9 +64,9 @@ describe('Dialog - dropdown menu integration', () => {
   });
 
   it('should not open dropdown menu on dialog element', async() => {
-    const hot = handsontable({
+    handsontable({
       colHeaders: true,
-      data: [['A1', 'B1'], ['A2', 'B2']],
+      data: createSpreadsheetData(5, 5),
       dialog: {
         closable: true,
         content: 'Test dialog content',
@@ -74,7 +74,7 @@ describe('Dialog - dropdown menu integration', () => {
       dropdownMenu: true,
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show();
 
@@ -94,9 +94,9 @@ describe('Dialog - dropdown menu integration', () => {
   });
 
   it('should allow dropdown menu to open after dialog is closed via escape key', async() => {
-    const hot = handsontable({
+    handsontable({
       colHeaders: true,
-      data: [['A1', 'B1'], ['A2', 'B2']],
+      data: createSpreadsheetData(5, 5),
       dialog: {
         closable: true,
       },
@@ -105,7 +105,7 @@ describe('Dialog - dropdown menu integration', () => {
 
     await selectCell(0, 0);
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show({
       content: 'Test dialog content',

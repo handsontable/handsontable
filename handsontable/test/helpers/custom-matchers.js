@@ -430,12 +430,13 @@ list: ${redColor}${checkedArray.join(', ')}${resetColor} doesn't satisfy the con
      * '|'   - The symbol which indicates the left overlay edge.
      * '---' - The symbol which indicates the top overlay edge.
      *
+     * @param {Handsontable} hotInstance The Handsontable instance.
      * @returns {object}
      */
-    toBeMatchToSelectionPattern() {
+    toBeMatchToSelectionPattern(hotInstance = hot()) {
       return {
         compare(actualPattern) {
-          const asciiTable = generateASCIITable(hot().rootElement);
+          const asciiTable = generateASCIITable(hotInstance.rootElement);
 
           const patternParts = (actualPattern || '').split(/\n/);
           const redundantPadding = patternParts.reduce((padding, line) => {

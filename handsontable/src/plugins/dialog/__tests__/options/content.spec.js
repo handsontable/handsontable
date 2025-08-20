@@ -13,12 +13,12 @@ describe('Dialog - content option', () => {
   });
 
   it('should show dialog with empty content by default', async() => {
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: true,
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show();
 
@@ -27,14 +27,14 @@ describe('Dialog - content option', () => {
   });
 
   it('should show dialog with string content', async() => {
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: {
         content: 'Simple dialog content',
       },
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show();
 
@@ -43,14 +43,14 @@ describe('Dialog - content option', () => {
   });
 
   it('should show dialog with HTML content', async() => {
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: {
         content: '<h2>Title</h2><p>This is a paragraph with <strong>bold</strong> text.</p>',
       },
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show();
 
@@ -65,14 +65,14 @@ describe('Dialog - content option', () => {
 
     contentElement.innerHTML = '<span>Custom element content</span>';
 
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: {
         content: contentElement,
       },
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show();
 
@@ -90,14 +90,14 @@ describe('Dialog - content option', () => {
 
     contentElement.appendChild(span);
 
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: {
         content: contentElement,
       },
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show();
 
@@ -107,14 +107,14 @@ describe('Dialog - content option', () => {
   });
 
   it('should update content when showing dialog with new content', async() => {
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: {
         content: 'Initial content',
       },
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show({
       content: 'Updated content',
@@ -125,14 +125,14 @@ describe('Dialog - content option', () => {
   });
 
   it('should update content when using update method', async() => {
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: {
         content: 'Initial content',
       },
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show();
 
@@ -146,8 +146,8 @@ describe('Dialog - content option', () => {
   });
 
   it('should handle complex HTML content with multiple elements', async() => {
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: {
         content: `
           <div class="header">
@@ -168,7 +168,7 @@ describe('Dialog - content option', () => {
       },
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show();
 
@@ -180,14 +180,14 @@ describe('Dialog - content option', () => {
   });
 
   it('should handle content with special characters', async() => {
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: {
         content: 'Content with special chars: &lt;&gt;&amp;&quot;&#39;',
       },
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show();
 
@@ -198,14 +198,14 @@ describe('Dialog - content option', () => {
   it('should handle very long content', async() => {
     const longContent = 'A'.repeat(1000);
 
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: {
         content: longContent,
       },
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show();
 

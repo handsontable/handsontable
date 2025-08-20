@@ -206,11 +206,11 @@ export class Dialog extends BasePlugin {
   #focusDetector = null;
 
   /**
-   * Keeps the recently selected cells that will be restored after the dialog is closed.
+   * Keeps the selection state that will be restored after the dialog is closed.
    *
-   * @type {number[] | null}
+   * @type {SelectionState | null}
    */
-  #selectedCells = null;
+  #selectionState = null;
 
   /**
    * Check if the plugin is enabled in the handsontable settings.
@@ -363,7 +363,7 @@ export class Dialog extends BasePlugin {
     this.#ui.showDialog(this.getSetting('animation'));
     this.#isVisible = true;
 
-    this.#selectedCells = this.hot.getSelected();
+    this.#selectionState = this.hot.selection.exportSelection();
     this.hot.deselectCell();
 
     this.hot.runHooks('afterDialogShow');
@@ -395,9 +395,10 @@ export class Dialog extends BasePlugin {
     this.#isVisible = false;
     this.#focusDetector.activate();
 
-    if (this.#selectedCells) {
-      this.hot.selectCells(this.#selectedCells);
-      this.#selectedCells = null;
+    if (this.#selectionState) {
+      this.hot.selection.importSelection(this.#selectionState);
+      this.hot.view.render();
+      this.#selectionState = null;
     } else {
       this.hot.selectCell(0, 0);
     }
@@ -492,7 +493,7 @@ export class Dialog extends BasePlugin {
     this.#ui = null;
     this.#isVisible = false;
     this.#focusDetector = null;
-    this.#selectedCells = null;
+    this.#selectionState = null;
 
     super.destroy();
   }

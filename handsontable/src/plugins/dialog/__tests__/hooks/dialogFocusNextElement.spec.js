@@ -14,15 +14,16 @@ describe('Dialog - dialogFocusNextElement hook', () => {
 
   it('should run dialogFocusNextElement hook when Tab is pressed inside dialog', async() => {
     const dialogFocusNextElementSpy = jasmine.createSpy('dialogFocusNextElement');
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: true,
       dialogFocusNextElement: dialogFocusNextElementSpy,
     });
 
     await selectCell(0, 0);
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show({
       content: '<input type="text" id="testInput" /><input type="text" id="testInput2" />',
@@ -41,15 +42,16 @@ describe('Dialog - dialogFocusNextElement hook', () => {
 
   it('should not run dialogFocusNextElement hook when shift+tab is pressed', async() => {
     const dialogFocusNextElementSpy = jasmine.createSpy('dialogFocusNextElement');
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: true,
       dialogFocusNextElement: dialogFocusNextElementSpy,
     });
 
     await selectCell(0, 0);
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show({
       content: '<input type="text" id="testInput" /><input type="text" id="testInput2" />',
@@ -68,15 +70,16 @@ describe('Dialog - dialogFocusNextElement hook', () => {
 
   it('should not run dialogFocusNextElement hook when Tab is pressed and isListening is false', async() => {
     const dialogFocusNextElementSpy = jasmine.createSpy('dialogFocusNextElement');
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: true,
       dialogFocusNextElement: dialogFocusNextElementSpy,
     });
 
     await selectCell(0, 0);
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show({
       content: '<input type="text" id="testInput" />',
@@ -86,10 +89,8 @@ describe('Dialog - dialogFocusNextElement hook', () => {
 
     input.focus();
 
-    hot.unlisten();
-
+    await unlisten();
     await keyDownUp('tab');
-
     await sleep(10);
 
     expect(dialogFocusNextElementSpy).not.toHaveBeenCalled();
@@ -101,13 +102,13 @@ describe('Dialog - dialogFocusNextElement hook', () => {
 
     document.body.appendChild(input);
 
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: true,
       dialogFocusNextElement: dialogFocusNextElementSpy,
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show({
       content: 'test',
@@ -116,7 +117,6 @@ describe('Dialog - dialogFocusNextElement hook', () => {
     input.focus();
 
     await keyDownUp('tab');
-
     await sleep(10);
 
     document.body.removeChild(input);

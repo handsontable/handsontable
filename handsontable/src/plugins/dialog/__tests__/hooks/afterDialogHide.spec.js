@@ -14,15 +14,16 @@ describe('Dialog - afterDialogHide hook', () => {
 
   it('should run afterDialogHide hook', async() => {
     const afterDialogHideSpy = jasmine.createSpy('afterDialogHide');
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: {
         closable: true,
       },
       afterDialogHide: afterDialogHideSpy,
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show();
     dialogPlugin.hide();

@@ -14,8 +14,8 @@ describe('Dialog keyboard shortcut', () => {
 
   describe('"Escape"', () => {
     it('should close the dialog when closable is true', async() => {
-      const hot = handsontable({
-        data: [['A1', 'B1'], ['A2', 'B2']],
+      handsontable({
+        data: createSpreadsheetData(5, 5),
         dialog: {
           closable: true,
         },
@@ -23,7 +23,7 @@ describe('Dialog keyboard shortcut', () => {
 
       await selectCell(0, 0);
 
-      const dialogPlugin = hot.getPlugin('dialog');
+      const dialogPlugin = getPlugin('dialog');
 
       dialogPlugin.show({
         content: 'Test dialog content',
@@ -39,8 +39,8 @@ describe('Dialog keyboard shortcut', () => {
     });
 
     it('should not close the dialog when closable is false', async() => {
-      const hot = handsontable({
-        data: [['A1', 'B1'], ['A2', 'B2']],
+      handsontable({
+        data: createSpreadsheetData(5, 5),
         dialog: {
           closable: false,
         },
@@ -48,7 +48,7 @@ describe('Dialog keyboard shortcut', () => {
 
       await selectCell(0, 0);
 
-      const dialogPlugin = hot.getPlugin('dialog');
+      const dialogPlugin = getPlugin('dialog');
 
       dialogPlugin.show({
         content: 'Test dialog content',
@@ -64,8 +64,8 @@ describe('Dialog keyboard shortcut', () => {
     });
 
     it('should not close the dialog when not visible', async() => {
-      const hot = handsontable({
-        data: [['A1', 'B1'], ['A2', 'B2']],
+      handsontable({
+        data: createSpreadsheetData(5, 5),
         dialog: {
           closable: true,
         },
@@ -73,7 +73,7 @@ describe('Dialog keyboard shortcut', () => {
 
       await selectCell(0, 0);
 
-      const dialogPlugin = hot.getPlugin('dialog');
+      const dialogPlugin = getPlugin('dialog');
 
       expect(dialogPlugin.isVisible()).toBe(false);
 
@@ -86,8 +86,8 @@ describe('Dialog keyboard shortcut', () => {
       const beforeDialogHideSpy = jasmine.createSpy('beforeDialogHide');
       const afterDialogHideSpy = jasmine.createSpy('afterDialogHide');
 
-      const hot = handsontable({
-        data: [['A1', 'B1'], ['A2', 'B2']],
+      handsontable({
+        data: createSpreadsheetData(5, 5),
         dialog: {
           closable: true,
         },
@@ -97,7 +97,7 @@ describe('Dialog keyboard shortcut', () => {
 
       await selectCell(0, 0);
 
-      const dialogPlugin = hot.getPlugin('dialog');
+      const dialogPlugin = getPlugin('dialog');
 
       dialogPlugin.show({
         content: 'Test dialog content',
@@ -113,8 +113,8 @@ describe('Dialog keyboard shortcut', () => {
     });
 
     it('should switch back to grid context after closing dialog with escape', async() => {
-      const hot = handsontable({
-        data: [['A1', 'B1'], ['A2', 'B2']],
+      handsontable({
+        data: createSpreadsheetData(5, 5),
         dialog: {
           closable: true,
         },
@@ -122,8 +122,8 @@ describe('Dialog keyboard shortcut', () => {
 
       await selectCell(0, 0);
 
-      const dialogPlugin = hot.getPlugin('dialog');
-      const shortcutManager = hot.getShortcutManager();
+      const dialogPlugin = getPlugin('dialog');
+      const shortcutManager = getShortcutManager();
 
       dialogPlugin.show({
         content: 'Test dialog content',
@@ -138,8 +138,8 @@ describe('Dialog keyboard shortcut', () => {
     });
 
     it('should work with custom dialog configuration', async() => {
-      const hot = handsontable({
-        data: [['A1', 'B1'], ['A2', 'B2']],
+      handsontable({
+        data: createSpreadsheetData(5, 5),
         dialog: {
           closable: true,
           content: 'Custom content',
@@ -152,7 +152,7 @@ describe('Dialog keyboard shortcut', () => {
 
       await selectCell(0, 0);
 
-      const dialogPlugin = hot.getPlugin('dialog');
+      const dialogPlugin = getPlugin('dialog');
 
       dialogPlugin.show();
 
@@ -167,8 +167,8 @@ describe('Dialog keyboard shortcut', () => {
     });
 
     it('should not interfere with other keyboard shortcuts when dialog is not visible', async() => {
-      const hot = handsontable({
-        data: [['A1', 'B1'], ['A2', 'B2']],
+      handsontable({
+        data: createSpreadsheetData(5, 5),
         dialog: {
           closable: true,
         },
@@ -176,7 +176,7 @@ describe('Dialog keyboard shortcut', () => {
 
       await selectCell(0, 0);
 
-      const dialogPlugin = hot.getPlugin('dialog');
+      const dialogPlugin = getPlugin('dialog');
 
       expect(dialogPlugin.isVisible()).toBe(false);
 
@@ -191,14 +191,14 @@ describe('Dialog keyboard shortcut', () => {
 
       document.body.appendChild(input);
 
-      const hot = handsontable({
-        data: [['A1', 'B1'], ['A2', 'B2']],
+      handsontable({
+        data: createSpreadsheetData(5, 5),
         dialog: {
           closable: true,
         },
       });
 
-      const dialogPlugin = hot.getPlugin('dialog');
+      const dialogPlugin = getPlugin('dialog');
 
       input.focus();
 

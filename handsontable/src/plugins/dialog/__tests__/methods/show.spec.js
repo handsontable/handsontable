@@ -13,12 +13,12 @@ describe('Dialog - show method', () => {
   });
 
   it('should show dialog with default configuration', async() => {
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: true,
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show();
 
@@ -36,12 +36,12 @@ describe('Dialog - show method', () => {
   });
 
   it('should show dialog with custom content', async() => {
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: true,
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show({
       content: 'Custom dialog content',
@@ -52,12 +52,12 @@ describe('Dialog - show method', () => {
   });
 
   it('should show dialog with HTML content', async() => {
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: true,
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show({
       content: '<h2>Title</h2><p>Paragraph</p>',
@@ -69,12 +69,12 @@ describe('Dialog - show method', () => {
   });
 
   it('should not show dialog when plugin is disabled', async() => {
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: false,
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show({
       content: 'Test content',
@@ -85,12 +85,12 @@ describe('Dialog - show method', () => {
   });
 
   it('should not show dialog when already visible', async() => {
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: true,
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show();
 
@@ -107,14 +107,14 @@ describe('Dialog - show method', () => {
     const beforeDialogShowSpy = jasmine.createSpy('beforeDialogShow');
     const afterDialogShowSpy = jasmine.createSpy('afterDialogShow');
 
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: true,
       beforeDialogShow: beforeDialogShowSpy,
       afterDialogShow: afterDialogShowSpy,
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show({
       content: 'Test content',
@@ -125,33 +125,33 @@ describe('Dialog - show method', () => {
   });
 
   it('should update the width of the dialog container to the same size as the table', async() => {
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: true,
       width: 300,
       height: 300,
     });
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show();
 
     expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog').outerWidth()).toBe(hot.view.getWorkspaceWidth());
+    expect($('.ht-dialog').outerWidth()).toBe(tableView().getWorkspaceWidth());
   });
 
   it('should deselect all cells when dialog is shown', async() => {
-    const hot = handsontable({
-      data: [['A1', 'B1'], ['A2', 'B2']],
+    handsontable({
+      data: createSpreadsheetData(5, 5),
       dialog: true,
     });
 
-    hot.selectCell(0, 0);
+    await selectCell(0, 0);
 
-    const dialogPlugin = hot.getPlugin('dialog');
+    const dialogPlugin = getPlugin('dialog');
 
     dialogPlugin.show();
 
-    expect(hot.getSelected()).toEqual(undefined);
+    expect(getSelected()).toEqual(undefined);
   });
 });
