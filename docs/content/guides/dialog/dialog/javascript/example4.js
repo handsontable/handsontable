@@ -103,7 +103,10 @@ dialogPlugin.show();
 // Add event listeners for select
 document.getElementById('background-select').addEventListener('change', (event) => {
   const background = event.target.value;
-  const content = background === 'solid' ? 'This dialog uses a solid background (default).' : 'This dialog uses a semi-transparent background.';
+  const content =
+    background === 'solid'
+      ? 'This dialog uses a solid background (default).'
+      : 'This dialog uses a semi-transparent background.';
 
   dialogPlugin.update({
     content,

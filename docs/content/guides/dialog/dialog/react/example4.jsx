@@ -52,16 +52,16 @@ const ExampleComponent = () => {
 
     const background = event.target.value;
     const content =
-      background === "solid"
-        ? "This dialog uses a solid background (default)."
-        : "This dialog uses a semi-transparent background.";
+      background === 'solid'
+        ? 'This dialog uses a solid background (default).'
+        : 'This dialog uses a semi-transparent background.';
 
-    hotInstance.getPlugin("dialog").update({ content, background });
+    hotInstance.getPlugin('dialog').update({ content, background });
   };
 
   return (
     <>
-      <div className="example-controls-container" style={{ paddingBottom: "16px" }}>
+      <div className="example-controls-container" style={{ paddingBottom: '16px' }}>
         <div className="controlsQuickFilter">
           <label htmlFor="background-select" className="selectColumn">
             Select a background:

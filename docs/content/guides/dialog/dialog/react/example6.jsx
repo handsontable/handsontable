@@ -51,12 +51,13 @@ const ExampleComponent = () => {
     }
 
     const contentDirections = event.target.value;
+
     hotInstance.getPlugin('dialog').update({ contentDirections });
   };
 
   return (
     <>
-      <div className="example-controls-container" style={{ paddingBottom: "16px" }}>
+      <div className="example-controls-container" style={{ paddingBottom: '16px' }}>
         <div className="controlsQuickFilter">
           <label htmlFor="content-direction-select" className="selectColumn">
             Select a content direction:
