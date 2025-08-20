@@ -17,7 +17,6 @@ const ensureCorrectHotThemes = () => {
     Handsontable.hooks.add('afterSetTheme', function() {
       setTimeout(() => {
         if (this.rootContainer.closest('.disable-auto-theme')) {
-          
           return;
         }
 

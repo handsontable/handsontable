@@ -969,7 +969,7 @@ export class Pagination extends BasePlugin {
       return height;
     }
 
-    this.hot.rootGridElement.style.height = 
+    this.hot.rootGridElement.style.height =
       `calc(${height}${/[0-9]$/.test(height) ? 'px' : ''} - ${this.#ui.getHeight()}px)`;
 
     return '100%';
