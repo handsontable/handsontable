@@ -225,6 +225,20 @@ export class Pagination extends BasePlugin {
         a11yAnnouncer: message => announce(message),
       });
 
+      this.#updateSectionsVisibilityState();
+      this.#ui
+        .addLocalHook('firstPageClick', () => this.firstPage())
+        .addLocalHook('prevPageClick', () => this.prevPage())
+        .addLocalHook('nextPageClick', () => this.nextPage())
+        .addLocalHook('lastPageClick', () => this.lastPage())
+        .addLocalHook('pageSizeChange', pageSize => this.setPageSize(pageSize))
+        .addLocalHook('focus', (element) => {
+          this.#focusController
+            .setCurrentPage(this.#ui.getFocusableElements().indexOf(element));
+        });
+    }
+
+    if (!this.#focusController) {
       this.#focusController = createPaginationFocusController({
         focusableElements: this.#ui.getFocusableElements(),
         onElementClick: () => {
@@ -233,8 +247,10 @@ export class Pagination extends BasePlugin {
           this.#focusDetector.deactivate();
         },
       });
+    }
 
-      this.#focusDetector = installFocusDetector(this.hot, this.#ui.getPaginationElement(), {
+    if (!this.#focusDetector) {
+      this.#focusDetector = installFocusDetector(this.hot, this.#ui.getContainer(), {
         onFocus: (from) => {
           this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
           this.hot.listen();
@@ -248,30 +264,10 @@ export class Pagination extends BasePlugin {
           this.#focusDetector.deactivate();
         },
       });
-
-      this.eventManager.addEventListener(this.hot.rootDocument, 'mouseup', (event) => {
-        const container = this.#ui.getContainer();
-
-        if (
-          !container.contains(event.target) &&
-          this.hot.getShortcutManager().getActiveContextName() === SHORTCUTS_CONTEXT_NAME
-        ) {
-          this.#focusDetector.activate();
-          this.#focusController.clear();
-          this.hot.getShortcutManager().setActiveContextName('grid');
-        }
-      });
-
-      this.#updateSectionsVisibilityState();
-      this.#ui
-        .addLocalHook('firstPageClick', () => this.firstPage())
-        .addLocalHook('prevPageClick', () => this.prevPage())
-        .addLocalHook('nextPageClick', () => this.nextPage())
-        .addLocalHook('lastPageClick', () => this.lastPage())
-        .addLocalHook('pageSizeChange', pageSize => this.setPageSize(pageSize));
     }
 
-    this.registerShortcuts();
+    this.#registerEvents();
+    this.#registerShortcuts();
 
     // Place the onInit hook before others to make sure that the pagination state is computed
     // and applied to the index mapper before AutoColumnSize plugin begins calculate the column sizes.
@@ -318,17 +314,34 @@ export class Pagination extends BasePlugin {
 
     this.#ui.destroy();
     this.#ui = null;
-    this.unregisterShortcuts();
+    this.#unregisterShortcuts();
 
     super.disablePlugin();
   }
 
   /**
-   * Register shortcuts responsible for navigating through the pagination.
-   *
-   * @private
+   * Bind the events used by the plugin.
    */
-  registerShortcuts() {
+  #registerEvents() {
+    // TODO: move to general focus manager module
+    this.eventManager.addEventListener(this.hot.rootDocument, 'mouseup', (event) => {
+      const container = this.#ui.getContainer();
+
+      if (
+        !container.contains(event.target) &&
+        this.hot.getShortcutManager().getActiveContextName() === SHORTCUTS_CONTEXT_NAME
+      ) {
+        this.#focusDetector.activate();
+        this.#focusController.clear();
+        this.hot.getShortcutManager().setActiveContextName('grid');
+      }
+    });
+  }
+
+  /**
+   * Register shortcuts responsible for navigating through the pagination.
+   */
+  #registerShortcuts() {
     const manager = this.hot.getShortcutManager();
     const pluginContext = manager.getContext(SHORTCUTS_CONTEXT_NAME) ??
       manager.addContext(SHORTCUTS_CONTEXT_NAME, 'global');
@@ -373,10 +386,8 @@ export class Pagination extends BasePlugin {
 
   /**
    * Unregister shortcuts responsible for navigating through the pagination.
-   *
-   * @private
    */
-  unregisterShortcuts() {
+  #unregisterShortcuts() {
     const shortcutManager = this.hot.getShortcutManager();
     const pluginContext = shortcutManager.getContext(SHORTCUTS_CONTEXT_NAME);
 
@@ -534,7 +545,6 @@ export class Pagination extends BasePlugin {
    */
   nextPage() {
     this.setPage(this.#currentPage + 1);
-    this.#focusButtonOnPageChange(2); // 2 - previous button
   }
 
   /**
@@ -542,7 +552,6 @@ export class Pagination extends BasePlugin {
    */
   prevPage() {
     this.setPage(this.#currentPage - 1);
-    this.#focusButtonOnPageChange(3); // 3 - next button
   }
 
   /**
@@ -550,7 +559,6 @@ export class Pagination extends BasePlugin {
    */
   firstPage() {
     this.setPage(1);
-    this.#focusButtonOnPageChange(3); // 3 - next button
   }
 
   /**
@@ -558,7 +566,6 @@ export class Pagination extends BasePlugin {
    */
   lastPage() {
     this.setPage(this.#calcStrategy.getTotalPages());
-    this.#focusButtonOnPageChange(2); // 2 - previous button
   }
 
   /**
@@ -751,13 +758,6 @@ export class Pagination extends BasePlugin {
       ...this.getPaginationData(),
       totalRenderedRows: renderableRowsLength,
     });
-
-    // check if all focusable elements are disabled
-    if (!this.#ui.getFocusableElements().some(element => !element.disabled)) {
-      this.#focusDetector.deactivate();
-    } else {
-      this.#focusDetector.activate();
-    }
   }
 
   /**
@@ -786,19 +786,6 @@ export class Pagination extends BasePlugin {
     } = this.getPaginationData();
 
     return view.getLastFullyVisibleRow() !== lastVisibleRowIndex;
-  }
-
-  /**
-   * Focuses on the button on the page change.
-   *
-   * @param {number} focusButtonIndex The index of the button to focus.
-   */
-  #focusButtonOnPageChange(focusButtonIndex) {
-    const { activeElement } = this.hot.rootDocument;
-
-    if (!this.#ui.getFocusableElements().includes(activeElement)) {
-      this.#focusController.setCurrentPage(focusButtonIndex);
-    }
   }
 
   /**

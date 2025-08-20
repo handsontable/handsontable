@@ -3,9 +3,9 @@ import { A11Y_LABEL } from '../helpers/a11y';
 
 /**
  * @typedef {object} FocusDetector
- * @property {() => void} activate Activates the focus detector.
- * @property {() => void} deactivate Deactivates the focus detector.
- * @property {(direction: 'from_above' | 'from_below') => void} focus Focuses the input element in the given direction.
+ * @property {function(): void} activate Activates the focus detector.
+ * @property {function(): void} deactivate Deactivates the focus detector.
+ * @property {function('from_above' | 'from_below'): void} focus Focuses the input element in the given direction.
  */
 /**
  * Installs a focus detector module. The module appends two input elements into the DOM side by side.

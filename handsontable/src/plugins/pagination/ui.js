@@ -146,27 +146,38 @@ export class PaginationUI {
     container.setAttribute('dir', this.#isRtl ? 'rtl' : 'ltr');
 
     const isDisabled = event => event.currentTarget.disabled;
+    const addFocusListener = (element) => {
+      element.addEventListener('focus', event => this.runLocalHooks('focus', event.currentTarget));
+    };
 
     first.addEventListener('click', (event) => {
       if (!isDisabled(event)) {
         this.runLocalHooks('firstPageClick');
       }
     });
+    addFocusListener(first);
+
     prev.addEventListener('click', (event) => {
       if (!isDisabled(event)) {
         this.runLocalHooks('prevPageClick');
       }
     });
+    addFocusListener(prev);
+
     next.addEventListener('click', (event) => {
       if (!isDisabled(event)) {
         this.runLocalHooks('nextPageClick');
       }
     });
+    addFocusListener(next);
+
     last.addEventListener('click', (event) => {
       if (!isDisabled(event)) {
         this.runLocalHooks('lastPageClick');
       }
     });
+    addFocusListener(last);
+
     pageSizeSelect.addEventListener('change', () => {
       const value = pageSizeSelect.value === 'auto' ? 'auto' : Number.parseInt(pageSizeSelect.value, 10);
 
@@ -191,8 +202,17 @@ export class PaginationUI {
    *
    * @returns {HTMLElement} The pagination element.
    */
-  getPaginationElement() {
+  getContainer() {
     return this.#refs.container;
+  }
+
+  /**
+   * Gets the focusable elements.
+   *
+   * @returns {HTMLElement[]} The focusable elements.
+   */
+  getFocusableElements() {
+    return this.#focusableElements;
   }
 
   /**
@@ -335,6 +355,7 @@ export class PaginationUI {
 
     const isFirstPage = currentPage === 1;
     const isLastPage = currentPage === totalPages;
+    const activeElement = this.#rootElement.ownerDocument.activeElement;
 
     if (isFirstPage) {
       addClass(first, 'ht-page-navigation-section__button--disabled');
@@ -358,6 +379,15 @@ export class PaginationUI {
       removeClass(last, 'ht-page-navigation-section__button--disabled');
       next.disabled = false;
       last.disabled = false;
+    }
+
+    if ([first, prev, next, last].includes(activeElement)) {
+      if (prev.disabled) {
+        next.focus();
+
+      } else if (next.disabled) {
+        prev.focus();
+      }
     }
 
     setAttribute(first, [
@@ -423,24 +453,6 @@ export class PaginationUI {
     this.#updateContainerVisibility();
 
     return this;
-  }
-
-  /**
-   * Gets the focusable elements.
-   *
-   * @returns {HTMLElement[]} The focusable elements.
-   */
-  getFocusableElements() {
-    return this.#focusableElements;
-  }
-
-  /**
-   * Gets the pagination container.
-   *
-   * @returns {HTMLElement} The pagination container.
-   */
-  getContainer() {
-    return this.#refs?.container;
   }
 
   /**

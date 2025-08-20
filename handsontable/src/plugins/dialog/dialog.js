@@ -246,7 +246,7 @@ export class Dialog extends BasePlugin {
       });
     }
 
-    this.registerShortcuts();
+    this.#registerShortcuts();
 
     this.addHook('modifyFocusOnTabNavigation', from => this.#onFocusTabNavigation(from), 1);
     this.addHook('afterViewRender', () => this.#onAfterRender());
@@ -269,17 +269,15 @@ export class Dialog extends BasePlugin {
    */
   disablePlugin() {
     this.hide();
-    this.unregisterShortcuts();
+    this.#unregisterShortcuts();
 
     super.disablePlugin();
   }
 
   /**
    * Register shortcuts responsible for closing the dialog and navigating through the dialog.
-   *
-   * @private
    */
-  registerShortcuts() {
+  #registerShortcuts() {
     const manager = this.hot.getShortcutManager();
     const pluginContext = manager.getContext(SHORTCUTS_CONTEXT_NAME) ??
       manager.addContext(SHORTCUTS_CONTEXT_NAME);
@@ -320,10 +318,8 @@ export class Dialog extends BasePlugin {
 
   /**
    * Unregister shortcuts responsible for closing the dialog and navigating through the dialog.
-   *
-   * @private
    */
-  unregisterShortcuts() {
+  #unregisterShortcuts() {
     const shortcutManager = this.hot.getShortcutManager();
     const pluginContext = shortcutManager.getContext(SHORTCUTS_CONTEXT_NAME);
 
