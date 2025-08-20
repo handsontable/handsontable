@@ -1,8 +1,11 @@
 import Handsontable from "handsontable";
 import { getDirectionFromURL, getThemeNameFromURL, getFromURL } from "../../utils";
+import { registerLanguageDictionary, arAR } from "handsontable/i18n";
 import { data } from './data';
 
 export function init() {
+  registerLanguageDictionary(arAR);
+
   const root = document.getElementById('root');
   const example = document.createElement('div');
 
@@ -93,7 +96,7 @@ export function init() {
       },
     ],
     dialog: dialogSettings,
-    width: '100%',
+    width: 400,
     height: 400,
     licenseKey: "non-commercial-and-evaluation",
   });

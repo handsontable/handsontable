@@ -20,6 +20,11 @@
     border: 1px solid var(--ht-border-color);
     box-sizing: border-box !important;
 
+    &[dir="rtl"] {
+      left: auto;
+      right: 0;
+    }
+
     &:has(.htFocusCatcher:focus) {
       border: 1px solid var(--ht-accent-color);
       outline: none;

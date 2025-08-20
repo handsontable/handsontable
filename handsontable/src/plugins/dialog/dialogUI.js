@@ -40,11 +40,19 @@ export class DialogUI {
    * @type {object}
    */
   #refs;
+  /**
+   * Indicates if the UI is in RTL mode.
+   *
+   * @type {boolean}
+   */
+  #isRtl = false;
 
   constructor({
     rootElement,
+    isRtl,
   }) {
     this.#rootElement = rootElement;
+    this.#isRtl = isRtl;
 
     this.install();
   }
@@ -70,6 +78,7 @@ export class DialogUI {
       A11Y_DIALOG(),
       A11Y_MODAL(),
       A11Y_TABINDEX(-1),
+      ['dir', this.#isRtl ? 'rtl' : 'ltr'],
     ]);
 
     // Append to Handsontable after table grid element

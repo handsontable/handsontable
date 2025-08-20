@@ -232,6 +232,7 @@ export class Dialog extends BasePlugin {
     if (!this.#ui) {
       this.#ui = new DialogUI({
         rootElement: this.hot.rootGridElement,
+        isRtl: this.hot.isRtl(),
       });
 
       this.#ui.addLocalHook('clickDialogElement', () => this.#onDialogClick());
