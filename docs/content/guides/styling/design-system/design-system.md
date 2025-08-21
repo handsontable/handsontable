@@ -69,7 +69,7 @@ The design system is our primary reference when planning new features or redesig
 
 ## Known limitations
 
-- The Classic theme isn’t included in the design system because we no longer recommend using it for new projects.
+- The Classic (legacy) theme is not part of the design system as we advise against its use in new projects. Starting from version 16.2, you can utilize the new Classic (modern) theme.
 
 ## Troubleshooting
 

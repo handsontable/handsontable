@@ -2738,6 +2738,11 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       }
     }
 
+    if (instance.stylesHandler.isClassicTheme()) {
+      // eslint-disable-next-line max-len, quotes
+      warn(`Handsontable's classic theme is a legacy theme and will be removed in version 17.0.0. Please update your theme settings to ensure compatibility with future versions.`);
+    }
+
     // Load data or create data map
     if (settings.data === undefined && tableMeta.data === undefined) {
       dataUpdateFunction(null, 'updateSettings'); // data source created just now

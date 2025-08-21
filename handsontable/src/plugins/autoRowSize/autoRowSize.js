@@ -623,7 +623,7 @@ export class AutoRowSize extends BasePlugin {
 
   /**
    * Toggles the "first dataset column not rendered" class name.
-   * Used to apply special styling when the first column is visible (used only in the classic theme, with the AutoRowSize plugin enabled).
+   * Used to apply special styling when the first column is visible (used only in the classic (legacy) theme, with the AutoRowSize plugin enabled).
    *
    * @param {boolean} [forceState] Force the class to be added or removed (`true` to add, `false` to remove).
    */
