@@ -88,12 +88,6 @@ export class PaginationUI {
    * @type {function(string): void}
    */
   #a11yAnnouncer;
-  /**
-   * The focusable elements.
-   *
-   * @type {number | null}
-   */
-  #focusableElements = null;
 
   constructor({
     rootElement,
@@ -133,50 +127,32 @@ export class PaginationUI {
       pageSizeSelect,
     } = elements.refs;
 
-    this.#focusableElements = [
-      pageSizeSelect,
-      first,
-      prev,
-      next,
-      last,
-    ];
-
     this.#refs = elements.refs;
 
     container.setAttribute('dir', this.#isRtl ? 'rtl' : 'ltr');
 
     const isDisabled = event => event.currentTarget.disabled;
-    const addFocusListener = (element) => {
-      element.addEventListener('focus', event => this.runLocalHooks('focus', event.currentTarget));
+    const addClickListener = (eventName, element, callback) => {
+      element.addEventListener(eventName, (event) => {
+        if (!isDisabled(event)) {
+          callback();
+        }
+      });
     };
 
-    first.addEventListener('click', (event) => {
-      if (!isDisabled(event)) {
-        this.runLocalHooks('firstPageClick');
-      }
-    });
-    addFocusListener(first);
+    addClickListener('click', first, () => this.runLocalHooks('firstPageClick'));
+    addClickListener('focus', first, () => this.runLocalHooks('focus', first));
 
-    prev.addEventListener('click', (event) => {
-      if (!isDisabled(event)) {
-        this.runLocalHooks('prevPageClick');
-      }
-    });
-    addFocusListener(prev);
+    addClickListener('click', prev, () => this.runLocalHooks('prevPageClick'));
+    addClickListener('focus', prev, () => this.runLocalHooks('focus', prev));
 
-    next.addEventListener('click', (event) => {
-      if (!isDisabled(event)) {
-        this.runLocalHooks('nextPageClick');
-      }
-    });
-    addFocusListener(next);
+    addClickListener('click', next, () => this.runLocalHooks('nextPageClick'));
+    addClickListener('focus', next, () => this.runLocalHooks('focus', next));
 
-    last.addEventListener('click', (event) => {
-      if (!isDisabled(event)) {
-        this.runLocalHooks('lastPageClick');
-      }
-    });
-    addFocusListener(last);
+    addClickListener('click', last, () => this.runLocalHooks('lastPageClick'));
+    addClickListener('focus', last, () => this.runLocalHooks('focus', last));
+
+    addClickListener('focus', pageSizeSelect, () => this.runLocalHooks('focus', pageSizeSelect));
 
     pageSizeSelect.addEventListener('change', () => {
       const value = pageSizeSelect.value === 'auto' ? 'auto' : Number.parseInt(pageSizeSelect.value, 10);
@@ -212,7 +188,21 @@ export class PaginationUI {
    * @returns {HTMLElement[]} The focusable elements.
    */
   getFocusableElements() {
-    return this.#focusableElements;
+    const {
+      first,
+      prev,
+      next,
+      last,
+      pageSizeSelect,
+    } = this.#refs;
+
+    return [
+      pageSizeSelect,
+      first,
+      prev,
+      next,
+      last,
+    ].filter(element => !element.disabled);
   }
 
   /**
@@ -355,38 +345,41 @@ export class PaginationUI {
 
     const isFirstPage = currentPage === 1;
     const isLastPage = currentPage === totalPages;
-    const activeElement = this.#rootElement.ownerDocument.activeElement;
 
-    if (isFirstPage) {
-      addClass(first, 'ht-page-navigation-section__button--disabled');
-      addClass(prev, 'ht-page-navigation-section__button--disabled');
-      first.disabled = true;
-      prev.disabled = true;
-    } else {
-      removeClass(first, 'ht-page-navigation-section__button--disabled');
-      removeClass(prev, 'ht-page-navigation-section__button--disabled');
-      first.disabled = false;
-      prev.disabled = false;
-    }
+    if (pageNavSection.style.display !== 'none') {
+      const activeElement = this.#rootElement.ownerDocument.activeElement;
 
-    if (isLastPage) {
-      addClass(next, 'ht-page-navigation-section__button--disabled');
-      addClass(last, 'ht-page-navigation-section__button--disabled');
-      next.disabled = true;
-      last.disabled = true;
-    } else {
-      removeClass(next, 'ht-page-navigation-section__button--disabled');
-      removeClass(last, 'ht-page-navigation-section__button--disabled');
-      next.disabled = false;
-      last.disabled = false;
-    }
+      if (isFirstPage) {
+        addClass(first, 'ht-page-navigation-section__button--disabled');
+        addClass(prev, 'ht-page-navigation-section__button--disabled');
+        first.disabled = true;
+        prev.disabled = true;
+      } else {
+        removeClass(first, 'ht-page-navigation-section__button--disabled');
+        removeClass(prev, 'ht-page-navigation-section__button--disabled');
+        first.disabled = false;
+        prev.disabled = false;
+      }
 
-    if ([first, prev, next, last].includes(activeElement)) {
-      if (prev.disabled) {
-        next.focus();
+      if (isLastPage) {
+        addClass(next, 'ht-page-navigation-section__button--disabled');
+        addClass(last, 'ht-page-navigation-section__button--disabled');
+        next.disabled = true;
+        last.disabled = true;
+      } else {
+        removeClass(next, 'ht-page-navigation-section__button--disabled');
+        removeClass(last, 'ht-page-navigation-section__button--disabled');
+        next.disabled = false;
+        last.disabled = false;
+      }
 
-      } else if (next.disabled) {
-        prev.focus();
+      if ([first, prev, next, last].includes(activeElement)) {
+        if (prev.disabled) {
+          next.focus();
+
+        } else if (next.disabled) {
+          prev.focus();
+        }
       }
     }
 
@@ -421,8 +414,13 @@ export class PaginationUI {
    * @returns {PaginationUI} The instance of the PaginationUI for method chaining.
    */
   setPageSizeSectionVisibility(isVisible) {
-    this.#refs.pageSizeSection.style.display = isVisible ? '' : 'none';
-    this.#refs.pageSizeSelect.disabled = !isVisible;
+    const {
+      pageSizeSection,
+      pageSizeSelect,
+    } = this.#refs;
+
+    pageSizeSection.style.display = isVisible ? '' : 'none';
+    pageSizeSelect.disabled = !isVisible;
 
     this.#updateContainerVisibility();
 
@@ -449,7 +447,20 @@ export class PaginationUI {
    * @returns {PaginationUI} The instance of the PaginationUI for method chaining.
    */
   setNavigationSectionVisibility(isVisible) {
-    this.#refs.pageNavSection.style.display = isVisible ? '' : 'none';
+    const {
+      pageNavSection,
+      first,
+      prev,
+      next,
+      last,
+    } = this.#refs;
+
+    pageNavSection.style.display = isVisible ? '' : 'none';
+    first.disabled = !isVisible;
+    prev.disabled = !isVisible;
+    next.disabled = !isVisible;
+    last.disabled = !isVisible;
+
     this.#updateContainerVisibility();
 
     return this;

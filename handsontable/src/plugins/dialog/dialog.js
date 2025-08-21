@@ -1,21 +1,11 @@
 import { BasePlugin } from '../base';
-import { Hooks } from '../../core/hooks';
-import { DialogUI } from './dialogUI';
+import { DialogUI } from './ui';
 import { installFocusDetector } from '../../utils/focusDetector';
 
 export const PLUGIN_KEY = 'dialog';
 export const PLUGIN_PRIORITY = 340;
 const SHORTCUTS_GROUP = PLUGIN_KEY;
 const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
-
-// Register dialog hooks
-Hooks.getSingleton().register('beforeDialogShow');
-Hooks.getSingleton().register('afterDialogShow');
-Hooks.getSingleton().register('beforeDialogHide');
-Hooks.getSingleton().register('afterDialogHide');
-Hooks.getSingleton().register('dialogFocusPreviousElement');
-Hooks.getSingleton().register('dialogFocusNextElement');
-Hooks.getSingleton().register('afterDialogFocus');
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
@@ -455,7 +445,6 @@ export class Dialog extends BasePlugin {
 
   /**
    * Handle dialog click event.
-   *
    */
   #onDialogClick() {
     if (this.isVisible() && !this.hot.isListening()) {

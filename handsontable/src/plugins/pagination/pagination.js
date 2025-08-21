@@ -235,17 +235,16 @@ export class Pagination extends BasePlugin {
         .addLocalHook('focus', (element) => {
           this.#focusController
             .setCurrentPage(this.#ui.getFocusableElements().indexOf(element));
+          this.hot.unlisten();
+          this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
+          this.hot.listen();
+          this.#focusDetector.deactivate();
         });
     }
 
     if (!this.#focusController) {
       this.#focusController = createPaginationFocusController({
-        focusableElements: this.#ui.getFocusableElements(),
-        onElementClick: () => {
-          this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
-          this.hot.listen();
-          this.#focusDetector.deactivate();
-        },
+        focusableElements: () => this.#ui.getFocusableElements(),
       });
     }
 
@@ -282,10 +281,9 @@ export class Pagination extends BasePlugin {
     this.addHook('afterScrollVertically', (...args) => this.#onAfterScrollVertically(...args));
     this.addHook('afterLanguageChange', (...args) => this.#onAfterLanguageChange(...args));
     this.addHook('modifyRowHeight', (...args) => this.#onModifyRowHeight(...args));
-    this.addHook('beforeHeightChange', (...args) => this.#onBeforeHeightChange(...args));
     this.addHook('afterSetTheme', (...args) => this.#onAfterSetTheme(...args));
-    this.addHook('afterDialogShow', (...args) => this.#afterDialogShow(...args));
-    this.addHook('beforeDialogHide', (...args) => this.#afterDialogHide(...args));
+    this.addHook('afterDialogShow', (...args) => this.#onAfterDialogShow(...args));
+    this.addHook('beforeDialogHide', (...args) => this.#onAfterDialogHide(...args));
 
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onIndexCacheUpdate);
 
@@ -754,10 +752,21 @@ export class Pagination extends BasePlugin {
 
     this.#internalExecutionCall = false;
 
+    const paginationData = this.getPaginationData();
+
     this.#ui.updateState({
-      ...this.getPaginationData(),
+      ...paginationData,
       totalRenderedRows: renderableRowsLength,
     });
+
+    if (
+      (this.getSetting('showPageSize') || this.getSetting('showNavigation')) &&
+      paginationData.totalPages > 1
+    ) {
+      this.#focusDetector.activate();
+    } else {
+      this.#focusDetector.deactivate();
+    }
   }
 
   /**
@@ -962,24 +971,6 @@ export class Pagination extends BasePlugin {
   }
 
   /**
-   * Called before the height of the table is changed. It adjusts the table height to fit the pagination container
-   * in declared height.
-   *
-   * @param {number} height Table height.
-   * @returns {string} Returns the new table height.
-   */
-  #onBeforeHeightChange(height) {
-    if (this.getSetting('uiContainer')) {
-      return height;
-    }
-
-    this.hot.rootGridElement.style.height =
-      `calc(${height}${/[0-9]$/.test(height) ? 'px' : ''} - ${this.#ui.getHeight()}px)`;
-
-    return '100%';
-  }
-
-  /**
    * Called after the theme is set. It updates the theme of the pagination container.
    *
    * @param {string | undefined} themeName The name of the theme to use.
@@ -1014,14 +1005,14 @@ export class Pagination extends BasePlugin {
   /**
    * Called after the dialog is shown. It sets the active context for the shortcuts.
    */
-  #afterDialogShow() {
+  #onAfterDialogShow() {
     this.#focusDetector.deactivate();
   }
 
   /**
    * Called after the dialog is hidden. It sets the active context for the shortcuts.
    */
-  #afterDialogHide() {
+  #onAfterDialogHide() {
     this.#focusDetector.activate();
   }
 
