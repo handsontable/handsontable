@@ -281,6 +281,7 @@ export class Pagination extends BasePlugin {
     this.addHook('afterScrollVertically', (...args) => this.#onAfterScrollVertically(...args));
     this.addHook('afterLanguageChange', (...args) => this.#onAfterLanguageChange(...args));
     this.addHook('modifyRowHeight', (...args) => this.#onModifyRowHeight(...args));
+    this.addHook('beforeHeightChange', (...args) => this.#onBeforeHeightChange(...args));
     this.addHook('afterSetTheme', (...args) => this.#onAfterSetTheme(...args));
     this.addHook('afterDialogShow', (...args) => this.#onAfterDialogShow(...args));
     this.addHook('beforeDialogHide', (...args) => this.#onAfterDialogHide(...args));
@@ -942,6 +943,34 @@ export class Pagination extends BasePlugin {
     this.#ui
       .updateWidth(width)
       .refreshBorderState();
+  }
+
+  /**
+   * Called before the height of the table is changed. It adjusts the table height to fit the pagination container
+   * in declared height.
+   *
+   * @param {number|string} height Table height.
+   * @returns {string} Returns the new table height.
+   */
+  #onBeforeHeightChange(height) {
+    if (this.getSetting('uiContainer')) {
+      return height;
+    }
+
+    const isPixelValue = (
+      typeof height === 'number' ||
+      (typeof height === 'string' && /^\d+$/.test(height)) ||
+      (typeof height === 'string' && height.endsWith('px'))
+    );
+
+    if (!isPixelValue) {
+      return height;
+    }
+
+    const heightValue = typeof height === 'string' && height.endsWith('px')
+      ? height : `${height}px`;
+
+    return `calc(${heightValue} - ${this.#ui.getHeight()}px)`;
   }
 
   /**
