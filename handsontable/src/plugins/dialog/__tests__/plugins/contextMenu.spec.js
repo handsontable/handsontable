@@ -77,7 +77,7 @@ describe('Dialog - context menu integration', () => {
 
     expect(dialogPlugin.isVisible()).toBe(true);
 
-    const dialogElement = $('.ht-dialog')[0];
+    const dialogElement = getDialogContainerElement();
     const contextmenuEvent = new MouseEvent('contextmenu', {
       bubbles: true,
       cancelable: true,

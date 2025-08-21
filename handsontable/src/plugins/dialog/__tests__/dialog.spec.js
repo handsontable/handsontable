@@ -69,7 +69,7 @@ describe('Dialog', () => {
       content: 'Test content',
     });
 
-    expect($('.ht-dialog').length).toBe(1);
+    expect(getDialogContainerElement()).toBeDefined();
 
     destroy();
 

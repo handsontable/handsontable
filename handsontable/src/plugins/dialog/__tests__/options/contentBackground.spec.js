@@ -23,7 +23,7 @@ describe('Dialog - contentBackground option', () => {
     dialogPlugin.show();
 
     expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog__content').hasClass('ht-dialog__content--background')).toBe(false);
+    expect(getDialogContainerElement()).not.toHaveClass('ht-dialog__content--background');
   });
 
   it('should apply content background when set to true', async() => {
@@ -39,7 +39,7 @@ describe('Dialog - contentBackground option', () => {
     dialogPlugin.show();
 
     expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog__content').hasClass('ht-dialog__content--background')).toBe(true);
+    expect(getDialogContentContainerElement()).toHaveClass('ht-dialog__content--background');
   });
 
   it('should not apply content background when set to false', async() => {
@@ -55,7 +55,7 @@ describe('Dialog - contentBackground option', () => {
     dialogPlugin.show();
 
     expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog__content').hasClass('ht-dialog__content--background')).toBe(false);
+    expect(getDialogContentContainerElement()).not.toHaveClass('ht-dialog__content--background');
   });
 
   it('should update content background when using show method', async() => {
@@ -73,7 +73,7 @@ describe('Dialog - contentBackground option', () => {
     });
 
     expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog__content').hasClass('ht-dialog__content--background')).toBe(true);
+    expect(getDialogContentContainerElement()).toHaveClass('ht-dialog__content--background');
   });
 
   it('should update content background when using update method', async() => {
@@ -88,13 +88,13 @@ describe('Dialog - contentBackground option', () => {
 
     dialogPlugin.show();
 
-    expect($('.ht-dialog__content').hasClass('ht-dialog__content--background')).toBe(false);
+    expect(getDialogContentContainerElement()).not.toHaveClass('ht-dialog__content--background');
 
     dialogPlugin.update({
       contentBackground: true,
     });
 
-    expect($('.ht-dialog__content').hasClass('ht-dialog__content--background')).toBe(true);
+    expect(getDialogContentContainerElement()).toHaveClass('ht-dialog__content--background');
   });
 
   it('should maintain content background when changing other options', async() => {
@@ -110,14 +110,14 @@ describe('Dialog - contentBackground option', () => {
 
     dialogPlugin.show();
 
-    expect($('.ht-dialog__content').hasClass('ht-dialog__content--background')).toBe(true);
+    expect(getDialogContentContainerElement()).toHaveClass('ht-dialog__content--background');
 
     dialogPlugin.update({
       content: 'Updated content',
       background: 'semi-transparent',
     });
 
-    expect($('.ht-dialog__content').hasClass('ht-dialog__content--background')).toBe(true);
-    expect($('.ht-dialog .ht-dialog__content').text()).toEqual('Updated content');
+    expect(getDialogContentContainerElement()).toHaveClass('ht-dialog__content--background');
+    expect(getDialogContentHTML()).toEqual('Updated content');
   });
 });

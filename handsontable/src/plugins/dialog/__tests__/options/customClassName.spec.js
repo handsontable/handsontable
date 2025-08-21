@@ -23,7 +23,7 @@ describe('Dialog - customClassName option', () => {
     dialogPlugin.show();
 
     expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog').hasClass('custom-dialog')).toBe(false);
+    expect(getDialogContainerElement()).not.toHaveClass('custom-dialog');
   });
 
   it('should apply custom class name when specified', async() => {
@@ -39,7 +39,7 @@ describe('Dialog - customClassName option', () => {
     dialogPlugin.show();
 
     expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog').hasClass('my-custom-dialog')).toBe(true);
+    expect(getDialogContainerElement()).toHaveClass('my-custom-dialog');
   });
 
   it('should apply multiple custom class names', async() => {
@@ -55,8 +55,8 @@ describe('Dialog - customClassName option', () => {
     dialogPlugin.show();
 
     expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog').hasClass('dialog-primary')).toBe(true);
-    expect($('.ht-dialog').hasClass('dialog-large')).toBe(true);
+    expect(getDialogContainerElement()).toHaveClass('dialog-primary');
+    expect(getDialogContainerElement()).toHaveClass('dialog-large');
   });
 
   it('should update custom class name when using show method', async() => {
@@ -74,8 +74,8 @@ describe('Dialog - customClassName option', () => {
     });
 
     expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog').hasClass('initial-class')).toBe(false);
-    expect($('.ht-dialog').hasClass('updated-class')).toBe(true);
+    expect(getDialogContainerElement()).not.toHaveClass('initial-class');
+    expect(getDialogContainerElement()).toHaveClass('updated-class');
   });
 
   it('should update custom class name when using update method', async() => {
@@ -90,14 +90,14 @@ describe('Dialog - customClassName option', () => {
 
     dialogPlugin.show();
 
-    expect($('.ht-dialog').hasClass('initial-class')).toBe(true);
+    expect(getDialogContainerElement()).toHaveClass('initial-class');
 
     dialogPlugin.update({
       customClassName: 'updated-class',
     });
 
-    expect($('.ht-dialog').hasClass('initial-class')).toBe(false);
-    expect($('.ht-dialog').hasClass('updated-class')).toBe(true);
+    expect(getDialogContainerElement()).not.toHaveClass('initial-class');
+    expect(getDialogContainerElement()).toHaveClass('updated-class');
   });
 
   it('should remove custom class when updating to empty string', async() => {
@@ -112,13 +112,13 @@ describe('Dialog - customClassName option', () => {
 
     dialogPlugin.show();
 
-    expect($('.ht-dialog').hasClass('initial-class')).toBe(true);
+    expect(getDialogContainerElement()).toHaveClass('initial-class');
 
     dialogPlugin.update({
       customClassName: '',
     });
 
-    expect($('.ht-dialog').hasClass('initial-class')).toBe(false);
+    expect(getDialogContainerElement()).not.toHaveClass('initial-class');
   });
 
   it('should handle special characters in class names', async() => {
@@ -134,8 +134,8 @@ describe('Dialog - customClassName option', () => {
     dialogPlugin.show();
 
     expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog').hasClass('dialog-with-dash')).toBe(true);
-    expect($('.ht-dialog').hasClass('dialog_with_underscore')).toBe(true);
+    expect(getDialogContainerElement()).toHaveClass('dialog-with-dash');
+    expect(getDialogContainerElement()).toHaveClass('dialog_with_underscore');
   });
 
   it('should maintain base dialog classes when custom class is applied', async() => {
@@ -151,7 +151,7 @@ describe('Dialog - customClassName option', () => {
     dialogPlugin.show();
 
     expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog').hasClass('ht-dialog')).toBe(true);
-    expect($('.ht-dialog').hasClass('custom-dialog')).toBe(true);
+    expect(getDialogContainerElement()).toHaveClass('ht-dialog');
+    expect(getDialogContainerElement()).toHaveClass('custom-dialog');
   });
 });

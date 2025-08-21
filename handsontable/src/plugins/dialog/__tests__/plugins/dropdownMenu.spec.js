@@ -80,7 +80,7 @@ describe('Dialog - dropdown menu integration', () => {
 
     expect(dialogPlugin.isVisible()).toBe(true);
 
-    const dialogElement = $('.ht-dialog')[0];
+    const dialogElement = getDialogContainerElement();
     const clickEvent = new MouseEvent('click', {
       bubbles: true,
       cancelable: true,

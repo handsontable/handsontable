@@ -23,7 +23,7 @@ describe('Dialog - animation option', () => {
     dialogPlugin.show();
 
     expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog').hasClass('ht-dialog--animation')).toBe(true);
+    expect(getDialogContainerElement()).toHaveClass('ht-dialog--animation');
   });
 
   it('should apply animation when set to true', async() => {
@@ -39,7 +39,7 @@ describe('Dialog - animation option', () => {
     dialogPlugin.show();
 
     expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog').hasClass('ht-dialog--animation')).toBe(true);
+    expect(getDialogContainerElement()).toHaveClass('ht-dialog--animation');
   });
 
   it('should not apply animation when set to false', async() => {
@@ -55,7 +55,7 @@ describe('Dialog - animation option', () => {
     dialogPlugin.show();
 
     expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog').hasClass('ht-dialog--animation')).toBe(false);
+    expect(getDialogContainerElement()).not.toHaveClass('ht-dialog--animation');
   });
 
   it('should update animation when using show method', async() => {
@@ -73,7 +73,7 @@ describe('Dialog - animation option', () => {
     });
 
     expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog').hasClass('ht-dialog--animation')).toBe(true);
+    expect(getDialogContainerElement()).toHaveClass('ht-dialog--animation');
   });
 
   it('should update animation when using update method', async() => {
@@ -88,13 +88,13 @@ describe('Dialog - animation option', () => {
 
     dialogPlugin.show();
 
-    expect($('.ht-dialog').hasClass('ht-dialog--animation')).toBe(false);
+    expect(getDialogContainerElement()).not.toHaveClass('ht-dialog--animation');
 
     dialogPlugin.update({
       animation: true,
     });
 
-    expect($('.ht-dialog').hasClass('ht-dialog--animation')).toBe(true);
+    expect(getDialogContainerElement()).toHaveClass('ht-dialog--animation');
   });
 
   it('should maintain animation when changing other options', async() => {
@@ -110,14 +110,14 @@ describe('Dialog - animation option', () => {
 
     dialogPlugin.show();
 
-    expect($('.ht-dialog').hasClass('ht-dialog--animation')).toBe(false);
+    expect(getDialogContainerElement()).not.toHaveClass('ht-dialog--animation');
 
     dialogPlugin.update({
       content: 'Updated content',
       background: 'semi-transparent',
     });
 
-    expect($('.ht-dialog').hasClass('ht-dialog--animation')).toBe(false);
-    expect($('.ht-dialog .ht-dialog__content').text()).toEqual('Updated content');
+    expect(getDialogContainerElement()).not.toHaveClass('ht-dialog--animation');
+    expect(getDialogContentHTML()).toEqual('Updated content');
   });
 });

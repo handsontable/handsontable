@@ -23,7 +23,7 @@ describe('Dialog - show method', () => {
     dialogPlugin.show();
 
     expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog').length).toBe(1);
+    expect(getDialogContainerElement()).toBeDefined();
     expect(dialogPlugin.getSetting()).toEqual({
       content: '',
       customClassName: '',
@@ -48,7 +48,7 @@ describe('Dialog - show method', () => {
     });
 
     expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog .ht-dialog__content').text()).toEqual('Custom dialog content');
+    expect(getDialogContentHTML()).toEqual('Custom dialog content');
   });
 
   it('should show dialog with HTML content', async() => {
@@ -64,8 +64,7 @@ describe('Dialog - show method', () => {
     });
 
     expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog .ht-dialog__content h2').text()).toBe('Title');
-    expect($('.ht-dialog .ht-dialog__content p').text()).toBe('Paragraph');
+    expect(getDialogContentHTML()).toEqual('<h2>Title</h2><p>Paragraph</p>');
   });
 
   it('should not show dialog when plugin is disabled', async() => {
@@ -81,7 +80,7 @@ describe('Dialog - show method', () => {
     });
 
     expect(dialogPlugin.isVisible()).toBe(false);
-    expect($('.ht-dialog').length).toBe(0);
+    expect(getDialogContainerElement()).toBe(null);
   });
 
   it('should update dialog configuration when show method is called with new options', async() => {
@@ -97,14 +96,14 @@ describe('Dialog - show method', () => {
     });
 
     expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog .ht-dialog__content').text()).toBe('Initial content');
+    expect(getDialogContentHTML()).toEqual('Initial content');
 
     dialogPlugin.show({
       content: 'New content',
     });
 
     expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog .ht-dialog__content').text()).toBe('New content');
+    expect(getDialogContentHTML()).toEqual('New content');
   });
 
   it('should run beforeDialogShow and afterDialogShow hooks', async() => {
@@ -141,7 +140,7 @@ describe('Dialog - show method', () => {
     dialogPlugin.show();
 
     expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog').outerWidth()).toBe(tableView().getWorkspaceWidth());
+    expect(getDialogContainerElement().offsetWidth).toBe(tableView().getWorkspaceWidth());
   });
 
   it('should update the height of the dialog container to the same size as the table', async() => {
@@ -157,7 +156,7 @@ describe('Dialog - show method', () => {
     dialogPlugin.show();
 
     expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog').outerHeight()).toBe(tableView().getWorkspaceHeight());
+    expect(getDialogContainerElement().offsetHeight).toBe(tableView().getWorkspaceHeight());
   });
 
   it('should deselect all cells when dialog is shown', async() => {

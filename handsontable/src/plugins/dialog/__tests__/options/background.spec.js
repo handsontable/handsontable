@@ -23,8 +23,8 @@ describe('Dialog - background option', () => {
     dialogPlugin.show();
 
     expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog').hasClass('ht-dialog--background-solid')).toBe(true);
-    expect($('.ht-dialog').hasClass('ht-dialog--background-semi-transparent')).toBe(false);
+    expect(getDialogContainerElement()).toHaveClass('ht-dialog--background-solid');
+    expect(getDialogContainerElement()).not.toHaveClass('ht-dialog--background-semi-transparent');
   });
 
   it('should apply semi-transparent background when specified', async() => {
@@ -40,8 +40,8 @@ describe('Dialog - background option', () => {
     dialogPlugin.show();
 
     expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog').hasClass('ht-dialog--background-semi-transparent')).toBe(true);
-    expect($('.ht-dialog').hasClass('ht-dialog--background-solid')).toBe(false);
+    expect(getDialogContainerElement()).toHaveClass('ht-dialog--background-semi-transparent');
+    expect(getDialogContainerElement()).not.toHaveClass('ht-dialog--background-solid');
   });
 
   it('should update background when using show method', async() => {
@@ -59,8 +59,8 @@ describe('Dialog - background option', () => {
     });
 
     expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog').hasClass('ht-dialog--background-semi-transparent')).toBe(true);
-    expect($('.ht-dialog').hasClass('ht-dialog--background-solid')).toBe(false);
+    expect(getDialogContainerElement()).toHaveClass('ht-dialog--background-semi-transparent');
+    expect(getDialogContainerElement()).not.toHaveClass('ht-dialog--background-solid');
   });
 
   it('should update background when using update method', async() => {
@@ -75,14 +75,14 @@ describe('Dialog - background option', () => {
 
     dialogPlugin.show();
 
-    expect($('.ht-dialog').hasClass('ht-dialog--background-solid')).toBe(true);
+    expect(getDialogContainerElement()).toHaveClass('ht-dialog--background-solid');
 
     dialogPlugin.update({
       background: 'semi-transparent',
     });
 
-    expect($('.ht-dialog').hasClass('ht-dialog--background-semi-transparent')).toBe(true);
-    expect($('.ht-dialog').hasClass('ht-dialog--background-solid')).toBe(false);
+    expect(getDialogContainerElement()).toHaveClass('ht-dialog--background-semi-transparent');
+    expect(getDialogContainerElement()).not.toHaveClass('ht-dialog--background-solid');
   });
 
   it('should preserve background when showing dialog without specifying background', async() => {
@@ -97,12 +97,12 @@ describe('Dialog - background option', () => {
 
     dialogPlugin.show();
 
-    expect($('.ht-dialog').hasClass('ht-dialog--background-semi-transparent')).toBe(true);
+    expect(getDialogContainerElement()).toHaveClass('ht-dialog--background-semi-transparent');
 
     dialogPlugin.hide();
     dialogPlugin.show();
 
-    expect($('.ht-dialog').hasClass('ht-dialog--background-semi-transparent')).toBe(true);
+    expect(getDialogContainerElement()).toHaveClass('ht-dialog--background-semi-transparent');
   });
 
   it('should switch from solid to semi-transparent background', async() => {
@@ -117,14 +117,14 @@ describe('Dialog - background option', () => {
 
     dialogPlugin.show();
 
-    expect($('.ht-dialog').hasClass('ht-dialog--background-solid')).toBe(true);
+    expect(getDialogContainerElement()).toHaveClass('ht-dialog--background-solid');
 
     dialogPlugin.update({
       background: 'semi-transparent',
     });
 
-    expect($('.ht-dialog').hasClass('ht-dialog--background-semi-transparent')).toBe(true);
-    expect($('.ht-dialog').hasClass('ht-dialog--background-solid')).toBe(false);
+    expect(getDialogContainerElement()).toHaveClass('ht-dialog--background-semi-transparent');
+    expect(getDialogContainerElement()).not.toHaveClass('ht-dialog--background-solid');
   });
 
   it('should maintain other dialog classes when changing background', async() => {
@@ -140,14 +140,14 @@ describe('Dialog - background option', () => {
 
     dialogPlugin.show();
 
-    expect($('.ht-dialog').hasClass('ht-dialog--background-solid')).toBe(true);
-    expect($('.ht-dialog').hasClass('custom-dialog')).toBe(true);
+    expect(getDialogContainerElement()).toHaveClass('ht-dialog--background-solid');
+    expect(getDialogContainerElement()).toHaveClass('custom-dialog');
 
     dialogPlugin.update({
       background: 'semi-transparent',
     });
 
-    expect($('.ht-dialog').hasClass('ht-dialog--background-semi-transparent')).toBe(true);
-    expect($('.ht-dialog').hasClass('custom-dialog')).toBe(true);
+    expect(getDialogContainerElement()).toHaveClass('ht-dialog--background-semi-transparent');
+    expect(getDialogContainerElement()).toHaveClass('custom-dialog');
   });
 });

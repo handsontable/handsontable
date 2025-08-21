@@ -24,13 +24,13 @@ describe('Dialog - update method', () => {
       content: 'Initial content',
     });
 
-    expect($('.ht-dialog .ht-dialog__content').text()).toEqual('Initial content');
+    expect(getDialogContentHTML()).toEqual('Initial content');
 
     dialogPlugin.update({
       content: 'Updated content',
     });
 
-    expect($('.ht-dialog .ht-dialog__content').text()).toEqual('Updated content');
+    expect(getDialogContentHTML()).toEqual('Updated content');
   });
 
   it('should update dialog custom class name', async() => {
@@ -46,14 +46,14 @@ describe('Dialog - update method', () => {
       customClassName: 'initial-class',
     });
 
-    expect($('.ht-dialog').hasClass('initial-class')).toBe(true);
+    expect(getDialogContainerElement()).toHaveClass('initial-class');
 
     dialogPlugin.update({
       customClassName: 'updated-class',
     });
 
-    expect($('.ht-dialog').hasClass('initial-class')).toBe(false);
-    expect($('.ht-dialog').hasClass('updated-class')).toBe(true);
+    expect(getDialogContainerElement()).not.toHaveClass('initial-class');
+    expect(getDialogContainerElement()).toHaveClass('updated-class');
   });
 
   it('should update dialog background', async() => {
@@ -69,14 +69,14 @@ describe('Dialog - update method', () => {
       background: 'solid',
     });
 
-    expect($('.ht-dialog').hasClass('ht-dialog--background-solid')).toBe(true);
+    expect(getDialogContainerElement()).toHaveClass('ht-dialog--background-solid');
 
     dialogPlugin.update({
       background: 'semi-transparent',
     });
 
-    expect($('.ht-dialog').hasClass('ht-dialog--background-solid')).toBe(false);
-    expect($('.ht-dialog').hasClass('ht-dialog--background-semi-transparent')).toBe(true);
+    expect(getDialogContainerElement()).not.toHaveClass('ht-dialog--background-solid');
+    expect(getDialogContainerElement()).toHaveClass('ht-dialog--background-semi-transparent');
   });
 
   it('should update dialog content directions', async() => {
@@ -92,14 +92,14 @@ describe('Dialog - update method', () => {
       contentDirections: 'row',
     });
 
-    expect($('.ht-dialog__content').hasClass('ht-dialog__content--flex-row')).toBe(true);
+    expect(getDialogContentContainerElement()).toHaveClass('ht-dialog__content--flex-row');
 
     dialogPlugin.update({
       contentDirections: 'column',
     });
 
-    expect($('.ht-dialog__content').hasClass('ht-dialog__content--flex-row')).toBe(false);
-    expect($('.ht-dialog__content').hasClass('ht-dialog__content--flex-column')).toBe(true);
+    expect(getDialogContentContainerElement()).not.toHaveClass('ht-dialog__content--flex-row');
+    expect(getDialogContentContainerElement()).toHaveClass('ht-dialog__content--flex-column');
   });
 
   it('should update dialog content background', async() => {
@@ -115,13 +115,13 @@ describe('Dialog - update method', () => {
       contentBackground: false,
     });
 
-    expect($('.ht-dialog__content').hasClass('ht-dialog__content--background')).toBe(false);
+    expect(getDialogContentContainerElement()).not.toHaveClass('ht-dialog__content--background');
 
     dialogPlugin.update({
       contentBackground: true,
     });
 
-    expect($('.ht-dialog__content').hasClass('ht-dialog__content--background')).toBe(true);
+    expect(getDialogContentContainerElement()).toHaveClass('ht-dialog__content--background');
   });
 
   it('should update dialog animation', async() => {
@@ -137,13 +137,13 @@ describe('Dialog - update method', () => {
       animation: true,
     });
 
-    expect($('.ht-dialog').hasClass('ht-dialog--animation')).toBe(true);
+    expect(getDialogContainerElement()).toHaveClass('ht-dialog--animation');
 
     dialogPlugin.update({
       animation: false,
     });
 
-    expect($('.ht-dialog').hasClass('ht-dialog--animation')).toBe(false);
+    expect(getDialogContainerElement()).not.toHaveClass('ht-dialog--animation');
   });
 
   it('should not update dialog when plugin is disabled', async() => {
@@ -178,6 +178,6 @@ describe('Dialog - update method', () => {
     });
 
     expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog').hasClass('ht-dialog--show')).toBe(true);
+    expect(getDialogContainerElement()).toHaveClass('ht-dialog--show');
   });
 });

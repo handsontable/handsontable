@@ -23,10 +23,10 @@ describe('Dialog - contentDirections option', () => {
     dialogPlugin.show();
 
     expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog__content').hasClass('ht-dialog__content--flex-row')).toBe(true);
-    expect($('.ht-dialog__content').hasClass('ht-dialog__content--flex-column')).toBe(false);
-    expect($('.ht-dialog__content').hasClass('ht-dialog__content--flex-row-reverse')).toBe(false);
-    expect($('.ht-dialog__content').hasClass('ht-dialog__content--flex-column-reverse')).toBe(false);
+    expect(getDialogContentContainerElement()).toHaveClass('ht-dialog__content--flex-row');
+    expect(getDialogContentContainerElement()).not.toHaveClass('ht-dialog__content--flex-column');
+    expect(getDialogContentContainerElement()).not.toHaveClass('ht-dialog__content--flex-row-reverse');
+    expect(getDialogContentContainerElement()).not.toHaveClass('ht-dialog__content--flex-column-reverse');
   });
 
   it('should apply row direction when specified', async() => {
@@ -42,7 +42,7 @@ describe('Dialog - contentDirections option', () => {
     dialogPlugin.show();
 
     expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog__content').hasClass('ht-dialog__content--flex-row')).toBe(true);
+    expect(getDialogContentContainerElement()).toHaveClass('ht-dialog__content--flex-row');
   });
 
   it('should apply column direction when specified', async() => {
@@ -58,8 +58,8 @@ describe('Dialog - contentDirections option', () => {
     dialogPlugin.show();
 
     expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog__content').hasClass('ht-dialog__content--flex-column')).toBe(true);
-    expect($('.ht-dialog__content').hasClass('ht-dialog__content--flex-row')).toBe(false);
+    expect(getDialogContentContainerElement()).toHaveClass('ht-dialog__content--flex-column');
+    expect(getDialogContentContainerElement()).not.toHaveClass('ht-dialog__content--flex-row');
   });
 
   it('should apply row-reverse direction when specified', async() => {
@@ -75,8 +75,8 @@ describe('Dialog - contentDirections option', () => {
     dialogPlugin.show();
 
     expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog__content').hasClass('ht-dialog__content--flex-row-reverse')).toBe(true);
-    expect($('.ht-dialog__content').hasClass('ht-dialog__content--flex-row')).toBe(false);
+    expect(getDialogContentContainerElement()).toHaveClass('ht-dialog__content--flex-row-reverse');
+    expect(getDialogContentContainerElement()).not.toHaveClass('ht-dialog__content--flex-row');
   });
 
   it('should apply column-reverse direction when specified', async() => {
@@ -92,8 +92,8 @@ describe('Dialog - contentDirections option', () => {
     dialogPlugin.show();
 
     expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog__content').hasClass('ht-dialog__content--flex-column-reverse')).toBe(true);
-    expect($('.ht-dialog__content').hasClass('ht-dialog__content--flex-column')).toBe(false);
+    expect(getDialogContentContainerElement()).toHaveClass('ht-dialog__content--flex-column-reverse');
+    expect(getDialogContentContainerElement()).not.toHaveClass('ht-dialog__content--flex-column');
   });
 
   it('should update content directions when using show method', async() => {
@@ -111,8 +111,8 @@ describe('Dialog - contentDirections option', () => {
     });
 
     expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog__content').hasClass('ht-dialog__content--flex-column')).toBe(true);
-    expect($('.ht-dialog__content').hasClass('ht-dialog__content--flex-row')).toBe(false);
+    expect(getDialogContentContainerElement()).toHaveClass('ht-dialog__content--flex-column');
+    expect(getDialogContentContainerElement()).not.toHaveClass('ht-dialog__content--flex-row');
   });
 
   it('should update content directions when using update method', async() => {
@@ -127,14 +127,14 @@ describe('Dialog - contentDirections option', () => {
 
     dialogPlugin.show();
 
-    expect($('.ht-dialog__content').hasClass('ht-dialog__content--flex-row')).toBe(true);
+    expect(getDialogContentContainerElement()).toHaveClass('ht-dialog__content--flex-row');
 
     dialogPlugin.update({
       contentDirections: 'column',
     });
 
-    expect($('.ht-dialog__content').hasClass('ht-dialog__content--flex-column')).toBe(true);
-    expect($('.ht-dialog__content').hasClass('ht-dialog__content--flex-row')).toBe(false);
+    expect(getDialogContentContainerElement()).toHaveClass('ht-dialog__content--flex-column');
+    expect(getDialogContentContainerElement()).not.toHaveClass('ht-dialog__content--flex-row');
   });
 
   it('should switch between all direction options', async() => {
@@ -149,25 +149,25 @@ describe('Dialog - contentDirections option', () => {
 
     dialogPlugin.show();
 
-    expect($('.ht-dialog__content').hasClass('ht-dialog__content--flex-row')).toBe(true);
+    expect(getDialogContentContainerElement()).toHaveClass('ht-dialog__content--flex-row');
 
     dialogPlugin.update({
       contentDirections: 'column',
     });
 
-    expect($('.ht-dialog__content').hasClass('ht-dialog__content--flex-column')).toBe(true);
+    expect(getDialogContentContainerElement()).toHaveClass('ht-dialog__content--flex-column');
 
     dialogPlugin.update({
       contentDirections: 'row-reverse',
     });
 
-    expect($('.ht-dialog__content').hasClass('ht-dialog__content--flex-row-reverse')).toBe(true);
+    expect(getDialogContentContainerElement()).toHaveClass('ht-dialog__content--flex-row-reverse');
 
     dialogPlugin.update({
       contentDirections: 'column-reverse',
     });
 
-    expect($('.ht-dialog__content').hasClass('ht-dialog__content--flex-column-reverse')).toBe(true);
+    expect(getDialogContentContainerElement()).toHaveClass('ht-dialog__content--flex-column-reverse');
   });
 
   it('should maintain content directions when changing other options', async() => {
@@ -183,14 +183,14 @@ describe('Dialog - contentDirections option', () => {
 
     dialogPlugin.show();
 
-    expect($('.ht-dialog__content').hasClass('ht-dialog__content--flex-column')).toBe(true);
+    expect(getDialogContentContainerElement()).toHaveClass('ht-dialog__content--flex-column');
 
     dialogPlugin.update({
       content: 'Updated content',
       background: 'semi-transparent',
     });
 
-    expect($('.ht-dialog__content').hasClass('ht-dialog__content--flex-column')).toBe(true);
-    expect($('.ht-dialog .ht-dialog__content').text()).toEqual('Updated content');
+    expect(getDialogContentContainerElement()).toHaveClass('ht-dialog__content--flex-column');
+    expect(getDialogContentHTML()).toEqual('Updated content');
   });
 });

@@ -30,12 +30,12 @@ describe('Dialog keyboard shortcut', () => {
       });
 
       expect(dialogPlugin.isVisible()).toBe(true);
-      expect($('.ht-dialog').is(':visible')).toBe(true);
+      expect($(getDialogContainerElement()).is(':visible')).toBe(true);
 
       await keyDownUp('escape');
 
       expect(dialogPlugin.isVisible()).toBe(false);
-      expect($('.ht-dialog').hasClass('ht-dialog--show')).toBe(false);
+      expect(getDialogContainerElement()).not.toHaveClass('ht-dialog--show');
     });
 
     it('should not close the dialog when closable is false', async() => {
@@ -55,12 +55,12 @@ describe('Dialog keyboard shortcut', () => {
       });
 
       expect(dialogPlugin.isVisible()).toBe(true);
-      expect($('.ht-dialog').is(':visible')).toBe(true);
+      expect($(getDialogContainerElement()).is(':visible')).toBe(true);
 
       await keyDownUp('escape');
 
       expect(dialogPlugin.isVisible()).toBe(true);
-      expect($('.ht-dialog').hasClass('ht-dialog--show')).toBe(true);
+      expect(getDialogContainerElement()).toHaveClass('ht-dialog--show');
     });
 
     it('should not close the dialog when not visible', async() => {
@@ -157,9 +157,9 @@ describe('Dialog keyboard shortcut', () => {
       dialogPlugin.show();
 
       expect(dialogPlugin.isVisible()).toBe(true);
-      expect($('.ht-dialog').hasClass('ht-dialog--background-semi-transparent')).toBe(true);
-      expect($('.ht-dialog__content').hasClass('ht-dialog__content--background')).toBe(true);
-      expect($('.ht-dialog__content').hasClass('ht-dialog__content--flex-column')).toBe(true);
+      expect(getDialogContainerElement()).toHaveClass('ht-dialog--background-semi-transparent');
+      expect(getDialogContentContainerElement()).toHaveClass('ht-dialog__content--background');
+      expect(getDialogContentContainerElement()).toHaveClass('ht-dialog__content--flex-column');
 
       await keyDownUp('escape');
 

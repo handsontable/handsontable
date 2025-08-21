@@ -23,7 +23,7 @@ describe('Dialog - content option', () => {
     dialogPlugin.show();
 
     expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog .ht-dialog__content').text()).toEqual('');
+    expect(getDialogContentHTML()).toEqual('');
   });
 
   it('should show dialog with string content', async() => {
@@ -39,7 +39,7 @@ describe('Dialog - content option', () => {
     dialogPlugin.show();
 
     expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog .ht-dialog__content').text()).toEqual('Simple dialog content');
+    expect(getDialogContentHTML()).toEqual('Simple dialog content');
   });
 
   it('should show dialog with HTML content', async() => {
@@ -55,9 +55,8 @@ describe('Dialog - content option', () => {
     dialogPlugin.show();
 
     expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog h2').text()).toBe('Title');
-    expect($('.ht-dialog p').text()).toBe('This is a paragraph with bold text.');
-    expect($('.ht-dialog strong').text()).toBe('bold');
+    expect(getDialogContentHTML())
+      .toEqual('<h2>Title</h2><p>This is a paragraph with <strong>bold</strong> text.</p>');
   });
 
   it('should show dialog with HTMLElement content', async() => {
@@ -78,7 +77,7 @@ describe('Dialog - content option', () => {
 
     expect(dialogPlugin.isVisible()).toBe(true);
     expect(contentElement instanceof HTMLElement).toBe(true);
-    expect($('.ht-dialog span').text()).toBe('Custom element content');
+    expect(getDialogContentHTML()).toEqual('<div><span>Custom element content</span></div>');
   });
 
   it('should show dialog with DocumentFragment content', async() => {
@@ -103,7 +102,7 @@ describe('Dialog - content option', () => {
 
     expect(dialogPlugin.isVisible()).toBe(true);
     expect(contentElement instanceof DocumentFragment).toBe(true);
-    expect($('.ht-dialog span').text()).toBe('Custom element content');
+    expect(getDialogContentHTML()).toEqual('<span>Custom element content</span>');
   });
 
   it('should update content when showing dialog with new content', async() => {
@@ -121,7 +120,7 @@ describe('Dialog - content option', () => {
     });
 
     expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog .ht-dialog__content').text()).toEqual('Updated content');
+    expect(getDialogContentHTML()).toEqual('Updated content');
   });
 
   it('should update content when using update method', async() => {
@@ -136,35 +135,37 @@ describe('Dialog - content option', () => {
 
     dialogPlugin.show();
 
-    expect($('.ht-dialog .ht-dialog__content').text()).toEqual('Initial content');
+    expect(getDialogContentHTML()).toEqual('Initial content');
 
     dialogPlugin.update({
       content: 'Updated content via update method',
     });
 
-    expect($('.ht-dialog .ht-dialog__content').text()).toEqual('Updated content via update method');
+    expect(getDialogContentHTML()).toEqual('Updated content via update method');
   });
 
   it('should handle complex HTML content with multiple elements', async() => {
+    const content = `
+      <div class="header">
+        <h1>Main Title</h1>
+        <p class="subtitle">Subtitle text</p>
+      </div>
+      <div class="body">
+        <ul>
+          <li>Item 1</li>
+          <li>Item 2</li>
+          <li>Item 3</li>
+        </ul>
+      </div>
+      <div class="footer">
+        <button>Action Button</button>
+      </div>
+    `;
+
     handsontable({
       data: createSpreadsheetData(5, 5),
       dialog: {
-        content: `
-          <div class="header">
-            <h1>Main Title</h1>
-            <p class="subtitle">Subtitle text</p>
-          </div>
-          <div class="body">
-            <ul>
-              <li>Item 1</li>
-              <li>Item 2</li>
-              <li>Item 3</li>
-            </ul>
-          </div>
-          <div class="footer">
-            <button>Action Button</button>
-          </div>
-        `,
+        content,
       },
     });
 
@@ -173,10 +174,7 @@ describe('Dialog - content option', () => {
     dialogPlugin.show();
 
     expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog .header h1').text()).toBe('Main Title');
-    expect($('.ht-dialog .subtitle').text()).toBe('Subtitle text');
-    expect($('.ht-dialog ul li').length).toBe(3);
-    expect($('.ht-dialog .footer button').text()).toBe('Action Button');
+    expect(getDialogContentHTML()).toEqual(content.replace(/\n/g, '').trim());
   });
 
   it('should handle content with special characters', async() => {
@@ -192,7 +190,7 @@ describe('Dialog - content option', () => {
     dialogPlugin.show();
 
     expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog .ht-dialog__content').text()).toEqual('Content with special chars: <>&"\'');
+    expect(getDialogContentHTML()).toEqual('Content with special chars: &lt;&gt;&amp;"\'');
   });
 
   it('should handle very long content', async() => {
@@ -210,6 +208,6 @@ describe('Dialog - content option', () => {
     dialogPlugin.show();
 
     expect(dialogPlugin.isVisible()).toBe(true);
-    expect($('.ht-dialog .ht-dialog__content').text()).toEqual(longContent);
+    expect(getDialogContentHTML()).toEqual(longContent);
   });
 });

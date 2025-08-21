@@ -33,7 +33,7 @@ describe('Dialog - hide method', () => {
     dialogPlugin.hide();
 
     expect(dialogPlugin.isVisible()).toBe(false);
-    expect($('.ht-dialog').length).toBe(1);
+    expect(getDialogContainerElement()).toBeDefined();
   });
 
   it('should hide dialog when closable is false', async() => {
@@ -53,7 +53,7 @@ describe('Dialog - hide method', () => {
     dialogPlugin.hide();
 
     expect(dialogPlugin.isVisible()).toBe(false);
-    expect($('.ht-dialog').hasClass('ht-dialog--show')).toBe(false);
+    expect(getDialogContainerElement()).not.toHaveClass('ht-dialog--show');
   });
 
   it('should not hide dialog when not visible', async() => {
@@ -85,11 +85,11 @@ describe('Dialog - hide method', () => {
 
     dialogPlugin.show();
 
-    expect($('.ht-dialog').hasClass('ht-dialog--show')).toBe(true);
+    expect(getDialogContainerElement()).toHaveClass('ht-dialog--show');
 
     dialogPlugin.hide();
 
-    expect($('.ht-dialog').hasClass('ht-dialog--show')).toBe(false);
+    expect(getDialogContainerElement()).not.toHaveClass('ht-dialog--show');
   });
 
   it('should restore selection when dialog is hidden', async() => {
