@@ -350,7 +350,13 @@ export class Dialog extends BasePlugin {
    * @param {boolean} options.closable Whether the dialog can be closed by user interaction. Default: false.
    */
   show(options = {}) {
-    if (!this.enabled || this.isVisible()) {
+    if (!this.enabled) {
+      return;
+    }
+
+    if (this.isVisible()) {
+      this.update(options);
+
       return;
     }
 

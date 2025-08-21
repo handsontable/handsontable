@@ -84,7 +84,7 @@ describe('Dialog - show method', () => {
     expect($('.ht-dialog').length).toBe(0);
   });
 
-  it('should not show dialog when already visible', async() => {
+  it('should update dialog configuration when show method is called with new options', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       dialog: true,
@@ -92,15 +92,19 @@ describe('Dialog - show method', () => {
 
     const dialogPlugin = getPlugin('dialog');
 
-    dialogPlugin.show();
+    dialogPlugin.show({
+      content: 'Initial content',
+    });
 
     expect(dialogPlugin.isVisible()).toBe(true);
+    expect($('.ht-dialog .ht-dialog__content').text()).toBe('Initial content');
 
     dialogPlugin.show({
       content: 'New content',
     });
 
     expect(dialogPlugin.isVisible()).toBe(true);
+    expect($('.ht-dialog .ht-dialog__content').text()).toBe('New content');
   });
 
   it('should run beforeDialogShow and afterDialogShow hooks', async() => {
@@ -138,6 +142,22 @@ describe('Dialog - show method', () => {
 
     expect(dialogPlugin.isVisible()).toBe(true);
     expect($('.ht-dialog').outerWidth()).toBe(tableView().getWorkspaceWidth());
+  });
+
+  it('should update the height of the dialog container to the same size as the table', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      dialog: true,
+      width: 300,
+      height: 300,
+    });
+
+    const dialogPlugin = getPlugin('dialog');
+
+    dialogPlugin.show();
+
+    expect(dialogPlugin.isVisible()).toBe(true);
+    expect($('.ht-dialog').outerHeight()).toBe(tableView().getWorkspaceHeight());
   });
 
   it('should deselect all cells when dialog is shown', async() => {
