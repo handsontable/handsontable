@@ -87,23 +87,25 @@ export class DataChangeAction extends BaseAction {
       data[i].splice(3, 1);
     }
 
-    hot.addHookOnce('afterChange', undoneCallback);
+    hot.addHookOnce('afterChange', () => {
+      const rowsToRemove = hot.countRows() - this.countRows;
+
+      if (rowsToRemove > 0) {
+        hot.alter('remove_row', null, rowsToRemove, 'UndoRedo.undo');
+      }
+
+      const columnsToRemove = hot.countCols() - this.countCols;
+
+      if (columnsToRemove > 0 && hot.isColumnModificationAllowed()) {
+        hot.alter('remove_col', null, columnsToRemove, 'UndoRedo.undo');
+      }
+
+      hot.scrollToFocusedCell();
+      hot.selectCells(this.selected, false, false);
+
+      undoneCallback();
+    });
     hot.setDataAtCell(data, null, null, 'UndoRedo.undo');
-
-    const rowsToRemove = hot.countRows() - this.countRows;
-
-    if (rowsToRemove > 0) {
-      hot.alter('remove_row', null, rowsToRemove, 'UndoRedo.undo');
-    }
-
-    const columnsToRemove = hot.countCols() - this.countCols;
-
-    if (columnsToRemove > 0 && hot.isColumnModificationAllowed()) {
-      hot.alter('remove_col', null, columnsToRemove, 'UndoRedo.undo');
-    }
-
-    hot.scrollToFocusedCell();
-    hot.selectCells(this.selected, false, false);
   }
 
   /**
@@ -117,11 +119,11 @@ export class DataChangeAction extends BaseAction {
       data[i].splice(2, 1);
     }
 
-    hot.addHookOnce('afterChange', redoneCallback);
-    hot.setDataAtCell(data, null, null, 'UndoRedo.redo');
-
-    if (this.selected) {
+    hot.addHookOnce('afterChange', () => {
       hot.selectCells(this.selected, false, false);
-    }
+
+      redoneCallback();
+    });
+    hot.setDataAtCell(data, null, null, 'UndoRedo.redo');
   }
 }

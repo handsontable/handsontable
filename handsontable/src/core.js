@@ -1401,7 +1401,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     };
 
     for (let i = changes.length - 1; i >= 0; i--) {
-      const [row, prop] = changes[i];
+      const [row, prop,, newValue] = changes[i];
       const visualCol = datamap.propToCol(prop);
       let cellProperties;
 
@@ -1414,10 +1414,11 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
         cellProperties = { ...Object.getPrototypeOf(tableMeta), ...tableMeta };
       }
 
-      /* eslint-disable no-loop-func */
       if (instance.getCellValidator(cellProperties)) {
+        /* eslint-disable no-loop-func */
         waitingForValidator.addValidatorToQueue();
-        instance.validateCell(changes[i][3], cellProperties, (function(index, cellPropertiesReference) {
+
+        instance.validateCell(newValue, cellProperties, (function(index, cellPropertiesReference) {
           return function(result) {
             if (typeof result !== 'boolean') {
               throw new Error('Validation error: result is not boolean');
@@ -1425,14 +1426,18 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
             if (result === false && cellPropertiesReference.allowInvalid === false) {
               shouldBeCanceled = false;
-              changes.splice(index, 1); // cancel the change
-              cellPropertiesReference.valid = true; // we cancelled the change, so cell value is still valid
+              // cancel the change
+              changes.splice(index, 1);
+              // we cancelled the change, so cell value is still valid
+              cellPropertiesReference.valid = true;
             }
+
             waitingForValidator.removeValidatorFormQueue();
           };
         }(i, cellProperties)), source);
       }
     }
+
     waitingForValidator.checkIfQueueIsEmpty();
   }
 
@@ -1602,7 +1607,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       // eslint-disable-next-line no-param-reassign
       value = instance.runHooks('beforeValidate', value, cellProperties.visualRow, cellProperties.prop, source);
 
-      // To provide consistent behaviour, validation should be always asynchronous
+      // To provide consistent behavior, validation should be always asynchronous
       instance._registerImmediate(() => {
         validator.call(cellProperties, value, (valid) => {
           if (!instance) {
