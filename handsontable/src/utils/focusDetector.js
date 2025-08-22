@@ -1,6 +1,12 @@
-import { setAttribute } from '../../helpers/dom/element';
-import { A11Y_LABEL } from '../../helpers/a11y';
+import { setAttribute } from '../helpers/dom/element';
+import { A11Y_LABEL } from '../helpers/a11y';
 
+/**
+ * @typedef {object} FocusDetector
+ * @property {function(): void} activate Activates the focus detector.
+ * @property {function(): void} deactivate Deactivates the focus detector.
+ * @property {function('from_above' | 'from_below'): void} focus Focuses the input element in the given direction.
+ */
 /**
  * Installs a focus detector module. The module appends two input elements into the DOM side by side.
  * When the first input is focused, then it means that a user entered to the component using the TAB key
@@ -8,21 +14,33 @@ import { A11Y_LABEL } from '../../helpers/a11y';
  * the element below the table. Each action, once detected, triggers the specific hook.
  *
  * @param {Handsontable} hot The Handsontable instance.
- * @param {{ onFocusFromTop: Function, onFocusFromBottom: Function }} hooks An object with defined callbacks to call.
- * @returns {{ activate: Function, deactivate: Function }}
+ * @param {HTMLElement} wrapperElement The wrapper element to install the focus detector into.
+ * @param {{ onFocus: Function }} hooks An object with defined callbacks to call.
+ * @returns {FocusDetector}
  */
-export function installFocusDetector(hot, hooks = {}) {
-  const rootElement = hot.rootElement;
+export function installFocusDetector(hot, wrapperElement, hooks = {}) {
   const inputTrapTop = createInputElement(hot);
   const inputTrapBottom = createInputElement(hot);
 
-  inputTrapTop.addEventListener('focus', () => hooks?.onFocusFromTop());
-  inputTrapBottom.addEventListener('focus', () => hooks?.onFocusFromBottom());
+  inputTrapTop.addEventListener('focus', () => hooks?.onFocus('from_above'));
+  inputTrapBottom.addEventListener('focus', () => hooks?.onFocus('from_below'));
 
-  rootElement.before(inputTrapTop);
-  rootElement.after(inputTrapBottom);
+  wrapperElement.prepend(inputTrapTop);
+  wrapperElement.append(inputTrapBottom);
 
   return {
+    /**
+     * Focuses the input element in the given direction.
+     *
+     * @param {string} direction The direction to focus the input element in.
+     */
+    focus(direction) {
+      if (direction === 'from_above') {
+        inputTrapTop.focus();
+      } else {
+        inputTrapBottom.focus();
+      }
+    },
     /**
      * Activates the detector by resetting the tabIndex of the input elements.
      */

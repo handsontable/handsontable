@@ -131,6 +131,10 @@ const accessoriesAndMenusItems = [
   // TODO { path: 'guides/accessories-and-menus/export-to-excel/export-to-excel' },
 ];
 
+const dialogItems = [
+  { path: 'guides/dialog/dialog/dialog' },
+];
+
 const internationalizationItems = [
   { path: 'guides/internationalization/language/language' },
   { path: 'guides/internationalization/locale/locale' },
@@ -193,6 +197,7 @@ module.exports = {
     { title: 'Navigation', children: navigationItems },
     { title: 'Accessibility', children: accessibilityItems },
     { title: 'Accessories and menus', children: accessoriesAndMenusItems },
+    { title: 'Dialog', children: dialogItems },
     { title: 'Internationalization', children: internationalizationItems },
     { title: 'Integrate with Vue 2', children: integrateWithVueItems },
     { title: 'Integrate with Vue 3', children: integrateWithVue3Items },

@@ -121,10 +121,11 @@ export function normalizeSelectionFactory(type, {
       columnEnd = Math.max(origColumnStart, origColumnEnd);
     }
 
+    const highlight = isObjectType ? selection.highlight.clone() : createCellCoords(rowStart, columnStart);
     const from = createCellCoords(rowStart, columnStart);
     const to = createCellCoords(rowEnd, columnEnd);
 
-    return createCellRange(from, from, to);
+    return createCellRange(highlight, from, to);
   };
 }
 

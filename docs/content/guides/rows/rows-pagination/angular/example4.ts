@@ -18,12 +18,12 @@ import { HotTableComponent } from '@handsontable/angular-wrapper';
       margin-top: 10px;
     }
 
-    #example4-custom-container .ht-pagination-container {
+    #example4-custom-container .ht-pagination {
       border-radius: 4px;
     }
 
     :host ::ng-deep {
-      .ht-pagination-container {
+      .ht-pagination {
         border-radius: 4px;
       }
     }

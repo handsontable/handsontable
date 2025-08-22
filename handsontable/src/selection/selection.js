@@ -20,6 +20,16 @@ import { toSingleLine } from './../helpers/templateLiteralTag';
 import { A11Y_SELECTED } from '../helpers/a11y';
 
 /**
+ * @typedef {object} SelectionState
+ * @property {CellRange[]} ranges The array of all ranges.
+ * @property {CellRange} activeRange The active range.
+ * @property {number} activeSelectionLayer The active selection layer.
+ * @property {number[]} selectedByRowHeader The state of the selected row headers.
+ * @property {number[]} selectedByColumnHeader The state of the selected column headers.
+ * @property {boolean} disableHeadersHighlight The state of the disable headers highlight.
+ */
+
+/**
  * @class Selection
  * @util
  */
@@ -292,6 +302,7 @@ class Selection {
     // should be handled by next methods.
     const coordsClone = coords.clone();
 
+    this.#disableHeadersHighlight = false;
     this.#isFocusSelectionChanged = false;
     this.runLocalHooks(`beforeSetRangeStart${fragment ? 'Only' : ''}`, coordsClone);
 
@@ -1020,8 +1031,6 @@ class Selection {
       disableHeadersHighlight
     } = options;
 
-    this.#disableHeadersHighlight = disableHeadersHighlight;
-
     if (focusPosition && Number.isInteger(focusPosition?.row) && Number.isInteger(focusPosition?.col)) {
       highlight = this.tableProps
         .createCellCoords(
@@ -1037,6 +1046,8 @@ class Selection {
     this.runLocalHooks('beforeSelectAll', startCoords, endCoords, highlight);
     this.setRangeStartOnly(startCoords, undefined, highlight);
 
+    this.#disableHeadersHighlight = disableHeadersHighlight;
+
     if (columnFrom < 0) {
       this.selectedByRowHeader.add(this.getLayerLevel());
     }
@@ -1047,8 +1058,6 @@ class Selection {
     this.setRangeEnd(endCoords);
     this.runLocalHooks('afterSelectAll', startCoords, endCoords, highlight);
     this.finish();
-
-    this.#disableHeadersHighlight = false;
   }
 
   /**
@@ -1227,6 +1236,62 @@ class Selection {
     }
 
     return isValid;
+  }
+
+  /**
+   * Allows importing the selection for all layers from the provided array of CellRange objects.
+   * The method clears the current selection and sets the new one without triggering any
+   * selection related hooks.
+   *
+   * @param {SelectionState} selectionState The selection state to import.
+   */
+  importSelection({
+    ranges,
+    activeRange,
+    activeSelectionLayer,
+    selectedByRowHeader,
+    selectedByColumnHeader,
+    disableHeadersHighlight,
+  }) {
+    if (ranges.length === 0) {
+      return;
+    }
+
+    this.selectedRange.clear();
+    this.highlight.clear();
+    this.inProgress = true;
+    this.#disableHeadersHighlight = disableHeadersHighlight;
+
+    this.selectedByRowHeader = new Set(selectedByRowHeader);
+    this.selectedByColumnHeader = new Set(selectedByColumnHeader);
+
+    this.setActiveSelectionLayerIndex(0);
+
+    ranges.forEach((cellRange, selectionLayerIndex) => {
+      this.selectedRange.push(cellRange);
+      this.applyAndCommit(cellRange, selectionLayerIndex);
+    });
+
+    this.setRangeFocus(activeRange.highlight, activeSelectionLayer);
+
+    this.#disableHeadersHighlight = false;
+    this.inProgress = false;
+  }
+
+  /**
+   * Exports all selection layers with other properties related to the selection state.
+   *
+   * @returns {SelectionState}
+   */
+  exportSelection() {
+    return {
+      ranges: Array.from(this.selectedRange).map(range => range.clone()),
+      activeRange: this.getActiveSelectedRange(),
+      activeSelectionLayer: this.getActiveSelectionLayerIndex(),
+      selectedByRowHeader: Array.from(this.selectedByRowHeader),
+      selectedByColumnHeader: Array.from(this.selectedByColumnHeader),
+      disableHeadersHighlight: this.#disableHeadersHighlight,
+    };
   }
 
   /**

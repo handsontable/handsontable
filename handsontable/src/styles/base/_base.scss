@@ -36,18 +36,26 @@
   .ht-root-wrapper {
     @include mixins.font-family;
 
+    position: relative;
+    display: flex;
+    flex-direction: column;
     height: 100%;
+  }
 
-    .htFocusCatcher {
-      position: absolute;
-      width: 0;
-      height: 0;
-      margin: 0;
-      padding: 0;
-      border: 0;
-      opacity: 0;
-      z-index: -1;
-    }
+  .htFocusCatcher {
+    position: absolute;
+    width: 0;
+    height: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    opacity: 0;
+    z-index: -1;
+  }
+
+  .ht-grid {
+    flex: 1 1 auto;
+    min-height: 0;
   }
 
   .handsontable {
