@@ -1,32 +1,32 @@
 ---
 id: sf7vrh9z
-title: Migrating from 16.0 to 16.2
-metaTitle: Migrating from 16.0 to 16.2 - JavaScript Data Grid | Handsontable
-description: Migrate from Handsontable 16.0 to Handsontable 16.2, released on [TODO].
-permalink: /migration-from-16.0-to-16.2
-canonicalUrl: /migration-from-16.0-to-16.2
+title: Migrating from 16.0 to 16.1
+metaTitle: Migrating from 16.0 to 16.1 - JavaScript Data Grid | Handsontable
+description: Migrate from Handsontable 16.0 to Handsontable 16.1, released on [TODO].
+permalink: /migration-from-16.0-to-16.1
+canonicalUrl: /migration-from-16.0-to-16.1
 pageClass: migration-guide
 react:
   id: 1k2grh9z
-  metaTitle: Migrate from 16.0 to 16.2 - React Data Grid | Handsontable
+  metaTitle: Migrate from 16.0 to 16.1 - React Data Grid | Handsontable
 angular:
   id: bv25a4sd
-  metaTitle: Migrate from 16.0 to 16.2 - Angular Data Grid | Handsontable
+  metaTitle: Migrate from 16.0 to 16.1 - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
 ---
 
-# Migrate from 16.0 to 16.2
+# Migrate from 16.0 to 16.1
 
-Migrate from Handsontable 16.0 to Handsontable 16.2, released on TODO.
+Migrate from Handsontable 16.0 to Handsontable 16.1, released on TODO.
 
-More information about this release can be found in the [`16.2.0` release blog post](TODO_URL]).
+More information about this release can be found in the [`16.1.0` release blog post](TODO_URL]).
 
 [[toc]]
 
 ## 1. Migrate from Classic (Legacy) to Classic (Modern) Theme
 
-Handsontable 16.2 introduces a new **Classic (Modern)** theme that replaces the legacy classic theme. The legacy classic theme will be removed in version 17.0.
+Handsontable 16.1 introduces a new **Classic (Modern)** theme that replaces the legacy classic theme. The legacy classic theme will be removed in version 17.0.
 
 ### What Changed
 
@@ -120,7 +120,7 @@ The new Classic (Modern) theme offers three variants:
 
 #### Step 4: Customize with CSS Variables (Optional)
 
-The new theme supports over 180 CSS variables for [customization](@/guides/styling/themes/theme-customization.md):
+The new theme supports over 180 CSS variables for [customization](@/guides/styling/theme-customization/theme-customization.md):
 
 ```css
 .ht-theme-classic {
@@ -138,7 +138,7 @@ The new theme supports over 180 CSS variables for [customization](@/guides/styli
 
 ### Timeline
 
-- **Version 16.2**: New Classic (Modern) theme introduced
+- **Version 16.1**: New Classic (Modern) theme introduced
 - **Version 17.0**: Legacy classic theme will be removed
 
 We recommend migrating as soon as possible to avoid issues when version 17.0 is released.
