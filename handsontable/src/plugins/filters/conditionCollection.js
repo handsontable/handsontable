@@ -115,12 +115,12 @@ class ConditionCollection {
         throw Error(toSingleLine`The column of index ${column} has been already applied with a \`${columnType}\`\x20
         filter operation. Use \`removeConditions\` to clear the current conditions and then add new ones.\x20
         Mind that you cannot mix different types of operations (for instance, if you use \`conjunction\`,\x20
-        use it consequently for a particular column).`);
+        use it consequently for a particular column).`, { cause: { handsontable: true } });
       }
 
     } else if (isUndefined(operations[operation])) {
       throw new Error(toSingleLine`Unexpected operation named \`${operation}\`. Possible ones are\x20
-        \`disjunction\` and \`conjunction\`.`);
+        \`disjunction\` and \`conjunction\`.`, { cause: { handsontable: true } });
     }
 
     const conditionsForColumn = this.getConditions(column);

@@ -341,7 +341,7 @@ export class BaseTransformation {
    * the current processed selection layer.
    */
   calculateOffset() {
-    throw new Error('`calculateOffset` is not implemented');
+    throw new Error('`calculateOffset` is not implemented', { cause: { handsontable: true } });
   }
 
   /**
@@ -349,7 +349,7 @@ export class BaseTransformation {
    * based on their specific transformation logic.
    */
   countRenderableRows() {
-    throw new Error('`countRenderableRows` is not implemented');
+    throw new Error('`countRenderableRows` is not implemented', { cause: { handsontable: true } });
   }
 
   /**
@@ -357,7 +357,7 @@ export class BaseTransformation {
    * based on their specific transformation logic.
    */
   countRenderableColumns() {
-    throw new Error('`countRenderableColumns` is not implemented');
+    throw new Error('`countRenderableColumns` is not implemented', { cause: { handsontable: true } });
   }
 
   /**
@@ -365,7 +365,7 @@ export class BaseTransformation {
    * Child classes can override this method to control the behavior.
    */
   shouldSwitchSelectionLayer() {
-    throw new Error('`shouldSwitchSelectionLayer` is not implemented');
+    throw new Error('`shouldSwitchSelectionLayer` is not implemented', { cause: { handsontable: true } });
   }
 
   /**
@@ -511,7 +511,7 @@ export class BaseTransformation {
     const { row, col } = this.tableApi.visualToRenderableCoords(visualCoords);
 
     if (row === null || col === null) {
-      throw new Error('Renderable coords are not visible.');
+      throw new Error('Renderable coords are not visible.', { cause: { handsontable: true } });
     }
 
     return this.tableApi.createCellCoords(this.#offset.y + row, this.#offset.x + col);

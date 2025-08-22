@@ -437,7 +437,7 @@ export class CollapsibleColumns extends BasePlugin {
    */
   toggleCollapsibleSection(coords, action) {
     if (!actionDictionary.has(action)) {
-      throw new Error(`Unsupported action is passed (${action}).`);
+      throw new Error(`Unsupported action is passed (${action}).`, { cause: { handsontable: true } });
     }
     if (!Array.isArray(coords)) {
       return;

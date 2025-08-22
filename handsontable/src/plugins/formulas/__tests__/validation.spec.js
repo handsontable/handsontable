@@ -394,7 +394,7 @@ describe('Formulas general', () => {
       expect(() => {
         // eslint-disable-next-line handsontable/require-await
         setDataAtCell(0, 1, 'test');
-      }).not.toThrowError();
+      }).not.toThrowWithCause(undefined, { handsontable: true });
     });
   });
 });

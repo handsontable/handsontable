@@ -36,11 +36,11 @@ describe('Selection', () => {
 
       hot().selection.selectCells([[0, 0, 2, 2], [1, 1, 3, 3]]); // Initial selection.
 
-      expect(() => hot().selection.selectCells(1)).toThrowError(error);
-      expect(() => hot().selection.selectCells(1, 2, 3, 4)).toThrowError(error);
-      expect(() => hot().selection.selectCells([1])).toThrowError(error);
-      expect(() => hot().selection.selectCells('prop0')).toThrowError(error);
-      expect(() => hot().selection.selectCells(['prop0'])).toThrowError(error);
+      expect(() => hot().selection.selectCells(1)).toThrowWithCause(error, { handsontable: true });
+      expect(() => hot().selection.selectCells(1, 2, 3, 4)).toThrowWithCause(error, { handsontable: true });
+      expect(() => hot().selection.selectCells([1])).toThrowWithCause(error, { handsontable: true });
+      expect(() => hot().selection.selectCells('prop0')).toThrowWithCause(error, { handsontable: true });
+      expect(() => hot().selection.selectCells(['prop0'])).toThrowWithCause(error, { handsontable: true });
 
       expect(getSelectedRange()).toEqualCellRange([
         'highlight: 0,0 from: 0,0 to: 2,2',

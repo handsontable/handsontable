@@ -8,7 +8,7 @@ export const operations = {};
  */
 export function getOperationFunc(id) {
   if (!operations[id]) {
-    throw Error(`Operation with id "${id}" does not exist.`);
+    throw Error(`Operation with id "${id}" does not exist.`, { cause: { handsontable: true } });
   }
   const func = operations[id].func;
 

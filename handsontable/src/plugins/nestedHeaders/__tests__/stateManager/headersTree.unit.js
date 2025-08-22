@@ -472,7 +472,7 @@ describe('HeadersTree', () => {
 
         expect(() => {
           tree.buildTree();
-        }).toThrowError();
+        }).toThrowWithCause(undefined, { handsontable: true });
       }
       {
         /**
@@ -496,7 +496,7 @@ describe('HeadersTree', () => {
 
         expect(() => {
           tree.buildTree();
-        }).toThrowError();
+        }).toThrowWithCause(undefined, { handsontable: true });
       }
       {
         /**
@@ -514,7 +514,7 @@ describe('HeadersTree', () => {
 
         expect(() => {
           tree.buildTree();
-        }).toThrowError();
+        }).toThrowWithCause(undefined, { handsontable: true });
       }
       {
         /**
@@ -532,7 +532,7 @@ describe('HeadersTree', () => {
 
         expect(() => {
           tree.buildTree();
-        }).toThrowError();
+        }).toThrowWithCause(undefined, { handsontable: true });
       }
       {
         /**
@@ -553,7 +553,7 @@ describe('HeadersTree', () => {
 
         expect(() => {
           tree.buildTree();
-        }).toThrowError();
+        }).toThrowWithCause(undefined, { handsontable: true });
       }
       {
         /**
@@ -574,7 +574,7 @@ describe('HeadersTree', () => {
 
         expect(() => {
           tree.buildTree();
-        }).toThrowError();
+        }).toThrowWithCause(undefined, { handsontable: true });
       }
     });
   });

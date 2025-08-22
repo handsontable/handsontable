@@ -153,7 +153,8 @@ export default class SourceSettings {
       const headerSettings = headersSettings[i];
 
       if (headerSettings.isPlaceholder) {
-        throw new Error('The first column settings cannot overlap the other header layers');
+        throw new Error('The first column settings cannot overlap the other header layers',
+          { cause: { handsontable: true } });
       }
 
       currentLength += headerSettings.colspan;
@@ -169,7 +170,8 @@ export default class SourceSettings {
       }
       // We exceeds the current sum of the child colspans, the last columns colspan overlaps the "columnsLength" length.
       if (currentLength > columnsLength) {
-        throw new Error('The last column settings cannot overlap the other header layers');
+        throw new Error('The last column settings cannot overlap the other header layers',
+          { cause: { handsontable: true } });
       }
     }
 

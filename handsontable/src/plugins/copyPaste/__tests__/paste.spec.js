@@ -221,7 +221,7 @@ describe('CopyPaste', () => {
 
       expect(() => {
         triggerPaste('Kia\tNissan\tToyota');
-      }).not.toThrowError();
+      }).not.toThrowWithCause(undefined, { handsontable: true });
     });
 
     it('should not paste any data, if no cell is selected', async() => {

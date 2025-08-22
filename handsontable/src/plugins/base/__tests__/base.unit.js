@@ -299,10 +299,10 @@ describe('BasePlugin', () => {
 
     expect(() => {
       hot = new Handsontable(document.createElement('div'), {});
-    }).toThrowError(`The BarPlugin plugin requires the following modules:
+    }).toThrowWithCause(`The BarPlugin plugin requires the following modules:
  - FooPlugin (plugin)
 
-You have to import and register them manually.`);
+You have to import and register them manually.`, { handsontable: true });
     expect(hot).toBeUndefined();
   });
 });

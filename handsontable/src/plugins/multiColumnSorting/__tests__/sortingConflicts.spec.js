@@ -10,7 +10,7 @@ describe('MultiColumnSorting cooperation with ColumnSorting', () => {
       const $spanInsideHeader = $columnHeader.find('.columnSorting');
 
       if ($spanInsideHeader.length === 0) {
-        throw Error('Please check the test scenario. The header doesn\'t exist.');
+        throw Error('Please check the test scenario. The header doesn\'t exist.', { cause: { handsontable: true } });
       }
 
       await simulateClick($spanInsideHeader);

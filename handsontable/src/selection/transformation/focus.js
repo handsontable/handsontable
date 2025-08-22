@@ -58,7 +58,8 @@ export class FocusTransformation extends BaseTransformation {
    * Throws an error because focus transformation doesn't support `transformEnd`.
    */
   transformEnd() {
-    throw new Error('`transformEnd` is not valid for focus selection use `transformStart` instead');
+    throw new Error('`transformEnd` is not valid for focus selection use `transformStart` instead',
+      { cause: { handsontable: true } });
   }
 
   /**

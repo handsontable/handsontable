@@ -889,7 +889,7 @@ describe('IndexMapper', () => {
 
       expect(() => {
         indexMapper.createChangesObserver('index-map-type');
-      }).toThrowError('Unsupported index map type "index-map-type".');
+      }).toThrowWithCause('Unsupported index map type "index-map-type".', { handsontable: true });
       expect(indexMapper.hidingChangesObservable.createObserver).not.toHaveBeenCalled();
     });
 

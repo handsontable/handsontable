@@ -8,12 +8,12 @@ import { toSingleLine } from '../../../../helpers/templateLiteralTag';
  */
 export function showColumn(nodeToProcess, gridColumnIndex) {
   if (!Number.isInteger(gridColumnIndex)) {
-    throw new Error('The passed gridColumnIndex argument has invalid type.');
+    throw new Error('The passed gridColumnIndex argument has invalid type.', { cause: { handsontable: true } });
   }
 
   if (nodeToProcess.childs.length > 0) {
     throw new Error(toSingleLine`The passed node is not the last node on the tree. Only for\x20
-the last node, the show column modification can be applied.`);
+the last node, the show column modification can be applied.`, { cause: { handsontable: true } });
   }
 
   const {

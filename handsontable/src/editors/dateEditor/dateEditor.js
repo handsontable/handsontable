@@ -31,11 +31,11 @@ export class DateEditor extends TextEditor {
 
   init() {
     if (typeof moment !== 'function') {
-      throw new Error('You need to include moment.js to your project.');
+      throw new Error('You need to include moment.js to your project.', { cause: { handsontable: true } });
     }
 
     if (typeof Pikaday !== 'function') {
-      throw new Error('You need to include Pikaday to your project.');
+      throw new Error('You need to include Pikaday to your project.', { cause: { handsontable: true } });
     }
 
     super.init();

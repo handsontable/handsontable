@@ -20,7 +20,7 @@ describe('plugins', () => {
 
       expect(() => {
         registerPlugin(pluginName, pluginRef);
-      }).not.toThrowError();
+      }).not.toThrowWithCause(undefined, { handsontable: true });
     });
 
     it('should register plugins in the correct order', () => {
@@ -49,10 +49,10 @@ describe('plugins', () => {
 
       expect(() => {
         registerPlugin('pluginH', pluginRef, 0);
-      }).toThrowError('There is already registered plugin on priority "0"');
+      }).toThrowWithCause('There is already registered plugin on priority "0".', { handsontable: true });
       expect(() => {
         registerPlugin('pluginI', pluginRef, 0);
-      }).toThrowError('There is already registered plugin on priority "0"');
+      }).toThrowWithCause('There is already registered plugin on priority "0".', { handsontable: true });
     });
 
     it('should not throw an error if there is already registered plugin at the same name but different priority', () => {
@@ -62,7 +62,7 @@ describe('plugins', () => {
 
       expect(() => {
         registerPlugin('pluginJ', pluginRef, 41);
-      }).not.toThrowError('There is already registered "PluginJ" plugin.');
+      }).not.toThrowWithCause('There is already registered "PluginJ" plugin.', { handsontable: true });
     });
 
     it('should register plugin only once', () => {
@@ -72,7 +72,7 @@ describe('plugins', () => {
 
       expect(() => {
         registerPlugin('pluginL', pluginRef);
-      }).not.toThrowError();
+      }).not.toThrowWithCause(undefined, { handsontable: true });
     });
   });
 });

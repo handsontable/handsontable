@@ -31,7 +31,7 @@ const availableIndexMapTypes = new Map([
  */
 export function createIndexMap(mapType, initValueOrFn = null) {
   if (!availableIndexMapTypes.has(mapType)) {
-    throw new Error(`The provided map type ("${mapType}") does not exist.`);
+    throw new Error(`The provided map type ("${mapType}") does not exist.`, { cause: { handsontable: true } });
   }
 
   return new (availableIndexMapTypes.get(mapType))(initValueOrFn);
