@@ -3502,7 +3502,7 @@ describe('Formulas general', () => {
     });
 
     it('should not show warn for default HyperFormula configuration', async() => {
-      const warnSpy = spyOn(console, 'warn');
+      const warnSpy = spyOnConsoleWarn();
 
       handsontable({
         data: [
@@ -3524,7 +3524,7 @@ describe('Formulas general', () => {
     it('should not show warn for not overwritten HF\'s configuration options such as `leapYear1900` and `nullDate`', async() => {
       // Create an external HyperFormula instance
       const hfInstance = HyperFormula.buildEmpty({});
-      const warnSpy = spyOn(console, 'warn');
+      const warnSpy = spyOnConsoleWarn();
 
       handsontable({
         data: [
@@ -3549,7 +3549,7 @@ describe('Formulas general', () => {
       const hfInstance = HyperFormula.buildEmpty({
         leapYear1900: true,
       });
-      const warnSpy = spyOn(console, 'warn');
+      const warnSpy = spyOnConsoleWarn();
 
       handsontable({
         data: [
@@ -3578,7 +3578,7 @@ describe('Formulas general', () => {
           day: 0,
         },
       });
-      const warnSpy = spyOn(console, 'warn');
+      const warnSpy = spyOnConsoleWarn();
 
       handsontable({
         data: [
@@ -4006,7 +4006,7 @@ describe('Formulas general', () => {
     });
 
     it('should not show warn for default HyperFormula configuration', async() => {
-      const warnSpy = spyOn(console, 'warn');
+      const warnSpy = spyOnConsoleWarn();
 
       handsontable({
         data: [
@@ -4028,7 +4028,7 @@ describe('Formulas general', () => {
     it('should not show warn for not overwritten HF\'s configuration options such as `leapYear1900` and `nullDate`', async() => {
       // Create an external HyperFormula instance
       const hfInstance = HyperFormula.buildEmpty({});
-      const warnSpy = spyOn(console, 'warn');
+      const warnSpy = spyOnConsoleWarn();
 
       handsontable({
         data: [
@@ -4053,7 +4053,7 @@ describe('Formulas general', () => {
       const hfInstance = HyperFormula.buildEmpty({
         leapYear1900: true,
       });
-      const warnSpy = spyOn(console, 'warn');
+      const warnSpy = spyOnConsoleWarn();
 
       handsontable({
         data: [
@@ -4082,7 +4082,7 @@ describe('Formulas general', () => {
           day: 0,
         },
       });
-      const warnSpy = spyOn(console, 'warn');
+      const warnSpy = spyOnConsoleWarn();
 
       handsontable({
         data: [

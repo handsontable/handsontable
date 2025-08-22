@@ -181,7 +181,7 @@ describe('Filters', () => {
 
   it('should warn user by log at console when amount of conditions at specific column exceed the capability of ' +
     'a dropdown menu (`dropdownMenu` plugin is enabled)', async() => {
-    const warnSpy = spyOn(console, 'warn');
+    const warnSpy = spyOnConsoleWarn();
 
     handsontable({
       data: getDataForFilters(),
@@ -214,7 +214,7 @@ describe('Filters', () => {
 
   it('should not warn user by log at console when amount of conditions at specific column not exceed the capability of ' +
     'a dropdown menu (`dropdownMenu` plugin is enabled)', async() => {
-    const warnSpy = spyOn(console, 'warn');
+    const warnSpy = spyOnConsoleWarn();
 
     handsontable({
       data: getDataForFilters(),
@@ -240,7 +240,7 @@ describe('Filters', () => {
 
   it('should not warn user by log at console when amount of conditions at specific column exceed the capability of ' +
     'a dropdown menu (`dropdownMenu` plugin is disabled)', async() => {
-    const warnSpy = spyOn(console, 'warn');
+    const warnSpy = spyOnConsoleWarn();
 
     handsontable({
       data: getDataForFilters(),

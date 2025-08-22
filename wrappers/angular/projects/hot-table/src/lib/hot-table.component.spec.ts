@@ -344,7 +344,9 @@ describe('HotTableComponent', () => {
       });
 
       console.warn = (warningMessage) => {
-        warnCalls.push(warningMessage);
+        if (!warningMessage.includes('Deprecated:')) {
+          warnCalls.push(warningMessage);
+        }
       };
 
       await TestBed.compileComponents().then(() => {

@@ -979,7 +979,7 @@ describe('MergeCells', () => {
   describe('merged cell candidates validation', () => {
     it('should check if the provided merged cell information object contains negative values, and if so, do not add it ' +
       'to the collection and throw an appropriate warning', async() => {
-      const warnSpy = spyOn(console, 'warn');
+      const warnSpy = spyOnConsoleWarn();
       const newMergedCells = [
         {
           row: 0,
@@ -1035,7 +1035,7 @@ describe('MergeCells', () => {
 
     it('should check if the provided merged cell information object has rowspan and colspan declared as 0, and if so, do not add it ' +
       'to the collection and throw an appropriate warning', async() => {
-      const warnSpy = spyOn(console, 'warn');
+      const warnSpy = spyOnConsoleWarn();
       const newMergedCells = [
         {
           row: 0,
@@ -1072,7 +1072,7 @@ describe('MergeCells', () => {
 
     it('should check if the provided merged cell information object represents a single cell, and if so, do not add it ' +
       'to the collection and throw an appropriate warning', async() => {
-      const warnSpy = spyOn(console, 'warn');
+      const warnSpy = spyOnConsoleWarn();
       const newMergedCells = [
         {
           row: 0,
@@ -1106,7 +1106,7 @@ describe('MergeCells', () => {
 
     it('should check if the provided merged cell information object contains merged declared out of bounds, and if so, ' +
       'do not add it to the collection and throw an appropriate warning', async() => {
-      const warnSpy = spyOn(console, 'warn');
+      const warnSpy = spyOnConsoleWarn();
       const newMergedCells = [
         {
           row: 0,

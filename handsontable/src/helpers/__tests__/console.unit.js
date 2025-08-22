@@ -6,7 +6,8 @@ import {
   log,
   warn,
   info,
-  error
+  error,
+  deprecatedWarn
 } from 'handsontable/helpers/console';
 
 describe('Console', () => {
@@ -49,6 +50,15 @@ describe('Console', () => {
       }).not.toThrow();
 
       console = cachedConsole;
+    });
+  });
+
+  describe('deprecatedWarn', () => {
+    it('should call function `console.warn` with all arguments', () => {
+      console.warn = jasmine.createSpy('warn');
+
+      deprecatedWarn('Test');
+      expect(console.warn).toHaveBeenCalledWith('Deprecated: Test');
     });
   });
 

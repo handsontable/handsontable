@@ -16,7 +16,7 @@ describe('Pagination `setPageSize` method', () => {
       pagination: true,
     });
 
-    const warnSpy = spyOn(console, 'warn');
+    const warnSpy = spyOnConsoleWarn();
     const plugin = getPlugin('pagination');
 
     plugin.setPageSize('auto');

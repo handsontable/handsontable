@@ -348,7 +348,7 @@ describe('NestedHeaders', () => {
     });
 
     it('should warn the developer when the settings contains overlaping headers', async() => {
-      const warnSpy = spyOn(console, 'warn');
+      const warnSpy = spyOnConsoleWarn();
 
       handsontable({
         data: createSpreadsheetData(5, 5),
@@ -404,7 +404,7 @@ describe('NestedHeaders', () => {
     });
 
     it('should warn the developer when the settings are invalid', async() => {
-      const warnSpy = spyOn(console, 'warn');
+      const warnSpy = spyOnConsoleWarn();
 
       handsontable({
         data: createSpreadsheetData(10, 10),

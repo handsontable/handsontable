@@ -33,6 +33,17 @@ export function warn(...args) {
 }
 
 /**
+ * Logs deprecated warn to the console if the `console` object is exposed.
+ *
+ * @param {string} message The message to log.
+ */
+export function deprecatedWarn(message) {
+  if (isDefined(console)) {
+    console.warn(`Deprecated: ${message}`);
+  }
+}
+
+/**
  * Logs info to the console if the `console` object is exposed.
  *
  * @param {...*} args Values which will be logged.

@@ -2,6 +2,7 @@ import Handsontable from 'handsontable';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
 import 'handsontable/styles/ht-theme-horizon.css';
+import 'handsontable/styles/ht-theme-classic.css';
 
 // constants.js
 export const data = [

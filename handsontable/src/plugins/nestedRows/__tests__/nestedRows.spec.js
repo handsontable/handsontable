@@ -321,7 +321,7 @@ describe('NestedRows', () => {
   });
 
   it('should warn user that `moveRow` and `moveRows` methods can\'t be used and they don\'t move data', async() => {
-    const warnSpy = spyOn(console, 'warn');
+    const warnSpy = spyOnConsoleWarn();
 
     handsontable({
       data: getSimplerNestedData(),
@@ -363,7 +363,7 @@ describe('NestedRows', () => {
   });
 
   it('should move child data using the `dragRow` and `dragRows` methods', async() => {
-    const warnSpy = spyOn(console, 'warn');
+    const warnSpy = spyOnConsoleWarn();
 
     handsontable({
       data: getSimplerNestedData(),

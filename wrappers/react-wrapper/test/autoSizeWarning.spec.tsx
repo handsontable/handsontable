@@ -148,7 +148,7 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
       </HotTable>
     ));
 
-    expect(console.warn).not.toHaveBeenCalled();
+    expect(console.warn).not.toHaveBeenCalledWith(AUTOSIZE_WARNING);
   });
 
   it('should NOT throw any warnings, when `autoRowSize` or `autoColumnSize` is defined, but only function-based renderers were defined for columns', async () => {
@@ -172,7 +172,7 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
       </HotTable>
     ));
 
-    expect(console.warn).not.toHaveBeenCalled();
+    expect(console.warn).not.toHaveBeenCalledWith(AUTOSIZE_WARNING);
   });
 
   it('should NOT throw any warnings, when `autoRowSize` or `autoColumnSize` is defined, but only function-based renderers were defined for columns, when ' +
@@ -201,6 +201,6 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
       </HotTable>
     ));
 
-    expect(console.warn).not.toHaveBeenCalled();
+    expect(console.warn).not.toHaveBeenCalledWith(AUTOSIZE_WARNING);
   });
 });

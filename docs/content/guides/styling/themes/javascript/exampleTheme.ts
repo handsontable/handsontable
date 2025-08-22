@@ -3,6 +3,7 @@ import { PredefinedMenuItemKey } from 'handsontable/plugins/contextMenu';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
 import 'handsontable/styles/ht-theme-horizon.css';
+import 'handsontable/styles/ht-theme-classic.css';
 
 // constants.js
 export const data: (string | number | boolean)[][] = [
