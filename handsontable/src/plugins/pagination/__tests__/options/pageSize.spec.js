@@ -261,7 +261,7 @@ describe('Pagination `pageSize` option', () => {
     });
 
     it('should warn when `autoRowSize` plugin is not enabled', async() => {
-      const warnSpy = spyOn(console, 'warn');
+      const warnSpy = spyOnConsoleWarn();
 
       handsontable({
         data: createSpreadsheetData(20, 10),
