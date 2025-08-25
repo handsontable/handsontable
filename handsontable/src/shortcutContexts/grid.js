@@ -77,9 +77,7 @@ export function shortcutsGridContext(hot) {
     runOnlyIf: () => !(hot.selection.isSelectedByCorner() || hot.selection.isSelectedByColumnHeader()),
   }, {
     keys: [['ArrowDown']],
-    callback: () => {
-      commandsPool.moveCellSelectionDown();
-    },
+    callback: () => commandsPool.moveCellSelectionDown(),
   }, {
     keys: [['ArrowDown', 'Control/Meta']],
     captureCtrl: true,
