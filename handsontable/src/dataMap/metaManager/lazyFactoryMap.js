@@ -1,4 +1,5 @@
-import { assert, isUnsignedNumber, isNullish } from './utils';
+import { assert, isNullish } from './utils';
+import { isUnsignedNumber } from '../../helpers/number';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**

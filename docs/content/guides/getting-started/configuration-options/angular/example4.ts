@@ -1,7 +1,7 @@
 /* file: app.component.ts */
 import { Component } from '@angular/core';
 import { GridSettings } from '@handsontable/angular-wrapper';
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
 
 @Component({
   selector: 'example4-configuration-options',

@@ -1,5 +1,6 @@
 import { HandsontableEditor } from '../handsontableEditor';
-import { arrayMap, pivot } from '../../helpers/array';
+import { pivot } from '../../helpers/array';
+import { isObject } from '../../helpers/object';
 import {
   addClass,
   getCaretPosition,
@@ -29,7 +30,7 @@ import {
   A11Y_RELEVANT,
   A11Y_SELECTED,
   A11Y_SETSIZE,
-  A11Y_TEXT
+  A11Y_TEXT,
 } from '../../helpers/a11y';
 import { debounce } from '../../helpers/function';
 
@@ -78,7 +79,7 @@ export class AutocompleteEditor extends HandsontableEditor {
     const selectedValue = this.rawChoices.find((value) => {
       const strippedValue = this.stripValueIfNeeded(value);
 
-      return strippedValue === this.TEXTAREA.value;
+      return (this.#isKeyValueObject(strippedValue) ? strippedValue.value : strippedValue) === this.TEXTAREA.value;
     });
 
     if (isDefined(selectedValue)) {
@@ -87,13 +88,6 @@ export class AutocompleteEditor extends HandsontableEditor {
 
     return this.TEXTAREA.value;
   }
-
-  /**
-   * Runs focus method after debounce.
-   */
-  #focusDebounced = debounce(() => {
-    this.focus();
-  }, 100);
 
   /**
    * Creates an editor's elements and adds necessary CSS classnames.
@@ -133,6 +127,11 @@ export class AutocompleteEditor extends HandsontableEditor {
         A11Y_CONTROLS(`${this.#idPrefix}-listbox-${row}-${col}`),
       ]);
     }
+
+    this.htOptions = {
+      ...this.htOptions,
+      valueGetter: cellValue => (this.#isKeyValueObject(cellValue) ? cellValue.value : cellValue),
+    };
   }
 
   /**
@@ -295,6 +294,7 @@ export class AutocompleteEditor extends HandsontableEditor {
     const sortByRelevanceSetting = this.cellProperties.sortByRelevance;
     const filterSetting = this.cellProperties.filter;
     const value = this.stripValueIfNeeded(this.getValue());
+    const comparableValue = this.#isKeyValueObject(value) ? value.value : value;
 
     let highlightIndex = null;
     let choices = choicesList;
@@ -306,10 +306,13 @@ export class AutocompleteEditor extends HandsontableEditor {
     const filteredChoiceIndexes = [];
     const locale = this.cellProperties.locale;
     const filteringCaseSensitive = this.cellProperties.filteringCaseSensitive;
-    const valueToMatch = filteringCaseSensitive ? value : value.toLocaleLowerCase(locale);
+    const valueToMatch = filteringCaseSensitive ? comparableValue : comparableValue.toLocaleLowerCase(locale);
 
     for (let i = 0; i < choices.length; i++) {
-      const currentItem = stripTags(stringify(choices[i]));
+      const currentItem =
+        this.#isKeyValueObject(choices[i]) ?
+          stripTags(stringify(choices[i].value)) :
+          stripTags(stringify(choices[i]));
       const itemToMatch = filteringCaseSensitive ? currentItem : currentItem.toLocaleLowerCase(locale);
 
       if (itemToMatch.indexOf(valueToMatch) !== -1) {
@@ -394,21 +397,10 @@ export class AutocompleteEditor extends HandsontableEditor {
 
       if (this.isFlippedVertically) {
         this.htEditor.rootElement.style.top =
-        `${parseInt(this.htEditor.rootElement.style.top, 10) + dropdownHeight - height}px`;
+          `${parseInt(this.htEditor.rootElement.style.top, 10) + dropdownHeight - height}px`;
       }
 
       this.setDropdownHeight(tempHeight - lastRowHeight);
-    }
-  }
-
-  /**
-   * Fix width of the internal Handsontable's instance when editor has vertical scroll.
-   */
-  #fixDropdownWidth() {
-    if (this.htEditor.view.hasVerticalScroll()) {
-      this.htEditor.updateSettings({
-        width: this.getTargetEditorWidth() + getScrollbarWidth(this.hot.rootDocument),
-      });
     }
   }
 
@@ -424,7 +416,7 @@ export class AutocompleteEditor extends HandsontableEditor {
 
     this.htEditor.updateSettings({
       width: targetWidth,
-      height: targetHeight
+      height: targetHeight,
     });
 
     this.#fixDropdownWidth();
@@ -439,7 +431,7 @@ export class AutocompleteEditor extends HandsontableEditor {
    */
   setDropdownHeight(height) {
     this.htEditor.updateSettings({
-      height
+      height,
     });
 
     this.#fixDropdownWidth();
@@ -523,15 +515,50 @@ export class AutocompleteEditor extends HandsontableEditor {
    *
    * @private
    * @param {string[]} values The value to sanitize.
-   * @returns {string[]}
+   * @returns {Array<string|{key: string, value: string}>}
    */
   stripValuesIfNeeded(values) {
     const { allowHtml } = this.cellProperties;
+    const processValue = value => stringify(allowHtml ? value : stripTags(value));
 
-    const stringifiedValues = arrayMap(values, value => stringify(value));
-    const strippedValues = arrayMap(stringifiedValues, value => (allowHtml ? value : stripTags(value)));
+    if (values.every(value => this.#isKeyValueObject(value))) {
+      return values.map((value) => {
+        return {
+          key: processValue(value.key),
+          value: processValue(value.value),
+        };
+      });
+    }
 
-    return strippedValues;
+    return values.map(value => processValue(value));
+  }
+
+  /**
+   * Runs focus method after debounce.
+   */
+  #focusDebounced = debounce(() => {
+    this.focus();
+  }, 100);
+
+  /**
+   * Fix width of the internal Handsontable's instance when editor has vertical scroll.
+   */
+  #fixDropdownWidth() {
+    if (this.htEditor.view.hasVerticalScroll()) {
+      this.htEditor.updateSettings({
+        width: this.getTargetEditorWidth() + getScrollbarWidth(this.hot.rootDocument),
+      });
+    }
+  }
+
+  /**
+   * Checks if the value is a key/value object.
+   *
+   * @param {*} value The value to check.
+   * @returns {boolean}
+   */
+  #isKeyValueObject(value) {
+    return isObject(value) && isDefined(value.key) && isDefined(value.value);
   }
 
   /**

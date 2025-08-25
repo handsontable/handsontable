@@ -1,7 +1,11 @@
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
 import { HyperFormula } from 'hyperformula';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const data1: [string, null, string, string][] = [
   ['10.26', null, 'Sum', '=SUM(A:A)'],

@@ -2,7 +2,8 @@ import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
 import { stringify, parse } from '../../3rdparty/SheetClip';
 import { arrayEach } from '../../helpers/array';
-import { sanitize } from '../../helpers/string';
+import { sanitize, isJSON } from '../../helpers/string';
+import { isObject } from '../../helpers/object';
 import {
   removeContentEditableFromElementAndDeselect,
   runWithSelectedContendEditableElement,
@@ -35,6 +36,7 @@ Hooks.getSingleton().register('afterCopy');
 export const PLUGIN_KEY = 'copyPaste';
 export const PLUGIN_PRIORITY = 80;
 const SETTING_KEYS = ['fragmentSelection'];
+const SOURCE_DATA_HTML_MIME_TYPE = 'application/ht-source-data-json-html';
 const META_HEAD = [
   '<meta name="generator" content="Handsontable"/>',
   '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
@@ -349,9 +351,10 @@ export class CopyPaste extends BasePlugin {
    * Converts the contents of multiple ranges (`ranges`) into an array of arrays.
    *
    * @param {Array<{startRow: number, startCol: number, endRow: number, endCol: number}>} ranges Array of objects with properties `startRow`, `startCol`, `endRow` and `endCol`.
+   * @param {boolean} [useSourceData=false] Whether to use the source data instead of the data. This will stringify objects as JSON.
    * @returns {Array[]} An array of arrays that will be copied to the clipboard.
    */
-  getRangedData(ranges) {
+  getRangedData(ranges, useSourceData = false) {
     const data = [];
     const { rows, columns } = normalizeRanges(ranges);
 
@@ -363,8 +366,18 @@ export class CopyPaste extends BasePlugin {
         if (row < 0) {
           // `row` as the second argument acts here as the `headerLevel` argument
           rowSet.push(this.hot.getColHeader(column, row));
+
         } else {
-          rowSet.push(this.hot.getCopyableData(row, column));
+          let copyableCellData =
+            useSourceData ?
+              this.hot.getCopyableSourceData(row, column) :
+              this.hot.getCopyableData(row, column);
+
+          if (useSourceData && isObject(copyableCellData)) {
+            copyableCellData = JSON.stringify(copyableCellData);
+          }
+
+          rowSet.push(copyableCellData);
         }
       });
 
@@ -520,10 +533,11 @@ export class CopyPaste extends BasePlugin {
    *
    * @private
    * @param {Array} inputArray An array of the data to populate.
+   * @param {Array} sourceInputArray An array of the source data to populate.
    * @param {Array} [selection] The selection which indicates from what position the data will be populated.
    * @returns {Array} Range coordinates after populate data.
    */
-  populateValues(inputArray, selection = this.hot.getSelectedRangeActive()) {
+  populateValues(inputArray, sourceInputArray, selection = this.hot.getSelectedRangeActive()) {
     if (!inputArray.length) {
       return [null, null, null, null];
     }
@@ -560,7 +574,12 @@ export class CopyPaste extends BasePlugin {
       const insertedRow = newRows.length % populatedRowsLength;
 
       while (newRow.length < populatedColumnsLength || visualColumnForPopulatedData <= endColumnFromSelection) {
-        const { skipColumnOnPaste, visualCol } = this.hot.getCellMeta(startRow, visualColumnForPopulatedData);
+        const {
+          skipColumnOnPaste,
+          visualCol,
+        } = this.hot.getCellMeta(visualRow, visualColumnForPopulatedData);
+        const sourceDataAtTarget = this.hot.getSourceDataAtCell(visualRow, visualColumnForPopulatedData);
+        const insertedColumn = newRow.length % populatedColumnsLength;
 
         visualColumnForPopulatedData = visualCol + 1;
 
@@ -570,9 +589,19 @@ export class CopyPaste extends BasePlugin {
         }
 
         lastVisualColumn = visualCol;
-        const insertedColumn = newRow.length % populatedColumnsLength;
 
-        newRow.push(inputArray[insertedRow][insertedColumn]);
+        const sourceCellValue = sourceInputArray?.[insertedRow]?.[insertedColumn];
+        let cellValue = inputArray[insertedRow][insertedColumn];
+
+        if (sourceInputArray && isJSON(sourceCellValue)) {
+          const parsedCellValue = JSON.parse(sourceCellValue);
+
+          if (isObject(sourceDataAtTarget) || sourceDataAtTarget === null) {
+            cellValue = parsedCellValue;
+          }
+        }
+
+        newRow.push(cellValue);
       }
 
       newRows.push(newRow);
@@ -650,24 +679,16 @@ export class CopyPaste extends BasePlugin {
     this.setCopyableText();
     this.#isTriggeredByCopy = false;
 
-    const data = this.getRangedData(this.copyableRanges);
+    const rangedData = this.getRangedData(this.copyableRanges);
+    const rangedSourceData = this.getRangedData(this.copyableRanges, true);
+
     const copiedHeadersCount = this.#countCopiedHeaders(this.copyableRanges);
-    const allowCopying = !!this.hot.runHooks('beforeCopy', data, this.copyableRanges, copiedHeadersCount);
+    const allowCopying = !!this.hot.runHooks('beforeCopy', rangedData, this.copyableRanges, copiedHeadersCount);
 
     if (allowCopying) {
-      const textPlain = stringify(data);
+      this.#setClipboardData(event, rangedData, rangedSourceData);
 
-      if (event && event.clipboardData) {
-        const textHTML = _dataToHTML(data, this.hot.rootDocument);
-
-        event.clipboardData.setData('text/plain', textPlain);
-        event.clipboardData.setData('text/html', [META_HEAD, textHTML].join(''));
-
-      } else if (typeof ClipboardEvent === 'undefined') {
-        this.hot.rootWindow.clipboardData.setData('Text', textPlain);
-      }
-
-      this.hot.runHooks('afterCopy', data, this.copyableRanges, copiedHeadersCount);
+      this.hot.runHooks('afterCopy', rangedData, this.copyableRanges, copiedHeadersCount);
     }
 
     this.#copyMode = 'cells-only';
@@ -703,20 +724,11 @@ export class CopyPaste extends BasePlugin {
     this.#isTriggeredByCut = false;
 
     const rangedData = this.getRangedData(this.copyableRanges);
+    const rangedSourceData = this.getRangedData(this.copyableRanges, true);
     const allowCuttingOut = !!this.hot.runHooks('beforeCut', rangedData, this.copyableRanges);
 
     if (allowCuttingOut) {
-      const textPlain = stringify(rangedData);
-
-      if (event && event.clipboardData) {
-        const textHTML = _dataToHTML(rangedData, this.hot.rootDocument);
-
-        event.clipboardData.setData('text/plain', textPlain);
-        event.clipboardData.setData('text/html', [META_HEAD, textHTML].join(''));
-
-      } else if (typeof ClipboardEvent === 'undefined') {
-        this.hot.rootWindow.clipboardData.setData('Text', textPlain);
-      }
+      this.#setClipboardData(event, rangedData, rangedSourceData);
 
       this.hot.emptySelectedCells('CopyPaste.cut');
       this.hot.runHooks('afterCut', rangedData, this.copyableRanges);
@@ -752,8 +764,17 @@ export class CopyPaste extends BasePlugin {
     event.preventDefault();
 
     let pastedData;
+    let pastedSourceData;
 
     if (event && typeof event.clipboardData !== 'undefined') {
+      const sourceDataHTML = event.clipboardData.getData(SOURCE_DATA_HTML_MIME_TYPE);
+
+      if (sourceDataHTML) {
+        const parsedSourceConfig = htmlToGridSettings(sourceDataHTML, this.hot.rootDocument);
+
+        pastedSourceData = parsedSourceConfig.data;
+      }
+
       const textHTML = sanitize(event.clipboardData.getData('text/html'), {
         ADD_TAGS: ['meta'],
         ADD_ATTR: ['content'],
@@ -784,7 +805,7 @@ export class CopyPaste extends BasePlugin {
       return;
     }
 
-    const [startRow, startColumn, endRow, endColumn] = this.populateValues(pastedData);
+    const [startRow, startColumn, endRow, endColumn] = this.populateValues(pastedData, pastedSourceData);
 
     if (startRow !== null && startColumn !== null) {
       this.hot.selectCell(
@@ -796,6 +817,29 @@ export class CopyPaste extends BasePlugin {
     }
 
     this.hot.runHooks('afterPaste', pastedData, this.copyableRanges);
+  }
+
+  /**
+   * Sets the clipboard data.
+   *
+   * @param {ClipboardEvent} event The Clipboard event.
+   * @param {Array} rangedData Ranged data to set to the clipboard.
+   * @param {Array} rangedSourceData Ranged source data to set to the clipboard.
+   */
+  #setClipboardData(event, rangedData, rangedSourceData) {
+    const textPlain = stringify(rangedData);
+
+    if (event && event.clipboardData) {
+      const textHTML = _dataToHTML(rangedData);
+      const textSourceDataHTML = _dataToHTML(rangedSourceData);
+
+      event.clipboardData.setData('text/plain', textPlain);
+      event.clipboardData.setData('text/html', [META_HEAD, textHTML].join(''));
+      event.clipboardData.setData(SOURCE_DATA_HTML_MIME_TYPE, [META_HEAD, textSourceDataHTML].join(''));
+
+    } else if (typeof ClipboardEvent === 'undefined') {
+      this.hot.rootWindow.clipboardData.setData('Text', textPlain);
+    }
   }
 
   /**

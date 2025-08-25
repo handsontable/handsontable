@@ -1,5 +1,9 @@
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
 import numbro from 'numbro';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const config: Handsontable.GridSettings = {
   themeName: 'ht-theme-main',

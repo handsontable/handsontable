@@ -1,9 +1,13 @@
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
 import { HyperFormula } from 'hyperformula';
 import { Formulas } from 'handsontable/plugins';
 import { DetailedSettings } from 'handsontable/plugins/formulas';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const data: (string | number)[][] = [
   ['Travel ID', 'Destination', 'Base price', 'Price with extra cost'],

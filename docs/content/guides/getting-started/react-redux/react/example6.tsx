@@ -1,5 +1,5 @@
 import { useEffect, MouseEvent, KeyboardEvent, useRef, useState } from 'react';
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
 import { HexColorPicker } from 'react-colorful';
 import StarRatingComponent from 'react-star-rating-component';
 import { Provider, connect, useDispatch } from 'react-redux';

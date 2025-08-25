@@ -211,7 +211,7 @@ export interface GridSettings extends Events {
   skipColumnOnPaste?: boolean;
   skipRowOnPaste?: boolean;
   sortByRelevance?: boolean;
-  source?: string[] | number[] | ((this: CellProperties, query: string, callback: (items: string[]) => void) => void);
+  source?: string[] | number[] | { key: any, value: any }[] | ((this: CellProperties, query: string, callback: (items: string[]) => void) => void);
   startCols?: number;
   startRows?: number;
   stretchH?: 'none' | 'all' | 'last';
@@ -229,6 +229,8 @@ export interface GridSettings extends Events {
   dialog?: DialogSettings;
   undo?: UndoRedoSettings;
   validator?: BaseValidator | RegExp | ValidatorType | string;
+  valueGetter?: (this: Core, value: CellValue, row: number, column: number, cellProperties: CellProperties) => CellValue;
+  valueSetter?: (this: Core, value: CellValue, row: number, column: number, cellProperties: CellProperties) => CellValue;
   viewportColumnRenderingOffset?: number | 'auto';
   viewportRowRenderingOffset?: number | 'auto';
   viewportColumnRenderingThreshold?: number | 'auto';

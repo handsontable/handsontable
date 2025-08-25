@@ -1,6 +1,6 @@
 /* file: app-demo.component.ts */
 import { Component } from '@angular/core';
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
 
 // constants.ts
 export const data = [
