@@ -78,7 +78,6 @@ export function shortcutsGridContext(hot) {
   }, {
     keys: [['ArrowDown']],
     callback: () => {
-      console.log('ArrowDown');
       commandsPool.moveCellSelectionDown();
     },
   }, {
