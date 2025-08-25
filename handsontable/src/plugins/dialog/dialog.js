@@ -26,6 +26,12 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
  * - `contentDirections`: Content layout direction 'row' | 'row-reverse' | 'column' | 'column-reverse' (default: 'row')
  * - `animation`: Whether to enable animations (default: true)
  * - `closable`: Whether the dialog can be closed (default: false)
+ * - `a11y`: Object with accessibility options (default: {
+ *     role: 'dialog', // Role of the dialog 'dialog' | 'alertdialog' (default: 'dialog')
+ *     ariaLabel: 'Dialog', // Label for the dialog (default: 'Dialog')
+ *     ariaLabelledby: '', // ID of the element that labels the dialog (default: '')
+ *     ariaDescribedby: '', // ID of the element that describes the dialog (default: ''),
+ *   })
  *
  * @example
  *
@@ -157,6 +163,12 @@ export class Dialog extends BasePlugin {
       contentDirections: 'row',
       animation: true,
       closable: false,
+      a11y: {
+        role: 'dialog',
+        ariaLabel: '',
+        ariaLabelledby: '',
+        ariaDescribedby: '',
+      },
     };
   }
 
@@ -171,6 +183,11 @@ export class Dialog extends BasePlugin {
       contentDirections: value => ['row', 'row-reverse', 'column', 'column-reverse'].includes(value),
       animation: value => typeof value === 'boolean',
       closable: value => typeof value === 'boolean',
+      a11y: value => typeof value === 'object' &&
+        (typeof value?.role === 'undefined' || ['dialog', 'alertdialog'].includes(value?.role)) &&
+        (typeof value?.ariaLabel === 'undefined' || typeof value?.ariaLabel === 'string') &&
+        (typeof value?.ariaLabelledby === 'undefined' || typeof value?.ariaLabelledby === 'string') &&
+        (typeof value?.ariaDescribedby === 'undefined' || typeof value?.ariaDescribedby === 'string'),
     };
   }
 
@@ -367,7 +384,8 @@ export class Dialog extends BasePlugin {
       this.hot.unlisten();
       this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
       this.hot.listen();
-      this.#focusDetector.activate();
+      this.#focusDetector.deactivate();
+      this.#ui.focusDialog();
       this.hot.runHooks('afterDialogFocus', 'show');
     }
   }
@@ -426,6 +444,7 @@ export class Dialog extends BasePlugin {
       contentBackground: this.getSetting('contentBackground'),
       contentDirections: this.getSetting('contentDirections'),
       animation: this.getSetting('animation'),
+      a11y: this.getSetting('a11y'),
     });
   }
 

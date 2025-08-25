@@ -32,6 +32,12 @@ describe('Dialog - show method', () => {
       contentDirections: 'row',
       animation: true,
       closable: false,
+      a11y: {
+        role: 'dialog',
+        ariaLabel: '',
+        ariaLabelledby: '',
+        ariaDescribedby: '',
+      },
     });
   });
 
