@@ -596,7 +596,7 @@ export class CopyPaste extends BasePlugin {
         if (sourceInputArray && isJSON(sourceCellValue)) {
           const parsedCellValue = JSON.parse(sourceCellValue);
 
-          if (isObject(sourceDataAtTarget)) {
+          if (isObject(sourceDataAtTarget) || sourceDataAtTarget === null) {
             cellValue = parsedCellValue;
           }
         }
