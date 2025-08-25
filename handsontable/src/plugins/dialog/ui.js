@@ -8,7 +8,15 @@ import {
   fastInnerHTML,
   setAttribute,
 } from '../../helpers/dom/element';
-import { A11Y_DIALOG, A11Y_MODAL, A11Y_TABINDEX } from '../../helpers/a11y';
+import {
+  A11Y_DIALOG,
+  A11Y_MODAL,
+  A11Y_TABINDEX,
+  A11Y_LABEL,
+  A11Y_LABELED_BY,
+  A11Y_DESCRIBED_BY,
+  A11Y_ALERTDIALOG,
+} from '../../helpers/a11y';
 
 const DIALOG_CLASS_NAME = 'ht-dialog';
 
@@ -75,7 +83,6 @@ export class DialogUI {
 
     // Set ARIA attributes
     setAttribute(dialogElement, [
-      A11Y_DIALOG(),
       A11Y_MODAL(),
       A11Y_TABINDEX(-1),
       ['dir', this.#isRtl ? 'rtl' : 'ltr'],
@@ -115,6 +122,7 @@ export class DialogUI {
    * @param {boolean} options.contentBackground - Whether to show content background.
    * @param {string} options.contentDirections - The flex direction for content layout.
    * @param {boolean} options.animation - Whether to add the animation class to the dialog.
+   * @param {object} options.a11y - The accessibility options for the dialog.
    *
    * @returns {DialogUI} The instance of the DialogUI.
    */
@@ -126,6 +134,7 @@ export class DialogUI {
     contentBackground,
     contentDirections,
     animation,
+    a11y,
   }) {
     const { dialogElement, contentElement } = this.#refs;
 
@@ -141,6 +150,14 @@ export class DialogUI {
     // Update dialog class name
     dialogElement.className =
       `${DIALOG_CLASS_NAME}${customClass}${backgroundClass}${animationClass}${showClass}`;
+
+    // Dialog aria attributes
+    setAttribute(dialogElement, [
+      a11y.role === 'alertdialog' ? A11Y_ALERTDIALOG() : A11Y_DIALOG(),
+      a11y.ariaLabel ? A11Y_LABEL(a11y.ariaLabel) : null,
+      a11y.ariaLabelledby ? A11Y_LABELED_BY(a11y.ariaLabelledby) : null,
+      a11y.ariaDescribedby ? A11Y_DESCRIBED_BY(a11y.ariaDescribedby) : null,
+    ]);
 
     // Dialog content class name
     const contentBackgroundClass = contentBackground ?
@@ -210,6 +227,13 @@ export class DialogUI {
     }
 
     return this;
+  }
+
+  /**
+   * Focuses the dialog element.
+   */
+  focusDialog() {
+    this.#refs.dialogElement.focus();
   }
 
   /**
