@@ -303,7 +303,7 @@ export class Autofill extends BasePlugin {
         }
       }
 
-      // If the source data contains objects, we need to check every taget cell for the data type.
+      // If the source data contains objects, we need to check every target cell for the data type.
       if (selectionSourceData.some(row => row.some(cell => isObject(cell)))) {
         const fullFillData = this.#extendFillDataWithSourceData(
           fillData,

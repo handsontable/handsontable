@@ -31,7 +31,7 @@ You can edit the autocomplete-typed cells in three different ways:
 In all three modes, the `source` option can be provided in two formats:
 
 - An array of values
-- An array of objects with `value` and `label` properties
+- An array of objects with `key` and `value` properties
 
 ## Autocomplete flexible mode
 

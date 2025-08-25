@@ -1167,7 +1167,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
               }
 
               const visualColumn = c - skippedColumn;
-              const hasValueSetter = !!cellMeta?.valueSetter;
+              const hasValueSetter = !!cellMeta.valueSetter;
 
               let value = getInputValue(visualRow, visualColumn);
               let orgValue = instance.getSourceDataAtCell(current.row, current.col) ?? null;
