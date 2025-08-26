@@ -247,9 +247,8 @@ export class Dialog extends BasePlugin {
       this.#focusDetector = installFocusDetector(this.hot, this.#ui.getDialogElement(), {
         onFocus: (from) => {
           this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
-          this.hot.runHooks('afterDialogFocus', `tab_${from}`);
-          this.#focusDetector.deactivate();
           this.hot.listen();
+          this.hot.runHooks('afterDialogFocus', `tab_${from}`);
         }
       });
     }
@@ -258,6 +257,8 @@ export class Dialog extends BasePlugin {
 
     this.addHook('modifyFocusOnTabNavigation', from => this.#onFocusTabNavigation(from), 1);
     this.addHook('afterViewRender', () => this.#onAfterRender());
+    this.addHook('afterListen', () => this.#onAfterListen());
+    this.addHook('afterUnlisten', () => this.#onAfterUnlisten());
 
     super.enablePlugin();
   }
@@ -307,7 +308,6 @@ export class Dialog extends BasePlugin {
           const { activeElement } = this.hot.rootDocument;
 
           if (!this.#ui.isInsideDialog(activeElement)) {
-            this.#focusDetector.activate();
             this.hot.unlisten();
 
             return;
@@ -384,7 +384,6 @@ export class Dialog extends BasePlugin {
       this.hot.unlisten();
       this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
       this.hot.listen();
-      this.#focusDetector.deactivate();
       this.#ui.focusDialog();
       this.hot.runHooks('afterDialogFocus', 'show');
     }
@@ -404,7 +403,6 @@ export class Dialog extends BasePlugin {
     this.#ui.hideDialog(this.getSetting('animation'));
     this.hot.getShortcutManager().setActiveContextName('grid');
     this.#isVisible = false;
-    this.#focusDetector.activate();
 
     if (this.#selectionState) {
       this.hot.selection.importSelection(this.#selectionState);
@@ -471,8 +469,21 @@ export class Dialog extends BasePlugin {
       this.hot.runHooks('afterDialogFocus', 'click');
     }
 
-    this.#focusDetector.activate();
     this.hot.listen();
+  }
+
+  /**
+   * Called after the table is listened.
+   */
+  #onAfterListen() {
+    this.#focusDetector.deactivate();
+  }
+
+  /**
+   * Called after the table is unlistened.
+   */
+  #onAfterUnlisten() {
+    this.#focusDetector.activate();
   }
 
   /**
