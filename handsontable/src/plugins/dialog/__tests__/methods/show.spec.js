@@ -33,7 +33,7 @@ describe('Dialog - show method', () => {
       closable: false,
       a11y: {
         role: 'dialog',
-        ariaLabel: '',
+        ariaLabel: 'Dialog',
         ariaLabelledby: '',
         ariaDescribedby: '',
       },

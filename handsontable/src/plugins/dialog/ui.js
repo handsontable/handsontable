@@ -7,6 +7,7 @@ import {
   hasClass,
   fastInnerHTML,
   setAttribute,
+  removeAttribute,
 } from '../../helpers/dom/element';
 import {
   A11Y_DIALOG,
@@ -152,10 +153,31 @@ export class DialogUI {
     // Dialog aria attributes
     setAttribute(dialogElement, [
       a11y.role === 'alertdialog' ? A11Y_ALERTDIALOG() : A11Y_DIALOG(),
-      a11y.ariaLabel && !a11y.ariaLabelledby ? A11Y_LABEL(a11y.ariaLabel) : null,
-      a11y.ariaLabelledby ? A11Y_LABELED_BY(a11y.ariaLabelledby) : null,
-      a11y.ariaDescribedby ? A11Y_DESCRIBED_BY(a11y.ariaDescribedby) : null,
     ]);
+
+    if (a11y.ariaLabel && !a11y.ariaLabelledby) {
+      setAttribute(dialogElement, [
+        a11y.ariaLabel ? A11Y_LABEL(a11y.ariaLabel) : undefined,
+      ]);
+    } else {
+      removeAttribute(dialogElement, 'aria-label');
+    }
+
+    if (a11y.ariaLabelledby) {
+      setAttribute(dialogElement, [
+        A11Y_LABELED_BY(a11y.ariaLabelledby),
+      ]);
+    } else {
+      removeAttribute(dialogElement, 'aria-labelledby');
+    }
+
+    if (a11y.ariaDescribedby) {
+      setAttribute(dialogElement, [
+        A11Y_DESCRIBED_BY(a11y.ariaDescribedby),
+      ]);
+    } else {
+      removeAttribute(dialogElement, 'aria-describedby');
+    }
 
     // Dialog content class name
     const contentBackgroundClass = contentBackground ?

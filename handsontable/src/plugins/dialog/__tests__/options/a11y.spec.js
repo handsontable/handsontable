@@ -155,7 +155,7 @@ describe('Dialog - a11y option', () => {
     const dialogElement = getDialogContainerElement();
 
     expect(dialogElement.getAttribute('role')).toBe('alertdialog');
-    expect(dialogElement.getAttribute('aria-label')).toBe('Dynamic Dialog');
+    expect(dialogElement.getAttribute('aria-label')).toBe(null);
     expect(dialogElement.getAttribute('aria-labelledby')).toBe('dialog-title');
     expect(dialogElement.getAttribute('aria-describedby')).toBe('dialog-description');
   });
@@ -184,9 +184,38 @@ describe('Dialog - a11y option', () => {
     const dialogElement = getDialogContainerElement();
 
     expect(dialogElement.getAttribute('role')).toBe('alertdialog');
-    expect(dialogElement.getAttribute('aria-label')).toBe('Updated Dialog');
+    expect(dialogElement.getAttribute('aria-label')).toBe(null);
     expect(dialogElement.getAttribute('aria-labelledby')).toBe('dialog-title');
     expect(dialogElement.getAttribute('aria-describedby')).toBe('dialog-description');
+  });
+
+  it('should remove accessibility attributes when using update method with empty values', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      dialog: true,
+    });
+
+    const dialogPlugin = getPlugin('dialog');
+
+    dialogPlugin.show({
+      content: 'Test dialog content',
+    });
+
+    dialogPlugin.update({
+      a11y: {
+        role: 'alertdialog',
+        ariaLabel: '',
+        ariaLabelledby: '',
+        ariaDescribedby: '',
+      },
+    });
+
+    const dialogElement = getDialogContainerElement();
+
+    expect(dialogElement.getAttribute('role')).toBe('alertdialog');
+    expect(dialogElement.getAttribute('aria-label')).toBe(null);
+    expect(dialogElement.getAttribute('aria-labelledby')).toBe(null);
+    expect(dialogElement.getAttribute('aria-describedby')).toBe(null);
   });
 
   it('should maintain accessibility attributes when changing other options', async() => {
@@ -216,7 +245,7 @@ describe('Dialog - a11y option', () => {
     const dialogElement = getDialogContainerElement();
 
     expect(dialogElement.getAttribute('role')).toBe('alertdialog');
-    expect(dialogElement.getAttribute('aria-label')).toBe('Persistent Dialog');
+    expect(dialogElement.getAttribute('aria-label')).toBe(null);
     expect(dialogElement.getAttribute('aria-labelledby')).toBe('dialog-title');
     expect(dialogElement.getAttribute('aria-describedby')).toBe('dialog-description');
   });
@@ -249,7 +278,7 @@ describe('Dialog - a11y option', () => {
     const dialogElement = getDialogContainerElement();
 
     expect(dialogElement.getAttribute('role')).toBe('alertdialog');
-    expect(dialogElement.getAttribute('aria-label')).toBe('Overridden Label');
+    expect(dialogElement.getAttribute('aria-label')).toBe(null);
     expect(dialogElement.getAttribute('aria-labelledby')).toBe('dialog-title');
     expect(dialogElement.getAttribute('aria-describedby')).toBe('dialog-description');
   });
@@ -279,7 +308,7 @@ describe('Dialog - a11y option', () => {
     const dialogElement = getDialogContainerElement();
 
     expect(dialogElement.getAttribute('role')).toBe('alertdialog');
-    expect(dialogElement.getAttribute('aria-label')).toBe('Persistent Dialog');
+    expect(dialogElement.getAttribute('aria-label')).toBe(null);
     expect(dialogElement.getAttribute('aria-labelledby')).toBe('dialog-title');
     expect(dialogElement.getAttribute('aria-describedby')).toBe('dialog-description');
   });
