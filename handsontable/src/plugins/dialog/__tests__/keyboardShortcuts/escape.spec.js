@@ -145,7 +145,6 @@ describe('Dialog keyboard shortcut', () => {
           content: 'Custom content',
           background: 'semi-transparent',
           contentBackground: true,
-          contentDirections: 'column',
           animation: false,
         },
       });
@@ -159,7 +158,6 @@ describe('Dialog keyboard shortcut', () => {
       expect(dialogPlugin.isVisible()).toBe(true);
       expect(getDialogContainerElement()).toHaveClass('ht-dialog--background-semi-transparent');
       expect(getDialogContentContainerElement()).toHaveClass('ht-dialog__content--background');
-      expect(getDialogContentContainerElement()).toHaveClass('ht-dialog__content--flex-column');
 
       await keyDownUp('escape');
 

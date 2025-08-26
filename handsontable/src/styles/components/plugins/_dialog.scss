@@ -19,6 +19,7 @@
     border-radius: var(--ht-wrapper-border-radius);
     border: 1px solid var(--ht-border-color);
     box-sizing: border-box !important;
+    outline: none;
 
     &[dir="rtl"] {
       left: auto;
@@ -65,8 +66,6 @@
     &__content {
       position: relative;
       padding: var(--ht-dialog-content-padding-horizontal) var(--ht-dialog-content-padding-vertical);
-      display: flex;
-      gap: var(--ht-dialog-content-gap);
       max-width: 480px;
       color: var(--ht-foreground-color);
 
@@ -75,24 +74,6 @@
 
         border-radius: var(--ht-dialog-content-border-radius);
         background-color: var(--ht-dialog-content-background-color);
-      }
-
-      &--flex {
-        &-row {
-          flex-direction: row;
-        }
-
-        &-row-reverse {
-          flex-direction: row-reverse;
-        }
-
-        &-column {
-          flex-direction: column;
-        }
-
-        &-column-reverse {
-          flex-direction: column-reverse;
-        }
       }
     }
   }

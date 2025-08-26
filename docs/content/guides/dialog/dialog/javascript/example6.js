@@ -88,9 +88,13 @@ const hot = new Handsontable(container, {
   height: 300,
   stretchH: 'all',
   dialog: {
-    content:
-      '<p>This dialog uses column direction for content layout.</p><button>Button 1</button><button>Button 2</button>',
-    contentDirections: 'column',
+    content: '<h2 id="example6-title">Title</h2><p id="example6-description">Description</p>',
+    a11y: {
+      role: 'alertdialog',
+      ariaLabel: 'Title',
+      ariaLabelledby: 'example6-title',
+      ariaDescribedby: 'example6-description',
+    },
     closable: true,
   },
   licenseKey: 'non-commercial-and-evaluation',
@@ -100,10 +104,3 @@ const hot = new Handsontable(container, {
 const dialogPlugin = hot.getPlugin('dialog');
 
 dialogPlugin.show();
-
-// Add event listeners for select
-document.getElementById('content-direction-select').addEventListener('change', (event) => {
-  dialogPlugin.update({
-    contentDirections: event.target.value,
-  });
-});

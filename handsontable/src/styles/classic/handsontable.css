@@ -2155,22 +2155,6 @@ thead th.hiddenHeaderText .colHeader {
   background-color: #f7f7f9;
 }
 
-.ht-dialog__content--flex-row {
-  flex-direction: row;
-}
-
-.ht-dialog__content--flex-row-reverse {
-  flex-direction: row-reverse;
-}
-
-.ht-dialog__content--flex-column {
-  flex-direction: column;
-}
-
-.ht-dialog__content--flex-column-reverse {
-  flex-direction: column-reverse;
-}
-
 .ht-root-wrapper .ht-pagination {
   color: #222;
   background: #f0f0f0;

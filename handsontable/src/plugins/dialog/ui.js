@@ -120,7 +120,6 @@ export class DialogUI {
    * @param {string} options.customClassName - The custom class name to add to the dialog.
    * @param {string} options.background - The background to add to the dialog.
    * @param {boolean} options.contentBackground - Whether to show content background.
-   * @param {string} options.contentDirections - The flex direction for content layout.
    * @param {boolean} options.animation - Whether to add the animation class to the dialog.
    * @param {object} options.a11y - The accessibility options for the dialog.
    *
@@ -132,7 +131,6 @@ export class DialogUI {
     customClassName,
     background,
     contentBackground,
-    contentDirections,
     animation,
     a11y,
   }) {
@@ -154,7 +152,7 @@ export class DialogUI {
     // Dialog aria attributes
     setAttribute(dialogElement, [
       a11y.role === 'alertdialog' ? A11Y_ALERTDIALOG() : A11Y_DIALOG(),
-      a11y.ariaLabel ? A11Y_LABEL(a11y.ariaLabel) : null,
+      a11y.ariaLabel && !a11y.ariaLabelledby ? A11Y_LABEL(a11y.ariaLabel) : null,
       a11y.ariaLabelledby ? A11Y_LABELED_BY(a11y.ariaLabelledby) : null,
       a11y.ariaDescribedby ? A11Y_DESCRIBED_BY(a11y.ariaDescribedby) : null,
     ]);
@@ -162,12 +160,9 @@ export class DialogUI {
     // Dialog content class name
     const contentBackgroundClass = contentBackground ?
       ` ${DIALOG_CLASS_NAME}__content--background` : '';
-    const contentDirectionsClass = contentDirections ?
-      ` ${DIALOG_CLASS_NAME}__content--flex-${contentDirections}` : '';
 
     // Update content class name
-    contentElement.className =
-      `${DIALOG_CLASS_NAME}__content${contentBackgroundClass}${contentDirectionsClass}`;
+    contentElement.className = `${DIALOG_CLASS_NAME}__content${contentBackgroundClass}`;
 
     // Clear existing dialog content
     contentElement.innerHTML = '';

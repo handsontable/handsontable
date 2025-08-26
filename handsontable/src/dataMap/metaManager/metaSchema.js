@@ -1859,7 +1859,6 @@ export default () => {
      * | `customClassName`        | A string (default: `''`)                                                                               | The custom class name of the dialog     |
      * | `background`             | One of the options: `'solid'` or `'semi-transparent'` (default: `'solid'`)                             | The background of the dialog            |
      * | `contentBackground`      | Boolean (default: `false`)                                                                             | Whether to show the content background  |
-     * | `contentDirections`      | One of the options: `'row'` or `'row-reverse'` or `'column'` or `'column-reverse'` (default: `'row'`)  | The direction of the content            |
      * | `animation`              | Boolean (default: `true`)                                                                              | Whether to show the animation           |
      * | `closable`               | Boolean (default: `false`)                                                                             | Whether to show the close button        |
      *
@@ -1884,7 +1883,6 @@ export default () => {
      *   customClassName: 'custom-dialog',
      *   background: 'semi-transparent',
      *   contentBackground: false,
-     *   contentDirections: 'column',
      *   animation: false,
      *   closable: true,
      * }
@@ -1905,7 +1903,6 @@ export default () => {
      *     customClassName: 'custom-dialog',
      *     background: 'semi-transparent',
      *     contentBackground: false,
-     *     contentDirections: 'column',
      *     animation: false,
      *     closable: true,
      *   }}
@@ -1921,7 +1918,6 @@ export default () => {
      *     customClassName: 'custom-dialog',
      *     background: 'semi-transparent',
      *     contentBackground: false,
-     *     contentDirections: 'column',
      *     animation: false,
      *     closable: true,
      *   }
@@ -3012,6 +3008,45 @@ export default () => {
      * ```
      */
     locale: 'en-US',
+
+    /**
+     * @description
+     * The `loading` option configures the [`Loading`](@/api/loading.md) plugin.
+     *
+     * You can set the `loading` option to one of the following:
+     *
+     * | Setting   | Description                                                                 |
+     * | --------- | --------------------------------------------------------------------------- |
+     * | `false`   | Disable the [`Loading`](@/api/loading.md) plugin                           |
+     * | `true`    | Enable the [`Loading`](@/api/loading.md) plugin with default configuration |
+     * | An object | - Enable the [`Loading`](@/api/loading.md) plugin<br>- Apply custom configuration |
+     *
+     * If you set the `loading` option to an object, you can configure the following loading options:
+     *
+     * | Option    | Possible settings | Description                    |
+     * | --------- | ----------------- | ------------------------------ |
+     * | `message` | A string          | Custom loading message to display |
+     *
+     * Read more:
+     * - [Plugins: `Loading`](@/api/loading.md)
+     *
+     * @memberof Options#
+     * @type {boolean|object}
+     * @default false
+     * @category Loading
+     *
+     * @example
+     * ```js
+     * // enable the `Loading` plugin with default configuration
+     * loading: true,
+     *
+     * // enable the `Loading` plugin with custom configuration
+     * loading: {
+     *   message: 'Please wait while data is loading...'
+     * }
+     * ```
+     */
+    loading: false,
 
     /**
      * The `manualColumnFreeze` option configures the [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) plugin.

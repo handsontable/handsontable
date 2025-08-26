@@ -23,7 +23,6 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
  * - `customClassName`: Custom class name to apply to the dialog (default: '')
  * - `background`: Dialog background variant 'solid' | 'semi-transparent' (default: 'solid')
  * - `contentBackground`: Whether to show content background (default: false)
- * - `contentDirections`: Content layout direction 'row' | 'row-reverse' | 'column' | 'column-reverse' (default: 'row')
  * - `animation`: Whether to enable animations (default: true)
  * - `closable`: Whether the dialog can be closed (default: false)
  * - `a11y`: Object with accessibility options (default: {
@@ -46,7 +45,6 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
  *   customClassName: 'custom-dialog',
  *   background: 'semi-transparent',
  *   contentBackground: false,
- *   contentDirections: 'column',
  *   animation: false,
  *   closable: true,
  * }
@@ -58,7 +56,6 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
  * dialogPlugin.show({
  *    content: '<h2>Custom Dialog</h2><p>This is a custom dialog content.</p>',
  *    closable: true,
- *    contentDirections: 'column',
  * });
  *
  * // Hide the dialog programmatically:
@@ -94,7 +91,6 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
  *         data: data,
  *         dialog: {
  *           customClassName: 'react-dialog',
- *           contentDirections: 'column',
  *           closable: true
  *         }
  *       }}
@@ -122,7 +118,6 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
  *     data: data,
  *     dialog: {
  *       customClassName: 'angular-dialog',
- *       contentDirections: 'column',
  *       closable: true
  *     }
  *   };
@@ -160,12 +155,11 @@ export class Dialog extends BasePlugin {
       customClassName: '',
       background: 'solid',
       contentBackground: false,
-      contentDirections: 'row',
       animation: true,
       closable: false,
       a11y: {
         role: 'dialog',
-        ariaLabel: '',
+        ariaLabel: 'Dialog',
         ariaLabelledby: '',
         ariaDescribedby: '',
       },
@@ -180,7 +174,6 @@ export class Dialog extends BasePlugin {
       customClassName: value => typeof value === 'string',
       background: value => ['solid', 'semi-transparent'].includes(value),
       contentBackground: value => typeof value === 'boolean',
-      contentDirections: value => ['row', 'row-reverse', 'column', 'column-reverse'].includes(value),
       animation: value => typeof value === 'boolean',
       closable: value => typeof value === 'boolean',
       a11y: value => typeof value === 'object' &&
@@ -352,7 +345,6 @@ export class Dialog extends BasePlugin {
    * @param {string} options.customClassName Custom CSS class name to apply to the dialog container. Default: ''
    * @param {'solid'|'semi-transparent'} options.background Dialog background variant. Default: 'solid'.
    * @param {boolean} options.contentBackground Whether to show content background. Default: false.
-   * @param {'row'|'row-reverse'|'column'|'column-reverse'} options.contentDirections Content layout direction. Default: 'row'.
    * @param {boolean} options.animation Whether to enable animations when showing/hiding the dialog. Default: true.
    * @param {boolean} options.closable Whether the dialog can be closed by user interaction. Default: false.
    */
@@ -423,7 +415,6 @@ export class Dialog extends BasePlugin {
    * @param {string} options.customClassName Custom CSS class name to apply to the dialog container. Default: ''
    * @param {'solid'|'semi-transparent'} options.background Dialog background variant. Default: 'solid'.
    * @param {boolean} options.contentBackground Whether to show content background. Default: false.
-   * @param {'row'|'row-reverse'|'column'|'column-reverse'} options.contentDirections Content layout direction. Default: 'row'.
    * @param {boolean} options.animation Whether to enable animations when showing/hiding the dialog. Default: true.
    * @param {boolean} options.closable Whether the dialog can be closed by user interaction. Default: false.
    */
@@ -440,7 +431,6 @@ export class Dialog extends BasePlugin {
       customClassName: this.getSetting('customClassName'),
       background: this.getSetting('background'),
       contentBackground: this.getSetting('contentBackground'),
-      contentDirections: this.getSetting('contentDirections'),
       animation: this.getSetting('animation'),
       a11y: this.getSetting('a11y'),
     });
