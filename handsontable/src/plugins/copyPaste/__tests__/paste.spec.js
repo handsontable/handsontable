@@ -798,5 +798,73 @@ describe('CopyPaste', () => {
 
       expect(pasteEvent.preventDefault).toHaveBeenCalled();
     });
+
+    it('should paste the object-based cells as objects, when the data schema of the target cell matches the pasted content', async() => {
+      handsontable({
+        data: [
+          [{ id: 1, value: 'A1' }],
+          [{ id: 2, value: 'A2' }],
+        ],
+      });
+
+      const plugin = getPlugin('CopyPaste');
+      const event = getClipboardEvent();
+
+      await selectCell(0, 0);
+      plugin.onCopy(event);
+
+      await selectCell(1, 0);
+      plugin.onPaste(event);
+
+      expect(getDataAtCell(1, 0)).toEqual({ id: 1, value: 'A1' });
+    });
+
+    it('should paste the object-based cells as their displayed value, when the target cell is not object-based', async() => {
+      handsontable({
+        data: [
+          [{ id: 1, value: 'A1' }, 'test'],
+          [{ id: 2, value: 'A2' }, 'test2'],
+        ],
+        columns: [
+          {
+            valueGetter: value => value?.value,
+          },
+          {},
+        ],
+      });
+
+      const plugin = getPlugin('CopyPaste');
+      const event = getClipboardEvent();
+
+      await selectCell(0, 0);
+      plugin.onCopy(event);
+
+      await selectCell(1, 1);
+      plugin.onPaste(event);
+
+      expect(getDataAtCell(1, 1)).toEqual('A1');
+    });
+
+    it('should not paste the object-based cells, when the target cell is object-based, but it\'s data schema doesn\'t match the pasted content', async() => {
+      handsontable({
+        data: [
+          [{ id: 1, value: 'A1' }, { sth: 0, label: 'test' }],
+          [{ id: 2, value: 'A2' }, { sth: 1, label: 'test2' }],
+        ],
+        valueGetter: value => value?.value ?? value?.label,
+      });
+
+      const plugin = getPlugin('CopyPaste');
+      const event = getClipboardEvent();
+
+      await selectCell(0, 0);
+      plugin.onCopy(event);
+
+      await selectCell(1, 1);
+      plugin.onPaste(event);
+
+      expect(getDataAtCell(1, 1)).toEqual('test2');
+      expect(getCopyableSourceData(1, 1)).toEqual({ sth: 1, label: 'test2' });
+    });
   });
 });

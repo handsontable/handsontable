@@ -1,6 +1,6 @@
 import { addClass, empty, observeVisibilityChangeOnce, removeClass } from './helpers/dom/element';
 import { isFunction } from './helpers/function';
-import { isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty, stringify } from './helpers/mixed';
+import { isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty } from './helpers/mixed';
 import { isMobileBrowser, isIpadOS } from './helpers/browser';
 import EditorManager from './editorManager';
 import EventManager from './eventManager';
@@ -23,7 +23,7 @@ import { getRenderer } from './renderers/registry';
 import { getEditor } from './editors/registry';
 import { getValidator } from './validators/registry';
 import { randomString, toUpperCaseFirst } from './helpers/string';
-import { rangeEach, rangeEachReverse, isNumericLike } from './helpers/number';
+import { rangeEach, rangeEachReverse } from './helpers/number';
 import TableView from './tableView';
 import DataSource from './dataMap/dataSource';
 import { spreadsheetColumnLabel } from './helpers/data';
@@ -55,6 +55,7 @@ import {
   install as installAccessibilityAnnouncer,
   uninstall as uninstallAccessibilityAnnouncer,
 } from './utils/a11yAnnouncer';
+import { getValueSetterValue } from './utils/valueAccessors';
 
 let activeGuid = null;
 
@@ -1173,8 +1174,10 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
               }
 
               const visualColumn = c - skippedColumn;
+              const hasValueSetter = !!cellMeta.valueSetter;
+
               let value = getInputValue(visualRow, visualColumn);
-              let orgValue = instance.getDataAtCell(current.row, current.col);
+              let orgValue = instance.getSourceDataAtCell(current.row, current.col) ?? null;
 
               if (value !== null && typeof value === 'object') {
                 // when 'value' is array and 'orgValue' is null, set 'orgValue' to
@@ -1184,17 +1187,20 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
                   orgValue = [];
                 }
 
-                if (orgValue === null || typeof orgValue !== 'object') {
+                if (!hasValueSetter && (typeof orgValue !== 'object' || orgValue === null)) {
                   pushData = false;
 
-                } else {
+                } else if (orgValue !== null) {
                   const orgValueSchema = duckSchema(Array.isArray(orgValue) ? orgValue : (orgValue[0] || orgValue));
                   const valueSchema = duckSchema(Array.isArray(value) ? value : (value[0] || value));
 
                   // Allow overwriting values with the same object-based schema or any array-based schema.
                   if (
-                    isObjectEqual(orgValueSchema, valueSchema) ||
-                    (Array.isArray(orgValueSchema) && Array.isArray(valueSchema))
+                    hasValueSetter || // If the cell has a value setter, we don't know the value schema (it's dynamic)
+                    (
+                      isObjectEqual(orgValueSchema, valueSchema) ||
+                      (Array.isArray(orgValueSchema) && Array.isArray(valueSchema))
+                    )
                   ) {
                     value = deepClone(value);
 
@@ -1203,15 +1209,18 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
                   }
                 }
 
-              } else if (orgValue !== null && typeof orgValue === 'object') {
+              } else if (!hasValueSetter && orgValue !== null && typeof orgValue === 'object') {
                 pushData = false;
               }
+
               if (pushData) {
                 setData.push([current.row, current.col, value]);
               }
+
               pushData = true;
               current.col += 1;
             }
+
             current.row += 1;
           }
           instance.setDataAtCell(setData, null, null, source || 'populateFromArray');
@@ -1354,25 +1363,6 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
         }
       }
     };
-  }
-
-  /**
-   * Get parsed number from numeric string.
-   *
-   * @private
-   * @param {string} numericData Float (separated by a dot or a comma) or integer.
-   * @returns {number} Number if we get data in parsable format, not changed value otherwise.
-   */
-  function getParsedNumber(numericData) {
-    // Unifying "float like" string. Change from value with comma determiner to value with dot determiner,
-    // for example from `450,65` to `450.65`.
-    const unifiedNumericData = numericData.replace(',', '.');
-
-    if (isNaN(parseFloat(unifiedNumericData)) === false) {
-      return parseFloat(unifiedNumericData);
-    }
-
-    return numericData;
   }
 
   /**
@@ -1674,29 +1664,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
         cellProperties = { ...Object.getPrototypeOf(tableMeta), ...tableMeta };
       }
 
-      const {
-        type,
-        checkedTemplate,
-        uncheckedTemplate,
-      } = cellProperties;
-
-      if (
-        type === 'numeric' &&
-        typeof newValue === 'string' &&
-        isNumericLike(newValue)
-      ) {
-        filteredChanges[i][3] = getParsedNumber(newValue);
-      }
-
-      if (type === 'checkbox') {
-        const stringifiedValue = stringify(newValue);
-        const isChecked = stringifiedValue === stringify(checkedTemplate);
-        const isUnchecked = stringifiedValue === stringify(uncheckedTemplate);
-
-        if (isChecked || isUnchecked) {
-          filteredChanges[i][3] = isChecked ? checkedTemplate : uncheckedTemplate;
-        }
-      }
+      filteredChanges[i][3] = getValueSetterValue(newValue, cellProperties);
     }
 
     return filteredChanges;
@@ -1723,25 +1691,27 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     let prop;
 
     for (i = 0, ilen = input.length; i < ilen; i++) {
+      const [visualRow, visualColumn, newValue] = input[i];
+
       if (typeof input[i] !== 'object') {
         throw new Error('Method `setDataAtCell` accepts row number or changes array of arrays as its first parameter');
       }
-      if (typeof input[i][1] !== 'number') {
+      if (typeof visualColumn !== 'number') {
         throw new Error('Method `setDataAtCell` accepts row and column number as its parameters. If you want to use object property name, use method `setDataAtRowProp`'); // eslint-disable-line max-len
       }
 
-      if (input[i][1] >= this.countCols()) {
-        prop = input[i][1];
+      if (visualColumn >= this.countCols()) {
+        prop = visualColumn;
 
       } else {
-        prop = datamap.colToProp(input[i][1]);
+        prop = datamap.colToProp(visualColumn);
       }
 
       changes.push([
-        input[i][0],
+        visualRow,
         prop,
-        dataSource.getAtCell(this.toPhysicalRow(input[i][0]), input[i][1]),
-        input[i][2],
+        dataSource.getAtCell(this.toPhysicalRow(visualRow), visualColumn),
+        newValue,
       ]);
     }
 
@@ -1778,11 +1748,13 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     let ilen;
 
     for (i = 0, ilen = input.length; i < ilen; i++) {
+      const [visualRow, inputProp, newValue] = input[i];
+
       changes.push([
-        input[i][0],
-        input[i][1],
-        dataSource.getAtCell(this.toPhysicalRow(input[i][0]), input[i][1]),
-        input[i][2],
+        visualRow,
+        inputProp,
+        dataSource.getAtCell(this.toPhysicalRow(visualRow), inputProp),
+        newValue,
       ]);
     }
 
@@ -2645,6 +2617,20 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   };
 
   /**
+   * Returns the source data's copyable value at specified `row` and `column` index.
+   *
+   * @memberof Core#
+   * @function getCopyableSourceData
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @since 16.1.0
+   * @returns {string}
+   */
+  this.getCopyableSourceData = function(row, column) {
+    return dataSource.getCopyable(row, datamap.colToProp(column));
+  };
+
+  /**
    * Returns schema provided by constructor settings. If it doesn't exist then it returns the schema based on the data
    * structure in the first row.
    *
@@ -3328,20 +3314,41 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     const input = setDataInputToArray(row, column, value);
     const isThereAnySetSourceListener = this.hasHook('afterSetSourceDataAtCell');
     const changesForHook = [];
+    const getCellProperties = (changeRow, changeProp) => {
+      const visualRow = this.toVisualRow(changeRow);
+      const visualColumn = this.toVisualColumn(changeProp);
+
+      if (Number.isInteger(visualColumn)) {
+        return this.getCellMeta(visualRow, visualColumn);
+      }
+
+      // If there's no requested visual column, we can use the table meta as the cell properties
+      return { ...Object.getPrototypeOf(tableMeta), ...tableMeta };
+    };
 
     if (isThereAnySetSourceListener) {
       arrayEach(input, ([changeRow, changeProp, changeValue]) => {
+        const newValue = getValueSetterValue(
+          changeValue,
+          getCellProperties(changeRow, changeProp),
+        );
+
         changesForHook.push([
           changeRow,
           changeProp,
           dataSource.getAtCell(changeRow, changeProp), // The previous value.
-          changeValue,
+          newValue,
         ]);
       });
     }
 
     arrayEach(input, ([changeRow, changeProp, changeValue]) => {
-      dataSource.setAtCell(changeRow, changeProp, changeValue);
+      const newValue = getValueSetterValue(
+        changeValue,
+        getCellProperties(changeRow, changeProp)
+      );
+
+      dataSource.setAtCell(changeRow, changeProp, newValue);
     });
 
     if (isThereAnySetSourceListener) {

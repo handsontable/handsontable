@@ -108,9 +108,13 @@ To enable the [`ColumnSummary`](@/api/columnSummary.md) plugin, set the [`column
 ::: only-for javascript
 
 ```js
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const hot = new Handsontable(document.querySelector('#example'), {
   licenseKey: 'non-commercial-and-evaluation',
