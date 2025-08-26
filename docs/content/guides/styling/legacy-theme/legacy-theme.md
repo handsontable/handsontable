@@ -39,6 +39,7 @@ The `classic` (legacy) CSS file ([`handsontable.full.min.css`](https://github.co
 ![Handsontable legacy classic theme]({{$basePath}}/img/legacy_classic_theme.png)
 
 
+
 ### Limitations of the Legacy Theme
 
 The legacy classic theme was built with hardcoded styles that couldn't be customized with CSS variables. The new Classic (Modern) theme provides the same visual appearance but with the flexibility of CSS variables, making it easier to customize and maintain consistency with your application's design system.
@@ -53,4 +54,4 @@ The legacy classic theme was built with hardcoded styles that couldn't be custom
 
 If you're using the legacy `classic` theme and would like to upgrade, please read the following migration guide:
 
-- [Migrate from 16.0 to 16.1](@/migration-from-16.0-to-16.1/)
+- [Migrate from 16.0 to 16.1](@/guides/upgrade-and-migration/migrating-from-16.0-to-16.1/migrating-from-16.0-to-16.1.md)
