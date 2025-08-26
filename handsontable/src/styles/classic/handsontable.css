@@ -2070,10 +2070,108 @@ thead th.hiddenHeaderText .colHeader {
 }
 
 .ht-root-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
   height: 100%;
 }
 
-.ht-root-wrapper .ht-pagination-container {
+.ht-grid {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.ht-dialog {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: none;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Helvetica Neue", Arial, sans-serif;
+  font-size: 13px;
+  width: 100%;
+  height: 100%;
+  z-index: 1060;
+  opacity: 0;
+  overflow-y: auto;
+  border: 1px solid #ccc;
+  box-sizing: border-box !important;
+}
+
+.ht-dialog[dir=rtl] {
+  left: auto;
+  right: 0
+}
+
+.ht-dialog:has(.htFocusCatcher:focus) {
+  border: 1px solid var(--ht-accent-color);
+  outline: none
+}
+
+.ht-dialog * {
+  box-sizing: border-box !important;
+}
+
+.ht-dialog--background-solid {
+  background-color: #fff;
+}
+
+.ht-dialog--background-semi-transparent {
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+.ht-dialog--animation {
+  transition: opacity 0.15s ease-in-out;
+}
+
+.ht-dialog--show {
+  opacity: 1;
+}
+
+.ht-dialog__content-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 100%;
+  padding: 16px;
+}
+
+.ht-dialog__content-wrapper:focus {
+  border: 1px solid #4b89ff;
+  outline: none;
+}
+
+.ht-dialog__content {
+  position: relative;
+  padding: 8px;
+  display: flex;
+  gap: 8px;
+  max-width: 480px;
+  color: #222;
+}
+
+.ht-dialog__content--background {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+  background-color: #f7f7f9;
+}
+
+.ht-dialog__content--flex-row {
+  flex-direction: row;
+}
+
+.ht-dialog__content--flex-row-reverse {
+  flex-direction: row-reverse;
+}
+
+.ht-dialog__content--flex-column {
+  flex-direction: column;
+}
+
+.ht-dialog__content--flex-column-reverse {
+  flex-direction: column-reverse;
+}
+
+.ht-root-wrapper .ht-pagination {
   color: #222;
   background: #f0f0f0;
   border: 1px solid #ccc;
@@ -2085,7 +2183,7 @@ thead th.hiddenHeaderText .colHeader {
   overflow-x: auto;
 }
 
-.ht-root-wrapper .ht-pagination-container__inner {
+.ht-root-wrapper .ht-pagination__inner {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -2096,7 +2194,7 @@ thead th.hiddenHeaderText .colHeader {
   min-width: 230px;
 }
 
-.ht-root-wrapper .ht-pagination-container--bordered {
+.ht-root-wrapper .ht-pagination--bordered {
   border-top-color: #ccc;
 }
 

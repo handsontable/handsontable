@@ -7,15 +7,15 @@ import {
   removeClass,
   setAttribute,
 } from '../../helpers/dom/element';
-import { A11Y_DISABLED, A11Y_LABEL } from '../../helpers/a11y';
+import { A11Y_DISABLED, A11Y_LABEL, A11Y_TABINDEX } from '../../helpers/a11y';
 
 const TEMPLATE = `
-<div data-ref="container" class="ht-pagination-container handsontable">
-  <div class="ht-pagination-container__inner">
+<div data-ref="container" class="ht-pagination handsontable">
+  <div class="ht-pagination__inner">
     <div data-ref="pageSizeSection" class="ht-page-size-section">
       <span data-ref="pageSizeLabel" class="ht-page-size-section__label"></span>
       <div class="ht-page-size-section__select-wrapper">
-        <select data-ref="pageSizeSelect" name="pageSize"></select>
+        <select data-ref="pageSizeSelect" name="pageSize" data-hot-input></select>
       </div>
     </div>
     <div data-ref="pageCounterSection" class="ht-page-counter-section"></div>
@@ -132,27 +132,28 @@ export class PaginationUI {
     container.setAttribute('dir', this.#isRtl ? 'rtl' : 'ltr');
 
     const isDisabled = event => event.currentTarget.disabled;
+    const addClickListener = (eventName, element, callback) => {
+      element.addEventListener(eventName, (event) => {
+        if (!isDisabled(event)) {
+          callback();
+        }
+      });
+    };
 
-    first.addEventListener('click', (event) => {
-      if (!isDisabled(event)) {
-        this.runLocalHooks('firstPageClick');
-      }
-    });
-    prev.addEventListener('click', (event) => {
-      if (!isDisabled(event)) {
-        this.runLocalHooks('prevPageClick');
-      }
-    });
-    next.addEventListener('click', (event) => {
-      if (!isDisabled(event)) {
-        this.runLocalHooks('nextPageClick');
-      }
-    });
-    last.addEventListener('click', (event) => {
-      if (!isDisabled(event)) {
-        this.runLocalHooks('lastPageClick');
-      }
-    });
+    addClickListener('click', first, () => this.runLocalHooks('firstPageClick'));
+    addClickListener('focus', first, () => this.runLocalHooks('focus', first));
+
+    addClickListener('click', prev, () => this.runLocalHooks('prevPageClick'));
+    addClickListener('focus', prev, () => this.runLocalHooks('focus', prev));
+
+    addClickListener('click', next, () => this.runLocalHooks('nextPageClick'));
+    addClickListener('focus', next, () => this.runLocalHooks('focus', next));
+
+    addClickListener('click', last, () => this.runLocalHooks('lastPageClick'));
+    addClickListener('focus', last, () => this.runLocalHooks('focus', last));
+
+    addClickListener('focus', pageSizeSelect, () => this.runLocalHooks('focus', pageSizeSelect));
+
     pageSizeSelect.addEventListener('change', () => {
       const value = pageSizeSelect.value === 'auto' ? 'auto' : Number.parseInt(pageSizeSelect.value, 10);
 
@@ -170,6 +171,38 @@ export class PaginationUI {
     } else {
       this.#rootElement.after(elements.fragment);
     }
+  }
+
+  /**
+   * Gets the pagination element.
+   *
+   * @returns {HTMLElement} The pagination element.
+   */
+  getContainer() {
+    return this.#refs.container;
+  }
+
+  /**
+   * Gets the focusable elements.
+   *
+   * @returns {HTMLElement[]} The focusable elements.
+   */
+  getFocusableElements() {
+    const {
+      first,
+      prev,
+      next,
+      last,
+      pageSizeSelect,
+    } = this.#refs;
+
+    return [
+      pageSizeSelect,
+      first,
+      prev,
+      next,
+      last,
+    ].filter(element => !element.disabled);
   }
 
   /**
@@ -224,9 +257,9 @@ export class PaginationUI {
     const { container } = this.#refs;
 
     if (this.#uiContainer || this.#shouldHaveBorder()) {
-      addClass(container, 'ht-pagination-container--bordered');
+      addClass(container, 'ht-pagination--bordered');
     } else {
-      removeClass(container, 'ht-pagination-container--bordered');
+      removeClass(container, 'ht-pagination--bordered');
     }
 
     return this;
@@ -289,6 +322,7 @@ export class PaginationUI {
     ]);
     setAttribute(pageSizeSelect, [
       ...[A11Y_LABEL(this.#phraseTranslator(C.PAGINATION_PAGE_SIZE_SECTION))],
+      ...([A11Y_TABINDEX(-1)]),
     ]);
 
     this.#a11yAnnouncer(navLabelText);
@@ -311,56 +345,63 @@ export class PaginationUI {
 
     const isFirstPage = currentPage === 1;
     const isLastPage = currentPage === totalPages;
-    const activeElement = this.#rootElement.ownerDocument.activeElement;
 
-    if (isFirstPage) {
-      addClass(first, 'ht-page-navigation-section__button--disabled');
-      addClass(prev, 'ht-page-navigation-section__button--disabled');
-      first.disabled = true;
-      prev.disabled = true;
-    } else {
-      removeClass(first, 'ht-page-navigation-section__button--disabled');
-      removeClass(prev, 'ht-page-navigation-section__button--disabled');
-      first.disabled = false;
-      prev.disabled = false;
-    }
+    if (pageNavSection.style.display !== 'none') {
+      const activeElement = this.#rootElement.ownerDocument.activeElement;
 
-    if (isLastPage) {
-      addClass(next, 'ht-page-navigation-section__button--disabled');
-      addClass(last, 'ht-page-navigation-section__button--disabled');
-      next.disabled = true;
-      last.disabled = true;
-    } else {
-      removeClass(next, 'ht-page-navigation-section__button--disabled');
-      removeClass(last, 'ht-page-navigation-section__button--disabled');
-      next.disabled = false;
-      last.disabled = false;
-    }
+      if (isFirstPage) {
+        addClass(first, 'ht-page-navigation-section__button--disabled');
+        addClass(prev, 'ht-page-navigation-section__button--disabled');
+        first.disabled = true;
+        prev.disabled = true;
+      } else {
+        removeClass(first, 'ht-page-navigation-section__button--disabled');
+        removeClass(prev, 'ht-page-navigation-section__button--disabled');
+        first.disabled = false;
+        prev.disabled = false;
+      }
 
-    if ([first, prev, next, last].includes(activeElement)) {
-      if (prev.disabled) {
-        next.focus();
+      if (isLastPage) {
+        addClass(next, 'ht-page-navigation-section__button--disabled');
+        addClass(last, 'ht-page-navigation-section__button--disabled');
+        next.disabled = true;
+        last.disabled = true;
+      } else {
+        removeClass(next, 'ht-page-navigation-section__button--disabled');
+        removeClass(last, 'ht-page-navigation-section__button--disabled');
+        next.disabled = false;
+        last.disabled = false;
+      }
 
-      } else if (next.disabled) {
-        prev.focus();
+      if ([first, prev, next, last].includes(activeElement)) {
+        if (prev.disabled) {
+          next.focus();
+
+        } else if (next.disabled) {
+          prev.focus();
+        }
       }
     }
 
     setAttribute(first, [
       ...[A11Y_LABEL(this.#phraseTranslator(C.PAGINATION_FIRST_PAGE))],
       ...([A11Y_DISABLED(isFirstPage)]),
+      ...([A11Y_TABINDEX(-1)]),
     ]);
     setAttribute(prev, [
       ...[A11Y_LABEL(this.#phraseTranslator(C.PAGINATION_PREV_PAGE))],
       ...([A11Y_DISABLED(isFirstPage)]),
+      ...([A11Y_TABINDEX(-1)]),
     ]);
     setAttribute(next, [
       ...[A11Y_LABEL(this.#phraseTranslator(C.PAGINATION_NEXT_PAGE))],
       ...([A11Y_DISABLED(isLastPage)]),
+      ...([A11Y_TABINDEX(-1)]),
     ]);
     setAttribute(last, [
       ...[A11Y_LABEL(this.#phraseTranslator(C.PAGINATION_LAST_PAGE))],
       ...([A11Y_DISABLED(isLastPage)]),
+      ...([A11Y_TABINDEX(-1)]),
     ]);
 
     return this;
@@ -373,7 +414,14 @@ export class PaginationUI {
    * @returns {PaginationUI} The instance of the PaginationUI for method chaining.
    */
   setPageSizeSectionVisibility(isVisible) {
-    this.#refs.pageSizeSection.style.display = isVisible ? '' : 'none';
+    const {
+      pageSizeSection,
+      pageSizeSelect,
+    } = this.#refs;
+
+    pageSizeSection.style.display = isVisible ? '' : 'none';
+    pageSizeSelect.disabled = !isVisible;
+
     this.#updateContainerVisibility();
 
     return this;
@@ -399,7 +447,20 @@ export class PaginationUI {
    * @returns {PaginationUI} The instance of the PaginationUI for method chaining.
    */
   setNavigationSectionVisibility(isVisible) {
-    this.#refs.pageNavSection.style.display = isVisible ? '' : 'none';
+    const {
+      pageNavSection,
+      first,
+      prev,
+      next,
+      last,
+    } = this.#refs;
+
+    pageNavSection.style.display = isVisible ? '' : 'none';
+    first.disabled = !isVisible;
+    prev.disabled = !isVisible;
+    next.disabled = !isVisible;
+    last.disabled = !isVisible;
+
     this.#updateContainerVisibility();
 
     return this;
@@ -425,9 +486,9 @@ export class PaginationUI {
     // adds or removes the corner around the Handsontable root element
     if (!this.#uiContainer) {
       if (isSectionVisible) {
-        addClass(this.#rootElement, 'htPagination');
+        addClass(this.#rootElement.querySelector('.ht-wrapper'), 'htPagination');
       } else {
-        removeClass(this.#rootElement, 'htPagination');
+        removeClass(this.#rootElement.querySelector('.ht-wrapper'), 'htPagination');
       }
     }
 

@@ -51,7 +51,8 @@ describe('manualRowMove', () => {
       spec().$container.find('tbody tr:eq(0) th:eq(0)').simulate('mousedown');
       spec().$container.find('tbody tr:eq(0) th:eq(0)').simulate('mouseup');
 
-      expect(spec().$container.children().first().children().hasClass('after-selection--rows')).toBeGreaterThan(0);
+      expect(spec().$container.children().children().first().children().hasClass('after-selection--rows'))
+        .toBeGreaterThan(0);
     });
 
     it('should change the default row order with updateSettings', async() => {

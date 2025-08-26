@@ -265,6 +265,8 @@ export class BaseEditor {
       this.hot.removeHook('afterScroll', openEditor);
       openEditor();
     }
+
+    this.addHook('beforeDialogShow', () => this.cancelChanges());
   }
 
   /**

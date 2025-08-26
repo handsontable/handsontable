@@ -202,6 +202,14 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   this.rootWrapperElement = undefined;
 
   /**
+   * Reference to the grid element.
+   *
+   * @private
+   * @type {HTMLElement}
+   */
+  this.rootGridElement = undefined;
+
+  /**
    * Reference to the portal element.
    *
    * @private
@@ -236,12 +244,15 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
   if (isRootInstance(this)) {
     this.rootWrapperElement = this.rootDocument.createElement('div');
+    this.rootGridElement = this.rootDocument.createElement('div');
     this.rootPortalElement = this.rootDocument.createElement('div');
 
     addClass(this.rootElement, ['ht-wrapper', 'handsontable']);
     addClass(this.rootWrapperElement, 'ht-root-wrapper');
+    addClass(this.rootGridElement, 'ht-grid');
 
-    this.rootWrapperElement.appendChild(this.rootElement);
+    this.rootGridElement.appendChild(this.rootElement);
+    this.rootWrapperElement.appendChild(this.rootGridElement);
     this.rootContainer.appendChild(this.rootWrapperElement);
 
     addClass(this.rootPortalElement, 'ht-portal');
@@ -370,10 +381,6 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   this.container = this.rootDocument.createElement('div');
 
   this.rootElement.insertBefore(this.container, this.rootElement.firstChild);
-
-  if (isRootInstance(this)) {
-    _injectProductInfo(mergedUserSettings.licenseKey, this.rootWrapperElement);
-  }
 
   this.guid = `ht_${randomString()}`; // this is the namespace for global events
 
@@ -1295,6 +1302,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     if (isRootInstance(this)) {
       installFocusCatcher(instance);
       installAccessibilityAnnouncer(instance.rootPortalElement);
+      _injectProductInfo(mergedUserSettings.licenseKey, this.rootWrapperElement);
     }
 
     instance.runHooks('init');

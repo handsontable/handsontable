@@ -1,0 +1,99 @@
+@use "../../utils/mixins";
+
+// Dialog
+
+@mixin output {
+  .ht-dialog {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: none;
+    font-size: var(--ht-font-size);
+    line-height: var(--ht-line-height);
+    letter-spacing: var(--ht-letter-spacing);
+    width: 100%;
+    height: 100%;
+    z-index: 1060;
+    opacity: 0;
+    overflow-y: auto;
+    border-radius: var(--ht-wrapper-border-radius);
+    border: 1px solid var(--ht-border-color);
+    box-sizing: border-box !important;
+
+    &[dir="rtl"] {
+      left: auto;
+      right: 0;
+    }
+
+    &:has(.htFocusCatcher:focus) {
+      border: 1px solid var(--ht-accent-color);
+      outline: none;
+    }
+
+    & * {
+      box-sizing: border-box !important;
+    }
+
+    &--background {
+      &-solid {
+      background-color: var(--ht-dialog-solid-background-color);
+      }
+
+      &-semi-transparent {
+        background-color: var(--ht-dialog-semi-transparent-background-color);
+      }
+    }
+
+    &--animation {
+      transition: opacity var(--ht-table-transition) ease-in-out;
+    }
+
+    &--show {
+      opacity: 1;
+    }
+
+    &__content-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      min-height: 100%;
+      padding: calc(var(--ht-gap-size) * 4);
+      border-radius: var(--ht-wrapper-border-radius);
+    }
+    
+    &__content {
+      position: relative;
+      padding: var(--ht-dialog-content-padding-horizontal) var(--ht-dialog-content-padding-vertical);
+      display: flex;
+      gap: var(--ht-dialog-content-gap);
+      max-width: 480px;
+      color: var(--ht-foreground-color);
+
+      &--background {
+        @include mixins.box-shadow;
+
+        border-radius: var(--ht-dialog-content-border-radius);
+        background-color: var(--ht-dialog-content-background-color);
+      }
+
+      &--flex {
+        &-row {
+          flex-direction: row;
+        }
+
+        &-row-reverse {
+          flex-direction: row-reverse;
+        }
+
+        &-column {
+          flex-direction: column;
+        }
+
+        &-column-reverse {
+          flex-direction: column-reverse;
+        }
+      }
+    }
+  }
+}
