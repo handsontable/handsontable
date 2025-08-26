@@ -17,6 +17,7 @@ const stylingItems = [
   { path: 'guides/styling/themes/themes' },
   { path: 'guides/styling/design-system/design-system' },
   { path: 'guides/styling/theme-customization/theme-customization' },
+  { path: 'guides/styling/legacy-theme/legacy-theme' },
 ];
 
 const integrateWithVueItems = [
