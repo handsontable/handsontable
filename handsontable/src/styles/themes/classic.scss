@@ -55,8 +55,8 @@
   --ht-cell-mobile-handle-border-color: #5292f7;
   --ht-cell-mobile-handle-background-color: rgba(82, 146, 247, 0.40);
   --ht-resize-indicator-color: #999999;
-  --ht-move-backlight-color: rgba(55, 55, 55, 0.08);
-  --ht-move-indicator-color: #5292f7;
+  --ht-move-backlight-color: rgba(55, 55, 55, 0.25);
+  --ht-move-indicator-color: #999999;
   --ht-hidden-indicator-color: #999999;
   --ht-scrollbar-border-radius: 8px;
   --ht-scrollbar-track-color: #f0f0f0;
@@ -237,7 +237,6 @@
   --ht-dialog-solid-background-color: #ffffff;
   --ht-dialog-content-padding-horizontal: 8px;
   --ht-dialog-content-padding-vertical: 8px;
-  --ht-dialog-content-gap: 8px;
   --ht-dialog-content-border-radius: 8px;
   --ht-dialog-content-background-color: #f0f0f0;
   --ht-pagination-bar-foreground-color: #373737;
@@ -278,8 +277,8 @@
   --ht-cell-mobile-handle-border-color: #7aadff;
   --ht-cell-mobile-handle-background-color: rgba(122, 173, 255, 0.40);
   --ht-resize-indicator-color: #777777;
-  --ht-move-backlight-color: rgba(220, 220, 220, 0.16);
-  --ht-move-indicator-color: #7aadff;
+  --ht-move-backlight-color: rgba(220, 220, 220, 0.25);
+  --ht-move-indicator-color: #777777;
   --ht-hidden-indicator-color: #777777;
   --ht-scrollbar-track-color: #222222;
   --ht-scrollbar-thumb-color: rgba(220, 220, 220, 0.40);
