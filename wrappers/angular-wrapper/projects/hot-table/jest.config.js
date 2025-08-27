@@ -15,7 +15,10 @@ module.exports = {
     // Map any path aliases from tsconfig if needed
     '\\.(css|less|scss|sass)$': '<rootDir>/src/__mocks__/styleMock.js'
   },
-  transformIgnorePatterns: ['node_modules/(?!.*\\.mjs$)'],
+  transformIgnorePatterns: [
+    'node_modules/(?!.*\\.mjs$|zone\\.js|@angular|rxjs)'
+  ],
+  moduleDirectories: ['node_modules', '<rootDir>/../../node_modules'],
   testEnvironmentOptions: {
     html: `
         <html>

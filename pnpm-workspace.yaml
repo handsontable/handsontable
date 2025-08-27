@@ -27,14 +27,27 @@ packageExtensions:
       'vue': '3.5.16'
       '@vue/compiler-dom': '3.5.16'
       '@vue/compiler-sfc': '3.5.16'
+    peerDependencies:
+      'vue': '^3.2.22'
   'vue-jest@5.0.0-alpha.10': # Force compatible Vue3 sub-dependencies for rc and alpha versions of the wrapper dependencies.
     dependencies:
       '@vue/compiler-dom': '3.5.16'
       '@vue/compiler-sfc': '3.5.16'
+    peerDependencies:
+      'vue': '^3.2.22'
   '@nx/devkit': # Add a missing peer dependency of rxjs used by the Nx devkit.
     peerDependencies:
       'rxjs': '*'
   'jest-preset-angular@14.6.0': # Add a missing peer dependency of zone.js used by the jest preset.
     peerDependencies:
       'zone.js': '*'
+  'jsdom@16':
+    peerDependencies:
+      'form-data': '3.0.4'
+  'jsdom@24':
+    peerDependencies:
+      'form-data': '4.0.4'
+  'jsdom@20':
+    peerDependencies:
+      'form-data': '4.0.4'
 
