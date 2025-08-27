@@ -168,7 +168,6 @@
     &.htHasScrollY:not(.htVerticallyScrollableByWindow) {
       .ht_master {
         .wtHolder {
-          background-color: var(--ht-background-color);
           border-radius: var(--ht-wrapper-border-radius, 0);
         }
       }
@@ -638,6 +637,7 @@
   }
 
   .ht_master .wtHolder {
+    background-color: var(--ht-background-color);
     overflow: auto;
   }
 
