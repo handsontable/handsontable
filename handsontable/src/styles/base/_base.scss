@@ -163,12 +163,20 @@
       }
     }
 
-    // Background
     &.htHasScrollX:not(.htHorizontallyScrollableByWindow),
     &.htHasScrollY:not(.htVerticallyScrollableByWindow) {
       .ht_master {
         .wtHolder {
           border-radius: var(--ht-wrapper-border-radius, 0);
+        }
+      }
+    }
+
+    &:not(.htHorizontallyScrollableByWindow),
+    &:not(.htVerticallyScrollableByWindow) {
+      .ht_master {
+        .wtHolder {
+          background-color: var(--ht-background-color);
         }
       }
     }
@@ -637,7 +645,6 @@
   }
 
   .ht_master .wtHolder {
-    background-color: var(--ht-background-color);
     overflow: auto;
   }
 
