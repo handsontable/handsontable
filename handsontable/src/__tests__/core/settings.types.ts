@@ -252,6 +252,11 @@ const allSettings: Required<Handsontable.GridSettings> = {
     background: 'solid' as const,
     contentBackground: true,
   }),
+  loading: oneOf(true, {
+    icon: '<svg />',
+    title: 'Loading...',
+    description: 'Loading...',
+  }),
   validator: oneOf(
     (value: any, callback: (valid: boolean) => void) => callback(true),
     /^[0-9]$/,
@@ -354,6 +359,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterListen: () => {},
   afterLoadData: (sourceData, firstTime, source) => {},
   afterMergeCells: (cellRange, mergeParent, auto) => {},
+  afterLoadingShow: () => {},
+  afterLoadingHide: () => {},
   modifySourceData: (row, col, valueHolder, ioMode) => {},
   afterModifyTransformEnd: (coords, rowTransformDir, colTransformDir) => {
     const row: number = coords.row;

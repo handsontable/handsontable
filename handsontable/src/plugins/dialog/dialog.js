@@ -25,12 +25,15 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
  * - `contentBackground`: Whether to show content background (default: false)
  * - `animation`: Whether to enable animations (default: true)
  * - `closable`: Whether the dialog can be closed (default: false)
- * - `a11y`: Object with accessibility options (default: {
- *     role: 'dialog', // Role of the dialog 'dialog' | 'alertdialog' (default: 'dialog')
- *     ariaLabel: 'Dialog', // Label for the dialog (default: 'Dialog')
- *     ariaLabelledby: '', // ID of the element that labels the dialog (default: '')
- *     ariaDescribedby: '', // ID of the element that describes the dialog (default: ''),
- *   })
+ * - `a11y`: Object with accessibility options (default object below)
+ * ```js
+ * {
+ *   role: 'dialog', // Role of the dialog 'dialog' | 'alertdialog' (default: 'dialog')
+ *   ariaLabel: 'Dialog', // Label for the dialog (default: 'Dialog')
+ *   ariaLabelledby: '', // ID of the element that labels the dialog (default: '')
+ *   ariaDescribedby: '', // ID of the element that describes the dialog (default: ''),
+ * }
+ * ```
  *
  * @example
  *
@@ -101,41 +104,20 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
  * :::
  *
  * ::: only-for angular
+ * ```ts
+ * hotSettings: Handsontable.GridSettings = {
+ *   data: data,
+ *   dialog: {
+ *     customClassName: 'angular-dialog',
+ *     closable: true
+ *   }
+ * }
+ * ```
+ *
  * ```html
  * <hot-table
  *   [settings]="hotSettings">
  * </hot-table>
- * ```
- *
- * ```ts
- * @Component({
- *   // ... component decorator
- * })
- * export class MyComponent implements OnInit {
- *   @ViewChild('hot') hot: HotTableComponent;
- *
- *   hotSettings: Handsontable.GridSettings = {
- *     data: data,
- *     dialog: {
- *       customClassName: 'angular-dialog',
- *       closable: true
- *     }
- *   };
- *
- *   ngOnInit() {
- *     const dialogPlugin = this.hot.hotInstance.getPlugin('dialog');
- *
- *     dialogPlugin.show({
- *       content: `
- *         <div>
- *           <h2>Angular Dialog</h2>
- *           <p>Dialog content in Angular component</p>
- *         </div>
- *       `,
- *       closable: true
- *     });
- *   }
- * }
  * ```
  * :::
  */

@@ -42,6 +42,7 @@ import { Settings as PersistentStateSettings } from './plugins/persistentState';
 import { Settings as SearchSettings } from './plugins/search';
 import { Settings as TrimRowsSettings } from './plugins/trimRows';
 import { Settings as DialogSettings } from './plugins/dialog';
+import { Settings as LoadingSettings } from './plugins/loading';
 import { Settings as UndoRedoSettings } from './plugins/undoRedo';
 import { EditorType, BaseEditor } from './editors';
 import { RendererType } from './renderers';
@@ -227,6 +228,7 @@ export interface GridSettings extends Events {
   type?: CellType | string;
   uncheckedTemplate?: boolean | string | number;
   dialog?: DialogSettings;
+  loading?: LoadingSettings;
   undo?: UndoRedoSettings;
   validator?: BaseValidator | RegExp | ValidatorType | string;
   viewportColumnRenderingOffset?: number | 'auto';

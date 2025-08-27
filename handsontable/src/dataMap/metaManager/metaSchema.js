@@ -3013,6 +3013,8 @@ export default () => {
      * @description
      * The `loading` option configures the [`Loading`](@/api/loading.md) plugin.
      *
+     * To use loading plugin, [`Dialog`](@/api/dialog.md) plugin must be enabled.
+     *
      * You can set the `loading` option to one of the following:
      *
      * | Setting   | Description                                                                 |
@@ -3023,9 +3025,11 @@ export default () => {
      *
      * If you set the `loading` option to an object, you can configure the following loading options:
      *
-     * | Option    | Possible settings | Description                    |
-     * | --------- | ----------------- | ------------------------------ |
-     * | `message` | A string          | Custom loading message to display |
+     * | Option        | Possible settings | Description                                               |
+     * | ------------- | ----------------- | --------------------------------------------------------- |
+     * | `icon`        | A string          | Custom loading icon to display (default: `<svg />`)       |
+     * | `title`       | A string          | Custom loading title to display (default: `'Loading...'`) |
+     * | `description` | A string          | Custom loading description to display (default: `''`)     |
      *
      * Read more:
      * - [Plugins: `Loading`](@/api/loading.md)
@@ -3042,7 +3046,9 @@ export default () => {
      *
      * // enable the `Loading` plugin with custom configuration
      * loading: {
-     *   message: 'Please wait while data is loading...'
+     *   icon: 'A custom loading icon in SVG format',
+     *   title: 'Custom loading title',
+     *   description: 'Custom loading description',
      * }
      * ```
      */
