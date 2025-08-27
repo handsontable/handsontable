@@ -18,18 +18,14 @@ const ExampleComponent = () => {
       rowHeaders={true}
       autoWrapRow={true}
       autoWrapCol={true}
-      height='auto'
-      headerClassName='htCenter'
-      licenseKey='non-commercial-and-evaluation'
+      height="auto"
+      headerClassName="htCenter"
+      licenseKey="non-commercial-and-evaluation"
     >
-      <HotColumn
-        headerClassName='htRight'
-      />
-      <HotColumn
-        headerClassName='htLeft'
-      />
-      <HotColumn/>
-      <HotColumn/>
+      <HotColumn headerClassName="htRight" />
+      <HotColumn headerClassName="htLeft" />
+      <HotColumn />
+      <HotColumn />
     </HotTable>
   );
 };
