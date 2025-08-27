@@ -29,9 +29,9 @@
     &__description {
       margin: 0;
       color: var(--ht-foreground-secondary-color);
-      font-size: calc(var(--ht-font-size) - 2px);
+      font-size: var(--ht-font-size-small);
+      line-height: var(--ht-line-height-small);
       font-weight: var(--ht-font-weight);
-      line-height: var(--ht-line-height);
     }
   }
 
