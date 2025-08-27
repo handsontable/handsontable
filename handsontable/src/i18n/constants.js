@@ -115,3 +115,6 @@ export const PAGINATION_LAST_PAGE = `${PAGINATION_NAMESPACE}lastPage`;
 export const CHECKBOX_RENDERER_NAMESPACE = 'CheckboxRenderer:';
 export const CHECKBOX_CHECKED = `${CHECKBOX_RENDERER_NAMESPACE}checked`;
 export const CHECKBOX_UNCHECKED = `${CHECKBOX_RENDERER_NAMESPACE}unchecked`;
+
+export const LOADING_NAMESPACE = 'Loading:';
+export const LOADING_TITLE = `${LOADING_NAMESPACE}title`;

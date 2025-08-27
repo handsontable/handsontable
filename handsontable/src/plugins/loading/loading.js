@@ -114,7 +114,7 @@ export class Loading extends BasePlugin {
     return {
       // eslint-disable-next-line max-len
       icon: `<svg class="${LOADING_CLASS_NAME}__icon-svg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 16"><path stroke="currentColor" stroke-width="2" d="M15 8a7 7 0 1 1-3.5-6.062"></path></svg>`,
-      title: 'Loading...',
+      title: undefined,
       description: '',
     };
   }
@@ -247,6 +247,7 @@ export class Loading extends BasePlugin {
       icon,
       title,
       description,
+      phraseTranslator: (...args) => this.hot.getTranslatedPhrase(...args),
     });
 
     this.#dialogInstance.update({
@@ -255,7 +256,7 @@ export class Loading extends BasePlugin {
       background: this.hot.countSourceRows() === 0 ? 'solid' : 'semi-transparent',
       a11y: {
         role: 'alertdialog',
-        ariaLabelledby: title ? `${id}-${PLUGIN_KEY}-title` : undefined,
+        ariaLabelledby: `${id}-${PLUGIN_KEY}-title`,
         ariaDescribedby: description ? `${id}-${PLUGIN_KEY}-description` : undefined,
       },
     });

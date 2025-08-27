@@ -106,6 +106,8 @@ const dictionary = {
   [C.PAGINATION_PREV_PAGE]: '轉到上一頁',
   [C.PAGINATION_NEXT_PAGE]: '轉到下一頁',
   [C.PAGINATION_LAST_PAGE]: '轉到最後一頁',
+
+  [C.LOADING_TITLE]: '載入中...',
 };
 
 export default dictionary;

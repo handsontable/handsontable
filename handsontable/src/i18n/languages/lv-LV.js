@@ -110,6 +110,8 @@ const dictionary = {
   [C.PAGINATION_PREV_PAGE]: 'Pāriet uz iepriekšējo lapu',
   [C.PAGINATION_NEXT_PAGE]: 'Pāriet uz nākamo lapu',
   [C.PAGINATION_LAST_PAGE]: 'Pāriet uz pēdējo lapu',
+
+  [C.LOADING_TITLE]: 'Ielādē...',
 };
 
 export default dictionary;

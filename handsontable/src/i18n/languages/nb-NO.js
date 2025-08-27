@@ -106,6 +106,8 @@ const dictionary = {
   [C.PAGINATION_PREV_PAGE]: 'Gå til forrige side',
   [C.PAGINATION_NEXT_PAGE]: 'Gå til neste side',
   [C.PAGINATION_LAST_PAGE]: 'Gå til siste side',
+
+  [C.LOADING_TITLE]: 'Laster...',
 };
 
 export default dictionary;
