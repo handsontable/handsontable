@@ -385,3 +385,46 @@ export function createObjectPropListener(defaultValue, propertyToListen = 'value
 export function hasOwnProperty(object, key) {
   return Object.prototype.hasOwnProperty.call(object, key);
 }
+
+/**
+ * Assign default values to an object.
+ *
+ * @param {object} target The object to assign defaults to.
+ * @param {object} defaults The default values to assign.
+ * @returns {object} The object with defaults assigned.
+ */
+export function assignObjectDefaults(target, defaults) {
+  if (typeof target !== 'object' || target === null) {
+    return defaults;
+  }
+
+  if (typeof defaults !== 'object' || defaults === null) {
+    return target;
+  }
+
+  const result = {};
+
+  // Assign defaults
+  Object.keys(defaults).forEach((key) => {
+    if (
+      typeof defaults[key] === 'object' &&
+      defaults[key] !== null &&
+      !Array.isArray(defaults[key])
+    ) {
+      result[key] = assignObjectDefaults(target[key], defaults[key]);
+    } else {
+      result[key] = hasOwnProperty(target, key) && target[key] !== undefined
+        ? target[key]
+        : defaults[key];
+    }
+  });
+
+  // Copy extra keys from target that aren't in defaults
+  Object.keys(target).forEach((key) => {
+    if (!hasOwnProperty(result, key)) {
+      result[key] = target[key];
+    }
+  });
+
+  return result;
+}
