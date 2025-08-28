@@ -66,8 +66,13 @@ class HeadersUI extends BaseUI {
    */
   appendLevelIndicators(row, TH) {
     const rowIndex = this.hot.toPhysicalRow(row);
-    const rowLevel = this.dataManager.getRowLevel(rowIndex);
     const rowObject = this.dataManager.getDataObject(rowIndex);
+
+    if (!rowObject) {
+      return;
+    }
+
+    const rowLevel = this.dataManager.getRowLevel(rowIndex);
     const innerDiv = TH.getElementsByTagName('DIV')[0];
     const innerSpan = innerDiv.querySelector('span.rowHeader');
     const previousIndicators = innerDiv.querySelectorAll('[class^="ht_nesting"]');

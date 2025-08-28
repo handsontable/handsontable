@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed TypeError after undo opertation for nested rows data structure",
+  "type": "fixed",
+  "issueOrPR": 11793,
+  "breaking": false,
+  "framework": "none"
+}
