@@ -220,6 +220,8 @@ When both a global theme and a local themeName are defined, the local setting ta
 
 This hierarchy ensures that you can define a consistent default theme for your entire application while still allowing individual components to customize their appearance when needed.
 
+:::
+
 ## The classic theme
 
 The classic CSS file ([`handsontable.full.min.css`](https://github.com/handsontable/handsontable/blob/master/handsontable/dist/handsontable.full.min.css)) was the default theme up until `version 15` (released in December 2024). While it will still be supported and tested in future Handsontable updates, it is no longer recommended for new projects.
