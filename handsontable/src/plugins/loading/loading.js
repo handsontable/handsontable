@@ -151,7 +151,6 @@ export class Loading extends BasePlugin {
     if (this.enabled) {
       return;
     }
-    
 
     if (this.#dialogPlugin === null) {
       this.#dialogPlugin = this.hot.getPlugin('dialog');
