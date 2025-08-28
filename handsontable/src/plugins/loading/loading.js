@@ -1,3 +1,4 @@
+import { warn } from '../../helpers/console';
 import { BasePlugin } from '../base';
 import { loadingContent } from './content';
 
@@ -153,6 +154,12 @@ export class Loading extends BasePlugin {
 
     if (this.#dialogInstance === null) {
       this.#dialogInstance = this.hot.getPlugin('dialog');
+
+      if (!this.#dialogInstance?.isEnabled()) {
+        warn('Dialog plugin is not enabled. Please enable it to use the loading plugin.');
+
+        return;
+      }
     }
 
     super.enablePlugin();
@@ -195,7 +202,13 @@ export class Loading extends BasePlugin {
    * @param {string} options.description Custom loading description.
    */
   show(options = {}) {
-    if (!this.isEnabled() || !this.#dialogInstance) {
+    if (!this.isEnabled() || !this.#dialogInstance || !this.#dialogInstance?.isEnabled()) {
+      return;
+    }
+
+    if (this.isVisible()) {
+      this.update(options);
+
       return;
     }
 
@@ -215,7 +228,7 @@ export class Loading extends BasePlugin {
    * Hide loading dialog.
    */
   hide() {
-    if (!this.isEnabled() || !this.#dialogInstance) {
+    if (!this.isEnabled() || !this.#dialogInstance || !this.#dialogInstance?.isEnabled()) {
       return;
     }
 
@@ -231,7 +244,7 @@ export class Loading extends BasePlugin {
    * @param {string} options.description Custom loading description.
    */
   update(options) {
-    if (!this.isEnabled() || !this.#dialogInstance) {
+    if (!this.isEnabled() || !this.#dialogInstance || !this.#dialogInstance?.isEnabled()) {
       return;
     }
 
