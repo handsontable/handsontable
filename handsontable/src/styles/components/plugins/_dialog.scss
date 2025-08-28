@@ -19,11 +19,15 @@
     border-radius: var(--ht-wrapper-border-radius);
     border: 1px solid var(--ht-border-color);
     box-sizing: border-box !important;
-    outline: none;
 
     &[dir="rtl"] {
       left: auto;
       right: 0;
+    }
+
+    &:focus {
+      border: 1px solid var(--ht-accent-color);
+      outline: none;
     }
 
     &:has(.htFocusCatcher:focus) {
