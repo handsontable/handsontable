@@ -2101,14 +2101,10 @@ thead th.hiddenHeaderText .colHeader {
   border: 1px solid #4b89ff;
   outline: none;
 }
+
 .ht-dialog:has(.htFocusCatcher:focus) {
   border: 1px solid #4b89ff;
   outline: none;
-}
-
-.ht-dialog:has(.htFocusCatcher:focus) {
-  border: 1px solid var(--ht-accent-color);
-  outline: none
 }
 
 .ht-dialog * {
@@ -2315,17 +2311,20 @@ thead th.hiddenHeaderText .colHeader {
   animation: ht-loading-spin 1s linear infinite;
   transform-origin: 50% 50%;
 }
+
 .ht-loading__content {
   display: flex;
   align-items: center;
   gap: 8px;
 }
+
 .ht-loading__title {
   margin: 0;
   font-size: 13px;
   font-weight: 400;
   line-height: 18px;
 }
+
 .ht-loading__description {
   margin: 0;
   color: #222;
