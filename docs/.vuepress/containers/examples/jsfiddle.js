@@ -25,7 +25,7 @@ const jsfiddle = (_id, html, code, css, version, preset, lang) => {
           ? current[2].map(href => `<link type="text/css" rel="stylesheet" href="${href}" /> \n`).join('')
           : current[2] ? `<link type="text/css" rel="stylesheet" href="${current[2]}" /> \n`
             : ''
-        )
+        );
     }, '');
 
   return `
