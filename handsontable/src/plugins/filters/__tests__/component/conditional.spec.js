@@ -94,8 +94,6 @@ describe('Filters UI Conditional component', () => {
 
     const rect = document.querySelector('.htFiltersConditionsMenu.handsontable table').getBoundingClientRect();
 
-    await sleep(5000);
-
     expect(window.scrollY + rect.top).forThemes(({ classic, main, horizon }) => {
       classic.toBeAroundValue(755, 1);
       main.toBeAroundValue(716, 1);

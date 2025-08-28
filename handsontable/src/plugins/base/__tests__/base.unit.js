@@ -185,6 +185,10 @@ describe('BasePlugin', () => {
           },
         },
       });
+      expect(plugin.getSetting('test1.test2')).toBe(20);
+      expect(plugin.getSetting('test1.test4.test5')).toBe(10);
+      expect(plugin.getSetting('test1.test4.test6')).toBe(20);
+      expect(plugin.getSetting('test1.test3')).toBe(10);
     });
   });
 

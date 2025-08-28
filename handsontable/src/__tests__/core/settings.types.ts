@@ -251,6 +251,12 @@ const allSettings: Required<Handsontable.GridSettings> = {
     animation: true,
     background: 'solid' as const,
     contentBackground: true,
+    a11y: {
+      role: 'dialog',
+      ariaLabel: 'Dialog',
+      ariaLabelledby: '',
+      ariaDescribedby: '',
+    }
   }),
   loading: oneOf(true, {
     icon: '<svg />',
@@ -359,8 +365,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterListen: () => {},
   afterLoadData: (sourceData, firstTime, source) => {},
   afterMergeCells: (cellRange, mergeParent, auto) => {},
+  beforeLoadingShow: () => {},
   afterLoadingShow: () => {},
-  afterLoadingHide: () => {},
   modifySourceData: (row, col, valueHolder, ioMode) => {},
   afterModifyTransformEnd: (coords, rowTransformDir, colTransformDir) => {
     const row: number = coords.row;

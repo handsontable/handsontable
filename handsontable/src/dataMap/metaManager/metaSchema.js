@@ -1853,14 +1853,15 @@ export default () => {
      *
      * ##### dialog: Additional options
      *
-     * | Option                   | Possible settings                                                                                      | Description                             |
-     * | ------------------------ | ------------------------------------------------------------------------------------------------------ | ----------------------------------------|
-     * | `content`                | A string, HTMLElement or DocumentFragment (default: `''`)                                              | The content of the dialog               |
-     * | `customClassName`        | A string (default: `''`)                                                                               | The custom class name of the dialog     |
-     * | `background`             | One of the options: `'solid'` or `'semi-transparent'` (default: `'solid'`)                             | The background of the dialog            |
-     * | `contentBackground`      | Boolean (default: `false`)                                                                             | Whether to show the content background  |
-     * | `animation`              | Boolean (default: `true`)                                                                              | Whether to show the animation           |
-     * | `closable`               | Boolean (default: `false`)                                                                             | Whether to show the close button        |
+     * | Option                   | Possible settings                                                                                                               | Description                             |
+     * | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------|
+     * | `content`                | A string, HTMLElement or DocumentFragment (default: `''`)                                                                       | The content of the dialog               |
+     * | `customClassName`        | A string (default: `''`)                                                                                                        | The custom class name of the dialog     |
+     * | `background`             | One of the options: `'solid'` or `'semi-transparent'` (default: `'solid'`)                                                      | The background of the dialog            |
+     * | `contentBackground`      | Boolean (default: `false`)                                                                                                      | Whether to show the content background  |
+     * | `animation`              | Boolean (default: `true`)                                                                                                       | Whether to show the animation           |
+     * | `closable`               | Boolean (default: `false`)                                                                                                      | Whether to show the close button        |
+     * | `a11y`                   | Object with accessibility options (default: `{ role: 'dialog', ariaLabel: 'Dialog', ariaLabelledby: '', ariaDescribedby: '' }`) | Accessibility options for the dialog    |
      *
      * Read more:
      * - [Plugins: `Dialog`](@/api/dialog.md)
@@ -1885,6 +1886,12 @@ export default () => {
      *   contentBackground: false,
      *   animation: false,
      *   closable: true,
+     *   a11y: {
+     *     role: 'dialog',
+     *     ariaLabel: 'Dialog',
+     *     ariaLabelledby: 'titleID',
+     *     ariaDescribedby: 'descriptionID',
+     *   }
      * }
      * ```
      * :::
@@ -3033,7 +3040,7 @@ export default () => {
      *
      * Read more:
      * - [Plugins: `Loading`](@/api/loading.md)
-     *
+     * @since 16.1.0
      * @memberof Options#
      * @type {boolean|object}
      * @default false

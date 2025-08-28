@@ -133,7 +133,7 @@ export class Loading extends BasePlugin {
    *
    * @type {Dialog|null}
    */
-  #dialogInstance = null;
+  #dialogPlugin = null;
 
   /**
    * Check if the plugin is enabled in the handsontable settings.
@@ -151,11 +151,12 @@ export class Loading extends BasePlugin {
     if (this.enabled) {
       return;
     }
+    
 
-    if (this.#dialogInstance === null) {
-      this.#dialogInstance = this.hot.getPlugin('dialog');
+    if (this.#dialogPlugin === null) {
+      this.#dialogPlugin = this.hot.getPlugin('dialog');
 
-      if (!this.#dialogInstance?.isEnabled()) {
+      if (!this.#dialogPlugin?.isEnabled()) {
         warn('Dialog plugin is not enabled. Please enable it to use the loading plugin.');
 
         return;
@@ -190,7 +191,7 @@ export class Loading extends BasePlugin {
    * @returns {boolean}
    */
   isVisible() {
-    return this.#dialogInstance?.isVisible() ?? false;
+    return this.#dialogPlugin?.isVisible() ?? false;
   }
 
   /**
@@ -202,7 +203,7 @@ export class Loading extends BasePlugin {
    * @param {string} options.description Custom loading description.
    */
   show(options = {}) {
-    if (!this.isEnabled() || !this.#dialogInstance || !this.#dialogInstance?.isEnabled()) {
+    if (!this.isEnabled() || !this.#dialogPlugin || !this.#dialogPlugin?.isEnabled()) {
       return;
     }
 
@@ -219,7 +220,7 @@ export class Loading extends BasePlugin {
     }
 
     this.update(options);
-    this.#dialogInstance.show();
+    this.#dialogPlugin.show();
 
     this.hot.runHooks('afterLoadingShow');
   }
@@ -228,11 +229,11 @@ export class Loading extends BasePlugin {
    * Hide loading dialog.
    */
   hide() {
-    if (!this.isEnabled() || !this.#dialogInstance || !this.#dialogInstance?.isEnabled()) {
+    if (!this.#dialogPlugin || !this.#dialogPlugin?.isEnabled()) {
       return;
     }
 
-    this.#dialogInstance.hide();
+    this.#dialogPlugin.hide();
   }
 
   /**
@@ -244,7 +245,7 @@ export class Loading extends BasePlugin {
    * @param {string} options.description Custom loading description.
    */
   update(options) {
-    if (!this.isEnabled() || !this.#dialogInstance || !this.#dialogInstance?.isEnabled()) {
+    if (!this.isEnabled() || !this.#dialogPlugin || !this.#dialogPlugin?.isEnabled()) {
       return;
     }
 
@@ -263,7 +264,7 @@ export class Loading extends BasePlugin {
       phraseTranslator: (...args) => this.hot.getTranslatedPhrase(...args),
     });
 
-    this.#dialogInstance.update({
+    this.#dialogPlugin.update({
       content,
       customClassName: LOADING_CLASS_NAME,
       background: this.hot.countSourceRows() === 0 ? 'solid' : 'semi-transparent',
@@ -279,7 +280,7 @@ export class Loading extends BasePlugin {
    * Destroy plugin instance.
    */
   destroy() {
-    this.#dialogInstance = null;
+    this.#dialogPlugin = null;
 
     super.destroy();
   }

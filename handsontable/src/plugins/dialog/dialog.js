@@ -1,6 +1,7 @@
 import { BasePlugin } from '../base';
 import { DialogUI } from './ui';
 import { installFocusDetector } from '../../utils/focusDetector';
+import { isObject } from '../../helpers/object';
 
 export const PLUGIN_KEY = 'dialog';
 export const PLUGIN_PRIORITY = 340;
@@ -50,6 +51,12 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
  *   contentBackground: false,
  *   animation: false,
  *   closable: true,
+ *   a11y: {
+ *     role: 'dialog',
+ *     ariaLabel: 'Dialog',
+ *     ariaLabelledby: 'titleID',
+ *     ariaDescribedby: 'descriptionID',
+ *   }
  * }
  *
  * // Access to dialog plugin instance:
@@ -158,7 +165,7 @@ export class Dialog extends BasePlugin {
       contentBackground: value => typeof value === 'boolean',
       animation: value => typeof value === 'boolean',
       closable: value => typeof value === 'boolean',
-      a11y: value => typeof value === 'object' &&
+      a11y: value => isObject(value) &&
         (typeof value?.role === 'undefined' || ['dialog', 'alertdialog'].includes(value?.role)) &&
         (typeof value?.ariaLabel === 'undefined' || typeof value?.ariaLabel === 'string') &&
         (typeof value?.ariaLabelledby === 'undefined' || typeof value?.ariaLabelledby === 'string') &&

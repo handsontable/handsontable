@@ -101,4 +101,21 @@ describe('Loading', () => {
 
     expect(plugin.enabled).toBe(null);
   });
+
+  it('should hide loading plugin on updateSettings to false', async() => {
+    handsontable({
+      data: createSpreadsheetData(10, 10),
+      dialog: true,
+      loading: true,
+    });
+
+    await updateSettings({
+      loading: false,
+    });
+
+    const plugin = getPlugin('loading');
+
+    expect(plugin.isVisible()).toBe(false);
+    expect(plugin.enabled).toBe(false);
+  });
 });
