@@ -1912,6 +1912,13 @@ export default () => {
      *     contentBackground: false,
      *     animation: false,
      *     closable: true,
+     *     a11y: {
+     *       role: 'dialog',
+     *       ariaLabel: 'Dialog',
+     *       ariaLabelledby: 'titleID',
+     *       ariaDescribedby: 'descriptionID',
+     *     }
+     *   }
      *   }}
      * />
      * ```
@@ -1927,6 +1934,12 @@ export default () => {
      *     contentBackground: false,
      *     animation: false,
      *     closable: true,
+     *     a11y: {
+     *       role: 'dialog',
+     *       ariaLabel: 'Dialog',
+     *       ariaLabelledby: 'titleID',
+     *       ariaDescribedby: 'descriptionID',
+     *     }
      *   }
      * };
      * ```
