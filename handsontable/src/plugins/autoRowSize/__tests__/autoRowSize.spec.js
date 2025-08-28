@@ -314,12 +314,12 @@ describe('AutoRowSize', () => {
     await keyDownUp('enter');
 
     expect(getInlineStartClone().find('.wtHolder').scrollTop()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(89);
+      classic.toBe(90);
       main.toBe(216);
       horizon.toBe(264);
     });
     expect(getMaster().find('.wtHolder').scrollTop()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(89);
+      classic.toBe(90);
       main.toBe(216);
       horizon.toBe(264);
     });
