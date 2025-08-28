@@ -2097,6 +2097,11 @@ thead th.hiddenHeaderText .colHeader {
   box-sizing: border-box !important;
 }
 
+.ht-dialog[dir=rtl] {
+  left: auto;
+  right: 0;
+}
+
 .ht-dialog:focus {
   border: 1px solid #4b89ff;
   outline: none;
