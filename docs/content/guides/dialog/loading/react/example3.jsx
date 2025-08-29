@@ -85,7 +85,7 @@ const ExampleComponent = React.memo(() => {
 
     try {
       // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      await new Promise((resolve) => setTimeout(resolve, 3000));
 
       // Simulated data
       setData([
@@ -115,7 +115,7 @@ const ExampleComponent = React.memo(() => {
         setIsLoading(false);
       }, 2000);
     }
-  }
+  };
 
   return (
     <>
