@@ -336,7 +336,11 @@ export class Dialog extends BasePlugin {
    * @param {boolean} options.contentBackground Whether to show content background. Default: false.
    * @param {boolean} options.animation Whether to enable animations when showing/hiding the dialog. Default: true.
    * @param {boolean} options.closable Whether the dialog can be closed by user interaction. Default: false.
-   * @param {object} options.a11y Object with accessibility options. Default: { role: 'dialog', ariaLabel: 'Dialog', ariaLabelledby: '', ariaDescribedby: '' }
+   * @param {object} options.a11y Object with accessibility options.
+   * @param {string} options.a11y.role The role of the dialog. Default: 'dialog'.
+   * @param {string} options.a11y.ariaLabel The label of the dialog. Default: 'Dialog'.
+   * @param {string} options.a11y.ariaLabelledby The ID of the element that labels the dialog. Default: ''.
+   * @param {string} options.a11y.ariaDescribedby The ID of the element that describes the dialog. Default: ''.
    */
   show(options = {}) {
     if (!this.enabled) {
