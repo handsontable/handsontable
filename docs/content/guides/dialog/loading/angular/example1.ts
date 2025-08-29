@@ -109,7 +109,6 @@ export class AppComponent implements AfterViewInit {
     if (hotInstance) {
       // Show loadi after initialization
       const loadingPlugin = hotInstance.getPlugin('loading');
-
       loadingPlugin.show();
     }
   }

@@ -151,17 +151,7 @@ const dictionary = {
   [C.FILTERS_BUTTONS_CANCEL]: 'Annulla',
   [C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH]: 'Cerca',
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'Valore',
-  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Sostituisci con',
-  [C.PAGINATION_SECTION]: 'Paginazione',
-  [C.PAGINATION_PAGE_SIZE_SECTION]: 'Numero righe',
-  [C.PAGINATION_PAGE_SIZE_AUTO]: 'Auto',
-  [C.PAGINATION_COUNTER_SECTION]: '[start] - [end] di [total]',
-  [C.PAGINATION_NAV_SECTION]: 'Pagina [currentPage] di [totalPages]',
-  [C.PAGINATION_FIRST_PAGE]: 'Vai alla prima pagina',
-  [C.PAGINATION_PREV_PAGE]: 'Vai alla pagina precedente',
-  [C.PAGINATION_NEXT_PAGE]: 'Vai alla pagina successiva',
-  [C.PAGINATION_LAST_PAGE]: 'Vai all\'ultima pagina',
-  [C.LOADING_TITLE]: 'Caricamento...'
+  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Sostituisci con'
 };
 _handsontable.default.languages.registerLanguageDictionary(dictionary);
 var _default = exports["default"] = dictionary;

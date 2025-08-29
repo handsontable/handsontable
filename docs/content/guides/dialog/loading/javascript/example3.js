@@ -82,7 +82,7 @@ async function loadData() {
 
   try {
     // Simulate API call delay
-    await new Promise((resolve) => setTimeout(resolve, 3000));
+    await new Promise(resolve => setTimeout(resolve, 3000));
 
     // Simulated data
     const data = [
@@ -106,6 +106,7 @@ async function loadData() {
 
     button.disabled = false;
     button.innerHTML = 'Reload Data';
+
   } catch (error) {
     // Handle error
     setTimeout(() => {

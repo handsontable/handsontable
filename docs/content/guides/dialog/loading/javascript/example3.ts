@@ -76,11 +76,11 @@ const loadingPlugin = hot.getPlugin('loading');
 async function loadData(): Promise<void> {
   // Show loading dialog
   loadingPlugin.show();
-
+  
   try {
     // Simulate API call delay
-    await new Promise((resolve) => setTimeout(resolve, 3000));
-
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    
     // Simulated data
     const data = [
       { model: 'Trail Helmet', price: 1298.14, sellDate: 'Aug 31, 2025', sellTime: '02:12 PM', inStock: true },
@@ -94,21 +94,22 @@ async function loadData(): Promise<void> {
       { model: 'Aero Bottle', price: 1571.13, sellDate: 'May 24, 2025', sellTime: '12:24 AM', inStock: true },
       { model: 'Windbreaker Jacket', price: 919.09, sellDate: 'Jul 16, 2025', sellTime: '07:11 PM', inStock: true },
     ];
-
+    
     // Update loading message
     loadingPlugin.update({
       title: 'Processing Data',
       description: 'Formatting and validating data...',
     });
-
+    
     // Simulate additional processing time
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
     // Load data into the table
     hot.loadData(data);
-
+    
     // Hide loading dialog
     loadingPlugin.hide();
+    
   } catch (error) {
     // Handle error
     setTimeout(() => {

@@ -106,7 +106,6 @@ export class AppComponent implements AfterViewInit {
 
     // Show loading dialog
     loadingPlugin.show();
-
     this.isLoading = true;
 
     try {

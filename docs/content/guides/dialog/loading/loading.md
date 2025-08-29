@@ -30,9 +30,9 @@ Display loading indicators and progress feedback in your data grid application u
 
 ## Overview
 
-The Loading plugin provides a loading overlay system for Handsontable using the [Dialog](@/api/dialog.md) plugin. It displays a loading indicator with customizable title, icon, and description. This is useful for showing progress feedback during data operations, API calls, or any other time-consuming tasks.
+The Loading plugin provides a loading overlay system for Handsontable using the Dialog plugin. It displays a loading indicator with customizable title, icon, and description. This is useful for showing progress feedback during data operations, API calls, or any other time-consuming tasks.
 
-The loading system is designed to be simple and effective, providing a consistent user experience with customizable appearance and behavior. It requires the [Dialog](@/api/dialog.md) plugin to be enabled to function properly.
+The loading system is designed to be simple and effective, providing a consistent user experience with customizable appearance and behavior. It requires the Dialog plugin to be enabled to function properly.
 
 ## Basic configuration
 

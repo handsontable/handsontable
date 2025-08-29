@@ -152,17 +152,7 @@ const dictionary = {
   [C.FILTERS_BUTTONS_CANCEL]: 'Otkaži',
   [C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH]: 'Pretraga',
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'Vrednost',
-  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Druga vrednost',
-  [C.PAGINATION_SECTION]: 'Paginacija',
-  [C.PAGINATION_PAGE_SIZE_SECTION]: 'Broj redova',
-  [C.PAGINATION_PAGE_SIZE_AUTO]: 'Auto',
-  [C.PAGINATION_COUNTER_SECTION]: '[start] - [end] od [total]',
-  [C.PAGINATION_NAV_SECTION]: 'Stranica [currentPage] od [totalPages]',
-  [C.PAGINATION_FIRST_PAGE]: 'Idi na prvu stranicu',
-  [C.PAGINATION_PREV_PAGE]: 'Idi na prethodnu stranicu',
-  [C.PAGINATION_NEXT_PAGE]: 'Idi na sledeću stranicu',
-  [C.PAGINATION_LAST_PAGE]: 'Idi na poslednju stranicu',
-  [C.LOADING_TITLE]: 'Učitavanje...'
+  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Druga vrednost'
 };
 _handsontable.default.languages.registerLanguageDictionary(dictionary);
 var _default = exports["default"] = dictionary;
