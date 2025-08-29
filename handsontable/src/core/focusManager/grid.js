@@ -1,6 +1,6 @@
-import { warn } from './helpers/console';
-import { isHTMLElement, isOutsideInput } from './helpers/dom/element';
-import { debounce } from './helpers/function';
+import { warn } from '../../helpers/console';
+import { isHTMLElement, isOutsideInput } from '../../helpers/dom/element';
+import { debounce } from '../../helpers/function';
 
 /**
  * Possible focus modes.
@@ -18,7 +18,7 @@ const FOCUS_MODES = Object.freeze({
 /**
  * Manages the browser's focus in the table.
  */
-export class FocusManager {
+export class GridFocusManager {
   /**
    * The Handsontable instance.
    */

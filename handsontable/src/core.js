@@ -14,7 +14,6 @@ import {
   createObjectPropListener,
   objectEach
 } from './helpers/object';
-import { FocusManager } from './focusManager';
 import { arrayMap, arrayEach, arrayReduce, getDifferenceOfArrays, stringToArray, pivot } from './helpers/array';
 import { instanceToHTML } from './utils/parseTable';
 import { staticRegister } from './utils/staticRegister';
@@ -30,7 +29,6 @@ import { spreadsheetColumnLabel } from './helpers/data';
 import { IndexMapper } from './translations';
 import { registerAsRootInstance, hasValidParameter, isRootInstance } from './utils/rootInstance';
 import { DEFAULT_COLUMN_WIDTH } from './3rdparty/walkontable/src';
-import { Hooks } from './core/hooks';
 import { hasLanguageDictionary, getValidLanguageCode, getTranslatedPhrase } from './i18n/registry';
 import { warnUserAboutLanguageRegistration, normalizeLanguageCode } from './i18n/utils';
 import { Selection } from './selection';
@@ -43,6 +41,9 @@ import {
 import {
   installFocusCatcher,
   createViewportScroller,
+  Hooks,
+  GridFocusManager,
+  CellRangeToRenderableMapper,
 } from './core/index';
 import { createUniqueMap } from './utils/dataStructures/uniqueMap';
 import { createShortcutManager } from './shortcuts';
@@ -50,7 +51,6 @@ import { registerAllShortcutContexts } from './shortcutContexts';
 import { getThemeClassName } from './helpers/themes';
 import { StylesHandler } from './utils/stylesHandler';
 import { warn } from './helpers/console';
-import { CellRangeToRenderableMapper } from './core/coordsMapper/rangeToRenderableMapper';
 import {
   install as installAccessibilityAnnouncer,
   uninstall as uninstallAccessibilityAnnouncer,
@@ -173,7 +173,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   let dataSource;
   let grid;
   let editorManager;
-  let focusManager;
+  let gridFocusManager;
   let viewportScroller;
   let firstRun = true;
 
@@ -1306,7 +1306,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
     editorManager = EditorManager.getInstance(instance, tableMeta, selection);
     viewportScroller = createViewportScroller(instance);
-    focusManager = new FocusManager(instance);
+    gridFocusManager = new GridFocusManager(instance);
 
     if (isRootInstance(this)) {
       installFocusCatcher(instance);
@@ -5425,7 +5425,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * @returns {FocusManager}
    */
   this.getFocusManager = function() {
-    return focusManager;
+    return gridFocusManager;
   };
 
   getPluginsNames().forEach((pluginName) => {
