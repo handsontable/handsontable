@@ -1,6 +1,7 @@
 import { warn } from '../../helpers/console';
 import { BasePlugin } from '../base';
 import { loadingContent } from './content';
+import * as C from '../../i18n/constants';
 
 export const PLUGIN_KEY = 'loading';
 export const PLUGIN_PRIORITY = 350;
@@ -252,7 +253,7 @@ export class Loading extends BasePlugin {
 
     const id = this.hot.guid;
     const icon = this.getSetting('icon');
-    const title = this.getSetting('title');
+    const title = this.getSetting('title') ?? this.hot.getTranslatedPhrase(C.LOADING_TITLE);
     const description = this.getSetting('description');
 
     const content = loadingContent({
@@ -260,7 +261,6 @@ export class Loading extends BasePlugin {
       icon,
       title,
       description,
-      phraseTranslator: (...args) => this.hot.getTranslatedPhrase(...args),
     });
 
     this.#dialogPlugin.update({
