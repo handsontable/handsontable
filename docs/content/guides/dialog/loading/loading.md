@@ -146,6 +146,12 @@ Here are some common scenarios where the loading dialog is useful:
 
 :::
 
+## Localize loading
+
+Translate default loading dialog labels using the global translations mechanism. The loading dialog introduces the following keys to the language dictionary that you can use to translate the loading UI:
+
+- `LOADING_TITLE = 'Loading...'`
+
 ## Related API reference
 
 - [Options: `loading`](@/api/options.md#loading)
