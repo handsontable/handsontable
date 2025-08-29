@@ -152,6 +152,8 @@ Translate default loading dialog labels using the global translations mechanism.
 
 - `LOADING_TITLE = 'Loading...'`
 
+To learn more about the translation mechanism, see the [Languages guide](@/guides/internationalization/language/language.md).
+
 ## Related API reference
 
 - [Options: `loading`](@/api/options.md#loading)
