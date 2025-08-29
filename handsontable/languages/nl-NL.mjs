@@ -83,7 +83,17 @@ const dictionary = {
   [C.FILTERS_BUTTONS_CANCEL]: 'Annuleren',
   [C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH]: 'Zoeken',
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'Waarde',
-  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Tweede waarde'
+  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Tweede waarde',
+  [C.PAGINATION_SECTION]: 'Paginering',
+  [C.PAGINATION_PAGE_SIZE_SECTION]: 'Aantal rijen',
+  [C.PAGINATION_PAGE_SIZE_AUTO]: 'Auto',
+  [C.PAGINATION_COUNTER_SECTION]: '[start] - [end] van [total]',
+  [C.PAGINATION_NAV_SECTION]: 'Pagina [currentPage] van [totalPages]',
+  [C.PAGINATION_FIRST_PAGE]: 'Ga naar eerste pagina',
+  [C.PAGINATION_PREV_PAGE]: 'Ga naar vorige pagina',
+  [C.PAGINATION_NEXT_PAGE]: 'Ga naar volgende pagina',
+  [C.PAGINATION_LAST_PAGE]: 'Ga naar laatste pagina',
+  [C.LOADING_TITLE]: 'Laden...'
 };
 Handsontable.languages.registerLanguageDictionary(dictionary);
 export default dictionary;
