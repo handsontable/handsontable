@@ -154,7 +154,9 @@ Handsontable provides a comprehensive set of CSS variables that allow you to cus
 | Variable | Description |
 |----------|-------------|
 | `--ht-font-size` | Base font size for all text elements |
+| `--ht-font-size-small` | Font size for smaller text |
 | `--ht-line-height` | Line height for text elements |
+| `--ht-line-height-small` | Line height for smaller text |
 | `--ht-font-weight` | Font weight for text elements |
 | `--ht-letter-spacing` | Letter spacing for text elements |
 
