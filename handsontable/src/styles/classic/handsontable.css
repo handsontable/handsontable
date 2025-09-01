@@ -172,6 +172,9 @@
 }
 
 .handsontable th:first-child,
+.handsontable .ht_clone_inline_start td:first-of-type,
+.handsontable .ht_clone_top_inline_start_corner td:first-of-type,
+.handsontable .ht_clone_bottom_inline_start_corner td:first-of-type,
 .handsontable.ht-wrapper:not(.htFirstDatasetColumnNotRendered) td:first-of-type {
   border-left: 1px solid #ccc;
 }
