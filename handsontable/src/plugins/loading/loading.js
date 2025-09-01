@@ -233,7 +233,11 @@ export class Loading extends BasePlugin {
       return;
     }
 
-    this.hot.runHooks('beforeLoadingHide');
+    const beforeLoadingHide = this.hot.runHooks('beforeLoadingHide');
+
+    if (beforeLoadingHide === false) {
+      return;
+    }
 
     this.#dialogPlugin.hide();
 
