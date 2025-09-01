@@ -133,6 +133,7 @@ const accessoriesAndMenusItems = [
 
 const dialogItems = [
   { path: 'guides/dialog/dialog/dialog' },
+  { path: 'guides/dialog/loading/loading' },
 ];
 
 const internationalizationItems = [
