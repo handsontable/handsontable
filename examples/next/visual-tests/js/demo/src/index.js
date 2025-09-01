@@ -16,7 +16,6 @@ import { init as initBasicTwoTablesDemo } from "./demos/basicTwoTables";
 import { init as initContextMenuDemo } from "./demos/contextMenu";
 import { init as initDropdownMenuDemo } from "./demos/dropdownMenu";
 import { init as initLargeDatasetDemo } from './demos/largeDataset';
-import { init as initLargeDatasetFixedCellsDemo } from './demos/largeDatasetFixedCells';
 import { init as initCustomBordersDemo } from './demos/customBorders';
 import { init as initWebComponentDemo } from './demos/webComponent';
 import { init as initEditorsDemo } from './demos/editors';
@@ -147,15 +146,6 @@ router
         loadThemeCSS(),
       ]).then(() => {
         initLargeDatasetDemo();
-      });
-    },
-    '/large-dataset-fixed-cells-demo': function () {
-      removeCSS();
-
-      Promise.all([
-        loadThemeCSS(),
-      ]).then(() => {
-        initLargeDatasetFixedCellsDemo();
       });
     },
     '/merged-cells-demo': function () {

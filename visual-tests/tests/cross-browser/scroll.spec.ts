@@ -9,7 +9,6 @@ const urls = [
   '/merged-cells-demo',
   '/nested-headers-demo',
   '/nested-rows-demo',
-  '/large-dataset-fixed-cells-demo',
 ];
 
 urls.forEach((url) => {
