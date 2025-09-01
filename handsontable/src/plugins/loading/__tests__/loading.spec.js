@@ -13,7 +13,6 @@ describe('Loading', () => {
   it('should be possible to enable the plugin', async() => {
     handsontable({
       data: createSpreadsheetData(10, 10),
-      dialog: true,
       loading: true,
     });
 
@@ -25,7 +24,6 @@ describe('Loading', () => {
   it('should be possible to disable the plugin', async() => {
     handsontable({
       data: createSpreadsheetData(10, 10),
-      dialog: true,
       loading: true,
     });
 
@@ -38,21 +36,20 @@ describe('Loading', () => {
     expect(plugin.isEnabled()).toBe(false);
   });
 
-  it('should display a warning when dialog plugin is not enabled', async() => {
-    const warnSpy = spyOn(console, 'warn');
-
+  it('should enable dialog plugin when loading plugin is enabled', async() => {
     handsontable({
       data: createSpreadsheetData(10, 10),
       loading: true,
     });
 
-    expect(warnSpy).toHaveBeenCalledWith('Dialog plugin is not enabled. Please enable it to use the loading plugin.');
+    const dialogPlugin = getPlugin('dialog');
+
+    expect(dialogPlugin.isEnabled()).toBe(true);
   });
 
   it('should update the loading settings via updateSettings', async() => {
     handsontable({
       data: createSpreadsheetData(10, 10),
-      dialog: true,
       loading: true,
     });
 
@@ -75,7 +72,6 @@ describe('Loading', () => {
     handsontable({
       data: createSpreadsheetData(10, 10),
       language: 'pl-pl',
-      dialog: true,
       loading: true,
     });
 
@@ -91,7 +87,6 @@ describe('Loading', () => {
   it('should destroy the plugin', async() => {
     handsontable({
       data: createSpreadsheetData(10, 10),
-      dialog: true,
       loading: true,
     });
 
@@ -105,7 +100,6 @@ describe('Loading', () => {
   it('should hide loading plugin on updateSettings to false', async() => {
     handsontable({
       data: createSpreadsheetData(10, 10),
-      dialog: true,
       loading: true,
     });
 

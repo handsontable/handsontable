@@ -15,7 +15,6 @@ describe('Loading - show method', () => {
   it('should show loading dialog with default configuration', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
-      dialog: true,
       loading: true,
     });
 
@@ -30,7 +29,6 @@ describe('Loading - show method', () => {
   it('should show loading dialog with custom title', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
-      dialog: true,
       loading: true,
     });
 
@@ -48,7 +46,6 @@ describe('Loading - show method', () => {
   it('should show loading dialog with custom description', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
-      dialog: true,
       loading: true,
     });
 
@@ -68,7 +65,6 @@ describe('Loading - show method', () => {
 
     handsontable({
       data: createSpreadsheetData(5, 5),
-      dialog: true,
       loading: true,
     });
 
@@ -87,7 +83,6 @@ describe('Loading - show method', () => {
 
     handsontable({
       data: createSpreadsheetData(5, 5),
-      dialog: true,
       loading: true,
     });
 
@@ -111,24 +106,7 @@ describe('Loading - show method', () => {
   it('should not show loading dialog when plugin is disabled', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
-      dialog: true,
       loading: false,
-    });
-
-    const loadingPlugin = getPlugin('loading');
-
-    loadingPlugin.show({
-      title: 'Test title',
-    });
-
-    expect(loadingPlugin.isVisible()).toBe(false);
-    expect(getLoadingContainerElement()).toBe(null);
-  });
-
-  it('should not show loading dialog when dialog plugin is not enabled', async() => {
-    handsontable({
-      data: createSpreadsheetData(5, 5),
-      loading: true,
     });
 
     const loadingPlugin = getPlugin('loading');
@@ -144,7 +122,6 @@ describe('Loading - show method', () => {
   it('should update loading configuration when show method is called with new options', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
-      dialog: true,
       loading: true,
     });
 

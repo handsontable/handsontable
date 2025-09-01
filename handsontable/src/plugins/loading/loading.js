@@ -1,4 +1,3 @@
-import { warn } from '../../helpers/console';
 import { BasePlugin } from '../base';
 import { loadingContent } from './content';
 import * as C from '../../i18n/constants';
@@ -27,11 +26,9 @@ export const LOADING_CLASS_NAME = `ht-${PLUGIN_KEY}`;
  * ::: only-for javascript
  * ```js
  * // Enable loading plugin with default options
- * dialog: true, // Dialog plugin must be enabled
  * loading: true,
  *
  * // Enable loading plugin with custom configuration
- * dialog: true, // Dialog plugin must be enabled
  * loading: {
  *   icon: 'A custom loading icon in SVG format',
  *   title: 'Custom loading title',
@@ -69,7 +66,6 @@ export const LOADING_CLASS_NAME = `ht-${PLUGIN_KEY}`;
  *       ref={hotRef}
  *       settings={{
  *         data: data,
- *         dialog: true, // Dialog plugin must be enabled
  *         loading: {
  *           icon: 'A custom loading icon in SVG format',
  *           title: 'Custom loading title',
@@ -86,7 +82,6 @@ export const LOADING_CLASS_NAME = `ht-${PLUGIN_KEY}`;
  * ```ts
  * hotSettings: Handsontable.GridSettings = {
  *   data: data,
- *   dialog: true, // Dialog plugin must be enabled
  *   loading: {
  *     icon: 'A custom loading icon in SVG format',
  *     title: 'Custom loading title',
@@ -157,9 +152,9 @@ export class Loading extends BasePlugin {
       this.#dialogPlugin = this.hot.getPlugin('dialog');
 
       if (!this.#dialogPlugin?.isEnabled()) {
-        warn('Dialog plugin is not enabled. Please enable it to use the loading plugin.');
-
-        return;
+        this.hot.updateSettings({
+          dialog: true,
+        });
       }
     }
 

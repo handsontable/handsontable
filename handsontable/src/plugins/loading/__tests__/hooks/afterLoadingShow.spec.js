@@ -17,7 +17,6 @@ describe('Loading - afterLoadingShow hook', () => {
 
     handsontable({
       data: createSpreadsheetData(10, 10),
-      dialog: true,
       loading: true,
       afterLoadingShow: afterLoadingShowSpy,
     });

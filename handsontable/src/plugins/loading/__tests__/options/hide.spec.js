@@ -15,7 +15,6 @@ describe('Loading - hide method', () => {
   it('should hide the loading dialog when dialog is visible', async() => {
     handsontable({
       data: createSpreadsheetData(10, 10),
-      dialog: true,
       loading: true,
     });
 
@@ -31,7 +30,6 @@ describe('Loading - hide method', () => {
   it('should not hide the loading dialog when dialog is not visible', async() => {
     handsontable({
       data: createSpreadsheetData(10, 10),
-      dialog: true,
       loading: false,
     });
 

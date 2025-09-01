@@ -15,7 +15,6 @@ describe('Loading - update method', () => {
   it('should update the loading settings via update when dialog is visible', async() => {
     handsontable({
       data: createSpreadsheetData(10, 10),
-      dialog: true,
       loading: true,
     });
 
@@ -35,7 +34,6 @@ describe('Loading - update method', () => {
   it('should update the loading settings via update when dialog is not visible', async() => {
     handsontable({
       data: createSpreadsheetData(10, 10),
-      dialog: true,
       loading: true,
     });
 
@@ -53,26 +51,7 @@ describe('Loading - update method', () => {
   it('should not update the loading settings via update when plugin is disabled', async() => {
     handsontable({
       data: createSpreadsheetData(10, 10),
-      dialog: true,
       loading: false,
-    });
-
-    const loadingPlugin = getPlugin('loading');
-
-    loadingPlugin.update({
-      title: 'Updated title',
-    });
-
-    const container = getLoadingContainerElement();
-
-    expect(container).toBe(null);
-  });
-
-  it('should not update the loading settings via update when dialog plugin is disabled', async() => {
-    handsontable({
-      data: createSpreadsheetData(10, 10),
-      dialog: false,
-      loading: true,
     });
 
     const loadingPlugin = getPlugin('loading');

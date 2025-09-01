@@ -3,12 +3,10 @@ import Handsontable from 'handsontable';
 // Test loading plugin with dialog integration
 const hot = new Handsontable(document.createElement('div'), {
   loading: true,
-  dialog: true,
 });
 
 // Test loading plugin with custom configuration
 new Handsontable(document.createElement('div'), {
-  dialog: true,
   loading: {
     icon: '<svg>...</svg>',
     title: 'Custom Loading',
@@ -18,7 +16,6 @@ new Handsontable(document.createElement('div'), {
 
 // Test loading plugin with boolean settings
 new Handsontable(document.createElement('div'), {
-  dialog: true,
   loading: true,
 });
 

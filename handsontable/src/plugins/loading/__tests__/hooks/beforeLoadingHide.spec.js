@@ -17,7 +17,6 @@ describe('Loading - beforeLoadingHide hook', () => {
 
     handsontable({
       data: createSpreadsheetData(10, 10),
-      dialog: true,
       loading: true,
       beforeLoadingHide: beforeLoadingHideSpy,
     });
@@ -33,7 +32,6 @@ describe('Loading - beforeLoadingHide hook', () => {
   it('should not hide the loading dialog when beforeLoadingHide hook returns false', async() => {
     handsontable({
       data: createSpreadsheetData(10, 10),
-      dialog: true,
       loading: true,
     });
 
@@ -54,7 +52,6 @@ describe('Loading - beforeLoadingHide hook', () => {
 
     handsontable({
       data: createSpreadsheetData(10, 10),
-      dialog: true,
       loading: true,
       beforeLoadingHide: beforeLoadingHideSpy,
     });

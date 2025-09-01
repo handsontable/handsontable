@@ -17,7 +17,6 @@ describe('Loading - afterLoadingHide hook', () => {
 
     handsontable({
       data: createSpreadsheetData(10, 10),
-      dialog: true,
       loading: true,
       afterLoadingHide: afterLoadingHideSpy,
     });
@@ -35,7 +34,6 @@ describe('Loading - afterLoadingHide hook', () => {
 
     handsontable({
       data: createSpreadsheetData(10, 10),
-      dialog: true,
       loading: true,
       afterLoadingHide: afterLoadingHideSpy,
     });

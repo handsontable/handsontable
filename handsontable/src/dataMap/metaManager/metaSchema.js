@@ -1860,7 +1860,7 @@ export default () => {
      * | `background`             | One of the options: `'solid'` or `'semi-transparent'` (default: `'solid'`)                                                      | The background of the dialog            |
      * | `contentBackground`      | Boolean (default: `false`)                                                                                                      | Whether to show the content background  |
      * | `animation`              | Boolean (default: `true`)                                                                                                       | Whether to show the animation           |
-     * | `closable`               | Boolean (default: `false`)                                                                                                      | Whether to show the close button        |
+     * | `closable`               | Boolean (default: `false`)                                                                                                      | Whether to make the dialog closable     |
      * | `a11y`                   | Object with accessibility options (default: `{ role: 'dialog', ariaLabel: 'Dialog', ariaLabelledby: '', ariaDescribedby: '' }`) | Accessibility options for the dialog    |
      *
      * Read more:
@@ -3033,7 +3033,7 @@ export default () => {
      * @description
      * The `loading` option configures the [`Loading`](@/api/loading.md) plugin.
      *
-     * To use loading plugin, [`Dialog`](@/api/dialog.md) plugin must be enabled.
+     * Loading plugin, automatically loads [`Dialog`](@/api/dialog.md) plugin.
      *
      * You can set the `loading` option to one of the following:
      *

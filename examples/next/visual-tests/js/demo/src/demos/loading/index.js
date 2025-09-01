@@ -70,7 +70,6 @@ export function init() {
         headerClassName: 'htRight bold-text',
       },
     ],
-    dialog: true,
     loading: dialogSettings,
     width: 400,
     height: 400,
