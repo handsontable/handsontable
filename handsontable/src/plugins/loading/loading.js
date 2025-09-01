@@ -233,9 +233,9 @@ export class Loading extends BasePlugin {
       return;
     }
 
-    const beforeLoadingHide = this.hot.runHooks('beforeLoadingHide');
+    const shouldProceed = this.hot.runHooks('beforeLoadingHide');
 
-    if (beforeLoadingHide === false) {
+    if (shouldProceed === false) {
       return;
     }
 
