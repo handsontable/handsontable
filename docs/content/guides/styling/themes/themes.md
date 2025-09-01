@@ -37,7 +37,7 @@ Use Handsontable's built-in themes or customize its look by adjusting available 
 
 ## Overview
 
-Handsontable themes manage most visual elements of the data grid and are easy to customize, thanks to over 180 CSS variables available for each theme. By default, two built-in themes are available: `main`, `horizon` and `classic`. Both include dark and light modes that automatically detect your application's preferred color scheme.
+Handsontable themes manage most visual elements of the data grid and are easy to customize, thanks to over 180 CSS variables available for each theme. By default, two built-in themes are available: `main`, `horizon` and `classic`. All includes dark and light modes that automatically detect your application's preferred color scheme.
 
 ## Built-in themes
 
