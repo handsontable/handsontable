@@ -3229,6 +3229,7 @@ export const REGISTERED_HOOKS = [
    *
    * @since 16.1.0
    * @event Hooks#beforeLoadingHide
+   * @returns {boolean | undefined} If returns `false`, the action will be skipped.
    */
   'beforeLoadingHide',
 
