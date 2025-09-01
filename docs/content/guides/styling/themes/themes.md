@@ -37,7 +37,7 @@ Use Handsontable's built-in themes or customize its look by adjusting available 
 
 ## Overview
 
-Handsontable themes manage most visual elements of the data grid and are easy to customize, thanks to over 180 CSS variables available for each theme. By default, two built-in themes are available: `main`, `horizon` and classic (modern). Both include dark and light modes that automatically detect your application's preferred color scheme.
+Handsontable themes manage most visual elements of the data grid and are easy to customize, thanks to over 180 CSS variables available for each theme. By default, two built-in themes are available: `main`, `horizon` and `classic`. Both include dark and light modes that automatically detect your application's preferred color scheme.
 
 ## Built-in themes
 
@@ -45,7 +45,7 @@ The `main` ([source](https://github.com/handsontable/handsontable/blob/develop/h
 
 The `horizon` ([source](https://github.com/handsontable/handsontable/blob/develop/handsontable/src/styles/themes/horizon.scss)) theme, on the other hand, is better suited for data display and analysis. It hides the vertical lines between columns, giving it a cleaner and more lightweight feel.
 
-The `classic (modern)` ([source](https://github.com/handsontable/handsontable/blob/develop/handsontable/src/styles/themes/classic.scss)) theme is a replacement for the old legacy classic theme. It retains the familiar look and feel of the original classic theme, but has been updated to allow customization with CSS variables. This theme is ideal for users who prefer the traditional appearance of Handsontable but want to benefit from the theming system. The `classic (modern)` theme supports both light and dark modes, ensuring a seamless integration with your application's color scheme preferences.
+The `classic` ([source](https://github.com/handsontable/handsontable/blob/develop/handsontable/src/styles/themes/classic.scss)) theme is a replacement for the old legacy classic style. It retains the familiar look and feel of the original classic theme, but has been updated to allow customization with CSS variables. This theme is ideal for users who prefer the traditional appearance of Handsontable but want to benefit from the theming system. The `classic` theme supports both light and dark modes, ensuring a seamless integration with your application's color scheme preferences.
 
 Keep in mind that starting from version `15.0`, importing a theme is required.
 
