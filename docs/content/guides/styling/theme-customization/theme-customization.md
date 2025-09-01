@@ -154,7 +154,9 @@ Handsontable provides a comprehensive set of CSS variables that allow you to cus
 | Variable | Description |
 |----------|-------------|
 | `--ht-font-size` | Base font size for all text elements |
+| `--ht-font-size-small` | Font size for smaller text |
 | `--ht-line-height` | Line height for text elements |
+| `--ht-line-height-small` | Line height for smaller text |
 | `--ht-font-weight` | Font weight for text elements |
 | `--ht-letter-spacing` | Letter spacing for text elements |
 
@@ -533,7 +535,6 @@ Handsontable provides a comprehensive set of CSS variables that allow you to cus
 | `--ht-dialog-solid-background-color` | Solid background color of dialog overlay |
 | `--ht-dialog-content-padding-horizontal` | Horizontal padding of dialog content |
 | `--ht-dialog-content-padding-vertical` | Vertical padding of dialog content |
-| `--ht-dialog-content-gap` | Gap between dialog content elements |
 | `--ht-dialog-content-border-radius` | Border radius of dialog content |
 | `--ht-dialog-content-background-color` | Background color of dialog content |
 

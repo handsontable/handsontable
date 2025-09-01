@@ -43,87 +43,64 @@ const ExampleComponent = () => {
     hotInstance.getPlugin('dialog').show();
   }, []);
 
-  const onContentDirectionChange = (event) => {
-    const hotInstance = hotTableRef.current?.hotInstance;
-
-    if (!hotInstance) {
-      return;
-    }
-
-    const contentDirections = event.target.value;
-
-    hotInstance.getPlugin('dialog').update({ contentDirections });
-  };
-
   return (
-    <>
-      <div className="example-controls-container" style={{ paddingBottom: '16px' }}>
-        <div className="controlsQuickFilter">
-          <label htmlFor="content-direction-select" className="selectColumn">
-            Select a content direction:
-            <select id="content-direction-select" onChange={onContentDirectionChange}>
-              <option value="column">Column Layout</option>
-              <option value="column-reverse">Column Reverse Layout</option>
-              <option value="row">Row Layout</option>
-              <option value="row-reverse">Row Reverse Layout</option>
-            </select>
-          </label>
-        </div>
-      </div>
-      <HotTable
-        ref={hotTableRef}
-        themeName="ht-theme-main"
-        data={data}
-        width="100%"
-        height={300}
-        stretchH="all"
-        contextMenu={true}
-        rowHeaders={true}
-        colHeaders={true}
-        autoWrapRow={true}
-        autoWrapCol={true}
-        autoRowSize={true}
-        dialog={{
-          content:
-            '<p>This dialog uses column direction for content layout.</p><button>Button 1</button><button>Button 2</button>',
-          contentDirections: 'column',
-          closable: true,
-        }}
-        licenseKey="non-commercial-and-evaluation"
-      >
-        <HotColumn title="Model" type="text" data="model" width={150} headerClassName="htLeft" />
-        <HotColumn
-          title="Price"
-          type="numeric"
-          data="price"
-          width={80}
-          numericFormat={{ pattern: '$0,0.00', culture: 'en-US' }}
-          className="htRight"
-          headerClassName="htRight"
-        />
-        <HotColumn
-          title="Date"
-          type="date"
-          data="sellDate"
-          width={130}
-          dateFormat="MMM D, YYYY"
-          correctFormat={true}
-          className="htRight"
-          headerClassName="htRight"
-        />
-        <HotColumn
-          title="Time"
-          type="time"
-          data="sellTime"
-          width={90}
-          timeFormat="hh:mm A"
-          correctFormat={true}
-          className="htRight"
-          headerClassName="htRight"
-        />
-        <HotColumn title="In stock" type="checkbox" data="inStock" className="htCenter" headerClassName="htCenter" />
-      </HotTable>
-    </>
+    <HotTable
+      ref={hotTableRef}
+      themeName="ht-theme-main"
+      data={data}
+      width="100%"
+      height={300}
+      stretchH="all"
+      contextMenu={true}
+      rowHeaders={true}
+      colHeaders={true}
+      autoWrapRow={true}
+      autoWrapCol={true}
+      autoRowSize={true}
+      dialog={{
+        content: '<h2 id="example6-title">Title</h2><p id="example6-description">Description</p>',
+        a11y: {
+          role: 'alertdialog',
+          ariaLabel: 'Title',
+          ariaLabelledby: 'example6-title',
+          ariaDescribedby: 'example6-description',
+        },
+        closable: true,
+      }}
+      licenseKey="non-commercial-and-evaluation"
+    >
+      <HotColumn title="Model" type="text" data="model" width={150} headerClassName="htLeft" />
+      <HotColumn
+        title="Price"
+        type="numeric"
+        data="price"
+        width={80}
+        numericFormat={{ pattern: '$0,0.00', culture: 'en-US' }}
+        className="htRight"
+        headerClassName="htRight"
+      />
+      <HotColumn
+        title="Date"
+        type="date"
+        data="sellDate"
+        width={130}
+        dateFormat="MMM D, YYYY"
+        correctFormat={true}
+        className="htRight"
+        headerClassName="htRight"
+      />
+      <HotColumn
+        title="Time"
+        type="time"
+        data="sellTime"
+        width={90}
+        timeFormat="hh:mm A"
+        correctFormat={true}
+        className="htRight"
+        headerClassName="htRight"
+      />
+      <HotColumn title="In stock" type="checkbox" data="inStock" className="htCenter" headerClassName="htCenter" />
+    </HotTable>
   );
 };
 

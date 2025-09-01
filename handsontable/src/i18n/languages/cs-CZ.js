@@ -107,6 +107,8 @@ const dictionary = {
   [C.PAGINATION_PREV_PAGE]: 'Přejít na předchozí stránku',
   [C.PAGINATION_NEXT_PAGE]: 'Přejít na další stránku',
   [C.PAGINATION_LAST_PAGE]: 'Přejít na poslední stránku',
+
+  [C.LOADING_TITLE]: 'Načítání...',
 };
 
 export default dictionary;

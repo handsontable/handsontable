@@ -6,7 +6,6 @@ export interface DialogConfig {
   customClassName?: string;
   background?: 'solid' | 'semi-transparent';
   contentBackground?: boolean;
-  contentDirections?: 'row' | 'row-reverse' | 'column' | 'column-reverse';
   animation?: boolean;
   closable?: boolean;
 }

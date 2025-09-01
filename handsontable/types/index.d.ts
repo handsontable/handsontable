@@ -240,6 +240,10 @@ import {
   Settings as DialogSettings,
 } from './plugins/dialog';
 import {
+  Loading as _Loading,
+  Settings as LoadingSettings,
+} from './plugins/loading';
+import {
   UndoRedo as _UndoRedo,
   Settings as UndoRedoSettings,
 } from './plugins/undoRedo';
@@ -394,6 +398,7 @@ declare namespace Handsontable {
     export class TouchScroll extends _TouchScroll {}
     export class TrimRows extends _TrimRows {}
     export class Dialog extends _Dialog {}
+    export class Loading extends _Loading {}
     export class UndoRedo extends _UndoRedo {}
 
     export namespace AutoColumnSize {
@@ -554,6 +559,10 @@ declare namespace Handsontable {
 
     export namespace Dialog {
       export { DialogSettings as Settings };
+    }
+
+    export namespace Loading {
+      export { LoadingSettings as Settings };
     }
 
     export namespace UndoRedo {

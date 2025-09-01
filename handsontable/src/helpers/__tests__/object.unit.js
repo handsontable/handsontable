@@ -8,6 +8,7 @@ import {
   createObjectPropListener,
   setProperty,
   extend,
+  assignObjectDefaults,
 } from 'handsontable/helpers/object';
 
 describe('Object helper', () => {
@@ -409,6 +410,58 @@ describe('Object helper', () => {
       );
 
       expect(testObject).toEqual({ prop1: 0 });
+    });
+  });
+
+  describe('assignObjectDefaults', () => {
+    it('should return defaults if target is not an object', () => {
+      expect(assignObjectDefaults({}, { test: 1 })).toEqual({ test: 1 });
+    });
+
+    it('should return target object values if target is an object', () => {
+      expect(assignObjectDefaults({ test: 1 }, { test: 2 })).toEqual({ test: 1 });
+    });
+
+    it('should return object with defaults and plugin settings', () => {
+      expect(assignObjectDefaults({ test: 1 }, { test: 2, test2: 3 })).toEqual({ test: 1, test2: 3 });
+    });
+
+    it('should return target object values if defaults is null', () => {
+      expect(assignObjectDefaults({ test: 1 }, null)).toEqual({ test: 1 });
+    });
+
+    it('should return target object values if defaults is undefined', () => {
+      expect(assignObjectDefaults({ test: 1 }, undefined)).toEqual({ test: 1 });
+    });
+
+    it('should return target object values if defaults is a string', () => {
+      expect(assignObjectDefaults({ test: 1 }, 'test')).toEqual({ test: 1 });
+    });
+
+    it('should return defaults object values if target is null', () => {
+      expect(assignObjectDefaults(null, { test: 2 })).toEqual({ test: 2 });
+    });
+
+    it('should return defaults object values if target is undefined', () => {
+      expect(assignObjectDefaults(undefined, { test: 2 })).toEqual({ test: 2 });
+    });
+
+    it('should return defaults object values if target is a string', () => {
+      expect(assignObjectDefaults('test', { test: 2 })).toEqual({ test: 2 });
+    });
+
+    it('should return null if target is null and defaults is null', () => {
+      expect(assignObjectDefaults(null, null)).toEqual(null);
+    });
+
+    it('should return object with defaults for nested objects', () => {
+      expect(assignObjectDefaults(
+        { test: { test2: 1 } }, { test: { test2: 2, test3: 3 } })
+      ).toEqual({ test: { test2: 1, test3: 3 } });
+    });
+
+    it('should return empty object when target and defaults are empty objects', () => {
+      expect(assignObjectDefaults({}, {})).toEqual({});
     });
   });
 });

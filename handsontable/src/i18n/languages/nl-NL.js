@@ -112,6 +112,8 @@ const dictionary = {
   [C.PAGINATION_PREV_PAGE]: 'Ga naar vorige pagina',
   [C.PAGINATION_NEXT_PAGE]: 'Ga naar volgende pagina',
   [C.PAGINATION_LAST_PAGE]: 'Ga naar laatste pagina',
+
+  [C.LOADING_TITLE]: 'Laden...',
 };
 
 export default dictionary;

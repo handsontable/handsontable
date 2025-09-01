@@ -7,8 +7,17 @@ import {
   hasClass,
   fastInnerHTML,
   setAttribute,
+  removeAttribute,
 } from '../../helpers/dom/element';
-import { A11Y_DIALOG, A11Y_MODAL, A11Y_TABINDEX } from '../../helpers/a11y';
+import {
+  A11Y_DIALOG,
+  A11Y_MODAL,
+  A11Y_TABINDEX,
+  A11Y_LABEL,
+  A11Y_LABELED_BY,
+  A11Y_DESCRIBED_BY,
+  A11Y_ALERTDIALOG,
+} from '../../helpers/a11y';
 
 const DIALOG_CLASS_NAME = 'ht-dialog';
 
@@ -75,7 +84,6 @@ export class DialogUI {
 
     // Set ARIA attributes
     setAttribute(dialogElement, [
-      A11Y_DIALOG(),
       A11Y_MODAL(),
       A11Y_TABINDEX(-1),
       ['dir', this.#isRtl ? 'rtl' : 'ltr'],
@@ -113,8 +121,8 @@ export class DialogUI {
    * @param {string} options.customClassName - The custom class name to add to the dialog.
    * @param {string} options.background - The background to add to the dialog.
    * @param {boolean} options.contentBackground - Whether to show content background.
-   * @param {string} options.contentDirections - The flex direction for content layout.
    * @param {boolean} options.animation - Whether to add the animation class to the dialog.
+   * @param {object} options.a11y - The accessibility options for the dialog.
    *
    * @returns {DialogUI} The instance of the DialogUI.
    */
@@ -124,8 +132,8 @@ export class DialogUI {
     customClassName,
     background,
     contentBackground,
-    contentDirections,
     animation,
+    a11y,
   }) {
     const { dialogElement, contentElement } = this.#refs;
 
@@ -142,15 +150,41 @@ export class DialogUI {
     dialogElement.className =
       `${DIALOG_CLASS_NAME}${customClass}${backgroundClass}${animationClass}${showClass}`;
 
+    // Dialog aria attributes
+    setAttribute(dialogElement, [
+      a11y.role === 'alertdialog' ? A11Y_ALERTDIALOG() : A11Y_DIALOG(),
+    ]);
+
+    if (a11y.ariaLabel && !a11y.ariaLabelledby) {
+      setAttribute(dialogElement, [
+        a11y.ariaLabel ? A11Y_LABEL(a11y.ariaLabel) : undefined,
+      ]);
+    } else {
+      removeAttribute(dialogElement, 'aria-label');
+    }
+
+    if (a11y.ariaLabelledby) {
+      setAttribute(dialogElement, [
+        A11Y_LABELED_BY(a11y.ariaLabelledby),
+      ]);
+    } else {
+      removeAttribute(dialogElement, 'aria-labelledby');
+    }
+
+    if (a11y.ariaDescribedby) {
+      setAttribute(dialogElement, [
+        A11Y_DESCRIBED_BY(a11y.ariaDescribedby),
+      ]);
+    } else {
+      removeAttribute(dialogElement, 'aria-describedby');
+    }
+
     // Dialog content class name
     const contentBackgroundClass = contentBackground ?
       ` ${DIALOG_CLASS_NAME}__content--background` : '';
-    const contentDirectionsClass = contentDirections ?
-      ` ${DIALOG_CLASS_NAME}__content--flex-${contentDirections}` : '';
 
     // Update content class name
-    contentElement.className =
-      `${DIALOG_CLASS_NAME}__content${contentBackgroundClass}${contentDirectionsClass}`;
+    contentElement.className = `${DIALOG_CLASS_NAME}__content${contentBackgroundClass}`;
 
     // Clear existing dialog content
     contentElement.innerHTML = '';
@@ -210,6 +244,13 @@ export class DialogUI {
     }
 
     return this;
+  }
+
+  /**
+   * Focuses the dialog element.
+   */
+  focusDialog() {
+    this.#refs.dialogElement.focus();
   }
 
   /**

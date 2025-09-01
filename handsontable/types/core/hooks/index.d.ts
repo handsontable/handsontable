@@ -71,6 +71,10 @@ export interface Events {
   afterDialogFocus?: (focusSource: 'tab_from_above' | 'tab_from_below' | 'click' | 'show') => void;
   afterDialogHide?: () => void;
   afterDialogShow?: () => void;
+  beforeLoadingShow?: () => boolean | void;
+  afterLoadingShow?: () => void;
+  beforeLoadingHide?: () => boolean | void;
+  afterLoadingHide?: () => void;
   afterCopyLimit?: (selectedRows: number, selectedColumns: number, copyRowsLimit: number, copyColumnsLimit: number) => void;
   afterCreateCol?: (index: number, amount: number, source?: ChangeSource) => void;
   afterCreateRow?: (index: number, amount: number, source?: ChangeSource) => void;

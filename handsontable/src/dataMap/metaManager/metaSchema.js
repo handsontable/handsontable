@@ -1853,15 +1853,15 @@ export default () => {
      *
      * ##### dialog: Additional options
      *
-     * | Option                   | Possible settings                                                                                      | Description                             |
-     * | ------------------------ | ------------------------------------------------------------------------------------------------------ | ----------------------------------------|
-     * | `content`                | A string, HTMLElement or DocumentFragment (default: `''`)                                              | The content of the dialog               |
-     * | `customClassName`        | A string (default: `''`)                                                                               | The custom class name of the dialog     |
-     * | `background`             | One of the options: `'solid'` or `'semi-transparent'` (default: `'solid'`)                             | The background of the dialog            |
-     * | `contentBackground`      | Boolean (default: `false`)                                                                             | Whether to show the content background  |
-     * | `contentDirections`      | One of the options: `'row'` or `'row-reverse'` or `'column'` or `'column-reverse'` (default: `'row'`)  | The direction of the content            |
-     * | `animation`              | Boolean (default: `true`)                                                                              | Whether to show the animation           |
-     * | `closable`               | Boolean (default: `false`)                                                                             | Whether to show the close button        |
+     * | Option                   | Possible settings                                                                                                               | Description                             |
+     * | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------|
+     * | `content`                | A string, HTMLElement or DocumentFragment (default: `''`)                                                                       | The content of the dialog               |
+     * | `customClassName`        | A string (default: `''`)                                                                                                        | The custom class name of the dialog     |
+     * | `background`             | One of the options: `'solid'` or `'semi-transparent'` (default: `'solid'`)                                                      | The background of the dialog            |
+     * | `contentBackground`      | Boolean (default: `false`)                                                                                                      | Whether to show the content background  |
+     * | `animation`              | Boolean (default: `true`)                                                                                                       | Whether to show the animation           |
+     * | `closable`               | Boolean (default: `false`)                                                                                                      | Whether to make the dialog closable     |
+     * | `a11y`                   | Object with accessibility options (default: `{ role: 'dialog', ariaLabel: 'Dialog', ariaLabelledby: '', ariaDescribedby: '' }`) | Accessibility options for the dialog    |
      *
      * Read more:
      * - [Plugins: `Dialog`](@/api/dialog.md)
@@ -1884,9 +1884,14 @@ export default () => {
      *   customClassName: 'custom-dialog',
      *   background: 'semi-transparent',
      *   contentBackground: false,
-     *   contentDirections: 'column',
      *   animation: false,
      *   closable: true,
+     *   a11y: {
+     *     role: 'dialog',
+     *     ariaLabel: 'Dialog',
+     *     ariaLabelledby: 'titleID',
+     *     ariaDescribedby: 'descriptionID',
+     *   }
      * }
      * ```
      * :::
@@ -1905,9 +1910,15 @@ export default () => {
      *     customClassName: 'custom-dialog',
      *     background: 'semi-transparent',
      *     contentBackground: false,
-     *     contentDirections: 'column',
      *     animation: false,
      *     closable: true,
+     *     a11y: {
+     *       role: 'dialog',
+     *       ariaLabel: 'Dialog',
+     *       ariaLabelledby: 'titleID',
+     *       ariaDescribedby: 'descriptionID',
+     *     }
+     *   }
      *   }}
      * />
      * ```
@@ -1921,9 +1932,14 @@ export default () => {
      *     customClassName: 'custom-dialog',
      *     background: 'semi-transparent',
      *     contentBackground: false,
-     *     contentDirections: 'column',
      *     animation: false,
      *     closable: true,
+     *     a11y: {
+     *       role: 'dialog',
+     *       ariaLabel: 'Dialog',
+     *       ariaLabelledby: 'titleID',
+     *       ariaDescribedby: 'descriptionID',
+     *     }
      *   }
      * };
      * ```
@@ -3012,6 +3028,51 @@ export default () => {
      * ```
      */
     locale: 'en-US',
+
+    /**
+     * @description
+     * The `loading` option configures the [`Loading`](@/api/loading.md) plugin.
+     *
+     * Loading plugin, automatically loads [`Dialog`](@/api/dialog.md) plugin.
+     *
+     * You can set the `loading` option to one of the following:
+     *
+     * | Setting   | Description                                                                 |
+     * | --------- | --------------------------------------------------------------------------- |
+     * | `false`   | Disable the [`Loading`](@/api/loading.md) plugin                           |
+     * | `true`    | Enable the [`Loading`](@/api/loading.md) plugin with default configuration |
+     * | An object | - Enable the [`Loading`](@/api/loading.md) plugin<br>- Apply custom configuration |
+     *
+     * If you set the `loading` option to an object, you can configure the following loading options:
+     *
+     * | Option        | Possible settings | Description                                               |
+     * | ------------- | ----------------- | --------------------------------------------------------- |
+     * | `icon`        | A string          | Custom loading icon to display (default: `<svg />`)       |
+     * | `title`       | A string          | Custom loading title to display (default: `'Loading...'`) |
+     * | `description` | A string          | Custom loading description to display (default: `''`)     |
+     *
+     * Read more:
+     * - [Plugins: `Loading`](@/api/loading.md)
+     * @since 16.1.0
+     * @memberof Options#
+     * @type {boolean|object}
+     * @default false
+     * @category Loading
+     *
+     * @example
+     * ```js
+     * // enable the `Loading` plugin with default configuration
+     * loading: true,
+     *
+     * // enable the `Loading` plugin with custom configuration
+     * loading: {
+     *   icon: 'A custom loading icon in SVG format',
+     *   title: 'Custom loading title',
+     *   description: 'Custom loading description',
+     * }
+     * ```
+     */
+    loading: false,
 
     /**
      * The `manualColumnFreeze` option configures the [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) plugin.

@@ -29,9 +29,14 @@ describe('Dialog - show method', () => {
       customClassName: '',
       background: 'solid',
       contentBackground: false,
-      contentDirections: 'row',
       animation: true,
       closable: false,
+      a11y: {
+        role: 'dialog',
+        ariaLabel: 'Dialog',
+        ariaLabelledby: '',
+        ariaDescribedby: '',
+      },
     });
   });
 
