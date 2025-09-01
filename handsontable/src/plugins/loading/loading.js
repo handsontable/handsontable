@@ -213,9 +213,9 @@ export class Loading extends BasePlugin {
       return;
     }
 
-    const beforeLoadingShow = this.hot.runHooks('beforeLoadingShow');
+    const shouldProceed = this.hot.runHooks('beforeLoadingShow');
 
-    if (beforeLoadingShow === false) {
+    if (shouldProceed === false) {
       return;
     }
 
