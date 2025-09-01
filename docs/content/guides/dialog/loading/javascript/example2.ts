@@ -87,7 +87,6 @@ const hot = new Handsontable(container, {
   width: '100%',
   height: 300,
   stretchH: 'all',
-  dialog: true,
   loading: {
     title: 'Processing Data',
     description: 'Please wait while we load your inventory data...',

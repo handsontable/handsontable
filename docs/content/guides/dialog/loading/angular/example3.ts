@@ -86,7 +86,6 @@ export class AppComponent implements AfterViewInit {
     autoWrapRow: true,
     autoWrapCol: true,
     autoRowSize: true,
-    dialog: true,
     loading: true,
   };
 

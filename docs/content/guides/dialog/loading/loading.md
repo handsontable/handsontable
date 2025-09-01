@@ -36,7 +36,7 @@ The loading system is designed to be simple and effective, providing a consisten
 
 ## Basic configuration
 
-To enable the Loading plugin, set the [`loading`](@/api/options.md#loading) option to `true` or provide a configuration object. Note that the Dialog plugin must also be enabled.
+To enable the Loading plugin, set the [`loading`](@/api/options.md#loading) option to `true` or provide a configuration object.
 
 ::: only-for javascript
 

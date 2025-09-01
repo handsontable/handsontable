@@ -23,7 +23,6 @@ const Table = React.memo(({ hotTableRef, data }) => {
         autoWrapRow={true}
         autoWrapCol={true}
         autoRowSize={true}
-        dialog={true}
         loading={true}
         licenseKey="non-commercial-and-evaluation"
       >
