@@ -73,7 +73,7 @@ export interface Events {
   afterDialogShow?: () => void;
   beforeLoadingShow?: () => boolean | void;
   afterLoadingShow?: () => void;
-  beforeLoadingHide?: () => void;
+  beforeLoadingHide?: () => boolean | void;
   afterLoadingHide?: () => void;
   afterCopyLimit?: (selectedRows: number, selectedColumns: number, copyRowsLimit: number, copyColumnsLimit: number) => void;
   afterCreateCol?: (index: number, amount: number, source?: ChangeSource) => void;
