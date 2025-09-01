@@ -3224,6 +3224,24 @@ export const REGISTERED_HOOKS = [
   'afterLoadingShow',
 
   /**
+   * Fired by {@link Loading} plugin before hiding the loading indicator. This hook is fired when {@link Options#loading}
+   * option is enabled.
+   *
+   * @since 16.1.0
+   * @event Hooks#beforeLoadingHide
+   */
+  'beforeLoadingHide',
+
+  /**
+   * Fired by {@link Loading} plugin after hiding the loading indicator. This hook is fired when {@link Options#loading}
+   * option is enabled.
+   *
+   * @since 16.1.0
+   * @event Hooks#afterLoadingHide
+   */
+  'afterLoadingHide',
+
+  /**
    * Fired after the editor is opened and rendered.
    *
    * @event Hooks#afterBeginEditing

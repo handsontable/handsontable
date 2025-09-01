@@ -229,11 +229,15 @@ export class Loading extends BasePlugin {
    * Hide loading dialog.
    */
   hide() {
-    if (!this.#dialogPlugin || !this.#dialogPlugin?.isEnabled()) {
+    if (!this.#dialogPlugin || !this.#dialogPlugin?.isEnabled() || !this.isVisible()) {
       return;
     }
 
+    this.hot.runHooks('beforeLoadingHide');
+
     this.#dialogPlugin.hide();
+
+    this.hot.runHooks('afterLoadingHide');
   }
 
   /**
