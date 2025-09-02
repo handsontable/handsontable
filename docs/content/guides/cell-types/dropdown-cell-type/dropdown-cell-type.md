@@ -80,6 +80,118 @@ Internally, cell `{ type: 'dropdown' }` is equivalent to cell `{ type:'autocompl
 
 :::
 
+## The `source` option
+
+The `source` option can be provided in two formats:
+
+### Array of values
+
+You can provide the `source` option as an array of values that will be used as the dropdown options.
+
+::: only-for javascript
+
+::: example #example2 .docs-height-small --js 1 --ts 2
+
+
+@[code](@/content/guides/cell-types/dropdown-cell-type/javascript/example2.js)
+
+@[code](@/content/guides/cell-types/dropdown-cell-type/javascript/example2.ts)
+
+
+:::
+
+:::
+
+
+::: only-for react
+
+::: example #example2 .docs-height-small :react --js 1 --ts 2
+
+
+@[code](@/content/guides/cell-types/dropdown-cell-type/react/example2.jsx)
+
+@[code](@/content/guides/cell-types/dropdown-cell-type/react/example2.tsx)
+
+
+:::
+
+:::
+
+
+::: only-for angular
+
+::: example #example2 .docs-height-small :angular --ts 1 --html 2
+
+
+@[code](@/content/guides/cell-types/dropdown-cell-type/angular/example2.ts)
+
+@[code](@/content/guides/cell-types/dropdown-cell-type/angular/example2.html)
+
+
+:::
+
+:::
+
+### Array of objects
+
+You can provide the `source` option as an array of objects with `key` and `value` properties. The `value` property will be used as the dropdown option, while the entire object will be used as the value of the cell.
+
+::: only-for javascript
+
+::: example #example3 .docs-height-small --js 1 --ts 2
+
+
+@[code](@/content/guides/cell-types/dropdown-cell-type/javascript/example3.js)
+
+@[code](@/content/guides/cell-types/dropdown-cell-type/javascript/example3.ts)
+
+
+:::
+
+:::
+
+
+::: only-for react
+
+::: example #example3 .docs-height-small :react --js 1 --ts 2
+
+
+@[code](@/content/guides/cell-types/dropdown-cell-type/react/example3.jsx)
+
+@[code](@/content/guides/cell-types/dropdown-cell-type/react/example3.tsx)
+
+
+:::
+
+:::
+
+
+::: only-for angular
+
+::: example #example3 .docs-height-small :angular --ts 1 --html 2
+
+
+@[code](@/content/guides/cell-types/dropdown-cell-type/angular/example3.ts)
+
+@[code](@/content/guides/cell-types/dropdown-cell-type/angular/example3.html)
+
+
+:::
+
+:::
+
+
+#### API methods
+
+When working with object-based dropdown data, you can use methods like [`getSourceData()`](@/api/core.md#getsourcedata), [`getSourceDataAtCell()`](@/api/core.md#getsourcedataatcell), [`getSourceDataAtRow()`](@/api/core.md#getsourcedataatrow) etc., to get the data in its original object format with both `key` and `value` properties. The [`getData()`](@/api/core.md#getdata) method will return only the `value` property's value.
+
+
+::: tip
+
+**Note:** When the `source` option is declared as an array of `key` + `value` objects, the data in the edited cell should also be an object with `key` + `value` properties.
+
+:::
+
 ## Related articles
 
 ### Related guides
@@ -99,6 +211,8 @@ Internally, cell `{ type: 'dropdown' }` is equivalent to cell `{ type:'autocompl
   - [`source`](@/api/options.md#source)
   - [`trimDropdown`](@/api/options.md#trimdropdown)
   - [`type`](@/api/options.md#type)
+  - [`valueGetter`](@/api/options.md#valuegetter)
+  - [`valueSetter`](@/api/options.md#valueSetter)
   - [`visibleRows`](@/api/options.md#visiblerows)
 - Core methods:
   - [`getCellMeta()`](@/api/core.md#getcellmeta)

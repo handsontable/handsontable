@@ -24,7 +24,7 @@ const contextMenuSettings = {
     // and the key has to be unique
     sp1: '---------',
     row_below: {
-      name: 'Click to add row below',
+      name: 'Click to add row below', // Set custom text for predefined option
     },
     about: {
       // Own custom option
@@ -77,7 +77,7 @@ const contextMenuSettings = {
         return elem;
       },
       disableSelection: true,
-      isCommand: false,
+      isCommand: false, // Prevent clicks from executing command and closing the menu
     },
   },
 };

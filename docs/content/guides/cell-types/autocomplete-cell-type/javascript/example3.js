@@ -1,6 +1,10 @@
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const container = document.querySelector('#example3');
 
@@ -26,7 +30,7 @@ new Handsontable(container, {
     },
     {},
     {},
-    {},
+    {}, // Bumper color is a default text column
   ],
   autoWrapRow: true,
   autoWrapCol: true,

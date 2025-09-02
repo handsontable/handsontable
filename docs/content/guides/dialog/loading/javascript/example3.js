@@ -7,7 +7,6 @@ import 'handsontable/styles/ht-theme-main.css';
 registerAllModules();
 
 const container = document.getElementById('example3');
-
 const hot = new Handsontable(container, {
   themeName: 'ht-theme-main',
   data: [],
@@ -71,13 +70,10 @@ const hot = new Handsontable(container, {
 // Get loading plugin instance
 const loadingPlugin = hot.getPlugin('loading');
 
-const button = document.getElementById('loadData');
-
 // Simulate data loading
 async function loadData() {
   // Show loading dialog
   loadingPlugin.show();
-  button.disabled = true;
 
   try {
     // Simulate API call delay
@@ -97,21 +93,24 @@ async function loadData() {
       { model: 'Windbreaker Jacket', price: 919.09, sellDate: 'Jul 16, 2025', sellTime: '07:11 PM', inStock: true },
     ];
 
+    // Update loading message
+    loadingPlugin.update({
+      title: 'Processing Data',
+      description: 'Formatting and validating data...',
+    });
+    // Simulate additional processing time
+    await new Promise((resolve) => setTimeout(resolve, 1500));
     // Load data into the table
     hot.loadData(data);
-
     // Hide loading dialog
     loadingPlugin.hide();
-
-    button.disabled = false;
-    button.innerHTML = 'Reload Data';
   } catch (error) {
     // Handle error
     setTimeout(() => {
       loadingPlugin.hide();
-      button.disabled = false;
     }, 2000);
   }
 }
 
-button.addEventListener('click', loadData);
+// Start loading data when page loads
+loadData();

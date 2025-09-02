@@ -30,7 +30,6 @@ const data = [
 ];
 
 const container = document.getElementById('example4');
-
 const hot = new Handsontable(container, {
   themeName: 'ht-theme-main',
   data,
@@ -99,7 +98,6 @@ const hot = new Handsontable(container, {
 const dialogPlugin = hot.getPlugin('dialog');
 
 dialogPlugin.show();
-
 // Add event listeners for select
 document.getElementById('background-select').addEventListener('change', (event) => {
   const background = event.target.value;

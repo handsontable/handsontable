@@ -1,10 +1,13 @@
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
 import numbro from 'numbro';
 import jaJP from 'numbro/languages/ja-JP';
 import trTR from 'numbro/languages/tr-TR';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
 
+// Register all Handsontable's modules.
+registerAllModules();
 // register the languages you need
 numbro.registerLanguage(jaJP);
 numbro.registerLanguage(trTR);

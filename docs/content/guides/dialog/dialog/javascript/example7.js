@@ -30,7 +30,6 @@ const data = [
 ];
 
 const container = document.getElementById('example7');
-
 const hot = new Handsontable(container, {
   themeName: 'ht-theme-main',
   data,
@@ -103,7 +102,6 @@ document.getElementById('showDialog').addEventListener('click', () => {
     closable: true,
   });
 });
-
 document.getElementById('hideDialog').addEventListener('click', () => {
   dialogPlugin.hide();
 });
