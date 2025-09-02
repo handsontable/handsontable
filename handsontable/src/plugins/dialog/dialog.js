@@ -436,6 +436,13 @@ export class Dialog extends BasePlugin {
   }
 
   /**
+   * Focus the dialog.
+   */
+  focusDialog() {
+    this.#ui.focusDialog();
+  }
+
+  /**
    * Handle focus tab navigation event.
    *
    * @param {'from_above' | 'from_below'} from The direction from which the focus was modified.

@@ -18,23 +18,17 @@ export function installFocusCatcher(hot) {
     onFocus(from) {
       if (from === 'from_above') {
         const mostTopStartCoords = clampCoordsIfNeeded(recentlyAddedFocusCoords) ?? getMostTopStartPosition(hot);
+        const result = hot.runHooks('modifyFocusOnTabNavigation', 'from_above', mostTopStartCoords);
 
-        if (mostTopStartCoords) {
-          const result = hot.runHooks('modifyFocusOnTabNavigation', 'from_above', mostTopStartCoords);
-
-          if (result !== false) {
-            hot.selectCell(mostTopStartCoords.row, mostTopStartCoords.col);
-          }
+        if (mostTopStartCoords && result !== false) {
+          hot.selectCell(mostTopStartCoords.row, mostTopStartCoords.col);
         }
       } else {
         const mostBottomEndCoords = clampCoordsIfNeeded(recentlyAddedFocusCoords) ?? getMostBottomEndPosition(hot);
+        const result = hot.runHooks('modifyFocusOnTabNavigation', 'from_below', mostBottomEndCoords);
 
-        if (mostBottomEndCoords) {
-          const result = hot.runHooks('modifyFocusOnTabNavigation', 'from_below', mostBottomEndCoords);
-
-          if (result !== false) {
-            hot.selectCell(mostBottomEndCoords.row, mostBottomEndCoords.col);
-          }
+        if (mostBottomEndCoords && result !== false) {
+          hot.selectCell(mostBottomEndCoords.row, mostBottomEndCoords.col);
         }
       }
 

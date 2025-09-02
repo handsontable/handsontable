@@ -156,6 +156,8 @@ export class Loading extends BasePlugin {
           dialog: true,
         });
       }
+
+      this.hot.addHook('afterDialogFocus', () => this.#onDialogFocus());
     }
 
     super.enablePlugin();
@@ -276,6 +278,13 @@ export class Loading extends BasePlugin {
         ariaDescribedby: description ? `${id}-${PLUGIN_KEY}-description` : undefined,
       },
     });
+  }
+
+  /**
+   * Handle dialog focus event.
+   */
+  #onDialogFocus() {
+    this.#dialogPlugin.focusDialog();
   }
 
   /**
