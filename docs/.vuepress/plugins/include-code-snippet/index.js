@@ -18,19 +18,16 @@ module.exports = (options, context) => {
           const includePath = file[1].trim().split('@').join('.');
 
           if (fs.existsSync(includePath)) {
-            // Store initial file stats
             let lastStats = fs.statSync(includePath);
 
             fs.watch(includePath, () => {
               try {
-                // Get current file stats
                 const currentStats = fs.statSync(includePath);
 
                 if (lastStats.size !== currentStats.size) {
                   // Only trigger hot reload if file size actually changed
                   fs.utimesSync($page._filePath, new Date(), new Date());
 
-                  // Update stored stats
                   lastStats = currentStats;
                 }
               } catch (error) {
