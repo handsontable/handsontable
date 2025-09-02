@@ -123,10 +123,6 @@ describe('HandsontableEditor positioning', () => {
       const relativeRect = getCell(12, 1).getBoundingClientRect();
       const containerRect = getActiveEditor().htContainer.getBoundingClientRect();
 
-      console.log(relativeRect, containerRect);
-
-      await sleep(5000);
-
       expect({
         top: containerRect.top,
         left: containerRect.left,
