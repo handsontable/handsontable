@@ -20,7 +20,9 @@ import { init as initCustomBordersDemo } from './demos/customBorders';
 import { init as initWebComponentDemo } from './demos/webComponent';
 import { init as initEditorsDemo } from './demos/editors';
 import { init as initTextEllipsisDemo } from './demos/textEllipsis';
+import { init as initDialogDemo } from './demos/dialog';
 import { init as initWrapperDemo } from './demos/wrapper';
+import { init as initLoadingDemo } from './demos/loading';
 
 // Function to dynamically load CSS
 function loadCSS(href) {
@@ -258,6 +260,15 @@ router
         initPaginationDemo();
       });
     },
+    '/dialog-demo': function () {
+      removeCSS();
+
+      Promise.all([
+        loadThemeCSS(),
+      ]).then(() => {
+        initDialogDemo();
+      });
+    },
     '/wrapper-demo': function () {
       removeCSS();
 
@@ -265,6 +276,15 @@ router
         loadThemeCSS(),
       ]).then(() => {
         initWrapperDemo();
+      });
+    },
+    '/loading-demo': function () {
+      removeCSS();
+
+      Promise.all([
+        loadThemeCSS(),
+      ]).then(() => {
+        initLoadingDemo();
       });
     },
   })

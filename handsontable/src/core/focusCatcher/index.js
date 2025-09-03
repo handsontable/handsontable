@@ -1,10 +1,7 @@
 import { GRID_GROUP } from '../../shortcutContexts';
-import { installFocusDetector } from './focusDetector';
-import {
-  normalizeCoordsIfNeeded,
-  getMostTopStartPosition,
-  getMostBottomEndPosition,
-} from './utils';
+import { installFocusDetector } from '../../utils/focusDetector';
+import { normalizeCoordsIfNeeded } from './utils';
+import { getMostTopStartPosition, getMostBottomEndPosition } from '../../helpers/mixed';
 
 /**
  * Installs a focus catcher module. The module observes when the table is focused and depending on
@@ -17,23 +14,22 @@ export function installFocusCatcher(hot) {
   const clampCoordsIfNeeded = normalizeCoordsIfNeeded(hot);
   let recentlyAddedFocusCoords;
 
-  const { activate, deactivate } = installFocusDetector(hot, {
-    onFocusFromTop() {
-      const mostTopStartCoords = clampCoordsIfNeeded(recentlyAddedFocusCoords) ?? getMostTopStartPosition(hot);
+  const { activate, deactivate } = installFocusDetector(hot, hot.rootGridElement, {
+    onFocus(from) {
+      if (from === 'from_above') {
+        const mostTopStartCoords = clampCoordsIfNeeded(recentlyAddedFocusCoords) ?? getMostTopStartPosition(hot);
+        const result = hot.runHooks('modifyFocusOnTabNavigation', 'from_above', mostTopStartCoords);
 
-      if (mostTopStartCoords) {
-        hot.runHooks('modifyFocusOnTabNavigation', 'from_above', mostTopStartCoords);
-        hot.selectCell(mostTopStartCoords.row, mostTopStartCoords.col);
-      }
+        if (mostTopStartCoords && result !== false) {
+          hot.selectCell(mostTopStartCoords.row, mostTopStartCoords.col);
+        }
+      } else {
+        const mostBottomEndCoords = clampCoordsIfNeeded(recentlyAddedFocusCoords) ?? getMostBottomEndPosition(hot);
+        const result = hot.runHooks('modifyFocusOnTabNavigation', 'from_below', mostBottomEndCoords);
 
-      hot.listen();
-    },
-    onFocusFromBottom() {
-      const mostBottomEndCoords = clampCoordsIfNeeded(recentlyAddedFocusCoords) ?? getMostBottomEndPosition(hot);
-
-      if (mostBottomEndCoords) {
-        hot.runHooks('modifyFocusOnTabNavigation', 'from_below', mostBottomEndCoords);
-        hot.selectCell(mostBottomEndCoords.row, mostBottomEndCoords.col);
+        if (mostBottomEndCoords && result !== false) {
+          hot.selectCell(mostBottomEndCoords.row, mostBottomEndCoords.col);
+        }
       }
 
       hot.listen();
@@ -48,8 +44,22 @@ export function installFocusCatcher(hot) {
   let isTabOrShiftTabPressed = false;
   let preventViewportScroll = false;
 
-  hot.addHook('afterListen', () => deactivate());
-  hot.addHook('afterUnlisten', () => activate());
+  hot.addHook('afterListen', () => {
+    const activeContextName = hot.getShortcutManager().getActiveContextName();
+    const activeContext = hot.getShortcutManager().getContext(activeContextName);
+
+    if (activeContext?.scope === 'table') {
+      deactivate();
+    }
+  });
+  hot.addHook('afterUnlisten', () => {
+    const activeContextName = hot.getShortcutManager().getActiveContextName();
+    const activeContext = hot.getShortcutManager().getContext(activeContextName);
+
+    if (activeContext?.scope === 'table') {
+      activate();
+    }
+  });
   hot.addHook('afterSelection', (row, column, row2, column2, preventScrolling) => {
     if (isTabOrShiftTabPressed && (rowWrapState.wrapped && rowWrapState.flipped || preventViewportScroll)) {
       preventViewportScroll = false;

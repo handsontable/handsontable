@@ -1,0 +1,43 @@
+// Handsontable Loading
+
+@mixin output {
+  .ht-loading {
+    &__icon {
+      &-svg {
+        display: block;
+        width: var(--ht-icon-size);
+        height: var(--ht-icon-size);
+        color: var(--ht-accent-color);
+        animation: ht-loading-spin 1s linear infinite;
+        transform-origin: 50% 50%;
+      }
+    }
+
+    &__content {
+      display: flex;
+      align-items: center;
+      gap: calc(var(--ht-gap-size) * 2);
+    }
+
+    &__title {
+      margin: 0;
+      font-size: var(--ht-font-size);
+      font-weight: var(--ht-font-weight);
+      line-height: var(--ht-line-height);
+    }
+
+    &__description {
+      margin: 0;
+      color: var(--ht-foreground-secondary-color);
+      font-size: var(--ht-font-size-small);
+      line-height: var(--ht-line-height-small);
+      font-weight: var(--ht-font-weight);
+    }
+  }
+
+  @keyframes ht-loading-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+}

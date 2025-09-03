@@ -110,6 +110,8 @@ const dictionary = {
   [C.PAGINATION_PREV_PAGE]: 'Idi na prethodnu stranicu',
   [C.PAGINATION_NEXT_PAGE]: 'Idi na sledeću stranicu',
   [C.PAGINATION_LAST_PAGE]: 'Idi na poslednju stranicu',
+
+  [C.LOADING_TITLE]: 'Učitavanje...',
 };
 
 export default dictionary;

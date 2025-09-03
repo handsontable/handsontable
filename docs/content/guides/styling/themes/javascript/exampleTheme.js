@@ -1,8 +1,12 @@
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
 import 'handsontable/styles/ht-theme-horizon.css';
 import 'handsontable/styles/ht-theme-classic.css';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 // constants.js
 export const data = [

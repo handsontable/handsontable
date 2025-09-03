@@ -68,6 +68,13 @@ export interface Events {
   afterContextMenuHide?: (context: ContextMenu) => void;
   afterContextMenuShow?: (context: ContextMenu) => void;
   afterCopy?: (data: CellValue[][], coords: RangeType[], copiedHeadersCount: { columnHeadersCount: number }) => void;
+  afterDialogFocus?: (focusSource: 'tab_from_above' | 'tab_from_below' | 'click' | 'show') => void;
+  afterDialogHide?: () => void;
+  afterDialogShow?: () => void;
+  beforeLoadingShow?: () => boolean | void;
+  afterLoadingShow?: () => void;
+  beforeLoadingHide?: () => boolean | void;
+  afterLoadingHide?: () => void;
   afterCopyLimit?: (selectedRows: number, selectedColumns: number, copyRowsLimit: number, copyColumnsLimit: number) => void;
   afterCreateCol?: (index: number, amount: number, source?: ChangeSource) => void;
   afterCreateRow?: (index: number, amount: number, source?: ChangeSource) => void;
@@ -178,6 +185,8 @@ export interface Events {
   beforeContextMenuShow?: (context: ContextMenu) => void;
   beforeCopy?: (data: CellValue[][], coords: RangeType[], copiedHeadersCount: { columnHeadersCount: number }) => void | boolean;
   beforeCreateCol?: (index: number, amount: number, source?: ChangeSource) => void | boolean;
+  beforeDialogHide?: () => void;
+  beforeDialogShow?: () => void;
   beforeCreateRow?: (index: number, amount: number, source?: ChangeSource) => void | boolean;
   beforeCut?: (data: CellValue[][], coords: RangeType[]) => void | boolean;
   beforeDetachChild?: (parent: RowObject, element: RowObject) => void;
@@ -244,6 +253,8 @@ export interface Events {
   beforeViewRender?: (isForced: boolean, skipRender: { skipRender?: boolean }) => void;
   beforeWidthChange?: (width: number | string) => number | string;
   construct?: () => void;
+  dialogFocusNextElement?: () => void;
+  dialogFocusPreviousElement?: () => void;
   init?: () => void;
   modifyAutoColumnSizeSeed?: (seed: string, cellProperties: CellProperties, cellValue: CellValue) => string | void;
   modifyAutofillRange?: (startArea: Array<[number, number, number, number]>, entireArea: Array<[number, number, number, number]>) => void;

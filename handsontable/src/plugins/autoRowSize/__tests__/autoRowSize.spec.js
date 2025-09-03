@@ -314,12 +314,12 @@ describe('AutoRowSize', () => {
     await keyDownUp('enter');
 
     expect(getInlineStartClone().find('.wtHolder').scrollTop()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(89);
+      classic.toBe(90);
       main.toBe(216);
       horizon.toBe(264);
     });
     expect(getMaster().find('.wtHolder').scrollTop()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(89);
+      classic.toBe(90);
       main.toBe(216);
       horizon.toBe(264);
     });
@@ -990,6 +990,23 @@ describe('AutoRowSize', () => {
     const cellsHeight = getCell(0, 18, true).offsetHeight;
 
     expect(rowHeaderHeight).toBe(cellsHeight);
+  });
+
+  it.forTheme('classic')('should correctly render the fixed columns borders when ' +
+    'scrolled horizontally (dev-2512)', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 50),
+      width: 500,
+      height: 500,
+      rowHeaders: true,
+      colHeaders: true,
+      autoRowSize: true,
+      fixedColumnsStart: 1,
+    });
+
+    await scrollViewportHorizontally(500);
+
+    expect(getComputedStyle(getCell(0, 0, true)).borderLeftWidth).toBe('1px');
   });
 
   describe('should work together with formulas plugin', () => {

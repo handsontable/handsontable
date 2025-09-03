@@ -51,6 +51,8 @@ describe('`registerAllPlugins`', () => {
       'HiddenColumns',
       'HiddenRows',
       'TrimRows',
+      'Dialog',
+      'Loading',
       'Pagination',
       'UndoRedo',
     ]);

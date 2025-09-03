@@ -1842,6 +1842,118 @@ export default () => {
 
     /**
      * @description
+     * The `dialog` option configures the [`Dialog`](@/api/dialog.md) plugin.
+     *
+     * You can set the `dialog` option to one of the following:
+     *
+     * | Setting   | Description                                                                 |
+     * | --------- | --------------------------------------------------------------------------- |
+     * | `false`   | Disable the [`Dialog`](@/api/dialog.md) plugin                              |
+     * | `true`    | Enable the [`Dialog`](@/api/dialog.md) plugin with default options          |
+     *
+     * ##### dialog: Additional options
+     *
+     * | Option                   | Possible settings                                                                                                               | Description                             |
+     * | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------|
+     * | `content`                | A string, HTMLElement or DocumentFragment (default: `''`)                                                                       | The content of the dialog               |
+     * | `customClassName`        | A string (default: `''`)                                                                                                        | The custom class name of the dialog     |
+     * | `background`             | One of the options: `'solid'` or `'semi-transparent'` (default: `'solid'`)                                                      | The background of the dialog            |
+     * | `contentBackground`      | Boolean (default: `false`)                                                                                                      | Whether to show the content background  |
+     * | `animation`              | Boolean (default: `true`)                                                                                                       | Whether to show the animation           |
+     * | `closable`               | Boolean (default: `false`)                                                                                                      | Whether to make the dialog closable     |
+     * | `a11y`                   | Object with accessibility options (default: `{ role: 'dialog', ariaLabel: 'Dialog', ariaLabelledby: '', ariaDescribedby: '' }`) | Accessibility options for the dialog    |
+     *
+     * Read more:
+     * - [Plugins: `Dialog`](@/api/dialog.md)
+     *
+     * @since 16.1.0
+     * @memberof Options#
+     * @type {boolean|object}
+     * @default false
+     * @category Dialog
+     *
+     * @example
+     * ::: only-for javascript
+     * ```js
+     * // enable the Dialog plugin with default option
+     * dialog: true,
+     *
+     * // enable the Dialog plugin with custom configuration
+     * dialog: {
+     *   content: 'Dialog content',
+     *   customClassName: 'custom-dialog',
+     *   background: 'semi-transparent',
+     *   contentBackground: false,
+     *   animation: false,
+     *   closable: true,
+     *   a11y: {
+     *     role: 'dialog',
+     *     ariaLabel: 'Dialog',
+     *     ariaLabelledby: 'titleID',
+     *     ariaDescribedby: 'descriptionID',
+     *   }
+     * }
+     * ```
+     * :::
+     *
+     * ::: only-for react
+     * ```jsx
+     * // enable the Dialog plugin with default option
+     * <HotTable
+     *   dialog={true}
+     * />
+     *
+     * // enable the Dialog plugin with custom configuration
+     * <HotTable
+     *   dialog={{
+     *     content: 'Dialog content',
+     *     customClassName: 'custom-dialog',
+     *     background: 'semi-transparent',
+     *     contentBackground: false,
+     *     animation: false,
+     *     closable: true,
+     *     a11y: {
+     *       role: 'dialog',
+     *       ariaLabel: 'Dialog',
+     *       ariaLabelledby: 'titleID',
+     *       ariaDescribedby: 'descriptionID',
+     *     }
+     *   }
+     *   }}
+     * />
+     * ```
+     * :::
+     *
+     * ::: only-for angular
+     * ```ts
+     * settings = {
+     *   dialog: {
+     *     content: 'Dialog content',
+     *     customClassName: 'custom-dialog',
+     *     background: 'semi-transparent',
+     *     contentBackground: false,
+     *     animation: false,
+     *     closable: true,
+     *     a11y: {
+     *       role: 'dialog',
+     *       ariaLabel: 'Dialog',
+     *       ariaLabelledby: 'titleID',
+     *       ariaDescribedby: 'descriptionID',
+     *     }
+     *   }
+     * };
+     * ```
+     *
+     * ```html
+     * <hot-table [settings]="settings" />
+     * ```
+     * :::
+     *
+     */
+    dialog: false,
+
+    /**
+     * @description
      * The `dragToScroll` option configures the [`DragToScroll`](@/api/dragToScroll.md) plugin.
      *
      * You can set the `dragToScroll` option to one of the following:
@@ -2916,6 +3028,51 @@ export default () => {
      * ```
      */
     locale: 'en-US',
+
+    /**
+     * @description
+     * The `loading` option configures the [`Loading`](@/api/loading.md) plugin.
+     *
+     * Loading plugin, automatically loads [`Dialog`](@/api/dialog.md) plugin.
+     *
+     * You can set the `loading` option to one of the following:
+     *
+     * | Setting   | Description                                                                 |
+     * | --------- | --------------------------------------------------------------------------- |
+     * | `false`   | Disable the [`Loading`](@/api/loading.md) plugin                           |
+     * | `true`    | Enable the [`Loading`](@/api/loading.md) plugin with default configuration |
+     * | An object | - Enable the [`Loading`](@/api/loading.md) plugin<br>- Apply custom configuration |
+     *
+     * If you set the `loading` option to an object, you can configure the following loading options:
+     *
+     * | Option        | Possible settings | Description                                               |
+     * | ------------- | ----------------- | --------------------------------------------------------- |
+     * | `icon`        | A string          | Custom loading icon to display (default: `<svg />`)       |
+     * | `title`       | A string          | Custom loading title to display (default: `'Loading...'`) |
+     * | `description` | A string          | Custom loading description to display (default: `''`)     |
+     *
+     * Read more:
+     * - [Plugins: `Loading`](@/api/loading.md)
+     * @since 16.1.0
+     * @memberof Options#
+     * @type {boolean|object}
+     * @default false
+     * @category Loading
+     *
+     * @example
+     * ```js
+     * // enable the `Loading` plugin with default configuration
+     * loading: true,
+     *
+     * // enable the `Loading` plugin with custom configuration
+     * loading: {
+     *   icon: 'A custom loading icon in SVG format',
+     *   title: 'Custom loading title',
+     *   description: 'Custom loading description',
+     * }
+     * ```
+     */
+    loading: false,
 
     /**
      * The `manualColumnFreeze` option configures the [`ManualColumnFreeze`](@/api/manualColumnFreeze.md) plugin.
@@ -4360,8 +4517,12 @@ export default () => {
      *
      * You can set the `source` option to one of the following:
      *
-     * - An array
+     * - An array of string values
+     * - An array of objects with `key` and `value` properties
      * - A function
+     *
+     * Note: When defining the `source` option as an array of objects with `key` and `value` properties, the data format for that cell
+     * needs to be an object with `key` and `value` properties as well.
      *
      * Read more:
      * - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)
@@ -4378,12 +4539,26 @@ export default () => {
      *
      * @example
      * ```js
-     * // set `source` to an array
+     * // set `source` to an array of string values
      * columns: [{
      *   // set the `type` of each cell in this column to `autocomplete`
      *   type: 'autocomplete',
      *   // set options available in every `autocomplete` cell of this column
      *   source: ['A', 'B', 'C', 'D']
+     * }],
+     *
+     * // set `source` to an array of objects with `key` and `value` properties
+     * columns: [{
+     *   // set the `type` of each cell in this column to `autocomplete`
+     *   type: 'autocomplete',
+     *   // set options available in every `autocomplete` cell of this column
+     *   source: [{
+     *     key: 'A',
+     *     value: 'Label A'
+     *   }, {
+     *     key: 'B',
+     *     value: 'Label B'
+     *   }]
      * }],
      *
      * // set `source` to a function
@@ -4952,6 +5127,56 @@ export default () => {
      * ```
      */
     validator: undefined,
+
+    /**
+     * @description
+     * The `valueGetter` option configures a function that defines what value will be used when displaying the cell content.
+     * It can be used to modify the value of a cell before it is displayed (for example, for object-based data).
+     *
+     * @example
+     * ```js
+     * // use the `label` property of the value object with a fallback to the value itself
+     * valueGetter: (value, row, column, cellMeta) => {
+     *   return value?.label ?? value;
+     * }
+     * ```
+     *
+     * @memberof Options#
+     * @type {function(any, number, number): any}
+     * @param {*} value The value to be displayed in the cell.
+     * @param {number} row The visual row index of the cell.
+     * @param {number} column The visual column index of the cell.
+     * @param {object} cellMeta The cell meta object.
+     * @since 16.1.0
+     * @default undefined
+     * @category Core
+     */
+    valueGetter: undefined,
+
+    /**
+     * @description
+     * The `valueSetter` option configures a function that defines what value will be used when setting the cell content.
+     * It can be used to modify the value of a cell before it is saved (for example, for object-based data).
+     *
+     * @example
+     * ```js
+     * // Modify the value of a cell before it is saved
+     * valueSetter: (value, row, column, cellMeta) => {
+     *   return { id: value?.id ?? value, value: `${value?.value ?? value} at ${row}, ${column}` }
+     * },
+     * ```
+     *
+     * @memberof Options#
+     * @type {function(any, number, number): any}
+     * @param {*} value The value to be set to a cell.
+     * @param {number} row The visual row index of the cell.
+     * @param {number} column The visual column index of the cell.
+     * @param {object} cellMeta The cell meta object.
+     * @since 16.1.0
+     * @default undefined
+     * @category Core
+     */
+    valueSetter: undefined,
 
     /**
      * @description

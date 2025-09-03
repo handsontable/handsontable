@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the `critical` security vulnerabilities reported by `pnpm audit`.",
+  "type": "security",
+  "issueOrPR": 11798,
+  "breaking": false,
+  "framework": "none"
+}

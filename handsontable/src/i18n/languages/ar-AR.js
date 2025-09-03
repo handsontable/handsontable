@@ -108,6 +108,8 @@ const dictionary = {
   [C.PAGINATION_PREV_PAGE]: 'الانتقال إلى الصفحة السابقة',
   [C.PAGINATION_NEXT_PAGE]: 'الانتقال إلى الصفحة التالية',
   [C.PAGINATION_LAST_PAGE]: 'الانتقال إلى الصفحة الأخيرة',
+
+  [C.LOADING_TITLE]: 'جاري التحميل...',
 };
 
 export default dictionary;

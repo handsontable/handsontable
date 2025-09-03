@@ -13,8 +13,9 @@ import {
   objectEach
 } from '../helpers/object';
 import { extendArray, to2dArray } from '../helpers/array';
-import { rangeEach } from '../helpers/number';
+import { rangeEach, isUnsignedNumber } from '../helpers/number';
 import { isDefined } from '../helpers/mixed';
+import { getValueGetterValue } from '../utils/valueAccessors';
 
 /*
 This class contains open-source contributions covered by the MIT license.
@@ -763,10 +764,24 @@ class DataMap {
       value = prop(this.dataSource.slice(physicalRow, physicalRow + 1)[0]);
     }
 
+    const visualColumnIndex = this.propToCol(prop);
+    const physicalColumn = this.hot.toPhysicalColumn(visualColumnIndex);
+
+    if (isUnsignedNumber(physicalRow) && isUnsignedNumber(physicalColumn)) {
+      value = getValueGetterValue(
+        value,
+        this.metaManager.getCellMeta(physicalRow, physicalColumn, {
+          visualRow: row,
+          visualColumn: visualColumnIndex,
+          skipMetaExtension: true
+        })
+      );
+    }
+
     if (this.hot.hasHook('modifyData')) {
       const valueHolder = createObjectPropListener(value);
 
-      this.hot.runHooks('modifyData', row, this.propToCol(prop), valueHolder, 'get');
+      this.hot.runHooks('modifyData', row, visualColumnIndex, valueHolder, 'get');
 
       if (valueHolder.isTouched()) {
         value = valueHolder.value;
@@ -779,7 +794,7 @@ class DataMap {
   /**
    * Returns single value from the data array (intended for clipboard copy to an external application).
    *
-   * @param {number} row Physical row index.
+   * @param {number} row Visual row index.
    * @param {number} prop The column property.
    * @returns {string}
    */
@@ -795,7 +810,7 @@ class DataMap {
    * Saves single value to the data array.
    *
    * @param {number} row Visual row index.
-   * @param {number} prop The column property.
+   * @param {number|string} prop The column property.
    * @param {string} value The value to set.
    */
   set(row, prop, value) {

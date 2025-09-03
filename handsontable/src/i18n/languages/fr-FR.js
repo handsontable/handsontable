@@ -106,6 +106,8 @@ const dictionary = {
   [C.PAGINATION_PREV_PAGE]: 'Aller à la page précédente',
   [C.PAGINATION_NEXT_PAGE]: 'Aller à la page suivante',
   [C.PAGINATION_LAST_PAGE]: 'Aller à la dernière page',
+
+  [C.LOADING_TITLE]: 'Chargement...',
 };
 
 export default dictionary;

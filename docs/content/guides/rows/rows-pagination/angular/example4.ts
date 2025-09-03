@@ -1,6 +1,6 @@
 /* file: app.component.ts */
 import { Component, ViewChild, AfterViewInit, ElementRef } from '@angular/core';
-import { GridSettings } from "@handsontable/angular-wrapper";
+import { GridSettings } from '@handsontable/angular-wrapper';
 import { HotTableComponent } from '@handsontable/angular-wrapper';
 
 @Component({
@@ -18,12 +18,12 @@ import { HotTableComponent } from '@handsontable/angular-wrapper';
       margin-top: 10px;
     }
 
-    #example4-custom-container .ht-pagination-container {
+    #example4-custom-container .ht-pagination {
       border-radius: 4px;
     }
 
     :host ::ng-deep {
-      .ht-pagination-container {
+      .ht-pagination {
         border-radius: 4px;
       }
     }

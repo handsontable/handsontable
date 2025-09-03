@@ -3,6 +3,7 @@ import {
   sanitize,
   substitute,
   stripTags,
+  isJSON,
 } from 'handsontable/helpers/string';
 
 describe('String helper', () => {
@@ -90,4 +91,46 @@ describe('String helper', () => {
       expect(stripTags('This is my <a href="https://handsontable.com">link</a>')).toBe('This is my link');
     });
   });
+
+  //
+  // Handsontable.helper.isJSON
+  //
+  describe('isJSON', () => {
+    it('should return true for valid JSON object strings', () => {
+      expect(isJSON('{"foo": "bar"}')).toBe(true);
+      expect(isJSON('{"foo": 1, "bar": {"baz": true}}')).toBe(true);
+      expect(isJSON('{"foo": null}')).toBe(true);
+      expect(isJSON('{"foo": [1,2,3]}')).toBe(true);
+    });
+
+    it('should return true for valid JSON array strings', () => {
+      expect(isJSON('[1,2,3]')).toBe(true);
+      expect(isJSON('["foo", "bar"]')).toBe(true);
+      expect(isJSON('[{"foo": "bar"}, {"baz": true}]')).toBe(true);
+      expect(isJSON('[]')).toBe(true);
+    });
+
+    it('should return false for invalid JSON strings', () => {
+      expect(isJSON('{foo:"bar"}')).toBe(false);
+      expect(isJSON('foo: bar')).toBe(false);
+      expect(isJSON('[1,2,')).toBe(false);
+      expect(isJSON('{"foo": undefined}')).toBe(false);
+    });
+
+    it('should return false for non-object/array JSON values', () => {
+      expect(isJSON('"foo"')).toBe(false);
+      expect(isJSON('123')).toBe(false);
+      expect(isJSON('true')).toBe(false);
+      expect(isJSON('null')).toBe(false);
+    });
+
+    it('should return false for non-string inputs', () => {
+      expect(isJSON(null)).toBe(false);
+      expect(isJSON(undefined)).toBe(false);
+      expect(isJSON(123)).toBe(false);
+      expect(isJSON({})).toBe(false);
+      expect(isJSON([])).toBe(false);
+    });
+  });
+
 });

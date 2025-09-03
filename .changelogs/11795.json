@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed `rowHeights` option for merged cells",
+  "type": "fixed",
+  "issueOrPR": 11795,
+  "breaking": false,
+  "framework": "none"
+}

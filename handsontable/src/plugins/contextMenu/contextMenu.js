@@ -151,6 +151,7 @@ export class ContextMenu extends BasePlugin {
     this.menu.addLocalHook('executeCommand', (...params) => this.executeCommand.call(this, ...params));
 
     this.addHook('afterOnCellContextMenu', event => this.#onAfterOnCellContextMenu(event));
+    this.addHook('beforeDialogShow', () => this.close());
 
     this.registerShortcuts();
     super.enablePlugin();

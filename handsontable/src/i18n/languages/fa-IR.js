@@ -113,6 +113,8 @@ const dictionary = {
 
   [C.CHECKBOX_CHECKED]: 'چک شده',
   [C.CHECKBOX_UNCHECKED]: 'چک نشده',
+
+  [C.LOADING_TITLE]: 'در حال بارگذاری...',
 };
 
 export default dictionary;

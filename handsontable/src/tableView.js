@@ -305,7 +305,7 @@ class TableView {
    * @private
    */
   registerEvents() {
-    const { rootElement, rootDocument, selection, rootWindow } = this.hot;
+    const { rootWrapperElement, rootElement, rootDocument, selection, rootWindow } = this.hot;
     const documentElement = rootDocument.documentElement;
 
     this.eventManager.addEventListener(rootElement, 'mousedown', (event) => {
@@ -346,13 +346,16 @@ class TableView {
       this.#mouseDown = false;
 
       const isOutsideInputElement = isOutsideInput(rootDocument.activeElement);
+      // TODO: This is a workaround to prevent the unlisten event from being triggered when the active element is inside a dialog.
+      // Should be removed when the focus manager is implemented.
+      const isInsideDialog = rootDocument.querySelector('.ht-dialog')?.contains(rootDocument.activeElement);
 
-      if (isInput(rootDocument.activeElement) && !isOutsideInputElement) {
+      if (isInput(rootDocument.activeElement) && !isOutsideInputElement || isInsideDialog) {
         return;
       }
 
       if (isOutsideInputElement || (!selection.isSelected() && !selection.isSelectedByAnyHeader() &&
-          !rootElement.contains(event.target) && !isRightClick(event))) {
+          !(rootWrapperElement ?? rootElement).contains(event.target) && !isRightClick(event))) {
         this.hot.unlisten();
       }
     });

@@ -7,9 +7,13 @@ import { announce } from '../../utils/a11yAnnouncer';
 import { createPaginatorStrategy } from './strategies';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
+import { createPaginationFocusController } from './focusController';
+import { installFocusDetector } from '../../utils/focusDetector';
 
 export const PLUGIN_KEY = 'pagination';
 export const PLUGIN_PRIORITY = 900;
+const SHORTCUTS_GROUP = PLUGIN_KEY;
+const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
 
 const AUTO_PAGE_SIZE_WARNING = toSingleLine`The \`auto\` page size setting requires the \`autoRowSize\`\x20
   plugin to be enabled. Set the \`autoRowSize: true\` in the configuration to ensure correct behavior.`;
@@ -156,6 +160,18 @@ export class Pagination extends BasePlugin {
    * @type {boolean}
    */
   #internalRenderCall = false;
+  /**
+   * Pagination focus controller instance.
+   *
+   * @type {PaginationController}
+   */
+  #focusController = null;
+  /**
+   * Pagination focus detector instance.
+   *
+   * @type {object}
+   */
+  #focusDetector = null;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -200,7 +216,7 @@ export class Pagination extends BasePlugin {
 
     if (!this.#ui) {
       this.#ui = new PaginationUI({
-        rootElement: this.hot.rootElement,
+        rootElement: this.hot.rootGridElement,
         uiContainer: this.getSetting('uiContainer'),
         isRtl: this.hot.isRtl(),
         themeName: this.hot.getSettings().themeName,
@@ -215,8 +231,42 @@ export class Pagination extends BasePlugin {
         .addLocalHook('prevPageClick', () => this.prevPage())
         .addLocalHook('nextPageClick', () => this.nextPage())
         .addLocalHook('lastPageClick', () => this.lastPage())
-        .addLocalHook('pageSizeChange', pageSize => this.setPageSize(pageSize));
+        .addLocalHook('pageSizeChange', pageSize => this.setPageSize(pageSize))
+        .addLocalHook('focus', (element) => {
+          this.#focusController
+            .setCurrentPage(this.#ui.getFocusableElements().indexOf(element));
+          this.hot.unlisten();
+          this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
+          this.hot.listen();
+          this.#focusDetector.deactivate();
+        });
     }
+
+    if (!this.#focusController) {
+      this.#focusController = createPaginationFocusController({
+        focusableElements: () => this.#ui.getFocusableElements(),
+      });
+    }
+
+    if (!this.#focusDetector) {
+      this.#focusDetector = installFocusDetector(this.hot, this.#ui.getContainer(), {
+        onFocus: (from) => {
+          this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
+          this.hot.listen();
+
+          if (from === 'from_above') {
+            this.#focusController.toFirstItem();
+          } else {
+            this.#focusController.toLastItem();
+          }
+
+          this.#focusDetector.deactivate();
+        },
+      });
+    }
+
+    this.#registerEvents();
+    this.#registerShortcuts();
 
     // Place the onInit hook before others to make sure that the pagination state is computed
     // and applied to the index mapper before AutoColumnSize plugin begins calculate the column sizes.
@@ -233,6 +283,9 @@ export class Pagination extends BasePlugin {
     this.addHook('modifyRowHeight', (...args) => this.#onModifyRowHeight(...args));
     this.addHook('beforeHeightChange', (...args) => this.#onBeforeHeightChange(...args));
     this.addHook('afterSetTheme', (...args) => this.#onAfterSetTheme(...args));
+    this.addHook('afterDialogShow', (...args) => this.#onAfterDialogShow(...args));
+    this.addHook('beforeDialogHide', (...args) => this.#onAfterDialogHide(...args));
+
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onIndexCacheUpdate);
 
     super.enablePlugin();
@@ -260,8 +313,84 @@ export class Pagination extends BasePlugin {
 
     this.#ui.destroy();
     this.#ui = null;
+    this.#unregisterShortcuts();
 
     super.disablePlugin();
+  }
+
+  /**
+   * Bind the events used by the plugin.
+   */
+  #registerEvents() {
+    // TODO: move to general focus manager module
+    this.eventManager.addEventListener(this.hot.rootDocument, 'mouseup', (event) => {
+      const container = this.#ui.getContainer();
+
+      if (
+        !container.contains(event.target) &&
+        this.hot.getShortcutManager().getActiveContextName() === SHORTCUTS_CONTEXT_NAME
+      ) {
+        this.#focusDetector.activate();
+        this.#focusController.clear();
+        this.hot.getShortcutManager().setActiveContextName('grid');
+      }
+    });
+  }
+
+  /**
+   * Register shortcuts responsible for navigating through the pagination.
+   */
+  #registerShortcuts() {
+    const manager = this.hot.getShortcutManager();
+    const pluginContext = manager.getContext(SHORTCUTS_CONTEXT_NAME) ??
+      manager.addContext(SHORTCUTS_CONTEXT_NAME, 'global');
+
+    pluginContext.addShortcut({
+      keys: [['Shift', 'Tab'], ['Tab']],
+      preventDefault: false,
+      callback: (event) => {
+        let previousIndex = this.#focusController.getCurrentPage();
+
+        if (event.shiftKey) {
+          this.#focusController.toPreviousItem();
+
+          const currentPage = this.#focusController.getCurrentPage();
+
+          if (currentPage >= previousIndex) {
+            this.#unFocusPagination();
+
+            return;
+          }
+
+          previousIndex = currentPage;
+        } else {
+          this.#focusController.toNextItem();
+
+          const currentPage = this.#focusController.getCurrentPage();
+
+          if (currentPage <= previousIndex) {
+            this.#unFocusPagination();
+
+            return;
+          }
+
+          previousIndex = currentPage;
+        }
+
+        event.preventDefault();
+      },
+      group: SHORTCUTS_GROUP,
+    });
+  }
+
+  /**
+   * Unregister shortcuts responsible for navigating through the pagination.
+   */
+  #unregisterShortcuts() {
+    const shortcutManager = this.hot.getShortcutManager();
+    const pluginContext = shortcutManager.getContext(SHORTCUTS_CONTEXT_NAME);
+
+    pluginContext.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   /**
@@ -624,10 +753,21 @@ export class Pagination extends BasePlugin {
 
     this.#internalExecutionCall = false;
 
+    const paginationData = this.getPaginationData();
+
     this.#ui.updateState({
-      ...this.getPaginationData(),
+      ...paginationData,
       totalRenderedRows: renderableRowsLength,
     });
+
+    if (
+      (this.getSetting('showPageSize') || this.getSetting('showNavigation')) &&
+      paginationData.totalPages > 1
+    ) {
+      this.#focusDetector.activate();
+    } else {
+      this.#focusDetector.deactivate();
+    }
   }
 
   /**
@@ -806,6 +946,34 @@ export class Pagination extends BasePlugin {
   }
 
   /**
+   * Called before the height of the table is changed. It adjusts the table height to fit the pagination container
+   * in declared height.
+   *
+   * @param {number|string} height Table height.
+   * @returns {string} Returns the new table height.
+   */
+  #onBeforeHeightChange(height) {
+    if (this.getSetting('uiContainer')) {
+      return height;
+    }
+
+    const isPixelValue = (
+      typeof height === 'number' ||
+      (typeof height === 'string' && /^\d+$/.test(height)) ||
+      (typeof height === 'string' && height.endsWith('px'))
+    );
+
+    if (!isPixelValue) {
+      return height;
+    }
+
+    const heightValue = typeof height === 'string' && height.endsWith('px')
+      ? height : `${height}px`;
+
+    return `calc(${heightValue} - ${this.#ui.getHeight()}px)`;
+  }
+
+  /**
    * Called after the initialization of the plugin. It computes the initial state of the pagination.
    */
   #onInit() {
@@ -832,21 +1000,6 @@ export class Pagination extends BasePlugin {
   }
 
   /**
-   * Called before the height of the table is changed. It adjusts the table height to fit the pagination container
-   * in declared height.
-   *
-   * @param {number} height Table height.
-   * @returns {string} Returns the new table height.
-   */
-  #onBeforeHeightChange(height) {
-    if (this.getSetting('uiContainer')) {
-      return height;
-    }
-
-    return `calc(${height}${/[0-9]$/.test(height) ? 'px' : ''} - ${this.#ui.getHeight()}px)`;
-  }
-
-  /**
    * Called after the theme is set. It updates the theme of the pagination container.
    *
    * @param {string | undefined} themeName The name of the theme to use.
@@ -866,6 +1019,30 @@ export class Pagination extends BasePlugin {
     if (!this.#internalExecutionCall && this.hot?.view) {
       this.#computeAndApplyState();
     }
+  }
+
+  /**
+   * Unfocuses the pagination and sets the active context for the shortcuts.
+   */
+  #unFocusPagination() {
+    this.#focusDetector.activate();
+    this.#focusController.clear();
+    this.hot.unlisten();
+    this.hot.getShortcutManager().setActiveContextName('grid');
+  }
+
+  /**
+   * Called after the dialog is shown. It sets the active context for the shortcuts.
+   */
+  #onAfterDialogShow() {
+    this.#focusDetector.deactivate();
+  }
+
+  /**
+   * Called after the dialog is hidden. It sets the active context for the shortcuts.
+   */
+  #onAfterDialogHide() {
+    this.#focusDetector.activate();
   }
 
   /**

@@ -704,4 +704,24 @@ describe('shortcutManager', () => {
       expect(callback).toHaveBeenCalledTimes(0);
     });
   });
+
+  describe('`scope` option', () => {
+    it('should create a context with the `table` scope by default', async() => {
+      handsontable();
+
+      const shortcutManager = getShortcutManager();
+      const gridContext = shortcutManager.addContext('test');
+
+      expect(gridContext.scope).toBe('table');
+    });
+
+    it('should create a context with the `global` scope when the `scope` option is set to `global`', async() => {
+      handsontable();
+
+      const shortcutManager = getShortcutManager();
+      const gridContext = shortcutManager.addContext('test', 'global');
+
+      expect(gridContext.scope).toBe('global');
+    });
+  });
 });

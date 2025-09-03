@@ -1,5 +1,6 @@
 import Handsontable, { CellCoords } from 'handsontable';
 import HyperFormula from 'hyperformula';
+import { CellProperties } from '../../../types/settings';
 
 // Helpers to verify multiple different settings and prevent TS control-flow from eliminating unreachable values
 declare function oneOf<T extends Array<string | number | boolean | undefined | null | object>>(...args: T): T[number];
@@ -244,11 +245,32 @@ const allSettings: Required<Handsontable.GridSettings> = {
     'text', 'time', 'custom.cell.type'),
   uncheckedTemplate: oneOf(true, 'foo', 123),
   undo: true,
+  dialog: oneOf(true, {
+    closable: true,
+    content: 'foo',
+    customClassName: 'foo',
+    animation: true,
+    background: 'solid' as const,
+    contentBackground: true,
+    a11y: {
+      role: 'dialog',
+      ariaLabel: 'Dialog',
+      ariaLabelledby: '',
+      ariaDescribedby: '',
+    }
+  }),
+  loading: oneOf(true, {
+    icon: '<svg />',
+    title: 'Loading...',
+    description: 'Loading...',
+  }),
   validator: oneOf(
     (value: any, callback: (valid: boolean) => void) => callback(true),
     /^[0-9]$/,
     'autocomplete', 'date', 'numeric', 'time', 'custom.validator'
   ),
+  valueGetter: (value: any, row: number, column: number, cellMeta: CellProperties) => value,
+  valueSetter: (value: any, row: number, column: number, cellMeta: CellProperties) => `${value} at row ${row}, column ${column}`,
   viewportColumnRenderingOffset: oneOf(100, 'auto'),
   viewportRowRenderingOffset: oneOf(100, 'auto'),
   viewportColumnRenderingThreshold: oneOf(100, 'auto'),
@@ -319,6 +341,9 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterDeselect: () => {},
   afterDestroy: () => {},
   afterDetachChild: (parent, element) => {},
+  afterDialogFocus: (focusSource) => {},
+  afterDialogHide: () => {},
+  afterDialogShow: () => {},
   afterDocumentKeyDown: (event) => {},
   afterDrawSelection: (currentRow, currentColumn, cornersOfSelection, layerLevel) => {
     const _currentRow: number = currentRow;
@@ -343,6 +368,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterListen: () => {},
   afterLoadData: (sourceData, firstTime, source) => {},
   afterMergeCells: (cellRange, mergeParent, auto) => {},
+  beforeLoadingShow: () => {},
+  afterLoadingShow: () => {},
+  beforeLoadingHide: () => {},
+  afterLoadingHide: () => {},
   modifySourceData: (row, col, valueHolder, ioMode) => {},
   afterModifyTransformEnd: (coords, rowTransformDir, colTransformDir) => {
     const row: number = coords.row;
@@ -479,6 +508,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeCreateRow: (index, amount, source) => {},
   beforeCut: (data, coords) => { data.splice(0, 1); return false; },
   beforeDetachChild: (parent, element) => {},
+  beforeDialogHide: () => {},
+  beforeDialogShow: () => {},
   beforeDrawBorders: (corners, borderClassName) => {},
   beforeDropdownMenuSetItems: (menuItems) => {},
   beforeDropdownMenuShow: (instance) => {},
@@ -604,6 +635,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
     return width;
   },
   construct: () => {},
+  dialogFocusNextElement: () => {},
+  dialogFocusPreviousElement: () => {},
   init: () => {},
   modifyAutoColumnSizeSeed: (seed, cellProperties, cellValue) => '1',
   modifyAutofillRange: (startArea, entireArea) => {},

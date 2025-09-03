@@ -1774,13 +1774,35 @@ describe('MergeCells', () => {
 
     expect(getCell(0, 0).offsetHeight).toBe(201);
     expect(getCell(0, 1).offsetHeight).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(52);
-      main.toBe(52);
-      horizon.toBe(51);
+      classic.toBe(51);
+      main.toBe(50);
+      horizon.toBe(50);
     });
     expect(getCell(1, 1).offsetHeight).toBe(50);
     expect(getCell(2, 1).offsetHeight).toBe(50);
     expect(getCell(3, 1).offsetHeight).toBe(50);
+  });
+
+  it('should respect the row heights when the first column is merged (#dev-2653)', async() => {
+    handsontable({
+      data: createSpreadsheetData(3, 3),
+      rowHeaders: false,
+      rowHeights: [80, 180, 60],
+      mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 1 }],
+    });
+
+    expect(getCell(0, 0).offsetHeight).toBe(261);
+    expect(getCell(0, 1).offsetHeight).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(81);
+      main.toBe(80);
+      horizon.toBe(80);
+    });
+    expect(getCell(1, 1).offsetHeight).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(180);
+      main.toBe(181);
+      horizon.toBe(181);
+    });
+    expect(getCell(2, 1).offsetHeight).toBe(60);
   });
 
   it.forTheme('classic')('should display properly high merged cell', async() => {

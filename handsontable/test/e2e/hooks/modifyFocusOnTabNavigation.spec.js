@@ -23,6 +23,24 @@ describe('Hook', () => {
       expect(modifyFocusOnTabNavigation).toHaveBeenCalledTimes(1);
     });
 
+    it('should be fired and not select the cell if the hook returns false', async() => {
+      const modifyFocusOnTabNavigation = jasmine.createSpy('modifyFocusOnTabNavigation');
+
+      modifyFocusOnTabNavigation.and.returnValue(false);
+
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        modifyFocusOnTabNavigation,
+      });
+
+      triggerTabNavigationFromTop();
+
+      expect(modifyFocusOnTabNavigation).toHaveBeenCalledWith('from_above', cellCoords(0, 0));
+      expect(modifyFocusOnTabNavigation).toHaveBeenCalledTimes(1);
+
+      expect(getSelectedRange()).toEqualCellRange(undefined);
+    });
+
     it('should be possible to change the focus selection after TAB navigation (focus comes from the element above)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
