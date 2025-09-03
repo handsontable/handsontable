@@ -1,6 +1,10 @@
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const colors = [
   'yellow',
@@ -40,6 +44,7 @@ new Handsontable(container, {
       type: 'autocomplete',
       source: cars,
       strict: true,
+      // allowInvalid: true // true is default
     },
     {},
     {
@@ -52,7 +57,7 @@ new Handsontable(container, {
       type: 'autocomplete',
       source: colors,
       strict: true,
-      allowInvalid: true,
+      allowInvalid: true, // true is default
     },
   ],
   autoWrapRow: true,

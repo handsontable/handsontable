@@ -30,7 +30,6 @@ const data = [
 ];
 
 const container = document.getElementById('example5');
-
 const hot = new Handsontable(container, {
   themeName: 'ht-theme-main',
   data,
@@ -88,7 +87,7 @@ const hot = new Handsontable(container, {
   height: 300,
   stretchH: 'all',
   dialog: {
-    content: 'This dialog uses a semi-transparent and content background.',
+    content: 'This dialog uses a semi-transparent background.',
     contentBackground: true,
     background: 'semi-transparent',
     closable: true,

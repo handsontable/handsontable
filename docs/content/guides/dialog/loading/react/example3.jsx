@@ -66,7 +66,6 @@ const ExampleComponent = React.memo(() => {
   const hotTableRef = useRef(null);
   const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-
   // Simulate data loading
   const loadData = async () => {
     const hotInstance = hotTableRef.current?.hotInstance;
@@ -78,14 +77,12 @@ const ExampleComponent = React.memo(() => {
     const loadingPlugin = hotInstance.getPlugin('loading');
 
     setIsLoading(true);
-
     // Show loading dialog
     loadingPlugin.show();
 
     try {
       // Simulate API call delay
       await new Promise((resolve) => setTimeout(resolve, 3000));
-
       // Simulated data
       setData([
         { model: 'Trail Helmet', price: 1298.14, sellDate: 'Aug 31, 2025', sellTime: '02:12 PM', inStock: true },
@@ -99,13 +96,10 @@ const ExampleComponent = React.memo(() => {
         { model: 'Aero Bottle', price: 1571.13, sellDate: 'May 24, 2025', sellTime: '12:24 AM', inStock: true },
         { model: 'Windbreaker Jacket', price: 919.09, sellDate: 'Jul 16, 2025', sellTime: '07:11 PM', inStock: true },
       ]);
-
       // Load data into the table
       hotTableRef.current?.hotInstance?.loadData(data);
-
       // Hide loading dialog
       loadingPlugin.hide();
-
       setIsLoading(false);
     } catch (error) {
       // Handle error

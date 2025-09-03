@@ -32,7 +32,6 @@ const data = [
 
 const ExampleComponent = () => {
   const hotTableRef = useRef(null);
-
   const showDialog = () => {
     const hotInstance = hotTableRef.current?.hotInstance;
 

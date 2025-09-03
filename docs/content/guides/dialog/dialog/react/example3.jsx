@@ -41,7 +41,6 @@ const ExampleComponent = () => {
     }
 
     hotInstance.getPlugin('dialog').show();
-
     document.getElementById('example3-button')?.addEventListener('click', () => {
       hotInstance.getPlugin('dialog').hide();
     });

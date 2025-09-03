@@ -32,7 +32,7 @@ const ExampleComponent = () => {
         },
         {},
         {},
-        {},
+        {}, // Bumper color is a default text column
       ]}
     />
   );

@@ -30,7 +30,6 @@ const data = [
 ];
 
 const container = document.getElementById('example2');
-
 const hot = new Handsontable(container, {
   themeName: 'ht-theme-main',
   data,

@@ -83,7 +83,6 @@
     "rimraf": "^3.0.2",
     "semver": "^5.7.1",
     "terser-webpack-plugin": "^4.2.3",
-    "tsc": "^2.0.4",
     "vue": "^2.7.14",
     "vue-eslint-parser": "^7.6.0",
     "vue-router": "^3.5.1",
@@ -92,6 +91,7 @@
     "vuepress-plugin-sitemap": "^2.3.1",
     "vuepress-plugin-tabs": "^0.3.0",
     "webpack": "^4.47.0",
+    "typescript": "4.9.5",
     "xlsx-renderer": "^2.4.0"
   },
   "overrides": {

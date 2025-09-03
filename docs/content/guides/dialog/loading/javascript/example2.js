@@ -30,7 +30,6 @@ const data = [
 ];
 
 const container = document.getElementById('example2');
-
 const hot = new Handsontable(container, {
   themeName: 'ht-theme-main',
   data,
@@ -88,8 +87,7 @@ const hot = new Handsontable(container, {
   height: 300,
   stretchH: 'all',
   loading: {
-    icon: '<svg class="ht-loading__icon-svg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 16"><path stroke="currentColor" stroke-width="2" d="M15 8a7 7 0 1 1-3.5-6.062"></path></svg>',
-    title: 'Processing Data...',
+    title: 'Processing Data',
     description: 'Please wait while we load your inventory data...',
   },
   licenseKey: 'non-commercial-and-evaluation',

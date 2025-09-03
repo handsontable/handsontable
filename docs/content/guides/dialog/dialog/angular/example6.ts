@@ -1,6 +1,6 @@
 /* file: app.component.ts */
 import { AfterViewInit, Component, ViewChild } from '@angular/core';
-import { GridSettings, HotTableComponent } from "@handsontable/angular-wrapper";
+import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
 
 @Component({
   selector: 'app-example6',

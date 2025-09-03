@@ -30,7 +30,6 @@ const data = [
 ];
 
 const container = document.getElementById('example3');
-
 const hot = new Handsontable(container, {
   themeName: 'ht-theme-main',
   data,
@@ -90,7 +89,6 @@ const hot = new Handsontable(container, {
   dialog: {
     content:
       '<p>This dialog contains <strong>HTML</strong> content with formatting.</p><button id="example3-button">Hide dialog</button>',
-
     closable: true,
   },
   licenseKey: 'non-commercial-and-evaluation',
@@ -100,7 +98,6 @@ const hot = new Handsontable(container, {
 const dialogPlugin = hot.getPlugin('dialog');
 
 dialogPlugin.show();
-
 document.getElementById('example3-button').addEventListener('click', () => {
   dialogPlugin.hide();
 });
