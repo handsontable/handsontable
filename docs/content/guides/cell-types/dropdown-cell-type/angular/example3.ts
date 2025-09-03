@@ -21,7 +21,7 @@ export class Example3DropdownCellTypeComponent {
     ],
     [
       'Auto Parts',
-      { key: 'ORD', value: "Chicago O'Hare International Airport" }
+      { key: 'ORD', value: 'Chicago O\'Hare International Airport' }
     ],
     [
       'Fresh Produce',
@@ -56,7 +56,7 @@ export class Example3DropdownCellTypeComponent {
   readonly airportKVData = [
     { key: 'LAX', value: 'Los Angeles International Airport' },
     { key: 'JFK', value: 'John F. Kennedy International Airport' },
-    { key: 'ORD', value: "Chicago O'Hare International Airport" },
+    { key: 'ORD', value: 'Chicago O\'Hare International Airport' },
     { key: 'LHR', value: 'London Heathrow Airport' },
     { key: 'CDG', value: 'Charles de Gaulle Airport' },
     { key: 'DXB', value: 'Dubai International Airport' },
