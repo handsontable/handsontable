@@ -24,6 +24,7 @@
       float: right;
       top: calc((var(--ht-line-height) - var(--ht-icon-size)) / 2);
       margin-inline-start: var(--ht-gap-size);
+      margin-inline-end: 1px;
 
       &::before {
         @include mixins.pseudo;
@@ -130,6 +131,13 @@
 
       .wtBorder {
         visibility: hidden;
+      }
+
+      // Fix for the first cell size in the menu
+      tbody tr:first-of-type td:first-child, tbody tr:first-of-type th:first-child {
+        height: calc(
+          var(--ht-cell-vertical-padding) * 2 + var(--ht-line-height) + 1px
+        );
       }
 
       table tbody tr td {

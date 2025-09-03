@@ -108,8 +108,8 @@ describe('ContextMenu', () => {
 
       expect(tickItemOffset.top).forThemes(({ classic, main, horizon }) => {
         classic.toBe(216);
-        main.toBe(247);
-        horizon.toBe(314);
+        main.toBe(246);
+        horizon.toBe(313);
       });
       expect(tickItemOffset.left).forThemes(({ classic, main, horizon }) => {
         classic.toBe(contextMenuOffset.left + 4);
