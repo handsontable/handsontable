@@ -9,6 +9,11 @@ export function init() {
   const root = document.getElementById('root');
   const example = document.createElement('div');
 
+  const input = document.createElement('input');
+  input.style.margin = '10px';
+  input.placeholder = 'Input';
+  root.appendChild(input);
+
   const style = document.createElement('style');
   style.innerHTML = `
     .ht-loading__icon-svg {
