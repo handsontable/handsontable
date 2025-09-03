@@ -79,29 +79,6 @@ describe('Dialog - update method', () => {
     expect(getDialogContainerElement()).toHaveClass('ht-dialog--background-semi-transparent');
   });
 
-  it('should update dialog content directions', async() => {
-    handsontable({
-      data: createSpreadsheetData(5, 5),
-      dialog: true,
-    });
-
-    const dialogPlugin = getPlugin('dialog');
-
-    dialogPlugin.show({
-      content: 'Test content',
-      contentDirections: 'row',
-    });
-
-    expect(getDialogContentContainerElement()).toHaveClass('ht-dialog__content--flex-row');
-
-    dialogPlugin.update({
-      contentDirections: 'column',
-    });
-
-    expect(getDialogContentContainerElement()).not.toHaveClass('ht-dialog__content--flex-row');
-    expect(getDialogContentContainerElement()).toHaveClass('ht-dialog__content--flex-column');
-  });
-
   it('should update dialog content background', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),

@@ -8,7 +8,7 @@ registerAllModules();
 
 const container = document.querySelector('#example4')!;
 const shipmentKVData = [
-  ['Electronics and Gadgets','Los Angeles International Airport'],
+  ['Electronics and Gadgets', 'Los Angeles International Airport'],
   ['Medical Supplies', 'John F. Kennedy International Airport'],
   ['Auto Parts', "Chicago O'Hare International Airport"],
   ['Fresh Produce', 'London Heathrow Airport'],
@@ -17,8 +17,9 @@ const shipmentKVData = [
   ['Pharmaceuticals', 'Tokyo Haneda Airport'],
   ['Consumer Goods', 'Beijing Capital International Airport'],
   ['Machine Parts', 'Singapore Changi Airport'],
-  ['Food Products', 'Amsterdam Airport Schiphol']
+  ['Food Products', 'Amsterdam Airport Schiphol'],
 ];
+
 const airportKVData = [
   'Los Angeles International Airport',
   'John F. Kennedy International Airport',
@@ -39,7 +40,7 @@ const airportKVData = [
   'Sydney Kingsford Smith Airport',
   'Barcelona-El Prat Airport',
   'Kuala Lumpur International Airport',
-  'Zurich Airport'
+  'Zurich Airport',
 ];
 
 new Handsontable(container, {

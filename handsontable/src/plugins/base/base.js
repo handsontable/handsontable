@@ -1,4 +1,4 @@
-import { defineGetter, objectEach, isObject } from '../../helpers/object';
+import { defineGetter, objectEach, isObject, assignObjectDefaults, getProperty } from '../../helpers/object';
 import { arrayEach } from '../../helpers/array';
 import { getPluginsNames, hasPlugin } from '../registry';
 import { hasCellType } from '../../cellTypes/registry';
@@ -211,11 +211,15 @@ export class BasePlugin {
    * @returns {*}
    */
   getSetting(settingName) {
+    const defaultSettings = this.constructor.DEFAULT_SETTINGS;
+
     if (settingName === undefined) {
+      if (isObject(this.#pluginSettings)) {
+        return assignObjectDefaults(this.#pluginSettings, defaultSettings);
+      }
+
       return this.#pluginSettings;
     }
-
-    const defaultSettings = this.constructor.DEFAULT_SETTINGS;
 
     if (
       (Array.isArray(this.#pluginSettings) || isObject(this.#pluginSettings)) &&
@@ -228,8 +232,19 @@ export class BasePlugin {
       return this.#pluginSettings[settingName] ?? defaultSettings[settingName];
     }
 
+    if (settingName.includes('.')) {
+      const pluginValue = getProperty(this.#pluginSettings, settingName);
+      const defaultValue = getProperty(defaultSettings, settingName);
+
+      if (isObject(pluginValue)) {
+        return assignObjectDefaults(pluginValue, defaultValue);
+      }
+
+      return pluginValue !== undefined ? pluginValue : defaultValue;
+    }
+
     if (isObject(this.#pluginSettings)) {
-      return this.#pluginSettings[settingName] ?? defaultSettings[settingName];
+      return assignObjectDefaults(this.#pluginSettings, defaultSettings)[settingName];
     }
 
     return defaultSettings[settingName];

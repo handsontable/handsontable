@@ -53,7 +53,8 @@ import { createShortcutManager } from './shortcuts';
 import { registerAllShortcutContexts } from './shortcutContexts';
 import { getThemeClassName } from './helpers/themes';
 import { StylesHandler } from './utils/stylesHandler';
-import { warn } from './helpers/console';
+import { deprecatedWarn, warn } from './helpers/console';
+import { CellRangeToRenderableMapper } from './core/coordsMapper/rangeToRenderableMapper';
 import {
   install as installAccessibilityAnnouncer,
   uninstall as uninstallAccessibilityAnnouncer,
@@ -2740,6 +2741,11 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       ) {
         instance.useTheme(settings.themeName);
       }
+    }
+
+    if (instance.stylesHandler.isClassicTheme()) {
+      // eslint-disable-next-line max-len
+      deprecatedWarn('Handsontable classic theme is a legacy theme and will be removed in version 17.0. Please update your theme settings to ensure compatibility with future versions.');
     }
 
     // Load data or create data map

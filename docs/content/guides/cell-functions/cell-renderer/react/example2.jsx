@@ -2,6 +2,10 @@ import { useState, useContext, createContext } from 'react';
 import { HotTable, HotColumn } from '@handsontable/react-wrapper';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
+import { registerAllModules } from 'handsontable/registry';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 // a component
 const HighlightContext = createContext(false);

@@ -106,6 +106,8 @@ const dictionary = {
   [C.PAGINATION_PREV_PAGE]: '이전 페이지로 이동',
   [C.PAGINATION_NEXT_PAGE]: '다음 페이지로 이동',
   [C.PAGINATION_LAST_PAGE]: '마지막 페이지로 이동',
+
+  [C.LOADING_TITLE]: '로딩 중...',
 };
 
 export default dictionary;

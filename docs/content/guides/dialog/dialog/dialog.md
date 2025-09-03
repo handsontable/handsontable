@@ -221,15 +221,19 @@ The dialog content can have a background color using the `contentBackground` opt
 :::
 
 
-## Content layout directions
+## Dialog accessibility
 
-The dialog content can be arranged in different directions using the `contentDirections` option.
+The dialog plugin provides accessibility features through ARIA attributes. You can configure the dialog's accessibility properties using the `a11y` option, which includes:
+
+- `role` - Sets the ARIA role (defaults to "dialog")
+- `ariaLabel` - Sets the dialog's accessible name (defaults to "Dialog"). This is used when there is no visible dialog title that can be referenced by `ariaLabelledby`. If both `ariaLabel` and `ariaLabelledby` are provided, `ariaLabelledby` takes precedence
+- `ariaLabelledby` - References an element that labels the dialog
+- `ariaDescribedby` - References an element that describes the dialog
 
 ::: only-for javascript
 
-::: example #example6 --html 1 --js 2 --ts 3
+::: example #example6 --js 1 --ts 2
 
-@[code](@/content/guides/dialog/dialog/javascript/example6.html)
 @[code](@/content/guides/dialog/dialog/javascript/example6.js)
 @[code](@/content/guides/dialog/dialog/javascript/example6.ts)
 

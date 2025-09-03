@@ -112,6 +112,8 @@ const dictionary = {
   [C.PAGINATION_PREV_PAGE]: '前のページへ移動',
   [C.PAGINATION_NEXT_PAGE]: '次のページへ移動',
   [C.PAGINATION_LAST_PAGE]: '最後のページへ移動',
+
+  [C.LOADING_TITLE]: '読み込み中...',
 };
 
 export default dictionary;

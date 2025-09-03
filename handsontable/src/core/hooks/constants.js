@@ -3205,6 +3205,44 @@ export const REGISTERED_HOOKS = [
   'afterDialogFocus',
 
   /**
+   * Fired by {@link Loading} plugin before showing the loading indicator. This hook is fired when {@link Options#loading}
+   * option is enabled. The callback can return `false` to prevent the loading indicator from being shown.
+   *
+   * @since 16.1.0
+   * @event Hooks#beforeLoadingShow
+   * @returns {boolean | undefined} If returns `false`, the action will be skipped.
+   */
+  'beforeLoadingShow',
+
+  /**
+   * Fired by {@link Loading} plugin after showing the loading indicator. This hook is fired when {@link Options#loading}
+   * option is enabled.
+   *
+   * @since 16.1.0
+   * @event Hooks#afterLoadingShow
+   */
+  'afterLoadingShow',
+
+  /**
+   * Fired by {@link Loading} plugin before hiding the loading indicator. This hook is fired when {@link Options#loading}
+   * option is enabled.
+   *
+   * @since 16.1.0
+   * @event Hooks#beforeLoadingHide
+   * @returns {boolean | undefined} If returns `false`, the action will be skipped.
+   */
+  'beforeLoadingHide',
+
+  /**
+   * Fired by {@link Loading} plugin after hiding the loading indicator. This hook is fired when {@link Options#loading}
+   * option is enabled.
+   *
+   * @since 16.1.0
+   * @event Hooks#afterLoadingHide
+   */
+  'afterLoadingHide',
+
+  /**
    * Fired after the editor is opened and rendered.
    *
    * @event Hooks#afterBeginEditing

@@ -1,6 +1,6 @@
 /* file: app.component.ts */
 import {Component, OnInit, ViewChild} from '@angular/core';
-import { GridSettings, HotTableComponent } from "@handsontable/angular-wrapper";
+import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
 import { FormControl } from '@angular/forms';
 
 @Component({

@@ -41,7 +41,6 @@ const ExampleComponent = () => {
     }
 
     hotInstance.getPlugin('dialog').show();
-
     document.getElementById('example3-button')?.addEventListener('click', () => {
       hotInstance.getPlugin('dialog').hide();
     });
@@ -64,7 +63,6 @@ const ExampleComponent = () => {
       dialog={{
         content:
           '<p>This dialog contains <strong>HTML</strong> content with formatting.</p><button id="example3-button">Hide dialog</button>',
-        contentDirections: 'column',
         closable: true,
       }}
       licenseKey="non-commercial-and-evaluation"

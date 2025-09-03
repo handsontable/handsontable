@@ -8,46 +8,16 @@ registerAllModules();
 
 const ExampleComponent = () => {
   const shipmentKVData = [
-    [
-      'Electronics and Gadgets',
-      { key: 'LAX', value: 'Los Angeles International Airport' },
-    ],
-    [
-      'Medical Supplies',
-      { key: 'JFK', value: 'John F. Kennedy International Airport' }
-    ],
-    [
-      'Auto Parts',
-      { key: 'ORD', value: "Chicago O'Hare International Airport" }
-    ],
-    [
-      'Fresh Produce',
-      { key: 'LHR', value: 'London Heathrow Airport' }
-    ],
-    [
-      'Textiles',
-      { key: 'CDG', value: 'Charles de Gaulle Airport' }
-    ],
-    [
-      'Industrial Equipment',
-      { key: 'DXB', value: 'Dubai International Airport' }
-    ],
-    [
-      'Pharmaceuticals',
-      { key: 'HND', value: 'Tokyo Haneda Airport' }
-    ],
-    [
-      'Consumer Goods',
-      { key: 'PEK', value: 'Beijing Capital International Airport' }
-    ],
-    [
-      'Machine Parts',
-      { key: 'SIN', value: 'Singapore Changi Airport' }
-    ],
-    [
-      'Food Products',
-      { key: 'AMS', value: 'Amsterdam Airport Schiphol' }
-    ]
+    ['Electronics and Gadgets', { key: 'LAX', value: 'Los Angeles International Airport' }],
+    ['Medical Supplies', { key: 'JFK', value: 'John F. Kennedy International Airport' }],
+    ['Auto Parts', { key: 'ORD', value: "Chicago O'Hare International Airport" }],
+    ['Fresh Produce', { key: 'LHR', value: 'London Heathrow Airport' }],
+    ['Textiles', { key: 'CDG', value: 'Charles de Gaulle Airport' }],
+    ['Industrial Equipment', { key: 'DXB', value: 'Dubai International Airport' }],
+    ['Pharmaceuticals', { key: 'HND', value: 'Tokyo Haneda Airport' }],
+    ['Consumer Goods', { key: 'PEK', value: 'Beijing Capital International Airport' }],
+    ['Machine Parts', { key: 'SIN', value: 'Singapore Changi Airport' }],
+    ['Food Products', { key: 'AMS', value: 'Amsterdam Airport Schiphol' }],
   ];
 
   const airportKVData = [
@@ -70,7 +40,7 @@ const ExampleComponent = () => {
     { key: 'SYD', value: 'Sydney Kingsford Smith Airport' },
     { key: 'BCN', value: 'Barcelona-El Prat Airport' },
     { key: 'KUL', value: 'Kuala Lumpur International Airport' },
-    { key: 'ZRH', value: 'Zurich Airport' }
+    { key: 'ZRH', value: 'Zurich Airport' },
   ];
 
   return (

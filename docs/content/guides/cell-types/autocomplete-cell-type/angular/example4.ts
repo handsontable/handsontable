@@ -13,7 +13,7 @@ export class Example4AutocompleteCellTypeComponent {
   readonly shipmentKVData = [
     ['Electronics and Gadgets','Los Angeles International Airport'],
     ['Medical Supplies', 'John F. Kennedy International Airport'],
-    ['Auto Parts', "Chicago O'Hare International Airport"],
+    ['Auto Parts', 'Chicago O\'Hare International Airport'],
     ['Fresh Produce', 'London Heathrow Airport'],
     ['Textiles', 'Charles de Gaulle Airport'],
     ['Industrial Equipment', 'Dubai International Airport'],
@@ -26,7 +26,7 @@ export class Example4AutocompleteCellTypeComponent {
   readonly airportKVData = [
     'Los Angeles International Airport',
     'John F. Kennedy International Airport',
-    "Chicago O'Hare International Airport",
+    'Chicago O\'Hare International Airport',
     'London Heathrow Airport',
     'Charles de Gaulle Airport',
     'Dubai International Airport',

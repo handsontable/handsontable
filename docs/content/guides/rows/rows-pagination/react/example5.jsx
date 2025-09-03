@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import React, { useRef } from 'react';
 import { HotTable, HotColumn } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
@@ -112,7 +112,6 @@ const data = [
 
 const ExampleComponent = () => {
   const hotTableRef = useRef(null);
-
   const handleClearData = () => {
     const hotInstance = hotTableRef.current?.hotInstance;
 

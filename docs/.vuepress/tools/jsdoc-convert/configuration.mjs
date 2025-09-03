@@ -748,5 +748,18 @@ export default {
         metaTitle: 'Dialog - Angular Data Grid | Handsontable',
       },
     },
+    'Loading.md': {
+      id: 'h2m8p4v9',
+      metaTitle: 'Loading - JavaScript Data Grid | Handsontable',
+      description: 'Options, members, and methods of Handsontable\'s Loading API.',
+      react: {
+        id: 'n6k3b8r4',
+        metaTitle: 'Loading - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: 'w7t5x9q2',
+        metaTitle: 'Loading - Angular Data Grid | Handsontable',
+      },
+    },
   }
 };

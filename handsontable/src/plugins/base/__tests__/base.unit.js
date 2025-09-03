@@ -140,6 +140,56 @@ describe('BasePlugin', () => {
 
       expect(plugin.getSetting('cells')).toEqual([3, 4, 5]);
     });
+
+    it('should return object with defaults and plugin settings', () => {
+      class TestObjectPlugin extends BasePlugin {
+        static get PLUGIN_KEY() {
+          return 'testPlugin';
+        }
+
+        static get DEFAULT_SETTINGS() {
+          return {
+            test1: {
+              test2: 5,
+              test3: 10,
+              test4: {
+                test5: 15,
+                test6: 20,
+              },
+            },
+          };
+        }
+      }
+
+      registerPlugin('TestObjectPlugin', TestObjectPlugin);
+
+      const hot = new Handsontable(document.createElement('div'), {
+        testPlugin: {
+          test1: {
+            test2: 20,
+            test4: {
+              test5: 10,
+            },
+          },
+        }
+      });
+      const plugin = hot.getPlugin('TestObjectPlugin');
+
+      expect(plugin.getSetting()).toEqual({
+        test1: {
+          test2: 20,
+          test3: 10,
+          test4: {
+            test5: 10,
+            test6: 20,
+          },
+        },
+      });
+      expect(plugin.getSetting('test1.test2')).toBe(20);
+      expect(plugin.getSetting('test1.test4.test5')).toBe(10);
+      expect(plugin.getSetting('test1.test4.test6')).toBe(20);
+      expect(plugin.getSetting('test1.test3')).toBe(10);
+    });
   });
 
   describe('`updatePluginSettings()` method', () => {

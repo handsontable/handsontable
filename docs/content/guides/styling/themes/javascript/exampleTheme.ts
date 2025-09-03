@@ -4,6 +4,7 @@ import { PredefinedMenuItemKey } from 'handsontable/plugins/contextMenu';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
 import 'handsontable/styles/ht-theme-horizon.css';
+import 'handsontable/styles/ht-theme-classic.css';
 
 // Register all Handsontable's modules.
 registerAllModules();
@@ -115,6 +116,7 @@ export const data: (string | number | boolean)[][] = [
 const example = document.getElementById('exampleTheme')!;
 
 const hotInstance = new Handsontable(example, {
+  themeName: 'ht-theme-main',
   data,
   height: 450,
   colWidths: [180, 220, 140, 120, 120, 120, 140],
@@ -196,7 +198,7 @@ const currentTheme = document.querySelector('html')?.classList.contains('theme-d
 
 const setTheme = (theme: string) => {
   colorBox.classList.value = `color-box ${theme}`;
-  hotInstance.useTheme(theme === 'ht-no-theme' ? undefined : theme);
+  hotInstance.useTheme(theme);
 };
 
 (themeSelect as HTMLSelectElement).value = currentTheme;

@@ -102,7 +102,7 @@ describe('HandsontableEditor positioning', () => {
     });
 
     const scrollEdgePositions = {
-      horizon: 116,
+      horizon: 132,
       main: 70,
       classic: 25,
     };

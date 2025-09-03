@@ -1,5 +1,6 @@
 import { BasePlugin } from '../base';
 import { DialogUI } from './ui';
+import { isObject } from '../../helpers/object';
 
 export const PLUGIN_KEY = 'dialog';
 export const PLUGIN_PRIORITY = 340;
@@ -22,9 +23,17 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
  * - `customClassName`: Custom class name to apply to the dialog (default: '')
  * - `background`: Dialog background variant 'solid' | 'semi-transparent' (default: 'solid')
  * - `contentBackground`: Whether to show content background (default: false)
- * - `contentDirections`: Content layout direction 'row' | 'row-reverse' | 'column' | 'column-reverse' (default: 'row')
  * - `animation`: Whether to enable animations (default: true)
  * - `closable`: Whether the dialog can be closed (default: false)
+ * - `a11y`: Object with accessibility options (default object below)
+ * ```js
+ * {
+ *   role: 'dialog', // Role of the dialog 'dialog' | 'alertdialog' (default: 'dialog')
+ *   ariaLabel: 'Dialog', // Label for the dialog (default: 'Dialog')
+ *   ariaLabelledby: '', // ID of the element that labels the dialog (default: '')
+ *   ariaDescribedby: '', // ID of the element that describes the dialog (default: ''),
+ * }
+ * ```
  *
  * @example
  *
@@ -39,9 +48,14 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
  *   customClassName: 'custom-dialog',
  *   background: 'semi-transparent',
  *   contentBackground: false,
- *   contentDirections: 'column',
  *   animation: false,
  *   closable: true,
+ *   a11y: {
+ *     role: 'dialog',
+ *     ariaLabel: 'Dialog',
+ *     ariaLabelledby: 'titleID',
+ *     ariaDescribedby: 'descriptionID',
+ *   }
  * }
  *
  * // Access to dialog plugin instance:
@@ -51,7 +65,6 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
  * dialogPlugin.show({
  *    content: '<h2>Custom Dialog</h2><p>This is a custom dialog content.</p>',
  *    closable: true,
- *    contentDirections: 'column',
  * });
  *
  * // Hide the dialog programmatically:
@@ -87,7 +100,6 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
  *         data: data,
  *         dialog: {
  *           customClassName: 'react-dialog',
- *           contentDirections: 'column',
  *           closable: true
  *         }
  *       }}
@@ -98,42 +110,20 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
  * :::
  *
  * ::: only-for angular
+ * ```ts
+ * hotSettings: Handsontable.GridSettings = {
+ *   data: data,
+ *   dialog: {
+ *     customClassName: 'angular-dialog',
+ *     closable: true
+ *   }
+ * }
+ * ```
+ *
  * ```html
  * <hot-table
  *   [settings]="hotSettings">
  * </hot-table>
- * ```
- *
- * ```ts
- * @Component({
- *   // ... component decorator
- * })
- * export class MyComponent implements OnInit {
- *   @ViewChild('hot') hot: HotTableComponent;
- *
- *   hotSettings: Handsontable.GridSettings = {
- *     data: data,
- *     dialog: {
- *       customClassName: 'angular-dialog',
- *       contentDirections: 'column',
- *       closable: true
- *     }
- *   };
- *
- *   ngOnInit() {
- *     const dialogPlugin = this.hot.hotInstance.getPlugin('dialog');
- *
- *     dialogPlugin.show({
- *       content: `
- *         <div>
- *           <h2>Angular Dialog</h2>
- *           <p>Dialog content in Angular component</p>
- *         </div>
- *       `,
- *       closable: true
- *     });
- *   }
- * }
  * ```
  * :::
  */
@@ -153,9 +143,14 @@ export class Dialog extends BasePlugin {
       customClassName: '',
       background: 'solid',
       contentBackground: false,
-      contentDirections: 'row',
       animation: true,
       closable: false,
+      a11y: {
+        role: 'dialog',
+        ariaLabel: 'Dialog',
+        ariaLabelledby: '',
+        ariaDescribedby: '',
+      },
     };
   }
 
@@ -167,9 +162,13 @@ export class Dialog extends BasePlugin {
       customClassName: value => typeof value === 'string',
       background: value => ['solid', 'semi-transparent'].includes(value),
       contentBackground: value => typeof value === 'boolean',
-      contentDirections: value => ['row', 'row-reverse', 'column', 'column-reverse'].includes(value),
       animation: value => typeof value === 'boolean',
       closable: value => typeof value === 'boolean',
+      a11y: value => isObject(value) &&
+        (typeof value?.role === 'undefined' || ['dialog', 'alertdialog'].includes(value?.role)) &&
+        (typeof value?.ariaLabel === 'undefined' || typeof value?.ariaLabel === 'string') &&
+        (typeof value?.ariaLabelledby === 'undefined' || typeof value?.ariaLabelledby === 'string') &&
+        (typeof value?.ariaDescribedby === 'undefined' || typeof value?.ariaDescribedby === 'string'),
     };
   }
 
@@ -278,7 +277,7 @@ export class Dialog extends BasePlugin {
           } else {
             this.hot.runHooks('dialogFocusNextElement');
           }
-        }, 0);
+        });
       },
       group: SHORTCUTS_GROUP,
     });
@@ -312,9 +311,13 @@ export class Dialog extends BasePlugin {
    * @param {string} options.customClassName Custom CSS class name to apply to the dialog container. Default: ''
    * @param {'solid'|'semi-transparent'} options.background Dialog background variant. Default: 'solid'.
    * @param {boolean} options.contentBackground Whether to show content background. Default: false.
-   * @param {'row'|'row-reverse'|'column'|'column-reverse'} options.contentDirections Content layout direction. Default: 'row'.
    * @param {boolean} options.animation Whether to enable animations when showing/hiding the dialog. Default: true.
    * @param {boolean} options.closable Whether the dialog can be closed by user interaction. Default: false.
+   * @param {object} options.a11y Object with accessibility options.
+   * @param {string} options.a11y.role The role of the dialog. Default: 'dialog'.
+   * @param {string} options.a11y.ariaLabel The label of the dialog. Default: 'Dialog'.
+   * @param {string} options.a11y.ariaLabelledby The ID of the element that labels the dialog. Default: ''.
+   * @param {string} options.a11y.ariaDescribedby The ID of the element that describes the dialog. Default: ''.
    */
   show(options = {}) {
     if (!this.enabled) {
@@ -357,7 +360,6 @@ export class Dialog extends BasePlugin {
     this.hot.runHooks('beforeDialogHide');
 
     this.#ui.hideDialog(this.getSetting('animation'));
-    this.hot.getShortcutManager().setActiveContextName('grid');
     this.#isVisible = false;
 
     if (this.#selectionState) {
@@ -379,9 +381,13 @@ export class Dialog extends BasePlugin {
    * @param {string} options.customClassName Custom CSS class name to apply to the dialog container. Default: ''
    * @param {'solid'|'semi-transparent'} options.background Dialog background variant. Default: 'solid'.
    * @param {boolean} options.contentBackground Whether to show content background. Default: false.
-   * @param {'row'|'row-reverse'|'column'|'column-reverse'} options.contentDirections Content layout direction. Default: 'row'.
    * @param {boolean} options.animation Whether to enable animations when showing/hiding the dialog. Default: true.
    * @param {boolean} options.closable Whether the dialog can be closed by user interaction. Default: false.
+   * @param {object} options.a11y Object with accessibility options.
+   * @param {string} options.a11y.role The role of the dialog. Default: 'dialog'.
+   * @param {string} options.a11y.ariaLabel The label of the dialog. Default: 'Dialog'.
+   * @param {string} options.a11y.ariaLabelledby The ID of the element that labels the dialog. Default: ''.
+   * @param {string} options.a11y.ariaDescribedby The ID of the element that describes the dialog. Default: ''.
    */
   update(options) {
     if (!this.enabled) {
@@ -396,9 +402,16 @@ export class Dialog extends BasePlugin {
       customClassName: this.getSetting('customClassName'),
       background: this.getSetting('background'),
       contentBackground: this.getSetting('contentBackground'),
-      contentDirections: this.getSetting('contentDirections'),
       animation: this.getSetting('animation'),
+      a11y: this.getSetting('a11y'),
     });
+  }
+
+  /**
+   * Focus the dialog.
+   */
+  focus() {
+    this.#ui.focusDialog();
   }
 
   /**

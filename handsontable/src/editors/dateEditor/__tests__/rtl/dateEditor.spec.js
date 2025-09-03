@@ -359,7 +359,7 @@ describe('DateEditor (RTL mode)', () => {
       expect(cellOffset.left).toBeCloseTo(datePickerOffset.left + datePickerWidth - cellWidth, 0);
       expect(pikaElement.is(':visible')).toBe(true);
 
-      await scrollViewportHorizontally(440); // scroll the viewport so the edited cell is partially visible from left
+      await scrollViewportHorizontally(442); // scroll the viewport so the edited cell is partially visible from left
 
       expect(cellOffset.top + 29).toBeCloseTo(datePickerOffset.top, 0); // 29 is a height of the editor's cell
       expect(cellOffset.left).toBeCloseTo(datePickerOffset.left + datePickerWidth - cellWidth, 0);

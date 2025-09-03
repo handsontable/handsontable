@@ -122,6 +122,8 @@ const dictionary = {
 
   [C.CHECKBOX_CHECKED]: 'Označeno',
   [C.CHECKBOX_UNCHECKED]: 'Nije označeno',
+
+  [C.LOADING_TITLE]: 'Učitavanje...',
 };
 
 export default dictionary;

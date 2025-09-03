@@ -116,6 +116,8 @@ const dictionary = {
 
   [C.CHECKBOX_CHECKED]: 'Zaznaczony',
   [C.CHECKBOX_UNCHECKED]: 'Odznaczony',
+
+  [C.LOADING_TITLE]: 'Ładowanie...',
 };
 
 export default dictionary;

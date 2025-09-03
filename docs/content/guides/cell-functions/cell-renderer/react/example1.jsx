@@ -1,6 +1,10 @@
 import { HotTable, HotColumn } from '@handsontable/react-wrapper';
+import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 // your renderer component
 const RendererComponent = (props) => {

@@ -172,6 +172,9 @@
 }
 
 .handsontable th:first-child,
+.handsontable .ht_clone_inline_start td:first-of-type,
+.handsontable .ht_clone_top_inline_start_corner td:first-of-type,
+.handsontable .ht_clone_bottom_inline_start_corner td:first-of-type,
 .handsontable.ht-wrapper:not(.htFirstDatasetColumnNotRendered) td:first-of-type {
   border-left: 1px solid #ccc;
 }
@@ -2099,12 +2102,17 @@ thead th.hiddenHeaderText .colHeader {
 
 .ht-dialog[dir=rtl] {
   left: auto;
-  right: 0
+  right: 0;
+}
+
+.ht-dialog:focus {
+  border: 1px solid #4b89ff;
+  outline: none;
 }
 
 .ht-dialog:has(.htFocusCatcher:focus) {
-  border: 1px solid var(--ht-accent-color);
-  outline: none
+  border: 1px solid #4b89ff;
+  outline: none;
 }
 
 .ht-dialog * {
@@ -2153,22 +2161,6 @@ thead th.hiddenHeaderText .colHeader {
 .ht-dialog__content--background {
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
   background-color: #f7f7f9;
-}
-
-.ht-dialog__content--flex-row {
-  flex-direction: row;
-}
-
-.ht-dialog__content--flex-row-reverse {
-  flex-direction: row-reverse;
-}
-
-.ht-dialog__content--flex-column {
-  flex-direction: column;
-}
-
-.ht-dialog__content--flex-column-reverse {
-  flex-direction: column-reverse;
 }
 
 .ht-root-wrapper .ht-pagination {
@@ -2317,4 +2309,40 @@ thead th.hiddenHeaderText .colHeader {
 
 .ht-root-wrapper .ht-page-navigation-section span {
   white-space: nowrap;
+}
+
+.ht-loading__icon-svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+  color: #5292f7;
+  animation: ht-loading-spin 1s linear infinite;
+  transform-origin: 50% 50%;
+}
+
+.ht-loading__content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ht-loading__title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 18px;
+}
+
+.ht-loading__description {
+  margin: 0;
+  color: #222;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 400;
+}
+
+@keyframes ht-loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }

@@ -992,6 +992,23 @@ describe('AutoRowSize', () => {
     expect(rowHeaderHeight).toBe(cellsHeight);
   });
 
+  it.forTheme('classic')('should correctly render the fixed columns borders when ' +
+    'scrolled horizontally (dev-2512)', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 50),
+      width: 500,
+      height: 500,
+      rowHeaders: true,
+      colHeaders: true,
+      autoRowSize: true,
+      fixedColumnsStart: 1,
+    });
+
+    await scrollViewportHorizontally(500);
+
+    expect(getComputedStyle(getCell(0, 0, true)).borderLeftWidth).toBe('1px');
+  });
+
   describe('should work together with formulas plugin', () => {
     it('should calculate heights only once during the initialization of Handsontable with formulas plugin enabled', async() => {
       const beforeInit = function() {

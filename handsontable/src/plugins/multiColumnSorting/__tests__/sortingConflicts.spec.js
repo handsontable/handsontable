@@ -38,7 +38,7 @@ describe('MultiColumnSorting cooperation with ColumnSorting', () => {
   ];
 
   it('should print warning and set the correct plugin\'s enabled state when the both plugins are enabled', async() => {
-    const warnSpy = spyOn(console, 'warn');
+    const warnSpy = spyOnConsoleWarn();
 
     handsontable({
       data: arrayOfObjects(),
@@ -56,7 +56,7 @@ describe('MultiColumnSorting cooperation with ColumnSorting', () => {
   });
 
   it('should not print warnings when both plugins are enabled in different Handsontable instances', async() => {
-    const warnSpy = spyOn(console, 'warn');
+    const warnSpy = spyOnConsoleWarn();
 
     handsontable({
       data: arrayOfObjects(),
@@ -69,7 +69,7 @@ describe('MultiColumnSorting cooperation with ColumnSorting', () => {
     const hot2 = container2.handsontable({
       data: arrayOfObjects(),
       colHeaders: true,
-      multiColumnSorting: true
+      multiColumnSorting: true,
     }).handsontable('getInstance');
 
     expect(warnSpy).not.toHaveBeenCalled();
@@ -79,7 +79,7 @@ describe('MultiColumnSorting cooperation with ColumnSorting', () => {
   });
 
   it('should print warning and leave only ColumnSorting plugin enabled after MultiColumnSorting is tried to be enabled', async() => {
-    const warnSpy = spyOn(console, 'warn');
+    const warnSpy = spyOnConsoleWarn();
 
     handsontable({
       data: arrayOfObjects(),
@@ -98,7 +98,7 @@ describe('MultiColumnSorting cooperation with ColumnSorting', () => {
   });
 
   it('should print warning and leave only MultiColumnSorting plugin enabled after ColumnSorting is tried to be enabled', async() => {
-    const warnSpy = spyOn(console, 'warn');
+    const warnSpy = spyOnConsoleWarn();
 
     handsontable({
       data: arrayOfObjects(),

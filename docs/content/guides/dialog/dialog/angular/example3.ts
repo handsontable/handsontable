@@ -1,6 +1,6 @@
 /* file: app.component.ts */
 import { AfterViewInit, Component, ViewChild } from '@angular/core';
-import { GridSettings, HotTableComponent } from "@handsontable/angular-wrapper";
+import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
 
 @Component({
   selector: 'app-example3',
@@ -101,7 +101,6 @@ export class AppComponent implements AfterViewInit {
     autoRowSize: true,
     dialog: {
       content: '<p>This dialog contains <strong>HTML</strong> content with formatting.</p><button id="example3-button">Hide dialog</button>',
-      contentDirections: 'column',
       closable: true,
     },
   };

@@ -6,7 +6,6 @@ export interface DialogConfig {
   customClassName?: string;
   background?: 'solid' | 'semi-transparent';
   contentBackground?: boolean;
-  contentDirections?: 'row' | 'row-reverse' | 'column' | 'column-reverse';
   animation?: boolean;
   closable?: boolean;
 }
@@ -20,4 +19,5 @@ export class Dialog extends BasePlugin {
   show(config?: DialogConfig): void;
   hide(): void;
   update(config: DialogConfig): void;
+  focus(): void;
 } 

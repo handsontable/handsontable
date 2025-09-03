@@ -29,9 +29,14 @@ describe('Dialog - show method', () => {
       customClassName: '',
       background: 'solid',
       contentBackground: false,
-      contentDirections: 'row',
       animation: true,
       closable: false,
+      a11y: {
+        role: 'dialog',
+        ariaLabel: 'Dialog',
+        ariaLabelledby: '',
+        ariaDescribedby: '',
+      },
     });
   });
 
@@ -172,5 +177,20 @@ describe('Dialog - show method', () => {
     dialogPlugin.show();
 
     expect(getSelected()).toEqual(undefined);
+  });
+
+  it('should focus dialog element if active element is inside of the rootWrapperElement', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      dialog: true,
+    });
+
+    await selectCell(0, 0);
+
+    const dialogPlugin = getPlugin('dialog');
+
+    dialogPlugin.show();
+
+    expect(document.activeElement).toBe(getDialogContainerElement());
   });
 });

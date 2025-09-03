@@ -23,6 +23,7 @@
 @use "./plugins/manual-row-move";
 @use "./plugins/dialog";
 @use "./plugins/pagination";
+@use "./plugins/loading";
 
 // Renderers
 @use "./renderers/text-renderer";
@@ -83,4 +84,5 @@
   @include manual-row-move.output();
   @include dialog.output();
   @include pagination.output();
+  @include loading.output();
 }

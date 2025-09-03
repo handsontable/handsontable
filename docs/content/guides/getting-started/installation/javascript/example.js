@@ -1,6 +1,10 @@
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const container = document.querySelector('#example');
 const data = [
@@ -18,5 +22,5 @@ new Handsontable(container, {
   height: 'auto',
   autoWrapRow: true,
   autoWrapCol: true,
-  licenseKey: 'non-commercial-and-evaluation',
+  licenseKey: 'non-commercial-and-evaluation', // for non-commercial use only
 });
