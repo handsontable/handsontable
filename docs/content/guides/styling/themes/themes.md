@@ -72,10 +72,8 @@ Keep in mind that starting from version `15.0`, importing a theme is required.
 ::: only-for angular
 
 ::: example #example1 :angular --ts 1 --html 2
-
 @[code](@/content/guides/styling/themes/angular/example1.ts)
 @[code](@/content/guides/styling/themes/angular/example1.html)
-
 :::
 
 :::
@@ -219,6 +217,8 @@ When both a global theme and a local themeName are defined, the local setting ta
 - Global Setting: If no local theme is specified, the component falls back to the global configuration provided via the injection token or the configuration service.
 
 This hierarchy ensures that you can define a consistent default theme for your entire application while still allowing individual components to customize their appearance when needed.
+
+:::
 
 ## The classic theme
 
