@@ -284,7 +284,7 @@ export class Loading extends BasePlugin {
    * Handle dialog focus event.
    */
   #onDialogFocus() {
-    this.#dialogPlugin.focusDialog();
+    this.#dialogPlugin.focus();
   }
 
   /**
