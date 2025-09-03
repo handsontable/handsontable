@@ -20,6 +20,7 @@ const getPackageUrls = (packageName, version, fileSelection) => {
         'handsontable.min.css',
         'ht-theme-main.css',
         'ht-theme-horizon.css',
+        'ht-theme-classic.css',
       ],
       subDir: 'dist/',
       cssSubDir: 'styles/',

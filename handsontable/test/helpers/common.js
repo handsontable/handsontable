@@ -1350,6 +1350,28 @@ export function getClipboardEvent({ target = document.body } = {}) {
   return event;
 }
 
+/**
+ * Spies on the console.warn method and returns a function that can be used to assert that the warning was not called.
+ *
+ * @returns {Function}
+ */
+export function spyOnConsoleWarn() {
+  const warnSpy = spyOn(console, 'warn');
+  // eslint-disable-next-line no-console
+  const originalWarn = console.warn;
+
+  // eslint-disable-next-line no-console
+  console.warn = (...args) => {
+    if (args[0].includes('Deprecated:')) {
+      return;
+    }
+
+    originalWarn(...args);
+  };
+
+  return warnSpy;
+}
+
 class DataTransferObject {
   constructor() {
     this.data = {

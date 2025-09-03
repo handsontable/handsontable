@@ -3,6 +3,7 @@ import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
 import 'handsontable/styles/ht-theme-horizon.css';
+import 'handsontable/styles/ht-theme-classic.css';
 
 // Register all Handsontable's modules.
 registerAllModules();
@@ -112,6 +113,7 @@ export const data = [
 ];
 const example = document.getElementById('exampleTheme');
 const hotInstance = new Handsontable(example, {
+  themeName: 'ht-theme-main',
   data,
   height: 450,
   colWidths: [180, 220, 140, 120, 120, 120, 140],
@@ -193,7 +195,7 @@ const currentTheme = document.querySelector('html')?.classList.contains('theme-d
 
 const setTheme = (theme) => {
   colorBox.classList.value = `color-box ${theme}`;
-  hotInstance.useTheme(theme === 'ht-no-theme' ? undefined : theme);
+  hotInstance.useTheme(theme);
 };
 
 themeSelect.value = currentTheme;

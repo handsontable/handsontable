@@ -29,7 +29,7 @@ describe('ContextMenu', () => {
 
       await contextMenu(getCell(0, 0, true));
 
-      const warnSpy = spyOn(console, 'warn');
+      const warnSpy = spyOnConsoleWarn();
 
       await selectContextMenuOption('Redo');
 
