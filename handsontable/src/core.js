@@ -39,12 +39,15 @@ import {
   replaceData,
 } from './dataMap';
 import {
-  installFocusCatcher,
   createViewportScroller,
   Hooks,
-  GridFocusManager,
   CellRangeToRenderableMapper,
 } from './core/index';
+import {
+  GridFocusManager,
+  createFocusScopeManager,
+  registerAllFocusScopes
+} from './focusManager';
 import { createUniqueMap } from './utils/dataStructures/uniqueMap';
 import { createShortcutManager } from './shortcuts';
 import { registerAllShortcutContexts } from './shortcutContexts';
@@ -174,6 +177,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   let grid;
   let editorManager;
   let gridFocusManager;
+  let focusScopeManager;
   let viewportScroller;
   let firstRun = true;
 
@@ -1306,10 +1310,11 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
     editorManager = EditorManager.getInstance(instance, tableMeta, selection);
     viewportScroller = createViewportScroller(instance);
-    gridFocusManager = new GridFocusManager(instance);
+
+    gridFocusManager.init();
+    focusScopeManager.init();
 
     if (isRootInstance(this)) {
-      installFocusCatcher(instance);
       installAccessibilityAnnouncer(instance.rootPortalElement);
       _injectProductInfo(mergedUserSettings.licenseKey, this.rootWrapperElement);
     }
@@ -5416,6 +5421,9 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     return shortcutManager;
   };
 
+  gridFocusManager = new GridFocusManager(instance);
+  focusScopeManager = createFocusScopeManager(instance);
+
   /**
    * Return the Focus Manager responsible for managing the browser's focus in the table.
    *
@@ -5428,6 +5436,16 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     return gridFocusManager;
   };
 
+  /**
+   * @memberof Core#
+   * @since 17.0.0
+   * @function getFocusScopeManager
+   * @returns {FocusScopeManager}
+   */
+  this.getFocusScopeManager = function() {
+    return focusScopeManager;
+  };
+
   getPluginsNames().forEach((pluginName) => {
     const PluginClass = getPlugin(pluginName);
 
@@ -5435,6 +5453,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   });
 
   registerAllShortcutContexts(instance);
+  registerAllFocusScopes(instance);
 
   shortcutManager.setActiveContextName('grid');
 

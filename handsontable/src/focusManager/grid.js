@@ -1,6 +1,6 @@
-import { warn } from '../../helpers/console';
-import { isHTMLElement, isOutsideInput } from '../../helpers/dom/element';
-import { debounce } from '../../helpers/function';
+import { warn } from '../helpers/console';
+import { isHTMLElement, isOutsideInput } from '../helpers/dom/element';
+import { debounce } from '../helpers/function';
 
 /**
  * Possible focus modes.
@@ -56,9 +56,12 @@ export class GridFocusManager {
   #debouncedSelect = new Map();
 
   constructor(hotInstance) {
-    const hotSettings = hotInstance.getSettings();
-
     this.#hot = hotInstance;
+  }
+
+  init() {
+    const hotSettings = this.#hot.getSettings();
+
     this.#focusMode = hotSettings.imeFastEdit ? FOCUS_MODES.MIXED : FOCUS_MODES.CELL;
 
     this.#hot.addHook('afterUpdateSettings', (...args) => this.#onUpdateSettings(...args));
