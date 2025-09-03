@@ -157,7 +157,7 @@ export class Loading extends BasePlugin {
         });
       }
 
-      this.hot.addHook('afterDialogFocus', () => this.#onDialogFocus());
+      this.hot.addHook('afterDialogFocus', () => this.#onAfterDialogFocus());
     }
 
     super.enablePlugin();
@@ -283,7 +283,7 @@ export class Loading extends BasePlugin {
   /**
    * Handle dialog focus event.
    */
-  #onDialogFocus() {
+  #onAfterDialogFocus() {
     this.#dialogPlugin.focus();
   }
 
