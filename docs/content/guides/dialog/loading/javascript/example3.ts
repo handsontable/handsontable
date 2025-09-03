@@ -71,10 +71,13 @@ const hot = new Handsontable(container, {
 // Get loading plugin instance
 const loadingPlugin = hot.getPlugin('loading');
 
+const loadDataButton = document.getElementById('loadData') as HTMLButtonElement;
+
 // Simulate data loading
 async function loadData(): Promise<void> {
   // Show loading dialog
   loadingPlugin.show();
+  loadDataButton.disabled = true;
 
   try {
     // Simulate API call delay
@@ -93,28 +96,22 @@ async function loadData(): Promise<void> {
       { model: 'Aero Bottle', price: 1571.13, sellDate: 'May 24, 2025', sellTime: '12:24 AM', inStock: true },
       { model: 'Windbreaker Jacket', price: 919.09, sellDate: 'Jul 16, 2025', sellTime: '07:11 PM', inStock: true },
     ];
-
-    // Update loading message
-    loadingPlugin.update({
-      title: 'Processing Data',
-      description: 'Formatting and validating data...',
-    });
-
-    // Simulate additional processing time
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-
+  
     // Load data into the table
     hot.loadData(data);
 
     // Hide loading dialog
     loadingPlugin.hide();
+    loadDataButton.disabled = false;
+    loadDataButton.innerHTML = 'Reload Data';
   } catch (error) {
     // Handle error
     setTimeout(() => {
       loadingPlugin.hide();
+      loadDataButton.disabled = false;
+      loadDataButton.innerHTML = 'Load Data';
     }, 2000);
   }
 }
 
-// Start loading data when page loads
-loadData();
+loadDataButton.addEventListener('click', loadData);
