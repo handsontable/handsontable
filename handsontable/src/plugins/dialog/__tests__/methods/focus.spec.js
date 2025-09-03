@@ -1,4 +1,4 @@
-describe('Dialog - focusDialog method', () => {
+describe('Dialog - focus method', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
@@ -35,7 +35,7 @@ describe('Dialog - focusDialog method', () => {
 
     dialogPlugin.show();
 
-    dialogPlugin.focusDialog();
+    dialogPlugin.focus();
 
     expect(document.activeElement).toBe(getDialogContainerElement());
   });

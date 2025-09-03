@@ -438,7 +438,7 @@ export class Dialog extends BasePlugin {
   /**
    * Focus the dialog.
    */
-  focusDialog() {
+  focus() {
     this.#ui.focusDialog();
   }
 

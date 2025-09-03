@@ -70,4 +70,4 @@ dialog.update({
   animation: false,
   closable: false,
 });
-dialog.focusDialog();
+dialog.focus();

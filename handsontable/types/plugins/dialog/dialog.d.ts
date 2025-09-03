@@ -19,5 +19,5 @@ export class Dialog extends BasePlugin {
   show(config?: DialogConfig): void;
   hide(): void;
   update(config: DialogConfig): void;
-  focusDialog(): void;
+  focus(): void;
 } 
