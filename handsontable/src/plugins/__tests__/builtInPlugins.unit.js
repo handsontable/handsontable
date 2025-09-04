@@ -37,8 +37,8 @@ describe('built-in plugins', () => {
       'HiddenColumns',
       'HiddenRows',
       'TrimRows',
-      'Dialog',
       'Loading',
+      'Dialog',
       'Pagination',
       'UndoRedo',
     ]);

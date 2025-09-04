@@ -4,7 +4,7 @@ import { installFocusDetector } from '../../utils/focusDetector';
 import { isObject } from '../../helpers/object';
 
 export const PLUGIN_KEY = 'dialog';
-export const PLUGIN_PRIORITY = 340;
+export const PLUGIN_PRIORITY = 360;
 const SHORTCUTS_GROUP = PLUGIN_KEY;
 const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
 
