@@ -52,7 +52,7 @@
             padding-bottom: var(--ht-gap-size);
             border-radius: var(--ht-input-border-radius);
             color: var(--ht-input-foreground-color);
-            background-color: var(--ht-pagination-bar-background-color);
+            background-color: var(--ht-input-background-color);
             line-height: calc(var(--ht-line-height) - 4px);
             border: none;
             -webkit-appearance: none;
@@ -114,9 +114,9 @@
             cursor: default;
             pointer-events: none;
           }
-
+ 
           &:hover:not(:disabled) {
-            background-color: var(--ht-input-hover-background-color);
+            background-color: var(--ht-secondary-button-hover-background-color);
           }
 
           &:focus {
