@@ -6,7 +6,7 @@ import 'handsontable/styles/ht-theme-main.css';
 // register Handsontable's modules
 registerAllModules();
 
-const container = document.getElementById('example3')!;
+const container = document.getElementById('example4')!;
 
 const hot = new Handsontable(container, {
   themeName: 'ht-theme-main',
@@ -65,13 +65,16 @@ const hot = new Handsontable(container, {
   height: 300,
   stretchH: 'all',
   loading: true,
+  pagination: {
+    uiContainer: document.getElementById("example4-pagination"),
+  },
   licenseKey: 'non-commercial-and-evaluation',
 });
 
 // Get loading plugin instance
 const loadingPlugin = hot.getPlugin('loading');
 
-const loadDataButton = document.getElementById('example3-loadData') as HTMLButtonElement;
+const loadDataButton = document.getElementById('example4-loadData') as HTMLButtonElement;
 
 // Simulate data loading
 async function loadData(): Promise<void> {
@@ -95,6 +98,24 @@ async function loadData(): Promise<void> {
       { model: 'Carbon Handlebar', price: 1080.7, sellDate: 'Oct 24, 2025', sellTime: '10:58 PM', inStock: false },
       { model: 'Aero Bottle', price: 1571.13, sellDate: 'May 24, 2025', sellTime: '12:24 AM', inStock: true },
       { model: 'Windbreaker Jacket', price: 919.09, sellDate: 'Jul 16, 2025', sellTime: '07:11 PM', inStock: true },
+      { model: 'LED Bike Light', price: 1012.5, sellDate: 'May 1, 2025', sellTime: '05:30 PM', inStock: false },
+      { model: 'Windbreaker Jacket', price: 635.37, sellDate: 'May 14, 2025', sellTime: '09:05 AM', inStock: true },
+      { model: 'Road Tire Tube', price: 1421.27, sellDate: 'Jan 31, 2025', sellTime: '01:33 PM', inStock: true },
+      { model: 'Action Camera', price: 1019.05, sellDate: 'Dec 7, 2025', sellTime: '01:26 AM', inStock: false },
+      { model: 'Carbon Handlebar', price: 603.96, sellDate: 'Sep 13, 2025', sellTime: '04:10 AM', inStock: false },
+      { model: 'Aero Bottle', price: 1334.03, sellDate: 'Jan 24, 2025', sellTime: '03:29 AM', inStock: false },
+      { model: 'Road Tire Tube', price: 1841.17, sellDate: 'May 22, 2025', sellTime: '01:45 AM', inStock: false },
+      { model: 'Aero Bottle', price: 1622.05, sellDate: 'Jan 13, 2025', sellTime: '08:30 AM', inStock: true },
+      { model: 'Comfort Saddle', price: 1456.24, sellDate: 'Jul 20, 2025', sellTime: '03:39 AM', inStock: false },
+      { model: 'Windbreaker Jacket', price: 1736.96, sellDate: 'Sep 25, 2025', sellTime: '12:43 AM', inStock: true },
+      { model: 'Fitness Watch', price: 1075.31, sellDate: 'Nov 7, 2025', sellTime: '05:47 PM', inStock: true },
+      { model: 'Cycling Cap', price: 726.01, sellDate: 'Oct 28, 2025', sellTime: '12:44 PM', inStock: true },
+      { model: 'Road Tire Tube', price: 601.99, sellDate: 'Sep 22, 2025', sellTime: '12:26 AM', inStock: true },
+      { model: 'Speed Gloves', price: 1758.26, sellDate: 'Oct 4, 2025', sellTime: '04:59 AM', inStock: true },
+      { model: 'Speed Gloves', price: 564.35, sellDate: 'Jul 10, 2025', sellTime: '06:21 PM', inStock: true },
+      { model: 'Hydration Pack', price: 954.84, sellDate: 'Nov 2, 2025', sellTime: '12:59 AM', inStock: false },
+      { model: 'Cycling Cap', price: 1511.5, sellDate: 'Feb 11, 2025', sellTime: '02:38 AM', inStock: false },
+      { model: 'HL Road Tire', price: 269.6, sellDate: 'Jun 18, 2025', sellTime: '04:58 AM', inStock: false },
     ];
   
     // Load data into the table

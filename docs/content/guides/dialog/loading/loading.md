@@ -146,6 +146,44 @@ Here are some common scenarios where the loading dialog is useful:
 
 :::
 
+## Loading with Pagination plugin
+
+The example below demonstrates how to use the Loading plugin with pagination in external container:
+
+::: only-for javascript
+
+::: example #example4 --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/dialog/loading/javascript/example4.html)
+@[code](@/content/guides/dialog/loading/javascript/example4.js)
+@[code](@/content/guides/dialog/loading/javascript/example4.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example4 :react --js 1 --ts 2
+
+@[code](@/content/guides/dialog/loading/react/example4.jsx)
+@[code](@/content/guides/dialog/loading/react/example4.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example4 :angular --ts 1 --html 2
+
+@[code](@/content/guides/dialog/loading/angular/example4.ts)
+@[code](@/content/guides/dialog/loading/angular/example4.html)
+
+:::
+
+:::
+
 ## Localize loading
 
 Translate default loading dialog labels using the global translations mechanism. The loading dialog introduces the following keys to the language dictionary that you can use to translate the loading UI:
