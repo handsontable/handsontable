@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue with classic (legacy) theme deprecation warning in non root instances",
+  "type": "fixed",
+  "issueOrPR": 11821,
+  "breaking": false,
+  "framework": "none"
+}
