@@ -66,7 +66,7 @@ const hot = new Handsontable(container, {
   stretchH: 'all',
   loading: true,
   pagination: {
-    uiContainer: document.getElementById('example4-pagination')
+    uiContainer: document.getElementById('example4-pagination')!,
   },
   licenseKey: 'non-commercial-and-evaluation',
 });
@@ -117,7 +117,7 @@ async function loadData(): Promise<void> {
       { model: 'Cycling Cap', price: 1511.5, sellDate: 'Feb 11, 2025', sellTime: '02:38 AM', inStock: false },
       { model: 'HL Road Tire', price: 269.6, sellDate: 'Jun 18, 2025', sellTime: '04:58 AM', inStock: false },
     ];
-  
+
     // Load data into the table
     hot.loadData(data);
 
