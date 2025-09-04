@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 16.1.0
- * Release date: 11/09/2025 (built at 04/09/2025 08:38:12)
+ * Release date: 11/09/2025 (built at 04/09/2025 15:30:06)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -104,7 +104,7 @@ Handsontable.hooks = _hooks.Hooks.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "04/09/2025 08:38:12";
+Handsontable.buildDate = "04/09/2025 15:30:06";
 Handsontable.version = "16.1.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -2667,7 +2667,7 @@ function Core(rootContainer, userSettings) {
         instance.useTheme(settings.themeName);
       }
     }
-    if (instance.stylesHandler.isClassicTheme()) {
+    if ((0, _rootInstance.isRootInstance)(instance) && instance.stylesHandler.isClassicTheme()) {
       // eslint-disable-next-line max-len
       (0, _console.deprecatedWarn)('Handsontable classic theme is a legacy theme and will be removed in version 17.0. Please update your theme settings to ensure compatibility with future versions.');
     }
@@ -102021,7 +102021,7 @@ function _classPrivateFieldSet(s, a, r) { return s.set(_assertClassBrand(s, a), 
 function _classPrivateFieldGet(s, a) { return s.get(_assertClassBrand(s, a)); }
 function _assertClassBrand(e, t, n) { if ("function" == typeof e ? e === t : e.has(t)) return arguments.length < 3 ? t : n; throw new TypeError("Private element is not present on this object"); }
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'dialog';
-const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 340;
+const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 360;
 const SHORTCUTS_GROUP = PLUGIN_KEY;
 const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
 
@@ -102950,9 +102950,7 @@ class Loading extends _base.BasePlugin {
       var _classPrivateFieldGet2;
       _classPrivateFieldSet(_dialogPlugin, this, this.hot.getPlugin('dialog'));
       if (!((_classPrivateFieldGet2 = _classPrivateFieldGet(_dialogPlugin, this)) !== null && _classPrivateFieldGet2 !== void 0 && _classPrivateFieldGet2.isEnabled())) {
-        this.hot.updateSettings({
-          dialog: true
-        });
+        this.hot.getSettings().dialog = true;
       }
       this.hot.addHook('afterDialogFocus', () => _assertClassBrand(_Loading_brand, this, _onAfterDialogFocus).call(this));
     }
