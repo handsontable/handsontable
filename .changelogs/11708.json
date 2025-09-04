@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed an issue with autocomplete sorting and options highlighting",
-  "type": "fixed",
-  "issueOrPR": 11708,
-  "breaking": false,
-  "framework": "none"
-}

@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed table misalignment when new data is loaded",
-  "type": "fixed",
-  "issueOrPR": 11809,
-  "breaking": false,
-  "framework": "none"
-}
