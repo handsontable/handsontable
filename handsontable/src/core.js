@@ -2737,7 +2737,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       }
     }
 
-    if (instance.stylesHandler.isClassicTheme()) {
+    if (isRootInstance(instance) && instance.stylesHandler.isClassicTheme()) {
       // eslint-disable-next-line max-len
       deprecatedWarn('Handsontable classic theme is a legacy theme and will be removed in version 17.0. Please update your theme settings to ensure compatibility with future versions.');
     }
