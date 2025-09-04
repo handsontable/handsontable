@@ -393,8 +393,9 @@ registerPlugin(Pagination);
 
 When pagination is enabled:
 
-- [`fixedRowsTop`](@/api/options.md#fixedrowstop) and [`fixedRowsBottom`](@/api/options.md#fixedrowsbottom) options are disabled.
-- [`NestedRows`](@/api/nestedRows.md) and [`MergeCells`](@/api/mergeCells.md) plugins are disabled.
+- [`fixedRowsTop`](@/api/options.md#fixedrowstop) and [`fixedRowsBottom`](@/api/options.md#fixedrowsbottom) options should be disabled.
+- [`NestedRows`](@/api/nestedRows.md) and [`MergeCells`](@/api/mergeCells.md) plugins should be disabled.
+- The [`height`](@/api/options.md#height) option set as `auto` is not supported when the `pageSize: 'auto'` is set.
 - Pagination always displays a fixed number of rows per page (default is `10`), regardless of data changes such as hiding, trimming, filtering, removing, adding, or pasting rows - unless `pageSize: 'auto'` is set.
 
 ## Related API reference
