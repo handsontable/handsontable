@@ -28,6 +28,44 @@ See the full history of changes made to Handsontable in each major, minor, and p
 
 [[toc]]
 
+## 16.0.1
+
+Released on September 11, 2025
+
+For more information about this release see:
+- [Documentation (16.1)](https://handsontable.com/docs/16.1)
+
+#### Added
+- Introduced row pagination functionality. [#11612](https://github.com/handsontable/handsontable/pull/11612)
+- Introduced a Dialog plugin. [#11754](https://github.com/handsontable/handsontable/pull/11754)
+- Added support for object-based (`key`/`value`) source in Autocomplete and Dropdown editors, along with new `valueGetter` and `valueSetter` options. [#11773](https://github.com/handsontable/handsontable/pull/11773)
+- Added a new `initialState` configuration option. [#11777](https://github.com/handsontable/handsontable/pull/11777)
+- Introduced the Loading plugin. [#11792](https://github.com/handsontable/handsontable/pull/11792)
+
+#### Changed
+- Enabled focus navigation between multiple selection layers. [#11756](https://github.com/handsontable/handsontable/pull/11756)
+- Renamed the input element used as the internal focus catcher. [#11770](https://github.com/handsontable/handsontable/pull/11770)
+- Added a background color to the `wtHolder` element. [#11797](https://github.com/handsontable/handsontable/pull/11797)
+
+#### Fixed
+- Fixed undo/redo functionality for cell types other than `text`. [#11656](https://github.com/handsontable/handsontable/pull/11656)
+- Fixed incorrect resizing behavior when auto-sizing rows or columns by double-clicking separators. [#11671](https://github.com/handsontable/handsontable/pull/11671)
+- Fixed mouse wheel zooming issues on Windows. [#11680](https://github.com/handsontable/handsontable/pull/11680)
+- Fixed autocomplete sorting and option highlighting issues. [#11708](https://github.com/handsontable/handsontable/pull/11708)
+- Fixed a missing `touchend` handler that prevented editors from opening on mobile devices. [#11729](https://github.com/handsontable/handsontable/pull/11729)
+- Fixed misalignment between rows and row headers when using `autoRowSize`. [#11736](https://github.com/handsontable/handsontable/pull/11736)
+- Fixed layout inconsistencies caused by browser zoom and scaling. [#11739](https://github.com/handsontable/handsontable/pull/11739)
+- Fixed an issue with the root-wrapper height calculation. [#11769](https://github.com/handsontable/handsontable/pull/11769)
+- Fixed a `TypeError` being thrown after undoing operations on nested row structures. [#11793](https://github.com/handsontable/handsontable/pull/11793)
+- Fixed `rowHeights` handling for merged cells. [#11795](https://github.com/handsontable/handsontable/pull/11795)
+- Fixed visual issues across themes. [#11805](https://github.com/handsontable/handsontable/pull/11805)
+- Fixed table misalignment after loading new data. [#11809](https://github.com/handsontable/handsontable/pull/11809)
+- Angular: Fixed the tree-shaking mechanism for the Angular wrapper (`@handsontable/angular-wrapper`). [#11738](https://github.com/handsontable/handsontable/pull/11738)
+
+#### Security
+- Resolved critical vulnerabilities reported by `pnpm audit`. [#11798](https://github.com/handsontable/handsontable/pull/11798)
+
+
 
 ## 16.0.1
 

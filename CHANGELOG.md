@@ -12,34 +12,34 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [16.1.0] - 2025-09-11
 
 ### Added
-- Add row pagination functionality [#11612](https://github.com/handsontable/handsontable/pull/11612)
-- Added Dialog Plugin: Core Modal System [#11754](https://github.com/handsontable/handsontable/pull/11754)
-- Implemented the `key`/`value` feature for the Autocomplete and Dropdown editors and the new `valueGetter` and `valueSetter` options. [#11773](https://github.com/handsontable/handsontable/pull/11773)
-- Add support for a new `initialState` option [#11777](https://github.com/handsontable/handsontable/pull/11777)
-- Added Dialog Loading Plugin [#11792](https://github.com/handsontable/handsontable/pull/11792)
+- Introduced row pagination functionality. [#11612](https://github.com/handsontable/handsontable/pull/11612)
+- Introduced a Dialog plugin. [#11754](https://github.com/handsontable/handsontable/pull/11754)
+- Added support for object-based (`key`/`value`) source in Autocomplete and Dropdown editors, along with new `valueGetter` and `valueSetter` options. [#11773](https://github.com/handsontable/handsontable/pull/11773)
+- Added a new `initialState` configuration option. [#11777](https://github.com/handsontable/handsontable/pull/11777)
+- Introduced the Loading plugin. [#11792](https://github.com/handsontable/handsontable/pull/11792)
 
 ### Changed
-- Allow focus navigation between multiple selection layers [#11756](https://github.com/handsontable/handsontable/pull/11756)
-- Change the input name of the internal focus catcher element [#11770](https://github.com/handsontable/handsontable/pull/11770)
-- Added background color to holder element (`wtHolder`) [#11797](https://github.com/handsontable/handsontable/pull/11797)
+- Enabled focus navigation between multiple selection layers. [#11756](https://github.com/handsontable/handsontable/pull/11756)
+- Renamed the input element used as the internal focus catcher. [#11770](https://github.com/handsontable/handsontable/pull/11770)
+- Added a background color to the `wtHolder` element. [#11797](https://github.com/handsontable/handsontable/pull/11797)
 
 ### Fixed
-- Fixed undo/redo actions with cell types other than `text` [#11656](https://github.com/handsontable/handsontable/pull/11656)
-- Fixed an issue with incorrect row and column resizing that occurs when the user double-clicks a column or row separator to auto-size it and then moves the mouse [#11671](https://github.com/handsontable/handsontable/pull/11671)
-- Fixed an issue with mouse wheel zooming on Windows [#11680](https://github.com/handsontable/handsontable/pull/11680)
-- Fixed an issue with autocomplete sorting and options highlighting [#11708](https://github.com/handsontable/handsontable/pull/11708)
-- Fix missing touchend entry handler that prevents editor to open on mobile devices [#11729](https://github.com/handsontable/handsontable/pull/11729)
-- Fixed an issue with rows being misaligned with row headers when using `autoRowSize`. [#11736](https://github.com/handsontable/handsontable/pull/11736)
-- Fixed an issues with visual layout inconsistencies with browser zoom and scaling [#11739](https://github.com/handsontable/handsontable/pull/11739)
-- Fixed an issue with root-wrapper height [#11769](https://github.com/handsontable/handsontable/pull/11769)
-- Fixed TypeError after undo opertation for nested rows data structure [#11793](https://github.com/handsontable/handsontable/pull/11793)
-- Fixed `rowHeights` option for merged cells [#11795](https://github.com/handsontable/handsontable/pull/11795)
-- Fixed themes visaul issues [#11805](https://github.com/handsontable/handsontable/pull/11805)
-- Fixed table misalignment when new data is loaded [#11809](https://github.com/handsontable/handsontable/pull/11809)
-- Angular: Fixed treeshaking mechanism (modularization) for angular-wrapper [#11738](https://github.com/handsontable/handsontable/pull/11738)
+- Fixed undo/redo functionality for cell types other than `text`. [#11656](https://github.com/handsontable/handsontable/pull/11656)
+- Fixed incorrect resizing behavior when auto-sizing rows or columns by double-clicking separators. [#11671](https://github.com/handsontable/handsontable/pull/11671)
+- Fixed mouse wheel zooming issues on Windows. [#11680](https://github.com/handsontable/handsontable/pull/11680)
+- Fixed autocomplete sorting and option highlighting issues. [#11708](https://github.com/handsontable/handsontable/pull/11708)
+- Fixed a missing `touchend` handler that prevented editors from opening on mobile devices. [#11729](https://github.com/handsontable/handsontable/pull/11729)
+- Fixed misalignment between rows and row headers when using `autoRowSize`. [#11736](https://github.com/handsontable/handsontable/pull/11736)
+- Fixed layout inconsistencies caused by browser zoom and scaling. [#11739](https://github.com/handsontable/handsontable/pull/11739)
+- Fixed an issue with the root-wrapper height calculation. [#11769](https://github.com/handsontable/handsontable/pull/11769)
+- Fixed a `TypeError` being thrown after undoing operations on nested row structures. [#11793](https://github.com/handsontable/handsontable/pull/11793)
+- Fixed `rowHeights` handling for merged cells. [#11795](https://github.com/handsontable/handsontable/pull/11795)
+- Fixed visual issues across themes. [#11805](https://github.com/handsontable/handsontable/pull/11805)
+- Fixed table misalignment after loading new data. [#11809](https://github.com/handsontable/handsontable/pull/11809)
+- Angular: Fixed the tree-shaking mechanism for the Angular wrapper (`@handsontable/angular-wrapper`). [#11738](https://github.com/handsontable/handsontable/pull/11738)
 
 ### Security
-- Fixed the `critical` security vulnerabilities reported by `pnpm audit`. [#11798](https://github.com/handsontable/handsontable/pull/11798)
+- Resolved critical vulnerabilities reported by `pnpm audit`. [#11798](https://github.com/handsontable/handsontable/pull/11798)
 
 ## [16.0.1] - 2025-07-10
 
