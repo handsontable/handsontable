@@ -116,12 +116,12 @@ describe('Loading', () => {
   it('should not shown Deprecated warning when loading plugin is enabled and theme is not classic (legacy)', async() => {
     const warnSpy = spyOn(console, 'warn');
 
-    const hot = handsontable({
+    handsontable({
       data: createSpreadsheetData(10, 10),
       loading: true,
     });
 
-    if (hot.stylesHandler.isClassicTheme()) {
+    if (spec().loadedTheme === 'classic') {
       // eslint-disable-next-line max-len
       expect(warnSpy).toHaveBeenCalledWith('Deprecated: Handsontable classic theme is a legacy theme and will be removed in version 17.0. Please update your theme settings to ensure compatibility with future versions.');
     } else {
