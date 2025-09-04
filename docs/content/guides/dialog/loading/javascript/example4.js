@@ -65,7 +65,7 @@ const hot = new Handsontable(container, {
   stretchH: 'all',
   loading: true,
   pagination: {
-    uiContainer: document.getElementById("example4-pagination"),
+    uiContainer: document.getElementById('example4-pagination')
   },
   licenseKey: 'non-commercial-and-evaluation',
 });
