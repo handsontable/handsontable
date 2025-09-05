@@ -217,10 +217,17 @@ export class Dialog extends BasePlugin {
       });
 
       this.#ui.addLocalHook('clickDialogElement', () => this.#onDialogClick());
+
       this.hot.getFocusScopeManager()
         .registerScope(PLUGIN_KEY, this.#ui.getContainer(), {
-          focusableElements: () => this.#ui.getFocusableElements(),
-      });
+          shortcutsContextName: SHORTCUTS_CONTEXT_NAME,
+          type: 'modal',
+          // runOnlyIf: () => this.isVisible(),
+          onActivation: () => {
+            this.#ui.getContainer().focus();
+          },
+        });
+      this.hot.getFocusScopeManager().disableScope(PLUGIN_KEY);
     }
 
     this.#registerShortcuts();
@@ -331,14 +338,15 @@ export class Dialog extends BasePlugin {
     }
 
     this.hot.runHooks('beforeDialogShow');
-
     this.update(options);
+
     this.#ui.showDialog(this.getSetting('animation'));
+    // this.hot.getFocusScopeManager().enableScope(PLUGIN_KEY);
+
     this.#isVisible = true;
-
     this.#selectionState = this.hot.selection.exportSelection();
-    this.hot.deselectCell();
 
+    this.hot.deselectCell();
     this.hot.runHooks('afterDialogShow');
 
     const { activeElement } = this.hot.rootDocument;
@@ -360,9 +368,11 @@ export class Dialog extends BasePlugin {
     this.hot.runHooks('beforeDialogHide');
 
     this.#ui.hideDialog(this.getSetting('animation'));
+    // this.hot.getFocusScopeManager().disableScope(PLUGIN_KEY);
+
     this.#isVisible = false;
 
-    if (this.#selectionState) {
+    if (this.#selectionState?.ranges.length > 0) {
       this.hot.selection.importSelection(this.#selectionState);
       this.hot.view.render();
       this.#selectionState = null;

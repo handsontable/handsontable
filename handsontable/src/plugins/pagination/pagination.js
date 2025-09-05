@@ -10,6 +10,7 @@ import { warn } from '../../helpers/console';
 
 export const PLUGIN_KEY = 'pagination';
 export const PLUGIN_PRIORITY = 900;
+const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
 
 const AUTO_PAGE_SIZE_WARNING = toSingleLine`The \`auto\` page size setting requires the \`autoRowSize\`\x20
   plugin to be enabled. Set the \`autoRowSize: true\` in the configuration to ensure correct behavior.`;
@@ -156,7 +157,6 @@ export class Pagination extends BasePlugin {
    * @type {boolean}
    */
   #internalRenderCall = false;
-
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link Pagination#enablePlugin} method is called.
@@ -215,11 +215,24 @@ export class Pagination extends BasePlugin {
         .addLocalHook('prevPageClick', () => this.prevPage())
         .addLocalHook('nextPageClick', () => this.nextPage())
         .addLocalHook('lastPageClick', () => this.lastPage())
-        .addLocalHook('pageSizeChange', pageSize => this.setPageSize(pageSize))
+        .addLocalHook('pageSizeChange', pageSize => this.setPageSize(pageSize));
 
-        this.hot.getFocusScopeManager()
-          .registerScope(PLUGIN_KEY, this.#ui.getContainer(), {
-            focusableElements: () => this.#ui.getFocusableElements(),
+      this.hot.getFocusScopeManager()
+        .registerScope(PLUGIN_KEY, this.#ui.getContainer(), {
+          shortcutsContextName: SHORTCUTS_CONTEXT_NAME,
+          // runOnlyIf: () => this.getSetting('showPageSize') || this.getSetting('showNavigation'),
+          onActivation: (focusSource) => {
+            const focusableElements = this.#ui.getFocusableElements();
+
+            if (focusableElements.length > 0) {
+              if (focusSource === 'from_above') {
+                focusableElements.at(0).focus();
+
+              } else if (focusSource === 'from_below') {
+                focusableElements.at(-1).focus();
+              }
+            }
+          },
         });
     }
 

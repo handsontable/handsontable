@@ -1,16 +1,15 @@
-import { FocusScopeManager } from './scopeManager';
+import { createFocusScopeManager } from './scopeManager';
 import { GridFocusManager } from './grid';
 
 export * from './scopes';
+export * from './constants';
+export * from './focusListener';
 
 /**
  * Creates a focus scope manager instance for a Handsontable instance.
  *
  * @param {Core} hotInstance The Handsontable instance
- * @returns {FocusScopeManager}
+ * @returns {Object} Focus scope manager object
  */
-export function createFocusScopeManager(hotInstance) {
-  return new FocusScopeManager(hotInstance);
-}
-
+export { createFocusScopeManager };
 export { GridFocusManager };

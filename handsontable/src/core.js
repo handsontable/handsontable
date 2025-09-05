@@ -54,7 +54,6 @@ import { registerAllShortcutContexts } from './shortcutContexts';
 import { getThemeClassName } from './helpers/themes';
 import { StylesHandler } from './utils/stylesHandler';
 import { deprecatedWarn, warn } from './helpers/console';
-import { CellRangeToRenderableMapper } from './core/coordsMapper/rangeToRenderableMapper';
 import {
   install as installAccessibilityAnnouncer,
   uninstall as uninstallAccessibilityAnnouncer,
@@ -1313,7 +1312,6 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     viewportScroller = createViewportScroller(instance);
 
     gridFocusManager.init();
-    focusScopeManager.init();
 
     if (isRootInstance(this)) {
       installAccessibilityAnnouncer(instance.rootPortalElement);

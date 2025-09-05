@@ -1,83 +1,91 @@
 import { installFocusDetector } from './utils/focusDetector';
-import { createFocusableElementsNavigator } from './utils/focusableElementsNavigator';
+import { SCOPE_TYPES, FOCUS_SOURCES, DEFAULT_SHORTCUTS_CONTEXT } from './constants';
 
 /**
- * Represents an individual focus scope with its own lifecycle and boundaries.
+ * Creates a focus scope with its own lifecycle and boundaries.
+ *
+ * @param {Core} hotInstance The Handsontable instance.
+ * @param {HTMLElement} container Container element for the scope.
+ * @param {Object} options Configuration options.
+ * @returns {Object} Focus scope object with methods.
  */
-export class FocusScope {
-  #scopeId;
-  #container;
-  #options;
-  #hot;
-  #focusCatchers;
-  #focusableElementsNavigator;
-  #isActive = false;
+export function createFocusScope(hotInstance, container, options = {}) {
+  const mergedOptions = {
+    installFocusDetector: true,
+    shortcutsContextName: DEFAULT_SHORTCUTS_CONTEXT,
+    type: SCOPE_TYPES.CONTAINER,
+    detached: () => !hotInstance.rootWrapperElement.contains(container),
+    runOnlyIf: () => true,
+    ...options,
+  };
+  const focusCatchers = mergedOptions.installFocusDetector
+    ? installFocusDetector(hotInstance, container) : null;
 
-  constructor(scopeId, hotInstance, container, options = {}) {
-    this.#scopeId = scopeId;
-    this.#container = container;
-    this.#hot = hotInstance;
-    this.#options = {
-      installFocusDetector: true,
-      focusableElements: () => [],
-      ...options,
-    };
-
-    this.#focusCatchers = this.#options.installFocusDetector
-      ? installFocusDetector(this.#hot, this.#container) : null;
-    this.#focusableElementsNavigator = createFocusableElementsNavigator(this.#options);
-  }
-
-  getScopeId() {
-    return this.#scopeId;
-  }
-
-  contains(target) {
-    return this.#container.contains(target);
-  }
-
-  isActive() {
-    return this.#isActive;
-  }
+  let isActivated = false;
+  let isDisabled = false;
 
   /**
-   * Activates this focus scope
+   * Checks if the target element is within the scope.
+   *
+   * @param {HTMLElement} target The target element to check.
+   * @returns {boolean}
    */
-  activate(activationSource) {
-    if (this.#isActive) {
-      return;
+  const contains = (target) => {
+    if (mergedOptions.type === SCOPE_TYPES.MODAL) {
+      return hotInstance.rootWrapperElement.contains(target);
     }
 
-    console.log('activate', activationSource);
-
-    this.#isActive = true;
-    this.#focusCatchers?.deactivate();
-
-    if (activationSource === 'from_above') {
-      this.#focusableElementsNavigator.toFirstItem();
-
-    } else if (activationSource === 'from_below') {
-      this.#focusableElementsNavigator.toLastItem();
-    }
-
-    if (this.#options.onActivation) {
-      this.#options.onActivation(activationSource);
-    }
-  }
+    return container.contains(target);
+  };
 
   /**
-   * Deactivates this focus scope
+   * Activates the scope.
+   *
+   * @param {string} activationSource The source of the activation.
    */
-  deactivate() {
-    if (!this.#isActive) {
-      return;
-    }
+  const activate = (activationSource = FOCUS_SOURCES.UNKNOWN) => {
+    console.log('scope activate()', activationSource);
 
-    this.#isActive = false;
-    this.#focusCatchers?.activate();
+    isActivated = true;
+    focusCatchers?.deactivate();
+    mergedOptions.onActivation?.(activationSource);
+  };
 
-    if (this.#options?.onDeactivation) {
-      this.#options.onDeactivation();
-    }
-  }
+  /**
+   * Deactivates the scope.
+   */
+  const deactivate = () => {
+    focusCatchers?.activate();
+    mergedOptions.onDeactivation?.();
+  };
+
+  /**
+   * Disables the scope. Disabled scope can't be focused.
+   */
+  const disable = () => {
+    isDisabled = true;
+    container.setAttribute('inert', true);
+  };
+
+  /**
+   * Enables the scope.
+   */
+  const enable = () => {
+    isDisabled = false;
+    container.removeAttribute('inert');
+  };
+
+  return {
+    getType: () => mergedOptions.type,
+    hasContainerDetached: () => mergedOptions.detached(),
+    getShortcutsContextName: () => mergedOptions.shortcutsContextName,
+    isActive: () => isActivated,
+    isDisabled: () => isDisabled,
+    runOnlyIf: () => mergedOptions.runOnlyIf(),
+    contains,
+    activate,
+    deactivate,
+    disable,
+    enable,
+  };
 }
