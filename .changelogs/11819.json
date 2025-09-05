@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed and issue with deprecation warning shown when the plugin is loaded",
+  "type": "fixed",
+  "issueOrPR": 11819,
+  "breaking": false,
+  "framework": "none"
+}

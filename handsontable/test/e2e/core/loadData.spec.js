@@ -1,4 +1,4 @@
-describe('Core_loadData', () => {
+describe('Core.loadData', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
@@ -1113,5 +1113,27 @@ describe('Core_loadData', () => {
     await loadData(arrayOfArrays(), 'testSource');
 
     expect(correctSourceCount).toEqual(2);
+  });
+
+  it('should adjust the container size after loading new data (loading more columns)', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+    });
+
+    await loadData(createSpreadsheetData(5, 7));
+
+    expect(tableView().getTotalTableWidth()).toBe(getDefaultColumnWidth() * 7);
+    expect(tableView().getTotalTableHeight()).toBe((getDefaultRowHeight() * 5) + 1);
+  });
+
+  it('should adjust the container size after loading new data (loading more rows)', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+    });
+
+    await loadData(createSpreadsheetData(7, 5));
+
+    expect(tableView().getTotalTableWidth()).toBe(getDefaultColumnWidth() * 5);
+    expect(tableView().getTotalTableHeight()).toBe((getDefaultRowHeight() * 7) + 1);
   });
 });
