@@ -152,9 +152,10 @@ The example below demonstrates how to use the Loading plugin with pagination in 
 
 ::: only-for javascript
 
-::: example #example4 --html 1 --js 2 --ts 3
+::: example #example4 --html 1 --css 2 --js 3 --ts 4
 
 @[code](@/content/guides/dialog/loading/javascript/example4.html)
+@[code](@/content/guides/dialog/loading/javascript/example4.css)
 @[code](@/content/guides/dialog/loading/javascript/example4.js)
 @[code](@/content/guides/dialog/loading/javascript/example4.ts)
 
@@ -162,6 +163,28 @@ The example below demonstrates how to use the Loading plugin with pagination in 
 
 :::
 
+::: only-for react
+
+::: example #example4 :react --js 1 --ts 2 --css 3
+
+@[code](@/content/guides/dialog/loading/react/example4.jsx)
+@[code](@/content/guides/dialog/loading/react/example4.tsx)
+@[code](@/content/guides/dialog/loading/react/example4.css)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example4 :angular --ts 1 --html 2
+
+@[code](@/content/guides/dialog/loading/angular/example4.ts)
+@[code](@/content/guides/dialog/loading/angular/example4.html)
+
+:::
+
+:::
 
 ## Localize loading
 

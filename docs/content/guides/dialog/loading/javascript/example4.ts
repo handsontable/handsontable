@@ -7,6 +7,7 @@ import 'handsontable/styles/ht-theme-main.css';
 registerAllModules();
 
 const container = document.getElementById('example4')!;
+const paginationContainer = document.getElementById('example4-pagination')!;
 
 const hot = new Handsontable(container, {
   themeName: 'ht-theme-main',
@@ -66,14 +67,22 @@ const hot = new Handsontable(container, {
   stretchH: 'all',
   loading: true,
   pagination: {
-    uiContainer: document.getElementById('example4-pagination')!,
+    uiContainer: paginationContainer,
   },
   licenseKey: 'non-commercial-and-evaluation',
 });
 
+// Add hooks to show and hide the pagination container overlay
+hot.addHook('afterLoadingShow', () => {
+  paginationContainer.classList.add('overlay');
+});
+
+hot.addHook('afterLoadingHide', () => {
+  paginationContainer.classList.remove('overlay');
+});
+
 // Get loading plugin instance
 const loadingPlugin = hot.getPlugin('loading');
-
 const loadDataButton = document.getElementById('example4-loadData') as HTMLButtonElement;
 
 // Simulate data loading
