@@ -43,7 +43,6 @@
         &__select-wrapper {
           position: relative;
           border-radius: var(--ht-input-border-radius);
-          border: 1px solid var(--ht-input-border-color);
 
           select {
             padding-inline-start: var(--ht-gap-size);
@@ -53,8 +52,8 @@
             border-radius: var(--ht-input-border-radius);
             color: var(--ht-input-foreground-color);
             background-color: var(--ht-input-background-color);
+            border: 1px solid var(--ht-input-border-color);
             line-height: calc(var(--ht-line-height) - 4px);
-            border: none;
             -webkit-appearance: none;
             font-size: inherit;
             cursor: pointer;
@@ -62,15 +61,22 @@
             &:disabled {
               opacity: 0.4;
               cursor: default;
+              color: var(--ht-input-disabled-foreground-color);
+              background-color: var(--ht-input-disabled-background-color);
+              border-color: var(--ht-input-disabled-border-color);
             }
 
             &:hover:not(:disabled) {
-              background-color: var(--ht-secondary-button-hover-background-color);
+              color: var(--ht-input-hover-foreground-color);
+              background-color: var(--ht-input-hover-background-color);
+              border-color: var(--ht-input-hover-border-color);
             }
 
             &:focus {
+              color: var(--ht-input-focus-foreground-color);
               background-color: var(--ht-input-focus-background-color);
-              outline: 1px solid var(--ht-accent-color);
+              border-color: var(--ht-input-focus-border-color);
+              outline: none;
             }
           }
 
@@ -98,9 +104,9 @@
 
         &__button {
           font-size: inherit;
-          color: var(--ht-foreground-color);
+          border: 1px solid var(--ht-pagination-bar-background-color);
+          color: var(--ht-secondary-button-foreground-color);
           background-color: var(--ht-pagination-bar-background-color);
-          border: none;
           border-radius: var(--ht-icon-button-large-border-radius);
           padding: var(--ht-icon-button-large-padding);
           cursor: pointer;
@@ -110,9 +116,9 @@
           }
 
           &--disabled {
-            opacity: 0.4;
             cursor: default;
             pointer-events: none;
+            color: var(--ht-secondary-button-disabled-foreground-color);
           }
  
           &:hover:not(:disabled) {
@@ -120,7 +126,8 @@
           }
 
           &:focus {
-            outline: 1px solid var(--ht-accent-color);
+            outline: none;
+            border: 1px solid var(--ht-accent-color)
           }
         }
 
