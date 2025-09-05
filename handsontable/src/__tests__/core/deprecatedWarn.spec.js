@@ -58,7 +58,7 @@ describe('Test deprecatedWarn in core.js classic theme', () => {
     await updateSettings({
       data: createSpreadsheetData(2, 2),
     });
-    
+
     await updateSettings({
       data: createSpreadsheetData(3, 3),
     });
