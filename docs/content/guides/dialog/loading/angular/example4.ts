@@ -35,7 +35,7 @@ import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
       </button>
     </div>
     <div style="margin-top: 16px;">
-      <p style="padding: 0;">This is a demonstration of how to use the Loading plugin with pagination in external container. You need to create pagination overlay manually, after that you can use the \`afterLoadingShow\` and \`afterLoadingHide\` hooks to show and hide the pagination container overlay.</p>
+      <p style="padding: 0;">This is a demonstration of how to use the Loading plugin with pagination in external container. You need to create pagination overlay manually, after that you can use the <code>afterLoadingShow</code> and <code>afterLoadingHide</code> hooks to show and hide the pagination container overlay.</p>
     </div>  
     <div style="margin-top: 16px;">
       <div id="example4-pagination"></div>
