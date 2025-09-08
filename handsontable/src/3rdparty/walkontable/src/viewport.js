@@ -403,17 +403,23 @@ class Viewport {
     const { wtSettings } = this;
     const rowsCalculator = this.createRowsCalculator();
     const columnsCalculator = this.createColumnsCalculator();
+    const proposedFullyVisibleRowsCalculator = rowsCalculator.getResultsFor('fullyVisible');
+    const proposedPartiallyVisibleRowsCalculator = rowsCalculator.getResultsFor('partiallyVisible');
+    const proposedFullyVisibleColumnsCalculator = columnsCalculator.getResultsFor('fullyVisible');
+    const proposedPartiallyVisibleColumnsCalculator = columnsCalculator.getResultsFor('partiallyVisible');
 
     if (fastDraw && !wtSettings.getSetting('renderAllRows')) {
-      const proposedRowsVisibleCalculator = rowsCalculator.getResultsFor('fullyVisible');
-
-      fastDraw = this.areAllProposedVisibleRowsAlreadyRendered(proposedRowsVisibleCalculator);
+      fastDraw = this.areAllProposedVisibleRowsAlreadyRendered(
+        proposedFullyVisibleRowsCalculator,
+        proposedPartiallyVisibleRowsCalculator
+      );
     }
 
     if (fastDraw && !wtSettings.getSetting('renderAllColumns')) {
-      const proposedColumnsVisibleCalculator = columnsCalculator.getResultsFor('fullyVisible');
-
-      fastDraw = this.areAllProposedVisibleColumnsAlreadyRendered(proposedColumnsVisibleCalculator);
+      fastDraw = this.areAllProposedVisibleColumnsAlreadyRendered(
+        proposedFullyVisibleColumnsCalculator,
+        proposedPartiallyVisibleColumnsCalculator
+      );
     }
 
     if (!fastDraw) {
@@ -444,28 +450,36 @@ class Viewport {
   }
 
   /**
-   * Returns information whether proposedRowsVisibleCalculator viewport
+   * Returns information whether proposedFullyVisibleRowsCalculator viewport
    * is contained inside rows rendered in previous draw (cached in rowsRenderCalculator).
    *
-   * @param {ViewportRowsCalculator} proposedRowsVisibleCalculator The instance of the viewport calculator to compare with.
+   * @param {ViewportRowsCalculator} proposedFullyVisibleRowsCalculator The instance of the fully visible rows viewport calculator to compare with.
+   * @param {ViewportRowsCalculator} proposedPartiallyVisibleRowsCalculator The instance of the partially visible rows viewport calculator to compare with.
    * @returns {boolean} Returns `true` if all proposed visible rows are already rendered (meaning: redraw is not needed).
    *                    Returns `false` if at least one proposed visible row is not already rendered (meaning: redraw is needed).
    */
-  areAllProposedVisibleRowsAlreadyRendered(proposedRowsVisibleCalculator) {
+  areAllProposedVisibleRowsAlreadyRendered(proposedFullyVisibleRowsCalculator, proposedPartiallyVisibleRowsCalculator) {
     if (!this.rowsVisibleCalculator) {
       return false;
     }
 
-    let { startRow, endRow } = proposedRowsVisibleCalculator;
+    let { startRow, endRow } = proposedFullyVisibleRowsCalculator;
+    const {
+      startRow: partiallyVisibleStartRow,
+      endRow: partiallyVisibleEndRow
+    } = proposedPartiallyVisibleRowsCalculator;
 
     // if there are no fully visible rows at all...
     if (startRow === null && endRow === null) {
-      if (!proposedRowsVisibleCalculator.isVisibleInTrimmingContainer) {
+      if (
+        !proposedFullyVisibleRowsCalculator.isVisibleInTrimmingContainer &&
+        this.wtTable.isRowRendered(partiallyVisibleStartRow)
+      ) {
         return true;
       }
       // ...use partially visible rows calculator to determine what render type is needed
-      startRow = this.rowsPartiallyVisibleCalculator.startRow;
-      endRow = this.rowsPartiallyVisibleCalculator.endRow;
+      startRow = partiallyVisibleStartRow;
+      endRow = partiallyVisibleEndRow;
     }
 
     const {
@@ -498,28 +512,39 @@ class Viewport {
   }
 
   /**
-   * Returns information whether proposedColumnsVisibleCalculator viewport
+   * Returns information whether proposedFullyVisibleColumnsCalculator viewport
    * is contained inside column rendered in previous draw (cached in columnsRenderCalculator).
    *
-   * @param {ViewportRowsCalculator} proposedColumnsVisibleCalculator The instance of the viewport calculator to compare with.
+   * @param {ViewportRowsCalculator} proposedFullyVisibleColumnsCalculator The instance of the fully visible columns viewport calculator to compare with.
+   * @param {ViewportRowsCalculator} proposedPartiallyVisibleColumnsCalculator The instance of the partially visible columns viewport calculator to compare with.
    * @returns {boolean} Returns `true` if all proposed visible columns are already rendered (meaning: redraw is not needed).
    *                    Returns `false` if at least one proposed visible column is not already rendered (meaning: redraw is needed).
    */
-  areAllProposedVisibleColumnsAlreadyRendered(proposedColumnsVisibleCalculator) {
+  areAllProposedVisibleColumnsAlreadyRendered(
+    proposedFullyVisibleColumnsCalculator,
+    proposedPartiallyVisibleColumnsCalculator
+  ) {
     if (!this.columnsVisibleCalculator) {
       return false;
     }
 
-    let { startColumn, endColumn } = proposedColumnsVisibleCalculator;
+    let { startColumn, endColumn } = proposedFullyVisibleColumnsCalculator;
+    const {
+      startColumn: partiallyVisibleStartColumn,
+      endColumn: partiallyVisibleEndColumn
+    } = proposedPartiallyVisibleColumnsCalculator;
 
     // if there are no fully visible columns at all...
     if (startColumn === null && endColumn === null) {
-      if (!proposedColumnsVisibleCalculator.isVisibleInTrimmingContainer) {
+      if (
+        !proposedFullyVisibleColumnsCalculator.isVisibleInTrimmingContainer &&
+        this.wtTable.isColumnRendered(partiallyVisibleStartColumn)
+      ) {
         return true;
       }
       // ...use partially visible columns calculator to determine what render type is needed
-      startColumn = this.columnsPartiallyVisibleCalculator.startColumn;
-      endColumn = this.columnsPartiallyVisibleCalculator.endColumn;
+      startColumn = partiallyVisibleStartColumn;
+      endColumn = partiallyVisibleEndColumn;
     }
 
     const {
