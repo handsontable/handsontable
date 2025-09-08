@@ -473,7 +473,8 @@ class Viewport {
     if (startRow === null && endRow === null) {
       if (
         !proposedFullyVisibleRowsCalculator.isVisibleInTrimmingContainer &&
-        this.wtTable.isRowRendered(partiallyVisibleStartRow)
+        !this.wtTable.isRowBeforeRenderedRows(partiallyVisibleStartRow) &&
+        !this.wtTable.isRowAfterRenderedRows(partiallyVisibleEndRow)
       ) {
         return true;
       }
@@ -538,7 +539,8 @@ class Viewport {
     if (startColumn === null && endColumn === null) {
       if (
         !proposedFullyVisibleColumnsCalculator.isVisibleInTrimmingContainer &&
-        this.wtTable.isColumnRendered(partiallyVisibleStartColumn)
+        !this.wtTable.isColumnBeforeRenderedColumns(partiallyVisibleStartColumn) &&
+        !this.wtTable.isColumnAfterRenderedColumns(partiallyVisibleEndColumn)
       ) {
         return true;
       }

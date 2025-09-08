@@ -1125,26 +1125,6 @@ class Table {
   }
 
   /**
-   * Checks if the row at the provided index is currently rendered.
-   *
-   * @param {number} row The visual row index.
-   * @returns {boolean}
-   */
-  isRowRendered(row) {
-    return row >= this.getFirstRenderedRow() && row <= this.getLastRenderedRow();
-  }
-
-  /**
-   * Checks if the column at the provided index is currently rendered.
-   *
-   * @param {number} column The visual column index.
-   * @returns {boolean}
-   */
-  isColumnRendered(column) {
-    return column >= this.getFirstRenderedColumn() && column <= this.getLastRenderedColumn();
-  }
-
-  /**
    * Modify row header widths provided by user in class contructor.
    *
    * @private
