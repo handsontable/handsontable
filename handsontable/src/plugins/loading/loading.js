@@ -1,10 +1,13 @@
 import { BasePlugin } from '../base';
 import { loadingContent } from './content';
+import { installFocusDetector } from '../../utils/focusDetector';
 import * as C from '../../i18n/constants';
 
 export const PLUGIN_KEY = 'loading';
 export const PLUGIN_PRIORITY = 350;
 export const LOADING_CLASS_NAME = `ht-${PLUGIN_KEY}`;
+const SHORTCUTS_GROUP = PLUGIN_KEY;
+const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
 
 /**
  * @plugin Loading
@@ -107,6 +110,12 @@ export class Loading extends BasePlugin {
     return PLUGIN_PRIORITY;
   }
 
+  static get PLUGIN_DEPS() {
+    return [
+      'plugin:Dialog',
+    ];
+  }
+
   static get DEFAULT_SETTINGS() {
     return {
       // eslint-disable-next-line max-len
@@ -125,11 +134,17 @@ export class Loading extends BasePlugin {
   }
 
   /**
-   * Dialog instance reference.
+   * The modal instance.
    *
-   * @type {Dialog|null}
+   * @type {Modal}
    */
-  #dialogPlugin = null;
+  #modal = null;
+  /**
+   * Focus detector instance.
+   *
+   * @type {FocusDetector}
+   */
+  #focusDetector = null;
 
   /**
    * Check if the plugin is enabled in the handsontable settings.
@@ -148,15 +163,28 @@ export class Loading extends BasePlugin {
       return;
     }
 
-    if (this.#dialogPlugin === null) {
-      this.#dialogPlugin = this.hot.getPlugin('dialog');
+    if (!this.#modal) {
+      const modalManager = this.hot.getPlugin('dialog').getModalManager();
 
-      if (!this.#dialogPlugin?.isEnabled()) {
-        this.hot.getSettings().dialog = true;
-      }
+      modalManager
+        .addLocalHook('afterModalFocus', (...args) => this.#onAfterModalFocus(...args))
+        .addLocalHook('beforeModalShow', (...args) => this.#onBeforeModalShow(...args))
+        .addLocalHook('afterModalShow', (...args) => this.#onAfterModalShow(...args))
+        .addLocalHook('beforeModalHide', (...args) => this.#onBeforeModalHide(...args))
+        .addLocalHook('afterModalHide', (...args) => this.#onAfterModalHide(...args));
 
-      this.hot.addHook('afterDialogFocus', () => this.#onAfterDialogFocus());
+      this.#modal = modalManager.registerModal('loading');
+
+      this.#focusDetector = installFocusDetector(this.hot, this.#modal.getContainerElement(), {
+        onFocus: (from) => {
+          this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
+          this.hot.listen();
+          this.hot.runHooks('afterLoadingFocus', `tab_${from}`);
+        }
+      });
     }
+
+    this.#registerShortcuts();
 
     super.enablePlugin();
   }
@@ -176,8 +204,52 @@ export class Loading extends BasePlugin {
    */
   disablePlugin() {
     this.hide();
+    this.#unregisterShortcuts();
 
     super.disablePlugin();
+  }
+
+  /**
+   * Register shortcuts responsible for closing the dialog and navigating through the dialog.
+   */
+  #registerShortcuts() {
+    const manager = this.hot.getShortcutManager();
+    const pluginContext = manager.getContext(SHORTCUTS_CONTEXT_NAME) ??
+      manager.addContext(SHORTCUTS_CONTEXT_NAME);
+
+    pluginContext.addShortcut({
+      keys: [['Escape']],
+      callback: () => {
+        this.hide();
+      },
+      runOnlyIf: () => this.isVisible() && this.getSetting('closable'),
+      group: SHORTCUTS_GROUP,
+    });
+
+    pluginContext.addShortcut({
+      keys: [['Shift', 'Tab'], ['Tab']],
+      preventDefault: false,
+      callback: (event) => {
+        this.hot._registerTimeout(() => {
+          const { activeElement } = this.hot.rootDocument;
+
+          if (!this.#modal?.contains(activeElement)) {
+            this.hot.unlisten();
+          }
+        }, 0);
+      },
+      group: SHORTCUTS_GROUP,
+    });
+  }
+
+  /**
+   * Unregister shortcuts responsible for closing the dialog and navigating through the dialog.
+   */
+  #unregisterShortcuts() {
+    const shortcutManager = this.hot.getShortcutManager();
+    const pluginContext = shortcutManager.getContext(SHORTCUTS_CONTEXT_NAME);
+
+    pluginContext.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   /**
@@ -186,7 +258,7 @@ export class Loading extends BasePlugin {
    * @returns {boolean}
    */
   isVisible() {
-    return this.#dialogPlugin?.isVisible() ?? false;
+    return this.#modal?.isVisible() ?? false;
   }
 
   /**
@@ -198,45 +270,12 @@ export class Loading extends BasePlugin {
    * @param {string} options.description Custom loading description.
    */
   show(options = {}) {
-    if (!this.isEnabled() || !this.#dialogPlugin || !this.#dialogPlugin?.isEnabled()) {
+    if (!this.enabled) {
       return;
     }
 
-    if (this.isVisible()) {
-      this.update(options);
-
-      return;
-    }
-
-    const shouldProceed = this.hot.runHooks('beforeLoadingShow');
-
-    if (shouldProceed === false) {
-      return;
-    }
-
-    this.update(options);
-    this.#dialogPlugin.show();
-
-    this.hot.runHooks('afterLoadingShow');
-  }
-
-  /**
-   * Hide loading dialog.
-   */
-  hide() {
-    if (!this.#dialogPlugin || !this.#dialogPlugin?.isEnabled() || !this.isVisible()) {
-      return;
-    }
-
-    const shouldProceed = this.hot.runHooks('beforeLoadingHide');
-
-    if (shouldProceed === false) {
-      return;
-    }
-
-    this.#dialogPlugin.hide();
-
-    this.hot.runHooks('afterLoadingHide');
+    this.updatePluginSettings(options);
+    this.#modal.show(this.#getModalSettings());
   }
 
   /**
@@ -248,12 +287,31 @@ export class Loading extends BasePlugin {
    * @param {string} options.description Custom loading description.
    */
   update(options) {
-    if (!this.isEnabled() || !this.#dialogPlugin || !this.#dialogPlugin?.isEnabled()) {
+    if (!this.enabled) {
       return;
     }
 
     this.updatePluginSettings(options);
+    this.#modal.update(this.#getModalSettings());
+  }
 
+  /**
+   * Hide loading dialog.
+   */
+  hide() {
+    if (!this.enabled || !this.isVisible()) {
+      return;
+    }
+
+    this.#modal.hide();
+  }
+
+  /**
+   * Gets the modal settings that should be passed to `hide` and `show` methods.
+   *
+   * @returns {object} The modal settings.
+   */
+  #getModalSettings() {
     const id = this.hot.guid;
     const icon = this.getSetting('icon');
     const title = this.getSetting('title') ?? this.hot.getTranslatedPhrase(C.LOADING_TITLE);
@@ -266,30 +324,79 @@ export class Loading extends BasePlugin {
       description,
     });
 
-    this.#dialogPlugin.update({
+    return {
+      ...this.getSetting(),
+      animation: true,
       content,
       customClassName: LOADING_CLASS_NAME,
       background: this.hot.countSourceRows() === 0 ? 'solid' : 'semi-transparent',
-      a11y: {
-        role: 'alertdialog',
-        ariaLabelledby: `${id}-${PLUGIN_KEY}-title`,
-        ariaDescribedby: description ? `${id}-${PLUGIN_KEY}-description` : undefined,
-      },
-    });
+    };
   }
 
   /**
-   * Handle dialog focus event.
+   * Called after the modal is focused.
+   *
+   * @param {Modal} modal The modal instance.
+   * @param {'click' | 'show'} focusSource The source of the focus.
    */
-  #onAfterDialogFocus() {
-    this.#dialogPlugin.focus();
+  #onAfterModalFocus(modal, focusSource) {
+    if (modal === this.#modal) {
+      this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
+      this.hot.runHooks('afterLoadingFocus', focusSource);
+      this.hot.listen();
+    }
+  }
+
+  /**
+   * Called before the modal is shown.
+   *
+   * @param {Modal} modal The modal instance.
+   */
+  #onBeforeModalShow(modal) {
+    if (modal === this.#modal) {
+      this.hot.runHooks('beforeLoadingShow');
+    }
+  }
+
+  /**
+   * Called after the modal is shown.
+   *
+   * @param {Modal} modal The modal instance.
+   */
+  #onAfterModalShow(modal) {
+    if (modal === this.#modal) {
+      this.hot.runHooks('afterLoadingShow');
+    }
+  }
+
+  /**
+   * Called before the modal is hidden.
+   *
+   * @param {Modal} modal The modal instance.
+   */
+  #onBeforeModalHide(modal) {
+    if (modal === this.#modal) {
+      this.hot.runHooks('beforeLoadingHide');
+    }
+  }
+
+  /**
+   * Called after the modal is hidden.
+   *
+   * @param {Modal} modal The modal instance.
+   */
+  #onAfterModalHide(modal) {
+    if (modal === this.#modal) {
+      this.hot.runHooks('afterLoadingHide');
+    }
   }
 
   /**
    * Destroy plugin instance.
    */
   destroy() {
-    this.#dialogPlugin = null;
+    this.#modal?.destroy();
+    this.#modal = null;
 
     super.destroy();
   }

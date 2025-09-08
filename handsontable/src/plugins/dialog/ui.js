@@ -98,18 +98,8 @@ export class DialogUI {
    *
    * @returns {HTMLElement} The dialog element.
    */
-  getDialogElement() {
+  getContainerElement() {
     return this.#refs.dialogElement;
-  }
-
-  /**
-   * Checks if the given element is inside the dialog.
-   *
-   * @param {HTMLElement} element - The element to check.
-   * @returns {boolean} Returns `true` if the element is inside the dialog, `false` otherwise.
-   */
-  isInsideDialog(element) {
-    return this.#refs.dialogElement.contains(element);
   }
 
   /**
@@ -126,14 +116,14 @@ export class DialogUI {
    *
    * @returns {DialogUI} The instance of the DialogUI.
    */
-  updateDialog({
+  updateState({
     isVisible,
     content,
     customClassName,
     background,
     contentBackground,
     animation,
-    a11y,
+    a11y = {},
   }) {
     const { dialogElement, contentElement } = this.#refs;
 
@@ -144,11 +134,10 @@ export class DialogUI {
       ` ${DIALOG_CLASS_NAME}--background-${background}` : '';
     const animationClass = animation ?
       ` ${DIALOG_CLASS_NAME}--animation` : '';
-    const showClass = isVisible ? ` ${DIALOG_CLASS_NAME}--show` : '';
 
     // Update dialog class name
     dialogElement.className =
-      `${DIALOG_CLASS_NAME}${customClass}${backgroundClass}${animationClass}${showClass}`;
+      `${DIALOG_CLASS_NAME}${customClass}${backgroundClass}${animationClass}`;
 
     // Dialog aria attributes
     setAttribute(dialogElement, [
@@ -192,6 +181,7 @@ export class DialogUI {
     // Render new dialog content
     if (typeof content === 'string') {
       fastInnerHTML(contentElement, content);
+
     } else if (content instanceof HTMLElement || content instanceof DocumentFragment) {
       contentElement.appendChild(content);
     }
@@ -205,7 +195,7 @@ export class DialogUI {
    * @param {boolean} animation - Whether to add the animation class to the dialog.
    * @returns {DialogUI} The instance of the DialogUI.
    */
-  showDialog(animation) {
+  show(animation) {
     const { dialogElement } = this.#refs;
 
     dialogElement.style.display = 'block';
@@ -228,7 +218,7 @@ export class DialogUI {
    * @param {boolean} animation - Whether to add the animation class to the dialog.
    * @returns {DialogUI} The instance of the DialogUI.
    */
-  hideDialog(animation) {
+  hide(animation) {
     const { dialogElement } = this.#refs;
 
     removeClass(dialogElement, `${DIALOG_CLASS_NAME}--show`);
@@ -249,7 +239,7 @@ export class DialogUI {
   /**
    * Focuses the dialog element.
    */
-  focusDialog() {
+  focus() {
     this.#refs.dialogElement.focus();
   }
 
@@ -280,7 +270,7 @@ export class DialogUI {
   /**
    * Removes the dialog UI elements from the DOM and clears the refs.
    */
-  destroyDialog() {
+  destroy() {
     this.#refs?.dialogElement.remove();
     this.#refs = null;
   }
