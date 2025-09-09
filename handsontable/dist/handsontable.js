@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 16.1.0
- * Release date: 11/09/2025 (built at 09/09/2025 11:23:56)
+ * Release date: 11/09/2025 (built at 09/09/2025 14:43:13)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -104,7 +104,7 @@ Handsontable.hooks = _hooks.Hooks.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "09/09/2025 11:23:56";
+Handsontable.buildDate = "09/09/2025 14:43:13";
 Handsontable.version = "16.1.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -188,6 +188,13 @@ var _rangeToRenderableMapper = __webpack_require__(432);
 var _a11yAnnouncer = __webpack_require__(433);
 var _valueAccessors = __webpack_require__(346);
 let activeGuid = null;
+
+/**
+ * A set of deprecated warn instances.
+ *
+ * @type {Set<string>}
+ */
+const deprecatedWarnInstances = new WeakSet();
 
 /**
  * Keeps the collection of the all Handsontable instances created on the same page. The
@@ -2667,9 +2674,13 @@ function Core(rootContainer, userSettings) {
         instance.useTheme(settings.themeName);
       }
     }
-    if ((0, _rootInstance.isRootInstance)(instance) && instance.stylesHandler.isClassicTheme()) {
+    if (deprecatedWarnInstances.has(instance) && instance.stylesHandler.getThemeName() !== undefined) {
+      deprecatedWarnInstances.delete(instance);
+    }
+    if ((0, _rootInstance.isRootInstance)(instance) && !deprecatedWarnInstances.has(instance) && instance.stylesHandler.isClassicTheme()) {
       // eslint-disable-next-line max-len
       (0, _console.deprecatedWarn)('Handsontable classic theme is a legacy theme and will be removed in version 17.0. Please update your theme settings to ensure compatibility with future versions.');
+      deprecatedWarnInstances.add(instance);
     }
 
     // Load data or create data map
