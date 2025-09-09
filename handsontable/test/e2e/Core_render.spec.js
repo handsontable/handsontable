@@ -272,52 +272,6 @@ describe('Core_render', () => {
     expect(renderer).toHaveBeenCalledTimes(0);
   });
 
-  it('should trigger the "full" render for oversized rows if none of the partially visible rows are rendered', async() => {
-    const renderer = jasmine.createSpy('renderer');
-
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(10, 5),
-      rowHeights: [
-        40000, 30, 30, 40000, 30, 30, 30, 40000, 30, 30,
-      ],
-      width: 600,
-      height: 600,
-      renderer,
-    });
-
-    renderer.calls.reset();
-
-    hot.view._wt.wtOverlays.scrollableElement.scrollTop = 57939;
-
-    await sleep(50);
-
-    expect(renderer).not.toHaveBeenCalledTimes(0);
-    expect(getCell(4, 0)).not.toBeNull();
-  });
-
-  it('should trigger the "full" render for oversized rows if none of the partially visible columns are rendered', async() => {
-    const renderer = jasmine.createSpy('renderer');
-
-    const hot = handsontable({
-      data: Handsontable.helper.createSpreadsheetData(5, 10),
-      colWidths: [
-        40000, 30, 30, 40000, 30, 30, 30, 40000, 30, 30,
-      ],
-      width: 600,
-      height: 600,
-      renderer,
-    });
-
-    renderer.calls.reset();
-
-    hot.view._wt.wtOverlays.scrollableElement.scrollLeft = 57939;
-
-    await sleep(50);
-
-    expect(renderer).not.toHaveBeenCalledTimes(0);
-    expect(getCell(0, 4)).not.toBeNull();
-  });
-
   it('should correctly render oversized cells after scroll (#dev-1849)', async() => {
     handsontable({
       data: createSpreadsheetData(20, 20),

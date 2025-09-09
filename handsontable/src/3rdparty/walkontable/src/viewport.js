@@ -403,12 +403,11 @@ class Viewport {
     const { wtSettings } = this;
     const rowsCalculator = this.createRowsCalculator();
     const columnsCalculator = this.createColumnsCalculator();
-    const proposedFullyVisibleRowsCalculator = rowsCalculator.getResultsFor('fullyVisible');
-    const proposedPartiallyVisibleRowsCalculator = rowsCalculator.getResultsFor('partiallyVisible');
-    const proposedFullyVisibleColumnsCalculator = columnsCalculator.getResultsFor('fullyVisible');
-    const proposedPartiallyVisibleColumnsCalculator = columnsCalculator.getResultsFor('partiallyVisible');
 
     if (fastDraw && !wtSettings.getSetting('renderAllRows')) {
+      const proposedFullyVisibleRowsCalculator = rowsCalculator.getResultsFor('fullyVisible');
+      const proposedPartiallyVisibleRowsCalculator = rowsCalculator.getResultsFor('partiallyVisible');
+
       fastDraw = this.areAllProposedVisibleRowsAlreadyRendered(
         proposedFullyVisibleRowsCalculator,
         proposedPartiallyVisibleRowsCalculator
@@ -416,6 +415,9 @@ class Viewport {
     }
 
     if (fastDraw && !wtSettings.getSetting('renderAllColumns')) {
+      const proposedFullyVisibleColumnsCalculator = columnsCalculator.getResultsFor('fullyVisible');
+      const proposedPartiallyVisibleColumnsCalculator = columnsCalculator.getResultsFor('partiallyVisible');
+
       fastDraw = this.areAllProposedVisibleColumnsAlreadyRendered(
         proposedFullyVisibleColumnsCalculator,
         proposedPartiallyVisibleColumnsCalculator
