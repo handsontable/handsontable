@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue with the table not rendering correctly when scrolling into extremely tall rows.",
+  "type": "fixed",
+  "issueOrPR": 11825,
+  "breaking": false,
+  "framework": "none"
+}
