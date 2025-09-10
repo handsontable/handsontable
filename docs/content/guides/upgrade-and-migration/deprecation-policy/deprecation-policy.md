@@ -3,8 +3,8 @@ id: 4f25a767
 title: Deprecation policy
 metaTitle: Deprecation policy - JavaScript Data Grid | Handsontable
 description: Handsontable ensures that if API is marked deprecated, we commit to a grace period (at least 4 months) during which the deprecated feature still works.
-permalink: /versioning-policy
-canonicalUrl: /versioning-policy
+permalink: /deprecation-policy
+canonicalUrl: /deprecation-policy
 react:
   id: 16cb9e4b
   metaTitle: Deprecation policy - React Data Grid | Handsontable
