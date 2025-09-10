@@ -102,6 +102,14 @@
     &.ht-wrapper {
       border-radius: var(--ht-wrapper-border-radius, 0);
 
+      &:not(.htFirstDatasetColumnNotRendered) {
+        td {
+          &:first-of-type {
+            border-inline-start-width: 1px;
+          }
+        }
+      }
+
       &::before {
         @include mixins.pseudo();
 
@@ -237,13 +245,6 @@
         &::selection {
           background: transparent;
         }
-      }
-    }
-
-    // Cell
-    td {
-      &:first-of-type {
-        border-inline-start-width: 1px;
       }
     }
 
@@ -462,6 +463,13 @@
               background-color: var(--ht-accent-color);
             }
           }
+        }
+      }
+
+      // Cell
+      td {
+        &:first-of-type {
+          border-inline-start-width: 1px;
         }
       }
     }
