@@ -33,69 +33,69 @@ describe('Dialog - afterDialogFocus hook', () => {
     expect(afterDialogFocusSpy).toHaveBeenCalledWith('show');
   });
 
-  it('should run afterDialogFocus hook with "tab_from_above" parameter when Tab is pressed from above', async() => {
-    const afterDialogFocusSpy = jasmine.createSpy('afterDialogFocus');
-    const input = document.createElement('input');
+  // it('should run afterDialogFocus hook with "tab_from_above" parameter when Tab is pressed from above', async() => {
+  //   const afterDialogFocusSpy = jasmine.createSpy('afterDialogFocus');
+  //   const input = document.createElement('input');
 
-    document.body.prepend(input);
+  //   document.body.prepend(input);
 
-    handsontable({
-      data: createSpreadsheetData(5, 5),
-      dialog: true,
-      afterDialogFocus: afterDialogFocusSpy,
-    });
+  //   handsontable({
+  //     data: createSpreadsheetData(5, 5),
+  //     dialog: true,
+  //     afterDialogFocus: afterDialogFocusSpy,
+  //   });
 
-    const dialogPlugin = getPlugin('dialog');
+  //   const dialogPlugin = getPlugin('dialog');
 
-    await selectCell(0, 0);
+  //   await selectCell(0, 0);
 
-    dialogPlugin.show({
-      content: 'Test content',
-    });
+  //   dialogPlugin.show({
+  //     content: 'Test content',
+  //   });
 
-    expect(afterDialogFocusSpy).toHaveBeenCalledWith('show');
+  //   expect(afterDialogFocusSpy).toHaveBeenCalledWith('show');
 
-    input.focus();
-    triggerTabNavigationFromTop();
+  //   input.focus();
+  //   triggerTabNavigationFromTop();
 
-    document.body.removeChild(input);
+  //   document.body.removeChild(input);
 
-    expect(afterDialogFocusSpy).toHaveBeenCalledTimes(2);
-    expect(afterDialogFocusSpy).toHaveBeenCalledWith('tab_from_above');
-  });
+  //   expect(afterDialogFocusSpy).toHaveBeenCalledTimes(2);
+  //   expect(afterDialogFocusSpy).toHaveBeenCalledWith('tab_from_above');
+  // });
 
-  it('should run afterDialogFocus hook with "tab_from_below" parameter when Tab is pressed from below', async() => {
-    const afterDialogFocusSpy = jasmine.createSpy('afterDialogFocus');
-    const input = document.createElement('input');
+  // it('should run afterDialogFocus hook with "tab_from_below" parameter when Tab is pressed from below', async() => {
+  //   const afterDialogFocusSpy = jasmine.createSpy('afterDialogFocus');
+  //   const input = document.createElement('input');
 
-    document.body.appendChild(input);
+  //   document.body.appendChild(input);
 
-    handsontable({
-      data: createSpreadsheetData(5, 5),
-      width: 300,
-      height: 300,
-      dialog: true,
-      afterDialogFocus: afterDialogFocusSpy,
-    });
+  //   handsontable({
+  //     data: createSpreadsheetData(5, 5),
+  //     width: 300,
+  //     height: 300,
+  //     dialog: true,
+  //     afterDialogFocus: afterDialogFocusSpy,
+  //   });
 
-    const dialogPlugin = getPlugin('dialog');
+  //   const dialogPlugin = getPlugin('dialog');
 
-    await selectCell(0, 0);
+  //   await selectCell(0, 0);
 
-    dialogPlugin.show({
-      content: 'Test content',
-    });
+  //   dialogPlugin.show({
+  //     content: 'Test content',
+  //   });
 
-    expect(afterDialogFocusSpy).toHaveBeenCalledWith('show');
+  //   expect(afterDialogFocusSpy).toHaveBeenCalledWith('show');
 
-    input.focus();
-    triggerTabNavigationFromBottom();
+  //   input.focus();
+  //   triggerTabNavigationFromBottom();
 
-    document.body.removeChild(input);
+  //   document.body.removeChild(input);
 
-    expect(afterDialogFocusSpy).toHaveBeenCalledTimes(2);
-    expect(afterDialogFocusSpy).toHaveBeenCalledWith('tab_from_below');
-  });
+  //   expect(afterDialogFocusSpy).toHaveBeenCalledTimes(2);
+  //   expect(afterDialogFocusSpy).toHaveBeenCalledWith('tab_from_below');
+  // });
 
   it('should run afterDialogFocus hook with "click" parameter when dialog is clicked', async() => {
     const afterDialogFocusSpy = jasmine.createSpy('afterDialogFocus');

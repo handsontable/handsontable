@@ -1,7 +1,7 @@
 import { createUniqueMap } from '../utils/dataStructures/uniqueMap';
 import { createFocusScope } from './scope';
-import { useListener } from './focusListener';
-import { FOCUS_MANAGER_GROUP, FOCUS_SOURCES } from './constants';
+import { useEventListener } from './eventListener';
+import { FOCUS_SOURCES } from './constants';
 
 /**
  * Creates a focus scope manager for a Handsontable instance.
@@ -23,7 +23,6 @@ export function createFocusScopeManager(hotInstance) {
    * @param {string} scopeId Unique identifier for the scope.
    * @param {HTMLElement} container Container element for the scope.
    * @param {object} options Configuration options.
-   * @returns {object} The created focus scope.
    */
   function registerScope(scopeId, container, options = {}) {
     const scope = createFocusScope(hotInstance, container, options);
@@ -31,19 +30,7 @@ export function createFocusScopeManager(hotInstance) {
     SCOPES.addItem(scopeId, scope);
 
     scope._scopeId = scopeId; // temporary
-
-    shortcutManager
-      .getOrCreateContext(scope.getShortcutsContextName())
-      .addShortcut({
-        keys: [['Shift', 'Tab'], ['Tab']],
-        preventDefault: false,
-        callback: (event) => {
-          // console.log('tab', scopeId, event.target, document.activeElement);
-        },
-        group: FOCUS_MANAGER_GROUP,
-      });
-
-    return scope;
+    shortcutManager.getOrCreateContext(scope.getShortcutsContextName());
   }
 
   /**
@@ -52,20 +39,30 @@ export function createFocusScopeManager(hotInstance) {
    * @param {string} scopeId The scope to remove.
    */
   function unregisterScope(scopeId) {
-    // Implementation needed
-  }
-
-  /**
-   * Activates a scope by its ID.
-   *
-   * @param {string} scopeId The ID of the scope to activate.
-   */
-  function enableScope(scopeId) {
     if (!SCOPES.hasItem(scopeId)) {
       throw new Error(`Scope with id ${scopeId} not found`);
     }
 
-    SCOPES.getItem(scopeId).enable();
+    const scope = SCOPES.getItem(scopeId);
+
+    scope.destroy();
+    SCOPES.removeItem(scopeId);
+  }
+
+  let focusedElement = null;
+
+  /**
+   * Activates a focus scope by its ID.
+   *
+   * @param {string} scopeId The ID of the scope to activate.
+   */
+  function activateScopeById(scopeId) {
+    if (!SCOPES.hasItem(scopeId)) {
+      throw new Error(`Scope with id ${scopeId} not found`);
+    }
+
+    focusedElement = hotInstance.rootDocument.activeElement;
+    activateScope(SCOPES.getItem(scopeId));
   }
 
   /**
@@ -73,12 +70,15 @@ export function createFocusScopeManager(hotInstance) {
    *
    * @param {string} scopeId The ID of the scope to deactivate.
    */
-  function disableScope(scopeId) {
+  function deactivateScopeById(scopeId) {
     if (!SCOPES.hasItem(scopeId)) {
       throw new Error(`Scope with id ${scopeId} not found`);
     }
 
-    SCOPES.getItem(scopeId).disable();
+    deactivateScope(SCOPES.getItem(scopeId));
+
+    focusedElement?.focus();
+    focusedElement = null;
   }
 
   /**
@@ -88,39 +88,67 @@ export function createFocusScopeManager(hotInstance) {
    * @param {string} focusSource The source of the focus event.
    */
   function activateScope(scope, focusSource = FOCUS_SOURCES.UNKNOWN) {
-    console.log('#activateScope', scope._scopeId, focusSource);
+    if (activeScope === scope) {
+      return;
+    }
 
     activeScope = scope;
     activeScope.activate(focusSource);
+    updateScopesFocusVisibilityState();
 
     shortcutManager.setActiveContextName(scope.getShortcutsContextName());
-
-    // if (activeScope.getType() === 'modal') {
-    //   SCOPES.getValues().forEach((scopeItem) => {
-    //     if (scopeItem !== activeScope) {
-    //       scopeItem.disable();
-    //     }
-    //   });
-    // } else {
-    //   SCOPES.getValues().forEach((scopeItem) => {
-    //     if (scopeItem !== activeScope) {
-    //       scopeItem.enable();
-    //     }
-    //   });
-    // }
   }
 
   /**
    * Deactivates a scope by its ID.
    *
-   * @param {string} scopeId The scope ID to deactivate.
+   * @param {object} scope The scope to deactivate.
    */
   function deactivateScope(scope) {
-    scope.deactivate();
+    if (activeScope !== scope) {
+      return;
+    }
 
-    // SCOPES.getItems().forEach((scope) => {
-    //   scope.enable();
-    // });
+    activeScope = null;
+    scope.deactivate();
+    updateScopesFocusVisibilityState();
+  }
+
+  /**
+   * Updates the focus scopes state by enabling or disabling them or their focus catchers to make sure
+   * that the next native focus move won't be disturbed.
+   */
+  function updateScopesFocusVisibilityState() {
+    const modalScopes = SCOPES.getValues()
+      .filter(scope => scope.runOnlyIf() && scope.getType() === 'modal');
+
+    SCOPES.getValues().forEach((scope) => {
+      if (
+        modalScopes.length > 0 && modalScopes.includes(scope) ||
+        modalScopes.length === 0 ||
+        scope.hasContainerDetached()
+      ) {
+        scope.enable();
+      } else {
+        scope.disable();
+      }
+    });
+
+    SCOPES.getValues().forEach((scope) => {
+      if (scope === activeScope) {
+        if (scope.contains(hotInstance.rootDocument.activeElement)) {
+          scope.disableFocusCatchers();
+        } else {
+          scope.enableFocusCatchers();
+        }
+
+      } else if (scope.runOnlyIf()) {
+        scope.enableFocusCatchers();
+
+      } else {
+        scope.disableFocusCatchers();
+      }
+    });
   }
 
   /**
@@ -130,42 +158,41 @@ export function createFocusScopeManager(hotInstance) {
    * @param {string} focusSource The source of the focus event.
    */
   function processScopes(target, focusSource) {
-    const allEnabledScopes = SCOPES.getValues().filter(scope => {
-      return !scope.isDisabled() &&
-        (focusSource === FOCUS_SOURCES.CLICK || focusSource !== FOCUS_SOURCES.CLICK && scope.runOnlyIf());
-    });
-    const scopesByPriority = new Set([
-      // first pass: check detached components
-      ...allEnabledScopes
-        .filter(scope => scope.hasContainerDetached()),
-      // second pass: check scopes with modal type
-      ...allEnabledScopes
-        .filter(scope => scope.getType() === 'modal'),
-      // third pass: check all other scopes
-      ...allEnabledScopes,
-    ]);
+    if (activeScope && activeScope.runOnlyIf() && activeScope.contains(target)) {
+      if (focusSource !== FOCUS_SOURCES.UNKNOWN) {
+        hotInstance.listen();
+      }
+
+      return;
+    }
+
+    const allEnabledScopes = SCOPES.getValues().filter(scope => scope.runOnlyIf());
+
+    if (activeScope) {
+      deactivateScope(activeScope);
+    }
+
+    activeScope = null;
 
     let hasActiveScope = false;
 
-    console.log(scopesByPriority);
-
-    scopesByPriority.forEach(scope => {
+    allEnabledScopes.forEach((scope) => {
       if (!hasActiveScope && scope.contains(target)) {
         hasActiveScope = true;
         activateScope(scope, focusSource);
-      } else {
-        deactivateScope(scope);
       }
     });
 
-    if (hasActiveScope) {
-      hotInstance.listen();
-    } else {
-      hotInstance.unlisten();
+    if (focusSource !== FOCUS_SOURCES.UNKNOWN) {
+      if (hasActiveScope) {
+        hotInstance.listen();
+      } else {
+        hotInstance.unlisten();
+      }
     }
   }
 
-  const focusListener = useListener(
+  const eventListener = useEventListener(
     hotInstance.rootWindow,
     {
       onFocus: (event) => {
@@ -174,19 +201,19 @@ export function createFocusScopeManager(hotInstance) {
       onClick: (event) => {
         processScopes(event.target, FOCUS_SOURCES.CLICK);
       },
-      onKeyDown: (event) => {
-        // todo: handle keydown
+      onTabKeyDown: () => {
+        updateScopesFocusVisibilityState();
       },
     }
   );
 
-  focusListener.mount();
+  eventListener.mount();
 
   return {
     registerScope,
     unregisterScope,
-    enableScope,
-    disableScope,
-    destroy: () => focusListener.unmount(),
+    activateScope: scopeId => activateScopeById(scopeId),
+    deactivateScope: scopeId => deactivateScopeById(scopeId),
+    destroy: () => eventListener.unmount(),
   };
 }

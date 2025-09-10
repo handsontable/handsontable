@@ -2,9 +2,9 @@
  * Focus scope types.
  */
 export const SCOPE_TYPES = Object.freeze({
-  CONTAINER: 'container',
+  ATTACHED: 'attached',
+  DETACHED: 'detached',
   MODAL: 'modal',
-  // DETACHED: 'detached',
 });
 
 /**
@@ -16,11 +16,6 @@ export const FOCUS_SOURCES = Object.freeze({
   FROM_ABOVE: 'from_above',
   FROM_BELOW: 'from_below',
 });
-
-/**
- * Keyboard shortcuts group name registered by focus manager.
- */
-export const FOCUS_MANAGER_GROUP = 'focusManager';
 
 /**
  * Default shortcuts context name.

@@ -1,5 +1,3 @@
-import { getMostTopStartPosition, getMostBottomEndPosition } from '../../helpers/handsontable';
-
 export const command = {
   name: 'tabNavigation',
   callback(hot) {
@@ -7,8 +5,6 @@ export const command = {
       wrapped: false,
       flipped: false,
     };
-    let recentlyAddedFocusCoords;
-    let isSavingCoordsEnabled = true;
     let isTabOrShiftTabPressed = false;
     let preventViewportScroll = false;
 
@@ -16,10 +12,6 @@ export const command = {
       if (isTabOrShiftTabPressed && (rowWrapState.wrapped && rowWrapState.flipped || preventViewportScroll)) {
         preventViewportScroll = false;
         preventScrolling.value = true;
-      }
-
-      if (isSavingCoordsEnabled) {
-        recentlyAddedFocusCoords = hot.getSelectedRangeActive()?.highlight;
       }
     });
     hot.addHook('beforeRowWrap', (interruptedByAutoInsertMode, newCoords, isFlipped) => {
@@ -33,10 +25,6 @@ export const command = {
 
         isTabOrShiftTabPressed = true;
 
-        if (hot.getSelectedRangeActive() && !tabNavigation) {
-          isSavingCoordsEnabled = false;
-        }
-
         if (!tabNavigation) {
           preventViewportScroll = true;
         }
@@ -45,7 +33,6 @@ export const command = {
         const { tabNavigation, autoWrapRow } = hot.getSettings();
 
         isTabOrShiftTabPressed = false;
-        isSavingCoordsEnabled = true;
 
         if (
           !tabNavigation ||
@@ -53,11 +40,6 @@ export const command = {
           autoWrapRow && rowWrapState.wrapped && rowWrapState.flipped ||
           !autoWrapRow && rowWrapState.wrapped
         ) {
-          if (autoWrapRow && rowWrapState.wrapped && rowWrapState.flipped) {
-            recentlyAddedFocusCoords = event.shiftKey
-              ? getMostTopStartPosition(hot) : getMostBottomEndPosition(hot);
-          }
-
           rowWrapState.wrapped = false;
           rowWrapState.flipped = false;
           hot.deselectCell();
@@ -68,6 +50,6 @@ export const command = {
         // if the selection is still within the table's range then prevent default action
         event.preventDefault();
       }
-    }
+    };
   },
 };

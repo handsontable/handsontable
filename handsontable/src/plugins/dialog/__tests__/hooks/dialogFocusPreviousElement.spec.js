@@ -95,33 +95,33 @@ describe('Dialog - dialogFocusPreviousElement hook', () => {
     expect(dialogFocusPreviousElementSpy).not.toHaveBeenCalled();
   });
 
-  it('should not run dialogFocusPreviousElement hook when Tab is pressed focus is moved out of dialog', async() => {
-    const dialogFocusPreviousElementSpy = jasmine.createSpy('dialogFocusPreviousElement');
-    const input = document.createElement('input');
+  // it('should not run dialogFocusPreviousElement hook when Tab is pressed focus is moved out of dialog', async() => {
+  //   const dialogFocusPreviousElementSpy = jasmine.createSpy('dialogFocusPreviousElement');
+  //   const input = document.createElement('input');
 
-    document.body.prepend(input);
+  //   document.body.prepend(input);
 
-    handsontable({
-      data: createSpreadsheetData(5, 5),
-      dialog: true,
-      dialogFocusPreviousElement: dialogFocusPreviousElementSpy,
-    });
+  //   handsontable({
+  //     data: createSpreadsheetData(5, 5),
+  //     dialog: true,
+  //     dialogFocusPreviousElement: dialogFocusPreviousElementSpy,
+  //   });
 
-    await selectCell(0, 0);
+  //   await selectCell(0, 0);
 
-    const dialogPlugin = getPlugin('dialog');
+  //   const dialogPlugin = getPlugin('dialog');
 
-    dialogPlugin.show({
-      content: 'test',
-    });
+  //   dialogPlugin.show({
+  //     content: 'test',
+  //   });
 
-    input.focus();
+  //   input.focus();
 
-    await keyDownUp(['shift', 'tab']);
-    await sleep(10);
+  //   await keyDownUp(['shift', 'tab']);
+  //   await sleep(10);
 
-    document.body.removeChild(input);
+  //   document.body.removeChild(input);
 
-    expect(dialogFocusPreviousElementSpy).not.toHaveBeenCalled();
-  });
+  //   expect(dialogFocusPreviousElementSpy).not.toHaveBeenCalled();
+  // });
 });

@@ -1,4 +1,4 @@
-import { installFocusDetector } from '../focusDetector';
+import { installFocusDetector } from '../utils/focusDetector';
 
 describe('focusDetector', () => {
   let hot;

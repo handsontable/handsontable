@@ -6,8 +6,13 @@ import { SCOPE_TYPES, FOCUS_SOURCES, DEFAULT_SHORTCUTS_CONTEXT } from './constan
  *
  * @param {Core} hotInstance The Handsontable instance.
  * @param {HTMLElement} container Container element for the scope.
- * @param {Object} options Configuration options.
- * @returns {Object} Focus scope object with methods.
+ * @param {object} options Configuration options.
+ * @param {boolean} options.installFocusDetector Whether to install a focus detector.
+ * @param {string} options.shortcutsContextName The name of the shortcuts context to switch to when the scope is activated.
+ * @param {'modal' | 'container'} options.type The type of the scope.
+ * @param {function(): boolean} options.detached Whether the container is detached.
+ * @param {function(): boolean} options.runOnlyIf Whether the scope is enabled or not depends on the custom logic.
+ * @returns {object} Focus scope object with methods.
  */
 export function createFocusScope(hotInstance, container, options = {}) {
   const mergedOptions = {
@@ -21,8 +26,19 @@ export function createFocusScope(hotInstance, container, options = {}) {
   const focusCatchers = mergedOptions.installFocusDetector
     ? installFocusDetector(hotInstance, container) : null;
 
-  let isActivated = false;
-  let isDisabled = false;
+  /**
+   * Disables the scope. Disabled scope can't be focused.
+   */
+  const disableFocusCatchers = () => {
+    focusCatchers?.deactivate();
+  };
+
+  /**
+   * Enables the scope.
+   */
+  const enableFocusCatchers = () => {
+    focusCatchers?.activate();
+  };
 
   /**
    * Checks if the target element is within the scope.
@@ -31,11 +47,7 @@ export function createFocusScope(hotInstance, container, options = {}) {
    * @returns {boolean}
    */
   const contains = (target) => {
-    if (mergedOptions.type === SCOPE_TYPES.MODAL) {
-      return hotInstance.rootWrapperElement.contains(target);
-    }
-
-    return container.contains(target);
+    return container.contains(target) || container === target;
   };
 
   /**
@@ -44,48 +56,41 @@ export function createFocusScope(hotInstance, container, options = {}) {
    * @param {string} activationSource The source of the activation.
    */
   const activate = (activationSource = FOCUS_SOURCES.UNKNOWN) => {
-    console.log('scope activate()', activationSource);
-
-    isActivated = true;
-    focusCatchers?.deactivate();
-    mergedOptions.onActivation?.(activationSource);
+    disableFocusCatchers(); // todo: may not be needed
+    mergedOptions.callback?.(activationSource);
   };
 
   /**
    * Deactivates the scope.
    */
   const deactivate = () => {
-    focusCatchers?.activate();
-    mergedOptions.onDeactivation?.();
+    enableFocusCatchers(); // todo: may not be needed
   };
 
-  /**
-   * Disables the scope. Disabled scope can't be focused.
-   */
   const disable = () => {
-    isDisabled = true;
-    container.setAttribute('inert', true);
+    container.setAttribute('inert', 'true');
   };
 
-  /**
-   * Enables the scope.
-   */
   const enable = () => {
-    isDisabled = false;
     container.removeAttribute('inert');
+  };
+
+  const destroy = () => {
+    focusCatchers?.destroy();
   };
 
   return {
     getType: () => mergedOptions.type,
     hasContainerDetached: () => mergedOptions.detached(),
     getShortcutsContextName: () => mergedOptions.shortcutsContextName,
-    isActive: () => isActivated,
-    isDisabled: () => isDisabled,
     runOnlyIf: () => mergedOptions.runOnlyIf(),
     contains,
     activate,
     deactivate,
+    disableFocusCatchers,
+    enableFocusCatchers,
     disable,
     enable,
+    destroy,
   };
 }

@@ -1,3 +1,4 @@
+/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * Group name for keyboard shortcuts that are active when the cell is selected.
  */

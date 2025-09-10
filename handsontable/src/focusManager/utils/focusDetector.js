@@ -28,19 +28,22 @@ export function installFocusDetector(hot, wrapperElement) {
      * Activates the detector by resetting the tabIndex of the input elements.
      */
     activate() {
-      hot._registerTimeout(() => {
-        inputTrapTop.tabIndex = 0;
-        inputTrapBottom.tabIndex = 0;
-      }, 10);
+      inputTrapTop.tabIndex = 0;
+      inputTrapBottom.tabIndex = 0;
     },
     /**
      * Deactivates the detector by setting tabIndex to -1.
      */
     deactivate() {
-      hot._registerTimeout(() => {
-        inputTrapTop.tabIndex = -1;
-        inputTrapBottom.tabIndex = -1;
-      }, 10);
+      inputTrapTop.tabIndex = -1;
+      inputTrapBottom.tabIndex = -1;
+    },
+    /**
+     * Destroys the focus detector.
+     */
+    destroy() {
+      inputTrapTop.remove();
+      inputTrapBottom.remove();
     },
   };
 }
@@ -49,6 +52,7 @@ export function installFocusDetector(hot, wrapperElement) {
  * Creates a new HTML input element.
  *
  * @param {Handsontable} hot The Handsontable instance.
+ * @param {'from_above' | 'from_below'} focusSource The source of the focus event.
  * @returns {HTMLInputElement}
  */
 function createInputElement(hot, focusSource) {

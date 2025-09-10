@@ -217,23 +217,6 @@ export class Pagination extends BasePlugin {
         .addLocalHook('lastPageClick', () => this.lastPage())
         .addLocalHook('pageSizeChange', pageSize => this.setPageSize(pageSize));
 
-      this.hot.getFocusScopeManager()
-        .registerScope(PLUGIN_KEY, this.#ui.getContainer(), {
-          shortcutsContextName: SHORTCUTS_CONTEXT_NAME,
-          // runOnlyIf: () => this.getSetting('showPageSize') || this.getSetting('showNavigation'),
-          onActivation: (focusSource) => {
-            const focusableElements = this.#ui.getFocusableElements();
-
-            if (focusableElements.length > 0) {
-              if (focusSource === 'from_above') {
-                focusableElements.at(0).focus();
-
-              } else if (focusSource === 'from_below') {
-                focusableElements.at(-1).focus();
-              }
-            }
-          },
-        });
     }
 
     // Place the onInit hook before others to make sure that the pagination state is computed
@@ -253,6 +236,8 @@ export class Pagination extends BasePlugin {
     this.addHook('afterSetTheme', (...args) => this.#onAfterSetTheme(...args));
 
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onIndexCacheUpdate);
+
+    this.#registerFocusScope();
 
     super.enablePlugin();
   }
@@ -276,6 +261,8 @@ export class Pagination extends BasePlugin {
     this.hot.rowIndexMapper
       .removeLocalHook('cacheUpdated', this.#onIndexCacheUpdate)
       .unregisterMap(this.pluginName);
+
+    this.#unregisterFocusScope();
 
     this.#ui.destroy();
     this.#ui = null;
@@ -677,6 +664,36 @@ export class Pagination extends BasePlugin {
     } = this.getPaginationData();
 
     return view.getLastFullyVisibleRow() !== lastVisibleRowIndex;
+  }
+
+  /**
+   * Registers the focus scope for the pagination plugin.
+   */
+  #registerFocusScope() {
+    this.hot.getFocusScopeManager()
+      .registerScope(PLUGIN_KEY, this.#ui.getContainer(), {
+        shortcutsContextName: SHORTCUTS_CONTEXT_NAME,
+        runOnlyIf: () => this.getSetting('showPageSize') || this.getSetting('showNavigation'),
+        callback: (focusSource) => {
+          const focusableElements = this.#ui.getFocusableElements();
+
+          if (focusableElements.length > 0) {
+            if (focusSource === 'from_above') {
+              focusableElements.at(0).focus();
+
+            } else if (focusSource === 'from_below') {
+              focusableElements.at(-1).focus();
+            }
+          }
+        },
+      });
+  }
+
+  /**
+   * Unregisters the focus scope for the pagination plugin.
+   */
+  #unregisterFocusScope() {
+    this.hot.getFocusScopeManager().unregisterScope(PLUGIN_KEY);
   }
 
   /**

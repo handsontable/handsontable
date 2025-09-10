@@ -177,7 +177,6 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   let grid;
   let editorManager;
   let gridFocusManager;
-  let focusScopeManager;
   let viewportScroller;
   let firstRun = true;
 
@@ -4818,6 +4817,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     }
 
     this.getShortcutManager().destroy();
+    this.getFocusScopeManager().destroy();
     moduleRegisterer.clear();
     metaManager.clearCache();
     foreignHotInstances.delete(this.guid);
@@ -5426,7 +5426,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   };
 
   gridFocusManager = new GridFocusManager(instance);
-  focusScopeManager = createFocusScopeManager(instance);
+
+  const focusScopeManager = createFocusScopeManager(instance);
 
   /**
    * Return the Focus Manager responsible for managing the browser's focus in the table.
@@ -5457,7 +5458,10 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   });
 
   registerAllShortcutContexts(instance);
-  registerAllFocusScopes(instance);
+
+  if (isRootInstance(this)) {
+    registerAllFocusScopes(instance);
+  }
 
   shortcutManager.setActiveContextName('grid');
 
