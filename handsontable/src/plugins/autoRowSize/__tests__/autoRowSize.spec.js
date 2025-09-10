@@ -962,6 +962,29 @@ describe('AutoRowSize', () => {
     expect(rowHeaderHeight).toBe(cellsHeight);
   });
 
+  it.forTheme('main')('should not cause a misalignment between the first column and the first row ' +
+    'header when scrolling horizontally (for the modern themes)', async() => {
+    handsontable({
+      data: [
+        // 3rd cell content has to be exactly 83px
+        ['test', 'test', 'xtv fvsxsvffkh', 'test', 'test', '', '', '', '', '', '', '', '', '', ''],
+      ],
+      colHeaders: true,
+      rowHeaders: true,
+      autoRowSize: true,
+      colWidths: 100,
+      wordWrap: true,
+      height: 500,
+      width: 300,
+      fixedColumnsStart: 1,
+      viewportColumnRenderingOffset: 0,
+    });
+
+    await scrollViewportTo(0, 2);
+
+    expect(getCell(0, 0, true).offsetHeight).toBe(getCell(0, 3, true).offsetHeight);
+  });
+
   it('should not cause a misalignment between the first column and the first row header when scrolling horizontally (with hidden columns) (dev-2512)', async() => {
     const data = Array(1).fill().map(() => Array(21).fill('test'));
 
