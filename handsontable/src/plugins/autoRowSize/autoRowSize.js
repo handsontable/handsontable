@@ -628,20 +628,18 @@ export class AutoRowSize extends BasePlugin {
    * @param {boolean} [forceState] Force the class to be added or removed (`true` to add, `false` to remove).
    */
   #toggleFirstDatasetColumnRenderedClassName(forceState) {
-    if (this.hot.stylesHandler.isClassicTheme()) {
-      const firstRenderedColumnVisualIndex = this.hot.getFirstRenderedVisibleColumn();
-      const firstRenderedColumnPhysicalIndex =
-        this.hot.columnIndexMapper.getPhysicalFromVisualIndex(firstRenderedColumnVisualIndex);
+    const firstRenderedColumnVisualIndex = this.hot.getFirstRenderedVisibleColumn();
+    const firstRenderedColumnPhysicalIndex =
+      this.hot.columnIndexMapper.getPhysicalFromVisualIndex(firstRenderedColumnVisualIndex);
 
-      if (
-        forceState === false ||
-        firstRenderedColumnPhysicalIndex === this.hot.columnIndexMapper.getPhysicalFromRenderableIndex(0)
-      ) {
-        removeClass(this.hot.rootElement, FIRST_COLUMN_NOT_RENDERED_CLASS_NAME);
+    if (
+      forceState === false ||
+      firstRenderedColumnPhysicalIndex === this.hot.columnIndexMapper.getPhysicalFromRenderableIndex(0)
+    ) {
+      removeClass(this.hot.rootElement, FIRST_COLUMN_NOT_RENDERED_CLASS_NAME);
 
-      } else {
-        addClass(this.hot.rootElement, FIRST_COLUMN_NOT_RENDERED_CLASS_NAME);
-      }
+    } else {
+      addClass(this.hot.rootElement, FIRST_COLUMN_NOT_RENDERED_CLASS_NAME);
     }
   }
 
