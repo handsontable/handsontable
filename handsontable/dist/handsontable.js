@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 16.1.0
- * Release date: 11/09/2025 (built at 09/09/2025 14:43:13)
+ * Release date: 11/09/2025 (built at 10/09/2025 14:34:41)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -104,7 +104,7 @@ Handsontable.hooks = _hooks.Hooks.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "09/09/2025 14:43:13";
+Handsontable.buildDate = "10/09/2025 14:34:41";
 Handsontable.version = "16.1.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -61193,14 +61193,12 @@ function _calculateSpecificRowsHeight(visualRows) {
   }
 }
 function _toggleFirstDatasetColumnRenderedClassName(forceState) {
-  if (this.hot.stylesHandler.isClassicTheme()) {
-    const firstRenderedColumnVisualIndex = this.hot.getFirstRenderedVisibleColumn();
-    const firstRenderedColumnPhysicalIndex = this.hot.columnIndexMapper.getPhysicalFromVisualIndex(firstRenderedColumnVisualIndex);
-    if (forceState === false || firstRenderedColumnPhysicalIndex === this.hot.columnIndexMapper.getPhysicalFromRenderableIndex(0)) {
-      (0, _element.removeClass)(this.hot.rootElement, FIRST_COLUMN_NOT_RENDERED_CLASS_NAME);
-    } else {
-      (0, _element.addClass)(this.hot.rootElement, FIRST_COLUMN_NOT_RENDERED_CLASS_NAME);
-    }
+  const firstRenderedColumnVisualIndex = this.hot.getFirstRenderedVisibleColumn();
+  const firstRenderedColumnPhysicalIndex = this.hot.columnIndexMapper.getPhysicalFromVisualIndex(firstRenderedColumnVisualIndex);
+  if (forceState === false || firstRenderedColumnPhysicalIndex === this.hot.columnIndexMapper.getPhysicalFromRenderableIndex(0)) {
+    (0, _element.removeClass)(this.hot.rootElement, FIRST_COLUMN_NOT_RENDERED_CLASS_NAME);
+  } else {
+    (0, _element.addClass)(this.hot.rootElement, FIRST_COLUMN_NOT_RENDERED_CLASS_NAME);
   }
 }
 /**
