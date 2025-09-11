@@ -37,6 +37,8 @@ export function roundFloat(value, option) {
         return stringifyValue(value.toFixed(8 - integerDigits));
       }
 
+      return value;
+
     default:
       return value;
   }
