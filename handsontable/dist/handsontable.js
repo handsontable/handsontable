@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 16.1.0
- * Release date: 15/09/2025 (built at 11/09/2025 09:55:34)
+ * Release date: 15/09/2025 (built at 11/09/2025 12:42:04)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -104,7 +104,7 @@ Handsontable.hooks = _hooks.Hooks.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "11/09/2025 09:55:34";
+Handsontable.buildDate = "11/09/2025 12:42:04";
 Handsontable.version = "16.1.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -60601,6 +60601,11 @@ const FIRST_COLUMN_NOT_RENDERED_CLASS_NAME = 'htFirstDatasetColumnNotRendered';
  *
  * You can also use the `allowSampleDuplicates` option to allow sampling duplicate values when calculating the row
  * height. __Note__, that this might have a negative impact on performance.
+ *
+ * ::: tip
+ * Note: Updating some of the table's settings can cause the row heights to change (e.g. `wordWrap`, `textEllipsis`, renderers etc.).
+ * In those cases, to ensure that the row heights are properly recalculated, you need to call the {@link AutoRowSize#recalculateAllRowsHeight} method after calling {@link Core#updateSettings}.
+ * :::
  *
  * To configure this plugin see {@link Options#autoRowSize}.
  *
