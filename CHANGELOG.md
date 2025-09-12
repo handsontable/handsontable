@@ -47,7 +47,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Resolved critical vulnerabilities reported by `pnpm audit`. [#11798](https://github.com/handsontable/handsontable/pull/11798)
 
 ### Deprecated
-- Deprecated the legacy classic styles (to be removed in version `17.0.0`). [#11790](https://github.com/handsontable/handsontable/pull/11790)
+- Deprecated the legacy style (to be removed in version `17.0.0`). [#11790](https://github.com/handsontable/handsontable/pull/11790)
 - Deprecated the PersistentState plugin (to be removed in version `17.0.0`). [#11835](https://github.com/handsontable/handsontable/pull/11835)
 
 ## [16.0.1] - 2025-07-10

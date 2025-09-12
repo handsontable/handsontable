@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 16.1.0
- * Release date: 15/09/2025 (built at 11/09/2025 12:42:04)
+ * Release date: 15/09/2025 (built at 12/09/2025 12:22:52)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -104,7 +104,7 @@ Handsontable.hooks = _hooks.Hooks.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "11/09/2025 12:42:04";
+Handsontable.buildDate = "12/09/2025 12:22:52";
 Handsontable.version = "16.1.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -98506,11 +98506,13 @@ var _defineProperty2 = _interopRequireDefault(__webpack_require__(176));
 var _base = __webpack_require__(531);
 var _storage = _interopRequireDefault(__webpack_require__(767));
 var _hooks = __webpack_require__(183);
+var _console = __webpack_require__(184);
 _hooks.Hooks.getSingleton().register('persistentStateSave');
 _hooks.Hooks.getSingleton().register('persistentStateLoad');
 _hooks.Hooks.getSingleton().register('persistentStateReset');
 const PLUGIN_KEY = exports.PLUGIN_KEY = 'persistentState';
 const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 0;
+const deprecationWarningInstances = new WeakSet();
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
@@ -98519,6 +98521,11 @@ const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 0;
  * @class PersistentState
  *
  * @description
+ *
+ * ::: warning
+ * The PersistentState plugin is deprecated and will be removed in version 17.0. Please update your settings to ensure compatibility with future versions.
+ * :::
+ *
  * Save the state of column sorting, column positions and column sizes in local storage to preserve table state
  * between page reloads.
  *
@@ -98572,6 +98579,10 @@ class PersistentState extends _base.BasePlugin {
   enablePlugin() {
     if (this.enabled) {
       return;
+    }
+    if (!deprecationWarningInstances.has(this.hot)) {
+      deprecationWarningInstances.add(this.hot);
+      (0, _console.deprecatedWarn)('The PersistentState plugin is deprecated and will be removed in version 17.0. ' + 'Please update your settings to ensure compatibility with future versions.');
     }
     if (!this.storage) {
       this.storage = new _storage.default(this.hot.rootContainer.id || this.hot.rootElement.id, this.hot.rootWindow);

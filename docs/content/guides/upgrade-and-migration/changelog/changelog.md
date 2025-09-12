@@ -71,7 +71,7 @@ For more information about this release see:
 - Resolved critical vulnerabilities reported by `pnpm audit`. [#11798](https://github.com/handsontable/handsontable/pull/11798)
 
 #### Deprecated
-- Deprecated the legacy classic styles (to be removed in version `17.0.0`). [#11790](https://github.com/handsontable/handsontable/pull/11790)
+- Deprecated the legacy style (to be removed in version `17.0.0`). [#11790](https://github.com/handsontable/handsontable/pull/11790)
 - Deprecated the PersistentState plugin (to be removed in version `17.0.0`). [#11835](https://github.com/handsontable/handsontable/pull/11835)
 
 
