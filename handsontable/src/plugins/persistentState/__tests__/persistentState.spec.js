@@ -204,8 +204,10 @@ describe('persistentState', () => {
       persistentState: true
     });
 
-    expect(spy.calls.allArgs().filter(args => args[0] === 'Deprecated: The PersistentState plugin is deprecated and will be removed in version 17.0. ' +
-      'Please update your settings to ensure compatibility with future versions.').length).toBe(1);
+    expect(spy.calls.allArgs().filter(
+      args => args[0] === 'Deprecated: The PersistentState plugin is deprecated and will be removed in version 17.0. ' +
+      'Please update your settings to ensure compatibility with future versions.'
+    ).length).toBe(1);
 
     spy.calls.reset();
 
@@ -217,7 +219,9 @@ describe('persistentState', () => {
       persistentState: true
     });
 
-    expect(spy.calls.allArgs().filter(args => args[0] === 'Deprecated: The PersistentState plugin is deprecated and will be removed in version 17.0. ' +
-      'Please update your settings to ensure compatibility with future versions.').length).toBe(1);
+    expect(spy.calls.allArgs().filter(
+      args => args[0] === 'Deprecated: The PersistentState plugin is deprecated and will be removed in version 17.0. ' +
+      'Please update your settings to ensure compatibility with future versions.'
+    ).length).toBe(1);
   });
 });
