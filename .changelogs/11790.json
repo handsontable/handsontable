@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added a new \"classic\" theme and deprecated the legacy classic styles.",
+  "type": "added",
+  "issueOrPR": 11790,
+  "breaking": false,
+  "framework": "none"
+}
