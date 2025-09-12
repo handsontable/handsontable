@@ -8,6 +8,7 @@ import { getParentWindow } from '../helpers/dom/element';
  * @param {function(Event)} hooks.onFocus A callback function for focusin events.
  * @param {function(Event)} hooks.onClick A callback function for click events.
  * @param {function(Event)} hooks.onTabKeyDown A callback function for tab key down events.
+ * @param {function(Event)} hooks.onTabKeyUp A callback function for tab key up events.
  * @returns {{mount: function(), unmount: function()}}
  */
 export function useEventListener(ownerWindow, hooks = {}) {
@@ -45,6 +46,17 @@ export function useEventListener(ownerWindow, hooks = {}) {
   }
 
   /**
+   * A callback function for tab key up events.
+   *
+   * @param {Event} event The event object.
+   */
+  function handleKeyUp(event) {
+    if (event.key === 'Tab') {
+      hooks.onTabKeyUp?.(event);
+    }
+  }
+
+  /**
    * A callback function for mouse down events.
    */
   function handleMouseDown() {
@@ -59,6 +71,24 @@ export function useEventListener(ownerWindow, hooks = {}) {
   }
 
   /**
+   * A callback function for window focus events.
+   *
+   * @param {Event} event The event object.
+   */
+  function handleWindowFocus(event) {
+    hooks.onWindowFocus?.(event);
+  }
+
+  /**
+   * A callback function for window blur events.
+   *
+   * @param {Event} event The event object.
+   */
+  function handleWindowBlur(event) {
+    hooks.onWindowBlur?.(event);
+  }
+
+  /**
    * Adds event listeners to the starting window and its parents' windows.
    */
   const mount = () => {
@@ -70,8 +100,11 @@ export function useEventListener(ownerWindow, hooks = {}) {
       documentElement.addEventListener('focusin', handleFocus);
       documentElement.addEventListener('click', handleClick);
       documentElement.addEventListener('keydown', handleKeyDown);
+      documentElement.addEventListener('keyup', handleKeyUp);
       documentElement.addEventListener('mousedown', handleMouseDown);
       documentElement.addEventListener('mouseup', handleMouseUp);
+      frameWindow.addEventListener('focus', handleWindowFocus);
+      frameWindow.addEventListener('blur', handleWindowBlur);
       frameWindow = getParentWindow(frameWindow);
     }
   };
@@ -88,8 +121,11 @@ export function useEventListener(ownerWindow, hooks = {}) {
       documentElement.removeEventListener('focusin', handleFocus);
       documentElement.removeEventListener('click', handleClick);
       documentElement.removeEventListener('keydown', handleKeyDown);
+      documentElement.removeEventListener('keyup', handleKeyUp);
       documentElement.removeEventListener('mousedown', handleMouseDown);
       documentElement.removeEventListener('mouseup', handleMouseUp);
+      frameWindow.removeEventListener('focus', handleWindowFocus);
+      frameWindow.removeEventListener('blur', handleWindowBlur);
       frameWindow = getParentWindow(frameWindow);
     }
   };

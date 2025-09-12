@@ -29,14 +29,14 @@ export function createFocusScope(hotInstance, container, options = {}) {
   /**
    * Disables the scope. Disabled scope can't be focused.
    */
-  const disableFocusCatchers = () => {
+  const deactivateFocusCatchers = () => {
     focusCatchers?.deactivate();
   };
 
   /**
    * Enables the scope.
    */
-  const enableFocusCatchers = () => {
+  const activateFocusCatchers = () => {
     focusCatchers?.activate();
   };
 
@@ -56,7 +56,7 @@ export function createFocusScope(hotInstance, container, options = {}) {
    * @param {string} activationSource The source of the activation.
    */
   const activate = (activationSource = FOCUS_SOURCES.UNKNOWN) => {
-    disableFocusCatchers(); // todo: may not be needed
+    // deactivateFocusCatchers(); // todo: may not be needed
     mergedOptions.callback?.(activationSource);
   };
 
@@ -64,7 +64,7 @@ export function createFocusScope(hotInstance, container, options = {}) {
    * Deactivates the scope.
    */
   const deactivate = () => {
-    enableFocusCatchers(); // todo: may not be needed
+    // activateFocusCatchers(); // todo: may not be needed
   };
 
   const disable = () => {
@@ -87,8 +87,8 @@ export function createFocusScope(hotInstance, container, options = {}) {
     contains,
     activate,
     deactivate,
-    disableFocusCatchers,
-    enableFocusCatchers,
+    deactivateFocusCatchers,
+    activateFocusCatchers,
     disable,
     enable,
     destroy,

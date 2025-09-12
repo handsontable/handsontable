@@ -8,6 +8,7 @@ const allowedE2EModules = [
   'regenerator-runtime/runtime*',
   '@babel/runtime/*',
   './htmlNormalize',
+  './focusNavigator',
   './common',
   './utils',
   './jasmine-helpers',

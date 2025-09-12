@@ -68,6 +68,7 @@ export class GridFocusManager {
     this.#hot.addHook('afterSelection', (...args) => this.#focusCell(...args));
     this.#hot.addHook('afterSelectionFocusSet', (...args) => this.#focusCell(...args));
     this.#hot.addHook('afterSelectionEnd', (...args) => this.#focusEditorElement(...args));
+    this.#hot.addHook('afterDeselect', (...args) => this.#onAfterDeselect(...args));
   }
 
   /**
@@ -237,6 +238,7 @@ export class GridFocusManager {
       // previously selected input element has not belonged to the Handsontable editor. If blurring is
       // triggered for all elements, there is a problem with the disappearing IME editor (#9672).
       if (activeElement && isOutsideInput(activeElement)) {
+      // if (activeElement && !this.#hot.rootElement.contains(activeElement)) {
         activeElement.blur();
       }
 
@@ -254,6 +256,17 @@ export class GridFocusManager {
         selectedCell?.nodeName === 'TD'
       ) {
         this.refocusToEditorTextarea();
+      }
+    });
+  }
+
+  #onAfterDeselect() {
+    const { rootDocument, rootGridElement, rootElement } = this.#hot;
+    const { activeElement } = rootDocument;
+
+    this.#hot._registerImmediate(() => {
+      if ((rootGridElement ?? rootElement).contains(activeElement)) {
+        activeElement.blur();
       }
     });
   }

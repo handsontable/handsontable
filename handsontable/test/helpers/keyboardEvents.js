@@ -1,4 +1,5 @@
 import { waitOnScroll } from './utils';
+import { getNextFocusableElement } from './focusNavigator';
 
 const { KEY_CODES } = Handsontable.helper;
 const KEY_CODES_MAP = new Map([
@@ -89,6 +90,7 @@ function saveStateAndExtendEvent(options, modifiedKey, isPressed) {
  * @param {object} options.extend Additional options which extends the event object.
  * @param {HTMLElement} options.target The DOM element that the event is dispatched from.
  * @param {boolean} options.ime Indicates whether the event needs to be dispatched as it would by IME.
+ * @returns {Event} The event object.
  */
 export function keyTriggerFactory(type, key, { extend, target, ime }) {
   const ev = {};
@@ -104,10 +106,14 @@ export function keyTriggerFactory(type, key, { extend, target, ime }) {
     ev.keyCode = key.toUpperCase().codePointAt(0);
   }
 
-  ev.key = key;
+  if (typeof key === 'string') {
+    ev.key = key.charAt(0).toUpperCase() + key.slice(1).toLowerCase();
+  }
 
   $.extend(ev, extend);
   $(target).simulate(type, ev);
+
+  return $(target).data('simulate-event');
 }
 
 const keyDownTrigger = triggerKeys('keydown');
@@ -140,7 +146,7 @@ function triggerKeys(type) {
       return key;
     });
 
-    keys.forEach((key) => {
+    return keys.map((key) => {
       saveStateAndExtendEvent(extend, 'ctrlKey',
         isKeyUp === true && key === 'control' ? false : keys.includes('control'));
       saveStateAndExtendEvent(extend, 'metaKey',
@@ -149,7 +155,8 @@ function triggerKeys(type) {
         isKeyUp === true && key === 'shift' ? false : keys.includes('shift'));
       saveStateAndExtendEvent(extend, 'altKey',
         isKeyUp === true && key === 'alt' ? false : keys.includes('alt'));
-      keyTriggerFactory(type, key, { extend, target, ime });
+
+      return keyTriggerFactory(type, key, { extend, target, ime });
     });
   };
 }
@@ -161,7 +168,20 @@ function triggerKeys(type) {
  * @param {object} options Additional options which extends the event or change its behavior.
  */
 export const keyDownUp = waitOnScroll((keys, options) => {
-  keyDownTrigger(keys, options);
+  const downEvents = keyDownTrigger(keys, options);
+  const isDefaultPrevented = downEvents.some(event => event.defaultPrevented);
+
+  if (!Array.isArray(keys)) {
+    keys = [keys];
+  }
+
+  let target = document.activeElement;
+
+  if (keys.includes('tab') && !isDefaultPrevented) {
+    target = getNextFocusableElement(keys.includes('shift'));
+  }
+
+  target.focus();
   keyUpTrigger(keys, options);
 });
 

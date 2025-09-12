@@ -36,7 +36,7 @@ beforeAll(() => {
 afterAll(() => {
   // After the test are finished show the test suite dots
   if (!process.env.JEST_WORKER_ID) {
-    $('.jasmine_html-reporter').show();
+    // $('.jasmine_html-reporter').show();
   }
 });
 
@@ -540,24 +540,6 @@ export function getBottomClone() {
  */
 export function getBottomInlineStartClone() {
   return $(hot().rootElement).find('.ht_clone_bottom_inline_start_corner');
-}
-
-/**
- * Emulates the browser's TAB navigation to the Handsontable (from element above).
- *
- * @param {Handsontable} hotInstance The Handsontable instance to apply the event.
- */
-export function triggerTabNavigationFromTop(hotInstance = hot()) {
-  $(hotInstance.rootWrapperElement).find('.htFocusCatcher').first().focus();
-}
-
-/**
- * Emulates the browser's Shift+TAB navigation to the Handsontable (from element below).
- *
- * @param {Handsontable} hotInstance The Handsontable instance to apply the event.
- */
-export function triggerTabNavigationFromBottom(hotInstance = hot()) {
-  $(hotInstance.rootWrapperElement).find('.htFocusCatcher').last().focus();
 }
 
 /**

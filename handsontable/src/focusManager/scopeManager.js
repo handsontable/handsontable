@@ -17,6 +17,13 @@ export function createFocusScopeManager(hotInstance) {
   const shortcutManager = hotInstance.getShortcutManager();
   let activeScope = null;
 
+  hotInstance.addHook('afterDeselect', () => {
+    // for cases with deselectCell
+    if (activeScope) {
+      activeScope.activateFocusCatchers();
+    }
+  });
+
   /**
    * Registers a new focus scope.
    *
@@ -94,7 +101,7 @@ export function createFocusScopeManager(hotInstance) {
 
     activeScope = scope;
     activeScope.activate(focusSource);
-    updateScopesFocusVisibilityState();
+    // updateScopesFocusVisibilityState();
 
     shortcutManager.setActiveContextName(scope.getShortcutsContextName());
   }
@@ -111,7 +118,7 @@ export function createFocusScopeManager(hotInstance) {
 
     activeScope = null;
     scope.deactivate();
-    updateScopesFocusVisibilityState();
+    // updateScopesFocusVisibilityState();
   }
 
   /**
@@ -121,6 +128,8 @@ export function createFocusScopeManager(hotInstance) {
   function updateScopesFocusVisibilityState() {
     const modalScopes = SCOPES.getValues()
       .filter(scope => scope.runOnlyIf() && scope.getType() === 'modal');
+
+    // console.log('updateScopesFocusVisibilityState', activeScope?._scopeId);
 
     SCOPES.getValues().forEach((scope) => {
       if (
@@ -137,16 +146,16 @@ export function createFocusScopeManager(hotInstance) {
     SCOPES.getValues().forEach((scope) => {
       if (scope === activeScope) {
         if (scope.contains(hotInstance.rootDocument.activeElement)) {
-          scope.disableFocusCatchers();
+          scope.deactivateFocusCatchers();
         } else {
-          scope.enableFocusCatchers();
+          scope.activateFocusCatchers();
         }
 
       } else if (scope.runOnlyIf()) {
-        scope.enableFocusCatchers();
+        scope.activateFocusCatchers();
 
       } else {
-        scope.disableFocusCatchers();
+        scope.deactivateFocusCatchers();
       }
     });
   }
@@ -158,7 +167,7 @@ export function createFocusScopeManager(hotInstance) {
    * @param {string} focusSource The source of the focus event.
    */
   function processScopes(target, focusSource) {
-    if (activeScope && activeScope.runOnlyIf() && activeScope.contains(target)) {
+    if (hotInstance.selection.isSelected() && activeScope && activeScope.runOnlyIf() && activeScope.contains(target)) {
       if (focusSource !== FOCUS_SOURCES.UNKNOWN) {
         hotInstance.listen();
       }
@@ -196,13 +205,27 @@ export function createFocusScopeManager(hotInstance) {
     hotInstance.rootWindow,
     {
       onFocus: (event) => {
+        // console.log('onFocus', hotInstance.guid, event.target);
         processScopes(event.target, event.target.dataset.htFocusSource ?? FOCUS_SOURCES.UNKNOWN);
       },
       onClick: (event) => {
+        // console.log('onClick', event.target);
         processScopes(event.target, FOCUS_SOURCES.CLICK);
       },
       onTabKeyDown: () => {
         updateScopesFocusVisibilityState();
+      },
+      onWindowFocus: () => {
+        // console.log('onWindowFocus');
+        // updateScopesFocusVisibilityState();
+      },
+      onWindowBlur: () => {
+        // console.log('onWindowBlur');
+        // if (activeScope) {
+        //   deactivateScope(activeScope);
+        // }
+
+        // updateScopesFocusVisibilityState();
       },
     }
   );
