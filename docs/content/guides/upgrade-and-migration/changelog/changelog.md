@@ -28,7 +28,7 @@ See the full history of changes made to Handsontable in each major, minor, and p
 
 [[toc]]
 
-## 16.0.1
+## 16.1.0
 
 Released on September 15, 2025
 
