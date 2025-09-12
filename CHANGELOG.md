@@ -9,7 +9,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- UNVERSIONED -->
 
-## [16.1.0] - 2025-09-11
+## [16.1.0] - 2025-09-15
 
 ### Added
 - Introduced row pagination functionality. [#11612](https://github.com/handsontable/handsontable/pull/11612)
@@ -22,6 +22,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Enabled focus navigation between multiple selection layers. [#11756](https://github.com/handsontable/handsontable/pull/11756)
 - Renamed the input element used as the internal focus catcher. [#11770](https://github.com/handsontable/handsontable/pull/11770)
 - Added a background color to the `wtHolder` element. [#11797](https://github.com/handsontable/handsontable/pull/11797)
+- Updated the CSS variables for the Pagination styles. [#11820](https://github.com/handsontable/handsontable/pull/11820)
 
 ### Fixed
 - Fixed undo/redo functionality for cell types other than `text`. [#11656](https://github.com/handsontable/handsontable/pull/11656)
@@ -37,6 +38,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Fixed visual issues across themes. [#11805](https://github.com/handsontable/handsontable/pull/11805)
 - Fixed table misalignment after loading new data. [#11809](https://github.com/handsontable/handsontable/pull/11809)
 - Angular: Fixed the tree-shaking mechanism for the Angular wrapper (`@handsontable/angular-wrapper`). [#11738](https://github.com/handsontable/handsontable/pull/11738)
+- Fixed an issue with the deprecation warning being shown too often. [#11819](https://github.com/handsontable/handsontable/pull/11819)
+- Fixed an issue with the classic (legacy) theme deprecation warning being displayed for non-root instances. [#11821](https://github.com/handsontable/handsontable/pull/11821)
+- Fixed an issue with the table not rendering correctly when scrolling into extremely tall rows. [#11825](https://github.com/handsontable/handsontable/pull/11825)
 
 ### Security
 - Resolved critical vulnerabilities reported by `pnpm audit`. [#11798](https://github.com/handsontable/handsontable/pull/11798)
