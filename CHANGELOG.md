@@ -17,6 +17,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Added support for object-based (`key`/`value`) source in Autocomplete and Dropdown editors, along with new `valueGetter` and `valueSetter` options. [#11773](https://github.com/handsontable/handsontable/pull/11773)
 - Added a new `initialState` configuration option. [#11777](https://github.com/handsontable/handsontable/pull/11777)
 - Introduced the Loading plugin. [#11792](https://github.com/handsontable/handsontable/pull/11792)
+- Added a new "classic" theme. [#11790](https://github.com/handsontable/handsontable/pull/11790)
 
 ### Changed
 - Enabled focus navigation between multiple selection layers. [#11756](https://github.com/handsontable/handsontable/pull/11756)
@@ -44,6 +45,10 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Security
 - Resolved critical vulnerabilities reported by `pnpm audit`. [#11798](https://github.com/handsontable/handsontable/pull/11798)
+
+### Deprecated
+- Deprecated the legacy classic styles (to be removed in version `17.0.0`). [#11790](https://github.com/handsontable/handsontable/pull/11790)
+- Deprecated the PersistentState plugin (to be removed in version `17.0.0`). [#11835](https://github.com/handsontable/handsontable/pull/11835)
 
 ## [16.0.1] - 2025-07-10
 
