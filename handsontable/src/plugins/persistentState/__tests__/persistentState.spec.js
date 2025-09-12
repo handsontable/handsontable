@@ -196,4 +196,28 @@ describe('persistentState', () => {
     expect(storedData.value).toEqual(100);
 
   });
+
+  it('should show the deprecation warning once per Handsontable instance when enabling the plugin', async() => {
+    const spy = spyOn(console, 'warn').and.callThrough();
+
+    handsontable({
+      persistentState: true
+    });
+
+    expect(spy.calls.allArgs().filter(args => args[0] === 'Deprecated: The PersistentState plugin is deprecated and will be removed in version 17.0. ' +
+      'Please update your settings to ensure compatibility with future versions.').length).toBe(1);
+
+    spy.calls.reset();
+
+    destroy();
+
+    handsontable({});
+
+    await updateSettings({
+      persistentState: true
+    });
+
+    expect(spy.calls.allArgs().filter(args => args[0] === 'Deprecated: The PersistentState plugin is deprecated and will be removed in version 17.0. ' +
+      'Please update your settings to ensure compatibility with future versions.').length).toBe(1);
+  });
 });

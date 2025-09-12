@@ -1,6 +1,7 @@
 import { BasePlugin } from '../base';
 import Storage from './storage';
 import { Hooks } from '../../core/hooks';
+import { deprecatedWarn } from '../../helpers/console';
 
 Hooks.getSingleton().register('persistentStateSave');
 Hooks.getSingleton().register('persistentStateLoad');
@@ -9,6 +10,8 @@ Hooks.getSingleton().register('persistentStateReset');
 export const PLUGIN_KEY = 'persistentState';
 export const PLUGIN_PRIORITY = 0;
 
+const deprecationWarningInstances = new Set();
+
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
 /**
@@ -16,6 +19,11 @@ export const PLUGIN_PRIORITY = 0;
  * @class PersistentState
  *
  * @description
+ *
+ * ::: warning
+ * The PersistentState plugin is deprecated and will be removed in version 17.0. Please update your settings to ensure compatibility with future versions.
+ * :::
+ *
  * Save the state of column sorting, column positions and column sizes in local storage to preserve table state
  * between page reloads.
  *
@@ -69,6 +77,13 @@ export class PersistentState extends BasePlugin {
   enablePlugin() {
     if (this.enabled) {
       return;
+    }
+
+    if (!deprecationWarningInstances.has(this.hot)) {
+      deprecationWarningInstances.add(this.hot);
+
+      deprecatedWarn('The PersistentState plugin is deprecated and will be removed in version 17.0. ' +
+        'Please update your settings to ensure compatibility with future versions.');
     }
 
     if (!this.storage) {
