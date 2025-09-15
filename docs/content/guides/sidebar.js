@@ -175,6 +175,7 @@ const technicalSpecificationItems = [
 const upgradeAndMigrationItems = [
   { path: 'guides/upgrade-and-migration/changelog/changelog' },
   { path: 'guides/upgrade-and-migration/versioning-policy/versioning-policy' },
+  { path: 'guides/upgrade-and-migration/deprecation-policy/deprecation-policy' },
   { path: 'guides/upgrade-and-migration/long-term-support/long-term-support' },
   { path: 'guides/upgrade-and-migration/migrating-from-16.0-to-16.1/migrating-from-16.0-to-16.1' },
   { path: 'guides/upgrade-and-migration/migrating-from-15.3-to-16.0/migrating-from-15.3-to-16.0' },
