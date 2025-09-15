@@ -63,6 +63,13 @@ import { getValueSetterValue } from './utils/valueAccessors';
 let activeGuid = null;
 
 /**
+ * A set of deprecated warn instances.
+ *
+ * @type {Set<string>}
+ */
+const deprecatedWarnInstances = new WeakSet();
+
+/**
  * Keeps the collection of the all Handsontable instances created on the same page. The
  * list is then used to trigger the "afterUnlisten" hook when the "listen()" method was
  * called on another instance.
@@ -2740,9 +2747,18 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       }
     }
 
-    if (instance.stylesHandler.isClassicTheme()) {
+    if (deprecatedWarnInstances.has(instance) && instance.stylesHandler.getThemeName() !== undefined) {
+      deprecatedWarnInstances.delete(instance);
+    }
+
+    if (
+      isRootInstance(instance) &&
+      !deprecatedWarnInstances.has(instance) &&
+      instance.stylesHandler.isClassicTheme()
+    ) {
       // eslint-disable-next-line max-len
       deprecatedWarn('Handsontable classic theme is a legacy theme and will be removed in version 17.0. Please update your theme settings to ensure compatibility with future versions.');
+      deprecatedWarnInstances.add(instance);
     }
 
     // Load data or create data map

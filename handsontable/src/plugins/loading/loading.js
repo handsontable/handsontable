@@ -152,9 +152,7 @@ export class Loading extends BasePlugin {
       this.#dialogPlugin = this.hot.getPlugin('dialog');
 
       if (!this.#dialogPlugin?.isEnabled()) {
-        this.hot.updateSettings({
-          dialog: true,
-        });
+        this.hot.getSettings().dialog = true;
       }
 
       this.hot.addHook('afterDialogFocus', () => this.#onAfterDialogFocus());

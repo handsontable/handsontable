@@ -1,8 +1,8 @@
 {
   "issuesOrigin": "private",
-  "title": "Allow focus navigation between multiple selection layers",
+  "title": "Updated CSS variable for pagination styles",
   "type": "changed",
-  "issueOrPR": 11756,
+  "issueOrPR": 11820,
   "breaking": false,
   "framework": "none"
 }

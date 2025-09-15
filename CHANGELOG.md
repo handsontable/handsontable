@@ -9,6 +9,47 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- UNVERSIONED -->
 
+## [16.1.0] - 2025-09-15
+
+### Added
+- Introduced row pagination functionality. [#11612](https://github.com/handsontable/handsontable/pull/11612)
+- Introduced a Dialog plugin. [#11754](https://github.com/handsontable/handsontable/pull/11754)
+- Added support for object-based (`key`/`value`) source in Autocomplete and Dropdown editors, along with new `valueGetter` and `valueSetter` options. [#11773](https://github.com/handsontable/handsontable/pull/11773)
+- Added a new `initialState` configuration option. [#11777](https://github.com/handsontable/handsontable/pull/11777)
+- Introduced the Loading plugin. [#11792](https://github.com/handsontable/handsontable/pull/11792)
+- Added a new "classic" theme. [#11790](https://github.com/handsontable/handsontable/pull/11790)
+
+### Changed
+- Enabled focus navigation between multiple selection layers. [#11756](https://github.com/handsontable/handsontable/pull/11756)
+- Renamed the input element used as the internal focus catcher. [#11770](https://github.com/handsontable/handsontable/pull/11770)
+- Added a background color to the `wtHolder` element. [#11797](https://github.com/handsontable/handsontable/pull/11797)
+- Updated the CSS variables for the Pagination styles. [#11820](https://github.com/handsontable/handsontable/pull/11820)
+
+### Fixed
+- Fixed undo/redo functionality for cell types other than `text`. [#11656](https://github.com/handsontable/handsontable/pull/11656)
+- Fixed incorrect resizing behavior when auto-sizing rows or columns by double-clicking separators. [#11671](https://github.com/handsontable/handsontable/pull/11671)
+- Fixed mouse wheel zooming issues on Windows. [#11680](https://github.com/handsontable/handsontable/pull/11680)
+- Fixed autocomplete sorting and option highlighting issues. [#11708](https://github.com/handsontable/handsontable/pull/11708)
+- Fixed a missing `touchend` handler that prevented editors from opening on mobile devices. [#11729](https://github.com/handsontable/handsontable/pull/11729)
+- Fixed misalignment between rows and row headers when using `autoRowSize`. [#11736](https://github.com/handsontable/handsontable/pull/11736)
+- Fixed layout inconsistencies caused by browser zoom and scaling. [#11739](https://github.com/handsontable/handsontable/pull/11739)
+- Fixed an issue with the root-wrapper height calculation. [#11769](https://github.com/handsontable/handsontable/pull/11769)
+- Fixed a `TypeError` being thrown after undoing operations on nested row structures. [#11793](https://github.com/handsontable/handsontable/pull/11793)
+- Fixed `rowHeights` handling for merged cells. [#11795](https://github.com/handsontable/handsontable/pull/11795)
+- Fixed visual issues across themes. [#11805](https://github.com/handsontable/handsontable/pull/11805)
+- Fixed table misalignment after loading new data. [#11809](https://github.com/handsontable/handsontable/pull/11809)
+- Angular: Fixed the tree-shaking mechanism for the Angular wrapper (`@handsontable/angular-wrapper`). [#11738](https://github.com/handsontable/handsontable/pull/11738)
+- Fixed an issue with the deprecation warning being shown too often. [#11819](https://github.com/handsontable/handsontable/pull/11819)
+- Fixed an issue with the classic (legacy) theme deprecation warning being displayed for non-root instances. [#11821](https://github.com/handsontable/handsontable/pull/11821)
+- Fixed an issue with the table not rendering correctly when scrolling into extremely tall rows. [#11825](https://github.com/handsontable/handsontable/pull/11825)
+
+### Security
+- Resolved critical vulnerabilities reported by `pnpm audit`. [#11798](https://github.com/handsontable/handsontable/pull/11798)
+
+### Deprecated
+- Deprecated the legacy style (to be removed in version `17.0.0`). [#11790](https://github.com/handsontable/handsontable/pull/11790)
+- Deprecated the PersistentState plugin (to be removed in version `17.0.0`). [#11835](https://github.com/handsontable/handsontable/pull/11835)
+
 ## [16.0.1] - 2025-07-10
 
 ### Fixed
