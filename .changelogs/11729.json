@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fix missing touchend entry handler that prevents editor to open on mobile devices",
-  "type": "fixed",
-  "issueOrPR": 11729,
-  "breaking": false,
-  "framework": "none"
-}

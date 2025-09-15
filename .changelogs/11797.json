@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Added background color to holder element (`wtHolder`)",
-  "type": "changed",
-  "issueOrPR": 11797,
-  "breaking": false,
-  "framework": "none"
-}

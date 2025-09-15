@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Add support for a new `initialState` option",
-  "type": "added",
-  "issueOrPR": 11777,
-  "breaking": false,
-  "framework": "none"
-}
