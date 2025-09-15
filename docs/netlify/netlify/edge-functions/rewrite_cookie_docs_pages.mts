@@ -52,6 +52,8 @@ const redirectsMap = {
   'conditional-formatting': '/conditional-formatting/',
   'configuration-options': '/configuration-options/',
   'context-menu': '/context-menu',
+  'custom-builds': '/custom-builds/',
+  'custom-plugins': '/custom-plugins/',
   'custom-shortcuts': '/custom-shortcuts/',
   'date-cell-type': '/date-cell-type/',
   'demo': '/demo/',
