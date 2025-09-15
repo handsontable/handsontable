@@ -71,6 +71,7 @@ const ExampleComponent = () => {
       autoColumnSize={false}
       height="auto"
     >
+      {/* use the `data` prop to reference the column data */}
       <HotColumn data="id" />
       <HotColumn data="name" />
       <HotColumn data="score" renderer={ScoreRenderer} />

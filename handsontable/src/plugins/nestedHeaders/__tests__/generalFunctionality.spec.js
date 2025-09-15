@@ -910,6 +910,7 @@ describe('NestedHeaders', () => {
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
+            <th class="">J1</th>
           </tr>
           <tr>
             <th class="">A2</th>
@@ -921,6 +922,7 @@ describe('NestedHeaders', () => {
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
+            <th class="">J2</th>
           </tr>
           <tr>
             <th class="">A3</th>
@@ -932,6 +934,7 @@ describe('NestedHeaders', () => {
             <th class="hiddenHeader"></th>
             <th class="" colspan="2">H3</th>
             <th class="hiddenHeader"></th>
+            <th class="">J3</th>
           </tr>
           <tr>
             <th class="">A4</th>
@@ -943,6 +946,7 @@ describe('NestedHeaders', () => {
             <th class="">G4</th>
             <th class="">H4</th>
             <th class="">I4</th>
+            <th class="">J4</th>
           </tr>
         </thead>
         <tbody>
@@ -956,6 +960,7 @@ describe('NestedHeaders', () => {
             <td class="">G1</td>
             <td class="">H1</td>
             <td class="">I1</td>
+            <td class="">J1</td>
           </tr>
         </tbody>
         `);
@@ -1135,6 +1140,36 @@ describe('NestedHeaders', () => {
         expect(calls.argsFor(22)).toEqual([2, getCell(-1, 2), 2]);
         expect(calls.argsFor(23)).toEqual([3, getCell(-1, 3), 2]);
       });
+    });
+
+    it('should unregister the hooks from the index mappers after the plugin is enabled and disabled several times', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 90),
+        colHeaders: true,
+        nestedHeaders: generateComplexSetup(4, 70, true),
+        width: 400,
+        height: 300,
+      });
+
+      const rowMapperHooks = columnIndexMapper().__localHooks.cacheUpdated.length;
+      const columnMapperHooks = columnIndexMapper().__localHooks.cacheUpdated.length;
+
+      await updateSettings({
+        nestedHeaders: false,
+      });
+      await updateSettings({
+        nestedHeaders: generateComplexSetup(4, 70, true),
+      });
+
+      await updateSettings({
+        nestedHeaders: false,
+      });
+      await updateSettings({
+        nestedHeaders: generateComplexSetup(4, 70, true),
+      });
+
+      expect(rowMapperHooks).toBe(rowIndexMapper().__localHooks.cacheUpdated.length);
+      expect(columnMapperHooks).toBe(columnIndexMapper().__localHooks.cacheUpdated.length);
     });
   });
 });

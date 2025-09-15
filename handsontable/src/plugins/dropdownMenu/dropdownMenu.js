@@ -190,6 +190,7 @@ export class DropdownMenu extends BasePlugin {
 
     this.addHook('beforeOnCellMouseDown', (...args) => this.#onBeforeOnCellMouseDown(...args));
     this.addHook('beforeViewportScrollHorizontally', (...args) => this.#onBeforeViewportScrollHorizontally(...args));
+    this.addHook('beforeDialogShow', () => this.close());
 
     const settings = this.hot.getSettings()[PLUGIN_KEY];
     const predefinedItems = {
@@ -268,12 +269,12 @@ export class DropdownMenu extends BasePlugin {
   registerShortcuts() {
     const gridContext = this.hot.getShortcutManager().getContext('grid');
     const callback = () => {
-      const { highlight } = this.hot.getSelectedRangeLast();
+      const { highlight } = this.hot.getSelectedRangeActive();
 
       if ((highlight.isHeader() && highlight.row === -1 || highlight.isCell()) && highlight.col >= 0) {
         this.hot.selectColumns(highlight.col, highlight.col, -1);
 
-        const { from } = this.hot.getSelectedRangeLast();
+        const { from } = this.hot.getSelectedRangeActive();
         const offset = getDocumentOffsetByElement(this.menu.container, this.hot.rootDocument);
         const target = this.hot.getCell(-1, from.col, true).querySelector(`.${BUTTON_CLASS_NAME}`);
         const rect = target.getBoundingClientRect();
@@ -297,7 +298,7 @@ export class DropdownMenu extends BasePlugin {
       keys: [['Shift', 'Alt', 'ArrowDown'], ['Control/Meta', 'Enter']],
       callback,
       runOnlyIf: () => {
-        const highlight = this.hot.getSelectedRangeLast()?.highlight;
+        const highlight = this.hot.getSelectedRangeActive()?.highlight;
 
         return highlight && this.hot.selection.isCellVisible(highlight) &&
           highlight.isHeader() && !this.menu.isOpened();
@@ -308,7 +309,7 @@ export class DropdownMenu extends BasePlugin {
       keys: [['Shift', 'Alt', 'ArrowDown']],
       callback,
       runOnlyIf: () => {
-        const highlight = this.hot.getSelectedRangeLast()?.highlight;
+        const highlight = this.hot.getSelectedRangeActive()?.highlight;
 
         return highlight && this.hot.selection.isCellVisible(highlight) &&
           highlight.isCell() && !this.menu.isOpened();

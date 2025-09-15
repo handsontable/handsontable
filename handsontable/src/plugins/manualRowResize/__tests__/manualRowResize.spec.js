@@ -125,7 +125,7 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
       classic.toEqual(31);
       main.toEqual(30);
-      horizon.toEqual(38);
+      horizon.toEqual(37);
     });
     expect(rowHeight(spec().$container, 1)).toEqual(80);
     expect(rowHeight(spec().$container, 2)).toEqual(100);
@@ -986,6 +986,32 @@ describe('manualRowResize', () => {
       horizon.toBeAroundValue(37);
     });
     expect(rowHeight(spec().$container, 3)).forThemes(({ classic, main, horizon }) => {
+      classic.toBeAroundValue(24);
+      main.toBeAroundValue(29);
+      horizon.toBeAroundValue(37);
+    });
+  });
+
+  it('should autosize selected rows after double click on handler and move mouse to the next row', async() => {
+    handsontable({
+      data: createSpreadsheetData(9, 9),
+      rowHeaders: true,
+      manualRowResize: true,
+    });
+
+    await resizeRow(1, 100);
+
+    getInlineStartClone().find('tbody tr:eq(1) th:eq(0)').simulate('mouseover');
+
+    const $resizer = spec().$container.find('.manualRowResizer');
+    const resizerPosition = $resizer.position();
+
+    await sleep(600);
+    await mouseDoubleClick($resizer, { clientY: resizerPosition.top });
+    getInlineStartClone().find('tr:eq(2) th:eq(0)').simulate('mouseover');
+    await sleep(600);
+
+    expect(rowHeight(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
       classic.toBeAroundValue(24);
       main.toBeAroundValue(29);
       horizon.toBeAroundValue(37);
@@ -1932,6 +1958,7 @@ describe('manualRowResize', () => {
       expect(beforeRowResizeCallback.calls.mostRecent().args).toEqual([300, 2, false]);
       expect(afterRowResizeCallback.calls.mostRecent().args).toEqual([300, 2, false]);
 
+      await sleep(500);
       await resizeRow(2, -10);
 
       expect(beforeRowResizeCallback.calls.mostRecent().args).forThemes(({ classic, main, horizon }) => {
@@ -1945,11 +1972,13 @@ describe('manualRowResize', () => {
         horizon.toEqual([37, 2, false]);
       });
 
+      await sleep(500);
       await resizeRow(2, 100);
 
       expect(beforeRowResizeCallback.calls.mostRecent().args).toEqual([100, 2, false]);
       expect(afterRowResizeCallback.calls.mostRecent().args).toEqual([100, 2, false]);
 
+      await sleep(500);
       await resizeRow(2, 5);
 
       expect(beforeRowResizeCallback.calls.mostRecent().args).forThemes(({ classic, main, horizon }) => {

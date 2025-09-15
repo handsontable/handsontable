@@ -68,6 +68,13 @@ export interface Events {
   afterContextMenuHide?: (context: ContextMenu) => void;
   afterContextMenuShow?: (context: ContextMenu) => void;
   afterCopy?: (data: CellValue[][], coords: RangeType[], copiedHeadersCount: { columnHeadersCount: number }) => void;
+  afterDialogFocus?: (focusSource: 'tab_from_above' | 'tab_from_below' | 'click' | 'show') => void;
+  afterDialogHide?: () => void;
+  afterDialogShow?: () => void;
+  beforeLoadingShow?: () => boolean | void;
+  afterLoadingShow?: () => void;
+  beforeLoadingHide?: () => boolean | void;
+  afterLoadingHide?: () => void;
   afterCopyLimit?: (selectedRows: number, selectedColumns: number, copyRowsLimit: number, copyColumnsLimit: number) => void;
   afterCreateCol?: (index: number, amount: number, source?: ChangeSource) => void;
   afterCreateRow?: (index: number, amount: number, source?: ChangeSource) => void;
@@ -107,6 +114,11 @@ export interface Events {
   afterOnCellMouseOut?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement) => void;
   afterOnCellMouseOver?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement) => void;
   afterOnCellMouseUp?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement) => void;
+  afterPageChange?: (oldPage: number, newPage: number) => void;
+  afterPageCounterVisibilityChange?: (isVisible: boolean) => void;
+  afterPageNavigationVisibilityChange?: (isVisible: boolean) => void;
+  afterPageSizeChange?: (oldPageSize: number | 'auto', newPageSize: number | 'auto') => void;
+  afterPageSizeVisibilityChange?: (isVisible: boolean) => void;
   afterPaste?: (data: CellValue[][], coords: RangeType[]) => void;
   afterPluginsInitialized?: () => void;
   afterRedo?: (action: UndoRedoAction) => void;
@@ -123,6 +135,7 @@ export interface Events {
   afterScrollHorizontally?: () => void;
   afterScrollVertically?: () => void;
   afterScroll?: () => void;
+  afterSelectAll?: (from: CellCoords, to: CellCoords, highlight?: CellCoords) => void;
   afterSelectColumns?: (from: CellCoords, to: CellCoords, highlight: CellCoords) => void;
   afterSelection?: (row: number, column: number, row2: number, column2: number, preventScrolling: { value: boolean }, selectionLayerLevel: number) => void;
   afterSelectionByProp?: (row: number, prop: string, row2: number, prop2: string, preventScrolling: { value: boolean }, selectionLayerLevel: number) => void;
@@ -172,6 +185,8 @@ export interface Events {
   beforeContextMenuShow?: (context: ContextMenu) => void;
   beforeCopy?: (data: CellValue[][], coords: RangeType[], copiedHeadersCount: { columnHeadersCount: number }) => void | boolean;
   beforeCreateCol?: (index: number, amount: number, source?: ChangeSource) => void | boolean;
+  beforeDialogHide?: () => void;
+  beforeDialogShow?: () => void;
   beforeCreateRow?: (index: number, amount: number, source?: ChangeSource) => void | boolean;
   beforeCut?: (data: CellValue[][], coords: RangeType[]) => void | boolean;
   beforeDetachChild?: (parent: RowObject, element: RowObject) => void;
@@ -180,6 +195,7 @@ export interface Events {
   beforeDropdownMenuShow?: (instance: DropdownMenu) => void;
   beforeFilter?: (conditionsStack: FiltersColumnConditions[], previousConditionsStack: FiltersColumnConditions[]) => void | boolean;
   beforeGetCellMeta?: (row: number, column: number, cellProperties: CellProperties) => void;
+  beforeHeightChange?: (height: number | string) => number | string;
   beforeHideColumns?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean) => void | boolean;
   beforeHideRows?: (currentHideConfig: number[], destinationHideConfig: number[], actionPossible: boolean) => void | boolean;
   beforeHighlightingColumnHeader?: (column: number, headerLevel: number, highlightMeta: HookHighlightColumnHeaderMeta) => number | void;
@@ -195,6 +211,8 @@ export interface Events {
   beforeOnCellMouseOut?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement) => void;
   beforeOnCellMouseOver?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement, controller: SelectionController) => void;
   beforeOnCellMouseUp?: (event: MouseEvent, coords: CellCoords, TD: HTMLTableCellElement) => void;
+  beforePageChange?: (oldPage: number, newPage: number) => void | boolean;
+  beforePageSizeChange?: (oldPageSize: number | 'auto', newPageSize: number | 'auto') => void | boolean;
   beforePaste?: (data: CellValue[][], coords: RangeType[]) => void | boolean;
   beforeRedo?: (action: UndoRedoAction) => void;
   beforeRedoStackChange?: (undoneActions: UndoRedoAction[]) => void;
@@ -208,6 +226,7 @@ export interface Events {
   beforeRowMove?: (movedRows: number[], finalIndex: number, dropIndex: number | undefined, movePossible: boolean) => void;
   beforeRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => number | void;
   beforeRowWrap?: (isActionInterrupted: { value: boolean }, newCoords: CellCoords, isRowFlipped: boolean) => void;
+  beforeSelectAll?: (from: CellCoords, to: CellCoords, highlight?: CellCoords) => void;
   beforeSelectColumns?: (from: CellCoords, to: CellCoords, highlight: CellCoords) => void;
   beforeSelectionFocusSet?: (coords: CellCoords) => void;
   beforeSelectionHighlightSet?: () => void;
@@ -232,7 +251,10 @@ export interface Events {
   beforeViewportScrollHorizontally?: (visualColumn: number, snapping: 'auto' | 'start' | 'end') => number | boolean | null;
   beforeViewportScroll?: () => void;
   beforeViewRender?: (isForced: boolean, skipRender: { skipRender?: boolean }) => void;
+  beforeWidthChange?: (width: number | string) => number | string;
   construct?: () => void;
+  dialogFocusNextElement?: () => void;
+  dialogFocusPreviousElement?: () => void;
   init?: () => void;
   modifyAutoColumnSizeSeed?: (seed: string, cellProperties: CellProperties, cellValue: CellValue) => string | void;
   modifyAutofillRange?: (startArea: Array<[number, number, number, number]>, entireArea: Array<[number, number, number, number]>) => void;

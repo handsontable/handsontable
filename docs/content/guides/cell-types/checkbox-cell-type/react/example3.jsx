@@ -53,7 +53,7 @@ const ExampleComponent = () => {
           type: 'checkbox',
           label: {
             position: 'after',
-            property: 'car',
+            property: 'car', // Read value from row object
           },
         },
         {

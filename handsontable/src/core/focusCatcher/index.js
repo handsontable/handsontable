@@ -1,5 +1,7 @@
 import { GRID_GROUP } from '../../shortcutContexts';
-import { installFocusDetector } from './focusDetector';
+import { installFocusDetector } from '../../utils/focusDetector';
+import { normalizeCoordsIfNeeded } from './utils';
+import { getMostTopStartPosition, getMostBottomEndPosition } from '../../helpers/mixed';
 
 /**
  * Installs a focus catcher module. The module observes when the table is focused and depending on
@@ -12,23 +14,22 @@ export function installFocusCatcher(hot) {
   const clampCoordsIfNeeded = normalizeCoordsIfNeeded(hot);
   let recentlyAddedFocusCoords;
 
-  const { activate, deactivate } = installFocusDetector(hot, {
-    onFocusFromTop() {
-      const mostTopStartCoords = clampCoordsIfNeeded(recentlyAddedFocusCoords) ?? getMostTopStartPosition(hot);
+  const { activate, deactivate } = installFocusDetector(hot, hot.rootGridElement, {
+    onFocus(from) {
+      if (from === 'from_above') {
+        const mostTopStartCoords = clampCoordsIfNeeded(recentlyAddedFocusCoords) ?? getMostTopStartPosition(hot);
+        const result = hot.runHooks('modifyFocusOnTabNavigation', 'from_above', mostTopStartCoords);
 
-      if (mostTopStartCoords) {
-        hot.runHooks('modifyFocusOnTabNavigation', 'from_above', mostTopStartCoords);
-        hot.selectCell(mostTopStartCoords.row, mostTopStartCoords.col);
-      }
+        if (mostTopStartCoords && result !== false) {
+          hot.selectCell(mostTopStartCoords.row, mostTopStartCoords.col);
+        }
+      } else {
+        const mostBottomEndCoords = clampCoordsIfNeeded(recentlyAddedFocusCoords) ?? getMostBottomEndPosition(hot);
+        const result = hot.runHooks('modifyFocusOnTabNavigation', 'from_below', mostBottomEndCoords);
 
-      hot.listen();
-    },
-    onFocusFromBottom() {
-      const mostBottomEndCoords = clampCoordsIfNeeded(recentlyAddedFocusCoords) ?? getMostBottomEndPosition(hot);
-
-      if (mostBottomEndCoords) {
-        hot.runHooks('modifyFocusOnTabNavigation', 'from_below', mostBottomEndCoords);
-        hot.selectCell(mostBottomEndCoords.row, mostBottomEndCoords.col);
+        if (mostBottomEndCoords && result !== false) {
+          hot.selectCell(mostBottomEndCoords.row, mostBottomEndCoords.col);
+        }
       }
 
       hot.listen();
@@ -43,8 +44,22 @@ export function installFocusCatcher(hot) {
   let isTabOrShiftTabPressed = false;
   let preventViewportScroll = false;
 
-  hot.addHook('afterListen', () => deactivate());
-  hot.addHook('afterUnlisten', () => activate());
+  hot.addHook('afterListen', () => {
+    const activeContextName = hot.getShortcutManager().getActiveContextName();
+    const activeContext = hot.getShortcutManager().getContext(activeContextName);
+
+    if (activeContext?.scope === 'table') {
+      deactivate();
+    }
+  });
+  hot.addHook('afterUnlisten', () => {
+    const activeContextName = hot.getShortcutManager().getActiveContextName();
+    const activeContext = hot.getShortcutManager().getContext(activeContextName);
+
+    if (activeContext?.scope === 'table') {
+      activate();
+    }
+  });
   hot.addHook('afterSelection', (row, column, row2, column2, preventScrolling) => {
     if (isTabOrShiftTabPressed && (rowWrapState.wrapped && rowWrapState.flipped || preventViewportScroll)) {
       preventViewportScroll = false;
@@ -52,7 +67,7 @@ export function installFocusCatcher(hot) {
     }
 
     if (isSavingCoordsEnabled) {
-      recentlyAddedFocusCoords = hot.getSelectedRangeLast()?.highlight;
+      recentlyAddedFocusCoords = hot.getSelectedRangeActive()?.highlight;
     }
   });
   hot.addHook('beforeRowWrap', (interruptedByAutoInsertMode, newCoords, isFlipped) => {
@@ -88,7 +103,7 @@ export function installFocusCatcher(hot) {
 
           isTabOrShiftTabPressed = true;
 
-          if (hot.getSelectedRangeLast() && !tabNavigation) {
+          if (hot.getSelectedRangeActive() && !tabNavigation) {
             isSavingCoordsEnabled = false;
           }
 
@@ -128,98 +143,4 @@ export function installFocusCatcher(hot) {
         position: 'after',
       }
     ]);
-}
-
-/**
- * Gets the coordinates of the most top-start cell or header (depends on the table settings and its size).
- *
- * @param {Core} hot The Handsontable instance.
- * @returns {CellCoords|null}
- */
-function getMostTopStartPosition(hot) {
-  const { rowIndexMapper, columnIndexMapper } = hot;
-  const { navigableHeaders } = hot.getSettings();
-  let topRow = navigableHeaders && hot.countColHeaders() > 0 ? -hot.countColHeaders() : 0;
-  let startColumn = navigableHeaders && hot.countRowHeaders() > 0 ? -hot.countRowHeaders() : 0;
-
-  if (topRow === 0) {
-    topRow = rowIndexMapper.getVisualFromRenderableIndex(topRow);
-  }
-
-  if (startColumn === 0) {
-    startColumn = columnIndexMapper.getVisualFromRenderableIndex(startColumn);
-  }
-
-  if (topRow === null || startColumn === null) {
-    return null;
-  }
-
-  return hot._createCellCoords(topRow, startColumn);
-}
-
-/**
- * Gets the coordinates of the most bottom-end cell or header (depends on the table settings and its size).
- *
- * @param {Core} hot The Handsontable instance.
- * @returns {CellCoords|null}
- */
-function getMostBottomEndPosition(hot) {
-  const { rowIndexMapper, columnIndexMapper } = hot;
-  const { navigableHeaders } = hot.getSettings();
-  let bottomRow = rowIndexMapper.getRenderableIndexesLength() - 1;
-  let endColumn = columnIndexMapper.getRenderableIndexesLength() - 1;
-
-  if (bottomRow < 0) {
-    if (!navigableHeaders || hot.countColHeaders() === 0) {
-      return null;
-    }
-
-    bottomRow = -1;
-  }
-
-  if (endColumn < 0) {
-    if (!navigableHeaders || hot.countColHeaders() === 0) {
-      return null;
-    }
-
-    endColumn = -1;
-  }
-
-  return hot._createCellCoords(
-    rowIndexMapper.getVisualFromRenderableIndex(bottomRow) ?? bottomRow,
-    columnIndexMapper.getVisualFromRenderableIndex(endColumn) ?? endColumn,
-  );
-}
-
-/**
- * Normalizes the coordinates (clamps to nearest visible cell position within dataset range).
- *
- * @param {Core} hot The Handsontable instance.
- * @returns {function(Coords | undefined): Coords | null}
- */
-function normalizeCoordsIfNeeded(hot) {
-  return (coords) => {
-    if (!coords) {
-      return null;
-    }
-
-    const mostTopStartCoords = getMostTopStartPosition(hot);
-    const mostBottomEndCoords = getMostBottomEndPosition(hot);
-
-    if (coords.col < mostTopStartCoords.col) {
-      coords.col = mostTopStartCoords.col;
-    }
-    if (coords.col > mostBottomEndCoords.col) {
-      coords.col = mostBottomEndCoords.col;
-    }
-
-    if (coords.row < mostTopStartCoords.row) {
-      coords.row = mostTopStartCoords.row;
-    }
-    if (coords.row > mostBottomEndCoords.row) {
-      coords.row = mostBottomEndCoords.row;
-    }
-
-    return coords;
-  };
 }

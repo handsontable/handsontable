@@ -1104,7 +1104,7 @@ describe('ColumnSummarySpec', () => {
   });
 
   it('should warn user that provided destination points are beyond the table boundaries', async() => {
-    const warnSpy = spyOn(console, 'warn');
+    const warnSpy = spyOnConsoleWarn();
 
     handsontable({
       startRows: 3,
@@ -1120,7 +1120,7 @@ describe('ColumnSummarySpec', () => {
   });
 
   it('should not show endpoint when it\'s destination point is proper just after new row insertion', async() => {
-    const warnSpy = spyOn(console, 'warn');
+    const warnSpy = spyOnConsoleWarn();
     let warnFirstArgs;
 
     handsontable({

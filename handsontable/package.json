@@ -10,7 +10,7 @@
     "url": "https://github.com/handsontable/handsontable/issues"
   },
   "author": "Handsoncode <hello@handsontable.com>",
-  "version": "16.0.1",
+  "version": "16.1.0",
   "main": "index",
   "module": "index.mjs",
   "jsnext:main": "index.mjs",
@@ -140,6 +140,7 @@
     "jsdom": "^24.0.0",
     "loader-utils": "^1.1.0",
     "lodash": "^4.17.20",
+    "lodash.debounce": "^4.0.8",
     "mini-css-extract-plugin": "^2.7.6",
     "minimatch": "^3.0.4",
     "puppeteer": "^24.2.1",

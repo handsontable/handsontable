@@ -24,6 +24,55 @@ describe('CopyPaste', () => {
       // simulated mouse events doesn't run the true browser event
     });
 
+    it('should cut the data by default from the last selection layer', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        copyPaste: true,
+        navigableHeaders: true,
+      });
+
+      const cutEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      await selectCells([
+        [0, 0, 2, 2],
+        [2, 1, 2, 3],
+        [1, 4, 3, 4],
+      ]);
+
+      plugin.onCut(cutEvent);
+
+      expect(cutEvent.clipboardData.getData('text/plain')).toBe('E2\nE3\nE4');
+    });
+
+    it('should cut the data from the active selection layer', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        copyPaste: true,
+        navigableHeaders: true,
+      });
+
+      const cutEvent = getClipboardEvent();
+      const plugin = getPlugin('CopyPaste');
+
+      await selectCells([
+        [0, 0, 2, 2],
+        [2, 1, 2, 3],
+        [1, 4, 3, 4],
+      ]);
+
+      await keyDownUp(['shift', 'tab']);
+      await keyDownUp(['shift', 'tab']); // select C3 of the second layer
+
+      plugin.onCut(cutEvent);
+
+      expect(cutEvent.clipboardData.getData('text/plain')).toBe('B3\tC3\tD3');
+    });
+
     it('should be possible to cut data by API', async() => {
       handsontable({
         data: createSpreadsheetData(2, 2),
@@ -216,6 +265,68 @@ describe('CopyPaste', () => {
       plugin.onCut(cutEvent); // emulate native "cut" event
 
       expect(cutEvent.clipboardData.getData('text/plain')).toBe(expectedResult);
+    });
+
+    it('should stringify the object-based cells as JSON under `application/ht-source-data-json-html`', async() => {
+      handsontable({
+        data: [
+          [{ id: 1, value: 'A1' }, 'test'],
+          [{ id: 3, value: 'A2' }, 'test2'],
+        ],
+        columns: [
+          {
+            valueGetter: value => value?.value,
+          },
+          {},
+        ],
+      });
+
+      const plugin = getPlugin('CopyPaste');
+      const copyEvent = getClipboardEvent();
+
+      await selectCells([[0, 0, 1, 0]]);
+      plugin.onCut(copyEvent);
+
+      expect(copyEvent.clipboardData.getData('application/ht-source-data-json-html')).toEqual([
+        '<meta name="generator" content="Handsontable"/>' +
+        '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>' +
+        '<table><tbody>' +
+        '<tr><td>{"id":1,"value":"A1"}</td></tr>' +
+        '<tr><td>{"id":3,"value":"A2"}</td></tr>' +
+        '</tbody></table>',
+      ].join(''));
+
+      await loadData([
+        [{ id: 1, value: 'A1' }, 'test'],
+        [{ id: 3, value: 'A2' }, 'test2'],
+      ]);
+      await selectCells([[0, 1, 1, 1]]);
+      plugin.onCut(copyEvent);
+
+      expect(copyEvent.clipboardData.getData('application/ht-source-data-json-html')).toEqual([
+        '<meta name="generator" content="Handsontable"/>' +
+        '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>' +
+        '<table><tbody>' +
+        '<tr><td>test</td></tr>' +
+        '<tr><td>test2</td></tr>' +
+        '</tbody></table>',
+      ].join(''));
+
+      await loadData([
+        [{ id: 1, value: 'A1' }, 'test'],
+        [{ id: 3, value: 'A2' }, 'test2'],
+      ]);
+      await selectAll();
+      plugin.onCut(copyEvent);
+
+      expect(copyEvent.clipboardData.getData('application/ht-source-data-json-html')).toEqual([
+        '<meta name="generator" content="Handsontable"/>' +
+        '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>' +
+        '<table><tbody>' +
+        '<tr><td>{"id":1,"value":"A1"}</td><td>test</td></tr>' +
+        '<tr><td>{"id":3,"value":"A2"}</td><td>test2</td></tr>' +
+        '</tbody></table>',
+      ].join(''));
     });
   });
 });

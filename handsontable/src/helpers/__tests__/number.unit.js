@@ -5,6 +5,8 @@ import {
   isNumericLike,
   valueAccordingPercent,
   clamp,
+  isUnsignedNumber,
+  getParsedNumber,
 } from 'handsontable/helpers/number';
 
 describe('Number helper', () => {
@@ -291,7 +293,7 @@ describe('Number helper', () => {
   });
 
   //
-  // Handsontable.helper.clamp
+  // Handsontable.helper.valueAccordingPercent
   //
   describe('valueAccordingPercent', () => {
     it('should correctly calculate value when the percent (the second argument) is passed as number', () => {
@@ -335,7 +337,7 @@ describe('Number helper', () => {
   });
 
   //
-  // Handsontable.helper.rangeEach
+  // Handsontable.helper.clamp
   //
   describe('clamp', () => {
     it('should limit the value to min number', () => {
@@ -358,6 +360,57 @@ describe('Number helper', () => {
       expect(clamp(10, -10, 20)).toBe(10);
       expect(clamp(19, -10, 20)).toBe(19);
       expect(clamp(20, -10, 20)).toBe(20);
+    });
+  });
+
+  //
+  // Handsontable.helper.isUnsignedNumber
+  //
+  describe('isUnsignedNumber', () => {
+    it('should return true only for valid signed numbers', () => {
+      expect(isUnsignedNumber()).toBe(false);
+      expect(isUnsignedNumber(null)).toBe(false);
+      expect(isUnsignedNumber(false)).toBe(false);
+      expect(isUnsignedNumber('')).toBe(false);
+      expect(isUnsignedNumber('1')).toBe(false);
+      expect(isUnsignedNumber({ a: 1 })).toBe(false);
+      expect(isUnsignedNumber(Infinity)).toBe(false);
+      expect(isUnsignedNumber(-1)).toBe(false);
+      expect(isUnsignedNumber(-999)).toBe(false);
+
+      expect(isUnsignedNumber(0)).toBe(true);
+      expect(isUnsignedNumber(1)).toBe(true);
+      expect(isUnsignedNumber(100)).toBe(true);
+      expect(isUnsignedNumber(Number.MAX_SAFE_INTEGER)).toBe(true);
+    });
+  });
+
+  //
+  // Handsontable.helper.getParsedNumber
+  //
+  describe('getParsedNumber', () => {
+    it('should return a number when passing a valid numeric string with a dot as a decimal separator', () => {
+      expect(getParsedNumber('123.456')).toBe(123.456);
+      expect(getParsedNumber('-123.456')).toBe(-123.456);
+      expect(getParsedNumber('0.456')).toBe(0.456);
+      expect(getParsedNumber('.456')).toBe(0.456);
+    });
+
+    it('should return a number when passing a valid numeric string with a comma as a decimal separator', () => {
+      expect(getParsedNumber('123,456')).toBe(123.456);
+      expect(getParsedNumber('-123,456')).toBe(-123.456);
+      expect(getParsedNumber('0,456')).toBe(0.456);
+    });
+
+    it('should return a number when passing an integer string', () => {
+      expect(getParsedNumber('123')).toBe(123);
+      expect(getParsedNumber('-123')).toBe(-123);
+      expect(getParsedNumber('0')).toBe(0);
+    });
+
+    it('should return null for invalid strings', () => {
+      expect(getParsedNumber('abc')).toBe(null);
+      expect(getParsedNumber('')).toBe(null);
     });
   });
 });

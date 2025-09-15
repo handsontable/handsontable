@@ -512,10 +512,12 @@ const ExampleComponent = () => {
 
   return (
     <div className="example-container">
+      {/* DemoOptions component for changing Handsontable options */}
       <DemoOptions changeToggleOptions={setToggleableOptions} {...toggleableOptions} />
 
       <input className="placeholder-input" type="text" placeholder="Focusable text input" />
 
+      {/* Handsontable component with dynamic options */}
       <HotTable
         // Handsontable needs to reload when changing virtualization
         // by changing the key, we force the component to reload
@@ -524,6 +526,7 @@ const ExampleComponent = () => {
         // Pass in the options which can change for demo
         {...toggleableOptions}
       >
+        {/* Define HotColumns for the data */}
         <HotColumn data="companyName" type="text" />
         <HotColumn data="productName" type="text" />
         <HotColumn data="sellDate" dateFormat="DD/MM/YYYY" correctFormat type="date" allowInvalid={false} />

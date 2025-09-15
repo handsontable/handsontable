@@ -25,6 +25,61 @@ describe('CopyPaste', () => {
   };
 
   describe('paste', () => {
+    it('should paste the data by default to the last selection layer', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        copyPaste: true,
+        navigableHeaders: true,
+      });
+
+      await selectCells([
+        [0, 0, 2, 2],
+        [2, 1, 2, 3],
+        [1, 4, 3, 4],
+      ]);
+
+      triggerPaste('Kia\nNissan\nToyota');
+
+      expect(getData()).toEqual([
+        ['A1', 'B1', 'C1', 'D1', 'E1'],
+        ['A2', 'B2', 'C2', 'D2', 'Kia'],
+        ['A3', 'B3', 'C3', 'D3', 'Nissan'],
+        ['A4', 'B4', 'C4', 'D4', 'Toyota'],
+        ['A5', 'B5', 'C5', 'D5', 'E5'],
+      ]);
+    });
+
+    it('should paste the data to the active selection layer', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: true,
+        colHeaders: true,
+        copyPaste: true,
+        navigableHeaders: true,
+      });
+
+      await selectCells([
+        [0, 0, 2, 2],
+        [2, 1, 2, 3],
+        [1, 4, 3, 4],
+      ]);
+
+      await keyDownUp(['shift', 'tab']);
+      await keyDownUp(['shift', 'tab']); // select C3 of the second layer
+
+      triggerPaste('Kia\nNissan\nToyota');
+
+      expect(getData()).toEqual([
+        ['A1', 'B1', 'C1', 'D1', 'E1'],
+        ['A2', 'B2', 'C2', 'D2', 'E2'],
+        ['A3', 'Kia', 'Kia', 'Kia', 'E3'],
+        ['A4', 'Nissan', 'Nissan', 'Nissan', 'E4'],
+        ['A5', 'Toyota', 'Toyota', 'Toyota', 'E5'],
+      ]);
+    });
+
     it('should not create new rows or columns when allowInsertRow and allowInsertColumn equal false', async() => {
       handsontable({
         data: arrayOfArrays(),
@@ -507,14 +562,7 @@ describe('CopyPaste', () => {
         ['A9', 'A9', 'A9', 'A9', 'E9', 'F9', 'A9', 'A9', 'A9', 'A9'],
         ['A10', 'A10', 'A10', 'A10', 'E10', 'F10', 'A10', 'A10', 'A10', 'A10'],
       ]);
-
-      expect(getSelected()).toEqual([[0, 1, 9, 9]]);
-      expect(getSelectedRangeLast().highlight.row).toBe(0);
-      expect(getSelectedRangeLast().highlight.col).toBe(1);
-      expect(getSelectedRangeLast().from.row).toBe(0);
-      expect(getSelectedRangeLast().from.col).toBe(1);
-      expect(getSelectedRangeLast().to.row).toBe(9);
-      expect(getSelectedRangeLast().to.col).toBe(9);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: 0,1 to: 9,9']);
     });
 
     it.forTheme('classic')('should paste data without scrolling the viewport', async() => {
@@ -749,6 +797,74 @@ describe('CopyPaste', () => {
       plugin.onPaste(pasteEvent); // emulate native "paste" event
 
       expect(pasteEvent.preventDefault).toHaveBeenCalled();
+    });
+
+    it('should paste the object-based cells as objects, when the data schema of the target cell matches the pasted content', async() => {
+      handsontable({
+        data: [
+          [{ id: 1, value: 'A1' }],
+          [{ id: 2, value: 'A2' }],
+        ],
+      });
+
+      const plugin = getPlugin('CopyPaste');
+      const event = getClipboardEvent();
+
+      await selectCell(0, 0);
+      plugin.onCopy(event);
+
+      await selectCell(1, 0);
+      plugin.onPaste(event);
+
+      expect(getDataAtCell(1, 0)).toEqual({ id: 1, value: 'A1' });
+    });
+
+    it('should paste the object-based cells as their displayed value, when the target cell is not object-based', async() => {
+      handsontable({
+        data: [
+          [{ id: 1, value: 'A1' }, 'test'],
+          [{ id: 2, value: 'A2' }, 'test2'],
+        ],
+        columns: [
+          {
+            valueGetter: value => value?.value,
+          },
+          {},
+        ],
+      });
+
+      const plugin = getPlugin('CopyPaste');
+      const event = getClipboardEvent();
+
+      await selectCell(0, 0);
+      plugin.onCopy(event);
+
+      await selectCell(1, 1);
+      plugin.onPaste(event);
+
+      expect(getDataAtCell(1, 1)).toEqual('A1');
+    });
+
+    it('should not paste the object-based cells, when the target cell is object-based, but it\'s data schema doesn\'t match the pasted content', async() => {
+      handsontable({
+        data: [
+          [{ id: 1, value: 'A1' }, { sth: 0, label: 'test' }],
+          [{ id: 2, value: 'A2' }, { sth: 1, label: 'test2' }],
+        ],
+        valueGetter: value => value?.value ?? value?.label,
+      });
+
+      const plugin = getPlugin('CopyPaste');
+      const event = getClipboardEvent();
+
+      await selectCell(0, 0);
+      plugin.onCopy(event);
+
+      await selectCell(1, 1);
+      plugin.onPaste(event);
+
+      expect(getDataAtCell(1, 1)).toEqual('test2');
+      expect(getCopyableSourceData(1, 1)).toEqual({ sth: 1, label: 'test2' });
     });
   });
 });

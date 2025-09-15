@@ -27,7 +27,7 @@ describe('MergeCells scrolling', () => {
     expect(topOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(115);
       main.toBe(130);
-      horizon.toBe(159);
+      horizon.toBe(160);
     });
 
     await scrollViewportVertically(0);

@@ -194,12 +194,14 @@ export class BaseEditor {
 
     // if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
     if (ctrlDown) {
-      const selectedLast = this.hot.getSelectedLast();
+      const activeRange = this.hot.getSelectedRangeActive();
+      const topStartCorner = activeRange.getTopStartCorner();
+      const bottomEndCorner = activeRange.getBottomEndCorner();
 
-      visualRowFrom = Math.max(Math.min(selectedLast[0], selectedLast[2]), 0); // Math.max eliminate headers coords.
-      visualColumnFrom = Math.max(Math.min(selectedLast[1], selectedLast[3]), 0); // Math.max eliminate headers coords.
-      visualRowTo = Math.max(selectedLast[0], selectedLast[2]);
-      visualColumnTo = Math.max(selectedLast[1], selectedLast[3]);
+      visualRowFrom = topStartCorner.row;
+      visualColumnFrom = topStartCorner.col;
+      visualRowTo = bottomEndCorner.row;
+      visualColumnTo = bottomEndCorner.col;
 
     } else {
       [visualRowFrom, visualColumnFrom, visualRowTo, visualColumnTo] = [this.row, this.col, null, null];
@@ -239,8 +241,10 @@ export class BaseEditor {
       // Set the editor value only in the full edit mode. In other mode the focusable element has to be empty,
       // otherwise IME (editor for Asia users) doesn't work.
       if (this.isInFullEditMode()) {
+        const originalValue =
+          this.cellProperties.valueGetter ? this.cellProperties.valueGetter(this.originalValue) : this.originalValue;
         const stringifiedInitialValue = typeof newInitialValue === 'string' ?
-          newInitialValue : stringify(this.originalValue);
+          newInitialValue : stringify(originalValue);
 
         this.setValue(stringifiedInitialValue);
       }
@@ -263,6 +267,8 @@ export class BaseEditor {
       this.hot.removeHook('afterScroll', openEditor);
       openEditor();
     }
+
+    this.addHook('beforeDialogShow', () => this.cancelChanges());
   }
 
   /**

@@ -27,8 +27,8 @@
 
     // Menu label
     .htFiltersMenuLabel {
-      font-size: calc(var(--ht-font-size) - 2px);
-      line-height: calc(var(--ht-line-height) - 4px);
+      font-size: var(--ht-font-size-small);
+      line-height: var(--ht-line-height-small);
       font-weight: var(--ht-font-weight);
       margin-bottom: calc(var(--ht-gap-size, 2px) * 2);
 
@@ -104,7 +104,7 @@
         }
 
         td {
-          height: auto;
+          height: auto !important;
           padding: 4px var(--ht-cell-horizontal-padding);
         }
       }

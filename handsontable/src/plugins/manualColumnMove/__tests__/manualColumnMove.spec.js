@@ -12,6 +12,24 @@ describe('manualColumnMove', () => {
     }
   });
 
+  it.forTheme('classic')('should retain the cell border on the first rendered column ' +
+    'with `autoRowSize` enabled (dev-2512)', () => {
+    handsontable({
+      data: createSpreadsheetData(10, 10),
+      colHeaders: true,
+      rowHeaders: true,
+      autoRowSize: true,
+      manualColumnMove: [5, 6, 7, 8, 9],
+      width: 300,
+      height: 300,
+    });
+
+    const firstCell = getCell(0, 0, true);
+    const firstCellBorderLeftWidth = getComputedStyle(firstCell).borderLeftWidth;
+
+    expect(firstCellBorderLeftWidth).toBe('1px');
+  });
+
   describe('init', () => {
     it('should change column order at init when columns properly is not defined', async() => {
       handsontable({
@@ -55,7 +73,8 @@ describe('manualColumnMove', () => {
       spec().$container.find('thead tr:eq(0) th:eq(0)').simulate('mousedown');
       spec().$container.find('thead tr:eq(0) th:eq(0)').simulate('mouseup');
 
-      expect(spec().$container.children().first().children().hasClass('after-selection--columns')).toBeGreaterThan(0);
+      expect(spec().$container.children().children().first().children().hasClass('after-selection--columns'))
+        .toBeGreaterThan(0);
     });
 
     it('should change the default column order with updateSettings', async() => {
@@ -659,7 +678,7 @@ describe('manualColumnMove', () => {
 
     describe('by drag', () => {
       describe('should trigger the `beforeColumnMove` and `afterColumnMove` hooks with proper ' +
-               'parameters (moving single column)', async() => {
+               'parameters (moving single column)', () => {
         it('visual indexes as parameters', async() => {
           const beforeColumnMoveCallback = jasmine.createSpy('beforeColumnMoveCallback');
           const afterMoveColumnCallback = jasmine.createSpy('afterMoveColumnCallback');

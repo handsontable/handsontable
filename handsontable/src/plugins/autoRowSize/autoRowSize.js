@@ -6,10 +6,12 @@ import { valueAccordingPercent, rangeEach } from '../../helpers/number';
 import SamplesGenerator from '../../utils/samplesGenerator';
 import { isPercentValue } from '../../helpers/string';
 import { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
+import { addClass, removeClass } from '../../helpers/dom/element';
 
 export const PLUGIN_KEY = 'autoRowSize';
 export const PLUGIN_PRIORITY = 40;
 const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
+const FIRST_COLUMN_NOT_RENDERED_CLASS_NAME = 'htFirstDatasetColumnNotRendered';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
@@ -44,6 +46,11 @@ const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
  *
  * You can also use the `allowSampleDuplicates` option to allow sampling duplicate values when calculating the row
  * height. __Note__, that this might have a negative impact on performance.
+ *
+ * ::: tip
+ * Note: Updating some of the table's settings can cause the row heights to change (e.g. `wordWrap`, `textEllipsis`, renderers etc.).
+ * In those cases, to ensure that the row heights are properly recalculated, you need to call the {@link AutoRowSize#recalculateAllRowsHeight} method after calling {@link Core#updateSettings}.
+ * :::
  *
  * To configure this plugin see {@link Options#autoRowSize}.
  *
@@ -189,10 +196,9 @@ export class AutoRowSize extends BasePlugin {
    * @type {SamplesGenerator}
    */
   samplesGenerator = new SamplesGenerator((row, column) => {
-    const physicalRow = this.hot.toPhysicalRow(row);
     const physicalColumn = this.hot.toPhysicalColumn(column);
 
-    if (this.hot.rowIndexMapper.isHidden(physicalRow) || this.hot.columnIndexMapper.isHidden(physicalColumn)) {
+    if (this.hot.columnIndexMapper.isHidden(physicalColumn)) {
       return false;
     }
 
@@ -290,6 +296,7 @@ export class AutoRowSize extends BasePlugin {
     this.addHook('beforeChangeRender', (...args) => this.#onBeforeChange(...args));
     this.addHook('beforeColumnResize', () => this.recalculateAllRowsHeight());
     this.addHook('afterFormulasValuesUpdate', (...args) => this.#onAfterFormulasValuesUpdate(...args));
+    this.addHook('beforeViewRender', () => this.#onBeforeViewRender());
     this.addHook('beforeRender', () => this.#onBeforeRender());
     this.addHook('modifyRowHeight', (height, row) => this.getRowHeight(row, height));
     this.addHook('init', () => this.#onInit());
@@ -305,6 +312,9 @@ export class AutoRowSize extends BasePlugin {
     this.headerHeight = null;
 
     super.disablePlugin();
+
+    // Remove the "first dataset column not rendered" class name when the plugin is disabled.
+    this.#toggleFirstDatasetColumnRenderedClassName(false);
 
     // Leave the listener active to allow auto-sizing the rows when the plugin is disabled.
     // This is necessary for height recalculation for resize handler doubleclick (ManualRowResize).
@@ -522,11 +532,21 @@ export class AutoRowSize extends BasePlugin {
    * @param {number} [defaultHeight] If no height is found, `defaultHeight` is returned instead.
    * @returns {number} The height of the specified row, in pixels.
    */
-  getRowHeight(row, defaultHeight) {
-    const cachedHeight = row < 0 ? this.headerHeight : this.rowHeightsMap.getValueAtIndex(this.hot.toPhysicalRow(row));
+  getRowHeight(row, defaultHeight = this.hot.stylesHandler.getDefaultRowHeight()) {
+    if (row < 0) {
+      return this.headerHeight ?? defaultHeight;
+    }
+
+    const physicalRow = this.hot.toPhysicalRow(row);
+
+    if (this.hot.rowIndexMapper.isHidden(physicalRow)) {
+      return defaultHeight;
+    }
+
+    const cachedHeight = this.rowHeightsMap.getValueAtIndex(physicalRow);
     let height = defaultHeight;
 
-    if (cachedHeight !== null && cachedHeight > (defaultHeight || 0)) {
+    if (cachedHeight !== null && cachedHeight > defaultHeight) {
       height = cachedHeight;
     }
 
@@ -607,7 +627,36 @@ export class AutoRowSize extends BasePlugin {
   }
 
   /**
-   * On before view render listener.
+   * Toggles the "first dataset column not rendered" class name.
+   * Used to apply special styling when the first column is visible (used only in the classic (legacy) theme, with the AutoRowSize plugin enabled).
+   *
+   * @param {boolean} [forceState] Force the class to be added or removed (`true` to add, `false` to remove).
+   */
+  #toggleFirstDatasetColumnRenderedClassName(forceState) {
+    const firstRenderedColumnVisualIndex = this.hot.getFirstRenderedVisibleColumn();
+    const firstRenderedColumnPhysicalIndex =
+      this.hot.columnIndexMapper.getPhysicalFromVisualIndex(firstRenderedColumnVisualIndex);
+
+    if (
+      forceState === false ||
+      firstRenderedColumnPhysicalIndex === this.hot.columnIndexMapper.getPhysicalFromRenderableIndex(0)
+    ) {
+      removeClass(this.hot.rootElement, FIRST_COLUMN_NOT_RENDERED_CLASS_NAME);
+
+    } else {
+      addClass(this.hot.rootElement, FIRST_COLUMN_NOT_RENDERED_CLASS_NAME);
+    }
+  }
+
+  /**
+   * `beforeViewRender` hook listener.
+   */
+  #onBeforeViewRender() {
+    this.#toggleFirstDatasetColumnRenderedClassName();
+  }
+
+  /**
+   * `beforeRender` hook listener.
    */
   #onBeforeRender() {
     this.calculateVisibleRowsHeight();

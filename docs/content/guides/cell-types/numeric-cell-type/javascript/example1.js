@@ -1,9 +1,12 @@
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
 import numbro from 'numbro';
 import deDE from 'numbro/languages/de-DE';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
 
+// Register all Handsontable's modules.
+registerAllModules();
 // register the languages you need
 numbro.registerLanguage(deDE);
 
@@ -25,6 +28,7 @@ new Handsontable(container, {
   columns: [
     {
       data: 'car',
+      // 1st column is simple text, no special options here
     },
     {
       data: 'year',
@@ -35,7 +39,7 @@ new Handsontable(container, {
       type: 'numeric',
       numericFormat: {
         pattern: '$0,0.00',
-        culture: 'en-US',
+        culture: 'en-US', // this is the default culture, set up for USD
       },
       allowEmpty: false,
     },
@@ -44,7 +48,8 @@ new Handsontable(container, {
       type: 'numeric',
       numericFormat: {
         pattern: '0,0.00 $',
-        culture: 'de-DE',
+        culture: 'de-DE', // use this for EUR (German),
+        // more cultures available on http://numbrojs.com/languages.html
       },
     },
   ],

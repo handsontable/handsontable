@@ -45,6 +45,7 @@ const ExampleComponent = () => {
       columns={[
         {
           data: 'car',
+          // 1st column is simple text, no special options here
         },
         {
           data: 'year',
@@ -55,7 +56,7 @@ const ExampleComponent = () => {
           type: 'numeric',
           numericFormat: {
             pattern: '$0,0.00',
-            culture: 'en-US',
+            culture: 'en-US', // this is the default culture, set up for USD
           },
           allowEmpty: false,
         },
@@ -64,7 +65,8 @@ const ExampleComponent = () => {
           type: 'numeric',
           numericFormat: {
             pattern: '0,0.00 $',
-            culture: 'de-DE',
+            culture: 'de-DE', // use this for EUR (German),
+            // more cultures available on http://numbrojs.com/languages.html
           },
         },
       ]}

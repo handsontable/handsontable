@@ -1,7 +1,11 @@
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
 import { DetailedSettings, MenuItemConfig } from 'handsontable/plugins/contextMenu';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const contextMenuSettings: DetailedSettings = {
   callback(key, selection, clickEvent) {

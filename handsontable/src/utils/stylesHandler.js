@@ -32,7 +32,6 @@ export class StylesHandler {
    * The root document of the instance.
    *
    * @type {Document}
-   * @private
    */
   #rootDocument;
 
@@ -47,27 +46,35 @@ export class StylesHandler {
    * An object to store CSS variable values.
    *
    * @type {object}
-   * @private
    */
   #cssVars = {};
 
   /**
    * Stores the computed styles for various elements.
    *
-   * @type {object} - An object containing the computed styles if a nested structore of `element: { [element type]: {property: value} }`.
-   * @private
+   * @type {object} - An object containing the computed styles if a nested structure of `element: { [element type]: {property: value} }`.
    */
   #computedStyles = {};
 
   /**
+   * The callback function to be called when the theme changes.
+   *
+   * @type {function(string)}
+   */
+  #onThemeChange;
+
+  /**
    * Initializes a new instance of the `StylesHandler` class.
    *
-   * @param {HTMLElement} rootElement - The root element of the instance.
-   * @param {Document} rootDocument - The root document of the instance.
+   * @param {object} options The options for the `StylesHandler` instance.
+   * @param {HTMLElement} options.rootElement The root element of the instance.
+   * @param {Document} options.rootDocument The root document of the instance.
+   * @param {function(string)} options.onThemeChange The callback function to be called when the theme changes.
    */
-  constructor(rootElement, rootDocument) {
+  constructor({ rootElement, rootDocument, onThemeChange = () => {} }) {
     this.#rootElement = rootElement;
     this.#rootDocument = rootDocument;
+    this.#onThemeChange = onThemeChange;
   }
 
   /**
@@ -153,6 +160,7 @@ export class StylesHandler {
 
       this.#themeName = undefined;
       this.#isClassicTheme = true;
+      this.#onThemeChange(this.#themeName);
       this.#cacheStylesheetValues();
 
       return;
@@ -164,6 +172,7 @@ export class StylesHandler {
 
         this.#themeName = undefined;
         this.#isClassicTheme = false;
+        this.#onThemeChange(this.#themeName);
         this.#cacheStylesheetValues();
 
         return;
@@ -175,6 +184,7 @@ export class StylesHandler {
 
       this.#themeName = themeName;
       this.#isClassicTheme = false;
+      this.#onThemeChange(this.#themeName);
       this.#cacheStylesheetValues();
     }
   }
@@ -248,7 +258,7 @@ export class StylesHandler {
     const table = rootDocument.createElement('table');
     const tbody = rootDocument.createElement('tbody');
     const tr = rootDocument.createElement('tr');
-    // This needs not to be the first row in order to get "regular" vaules.
+    // This needs not to be the first row in order to get "regular" values.
     const tr2 = rootDocument.createElement('tr');
     const td = rootDocument.createElement('td');
 

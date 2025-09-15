@@ -3,8 +3,8 @@ import {
   EmbeddedViewRef, EnvironmentInjector, Injectable,
   TemplateRef, Type
 } from '@angular/core';
-import {BaseRenderer} from 'handsontable/renderers';
-import Handsontable from 'handsontable';
+import {baseRenderer, BaseRenderer} from 'handsontable/renderers';
+import Handsontable from 'handsontable/base';
 import {HotCellRendererComponent} from './hot-cell-renderer.component';
 
 type BaseRendererParameters = Parameters<BaseRenderer>;
@@ -101,7 +101,7 @@ export class DynamicComponentService {
         instance, td, row, col, prop, value, cellProperties
       ];
 
-      Handsontable.renderers.BaseRenderer.apply(this, rendererParameters);
+      baseRenderer.apply(this, rendererParameters);
 
       td.innerHTML = '';
 

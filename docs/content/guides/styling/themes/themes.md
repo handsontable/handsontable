@@ -37,13 +37,15 @@ Use Handsontable's built-in themes or customize its look by adjusting available 
 
 ## Overview
 
-Handsontable themes manage most visual elements of the data grid and are easy to customize, thanks to over 180 CSS variables available for each theme. By default, two built-in themes are available: `main` and `horizon`. Both include dark and light modes that automatically detect your application's preferred color scheme.
+Handsontable themes manage most visual elements of the data grid and are easy to customize, thanks to over 180 CSS variables available for each theme. By default, two built-in themes are available: `main`, `horizon` and `classic`. All includes dark and light modes that automatically detect your application's preferred color scheme.
 
 ## Built-in themes
 
 The `main` ([source](https://github.com/handsontable/handsontable/blob/develop/handsontable/src/styles/themes/main.scss)) theme offers a spreadsheet-like interface, perfect for batch-editing tasks and providing users with a familiar experience, similar to other popular spreadsheet software on the market.
 
 The `horizon` ([source](https://github.com/handsontable/handsontable/blob/develop/handsontable/src/styles/themes/horizon.scss)) theme, on the other hand, is better suited for data display and analysis. It hides the vertical lines between columns, giving it a cleaner and more lightweight feel.
+
+The `classic` ([source](https://github.com/handsontable/handsontable/blob/develop/handsontable/src/styles/themes/classic.scss)) theme is a replacement for the old legacy classic style. It retains the familiar look and feel of the original classic theme, but has been updated to allow customization with CSS variables. This theme is ideal for users who prefer the traditional appearance of Handsontable but want to benefit from the theming system. The `classic` theme supports both light and dark modes, ensuring a seamless integration with your application's color scheme preferences.
 
 Keep in mind that starting from version `15.0`, importing a theme is required.
 
@@ -72,10 +74,8 @@ Keep in mind that starting from version `15.0`, importing a theme is required.
 ::: only-for angular
 
 ::: example #example1 :angular --ts 1 --html 2
-
 @[code](@/content/guides/styling/themes/angular/example1.ts)
 @[code](@/content/guides/styling/themes/angular/example1.html)
-
 :::
 
 :::
@@ -220,71 +220,11 @@ When both a global theme and a local themeName are defined, the local setting ta
 
 This hierarchy ensures that you can define a consistent default theme for your entire application while still allowing individual components to customize their appearance when needed.
 
-::: only-for angular
-
-<!-- TODO: angular example example--02-01-02 -->
-
 :::
 
-## Create a custom theme
+## The classic (legacy) theme
 
-Creating a custom theme is straightforward. Follow these steps to set up your custom design:
-
-### ① Create a new CSS file
-
-Start by copying one of the CSS files provided with Handsontable, such as [`ht-theme-main.css`](https://github.com/handsontable/handsontable/blob/develop/handsontable/src/styles/themes/main.scss). Rename it to something unique for your project. For this example, let’s name the new theme `falcon`, making the full file name `ht-theme-falcon.css`.
-
-Next, customize the existing variables to match your design requirements. If you need icons, you can use the ones available in the [GitHub repository](https://github.com/handsontable/handsontable/blob/develop/handsontable/src/styles/utils/_icons.scss) or create your own icon set using the `@use "utils/[theme]/icons";` directive.
-
-### ② Load and apply the theme
-
-Include the new CSS file in your project, ensuring it’s loaded after the base CSS file (`styles/handsontable.min.css`). If you’re using imports, it might look like this:
-
-```js
-import 'handsontable/styles/handsontable.min.css';
-import 'handsontable/styles/ht-theme-falcon.min.css';
-```
-
-To apply a theme, use the `themeName` option by specifying it in the configuration, like this:
-
-::: only-for javascript
-
-```js
-const hot = new Handsontable(container, {
-  // theme name with obligatory `ht-theme-*` prefix
-  themeName: 'ht-theme-falcon',
-  // other options
-});
-```
-
-:::
-
-::: only-for react
-
-```jsx
-<HotTable
-  // theme name with obligatory `ht-theme-*` prefix
-  themeName="ht-theme-falcon"
-  // other options
-/>
-```
-
-:::
-
-::: only-for angular
-
-```html
-<hot-table [settings]="{
-  themeName: 'ht-theme-falcon'
-  // other options
-}">
-</hot-table>
-```
-
-:::
-
-## The classic theme
-The classic CSS file ([`handsontable.full.min.css`](https://github.com/handsontable/handsontable/blob/master/handsontable/dist/handsontable.full.min.css)) was the default theme up until `version 15` (released in December 2024). While it will still be supported and tested in future Handsontable updates, it is no longer recommended for new projects.
+The classic (legacy) CSS file ([`handsontable.full.min.css`](https://github.com/handsontable/handsontable/blob/master/handsontable/dist/handsontable.full.min.css)) was the default theme up until `version 15` (released in December 2024). This theme is a legacy theme and will be removed in version 17.0.0.
   
 ## Known limitations
 

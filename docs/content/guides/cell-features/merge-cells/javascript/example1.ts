@@ -1,6 +1,10 @@
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 // generate an array of arrays with dummy data
 const data: string[][] = new Array(100) // number of rows
@@ -17,7 +21,10 @@ new Handsontable(container, {
   themeName: 'ht-theme-main',
   data,
   height: 320,
-  colWidths: 50,
+  autoColumnSize: {
+    allowSampleDuplicates: true,
+    samplingRatio: 100,
+  },
   rowHeaders: true,
   colHeaders: true,
   contextMenu: true,

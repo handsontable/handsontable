@@ -3,7 +3,7 @@ export const command = {
   callback(hot) {
     const { selection, columnIndexMapper } = hot;
     const fixedColumns = parseInt(hot.getSettings().fixedColumnsStart, 10);
-    const row = hot.getSelectedRangeLast().highlight.row;
+    const row = hot.getSelectedRangeActive().highlight.row;
     const column = columnIndexMapper.getNearestNotHiddenIndex(fixedColumns, 1);
 
     selection.markSource('keyboard');

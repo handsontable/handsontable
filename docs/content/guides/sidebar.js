@@ -15,7 +15,9 @@ const gettingStartedItems = [
 
 const stylingItems = [
   { path: 'guides/styling/themes/themes' },
-  { path: 'guides/styling/design-system/design-system' }
+  { path: 'guides/styling/design-system/design-system' },
+  { path: 'guides/styling/theme-customization/theme-customization' },
+  { path: 'guides/styling/legacy-style/legacy-style' },
 ];
 
 const integrateWithVueItems = [
@@ -71,6 +73,7 @@ const rowsItems = [
   { path: 'guides/rows/row-height/row-height' },
   { path: 'guides/rows/row-virtualization/row-virtualization' },
   { path: 'guides/rows/rows-sorting/rows-sorting' },
+  { path: 'guides/rows/rows-pagination/rows-pagination' },
   { path: 'guides/rows/row-trimming/row-trimming' },
   { path: 'guides/rows/row-prepopulating/row-prepopulating' },
 ];
@@ -129,6 +132,11 @@ const accessoriesAndMenusItems = [
   // TODO { path: 'guides/accessories-and-menus/export-to-excel/export-to-excel' },
 ];
 
+const dialogItems = [
+  { path: 'guides/dialog/dialog/dialog' },
+  { path: 'guides/dialog/loading/loading' },
+];
+
 const internationalizationItems = [
   { path: 'guides/internationalization/language/language' },
   { path: 'guides/internationalization/locale/locale' },
@@ -167,6 +175,9 @@ const technicalSpecificationItems = [
 const upgradeAndMigrationItems = [
   { path: 'guides/upgrade-and-migration/changelog/changelog' },
   { path: 'guides/upgrade-and-migration/versioning-policy/versioning-policy' },
+  { path: 'guides/upgrade-and-migration/deprecation-policy/deprecation-policy' },
+  { path: 'guides/upgrade-and-migration/long-term-support/long-term-support' },
+  { path: 'guides/upgrade-and-migration/migrating-from-16.0-to-16.1/migrating-from-16.0-to-16.1' },
   { path: 'guides/upgrade-and-migration/migrating-from-15.3-to-16.0/migrating-from-15.3-to-16.0' },
   { path: 'guides/upgrade-and-migration/migrating-from-14.6-to-15.0/migrating-from-14.6-to-15.0' },
   { path: 'guides/upgrade-and-migration/migrating-from-13.1-to-14.0/migrating-from-13.1-to-14.0' },
@@ -191,6 +202,7 @@ module.exports = {
     { title: 'Navigation', children: navigationItems },
     { title: 'Accessibility', children: accessibilityItems },
     { title: 'Accessories and menus', children: accessoriesAndMenusItems },
+    { title: 'Dialog', children: dialogItems },
     { title: 'Internationalization', children: internationalizationItems },
     { title: 'Integrate with Vue 2', children: integrateWithVueItems },
     { title: 'Integrate with Vue 3', children: integrateWithVue3Items },

@@ -3,15 +3,15 @@ import { registerLanguageDictionary, arAR } from 'handsontable/i18n';
 import { generateArabicData } from './data';
 import { getThemeNameFromURL } from '../../utils';
 
-registerLanguageDictionary(arAR);
-
-const root = document.getElementById('root');
-
-const container = document.createElement('div');
-root.appendChild(container);
-
 export function init() {
- new Handsontable(container, {
+  registerLanguageDictionary(arAR);
+
+  const root = document.getElementById('root');
+
+  const container = document.createElement('div');
+  root.appendChild(container);
+
+  new Handsontable(container, {
     licenseKey: 'non-commercial-and-evaluation',
     data: generateArabicData(),
     themeName: getThemeNameFromURL(),

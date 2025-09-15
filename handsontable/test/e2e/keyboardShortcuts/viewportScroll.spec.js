@@ -220,6 +220,33 @@ describe('Core viewport scroll keyboard shortcuts', () => {
       });
     });
 
+    it('should scroll the viewport to the focused cell for different active selection layer', async() => {
+      handsontable({
+        data: createSpreadsheetData(100, 50),
+        width: 370,
+        height: 300,
+      });
+
+      await selectCells([
+        [60, 1, 61, 2],
+        [80, 1, 81, 2],
+      ]);
+      await keyDownUp(['shift', 'tab']); // move focus to the previous layer (C62)
+      await scrollViewportTo({
+        row: 0,
+        col: 0,
+        verticalSnap: 'bottom',
+        horizontalSnap: 'end',
+      });
+      await keyDownUp(['control/meta', 'backspace']);
+
+      expect(getCurrentScrollPosition()).forThemes(({ classic, main, horizon }) => {
+        classic.toEqual({ x: 0, y: 1265 });
+        main.toEqual({ x: 0, y: 1653 });
+        horizon.toEqual({ x: 0, y: 2146 });
+      });
+    });
+
     it('should scroll the viewport to the focused cell by positioning the viewport in the center of the cell', async() => {
       handsontable({
         data: createSpreadsheetData(100, 50),

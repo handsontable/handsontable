@@ -1,7 +1,7 @@
 /* file: app.component.ts */
 import { Component, Type } from '@angular/core';
 import { GridSettings } from '@handsontable/angular-wrapper';
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
 
 interface Person {
   id: number | undefined;

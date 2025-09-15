@@ -51,7 +51,8 @@ describe('manualRowMove', () => {
       spec().$container.find('tbody tr:eq(0) th:eq(0)').simulate('mousedown');
       spec().$container.find('tbody tr:eq(0) th:eq(0)').simulate('mouseup');
 
-      expect(spec().$container.children().first().children().hasClass('after-selection--rows')).toBeGreaterThan(0);
+      expect(spec().$container.children().children().first().children().hasClass('after-selection--rows'))
+        .toBeGreaterThan(0);
     });
 
     it('should change the default row order with updateSettings', async() => {
@@ -176,7 +177,7 @@ describe('manualRowMove', () => {
 
     describe('by drag', () => {
       describe('should trigger the `beforeRowMove` and `afterRowMove` hooks with proper ' +
-               'parameters (moving single row)', async() => {
+               'parameters (moving single row)', () => {
         it('visual indexes as parameters', async() => {
           const beforeRowMoveCallback = jasmine.createSpy('beforeRowMoveCallback');
           const afterMoveRowCallback = jasmine.createSpy('afterMoveRowCallback');

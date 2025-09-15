@@ -530,7 +530,7 @@ export class ManualColumnMove extends BasePlugin {
   #onBeforeOnCellMouseDown(event, coords, TD, controller) {
     const wtTable = this.hot.view._wt.wtTable;
     const isHeaderSelection = this.hot.selection.isSelectedByColumnHeader();
-    const selection = this.hot.getSelectedRangeLast();
+    const selection = this.hot.getSelectedRangeActive();
     // This block action shouldn't be handled below.
     const isSortingElement = hasClass(event.target, 'sortAction');
 
@@ -616,7 +616,7 @@ export class ManualColumnMove extends BasePlugin {
    *                            a boolean value that allows or disallows changing the selection for that particular area.
    */
   #onBeforeOnCellMouseOver(event, coords, TD, controller) {
-    const selectedRange = this.hot.getSelectedRangeLast();
+    const selectedRange = this.hot.getSelectedRangeActive();
 
     if (!selectedRange || !this.#pressed) {
       return;
@@ -664,8 +664,8 @@ export class ManualColumnMove extends BasePlugin {
 
     if (movePerformed === true) {
       this.persistentStateSave();
-      this.hot.render();
       this.hot.view.adjustElementsSize();
+      this.hot.render();
 
       const selectionStart = this.hot.toVisualColumn(firstMovedPhysicalColumn);
       const selectionEnd = selectionStart + columnsLen - 1;

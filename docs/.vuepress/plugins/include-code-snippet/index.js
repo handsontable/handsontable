@@ -18,10 +18,22 @@ module.exports = (options, context) => {
           const includePath = file[1].trim().split('@').join('.');
 
           if (fs.existsSync(includePath)) {
+            let lastStats = fs.statSync(includePath);
+
             fs.watch(includePath, () => {
-              // Change the file system timestamps of the object referenced by `path`
-              // This triggers a hot reload rebuild of the page
-              fs.utimesSync($page._filePath, new Date(), new Date());
+              try {
+                const currentStats = fs.statSync(includePath);
+
+                if (lastStats.size !== currentStats.size) {
+                  // Only trigger hot reload if file size actually changed
+                  fs.utimesSync($page._filePath, new Date(), new Date());
+
+                  lastStats = currentStats;
+                }
+              } catch (error) {
+                // eslint-disable-next-line no-console
+                console.error(`Error reading file: ${error.message}`);
+              }
             });
           }
         });

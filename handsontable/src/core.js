@@ -1,6 +1,6 @@
 import { addClass, empty, observeVisibilityChangeOnce, removeClass } from './helpers/dom/element';
 import { isFunction } from './helpers/function';
-import { isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty, stringify } from './helpers/mixed';
+import { isDefined, isUndefined, isRegExp, _injectProductInfo, isEmpty } from './helpers/mixed';
 import { isMobileBrowser, isIpadOS } from './helpers/browser';
 import EditorManager from './editorManager';
 import EventManager from './eventManager';
@@ -23,7 +23,7 @@ import { getRenderer } from './renderers/registry';
 import { getEditor } from './editors/registry';
 import { getValidator } from './validators/registry';
 import { randomString, toUpperCaseFirst } from './helpers/string';
-import { rangeEach, rangeEachReverse, isNumericLike } from './helpers/number';
+import { rangeEach, rangeEachReverse } from './helpers/number';
 import TableView from './tableView';
 import DataSource from './dataMap/dataSource';
 import { spreadsheetColumnLabel } from './helpers/data';
@@ -34,7 +34,12 @@ import { Hooks } from './core/hooks';
 import { hasLanguageDictionary, getValidLanguageCode, getTranslatedPhrase } from './i18n/registry';
 import { warnUserAboutLanguageRegistration, normalizeLanguageCode } from './i18n/utils';
 import { Selection } from './selection';
-import { MetaManager, DynamicCellMetaMod, ExtendMetaPropertiesMod, replaceData } from './dataMap';
+import {
+  MetaManager,
+  DynamicCellMetaMod,
+  ExtendMetaPropertiesMod,
+  replaceData,
+} from './dataMap';
 import {
   installFocusCatcher,
   createViewportScroller,
@@ -44,10 +49,22 @@ import { createShortcutManager } from './shortcuts';
 import { registerAllShortcutContexts } from './shortcutContexts';
 import { getThemeClassName } from './helpers/themes';
 import { StylesHandler } from './utils/stylesHandler';
-import { warn } from './helpers/console';
+import { deprecatedWarn, warn } from './helpers/console';
 import { CellRangeToRenderableMapper } from './core/coordsMapper/rangeToRenderableMapper';
+import {
+  install as installAccessibilityAnnouncer,
+  uninstall as uninstallAccessibilityAnnouncer,
+} from './utils/a11yAnnouncer';
+import { getValueSetterValue } from './utils/valueAccessors';
 
 let activeGuid = null;
+
+/**
+ * A set of deprecated warn instances.
+ *
+ * @type {Set<string>}
+ */
+const deprecatedWarnInstances = new WeakSet();
 
 /**
  * Keeps the collection of the all Handsontable instances created on the same page. The
@@ -167,6 +184,11 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   let viewportScroller;
   let firstRun = true;
 
+  const mergedUserSettings = {
+    ...userSettings.initialState,
+    ...userSettings,
+  };
+
   if (hasValidParameter(rootInstanceSymbol)) {
     registerAsRootInstance(this);
   }
@@ -186,6 +208,14 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * @type {HTMLElement}
    */
   this.rootWrapperElement = undefined;
+
+  /**
+   * Reference to the grid element.
+   *
+   * @private
+   * @type {HTMLElement}
+   */
+  this.rootGridElement = undefined;
 
   /**
    * Reference to the portal element.
@@ -222,12 +252,15 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
   if (isRootInstance(this)) {
     this.rootWrapperElement = this.rootDocument.createElement('div');
+    this.rootGridElement = this.rootDocument.createElement('div');
     this.rootPortalElement = this.rootDocument.createElement('div');
 
-    addClass(this.rootElement, 'ht-wrapper');
+    addClass(this.rootElement, ['ht-wrapper', 'handsontable']);
     addClass(this.rootWrapperElement, 'ht-root-wrapper');
+    addClass(this.rootGridElement, 'ht-grid');
 
-    this.rootWrapperElement.appendChild(this.rootElement);
+    this.rootGridElement.appendChild(this.rootElement);
+    this.rootWrapperElement.appendChild(this.rootGridElement);
     this.rootContainer.appendChild(this.rootWrapperElement);
 
     addClass(this.rootPortalElement, 'ht-portal');
@@ -267,11 +300,12 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    */
   this.executionSuspendedCounter = 0;
 
-  const layoutDirection = userSettings?.layoutDirection ?? 'inherit';
+  const layoutDirection = mergedUserSettings?.layoutDirection ?? 'inherit';
   const rootElementDirection = ['rtl', 'ltr'].includes(layoutDirection) ?
     layoutDirection : this.rootWindow.getComputedStyle(this.rootElement).direction;
 
   this.rootElement.setAttribute('dir', rootElementDirection);
+  this.rootWrapperElement?.setAttribute('dir', rootElementDirection);
 
   /**
    * Checks if the grid is rendered using the right-to-left layout direction.
@@ -315,15 +349,31 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * @private
    * @type {StylesHandler}
    */
-  this.stylesHandler = new StylesHandler(
-    instance.rootElement,
-    instance.rootDocument
-  );
+  this.stylesHandler = new StylesHandler({
+    rootElement: instance.rootElement,
+    rootDocument: instance.rootDocument,
+    onThemeChange: (validThemeName) => {
+      if (isRootInstance(this)) {
+        removeClass(this.rootWrapperElement, /ht-theme-.*/g);
+        removeClass(this.rootPortalElement, /ht-theme-.*/g);
 
-  userSettings.language = getValidLanguageCode(userSettings.language);
+        if (validThemeName) {
+          addClass(this.rootWrapperElement, validThemeName);
+          addClass(this.rootPortalElement, validThemeName);
+
+          if (!getComputedStyle(this.rootWrapperElement).getPropertyValue('--ht-line-height')) {
+            warn(`The "${validThemeName}" theme is enabled, but its stylesheets are missing or not imported correctly. \
+              Import the correct CSS files in order to use that theme.`);
+          }
+        }
+      }
+    }
+  });
+
+  mergedUserSettings.language = getValidLanguageCode(mergedUserSettings.language);
 
   const settingsWithoutHooks = Object.fromEntries(
-    Object.entries(userSettings).filter(([key]) => {
+    Object.entries(mergedUserSettings).filter(([key]) => {
       return !(Hooks.getSingleton().isRegistered(key) || Hooks.getSingleton().isDeprecated(key));
     })
   );
@@ -339,10 +389,6 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   this.container = this.rootDocument.createElement('div');
 
   this.rootElement.insertBefore(this.container, this.rootElement.firstChild);
-
-  if (isRootInstance(this)) {
-    _injectProductInfo(userSettings.licenseKey, this.rootWrapperElement);
-  }
 
   this.guid = `ht_${randomString()}`; // this is the namespace for global events
 
@@ -599,6 +645,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     .addLocalHook('afterSelectColumns', (...args) => this.runHooks('afterSelectColumns', ...args))
     .addLocalHook('beforeSelectRows', (...args) => this.runHooks('beforeSelectRows', ...args))
     .addLocalHook('afterSelectRows', (...args) => this.runHooks('afterSelectRows', ...args))
+    .addLocalHook('beforeSelectAll', (...args) => this.runHooks('beforeSelectAll', ...args))
+    .addLocalHook('afterSelectAll', (...args) => this.runHooks('afterSelectAll', ...args))
     .addLocalHook('beforeModifyTransformStart', (...args) => this.runHooks('modifyTransformStart', ...args))
     .addLocalHook('afterModifyTransformStart', (...args) => this.runHooks('afterModifyTransformStart', ...args))
     .addLocalHook('beforeModifyTransformFocus', (...args) => this.runHooks('modifyTransformFocus', ...args))
@@ -738,7 +786,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
               }
 
               if (selection.isSelected()) {
-                const { row } = instance.getSelectedRangeLast().highlight;
+                const { row } = instance.getSelectedRangeActive().highlight;
 
                 if (row >= groupIndex && row <= groupIndex + groupAmount - 1) {
                   editorManager.closeEditor(true);
@@ -814,7 +862,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
               }
 
               if (selection.isSelected()) {
-                const { col } = instance.getSelectedRangeLast().highlight;
+                const { col } = instance.getSelectedRangeActive().highlight;
 
                 if (col >= groupIndex && col <= groupIndex + groupAmount - 1) {
                   editorManager.closeEditor(true);
@@ -873,8 +921,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
         grid.adjustRowsAndCols(); // makes sure that we did not add rows that will be removed in next refresh
       }
 
-      instance.view.render();
       instance.view.adjustElementsSize();
+      instance.view.render();
     },
 
     /**
@@ -1133,8 +1181,10 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
               }
 
               const visualColumn = c - skippedColumn;
+              const hasValueSetter = !!cellMeta.valueSetter;
+
               let value = getInputValue(visualRow, visualColumn);
-              let orgValue = instance.getDataAtCell(current.row, current.col);
+              let orgValue = instance.getSourceDataAtCell(current.row, current.col) ?? null;
 
               if (value !== null && typeof value === 'object') {
                 // when 'value' is array and 'orgValue' is null, set 'orgValue' to
@@ -1144,17 +1194,20 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
                   orgValue = [];
                 }
 
-                if (orgValue === null || typeof orgValue !== 'object') {
+                if (!hasValueSetter && (typeof orgValue !== 'object' || orgValue === null)) {
                   pushData = false;
 
-                } else {
+                } else if (orgValue !== null) {
                   const orgValueSchema = duckSchema(Array.isArray(orgValue) ? orgValue : (orgValue[0] || orgValue));
                   const valueSchema = duckSchema(Array.isArray(value) ? value : (value[0] || value));
 
                   // Allow overwriting values with the same object-based schema or any array-based schema.
                   if (
-                    isObjectEqual(orgValueSchema, valueSchema) ||
-                    (Array.isArray(orgValueSchema) && Array.isArray(valueSchema))
+                    hasValueSetter || // If the cell has a value setter, we don't know the value schema (it's dynamic)
+                    (
+                      isObjectEqual(orgValueSchema, valueSchema) ||
+                      (Array.isArray(orgValueSchema) && Array.isArray(valueSchema))
+                    )
                   ) {
                     value = deepClone(value);
 
@@ -1163,15 +1216,18 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
                   }
                 }
 
-              } else if (orgValue !== null && typeof orgValue === 'object') {
+              } else if (!hasValueSetter && orgValue !== null && typeof orgValue === 'object') {
                 pushData = false;
               }
+
               if (pushData) {
                 setData.push([current.row, current.col, value]);
               }
+
               pushData = true;
               current.col += 1;
             }
+
             current.row += 1;
           }
           instance.setDataAtCell(setData, null, null, source || 'populateFromArray');
@@ -1251,23 +1307,18 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       addClass(instance.rootElement, 'mobile');
     }
 
-    this.updateSettings(userSettings, true);
+    this.updateSettings(mergedUserSettings, true);
 
     this.view = new TableView(this);
 
-    const themeName = tableMeta.themeName || getThemeClassName(instance.rootContainer);
-
-    // Use the theme defined in the settings object or set as a root container class name (in that order).
-    instance.useTheme(themeName);
-
     editorManager = EditorManager.getInstance(instance, tableMeta, selection);
-
     viewportScroller = createViewportScroller(instance);
-
     focusManager = new FocusManager(instance);
 
     if (isRootInstance(this)) {
       installFocusCatcher(instance);
+      installAccessibilityAnnouncer(instance.rootPortalElement);
+      _injectProductInfo(mergedUserSettings.licenseKey, this.rootWrapperElement);
     }
 
     instance.runHooks('init');
@@ -1279,8 +1330,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       observeVisibilityChangeOnce(instance.rootElement, () => {
         // Update the spreader size cache before rendering.
         instance.view._wt.wtOverlays.updateLastSpreaderSize();
-        instance.render();
         instance.view.adjustElementsSize();
+        instance.render();
       });
     }
 
@@ -1322,25 +1373,6 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   }
 
   /**
-   * Get parsed number from numeric string.
-   *
-   * @private
-   * @param {string} numericData Float (separated by a dot or a comma) or integer.
-   * @returns {number} Number if we get data in parsable format, not changed value otherwise.
-   */
-  function getParsedNumber(numericData) {
-    // Unifying "float like" string. Change from value with comma determiner to value with dot determiner,
-    // for example from `450,65` to `450.65`.
-    const unifiedNumericData = numericData.replace(',', '.');
-
-    if (isNaN(parseFloat(unifiedNumericData)) === false) {
-      return parseFloat(unifiedNumericData);
-    }
-
-    return numericData;
-  }
-
-  /**
    * @ignore
    * @param {Array} changes The 2D array containing information about each of the edited cells.
    * @param {string} source The string that identifies source of validation.
@@ -1366,7 +1398,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     };
 
     for (let i = changes.length - 1; i >= 0; i--) {
-      const [row, prop] = changes[i];
+      const [row, prop,, newValue] = changes[i];
       const visualCol = datamap.propToCol(prop);
       let cellProperties;
 
@@ -1379,10 +1411,11 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
         cellProperties = { ...Object.getPrototypeOf(tableMeta), ...tableMeta };
       }
 
-      /* eslint-disable no-loop-func */
       if (instance.getCellValidator(cellProperties)) {
+        /* eslint-disable no-loop-func */
         waitingForValidator.addValidatorToQueue();
-        instance.validateCell(changes[i][3], cellProperties, (function(index, cellPropertiesReference) {
+
+        instance.validateCell(newValue, cellProperties, (function(index, cellPropertiesReference) {
           return function(result) {
             if (typeof result !== 'boolean') {
               throw new Error('Validation error: result is not boolean');
@@ -1390,14 +1423,18 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
             if (result === false && cellPropertiesReference.allowInvalid === false) {
               shouldBeCanceled = false;
-              changes.splice(index, 1); // cancel the change
-              cellPropertiesReference.valid = true; // we cancelled the change, so cell value is still valid
+              // cancel the change
+              changes.splice(index, 1);
+              // we cancelled the change, so cell value is still valid
+              cellPropertiesReference.valid = true;
             }
+
             waitingForValidator.removeValidatorFormQueue();
           };
         }(i, cellProperties)), source);
       }
     }
+
     waitingForValidator.checkIfQueueIsEmpty();
   }
 
@@ -1467,9 +1504,9 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       grid.adjustRowsAndCols();
       instance.runHooks('beforeChangeRender', changes, source);
       editorManager.closeEditor();
+      instance.view.adjustElementsSize();
       instance.render();
       editorManager.prepareEditor();
-      instance.view.adjustElementsSize();
       instance.runHooks('afterChange', changes, source || 'edit');
 
       const activeEditor = instance.getActiveEditor();
@@ -1567,7 +1604,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       // eslint-disable-next-line no-param-reassign
       value = instance.runHooks('beforeValidate', value, cellProperties.visualRow, cellProperties.prop, source);
 
-      // To provide consistent behaviour, validation should be always asynchronous
+      // To provide consistent behavior, validation should be always asynchronous
       instance._registerImmediate(() => {
         validator.call(cellProperties, value, (valid) => {
           if (!instance) {
@@ -1639,29 +1676,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
         cellProperties = { ...Object.getPrototypeOf(tableMeta), ...tableMeta };
       }
 
-      const {
-        type,
-        checkedTemplate,
-        uncheckedTemplate,
-      } = cellProperties;
-
-      if (
-        type === 'numeric' &&
-        typeof newValue === 'string' &&
-        isNumericLike(newValue)
-      ) {
-        filteredChanges[i][3] = getParsedNumber(newValue);
-      }
-
-      if (type === 'checkbox') {
-        const stringifiedValue = stringify(newValue);
-        const isChecked = stringifiedValue === stringify(checkedTemplate);
-        const isUnchecked = stringifiedValue === stringify(uncheckedTemplate);
-
-        if (isChecked || isUnchecked) {
-          filteredChanges[i][3] = isChecked ? checkedTemplate : uncheckedTemplate;
-        }
-      }
+      filteredChanges[i][3] = getValueSetterValue(newValue, cellProperties);
     }
 
     return filteredChanges;
@@ -1688,25 +1703,27 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     let prop;
 
     for (i = 0, ilen = input.length; i < ilen; i++) {
+      const [visualRow, visualColumn, newValue] = input[i];
+
       if (typeof input[i] !== 'object') {
         throw new Error('Method `setDataAtCell` accepts row number or changes array of arrays as its first parameter');
       }
-      if (typeof input[i][1] !== 'number') {
+      if (typeof visualColumn !== 'number') {
         throw new Error('Method `setDataAtCell` accepts row and column number as its parameters. If you want to use object property name, use method `setDataAtRowProp`'); // eslint-disable-line max-len
       }
 
-      if (input[i][1] >= this.countCols()) {
-        prop = input[i][1];
+      if (visualColumn >= this.countCols()) {
+        prop = visualColumn;
 
       } else {
-        prop = datamap.colToProp(input[i][1]);
+        prop = datamap.colToProp(visualColumn);
       }
 
       changes.push([
-        input[i][0],
+        visualRow,
         prop,
-        dataSource.getAtCell(this.toPhysicalRow(input[i][0]), input[i][1]),
-        input[i][2],
+        dataSource.getAtCell(this.toPhysicalRow(visualRow), visualColumn),
+        newValue,
       ]);
     }
 
@@ -1743,11 +1760,13 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     let ilen;
 
     for (i = 0, ilen = input.length; i < ilen; i++) {
+      const [visualRow, inputProp, newValue] = input[i];
+
       changes.push([
-        input[i][0],
-        input[i][1],
-        dataSource.getAtCell(this.toPhysicalRow(input[i][0]), input[i][1]),
-        input[i][2],
+        visualRow,
+        inputProp,
+        dataSource.getAtCell(this.toPhysicalRow(visualRow), inputProp),
+        newValue,
       ]);
     }
 
@@ -1927,15 +1946,36 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   };
 
   /**
+   * Returns the range coordinates of the active selection layer as an array. Active selection layer is the layer that
+   * has visible focus highlight.
+   *
+   * @memberof Core#
+   * @function getSelectedRangeActive
+   * @since 16.1.0
+   * @returns {number[]|undefined} Selected range as an array of coordinates or `undefined` if there is no selection.
+   */
+  this.getSelectedActive = function() {
+    const activeRange = this.getSelectedRangeActive();
+
+    if (!activeRange) {
+      return;
+    }
+
+    const { from, to } = activeRange;
+
+    return [from.row, from.col, to.row, to.col];
+  };
+
+  /**
    * Returns the current selection as an array of CellRange objects.
    *
    * The version 0.36.0 adds a non-consecutive selection feature. Since this version, the method returns an array of arrays.
-   * Additionally to collect the coordinates of the currently selected area (as it was previously done by the method)
-   * you need to use `getSelectedRangeLast` method.
+   * Additionally to collect the coordinates of the active selected area (as it was previously done by the method)
+   * you need to use `getSelectedRangeActive()` method.
    *
    * @memberof Core#
    * @function getSelectedRange
-   * @returns {CellRange[]|undefined} Selected range object or undefined if there is no selection.
+   * @returns {CellRange[]|undefined} Selected range object or `undefined` if there is no selection.
    */
   this.getSelectedRange = function() { // https://github.com/handsontable/handsontable/issues/44  //cjl
     if (selection.isSelected()) {
@@ -1949,7 +1989,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * @memberof Core#
    * @function getSelectedRangeLast
    * @since 0.36.0
-   * @returns {CellRange|undefined} Selected range object or undefined` if there is no selection.
+   * @returns {CellRange|undefined} Selected range object or `undefined` if there is no selection.
    */
   this.getSelectedRangeLast = function() {
     const selectedRange = this.getSelectedRange();
@@ -1960,6 +2000,32 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     }
 
     return result;
+  };
+
+  /**
+   * Returns the range coordinates of the active selection layer. Active selection layer is the layer that
+   * has visible focus highlight.
+   *
+   * @memberof Core#
+   * @function getSelectedRangeActive
+   * @since 16.1.0
+   * @returns {CellRange|undefined} Selected range object or `undefined` if there is no selection.
+   */
+  this.getSelectedRangeActive = function() {
+    return selection.getActiveSelectedRange();
+  };
+
+  /**
+   * Returns the index of the active selection layer. Active selection layer is the layer that
+   * has visible focus highlight.
+   *
+   * @memberof Core#
+   * @function getActiveSelectionLayerIndex
+   * @since 16.1.0
+   * @returns {number} The index of the active selection layer. `0` to `N` where `0` is the last (oldest) layer and `N` is the first (newest) layer.
+   */
+  this.getActiveSelectionLayerIndex = function() {
+    return selection.getActiveSelectionLayerIndex();
   };
 
   /**
@@ -2336,8 +2402,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
     if (isSizeChanged || view._wt.wtOverlays.scrollableElement === instance.rootWindow) {
       view.setLastSize(width, height);
-      instance.render();
       view.adjustElementsSize();
+      instance.render();
     }
 
     instance.runHooks(
@@ -2563,6 +2629,20 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   };
 
   /**
+   * Returns the source data's copyable value at specified `row` and `column` index.
+   *
+   * @memberof Core#
+   * @function getCopyableSourceData
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @since 16.1.0
+   * @returns {string}
+   */
+  this.getCopyableSourceData = function(row, column) {
+    return dataSource.getCopyable(row, datamap.colToProp(column));
+  };
+
+  /**
    * Returns schema provided by constructor settings. If it doesn't exist then it returns the schema based on the data
    * structure in the first row.
    *
@@ -2618,10 +2698,6 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       throw new Error('Since 8.0.0 the "ganttChart" setting is no longer supported.');
     }
 
-    if (settings.language) {
-      setLanguage(settings.language);
-    }
-
     // eslint-disable-next-line no-restricted-syntax
     for (i in settings) {
       if (i === 'data' || i === 'language') {
@@ -2652,6 +2728,36 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       }
     }
 
+    if (init) {
+      // Use the theme defined in the settings object or set as a root container class name (in that order).
+      instance.useTheme(tableMeta.themeName || getThemeClassName(instance.rootContainer));
+
+    } else {
+      const currentThemeName = instance.getCurrentThemeName();
+      const themeNameOptionExists = hasOwnProperty(settings, 'themeName');
+
+      if (
+        themeNameOptionExists &&
+        currentThemeName !== settings.themeName
+      ) {
+        instance.useTheme(settings.themeName);
+      }
+    }
+
+    if (deprecatedWarnInstances.has(instance) && instance.stylesHandler.getThemeName() !== undefined) {
+      deprecatedWarnInstances.delete(instance);
+    }
+
+    if (
+      isRootInstance(instance) &&
+      !deprecatedWarnInstances.has(instance) &&
+      instance.stylesHandler.isClassicTheme()
+    ) {
+      // eslint-disable-next-line max-len
+      deprecatedWarn('Handsontable classic theme is a legacy theme and will be removed in version 17.0. Please update your theme settings to ensure compatibility with future versions.');
+      deprecatedWarnInstances.add(instance);
+    }
+
     // Load data or create data map
     if (settings.data === undefined && tableMeta.data === undefined) {
       dataUpdateFunction(null, 'updateSettings'); // data source created just now
@@ -2664,6 +2770,10 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
       // The `column` property has changed - dataset may be expanded or narrowed down. The `loadData` do the same.
       instance.initIndexMappers();
+    }
+
+    if (!firstRun && settings.language) {
+      setLanguage(settings.language);
     }
 
     const clen = instance.countCols();
@@ -2708,12 +2818,6 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       currentHeight = parseInt(instance.rootElement.style.height, 10);
     }
 
-    let height = settings.height;
-
-    if (isFunction(height)) {
-      height = height();
-    }
-
     if (init) {
       const initialStyle = instance.rootElement.getAttribute('style');
 
@@ -2722,20 +2826,30 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       }
     }
 
-    if (height === null) {
-      const initialStyle = instance.rootElement.getAttribute('data-initialstyle');
+    let height = settings.height;
 
-      if (initialStyle && (initialStyle.indexOf('height') > -1 || initialStyle.indexOf('overflow') > -1)) {
-        instance.rootElement.setAttribute('style', initialStyle);
-
-      } else {
-        instance.rootElement.style.height = '';
-        instance.rootElement.style.overflow = '';
+    if (typeof settings.height !== 'undefined') {
+      if (isFunction(height)) {
+        height = height();
       }
 
-    } else if (height !== undefined) {
-      instance.rootElement.style.height = isNaN(height) ? `${height}` : `${height}px`;
-      instance.rootElement.style.overflow = 'hidden';
+      height = instance.runHooks('beforeHeightChange', height);
+
+      if (height === null) {
+        const initialStyle = instance.rootElement.getAttribute('data-initialstyle');
+
+        if (initialStyle && (initialStyle.indexOf('height') > -1 || initialStyle.indexOf('overflow') > -1)) {
+          instance.rootElement.setAttribute('style', initialStyle);
+
+        } else {
+          instance.rootElement.style.height = '';
+          instance.rootElement.style.overflow = '';
+        }
+
+      } else if (height !== undefined) {
+        instance.rootElement.style.height = isNaN(height) ? `${height}` : `${height}px`;
+        instance.rootElement.style.overflow = 'hidden';
+      }
     }
 
     if (typeof settings.width !== 'undefined') {
@@ -2745,6 +2859,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
         width = width();
       }
 
+      width = instance.runHooks('beforeWidthChange', width);
       instance.rootElement.style.width = isNaN(width) ? `${width}` : `${width}px`;
     }
 
@@ -2752,16 +2867,6 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       if (instance.view) {
         instance.view._wt.wtViewport.resetHasOversizedColumnHeadersMarked();
         instance.view._wt.exportSettingsAsClassNames();
-
-        const currentThemeName = instance.getCurrentThemeName();
-        const themeNameOptionExists = hasOwnProperty(settings, 'themeName');
-
-        if (
-          themeNameOptionExists &&
-          currentThemeName !== settings.themeName
-        ) {
-          instance.useTheme(settings.themeName);
-        }
       }
 
       instance.runHooks('afterUpdateSettings', settings);
@@ -2790,17 +2895,21 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * @returns {*} The value of the focused cell.
    */
   this.getValue = function() {
-    const sel = instance.getSelectedLast();
+    const activeSelection = instance.getSelectedRangeActive();
 
     if (tableMeta.getValue) {
       if (isFunction(tableMeta.getValue)) {
         return tableMeta.getValue.call(instance);
-      } else if (sel) {
-        return instance.getData()[sel[0][0]][tableMeta.getValue];
+
+      } else if (activeSelection) {
+        return instance.getData()[activeSelection.highlight.row][tableMeta.getValue];
       }
-    } else if (sel) {
-      return instance.getDataAtCell(sel[0], sel[1]);
+
+    } else if (activeSelection) {
+      return instance.getDataAtCell(activeSelection.highlight.row, activeSelection.highlight.col);
     }
+
+    return null;
   };
 
   /**
@@ -3231,20 +3340,41 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     const input = setDataInputToArray(row, column, value);
     const isThereAnySetSourceListener = this.hasHook('afterSetSourceDataAtCell');
     const changesForHook = [];
+    const getCellProperties = (changeRow, changeProp) => {
+      const visualRow = this.toVisualRow(changeRow);
+      const visualColumn = this.toVisualColumn(changeProp);
+
+      if (Number.isInteger(visualColumn)) {
+        return this.getCellMeta(visualRow, visualColumn);
+      }
+
+      // If there's no requested visual column, we can use the table meta as the cell properties
+      return { ...Object.getPrototypeOf(tableMeta), ...tableMeta };
+    };
 
     if (isThereAnySetSourceListener) {
       arrayEach(input, ([changeRow, changeProp, changeValue]) => {
+        const newValue = getValueSetterValue(
+          changeValue,
+          getCellProperties(changeRow, changeProp),
+        );
+
         changesForHook.push([
           changeRow,
           changeProp,
           dataSource.getAtCell(changeRow, changeProp), // The previous value.
-          changeValue,
+          newValue,
         ]);
       });
     }
 
     arrayEach(input, ([changeRow, changeProp, changeValue]) => {
-      dataSource.setAtCell(changeRow, changeProp, changeValue);
+      const newValue = getValueSetterValue(
+        changeValue,
+        getCellProperties(changeRow, changeProp)
+      );
+
+      dataSource.setAtCell(changeRow, changeProp, newValue);
     });
 
     if (isThereAnySetSourceListener) {
@@ -4660,7 +4790,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       this.addHookOnce('afterScroll', callback);
     }
 
-    const { highlight } = this.getSelectedRangeLast();
+    const { highlight } = this.getSelectedRangeActive();
     const isScrolled = this.scrollViewportTo(highlight.toObject());
 
     if (isScrolled) {
@@ -4694,6 +4824,10 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     }
 
     dataSource = null;
+
+    if (isRootInstance(this)) {
+      uninstallAccessibilityAnnouncer();
+    }
 
     this.getShortcutManager().destroy();
     moduleRegisterer.clear();
@@ -5137,21 +5271,6 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     this.stylesHandler.useTheme(themeName);
 
     const validThemeName = this.stylesHandler.getThemeName();
-
-    if (isRootInstance(this)) {
-      removeClass(this.rootWrapperElement, /ht-theme-.*/g);
-      removeClass(this.rootPortalElement, /ht-theme-.*/g);
-
-      if (validThemeName) {
-        addClass(this.rootWrapperElement, validThemeName);
-        addClass(this.rootPortalElement, validThemeName);
-
-        if (!getComputedStyle(this.rootWrapperElement).getPropertyValue('--ht-line-height')) {
-          warn(`The "${validThemeName}" theme is enabled, but its stylesheets are missing or not imported correctly. \
-            Import the correct CSS files in order to use that theme.`);
-        }
-      }
-    }
 
     if (!isFirstRun) {
       instance.render();

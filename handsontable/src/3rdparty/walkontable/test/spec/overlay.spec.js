@@ -988,4 +988,27 @@ describe('WalkontableOverlay', () => {
     expect(inlineStartOverlay().getScrollPosition()).toBe(250);
     expect(topOverlay().getScrollPosition()).toBe(300);
   });
+
+  it('should not scroll the table when the ctrl key is pressed on Windows OS (#dev-2405)', async() => {
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      fixedColumnsStart: 0,
+      fixedRowsTop: 0,
+      fixedRowsBottom: 0,
+    });
+
+    wt.draw();
+
+    inlineStartOverlay().clone.wtTable.holder
+      .dispatchEvent(new WheelEvent('wheel', {
+        deltaX: 50,
+        deltaY: 60,
+        ctrlKey: true,
+      }));
+
+    expect(inlineStartOverlay().getScrollPosition()).toBe(0);
+    expect(topOverlay().getScrollPosition()).toBe(0);
+  });
 });

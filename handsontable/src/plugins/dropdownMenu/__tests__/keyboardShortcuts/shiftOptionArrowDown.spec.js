@@ -110,6 +110,41 @@ describe('DropdownMenu keyboard shortcut', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: -1,1 to: 2,1']);
     });
 
+    it('should be possible to open the dropdown menu in the correct position triggered from the single cell - active second selection layer', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 8),
+        colHeaders: true,
+        rowHeaders: true,
+        navigableHeaders: false,
+        dropdownMenu: true
+      });
+
+      await selectCells([
+        [0, 0, 2, 2],
+        [2, 1, 2, 3],
+        [1, 4, 3, 4],
+      ]);
+
+      await keyDownUp(['shift', 'tab']);
+      await keyDownUp(['shift', 'tab']); // select C3 of the second layer
+      await keyDownUp(['shift', 'alt', 'arrowdown']);
+
+      const cell = getCell(-1, 2, true);
+      const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
+      const menuOffset = $dropdownMenu.offset();
+      const cellOffset = $(cell).offset();
+      const buttonOffset = $(cell.querySelector('.changeType')).offset();
+
+      expect($dropdownMenu.length).toBe(1);
+      expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
+        classic.toBeCloseTo(cellOffset.top + cell.clientHeight, 0);
+        main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, 0);
+        horizon.toBeCloseTo(cellOffset.top + cell.clientHeight - 5, 0);
+      });
+      expect(menuOffset.left).toBeCloseTo(buttonOffset.left, 0);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 0,2 from: -1,2 to: 4,2']);
+    });
+
     it('should be possible to open the dropdown menu on the left position when on the right there is no space left', async() => {
       handsontable({
         data: createSpreadsheetData(4, Math.floor(window.innerWidth / 50)),

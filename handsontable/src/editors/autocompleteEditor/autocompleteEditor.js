@@ -1,5 +1,6 @@
 import { HandsontableEditor } from '../handsontableEditor';
-import { arrayMap, pivot } from '../../helpers/array';
+import { pivot } from '../../helpers/array';
+import { isObject } from '../../helpers/object';
 import {
   addClass,
   getCaretPosition,
@@ -29,7 +30,7 @@ import {
   A11Y_RELEVANT,
   A11Y_SELECTED,
   A11Y_SETSIZE,
-  A11Y_TEXT
+  A11Y_TEXT,
 } from '../../helpers/a11y';
 import { debounce } from '../../helpers/function';
 
@@ -78,7 +79,7 @@ export class AutocompleteEditor extends HandsontableEditor {
     const selectedValue = this.rawChoices.find((value) => {
       const strippedValue = this.stripValueIfNeeded(value);
 
-      return strippedValue === this.TEXTAREA.value;
+      return (this.#isKeyValueObject(strippedValue) ? strippedValue.value : strippedValue) === this.TEXTAREA.value;
     });
 
     if (isDefined(selectedValue)) {
@@ -87,13 +88,6 @@ export class AutocompleteEditor extends HandsontableEditor {
 
     return this.TEXTAREA.value;
   }
-
-  /**
-   * Runs focus method after debounce.
-   */
-  #focusDebounced = debounce(() => {
-    this.focus();
-  }, 100);
 
   /**
    * Creates an editor's elements and adds necessary CSS classnames.
@@ -133,6 +127,11 @@ export class AutocompleteEditor extends HandsontableEditor {
         A11Y_CONTROLS(`${this.#idPrefix}-listbox-${row}-${col}`),
       ]);
     }
+
+    this.htOptions = {
+      ...this.htOptions,
+      valueGetter: cellValue => (this.#isKeyValueObject(cellValue) ? cellValue.value : cellValue),
+    };
   }
 
   /**
@@ -294,47 +293,48 @@ export class AutocompleteEditor extends HandsontableEditor {
     const endPos = getSelectionEndPosition(this.TEXTAREA);
     const sortByRelevanceSetting = this.cellProperties.sortByRelevance;
     const filterSetting = this.cellProperties.filter;
-    let orderByRelevance = null;
+    const value = this.stripValueIfNeeded(this.getValue());
+    const comparableValue = this.#isKeyValueObject(value) ? value.value : value;
+
     let highlightIndex = null;
     let choices = choicesList;
 
-    if (sortByRelevanceSetting) {
-      orderByRelevance = this.sortByRelevance(
-        this.stripValueIfNeeded(this.getValue()),
-        choices,
-        this.cellProperties.filteringCaseSensitive
-      );
+    if (!sortByRelevanceSetting) {
+      choices = choices.toSorted();
     }
-    const orderByRelevanceLength = Array.isArray(orderByRelevance) ? orderByRelevance.length : 0;
 
-    if (filterSetting === false) {
-      if (orderByRelevanceLength) {
-        highlightIndex = orderByRelevance[0];
-      }
+    const filteredChoiceIndexes = [];
+    const locale = this.cellProperties.locale;
+    const filteringCaseSensitive = this.cellProperties.filteringCaseSensitive;
+    const valueToMatch = filteringCaseSensitive ? comparableValue : comparableValue.toLocaleLowerCase(locale);
 
-    } else {
-      const sorted = [];
+    for (let i = 0; i < choices.length; i++) {
+      const currentItem =
+        this.#isKeyValueObject(choices[i]) ?
+          stripTags(stringify(choices[i].value)) :
+          stripTags(stringify(choices[i]));
+      const itemToMatch = filteringCaseSensitive ? currentItem : currentItem.toLocaleLowerCase(locale);
 
-      for (let i = 0, choicesCount = choices.length; i < choicesCount; i++) {
-        if (sortByRelevanceSetting && orderByRelevanceLength <= i) {
+      if (itemToMatch.indexOf(valueToMatch) !== -1) {
+        filteredChoiceIndexes.push(i);
+
+        if (filterSetting === false) {
           break;
         }
-        if (orderByRelevanceLength) {
-          sorted.push(choices[orderByRelevance[i]]);
-        } else {
-          sorted.push(choices[i]);
-        }
       }
+    }
 
-      highlightIndex = 0;
-      choices = sorted;
+    if (filterSetting === false) {
+      highlightIndex = filteredChoiceIndexes[0];
+    } else {
+      choices = filteredChoiceIndexes.map(index => choices[index]);
+      highlightIndex = choices.indexOf(valueToMatch) > -1 ? choices.indexOf(valueToMatch) : 0;
     }
 
     this.strippedChoices = choices;
 
     if (choices.length === 0) {
       this.htEditor.rootElement.style.display = 'none';
-
     } else {
       this.htEditor.rootElement.style.display = '';
     }
@@ -397,21 +397,10 @@ export class AutocompleteEditor extends HandsontableEditor {
 
       if (this.isFlippedVertically) {
         this.htEditor.rootElement.style.top =
-        `${parseInt(this.htEditor.rootElement.style.top, 10) + dropdownHeight - height}px`;
+          `${parseInt(this.htEditor.rootElement.style.top, 10) + dropdownHeight - height}px`;
       }
 
       this.setDropdownHeight(tempHeight - lastRowHeight);
-    }
-  }
-
-  /**
-   * Fix width of the internal Handsontable's instance when editor has vertical scroll.
-   */
-  #fixDropdownWidth() {
-    if (this.htEditor.view.hasVerticalScroll()) {
-      this.htEditor.updateSettings({
-        width: this.getTargetEditorWidth() + getScrollbarWidth(this.hot.rootDocument),
-      });
     }
   }
 
@@ -427,7 +416,7 @@ export class AutocompleteEditor extends HandsontableEditor {
 
     this.htEditor.updateSettings({
       width: targetWidth,
-      height: targetHeight
+      height: targetHeight,
     });
 
     this.#fixDropdownWidth();
@@ -442,7 +431,7 @@ export class AutocompleteEditor extends HandsontableEditor {
    */
   setDropdownHeight(height) {
     this.htEditor.updateSettings({
-      height
+      height,
     });
 
     this.#fixDropdownWidth();
@@ -526,37 +515,50 @@ export class AutocompleteEditor extends HandsontableEditor {
    *
    * @private
    * @param {string[]} values The value to sanitize.
-   * @returns {string[]}
+   * @returns {Array<string|{key: string, value: string}>}
    */
   stripValuesIfNeeded(values) {
     const { allowHtml } = this.cellProperties;
+    const processValue = value => stringify(allowHtml ? value : stripTags(value));
 
-    const stringifiedValues = arrayMap(values, value => stringify(value));
-    const strippedValues = arrayMap(stringifiedValues, value => (allowHtml ? value : stripTags(value)));
+    if (values.every(value => this.#isKeyValueObject(value))) {
+      return values.map((value) => {
+        return {
+          key: processValue(value.key),
+          value: processValue(value.value),
+        };
+      });
+    }
 
-    return strippedValues;
+    return values.map(value => processValue(value));
   }
 
   /**
-   * Captures use of arrow down and up to control their behaviour.
+   * Runs focus method after debounce.
+   */
+  #focusDebounced = debounce(() => {
+    this.focus();
+  }, 100);
+
+  /**
+   * Fix width of the internal Handsontable's instance when editor has vertical scroll.
+   */
+  #fixDropdownWidth() {
+    if (this.htEditor.view.hasVerticalScroll()) {
+      this.htEditor.updateSettings({
+        width: this.getTargetEditorWidth() + getScrollbarWidth(this.hot.rootDocument),
+      });
+    }
+  }
+
+  /**
+   * Checks if the value is a key/value object.
    *
-   * @private
-   * @param {number} keyCode The keyboard keycode.
+   * @param {*} value The value to check.
    * @returns {boolean}
    */
-  allowKeyEventPropagation(keyCode) {
-    const selectedRange = this.htEditor.getSelectedRangeLast();
-    const selected = { row: selectedRange ? selectedRange.from.row : -1 };
-    let allowed = false;
-
-    if (keyCode === KEY_CODES.ARROW_DOWN && selected.row > 0 && selected.row < this.htEditor.countRows() - 1) {
-      allowed = true;
-    }
-    if (keyCode === KEY_CODES.ARROW_UP && selected.row > -1) {
-      allowed = true;
-    }
-
-    return allowed;
+  #isKeyValueObject(value) {
+    return isObject(value) && isDefined(value.key) && isDefined(value.value);
   }
 
   /**
@@ -588,84 +590,5 @@ export class AutocompleteEditor extends HandsontableEditor {
         }, timeOffset);
       }
     }
-  }
-
-  /**
-   * Filters and sorts by relevance.
-   *
-   * @param {*} value The selected value.
-   * @param {string[]} choices The list of available choices.
-   * @param {boolean} caseSensitive Indicates if it's sorted by case.
-   * @returns {number[]} Array of indexes in original choices array.
-   */
-  sortByRelevance = function(value, choices, caseSensitive) {
-    const choicesRelevance = [];
-    const result = [];
-    const valueLength = value.length;
-    let choicesCount = choices.length;
-    let charsLeft;
-    let currentItem;
-    let i;
-    let valueIndex;
-
-    if (valueLength === 0) {
-      for (i = 0; i < choicesCount; i++) {
-        result.push(i);
-      }
-
-      return result;
-    }
-
-    for (i = 0; i < choicesCount; i++) {
-      currentItem = stripTags(stringify(choices[i]));
-
-      if (caseSensitive) {
-        valueIndex = currentItem.indexOf(value);
-      } else {
-        const locale = this.cellProperties.locale;
-
-        valueIndex = currentItem.toLocaleLowerCase(locale).indexOf(value.toLocaleLowerCase(locale));
-      }
-
-      if (valueIndex !== -1) {
-        charsLeft = currentItem.length - valueIndex - valueLength;
-
-        choicesRelevance.push({
-          baseIndex: i,
-          index: valueIndex,
-          charsLeft,
-          value: currentItem
-        });
-      }
-    }
-
-    choicesRelevance.sort((a, b) => {
-      if (b.index === -1) {
-        return -1;
-      }
-      if (a.index === -1) {
-        return 1;
-      }
-
-      if (a.index < b.index) {
-        return -1;
-      } else if (b.index < a.index) {
-        return 1;
-      } else if (a.index === b.index) {
-        if (a.charsLeft < b.charsLeft) {
-          return -1;
-        } else if (a.charsLeft > b.charsLeft) {
-          return 1;
-        }
-      }
-
-      return 0;
-    });
-
-    for (i = 0, choicesCount = choicesRelevance.length; i < choicesCount; i++) {
-      result.push(choicesRelevance[i].baseIndex);
-    }
-
-    return result;
   }
 }

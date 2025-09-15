@@ -13,21 +13,21 @@
             font-size: 12px
         }
     }
-    
+
     [id*="html-tab"], [id*="css-tab"] {
         .select-type {
             display: none !important
         }
     }
 
-    div[class*="language-"] { 
+    div[class*="language-"] {
         .select-type {
             display: none
         }
     }
 
-    div[class*="tab-content"] { 
-        div[class*="language-"] { 
+    div[class*="tab-content"] {
+        div[class*="language-"] {
             .select-type {
                 display: block
             }
@@ -138,7 +138,7 @@
         ul.tabs-component-tabs  {
             &:has(li:first-child:last-child ) {
                 + .tabs-component-panels {
-                    .codeControls { 
+                    .codeControls {
                         top: -40px
                     }
                 }
@@ -150,7 +150,7 @@
                 padding: 16px 16px
             }
         }
-        
+
     }
 }
 
@@ -159,7 +159,7 @@
         display: flex;
         flex-direction: column;
     }
-    
+
     .controls {
         padding-bottom: 16px
 
@@ -362,7 +362,7 @@
     }
 
     #mainInput,
-    select:not([data-hot-input]),
+    select:not([data-hot-input]):not(.handsontable select),
     input[type=text]:not(.htFocusCatcher),
     input[type=search],
     .placeholder-input {
@@ -380,25 +380,29 @@
         }
 
         @media (hover: hover) {
-            &:hover { 
+            &:hover {
                 border: 1px solid $accentColor
             }
         }
-        &:focus-visible  { 
+        &:focus-visible  {
             border: 1px solid $accentColor
         }
 
     }
 
+    select:not([data-hot-input]):not(.handsontable select) {
+        padding: 8px 40px 8px 16px;
+    }
+
     select:not([data-hot-input]) {
-        padding: 8px 32px 8px 16px; 
+        padding: 8px 32px 8px 16px;
         appearance none
         position: relative
     }
 
     label:has(select) {
         position relative
-        
+
         &:after {
             content:'';
             display: inline-block;

@@ -2,7 +2,7 @@
 id: 1k7arh9z
 title: Migrating from 15.3 to 16.0
 metaTitle: Migrating from 15.3 to 16.0 - JavaScript Data Grid | Handsontable
-description: Migrate from Handsontable 15.3 to Handsontable 16.0, released on [].
+description: Migrate from Handsontable 15.3 to Handsontable 16.0, released on [09/07/2025].
 permalink: /migration-from-15.3-to-16.0
 canonicalUrl: /migration-from-15.3-to-16.0
 pageClass: migration-guide
@@ -53,7 +53,7 @@ body
 │        ├── .ht-wrapper.handsontable // Root Container
 │        │   └── Data grid content
 │        ├── .htFocusCatcher // Focus Catcher (down)
-│        ├── .hot-display-license-info // License key notification bar
+│        └── .hot-display-license-info // License key notification bar
 └── .ht-portal // Portal Element
     └── Context menus, dropdowns, pop-ups, sidebars
         (absolutely positioned elements)

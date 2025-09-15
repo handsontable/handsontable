@@ -261,7 +261,7 @@ export class ManualColumnResize extends BasePlugin {
    * @param {HTMLCellElement} TH TH HTML element.
    */
   setupHandlePosition(TH) {
-    if (!TH.parentNode) {
+    if (!TH.parentNode || this.#dblclick > 1) {
       return;
     }
 
@@ -462,8 +462,8 @@ export class ManualColumnResize extends BasePlugin {
    */
   afterMouseDownTimeout() {
     const render = () => {
-      this.hot.render();
       this.hot.view.adjustElementsSize();
+      this.hot.render();
     };
     const resize = (column, forceRender) => {
       const hookNewSize = this.hot.runHooks('beforeColumnResize', this.#newSize, column, true);
@@ -555,8 +555,8 @@ export class ManualColumnResize extends BasePlugin {
    */
   #onMouseUp() {
     const render = () => {
-      this.hot.render();
       this.hot.view.adjustElementsSize();
+      this.hot.render();
     };
     const resize = (column, forceRender) => {
       this.hot.runHooks('beforeColumnResize', this.#newSize, column, false);

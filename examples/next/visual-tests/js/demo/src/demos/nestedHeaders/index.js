@@ -2,16 +2,15 @@ import Handsontable from 'handsontable';
 import { data } from './data';
 import { getThemeNameFromURL } from '../../utils';
 
-const root = document.getElementById('root');
-// const removeHeightBtn = document.createElement('button');
-// removeHeightBtn.id = 'remove-height-btn';
-// removeHeightBtn.textContent = 'Remove Height';
-// root.appendChild(removeHeightBtn);
-const container = document.createElement('div');
-root.appendChild(container);
-
-
 export function init() {
+  const root = document.getElementById('root');
+  // const removeHeightBtn = document.createElement('button');
+  // removeHeightBtn.id = 'remove-height-btn';
+  // removeHeightBtn.textContent = 'Remove Height';
+  // root.appendChild(removeHeightBtn);
+  const container = document.createElement('div');
+  root.appendChild(container);
+
   const hot = new Handsontable(container, {
     data: data,
     themeName: getThemeNameFromURL(),

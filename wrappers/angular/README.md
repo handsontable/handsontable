@@ -1,3 +1,12 @@
+__________
+
+⚠️ **This package is deprecated.**
+
+Handsontable for Angular is now available as [`@handsontable/angular-wrapper`](https://www.npmjs.com/package/@handsontable/angular-wrapper).
+
+Please refer to the [Migration Guide](https://handsontable.com/docs/migration-from-15.3-to-16.0/#_4-switched-to-the-new-angular-wrapper-for-angular-16) for instructions on how to migrate to the new wrapper.
+__________
+
 <div align="center">
   <br><br>
   <picture>

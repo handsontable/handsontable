@@ -126,7 +126,7 @@ class Overlays {
 
       this.#containerDomResizeCount += 1;
 
-      if (this.#containerDomResizeCount === 100) {
+      if (this.#containerDomResizeCount === 300) {
         warn('The ResizeObserver callback was fired too many times in direct succession.' +
           '\nThis may be due to an infinite loop caused by setting a dynamic height/width (for example, ' +
           'with the `dvh` units) to a Handsontable container\'s parent. ' +
@@ -423,6 +423,11 @@ class Overlays {
    * @param {boolean} preventDefault If `true`, the `preventDefault` will be called on event object.
    */
   onCloneWheel(event, preventDefault) {
+    // Fix for Windows OS, where the ctrl key is used to zoom the page (issue #dev-2405).
+    if (event.ctrlKey) {
+      return;
+    }
+
     const { rootWindow } = this.domBindings;
 
     // There was if statement which controlled flow of this function. It avoided the execution of the next lines
@@ -698,7 +703,13 @@ class Overlays {
     const totalRows = this.wtSettings.getSetting('totalRows');
     const headerRowSize = wtViewport.getRowHeaderWidth();
     const headerColumnSize = wtViewport.getColumnHeaderHeight();
-    const proposedHiderHeight = headerColumnSize + this.topOverlay.sumCellSizes(0, totalRows) + 1;
+    // The internal row height calculator contains a known issue that results in a 1px miscalculation.
+    // Ideally, this should be addressed at the core level. However, resolving it is non-trivial,
+    // as the flaw is embedded across multiple core modules and corresponding test cases.
+    // This limitation does not affect when the the external calculator is used (AutoRowSize), which
+    // computes heights accurately, so no adjustment is required when using it.
+    const hiderHeightComp = this.wtSettings.getSetting('externalRowCalculator') ? 0 : 1;
+    const proposedHiderHeight = headerColumnSize + this.topOverlay.sumCellSizes(0, totalRows) + hiderHeightComp;
     const proposedHiderWidth = headerRowSize + this.inlineStartOverlay.sumCellSizes(0, totalColumns);
     const hiderElement = wtTable.hider;
     const hiderStyle = hiderElement.style;

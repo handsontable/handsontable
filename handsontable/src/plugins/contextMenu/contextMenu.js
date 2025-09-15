@@ -151,6 +151,7 @@ export class ContextMenu extends BasePlugin {
     this.menu.addLocalHook('executeCommand', (...params) => this.executeCommand.call(this, ...params));
 
     this.addHook('afterOnCellContextMenu', event => this.#onAfterOnCellContextMenu(event));
+    this.addHook('beforeDialogShow', () => this.close());
 
     this.registerShortcuts();
     super.enablePlugin();
@@ -194,7 +195,7 @@ export class ContextMenu extends BasePlugin {
       .addShortcut({
         keys: [['Control/Meta', 'Shift', 'Backslash'], ['Shift', 'F10']],
         callback: () => {
-          const { highlight } = this.hot.getSelectedRangeLast();
+          const { highlight } = this.hot.getSelectedRangeActive();
 
           this.hot.scrollToFocusedCell();
 
@@ -213,7 +214,7 @@ export class ContextMenu extends BasePlugin {
           this.menu.getNavigator().toFirstItem();
         },
         runOnlyIf: () => {
-          const highlight = this.hot.getSelectedRangeLast()?.highlight;
+          const highlight = this.hot.getSelectedRangeActive()?.highlight;
 
           return highlight && this.hot.selection.isCellVisible(highlight) && !this.menu.isOpened();
         },
@@ -252,12 +253,8 @@ export class ContextMenu extends BasePlugin {
     this.prepareMenuItems();
     this.menu.open();
 
-    const themeHasTableBorder = this.menu.tableBorderWidth > 0;
-
     objectEach(offset, (value, key) => {
-      const valueWithoutBorder = ['below', 'right'].includes(key) ? value + 1 : value - 1;
-
-      this.menu.setOffset(key, themeHasTableBorder ? value : valueWithoutBorder);
+      this.menu.setOffset(key, value);
     });
 
     this.menu.setPosition(position);

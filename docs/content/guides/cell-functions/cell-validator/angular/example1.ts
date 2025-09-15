@@ -1,6 +1,6 @@
 /* file: app.component.ts */
 import { Component, OnInit } from '@angular/core';
-import { GridSettings } from "@handsontable/angular-wrapper";
+import { GridSettings } from '@handsontable/angular-wrapper';
 
 const ipValidatorRegexp =
   /^(?:\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b|null)$/;

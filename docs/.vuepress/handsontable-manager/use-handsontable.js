@@ -21,11 +21,11 @@ const useHandsontable = (version, callback = () => {}, preset = 'hot', buildMode
       reject(new AbortError());
     };
 
-    if (abortSignal.aborted) {
+    if (abortSignal?.aborted) {
       reject(abortHandler());
     }
 
-    abortSignal.addEventListener('abort', abortHandler);
+    abortSignal?.addEventListener('abort', abortHandler);
 
     const getId = depName => `dependency-reloader_${depName}`;
     const [jsUrl, dependentVars = [], cssUrl = undefined, globalVarSharedDependency] = getDependency(dep);
@@ -88,14 +88,14 @@ const useHandsontable = (version, callback = () => {}, preset = 'hot', buildMode
     // execute callback
     if (script.loaded) {
       setTimeout(() => {
-        abortSignal.removeEventListener('abort', abortHandler);
+        abortSignal?.removeEventListener('abort', abortHandler);
         register.listen();
         themeManager.ensureCorrectHotThemes();
         resolve();
       });
     } else {
       script.addEventListener('load', () => {
-        abortSignal.removeEventListener('abort', abortHandler);
+        abortSignal?.removeEventListener('abort', abortHandler);
         register.listen();
         themeManager.ensureCorrectHotThemes();
         resolve();
@@ -109,7 +109,7 @@ const useHandsontable = (version, callback = () => {}, preset = 'hot', buildMode
     for (let i = 0; i < dependencies.length; i++) {
       const dep = dependencies[i];
 
-      if (abortSignal.aborted) {
+      if (abortSignal?.aborted) {
         break;
       }
 

@@ -22,6 +22,7 @@ describe('settings', () => {
       });
 
       expect(hot().rootElement.getAttribute('dir')).toBe('rtl');
+      expect(hot().rootWrapperElement.getAttribute('dir')).toBe('rtl');
       expect(hot().isRtl()).toBe(true);
     });
 
@@ -32,6 +33,7 @@ describe('settings', () => {
       });
 
       expect(hot().rootElement.getAttribute('dir')).toBe('ltr');
+      expect(hot().rootWrapperElement.getAttribute('dir')).toBe('ltr');
       expect(hot().isRtl()).toBe(false);
     });
 
@@ -43,6 +45,7 @@ describe('settings', () => {
       });
 
       expect(hot().rootElement.getAttribute('dir')).toBe('rtl');
+      expect(hot().rootWrapperElement.getAttribute('dir')).toBe('rtl');
       expect(hot().isRtl()).toBe(true);
     });
 
@@ -54,6 +57,7 @@ describe('settings', () => {
       });
 
       expect(hot().rootElement.getAttribute('dir')).toBe('rtl');
+      expect(hot().rootWrapperElement.getAttribute('dir')).toBe('rtl');
       expect(hot().isRtl()).toBe(true);
     });
 
@@ -71,6 +75,7 @@ describe('settings', () => {
       }).toThrowError();
 
       expect(hot().rootElement.getAttribute('dir')).toBe('ltr');
+      expect(hot().rootWrapperElement.getAttribute('dir')).toBe('ltr');
       expect(hot().isRtl()).toBe(false);
     });
   });

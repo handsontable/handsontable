@@ -179,7 +179,7 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
 
         return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
       },
-      runOnlyIf: () => hotInstance.getSelectedRangeLast()?.highlight.isCell(),
+      runOnlyIf: () => hotInstance.getSelectedRangeActive()?.highlight.isCell(),
     }, {
       keys: [['enter']],
       callback: () => {
@@ -188,7 +188,7 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
         return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
       },
       runOnlyIf: () => {
-        const range = hotInstance.getSelectedRangeLast();
+        const range = hotInstance.getSelectedRangeActive();
 
         return hotInstance.getSettings().enterBeginsEditing &&
           range?.highlight.isCell() &&
@@ -201,7 +201,7 @@ export function checkboxRenderer(hotInstance, TD, row, col, prop, value, cellPro
 
         return !areSelectedCheckboxCells(); // False blocks next action associated with the keyboard shortcut.
       },
-      runOnlyIf: () => hotInstance.getSelectedRangeLast()?.highlight.isCell(),
+      runOnlyIf: () => hotInstance.getSelectedRangeActive()?.highlight.isCell(),
     }], config);
   }
 

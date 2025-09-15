@@ -379,7 +379,7 @@ export class ManualRowMove extends BasePlugin {
    * @returns {Array}
    */
   prepareRowsToMoving() {
-    const selection = this.hot.getSelectedRangeLast();
+    const selection = this.hot.getSelectedRangeActive();
     const selectedRows = [];
 
     if (!selection) {
@@ -507,7 +507,7 @@ export class ManualRowMove extends BasePlugin {
   #onBeforeOnCellMouseDown(event, coords, TD, controller) {
     const { wtTable, wtViewport } = this.hot.view._wt;
     const isHeaderSelection = this.hot.selection.isSelectedByRowHeader();
-    const selection = this.hot.getSelectedRangeLast();
+    const selection = this.hot.getSelectedRangeActive();
 
     if (!selection || !isHeaderSelection || this.#pressed || event.button !== 0) {
       this.#pressed = false;
@@ -580,7 +580,7 @@ export class ManualRowMove extends BasePlugin {
    *                            a boolean value that allows or disallows changing the selection for that particular area.
    */
   #onBeforeOnCellMouseOver(event, coords, TD, controller) {
-    const selectedRange = this.hot.getSelectedRangeLast();
+    const selectedRange = this.hot.getSelectedRangeActive();
 
     if (!selectedRange || !this.#pressed) {
       return;
@@ -627,8 +627,8 @@ export class ManualRowMove extends BasePlugin {
 
     if (movePerformed === true) {
       this.persistentStateSave();
-      this.hot.render();
       this.hot.view.adjustElementsSize();
+      this.hot.render();
 
       const selectionStart = this.hot.toVisualRow(firstMovedPhysicalRow);
       const selectionEnd = selectionStart + rowsLen - 1;

@@ -1,7 +1,11 @@
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
 import { BaseRenderer } from 'handsontable/renderers';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const customStylesRenderer: BaseRenderer = (hotInstance, TD, ...rest) => {
   Handsontable.renderers.TextRenderer(hotInstance, TD, ...rest);

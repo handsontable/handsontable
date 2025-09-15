@@ -437,7 +437,7 @@
     .theme-examples-controls {
         .color-select {
             select {
-                padding-right: 100px;
+                padding-right: 100px !important;
             }
         }
 
@@ -478,4 +478,22 @@
 .page .ht-wrapper.docs-height-large > .ht_master,
 .page .docs-height-large .ht-wrapper > .ht_master  {
     height: 168px;
+}
+
+// Fixes for Loading page
+.ht-loading__title {
+    font-size: var(--ht-font-size) !important;
+    font-weight: var(--ht-font-weight) !important;
+    line-height: var(--ht-line-height) !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.ht-loading__description {
+    color: var(--ht-foreground-secondary-color) !important;
+    font-size: var(--ht-font-size-small) !important;
+    font-weight: var(--ht-font-weight) !important;
+    line-height: var(--ht-line-height-small) !important;
+     margin: 0 !important;
+    padding: 0 !important;
 }

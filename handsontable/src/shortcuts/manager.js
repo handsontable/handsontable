@@ -41,10 +41,11 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
    *
    * @memberof ShortcutManager#
    * @param {string} contextName The name of the new shortcut context
+   * @param {string} [scope='table'] The scope of the shortcut: `'table'` or `'global'`
    * @returns {object}
    */
-  const addContext = (contextName) => {
-    const context = createContext(contextName);
+  const addContext = (contextName, scope = 'table') => {
+    const context = createContext(contextName, scope);
 
     CONTEXTS.addItem(contextName, context);
 
@@ -155,13 +156,26 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
   };
 
   /**
+   * Handle the event with the scope of the active context.
+   *
+   * @param {KeyboardEvent} event The keyboard event.
+   * @returns {boolean}
+   */
+  const handleEventWithScope = (event) => {
+    const context = getActiveContextName();
+    const activeContext = isContextObject(context) ? context : getContext(context);
+
+    return handleEvent(event, activeContext.scope);
+  };
+
+  /**
    * Internal key recorder.
    *
    * @private
    */
   const keyRecorder = useRecorder(
     ownerWindow,
-    handleEvent,
+    handleEventWithScope,
     beforeKeyDown,
     afterKeyDown,
     recorderCallback,

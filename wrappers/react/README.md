@@ -1,3 +1,12 @@
+__________
+
+⚠️ **This package is deprecated.**
+
+Handsontable for React is now available as [`@handsontable/react-wrapper`](https://www.npmjs.com/package/@handsontable/react-wrapper).
+
+Please refer to the [Migration Guide](https://handsontable.com/docs/migration-from-14.6-to-15.0/#migration-steps) for instructions on how to migrate to the new wrapper.
+__________
+
 <div align="center">
   <br><br>
   <picture>

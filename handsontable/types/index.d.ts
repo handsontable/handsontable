@@ -211,6 +211,10 @@ import {
   Settings as NestedRowsSettings,
 } from './plugins/nestedRows';
 import {
+  Pagination as _Pagination,
+  Settings as PaginationSettings,
+} from './plugins/pagination';
+import {
   PersistentState as _PersistentState,
   Settings as PersistentStateSettings,
 } from './plugins/persistentState';
@@ -231,6 +235,14 @@ import {
   TrimRows as _TrimRows,
   Settings as TrimRowsSettings,
 } from './plugins/trimRows';
+import {
+  Dialog as _Dialog,
+  Settings as DialogSettings,
+} from './plugins/dialog';
+import {
+  Loading as _Loading,
+  Settings as LoadingSettings,
+} from './plugins/loading';
 import {
   UndoRedo as _UndoRedo,
   Settings as UndoRedoSettings,
@@ -380,10 +392,13 @@ declare namespace Handsontable {
     export class MultipleSelectionHandles extends _MultipleSelectionHandles {}
     export class NestedHeaders extends _NestedHeaders {}
     export class NestedRows extends _NestedRows {}
+    export class Pagination extends _Pagination {}
     export class PersistentState extends _PersistentState {}
     export class Search extends _Search {}
     export class TouchScroll extends _TouchScroll {}
     export class TrimRows extends _TrimRows {}
+    export class Dialog extends _Dialog {}
+    export class Loading extends _Loading {}
     export class UndoRedo extends _UndoRedo {}
 
     export namespace AutoColumnSize {
@@ -516,6 +531,10 @@ declare namespace Handsontable {
       export { NestedRowsSettings as Settings };
     }
 
+    export namespace Pagination {
+      export { PaginationSettings as Settings };
+    }
+
     export namespace PersistentState {
       export { PersistentStateSettings as Settings };
     }
@@ -536,6 +555,14 @@ declare namespace Handsontable {
 
     export namespace TrimRows {
       export { TrimRowsSettings as Settings };
+    }
+
+    export namespace Dialog {
+      export { DialogSettings as Settings };
+    }
+
+    export namespace Loading {
+      export { LoadingSettings as Settings };
     }
 
     export namespace UndoRedo {

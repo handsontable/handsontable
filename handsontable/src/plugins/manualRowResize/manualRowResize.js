@@ -226,6 +226,10 @@ export class ManualRowResize extends BasePlugin {
    * @param {HTMLCellElement} TH TH HTML element.
    */
   setupHandlePosition(TH) {
+    if (this.#dblclick > 1) {
+      return;
+    }
+
     this.#currentTH = TH;
 
     const { view } = this.hot;
@@ -448,8 +452,8 @@ export class ManualRowResize extends BasePlugin {
    */
   afterMouseDownTimeout() {
     const render = () => {
-      this.hot.render();
       this.hot.view.adjustElementsSize();
+      this.hot.render();
     };
     const resize = (row, forceRender) => {
       const hookNewSize = this.hot.runHooks('beforeRowResize', this.getActualRowHeight(row), row, true);
@@ -534,8 +538,8 @@ export class ManualRowResize extends BasePlugin {
    */
   #onMouseUp() {
     const render = () => {
-      this.hot.render();
       this.hot.view.adjustElementsSize();
+      this.hot.render();
     };
     const runHooks = (row, forceRender) => {
       this.hot.runHooks('beforeRowResize', this.getActualRowHeight(row), row, false);

@@ -397,6 +397,19 @@ export default {
         metaTitle: 'NestedRows - Angular Data Grid | Handsontable',
       },
     },
+    'Pagination.md': {
+      id: 'x4x6yo42',
+      metaTitle: 'Pagination - JavaScript Data Grid | Handsontable',
+      description: 'Use the Pagination plugin with its API options, members and methods to splitting rows into pages and rendering navigation controls.',
+      react: {
+        id: 'gffcvsd3',
+        metaTitle: 'Pagination - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: 'mkvijvro',
+        metaTitle: 'Pagination - Angular Data Grid | Handsontable',
+      },
+    },
     'PersistentState.md': {
       id: 'eh8nz1kw',
       metaTitle: 'PersistentState - JavaScript Data Grid | Handsontable',
@@ -720,6 +733,32 @@ export default {
       angular: {
         id: 'c5v4e2wx',
         metaTitle: 'EventManager - Angular Data Grid | Handsontable',
+      },
+    },
+    'Dialog.md': {
+      id: 'fk91r7t',
+      metaTitle: 'Dialog - JavaScript Data Grid | Handsontable',
+      description: 'Options, members, and methods of Handsontable\'s Dialog API.',
+      react: {
+        id: '5j79k2r2',
+        metaTitle: 'Dialog - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: 'c5v4e21x',
+        metaTitle: 'Dialog - Angular Data Grid | Handsontable',
+      },
+    },
+    'Loading.md': {
+      id: 'h2m8p4v9',
+      metaTitle: 'Loading - JavaScript Data Grid | Handsontable',
+      description: 'Options, members, and methods of Handsontable\'s Loading API.',
+      react: {
+        id: 'n6k3b8r4',
+        metaTitle: 'Loading - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: 'w7t5x9q2',
+        metaTitle: 'Loading - Angular Data Grid | Handsontable',
       },
     },
   }

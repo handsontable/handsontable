@@ -31,6 +31,25 @@ const localHooks = {
   },
 
   /**
+   * Removes the hook name associated with the callback function.
+   *
+   * @param {string} key The hook name.
+   * @param {*} callback The hook callback.
+   * @returns {object}
+   */
+  removeLocalHook(key, callback) {
+    if (this._localHooks[key]) {
+      const index = this._localHooks[key].indexOf(callback);
+
+      if (index > -1) {
+        this._localHooks[key].splice(index, 1);
+      }
+    }
+
+    return this;
+  },
+
+  /**
    * Run hooks.
    *
    * @param {string} key The name of the hook to run.

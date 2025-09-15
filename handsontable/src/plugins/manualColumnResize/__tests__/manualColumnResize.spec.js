@@ -839,6 +839,30 @@ describe('manualColumnResize', () => {
     });
   });
 
+  it('should autosize selected columns after double click on handler and move mouse to the next column', async() => {
+    handsontable({
+      data: createSpreadsheetData(9, 9),
+      colHeaders: true,
+      manualColumnResize: true,
+    });
+
+    getTopClone().find('thead tr:eq(0) th:eq(1)').simulate('mouseover');
+
+    const $resizer = spec().$container.find('.manualColumnResizer');
+    const resizerPosition = $resizer.position();
+
+    await sleep(600);
+    await mouseDoubleClick($resizer, { clientX: resizerPosition.left });
+    getTopClone().find('tr:eq(0) th:eq(2)').simulate('mouseover');
+    await sleep(600);
+
+    expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(26);
+      main.toBe(36);
+      horizon.toBe(44);
+    });
+  });
+
   it.forTheme('classic')('should adjust resize handles position after table size changed', async() => {
     let maxed = false;
 

@@ -83,7 +83,17 @@ const dictionary = {
   [C.FILTERS_BUTTONS_CANCEL]: 'キャンセル',
   [C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH]: '検索',
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: '値',
-  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: '値2'
+  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: '値2',
+  [C.PAGINATION_SECTION]: 'ページネーション',
+  [C.PAGINATION_PAGE_SIZE_SECTION]: '行数',
+  [C.PAGINATION_PAGE_SIZE_AUTO]: '自動',
+  [C.PAGINATION_COUNTER_SECTION]: '[start] - [end] / 全[total]件',
+  [C.PAGINATION_NAV_SECTION]: 'ページ [currentPage] / [totalPages]',
+  [C.PAGINATION_FIRST_PAGE]: '最初のページへ移動',
+  [C.PAGINATION_PREV_PAGE]: '前のページへ移動',
+  [C.PAGINATION_NEXT_PAGE]: '次のページへ移動',
+  [C.PAGINATION_LAST_PAGE]: '最後のページへ移動',
+  [C.LOADING_TITLE]: '読み込み中...'
 };
 Handsontable.languages.registerLanguageDictionary(dictionary);
 export default dictionary;

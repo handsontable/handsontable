@@ -32,6 +32,7 @@ export enum FilterConditions {
   Tomorrow = 'Tomorrow',
   Today = 'Today',
   Yesterday = 'Yesterday',
+  Contains = 'Contains',
 }
 
 // eslint-disable-next-line no-shadow
@@ -229,7 +230,6 @@ export async function clickWithPosition(cell: Locator) {
  * @param {Locator} cell Cell locator.
  */
 export async function clickCell(cell:Locator) {
-
   await cell
     .click();
 }
@@ -375,7 +375,6 @@ export async function clearColumn(columnNameOrIndex: string | number) {
   openHeaderDropdownMenu(columnNameOrIndex);
 
   await getPageInstance().getByText('Clear column').click();
-
 }
 
 /**
@@ -461,6 +460,63 @@ export async function filterByCondition(
       .pressSequentially(secondValue);
   }
   await getPageInstance().getByRole('button', { name: 'OK' }).click();
+}
+
+/**
+ * Clicks the "Go to first page" button in the pagination section.
+ *
+ * @param {string} value The value to select in the page size dropdown.
+ */
+export async function forPaginationChangePageSize(value: string) {
+  const select = getPageInstance()
+    .locator('.ht-page-size-section')
+    .locator('select[name="pageSize"]');
+
+  await select.selectOption(value);
+}
+
+/**
+ * Clicks the "Go to first page" button in the pagination section.
+ */
+export async function forPaginationClickFirstPageButton() {
+  const button = getPageInstance()
+    .locator('.ht-page-navigation-section')
+    .locator('.ht-page-first');
+
+  await button.click();
+}
+
+/**
+ * Clicks the "Go to previous page" button in the pagination section.
+ */
+export async function forPaginationClickPrevPageButton() {
+  const button = getPageInstance()
+    .locator('.ht-page-navigation-section')
+    .locator('.ht-page-prev');
+
+  await button.click();
+}
+
+/**
+ * Clicks the "Go to next page" button in the pagination section.
+ */
+export async function forPaginationClickNextPageButton() {
+  const button = getPageInstance()
+    .locator('.ht-page-navigation-section')
+    .locator('.ht-page-next');
+
+  await button.click();
+}
+
+/**
+ * Clicks the "Go to last page" button in the pagination section.
+ */
+export async function forPaginationClickLastPageButton() {
+  const button = getPageInstance()
+    .locator('.ht-page-navigation-section')
+    .locator('.ht-page-last');
+
+  await button.click();
 }
 
 /**
@@ -552,7 +608,6 @@ export async function resizeColumn(columnName: string, resizeAmount: number) {
  * @param {Locator} tableLocator The locator of the page.
  */
 export async function resizeRow(rowIndex: number, resizeAmount: number, tableLocator = getDefaultTableInstance()) {
-
   const box = await tableLocator.getByRole('rowheader').nth(rowIndex).boundingBox();
 
   if (box) {
@@ -685,4 +740,18 @@ export async function waitForContextSubmenuToAppear(submenuName: string) {
  */
 export async function waitForDropdownSubmenuToAppear(submenuName: string) {
   await getPageInstance().waitForSelector(`.htDropdownMenuSub_${submenuName}`);
+}
+
+/**
+ * Updates Handsontable settings.
+ *
+ * @param {object} options Handsontable settings options.
+ */
+export async function forHandsontableUpdateSettings(options) {
+  await getPageInstance().evaluate(async(hotOptions) => {
+    // eslint-disable-next-line no-restricted-globals
+    const hotInstance = document.defaultView?.hotInstance;
+
+    hotInstance.updateSettings(hotOptions);
+  }, options);
 }

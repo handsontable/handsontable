@@ -8,7 +8,7 @@ export default function hideRowItem(hiddenRowsPlugin) {
   return {
     key: 'hidden_rows_hide',
     name() {
-      const selection = this.getSelectedLast();
+      const selection = this.getSelectedActive();
       let pluralForm = 0;
 
       if (Array.isArray(selection)) {
@@ -22,7 +22,7 @@ export default function hideRowItem(hiddenRowsPlugin) {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_HIDE_ROW, pluralForm);
     },
     callback() {
-      const { from, to } = this.getSelectedRangeLast();
+      const { from, to } = this.getSelectedRangeActive();
       const start = Math.max(Math.min(from.row, to.row), 0);
       const end = Math.max(from.row, to.row);
       const rowsToHide = [];
@@ -43,8 +43,8 @@ export default function hideRowItem(hiddenRowsPlugin) {
         this.deselectCell();
       }
 
-      this.render();
       this.view.adjustElementsSize();
+      this.render();
     },
     disabled: false,
     hidden() {

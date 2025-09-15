@@ -59,7 +59,8 @@ describe('NumericCellType', () => {
         editor: getEditor('numeric'),
         renderer: getRenderer('numeric'),
         validator: getValidator('numeric'),
-        dataType: 'number'
+        dataType: 'number',
+        valueSetter: NumericCellType.valueSetter,
       });
     });
   });

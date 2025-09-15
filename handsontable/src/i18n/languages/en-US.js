@@ -101,8 +101,20 @@ const dictionary = {
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: 'Value',
   [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: 'Second value',
 
+  [C.PAGINATION_SECTION]: 'Pagination',
+  [C.PAGINATION_PAGE_SIZE_SECTION]: 'Page size',
+  [C.PAGINATION_PAGE_SIZE_AUTO]: 'Auto',
+  [C.PAGINATION_COUNTER_SECTION]: '[start] - [end] of [total]',
+  [C.PAGINATION_NAV_SECTION]: 'Page [currentPage] of [totalPages]',
+  [C.PAGINATION_FIRST_PAGE]: 'Go to first page',
+  [C.PAGINATION_PREV_PAGE]: 'Go to previous page',
+  [C.PAGINATION_NEXT_PAGE]: 'Go to next page',
+  [C.PAGINATION_LAST_PAGE]: 'Go to last page',
+
   [C.CHECKBOX_CHECKED]: 'Checked',
   [C.CHECKBOX_UNCHECKED]: 'Unchecked',
+
+  [C.LOADING_TITLE]: 'Loading...',
 };
 
 export default dictionary;

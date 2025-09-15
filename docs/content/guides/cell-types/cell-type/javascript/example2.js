@@ -1,6 +1,10 @@
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 const container = document.querySelector('#example2');
 
@@ -34,7 +38,7 @@ new Handsontable(container, {
       type: 'numeric',
       numericFormat: {
         pattern: '$0,0.00',
-        culture: 'en-US',
+        culture: 'en-US', // this is the default culture, set up for USD
       },
     },
     { type: 'checkbox' },

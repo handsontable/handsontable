@@ -47,6 +47,7 @@ const ExampleComponent = () => {
           type: 'autocomplete',
           source: cars,
           strict: true,
+          // allowInvalid: true // true is default
         },
         {},
         {
@@ -59,7 +60,7 @@ const ExampleComponent = () => {
           type: 'autocomplete',
           source: colors,
           strict: true,
-          allowInvalid: true,
+          allowInvalid: true, // true is default
         },
       ]}
     />

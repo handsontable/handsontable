@@ -173,12 +173,12 @@
 /docs/vue /docs/javascript-data-grid/vue-installation/
 /docs/vue3 /docs/javascript-data-grid/vue3-installation/
 
-/docs/react-data-grid/row-sorting	/docs/react-data-grid/rows-sorting
-/docs/react-data-grid/column-sorting	/docs/react-data-grid/rows-sorting
-/docs/react-data-grid/release-notes	/docs/react-data-grid/changelog
-/docs/react-modules	/docs/react-data-grid/modules
-/docs/react-setting-up-a-locale	/docs/react-data-grid/language
-/docs/angular-simple-example	/docs/javascript-data-grid/angular-simple-example
+/docs/react-data-grid/row-sorting /docs/react-data-grid/rows-sorting
+/docs/react-data-grid/column-sorting /docs/react-data-grid/rows-sorting
+/docs/react-data-grid/release-notes /docs/react-data-grid/changelog
+/docs/react-modules /docs/react-data-grid/modules
+/docs/react-setting-up-a-locale /docs/react-data-grid/language
+/docs/angular-simple-example /docs/javascript-data-grid/angular-simple-example
 
 /docs/7.1.0/frameworks-wrapper-for-angular-installation.html /docs/javascript-data-grid/angular-installation/
 /docs/7.1.0/frameworks-wrapper-for-vue-hot-column.html /docs/javascript-data-grid/vue-hot-column/
@@ -188,3 +188,28 @@
 /docs/8.2.0/tutorial-introduction.html /docs/javascript-data-grid/
 /docs/8.3.0/tutorial-modules.html /docs/javascript-data-grid/modules/
 /docs/8.3.0/tutorial-suspend-rendering.html /docs/javascript-data-grid/batch-operations/
+
+
+/docs/react-data-grid/angular-installation/ /docs/angular-data-grid/installation/
+/docs/react-data-grid/angular-basic-example/ /docs/angular-data-grid/demo/
+/docs/react-data-grid/angular-modules/ /docs/angular-data-grid/modules/
+/docs/react-data-grid/angular-custom-id/ /docs/angular-data-grid/api/options/
+/docs/react-data-grid/angular-setting-up-a-translation/ /docs/react-data-grid/locale/
+/docs/react-data-grid/angular-custom-context-menu-example/ /docs/react-data-grid/context-menu/
+/docs/react-data-grid/angular-custom-editor-example/ /docs/angular-data-grid/cell-editor/
+/docs/react-data-grid/angular-custom-renderer-example/ /docs/angular-data-grid/cell-renderer/
+/docs/react-data-grid/angular-language-change-example/ /docs/angular-data-grid/language/
+/docs/react-data-grid/angular-hot-reference/ /docs/angular-data-grid/api/core/
+
+/docs/javascript-data-grid/angular-installation/ /docs/angular-data-grid/installation/
+/docs/javascript-data-grid/angular-basic-example/ /docs/angular-data-grid/demo/
+/docs/javascript-data-grid/angular-modules/ /docs/angular-data-grid/modules/
+/docs/javascript-data-grid/angular-custom-id/ /docs/angular-data-grid/api/options/
+/docs/javascript-data-grid/angular-setting-up-a-translation/ /docs/javascript-data-grid/locale/
+/docs/javascript-data-grid/angular-custom-context-menu-example/ /docs/javascript-data-grid/context-menu/
+/docs/javascript-data-grid/angular-custom-editor-example/ /docs/angular-data-grid/cell-editor/
+/docs/javascript-data-grid/angular-custom-renderer-example/ /docs/angular-data-grid/cell-renderer/
+/docs/javascript-data-grid/angular-language-change-example/ /docs/angular-data-grid/language/
+/docs/javascript-data-grid/angular-hot-reference/ /docs/angular-data-grid/api/core/
+
+/docs/next/:splat /docs/:splat

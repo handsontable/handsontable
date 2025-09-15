@@ -85,6 +85,36 @@ describe('ContextMenu keyboard shortcut', () => {
       });
     });
 
+    it('should internally call `open()` method with correct cell coordinates - active second selection layer', async() => {
+      handsontable({
+        contextMenu: true,
+      });
+
+      await selectCells([
+        [0, 0, 2, 2],
+        [2, 1, 2, 3],
+        [1, 4, 3, 4],
+      ]);
+
+      await keyDownUp(['shift', 'tab']);
+      await keyDownUp(['shift', 'tab']); // select C3 of the second layer
+
+      const plugin = getPlugin('contextMenu');
+      const cellRect = getCell(2, 2).getBoundingClientRect();
+
+      spyOn(plugin, 'open').and.callThrough();
+      await keyDownUp(keyboardShortcut);
+
+      expect(plugin.open).toHaveBeenCalledTimes(1);
+      expect(plugin.open).toHaveBeenCalledWith({
+        left: cellRect.left,
+        top: cellRect.top + cellRect.height - 1,
+      }, {
+        left: cellRect.width,
+        above: -cellRect.height,
+      });
+    });
+
     it('should internally call `open()` method with correct row header coordinates', async() => {
       handsontable({
         contextMenu: true,

@@ -34,18 +34,19 @@ angular:
 |[ExportFile](@/api/exportFile.md) |Export the data to a CSV file (note: this plugin provides a capability to export the data to only a CSV file type, its name might cause confusion).|
 |[Filters](@/api/filters.md) |Display rows that meet your criteria and hide the rest.|
 |[Formulas](@/api/formulas.md) | Use Excel-like functions inside of cells to perform calculations.|
-|[HiddenColumns](@/api/hiddenColumns.md) |Hide specific columns.|
-|[HiddenRows](@/api/hiddenRows.md) |Hide specific rows.|
-|[ManualColumnFreeze](@/api/manualColumnFreeze.md) |Pin the columns to the left to keep them visible while scrolling.|
-|[ManualColumnMove](@/api/manualColumnMove.md) |Drag a column to change its order in the data grid.|
+|[HiddenColumns](@/api/hiddenColumns.md) | Hide specific columns. |
+|[HiddenRows](@/api/hiddenRows.md) | Hide specific rows.|
+|[ManualColumnFreeze](@/api/manualColumnFreeze.md) | Pin the columns to the left to keep them visible while scrolling.|
+|[ManualColumnMove](@/api/manualColumnMove.md) | Drag a column to change its order in the data grid.|
 |[ManualColumnResize](@/api/manualColumnResize.md) | Drag the sizing handle to change the width of a column.|
-|[ManualRowMove](@/api/manualRowMove.md) |Drag a row to change its order in the data grid.|
-|[ManualRowResize](@/api/manualRowResize.md) |Drag the sizing handle to change the height of a row.|
-|[MergeCells](@/api/mergeCells.md) |Span the cells across multiple rows or columns.|
+|[ManualRowMove](@/api/manualRowMove.md) | Drag a row to change its order in the data grid.|
+|[ManualRowResize](@/api/manualRowResize.md) | Drag the sizing handle to change the height of a row.|
+|[MergeCells](@/api/mergeCells.md) | Span the cells across multiple rows or columns.|
 |[MultiColumnSorting](@/api/multiColumnSorting.md)| Sort the rows by multiple columns.|
-|[NestedHeaders](@/api/nestedHeaders.md) |Create a nested, hierarchical structure of column headers to put your data into groups.|
-|[NestedRows](@/api/nestedRows.md) |Enable editable views of data sources with nested (tree/parent-child) structures.|
+|[NestedHeaders](@/api/nestedHeaders.md) | Create a nested, hierarchical structure of column headers to put your data into groups.|
+|[NestedRows](@/api/nestedRows.md) | Enable editable views of data sources with nested (tree/parent-child) structures.|
+|[Pagination](@/api/pagination.md)| Display data in pages and navigate through them using pagination controls.|
 |[PersistentState](@/api/persistentState.md)| Save the state of column sorting, column positions, and column sizes in local storage to preserve the table state between page reloads.|
-|[Search](@/api/search.md) |Search for specific values in the displayed data across the table.|
-|[TrimRows](@/api/trimRows.md) |Exclude the specific rows from being rendered and calculated by the data grid. This feature is mainly used internally, for example, in the filter plugin.|
-|[UndoRedo](@/api/undoRedo.md)|Undo or redo changes made by the user.|
+|[Search](@/api/search.md) | Search for specific values in the displayed data across the table.|
+|[TrimRows](@/api/trimRows.md) | Exclude the specific rows from being rendered and calculated by the data grid. This feature is mainly used internally, for example, in the filter plugin.|
+|[UndoRedo](@/api/undoRedo.md)| Undo or redo changes made by the user.|

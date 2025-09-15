@@ -1,6 +1,10 @@
-import Handsontable from 'handsontable';
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
+
+// Register all Handsontable's modules.
+registerAllModules();
 
 // generate an array of arrays with dummy data
 const data = new Array(1000) // number of rows
