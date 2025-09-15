@@ -1,3 +1,13 @@
+__________
+
+⚠️ **This package is deprecated.**
+
+Handsontable for Vue is now available as [`@handsontable/vue3`](https://www.npmjs.com/package/@handsontable/vue3).
+
+Please refer to the [Installation guide](https://handsontable.com/docs/vue3-installation/#installation-in-vue-3) for instructions on how to use the new wrapper.
+__________
+
+
 <div align="center">
   <br><br>
   <picture>
