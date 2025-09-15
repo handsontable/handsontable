@@ -73,6 +73,7 @@ For more information about this release see:
 #### Deprecated
 - Deprecated the legacy style (to be removed in version `17.0.0`). [#11790](https://github.com/handsontable/handsontable/pull/11790)
 - Deprecated the PersistentState plugin (to be removed in version `17.0.0`). [#11835](https://github.com/handsontable/handsontable/pull/11835)
+- Deprecated the `@handsontable/vue` wrapper. [#11839](https://github.com/handsontable/handsontable/pull/11839)
 
 
 ## 16.0.1
