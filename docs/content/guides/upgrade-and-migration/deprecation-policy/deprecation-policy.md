@@ -44,3 +44,19 @@ We will announce deprecations and removals through release notes accompanied by 
 For significant deprecations (especially those affecting many users), we will provide dedicated **Migration Guides**.
 
 For more details about our versioning policy please visit [Versioning policy](@/guides/upgrade-and-migration/versioning-policy/versioning-policy.md)
+
+## List of depracations 
+
+Below is a list of current depreactions that are planned to be removed in next major version. 
+
+* [React class-based wrapper](https://www.npmjs.com/package/@handsontable/react)
+* [Angular legacy wrapper](https://www.npmjs.com/package/@handsontable/angular)
+* [Vue2 wrapper](https://www.npmjs.com/package/@handsontable/vue)
+* [Legacy style](@/guides/styling/legacy-style/legacy-style.md)
+* [`persistentState` plugin](@/api/persistent-state/#persistentstate-2)
+* [`hot.undo` method](@/api/core/#undo)
+* [`hot.redo` method](@/api/core/#undo)
+* [`hot.isUndoAvailable` method](@/api/core/#undo)
+* [`hot.isRedoAvailable` method](@/api/core/#undo)
+* [`hot.clearUndo` method](@/api/core/#undo)
+
