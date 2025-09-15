@@ -1,5 +1,6 @@
 import { arrayEach } from '../../helpers/array';
 import { warn } from '../../helpers/console';
+import { roundFloat } from './utils';
 
 /**
  * Class used to make all endpoint-related operations.
@@ -568,23 +569,7 @@ class Endpoints {
       }
     }
 
-    if (
-      (
-        endpoint.roundFloat === true ||
-        Number.isInteger(endpoint.roundFloat)
-      ) &&
-      !isNaN(endpoint.result)
-    ) {
-      const roundFloatValue = endpoint.roundFloat;
-      let decimalPlacesCount = 0;
-
-      // `toFixed` method accepts only values between 0 and 100
-      if (Number.isInteger(roundFloatValue)) {
-        decimalPlacesCount = Math.min(Math.max(0, roundFloatValue), 100);
-      }
-
-      endpoint.result = endpoint.result.toFixed(decimalPlacesCount);
-    }
+    endpoint.result = roundFloat(endpoint.result, endpoint.roundFloat);
 
     if (render) {
       this.hot.setDataAtCell(visualEndpointRowIndex, endpoint.destinationColumn, endpoint.result, 'ColumnSummary.set');

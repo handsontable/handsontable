@@ -888,6 +888,71 @@ describe('ColumnSummarySpec', () => {
       expect($(getCell(8, 3)).hasClass('columnSummaryResult')).toBe(true);
       expect($(getCell(8, 3)).hasClass('htDimmed')).toBe(true);
     });
+
+    it('should recalculate results after calling the `updateSettings` method with new data', async() => {
+      handsontable({
+        data: createNumericData(10, 10),
+        height: 200,
+        width: 200,
+        columnSummary: [{
+          sourceColumn: 0,
+          destinationColumn: 0,
+          destinationRow: 0,
+          ranges: [[1, 3]],
+          type: 'sum'
+        }]
+      });
+
+      expect(getDataAtCell(0, 0)).toEqual(9);
+
+      await updateSettings({
+        data: createNumericData(5, 5).map(row => row.map(cell => cell * 2)),
+      });
+
+      expect(getDataAtCell(0, 0)).toEqual(18);
+    });
+
+    it('should recalculate results after calling the `loadData` method', async() => {
+      handsontable({
+        data: createNumericData(10, 10),
+        height: 200,
+        width: 200,
+        columnSummary: [{
+          sourceColumn: 0,
+          destinationColumn: 0,
+          destinationRow: 0,
+          ranges: [[1, 3]],
+          type: 'sum'
+        }]
+      });
+
+      expect(getDataAtCell(0, 0)).toEqual(9);
+
+      await loadData(createNumericData(5, 5).map(row => row.map(cell => cell * 2)));
+
+      expect(getDataAtCell(0, 0)).toEqual(18);
+    });
+
+    it('should recalculate results after calling the `updateData` method', async() => {
+      handsontable({
+        data: createNumericData(10, 10),
+        height: 200,
+        width: 200,
+        columnSummary: [{
+          sourceColumn: 0,
+          destinationColumn: 0,
+          destinationRow: 0,
+          ranges: [[1, 3]],
+          type: 'sum'
+        }]
+      });
+
+      expect(getDataAtCell(0, 0)).toEqual(9);
+
+      await updateData(createNumericData(5, 5).map(row => row.map(cell => cell * 2)));
+
+      expect(getDataAtCell(0, 0)).toEqual(18);
+    });
   });
 
   describe('compatibility with other plugins', () => {
@@ -1100,6 +1165,42 @@ describe('ColumnSummarySpec', () => {
 
       expect(getDataAtCell(14, 0)).toEqual('7.45454545454545414173708195448853075504302978515625' +
       '00000000000000000000000000000000000000000000000000');
+    });
+
+    it('should automatically adjust decimal places so the entire number fits into 8 digits when roundFloat is set to "auto"', async() => {
+      handsontable({
+        data: [
+          [1],
+          [2],
+          [3.123456789],
+          [4.987654321],
+          []
+        ],
+        columnSummary: [
+          {
+            sourceColumn: 0,
+            destinationColumn: 0,
+            reversedRowCoords: true,
+            destinationRow: 0,
+            roundFloat: 'auto',
+            type: 'average'
+          }
+        ]
+      });
+
+      expect(getDataAtCell(4, 0)).toEqual('2.7777778');
+
+      await updateSettings({
+        data: [
+          [10000],
+          [20000],
+          [30000.123],
+          [40000.456],
+          []
+        ]
+      });
+
+      expect(getDataAtCell(4, 0)).toEqual('25000.145');
     });
   });
 
