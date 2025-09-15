@@ -45,9 +45,9 @@ For significant deprecations (especially those affecting many users), we will pr
 
 For more details about our versioning policy please visit [Versioning policy](@/guides/upgrade-and-migration/versioning-policy/versioning-policy.md)
 
-## List of depracations 
+## List of deprecations 
 
-Below is a list of current depreactions that are planned to be removed in next major version. 
+Below is a list of current deprecations that are planned to be removed in next major version. 
 
 * [React class-based wrapper](https://www.npmjs.com/package/@handsontable/react)
 * [Angular legacy wrapper](https://www.npmjs.com/package/@handsontable/angular)
