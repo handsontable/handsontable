@@ -142,12 +142,21 @@ jobs:
           cp -r ../../wrappers/vue3 docs/docs/@handsontable/
 
       - name: Publish preview to Netlify
-        run: |
-          cd netlify
-          netlify deploy --prod --build --context production
+        uses: nick-fields/retry@v3
+        with:
+          timeout_seconds: 15
+          max_attempts: 3
+          retry_on: error
+          command: |
+            cd netlify
+            netlify deploy --prod --build --context production
+        # run: |
+        #   cd netlify
+        #   netlify deploy --prod --build --context production
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ env.NETLIFY_SITE_ID }}
+          
 
       - name: Publish sticky comment in PR
         uses: marocchino/sticky-pull-request-comment@adca94abcaf73c10466a71cc83ae561fd66d1a56 # https://github.com/marocchino/sticky-pull-request-comment/tree/v2.3.0
