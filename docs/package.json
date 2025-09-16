@@ -20,7 +20,7 @@
     "docs:start": "npm run docs:scripts:link-assets && npm run docs:build:angular-umd && cross-env NODE_OPTIONS=--openssl-legacy-provider node ./node_modules/.bin/vuepress dev ./",
     "docs:start:no-cache": "npm run docs:scripts:link-assets && npm run docs:build:angular-umd && cross-env NODE_OPTIONS=--openssl-legacy-provider node ./node_modules/.bin/vuepress dev --no-cache ./",
     "docs:serve": "http-server -c-1 .vuepress/dist/",
-    "docs:build": "npm run docs:build:angular-umd && cross-env NODE_OPTIONS=--openssl-legacy-provider node .vuepress/tools/build.mjs -- --no-cache && npm rundocs:build:edge-redirects",
+    "docs:build": "npm run docs:build:angular-umd && cross-env NODE_OPTIONS=--openssl-legacy-provider node .vuepress/tools/build.mjs -- --no-cache && npm run docs:build:edge-redirects",
     "docs:build:edge-redirects": "node .vuepress/tools/redirects-from-sitemap.mjs",
     "docs:build:angular-umd": "node .vuepress/tools/angular-umd-builder/index.js",
     "docs:build:preview": "cross-env BUILD_MODE=preview npm run docs:build && npm run docs:build:edge-redirects",
