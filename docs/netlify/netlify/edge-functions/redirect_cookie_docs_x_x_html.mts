@@ -164,6 +164,14 @@ const redirectsMap = {
   Search: 'api/search',
   TrimRows: 'api/trim-rows',
   UndoRedo: 'api/undo-redo',
+
+  'tutorial-changelog': '/changelog/',
+  'tutorial-known-limitations': '/third-party-licenses/',
+
+  // Demos
+
+  'demo-using-callbacks': '/events-and-hooks/',
+  'demo-react-simple-examples': '/react-simple-example/'
 };
 
 const redirectsMapfor12up = {
@@ -254,5 +262,5 @@ export default async(req: Request, context: Context) => {
 };
 
 export const config: Config = {
-  path: `/docs/(${Object.keys(redirectsMap).join('|')}).html`
+  path: `/docs/(\\d+).(\\d+)/(${Object.keys(redirectsMap).join('|')}).html`
 };
