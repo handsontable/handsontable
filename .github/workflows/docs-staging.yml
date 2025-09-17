@@ -148,6 +148,7 @@ jobs:
           max_attempts: 3
           retry_on: error
           command: |
+            printenv
             cd docs
             cd netlify
             netlify deploy --prod --build --context production
