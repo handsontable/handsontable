@@ -144,16 +144,13 @@ jobs:
       - name: Publish preview to Netlify
         uses: nick-fields/retry@v3
         with:
-          timeout_seconds: 15
+          timeout_seconds: 1500
           max_attempts: 3
           retry_on: error
           command: |
             cd docs
             cd netlify
             netlify deploy --prod --build --context production
-        # run: |
-        #   cd netlify
-        #   netlify deploy --prod --build --context production
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ env.NETLIFY_SITE_ID }}
