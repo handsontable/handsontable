@@ -6,7 +6,7 @@ import 'handsontable/styles/ht-theme-main.css';
 // Register all Handsontable's modules.
 registerAllModules();
 
-const container = document.querySelector('#example4')!;
+const container = document.querySelector('#example5')!;
 
 const shipmentKVData = [
   ['Electronics and Gadgets', { key: 'LAX', value: 'Los Angeles International Airport' }],
