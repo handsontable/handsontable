@@ -144,7 +144,7 @@ jobs:
       - name: Publish preview to Netlify
         uses: nick-fields/retry@v3
         with:
-          timeout_seconds: 1500
+          timeout_seconds: 1600
           max_attempts: 3
           retry_on: error
           command: |
