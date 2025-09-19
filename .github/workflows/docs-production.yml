@@ -85,10 +85,11 @@ jobs:
           command: |
             cd docs
             cd netlify
+            npm install netlify-cli -g
             netlify deploy --prod --build --context production
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ env.NETLIFY_SITE_ID }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_PROD_SITE_ID }}
 
       - name: Algolia crawler start
         env: 
