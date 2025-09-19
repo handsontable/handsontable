@@ -624,7 +624,7 @@ export class ManualRowResize extends BasePlugin {
       const rowHeight = this.#rowHeightsMap.getValueAtIndex(physicalRow);
 
       if (this.hot.getSettings()[PLUGIN_KEY] && rowHeight) {
-        if (this.hot.getPlugin('autoRowSize').isEnabled()) {
+        if (this.hot.getPlugin('autoRowSize')?.isEnabled()) {
           newHeight = Math.max(rowHeight, newHeight ?? 0);
 
         } else {
