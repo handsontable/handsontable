@@ -1,8 +1,8 @@
-#example4-pagination {
+.example4-pagination {
   position: relative;
 }
 
-#example4-pagination.overlay .ht-pagination::before {
+.example4-pagination.overlay .ht-pagination::before {
   content: "";
   display: block;
   width: 100%;

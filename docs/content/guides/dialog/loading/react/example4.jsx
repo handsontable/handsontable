@@ -62,13 +62,14 @@ const Table = React.memo(({ hotTableRef, data }) => {
   );
 });
 
-const ExampleComponent = React.memo(() => {
+const ExampleComponent = () => {
   const hotTableRef = useRef(null);
+  const paginationContainerRef = useRef(null);
   const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    const paginationContainer = document.querySelector('#example4-pagination');
+    const paginationContainer = paginationContainerRef?.current;
     const hot = hotTableRef.current?.hotInstance;
 
     if (!hot || !paginationContainer) {
@@ -154,7 +155,7 @@ const ExampleComponent = React.memo(() => {
   return (
     <>
       <Table hotTableRef={hotTableRef} data={data} />
-      <div style={{ marginTop: '16px', display: 'flex', gaap: '10px' }}>
+      <div style={{ marginTop: '16px' }}>
         <button id="loadData" onClick={loadData} disabled={isLoading}>
           {data.length > 0 ? 'Reload Data' : 'Load Data'}
         </button>
@@ -167,10 +168,10 @@ const ExampleComponent = React.memo(() => {
         </p>
       </div>
       <div style={{ marginTop: '16px' }}>
-        <div id="example4-pagination"></div>
+        <div className="example4-pagination" ref={paginationContainerRef}></div>
       </div>
     </>
   );
-});
+};
 
 export default ExampleComponent;
