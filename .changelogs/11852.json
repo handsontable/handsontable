@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Reverted the foreground color change for the \"main\" theme.",
+  "type": "fixed",
+  "issueOrPR": 11852,
+  "breaking": false,
+  "framework": "none"
+}
