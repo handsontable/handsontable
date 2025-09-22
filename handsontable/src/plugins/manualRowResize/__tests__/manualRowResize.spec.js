@@ -2083,4 +2083,37 @@ describe('manualRowResize', () => {
       expect(desiredHeightsLog).toEqual([$rowHeader.height() + 1 - 50 + 6]);
     });
   });
+
+  describe('with the AutoRowSize plugin', () => {
+    it('should not cause row misalignment when manualRowResize is enabled via `updateSettings` ' +
+      'after autoRowSize initialization', async() => {
+      const data = createSpreadsheetData(3, 5);
+
+      data[0][4] = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas hendrerit elit sed quam porta ' +
+        'tempus. Quisque eget vulputate metus. Cras pulvinar diam ipsum, eget rhoncus dolor lacinia a. ' +
+        'Aliquam vitae eros varius, feugiat nibh id, auctor lorem. Phasellus vulputate odio diam, sed interdum ' +
+        'elit consectetur ut. Fusce vulputate ligula tincidunt lectus tempor, ac elementum nulla tempus. Fusce ' +
+        'rutrum lorem et eros euismod fermentum. Aenean varius dui vel nunc tristique, vel finibus tortor gravida. ' +
+        'Ut molestie nisl a velit ultricies, gravida volutpat lectus pulvinar. Nulla sed purus sit amet justo ' +
+        'ullamcorper vel non nisl. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia ' +
+        'curae; Cras auctor, lacus non euismod venenatis, augue nulla auctor risus, placerat porta dui enim eu odio. ' +
+        'Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.';
+
+      handsontable({
+        data,
+        fixedColumnsStart: 1,
+        rowHeaders: true,
+        autoRowSize: true,
+        colWidths: 100,
+      });
+
+      await sleep(100);
+
+      await updateSettings({
+        manualRowResize: [50, 50, 50],
+      });
+
+      expect(getInlineStartClone().find('table').height()).toBe(getMaster().find('table').height());
+    });
+  });
 });
