@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a problem when using autocomplete-typed cells with key/value sources alongside formulas caused the table to throw an error.",
+  "type": "fixed",
+  "issueOrPR": 11853,
+  "breaking": false,
+  "framework": "none"
+}
