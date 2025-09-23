@@ -19,18 +19,17 @@ jobs:
           fetch-depth: 0
 
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@49e6cd3b187936a73b8280d59ffd9da69df63ec9 # https://github.com/SonarSource/sonarcloud-github-action/releases/tag/v2.1.1
+        uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602 # https://github.com/SonarSource/sonarqube-scan-action/releases/tag/v6.0.0
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       - name: SonarQube Quality Gate check
-        uses: SonarSource/sonarqube-quality-gate-action@d304d050d930b02a896b0f85935344f023928496 # https://github.com/SonarSource/sonarqube-quality-gate-action/releases/tag/v1.1.0
+        uses: SonarSource/sonarqube-quality-gate-action@cf038b0e0cdecfa9e56c198bbb7d21d751d62c3b # https://github.com/SonarSource/sonarqube-quality-gate-action/releases/tag/v1.2.0
         # Force to fail step after specific time
         timeout-minutes: 1
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          
+
   codeql:
       name: CodeQL
       runs-on: 'ubuntu-latest'
@@ -43,7 +42,7 @@ jobs:
 
       strategy:
         fail-fast: false
-        matrix: 
+        matrix:
           language: [javascript-typescript]
       steps:
       - name: Checkout repository
@@ -53,13 +52,13 @@ jobs:
         uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
-          config-file: .github/codeql/codeql-config.yml 
-          
+          config-file: .github/codeql/codeql-config.yml
+
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
         with:
           category: "/language:${{matrix.language}}"
-  
+
   fossa-scan:
       name: FOSSA Scan
       runs-on: ubuntu-latest
