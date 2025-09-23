@@ -23,7 +23,7 @@ angular:
 
 ### activeContextName
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d7c34a32a88f5db243e00359ae6b4de73d4b3e66/handsontable/src/shortcuts/manager.js#L37
+::: source-code-link https://github.com/handsontable/handsontable/blob/87cd2c6f46a70dd6fcdb859ff622f430128192b7/handsontable/src/shortcuts/manager.js#L37
 
 :::
 
@@ -35,7 +35,7 @@ The name of the active [`ShortcutContext`](@/api/shortcutContext.md).
 
 ### CONTEXTS
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d7c34a32a88f5db243e00359ae6b4de73d4b3e66/handsontable/src/shortcuts/manager.js#L29
+::: source-code-link https://github.com/handsontable/handsontable/blob/87cd2c6f46a70dd6fcdb859ff622f430128192b7/handsontable/src/shortcuts/manager.js#L29
 
 :::
 
@@ -47,7 +47,7 @@ A unique map that stores keyboard shortcut contexts.
 
 ### isCtrlKeySilenced
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d7c34a32a88f5db243e00359ae6b4de73d4b3e66/handsontable/src/shortcuts/manager.js#L98
+::: source-code-link https://github.com/handsontable/handsontable/blob/87cd2c6f46a70dd6fcdb859ff622f430128192b7/handsontable/src/shortcuts/manager.js#L98
 
 :::
 
@@ -62,7 +62,7 @@ Some of the default keyboard shortcuts related to cell selection need this featu
 
 ### handleEventWithScope
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d7c34a32a88f5db243e00359ae6b4de73d4b3e66/handsontable/src/shortcuts/manager.js#L164
+::: source-code-link https://github.com/handsontable/handsontable/blob/87cd2c6f46a70dd6fcdb859ff622f430128192b7/handsontable/src/shortcuts/manager.js#L164
 
 :::
 
@@ -79,7 +79,7 @@ Handle the event with the scope of the active context.
 
 ### recorderCallback
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d7c34a32a88f5db243e00359ae6b4de73d4b3e66/handsontable/src/shortcuts/manager.js#L110
+::: source-code-link https://github.com/handsontable/handsontable/blob/87cd2c6f46a70dd6fcdb859ff622f430128192b7/handsontable/src/shortcuts/manager.js#L110
 
 :::
 

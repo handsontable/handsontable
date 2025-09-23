@@ -139,7 +139,7 @@ hotSettings: Handsontable.GridSettings = {
 
 ### dialog
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d7c34a32a88f5db243e00359ae6b4de73d4b3e66/handsontable/src/dataMap/metaManager/metaSchema.js#L1953
+::: source-code-link https://github.com/handsontable/handsontable/blob/87cd2c6f46a70dd6fcdb859ff622f430128192b7/handsontable/src/dataMap/metaManager/metaSchema.js#L1953
 
 :::
 
@@ -252,7 +252,7 @@ settings = {
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d7c34a32a88f5db243e00359ae6b4de73d4b3e66/handsontable/src/plugins/dialog/dialog.js#L509
+::: source-code-link https://github.com/handsontable/handsontable/blob/87cd2c6f46a70dd6fcdb859ff622f430128192b7/handsontable/src/plugins/dialog/dialog.js#L509
 
 :::
 
@@ -264,7 +264,7 @@ Destroy dialog and reset plugin state.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d7c34a32a88f5db243e00359ae6b4de73d4b3e66/handsontable/src/plugins/dialog/dialog.js#L261
+::: source-code-link https://github.com/handsontable/handsontable/blob/87cd2c6f46a70dd6fcdb859ff622f430128192b7/handsontable/src/plugins/dialog/dialog.js#L261
 
 :::
 
@@ -276,7 +276,7 @@ Disable plugin for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d7c34a32a88f5db243e00359ae6b4de73d4b3e66/handsontable/src/plugins/dialog/dialog.js#L216
+::: source-code-link https://github.com/handsontable/handsontable/blob/87cd2c6f46a70dd6fcdb859ff622f430128192b7/handsontable/src/plugins/dialog/dialog.js#L216
 
 :::
 
@@ -288,7 +288,7 @@ Enable plugin for this Handsontable instance.
 
 ### focus
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d7c34a32a88f5db243e00359ae6b4de73d4b3e66/handsontable/src/plugins/dialog/dialog.js#L441
+::: source-code-link https://github.com/handsontable/handsontable/blob/87cd2c6f46a70dd6fcdb859ff622f430128192b7/handsontable/src/plugins/dialog/dialog.js#L441
 
 :::
 
@@ -300,7 +300,7 @@ Focus the dialog.
 
 ### hide
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d7c34a32a88f5db243e00359ae6b4de73d4b3e66/handsontable/src/plugins/dialog/dialog.js#L382
+::: source-code-link https://github.com/handsontable/handsontable/blob/87cd2c6f46a70dd6fcdb859ff622f430128192b7/handsontable/src/plugins/dialog/dialog.js#L382
 
 :::
 
@@ -313,7 +313,7 @@ Closes the dialog and restores the focus to the table.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d7c34a32a88f5db243e00359ae6b4de73d4b3e66/handsontable/src/plugins/dialog/dialog.js#L209
+::: source-code-link https://github.com/handsontable/handsontable/blob/87cd2c6f46a70dd6fcdb859ff622f430128192b7/handsontable/src/plugins/dialog/dialog.js#L209
 
 :::
 
@@ -325,7 +325,7 @@ Check if the plugin is enabled in the handsontable settings.
 
 ### isVisible
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d7c34a32a88f5db243e00359ae6b4de73d4b3e66/handsontable/src/plugins/dialog/dialog.js#L324
+::: source-code-link https://github.com/handsontable/handsontable/blob/87cd2c6f46a70dd6fcdb859ff622f430128192b7/handsontable/src/plugins/dialog/dialog.js#L324
 
 :::
 
@@ -338,7 +338,7 @@ Check if the dialog is currently visible.
 
 ### show
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d7c34a32a88f5db243e00359ae6b4de73d4b3e66/handsontable/src/plugins/dialog/dialog.js#L345
+::: source-code-link https://github.com/handsontable/handsontable/blob/87cd2c6f46a70dd6fcdb859ff622f430128192b7/handsontable/src/plugins/dialog/dialog.js#L345
 
 :::
 
@@ -367,7 +367,7 @@ Displays the dialog with the specified content and options.
 
 ### update
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d7c34a32a88f5db243e00359ae6b4de73d4b3e66/handsontable/src/plugins/dialog/dialog.js#L420
+::: source-code-link https://github.com/handsontable/handsontable/blob/87cd2c6f46a70dd6fcdb859ff622f430128192b7/handsontable/src/plugins/dialog/dialog.js#L420
 
 :::
 
@@ -395,7 +395,7 @@ Update the dialog configuration.
 
 ### updatePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d7c34a32a88f5db243e00359ae6b4de73d4b3e66/handsontable/src/plugins/dialog/dialog.js#L251
+::: source-code-link https://github.com/handsontable/handsontable/blob/87cd2c6f46a70dd6fcdb859ff622f430128192b7/handsontable/src/plugins/dialog/dialog.js#L251
 
 :::
 

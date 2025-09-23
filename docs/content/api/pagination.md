@@ -93,7 +93,7 @@ settings = {
 
 ### pagination
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d7c34a32a88f5db243e00359ae6b4de73d4b3e66/handsontable/src/dataMap/metaManager/metaSchema.js#L3806
+::: source-code-link https://github.com/handsontable/handsontable/blob/87cd2c6f46a70dd6fcdb859ff622f430128192b7/handsontable/src/dataMap/metaManager/metaSchema.js#L3806
 
 :::
 
@@ -138,7 +138,7 @@ pagination: true,
 
 ### destroy
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d7c34a32a88f5db243e00359ae6b4de73d4b3e66/handsontable/src/plugins/pagination/pagination.js#L1051
+::: source-code-link https://github.com/handsontable/handsontable/blob/87cd2c6f46a70dd6fcdb859ff622f430128192b7/handsontable/src/plugins/pagination/pagination.js#L1051
 
 :::
 
@@ -150,7 +150,7 @@ Destroys the plugin instance.
 
 ### disablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d7c34a32a88f5db243e00359ae6b4de73d4b3e66/handsontable/src/plugins/pagination/pagination.js#L309
+::: source-code-link https://github.com/handsontable/handsontable/blob/87cd2c6f46a70dd6fcdb859ff622f430128192b7/handsontable/src/plugins/pagination/pagination.js#L309
 
 :::
 
@@ -162,7 +162,7 @@ Disables the plugin functionality for this Handsontable instance.
 
 ### enablePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d7c34a32a88f5db243e00359ae6b4de73d4b3e66/handsontable/src/plugins/pagination/pagination.js#L189
+::: source-code-link https://github.com/handsontable/handsontable/blob/87cd2c6f46a70dd6fcdb859ff622f430128192b7/handsontable/src/plugins/pagination/pagination.js#L189
 
 :::
 
@@ -174,7 +174,7 @@ Enables the plugin functionality for this Handsontable instance.
 
 ### firstPage
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d7c34a32a88f5db243e00359ae6b4de73d4b3e66/handsontable/src/plugins/pagination/pagination.js#L559
+::: source-code-link https://github.com/handsontable/handsontable/blob/87cd2c6f46a70dd6fcdb859ff622f430128192b7/handsontable/src/plugins/pagination/pagination.js#L559
 
 :::
 
@@ -186,7 +186,7 @@ Switches the page to the first one.
 
 ### getCurrentPageData
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d7c34a32a88f5db243e00359ae6b4de73d4b3e66/handsontable/src/plugins/pagination/pagination.js#L594
+::: source-code-link https://github.com/handsontable/handsontable/blob/87cd2c6f46a70dd6fcdb859ff622f430128192b7/handsontable/src/plugins/pagination/pagination.js#L594
 
 :::
 
@@ -200,7 +200,7 @@ page size as the data may contain hidden rows (rows that are not rendered in the
 
 ### getPaginationData
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d7c34a32a88f5db243e00359ae6b4de73d4b3e66/handsontable/src/plugins/pagination/pagination.js#L418
+::: source-code-link https://github.com/handsontable/handsontable/blob/87cd2c6f46a70dd6fcdb859ff622f430128192b7/handsontable/src/plugins/pagination/pagination.js#L418
 
 :::
 
@@ -220,7 +220,7 @@ Gets the pagination current state. Returns an object with the following properti
 
 ### hasNextPage
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d7c34a32a88f5db243e00359ae6b4de73d4b3e66/handsontable/src/plugins/pagination/pagination.js#L584
+::: source-code-link https://github.com/handsontable/handsontable/blob/87cd2c6f46a70dd6fcdb859ff622f430128192b7/handsontable/src/plugins/pagination/pagination.js#L584
 
 :::
 
@@ -232,7 +232,7 @@ Checks, based on the current internal state, if there is a next page.
 
 ### hasPreviousPage
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d7c34a32a88f5db243e00359ae6b4de73d4b3e66/handsontable/src/plugins/pagination/pagination.js#L575
+::: source-code-link https://github.com/handsontable/handsontable/blob/87cd2c6f46a70dd6fcdb859ff622f430128192b7/handsontable/src/plugins/pagination/pagination.js#L575
 
 :::
 
@@ -244,7 +244,7 @@ Checks, based on the current internal state, if there is a previous page.
 
 ### hidePageCounterSection
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d7c34a32a88f5db243e00359ae6b4de73d4b3e66/handsontable/src/plugins/pagination/pagination.js#L642
+::: source-code-link https://github.com/handsontable/handsontable/blob/87cd2c6f46a70dd6fcdb859ff622f430128192b7/handsontable/src/plugins/pagination/pagination.js#L642
 
 :::
 
@@ -257,7 +257,7 @@ Hides the page counter section in the pagination UI.
 
 ### hidePageNavigationSection
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d7c34a32a88f5db243e00359ae6b4de73d4b3e66/handsontable/src/plugins/pagination/pagination.js#L662
+::: source-code-link https://github.com/handsontable/handsontable/blob/87cd2c6f46a70dd6fcdb859ff622f430128192b7/handsontable/src/plugins/pagination/pagination.js#L662
 
 :::
 
@@ -270,7 +270,7 @@ Hides the page navigation section in the pagination UI.
 
 ### hidePageSizeSection
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d7c34a32a88f5db243e00359ae6b4de73d4b3e66/handsontable/src/plugins/pagination/pagination.js#L622
+::: source-code-link https://github.com/handsontable/handsontable/blob/87cd2c6f46a70dd6fcdb859ff622f430128192b7/handsontable/src/plugins/pagination/pagination.js#L622
 
 :::
 
@@ -283,7 +283,7 @@ Hides the page size section in the pagination UI.
 
 ### isEnabled
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d7c34a32a88f5db243e00359ae6b4de73d4b3e66/handsontable/src/plugins/pagination/pagination.js#L182
+::: source-code-link https://github.com/handsontable/handsontable/blob/87cd2c6f46a70dd6fcdb859ff622f430128192b7/handsontable/src/plugins/pagination/pagination.js#L182
 
 :::
 
@@ -296,7 +296,7 @@ hook and if it returns `true` than the [Pagination#enablePlugin](@/api/paginatio
 
 ### lastPage
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d7c34a32a88f5db243e00359ae6b4de73d4b3e66/handsontable/src/plugins/pagination/pagination.js#L566
+::: source-code-link https://github.com/handsontable/handsontable/blob/87cd2c6f46a70dd6fcdb859ff622f430128192b7/handsontable/src/plugins/pagination/pagination.js#L566
 
 :::
 
@@ -308,7 +308,7 @@ Switches the page to the last one.
 
 ### nextPage
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d7c34a32a88f5db243e00359ae6b4de73d4b3e66/handsontable/src/plugins/pagination/pagination.js#L545
+::: source-code-link https://github.com/handsontable/handsontable/blob/87cd2c6f46a70dd6fcdb859ff622f430128192b7/handsontable/src/plugins/pagination/pagination.js#L545
 
 :::
 
@@ -320,7 +320,7 @@ Switches the page to the next one.
 
 ### prevPage
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d7c34a32a88f5db243e00359ae6b4de73d4b3e66/handsontable/src/plugins/pagination/pagination.js#L552
+::: source-code-link https://github.com/handsontable/handsontable/blob/87cd2c6f46a70dd6fcdb859ff622f430128192b7/handsontable/src/plugins/pagination/pagination.js#L552
 
 :::
 
@@ -332,7 +332,7 @@ Switches the page to the previous one.
 
 ### resetPage
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d7c34a32a88f5db243e00359ae6b4de73d4b3e66/handsontable/src/plugins/pagination/pagination.js#L490
+::: source-code-link https://github.com/handsontable/handsontable/blob/87cd2c6f46a70dd6fcdb859ff622f430128192b7/handsontable/src/plugins/pagination/pagination.js#L490
 
 :::
 
@@ -344,7 +344,7 @@ Resets the current page to the initial page (`initialValue`) defined in the sett
 
 ### resetPageSize
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d7c34a32a88f5db243e00359ae6b4de73d4b3e66/handsontable/src/plugins/pagination/pagination.js#L529
+::: source-code-link https://github.com/handsontable/handsontable/blob/87cd2c6f46a70dd6fcdb859ff622f430128192b7/handsontable/src/plugins/pagination/pagination.js#L529
 
 :::
 
@@ -356,7 +356,7 @@ Resets the page size to the initial value (`pageSize`) defined in the settings.
 
 ### resetPagination
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d7c34a32a88f5db243e00359ae6b4de73d4b3e66/handsontable/src/plugins/pagination/pagination.js#L536
+::: source-code-link https://github.com/handsontable/handsontable/blob/87cd2c6f46a70dd6fcdb859ff622f430128192b7/handsontable/src/plugins/pagination/pagination.js#L536
 
 :::
 
@@ -368,7 +368,7 @@ Resets the pagination state to the initial values defined in the settings.
 
 ### setPage
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d7c34a32a88f5db243e00359ae6b4de73d4b3e66/handsontable/src/plugins/pagination/pagination.js#L469
+::: source-code-link https://github.com/handsontable/handsontable/blob/87cd2c6f46a70dd6fcdb859ff622f430128192b7/handsontable/src/plugins/pagination/pagination.js#L469
 
 :::
 
@@ -386,7 +386,7 @@ Allows changing the page for specified page number.
 
 ### setPageSize
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d7c34a32a88f5db243e00359ae6b4de73d4b3e66/handsontable/src/plugins/pagination/pagination.js#L504
+::: source-code-link https://github.com/handsontable/handsontable/blob/87cd2c6f46a70dd6fcdb859ff622f430128192b7/handsontable/src/plugins/pagination/pagination.js#L504
 
 :::
 
@@ -407,7 +407,7 @@ that there will be no vertical scrollbar in the table.
 
 ### showPageCounterSection
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d7c34a32a88f5db243e00359ae6b4de73d4b3e66/handsontable/src/plugins/pagination/pagination.js#L632
+::: source-code-link https://github.com/handsontable/handsontable/blob/87cd2c6f46a70dd6fcdb859ff622f430128192b7/handsontable/src/plugins/pagination/pagination.js#L632
 
 :::
 
@@ -420,7 +420,7 @@ Shows the page counter section in the pagination UI.
 
 ### showPageNavigationSection
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d7c34a32a88f5db243e00359ae6b4de73d4b3e66/handsontable/src/plugins/pagination/pagination.js#L652
+::: source-code-link https://github.com/handsontable/handsontable/blob/87cd2c6f46a70dd6fcdb859ff622f430128192b7/handsontable/src/plugins/pagination/pagination.js#L652
 
 :::
 
@@ -433,7 +433,7 @@ Shows the page navigation section in the pagination UI.
 
 ### showPageSizeSection
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d7c34a32a88f5db243e00359ae6b4de73d4b3e66/handsontable/src/plugins/pagination/pagination.js#L612
+::: source-code-link https://github.com/handsontable/handsontable/blob/87cd2c6f46a70dd6fcdb859ff622f430128192b7/handsontable/src/plugins/pagination/pagination.js#L612
 
 :::
 
@@ -446,7 +446,7 @@ Shows the page size section in the pagination UI.
 
 ### updatePlugin
   
-::: source-code-link https://github.com/handsontable/handsontable/blob/d7c34a32a88f5db243e00359ae6b4de73d4b3e66/handsontable/src/plugins/pagination/pagination.js#L297
+::: source-code-link https://github.com/handsontable/handsontable/blob/87cd2c6f46a70dd6fcdb859ff622f430128192b7/handsontable/src/plugins/pagination/pagination.js#L297
 
 :::
 
