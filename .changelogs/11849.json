@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed a problem where setting `manualRowResize` on an instance with `autoRowSize` enabled led to row misalignment.",
-  "type": "fixed",
-  "issueOrPR": 11849,
-  "breaking": false,
-  "framework": "none"
-}
