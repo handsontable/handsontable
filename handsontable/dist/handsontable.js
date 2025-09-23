@@ -25,8 +25,8 @@
  * INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING FROM
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
- * Version: 16.1.0
- * Release date: 15/09/2025 (built at 12/09/2025 12:22:52)
+ * Version: 16.1.1
+ * Release date: 23/09/2025 (built at 23/09/2025 09:55:01)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -104,8 +104,8 @@ Handsontable.hooks = _hooks.Hooks.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "12/09/2025 12:22:52";
-Handsontable.version = "16.1.0";
+Handsontable.buildDate = "23/09/2025 09:55:01";
+Handsontable.version = "16.1.1";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
   getLanguageDictionary: _registry.getLanguageDictionary,
@@ -10667,7 +10667,7 @@ const domMessages = {
 function _injectProductInfo(key, element) {
   const hasValidType = !isEmpty(key);
   const isNonCommercial = typeof key === 'string' && key.toLowerCase() === 'non-commercial-and-evaluation';
-  const hotVersion = "16.1.0";
+  const hotVersion = "16.1.1";
   let keyValidityDate;
   let consoleMessageState = 'invalid';
   let domMessageState = 'invalid';
@@ -10675,7 +10675,7 @@ function _injectProductInfo(key, element) {
   const schemaValidity = _checkKeySchema(key);
   if (hasValidType || isNonCommercial || schemaValidity) {
     if (schemaValidity) {
-      const releaseDate = (0, _moment.default)("15/09/2025", 'DD/MM/YYYY');
+      const releaseDate = (0, _moment.default)("23/09/2025", 'DD/MM/YYYY');
       const releaseDays = Math.floor(releaseDate.toDate().getTime() / 8.64e7);
       const keyValidityDays = _extractTime(key);
       keyValidityDate = (0, _moment.default)((keyValidityDays + 1) * 8.64e7, 'x').format('MMMM DD, YYYY');
@@ -79359,6 +79359,7 @@ var _base = __webpack_require__(531);
 var _staticRegister = __webpack_require__(193);
 var _console = __webpack_require__(184);
 var _number = __webpack_require__(205);
+var _object = __webpack_require__(170);
 var _mixed = __webpack_require__(162);
 var _register = __webpack_require__(680);
 var _utils = __webpack_require__(682);
@@ -79546,7 +79547,7 @@ class Formulas extends _base.BasePlugin {
 
     // Useful for disabling -> enabling the plugin using `updateSettings` or the API.
     if (this.sheetName !== null && !this.engine.doesSheetExist(this.sheetName)) {
-      const newSheetName = this.addSheet(this.sheetName, this.hot.getSourceDataArray());
+      const newSheetName = this.addSheet(this.sheetName, _assertClassBrand(_Formulas_brand, this, _getProcessedSourceDataArray).call(this));
       if (newSheetName !== false) {
         _assertClassBrand(_Formulas_brand, this, _updateSheetNameAndSheetId).call(this, newSheetName);
       }
@@ -79779,7 +79780,7 @@ class Formulas extends _base.BasePlugin {
       if (sheetName && this.engine.doesSheetExist(sheetName)) {
         this.switchSheet(this.sheetName);
       } else {
-        const newSheetName = this.addSheet(sheetName !== null && sheetName !== void 0 ? sheetName : undefined, this.hot.getSourceDataArray());
+        const newSheetName = this.addSheet(sheetName !== null && sheetName !== void 0 ? sheetName : undefined, _assertClassBrand(_Formulas_brand, this, _getProcessedSourceDataArray).call(this));
         _assertClassBrand(_Formulas_brand, this, _updateSheetNameAndSheetId).call(this, newSheetName);
       }
     }
@@ -80004,13 +80005,13 @@ class Formulas extends _base.BasePlugin {
   }
 
   /**
-   * The hook allows to translate the formula value to calculated value before it goes to the
-   * validator function.
+   * Get the value to be passed to the formula engine.
+   * If the value is an object, utilize the valueGetter for that cell, otherwise return the value as is.
    *
-   * @param {*} value The cell value to validate.
-   * @param {number} visualRow The visual row index.
-   * @param {number|string} prop The visual column index or property name of the column.
-   * @returns {*} Returns value to validate.
+   * @param {number} row The physical row index.
+   * @param {number} column The physical column index.
+   * @param {*} value The value to be passed to the formula engine.
+   * @returns {*} The value to be displayed in the cell.
    */
 }
 exports.Formulas = Formulas;
@@ -80018,6 +80019,44 @@ function _updateSheetNameAndSheetId(sheetName) {
   this.sheetName = sheetName;
   this.sheetId = this.engine.getSheetId(this.sheetName);
 }
+function _getValueGetterValue(row, column, value) {
+  if ((0, _object.isObject)(value) && value !== null) {
+    const visualRow = this.hot.toVisualRow(row);
+    const visualColumn = this.hot.toVisualColumn(column);
+    const valueGetter = this.hot.getCellMeta(visualRow, visualColumn).valueGetter;
+    if (valueGetter) {
+      return valueGetter.call(this.hot, value);
+    }
+    return value.toString();
+  }
+  return value;
+}
+/**
+ * Get the source data array to be passed to the formula engine.
+ * If the value is an object, utilize the valueGetter for that cell, otherwise return the value as is.
+ *
+ * @param {number} [row] The starting visual row index.
+ * @param {number} [column] The starting visual column index.
+ * @param {number} [row2] The ending visual row index.
+ * @param {number} [column2] The ending visual column index.
+ * @returns {Array} The source data array to be passed to the formula engine.
+ */
+function _getProcessedSourceDataArray(row, column, row2, column2) {
+  return this.hot.getSourceDataArray(row, column, row2, column2).map((rowObject, rowIndex) => {
+    return rowObject.map((value, columnIndex) => {
+      return _assertClassBrand(_Formulas_brand, this, _getValueGetterValue).call(this, rowIndex, columnIndex, value);
+    });
+  });
+}
+/**
+ * The hook allows to translate the formula value to calculated value before it goes to the
+ * validator function.
+ *
+ * @param {*} value The cell value to validate.
+ * @param {number} visualRow The visual row index.
+ * @param {number|string} prop The visual column index or property name of the column.
+ * @returns {*} Returns value to validate.
+ */
 function _onBeforeValidate(value, visualRow, prop) {
   const visualColumn = this.hot.propToCol(prop);
   if (this.isFormulaCellType(visualRow, visualColumn)) {
@@ -80149,7 +80188,7 @@ function _onAfterCellMetaReset() {
     this.switchSheet(this.sheetName);
     return;
   }
-  const sourceDataArray = this.hot.getSourceDataArray();
+  const sourceDataArray = _assertClassBrand(_Formulas_brand, this, _getProcessedSourceDataArray).call(this);
   sourceDataArray.forEach((rowData, rowIndex) => {
     rowData.forEach((cellValue, columnIndex) => {
       const cellMeta = this.hot.getCellMeta(rowIndex, columnIndex, {
@@ -80192,7 +80231,7 @@ function _onAfterLoadData(sourceData, initialLoad) {
     return;
   }
   if (!_classPrivateFieldGet(_hotWasInitializedWithEmptyData, this)) {
-    const sourceDataArray = this.hot.getSourceDataArray();
+    const sourceDataArray = _assertClassBrand(_Formulas_brand, this, _getProcessedSourceDataArray).call(this);
     if (this.engine.isItPossibleToReplaceSheetContent(this.sheetId, sourceDataArray)) {
       _classPrivateFieldSet(_internalOperationPending, this, true);
       const dependentCells = this.engine.setSheetContent(this.sheetId, sourceDataArray);
@@ -80304,6 +80343,7 @@ function _onAfterSetDataAtCell(changes, source) {
         col: this.columnAxisSyncer.getHfIndexFromVisualIndex(visualColumn),
         sheet: this.sheetId
       };
+      newValue = _assertClassBrand(_Formulas_brand, this, _getValueGetterValue).call(this, physicalRow, physicalColumn, newValue);
       if (physicalRow !== null && physicalColumn !== null) {
         this.syncChangeWithEngine(visualRow, visualColumn, newValue);
       } else {
@@ -80513,7 +80553,7 @@ function _onAfterRemoveCol(col, amount, physicalColumns, source) {
 function _onAfterDetachChild(parent, element, finalElementRowIndex) {
   var _element$__children;
   _classPrivateFieldSet(_internalOperationPending, this, true);
-  const rowsData = this.hot.getSourceDataArray(finalElementRowIndex, 0, finalElementRowIndex + (((_element$__children = element.__children) === null || _element$__children === void 0 ? void 0 : _element$__children.length) || 0), this.hot.countSourceCols());
+  const rowsData = _assertClassBrand(_Formulas_brand, this, _getProcessedSourceDataArray).call(this, finalElementRowIndex, 0, finalElementRowIndex + (((_element$__children = element.__children) === null || _element$__children === void 0 ? void 0 : _element$__children.length) || 0), this.hot.countSourceCols());
   _classPrivateFieldSet(_internalOperationPending, this, false);
   rowsData.forEach((row, relativeRowIndex) => {
     row.forEach((value, colIndex) => {
@@ -86518,7 +86558,12 @@ function _onModifyRowHeight(height, row) {
     const physicalRow = this.hot.toPhysicalRow(row);
     const rowHeight = _classPrivateFieldGet(_rowHeightsMap, this).getValueAtIndex(physicalRow);
     if (this.hot.getSettings()[PLUGIN_KEY] && rowHeight) {
-      newHeight = rowHeight;
+      var _this$hot$getPlugin;
+      if ((_this$hot$getPlugin = this.hot.getPlugin('autoRowSize')) !== null && _this$hot$getPlugin !== void 0 && _this$hot$getPlugin.isEnabled()) {
+        newHeight = Math.max(rowHeight, newHeight !== null && newHeight !== void 0 ? newHeight : 0);
+      } else {
+        newHeight = rowHeight;
+      }
     }
   }
   return newHeight;

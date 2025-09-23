@@ -9,6 +9,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- UNVERSIONED -->
 
+## [16.1.1] - 2025-09-23
+
+### Fixed
+- Fixed row misalignment when setting `manualRowResize` on an instance with `autoRowSize` enabled. [#11849](https://github.com/handsontable/handsontable/pull/11849)
+- Reverted the foreground color change for the "main" theme. [#11852](https://github.com/handsontable/handsontable/pull/11852)
+- Fixed an error thrown when using autocomplete-typed cells with key/value sources alongside formulas. [#11853](https://github.com/handsontable/handsontable/pull/11853)
+
 ## [16.1.0] - 2025-09-15
 
 ### Added
