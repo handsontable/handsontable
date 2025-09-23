@@ -28,6 +28,18 @@ See the full history of changes made to Handsontable in each major, minor, and p
 
 [[toc]]
 
+## 16.1.1
+
+Released on September 23, 2025
+
+For more information about this release see:
+- [Documentation (16.1)](https://handsontable.com/docs/16.1)
+
+#### Fixed
+- Fixed row misalignment when setting `manualRowResize` on an instance with `autoRowSize` enabled. [#11849](https://github.com/handsontable/handsontable/pull/11849)
+- Reverted the foreground color change for the "main" theme. [#11852](https://github.com/handsontable/handsontable/pull/11852)
+- Fixed an error thrown when using autocomplete-typed cells with key/value sources alongside formulas. [#11853](https://github.com/handsontable/handsontable/pull/11853)
+
 ## 16.1.0
 
 Released on September 15, 2025
