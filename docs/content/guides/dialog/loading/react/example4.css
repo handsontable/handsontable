@@ -1,0 +1,14 @@
+.example4-pagination {
+  position: relative;
+}
+
+.example4-pagination.overlay .ht-pagination::before {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 100%;
+  background-color: var(--ht-dialog-semi-transparent-background-color);
+  position: absolute;
+  inset: 0;
+  z-index: 1000;
+}

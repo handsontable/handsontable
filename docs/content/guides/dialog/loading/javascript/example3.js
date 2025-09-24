@@ -69,7 +69,7 @@ const hot = new Handsontable(container, {
 
 // Get loading plugin instance
 const loadingPlugin = hot.getPlugin('loading');
-const loadDataButton = document.getElementById('loadData');
+const loadDataButton = document.getElementById('example3-loadData');
 
 // Simulate data loading
 async function loadData() {
