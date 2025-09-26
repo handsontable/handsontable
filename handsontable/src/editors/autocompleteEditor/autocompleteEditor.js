@@ -325,7 +325,9 @@ export class AutocompleteEditor extends HandsontableEditor {
     }
 
     if (filterSetting === false) {
-      highlightIndex = filteredChoiceIndexes[0];
+      if (value.length > 0) {
+        highlightIndex = filteredChoiceIndexes[0];
+      }
     } else {
       choices = filteredChoiceIndexes.map(index => choices[index]);
       highlightIndex = choices.indexOf(valueToMatch) > -1 ? choices.indexOf(valueToMatch) : 0;

@@ -774,6 +774,22 @@ describe('DropdownEditor', () => {
     expect(document.activeElement).toBe(activeElement);
   });
 
+  it('should keep the focus on the input when editor value is empty', async() => {
+    handsontable({
+      columns: [
+        { type: 'dropdown', source: choices }
+      ],
+    });
+
+    await selectCell(0, 0);
+    await keyDownUp('enter');
+    await sleep(10);
+
+    const editor = getActiveEditor();
+
+    expect(editor.htEditor.getSelectedLast()).toBe(undefined);
+  });
+
   describe('allow html mode', () => {
     it('should allow render the html items without sanitizing the content', async() => {
       handsontable({
