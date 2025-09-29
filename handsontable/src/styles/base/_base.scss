@@ -385,10 +385,11 @@
               max-width: calc(100% + 1px);
             }
 
+            // compensates the icon + gap + 1px border size
             &:has(.collapsibleIndicator, .changeType) {
               .colHeader {
                 max-width: calc(
-                  100% - (var(--ht-icon-size) + var(--ht-gap-size))
+                  100% - (var(--ht-icon-size) + var(--ht-gap-size)) - 1px 
                 );
               }
             }
