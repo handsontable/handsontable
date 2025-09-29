@@ -788,6 +788,7 @@ describe('DropdownEditor', () => {
     const editor = getActiveEditor();
 
     expect(editor.htEditor.getSelectedLast()).toBe(undefined);
+    expect(document.activeElement).toBe(activeElement);
   });
 
   describe('allow html mode', () => {
