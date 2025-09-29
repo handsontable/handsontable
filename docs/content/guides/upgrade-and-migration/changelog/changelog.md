@@ -46,6 +46,7 @@ Released on September 15, 2025
 
 For more information about this release see:
 - [Documentation (16.1)](https://handsontable.com/docs/16.1)
+- [Migration guide (16.0 → 16.1)](@/guides/upgrade-and-migration/migrating-from-16.0-to-16.1/migrating-from-16.0-to-16.1.md)
 
 #### Added
 - Introduced row pagination functionality. [#11612](https://github.com/handsontable/handsontable/pull/11612)
@@ -103,6 +104,7 @@ Released on July 9, 2025
 For more information about this release see:
 - [Blog post (16.0.0)](https://handsontable.com/blog/handsontable-16-new-angular-wrapper-and-core-improvements)
 - [Documentation (16.0)](https://handsontable.com/docs/16.0)
+- [Migration guide (15.3 → 16.0)](@/guides/upgrade-and-migration/migrating-from-15.3-to-16.0/migrating-from-15.3-to-16.0.md)
 
 #### Added
 - **Breaking change**: Added a focus outline to the context and dropdown menus. [#11669](https://github.com/handsontable/handsontable/pull/11669)
@@ -287,6 +289,7 @@ Released on December 16, 2024
 For more information about this release see:
 - [Blog post (15.0.0)](https://handsontable.com/blog/handsontable-15.0.0-introducing-themes-and-functional-react-wrapper)
 - [Documentation (15.0)](https://handsontable.com/docs/15.0)
+- [Migration guide (14.6 → 15.0)](@/guides/upgrade-and-migration/migrating-from-14.6-to-15.0/migrating-from-14.6-to-15.0.md)
 
 #### Added
 - Added support for row and column virtualization of merged cells. [#11162](https://github.com/handsontable/handsontable/pull/11162)
