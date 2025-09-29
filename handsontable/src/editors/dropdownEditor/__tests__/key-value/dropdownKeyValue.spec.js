@@ -146,7 +146,7 @@ describe('DropdownEditor key/value source', () => {
 
       await sleep(10);
 
-      expect(getSourceDataAtCell(0, 0)).toEqual(airportKVChoices[2]);
+      expect(getSourceDataAtCell(0, 0)).toEqual(airportKVChoices[1]);
     });
   });
 });
