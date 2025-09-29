@@ -786,6 +786,7 @@ describe('DropdownEditor', () => {
     await sleep(10);
 
     const editor = getActiveEditor();
+    const activeElement = getActiveEditor().TEXTAREA;
 
     expect(editor.htEditor.getSelectedLast()).toBe(undefined);
     expect(document.activeElement).toBe(activeElement);
