@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed an issue with an unwanted empty space on the right side of the table (with the modern themes) or unneeded glitching scrollbars (with the classic styles).",
+  "title": "Fixed an issue with an unwanted empty space on the right side of the table when using the modern themes.",
   "type": "fixed",
   "issueOrPR": 11868,
   "breaking": false,
