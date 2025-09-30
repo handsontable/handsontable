@@ -706,7 +706,7 @@ class Overlays {
     // The internal row height calculator contains a known issue that results in a 1px miscalculation.
     // Ideally, this should be addressed at the core level. However, resolving it is non-trivial,
     // as the flaw is embedded across multiple core modules and corresponding test cases.
-    // This limitation does not affect when the the external calculator is used (AutoRowSize), which
+    // This limitation does not affect when the external calculator is used (AutoRowSize), which
     // computes heights accurately, so no adjustment is required when using it.
     const hiderHeightComp = this.wtSettings.getSetting('externalRowCalculator') ? 0 : 1;
     const proposedHiderHeight = headerColumnSize + this.topOverlay.sumCellSizes(0, totalRows) + hiderHeightComp;
