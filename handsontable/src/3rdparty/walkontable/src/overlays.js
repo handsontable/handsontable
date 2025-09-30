@@ -695,21 +695,20 @@ class Overlays {
    * Adjust overlays elements size and master table size.
    */
   adjustElementsSize() {
-    const { wtViewport, wtSettings } = this.wot;
+    const { wtViewport } = this.wot;
     const { wtTable } = this;
     const { rootWindow } = this.domBindings;
     const isWindowScrolled = this.scrollableElement === rootWindow;
-    const totalColumns = wtSettings.getSetting('totalColumns');
-    const totalRows = wtSettings.getSetting('totalRows');
+    const totalColumns = this.wtSettings.getSetting('totalColumns');
+    const totalRows = this.wtSettings.getSetting('totalRows');
     const headerRowSize = wtViewport.getRowHeaderWidth();
     const headerColumnSize = wtViewport.getColumnHeaderHeight();
-    const isLegacyTheme = wtSettings.getSetting('stylesHandler').isClassicTheme();
     // The internal row height calculator contains a known issue that results in a 1px miscalculation.
     // Ideally, this should be addressed at the core level. However, resolving it is non-trivial,
     // as the flaw is embedded across multiple core modules and corresponding test cases.
     // This limitation does not affect when the external calculator is used (AutoRowSize), which
     // computes heights accurately, so no adjustment is required when using it.
-    const hiderHeightComp = !isLegacyTheme || wtSettings.getSetting('externalRowCalculator') ? 0 : 1;
+    const hiderHeightComp = this.wtSettings.getSetting('externalRowCalculator') ? 0 : 1;
     const proposedHiderHeight = headerColumnSize + this.topOverlay.sumCellSizes(0, totalRows) + hiderHeightComp;
     const proposedHiderWidth = headerRowSize + this.inlineStartOverlay.sumCellSizes(0, totalColumns);
     const hiderElement = wtTable.hider;
