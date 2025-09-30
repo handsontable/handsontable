@@ -205,14 +205,16 @@ export function createFocusScopeManager(hotInstance) {
     hotInstance.rootWindow,
     {
       onFocus: (event) => {
-        // console.log('onFocus', hotInstance.guid, event.target);
+        // console.log('onFocus', hotInstance.guid, event.target, event.zzzz);
         processScopes(event.target, event.target.dataset.htFocusSource ?? FOCUS_SOURCES.UNKNOWN);
       },
       onClick: (event) => {
-        // console.log('onClick', event.target);
         processScopes(event.target, FOCUS_SOURCES.CLICK);
       },
       onTabKeyDown: () => {
+
+        // console.log(Array.from(document.querySelectorAll('.htFocusCatcher')).map(el => el.tabIndex));
+
         updateScopesFocusVisibilityState();
       },
       onWindowFocus: () => {

@@ -130,6 +130,7 @@ export class PaginationUI {
     this.#refs = elements.refs;
 
     container.setAttribute('dir', this.#isRtl ? 'rtl' : 'ltr');
+    container.tabIndex = -1;
 
     const isDisabled = event => event.currentTarget.disabled;
     const addClickListener = (eventName, element, callback) => {

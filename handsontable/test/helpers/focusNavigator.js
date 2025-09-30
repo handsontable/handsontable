@@ -1,5 +1,12 @@
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
+ * Visibility rules:
+ * - 'spec' mode: display:none, visibility:hidden|collapse, hidden, [inert], closed <details> (except its <summary>).
+ * - 'strict' mode also requires: has a layout box, opacity != 0, pointer-events != none, content-visibility: visible.
+ */
+const VISIBILITY_MODE = 'spec';
+
+/**
  * The variable keeps the reference to the last focused element. The difference between this
  * and `document.activeElement` is that the second can be changed by code (e.g. by calling `blur()` which changes
  * active element to the body) where in fact the focus position even after changing by `blur()` call is stored
@@ -16,92 +23,94 @@ document.addEventListener('focusin', (event) => {
  * otherwise gets the next focusable element.
  *
  * @param {boolean} shift If true, gets the previous focusable element, otherwise gets the next focusable element.
- * @param {HTMLElement} from The element to start the focus traversal from.
  * @returns {HTMLElement}
  */
-export function getNextFocusableElement(shift = false, from = activeElement) {
-  const order = computeTabOrder(document, { visibilityMode: 'spec' });
-  const idx = indexOfElementInOrder(order, from);
-  const to = chooseNext(order, idx, shift) ?? document.body;
+export function getNextFocusableElement(shift = false) {
+  const from = document.activeElement === document.body ? activeElement : document.activeElement;
+  const result = findNextFocusableInDOM(from, shift) ?? document.body;
 
-  return to;
+  return result;
 }
 
 /**
- * Computes the tab order of the elements in the document.
+ * Finds the next or previous focusable element in DOM order starting from the given element.
  *
- * @param {HTMLElement} root The root element to compute the tab order for.
- * @param {object} options The options for the tab order computation.
- * @param {string} options.visibilityMode The visibility mode to use for the tab order computation.
- * @returns {HTMLElement[]} The tab order of the elements in the document.
+ * @param {HTMLElement} element The element to start searching from.
+ * @param {boolean} shift If true, finds the previous focusable element, otherwise finds the next.
+ * @returns {HTMLElement|null} The next/previous focusable element in DOM order, or null if not found.
  */
-function computeTabOrder(root, options) {
-  const entries = [];
-  let domSequence = 0;
+function findNextFocusableInDOM(element, shift = false) {
+  // Get all elements in DOM order
+  const allElements = [];
+  const walker = document.createTreeWalker(
+    document,
+    NodeFilter.SHOW_ELEMENT,
+    null
+  );
 
-  walkComposed(root, (element) => {
-    if (!isTabStop(element, options)) {
-      return;
+  let node = walker.nextNode();
+
+  while (node) {
+    allElements.push(node);
+
+    node = walker.nextNode();
+  }
+
+  const currentIndex = allElements.indexOf(element);
+
+  if (currentIndex === -1) {
+    return shift ? findLastFocusableElement(allElements) : findFirstFocusableElement(allElements);
+  }
+
+  if (shift) {
+    for (let i = currentIndex - 1; i >= 0; i--) {
+      if (isTabStop(allElements[i])) {
+        return allElements[i];
+      }
     }
 
-    const ti = tabindexAttr(element);
+    return findLastFocusableElement(allElements);
+  }
 
-    domSequence += 1;
-
-    entries.push({
-      element,
-      group: ti > 0 ? 0 : 1,
-      ti: ti > 0 ? ti : 0,
-      dom: domSequence,
-    });
-  });
-
-  entries.sort((a, b) => a.group - b.group || a.ti - b.ti || a.dom - b.dom);
-
-  return entries.map(entry => entry.element);
-}
-
-/**
- * Finds the index of the element in the tab order.
- *
- * @param {HTMLElement[]} order The tab order of the elements.
- * @param {HTMLElement} element The element to find the index of.
- * @returns {number} The index of the element in the tab order.
- */
-function indexOfElementInOrder(order, element) {
-  const chain = composedPathChain(element);
-
-  for (const n of chain) {
-    const i = order.indexOf(n);
-
-    if (i !== -1) {
-      return i;
+  for (let i = currentIndex + 1; i < allElements.length; i++) {
+    if (isTabStop(allElements[i])) {
+      return allElements[i];
     }
   }
 
-  return order.indexOf(element);
+  return findFirstFocusableElement(allElements);
 }
 
 /**
- * Chooses the next element in the tab order.
+ * Finds the first focusable element in the given array.
  *
- * @param {HTMLElement[]} order The tab order of the elements.
- * @param {number} idx The index of the element in the tab order.
- * @param {boolean} shift If true, gets the previous focusable element, otherwise gets the next focusable element.
- * @returns {HTMLElement} The next element in the tab order.
+ * @param {HTMLElement[]} elements Array of elements to search through.
+ * @returns {HTMLElement|null} The first focusable element, or null if not found.
  */
-function chooseNext(order, idx, shift) {
-  if (!order.length) {
-    return null;
+function findFirstFocusableElement(elements) {
+  for (const element of elements) {
+    if (isTabStop(element)) {
+      return element;
+    }
   }
 
-  if (idx === -1) {
-    return shift ? order[order.length - 1] : order[0];
+  return null;
+}
+
+/**
+ * Finds the last focusable element in the given array.
+ *
+ * @param {HTMLElement[]} elements Array of elements to search through.
+ * @returns {HTMLElement|null} The last focusable element, or null if not found.
+ */
+function findLastFocusableElement(elements) {
+  for (let i = elements.length - 1; i >= 0; i--) {
+    if (isTabStop(elements[i])) {
+      return elements[i];
+    }
   }
 
-  return shift
-    ? order[(idx - 1 + order.length) % order.length]
-    : order[(idx + 1) % order.length];
+  return null;
 }
 
 /**
@@ -124,16 +133,14 @@ function tabindexAttr(element) {
  * Checks if the element is a tab stop.
  *
  * @param {HTMLElement} element The element to check if it is a tab stop.
- * @param {object} options The options for the tab stop check.
- * @param {string} options.visibilityMode The visibility mode to use for the tab stop check.
  * @returns {boolean} True if the element is a tab stop, false otherwise.
  */
-function isTabStop(element, options) {
+function isTabStop(element) {
   if (!(element instanceof Element)) {
     return false;
   }
 
-  if (!isVisible(element, options)) {
+  if (!isVisible(element)) {
     return false;
   }
 
@@ -200,20 +207,15 @@ function isContentEditable(element) {
 /**
  * Checks if the element is visible.
  *
- * Visibility rules:
- * - Always climb the *composed* ancestor chain (crosses open shadow roots).
- * - 'spec' mode: display:none, visibility:hidden|collapse, hidden, [inert], closed <details> (except its <summary>).
- * - 'strict' mode also requires: has a layout box, opacity != 0, pointer-events != none, content-visibility: visible.
- *
  * @param {HTMLElement} element The element to check if it is visible.
- * @param {object} options The options for the visibility check.
- * @param {string} options.visibilityMode The visibility mode to use for the visibility check.
  * @returns {boolean} True if the element is visible, false otherwise.
  */
-function isVisible(element, { visibilityMode = 'spec' } = {}) {
+function isVisible(element) {
   if (!element.isConnected) {
     return false;
   }
+
+  const visibilityMode = VISIBILITY_MODE;
 
   for (let n = element; n; n = composedParent(n)) {
     if (n.nodeType !== 1) {
@@ -273,34 +275,6 @@ function isVisible(element, { visibilityMode = 'spec' } = {}) {
 }
 
 /**
- * Walks the composed tree of the element.
- *
- * @param {HTMLElement} root The root element to walk the composed tree of.
- * @param {Function} visitor The visitor function to call for each element in the composed tree.
- */
-function walkComposed(root, visitor) {
-  const start = root instanceof Document ? root.documentElement : root;
-
-  (function visit(node) { // eslint-disable-line wrap-iife
-    if (node.nodeType !== 1) {
-      return;
-    }
-
-    const el = /** @type {Element} */ (node);
-
-    visitor(el);
-
-    const sr = el.shadowRoot;
-
-    if (sr && sr.mode === 'open') {
-      sr.childNodes.forEach(c => visit(c));
-    }
-
-    el.childNodes.forEach(c => visit(c));
-  })(start);
-}
-
-/**
  * Gets the composed parent of the element.
  *
  * @param {HTMLElement} node The element to get the composed parent of.
@@ -322,28 +296,4 @@ function composedParent(node) {
   }
 
   return null;
-}
-
-/**
- * Gets the composed path chain of the element.
- *
- * @param {HTMLElement} element The element to get the composed path chain of.
- * @returns {HTMLElement[]} The composed path chain of the element.
- */
-function composedPathChain(element) {
-  const chain = [];
-  let cur = element;
-
-  while (cur) {
-    chain.push(cur);
-    const root = cur.getRootNode?.();
-
-    if (root && root.host) {
-      cur = root.host;
-    } else {
-      cur = cur.parentElement || null;
-    }
-  }
-
-  return chain;
 }

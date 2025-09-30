@@ -30,6 +30,9 @@ export function installFocusDetector(hot, wrapperElement) {
     activate() {
       inputTrapTop.tabIndex = 0;
       inputTrapBottom.tabIndex = 0;
+
+      // inputTrapTop.removeAttribute('tabIndex');
+      // inputTrapBottom.removeAttribute('tabIndex');
     },
     /**
      * Deactivates the detector by setting tabIndex to -1.

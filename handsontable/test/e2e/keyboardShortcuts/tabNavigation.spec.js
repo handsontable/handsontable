@@ -1030,19 +1030,10 @@ describe('Core navigation keyboard shortcuts', () => {
     }, false, spec().$container1);
 
     await selectCell(0, -1);
-    hot.deselectCell();
+    await deselectCell();
     hot1.selectCell(0, -1);
     hot1.deselectCell();
     await sleep(10);
-
-    await keyDownUp('tab');
-
-    expect(hot.getSelectedRange()).toEqualCellRange(['highlight: 0,-1 from: 0,-1 to: 0,-1']);
-    expect(hot1.getSelectedRange()).toBeUndefined();
-    expect(topOverlay().getScrollPosition()).toBe(0);
-    expect(inlineStartOverlay().getScrollPosition()).toBe(0);
-    expect(hot1.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(0);
-    expect(hot1.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(0);
 
     await keyDownUp('tab');
 
@@ -1057,6 +1048,15 @@ describe('Core navigation keyboard shortcuts', () => {
 
     expect(hot.getSelectedRange()).toEqualCellRange(['highlight: 0,-1 from: 0,-1 to: 0,-1']);
     expect(hot1.getSelectedRange()).toBeUndefined();
+    expect(topOverlay().getScrollPosition()).toBe(0);
+    expect(inlineStartOverlay().getScrollPosition()).toBe(0);
+    expect(hot1.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(0);
+    expect(hot1.view._wt.wtOverlays.inlineStartOverlay.getScrollPosition()).toBe(0);
+
+    await keyDownUp('tab');
+
+    expect(hot.getSelectedRange()).toBeUndefined();
+    expect(hot1.getSelectedRange()).toEqualCellRange(['highlight: 0,-1 from: 0,-1 to: 0,-1']);
     expect(topOverlay().getScrollPosition()).toBe(0);
     expect(inlineStartOverlay().getScrollPosition()).toBe(0);
     expect(hot1.view._wt.wtOverlays.topOverlay.getScrollPosition()).toBe(0);
