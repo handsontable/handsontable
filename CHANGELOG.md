@@ -25,6 +25,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Added a new `initialState` configuration option. [#11777](https://github.com/handsontable/handsontable/pull/11777)
 - Introduced the Loading plugin. [#11792](https://github.com/handsontable/handsontable/pull/11792)
 - Added a new "classic" theme. [#11790](https://github.com/handsontable/handsontable/pull/11790)
+- Added a [Deprecation policy](https://handsontable.com/docs/deprecation-policy/) page to the documentation.
+- Added a [Long Term Support (LTS)](https://handsontable.com/docs/long-term-support/) page to the documentation.
 
 ### Changed
 - Enabled focus navigation between multiple selection layers. [#11756](https://github.com/handsontable/handsontable/pull/11756)
