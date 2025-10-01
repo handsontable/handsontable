@@ -127,7 +127,10 @@ describe('Dialog keyboard shortcut', () => {
 
       dialogPlugin.show({
         content: 'Test dialog content',
+        animation: false,
       });
+
+      await sleep(10);
 
       expect(shortcutManager.getActiveContextName()).toBe('plugin:dialog');
 

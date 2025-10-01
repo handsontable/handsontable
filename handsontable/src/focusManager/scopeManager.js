@@ -11,18 +11,14 @@ import { FOCUS_SOURCES } from './constants';
  */
 export function createFocusScopeManager(hotInstance) {
   const SCOPES = createUniqueMap({
-    errorIdExists: name => `The "${name}" scope is already registered.`
+    errorIdExists: name => `The "${name}" focus scope is already registered.`
   });
 
   const shortcutManager = hotInstance.getShortcutManager();
   let activeScope = null;
 
-  hotInstance.addHook('afterDeselect', () => {
-    // for cases with deselectCell
-    if (activeScope) {
-      activeScope.activateFocusCatchers();
-    }
-  });
+  // eslint-disable-next-line
+  window.activeScope = () => activeScope;
 
   /**
    * Registers a new focus scope.
@@ -177,27 +173,31 @@ export function createFocusScopeManager(hotInstance) {
 
     const allEnabledScopes = SCOPES.getValues().filter(scope => scope.runOnlyIf());
 
-    if (activeScope) {
-      deactivateScope(activeScope);
-    }
-
-    activeScope = null;
+    // if (activeScope) {
+    //   deactivateScope(activeScope);
+    // }
+    // activeScope = null;
 
     let hasActiveScope = false;
 
     allEnabledScopes.forEach((scope) => {
       if (!hasActiveScope && scope.contains(target)) {
         hasActiveScope = true;
+
+        if (focusSource !== FOCUS_SOURCES.UNKNOWN) {
+          hotInstance.listen();
+        }
+
         activateScope(scope, focusSource);
       }
     });
 
-    if (focusSource !== FOCUS_SOURCES.UNKNOWN) {
-      if (hasActiveScope) {
-        hotInstance.listen();
-      } else {
-        hotInstance.unlisten();
+    if (!hasActiveScope) {
+      if (activeScope) {
+        deactivateScope(activeScope);
       }
+
+      hotInstance.unlisten();
     }
   }
 
@@ -205,29 +205,15 @@ export function createFocusScopeManager(hotInstance) {
     hotInstance.rootWindow,
     {
       onFocus: (event) => {
-        // console.log('onFocus', hotInstance.guid, event.target, event.zzzz);
+        // console.log('onFocus', hotInstance.guid, event.target);
         processScopes(event.target, event.target.dataset.htFocusSource ?? FOCUS_SOURCES.UNKNOWN);
       },
       onClick: (event) => {
         processScopes(event.target, FOCUS_SOURCES.CLICK);
       },
       onTabKeyDown: () => {
-
         // console.log(Array.from(document.querySelectorAll('.htFocusCatcher')).map(el => el.tabIndex));
-
         updateScopesFocusVisibilityState();
-      },
-      onWindowFocus: () => {
-        // console.log('onWindowFocus');
-        // updateScopesFocusVisibilityState();
-      },
-      onWindowBlur: () => {
-        // console.log('onWindowBlur');
-        // if (activeScope) {
-        //   deactivateScope(activeScope);
-        // }
-
-        // updateScopesFocusVisibilityState();
       },
     }
   );

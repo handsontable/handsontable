@@ -428,8 +428,8 @@ export class Dialog extends BasePlugin {
         runOnlyIf: () => this.isVisible(),
         callback: (focusSource) => {
           if (
-            focusSource === 'from_above' ||
-            focusSource === 'from_below' ||
+            focusSource !== 'from_above' &&
+            focusSource !== 'from_below' &&
             this.hot.isListening()
           ) {
             this.#ui.getContainer().focus();

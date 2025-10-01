@@ -151,7 +151,7 @@ describe('Pagination keyboard shortcut', () => {
 
         const focusableElements = getPaginationFocusableElements();
 
-        expect(isListening()).toBe(true);
+        expect(isListening()).toBe(false);
         expect(getShortcutManager().getActiveContextName()).toBe('grid');
         expect(focusableElements.length).toBe(0);
         expect(document.activeElement).toBe(bottomInput[0]);
@@ -173,7 +173,7 @@ describe('Pagination keyboard shortcut', () => {
         await selectCell(1, 4);
         await keyDownUp('tab');
 
-        expect(isListening()).toBe(true);
+        expect(isListening()).toBe(false);
         expect(getShortcutManager().getActiveContextName()).toBe('grid');
         expect(document.activeElement).toBe(bottomInput[0]);
       });
@@ -200,7 +200,7 @@ describe('Pagination keyboard shortcut', () => {
 
       await keyDownUp('tab');
 
-      expect(isListening()).toBe(true);
+      expect(isListening()).toBe(false);
       expect(document.activeElement).toBe(bottomInput[0]);
     });
   });

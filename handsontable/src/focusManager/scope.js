@@ -20,6 +20,7 @@ export function createFocusScope(hotInstance, container, options = {}) {
     shortcutsContextName: DEFAULT_SHORTCUTS_CONTEXT,
     type: SCOPE_TYPES.CONTAINER,
     detached: () => !hotInstance.rootWrapperElement.contains(container),
+    contains: target => target === container || container.contains(target),
     runOnlyIf: () => true,
     ...options,
   };
@@ -47,7 +48,7 @@ export function createFocusScope(hotInstance, container, options = {}) {
    * @returns {boolean}
    */
   const contains = (target) => {
-    return container.contains(target) || container === target;
+    return mergedOptions.contains(target);
   };
 
   /**

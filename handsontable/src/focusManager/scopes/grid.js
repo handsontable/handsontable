@@ -77,6 +77,9 @@ export function focusGridScope(hot) {
 
   hot.getFocusScopeManager().registerScope('grid', container, {
     installFocusDetector: !!hot.rootGridElement,
+    contains: (target) => {
+      return container.contains(target) || hot.rootPortalElement.contains(target);
+    },
     callback: (focusSource) => {
       if (focusSource === 'from_above') {
         const mostTopStartCoords = clampCoordsIfNeeded(recentlyAddedFocusCoords) ?? getMostTopStartPosition(hot);
