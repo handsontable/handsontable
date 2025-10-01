@@ -90,6 +90,15 @@ export class MultipleSelectUI extends BaseUI {
   }
 
   /**
+   * Get filtered items value.
+   *
+   * @returns {Array} Array of selected values.
+   */
+  getFilteredItemsValue() {
+    return itemsToValue(this.#itemsBox.getSourceData(), true);
+  }
+
+  /**
    * Register all necessary hooks.
    */
   registerHooks() {
@@ -421,13 +430,14 @@ function valueToItems(availableItems, selectedValue) {
  * Convert all checked items into flat array.
  *
  * @param {Array} availableItems Base collection.
+ * @param {boolean} notChecked Whether to include not checked items.
  * @returns {Array}
  */
-function itemsToValue(availableItems) {
+function itemsToValue(availableItems, notChecked = false) {
   const items = [];
 
   availableItems.forEach((item) => {
-    if (item.checked) {
+    if (item.checked || notChecked) {
       items.push(item.value);
     }
   });

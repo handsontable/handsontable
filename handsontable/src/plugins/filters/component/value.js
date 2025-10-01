@@ -84,15 +84,29 @@ export class ValueComponent extends BaseComponent {
   /**
    * Export state of the component (get selected filter and filter arguments).
    *
+   * @param {boolean} uncheckFilteredQueries Whether to uncheck filtered queries.
    * @returns {object} Returns object where `command` key keeps used condition filter and `args` key its arguments.
    */
-  getState() {
+  getState(uncheckFilteredQueries) {
     const select = this.getMultipleSelectElement();
     const availableItems = select.getItems();
+    const values = uncheckFilteredQueries ? select.getFilteredItemsValue() : select.getValue();
+
+    if (uncheckFilteredQueries) {
+      availableItems.forEach((item) => {
+        if (values.includes(item.value)) {
+          item.checked = true;
+
+          return;
+        }
+
+        item.checked = false;
+      });
+    }
 
     return {
       command: { key: select.isSelectedAllValues() || !availableItems.length ? CONDITION_NONE : CONDITION_BY_VALUE },
-      args: [select.getValue()],
+      args: [values],
       itemsSnapshot: availableItems
     };
   }
@@ -252,6 +266,11 @@ export class ValueComponent extends BaseComponent {
   #onInputKeyDown(event) {
     if (isKey(event.keyCode, 'ESCAPE')) {
       this.runLocalHooks('cancel');
+      stopImmediatePropagation(event);
+    }
+
+    if (isKey(event.keyCode, 'ENTER')) {
+      this.runLocalHooks('accept', true);
       stopImmediatePropagation(event);
     }
   }
