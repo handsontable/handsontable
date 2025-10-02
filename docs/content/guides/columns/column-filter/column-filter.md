@@ -225,6 +225,92 @@ useful items in the menu such as **Clear column**.
 
 :::
 
+### Enable filtering only visible elements
+
+To filter only the visible items in the search list, set `uncheckFilteredQueries` to `true`. You can then apply the filter by either pressing the `Enter` key while the search input is focused or by clicking the `OK` button.
+
+::: only-for javascript
+
+```js
+const configurationOptions = {
+  // enable filtering
+  filters: {
+    uncheckFilteredQueries: true
+  },
+  // enable the column menu
+  dropdownMenu: true,
+};
+```
+
+:::
+
+::: only-for react
+
+```jsx
+<HotTable
+  // enable filtering
+  filters={{
+    uncheckFilteredQueries: true
+  }}
+  // enable the column menu
+  dropdownMenu={true}
+/>
+```
+
+:::
+
+::: only-for angular
+
+```ts
+const configurationOptions = {
+  // enable filtering
+  filters: {
+    uncheckFilteredQueries: true
+  },
+  // enable the column menu
+  dropdownMenu: true,
+};
+```
+
+```html
+<hot-table [settings]="configurationOptions"></hot-table>
+```
+
+:::
+
+::: only-for javascript
+
+::: example #exampleUncheckFilteredQueries --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/columns/column-filter/javascript/exampleUncheckFilteredQueries.html)
+@[code](@/content/guides/columns/column-filter/javascript/exampleUncheckFilteredQueries.js)
+@[code](@/content/guides/columns/column-filter/javascript/exampleUncheckFilteredQueries.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #exampleEnableFilterInColumns :react --js 1 --ts 2
+
+@[code](@/content/guides/columns/column-filter/react/exampleEnableFilterInColumns.jsx)
+@[code](@/content/guides/columns/column-filter/react/exampleEnableFilterInColumns.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example12 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-filter/angular/example12.ts)
+@[code](@/content/guides/columns/column-filter/angular/example12.html)
+
+:::
+
+:::
 
 ## Filter different types of data
 

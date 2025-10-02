@@ -2305,17 +2305,17 @@ export default () => {
      *
      * You can set the `filters` option to one of the following:
      *
-     * | Setting | Description                                      |
-     * | ------- | ------------------------------------------------ |
-     * | `false` | Disable the [`Filters`](@/api/filters.md) plugin |
-     * | `true`  | Enable the [`Filters`](@/api/filters.md) plugin  |
-     * | `object`| Enable the [`Filters`](@/api/filters.md) plugin with custom settings |
+     * | Setting   | Description                                                          |
+     * | --------- | -------------------------------------------------------------------- |
+     * | `false`   | Disable the [`Filters`](@/api/filters.md) plugin                     |
+     * | `true`    | Enable the [`Filters`](@/api/filters.md) plugin                      |
+     * | An object | Enable the [`Filters`](@/api/filters.md) plugin with custom settings |
      *
      * If you set the `filters` option to an object, you can configure the following settings:
      *
-     * | Property                 | Possible values   | Description              |
-     * | ------------------------ | ----------------- | ------------------------ |
-     * | `uncheckFilteredQueries` | `true` \| `false` | Uncheck filtered queries |
+     * | Property                 | Possible values   | Description                            |
+     * | ------------------------ | ----------------- | -------------------------------------- |
+     * | `uncheckFilteredQueries` | `true` \| `false` | Enable filtering only visible elements |
      *
      * Read more:
      * - [Column filter](@/guides/columns/column-filter/column-filter.md)

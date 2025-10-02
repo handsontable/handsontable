@@ -1610,6 +1610,115 @@ describe('Filters UI', () => {
     });
   });
 
+  describe('uncheckFilteredQueries', () => {
+    it('should apply filters for all filtered items from the list when uncheckFilteredQueries is true', async() => {
+      handsontable({
+        data: getDataForFilters(),
+        columns: getColumnsForFilters(),
+        filters: {
+          uncheckFilteredQueries: true
+        },
+        dropdownMenu: true,
+        width: 500,
+        height: 300
+      });
+
+      await dropdownMenu(2);
+
+      byValueMultipleSelect().element.querySelector('input').focus();
+
+      await sleep(200);
+
+      const event = new Event('input', {
+        bubbles: true,
+        cancelable: true,
+      });
+
+      document.activeElement.value = 'c';
+      document.activeElement.dispatchEvent(event);
+
+      await simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
+
+      expect(getData()[0][2]).toBe('Cascades');
+      expect(getData().length).toBe(5);
+    });
+
+    it('should apply filters for all filtered items from the list when uncheckFilteredQueries is true some checkboxes are unchecked', async() => {
+      handsontable({
+        data: getDataForFilters(),
+        columns: getColumnsForFilters(),
+        filters: {
+          uncheckFilteredQueries: true
+        },
+        dropdownMenu: true,
+        width: 500,
+        height: 300
+      });
+
+      await dropdownMenu(2);
+
+      $(dropdownMenuRootElement().querySelector('.htUIClearAll a')).simulate('click');
+
+      byValueMultipleSelect().element.querySelector('input').focus();
+
+      await sleep(200);
+
+      const event = new Event('input', {
+        bubbles: true,
+        cancelable: true,
+      });
+
+      document.activeElement.value = 'ca';
+      document.activeElement.dispatchEvent(event);
+
+      const $multipleSelectElements = $('.htUIMultipleSelectHot td input');
+
+      $multipleSelectElements.eq(1).simulate('click');
+
+      await sleep(200);
+
+      await simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
+
+      expect(getData()[0][2]).toBe('Canby');
+      expect(getData().length).toBe(1);
+    });
+
+    it('should apply the filter when the input is focused and Enter is pressed', async() => {
+      handsontable({
+        data: getDataForFilters(),
+        columns: getColumnsForFilters(),
+        filters: {
+          uncheckFilteredQueries: true
+        },
+        dropdownMenu: true,
+        width: 500,
+        height: 300
+      });
+
+      await dropdownMenu(2);
+
+      byValueMultipleSelect().element.querySelector('input').focus();
+
+      await sleep(200);
+
+      const event = new Event('input', {
+        bubbles: true,
+        cancelable: true,
+      });
+
+      document.activeElement.value = 'c';
+      document.activeElement.dispatchEvent(event);
+
+      await keyDownUp('Enter');
+
+      expect($(conditionMenuRootElements().first).is(':visible')).toBe(false);
+      expect($(dropdownMenuRootElement()).is(':visible')).toBe(false);
+
+      expect(getData()[0][2]).toBe('Cascades');
+      expect(getData().length).toBe(5);
+    });
+  });
+
   it('should not inherit font family and size from body', async() => {
     handsontable({
       data: getDataForFilters(),

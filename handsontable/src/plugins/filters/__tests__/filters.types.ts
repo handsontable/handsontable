@@ -5,6 +5,12 @@ const hot = new Handsontable(document.createElement('div'), {
   filters: true,
 });
 
+new Handsontable(document.createElement('div'), {
+  filters: {
+    uncheckFilteredQueries: true,
+  }
+});
+
 const filters = hot.getPlugin('filters');
 
 filters.enablePlugin();
