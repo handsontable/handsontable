@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added an Enter key handler and uncheckFilteredQueries option to the filters",
+  "type": "added",
+  "issueOrPR": 11871,
+  "breaking": false,
+  "framework": "none"
+}
