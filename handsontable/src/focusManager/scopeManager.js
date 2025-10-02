@@ -195,9 +195,8 @@ export function createFocusScopeManager(hotInstance) {
     if (!hasActiveScope) {
       if (activeScope) {
         deactivateScope(activeScope);
+        hotInstance.unlisten();
       }
-
-      hotInstance.unlisten();
     }
   }
 

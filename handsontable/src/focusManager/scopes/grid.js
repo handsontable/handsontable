@@ -78,7 +78,18 @@ export function focusGridScope(hot) {
   hot.getFocusScopeManager().registerScope('grid', container, {
     installFocusDetector: !!hot.rootGridElement,
     contains: (target) => {
-      return container.contains(target) || hot.rootPortalElement.contains(target);
+      if (container === target || container.contains(target)) {
+        return true;
+      }
+
+      if (target.closest('.htMenu') !== null) {
+        // TODO: Skip switching focus scope to grid for context and dropdown menus since
+        // focus management is not yet implemented for them. Their focus management
+        // is handled manually.
+        return false;
+      }
+
+      return hot.rootPortalElement.contains(target);
     },
     callback: (focusSource) => {
       if (focusSource === 'from_above') {
