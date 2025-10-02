@@ -60,9 +60,17 @@ export class MultipleSelectUI extends BaseUI {
    * @type {LinkUI}
    */
   #clearAllUI;
+  /**
+   * Whether to uncheck filtered queries.
+   *
+   * @type {boolean}
+   */
+  uncheckFilteredQueries = false;
 
   constructor(hotInstance, options) {
     super(hotInstance, extend(MultipleSelectUI.DEFAULTS, options));
+
+    this.uncheckFilteredQueries = options.uncheckFilteredQueries;
 
     this.#searchInput = new InputUI(this.hot, {
       placeholder: C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH,
@@ -95,7 +103,7 @@ export class MultipleSelectUI extends BaseUI {
    * @returns {Array} Array of selected values.
    */
   getFilteredItemsValue() {
-    return itemsToValue(this.#itemsBox.getSourceData(), true);
+    return itemsToValue(this.#itemsBox.getSourceData());
   }
 
   /**
@@ -244,6 +252,7 @@ export class MultipleSelectUI extends BaseUI {
 
           return width;
         },
+        hiddenRows: true,
         maxCols: 1,
         autoWrapCol: true,
         height: 110,
@@ -339,16 +348,34 @@ export class MultipleSelectUI extends BaseUI {
    */
   #onInput(event) {
     const value = event.target.value.toLocaleLowerCase(this.getLocale());
-    let filteredItems;
 
-    if (value === '') {
-      filteredItems = [...this.#items];
+    if (this.uncheckFilteredQueries) {
+      const hiddenRows = this.#itemsBox.getPlugin('hiddenRows');
+
+      hiddenRows.showRows(hiddenRows.getHiddenRows());
+
+      this.#items.forEach((item, index) => {
+        item.checked = `${item.value}`.toLocaleLowerCase(this.getLocale()).indexOf(value) >= 0;
+
+        if (!item.checked) {
+          hiddenRows.hideRow(index);
+        }
+      });
+
+      this.#itemsBox.view.adjustElementsSize();
+      this.#itemsBox.render();
     } else {
-      filteredItems = this.#items
-        .filter(item => (`${item.value}`).toLocaleLowerCase(this.getLocale()).indexOf(value) >= 0);
-    }
+      let filteredItems;
 
-    this.#itemsBox.loadData(filteredItems);
+      if (value === '') {
+        filteredItems = [...this.#items];
+      } else {
+        filteredItems = this.#items
+          .filter(item => (`${item.value}`).toLocaleLowerCase(this.getLocale()).indexOf(value) >= 0);
+      }
+
+      this.#itemsBox.loadData(filteredItems);
+    }
   }
 
   /**
@@ -430,14 +457,13 @@ function valueToItems(availableItems, selectedValue) {
  * Convert all checked items into flat array.
  *
  * @param {Array} availableItems Base collection.
- * @param {boolean} notChecked Whether to include not checked items.
  * @returns {Array}
  */
-function itemsToValue(availableItems, notChecked = false) {
+function itemsToValue(availableItems) {
   const items = [];
 
   availableItems.forEach((item) => {
-    if (item.checked || notChecked) {
+    if (item.checked) {
       items.push(item.value);
     }
   });

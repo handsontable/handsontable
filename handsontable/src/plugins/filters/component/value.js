@@ -22,6 +22,13 @@ export class ValueComponent extends BaseComponent {
    */
   name = '';
 
+  /**
+   * Whether to uncheck filtered queries.
+   *
+   * @type {boolean}
+   */
+  uncheckFilteredQueries = false;
+
   constructor(hotInstance, options) {
     super(hotInstance, {
       id: options.id,
@@ -29,7 +36,10 @@ export class ValueComponent extends BaseComponent {
     });
 
     this.name = options.name;
-    this.elements.push(new MultipleSelectUI(this.hot));
+    this.uncheckFilteredQueries = options.uncheckFilteredQueries;
+    this.elements.push(new MultipleSelectUI(this.hot, {
+      uncheckFilteredQueries: this.uncheckFilteredQueries
+    }));
 
     this.registerHooks();
   }
@@ -84,29 +94,15 @@ export class ValueComponent extends BaseComponent {
   /**
    * Export state of the component (get selected filter and filter arguments).
    *
-   * @param {boolean} uncheckFilteredQueries Whether to uncheck filtered queries.
    * @returns {object} Returns object where `command` key keeps used condition filter and `args` key its arguments.
    */
-  getState(uncheckFilteredQueries) {
+  getState() {
     const select = this.getMultipleSelectElement();
     const availableItems = select.getItems();
-    const values = uncheckFilteredQueries ? select.getFilteredItemsValue() : select.getValue();
-
-    if (uncheckFilteredQueries) {
-      availableItems.forEach((item) => {
-        if (values.includes(item.value)) {
-          item.checked = true;
-
-          return;
-        }
-
-        item.checked = false;
-      });
-    }
 
     return {
       command: { key: select.isSelectedAllValues() || !availableItems.length ? CONDITION_NONE : CONDITION_BY_VALUE },
-      args: [values],
+      args: [select.getValue()],
       itemsSnapshot: availableItems
     };
   }
@@ -269,7 +265,7 @@ export class ValueComponent extends BaseComponent {
       stopImmediatePropagation(event);
     }
 
-    if (isKey(event.keyCode, 'ENTER')) {
+    if (isKey(event.keyCode, 'ENTER') && this.uncheckFilteredQueries) {
       this.runLocalHooks('accept');
       stopImmediatePropagation(event);
     }

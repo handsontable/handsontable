@@ -233,9 +233,13 @@ export class Filters extends BasePlugin {
     }
 
     if (!this.components.get('filter_by_value')) {
+      const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];
+      const uncheckFilteredQueries = pluginSettings?.uncheckFilteredQueries;
+
       this.components.set('filter_by_value', addConfirmationHooks(new ValueComponent(this.hot, {
         id: 'filter_by_value',
-        name: filterValueLabel
+        name: filterValueLabel,
+        uncheckFilteredQueries,
       })));
     }
 
@@ -882,13 +886,10 @@ export class Filters extends BasePlugin {
         return;
       }
 
-      const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];
-      const uncheckFilteredQueries = pluginSettings?.uncheckFilteredQueries;
-
       const { physicalIndex } = selectedColumn;
       const byConditionState1 = this.components.get('filter_by_condition').getState();
       const byConditionState2 = this.components.get('filter_by_condition2').getState();
-      const byValueState = this.components.get('filter_by_value').getState(uncheckFilteredQueries);
+      const byValueState = this.components.get('filter_by_value').getState();
 
       const operation = this.getOperationBasedOnArguments(
         this.components.get('filter_operators').getActiveOperationId(),
