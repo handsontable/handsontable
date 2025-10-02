@@ -188,13 +188,8 @@ export class Filters extends BasePlugin {
 
     const dropdownSettings = this.hot.getSettings().dropdownMenu;
     const menuContainer = (dropdownSettings && dropdownSettings.uiContainer) || this.hot.rootPortalElement;
-
-    const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];
-    const uncheckFilteredQueriesSetting = pluginSettings?.uncheckFilteredQueries;
-
     const addConfirmationHooks = (component) => {
-      component.addLocalHook('accept', uncheckFilteredQueries =>
-        this.#onActionBarSubmit('accept', uncheckFilteredQueriesSetting || uncheckFilteredQueries));
+      component.addLocalHook('accept', () => this.#onActionBarSubmit('accept'));
       component.addLocalHook('cancel', () => this.#onActionBarSubmit('cancel'));
       component.addLocalHook('change', command => this.#onComponentChange(component, command));
 
@@ -876,9 +871,8 @@ export class Filters extends BasePlugin {
    *
    * @private
    * @param {string} submitType The submit type.
-   * @param {boolean} uncheckFilteredQueries Whether to uncheck filtered queries.
    */
-  #onActionBarSubmit(submitType, uncheckFilteredQueries) {
+  #onActionBarSubmit(submitType) {
     if (submitType === 'accept') {
       const selectedColumn = this.getSelectedColumn();
 
@@ -887,6 +881,9 @@ export class Filters extends BasePlugin {
 
         return;
       }
+
+      const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];
+      const uncheckFilteredQueries = pluginSettings?.uncheckFilteredQueries;
 
       const { physicalIndex } = selectedColumn;
       const byConditionState1 = this.components.get('filter_by_condition').getState();

@@ -270,7 +270,7 @@ export class ValueComponent extends BaseComponent {
     }
 
     if (isKey(event.keyCode, 'ENTER')) {
-      this.runLocalHooks('accept', true);
+      this.runLocalHooks('accept');
       stopImmediatePropagation(event);
     }
   }
