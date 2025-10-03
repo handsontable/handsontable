@@ -1,10 +1,12 @@
 import { setAttribute } from '../../helpers/dom/element';
 import { A11Y_LABEL } from '../../helpers/a11y';
+import { FOCUS_SOURCES } from '../constants';
 
 /**
  * @typedef {object} FocusDetector
  * @property {function(): void} activate Activates the focus detector.
  * @property {function(): void} deactivate Deactivates the focus detector.
+ * @property {function(): void} destroy Destroys the focus detector.
  */
 /**
  * Installs a focus detector module. The module appends two input elements into the DOM side by side.
@@ -17,8 +19,8 @@ import { A11Y_LABEL } from '../../helpers/a11y';
  * @returns {FocusDetector}
  */
 export function installFocusDetector(hot, wrapperElement) {
-  const inputTrapTop = createInputElement(hot, 'from_above');
-  const inputTrapBottom = createInputElement(hot, 'from_below');
+  const inputTrapTop = createInputElement(hot, FOCUS_SOURCES.TAB_FROM_ABOVE);
+  const inputTrapBottom = createInputElement(hot, FOCUS_SOURCES.TAB_FROM_BELOW);
 
   wrapperElement.prepend(inputTrapTop);
   wrapperElement.append(inputTrapBottom);
@@ -30,9 +32,6 @@ export function installFocusDetector(hot, wrapperElement) {
     activate() {
       inputTrapTop.tabIndex = 0;
       inputTrapBottom.tabIndex = 0;
-
-      // inputTrapTop.removeAttribute('tabIndex');
-      // inputTrapBottom.removeAttribute('tabIndex');
     },
     /**
      * Deactivates the detector by setting tabIndex to -1.
@@ -61,11 +60,26 @@ export function installFocusDetector(hot, wrapperElement) {
 function createInputElement(hot, focusSource) {
   const rootDocument = hot.rootDocument;
   const input = rootDocument.createElement('input');
+  const inputStyle = input.style;
 
   input.type = 'text';
   input.name = 'htFocusCatcher';
   input.classList.add('htFocusCatcher');
   input.dataset.htFocusSource = focusSource;
+
+  [
+    ['position', 'absolute'],
+    ['width', '0'],
+    ['height', '0'],
+    ['opacity', '0'],
+    ['zIndex', '-1'],
+    ['border', 'none'],
+    ['outline', 'none'],
+    ['padding', '0'],
+    ['margin', '0']
+  ].forEach(([property, value]) => {
+    inputStyle[property] = value;
+  });
 
   if (hot.getSettings().ariaTags) {
     setAttribute(input, [

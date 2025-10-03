@@ -1,4 +1,4 @@
-import { clamp } from './number';
+import { clamp } from '../../helpers/number';
 
 /**
  * Normalizes the coordinates (clamps to nearest visible cell position within dataset range).

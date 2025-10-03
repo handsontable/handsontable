@@ -5458,10 +5458,24 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   };
 
   /**
+   * Returns the Focus Scope Manager. The module allows to register focus scopes for different parts of the grid
+   * e.g. for dialogs, pagination, and other plugins that have own UI elements and need separate context.
+   *
    * @memberof Core#
-   * @since 17.0.0
+   * @since 16.2.0
    * @function getFocusScopeManager
    * @returns {FocusScopeManager}
+   *
+   * @example
+   * ```js
+   * hot.getFocusScopeManager().registerScope('myPluginName', containerElement, {
+   *   shortcutsContextName: 'plugin:myPluginName',
+   *   onActivate: (focusSource) => {
+   *     // Focus the internal focusable element within the plugin UI element
+   *     // depends on the activation focus source.
+   *   },
+   * });
+   * ```
    */
   this.getFocusScopeManager = function() {
     return focusScopeManager;

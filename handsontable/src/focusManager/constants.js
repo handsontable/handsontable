@@ -2,8 +2,7 @@
  * Focus scope types.
  */
 export const SCOPE_TYPES = Object.freeze({
-  ATTACHED: 'attached',
-  DETACHED: 'detached',
+  CONTAINER: 'container',
   MODAL: 'modal',
 });
 
@@ -13,8 +12,8 @@ export const SCOPE_TYPES = Object.freeze({
 export const FOCUS_SOURCES = Object.freeze({
   UNKNOWN: 'unknown',
   CLICK: 'click',
-  FROM_ABOVE: 'from_above',
-  FROM_BELOW: 'from_below',
+  TAB_FROM_ABOVE: 'tab_from_above',
+  TAB_FROM_BELOW: 'tab_from_below',
 });
 
 /**

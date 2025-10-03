@@ -36,7 +36,7 @@ beforeAll(() => {
 afterAll(() => {
   // After the test are finished show the test suite dots
   if (!process.env.JEST_WORKER_ID) {
-    // $('.jasmine_html-reporter').show();
+    $('.jasmine_html-reporter').show();
   }
 });
 
@@ -150,6 +150,7 @@ export const getFirstPartiallyVisibleRow = handsontableMethodFactory('getFirstPa
 export const getFirstRenderedVisibleColumn = handsontableMethodFactory('getFirstRenderedVisibleColumn');
 export const getFirstRenderedVisibleRow = handsontableMethodFactory('getFirstRenderedVisibleRow');
 export const getFocusManager = handsontableMethodFactory('getFocusManager');
+export const getFocusScopeManager = handsontableMethodFactory('getFocusScopeManager');
 export const getInstance = handsontableMethodFactory('getInstance');
 export const getLastFullyVisibleColumn = handsontableMethodFactory('getLastFullyVisibleColumn');
 export const getLastFullyVisibleRow = handsontableMethodFactory('getLastFullyVisibleRow');

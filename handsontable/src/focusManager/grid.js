@@ -16,7 +16,8 @@ const FOCUS_MODES = Object.freeze({
 });
 
 /**
- * Manages the browser's focus in the table.
+ * Manages the browser's focus in the table to achieve correct behavior for screen readers and
+ * IME editors.
  */
 export class GridFocusManager {
   /**
@@ -68,7 +69,6 @@ export class GridFocusManager {
     this.#hot.addHook('afterSelection', (...args) => this.#focusCell(...args));
     this.#hot.addHook('afterSelectionFocusSet', (...args) => this.#focusCell(...args));
     this.#hot.addHook('afterSelectionEnd', (...args) => this.#focusEditorElement(...args));
-    this.#hot.addHook('afterDeselect', (...args) => this.#onAfterDeselect(...args));
   }
 
   /**
@@ -255,17 +255,6 @@ export class GridFocusManager {
         selectedCell?.nodeName === 'TD'
       ) {
         this.refocusToEditorTextarea();
-      }
-    });
-  }
-
-  #onAfterDeselect() {
-    const { rootDocument, rootGridElement, rootElement } = this.#hot;
-    const { activeElement } = rootDocument;
-
-    this.#hot._registerImmediate(() => {
-      if ((rootGridElement ?? rootElement).contains(activeElement)) {
-        activeElement.blur();
       }
     });
   }

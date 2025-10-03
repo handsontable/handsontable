@@ -678,10 +678,10 @@ export class Pagination extends BasePlugin {
           const focusableElements = this.#ui.getFocusableElements();
 
           if (focusableElements.length > 0) {
-            if (focusSource === 'from_above') {
+            if (focusSource === 'tab_from_above') {
               focusableElements.at(0).focus();
 
-            } else if (focusSource === 'from_below') {
+            } else if (focusSource === 'tab_from_below') {
               focusableElements.at(-1).focus();
             }
           }

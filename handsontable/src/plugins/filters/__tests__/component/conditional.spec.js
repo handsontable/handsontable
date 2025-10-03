@@ -505,40 +505,40 @@ describe('Filters UI Conditional component', () => {
     expect($(dropdownMenuRootElement()).is(':visible')).toBe(false);
   });
 
-  // it('should disappear dropdown menu after hitting ESC key, next to closing SelectUI #149', async() => {
-  //   handsontable({
-  //     data: getDataForFilters(),
-  //     columns: getColumnsForFilters(),
-  //     filters: true,
-  //     dropdownMenu: true,
-  //     width: 500,
-  //     height: 300
-  //   });
+  it('should disappear dropdown menu after hitting ESC key, next to closing SelectUI #149', async() => {
+    handsontable({
+      data: getDataForFilters(),
+      columns: getColumnsForFilters(),
+      filters: true,
+      dropdownMenu: true,
+      width: 500,
+      height: 300
+    });
 
-  //   const button = hot().view._wt.wtTable.getColumnHeader(1).querySelector('.changeType');
+    const button = hot().view._wt.wtTable.getColumnHeader(1).querySelector('.changeType');
 
-  //   $(button).simulate('mousedown');
+    $(button).simulate('mousedown');
 
-  //   // This sleep emulates more realistic user behavior. The `mouseup` event in all cases is not
-  //   // triggered directly after the `mousedown` event. First of all, a user is not able to
-  //   // click so fast. Secondly, there can be a device lag between `mousedown` and `mouseup`
-  //   // events. This fixes an issue related to failing test, which works on browser under
-  //   // user control but fails while automatic tests.
-  //   await sleep(0);
+    // This sleep emulates more realistic user behavior. The `mouseup` event in all cases is not
+    // triggered directly after the `mousedown` event. First of all, a user is not able to
+    // click so fast. Secondly, there can be a device lag between `mousedown` and `mouseup`
+    // events. This fixes an issue related to failing test, which works on browser under
+    // user control but fails while automatic tests.
+    await sleep(0);
 
-  //   $(button).simulate('mouseup');
-  //   $(button).simulate('click');
+    $(button).simulate('mouseup');
+    $(button).simulate('click');
 
-  //   await openDropdownByConditionMenu();
+    await openDropdownByConditionMenu();
 
-  //   await sleep(200);
+    await sleep(200);
 
-  //   await keyDownUp('escape');
-  //   await keyDownUp('escape');
+    await keyDownUp('escape');
+    await keyDownUp('escape');
 
-  //   expect($(conditionMenuRootElements().first).is(':visible')).toBe(false);
-  //   expect($(dropdownMenuRootElement()).is(':visible')).toBe(false);
-  // });
+    expect($(conditionMenuRootElements().first).is(':visible')).toBe(false);
+    expect($(dropdownMenuRootElement()).is(':visible')).toBe(false);
+  });
 
   it('should focus dropdown menu after closing select component', async() => {
     handsontable({

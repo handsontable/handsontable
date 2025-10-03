@@ -215,8 +215,6 @@ export class Dialog extends BasePlugin {
         rootElement: this.hot.rootGridElement,
         isRtl: this.hot.isRtl(),
       });
-
-      this.#ui.addLocalHook('clickDialogElement', () => this.#onDialogClick());
     }
 
     this.#registerShortcuts();
@@ -298,12 +296,6 @@ export class Dialog extends BasePlugin {
 
     this.hot.deselectCell();
     this.hot.runHooks('afterDialogShow');
-
-    const { activeElement } = this.hot.rootDocument;
-
-    if (this.hot.rootWrapperElement.contains(activeElement) || this.hot.rootPortalElement.contains(activeElement)) {
-      this.hot.runHooks('afterDialogFocus', 'show');
-    }
   }
 
   /**
@@ -427,12 +419,18 @@ export class Dialog extends BasePlugin {
         type: 'modal',
         runOnlyIf: () => this.isVisible(),
         onActivate: (focusSource) => {
+          const isListening = this.hot.isListening();
+
           if (
-            focusSource !== 'from_above' &&
-            focusSource !== 'from_below' &&
-            this.hot.isListening()
+            focusSource !== 'tab_from_above' &&
+            focusSource !== 'tab_from_below' &&
+            isListening
           ) {
             this.#ui.getContainer().focus();
+          }
+
+          if (isListening) {
+            this.hot.runHooks('afterDialogFocus', focusSource === 'unknown' ? 'show' : focusSource);
           }
         },
       });
@@ -443,15 +441,6 @@ export class Dialog extends BasePlugin {
    */
   #unregisterFocusScope() {
     this.hot.getFocusScopeManager().unregisterScope(PLUGIN_KEY);
-  }
-
-  /**
-   * Handle dialog click event.
-   */
-  #onDialogClick() {
-    if (this.isVisible()) {
-      this.hot.runHooks('afterDialogFocus', 'click');
-    }
   }
 
   /**

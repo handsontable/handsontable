@@ -1,5 +1,8 @@
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
+ * The module emulates the browser's focus traversal algorithm.
+ */
+/**
  * Visibility rules:
  * - 'spec' mode: display:none, visibility:hidden|collapse, hidden, [inert], closed <details> (except its <summary>).
  * - 'strict' mode also requires: has a layout box, opacity != 0, pointer-events != none, content-visibility: visible.

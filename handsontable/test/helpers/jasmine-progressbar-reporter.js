@@ -233,9 +233,9 @@ ${document.URL}?spec=${encodeURI(fullSpecName)}
    * Adds the progress bar elements to the DOM.
    */
   addProgressBar() {
-    // this.$elements.container.append(this.$elements.progressBar);
+    this.$elements.container.append(this.$elements.progressBar);
 
-    // $('body').append(this.$elements.container);
+    $('body').append(this.$elements.container);
   }
 }
 

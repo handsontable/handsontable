@@ -4,10 +4,28 @@ import { useEventListener } from './eventListener';
 import { FOCUS_SOURCES } from './constants';
 
 /**
- * Creates a focus scope manager for a Handsontable instance.
+ * @typedef {object} FocusScopeManager
+ * @property {function(): string | null} getActiveScopeId Returns the ID of the active scope.
+ * @property {function(string, HTMLElement, object): void} registerScope Registers a new focus scope.
+ * @property {function(string): void} unregisterScope Unregisters a scope by its ID.
+ * @property {function(string): void} activateScope Activates a focus scope by its ID.
+ * @property {function(string): void} deactivateScope Deactivates a scope by its ID.
+ * @property {function(): void} destroy Destroys the focus scope manager.
+ */
+
+/**
+ * Creates a focus scope manager for a Handsontable instance. The manager handles focus
+ * scopes by listening to keydown, focusin, and click events on the document. Based on
+ * the currently focused element, it activates or deactivates the appropriate scope.
+ * Focus scope contains its own boundaries and logic that once activated allows to focus
+ * specific focusable element within the scope container element and/or switch to specific
+ * shortcuts context.
+ *
+ * The manager also automatically updates the `isListening` state of the Handsontable
+ * instance based on the current state of the scopes.
  *
  * @param {Core} hotInstance The Handsontable instance.
- * @returns {object} Focus scope manager object with methods.
+ * @returns {FocusScopeManager} Focus scope manager object with methods.
  */
 export function createFocusScopeManager(hotInstance) {
   const SCOPES = createUniqueMap({
@@ -17,9 +35,18 @@ export function createFocusScopeManager(hotInstance) {
   const shortcutManager = hotInstance.getShortcutManager();
   let activeScope = null;
 
-  // TODO: REMOVE THIS
-  // eslint-disable-next-line
-  window.activeScope = () => activeScope;
+  /**
+   * Returns the ID of the active scope.
+   *
+   * @returns {string | null} The ID of the active scope.
+   */
+  function getActiveScopeId() {
+    if (!activeScope) {
+      return null;
+    }
+
+    return SCOPES.getId(activeScope);
+  }
 
   /**
    * Registers a new focus scope.
@@ -27,13 +54,18 @@ export function createFocusScopeManager(hotInstance) {
    * @param {string} scopeId Unique identifier for the scope.
    * @param {HTMLElement} container Container element for the scope.
    * @param {object} options Configuration options.
+   * @param {boolean} options.installFocusDetector Whether to install a focus detector.
+   * @param {string} options.shortcutsContextName The name of the shortcuts context to switch to when the scope is activated.
+   * @param {'modal' | 'container'} options.type The type of the scope.
+   * @param {function(): boolean} options.runOnlyIf Whether the scope is enabled or not depends on the custom logic.
+   * @param {function(): void} options.onActivate Callback function to be called when the scope is activated.
+   * @param {function(): void} options.onDeactivate Callback function to be called when the scope is deactivated.
    */
   function registerScope(scopeId, container, options = {}) {
     const scope = createFocusScope(hotInstance, container, options);
 
     SCOPES.addItem(scopeId, scope);
 
-    scope._scopeId = scopeId; // temporary
     shortcutManager.getOrCreateContext(scope.getShortcutsContextName());
   }
 
@@ -83,7 +115,7 @@ export function createFocusScopeManager(hotInstance) {
    * Activates a specific scope.
    *
    * @param {object} scope The scope to activate.
-   * @param {string} focusSource The source of the focus event.
+   * @param {'unknown' | 'click' | 'tab_from_above' | 'tab_from_below'} focusSource The source of the focus event.
    */
   function activateScope(scope, focusSource = FOCUS_SOURCES.UNKNOWN) {
     if (activeScope === scope) {
@@ -152,10 +184,11 @@ export function createFocusScopeManager(hotInstance) {
   }
 
   /**
-   * Updates the active scope based on the target element and focus source.
+   * Activates or deactivates the appropriate scope based on the target element that was
+   * triggered by the focus event or click event.
    *
    * @param {HTMLElement} target The target element.
-   * @param {string} focusSource The source of the focus event.
+   * @param {'unknown' | 'click' | 'tab_from_above' | 'tab_from_below'} focusSource The source of the focus event.
    */
   function processScopes(target, focusSource) {
     if (hotInstance.selection.isSelected() && activeScope && activeScope.runOnlyIf() && activeScope.contains(target)) {
@@ -207,6 +240,7 @@ export function createFocusScopeManager(hotInstance) {
   eventListener.mount();
 
   return {
+    getActiveScopeId,
     registerScope,
     unregisterScope,
     activateScope: scopeId => activateScopeById(scopeId),

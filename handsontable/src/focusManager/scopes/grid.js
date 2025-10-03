@@ -2,7 +2,7 @@ import {
   normalizeCoordsIfNeeded,
   getMostTopStartPosition,
   getMostBottomEndPosition,
-} from '../../helpers/handsontable';
+} from '../utils/utils';
 import { GRID_SCOPE, GRID_GROUP, GRID_TAB_NAVIGATION_GROUP } from '../../shortcutContexts';
 
 /**
@@ -83,8 +83,8 @@ export function focusGridScope(hot) {
       }
 
       if (target.closest('.htMenu') !== null) {
-        // TODO: Skip switching focus scope to grid for context and dropdown menus since
-        // focus management is not yet implemented for them. Their focus management
+        // TODO: Skip switching focus scope to 'grid' for context and dropdown menus since
+        // focus management is not implemented for them. Their focus management
         // is handled manually.
         return false;
       }
@@ -92,21 +92,21 @@ export function focusGridScope(hot) {
       return hot.rootPortalElement.contains(target);
     },
     onActivate: (focusSource) => {
-      if (focusSource === 'from_above') {
+      if (focusSource === 'tab_from_above') {
         const mostTopStartCoords = clampCoordsIfNeeded(recentlyAddedFocusCoords) ?? getMostTopStartPosition(hot);
 
         if (mostTopStartCoords) {
-          const result = hot.runHooks('modifyFocusOnTabNavigation', focusSource, mostTopStartCoords);
+          const result = hot.runHooks('modifyFocusOnTabNavigation', 'from_above', mostTopStartCoords);
 
           if (result !== false) {
             hot.selectCell(mostTopStartCoords.row, mostTopStartCoords.col);
           }
         }
-      } else if (focusSource === 'from_below') {
+      } else if (focusSource === 'tab_from_below') {
         const mostBottomEndCoords = clampCoordsIfNeeded(recentlyAddedFocusCoords) ?? getMostBottomEndPosition(hot);
 
         if (mostBottomEndCoords) {
-          const result = hot.runHooks('modifyFocusOnTabNavigation', focusSource, mostBottomEndCoords);
+          const result = hot.runHooks('modifyFocusOnTabNavigation', 'from_below', mostBottomEndCoords);
 
           if (result !== false) {
             hot.selectCell(mostBottomEndCoords.row, mostBottomEndCoords.col);
