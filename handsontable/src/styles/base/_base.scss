@@ -613,28 +613,6 @@
       }
     }
 
-    .ht_master.innerBorderTop {
-      tbody {
-        tr:first-child {
-          th,
-          td {
-            border-top-width: 0;
-          }
-        }
-      }
-
-      & ~ .ht_clone_inline_start {
-        tbody {
-          tr:first-child {
-            th,
-            td {
-              border-top-width: 0;
-            }
-          }
-        }
-      }
-    }
-
     .ht_master table.htCore > thead,
     .ht_master table.htCore > tbody > tr > th,
     .ht_clone_inline_start table.htCore > thead {
