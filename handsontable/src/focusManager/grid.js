@@ -238,7 +238,6 @@ export class GridFocusManager {
       // previously selected input element has not belonged to the Handsontable editor. If blurring is
       // triggered for all elements, there is a problem with the disappearing IME editor (#9672).
       if (activeElement && isOutsideInput(activeElement)) {
-      // if (activeElement && !this.#hot.rootElement.contains(activeElement)) {
         activeElement.blur();
       }
 

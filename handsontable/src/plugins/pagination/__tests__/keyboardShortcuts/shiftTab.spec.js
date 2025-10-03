@@ -203,5 +203,208 @@ describe('Pagination keyboard shortcut', () => {
       expect(getShortcutManager().getActiveContextName()).toBe('grid');
       expect(getSelectedRange()).toEqualCellRange(['highlight: 5,9 from: 5,9 to: 5,9']);
     });
+
+    describe('cooperation with Dialog plugin', () => {
+      it('should move the focus through the grid component (dialog is hidden)', async() => {
+        const { topInput, bottomInput } = createTestInputs();
+
+        handsontable({
+          data: createSpreadsheetData(10, 10),
+          dialog: true,
+          pagination: {
+            pageSize: 3,
+          },
+          tabNavigation: false,
+        });
+
+        bottomInput.focus();
+
+        await keyDownUp(['shift', 'tab']);
+
+        const focusableElements = getPaginationFocusableElements().reverse();
+
+        expect(isListening()).toBe(true);
+        expect(getShortcutManager().getActiveContextName()).toBe('plugin:pagination');
+        expect(focusableElements.length).toBe(3);
+
+        for await (const element of focusableElements) {
+          expect(document.activeElement).toBe(element);
+
+          await keyDownUp(['shift', 'tab']);
+        }
+
+        expect(getShortcutManager().getActiveContextName()).toBe('grid');
+
+        await keyDownUp(['shift', 'tab']);
+
+        expect(isListening()).toBe(false);
+        expect(getShortcutManager().getActiveContextName()).toBe('grid');
+        expect(document.activeElement).toBe(topInput[0]);
+      });
+
+      it('should move the focus through the grid component (dialog is hidden and initialized later)', async() => {
+        const { topInput, bottomInput } = createTestInputs();
+
+        handsontable({
+          data: createSpreadsheetData(10, 10),
+          pagination: {
+            pageSize: 3,
+          },
+          tabNavigation: false,
+        });
+
+        await updateSettings({
+          dialog: true,
+        });
+
+        bottomInput.focus();
+
+        await keyDownUp(['shift', 'tab']);
+
+        const focusableElements = getPaginationFocusableElements().reverse();
+
+        expect(isListening()).toBe(true);
+        expect(getShortcutManager().getActiveContextName()).toBe('plugin:pagination');
+        expect(focusableElements.length).toBe(3);
+
+        for await (const element of focusableElements) {
+          expect(document.activeElement).toBe(element);
+
+          await keyDownUp(['shift', 'tab']);
+        }
+
+        expect(getShortcutManager().getActiveContextName()).toBe('grid');
+
+        await keyDownUp(['shift', 'tab']);
+
+        expect(isListening()).toBe(false);
+        expect(getShortcutManager().getActiveContextName()).toBe('grid');
+        expect(document.activeElement).toBe(topInput[0]);
+      });
+
+      it('should move the focus through the grid component (dialog is opened)', async() => {
+        const { topInput, bottomInput } = createTestInputs();
+
+        handsontable({
+          data: createSpreadsheetData(10, 10),
+          dialog: {
+            content: 'test',
+            animation: false,
+            background: 'semi-transparent',
+          },
+          pagination: {
+            pageSize: 3,
+          },
+          tabNavigation: false,
+        });
+
+        getPlugin('dialog').show();
+        bottomInput.focus();
+
+        await keyDownUp(['shift', 'tab']);
+
+        expect(getShortcutManager().getActiveContextName()).toBe('plugin:dialog');
+        expect(document.activeElement).toBe(getDialogLastFocusCatcherElement());
+
+        await keyDownUp(['shift', 'tab']);
+
+        expect(isListening()).toBe(false);
+        expect(getShortcutManager().getActiveContextName()).toBe('plugin:dialog');
+        expect(document.activeElement).toBe(topInput[0]);
+      });
+
+      it('should move the focus through the grid component (dialog is opened and initialized later)', async() => {
+        const { topInput, bottomInput } = createTestInputs();
+
+        handsontable({
+          data: createSpreadsheetData(10, 10),
+          pagination: {
+            pageSize: 3,
+          },
+          tabNavigation: false,
+        });
+
+        await updateSettings({
+          dialog: {
+            content: 'test',
+            animation: false,
+            background: 'semi-transparent',
+          },
+        });
+
+        getPlugin('dialog').show();
+        bottomInput.focus();
+
+        await keyDownUp(['shift', 'tab']);
+
+        expect(getShortcutManager().getActiveContextName()).toBe('plugin:dialog');
+        expect(document.activeElement).toBe(getDialogLastFocusCatcherElement());
+
+        await keyDownUp(['shift', 'tab']);
+
+        expect(isListening()).toBe(false);
+        expect(getShortcutManager().getActiveContextName()).toBe('plugin:dialog');
+        expect(document.activeElement).toBe(topInput[0]);
+      });
+
+      it('should move the focus through the grid component (dialog is opened and pagination UI is detached)', async() => {
+        const { topInput, bottomInput } = createTestInputs();
+
+        spec().$container.after('<div><br/><div id="uiContainer"></div></div>');
+
+        handsontable({
+          data: createSpreadsheetData(10, 10),
+          dialog: {
+            content: 'Hello! <button id="okButton">Ok</button> <button id="cancelButton">Cancel</button>',
+            animation: false,
+            background: 'semi-transparent',
+            closable: true,
+          },
+          pagination: {
+            pageSize: 3,
+            uiContainer: document.getElementById('uiContainer'),
+          },
+          tabNavigation: false,
+        });
+
+        getPlugin('dialog').show();
+        bottomInput.focus();
+
+        await keyDownUp(['shift', 'tab']);
+
+        const focusableElements = getPaginationFocusableElements().reverse();
+
+        expect(isListening()).toBe(true);
+        expect(getShortcutManager().getActiveContextName()).toBe('plugin:pagination');
+        expect(focusableElements.length).toBe(3);
+
+        for await (const element of focusableElements) {
+          expect(document.activeElement).toBe(element);
+
+          await keyDownUp(['shift', 'tab']);
+        }
+
+        expect(getShortcutManager().getActiveContextName()).toBe('plugin:dialog');
+        expect(document.activeElement).toBe(getDialogLastFocusCatcherElement());
+
+        await keyDownUp(['shift', 'tab']);
+
+        expect(getShortcutManager().getActiveContextName()).toBe('plugin:dialog');
+        expect(document.activeElement).toBe(getDialogContentContainerElement().querySelector('#cancelButton'));
+
+        await keyDownUp(['shift', 'tab']);
+
+        expect(getShortcutManager().getActiveContextName()).toBe('plugin:dialog');
+        expect(document.activeElement).toBe(getDialogContentContainerElement().querySelector('#okButton'));
+
+        await keyDownUp(['shift', 'tab']);
+
+        expect(isListening()).toBe(false);
+        expect(getShortcutManager().getActiveContextName()).toBe('plugin:dialog');
+        expect(document.activeElement).toBe(topInput[0]);
+
+        document.getElementById('uiContainer').parentElement.remove();
+      });
+    });
   });
 });

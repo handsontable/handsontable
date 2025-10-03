@@ -426,7 +426,7 @@ export class Dialog extends BasePlugin {
         shortcutsContextName: SHORTCUTS_CONTEXT_NAME,
         type: 'modal',
         runOnlyIf: () => this.isVisible(),
-        callback: (focusSource) => {
+        onActivate: (focusSource) => {
           if (
             focusSource !== 'from_above' &&
             focusSource !== 'from_below' &&

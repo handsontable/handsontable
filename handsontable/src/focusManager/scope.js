@@ -10,7 +10,6 @@ import { SCOPE_TYPES, FOCUS_SOURCES, DEFAULT_SHORTCUTS_CONTEXT } from './constan
  * @param {boolean} options.installFocusDetector Whether to install a focus detector.
  * @param {string} options.shortcutsContextName The name of the shortcuts context to switch to when the scope is activated.
  * @param {'modal' | 'container'} options.type The type of the scope.
- * @param {function(): boolean} options.detached Whether the container is detached.
  * @param {function(): boolean} options.runOnlyIf Whether the scope is enabled or not depends on the custom logic.
  * @returns {object} Focus scope object with methods.
  */
@@ -19,7 +18,6 @@ export function createFocusScope(hotInstance, container, options = {}) {
     installFocusDetector: true,
     shortcutsContextName: DEFAULT_SHORTCUTS_CONTEXT,
     type: SCOPE_TYPES.CONTAINER,
-    detached: () => !hotInstance.rootWrapperElement.contains(container),
     contains: target => target === container || container.contains(target),
     runOnlyIf: () => true,
     ...options,
@@ -57,15 +55,14 @@ export function createFocusScope(hotInstance, container, options = {}) {
    * @param {string} activationSource The source of the activation.
    */
   const activate = (activationSource = FOCUS_SOURCES.UNKNOWN) => {
-    // deactivateFocusCatchers(); // todo: may not be needed
-    mergedOptions.callback?.(activationSource);
+    mergedOptions.onActivate?.(activationSource);
   };
 
   /**
    * Deactivates the scope.
    */
   const deactivate = () => {
-    // activateFocusCatchers(); // todo: may not be needed
+    mergedOptions.onDeactivate?.();
   };
 
   const disable = () => {
@@ -82,7 +79,7 @@ export function createFocusScope(hotInstance, container, options = {}) {
 
   return {
     getType: () => mergedOptions.type,
-    hasContainerDetached: () => mergedOptions.detached(),
+    hasContainerDetached: () => !hotInstance.rootWrapperElement.contains(container),
     getShortcutsContextName: () => mergedOptions.shortcutsContextName,
     runOnlyIf: () => mergedOptions.runOnlyIf(),
     contains,

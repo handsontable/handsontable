@@ -674,7 +674,7 @@ export class Pagination extends BasePlugin {
       .registerScope(PLUGIN_KEY, this.#ui.getContainer(), {
         shortcutsContextName: SHORTCUTS_CONTEXT_NAME,
         runOnlyIf: () => this.getSetting('showPageSize') || this.getSetting('showNavigation'),
-        callback: (focusSource) => {
+        onActivate: (focusSource) => {
           const focusableElements = this.#ui.getFocusableElements();
 
           if (focusableElements.length > 0) {

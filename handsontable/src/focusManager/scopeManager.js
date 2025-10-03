@@ -17,6 +17,7 @@ export function createFocusScopeManager(hotInstance) {
   const shortcutManager = hotInstance.getShortcutManager();
   let activeScope = null;
 
+  // TODO: REMOVE THIS
   // eslint-disable-next-line
   window.activeScope = () => activeScope;
 
@@ -52,8 +53,6 @@ export function createFocusScopeManager(hotInstance) {
     SCOPES.removeItem(scopeId);
   }
 
-  let focusedElement = null;
-
   /**
    * Activates a focus scope by its ID.
    *
@@ -64,7 +63,6 @@ export function createFocusScopeManager(hotInstance) {
       throw new Error(`Scope with id ${scopeId} not found`);
     }
 
-    focusedElement = hotInstance.rootDocument.activeElement;
     activateScope(SCOPES.getItem(scopeId));
   }
 
@@ -79,9 +77,6 @@ export function createFocusScopeManager(hotInstance) {
     }
 
     deactivateScope(SCOPES.getItem(scopeId));
-
-    focusedElement?.focus();
-    focusedElement = null;
   }
 
   /**
@@ -97,7 +92,6 @@ export function createFocusScopeManager(hotInstance) {
 
     activeScope = scope;
     activeScope.activate(focusSource);
-    // updateScopesFocusVisibilityState();
 
     shortcutManager.setActiveContextName(scope.getShortcutsContextName());
   }
@@ -114,7 +108,8 @@ export function createFocusScopeManager(hotInstance) {
 
     activeScope = null;
     scope.deactivate();
-    // updateScopesFocusVisibilityState();
+
+    updateScopesFocusVisibilityState();
   }
 
   /**
@@ -172,12 +167,6 @@ export function createFocusScopeManager(hotInstance) {
     }
 
     const allEnabledScopes = SCOPES.getValues().filter(scope => scope.runOnlyIf());
-
-    // if (activeScope) {
-    //   deactivateScope(activeScope);
-    // }
-    // activeScope = null;
-
     let hasActiveScope = false;
 
     allEnabledScopes.forEach((scope) => {
@@ -192,11 +181,9 @@ export function createFocusScopeManager(hotInstance) {
       }
     });
 
-    if (!hasActiveScope) {
-      if (activeScope) {
-        deactivateScope(activeScope);
-        hotInstance.unlisten();
-      }
+    if (!hasActiveScope && activeScope) {
+      deactivateScope(activeScope);
+      hotInstance.unlisten();
     }
   }
 

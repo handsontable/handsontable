@@ -91,7 +91,7 @@ export function focusGridScope(hot) {
 
       return hot.rootPortalElement.contains(target);
     },
-    callback: (focusSource) => {
+    onActivate: (focusSource) => {
       if (focusSource === 'from_above') {
         const mostTopStartCoords = clampCoordsIfNeeded(recentlyAddedFocusCoords) ?? getMostTopStartPosition(hot);
 

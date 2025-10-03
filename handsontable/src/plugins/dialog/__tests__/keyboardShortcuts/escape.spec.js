@@ -130,8 +130,6 @@ describe('Dialog keyboard shortcut', () => {
         animation: false,
       });
 
-      await sleep(10);
-
       expect(shortcutManager.getActiveContextName()).toBe('plugin:dialog');
 
       await keyDownUp('escape');
