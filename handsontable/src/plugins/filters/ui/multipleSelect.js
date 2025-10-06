@@ -60,17 +60,9 @@ export class MultipleSelectUI extends BaseUI {
    * @type {LinkUI}
    */
   #clearAllUI;
-  /**
-   * Whether to uncheck filtered queries.
-   *
-   * @type {boolean}
-   */
-  uncheckFilteredQueries = false;
 
   constructor(hotInstance, options) {
     super(hotInstance, extend(MultipleSelectUI.DEFAULTS, options));
-
-    this.uncheckFilteredQueries = options.uncheckFilteredQueries;
 
     this.#searchInput = new InputUI(this.hot, {
       placeholder: C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH,
@@ -95,15 +87,6 @@ export class MultipleSelectUI extends BaseUI {
    */
   getItemsBox() {
     return this.#itemsBox;
-  }
-
-  /**
-   * Get filtered items value.
-   *
-   * @returns {Array} Array of selected values.
-   */
-  getFilteredItemsValue() {
-    return itemsToValue(this.#itemsBox.getSourceData());
   }
 
   /**
@@ -349,7 +332,7 @@ export class MultipleSelectUI extends BaseUI {
   #onInput(event) {
     const value = event.target.value.toLocaleLowerCase(this.getLocale());
 
-    if (this.uncheckFilteredQueries) {
+    if (this.options.uncheckFilteredQueries) {
       const hiddenRows = this.#itemsBox.getPlugin('hiddenRows');
 
       hiddenRows.showRows(hiddenRows.getHiddenRows());

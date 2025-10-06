@@ -265,8 +265,11 @@ export class ValueComponent extends BaseComponent {
       stopImmediatePropagation(event);
     }
 
-    if (isKey(event.keyCode, 'ENTER') && this.uncheckFilteredQueries) {
-      this.runLocalHooks('accept');
+    if (isKey(event.keyCode, 'ENTER')) {
+      if (this.uncheckFilteredQueries) {
+        this.runLocalHooks('accept');
+      }
+
       stopImmediatePropagation(event);
     }
   }

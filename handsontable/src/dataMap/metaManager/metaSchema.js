@@ -2317,6 +2317,8 @@ export default () => {
      * | ------------------------ | ----------------- | -------------------------------------- |
      * | `uncheckFilteredQueries` | `true` \| `false` | Enable filtering only visible elements |
      *
+     * If filers is set to `true`, the `uncheckFilteredQueries` option is set to `false` by default.
+     *
      * Read more:
      * - [Column filter](@/guides/columns/column-filter/column-filter.md)
      * - [Plugins: `Filters`](@/api/filters.md)

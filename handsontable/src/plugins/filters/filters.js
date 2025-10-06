@@ -89,6 +89,18 @@ export class Filters extends BasePlugin {
     return PLUGIN_PRIORITY;
   }
 
+  static get DEFAULT_SETTINGS() {
+    return {
+      uncheckFilteredQueries: false,
+    };
+  }
+
+  static get SETTINGS_VALIDATORS() {
+    return {
+      uncheckFilteredQueries: value => typeof value === 'boolean',
+    };
+  }
+
   static get PLUGIN_DEPS() {
     return [
       'plugin:DropdownMenu',
@@ -233,8 +245,7 @@ export class Filters extends BasePlugin {
     }
 
     if (!this.components.get('filter_by_value')) {
-      const pluginSettings = this.hot.getSettings()[PLUGIN_KEY];
-      const uncheckFilteredQueries = pluginSettings?.uncheckFilteredQueries;
+      const uncheckFilteredQueries = this.getSetting('uncheckFilteredQueries');
 
       this.components.set('filter_by_value', addConfirmationHooks(new ValueComponent(this.hot, {
         id: 'filter_by_value',
@@ -324,6 +335,16 @@ export class Filters extends BasePlugin {
 
     this.registerShortcuts();
     super.enablePlugin();
+  }
+
+  /**
+   * Update plugin state after Handsontable settings update.
+   */
+  updatePlugin() {
+    this.disablePlugin();
+    this.enablePlugin();
+
+    super.updatePlugin();
   }
 
   /**
