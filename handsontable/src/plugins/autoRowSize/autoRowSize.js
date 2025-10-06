@@ -311,6 +311,8 @@ export class AutoRowSize extends BasePlugin {
   disablePlugin() {
     this.headerHeight = null;
 
+    removeClass(this.hot.rootElement, 'htAutoRowSize');
+
     super.disablePlugin();
 
     // Remove the "first dataset column not rendered" class name when the plugin is disabled.
@@ -722,6 +724,8 @@ export class AutoRowSize extends BasePlugin {
   #onInit() {
     this.recalculateAllRowsHeight();
     this.#isInitialized = true;
+
+    addClass(this.hot.rootElement, 'htAutoRowSize');
   }
 
   /**
