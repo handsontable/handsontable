@@ -266,7 +266,7 @@ export class AutocompleteEditor extends HandsontableEditor {
    */
   finishEditing(restoreOriginalValue, ctrlDown, callback) {
     if (this.isOpened()) {
-      const lastSelectedRange = this.hot.getSelectedRangeLast();
+      const lastSelectedRange = this.hot.getSelectedRangeActive();
 
       if (lastSelectedRange && !lastSelectedRange.includes(this.hot._createCellCoords(this.row, this.col))) {
         // Method was triggered by selecting a different cell.
