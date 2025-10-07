@@ -97,7 +97,7 @@ const ExampleComponent = () => {
       ]}
       // enable filtering with option
       filters={{
-        uncheckFilteredQueries: true,
+        searchMode: 'show',
       }}
       dropdownMenu={true}
       height="auto"

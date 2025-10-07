@@ -2315,9 +2315,9 @@ export default () => {
      *
      * | Property                 | Possible values   | Description                            |
      * | ------------------------ | ----------------- | -------------------------------------- |
-     * | `uncheckFilteredQueries` | `true` \| `false` | Enable filtering only visible elements |
+     * | `searchMode` | `'show'` \| `'apply'` | Enable filtering only visible elements |
      *
-     * If filers is set to `true`, the `uncheckFilteredQueries` option is set to `false` by default.
+     * If filers is set to `true`, the `searchMode` option is set to `'apply'` by default.
      *
      * Read more:
      * - [Column filter](@/guides/columns/column-filter/column-filter.md)

@@ -37,7 +37,7 @@ export interface CellLikeData {
 }
 
 export interface FiltersConfig {
-  uncheckFilteredQueries: boolean;
+  searchMode: string;
 }
 
 export type Settings = boolean | FiltersConfig;

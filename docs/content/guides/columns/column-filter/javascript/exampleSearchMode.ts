@@ -6,7 +6,7 @@ import 'handsontable/styles/ht-theme-main.css';
 // Register all Handsontable's modules.
 registerAllModules();
 
-const container = document.querySelector('#exampleUncheckFilteredQueries');
+const container = document.querySelector('#exampleSearchMode')!;
 
 new Handsontable(container, {
   themeName: 'ht-theme-main',
@@ -97,7 +97,7 @@ new Handsontable(container, {
   ],
   // enable filtering with option
   filters: {
-    uncheckFilteredQueries: true,
+    searchMode: 'show',
   },
   dropdownMenu: true,
   height: 'auto',

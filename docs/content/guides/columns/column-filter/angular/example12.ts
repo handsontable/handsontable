@@ -102,7 +102,7 @@ export class AppComponent {
     ],
     // enable filtering with option
     filters: {
-      uncheckFilteredQueries: true
+      searchMode: 'show'
     },
     dropdownMenu: true,
     height: 'auto',

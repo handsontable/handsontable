@@ -7,7 +7,13 @@ const hot = new Handsontable(document.createElement('div'), {
 
 new Handsontable(document.createElement('div'), {
   filters: {
-    uncheckFilteredQueries: true,
+    searchMode: 'show',
+  }
+});
+
+new Handsontable(document.createElement('div'), {
+  filters: {
+    searchMode: 'apply',
   }
 });
 

@@ -91,13 +91,13 @@ export class Filters extends BasePlugin {
 
   static get DEFAULT_SETTINGS() {
     return {
-      uncheckFilteredQueries: false,
+      searchMode: 'apply',
     };
   }
 
   static get SETTINGS_VALIDATORS() {
     return {
-      uncheckFilteredQueries: value => typeof value === 'boolean',
+      searchMode: value => typeof value === 'string' && ['show', 'apply'].includes(value),
     };
   }
 
@@ -245,12 +245,12 @@ export class Filters extends BasePlugin {
     }
 
     if (!this.components.get('filter_by_value')) {
-      const uncheckFilteredQueries = this.getSetting('uncheckFilteredQueries');
+      const searchMode = this.getSetting('searchMode');
 
       this.components.set('filter_by_value', addConfirmationHooks(new ValueComponent(this.hot, {
         id: 'filter_by_value',
         name: filterValueLabel,
-        uncheckFilteredQueries,
+        searchMode,
       })));
     }
 

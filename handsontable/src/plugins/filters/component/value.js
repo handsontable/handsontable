@@ -25,9 +25,9 @@ export class ValueComponent extends BaseComponent {
   /**
    * Whether to uncheck filtered queries.
    *
-   * @type {boolean}
+   * @type {string}
    */
-  uncheckFilteredQueries = false;
+  searchMode;
 
   constructor(hotInstance, options) {
     super(hotInstance, {
@@ -36,9 +36,9 @@ export class ValueComponent extends BaseComponent {
     });
 
     this.name = options.name;
-    this.uncheckFilteredQueries = options.uncheckFilteredQueries;
+    this.searchMode = options.searchMode;
     this.elements.push(new MultipleSelectUI(this.hot, {
-      uncheckFilteredQueries: this.uncheckFilteredQueries
+      searchMode: this.searchMode
     }));
 
     this.registerHooks();
@@ -266,7 +266,7 @@ export class ValueComponent extends BaseComponent {
     }
 
     if (isKey(event.keyCode, 'ENTER')) {
-      if (this.uncheckFilteredQueries) {
+      if (this.searchMode === 'show') {
         this.runLocalHooks('accept');
       }
 

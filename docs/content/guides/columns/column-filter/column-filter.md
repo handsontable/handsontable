@@ -227,7 +227,7 @@ useful items in the menu such as **Clear column**.
 
 ### Enable filtering only visible elements
 
-To filter only the visible items in the search list, set `uncheckFilteredQueries` to `true`. You can then apply the filter by either pressing the `Enter` key while the search input is focused or by clicking the `OK` button.
+To filter only the visible items in the search list, set `searchMode` to `'show'`. You can then apply the filter by either pressing the `Enter` key while the search input is focused or by clicking the `OK` button.
 
 ::: only-for javascript
 
@@ -235,7 +235,7 @@ To filter only the visible items in the search list, set `uncheckFilteredQueries
 const configurationOptions = {
   // enable filtering
   filters: {
-    uncheckFilteredQueries: true
+    searchMode: 'show'
   },
   // enable the column menu
   dropdownMenu: true,
@@ -250,7 +250,7 @@ const configurationOptions = {
 <HotTable
   // enable filtering
   filters={{
-    uncheckFilteredQueries: true
+    searchMode: 'show'
   }}
   // enable the column menu
   dropdownMenu={true}
@@ -265,7 +265,7 @@ const configurationOptions = {
 const configurationOptions = {
   // enable filtering
   filters: {
-    uncheckFilteredQueries: true
+    searchMode: 'show'
   },
   // enable the column menu
   dropdownMenu: true,
@@ -280,11 +280,11 @@ const configurationOptions = {
 
 ::: only-for javascript
 
-::: example #exampleUncheckFilteredQueries --html 1 --js 2 --ts 3
+::: example #exampleSearchMode --html 1 --js 2 --ts 3
 
-@[code](@/content/guides/columns/column-filter/javascript/exampleUncheckFilteredQueries.html)
-@[code](@/content/guides/columns/column-filter/javascript/exampleUncheckFilteredQueries.js)
-@[code](@/content/guides/columns/column-filter/javascript/exampleUncheckFilteredQueries.ts)
+@[code](@/content/guides/columns/column-filter/javascript/exampleSearchMode.html)
+@[code](@/content/guides/columns/column-filter/javascript/exampleSearchMode.js)
+@[code](@/content/guides/columns/column-filter/javascript/exampleSearchMode.ts)
 
 :::
 
@@ -292,10 +292,10 @@ const configurationOptions = {
 
 ::: only-for react
 
-::: example #exampleEnableFilterInColumns :react --js 1 --ts 2
+::: example #exampleSearchMode :react --js 1 --ts 2
 
-@[code](@/content/guides/columns/column-filter/react/exampleEnableFilterInColumns.jsx)
-@[code](@/content/guides/columns/column-filter/react/exampleEnableFilterInColumns.tsx)
+@[code](@/content/guides/columns/column-filter/react/exampleSearchMode.jsx)
+@[code](@/content/guides/columns/column-filter/react/exampleSearchMode.tsx)
 
 :::
 
