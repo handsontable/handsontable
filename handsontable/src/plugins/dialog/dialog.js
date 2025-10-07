@@ -424,7 +424,8 @@ export class Dialog extends BasePlugin {
           if (
             focusSource !== 'tab_from_above' &&
             focusSource !== 'tab_from_below' &&
-            isListening
+            isListening &&
+            !this.#ui.getContainer().contains(this.hot.rootDocument.activeElement)
           ) {
             this.#ui.getContainer().focus();
           }

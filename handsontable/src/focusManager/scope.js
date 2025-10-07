@@ -22,7 +22,6 @@ import { SCOPE_TYPES, FOCUS_SOURCES, DEFAULT_SHORTCUTS_CONTEXT } from './constan
  * @param {Core} hotInstance The Handsontable instance.
  * @param {HTMLElement} container Container element for the scope.
  * @param {object} options Configuration options.
- * @param {boolean} options.installFocusDetector Whether to install a focus detector.
  * @param {string} options.shortcutsContextName The name of the shortcuts context to switch to when the scope is activated.
  * @param {'modal' | 'container'} options.type The type of the scope.
  * @param {function(): boolean} options.runOnlyIf Whether the scope is enabled or not depends on the custom logic.
@@ -32,15 +31,13 @@ import { SCOPE_TYPES, FOCUS_SOURCES, DEFAULT_SHORTCUTS_CONTEXT } from './constan
  */
 export function createFocusScope(hotInstance, container, options = {}) {
   const mergedOptions = {
-    installFocusDetector: true,
     shortcutsContextName: DEFAULT_SHORTCUTS_CONTEXT,
-    type: SCOPE_TYPES.CONTAINER,
+    type: SCOPE_TYPES.INLINE,
     contains: target => target === container || container.contains(target),
     runOnlyIf: () => true,
     ...options,
   };
-  const focusCatchers = mergedOptions.installFocusDetector
-    ? installFocusDetector(hotInstance, container) : null;
+  const focusCatchers = installFocusDetector(hotInstance, container);
 
   /**
    * Checks if the target element is within the scope boundaries.

@@ -54,7 +54,6 @@ export function createFocusScopeManager(hotInstance) {
    * @param {string} scopeId Unique identifier for the scope.
    * @param {HTMLElement} container Container element for the scope.
    * @param {object} options Configuration options.
-   * @param {boolean} options.installFocusDetector Whether to install a focus detector.
    * @param {string} options.shortcutsContextName The name of the shortcuts context to switch to when the scope is activated.
    * @param {'modal' | 'container'} options.type The type of the scope.
    * @param {function(): boolean} options.runOnlyIf Whether the scope is enabled or not depends on the custom logic.
@@ -62,6 +61,10 @@ export function createFocusScopeManager(hotInstance) {
    * @param {function(): void} options.onDeactivate Callback function to be called when the scope is deactivated.
    */
   function registerScope(scopeId, container, options = {}) {
+    if (SCOPES.hasItem(scopeId)) {
+      throw new Error(`Scope with id "${scopeId}" already registered`);
+    }
+
     const scope = createFocusScope(hotInstance, container, options);
 
     SCOPES.addItem(scopeId, scope);
@@ -76,7 +79,7 @@ export function createFocusScopeManager(hotInstance) {
    */
   function unregisterScope(scopeId) {
     if (!SCOPES.hasItem(scopeId)) {
-      throw new Error(`Scope with id ${scopeId} not found`);
+      throw new Error(`Scope with id "${scopeId}" not found`);
     }
 
     const scope = SCOPES.getItem(scopeId);
@@ -92,7 +95,7 @@ export function createFocusScopeManager(hotInstance) {
    */
   function activateScopeById(scopeId) {
     if (!SCOPES.hasItem(scopeId)) {
-      throw new Error(`Scope with id ${scopeId} not found`);
+      throw new Error(`Scope with id "${scopeId}" not found`);
     }
 
     activateScope(SCOPES.getItem(scopeId));
@@ -105,7 +108,7 @@ export function createFocusScopeManager(hotInstance) {
    */
   function deactivateScopeById(scopeId) {
     if (!SCOPES.hasItem(scopeId)) {
-      throw new Error(`Scope with id ${scopeId} not found`);
+      throw new Error(`Scope with id "${scopeId}" not found`);
     }
 
     deactivateScope(SCOPES.getItem(scopeId));
@@ -120,6 +123,10 @@ export function createFocusScopeManager(hotInstance) {
   function activateScope(scope, focusSource = FOCUS_SOURCES.UNKNOWN) {
     if (activeScope === scope) {
       return;
+    }
+
+    if (activeScope !== null) {
+      deactivateScope(activeScope);
     }
 
     activeScope = scope;
@@ -149,12 +156,10 @@ export function createFocusScopeManager(hotInstance) {
    * that the next native focus move won't be disturbed.
    */
   function updateScopesFocusVisibilityState() {
-    const modalScopes = SCOPES.getValues()
-      .filter(scope => scope.runOnlyIf() && scope.getType() === 'modal');
+    const scopes = SCOPES.getValues();
+    const modalScopes = scopes.filter(scope => scope.runOnlyIf() && scope.getType() === 'modal');
 
-    // console.log('updateScopesFocusVisibilityState', activeScope?._scopeId);
-
-    SCOPES.getValues().forEach((scope) => {
+    scopes.forEach((scope) => {
       if (
         modalScopes.length > 0 && modalScopes.includes(scope) ||
         modalScopes.length === 0 ||
@@ -164,9 +169,7 @@ export function createFocusScopeManager(hotInstance) {
       } else {
         scope.disable();
       }
-    });
 
-    SCOPES.getValues().forEach((scope) => {
       if (scope === activeScope) {
         if (scope.contains(hotInstance.rootDocument.activeElement)) {
           scope.deactivateFocusCatchers();
@@ -185,20 +188,12 @@ export function createFocusScopeManager(hotInstance) {
 
   /**
    * Activates or deactivates the appropriate scope based on the target element that was
-   * triggered by the focus event or click event.
+   * triggered by the focus or click event.
    *
    * @param {HTMLElement} target The target element.
    * @param {'unknown' | 'click' | 'tab_from_above' | 'tab_from_below'} focusSource The source of the focus event.
    */
   function processScopes(target, focusSource) {
-    if (hotInstance.selection.isSelected() && activeScope && activeScope.runOnlyIf() && activeScope.contains(target)) {
-      if (focusSource !== FOCUS_SOURCES.UNKNOWN) {
-        hotInstance.listen();
-      }
-
-      return;
-    }
-
     const allEnabledScopes = SCOPES.getValues().filter(scope => scope.runOnlyIf());
     let hasActiveScope = false;
 
@@ -224,14 +219,12 @@ export function createFocusScopeManager(hotInstance) {
     hotInstance.rootWindow,
     {
       onFocus: (event) => {
-        // console.log('onFocus', hotInstance.guid, event.target);
         processScopes(event.target, event.target.dataset.htFocusSource ?? FOCUS_SOURCES.UNKNOWN);
       },
       onClick: (event) => {
         processScopes(event.target, FOCUS_SOURCES.CLICK);
       },
       onTabKeyDown: () => {
-        // console.log(Array.from(document.querySelectorAll('.htFocusCatcher')).map(el => el.tabIndex));
         updateScopesFocusVisibilityState();
       },
     }

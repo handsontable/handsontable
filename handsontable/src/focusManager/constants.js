@@ -2,7 +2,7 @@
  * Focus scope types.
  */
 export const SCOPE_TYPES = Object.freeze({
-  CONTAINER: 'container',
+  INLINE: 'inline',
   MODAL: 'modal',
 });
 

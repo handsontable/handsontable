@@ -76,7 +76,6 @@ export function focusGridScope(hot) {
   const container = hot.rootGridElement ?? hot.rootElement;
 
   hot.getFocusScopeManager().registerScope('grid', container, {
-    installFocusDetector: !!hot.rootGridElement,
     contains: (target) => {
       if (container === target || container.contains(target)) {
         return true;

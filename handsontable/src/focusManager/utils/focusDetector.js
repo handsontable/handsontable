@@ -69,14 +69,14 @@ function createInputElement(hot, focusSource) {
 
   [
     ['position', 'absolute'],
-    ['width', '0'],
-    ['height', '0'],
+    ['width', '0px'],
+    ['height', '0px'],
     ['opacity', '0'],
     ['zIndex', '-1'],
-    ['border', 'none'],
-    ['outline', 'none'],
-    ['padding', '0'],
-    ['margin', '0']
+    ['border', '0px'],
+    ['outline', '0px'],
+    ['padding', '0px'],
+    ['margin', '0px']
   ].forEach(([property, value]) => {
     inputStyle[property] = value;
   });
