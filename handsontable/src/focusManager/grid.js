@@ -19,7 +19,7 @@ const FOCUS_MODES = Object.freeze({
  * Manages the browser's focus in the table to achieve correct behavior for screen readers and
  * IME editors.
  */
-export class GridFocusManager {
+export class FocusGridManager {
   /**
    * The Handsontable instance.
    */

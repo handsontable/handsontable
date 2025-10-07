@@ -25,6 +25,7 @@ import { SCOPE_TYPES, FOCUS_SOURCES, DEFAULT_SHORTCUTS_CONTEXT } from './constan
  * @param {string} options.shortcutsContextName The name of the shortcuts context to switch to when the scope is activated.
  * @param {'modal' | 'container'} options.type The type of the scope.
  * @param {function(): boolean} options.runOnlyIf Whether the scope is enabled or not depends on the custom logic.
+ * @param {function(HTMLElement): boolean} options.contains Whether the target element is within the scope.
  * @param {function(): void} options.onActivate Callback function to be called when the scope is activated.
  * @param {function(): void} options.onDeactivate Callback function to be called when the scope is deactivated.
  * @returns {FocusScope} Focus scope object with methods.

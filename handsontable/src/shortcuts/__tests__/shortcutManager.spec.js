@@ -34,6 +34,26 @@ describe('shortcutManager', () => {
     }).toThrowError();
   });
 
+  describe('`getOrCreateContext` method', () => {
+    it('should return context if it exists', async() => {
+      handsontable();
+
+      const shortcutManager = getShortcutManager();
+
+      shortcutManager.addContext('name');
+
+      expect(shortcutManager.getOrCreateContext('name')).toBeDefined();
+    });
+
+    it('should create context if it does not exist', async() => {
+      handsontable();
+
+      const shortcutManager = getShortcutManager();
+
+      expect(shortcutManager.getOrCreateContext('name')).toBeDefined();
+    });
+  });
+
   describe('should properly determine whether key is pressed (public method)', () => {
     it('control', async() => {
       handsontable();

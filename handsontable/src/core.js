@@ -44,7 +44,7 @@ import {
   CellRangeToRenderableMapper,
 } from './core/index';
 import {
-  GridFocusManager,
+  FocusGridManager,
   createFocusScopeManager,
   registerAllFocusScopes
 } from './focusManager';
@@ -183,7 +183,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   let dataSource;
   let grid;
   let editorManager;
-  let gridFocusManager;
+  let focusGridManager;
   let viewportScroller;
   let firstRun = true;
 
@@ -1317,7 +1317,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     editorManager = EditorManager.getInstance(instance, tableMeta, selection);
     viewportScroller = createViewportScroller(instance);
 
-    gridFocusManager.init();
+    focusGridManager.init();
 
     if (isRootInstance(this)) {
       installAccessibilityAnnouncer(instance.rootPortalElement);
@@ -5441,7 +5441,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     return shortcutManager;
   };
 
-  gridFocusManager = new GridFocusManager(instance);
+  focusGridManager = new FocusGridManager(instance);
 
   const focusScopeManager = createFocusScopeManager(instance);
 
@@ -5454,7 +5454,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * @returns {FocusManager}
    */
   this.getFocusManager = function() {
-    return gridFocusManager;
+    return focusGridManager;
   };
 
   /**

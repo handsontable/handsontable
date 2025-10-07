@@ -1,5 +1,5 @@
 import { createFocusScopeManager } from './scopeManager';
-import { GridFocusManager } from './grid';
+import { FocusGridManager } from './grid';
 
 export * from './scopes';
 
@@ -19,4 +19,4 @@ export * from './scopes';
  * @returns {FocusScopeManager} Focus scope manager object.
  */
 export { createFocusScopeManager };
-export { GridFocusManager };
+export { FocusGridManager };
