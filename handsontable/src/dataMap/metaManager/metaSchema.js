@@ -2317,7 +2317,7 @@ export default () => {
      * | ------------------------ | ----------------- | -------------------------------------- |
      * | `searchMode` | `'show'` \| `'apply'` | Enable filtering only visible elements |
      *
-     * If filers is set to `true`, the `searchMode` option is set to `'apply'` by default.
+     * If filers is set to `true`, the `searchMode` option is set to `'show'` by default.
      *
      * Read more:
      * - [Column filter](@/guides/columns/column-filter/column-filter.md)

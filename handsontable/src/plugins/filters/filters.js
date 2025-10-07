@@ -91,7 +91,7 @@ export class Filters extends BasePlugin {
 
   static get DEFAULT_SETTINGS() {
     return {
-      searchMode: 'apply',
+      searchMode: 'show',
     };
   }
 

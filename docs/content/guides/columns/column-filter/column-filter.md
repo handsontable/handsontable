@@ -225,9 +225,9 @@ useful items in the menu such as **Clear column**.
 
 :::
 
-### Enable filtering only visible elements
+### Enable filtering within already filtered results
 
-To filter only the visible items in the search list, set `searchMode` to `'show'`. You can then apply the filter by either pressing the `Enter` key while the search input is focused or by clicking the `OK` button.
+To apply filters based on the search input, set `searchMode` to `'apply'`. You can then apply the filter by either pressing the `Enter` key while the search input is focused or by clicking the `OK` button.
 
 ::: only-for javascript
 
@@ -235,7 +235,7 @@ To filter only the visible items in the search list, set `searchMode` to `'show'
 const configurationOptions = {
   // enable filtering
   filters: {
-    searchMode: 'show'
+    searchMode: 'apply'
   },
   // enable the column menu
   dropdownMenu: true,
@@ -250,7 +250,7 @@ const configurationOptions = {
 <HotTable
   // enable filtering
   filters={{
-    searchMode: 'show'
+    searchMode: 'apply'
   }}
   // enable the column menu
   dropdownMenu={true}
@@ -265,7 +265,7 @@ const configurationOptions = {
 const configurationOptions = {
   // enable filtering
   filters: {
-    searchMode: 'show'
+    searchMode: 'apply'
   },
   // enable the column menu
   dropdownMenu: true,

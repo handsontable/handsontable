@@ -1611,12 +1611,12 @@ describe('Filters UI', () => {
   });
 
   describe('searchMode', () => {
-    it('should apply filters for all filtered items from the list when searchMode is `show`', async() => {
+    it('should apply filters for all filtered items from the list when searchMode is `apply`', async() => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
         filters: {
-          searchMode: 'show'
+          searchMode: 'apply'
         },
         dropdownMenu: true,
         width: 500,
@@ -1643,12 +1643,12 @@ describe('Filters UI', () => {
       expect(getData().length).toBe(5);
     });
 
-    it('should apply filters for all filtered items from the list when searchMode is `show` some checkboxes are unchecked', async() => {
+    it('should apply filters for all filtered items from the list when searchMode is `apply` some checkboxes are unchecked', async() => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
         filters: {
-          searchMode: 'show'
+          searchMode: 'apply'
         },
         dropdownMenu: true,
         width: 500,
@@ -1683,12 +1683,12 @@ describe('Filters UI', () => {
       expect(getData().length).toBe(1);
     });
 
-    it('should apply the filter when the input is focused and Enter is pressed when searchMode is `show`', async() => {
+    it('should apply the filter when the input is focused and Enter is pressed when searchMode is `apply`', async() => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
         filters: {
-          searchMode: 'show'
+          searchMode: 'apply'
         },
         dropdownMenu: true,
         width: 500,

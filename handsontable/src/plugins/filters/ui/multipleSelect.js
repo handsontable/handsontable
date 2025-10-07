@@ -332,7 +332,7 @@ export class MultipleSelectUI extends BaseUI {
   #onInput(event) {
     const value = event.target.value.toLocaleLowerCase(this.getLocale());
 
-    if (this.options.searchMode === 'show') {
+    if (this.options.searchMode === 'apply') {
       const hiddenRows = this.#itemsBox.getPlugin('hiddenRows');
 
       hiddenRows.showRows(hiddenRows.getHiddenRows());

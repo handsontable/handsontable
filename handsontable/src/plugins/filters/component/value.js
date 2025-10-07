@@ -266,7 +266,7 @@ export class ValueComponent extends BaseComponent {
     }
 
     if (isKey(event.keyCode, 'ENTER')) {
-      if (this.searchMode === 'show') {
+      if (this.searchMode === 'apply') {
         this.runLocalHooks('accept');
       }
 
