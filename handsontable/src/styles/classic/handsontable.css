@@ -295,6 +295,23 @@ innerBorderBottom - Property controlled by bottom overlay
   cursor: crosshair;
 }
 
+/* dashed borders */
+.htBorders .wtBorder.ht-border-style-dashed-vertical {
+  background-image: repeating-linear-gradient(
+          to bottom,
+          currentColor 0 5px,
+          transparent 0 10px
+  );
+}
+
+.htBorders .wtBorder.ht-border-style-dashed-horizontal {
+  background-image: repeating-linear-gradient(
+          to right,
+          currentColor 0 5px,
+          transparent 0 10px
+  );
+}
+
 .ht_clone_master {
   z-index: 100;
 }
