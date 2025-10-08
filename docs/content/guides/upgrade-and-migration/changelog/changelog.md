@@ -28,12 +28,25 @@ See the full history of changes made to Handsontable in each major, minor, and p
 
 [[toc]]
 
+## 16.1.1
+
+Released on September 23, 2025
+
+For more information about this release see:
+- [Documentation (16.1)](https://handsontable.com/docs/16.1)
+
+#### Fixed
+- Fixed row misalignment when setting `manualRowResize` on an instance with `autoRowSize` enabled. [#11849](https://github.com/handsontable/handsontable/pull/11849)
+- Reverted the color variables change for the "main" theme. [#11852](https://github.com/handsontable/handsontable/pull/11852)
+- Fixed an error thrown when using autocomplete-typed cells with key/value sources alongside formulas. [#11853](https://github.com/handsontable/handsontable/pull/11853)
+
 ## 16.1.0
 
 Released on September 15, 2025
 
 For more information about this release see:
 - [Documentation (16.1)](https://handsontable.com/docs/16.1)
+- [Migration guide (16.0 → 16.1)](@/guides/upgrade-and-migration/migrating-from-16.0-to-16.1/migrating-from-16.0-to-16.1.md)
 
 #### Added
 - Introduced row pagination functionality. [#11612](https://github.com/handsontable/handsontable/pull/11612)
@@ -42,6 +55,8 @@ For more information about this release see:
 - Added a new `initialState` configuration option. [#11777](https://github.com/handsontable/handsontable/pull/11777)
 - Introduced the Loading plugin. [#11792](https://github.com/handsontable/handsontable/pull/11792)
 - Added a new "classic" theme. [#11790](https://github.com/handsontable/handsontable/pull/11790)
+- Added a [Deprecation policy](https://handsontable.com/docs/deprecation-policy/) page to the documentation.
+- Added a [Long Term Support (LTS)](https://handsontable.com/docs/long-term-support/) page to the documentation.
 
 #### Changed
 - Enabled focus navigation between multiple selection layers. [#11756](https://github.com/handsontable/handsontable/pull/11756)
@@ -74,7 +89,6 @@ For more information about this release see:
 - Deprecated the legacy style (to be removed in version `17.0.0`). [#11790](https://github.com/handsontable/handsontable/pull/11790)
 - Deprecated the PersistentState plugin (to be removed in version `17.0.0`). [#11835](https://github.com/handsontable/handsontable/pull/11835)
 
-
 ## 16.0.1
 
 Released on July 10, 2025
@@ -92,6 +106,7 @@ Released on July 9, 2025
 For more information about this release see:
 - [Blog post (16.0.0)](https://handsontable.com/blog/handsontable-16-new-angular-wrapper-and-core-improvements)
 - [Documentation (16.0)](https://handsontable.com/docs/16.0)
+- [Migration guide (15.3 → 16.0)](@/guides/upgrade-and-migration/migrating-from-15.3-to-16.0/migrating-from-15.3-to-16.0.md)
 
 #### Added
 - **Breaking change**: Added a focus outline to the context and dropdown menus. [#11669](https://github.com/handsontable/handsontable/pull/11669)
@@ -276,6 +291,7 @@ Released on December 16, 2024
 For more information about this release see:
 - [Blog post (15.0.0)](https://handsontable.com/blog/handsontable-15.0.0-introducing-themes-and-functional-react-wrapper)
 - [Documentation (15.0)](https://handsontable.com/docs/15.0)
+- [Migration guide (14.6 → 15.0)](@/guides/upgrade-and-migration/migrating-from-14.6-to-15.0/migrating-from-14.6-to-15.0.md)
 
 #### Added
 - Added support for row and column virtualization of merged cells. [#11162](https://github.com/handsontable/handsontable/pull/11162)

@@ -16,6 +16,12 @@ describe('a11y DOM attributes (ARIA tags)', () => {
 
   it('should add a correct set of aria tags to the TEXTAREA element', async() => {
     const hot = handsontable({
+      data: [
+        ['a'],
+        ['b'],
+        ['c'],
+        ['d'],
+      ],
       columns: [
         { editor: 'dropdown', source: choices }
       ],
@@ -48,6 +54,12 @@ describe('a11y DOM attributes (ARIA tags)', () => {
 
   it('should add a correct set of aria tags to the choice dropdown element', async() => {
     const hot = handsontable({
+      data: [
+        ['a'],
+        ['b'],
+        ['c'],
+        ['d'],
+      ],
       columns: [
         { editor: 'dropdown', source: choices }
       ],
@@ -77,6 +89,12 @@ describe('a11y DOM attributes (ARIA tags)', () => {
 
   it('should should not add `aria-setsize` and `aria-posinset` if the source is a function`', async() => {
     const hot = handsontable({
+      data: [
+        ['a'],
+        ['b'],
+        ['c'],
+        ['d'],
+      ],
       columns: [
         { editor: 'dropdown', source: (quiery, callback) => callback(choices) }
       ],
@@ -104,5 +122,22 @@ describe('a11y DOM attributes (ARIA tags)', () => {
       expect(editorHot.getCell(index, 0).getAttribute('aria-setsize')).toEqual(null);
       expect(editorHot.getCell(index, 0).getAttribute('aria-posinset')).toEqual(null);
     });
+  });
+
+  it('should not add `aria-activedescendant` when the value is empty', async() => {
+    handsontable({
+      columns: [
+        { editor: 'dropdown', source: choices }
+      ],
+    });
+
+    await selectCell(0, 0);
+    await keyDownUp('enter');
+    await sleep(50);
+
+    const editor = getActiveEditor();
+    const editorTextarea = editor.TEXTAREA;
+
+    expect(editorTextarea.getAttribute('aria-activedescendant')).toEqual(null);
   });
 });

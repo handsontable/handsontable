@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Deprecated the PersistentState plugin (to be removed in version `17.0.0`).",
-  "type": "deprecated",
-  "issueOrPR": 11835,
-  "breaking": false,
-  "framework": "none"
-}

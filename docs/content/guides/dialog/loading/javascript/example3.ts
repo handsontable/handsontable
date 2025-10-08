@@ -71,7 +71,7 @@ const hot = new Handsontable(container, {
 // Get loading plugin instance
 const loadingPlugin = hot.getPlugin('loading');
 
-const loadDataButton = document.getElementById('loadData') as HTMLButtonElement;
+const loadDataButton = document.getElementById('example3-loadData') as HTMLButtonElement;
 
 // Simulate data loading
 async function loadData(): Promise<void> {
@@ -96,7 +96,7 @@ async function loadData(): Promise<void> {
       { model: 'Aero Bottle', price: 1571.13, sellDate: 'May 24, 2025', sellTime: '12:24 AM', inStock: true },
       { model: 'Windbreaker Jacket', price: 919.09, sellDate: 'Jul 16, 2025', sellTime: '07:11 PM', inStock: true },
     ];
-  
+
     // Load data into the table
     hot.loadData(data);
 

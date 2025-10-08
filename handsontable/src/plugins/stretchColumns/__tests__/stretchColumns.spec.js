@@ -412,4 +412,21 @@ describe('StretchColumns', () => {
       horizon.toBe(319);
     });
   });
+
+  it('should stretch the table to the entirety of the container when autoRowSize is enabled', async() => {
+    handsontable({
+      data: createSpreadsheetData(1, 5),
+      autoRowSize: true,
+      width: '680',
+      height: 'auto',
+      stretchH: 'all',
+      contextMenu: true,
+      rowHeaders: true,
+      colHeaders: true,
+    });
+
+    await sleep(50);
+
+    expect($('.handsontable .ht_master table').outerWidth()).toBe(680);
+  });
 });

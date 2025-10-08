@@ -18,9 +18,9 @@ category: Upgrade and migration
 
 # Migrate from 16.0 to 16.1
 
-Migrate from Handsontable 16.0 to Handsontable 16.1, released on TODO.
+Migrate from Handsontable 16.0 to Handsontable 16.1, released on September 15, 2025.
 
-More information about this release can be found in the [`16.1.0` release blog post](TODO_URL]).
+More information about this release can be found in the [`16.1.0` release blog post](https://handsontable.com/blog/handsontable-16.1-row-pagination-loading-plugin-and-long-term-support-policy).
 
 [[toc]]
 

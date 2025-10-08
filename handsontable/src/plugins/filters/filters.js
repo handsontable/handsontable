@@ -89,6 +89,18 @@ export class Filters extends BasePlugin {
     return PLUGIN_PRIORITY;
   }
 
+  static get DEFAULT_SETTINGS() {
+    return {
+      searchMode: 'show',
+    };
+  }
+
+  static get SETTINGS_VALIDATORS() {
+    return {
+      searchMode: value => typeof value === 'string' && ['show', 'apply'].includes(value),
+    };
+  }
+
   static get PLUGIN_DEPS() {
     return [
       'plugin:DropdownMenu',
@@ -233,9 +245,12 @@ export class Filters extends BasePlugin {
     }
 
     if (!this.components.get('filter_by_value')) {
+      const searchMode = this.getSetting('searchMode');
+
       this.components.set('filter_by_value', addConfirmationHooks(new ValueComponent(this.hot, {
         id: 'filter_by_value',
-        name: filterValueLabel
+        name: filterValueLabel,
+        searchMode,
       })));
     }
 
@@ -320,6 +335,16 @@ export class Filters extends BasePlugin {
 
     this.registerShortcuts();
     super.enablePlugin();
+  }
+
+  /**
+   * Update plugin state after Handsontable settings update.
+   */
+  updatePlugin() {
+    this.disablePlugin();
+    this.enablePlugin();
+
+    super.updatePlugin();
   }
 
   /**

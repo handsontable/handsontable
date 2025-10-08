@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Updated CSS variable for pagination styles",
-  "type": "changed",
-  "issueOrPR": 11820,
-  "breaking": false,
-  "framework": "none"
-}

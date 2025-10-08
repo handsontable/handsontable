@@ -9,6 +9,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- UNVERSIONED -->
 
+## [16.1.1] - 2025-09-23
+
+### Fixed
+- Fixed row misalignment when setting `manualRowResize` on an instance with `autoRowSize` enabled. [#11849](https://github.com/handsontable/handsontable/pull/11849)
+- Reverted the foreground color change for the "main" theme. [#11852](https://github.com/handsontable/handsontable/pull/11852)
+- Fixed an error thrown when using autocomplete-typed cells with key/value sources alongside formulas. [#11853](https://github.com/handsontable/handsontable/pull/11853)
+
 ## [16.1.0] - 2025-09-15
 
 ### Added
@@ -18,6 +25,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Added a new `initialState` configuration option. [#11777](https://github.com/handsontable/handsontable/pull/11777)
 - Introduced the Loading plugin. [#11792](https://github.com/handsontable/handsontable/pull/11792)
 - Added a new "classic" theme. [#11790](https://github.com/handsontable/handsontable/pull/11790)
+- Added a [Deprecation policy](https://handsontable.com/docs/deprecation-policy/) page to the documentation.
+- Added a [Long Term Support (LTS)](https://handsontable.com/docs/long-term-support/) page to the documentation.
 
 ### Changed
 - Enabled focus navigation between multiple selection layers. [#11756](https://github.com/handsontable/handsontable/pull/11756)
@@ -49,6 +58,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Deprecated
 - Deprecated the legacy style (to be removed in version `17.0.0`). [#11790](https://github.com/handsontable/handsontable/pull/11790)
 - Deprecated the PersistentState plugin (to be removed in version `17.0.0`). [#11835](https://github.com/handsontable/handsontable/pull/11835)
+- Deprecated the `@handsontable/vue` wrapper. [#11839](https://github.com/handsontable/handsontable/pull/11839)
 
 ## [16.0.1] - 2025-07-10
 
