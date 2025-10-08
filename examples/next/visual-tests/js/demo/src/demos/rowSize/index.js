@@ -7,8 +7,10 @@ import { registerLanguageDictionary, arAR } from 'handsontable/i18n';
 export function init() {
   registerAllModules();
   registerLanguageDictionary(arAR);
+
   const root = document.getElementById('root');
   const example = document.createElement('div');
+
   root.appendChild(example);
 
   const smallCells = getFromURL('smallcells', false);
