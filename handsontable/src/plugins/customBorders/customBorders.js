@@ -58,7 +58,8 @@ const SUPPORTED_STYLES = ['dashed', 'solid'];
  *      },
  *      to: {
  *        row: 3,
- *        col: 4
+ *        col: 4,
+ *        style: 'dashed'
  *      },
  *    },
  *    start: {},
@@ -79,6 +80,7 @@ const SUPPORTED_STYLES = ['dashed', 'solid'];
  *     end: {
  *       width: 1,
  *       color: 'green',
+ *       style: 'dashed'
  *     },
  *     top: '',
  *     bottom: '',
