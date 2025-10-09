@@ -12,6 +12,7 @@ export const PLUGIN_KEY = 'autoRowSize';
 export const PLUGIN_PRIORITY = 40;
 const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
 const FIRST_COLUMN_NOT_RENDERED_CLASS_NAME = 'htFirstDatasetColumnNotRendered';
+const AUTO_ROW_SIZE_CLASS_NAME = 'htAutoRowSize';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
@@ -302,6 +303,8 @@ export class AutoRowSize extends BasePlugin {
     this.addHook('init', () => this.#onInit());
     this.addHook('modifyColumnHeaderHeight', () => this.getColumnHeaderHeight());
 
+    addClass(this.hot.rootElement, AUTO_ROW_SIZE_CLASS_NAME);
+
     super.enablePlugin();
   }
 
@@ -310,6 +313,8 @@ export class AutoRowSize extends BasePlugin {
    */
   disablePlugin() {
     this.headerHeight = null;
+
+    removeClass(this.hot.rootElement, AUTO_ROW_SIZE_CLASS_NAME);
 
     super.disablePlugin();
 

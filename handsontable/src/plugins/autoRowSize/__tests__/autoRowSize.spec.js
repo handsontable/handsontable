@@ -999,6 +999,30 @@ describe('AutoRowSize', () => {
     expect(getComputedStyle(getCell(0, 0, true)).borderLeftWidth).toBe('1px');
   });
 
+  it('should add css class to the .ht-wrapper when plugin is enabled', async() => {
+    handsontable({
+      data: createSpreadsheetData(3, 3),
+      autoRowSize: true,
+    });
+
+    expect(spec().$container.find('.ht-wrapper').hasClass('htAutoRowSize')).toBe(true);
+  });
+
+  it('should remove css class from the .ht-wrapper when plugin is disabled', async() => {
+    handsontable({
+      data: createSpreadsheetData(3, 3),
+      autoRowSize: true,
+    });
+
+    expect(spec().$container.find('.ht-wrapper').hasClass('htAutoRowSize')).toBe(true);
+
+    await updateSettings({
+      autoRowSize: false,
+    });
+
+    expect(spec().$container.find('.ht-wrapper').hasClass('htAutoRowSize')).toBe(false);
+  });
+
   describe('should work together with formulas plugin', () => {
     it('should calculate heights only once during the initialization of Handsontable with formulas plugin enabled', async() => {
       const beforeInit = function() {

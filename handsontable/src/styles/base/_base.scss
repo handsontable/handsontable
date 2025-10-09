@@ -613,22 +613,24 @@
       }
     }
 
-    .ht_master.innerBorderTop {
-      tbody {
-        tr:first-child {
-          th,
-          td {
-            border-top-width: 0;
-          }
-        }
-      }
-
-      & ~ .ht_clone_inline_start {
+    &.htAutoRowSize {
+      .ht_master.innerBorderTop {
         tbody {
           tr:first-child {
             th,
             td {
               border-top-width: 0;
+            }
+          }
+        }
+  
+        & ~ .ht_clone_inline_start {
+          tbody {
+            tr:first-child {
+              th,
+              td {
+                border-top-width: 0;
+              }
             }
           }
         }
