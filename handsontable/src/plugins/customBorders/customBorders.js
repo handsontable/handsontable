@@ -29,7 +29,7 @@ import { isDefined } from '../../helpers/mixed';
 export const PLUGIN_KEY = 'customBorders';
 export const PLUGIN_PRIORITY = 90;
 
-const SUPPORTED_STYLES = ['dashed', 'solid'];
+const SUPPORTED_STYLES = ['dashed', 'dotted', 'solid'];
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
@@ -58,8 +58,7 @@ const SUPPORTED_STYLES = ['dashed', 'solid'];
  *      },
  *      to: {
  *        row: 3,
- *        col: 4,
- *        style: 'dashed'
+ *        col: 4
  *      },
  *    },
  *    start: {},
@@ -76,6 +75,7 @@ const SUPPORTED_STYLES = ['dashed', 'solid'];
  *     start: {
  *       width: 2,
  *       color: 'red',
+ *       style: 'dotted'
  *     },
  *     end: {
  *       width: 1,

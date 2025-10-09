@@ -189,7 +189,8 @@ class Border {
           div.className += ` ${BORDER_STYLE_CLASS_PREFIX}${borderStyle}${BORDER_STYLE_HORIZONTAL_SUFFIX}`;
         }
 
-        style.color = getSettingsProperty('color');
+        style.setProperty('--ht-custom-border-size', `${getSettingsProperty('width')}px`);
+        style.setProperty('--ht-custom-border-color', getSettingsProperty('color'));
 
       } else {
         style.backgroundColor = getSettingsProperty('color');

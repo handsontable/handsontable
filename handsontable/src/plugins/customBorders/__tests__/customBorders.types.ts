@@ -63,6 +63,9 @@ customBorders.setBorders(hot.getSelectedRange()!, {
   end: { hide: true, width: 2, color: 'blue', style: 'solid' },
 });
 customBorders.setBorders(hot.getSelectedRange()!, {
+  end: { hide: true, width: 2, color: 'blue', style: 'dotted' },
+});
+customBorders.setBorders(hot.getSelectedRange()!, {
   top: { width: 1 },
   bottom: { color: 'red' },
   start: { hide: true },

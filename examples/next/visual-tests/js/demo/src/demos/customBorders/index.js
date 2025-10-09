@@ -66,10 +66,12 @@ export function init() {
         top: {
           width: 2,
           color: "magenta",
+          style: "dotted",
         },
         left: {
           width: 2,
           color: "blue",
+          style: "dotted",
         },
         bottom: {
           width: 2,
