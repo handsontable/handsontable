@@ -211,7 +211,6 @@ const ExampleComponent = () => {
   });
 
   const hotRef = useRef(null);
-
   const updateDebugInfo = useCallback(() => {
     const hotInstance = hotRef.current?.hotInstance;
 
@@ -223,7 +222,6 @@ const ExampleComponent = () => {
       });
     }
   }, []);
-
   useEffect(() => {
     const hotInstance = hotRef.current?.hotInstance;
 
