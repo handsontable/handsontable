@@ -291,6 +291,23 @@ innerBorderBottom - Property controlled by bottom overlay
   cursor: crosshair;
 }
 
+/* dashed borders */
+.htBorders .wtBorder.ht-border-style-dashed-vertical {
+  background-image: repeating-linear-gradient(
+          to bottom,
+          currentColor 0 5px,
+          transparent 0 10px
+  );
+}
+
+.htBorders .wtBorder.ht-border-style-dashed-horizontal {
+  background-image: repeating-linear-gradient(
+          to right,
+          currentColor 0 5px,
+          transparent 0 10px
+  );
+}
+
 .ht_clone_master {
   z-index: 100;
 }
@@ -2062,4 +2079,279 @@ thead th.hiddenHeaderText .colHeader {
 [dir=rtl].handsontable.innerBorderInlineStart th div.ht_nestingButton, [dir=rtl].handsontable.innerBorderInlineStart ~ .handsontable th div.ht_nestingButton {
   left: 0;
   right: unset;
+}
+
+.ht-root-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.ht-grid {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.ht-dialog {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: none;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Helvetica Neue", Arial, sans-serif;
+  font-size: 13px;
+  width: 100%;
+  height: 100%;
+  z-index: 1060;
+  opacity: 0;
+  overflow-y: auto;
+  border: 1px solid #ccc;
+  box-sizing: border-box !important;
+}
+
+.ht-dialog[dir=rtl] {
+  left: auto;
+  right: 0;
+}
+
+.ht-dialog:focus {
+  border: 1px solid #4b89ff;
+  outline: none;
+}
+
+.ht-dialog:has(.htFocusCatcher:focus) {
+  border: 1px solid #4b89ff;
+  outline: none;
+}
+
+.ht-dialog * {
+  box-sizing: border-box !important;
+}
+
+.ht-dialog--background-solid {
+  background-color: #fff;
+}
+
+.ht-dialog--background-semi-transparent {
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+.ht-dialog--animation {
+  transition: opacity 0.15s ease-in-out;
+}
+
+.ht-dialog--show {
+  opacity: 1;
+}
+
+.ht-dialog__content-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 100%;
+  padding: 16px;
+}
+
+.ht-dialog__content-wrapper:focus {
+  border: 1px solid #4b89ff;
+  outline: none;
+}
+
+.ht-dialog__content {
+  position: relative;
+  padding: 8px;
+  display: flex;
+  gap: 8px;
+  max-width: 480px;
+  color: #222;
+}
+
+.ht-dialog__content--background {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+  background-color: #f7f7f9;
+}
+
+.ht-root-wrapper .ht-pagination {
+  color: #222;
+  background: #f0f0f0;
+  border: 1px solid #ccc;
+  border-top-color: transparent;
+  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Helvetica Neue, Arial, sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  box-sizing: border-box;
+  overflow-x: auto;
+}
+
+.ht-root-wrapper .ht-pagination__inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-inline: 8px;
+  padding-block: 4px;
+  min-width: 230px;
+}
+
+.ht-root-wrapper .ht-pagination--bordered {
+  border-top-color: #ccc;
+}
+
+.ht-root-wrapper .ht-page-size-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ht-root-wrapper .ht-page-size-section span {
+  white-space: nowrap;
+}
+
+.ht-root-wrapper .ht-page-size-section__select-wrapper {
+  position: relative;
+  border-radius: 2px;
+  border: 1px solid #ccc;
+}
+
+.ht-root-wrapper .ht-page-size-section__select-wrapper select {
+  padding-inline-start: 8px;
+  padding-inline-end: 8px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  border-radius: 2px;
+  color: #222;
+  background-color: #f0f0f0;
+  border: none;
+  -webkit-appearance: none;
+  font-size: inherit;
+  cursor: pointer;
+}
+
+.ht-root-wrapper .ht-page-size-section__select-wrapper select:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.ht-root-wrapper .ht-page-size-section__select-wrapper select:hover:not(:disabled) {
+  background-color: #e0e0e0;
+}
+
+.ht-root-wrapper .ht-page-size-section__select-wrapper select:focus {
+  background-color: #e0e0e0;
+  outline: 1px solid #4b89ff;
+}
+
+.ht-root-wrapper .ht-page-counter-section {
+  margin-inline-end: auto;
+}
+
+.ht-root-wrapper .ht-page-navigation-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ht-root-wrapper .ht-page-navigation-section button {
+  font-size: inherit;
+  color: #222;
+  background-color: transparent;
+  border: none;
+  padding: 4px;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.ht-root-wrapper .ht-page-navigation-section button::before {
+  display: block;
+  width: 16px;
+  height: 16px;
+  line-height: 16px;
+  text-align: center;
+}
+
+.ht-root-wrapper .ht-page-navigation-section button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.ht-root-wrapper .ht-page-navigation-section button:hover:not(:disabled) {
+  background-color: #e0e0e0;
+}
+
+.ht-root-wrapper .ht-page-navigation-section button:focus {
+  outline: 1px solid #4b89ff;
+}
+
+.ht-root-wrapper .ht-page-navigation-section .ht-page-first::before {
+  content: "\21A4";
+}
+
+[dir=rtl].ht-root-wrapper .ht-page-navigation-section .ht-page-first::before {
+  content: "\21A6";
+}
+
+.ht-root-wrapper .ht-page-navigation-section .ht-page-prev::before {
+  content: "\21A2";
+}
+
+[dir=rtl].ht-root-wrapper .ht-page-navigation-section .ht-page-prev::before {
+  content: "\21A3";
+}
+
+.ht-root-wrapper .ht-page-navigation-section .ht-page-next::before {
+  content: "\21A3";
+}
+
+[dir=rtl].ht-root-wrapper .ht-page-navigation-section .ht-page-next::before {
+  content: "\21A2";
+}
+
+.ht-root-wrapper .ht-page-navigation-section .ht-page-last::before {
+  content: "\21A6";
+}
+
+[dir=rtl].ht-root-wrapper .ht-page-navigation-section .ht-page-last::before {
+  content: "\21A4";
+}
+
+.ht-root-wrapper .ht-page-navigation-section span {
+  white-space: nowrap;
+}
+
+.ht-loading__icon-svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+  color: #5292f7;
+  animation: ht-loading-spin 1s linear infinite;
+  transform-origin: 50% 50%;
+}
+
+.ht-loading__content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ht-loading__title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 18px;
+}
+
+.ht-loading__description {
+  margin: 0;
+  color: #222;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 400;
+}
+
+@keyframes ht-loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }

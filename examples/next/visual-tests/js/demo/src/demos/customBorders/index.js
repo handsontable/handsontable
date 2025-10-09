@@ -44,10 +44,12 @@ export function init() {
         bottom: {
           width: 3,
           color: "red",
+          style: "dashed",
         },
         right: {
           width: 3,
           color: "magenta",
+          style: "dashed",
         },
       },
       {

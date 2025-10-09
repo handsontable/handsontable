@@ -510,4 +510,66 @@ describe('WalkontableBorder', () => {
     expect(spec().$wrapper[0].clientHeight === spec().$wrapper[0].scrollHeight).toBe(true);
     expect(spec().$wrapper[0].clientWidth === spec().$wrapper[0].scrollWidth).toBe(true);
   });
+
+  it('should add a ht-border-style-[style name]-vertical to a border element if "style" property is added ' +
+    'to the border configuration', async() => {
+    const selections = createSelectionController({});
+    const wt = walkontable({
+      data: getData,
+      totalRows: 5,
+      totalColumns: 5,
+      selections,
+    });
+
+    const customSelection = selections.getCustomHighlight({
+      border: {
+        width: 5,
+        style: 'dashed'
+      }
+    }).add(new Walkontable.CellCoords(0, 0))
+      .add(new Walkontable.CellCoords(2, 2));
+
+    wt.draw();
+
+    let focusBorder = wt.selectionManager.getBorderInstance(customSelection);
+
+    expect($(focusBorder.start).hasClass('ht-border-style-dashed-vertical')).toBe(true);
+    expect($(focusBorder.end).hasClass('ht-border-style-dashed-vertical')).toBe(true);
+    expect($(focusBorder.top).hasClass('ht-border-style-dashed-horizontal')).toBe(true);
+    expect($(focusBorder.bottom).hasClass('ht-border-style-dashed-horizontal')).toBe(true);
+
+    customSelection.clear();
+
+    const customSelection2 = selections.getCustomHighlight({
+      border: {
+        width: 5,
+      },
+      top: {
+        width: 5,
+        style: 'dashed'
+      },
+      bottom: {
+        width: 5,
+        style: 'dotted'
+      },
+      start: {
+        width: 5,
+        style: 'dashed'
+      },
+      end: {
+        width: 5,
+        style: 'dotted'
+      }
+    }).add(new Walkontable.CellCoords(0, 0))
+      .add(new Walkontable.CellCoords(2, 2));
+
+    wt.draw();
+
+    focusBorder = wt.selectionManager.getBorderInstance(customSelection2);
+
+    expect($(focusBorder.start).hasClass('ht-border-style-dashed-vertical')).toBe(true);
+    expect($(focusBorder.end).hasClass('ht-border-style-dotted-vertical')).toBe(true);
+    expect($(focusBorder.top).hasClass('ht-border-style-dashed-horizontal')).toBe(true);
+    expect($(focusBorder.bottom).hasClass('ht-border-style-dotted-horizontal')).toBe(true);
+  });
 });
