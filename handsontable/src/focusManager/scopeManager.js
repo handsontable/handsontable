@@ -21,11 +21,12 @@ import { FOCUS_SOURCES } from './constants';
  * specific focusable element within the scope container element and/or switch to specific
  * shortcuts context.
  *
- * The manager also automatically updates the `isListening` state of the Handsontable
+ * The manager also automatically updates the {@link Core#isListening} state of the Handsontable
  * instance based on the current state of the scopes.
  *
+ * @alias FocusScopeManager
+ * @class FocusScopeManager
  * @param {Core} hotInstance The Handsontable instance.
- * @returns {FocusScopeManager} Focus scope manager object with methods.
  */
 export function createFocusScopeManager(hotInstance) {
   const SCOPES = createUniqueMap({
@@ -38,6 +39,7 @@ export function createFocusScopeManager(hotInstance) {
   /**
    * Returns the ID of the active scope.
    *
+   * @memberof FocusScopeManager#
    * @returns {string | null} The ID of the active scope.
    */
   function getActiveScopeId() {
@@ -51,15 +53,50 @@ export function createFocusScopeManager(hotInstance) {
   /**
    * Registers a new focus scope.
    *
+   * @memberof FocusScopeManager#
    * @param {string} scopeId Unique identifier for the scope.
    * @param {HTMLElement} container Container element for the scope.
-   * @param {object} options Configuration options.
-   * @param {string} options.shortcutsContextName The name of the shortcuts context to switch to when the scope is activated.
-   * @param {'modal' | 'container'} options.type The type of the scope.
-   * @param {function(): boolean} options.runOnlyIf Whether the scope is enabled or not depends on the custom logic.
-   * @param {function(HTMLElement): boolean} options.contains Whether the target element is within the scope.
-   * @param {function(): void} options.onActivate Callback function to be called when the scope is activated.
-   * @param {function(): void} options.onDeactivate Callback function to be called when the scope is deactivated.
+   * @param {object} [options] Configuration options.
+   * @param {string} [options.shortcutsContextName='grid'] The name of the shortcuts context to switch to when
+   * the scope is activated.
+   * @param {'modal' | 'inline'} [options.type='inline'] The type of the scope:<br/>
+   *   - `modal`: The scope is modal and blocks the rest of the grid from receiving focus.<br/>
+   *   - `inline`: The scope is inline and allows the rest of the grid to receive focus in the order of the rendered elements in the DOM.
+   * @param {function(): boolean} [options.runOnlyIf] Whether the scope is enabled or not depends on the custom logic.
+   * @param {function(HTMLElement): boolean} [options.contains] Whether the target element is within the scope. If the option is not
+   *  provided, the scope will be activated if the target element is within the container element.
+   * @param {function(): void} [options.onActivate] Callback function to be called when the scope is activated.
+   * The first argument is the source of the activation:<br/>
+   *   - `unknown`: The scope is activated by an unknown source.<br/>
+   *   - `click`: The scope is activated by a click event.<br/>
+   *   - `tab_from_above`: The scope is activated by a tab key press.<br/>
+   *   - `tab_from_below`: The scope is activated by a shift+tab key press.
+   * @param {function(): void} [options.onDeactivate] Callback function to be called when the scope is deactivated.
+   *
+   * @example
+   * For regular element (inline scope)
+   *
+   * ```js
+   * hot.getFocusScopeManager().registerScope('myPluginName', containerElement, {
+   *   shortcutsContextName: 'plugin:myPluginName',
+   *   onActivate: (focusSource) => {
+   *     // Focus the internal focusable element within the plugin UI element
+   *   },
+   * });
+   * ```
+   *
+   * or for modal scope
+   *
+   * ```js
+   * hot.getFocusScopeManager().registerScope('myPluginName', containerElement, {
+   *   shortcutsContextName: 'plugin:myPluginName',
+   *   type: 'modal',
+   *   runOnlyIf: () => isDialogOpened(),
+   *   onActivate: (focusSource) => {
+   *     // Focus the internal focusable element within the plugin UI element
+   *   },
+   * });
+   * ```
    */
   function registerScope(scopeId, container, options = {}) {
     if (SCOPES.hasItem(scopeId)) {
@@ -76,6 +113,7 @@ export function createFocusScopeManager(hotInstance) {
   /**
    * Unregisters a scope completely.
    *
+   * @memberof FocusScopeManager#
    * @param {string} scopeId The scope to remove.
    */
   function unregisterScope(scopeId) {
@@ -92,6 +130,8 @@ export function createFocusScopeManager(hotInstance) {
   /**
    * Activates a focus scope by its ID.
    *
+   * @memberof FocusScopeManager#
+   * @alias FocusScopeManager#activateScope
    * @param {string} scopeId The ID of the scope to activate.
    */
   function activateScopeById(scopeId) {
@@ -105,6 +145,8 @@ export function createFocusScopeManager(hotInstance) {
   /**
    * Deactivates a scope by its ID.
    *
+   * @memberof FocusScopeManager#
+   * @alias FocusScopeManager#deactivateScope
    * @param {string} scopeId The ID of the scope to deactivate.
    */
   function deactivateScopeById(scopeId) {

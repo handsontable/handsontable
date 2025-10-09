@@ -5464,7 +5464,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * @memberof Core#
    * @since 16.2.0
    * @function getFocusScopeManager
-   * @returns {FocusScopeManager}
+   * @returns {FocusScopeManager} Instance of {@link FocusScopeManager}
    *
    * @example
    * ```js
