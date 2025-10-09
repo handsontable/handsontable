@@ -110,11 +110,15 @@ const data = [
 ];
 
 const container = document.querySelector('#example2')!;
-
 const hot = new Handsontable(container, {
   themeName: 'ht-theme-main',
   data,
   pagination: true,
+  dialog: {
+    content: 'This is a simple text message displayed in the dialog.',
+    closable: true,
+    background: 'semi-transparent',
+  },
   autoRowSize: true,
   tabNavigation: false,
   columns: [
@@ -175,6 +179,10 @@ const hot = new Handsontable(container, {
   autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
+
+const dialogPlugin = hot.getPlugin('dialog');
+
+dialogPlugin.show();
 
 function updateDebugInformation() {
   const examplesContainer = document.getElementById('example2container');
