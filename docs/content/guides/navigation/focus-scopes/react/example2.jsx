@@ -222,6 +222,7 @@ const ExampleComponent = () => {
       });
     }
   }, []);
+
   useEffect(() => {
     const hotInstance = hotRef.current?.hotInstance;
 
@@ -233,7 +234,6 @@ const ExampleComponent = () => {
       });
     }
   }, []);
-
   useEffect(() => {
     const interval = setInterval(updateDebugInfo, 200);
 

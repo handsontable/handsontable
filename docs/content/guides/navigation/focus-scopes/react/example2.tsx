@@ -222,6 +222,7 @@ const ExampleComponent = () => {
       });
     }
   }, []);
+
   useEffect(() => {
     const hotInstance = hotRef.current?.hotInstance;
 
