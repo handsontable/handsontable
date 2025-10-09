@@ -312,6 +312,18 @@ innerBorderBottom - Property controlled by bottom overlay
   );
 }
 
+.htBorders .wtBorder.ht-border-style-dotted-horizontal {
+  background-image: radial-gradient(circle, var(--ht-custom-border-color) calc(var(--ht-custom-border-size) / 2), transparent 0);
+  background-size: calc(var(--ht-custom-border-size) * 2) var(--ht-custom-border-size);
+  background-repeat: repeat-x;
+}
+
+.htBorders .wtBorder.ht-border-style-dotted-vertical {
+  background-image: radial-gradient(circle, var(--ht-custom-border-color) calc(var(--ht-custom-border-size) / 2), transparent 0);
+  background-size: var(--ht-custom-border-size) calc(var(--ht-custom-border-size) * 2);
+  background-repeat: repeat-y;
+}
+
 .ht_clone_master {
   z-index: 100;
 }
