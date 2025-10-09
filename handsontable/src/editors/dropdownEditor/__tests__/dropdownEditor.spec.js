@@ -694,6 +694,36 @@ describe('DropdownEditor', () => {
 
       expect($(dropdown).is(':visible')).toBe(true);
     });
+
+    it('should not save the value in non strict mode, when closing the editor by clicking on the table', async() => {
+      handsontable({
+        columns: [
+          {
+            editor: 'dropdown',
+            source: choices
+          },
+          {},
+          {}
+        ]
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+      await sleep(50);
+
+      const editor = $('.handsontableInput');
+
+      editor.val('ora');
+      await keyDownUp('o');
+      await keyDownUp('r');
+      await keyDownUp('a');
+
+      await sleep(50);
+
+      spec().$container.find('tbody tr:eq(1) td:eq(2)').simulate('mousedown');
+
+      expect(getDataAtCell(0, 0)).toEqual(null);
+    });
   });
 
   it('should mark all invalid values as invalid, after pasting them into dropdown-type cells', async() => {
