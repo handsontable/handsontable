@@ -299,7 +299,7 @@ innerBorderBottom - Property controlled by bottom overlay
 .htBorders .wtBorder.ht-border-style-dashed-vertical {
   background-image: repeating-linear-gradient(
           to bottom,
-          currentColor 0 5px,
+          var(--ht-custom-border-color) 0 5px,
           transparent 0 10px
   );
 }
@@ -307,7 +307,7 @@ innerBorderBottom - Property controlled by bottom overlay
 .htBorders .wtBorder.ht-border-style-dashed-horizontal {
   background-image: repeating-linear-gradient(
           to right,
-          currentColor 0 5px,
+          var(--ht-custom-border-color) 0 5px,
           transparent 0 10px
   );
 }
