@@ -1,0 +1,24 @@
+
+@use "../../utils/mixins";
+
+// Empty Data State
+
+@mixin output {
+  .handsontable {
+    .ht-empty-data-state {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+      pointer-events: none;
+      border-radius: var(--ht-wrapper-border-radius);
+      border: 1px solid var(--ht-border-color);
+    }
+  }
+}

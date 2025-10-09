@@ -2098,6 +2098,18 @@ export default () => {
     editor: undefined,
 
     /**
+     * The `emptyDataState` option configures the [`EmptyDataState`](@/api/emptyDataState.md) plugin.
+     *
+     * You can set the `emptyDataState` option to one of the following:
+     *
+     * | Setting | Description                                      |
+     * | ------- | ------------------------------------------------ |
+     * | `false` | Disable the [`EmptyDataState`](@/api/emptyDataState.md) plugin |
+     * | `true`  | Enable the [`EmptyDataState`](@/api/emptyDataState.md) plugin  |
+     */
+    emptyDataState: false,
+
+    /**
      * The `enterBeginsEditing` option configures the action of the <kbd>**Enter**</kbd> key.
      *
      * You can set the `enterBeginsEditing` option to one of the following:

@@ -680,6 +680,16 @@
     }
   }
 
+  .ht_master.emptyRows.emptyColumns {
+    th {
+      display: none;
+    }
+
+    & ~ [class*="ht_clone"] th {
+      display: none;
+    }
+  }
+
   // Fix for Safari custom scrollbar size calculation
   .htScrollbarSafariTest {
     &::-webkit-scrollbar {
