@@ -1,5 +1,6 @@
 import { BasePlugin } from '../base';
 import { hasOwnProperty, deepClone } from '../../helpers/object';
+import { warn } from '../../helpers/console';
 import { rangeEach } from '../../helpers/number';
 import { arrayEach, arrayReduce, arrayMap } from '../../helpers/array';
 import * as C from '../../i18n/constants';
@@ -23,9 +24,12 @@ import {
   denormalizeBorder,
 } from './utils';
 import { detectSelectionType, normalizeSelectionFactory } from '../../selection';
+import { isDefined } from '../../helpers/mixed';
 
 export const PLUGIN_KEY = 'customBorders';
 export const PLUGIN_PRIORITY = 90;
+
+const SUPPORTED_STYLES = ['dashed', 'solid'];
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
@@ -54,7 +58,8 @@ export const PLUGIN_PRIORITY = 90;
  *      },
  *      to: {
  *        row: 3,
- *        col: 4
+ *        col: 4,
+ *        style: 'dashed'
  *      },
  *    },
  *    start: {},
@@ -75,6 +80,7 @@ export const PLUGIN_PRIORITY = 90;
  *     end: {
  *       width: 1,
  *       color: 'green',
+ *       style: 'dashed'
  *     },
  *     top: '',
  *     bottom: '',
@@ -772,8 +778,35 @@ export class CustomBorders extends BasePlugin {
     if (this.hot.isRtl() && hasLeftOrRight) {
       throw new Error('The "left"/"right" properties are not supported for RTL. Please use option "start"/"end".');
     }
+
+    this.#validateStyleSettings(customBorders);
   }
 
+  /**
+   * Validate the style settings. If the style value is not supported, the property is removed from the configuration.
+   *
+   * @private
+   * @param {object[]} customBorders The user defined custom border objects array.
+   */
+  #validateStyleSettings(customBorders) {
+    customBorders.forEach((customBorder) => {
+      Object.keys(customBorder).forEach((key) => {
+        const style = customBorder[key].style;
+
+        if (isDefined(style) && !SUPPORTED_STYLES.includes(style)) {
+          // eslint-disable-next-line max-len
+          warn(`The "${style}" border style is not supported. Please use one of the following styles: ${SUPPORTED_STYLES.join(', ')}.
+The border style will be ignored.`);
+
+          delete customBorder[key].style;
+
+        } else if (isDefined(style) && style === 'solid') {
+          // 'solid' is the default style
+          delete customBorder[key].style;
+        }
+      });
+    });
+  }
   /**
    * Add border options to context menu.
    *

@@ -34,6 +34,7 @@ new Handsontable(document.createElement('div'), {
       start: {
         width: 2,
         color: 'red',
+        style: 'dashed',
       },
       end: {
         width: 1,
@@ -57,6 +58,9 @@ customBorders.setBorders(hot.getSelectedRange()!, {
 });
 customBorders.setBorders(hot.getSelectedRange()!, {
   end: { hide: true, width: 2, color: 'blue' },
+});
+customBorders.setBorders(hot.getSelectedRange()!, {
+  end: { hide: true, width: 2, color: 'blue', style: 'solid' },
 });
 customBorders.setBorders(hot.getSelectedRange()!, {
   top: { width: 1 },

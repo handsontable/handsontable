@@ -39,6 +39,7 @@ const ExampleComponent = () => {
           top: {
             width: 2,
             color: '#5292F7',
+            style: 'dashed',
           },
           bottom: {
             width: 2,
@@ -47,6 +48,7 @@ const ExampleComponent = () => {
           start: {
             width: 2,
             color: 'orange',
+            style: 'dashed',
           },
           end: {
             width: 2,

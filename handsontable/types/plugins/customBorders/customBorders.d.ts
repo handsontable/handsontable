@@ -7,6 +7,7 @@ export interface BorderOptions {
   width?: number;
   color?: string;
   hide?: boolean;
+  style?: 'dashed' | 'solid';
 }
 export interface BorderRange {
   range: {
