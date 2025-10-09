@@ -178,19 +178,25 @@ const DebugInfo = memo(({ debugInfo }) => (
           <td>
             <code>isListening()</code>
           </td>
-          <td><code className="isListening">{String(debugInfo.isListening)}</code></td>
+          <td>
+            <code className="isListening">{String(debugInfo.isListening)}</code>
+          </td>
         </tr>
         <tr>
           <td>
             <code>getFocusScopeManager().getActiveScopeId()</code>
           </td>
-          <td><code className="focusScope">{String(debugInfo.focusScope)}</code></td>
+          <td>
+            <code className="focusScope">{String(debugInfo.focusScope)}</code>
+          </td>
         </tr>
         <tr>
           <td>
             <code>getShortcutManager().getActiveContextName()</code>
           </td>
-          <td><code className="shortcutsContext">{String(debugInfo.shortcutsContext)}</code></td>
+          <td>
+            <code className="shortcutsContext">{String(debugInfo.shortcutsContext)}</code>
+          </td>
         </tr>
       </tbody>
     </table>
@@ -201,8 +207,9 @@ const ExampleComponent = () => {
   const [debugInfo, setDebugInfo] = useState({
     isListening: false,
     focusScope: null,
-    shortcutsContext: null
+    shortcutsContext: null,
   });
+
   const hotRef = useRef(null);
 
   const updateDebugInfo = useCallback(() => {
@@ -212,7 +219,7 @@ const ExampleComponent = () => {
       setDebugInfo({
         isListening: hotInstance.isListening(),
         focusScope: hotInstance.getFocusScopeManager().getActiveScopeId(),
-        shortcutsContext: hotInstance.getShortcutManager().getActiveContextName()
+        shortcutsContext: hotInstance.getShortcutManager().getActiveContextName(),
       });
     }
   }, []);
