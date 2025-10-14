@@ -56,7 +56,7 @@ Use Handsontable with plain JavaScript, TypeScript, or your favorite framework. 
 
 </div>
 
-## Examples with SSR (Server Side Rendering)
+Examples with SSR (Server Side Rendering): 
 
 <div class="boxes-list gray col3">
 
