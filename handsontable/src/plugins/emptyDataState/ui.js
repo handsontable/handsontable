@@ -136,7 +136,7 @@ export class EmptyDataStateUI {
       emptyDataStateElement.style.maxWidth = `${this.#view._wt.wtTable.hider.clientWidth}px`;
     }
 
-    emptyDataStateElement.style.maxHeight = `calc(100% - ${topCloneHeight}px)`;
+    emptyDataStateElement.style.maxHeight = `calc(100% - ${topCloneHeight + 1}px)`;
   }
 
   /**
