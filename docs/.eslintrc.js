@@ -26,7 +26,7 @@ module.exports = {
       }
     },
     {
-      files: ['SvgFrameworkIcons.vue'],
+      files: ['SvgFrameworkIcons.vue', 'Navbar.vue'],
       rules: {
         'max-len': 'off'
       }
