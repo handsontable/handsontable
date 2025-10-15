@@ -118,3 +118,10 @@ export const CHECKBOX_UNCHECKED = `${CHECKBOX_RENDERER_NAMESPACE}unchecked`;
 
 export const LOADING_NAMESPACE = 'Loading:';
 export const LOADING_TITLE = `${LOADING_NAMESPACE}title`;
+
+export const EMPTY_DATA_STATE_NAMESPACE = 'EmptyDataState:';
+export const EMPTY_DATA_STATE_TITLE = `${EMPTY_DATA_STATE_NAMESPACE}title`;
+export const EMPTY_DATA_STATE_DESCRIPTION = `${EMPTY_DATA_STATE_NAMESPACE}description`;
+export const EMPTY_DATA_STATE_TITLE_FILTERS = `${EMPTY_DATA_STATE_NAMESPACE}title.filters`;
+export const EMPTY_DATA_STATE_DESCRIPTION_FILTERS = `${EMPTY_DATA_STATE_NAMESPACE}description.filters`;
+export const EMPTY_DATA_STATE_ACTION_FILTERS_BUTTONS_RESET = `${EMPTY_DATA_STATE_NAMESPACE}action.filters.buttons.reset`; // eslint-disable-line max-len

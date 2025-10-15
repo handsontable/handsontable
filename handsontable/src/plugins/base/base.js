@@ -212,6 +212,7 @@ export class BasePlugin {
    */
   getSetting(settingName) {
     const defaultSettings = this.constructor.DEFAULT_SETTINGS;
+    const settingsValidators = this.constructor.SETTINGS_VALIDATORS;
 
     if (settingName === undefined) {
       if (isObject(this.#pluginSettings)) {
@@ -221,33 +222,53 @@ export class BasePlugin {
       return this.#pluginSettings;
     }
 
+    let settingValue;
+
     if (
       (Array.isArray(this.#pluginSettings) || isObject(this.#pluginSettings)) &&
       defaultSettings[defaultMainSettingSymbol] === settingName
     ) {
       if (Array.isArray(this.#pluginSettings)) {
-        return this.#pluginSettings;
+        settingValue = this.#pluginSettings;
+      } else {
+        settingValue = this.#pluginSettings[settingName] ?? defaultSettings[settingName];
       }
-
-      return this.#pluginSettings[settingName] ?? defaultSettings[settingName];
-    }
-
-    if (settingName.includes('.')) {
+    } else if (settingName.includes('.')) {
       const pluginValue = getProperty(this.#pluginSettings, settingName);
       const defaultValue = getProperty(defaultSettings, settingName);
 
       if (isObject(pluginValue)) {
-        return assignObjectDefaults(pluginValue, defaultValue);
+        settingValue = assignObjectDefaults(pluginValue, defaultValue);
+      } else {
+        settingValue = pluginValue !== undefined ? pluginValue : defaultValue;
       }
-
-      return pluginValue !== undefined ? pluginValue : defaultValue;
+    } else if (isObject(this.#pluginSettings)) {
+      settingValue = assignObjectDefaults(this.#pluginSettings, defaultSettings)[settingName];
+    } else {
+      settingValue = defaultSettings[settingName];
     }
 
-    if (isObject(this.#pluginSettings)) {
-      return assignObjectDefaults(this.#pluginSettings, defaultSettings)[settingName];
+    if (typeof settingValue === 'function' && settingsValidators && typeof settingsValidators === 'object') {
+      const validator = settingsValidators[settingName];
+
+      if (validator && typeof validator === 'function') {
+        return (...args) => {
+          const result = settingValue(...args);
+          const isValid = validator(result);
+
+          if (isValid === false) {
+            // eslint-disable-next-line max-len
+            warn(`${this.pluginName} Plugin: "${settingName}" function ${args.length > 0 ? `(${args.map(arg => (typeof arg === 'string' ? `"${arg}"` : '')).join(', ')})` : ''} result is not valid and will be ignored.`);
+
+            return;
+          }
+
+          return result;
+        };
+      }
     }
 
-    return defaultSettings[settingName];
+    return settingValue;
   }
 
   /**

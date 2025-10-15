@@ -1,8 +1,19 @@
 import { html } from '../../helpers/templateLiteralTag';
+import { addClass, removeClass } from '../../helpers/dom/element';
 
 const EMPTY_DATA_STATE_CLASS_NAME = 'ht-empty-data-state';
 
-const TEMPLATE = `<div data-ref="emptyDataStateElement" class="${EMPTY_DATA_STATE_CLASS_NAME}"></div>`;
+const TEMPLATE = `<div data-ref="emptyDataStateElement" class="${EMPTY_DATA_STATE_CLASS_NAME}">
+  <div class="${EMPTY_DATA_STATE_CLASS_NAME}__content-wrapper">
+    <div data-ref="emptyDataStateContent" class="${EMPTY_DATA_STATE_CLASS_NAME}__content"></div>
+    <div data-ref="emptyDataStateActions" class="${EMPTY_DATA_STATE_CLASS_NAME}__actions"></div>
+  </div>
+</div>`;
+
+const templateContent = ({ title, description }) => `
+  ${title ? `<h2 class="ht-empty-data-state__title">${title}</h2>` : ''}
+  ${description ? `<p class="ht-empty-data-state__description">${description}</p>` : ''}
+`;
 
 /**
  * EmptyDataStateUI is a UI component that renders and manages empty data state elements.
@@ -11,12 +22,6 @@ const TEMPLATE = `<div data-ref="emptyDataStateElement" class="${EMPTY_DATA_STAT
  * @class EmptyDataStateUI
  */
 export class EmptyDataStateUI {
-  /**
-   * The root element where the empty data state UI will be installed.
-   *
-   * @type {HTMLElement}
-   */
-  #rootElement;
   /**
    * The view instance.
    *
@@ -31,10 +36,8 @@ export class EmptyDataStateUI {
   #refs;
 
   constructor({
-    rootElement,
     view,
   }) {
-    this.#rootElement = rootElement;
     this.#view = view;
   }
 
@@ -50,28 +53,10 @@ export class EmptyDataStateUI {
 
     this.#refs = elements.refs;
 
-    const { emptyDataStateElement } = this.#refs;
+    this.updateHeight();
+    this.updateClassNames();
 
-    const wtOverlays = this.#view._wt.wtOverlays;
-    const topOverlay = wtOverlays.topOverlay;
-    const topCloneElement = topOverlay.clone.wtTable.wtRootElement;
-    const topCloneHeight = topCloneElement ? topCloneElement.offsetHeight : 0;
-
-    const startOverlay = wtOverlays.inlineStartOverlay;
-    const startCloneElement = startOverlay.clone.wtTable.wtRootElement;
-    const startCloneWidth = startCloneElement ? startCloneElement.offsetWidth : 0;
-
-    const bottomOverlay = wtOverlays.bottomOverlay;
-    const bottomCloneElement = bottomOverlay.clone.wtTable.wtRootElement;
-    const bottomCloneHeight = bottomCloneElement ? bottomCloneElement.offsetHeight : 0;
-
-    emptyDataStateElement.style.paddingTop = `${topCloneHeight}px`;
-    emptyDataStateElement.style.paddingLeft = `${startCloneWidth}px`;
-    emptyDataStateElement.style.paddingRight = `${startCloneWidth}px`;
-    emptyDataStateElement.style.paddingBottom = `${bottomCloneHeight}px`;
-
-    this.#view._wt.wtTable.holder.style.minHeight = `${topCloneHeight + bottomCloneHeight + 100}px`;
-    this.#rootElement.appendChild(elements.fragment);
+    this.#view._wt.wtTable.holder.appendChild(elements.fragment);
   }
 
   /**
@@ -86,14 +71,75 @@ export class EmptyDataStateUI {
   /**
    * Updates the content of the empty data state element.
    *
-   * @param {string} content - The content to update.
+   * @param {string | object} message - The message to update.
    */
-  updateContent(content) {
+  updateContent(message) {
+    const { emptyDataStateContent, emptyDataStateActions } = this.#refs;
+
+    let content = '';
+
+    if (typeof message === 'string') {
+      content = {
+        description: message,
+      };
+    } else {
+      content = {
+        title: message?.title,
+        description: message?.description,
+      };
+    }
+
+    emptyDataStateContent.innerHTML = templateContent(content);
+    emptyDataStateActions.innerHTML = '';
+
+    if (message?.actions) {
+      message?.actions.forEach((action) => {
+        const button = this.#view.hot.rootDocument.createElement('button');
+
+        button.classList.add('ht-button', `ht-button__${action.type}`);
+        button.textContent = action.text;
+        button.addEventListener('click', action.callback);
+
+        emptyDataStateActions.appendChild(button);
+      });
+    }
+  }
+
+  /**
+   * Updates the class names of the empty data state element.
+   */
+  updateClassNames() {
     const { emptyDataStateElement } = this.#refs;
 
-    if (emptyDataStateElement) {
-      emptyDataStateElement.innerHTML = content;
+    if (this.#view._wt.wtTable.hider.clientHeight > 1) {
+      addClass(emptyDataStateElement, 'ht-empty-data-state--disable-top-border');
+    } else {
+      removeClass(emptyDataStateElement, 'ht-empty-data-state--disable-top-border');
     }
+  }
+
+  /**
+   * Updates the height of the empty data state element.
+   */
+  updateHeight() {
+    const { emptyDataStateElement } = this.#refs;
+
+    const wtOverlays = this.#view._wt.wtOverlays;
+
+    const topOverlay = wtOverlays.topOverlay;
+    const topCloneElement = topOverlay.clone.wtTable.wtRootElement;
+    const topCloneHeight = topCloneElement ? topCloneElement.offsetHeight : 0;
+
+    const bottomOverlay = wtOverlays.bottomOverlay;
+    const bottomCloneElement = bottomOverlay.clone.wtTable.wtRootElement;
+    const bottomCloneHeight = bottomCloneElement ? bottomCloneElement.offsetHeight : 0;
+
+    if (this.#view._wt.wtTable.hider.clientWidth > 1) {
+      emptyDataStateElement.style.maxWidth = `${this.#view._wt.wtTable.hider.clientWidth}px`;
+    }
+
+    this.#view._wt.wtTable.holder.style.minHeight = `${topCloneHeight + bottomCloneHeight + 100}px`;
+    emptyDataStateElement.style.height = `${this.#view._wt.wtTable.holder.clientHeight - topCloneHeight}px`;
   }
 
   /**

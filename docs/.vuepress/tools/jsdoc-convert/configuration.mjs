@@ -761,5 +761,18 @@ export default {
         metaTitle: 'Loading - Angular Data Grid | Handsontable',
       },
     },
+    'EmptyDataState.md': {
+      id: '4k5m6n7o',
+      metaTitle: 'EmptyDataState - JavaScript Data Grid | Handsontable',
+      description: 'Options, members, and methods of Handsontable\'s EmptyDataState API.',
+      react: {
+        id: '2l3m4n5o',
+        metaTitle: 'EmptyDataState - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: 'x8y9z0a1',
+        metaTitle: 'EmptyDataState - Angular Data Grid | Handsontable',
+      },
+    },
   }
 };
