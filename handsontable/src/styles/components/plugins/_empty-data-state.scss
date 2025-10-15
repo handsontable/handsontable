@@ -11,16 +11,27 @@
       left: 0;
       right: 0;
       width: 100%;
-      text-align: center;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-sizing: border-box;
-      padding: 10px;
-      margin-top: -1px;
+      height: 100%;
       z-index: 999;
+      overflow-y: auto;
       border: 1px solid var(--ht-border-color);
       border-radius: var(--ht-wrapper-border-radius);
+      box-sizing: border-box;
+
+      & * {
+        box-sizing: border-box !important;
+      }
+
+      &__content-wrapper {   
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        width: 100%;
+        min-height: 100%;
+        padding: calc(var(--ht-gap-size) * 4);
+        border-radius: var(--ht-wrapper-border-radius);
+      }
 
       &__title {
         margin: 0;

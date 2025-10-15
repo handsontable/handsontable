@@ -5,8 +5,10 @@ const EMPTY_DATA_STATE_CLASS_NAME = 'ht-empty-data-state';
 
 const TEMPLATE = `<div data-ref="emptyDataStateElement" class="${EMPTY_DATA_STATE_CLASS_NAME}">
   <div class="${EMPTY_DATA_STATE_CLASS_NAME}__content-wrapper">
-    <div data-ref="emptyDataStateContent" class="${EMPTY_DATA_STATE_CLASS_NAME}__content"></div>
-    <div data-ref="emptyDataStateActions" class="${EMPTY_DATA_STATE_CLASS_NAME}__actions"></div>
+    <div class="${EMPTY_DATA_STATE_CLASS_NAME}__content-wrapper-inner">
+      <div data-ref="emptyDataStateContent" class="${EMPTY_DATA_STATE_CLASS_NAME}__content"></div>
+      <div data-ref="emptyDataStateActions" class="${EMPTY_DATA_STATE_CLASS_NAME}__actions"></div>
+    </div>
   </div>
 </div>`;
 
@@ -130,16 +132,11 @@ export class EmptyDataStateUI {
     const topCloneElement = topOverlay.clone.wtTable.wtRootElement;
     const topCloneHeight = topCloneElement ? topCloneElement.offsetHeight : 0;
 
-    const bottomOverlay = wtOverlays.bottomOverlay;
-    const bottomCloneElement = bottomOverlay.clone.wtTable.wtRootElement;
-    const bottomCloneHeight = bottomCloneElement ? bottomCloneElement.offsetHeight : 0;
-
     if (this.#view._wt.wtTable.hider.clientWidth > 1) {
       emptyDataStateElement.style.maxWidth = `${this.#view._wt.wtTable.hider.clientWidth}px`;
     }
 
-    this.#view._wt.wtTable.holder.style.minHeight = `${topCloneHeight + bottomCloneHeight + 100}px`;
-    emptyDataStateElement.style.height = `${this.#view._wt.wtTable.holder.clientHeight - topCloneHeight}px`;
+    emptyDataStateElement.style.maxHeight = `calc(100% - ${topCloneHeight}px)`;
   }
 
   /**
