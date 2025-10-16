@@ -75,6 +75,10 @@ export interface Events {
   afterLoadingShow?: () => void;
   beforeLoadingHide?: () => boolean | void;
   afterLoadingHide?: () => void;
+  beforeEmptyDataStateShow?: () => void;
+  afterEmptyDataStateShow?: () => void;
+  beforeEmptyDataStateHide?: () => void;
+  afterEmptyDataStateHide?: () => void;
   afterCopyLimit?: (selectedRows: number, selectedColumns: number, copyRowsLimit: number, copyColumnsLimit: number) => void;
   afterCreateCol?: (index: number, amount: number, source?: ChangeSource) => void;
   afterCreateRow?: (index: number, amount: number, source?: ChangeSource) => void;

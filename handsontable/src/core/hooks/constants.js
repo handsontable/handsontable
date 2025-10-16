@@ -3243,6 +3243,42 @@ export const REGISTERED_HOOKS = [
   'afterLoadingHide',
 
   /**
+   * Fired by {@link EmptyDataState} plugin before showing the empty data state overlay. This hook is fired when {@link Options#emptyDataState}
+   * option is enabled.
+   *
+   * @since 16.2.0
+   * @event Hooks#beforeEmptyDataStateShow
+   */
+  'beforeEmptyDataStateShow',
+
+  /**
+   * Fired by {@link EmptyDataState} plugin after showing the empty data state overlay. This hook is fired when {@link Options#emptyDataState}
+   * option is enabled.
+   *
+   * @since 16.2.0
+   * @event Hooks#afterEmptyDataStateShow
+   */
+  'afterEmptyDataStateShow',
+
+  /**
+   * Fired by {@link EmptyDataState} plugin before hiding the empty data state overlay. This hook is fired when {@link Options#emptyDataState}
+   * option is enabled.
+   *
+   * @since 16.2.0
+   * @event Hooks#beforeEmptyDataStateHide
+   */
+  'beforeEmptyDataStateHide',
+
+  /**
+   * Fired by {@link EmptyDataState} plugin after hiding the empty data state overlay. This hook is fired when {@link Options#emptyDataState}
+   * option is enabled.
+   *
+   * @since 16.2.0
+   * @event Hooks#afterEmptyDataStateHide
+   */
+  'afterEmptyDataStateHide',
+
+  /**
    * Fired after the editor is opened and rendered.
    *
    * @event Hooks#afterBeginEditing

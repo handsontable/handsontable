@@ -20,7 +20,7 @@
       transition: var(--ht-table-transition) all ease-in-out;
     }
 
-    .htUIInput.htUIButtonCancel input, .ht-button__secondary {
+    .htUIInput.htUIButtonCancel input, .ht-button--secondary {
       border-color: var(--ht-secondary-button-border-color);
       background-color: var(--ht-secondary-button-background-color);
       color: var(--ht-secondary-button-foreground-color);
@@ -46,7 +46,7 @@
     }
   }
 
-  .htUIInput.htUIButtonOK input, .ht-button__primary {
+  .htUIInput.htUIButtonOK input, .ht-button--primary {
     border-color: var(--ht-primary-button-border-color);
     background-color: var(--ht-primary-button-background-color);
     color: var(--ht-primary-button-foreground-color);

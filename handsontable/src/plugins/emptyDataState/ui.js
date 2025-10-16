@@ -98,7 +98,7 @@ export class EmptyDataStateUI {
       message?.actions.forEach((action) => {
         const button = this.#view.hot.rootDocument.createElement('button');
 
-        button.classList.add('ht-button', `ht-button__${action.type}`);
+        button.classList.add('ht-button', `ht-button--${action.type}`);
         button.textContent = action.text;
         button.addEventListener('click', action.callback);
 

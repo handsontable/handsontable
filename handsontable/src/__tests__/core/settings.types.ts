@@ -264,6 +264,43 @@ const allSettings: Required<Handsontable.GridSettings> = {
     title: 'Loading...',
     description: 'Loading...',
   }),
+  emptyDataState: oneOf(true, {
+    message: 'No data available',
+  }, {
+    message: {
+      title: 'No data available',
+      description: 'There\'s nothing to display yet.',
+      actions: [
+        {
+          text: 'Reset filters',
+          type: 'secondary',
+          callback: () => {},
+        },
+      ],
+    },
+  }, {
+    message: (source: string) => {
+      switch (source) {
+        case 'filters':
+          return {
+            title: 'No data available',
+            description: 'There\'s nothing to display yet.',
+            actions: [
+              {
+                text: 'Reset filters',
+                type: 'secondary',
+                callback: () => {},
+              },
+            ],
+          };
+        default:
+          return {
+            title: 'No data available',
+            description: 'There\'s nothing to display yet.',
+          };
+      }
+    },
+  }),
   validator: oneOf(
     (value: any, callback: (valid: boolean) => void) => callback(true),
     /^[0-9]$/,
@@ -354,6 +391,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterDropdownMenuDefaultOptions: (predefinedItems) => {},
   afterDropdownMenuHide: (instance) => {},
   afterDropdownMenuShow: (instance) => {},
+  afterEmptyDataStateShow: () => {},
+  afterEmptyDataStateHide: () => {},
   afterFilter: (conditionsStack) => conditionsStack[0].column,
   afterFormulasValuesUpdate: (changes) => {},
   afterGetCellMeta: (row, col, cellProperties) => {},
@@ -513,6 +552,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeDrawBorders: (corners, borderClassName) => {},
   beforeDropdownMenuSetItems: (menuItems) => {},
   beforeDropdownMenuShow: (instance) => {},
+  beforeEmptyDataStateShow: () => {},
+  beforeEmptyDataStateHide: () => {},
   beforeFilter: (conditionsStack, previousConditionStack) => { conditionsStack[0].conditions[0].name === 'begins_with'; },
   beforeGetCellMeta: (row, col, cellProperties) => {},
   beforeHeightChange: (height) => {

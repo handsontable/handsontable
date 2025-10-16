@@ -244,6 +244,10 @@ import {
   Settings as LoadingSettings,
 } from './plugins/loading';
 import {
+  EmptyDataState as _EmptyDataState,
+  Settings as EmptyDataStateSettings,
+} from './plugins/emptyDataState';
+import {
   UndoRedo as _UndoRedo,
   Settings as UndoRedoSettings,
 } from './plugins/undoRedo';
@@ -399,6 +403,7 @@ declare namespace Handsontable {
     export class TrimRows extends _TrimRows {}
     export class Dialog extends _Dialog {}
     export class Loading extends _Loading {}
+    export class EmptyDataState extends _EmptyDataState {}
     export class UndoRedo extends _UndoRedo {}
 
     export namespace AutoColumnSize {
@@ -563,6 +568,10 @@ declare namespace Handsontable {
 
     export namespace Loading {
       export { LoadingSettings as Settings };
+    }
+
+    export namespace EmptyDataState {
+      export { EmptyDataStateSettings as Settings };
     }
 
     export namespace UndoRedo {

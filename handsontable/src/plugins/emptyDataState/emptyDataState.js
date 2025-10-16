@@ -195,6 +195,13 @@ export class EmptyDataState extends BasePlugin {
   }
 
   /**
+   * Flag indicating if empty data state is currently visible.
+   *
+   * @type {boolean}
+   */
+  #isVisible = false;
+
+  /**
    * @type {EmptyDataStateUI}
    * @private
    * @default null
@@ -250,6 +257,10 @@ export class EmptyDataState extends BasePlugin {
     this.disablePlugin();
     this.enablePlugin();
 
+    if (this.#ui) {
+      this.#toggleEmptyDataState();
+    }
+
     super.updatePlugin();
   }
 
@@ -258,6 +269,15 @@ export class EmptyDataState extends BasePlugin {
    */
   disablePlugin() {
     super.disablePlugin();
+  }
+
+  /**
+   * Check if the empty data state is currently visible.
+   *
+   * @returns {boolean}
+   */
+  isVisible() {
+    return this.#isVisible;
   }
 
   /**
@@ -343,6 +363,9 @@ export class EmptyDataState extends BasePlugin {
    */
   #toggleEmptyDataState(conditionsStack) {
     if (this.hot.getData().length === 0) {
+
+      this.hot.runHooks('beforeEmptyDataStateShow');
+
       if (!this.#ui.getElement()) {
         this.#ui.create();
       }
@@ -353,11 +376,20 @@ export class EmptyDataState extends BasePlugin {
         this.#ui.updateContent(this.#messages.empty);
       }
 
+      this.#isVisible = true;
+
+      this.hot.runHooks('afterEmptyDataStateShow');
+
       return;
     }
 
     if (this.#ui.getElement()) {
+      this.hot.runHooks('beforeEmptyDataStateHide');
+
       this.#ui.destroy();
+      this.#isVisible = false;
+
+      this.hot.runHooks('afterEmptyDataStateHide');
     }
   }
 
@@ -365,6 +397,7 @@ export class EmptyDataState extends BasePlugin {
    * Destroy plugin instance.
    */
   destroy() {
+    this.#isVisible = false;
     this.#ui?.destroy();
     this.#ui = null;
     this.#messages = {};
