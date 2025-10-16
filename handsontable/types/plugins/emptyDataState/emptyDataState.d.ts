@@ -1,16 +1,18 @@
 import Core from '../../core';
 import { BasePlugin } from '../base';
 
+interface EmptyDataStateMessage {
+  title?: string;
+  description?: string;
+  actions?: {
+    text: string;
+    type: 'primary' | 'secondary';
+    callback: () => void;
+  }[];
+}
+
 export interface EmptyDataStateConfig {
-  message?: string | function | {
-    title?: string;
-    description?: string;
-    actions?: {
-      text: string;
-      type: 'primary' | 'secondary';
-      callback: () => void;
-    }[];
-  };
+  message?: string | ((source: string) => EmptyDataStateMessage | undefined) | EmptyDataStateMessage;
 }
 
 export type Settings = boolean | EmptyDataStateConfig;
