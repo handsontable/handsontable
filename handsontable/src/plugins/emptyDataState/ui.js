@@ -5,17 +5,18 @@ const EMPTY_DATA_STATE_CLASS_NAME = 'ht-empty-data-state';
 
 const TEMPLATE = `<div data-ref="emptyDataStateElement" class="${EMPTY_DATA_STATE_CLASS_NAME}">
   <div class="${EMPTY_DATA_STATE_CLASS_NAME}__content-wrapper">
-    <div class="${EMPTY_DATA_STATE_CLASS_NAME}__content-wrapper-inner">
-      <div data-ref="emptyDataStateContent" class="${EMPTY_DATA_STATE_CLASS_NAME}__content"></div>
-      <div data-ref="emptyDataStateActions" class="${EMPTY_DATA_STATE_CLASS_NAME}__actions"></div>
-    </div>
+    <div data-ref="emptyDataStateInner" class="${EMPTY_DATA_STATE_CLASS_NAME}__content-wrapper-inner"></div>
   </div>
 </div>`;
 
 const templateContent = ({ title, description }) => `
-  ${title ? `<h2 class="ht-empty-data-state__title">${title}</h2>` : ''}
-  ${description ? `<p class="ht-empty-data-state__description">${description}</p>` : ''}
+  <div class="${EMPTY_DATA_STATE_CLASS_NAME}__content">
+    ${title ? `<h2 class="ht-empty-data-state__title">${title}</h2>` : ''}
+    ${description ? `<p class="ht-empty-data-state__description">${description}</p>` : ''}
+  </div>
 `;
+
+const TEMPLATE_ACTIONS = `<div data-ref="emptyDataStateActions" class="${EMPTY_DATA_STATE_CLASS_NAME}__actions"></div>`;
 
 /**
  * EmptyDataStateUI is a UI component that renders and manages empty data state elements.
@@ -76,7 +77,7 @@ export class EmptyDataStateUI {
    * @param {string | object} message - The message to update.
    */
   updateContent(message) {
-    const { emptyDataStateContent, emptyDataStateActions } = this.#refs;
+    const { emptyDataStateInner } = this.#refs;
 
     let content = '';
 
@@ -91,11 +92,17 @@ export class EmptyDataStateUI {
       };
     }
 
-    emptyDataStateContent.innerHTML = templateContent(content);
-    emptyDataStateActions.innerHTML = '';
+    if (content.title || content.description) {
+      emptyDataStateInner.innerHTML = templateContent(content);
+    } else {
+      emptyDataStateInner.innerHTML = '';
+    }
 
     if (message?.actions) {
-      message?.actions.forEach((action) => {
+      const actionsElement = html`${TEMPLATE_ACTIONS}`;
+      const { emptyDataStateActions } = actionsElement.refs;
+
+      message.actions.forEach((action) => {
         const button = this.#view.hot.rootDocument.createElement('button');
 
         button.classList.add('ht-button', `ht-button--${action.type}`);
@@ -104,6 +111,8 @@ export class EmptyDataStateUI {
 
         emptyDataStateActions.appendChild(button);
       });
+
+      emptyDataStateInner.appendChild(emptyDataStateActions);
     }
   }
 
