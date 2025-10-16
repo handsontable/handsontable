@@ -42,14 +42,28 @@ Use Handsontable with plain JavaScript, TypeScript, or your favorite framework. 
 
 </div>
 
-## Examples with SSR
+## Examples 
 
 <div class="boxes-list gray col3">
 
-- [Next.js](https://stackblitz.com/edit/stackblitz-starters-wp9wzrnb?file=README.md)
-- [Astro](https://stackblitz.com/edit/withastro-astro-nabzqba4?file=README.md) 
-- [Remix](https://stackblitz.com/edit/remix-run-remix-owyjdkt5?file=README.md)
-- [Nuxt](https://stackblitz.com/edit/nuxt-starter-ljnxhaxa?file=README.md)
+
+- [Angular](https://handsontable.com/stackblitz?example-dir=angular&handsontable-version={{$currentVersion}})
+- [Vanilla JS](https://handsontable.com/stackblitz?example-dir=javascript&handsontable-version={{$currentVersion}})
+- [React TS](https://handsontable.com/stackblitz?example-dir=react&handsontable-version={{$currentVersion}})
+- [React JS](https://handsontable.com/stackblitz?example-dir=react-js&handsontable-version={{$currentVersion}})
+- [TypeScript](https://handsontable.com/stackblitz?example-dir=typescript&handsontable-version={{$currentVersion}})
+- [Vue 3](https://handsontable.com/stackblitz?example-dir=vue&handsontable-version={{$currentVersion}})
+
+</div>
+
+Examples with SSR (Server Side Rendering): 
+
+<div class="boxes-list gray col3">
+
+- [Next.js](https://handsontable.com/stackblitz?example-dir=next.js&handsontable-version={{$currentVersion}})
+- [Astro](https://handsontable.com/stackblitz?example-dir=astro&handsontable-version={{$currentVersion}}) 
+- [Remix](https://handsontable.com/stackblitz?example-dir=remix&handsontable-version={{$currentVersion}})
+- [Nuxt](https://handsontable.com/stackblitz?example-dir=nuxt&handsontable-version={{$currentVersion}})
 
 </div>
 
