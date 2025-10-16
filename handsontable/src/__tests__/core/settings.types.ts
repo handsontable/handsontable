@@ -273,7 +273,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
       actions: [
         {
           text: 'Reset filters',
-          type: 'secondary',
+          type: 'secondary' as const,
           callback: () => {},
         },
       ],
@@ -288,7 +288,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
             actions: [
               {
                 text: 'Reset filters',
-                type: 'secondary',
+                type: 'secondary' as const,
                 callback: () => {},
               },
             ],
