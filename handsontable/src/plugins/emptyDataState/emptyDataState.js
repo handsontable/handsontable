@@ -6,10 +6,10 @@ import * as C from '../../i18n/constants';
 export const PLUGIN_KEY = 'emptyDataState';
 export const PLUGIN_PRIORITY = 370;
 export const EMPTY_DATA_STATE_CLASS_NAME = `ht-${PLUGIN_KEY}`;
-const SOURCE = {
+const SOURCE = Object.freeze({
   EMPTY: 'empty',
-  FILTERS: 'filters'
-};
+  FILTERS: 'filters',
+});
 
 /**
  * @plugin EmptyDataState
