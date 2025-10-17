@@ -135,17 +135,20 @@ export class EmptyDataStateUI {
   updateHeight() {
     const { emptyDataStateElement } = this.#refs;
 
-    const wtOverlays = this.#view._wt.wtOverlays;
+    const hider = this.#view._wt.wtTable.hider;
 
-    const topOverlay = wtOverlays.topOverlay;
-    const topCloneElement = topOverlay.clone.wtTable.wtRootElement;
-    const topCloneHeight = topCloneElement ? topCloneElement.offsetHeight : 0;
-
-    if (this.#view._wt.wtTable.hider.clientWidth > 1) {
-      emptyDataStateElement.style.maxWidth = `${this.#view._wt.wtTable.hider.clientWidth}px`;
+    if (hider.clientWidth > 1) {
+      emptyDataStateElement.style.maxWidth = `${hider.clientWidth}px`;
     }
 
-    emptyDataStateElement.style.maxHeight = `calc(100% - ${topCloneHeight + 1}px)`;
+    emptyDataStateElement.style.maxHeight = `calc(100% - ${hider.clientHeight}px)`;
+
+    // Fix for 1px miscalculation issue when autoRowSize is disabled
+    if (this.#view.hot.getPlugin('autoRowSize')?.isEnabled()) {
+      emptyDataStateElement.style.marginTop = undefined;
+    } else {
+      emptyDataStateElement.style.marginTop = '-1px';
+    }
   }
 
   /**
