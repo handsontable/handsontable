@@ -109,6 +109,12 @@ const dictionary = {
   [C.PAGINATION_LAST_PAGE]: 'Přejít na poslední stránku',
 
   [C.LOADING_TITLE]: 'Načítání...',
+
+  [C.EMPTY_DATA_STATE_TITLE]: 'Žádná data nejsou k dispozici',
+  [C.EMPTY_DATA_STATE_DESCRIPTION]: 'Zatím není co zobrazit.',
+  [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'Nebyly nalezeny žádné výsledky',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'Vypadá to, že vaše současné filtry skrývají všechny výsledky.',
+  [C.EMPTY_DATA_STATE_ACTION_FILTERS_BUTTONS_RESET]: 'Resetovat filtry',
 };
 
 export default dictionary;

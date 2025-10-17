@@ -108,6 +108,12 @@ const dictionary = {
   [C.PAGINATION_LAST_PAGE]: 'Gå til siste side',
 
   [C.LOADING_TITLE]: 'Laster...',
+
+  [C.EMPTY_DATA_STATE_TITLE]: 'Ingen data tilgjengelig',
+  [C.EMPTY_DATA_STATE_DESCRIPTION]: 'Det er ingenting å vise ennå.',
+  [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'Ingen resultater funnet',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'Det ser ut til at dine nåværende filtre skjuler alle resultater.',
+  [C.EMPTY_DATA_STATE_ACTION_FILTERS_BUTTONS_RESET]: 'Tilbakestill filtre',
 };
 
 export default dictionary;

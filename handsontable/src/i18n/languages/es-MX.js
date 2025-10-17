@@ -114,6 +114,12 @@ const dictionary = {
   [C.PAGINATION_LAST_PAGE]: 'Ir a la última página',
 
   [C.LOADING_TITLE]: 'Cargando...',
+
+  [C.EMPTY_DATA_STATE_TITLE]: 'No hay datos disponibles',
+  [C.EMPTY_DATA_STATE_DESCRIPTION]: 'No hay nada que mostrar aún.',
+  [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'No se encontraron resultados',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'Parece que tus filtros actuales están ocultando todos los resultados.',
+  [C.EMPTY_DATA_STATE_ACTION_FILTERS_BUTTONS_RESET]: 'Restablecer filtros',
 };
 
 export default dictionary;

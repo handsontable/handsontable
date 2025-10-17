@@ -114,6 +114,12 @@ const dictionary = {
   [C.PAGINATION_LAST_PAGE]: 'Ga naar laatste pagina',
 
   [C.LOADING_TITLE]: 'Laden...',
+
+  [C.EMPTY_DATA_STATE_TITLE]: 'Geen gegevens beschikbaar',
+  [C.EMPTY_DATA_STATE_DESCRIPTION]: 'Er is nog niets te tonen.',
+  [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'Geen resultaten gevonden',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'Het lijkt erop dat uw huidige filters alle resultaten verbergen.',
+  [C.EMPTY_DATA_STATE_ACTION_FILTERS_BUTTONS_RESET]: 'Filters resetten',
 };
 
 export default dictionary;
