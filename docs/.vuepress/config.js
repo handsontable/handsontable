@@ -288,10 +288,20 @@ module.exports = {
 
             token.attrs.forEach(([name, value], index) => {
               if (name === 'href') {
-                token.attrs[index][1] = decodeURIComponent(value).replace(
-                  '{{$basePath}}',
-                  getDocsBaseFullUrl()
-                );
+                if (decodeURIComponent(value).includes('{{$currentVersion}}')) {
+                  const version = getThisDocsVersion();
+
+                  token.attrs[index][1] = decodeURIComponent(value).replace(
+                    '{{$currentVersion}}',
+                    version === 'next' ? 'latest' : version
+                  );
+                } else if (decodeURIComponent(value).includes('{{$basePath}}')) {
+                  token.attrs[index][1] = decodeURIComponent(value).replace(
+                    '{{$basePath}}',
+                    getDocsBaseFullUrl()
+                  );
+                }
+
               }
             });
           });

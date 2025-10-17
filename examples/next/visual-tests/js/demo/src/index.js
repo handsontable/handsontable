@@ -23,6 +23,7 @@ import { init as initTextEllipsisDemo } from './demos/textEllipsis';
 import { init as initDialogDemo } from './demos/dialog';
 import { init as initWrapperDemo } from './demos/wrapper';
 import { init as initLoadingDemo } from './demos/loading';
+import { init as initRowSizeDemo } from './demos/rowSize';
 import { init as initEmptyDataStateDemo } from './demos/emptyDataState';
 
 // Function to dynamically load CSS
@@ -286,6 +287,15 @@ router
         loadThemeCSS(),
       ]).then(() => {
         initLoadingDemo();
+      });
+    },
+    '/row-size-demo': function () {
+      removeCSS();
+
+      Promise.all([
+        loadThemeCSS(),
+      ]).then(() => {
+        initRowSizeDemo();
       });
     },
     '/empty-data-state-demo': function () {

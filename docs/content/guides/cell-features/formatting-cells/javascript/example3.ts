@@ -39,6 +39,7 @@ new Handsontable(container, {
       top: {
         width: 2,
         color: '#5292F7',
+        style: 'dotted',
       },
       bottom: {
         width: 2,
@@ -47,6 +48,7 @@ new Handsontable(container, {
       start: {
         width: 2,
         color: 'orange',
+        style: 'dashed',
       },
       end: {
         width: 2,
