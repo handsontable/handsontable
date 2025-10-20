@@ -1,49 +1,33 @@
-import { installFocusDetector } from '../utils/focusDetector';
+describe('ScopeManager', () => {
+  const id = 'testContainer';
 
-describe('focusDetector', () => {
-  let hot;
-  let hooks;
-
-  beforeEach(() => {
-    const rootElement = document.createElement('div');
-    const rootWrapperElement = document.createElement('div');
-
-    rootElement.className = 'handsontable';
-    rootElement.innerHTML = '<div></div><div></div>';
-
-    rootWrapperElement.appendChild(rootElement);
-
-    hot = {
-      rootWrapperElement,
-      rootElement,
-      rootDocument: document,
-      _registerTimeout: jest.fn(),
-      getSettings: () => ({
-        ariaTags: true,
-      }),
-    };
-    hooks = {
-      onFocus: jest.fn(),
-    };
+  beforeEach(function() {
+    this.$container = $(`<div id="${id}"></div>`).appendTo('body');
   });
 
-  afterEach(() => {
-    hot = null;
-    hooks = null;
+  afterEach(function() {
+    if (this.$container) {
+      destroy();
+      this.$container.remove();
+    }
   });
 
-  it('should add input traps with correct attributes to the wrapper element', () => {
-    installFocusDetector(hot, hot.rootWrapperElement, hooks);
+  it('should add input traps with correct attributes to the wrapper element', async() => {
+    const hot = handsontable({
+      data: createSpreadsheetData(10, 10),
+    });
 
-    const inputTrapTop = hot.rootWrapperElement.firstChild;
-    const inputTrapBottom = hot.rootWrapperElement.lastChild;
+    const inputTrapTop = hot.rootGridElement.firstChild;
+    const inputTrapBottom = hot.rootGridElement.lastChild;
 
     expect(inputTrapTop.className).toBe('htFocusCatcher');
     expect(inputTrapTop.name).toBe('htFocusCatcher');
     expect(inputTrapTop.getAttribute('aria-label')).toBe('Focus catcher');
+    expect(inputTrapTop.dataset.htFocusSource).toBe('tab_from_above');
     expect(inputTrapBottom.className).toBe('htFocusCatcher');
     expect(inputTrapBottom.name).toBe('htFocusCatcher');
-    expect(inputTrapTop.getAttribute('aria-label')).toBe('Focus catcher');
+    expect(inputTrapBottom.getAttribute('aria-label')).toBe('Focus catcher');
+    expect(inputTrapBottom.dataset.htFocusSource).toBe('tab_from_below');
 
     const inputTrapTopStyle = window.getComputedStyle(inputTrapTop);
 
@@ -52,8 +36,8 @@ describe('focusDetector', () => {
     expect(inputTrapTopStyle.height).toBe('0px');
     expect(inputTrapTopStyle.opacity).toBe('0');
     expect(inputTrapTopStyle.zIndex).toBe('-1');
-    expect(inputTrapTopStyle.border).toBe('0px');
-    expect(inputTrapTopStyle.outline).toBe('0px');
+    expect(inputTrapTopStyle.borderWidth).toBe('0px');
+    expect(inputTrapTopStyle.outlineWidth).toBe('0px');
     expect(inputTrapTopStyle.padding).toBe('0px');
     expect(inputTrapTopStyle.margin).toBe('0px');
 
@@ -64,8 +48,8 @@ describe('focusDetector', () => {
     expect(inputTrapBottomStyle.height).toBe('0px');
     expect(inputTrapBottomStyle.opacity).toBe('0');
     expect(inputTrapBottomStyle.zIndex).toBe('-1');
-    expect(inputTrapBottomStyle.border).toBe('0px');
-    expect(inputTrapBottomStyle.outline).toBe('0px');
+    expect(inputTrapBottomStyle.borderWidth).toBe('0px');
+    expect(inputTrapBottomStyle.outlineWidth).toBe('0px');
     expect(inputTrapBottomStyle.padding).toBe('0px');
     expect(inputTrapBottomStyle.margin).toBe('0px');
   });

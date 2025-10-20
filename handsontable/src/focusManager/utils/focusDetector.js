@@ -60,26 +60,11 @@ export function installFocusDetector(hot, wrapperElement) {
 function createInputElement(hot, focusSource) {
   const rootDocument = hot.rootDocument;
   const input = rootDocument.createElement('input');
-  const inputStyle = input.style;
 
   input.type = 'text';
   input.name = 'htFocusCatcher';
   input.classList.add('htFocusCatcher');
   input.dataset.htFocusSource = focusSource;
-
-  [
-    ['position', 'absolute'],
-    ['width', '0px'],
-    ['height', '0px'],
-    ['opacity', '0'],
-    ['zIndex', '-1'],
-    ['border', '0px'],
-    ['outline', '0px'],
-    ['padding', '0px'],
-    ['margin', '0px']
-  ].forEach(([property, value]) => {
-    inputStyle[property] = value;
-  });
 
   if (hot.getSettings().ariaTags) {
     setAttribute(input, [
