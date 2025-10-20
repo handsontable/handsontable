@@ -64,6 +64,24 @@ export default {
   },
   mounted() {
     this.scrollToActiveElement(this.$route.path);
+    // THIS IS hack but it works
+    const newLinks = [
+      '/deprecation-policy/',
+      '/versioning-policy/'
+    ];
+
+    document.querySelectorAll('aside.sidebar .sidebar-links a').forEach((a) => {
+      if (newLinks.some(link => a.href.endsWith(link))) {
+        if (a.querySelector('span.new-link') === null) {
+          const span = document.createElement('span');
+
+          span.textContent = 'New';
+          span.classList.add('tag-new');
+          a.appendChild(span);
+        }
+      }
+    });
+
   },
   watch: {
     $route(to, from) {

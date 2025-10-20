@@ -42,6 +42,17 @@
     height: 100%;
   }
 
+  .htFocusCatcher {
+    position: absolute;
+    width: 0;
+    height: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    opacity: 0;
+    z-index: -1;
+  }
+
   .ht-grid {
     flex: 1 1 auto;
     min-height: 0;
@@ -378,7 +389,7 @@
             &:has(.collapsibleIndicator, .changeType) {
               .colHeader {
                 max-width: calc(
-                  100% - (var(--ht-icon-size) + var(--ht-gap-size)) - 1px 
+                  100% - (var(--ht-icon-size) + var(--ht-gap-size)) - 1px
                 );
               }
             }
@@ -602,22 +613,24 @@
       }
     }
 
-    .ht_master.innerBorderTop {
-      tbody {
-        tr:first-child {
-          th,
-          td {
-            border-top-width: 0;
-          }
-        }
-      }
-
-      & ~ .ht_clone_inline_start {
+    &.htAutoRowSize {
+      .ht_master.innerBorderTop {
         tbody {
           tr:first-child {
             th,
             td {
               border-top-width: 0;
+            }
+          }
+        }
+  
+        & ~ .ht_clone_inline_start {
+          tbody {
+            tr:first-child {
+              th,
+              td {
+                border-top-width: 0;
+              }
             }
           }
         }

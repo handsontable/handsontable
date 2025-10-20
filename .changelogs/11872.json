@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue with row misalignment when cells have more than one line of text",
+  "type": "fixed",
+  "issueOrPR": 11872,
+  "breaking": false,
+  "framework": "none"
+}

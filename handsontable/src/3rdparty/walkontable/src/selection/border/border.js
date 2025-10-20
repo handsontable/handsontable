@@ -15,6 +15,10 @@ import { objectEach } from '../../../../../helpers/object';
 import { isMobileBrowser } from '../../../../../helpers/browser';
 import { getCornerStyle } from './utils';
 
+const BORDER_STYLE_CLASS_PREFIX = 'ht-border-style-';
+const BORDER_STYLE_VERTICAL_SUFFIX = '-vertical';
+const BORDER_STYLE_HORIZONTAL_SUFFIX = '-horizontal';
+
 /**
  *
  */
@@ -165,19 +169,35 @@ class Border {
     for (let i = 0; i < 5; i++) {
       const position = borderDivs[i];
       const div = rootDocument.createElement('div');
+      const getSettingsProperty = property => ((this.settings[position] && this.settings[position][property]) ?
+        this.settings[position][property] : settings.border[property]);
 
       div.className = `wtBorder ${this.settings.className || ''}`; // + borderDivs[i];
 
       if (this.settings[position] && this.settings[position].hide) {
         div.className += ' hidden';
       }
+
       style = div.style;
-      style.backgroundColor = (this.settings[position] && this.settings[position].color) ?
-        this.settings[position].color : settings.border.color;
-      style.height = (this.settings[position] && this.settings[position].width) ?
-        `${this.settings[position].width}px` : `${settings.border.width}px`;
-      style.width = (this.settings[position] && this.settings[position].width) ?
-        `${this.settings[position].width}px` : `${settings.border.width}px`;
+
+      const borderStyle = getSettingsProperty('style');
+
+      if (borderStyle) {
+        if (['start', 'end'].includes(position)) {
+          div.className += ` ${BORDER_STYLE_CLASS_PREFIX}${borderStyle}${BORDER_STYLE_VERTICAL_SUFFIX}`;
+        } else {
+          div.className += ` ${BORDER_STYLE_CLASS_PREFIX}${borderStyle}${BORDER_STYLE_HORIZONTAL_SUFFIX}`;
+        }
+
+        style.setProperty('--ht-custom-border-size', `${getSettingsProperty('width')}px`);
+        style.setProperty('--ht-custom-border-color', getSettingsProperty('color'));
+
+      } else {
+        style.backgroundColor = getSettingsProperty('color');
+      }
+
+      style.height = `${getSettingsProperty('width')}px`;
+      style.width = `${getSettingsProperty('width')}px`;
 
       this.main.appendChild(div);
     }
