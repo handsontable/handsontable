@@ -21,13 +21,22 @@ import { SCOPE_TYPES, FOCUS_SOURCES, DEFAULT_SHORTCUTS_CONTEXT } from './constan
  *
  * @param {Core} hotInstance The Handsontable instance.
  * @param {HTMLElement} container Container element for the scope.
- * @param {object} options Configuration options.
- * @param {string} options.shortcutsContextName The name of the shortcuts context to switch to when the scope is activated.
- * @param {'modal' | 'container'} options.type The type of the scope.
- * @param {function(): boolean} options.runOnlyIf Whether the scope is enabled or not depends on the custom logic.
- * @param {function(HTMLElement): boolean} options.contains Whether the target element is within the scope.
- * @param {function(): void} options.onActivate Callback function to be called when the scope is activated.
- * @param {function(): void} options.onDeactivate Callback function to be called when the scope is deactivated.
+ * @param {object} [options] Configuration options.
+ * @param {string} [options.shortcutsContextName='grid'] The name of the shortcuts context to switch to when
+ * the scope is activated.
+ * @param {'modal' | 'inline'} [options.type='inline'] The type of the scope:<br/>
+ *   - `modal`: The scope is modal and blocks the rest of the grid from receiving focus.<br/>
+ *   - `inline`: The scope is inline and allows the rest of the grid to receive focus in the order of the rendered elements in the DOM.
+ * @param {function(): boolean} [options.runOnlyIf] Whether the scope is enabled or not depends on the custom logic.
+ * @param {function(HTMLElement): boolean} [options.contains] Whether the target element is within the scope. If the option is not
+ *  provided, the scope will be activated if the target element is within the container element.
+ * @param {function(): void} [options.onActivate] Callback function to be called when the scope is activated.
+ * The first argument is the source of the activation:<br/>
+ *   - `unknown`: The scope is activated by an unknown source.<br/>
+ *   - `click`: The scope is activated by a click event.<br/>
+ *   - `tab_from_above`: The scope is activated by a tab key press.<br/>
+ *   - `tab_from_below`: The scope is activated by a shift+tab key press.
+ * @param {function(): void} [options.onDeactivate] Callback function to be called when the scope is deactivated.
  * @returns {FocusScope} Focus scope object with methods.
  */
 export function createFocusScope(hotInstance, container, options = {}) {
