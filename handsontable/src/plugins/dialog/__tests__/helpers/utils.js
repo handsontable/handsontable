@@ -27,3 +27,21 @@ export function getDialogContentHTML() {
     .replace(/\n/g, '')
     .trim();
 }
+
+/**
+ * Returns the first focus catcher element.
+ *
+ * @returns {HTMLElement}
+ */
+export function getDialogFirstFocusCatcherElement() {
+  return getDialogContainerElement().querySelectorAll('.htFocusCatcher')[0];
+}
+
+/**
+ * Returns the last focus catcher element.
+ *
+ * @returns {HTMLElement}
+ */
+export function getDialogLastFocusCatcherElement() {
+  return getDialogContainerElement().querySelectorAll('.htFocusCatcher')[1];
+}

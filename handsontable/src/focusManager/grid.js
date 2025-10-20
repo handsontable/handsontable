@@ -1,6 +1,6 @@
-import { warn } from './helpers/console';
-import { isHTMLElement, isOutsideInput } from './helpers/dom/element';
-import { debounce } from './helpers/function';
+import { warn } from '../helpers/console';
+import { isHTMLElement, isOutsideInput } from '../helpers/dom/element';
+import { debounce } from '../helpers/function';
 
 /**
  * Possible focus modes.
@@ -16,9 +16,10 @@ const FOCUS_MODES = Object.freeze({
 });
 
 /**
- * Manages the browser's focus in the table.
+ * Manages the browser's focus in the table to achieve correct behavior for screen readers and
+ * IME editors.
  */
-export class FocusManager {
+export class FocusGridManager {
   /**
    * The Handsontable instance.
    */
@@ -56,9 +57,12 @@ export class FocusManager {
   #debouncedSelect = new Map();
 
   constructor(hotInstance) {
-    const hotSettings = hotInstance.getSettings();
-
     this.#hot = hotInstance;
+  }
+
+  init() {
+    const hotSettings = this.#hot.getSettings();
+
     this.#focusMode = hotSettings.imeFastEdit ? FOCUS_MODES.MIXED : FOCUS_MODES.CELL;
 
     this.#hot.addHook('afterUpdateSettings', (...args) => this.#onUpdateSettings(...args));

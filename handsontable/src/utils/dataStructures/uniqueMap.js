@@ -93,6 +93,15 @@ export function createUniqueMap({ errorIdExists } = {}) {
   }
 
   /**
+   * Gets all values from the map.
+   *
+   * @returns {Array}
+   */
+  function getValues() {
+    return [...uniqueMap.values()];
+  }
+
+  /**
    * Verifies if the passed ID exists in a map.
    *
    * @param {*} id The ID to check if registered.
@@ -108,6 +117,7 @@ export function createUniqueMap({ errorIdExists } = {}) {
     getId,
     getItem,
     getItems,
+    getValues,
     hasItem,
     removeItem,
   };

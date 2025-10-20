@@ -389,7 +389,7 @@
             &:has(.collapsibleIndicator, .changeType) {
               .colHeader {
                 max-width: calc(
-                  100% - (var(--ht-icon-size) + var(--ht-gap-size)) - 1px 
+                  100% - (var(--ht-icon-size) + var(--ht-gap-size)) - 1px
                 );
               }
             }

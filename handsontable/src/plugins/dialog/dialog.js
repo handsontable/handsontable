@@ -1,6 +1,5 @@
 import { BasePlugin } from '../base';
 import { DialogUI } from './ui';
-import { installFocusDetector } from '../../utils/focusDetector';
 import { isObject } from '../../helpers/object';
 
 export const PLUGIN_KEY = 'dialog';
@@ -188,13 +187,6 @@ export class Dialog extends BasePlugin {
   #isVisible = false;
 
   /**
-   * Focus detector instance.
-   *
-   * @type {FocusDetector}
-   */
-  #focusDetector = null;
-
-  /**
    * Keeps the selection state that will be restored after the dialog is closed.
    *
    * @type {SelectionState | null}
@@ -223,24 +215,12 @@ export class Dialog extends BasePlugin {
         rootElement: this.hot.rootGridElement,
         isRtl: this.hot.isRtl(),
       });
-
-      this.#ui.addLocalHook('clickDialogElement', () => this.#onDialogClick());
-
-      this.#focusDetector = installFocusDetector(this.hot, this.#ui.getDialogElement(), {
-        onFocus: (from) => {
-          this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
-          this.hot.listen();
-          this.hot.runHooks('afterDialogFocus', `tab_${from}`);
-        }
-      });
     }
 
     this.#registerShortcuts();
+    this.#registerFocusScope();
 
-    this.addHook('modifyFocusOnTabNavigation', from => this.#onFocusTabNavigation(from), 1);
     this.addHook('afterViewRender', () => this.#onAfterRender());
-    this.addHook('afterListen', () => this.#onAfterListen());
-    this.addHook('afterUnlisten', () => this.#onAfterUnlisten());
 
     super.enablePlugin();
   }
@@ -261,59 +241,9 @@ export class Dialog extends BasePlugin {
   disablePlugin() {
     this.hide();
     this.#unregisterShortcuts();
+    this.#unregisterFocusScope();
 
     super.disablePlugin();
-  }
-
-  /**
-   * Register shortcuts responsible for closing the dialog and navigating through the dialog.
-   */
-  #registerShortcuts() {
-    const manager = this.hot.getShortcutManager();
-    const pluginContext = manager.getContext(SHORTCUTS_CONTEXT_NAME) ??
-      manager.addContext(SHORTCUTS_CONTEXT_NAME);
-
-    pluginContext.addShortcut({
-      keys: [['Escape']],
-      callback: () => {
-        this.hide();
-      },
-      runOnlyIf: () => this.#isVisible && this.getSetting('closable'),
-      group: SHORTCUTS_GROUP,
-    });
-
-    pluginContext.addShortcut({
-      keys: [['Shift', 'Tab'], ['Tab']],
-      preventDefault: false,
-      callback: (event) => {
-        this.hot._registerTimeout(() => {
-          const { activeElement } = this.hot.rootDocument;
-
-          if (!this.#ui.isInsideDialog(activeElement)) {
-            this.hot.unlisten();
-
-            return;
-          }
-
-          if (event.shiftKey) {
-            this.hot.runHooks('dialogFocusPreviousElement');
-          } else {
-            this.hot.runHooks('dialogFocusNextElement');
-          }
-        }, 0);
-      },
-      group: SHORTCUTS_GROUP,
-    });
-  }
-
-  /**
-   * Unregister shortcuts responsible for closing the dialog and navigating through the dialog.
-   */
-  #unregisterShortcuts() {
-    const shortcutManager = this.hot.getShortcutManager();
-    const pluginContext = shortcutManager.getContext(SHORTCUTS_CONTEXT_NAME);
-
-    pluginContext.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   /**
@@ -354,25 +284,18 @@ export class Dialog extends BasePlugin {
     }
 
     this.hot.runHooks('beforeDialogShow');
-
     this.update(options);
+
     this.#ui.showDialog(this.getSetting('animation'));
+
     this.#isVisible = true;
 
+    this.hot.getFocusScopeManager().activateScope(PLUGIN_KEY);
+
     this.#selectionState = this.hot.selection.exportSelection();
+
     this.hot.deselectCell();
-
     this.hot.runHooks('afterDialogShow');
-
-    const { activeElement } = this.hot.rootDocument;
-
-    if (this.hot.rootWrapperElement.contains(activeElement) || this.hot.rootPortalElement.contains(activeElement)) {
-      this.hot.unlisten();
-      this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
-      this.hot.listen();
-      this.#ui.focusDialog();
-      this.hot.runHooks('afterDialogFocus', 'show');
-    }
   }
 
   /**
@@ -387,10 +310,11 @@ export class Dialog extends BasePlugin {
     this.hot.runHooks('beforeDialogHide');
 
     this.#ui.hideDialog(this.getSetting('animation'));
-    this.hot.getShortcutManager().setActiveContextName('grid');
     this.#isVisible = false;
 
-    if (this.#selectionState) {
+    this.hot.getFocusScopeManager().deactivateScope(PLUGIN_KEY);
+
+    if (this.#selectionState?.ranges.length > 0) {
       this.hot.selection.importSelection(this.#selectionState);
       this.hot.view.render();
       this.#selectionState = null;
@@ -443,43 +367,81 @@ export class Dialog extends BasePlugin {
   }
 
   /**
-   * Handle focus tab navigation event.
-   *
-   * @param {'from_above' | 'from_below'} from The direction from which the focus was modified.
-   * @returns {boolean} Returns `false` to prevent the default focus behavior.
+   * Register shortcuts responsible for closing the dialog and navigating through the dialog.
    */
-  #onFocusTabNavigation(from) {
-    if (this.isVisible()) {
-      this.#focusDetector.focus(from);
+  #registerShortcuts() {
+    const manager = this.hot.getShortcutManager();
+    const pluginContext = manager.getContext(SHORTCUTS_CONTEXT_NAME) ??
+      manager.addContext(SHORTCUTS_CONTEXT_NAME);
 
-      return false;
-    }
+    pluginContext.addShortcut({
+      keys: [['Escape']],
+      callback: () => {
+        this.hide();
+      },
+      runOnlyIf: () => this.#isVisible && this.getSetting('closable'),
+      group: SHORTCUTS_GROUP,
+    });
+
+    pluginContext.addShortcut({
+      keys: [['Shift', 'Tab'], ['Tab']],
+      preventDefault: false,
+      callback: (event) => {
+        this.hot._registerTimeout(() => {
+          if (event.shiftKey) {
+            this.hot.runHooks('dialogFocusPreviousElement');
+          } else {
+            this.hot.runHooks('dialogFocusNextElement');
+          }
+        });
+      },
+      group: SHORTCUTS_GROUP,
+    });
   }
 
   /**
-   * Handle dialog click event.
+   * Unregister shortcuts responsible for closing the dialog and navigating through the dialog.
    */
-  #onDialogClick() {
-    if (this.isVisible() && !this.hot.isListening()) {
-      this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
-      this.hot.runHooks('afterDialogFocus', 'click');
-    }
+  #unregisterShortcuts() {
+    const shortcutManager = this.hot.getShortcutManager();
+    const pluginContext = shortcutManager.getContext(SHORTCUTS_CONTEXT_NAME);
 
-    this.hot.listen();
+    pluginContext.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   /**
-   * Called after the table is listened.
+   * Registers the focus scope for the dialog plugin.
    */
-  #onAfterListen() {
-    this.#focusDetector.deactivate();
+  #registerFocusScope() {
+    this.hot.getFocusScopeManager()
+      .registerScope(PLUGIN_KEY, this.#ui.getContainer(), {
+        shortcutsContextName: SHORTCUTS_CONTEXT_NAME,
+        type: 'modal',
+        runOnlyIf: () => this.isVisible(),
+        onActivate: (focusSource) => {
+          const isListening = this.hot.isListening();
+
+          if (
+            focusSource !== 'tab_from_above' &&
+            focusSource !== 'tab_from_below' &&
+            isListening &&
+            !this.#ui.getContainer().contains(this.hot.rootDocument.activeElement)
+          ) {
+            this.#ui.getContainer().focus();
+          }
+
+          if (isListening) {
+            this.hot.runHooks('afterDialogFocus', focusSource === 'unknown' ? 'show' : focusSource);
+          }
+        },
+      });
   }
 
   /**
-   * Called after the table is unlistened.
+   * Unregisters the focus scope for the dialog plugin.
    */
-  #onAfterUnlisten() {
-    this.#focusDetector.activate();
+  #unregisterFocusScope() {
+    this.hot.getFocusScopeManager().unregisterScope(PLUGIN_KEY);
   }
 
   /**
@@ -510,7 +472,6 @@ export class Dialog extends BasePlugin {
     this.#ui?.destroyDialog();
     this.#ui = null;
     this.#isVisible = false;
-    this.#focusDetector = null;
     this.#selectionState = null;
 
     super.destroy();

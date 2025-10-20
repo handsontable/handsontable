@@ -117,6 +117,7 @@ const formulasItems = [
 const navigationItems = [
   { path: 'guides/navigation/keyboard-shortcuts/keyboard-shortcuts' },
   { path: 'guides/navigation/custom-shortcuts/custom-shortcuts' },
+  { path: 'guides/navigation/focus-scopes/focus-scopes' },
   { path: 'guides/navigation/searching-values/searching-values' },
 ];
 

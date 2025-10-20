@@ -19,7 +19,7 @@ import { BaseValidator } from './validators/base';
 import { Plugins } from './plugins';
 import { CellType } from './cellTypes';
 import { ShortcutManager } from './shortcuts';
-import { FocusManager } from './focusManager';
+import { GridFocusManager, FocusScopeManager } from './focusManager';
 
 type AlterActions = 'insert_row_above' | 'insert_row_below' |
                     'insert_col_start' | 'insert_col_end' |
@@ -90,7 +90,8 @@ export default class Core {
   getFirstPartiallyVisibleRow(): number | null;
   getFirstRenderedVisibleColumn(): number | null;
   getFirstRenderedVisibleRow(): number | null;
-  getFocusManager(): FocusManager;
+  getFocusManager(): GridFocusManager;
+  getFocusScopeManager(): FocusScopeManager;
   getInstance(): Core;
   getLastFullyVisibleColumn(): number | null;
   getLastFullyVisibleRow(): number | null;

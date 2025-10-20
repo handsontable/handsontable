@@ -80,8 +80,6 @@ export class DialogUI {
 
     const { dialogElement } = this.#refs;
 
-    dialogElement.addEventListener('click', () => this.runLocalHooks('clickDialogElement'));
-
     // Set ARIA attributes
     setAttribute(dialogElement, [
       A11Y_MODAL(),
@@ -98,18 +96,17 @@ export class DialogUI {
    *
    * @returns {HTMLElement} The dialog element.
    */
-  getDialogElement() {
+  getContainer() {
     return this.#refs.dialogElement;
   }
 
   /**
-   * Checks if the given element is inside the dialog.
+   * Gets the focusable elements.
    *
-   * @param {HTMLElement} element - The element to check.
-   * @returns {boolean} Returns `true` if the element is inside the dialog, `false` otherwise.
+   * @returns {HTMLElement[]} The focusable elements.
    */
-  isInsideDialog(element) {
-    return this.#refs.dialogElement.contains(element);
+  getFocusableElements() {
+    return [this.#refs.dialogElement];
   }
 
   /**
@@ -192,6 +189,7 @@ export class DialogUI {
     // Render new dialog content
     if (typeof content === 'string') {
       fastInnerHTML(contentElement, content);
+
     } else if (content instanceof HTMLElement || content instanceof DocumentFragment) {
       contentElement.appendChild(content);
     }

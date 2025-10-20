@@ -67,6 +67,7 @@ export const simulateClick = waitOnScroll((element, buttonKey = 'LMB', eventProp
   // Only left click generates "click" events.
   if (mouseButton === getMouseButton('LMB')) {
     mouseClick(element, mouseButton, eventProps);
+    element.focus();
   }
 
   // Only right click generates "contextmenu" events.

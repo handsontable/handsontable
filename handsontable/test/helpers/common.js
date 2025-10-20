@@ -150,6 +150,7 @@ export const getFirstPartiallyVisibleRow = handsontableMethodFactory('getFirstPa
 export const getFirstRenderedVisibleColumn = handsontableMethodFactory('getFirstRenderedVisibleColumn');
 export const getFirstRenderedVisibleRow = handsontableMethodFactory('getFirstRenderedVisibleRow');
 export const getFocusManager = handsontableMethodFactory('getFocusManager');
+export const getFocusScopeManager = handsontableMethodFactory('getFocusScopeManager');
 export const getInstance = handsontableMethodFactory('getInstance');
 export const getLastFullyVisibleColumn = handsontableMethodFactory('getLastFullyVisibleColumn');
 export const getLastFullyVisibleRow = handsontableMethodFactory('getLastFullyVisibleRow');
@@ -540,24 +541,6 @@ export function getBottomClone() {
  */
 export function getBottomInlineStartClone() {
   return $(hot().rootElement).find('.ht_clone_bottom_inline_start_corner');
-}
-
-/**
- * Emulates the browser's TAB navigation to the Handsontable (from element above).
- *
- * @param {Handsontable} hotInstance The Handsontable instance to apply the event.
- */
-export function triggerTabNavigationFromTop(hotInstance = hot()) {
-  $(hotInstance.rootWrapperElement).find('.htFocusCatcher').first().focus();
-}
-
-/**
- * Emulates the browser's Shift+TAB navigation to the Handsontable (from element below).
- *
- * @param {Handsontable} hotInstance The Handsontable instance to apply the event.
- */
-export function triggerTabNavigationFromBottom(hotInstance = hot()) {
-  $(hotInstance.rootWrapperElement).find('.htFocusCatcher').last().focus();
 }
 
 /**

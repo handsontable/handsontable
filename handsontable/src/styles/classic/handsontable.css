@@ -434,7 +434,7 @@ innerBorderBottom - Property controlled by bottom overlay
   font-size: 10px;
 }
 
-.ht-root-wrapper .htFocusCatcher {
+.htFocusCatcher {
   position: absolute;
   z-index: -1;
   opacity: 0;
