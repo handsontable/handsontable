@@ -21,14 +21,15 @@ export default {
         items:
           [
             ...(this.$page.versionsWithPatches ? Array.from(this.$page.versionsWithPatches.keys()).map(v => ({
-              text: v,
-              subTexts: this.$page.versionsWithPatches.get(v),
+              text: v.toString().toUpperCase() === 'NEXT'? "dev" : v,
+              subTexts: [],
+              //subTexts: this.$page.versionsWithPatches.get(v),
               link: this.getLink(v),
               target: '_self',
               rel: this.$page.latestVersion === v ? undefined : 'nofollow',
               isHtmlLink: true,
             })) : []),
-          ]
+          ] 
       };
     }
   },
@@ -42,7 +43,7 @@ export default {
         }
 
         // return `${version} (latest)`;
-        return `${version} latest`;
+        return `${version === 'next' ? "dev" : version} latest`;
 
       }
 
@@ -56,7 +57,7 @@ export default {
       }
 
       // Using `location.origin` disables injecting `.html` postfix at the end of the URL
-      return `${location.origin}/docs/${version}/redirect?pageId=${this.$page.frontmatter.id}`;
+      return `${location.origin}/docs/${version}`;
     }
   },
   mounted() {
