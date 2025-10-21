@@ -298,7 +298,7 @@ export class EmptyDataState extends BasePlugin {
    */
   #onAfterRender() {
     if (this.#ui?.getElement()) {
-      this.#ui.updateHeight();
+      this.#ui.updateSize();
       this.#ui.updateClassNames();
     }
   }
@@ -375,6 +375,8 @@ export class EmptyDataState extends BasePlugin {
       } else {
         this.#ui.updateContent(this.#messages.empty);
       }
+
+      this.hot.render();
 
       this.#isVisible = true;
 

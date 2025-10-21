@@ -1,9 +1,10 @@
 import { html } from '../../helpers/templateLiteralTag';
 import { addClass, removeClass } from '../../helpers/dom/element';
+import EventManager from '../../eventManager';
 
 const EMPTY_DATA_STATE_CLASS_NAME = 'ht-empty-data-state';
 
-const TEMPLATE = `<div data-ref="emptyDataStateElement" class="${EMPTY_DATA_STATE_CLASS_NAME}">
+const TEMPLATE = `<div data-ref="emptyDataStateElement" class="${EMPTY_DATA_STATE_CLASS_NAME} handsontable">
   <div class="${EMPTY_DATA_STATE_CLASS_NAME}__content-wrapper">
     <div data-ref="emptyDataStateInner" class="${EMPTY_DATA_STATE_CLASS_NAME}__content-wrapper-inner"></div>
   </div>
@@ -11,8 +12,8 @@ const TEMPLATE = `<div data-ref="emptyDataStateElement" class="${EMPTY_DATA_STAT
 
 const templateContent = ({ title, description }) => `
   <div class="${EMPTY_DATA_STATE_CLASS_NAME}__content">
-    ${title ? `<h2 class="ht-empty-data-state__title">${title}</h2>` : ''}
-    ${description ? `<p class="ht-empty-data-state__description">${description}</p>` : ''}
+    ${title ? `<h2 class="${EMPTY_DATA_STATE_CLASS_NAME}__title">${title}</h2>` : ''}
+    ${description ? `<p class="${EMPTY_DATA_STATE_CLASS_NAME}__description">${description}</p>` : ''}
   </div>
 `;
 
@@ -37,6 +38,19 @@ export class EmptyDataStateUI {
    * @type {object}
    */
   #refs;
+  /**
+   * Instance of EventManager.
+   *
+   * @type {EventManager}
+   */
+  #eventManager;
+
+  /**
+   * The placeholder element.
+   *
+   * @type {HTMLElement}
+   */
+  #placeholderElement;
 
   constructor({
     view,
@@ -56,10 +70,26 @@ export class EmptyDataStateUI {
 
     this.#refs = elements.refs;
 
-    this.updateHeight();
-    this.updateClassNames();
+    this.#eventManager = new EventManager(this);
 
-    this.#view._wt.wtTable.holder.appendChild(elements.fragment);
+    this.#eventManager.addEventListener(
+      this.#refs.emptyDataStateElement,
+      'wheel',
+      event => this.#mouseWheelHandler(event),
+    );
+
+    this.#view.hot.rootGridElement.after(elements.fragment);
+  }
+
+  /**
+   * Handles the mouse wheel event.
+   *
+   * @param {WheelEvent} event - The wheel event.
+   */
+  #mouseWheelHandler(event) {
+    const deltaX = isNaN(event.deltaX) ? (-1) * event.wheelDeltaX : event.deltaX;
+
+    this.#view._wt.wtTable.holder.scrollLeft += deltaX;
   }
 
   /**
@@ -121,33 +151,54 @@ export class EmptyDataStateUI {
    */
   updateClassNames() {
     const { emptyDataStateElement } = this.#refs;
+    const holder = this.#view._wt.wtTable.holder;
+    const scrollbarHeight = holder.offsetHeight - holder.clientHeight;
 
     if (this.#view._wt.wtTable.hider.clientHeight > 1) {
-      addClass(emptyDataStateElement, 'ht-empty-data-state--disable-top-border');
+      addClass(emptyDataStateElement, `${EMPTY_DATA_STATE_CLASS_NAME}--disable-top-border`);
     } else {
-      removeClass(emptyDataStateElement, 'ht-empty-data-state--disable-top-border');
+      removeClass(emptyDataStateElement, `${EMPTY_DATA_STATE_CLASS_NAME}--disable-top-border`);
+    }
+
+    if (scrollbarHeight > 0) {
+      addClass(emptyDataStateElement, `${EMPTY_DATA_STATE_CLASS_NAME}--disable-bottom-border`);
+    } else {
+      removeClass(emptyDataStateElement, `${EMPTY_DATA_STATE_CLASS_NAME}--disable-bottom-border`);
     }
   }
 
   /**
-   * Updates the height of the empty data state element.
+   * Updates the size of the empty data state element.
    */
-  updateHeight() {
+  updateSize() {
     const { emptyDataStateElement } = this.#refs;
+    const isAutoRowSizeEnabled = this.#view.hot.getPlugin('autoRowSize')?.isEnabled();
 
+    const holder = this.#view._wt.wtTable.holder;
     const hider = this.#view._wt.wtTable.hider;
 
+    const additionalHeight = isAutoRowSizeEnabled ? 0 : 1;
+
+    emptyDataStateElement.style.top = `${hider.clientHeight - additionalHeight}px`;
+
     if (hider.clientWidth > 1) {
-      emptyDataStateElement.style.maxWidth = `${hider.clientWidth}px`;
+      if (holder.clientWidth < hider.clientWidth) {
+        emptyDataStateElement.style.maxWidth = `${holder.clientWidth}px`;
+      } else {
+        emptyDataStateElement.style.maxWidth = `${hider.clientWidth}px`;
+      }
     }
 
-    emptyDataStateElement.style.maxHeight = `calc(100% - ${hider.clientHeight}px)`;
+    if (holder.clientHeight - hider.clientHeight < 1) {
+      this.#placeholderElement = this.#view.hot.rootDocument.createElement('div');
+      this.#placeholderElement.classList.add(`${EMPTY_DATA_STATE_CLASS_NAME}-placeholder`);
 
-    // Fix for 1px miscalculation issue when autoRowSize is disabled
-    if (this.#view.hot.getPlugin('autoRowSize')?.isEnabled()) {
-      emptyDataStateElement.style.marginTop = undefined;
+      this.#view._wt.wtTable.holder.appendChild(this.#placeholderElement);
+
+      this.#placeholderElement.style.width = '100%';
+      this.#placeholderElement.style.height = `${emptyDataStateElement.clientHeight - additionalHeight}px`;
     } else {
-      emptyDataStateElement.style.marginTop = '-1px';
+      emptyDataStateElement.style.height = `${holder.clientHeight - hider.clientHeight + additionalHeight}px`;
     }
   }
 
@@ -155,8 +206,11 @@ export class EmptyDataStateUI {
    * Removes the empty data state UI elements from the DOM and clears the refs.
    */
   destroy() {
-    this.#view._wt.wtTable.holder.style.minHeight = undefined;
+    this.#eventManager.destroy();
+    this.#eventManager = null;
     this.#refs?.emptyDataStateElement.remove();
+    this.#placeholderElement.remove();
+    this.#placeholderElement = null;
     this.#refs = null;
   }
 }
