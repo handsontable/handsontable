@@ -21,15 +21,15 @@ export default {
         items:
           [
             ...(this.$page.versionsWithPatches ? Array.from(this.$page.versionsWithPatches.keys()).map(v => ({
-              text: v.toString().toUpperCase() === 'NEXT'? "dev" : v,
+              text: v.toString().toUpperCase() === 'NEXT' ? 'dev' : v,
               subTexts: [],
-              //subTexts: this.$page.versionsWithPatches.get(v),
+              // subTexts: this.$page.versionsWithPatches.get(v),
               link: this.getLink(v),
               target: '_self',
               rel: this.$page.latestVersion === v ? undefined : 'nofollow',
               isHtmlLink: true,
             })) : []),
-          ] 
+          ]
       };
     }
   },
@@ -43,7 +43,7 @@ export default {
         }
 
         // return `${version} (latest)`;
-        return `${version === 'next' ? "dev" : version} latest`;
+        return `${version === 'next' ? 'dev' : version} latest`;
 
       }
 
