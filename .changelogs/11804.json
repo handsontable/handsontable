@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improve focus handling by adding focus scopes mechanism",
+  "type": "added",
+  "issueOrPR": 11804,
+  "breaking": false,
+  "framework": "none"
+}

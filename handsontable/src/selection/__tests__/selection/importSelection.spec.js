@@ -64,5 +64,51 @@ describe('Selection', () => {
       expect(selection.isSelectedByColumnHeader(1)).toBe(true);
       expect(selection.isSelectedByColumnHeader(2)).toBe(false);
     });
+
+    it('should trigger hooks', async() => {
+      const hot = handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        rowHeaders: true,
+      });
+
+      await selectCells([[1, 1, 3, 3], [4, 4, 4, 4]]);
+
+      const selectionState = hot.selection.exportSelection();
+      const beforeSelectionFocusSet = jasmine.createSpy('beforeSetFocus');
+      const afterSelectionFocusSet = jasmine.createSpy('afterSetFocus');
+      const beforeSelectionHighlightSet = jasmine.createSpy('beforeHighlightSet');
+
+      const hot2 = handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        rowHeaders: true,
+        beforeSelectionFocusSet,
+        afterSelectionFocusSet,
+        beforeSelectionHighlightSet,
+      }, false, spec().$container1);
+
+      const selection = hot2.selection;
+
+      selection.importSelection(selectionState);
+      hot2.view.render();
+
+      expect(`
+        |   ║   : - : - : - : - |
+        |===:===:===:===:===:===|
+        |   ║   :   :   :   :   |
+        | - ║   : 0 : 0 : 0 :   |
+        | - ║   : 0 : 0 : 0 :   |
+        | - ║   : 0 : 0 : 0 :   |
+        | - ║   :   :   :   : A |
+      `).toBeMatchToSelectionPattern(hot2);
+      expect(hot2.getSelectedRange()).toEqualCellRange([
+        'highlight: 1,1 from: 1,1 to: 3,3',
+        'highlight: 4,4 from: 4,4 to: 4,4',
+      ]);
+      expect(beforeSelectionFocusSet).toHaveBeenCalledOnceWith(4, 4);
+      expect(afterSelectionFocusSet).toHaveBeenCalledOnceWith(4, 4, jasmine.any(Object));
+      expect(beforeSelectionHighlightSet).toHaveBeenCalledOnceWith();
+    });
   });
 });

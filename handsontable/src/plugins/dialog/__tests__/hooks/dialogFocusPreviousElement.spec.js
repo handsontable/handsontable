@@ -118,7 +118,6 @@ describe('Dialog - dialogFocusPreviousElement hook', () => {
     input.focus();
 
     await keyDownUp(['shift', 'tab']);
-    await sleep(10);
 
     document.body.removeChild(input);
 

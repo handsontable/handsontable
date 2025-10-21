@@ -66,11 +66,23 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
    * Get a keyboard shortcut context by its name.
    *
    * @memberof ShortcutManager#
-   * @param {string} contextName The name of the shortcut context
-   * @returns {object|undefined} A [`ShortcutContext`](@/api/shortcutContext.md) object that stores registered shortcuts
+   * @param {string} contextName The name of the shortcut context.
+   * @returns {object|undefined} A [`ShortcutContext`](@/api/shortcutContext.md) object that stores registered shortcuts.
    */
   const getContext = (contextName) => {
     return CONTEXTS.getItem(contextName);
+  };
+
+  /**
+   * Get a keyboard shortcut context by its name, or create it if it doesn't exist.
+   *
+   * @memberof ShortcutManager#
+   * @param {string} contextName The name of the shortcut context
+   * @param {string} [scope='table'] The scope of the shortcut: `'table'` or `'global'`
+   * @returns {object} A [`ShortcutContext`](@/api/shortcutContext.md) object that stores registered shortcuts
+   */
+  const getOrCreateContext = (contextName, scope = 'table') => {
+    return getContext(contextName) ?? addContext(contextName, scope);
   };
 
   /**
@@ -187,6 +199,7 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
     addContext,
     getActiveContextName,
     getContext,
+    getOrCreateContext,
     setActiveContextName,
     /**
      * Returns whether `control` or `meta` keys are pressed.

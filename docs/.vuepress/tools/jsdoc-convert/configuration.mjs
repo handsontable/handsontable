@@ -566,6 +566,32 @@ export default {
         metaTitle: 'ShortcutManager - Angular Data Grid | Handsontable',
       },
     },
+    'createFocusScopeManager.md': {
+      id: 's7s2ynzo',
+      metaTitle: 'createFocusScopeManager - JavaScript Data Grid | Handsontable',
+      description: 'Options, members, and methods of Handsontable\'s createFocusScopeManager API.',
+      react: {
+        id: 'z2jlexbv',
+        metaTitle: 'createFocusScopeManager - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: '94anm50w',
+        metaTitle: 'createFocusScopeManager - Angular Data Grid | Handsontable',
+      },
+    },
+    'FocusScopeManager.md': {
+      id: 'yqlpna1z',
+      metaTitle: 'FocusScopeManager - JavaScript Data Grid | Handsontable',
+      description: 'Options, members, and methods of Handsontable\'s ShortcutManager API.',
+      react: {
+        id: '1jvf0v47',
+        metaTitle: 'FocusScopeManager - React Data Grid | Handsontable',
+      },
+      angular: {
+        id: '0zo4k7a5',
+        metaTitle: 'FocusScopeManager - Angular Data Grid | Handsontable',
+      },
+    },
     'DataMap.md': {
       id: 'pt2wrekc',
       metaTitle: 'DataMap - JavaScript Data Grid | Handsontable',

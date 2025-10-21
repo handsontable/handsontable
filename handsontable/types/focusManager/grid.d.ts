@@ -1,6 +1,6 @@
 type FocusMode = 'cell' | 'mixed';
 
-export interface FocusManager {
+export interface GridFocusManager {
   getFocusMode(): FocusMode;
   setFocusMode(focusMode: FocusMode): void;
   getRefocusDelay(): number;
