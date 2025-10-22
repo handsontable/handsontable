@@ -123,6 +123,8 @@ In the names of the API properties, the words `start` and `end` refer to the sta
 
 :::
 
+<!-- TODO: workaround for the template parsing problem for angular docs  -->
+
 ::: only-for react
 
 ::: example #example3 :react --js 1 --ts 2
@@ -133,6 +135,8 @@ In the names of the API properties, the words `start` and `end` refer to the sta
 :::
 
 :::
+
+<!-- TODO: workaround for the template parsing problem for angular docs  -->
 
 ::: only-for angular
 

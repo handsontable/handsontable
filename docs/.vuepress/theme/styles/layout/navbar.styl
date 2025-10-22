@@ -206,10 +206,28 @@
                     }
                 }
             }
+
+            .nav-versions {
+                .dropdown-wrapper {
+                    > button {
+                        color: var(--color-gray-550);
+                        margin-top: 3px
+                        &:hover {
+                            color: var(--color-black);
+                        }
+                        .tag {
+                            margin-top:1px;
+                        }
+                        .down {
+                            margin-top:2px;
+                        }
+                    }                    
+                }
+            }
         }
 
         .dropdown-wrapper { 
-            position: relative
+            position: relative           
 
             > button { 
                 display: flex
@@ -223,6 +241,7 @@
                 text-transform: capitalize
                 font-size: $font-size-xs
                 line-height: $line-height-xs
+                margin-top:1px;
 
                 .title {
                     display: flex; gap: 8px
@@ -234,6 +253,14 @@
                     &.i-arrow { 
                         opacity .64
                     }
+                }
+                .tag {
+                    margin: 0px;
+                    font-size:10px;
+                    font-family:-apple-system, "system-ui", "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+                    line-height:20px;                    
+                    padding: 0 8px;
+                    max-height: 20px;
                 }
             }
 
@@ -269,6 +296,10 @@
                 border-radius: $radius-xl
                 min-width: 120px
                 height: auto !important
+                max-height: 70vh;
+                overflow-y:auto;
+
+                scrollbar-color: var(--color-gray-500) transparent;
 
                 a { 
                     color: $text2Color
@@ -532,6 +563,20 @@
                 i:nth-child(2) { display: block}
                 i:nth-child(1) { display: none}
             }
+        }
+    }
+}
+
+.theme-dark {
+    .navbar .navbar-wrapper .framework-and-version .nav-versions .dropdown-wrapper { 
+        > button { 
+            color: var(--color-gray-500);
+            &:hover {
+                color: var(--color-gray-200);
+            }
+        }
+        .open > button {
+            color: var(--color-gray-200);
         }
     }
 }
