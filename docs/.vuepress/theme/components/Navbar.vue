@@ -13,7 +13,7 @@
         <div class="top-bar_left">
           <div class="framework-and-version">
             <FrameworksDropdown/>
-            <!--<VersionsDropdown></VersionsDropdown>-->
+            <VersionsDropdown></VersionsDropdown>
           </div>
         </div>
 
@@ -52,7 +52,7 @@ import AlgoliaSearch from '@theme/components/AlgoliaSearch.vue';
 import Logo from '@theme/components/Logo.vue';
 import SidebarButton from '@theme/components/SidebarButton.vue';
 import NavLinks from '@theme/components/NavLinks.vue';
-// import VersionsDropdown from '@theme/components/VersionsDropdown.vue';
+import VersionsDropdown from '@theme/components/VersionsDropdown.vue';
 // import ThemeSwitcher from '@theme/components/ThemeSwitcher.vue';
 import FrameworksDropdown from '@theme/components/FrameworksDropdown.vue';
 import ExternalNavLinks from '@theme/components/ExternalNavLinks.vue';
@@ -66,7 +66,7 @@ export default {
     SidebarButton,
     NavLinks,
     AlgoliaSearch,
-    // VersionsDropdown,
+    VersionsDropdown,
     // ThemeSwitcher,
     ExternalNavLinks,
     SidebarLinks
