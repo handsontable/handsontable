@@ -10,7 +10,7 @@ describe('checkboxRenderer cooperation with AutoColumnSize', () => {
     }
   });
 
-  it('should return the an empty string as seed when the label is not used', async() => {
+  it('should return an empty string as seed when the label is not used', async() => {
     const modifyAutoColumnSizeSeed = jasmine.createSpy('modifyAutoColumnSizeSeed');
 
     handsontable({
