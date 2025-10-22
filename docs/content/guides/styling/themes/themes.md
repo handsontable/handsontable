@@ -45,7 +45,7 @@ The `main` ([source](https://github.com/handsontable/handsontable/blob/develop/h
 
 The `horizon` ([source](https://github.com/handsontable/handsontable/blob/develop/handsontable/src/styles/themes/horizon.scss)) theme, on the other hand, is better suited for data display and analysis. It hides the vertical lines between columns, giving it a cleaner and more lightweight feel.
 
-The `classic` ([source](https://github.com/handsontable/handsontable/blob/develop/handsontable/src/styles/themes/classic.scss)) theme is a replacement for the old legacy classic style. It retains the familiar look and feel of the original classic theme, but has been updated to allow customization with CSS variables. This theme is ideal for users who prefer the traditional appearance of Handsontable but want to benefit from the theming system. The `classic` theme supports both light and dark modes, ensuring a seamless integration with your application's color scheme preferences.
+The `classic` ([source](https://github.com/handsontable/handsontable/blob/develop/handsontable/src/styles/themes/classic.scss)) theme is a replacement for the old legacy style. It retains the familiar look and feel of the original legacy styles, but has been updated to allow customization with CSS variables. This theme is ideal for users who prefer the traditional appearance of Handsontable but want to benefit from the theming system. The `classic` theme supports both light and dark modes, ensuring a seamless integration with your application's color scheme preferences.
 
 Keep in mind that starting from version `15.0`, importing a theme is required.
 
@@ -222,9 +222,9 @@ This hierarchy ensures that you can define a consistent default theme for your e
 
 :::
 
-## The classic (legacy) theme
+## The legacy theme
 
-The classic (legacy) CSS file ([`handsontable.full.min.css`](https://github.com/handsontable/handsontable/blob/master/handsontable/dist/handsontable.full.min.css)) was the default theme up until `version 15` (released in December 2024). This theme is a legacy theme and will be removed in version 17.0.0.
+The legacy CSS file ([`handsontable.full.min.css`](https://github.com/handsontable/handsontable/blob/master/handsontable/dist/handsontable.full.min.css)) was the default styles up until `version 15` (released in December 2024). These styles are legacy and will be removed in version 17.0.0.
   
 ## Known limitations
 
