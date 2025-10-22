@@ -1,3 +1,4 @@
+/* eslint-disable jsdoc/require-description-complete-sentence */
 import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
 import { deepClone } from '../../helpers/object';
@@ -332,7 +333,9 @@ export class UndoRedo extends BasePlugin {
     };
 
     /**
-     * {@link UndoRedo#undo}.
+     * ::: warning
+     * This method is deprecated and it will be removed from the Core API in the future. Please use the method from the [`UndoRedo`](@/api/undoRedo.md#undo-2) plugin.
+     * :::
      *
      * @alias undo
      * @memberof! Core#
@@ -342,7 +345,9 @@ export class UndoRedo extends BasePlugin {
       this.undo();
     };
     /**
-     * {@link UndoRedo#redo}.
+     * ::: warning
+     * This method is deprecated and it will be removed from the Core API in the future. Please use the method from the [`UndoRedo`](@/api/undoRedo.md#redo) plugin.
+     * :::
      *
      * @alias redo
      * @memberof! Core#
@@ -352,7 +357,9 @@ export class UndoRedo extends BasePlugin {
       this.redo();
     };
     /**
-     * {@link UndoRedo#isUndoAvailable}.
+     * ::: warning
+     * This method is deprecated and it will be removed from the Core API in the future. Please use the method from the [`UndoRedo`](@/api/undoRedo.md#isundoavailable) plugin.
+     * :::
      *
      * @alias isUndoAvailable
      * @memberof! Core#
@@ -364,7 +371,9 @@ export class UndoRedo extends BasePlugin {
       return this.isUndoAvailable();
     };
     /**
-     * {@link UndoRedo#isRedoAvailable}.
+     * ::: warning
+     * This method is deprecated and it will be removed from the Core API in the future. Please use the method from the [`UndoRedo`](@/api/undoRedo.md#isredoavailable) plugin.
+     * :::
      *
      * @alias isRedoAvailable
      * @memberof! Core#
@@ -376,7 +385,9 @@ export class UndoRedo extends BasePlugin {
       return this.isRedoAvailable();
     };
     /**
-     * {@link UndoRedo#clear}.
+     * ::: warning
+     * This method is deprecated and it will be removed from the Core API in the future. Please use the method from the [`UndoRedo`](@/api/undoRedo.md#clear) plugin.
+     * :::
      *
      * @alias clearUndo
      * @memberof! Core#
