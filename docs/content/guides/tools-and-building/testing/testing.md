@@ -54,7 +54,7 @@ To run individual tests, go to the `/handsontable` directory, and use the follow
 - `npm run test:e2e.dump -- --watch` - generates the `E2ERunner.html` file on every change detected in test files. It can be helpful for debugging proposes.
 
 ## Test specific themes
-To run the E2E tests with a theme different than "classic (legacy)", you can use the `--theme` flag.
+To run the E2E tests with a theme different than legacy styles, you can use the `--theme` flag.
 For example, to run all the E2E tests using the "main" theme, you can use the following command:
 ```
 npm run test:e2e --theme=main
