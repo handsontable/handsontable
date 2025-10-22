@@ -134,6 +134,9 @@ The example below demonstrates different border styles applied to various cell r
 
 :::
 
+<!-- TODO: workaround for the template parsing problem for angular docs  -->
+
+
 ::: only-for react
 
 ::: example #example3 :react --js 1 --ts 2
@@ -144,6 +147,9 @@ The example below demonstrates different border styles applied to various cell r
 :::
 
 :::
+
+<!-- TODO: workaround for the template parsing problem for angular docs  -->
+
 
 ::: only-for angular
 
