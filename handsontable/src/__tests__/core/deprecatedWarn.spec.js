@@ -21,7 +21,7 @@ describe('Test deprecatedWarn in core.js classic theme', () => {
 
     if (spec().loadedTheme === 'classic') {
       // eslint-disable-next-line max-len
-      expect(warnSpy).toHaveBeenCalledWith('Deprecated: Handsontable classic theme is a legacy theme and will be removed in version 17.0. Please update your theme settings to ensure compatibility with future versions.');
+      expect(warnSpy).toHaveBeenCalledWith('Deprecated: Handsontable classic styles are considered legacy and will be removed in version 17.0. Please update your theme configuration to ensure compatibility with future releases.');
     } else {
       expect(warnSpy).not.toHaveBeenCalled();
     }
@@ -42,7 +42,7 @@ describe('Test deprecatedWarn in core.js classic theme', () => {
     if (spec().loadedTheme === 'classic') {
       expect(warnSpy).toHaveBeenCalledTimes(1);
       // eslint-disable-next-line max-len
-      expect(warnSpy).toHaveBeenCalledWith('Deprecated: Handsontable classic theme is a legacy theme and will be removed in version 17.0. Please update your theme settings to ensure compatibility with future versions.');
+      expect(warnSpy).toHaveBeenCalledWith('Deprecated: Handsontable classic styles are considered legacy and will be removed in version 17.0. Please update your theme configuration to ensure compatibility with future releases.');
     } else {
       expect(warnSpy).not.toHaveBeenCalled();
     }
@@ -66,7 +66,7 @@ describe('Test deprecatedWarn in core.js classic theme', () => {
     if (spec().loadedTheme === 'classic') {
       expect(warnSpy).toHaveBeenCalledTimes(1);
       // eslint-disable-next-line max-len
-      expect(warnSpy).toHaveBeenCalledWith('Deprecated: Handsontable classic theme is a legacy theme and will be removed in version 17.0. Please update your theme settings to ensure compatibility with future versions.');
+      expect(warnSpy).toHaveBeenCalledWith('Deprecated: Handsontable classic styles are considered legacy and will be removed in version 17.0. Please update your theme configuration to ensure compatibility with future releases.');
     } else {
       expect(warnSpy).not.toHaveBeenCalled();
     }
@@ -90,12 +90,12 @@ describe('Test deprecatedWarn in core.js classic theme', () => {
     if (spec().loadedTheme === 'classic') {
       expect(warnSpy).toHaveBeenCalledTimes(3);
       // eslint-disable-next-line max-len
-      expect(warnSpy).toHaveBeenCalledWith('Deprecated: Handsontable classic theme is a legacy theme and will be removed in version 17.0. Please update your theme settings to ensure compatibility with future versions.');
+      expect(warnSpy).toHaveBeenCalledWith('Deprecated: Handsontable classic styles are considered legacy and will be removed in version 17.0. Please update your theme configuration to ensure compatibility with future releases.');
     } else {
       expect(warnSpy).toHaveBeenCalledTimes(2);
 
       // eslint-disable-next-line max-len
-      expect(warnSpy).toHaveBeenCalledWith('Deprecated: Handsontable classic theme is a legacy theme and will be removed in version 17.0. Please update your theme settings to ensure compatibility with future versions.');
+      expect(warnSpy).toHaveBeenCalledWith('Deprecated: Handsontable classic styles are considered legacy and will be removed in version 17.0. Please update your theme configuration to ensure compatibility with future releases.');
     }
   });
 });

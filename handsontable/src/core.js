@@ -2754,7 +2754,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       instance.stylesHandler.isClassicTheme()
     ) {
       // eslint-disable-next-line max-len
-      deprecatedWarn('Handsontable classic theme is a legacy theme and will be removed in version 17.0. Please update your theme settings to ensure compatibility with future versions.');
+      deprecatedWarn('Handsontable classic styles are considered legacy and will be removed in version 17.0. Please update your theme configuration to ensure compatibility with future releases.');
       deprecatedWarnInstances.add(instance);
     }
 
