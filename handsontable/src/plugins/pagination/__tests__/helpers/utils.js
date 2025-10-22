@@ -120,7 +120,62 @@ export function visualizePageSections(container = getPaginationContainerElement(
  * @returns {HTMLElement}
  */
 export function getPaginationContainerElement() {
-  return hot().rootWrapperElement.querySelector('.ht-pagination');
+  return hot().rootWrapperElement.querySelector('.ht-pagination') ?? document.querySelector('.ht-pagination');
+}
+
+/**
+ * Gets the focusable elements of the pagination container.
+ *
+ * @returns {HTMLElement[]}
+ */
+export function getPaginationFocusableElements() {
+  return Array.from(getPaginationContainerElement().querySelectorAll('button, select'))
+    .filter(element => !element.disabled);
+}
+
+/**
+ * Gets the first button of the pagination container.
+ *
+ * @returns {HTMLElement}
+ */
+export function getPaginationPageFirstButton() {
+  return getPaginationContainerElement().querySelector('.ht-page-first');
+}
+
+/**
+ * Gets the previous button of the pagination container.
+ *
+ * @returns {HTMLElement}
+ */
+export function getPaginationPagePrevButton() {
+  return getPaginationContainerElement().querySelector('.ht-page-prev');
+}
+
+/**
+ * Gets the next button of the pagination container.
+ *
+ * @returns {HTMLElement}
+ */
+export function getPaginationPageNextButton() {
+  return getPaginationContainerElement().querySelector('.ht-page-next');
+}
+
+/**
+ * Gets the last button of the pagination container.
+ *
+ * @returns {HTMLElement}
+ */
+export function getPaginationPageLastButton() {
+  return getPaginationContainerElement().querySelector('.ht-page-last');
+}
+
+/**
+ * Gets the page size select of the pagination container.
+ *
+ * @returns {HTMLElement}
+ */
+export function getPaginationPagePageSizeSelect() {
+  return getPaginationContainerElement().querySelector('.ht-page-size-section select');
 }
 
 /**

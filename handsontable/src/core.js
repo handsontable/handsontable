@@ -14,7 +14,6 @@ import {
   createObjectPropListener,
   objectEach
 } from './helpers/object';
-import { FocusManager } from './focusManager';
 import { arrayMap, arrayEach, arrayReduce, getDifferenceOfArrays, stringToArray, pivot } from './helpers/array';
 import { instanceToHTML } from './utils/parseTable';
 import { staticRegister } from './utils/staticRegister';
@@ -30,7 +29,6 @@ import { spreadsheetColumnLabel } from './helpers/data';
 import { IndexMapper } from './translations';
 import { registerAsRootInstance, hasValidParameter, isRootInstance } from './utils/rootInstance';
 import { DEFAULT_COLUMN_WIDTH } from './3rdparty/walkontable/src';
-import { Hooks } from './core/hooks';
 import { hasLanguageDictionary, getValidLanguageCode, getTranslatedPhrase } from './i18n/registry';
 import { warnUserAboutLanguageRegistration, normalizeLanguageCode } from './i18n/utils';
 import { Selection } from './selection';
@@ -41,16 +39,21 @@ import {
   replaceData,
 } from './dataMap';
 import {
-  installFocusCatcher,
   createViewportScroller,
+  Hooks,
+  CellRangeToRenderableMapper,
 } from './core/index';
+import {
+  FocusGridManager,
+  createFocusScopeManager,
+  registerAllFocusScopes
+} from './focusManager';
 import { createUniqueMap } from './utils/dataStructures/uniqueMap';
 import { createShortcutManager } from './shortcuts';
 import { registerAllShortcutContexts } from './shortcutContexts';
 import { getThemeClassName } from './helpers/themes';
 import { StylesHandler } from './utils/stylesHandler';
 import { deprecatedWarn, warn } from './helpers/console';
-import { CellRangeToRenderableMapper } from './core/coordsMapper/rangeToRenderableMapper';
 import {
   install as installAccessibilityAnnouncer,
   uninstall as uninstallAccessibilityAnnouncer,
@@ -180,7 +183,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   let dataSource;
   let grid;
   let editorManager;
-  let focusManager;
+  let focusGridManager;
   let viewportScroller;
   let firstRun = true;
 
@@ -1313,10 +1316,10 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
     editorManager = EditorManager.getInstance(instance, tableMeta, selection);
     viewportScroller = createViewportScroller(instance);
-    focusManager = new FocusManager(instance);
+
+    focusGridManager.init();
 
     if (isRootInstance(this)) {
-      installFocusCatcher(instance);
       installAccessibilityAnnouncer(instance.rootPortalElement);
       _injectProductInfo(mergedUserSettings.licenseKey, this.rootWrapperElement);
     }
@@ -4830,6 +4833,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     }
 
     this.getShortcutManager().destroy();
+    this.getFocusScopeManager().destroy();
     moduleRegisterer.clear();
     metaManager.clearCache();
     foreignHotInstances.delete(this.guid);
@@ -5437,6 +5441,10 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     return shortcutManager;
   };
 
+  focusGridManager = new FocusGridManager(instance);
+
+  const focusScopeManager = createFocusScopeManager(instance);
+
   /**
    * Return the Focus Manager responsible for managing the browser's focus in the table.
    *
@@ -5446,7 +5454,31 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * @returns {FocusManager}
    */
   this.getFocusManager = function() {
-    return focusManager;
+    return focusGridManager;
+  };
+
+  /**
+   * Returns the Focus Scope Manager. The module allows to register focus scopes for different parts of the grid
+   * e.g. for dialogs, pagination, and other plugins that have own UI elements and need separate context.
+   *
+   * @memberof Core#
+   * @since 16.2.0
+   * @function getFocusScopeManager
+   * @returns {FocusScopeManager} Instance of {@link FocusScopeManager}
+   *
+   * @example
+   * ```js
+   * hot.getFocusScopeManager().registerScope('myPluginName', containerElement, {
+   *   shortcutsContextName: 'plugin:myPluginName',
+   *   onActivate: (focusSource) => {
+   *     // Focus the internal focusable element within the plugin UI element
+   *     // depends on the activation focus source.
+   *   },
+   * });
+   * ```
+   */
+  this.getFocusScopeManager = function() {
+    return focusScopeManager;
   };
 
   getPluginsNames().forEach((pluginName) => {
@@ -5456,6 +5488,10 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   });
 
   registerAllShortcutContexts(instance);
+
+  if (isRootInstance(this)) {
+    registerAllFocusScopes(instance);
+  }
 
   shortcutManager.setActiveContextName('grid');
 

@@ -12,6 +12,7 @@ export const PLUGIN_KEY = 'autoRowSize';
 export const PLUGIN_PRIORITY = 40;
 const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
 const FIRST_COLUMN_NOT_RENDERED_CLASS_NAME = 'htFirstDatasetColumnNotRendered';
+const AUTO_ROW_SIZE_CLASS_NAME = 'htAutoRowSize';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
@@ -46,6 +47,11 @@ const FIRST_COLUMN_NOT_RENDERED_CLASS_NAME = 'htFirstDatasetColumnNotRendered';
  *
  * You can also use the `allowSampleDuplicates` option to allow sampling duplicate values when calculating the row
  * height. __Note__, that this might have a negative impact on performance.
+ *
+ * ::: tip
+ * Note: Updating some of the table's settings can cause the row heights to change (e.g. `wordWrap`, `textEllipsis`, renderers etc.).
+ * In those cases, to ensure that the row heights are properly recalculated, you need to call the {@link AutoRowSize#recalculateAllRowsHeight} method after calling {@link Core#updateSettings}.
+ * :::
  *
  * To configure this plugin see {@link Options#autoRowSize}.
  *
@@ -297,6 +303,8 @@ export class AutoRowSize extends BasePlugin {
     this.addHook('init', () => this.#onInit());
     this.addHook('modifyColumnHeaderHeight', () => this.getColumnHeaderHeight());
 
+    addClass(this.hot.rootElement, AUTO_ROW_SIZE_CLASS_NAME);
+
     super.enablePlugin();
   }
 
@@ -305,6 +313,8 @@ export class AutoRowSize extends BasePlugin {
    */
   disablePlugin() {
     this.headerHeight = null;
+
+    removeClass(this.hot.rootElement, AUTO_ROW_SIZE_CLASS_NAME);
 
     super.disablePlugin();
 
@@ -628,20 +638,18 @@ export class AutoRowSize extends BasePlugin {
    * @param {boolean} [forceState] Force the class to be added or removed (`true` to add, `false` to remove).
    */
   #toggleFirstDatasetColumnRenderedClassName(forceState) {
-    if (this.hot.stylesHandler.isClassicTheme()) {
-      const firstRenderedColumnVisualIndex = this.hot.getFirstRenderedVisibleColumn();
-      const firstRenderedColumnPhysicalIndex =
-        this.hot.columnIndexMapper.getPhysicalFromVisualIndex(firstRenderedColumnVisualIndex);
+    const firstRenderedColumnVisualIndex = this.hot.getFirstRenderedVisibleColumn();
+    const firstRenderedColumnPhysicalIndex =
+      this.hot.columnIndexMapper.getPhysicalFromVisualIndex(firstRenderedColumnVisualIndex);
 
-      if (
-        forceState === false ||
-        firstRenderedColumnPhysicalIndex === this.hot.columnIndexMapper.getPhysicalFromRenderableIndex(0)
-      ) {
-        removeClass(this.hot.rootElement, FIRST_COLUMN_NOT_RENDERED_CLASS_NAME);
+    if (
+      forceState === false ||
+      firstRenderedColumnPhysicalIndex === this.hot.columnIndexMapper.getPhysicalFromRenderableIndex(0)
+    ) {
+      removeClass(this.hot.rootElement, FIRST_COLUMN_NOT_RENDERED_CLASS_NAME);
 
-      } else {
-        addClass(this.hot.rootElement, FIRST_COLUMN_NOT_RENDERED_CLASS_NAME);
-      }
+    } else {
+      addClass(this.hot.rootElement, FIRST_COLUMN_NOT_RENDERED_CLASS_NAME);
     }
   }
 

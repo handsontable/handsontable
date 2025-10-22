@@ -1608,4 +1608,37 @@ describe('manualColumnResize', () => {
       expect(getComputedStyle($handle[0]).opacity).not.toBe('1');
     });
   });
+
+  describe('with the AutoColumnSize plugin', () => {
+    it('should not cause row misalignment when manualRowResize is enabled via `updateSettings` ' +
+      'after autoRowSize initialization', async() => {
+      const data = createSpreadsheetData(5, 3);
+
+      data[4][0] = 'Loremipsumdolorsitametconsecteturadipiscing elit. Maecenas hendrerit elit sed quam porta ' +
+        'tempus. Quisque eget vulputate metus. Cras pulvinar diam ipsum, eget rhoncus dolor lacinia a. ' +
+        'Aliquam vitae eros varius, feugiat nibh id, auctor lorem. Phasellus vulputate odio diam, sed interdum ' +
+        'elit consectetur ut. Fusce vulputate ligula tincidunt lectus tempor, ac elementum nulla tempus. Fusce ' +
+        'rutrum lorem et eros euismod fermentum. Aenean varius dui vel nunc tristique, vel finibus tortor gravida. ' +
+        'Ut molestie nisl a velit ultricies, gravida volutpat lectus pulvinar. Nulla sed purus sit amet justo ' +
+        'ullamcorper vel non nisl. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia ' +
+        'curae; Cras auctor, lacus non euismod venenatis, augue nulla auctor risus, placerat porta dui enim eu odio. ' +
+        'Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.';
+
+      handsontable({
+        data,
+        fixedRowsTop: 1,
+        rowHeaders: true,
+        autoColumnSize: true,
+        rowHeights: 100,
+      });
+
+      await sleep(100);
+
+      await updateSettings({
+        manualColumnResize: [50, 50, 50],
+      });
+
+      expect(getTopClone().find('table').width()).toBe(getMaster().find('table').width());
+    });
+  });
 });

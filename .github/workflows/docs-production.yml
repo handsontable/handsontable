@@ -76,11 +76,17 @@ jobs:
           mkdir -p docs/docs
           ./build_current_version.sh
 
-      - name: Publish preview to Netlify
-        run: |
-          cd netlify
-          npm install netlify-cli -g
-          netlify deploy --prod --build --context production
+      - name: Publish production to Netlify
+        uses: nick-fields/retry@v3
+        with:
+          timeout_seconds: 1600
+          max_attempts: 3
+          retry_on: error
+          command: |
+            cd docs
+            cd netlify
+            npm install netlify-cli -g
+            netlify deploy --prod --build --context production
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_PROD_SITE_ID }}

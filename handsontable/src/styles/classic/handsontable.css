@@ -295,6 +295,35 @@ innerBorderBottom - Property controlled by bottom overlay
   cursor: crosshair;
 }
 
+/* dashed borders */
+.htBorders .wtBorder.ht-border-style-dashed-vertical {
+  background-image: repeating-linear-gradient(
+          to bottom,
+          var(--ht-custom-border-color) 0 5px,
+          transparent 0 10px
+  );
+}
+
+.htBorders .wtBorder.ht-border-style-dashed-horizontal {
+  background-image: repeating-linear-gradient(
+          to right,
+          var(--ht-custom-border-color) 0 5px,
+          transparent 0 10px
+  );
+}
+
+.htBorders .wtBorder.ht-border-style-dotted-horizontal {
+  background-image: radial-gradient(circle, var(--ht-custom-border-color) calc(var(--ht-custom-border-size) / 2), transparent 0);
+  background-size: calc(var(--ht-custom-border-size) * 2) var(--ht-custom-border-size);
+  background-repeat: repeat-x;
+}
+
+.htBorders .wtBorder.ht-border-style-dotted-vertical {
+  background-image: radial-gradient(circle, var(--ht-custom-border-color) calc(var(--ht-custom-border-size) / 2), transparent 0);
+  background-size: var(--ht-custom-border-size) calc(var(--ht-custom-border-size) * 2);
+  background-repeat: repeat-y;
+}
+
 .ht_clone_master {
   z-index: 100;
 }
@@ -405,7 +434,7 @@ innerBorderBottom - Property controlled by bottom overlay
   font-size: 10px;
 }
 
-.ht-root-wrapper .htFocusCatcher {
+.htFocusCatcher {
   position: absolute;
   z-index: -1;
   opacity: 0;

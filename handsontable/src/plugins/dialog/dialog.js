@@ -1,6 +1,7 @@
 import { BasePlugin } from '../base';
 import { ModalManager } from './modalManager';
 import { installFocusDetector } from '../../utils/focusDetector';
+import { DialogUI } from './ui';
 import { isObject } from '../../helpers/object';
 
 export const PLUGIN_KEY = 'dialog';
@@ -183,13 +184,14 @@ export class Dialog extends BasePlugin {
    *
    * @type {Modal}
    */
-  #modal = null;
+  #isVisible = false;
+
   /**
-   * Focus detector instance.
+   * Keeps the selection state that will be restored after the dialog is closed.
    *
-   * @type {FocusDetector}
+   * @type {SelectionState | null}
    */
-  #focusDetector = null;
+  #selectionState = null;
 
   /**
    * Check if the plugin is enabled in the handsontable settings.
@@ -208,18 +210,18 @@ export class Dialog extends BasePlugin {
       return;
     }
 
-    if (!this.#modal) {
-      this.#modalManager
-        .addLocalHook('afterModalFocus', (...args) => this.#onAfterModalFocus(...args))
-        .addLocalHook('beforeModalShow', (...args) => this.#onBeforeModalShow(...args))
-        .addLocalHook('afterModalShow', (...args) => this.#onAfterModalShow(...args))
-        .addLocalHook('beforeModalHide', (...args) => this.#onBeforeModalHide(...args))
-        .addLocalHook('afterModalHide', (...args) => this.#onAfterModalHide(...args));
-
-      this.#modal = this.#modalManager.registerModal('dialog');
+    if (!this.#ui) {
+      this.#ui = new DialogUI({
+        rootElement: this.hot.rootGridElement,
+        isRtl: this.hot.isRtl(),
+      });
     }
 
     this.#registerShortcuts();
+    this.#registerFocusScope();
+
+    this.addHook('afterViewRender', () => this.#onAfterRender());
+
     super.enablePlugin();
   }
 
@@ -239,68 +241,9 @@ export class Dialog extends BasePlugin {
   disablePlugin() {
     this.hide();
     this.#unregisterShortcuts();
+    this.#unregisterFocusScope();
 
     super.disablePlugin();
-  }
-
-  /**
-   * Gets the modal manager instance that allows you to create a new modal instances.
-   *
-   * @returns {ModalManager}
-   */
-  getModalManager() {
-    return this.#modalManager;
-  }
-
-  /**
-   * Register shortcuts responsible for closing the dialog and navigating through the dialog.
-   */
-  #registerShortcuts() {
-    const manager = this.hot.getShortcutManager();
-    const pluginContext = manager.getContext(SHORTCUTS_CONTEXT_NAME) ??
-      manager.addContext(SHORTCUTS_CONTEXT_NAME);
-
-    pluginContext.addShortcut({
-      keys: [['Escape']],
-      callback: () => {
-        this.hide();
-      },
-      runOnlyIf: () => this.isVisible() && this.getSetting('closable'),
-      group: SHORTCUTS_GROUP,
-    });
-
-    pluginContext.addShortcut({
-      keys: [['Shift', 'Tab'], ['Tab']],
-      preventDefault: false,
-      callback: (event) => {
-        this.hot._registerTimeout(() => {
-          const { activeElement } = this.hot.rootDocument;
-
-          if (!this.#modal?.contains(activeElement)) {
-            this.hot.unlisten();
-
-            return;
-          }
-
-          if (event.shiftKey) {
-            this.hot.runHooks('dialogFocusPreviousElement');
-          } else {
-            this.hot.runHooks('dialogFocusNextElement');
-          }
-        }, 0);
-      },
-      group: SHORTCUTS_GROUP,
-    });
-  }
-
-  /**
-   * Unregister shortcuts responsible for closing the dialog and navigating through the dialog.
-   */
-  #unregisterShortcuts() {
-    const shortcutManager = this.hot.getShortcutManager();
-    const pluginContext = shortcutManager.getContext(SHORTCUTS_CONTEXT_NAME);
-
-    pluginContext.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   /**
@@ -337,10 +280,24 @@ export class Dialog extends BasePlugin {
     this.updatePluginSettings(options);
 
     if (this.isVisible()) {
-      this.update(this.getSetting());
-    } else {
-      this.#modal.show(this.getSetting());
+      this.update(options);
+
+      return;
     }
+
+    this.hot.runHooks('beforeDialogShow');
+    this.update(options);
+
+    this.#ui.showDialog(this.getSetting('animation'));
+
+    this.#isVisible = true;
+
+    this.hot.getFocusScopeManager().activateScope(PLUGIN_KEY);
+
+    this.#selectionState = this.hot.selection.exportSelection();
+
+    this.hot.deselectCell();
+    this.hot.runHooks('afterDialogShow');
   }
 
   /**
@@ -352,7 +309,22 @@ export class Dialog extends BasePlugin {
       return;
     }
 
-    this.#modal.hide(this.getSetting('animation'));
+    this.hot.runHooks('beforeDialogHide');
+
+    this.#ui.hideDialog(this.getSetting('animation'));
+    this.#isVisible = false;
+
+    this.hot.getFocusScopeManager().deactivateScope(PLUGIN_KEY);
+
+    if (this.#selectionState?.ranges.length > 0) {
+      this.hot.selection.importSelection(this.#selectionState);
+      this.hot.view.render();
+      this.#selectionState = null;
+    } else {
+      this.hot.selectCell(0, 0);
+    }
+
+    this.hot.runHooks('afterDialogHide');
   }
 
   /**
@@ -450,16 +422,101 @@ export class Dialog extends BasePlugin {
   }
 
   /**
-   * Handle focus tab navigation event.
-   *
-   * @param {'from_above' | 'from_below'} from The direction from which the focus was modified.
-   * @returns {boolean} Returns `false` to prevent the default focus behavior.
+   * Register shortcuts responsible for closing the dialog and navigating through the dialog.
    */
-  #onFocusTabNavigation(from) {
-    if (this.isVisible()) {
-      this.#focusDetector.focus(from);
+  #registerShortcuts() {
+    const manager = this.hot.getShortcutManager();
+    const pluginContext = manager.getContext(SHORTCUTS_CONTEXT_NAME) ??
+      manager.addContext(SHORTCUTS_CONTEXT_NAME);
 
-      return false;
+    pluginContext.addShortcut({
+      keys: [['Escape']],
+      callback: () => {
+        this.hide();
+      },
+      runOnlyIf: () => this.#isVisible && this.getSetting('closable'),
+      group: SHORTCUTS_GROUP,
+    });
+
+    pluginContext.addShortcut({
+      keys: [['Shift', 'Tab'], ['Tab']],
+      preventDefault: false,
+      callback: (event) => {
+        this.hot._registerTimeout(() => {
+          if (event.shiftKey) {
+            this.hot.runHooks('dialogFocusPreviousElement');
+          } else {
+            this.hot.runHooks('dialogFocusNextElement');
+          }
+        });
+      },
+      group: SHORTCUTS_GROUP,
+    });
+  }
+
+  /**
+   * Unregister shortcuts responsible for closing the dialog and navigating through the dialog.
+   */
+  #unregisterShortcuts() {
+    const shortcutManager = this.hot.getShortcutManager();
+    const pluginContext = shortcutManager.getContext(SHORTCUTS_CONTEXT_NAME);
+
+    pluginContext.removeShortcutsByGroup(SHORTCUTS_GROUP);
+  }
+
+  /**
+   * Registers the focus scope for the dialog plugin.
+   */
+  #registerFocusScope() {
+    this.hot.getFocusScopeManager()
+      .registerScope(PLUGIN_KEY, this.#ui.getContainer(), {
+        shortcutsContextName: SHORTCUTS_CONTEXT_NAME,
+        type: 'modal',
+        runOnlyIf: () => this.isVisible(),
+        onActivate: (focusSource) => {
+          const isListening = this.hot.isListening();
+
+          if (
+            focusSource !== 'tab_from_above' &&
+            focusSource !== 'tab_from_below' &&
+            isListening &&
+            !this.#ui.getContainer().contains(this.hot.rootDocument.activeElement)
+          ) {
+            this.#ui.getContainer().focus();
+          }
+
+          if (isListening) {
+            this.hot.runHooks('afterDialogFocus', focusSource === 'unknown' ? 'show' : focusSource);
+          }
+        },
+      });
+  }
+
+  /**
+   * Unregisters the focus scope for the dialog plugin.
+   */
+  #unregisterFocusScope() {
+    this.hot.getFocusScopeManager().unregisterScope(PLUGIN_KEY);
+  }
+
+  /**
+   * Called after the rendering of the table is completed. It updates the width and
+   * height of the dialog container to the same size as the table.
+   */
+  #onAfterRender() {
+    const { view, rootWrapperElement, rootWindow } = this.hot;
+    const width = view.isHorizontallyScrollableByWindow()
+      ? view.getTotalTableWidth() : view.getWorkspaceWidth();
+
+    this.#ui.updateWidth(width);
+
+    const dialogInfo = rootWrapperElement.querySelector('.hot-display-license-info');
+
+    if (dialogInfo) {
+      const height = dialogInfo.offsetHeight;
+      const marginTop = parseFloat(rootWindow.getComputedStyle(dialogInfo).marginTop);
+
+      this.#ui.updateHeight(height + marginTop);
     }
   }
 
@@ -467,10 +524,10 @@ export class Dialog extends BasePlugin {
    * Destroy dialog and reset plugin state.
    */
   destroy() {
-    this.#modal = null;
-    this.#modalManager.destroy();
-    this.#modalManager = null;
-    this.#focusDetector = null;
+    this.#ui?.destroyDialog();
+    this.#ui = null;
+    this.#isVisible = false;
+    this.#selectionState = null;
 
     super.destroy();
   }

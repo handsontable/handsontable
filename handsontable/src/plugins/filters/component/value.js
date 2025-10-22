@@ -22,6 +22,13 @@ export class ValueComponent extends BaseComponent {
    */
   name = '';
 
+  /**
+   * Whether to uncheck filtered queries.
+   *
+   * @type {string}
+   */
+  searchMode;
+
   constructor(hotInstance, options) {
     super(hotInstance, {
       id: options.id,
@@ -29,7 +36,10 @@ export class ValueComponent extends BaseComponent {
     });
 
     this.name = options.name;
-    this.elements.push(new MultipleSelectUI(this.hot));
+    this.searchMode = options.searchMode;
+    this.elements.push(new MultipleSelectUI(this.hot, {
+      searchMode: this.searchMode
+    }));
 
     this.registerHooks();
   }
@@ -252,6 +262,14 @@ export class ValueComponent extends BaseComponent {
   #onInputKeyDown(event) {
     if (isKey(event.keyCode, 'ESCAPE')) {
       this.runLocalHooks('cancel');
+      stopImmediatePropagation(event);
+    }
+
+    if (isKey(event.keyCode, 'ENTER')) {
+      if (this.searchMode === 'apply') {
+        this.runLocalHooks('accept');
+      }
+
       stopImmediatePropagation(event);
     }
   }

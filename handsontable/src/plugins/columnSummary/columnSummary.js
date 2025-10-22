@@ -169,6 +169,8 @@ export class ColumnSummary extends BasePlugin {
     this.addHook('afterInit', (...args) => this.#onAfterInit(...args));
     this.addHook('afterChange', (...args) => this.#onAfterChange(...args));
     this.addHook('afterUpdateSettings', (...args) => this.#onAfterUpdateSettings(...args));
+    this.addHook('afterLoadData', (...args) => this.#onAfterLoadData(...args));
+    this.addHook('afterUpdateData', (...args) => this.#onAfterUpdateData(...args));
 
     this.addHook('beforeCreateRow', (index, amount, source) => this.endpoints.resetSetupBeforeStructureAlteration('insert_row', index, amount, null, source)); // eslint-disable-line max-len
     this.addHook('beforeCreateCol', (index, amount, source) => this.endpoints.resetSetupBeforeStructureAlteration('insert_col', index, amount, null, source)); // eslint-disable-line max-len
@@ -503,6 +505,30 @@ export class ColumnSummary extends BasePlugin {
   #onAfterChange(changes, source) {
     if (changes && source !== 'ColumnSummary.reset' && source !== 'ColumnSummary.set' && source !== 'loadData') {
       this.endpoints.refreshChangedEndpoints(changes);
+    }
+  }
+
+  /**
+   * `afterLoadData` hook callback.
+   *
+   * @param {Array} data The updated data.
+   * @param {boolean} firstRun `true` if called on initial load, `false` otherwise.
+   */
+  #onAfterLoadData(data, firstRun) {
+    if (!firstRun) {
+      this.endpoints.refreshAllEndpoints();
+    }
+  }
+
+  /**
+   * `afterUpdateData` hook callback.
+   *
+   * @param {Array} data The updated data.
+   * @param {boolean} firstRun `true` if called on initial load, `false` otherwise.
+   */
+  #onAfterUpdateData(data, firstRun) {
+    if (!firstRun) {
+      this.endpoints.refreshAllEndpoints();
     }
   }
 

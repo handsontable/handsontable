@@ -80,8 +80,6 @@ export class DialogUI {
 
     const { dialogElement } = this.#refs;
 
-    dialogElement.addEventListener('click', () => this.runLocalHooks('clickDialogElement'));
-
     // Set ARIA attributes
     setAttribute(dialogElement, [
       A11Y_MODAL(),
@@ -98,8 +96,17 @@ export class DialogUI {
    *
    * @returns {HTMLElement} The dialog element.
    */
-  getContainerElement() {
+  getContainer() {
     return this.#refs.dialogElement;
+  }
+
+  /**
+   * Gets the focusable elements.
+   *
+   * @returns {HTMLElement[]} The focusable elements.
+   */
+  getFocusableElements() {
+    return [this.#refs.dialogElement];
   }
 
   /**

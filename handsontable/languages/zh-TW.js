@@ -148,7 +148,17 @@ const dictionary = {
   [C.FILTERS_BUTTONS_CANCEL]: '取消',
   [C.FILTERS_BUTTONS_PLACEHOLDER_SEARCH]: '搜尋',
   [C.FILTERS_BUTTONS_PLACEHOLDER_VALUE]: '值',
-  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: '第二值'
+  [C.FILTERS_BUTTONS_PLACEHOLDER_SECOND_VALUE]: '第二值',
+  [C.PAGINATION_SECTION]: '分頁',
+  [C.PAGINATION_PAGE_SIZE_SECTION]: '每頁行數',
+  [C.PAGINATION_PAGE_SIZE_AUTO]: '自動',
+  [C.PAGINATION_COUNTER_SECTION]: '[start] - [end] 共 [total]',
+  [C.PAGINATION_NAV_SECTION]: '第 [currentPage] 頁，共 [totalPages] 頁',
+  [C.PAGINATION_FIRST_PAGE]: '轉到第一頁',
+  [C.PAGINATION_PREV_PAGE]: '轉到上一頁',
+  [C.PAGINATION_NEXT_PAGE]: '轉到下一頁',
+  [C.PAGINATION_LAST_PAGE]: '轉到最後一頁',
+  [C.LOADING_TITLE]: '載入中...'
 };
 _handsontable.default.languages.registerLanguageDictionary(dictionary);
 var _default = exports["default"] = dictionary;

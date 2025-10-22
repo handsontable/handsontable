@@ -470,4 +470,59 @@ describe('Formulas: Integration with other features', () => {
       ]);
     });
   });
+
+  describe('Integration with the Autocomplete cell type with object-based key/value source', () => {
+    it('should utilize the visible values of the object-based, key/value autocomplete cells in the formulas engine', async() => {
+      const errorSpy = jasmine.createSpyObj('error', ['test']);
+      const prevError = window.onerror;
+      const airportKVData = [
+        { key: 'LAX', value: 'Los Angeles International Airport' },
+        { key: 'JFK', value: 'John F. Kennedy International Airport' },
+        { key: 'ORD', value: 'Chicago O\'Hare International Airport' },
+        { key: 'LHR', value: 'London Heathrow Airport' },
+      ];
+      const nestedAirportObjectKVData = [
+        {
+          key: 'LAX',
+          value: { key: 'LAX', value: 'Los Angeles International Airport' },
+          formulas: '=CONCATENATE(B1, B2)',
+        },
+        {
+          key: 'JFK',
+          value: { key: 'JFK', value: 'John F. Kennedy International Airport' },
+          formulas: null,
+        },
+      ];
+
+      window.onerror = errorSpy.test;
+
+      handsontable({
+        data: nestedAirportObjectKVData,
+        rowHeaders: true,
+        colHeaders: true,
+        formulas: {
+          engine: HyperFormula,
+          sheetName: 'Sheet1'
+        },
+        columns: [
+          {
+            data: 'key',
+          },
+          {
+            data: 'value',
+            type: 'autocomplete',
+            source: airportKVData,
+          },
+          {
+            data: 'formulas',
+            type: 'text',
+          }],
+      });
+
+      expect(getDataAtCell(0, 2)).toEqual('Los Angeles International AirportJohn F. Kennedy International Airport');
+      expect(errorSpy.test).not.toHaveBeenCalled();
+
+      window.onerror = prevError;
+    });
+  });
 });

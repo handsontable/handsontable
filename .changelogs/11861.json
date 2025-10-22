@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an issue with header size on iPad",
+  "type": "fixed",
+  "issueOrPR": 11861,
+  "breaking": false,
+  "framework": "none"
+}

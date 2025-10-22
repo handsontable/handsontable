@@ -7,7 +7,7 @@ import {
   removeClass,
   setAttribute,
 } from '../../helpers/dom/element';
-import { A11Y_DISABLED, A11Y_LABEL, A11Y_TABINDEX } from '../../helpers/a11y';
+import { A11Y_DISABLED, A11Y_LABEL } from '../../helpers/a11y';
 
 const TEMPLATE = `
 <div data-ref="container" class="ht-pagination handsontable">
@@ -130,6 +130,7 @@ export class PaginationUI {
     this.#refs = elements.refs;
 
     container.setAttribute('dir', this.#isRtl ? 'rtl' : 'ltr');
+    container.tabIndex = -1;
 
     const isDisabled = event => event.currentTarget.disabled;
     const addClickListener = (eventName, element, callback) => {
@@ -141,18 +142,9 @@ export class PaginationUI {
     };
 
     addClickListener('click', first, () => this.runLocalHooks('firstPageClick'));
-    addClickListener('focus', first, () => this.runLocalHooks('focus', first));
-
     addClickListener('click', prev, () => this.runLocalHooks('prevPageClick'));
-    addClickListener('focus', prev, () => this.runLocalHooks('focus', prev));
-
     addClickListener('click', next, () => this.runLocalHooks('nextPageClick'));
-    addClickListener('focus', next, () => this.runLocalHooks('focus', next));
-
     addClickListener('click', last, () => this.runLocalHooks('lastPageClick'));
-    addClickListener('focus', last, () => this.runLocalHooks('focus', last));
-
-    addClickListener('focus', pageSizeSelect, () => this.runLocalHooks('focus', pageSizeSelect));
 
     pageSizeSelect.addEventListener('change', () => {
       const value = pageSizeSelect.value === 'auto' ? 'auto' : Number.parseInt(pageSizeSelect.value, 10);
@@ -322,7 +314,6 @@ export class PaginationUI {
     ]);
     setAttribute(pageSizeSelect, [
       ...[A11Y_LABEL(this.#phraseTranslator(C.PAGINATION_PAGE_SIZE_SECTION))],
-      ...([A11Y_TABINDEX(-1)]),
     ]);
 
     this.#a11yAnnouncer(navLabelText);
@@ -386,22 +377,18 @@ export class PaginationUI {
     setAttribute(first, [
       ...[A11Y_LABEL(this.#phraseTranslator(C.PAGINATION_FIRST_PAGE))],
       ...([A11Y_DISABLED(isFirstPage)]),
-      ...([A11Y_TABINDEX(-1)]),
     ]);
     setAttribute(prev, [
       ...[A11Y_LABEL(this.#phraseTranslator(C.PAGINATION_PREV_PAGE))],
       ...([A11Y_DISABLED(isFirstPage)]),
-      ...([A11Y_TABINDEX(-1)]),
     ]);
     setAttribute(next, [
       ...[A11Y_LABEL(this.#phraseTranslator(C.PAGINATION_NEXT_PAGE))],
       ...([A11Y_DISABLED(isLastPage)]),
-      ...([A11Y_TABINDEX(-1)]),
     ]);
     setAttribute(last, [
       ...[A11Y_LABEL(this.#phraseTranslator(C.PAGINATION_LAST_PAGE))],
       ...([A11Y_DISABLED(isLastPage)]),
-      ...([A11Y_TABINDEX(-1)]),
     ]);
 
     return this;

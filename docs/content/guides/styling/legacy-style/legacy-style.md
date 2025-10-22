@@ -3,8 +3,8 @@ id: yfus6qpz
 title: Legacy Style
 metaTitle: Legacy Style - JavaScript Data Grid | Handsontable
 description: Design, prototype, and customize spreadsheet-like components with the Design System for Figma.
-permalink: /legacy-theme
-canonicalUrl: /legacy-theme
+permalink: /legacy-style
+canonicalUrl: /legacy-style
 tags:
   - styling
   - figma
