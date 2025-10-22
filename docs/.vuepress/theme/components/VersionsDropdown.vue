@@ -29,7 +29,7 @@ export default {
               rel: this.$page.latestVersion === v ? undefined : 'nofollow',
               isHtmlLink: true,
             })) : []),
-          ].filter(v => parseInt(v.text.split('.')[0]) >= 9)
+          ].filter(v => parseInt(v.text.split('.')[0], 10) >= 9)
       };
     }
   },
