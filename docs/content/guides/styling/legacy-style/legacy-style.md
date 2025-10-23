@@ -26,30 +26,30 @@ searchCategory: Guides
 category: Styling
 ---
 
-# Legacy Classic Style
+# Legacy Style
 
-Handsontable 16.1 introduced a new **Classic (Modern)** theme that replaces the legacy `classic` style. The legacy classic stylesheet will be removed in version 17.0.
+Handsontable 16.1 introduced a new **Classic** theme that replaces the legacy styles. The legacy stylesheet will be removed in version 17.0.
 
 [[toc]]
 
 ## About the Legacy style
 
-The `classic` (legacy) CSS file ([`handsontable.full.min.css`](https://github.com/handsontable/handsontable/blob/master/handsontable/dist/handsontable.full.min.css)) was the default stylesheet up until **version 15** (released in December 2024). This style is now considered legacy and **will be removed in version 17.0.0**.
+The legacy CSS file ([`handsontable.full.min.css`](https://github.com/handsontable/handsontable/blob/master/handsontable/dist/handsontable.full.min.css)) was the default stylesheet up until **version 15** (released in December 2024). This style is now considered legacy and **will be removed in version 17.0.0**.
 
-![Handsontable legacy classic style]({{$basePath}}/img/legacy_classic_theme.png)
+![Handsontable legacy style]({{$basePath}}/img/legacy_classic_theme.png)
 
 ### Limitations of the Legacy Style
 
-The legacy classic style was built with hardcoded styles that couldn't be customized with CSS variables. The new Classic (Modern) theme provides the same visual appearance but with the flexibility of CSS variables, making it easier to customize and maintain consistency with your application's design system.
+The legacy style was built with hardcoded styles that couldn't be customized with CSS variables. The new Classic theme provides the same visual appearance but with the flexibility of CSS variables, making it easier to customize and maintain consistency with your application's design system.
 
 ### Benefits of Migrating
 
-- **Visual Consistency**: The new theme maintains the same visual appearance as the legacy theme
+- **Visual Consistency**: The new theme maintains the same visual appearance as the legacy style
 - **Future-Proof**: The new theme will continue to be supported and enhanced
-- **Console Warning**: You'll see a deprecation warning if you're still using the legacy theme
+- **Console Warning**: You'll see a deprecation warning if you're still using the legacy style
 
 ## Migration Guide
 
-If you're using the legacy `classic` theme and would like to upgrade, please read the following migration guide:
+If you're using the legacy style and would like to upgrade, please read the following migration guide:
 
 - [Migrate from 16.0 to 16.1](@/guides/upgrade-and-migration/migrating-from-16.0-to-16.1/migrating-from-16.0-to-16.1.md)

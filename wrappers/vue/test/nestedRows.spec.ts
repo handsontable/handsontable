@@ -35,6 +35,7 @@ describe('cooperation with NestedRows plugin', () => {
         rowHeaders: true,
         colHeaders: true,
         nestedRows: true,
+        licenseKey: 'non-commercial-and-evaluation',
       }
     });
 

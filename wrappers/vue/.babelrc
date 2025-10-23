@@ -6,7 +6,8 @@
         "@babel/preset-typescript"
       ],
       "plugins": [
-        "@babel/transform-runtime"
+        "@babel/transform-runtime",
+        ["@babel/plugin-proposal-decorators", { "legacy": true }]
       ]
     }
   }

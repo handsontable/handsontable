@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improve column widths calculations for checkbox cell types",
+  "type": "fixed",
+  "issueOrPR": 11891,
+  "breaking": false,
+  "framework": "none"
+}

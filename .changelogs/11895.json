@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Updated the \"high\"-level dev dependency vulnerabilities.",
+  "type": "security",
+  "issueOrPR": 11895,
+  "breaking": false,
+  "framework": "none"
+}
