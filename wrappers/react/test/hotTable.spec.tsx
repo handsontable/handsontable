@@ -165,7 +165,7 @@ describe('Updating the Handsontable settings', () => {
   });
 
   it('should throw an error when trying to update init-only settings after inializing the component', async () => {
-    console.error = jasmine.createSpy('error');
+    console.error = jest.fn();
 
     let updateState = null;
 
@@ -200,7 +200,7 @@ describe('Updating the Handsontable settings', () => {
 
   it('should NOT throw an error when trying to update settings after inializing the component if the other settings' +
   'contain init-only entries', async () => {
-    console.error = jasmine.createSpy('error');
+    console.error = jest.fn();
 
     let updateState = null;
 
@@ -233,7 +233,7 @@ describe('Updating the Handsontable settings', () => {
   });
 
   it('should NOT throw an error when definiting init-only settings, without updating them afterwards', async () => {
-    console.error = jasmine.createSpy('error');
+    console.error = jest.fn();
 
     function ExampleComponent() {
       return (

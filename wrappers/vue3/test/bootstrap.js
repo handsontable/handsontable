@@ -7,6 +7,20 @@ beforeAll(() => {
 
   window.IntersectionObserver = IntersectionObserverMock;
   window.ResizeObserver = ResizeObserverMock;
+
+  // Suppress Handsontable legacy theme deprecation warning.
+  // TODO: Remove when Handsontable 17.0.0 is released.
+  // eslint-disable-next-line no-console
+  const originalWarn = console.warn;
+
+  // eslint-disable-next-line no-console
+  console.warn = (message) => {
+    if (typeof message === 'string' && message.includes('Handsontable classic') && message.includes('legacy')) {
+      return; // Suppress this specific warning
+    }
+
+    originalWarn(message);
+  };
 });
 
 afterAll(() => {

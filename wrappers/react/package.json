@@ -73,15 +73,15 @@
     "@types/react-redux": "^7.1.7",
     "cross-env": "^7.0.3",
     "handsontable": "^16.0.0",
-    "jest": "^26.6.3",
-    "jest-environment-jsdom": "^26.6.2",
+    "jest": "^27.5.1",
+    "jest-environment-jsdom": "^27.5.1",
     "prop-types": "^15.7.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-redux": "^7.1.1",
     "redux": "^4.0.4",
     "rimraf": "^3.0.2",
-    "rollup": "^4.14.3",
+    "rollup": "^4.52.5",
     "rollup-plugin-alias": "^1.5.2",
     "rollup-plugin-typescript2": "^0.36.0",
     "typescript": "3.8.2",
@@ -104,6 +104,7 @@
     "watch:es": "cross-env NODE_ENV=es rollup -c --watch --bundleConfigAsCjs"
   },
   "jest": {
+    "testEnvironment": "jsdom",
     "testURL": "http://localhost/",
     "transform": {
       "^.+\\.tsx?$": "babel-jest",

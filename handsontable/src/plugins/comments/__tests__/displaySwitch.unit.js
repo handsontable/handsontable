@@ -73,11 +73,14 @@ describe('Comments', () => {
       const displaySwitch = new DisplaySwitch(700);
 
       jest.useFakeTimers();
+      const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+
+      setTimeoutSpy.mockClear();
 
       displaySwitch.hide();
 
-      expect(setTimeout.mock.calls.length).toBe(1);
-      expect(setTimeout.mock.calls[0][1]).toBe(DEFAULT_HIDE_DELAY);
+      expect(setTimeoutSpy.mock.calls.length).toBe(1);
+      expect(setTimeoutSpy.mock.calls[0][1]).toBe(DEFAULT_HIDE_DELAY);
     });
 
     it('should set `wasLastActionShow` variable to `false`', () => {
@@ -141,11 +144,14 @@ describe('Comments', () => {
       const range = { from: new CellCoords(0, 1) };
 
       jest.useFakeTimers();
+      const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+
+      setTimeoutSpy.mockClear();
 
       displaySwitch.showDebounced(range);
 
-      expect(setTimeout.mock.calls.length).toBe(1);
-      expect(setTimeout.mock.calls[0][1]).toBe(1000);
+      expect(setTimeoutSpy.mock.calls.length).toBe(1);
+      expect(setTimeoutSpy.mock.calls[0][1]).toBe(1000);
     });
   });
 
@@ -158,6 +164,9 @@ describe('Comments', () => {
       displaySwitch.showDebounced = cachedShowDebounced;
 
       jest.useFakeTimers();
+      const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+
+      setTimeoutSpy.mockClear();
 
       displaySwitch.updateDelay(800);
 
@@ -167,8 +176,8 @@ describe('Comments', () => {
       jest.runAllTimers();
 
       expect(cachedShowDebounced).not.toHaveBeenCalled();
-      expect(setTimeout.mock.calls.length).toBe(1);
-      expect(setTimeout.mock.calls[0][1]).toBe(800);
+      expect(setTimeoutSpy.mock.calls.length).toBe(1);
+      expect(setTimeoutSpy.mock.calls[0][1]).toBe(800);
     });
   });
 
@@ -178,6 +187,9 @@ describe('Comments', () => {
       const onHide = jasmine.createSpy('onHide');
 
       jest.useFakeTimers();
+      const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+
+      setTimeoutSpy.mockClear();
 
       displaySwitch.addLocalHook('hide', onHide);
       displaySwitch.hide();
@@ -185,7 +197,7 @@ describe('Comments', () => {
 
       jest.runAllTimers();
 
-      expect(setTimeout.mock.calls.length).toBe(1);
+      expect(setTimeoutSpy.mock.calls.length).toBe(1);
       expect(onHide).not.toHaveBeenCalled();
     });
 

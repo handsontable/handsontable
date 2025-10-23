@@ -59,37 +59,38 @@
   "devDependencies": {
     "@babel/cli": "^7.4.4",
     "@babel/core": "^7.4.5",
+    "@babel/plugin-proposal-decorators": "^7.28.0",
     "@babel/plugin-transform-runtime": "^7.4.4",
     "@babel/polyfill": "^7.4.4",
     "@babel/preset-env": "^7.4.5",
     "@babel/preset-typescript": "^7.3.3",
     "@babel/runtime": "^7.4.5",
-    "babel-jest": "^26.6.3",
-    "@rollup/plugin-commonjs": "25.0.7",
-    "@rollup/plugin-node-resolve": "15.2.3",
-    "@rollup/plugin-terser": "0.4.4",
-    "@rollup/plugin-json": "^6.1.0",
-    "@rollup/plugin-replace": "^5.0.5",
     "@rollup/plugin-babel": "6.0.4",
+    "@rollup/plugin-commonjs": "25.0.7",
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-node-resolve": "15.2.3",
+    "@rollup/plugin-replace": "^5.0.5",
+    "@rollup/plugin-terser": "0.4.4",
     "@vue/test-utils": "^1.0.3",
+    "@vue/vue2-jest": "27.0.0-alpha.4",
+    "babel-jest": "^27.5.1",
     "cross-env": "^7.0.3",
     "css-loader": "^6.10.0",
     "handsontable": "^16.0.0",
-    "jest": "^26.6.3",
-    "jest-environment-jsdom": "^26.6.2",
+    "jest": "^27.5.1",
+    "jest-environment-jsdom": "^27.5.1",
     "rimraf": "^3.0.2",
-    "rollup": "^4.16.1",
+    "rollup": "^4.52.5",
     "rollup-plugin-typescript2": "^0.36.0",
     "rollup-plugin-vue": "^5.1.9",
+    "ts-jest": "^27.1.5",
     "tslib": "^2.3.0",
     "typescript": "3.8.2",
     "vue": "~2.6.10",
     "vue-class-component": "^7.1.0",
-    "vue-jest": "^4.0.1",
     "vue-router": "^3.0.6",
     "vue-template-compiler": "~2.6.10",
-    "vuex": "^3.1.1",
-    "ts-jest": "^26.5.6"
+    "vuex": "^3.1.1"
   },
   "scripts": {
     "build": "npm run clean && npm run build:commonjs && npm run build:es && npm run build:umd && npm run build:min",
@@ -106,11 +107,12 @@
     "test": "jest"
   },
   "jest": {
+    "testEnvironment": "jsdom",
     "testURL": "http://localhost/",
     "transform": {
       "^.+\\.ts?$": "babel-jest",
       "^.+\\.js$": "babel-jest",
-      ".*\\.vue$": "vue-jest"
+      ".*\\.(vue)$": "@vue/vue2-jest"
     },
     "testRegex": "(/test/(.*).(test|spec)).(js?|ts?)$",
     "moduleFileExtensions": [
@@ -125,7 +127,7 @@
     ],
     "globals": {
       "ts-jest": {
-        "tsConfig": "test-tsconfig.json",
+        "tsconfig": "test-tsconfig.json",
         "babelConfig": true
       }
     }
