@@ -2376,24 +2376,23 @@ thead th.hiddenHeaderText .colHeader {
   }
 }
 
-.handsontable .ht-empty-data-state {
-  position: sticky;
-  top: 0;
-  left: 0;
-  right: 0;
+.ht-empty-data-state {
+  display: none;
+  position: absolute;
   width: 100%;
-  height: 100%;
+  left: 0;
   z-index: 999;
   overflow-y: auto;
   border: 1px solid #ccc;
+  border-radius: 4px;
   box-sizing: border-box;
 }
 
-.handsontable .ht-empty-data-state * {
+.ht-empty-data-state * {
   box-sizing: border-box !important;
 }
 
-.handsontable .ht-empty-data-state__content-wrapper {
+.ht-empty-data-state__content-wrapper {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2401,9 +2400,10 @@ thead th.hiddenHeaderText .colHeader {
   width: 100%;
   min-height: 100%;
   padding: 16px;
+  border-radius: 4px;
 }
 
-.handsontable .ht-empty-data-state__content-wrapper-inner {
+.ht-empty-data-state__content-wrapper-inner {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2412,7 +2412,7 @@ thead th.hiddenHeaderText .colHeader {
   max-width: 480px;
 }
 
-.handsontable .ht-empty-data-state__content {
+.ht-empty-data-state__content {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2420,14 +2420,14 @@ thead th.hiddenHeaderText .colHeader {
   gap: 4px;
 }
 
-.handsontable .ht-empty-data-state__title {
+.ht-empty-data-state__title {
   margin: 0;
   font-size: 16px;
   font-weight: 400;
   line-height: 24px;
 }
 
-.handsontable .ht-empty-data-state__description {
+.ht-empty-data-state__description {
   margin: 0;
   color: #222;
   font-size: 12px;
@@ -2435,7 +2435,7 @@ thead th.hiddenHeaderText .colHeader {
   font-weight: 400;
 }
 
-.handsontable .ht-empty-data-state__actions {
+.ht-empty-data-state__actions {
   display: flex;
   justify-content: center;
   flex-direction: row;
@@ -2443,10 +2443,14 @@ thead th.hiddenHeaderText .colHeader {
   gap: 8px;
 }
 
-.handsontable .ht-empty-data-state--disable-top-border {
+.ht-empty-data-state--disable-top-border {
+  border-start-start-radius: 0;
+  border-start-end-radius: 0;
   border-top-width: 0;
 }
 
-.handsontable.htPagination .ht-empty-data-state, .handsontable.htHasScrollX .ht-empty-data-state {
+.ht-empty-data-state--disable-bottom-border, .ht-empty-data-state:has(~ .ht-pagination) {
+  border-end-start-radius: 0;
+  border-end-end-radius: 0;
   border-bottom-width: 0;
 }
