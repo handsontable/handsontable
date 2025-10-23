@@ -74,6 +74,7 @@ describe('Comments', () => {
 
       jest.useFakeTimers();
       const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+
       setTimeoutSpy.mockClear();
 
       displaySwitch.hide();
@@ -144,6 +145,7 @@ describe('Comments', () => {
 
       jest.useFakeTimers();
       const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+
       setTimeoutSpy.mockClear();
 
       displaySwitch.showDebounced(range);
@@ -163,6 +165,7 @@ describe('Comments', () => {
 
       jest.useFakeTimers();
       const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+
       setTimeoutSpy.mockClear();
 
       displaySwitch.updateDelay(800);
@@ -185,6 +188,7 @@ describe('Comments', () => {
 
       jest.useFakeTimers();
       const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+
       setTimeoutSpy.mockClear();
 
       displaySwitch.addLocalHook('hide', onHide);
