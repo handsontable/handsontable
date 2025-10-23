@@ -695,7 +695,7 @@ describe('DropdownEditor', () => {
       expect($(dropdown).is(':visible')).toBe(true);
     });
 
-    it('should not save the value in non strict mode, when closing the editor by clicking on the table', async() => {
+    it('should not save the value, when closing the editor by clicking on the table', async() => {
       handsontable({
         columns: [
           {
@@ -721,6 +721,34 @@ describe('DropdownEditor', () => {
       await sleep(50);
 
       spec().$container.find('tbody tr:eq(1) td:eq(2)').simulate('mousedown');
+
+      expect(getDataAtCell(0, 0)).toEqual(null);
+    });
+
+    it('should not save the value, when closing the editor by clicking outside of the table', async() => {
+      const syncSources = jasmine.createSpy('syncSources');
+
+      syncSources.and.callFake((query, process) => {
+        process(choices);
+      });
+
+      handsontable({
+        columns: [
+          {
+            editor: 'dropdown',
+            source: syncSources
+          }
+        ]
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+      await sleep(50);
+
+      const editor = $('.handsontableInput');
+
+      editor.val('foo');
+      $('body').simulate('mousedown');
 
       expect(getDataAtCell(0, 0)).toEqual(null);
     });
