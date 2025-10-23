@@ -115,6 +115,6 @@ describe('EmptyDataState', () => {
     });
 
     expect(emptyDataStatePlugin.isVisible()).toBe(false);
-    expect(getEmptyDataStateContainerElement()).toBe(null);
+    expect(getEmptyDataStateContainerElement().style.display).toBe('none');
   });
 });

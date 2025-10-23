@@ -10,6 +10,7 @@ const SOURCE = Object.freeze({
   EMPTY: 'empty',
   FILTERS: 'filters',
 });
+const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
 
 /**
  * @plugin EmptyDataState
@@ -195,25 +196,23 @@ export class EmptyDataState extends BasePlugin {
   }
 
   /**
-   * Flag indicating if empty data state is currently visible.
+   * Flag indicating if emptyDataState is currently visible.
    *
    * @type {boolean}
    */
   #isVisible = false;
 
   /**
+   * UI instance of the emptyDataState plugin.
+   *
    * @type {EmptyDataStateUI}
-   * @private
-   * @default null
-   * @description The UI instance.
    */
   #ui = null;
 
   /**
+   * Messages of the emptyDataState plugin.
+   *
    * @type {object}
-   * @private
-   * @default {}
-   * @description The messages.
    */
   #messages = {};
 
@@ -238,6 +237,16 @@ export class EmptyDataState extends BasePlugin {
       this.#messages[source] = this.#getMessage(source);
     });
 
+    if (!this.#ui) {
+      this.#ui = new EmptyDataStateUI({
+        rootElement: this.hot.rootGridElement,
+        rootDocument: this.hot.rootDocument,
+      });
+      
+      this.#registerFocusScope();
+      this.#registerEvents();
+    }
+
     this.hot.addHook('afterInit', () => this.#onAfterInit());
     this.hot.addHook('afterUpdateData', () => this.#toggleEmptyDataState());
     this.hot.addHook('afterFilter', (...args) => this.#toggleEmptyDataState(...args));
@@ -257,9 +266,7 @@ export class EmptyDataState extends BasePlugin {
     this.disablePlugin();
     this.enablePlugin();
 
-    if (this.#ui) {
-      this.#toggleEmptyDataState();
-    }
+    this.#toggleEmptyDataState();
 
     super.updatePlugin();
   }
@@ -268,11 +275,17 @@ export class EmptyDataState extends BasePlugin {
    * Disable plugin for this Handsontable instance.
    */
   disablePlugin() {
+    this.#unregisterFocusScope();
+    this.#unregisterEvents();
+
+    this.#ui.destroy();
+    this.#ui = null;
+
     super.disablePlugin();
   }
 
   /**
-   * Check if the empty data state is currently visible.
+   * Check if the plugin is currently visible.
    *
    * @returns {boolean}
    */
@@ -281,30 +294,82 @@ export class EmptyDataState extends BasePlugin {
   }
 
   /**
+   * Registers the DOM listeners.
+   */
+  #registerEvents() {
+    if (!this.#ui?.getElement()) {
+      return;
+    }
+
+    this.eventManager.addEventListener(this.#ui.getElement(), 'wheel', event => this.#mouseWheelHandler(event));
+  }
+
+  /**
+   * Unbinds the events used by the plugin.
+   */
+  #unregisterEvents() {
+    this.eventManager.clear();
+  }
+
+  /**
+   * Handles the mouse wheel event.
+   *
+   * @param {WheelEvent} event - The wheel event.
+   */
+  #mouseWheelHandler(event) {
+    const deltaX = isNaN(event.deltaX) ? (-1) * event.wheelDeltaX : event.deltaX;
+
+    this.hot.view._wt.wtTable.holder.scrollLeft += deltaX;
+  }
+
+  /**
+   * Registers the focus scope for the empty data state plugin.
+   */
+  #registerFocusScope() {
+    this.hot.getFocusScopeManager()
+      .registerScope(PLUGIN_KEY, this.#ui.getElement(), {
+        shortcutsContextName: SHORTCUTS_CONTEXT_NAME,
+        runOnlyIf: () => this.isVisible() && this.#ui?.getFocusableElements().length > 0,
+        onActivate: (focusSource) => {
+          const focusableElements = this.#ui?.getFocusableElements();
+
+          if (focusSource === 'tab_from_above') {
+            focusableElements.at(0).focus();
+          } else if (focusSource === 'tab_from_below') {
+            focusableElements.at(-1).focus();
+          }
+        },
+      });
+  }
+
+  /**
+   * Unregisters the focus scope for the emptyDataState plugin.
+   */
+  #unregisterFocusScope() {
+    this.hot.getFocusScopeManager().unregisterScope(PLUGIN_KEY);
+  }
+
+  /**
    * Called after the initialization of the table is completed.
-   * It creates the empty data state UI instance, and toggles the empty data state.
+   * It toggles the emptyDataState.
    */
   #onAfterInit() {
-    this.#ui = new EmptyDataStateUI({
-      view: this.hot.view,
-    });
-
     this.#toggleEmptyDataState();
   }
 
   /**
    * Called after the rendering of the table is completed.
-   * It updates the height and class names of the empty data state element.
+   * It updates the height and class names of the emptyDataState element.
    */
   #onAfterRender() {
-    if (this.#ui?.getElement()) {
-      this.#ui.updateSize();
-      this.#ui.updateClassNames();
+    if (this.#ui?.getElement() && this.isVisible()) {
+      this.#ui.updateSize(this.hot.view);
+      this.#ui.updateClassNames(this.hot.view);
     }
   }
 
   /**
-   * Get the message by the source for the empty data state.
+   * Get the message by the source for the emptyDataState.
    *
    * @param {string} source - The source.
    * @returns {object} The message.
@@ -318,14 +383,14 @@ export class EmptyDataState extends BasePlugin {
       message = this.getSetting('message');
     }
 
-    // If the message is a string, set the description
+    // If the message is a string, set the title
     if (typeof message === 'string') {
       message = {
-        description: message,
+        title: message,
       };
     }
 
-    // If the message is not set, set the default message
+    // If the message is not set, set the default message object
     if (!message?.title && !message?.description && !message?.actions) {
       message = {};
 
@@ -354,21 +419,15 @@ export class EmptyDataState extends BasePlugin {
   }
 
   /**
-   * Toggle visibility and content of the empty data state overlay.
+   * Toggle visibility and content of the emptyDataState.
    *
-   * Shows empty state when table has no data or when all data is hidden by filters.
-   * Automatically creates/destroys UI elements and updates content based on context.
+   * Shows emptyDataState when table has no data or when all data is hidden by filters.
    *
    * @param {Array} [conditionsStack] - Filter conditions stack.
    */
   #toggleEmptyDataState(conditionsStack) {
     if (this.hot.getData().length === 0) {
-
       this.hot.runHooks('beforeEmptyDataStateShow');
-
-      if (!this.#ui.getElement()) {
-        this.#ui.create();
-      }
 
       if (conditionsStack?.length > 0) {
         this.#ui.updateContent(this.#messages[SOURCE.FILTERS]);
@@ -376,19 +435,21 @@ export class EmptyDataState extends BasePlugin {
         this.#ui.updateContent(this.#messages.empty);
       }
 
-      this.hot.render();
+      this.#ui.show();
 
       this.#isVisible = true;
+
+      this.hot.render();
 
       this.hot.runHooks('afterEmptyDataStateShow');
 
       return;
     }
 
-    if (this.#ui.getElement()) {
+    if (this.#ui.getElement() && this.#isVisible) {
       this.hot.runHooks('beforeEmptyDataStateHide');
 
-      this.#ui.destroy();
+      this.#ui.hide();
       this.#isVisible = false;
 
       this.hot.runHooks('afterEmptyDataStateHide');

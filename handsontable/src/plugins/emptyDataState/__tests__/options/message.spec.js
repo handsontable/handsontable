@@ -63,7 +63,7 @@ describe('EmptyDataState - message option', () => {
     const emptyDataStatePlugin = getPlugin('emptyDataState');
 
     expect(emptyDataStatePlugin.isVisible()).toBe(true);
-    expect(getEmptyDataStateContainerElement().querySelector('.ht-empty-data-state__description').textContent)
+    expect(getEmptyDataStateContainerElement().querySelector('.ht-empty-data-state__title').textContent)
       .toBe('Custom empty state message');
   });
 
@@ -264,7 +264,7 @@ describe('EmptyDataState - message option', () => {
     const emptyDataStatePlugin = getPlugin('emptyDataState');
 
     expect(emptyDataStatePlugin.isVisible()).toBe(true);
-    expect(getEmptyDataStateContainerElement().querySelector('.ht-empty-data-state__description').textContent)
+    expect(getEmptyDataStateContainerElement().querySelector('.ht-empty-data-state__title').textContent)
       .toBe('No data available');
 
     // Add data back and test filtered state
@@ -277,7 +277,7 @@ describe('EmptyDataState - message option', () => {
     filtersPlugin.filter();
 
     expect(emptyDataStatePlugin.isVisible()).toBe(true);
-    expect(getEmptyDataStateContainerElement().querySelector('.ht-empty-data-state__description').textContent)
+    expect(getEmptyDataStateContainerElement().querySelector('.ht-empty-data-state__title').textContent)
       .toBe('No filtered results');
   });
 
@@ -443,7 +443,7 @@ describe('EmptyDataState - message option', () => {
     const emptyDataStatePlugin = getPlugin('emptyDataState');
 
     expect(emptyDataStatePlugin.isVisible()).toBe(true);
-    expect(getEmptyDataStateContainerElement().querySelector('.ht-empty-data-state__description').textContent)
+    expect(getEmptyDataStateContainerElement().querySelector('.ht-empty-data-state__title').textContent)
       .toBe('Initial message');
 
     // Update the plugin with new message
