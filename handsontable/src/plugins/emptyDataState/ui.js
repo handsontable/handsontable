@@ -117,6 +117,9 @@ export class EmptyDataStateUI {
       return;
     }
 
+    this.#placeholderElement?.remove();
+    this.#placeholderElement = null;
+
     this.#refs.emptyDataStateElement.style.display = 'none';
   }
 
