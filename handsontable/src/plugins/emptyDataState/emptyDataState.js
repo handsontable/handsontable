@@ -217,6 +217,13 @@ export class EmptyDataState extends BasePlugin {
   #messages = {};
 
   /**
+   * MutationObserver instance for monitoring DOM changes.
+   *
+   * @type {MutationObserver}
+   */
+  #observer = null;
+
+  /**
    * Check if the plugin is enabled in the handsontable settings.
    *
    * @returns {boolean}
@@ -245,6 +252,7 @@ export class EmptyDataState extends BasePlugin {
 
       this.#registerFocusScope();
       this.#registerEvents();
+      this.#registerObservers();
     }
 
     this.hot.addHook('afterInit', () => this.#onAfterInit());
@@ -277,6 +285,7 @@ export class EmptyDataState extends BasePlugin {
   disablePlugin() {
     this.#unregisterFocusScope();
     this.#unregisterEvents();
+    this.#disconnectObservers();
 
     this.#ui.destroy();
     this.#ui = null;
@@ -297,7 +306,7 @@ export class EmptyDataState extends BasePlugin {
    * Registers the DOM listeners.
    */
   #registerEvents() {
-    if (!this.#ui?.getElement()) {
+    if (!this.#ui.getElement()) {
       return;
     }
 
@@ -309,6 +318,39 @@ export class EmptyDataState extends BasePlugin {
    */
   #unregisterEvents() {
     this.eventManager.clear();
+  }
+
+  /**
+   * Registers the mutation observers for the emptyDataState plugin.
+   */
+  #registerObservers() {
+    if (!this.#ui.getElement() || this.#observer) {
+      return;
+    }
+
+    // Observe the root element for changes and move the emptyDataState element to the correct position
+    this.#observer = new MutationObserver(() => {
+      if (!this.hot) {
+        return;
+      }
+
+      const element = this.#ui.getElement();
+
+      if (this.hot.rootGridElement.nextElementSibling !== element) {
+        this.hot.rootGridElement.after(element);
+      }
+    });
+
+    this.#observer.observe(this.hot.rootWrapperElement, {
+      childList: true,
+    });
+  }
+
+  /**
+   * Disconnects the mutation observers for the emptyDataState plugin.
+   */
+  #disconnectObservers() {
+    this.#observer.disconnect();
   }
 
   /**
@@ -326,6 +368,10 @@ export class EmptyDataState extends BasePlugin {
    * Registers the focus scope for the empty data state plugin.
    */
   #registerFocusScope() {
+    if (!this.#ui.getElement()) {
+      return;
+    }
+
     this.hot.getFocusScopeManager()
       .registerScope(PLUGIN_KEY, this.#ui.getElement(), {
         shortcutsContextName: SHORTCUTS_CONTEXT_NAME,
@@ -446,7 +492,7 @@ export class EmptyDataState extends BasePlugin {
       return;
     }
 
-    if (this.#ui.getElement() && this.#isVisible) {
+    if (this.#ui?.getElement() && this.#isVisible) {
       this.hot.runHooks('beforeEmptyDataStateHide');
 
       this.#ui.hide();
@@ -464,6 +510,7 @@ export class EmptyDataState extends BasePlugin {
     this.#ui?.destroy();
     this.#ui = null;
     this.#messages = {};
+    this.#observer = null;
 
     super.destroy();
   }

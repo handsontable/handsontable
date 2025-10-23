@@ -117,4 +117,21 @@ describe('EmptyDataState', () => {
     expect(emptyDataStatePlugin.isVisible()).toBe(false);
     expect(getEmptyDataStateContainerElement().style.display).toBe('none');
   });
+
+  it('should keep the emptyDateState DOM element after ht-grid element', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      emptyDataState: true,
+    });
+
+    expect(getEmptyDataStateContainerElement().previousElementSibling).toBe(hot().rootGridElement);
+
+    hot().updateSettings({
+      pagination: true,
+    });
+
+    await sleep(10);
+
+    expect(getEmptyDataStateContainerElement().previousElementSibling).toBe(hot().rootGridElement);
+  });
 });
