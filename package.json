@@ -60,7 +60,8 @@
     "execa": "^5.0.0",
     "fs-extra": "^4.0.2",
     "glob": "^7.1.2",
-    "global-jsdom": "^8.7.0",
+    "jsdom": "24.0.0",
+    "global-jsdom": "^24.0.0",
     "inquirer": "^7.3.3",
     "lodash": "^4.17.21",
     "moment": "2.29.4",
@@ -78,8 +79,7 @@
   },
   "pnpm": {
     "overrides": {
-      "generic-names@1>loader-utils": "^2.0.0",
-      "rollup@4.49.0": "4.48.1"
+      "generic-names@1>loader-utils": "^2.0.0"
     }
   },
   "license": "SEE LICENSE IN LICENSE.txt",
