@@ -242,7 +242,7 @@ export class EmptyDataState extends BasePlugin {
         rootElement: this.hot.rootGridElement,
         rootDocument: this.hot.rootDocument,
       });
-      
+
       this.#registerFocusScope();
       this.#registerEvents();
     }
