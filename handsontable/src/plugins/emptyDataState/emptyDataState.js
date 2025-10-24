@@ -7,7 +7,7 @@ export const PLUGIN_KEY = 'emptyDataState';
 export const PLUGIN_PRIORITY = 370;
 export const EMPTY_DATA_STATE_CLASS_NAME = `ht-${PLUGIN_KEY}`;
 const SOURCE = Object.freeze({
-  EMPTY: 'empty',
+  UNKNOWN: 'unknown',
   FILTERS: 'filters',
 });
 const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
@@ -26,10 +26,10 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
  * - `message`: Message to display in the empty data state overlay.
  *   - `title`: Title to display in the empty data state overlay.
  *   - `description`: Description to display in the empty data state overlay.
- *   - `actions`: Actions to display in the empty data state overlay.
- *     - `text`: Text to display in the action button.
- *     - `type`: Type of the action button.
- *     - `callback`: Callback function to call when the action button is clicked.
+ *   - `buttons`: Buttons to display in the empty data state overlay.
+ *     - `text`: Text to display in the button.
+ *     - `type`: Type of the button.
+ *     - `callback`: Callback function to call when the button is clicked.
  *
  * @example
  * ::: only-for javascript
@@ -42,16 +42,16 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
  *   message: 'No data available',
  * },
  *
- * // Enable empty data state plugin with custom message and actions for any source
+ * // Enable empty data state plugin with custom message and buttons for any source
  * emptyDataState: {
  *   message: {
  *     title: 'No data available',
  *     description: 'There’s nothing to display yet.',
- *     actions: [{ text: 'Reset filters', type: 'secondary', callback: () => {} }],
+ *     buttons: [{ text: 'Reset filters', type: 'secondary', callback: () => {} }],
  *   },
  * },
  *
- * // Enable empty data state plugin with custom message and actions for specific source
+ * // Enable empty data state plugin with custom message and buttons for specific source
  * emptyDataState: {
  *   message: (source) => {
  *     switch (source) {
@@ -59,7 +59,7 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
  *         return {
  *           title: 'No data available',
  *           description: 'There’s nothing to display yet.',
- *           actions: [{ text: 'Reset filters', type: 'secondary', callback: () => {} }],
+ *           buttons: [{ text: 'Reset filters', type: 'secondary', callback: () => {} }],
  *         };
  *       default:
  *         return {
@@ -80,16 +80,16 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
  * // Enable empty data state plugin with custom message
  * <HotTable emptyDataState={{ message: 'No data available' }} />;
  *
- * // Enable empty data state plugin with custom message and actions for any source
+ * // Enable empty data state plugin with custom message and buttons for any source
  * <HotTable emptyDataState={{
  *   message: {
  *     title: 'No data available',
  *     description: 'There’s nothing to display yet.',
- *     actions: [{ text: 'Reset filters', type: 'secondary', callback: () => {} }],
+ *     buttons: [{ text: 'Reset filters', type: 'secondary', callback: () => {} }],
  *   }
  * }} />;
  *
- * // Enable empty data state plugin with custom message and actions for specific source
+ * // Enable empty data state plugin with custom message and buttons for specific source
  * <HotTable emptyDataState={{
  *   message: (source) => {
  *     switch (source) {
@@ -97,7 +97,7 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
  *         return {
  *           title: 'No data available',
  *           description: 'There’s nothing to display yet.',
- *           actions: [{ text: 'Reset filters', type: 'secondary', callback: () => {} }],
+ *           buttons: [{ text: 'Reset filters', type: 'secondary', callback: () => {} }],
  *         };
  *       default:
  *         return {
@@ -124,18 +124,18 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
  *   }
  * }
  *
- * // Enable empty data state plugin with custom message and actions for any source
+ * // Enable empty data state plugin with custom message and buttons for any source
  * hotSettings: Handsontable.GridSettings = {
  *   emptyDataState: {
  *     message: {
  *       title: 'No data available',
  *       description: 'There’s nothing to display yet.',
- *       actions: [{ text: 'Reset filters', type: 'secondary', callback: () => {} }],
+ *       buttons: [{ text: 'Reset filters', type: 'secondary', callback: () => {} }],
  *     },
  *   },
  * },
  *
- * // Enable empty data state plugin with custom message and actions for specific source
+ * // Enable empty data state plugin with custom message and buttons for specific source
  * hotSettings: Handsontable.GridSettings = {
  *   emptyDataState: {
  *     message: (source) => {
@@ -144,7 +144,7 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
  *           return {
  *             title: 'No data available for filters',
  *             description: 'There’s nothing to display yet.',
- *             actions: [{ text: 'Reset filters', type: 'secondary', callback: () => {} }],
+ *             buttons: [{ text: 'Reset filters', type: 'secondary', callback: () => {} }],
  *           };
  *         default:
  *           return {
@@ -185,7 +185,7 @@ export class EmptyDataState extends BasePlugin {
         isObject(value) &&
         (typeof value?.title === 'undefined' || typeof value?.title === 'string') &&
         (typeof value?.description === 'undefined' || typeof value?.description === 'string') &&
-        (typeof value?.actions === 'undefined' || Array.isArray(value?.actions) && value?.actions.every(item =>
+        (typeof value?.buttons === 'undefined' || Array.isArray(value?.buttons) && value?.buttons.every(item =>
           typeof item === 'object' &&
           typeof item.text === 'string' &&
           (typeof item.type === 'string' && ['primary', 'secondary'].includes(item.type)) &&
@@ -210,18 +210,18 @@ export class EmptyDataState extends BasePlugin {
   #ui = null;
 
   /**
-   * Messages of the emptyDataState plugin.
-   *
-   * @type {object}
-   */
-  #messages = {};
-
-  /**
    * MutationObserver instance for monitoring DOM changes.
    *
    * @type {MutationObserver}
    */
   #observer = null;
+
+  /**
+   * Keeps the selection state that will be restored after the dialog is closed.
+   *
+   * @type {SelectionState | null}
+   */
+  #selectionState = null;
 
   /**
    * Check if the plugin is enabled in the handsontable settings.
@@ -240,10 +240,6 @@ export class EmptyDataState extends BasePlugin {
       return;
     }
 
-    Object.values(SOURCE).forEach((source) => {
-      this.#messages[source] = this.#getMessage(source);
-    });
-
     if (!this.#ui) {
       this.#ui = new EmptyDataStateUI({
         rootElement: this.hot.rootGridElement,
@@ -255,14 +251,10 @@ export class EmptyDataState extends BasePlugin {
       this.#registerObservers();
     }
 
-    this.hot.addHook('afterInit', () => this.#onAfterInit());
-    this.hot.addHook('afterUpdateData', () => this.#toggleEmptyDataState());
-    this.hot.addHook('afterFilter', (...args) => this.#toggleEmptyDataState(...args));
-    this.hot.addHook('afterRemoveRow', () => this.#toggleEmptyDataState());
-    this.hot.addHook('afterRemoveCol', () => this.#toggleEmptyDataState());
-    this.hot.addHook('afterCreateRow', () => this.#toggleEmptyDataState());
-    this.hot.addHook('afterCreateCol', () => this.#toggleEmptyDataState());
+    this.addHook('afterInit', () => this.#onAfterInit());
     this.addHook('afterRender', () => this.#onAfterRender());
+    this.addHook('afterRowSequenceCacheUpdate', () => this.#toggleEmptyDataState());
+    this.addHook('afterColumnSequenceCacheUpdate', () => this.#toggleEmptyDataState());
 
     super.enablePlugin();
   }
@@ -284,7 +276,6 @@ export class EmptyDataState extends BasePlugin {
    */
   disablePlugin() {
     this.#unregisterFocusScope();
-    this.#unregisterEvents();
     this.#disconnectObservers();
 
     this.#ui.destroy();
@@ -310,14 +301,7 @@ export class EmptyDataState extends BasePlugin {
       return;
     }
 
-    this.eventManager.addEventListener(this.#ui.getElement(), 'wheel', event => this.#mouseWheelHandler(event));
-  }
-
-  /**
-   * Unbinds the events used by the plugin.
-   */
-  #unregisterEvents() {
-    this.eventManager.clear();
+    this.eventManager.addEventListener(this.#ui.getElement(), 'wheel', event => this.#onMouseWheel(event));
   }
 
   /**
@@ -358,10 +342,14 @@ export class EmptyDataState extends BasePlugin {
    *
    * @param {WheelEvent} event - The wheel event.
    */
-  #mouseWheelHandler(event) {
+  #onMouseWheel(event) {
     const deltaX = isNaN(event.deltaX) ? (-1) * event.wheelDeltaX : event.deltaX;
 
-    this.hot.view._wt.wtTable.holder.scrollLeft += deltaX;
+    if (deltaX !== 0) {
+      this.hot.view.setTableScrollPosition({ left: this.hot.view.getTableScrollPosition().left + deltaX });
+
+      event.preventDefault();
+    }
   }
 
   /**
@@ -437,14 +425,14 @@ export class EmptyDataState extends BasePlugin {
     }
 
     // If the message is not set, set the default message object
-    if (!message?.title && !message?.description && !message?.actions) {
+    if (!message?.title && !message?.description && !message?.buttons) {
       message = {};
 
       if (source === SOURCE.FILTERS) {
         message.title = this.hot.getTranslatedPhrase(C.EMPTY_DATA_STATE_TITLE_FILTERS);
         message.description = this.hot.getTranslatedPhrase(C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS);
-        message.actions = [{
-          text: this.hot.getTranslatedPhrase(C.EMPTY_DATA_STATE_ACTION_FILTERS_BUTTONS_RESET),
+        message.buttons = [{
+          text: this.hot.getTranslatedPhrase(C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET),
           type: 'secondary',
           callback: () => {
             const filtersPlugin = this.hot.getPlugin('filters');
@@ -452,6 +440,8 @@ export class EmptyDataState extends BasePlugin {
             if (filtersPlugin) {
               filtersPlugin.clearConditions();
               filtersPlugin.filter();
+
+              this.hot.selectCell(0, 0);
             }
           }
         }];
@@ -469,25 +459,34 @@ export class EmptyDataState extends BasePlugin {
    *
    * Shows emptyDataState when table has no data or when all data is hidden by filters.
    *
-   * @param {Array} [conditionsStack] - Filter conditions stack.
    */
-  #toggleEmptyDataState(conditionsStack) {
-    if (this.hot.getData().length === 0) {
-      this.hot.runHooks('beforeEmptyDataStateShow');
+  #toggleEmptyDataState() {
+    if (!this.hot.view) {
+      return;
+    }
 
-      if (conditionsStack?.length > 0) {
-        this.#ui.updateContent(this.#messages[SOURCE.FILTERS]);
+    if (this.hot.view.countRenderableColumns() === 0 || this.hot.view.countRenderableRows() === 0) {
+      if (!this.#isVisible) {
+        this.hot.runHooks('beforeEmptyDataStateShow');
+        this.#selectionState = this.hot.selection.exportSelection();
+      }
+
+      const filtersPlugin = this.hot.getPlugin('filters');
+      const conditions = filtersPlugin.enabled && filtersPlugin.exportConditions();
+
+      if (conditions && conditions.length > 0) {
+        this.#ui.updateContent(this.#getMessage(SOURCE.FILTERS));
       } else {
-        this.#ui.updateContent(this.#messages.empty);
+        this.#ui.updateContent(this.#getMessage(SOURCE.UNKNOWN));
       }
 
       this.#ui.show();
 
+      if (!this.#isVisible) {
+        this.hot.runHooks('afterEmptyDataStateShow');
+      }
+
       this.#isVisible = true;
-
-      this.hot.render();
-
-      this.hot.runHooks('afterEmptyDataStateShow');
 
       return;
     }
@@ -497,6 +496,14 @@ export class EmptyDataState extends BasePlugin {
 
       this.#ui.hide();
       this.#isVisible = false;
+
+      if (this.#selectionState?.ranges.length > 0) {
+        this.hot.selection.importSelection(this.#selectionState);
+        this.hot.view.render();
+        this.#selectionState = null;
+      } else {
+        this.hot.selectCell(0, 0);
+      }
 
       this.hot.runHooks('afterEmptyDataStateHide');
     }
@@ -509,8 +516,8 @@ export class EmptyDataState extends BasePlugin {
     this.#isVisible = false;
     this.#ui?.destroy();
     this.#ui = null;
-    this.#messages = {};
     this.#observer = null;
+    this.#selectionState = null;
 
     super.destroy();
   }

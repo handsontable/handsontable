@@ -31,7 +31,7 @@ describe('EmptyDataState - isVisible method', () => {
 
     const emptyDataStatePlugin = getPlugin('emptyDataState');
 
-    hot().updateSettings({
+    await updateSettings({
       data: [],
     });
 

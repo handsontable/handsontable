@@ -1,8 +1,8 @@
 import { html } from '../../helpers/templateLiteralTag';
-import { addClass, removeClass } from '../../helpers/dom/element';
+import { addClass, removeClass, getScrollbarWidth } from '../../helpers/dom/element';
 
 const EMPTY_DATA_STATE_CLASS_NAME = 'ht-empty-data-state';
-const MIN_HEIGHT = 200;
+const MIN_HEIGHT = 150;
 
 const TEMPLATE = `<div data-ref="emptyDataStateElement" class="${EMPTY_DATA_STATE_CLASS_NAME} handsontable">
   <div class="${EMPTY_DATA_STATE_CLASS_NAME}__content-wrapper">
@@ -10,14 +10,19 @@ const TEMPLATE = `<div data-ref="emptyDataStateElement" class="${EMPTY_DATA_STAT
   </div>
 </div>`;
 
-const templateContent = ({ title, description }) => `
+const templateContent = ({ title, description, buttons }) => `
   <div class="${EMPTY_DATA_STATE_CLASS_NAME}__content">
     ${title ? `<h2 class="${EMPTY_DATA_STATE_CLASS_NAME}__title">${title}</h2>` : ''}
     ${description ? `<p class="${EMPTY_DATA_STATE_CLASS_NAME}__description">${description}</p>` : ''}
   </div>
-`;
-
-const TEMPLATE_ACTIONS = `<div data-ref="emptyDataStateActions" class="${EMPTY_DATA_STATE_CLASS_NAME}__actions"></div>`;
+  <div 
+    data-ref="emptyDataStateButtons" 
+    class="${EMPTY_DATA_STATE_CLASS_NAME}__buttons${buttons?.length > 0 ?
+  ` ${EMPTY_DATA_STATE_CLASS_NAME}__buttons--has-buttons`
+  : ''}"
+  >${buttons?.length > 0 ?
+    buttons.map(button => `<button class="ht-button ht-button--${button.type}">${button.text}</button>`).join('')
+    : ''}</div>`;
 
 /**
  * EmptyDataStateUI is a UI component that renders and manages empty data state elements.
@@ -91,11 +96,11 @@ export class EmptyDataStateUI {
    * @returns {HTMLElement[]} The focusable elements.
    */
   getFocusableElements() {
-    if (!this.#refs?.emptyDataStateActions) {
+    if (!this.#refs?.emptyDataStateButtons) {
       return [];
     }
 
-    return Array.from(this.#refs?.emptyDataStateActions?.children);
+    return Array.from(this.#refs?.emptyDataStateButtons?.children);
   }
 
   /**
@@ -135,41 +140,27 @@ export class EmptyDataStateUI {
 
     if (typeof message === 'string') {
       content = {
-        description: message,
+        title: message,
       };
     } else {
       content = {
         title: message?.title,
         description: message?.description,
+        buttons: message?.buttons,
       };
     }
 
-    if (content.title || content.description) {
-      emptyDataStateInner.innerHTML = templateContent(content);
-    } else {
-      emptyDataStateInner.innerHTML = '';
-    }
+    const template = html`${templateContent(content)}`;
 
-    if (message?.actions) {
-      const actionsElement = html`${TEMPLATE_ACTIONS}`;
+    this.#refs = { ...this.#refs, ...template.refs };
 
-      this.#refs = { ...this.#refs, ...actionsElement.refs };
+    emptyDataStateInner.innerHTML = '';
+    emptyDataStateInner.appendChild(template.fragment);
 
-      const { emptyDataStateActions } = actionsElement.refs;
-
-      message.actions.forEach((action) => {
-        const button = this.#rootDocument.createElement('button');
-
-        button.classList.add('ht-button', `ht-button--${action.type}`);
-        button.textContent = action.text;
-        button.addEventListener('click', action.callback);
-
-        emptyDataStateActions.appendChild(button);
+    if (content.buttons?.length > 0) {
+      Array.from(this.#refs.emptyDataStateButtons.children).forEach((button, index) => {
+        button.addEventListener('click', content.buttons[index].callback);
       });
-
-      emptyDataStateInner.appendChild(emptyDataStateActions);
-    } else {
-      delete this.#refs?.emptyDataStateActions;
     }
   }
 
@@ -180,16 +171,20 @@ export class EmptyDataStateUI {
    */
   updateClassNames(view) {
     const { emptyDataStateElement } = this.#refs;
-    const holder = view._wt.wtTable.holder;
-    const scrollbarHeight = holder.offsetHeight - holder.clientHeight;
 
-    if (view._wt.wtTable.hider.clientHeight > 1) {
+    if (view.countRenderableColumns() > 0) {
       addClass(emptyDataStateElement, `${EMPTY_DATA_STATE_CLASS_NAME}--disable-top-border`);
     } else {
       removeClass(emptyDataStateElement, `${EMPTY_DATA_STATE_CLASS_NAME}--disable-top-border`);
     }
 
-    if (scrollbarHeight > 0) {
+    if (view.countRenderableRows() > 0) {
+      addClass(emptyDataStateElement, `${EMPTY_DATA_STATE_CLASS_NAME}--disable-inline-border`);
+    } else {
+      removeClass(emptyDataStateElement, `${EMPTY_DATA_STATE_CLASS_NAME}--disable-inline-border`);
+    }
+
+    if (view.hasHorizontalScroll()) {
       addClass(emptyDataStateElement, `${EMPTY_DATA_STATE_CLASS_NAME}--disable-bottom-border`);
     } else {
       removeClass(emptyDataStateElement, `${EMPTY_DATA_STATE_CLASS_NAME}--disable-bottom-border`);
@@ -203,38 +198,33 @@ export class EmptyDataStateUI {
    */
   updateSize(view) {
     const { emptyDataStateElement } = this.#refs;
-    const isAutoRowSizeEnabled = view.hot.getPlugin('autoRowSize')?.isEnabled();
 
-    const holder = view._wt.wtTable.holder;
-    const hider = view._wt.wtTable.hider;
+    const scrollbarSize = view.hasHorizontalScroll() ? getScrollbarWidth(view.hot.rootDocument) : 0;
+    const rows = view.countRenderableRows();
+    const cols = view.countRenderableColumns();
 
-    const additionalHeight = isAutoRowSizeEnabled ? 0 : 1;
+    emptyDataStateElement.style.top = cols > 0 ? `${view.getColumnHeaderHeight()}px` : '0px';
+    emptyDataStateElement.style.insetInlineStart = rows > 0 ? `${view.getRowHeaderWidth()}px` : '0px';
 
-    emptyDataStateElement.style.top = `${hider.clientHeight - additionalHeight}px`;
+    if (rows === 0) {
+      if (!this.#placeholderElement) {
+        this.#placeholderElement = this.#rootDocument.createElement('div');
+        this.#placeholderElement.classList.add(`${EMPTY_DATA_STATE_CLASS_NAME}-placeholder`);
 
-    if (hider.clientWidth > 1) {
-      if (holder.clientWidth < hider.clientWidth) {
-        emptyDataStateElement.style.maxWidth = `${holder.clientWidth}px`;
-      } else {
-        emptyDataStateElement.style.maxWidth = `${hider.clientWidth}px`;
+        view._wt.wtTable.holder.appendChild(this.#placeholderElement);
       }
+
+      this.#placeholderElement.style.width = '100%';
+      this.#placeholderElement.style.height = `${MIN_HEIGHT}px`;
     }
 
-    if (!this.#placeholderElement) {
-      this.#placeholderElement = this.#rootDocument.createElement('div');
-      this.#placeholderElement.classList.add(`${EMPTY_DATA_STATE_CLASS_NAME}-placeholder`);
+    const width = view.getTableWidth() < view.getViewportWidth() && cols > 0 ?
+      view.getTableWidth() : view.getWorkspaceWidth();
 
-      view._wt.wtTable.holder.appendChild(this.#placeholderElement);
-    }
-
-    this.#placeholderElement.style.width = '100%';
-    this.#placeholderElement.style.height = `calc(100% - ${hider.clientHeight}px)`;
-
-    if (holder.clientHeight - hider.clientHeight < 1) {
-      this.#placeholderElement.style.minHeight = `${MIN_HEIGHT}px`;
-    }
-
-    emptyDataStateElement.style.height = `${this.#placeholderElement.clientHeight + additionalHeight}px`;
+    emptyDataStateElement.style.width = `${rows > 0
+      ? view.getViewportWidth() : width}px`;
+    emptyDataStateElement.style.height = `${cols > 0
+      ? view.getViewportHeight() - scrollbarSize : view.getWorkspaceHeight()}px`;
   }
 
   /**

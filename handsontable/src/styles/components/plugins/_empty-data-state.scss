@@ -33,7 +33,6 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: calc(var(--ht-gap-size) * 2);
         max-width: 480px;
       }
     }
@@ -61,18 +60,28 @@
       font-weight: var(--ht-font-weight);
     }
 
-    &__actions {
+    &__buttons {
       display: flex;
       justify-content: center;
       flex-direction: row;
       flex-wrap: wrap;
       gap: calc(var(--ht-gap-size) * 2);
+
+      &--has-buttons {
+        margin-top: calc(var(--ht-gap-size) * 2);
+      }
     }
 
     &--disable-top-border {
       border-start-start-radius: 0;
       border-start-end-radius: 0;
       border-top-width: 0;
+    }
+
+    &--disable-inline-border {
+      border-start-start-radius: 0;
+      border-end-end-radius: 0;
+      border-inline-start-width: 0;
     }
 
     &--disable-bottom-border,

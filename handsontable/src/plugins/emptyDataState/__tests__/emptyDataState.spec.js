@@ -91,7 +91,7 @@ describe('EmptyDataState', () => {
     expect(emptyDataStatePlugin.isVisible()).toBe(false);
 
     // Add data
-    hot().updateSettings({
+    await updateSettings({
       data: [],
     });
 
@@ -110,7 +110,7 @@ describe('EmptyDataState', () => {
     expect(emptyDataStatePlugin.isVisible()).toBe(true);
 
     // Add data
-    hot().updateSettings({
+    await updateSettings({
       data: createSpreadsheetData(2, 2),
     });
 
@@ -126,7 +126,7 @@ describe('EmptyDataState', () => {
 
     expect(getEmptyDataStateContainerElement().previousElementSibling).toBe(hot().rootGridElement);
 
-    hot().updateSettings({
+    await updateSettings({
       pagination: true,
     });
 

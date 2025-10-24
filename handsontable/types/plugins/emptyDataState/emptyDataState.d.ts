@@ -4,7 +4,7 @@ import { BasePlugin } from '../base';
 interface EmptyDataStateMessage {
   title?: string;
   description?: string;
-  actions?: {
+  buttons?: {
     text: string;
     type: 'primary' | 'secondary';
     callback: () => void;
@@ -12,7 +12,7 @@ interface EmptyDataStateMessage {
 }
 
 export interface EmptyDataStateConfig {
-  message?: string | ((source: string) => EmptyDataStateMessage | undefined) | EmptyDataStateMessage;
+  message?: string | ((source: 'unknown' | 'filters') => EmptyDataStateMessage | undefined) | EmptyDataStateMessage;
 }
 
 export type Settings = boolean | EmptyDataStateConfig;

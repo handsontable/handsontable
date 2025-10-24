@@ -21,7 +21,7 @@ describe('EmptyDataState - afterEmptyDataStateHide hook', () => {
       afterEmptyDataStateHide: afterEmptyDataStateHideSpy,
     });
 
-    hot().updateSettings({
+    await updateSettings({
       data: createSpreadsheetData(5, 5),
     });
 
@@ -39,7 +39,7 @@ describe('EmptyDataState - afterEmptyDataStateHide hook', () => {
       afterEmptyDataStateHide: afterEmptyDataStateHideSpy,
     });
 
-    hot().updateSettings({
+    await updateSettings({
       data: createSpreadsheetData(5, 5),
     });
 

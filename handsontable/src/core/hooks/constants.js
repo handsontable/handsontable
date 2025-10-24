@@ -315,6 +315,17 @@ export const REGISTERED_HOOKS = [
   'beforeCreateCol',
 
   /**
+   * Fired after the cache of the column sequence has been updated.
+   *
+   * @event Hooks#afterColumnSequenceCacheUpdate
+   * @param {object} indexesChangesState Object containing information about the changes to the column sequence.
+   * @param {boolean} indexesChangesState.indexesSequenceChanged Indicates if the sequence of indexes has changed.
+   * @param {boolean} indexesChangesState.trimmedIndexesChanged Indicates if the trimmed indexes have changed.
+   * @param {boolean} indexesChangesState.hiddenIndexesChanged Indicates if the hidden indexes have changed.
+   */
+  'afterColumnSequenceCacheUpdate',
+
+  /**
    * Fired after the order of columns has changed.
    * This hook is fired by changing column indexes of any type supported by the {@link IndexMapper}.
    *
@@ -619,6 +630,17 @@ export const REGISTERED_HOOKS = [
    * @param {object} cellProperties Object containing the cell's properties.
    */
   'afterRenderer',
+
+  /**
+   * Fired after the cache of the row sequence has been updated.
+   *
+   * @event Hooks#afterRowSequenceCacheUpdate
+   * @param {object} indexesChangesState Object containing information about the changes to the row sequence.
+   * @param {boolean} indexesChangesState.indexesSequenceChanged Indicates if the sequence of indexes has changed.
+   * @param {boolean} indexesChangesState.trimmedIndexesChanged Indicates if the trimmed indexes have changed.
+   * @param {boolean} indexesChangesState.hiddenIndexesChanged Indicates if the hidden indexes have changed.
+   */
+  'afterRowSequenceCacheUpdate',
 
   /**
    * Fired after the order of rows has changed.

@@ -120,7 +120,7 @@ const dictionary = {
   [C.EMPTY_DATA_STATE_DESCRIPTION]: 'هنوز چیزی برای نمایش وجود ندارد.',
   [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'هیچ نتیجه‌ای یافت نشد',
   [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'به نظر می‌رسد فیلترهای فعلی شما همه نتایج را پنهان می‌کنند.',
-  [C.EMPTY_DATA_STATE_ACTION_FILTERS_BUTTONS_RESET]: 'بازنشانی فیلترها',
+  [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'بازنشانی فیلترها',
 };
 
 export default dictionary;

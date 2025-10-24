@@ -115,7 +115,7 @@ const dictionary = {
   [C.EMPTY_DATA_STATE_DESCRIPTION]: 'لا يوجد شيء للعرض بعد.',
   [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'لم يتم العثور على نتائج',
   [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'يبدو أن المرشحات الحالية تخفي جميع النتائج.',
-  [C.EMPTY_DATA_STATE_ACTION_FILTERS_BUTTONS_RESET]: 'إعادة تعيين المرشحات',
+  [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'إعادة تعيين المرشحات',
 };
 
 export default dictionary;

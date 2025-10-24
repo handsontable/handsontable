@@ -2123,15 +2123,15 @@ export default () => {
      * | ------------- | --------------- | ------------------------------------------------------- |
      * | `title`       | `string`        | Title to display in the empty data state overlay.       |
      * | `description` | `string`        | Description to display in the empty data state overlay. |
-     * | `actions`     | `array`         | Actions to display in the empty data state overlay.     |
+     * | `buttons`     | `array`         | Buttons to display in the empty data state overlay.     |
      *
-     * If you set the `actions` option to an array, each item requires following properties:
+     * If you set the `buttons` option to an array, each item requires following properties:
      *
      * | Property   | Possible values          | Description                                                  |
      * | ---------- | ------------------------ | ------------------------------------------------------------ |
-     * | `text`     | `string`                 | Text to display in the action button.                        |
-     * | `type`     | 'primary' \| 'secondary' | Type of the action button.                                   |
-     * | `callback` | `function`               | Callback function to call when the action button is clicked. |
+     * | `text`     | `string`                 | Text to display in the button.                        |
+     * | `type`     | 'primary' \| 'secondary' | Type of the button.                                   |
+     * | `callback` | `function`               | Callback function to call when the button is clicked. |
      *
      * Read more:
      * - [Plugins: `EmptyDataState`](@/api/emptyDataState.md)
@@ -2152,16 +2152,16 @@ export default () => {
      *   message: 'No data available',
      * },
      *
-     * // Enable empty data state plugin with custom message and actions for any source
+     * // Enable empty data state plugin with custom message and buttons for any source
      * emptyDataState: {
      *   message: {
      *     title: 'No data available',
      *     description: 'There’s nothing to display yet.',
-     *     actions: [{ text: 'Reset filters', type: 'secondary', callback: () => {} }],
+     *     buttons: [{ text: 'Reset filters', type: 'secondary', callback: () => {} }],
      *   },
      * },
      *
-     * // Enable empty data state plugin with custom message and actions for specific source
+     * // Enable empty data state plugin with custom message and buttons for specific source
      * emptyDataState: {
      *   message: (source) => {
      *     switch (source) {
@@ -2169,7 +2169,7 @@ export default () => {
      *         return {
      *           title: 'No data available',
      *           description: 'There’s nothing to display yet.',
-     *           actions: [{ text: 'Reset filters', type: 'secondary', callback: () => {} }],
+     *           buttons: [{ text: 'Reset filters', type: 'secondary', callback: () => {} }],
      *         };
      *       default:
      *         return {

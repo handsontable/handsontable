@@ -113,7 +113,7 @@ const dictionary = {
   [C.EMPTY_DATA_STATE_DESCRIPTION]: 'Det er ingenting å vise ennå.',
   [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'Ingen resultater funnet',
   [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'Det ser ut til at dine nåværende filtre skjuler alle resultater.',
-  [C.EMPTY_DATA_STATE_ACTION_FILTERS_BUTTONS_RESET]: 'Tilbakestill filtre',
+  [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Tilbakestill filtre',
 };
 
 export default dictionary;

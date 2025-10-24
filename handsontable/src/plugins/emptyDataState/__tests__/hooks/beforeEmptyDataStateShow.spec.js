@@ -21,7 +21,7 @@ describe('EmptyDataState - beforeEmptyDataStateShow hook', () => {
       beforeEmptyDataStateShow: beforeEmptyDataStateShowSpy,
     });
 
-    hot().updateSettings({
+    await updateSettings({
       data: [],
     });
 
@@ -39,7 +39,7 @@ describe('EmptyDataState - beforeEmptyDataStateShow hook', () => {
       afterEmptyDataStateShow: afterEmptyDataStateShowSpy,
     });
 
-    hot().updateSettings({
+    await updateSettings({
       data: [],
     });
 

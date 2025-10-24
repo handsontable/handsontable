@@ -47,7 +47,7 @@ describe('EmptyDataState - message option', () => {
       .toBe('No results found');
     expect(getEmptyDataStateContainerElement().querySelector('.ht-empty-data-state__description').textContent)
       .toBe('It looks like your current filters are hiding all results.');
-    expect(getEmptyDataStateContainerElement().querySelector('.ht-empty-data-state__actions')).toBeDefined();
+    expect(getEmptyDataStateContainerElement().querySelector('.ht-empty-data-state__buttons')).toBeDefined();
     expect(getEmptyDataStateContainerElement().querySelector('.ht-button--secondary').textContent)
       .toBe('Reset filters');
   });
@@ -89,7 +89,7 @@ describe('EmptyDataState - message option', () => {
       .toBe('Custom description text');
 
     // Add data back and test filtered state
-    hot().updateSettings({
+    await updateSettings({
       data: createSpreadsheetData(5, 5),
     });
 
@@ -104,7 +104,7 @@ describe('EmptyDataState - message option', () => {
       .toBe('Custom description text');
   });
 
-  it('should show custom object message with actions', async() => {
+  it('should show custom object message with buttons', async() => {
     const callbackSpy = jasmine.createSpy('callback');
 
     handsontable({
@@ -113,7 +113,7 @@ describe('EmptyDataState - message option', () => {
         message: {
           title: 'No Data',
           description: 'Please add some data',
-          actions: [{
+          buttons: [{
             text: 'Add Data',
             type: 'primary',
             callback: callbackSpy,
@@ -136,12 +136,12 @@ describe('EmptyDataState - message option', () => {
     expect(actionButton.textContent).toBe('Add Data');
     expect(actionButton).toHaveClass('ht-button', 'ht-button--primary');
 
-    actionButton.click();
+    await simulateClick(actionButton);
 
-    expect(callbackSpy).toHaveBeenCalled();
+    expect(callbackSpy).toHaveBeenCalledWith(jasmine.any(Event));
   });
 
-  it('should show custom object message with multiple actions', async() => {
+  it('should show custom object message with multiple buttons', async() => {
     const primaryCallback = jasmine.createSpy('primaryCallback');
     const secondaryCallback = jasmine.createSpy('secondaryCallback');
 
@@ -151,7 +151,7 @@ describe('EmptyDataState - message option', () => {
         message: {
           title: 'No Data',
           description: 'Choose an action',
-          actions: [
+          buttons: [
             {
               text: 'Primary Action',
               type: 'primary',
@@ -181,7 +181,7 @@ describe('EmptyDataState - message option', () => {
     expect(actionButtons[1].textContent).toBe('Secondary Action');
     expect(actionButtons[1]).toHaveClass('ht-button', 'ht-button--secondary');
 
-    // Test action callbacks
+    // Test button callbacks
     actionButtons[0].click();
     expect(primaryCallback).toHaveBeenCalled();
 
@@ -199,7 +199,7 @@ describe('EmptyDataState - message option', () => {
               return {
                 title: 'No filtered data',
                 description: 'All data is hidden by filters',
-                actions: [{
+                buttons: [{
                   text: 'Clear Filters',
                   type: 'secondary',
                   callback: () => {},
@@ -221,7 +221,7 @@ describe('EmptyDataState - message option', () => {
 
     expect(emptyDataStatePlugin.isVisible()).toBe(false);
 
-    hot().updateSettings({
+    await updateSettings({
       data: [],
     });
 
@@ -232,7 +232,7 @@ describe('EmptyDataState - message option', () => {
       .toBe('The table is empty');
 
     // Add data back and test filtered state
-    hot().updateSettings({
+    await updateSettings({
       data: createSpreadsheetData(5, 5),
     });
 
@@ -268,7 +268,7 @@ describe('EmptyDataState - message option', () => {
       .toBe('No data available');
 
     // Add data back and test filtered state
-    hot().updateSettings({
+    await updateSettings({
       data: createSpreadsheetData(5, 5),
     });
 
@@ -335,14 +335,14 @@ describe('EmptyDataState - message option', () => {
       .toBe('Only Description');
   });
 
-  it('should handle partial object message (only actions)', async() => {
+  it('should handle partial object message (only buttons)', async() => {
     const callbackSpy = jasmine.createSpy('callback');
 
     handsontable({
       data: [],
       emptyDataState: {
         message: {
-          actions: [{
+          buttons: [{
             text: 'Custom Action',
             type: 'primary',
             callback: callbackSpy,
@@ -367,14 +367,14 @@ describe('EmptyDataState - message option', () => {
     expect(callbackSpy).toHaveBeenCalled();
   });
 
-  it('should handle empty actions array', async() => {
+  it('should handle empty buttons array', async() => {
     handsontable({
       data: [],
       emptyDataState: {
         message: {
-          title: 'No Actions',
+          title: 'No Buttons',
           description: 'No action buttons',
-          actions: [],
+          buttons: [],
         },
       },
     });
@@ -383,10 +383,10 @@ describe('EmptyDataState - message option', () => {
 
     expect(emptyDataStatePlugin.isVisible()).toBe(true);
     expect(getEmptyDataStateContainerElement().querySelector('.ht-empty-data-state__title').textContent)
-      .toBe('No Actions');
+      .toBe('No Buttons');
     expect(getEmptyDataStateContainerElement().querySelector('.ht-empty-data-state__description').textContent)
       .toBe('No action buttons');
-    expect(getEmptyDataStateContainerElement().querySelector('.ht-empty-data-state__actions').innerHTML).toBe('');
+    expect(getEmptyDataStateContainerElement().querySelector('.ht-empty-data-state__buttons').innerHTML).toBe('');
   });
 
   it('should handle message with special characters', async() => {
@@ -447,7 +447,7 @@ describe('EmptyDataState - message option', () => {
       .toBe('Initial message');
 
     // Update the plugin with new message
-    hot().updateSettings({
+    await updateSettings({
       emptyDataState: {
         message: {
           title: 'Updated Title',

@@ -2435,12 +2435,15 @@ thead th.hiddenHeaderText .colHeader {
   font-weight: 400;
 }
 
-.ht-empty-data-state__actions {
+.ht-empty-data-state__buttons {
   display: flex;
-  justify-content: center;
   flex-direction: row;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.ht-empty-data-state__buttons--has-buttons {
+  margin-top: 8px;
 }
 
 .ht-empty-data-state--disable-top-border {

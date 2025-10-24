@@ -24,7 +24,7 @@ new Handsontable(document.createElement('div'), {
     message: {
       title: 'No data available',
       description: 'There\'s nothing to display yet.',
-      actions: [
+      buttons: [
         {
           text: 'Reset filters',
           type: 'secondary',
@@ -43,7 +43,7 @@ new Handsontable(document.createElement('div'), {
           return {
             title: 'No data available',
             description: 'There\'s nothing to display yet.',
-            actions: [
+            buttons: [
               {
                 text: 'Primary action',
                 type: 'primary',

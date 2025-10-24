@@ -270,7 +270,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     message: {
       title: 'No data available',
       description: 'There\'s nothing to display yet.',
-      actions: [
+      buttons: [
         {
           text: 'Reset filters',
           type: 'secondary' as const,
@@ -285,7 +285,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
           return {
             title: 'No data available',
             description: 'There\'s nothing to display yet.',
-            actions: [
+            buttons: [
               {
                 text: 'Reset filters',
                 type: 'secondary' as const,
@@ -362,6 +362,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterColumnMove: (columns, target) => {},
   afterColumnResize: (newSize, column, isDoubleClick) => {},
   afterColumnSequenceChange: (source) => {},
+  afterColumnSequenceCacheUpdate: (indexesChangesState) => {},
   afterColumnSort: (currentSortConfig, destinationSortConfigs) => {},
   afterColumnUnfreeze: (columnIndex, isFreezingPerformed) => {},
   beforeCompositionStart: (event) => {
@@ -471,6 +472,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     orderChanged) => movedRows.forEach(row => row.toFixed(1) === finalIndex.toFixed(1)),
   afterRowResize: (newSize, row, isDoubleClick) => {},
   afterRowSequenceChange: (source) => {},
+  afterRowSequenceCacheUpdate: (indexesChangesState) => {},
   afterScrollHorizontally: () => {},
   afterScrollVertically: () => {},
   afterScroll: () => {},

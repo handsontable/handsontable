@@ -1843,6 +1843,28 @@ class TableView {
   }
 
   /**
+   * Gets the current scroll position of the table.
+   *
+   * @returns {{ left: number, top: number }} The current scroll position.
+   */
+  getTableScrollPosition() {
+    return {
+      left: this._wt.wtTable.holder.scrollLeft,
+      top: this._wt.wtTable.holder.scrollTop,
+    };
+  }
+
+  /**
+   * Sets the table's scroll position.
+   *
+   * @param {{ left: number, top: number }} position The scroll position.
+   */
+  setTableScrollPosition(position) {
+    this._wt.wtTable.holder.scrollLeft = position.left;
+    this._wt.wtTable.holder.scrollTop = position.top;
+  }
+
+  /**
    * Gets the row header width. If there are multiple row headers, the width of
    * the sum of all of them is returned.
    *

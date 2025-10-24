@@ -257,8 +257,11 @@ export class BasePlugin {
           const isValid = validator(result);
 
           if (isValid === false) {
-            // eslint-disable-next-line max-len
-            warn(`${this.pluginName} Plugin: "${settingName}" function ${args.length > 0 ? `(${args.map(arg => (typeof arg === 'string' ? `"${arg}"` : '')).join(', ')})` : ''} result is not valid and will be ignored.`);
+            const formattedArgs = args.map(arg => (typeof arg === 'string' ? `"${arg}"` : '')).join(', ');
+            const source = args.length > 0 ? formattedArgs : '';
+
+            warn(`${this.pluginName} Plugin: "${settingName}" function (${source}) result \
+               is not valid and will be ignored.`);
 
             return;
           }
