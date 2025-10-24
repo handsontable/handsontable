@@ -56,6 +56,7 @@
   }
 
   window.require = function(key) {
+
     try {
       let ns = '';
 
@@ -163,6 +164,8 @@
 
       } else if (/^handsontable\/i18n(\/(.+))?$/.test(key)) {
         ns = 'Handsontable.languages';
+      } else if (key === 'date-fns') {
+        ns = 'dateFns';
       }
 
       let moduleToReturn = window;

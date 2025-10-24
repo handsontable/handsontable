@@ -95,6 +95,7 @@ const cellFunctionsItems = [
   { path: 'guides/cell-functions/cell-renderer/cell-renderer' },
   { path: 'guides/cell-functions/cell-editor/cell-editor' },
   { path: 'guides/cell-functions/cell-validator/cell-validator' },
+  { path: 'guides/cell-functions/custom-cells/custom-cells' },
 ];
 
 const cellTypesItems = [

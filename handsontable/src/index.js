@@ -31,6 +31,7 @@ import {
   getRenderer,
   registerRenderer,
 } from './renderers/registry';
+import { factory as rendererFactory } from './renderers';
 import {
   getRegisteredValidatorNames,
   getValidator,
@@ -133,6 +134,7 @@ arrayHelpers.arrayEach(getRegisteredRendererNames(), (rendererName) => {
 
 Handsontable.renderers.registerRenderer = registerRenderer;
 Handsontable.renderers.getRenderer = getRenderer;
+Handsontable.renderers.factory = rendererFactory;
 
 // Export all registered validators from the Handsontable.
 Handsontable.validators = Handsontable.validators ?? {};
