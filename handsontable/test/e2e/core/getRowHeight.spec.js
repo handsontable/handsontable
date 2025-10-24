@@ -73,11 +73,12 @@ describe('Core.getRowHeight', () => {
       });
 
       expect(getRowHeight(0)).toBe(50);
-      expect(getMaster().find('table tr:nth-child(1) td:eq(0)').outerHeight()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(51); // classic styles 1px border compensation
-        main.toBe(50);
-        horizon.toBe(50);
-      });
+      expect(getMaster().find('table tr:nth-child(1) td:eq(0)').outerHeight()).forThemes(
+        ({ classic, main, horizon }) => {
+          classic.toBe(51); // classic styles 1px border compensation
+          main.toBe(50);
+          horizon.toBe(50);
+        });
       expect(getRowHeight(1)).toBe(60);
       expect(getMaster().find('table tr:nth-child(2) td:eq(0)').outerHeight()).toBe(60);
       expect(getRowHeight(2)).toBe(70);
@@ -91,17 +92,18 @@ describe('Core.getRowHeight', () => {
     it('should return correct row heights when using `rowHeights` as a function', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
-        rowHeights: (row) => (row + 1) * 50,
+        rowHeights: row => (row + 1) * 50,
         rowHeaders: false,
         colHeaders: false,
       });
 
       expect(getRowHeight(0)).toBe(50);
-      expect(getMaster().find('table tr:nth-child(1) td:eq(0)').outerHeight()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(51); // classic styles 1px border compensation
-        main.toBe(50);
-        horizon.toBe(50);
-      });
+      expect(getMaster().find('table tr:nth-child(1) td:eq(0)').outerHeight()).forThemes(
+        ({ classic, main, horizon }) => {
+          classic.toBe(51); // classic styles 1px border compensation
+          main.toBe(50);
+          horizon.toBe(50);
+        });
       expect(getRowHeight(1)).toBe(100);
       expect(getMaster().find('table tr:nth-child(2) td:eq(0)').outerHeight()).toBe(100);
       expect(getRowHeight(2)).toBe(150);
@@ -176,11 +178,12 @@ describe('Core.getRowHeight', () => {
       });
 
       expect(getRowHeight(0)).toBe(50);
-      expect(getMaster().find('table tr:nth-child(1) td:eq(0)').outerHeight()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(51); // classic styles 1px border compensation
-        main.toBe(50);
-        horizon.toBe(50);
-      });
+      expect(getMaster().find('table tr:nth-child(1) td:eq(0)').outerHeight()).forThemes(
+        ({ classic, main, horizon }) => {
+          classic.toBe(51); // classic styles 1px border compensation
+          main.toBe(50);
+          horizon.toBe(50);
+        });
       expect(getRowHeight(1)).toBe(60);
       expect(getMaster().find('table tr:nth-child(2) td:eq(0)').outerHeight()).toBe(60);
       expect(getRowHeight(2)).toBe(70);
@@ -194,17 +197,18 @@ describe('Core.getRowHeight', () => {
     it('should return correct row heights when using `minRowHeights` as a function', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
-        minRowHeights: (row) => (row + 1) * 50,
+        minRowHeights: row => (row + 1) * 50,
         rowHeaders: false,
         colHeaders: false,
       });
 
       expect(getRowHeight(0)).toBe(50);
-      expect(getMaster().find('table tr:nth-child(1) td:eq(0)').outerHeight()).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(51); // classic styles 1px border compensation
-        main.toBe(50);
-        horizon.toBe(50);
-      });
+      expect(getMaster().find('table tr:nth-child(1) td:eq(0)').outerHeight()).forThemes(
+        ({ classic, main, horizon }) => {
+          classic.toBe(51); // classic styles 1px border compensation
+          main.toBe(50);
+          horizon.toBe(50);
+        });
       expect(getRowHeight(1)).toBe(100);
       expect(getMaster().find('table tr:nth-child(2) td:eq(0)').outerHeight()).toBe(100);
       expect(getRowHeight(2)).toBe(150);

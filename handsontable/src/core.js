@@ -2703,7 +2703,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
     if (isDefined(settings.rowHeights) && isDefined(settings.minRowHeights)) {
       warn('Both `rowHeights` and `minRowHeights` are defined in your configuration. ' +
-        'As one is the alias of the other, only one of them can be used at a time. `rowHeights` will be used as the row height configuration.');
+        'As one is the alias of the other, only one of them can be used at a time. ' +
+        '`rowHeights` will be used as the row height configuration.');
     }
 
     // eslint-disable-next-line no-restricted-syntax
