@@ -177,6 +177,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   maxRows: 123,
   mergeCells: true,
   minCols: 123,
+  minRowHeights: oneOf(100, '100px', [100, 120, 90], (index: number) => index * 10),
   minRows: 123,
   minSpareCols: 123,
   minSpareRows: 123,
