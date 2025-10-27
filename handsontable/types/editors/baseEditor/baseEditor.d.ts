@@ -45,7 +45,6 @@ export abstract class BaseEditor {
   abstract setValue(newValue?: any): void;
 }
 
-
 /**
  * Factory function for creating custom Handsontable editors by extending BaseEditor.
  *

@@ -30,8 +30,8 @@ import {
   getRegisteredRendererNames,
   getRenderer,
   registerRenderer,
+  factory as rendererFactory,
 } from './renderers/registry';
-import { factory as rendererFactory } from './renderers';
 import {
   getRegisteredValidatorNames,
   getValidator,

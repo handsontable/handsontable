@@ -676,7 +676,7 @@ mixin(BaseEditor, hooksRefRegisterer);
  * ```
  */
 const editorBaseFactory = (params) => {
-  const CustomBaseEditor = Handsontable.editors.BaseEditor.prototype.extend();
+  const CustomBaseEditor = BaseEditor.prototype.extend();
   // Skip super in abstract funtions
   const skipSuperApply = [
     'close',
@@ -685,7 +685,7 @@ const editorBaseFactory = (params) => {
     'open',
     'setValue',
   ];
-  const prototypeFns = Object.getOwnPropertyNames(Handsontable.editors.BaseEditor.prototype);
+  const prototypeFns = Object.getOwnPropertyNames(BaseEditor.prototype);
 
   // Apply editor class methods from params object
   prototypeFns.forEach((fnName) => {
