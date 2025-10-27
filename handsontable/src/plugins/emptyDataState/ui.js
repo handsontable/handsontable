@@ -1,5 +1,6 @@
 import { html } from '../../helpers/templateLiteralTag';
-import { addClass, removeClass, getScrollbarWidth } from '../../helpers/dom/element';
+import { addClass, removeClass, getScrollbarWidth, setAttribute } from '../../helpers/dom/element';
+import { A11Y_TABINDEX } from '../../helpers/a11y';
 
 const EMPTY_DATA_STATE_CLASS_NAME = 'ht-empty-data-state';
 const MIN_HEIGHT = 150;
@@ -78,6 +79,12 @@ export class EmptyDataStateUI {
 
     this.#refs = elements.refs;
 
+    const { emptyDataStateInner } = this.#refs;
+
+    setAttribute(emptyDataStateInner, [
+      A11Y_TABINDEX(-1),
+    ]);
+
     this.#rootElement.after(elements.fragment);
   }
 
@@ -96,11 +103,14 @@ export class EmptyDataStateUI {
    * @returns {HTMLElement[]} The focusable elements.
    */
   getFocusableElements() {
-    if (!this.#refs?.emptyDataStateButtons) {
-      return [];
+    const { emptyDataStateButtons, emptyDataStateInner } = this.#refs;
+    const emptyDataStateButtonsElements = Array.from(emptyDataStateButtons?.children);
+
+    if (emptyDataStateButtonsElements.length === 0) {
+      return [emptyDataStateInner];
     }
 
-    return Array.from(this.#refs?.emptyDataStateButtons?.children);
+    return emptyDataStateButtonsElements;
   }
 
   /**
@@ -218,7 +228,7 @@ export class EmptyDataStateUI {
       this.#placeholderElement.style.height = `${MIN_HEIGHT}px`;
     }
 
-    const width = view.getTableWidth() < view.getViewportWidth() && cols > 0 ?
+    const width = view.getTableWidth() - view.getRowHeaderWidth() < view.getViewportWidth() && cols > 0 ?
       view.getTableWidth() : view.getWorkspaceWidth();
 
     emptyDataStateElement.style.width = `${rows > 0

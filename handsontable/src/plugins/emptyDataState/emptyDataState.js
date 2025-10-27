@@ -363,14 +363,16 @@ export class EmptyDataState extends BasePlugin {
     this.hot.getFocusScopeManager()
       .registerScope(PLUGIN_KEY, this.#ui.getElement(), {
         shortcutsContextName: SHORTCUTS_CONTEXT_NAME,
-        runOnlyIf: () => this.isVisible() && this.#ui?.getFocusableElements().length > 0,
+        runOnlyIf: () => this.isVisible(),
         onActivate: (focusSource) => {
           const focusableElements = this.#ui?.getFocusableElements();
 
-          if (focusSource === 'tab_from_above') {
-            focusableElements.at(0).focus();
-          } else if (focusSource === 'tab_from_below') {
-            focusableElements.at(-1).focus();
+          if (focusableElements.length > 0) {
+            if (focusSource === 'tab_from_above') {
+              focusableElements.at(0).focus();
+            } else if (focusSource === 'tab_from_below') {
+              focusableElements.at(-1).focus();
+            }
           }
         },
       });
@@ -389,6 +391,9 @@ export class EmptyDataState extends BasePlugin {
    */
   #onAfterInit() {
     this.#toggleEmptyDataState();
+
+    this.#ui.updateSize(this.hot.view);
+    this.#ui.updateClassNames(this.hot.view);
   }
 
   /**
@@ -441,7 +446,13 @@ export class EmptyDataState extends BasePlugin {
               filtersPlugin.clearConditions();
               filtersPlugin.filter();
 
-              this.hot.selectCell(0, 0);
+              if (this.#selectionState?.ranges.length > 0) {
+                this.hot.selection.importSelection(this.#selectionState);
+                this.hot.view.render();
+                this.#selectionState = null;
+              } else {
+                this.hot.selectCell(0, 0);
+              }
             }
           }
         }];

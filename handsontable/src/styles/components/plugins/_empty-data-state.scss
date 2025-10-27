@@ -25,7 +25,7 @@
       text-align: center;
       width: 100%;
       min-height: 100%;
-      padding: calc(var(--ht-gap-size) * 4);
+      padding: calc(var(--ht-gap-size) * 2);
       border-radius: var(--ht-wrapper-border-radius);
 
       &-inner {
@@ -34,6 +34,13 @@
         align-items: center;
         justify-content: center;
         max-width: 480px;
+        padding: calc(var(--ht-gap-size) * 2);
+        border-radius: var(--ht-wrapper-border-radius);
+
+        &:focus {
+          outline: none;
+          box-shadow: 0 0 0 1px var(--ht-accent-color);
+        }
       }
     }
 
