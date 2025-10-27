@@ -12,6 +12,12 @@ new Handsontable(document.createElement('div'), {
     contentBackground: false,
     animation: true,
     closable: false,
+    a11y: {
+      role: 'alertdialog',
+      ariaLabel: 'Alert',
+      ariaLabelledby: 'alert-title',
+      ariaDescribedby: 'alert-description',
+    },
   }
 });
 
@@ -34,6 +40,25 @@ new Handsontable(document.createElement('div'), {
   dialog: {
     content: '<div>Content</div>',
     contentBackground: true,
+  }
+});
+
+new Handsontable(document.createElement('div'), {
+  dialog: {
+    template: {
+      type: 'alert',
+      title: 'Alert',
+      description: 'This is an alert',
+      buttons: [
+        {
+          text: 'OK',
+          type: 'primary',
+          callback: (event: Event) => {}
+        },
+      ],
+    },
+    contentBackground: true,
+    closable: false,
   }
 });
 
@@ -68,6 +93,31 @@ dialog.update({
   content: document.createElement('span'),
   background: 'solid',
   animation: false,
+  closable: false,
+});
+dialog.update({
+  content: document.createElement('span'),
+  a11y: {
+    role: 'alertdialog',
+    ariaLabel: 'Alert',
+    ariaLabelledby: 'alert-title',
+    ariaDescribedby: 'alert-description',
+  },
+});
+dialog.update({
+  template: {
+    type: 'alert',
+    title: 'Alert',
+    description: 'This is an alert',
+    buttons: [
+      {
+        text: 'OK',
+        type: 'primary',
+        callback: (event: Event) => {},
+      },
+    ],
+  },
+  contentBackground: true,
   closable: false,
 });
 dialog.focus();

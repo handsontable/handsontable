@@ -246,14 +246,26 @@ const allSettings: Required<Handsontable.GridSettings> = {
   uncheckedTemplate: oneOf(true, 'foo', 123),
   undo: true,
   dialog: oneOf(true, {
-    closable: true,
+    template: {
+      type: 'alert' as const,
+      title: 'Alert',
+      description: 'This is an alert',
+      buttons: [
+        {
+          text: 'OK',
+          type: 'primary' as const,
+          callback: (event: Event) => {},
+        },
+      ],
+    },
     content: 'foo',
+    closable: true,
     customClassName: 'foo',
     animation: true,
     background: 'solid' as const,
     contentBackground: true,
     a11y: {
-      role: 'dialog',
+      role: 'dialog' as const,
       ariaLabel: 'Dialog',
       ariaLabelledby: '',
       ariaDescribedby: '',
