@@ -121,8 +121,12 @@ const useHandsontable = (version, callback = () => {}, preset = 'hot', buildMode
 
         if (fixerScript) {
           fixerScript.remove();
-          delete window.require;
-          delete window.exports;
+          // if ('require' in window) {
+          //   delete window.require;
+          // }
+          // if ('exports' in window) {
+          //   delete window.exports;
+          // }           
         }
       }
 

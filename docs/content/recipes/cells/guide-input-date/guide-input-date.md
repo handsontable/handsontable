@@ -41,7 +41,7 @@ A cell that:
 - Works without external dependencies
 - Has zero JavaScript library overhead
 
-## Demo
+## Complete Example
 
 ::: only-for javascript vue
 

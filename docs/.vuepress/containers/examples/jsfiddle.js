@@ -4,6 +4,8 @@ const JSFIDDLE_ENDPOINT = 'https://jsfiddle.net/api/post/library/pure/';
 const { getDependencies } = require('../../handsontable-manager');
 
 const jsfiddle = (_id, html, code, css, version, preset, lang) => {
+  return '';
+  console.log('jsfiddle', _id, html, code, css, version, preset, lang);
   const isBabelPanel = preset.includes('react') || preset.includes('vue') || preset.includes('hot');
   const isAngularPanel = preset.includes('angular');
   const themeReferenceMatches = Array.from(code.matchAll(/ht-theme-([a-zA-Z0-9-]+)/g), m => m[1]);
@@ -11,6 +13,7 @@ const jsfiddle = (_id, html, code, css, version, preset, lang) => {
 
   const imports = getDependencies(version, preset).reduce(
     (previous, current) => {
+      console.log('current', current, version, preset);
       // If the example uses only one theme, skip importing the css files for the other themes.
       if (current[2]?.length && uniqueThemeReferences.length === 1) {
         current[2] = current[2].filter(

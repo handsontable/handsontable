@@ -160,6 +160,7 @@ const buildDependencyGetter = (version) => {
       vuex4: ['https://cdn.jsdelivr.net/npm/vuex@4/dist/vuex.global.min.js', [/* todo */], null, 'vuex'],
       languages: [getPackageUrls('handsontable', version, 'dist/languages/all.js'), [/* todo */]],
       'date-fns': ['https://cdnjs.cloudflare.com/ajax/libs/date-fns/4.1.0/cdn.min.js', [/* todo */]],
+      'coloris': ['https://cdn.jsdelivr.net/npm/@melloware/coloris/dist/umd/coloris.min.js', [/* todo */], 'https://cdn.jsdelivr.net/npm/@melloware/coloris/dist/coloris.min.css'],      
     };
     /* eslint-enable max-len */
 
@@ -170,7 +171,7 @@ const buildDependencyGetter = (version) => {
 
 const presetMap = {
   /* eslint-disable max-len */
-  'hot-recipe': ['hot', 'date-fns', 'fixer'],
+  'hot-recipe': ['hot', 'date-fns', 'fixer', 'coloris'],
   hot: ['hot', 'fixer'],
   'hot-lang': ['hot', 'languages', 'fixer'],
   'hot-numbro': ['hot', 'numbro', 'fixer'],

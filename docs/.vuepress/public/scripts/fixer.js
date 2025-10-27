@@ -166,6 +166,8 @@
         ns = 'Handsontable.languages';
       } else if (key === 'date-fns') {
         ns = 'dateFns';
+      } else if (key === '@melloware/coloris') {
+        ns = 'Coloris';
       }
 
       let moduleToReturn = window;

@@ -23,10 +23,6 @@ category: Cells
 
 [[toc]]
 
-TBA
-
-<!--
-
 ## Overview
 
 This guide shows how to create a custom color picker cell using the [Coloris](https://github.com/melloware/coloris-npm) library. Users can click a cell to open a color picker, select a color, and see it rendered with a colored background.
@@ -34,6 +30,18 @@ This guide shows how to create a custom color picker cell using the [Coloris](ht
 **Difficulty:** Beginner  
 **Time:** ~15 minutes  
 **Libraries:** `@melloware/coloris`
+
+## Complete Example
+
+::: only-for javascript vue
+
+::: example #example1 :hot-recipe --js 1
+
+@[code](@/content/recipes/cells/guide-color-picker/javascript/example1.js)
+
+:::
+
+:::
 
 ## What You'll Build
 
@@ -55,7 +63,6 @@ npm install @melloware/coloris
 import Handsontable from "handsontable";
 import "handsontable/dist/handsontable.full.min.css";
 import { registerAllModules } from "handsontable/registry";
-import { editorBaseFactory, rendererFactory } from "./src/factories";
 
 // Import the color picker library
 import "@melloware/coloris/dist/coloris.css";
@@ -76,7 +83,7 @@ registerAllModules();
 The renderer controls how the cell looks when not being edited.
 
 ```typescript
-renderer: rendererFactory(({ td, value }) => {
+renderer: Handsontable.renderers.factory(({ td, value }) => {
   td.style.backgroundColor = `${value}`;
   td.innerHTML = `<b>${value}</b>`;
   return td;
@@ -120,7 +127,8 @@ validator: (value, callback) => {
 First, define what custom properties your editor needs:
 
 ```typescript
-editor: editorBaseFactory<{
+editor: Handsontable.editors.BaseEditor.factory<{
+  wrapper: HTMLDivElement,
   input: HTMLInputElement
 }>({
   // ... methods will go here
@@ -129,6 +137,7 @@ editor: editorBaseFactory<{
 
 **What's happening:**
 - TypeScript generic defines custom properties
+- `wrapper` will hold a container `<div>` for positioning
 - `input` will hold the `<input>` element that Coloris attaches to
 
 ## Step 5: Editor - Initialize (`init`)
@@ -137,29 +146,34 @@ The `init` method runs once when the editor is first created.
 
 ```typescript
 init(editor) {
-  // Create the input element
+  // Create the wrapper and input element on init. This is a text input that color picker will be attached to.
+  editor.wrapper = editor.hot.rootDocument.createElement('DIV') as HTMLDivElement;
+
+  // Hide it initially
+  editor.wrapper.style.display = 'none';
+  editor.wrapper.classList.add('htSelectEditor');
   editor.input = editor.hot.rootDocument.createElement("INPUT") as HTMLInputElement;
-  editor.input.classList.add("htSelectEditor");
   
   // Tell Coloris to attach to this input
   editor.input.setAttribute('data-coloris', '');
-  
-  // Hide it initially
-  editor.input.style.display = "none";
-  
+  editor.input.style = 'width: 100%; height: 100%; padding: 0;margin: 0;border: none; opacity: 0;';
+
   // Add to DOM
-  editor.hot.rootElement.appendChild(editor.input);
+  editor.hot.rootElement.appendChild(editor.wrapper);
+  editor.wrapper.appendChild(editor.input);
   
   // Configure Coloris for this input
   Coloris({
-    el: editor.input,
-    closeButton: true,
-    closeLabel: "Apply Colour"
+    el: editor.input, 
+    closeButton:true, 
+    closeLabel:"Apply Colour", 
+    // We don't want alpha channel 
+    alpha: false, 
+    // Hide Coloris additional input UI
+    wrap: false
   });
-  
-  // Listen for when user clicks "Apply Colour"
   editor.input.addEventListener('close', (event) => {
-    editor.finishEditing(); // Save and close
+    editor.finishEditing(); // close the color picker and save value on pressing "Apply Colour"
   });
 }
 ```
@@ -206,7 +220,7 @@ setValue(editor, value) {
 ```typescript
 open(editor) {
   const rect = editor.getEditedCellRect();
-  editor.input.style = `
+  editor.wrapper.style = `
     display: block;
     border: none;
     padding: 0;
@@ -223,7 +237,7 @@ open(editor) {
 **What's happening:**
 - `getEditedCellRect()` returns the cell's position and dimensions
 - Position the input absolutely over the cell
-- Show the input (`display: block`)
+- Show the input wrapper (`display: block`)
 - Programmatically click it to open Coloris
 
 **Why position over the cell?**
@@ -246,7 +260,7 @@ focus(editor) {
 
 ```typescript
 close(editor) {
-  editor.input.style.display = 'none';
+  editor.wrapper.style.display = 'none';
 }
 ```
 
@@ -260,26 +274,27 @@ Put it all together:
 
 ```typescript
 const cellDefinition = {
-  renderer: rendererFactory(({ td, value }) => {
+  renderer: Handsontable.renderers.factory(({ td, value }) => {
     td.style.backgroundColor = `${value}`;
     td.innerHTML = `<b>${value}</b>`;
     return td;
   }),
-  
   validator: (value, callback) => {
-    callback(value.length === 7 && value[0] == '#');
+    callback(value.length === 7 && value[0] == '#'); 
   },
-  
-  editor: editorBaseFactory<{input: HTMLInputElement}>({
+  editor: Handsontable.editors.BaseEditor.factory<{wrapper: HTMLDivElement, input: HTMLInputElement}>({
     init(editor) {
+      editor.wrapper = editor.hot.rootDocument.createElement('DIV') as HTMLDivElement;
+      editor.wrapper.style.display = 'none';
+      editor.wrapper.classList.add('htSelectEditor');
       editor.input = editor.hot.rootDocument.createElement("INPUT") as HTMLInputElement;
-      editor.input.classList.add("htSelectEditor");
       editor.input.setAttribute('data-coloris', '');
-      editor.input.style.display = "none";
-      editor.hot.rootElement.appendChild(editor.input);
-      Coloris({el: editor.input, closeButton:true, closeLabel:"Apply Colour"});
+      editor.input.style = 'width: 100%; height: 100%; padding: 0;margin: 0;border: none; opacity: 0;';
+      editor.hot.rootElement.appendChild(editor.wrapper);
+      editor.wrapper.appendChild(editor.input);
+      Coloris({el: editor.input, closeButton:true, closeLabel:"Apply Colour", alpha: false, wrap: false});
       editor.input.addEventListener('close', (event) => {
-        editor.finishEditing();
+        editor.finishEditing(); 
       });
     },
     getValue(editor) {
@@ -290,14 +305,14 @@ const cellDefinition = {
     },
     open(editor) {
       const rect = editor.getEditedCellRect();
-      editor.input.style = `display: block; border:none; padding:0; position: absolute; top: ${rect.top}px; left: ${rect.start}px; width: ${rect.width}px; height: ${rect.height}px;`;
-      editor.input.click();
+      editor.wrapper.style = `display: block; border:none; padding:0; position: absolute; top: ${rect.top}px; left: ${rect.start}px; width: ${rect.width}px; height: ${rect.height}px;`;
+      editor.input.click(); 
     },
     focus(editor) {
       editor.input.focus();
     },
     close(editor) {
-      editor.input.style.display = 'none';
+      editor.wrapper.style.display = 'none';
     }
   }),
 };
@@ -423,19 +438,9 @@ prepare(editor, row, col, prop, td, originalValue, cellProperties) {
 }
 ```
 
-## Complete Example
-
-See the full working example in [color-picker.html](./color-picker.html) and [color-picker.ts](./color-picker.ts).
-
-## Next Steps
-
-- Try the [Flatpickr Date Picker guide](./guide-flatpickr.md) for a more complex integration
-- Learn about [native HTML5 inputs](./guide-input-date.md) for simpler use cases
-- Review the [general documentation](./new-cell-definitions.md) for more patterns
 
 ---
 
 **Congratulations!** You've created a fully functional color picker cell in under 100 lines of code.
 
 
--->
