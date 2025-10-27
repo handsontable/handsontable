@@ -11,6 +11,7 @@ Coloris.init();
 registerAllModules();
 
 /* start:skip-in-preview */
+/* start:skip-in-preview */
 const inputData = [
   {
     id: 640329,
@@ -354,8 +355,9 @@ const inputData = [
   },
 ];
 
-export const data = inputData.map((el) => ({
+export const data = inputData.map(el => ({
   ...el,
+  // eslint-disable-next-line no-mixed-operators
   color: `#${Math.round(0x1000000 + 0xffffff * Math.random())
     .toString(16)
     .slice(1)

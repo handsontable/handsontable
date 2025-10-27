@@ -11,10 +11,10 @@ tags:
   - recipies
 react:
   id: dd56fc85
-  metaTitle: Custom builds - React Data Grid | Handsontable
+  metaTitle: "Recipe: Range Slider Input - React Data Grid | Handsontable"
 angular:
   id: e51f625c
-  metaTitle: Custom builds - Angular Data Grid | Handsontable
+  metaTitle: "Recipe: Range Slider Input - Angular Data Grid | Handsontable"
 searchCategory: Recepies
 category: Cells
 ---
@@ -22,12 +22,6 @@ category: Cells
 # Range Slider Input Cell - Step-by-Step Guide
 
 [[toc]]
-
-TBA
-
-<!--
-
-
 
 ## Overview
 
@@ -46,6 +40,19 @@ A cell that:
 - Provides immediate visual feedback
 - Works without any external libraries
 
+## Complete Example
+
+::: only-for javascript vue
+
+::: example #example1 :hot-recipe --js 1 --ts 2
+
+@[code](@/content/recipes/cells/guide-input-range/javascript/example1.js)
+@[code](@/content/recipes/cells/guide-input-range/javascript/example1.ts)
+
+:::
+
+:::
+
 ## Prerequisites
 
 None! This uses only native HTML5 features.
@@ -54,9 +61,9 @@ None! This uses only native HTML5 features.
 
 ```typescript
 import Handsontable from "handsontable";
-import "handsontable/dist/handsontable.full.min.css";
+import 'handsontable/styles/handsontable.min.css';
+import 'handsontable/styles/ht-theme-main.min.css';
 import { registerAllModules } from "handsontable/registry";
-import { editorBaseFactory, rendererFactory } from "./src/factories";
 
 registerAllModules();
 ```
@@ -65,14 +72,14 @@ registerAllModules();
 - No date libraries
 - No UI component libraries
 - No sliders libraries
-- Just Handsontable and our factories!
+- Just Handsontable.
 
 ## Step 2: Create the Renderer
 
 The renderer shows a disabled slider as a read-only preview.
 
 ```typescript
-renderer: rendererFactory(({ td, value }) => {
+renderer: Handsontable.renderes.factory(({ td, value }) => {
   td.innerHTML = `
     <div>
       <input 
@@ -120,7 +127,7 @@ td.innerHTML = `<div>...</div>`;
 Show the numeric value alongside the slider:
 
 ```typescript
-renderer: rendererFactory(({ td, value }) => {
+renderer: Handsontable.renderes.factory(({ td, value }) => {
   td.innerHTML = `
     <div style="display: flex; align-items: center; gap: 8px;">
       <input 
@@ -141,7 +148,7 @@ renderer: rendererFactory(({ td, value }) => {
 })
 ```
 
-**Improvements:**
+**Possible improvements:**
 - Flexbox layout for alignment
 - Numeric percentage display
 - Min/max values shown in slider
@@ -185,7 +192,7 @@ validator: (value, callback) => {
 ## Step 5: Editor - Define Types
 
 ```typescript
-editor: editorBaseFactory<{
+editor: Handsontable.editors.BaseEditor.factory<{
   wrapper: HTMLDivElement;
   input: HTMLInputElement;
 }>({
@@ -329,7 +336,7 @@ open(editor) {
     border: none;
     box-sizing: border-box;
     margin: 0;
-    padding: 0 4px;
+    padding: 8 4px;
     position: absolute;
     top: ${rect.top}px;
     left: ${rect.start}px;
@@ -347,7 +354,7 @@ open(editor) {
 - Match width and height exactly
 
 ### Styling
-- `padding: 0 4px` - Small horizontal padding
+- `padding: 8 4px` - Small horizontal padding match the preview cell padding 
 - Makes slider slightly inset from cell edges
 - Improves visual appearance
 
@@ -380,7 +387,7 @@ close(editor) {
 
 ```typescript
 const cellDefinition = {
-  renderer: rendererFactory(({ td, value }) => {
+  renderer: Handsontable.renderers.factory(({ td, value }) => {
     td.innerHTML = `
       <div>
         <input 
@@ -400,7 +407,7 @@ const cellDefinition = {
     callback(value >= 0 && value <= 100);
   },
   
-  editor: editorBaseFactory<{
+  editor: Handsontable.editors.BaseEditor.factory<{
     wrapper: HTMLDivElement;
     input: HTMLInputElement;
   }>({
@@ -441,7 +448,7 @@ const cellDefinition = {
         border: none;
         box-sizing: border-box;
         margin: 0;
-        padding: 0 4px;
+        padding: 8 4px;
         position: absolute;
         top: ${rect.top}px;
         left: ${rect.start}px;
@@ -603,11 +610,6 @@ renderer: rendererFactory(({ td, value }) => {
 })
 ```
 
-**Modern browsers support `accent-color`!**
-- Chrome 93+
-- Edge 93+
-- Safari 15.4+
-- Firefox 92+
 
 ### 3. Custom Step Values
 
@@ -654,7 +656,7 @@ columns: [{
 Make it look like a progress bar:
 
 ```typescript
-renderer: rendererFactory(({ td, value }) => {
+renderer: Handsontable.renders.factory(({ td, value }) => {
   td.innerHTML = `
     <div style="position: relative; height: 20px; background: #e0e0e0; border-radius: 10px; overflow: hidden;">
       <div style="
@@ -848,19 +850,8 @@ input[type="range"]::-moz-range-thumb {
 }
 ```
 
-## Complete Example
-
-See the full working example in [input-range.html](./input-range.html) and [input-range.ts](./input-range.ts).
-
-## Next Steps
-
-- Try [multiple select](./guide-select-multiple.md) for dropdown selections
-- Check [color picker](./guide-color-picker.md) for RGB/HSL values
-- Review [general documentation](./new-cell-definitions.md) for more patterns
 
 ---
 
 **Congratulations!** You've created an interactive range slider with live preview feedback using only native HTML5, in under 70 lines of code!
 
-
--->

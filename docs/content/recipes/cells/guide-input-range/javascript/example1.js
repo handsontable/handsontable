@@ -2,7 +2,6 @@ import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
-import { format } from 'date-fns';
 
 // Register all Handsontable's modules.
 registerAllModules();
@@ -353,30 +352,38 @@ const inputData = [
 
 export const data = inputData.map(el => ({
   ...el,
+  completed: Math.floor(Math.random() * (100 - 0 + 1)) + 0,
 }));
 /* end:skip-in-preview */
 // Get the DOM element with the ID 'example1' where the Handsontable will be rendered
 const container = document.querySelector('#example1');
 const cellDefinition = {
+  validator: (value, callback) => {
+    value = parseInt(value, 10);
+    callback(value >= 0 && value <= 100);
+  },
   renderer: Handsontable.renderers.factory(({ td, value }) => {
-    td.innerText = format(new Date(value), 'MM/dd/yyyy');
+    td.innerHTML = `<div><input style="pointer-events: none; width: 100%; padding: 0;" disabled readonly type="range" value="${value}" /></div>`;
 
-    // td.innerText = value;
     return td;
   }),
   editor: Handsontable.editors.BaseEditor.factory({
     init(editor) {
-      // create the input element on init. This is a text input that color picker will be attached to.
       editor.wrapper = editor.hot.rootDocument.createElement('DIV');
       editor.wrapper.style.display = 'none';
       editor.wrapper.classList.add('htSelectEditor');
       editor.input = editor.hot.rootDocument.createElement('INPUT');
-      editor.input.setAttribute('type', 'date');
+      editor.input.setAttribute('type', 'range');
+      editor.input.setAttribute('min', '0');
+      editor.input.setAttribute('max', '100');
+      editor.input.setAttribute('step', '1');
       editor.input.style = 'width: 100%; padding: 0;';
       editor.wrapper.appendChild(editor.input);
       editor.hot.rootElement.appendChild(editor.wrapper);
       editor.input.addEventListener('input', (event) => {
-        editor.finishEditing();
+        if (editor.TD) {
+          editor.TD.querySelector('input').value = event.target.value;
+        }
       });
     },
     getValue(editor) {
@@ -389,10 +396,7 @@ const cellDefinition = {
       const rect = editor.getEditedCellRect();
 
       // eslint-disable-next-line max-len
-      editor.wrapper.style = `display: block; border:none; box-sizing: border-box; margin:0; padding:0 4px; position: absolute; top: ${rect.top}px; left: ${rect.start}px; width: ${rect.width}px; height: ${rect.height}px;`;
-      requestAnimationFrame(() => {
-        editor.input.showPicker();
-      });
+      editor.wrapper.style = `display: block; border:none; box-sizing: border-box; margin:0; padding:4px 8px; position: absolute; top: ${rect.top}px; left: ${rect.start}px; width: ${rect.width}px; height: ${rect.height}px;`;
     },
     focus(editor) {
       editor.input.focus();
@@ -405,6 +409,7 @@ const cellDefinition = {
 
 // Define configuration options for the Handsontable
 const hotOptions = {
+  themeName: 'ht-theme-main',
   data,
   colHeaders: ['ID', 'Item Name', 'Restock Date'],
   autoRowSize: true,
@@ -417,7 +422,8 @@ const hotOptions = {
       type: 'text',
     },
     {
-      data: 'restockDate',
+      data: 'completed',
+      width: 150,
       allowInvalid: false,
       ...cellDefinition,
     },

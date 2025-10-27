@@ -11,10 +11,10 @@ tags:
   - recipies
 react:
   id: 44c6adde
-  metaTitle: Custom builds - React Data Grid | Handsontable
+  metaTitle: "Recipe: Multiple Select Dropdown - React Data Grid | Handsontable"
 angular:
   id: 9b00d73d
-  metaTitle: Custom builds - Angular Data Grid | Handsontable
+  metaTitle: "Recipe: Multiple Select Dropdown - Angular Data Grid | Handsontable"
 searchCategory: Recepies
 category: Cells
 ---
@@ -25,10 +25,6 @@ category: Cells
 
 
 ## Overview
-
-TBA
-
-<!--
 
 
 This guide shows how to create a custom multi-select dropdown cell using the [multiple-select-vanilla](https://github.com/leviwheatcroft/multiple-select-vanilla) library. Users can select multiple items from a dropdown list, with a clean, searchable interface.
@@ -52,16 +48,29 @@ A cell that:
 npm install multiple-select-vanilla
 ```
 
+## Complete Example
+
+::: only-for javascript vue
+
+::: example #example1 :hot-recipe --js 1 --ts 2
+
+@[code](@/content/recipes/cells/guide-select-multiple/javascript/example1.js)
+@[code](@/content/recipes/cells/guide-select-multiple/javascript/example1.ts)
+
+:::
+
+:::
+
 ## Step 1: Import Dependencies
 
 ```typescript
 import Handsontable from "handsontable";
 import "handsontable/dist/handsontable.full.min.css";
 import { registerAllModules } from "handsontable/registry";
-import { editorBaseFactory, rendererFactory } from "./src/factories";
 
 // Multiple select library
-import { multipleSelect, MultipleSelectInstance } from "multiple-select-vanilla";
+import multipleSelect from "multiple-select-vanilla";
+import type { MultipleSelectInstance } from "multiple-select-vanilla";
 import "multiple-select-vanilla/dist/styles/css/multiple-select.css";
 
 registerAllModules();
@@ -142,7 +151,7 @@ components: [
 Display selected items as comma-separated text.
 
 ```typescript
-renderer: rendererFactory(({ td, value }) => {
+renderer: Handsontable.renderers.factory(({ td, value }) => {
   td.innerHTML = value.length > 0
     ? value.map((el: { label: string }) => el.label).join(", ")
     : "No elements";
@@ -174,7 +183,7 @@ value.map((el: { label: string }) => el.label)
 
 **Enhanced renderer with badges:**
 ```typescript
-renderer: rendererFactory(({ td, value }) => {
+renderer: Handsontable.renderers.factor(({ td, value }) => {
   if (!value || value.length === 0) {
     td.innerHTML = '<span style="color: #999;">No selection</span>';
     return td;
@@ -235,7 +244,7 @@ validator: (value, callback) => {
 ## Step 5: Editor - Define Types
 
 ```typescript
-editor: editorBaseFactory<{
+editor: Handsontable.editors.BaseEditor.factory<{
   wrapper: HTMLDivElement;
   input: HTMLSelectElement;
   multiselect: MultipleSelectInstance;
@@ -333,7 +342,7 @@ cellProperties?.selectMultipleOptions
 - Different columns can have different options
 - Optional chaining handles missing property
 
-### Generate `<option>` elements
+### Generate `<option></option>` elements
 ```typescript
 .map((el: { value: string; label: string }) => 
   `<option value="${el.value}">${el.label}</option>`
@@ -434,6 +443,7 @@ Set which items are selected when editor opens.
 ```typescript
 setValue(editor, value) {
   // Handle Handsontable bug where value might be string
+  // Read more https://github.com/handsontable/handsontable/issues/3510
   value = typeof value === "string" ? editor.originalValue : value;
   
   // Set selected state for each option
@@ -585,14 +595,14 @@ close(editor) {
 
 ```typescript
 const cellDefinition = {
-  renderer: rendererFactory(({ td, value }) => {
+  renderer: Handsontable.renderers.factory(({ td, value }) => {
     td.innerHTML = value.length > 0
       ? value.map((el: { label: string }) => el.label).join(", ")
       : "No elements";
     return td;
   }),
   
-  editor: editorBaseFactory<{
+  editor: Handsontable.editors.BaseEditor.factory<{
     wrapper: HTMLDivElement;
     input: HTMLSelectElement;
     multiselect: MultipleSelectInstance;
@@ -864,7 +874,11 @@ prepare(editor, ...) {
 }
 ```
 
+<!-- 
+
 ### 4. Async Options Loading
+
+TODO: prepare actual example how to make this async. 
 
 ```typescript
 async prepare(editor, row, col, prop, td, originalValue, cellProperties) {
@@ -882,9 +896,11 @@ async prepare(editor, row, col, prop, td, originalValue, cellProperties) {
   
   editor.multiselect.refresh();
 }
-```
+``` 
 
-### 5. Save on Every Selection Change
+-->
+
+### 4. Save on Every Selection Change
 
 ```typescript
 init(editor) {
@@ -917,71 +933,6 @@ columns: [{
 }]
 ```
 
-## Troubleshooting
-
-### Dropdown not showing
-- **Problem**: `min-height` not set
-- **Solution**: Set `min-height: 200px` on wrapper in `open()`
-
-### Options not updating
-- **Problem**: Forgot to call `refresh()`
-- **Solution**: Call `editor.multiselect.refresh()` after changing options
-
-### Wrong values saved
-- **Problem**: Not handling string value bug
-- **Solution**: Add `value = typeof value === "string" ? editor.originalValue : value;`
-
-### Dropdown closes immediately
-- **Problem**: Click-outside detection
-- **Solution**: Multiple Select handles this, but ensure proper z-index
-
-### Plugin throws errors
-- **Problem**: Plugin not properly initialized
-- **Solution**: Check that `multipleSelect()` is called in `init()`
-
-## Performance Considerations
-
-### Large Option Lists
-
-For 100+ options:
-
-```typescript
-// Enable virtual scrolling (if supported by library)
-editor.multiselect = multipleSelect(editor.input, {
-  maxHeight: 300,
-  filter: true, // Essential for large lists
-  filterPlaceholder: 'Search...'
-}) as MultipleSelectInstance;
-```
-
-### Avoid Recreating Plugin
-
-```typescript
-// ❌ Don't do this
-open(editor) {
-  editor.multiselect.destroy();
-  editor.multiselect = multipleSelect(editor.input);
-  editor.multiselect.open();
-}
-
-// ✅ Do this
-open(editor) {
-  editor.multiselect.open(); // Reuse existing instance
-}
-```
-
-## Comparison: Multiple Select vs Native `<select multiple>`
-
-| Feature | Multiple Select | Native `<select>` |
-|---------|----------------|-------------------|
-| Search/filter | ✅ Built-in | ❌ None |
-| Select all | ✅ Built-in | ❌ Manual |
-| Visual design | ✅ Modern | ⚠️ Browser-dependent |
-| Mobile UX | ✅ Good | ✅ Native |
-| Keyboard nav | ✅ Full | ✅ Native |
-| Bundle size | ⚠️ ~15KB | ✅ 0KB |
-| Accessibility | ✅ Good | ✅ Native |
-| Customization | ✅ Extensive | ❌ Limited |
 
 ## Accessibility
 
@@ -1001,19 +952,8 @@ editor.multiselect = multipleSelect(editor.input, {
 - **Escape**: Close dropdown (cancel)
 - **Type to search**: Filter options
 
-## Complete Example
-
-See the full working example in [select-multiple.html](./select-multiple.html) and [select-multiple.ts](./select-multiple.ts).
-
-## Next Steps
-
-- Review [color picker](./guide-color-picker.md) for single-value selections
-- Check [input range](./guide-input-range.md) for numeric sliders
-- Read [general documentation](./new-cell-definitions.md) for more patterns
 
 ---
 
 **Congratulations!** You've created a powerful multi-select cell with search, keyboard navigation, and full customization options!
 
-
--->

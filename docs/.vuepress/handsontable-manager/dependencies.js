@@ -117,7 +117,7 @@ const getPrebuiltUmdUrl = (scriptName) => {
  *
  * @param {string} version The current selected documentation version.
  * @returns {Function} Returns a function factory with the signature
- *                     `{function(dependency: string): [string,string[],string]} [jsUrl, dependentVars[]?, cssUrl?]`.
+ *                     `{function(dependency: string): [string,string[],string],string,boolean} [jsUrl, dependentVars[]?, cssUrl?, globalVarSharedDependency, isModule]`.
  */
 const buildDependencyGetter = (version) => {
   const fixer = getCommonScript('fixer', version);
@@ -160,7 +160,9 @@ const buildDependencyGetter = (version) => {
       vuex4: ['https://cdn.jsdelivr.net/npm/vuex@4/dist/vuex.global.min.js', [/* todo */], null, 'vuex'],
       languages: [getPackageUrls('handsontable', version, 'dist/languages/all.js'), [/* todo */]],
       'date-fns': ['https://cdnjs.cloudflare.com/ajax/libs/date-fns/4.1.0/cdn.min.js', [/* todo */]],
-      'coloris': ['https://cdn.jsdelivr.net/npm/@melloware/coloris/dist/umd/coloris.min.js', [/* todo */], 'https://cdn.jsdelivr.net/npm/@melloware/coloris/dist/coloris.min.css'],      
+      coloris: ['https://cdn.jsdelivr.net/npm/@melloware/coloris/dist/umd/coloris.min.js', [/* todo */], 'https://cdn.jsdelivr.net/npm/@melloware/coloris/dist/coloris.min.css'],
+      flatpickr: ['https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.js', [/* todo */], 'https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css'],
+      'multiple-select-vanilla': ['https://cdn.jsdelivr.net/npm/multiple-select-vanilla/dist/browser/multiple-select.min.js', [/* todo */], 'https://cdn.jsdelivr.net/npm/multiple-select-vanilla/dist/styles/css/multiple-select.min.css', false, true]
     };
     /* eslint-enable max-len */
 
@@ -171,7 +173,7 @@ const buildDependencyGetter = (version) => {
 
 const presetMap = {
   /* eslint-disable max-len */
-  'hot-recipe': ['hot', 'date-fns', 'fixer', 'coloris'],
+  'hot-recipe': ['hot', 'date-fns', 'fixer', 'coloris', 'flatpickr', 'multiple-select-vanilla'],
   hot: ['hot', 'fixer'],
   'hot-lang': ['hot', 'languages', 'fixer'],
   'hot-numbro': ['hot', 'numbro', 'fixer'],

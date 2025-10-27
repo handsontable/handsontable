@@ -24,9 +24,6 @@ category: Cells
 [[toc]]
 
 
-TBA
-
-<!--
 
 ## Overview
 
@@ -51,21 +48,35 @@ A cell that:
 npm install flatpickr date-fns
 ```
 
+## Complete Example
+
+::: only-for javascript vue
+
+::: example #example1 :hot-recipe --js 1 --ts 2
+
+@[code](@/content/recipes/cells/guide-flatpickr/javascript/example1.js)
+@[code](@/content/recipes/cells/guide-flatpickr/javascript/example1.ts)
+
+:::
+
+:::
+
+
 ## Step 1: Import Dependencies
 
 ```typescript
 import Handsontable from "handsontable";
-import "handsontable/dist/handsontable.full.min.css";
 import { registerAllModules } from "handsontable/registry";
-import { editorBaseFactory, rendererFactory } from "./src/factories";
+import "handsontable/styles/handsontable.css";
+import "handsontable/styles/ht-theme-main.css";
 
 // Date formatting
-import { format } from "date-fns";
+import { format, isDate } from "date-fns";
 
 // Flatpickr
 import flatpickr from "flatpickr";
-import "flatpickr/dist/flatpickr.min.css";
 
+// Register all Handsontable's modules
 registerAllModules();
 ```
 
@@ -73,6 +84,7 @@ registerAllModules();
 - Lightweight, modular date formatting
 - Better than native `toLocaleDateString()` for consistency
 - Can be replaced with other libraries (moment, dayjs, etc.)
+- We import `isDate` for validation
 
 ## Step 2: Define Date Formats
 
@@ -91,7 +103,7 @@ const DATE_FORMAT_EU = "dd/MM/yyyy";
 The renderer displays the date in a human-readable format.
 
 ```typescript
-renderer: rendererFactory(({ td, value, cellProperties }) => {
+renderer: Handsontable.renderers.factory(({ td, value, cellProperties }) => {
   td.innerText = format(new Date(value), cellProperties.renderFormat);
   return td;
 })
@@ -106,11 +118,11 @@ renderer: rendererFactory(({ td, value, cellProperties }) => {
 **Why use `cellProperties`?**
 - Allows different columns to display dates differently
 - One cell definition, multiple configurations
-- See Step 12 for usage
+- See Step 13 for usage
 
 **Error handling for production:**
 ```typescript
-renderer: rendererFactory(({ td, value, cellProperties }) => {
+renderer: Handsontable.renderers.factory(({ td, value, cellProperties }) => {
   if (!value) {
     td.innerText = '';
     return td;
@@ -129,29 +141,29 @@ renderer: rendererFactory(({ td, value, cellProperties }) => {
 
 ```typescript
 validator: (value, callback) => {    
-  value = parseInt(value);
-  callback(true);
+  callback(isDate(new Date(value)));
 }
 ```
 
-**Current implementation:**
-- Always returns `true` (accepts any value)
-- The `parseInt` seems like leftover code
+**What's happening:**
+- Uses `isDate` from date-fns to validate the date
+- `isDate` checks if the value is a valid Date object
+- Returns `true` for valid dates, `false` for invalid ones
 
-**Better implementation:**
+**Alternative validation approaches:**
 ```typescript
+// Using native JavaScript
 validator: (value, callback) => {
-  // Check if valid date
   const date = new Date(value);
   callback(!isNaN(date.getTime()));
 }
 ```
 
-**Even better - with date range:**
+**With date range validation:**
 ```typescript
 validator: (value, callback) => {
   const date = new Date(value);
-  if (isNaN(date.getTime())) {
+  if (!isDate(date)) {
     callback(false);
     return;
   }
@@ -168,7 +180,7 @@ validator: (value, callback) => {
 Define the custom properties your editor needs:
 
 ```typescript
-editor: editorBaseFactory<{
+editor: Handsontable.editors.BaseEditor.factory<{
   wrapper: HTMLDivElement;
   input: HTMLInputElement;
   flatpickr: flatpickr.Instance;
@@ -211,7 +223,9 @@ init(editor) {
     enableTime: false,
   });
   
-  // Prevent clicking on calendar from closing editor
+  /**
+   * Prevent recognizing clicking on datepicker as clicking outside of table.
+   */
   editor.eventManager = new Handsontable.EventManager(editor.wrapper);
   editor.eventManager.addEventListener(document.body, 'mousedown', (event) => {             
     if (editor.flatpickr.calendarContainer.contains(event.target as Node)) {
@@ -285,7 +299,7 @@ setValue(editor, value) {
 This is where per-cell configuration happens!
 
 ```typescript
-prepare(editor, row, col, prop, td, originalValue, cellProperties) {
+prepare(editor, _row, _col, _prop, _td, originalValue, cellProperties) {
   editor.input.value = originalValue;
   editor.flatpickrSettings = cellProperties.flatpickrSettings;
 }
@@ -296,6 +310,7 @@ prepare(editor, row, col, prop, td, originalValue, cellProperties) {
 - `originalValue` is the cell's current value
 - `cellProperties.flatpickrSettings` contains column-specific Flatpickr config
 - Store settings for use in `open()`
+- Unused parameters are prefixed with `_` (TypeScript convention)
 
 **Why not set Flatpickr settings here?**
 - `prepare()` is called even when not editing
@@ -304,7 +319,7 @@ prepare(editor, row, col, prop, td, originalValue, cellProperties) {
 
 **Advanced: Dynamic configuration**
 ```typescript
-prepare(editor, row, col, prop, td, originalValue, cellProperties) {
+prepare(editor, row, _col, _prop, _td, originalValue, cellProperties) {
   editor.input.value = originalValue;
   
   // Different settings based on row data
@@ -408,7 +423,7 @@ close(editor) {
 
 ```typescript
 const cellDefinition = {
-  renderer: rendererFactory(({ td, value, cellProperties }) => {
+  renderer: Handsontable.renderers.factory(({ td, value, cellProperties }) => {
     td.innerText = format(new Date(value), cellProperties.renderFormat);
     return td;
   }),
@@ -418,7 +433,7 @@ const cellDefinition = {
     callback(!isNaN(date.getTime()));
   },
   
-  editor: editorBaseFactory<{
+  editor: Handsontable.editors.BaseEditor.factory<{
     wrapper: HTMLDivElement;
     input: HTMLInputElement;
     flatpickr: flatpickr.Instance;
@@ -428,7 +443,7 @@ const cellDefinition = {
     init(editor) { /* ... from Step 6 ... */ },
     getValue(editor) { return editor.input.value; },
     setValue(editor, value) { editor.input.value = value; },
-    prepare(editor, row, col, prop, td, originalValue, cellProperties) {
+    prepare(editor, _row, _col, _prop, _td, _originalValue, _cellProperties) {
       editor.input.value = originalValue;
       editor.flatpickrSettings = cellProperties.flatpickrSettings;
     },
@@ -508,26 +523,6 @@ const hot = new Handsontable(container, {
 8. **Save**: Value saved in ISO format ("2024-12-31")
 9. **Render**: Renderer displays in localized format
 10. **Close**: Editor hidden, ready for next edit
-
-## Troubleshooting
-
-### Calendar closes immediately when clicked
-- **Problem**: Missing `eventManager` setup
-- **Solution**: Implement the mousedown listener from Step 6
-
-### Date format looks wrong
-- **Problem**: Wrong format string
-- **Solution**: Check date-fns format strings vs Flatpickr format strings
-  - Renderer uses date-fns format: `"MM/dd/yyyy"`
-  - Editor uses Flatpickr format: `"Y-m-d"`
-
-### Settings not applying
-- **Problem**: Settings applied in `init()` instead of `open()`
-- **Solution**: Move Flatpickr initialization to `open()` method
-
-### Input visible over calendar
-- **Problem**: Input has `opacity: 1`
-- **Solution**: Set `opacity: 0` on input
 
 ## Advanced Enhancements
 
@@ -619,44 +614,7 @@ flatpickrSettings: {
 }
 ```
 
-## Comparison: Flatpickr vs Native Date Input
-
-| Feature | Flatpickr | Native `<input type="date">` |
-|---------|-----------|------------------------------|
-| Cross-browser consistency | ✅ Excellent | ⚠️ Varies by browser |
-| Customization | ✅ Extensive | ❌ Limited |
-| File size | ⚠️ ~20KB | ✅ 0KB |
-| Mobile support | ✅ Good | ✅ Native keyboard |
-| Accessibility | ✅ Good (with config) | ✅ Native |
-| Time picker | ✅ Built-in | ❌ Separate input |
-| Date ranges | ✅ Easy | ⚠️ Manual validation |
-| Localization | ✅ Full control | ⚠️ Browser-dependent |
-
-**When to use Flatpickr:**
-- Need consistent UX across all browsers
-- Require advanced features (ranges, time, presets)
-- Want full control over appearance
-- Building enterprise applications
-
-**When to use native:**
-- Building simple forms
-- Want zero dependencies
-- Mobile-first application
-- Accessibility is critical
-
-## Complete Example
-
-See the full working example in [flatpickr.html](./flatpickr.html) and [flatpickr.ts](./flatpickr.ts).
-
-## Next Steps
-
-- Try the [native date input guide](./guide-input-date.md) for comparison
-- Explore [range slider](./guide-input-range.md) for numeric inputs
-- Check [Flatpickr documentation](https://flatpickr.js.org/) for more options
-
 ---
 
 **Congratulations!** You've created a production-ready date picker with full localization support and advanced configuration.
 
-
--->

@@ -168,6 +168,10 @@
         ns = 'dateFns';
       } else if (key === '@melloware/coloris') {
         ns = 'Coloris';
+      } else if (key === 'flatpickr') {
+        ns = 'flatpickr';
+      } else if (key === 'multiple-select-vanilla') {
+        ns = 'multipleSelect';
       }
 
       let moduleToReturn = window;

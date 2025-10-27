@@ -2,12 +2,273 @@ import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
-import { format } from 'date-fns';
+import multipleSelect from 'multiple-select-vanilla';
 
 // Register all Handsontable's modules.
 registerAllModules();
 
 /* start:skip-in-preview */
+const components = [
+  { value: '1', label: 'Component 1' },
+  { value: '2', label: 'Component 2' },
+  { value: '3', label: 'Component 3' },
+];
+
+const countryListAlpha2 = {
+  AF: 'Afghanistan',
+  AL: 'Albania',
+  DZ: 'Algeria',
+  AS: 'American Samoa',
+  AD: 'Andorra',
+  AO: 'Angola',
+  AI: 'Anguilla',
+  AQ: 'Antarctica',
+  AG: 'Antigua and Barbuda',
+  AR: 'Argentina',
+  AM: 'Armenia',
+  AW: 'Aruba',
+  AU: 'Australia',
+  AT: 'Austria',
+  AZ: 'Azerbaijan',
+  BS: 'Bahamas (the)',
+  BH: 'Bahrain',
+  BD: 'Bangladesh',
+  BB: 'Barbados',
+  BY: 'Belarus',
+  BE: 'Belgium',
+  BZ: 'Belize',
+  BJ: 'Benin',
+  BM: 'Bermuda',
+  BT: 'Bhutan',
+  BO: 'Bolivia (Plurinational State of)',
+  BQ: 'Bonaire, Sint Eustatius and Saba',
+  BA: 'Bosnia and Herzegovina',
+  BW: 'Botswana',
+  BV: 'Bouvet Island',
+  BR: 'Brazil',
+  IO: 'British Indian Ocean Territory (the)',
+  BN: 'Brunei Darussalam',
+  BG: 'Bulgaria',
+  BF: 'Burkina Faso',
+  BI: 'Burundi',
+  CV: 'Cabo Verde',
+  KH: 'Cambodia',
+  CM: 'Cameroon',
+  CA: 'Canada',
+  KY: 'Cayman Islands (the)',
+  CF: 'Central African Republic (the)',
+  TD: 'Chad',
+  CL: 'Chile',
+  CN: 'China',
+  CX: 'Christmas Island',
+  CC: 'Cocos (Keeling) Islands (the)',
+  CO: 'Colombia',
+  KM: 'Comoros (the)',
+  CD: 'Congo (the Democratic Republic of the)',
+  CG: 'Congo (the)',
+  CK: 'Cook Islands (the)',
+  CR: 'Costa Rica',
+  HR: 'Croatia',
+  CU: 'Cuba',
+  CW: 'Curaçao',
+  CY: 'Cyprus',
+  CZ: 'Czechia',
+  CI: 'Côte d\'Ivoire',
+  DK: 'Denmark',
+  DJ: 'Djibouti',
+  DM: 'Dominica',
+  DO: 'Dominican Republic (the)',
+  EC: 'Ecuador',
+  EG: 'Egypt',
+  SV: 'El Salvador',
+  GQ: 'Equatorial Guinea',
+  ER: 'Eritrea',
+  EE: 'Estonia',
+  SZ: 'Eswatini',
+  ET: 'Ethiopia',
+  FK: 'Falkland Islands (the) [Malvinas]',
+  FO: 'Faroe Islands (the)',
+  FJ: 'Fiji',
+  FI: 'Finland',
+  FR: 'France',
+  GF: 'French Guiana',
+  PF: 'French Polynesia',
+  TF: 'French Southern Territories (the)',
+  GA: 'Gabon',
+  GM: 'Gambia (the)',
+  GE: 'Georgia',
+  DE: 'Germany',
+  GH: 'Ghana',
+  GI: 'Gibraltar',
+  GR: 'Greece',
+  GL: 'Greenland',
+  GD: 'Grenada',
+  GP: 'Guadeloupe',
+  GU: 'Guam',
+  GT: 'Guatemala',
+  GG: 'Guernsey',
+  GN: 'Guinea',
+  GW: 'Guinea-Bissau',
+  GY: 'Guyana',
+  HT: 'Haiti',
+  HM: 'Heard Island and McDonald Islands',
+  VA: 'Holy See (the)',
+  HN: 'Honduras',
+  HK: 'Hong Kong',
+  HU: 'Hungary',
+  IS: 'Iceland',
+  IN: 'India',
+  ID: 'Indonesia',
+  IR: 'Iran (Islamic Republic of)',
+  IQ: 'Iraq',
+  IE: 'Ireland',
+  IM: 'Isle of Man',
+  IL: 'Israel',
+  IT: 'Italy',
+  JM: 'Jamaica',
+  JP: 'Japan',
+  JE: 'Jersey',
+  JO: 'Jordan',
+  KZ: 'Kazakhstan',
+  KE: 'Kenya',
+  KI: 'Kiribati',
+  KP: 'Korea (the Democratic People\'s Republic of)',
+  KR: 'Korea (the Republic of)',
+  KW: 'Kuwait',
+  KG: 'Kyrgyzstan',
+  LA: 'Lao People\'s Democratic Republic (the)',
+  LV: 'Latvia',
+  LB: 'Lebanon',
+  LS: 'Lesotho',
+  LR: 'Liberia',
+  LY: 'Libya',
+  LI: 'Liechtenstein',
+  LT: 'Lithuania',
+  LU: 'Luxembourg',
+  MO: 'Macao',
+  MG: 'Madagascar',
+  MW: 'Malawi',
+  MY: 'Malaysia',
+  MV: 'Maldives',
+  ML: 'Mali',
+  MT: 'Malta',
+  MH: 'Marshall Islands (the)',
+  MQ: 'Martinique',
+  MR: 'Mauritania',
+  MU: 'Mauritius',
+  YT: 'Mayotte',
+  MX: 'Mexico',
+  FM: 'Micronesia (Federated States of)',
+  MD: 'Moldova (the Republic of)',
+  MC: 'Monaco',
+  MN: 'Mongolia',
+  ME: 'Montenegro',
+  MS: 'Montserrat',
+  MA: 'Morocco',
+  MZ: 'Mozambique',
+  MM: 'Myanmar',
+  NA: 'Namibia',
+  NR: 'Nauru',
+  NP: 'Nepal',
+  NL: 'Netherlands (the)',
+  NC: 'New Caledonia',
+  NZ: 'New Zealand',
+  NI: 'Nicaragua',
+  NE: 'Niger (the)',
+  NG: 'Nigeria',
+  NU: 'Niue',
+  NF: 'Norfolk Island',
+  MP: 'Northern Mariana Islands (the)',
+  NO: 'Norway',
+  OM: 'Oman',
+  PK: 'Pakistan',
+  PW: 'Palau',
+  PS: 'Palestine, State of',
+  PA: 'Panama',
+  PG: 'Papua New Guinea',
+  PY: 'Paraguay',
+  PE: 'Peru',
+  PH: 'Philippines (the)',
+  PN: 'Pitcairn',
+  PL: 'Poland',
+  PT: 'Portugal',
+  PR: 'Puerto Rico',
+  QA: 'Qatar',
+  MK: 'Republic of North Macedonia',
+  RO: 'Romania',
+  RU: 'Russian Federation (the)',
+  RW: 'Rwanda',
+  RE: 'Réunion',
+  BL: 'Saint Barthélemy',
+  SH: 'Saint Helena, Ascension and Tristan da Cunha',
+  KN: 'Saint Kitts and Nevis',
+  LC: 'Saint Lucia',
+  MF: 'Saint Martin (French part)',
+  PM: 'Saint Pierre and Miquelon',
+  VC: 'Saint Vincent and the Grenadines',
+  WS: 'Samoa',
+  SM: 'San Marino',
+  ST: 'Sao Tome and Principe',
+  SA: 'Saudi Arabia',
+  SN: 'Senegal',
+  RS: 'Serbia',
+  SC: 'Seychelles',
+  SL: 'Sierra Leone',
+  SG: 'Singapore',
+  SX: 'Sint Maarten (Dutch part)',
+  SK: 'Slovakia',
+  SI: 'Slovenia',
+  SB: 'Solomon Islands',
+  SO: 'Somalia',
+  ZA: 'South Africa',
+  GS: 'South Georgia and the South Sandwich Islands',
+  SS: 'South Sudan',
+  ES: 'Spain',
+  LK: 'Sri Lanka',
+  SD: 'Sudan (the)',
+  SR: 'Suriname',
+  SJ: 'Svalbard and Jan Mayen',
+  SE: 'Sweden',
+  CH: 'Switzerland',
+  SY: 'Syrian Arab Republic',
+  TW: 'Taiwan',
+  TJ: 'Tajikistan',
+  TZ: 'Tanzania, United Republic of',
+  TH: 'Thailand',
+  TL: 'Timor-Leste',
+  TG: 'Togo',
+  TK: 'Tokelau',
+  TO: 'Tonga',
+  TT: 'Trinidad and Tobago',
+  TN: 'Tunisia',
+  TR: 'Turkey',
+  TM: 'Turkmenistan',
+  TC: 'Turks and Caicos Islands (the)',
+  TV: 'Tuvalu',
+  UG: 'Uganda',
+  UA: 'Ukraine',
+  AE: 'United Arab Emirates (the)',
+  GB: 'United Kingdom of Great Britain and Northern Ireland (the)',
+  UM: 'United States Minor Outlying Islands (the)',
+  US: 'United States of America (the)',
+  UY: 'Uruguay',
+  UZ: 'Uzbekistan',
+  VU: 'Vanuatu',
+  VE: 'Venezuela (Bolivarian Republic of)',
+  VN: 'Viet Nam',
+  VG: 'Virgin Islands (British)',
+  VI: 'Virgin Islands (U.S.)',
+  WF: 'Wallis and Futuna',
+  EH: 'Western Sahara',
+  YE: 'Yemen',
+  ZM: 'Zambia',
+  ZW: 'Zimbabwe',
+  AX: 'Åland Islands',
+};
+
+export const coutries = Object.entries(countryListAlpha2)
+  .map(([value, label]) => ({ value, label }))
+  .slice(0, 198); // 199 is the max number of options that can be displayed in the dropdown
 const inputData = [
   {
     id: 640329,
@@ -353,15 +614,32 @@ const inputData = [
 
 export const data = inputData.map(el => ({
   ...el,
+  components: components
+    .map((n) => {
+      return [Math.random(), n];
+    })
+    .sort()
+    .map((n) => {
+      return n[1];
+    })
+    .slice(0, Math.ceil(Math.random() * components.length)),
+  countries: coutries
+    .map((n) => {
+      return [Math.random(), n];
+    })
+    .sort()
+    .map((n) => {
+      return n[1];
+    })
+    .slice(0, Math.ceil(Math.random() * 5)),
 }));
 /* end:skip-in-preview */
 // Get the DOM element with the ID 'example1' where the Handsontable will be rendered
 const container = document.querySelector('#example1');
 const cellDefinition = {
   renderer: Handsontable.renderers.factory(({ td, value }) => {
-    td.innerText = format(new Date(value), 'MM/dd/yyyy');
+    td.innerHTML = value.length > 0 ? value.map(el => el.label).join(', ') : 'No elements';
 
-    // td.innerText = value;
     return td;
   }),
   editor: Handsontable.editors.BaseEditor.factory({
@@ -370,29 +648,39 @@ const cellDefinition = {
       editor.wrapper = editor.hot.rootDocument.createElement('DIV');
       editor.wrapper.style.display = 'none';
       editor.wrapper.classList.add('htSelectEditor');
-      editor.input = editor.hot.rootDocument.createElement('INPUT');
-      editor.input.setAttribute('type', 'date');
-      editor.input.style = 'width: 100%; padding: 0;';
+      editor.input = editor.hot.rootDocument.createElement('SELECT');
+      editor.input.setAttribute('multiple', 'multiple');
+      editor.input.setAttribute('data-multi-select', '');
       editor.wrapper.appendChild(editor.input);
       editor.hot.rootElement.appendChild(editor.wrapper);
-      editor.input.addEventListener('input', (event) => {
-        editor.finishEditing();
-      });
+      editor.multiselect = multipleSelect(editor.input);
+    },
+    prepare(editor, row, col, prop, td, originalValue, cellProperties) {
+      editor.input.innerHTML = cellProperties?.selectMultipleOptions
+        ?.map(el => `<option value="${el.value}">${el.label}</option>`)
+        .join('');
+      editor.multiselect.refresh();
     },
     getValue(editor) {
-      return editor.input.value;
+      return Array.from(editor.input.options)
+        .filter(option => option.selected)
+        .map(option => ({ value: option.value, label: option.label }));
     },
     setValue(editor, value) {
-      editor.input.value = value;
+      // https://github.com/handsontable/handsontable/issues/3510
+      value = typeof value === 'string' ? editor.originalValue : value;
+      Array.from(editor.input.options).forEach((option) => {
+        option.selected = value.some(el => el.value === option.value);
+      });
+      editor.multiselect.refresh();
     },
     open(editor) {
       const rect = editor.getEditedCellRect();
 
-      // eslint-disable-next-line max-len
-      editor.wrapper.style = `display: block; border:none; box-sizing: border-box; margin:0; padding:0 4px; position: absolute; top: ${rect.top}px; left: ${rect.start}px; width: ${rect.width}px; height: ${rect.height}px;`;
-      requestAnimationFrame(() => {
-        editor.input.showPicker();
-      });
+      editor.wrapper.style =
+        // eslint-disable-next-line max-len
+        `display: block; min-height: 200px; border:none; box-sizing: border-box; margin:0; padding:0 4px; position: absolute; top: ${rect.top}px; left: ${rect.start}px; width: ${rect.width}px; height: ${rect.height}px;`;
+      editor.multiselect.open();
     },
     focus(editor) {
       editor.input.focus();
@@ -405,21 +693,31 @@ const cellDefinition = {
 
 // Define configuration options for the Handsontable
 const hotOptions = {
+  themeName: 'ht-theme-main',
   data,
-  colHeaders: ['ID', 'Item Name', 'Restock Date'],
+  colHeaders: ['ID', 'Item Name', 'Components', 'Countries'],
   autoRowSize: true,
   rowHeaders: true,
   height: 'auto',
   columns: [
     { data: 'id', type: 'numeric' },
     {
+      data: 'countries',
+      width: 150,
+      allowInvalid: false,
+      ...cellDefinition,
+      selectMultipleOptions: coutries,
+    },
+    {
       data: 'itemName',
       type: 'text',
     },
     {
-      data: 'restockDate',
+      data: 'components',
+      width: 150,
       allowInvalid: false,
       ...cellDefinition,
+      selectMultipleOptions: components,
     },
   ],
   licenseKey: 'non-commercial-and-evaluation',

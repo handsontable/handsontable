@@ -28,7 +28,8 @@ const useHandsontable = (version, callback = () => {}, preset = 'hot', buildMode
     abortSignal?.addEventListener('abort', abortHandler);
 
     const getId = depName => `dependency-reloader_${depName}`;
-    const [jsUrl, dependentVars = [], cssUrl = undefined, globalVarSharedDependency] = getDependency(dep);
+
+    const [jsUrl, dependentVars = [], cssUrl = undefined, globalVarSharedDependency, isModule] = getDependency(dep);
     const id = getId(dep);
 
     const _document = document; // eslint-disable-line no-restricted-globals
@@ -63,6 +64,10 @@ const useHandsontable = (version, callback = () => {}, preset = 'hot', buildMode
       script.src = jsUrl;
       script.id = `script-${id}`;
       script.setAttribute(ATTR_VERSION, version);
+
+      if (isModule) {
+        script.setAttribute('type', 'module');
+      }
       script.addEventListener('load', () => {
         script.loaded = true;
       });
@@ -126,7 +131,7 @@ const useHandsontable = (version, callback = () => {}, preset = 'hot', buildMode
           // }
           // if ('exports' in window) {
           //   delete window.exports;
-          // }           
+          // }
         }
       }
 

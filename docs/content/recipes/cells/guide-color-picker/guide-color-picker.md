@@ -35,9 +35,10 @@ This guide shows how to create a custom color picker cell using the [Coloris](ht
 
 ::: only-for javascript vue
 
-::: example #example1 :hot-recipe --js 1
+::: example #example1 :hot-recipe --js 1 --ts 2
 
 @[code](@/content/recipes/cells/guide-color-picker/javascript/example1.js)
+@[code](@/content/recipes/cells/guide-color-picker/javascript/example1.ts)
 
 :::
 

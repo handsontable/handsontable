@@ -2,11 +2,14 @@ import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
-import { format } from 'date-fns';
+import { format, isDate } from 'date-fns';
+import flatpickr from 'flatpickr';
 
 // Register all Handsontable's modules.
 registerAllModules();
 
+const DATE_FORMAT_US = 'MM/dd/yyyy';
+const DATE_FORMAT_EU = 'dd/MM/yyyy';
 /* start:skip-in-preview */
 const inputData = [
   {
@@ -358,10 +361,12 @@ export const data = inputData.map(el => ({
 // Get the DOM element with the ID 'example1' where the Handsontable will be rendered
 const container = document.querySelector('#example1');
 const cellDefinition = {
-  renderer: Handsontable.renderers.factory(({ td, value }) => {
-    td.innerText = format(new Date(value), 'MM/dd/yyyy');
+  validator: (value, callback) => {
+    callback(isDate(new Date(value)));
+  },
+  renderer: Handsontable.renderers.factory(({ td, value, cellProperties }) => {
+    td.innerText = format(new Date(value), cellProperties.renderFormat);
 
-    // td.innerText = value;
     return td;
   }),
   editor: Handsontable.editors.BaseEditor.factory({
@@ -371,12 +376,21 @@ const cellDefinition = {
       editor.wrapper.style.display = 'none';
       editor.wrapper.classList.add('htSelectEditor');
       editor.input = editor.hot.rootDocument.createElement('INPUT');
-      editor.input.setAttribute('type', 'date');
-      editor.input.style = 'width: 100%; padding: 0;';
+      editor.input.style = 'width: 100%; padding: 0; opacity: 0';
       editor.wrapper.appendChild(editor.input);
       editor.hot.rootElement.appendChild(editor.wrapper);
-      editor.input.addEventListener('input', (event) => {
-        editor.finishEditing();
+      editor.flatpickr = flatpickr(editor.input, {
+        dateFormat: 'Y-m-d',
+        enableTime: false,
+      });
+      /**
+       * Prevent recognizing clicking on datepicker as clicking outside of table.
+       */
+      editor.eventManager = new Handsontable.EventManager(editor.wrapper);
+      editor.eventManager.addEventListener(document.body, 'mousedown', (event) => {
+        if (editor.flatpickr.calendarContainer.contains(event.target)) {
+          event.stopPropagation();
+        }
       });
     },
     getValue(editor) {
@@ -385,13 +399,21 @@ const cellDefinition = {
     setValue(editor, value) {
       editor.input.value = value;
     },
+    prepare(editor, _row, _col, _prop, _td, originalValue, cellProperties) {
+      editor.input.value = originalValue;
+      editor.flatpickrSettings = cellProperties.flatpickrSettings;
+    },
     open(editor) {
       const rect = editor.getEditedCellRect();
 
       // eslint-disable-next-line max-len
       editor.wrapper.style = `display: block; border:none; box-sizing: border-box; margin:0; padding:0 4px; position: absolute; top: ${rect.top}px; left: ${rect.start}px; width: ${rect.width}px; height: ${rect.height}px;`;
-      requestAnimationFrame(() => {
-        editor.input.showPicker();
+      editor.flatpickr = flatpickr(editor.input, {
+        dateFormat: 'Y-m-d',
+        onChange: (_selectedDates, _dateStr, _instance) => {
+          editor.finishEditing();
+        },
+        ...(editor.flatpickrSettings || {}),
       });
     },
     focus(editor) {
@@ -406,20 +428,40 @@ const cellDefinition = {
 // Define configuration options for the Handsontable
 const hotOptions = {
   data,
-  colHeaders: ['ID', 'Item Name', 'Restock Date'],
+  colHeaders: ['ID', 'Item Name', 'Restock Date UE', 'Restock Date US'],
   autoRowSize: true,
   rowHeaders: true,
   height: 'auto',
   columns: [
-    { data: 'id', type: 'numeric' },
+    { data: 'id', type: 'numeric', width: 150 },
     {
       data: 'itemName',
       type: 'text',
+      width: 150,
     },
     {
       data: 'restockDate',
+      width: 150,
       allowInvalid: false,
       ...cellDefinition,
+      renderFormat: DATE_FORMAT_EU,
+      flatpickrSettings: {
+        locale: {
+          firstDayOfWeek: 1,
+        },
+      },
+    },
+    {
+      data: 'restockDate',
+      width: 150,
+      allowInvalid: false,
+      ...cellDefinition,
+      renderFormat: DATE_FORMAT_US,
+      flatpickrSettings: {
+        locale: {
+          firstDayOfWeek: 0,
+        },
+      },
     },
   ],
   licenseKey: 'non-commercial-and-evaluation',
