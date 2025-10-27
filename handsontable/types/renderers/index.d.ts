@@ -90,12 +90,12 @@ export { BaseRenderer } from './base';
  * }];
  * ```
  */
-// export const factory: (callback: ({ instance, td, row, column, prop, value, cellProperties }: {
-//   instance: Handsontable.Core;
-//   td: HTMLTableCellElement;
-//   row: number;
-//   column: number;
-//   prop: string | number;
-//   value: any;
-//   cellProperties: Handsontable.CellProperties;
-// }) => void) => (instance: Handsontable.Core, td: HTMLTableCellElement, row: number, column: number, prop: string | number, value: any, cellProperties: Handsontable.CellProperties) => void;
+export const factory: (callback: ({ instance, td, row, column, prop, value, cellProperties }: {
+  instance: Handsontable.Core;
+  td: HTMLTableCellElement;
+  row: number;
+  column: number;
+  prop: string | number;
+  value: any;
+  cellProperties: Handsontable.CellProperties;
+}) => void) => (instance: Handsontable.Core, td: HTMLTableCellElement, row: number, column: number, prop: string | number, value: any, cellProperties: Handsontable.CellProperties) => void;

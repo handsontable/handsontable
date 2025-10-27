@@ -97,33 +97,33 @@ export abstract class BaseEditor {
  * });
  * ```
  */
-// BaseEditor.factory = <T>(params: {
-//   prepare?: (editor: BaseEditor & T, ...args: Parameters<typeof Handsontable.editors.BaseEditor.prototype.prepare>) => void;
-//   beginEditing?: (editor: BaseEditor & T, ...args: Parameters<typeof Handsontable.editors.BaseEditor.prototype.beginEditing>) => void;
-//   finishEditing?: (editor: BaseEditor & T, ...args: Parameters<typeof Handsontable.editors.BaseEditor.prototype.finishEditing>) => void;
-//   discardEditor?: (editor: BaseEditor & T, ...args: Parameters<typeof Handsontable.editors.BaseEditor.prototype.discardEditor>) => void;
-//   saveValue?: (editor: BaseEditor & T, ...args: Parameters<typeof Handsontable.editors.BaseEditor.prototype.saveValue>) => void;
-//   getValue?: (editor: BaseEditor & T, ...args: Parameters<typeof Handsontable.editors.BaseEditor.prototype.getValue>) => any;
-//   setValue?: (editor: BaseEditor & T, ...args: Parameters<typeof Handsontable.editors.BaseEditor.prototype.saveValue>) => void;
-//   open?: (editor: BaseEditor & T, ...args: Parameters<typeof Handsontable.editors.BaseEditor.prototype.open>) => void;
-//   close?: (editor: BaseEditor & T, ...args: Parameters<typeof Handsontable.editors.BaseEditor.prototype.close>) => void;
-//   focus?: (editor: BaseEditor & T, ...args: Parameters<typeof Handsontable.editors.BaseEditor.prototype.focus>) => void;
-//   cancelChanges?: (editor: BaseEditor & T, ...args: Parameters<typeof Handsontable.editors.BaseEditor.prototype.cancelChanges>) => void;
-//   checkEditorSection?: (editor: BaseEditor & T, ...args: Parameters<typeof Handsontable.editors.BaseEditor.prototype.checkEditorSection>) => "top-left-corner" | "top" | "bottom-left-corner" | "bottom" | "left" | "";
-//   enableFullEditMode?: (editor: BaseEditor & T, ...args: Parameters<typeof Handsontable.editors.BaseEditor.prototype.enableFullEditMode>) => void;
-//   extend?(...args: Parameters<typeof Handsontable.editors.BaseEditor.prototype.extend>): BaseEditor;
-//   getEditedCell?: (editor: BaseEditor & T, ...args: Parameters<typeof Handsontable.editors.BaseEditor.prototype.getEditedCell>) => HTMLTableCellElement | null;
-//   getEditedCellRect?: (editor: BaseEditor & T, ...args: Parameters<typeof Handsontable.editors.BaseEditor.prototype.getEditedCellRect>) => {
-//       top: number;
-//       start: number;
-//       width: number;
-//       maxWidth: number;
-//       height: number;
-//       maxHeight: number;
-//   } | undefined;
-//   getEditedCellsZIndex?: (editor: BaseEditor & T, ...args: Parameters<typeof Handsontable.editors.BaseEditor.prototype.getEditedCellsZIndex>) => string;
-//   init?: (editor: BaseEditor & T, ...args: Parameters<typeof Handsontable.editors.BaseEditor.prototype.init>) => void;
-//   isInFullEditMode?: (editor: BaseEditor & T, ...args: Parameters<typeof Handsontable.editors.BaseEditor.prototype.isInFullEditMode>) => boolean;
-//   isOpened?: (editor: BaseEditor & T, ...args: Parameters<typeof Handsontable.editors.BaseEditor.prototype.isOpened>) => boolean;
-//   isWaiting?: (editor: BaseEditor & T, ...args: Parameters<typeof Handsontable.editors.BaseEditor.prototype.isWaiting>) => boolean;
-// } & Record<string, (editor: BaseEditor & T, ...args: any[]) => void>) => BaseEditor;
+BaseEditor.factory = <T>(params: {
+  prepare?: (editor: BaseEditor & T, ...args: Parameters<typeof Handsontable.editors.BaseEditor.prototype.prepare>) => void;
+  beginEditing?: (editor: BaseEditor & T, ...args: Parameters<typeof Handsontable.editors.BaseEditor.prototype.beginEditing>) => void;
+  finishEditing?: (editor: BaseEditor & T, ...args: Parameters<typeof Handsontable.editors.BaseEditor.prototype.finishEditing>) => void;
+  discardEditor?: (editor: BaseEditor & T, ...args: Parameters<typeof Handsontable.editors.BaseEditor.prototype.discardEditor>) => void;
+  saveValue?: (editor: BaseEditor & T, ...args: Parameters<typeof Handsontable.editors.BaseEditor.prototype.saveValue>) => void;
+  getValue?: (editor: BaseEditor & T, ...args: Parameters<typeof Handsontable.editors.BaseEditor.prototype.getValue>) => any;
+  setValue?: (editor: BaseEditor & T, ...args: Parameters<typeof Handsontable.editors.BaseEditor.prototype.saveValue>) => void;
+  open?: (editor: BaseEditor & T, ...args: Parameters<typeof Handsontable.editors.BaseEditor.prototype.open>) => void;
+  close?: (editor: BaseEditor & T, ...args: Parameters<typeof Handsontable.editors.BaseEditor.prototype.close>) => void;
+  focus?: (editor: BaseEditor & T, ...args: Parameters<typeof Handsontable.editors.BaseEditor.prototype.focus>) => void;
+  cancelChanges?: (editor: BaseEditor & T, ...args: Parameters<typeof Handsontable.editors.BaseEditor.prototype.cancelChanges>) => void;
+  checkEditorSection?: (editor: BaseEditor & T, ...args: Parameters<typeof Handsontable.editors.BaseEditor.prototype.checkEditorSection>) => "top-left-corner" | "top" | "bottom-left-corner" | "bottom" | "left" | "";
+  enableFullEditMode?: (editor: BaseEditor & T, ...args: Parameters<typeof Handsontable.editors.BaseEditor.prototype.enableFullEditMode>) => void;
+  extend?(...args: Parameters<typeof Handsontable.editors.BaseEditor.prototype.extend>): BaseEditor;
+  getEditedCell?: (editor: BaseEditor & T, ...args: Parameters<typeof Handsontable.editors.BaseEditor.prototype.getEditedCell>) => HTMLTableCellElement | null;
+  getEditedCellRect?: (editor: BaseEditor & T, ...args: Parameters<typeof Handsontable.editors.BaseEditor.prototype.getEditedCellRect>) => {
+      top: number;
+      start: number;
+      width: number;
+      maxWidth: number;
+      height: number;
+      maxHeight: number;
+  } | undefined;
+  getEditedCellsZIndex?: (editor: BaseEditor & T, ...args: Parameters<typeof Handsontable.editors.BaseEditor.prototype.getEditedCellsZIndex>) => string;
+  init?: (editor: BaseEditor & T, ...args: Parameters<typeof Handsontable.editors.BaseEditor.prototype.init>) => void;
+  isInFullEditMode?: (editor: BaseEditor & T, ...args: Parameters<typeof Handsontable.editors.BaseEditor.prototype.isInFullEditMode>) => boolean;
+  isOpened?: (editor: BaseEditor & T, ...args: Parameters<typeof Handsontable.editors.BaseEditor.prototype.isOpened>) => boolean;
+  isWaiting?: (editor: BaseEditor & T, ...args: Parameters<typeof Handsontable.editors.BaseEditor.prototype.isWaiting>) => boolean;
+} & Record<string, (editor: BaseEditor & T, ...args: any[]) => void>) => BaseEditor;
