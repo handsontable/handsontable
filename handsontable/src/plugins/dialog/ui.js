@@ -1,4 +1,4 @@
-import { html } from '../../helpers/templateLiteralTag';
+import { html, toSingleLine } from '../../helpers/templateLiteralTag';
 import { mixin } from '../../helpers/object';
 import localHooks from '../../mixins/localHooks';
 import {
@@ -18,14 +18,12 @@ import {
   A11Y_DESCRIBED_BY,
   A11Y_ALERTDIALOG,
 } from '../../helpers/a11y';
+import { TEMPLATES } from './templates';
 
 const DIALOG_CLASS_NAME = 'ht-dialog';
-
-const TEMPLATE = `
-<div data-ref="dialogElement" class="${DIALOG_CLASS_NAME}">
-  <div data-ref="contentWrapperElement" class="${DIALOG_CLASS_NAME}__content-wrapper">
-    <div data-ref="contentElement" class="${DIALOG_CLASS_NAME}__content"></div>
-  </div>
+const CONTAINER_TEMPLATE = `
+<div data-ref="dialogElement">
+  <div data-ref="dialogWrapperElement" class="${DIALOG_CLASS_NAME}__content-wrapper">
 </div>
 `;
 
@@ -55,6 +53,18 @@ export class DialogUI {
    * @type {boolean}
    */
   #isRtl = false;
+  /**
+   * The template to use for the dialog.
+   *
+   * @type {function(): string}
+   */
+  #template = TEMPLATES.get('base');
+  /**
+   * The callbacks of the template buttons to trigger when the button is clicked.
+   *
+   * @type {function(ClickEvent)[]}
+   */
+  #templateButtonCallbacks = [];
 
   constructor({
     rootElement,
@@ -67,6 +77,22 @@ export class DialogUI {
   }
 
   /**
+   * Uses the specified template for the dialog.
+   *
+   * @param {string} templateName The name of the template to use.
+   * @param {object} templateVars The variables to use for the template.
+   */
+  useTemplate(templateName, templateVars = {}) {
+    if (!TEMPLATES.has(templateName)) {
+      throw new Error(toSingleLine`Invalid template: ${templateName}.\x20
+        Valid templates are: ${Array.from(TEMPLATES.keys()).join(', ')}`);
+    }
+
+    this.#template = TEMPLATES.get(templateName)(templateVars);
+    this.#templateButtonCallbacks = (templateVars.buttons ?? []).map(button => button.callback);
+  }
+
+  /**
    * Creates the dialog UI elements and sets up the structure.
    */
   install() {
@@ -74,7 +100,7 @@ export class DialogUI {
       return;
     }
 
-    const elements = html`${TEMPLATE}`;
+    const elements = html`${CONTAINER_TEMPLATE}`;
 
     this.#refs = elements.refs;
 
@@ -132,7 +158,16 @@ export class DialogUI {
     animation,
     a11y,
   }) {
-    const { dialogElement, contentElement } = this.#refs;
+    const elements = html`${this.#template()}`;
+
+    const { dialogElement, dialogWrapperElement } = this.#refs;
+
+    dialogWrapperElement.innerHTML = '';
+    dialogWrapperElement.appendChild(elements.fragment);
+
+    Object.assign(this.#refs, elements.refs);
+
+    const { contentElement } = this.#refs;
 
     // Dialog class name
     const customClass = customClassName ?
@@ -144,8 +179,15 @@ export class DialogUI {
     const showClass = isVisible ? ` ${DIALOG_CLASS_NAME}--show` : '';
 
     // Update dialog class name
-    dialogElement.className =
-      `${DIALOG_CLASS_NAME}${customClass}${backgroundClass}${animationClass}${showClass}`;
+    dialogElement.className = [
+      DIALOG_CLASS_NAME,
+      `${DIALOG_CLASS_NAME}--${this.#template.TEMPLATE_NAME}`,
+      'handsontable',
+      customClass,
+      backgroundClass,
+      animationClass,
+      showClass
+    ].join(' ');
 
     // Dialog aria attributes
     setAttribute(dialogElement, [
@@ -183,15 +225,25 @@ export class DialogUI {
     // Update content class name
     contentElement.className = `${DIALOG_CLASS_NAME}__content${contentBackgroundClass}`;
 
-    // Clear existing dialog content
-    contentElement.innerHTML = '';
+    if (this.#template.TEMPLATE_NAME === 'base') {
+      // Clear existing dialog content
+      contentElement.innerHTML = '';
 
-    // Render new dialog content
-    if (typeof content === 'string') {
-      fastInnerHTML(contentElement, content);
+      // Render new dialog content
+      if (typeof content === 'string') {
+        fastInnerHTML(contentElement, content);
+      } else if (content instanceof HTMLElement || content instanceof DocumentFragment) {
+        contentElement.appendChild(content);
+      }
 
-    } else if (content instanceof HTMLElement || content instanceof DocumentFragment) {
-      contentElement.appendChild(content);
+    } else if (this.#refs.buttonsContainer) {
+      Array.from(this.#refs.buttonsContainer.children).forEach((button, index) => {
+        const callback = this.#templateButtonCallbacks[index];
+
+        if (callback) {
+          button.addEventListener('click', callback);
+        }
+      });
     }
 
     return this;
