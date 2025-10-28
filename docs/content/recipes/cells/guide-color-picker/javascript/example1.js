@@ -355,7 +355,7 @@ const inputData = [
   },
 ];
 
-export const data = inputData.map(el => ({
+export const data = inputData.map((el) => ({
   ...el,
   // eslint-disable-next-line no-mixed-operators
   color: `#${Math.round(0x1000000 + 0xffffff * Math.random())
@@ -415,6 +415,7 @@ const cellDefinition = {
 
 // Define configuration options for the Handsontable
 const hotOptions = {
+  themeName: 'ht-theme-main',
   data,
   colHeaders: ['ID', 'Item Name', 'Item Color'],
   autoRowSize: true,

@@ -354,7 +354,7 @@ const inputData = [
   },
 ];
 
-export const data = inputData.map(el => ({
+export const data = inputData.map((el) => ({
   ...el,
 }));
 /* end:skip-in-preview */
@@ -427,6 +427,7 @@ const cellDefinition = {
 
 // Define configuration options for the Handsontable
 const hotOptions = {
+  themeName: 'ht-theme-main',
   data,
   colHeaders: ['ID', 'Item Name', 'Restock Date UE', 'Restock Date US'],
   autoRowSize: true,

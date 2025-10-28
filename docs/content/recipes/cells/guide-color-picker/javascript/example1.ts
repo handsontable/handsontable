@@ -417,6 +417,7 @@ const cellDefinition = {
 
 // Define configuration options for the Handsontable
 const hotOptions: Handsontable.GridSettings = {
+  themeName: 'ht-theme-main',
   data,
   colHeaders: [
     'ID',
