@@ -355,13 +355,16 @@ const inputData = [
   },
 ];
 
-export const data = inputData.map((el) => ({
+export const data = inputData.map(el => ({
   ...el,
   // eslint-disable-next-line no-mixed-operators
-  color: `#${Math.round(0x1000000 + 0xffffff * Math.random())
-    .toString(16)
-    .slice(1)
-    .toUpperCase()}`,
+  color: `#${
+    // eslint-disable-next-line no-mixed-operators
+    Math.round(0x1000000 + 0xffffff * Math.random())
+      .toString(16)
+      .slice(1)
+      .toUpperCase()
+  }`,
 }));
 /* end:skip-in-preview */
 // Get the DOM element with the ID 'example1' where the Handsontable will be rendered
@@ -374,7 +377,7 @@ const cellDefinition = {
     return td;
   }),
   validator: (value, callback) => {
-    callback(value.length === 7 && value[0] == '#'); // validate color format
+    callback(value.length === 7 && value[0] === '#'); // validate color format
   },
   editor: Handsontable.editors.BaseEditor.factory({
     init(editor) {
@@ -388,7 +391,7 @@ const cellDefinition = {
       editor.hot.rootElement.appendChild(editor.wrapper);
       editor.wrapper.appendChild(editor.input);
       Coloris({ el: editor.input, closeButton: true, closeLabel: 'Apply Colour', alpha: false, wrap: false });
-      editor.input.addEventListener('close', (event) => {
+      editor.input.addEventListener('close', () => {
         editor.finishEditing(); // close the color picker and save value on pressing "Apply Colour"
       });
     },
@@ -401,6 +404,7 @@ const cellDefinition = {
     open(editor) {
       const rect = editor.getEditedCellRect();
 
+      // eslint-disable-next-line max-len
       editor.wrapper.style = `display: block; border:none; padding:0; position: absolute; top: ${rect.top}px; left: ${rect.start}px; width: ${rect.width}px; height: ${rect.height}px;`;
       editor.input.click(); // open the color picker
     },
@@ -436,4 +440,5 @@ const hotOptions = {
 };
 
 // Initialize the Handsontable instance with the specified configuration options
+// eslint-disable-next-line no-unused-vars
 const hot = new Handsontable(container, hotOptions);

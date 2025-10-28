@@ -354,7 +354,7 @@ const inputData = [
   },
 ];
 
-export const data = inputData.map((el) => ({
+export const data = inputData.map(el => ({
   ...el,
 }));
 /* end:skip-in-preview */
@@ -410,7 +410,7 @@ const cellDefinition = {
       editor.wrapper.style = `display: block; border:none; box-sizing: border-box; margin:0; padding:0 4px; position: absolute; top: ${rect.top}px; left: ${rect.start}px; width: ${rect.width}px; height: ${rect.height}px;`;
       editor.flatpickr = flatpickr(editor.input, {
         dateFormat: 'Y-m-d',
-        onChange: (_selectedDates, _dateStr, _instance) => {
+        onChange: () => {
           editor.finishEditing();
         },
         ...(editor.flatpickrSettings || {}),
@@ -469,4 +469,5 @@ const hotOptions = {
 };
 
 // Initialize the Handsontable instance with the specified configuration options
-new Handsontable(container, hotOptions);
+// eslint-disable-next-line no-unused-vars
+const hot = new Handsontable(container, hotOptions);

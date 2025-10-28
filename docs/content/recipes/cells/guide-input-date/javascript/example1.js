@@ -351,7 +351,7 @@ const inputData = [
   },
 ];
 
-export const data = inputData.map((el) => ({
+export const data = inputData.map(el => ({
   ...el,
 }));
 /* end:skip-in-preview */
@@ -375,7 +375,7 @@ const cellDefinition = {
       editor.input.style = 'width: 100%; padding: 0;';
       editor.wrapper.appendChild(editor.input);
       editor.hot.rootElement.appendChild(editor.wrapper);
-      editor.input.addEventListener('input', (event) => {
+      editor.input.addEventListener('input', () => {
         editor.finishEditing();
       });
     },
@@ -427,4 +427,5 @@ const hotOptions = {
 };
 
 // Initialize the Handsontable instance with the specified configuration options
-new Handsontable(container, hotOptions);
+// eslint-disable-next-line no-unused-vars
+const hot = new Handsontable(container, hotOptions);

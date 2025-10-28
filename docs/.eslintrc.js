@@ -30,6 +30,12 @@ module.exports = {
       rules: {
         'max-len': 'off'
       }
-    }
+    },
+    {
+      files: ['content/recipes/**/*.ts', 'content/recipes/**/*.tsx'],
+      rules: {
+        'no-undef': 'off'
+      }
+    }    
   ]
 };

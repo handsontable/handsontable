@@ -724,4 +724,5 @@ const hotOptions = {
 };
 
 // Initialize the Handsontable instance with the specified configuration options
-new Handsontable(container, hotOptions);
+// eslint-disable-next-line no-unused-vars
+const hot = new Handsontable(container, hotOptions);

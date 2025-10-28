@@ -372,60 +372,65 @@ const cellDefinition = {
 
     return td;
   }),
-  editor: Handsontable.editors.BaseEditor.factory<{wrapper: HTMLDivElement, input: HTMLInputElement, flatpickr: flatpickr.Instance, eventManager: Handsontable.EventManager, flatpickrSettings: flatpickr.Options.Options}>({
-    init(editor) {
+  editor: Handsontable.editors.BaseEditor.factory<{
+    wrapper: HTMLDivElement,
+    input: HTMLInputElement,
+    flatpickr: flatpickr.Instance,
+    eventManager: Handsontable.EventManager,
+    flatpickrSettings: flatpickr.Options.Options}>({
+      init(editor) {
       // create the input element on init. This is a text input that color picker will be attached to.
-      editor.wrapper = editor.hot.rootDocument.createElement('DIV') as HTMLDivElement;
-      editor.wrapper.style.display = 'none';
-      editor.wrapper.classList.add('htSelectEditor');
-      editor.input = editor.hot.rootDocument.createElement('INPUT') as HTMLInputElement;
-      editor.input.style = 'width: 100%; padding: 0; opacity: 0';
-      editor.wrapper.appendChild(editor.input);
-      editor.hot.rootElement.appendChild(editor.wrapper);
-      editor.flatpickr = flatpickr(editor.input, {
-        dateFormat: 'Y-m-d',
-        enableTime: false,
-      });
-      /**
-       * Prevent recognizing clicking on datepicker as clicking outside of table.
-       */
-      editor.eventManager = new Handsontable.EventManager(editor.wrapper);
-      editor.eventManager.addEventListener(document.body, 'mousedown', (event) => {
-        if (editor.flatpickr.calendarContainer.contains(event.target as Node)) {
-          event.stopPropagation();
-        }
-      });
-    },
-    getValue(editor) {
-      return editor.input.value;
-    },
-    setValue(editor, value) {
-      editor.input.value = value;
-    },
-    prepare(editor, _row, _col, _prop, _td, originalValue, cellProperties) {
-      editor.input.value = originalValue;
-      editor.flatpickrSettings = cellProperties.flatpickrSettings;
-    },
-    open(editor) {
-      const rect = editor.getEditedCellRect()!;
+        editor.wrapper = editor.hot.rootDocument.createElement('DIV') as HTMLDivElement;
+        editor.wrapper.style.display = 'none';
+        editor.wrapper.classList.add('htSelectEditor');
+        editor.input = editor.hot.rootDocument.createElement('INPUT') as HTMLInputElement;
+        editor.input.style = 'width: 100%; padding: 0; opacity: 0';
+        editor.wrapper.appendChild(editor.input);
+        editor.hot.rootElement.appendChild(editor.wrapper);
+        editor.flatpickr = flatpickr(editor.input, {
+          dateFormat: 'Y-m-d',
+          enableTime: false,
+        });
+        /**
+         * Prevent recognizing clicking on datepicker as clicking outside of table.
+         */
+        editor.eventManager = new Handsontable.EventManager(editor.wrapper);
+        editor.eventManager.addEventListener(document.body, 'mousedown', (event) => {
+          if (editor.flatpickr.calendarContainer.contains(event.target as Node)) {
+            event.stopPropagation();
+          }
+        });
+      },
+      getValue(editor) {
+        return editor.input.value;
+      },
+      setValue(editor, value) {
+        editor.input.value = value;
+      },
+      prepare(editor, _row, _col, _prop, _td, originalValue, cellProperties) {
+        editor.input.value = originalValue;
+        editor.flatpickrSettings = cellProperties.flatpickrSettings;
+      },
+      open(editor) {
+        const rect = editor.getEditedCellRect()!;
 
-      // eslint-disable-next-line max-len
-      editor.wrapper.style = `display: block; border:none; box-sizing: border-box; margin:0; padding:0 4px; position: absolute; top: ${rect.top}px; left: ${rect.start}px; width: ${rect.width}px; height: ${rect.height}px;`;
-      editor.flatpickr = flatpickr(editor.input, {
-        dateFormat: 'Y-m-d',
-        onChange: (_selectedDates, _dateStr, _instance) => {
-          editor.finishEditing();
-        },
-        ...(editor.flatpickrSettings || {})
-      });
-    },
-    focus(editor) {
-      editor.input.focus();
-    },
-    close(editor) {
-      editor.wrapper.style.display = 'none';
-    }
-  }),
+        // eslint-disable-next-line max-len
+        editor.wrapper.style = `display: block; border:none; box-sizing: border-box; margin:0; padding:0 4px; position: absolute; top: ${rect.top}px; left: ${rect.start}px; width: ${rect.width}px; height: ${rect.height}px;`;
+        editor.flatpickr = flatpickr(editor.input, {
+          dateFormat: 'Y-m-d',
+          onChange: () => {
+            editor.finishEditing();
+          },
+          ...(editor.flatpickrSettings || {})
+        });
+      },
+      focus(editor) {
+        editor.input.focus();
+      },
+      close(editor) {
+        editor.wrapper.style.display = 'none';
+      }
+    }),
 };
 
 // Define configuration options for the Handsontable
@@ -477,4 +482,5 @@ const hotOptions: Handsontable.GridSettings = {
 };
 
 // Initialize the Handsontable instance with the specified configuration options
-new Handsontable(container, hotOptions);
+// eslint-disable-next-line no-unused-vars
+const hot = new Handsontable(container, hotOptions);

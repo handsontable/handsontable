@@ -365,6 +365,7 @@ const cellDefinition = {
     callback(value >= 0 && value <= 100);
   },
   renderer: Handsontable.renderers.factory(({ td, value }) => {
+    // eslint-disable-next-line max-len
     td.innerHTML = `<div><input style="pointer-events: none; width: 100%; padding: 0;" disabled readonly type="range" value="${value}" /></div>`;
 
     return td;
@@ -384,6 +385,7 @@ const cellDefinition = {
       editor.hot.rootElement.appendChild(editor.wrapper);
       editor.input.addEventListener('input', (event: Event) => {
         if (editor.TD) {
+          // eslint-disable-next-line max-len
           editor.TD.querySelector('input')!.value = (event.target as HTMLInputElement).value;
         }
       });
@@ -438,4 +440,5 @@ const hotOptions: Handsontable.GridSettings = {
 };
 
 // Initialize the Handsontable instance with the specified configuration options
-new Handsontable(container, hotOptions);
+// eslint-disable-next-line no-unused-vars
+const hot = new Handsontable(container, hotOptions);
