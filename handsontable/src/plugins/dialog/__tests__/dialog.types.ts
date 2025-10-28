@@ -46,9 +46,18 @@ new Handsontable(document.createElement('div'), {
 new Handsontable(document.createElement('div'), {
   dialog: {
     template: {
-      type: 'alert',
-      title: 'Alert',
-      description: 'This is an alert',
+      type: 'confirm',
+      title: 'Oops… something went wrong',
+    },
+  }
+});
+
+new Handsontable(document.createElement('div'), {
+  dialog: {
+    template: {
+      type: 'confirm',
+      title: 'Confirm',
+      description: 'This is a confirm',
       buttons: [
         {
           text: 'OK',

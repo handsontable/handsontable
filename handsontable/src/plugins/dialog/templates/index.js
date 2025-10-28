@@ -1,5 +1,5 @@
 import { baseTemplate } from './base';
-import { alertTemplate } from './alert';
+import { confirmTemplate } from './confirm';
 
 /**
  * Returns the template factory function for the given template.
@@ -19,7 +19,7 @@ function templateFactory(template) {
 
 const TEMPLATES = new Map([
   [baseTemplate.TEMPLATE_NAME, templateFactory(baseTemplate)],
-  [alertTemplate.TEMPLATE_NAME, templateFactory(alertTemplate)],
+  [confirmTemplate.TEMPLATE_NAME, templateFactory(confirmTemplate)],
 ]);
 
 export { TEMPLATES };
