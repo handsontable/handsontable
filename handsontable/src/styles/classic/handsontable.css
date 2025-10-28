@@ -2384,7 +2384,6 @@ thead th.hiddenHeaderText .colHeader {
   z-index: 999;
   overflow-y: auto;
   border: 1px solid #ccc;
-  border-radius: 4px;
   box-sizing: border-box;
 }
 
@@ -2400,7 +2399,6 @@ thead th.hiddenHeaderText .colHeader {
   width: 100%;
   min-height: 100%;
   padding: 16px;
-  border-radius: 4px;
 }
 
 .ht-empty-data-state__content-wrapper-inner {
@@ -2408,8 +2406,13 @@ thead th.hiddenHeaderText .colHeader {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
   max-width: 480px;
+  padding: 16px;
+}
+
+.ht-empty-data-state__content-wrapper-inner:focus {
+  outline: none;
+  box-shadow: 0 0 0 1px #4b89ff;
 }
 
 .ht-empty-data-state__content {
@@ -2437,6 +2440,7 @@ thead th.hiddenHeaderText .colHeader {
 
 .ht-empty-data-state__buttons {
   display: flex;
+  justify-content: center;
   flex-direction: row;
   flex-wrap: wrap;
   gap: 8px;
@@ -2447,13 +2451,13 @@ thead th.hiddenHeaderText .colHeader {
 }
 
 .ht-empty-data-state--disable-top-border {
-  border-start-start-radius: 0;
-  border-start-end-radius: 0;
   border-top-width: 0;
 }
 
+.ht-empty-data-state--disable-inline-border {
+  border-inline-start-width: 0;
+}
+
 .ht-empty-data-state--disable-bottom-border, .ht-empty-data-state:has(~ .ht-pagination) {
-  border-end-start-radius: 0;
-  border-end-end-radius: 0;
   border-bottom-width: 0;
 }
