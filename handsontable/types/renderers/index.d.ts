@@ -10,6 +10,8 @@ import { passwordRenderer, RENDERER_TYPE as PASSWORD_RENDERER } from './password
 import { selectRenderer, RENDERER_TYPE as SELECT_RENDERER } from './selectRenderer';
 import { textRenderer, RENDERER_TYPE as TEXT_RENDERER } from './textRenderer';
 import { timeRenderer, RENDERER_TYPE as TIME_RENDERER } from './timeRenderer';
+import { CellProperties } from '../settings';
+import Core from '../core';
 
 export function registerAllRenderers(): void;
 
@@ -90,12 +92,18 @@ export { BaseRenderer } from './base';
  * }];
  * ```
  */
-export const factory: (callback: ({ instance, td, row, column, prop, value, cellProperties }: {
-  instance: Handsontable.Core;
+export declare const factory: (callback: ({ instance, td, row, column, prop, value, cellProperties }: {
+  instance: Core;
   td: HTMLTableCellElement;
   row: number;
   column: number;
   prop: string | number;
   value: any;
-  cellProperties: Handsontable.CellProperties;
-}) => void) => (instance: Handsontable.Core, td: HTMLTableCellElement, row: number, column: number, prop: string | number, value: any, cellProperties: Handsontable.CellProperties) => void;
+  cellProperties: CellProperties;
+}) => void) => (instance: Core, 
+  td: HTMLTableCellElement, 
+  row: number, 
+  column: number, 
+  prop: string | number, 
+  value: any, 
+  cellProperties: CellProperties) => void;
