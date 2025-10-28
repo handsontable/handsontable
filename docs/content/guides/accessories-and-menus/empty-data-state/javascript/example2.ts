@@ -31,10 +31,10 @@ const hot = new Handsontable(container, {
               ['Bob', 'Johnson', 'bob@example.com'],
               ['Alice', 'Johnson', 'alice@example.com'],
             ]);
-          }
-        }
-      ]
-    }
+          },
+        },
+      ],
+    },
   },
-  licenseKey: 'non-commercial-and-evaluation'
+  licenseKey: 'non-commercial-and-evaluation',
 });

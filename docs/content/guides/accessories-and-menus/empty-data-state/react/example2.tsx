@@ -37,10 +37,10 @@ const ExampleComponent = () => {
                   ['Bob', 'Johnson', 'bob@example.com'],
                   ['Alice', 'Johnson', 'alice@example.com'],
                 ]);
-              }
-            }
-          ]
-        }
+              },
+            },
+          ],
+        },
       }}
       licenseKey="non-commercial-and-evaluation"
     />

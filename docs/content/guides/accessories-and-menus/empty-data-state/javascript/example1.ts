@@ -13,5 +13,5 @@ new Handsontable(container, {
   dropdownMenu: true,
   filters: true,
   emptyDataState: true, // Enable empty data state with default settings
-  licenseKey: 'non-commercial-and-evaluation'
+  licenseKey: 'non-commercial-and-evaluation',
 });

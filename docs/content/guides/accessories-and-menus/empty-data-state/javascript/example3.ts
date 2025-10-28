@@ -34,14 +34,14 @@ const hot = new Handsontable(container, {
                     filtersPlugin.clearConditions();
                     filtersPlugin.filter();
                   }
-                }
-              }
-            ]
+                },
+              },
+            ],
           };
         default:
           return {
             title: 'No data available',
-            description: 'There\'s nothing to display yet. Add some data to get started.',
+            description: "There's nothing to display yet. Add some data to get started.",
             buttons: [
               {
                 text: 'Add Sample Data',
@@ -53,12 +53,12 @@ const hot = new Handsontable(container, {
                     ['Bob', 'Johnson', 'bob@example.com'],
                     ['Alice', 'Johnson', 'alice@example.com'],
                   ]);
-                }
-              }
-            ]
+                },
+              },
+            ],
           };
       }
-    }
+    },
   },
-  licenseKey: 'non-commercial-and-evaluation'
+  licenseKey: 'non-commercial-and-evaluation',
 });
