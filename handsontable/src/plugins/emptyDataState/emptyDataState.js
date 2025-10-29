@@ -217,11 +217,18 @@ export class EmptyDataState extends BasePlugin {
   #observer = null;
 
   /**
-   * Keeps the selection state that will be restored after the dialog is closed.
+   * Flag indicating if there are filter conditions.
    *
-   * @type {SelectionState | null}
+   * @type {number}
    */
-  #selectionState = null;
+  #hasFilterConditions = false;
+
+  /**
+   * Flag indicating if the content should be updated.
+   *
+   * @type {boolean}
+   */
+  #shouldUpdate = false;
 
   /**
    * Check if the plugin is enabled in the handsontable settings.
@@ -246,6 +253,8 @@ export class EmptyDataState extends BasePlugin {
         rootDocument: this.hot.rootDocument,
       });
 
+      this.#shouldUpdate = true;
+
       this.#registerFocusScope();
       this.#registerEvents();
       this.#registerObservers();
@@ -255,6 +264,7 @@ export class EmptyDataState extends BasePlugin {
     this.addHook('afterRender', () => this.#onAfterRender());
     this.addHook('afterRowSequenceCacheUpdate', () => this.#toggleEmptyDataState());
     this.addHook('afterColumnSequenceCacheUpdate', () => this.#toggleEmptyDataState());
+    this.addHook('beforeFilter', conditions => this.#onBeforeFilter(conditions));
 
     super.enablePlugin();
   }
@@ -343,9 +353,9 @@ export class EmptyDataState extends BasePlugin {
    * @param {WheelEvent} event - The wheel event.
    */
   #onMouseWheel(event) {
-    const deltaX = isNaN(event.deltaX) ? (-1) * event.wheelDeltaX : event.deltaX;
+    const deltaX = Number.isNaN(event.deltaX) ? (-1) * event.wheelDeltaX : event.deltaX;
 
-    if (deltaX !== 0) {
+    if (deltaX !== 0 && this.hot.view.hasHorizontalScroll() && !this.hot.view.isHorizontallyScrollableByWindow()) {
       this.hot.view.setTableScrollPosition({ left: this.hot.view.getTableScrollPosition().left + deltaX });
 
       event.preventDefault();
@@ -356,10 +366,6 @@ export class EmptyDataState extends BasePlugin {
    * Registers the focus scope for the empty data state plugin.
    */
   #registerFocusScope() {
-    if (!this.#ui.getElement()) {
-      return;
-    }
-
     this.hot.getFocusScopeManager()
       .registerScope(PLUGIN_KEY, this.#ui.getElement(), {
         shortcutsContextName: SHORTCUTS_CONTEXT_NAME,
@@ -408,6 +414,17 @@ export class EmptyDataState extends BasePlugin {
   }
 
   /**
+   * Called before the filtering of the table is completed.
+   * It updates the flag indicating if there are filter conditions.
+   *
+   * @param {Array} conditions - The filter conditions.
+   */
+  #onBeforeFilter(conditions) {
+    this.#hasFilterConditions = conditions?.length > 0;
+    this.#shouldUpdate = true;
+  }
+
+  /**
    * Get the message by the source for the emptyDataState.
    *
    * @param {string} source - The source.
@@ -445,14 +462,6 @@ export class EmptyDataState extends BasePlugin {
             if (filtersPlugin) {
               filtersPlugin.clearConditions();
               filtersPlugin.filter();
-
-              if (this.#selectionState?.ranges.length > 0) {
-                this.hot.selection.importSelection(this.#selectionState);
-                this.hot.view.render();
-                this.#selectionState = null;
-              } else {
-                this.hot.selectCell(0, 0);
-              }
             }
           }
         }];
@@ -479,25 +488,24 @@ export class EmptyDataState extends BasePlugin {
     if (this.hot.view.countRenderableColumns() === 0 || this.hot.view.countRenderableRows() === 0) {
       if (!this.#isVisible) {
         this.hot.runHooks('beforeEmptyDataStateShow');
-        this.#selectionState = this.hot.selection.exportSelection();
       }
 
-      const filtersPlugin = this.hot.getPlugin('filters');
-      const conditions = filtersPlugin.enabled && filtersPlugin.exportConditions();
+      if (this.#shouldUpdate) {
+        if (this.#hasFilterConditions) {
+          this.#ui.updateContent(this.#getMessage(SOURCE.FILTERS));
+        } else {
+          this.#ui.updateContent(this.#getMessage(SOURCE.UNKNOWN));
+        }
 
-      if (conditions && conditions.length > 0) {
-        this.#ui.updateContent(this.#getMessage(SOURCE.FILTERS));
-      } else {
-        this.#ui.updateContent(this.#getMessage(SOURCE.UNKNOWN));
+        this.#shouldUpdate = false;
       }
 
       this.#ui.show();
 
       if (!this.#isVisible) {
+        this.#isVisible = true;
         this.hot.runHooks('afterEmptyDataStateShow');
       }
-
-      this.#isVisible = true;
 
       return;
     }
@@ -508,13 +516,7 @@ export class EmptyDataState extends BasePlugin {
       this.#ui.hide();
       this.#isVisible = false;
 
-      if (this.#selectionState?.ranges.length > 0) {
-        this.hot.selection.importSelection(this.#selectionState);
-        this.hot.view.render();
-        this.#selectionState = null;
-      } else {
-        this.hot.selectCell(0, 0);
-      }
+      // TODO: Focus the first focusable element in the grid
 
       this.hot.runHooks('afterEmptyDataStateHide');
     }
@@ -528,7 +530,8 @@ export class EmptyDataState extends BasePlugin {
     this.#ui?.destroy();
     this.#ui = null;
     this.#observer = null;
-    this.#selectionState = null;
+    this.#hasFilterConditions = false;
+    this.#shouldUpdate = false;
 
     super.destroy();
   }

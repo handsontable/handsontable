@@ -1,6 +1,7 @@
 import { html } from '../../helpers/templateLiteralTag';
 import { addClass, removeClass, getScrollbarWidth, setAttribute } from '../../helpers/dom/element';
 import { A11Y_TABINDEX } from '../../helpers/a11y';
+import { sanitize } from '../../helpers/string';
 
 const EMPTY_DATA_STATE_CLASS_NAME = 'ht-empty-data-state';
 const MIN_HEIGHT = 150;
@@ -22,7 +23,8 @@ const templateContent = ({ title, description, buttons }) => `
   ` ${EMPTY_DATA_STATE_CLASS_NAME}__buttons--has-buttons`
   : ''}"
   >${buttons?.length > 0 ?
-    buttons.map(button => `<button class="ht-button ht-button--${button.type}">${button.text}</button>`).join('')
+    buttons.map(button =>
+      `<button class="ht-button ht-button--${button.type}">${sanitize(button.text)}</button>`).join('')
     : ''}</div>`;
 
 /**
@@ -154,8 +156,8 @@ export class EmptyDataStateUI {
       };
     } else {
       content = {
-        title: message?.title,
-        description: message?.description,
+        title: sanitize(message?.title),
+        description: sanitize(message?.description),
         buttons: message?.buttons,
       };
     }
@@ -194,7 +196,7 @@ export class EmptyDataStateUI {
       removeClass(emptyDataStateElement, `${EMPTY_DATA_STATE_CLASS_NAME}--disable-inline-border`);
     }
 
-    if (view.hasHorizontalScroll()) {
+    if (view.hasHorizontalScroll() && !view.isHorizontallyScrollableByWindow()) {
       addClass(emptyDataStateElement, `${EMPTY_DATA_STATE_CLASS_NAME}--disable-bottom-border`);
     } else {
       removeClass(emptyDataStateElement, `${EMPTY_DATA_STATE_CLASS_NAME}--disable-bottom-border`);
@@ -228,13 +230,29 @@ export class EmptyDataStateUI {
       this.#placeholderElement.style.height = `${MIN_HEIGHT}px`;
     }
 
-    const width = view.getTableWidth() - view.getRowHeaderWidth() < view.getViewportWidth() && cols > 0 ?
-      view.getTableWidth() : view.getWorkspaceWidth();
+    let width = view.getWorkspaceWidth();
+    let height = view.getTableHeight();
 
-    emptyDataStateElement.style.width = `${rows > 0
-      ? view.getViewportWidth() : width}px`;
-    emptyDataStateElement.style.height = `${cols > 0
-      ? view.getViewportHeight() - scrollbarSize : view.getWorkspaceHeight()}px`;
+    if (view.isHorizontallyScrollableByWindow()) {
+      if (cols > 0) {
+        width = view.getTotalTableWidth();
+      } else {
+        width = view.getViewportWidth();
+      }
+    } else if (rows > 0) {
+      width = view.getViewportWidth();
+    } else if (view.getTableWidth() - view.getRowHeaderWidth() < view.getViewportWidth() && cols > 0) {
+      width = view.getTableWidth();
+    }
+
+    if (view.isVerticallyScrollableByWindow()) {
+      height = view.hot.getTableHeight();
+    } else if (rows === 0) {
+      height = view.getViewportHeight() - scrollbarSize;
+    }
+
+    emptyDataStateElement.style.width = `${width}px`;
+    emptyDataStateElement.style.height = `${height}px`;
   }
 
   /**

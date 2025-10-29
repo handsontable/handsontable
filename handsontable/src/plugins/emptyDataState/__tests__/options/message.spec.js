@@ -182,10 +182,10 @@ describe('EmptyDataState - message option', () => {
     expect(actionButtons[1]).toHaveClass('ht-button', 'ht-button--secondary');
 
     // Test button callbacks
-    actionButtons[0].click();
+    await simulateClick(actionButtons[0]);
     expect(primaryCallback).toHaveBeenCalled();
 
-    actionButtons[1].click();
+    await simulateClick(actionButtons[1]);
     expect(secondaryCallback).toHaveBeenCalled();
   });
 
@@ -363,7 +363,7 @@ describe('EmptyDataState - message option', () => {
     expect(actionButton.textContent).toBe('Custom Action');
     expect(actionButton).toHaveClass('ht-button', 'ht-button--primary');
 
-    actionButton.click();
+    await simulateClick(actionButton);
     expect(callbackSpy).toHaveBeenCalled();
   });
 

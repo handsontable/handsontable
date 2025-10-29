@@ -317,6 +317,7 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired after the cache of the column sequence has been updated.
    *
+   * @since 16.2.0
    * @event Hooks#afterColumnSequenceCacheUpdate
    * @param {object} indexesChangesState Object containing information about the changes to the column sequence.
    * @param {boolean} indexesChangesState.indexesSequenceChanged Indicates if the sequence of indexes has changed.
@@ -634,6 +635,7 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired after the cache of the row sequence has been updated.
    *
+   * @since 16.2.0
    * @event Hooks#afterRowSequenceCacheUpdate
    * @param {object} indexesChangesState Object containing information about the changes to the row sequence.
    * @param {boolean} indexesChangesState.indexesSequenceChanged Indicates if the sequence of indexes has changed.

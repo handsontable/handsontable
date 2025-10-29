@@ -12,6 +12,12 @@ export function init() {
 
   const height = getFromURL('height', 400);
 
+  const settings = {};
+
+  if(height !== 'undefined') {
+    settings.height = height;
+  }
+
   new Handsontable(example, {
     data: [],
     layoutDirection: getDirectionFromURL(),
@@ -37,11 +43,11 @@ export function init() {
       { data: 7, type: 'numeric' },
     ],
     width: 'auto',
-    height: height,
     dropdownMenu: true,
     filters: true,
     navigableHeaders: true,
     emptyDataState: true,
+    ...settings,
     licenseKey: "non-commercial-and-evaluation",
   });
 
