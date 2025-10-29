@@ -1839,4 +1839,40 @@ describe('Filters UI', () => {
     expect(byValueScrollableElement.scrollTop).toBe(100);
     expect(byValueScrollableElement.scrollLeft).toBe(100);
   });
+
+  it('should return the focus to the grid after clicking "OK" button', async() => {
+    handsontable({
+      data: getDataForFilters(),
+      columns: getColumnsForFilters(),
+      filters: true,
+      dropdownMenu: true,
+      width: 500,
+      height: 300
+    });
+
+    await dropdownMenu(1);
+    await sleep(100);
+    await simulateClick(getFilterDropdownMenuOKButton());
+
+    expect(isListening()).toBe(true);
+    expect(getShortcutManager().getActiveContextName()).toBe('grid');
+  });
+
+  it('should return the focus to the grid after clicking "Cancel" button', async() => {
+    handsontable({
+      data: getDataForFilters(),
+      columns: getColumnsForFilters(),
+      filters: true,
+      dropdownMenu: true,
+      width: 500,
+      height: 300
+    });
+
+    await dropdownMenu(1);
+    await sleep(100);
+    await simulateClick(getFilterDropdownMenuCancelButton());
+
+    expect(isListening()).toBe(true);
+    expect(getShortcutManager().getActiveContextName()).toBe('grid');
+  });
 });
