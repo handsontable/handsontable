@@ -10,6 +10,10 @@ on:
       - 'release/**'
       - '!release/**-**'
 
+permissions:
+  id-token: write  # Required for OIDC
+  contents: read      
+
 jobs:
   build:
     name: Build and publish
@@ -29,7 +33,5 @@ jobs:
           node-version-file: '.nvmrc'
           registry-url: https://registry.npmjs.org/
           cache: 'pnpm'
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_AUTOMATION }}
       - run: pnpm install
       - run: npm run pre-release
