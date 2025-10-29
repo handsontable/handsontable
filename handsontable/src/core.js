@@ -2766,7 +2766,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       instance.stylesHandler.isClassicTheme()
     ) {
       // eslint-disable-next-line max-len
-      deprecatedWarn('Handsontable classic styles are considered legacy and will be removed in version 17.0. Please update your theme configuration to ensure compatibility with future releases.');
+      deprecatedWarn('The stylesheet you are using is deprecated and will be removed in version 17.0. Please update your theme configuration to ensure compatibility with future releases.');
       deprecatedWarnInstances.add(instance);
     }
 
@@ -4839,10 +4839,10 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
     if (isRootInstance(this)) {
       uninstallAccessibilityAnnouncer();
+      this.getFocusScopeManager().destroy();
     }
 
     this.getShortcutManager().destroy();
-    this.getFocusScopeManager().destroy();
     moduleRegisterer.clear();
     metaManager.clearCache();
     foreignHotInstances.delete(this.guid);
@@ -5452,7 +5452,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
   focusGridManager = new FocusGridManager(instance);
 
-  const focusScopeManager = createFocusScopeManager(instance);
+  const focusScopeManager = isRootInstance(this) ? createFocusScopeManager(instance) : null;
 
   /**
    * Return the Focus Manager responsible for managing the browser's focus in the table.
@@ -5487,6 +5487,10 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * ```
    */
   this.getFocusScopeManager = function() {
+    if (!isRootInstance(instance)) {
+      throw new Error('The FocusScopeManager is only available for the main Handsontable instance.');
+    }
+
     return focusScopeManager;
   };
 
