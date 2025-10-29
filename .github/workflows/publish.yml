@@ -35,5 +35,7 @@ jobs:
           cache: 'pnpm'
       - run: pnpm install
       - run: |
+            # Ensure npm 11.5.1 or later for trusted publishing
+            npm install -g npm@latest
             npm run pre-release
             echo "lets depracte the version $HOT_VERSION"
