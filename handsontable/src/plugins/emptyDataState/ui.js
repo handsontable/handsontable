@@ -20,8 +20,8 @@ const templateContent = ({ title, description, buttons }) => `
   <div 
     data-ref="emptyDataStateButtons" 
     class="${EMPTY_DATA_STATE_CLASS_NAME}__buttons${buttons?.length > 0 ?
-  ` ${EMPTY_DATA_STATE_CLASS_NAME}__buttons--has-buttons`
-  : ''}"
+    ` ${EMPTY_DATA_STATE_CLASS_NAME}__buttons--has-buttons`
+    : ''}"
   >${buttons?.length > 0 ?
     buttons.map(button =>
       `<button class="ht-button ht-button--${button.type}">${sanitize(button.text)}</button>`).join('')
@@ -228,6 +228,9 @@ export class EmptyDataStateUI {
 
       this.#placeholderElement.style.width = '100%';
       this.#placeholderElement.style.height = `${MIN_HEIGHT}px`;
+    } else {
+      this.#placeholderElement?.remove();
+      this.#placeholderElement = null;
     }
 
     let width = view.getWorkspaceWidth();
@@ -236,7 +239,7 @@ export class EmptyDataStateUI {
     if (view.isHorizontallyScrollableByWindow()) {
       if (cols > 0) {
         width = view.getTotalTableWidth();
-      } else {
+      } else if (rows > 0) {
         width = view.getViewportWidth();
       }
     } else if (rows > 0) {
@@ -246,7 +249,11 @@ export class EmptyDataStateUI {
     }
 
     if (view.isVerticallyScrollableByWindow()) {
-      height = view.hot.getTableHeight();
+      if (cols > 0) {
+        height = view.hot.getTableHeight() - view.getColumnHeaderHeight();
+      } else {
+        height = view.hot.getTableHeight();
+      }
     } else if (rows === 0) {
       height = view.getViewportHeight() - scrollbarSize;
     }

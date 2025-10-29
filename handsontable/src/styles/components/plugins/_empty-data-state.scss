@@ -13,6 +13,7 @@
     border: 1px solid var(--ht-border-color);
     border-radius: var(--ht-wrapper-border-radius);
     box-sizing: border-box;
+    background-color: var(--ht-background-color);
 
     & * {
       box-sizing: border-box !important;
