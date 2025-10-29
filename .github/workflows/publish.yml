@@ -35,5 +35,5 @@ jobs:
           cache: 'pnpm'
       - run: pnpm install
       - run: |            
-            npm install -g npm@latest # Ensure npm 11.5.1 or later for trusted publishing
+            npm install -g npm@11.6 # Ensure npm 11.5.1 or later for trusted publishing
             npm run pre-release
