@@ -20,8 +20,8 @@ const templateContent = ({ title, description, buttons }) => `
   <div 
     data-ref="emptyDataStateButtons" 
     class="${EMPTY_DATA_STATE_CLASS_NAME}__buttons${buttons?.length > 0 ?
-    ` ${EMPTY_DATA_STATE_CLASS_NAME}__buttons--has-buttons`
-    : ''}"
+  ` ${EMPTY_DATA_STATE_CLASS_NAME}__buttons--has-buttons`
+  : ''}"
   >${buttons?.length > 0 ?
     buttons.map(button =>
       `<button class="ht-button ht-button--${button.type}">${sanitize(button.text)}</button>`).join('')
