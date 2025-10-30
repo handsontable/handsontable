@@ -134,4 +134,25 @@ describe('EmptyDataState', () => {
 
     expect(getEmptyDataStateContainerElement().previousElementSibling).toBe(hot().rootGridElement);
   });
+
+  it('should keep the emptyDateState DOM element after ht-grid element after re-enabling the plugin', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      emptyDataState: true,
+    });
+
+    expect(getEmptyDataStateContainerElement().previousElementSibling).toBe(hot().rootGridElement);
+
+    await updateSettings({
+      emptyDataState: false,
+    });
+    await updateSettings({
+      emptyDataState: true,
+      pagination: true,
+    });
+
+    await sleep(10);
+
+    expect(getEmptyDataStateContainerElement().previousElementSibling).toBe(hot().rootGridElement);
+  });
 });

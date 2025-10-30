@@ -314,10 +314,6 @@ export class EmptyDataState extends BasePlugin {
    * Registers the DOM listeners.
    */
   #registerEvents() {
-    if (!this.#ui.getElement()) {
-      return;
-    }
-
     this.eventManager.addEventListener(this.#ui.getElement(), 'wheel', event => this.#onMouseWheel(event));
   }
 
@@ -325,10 +321,6 @@ export class EmptyDataState extends BasePlugin {
    * Registers the mutation observers for the emptyDataState plugin.
    */
   #registerObservers() {
-    if (!this.#ui.getElement() || this.#observer) {
-      return;
-    }
-
     // Observe the root element for changes and move the emptyDataState element to the correct position
     this.#observer = new MutationObserver(() => {
       if (!this.hot) {
@@ -352,6 +344,7 @@ export class EmptyDataState extends BasePlugin {
    */
   #disconnectObservers() {
     this.#observer.disconnect();
+    this.#observer = null;
   }
 
   /**
@@ -567,6 +560,7 @@ export class EmptyDataState extends BasePlugin {
     this.#observer = null;
     this.#hasFilterConditions = false;
     this.#shouldUpdate = false;
+    this.#selectionState = null;
 
     super.destroy();
   }
