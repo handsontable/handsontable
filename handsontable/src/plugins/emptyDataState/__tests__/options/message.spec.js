@@ -249,6 +249,64 @@ describe('EmptyDataState - message option', () => {
       .toBe('Clear Filters');
   });
 
+  it('should call function message only once', async() => {
+    const messageSpy = jasmine.createSpy('messageFunction').and.returnValue((source) => {
+      switch (source) {
+        case 'filters':
+          return {
+            title: 'No filtered data',
+            description: 'All data is hidden by filters',
+            buttons: [{
+              text: 'Clear Filters',
+              type: 'secondary',
+              callback: () => {},
+            }],
+          };
+        default:
+          return {
+            title: 'No data available',
+            description: 'The table is empty',
+          };
+      }
+    });
+
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      emptyDataState: {
+        message: messageSpy,
+      },
+      filters: true,
+    });
+
+    const filtersPlugin = getPlugin('filters');
+    const emptyDataStatePlugin = getPlugin('emptyDataState');
+
+    expect(emptyDataStatePlugin.isVisible()).toBe(false);
+
+    await updateSettings({
+      data: [],
+    });
+
+    expect(emptyDataStatePlugin.isVisible()).toBe(true);
+    expect(messageSpy).toHaveBeenCalledOnceWith('unknown');
+
+    messageSpy.calls.reset();
+
+    // Add data back and test filtered state
+    await updateSettings({
+      data: createSpreadsheetData(5, 5),
+    });
+
+    expect(emptyDataStatePlugin.isVisible()).toBe(false);
+
+    // Apply filter that hides all data
+    filtersPlugin.addCondition(0, 'eq', ['nonexistent']);
+    filtersPlugin.filter();
+
+    expect(emptyDataStatePlugin.isVisible()).toBe(true);
+    expect(messageSpy).toHaveBeenCalledOnceWith('filters');
+  });
+
   it('should handle function message that returns string', async() => {
     handsontable({
       data: [],
@@ -461,5 +519,35 @@ describe('EmptyDataState - message option', () => {
       .toBe('Updated Title');
     expect(getEmptyDataStateContainerElement().querySelector('.ht-empty-data-state__description').textContent)
       .toBe('Updated description');
+  });
+
+  it('should show emptyDataState with custom message with stripped HTML parts', async() => {
+    handsontable({
+      data: [],
+      emptyDataState: {
+        message: {
+          title: 'Custom title <strong>bold</strong>',
+          description: 'Custom description <strong>bold</strong>',
+          buttons: [{
+            text: 'Custom button <strong>bold</strong>',
+            type: 'primary',
+            callback: () => {},
+          }],
+        },
+      },
+    });
+
+    const emptyDataStatePlugin = getPlugin('emptyDataState');
+
+    expect(emptyDataStatePlugin.isVisible()).toBe(true);
+    expect(getEmptyDataStateContentHTML()).toMatchHTML(`
+      <div>
+        <h2>Custom title bold</h2>
+        <p>Custom description bold</p>
+      </div>
+      <div>
+        <button>Custom button bold</button>
+      </div>
+    `);
   });
 });

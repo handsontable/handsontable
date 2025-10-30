@@ -1,7 +1,7 @@
 import { html } from '../../helpers/templateLiteralTag';
 import { addClass, removeClass, getScrollbarWidth, setAttribute } from '../../helpers/dom/element';
 import { A11Y_TABINDEX } from '../../helpers/a11y';
-import { sanitize } from '../../helpers/string';
+import { stripTags } from '../../helpers/string';
 
 const EMPTY_DATA_STATE_CLASS_NAME = 'ht-empty-data-state';
 const MIN_HEIGHT = 150;
@@ -14,8 +14,8 @@ const TEMPLATE = `<div data-ref="emptyDataStateElement" class="${EMPTY_DATA_STAT
 
 const templateContent = ({ title, description, buttons }) => `
   <div class="${EMPTY_DATA_STATE_CLASS_NAME}__content">
-    ${title ? `<h2 class="${EMPTY_DATA_STATE_CLASS_NAME}__title">${title}</h2>` : ''}
-    ${description ? `<p class="${EMPTY_DATA_STATE_CLASS_NAME}__description">${description}</p>` : ''}
+    ${title ? `<h2 class="${EMPTY_DATA_STATE_CLASS_NAME}__title">${stripTags(title)}</h2>` : ''}
+    ${description ? `<p class="${EMPTY_DATA_STATE_CLASS_NAME}__description">${stripTags(description)}</p>` : ''}
   </div>
   <div 
     data-ref="emptyDataStateButtons" 
@@ -24,7 +24,7 @@ const templateContent = ({ title, description, buttons }) => `
   : ''}"
   >${buttons?.length > 0 ?
     buttons.map(button =>
-      `<button class="ht-button ht-button--${button.type}">${sanitize(button.text)}</button>`).join('')
+      `<button class="ht-button ht-button--${button.type}">${stripTags(button.text)}</button>`).join('')
     : ''}</div>`;
 
 /**
@@ -156,8 +156,8 @@ export class EmptyDataStateUI {
       };
     } else {
       content = {
-        title: sanitize(message?.title),
-        description: sanitize(message?.description),
+        title: message?.title,
+        description: message?.description,
         buttons: message?.buttons,
       };
     }
