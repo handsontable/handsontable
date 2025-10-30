@@ -283,7 +283,11 @@ export class EmptyDataState extends BasePlugin {
     this.disablePlugin();
     this.enablePlugin();
 
-    this.#toggleEmptyDataState();
+    this.#update();
+
+    if (this.isVisible()) {
+      this.#ui.show();
+    }
 
     super.updatePlugin();
   }
@@ -348,7 +352,7 @@ export class EmptyDataState extends BasePlugin {
   }
 
   /**
-   * Registers the focus scope for the empty data state plugin.
+   * Registers the focus scope for the emptyDataState plugin.
    */
   #registerFocusScope() {
     this.hot.getFocusScopeManager()
@@ -449,7 +453,7 @@ export class EmptyDataState extends BasePlugin {
   }
 
   /**
-   * Shows the empty data state overlay.
+   * Shows the emptyDataState overlay.
    */
   #show() {
     if (this.#isVisible) {
@@ -458,15 +462,7 @@ export class EmptyDataState extends BasePlugin {
 
     this.hot.runHooks('beforeEmptyDataStateShow');
 
-    if (this.#shouldUpdate) {
-      if (this.#hasFilterConditions) {
-        this.#ui.updateContent(this.#getMessage(SOURCE.FILTERS));
-      } else {
-        this.#ui.updateContent(this.#getMessage(SOURCE.UNKNOWN));
-      }
-
-      this.#shouldUpdate = false;
-    }
+    this.#update();
 
     this.#ui.show();
     this.#isVisible = true;
@@ -477,7 +473,22 @@ export class EmptyDataState extends BasePlugin {
   }
 
   /**
-   * Hides the empty data state overlay.
+   * Updates the content of the emptyDataState overlay.
+   */
+  #update() {
+    if (this.#shouldUpdate) {
+      if (this.#hasFilterConditions) {
+        this.#ui.updateContent(this.#getMessage(SOURCE.FILTERS));
+      } else {
+        this.#ui.updateContent(this.#getMessage(SOURCE.UNKNOWN));
+      }
+
+      this.#shouldUpdate = false;
+    }
+  }
+
+  /**
+   * Hides the emptyDataState overlay.
    */
   #hide() {
     if (!this.#isVisible) {
