@@ -2,6 +2,7 @@ import { createUniqueMap } from '../utils/dataStructures/uniqueMap';
 import { createFocusScope } from './scope';
 import { useEventListener } from './eventListener';
 import { FOCUS_SOURCES } from './constants';
+import { isVisible } from '../helpers/dom/element';
 
 /**
  * @typedef {object} FocusScopeManager
@@ -237,7 +238,7 @@ export function createFocusScopeManager(hotInstance) {
    * @param {'unknown' | 'click' | 'tab_from_above' | 'tab_from_below'} focusSource The source of the focus event.
    */
   function processScopes(target, focusSource) {
-    if (!target.isConnected) {
+    if (!target.isConnected || !isVisible(target)) {
       return;
     }
 

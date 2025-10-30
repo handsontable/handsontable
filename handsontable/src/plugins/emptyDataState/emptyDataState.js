@@ -231,6 +231,13 @@ export class EmptyDataState extends BasePlugin {
   #shouldUpdate = false;
 
   /**
+   * Keeps the selection state that will be restored after the overlay is closed.
+   *
+   * @type {SelectionState | null}
+   */
+  #selectionState = null;
+
+  /**
    * Check if the plugin is enabled in the handsontable settings.
    *
    * @returns {boolean}
@@ -348,21 +355,6 @@ export class EmptyDataState extends BasePlugin {
   }
 
   /**
-   * Handles the mouse wheel event.
-   *
-   * @param {WheelEvent} event - The wheel event.
-   */
-  #onMouseWheel(event) {
-    const deltaX = Number.isNaN(event.deltaX) ? (-1) * event.wheelDeltaX : event.deltaX;
-
-    if (deltaX !== 0 && this.hot.view.hasHorizontalScroll() && !this.hot.view.isHorizontallyScrollableByWindow()) {
-      this.hot.view.setTableScrollPosition({ left: this.hot.view.getTableScrollPosition().left + deltaX });
-
-      event.preventDefault();
-    }
-  }
-
-  /**
    * Registers the focus scope for the empty data state plugin.
    */
   #registerFocusScope() {
@@ -376,6 +368,7 @@ export class EmptyDataState extends BasePlugin {
           if (focusableElements.length > 0) {
             if (focusSource === 'tab_from_above') {
               focusableElements.at(0).focus();
+
             } else if (focusSource === 'tab_from_below') {
               focusableElements.at(-1).focus();
             }
@@ -389,39 +382,6 @@ export class EmptyDataState extends BasePlugin {
    */
   #unregisterFocusScope() {
     this.hot.getFocusScopeManager().unregisterScope(PLUGIN_KEY);
-  }
-
-  /**
-   * Called after the initialization of the table is completed.
-   * It toggles the emptyDataState.
-   */
-  #onAfterInit() {
-    this.#toggleEmptyDataState();
-
-    this.#ui.updateSize(this.hot.view);
-    this.#ui.updateClassNames(this.hot.view);
-  }
-
-  /**
-   * Called after the rendering of the table is completed.
-   * It updates the height and class names of the emptyDataState element.
-   */
-  #onAfterRender() {
-    if (this.#ui?.getElement() && this.isVisible()) {
-      this.#ui.updateSize(this.hot.view);
-      this.#ui.updateClassNames(this.hot.view);
-    }
-  }
-
-  /**
-   * Called before the filtering of the table is completed.
-   * It updates the flag indicating if there are filter conditions.
-   *
-   * @param {Array} conditions - The filter conditions.
-   */
-  #onBeforeFilter(conditions) {
-    this.#hasFilterConditions = conditions?.length > 0;
-    this.#shouldUpdate = true;
   }
 
   /**
@@ -485,41 +445,116 @@ export class EmptyDataState extends BasePlugin {
       return;
     }
 
-    if (this.hot.view.countRenderableColumns() === 0 || this.hot.view.countRenderableRows() === 0) {
-      if (!this.#isVisible) {
-        this.hot.runHooks('beforeEmptyDataStateShow');
-      }
+    if (
+      this.hot.view.countRenderableColumns() === 0 ||
+      this.hot.view.countRenderableRows() === 0
+    ) {
+      this.#show();
+    } else {
+      this.#hide();
+    }
+  }
 
-      if (this.#shouldUpdate) {
-        if (this.#hasFilterConditions) {
-          this.#ui.updateContent(this.#getMessage(SOURCE.FILTERS));
-        } else {
-          this.#ui.updateContent(this.#getMessage(SOURCE.UNKNOWN));
-        }
-
-        this.#shouldUpdate = false;
-      }
-
-      this.#ui.show();
-
-      if (!this.#isVisible) {
-        this.#isVisible = true;
-        this.hot.runHooks('afterEmptyDataStateShow');
-      }
-
+  /**
+   * Shows the empty data state overlay.
+   */
+  #show() {
+    if (this.#isVisible) {
       return;
     }
 
-    if (this.#ui?.getElement() && this.#isVisible) {
-      this.hot.runHooks('beforeEmptyDataStateHide');
+    this.hot.runHooks('beforeEmptyDataStateShow');
 
-      this.#ui.hide();
-      this.#isVisible = false;
+    if (this.#shouldUpdate) {
+      if (this.#hasFilterConditions) {
+        this.#ui.updateContent(this.#getMessage(SOURCE.FILTERS));
+      } else {
+        this.#ui.updateContent(this.#getMessage(SOURCE.UNKNOWN));
+      }
 
-      // TODO: Focus the first focusable element in the grid
-
-      this.hot.runHooks('afterEmptyDataStateHide');
+      this.#shouldUpdate = false;
     }
+
+    this.#ui.show();
+    this.#isVisible = true;
+    this.#selectionState = this.hot.selection.exportSelection();
+
+    this.hot.getFocusScopeManager().activateScope(PLUGIN_KEY);
+    this.hot.runHooks('afterEmptyDataStateShow');
+  }
+
+  /**
+   * Hides the empty data state overlay.
+   */
+  #hide() {
+    if (!this.#isVisible) {
+      return;
+    }
+
+    this.hot.runHooks('beforeEmptyDataStateHide');
+
+    this.#ui.hide();
+    this.#isVisible = false;
+
+    this.hot.getFocusScopeManager().deactivateScope(PLUGIN_KEY);
+
+    if (this.#selectionState?.ranges.length > 0) {
+      this.hot.selection.importSelection(this.#selectionState);
+      this.hot.view.render();
+      this.#selectionState = null;
+    } else {
+      this.hot.selectCell(0, 0);
+    }
+
+    this.hot.runHooks('afterEmptyDataStateHide');
+  }
+
+  /**
+   * Handles the mouse wheel event.
+   *
+   * @param {WheelEvent} event - The wheel event.
+   */
+  #onMouseWheel(event) {
+    const deltaX = Number.isNaN(event.deltaX) ? (-1) * event.wheelDeltaX : event.deltaX;
+
+    if (deltaX !== 0 && this.hot.view.hasHorizontalScroll() && !this.hot.view.isHorizontallyScrollableByWindow()) {
+      this.hot.view.setTableScrollPosition({ left: this.hot.view.getTableScrollPosition().left + deltaX });
+
+      event.preventDefault();
+    }
+  }
+
+  /**
+   * Called after the initialization of the table is completed.
+   * It toggles the emptyDataState.
+   */
+  #onAfterInit() {
+    this.#toggleEmptyDataState();
+
+    this.#ui.updateSize(this.hot.view);
+    this.#ui.updateClassNames(this.hot.view);
+  }
+
+  /**
+   * Called after the rendering of the table is completed.
+   * It updates the height and class names of the emptyDataState element.
+   */
+  #onAfterRender() {
+    if (this.#ui?.getElement() && this.isVisible()) {
+      this.#ui.updateSize(this.hot.view);
+      this.#ui.updateClassNames(this.hot.view);
+    }
+  }
+
+  /**
+   * Called before the filtering of the table is completed.
+   * It updates the flag indicating if there are filter conditions.
+   *
+   * @param {Array} conditions - The filter conditions.
+   */
+  #onBeforeFilter(conditions) {
+    this.#hasFilterConditions = conditions?.length > 0;
+    this.#shouldUpdate = true;
   }
 
   /**

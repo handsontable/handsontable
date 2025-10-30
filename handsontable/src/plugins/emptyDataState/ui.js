@@ -17,8 +17,8 @@ const templateContent = ({ title, description, buttons }) => `
     ${title ? `<h2 class="${EMPTY_DATA_STATE_CLASS_NAME}__title">${stripTags(title)}</h2>` : ''}
     ${description ? `<p class="${EMPTY_DATA_STATE_CLASS_NAME}__description">${stripTags(description)}</p>` : ''}
   </div>
-  <div 
-    data-ref="emptyDataStateButtons" 
+  <div
+    data-ref="emptyDataStateButtons"
     class="${EMPTY_DATA_STATE_CLASS_NAME}__buttons${buttons?.length > 0 ?
   ` ${EMPTY_DATA_STATE_CLASS_NAME}__buttons--has-buttons`
   : ''}"
