@@ -224,13 +224,6 @@ export class EmptyDataState extends BasePlugin {
   #hasFilterConditions = false;
 
   /**
-   * Flag indicating if the content should be updated.
-   *
-   * @type {boolean}
-   */
-  #shouldUpdate = false;
-
-  /**
    * Keeps the selection state that will be restored after the overlay is closed.
    *
    * @type {SelectionState | null}
@@ -259,8 +252,6 @@ export class EmptyDataState extends BasePlugin {
         rootElement: this.hot.rootGridElement,
         rootDocument: this.hot.rootDocument,
       });
-
-      this.#shouldUpdate = true;
 
       this.#registerFocusScope();
       this.#registerEvents();
@@ -477,14 +468,10 @@ export class EmptyDataState extends BasePlugin {
    * Updates the content of the emptyDataState overlay.
    */
   #update() {
-    if (this.#shouldUpdate) {
-      if (this.#hasFilterConditions) {
-        this.#ui.updateContent(this.#getMessage(SOURCE.FILTERS));
-      } else {
-        this.#ui.updateContent(this.#getMessage(SOURCE.UNKNOWN));
-      }
-
-      this.#shouldUpdate = false;
+    if (this.#hasFilterConditions) {
+      this.#ui.updateContent(this.#getMessage(SOURCE.FILTERS));
+    } else {
+      this.#ui.updateContent(this.#getMessage(SOURCE.UNKNOWN));
     }
   }
 
@@ -559,7 +546,10 @@ export class EmptyDataState extends BasePlugin {
    */
   #onBeforeFilter(conditions) {
     this.#hasFilterConditions = conditions?.length > 0;
-    this.#shouldUpdate = true;
+
+    if (this.isVisible()) {
+      this.#update();
+    }
   }
 
   /**
@@ -571,7 +561,6 @@ export class EmptyDataState extends BasePlugin {
     this.#ui = null;
     this.#observer = null;
     this.#hasFilterConditions = false;
-    this.#shouldUpdate = false;
     this.#selectionState = null;
 
     super.destroy();

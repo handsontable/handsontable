@@ -521,6 +521,33 @@ describe('EmptyDataState - message option', () => {
       .toBe('Updated description');
   });
 
+  it('should update message when emptyDataState is already visible and filters are applied', async() => {
+    handsontable({
+      data: [],
+      colHeaders: true,
+      columns: ['A', 'B', 'C', 'D', 'E'],
+      emptyDataState: true,
+      filters: true,
+    });
+
+    const filtersPlugin = getPlugin('filters');
+    const emptyDataStatePlugin = getPlugin('emptyDataState');
+
+    expect(emptyDataStatePlugin.isVisible()).toBe(true);
+
+    // Apply filter that hides all data
+    filtersPlugin.addCondition(0, 'eq', ['nonexistent']);
+    filtersPlugin.filter();
+
+    expect(emptyDataStatePlugin.isVisible()).toBe(true);
+    expect(getEmptyDataStateContainerElement().querySelector('.ht-empty-data-state__title').textContent)
+      .toBe('No results found');
+    expect(getEmptyDataStateContainerElement().querySelector('.ht-empty-data-state__description').textContent)
+      .toBe('It looks like your current filters are hiding all results.');
+    expect(getEmptyDataStateContainerElement().querySelector('.ht-button--secondary').textContent)
+      .toBe('Reset filters');
+  });
+
   it('should show emptyDataState with custom message with stripped HTML parts', async() => {
     handsontable({
       data: [],
