@@ -466,9 +466,10 @@ export class EmptyDataState extends BasePlugin {
 
     this.#ui.show();
     this.#isVisible = true;
-    this.#selectionState = this.hot.selection.exportSelection();
 
+    this.#selectionState = this.hot.selection.exportSelection();
     this.hot.getFocusScopeManager().activateScope(PLUGIN_KEY);
+
     this.hot.runHooks('afterEmptyDataStateShow');
   }
 
