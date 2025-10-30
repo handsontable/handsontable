@@ -184,13 +184,13 @@ export class EmptyDataStateUI {
   updateClassNames(view) {
     const { emptyDataStateElement } = this.#refs;
 
-    if (view.countRenderableColumns() > 0) {
+    if (view.countRenderableColumns() > 0 && view.getColumnHeadersCount() > 0) {
       addClass(emptyDataStateElement, `${EMPTY_DATA_STATE_CLASS_NAME}--disable-top-border`);
     } else {
       removeClass(emptyDataStateElement, `${EMPTY_DATA_STATE_CLASS_NAME}--disable-top-border`);
     }
 
-    if (view.countRenderableRows() > 0) {
+    if (view.countRenderableRows() > 0 && view.getRowHeadersCount() > 0) {
       addClass(emptyDataStateElement, `${EMPTY_DATA_STATE_CLASS_NAME}--disable-inline-border`);
     } else {
       removeClass(emptyDataStateElement, `${EMPTY_DATA_STATE_CLASS_NAME}--disable-inline-border`);

@@ -155,4 +155,116 @@ describe('EmptyDataState', () => {
 
     expect(getEmptyDataStateContainerElement().previousElementSibling).toBe(hot().rootGridElement);
   });
+
+  describe('Borders visibility', () => {
+    it('should disable top border when there are column headers', async() => {
+      handsontable({
+        data: [],
+        colHeaders: true,
+        columns: ['A', 'B', 'C', 'D', 'E'],
+        emptyDataState: true,
+      });
+
+      expect(
+        getEmptyDataStateContainerElement().classList.contains('ht-empty-data-state--disable-top-border')
+      ).toBe(true);
+    });
+
+    it('should not disable top border when there are no column headers', async() => {
+      handsontable({
+        data: [],
+        colHeaders: false,
+        columns: ['A', 'B', 'C', 'D', 'E'],
+        emptyDataState: true,
+      });
+
+      expect(
+        getEmptyDataStateContainerElement().classList.contains('ht-empty-data-state--disable-top-border')
+      ).toBe(false);
+    });
+
+    it('should disable inline border when there are rows', async() => {
+      handsontable({
+        data: [[]],
+        rowHeaders: true,
+        emptyDataState: true,
+      });
+
+      expect(
+        getEmptyDataStateContainerElement().classList.contains('ht-empty-data-state--disable-inline-border')
+      ).toBe(true);
+    });
+
+    it('should not disable inline border when there are no rows', async() => {
+      handsontable({
+        data: [],
+        rowHeaders: true,
+        emptyDataState: true,
+      });
+
+      expect(
+        getEmptyDataStateContainerElement().classList.contains('ht-empty-data-state--disable-inline-border')
+      ).toBe(false);
+    });
+
+    it('should disable bottom border when there is horizontal scroll', async() => {
+      handsontable({
+        data: [],
+        emptyDataState: true,
+        colHeaders: true,
+        columns: ['A', 'B', 'C', 'D', 'E'],
+        width: 100,
+        height: 'auto',
+      });
+
+      expect(
+        getEmptyDataStateContainerElement().classList.contains('ht-empty-data-state--disable-bottom-border')
+      ).toBe(true);
+    });
+
+    it('should not disable bottom border when there is horizontal scroll and it is scrollable by window', async() => {
+      handsontable({
+        data: [],
+        emptyDataState: true,
+        colHeaders: true,
+        columns: ['A', 'B', 'C', 'D', 'E'],
+        width: 'auto',
+        height: 'auto',
+      });
+
+      expect(
+        getEmptyDataStateContainerElement().classList.contains('ht-empty-data-state--disable-bottom-border')
+      ).toBe(false);
+    });
+
+    it('should disable bottom border when there is pagination', async() => {
+      handsontable({
+        data: [],
+        pagination: true,
+        emptyDataState: true,
+        height: 'auto',
+      });
+
+      await sleep(10);
+
+      const borderBottomWidth = getComputedStyle(getEmptyDataStateContainerElement()).borderBottomWidth;
+
+      expect(borderBottomWidth).toBe('0px');
+    });
+
+    it('should not disable bottom border when there is no pagination', async() => {
+      handsontable({
+        data: [],
+        pagination: false,
+        emptyDataState: true,
+        height: 'auto',
+      });
+
+      await sleep(10);
+
+      const borderBottomWidth = getComputedStyle(getEmptyDataStateContainerElement()).borderBottomWidth;
+
+      expect(borderBottomWidth).toBe('1px');
+    });
+  });
 });
