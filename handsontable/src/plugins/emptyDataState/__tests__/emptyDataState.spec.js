@@ -156,6 +156,19 @@ describe('EmptyDataState', () => {
     expect(getEmptyDataStateContainerElement().previousElementSibling).toBe(hot().rootGridElement);
   });
 
+  it('should have correct top position after initialization', async() => {
+    handsontable({
+      data: [],
+      colHeaders: true,
+      columns: ['A', 'B', 'C', 'D', 'E'],
+      emptyDataState: true,
+    });
+
+    const top = getComputedStyle(getEmptyDataStateContainerElement()).top;
+
+    expect(top).toBe(`${hot().view.getColumnHeaderHeight()}px`);
+  });
+
   describe('Borders visibility', () => {
     it('should disable top border when there are column headers', async() => {
       handsontable({

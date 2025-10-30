@@ -523,8 +523,7 @@ export class EmptyDataState extends BasePlugin {
   #onAfterInit() {
     this.#toggleEmptyDataState();
 
-    this.#ui.updateSize(this.hot.view);
-    this.#ui.updateClassNames(this.hot.view);
+    this.hot.render();
   }
 
   /**
