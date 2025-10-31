@@ -24,7 +24,7 @@ import { SCOPE_TYPES, FOCUS_SOURCES, DEFAULT_SHORTCUTS_CONTEXT } from './constan
  * @param {object} [options] Configuration options.
  * @param {string} [options.shortcutsContextName='grid'] The name of the shortcuts context to switch to when
  * the scope is activated.
- * @param {'modal' | 'inline' | function(): 'modal' | 'inline'} [options.type='inline'] The type of the scope:<br/>
+ * @param {'modal' | 'inline'} [options.type='inline'] The type of the scope:<br/>
  *   - `modal`: The scope is modal and blocks the rest of the grid from receiving focus.<br/>
  *   - `inline`: The scope is inline and allows the rest of the grid to receive focus in the order of the rendered elements in the DOM.
  * @param {function(): boolean} [options.runOnlyIf] Whether the scope is enabled or not depends on the custom logic.
