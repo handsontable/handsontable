@@ -237,6 +237,10 @@ export function createFocusScopeManager(hotInstance) {
    * @param {'unknown' | 'click' | 'tab_from_above' | 'tab_from_below'} focusSource The source of the focus event.
    */
   function processScopes(target, focusSource) {
+    if (!target.isConnected) {
+      return;
+    }
+
     const allEnabledScopes = SCOPES.getValues().filter(scope => scope.runOnlyIf());
     let hasActiveScope = false;
 

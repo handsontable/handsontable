@@ -113,3 +113,21 @@ export function conditionFactory(funcForCall) {
     };
   };
 }
+
+/**
+ * Returns the "OK" button element of the filter dropdown menu.
+ *
+ * @returns {HTMLElement}
+ */
+export function getFilterDropdownMenuOKButton() {
+  return dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input');
+}
+
+/**
+ * Returns the "Cancel" button element of the filter dropdown menu.
+ *
+ * @returns {HTMLElement}
+ */
+export function getFilterDropdownMenuCancelButton() {
+  return dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonCancel input');
+}
