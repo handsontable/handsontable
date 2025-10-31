@@ -101,7 +101,6 @@
     "jest-preset-angular": "^14.3.0",
     "moment": "2.29.4",
     "ng-packagr": "^16.0.0",
-    "puppeteer": "^24.2.1",
     "resize-observer-polyfill": "^1.5.1",
     "ts-jest": "^29.1.1",
     "ts-node": "8.3.0",
