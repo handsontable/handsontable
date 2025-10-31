@@ -147,5 +147,57 @@ describe('EmptyDataState keyboard shortcut', () => {
       expect(getShortcutManager().getActiveContextName()).toBe('grid');
       expect(document.activeElement).toBe(topInput[0]);
     });
+
+    it('should activate the overlay first, when the corner is only rendered (no data, navigableHeaders is disabled)', async() => {
+      createTestInputs();
+
+      handsontable({
+        data: createSpreadsheetData(0, 0),
+        rowHeaders: true,
+        colHeaders: true,
+        navigableHeaders: false,
+        emptyDataState: true,
+      });
+
+      await keyDownUp(['shift', 'tab']); // focused bottom input
+
+      expect(isListening()).toBe(false);
+
+      await keyDownUp(['shift', 'tab']);
+
+      expect(getShortcutManager().getActiveContextName()).toBe('plugin:emptyDataState');
+      expect(document.activeElement).toBe(getEmptyDataStateContentElement());
+
+      await keyDownUp(['shift', 'tab']); // focused top input
+
+      expect(getSelectedRange()).toBeUndefined();
+      expect(isListening()).toBe(false);
+    });
+
+    it('should activate the overlay first, when the corner is only rendered (no data, navigableHeaders is enabled)', async() => {
+      createTestInputs();
+
+      handsontable({
+        data: createSpreadsheetData(0, 0),
+        rowHeaders: true,
+        colHeaders: true,
+        navigableHeaders: true,
+        emptyDataState: true,
+      });
+
+      await keyDownUp(['shift', 'tab']); // focused bottom input
+
+      expect(isListening()).toBe(false);
+
+      await keyDownUp(['shift', 'tab']);
+
+      expect(getShortcutManager().getActiveContextName()).toBe('plugin:emptyDataState');
+      expect(document.activeElement).toBe(getEmptyDataStateContentElement());
+
+      await keyDownUp(['shift', 'tab']); // focused top input
+
+      expect(getSelectedRange()).toBeUndefined();
+      expect(isListening()).toBe(false);
+    });
   });
 });
