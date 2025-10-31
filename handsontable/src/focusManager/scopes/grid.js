@@ -90,6 +90,22 @@ export function focusGridScope(hot) {
 
       return hot.rootPortalElement.contains(target);
     },
+    runOnlyIf: () => {
+      const { navigableHeaders } = hot.getSettings();
+
+      if (
+        hot.countRenderedRows() === 0 && hot.countRenderedCols() === 0 &&
+        hot.countRowHeaders() > 0 && hot.countColHeaders() > 0
+      ) {
+        // when the corner is only rendered, deactivate the scope.
+        return false;
+      }
+
+      return (
+        (!navigableHeaders && (hot.countRenderedRows() > 0 && hot.countRenderedCols() > 0)) ||
+        (navigableHeaders && (hot.countRowHeaders() > 0 || hot.countColHeaders() > 0))
+      );
+    },
     onActivate: (focusSource) => {
       if (focusSource === 'tab_from_above') {
         const mostTopStartCoords = clampCoordsIfNeeded(recentlyAddedFocusCoords) ?? getMostTopStartPosition(hot);

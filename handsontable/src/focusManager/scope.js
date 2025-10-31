@@ -51,19 +51,6 @@ export function createFocusScope(hotInstance, container, options = {}) {
   const focusCatchers = installFocusDetector(hotInstance, container);
 
   /**
-   * Gets the type of the scope.
-   *
-   * @returns {string} The type of the scope.
-   */
-  const getType = () => {
-    if (typeof mergedOptions.type === 'function') {
-      return mergedOptions.type();
-    }
-
-    return mergedOptions.type;
-  };
-
-  /**
    * Checks if the target element is within the scope boundaries.
    *
    * @param {HTMLElement} target The target element to check.
@@ -125,7 +112,7 @@ export function createFocusScope(hotInstance, container, options = {}) {
   };
 
   return {
-    getType,
+    getType: () => mergedOptions.type,
     hasContainerDetached: () => !hotInstance.rootWrapperElement.contains(container),
     getShortcutsContextName: () => mergedOptions.shortcutsContextName,
     runOnlyIf: () => mergedOptions.runOnlyIf(),

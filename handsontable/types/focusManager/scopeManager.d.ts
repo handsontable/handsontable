@@ -3,7 +3,7 @@ type FocusScopeActivationSource = 'unknown' | 'click' | 'tab_from_above' | 'tab_
 
 type FocusScopeOptions = {
   shortcutsContextName?: string;
-  type?: FocusScopeType | (() => FocusScopeType);
+  type?: FocusScopeType;
   contains?: (target: HTMLElement) => boolean;
   runOnlyIf?: () => boolean;
   onActivate?: (focusSource: FocusScopeActivationSource) => void;

@@ -623,7 +623,7 @@
             }
           }
         }
-  
+
         & ~ .ht_clone_inline_start {
           tbody {
             tr:first-child {
@@ -679,16 +679,6 @@
     div[class^="ht_clone"] tbody .ht__highlight .relative::after {
       right: auto;
       left: -1px;
-    }
-  }
-
-  .ht_master.emptyRows.emptyColumns {
-    th {
-      display: none;
-    }
-
-    & ~ [class*="ht_clone"] th {
-      display: none;
     }
   }
 

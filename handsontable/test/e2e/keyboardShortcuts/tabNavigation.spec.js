@@ -509,7 +509,43 @@ describe('Core navigation keyboard shortcuts', () => {
       expect(hot1.isListening()).toBe(false);
     });
 
-    it('should activate the table, do not select any cell or header, and then leave the table (no data)', async() => {
+    it('should not activate the table, when there are headers only and the `navigableHeaders` is disabled', async() => {
+      createTestInputs();
+
+      const hot = handsontable({
+        data: createSpreadsheetData(3, 3),
+        rowHeaders: true,
+        colHeaders: true,
+        navigableHeaders: false,
+        tabNavigation: false,
+        autoWrapRow: false,
+      });
+      const hot1 = handsontable({
+        data: createSpreadsheetData(3, 0),
+        rowHeaders: true,
+        colHeaders: true,
+        navigableHeaders: false,
+        tabNavigation: false,
+        autoWrapRow: false,
+      }, false, spec().$container1);
+
+      rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
+
+      await render();
+      await keyDownUp('tab'); // focused top input
+
+      expect(hot.isListening()).toBe(false);
+      expect(hot1.isListening()).toBe(false);
+
+      await keyDownUp('tab');
+
+      expect(hot.getSelectedRange()).toBeUndefined();
+      expect(hot.isListening()).toBe(false);
+      expect(hot1.getSelectedRange()).toBeUndefined();
+      expect(hot1.isListening()).toBe(false);
+    });
+
+    it('should not activate the table, do not select any cell or header (no data)', async() => {
       createTestInputs();
 
       const hot = handsontable({
@@ -524,7 +560,7 @@ describe('Core navigation keyboard shortcuts', () => {
         data: createSpreadsheetData(0, 0),
         rowHeaders: true,
         colHeaders: true,
-        navigableHeaders: false,
+        navigableHeaders: true,
         tabNavigation: false,
         autoWrapRow: false,
       }, false, spec().$container1);
@@ -533,20 +569,6 @@ describe('Core navigation keyboard shortcuts', () => {
 
       expect(hot.isListening()).toBe(false);
       expect(hot1.isListening()).toBe(false);
-
-      await keyDownUp('tab');
-
-      expect(hot.getSelectedRange()).toBeUndefined();
-      expect(hot.isListening()).toBe(true);
-      expect(hot1.getSelectedRange()).toBeUndefined();
-      expect(hot1.isListening()).toBe(false);
-
-      await keyDownUp('tab');
-
-      expect(hot.getSelectedRange()).toBeUndefined();
-      expect(hot.isListening()).toBe(false);
-      expect(hot1.getSelectedRange()).toBeUndefined();
-      expect(hot1.isListening()).toBe(true);
 
       await keyDownUp('tab'); // focused bottom input
 
@@ -1006,7 +1028,43 @@ describe('Core navigation keyboard shortcuts', () => {
       expect(hot1.isListening()).toBe(false);
     });
 
-    it('should activate the table, do not select any cell or header, and then leave the table (no data)', async() => {
+    it('should not activate the table, when there are headers only and the `navigableHeaders` is disabled', async() => {
+      createTestInputs();
+
+      const hot = handsontable({
+        data: createSpreadsheetData(3, 3),
+        rowHeaders: true,
+        colHeaders: true,
+        navigableHeaders: false,
+        tabNavigation: false,
+        autoWrapRow: false,
+      });
+      const hot1 = handsontable({
+        data: createSpreadsheetData(3, 0),
+        rowHeaders: true,
+        colHeaders: true,
+        navigableHeaders: false,
+        tabNavigation: false,
+        autoWrapRow: false,
+      }, false, spec().$container1);
+
+      rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding', true);
+
+      await render();
+      await keyDownUp(['shift', 'tab']);
+
+      expect(hot.isListening()).toBe(false);
+      expect(hot1.isListening()).toBe(false);
+
+      await keyDownUp(['shift', 'tab']);
+
+      expect(hot.getSelectedRange()).toBeUndefined();
+      expect(hot.isListening()).toBe(false);
+      expect(hot1.getSelectedRange()).toBeUndefined();
+      expect(hot1.isListening()).toBe(false);
+    });
+
+    it('should not activate the table, do not select any cell or header (no data)', async() => {
       createTestInputs();
 
       const hot = handsontable({
@@ -1021,7 +1079,7 @@ describe('Core navigation keyboard shortcuts', () => {
         data: createSpreadsheetData(0, 0),
         rowHeaders: true,
         colHeaders: true,
-        navigableHeaders: false,
+        navigableHeaders: true,
         tabNavigation: false,
         autoWrapRow: false,
       }, false, spec().$container1);
@@ -1029,20 +1087,6 @@ describe('Core navigation keyboard shortcuts', () => {
       await keyDownUp(['shift', 'tab']);
 
       expect(hot.isListening()).toBe(false);
-      expect(hot1.isListening()).toBe(false);
-
-      await keyDownUp(['shift', 'tab']);
-
-      expect(hot.getSelectedRange()).toBeUndefined();
-      expect(hot.isListening()).toBe(false);
-      expect(hot1.getSelectedRange()).toBeUndefined();
-      expect(hot1.isListening()).toBe(true);
-
-      await keyDownUp(['shift', 'tab']);
-
-      expect(hot.getSelectedRange()).toBeUndefined();
-      expect(hot.isListening()).toBe(true);
-      expect(hot1.getSelectedRange()).toBeUndefined();
       expect(hot1.isListening()).toBe(false);
 
       await keyDownUp(['shift', 'tab']);
