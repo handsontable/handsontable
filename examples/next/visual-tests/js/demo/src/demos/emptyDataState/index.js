@@ -14,7 +14,7 @@ export function init() {
 
   const settings = {};
 
-  if(height !== 'undefined') {
+  if (height !== 'undefined') {
     settings.height = height;
   }
 
