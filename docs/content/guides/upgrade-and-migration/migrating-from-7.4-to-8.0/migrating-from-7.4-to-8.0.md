@@ -20,6 +20,7 @@ category: Upgrade and migration
 
 Migrate from Handsontable 7.4 to Handsontable 8.0, released on August 5, 2020.
 
+More information about this release can be found in the [`8.0.0` release blog post](https://handsontable.com/blog/the-new-handsontable-8-is-now-available).<br/>
 For a detailed list of changes in this release, see the [Changelog](@/guides/upgrade-and-migration/changelog/changelog.md#_8-0-0).
 
 [[toc]]

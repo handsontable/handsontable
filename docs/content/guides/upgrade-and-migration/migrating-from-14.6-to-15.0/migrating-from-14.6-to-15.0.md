@@ -20,6 +20,7 @@ category: Upgrade and migration
 
 Migrate from Handsontable 14.6 to Handsontable 15.0, released on December 16th, 2024.
 
+More information about this release can be found in the [`15.0.0` release blog post](https://handsontable.com/blog/handsontable-15.0.0-introducing-themes-and-functional-react-wrapper).<br/>
 For a detailed list of changes in this release, see the [Changelog](@/guides/upgrade-and-migration/changelog/changelog.md#_15-0-0).
 
 [[toc]]
