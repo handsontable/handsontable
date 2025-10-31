@@ -3,7 +3,7 @@ import { BasePlugin } from '../base';
 
 export interface DialogConfig {
   template?: {
-    type: 'alert' | 'confirm';
+    type: 'confirm';
     title: string;
     description?: string;
     buttons?: {

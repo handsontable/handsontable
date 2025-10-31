@@ -1,5 +1,6 @@
 import { DIALOG_CLASS_NAME } from '../constants';
 import { stripTags } from '../../../helpers/string';
+import { html } from '../../../helpers/templateLiteralTag';
 
 /**
  * The `confirmTemplate` function returns a HTML string with the confirm template.
@@ -14,21 +15,75 @@ import { stripTags } from '../../../helpers/string';
  * @returns {string} HTML string with the confirm template.
  */
 export function confirmTemplate({ title = '', description = '', buttons = [] }) {
-  return `
-    <div data-ref="contentElement" class="${DIALOG_CLASS_NAME}__content-wrapper-inner">
-      <div class="${DIALOG_CLASS_NAME}__content">
-        <h2 class="${DIALOG_CLASS_NAME}__title">${stripTags(title)}</h2>
-        <p class="${DIALOG_CLASS_NAME}__description">${stripTags(description)}</p>
-      </div>
-      ${buttons.length > 0 ? `
-        <div data-ref="buttonsContainer" class="${DIALOG_CLASS_NAME}__buttons">
-          ${buttons.map(button => `
-            <button class="ht-button ht-button--${button.type}">${stripTags(button.text)}</button>
-          `).join('')}
+  /**
+   * Returns the HTML string for the template.
+   *
+   * @returns {string}
+   */
+  function template() {
+    return `
+      <div tabindex="-1" data-ref="contentElement" class="${DIALOG_CLASS_NAME}__content-wrapper-inner">
+        <div class="${DIALOG_CLASS_NAME}__content">
+          <h2 class="${DIALOG_CLASS_NAME}__title">${stripTags(title)}</h2>
+          <p class="${DIALOG_CLASS_NAME}__description">${stripTags(description)}</p>
         </div>
-      ` : ''}
-    </div>
-  `;
-}
+        ${buttons.length > 0 ? `
+          <div data-ref="buttonsContainer" class="${DIALOG_CLASS_NAME}__buttons">
+            ${buttons.map(button => `
+              <button class="ht-button ht-button--${button.type}">${stripTags(button.text)}</button>
+            `).join('')}
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }
 
-confirmTemplate.TEMPLATE_NAME = 'confirm';
+  let fragment = null;
+  const refs = {};
+
+  /**
+   * Compiles the template.
+   *
+   * @returns {object} The compiled template.
+   */
+  function compile() {
+    const elements = html`${template()}`;
+
+    Object.assign(refs, elements.refs);
+    fragment = elements.fragment;
+
+    return elements;
+  }
+
+  /**
+   * Gets the focusable elements of the template.
+   *
+   * @returns {HTMLElement[]} The focusable elements.
+   */
+  function focusableElements() {
+    if (fragment === null) {
+      throw new Error('Compile the template first.');
+    }
+
+    const {
+      contentElement,
+      buttonsContainer,
+    } = refs;
+
+    const elements = [];
+
+    if (buttonsContainer) {
+      elements.push(...Array.from(buttonsContainer.children));
+    } else {
+      elements.push(contentElement);
+    }
+
+    return elements;
+  }
+
+  return {
+    TEMPLATE_NAME: 'confirm',
+    compile,
+    focusableElements,
+  };
+}

@@ -109,7 +109,6 @@ export class DialogUI {
     // Set ARIA attributes
     setAttribute(dialogElement, [
       A11Y_MODAL(),
-      A11Y_TABINDEX(-1),
       ['dir', this.#isRtl ? 'rtl' : 'ltr'],
     ]);
 
@@ -132,7 +131,7 @@ export class DialogUI {
    * @returns {HTMLElement[]} The focusable elements.
    */
   getFocusableElements() {
-    return [this.#refs.dialogElement];
+    return this.#template.focusableElements();
   }
 
   /**
@@ -158,8 +157,7 @@ export class DialogUI {
     animation,
     a11y,
   }) {
-    const elements = html`${this.#template()}`;
-
+    const elements = this.#template.compile();
     const { dialogElement, dialogWrapperElement } = this.#refs;
 
     dialogWrapperElement.innerHTML = '';
@@ -167,7 +165,7 @@ export class DialogUI {
 
     Object.assign(this.#refs, elements.refs);
 
-    const { contentElement } = this.#refs;
+    const { contentElement, buttonsContainer } = this.#refs;
 
     // Dialog class name
     const customClass = customClassName ?
@@ -188,6 +186,10 @@ export class DialogUI {
       animationClass,
       showClass
     ].join(' ');
+
+    setAttribute(dialogElement, [
+      this.#template.TEMPLATE_NAME === 'base' ? A11Y_TABINDEX(-1) : undefined,
+    ]);
 
     // Dialog aria attributes
     setAttribute(dialogElement, [
@@ -223,7 +225,7 @@ export class DialogUI {
       ` ${DIALOG_CLASS_NAME}__content--background` : '';
 
     // Update content class name
-    contentElement.className = `${DIALOG_CLASS_NAME}__content${contentBackgroundClass}`;
+    addClass(contentElement, `${DIALOG_CLASS_NAME}__content${contentBackgroundClass}`);
 
     if (this.#template.TEMPLATE_NAME === 'base') {
       // Clear existing dialog content
@@ -236,8 +238,8 @@ export class DialogUI {
         contentElement.appendChild(content);
       }
 
-    } else if (this.#refs.buttonsContainer) {
-      Array.from(this.#refs.buttonsContainer.children).forEach((button, index) => {
+    } else if (buttonsContainer) {
+      Array.from(buttonsContainer.children).forEach((button, index) => {
         const callback = this.#templateButtonCallbacks[index];
 
         if (callback) {

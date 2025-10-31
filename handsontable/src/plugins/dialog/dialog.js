@@ -409,16 +409,19 @@ export class Dialog extends BasePlugin {
       return;
     }
 
-    if (options.template !== undefined && options.content !== undefined) {
+    this.updatePluginSettings(options);
+
+    const templateValue = this.getSetting('template');
+
+    if (
+      templateValue !== Dialog.DEFAULT_SETTINGS.template &&
+      this.getSetting('content') !== Dialog.DEFAULT_SETTINGS.content
+    ) {
       throw new Error('The `template` option cannot be used together with the `content` option.');
     }
 
-    this.updatePluginSettings(options);
-
-    const templateVariables = this.getSetting('template');
-
-    if (templateVariables) {
-      this.#ui.useTemplate(templateVariables.type, templateVariables);
+    if (templateValue) {
+      this.#ui.useTemplate(templateValue.type, templateValue);
     } else {
       this.#ui.useTemplate('base');
     }
@@ -495,8 +498,17 @@ export class Dialog extends BasePlugin {
         runOnlyIf: () => this.isVisible(),
         onActivate: (focusSource) => {
           const isListening = this.hot.isListening();
+          const focusableElements = this.#ui.getFocusableElements();
 
-          if (
+          if (focusableElements.length > 0) {
+            if (focusSource === 'tab_from_above') {
+              focusableElements.at(0).focus();
+
+            } else if (focusSource === 'tab_from_below') {
+              focusableElements.at(-1).focus();
+            }
+
+          } else if (
             focusSource !== 'tab_from_above' &&
             focusSource !== 'tab_from_below' &&
             isListening &&

@@ -83,6 +83,7 @@
 
     &--confirm &__content-wrapper {
       text-align: center;
+      padding: calc(var(--ht-gap-size) * 2);
 
       &-inner {
         display: flex;
@@ -90,12 +91,19 @@
         align-items: center;
         justify-content: center;
         max-width: 480px;
+        padding: calc(var(--ht-gap-size) * 2);
+        border-radius: var(--ht-wrapper-border-radius);
 
         &--background {
           @include mixins.box-shadow;
 
           border-radius: var(--ht-dialog-content-border-radius);
           background-color: var(--ht-dialog-content-background-color);
+        }
+
+        &:focus {
+          outline: none;
+          box-shadow: 0 0 0 1px var(--ht-accent-color);
         }
       }
     }
