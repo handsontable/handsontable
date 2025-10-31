@@ -13,7 +13,7 @@ beforeAll(() => {
   const originalWarn = console.warn;
 
   console.warn = (message) => {
-    if (typeof message === 'string' && message.includes('Handsontable classic') && message.includes('legacy')) {
+    if (typeof message === 'string' && message.includes('Deprecated:') && message.includes('stylesheet')) {
       return; // Suppress this specific warning
     }
 

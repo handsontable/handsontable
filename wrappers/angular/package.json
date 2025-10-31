@@ -80,7 +80,6 @@
     "@types/node": "12.20.7",
     "jasmine": "3.7.0",
     "jasmine-console-reporter": "3.1.0",
-    "puppeteer": "^24.2.1",
     "ts-node": "8.3.0",
     "typescript": "5.2.2",
     "@angular-eslint/builder": "~17.3.0",
