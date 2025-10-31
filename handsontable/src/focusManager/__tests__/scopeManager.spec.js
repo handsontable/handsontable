@@ -143,6 +143,51 @@ describe('ScopeManager', () => {
 
         input.remove();
       });
+
+      it('should create a scope with the `modal` type (option as a function)', async() => {
+        const input = $('<input type="text" placeholder="external input"/>');
+
+        spec().$container.after(input);
+
+        handsontable({
+          data: createSpreadsheetData(10, 10),
+          tabNavigation: false,
+        });
+
+        const topContainer = createUIWithFocusScope('before', {
+          id: 'top',
+          shortcutsContextName: 'myPluginTop',
+          type: () => 'modal',
+          onActivate() {
+            topContainer.querySelector('.text-input').focus();
+          },
+        });
+        const top2Container = createUIWithFocusScope('before', {
+          id: 'top2',
+          shortcutsContextName: 'myPluginTop2',
+          onActivate() {
+            top2Container.querySelector('.text-input').focus();
+          },
+        });
+
+        await keyDownUp('tab');
+
+        expect(isListening()).toBe(true);
+        expect(getFocusScopeManager().getActiveScopeId()).toBe('top');
+
+        await keyDownUp('tab');
+
+        expect(isListening()).toBe(false);
+        expect(getFocusScopeManager().getActiveScopeId()).toBe(null);
+        expect(document.activeElement).toBe(input[0]);
+
+        await keyDownUp(['shift', 'tab']);
+
+        expect(isListening()).toBe(true);
+        expect(getFocusScopeManager().getActiveScopeId()).toBe('top');
+
+        input.remove();
+      });
     });
 
     describe('`runOnlyIf` option', () => {

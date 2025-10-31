@@ -27,3 +27,12 @@ export function getEmptyDataStateContentHTML() {
     .replace(/\n/g, '')
     .trim();
 }
+
+/**
+ * Returns the first focusable element in the empty data state container.
+ *
+ * @returns {HTMLElement}
+ */
+export function getEmptyDataStateButtonElement() {
+  return getEmptyDataStateContentElement().querySelector('button');
+}

@@ -24,7 +24,7 @@ import { SCOPE_TYPES, FOCUS_SOURCES, DEFAULT_SHORTCUTS_CONTEXT } from './constan
  * @param {object} [options] Configuration options.
  * @param {string} [options.shortcutsContextName='grid'] The name of the shortcuts context to switch to when
  * the scope is activated.
- * @param {'modal' | 'inline'} [options.type='inline'] The type of the scope:<br/>
+ * @param {'modal' | 'inline' | function(): 'modal' | 'inline'} [options.type='inline'] The type of the scope:<br/>
  *   - `modal`: The scope is modal and blocks the rest of the grid from receiving focus.<br/>
  *   - `inline`: The scope is inline and allows the rest of the grid to receive focus in the order of the rendered elements in the DOM.
  * @param {function(): boolean} [options.runOnlyIf] Whether the scope is enabled or not depends on the custom logic.
@@ -47,7 +47,21 @@ export function createFocusScope(hotInstance, container, options = {}) {
     runOnlyIf: () => true,
     ...options,
   };
+
   const focusCatchers = installFocusDetector(hotInstance, container);
+
+  /**
+   * Gets the type of the scope.
+   *
+   * @returns {string} The type of the scope.
+   */
+  const getType = () => {
+    if (typeof mergedOptions.type === 'function') {
+      return mergedOptions.type();
+    }
+
+    return mergedOptions.type;
+  };
 
   /**
    * Checks if the target element is within the scope boundaries.
@@ -111,7 +125,7 @@ export function createFocusScope(hotInstance, container, options = {}) {
   };
 
   return {
-    getType: () => mergedOptions.type,
+    getType,
     hasContainerDetached: () => !hotInstance.rootWrapperElement.contains(container),
     getShortcutsContextName: () => mergedOptions.shortcutsContextName,
     runOnlyIf: () => mergedOptions.runOnlyIf(),

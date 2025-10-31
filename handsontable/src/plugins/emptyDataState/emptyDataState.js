@@ -349,6 +349,9 @@ export class EmptyDataState extends BasePlugin {
     this.hot.getFocusScopeManager()
       .registerScope(PLUGIN_KEY, this.#ui.getElement(), {
         shortcutsContextName: SHORTCUTS_CONTEXT_NAME,
+        type: () => {
+          return this.hot.hasColHeaders() || this.hot.hasRowHeaders() ? 'inline' : 'modal';
+        },
         runOnlyIf: () => this.isVisible(),
         onActivate: (focusSource) => {
           const focusableElements = this.#ui?.getFocusableElements();

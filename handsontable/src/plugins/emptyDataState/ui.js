@@ -81,9 +81,12 @@ export class EmptyDataStateUI {
 
     this.#refs = elements.refs;
 
-    const { emptyDataStateInner } = this.#refs;
+    const { emptyDataStateInner, emptyDataStateElement } = this.#refs;
 
     setAttribute(emptyDataStateInner, [
+      A11Y_TABINDEX(-1),
+    ]);
+    setAttribute(emptyDataStateElement, [
       A11Y_TABINDEX(-1),
     ]);
 

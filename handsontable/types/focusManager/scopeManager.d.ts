@@ -1,9 +1,9 @@
-type FocusScopeType = 'modal' | 'container';
+type FocusScopeType = 'modal' | 'inline';
 type FocusScopeActivationSource = 'unknown' | 'click' | 'tab_from_above' | 'tab_from_below';
 
 type FocusScopeOptions = {
   shortcutsContextName?: string;
-  type?: FocusScopeType;
+  type?: FocusScopeType | (() => FocusScopeType);
   contains?: (target: HTMLElement) => boolean;
   runOnlyIf?: () => boolean;
   onActivate?: (focusSource: FocusScopeActivationSource) => void;
