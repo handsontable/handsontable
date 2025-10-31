@@ -20,6 +20,8 @@ category: Upgrade and migration
 
 Migrate from Handsontable 9.0 to Handsontable 10.0, released on September 29, 2021.
 
+For a detailed list of changes in this release, see the [Changelog](@/guides/upgrade-and-migration/changelog/changelog.md#_10-0-0).
+
 [[toc]]
 
 ## Step 1: Rename your Handsontable hooks

@@ -20,6 +20,8 @@ category: Upgrade and migration
 
 Migrate from Handsontable 13.1 to Handsontable 14.0, released on November 30th, 2023.
 
+For a detailed list of changes in this release, see the [Changelog](@/guides/upgrade-and-migration/changelog/changelog.md#_14-0-0).
+
 [[toc]]
 
 ### Changes to IME

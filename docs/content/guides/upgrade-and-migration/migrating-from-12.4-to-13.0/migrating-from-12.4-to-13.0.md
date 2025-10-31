@@ -20,6 +20,8 @@ category: Upgrade and migration
 
 Migrate from Handsontable 12.4 to Handsontable 13.0, released on June 22, 2023.
 
+For a detailed list of changes in this release, see the [Changelog](@/guides/upgrade-and-migration/changelog/changelog.md#_13-0-0).
+
 [[toc]]
 
 ::: only-for javascript
