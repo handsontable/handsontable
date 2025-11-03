@@ -15,8 +15,9 @@ export function init() {
   root.appendChild(input);
 
   root.appendChild(example);
-  
+
   const input2 = document.createElement('input');
+
   input2.style.margin = '10px';
   input2.placeholder = 'Input 2';
   root.appendChild(input2);
@@ -25,26 +26,49 @@ export function init() {
   const contentBackground = getFromURL('contentbackground', false);
   const pagination = getFromURL('pagination', false);
   const focus = getFromURL('focus', false);
+  let content;
+  let template;
 
-  const content = document.createElement("div");
-  const button = document.createElement("button");
+  if (getFromURL("template") === "confirm") {
+    template = {
+      type: getFromURL("template"),
+      title: 'Confirm',
+      description: 'This is a confirm',
+      buttons: [
+        {
+          text: 'OK',
+          type: 'primary',
+          callback: () => {
+            hot.getPlugin('dialog').hide();
+          },
+        },
+      ],
+    };
 
-  button.innerHTML = "Close modal";
-  content.innerHTML = `<h6>Hello world</h6><p>Lorem ipsum</p>`;
-  content.appendChild(button);
+  } else {
+    content = document.createElement("div");
 
-  if (Boolean(focus)) {
-    const inputContent1 = document.createElement('input');
-    inputContent1.id = 'testInput';
-    inputContent1.style.margin = '10px';
-    inputContent1.placeholder = 'Input 1';
-    content.appendChild(inputContent1);
+    const button = document.createElement("button");
 
-    const inputContent2 = document.createElement('input');
-    inputContent2.style.margin = '10px';
-    inputContent2.placeholder = 'Input 2';
+    button.innerHTML = "Close modal";
+    content.innerHTML = `<h6>Hello world</h6><p>Lorem ipsum</p>`;
+    content.appendChild(button);
 
-    content.appendChild(inputContent2);
+    if (Boolean(focus)) {
+      const inputContent1 = document.createElement('input');
+
+      inputContent1.id = 'testInput';
+      inputContent1.style.margin = '10px';
+      inputContent1.placeholder = 'Input 1';
+      content.appendChild(inputContent1);
+
+      const inputContent2 = document.createElement('input');
+
+      inputContent2.style.margin = '10px';
+      inputContent2.placeholder = 'Input 2';
+
+      content.appendChild(inputContent2);
+    }
   }
 
   const dialogSettings = {
@@ -52,6 +76,7 @@ export function init() {
     contentBackground: Boolean(contentBackground),
     pagination: Boolean(pagination),
     content,
+    template,
   };
 
   const hot = new Handsontable(example, {

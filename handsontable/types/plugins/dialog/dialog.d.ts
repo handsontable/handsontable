@@ -9,7 +9,7 @@ export interface DialogConfig {
     buttons?: {
       text: string;
       type: 'primary' | 'secondary';
-      callback?: (event: ClickEvent) => void;
+      callback?: (event: MouseEvent) => void;
     }[];
   };
   content?: string | HTMLElement;
