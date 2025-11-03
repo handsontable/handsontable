@@ -239,8 +239,12 @@ class Endpoints {
    * @param {boolean} [forceRefresh] `true` of the endpoints should refresh after completing the function.
    */
   resetSetupAfterStructureAlteration(action, index, number, logicRows, source, forceRefresh = true) {
-    if (this.settingsType === 'function') {
+    // Automatic row/column creation (`minSpareRows`/`minSpareCols`) should not trigger the endpoint recalculation.
+    if (source === 'auto') {
+      return;
+    }
 
+    if (this.settingsType === 'function') {
       // We need to run it on a next avaiable hook, because the TrimRows' `afterCreateRow` hook triggers after this one,
       // and it needs to be run to properly calculate the endpoint value.
       const beforeViewRenderCallback = () => {
@@ -436,7 +440,9 @@ class Endpoints {
       this.resetEndpointValue(endpoint, useOffset);
     });
 
-    this.hot.setDataAtCell(this.cellsToSetCache, 'ColumnSummary.reset');
+    if (this.cellsToSetCache.length) {
+      this.hot.setDataAtCell(this.cellsToSetCache, 'ColumnSummary.reset');
+    }
 
     this.cellsToSetCache = [];
   }
@@ -454,7 +460,9 @@ class Endpoints {
     });
     this.currentEndpoint = null;
 
-    this.hot.setDataAtCell(this.cellsToSetCache, 'ColumnSummary.reset');
+    if (this.cellsToSetCache.length) {
+      this.hot.setDataAtCell(this.cellsToSetCache, 'ColumnSummary.reset');
+    }
 
     this.cellsToSetCache = [];
   }
@@ -486,7 +494,10 @@ class Endpoints {
       this.refreshEndpoint(this.getEndpoint(value));
     });
 
-    this.hot.setDataAtCell(this.cellsToSetCache, 'ColumnSummary.reset');
+    if (this.cellsToSetCache.length) {
+      this.hot.setDataAtCell(this.cellsToSetCache, 'ColumnSummary.reset');
+    }
+
     this.cellsToSetCache = [];
   }
 
