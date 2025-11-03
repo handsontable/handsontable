@@ -247,14 +247,14 @@ const allSettings: Required<Handsontable.GridSettings> = {
   undo: true,
   dialog: oneOf(true, {
     template: {
-      type: 'alert' as const,
-      title: 'Alert',
-      description: 'This is an alert',
+      type: 'confirm' as const,
+      title: 'Confirm',
+      description: 'This is a confirm',
       buttons: [
         {
           text: 'OK',
           type: 'primary' as const,
-          callback: (event: Event) => {},
+          callback: (event: MouseEvent) => {},
         },
       ],
     },

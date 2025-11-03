@@ -115,9 +115,9 @@ dialog.update({
 });
 dialog.update({
   template: {
-    type: 'alert',
-    title: 'Alert',
-    description: 'This is an alert',
+    type: 'confirm',
+    title: 'Confirm',
+    description: 'This is a confirm',
     buttons: [
       {
         text: 'OK',
