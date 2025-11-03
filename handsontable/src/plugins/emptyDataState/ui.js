@@ -251,7 +251,7 @@ export class EmptyDataStateUI {
       width = view.getTableWidth();
     }
 
-    if (view.isVerticallyScrollableByWindow()) {
+    if (view.isVerticallyScrollableByWindow() || view.hasVerticalScroll()) {
       if (cols > 0) {
         height = view.hot.getTableHeight() - view.getColumnHeaderHeight();
       } else {
