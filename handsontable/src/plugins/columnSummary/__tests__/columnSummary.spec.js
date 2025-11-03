@@ -953,6 +953,66 @@ describe('ColumnSummarySpec', () => {
 
       expect(getDataAtCell(0, 0)).toEqual(18);
     });
+
+    it('should not reset the endpoint setup for the automatically added rows (minSpareRows)', async() => {
+      let resetAllEndpointsSpy;
+
+      handsontable({
+        beforeLoadData() {
+          const plugin = this.getPlugin('columnSummary');
+
+          resetAllEndpointsSpy = spyOn(plugin.endpoints, 'resetAllEndpoints').and.callThrough();
+        },
+        data: createNumericData(5, 5),
+        height: 200,
+        width: 200,
+        minSpareRows: 10,
+        columnSummary: [
+          {
+            destinationColumn: 0,
+            destinationRow: 0,
+            ranges: [
+              [1, 3]
+            ],
+            type: 'sum'
+          }
+        ]
+      });
+
+      await sleep(100);
+
+      expect(resetAllEndpointsSpy).not.toHaveBeenCalled();
+    });
+
+    it('should not reset the endpoint setup for the automatically added columns (minSpareCols)', async() => {
+      let resetAllEndpointsSpy;
+
+      handsontable({
+        beforeLoadData() {
+          const plugin = this.getPlugin('columnSummary');
+
+          resetAllEndpointsSpy = spyOn(plugin.endpoints, 'resetAllEndpoints').and.callThrough();
+        },
+        data: createNumericData(5, 5),
+        height: 200,
+        width: 200,
+        minSpareCols: 10,
+        columnSummary: [
+          {
+            destinationColumn: 0,
+            destinationRow: 0,
+            ranges: [
+              [1, 3]
+            ],
+            type: 'sum'
+          }
+        ]
+      });
+
+      await sleep(100);
+
+      expect(resetAllEndpointsSpy).not.toHaveBeenCalled();
+    });
   });
 
   describe('compatibility with other plugins', () => {
