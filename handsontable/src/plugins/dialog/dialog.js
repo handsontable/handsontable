@@ -421,7 +421,10 @@ export class Dialog extends BasePlugin {
     }
 
     if (templateValue) {
-      this.#ui.useTemplate(templateValue.type, templateValue);
+      this.#ui.useTemplate(templateValue.type, {
+        id: this.hot.guid,
+        ...templateValue,
+      });
     } else {
       this.#ui.useTemplate('base');
     }

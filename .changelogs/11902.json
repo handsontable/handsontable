@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added a new `template` option to Dialog",
+  "type": "added",
+  "issueOrPR": 11902,
+  "breaking": false,
+  "framework": "none"
+}

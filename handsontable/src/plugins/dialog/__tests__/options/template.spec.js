@@ -382,4 +382,73 @@ describe('Dialog - template option', () => {
       </div>
       `);
   });
+
+  it('should set default a11y options for the `confirm` template', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      dialog: {
+        template: {
+          type: 'confirm',
+          title: 'My title',
+          description: 'My description',
+          buttons: [
+            {
+              text: 'OK',
+              type: 'primary',
+              callback: () => {},
+            },
+          ],
+        },
+      },
+    });
+
+    const dialogPlugin = getPlugin('dialog');
+
+    dialogPlugin.show();
+
+    expect(getDialogContainerElement().getAttribute('role')).toBe('alertdialog');
+    expect(getDialogContainerElement().getAttribute('aria-labelledby'))
+      .toBe(`${hot().guid}-dialog-confirm-title`);
+    expect(getDialogContainerElement().getAttribute('aria-describedby'))
+      .toBe(`${hot().guid}-dialog-confirm-description`);
+    expect(getDialogTitleElement().id).toBe(`${hot().guid}-dialog-confirm-title`);
+    expect(getDialogDescriptionElement().id).toBe(`${hot().guid}-dialog-confirm-description`);
+  });
+
+  it('should not be possible to override the a11y options for the template', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      dialog: {
+        template: {
+          type: 'confirm',
+          title: 'My title',
+          description: 'My description',
+          buttons: [
+            {
+              text: 'OK',
+              type: 'primary',
+              callback: () => {},
+            },
+          ],
+        },
+        a11y: {
+          role: 'dialog',
+          ariaLabelledby: 'custom-dialog-title',
+          ariaDescribedby: 'custom-dialog-description',
+        },
+      },
+    });
+
+    const dialogPlugin = getPlugin('dialog');
+
+    dialogPlugin.show();
+
+    expect(getDialogContainerElement().getAttribute('role')).toBe('alertdialog');
+    expect(getDialogContainerElement().getAttribute('aria-labelledby'))
+      .toBe(`${hot().guid}-dialog-confirm-title`);
+    expect(getDialogContainerElement().getAttribute('aria-describedby'))
+      .toBe(`${hot().guid}-dialog-confirm-description`);
+    expect(getDialogTitleElement().id).toBe(`${hot().guid}-dialog-confirm-title`);
+    expect(getDialogDescriptionElement().id).toBe(`${hot().guid}-dialog-confirm-description`);
+  });
 });

@@ -167,6 +167,10 @@ export class DialogUI {
 
     const { contentElement, buttonsContainer } = this.#refs;
 
+    if (this.#template.TEMPLATE_NAME !== 'base') {
+      Object.assign(a11y, this.#template.dialogA11YOptions());
+    }
+
     // Dialog class name
     const customClass = customClassName ?
       ` ${customClassName}` : '';

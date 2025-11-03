@@ -50,6 +50,11 @@ export function baseTemplate() {
 
   return {
     TEMPLATE_NAME: 'base',
+    dialogA11YOptions() {
+      return {
+        role: 'dialog',
+      };
+    },
     compile,
     focusableElements,
   };

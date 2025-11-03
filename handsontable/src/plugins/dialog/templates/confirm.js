@@ -6,6 +6,7 @@ import { html } from '../../../helpers/templateLiteralTag';
  * The `confirmTemplate` function returns a HTML string with the confirm template.
  *
  * @param {object} vars The variables to use for the template.
+ * @param {string} vars.id The ID of the confirm.
  * @param {string} vars.title The title of the confirm.
  * @param {string} vars.description The description of the confirm.
  * @param {object[]} vars.buttons The buttons to display in the confirm.
@@ -14,7 +15,7 @@ import { html } from '../../../helpers/templateLiteralTag';
  *   - `callback`: The callback to trigger when the button is clicked.
  * @returns {string} HTML string with the confirm template.
  */
-export function confirmTemplate({ title = '', description = '', buttons = [] }) {
+export function confirmTemplate({ id = '', title = '', description = '', buttons = [] }) {
   /**
    * Returns the HTML string for the template.
    *
@@ -24,8 +25,10 @@ export function confirmTemplate({ title = '', description = '', buttons = [] }) 
     return `
       <div tabindex="-1" data-ref="contentElement" class="${DIALOG_CLASS_NAME}__content-wrapper-inner">
         <div class="${DIALOG_CLASS_NAME}__content">
-          <h2 class="${DIALOG_CLASS_NAME}__title">${stripTags(title)}</h2>
-          <p class="${DIALOG_CLASS_NAME}__description">${stripTags(description)}</p>
+          <h2 id="${id}-dialog-confirm-title" class="${DIALOG_CLASS_NAME}__title">${stripTags(title)}</h2>
+          <p id="${id}-dialog-confirm-description" class="${DIALOG_CLASS_NAME}__description">
+            ${stripTags(description)}
+          </p>
         </div>
         ${buttons.length > 0 ? `
           <div data-ref="buttonsContainer" class="${DIALOG_CLASS_NAME}__buttons">
@@ -83,6 +86,13 @@ export function confirmTemplate({ title = '', description = '', buttons = [] }) 
 
   return {
     TEMPLATE_NAME: 'confirm',
+    dialogA11YOptions() {
+      return {
+        role: 'alertdialog',
+        ariaLabelledby: `${id}-dialog-confirm-title`,
+        ariaDescribedby: description ? `${id}-dialog-confirm-description` : undefined,
+      };
+    },
     compile,
     focusableElements,
   };

@@ -17,6 +17,24 @@ export function getDialogContentContainerElement() {
 }
 
 /**
+ * Returns the dialog title element.
+ *
+ * @returns {HTMLElement}
+ */
+export function getDialogTitleElement() {
+  return getDialogContainerElement().querySelector('.ht-dialog__title');
+}
+
+/**
+ * Returns the dialog description element.
+ *
+ * @returns {HTMLElement}
+ */
+export function getDialogDescriptionElement() {
+  return getDialogContainerElement().querySelector('.ht-dialog__description');
+}
+
+/**
  * Returns the dialog inner wrapper element.
  *
  * @returns {HTMLElement}
@@ -44,7 +62,7 @@ export function getDialogSecondaryButtonElement() {
 }
 
 /**
- * Returns the content (HTML string) of the dialog container element.
+ * Returns the content (HTML string) of the dialog content element.
  *
  * @returns {string}
  */
