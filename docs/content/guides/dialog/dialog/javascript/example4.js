@@ -86,28 +86,60 @@ const hot = new Handsontable(container, {
   width: '100%',
   height: 300,
   stretchH: 'all',
-  dialog: {
-    content: 'This dialog uses a solid background (default).',
-    background: 'solid',
-    closable: true,
-  },
+  dialog: true,
+  outsideClickDeselects: false,
   licenseKey: 'non-commercial-and-evaluation',
 });
 
-// Show dialog after initialization
 const dialogPlugin = hot.getPlugin('dialog');
 
-dialogPlugin.show();
-// Add event listeners for select
-document.getElementById('background-select').addEventListener('change', (event) => {
-  const background = event.target.value;
-  const content =
-    background === 'solid'
-      ? 'This dialog uses a solid background (default).'
-      : 'This dialog uses a semi-transparent background.';
-
-  dialogPlugin.update({
-    content,
-    background,
+// Add event listeners for buttons
+document.getElementById('showAlert').addEventListener('click', () => {
+  dialogPlugin.show({
+    template: {
+      type: 'confirm',
+      title: 'Alert',
+      description: 'This is an example of the alert dialog.',
+      buttons: [
+        {
+          text: 'OK',
+          type: 'primary',
+          callback: (event) => {
+            dialogPlugin.hide();
+          },
+        },
+      ],
+    },
+    background: 'solid',
+    contentBackground: false,
+    closable: false,
+  });
+});
+document.getElementById('showConfirm').addEventListener('click', () => {
+  dialogPlugin.show({
+    template: {
+      type: 'confirm',
+      title: 'Do you want clear all the data?',
+      buttons: [
+        {
+          text: 'Cancel',
+          type: 'secondary',
+          callback: (event) => {
+            dialogPlugin.hide();
+          },
+        },
+        {
+          text: 'OK',
+          type: 'primary',
+          callback: (event) => {
+            hot.clear();
+            dialogPlugin.hide();
+          },
+        },
+      ],
+    },
+    background: 'semi-transparent',
+    contentBackground: true,
+    closable: false,
   });
 });

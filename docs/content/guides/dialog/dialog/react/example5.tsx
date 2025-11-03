@@ -43,60 +43,88 @@ const ExampleComponent = () => {
     hotInstance.getPlugin('dialog').show();
   }, []);
 
+  const onBackgroundChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const hotInstance = hotTableRef.current?.hotInstance;
+
+    if (!hotInstance) {
+      return;
+    }
+
+    const background = event.target.value;
+    const content =
+      background === 'solid'
+        ? 'This dialog uses a solid background (default).'
+        : 'This dialog uses a semi-transparent background.';
+
+    hotInstance.getPlugin('dialog').update({ content, background });
+  };
+
   return (
-    <HotTable
-      ref={hotTableRef}
-      themeName="ht-theme-main"
-      data={data}
-      width="100%"
-      height={300}
-      stretchH="all"
-      contextMenu={true}
-      rowHeaders={true}
-      colHeaders={true}
-      autoWrapRow={true}
-      autoWrapCol={true}
-      autoRowSize={true}
-      dialog={{
-        content: 'This dialog uses a semi-transparent and content background.',
-        contentBackground: true,
-        background: 'semi-transparent',
-        closable: true,
-      }}
-      licenseKey="non-commercial-and-evaluation"
-    >
-      <HotColumn title="Model" type="text" data="model" width={150} headerClassName="htLeft" />
-      <HotColumn
-        title="Price"
-        type="numeric"
-        data="price"
-        width={80}
-        numericFormat={{ pattern: '$0,0.00', culture: 'en-US' }}
-        className="htRight"
-        headerClassName="htRight"
-      />
-      <HotColumn
-        title="Date"
-        type="date"
-        data="sellDate"
-        width={130}
-        dateFormat="MMM D, YYYY"
-        correctFormat={true}
-        className="htRight"
-        headerClassName="htRight"
-      />
-      <HotColumn
-        title="Time"
-        type="time"
-        data="sellTime"
-        width={90}
-        timeFormat="hh:mm A"
-        correctFormat={true}
-        className="htRight"
-        headerClassName="htRight"
-      />
-      <HotColumn title="In stock" type="checkbox" data="inStock" className="htCenter" headerClassName="htCenter" />
-    </HotTable>
+    <>
+      <div className="example-controls-container" style={{ paddingBottom: '16px' }}>
+        <div className="controlsQuickFilter">
+          <label htmlFor="background-select" className="selectColumn">
+            Select a background:
+            <select id="background-select" onChange={onBackgroundChange}>
+              <option value="solid">Solid</option>
+              <option value="semi-transparent">Semi-transparent</option>
+            </select>
+          </label>
+        </div>
+      </div>
+      <HotTable
+        ref={hotTableRef}
+        themeName="ht-theme-main"
+        data={data}
+        width="100%"
+        height={300}
+        stretchH="all"
+        contextMenu={true}
+        rowHeaders={true}
+        colHeaders={true}
+        autoWrapRow={true}
+        autoWrapCol={true}
+        autoRowSize={true}
+        dialog={{
+          content: 'This dialog uses a solid background (default).',
+          background: 'solid',
+          closable: true,
+        }}
+        licenseKey="non-commercial-and-evaluation"
+      >
+        <HotColumn title="Model" type="text" data="model" width={150} headerClassName="htLeft" />
+        <HotColumn
+          title="Price"
+          type="numeric"
+          data="price"
+          width={80}
+          numericFormat={{ pattern: '$0,0.00', culture: 'en-US' }}
+          className="htRight"
+          headerClassName="htRight"
+        />
+        <HotColumn
+          title="Date"
+          type="date"
+          data="sellDate"
+          width={130}
+          dateFormat="MMM D, YYYY"
+          correctFormat={true}
+          className="htRight"
+          headerClassName="htRight"
+        />
+        <HotColumn
+          title="Time"
+          type="time"
+          data="sellTime"
+          width={90}
+          timeFormat="hh:mm A"
+          correctFormat={true}
+          className="htRight"
+          headerClassName="htRight"
+        />
+        <HotColumn title="In stock" type="checkbox" data="inStock" className="htCenter" headerClassName="htCenter" />
+      </HotTable>
+    </>
   );
 };
 

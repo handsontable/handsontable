@@ -1,30 +1,24 @@
 /* file: app.component.ts */
-import { AfterViewInit, Component, ViewChild } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
 
 @Component({
-  selector: 'app-example4',
+  selector: 'app-example8',
   template: `
-    <div class="example-controls-container" style="padding-bottom: 16px">
-      <div class="controlsQuickFilter">
-        <label for="background-select" class="selectColumn">Select a background:
-          <select id="background-select" (change)="onBackgroundChange($event)">
-            <option value="solid">Solid</option>
-            <option value="semi-transparent">Semi-transparent</option>
-          </select>
-        </label>
-      </div>
+    <div style="margin-bottom: 16px; display: flex; gap: 10px;">
+      <button (click)="showDialog()">Show Dialog</button>
+      <button (click)="hideDialog()">Hide Dialog</button>
     </div>
     <hot-table
       #hotTable
-      [settings]="hotSettings!" 
+      [settings]="hotSettings!"
       [data]="hotData"
     >
     </hot-table>
   `,
   standalone: false
 })
-export class AppComponent implements AfterViewInit {
+export class AppComponent {
   @ViewChild('hotTable') hotTable!: HotTableComponent;
 
   readonly hotData = [
@@ -110,34 +104,24 @@ export class AppComponent implements AfterViewInit {
     autoWrapCol: true,
     autoRowSize: true,
     dialog: {
-      content: 'This dialog uses a solid background (default).',
-      background: 'solid',
+      content: 'This dialog can be controlled programmatically.',
       closable: true,
     },
   };
 
-  ngAfterViewInit() {
+  showDialog() {
     const hotInstance = this.hotTable.hotInstance;
 
     if (hotInstance) {
-      // Show dialog after initialization
-      const dialogPlugin = hotInstance.getPlugin('dialog');
-      dialogPlugin.show();
+      hotInstance.getPlugin('dialog').show();
     }
   }
 
-  onBackgroundChange(event: Event) {
+  hideDialog() {
     const hotInstance = this.hotTable.hotInstance;
 
     if (hotInstance) {
-      const background = (event.target as HTMLSelectElement).value;
-      const content = background === 'solid' ? 'This dialog uses a solid background (default).' : 'This dialog uses a semi-transparent background.';
-      const dialogPlugin = hotInstance.getPlugin('dialog');
-
-      dialogPlugin.update({
-        content,
-        background,
-      });
+      hotInstance.getPlugin('dialog').hide();
     }
   }
 }

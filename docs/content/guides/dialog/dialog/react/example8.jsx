@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef } from 'react';
 import { HotTable, HotColumn } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
@@ -32,8 +32,7 @@ const data = [
 
 const ExampleComponent = () => {
   const hotTableRef = useRef(null);
-
-  useEffect(() => {
+  const showDialog = () => {
     const hotInstance = hotTableRef.current?.hotInstance;
 
     if (!hotInstance) {
@@ -41,36 +40,23 @@ const ExampleComponent = () => {
     }
 
     hotInstance.getPlugin('dialog').show();
-  }, []);
+  };
 
-  const onBackgroundChange = (event) => {
+  const hideDialog = () => {
     const hotInstance = hotTableRef.current?.hotInstance;
 
     if (!hotInstance) {
       return;
     }
 
-    const background = event.target.value;
-    const content =
-      background === 'solid'
-        ? 'This dialog uses a solid background (default).'
-        : 'This dialog uses a semi-transparent background.';
-
-    hotInstance.getPlugin('dialog').update({ content, background });
+    hotInstance.getPlugin('dialog').hide();
   };
 
   return (
     <>
-      <div className="example-controls-container" style={{ paddingBottom: '16px' }}>
-        <div className="controlsQuickFilter">
-          <label htmlFor="background-select" className="selectColumn">
-            Select a background:
-            <select id="background-select" onChange={onBackgroundChange}>
-              <option value="solid">Solid</option>
-              <option value="semi-transparent">Semi-transparent</option>
-            </select>
-          </label>
-        </div>
+      <div style={{ marginBottom: '16px', display: 'flex', gap: '10px' }}>
+        <button onClick={showDialog}>Show Dialog</button>
+        <button onClick={hideDialog}>Hide Dialog</button>
       </div>
       <HotTable
         ref={hotTableRef}
@@ -86,8 +72,7 @@ const ExampleComponent = () => {
         autoWrapCol={true}
         autoRowSize={true}
         dialog={{
-          content: 'This dialog uses a solid background (default).',
-          background: 'solid',
+          content: 'This dialog can be controlled programmatically.',
           closable: true,
         }}
         licenseKey="non-commercial-and-evaluation"

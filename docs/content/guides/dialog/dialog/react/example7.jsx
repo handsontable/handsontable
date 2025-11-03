@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { HotTable, HotColumn } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
@@ -32,7 +32,8 @@ const data = [
 
 const ExampleComponent = () => {
   const hotTableRef = useRef(null);
-  const showDialog = () => {
+
+  useEffect(() => {
     const hotInstance = hotTableRef.current?.hotInstance;
 
     if (!hotInstance) {
@@ -40,76 +41,66 @@ const ExampleComponent = () => {
     }
 
     hotInstance.getPlugin('dialog').show();
-  };
-
-  const hideDialog = () => {
-    const hotInstance = hotTableRef.current?.hotInstance;
-
-    if (!hotInstance) {
-      return;
-    }
-
-    hotInstance.getPlugin('dialog').hide();
-  };
+  }, []);
 
   return (
-    <>
-      <div style={{ marginBottom: '16px', display: 'flex', gap: '10px' }}>
-        <button onClick={showDialog}>Show Dialog</button>
-        <button onClick={hideDialog}>Hide Dialog</button>
-      </div>
-      <HotTable
-        ref={hotTableRef}
-        themeName="ht-theme-main"
-        data={data}
-        width="100%"
-        height={300}
-        stretchH="all"
-        contextMenu={true}
-        rowHeaders={true}
-        colHeaders={true}
-        autoWrapRow={true}
-        autoWrapCol={true}
-        autoRowSize={true}
-        dialog={{
-          content: 'This dialog can be controlled programmatically.',
-          closable: true,
-        }}
-        licenseKey="non-commercial-and-evaluation"
-      >
-        <HotColumn title="Model" type="text" data="model" width={150} headerClassName="htLeft" />
-        <HotColumn
-          title="Price"
-          type="numeric"
-          data="price"
-          width={80}
-          numericFormat={{ pattern: '$0,0.00', culture: 'en-US' }}
-          className="htRight"
-          headerClassName="htRight"
-        />
-        <HotColumn
-          title="Date"
-          type="date"
-          data="sellDate"
-          width={130}
-          dateFormat="MMM D, YYYY"
-          correctFormat={true}
-          className="htRight"
-          headerClassName="htRight"
-        />
-        <HotColumn
-          title="Time"
-          type="time"
-          data="sellTime"
-          width={90}
-          timeFormat="hh:mm A"
-          correctFormat={true}
-          className="htRight"
-          headerClassName="htRight"
-        />
-        <HotColumn title="In stock" type="checkbox" data="inStock" className="htCenter" headerClassName="htCenter" />
-      </HotTable>
-    </>
+    <HotTable
+      ref={hotTableRef}
+      themeName="ht-theme-main"
+      data={data}
+      width="100%"
+      height={300}
+      stretchH="all"
+      contextMenu={true}
+      rowHeaders={true}
+      colHeaders={true}
+      autoWrapRow={true}
+      autoWrapCol={true}
+      autoRowSize={true}
+      dialog={{
+        content: '<h2 id="example6-title">Title</h2><p id="example6-description">Description</p>',
+        a11y: {
+          role: 'alertdialog',
+          ariaLabel: 'Title',
+          ariaLabelledby: 'example6-title',
+          ariaDescribedby: 'example6-description',
+        },
+        closable: true,
+      }}
+      licenseKey="non-commercial-and-evaluation"
+    >
+      <HotColumn title="Model" type="text" data="model" width={150} headerClassName="htLeft" />
+      <HotColumn
+        title="Price"
+        type="numeric"
+        data="price"
+        width={80}
+        numericFormat={{ pattern: '$0,0.00', culture: 'en-US' }}
+        className="htRight"
+        headerClassName="htRight"
+      />
+      <HotColumn
+        title="Date"
+        type="date"
+        data="sellDate"
+        width={130}
+        dateFormat="MMM D, YYYY"
+        correctFormat={true}
+        className="htRight"
+        headerClassName="htRight"
+      />
+      <HotColumn
+        title="Time"
+        type="time"
+        data="sellTime"
+        width={90}
+        timeFormat="hh:mm A"
+        correctFormat={true}
+        className="htRight"
+        headerClassName="htRight"
+      />
+      <HotColumn title="In stock" type="checkbox" data="inStock" className="htCenter" headerClassName="htCenter" />
+    </HotTable>
   );
 };
 

@@ -29,7 +29,7 @@ const data = [
   { model: 'Carbon Handlebar', price: 603.96, sellDate: 'Sep 13, 2025', sellTime: '04:10 AM', inStock: false },
 ];
 
-const container = document.getElementById('example7');
+const container = document.getElementById('example8');
 const hot = new Handsontable(container, {
   themeName: 'ht-theme-main',
   data,
@@ -87,19 +87,21 @@ const hot = new Handsontable(container, {
   height: 300,
   stretchH: 'all',
   dialog: {
-    content: '<h2 id="example6-title">Title</h2><p id="example6-description">Description</p>',
-    a11y: {
-      role: 'alertdialog',
-      ariaLabel: 'Title',
-      ariaLabelledby: 'example6-title',
-      ariaDescribedby: 'example6-description',
-    },
+    content: 'This dialog can be controlled programmatically.',
     closable: true,
   },
   licenseKey: 'non-commercial-and-evaluation',
 });
 
-// Show dialog after initialization
 const dialogPlugin = hot.getPlugin('dialog');
 
-dialogPlugin.show();
+// Add event listeners for buttons
+document.getElementById('showDialog').addEventListener('click', () => {
+  dialogPlugin.show({
+    content: 'Dialog shown programmatically!',
+    closable: true,
+  });
+});
+document.getElementById('hideDialog').addEventListener('click', () => {
+  dialogPlugin.hide();
+});

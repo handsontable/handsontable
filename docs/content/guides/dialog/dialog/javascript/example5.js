@@ -87,9 +87,8 @@ const hot = new Handsontable(container, {
   height: 300,
   stretchH: 'all',
   dialog: {
-    content: 'This dialog uses a semi-transparent background.',
-    contentBackground: true,
-    background: 'semi-transparent',
+    content: 'This dialog uses a solid background (default).',
+    background: 'solid',
     closable: true,
   },
   licenseKey: 'non-commercial-and-evaluation',
@@ -99,3 +98,16 @@ const hot = new Handsontable(container, {
 const dialogPlugin = hot.getPlugin('dialog');
 
 dialogPlugin.show();
+// Add event listeners for select
+document.getElementById('background-select').addEventListener('change', (event) => {
+  const background = event.target.value;
+  const content =
+    background === 'solid'
+      ? 'This dialog uses a solid background (default).'
+      : 'This dialog uses a semi-transparent background.';
+
+  dialogPlugin.update({
+    content,
+    background,
+  });
+});

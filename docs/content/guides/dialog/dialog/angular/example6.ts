@@ -7,7 +7,7 @@ import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
   template: `
     <hot-table
       #hotTable
-      [settings]="hotSettings!" 
+      [settings]="hotSettings!"
       [data]="hotData"
     >
     </hot-table>
@@ -100,14 +100,9 @@ export class AppComponent implements AfterViewInit {
     autoWrapCol: true,
     autoRowSize: true,
     dialog: {
-      content:
-      '<h2 id="example6-title">Title</h2><p id="example6-description">Description</p>',
-      a11y: {
-        role: 'alertdialog',
-        ariaLabel: 'Title',
-        ariaLabelledby: 'example6-title',
-        ariaDescribedby: 'example6-description',
-      },
+      content: 'This dialog uses a semi-transparent and content background.',
+      contentBackground: true,
+      background: 'semi-transparent',
       closable: true,
     },
   };

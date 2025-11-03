@@ -1,24 +1,20 @@
 /* file: app.component.ts */
-import { Component, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ViewChild } from '@angular/core';
 import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
 
 @Component({
   selector: 'app-example7',
   template: `
-    <div style="margin-bottom: 16px; display: flex; gap: 10px;">
-      <button (click)="showDialog()">Show Dialog</button>
-      <button (click)="hideDialog()">Hide Dialog</button>
-    </div>
     <hot-table
       #hotTable
-      [settings]="hotSettings!" 
+      [settings]="hotSettings!"
       [data]="hotData"
     >
     </hot-table>
   `,
   standalone: false
 })
-export class AppComponent {
+export class AppComponent implements AfterViewInit {
   @ViewChild('hotTable') hotTable!: HotTableComponent;
 
   readonly hotData = [
@@ -104,24 +100,25 @@ export class AppComponent {
     autoWrapCol: true,
     autoRowSize: true,
     dialog: {
-      content: 'This dialog can be controlled programmatically.',
+      content:
+      '<h2 id="example6-title">Title</h2><p id="example6-description">Description</p>',
+      a11y: {
+        role: 'alertdialog',
+        ariaLabel: 'Title',
+        ariaLabelledby: 'example6-title',
+        ariaDescribedby: 'example6-description',
+      },
       closable: true,
     },
   };
 
-  showDialog() {
+  ngAfterViewInit() {
     const hotInstance = this.hotTable.hotInstance;
 
     if (hotInstance) {
-      hotInstance.getPlugin('dialog').show();
-    }
-  }
-
-  hideDialog() {
-    const hotInstance = this.hotTable.hotInstance;
-
-    if (hotInstance) {
-      hotInstance.getPlugin('dialog').hide();
+      // Show dialog after initialization
+      const dialogPlugin = hotInstance.getPlugin('dialog');
+      dialogPlugin.show();
     }
   }
 }
