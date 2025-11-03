@@ -19,10 +19,10 @@ import {
   A11Y_ALERTDIALOG,
 } from '../../helpers/a11y';
 import { TEMPLATES } from './templates';
+import { DIALOG_CLASS_NAME } from './constants';
 
-const DIALOG_CLASS_NAME = 'ht-dialog';
 const CONTAINER_TEMPLATE = `
-<div data-ref="dialogElement">
+<div data-ref="dialogElement" class="${DIALOG_CLASS_NAME}">
   <div data-ref="dialogWrapperElement" class="${DIALOG_CLASS_NAME}__content-wrapper">
 </div>
 `;
@@ -62,7 +62,7 @@ export class DialogUI {
   /**
    * The callbacks of the template buttons to trigger when the button is clicked.
    *
-   * @type {function(ClickEvent)[]}
+   * @type {Array<function(MouseEvent)>}
    */
   #templateButtonCallbacks = [];
 

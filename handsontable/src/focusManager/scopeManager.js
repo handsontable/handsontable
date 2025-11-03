@@ -184,14 +184,14 @@ export function createFocusScopeManager(hotInstance) {
    * @param {object} scope The scope to deactivate.
    */
   function deactivateScope(scope) {
+    updateScopesFocusVisibilityState();
+
     if (activeScope !== scope) {
       return;
     }
 
     activeScope = null;
     scope.deactivate();
-
-    updateScopesFocusVisibilityState();
   }
 
   /**
