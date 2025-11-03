@@ -64,14 +64,12 @@ npm install multiple-select-vanilla
 ## Step 1: Import Dependencies
 
 ```typescript
-import Handsontable from "handsontable";
-import "handsontable/dist/handsontable.full.min.css";
-import { registerAllModules } from "handsontable/registry";
-
-// Multiple select library
-import multipleSelect from "multiple-select-vanilla";
-import type { MultipleSelectInstance } from "multiple-select-vanilla";
-import "multiple-select-vanilla/dist/styles/css/multiple-select.css";
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
+import multipleSelect from 'multiple-select-vanilla';
+import type { MultipleSelectInstance } from 'multiple-select-vanilla';
 
 registerAllModules();
 ```
@@ -241,52 +239,28 @@ validator: (value, callback) => {
 }
 ```
 
-## Step 5: Editor - Define Types
+## Step 5: Editor - Initialize (`init`)
 
-```typescript
-editor: Handsontable.editors.BaseEditor.factory<{
-  wrapper: HTMLDivElement;
-  input: HTMLSelectElement;
-  multiselect: MultipleSelectInstance;
-}>({
-  // ... methods
-})
-```
-
-**Type breakdown:**
-- `wrapper` - Container div for positioning
-- `input` - The `<select multiple>` element
-- `multiselect` - Multiple Select plugin instance
-
-**Why keep the plugin instance?**
-- Need to call methods: `open()`, `refresh()`, `destroy()`
-- Access current state
-- Update options dynamically
-
-## Step 6: Editor - Initialize (`init`)
-
-Create the DOM structure and initialize the plugin.
+Create the select element and initialize the multiple-select plugin.
 
 ```typescript
 init(editor) {
-  // Create wrapper div
-  editor.wrapper = editor.hot.rootDocument.createElement("DIV") as HTMLDivElement;
-  editor.wrapper.style.display = "none";
-  editor.wrapper.classList.add("htSelectEditor");
-  
   // Create select element
   editor.input = editor.hot.rootDocument.createElement("SELECT") as HTMLSelectElement;
   editor.input.setAttribute("multiple", "multiple");
   editor.input.setAttribute("data-multi-select", "");
   
-  // Assemble DOM
-  editor.wrapper.appendChild(editor.input);
-  editor.hot.rootElement.appendChild(editor.wrapper);
-  
   // Initialize multiple select plugin
   editor.multiselect = multipleSelect(editor.input) as MultipleSelectInstance;
 }
 ```
+
+**What's happening:**
+1. Create a `<select>` element using `editor.hot.rootDocument.createElement()`
+2. Set `multiple` attribute to allow multiple selections
+3. Set custom `data-multi-select` attribute for CSS targeting
+4. Initialize the multiple-select plugin on the select element
+5. The `editorFactory` helper handles container creation and DOM insertion
 
 **Key concepts:**
 
@@ -308,20 +282,20 @@ editor.input.setAttribute("data-multi-select", "");
 
 ### Why initialize plugin in `init()`?
 - Called once when editor is created
-- Plugin instance is reused
-- Better performance than recreating
+- Plugin instance is reused across all edits
+- Better performance than recreating each time
 
 ### Empty `<select></select>` at creation
 - No `<option>` elements yet
-- Options added in `prepare()` method
+- Options added in `beforeOpen` method
 - Different cells can have different options
 
-## Step 7: Editor - Prepare (`prepare`)
+## Step 6: Editor - Before Open Hook (`beforeOpen`)
 
 Populate the dropdown with options for the current cell.
 
 ```typescript
-prepare(editor, row, col, prop, td, originalValue, cellProperties) {
+beforeOpen(editor, { cellProperties }) {
   // Get options for this cell
   editor.input.innerHTML = cellProperties?.selectMultipleOptions?.map((
     el: { value: string; label: string },
@@ -333,56 +307,43 @@ prepare(editor, row, col, prop, td, originalValue, cellProperties) {
 ```
 
 **What's happening:**
+1. Get options from `cellProperties.selectMultipleOptions`
+2. Generate `<option>` elements from the option objects
+3. Set the innerHTML of the select element
+4. Refresh the plugin to update its UI
 
-### Read cell-specific options
-```typescript
-cellProperties?.selectMultipleOptions
-```
-- Custom property set in column configuration
-- Different columns can have different options
-- Optional chaining handles missing property
+**Key points:**
+- `beforeOpen` is called before the editor opens
+- `cellProperties.selectMultipleOptions` contains column-specific options
+- `refresh()` must be called after changing select content
+- Allows different columns to have different option lists
 
-### Generate `<option></option>` elements
-```typescript
-.map((el: { value: string; label: string }) => 
-  `<option value="${el.value}">${el.label}</option>`
-)
-```
-- Convert option objects to HTML
-- Each option has value (stored) and text (displayed)
-
-### The `refresh()` method
-```typescript
-editor.multiselect.refresh();
-```
-- Tells plugin "options have changed, update UI"
-- Without this, plugin shows old options
-- Must be called after changing `<select>` content
-
-**Why generate options in `prepare()` not `init()`?**
+**Why generate options in `beforeOpen` not `init`?**
 1. **Dynamic options**: Different cells can have different option lists
 2. **Data-driven**: Options might depend on other cell values
 3. **Performance**: Only create when needed
 
-**Example of dynamic options:**
+## Step 7: Editor - After Open Hook (`afterOpen`)
+
+Open the multiselect dropdown when the editor is opened.
+
 ```typescript
-prepare(editor, row, col, prop, td, originalValue, cellProperties) {
-  // Get options based on another column's value
-  const rowData = editor.hot.getDataAtRow(row);
-  const category = rowData.category;
-  
-  // Different options for different categories
-  const options = category === 'electronics' 
-    ? electronicsComponents 
-    : furnitureComponents;
-  
-  editor.input.innerHTML = options.map((el) => 
-    `<option value="${el.value}">${el.label}</option>`
-  ).join("");
-  
-  editor.multiselect.refresh();
+afterOpen(editor) {
+  editor.multiselect.open();
 }
 ```
+
+**What's happening:**
+- Called after the editor container is positioned and shown
+- Programmatically opens the multiselect dropdown
+- User can immediately start selecting options
+
+**Why `afterOpen` instead of `open`?**
+- `afterOpen` runs after positioning is complete
+- Ensures the select element is ready before opening
+- The `editorFactory` helper handles positioning in `open`
+
+**Note:** The `editorFactory` helper automatically positions the editor container over the cell, so we only need to open the dropdown.
 
 ## Step 8: Editor - Get Value (`getValue`)
 
@@ -395,6 +356,12 @@ getValue(editor) {
   ).map((option) => ({ value: option.value, label: option.label }));
 }
 ```
+
+**What's happening:**
+1. Get all options from the select element
+2. Filter to keep only selected options
+3. Map each option to an object with `value` and `label`
+4. Return array of objects matching the data structure
 
 **Breaking it down:**
 
@@ -443,7 +410,7 @@ Set which items are selected when editor opens.
 ```typescript
 setValue(editor, value) {
   // Handle Handsontable bug where value might be string
-  // Read more https://github.com/handsontable/handsontable/issues/3510
+  // https://github.com/handsontable/handsontable/issues/3510
   value = typeof value === "string" ? editor.originalValue : value;
   
   // Set selected state for each option
@@ -457,6 +424,12 @@ setValue(editor, value) {
   editor.multiselect.refresh();
 }
 ```
+
+**What's happening:**
+1. Handle Handsontable bug where rendered string is passed instead of array
+2. Use `editor.originalValue` if value is a string
+3. Iterate through all options and set `selected` property based on matches
+4. Refresh the plugin to update the UI
 
 **Key concepts:**
 
@@ -478,13 +451,6 @@ value = typeof value === "string" ? editor.originalValue : value;
 // setValue gets: "CPU" (string) ❌ should be array
 // Fix: Use editor.originalValue instead
 ```
-
-### Check each option
-```typescript
-Array.from(editor.input.options).forEach((option) => ...)
-```
-- Iterate through all options
-- Set `selected` property for matching ones
 
 ### The matching logic
 ```typescript
@@ -516,126 +482,41 @@ editor.multiselect.refresh();
 - Update plugin to show correct selections
 - Without this, UI shows old state
 
-## Step 10: Editor - Open (`open`)
+## Step 10: Complete Cell Definition
 
-Position the editor and open the dropdown.
-
-```typescript
-open(editor) {
-  const rect = editor.getEditedCellRect();
-  editor.wrapper.style =
-    `display: block;
-     min-height: 200px;
-     border: none;
-     box-sizing: border-box;
-     margin: 0;
-     padding: 0 4px;
-     position: absolute;
-     top: ${rect.top}px;
-     left: ${rect.start}px;
-     width: ${rect.width}px;
-     height: ${rect.height}px;`;
-  
-  editor.multiselect.open();
-}
-```
-
-**Key styling:**
-
-### `min-height: 200px`
-```typescript
-min-height: 200px;
-```
-- Ensures dropdown has space to show options
-- Otherwise might be squished to cell height
-- Allows plugin to display its UI properly
-
-**Why not set `height: 200px`?**
-- `min-height` allows growth if needed
-- `height: ${rect.height}px` would constrain to cell height
-- Plugin positions its dropdown absolutely anyway
-
-### The `open()` method
-```typescript
-editor.multiselect.open();
-```
-- Programmatically opens the dropdown
-- Like user clicking on it
-- Shows options list immediately
-
-**User experience:**
-1. User double-clicks cell
-2. Editor positions over cell
-3. Dropdown opens automatically
-4. User can immediately start selecting
-
-## Step 11: Editor - Focus and Close
-
-```typescript
-focus(editor) {
-  editor.input.focus();
-}
-
-close(editor) {
-  editor.wrapper.style.display = "none";
-}
-```
-
-**Focus method:**
-- Called when validation fails
-- Keeps editor open
-- User can try again
-
-**Close method:**
-- Hide wrapper
-- Plugin handles its own dropdown closing
-- No need to explicitly close plugin
-
-## Step 12: Complete Cell Definition
+Put it all together:
 
 ```typescript
 const cellDefinition = {
   renderer: Handsontable.renderers.factory(({ td, value }) => {
     td.innerHTML = value.length > 0
-      ? value.map((el: { label: string }) => el.label).join(", ")
-      : "No elements";
+      ? value.map((el: { label: string }) => el.label).join(', ')
+      : 'No elements';
     return td;
   }),
-  
-  editor: Handsontable.editors.BaseEditor.factory<{
-    wrapper: HTMLDivElement;
-    input: HTMLSelectElement;
-    multiselect: MultipleSelectInstance;
-  }>({
+  editor: editorFactory<{input: HTMLSelectElement, multiselect: MultipleSelectInstance}>({
     init(editor) {
-      editor.wrapper = editor.hot.rootDocument.createElement("DIV") as HTMLDivElement;
-      editor.wrapper.style.display = "none";
-      editor.wrapper.classList.add("htSelectEditor");
-      
       editor.input = editor.hot.rootDocument.createElement("SELECT") as HTMLSelectElement;
       editor.input.setAttribute("multiple", "multiple");
       editor.input.setAttribute("data-multi-select", "");
-      
-      editor.wrapper.appendChild(editor.input);
-      editor.hot.rootElement.appendChild(editor.wrapper);
-      
       editor.multiselect = multipleSelect(editor.input) as MultipleSelectInstance;
     },
-    
-    prepare(editor, row, col, prop, td, originalValue, cellProperties) {
+    beforeOpen(editor, { cellProperties }) {
       editor.input.innerHTML = cellProperties?.selectMultipleOptions?.map((
         el: { value: string; label: string },
       ) => `<option value="${el.value}">${el.label}</option>`).join("");
       editor.multiselect.refresh();
     },
-    
-    getValue(editor) {
-      return Array.from(editor.input.options)
-        .filter((option) => option.selected)
-        .map((option) => ({ value: option.value, label: option.label }));
+    afterOpen(editor) {
+      editor.multiselect.open();
     },
-    
+    getValue(editor) {
+      return Array.from(editor.input.options).filter((option) =>
+        option.selected
+      ).map((option) => ({ value: option.value, label: option.label }));
+    },
     setValue(editor, value) {
+      // https://github.com/handsontable/handsontable/issues/3510
       value = typeof value === "string" ? editor.originalValue : value;
       Array.from(editor.input.options).forEach((option) =>
         option.selected = value.some((el: { value: string }) =>
@@ -644,64 +525,38 @@ const cellDefinition = {
       );
       editor.multiselect.refresh();
     },
-    
-    open(editor) {
-      const rect = editor.getEditedCellRect();
-      editor.wrapper.style = `
-        display: block;
-        min-height: 200px;
-        border: none;
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0 4px;
-        position: absolute;
-        top: ${rect.top}px;
-        left: ${rect.start}px;
-        width: ${rect.width}px;
-        height: ${rect.height}px;
-      `;
-      editor.multiselect.open();
-    },
-    
-    focus(editor) {
-      editor.input.focus();
-    },
-    
-    close(editor) {
-      editor.wrapper.style.display = "none";
-    },
   }),
 };
 ```
 
-## Step 13: Use in Handsontable
+**What's happening:**
+- **renderer**: Displays selected items as comma-separated text
+- **editor**: Uses `editorFactory` helper with:
+  - `init`: Creates select element and initializes multiple-select plugin
+  - `beforeOpen`: Populates options from column config and refreshes plugin
+  - `afterOpen`: Opens the multiselect dropdown
+  - `getValue`: Returns selected options as array of objects
+  - `setValue`: Sets selected state, handles Handsontable bug, refreshes plugin
+
+**Note:** The `editorFactory` helper handles container creation, positioning, and lifecycle management automatically.
+
+## Step 11: Use in Handsontable
 
 ```typescript
-const components = [
-  { value: "cpu", label: "CPU" },
-  { value: "ram", label: "RAM" },
-  { value: "gpu", label: "GPU" },
-  { value: "ssd", label: "SSD" },
-];
+const container = document.querySelector("#example1")!;
 
-const countries = [
-  { value: "us", label: "United States" },
-  { value: "uk", label: "United Kingdom" },
-  { value: "de", label: "Germany" },
-  { value: "fr", label: "France" },
-];
-
-new Handsontable(container, {
+const hotOptions: Handsontable.GridSettings = {
+  themeName: 'ht-theme-main',
   data: [
     { 
       id: 1, 
-      itemName: "Product A",
+      itemName: "Lunar Core",
       components: [
-        { value: "cpu", label: "CPU" },
-        { value: "ram", label: "RAM" }
+        { value: "1", label: "Component 1" },
+        { value: "2", label: "Component 2" }
       ],
       countries: [
-        { value: "us", label: "United States" }
+        { value: "US", label: "United States of America (the)" }
       ]
     },
   ],
@@ -711,47 +566,54 @@ new Handsontable(container, {
     "Components",
     "Countries",
   ],
+  autoRowSize: true,
   rowHeaders: true,
+  height: 'auto',
   columns: [
-    { data: "id", type: "numeric", width: 150 },
-    { data: "itemName", type: "text", width: 150 },
-    {
-      data: "components",
-      width: 150,
-      allowInvalid: false,
-      ...cellDefinition,
-      selectMultipleOptions: components, // Custom property
-    },
+    { data: "id", type: "numeric" },
     {
       data: "countries",
       width: 150,
       allowInvalid: false,
       ...cellDefinition,
-      selectMultipleOptions: countries, // Different options!
+      selectMultipleOptions: coutries, // Custom property
+    },
+    {
+      data: "itemName",
+      type: "text",
+    },
+    {
+      data: "components",
+      width: 150,
+      allowInvalid: false,
+      ...cellDefinition,
+      selectMultipleOptions: components, // Different options!
     },
   ],
   licenseKey: "non-commercial-and-evaluation",
-});
+};
+
+const hot = new Handsontable(container, hotOptions);
 ```
 
 **Key features:**
 - Same cell definition for multiple columns
-- Different options per column
+- Different options per column via `selectMultipleOptions`
 - Type-safe (with proper TypeScript setup)
 
 ## How It Works - Complete Flow
 
-1. **Initial Render**: Cell shows "CPU, RAM"
-2. **User Double-Clicks**: Editor opens over cell
-3. **Prepare Called**: Options populated from `selectMultipleOptions`
-4. **Dropdown Opens**: Plugin shows searchable list
-5. **Current Values Selected**: CPU and RAM are checked
-6. **User Changes Selection**: Checks GPU, unchecks RAM
-7. **User Clicks Away**: Editor closes
-8. **GetValue Called**: Returns `[{value: "cpu", ...}, {value: "gpu", ...}]`
-9. **Validation**: Validator runs (optional)
-10. **Save**: New array saved to data
-11. **Re-render**: Cell shows "CPU, GPU"
+1. **Initial Render**: Cell displays comma-separated labels (e.g., "Component 1, Component 2")
+2. **User Double-Clicks or F2**: Editor opens, container positioned over cell
+3. **Before Open**: `beforeOpen` populates options from `cellProperties.selectMultipleOptions` and refreshes plugin
+4. **After Open**: `afterOpen` opens the multiselect dropdown automatically
+5. **Current Values Selected**: Previously selected items are checked in the dropdown
+6. **User Changes Selection**: User checks/unchecks options
+7. **User Clicks Away or Presses Enter**: Editor closes
+8. **GetValue Called**: Returns array of selected objects `[{value: "1", label: "Component 1"}, ...]`
+9. **Validation**: Validator runs (optional, if defined)
+10. **Save**: New array saved to cell data
+11. **Re-render**: Cell displays updated comma-separated labels
 
 ## Plugin Features
 
@@ -801,9 +663,9 @@ editor.multiselect = multipleSelect(editor.input, {
 ### 1. Dynamic Options Based on Other Cells
 
 ```typescript
-prepare(editor, row, col, prop, td, originalValue, cellProperties) {
+beforeOpen(editor, { row, cellProperties }) {
   const rowData = editor.hot.getDataAtRow(row);
-  const category = rowData[1]; // Category column
+  const category = rowData.category; // Category column
   
   // Different options based on category
   let options = cellProperties.selectMultipleOptions;
@@ -841,7 +703,7 @@ const groupedOptions = [
   }
 ];
 
-prepare(editor, ...) {
+beforeOpen(editor, { cellProperties }) {
   editor.input.innerHTML = groupedOptions.map(group =>
     `<optgroup label="${group.label}">
       ${group.children.map(opt => 
@@ -863,7 +725,7 @@ const optionsWithIcons = [
   { value: 'gpu', label: 'GPU', icon: '🎮' },
 ];
 
-prepare(editor, ...) {
+beforeOpen(editor, { cellProperties }) {
   editor.input.innerHTML = optionsWithIcons.map(opt =>
     `<option value="${opt.value}" data-icon="${opt.icon}">
       ${opt.icon} ${opt.label}
@@ -903,15 +765,19 @@ async prepare(editor, row, col, prop, td, originalValue, cellProperties) {
 ### 4. Save on Every Selection Change
 
 ```typescript
-init(editor) {
-  // ... existing code ...
-  
+afterInit(editor) {
+  // Set up change listener after plugin is initialized
   editor.input.addEventListener('change', () => {
     // Auto-save on selection change
     editor.finishEditing();
   });
 }
 ```
+
+**Why `afterInit`?**
+- Runs after the plugin is initialized
+- Ensures the select element is fully set up
+- Event listener attached after plugin creates its UI
 
 ## TypeScript Improvements
 

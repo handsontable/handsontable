@@ -65,18 +65,13 @@ npm install flatpickr date-fns
 ## Step 1: Import Dependencies
 
 ```typescript
-import Handsontable from "handsontable";
-import { registerAllModules } from "handsontable/registry";
-import "handsontable/styles/handsontable.css";
-import "handsontable/styles/ht-theme-main.css";
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
+import { format, isDate } from 'date-fns';
+import flatpickr from 'flatpickr';
 
-// Date formatting
-import { format, isDate } from "date-fns";
-
-// Flatpickr
-import flatpickr from "flatpickr";
-
-// Register all Handsontable's modules
 registerAllModules();
 ```
 
@@ -159,74 +154,28 @@ validator: (value, callback) => {
 }
 ```
 
-**With date range validation:**
-```typescript
-validator: (value, callback) => {
-  const date = new Date(value);
-  if (!isDate(date)) {
-    callback(false);
-    return;
-  }
-  
-  // Optional: check date range
-  const minDate = new Date('2000-01-01');
-  const maxDate = new Date('2099-12-31');
-  callback(date >= minDate && date <= maxDate);
-}
-```
+## Step 5: Editor - Initialize (`init`)
 
-## Step 5: Editor - Define Types
-
-Define the custom properties your editor needs:
-
-```typescript
-editor: Handsontable.editors.BaseEditor.factory<{
-  wrapper: HTMLDivElement;
-  input: HTMLInputElement;
-  flatpickr: flatpickr.Instance;
-  eventManager: Handsontable.EventManager;
-  flatpickrSettings: flatpickr.Options.Options;
-}>({
-  // ... methods
-})
-```
-
-**Type breakdown:**
-- `wrapper` - Container div for positioning
-- `input` - The input element Flatpickr attaches to
-- `flatpickr` - Flatpickr instance for controlling the picker
-- `eventManager` - Handsontable's event manager for proper cleanup
-- `flatpickrSettings` - Per-cell Flatpickr configuration
-
-## Step 6: Editor - Initialize (`init`)
-
-Create the DOM structure and initial Flatpickr instance.
+Create the input element and initialize Flatpickr.
 
 ```typescript
 init(editor) {
-  // Create wrapper div
-  editor.wrapper = editor.hot.rootDocument.createElement("DIV") as HTMLDivElement;
-  editor.wrapper.style.display = "none";
-  editor.wrapper.classList.add("htSelectEditor");
-  
-  // Create input inside wrapper
-  editor.input = editor.hot.rootDocument.createElement("INPUT") as HTMLInputElement;        
-  editor.input.style = 'width: 100%; padding: 0; opacity: 0';
-  
-  // Assemble DOM
-  editor.wrapper.appendChild(editor.input);
-  editor.hot.rootElement.appendChild(editor.wrapper);
+  // Create the input element on init. This is a text input that date picker will be attached to.
+  editor.input = editor.hot.rootDocument.createElement("INPUT") as HTMLInputElement;
   
   // Initialize Flatpickr
   editor.flatpickr = flatpickr(editor.input, {
     dateFormat: "Y-m-d",
     enableTime: false,
+    onChange: () => {
+      editor.finishEditing();
+    },
   });
   
   /**
    * Prevent recognizing clicking on datepicker as clicking outside of table.
    */
-  editor.eventManager = new Handsontable.EventManager(editor.wrapper);
+  editor.eventManager = new Handsontable.EventManager(editor.container);
   editor.eventManager.addEventListener(document.body, 'mousedown', (event) => {             
     if (editor.flatpickr.calendarContainer.contains(event.target as Node)) {
       event.stopPropagation();
@@ -235,17 +184,24 @@ init(editor) {
 }
 ```
 
+**What's happening:**
+1. Create an `input` element using `editor.hot.rootDocument.createElement()`
+2. Initialize Flatpickr on the input with default settings
+3. Set up `onChange` handler to finish editing when date is selected
+4. Create event manager to prevent clicks on calendar from closing editor
+5. The `editorFactory` helper handles container creation and DOM insertion
+
 **Key concepts:**
 
-### Why a wrapper div?
-- Allows positioning without affecting input dimensions
-- Can add styling, borders, shadows
-- Better control over z-index
-
-### Why `opacity: 0` on input?
-- Flatpickr shows its own UI elements
-- Input still needs to be there for Flatpickr to work
-- We make it invisible but functional
+### The `onChange` handler
+```typescript
+onChange: () => {
+  editor.finishEditing();
+}
+```
+- Called when user selects a date in Flatpickr
+- Automatically saves the value and closes the editor
+- Provides smooth UX - no need to press Enter
 
 ### The `eventManager` pattern
 This is crucial! Without it:
@@ -257,6 +213,7 @@ This is crucial! Without it:
 
 **Solution:**
 ```typescript
+editor.eventManager = new Handsontable.EventManager(editor.container);
 editor.eventManager.addEventListener(document.body, 'mousedown', (event) => {
   if (editor.flatpickr.calendarContainer.contains(event.target as Node)) {
     event.stopPropagation(); // Tell Handsontable: "This click is part of editing!"
@@ -268,8 +225,40 @@ editor.eventManager.addEventListener(document.body, 'mousedown', (event) => {
 - Proper cleanup when editor is destroyed
 - Consistent with Handsontable's event handling
 - Prevents memory leaks
+- `editor.container` is provided by `editorFactory` helper
+
+## Step 6: Editor - Before Open Hook (`beforeOpen`)
+
+Initialize the editor with the cell's current value and update Flatpickr settings.
+
+```typescript
+beforeOpen(editor, { originalValue, cellProperties }) {
+  editor.setValue(originalValue);
+  for (const key in cellProperties.flatpickrSettings) {
+    editor.flatpickr.set(key as keyof flatpickr.Options.Options, cellProperties.flatpickrSettings[key]);
+  }
+}
+```
+
+**What's happening:**
+1. Set the editor's value to the cell's current value
+2. Update Flatpickr settings from `cellProperties.flatpickrSettings`
+3. This allows per-column configuration (e.g., different locales, date formats)
+
+**Key points:**
+- `beforeOpen` is called before the editor opens
+- `originalValue` is the cell's current date value
+- `cellProperties.flatpickrSettings` contains column-specific Flatpickr configuration
+- `flatpickr.set()` updates the existing Flatpickr instance with new settings
+
+**Why update settings in `beforeOpen`?**
+- Allows different columns to have different Flatpickr configurations
+- Settings are applied just before opening, ensuring they're fresh
+- More efficient than reinitializing Flatpickr each time
 
 ## Step 7: Editor - Get Value (`getValue`)
+
+Return the current date value from the input.
 
 ```typescript
 getValue(editor) {
@@ -277,202 +266,122 @@ getValue(editor) {
 }
 ```
 
-**Simple and effective:**
-- Flatpickr automatically updates `input.value` in ISO format
-- We just read it and return
+**What's happening:**
+- Flatpickr automatically updates `input.value` in ISO format (e.g., "2024-12-31")
+- Simply return the input's current value
+- Called when Handsontable needs to save the cell value
 
 ## Step 8: Editor - Set Value (`setValue`)
+
+Initialize the editor with the cell's current date value.
 
 ```typescript
 setValue(editor, value) {
   editor.input.value = value;
+  editor.flatpickr.setDate(new Date(value));
 }
 ```
 
 **What's happening:**
-- Set the input's value
-- Flatpickr will parse and display it correctly
-- Called by Handsontable's `beginEditing()` method
+- Set the input's value to the provided date string
+- Update Flatpickr's selected date using `setDate()`
+- This ensures Flatpickr displays the correct date when opened
+- Called to initialize the editor with the cell's current value
 
-## Step 9: Editor - Prepare (`prepare`)
+## Step 9: Complete Cell Definition
 
-This is where per-cell configuration happens!
-
-```typescript
-prepare(editor, _row, _col, _prop, _td, originalValue, cellProperties) {
-  editor.input.value = originalValue;
-  editor.flatpickrSettings = cellProperties.flatpickrSettings;
-}
-```
-
-**What's happening:**
-- `prepare()` is called every time a cell is selected
-- `originalValue` is the cell's current value
-- `cellProperties.flatpickrSettings` contains column-specific Flatpickr config
-- Store settings for use in `open()`
-- Unused parameters are prefixed with `_` (TypeScript convention)
-
-**Why not set Flatpickr settings here?**
-- `prepare()` is called even when not editing
-- Better performance to defer until `open()`
-- Allows dynamic configuration based on cell state
-
-**Advanced: Dynamic configuration**
-```typescript
-prepare(editor, row, _col, _prop, _td, originalValue, cellProperties) {
-  editor.input.value = originalValue;
-  
-  // Different settings based on row data
-  const rowData = editor.hot.getDataAtRow(row);
-  if (rowData.isPastDate) {
-    editor.flatpickrSettings = {
-      ...cellProperties.flatpickrSettings,
-      maxDate: 'today'
-    };
-  } else {
-    editor.flatpickrSettings = cellProperties.flatpickrSettings;
-  }
-}
-```
-
-## Step 10: Editor - Open (`open`)
-
-Position the editor and reinitialize Flatpickr with settings.
-
-```typescript
-open(editor) {
-  const rect = editor.getEditedCellRect()!;
-  editor.wrapper.style = `
-    display: block;
-    border: none;
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0 4px;
-    position: absolute;
-    top: ${rect.top}px;
-    left: ${rect.start}px;
-    width: ${rect.width}px;
-    height: ${rect.height}px;
-  `;
-  
-  // Reinitialize Flatpickr with cell-specific settings
-  editor.flatpickr = flatpickr(editor.input, {
-    dateFormat: "Y-m-d",
-    onChange: (selectedDates, dateStr, instance) => {
-      editor.finishEditing();
-    },
-    ...(editor.flatpickrSettings || {})
-  });
-}
-```
-
-**Key points:**
-
-### Why reinitialize Flatpickr in `open()`?
-- Allows per-cell configuration
-- Different columns can have different settings
-- Settings from `prepare()` are applied here
-
-### The `onChange` handler
-```typescript
-onChange: (selectedDates, dateStr, instance) => {
-  editor.finishEditing();
-}
-```
-- Called when user selects a date
-- `finishEditing()` saves the value and closes the editor
-- Provides smooth UX - no need to press Enter
-
-### Spread operator for settings
-```typescript
-...(editor.flatpickrSettings || {})
-```
-- Merges column-specific settings
-- Falls back to empty object if undefined
-- Overrides default settings
-
-### The `!` assertion
-```typescript
-const rect = editor.getEditedCellRect()!;
-```
-- TypeScript assertion that rect is not undefined
-- Safe because `open()` is only called when a cell is being edited
-
-## Step 11: Editor - Focus and Close
-
-```typescript
-focus(editor) {
-  editor.input.focus();
-}
-
-close(editor) {
-  editor.wrapper.style.display = 'none';
-}
-```
-
-**Focus method:**
-- Called when editor needs to regain focus
-- Happens when validation fails
-
-**Close method:**
-- Hide the wrapper
-- Flatpickr automatically closes its calendar
-- No need to manually destroy Flatpickr
-
-## Step 12: Complete Cell Definition
+Put it all together:
 
 ```typescript
 const cellDefinition = {
+  validator: (value, callback) => {
+    callback(isDate(new Date(value)));
+  },
   renderer: Handsontable.renderers.factory(({ td, value, cellProperties }) => {
     td.innerText = format(new Date(value), cellProperties.renderFormat);
     return td;
   }),
-  
-  validator: (value, callback) => {    
-    const date = new Date(value);
-    callback(!isNaN(date.getTime()));
-  },
-  
-  editor: Handsontable.editors.BaseEditor.factory<{
-    wrapper: HTMLDivElement;
-    input: HTMLInputElement;
-    flatpickr: flatpickr.Instance;
-    eventManager: Handsontable.EventManager;
-    flatpickrSettings: flatpickr.Options.Options;
+  editor: editorFactory<{
+    input: HTMLInputElement,
+    flatpickr: flatpickr.Instance,
+    eventManager: Handsontable.EventManager,
+    flatpickrSettings: flatpickr.Options.Options
   }>({
-    init(editor) { /* ... from Step 6 ... */ },
-    getValue(editor) { return editor.input.value; },
-    setValue(editor, value) { editor.input.value = value; },
-    prepare(editor, _row, _col, _prop, _td, _originalValue, _cellProperties) {
-      editor.input.value = originalValue;
-      editor.flatpickrSettings = cellProperties.flatpickrSettings;
+    init(editor) {
+      // Create the input element on init. This is a text input that date picker will be attached to.
+      editor.input = editor.hot.rootDocument.createElement("INPUT") as HTMLInputElement;
+      editor.flatpickr = flatpickr(editor.input, {
+        dateFormat: "Y-m-d",
+        enableTime: false,
+        onChange: () => {
+          editor.finishEditing();
+        },
+      });
+      /**
+       * Prevent recognizing clicking on datepicker as clicking outside of table.
+       */
+      editor.eventManager = new Handsontable.EventManager(editor.container);
+      editor.eventManager.addEventListener(document.body, 'mousedown', (event) => {
+        if (editor.flatpickr.calendarContainer.contains(event.target as Node)) {
+          event.stopPropagation();
+        }
+      });
     },
-    open(editor) { /* ... from Step 10 ... */ },
-    focus(editor) { editor.input.focus(); },
-    close(editor) { editor.wrapper.style.display = 'none'; }
+    beforeOpen(editor, { originalValue, cellProperties }) {
+      editor.setValue(originalValue);
+      for (const key in cellProperties.flatpickrSettings) {
+        editor.flatpickr.set(key as keyof flatpickr.Options.Options, cellProperties.flatpickrSettings[key]);
+      }
+    },
+    getValue(editor) {
+      return editor.input.value;
+    },
+    setValue(editor, value) {
+      editor.input.value = value;
+      editor.flatpickr.setDate(new Date(value));
+    },
   }),
 };
 ```
 
-## Step 13: Use in Handsontable with Different Formats
+**What's happening:**
+- **validator**: Ensures date is valid using `isDate` from date-fns
+- **renderer**: Displays formatted date using `cellProperties.renderFormat`
+- **editor**: Uses `editorFactory` helper with:
+  - `init`: Creates input, initializes Flatpickr, sets up event manager
+  - `beforeOpen`: Sets value and updates Flatpickr settings from column config
+  - `getValue`: Returns the input's current value
+  - `setValue`: Sets input value and updates Flatpickr date
+
+**Note:** The `editorFactory` helper handles container creation, positioning, and lifecycle management automatically.
+
+## Step 10: Use in Handsontable with Different Formats
 
 ```typescript
-const hot = new Handsontable(container, {
+const container = document.querySelector("#example1")!;
+
+const hotOptions: Handsontable.GridSettings = {
+  themeName: 'ht-theme-main',
   data: [
-    { id: 1, itemName: "Item 1", restockDate: "2024-12-31" },
-    { id: 2, itemName: "Item 2", restockDate: "2024-06-15" },
+    { id: 1, itemName: "Lunar Core", restockDate: "2025-08-01" },
+    { id: 2, itemName: "Zero Thrusters", restockDate: "2025-09-15" },
   ],
   colHeaders: [
     "ID",
     "Item Name",
-    "Restock Date EU",
+    "Restock Date UE",
     "Restock Date US",
   ],
+  autoRowSize: true,
   rowHeaders: true,
+  height: 'auto',
   columns: [
     { data: "id", type: "numeric", width: 150 },
-    { data: "itemName", type: "text", width: 150 },
-    
+    {
+      data: "itemName",
+      type: "text",
+      width: 150,
+    },
     // European format column
     {
       data: "restockDate",
@@ -484,9 +393,8 @@ const hot = new Handsontable(container, {
         locale: {
           firstDayOfWeek: 1          // Monday
         }
-      },      
+      },
     },
-    
     // US format column
     {
       data: "restockDate",
@@ -498,31 +406,31 @@ const hot = new Handsontable(container, {
         locale: {
           firstDayOfWeek: 0          // Sunday
         }
-      },    
+      },
     }
   ],
   licenseKey: "non-commercial-and-evaluation",
-});
+};
+
+const hot = new Handsontable(container, hotOptions);
 ```
 
 **Amazing feature:**
 - Same data column (`restockDate`)
-- Two different display formats
-- Two different calendar configurations
+- Two different display formats (EU vs US)
+- Two different calendar configurations (Monday vs Sunday first day)
 - One cell definition!
 
 ## How It Works - Complete Flow
 
-1. **Initial Load**: Renderer shows "31/12/2024" (EU) or "12/31/2024" (US)
-2. **Cell Selection**: `prepare()` is called, stores `flatpickrSettings`
-3. **Edit Start**: User double-clicks, `open()` is called
-4. **Editor Opens**: Wrapper positioned, Flatpickr initialized with settings
-5. **Calendar Shows**: Flatpickr displays calendar (Monday/Sunday first day based on column)
-6. **User Clicks Date**: `onChange` fires, calls `finishEditing()`
-7. **Validation**: Validator checks date is valid
-8. **Save**: Value saved in ISO format ("2024-12-31")
-9. **Render**: Renderer displays in localized format
-10. **Close**: Editor hidden, ready for next edit
+1. **Initial Load**: Cell displays formatted date ("31/12/2024" EU or "12/31/2024" US)
+2. **User Double-Clicks or F2**: Editor opens, container positioned over cell
+3. **Before Open**: `beforeOpen` sets value and updates Flatpickr settings from column config
+4. **Calendar Opens**: Flatpickr displays calendar with column-specific settings (Monday/Sunday first day)
+5. **User Selects Date**: `onChange` handler fires, calls `finishEditing()`
+6. **Validation**: Validator checks date is valid using `isDate`
+7. **Save**: Value saved in ISO format ("2024-12-31")
+8. **Editor Closes**: Container hidden, cell renderer displays new formatted date
 
 ## Advanced Enhancements
 
@@ -569,7 +477,7 @@ flatpickrSettings: {
 }
 
 // Adjust wrapper height in open()
-editor.wrapper.style.height = '300px';
+editor.container.style.height = '300px';
 ```
 
 ### 4. Multiple Date Locales

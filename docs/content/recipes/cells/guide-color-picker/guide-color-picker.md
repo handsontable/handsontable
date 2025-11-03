@@ -61,23 +61,21 @@ npm install @melloware/coloris
 ## Step 1: Import Dependencies
 
 ```typescript
-import Handsontable from "handsontable";
-import "handsontable/dist/handsontable.full.min.css";
-import { registerAllModules } from "handsontable/registry";
-
-// Import the color picker library
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
 import "@melloware/coloris/dist/coloris.css";
-import Coloris from "@melloware/coloris";
+import Coloris from '@melloware/coloris';
 
-// Initialize Coloris globally
 Coloris.init();
-
 registerAllModules();
 ```
 
 **Why this matters:**
 - Coloris needs to be initialized once globally
-- We import both the factory functions we'll use
+- Import Coloris library for color picker functionality
+- CSS import is commented out in example but should be included in production
 
 ## Step 2: Create the Renderer
 
@@ -123,51 +121,43 @@ validator: (value, callback) => {
 - Support short format: `#fff`
 - Support RGB/RGBA values
 
-## Step 4: Create the Editor - Define Types
+## Step 4: Editor - Initialize (`init`)
 
-First, define what custom properties your editor needs:
-
-```typescript
-editor: Handsontable.editors.BaseEditor.factory<{
-  wrapper: HTMLDivElement,
-  input: HTMLInputElement
-}>({
-  // ... methods will go here
-})
-```
-
-**What's happening:**
-- TypeScript generic defines custom properties
-- `wrapper` will hold a container `<div>` for positioning
-- `input` will hold the `<input>` element that Coloris attaches to
-
-## Step 5: Editor - Initialize (`init`)
-
-The `init` method runs once when the editor is first created.
+Create the input element that Coloris will attach to.
 
 ```typescript
 init(editor) {
-  // Create the wrapper and input element on init. This is a text input that color picker will be attached to.
-  editor.wrapper = editor.hot.rootDocument.createElement('DIV') as HTMLDivElement;
-
-  // Hide it initially
-  editor.wrapper.style.display = 'none';
-  editor.wrapper.classList.add('htSelectEditor');
+  // Create the input element on init. This is a text input that color picker will be attached to.
   editor.input = editor.hot.rootDocument.createElement("INPUT") as HTMLInputElement;
-  
-  // Tell Coloris to attach to this input
   editor.input.setAttribute('data-coloris', '');
-  editor.input.style = 'width: 100%; height: 100%; padding: 0;margin: 0;border: none; opacity: 0;';
+}
+```
 
-  // Add to DOM
-  editor.hot.rootElement.appendChild(editor.wrapper);
-  editor.wrapper.appendChild(editor.input);
-  
-  // Configure Coloris for this input
+**What's happening:**
+1. Create an `input` element using `editor.hot.rootDocument.createElement()`
+2. Set `data-coloris` attribute to tell Coloris to attach to this input
+3. The `editorFactory` helper will handle container creation and DOM insertion
+
+**Key points:**
+- Use `editor.hot.rootDocument.createElement()` (not `document.createElement()`)
+- This ensures compatibility with shadow DOM and iframes
+- `data-coloris` attribute tells Coloris to activate on this input
+- Container and DOM insertion are handled by `editorFactory`
+
+**Why not `document.createElement()`?**
+- Handsontable might be in an iframe or shadow DOM
+- `editor.hot.rootDocument` ensures correct document context
+
+## Step 5: Editor - After Init Hook (`afterInit`)
+
+Configure Coloris and set up the close event handler.
+
+```typescript
+afterInit(editor) {
   Coloris({
     el: editor.input, 
-    closeButton:true, 
-    closeLabel:"Apply Colour", 
+    closeButton: true, 
+    closeLabel: "Apply Colour", 
     // We don't want alpha channel 
     alpha: false, 
     // Hide Coloris additional input UI
@@ -179,18 +169,41 @@ init(editor) {
 }
 ```
 
-**Key points:**
-- Use `editor.hot.rootDocument.createElement()` (not `document.createElement()`)
-- This ensures compatibility with shadow DOM and iframes
-- `data-coloris` attribute tells Coloris to activate on this input
-- The `close` event is triggered when user confirms their selection
-- `editor.finishEditing()` saves the value and closes the editor
+**What's happening:**
+1. Configure Coloris for the input element
+2. Enable close button with custom label "Apply Colour"
+3. Disable alpha channel (no transparency)
+4. Hide additional input UI wrapper
+5. Listen for 'close' event to finish editing when user confirms
 
-**Why not `document.createElement()`?**
-- Handsontable might be in an iframe or shadow DOM
-- `editor.hot.rootDocument` ensures correct document context
+**Why `afterInit` instead of `init`?**
+- `afterInit` runs after the input is added to the DOM
+- Coloris needs the element to be in the DOM to attach properly
+- Ensures proper initialization order
 
-## Step 6: Editor - Get Value (`getValue`)
+## Step 6: Editor - After Open Hook (`afterOpen`)
+
+Trigger the color picker to open when the editor is opened.
+
+```typescript
+afterOpen(editor) {
+  editor.input.click();
+}
+```
+
+**What's happening:**
+- Called after the editor container is positioned and shown
+- Programmatically clicks the input to trigger Coloris color picker
+- Coloris will open its picker UI when the input is clicked
+
+**Why `afterOpen` instead of `open`?**
+- `afterOpen` runs after positioning is complete
+- Ensures the input is ready before triggering Coloris
+- The `editorFactory` helper handles positioning in `open`
+
+## Step 7: Editor - Get Value (`getValue`)
+
+Return the current color value from the input.
 
 ```typescript
 getValue(editor) {
@@ -199,11 +212,13 @@ getValue(editor) {
 ```
 
 **What's happening:**
-- This is called when Handsontable needs to save the cell value
-- Simply return the input's current value
+- Called when Handsontable needs to save the cell value
+- Returns the input's current value (hex color code)
 - Coloris automatically updates `input.value` when color is selected
 
-## Step 7: Editor - Set Value (`setValue`)
+## Step 8: Editor - Set Value (`setValue`)
+
+Initialize the editor with the cell's current color value.
 
 ```typescript
 setValue(editor, value) {
@@ -212,64 +227,11 @@ setValue(editor, value) {
 ```
 
 **What's happening:**
-- This is called to initialize the editor with the cell's current value
-- Set the input's value to the provided value
+- Called to initialize the editor with the cell's current value
+- Sets the input's value to the provided hex color
 - Coloris will display this color when opened
 
-## Step 8: Editor - Open (`open`)
-
-```typescript
-open(editor) {
-  const rect = editor.getEditedCellRect();
-  editor.wrapper.style = `
-    display: block;
-    border: none;
-    padding: 0;
-    position: absolute;
-    top: ${rect.top}px;
-    left: ${rect.start}px;
-    width: ${rect.width}px;
-    height: ${rect.height}px;
-  `;
-  editor.input.click(); // Trigger Coloris to open
-}
-```
-
-**What's happening:**
-- `getEditedCellRect()` returns the cell's position and dimensions
-- Position the input absolutely over the cell
-- Show the input wrapper (`display: block`)
-- Programmatically click it to open Coloris
-
-**Why position over the cell?**
-- Visual continuity - editor appears where the cell was
-- User knows what they're editing
-
-## Step 9: Editor - Focus (`focus`)
-
-```typescript
-focus(editor) {
-  editor.input.focus();
-}
-```
-
-**What's happening:**
-- Called when the editor needs to regain focus
-- Happens when validation fails and `allowInvalid: false`
-
-## Step 10: Editor - Close (`close`)
-
-```typescript
-close(editor) {
-  editor.wrapper.style.display = 'none';
-}
-```
-
-**What's happening:**
-- Hide the input when editing is done
-- Coloris will automatically close its picker
-
-## Step 11: Complete Cell Definition
+## Step 9: Complete Cell Definition
 
 Put it all together:
 
@@ -281,22 +243,22 @@ const cellDefinition = {
     return td;
   }),
   validator: (value, callback) => {
-    callback(value.length === 7 && value[0] == '#'); 
+    callback(value.length === 7 && value[0] == '#'); // validate color format
   },
-  editor: Handsontable.editors.BaseEditor.factory<{wrapper: HTMLDivElement, input: HTMLInputElement}>({
+  editor: editorFactory<{input: HTMLInputElement}>({
     init(editor) {
-      editor.wrapper = editor.hot.rootDocument.createElement('DIV') as HTMLDivElement;
-      editor.wrapper.style.display = 'none';
-      editor.wrapper.classList.add('htSelectEditor');
+      // create the input element on init. This is a text input that color picker will be attached to.
       editor.input = editor.hot.rootDocument.createElement("INPUT") as HTMLInputElement;
       editor.input.setAttribute('data-coloris', '');
-      editor.input.style = 'width: 100%; height: 100%; padding: 0;margin: 0;border: none; opacity: 0;';
-      editor.hot.rootElement.appendChild(editor.wrapper);
-      editor.wrapper.appendChild(editor.input);
-      Coloris({el: editor.input, closeButton:true, closeLabel:"Apply Colour", alpha: false, wrap: false});
+    },
+    afterInit(editor) {
+      Coloris({el: editor.input, closeButton:true, closeLabel:"Apply Colour",  alpha: false, wrap: false});
       editor.input.addEventListener('close', (event) => {
-        editor.finishEditing(); 
+        editor.finishEditing(); // close the color picker and save value on pressing "Apply Colour"
       });
+    },
+    afterOpen(editor) {
+      editor.input.click();
     },
     getValue(editor) {
       return editor.input.value;
@@ -304,79 +266,70 @@ const cellDefinition = {
     setValue(editor, value) {
       editor.input.value = value;
     },
-    open(editor) {
-      const rect = editor.getEditedCellRect();
-      editor.wrapper.style = `display: block; border:none; padding:0; position: absolute; top: ${rect.top}px; left: ${rect.start}px; width: ${rect.width}px; height: ${rect.height}px;`;
-      editor.input.click(); 
-    },
-    focus(editor) {
-      editor.input.focus();
-    },
-    close(editor) {
-      editor.wrapper.style.display = 'none';
-    }
   }),
 };
 ```
 
-## Step 12: Use in Handsontable
+**What's happening:**
+- **renderer**: Displays hex color code with colored background
+- **validator**: Ensures hex color format (# followed by 6 characters)
+- **editor**: Uses `editorFactory` helper with:
+  - `init`: Creates input element and sets `data-coloris` attribute
+  - `afterInit`: Configures Coloris and sets up close event handler
+  - `afterOpen`: Triggers color picker to open
+  - `getValue` and `setValue`: Standard value management
+
+**Note:** The `editorFactory` helper handles container creation, positioning, and lifecycle management automatically.
+
+## Step 10: Use in Handsontable
 
 ```typescript
-const container = document.querySelector("#handsontable-grid")!;
+const container = document.querySelector("#example1")!;
 
-new Handsontable(container, {
+const hotOptions: Handsontable.GridSettings = {
+  themeName: 'ht-theme-main',
   data: [
-    { id: 1, itemName: "Apple", color: "#ff0000" },
-    { id: 2, itemName: "Banana", color: "#ffff00" },
-    { id: 3, itemName: "Grape", color: "#800080" },
+    { id: 1, itemName: "Lunar Core", color: "#FF5733" },
+    { id: 2, itemName: "Zero Thrusters", color: "#33FF57" },
+    { id: 3, itemName: "EVA Suits", color: "#3357FF" },
   ],
-  colHeaders: ["ID", "Item Name", "Color"],
+  colHeaders: [
+    "ID",
+    "Item Name",
+    "Item Color",
+  ],
+  autoRowSize: true,
   rowHeaders: true,
+  height: 'auto',
   columns: [
-    { data: "id", type: "numeric", width: 150 },
-    { data: "itemName", type: "text", width: 150 },
-    { 
+    { data: "id", type: "numeric" },
+    { data: "itemName", type: "text" },
+    {
       data: "color",
-      width: 150,
-      allowInvalid: false, // Reject invalid colors
-      ...cellDefinition, // Spread our custom cell definition
+      ...cellDefinition,
     }
   ],
   licenseKey: "non-commercial-and-evaluation",
-});
+};
+
+const hot = new Handsontable(container, hotOptions);
 ```
 
 **Key configuration:**
-- `allowInvalid: false` - Prevents saving invalid colors
 - `...cellDefinition` - Spreads renderer, validator, and editor into the column config
+- The validator ensures only valid hex colors are saved
 
-## How It Works
+## How It Works - Complete Flow
 
-1. **Initial Render**: Renderer shows the hex color with colored background
-2. **User Double-Clicks Cell**: Handsontable calls `open()`
-3. **Editor Opens**: Input appears over cell, Coloris picker opens
-4. **User Selects Color**: Coloris updates input value
+1. **Initial Render**: Cell displays hex color code with colored background
+2. **User Double-Clicks or F2**: Editor opens, container positioned over cell
+3. **Color Picker Opens**: `afterOpen` triggers `input.click()`, Coloris picker appears
+4. **User Selects Color**: Coloris updates input value as user picks color
 5. **User Clicks "Apply Colour"**: `close` event fires, `finishEditing()` is called
-6. **Validation**: Validator checks the hex format
-7. **Save**: If valid, value is saved; if invalid and `allowInvalid: false`, editor stays open
-8. **Close**: Editor closes, renderer shows new color
+6. **Validation**: Validator checks hex format (# followed by 6 characters)
+7. **Save**: If valid, value is saved to cell; if invalid, editor may stay open
+8. **Editor Closes**: Container hidden, cell renderer shows new color
 
-## Troubleshooting
-
-### Color picker not opening
-- Ensure `Coloris.init()` is called before creating Handsontable
-- Check that `data-coloris` attribute is set
-- Verify `editor.input.click()` is called in `open()`
-
-### Value not saving
-- Check that `'close'` event listener is attached
-- Verify `editor.finishEditing()` is called
-- Check validator is returning `true`
-
-### Input not positioned correctly
-- Ensure `getEditedCellRect()` is called
-- Check CSS positioning is `position: absolute`
-- Verify `top`, `left`, `width`, `height` are set
 
 ## Enhancements
 
@@ -428,20 +381,39 @@ Coloris({
 });
 ```
 
-### 4. Inline Editing
+### 4. Before Open Hook
 
-Show picker immediately on cell selection:
+Initialize the editor with the cell's current value before opening:
 
 ```typescript
-prepare(editor, row, col, prop, td, originalValue, cellProperties) {
-  // Could auto-open picker here
-  // But might be annoying for keyboard navigation
+beforeOpen(editor, { originalValue }) {
+  editor.setValue(originalValue);
+}
+```
+
+This ensures Coloris displays the current color when opened. The `editorFactory` helper calls this automatically if not specified.
+
+### 5. Custom Color Formats
+
+Support RGB/RGBA or other formats:
+
+```typescript
+Coloris({
+  el: editor.input,
+  alpha: true,
+  format: 'rgba'
+});
+
+// Update validator
+validator: (value, callback) => {
+  const rgbaRegex = /^rgba?\(\d+,\s*\d+,\s*\d+(?:,\s*[\d.]+)?\)$/;
+  callback(rgbaRegex.test(value));
 }
 ```
 
 
 ---
 
-**Congratulations!** You've created a fully functional color picker cell in under 100 lines of code.
+**Congratulations!** You've created a fully functional color picker cell using the Coloris library with the `editorFactory` helper, providing an intuitive color selection experience in your data grid!
 
 

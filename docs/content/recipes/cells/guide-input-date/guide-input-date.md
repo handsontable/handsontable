@@ -65,10 +65,11 @@ Note: `date-fns` is only used for rendering. The editor uses native browser func
 ## Step 1: Import Dependencies
 
 ```typescript
-import Handsontable from "handsontable";
-import "handsontable/dist/handsontable.full.min.css";
-import { registerAllModules } from "handsontable/registry";
-import { format } from "date-fns";
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
+import { format } from 'date-fns';
 
 registerAllModules();
 ```
@@ -125,20 +126,11 @@ renderer: Handsontable.renderers.factory(({ td, value }) => {
 })
 ```
 
-## Step 3: Create the Validator
+## Step 3: Create the Validator (Optional)
 
-```typescript
-validator: (value, callback) => {    
-  value = parseInt(value);
-  callback(true);
-}
-```
+The implementation doesn't include a validator, but you can add one if needed:
 
-**Current implementation:**
-- Always returns `true`
-- The `parseInt` doesn't make sense for dates
-
-**Better implementation:**
+**Basic validation:**
 ```typescript
 validator: (value, callback) => {
   if (!value) {
@@ -175,59 +167,47 @@ validator: (value, callback) => {
 }
 ```
 
-Check that date is after another date 
-
+**Check that date is after another date:**
 ```typescript
+import { isAfter } from 'date-fns';
+
 validator: (value, callback) => {    
-  const result = isAfter(new Date(value), new Date(2001, 1, 11))
+  const result = isAfter(new Date(value), new Date(2001, 1, 11));
   callback(result);
 }
 ```
 
+## Step 4: Editor - Initialize (`init`)
 
-## Step 4: Editor - Define Types
-
-```typescript
-editor: Handsontable.editors.BaseEditor.factory<{
-  wrapper: HTMLDivElement;
-  input: HTMLInputElement;
-}>({
-  // ... methods
-})
-```
-
-**Type breakdown:**
-- `wrapper` - Container div for positioning and styling
-- `input` - The native `<input type="date">` element
-
-**Why a wrapper?**
-- Better positioning control
-- Can add borders, shadows, padding
-- Separation of concerns (layout vs input)
-
-## Step 5: Editor - Initialize (`init`)
-
-Create the DOM structure once.
+Create the date input element and set up event listeners.
 
 ```typescript
 init(editor) {
-  // Create wrapper div
-  editor.wrapper = editor.hot.rootDocument.createElement("DIV") as HTMLDivElement;
-  editor.wrapper.style.display = "none";
-  editor.wrapper.classList.add("htSelectEditor");
-  
-  // Create date input
-  editor.input = editor.hot.rootDocument.createElement("INPUT") as HTMLInputElement;      
+  editor.input = document.createElement("INPUT") as HTMLInputElement;      
   editor.input.setAttribute('type', 'date');
-  editor.input.style = 'width: 100%; padding: 0;';
   
-  // Assemble DOM
-  editor.wrapper.appendChild(editor.input);
-  editor.hot.rootElement.appendChild(editor.wrapper);      
+  editor.input.addEventListener('keyup', () => {
+    // This fires when picker is closed without selecting a date
+    editor.close();
+  });
+  
+  editor.input.addEventListener('change', () => {
+    editor.finishEditing();
+  });
+  
+  editor.value = editor.input.value;
 }
 ```
 
-**Key points:**
+**What's happening:**
+1. Create an `<input>` element using `document.createElement()`
+2. Set `type="date"` attribute to enable native date picker
+3. Add `keyup` event listener to close editor when picker is dismissed
+4. Add `change` event listener to finish editing when date is selected
+5. Initialize editor value from input value
+6. The `editorFactory` helper handles container creation and DOM insertion
+
+**Key concepts:**
 
 ### `type="date"` attribute
 ```typescript
@@ -238,243 +218,104 @@ editor.input.setAttribute('type', 'date');
 - On desktop: Browser-specific date picker
 - Returns value in ISO format: "YYYY-MM-DD"
 
-### Why `editor.hot.rootDocument`?
-- Handles shadow DOM and iframe contexts
-- More robust than `document.createElement()`
-- Ensures element is created in correct document
+### Event Listeners
 
-### Style: `width: 100%`
-- Makes input fill the wrapper
-- Wrapper will be sized to match cell
-
-### Why `padding: 0`?
-- Removes default input padding
-- Makes input align perfectly with cell
-- You can adjust based on your needs
-
-## Step 6: Editor - Get Value (`getValue`)
-
+**`keyup` event:**
 ```typescript
-getValue(editor) {
-  return editor.input.value;
-}
-```
-
-**What's happening:**
-- Native date input automatically stores value in ISO format
-- Return exactly what the browser gives us
-- Handsontable will save this to the data source
-
-**Example:**
-- User selects: December 31, 2024 (via UI)
-- `input.value`: "2024-12-31"
-- Returned value: "2024-12-31"
-
-## Step 7: Editor - Set Value (`setValue`)
-
-```typescript
-setValue(editor, value) {
-  editor.input.value = value;
-}
-```
-
-**What's happening:**
-- Called when editor opens to show current cell value
-- Native input expects ISO format
-- If your data is already in ISO format, this just works!
-
-**If your data is in different format:**
-```typescript
-setValue(editor, value) {
-  // If value is a Date object
-  if (value instanceof Date) {
-    editor.input.value = value.toISOString().split('T')[0];
-    return;
-  }
-  
-  // If value is in US format: "12/31/2024"
-  if (typeof value === 'string' && value.includes('/')) {
-    const [month, day, year] = value.split('/');
-    editor.input.value = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-    return;
-  }
-  
-  // Otherwise assume ISO format
-  editor.input.value = value;
-}
-```
-
-## Step 8: Editor - Open (`open`)
-
-Position the editor and trigger the native picker.
-
-```typescript
-open(editor) {
-  const rect = editor.getEditedCellRect();
-  editor.wrapper.style = `
-    display: block;
-    border: none;
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0 4px;
-    position: absolute;
-    top: ${rect.top}px;
-    left: ${rect.start}px;
-    width: ${rect.width}px;
-    height: ${rect.height}px;
-  `;
-  
-  requestAnimationFrame(() => {
-    editor.input.showPicker();
-  });
-}
-```
-
-**Key concepts:**
-
-### Positioning
-```typescript
-const rect = editor.getEditedCellRect();
-```
-- Gets cell's exact position and size
-- Positions editor over the cell
-- Creates visual continuity
-
-### CSS Properties
-```css
-box-sizing: border-box;  // Include padding in width/height
-margin: 0;               // No margin
-padding: 0 4px;          // Small horizontal padding for comfort
-```
-
-### `showPicker()` method
-```typescript
-requestAnimationFrame(() => {
-  editor.input.showPicker();
+editor.input.addEventListener('keyup', () => {
+  editor.close();
 });
 ```
+- Fires when user closes the picker without selecting a date (e.g., pressing Escape)
+- Closes the editor to return to cell view
 
-**What is `showPicker()`?**
+**`change` event:**
+```typescript
+editor.input.addEventListener('change', () => {
+  editor.finishEditing();
+}
+```
+- Fires when user selects a date in the picker
+- Automatically saves the value and closes the editor
+- Provides smooth UX - no need to press Enter
+
+## Step 5: Editor - After Open Hook (`afterOpen`)
+
+Open the native date picker when the editor opens.
+
+```typescript
+afterOpen(editor) {
+  editor.input.showPicker();
+}
+```
+
+**What's happening:**
+- Called after the editor container is positioned and shown
+- Programmatically opens the native date picker
+- User can immediately start selecting a date
+
+**Why `afterOpen` instead of `open`?**
+- `afterOpen` runs after positioning is complete
+- Ensures the input element is ready before opening picker
+- The `editorFactory` helper handles positioning in `open`
+
+**The `showPicker()` method:**
 - Modern Web API method
 - Programmatically opens the native date picker
 - Like the user clicking on the input
-- Must be called in next frame otherwise it won't be position properlly. 
+- Must be called after the input is visible, which `afterOpen` ensures
 
-**Why `requestAnimationFrame()`?**
-- Ensures DOM has fully updated before opening picker
-- Without it, picker might not open on some browsers
-- Small delay ensures everything is ready
+**Note:** The `editorFactory` helper automatically positions the editor container over the cell, so we only need to open the picker.
 
-## Step 9: Editor - Focus (`focus`)
+## Step 6: Complete Cell Definition
 
-```typescript
-focus(editor) {
-  editor.input.focus();
-}
-```
-
-**When is this called?**
-- When validation fails and `allowInvalid: false`
-- When editor needs to regain focus
-- When user presses certain keys
-
-## Step 10: Editor - Close (`close`)
-
-```typescript
-close(editor) {
-  editor.wrapper.style.display = 'none';
-}
-```
-
-**What's happening:**
-- Hide the wrapper
-- Native picker automatically closes
-- Editor is ready for next use
-
-**Don't destroy elements:**
-- Elements are reused (singleton pattern)
-- Just hide, don't remove from DOM
-- Better performance
-
-## Step 11: Complete Cell Definition
+Put it all together:
 
 ```typescript
 const cellDefinition = {
   renderer: Handsontable.renderers.factory(({ td, value }) => {
-    td.innerText = format(new Date(value), "MM/dd/yyyy");
+    td.innerText = format(new Date(value), 'MM/dd/yyyy');
     return td;
   }),
-  
-  validator: (value, callback) => {    
-    const date = new Date(value);
-    callback(!isNaN(date.getTime()));
-  },
-  
-  editor: Handsontable.editors.BaseEditor.factory<{
-    wrapper: HTMLDivElement;
-    input: HTMLInputElement;
-  }>({
+  editor: editorFactory<{input: HTMLInputElement}>({
     init(editor) {
-      editor.wrapper = editor.hot.rootDocument.createElement("DIV") as HTMLDivElement;
-      editor.wrapper.style.display = "none";
-      editor.wrapper.classList.add("htSelectEditor");
-      
-      editor.input = editor.hot.rootDocument.createElement("INPUT") as HTMLInputElement;      
+      editor.input = document.createElement("INPUT") as HTMLInputElement;      
       editor.input.setAttribute('type', 'date');
-      editor.input.style = 'width: 100%; padding: 0;';
-      
-      editor.wrapper.appendChild(editor.input);
-      editor.hot.rootElement.appendChild(editor.wrapper);      
-    },
-    
-    getValue(editor) {
-      return editor.input.value;
-    },
-    
-    setValue(editor, value) {
-      editor.input.value = value;
-    },
-    
-    open(editor) {
-      const rect = editor.getEditedCellRect();
-      editor.wrapper.style = `
-        display: block;
-        border: none;
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0 4px;
-        position: absolute;
-        top: ${rect.top}px;
-        left: ${rect.start}px;
-        width: ${rect.width}px;
-        height: ${rect.height}px;
-      `;
-      requestAnimationFrame(() => {
-        editor.input.showPicker();
+      editor.input.addEventListener('keyup', () => {
+        // This fires when picker is closed without selecting a date
+        editor.close();
       });
+      editor.input.addEventListener('change', () => {
+        editor.finishEditing();
+      });
+      editor.value = editor.input.value;
     },
-    
-    focus(editor) {
-      editor.input.focus();
+    afterOpen(editor) {
+      editor.input.showPicker();
     },
-    
-    close(editor) {
-      editor.wrapper.style.display = 'none';
-    }
-  }),
+  })
 };
 ```
 
-## Step 12: Use in Handsontable
+**What's happening:**
+- **renderer**: Displays formatted date using `date-fns` format function
+- **editor**: Uses `editorFactory` helper with:
+  - `init`: Creates input element, sets type to date, adds event listeners
+  - `afterOpen`: Opens the native date picker using `showPicker()`
+
+**Note:** The `editorFactory` helper handles container creation, positioning, `getValue`, `setValue`, `focus`, and `close` automatically.
+
+## Step 7: Use in Handsontable
 
 ```typescript
-const container = document.querySelector("#handsontable-grid")!;
+const container = document.querySelector("#example1")!;
 
-new Handsontable(container, {
+const hotOptions: Handsontable.GridSettings = {
+  themeName: 'ht-theme-main',
   data: [
-    { id: 1, itemName: "Item 1", restockDate: "2024-12-31" },
-    { id: 2, itemName: "Item 2", restockDate: "2024-06-15" },
-    { id: 3, itemName: "Item 3", restockDate: "2024-03-20" },
+    { id: 1, itemName: "Lunar Core", restockDate: "2025-08-01" },
+    { id: 2, itemName: "Zero Thrusters", restockDate: "2025-09-15" },
+    { id: 3, itemName: "EVA Suits", restockDate: "2025-10-05" },
   ],
   colHeaders: [
     "ID",
@@ -483,38 +324,44 @@ new Handsontable(container, {
   ],
   autoRowSize: true,
   rowHeaders: true,
+  height: 'auto',
   columns: [
-    { data: "id", type: "numeric", width: 150 },
-    { data: "itemName", type: "text", width: 150 },
+    { data: "id", type: "numeric" },
+    {
+      data: "itemName",
+      type: "text",
+    },
     {
       data: "restockDate",
-      width: 150,
       allowInvalid: false,
       ...cellDefinition,
     }
   ],
   licenseKey: "non-commercial-and-evaluation",
-});
+};
+
+const hot = new Handsontable(container, hotOptions);
 ```
 
 **Key configuration:**
 - `allowInvalid: false` - Rejects invalid dates
-- `...cellDefinition` - Spreads renderer, validator, editor
+- `...cellDefinition` - Spreads renderer and editor
 - `autoRowSize: true` - Rows resize if needed
 
 ## How It Works - Complete Flow
 
-1. **Initial Render**: Renderer shows "12/31/2024"
-2. **User Double-Clicks**: Handsontable calls `open()`
-3. **Editor Opens**: Wrapper positioned over cell
-4. **Picker Shows**: `showPicker()` opens native date picker
-5. **User Selects Date**: Native picker handles selection
-6. **Input Updates**: `input.value` set to ISO format
-7. **User Confirms**: Blur event or Enter key triggers save
-8. **Validation**: Validator checks date is valid
-9. **Save**: If valid, value saved to data
-10. **Re-render**: Renderer shows new formatted date
-11. **Editor Closes**: Wrapper hidden
+1. **Initial Render**: Cell displays formatted date (e.g., "08/01/2025")
+2. **User Double-Clicks or F2**: Editor opens, container positioned over cell
+3. **After Open**: `afterOpen` opens the native date picker automatically
+4. **User Selects Date**: Native picker handles selection
+5. **Change Event**: `change` event fires, calls `finishEditing()`
+6. **Validation**: Validator runs (optional, if defined)
+7. **Save**: Value saved in ISO format (e.g., "2025-08-01")
+8. **Editor Closes**: Container hidden, cell renderer displays new formatted date
+
+**Alternative flow if user cancels:**
+- **User Presses Escape**: `keyup` event fires, calls `close()`
+- **Editor Closes**: Returns to cell view without saving
 
 ## Browser-Specific Behavior
 
@@ -538,38 +385,6 @@ new Handsontable(container, {
 - **Android Chrome**: Full calendar view
 - **Best UX**: Users get familiar interface
 
-## Troubleshooting
-
-### Date format wrong in input
-- **Problem**: Input shows ISO format instead of localized
-- **Solution**: This is normal! Input stores ISO, picker shows localized
-- **Note**: Renderer handles display format
-
-### Value not saving
-- **Problem**: Validator rejecting value
-- **Solution**: Check validator logic, ensure ISO format accepted
-
-### Input positioned wrong
-- **Problem**: CSS conflicts
-- **Solution**: Check `getEditedCellRect()` is called in `open()`
-
-## Native Date Input Limitations
-
-### What you CAN'T do:
-❌ Customize picker appearance  
-❌ Add time selection (use `<input type="datetime-local">`)  
-❌ Show calendar inline  
-❌ Add custom date shortcuts  
-❌ Control first day of week reliably  
-❌ Block specific dates easily  
-
-### What you CAN do:
-✅ Set min/max dates  
-✅ Use browser's localization  
-✅ Zero dependencies  
-✅ Excellent mobile UX  
-✅ Full accessibility  
-✅ Fast performance  
 
 ## Enhancements
 
@@ -592,7 +407,7 @@ init(editor) {
 Per-column date ranges:
 
 ```typescript
-prepare(editor, row, col, prop, td, originalValue, cellProperties) {
+beforeOpen(editor, { cellProperties }) {
   if (cellProperties.minDate) {
     editor.input.setAttribute('min', cellProperties.minDate);
   }
@@ -619,7 +434,7 @@ editor.input.setAttribute('step', '7'); // Week increments
 
 ### 4. Handle Change Event
 
-Auto-save on selection:
+Auto-save on selection is already implemented in the example:
 
 ```typescript
 init(editor) {
@@ -629,6 +444,8 @@ init(editor) {
   });
 }
 ```
+
+This is included in the basic implementation - when a date is selected, the editor automatically finishes editing and saves the value.
 
 ### 5. Different Display Formats per Column
 
@@ -656,22 +473,6 @@ columns: [
   }
 ]
 ```
-
-## When to Use Native vs Library
-
-### Use Native `<input type="date">` when:
-- ✅ Building mobile-first applications
-- ✅ Want zero dependencies
-- ✅ Need accessibility out of the box
-- ✅ Simple date selection is sufficient
-- ✅ Trust browser's localization
-
-### Use Flatpickr or similar when:
-- ✅ Need consistent UX across browsers
-- ✅ Require time selection
-- ✅ Want custom styling
-- ✅ Need advanced features (ranges, shortcuts)
-- ✅ Building desktop-first applications
 
 ---
 
