@@ -25,10 +25,12 @@ export function confirmTemplate({ id = '', title = '', description = '', buttons
     return `
       <div tabindex="-1" data-ref="contentElement" class="${DIALOG_CLASS_NAME}__content-wrapper-inner">
         <div class="${DIALOG_CLASS_NAME}__content">
-          <h2 id="${id}-dialog-confirm-title" class="${DIALOG_CLASS_NAME}__title">${stripTags(title)}</h2>
-          <p id="${id}-dialog-confirm-description" class="${DIALOG_CLASS_NAME}__description">
-            ${stripTags(description)}
-          </p>
+          <h2
+            id="${id}-dialog-confirm-title"
+            class="${DIALOG_CLASS_NAME}__title">${stripTags(title)}</h2>
+          <p
+            id="${id}-dialog-confirm-description"
+            class="${DIALOG_CLASS_NAME}__description">${stripTags(description)}</p>
         </div>
         ${buttons.length > 0 ? `
           <div data-ref="buttonsContainer" class="${DIALOG_CLASS_NAME}__buttons">
