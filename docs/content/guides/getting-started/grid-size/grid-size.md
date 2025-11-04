@@ -165,7 +165,7 @@ Use flexbox on the wrapper element to make the container fill the available spac
 </div>
 ```
 
-When using Flexbox, the container automatically expands to fill the available space in the flex container. This is particularly useful when you want the grid to  take up all the available space within its parent. However, remember to set the `height` option to 100%.
+When using Flexbox, the container automatically expands to fill the available space in the flex container. This is particularly useful when you want the grid to take up all the available space within its parent. However, remember to set the `height` option to 100%.
 
 ## What if the size is not set
 
