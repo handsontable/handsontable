@@ -426,7 +426,7 @@ export class Dialog extends BasePlugin {
         ...templateValue,
       });
     } else {
-      this.#ui.useTemplate('base');
+      this.#ui.useDefaultTemplate();
     }
 
     this.#ui.updateDialog({

@@ -83,13 +83,25 @@ export class DialogUI {
    * @param {object} templateVars The variables to use for the template.
    */
   useTemplate(templateName, templateVars = {}) {
-    if (!TEMPLATES.has(templateName)) {
+    if (!TEMPLATES.has(templateName) || templateName === 'base') {
+      const validTemplates = Array.from(TEMPLATES.keys())
+        .filter(template => template !== 'base')
+        .join(', ');
+
       throw new Error(toSingleLine`Invalid template: ${templateName}.\x20
-        Valid templates are: ${Array.from(TEMPLATES.keys()).join(', ')}`);
+        Valid templates are: ${validTemplates}.`);
     }
 
     this.#template = TEMPLATES.get(templateName)(templateVars);
     this.#templateButtonCallbacks = (templateVars.buttons ?? []).map(button => button.callback);
+  }
+
+  /**
+   * Uses the default template for the dialog for the `content` option.
+   */
+  useDefaultTemplate() {
+    this.#template = TEMPLATES.get('base')();
+    this.#templateButtonCallbacks = [];
   }
 
   /**
