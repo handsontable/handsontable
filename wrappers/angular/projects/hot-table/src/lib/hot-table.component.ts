@@ -112,6 +112,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() maxRows: Handsontable.GridSettings['maxRows'];
   @Input() mergeCells: Handsontable.GridSettings['mergeCells'];
   @Input() minCols: Handsontable.GridSettings['minCols'];
+  @Input() minRowHeights: Handsontable.GridSettings['minRowHeights'];
   @Input() minRows: Handsontable.GridSettings['minRows'];
   @Input() minSpareCols: Handsontable.GridSettings['minSpareCols'];
   @Input() minSpareRows: Handsontable.GridSettings['minSpareRows'];
