@@ -51,6 +51,24 @@ describe('Bucket', () => {
       ]);
     });
 
+    it('should be possible to re-enable a previously removed hook', () => {
+      const bucket = new HooksBucket();
+      const fn1 = function() {};
+
+      bucket.add('afterChange', fn1);
+      bucket.remove('afterChange', fn1);
+
+      expect(bucket.getHooks('afterChange')).toEqual([
+        { callback: fn1, orderIndex: 0, runOnce: false, initialHook: false, skip: true },
+      ]);
+
+      bucket.add('afterChange', fn1);
+
+      expect(bucket.getHooks('afterChange')).toEqual([
+        { callback: fn1, orderIndex: 0, runOnce: false, initialHook: false, skip: false },
+      ]);
+    });
+
     it('should be possible to add hook with order', () => {
       const bucket = new HooksBucket();
       const fn1 = function() {};

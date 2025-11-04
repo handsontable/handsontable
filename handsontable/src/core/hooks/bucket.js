@@ -63,8 +63,14 @@ export class HooksBucket {
     }
 
     const hooks = this.#hooks.get(hookName);
+    const existingHook = hooks.find(hook => hook.callback === callback);
 
-    if (hooks.find(hook => hook.callback === callback)) {
+    if (existingHook) {
+      if (existingHook.skip === true) {
+        // Re-enable the hook if it was previously added and then removed.
+        existingHook.skip = false;
+      }
+
       // adding the same hook twice is now silently ignored
       return;
     }
