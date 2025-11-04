@@ -46,6 +46,32 @@ describe('Dialog - template option', () => {
     }).toThrowError('The `template` option cannot be used together with the `content` option.');
   });
 
+  it('should throw an error when not implemented template is provided', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      dialog: {
+        template: {
+          type: 'base',
+          title: 'Confirm',
+        },
+      },
+    });
+
+    const dialogPlugin = getPlugin('dialog');
+
+    expect(() => {
+      dialogPlugin.show();
+    }).toThrowError('Invalid template: base. Valid templates are: confirm.');
+    expect(() => {
+      dialogPlugin.show({
+        template: {
+          type: 'alert',
+          title: 'Alert',
+        },
+      });
+    }).toThrowError('Invalid template: alert. Valid templates are: confirm.');
+  });
+
   it('should print a warning when `template` has missing required fields', async() => {
     const warnSpy = spyOnConsoleWarn();
 
