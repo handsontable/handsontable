@@ -32,7 +32,6 @@ const data = [
 
 const ExampleComponent = () => {
   const hotTableRef = useRef(null);
-
   const showAlert = () => {
     const hotInstance = hotTableRef.current?.hotInstance;
 
@@ -40,7 +39,9 @@ const ExampleComponent = () => {
       return;
     }
 
-    hotInstance.getPlugin('dialog').show({
+    const dialogPlugin = hotInstance.getPlugin('dialog');
+
+    dialogPlugin.show({
       template: {
         type: 'confirm',
         title: 'Alert',
@@ -68,7 +69,10 @@ const ExampleComponent = () => {
       return;
     }
 
-    hotInstance.getPlugin('dialog').show({
+    const dialogPlugin = hotInstance.getPlugin('dialog');
+    const undoRedoPlugin = hotInstance.getPlugin('undoRedo');
+
+    dialogPlugin.show({
       template: {
         type: 'confirm',
         title: 'Do you want to undo the last action?',
@@ -84,7 +88,7 @@ const ExampleComponent = () => {
             text: 'OK',
             type: 'primary',
             callback: () => {
-              hot.getPlugin('undoRedo').undo();
+              undoRedoPlugin.undo();
               dialogPlugin.hide();
             },
           },
@@ -132,7 +136,7 @@ const ExampleComponent = () => {
           title="Date"
           type="date"
           data="sellDate"
-          width={130}
+          width={131}
           dateFormat="MMM D, YYYY"
           correctFormat={true}
           className="htRight"
