@@ -35,14 +35,10 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
  * - `animation`: Whether to enable animations (default: true)
  * - `closable`: Whether the dialog can be closed (default: false)
  * - `a11y`: Object with accessibility options (default object below)
- * ```js
- * {
- *   role: 'dialog', // Role of the dialog 'dialog' | 'alertdialog' (default: 'dialog')
- *   ariaLabel: 'Dialog', // Label for the dialog (default: 'Dialog')
- *   ariaLabelledby: '', // ID of the element that labels the dialog (default: '')
- *   ariaDescribedby: '', // ID of the element that describes the dialog (default: ''),
- * }
- * ```
+ *   - `role`: The role of the dialog ('dialog' | 'alertdialog') (default: 'dialog')
+ *   - `ariaLabel`: The label of the dialog (default: 'Dialog')
+ *   - `ariaLabelledby`: The ID of the element that labels the dialog (default: '')
+ *   - `ariaDescribedby`: The ID of the element that describes the dialog (default: ''),
  *
  * @example
  *
@@ -307,13 +303,13 @@ export class Dialog extends BasePlugin {
    * @param {object} options Dialog configuration object containing content and display options.
    * @param {object} options.template The template to use for the dialog (default: `null`). The error will be thrown when
    * the template is provided together with the `content` option.
-   * @param {string} options.template.type The type of the template ('confirm').
+   * @param {'confirm'} options.template.type The type of the template ('confirm').
    * @param {string} options.template.title The title of the dialog.
    * @param {string} options.template.description The description of the dialog. Default: ''.
    * @param {object[]} options.template.buttons The buttons to display in the dialog. Default: [].
-   *   - `text`: The text of the button.
-   *   - `type`: The type of the button ('primary' | 'secondary').
-   *   - `callback`: The callback to trigger when the button is clicked.
+   * @param {string} options.template.buttons.text The text of the button.
+   * @param {'primary' | 'secondary'} options.template.buttons.type The type of the button.
+   * @param {function(MouseEvent)} options.template.buttons.callback The callback to trigger when the button is clicked.
    * @param {string|HTMLElement|DocumentFragment} options.content The content to display in the dialog. Can be a string, HTMLElement, or DocumentFragment. Default: ''
    * @param {string} options.customClassName Custom CSS class name to apply to the dialog container. Default: ''
    * @param {'solid'|'semi-transparent'} options.background Dialog background variant. Default: 'solid'.
@@ -385,13 +381,13 @@ export class Dialog extends BasePlugin {
    * @param {object} options Dialog configuration object containing content and display options.
    * @param {object} options.template The template to use for the dialog (default: `null`). The error will be thrown when
    * the template is provided together with the `content` option.
-   * @param {string} options.template.type The type of the template ('confirm').
+   * @param {'confirm'} options.template.type The type of the template ('confirm').
    * @param {string} options.template.title The title of the dialog.
    * @param {string} options.template.description The description of the dialog. Default: ''.
    * @param {object[]} options.template.buttons The buttons to display in the dialog. Default: [].
-   *   - `text`: The text of the button.
-   *   - `type`: The type of the button ('primary' | 'secondary').
-   *   - `callback`: The callback to trigger when the button is clicked.
+   * @param {string} options.template.buttons.text The text of the button.
+   * @param {'primary' | 'secondary'} options.template.buttons.type The type of the button.
+   * @param {function(MouseEvent)} options.template.buttons.callback The callback to trigger when the button is clicked.
    * @param {string|HTMLElement|DocumentFragment} options.content The content to display in the dialog. Can be a string, HTMLElement, or DocumentFragment. Default: ''
    * @param {string} options.customClassName Custom CSS class name to apply to the dialog container. Default: ''
    * @param {'solid'|'semi-transparent'} options.background Dialog background variant. Default: 'solid'.
