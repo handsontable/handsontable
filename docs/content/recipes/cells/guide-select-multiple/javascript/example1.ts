@@ -10,179 +10,187 @@ registerAllModules();
 
 /* start:skip-in-preview */
 
-
-type ExtendedEditor<T> = Handsontable.editors.BaseEditor 
-& { render: (editor: ExtendedEditor<T>) => void, value?: any, config?: any } 
-& T
+type ExtendedEditor<T> = Handsontable.editors.BaseEditor & {
+  render: (editor: ExtendedEditor<T>) => void;
+  value?: any;
+  config?: any;
+} & T;
 
 export const editorFactory = <T>({
-    init,
-    afterOpen,
-    afterInit,
-    beforeOpen,
-    getValue,
-    setValue,
-    onFocus,
-    shortcuts,
-    value, 
-    //valueObject,
-    render,
-    config,
-    ...args
+  init,
+  afterOpen,
+  afterInit,
+  beforeOpen,
+  getValue,
+  setValue,
+  onFocus,
+  shortcuts,
+  value,
+  // valueObject,
+  render,
+  config,
+  ...args
 }: {
-
-    value?: T extends { value: any } ? T['value'] : any;
-    //valueObject?: T extends { valueObject: any } ? T['valueObject'] : any;
-    config?: T extends { config: any } ? T['config'] : any;
-    render?: (editor: ExtendedEditor<T>) => void;
-    init: (editor: ExtendedEditor<T>) => void;
-    afterOpen?: (editor: ExtendedEditor<T>) => void;
-    afterInit?: (editor: ExtendedEditor<T>) => void;
-    beforeOpen?: (editor: ExtendedEditor<T>, {
-        row,
-        col,
-        prop,
-        td,
-        originalValue,
-        cellProperties,
+  value?: T extends { value: any } ? T['value'] : any;
+  // valueObject?: T extends { valueObject: any } ? T['valueObject'] : any;
+  config?: T extends { config: any } ? T['config'] : any;
+  render?: (editor: ExtendedEditor<T>) => void;
+  init: (editor: ExtendedEditor<T>) => void;
+  afterOpen?: (editor: ExtendedEditor<T>) => void;
+  afterInit?: (editor: ExtendedEditor<T>) => void;
+  beforeOpen?: (
+    editor: ExtendedEditor<T>,
+    {
+      row,
+      col,
+      prop,
+      td,
+      originalValue,
+      cellProperties,
     }: {
-        row: number;
-        col: number;
-        prop: string | number;
-        td: HTMLTableCellElement;
-        originalValue: any;
-        cellProperties: Handsontable.CellProperties;
-    }) => void;
-    getValue?: (editor: ExtendedEditor<T>) => any;
-    setValue?: (editor: ExtendedEditor<T>, value: any) => void;
-    onFocus?: (editor: ExtendedEditor<T>) => void;
-    // TODO Shortcut type is not exported 
-    shortcuts?: {
-        keys: string[][];
-        callback: (editor: ExtendedEditor<T>, event: Event) => boolean | void;
-        group?: string;
-        runOnlyIf?: () => boolean;
-        captureCtrl?: boolean;
-        preventDefault?: boolean;
-        stopPropagation?: boolean;
-        relativeToGroup?: string;
-        position?: 'before' | 'after';
-        forwardToContext?: any;
-        // TODO Context type is not exported
-        //forwardToContext?: Handsontable.Context;
-      }[]
+      row: number;
+      col: number;
+      prop: string | number;
+      td: HTMLTableCellElement;
+      originalValue: any;
+      cellProperties: Handsontable.CellProperties;
+    }
+  ) => void;
+  getValue?: (editor: ExtendedEditor<T>) => any;
+  setValue?: (editor: ExtendedEditor<T>, value: any) => void;
+  onFocus?: (editor: ExtendedEditor<T>) => void;
+  // TODO Shortcut type is not exported
+  shortcuts?: {
+    keys: string[][];
+    callback: (editor: ExtendedEditor<T>, event: Event) => boolean | void;
+    group?: string;
+    runOnlyIf?: () => boolean;
+    captureCtrl?: boolean;
+    preventDefault?: boolean;
+    stopPropagation?: boolean;
+    relativeToGroup?: string;
+    position?: 'before' | 'after';
+    forwardToContext?: any;
+    // TODO Context type is not exported
+    // forwardToContext?: Handsontable.Context;
+  }[];
 } & Record<string, any>) => {
-    // TODO: This should be a unique id for the editor
-    const SHORTCUTS_GROUP = "ee";
+  // TODO: This should be a unique id for the editor
+  const SHORTCUTS_GROUP = 'ee';
 
-    const registerShortcuts = (editor: ExtendedEditor<T>) => {
-        const shortcutManager = editor.hot.getShortcutManager();
-        const editorContext = shortcutManager.getContext("editor")!;
-        const contextConfig = {
-            group: SHORTCUTS_GROUP,
-        };
-        if (shortcuts) {
-        editorContext.addShortcuts(
-            shortcuts.map((shortcut) => ({
-                ...shortcut,
-                callback: (event: KeyboardEvent) =>
-                    shortcut.callback(editor, event),
-            })),
-            //@ts-ignore
-            contextConfig,
-        );
-        }
+  const registerShortcuts = (editor: ExtendedEditor<T>) => {
+    const shortcutManager = editor.hot.getShortcutManager();
+    const editorContext = shortcutManager.getContext('editor')!;
+    const contextConfig = {
+      group: SHORTCUTS_GROUP,
     };
 
-    return Handsontable.editors.BaseEditor.factory<
+    if (shortcuts) {
+      editorContext.addShortcuts(
+        shortcuts.map((shortcut) => ({
+          ...shortcut,
+          callback: (event: KeyboardEvent) => shortcut.callback(editor, event),
+        })),
+        // @ts-ignore
+        contextConfig
+      );
+    }
+  };
+
+  return Handsontable.editors.BaseEditor.factory<
     ExtendedEditor<T> & { container: HTMLDivElement; _open: boolean; input: HTMLElement }
-    >({
-        init(editor) {
-            
-            Object.assign(editor, { value, config, render, ...args });
-            // create the input element on init. This is a text input that color picker will be attached to.
-            editor._open = false;
-            editor.container = editor.hot.rootDocument.createElement(
-                "DIV",
-            ) as HTMLDivElement;
-            editor.container.style.display = "none";
-            editor.container.classList.add("htSelectEditor");
-            editor.hot.rootElement.appendChild(editor.container);    
-            init(editor);        
-            if (!editor.input) {
-                console.error("input not found");
-            }
-            
-            editor.container.appendChild(editor.input);
-            if (typeof afterInit === "function") {
-                afterInit(editor);
-            }
-        },
-        getValue(editor) {
-            if (typeof getValue === "function") {
-                return getValue(editor);
-            }            
-            return editor.value;
-        },
-        setValue(editor, value) {
-            if (typeof setValue === "function") {
-                setValue(editor, value);
-            } else {
-                editor.value = value;
-            }
+  >({
+    init(editor) {
+      Object.assign(editor, { value, config, render, ...args });
+      // create the input element on init. This is a text input that color picker will be attached to.
+      editor._open = false;
+      editor.container = editor.hot.rootDocument.createElement('DIV') as HTMLDivElement;
+      editor.container.style.display = 'none';
+      editor.container.classList.add('htSelectEditor');
+      editor.hot.rootElement.appendChild(editor.container);
+      init(editor);
 
-            if (typeof render === "function") {
-                render(editor);
-            }
-        },
-        open(editor) {
-            const rect = editor.getEditedCellRect()!;
-            editor.container.style =
-                `display: block; border:none; box-sizing: border-box; margin:0; padding:0px; position: absolute; top: ${rect.top}px; left: ${rect.start}px; width: ${rect.width}px; height: ${rect.height}px;`;
-            editor.container.classList.add("ht_editor_visible");
-            if (afterOpen) {
-                window.requestAnimationFrame(() => {
-                    afterOpen(editor);
-                });
-            }
-            editor._open = true;
-            editor.hot.getShortcutManager().setActiveContextName("editor");
-            registerShortcuts(editor);
-        },
-        focus(editor) {
-            if (typeof onFocus === "function") {
-                onFocus(editor);
-            } else {
-                editor.container.querySelector(
-                    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-                //@ts-ignore
-                )?.focus();
-            }
-        },
-        close(editor) {
-            editor._open = false;
-            editor.container.style.display = "none";
-            editor.container.classList.remove("ht_editor_visible");
+      if (!editor.input) {
+        console.error('input not found');
+      }
 
-            const shortcutManager = editor.hot.getShortcutManager();
-            const editorContext = shortcutManager.getContext("editor")!;
-            editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP);            
-        },
-        prepare(editor, row, col, prop, td, originalValue, cellProperties) {
-            if (typeof beforeOpen === "function") {
-                beforeOpen(editor, {
-                    row,
-                    col,
-                    prop,
-                    td,
-                    originalValue,
-                    cellProperties,
-                });
-            } else {
-                editor.setValue(originalValue);
-            }
-        },
-    });
+      editor.container.appendChild(editor.input);
+
+      if (typeof afterInit === 'function') {
+        afterInit(editor);
+      }
+    },
+    getValue(editor) {
+      if (typeof getValue === 'function') {
+        return getValue(editor);
+      }
+
+      return editor.value;
+    },
+    setValue(editor, value) {
+      if (typeof setValue === 'function') {
+        setValue(editor, value);
+      } else {
+        editor.value = value;
+      }
+
+      if (typeof render === 'function') {
+        render(editor);
+      }
+    },
+    open(editor) {
+      const rect = editor.getEditedCellRect()!;
+
+      editor.container.style = `display: block; border:none; box-sizing: border-box; margin:0; padding:0px; position: absolute; top: ${rect.top}px; left: ${rect.start}px; width: ${rect.width}px; height: ${rect.height}px;`;
+      editor.container.classList.add('ht_editor_visible');
+
+      if (afterOpen) {
+        window.requestAnimationFrame(() => {
+          afterOpen(editor);
+        });
+      }
+
+      editor._open = true;
+      editor.hot.getShortcutManager().setActiveContextName('editor');
+      registerShortcuts(editor);
+    },
+    focus(editor) {
+      if (typeof onFocus === 'function') {
+        onFocus(editor);
+      } else {
+        editor.container
+          .querySelector(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+            // @ts-ignore
+          )
+          ?.focus();
+      }
+    },
+    close(editor) {
+      editor._open = false;
+      editor.container.style.display = 'none';
+      editor.container.classList.remove('ht_editor_visible');
+
+      const shortcutManager = editor.hot.getShortcutManager();
+      const editorContext = shortcutManager.getContext('editor')!;
+
+      editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP);
+    },
+    prepare(editor, row, col, prop, td, originalValue, cellProperties) {
+      if (typeof beforeOpen === 'function') {
+        beforeOpen(editor, {
+          row,
+          col,
+          prop,
+          td,
+          originalValue,
+          cellProperties,
+        });
+      } else {
+        editor.setValue(originalValue);
+      }
+    },
+  });
 };
 
 const components = [
@@ -250,7 +258,7 @@ const countryListAlpha2 = {
   CW: 'Curaçao',
   CY: 'Cyprus',
   CZ: 'Czechia',
-  CI: 'Côte d\'Ivoire',
+  CI: "Côte d'Ivoire",
   DK: 'Denmark',
   DJ: 'Djibouti',
   DM: 'Dominica',
@@ -309,11 +317,11 @@ const countryListAlpha2 = {
   KZ: 'Kazakhstan',
   KE: 'Kenya',
   KI: 'Kiribati',
-  KP: 'Korea (the Democratic People\'s Republic of)',
+  KP: "Korea (the Democratic People's Republic of)",
   KR: 'Korea (the Republic of)',
   KW: 'Kuwait',
   KG: 'Kyrgyzstan',
-  LA: 'Lao People\'s Democratic Republic (the)',
+  LA: "Lao People's Democratic Republic (the)",
   LV: 'Latvia',
   LB: 'Lebanon',
   LS: 'Lesotho',
@@ -443,9 +451,9 @@ const countryListAlpha2 = {
   AX: 'Åland Islands',
 };
 
-export const coutries = Object.entries(countryListAlpha2).map((
-  [value, label],
-) => ({ value, label })).slice(0, 198);// 199 is the max number of options that can be displayed in the dropdown
+export const coutries = Object.entries(countryListAlpha2)
+  .map(([value, label]) => ({ value, label }))
+  .slice(0, 198); // 199 is the max number of options that can be displayed in the dropdown
 
 const inputData = [
   {
@@ -790,20 +798,26 @@ const inputData = [
   },
 ];
 
-export const data = inputData.map(el => ({
+export const data = inputData.map((el) => ({
   ...el,
-  components: components.map((n) => {
-    return [Math.random(), n];
-  })
-    .sort().map((n) => {
+  components: components
+    .map((n) => {
+      return [Math.random(), n];
+    })
+    .sort()
+    .map((n) => {
       return n[1];
-    }).slice(0, Math.ceil(Math.random() * components.length)),
-  countries: coutries.map((n) => {
-    return [Math.random(), n];
-  })
-    .sort().map((n) => {
+    })
+    .slice(0, Math.ceil(Math.random() * components.length)),
+  countries: coutries
+    .map((n) => {
+      return [Math.random(), n];
+    })
+    .sort()
+    .map((n) => {
       return n[1];
-    }).slice(0, Math.ceil(Math.random() * 5)),
+    })
+    .slice(0, Math.ceil(Math.random() * 5)),
 }));
 
 /* end:skip-in-preview */
@@ -813,45 +827,40 @@ const container = document.querySelector('#example1')!;
 
 const cellDefinition = {
   renderer: Handsontable.renderers.factory(({ td, value }) => {
-    td.innerHTML = value.length > 0
-      ? value.map((el: { label: string }) => el.label).join(', ')
-      : 'No elements';
+    td.innerHTML = value.length > 0 ? value.map((el: { label: string }) => el.label).join(', ') : 'No elements';
 
     return td;
   }),
-  editor: editorFactory<{input: HTMLSelectElement, multiselect: MultipleSelectInstance}>({
+  editor: editorFactory<{ input: HTMLSelectElement; multiselect: MultipleSelectInstance }>({
     init(editor) {
-      editor.input = editor.hot.rootDocument.createElement("SELECT") as HTMLSelectElement;
-      editor.input.setAttribute("multiple", "multiple");
-      editor.input.setAttribute("data-multi-select", "");
+      editor.input = editor.hot.rootDocument.createElement('SELECT') as HTMLSelectElement;
+      editor.input.setAttribute('multiple', 'multiple');
+      editor.input.setAttribute('data-multi-select', '');
       editor.multiselect = multipleSelect(editor.input) as MultipleSelectInstance;
     },
 
-    beforeOpen(editor, { cellProperties} ) {
-      editor.input.innerHTML = cellProperties?.selectMultipleOptions?.map((
-        el: { value: string; label: string },
-      ) => `<option value="${el.value}">${el.label}</option>`).join("");
+    beforeOpen(editor, { cellProperties }) {
+      editor.input.innerHTML = cellProperties?.selectMultipleOptions
+        ?.map((el: { value: string; label: string }) => `<option value="${el.value}">${el.label}</option>`)
+        .join('');
       editor.multiselect.refresh();
     },
     afterOpen(editor) {
       editor.multiselect.open();
     },
     getValue(editor) {
-      return Array.from(editor.input.options).filter((option) =>
-        option.selected
-      ).map((option) => ({ value: option.value, label: option.label }));
+      return Array.from(editor.input.options)
+        .filter((option) => option.selected)
+        .map((option) => ({ value: option.value, label: option.label }));
     },
     setValue(editor, value) {
       // https://github.com/handsontable/handsontable/issues/3510
-      value = typeof value === "string" ? editor.originalValue : value;
-      Array.from(editor.input.options).forEach((option) =>
-        option.selected = value.some((el: { value: string }) =>
-          el.value === option.value
-        )
+      value = typeof value === 'string' ? editor.originalValue : value;
+      Array.from(editor.input.options).forEach(
+        (option) => (option.selected = value.some((el: { value: string }) => el.value === option.value))
       );
       editor.multiselect.refresh();
     },
-    
   }),
 };
 
@@ -859,12 +868,7 @@ const cellDefinition = {
 const hotOptions: Handsontable.GridSettings = {
   themeName: 'ht-theme-main',
   data,
-  colHeaders: [
-    'ID',
-    'Item Name',
-    'Components',
-    'Countries',
-  ],
+  colHeaders: ['ID', 'Item Name', 'Components', 'Countries'],
   autoRowSize: true,
   rowHeaders: true,
   height: 'auto',
@@ -888,7 +892,6 @@ const hotOptions: Handsontable.GridSettings = {
       ...cellDefinition,
       selectMultipleOptions: components,
     },
-
   ],
   licenseKey: 'non-commercial-and-evaluation',
 };

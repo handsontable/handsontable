@@ -32,9 +32,9 @@ export const editorFactory = ({
 
     if (shortcuts) {
       editorContext.addShortcuts(
-        shortcuts.map((shortcut) => ({
+        shortcuts.map(shortcut => ({
           ...shortcut,
-          callback: (event) => shortcut.callback(editor, event),
+          callback: event => shortcut.callback(editor, event),
         })),
         // @ts-ignore
         contextConfig
@@ -476,7 +476,7 @@ const inputData = [
   },
 ];
 
-export const data = inputData.map((el) => ({
+export const data = inputData.map(el => ({
   ...el,
   stars: Math.floor(Math.random() * 5) + 1,
 }));

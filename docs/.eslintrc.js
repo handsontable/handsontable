@@ -11,6 +11,10 @@ module.exports = {
     '**/guides/**/*.jsx',
     '**/guides/**/*.tsx',
     '**/public/scripts/prebuilt-umd/*.*',
+    '**/recipes/**/*.js',
+    '**/recipes/**/*.ts',
+    '**/recipes/**/*.jsx',
+    '**/recipes/**/*.tsx',
   ],
   rules: {
     'no-restricted-globals': 'off',

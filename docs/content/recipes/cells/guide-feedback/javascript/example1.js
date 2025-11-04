@@ -32,9 +32,9 @@ export const editorFactory = ({
 
     if (shortcuts) {
       editorContext.addShortcuts(
-        shortcuts.map((shortcut) => ({
+        shortcuts.map(shortcut => ({
           ...shortcut,
-          callback: (event) => shortcut.callback(editor, event),
+          callback: event => shortcut.callback(editor, event),
         })),
         // @ts-ignore
         contextConfig
@@ -476,7 +476,7 @@ const inputData = [
   },
 ];
 
-export const data = inputData.map((el) => ({
+export const data = inputData.map(el => ({
   ...el,
   feedback: Math.random() > 0.5 ? '👍' : '👎',
 }));
@@ -510,7 +510,7 @@ const cellDefinition = {
     render: (editor) => {
       editor.input.innerHTML = editor.config
         .map(
-          (option) =>
+          option =>
             `<button style="width:33%; ${
               editor.value === option ? 'background: #007bff; color: white;' : ''
             }">${option}</button>`

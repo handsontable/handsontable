@@ -33,9 +33,9 @@ export const editorFactory = ({
 
     if (shortcuts) {
       editorContext.addShortcuts(
-        shortcuts.map((shortcut) => ({
+        shortcuts.map(shortcut => ({
           ...shortcut,
-          callback: (event) => shortcut.callback(editor, event),
+          callback: event => shortcut.callback(editor, event),
         })),
         // @ts-ignore
         contextConfig
@@ -199,7 +199,7 @@ const countryListAlpha2 = {
   CW: 'Curaçao',
   CY: 'Cyprus',
   CZ: 'Czechia',
-  CI: "Côte d'Ivoire",
+  CI: 'Côte d\'Ivoire',
   DK: 'Denmark',
   DJ: 'Djibouti',
   DM: 'Dominica',
@@ -258,11 +258,11 @@ const countryListAlpha2 = {
   KZ: 'Kazakhstan',
   KE: 'Kenya',
   KI: 'Kiribati',
-  KP: "Korea (the Democratic People's Republic of)",
+  KP: 'Korea (the Democratic People\'s Republic of)',
   KR: 'Korea (the Republic of)',
   KW: 'Kuwait',
   KG: 'Kyrgyzstan',
-  LA: "Lao People's Democratic Republic (the)",
+  LA: 'Lao People\'s Democratic Republic (the)',
   LV: 'Latvia',
   LB: 'Lebanon',
   LS: 'Lesotho',
@@ -738,7 +738,7 @@ const inputData = [
   },
 ];
 
-export const data = inputData.map((el) => ({
+export const data = inputData.map(el => ({
   ...el,
   components: components
     .map((n) => {
@@ -764,7 +764,7 @@ export const data = inputData.map((el) => ({
 const container = document.querySelector('#example1');
 const cellDefinition = {
   renderer: Handsontable.renderers.factory(({ td, value }) => {
-    td.innerHTML = value.length > 0 ? value.map((el) => el.label).join(', ') : 'No elements';
+    td.innerHTML = value.length > 0 ? value.map(el => el.label).join(', ') : 'No elements';
 
     return td;
   }),
@@ -777,7 +777,7 @@ const cellDefinition = {
     },
     beforeOpen(editor, { cellProperties }) {
       editor.input.innerHTML = cellProperties?.selectMultipleOptions
-        ?.map((el) => `<option value="${el.value}">${el.label}</option>`)
+        ?.map(el => `<option value="${el.value}">${el.label}</option>`)
         .join('');
       editor.multiselect.refresh();
     },
@@ -786,14 +786,14 @@ const cellDefinition = {
     },
     getValue(editor) {
       return Array.from(editor.input.options)
-        .filter((option) => option.selected)
-        .map((option) => ({ value: option.value, label: option.label }));
+        .filter(option => option.selected)
+        .map(option => ({ value: option.value, label: option.label }));
     },
     setValue(editor, value) {
       // https://github.com/handsontable/handsontable/issues/3510
       value = typeof value === 'string' ? editor.originalValue : value;
       Array.from(editor.input.options).forEach(
-        (option) => (option.selected = value.some((el) => el.value === option.value))
+        option => (option.selected = value.some(el => el.value === option.value))
       );
       editor.multiselect.refresh();
     },
