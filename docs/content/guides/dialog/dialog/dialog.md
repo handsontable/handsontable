@@ -167,6 +167,24 @@ Currently only the `confirm` template is supported. With this template, you can 
 :::
 :::
 
+::: only-for react
+::: example #example4 :react --js 1 --ts 2
+
+@[code](@/content/guides/dialog/dialog/react/example4.jsx)
+@[code](@/content/guides/dialog/dialog/react/example4.tsx)
+
+:::
+:::
+
+::: only-for angular
+::: example #example4 :angular --ts 1 --html 2
+
+@[code](@/content/guides/dialog/dialog/angular/example4.ts)
+@[code](@/content/guides/dialog/dialog/angular/example4.html)
+
+:::
+:::
+
 ## Background variants
 
 The dialog supports two background variants: `solid` and `semi-transparent`.

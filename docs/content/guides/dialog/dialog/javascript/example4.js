@@ -59,7 +59,7 @@ const hot = new Handsontable(container, {
       title: 'Date',
       type: 'date',
       data: 'sellDate',
-      width: 130,
+      width: 131,
       dateFormat: 'MMM D, YYYY',
       correctFormat: true,
       className: 'htRight',
@@ -87,7 +87,6 @@ const hot = new Handsontable(container, {
   height: 300,
   stretchH: 'all',
   dialog: true,
-  outsideClickDeselects: false,
   licenseKey: 'non-commercial-and-evaluation',
 });
 
@@ -104,7 +103,7 @@ document.getElementById('showAlert').addEventListener('click', () => {
         {
           text: 'OK',
           type: 'primary',
-          callback: (event) => {
+          callback: () => {
             dialogPlugin.hide();
           },
         },
@@ -119,20 +118,20 @@ document.getElementById('showConfirm').addEventListener('click', () => {
   dialogPlugin.show({
     template: {
       type: 'confirm',
-      title: 'Do you want clear all the data?',
+      title: 'Do you want to undo the last action?',
       buttons: [
         {
           text: 'Cancel',
           type: 'secondary',
-          callback: (event) => {
+          callback: () => {
             dialogPlugin.hide();
           },
         },
         {
           text: 'OK',
           type: 'primary',
-          callback: (event) => {
-            hot.clear();
+          callback: () => {
+            hot.getPlugin('undoRedo').undo();
             dialogPlugin.hide();
           },
         },

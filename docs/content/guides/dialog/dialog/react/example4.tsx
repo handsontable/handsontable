@@ -32,31 +32,75 @@ const data = [
 
 const ExampleComponent = () => {
   const hotTableRef = useRef(null);
-  const showDialog = () => {
+
+  const showAlert = () => {
     const hotInstance = hotTableRef.current?.hotInstance;
 
     if (!hotInstance) {
       return;
     }
 
-    hotInstance.getPlugin('dialog').show();
+    hotInstance.getPlugin('dialog').show({
+      template: {
+        type: 'confirm',
+        title: 'Alert',
+        description: 'This is an example of the alert dialog.',
+        buttons: [
+          {
+            text: 'OK',
+            type: 'primary',
+            callback: () => {
+              dialogPlugin.hide();
+            },
+          },
+        ],
+      },
+      background: 'solid',
+      contentBackground: false,
+      closable: false,
+    });
   };
 
-  const hideDialog = () => {
+  const showConfirm = () => {
     const hotInstance = hotTableRef.current?.hotInstance;
 
     if (!hotInstance) {
       return;
     }
 
-    hotInstance.getPlugin('dialog').hide();
+    hotInstance.getPlugin('dialog').show({
+      template: {
+        type: 'confirm',
+        title: 'Do you want to undo the last action?',
+        buttons: [
+          {
+            text: 'Cancel',
+            type: 'secondary',
+            callback: () => {
+              dialogPlugin.hide();
+            },
+          },
+          {
+            text: 'OK',
+            type: 'primary',
+            callback: () => {
+              hot.getPlugin('undoRedo').undo();
+              dialogPlugin.hide();
+            },
+          },
+        ],
+      },
+      background: 'semi-transparent',
+      contentBackground: true,
+      closable: false,
+    });
   };
 
   return (
     <>
       <div style={{ marginBottom: '16px', display: 'flex', gap: '10px' }}>
-        <button onClick={showDialog}>Show Dialog</button>
-        <button onClick={hideDialog}>Hide Dialog</button>
+        <button onClick={showAlert}>Show Alert (with solid background)</button>
+        <button onClick={showConfirm}>Show Confirm (with semi-transparent background)</button>
       </div>
       <HotTable
         ref={hotTableRef}
@@ -71,10 +115,7 @@ const ExampleComponent = () => {
         autoWrapRow={true}
         autoWrapCol={true}
         autoRowSize={true}
-        dialog={{
-          content: 'This dialog can be controlled programmatically.',
-          closable: true,
-        }}
+        dialog={true}
         licenseKey="non-commercial-and-evaluation"
       >
         <HotColumn title="Model" type="text" data="model" width={150} headerClassName="htLeft" />
@@ -91,7 +132,7 @@ const ExampleComponent = () => {
           title="Date"
           type="date"
           data="sellDate"
-          width={131}
+          width={130}
           dateFormat="MMM D, YYYY"
           correctFormat={true}
           className="htRight"

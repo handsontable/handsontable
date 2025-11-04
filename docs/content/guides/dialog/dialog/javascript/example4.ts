@@ -59,7 +59,7 @@ const hot = new Handsontable(container, {
       title: 'Date',
       type: 'date',
       data: 'sellDate',
-      width: 130,
+      width: 131,
       dateFormat: 'MMM D, YYYY',
       correctFormat: true,
       className: 'htRight',
@@ -97,13 +97,15 @@ document.getElementById('showAlert')!.addEventListener('click', () => {
   dialogPlugin.show({
     template: {
       type: 'confirm',
-      title: 'Oops… something went wrong',
-      description: 'We couldn\'t load your data.',
+      title: 'Alert',
+      description: 'This is an example of the alert dialog.',
       buttons: [
         {
           text: 'OK',
           type: 'primary',
-          callback: (event) => {},
+          callback: () => {
+            dialogPlugin.hide();
+          },
         },
       ],
     },
@@ -116,17 +118,22 @@ document.getElementById('showConfirm')!.addEventListener('click', () => {
   dialogPlugin.show({
     template: {
       type: 'confirm',
-      title: 'The value is not valid',
+      title: 'Do you want to undo the last action?',
       buttons: [
         {
           text: 'Cancel',
           type: 'secondary',
-          callback: (event) => {},
+          callback: () => {
+            dialogPlugin.hide();
+          },
         },
         {
           text: 'OK',
           type: 'primary',
-          callback: (event) => {},
+          callback: () => {
+            hot.getPlugin('undoRedo').undo();
+            dialogPlugin.hide();
+          },
         },
       ],
     },
