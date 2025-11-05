@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added new theme variables implementation and extend the style output with 'no-icons' and 'icons-only' variants",
+  "type": "added",
+  "issueOrPR": 11913,
+  "breaking": false,
+  "framework": "none"
+}
