@@ -333,8 +333,8 @@
                 var(--ht-cell-vertical-padding) * 2 + var(--ht-line-height) + 2px
               );
             }
-            // The fix prevents the first row "jumping" effect by adding a pseudo-element
-            // to prevent the height from collapsing
+            // Prevents the first row from "jumping" by adding a pseudo-element
+            // that maintains the minimum height when the cell is empty
             &:first-child:empty::after {
               content: "";
               display: block;

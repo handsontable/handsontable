@@ -242,14 +242,11 @@ export function getDefaultRowHeight() {
  * @returns {number} Returns the default row height for the first rendered row.
  */
 export function getFirstRenderedRowDefaultHeight() {
-  switch (__ENV_ARGS__.HOT_THEME) {
-    case 'main':
-      return getDefaultRowHeight() + 1; // 1px for border compensation for the first rendered row
-    case 'horizon':
-      return getDefaultRowHeight() + 1; // 1px for border compensation for the first rendered row
-    default:
-      return getDefaultRowHeight();
+  if (typeof __ENV_ARGS__.HOT_THEME !== 'undefined' && __ENV_ARGS__.HOT_THEME !== '') {
+    return getDefaultRowHeight() + 1; // 1px for border compensation for the first rendered row
   }
+
+  return getDefaultRowHeight();
 }
 
 /**

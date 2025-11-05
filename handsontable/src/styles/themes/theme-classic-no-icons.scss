@@ -1,0 +1,20 @@
+@use "utils/classic/variables";
+
+.ht-theme-classic,
+.ht-theme-classic-dark,
+.ht-theme-classic-dark-auto {
+  @include variables.light();
+  @include variables.theme();
+}
+
+/* Dark mode */
+.ht-theme-classic-dark {
+  @include variables.dark();
+}
+
+/* Auto dark mode */
+@media (prefers-color-scheme: dark) {
+  .ht-theme-classic-dark-auto {
+    @include variables.dark();
+  }
+}
