@@ -203,7 +203,7 @@ module.exports = {
     [
       'script',
       {
-        id:'vwoCode'
+        id: 'vwoCode'
       },
       `window._vwo_code || (function() {
 var account_id=1134117,

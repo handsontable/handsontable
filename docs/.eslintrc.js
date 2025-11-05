@@ -26,7 +26,7 @@ module.exports = {
       }
     },
     {
-      files: ['SvgFrameworkIcons.vue', 'Navbar.vue'],
+      files: ['SvgFrameworkIcons.vue', 'Navbar.vue', '.vuepress/config.js'],
       rules: {
         'max-len': 'off'
       }
