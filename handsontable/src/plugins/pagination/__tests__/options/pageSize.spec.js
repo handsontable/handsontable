@@ -12,7 +12,7 @@ describe('Pagination `pageSize` option', () => {
 
   async function initHandsontableInFrame(options) {
     const iframe = $('<iframe/>')
-      .css({ width: '600px', height: '600px' })
+      .css({ width: '700px', height: '600px' })
       .appendTo(spec().$container);
     const doc = iframe[0].contentDocument;
     let styles = '';
@@ -506,7 +506,7 @@ describe('Pagination `pageSize` option', () => {
 
     it('should render elements after changing the window height (table without defined size)', async() => {
       const { hotInstance, iframe } = await initHandsontableInFrame({
-        data: createSpreadsheetData(100, 10),
+        data: createSpreadsheetData(100, 12),
         pagination: {
           pageSize: 'auto',
         },
@@ -576,7 +576,7 @@ describe('Pagination `pageSize` option', () => {
         ]);
       });
 
-      iframe.css({ height: '700px' });
+      iframe.css({ height: '705px' });
       await sleep(100); // wait for the onresize event to trigger a render
 
       expect(getHtCore().find('tr:first td:first').text()).forThemes(({ classic, main, horizon }) => {

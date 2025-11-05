@@ -27,7 +27,7 @@ describe('Core.getRowHeight', () => {
     expect(modifyRowHeight).toHaveBeenCalledWith(50, 1);
   });
 
-  it('should return the same value as the `rowHeights` if the value is greater than minimum theme row height', async() => {
+  it('should be synced with the cell row height when the `rowHeights` value is greater than the cell default row height', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       rowHeights: 50,
@@ -36,20 +36,24 @@ describe('Core.getRowHeight', () => {
     });
 
     expect(getRowHeight(0)).toBe(50);
+    expect(getRowHeight(1)).toBe(50);
+    expect(getRowHeight(2)).toBe(50);
   });
 
-  it('should return the minimum theme row height if the lower value is defined', async() => {
+  it('should be synced with the cell row height when the `rowHeights` value is smaller than the cell default row height', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
-      rowHeights: 12,
+      rowHeights: 10,
       rowHeaders: false,
       colHeaders: false,
     });
 
-    expect(getRowHeight(0)).toBe(getDefaultRowHeight());
+    expect(getRowHeight(0)).toBe(getFirstRenderedRowDefaultHeight());
+    expect(getRowHeight(1)).toBe(getDefaultRowHeight());
+    expect(getRowHeight(2)).toBe(getDefaultRowHeight());
   });
 
-  it('should return the minimum theme row height if the value is equal to `0`', async() => {
+  it('should be synced with the cell row height when the `rowHeights` value is `0`', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       rowHeights: 0,
@@ -57,6 +61,26 @@ describe('Core.getRowHeight', () => {
       colHeaders: false,
     });
 
-    expect(getRowHeight(0)).toBe(getDefaultRowHeight());
+    expect(getRowHeight(0)).toBe(getFirstRenderedRowDefaultHeight());
+    expect(getRowHeight(1)).toBe(getDefaultRowHeight());
+    expect(getRowHeight(2)).toBe(getDefaultRowHeight());
+  });
+
+  it('should return correct value for the first rendered row when some of them are hidden', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      rowHeaders: false,
+      colHeaders: false,
+      rowHeights: getDefaultRowHeight(),
+      hiddenRows: {
+        rows: [0, 1],
+      },
+    });
+
+    expect(getRowHeight(0)).toBe(0);
+    expect(getRowHeight(1)).toBe(0);
+    expect(getRowHeight(2)).toBe(getFirstRenderedRowDefaultHeight()); // first rendered row
+    expect(getRowHeight(3)).toBe(getDefaultRowHeight());
+    expect(getRowHeight(4)).toBe(getDefaultRowHeight());
   });
 });

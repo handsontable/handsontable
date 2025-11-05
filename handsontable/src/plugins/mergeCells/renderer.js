@@ -61,6 +61,7 @@ export function createMergeCellRenderer(plugin) {
       lastMergedRowIndex,
       lastMergedColumnIndex,
     ] = plugin.translateMergedCellToRenderable(origRow, origRowspan, origColumn, origColspan);
+
     if (origColumn === 0 && !hot.getSettings().rowHeaders) {
       const rowHeights = hot._getRowHeightFromSettings(row);
 

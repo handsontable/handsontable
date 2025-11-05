@@ -353,6 +353,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * @type {StylesHandler}
    */
   this.stylesHandler = new StylesHandler({
+    hot: instance,
     rootElement: instance.rootElement,
     rootDocument: instance.rootDocument,
     onThemeChange: (validThemeName) => {
@@ -4108,7 +4109,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
           break;
       }
       if (typeof width === 'string') {
-        width = parseInt(width, 10);
+        width = Number.parseInt(width, 10);
       }
     }
 
@@ -4147,6 +4148,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * @returns {number}
    */
   this._getRowHeightFromSettings = function(row) {
+    const defaultRowHeight = instance.stylesHandler.getDefaultRowHeight(row);
     let height = tableMeta.rowHeights;
 
     if (height !== undefined && height !== null) {
@@ -4164,19 +4166,9 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       }
 
       if (typeof height === 'string') {
-        height = parseInt(height, 10);
+        height = Number.parseInt(height, 10);
       }
     }
-
-    let defaultRowHeight = instance.stylesHandler.getDefaultRowHeight();
-    // const renderableRow = instance.rowIndexMapper.getRenderableFromVisualIndex(row);
-
-    // if (
-    //   renderableRow !== null &&
-    //   renderableRow === instance.view.getFirstRenderedVisibleRow()
-    // ) {
-    //   defaultRowHeight += 1;
-    // }
 
     return (height !== undefined && height !== null && height < defaultRowHeight) ? defaultRowHeight : height;
   };

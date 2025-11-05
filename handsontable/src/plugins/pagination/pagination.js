@@ -231,7 +231,6 @@ export class Pagination extends BasePlugin {
     this.addHook('afterRender', (...args) => this.#onAfterRender(...args));
     this.addHook('afterScrollVertically', (...args) => this.#onAfterScrollVertically(...args));
     this.addHook('afterLanguageChange', (...args) => this.#onAfterLanguageChange(...args));
-    this.addHook('modifyRowHeight', (...args) => this.#onModifyRowHeight(...args));
     this.addHook('beforeHeightChange', (...args) => this.#onBeforeHeightChange(...args));
     this.addHook('afterSetTheme', (...args) => this.#onAfterSetTheme(...args));
 
@@ -597,11 +596,14 @@ export class Pagination extends BasePlugin {
         return view.getViewportHeight() - scrollbarWidth;
       },
       itemsSizeProvider: () => {
-        const defaultRowHeight = stylesHandler.getDefaultRowHeight();
         const rowHeights = this.hot.rowIndexMapper
           .getRenderableIndexes()
-          .map(physicalIndex => this.hot
-            .getRowHeight(this.hot.toVisualRow(physicalIndex)) ?? defaultRowHeight);
+          .map((physicalIndex) => {
+            const visualRowIndex = this.hot.toVisualRow(physicalIndex);
+
+            return this.hot
+              .getRowHeight(visualRowIndex) ?? stylesHandler.getDefaultRowHeight(visualRowIndex);
+          });
 
         return rowHeights;
       },
@@ -779,31 +781,6 @@ export class Pagination extends BasePlugin {
 
       pastedData.splice(0, rowsToRemove);
     });
-  }
-
-  /**
-   * Called when the row height is modified. It adds 1px border top compensation for
-   * the first row of the each page to make sure that the table's hider element
-   * height is correctly calculated.
-   *
-   * @param {number | undefined} height Row height.
-   * @param {number} row Visual row index.
-   * @returns {number}
-   */
-  #onModifyRowHeight(height, row) {
-    if (height === undefined || !this.#calcStrategy.getState(this.#currentPage)) {
-      return;
-    }
-
-    const {
-      firstVisibleRowIndex,
-    } = this.getPaginationData();
-
-    if (row !== 0 && row === firstVisibleRowIndex) {
-      height += 1; // 1px border top compensation for the first row of the page.
-    }
-
-    return height;
   }
 
   /**

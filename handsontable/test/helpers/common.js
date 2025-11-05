@@ -234,7 +234,21 @@ export function getDefaultRowHeight() {
     case 'horizon':
       return 37;
     default:
-      return 23; // classic
+      return 23;
+  }
+}
+
+/**
+ * @returns {number} Returns the default row height for the first rendered row.
+ */
+export function getFirstRenderedRowDefaultHeight() {
+  switch (__ENV_ARGS__.HOT_THEME) {
+    case 'main':
+      return getDefaultRowHeight() + 1; // 1px for border compensation for the first rendered row
+    case 'horizon':
+      return getDefaultRowHeight() + 1; // 1px for border compensation for the first rendered row
+    default:
+      return getDefaultRowHeight();
   }
 }
 
