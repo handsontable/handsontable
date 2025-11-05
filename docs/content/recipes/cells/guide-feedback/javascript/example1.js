@@ -32,9 +32,9 @@ export const editorFactory = ({
 
     if (shortcuts) {
       editorContext.addShortcuts(
-        shortcuts.map(shortcut => ({
+        shortcuts.map((shortcut) => ({
           ...shortcut,
-          callback: event => shortcut.callback(editor, event),
+          callback: (event) => shortcut.callback(editor, event),
         })),
         // @ts-ignore
         contextConfig
@@ -102,7 +102,10 @@ export const editorFactory = ({
         onFocus(editor);
       } else {
         editor.container
-          .querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')
+          .querySelector(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+            // @ts-ignore
+          )
           ?.focus();
       }
     },
@@ -476,7 +479,7 @@ const inputData = [
   },
 ];
 
-export const data = inputData.map(el => ({
+export const data = inputData.map((el) => ({
   ...el,
   feedback: Math.random() > 0.5 ? '👍' : '👎',
 }));
@@ -489,7 +492,7 @@ const cellDefinition = {
     value: '👍',
     shortcuts: [
       {
-        keys: [['ArrowRight']],
+        keys: [['ArrowRight', 'Tab']],
         callback: (editor, _event) => {
           let index = editor.config.indexOf(editor.value);
 
@@ -510,7 +513,7 @@ const cellDefinition = {
     render: (editor) => {
       editor.input.innerHTML = editor.config
         .map(
-          option =>
+          (option) =>
             `<button style="width:33%; ${
               editor.value === option ? 'background: #007bff; color: white;' : ''
             }">${option}</button>`
@@ -542,6 +545,7 @@ const hotOptions = {
   colHeaders: ['ID', 'Item Name', 'Item feedback'],
   autoRowSize: true,
   rowHeaders: true,
+  autoWrapRow: true,
   height: 'auto',
   columns: [
     { data: 'id', type: 'numeric' },

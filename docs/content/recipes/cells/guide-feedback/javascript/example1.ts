@@ -550,7 +550,7 @@ const cellDefinition = {
     value: '👍',
     shortcuts: [
       {
-        keys: [['ArrowRight']],
+        keys: [['ArrowRight', "Tab"]],
         callback: (editor, _event) => {
           let index = editor.config.indexOf(editor.value);
 
@@ -603,6 +603,7 @@ const hotOptions: Handsontable.GridSettings = {
   colHeaders: ['ID', 'Item Name', 'Item feedback'],
   autoRowSize: true,
   rowHeaders: true,
+  autoWrapRow: true,
   height: 'auto',
   columns: [
     { data: 'id', type: 'numeric' },
