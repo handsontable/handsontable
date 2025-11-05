@@ -60,6 +60,27 @@ describe('Core.await refreshDimensions()', () => {
     });
   });
 
+  it('should trigger `render` and `adjustElementsSize` methods internally if the root element size is changed between calls', async() => {
+    spec().$container.css('height', 100).css('overflow', 'hidden');
+
+    const hot = handsontable({
+      data: createSpreadsheetData(5, 5),
+    });
+
+    await refreshDimensions();
+
+    spec().$container.css('height', 200);
+
+    spyOn(hot, 'render');
+    spyOn(hot.view, 'adjustElementsSize');
+
+    await refreshDimensions();
+
+    expect(hot.render).toHaveBeenCalledTimes(1);
+    expect(hot.view.adjustElementsSize).toHaveBeenCalledBefore(hot.render);
+    expect(hot.view.adjustElementsSize).toHaveBeenCalledTimes(1);
+  });
+
   it('should trigger `render` and `adjustElementsSize` methods internally (#dev-1876)', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(5, 5),

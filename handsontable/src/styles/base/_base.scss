@@ -101,6 +101,8 @@
     // Wrapper
     &.ht-wrapper {
       border-radius: var(--ht-wrapper-border-radius, 0);
+      height: 100%;
+      width: 100%;
 
       &:not(.htFirstDatasetColumnNotRendered) {
         td {
@@ -623,7 +625,7 @@
             }
           }
         }
-  
+
         & ~ .ht_clone_inline_start {
           tbody {
             tr:first-child {

@@ -61,6 +61,11 @@
   padding-right: 0;
 }
 
+.handsontable.ht-wrapper {
+  height: 100%;
+  width: 100%;
+}
+
 .handsontable .table-striped > tbody > tr:nth-of-type(even) {
   background-color: #FFF;
 }
