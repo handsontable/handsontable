@@ -48,6 +48,7 @@ export default class RowUtils {
    */
   getHeightByOverlayName(sourceIndex, overlayName) {
     let height = this.wtSettings.getSetting('rowHeightByOverlayName', sourceIndex, overlayName);
+
     const oversizedHeight = this.dataAccessObject.wtViewport.oversizedRows[sourceIndex];
 
     if (oversizedHeight !== undefined) {

@@ -333,6 +333,13 @@
                 var(--ht-cell-vertical-padding) * 2 + var(--ht-line-height) + 2px
               );
             }
+            // The fix prevents the first row "jumping" effect by adding a pseudo-element
+            // to prevent the height from collapsing
+            &:first-child:empty::after {
+              content: "";
+              display: block;
+              min-height: var(--ht-line-height);
+            }
           }
         }
 
@@ -623,7 +630,7 @@
             }
           }
         }
-  
+
         & ~ .ht_clone_inline_start {
           tbody {
             tr:first-child {

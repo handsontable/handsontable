@@ -4147,7 +4147,6 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * @returns {number}
    */
   this._getRowHeightFromSettings = function(row) {
-    const defaultRowHeight = instance.stylesHandler.getDefaultRowHeight();
     let height = tableMeta.rowHeights;
 
     if (height !== undefined && height !== null) {
@@ -4168,6 +4167,16 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
         height = parseInt(height, 10);
       }
     }
+
+    let defaultRowHeight = instance.stylesHandler.getDefaultRowHeight();
+    // const renderableRow = instance.rowIndexMapper.getRenderableFromVisualIndex(row);
+
+    // if (
+    //   renderableRow !== null &&
+    //   renderableRow === instance.view.getFirstRenderedVisibleRow()
+    // ) {
+    //   defaultRowHeight += 1;
+    // }
 
     return (height !== undefined && height !== null && height < defaultRowHeight) ? defaultRowHeight : height;
   };

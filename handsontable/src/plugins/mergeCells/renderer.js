@@ -61,8 +61,6 @@ export function createMergeCellRenderer(plugin) {
       lastMergedRowIndex,
       lastMergedColumnIndex,
     ] = plugin.translateMergedCellToRenderable(origRow, origRowspan, origColumn, origColspan);
-    const isVirtualRenderingEnabled = plugin.getSetting('virtualized');
-
     if (origColumn === 0 && !hot.getSettings().rowHeaders) {
       const rowHeights = hot._getRowHeightFromSettings(row);
 
@@ -82,6 +80,7 @@ export function createMergeCellRenderer(plugin) {
       }
     }
 
+    const isVirtualRenderingEnabled = plugin.getSetting('virtualized');
     const renderedRowIndex = rowMapper.getRenderableFromVisualIndex(row);
     const renderedColumnIndex = columnMapper.getRenderableFromVisualIndex(col);
 
