@@ -10,6 +10,25 @@ describe('Core.getRowHeight', () => {
     }
   });
 
+  it('should return correct value for the first rendered row when some of them are hidden and AutoRowSize is enabled', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      rowHeaders: false,
+      colHeaders: false,
+      autoRowSize: true,
+      hiddenRows: {
+        rows: [0, 1],
+      },
+    });
+
+    expect(getRowHeight(0)).toBe(0);
+    expect(getRowHeight(1)).toBe(0);
+    expect(getRowHeight(2)).toBe(getFirstRenderedRowDefaultHeight()); // first rendered row
+    expect(getRowHeight(3)).toBe(getDefaultRowHeight());
+    expect(getRowHeight(4)).toBe(getDefaultRowHeight());
+    expect(getMaster().find('table tr:last-child td:eq(0)').outerHeight()).toBe(getDefaultRowHeight());
+  });
+
   describe('using `rowHeights`', () => {
     it('should call the `modifyRowHeight` internally', async() => {
       handsontable({
