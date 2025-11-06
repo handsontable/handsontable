@@ -27,6 +27,7 @@ const _afterSetThemeCallback = function() {
 
 const ensureCorrectHotThemes = () => {
   if (typeof Handsontable !== 'undefined') {
+    // eslint-disable-next-line no-undef
     Handsontable.hooks.add('afterSetTheme', _afterSetThemeCallback);
   }
 };
