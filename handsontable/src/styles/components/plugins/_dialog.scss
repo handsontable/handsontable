@@ -115,9 +115,10 @@
           flex-direction: column;
           align-items: center;
           justify-content: center;
+          gap: var(--ht-gap-size);
 
           &:has(.ht-dialog__buttons) {
-            gap: var(--ht-gap-size);
+            gap: calc(var(--ht-gap-size) * 2);
           }
         }
 
