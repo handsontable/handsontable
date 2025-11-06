@@ -449,7 +449,7 @@ export class Dialog extends BasePlugin {
    * @param {function(MouseEvent): void} [callback] The callback to trigger when the button is clicked.
    */
   showAlert(message, callback) {
-    const  {
+    const {
       title = 'Alert',
       description,
     } = isObject(message) ? message : { title: message };
@@ -483,7 +483,7 @@ export class Dialog extends BasePlugin {
    * @param {function(MouseEvent): void} [onCancel] The callback to trigger when the Cancel button is clicked.
    */
   showConfirm(message, onOk, onCancel) {
-    const  {
+    const {
       title = 'Confirm',
       description,
     } = isObject(message) ? message : { title: message };
