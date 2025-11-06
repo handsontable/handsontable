@@ -6,8 +6,9 @@ import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
   selector: 'app-example4',
   template: `
     <div style="margin-bottom: 16px; display: flex; gap: 10px;">
-      <button (click)="showAlert()">Show Alert (with solid background)</button>
-      <button (click)="showConfirm()">Show Confirm (with semi-transparent background)</button>
+      <button (click)="showAlert()">Show Alert</button>
+      <button (click)="showConfirm()">Show Confirm</button>
+      <button (click)="showCustomConfirm()">Show custom Confirm (with solid background)</button>
     </div>
     <hot-table
       #hotTable
@@ -109,34 +110,33 @@ export class AppComponent implements AfterViewInit {
   showAlert() {
     const dialogPlugin = this.hotTable.hotInstance.getPlugin('dialog');
 
-    dialogPlugin.show({
-      template: {
-        type: 'confirm',
-        title: 'Alert',
-        description: 'This is an example of the alert dialog.',
-        buttons: [
-          {
-            text: 'OK',
-            type: 'primary',
-            callback: () => {
-              dialogPlugin.hide();
-            },
-          },
-        ],
-      },
-      background: 'solid',
-      contentBackground: false,
-      closable: false,
+    dialogPlugin.showAlert({
+      title: 'Alert',
+      description: 'This is an example of the alert dialog.',
+    }, () => {
+      dialogPlugin.hide();
     });
   }
 
   showConfirm() {
     const dialogPlugin = this.hotTable.hotInstance.getPlugin('dialog');
 
+    dialogPlugin.showConfirm('Do you want to undo the last action?', () => {
+      this.hotTable.hotInstance.getPlugin('undoRedo').undo();
+      dialogPlugin.hide();
+    }, () => {
+      dialogPlugin.hide();
+    });
+  }
+
+  showCustomConfirm() {
+    const hotInstance = this.hotTable.hotInstance;
+    const dialogPlugin = hotInstance.getPlugin('dialog');
+
     dialogPlugin.show({
       template: {
         type: 'confirm',
-        title: 'Do you want to undo the last action?',
+        title: 'Increase the price of the first row by:',
         buttons: [
           {
             text: 'Cancel',
@@ -146,18 +146,37 @@ export class AppComponent implements AfterViewInit {
             },
           },
           {
-            text: 'OK',
-            type: 'primary',
+            text: '$100',
+            type: 'secondary',
             callback: () => {
-              this.hotTable.hotInstance.getPlugin('undoRedo').undo();
               dialogPlugin.hide();
+              hotInstance.setDataAtCell(0, 1, hotInstance.getDataAtCell(0, 1) + 100);
+              hotInstance.selectCell(0, 1);
+            },
+          },
+          {
+            text: '$200',
+            type: 'secondary',
+            callback: () => {
+              dialogPlugin.hide();
+              hotInstance.setDataAtCell(0, 1, hotInstance.getDataAtCell(0, 1) + 200);
+              hotInstance.selectCell(0, 1);
+            },
+          },
+          {
+            text: '$500',
+            type: 'secondary',
+            callback: () => {
+              dialogPlugin.hide();
+              hotInstance.setDataAtCell(0, 1, hotInstance.getDataAtCell(0, 1) + 500);
+              hotInstance.selectCell(0, 1);
             },
           },
         ],
       },
-      background: 'semi-transparent',
-      contentBackground: true,
-      closable: false,
+      background: 'solid',
+      contentBackground: false,
+      closable: true,
     });
   }
 }

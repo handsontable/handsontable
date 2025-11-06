@@ -41,25 +41,15 @@ const ExampleComponent = () => {
 
     const dialogPlugin = hotInstance.getPlugin('dialog');
 
-    dialogPlugin.show({
-      template: {
-        type: 'confirm',
+    dialogPlugin.showAlert(
+      {
         title: 'Alert',
         description: 'This is an example of the alert dialog.',
-        buttons: [
-          {
-            text: 'OK',
-            type: 'primary',
-            callback: () => {
-              dialogPlugin.hide();
-            },
-          },
-        ],
       },
-      background: 'solid',
-      contentBackground: false,
-      closable: false,
-    });
+      () => {
+        dialogPlugin.hide();
+      }
+    );
   };
 
   const showConfirm = () => {
@@ -72,10 +62,31 @@ const ExampleComponent = () => {
     const dialogPlugin = hotInstance.getPlugin('dialog');
     const undoRedoPlugin = hotInstance.getPlugin('undoRedo');
 
+    dialogPlugin.showConfirm(
+      'Do you want to undo the last action?',
+      () => {
+        undoRedoPlugin.undo();
+        dialogPlugin.hide();
+      },
+      () => {
+        dialogPlugin.hide();
+      }
+    );
+  };
+
+  const showCustomConfirm = () => {
+    const hotInstance = hotTableRef.current?.hotInstance;
+
+    if (!hotInstance) {
+      return;
+    }
+
+    const dialogPlugin = hotInstance.getPlugin('dialog');
+
     dialogPlugin.show({
       template: {
         type: 'confirm',
-        title: 'Do you want to undo the last action?',
+        title: 'Increase the price of the first row by:',
         buttons: [
           {
             text: 'Cancel',
@@ -85,26 +96,46 @@ const ExampleComponent = () => {
             },
           },
           {
-            text: 'OK',
-            type: 'primary',
+            text: '$100',
+            type: 'secondary',
             callback: () => {
-              undoRedoPlugin.undo();
               dialogPlugin.hide();
+              hotInstance.setDataAtCell(0, 1, hotInstance.getDataAtCell(0, 1) + 100);
+              hotInstance.selectCell(0, 1);
+            },
+          },
+          {
+            text: '$200',
+            type: 'secondary',
+            callback: () => {
+              dialogPlugin.hide();
+              hotInstance.setDataAtCell(0, 1, hotInstance.getDataAtCell(0, 1) + 200);
+              hotInstance.selectCell(0, 1);
+            },
+          },
+          {
+            text: '$500',
+            type: 'secondary',
+            callback: () => {
+              dialogPlugin.hide();
+              hotInstance.setDataAtCell(0, 1, hotInstance.getDataAtCell(0, 1) + 500);
+              hotInstance.selectCell(0, 1);
             },
           },
         ],
       },
-      background: 'semi-transparent',
-      contentBackground: true,
-      closable: false,
+      background: 'solid',
+      contentBackground: false,
+      closable: true,
     });
   };
 
   return (
     <>
       <div style={{ marginBottom: '16px', display: 'flex', gap: '10px' }}>
-        <button onClick={showAlert}>Show Alert (with solid background)</button>
-        <button onClick={showConfirm}>Show Confirm (with semi-transparent background)</button>
+        <button onClick={showAlert}>Show Alert</button>
+        <button onClick={showConfirm}>Show Confirm</button>
+        <button onClick={showCustomConfirm}>Show custom Confirm (with solid background)</button>
       </div>
       <HotTable
         ref={hotTableRef}

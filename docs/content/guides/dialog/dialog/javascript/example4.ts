@@ -94,31 +94,33 @@ const dialogPlugin = hot.getPlugin('dialog');
 
 // Add event listeners for buttons
 document.getElementById('showAlert')!.addEventListener('click', () => {
-  dialogPlugin.show({
-    template: {
-      type: 'confirm',
+  dialogPlugin.showAlert(
+    {
       title: 'Alert',
       description: 'This is an example of the alert dialog.',
-      buttons: [
-        {
-          text: 'OK',
-          type: 'primary',
-          callback: () => {
-            dialogPlugin.hide();
-          },
-        },
-      ],
     },
-    background: 'solid',
-    contentBackground: false,
-    closable: false,
-  });
+    () => {
+      dialogPlugin.hide();
+    }
+  );
 });
 document.getElementById('showConfirm')!.addEventListener('click', () => {
+  dialogPlugin.showConfirm(
+    'Do you want to undo the last action?',
+    () => {
+      hot.getPlugin('undoRedo').undo();
+      dialogPlugin.hide();
+    },
+    () => {
+      dialogPlugin.hide();
+    }
+  );
+});
+document.getElementById('showCustomConfirm')!.addEventListener('click', () => {
   dialogPlugin.show({
     template: {
       type: 'confirm',
-      title: 'Do you want to undo the last action?',
+      title: 'Increase the price of the first row by:',
       buttons: [
         {
           text: 'Cancel',
@@ -128,17 +130,36 @@ document.getElementById('showConfirm')!.addEventListener('click', () => {
           },
         },
         {
-          text: 'OK',
-          type: 'primary',
+          text: '$100',
+          type: 'secondary',
           callback: () => {
-            hot.getPlugin('undoRedo').undo();
             dialogPlugin.hide();
+            hot.setDataAtCell(0, 1, hot.getDataAtCell(0, 1) + 100);
+            hot.selectCell(0, 1);
+          },
+        },
+        {
+          text: '$200',
+          type: 'secondary',
+          callback: () => {
+            dialogPlugin.hide();
+            hot.setDataAtCell(0, 1, hot.getDataAtCell(0, 1) + 200);
+            hot.selectCell(0, 1);
+          },
+        },
+        {
+          text: '$500',
+          type: 'secondary',
+          callback: () => {
+            dialogPlugin.hide();
+            hot.setDataAtCell(0, 1, hot.getDataAtCell(0, 1) + 500);
+            hot.selectCell(0, 1);
           },
         },
       ],
     },
-    background: 'semi-transparent',
-    contentBackground: true,
-    closable: false,
+    background: 'solid',
+    contentBackground: false,
+    closable: true,
   });
 });

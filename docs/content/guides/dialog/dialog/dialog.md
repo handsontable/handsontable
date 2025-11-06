@@ -147,15 +147,7 @@ The dialog supports multiple content types including plain text, HTML strings, a
 
 As the `content` option allows you to use plain text, HTML strings, and DOM elements, the `template` option allows you to use predefined dialog templates instead of custom content which can be useful for displaying alerts, confirmations, and other common ready-to-use dialogs.
 
-Currently only the `confirm` template is supported. With this template, you can display a confirmation message with title, description, with or without buttons. All options that the `template` option accepts are:
-
-- `type` - The type of the template ('confirm').
-- `title` - The title of the dialog. Required.
-- `description` - The description of the dialog.
-- `buttons` - The buttons to display in the dialog.
-  - `text` - The text of the button. Required.
-  - `type` - The type of the button ('primary' | 'secondary'). Required.
-  - `callback` - The callback to trigger when the button is clicked.
+The plugin offers two new methods to display predefined dialog templates: [`showAlert`](@/api/dialog.md#showalert) and [`showConfirm`](@/api/dialog.md#showconfirm). For users looking for more customizability, the [`show`](@/api/dialog.md#show) method allows using templates with other options that the dialog offers, such as background variants, content background, and more.
 
 ::: only-for javascript
 ::: example #example4 --html 1 --js 2 --ts 3
