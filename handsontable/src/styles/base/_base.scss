@@ -155,19 +155,6 @@
             }
           }
         }
-
-        &.htGhostTableFirstRow tbody {
-          tr {
-            th,
-            td {
-              border-top-width: 1px;
-              height: calc(
-                var(--ht-cell-vertical-padding) * 2 + var(--ht-line-height) +
-                  2px
-              );
-            }
-          }
-        }
       }
     }
 

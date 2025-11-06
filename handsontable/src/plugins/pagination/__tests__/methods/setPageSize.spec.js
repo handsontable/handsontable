@@ -32,6 +32,7 @@ describe('Pagination `setPageSize` method', () => {
       width: 550,
       height: (getDefaultRowHeight() * 8) + getPaginationContainerHeight(),
       renderAllRows: true,
+      autoRowSize: true,
     });
 
     const plugin = getPlugin('pagination');
@@ -88,7 +89,7 @@ describe('Pagination `setPageSize` method', () => {
     expect(visualizePageSections()).toEqual([
       'Page size: [[auto], 5, 10, 20, 50, 100]',
       '1 - 7 of 15',
-      '|< < Page 1 of 3 [>] [>|]'
+      '|< < Page 1 of 2 [>] [>|]'
     ]);
 
     plugin.setPageSize(20);

@@ -387,7 +387,8 @@ describe('Pagination `pageSize` option', () => {
         data: createSpreadsheetData(45, 10),
         autoRowSize: true,
         width: 550,
-        height: (getDefaultRowHeight() * 5) + getPaginationContainerHeight(),
+        height: (getDefaultRowHeight() * 5) + getPaginationContainerHeight() +
+          (spec().loadedTheme === 'classic' ? 1 : 0),
         // eslint-disable-next-line no-sparse-arrays
         rowHeights: [getDefaultRowHeight() * 5,, getDefaultRowHeight() * 3,,, getDefaultRowHeight() * 2],
         pagination: {
@@ -403,47 +404,47 @@ describe('Pagination `pageSize` option', () => {
       expect(visualizePageSections()).toEqual([
         'Page size: [[auto], 5, 10, 20, 50, 100]',
         '1 - 1 of 45',
-        '|< < Page 1 of 13 [>] [>|]',
+        '|< < Page 1 of 11 [>] [>|]',
       ]);
 
       plugin.setPage(2);
 
       expect(getHtCore().find('tr:first td:first').text()).toBe('A2');
-      expect(getHtCore().find('tr:last td:first').text()).toBe('A3');
+      expect(getHtCore().find('tr:last td:first').text()).toBe('A4');
       expect(visualizePageSections()).toEqual([
         'Page size: [[auto], 5, 10, 20, 50, 100]',
-        '2 - 3 of 45',
-        '[|<] [<] Page 2 of 13 [>] [>|]',
+        '2 - 4 of 45',
+        '[|<] [<] Page 2 of 11 [>] [>|]',
       ]);
 
       plugin.setPage(3);
 
-      expect(getHtCore().find('tr:first td:first').text()).toBe('A4');
-      expect(getHtCore().find('tr:last td:first').text()).toBe('A6');
+      expect(getHtCore().find('tr:first td:first').text()).toBe('A5');
+      expect(getHtCore().find('tr:last td:first').text()).toBe('A8');
       expect(visualizePageSections()).toEqual([
         'Page size: [[auto], 5, 10, 20, 50, 100]',
-        '4 - 6 of 45',
-        '[|<] [<] Page 3 of 13 [>] [>|]',
+        '5 - 8 of 45',
+        '[|<] [<] Page 3 of 11 [>] [>|]',
       ]);
 
       await setDataAtCell(4, 1, 'This\nis\nmulitline\ncell\nvalue\nthat\nmakes\nrow\nmuch\nmuch\nbigger');
 
-      expect(getHtCore().find('tr:first td:first').text()).toBe('A4');
-      expect(getHtCore().find('tr:last td:first').text()).toBe('A4');
+      expect(getHtCore().find('tr:first td:first').text()).toBe('A5');
+      expect(getHtCore().find('tr:last td:first').text()).toBe('A5');
       expect(visualizePageSections()).toEqual([
         'Page size: [[auto], 5, 10, 20, 50, 100]',
-        '4 - 4 of 45',
-        '[|<] [<] Page 3 of 15 [>] [>|]',
+        '5 - 5 of 45',
+        '[|<] [<] Page 3 of 12 [>] [>|]',
       ]);
 
       await setDataAtCell(4, 1, 'value');
 
-      expect(getHtCore().find('tr:first td:first').text()).toBe('A4');
-      expect(getHtCore().find('tr:last td:first').text()).toBe('A6');
+      expect(getHtCore().find('tr:first td:first').text()).toBe('A5');
+      expect(getHtCore().find('tr:last td:first').text()).toBe('A8');
       expect(visualizePageSections()).toEqual([
         'Page size: [[auto], 5, 10, 20, 50, 100]',
-        '4 - 6 of 45',
-        '[|<] [<] Page 3 of 13 [>] [>|]',
+        '5 - 8 of 45',
+        '[|<] [<] Page 3 of 11 [>] [>|]',
       ]);
     });
 

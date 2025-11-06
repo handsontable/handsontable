@@ -73,7 +73,6 @@ describe('GhostTable', () => {
 
       expect(gt.rows.length).toBe(1);
       expect(gt.rows[0].row).toBe(0);
-      expect(gt.rows[0].table.className).toBe('htCore htGhostTableFirstRow');
       expect(gt.rows[0].table.nodeName).toBe('TABLE');
       expect(gt.rows[0].table.querySelectorAll('colgroup > col').length).toBe(2);
       expect(gt.rows[0].table.querySelector('tbody > tr > td').innerHTML).toBe('Foo');
@@ -118,8 +117,8 @@ describe('GhostTable', () => {
       expect(heightSpy.calls.argsFor(0)[0]).toBe(0);
       expect(heightSpy.calls.argsFor(0)[1]).forThemes(({ classic, main, horizon }) => {
         classic.toBe(23);
-        main.toBe(30);
-        horizon.toBe(38);
+        main.toBe(29);
+        horizon.toBe(37);
       });
       expect(heightSpy.calls.argsFor(1)[0]).toBe(1);
       expect(heightSpy.calls.argsFor(1)[1]).forThemes(({ classic, main, horizon }) => {

@@ -553,6 +553,14 @@ export class AutoRowSize extends BasePlugin {
 
     if (cachedHeight !== null && cachedHeight > defaultHeight) {
       height = cachedHeight;
+
+      if (
+        !this.hot.stylesHandler.isClassicTheme() &&
+        row === this.hot.view.getFirstRenderedVisibleRow()
+      ) {
+        // add 1px border-top-width compensation for the first rendered row
+        height += 1;
+      }
     }
 
     return height;
