@@ -9,6 +9,10 @@ import * as C from '../constants';
 
 const dictionary = {
   languageCode: 'sr-SP',
+
+  [C.OK]: 'U redu',
+  [C.CANCEL]: 'Otkaži',
+
   [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'Nema dostupnih opcija',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Unesi red iznad',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Unesi red ispod',

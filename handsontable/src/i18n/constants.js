@@ -2,6 +2,11 @@
  * Constants for parts of translation.
  */
 
+export const COMMON_NAMESPACE = 'Common:';
+
+export const OK = `${COMMON_NAMESPACE}ok`;
+export const CANCEL = `${COMMON_NAMESPACE}cancel`;
+
 export const CONTEXT_MENU_ITEMS_NAMESPACE = 'ContextMenu:items';
 
 const CM_ALIAS = CONTEXT_MENU_ITEMS_NAMESPACE;

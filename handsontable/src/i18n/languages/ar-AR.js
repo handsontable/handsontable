@@ -10,6 +10,10 @@ import * as C from '../constants';
 const dictionary = {
   languageCode: 'ar-AR',
   languageDirection: 'rtl',
+
+  [C.OK]: 'موافق',
+  [C.CANCEL]: 'إلغاء',
+
   [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'لا توجد خيارات متوفرة',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'إدراج صف للأعلى',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'إدراج صف للأسفل',

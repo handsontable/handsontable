@@ -1,6 +1,7 @@
 import { BasePlugin } from '../base';
 import { DialogUI } from './ui';
 import { isObject } from '../../helpers/object';
+import * as C from '../../i18n/constants';
 
 export const PLUGIN_KEY = 'dialog';
 export const PLUGIN_PRIORITY = 360;
@@ -433,6 +434,78 @@ export class Dialog extends BasePlugin {
       contentBackground: this.getSetting('contentBackground'),
       animation: this.getSetting('animation'),
       a11y: this.getSetting('a11y'),
+    });
+  }
+
+  /**
+   * Displays the alert dialog with the specified content.
+   *
+   * @param {string | { title: string, description: string }} message The message to display in the dialog.
+   * Can be a string or an object with `title` and `description` properties.
+   * @param {function(MouseEvent): void} [callback] The callback to trigger when the button is clicked.
+   */
+  showAlert(message, callback) {
+    const {
+      title = 'Alert',
+      description,
+    } = isObject(message) ? message : { title: message };
+
+    this.show({
+      template: {
+        type: 'confirm',
+        title,
+        description,
+        buttons: [
+          {
+            text: this.hot.getTranslatedPhrase(C.OK),
+            type: 'primary',
+            callback: (...args) => callback?.(...args),
+          }
+        ],
+      },
+      contentBackground: true,
+      background: 'semi-transparent',
+      animation: true,
+      closable: false,
+    });
+  }
+
+  /**
+   * Displays the confirm dialog with the specified content and options.
+   *
+   * @param {string | { title: string, description: string }} message The message to display in the dialog.
+   * Can be a string or an object with `title` and `description` properties.
+   * @param {function(MouseEvent): void} [onOk] The callback to trigger when the OK button is clicked.
+   * @param {function(MouseEvent): void} [onCancel] The callback to trigger when the Cancel button is clicked.
+   */
+  showConfirm(message, onOk, onCancel) {
+    const {
+      title = 'Confirm',
+      description,
+    } = isObject(message) ? message : { title: message };
+
+    this.show({
+      template: {
+        type: 'confirm',
+        title,
+        description,
+        buttons: [
+          {
+            text: this.hot.getTranslatedPhrase(C.CANCEL),
+            type: 'secondary',
+            callback: (...args) => onCancel?.(...args),
+          },
+          {
+            text: this.hot.getTranslatedPhrase(C.OK),
+            type: 'primary',
+            callback: (...args) => onOk?.(...args),
+          },
+        ],
+      },
+      contentBackground: true,
+      background: 'semi-transparent',
+      animation: true,
+      closable: false,
     });
   }
 

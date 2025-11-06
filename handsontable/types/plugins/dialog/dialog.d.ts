@@ -28,6 +28,8 @@ export interface DialogConfig {
 
 export type Settings = boolean | DialogConfig;
 
+type TemplateOptions = string | { title: string, description?: string };
+
 export class Dialog extends BasePlugin {
   constructor(hotInstance: Core);
 
@@ -35,5 +37,7 @@ export class Dialog extends BasePlugin {
   show(config?: DialogConfig): void;
   hide(): void;
   update(config: DialogConfig): void;
+  showAlert(message?: TemplateOptions, callback?: (event: MouseEvent) => void): void;
+  showConfirm(message?: TemplateOptions, onOk?: (event: MouseEvent) => void, onCancel?: (event: MouseEvent) => void): void;
   focus(): void;
 }

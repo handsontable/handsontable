@@ -16,7 +16,7 @@ const ensureCorrectHotThemes = () => {
     // eslint-disable-next-line no-undef
     Handsontable.hooks.add('afterSetTheme', function() {
       setTimeout(() => {
-        if (this.rootContainer.closest('.disable-auto-theme')) {
+        if (this.rootContainer.closest('.disable-auto-theme') || this.rootContainer.closest('.ht-portal')) {
           return;
         }
 

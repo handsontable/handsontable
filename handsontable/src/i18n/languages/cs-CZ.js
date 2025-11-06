@@ -9,6 +9,10 @@ import * as C from '../constants';
 
 const dictionary = {
   languageCode: 'cs-CZ',
+
+  [C.OK]: 'OK',
+  [C.CANCEL]: 'Storno',
+
   [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'Žádné volby nejsou dostupné',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Vložit řádek nad',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Vložit řádek pod',

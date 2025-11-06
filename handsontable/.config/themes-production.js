@@ -18,7 +18,7 @@ module.exports.create = function create(envArgs) {
     c.plugins = c.plugins.filter(plugin => !(plugin instanceof MiniCssExtractPlugin));
     c.plugins.push(
       new MiniCssExtractPlugin({
-        filename: '../styles/ht-theme-[name].min.css',
+        filename: '../styles/ht-[name].min.css',
       }),
     );
   });
