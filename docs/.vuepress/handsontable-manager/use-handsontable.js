@@ -118,20 +118,23 @@ const useHandsontable = (version, callback = () => {}, preset = 'hot', buildMode
         break;
       }
 
-      // Ensure that `fixer.js` is not loaded while injecting new dependencies (with an exception for `react-colorful`).
-      if (dep !== 'fixer' && dep !== 'react-colorful') {
+      const exceptions = ['fixer', 'react-colorful', 'multiple-select-vanilla', 'flatpickr', 'coloris'];
+
+      // Ensure that `fixer.js` is not loaded while injecting new dependencies (with an exception for `react-colorful` and others).
+      if (!exceptions.includes(dep)) {
         const _document = document; // eslint-disable-line no-restricted-globals
         const getId = depName => `dependency-reloader_${depName}`;
         const fixerScript = _document.getElementById(`script-${getId('fixer')}`);
 
         if (fixerScript) {
           fixerScript.remove();
-          // if ('require' in window) {
-          //   delete window.require;
-          // }
-          // if ('exports' in window) {
-          //   delete window.exports;
-          // }
+          try {
+            delete window.require;
+            delete window.exports;
+          } catch (error) {
+            // eslint-disable-next-line no-console
+            console.error('Error deleting require and exports', error);
+          }
         }
       }
 

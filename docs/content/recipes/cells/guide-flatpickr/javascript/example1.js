@@ -37,9 +37,9 @@ export const editorFactory = ({
 
     if (shortcuts) {
       editorContext.addShortcuts(
-        shortcuts.map(shortcut => ({
+        shortcuts.map((shortcut) => ({
           ...shortcut,
-          callback: event => shortcut.callback(editor, event),
+          callback: (event) => shortcut.callback(editor, event),
         })),
         // @ts-ignore
         contextConfig
@@ -107,7 +107,10 @@ export const editorFactory = ({
         onFocus(editor);
       } else {
         editor.container
-          .querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')
+          .querySelector(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+            // @ts-ignore
+          )
           ?.focus();
       }
     },
@@ -481,7 +484,7 @@ const inputData = [
   },
 ];
 
-export const data = inputData.map(el => ({
+export const data = inputData.map((el) => ({
   ...el,
 }));
 /* end:skip-in-preview */
@@ -542,6 +545,7 @@ const hotOptions = {
   autoRowSize: true,
   rowHeaders: true,
   height: 'auto',
+  autoWrapRow: true,
   columns: [
     { data: 'id', type: 'numeric', width: 150 },
     {

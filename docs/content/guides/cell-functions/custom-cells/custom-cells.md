@@ -129,6 +129,7 @@ editorFactory<CustomProperties>({
   getValue?(editor) { /* Return current value */ },
   setValue?(editor, value) { /* Set value */ },
   onFocus?(editor) { /* Custom focus logic */ },
+  onKeyDown?(editor, event) { /* Override default key behavior */ },
   shortcuts?: Array<{ /* Keyboard shortcuts */ }>,
   // ... other optional helpers
 })
@@ -174,6 +175,12 @@ Understanding when each method is called:
 8. **`onFocus(editor)`** - Custom focus logic
    - Optional - defaults to focusing first focusable element in container
    - In case of special `focus` management, add your logic in this hook 
+
+9. **`onKeyDown(editor, event)`** - Override default key behavior
+   - Optional - called for every key press when the editor is active
+   - Return `false` to prevent Handsontable's default behavior for that key
+   - Return `true` (or nothing) to allow the default behavior
+   - Use this to override default behaviors like Tab, Enter, Escape, etc.
 
 ## Custom Properties with TypeScript
 
@@ -324,6 +331,62 @@ editor: editorFactory<{input: HTMLInputElement}>({
 })
 ```
 
+### Pattern 6: Overriding Editor Default Behavior
+
+**Why is this needed?**
+
+Handsontable has default keyboard behaviors that control how editors open, close, and navigate. By default, certain keys trigger specific actions:
+
+- Clicking on another cell (saves changes)
+- Pressing <kbd>Enter</kbd> (saves changes and moves selection one cell down)
+- Pressing <kbd>Shift</kbd>+<kbd>Enter</kbd> (saves changes and moves selection one cell up)
+- Pressing <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>Enter</kbd> or <kbd>Alt</kbd>/<kbd>Option</kbd>+<kbd>Enter</kbd> (adds a new line inside the cell)
+- Pressing <kbd>Escape</kbd> (aborts changes)
+- Pressing <kbd>Tab</kbd> (saves changes and moves one cell to the right or to the left, depending on your [layout direction](@/guides/internationalization/layout-direction/layout-direction.md#elements-affected-by-layout-direction))
+- Pressing <kbd>Shift</kbd>+<kbd>Tab</kbd> (saves changes and moves one cell to the left or to the right, depending on your [layout direction](@/guides/internationalization/layout-direction/layout-direction.md#elements-affected-by-layout-direction))
+- Pressing <kbd>Page Up</kbd>, <kbd>Page Down</kbd> (saves changes and moves one screen up/down)
+
+Sometimes you want to override these default behaviors. For example, you might want <kbd>Tab</kbd> to cycle through options within your editor instead of moving to the next cell.
+
+**When to use `onKeyDown` vs `shortcuts`:**
+
+- **Use `onKeyDown`** when you need to override default Handsontable behavior (like Tab, Enter, Escape, etc.)
+- **Use `shortcuts`** when you want to add custom keyboard shortcuts that don't conflict with default behavior
+
+**Example: Overriding Tab Key Behavior**
+
+```typescript
+editor: editorFactory<{input: HTMLDivElement, value: string, config: string[]}>({
+  config: ['👍', '👎', '🤷‍♂️'],
+  init(editor) {
+    editor.input = editor.hot.rootDocument.createElement("DIV") as HTMLDivElement;
+    // ... setup
+  },
+  onKeyDown: (editor, event) => {
+    if (event.key === 'Tab') {
+      // Cycle through options instead of moving to next cell
+      let index = editor.config.indexOf(editor.value);
+      index = index === editor.config.length - 1 ? 0 : index + 1;
+      editor.setValue(editor.config[index]);
+      return false; // Prevent default tabbing behavior
+    }
+    return true; // Allow default behavior for other keys
+  }
+})
+```
+
+**How it works:**
+- `onKeyDown` is called for every key press when the editor is active (open)
+- Return `false` to prevent Handsontable's default behavior for that key
+- Return `true` (or nothing) to allow the default behavior
+- This gives you full control over keyboard interactions within your editor
+
+**Common use cases:**
+- Making Tab cycle through options instead of moving cells
+- Preventing Enter from closing the editor in multi-line inputs
+- Adding custom behavior to Escape key
+- Overriding navigation keys for custom UI elements
+
 
 ## Usage in Handsontable
 
@@ -431,6 +494,9 @@ const editor = editorFactory<{input: HTMLInputElement}>({
   },
   getValue(editor) {
     return editor.input.value;
+  }
+  setValue(editor, value) {
+    editor.input.value = value;
   }
 });
 ```

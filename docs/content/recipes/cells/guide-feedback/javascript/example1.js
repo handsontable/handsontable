@@ -14,6 +14,7 @@ export const editorFactory = ({
   getValue,
   setValue,
   onFocus,
+  onKeyDown,
   shortcuts,
   value,
   // valueObject,
@@ -39,6 +40,13 @@ export const editorFactory = ({
         // @ts-ignore
         contextConfig
       );
+    }
+
+    if (onKeyDown) {
+      editor._beforeKeyDown = (event) => {
+        return onKeyDown(editor, event);
+      };
+      editor.hot.addHook('beforeKeyDown', editor._beforeKeyDown);
     }
   };
 
@@ -118,6 +126,10 @@ export const editorFactory = ({
       const editorContext = shortcutManager.getContext('editor');
 
       editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP);
+
+      if (onKeyDown) {
+        editor.hot.removeHook('beforeKeyDown', editor._beforeKeyDown);
+      }
     },
     prepare(editor, row, col, prop, td, originalValue, cellProperties) {
       if (typeof beforeOpen === 'function') {
@@ -490,9 +502,21 @@ const cellDefinition = {
   editor: editorFactory({
     config: ['👍', '👎', '🤷‍♂️'],
     value: '👍',
+    onKeyDown: (editor, event) => {
+      if (event.key === 'Tab') {
+        let index = editor.config.indexOf(editor.value);
+
+        index = index === editor.config.length - 1 ? 0 : index + 1;
+        editor.setValue(editor.config[index]);
+
+        return false;
+      }
+
+      return true;
+    },
     shortcuts: [
       {
-        keys: [['ArrowRight', 'Tab']],
+        keys: [['ArrowRight']],
         callback: (editor, _event) => {
           let index = editor.config.indexOf(editor.value);
 

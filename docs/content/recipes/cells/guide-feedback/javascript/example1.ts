@@ -22,6 +22,7 @@ export const editorFactory = <T>({
   getValue,
   setValue,
   onFocus,
+  onKeyDown,
   shortcuts,
   value,
   // valueObject,
@@ -32,6 +33,7 @@ export const editorFactory = <T>({
   value?: T extends { value: any } ? T['value'] : any;
   // valueObject?: T extends { valueObject: any } ? T['valueObject'] : any;
   config?: T extends { config: any } ? T['config'] : any;
+  onKeyDown?: (editor: ExtendedEditor<T>, event: KeyboardEvent) => void;
   render?: (editor: ExtendedEditor<T>) => void;
   init: (editor: ExtendedEditor<T>) => void;
   afterOpen?: (editor: ExtendedEditor<T>) => void;
@@ -92,6 +94,13 @@ export const editorFactory = <T>({
         // @ts-ignore
         contextConfig
       );
+    }
+
+    if (onKeyDown) {
+      (editor as ExtendedEditor<T> & { _beforeKeyDown: (event: KeyboardEvent) => void })._beforeKeyDown = (event) => {
+          return onKeyDown(editor, event);                
+      };
+      editor.hot.addHook('beforeKeyDown', (editor as ExtendedEditor<T> & { _beforeKeyDown: (event: KeyboardEvent) => void })._beforeKeyDown);
     }
   };
 
@@ -173,6 +182,10 @@ export const editorFactory = <T>({
       const editorContext = shortcutManager.getContext('editor')!;
 
       editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP);
+      if (onKeyDown) {
+        editor.hot.removeHook('beforeKeyDown', (editor as ExtendedEditor<T> & { _beforeKeyDown: (event: KeyboardEvent) => void })._beforeKeyDown);
+      }
+
     },
     prepare(editor, row, col, prop, td, originalValue, cellProperties) {
       if (typeof beforeOpen === 'function') {
@@ -547,10 +560,19 @@ const container = document.querySelector('#example1')!;
 const cellDefinition = {
   editor: editorFactory<{ input: HTMLDivElement; value: string; config: string[] }>({
     config: ['👍', '👎', '🤷‍♂️'],
-    value: '👍',
+    value: '👍',    
+    onKeyDown: (editor, event) => {
+      if (event.key === 'Tab') {
+        let index = editor.config.indexOf(editor.value);
+        index = index === editor.config.length - 1 ? 0 : index + 1;
+        editor.setValue(editor.config[index]);
+        return false;
+      }
+      return true;
+    },
     shortcuts: [
       {
-        keys: [['ArrowRight', "Tab"]],
+        keys: [['ArrowRight']],
         callback: (editor, _event) => {
           let index = editor.config.indexOf(editor.value);
 

@@ -34,8 +34,8 @@
     "docs:test:example-checker": "node .vuepress/tools/example-checker",
     "docs:visual-test": "npx playwright test",
     "docs:visual-test:update-screenshot": "npx playwright test -u",
-    "docs:watch": "cross-env FORCE_COLOR=1 node .vuepress/tools/watch.mjs",
-    "docs:watch:no-cache": "cross-env VUEPRESS_NO_CACHE=1 FORCE_COLOR=1 node .vuepress/tools/watch.mjs",
+    "docs:watch": "cross-env FORCE_COLOR=1 WATCH_MODE=1 node .vuepress/tools/watch.mjs",
+    "docs:watch:no-cache": "cross-env VUEPRESS_NO_CACHE=1 WATCH_MODE=1 FORCE_COLOR=1 node .vuepress/tools/watch.mjs",
     "postinstall": "npm run docs:build:angular-umd && patch-package"
   },
   "license": "CC BY 4.0",

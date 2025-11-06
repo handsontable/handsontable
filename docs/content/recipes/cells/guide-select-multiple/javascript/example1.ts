@@ -893,6 +893,7 @@ const hotOptions: Handsontable.GridSettings = {
       selectMultipleOptions: components,
     },
   ],
+  autoWrapRow: true,
   licenseKey: 'non-commercial-and-evaluation',
 };
 

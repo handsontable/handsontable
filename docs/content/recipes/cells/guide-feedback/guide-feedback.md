@@ -176,7 +176,32 @@ shortcuts: [
 - Accessible for keyboard-only users
 - Intuitive left/right navigation
 
-## Step 5: Editor - Before Open Hook
+## Step 5: Editor – Custom Tab Key Behavior
+
+By default, pressing <kbd>Tab</kbd> in Handsontable saves the cell and moves the selection horizontally, following your [layout direction](@/guides/internationalization/layout-direction/layout-direction.md#elements-affected-by-layout-direction).  
+In this example, we want <kbd>Tab</kbd> to cycle through feedback options—just like the arrow keys—without moving to another cell.  
+To achieve this, we use the editor's `onKeyDown` callback, and return `false` to prevent the default action (saving and moving to the next cell).
+
+```typescript
+onKeyDown: (editor, event) => {
+  if (event.key === 'Tab') {
+    let index = editor.config.indexOf(editor.value);
+    index = index === editor.config.length - 1 ? 0 : index + 1;
+    editor.setValue(editor.config[index]);
+    return false; // Prevent default tabbing behavior
+  }
+  return true;
+},
+```
+
+**How it works:**
+- Listens for <kbd>Tab</kbd> when the editor is active
+- Moves to the next option in `config` (wraps around at the end)
+- Updates the editor's value and button highlight
+- Returning `false` blocks Handsontable's built-in tab handler, so editing stays in place
+
+
+## Step 6: Editor - Before Open Hook
 
 Initialize the editor with the current cell value when editing starts.
 
@@ -192,13 +217,22 @@ beforeOpen(editor, { originalValue }) {
 - Sets the editor's value to match the cell
 - This ensures the correct button is highlighted when editing starts
 
-## Step 6: Complete Cell Definition
+## Step 7: Complete Cell Definition
 
 ```typescript
 const cellDefinition = {
   editor: editorFactory<{input: HTMLDivElement, value: string, config: string[]}>({
     config: ['👍', '👎', '🤷‍♂️'],
     value: '👍',
+    onKeyDown: (editor, event) => {
+      if (event.key === 'Tab') {
+        let index = editor.config.indexOf(editor.value);
+        index = index === editor.config.length - 1 ? 0 : index + 1;
+        editor.setValue(editor.config[index]);
+        return false;
+      }
+      return true;
+    }, 
     shortcuts: [
       {
         keys: [['ArrowRight']],
@@ -256,7 +290,7 @@ const cellDefinition = {
 
 **Note:** No custom renderer needed! Handsontable's default renderer will display the emoji value in the cell.
 
-## Step 7: Use in Handsontable
+## Step 8: Use in Handsontable
 
 ```typescript
 const container = document.querySelector("#example1")!;

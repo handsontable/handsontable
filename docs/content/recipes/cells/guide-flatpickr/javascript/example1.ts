@@ -608,6 +608,7 @@ const hotOptions: Handsontable.GridSettings = {
   autoRowSize: true,
   rowHeaders: true,
   height: 'auto',
+  autoWrapRow: true,
   columns: [
     { data: 'id', type: 'numeric', width: 150 },
     {
