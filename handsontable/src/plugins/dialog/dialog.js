@@ -467,8 +467,8 @@ export class Dialog extends BasePlugin {
           }
         ],
       },
-      contentBackground: true,
-      background: 'semi-transparent',
+      contentBackground: false,
+      background: 'solid',
       animation: true,
       closable: false,
     });
