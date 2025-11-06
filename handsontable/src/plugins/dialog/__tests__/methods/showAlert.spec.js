@@ -31,8 +31,8 @@ describe('Dialog - showAlert method', () => {
         description: undefined,
         buttons: [{ text: 'OK', type: 'primary', callback: jasmine.any(Function) }],
       },
-      contentBackground: true,
-      background: 'semi-transparent',
+      contentBackground: false,
+      background: 'solid',
       animation: true,
       closable: false,
     });
@@ -57,8 +57,8 @@ describe('Dialog - showAlert method', () => {
         description: undefined,
         buttons: [{ text: 'OK', type: 'primary', callback: jasmine.any(Function) }],
       },
-      contentBackground: true,
-      background: 'semi-transparent',
+      contentBackground: false,
+      background: 'solid',
       animation: true,
       closable: false,
     });
@@ -86,8 +86,8 @@ describe('Dialog - showAlert method', () => {
         description: 'This is a description',
         buttons: [{ text: 'OK', type: 'primary', callback: jasmine.any(Function) }],
       },
-      contentBackground: true,
-      background: 'semi-transparent',
+      contentBackground: false,
+      background: 'solid',
       animation: true,
       closable: false,
     });
