@@ -19,7 +19,7 @@ const ExampleComponent = () => {
       height="auto"
       colHeaders={true}
       rowHeaders={true}
-      rowHeights={function (index: number) {
+      minRowHeights={function (index: number) {
         return (index + 1) * 20;
       }}
       manualRowResize={true}

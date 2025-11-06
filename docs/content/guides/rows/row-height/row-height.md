@@ -37,7 +37,7 @@ Configure row heights, using a number, an array or a function. Let your users ma
 The default (and minimum) row height is calculated based on the used theme's line height, vertical padding and cell border values and in the `main` theme it's 29px, in the `horizon` it's 37px and in the `legacy` styles it's 23 px (22 px + 1 px of the row's bottom border). Unless configured otherwise, Handsontable assumes that your cell contents fit in this default row height.
 
 If your cell contents require heights greater than default (because you use multiline text, or [custom renderers](@/guides/cell-functions/cell-renderer/cell-renderer.md), or custom styles), use one of the following configurations to avoid potential layout problems:
-  - Configure your row heights in advance: set the [`rowHeights`](@/api/options.md#rowheights) option to a [number](#set-row-heights-to-a-number), or an [array](#set-row-heights-with-an-array), or a [function](#set-row-heights-with-a-function). This requires you to know the heights beforehand, but results in the best runtime performance.
+  - Configure your row heights in advance: set the [`minRowHeights`](@/api/options.md#minrowheights) option to a [number](#set-row-heights-to-a-number), or an [array](#set-row-heights-with-an-array), or a [function](#set-row-heights-with-a-function). This requires you to know the heights beforehand, but results in the best runtime performance.
   - Set the [`manualRowResize`](@/api/options.md#manualrowresize) option to an array, to configure initial row heights and let your users [adjust the row heights manually](#adjust-row-heights-manually).
   - Enable the [`AutoRowSize`](@/api/autoRowSize.md) plugin, by setting `autoRowSize: true`. This tells Handsontable to measure the actual row heights in the DOM. It impacts runtime performance but is accurate.
 
@@ -196,7 +196,7 @@ You can adjust the size of one or multiple rows simultaneously, even if the sele
 - Configuration options:
   - [`autoRowSize`](@/api/options.md#autorowsize)
   - [`manualRowResize`](@/api/options.md#manualrowresize)
-  - [`rowHeights`](@/api/options.md#rowheights)
+  - [`minRowHeights`](@/api/options.md#minRowHeights)
 - Core methods:
   - [`getRowHeight()`](@/api/core.md#getrowheight)
 - Hooks:

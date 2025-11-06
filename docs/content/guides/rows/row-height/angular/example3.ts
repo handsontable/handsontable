@@ -24,7 +24,7 @@ export class AppComponent {
     height: 'auto',
     colHeaders: true,
     rowHeaders: true,
-    rowHeights(index) {
+    minRowHeights(index) {
       return (index + 1) * 20;
     },
     manualRowResize: true,

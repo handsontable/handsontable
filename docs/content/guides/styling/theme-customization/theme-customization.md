@@ -190,6 +190,15 @@ Handsontable provides a comprehensive set of CSS variables that allow you to cus
 | `--ht-shadow-y` | Vertical offset of shadows |
 | `--ht-shadow-blur` | Blur radius of shadows |
 
+### Bar Variables
+
+| Variable | Description |
+|----------|-------------|
+| `--ht-bar-foreground-color` | Foreground color of bar elements |
+| `--ht-bar-background-color` | Background color of bar elements |
+| `--ht-bar-horizontal-padding` | Horizontal padding inside bar elements |
+| `--ht-bar-vertical-padding` | Vertical padding inside bar elements |
+
 ### Cell Border Variables
 
 | Variable | Description |

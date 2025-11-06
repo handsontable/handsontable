@@ -20,6 +20,9 @@ category: Upgrade and migration
 
 Migrate from Handsontable 11.1 to Handsontable 12.0, released on April 28, 2022.
 
+More information about this release can be found in the [`12.0.0` release blog post](https://handsontable.com/blog/handsontable-12.0.0-data-grid-rtl-support-and-a-new-keyboard-shortcuts-api).<br/>
+For a detailed list of changes in this release, see the [Changelog](@/guides/upgrade-and-migration/changelog/changelog.md#_12-0-0).
+
 [[toc]]
 
 ## Step 1: Verify your `updateSettings()` calls

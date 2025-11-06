@@ -3382,6 +3382,38 @@ export default () => {
     minCols: 0,
 
     /**
+     * Alias for the [`rowHeights`](#rowHeights) option.
+     *
+     * See the [`rowHeights`](#rowHeights) option description for more information.
+     *
+     * @since 16.2.0
+     * @memberof Options#
+     * @type {number|number[]|string|string[]|Array<undefined>|Function}
+     * @default undefined
+     * @category Core
+     *
+     * @example
+     * ```js
+     * // set every row's minimum height to 100px
+     * minRowHeights: 100,
+     *
+     * // set every row's minimum height to 100px
+     * minRowHeights: '100px',
+     *
+     * // set the first (by visual index) row's minimum height to 100
+     * // set the second (by visual index) row's minimum height to 120
+     * // set any other row's minimum height to the default height value
+     * minRowHeights: [100, 120],
+     *
+     * // set each row's minimum height individually, using a function
+     * minRowHeights(visualRowIndex) {
+     *   return visualRowIndex * 10;
+     * },
+     * ```
+     */
+    minRowHeights: undefined,
+
+    /**
      * The `minRows` option sets a minimum number of rows.
      *
      * The `minRows` option is used:

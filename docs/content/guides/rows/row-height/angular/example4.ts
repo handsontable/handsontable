@@ -25,7 +25,7 @@ export class AppComponent {
     height: 'auto',
     colHeaders: true,
     rowHeaders: true,
-    rowHeights: 40,
+    minRowHeights: 40,
     manualRowResize: true,
     autoWrapRow: true,
     autoWrapCol: true,

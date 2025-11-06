@@ -181,6 +181,7 @@ export interface GridSettings extends Events {
   maxRows?: number;
   mergeCells?: MergeCellsSettings;
   minCols?: number;
+  minRowHeights?: number | string | number[] | string[] | undefined[] | Array<number | string | undefined> | ((index: number) => string | number | undefined);
   minRows?: number;
   minSpareCols?: number;
   minSpareRows?: number;
