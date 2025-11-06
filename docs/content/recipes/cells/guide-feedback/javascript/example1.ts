@@ -89,6 +89,8 @@ export const editorFactory = <T>({
       editorContext.addShortcuts(
         shortcuts.map((shortcut) => ({
           ...shortcut,
+          relativeToGroup: shortcut.relativeToGroup || 'editorManager.handlingEditor',
+          position: shortcut.position || 'before',
           callback: (event: KeyboardEvent) => shortcut.callback(editor, event),
         })),
         // @ts-ignore
@@ -560,31 +562,21 @@ const container = document.querySelector('#example1')!;
 const cellDefinition = {
   editor: editorFactory<{ input: HTMLDivElement; value: string; config: string[] }>({
     config: ['👍', '👎', '🤷‍♂️'],
-    value: '👍',    
-    onKeyDown: (editor, event) => {
-      if (event.key === 'Tab') {
-        let index = editor.config.indexOf(editor.value);
-        index = index === editor.config.length - 1 ? 0 : index + 1;
-        editor.setValue(editor.config[index]);
-        return false;
-      }
-      return true;
-    },
+    value: '👍',       
     shortcuts: [
       {
-        keys: [['ArrowRight']],
+        keys: [['ArrowRight'],[ "Tab"]],
         callback: (editor, _event) => {
           let index = editor.config.indexOf(editor.value);
-
           index = index === editor.config.length - 1 ? 0 : index + 1;
           editor.setValue(editor.config[index]);
+          return false; // Prevent default tabbing behavior
         },
       },
       {
         keys: [['ArrowLeft']],
         callback: (editor, _event) => {
           let index = editor.config.indexOf(editor.value);
-
           index = index === 0 ? editor.config.length - 1 : index - 1;
           editor.setValue(editor.config[index]);
         },

@@ -35,6 +35,8 @@ export const editorFactory = ({
       editorContext.addShortcuts(
         shortcuts.map((shortcut) => ({
           ...shortcut,
+          relativeToGroup: shortcut.relativeToGroup || 'editorManager.handlingEditor',
+          position: shortcut.position || 'before',
           callback: (event) => shortcut.callback(editor, event),
         })),
         // @ts-ignore
@@ -502,26 +504,16 @@ const cellDefinition = {
   editor: editorFactory({
     config: ['👍', '👎', '🤷‍♂️'],
     value: '👍',
-    onKeyDown: (editor, event) => {
-      if (event.key === 'Tab') {
-        let index = editor.config.indexOf(editor.value);
-
-        index = index === editor.config.length - 1 ? 0 : index + 1;
-        editor.setValue(editor.config[index]);
-
-        return false;
-      }
-
-      return true;
-    },
     shortcuts: [
       {
-        keys: [['ArrowRight']],
+        keys: [['ArrowRight'], ['Tab']],
         callback: (editor, _event) => {
           let index = editor.config.indexOf(editor.value);
 
           index = index === editor.config.length - 1 ? 0 : index + 1;
           editor.setValue(editor.config[index]);
+
+          return false; // Prevent default tabbing behavior
         },
       },
       {

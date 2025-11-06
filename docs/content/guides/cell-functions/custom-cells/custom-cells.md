@@ -129,7 +129,6 @@ editorFactory<CustomProperties>({
   getValue?(editor) { /* Return current value */ },
   setValue?(editor, value) { /* Set value */ },
   onFocus?(editor) { /* Custom focus logic */ },
-  onKeyDown?(editor, event) { /* Override default key behavior */ },
   shortcuts?: Array<{ /* Keyboard shortcuts */ }>,
   // ... other optional helpers
 })
@@ -176,11 +175,6 @@ Understanding when each method is called:
    - Optional - defaults to focusing first focusable element in container
    - In case of special `focus` management, add your logic in this hook 
 
-9. **`onKeyDown(editor, event)`** - Override default key behavior
-   - Optional - called for every key press when the editor is active
-   - Return `false` to prevent Handsontable's default behavior for that key
-   - Return `true` (or nothing) to allow the default behavior
-   - Use this to override default behaviors like Tab, Enter, Escape, etc.
 
 ## Custom Properties with TypeScript
 
@@ -348,11 +342,6 @@ Handsontable has default keyboard behaviors that control how editors open, close
 
 Sometimes you want to override these default behaviors. For example, you might want <kbd>Tab</kbd> to cycle through options within your editor instead of moving to the next cell.
 
-**When to use `onKeyDown` vs `shortcuts`:**
-
-- **Use `onKeyDown`** when you need to override default Handsontable behavior (like Tab, Enter, Escape, etc.)
-- **Use `shortcuts`** when you want to add custom keyboard shortcuts that don't conflict with default behavior
-
 **Example: Overriding Tab Key Behavior**
 
 ```typescript
@@ -362,21 +351,22 @@ editor: editorFactory<{input: HTMLDivElement, value: string, config: string[]}>(
     editor.input = editor.hot.rootDocument.createElement("DIV") as HTMLDivElement;
     // ... setup
   },
-  onKeyDown: (editor, event) => {
-    if (event.key === 'Tab') {
-      // Cycle through options instead of moving to next cell
-      let index = editor.config.indexOf(editor.value);
-      index = index === editor.config.length - 1 ? 0 : index + 1;
-      editor.setValue(editor.config[index]);
-      return false; // Prevent default tabbing behavior
+   shortcuts: [
+    {
+      keys: [["Tab"]],
+      callback: (editor, _event) => {
+        let index = editor.config.indexOf(editor.value);
+        index = index === editor.config.length - 1 ? 0 : index + 1;
+        editor.setValue(editor.config[index]);
+        retrun false; // Prevents default action 
+      }
     }
-    return true; // Allow default behavior for other keys
-  }
+   ]
 })
 ```
 
 **How it works:**
-- `onKeyDown` is called for every key press when the editor is active (open)
+- Keyboard shortcut `callback` is called for every key press when the editor is active (open)
 - Return `false` to prevent Handsontable's default behavior for that key
 - Return `true` (or nothing) to allow the default behavior
 - This gives you full control over keyboard interactions within your editor

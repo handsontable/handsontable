@@ -180,18 +180,20 @@ shortcuts: [
 
 By default, pressing <kbd>Tab</kbd> in Handsontable saves the cell and moves the selection horizontally, following your [layout direction](@/guides/internationalization/layout-direction/layout-direction.md#elements-affected-by-layout-direction).  
 In this example, we want <kbd>Tab</kbd> to cycle through feedback options—just like the arrow keys—without moving to another cell.  
-To achieve this, we use the editor's `onKeyDown` callback, and return `false` to prevent the default action (saving and moving to the next cell).
+To achieve this, we use the editor's `shortcuts`  and return `false` in callback to prevent the default action (saving and moving to the next cell).
 
 ```typescript
-onKeyDown: (editor, event) => {
-  if (event.key === 'Tab') {
-    let index = editor.config.indexOf(editor.value);
-    index = index === editor.config.length - 1 ? 0 : index + 1;
-    editor.setValue(editor.config[index]);
-    return false; // Prevent default tabbing behavior
-  }
-  return true;
-},
+shortcuts: [
+    {
+      keys: [['ArrowRight'],[ "Tab"]],
+      callback: (editor, _event) => {
+        let index = editor.config.indexOf(editor.value);
+        index = index === editor.config.length - 1 ? 0 : index + 1;
+        editor.setValue(editor.config[index]);
+        return false; // Prevent default tabbing behavior
+      },
+    },
+]
 ```
 
 **How it works:**
@@ -224,22 +226,14 @@ const cellDefinition = {
   editor: editorFactory<{input: HTMLDivElement, value: string, config: string[]}>({
     config: ['👍', '👎', '🤷‍♂️'],
     value: '👍',
-    onKeyDown: (editor, event) => {
-      if (event.key === 'Tab') {
-        let index = editor.config.indexOf(editor.value);
-        index = index === editor.config.length - 1 ? 0 : index + 1;
-        editor.setValue(editor.config[index]);
-        return false;
-      }
-      return true;
-    }, 
     shortcuts: [
       {
-        keys: [['ArrowRight']],
+        keys: [['ArrowRight'], ["Tab"]],
         callback: (editor, _event) => {
           let index = editor.config.indexOf(editor.value);
           index = index === editor.config.length - 1 ? 0 : index + 1;
           editor.setValue(editor.config[index]);
+          retrun false;
         }
       },
       {
