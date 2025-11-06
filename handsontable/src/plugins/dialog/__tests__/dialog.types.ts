@@ -130,3 +130,38 @@ dialog.update({
   closable: false,
 });
 dialog.focus();
+
+dialog.showAlert();
+dialog.showAlert('Alert');
+dialog.showAlert({
+  title: 'Alert',
+});
+dialog.showAlert({
+  title: 'Alert',
+  description: 'This is an alert'
+});
+dialog.showAlert('Alert', (event) => {
+  const myEvent: MouseEvent = event;
+});
+
+dialog.showConfirm();
+dialog.showConfirm('Confirm');
+dialog.showConfirm({
+  title: 'Confirm',
+  description: 'This is an alert'
+});
+dialog.showConfirm({
+  title: 'Confirm',
+});
+dialog.showConfirm('Confirm', (event) => {
+  const myEvent: MouseEvent = event;
+});
+dialog.showConfirm(
+  'Confirm',
+  (event) => {
+    const myEvent: MouseEvent = event;
+  },
+  (event) => {
+    const myEvent: MouseEvent = event;
+  }
+);

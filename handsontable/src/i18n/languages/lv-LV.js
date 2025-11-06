@@ -9,6 +9,10 @@ import * as C from '../constants';
 
 const dictionary = {
   languageCode: 'lv-LV',
+
+  [C.OK]: 'Labi',
+  [C.CANCEL]: 'Atcelt',
+
   [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'Nav pieejamu opciju',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Ievietot rindu augšā',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Ievietot rindu apakšā',

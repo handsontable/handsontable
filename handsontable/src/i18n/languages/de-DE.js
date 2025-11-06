@@ -9,6 +9,10 @@ import * as C from '../constants';
 
 const dictionary = {
   languageCode: 'de-DE',
+
+  [C.OK]: 'OK',
+  [C.CANCEL]: 'Abbrechen',
+
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Zeile einfügen oberhalb',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Zeile einfügen unterhalb',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'Spalte einfügen links',

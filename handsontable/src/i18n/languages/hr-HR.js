@@ -9,6 +9,10 @@ import * as C from '../constants';
 
 const dictionary = {
   languageCode: 'hr-HR',
+
+  [C.OK]: 'U redu',
+  [C.CANCEL]: 'Odustani',
+
   [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'Nema dostupnih mogućnosti',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Umetni redak iznad',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Umetni redak ispod',

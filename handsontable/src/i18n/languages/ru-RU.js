@@ -9,6 +9,10 @@ import * as C from '../constants';
 
 const dictionary = {
   languageCode: 'ru-RU',
+
+  [C.OK]: 'OK',
+  [C.CANCEL]: 'Отмена',
+
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Вставить строку выше',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Вставить строку ниже',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'Вставить столбец слева',
