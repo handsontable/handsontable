@@ -311,17 +311,11 @@
           }
         }
 
-        // compensates the top border width of the first row
+        // Prevents the first row from "jumping" by adding a pseudo-element
+        // that maintains the minimum height when the cell is empty
         &:first-of-type {
           th,
           td {
-            &:first-child {
-              height: calc(
-                var(--ht-cell-vertical-padding) * 2 + var(--ht-line-height) + 2px
-              );
-            }
-            // Prevents the first row from "jumping" by adding a pseudo-element
-            // that maintains the minimum height when the cell is empty
             &:first-child:empty::after {
               content: "";
               display: block;
