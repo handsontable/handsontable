@@ -108,8 +108,6 @@ The dialog supports multiple content types including plain text, HTML strings, a
 
 :::
 
-:::
-
 ### HTML content
 
 ::: only-for javascript
@@ -145,12 +143,13 @@ The dialog supports multiple content types including plain text, HTML strings, a
 
 :::
 
-## Background variants
+## Template types
 
-The dialog supports two background variants: `solid` and `semi-transparent`.
+As the `content` option allows you to use plain text, HTML strings, and DOM elements, the `template` option allows you to use predefined dialog templates instead of custom content which can be useful for displaying alerts, confirmations, and other common ready-to-use dialogs.
+
+The plugin offers two new methods to display predefined dialog templates: [`showAlert`](@/api/dialog.md#showalert) and [`showConfirm`](@/api/dialog.md#showconfirm). For users looking for more customizability, the [`show`](@/api/dialog.md#show) method allows using templates with other options that the dialog offers, such as background variants, content background, and more.
 
 ::: only-for javascript
-
 ::: example #example4 --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/dialog/dialog/javascript/example4.html)
@@ -158,39 +157,35 @@ The dialog supports two background variants: `solid` and `semi-transparent`.
 @[code](@/content/guides/dialog/dialog/javascript/example4.ts)
 
 :::
-
 :::
 
 ::: only-for react
-
 ::: example #example4 :react --js 1 --ts 2
 
 @[code](@/content/guides/dialog/dialog/react/example4.jsx)
 @[code](@/content/guides/dialog/dialog/react/example4.tsx)
 
 :::
-
 :::
 
 ::: only-for angular
-
 ::: example #example4 :angular --ts 1 --html 2
 
 @[code](@/content/guides/dialog/dialog/angular/example4.ts)
 @[code](@/content/guides/dialog/dialog/angular/example4.html)
 
 :::
-
 :::
 
-## Content background
+## Background variants
 
-The dialog content can have a background color using the `contentBackground` option.
+The dialog supports two background variants: `solid` and `semi-transparent`.
 
 ::: only-for javascript
 
-::: example #example5 --js 1 --ts 2
+::: example #example5 --html 1 --js 2 --ts 3
 
+@[code](@/content/guides/dialog/dialog/javascript/example5.html)
 @[code](@/content/guides/dialog/dialog/javascript/example5.js)
 @[code](@/content/guides/dialog/dialog/javascript/example5.ts)
 
@@ -220,15 +215,9 @@ The dialog content can have a background color using the `contentBackground` opt
 
 :::
 
+## Content background
 
-## Dialog accessibility
-
-The dialog plugin provides accessibility features through ARIA attributes. You can configure the dialog's accessibility properties using the `a11y` option, which includes:
-
-- `role` - Sets the ARIA role (defaults to "dialog")
-- `ariaLabel` - Sets the dialog's accessible name (defaults to "Dialog"). This is used when there is no visible dialog title that can be referenced by `ariaLabelledby`. If both `ariaLabel` and `ariaLabelledby` are provided, `ariaLabelledby` takes precedence
-- `ariaLabelledby` - References an element that labels the dialog
-- `ariaDescribedby` - References an element that describes the dialog
+The dialog content can have a background color using the `contentBackground` option.
 
 ::: only-for javascript
 
@@ -263,17 +252,20 @@ The dialog plugin provides accessibility features through ARIA attributes. You c
 
 :::
 
-## Programmatic control
 
-You can control the dialog programmatically using the plugin's methods.
+## Dialog accessibility
 
-### Show and hide dialog
+The dialog plugin provides accessibility features through ARIA attributes. You can configure the dialog's accessibility properties using the `a11y` option, which includes:
+
+- `role` - Sets the ARIA role (defaults to "dialog")
+- `ariaLabel` - Sets the dialog's accessible name (defaults to "Dialog"). This is used when there is no visible dialog title that can be referenced by `ariaLabelledby`. If both `ariaLabel` and `ariaLabelledby` are provided, `ariaLabelledby` takes precedence
+- `ariaLabelledby` - References an element that labels the dialog
+- `ariaDescribedby` - References an element that describes the dialog
 
 ::: only-for javascript
 
-::: example #example7 --html 1 --js 2 --ts 3
+::: example #example7 --js 1 --ts 2
 
-@[code](@/content/guides/dialog/dialog/javascript/example7.html)
 @[code](@/content/guides/dialog/dialog/javascript/example7.js)
 @[code](@/content/guides/dialog/dialog/javascript/example7.ts)
 
@@ -298,6 +290,46 @@ You can control the dialog programmatically using the plugin's methods.
 
 @[code](@/content/guides/dialog/dialog/angular/example7.ts)
 @[code](@/content/guides/dialog/dialog/angular/example7.html)
+
+:::
+
+:::
+
+## Programmatic control
+
+You can control the dialog programmatically using the plugin's methods.
+
+### Show and hide dialog
+
+::: only-for javascript
+
+::: example #example8 --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/dialog/dialog/javascript/example8.html)
+@[code](@/content/guides/dialog/dialog/javascript/example8.js)
+@[code](@/content/guides/dialog/dialog/javascript/example8.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example8 :react --js 1 --ts 2
+
+@[code](@/content/guides/dialog/dialog/react/example8.jsx)
+@[code](@/content/guides/dialog/dialog/react/example8.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example8 :angular --ts 1 --html 2
+
+@[code](@/content/guides/dialog/dialog/angular/example8.ts)
+@[code](@/content/guides/dialog/dialog/angular/example8.html)
 
 :::
 

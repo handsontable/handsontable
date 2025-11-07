@@ -9,6 +9,10 @@ import * as C from '../constants';
 
 const dictionary = {
   languageCode: 'ja-JP',
+
+  [C.OK]: 'OK',
+  [C.CANCEL]: 'キャンセル',
+
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: '行を上に挿入',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: '行を下に挿入',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: '列を左に挿入',

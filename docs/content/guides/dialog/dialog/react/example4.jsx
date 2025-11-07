@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef } from 'react';
 import { HotTable, HotColumn } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
@@ -32,45 +32,110 @@ const data = [
 
 const ExampleComponent = () => {
   const hotTableRef = useRef(null);
-
-  useEffect(() => {
+  const showAlert = () => {
     const hotInstance = hotTableRef.current?.hotInstance;
 
     if (!hotInstance) {
       return;
     }
 
-    hotInstance.getPlugin('dialog').show();
-  }, []);
+    const dialogPlugin = hotInstance.getPlugin('dialog');
 
-  const onBackgroundChange = (event) => {
+    dialogPlugin.showAlert(
+      {
+        title: 'Alert',
+        description: 'This is an example of the alert dialog.',
+      },
+      () => {
+        dialogPlugin.hide();
+      }
+    );
+  };
+
+  const showConfirm = () => {
     const hotInstance = hotTableRef.current?.hotInstance;
 
     if (!hotInstance) {
       return;
     }
 
-    const background = event.target.value;
-    const content =
-      background === 'solid'
-        ? 'This dialog uses a solid background (default).'
-        : 'This dialog uses a semi-transparent background.';
+    const dialogPlugin = hotInstance.getPlugin('dialog');
+    const undoRedoPlugin = hotInstance.getPlugin('undoRedo');
 
-    hotInstance.getPlugin('dialog').update({ content, background });
+    dialogPlugin.showConfirm(
+      'Do you want to undo the last action?',
+      () => {
+        undoRedoPlugin.undo();
+        dialogPlugin.hide();
+      },
+      () => {
+        dialogPlugin.hide();
+      }
+    );
+  };
+
+  const showCustomConfirm = () => {
+    const hotInstance = hotTableRef.current?.hotInstance;
+
+    if (!hotInstance) {
+      return;
+    }
+
+    const dialogPlugin = hotInstance.getPlugin('dialog');
+
+    dialogPlugin.show({
+      template: {
+        type: 'confirm',
+        title: 'Increase the price of the first row by:',
+        buttons: [
+          {
+            text: 'Cancel',
+            type: 'secondary',
+            callback: () => {
+              dialogPlugin.hide();
+            },
+          },
+          {
+            text: '$100',
+            type: 'secondary',
+            callback: () => {
+              dialogPlugin.hide();
+              hotInstance.setDataAtCell(0, 1, hotInstance.getDataAtCell(0, 1) + 100);
+              hotInstance.selectCell(0, 1);
+            },
+          },
+          {
+            text: '$200',
+            type: 'secondary',
+            callback: () => {
+              dialogPlugin.hide();
+              hotInstance.setDataAtCell(0, 1, hotInstance.getDataAtCell(0, 1) + 200);
+              hotInstance.selectCell(0, 1);
+            },
+          },
+          {
+            text: '$500',
+            type: 'secondary',
+            callback: () => {
+              dialogPlugin.hide();
+              hotInstance.setDataAtCell(0, 1, hotInstance.getDataAtCell(0, 1) + 500);
+              hotInstance.selectCell(0, 1);
+            },
+          },
+        ],
+      },
+      background: 'solid',
+      contentBackground: false,
+      closable: true,
+    });
   };
 
   return (
     <>
-      <div className="example-controls-container" style={{ paddingBottom: '16px' }}>
-        <div className="controlsQuickFilter">
-          <label htmlFor="background-select" className="selectColumn">
-            Select a background:
-            <select id="background-select" onChange={onBackgroundChange}>
-              <option value="solid">Solid</option>
-              <option value="semi-transparent">Semi-transparent</option>
-            </select>
-          </label>
-        </div>
+      <div style={{ marginBottom: '16px', display: 'flex', gap: '10px' }}>
+        <button onClick={showAlert}>Show Alert</button>
+        <button onClick={showConfirm}>Show Confirm</button>
+        <button onClick={showCustomConfirm}>Show custom Confirm (with solid background)</button>
       </div>
       <HotTable
         ref={hotTableRef}
@@ -85,11 +150,7 @@ const ExampleComponent = () => {
         autoWrapRow={true}
         autoWrapCol={true}
         autoRowSize={true}
-        dialog={{
-          content: 'This dialog uses a solid background (default).',
-          background: 'solid',
-          closable: true,
-        }}
+        dialog={true}
         licenseKey="non-commercial-and-evaluation"
       >
         <HotColumn title="Model" type="text" data="model" width={150} headerClassName="htLeft" />
@@ -106,7 +167,7 @@ const ExampleComponent = () => {
           title="Date"
           type="date"
           data="sellDate"
-          width={130}
+          width={131}
           dateFormat="MMM D, YYYY"
           correctFormat={true}
           className="htRight"

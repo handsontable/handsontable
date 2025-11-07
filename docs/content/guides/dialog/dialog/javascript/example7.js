@@ -59,7 +59,7 @@ const hot = new Handsontable(container, {
       title: 'Date',
       type: 'date',
       data: 'sellDate',
-      width: 130,
+      width: 131,
       dateFormat: 'MMM D, YYYY',
       correctFormat: true,
       className: 'htRight',
@@ -87,21 +87,19 @@ const hot = new Handsontable(container, {
   height: 300,
   stretchH: 'all',
   dialog: {
-    content: 'This dialog can be controlled programmatically.',
+    content: '<h2 id="example6-title">Title</h2><p id="example6-description">Description</p>',
+    a11y: {
+      role: 'alertdialog',
+      ariaLabel: 'Title',
+      ariaLabelledby: 'example6-title',
+      ariaDescribedby: 'example6-description',
+    },
     closable: true,
   },
   licenseKey: 'non-commercial-and-evaluation',
 });
 
+// Show dialog after initialization
 const dialogPlugin = hot.getPlugin('dialog');
 
-// Add event listeners for buttons
-document.getElementById('showDialog').addEventListener('click', () => {
-  dialogPlugin.show({
-    content: 'Dialog shown programmatically!',
-    closable: true,
-  });
-});
-document.getElementById('hideDialog').addEventListener('click', () => {
-  dialogPlugin.hide();
-});
+dialogPlugin.show();
