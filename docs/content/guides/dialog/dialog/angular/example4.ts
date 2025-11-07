@@ -5,19 +5,14 @@ import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
 @Component({
   selector: 'app-example4',
   template: `
-    <div class="example-controls-container" style="padding-bottom: 16px">
-      <div class="controlsQuickFilter">
-        <label for="background-select" class="selectColumn">Select a background:
-          <select id="background-select" (change)="onBackgroundChange($event)">
-            <option value="solid">Solid</option>
-            <option value="semi-transparent">Semi-transparent</option>
-          </select>
-        </label>
-      </div>
+    <div style="margin-bottom: 16px; display: flex; gap: 10px;">
+      <button (click)="showAlert()">Show Alert</button>
+      <button (click)="showConfirm()">Show Confirm</button>
+      <button (click)="showCustomConfirm()">Show custom Confirm (with solid background)</button>
     </div>
     <hot-table
       #hotTable
-      [settings]="hotSettings!" 
+      [settings]="hotSettings!"
       [data]="hotData"
     >
     </hot-table>
@@ -109,36 +104,80 @@ export class AppComponent implements AfterViewInit {
     autoWrapRow: true,
     autoWrapCol: true,
     autoRowSize: true,
-    dialog: {
-      content: 'This dialog uses a solid background (default).',
-      background: 'solid',
-      closable: true,
-    },
+    dialog: true,
   };
 
-  ngAfterViewInit() {
-    const hotInstance = this.hotTable.hotInstance;
+  showAlert() {
+    const dialogPlugin = this.hotTable.hotInstance.getPlugin('dialog');
 
-    if (hotInstance) {
-      // Show dialog after initialization
-      const dialogPlugin = hotInstance.getPlugin('dialog');
-      dialogPlugin.show();
-    }
+    dialogPlugin.showAlert({
+      title: 'Alert',
+      description: 'This is an example of the alert dialog.',
+    }, () => {
+      dialogPlugin.hide();
+    });
   }
 
-  onBackgroundChange(event: Event) {
+  showConfirm() {
+    const dialogPlugin = this.hotTable.hotInstance.getPlugin('dialog');
+
+    dialogPlugin.showConfirm('Do you want to undo the last action?', () => {
+      this.hotTable.hotInstance.getPlugin('undoRedo').undo();
+      dialogPlugin.hide();
+    }, () => {
+      dialogPlugin.hide();
+    });
+  }
+
+  showCustomConfirm() {
     const hotInstance = this.hotTable.hotInstance;
+    const dialogPlugin = hotInstance.getPlugin('dialog');
 
-    if (hotInstance) {
-      const background = (event.target as HTMLSelectElement).value;
-      const content = background === 'solid' ? 'This dialog uses a solid background (default).' : 'This dialog uses a semi-transparent background.';
-      const dialogPlugin = hotInstance.getPlugin('dialog');
-
-      dialogPlugin.update({
-        content,
-        background,
-      });
-    }
+    dialogPlugin.show({
+      template: {
+        type: 'confirm',
+        title: 'Increase the price of the first row by:',
+        buttons: [
+          {
+            text: 'Cancel',
+            type: 'secondary',
+            callback: () => {
+              dialogPlugin.hide();
+            },
+          },
+          {
+            text: '$100',
+            type: 'secondary',
+            callback: () => {
+              dialogPlugin.hide();
+              hotInstance.setDataAtCell(0, 1, hotInstance.getDataAtCell(0, 1) + 100);
+              hotInstance.selectCell(0, 1);
+            },
+          },
+          {
+            text: '$200',
+            type: 'secondary',
+            callback: () => {
+              dialogPlugin.hide();
+              hotInstance.setDataAtCell(0, 1, hotInstance.getDataAtCell(0, 1) + 200);
+              hotInstance.selectCell(0, 1);
+            },
+          },
+          {
+            text: '$500',
+            type: 'secondary',
+            callback: () => {
+              dialogPlugin.hide();
+              hotInstance.setDataAtCell(0, 1, hotInstance.getDataAtCell(0, 1) + 500);
+              hotInstance.selectCell(0, 1);
+            },
+          },
+        ],
+      },
+      background: 'solid',
+      contentBackground: false,
+      closable: true,
+    });
   }
 }
 /* end-file */

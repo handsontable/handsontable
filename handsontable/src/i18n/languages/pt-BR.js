@@ -9,6 +9,10 @@ import * as C from '../constants';
 
 const dictionary = {
   languageCode: 'pt-BR',
+
+  [C.OK]: 'OK',
+  [C.CANCEL]: 'Cancelar',
+
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Inserir linha acima',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Inserir linha abaixo',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'Inserir coluna esquerda',

@@ -1857,6 +1857,14 @@ export default () => {
      *
      * | Option                   | Possible settings                                                                                                               | Description                             |
      * | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------|
+     * | `template`               | Object with the template configuration (default: `null`).                                                                       | The template of the dialog allows to use prebuild templates |
+     * | `template.type`          | The type of the template ('confirm')                                                                                            | The type of the template                |
+     * | `template.title`         | The title of the template                                                                                                       | The title of the template               |
+     * | `template.description`   | The description of the template                                                                                                 | The description of the template         |
+     * | `template.buttons`       | Array of objects with the buttons configuration (default: `[]`)                                                                 | The buttons of the template             |
+     * | `template.buttons.text`  | The text of the button                                                                                                          | The text of the button                  |
+     * | `template.buttons.type`  | The type of the button ('primary' | 'secondary')                                                                                | The type of the button                  |
+     * | `template.buttons.callback` | The callback function to trigger when the button is clicked                                                                  | The callback function to trigger when the button is clicked |
      * | `content`                | A string, HTMLElement or DocumentFragment (default: `''`)                                                                       | The content of the dialog               |
      * | `customClassName`        | A string (default: `''`)                                                                                                        | The custom class name of the dialog     |
      * | `background`             | One of the options: `'solid'` or `'semi-transparent'` (default: `'solid'`)                                                      | The background of the dialog            |
@@ -1864,6 +1872,10 @@ export default () => {
      * | `animation`              | Boolean (default: `true`)                                                                                                       | Whether to show the animation           |
      * | `closable`               | Boolean (default: `false`)                                                                                                      | Whether to make the dialog closable     |
      * | `a11y`                   | Object with accessibility options (default: `{ role: 'dialog', ariaLabel: 'Dialog', ariaLabelledby: '', ariaDescribedby: '' }`) | Accessibility options for the dialog    |
+     * | `a11y.role`              | The role of the dialog ('dialog' | 'alertdialog')                                                                               | The role of the dialog                  |
+     * | `a11y.ariaLabel`         | The label of the dialog                                                                                                         | The label of the dialog                 |
+     * | `a11y.ariaLabelledby`    | The ID of the element that labels the dialog                                                                                    | The ID of the element that labels the dialog |
+     * | `a11y.ariaDescribedby`   | The ID of the element that describes the dialog                                                                                 | The ID of the element that describes the dialog |
      *
      * Read more:
      * - [Plugins: `Dialog`](@/api/dialog.md)
@@ -1895,6 +1907,24 @@ export default () => {
      *     ariaDescribedby: 'descriptionID',
      *   }
      * }
+     *
+     * // enable the Dialog plugin using a template
+     * dialog: {
+     *   template: {
+     *     type: 'confirm',
+     *     title: 'Confirm',
+     *     description: 'Do you want change the value?',
+     *     buttons: [
+     *       {
+     *         text: 'Ok',
+     *         type: 'primary',
+     *         callback: () => {
+     *           console.log('Ok');
+     *         }
+     *       },
+     *     ],
+     *   },
+     * }
      * ```
      * :::
      *
@@ -1923,6 +1953,17 @@ export default () => {
      *   }
      *   }}
      * />
+     *
+     * // enable the Dialog plugin using a template
+     * <HotTable
+     *   dialog={{
+     *     template: {
+     *       type: 'confirm',
+     *       title: 'Confirm',
+     *       description: 'Do you want change the value?',
+     *     }
+     *   }}
+     * />
      * ```
      * :::
      *
@@ -1941,6 +1982,17 @@ export default () => {
      *       ariaLabel: 'Dialog',
      *       ariaLabelledby: 'titleID',
      *       ariaDescribedby: 'descriptionID',
+     *     }
+     *   }
+     * };
+     *
+     * // enable the Dialog plugin using a template
+     * settings = {
+     *   dialog: {
+     *     template: {
+     *       type: 'confirm',
+     *       title: 'Confirm',
+     *       description: 'Do you want change the value?',
      *     }
      *   }
      * };
