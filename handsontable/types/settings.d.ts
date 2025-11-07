@@ -43,6 +43,7 @@ import { Settings as SearchSettings } from './plugins/search';
 import { Settings as TrimRowsSettings } from './plugins/trimRows';
 import { Settings as DialogSettings } from './plugins/dialog';
 import { Settings as LoadingSettings } from './plugins/loading';
+import { Settings as EmptyDataStateSettings } from './plugins/emptyDataState';
 import { Settings as UndoRedoSettings } from './plugins/undoRedo';
 import { EditorType, BaseEditor } from './editors';
 import { RendererType } from './renderers';
@@ -230,6 +231,7 @@ export interface GridSettings extends Events {
   uncheckedTemplate?: boolean | string | number;
   dialog?: DialogSettings;
   loading?: LoadingSettings;
+  emptyDataState?: EmptyDataStateSettings;
   undo?: UndoRedoSettings;
   validator?: BaseValidator | RegExp | ValidatorType | string;
   valueGetter?: (this: Core, value: CellValue, row: number, column: number, cellProperties: CellProperties) => CellValue;

@@ -25,6 +25,7 @@
 @use "./plugins/dialog";
 @use "./plugins/pagination";
 @use "./plugins/loading";
+@use "./plugins/empty-data-state";
 
 // Renderers
 @use "./renderers/text-renderer";
@@ -86,4 +87,5 @@
   @include dialog.output();
   @include pagination.output();
   @include loading.output();
+  @include empty-data-state.output();
 }
