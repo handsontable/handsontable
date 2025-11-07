@@ -179,13 +179,15 @@ Examples of how to use them are provided in their descriptions.
 
 You can let the end user copy the contents of column headers, by enabling additional [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md) items:
 
-<span class="img-invert">
+<span class="img-light">
 
-| Context menu item         | Copied area                                                               |
-| ------------------------- | ------------------------------------------------------------------------- |
-| Copy with header       | ![copy_with_headers]({{$basePath}}/img/copy_with_headers.png)             |
-| Copy with group header | ![copy_with_group_headers]({{$basePath}}/img/copy_with_group_headers.png) |
-| Copy header only       | ![copy_headers_only]({{$basePath}}/img/copy_headers_only.png)             |
+![copy_with_headers_light]({{$basePath}}/img/pages/clipboard/copy-with-headers-light.png)
+
+</span>
+
+<span class="img-dark">
+
+![copy_with_headers_dark]({{$basePath}}/img/pages/clipboard/copy-with-headers-dark.png)
 
 </span>
 
