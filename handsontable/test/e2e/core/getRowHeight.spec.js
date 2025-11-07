@@ -10,6 +10,57 @@ describe('Core.getRowHeight', () => {
     }
   });
 
+  it('should return correct value for the first rendered row when some of them are hidden and AutoRowSize is enabled (single line text)', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      rowHeaders: false,
+      colHeaders: false,
+      autoRowSize: true,
+      hiddenRows: {
+        rows: [0, 1],
+      },
+    });
+
+    expect(getRowHeight(0)).toBe(0);
+    expect(getRowHeight(1)).toBe(0);
+    expect(getRowHeight(2)).toBe(getFirstRenderedRowDefaultHeight()); // first rendered row
+    expect(getRowHeight(3)).toBe(getDefaultRowHeight());
+    expect(getRowHeight(4)).toBe(getDefaultRowHeight());
+    expect(getMaster().find('table tr:last-child td:eq(0)').outerHeight()).toBe(getDefaultRowHeight());
+  });
+
+  it('should return correct value for the first rendered row when some of them are hidden and AutoRowSize is enabled (multiline text)', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5).map(row => row.map(() => 'multiline\ntext')),
+      rowHeaders: false,
+      colHeaders: false,
+      autoRowSize: true,
+      hiddenRows: {
+        rows: [0, 1],
+      },
+    });
+
+    const cellLineHeight = Number.parseInt(getComputedStyle(getCell(2, 0)).lineHeight, 10);
+
+    expect(getRowHeight(0)).toBe(0);
+    expect(getRowHeight(1)).toBe(0);
+    expect(getRowHeight(2)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(getFirstRenderedRowDefaultHeight() + cellLineHeight - 1);
+      main.toBe(getFirstRenderedRowDefaultHeight() + cellLineHeight);
+      horizon.toBe(getFirstRenderedRowDefaultHeight() + cellLineHeight);
+    });
+    expect(getRowHeight(3)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(getDefaultRowHeight() + cellLineHeight - 1);
+      main.toBe(getDefaultRowHeight() + cellLineHeight);
+      horizon.toBe(getDefaultRowHeight() + cellLineHeight);
+    });
+    expect(getRowHeight(4)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(getDefaultRowHeight() + cellLineHeight - 1);
+      main.toBe(getDefaultRowHeight() + cellLineHeight);
+      horizon.toBe(getDefaultRowHeight() + cellLineHeight);
+    });
+  });
+
   describe('using `rowHeights`', () => {
     it('should call the `modifyRowHeight` internally', async() => {
       handsontable({
@@ -28,7 +79,7 @@ describe('Core.getRowHeight', () => {
       expect(modifyRowHeight).toHaveBeenCalledWith(50, 1);
     });
 
-    it('should return the same value as the `rowHeights` if the value is greater than minimum theme row height', async() => {
+    it('should be synced with the cell row height when the `rowHeights` value is greater than the cell default row height', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeights: 50,
@@ -37,22 +88,26 @@ describe('Core.getRowHeight', () => {
       });
 
       expect(getRowHeight(0)).toBe(50);
+      expect(getRowHeight(1)).toBe(50);
+      expect(getRowHeight(2)).toBe(50);
       expect(getMaster().find('table tr:last-child td:eq(0)').outerHeight()).toBe(50);
     });
 
-    it('should return the minimum theme row height if the lower value is defined', async() => {
+    it('should be synced with the cell row height when the `rowHeights` value is smaller than the cell default row height', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
-        rowHeights: 12,
+        rowHeights: 10,
         rowHeaders: false,
         colHeaders: false,
       });
 
-      expect(getRowHeight(0)).toBe(getDefaultRowHeight());
+      expect(getRowHeight(0)).toBe(getFirstRenderedRowDefaultHeight());
+      expect(getRowHeight(1)).toBe(getDefaultRowHeight());
+      expect(getRowHeight(2)).toBe(getDefaultRowHeight());
       expect(getMaster().find('table tr:last-child td:eq(0)').outerHeight()).toBe(getDefaultRowHeight());
     });
 
-    it('should return the minimum theme row height if the value is equal to `0`', async() => {
+    it('should be synced with the cell row height when the `rowHeights` value is `0`', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         rowHeights: 0,
@@ -60,7 +115,27 @@ describe('Core.getRowHeight', () => {
         colHeaders: false,
       });
 
-      expect(getRowHeight(0)).toBe(getDefaultRowHeight());
+      expect(getRowHeight(0)).toBe(getFirstRenderedRowDefaultHeight());
+      expect(getRowHeight(1)).toBe(getDefaultRowHeight());
+      expect(getRowHeight(2)).toBe(getDefaultRowHeight());
+    });
+
+    it('should return correct value for the first rendered row when some of them are hidden', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: false,
+        colHeaders: false,
+        rowHeights: getDefaultRowHeight(),
+        hiddenRows: {
+          rows: [0, 1],
+        },
+      });
+
+      expect(getRowHeight(0)).toBe(0);
+      expect(getRowHeight(1)).toBe(0);
+      expect(getRowHeight(2)).toBe(getFirstRenderedRowDefaultHeight()); // first rendered row
+      expect(getRowHeight(3)).toBe(getDefaultRowHeight());
+      expect(getRowHeight(4)).toBe(getDefaultRowHeight());
       expect(getMaster().find('table tr:last-child td:eq(0)').outerHeight()).toBe(getDefaultRowHeight());
     });
 
@@ -133,7 +208,7 @@ describe('Core.getRowHeight', () => {
       expect(modifyRowHeight).toHaveBeenCalledWith(50, 1);
     });
 
-    it('should return the same value as the `minRowHeights` if the value is greater than minimum theme row height', async() => {
+    it('should be synced with the cell row height when the `minRowHeights` value is greater than the cell default row height', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         minRowHeights: 50,
@@ -142,22 +217,26 @@ describe('Core.getRowHeight', () => {
       });
 
       expect(getRowHeight(0)).toBe(50);
+      expect(getRowHeight(1)).toBe(50);
+      expect(getRowHeight(2)).toBe(50);
       expect(getMaster().find('table tr:last-child td:eq(0)').outerHeight()).toBe(50);
     });
 
-    it('should return the minimum theme row height if the lower value is defined', async() => {
+    it('should be synced with the cell row height when the `minRowHeights` value is smaller than the cell default row height', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
-        minRowHeights: 12,
+        minRowHeights: 10,
         rowHeaders: false,
         colHeaders: false,
       });
 
-      expect(getRowHeight(0)).toBe(getDefaultRowHeight());
+      expect(getRowHeight(0)).toBe(getFirstRenderedRowDefaultHeight());
+      expect(getRowHeight(1)).toBe(getDefaultRowHeight());
+      expect(getRowHeight(2)).toBe(getDefaultRowHeight());
       expect(getMaster().find('table tr:last-child td:eq(0)').outerHeight()).toBe(getDefaultRowHeight());
     });
 
-    it('should return the minimum theme row height if the value is equal to `0`', async() => {
+    it('should be synced with the cell row height when the `minRowHeights` value is `0`', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         minRowHeights: 0,
@@ -165,7 +244,27 @@ describe('Core.getRowHeight', () => {
         colHeaders: false,
       });
 
-      expect(getRowHeight(0)).toBe(getDefaultRowHeight());
+      expect(getRowHeight(0)).toBe(getFirstRenderedRowDefaultHeight());
+      expect(getRowHeight(1)).toBe(getDefaultRowHeight());
+      expect(getRowHeight(2)).toBe(getDefaultRowHeight());
+    });
+
+    it('should return correct value for the first rendered row when some of them are hidden', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        rowHeaders: false,
+        colHeaders: false,
+        minRowHeights: getDefaultRowHeight(),
+        hiddenRows: {
+          rows: [0, 1],
+        },
+      });
+
+      expect(getRowHeight(0)).toBe(0);
+      expect(getRowHeight(1)).toBe(0);
+      expect(getRowHeight(2)).toBe(getFirstRenderedRowDefaultHeight()); // first rendered row
+      expect(getRowHeight(3)).toBe(getDefaultRowHeight());
+      expect(getRowHeight(4)).toBe(getDefaultRowHeight());
       expect(getMaster().find('table tr:last-child td:eq(0)').outerHeight()).toBe(getDefaultRowHeight());
     });
 

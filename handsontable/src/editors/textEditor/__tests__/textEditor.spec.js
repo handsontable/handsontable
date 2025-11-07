@@ -2263,7 +2263,7 @@ describe('TextEditor', () => {
 
     expect($editorInput.height()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(83);
-      main.toBe(95);
+      main.toBe(94);
       horizon.toBe(61);
     });
   });

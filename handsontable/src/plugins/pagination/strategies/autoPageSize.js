@@ -33,7 +33,7 @@ export class AutoPageSizeStrategy {
     const pages = [];
 
     let startIndex = 0;
-    let totalSize = 1; // 1px border compensation for the first row
+    let totalSize = 0;
     let pageSize = 0;
 
     for (let index = 0; index < itemSizes.length; index++) {
@@ -47,7 +47,7 @@ export class AutoPageSizeStrategy {
         });
 
         startIndex = index;
-        totalSize = 1; // 1px border compensation for the first row
+        totalSize = 0;
         pageSize = 0;
       }
 
