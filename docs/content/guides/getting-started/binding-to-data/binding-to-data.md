@@ -420,7 +420,7 @@ you). The easiest way to do it is by passing your data array as the value of `Ho
 ```ts
 import { GridSettings } from "@handsontable/angular-wrapper";
 
-data = newDatset,
+data = newDataset,
 gridSettings: GridSettings = {};
 ```
 
