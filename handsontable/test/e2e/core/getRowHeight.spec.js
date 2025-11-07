@@ -10,7 +10,7 @@ describe('Core.getRowHeight', () => {
     }
   });
 
-  it('should return correct value for the first rendered row when some of them are hidden and AutoRowSize is enabled', async() => {
+  it('should return correct value for the first rendered row when some of them are hidden and AutoRowSize is enabled (single line text)', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       rowHeaders: false,
@@ -27,6 +27,38 @@ describe('Core.getRowHeight', () => {
     expect(getRowHeight(3)).toBe(getDefaultRowHeight());
     expect(getRowHeight(4)).toBe(getDefaultRowHeight());
     expect(getMaster().find('table tr:last-child td:eq(0)').outerHeight()).toBe(getDefaultRowHeight());
+  });
+
+  it('should return correct value for the first rendered row when some of them are hidden and AutoRowSize is enabled (multiline text)', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5).map(row => row.map(() => 'multiline\ntext')),
+      rowHeaders: false,
+      colHeaders: false,
+      autoRowSize: true,
+      hiddenRows: {
+        rows: [0, 1],
+      },
+    });
+
+    const cellLineHeight = Number.parseInt(getComputedStyle(getCell(2, 0)).lineHeight, 10);
+
+    expect(getRowHeight(0)).toBe(0);
+    expect(getRowHeight(1)).toBe(0);
+    expect(getRowHeight(2)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(getFirstRenderedRowDefaultHeight() + cellLineHeight - 1);
+      main.toBe(getFirstRenderedRowDefaultHeight() + cellLineHeight);
+      horizon.toBe(getFirstRenderedRowDefaultHeight() + cellLineHeight);
+    });
+    expect(getRowHeight(3)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(getDefaultRowHeight() + cellLineHeight - 1);
+      main.toBe(getDefaultRowHeight() + cellLineHeight);
+      horizon.toBe(getDefaultRowHeight() + cellLineHeight);
+    });
+    expect(getRowHeight(4)).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(getDefaultRowHeight() + cellLineHeight - 1);
+      main.toBe(getDefaultRowHeight() + cellLineHeight);
+      horizon.toBe(getDefaultRowHeight() + cellLineHeight);
+    });
   });
 
   describe('using `rowHeights`', () => {

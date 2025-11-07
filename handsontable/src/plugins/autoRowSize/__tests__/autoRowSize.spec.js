@@ -152,8 +152,8 @@ describe('AutoRowSize', () => {
 
       expect(newHeight).forThemes(({ classic, main, horizon }) => {
         classic.toEqual((cellHeightInPx + 1) * nrOfRows);
-        main.toEqual(cellHeightInPx * (nrOfRows + 1));
-        horizon.toEqual(cellHeightInPx * (nrOfRows + 1));
+        main.toEqual((cellHeightInPx * nrOfRows) + 1);
+        horizon.toEqual((cellHeightInPx * nrOfRows) + 1);
       });
     });
 
@@ -170,8 +170,8 @@ describe('AutoRowSize', () => {
 
       expect(newHeight).forThemes(({ classic, main, horizon }) => {
         classic.toEqual((cellHeightInPx + 1) * nrOfRows);
-        main.toEqual(cellHeightInPx * (nrOfRows + 1));
-        horizon.toEqual(cellHeightInPx * (nrOfRows + 1));
+        main.toEqual((cellHeightInPx * nrOfRows) + 1);
+        horizon.toEqual((cellHeightInPx * nrOfRows) + 1);
       });
     });
 
@@ -189,8 +189,8 @@ describe('AutoRowSize', () => {
 
       expect(newHeight).forThemes(({ classic, main, horizon }) => {
         classic.toEqual((cellHeightInPx + 1) * nrOfRows);
-        main.toEqual(cellHeightInPx * (nrOfRows + 1));
-        horizon.toEqual(cellHeightInPx * (nrOfRows + 1));
+        main.toEqual((cellHeightInPx * nrOfRows) + 1);
+        horizon.toEqual((cellHeightInPx * nrOfRows) + 1);
       });
     });
 
@@ -207,8 +207,8 @@ describe('AutoRowSize', () => {
 
       expect(newHeight).forThemes(({ classic, main, horizon }) => {
         classic.toEqual((cellHeightInPx + 1) * nrOfRows);
-        main.toEqual(cellHeightInPx * (nrOfRows + 1));
-        horizon.toEqual(cellHeightInPx * (nrOfRows + 1));
+        main.toEqual((cellHeightInPx * nrOfRows) + 1);
+        horizon.toEqual((cellHeightInPx * nrOfRows) + 1);
       });
     });
   });

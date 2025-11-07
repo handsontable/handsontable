@@ -86,11 +86,23 @@ describe('Pagination `setPageSize` method', () => {
     expect(plugin.getPaginationData().pageSize).toBe(7);
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A7');
-    expect(visualizePageSections()).toEqual([
-      'Page size: [[auto], 5, 10, 20, 50, 100]',
-      '1 - 7 of 15',
-      '|< < Page 1 of 2 [>] [>|]'
-    ]);
+    expect(visualizePageSections()).forThemes(({ classic, main, horizon }) => {
+      classic.toEqual([
+        'Page size: [[auto], 5, 10, 20, 50, 100]',
+        '1 - 7 of 15',
+        '|< < Page 1 of 3 [>] [>|]'
+      ]);
+      main.toEqual([
+        'Page size: [[auto], 5, 10, 20, 50, 100]',
+        '1 - 7 of 15',
+        '|< < Page 1 of 2 [>] [>|]'
+      ]);
+      horizon.toEqual([
+        'Page size: [[auto], 5, 10, 20, 50, 100]',
+        '1 - 7 of 15',
+        '|< < Page 1 of 2 [>] [>|]'
+      ]);
+    });
 
     plugin.setPageSize(20);
 
