@@ -47,6 +47,7 @@ export function createFocusScope(hotInstance, container, options = {}) {
     runOnlyIf: () => true,
     ...options,
   };
+
   const focusCatchers = installFocusDetector(hotInstance, container);
 
   /**

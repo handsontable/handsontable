@@ -108,6 +108,12 @@ const dictionary = {
   [C.PAGINATION_LAST_PAGE]: '轉到最後一頁',
 
   [C.LOADING_TITLE]: '載入中...',
+
+  [C.EMPTY_DATA_STATE_TITLE]: '暫無資料',
+  [C.EMPTY_DATA_STATE_DESCRIPTION]: '暫無內容可顯示。',
+  [C.EMPTY_DATA_STATE_TITLE_FILTERS]: '未找到結果',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: '看起來您目前的過濾器隱藏了所有結果。',
+  [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: '重設過濾器',
 };
 
 export default dictionary;

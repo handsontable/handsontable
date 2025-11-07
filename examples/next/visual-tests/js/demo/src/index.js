@@ -24,6 +24,7 @@ import { init as initDialogDemo } from './demos/dialog';
 import { init as initWrapperDemo } from './demos/wrapper';
 import { init as initLoadingDemo } from './demos/loading';
 import { init as initRowSizeDemo } from './demos/rowSize';
+import { init as initEmptyDataStateDemo } from './demos/emptyDataState';
 
 // Function to dynamically load CSS
 function loadCSS(href) {
@@ -295,6 +296,15 @@ router
         loadThemeCSS(),
       ]).then(() => {
         initRowSizeDemo();
+      });
+    },
+    '/empty-data-state-demo': function () {
+      removeCSS();
+
+      Promise.all([
+        loadThemeCSS(),
+      ]).then(() => {
+        initEmptyDataStateDemo();
       });
     },
   })

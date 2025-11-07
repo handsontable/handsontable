@@ -34,6 +34,7 @@ import { StretchColumns } from './stretchColumns';
 import { TouchScroll } from './touchScroll';
 import { TrimRows } from './trimRows';
 import { Dialog } from './dialog';
+import { EmptyDataState } from './emptyDataState';
 import { Loading } from './loading';
 import { UndoRedo } from './undoRedo';
 
@@ -74,6 +75,7 @@ export interface Plugins {
   touchScroll: TouchScroll;
   trimRows: TrimRows;
   dialog: Dialog;
+  emptyDataState: EmptyDataState;
   loading: Loading;
   undoRedo: UndoRedo;
 }
@@ -118,6 +120,7 @@ export {
   TouchScroll,
   TrimRows,
   Dialog,
+  EmptyDataState,
   Loading,
   UndoRedo
 };

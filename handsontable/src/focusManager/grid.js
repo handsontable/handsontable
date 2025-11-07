@@ -55,6 +55,12 @@ export class FocusGridManager {
    * @type {Map<number, Function>}
    */
   #debouncedSelect = new Map();
+  /**
+   * Flag to indicate if the selection has changed.
+   *
+   * @type {boolean}
+   */
+  #hasSelectionChange = false;
 
   constructor(hotInstance) {
     this.#hot = hotInstance;
@@ -66,9 +72,10 @@ export class FocusGridManager {
     this.#focusMode = hotSettings.imeFastEdit ? FOCUS_MODES.MIXED : FOCUS_MODES.CELL;
 
     this.#hot.addHook('afterUpdateSettings', (...args) => this.#onUpdateSettings(...args));
-    this.#hot.addHook('afterSelection', (...args) => this.#focusCell(...args));
-    this.#hot.addHook('afterSelectionFocusSet', (...args) => this.#focusCell(...args));
+    this.#hot.addHook('afterSelection', (...args) => this.#onAfterSelectionChange(...args));
+    this.#hot.addHook('afterSelectionFocusSet', (...args) => this.#onAfterSelectionChange(...args));
     this.#hot.addHook('afterSelectionEnd', (...args) => this.#focusEditorElement(...args));
+    this.#hot.addHook('afterRender', (...args) => this.#onAfterRender(...args));
   }
 
   /**
@@ -257,6 +264,23 @@ export class FocusGridManager {
         this.refocusToEditorTextarea();
       }
     });
+  }
+
+  /**
+   * Handle the after selection change event.
+   */
+  #onAfterSelectionChange() {
+    this.#hasSelectionChange = true;
+  }
+
+  /**
+   * Focuses the cell after the render event when the selection has changed.
+   */
+  #onAfterRender() {
+    if (this.#hasSelectionChange) {
+      this.#hasSelectionChange = false;
+      this.#focusCell();
+    }
   }
 
   /**
