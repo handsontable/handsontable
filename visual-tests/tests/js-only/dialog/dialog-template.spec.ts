@@ -17,6 +17,7 @@ test(__filename, async({ goto, tablePage }) => {
   await tablePage.keyboard.press('Tab');
   await tablePage.keyboard.press('Tab');
   await tablePage.keyboard.press('Tab');
+  await tablePage.keyboard.press('Tab');
   await tablePage.keyboard.press('Shift+Tab');
 
   // check if the Enter (event) is triggered

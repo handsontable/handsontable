@@ -17,6 +17,7 @@ export function focusGridScope(hot) {
   };
   let recentlyAddedFocusCoords;
   let isSavingCoordsEnabled = true;
+  let isEmptyDataStateActive = false;
 
   hot.addHook('afterSelection', () => {
     if (isSavingCoordsEnabled) {
@@ -26,6 +27,12 @@ export function focusGridScope(hot) {
   hot.addHook('beforeRowWrap', (interruptedByAutoInsertMode, newCoords, isFlipped) => {
     rowWrapState.wrapped = true;
     rowWrapState.flipped = isFlipped;
+  });
+  hot.addHook('beforeEmptyDataStateShow', () => {
+    isEmptyDataStateActive = true;
+  });
+  hot.addHook('beforeEmptyDataStateHide', () => {
+    isEmptyDataStateActive = false;
   });
 
   const context = hot.getShortcutManager().getContext(GRID_SCOPE);
@@ -89,6 +96,23 @@ export function focusGridScope(hot) {
       }
 
       return hot.rootPortalElement.contains(target);
+    },
+    runOnlyIf: () => {
+      const { navigableHeaders } = hot.getSettings();
+
+      if (
+        (isEmptyDataStateActive || !navigableHeaders) &&
+        hot.countRenderedRows() === 0 && hot.countRenderedCols() === 0 &&
+        hot.countRowHeaders() > 0 && hot.countColHeaders() > 0
+      ) {
+        // When the corner is only rendered, and the EmptyDataState is active, deactivate the scope.
+        return false;
+      }
+
+      return (
+        (!navigableHeaders && (hot.countRenderedRows() > 0 && hot.countRenderedCols() > 0)) ||
+        (navigableHeaders && (hot.countRowHeaders() > 0 || hot.countColHeaders() > 0))
+      );
     },
     onActivate: (focusSource) => {
       if (focusSource === 'tab_from_above') {

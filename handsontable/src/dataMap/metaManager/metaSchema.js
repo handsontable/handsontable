@@ -2152,6 +2152,90 @@ export default () => {
     editor: undefined,
 
     /**
+     * @description
+     * The `emptyDataState` option configures the [`EmptyDataState`](@/api/emptyDataState.md) plugin.
+     *
+     * You can set the `emptyDataState` option to one of the following:
+     *
+     * | Setting   | Description                                                                        |
+     * | --------- | ---------------------------------------------------------------------------------- |
+     * | `false`   | Disable the [`EmptyDataState`](@/api/emptyDataState.md) plugin                     |
+     * | `true`    | Enable the [`EmptyDataState`](@/api/emptyDataState.md) plugin                      |
+     * | An object | Enable the [`EmptyDataState`](@/api/emptyDataState.md) plugin with custom settings |
+     *
+     * If you set the `emptyDataState` option to an object, you can configure the following settings:
+     *
+     * | Property  | Possible values                    | Description                                         |
+     * | --------  | ---------------------------------- | --------------------------------------------------- |
+     * | `message` | `string` \| `object` \| `function` | Message to display in the empty data state overlay. |
+     *
+     * If you set the `message` option to an object, it have following properties:
+     *
+     * | Property      | Possible values | Description                                             |
+     * | ------------- | --------------- | ------------------------------------------------------- |
+     * | `title`       | `string`        | Title to display in the empty data state overlay.       |
+     * | `description` | `string`        | Description to display in the empty data state overlay. |
+     * | `buttons`     | `array`         | Buttons to display in the empty data state overlay.     |
+     *
+     * If you set the `buttons` option to an array, each item requires following properties:
+     *
+     * | Property   | Possible values          | Description                                                  |
+     * | ---------- | ------------------------ | ------------------------------------------------------------ |
+     * | `text`     | `string`                 | Text to display in the button.                        |
+     * | `type`     | 'primary' \| 'secondary' | Type of the button.                                   |
+     * | `callback` | `function`               | Callback function to call when the button is clicked. |
+     *
+     * Read more:
+     * - [Plugins: `EmptyDataState`](@/api/emptyDataState.md)
+     *
+     * @since 16.2.0
+     * @memberof Options#
+     * @type {boolean|object}
+     * @default false
+     * @category EmptyDataState
+     *
+     * @example
+     * ```js
+     * // Enable empty data state plugin with default messages
+     * emptyDataState: true,
+     *
+     * // Enable empty data state plugin with custom message
+     * emptyDataState: {
+     *   message: 'No data available',
+     * },
+     *
+     * // Enable empty data state plugin with custom message and buttons for any source
+     * emptyDataState: {
+     *   message: {
+     *     title: 'No data available',
+     *     description: 'There’s nothing to display yet.',
+     *     buttons: [{ text: 'Reset filters', type: 'secondary', callback: () => {} }],
+     *   },
+     * },
+     *
+     * // Enable empty data state plugin with custom message and buttons for specific source
+     * emptyDataState: {
+     *   message: (source) => {
+     *     switch (source) {
+     *       case "filters":
+     *         return {
+     *           title: 'No data available',
+     *           description: 'There’s nothing to display yet.',
+     *           buttons: [{ text: 'Reset filters', type: 'secondary', callback: () => {} }],
+     *         };
+     *       default:
+     *         return {
+     *           title: 'No data available',
+     *           description: 'There’s nothing to display yet.',
+     *         };
+     *     }
+     *   },
+     * },
+     * ```
+     */
+    emptyDataState: false,
+
+    /**
      * The `enterBeginsEditing` option configures the action of the <kbd>**Enter**</kbd> key.
      *
      * You can set the `enterBeginsEditing` option to one of the following:

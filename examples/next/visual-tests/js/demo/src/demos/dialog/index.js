@@ -36,6 +36,13 @@ export function init() {
       description: 'This is a confirm',
       buttons: [
         {
+          text: 'Cancel',
+          type: 'secondary',
+          callback: () => {
+            hot.getPlugin('dialog').hide();
+          },
+        },
+        {
           text: 'OK',
           type: 'primary',
           callback: () => {

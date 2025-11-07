@@ -53,6 +53,7 @@ describe('`registerAllPlugins`', () => {
       'TrimRows',
       'Loading',
       'Dialog',
+      'EmptyDataState',
       'Pagination',
       'UndoRedo',
     ]);

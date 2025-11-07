@@ -114,6 +114,12 @@ const dictionary = {
   [C.PAGINATION_LAST_PAGE]: 'الانتقال إلى الصفحة الأخيرة',
 
   [C.LOADING_TITLE]: 'جاري التحميل...',
+
+  [C.EMPTY_DATA_STATE_TITLE]: 'لا توجد بيانات متاحة',
+  [C.EMPTY_DATA_STATE_DESCRIPTION]: 'لا يوجد شيء للعرض بعد.',
+  [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'لم يتم العثور على نتائج',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'يبدو أن المرشحات الحالية تخفي جميع النتائج.',
+  [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'إعادة تعيين المرشحات',
 };
 
 export default dictionary;
