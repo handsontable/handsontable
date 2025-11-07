@@ -9,6 +9,10 @@ import * as C from '../constants';
 
 const dictionary = {
   languageCode: 'nb-NO',
+
+  [C.OK]: 'OK',
+  [C.CANCEL]: 'Avbryt',
+
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Sett inn over',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Sett inn under',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'Sett inn til venstre',

@@ -9,6 +9,10 @@ import * as C from '../constants';
 
 const dictionary = {
   languageCode: 'zh-TW',
+
+  [C.OK]: '確認',
+  [C.CANCEL]: '取消',
+
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: '上方插入列',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: '下方插入列',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: '左方插入欄',

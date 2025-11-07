@@ -12,6 +12,12 @@ new Handsontable(document.createElement('div'), {
     contentBackground: false,
     animation: true,
     closable: false,
+    a11y: {
+      role: 'alertdialog',
+      ariaLabel: 'Alert',
+      ariaLabelledby: 'alert-title',
+      ariaDescribedby: 'alert-description',
+    },
   }
 });
 
@@ -34,6 +40,34 @@ new Handsontable(document.createElement('div'), {
   dialog: {
     content: '<div>Content</div>',
     contentBackground: true,
+  }
+});
+
+new Handsontable(document.createElement('div'), {
+  dialog: {
+    template: {
+      type: 'confirm',
+      title: 'Oops… something went wrong',
+    },
+  }
+});
+
+new Handsontable(document.createElement('div'), {
+  dialog: {
+    template: {
+      type: 'confirm',
+      title: 'Confirm',
+      description: 'This is a confirm',
+      buttons: [
+        {
+          text: 'OK',
+          type: 'primary',
+          callback: (event: Event) => {}
+        },
+      ],
+    },
+    contentBackground: true,
+    closable: false,
   }
 });
 
@@ -70,4 +104,64 @@ dialog.update({
   animation: false,
   closable: false,
 });
+dialog.update({
+  content: document.createElement('span'),
+  a11y: {
+    role: 'alertdialog',
+    ariaLabel: 'Alert',
+    ariaLabelledby: 'alert-title',
+    ariaDescribedby: 'alert-description',
+  },
+});
+dialog.update({
+  template: {
+    type: 'confirm',
+    title: 'Confirm',
+    description: 'This is a confirm',
+    buttons: [
+      {
+        text: 'OK',
+        type: 'primary',
+        callback: (event: Event) => {},
+      },
+    ],
+  },
+  contentBackground: true,
+  closable: false,
+});
 dialog.focus();
+
+dialog.showAlert();
+dialog.showAlert('Alert');
+dialog.showAlert({
+  title: 'Alert',
+});
+dialog.showAlert({
+  title: 'Alert',
+  description: 'This is an alert'
+});
+dialog.showAlert('Alert', (event) => {
+  const myEvent: MouseEvent = event;
+});
+
+dialog.showConfirm();
+dialog.showConfirm('Confirm');
+dialog.showConfirm({
+  title: 'Confirm',
+  description: 'This is an alert'
+});
+dialog.showConfirm({
+  title: 'Confirm',
+});
+dialog.showConfirm('Confirm', (event) => {
+  const myEvent: MouseEvent = event;
+});
+dialog.showConfirm(
+  'Confirm',
+  (event) => {
+    const myEvent: MouseEvent = event;
+  },
+  (event) => {
+    const myEvent: MouseEvent = event;
+  }
+);
