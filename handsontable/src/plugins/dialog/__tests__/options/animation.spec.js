@@ -127,6 +127,23 @@ describe('Dialog - animation option', () => {
     expect(getDialogContentHTML()).toEqual('Updated content');
   });
 
+  it('should close the dialog when it is opened and closed instantly (animation is disabled)', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      dialog: {
+        animation: false,
+        content: 'Test content',
+      },
+    });
+
+    const dialogPlugin = getPlugin('dialog');
+
+    dialogPlugin.show();
+    dialogPlugin.hide();
+
+    expect(getDialogContainerElement()).not.toBeVisible();
+  });
+
   it('should close the dialog when it is opened and closed instantly (animation is enabled)', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
@@ -186,6 +203,24 @@ describe('Dialog - animation option', () => {
     await sleep(getTableTransitionDuration() + 100);
 
     expect(getDialogContainerElement()).not.toBeVisible();
+  });
+
+  it('should open the dialog when it is opened instantly right after it was closed (animation is disabled)', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      dialog: {
+        animation: false,
+        content: 'Test content',
+      },
+    });
+
+    const dialogPlugin = getPlugin('dialog');
+
+    dialogPlugin.show();
+    dialogPlugin.hide();
+    dialogPlugin.show();
+
+    expect(getDialogContainerElement()).toBeVisible();
   });
 
   it('should open the dialog when it is opened instantly right after it was closed (animation is enabled)', async() => {
