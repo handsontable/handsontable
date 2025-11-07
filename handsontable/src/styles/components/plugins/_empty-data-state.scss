@@ -1,0 +1,102 @@
+@use "../../utils/mixins";
+
+// Empty Data State
+
+@mixin output {
+  .ht-empty-data-state {
+    display: none;
+    position: absolute;
+    width: 100%;
+    left: 0;
+    z-index: 999;
+    overflow-y: auto;
+    border: 1px solid var(--ht-border-color);
+    border-radius: var(--ht-wrapper-border-radius);
+    box-sizing: border-box;
+    background-color: var(--ht-background-color);
+
+    & * {
+      box-sizing: border-box !important;
+    }
+
+    &__content-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      width: 100%;
+      min-height: 100%;
+      padding: calc(var(--ht-gap-size) * 2);
+      border-radius: var(--ht-wrapper-border-radius);
+
+      &-inner {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        max-width: 480px;
+        padding: calc(var(--ht-gap-size) * 2);
+        border-radius: var(--ht-wrapper-border-radius);
+
+        &:focus {
+          outline: none;
+          box-shadow: 0 0 0 1px var(--ht-accent-color);
+        }
+      }
+    }
+
+    &__content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: var(--ht-gap-size);
+    }
+
+    &__title {
+      margin: 0;
+      font-size: var(--ht-font-size);
+      font-weight: var(--ht-font-weight);
+      line-height: var(--ht-line-height);
+    }
+
+    &__description {
+      margin: 0;
+      color: var(--ht-foreground-secondary-color);
+      font-size: var(--ht-font-size-small);
+      line-height: var(--ht-line-height-small);
+      font-weight: var(--ht-font-weight);
+    }
+
+    &__buttons {
+      display: flex;
+      justify-content: center;
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: calc(var(--ht-gap-size) * 2);
+
+      &--has-buttons {
+        margin-top: calc(var(--ht-gap-size) * 2);
+      }
+    }
+
+    &--disable-top-border {
+      border-start-start-radius: 0;
+      border-start-end-radius: 0;
+      border-top-width: 0;
+    }
+
+    &--disable-inline-border {
+      border-start-start-radius: 0;
+      border-end-start-radius: 0;
+      border-inline-start-width: 0;
+    }
+
+    &--disable-bottom-border,
+    &:has(~ .ht-pagination) {
+      border-end-start-radius: 0;
+      border-end-end-radius : 0;
+      border-bottom-width: 0;
+    }
+  }
+}

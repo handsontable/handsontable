@@ -139,6 +139,34 @@ If container is a block element, then its parent has to have defined `height`. B
 
 Changes called in [`updateSettings()`](@/api/core.md#updatesettings) will re-render the grid with the new properties.
 
+When the `height` option is set to 100%, there are two ways to define the container’s height:
+
+Set a fixed height (in pixels) directly on the container element where Handsontable is mounted:
+
+```html
+<div class="wrapper">
+  <div id="container" style="height: 500px"></div>
+</div>
+```
+
+Set a fixed height on the parent element, and then give the container itself a height of 100%:
+
+```html
+<div class="wrapper" style="height: 500px">
+  <div id="container" style="height: 100%"></div>
+</div>
+```
+
+Use flexbox on the wrapper element to make the container fill the available space:
+
+```html
+<div class="wrapper" style="display: flex; height: 500px">
+  <div id="container" style="flex: 1"></div>
+</div>
+```
+
+When using Flexbox, the container automatically expands to fill the available space in the flex container. This is particularly useful when you want the grid to take up all the available space within its parent. However, remember to set the `height` option to 100%.
+
 ## What if the size is not set
 
 If you don't define any dimensions, Handsontable generates as many rows and columns as needed to fill the available space.

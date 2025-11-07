@@ -525,8 +525,17 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     }
   };
 
-  this.columnIndexMapper.addLocalHook('cacheUpdated', onIndexMapperCacheUpdate);
-  this.rowIndexMapper.addLocalHook('cacheUpdated', onIndexMapperCacheUpdate);
+  this.columnIndexMapper.addLocalHook('cacheUpdated', (indexesChangesState) => {
+    onIndexMapperCacheUpdate(indexesChangesState);
+
+    this.runHooks('afterColumnSequenceCacheUpdate', indexesChangesState);
+  });
+
+  this.rowIndexMapper.addLocalHook('cacheUpdated', (indexesChangesState) => {
+    onIndexMapperCacheUpdate(indexesChangesState);
+
+    this.runHooks('afterRowSequenceCacheUpdate', indexesChangesState);
+  });
 
   this.selection.addLocalHook('afterSetRangeEnd', (cellCoords, isLastSelectionLayer) => {
     const preventScrolling = createObjectPropListener(false);
