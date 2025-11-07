@@ -1,4 +1,5 @@
-import Handsontable from 'handsontable/base';
+import React, { useRef } from 'react';
+import { HotTable, HotColumn } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
@@ -29,71 +30,87 @@ const data = [
   { model: 'Carbon Handlebar', price: 603.96, sellDate: 'Sep 13, 2025', sellTime: '04:10 AM', inStock: false },
 ];
 
-const container = document.getElementById('example1');
-const hot = new Handsontable(container, {
-  themeName: 'ht-theme-main',
-  data,
-  colHeaders: true,
-  rowHeaders: true,
-  columns: [
-    {
-      title: 'Model',
-      type: 'text',
-      data: 'model',
-      width: 150,
-      headerClassName: 'htLeft',
-    },
-    {
-      title: 'Price',
-      type: 'numeric',
-      data: 'price',
-      width: 80,
-      numericFormat: {
-        pattern: '$0,0.00',
-        culture: 'en-US',
-      },
-      className: 'htRight',
-      headerClassName: 'htRight',
-    },
-    {
-      title: 'Date',
-      type: 'date',
-      data: 'sellDate',
-      width: 131,
-      dateFormat: 'MMM D, YYYY',
-      correctFormat: true,
-      className: 'htRight',
-      headerClassName: 'htRight',
-    },
-    {
-      title: 'Time',
-      type: 'time',
-      data: 'sellTime',
-      width: 90,
-      timeFormat: 'hh:mm A',
-      correctFormat: true,
-      className: 'htRight',
-      headerClassName: 'htRight',
-    },
-    {
-      title: 'In stock',
-      type: 'checkbox',
-      data: 'inStock',
-      className: 'htCenter',
-      headerClassName: 'htCenter',
-    },
-  ],
-  width: '100%',
-  height: 300,
-  stretchH: 'all',
-  dialog: true,
-  licenseKey: 'non-commercial-and-evaluation',
-});
+const ExampleComponent = () => {
+  const hotTableRef = useRef(null);
+  const showDialog = () => {
+    const hotInstance = hotTableRef.current?.hotInstance;
 
-// Show dialog after initialization
-const dialogPlugin = hot.getPlugin('dialog');
+    if (!hotInstance) {
+      return;
+    }
 
-dialogPlugin.show({
-  content: 'This is a basic dialog with default configuration.',
-  closable: true,
-});
+    hotInstance.getPlugin('dialog').show();
+  };
+
+  const hideDialog = () => {
+    const hotInstance = hotTableRef.current?.hotInstance;
+
+    if (!hotInstance) {
+      return;
+    }
+
+    hotInstance.getPlugin('dialog').hide();
+  };
+
+  return (
+    <>
+      <div style={{ marginBottom: '16px', display: 'flex', gap: '10px' }}>
+        <button onClick={showDialog}>Show Dialog</button>
+        <button onClick={hideDialog}>Hide Dialog</button>
+      </div>
+      <HotTable
+        ref={hotTableRef}
+        themeName="ht-theme-main"
+        data={data}
+        width="100%"
+        height={300}
+        stretchH="all"
+        contextMenu={true}
+        rowHeaders={true}
+        colHeaders={true}
+        autoWrapRow={true}
+        autoWrapCol={true}
+        autoRowSize={true}
+        dialog={{
+          content: 'This dialog can be controlled programmatically.',
+          closable: true,
+        }}
+        licenseKey="non-commercial-and-evaluation"
+      >
+        <HotColumn title="Model" type="text" data="model" width={150} headerClassName="htLeft" />
+        <HotColumn
+          title="Price"
+          type="numeric"
+          data="price"
+          width={80}
+          numericFormat={{ pattern: '$0,0.00', culture: 'en-US' }}
+          className="htRight"
+          headerClassName="htRight"
+        />
+        <HotColumn
+          title="Date"
+          type="date"
+          data="sellDate"
+          width={131}
+          dateFormat="MMM D, YYYY"
+          correctFormat={true}
+          className="htRight"
+          headerClassName="htRight"
+        />
+        <HotColumn
+          title="Time"
+          type="time"
+          data="sellTime"
+          width={90}
+          timeFormat="hh:mm A"
+          correctFormat={true}
+          className="htRight"
+          headerClassName="htRight"
+        />
+        <HotColumn title="In stock" type="checkbox" data="inStock" className="htCenter" headerClassName="htCenter" />
+      </HotTable>
+    </>
+  );
+};
+
+export default ExampleComponent;

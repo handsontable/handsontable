@@ -1,14 +1,13 @@
 /* file: app.component.ts */
-import { AfterViewInit, Component, ViewChild } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
 
 @Component({
-  selector: 'app-example4',
+  selector: 'app-example8',
   template: `
     <div style="margin-bottom: 16px; display: flex; gap: 10px;">
-      <button (click)="showAlert()">Show Alert</button>
-      <button (click)="showConfirm()">Show Confirm</button>
-      <button (click)="showCustomConfirm()">Show custom Confirm (with solid background)</button>
+      <button (click)="showDialog()">Show Dialog</button>
+      <button (click)="hideDialog()">Hide Dialog</button>
     </div>
     <hot-table
       #hotTable
@@ -19,7 +18,7 @@ import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
   `,
   standalone: false
 })
-export class AppComponent implements AfterViewInit {
+export class AppComponent {
   @ViewChild('hotTable') hotTable!: HotTableComponent;
 
   readonly hotData = [
@@ -104,80 +103,26 @@ export class AppComponent implements AfterViewInit {
     autoWrapRow: true,
     autoWrapCol: true,
     autoRowSize: true,
-    dialog: true,
+    dialog: {
+      content: 'This dialog can be controlled programmatically.',
+      closable: true,
+    },
   };
 
-  showAlert() {
-    const dialogPlugin = this.hotTable.hotInstance.getPlugin('dialog');
-
-    dialogPlugin.showAlert({
-      title: 'Alert',
-      description: 'This is an example of the alert dialog.',
-    }, () => {
-      dialogPlugin.hide();
-    });
-  }
-
-  showConfirm() {
-    const dialogPlugin = this.hotTable.hotInstance.getPlugin('dialog');
-
-    dialogPlugin.showConfirm('Do you want to undo the last action?', () => {
-      this.hotTable.hotInstance.getPlugin('undoRedo').undo();
-      dialogPlugin.hide();
-    }, () => {
-      dialogPlugin.hide();
-    });
-  }
-
-  showCustomConfirm() {
+  showDialog() {
     const hotInstance = this.hotTable.hotInstance;
-    const dialogPlugin = hotInstance.getPlugin('dialog');
 
-    dialogPlugin.show({
-      template: {
-        type: 'confirm',
-        title: 'Increase the price of the first row by:',
-        buttons: [
-          {
-            text: 'Cancel',
-            type: 'secondary',
-            callback: () => {
-              dialogPlugin.hide();
-            },
-          },
-          {
-            text: '$100',
-            type: 'secondary',
-            callback: () => {
-              dialogPlugin.hide();
-              hotInstance.setDataAtCell(0, 1, hotInstance.getDataAtCell(0, 1) + 100);
-              hotInstance.selectCell(0, 1);
-            },
-          },
-          {
-            text: '$200',
-            type: 'secondary',
-            callback: () => {
-              dialogPlugin.hide();
-              hotInstance.setDataAtCell(0, 1, hotInstance.getDataAtCell(0, 1) + 200);
-              hotInstance.selectCell(0, 1);
-            },
-          },
-          {
-            text: '$500',
-            type: 'secondary',
-            callback: () => {
-              dialogPlugin.hide();
-              hotInstance.setDataAtCell(0, 1, hotInstance.getDataAtCell(0, 1) + 500);
-              hotInstance.selectCell(0, 1);
-            },
-          },
-        ],
-      },
-      background: 'solid',
-      contentBackground: false,
-      closable: true,
-    });
+    if (hotInstance) {
+      hotInstance.getPlugin('dialog').show();
+    }
+  }
+
+  hideDialog() {
+    const hotInstance = this.hotTable.hotInstance;
+
+    if (hotInstance) {
+      hotInstance.getPlugin('dialog').hide();
+    }
   }
 }
 /* end-file */

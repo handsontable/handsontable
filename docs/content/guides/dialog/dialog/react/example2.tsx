@@ -73,7 +73,7 @@ const ExampleComponent = () => {
         title="Date"
         type="date"
         data="sellDate"
-        width={130}
+        width={131}
         dateFormat="MMM D, YYYY"
         correctFormat={true}
         className="htRight"

@@ -29,7 +29,7 @@ const data = [
   { model: 'Carbon Handlebar', price: 603.96, sellDate: 'Sep 13, 2025', sellTime: '04:10 AM', inStock: false },
 ];
 
-const container = document.getElementById('example1');
+const container = document.getElementById('example8');
 const hot = new Handsontable(container, {
   themeName: 'ht-theme-main',
   data,
@@ -86,14 +86,22 @@ const hot = new Handsontable(container, {
   width: '100%',
   height: 300,
   stretchH: 'all',
-  dialog: true,
+  dialog: {
+    content: 'This dialog can be controlled programmatically.',
+    closable: true,
+  },
   licenseKey: 'non-commercial-and-evaluation',
 });
 
-// Show dialog after initialization
 const dialogPlugin = hot.getPlugin('dialog');
 
-dialogPlugin.show({
-  content: 'This is a basic dialog with default configuration.',
-  closable: true,
+// Add event listeners for buttons
+document.getElementById('showDialog').addEventListener('click', () => {
+  dialogPlugin.show({
+    content: 'Dialog shown programmatically!',
+    closable: true,
+  });
+});
+document.getElementById('hideDialog').addEventListener('click', () => {
+  dialogPlugin.hide();
 });
