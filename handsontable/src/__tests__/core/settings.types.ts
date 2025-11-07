@@ -277,6 +277,43 @@ const allSettings: Required<Handsontable.GridSettings> = {
     title: 'Loading...',
     description: 'Loading...',
   }),
+  emptyDataState: oneOf(true, {
+    message: 'No data available',
+  }, {
+    message: {
+      title: 'No data available',
+      description: 'There\'s nothing to display yet.',
+      buttons: [
+        {
+          text: 'Reset filters',
+          type: 'secondary' as const,
+          callback: () => {},
+        },
+      ],
+    },
+  }, {
+    message: (source: string) => {
+      switch (source) {
+        case 'filters':
+          return {
+            title: 'No data available',
+            description: 'There\'s nothing to display yet.',
+            buttons: [
+              {
+                text: 'Reset filters',
+                type: 'secondary' as const,
+                callback: () => {},
+              },
+            ],
+          };
+        default:
+          return {
+            title: 'No data available',
+            description: 'There\'s nothing to display yet.',
+          };
+      }
+    },
+  }),
   validator: oneOf(
     (value: any, callback: (valid: boolean) => void) => callback(true),
     /^[0-9]$/,
@@ -338,6 +375,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterColumnMove: (columns, target) => {},
   afterColumnResize: (newSize, column, isDoubleClick) => {},
   afterColumnSequenceChange: (source) => {},
+  afterColumnSequenceCacheUpdate: (indexesChangesState) => {},
   afterColumnSort: (currentSortConfig, destinationSortConfigs) => {},
   afterColumnUnfreeze: (columnIndex, isFreezingPerformed) => {},
   beforeCompositionStart: (event) => {
@@ -367,6 +405,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterDropdownMenuDefaultOptions: (predefinedItems) => {},
   afterDropdownMenuHide: (instance) => {},
   afterDropdownMenuShow: (instance) => {},
+  afterEmptyDataStateShow: () => {},
+  afterEmptyDataStateHide: () => {},
   afterFilter: (conditionsStack) => conditionsStack[0].column,
   afterFormulasValuesUpdate: (changes) => {},
   afterGetCellMeta: (row, col, cellProperties) => {},
@@ -445,6 +485,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     orderChanged) => movedRows.forEach(row => row.toFixed(1) === finalIndex.toFixed(1)),
   afterRowResize: (newSize, row, isDoubleClick) => {},
   afterRowSequenceChange: (source) => {},
+  afterRowSequenceCacheUpdate: (indexesChangesState) => {},
   afterScrollHorizontally: () => {},
   afterScrollVertically: () => {},
   afterScroll: () => {},
@@ -526,6 +567,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeDrawBorders: (corners, borderClassName) => {},
   beforeDropdownMenuSetItems: (menuItems) => {},
   beforeDropdownMenuShow: (instance) => {},
+  beforeEmptyDataStateShow: () => {},
+  beforeEmptyDataStateHide: () => {},
   beforeFilter: (conditionsStack, previousConditionStack) => { conditionsStack[0].conditions[0].name === 'begins_with'; },
   beforeGetCellMeta: (row, col, cellProperties) => {},
   beforeHeightChange: (height) => {

@@ -116,6 +116,12 @@ const dictionary = {
   [C.PAGINATION_LAST_PAGE]: 'Pāriet uz pēdējo lapu',
 
   [C.LOADING_TITLE]: 'Ielādē...',
+
+  [C.EMPTY_DATA_STATE_TITLE]: 'Nav pieejamu datu',
+  [C.EMPTY_DATA_STATE_DESCRIPTION]: 'Vēl nav ko rādīt.',
+  [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'Rezultāti nav atrasti',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'Šķiet, ka jūsu pašreizējie filtri paslēpj visus rezultātus.',
+  [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Atiestatīt filtrus',
 };
 
 export default dictionary;

@@ -21,6 +21,10 @@ export function normalizeCoordsIfNeeded(hot) {
     const mostTopStartCoords = getMostTopStartPosition(hot);
     const mostBottomEndCoords = getMostBottomEndPosition(hot);
 
+    if (mostTopStartCoords === null || mostBottomEndCoords === null) {
+      return null;
+    }
+
     coords.row = clamp(coords.row, mostTopStartCoords.row, mostBottomEndCoords.row);
     coords.col = clamp(coords.col, mostTopStartCoords.col, mostBottomEndCoords.col);
 

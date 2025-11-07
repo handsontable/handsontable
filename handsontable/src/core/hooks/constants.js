@@ -315,6 +315,18 @@ export const REGISTERED_HOOKS = [
   'beforeCreateCol',
 
   /**
+   * Fired after the cache of the column sequence has been updated.
+   *
+   * @since 16.2.0
+   * @event Hooks#afterColumnSequenceCacheUpdate
+   * @param {object} indexesChangesState Object containing information about the changes to the column sequence.
+   * @param {boolean} indexesChangesState.indexesSequenceChanged Indicates if the sequence of indexes has changed.
+   * @param {boolean} indexesChangesState.trimmedIndexesChanged Indicates if the trimmed indexes have changed.
+   * @param {boolean} indexesChangesState.hiddenIndexesChanged Indicates if the hidden indexes have changed.
+   */
+  'afterColumnSequenceCacheUpdate',
+
+  /**
    * Fired after the order of columns has changed.
    * This hook is fired by changing column indexes of any type supported by the {@link IndexMapper}.
    *
@@ -619,6 +631,18 @@ export const REGISTERED_HOOKS = [
    * @param {object} cellProperties Object containing the cell's properties.
    */
   'afterRenderer',
+
+  /**
+   * Fired after the cache of the row sequence has been updated.
+   *
+   * @since 16.2.0
+   * @event Hooks#afterRowSequenceCacheUpdate
+   * @param {object} indexesChangesState Object containing information about the changes to the row sequence.
+   * @param {boolean} indexesChangesState.indexesSequenceChanged Indicates if the sequence of indexes has changed.
+   * @param {boolean} indexesChangesState.trimmedIndexesChanged Indicates if the trimmed indexes have changed.
+   * @param {boolean} indexesChangesState.hiddenIndexesChanged Indicates if the hidden indexes have changed.
+   */
+  'afterRowSequenceCacheUpdate',
 
   /**
    * Fired after the order of rows has changed.
@@ -3241,6 +3265,42 @@ export const REGISTERED_HOOKS = [
    * @event Hooks#afterLoadingHide
    */
   'afterLoadingHide',
+
+  /**
+   * Fired by {@link EmptyDataState} plugin before showing the empty data state overlay. This hook is fired when {@link Options#emptyDataState}
+   * option is enabled.
+   *
+   * @since 16.2.0
+   * @event Hooks#beforeEmptyDataStateShow
+   */
+  'beforeEmptyDataStateShow',
+
+  /**
+   * Fired by {@link EmptyDataState} plugin after showing the empty data state overlay. This hook is fired when {@link Options#emptyDataState}
+   * option is enabled.
+   *
+   * @since 16.2.0
+   * @event Hooks#afterEmptyDataStateShow
+   */
+  'afterEmptyDataStateShow',
+
+  /**
+   * Fired by {@link EmptyDataState} plugin before hiding the empty data state overlay. This hook is fired when {@link Options#emptyDataState}
+   * option is enabled.
+   *
+   * @since 16.2.0
+   * @event Hooks#beforeEmptyDataStateHide
+   */
+  'beforeEmptyDataStateHide',
+
+  /**
+   * Fired by {@link EmptyDataState} plugin after hiding the empty data state overlay. This hook is fired when {@link Options#emptyDataState}
+   * option is enabled.
+   *
+   * @since 16.2.0
+   * @event Hooks#afterEmptyDataStateHide
+   */
+  'afterEmptyDataStateHide',
 
   /**
    * Fired after the editor is opened and rendered.

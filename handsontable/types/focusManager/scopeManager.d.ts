@@ -1,4 +1,4 @@
-type FocusScopeType = 'modal' | 'container';
+type FocusScopeType = 'modal' | 'inline';
 type FocusScopeActivationSource = 'unknown' | 'click' | 'tab_from_above' | 'tab_from_below';
 
 type FocusScopeOptions = {
