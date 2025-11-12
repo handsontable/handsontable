@@ -149,7 +149,8 @@ const container = document.querySelector('#example');
 const hot = new Handsontable(container, {
   height:'100%',
   // ... rest of config 
-} 
+}
+```
 
 1. Set a fixed height (in pixels) directly on the `example` element where Handsontable is mounted
 
