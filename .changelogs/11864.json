@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed an issue with header text size when `collapsibleColumns` is enabled",
-  "type": "fixed",
-  "issueOrPR": 11864,
-  "breaking": false,
-  "framework": "none"
-}
