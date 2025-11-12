@@ -57,7 +57,7 @@ export class AppComponent implements AfterViewInit {
         'This <a href="https://bit.ly/sM1bDf">book</a> provides a developer-level introduction along with more advanced and useful features of <b>JavaScript</b>.',
       comments: 'I would rate it ★★★★☆',
       cover:
-        'http://localhost:8080/docs/img/examples/professional-javascript-developers-nicholas-zakas.jpg',
+        '{{$basePath}}/img/examples/professional-javascript-developers-nicholas-zakas.jpg',
     },
     {
       title:
@@ -65,7 +65,7 @@ export class AppComponent implements AfterViewInit {
       description:
         'This book provides a developer-level introduction along with <b>more advanced</b> and useful features of JavaScript.',
       comments: 'This is the book about JavaScript',
-      cover: 'http://localhost:8080/docs/img/examples/javascript-the-good-parts.jpg',
+      cover: '{{$basePath}}/img/examples/javascript-the-good-parts.jpg',
     },
     {
       title:
@@ -74,7 +74,7 @@ export class AppComponent implements AfterViewInit {
         '<em>JavaScript: The Definitive Guide</em> provides a thorough description of the core <b>JavaScript</b> language and both the legacy and standard DOMs implemented in web browsers.',
       comments:
         'I\'ve never actually read it, but the <a href="https://shop.oreilly.com/product/9780596805531.do">comments</a> are highly <strong>positive</strong>.',
-      cover: 'http://localhost:8080/docs/img/examples/javascript-the-definitive-guide.jpg',
+      cover: '{{$basePath}}/img/examples/javascript-the-definitive-guide.jpg',
     }
   ];
 
