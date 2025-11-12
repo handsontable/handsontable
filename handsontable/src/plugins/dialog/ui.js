@@ -54,6 +54,12 @@ export class DialogUI {
    */
   #isRtl = false;
   /**
+   * Indicates if the animation has started.
+   *
+   * @type {boolean}
+   */
+  #animationStarted = false;
+  /**
    * The template to use for the dialog.
    *
    * @type {function(): string}
@@ -123,6 +129,9 @@ export class DialogUI {
       A11Y_MODAL(),
       ['dir', this.#isRtl ? 'rtl' : 'ltr'],
     ]);
+
+    dialogElement.addEventListener('transitionstart', () => this.#onTransitionStart());
+    dialogElement.addEventListener('transitionend', () => this.#onTransitionEnd());
 
     // Append to Handsontable after table grid element
     this.#rootElement.after(elements.fragment);
@@ -286,6 +295,7 @@ export class DialogUI {
     }
 
     addClass(dialogElement, `${DIALOG_CLASS_NAME}--show`);
+    this.#animationStarted = false;
 
     return this;
   }
@@ -301,15 +311,11 @@ export class DialogUI {
 
     removeClass(dialogElement, `${DIALOG_CLASS_NAME}--show`);
 
-    if (animation) {
-      dialogElement.addEventListener('transitionend', () => {
-        if (!hasClass(dialogElement, `${DIALOG_CLASS_NAME}--show`)) {
-          dialogElement.style.display = 'none';
-        }
-      }, { once: true });
-    } else {
+    if ((animation && !this.#animationStarted) || !animation) {
       dialogElement.style.display = 'none';
     }
+
+    this.#animationStarted = false;
 
     return this;
   }
@@ -351,6 +357,24 @@ export class DialogUI {
   destroyDialog() {
     this.#refs?.dialogElement.remove();
     this.#refs = null;
+  }
+
+  /**
+   * Handles the transition end event.
+   */
+  #onTransitionEnd() {
+    const { dialogElement } = this.#refs;
+
+    if (!hasClass(dialogElement, `${DIALOG_CLASS_NAME}--show`)) {
+      dialogElement.style.display = 'none';
+    }
+  }
+
+  /**
+   * Handles the transition start event. This is used to track if the animation has started.
+   */
+  #onTransitionStart() {
+    this.#animationStarted = true;
   }
 }
 
