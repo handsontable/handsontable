@@ -147,8 +147,8 @@ Assuming you're creating an Handsontable instance that has `100% height` and con
 const container = document.querySelector('#example');
 
 const hot = new Handsontable(container, {
-  height:'100%',
-  // ... rest of config 
+  height: '100%',
+  // ...rest of config 
 }
 ```
 
