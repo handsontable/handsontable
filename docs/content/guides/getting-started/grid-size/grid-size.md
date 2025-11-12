@@ -139,7 +139,7 @@ If container is a block element, then its parent has to have defined `height`. B
 
 Changes called in [`updateSettings()`](@/api/core.md#updatesettings) will re-render the grid with the new properties.
 
-### Trubbleshoothig with 100% height
+### Troubleshooting with 100% height
 
 When the `height` option is set to 100%, there are three ways to define the container’s height:
 
@@ -154,8 +154,8 @@ When the `height` option is set to 100%, there are three ways to define the cont
         <div class="ht-wrapper">
           <!-- Table content -->
         </div>
-        <!-- Table components -->
       </div>
+      <!-- Table components -->
     </div>
   </div>
 </div>
@@ -172,8 +172,8 @@ When the `height` option is set to 100%, there are three ways to define the cont
         <div class="ht-wrapper">
           <!-- Table content -->
         </div>
-        <!-- Table components -->
       </div>
+      <!-- Table components -->
     </div>
   </div>
 </div>
@@ -190,8 +190,8 @@ When the `height` option is set to 100%, there are three ways to define the cont
         <div class="ht-wrapper">
           <!-- Table content -->
         </div>
-        <!-- Table components -->
       </div>
+      <!-- Table components -->
     </div>
   </div>
 </div>
