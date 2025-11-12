@@ -141,7 +141,15 @@ Changes called in [`updateSettings()`](@/api/core.md#updatesettings) will re-ren
 
 ### Troubleshooting with 100% height
 
-When the `height` option is set to 100%, there are three ways to define the container’s height:
+Assuming you're creating an Handsontable instance that has `100% height` and container is element with id `#example`. 
+
+```js
+const container = document.querySelector('#example');
+
+const hot = new Handsontable(container, {
+  height:'100%',
+  // ... rest of config 
+} 
 
 1. Set a fixed height (in pixels) directly on the `example` element where Handsontable is mounted
 
