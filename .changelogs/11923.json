@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed and issue with collapsible column state in React wrapper",
+  "type": "fixed",
+  "issueOrPR": 11923,
+  "breaking": false,
+  "framework": "react"
+}
