@@ -405,8 +405,6 @@ class HotTableClass extends React.Component<HotTableProps, {}> {
 
     if (this.columnSettings.length) {
       newSettings.columns = this.columnSettings;
-    } else if (newSettings.columns) {
-      newSettings.columns = newSettings.columns;
     }
 
     if (globalEditorNode) {
