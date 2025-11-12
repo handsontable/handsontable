@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed dialog overlay stuck on rapid show/hide calls",
+  "type": "fixed",
+  "issueOrPR": 11925,
+  "breaking": false,
+  "framework": "none"
+}
