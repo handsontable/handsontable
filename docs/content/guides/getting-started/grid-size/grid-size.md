@@ -161,7 +161,7 @@ When the `height` option is set to 100%, there are three ways to define the cont
 </div>
 ```
 
-2. Set a fixed height on the parent element, and then give the container itself a height of 100%
+2. Set a fixed height on the parent element, and then give the `example` itself a height of 100%
 
 ```html
 <div class="page-wrapper" style="height: 500px">
@@ -179,7 +179,7 @@ When the `height` option is set to 100%, there are three ways to define the cont
 </div>
 ```
 
-3. Use flexbox on the wrapper element to make the container fill the available space
+3. Use flexbox on the wrapper element to make the `example` fill the available space
 
 ```html
 <div class="page-wrapper" style="display: flex; height: 500px">
