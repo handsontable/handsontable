@@ -12,39 +12,39 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [16.2.0] - 2025-11-19
 
 ### Added
-- Improve focus handling by adding focus scopes mechanism [#11804](https://github.com/handsontable/handsontable/pull/11804)
-- Implemented a new "auto" option for the `roundFloat` setting of the Column Summary plugin and fixed issues with the plugin's endpoints not being recalculated on data updates. [#11833](https://github.com/handsontable/handsontable/pull/11833)
-- Added an Enter key handler and searchMode option to the filters [#11871](https://github.com/handsontable/handsontable/pull/11871)
-- Implement a new "style" option for the Custom Borders plugin. [#11876](https://github.com/handsontable/handsontable/pull/11876)
-- Add a new "dotted" style to the Custom Borders plugin. [#11877](https://github.com/handsontable/handsontable/pull/11877)
-- Added EmptyDataState Plugin [#11879](https://github.com/handsontable/handsontable/pull/11879)
-- Added a "settings" entry to the Handsontable exports. [#11883](https://github.com/handsontable/handsontable/pull/11883)
-- Added an new global button CSS class names [#11896](https://github.com/handsontable/handsontable/pull/11896)
-- Added `minRowHeights` as an alias to `rowHeights`. [#11898](https://github.com/handsontable/handsontable/pull/11898)
-- Added a new `template` option to Dialog [#11902](https://github.com/handsontable/handsontable/pull/11902)
-- Added new theme variables implementation and extend the style output with 'no-icons' and 'icons-only' variants [#11913](https://github.com/handsontable/handsontable/pull/11913)
+- Improved focus management by introducing a focus scopes mechanism. [#11804](https://github.com/handsontable/handsontable/pull/11804)
+- Introduced an "auto" option for the `roundFloat` setting in the Column Summary plugin and ensured proper recalculation of endpoints after data updates. [#11833](https://github.com/handsontable/handsontable/pull/11833)
+- Added an Enter key handler and a new `searchMode` option to the Filters plugin. [#11871](https://github.com/handsontable/handsontable/pull/11871)
+- Implemented a `style` option for the Custom Borders plugin, enabling style customization. [#11876](https://github.com/handsontable/handsontable/pull/11876)
+- Introduced a new "dotted" border style to the Custom Borders plugin. [#11877](https://github.com/handsontable/handsontable/pull/11877)
+- Added the EmptyDataState plugin to improve UX when no data is available. [#11879](https://github.com/handsontable/handsontable/pull/11879)
+- Added a `settings` entry to the Handsontable exports. [#11883](https://github.com/handsontable/handsontable/pull/11883)
+- Added new global button CSS class names. [#11896](https://github.com/handsontable/handsontable/pull/11896)
+- Introduced `minRowHeights` as an alias for `rowHeights` for API consistency. [#11898](https://github.com/handsontable/handsontable/pull/11898)
+- Added a new `template` option to the Dialog plugin. [#11902](https://github.com/handsontable/handsontable/pull/11902)
+- Added new theme variables and implemented `no-icons` and `icons-only` style variants. [#11913](https://github.com/handsontable/handsontable/pull/11913)
 
 ### Changed
-- Updated the highlight behavior of dropdown choices when the value is empty. Now, if the textarea is empty, the focus remains on the input field [#11863](https://github.com/handsontable/handsontable/pull/11863)
-- Modified the way in which the Autocomplete and Dropdown editors reactto clicking outside of the open editor. [#11873](https://github.com/handsontable/handsontable/pull/11873)
+- Refined dropdown behavior when the input is empty - focus now remains on the input field. [#11863](https://github.com/handsontable/handsontable/pull/11863)
+- Improved how the Autocomplete and Dropdown editors respond to clicks outside the open editor. [#11873](https://github.com/handsontable/handsontable/pull/11873)
 
 ### Fixed
-- Fixed an issue with datepicker icon size on iPad [#11860](https://github.com/handsontable/handsontable/pull/11860)
-- Fixed an issue with header size on iPad [#11861](https://github.com/handsontable/handsontable/pull/11861)
-- Fixed an issue with header text size when `collapsibleColumns` is enabled [#11864](https://github.com/handsontable/handsontable/pull/11864)
+- Fixed the datepicker icon size issue on iPad. [#11860](https://github.com/handsontable/handsontable/pull/11860)
+- Corrected header size rendering on iPad. [#11861](https://github.com/handsontable/handsontable/pull/11861)
+- Fixed an issue with header text size with `collapsibleColumns` enabled. [#11864](https://github.com/handsontable/handsontable/pull/11864)
 - Fixed an issue with an unwanted empty space on the right side of the table when using the modern themes. [#11868](https://github.com/handsontable/handsontable/pull/11868)
-- Fixed an issue with row misalignment when cells have more than one line of text [#11872](https://github.com/handsontable/handsontable/pull/11872)
-- Improve column widths calculations for checkbox cell types [#11891](https://github.com/handsontable/handsontable/pull/11891)
-- Fixed a problem, where using `minSpareRows` would crash table table when configured alongside the Column Summary plugin. [#11911](https://github.com/handsontable/handsontable/pull/11911)
-- Fixed a problem, where adding a previously-removed hook callback would not work properly. [#11914](https://github.com/handsontable/handsontable/pull/11914)
-- Stabilize the height of the first row when it's empty [#11918](https://github.com/handsontable/handsontable/pull/11918)
+- Fixed row misalignment for multi-line cell content. [#11872](https://github.com/handsontable/handsontable/pull/11872)
+- Improved column width calculations for checkbox-typed cells. [#11891](https://github.com/handsontable/handsontable/pull/11891)
+- Fixed a problem, where using `minSpareRows` would crash the table when configured alongside the Column Summary plugin. [#11911](https://github.com/handsontable/handsontable/pull/11911)
+- Fixed an issue preventing re-adding a previously removed hook callback. [#11914](https://github.com/handsontable/handsontable/pull/11914)
+- Stabilized the height of the first row when it's empty. [#11918](https://github.com/handsontable/handsontable/pull/11918)
 - Fixed a problem where resizing the window vertically did not resize the table. [#11919](https://github.com/handsontable/handsontable/pull/11919)
-- Fixed dialog overlay stuck on rapid show/hide calls [#11925](https://github.com/handsontable/handsontable/pull/11925)
-- Fixed an issue with TouchEvent on Firefox [#11928](https://github.com/handsontable/handsontable/pull/11928)
-- React: Fixed and issue with collapsible column state in React wrapper [#11923](https://github.com/handsontable/handsontable/pull/11923)
+- Fixed an issue where the dialog overlay could make the table unresponsive after rapid show/hide calls. [#11925](https://github.com/handsontable/handsontable/pull/11925)
+- Fixed an issue with TouchEvent on Firefox. [#11928](https://github.com/handsontable/handsontable/pull/11928)
+- React: Fixed and issue with Collapsible Columns being reset in React wrapper. [#11923](https://github.com/handsontable/handsontable/pull/11923)
 
 ### Security
-- Updated the "high"-level dev dependency vulnerabilities. [#11895](https://github.com/handsontable/handsontable/pull/11895)
+- Updated dev dependencies to address high-severity vulnerabilities. [#11895](https://github.com/handsontable/handsontable/pull/11895)
 
 ## [16.1.1] - 2025-09-23
 
