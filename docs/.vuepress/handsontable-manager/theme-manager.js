@@ -11,22 +11,24 @@ const _getThemeClassName = (colorScheme) => {
   }
 };
 
+const _afterSetThemeCallback = function() {
+  setTimeout(() => {
+    if (this.rootContainer?.closest('.disable-auto-theme') || this.rootContainer?.closest('.ht-portal')) {
+      return;
+    }
+
+    const themeName = _getThemeClassName(localStorage.getItem(STORAGE_KEY));
+
+    if (this.getCurrentThemeName() !== themeName) {
+      this.useTheme(themeName);
+    }
+  }, 0);
+};
+
 const ensureCorrectHotThemes = () => {
   if (typeof Handsontable !== 'undefined') {
     // eslint-disable-next-line no-undef
-    Handsontable.hooks.add('afterSetTheme', function() {
-      setTimeout(() => {
-        if (this.rootContainer.closest('.disable-auto-theme') || this.rootContainer.closest('.ht-portal')) {
-          return;
-        }
-
-        const themeName = _getThemeClassName(localStorage.getItem(STORAGE_KEY));
-
-        if (this.getCurrentThemeName() !== themeName) {
-          this.useTheme(themeName);
-        }
-      }, 0);
-    });
+    Handsontable.hooks.add('afterSetTheme', _afterSetThemeCallback);
   }
 };
 
