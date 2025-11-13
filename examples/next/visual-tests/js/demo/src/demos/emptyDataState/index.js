@@ -30,6 +30,8 @@ export function init() {
       { data: 3, type: 'text' },
       { data: 4, type: 'date' },
       { data: 5, type: 'text' },
+      { data: 6, type: 'checkbox' },
+      { data: 7, type: 'numeric' },
     ];
   }
 
