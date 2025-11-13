@@ -90,7 +90,7 @@ export default {
     ];
 
     document.querySelectorAll('aside.sidebar .sidebar-links a').forEach((a) => {
-      const link = links.find(link => a.href.endsWith(link.path));
+      const link = links.find(item => a.href.endsWith(item.path));
 
       if (link && a.querySelector('span.new-link') === null) {
         const span = document.createElement('span');
