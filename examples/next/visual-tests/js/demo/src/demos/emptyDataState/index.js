@@ -10,12 +10,27 @@ export function init() {
 
   root.appendChild(example);
 
+  document.body.style.backgroundColor = 'rgb(128 128 128 / 25%)';
+
   const height = getFromURL('height', 400);
+  const noColumns = getFromURL('noColumns', false);
 
   const settings = {};
 
   if (height !== 'undefined') {
     settings.height = height;
+  }
+
+  if (noColumns) {
+    settings.columns = [];
+  } else {
+    settings.columns = [
+      { data: 1, type: 'text' },
+      { data: 2, type: 'text' },
+      { data: 3, type: 'text' },
+      { data: 4, type: 'date' },
+      { data: 5, type: 'text' },
+    ];
   }
 
   new Handsontable(example, {
@@ -32,15 +47,6 @@ export function init() {
       'Order ID',
       'In stock',
       'Qty',
-    ],
-    columns: [
-      { data: 1, type: 'text' },
-      { data: 2, type: 'text' },
-      { data: 3, type: 'text', },
-      { data: 4, type: 'date' },
-      { data: 5, type: 'text' },
-      { data: 6, type: 'checkbox' },
-      { data: 7, type: 'numeric' },
     ],
     width: 'auto',
     dropdownMenu: true,
