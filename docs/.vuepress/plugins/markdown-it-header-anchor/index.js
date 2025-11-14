@@ -23,7 +23,10 @@ module.exports = function headerAnchor(markdown) {
         // Create `a` tag with href attribute
         const aTagOpen = new Token(insertedOpenTokenType, insertedTokenTag, 1);
         const aTagClose = new Token(insertedCloseTokenType, insertedTokenTag, -1);
-        const id = state.tokens[index - 1].attrGet('id');
+        const id = state.tokens[index - 1].attrGet('id').replace('-deprecated', '');
+
+        // update h tag id to remove deprecated tag
+        state.tokens[index - 1].attrSet('id', id);
 
         aTagOpen.attrSet('href', `#${id}`);
         aTagOpen.attrSet('class', 'header-link');

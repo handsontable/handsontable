@@ -64,42 +64,6 @@ export default {
   },
   mounted() {
     this.scrollToActiveElement(this.$route.path);
-
-    // THIS IS hack but it works
-    const links = [
-      {
-        path: '/empty-data-state/',
-        tag: 'new',
-      },
-      {
-        path: '/dialog/',
-        tag: 'updated',
-      },
-      {
-        path: '/themes/',
-        tag: 'updated',
-      },
-      {
-        path: '/theme-customization/',
-        tag: 'updated',
-      },
-      {
-        path: '/ime-support/',
-        tag: 'updated',
-      },
-    ];
-
-    document.querySelectorAll('aside.sidebar .sidebar-links a').forEach((a) => {
-      const link = links.find(item => a.href.endsWith(item.path));
-
-      if (link && a.querySelector('span.new-link') === null) {
-        const span = document.createElement('span');
-
-        span.textContent = link.tag === 'new' ? 'New' : 'Updated';
-        span.classList.add(link.tag === 'new' ? 'tag-new' : 'tag-update');
-        a.appendChild(span);
-      }
-    });
   },
   watch: {
     $route(to, from) {

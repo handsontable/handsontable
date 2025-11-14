@@ -333,11 +333,8 @@ export class UndoRedo extends BasePlugin {
     };
 
     /**
-     * ::: warning
-     * This method is deprecated and it will be removed from the Core API in the future. Please use the method from the [`UndoRedo`](@/api/undoRedo.md#undo-2) plugin.
-     * :::
-     *
      * @alias undo
+     * @deprecated This method is deprecated and it will be removed from the Core API in the future. Please use the method from the [`UndoRedo`](@/api/undoRedo.md#undo-2) plugin.
      * @memberof! Core#
      */
     this.hot.undo = () => {
@@ -345,11 +342,8 @@ export class UndoRedo extends BasePlugin {
       this.undo();
     };
     /**
-     * ::: warning
-     * This method is deprecated and it will be removed from the Core API in the future. Please use the method from the [`UndoRedo`](@/api/undoRedo.md#redo) plugin.
-     * :::
-     *
      * @alias redo
+     * @deprecated This method is deprecated and it will be removed from the Core API in the future. Please use the method from the [`UndoRedo`](@/api/undoRedo.md#redo) plugin.
      * @memberof! Core#
      */
     this.hot.redo = () => {
@@ -357,11 +351,8 @@ export class UndoRedo extends BasePlugin {
       this.redo();
     };
     /**
-     * ::: warning
-     * This method is deprecated and it will be removed from the Core API in the future. Please use the method from the [`UndoRedo`](@/api/undoRedo.md#isundoavailable) plugin.
-     * :::
-     *
      * @alias isUndoAvailable
+     * @deprecated This method is deprecated and it will be removed from the Core API in the future. Please use the method from the [`UndoRedo`](@/api/undoRedo.md#isundoavailable) plugin.
      * @memberof! Core#
      * @returns {boolean}
      */
@@ -371,11 +362,8 @@ export class UndoRedo extends BasePlugin {
       return this.isUndoAvailable();
     };
     /**
-     * ::: warning
-     * This method is deprecated and it will be removed from the Core API in the future. Please use the method from the [`UndoRedo`](@/api/undoRedo.md#isredoavailable) plugin.
-     * :::
-     *
      * @alias isRedoAvailable
+     * @deprecated This method is deprecated and it will be removed from the Core API in the future. Please use the method from the [`UndoRedo`](@/api/undoRedo.md#isredoavailable) plugin.
      * @memberof! Core#
      * @returns {boolean}
      */
@@ -385,11 +373,8 @@ export class UndoRedo extends BasePlugin {
       return this.isRedoAvailable();
     };
     /**
-     * ::: warning
-     * This method is deprecated and it will be removed from the Core API in the future. Please use the method from the [`UndoRedo`](@/api/undoRedo.md#clear) plugin.
-     * :::
-     *
      * @alias clearUndo
+     * @deprecated This method is deprecated and it will be removed from the Core API in the future. Please use the method from the [`UndoRedo`](@/api/undoRedo.md#clear) plugin.
      * @memberof! Core#
      */
     this.hot.clearUndo = () => {
