@@ -20,6 +20,7 @@ angular:
   metaTitle: Empty Data State - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Accessories and Menus
+menuTag: new
 ---
 
 # Empty Data State

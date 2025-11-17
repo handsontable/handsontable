@@ -24,6 +24,7 @@ angular:
   metaTitle: Theme Customization - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Styling
+menuTag: updated
 ---
 
 # Theme Customization
