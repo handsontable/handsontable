@@ -9,7 +9,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- UNVERSIONED -->
 
-## [16.2.0] - 2025-11-19
+## [16.2.0] - 2025-11-20
 
 ### Added
 - Improved focus management by introducing a focus scopes mechanism. [#11804](https://github.com/handsontable/handsontable/pull/11804)
