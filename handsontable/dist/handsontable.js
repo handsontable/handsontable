@@ -26,7 +26,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 16.2.0
- * Release date: 20/11/2025 (built at 17/11/2025 12:10:39)
+ * Release date: 20/11/2025 (built at 17/11/2025 15:30:09)
  */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
@@ -104,7 +104,7 @@ Handsontable.hooks = _hooks.Hooks.getSingleton();
 Handsontable.CellCoords = _src.CellCoords;
 Handsontable.CellRange = _src.CellRange;
 Handsontable.packageName = 'handsontable';
-Handsontable.buildDate = "17/11/2025 12:10:39";
+Handsontable.buildDate = "17/11/2025 15:30:09";
 Handsontable.version = "16.2.0";
 Handsontable.languages = {
   dictionaryKeys: _registry.dictionaryKeys,
@@ -55347,7 +55347,6 @@ class AutocompleteEditor extends _handsontableEditor.HandsontableEditor {
   /**
    * Updates list of the possible completions to choose.
    *
-   * @private
    * @param {Array} choicesList The choices list to process.
    */
   updateChoicesList(choicesList) {
@@ -65062,9 +65061,9 @@ const PLUGIN_PRIORITY = exports.PLUGIN_PRIORITY = 220;
  * | `destinationRow` | Yes | Number | - | [Sets the destination cell's row coordinate](@/guides/columns/column-summary/column-summary.md#step-4-provide-the-destination-cell-s-coordinates) |
  * | `destinationColumn` | Yes | Number | - | [Sets the destination cell's column coordinate](@/guides/columns/column-summary/column-summary.md#step-4-provide-the-destination-cell-s-coordinates) |
  * | `forceNumeric` | No | Boolean | `false` | [Forces the summary to treat non-numerics as numerics](@/guides/columns/column-summary/column-summary.md#force-numeric-values) |
- * | `reversedRowCoords` | No | Boolean | `false` | [Reverses row coordinates](@/guides/columns/column-summary/column-summary.md#step-5-make-room-for-the-destination-cell) |
+ * | `reversedRowCoords` | No | Boolean | `false` | [Reverses the row coordinate, count row coordinates backward](@/guides/columns/column-summary/column-summary.md#step-5-make-room-for-the-destination-cell). Useful when displaying summary results at the bottom of the grid, as it allows you to reference rows relative to the last row (e.g., `destinationRow: 0` refers to the last row when this option is enabled) |
  * | `suppressDataTypeErrors` | No | Boolean | `true` | [Suppresses data type errors](@/guides/columns/column-summary/column-summary.md#throw-data-type-errors) |
- * | `readOnly` | No | Boolean | `true` | Makes summary cell read-only |
+ * | `readOnly` | No | Boolean | `true` | Makes summary cell [read-only](@/api/options.md#readonly) |
  * | `roundFloat` | No | Number/<br>Boolean | - | [Rounds summary result](@/guides/columns/column-summary/column-summary.md#round-a-column-summary-result) |
  * | `customFunction` | No | Function | - | [Lets you add a custom summary function](@/guides/columns/column-summary/column-summary.md#implement-a-custom-summary-function) |
  *
@@ -101882,11 +101881,8 @@ function _exposeAPIToCore() {
   };
 
   /**
-   * ::: warning
-   * This method is deprecated and it will be removed from the Core API in the future. Please use the method from the [`UndoRedo`](@/api/undoRedo.md#undo-2) plugin.
-   * :::
-   *
    * @alias undo
+   * @deprecated This method is deprecated and it will be removed from the Core API in the future. Please use the method from the [`UndoRedo`](@/api/undoRedo.md#undo-2) plugin.
    * @memberof! Core#
    */
   this.hot.undo = () => {
@@ -101894,11 +101890,8 @@ function _exposeAPIToCore() {
     this.undo();
   };
   /**
-   * ::: warning
-   * This method is deprecated and it will be removed from the Core API in the future. Please use the method from the [`UndoRedo`](@/api/undoRedo.md#redo) plugin.
-   * :::
-   *
    * @alias redo
+   * @deprecated This method is deprecated and it will be removed from the Core API in the future. Please use the method from the [`UndoRedo`](@/api/undoRedo.md#redo) plugin.
    * @memberof! Core#
    */
   this.hot.redo = () => {
@@ -101906,11 +101899,8 @@ function _exposeAPIToCore() {
     this.redo();
   };
   /**
-   * ::: warning
-   * This method is deprecated and it will be removed from the Core API in the future. Please use the method from the [`UndoRedo`](@/api/undoRedo.md#isundoavailable) plugin.
-   * :::
-   *
    * @alias isUndoAvailable
+   * @deprecated This method is deprecated and it will be removed from the Core API in the future. Please use the method from the [`UndoRedo`](@/api/undoRedo.md#isundoavailable) plugin.
    * @memberof! Core#
    * @returns {boolean}
    */
@@ -101919,11 +101909,8 @@ function _exposeAPIToCore() {
     return this.isUndoAvailable();
   };
   /**
-   * ::: warning
-   * This method is deprecated and it will be removed from the Core API in the future. Please use the method from the [`UndoRedo`](@/api/undoRedo.md#isredoavailable) plugin.
-   * :::
-   *
    * @alias isRedoAvailable
+   * @deprecated This method is deprecated and it will be removed from the Core API in the future. Please use the method from the [`UndoRedo`](@/api/undoRedo.md#isredoavailable) plugin.
    * @memberof! Core#
    * @returns {boolean}
    */
@@ -101932,11 +101919,8 @@ function _exposeAPIToCore() {
     return this.isRedoAvailable();
   };
   /**
-   * ::: warning
-   * This method is deprecated and it will be removed from the Core API in the future. Please use the method from the [`UndoRedo`](@/api/undoRedo.md#clear) plugin.
-   * :::
-   *
    * @alias clearUndo
+   * @deprecated This method is deprecated and it will be removed from the Core API in the future. Please use the method from the [`UndoRedo`](@/api/undoRedo.md#clear) plugin.
    * @memberof! Core#
    */
   this.hot.clearUndo = () => {
@@ -105501,6 +105485,7 @@ class EmptyDataStateUI {
     const scrollbarSize = view.hasHorizontalScroll() ? (0, _element.getScrollbarWidth)(view.hot.rootDocument) : 0;
     const rows = view.countRenderableRows();
     const cols = view.countRenderableColumns();
+    const headerCols = view.getColumnHeadersCount();
     emptyDataStateElement.style.top = cols > 0 ? `${view.getColumnHeaderHeight()}px` : '0px';
     emptyDataStateElement.style.insetInlineStart = rows > 0 ? `${view.getRowHeaderWidth()}px` : '0px';
     if (rows === 0) {
@@ -105535,8 +105520,10 @@ class EmptyDataStateUI {
       } else {
         height = view.hot.getTableHeight();
       }
-    } else if (rows === 0) {
+    } else if (headerCols > 0 && cols > 0) {
       height = view.getViewportHeight() - scrollbarSize;
+    } else if (headerCols > 0 && cols === 0) {
+      height = view.getWorkspaceHeight() - scrollbarSize;
     }
     emptyDataStateElement.style.width = `${width}px`;
     emptyDataStateElement.style.height = `${height}px`;

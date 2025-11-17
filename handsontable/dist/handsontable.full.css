@@ -27,7 +27,7 @@
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
  * Version: 16.2.0
- * Release date: 20/11/2025 (built at 17/11/2025 12:10:49)
+ * Release date: 20/11/2025 (built at 17/11/2025 15:30:18)
  */
 /**
  * Fix for bootstrap styles
@@ -2471,6 +2471,7 @@ thead th.hiddenHeaderText .colHeader {
   overflow-y: auto;
   border: 1px solid #ccc;
   box-sizing: border-box;
+  background-color: #fff;
 }
 
 .ht-empty-data-state * {
