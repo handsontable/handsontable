@@ -217,6 +217,7 @@ export class EmptyDataStateUI {
     const scrollbarSize = view.hasHorizontalScroll() ? getScrollbarWidth(view.hot.rootDocument) : 0;
     const rows = view.countRenderableRows();
     const cols = view.countRenderableColumns();
+    const headerCols = view.getColumnHeadersCount();
 
     emptyDataStateElement.style.top = cols > 0 ? `${view.getColumnHeaderHeight()}px` : '0px';
     emptyDataStateElement.style.insetInlineStart = rows > 0 ? `${view.getRowHeaderWidth()}px` : '0px';
@@ -257,8 +258,10 @@ export class EmptyDataStateUI {
       } else {
         height = view.hot.getTableHeight();
       }
-    } else if (rows === 0) {
+    } else if (headerCols > 0 && cols > 0) {
       height = view.getViewportHeight() - scrollbarSize;
+    } else if (headerCols > 0 && cols === 0) {
+      height = view.getWorkspaceHeight() - scrollbarSize;
     }
 
     emptyDataStateElement.style.width = `${width}px`;
