@@ -51,6 +51,7 @@ For more information about this release see:
 #### Changed
 - Refined dropdown behavior when the input is empty - focus now remains on the input field. [#11863](https://github.com/handsontable/handsontable/pull/11863)
 - Improved how the Autocomplete and Dropdown editors respond to clicks outside the open editor. [#11873](https://github.com/handsontable/handsontable/pull/11873)
+- Reverted the editors' `updateChoicesList` method type change. [#11943](https://github.com/handsontable/handsontable/pull/11943)
 
 #### Fixed
 - Fixed the datepicker icon size issue on iPad. [#11860](https://github.com/handsontable/handsontable/pull/11860)
