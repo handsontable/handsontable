@@ -157,7 +157,7 @@ export class SelectEditor extends BaseEditor {
    * Creates consistent list of available options.
    *
    * @private
-   * @param {Array|object} optionsToPrepare The list of the values to render in the select eleemnt.
+   * @param {Array|object} optionsToPrepare The list of the values to render in the select element.
    * @returns {object}
    */
   prepareOptions(optionsToPrepare) {
