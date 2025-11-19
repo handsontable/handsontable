@@ -30,7 +30,7 @@ See the full history of changes made to Handsontable in each major, minor, and p
 
 ## 16.2.0
 
-Released on November 20th, 2025
+Released on November 25th, 2025
 
 For more information about this release see:
 - [Documentation (16.2)](https://handsontable.com/docs/16.2)
