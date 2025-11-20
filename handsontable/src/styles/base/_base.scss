@@ -318,10 +318,10 @@
         &:first-of-type {
           th,
           td {
-            &:first-child {
-              height: calc(
-                var(--ht-cell-vertical-padding) * 2 + var(--ht-line-height) + 2px
-              );
+            &:first-child:empty::after {
+              content: "";
+              display: block;
+              min-height: var(--ht-line-height);
             }
           }
         }
@@ -338,7 +338,6 @@
           .relative {
             padding: var(--ht-cell-vertical-padding)
               var(--ht-cell-horizontal-padding);
-            height: 100%;
           }
         }
 
