@@ -338,6 +338,7 @@
           .relative {
             padding: var(--ht-cell-vertical-padding)
               var(--ht-cell-horizontal-padding);
+            min-height: 100%;
           }
         }
 
