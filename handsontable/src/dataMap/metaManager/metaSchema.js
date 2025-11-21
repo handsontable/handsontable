@@ -4953,6 +4953,18 @@ export default () => {
     themeName: undefined,
 
     /**
+     * The `theme` option allows enabling a theme.
+     *
+     * @memberof Options#
+     * @type {object|undefined}
+     * @default undefined
+     * @category Core
+     * @since 17.0.0
+     */
+
+    theme: undefined,
+
+    /**
      * The `tabMoves` option configures the action of the <kbd>**Tab**</kbd> key.
      *
      * You can set the `tabMoves` option to an object with the following properties

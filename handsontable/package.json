@@ -238,6 +238,12 @@
           "import": "./registry.mjs",
           "require": "./registry.js"
         }
+      },
+      {
+        "./themes": {
+          "import": "./themes/index.mjs",
+          "require": "./themes/index.js"
+        }
       }
     ],
     "fields": [

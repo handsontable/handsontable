@@ -59,6 +59,8 @@ import {
   uninstall as uninstallAccessibilityAnnouncer,
 } from './utils/a11yAnnouncer';
 import { getValueSetterValue } from './utils/valueAccessors';
+import { injectThemeStyles } from './themes/injectThemeStyles';
+import { mainTheme } from './themes';
 
 let activeGuid = null;
 
@@ -394,9 +396,24 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
   this.rootElement.insertBefore(this.container, this.rootElement.firstChild);
 
-  this.guid = `ht_${randomString()}`; // this is the namespace for global events
+  const stringInstanceID = randomString();
+
+  this.guid = `ht_${stringInstanceID}`; // this is the namespace for global events
 
   foreignHotInstances.set(this.guid, this);
+
+  if (isRootInstance(this) && !tableMeta?.themeName) {
+    const themeObject = tableMeta?.theme?.getThemeConfig() || mainTheme.getThemeConfig();
+
+    if (themeObject) {
+      const inlineThemeClassName = `ht-inline-theme-${stringInstanceID}`;
+
+      addClass(this.rootWrapperElement, inlineThemeClassName);
+      addClass(this.rootPortalElement, inlineThemeClassName);
+
+      injectThemeStyles(this.rootDocument, this.rootWrapperElement, inlineThemeClassName, themeObject);
+    }
+  }
 
   /**
    * Instance of index mapper which is responsible for managing the column indexes.

@@ -7,6 +7,7 @@
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const path = require('path');
 const configFactory = require('./base');
+const InjectCssPlugin = require('./plugin/webpack/inject-css-plugin');
 
 const PACKAGE_FILENAME = process.env.HOT_FILENAME;
 
@@ -47,6 +48,10 @@ module.exports.create = function create(envArgs) {
 
     c.plugins.push(
       new MiniCssExtractPlugin({ filename: `../styles/${PACKAGE_FILENAME}.css` }),
+      new InjectCssPlugin({
+        cssPath: path.resolve(__dirname, '../styles/handsontable.min.css'),
+        id: 'handsontable-styles'
+      }),
     );
   });
 
@@ -119,6 +124,14 @@ module.exports.create = function create(envArgs) {
       test: /\.(scss|css)$/,
       loader: path.resolve(__dirname, 'loader/empty-loader.js'),
     });
+
+    // Add CSS injection plugin for full build
+    c.plugins.push(
+      new InjectCssPlugin({
+        cssPath: path.resolve(__dirname, '../styles/handsontable.min.css'),
+        id: 'handsontable-styles'
+      }),
+    );
   });
 
   return [].concat(configBase, configFull);
