@@ -173,6 +173,8 @@
       "dist/handsontable.js",
       "dist/handsontable.min.css",
       "dist/handsontable.min.js",
+      "dist/handsontable.styles.js",
+      "dist/handsontable.styles.min.js",
       "dist/languages",
       "dist/README.md",
       "styles",
