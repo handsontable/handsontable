@@ -282,6 +282,19 @@ describe('TextEditor keyboard shortcut', () => {
         - 1 // Subtracted by the `autoResize` plugin, not sure why.
       );
     });
+
+    it('should do nothing when no selection is present', async() => {
+      handsontable({
+        startRows: 5,
+        startCols: 5
+      });
+
+      await listen();
+      await keyDownUp(['meta', 'enter']);
+
+      expect(getSelectedRange()).toBeUndefined();
+      expect(getActiveEditor()).toBeUndefined();
+    });
   });
 
   describe('"PageUp"', () => {
