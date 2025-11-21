@@ -20,7 +20,7 @@ class InjectCssPlugin {
           // Only process JavaScript files
           Object.keys(assets).forEach((assetName) => {
             if (assetName.endsWith('.js')) {
-              const cssPath = this.cssPath || path.resolve(__dirname, '../../../styles/handsontable.min.css');
+              const cssPath = this.cssPath;
 
               // Check if CSS file exists
               let actualCssPath = cssPath;
