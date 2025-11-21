@@ -143,7 +143,7 @@ fse.writeJSONSync(`${TARGET_PATH}/package.json`, {
  * Inject CSS into the main entry point files (index.js and index.mjs).
  */
 function injectCssIntoEntryPoints() {
-  const pathToCss = path.resolve(__dirname, '../tmp/styles/handsontable.min.css');
+  const pathToCss = path.resolve(__dirname, '../styles/handsontable.min.css');
 
   if (!pathToCss) {
     displayWarningMessage(`[CSS Injection] CSS file not found. Tried: ${pathToCss}`);
