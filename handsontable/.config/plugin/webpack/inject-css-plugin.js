@@ -1,6 +1,5 @@
 const { RawSource } = require('webpack-sources');
 const fs = require('fs');
-const path = require('path');
 
 class InjectCssPlugin {
   constructor(options = {}) {
