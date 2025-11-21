@@ -1,11 +1,7 @@
 import path from 'path';
 import fse from 'fs-extra';
 import glob from 'glob';
-import { fileURLToPath } from 'url';
 import { displayErrorMessage, displayWarningMessage } from '../../scripts/utils/console.mjs';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const TARGET_PATH = './tmp/';
 const PACKAGE_PATH = path.resolve('package.json');
@@ -138,70 +134,6 @@ fse.writeJSONSync(`${TARGET_PATH}/package.json`, {
   spaces: 2,
   replacer: null,
 });
-
-/**
- * Inject CSS into the main entry point files (index.js and index.mjs).
- */
-function injectCssIntoEntryPoints() {
-  const pathToCss = path.resolve(__dirname, '../styles/handsontable.min.css');
-
-  if (!pathToCss) {
-    displayWarningMessage(`[CSS Injection] CSS file not found. Tried: ${pathToCss}`);
-
-    return;
-  }
-
-  // Read CSS content
-  const cssContent = fse.readFileSync(pathToCss, 'utf8');
-
-  // Escape CSS content for JavaScript string
-  const escapedCss = cssContent
-    .replace(/\\/g, '\\\\')
-    .replace(/`/g, '\\`')
-    .replace(/\${/g, '\\${')
-    .replace(/\r\n/g, '\n')
-    .replace(/\r/g, '\n');
-
-  // Create injection code
-  const injectionCode = `(function() {
-  if (typeof document !== 'undefined') {
-    const styleId = 'handsontable-styles';
-    const existingStyle = document.getElementById(styleId);
-    
-    if (!existingStyle) {
-      const style = document.createElement('style');
-
-      style.id = styleId;
-      style.type = 'text/css';
-      style.textContent = \`${escapedCss}\`;
-      
-      const head = document.head || document.getElementsByTagName('head')[0];
-
-      if (head) {
-        head.appendChild(style);
-      }
-    }
-  }
-})();
-`;
-
-  // Inject into index.js and index.mjs
-  const entryPoints = ['index.js', 'index.mjs'];
-
-  entryPoints.forEach((entryPoint) => {
-    const filePath = path.resolve(TARGET_PATH, entryPoint);
-
-    if (fse.existsSync(filePath)) {
-      const currentContent = fse.readFileSync(filePath, 'utf8');
-      const newContent = injectionCode + currentContent;
-
-      fse.writeFileSync(filePath, newContent, 'utf8');
-    }
-  });
-}
-
-// Inject CSS into entry points
-injectCssIntoEntryPoints();
 
 /**
  * Helper that checks if the passed value is POJO.
