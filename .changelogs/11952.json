@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Increase size of the autofill handler",
+  "type": "changed",
+  "issueOrPR": 11952,
+  "breaking": false,
+  "framework": "none"
+}
