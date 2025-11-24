@@ -1,0 +1,88 @@
+// MultiSelect Editor
+
+@mixin output {
+  .handsontableInputHolder {
+    .htMultiSelectEditor {
+      overflow-y: auto;
+      border-radius: 0 0 var(--ht-menu-border-radius) var(--ht-menu-border-radius);
+      border: var(--ht-menu-border-width) solid var(--ht-menu-border-color);
+      background: var(--ht-background-color);
+      box-shadow: var(--ht-menu-shadow-x) var(--ht-menu-shadow-y) var(--ht-menu-shadow-blur) 0 var(--ht-menu-shadow-color);
+
+      ul {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        width: 100%;
+        margin: 0;
+        padding: var(--ht-gap-size) var(--ht-menu-horizontal-padding);
+
+        li {
+          display: flex;
+          align-items: center;
+          align-self: stretch;
+          background: var(--ht-background-color);
+          padding: var(--ht-menu-item-vertical-padding) var(--ht-cell-horizontal-padding);
+          gap: var(--ht-gap-size);
+
+          &.htItemSelected {
+            background: var(--ht-menu-item-active-color);
+          }
+
+          div {
+            display: flex;
+            align-items: center;
+            gap: var(--ht-gap-size);
+            flex: 1 0 0;
+
+            input {
+              appearance: none;
+              margin: 0;
+              padding: 0;
+              width: var(--ht-checkbox-size);
+              height: var(--ht-checkbox-size);
+              display: flex;
+
+              &::before {
+                content: "";
+                box-sizing: border-box;
+                width: var(--ht-checkbox-size);
+                height: var(--ht-checkbox-size);
+                border-radius: var(--ht-checkbox-border-radius);
+                border: 1px solid var(--ht-checkbox-border-color);
+                background: var(--ht-checkbox-background-color);
+                background-repeat: no-repeat;
+                background-position: center;
+                background-size: 10px;
+              }
+
+              &:checked::before {
+                border-color: var(--ht-checkbox-checked-border-color);
+                background: var(--ht-checkbox-checked-background-color);
+                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='M5 8L7 10L11 6' stroke='%23FFF' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+              }
+            }
+
+            label {
+              overflow: hidden;
+              color: var(--ht-foreground-color);
+              text-overflow: ellipsis;
+              font-family: Inter;
+              font-size: var(--ht-font-size);
+              font-style: normal;
+              font-weight: 400;
+              line-height: var(--ht-line-height);
+              letter-spacing: var(--ht-letter-spacing);
+              width: 100%;
+            }
+          }
+
+          &:hover {
+            background: var(--ht-menu-item-hover-color);
+          }
+        }
+      }
+    }
+  }
+}

@@ -37,6 +37,7 @@
 @use "./editors/select-editor";
 @use "./editors/dropdown-editor";
 @use "./editors/date-editor";
+@use "./editors/multiSelect-editor";
 
 // Form elements
 @use "./form-elements/select";
@@ -59,6 +60,7 @@
   @include select-editor.output();
   @include dropdown-editor.output();
   @include date-editor.output();
+  @include multiSelect-editor.output();
   // Form Elements
   @include select.output();
   @include input.output();

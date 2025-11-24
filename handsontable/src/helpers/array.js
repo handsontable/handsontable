@@ -326,3 +326,14 @@ export function getUnionOfArrays(...arrays) {
 export function stringToArray(value, delimiter = ' ') {
   return value.split(delimiter);
 }
+
+/**
+ * Convert an array of strings to a single string.
+ *
+ * @param {string[]} arr
+ * @param {string} separator
+ * @returns {string} Returns a string made by joining all array elements with a separator.
+ */
+export function arrayToString(arr, separator = ' ') {
+  return arr.join(separator);
+}
