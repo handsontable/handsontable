@@ -79,11 +79,16 @@
           content: '';
           position: absolute;
           border-radius: var(--ht-cell-autofill-border-radius);
-          inset-block-start: calc(var(--ht-internal-autofill-hit-area-block-start-size) * -1);
-          inset-block-end: calc(var(--ht-internal-autofill-hit-area-block-end-size) * -1);
-          inset-inline-start: calc(var(--ht-internal-autofill-hit-area-inline-start-size) * -1);
-          inset-inline-end: calc(var(--ht-internal-autofill-hit-area-inline-end-size) * -1);
+          inset: calc(max(0px, (var(--ht-cell-autofill-hit-area-size) - var(--ht-cell-autofill-size)) / 2) * -1);
           background: transparent;
+        }
+
+        &.wtCornerInlineEndEdge::after {
+          inset-inline-end: 0;
+        }
+
+        &.wtCornerBlockEndEdge::after {
+          inset-block-end: 0;
         }
       }
     }

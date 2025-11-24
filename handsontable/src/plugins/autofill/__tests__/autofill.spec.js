@@ -2255,10 +2255,6 @@ describe('AutoFill', () => {
   using('autofill handler size', [
     2, 4, 6, 8, 10, 12, 14, 16,
   ], (autofillHandlerSize) => {
-    if (spec().loadedTheme === 'classic') {
-      return;
-    }
-
     beforeEach(() => {
       const style = document.createElement('style');
       const styleText = `
@@ -2276,6 +2272,10 @@ describe('AutoFill', () => {
     });
 
     it('should render corner hit area with a proper size', async() => {
+      if (spec().loadedTheme === 'classic') {
+        return;
+      }
+
       const hot = handsontable({
         width: 200,
         height: 200,
@@ -2294,6 +2294,10 @@ describe('AutoFill', () => {
     });
 
     it('should cut the hit area at the bottom of the table when the last row is selected', async() => {
+      if (spec().loadedTheme === 'classic') {
+        return;
+      }
+
       const hot = handsontable({
         width: 200,
         height: 200,
@@ -2310,6 +2314,10 @@ describe('AutoFill', () => {
     });
 
     it('should cut the hit area at the right side of the table when the last column is selected', async() => {
+      if (spec().loadedTheme === 'classic') {
+        return;
+      }
+
       const hot = handsontable({
         width: 200,
         height: 200,
@@ -2324,5 +2332,34 @@ describe('AutoFill', () => {
 
       expect(hitAreaStyle.insetInlineEnd).toBe('0px');
     });
+  });
+
+  it('should be possible to change the hit area size', async() => {
+    const style = document.createElement('style');
+    const styleText = `
+      .handsontable {
+        --ht-cell-autofill-hit-area-size: 10px;
+      }`;
+
+    style.id = 'autofill-handler-size-style';
+    style.textContent = styleText;
+    document.head.appendChild(style);
+
+    const hot = handsontable({
+      width: 200,
+      height: 200,
+      startRows: 10,
+      startCols: 10,
+    });
+
+    await selectCell(1, 1);
+
+    const corner = hot.rootElement.querySelector('.ht_master .htBorders .corner');
+    const hitAreaStyle = getComputedStyle(corner, '::after');
+
+    expect(hitAreaStyle.width).toBe('10px');
+    expect(hitAreaStyle.height).toBe('10px');
+
+    style.remove();
   });
 });
