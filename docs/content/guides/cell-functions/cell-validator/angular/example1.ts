@@ -147,7 +147,7 @@ export class AppComponent implements OnInit {
         { data: 'name.first' },
         { data: 'name.last' },
         { data: 'ip', validator: ipValidatorRegexp, allowInvalid: true },
-        { data: 'email', validator: emailValidator, allowInvalid: false },
+        { data: 'email', validator: emailValidator },
       ],
       autoWrapRow: true,
       autoWrapCol: true,
