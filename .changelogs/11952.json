@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Increase size of the autofill handler",
+  "title": "Add hit area to fill handle",
   "type": "changed",
   "issueOrPR": 11952,
   "breaking": false,
