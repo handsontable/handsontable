@@ -78,6 +78,7 @@
         &::after {
           content: '';
           position: absolute;
+          border-radius: var(--ht-cell-autofill-border-radius);
           inset-block-start: calc(var(--ht-internal-autofill-hit-area-block-start-size) * -1);
           inset-block-end: calc(var(--ht-internal-autofill-hit-area-block-end-size) * -1);
           inset-inline-start: calc(var(--ht-internal-autofill-hit-area-inline-start-size) * -1);
