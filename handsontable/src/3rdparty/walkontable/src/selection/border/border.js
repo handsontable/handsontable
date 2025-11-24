@@ -18,6 +18,7 @@ import { getCornerStyle } from './utils';
 const BORDER_STYLE_CLASS_PREFIX = 'ht-border-style-';
 const BORDER_STYLE_VERTICAL_SUFFIX = '-vertical';
 const BORDER_STYLE_HORIZONTAL_SUFFIX = '-horizontal';
+const CORNER_HIT_AREA_SIZE = 14;
 
 /**
  *
@@ -411,6 +412,17 @@ class Border {
   }
 
   /**
+   * Calculate the size of the corner hit area based on the corner width.
+   *
+   * @returns {number} The size of the corner hit area.
+   */
+  calculateCornerHitAreaSize() {
+    const { width } = this.cornerDefaultStyle;
+
+    return Math.max(0, CORNER_HIT_AREA_SIZE - width) / 2;
+  }
+
+  /**
    * Show border around one or many cells.
    *
    * @param {Array} corners The corner coordinates.
@@ -587,6 +599,13 @@ class Border {
       this.cornerStyle.borderBottomWidth = `${this.cornerDefaultStyle.borderWidth}px`;
       this.cornerStyle.width = this.cornerDefaultStyle.width;
 
+      const hitAreaSize = this.calculateCornerHitAreaSize();
+
+      this.cornerStyle.setProperty('--ht-internal-autofill-hit-area-block-start-size', `${hitAreaSize}px`);
+      this.cornerStyle.setProperty('--ht-internal-autofill-hit-area-block-end-size', `${hitAreaSize}px`);
+      this.cornerStyle.setProperty('--ht-internal-autofill-hit-area-inline-start-size', `${hitAreaSize}px`);
+      this.cornerStyle.setProperty('--ht-internal-autofill-hit-area-inline-end-size', `${hitAreaSize}px`);
+
       // Hide the fill handle, so the possible further adjustments won't force unneeded scrollbars.
       this.cornerStyle.display = 'none';
 
@@ -597,7 +616,7 @@ class Border {
         trimmingContainer = rootDocument.documentElement;
       }
 
-      // -1 was initially removed from the base position to compansate for the table border. We need to exclude it from
+      // -1 was initially removed from the base position to compensate for the table border. We need to exclude it from
       // the corner width.
       const cornerBorderCompensation = parseInt(this.cornerDefaultStyle.borderWidth, 10) - 1;
       const cornerHalfWidth = Math.ceil(parseInt(this.cornerDefaultStyle.width, 10) / 2);
@@ -622,6 +641,8 @@ class Border {
             inlineStartPos + width + this.cornerCenterPointOffset - cornerHalfWidth - cornerBorderCompensation
           );
 
+          this.cornerStyle.setProperty('--ht-internal-autofill-hit-area-inline-end-size', '0px');
+
           if (isClassicTheme) {
             this.cornerStyle[inlinePosProperty] = `${inlineStartPosition}px`;
             this.cornerStyle[isRtl ? 'borderLeftWidth' : 'borderRightWidth'] = 0;
@@ -641,6 +662,8 @@ class Border {
           const cornerTopPosition = Math.floor(
             top + height + this.cornerCenterPointOffset - cornerHalfHeight - cornerBorderCompensation
           );
+
+          this.cornerStyle.setProperty('--ht-internal-autofill-hit-area-block-end-size', '0px');
 
           if (isClassicTheme) {
             // styles for classic theme

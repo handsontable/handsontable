@@ -39,7 +39,7 @@
       &:nth-child(4) {
         z-index: 1;
       }
-      
+
       &.hidden {
         display: none !important;
       }
@@ -74,6 +74,16 @@
         font-size: 0;
         cursor: crosshair;
         z-index: 10;
+
+        &::after {
+          content: '';
+          position: absolute;
+          inset-block-start: calc(var(--ht-internal-autofill-hit-area-block-start-size) * -1);
+          inset-block-end: calc(var(--ht-internal-autofill-hit-area-block-end-size) * -1);
+          inset-inline-start: calc(var(--ht-internal-autofill-hit-area-inline-start-size) * -1);
+          inset-inline-end: calc(var(--ht-internal-autofill-hit-area-inline-end-size) * -1);
+          background: transparent;
+        }
       }
     }
   }
