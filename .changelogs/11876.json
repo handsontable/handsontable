@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Implement a new \"style\" option for the Custom Borders plugin.",
-  "type": "added",
-  "issueOrPR": 11876,
-  "breaking": false,
-  "framework": "none"
-}

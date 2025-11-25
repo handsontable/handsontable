@@ -26,8 +26,8 @@
  * INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES OF ANY CHARACTER ARISING FROM
  * USE OR INABILITY TO USE THIS SOFTWARE.
  *
- * Version: 16.1.1
- * Release date: 23/09/2025 (built at 23/09/2025 09:55:12)
+ * Version: 16.2.0
+ * Release date: 25/11/2025 (built at 20/11/2025 13:27:05)
  */
 /**
  * Fix for bootstrap styles
@@ -89,6 +89,11 @@
 .col-xs-2.handsontable, .col-xs-3.handsontable, .col-xs-4.handsontable, .col-xs-5.handsontable, .col-xs-6.handsontable, .col-xs-7.handsontable, .col-xs-8.handsontable, .col-xs-9.handsontable {
   padding-left: 0;
   padding-right: 0;
+}
+
+.handsontable.ht-wrapper {
+  height: 100%;
+  width: 100%;
 }
 
 .handsontable .table-striped > tbody > tr:nth-of-type(even) {
@@ -325,6 +330,35 @@ innerBorderBottom - Property controlled by bottom overlay
   cursor: crosshair;
 }
 
+/* dashed borders */
+.htBorders .wtBorder.ht-border-style-dashed-vertical {
+  background-image: repeating-linear-gradient(
+          to bottom,
+          var(--ht-custom-border-color) 0 5px,
+          transparent 0 10px
+  );
+}
+
+.htBorders .wtBorder.ht-border-style-dashed-horizontal {
+  background-image: repeating-linear-gradient(
+          to right,
+          var(--ht-custom-border-color) 0 5px,
+          transparent 0 10px
+  );
+}
+
+.htBorders .wtBorder.ht-border-style-dotted-horizontal {
+  background-image: radial-gradient(circle, var(--ht-custom-border-color) calc(var(--ht-custom-border-size) / 2), transparent 0);
+  background-size: calc(var(--ht-custom-border-size) * 2) var(--ht-custom-border-size);
+  background-repeat: repeat-x;
+}
+
+.htBorders .wtBorder.ht-border-style-dotted-vertical {
+  background-image: radial-gradient(circle, var(--ht-custom-border-color) calc(var(--ht-custom-border-size) / 2), transparent 0);
+  background-size: var(--ht-custom-border-size) calc(var(--ht-custom-border-size) * 2);
+  background-repeat: repeat-y;
+}
+
 .ht_clone_master {
   z-index: 100;
 }
@@ -435,7 +469,7 @@ innerBorderBottom - Property controlled by bottom overlay
   font-size: 10px;
 }
 
-.ht-root-wrapper .htFocusCatcher {
+.htFocusCatcher {
   position: absolute;
   z-index: -1;
   opacity: 0;
@@ -2193,6 +2227,57 @@ thead th.hiddenHeaderText .colHeader {
   background-color: #f7f7f9;
 }
 
+.ht-dialog--confirm .ht-dialog__content-wrapper {
+  text-align: center;
+}
+
+.ht-dialog--confirm .ht-dialog__content-wrapper-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  max-width: 480px;
+}
+
+.ht-dialog--confirm .ht-dialog__content-wrapper-inner--background {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+  background-color: #f7f7f9;
+}
+
+.ht-dialog--confirm .ht-dialog__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.ht-dialog--confirm .ht-dialog__content:has(.ht-dialog__buttons) {
+  gap: 4px;
+}
+
+.ht-dialog--confirm .ht-dialog__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+}
+
+.ht-dialog--confirm .ht-dialog__description {
+  margin: 0;
+  color: #222;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+}
+
+.ht-dialog--confirm .ht-dialog__buttons {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .ht-root-wrapper .ht-pagination {
   color: #222;
   background: #f0f0f0;
@@ -2376,3 +2461,91 @@ thead th.hiddenHeaderText .colHeader {
     transform: rotate(360deg);
   }
 }
+
+.ht-empty-data-state {
+  display: none;
+  position: absolute;
+  width: 100%;
+  left: 0;
+  z-index: 999;
+  overflow-y: auto;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+  background-color: #fff;
+}
+
+.ht-empty-data-state * {
+  box-sizing: border-box !important;
+}
+
+.ht-empty-data-state__content-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+  min-height: 100%;
+  padding: 16px;
+}
+
+.ht-empty-data-state__content-wrapper-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  max-width: 480px;
+  padding: 16px;
+}
+
+.ht-empty-data-state__content-wrapper-inner:focus {
+  outline: none;
+  box-shadow: 0 0 0 1px #4b89ff;
+}
+
+.ht-empty-data-state__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.ht-empty-data-state__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+}
+
+.ht-empty-data-state__description {
+  margin: 0;
+  color: #222;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 400;
+}
+
+.ht-empty-data-state__buttons {
+  display: flex;
+  justify-content: center;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ht-empty-data-state__buttons--has-buttons {
+  margin-top: 8px;
+}
+
+.ht-empty-data-state--disable-top-border {
+  border-top-width: 0;
+}
+
+.ht-empty-data-state--disable-inline-border {
+  border-inline-start-width: 0;
+}
+
+.ht-empty-data-state--disable-bottom-border, .ht-empty-data-state:has(~ .ht-pagination) {
+  border-bottom-width: 0;
+}
+

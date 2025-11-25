@@ -221,6 +221,12 @@ When editor is prepared the [`EditorManager`](@/api/baseEditor.md) waits for use
 
 If any of those events is triggered, [`EditorManager`](@/api/baseEditor.md) calls editor's [`beginEditing()`](@/api/baseEditor.md#beginediting) method, which should display the editor.
 
+::: tip
+
+**IME support:** When using languages that require IME (Input Method Editor), such as Chinese, Japanese, or Korean, the editor opens through the standard edit mode (pressing Enter, F2, or double-clicking). To enable immediate typing into a selected cell without explicitly opening the editor, enable the [`imeFastEdit`](@/api/options.md#imefastedit) option. For more information, see the [IME support](@/guides/internationalization/ime-support/ime-support.md) guide.
+
+:::
+
 ##### Close editor
 
 When editor is opened the [`EditorManager`](@/api/baseEditor.md) waits for user event that should end cell edition. Those events are:
@@ -1275,6 +1281,7 @@ From now on, you can use `CustomEditor` like so:
 - Configuration options:
   - [`editor`](@/api/options.md#editor)
   - [`enterBeginsEditing`](@/api/options.md#enterbeginsediting)
+  - [`imeFastEdit`](@/api/options.md#imefastedit)
 - Core methods:
   - [`destroyEditor()`](@/api/core.md#destroyeditor)
   - [`getActiveEditor()`](@/api/core.md#getactiveeditor)

@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Updated the highlight behavior of dropdown choices when the value is empty. Now, if the textarea is empty, the focus remains on the input field",
-  "type": "changed",
-  "issueOrPR": 11863,
-  "breaking": false,
-  "framework": "none"
-}

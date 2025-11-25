@@ -77,6 +77,8 @@ var _handsontable = _interopRequireDefault(__webpack_require__(2));
 const C = _handsontable.default.languages.dictionaryKeys;
 const dictionary = {
   languageCode: 'hr-HR',
+  [C.OK]: 'U redu',
+  [C.CANCEL]: 'Odustani',
   [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'Nema dostupnih mogućnosti',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Umetni redak iznad',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Umetni redak ispod',
@@ -164,7 +166,12 @@ const dictionary = {
   [C.PAGINATION_LAST_PAGE]: 'Idi na posljednju stranicu',
   [C.CHECKBOX_CHECKED]: 'Označeno',
   [C.CHECKBOX_UNCHECKED]: 'Nije označeno',
-  [C.LOADING_TITLE]: 'Učitavanje...'
+  [C.LOADING_TITLE]: 'Učitavanje...',
+  [C.EMPTY_DATA_STATE_TITLE]: 'Nema dostupnih podataka',
+  [C.EMPTY_DATA_STATE_DESCRIPTION]: 'Još nema ništa za prikaz.',
+  [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'Nema pronađenih rezultata',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'Čini se da vaši trenutni filtri skrivaju sve rezultate.',
+  [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Resetiraj filtre'
 };
 _handsontable.default.languages.registerLanguageDictionary(dictionary);
 var _default = exports["default"] = dictionary;
