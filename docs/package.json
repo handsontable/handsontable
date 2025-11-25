@@ -58,7 +58,7 @@
     "@babel/preset-env": "^7.13.15",
     "@babel/preset-react": "^7.13.13",
     "@babel/preset-typescript": "^7.13.0",
-    "@handsontable/angular-wrapper": "next",
+    "@handsontable/angular-wrapper": "~16.2.0",
     "@octokit/rest": "^18.6.7",
     "@playwright/test": "1.45.x",
     "@types/node": "^20.11.27",
