@@ -13,6 +13,7 @@
 @use "./plugins/dropdown-menu";
 @use "./plugins/filters";
 @use "./plugins/comments";
+@use "./plugins/custom-borders";
 @use "./plugins/column-sorting";
 @use "./plugins/multi-column-sorting";
 @use "./plugins/manual-column-freeze";
@@ -24,6 +25,7 @@
 @use "./plugins/dialog";
 @use "./plugins/pagination";
 @use "./plugins/loading";
+@use "./plugins/empty-data-state";
 
 // Renderers
 @use "./renderers/text-renderer";
@@ -85,4 +87,5 @@
   @include dialog.output();
   @include pagination.output();
   @include loading.output();
+  @include empty-data-state.output();
 }

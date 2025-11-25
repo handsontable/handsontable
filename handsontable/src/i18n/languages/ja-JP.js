@@ -9,6 +9,10 @@ import * as C from '../constants';
 
 const dictionary = {
   languageCode: 'ja-JP',
+
+  [C.OK]: 'OK',
+  [C.CANCEL]: 'キャンセル',
+
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: '行を上に挿入',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: '行を下に挿入',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: '列を左に挿入',
@@ -114,6 +118,12 @@ const dictionary = {
   [C.PAGINATION_LAST_PAGE]: '最後のページへ移動',
 
   [C.LOADING_TITLE]: '読み込み中...',
+
+  [C.EMPTY_DATA_STATE_TITLE]: 'データがありません',
+  [C.EMPTY_DATA_STATE_DESCRIPTION]: '表示するデータがまだありません。',
+  [C.EMPTY_DATA_STATE_TITLE_FILTERS]: '結果が見つかりません',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: '現在のフィルターがすべての結果を非表示にしているようです。',
+  [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'フィルターをリセット',
 };
 
 export default dictionary;

@@ -14,6 +14,7 @@ const headerAnchor = require('./plugins/markdown-it-header-anchor');
 const conditionalContainer = require('./plugins/markdown-it-conditional-container');
 const tableWrapper = require('./plugins/markdown-it-table-wrapper');
 const includeCodeSnippetPlugin = require('./plugins/include-code-snippet');
+const thirdPartyScripts = require('./3rdparty-scripts');
 
 const {
   createSymlinks,
@@ -32,36 +33,7 @@ const isProduction = buildMode === 'production';
 const environmentHead = isProduction
   ? [
     // Google Tag Manager, an extra element within the `ssr.html` file.
-    [
-      'script',
-      {},
-      `
-      (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-        '//www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-      })(window,document,'script','dataLayer','GTM-55L5D3');
-    `,
-    ],
-    // HotJar, an extra element within the `ssr.html` file.
-    [
-      'script',
-      {},
-      `
-      (function(h,o,t,j,a,r){
-        window.addEventListener('DOMContentLoaded', function(){
-          if(h.innerWidth > 600){
-            h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
-            h._hjSettings={hjid:329042,hjsv:6};
-            a=o.getElementsByTagName('head')[0];
-            r=o.createElement('script');r.async=1;
-            r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
-            a.appendChild(r);
-          }
-        });
-      })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
-      `,
-    ],
+    thirdPartyScripts.productionOnly,
   ]
   : [];
 
@@ -116,7 +88,7 @@ module.exports = {
       'meta',
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
     ],
-    // Sentry monitoring
+    ['script', {}, `const DOCS_VERSION = '${getThisDocsVersion()}';`],
     [
       'script',
       {},
@@ -153,53 +125,7 @@ module.exports = {
       };
     `,
     ],
-    [
-      'script',
-      {
-        id: 'Sentry.io',
-        src: 'https://js.sentry-cdn.com/611b4dbe630c4a434fe1367b98ba3644.min.js',
-        crossorigin: 'anonymous',
-        defer: true,
-      },
-    ],
-    // Cookiebot - cookie consent popup
-    [
-      'script',
-      {
-        id: 'Cookiebot',
-        src: 'https://consent.cookiebot.com/uc.js',
-        'data-cbid': 'ef171f1d-a288-433f-b680-3cdbdebd5646',
-        defer: true,
-      },
-    ],
-    // Headwayapp
-    [
-      'script',
-      {
-        id: 'Headwayapp',
-        src: 'https://cdn.headwayapp.co/widget.js',
-        defer: true,
-      },
-    ],
-    ['script', {}, `const DOCS_VERSION = '${getThisDocsVersion()}';`],
-    [
-      'script',
-      {},
-      `
-      (function(w, d) {
-        const colorScheme = localStorage.getItem('handsontable/docs::color-scheme');
-        const systemPrefersDark = w.matchMedia && w.matchMedia('(prefers-color-scheme: dark)').matches;
-        const preferredScheme = colorScheme ? colorScheme : (systemPrefersDark ? 'dark' : 'light');
-
-        if (preferredScheme === 'dark') {
-          d.documentElement.classList.add('theme-dark');
-          d.documentElement.setAttribute('data-theme', 'dark');
-        }
-
-        w.SELECTED_COLOR_SCHEME = preferredScheme;
-      }(window, document));
-    `,
-    ],
+    ...thirdPartyScripts.allEnvironments,
     ...environmentHead,
   ],
   markdown: {
@@ -288,10 +214,20 @@ module.exports = {
 
             token.attrs.forEach(([name, value], index) => {
               if (name === 'href') {
-                token.attrs[index][1] = decodeURIComponent(value).replace(
-                  '{{$basePath}}',
-                  getDocsBaseFullUrl()
-                );
+                if (decodeURIComponent(value).includes('{{$currentVersion}}')) {
+                  const version = getThisDocsVersion();
+
+                  token.attrs[index][1] = decodeURIComponent(value).replace(
+                    '{{$currentVersion}}',
+                    version === 'next' ? 'latest' : version
+                  );
+                } else if (decodeURIComponent(value).includes('{{$basePath}}')) {
+                  token.attrs[index][1] = decodeURIComponent(value).replace(
+                    '{{$basePath}}',
+                    getDocsBaseFullUrl()
+                  );
+                }
+
               }
             });
           });

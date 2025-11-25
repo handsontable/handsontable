@@ -114,11 +114,7 @@ describe('HiddenRows', () => {
 
       expect(getRowHeight(0)).toBe(0);
       expect(getRowHeight(1)).toBe(0);
-      expect(getRowHeight(2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(23);
-        main.toBe(29);
-        horizon.toBe(37);
-      });
+      expect(getRowHeight(2)).toBe(getFirstRenderedRowDefaultHeight()); // first rendered row
     });
 
     it('should return proper values from the `getRowHeight` function (when indicator is disabled)', async() => {
@@ -146,11 +142,7 @@ describe('HiddenRows', () => {
 
       expect(getRowHeight(0)).toBe(0);
       expect(getRowHeight(1)).toBe(0);
-      expect(getRowHeight(2)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(23);
-        main.toBe(29);
-        horizon.toBe(37);
-      });
+      expect(getRowHeight(2)).toBe(getFirstRenderedRowDefaultHeight()); // first rendered row
     });
 
     it('should return proper values from the `getRowHeight` function when the `ManualRowResize` plugin define sizes for some rows', async() => {

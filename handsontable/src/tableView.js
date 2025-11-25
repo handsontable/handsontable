@@ -346,11 +346,8 @@ class TableView {
       this.#mouseDown = false;
 
       const isOutsideInputElement = isOutsideInput(rootDocument.activeElement);
-      // TODO: This is a workaround to prevent the unlisten event from being triggered when the active element is inside a dialog.
-      // Should be removed when the focus manager is implemented.
-      const isInsideDialog = rootDocument.querySelector('.ht-dialog')?.contains(rootDocument.activeElement);
 
-      if (isInput(rootDocument.activeElement) && !isOutsideInputElement || isInsideDialog) {
+      if (isInput(rootDocument.activeElement) && !isOutsideInputElement) {
         return;
       }
 
@@ -1843,6 +1840,28 @@ class TableView {
    */
   getTableOffset() {
     return this._wt.wtViewport.getWorkspaceOffset();
+  }
+
+  /**
+   * Gets the current scroll position of the table.
+   *
+   * @returns {{ left: number, top: number }} The current scroll position.
+   */
+  getTableScrollPosition() {
+    return {
+      left: this._wt.wtTable.holder.scrollLeft,
+      top: this._wt.wtTable.holder.scrollTop,
+    };
+  }
+
+  /**
+   * Sets the table's scroll position.
+   *
+   * @param {{ left: number, top: number }} position The scroll position.
+   */
+  setTableScrollPosition(position) {
+    this._wt.wtTable.holder.scrollLeft = position.left;
+    this._wt.wtTable.holder.scrollTop = position.top;
   }
 
   /**

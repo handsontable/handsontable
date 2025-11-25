@@ -9,6 +9,10 @@ import * as C from '../constants';
 
 const dictionary = {
   languageCode: 'it-IT',
+
+  [C.OK]: 'OK',
+  [C.CANCEL]: 'Annulla',
+
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Inserisci riga sopra',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Inserisci riga sotto',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: 'Inserisci colonna a sinistra',
@@ -111,6 +115,12 @@ const dictionary = {
   [C.PAGINATION_LAST_PAGE]: 'Vai all\'ultima pagina',
 
   [C.LOADING_TITLE]: 'Caricamento...',
+
+  [C.EMPTY_DATA_STATE_TITLE]: 'Nessun dato disponibile',
+  [C.EMPTY_DATA_STATE_DESCRIPTION]: 'Non c\'è ancora nulla da visualizzare.',
+  [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'Nessun risultato trovato',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'Sembra che i tuoi filtri attuali stiano nascondendo tutti i risultati.',
+  [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Reimposta filtri',
 };
 
 export default dictionary;

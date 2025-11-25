@@ -36,7 +36,11 @@ export interface CellLikeData {
   value: string;
 }
 
-export type Settings = boolean;
+export interface FiltersConfig {
+  searchMode: string;
+}
+
+export type Settings = boolean | FiltersConfig;
 
 export declare class Filters extends BasePlugin {
   constructor(hotInstance: Core);

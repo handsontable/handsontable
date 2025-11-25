@@ -28,6 +28,49 @@ See the full history of changes made to Handsontable in each major, minor, and p
 
 [[toc]]
 
+## 16.2.0
+
+Released on November 25th, 2025
+
+For more information about this release see:
+- [Documentation (16.2)](https://handsontable.com/docs/16.2)
+
+#### Added
+- Improved focus management by introducing a focus scopes mechanism. [#11804](https://github.com/handsontable/handsontable/pull/11804)
+- Introduced an "auto" option for the `roundFloat` setting in the Column Summary plugin and ensured proper recalculation of endpoints after data updates. [#11833](https://github.com/handsontable/handsontable/pull/11833)
+- Added an Enter key handler and a new `searchMode` option to the Filters plugin. [#11871](https://github.com/handsontable/handsontable/pull/11871)
+- Implemented a `style` option for the Custom Borders plugin, enabling style customization. [#11876](https://github.com/handsontable/handsontable/pull/11876)
+- Introduced a new "dotted" border style to the Custom Borders plugin. [#11877](https://github.com/handsontable/handsontable/pull/11877)
+- Added the EmptyDataState plugin to improve UX when no data is available. [#11879](https://github.com/handsontable/handsontable/pull/11879)
+- Added a `settings` entry to the Handsontable exports. [#11883](https://github.com/handsontable/handsontable/pull/11883)
+- Added new global button CSS class names. [#11896](https://github.com/handsontable/handsontable/pull/11896)
+- Introduced `minRowHeights` as an alias for `rowHeights` for API consistency. [#11898](https://github.com/handsontable/handsontable/pull/11898)
+- Added a new `template` option to the Dialog plugin. [#11902](https://github.com/handsontable/handsontable/pull/11902)
+- Added new theme variables and implemented `no-icons` and `icons-only` style variants. [#11913](https://github.com/handsontable/handsontable/pull/11913)
+
+#### Changed
+- Refined dropdown behavior when the input is empty - focus now remains on the input field. [#11863](https://github.com/handsontable/handsontable/pull/11863)
+- Improved how the Autocomplete and Dropdown editors respond to clicks outside the open editor. [#11873](https://github.com/handsontable/handsontable/pull/11873)
+- Reverted the editors' `updateChoicesList` method type change. [#11943](https://github.com/handsontable/handsontable/pull/11943)
+
+#### Fixed
+- Fixed the datepicker icon size issue on iPad. [#11860](https://github.com/handsontable/handsontable/pull/11860)
+- Corrected header size rendering on iPad. [#11861](https://github.com/handsontable/handsontable/pull/11861)
+- Fixed an issue with header text size with `collapsibleColumns` enabled. [#11864](https://github.com/handsontable/handsontable/pull/11864)
+- Fixed an issue with an unwanted empty space on the right side of the table when using the modern themes. [#11868](https://github.com/handsontable/handsontable/pull/11868)
+- Fixed row misalignment for multi-line cell content. [#11872](https://github.com/handsontable/handsontable/pull/11872)
+- Improved column width calculations for checkbox-typed cells. [#11891](https://github.com/handsontable/handsontable/pull/11891)
+- Fixed a problem, where using `minSpareRows` would crash the table when configured alongside the Column Summary plugin. [#11911](https://github.com/handsontable/handsontable/pull/11911)
+- Fixed an issue preventing re-adding a previously removed hook callback. [#11914](https://github.com/handsontable/handsontable/pull/11914)
+- Stabilized the height of the first row when it's empty. [#11918](https://github.com/handsontable/handsontable/pull/11918)
+- Fixed a problem where resizing the window vertically did not resize the table. [#11919](https://github.com/handsontable/handsontable/pull/11919)
+- Fixed an issue where the dialog overlay could make the table unresponsive after rapid show/hide calls. [#11925](https://github.com/handsontable/handsontable/pull/11925)
+- Fixed an issue with TouchEvent on Firefox. [#11928](https://github.com/handsontable/handsontable/pull/11928)
+- React: Fixed and issue with Collapsible Columns being reset in React wrapper. [#11923](https://github.com/handsontable/handsontable/pull/11923)
+
+### Security
+- Updated dev dependencies to address high-severity vulnerabilities. [#11895](https://github.com/handsontable/handsontable/pull/11895)
+
 ## 16.1.1
 
 Released on September 23, 2025
@@ -46,6 +89,7 @@ Released on September 15, 2025
 
 For more information about this release see:
 - [Documentation (16.1)](https://handsontable.com/docs/16.1)
+- [Migration guide (16.0 → 16.1)](@/guides/upgrade-and-migration/migrating-from-16.0-to-16.1/migrating-from-16.0-to-16.1.md)
 
 #### Added
 - Introduced row pagination functionality. [#11612](https://github.com/handsontable/handsontable/pull/11612)
@@ -54,6 +98,8 @@ For more information about this release see:
 - Added a new `initialState` configuration option. [#11777](https://github.com/handsontable/handsontable/pull/11777)
 - Introduced the Loading plugin. [#11792](https://github.com/handsontable/handsontable/pull/11792)
 - Added a new "classic" theme. [#11790](https://github.com/handsontable/handsontable/pull/11790)
+- Added a [Deprecation policy](https://handsontable.com/docs/deprecation-policy/) page to the documentation.
+- Added a [Long Term Support (LTS)](https://handsontable.com/docs/long-term-support/) page to the documentation.
 
 #### Changed
 - Enabled focus navigation between multiple selection layers. [#11756](https://github.com/handsontable/handsontable/pull/11756)
@@ -103,6 +149,7 @@ Released on July 9, 2025
 For more information about this release see:
 - [Blog post (16.0.0)](https://handsontable.com/blog/handsontable-16-new-angular-wrapper-and-core-improvements)
 - [Documentation (16.0)](https://handsontable.com/docs/16.0)
+- [Migration guide (15.3 → 16.0)](@/guides/upgrade-and-migration/migrating-from-15.3-to-16.0/migrating-from-15.3-to-16.0.md)
 
 #### Added
 - **Breaking change**: Added a focus outline to the context and dropdown menus. [#11669](https://github.com/handsontable/handsontable/pull/11669)
@@ -287,6 +334,7 @@ Released on December 16, 2024
 For more information about this release see:
 - [Blog post (15.0.0)](https://handsontable.com/blog/handsontable-15.0.0-introducing-themes-and-functional-react-wrapper)
 - [Documentation (15.0)](https://handsontable.com/docs/15.0)
+- [Migration guide (14.6 → 15.0)](@/guides/upgrade-and-migration/migrating-from-14.6-to-15.0/migrating-from-14.6-to-15.0.md)
 
 #### Added
 - Added support for row and column virtualization of merged cells. [#11162](https://github.com/handsontable/handsontable/pull/11162)

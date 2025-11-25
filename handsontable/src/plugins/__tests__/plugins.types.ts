@@ -34,6 +34,7 @@ import {
   TrimRows,
   Dialog,
   Loading,
+  EmptyDataState,
   UndoRedo,
   getPlugin,
   registerAllPlugins,
@@ -76,6 +77,7 @@ registerPlugin(TouchScroll);
 registerPlugin(TrimRows);
 registerPlugin(Dialog);
 registerPlugin(Loading);
+registerPlugin(EmptyDataState);
 registerPlugin(UndoRedo);
 registerPlugin('custom', class CustomPlugin extends BasePlugin {});
 
@@ -113,5 +115,6 @@ const touchScroll: TouchScroll = getPlugin('touchScroll');
 const trimRows: TrimRows = getPlugin('trimRows');
 const dialog: Dialog = getPlugin('dialog');
 const loading: Loading = getPlugin('loading');
+const emptyDataState: EmptyDataState = getPlugin('emptyDataState');
 const undoRedo: UndoRedo = getPlugin('undoRedo');
 const custom: BasePlugin = getPlugin('custom');

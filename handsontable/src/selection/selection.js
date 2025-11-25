@@ -1259,7 +1259,7 @@ class Selection {
 
     this.selectedRange.clear();
     this.highlight.clear();
-    this.inProgress = true;
+    this.inProgress = false;
     this.#disableHeadersHighlight = disableHeadersHighlight;
 
     this.selectedByRowHeader = new Set(selectedByRowHeader);

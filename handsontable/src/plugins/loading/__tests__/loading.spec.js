@@ -123,7 +123,7 @@ describe('Loading', () => {
 
     if (spec().loadedTheme === 'classic') {
       // eslint-disable-next-line max-len
-      expect(warnSpy).toHaveBeenCalledWith('Deprecated: Handsontable classic theme is a legacy theme and will be removed in version 17.0. Please update your theme settings to ensure compatibility with future versions.');
+      expect(warnSpy).toHaveBeenCalledWith('Deprecated: The stylesheet you are using is deprecated and will be removed in version 17.0. Please update your theme configuration to ensure compatibility with future releases.');
     } else {
       expect(warnSpy).not.toHaveBeenCalled();
     }

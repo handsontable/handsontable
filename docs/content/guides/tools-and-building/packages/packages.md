@@ -17,9 +17,9 @@ Instantly add Handsontable to your web app, using pre-built UMD packages of Java
 
 ## Full distribution (recommended)
 
-To utilize the full distribution of Handsontable, you can choose either the classic (legacy) styles or the theme-based styles. Do not mix files from both options.
+To utilize the full distribution of Handsontable, you can choose either the legacy styles or the theme-based styles. Do not mix files from both options.
 
-### Option 1: Classic (legacy) Styles
+### Option 1: Legacy Styles
 Include the following files in your project:
 ```html
 <script src="dist/handsontable.full.js"></script>
@@ -53,7 +53,7 @@ Minified versions of these files are also available:
 
 Let's assume we're using the `main` theme for the rest of this page.
 
-If you'd rather use a different theme or classic (legacy) styles, replace the `css` files accordingly.
+If you'd rather use a different theme or legacy styles, replace the `css` files accordingly.
 
 :::
 

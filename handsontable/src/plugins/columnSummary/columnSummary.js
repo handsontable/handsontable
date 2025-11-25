@@ -29,9 +29,9 @@ export const PLUGIN_PRIORITY = 220;
  * | `destinationRow` | Yes | Number | - | [Sets the destination cell's row coordinate](@/guides/columns/column-summary/column-summary.md#step-4-provide-the-destination-cell-s-coordinates) |
  * | `destinationColumn` | Yes | Number | - | [Sets the destination cell's column coordinate](@/guides/columns/column-summary/column-summary.md#step-4-provide-the-destination-cell-s-coordinates) |
  * | `forceNumeric` | No | Boolean | `false` | [Forces the summary to treat non-numerics as numerics](@/guides/columns/column-summary/column-summary.md#force-numeric-values) |
- * | `reversedRowCoords` | No | Boolean | `false` | [Reverses row coordinates](@/guides/columns/column-summary/column-summary.md#step-5-make-room-for-the-destination-cell) |
+ * | `reversedRowCoords` | No | Boolean | `false` | [Reverses the row coordinate, count row coordinates backward](@/guides/columns/column-summary/column-summary.md#step-5-make-room-for-the-destination-cell). Useful when displaying summary results at the bottom of the grid, as it allows you to reference rows relative to the last row (e.g., `destinationRow: 0` refers to the last row when this option is enabled) |
  * | `suppressDataTypeErrors` | No | Boolean | `true` | [Suppresses data type errors](@/guides/columns/column-summary/column-summary.md#throw-data-type-errors) |
- * | `readOnly` | No | Boolean | `true` | Makes summary cell read-only |
+ * | `readOnly` | No | Boolean | `true` | Makes summary cell [read-only](@/api/options.md#readonly) |
  * | `roundFloat` | No | Number/<br>Boolean | - | [Rounds summary result](@/guides/columns/column-summary/column-summary.md#round-a-column-summary-result) |
  * | `customFunction` | No | Function | - | [Lets you add a custom summary function](@/guides/columns/column-summary/column-summary.md#implement-a-custom-summary-function) |
  *
@@ -169,6 +169,8 @@ export class ColumnSummary extends BasePlugin {
     this.addHook('afterInit', (...args) => this.#onAfterInit(...args));
     this.addHook('afterChange', (...args) => this.#onAfterChange(...args));
     this.addHook('afterUpdateSettings', (...args) => this.#onAfterUpdateSettings(...args));
+    this.addHook('afterLoadData', (...args) => this.#onAfterLoadData(...args));
+    this.addHook('afterUpdateData', (...args) => this.#onAfterUpdateData(...args));
 
     this.addHook('beforeCreateRow', (index, amount, source) => this.endpoints.resetSetupBeforeStructureAlteration('insert_row', index, amount, null, source)); // eslint-disable-line max-len
     this.addHook('beforeCreateCol', (index, amount, source) => this.endpoints.resetSetupBeforeStructureAlteration('insert_col', index, amount, null, source)); // eslint-disable-line max-len
@@ -503,6 +505,30 @@ export class ColumnSummary extends BasePlugin {
   #onAfterChange(changes, source) {
     if (changes && source !== 'ColumnSummary.reset' && source !== 'ColumnSummary.set' && source !== 'loadData') {
       this.endpoints.refreshChangedEndpoints(changes);
+    }
+  }
+
+  /**
+   * `afterLoadData` hook callback.
+   *
+   * @param {Array} data The updated data.
+   * @param {boolean} firstRun `true` if called on initial load, `false` otherwise.
+   */
+  #onAfterLoadData(data, firstRun) {
+    if (!firstRun) {
+      this.endpoints.refreshAllEndpoints();
+    }
+  }
+
+  /**
+   * `afterUpdateData` hook callback.
+   *
+   * @param {Array} data The updated data.
+   * @param {boolean} firstRun `true` if called on initial load, `false` otherwise.
+   */
+  #onAfterUpdateData(data, firstRun) {
+    if (!firstRun) {
+      this.endpoints.refreshAllEndpoints();
     }
   }
 

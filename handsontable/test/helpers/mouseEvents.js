@@ -67,6 +67,16 @@ export const simulateClick = waitOnScroll((element, buttonKey = 'LMB', eventProp
   // Only left click generates "click" events.
   if (mouseButton === getMouseButton('LMB')) {
     mouseClick(element, mouseButton, eventProps);
+
+    if (element instanceof jQuery) {
+      element[0].focus({
+        preventScroll: true
+      });
+    } else {
+      element.focus({
+        preventScroll: true
+      });
+    }
   }
 
   // Only right click generates "contextmenu" events.

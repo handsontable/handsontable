@@ -139,6 +139,75 @@ If container is a block element, then its parent has to have defined `height`. B
 
 Changes called in [`updateSettings()`](@/api/core.md#updatesettings) will re-render the grid with the new properties.
 
+### Troubleshooting with 100% height
+
+When the `height` option is set to 100%, there are three ways to define the container’s height. Assuming you're creating an Handsontable instance that has `100% height` and container is element with id `#example`. 
+
+```js
+const container = document.querySelector('#example');
+
+const hot = new Handsontable(container, {
+  height: '100%',
+  // ...rest of config 
+}
+```
+
+1. Set a fixed height (in pixels) directly on the `example` element where Handsontable is mounted
+
+```html
+<div class="page-wrapper">
+  <!-- Other HTML element -->
+  <div id="example" style="height: 500px">
+    <div class="ht-root-wrapper ht-theme-main">
+      <div class="ht-grid">
+        <div class="ht-wrapper">
+          <!-- Table content -->
+        </div>
+      </div>
+      <!-- Table components -->
+    </div>
+  </div>
+</div>
+```
+
+2. Set a fixed height on the parent element, and then give the `example` itself a height of 100%
+
+```html
+<div class="page-wrapper" style="height: 500px">
+  <!-- Other HTML element -->
+  <div id="example" style="height: 100%">
+    <div class="ht-root-wrapper ht-theme-main">
+      <div class="ht-grid">
+        <div class="ht-wrapper">
+          <!-- Table content -->
+        </div>
+      </div>
+      <!-- Table components -->
+    </div>
+  </div>
+</div>
+```
+
+3. Use flexbox on the wrapper element to make the `example` fill the available space
+
+```html
+<div class="page-wrapper" style="display: flex; height: 500px">
+  <!-- Other HTML element -->
+  <div id="example" style="flex: 1">
+    <div class="ht-root-wrapper ht-theme-main">
+      <div class="ht-grid">
+        <div class="ht-wrapper">
+          <!-- Table content -->
+        </div>
+      </div>
+      <!-- Table components -->
+    </div>
+  </div>
+</div>
+```
+
+When using Flexbox, the container automatically expands to fill the available space in the flex container. This is particularly useful when you want the grid to take up all the available space within its parent.
+
 ## What if the size is not set
 
 If you don't define any dimensions, Handsontable generates as many rows and columns as needed to fill the available space.

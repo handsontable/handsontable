@@ -9,6 +9,10 @@ import * as C from '../constants';
 
 const dictionary = {
   languageCode: 'ko-KR',
+
+  [C.OK]: '확인',
+  [C.CANCEL]: '취소',
+
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: '위쪽에 행 삽입',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: '아래쪽에 행 삽입',
   [C.CONTEXTMENU_ITEMS_INSERT_LEFT]: '왼쪽에 열 삽입',
@@ -108,6 +112,12 @@ const dictionary = {
   [C.PAGINATION_LAST_PAGE]: '마지막 페이지로 이동',
 
   [C.LOADING_TITLE]: '로딩 중...',
+
+  [C.EMPTY_DATA_STATE_TITLE]: '사용 가능한 데이터가 없습니다',
+  [C.EMPTY_DATA_STATE_DESCRIPTION]: '아직 표시할 내용이 없습니다.',
+  [C.EMPTY_DATA_STATE_TITLE_FILTERS]: '결과를 찾을 수 없습니다',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: '현재 필터가 모든 결과를 숨기고 있는 것 같습니다.',
+  [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: '필터 재설정',
 };
 
 export default dictionary;

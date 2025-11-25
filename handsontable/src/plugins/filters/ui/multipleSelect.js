@@ -198,82 +198,76 @@ export class MultipleSelectUI extends BaseUI {
     this._element.appendChild(selectionControl.element);
     this._element.appendChild(itemsBoxWrapper);
 
-    const hotInitializer = (wrapper) => {
-      if (!this._element) {
-        return;
-      }
+    this.#itemsBox?.destroy();
+    addClass(itemsBoxWrapper, 'htUIMultipleSelectHot');
 
-      this.#itemsBox?.destroy();
-      addClass(wrapper, 'htUIMultipleSelectHot');
-
-      // Constructs and initializes a new Handsontable instance
-      this.#itemsBox = new this.hot.constructor(wrapper, {
-        data: this.#items,
-        columns: [{
-          data: 'checked',
-          type: 'checkbox',
-          label: {
-            property: 'visualValue',
-            position: 'after'
-          },
-        }],
-        beforeRenderer: (TD, row, col, prop, value, cellProperties) => {
-          TD.title = cellProperties.instance.getDataAtRowProp(row, cellProperties.label.property);
+    // Constructs and initializes a new Handsontable instance
+    this.#itemsBox = new this.hot.constructor(itemsBoxWrapper, {
+      data: [[]],
+      columns: [{
+        data: 'checked',
+        type: 'checkbox',
+        label: {
+          property: 'visualValue',
+          position: 'after'
         },
-        afterListen: () => {
-          this.runLocalHooks('focus', this);
-        },
-        beforeOnCellMouseUp: () => {
-          this.#itemsBox.listen();
-        },
-        modifyColWidth: (width) => {
-          const minWidth = this.#itemsBox.container.scrollWidth - getScrollbarWidth(rootDocument);
+      }],
+      beforeRenderer: (TD, row, col, prop, value, cellProperties) => {
+        TD.title = cellProperties.instance.getDataAtRowProp(row, cellProperties.label.property);
+      },
+      afterListen: () => {
+        this.runLocalHooks('focus', this);
+      },
+      beforeOnCellMouseUp: () => {
+        this.#itemsBox.listen();
+      },
+      modifyColWidth: (width) => {
+        const minWidth = this.#itemsBox.container.scrollWidth - getScrollbarWidth(rootDocument);
 
-          if (width !== undefined && width < minWidth) {
-            return minWidth;
-          }
+        if (width !== undefined && width < minWidth) {
+          return minWidth;
+        }
 
-          return width;
-        },
-        maxCols: 1,
-        autoWrapCol: true,
-        height: 110,
-        copyPaste: false,
-        disableVisualSelection: 'area',
-        fillHandle: false,
-        fragmentSelection: 'cell',
-        tabMoves: { row: 1, col: 0 },
-        themeName: this.hot.getCurrentThemeName(),
-        layoutDirection: this.hot.isRtl() ? 'rtl' : 'ltr',
-      });
-      this.#itemsBox.init();
+        return width;
+      },
+      autoColumnSize: true,
+      autoRowSize: false,
+      hiddenRows: true,
+      maxCols: 1,
+      autoWrapCol: true,
+      height: 110,
+      copyPaste: false,
+      disableVisualSelection: 'area',
+      fillHandle: false,
+      fragmentSelection: 'cell',
+      tabMoves: { row: 1, col: 0 },
+      themeName: this.hot.getCurrentThemeName(),
+      layoutDirection: this.hot.isRtl() ? 'rtl' : 'ltr',
+    });
+    this.#itemsBox.init();
 
-      const shortcutManager = this.#itemsBox.getShortcutManager();
-      const gridContext = shortcutManager.getContext('grid');
+    const shortcutManager = this.#itemsBox.getShortcutManager();
+    const gridContext = shortcutManager.getContext('grid');
 
-      gridContext.removeShortcutsByKeys(['Tab']);
-      gridContext.removeShortcutsByKeys(['Shift', 'Tab']);
-      gridContext.addShortcut({
-        keys: [['Escape']],
-        callback: (event) => {
-          this.runLocalHooks('keydown', event, this);
-        },
-        group: SHORTCUTS_GROUP
-      });
-      gridContext.addShortcut({
-        keys: [['Tab'], ['Shift', 'Tab']],
-        callback: (event) => {
-          this.#itemsBox.deselectCell();
+    gridContext.removeShortcutsByKeys(['Tab']);
+    gridContext.removeShortcutsByKeys(['Shift', 'Tab']);
+    gridContext.addShortcut({
+      keys: [['Escape']],
+      callback: (event) => {
+        this.runLocalHooks('keydown', event, this);
+      },
+      group: SHORTCUTS_GROUP
+    });
+    gridContext.addShortcut({
+      keys: [['Tab'], ['Shift', 'Tab']],
+      callback: (event) => {
+        this.#itemsBox.deselectCell();
 
-          this.runLocalHooks('keydown', event, this);
-          this.runLocalHooks('listTabKeydown', event, this);
-        },
-        group: SHORTCUTS_GROUP
-      });
-    };
-
-    hotInitializer(itemsBoxWrapper);
-    this.hot._registerTimeout(() => hotInitializer(itemsBoxWrapper), 100);
+        this.runLocalHooks('keydown', event, this);
+        this.runLocalHooks('listTabKeydown', event, this);
+      },
+      group: SHORTCUTS_GROUP
+    });
   }
 
   /**
@@ -298,11 +292,14 @@ export class MultipleSelectUI extends BaseUI {
    * Update DOM structure.
    */
   update() {
-    if (!this.isBuilt()) {
+    if (!this.isBuilt() || this.#itemsBox.rootElement.offsetHeight === 0) {
       return;
     }
 
-    this.#itemsBox.loadData(valueToItems(this.#items, this.options.value));
+    this.#itemsBox.updateSettings({
+      data: valueToItems(this.#items, this.options.value),
+    });
+
     super.update();
   }
 
@@ -330,16 +327,34 @@ export class MultipleSelectUI extends BaseUI {
    */
   #onInput(event) {
     const value = event.target.value.toLocaleLowerCase(this.getLocale());
-    let filteredItems;
 
-    if (value === '') {
-      filteredItems = [...this.#items];
+    if (this.options.searchMode === 'apply') {
+      const hiddenRows = this.#itemsBox.getPlugin('hiddenRows');
+
+      hiddenRows.showRows(hiddenRows.getHiddenRows());
+
+      this.#items.forEach((item, index) => {
+        item.checked = `${item.value}`.toLocaleLowerCase(this.getLocale()).indexOf(value) >= 0;
+
+        if (!item.checked) {
+          hiddenRows.hideRow(index);
+        }
+      });
+
+      this.#itemsBox.view.adjustElementsSize();
+      this.#itemsBox.render();
     } else {
-      filteredItems = this.#items
-        .filter(item => (`${item.value}`).toLocaleLowerCase(this.getLocale()).indexOf(value) >= 0);
-    }
+      let filteredItems;
 
-    this.#itemsBox.loadData(filteredItems);
+      if (value === '') {
+        filteredItems = [...this.#items];
+      } else {
+        filteredItems = this.#items
+          .filter(item => (`${item.value}`).toLocaleLowerCase(this.getLocale()).indexOf(value) >= 0);
+      }
+
+      this.#itemsBox.loadData(filteredItems);
+    }
   }
 
   /**

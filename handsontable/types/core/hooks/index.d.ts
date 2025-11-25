@@ -61,6 +61,7 @@ export interface Events {
   afterColumnFreeze?: (columnIndex: number, isFreezingPerformed: boolean) => void;
   afterColumnMove?: (movedColumns: number[], finalIndex: number, dropIndex: number | undefined, movePossible: boolean, orderChanged: boolean) => void;
   afterColumnResize?: (newSize: number, column: number, isDoubleClick: boolean) => void;
+  afterColumnSequenceCacheUpdate?: (indexesChangesState: { indexesSequenceChanged: boolean, trimmedIndexesChanged: boolean, hiddenIndexesChanged: boolean }) => void;
   afterColumnSequenceChange?: (source: 'init' | 'move' | 'insert' | 'remove' | 'update') => void;
   afterColumnSort?: (currentSortConfig: ColumnSortingConfig[], destinationSortConfigs: ColumnSortingConfig[]) => void;
   afterColumnUnfreeze?: (columnIndex: number, isUnfreezingPerformed: boolean) => void;
@@ -75,6 +76,10 @@ export interface Events {
   afterLoadingShow?: () => void;
   beforeLoadingHide?: () => boolean | void;
   afterLoadingHide?: () => void;
+  beforeEmptyDataStateShow?: () => void;
+  afterEmptyDataStateShow?: () => void;
+  beforeEmptyDataStateHide?: () => void;
+  afterEmptyDataStateHide?: () => void;
   afterCopyLimit?: (selectedRows: number, selectedColumns: number, copyRowsLimit: number, copyColumnsLimit: number) => void;
   afterCreateCol?: (index: number, amount: number, source?: ChangeSource) => void;
   afterCreateRow?: (index: number, amount: number, source?: ChangeSource) => void;
@@ -131,6 +136,7 @@ export interface Events {
   afterRenderer?: (TD: HTMLTableCellElement, row: number, column: number, prop: string | number, value: string, cellProperties: CellProperties) => void;
   afterRowMove?: (movedRows: number[], finalIndex: number, dropIndex: number | undefined, movePossible: boolean, orderChanged: boolean) => void;
   afterRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => void;
+  afterRowSequenceCacheUpdate?: (indexesChangesState: { indexesSequenceChanged: boolean, trimmedIndexesChanged: boolean, hiddenIndexesChanged: boolean }) => void;
   afterRowSequenceChange?: (source: 'init' | 'move' | 'insert' | 'remove' | 'update') => void;
   afterScrollHorizontally?: () => void;
   afterScrollVertically?: () => void;

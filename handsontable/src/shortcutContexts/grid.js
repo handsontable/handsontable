@@ -1,5 +1,5 @@
 import { isDefined } from '../helpers/mixed';
-import { GRID_GROUP, EDITOR_EDIT_GROUP } from './constants';
+import { GRID_GROUP, EDITOR_EDIT_GROUP, GRID_SCOPE, GRID_TAB_NAVIGATION_GROUP } from './constants';
 import { createKeyboardShortcutCommandsPool } from './commands';
 
 /**
@@ -8,7 +8,7 @@ import { createKeyboardShortcutCommandsPool } from './commands';
  * @param {Handsontable} hot The Handsontable instance.
  */
 export function shortcutsGridContext(hot) {
-  const context = hot.getShortcutManager().addContext('grid');
+  const context = hot.getShortcutManager().addContext(GRID_SCOPE);
   const commandsPool = createKeyboardShortcutCommandsPool(hot);
   const config = {
     runOnlyIf: () => {
@@ -160,16 +160,34 @@ export function shortcutsGridContext(hot) {
     callback: () => commandsPool.extendCellsSelectionDownByViewportHeight(),
   }, {
     keys: [['Tab']],
-    // The property value is controlled by focusCatcher module (https://github.com/handsontable/handsontable/blob/master/handsontable/src/core/focusCatcher/index.js)
     preventDefault: false,
     callback: event => commandsPool.moveCellSelectionInlineStart(event),
   }, {
     keys: [['Shift', 'Tab']],
-    // The property value is controlled by focusCatcher module (https://github.com/handsontable/handsontable/blob/master/handsontable/src/core/focusCatcher/index.js)
     preventDefault: false,
     callback: event => commandsPool.moveCellSelectionInlineEnd(event),
   }, {
     keys: [['Control/Meta', 'Backspace']],
     callback: () => commandsPool.scrollToFocusedCell(),
   }], config);
+
+  const tabNavigationCommand = commandsPool.tabNavigation();
+
+  context.addShortcuts([{
+    keys: [['Tab'], ['Shift', 'Tab']],
+    preventDefault: false,
+    stopPropagation: false,
+    relativeToGroup: GRID_GROUP,
+    group: GRID_TAB_NAVIGATION_GROUP,
+    position: 'before',
+    callback: event => tabNavigationCommand.before(event),
+  }, {
+    keys: [['Tab'], ['Shift', 'Tab']],
+    preventDefault: false,
+    stopPropagation: false,
+    relativeToGroup: GRID_GROUP,
+    group: GRID_TAB_NAVIGATION_GROUP,
+    callback: event => tabNavigationCommand.after(event),
+    position: 'after',
+  }]);
 }

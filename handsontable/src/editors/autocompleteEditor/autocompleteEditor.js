@@ -11,7 +11,7 @@ import {
   setAttribute,
   setCaretPosition,
 } from '../../helpers/dom/element';
-import { isDefined, stringify } from '../../helpers/mixed';
+import { isUndefined, isDefined, stringify } from '../../helpers/mixed';
 import { stripTags } from '../../helpers/string';
 import { KEY_CODES, isPrintableChar } from '../../helpers/unicode';
 import { textRenderer } from '../../renderers/textRenderer';
@@ -258,6 +258,32 @@ export class AutocompleteEditor extends HandsontableEditor {
   }
 
   /**
+   * Finishes editing and start saving or restoring process for editing cell.
+   *
+   * @param {boolean} restoreOriginalValue If true, then closes editor without saving value from the editor into a cell.
+   * @param {boolean} ctrlDown If true, then saveValue will save editor's value to each cell in the last selected range.
+   * @param {Function} callback The callback function, fired after editor closing.
+   */
+  finishEditing(restoreOriginalValue, ctrlDown, callback) {
+    if (this.isOpened()) {
+      const lastSelectedRange = this.hot.getSelectedRangeActive();
+
+      if (
+        isUndefined(lastSelectedRange) ||
+        (
+          isDefined(lastSelectedRange) &&
+          !lastSelectedRange.includes(this.hot._createCellCoords(this.row, this.col))
+        )
+      ) {
+        // Method was triggered by selecting a different cell or deselecting cells.
+        restoreOriginalValue = true;
+      }
+    }
+
+    super.finishEditing(restoreOriginalValue, ctrlDown, callback);
+  }
+
+  /**
    * Prepares choices list based on applied argument.
    *
    * @param {string} query The query.
@@ -285,7 +311,6 @@ export class AutocompleteEditor extends HandsontableEditor {
   /**
    * Updates list of the possible completions to choose.
    *
-   * @private
    * @param {Array} choicesList The choices list to process.
    */
   updateChoicesList(choicesList) {
@@ -325,7 +350,9 @@ export class AutocompleteEditor extends HandsontableEditor {
     }
 
     if (filterSetting === false) {
-      highlightIndex = filteredChoiceIndexes[0];
+      if (value.length > 0) {
+        highlightIndex = filteredChoiceIndexes[0];
+      }
     } else {
       choices = filteredChoiceIndexes.map(index => choices[index]);
       highlightIndex = choices.indexOf(valueToMatch) > -1 ? choices.indexOf(valueToMatch) : 0;

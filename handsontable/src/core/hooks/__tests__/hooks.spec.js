@@ -39,4 +39,30 @@ describe('Hooks', () => {
 
     expect(hooks.indexOf('beforeInit')).toBeGreaterThan(-1);
   });
+
+  it('should be possible to re-enable previously removed hooks', async() => {
+    const callback = () => {};
+    const callbackSpy = spyOn(callback, 'call').and.callThrough();
+
+    handsontable({
+      data: [[1, 2]],
+      afterLoadData: callback,
+    });
+
+    expect(callbackSpy).toHaveBeenCalled();
+
+    await removeHook('afterLoadData', callback);
+    callbackSpy.calls.reset();
+
+    await loadData([[3, 4]]);
+
+    expect(callbackSpy).not.toHaveBeenCalled();
+
+    await addHook('afterLoadData', callback);
+    callbackSpy.calls.reset();
+
+    await loadData([[1, 2]]);
+
+    expect(callbackSpy).toHaveBeenCalled();
+  });
 });

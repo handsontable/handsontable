@@ -322,6 +322,46 @@ describe('BasePlugin', () => {
 
       expect(plugin.getSetting()).toBe('test');
     });
+
+    it('should not return new settings when validator function rejects the new value', () => {
+      class Test8Plugin extends BasePlugin {
+        static get PLUGIN_KEY() {
+          return 'testPlugin';
+        }
+
+        static get SETTINGS_VALIDATORS() {
+          return {
+            test1: value => typeof value === 'string' || typeof value === 'function',
+          };
+        }
+      }
+
+      registerPlugin('Test8Plugin', Test8Plugin);
+
+      const hot = new Handsontable(document.createElement('div'), {
+        testPlugin: {
+          test1: 'test',
+        },
+      });
+
+      const plugin = hot.getPlugin('Test8Plugin');
+
+      expect(plugin.getSetting('test1')).toBe('test');
+
+      const fn = () => 'test1';
+
+      plugin.updatePluginSettings({
+        test1: fn,
+      });
+
+      expect(plugin.getSetting('test1')()).toBe('test1');
+
+      plugin.updatePluginSettings({
+        test1: () => 123,
+      });
+
+      expect(plugin.getSetting('test1')()).toBe(undefined);
+    });
   });
 
   it('should throw an error when the dependencies are missing', () => {

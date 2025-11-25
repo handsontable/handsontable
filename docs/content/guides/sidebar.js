@@ -117,6 +117,7 @@ const formulasItems = [
 const navigationItems = [
   { path: 'guides/navigation/keyboard-shortcuts/keyboard-shortcuts' },
   { path: 'guides/navigation/custom-shortcuts/custom-shortcuts' },
+  { path: 'guides/navigation/focus-scopes/focus-scopes' },
   { path: 'guides/navigation/searching-values/searching-values' },
 ];
 
@@ -129,6 +130,7 @@ const accessoriesAndMenusItems = [
   { path: 'guides/accessories-and-menus/undo-redo/undo-redo' },
   { path: 'guides/accessories-and-menus/icon-pack/icon-pack' },
   { path: 'guides/accessories-and-menus/export-to-csv/export-to-csv' },
+  { path: 'guides/accessories-and-menus/empty-data-state/empty-data-state' },
   // TODO { path: 'guides/accessories-and-menus/export-to-excel/export-to-excel' },
 ];
 

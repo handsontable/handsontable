@@ -144,5 +144,18 @@
         background: none;
       }
     }
+
+    // Button
+    .htUIInput {
+      &.htUIButton {
+        cursor: pointer;
+        display: inline-block;
+      }
+
+      &.htUIButtonOK {
+        margin-inline-start: 0;
+        margin-inline-end: calc(2 * var(--ht-gap-size, 2px));
+      }
+    }
   }
 }

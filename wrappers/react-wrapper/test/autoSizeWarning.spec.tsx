@@ -15,7 +15,7 @@ registerAllModules();
 describe('`autoRowSize`/`autoColumns` warning', () => {
   it('should recognize whether `autoRowSize` or `autoColumnSize` is enabled and throw a warning, if a global component-based renderer' +
     'is defined (using the default Handsontable settings - autoColumnSize is enabled by default)', async () => {
-    console.warn = jasmine.createSpy('warn');
+    console.warn = jest.fn();
 
     mountComponent((
       <HotTable licenseKey="non-commercial-and-evaluation"
@@ -34,7 +34,7 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
 
   it('should recognize whether `autoRowSize` or `autoColumnSize` is enabled and throw a warning, if a global component-based renderer' +
     'is defined', async () => {
-    console.warn = jasmine.createSpy('warn');
+    console.warn = jest.fn();
 
     mountComponent((
       <HotTable licenseKey="non-commercial-and-evaluation"
@@ -55,7 +55,7 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
 
   it('should recognize whether `autoRowSize` or `autoColumnSize` is enabled and throw a warning, if a component-based renderer' +
     'is defined for any column (using the default Handsontable settings - autoColumnSize enabled by default)', async () => {
-    console.warn = jasmine.createSpy('warn');
+    console.warn = jest.fn();
 
     mountComponent((
       <HotTable licenseKey="non-commercial-and-evaluation"
@@ -77,7 +77,7 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
 
   it('should recognize whether `autoRowSize` or `autoColumnSize` is enabled and throw a warning, if a component-based renderer' +
     'is defined for any column', async () => {
-    console.warn = jasmine.createSpy('warn');
+    console.warn = jest.fn();
 
     mountComponent((
       <HotTable licenseKey="non-commercial-and-evaluation"
@@ -100,7 +100,7 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
   });
 
   it('should throw a warning, when `autoRowSize` or `autoColumnSize` is defined, and both function-based and component-based renderers are defined', async () => {
-    console.warn = jasmine.createSpy('warn');
+    console.warn = jest.fn();
 
     mountComponent((
       <HotTable licenseKey="non-commercial-and-evaluation"
@@ -128,7 +128,7 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
   });
 
   it('should NOT throw any warnings, when `autoRowSize` or `autoColumnSize` is defined, but only global function-based renderers were defined', async () => {
-    console.warn = jasmine.createSpy('warn');
+    console.warn = jest.fn();
 
     mountComponent((
       <HotTable licenseKey="non-commercial-and-evaluation"
@@ -152,7 +152,7 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
   });
 
   it('should NOT throw any warnings, when `autoRowSize` or `autoColumnSize` is defined, but only function-based renderers were defined for columns', async () => {
-    console.warn = jasmine.createSpy('warn');
+    console.warn = jest.fn();
 
     mountComponent((
       <HotTable licenseKey="non-commercial-and-evaluation"
@@ -177,7 +177,7 @@ describe('`autoRowSize`/`autoColumns` warning', () => {
 
   it('should NOT throw any warnings, when `autoRowSize` or `autoColumnSize` is defined, but only function-based renderers were defined for columns, when ' +
     'the `columns` option is defined as a function', async () => {
-    console.warn = jasmine.createSpy('warn');
+    console.warn = jest.fn();
 
     mountComponent((
       <HotTable licenseKey="non-commercial-and-evaluation"

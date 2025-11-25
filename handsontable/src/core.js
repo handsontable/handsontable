@@ -14,7 +14,6 @@ import {
   createObjectPropListener,
   objectEach
 } from './helpers/object';
-import { FocusManager } from './focusManager';
 import { arrayMap, arrayEach, arrayReduce, getDifferenceOfArrays, stringToArray, pivot } from './helpers/array';
 import { instanceToHTML } from './utils/parseTable';
 import { staticRegister } from './utils/staticRegister';
@@ -30,7 +29,6 @@ import { spreadsheetColumnLabel } from './helpers/data';
 import { IndexMapper } from './translations';
 import { registerAsRootInstance, hasValidParameter, isRootInstance } from './utils/rootInstance';
 import { DEFAULT_COLUMN_WIDTH } from './3rdparty/walkontable/src';
-import { Hooks } from './core/hooks';
 import { hasLanguageDictionary, getValidLanguageCode, getTranslatedPhrase } from './i18n/registry';
 import { warnUserAboutLanguageRegistration, normalizeLanguageCode } from './i18n/utils';
 import { Selection } from './selection';
@@ -41,16 +39,21 @@ import {
   replaceData,
 } from './dataMap';
 import {
-  installFocusCatcher,
   createViewportScroller,
+  Hooks,
+  CellRangeToRenderableMapper,
 } from './core/index';
+import {
+  FocusGridManager,
+  createFocusScopeManager,
+  registerAllFocusScopes
+} from './focusManager';
 import { createUniqueMap } from './utils/dataStructures/uniqueMap';
 import { createShortcutManager } from './shortcuts';
 import { registerAllShortcutContexts } from './shortcutContexts';
 import { getThemeClassName } from './helpers/themes';
 import { StylesHandler } from './utils/stylesHandler';
 import { deprecatedWarn, warn } from './helpers/console';
-import { CellRangeToRenderableMapper } from './core/coordsMapper/rangeToRenderableMapper';
 import {
   install as installAccessibilityAnnouncer,
   uninstall as uninstallAccessibilityAnnouncer,
@@ -180,7 +183,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   let dataSource;
   let grid;
   let editorManager;
-  let focusManager;
+  let focusGridManager;
   let viewportScroller;
   let firstRun = true;
 
@@ -350,6 +353,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * @type {StylesHandler}
    */
   this.stylesHandler = new StylesHandler({
+    hot: instance,
     rootElement: instance.rootElement,
     rootDocument: instance.rootDocument,
     onThemeChange: (validThemeName) => {
@@ -522,8 +526,17 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     }
   };
 
-  this.columnIndexMapper.addLocalHook('cacheUpdated', onIndexMapperCacheUpdate);
-  this.rowIndexMapper.addLocalHook('cacheUpdated', onIndexMapperCacheUpdate);
+  this.columnIndexMapper.addLocalHook('cacheUpdated', (indexesChangesState) => {
+    onIndexMapperCacheUpdate(indexesChangesState);
+
+    this.runHooks('afterColumnSequenceCacheUpdate', indexesChangesState);
+  });
+
+  this.rowIndexMapper.addLocalHook('cacheUpdated', (indexesChangesState) => {
+    onIndexMapperCacheUpdate(indexesChangesState);
+
+    this.runHooks('afterRowSequenceCacheUpdate', indexesChangesState);
+  });
 
   this.selection.addLocalHook('afterSetRangeEnd', (cellCoords, isLastSelectionLayer) => {
     const preventScrolling = createObjectPropListener(false);
@@ -1313,10 +1326,10 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
     editorManager = EditorManager.getInstance(instance, tableMeta, selection);
     viewportScroller = createViewportScroller(instance);
-    focusManager = new FocusManager(instance);
+
+    focusGridManager.init();
 
     if (isRootInstance(this)) {
-      installFocusCatcher(instance);
       installAccessibilityAnnouncer(instance.rootPortalElement);
       _injectProductInfo(mergedUserSettings.licenseKey, this.rootWrapperElement);
     }
@@ -2698,6 +2711,12 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       throw new Error('Since 8.0.0 the "ganttChart" setting is no longer supported.');
     }
 
+    if (isDefined(settings.rowHeights) && isDefined(settings.minRowHeights)) {
+      warn('Both `rowHeights` and `minRowHeights` are defined in your configuration. ' +
+        'As one is the alias of the other, only one of them can be used at a time. ' +
+        '`rowHeights` will be used as the row height configuration.');
+    }
+
     // eslint-disable-next-line no-restricted-syntax
     for (i in settings) {
       if (i === 'data' || i === 'language') {
@@ -2754,7 +2773,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       instance.stylesHandler.isClassicTheme()
     ) {
       // eslint-disable-next-line max-len
-      deprecatedWarn('Handsontable classic theme is a legacy theme and will be removed in version 17.0. Please update your theme settings to ensure compatibility with future versions.');
+      deprecatedWarn('The stylesheet you are using is deprecated and will be removed in version 17.0. Please update your theme configuration to ensure compatibility with future releases.');
       deprecatedWarnInstances.add(instance);
     }
 
@@ -4105,7 +4124,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
           break;
       }
       if (typeof width === 'string') {
-        width = parseInt(width, 10);
+        width = Number.parseInt(width, 10);
       }
     }
 
@@ -4144,8 +4163,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * @returns {number}
    */
   this._getRowHeightFromSettings = function(row) {
-    const defaultRowHeight = instance.stylesHandler.getDefaultRowHeight();
-    let height = tableMeta.rowHeights;
+    const defaultRowHeight = instance.stylesHandler.getDefaultRowHeight(row);
+    let height = tableMeta.rowHeights ?? tableMeta.minRowHeights;
 
     if (height !== undefined && height !== null) {
       switch (typeof height) {
@@ -4162,7 +4181,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       }
 
       if (typeof height === 'string') {
-        height = parseInt(height, 10);
+        height = Number.parseInt(height, 10);
       }
     }
 
@@ -4827,6 +4846,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
     if (isRootInstance(this)) {
       uninstallAccessibilityAnnouncer();
+      this.getFocusScopeManager().destroy();
     }
 
     this.getShortcutManager().destroy();
@@ -5437,6 +5457,10 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     return shortcutManager;
   };
 
+  focusGridManager = new FocusGridManager(instance);
+
+  const focusScopeManager = isRootInstance(this) ? createFocusScopeManager(instance) : null;
+
   /**
    * Return the Focus Manager responsible for managing the browser's focus in the table.
    *
@@ -5446,7 +5470,35 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * @returns {FocusManager}
    */
   this.getFocusManager = function() {
-    return focusManager;
+    return focusGridManager;
+  };
+
+  /**
+   * Returns the Focus Scope Manager. The module allows to register focus scopes for different parts of the grid
+   * e.g. for dialogs, pagination, and other plugins that have own UI elements and need separate context.
+   *
+   * @memberof Core#
+   * @since 16.2.0
+   * @function getFocusScopeManager
+   * @returns {FocusScopeManager} Instance of {@link FocusScopeManager}
+   *
+   * @example
+   * ```js
+   * hot.getFocusScopeManager().registerScope('myPluginName', containerElement, {
+   *   shortcutsContextName: 'plugin:myPluginName',
+   *   onActivate: (focusSource) => {
+   *     // Focus the internal focusable element within the plugin UI element
+   *     // depends on the activation focus source.
+   *   },
+   * });
+   * ```
+   */
+  this.getFocusScopeManager = function() {
+    if (!isRootInstance(instance)) {
+      throw new Error('The FocusScopeManager is only available for the main Handsontable instance.');
+    }
+
+    return focusScopeManager;
   };
 
   getPluginsNames().forEach((pluginName) => {
@@ -5456,6 +5508,10 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   });
 
   registerAllShortcutContexts(instance);
+
+  if (isRootInstance(this)) {
+    registerAllFocusScopes(instance);
+  }
 
   shortcutManager.setActiveContextName('grid');
 

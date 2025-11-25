@@ -1454,14 +1454,14 @@ export default () => {
      * set the `customBorders` option to an array of objects.
      * Each object represents a border configuration for one cell, and has the following properties:
      *
-     * | Property | Sub-properties     | Types                              | Description                                                       |
-     * | -------- | ------------------ | ---------------------------------- | ----------------------------------------------------------------- |
-     * | `row`    | -                  | `row`: Number                      | The cell's row coordinate.                                        |
-     * | `col`    | -                  | `col`: Number                      | The cell's column coordinate.                                     |
-     * | `start`  | `width`<br>`color` | `width`: Number<br>`color`: String | If the [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is LTR (default): `start` sets the width (`width`) and color (`color`) of the left-hand border.<br><br>If the [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is RTL: `start` sets the width (`width`) and color (`color`) of the right-hand border. |
-     * | `end`    | `width`<br>`color` | `width`: Number<br>`color`: String | If the [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is LTR (default): `end` sets the width (`width`) and color (`color`) of the right-hand border.<br><br>If the [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is RTL: `end` sets the width (`width`) and color (`color`) of the left-hand border. |
-     * | `top`    | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the width (`width`) and color (`color`) of the top border. |
-     * | `bottom` | `width`<br>`color` | `width`: Number<br>`color`: String | Sets the width (`width`) and color (`color`) of the bottom border. |
+     * | Property | Sub-properties                | Types                                                 | Description                                                       |
+     * | -------- | ----------------------------- | ----------------------------------------------------- | ----------------------------------------------------------------- |
+     * | `row`    | -                             | `row`: Number                                         | The cell's row coordinate.                                        |
+     * | `col`    | -                             | `col`: Number                                         | The cell's column coordinate.                                     |
+     * | `start`  | `width`<br>`color`<br>`style` | `width`: Number<br>`color`: String<br>`style`: String | If the [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is LTR (default): `start` sets the width (`width`), color (`color`) and style (`style`) of the left-hand border.<br><br>If the [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is RTL: `start` sets the width (`width`), color (`color`) and style (`style`) of the right-hand border. |
+     * | `end`    | `width`<br>`color`<br>`style` | `width`: Number<br>`color`: String<br>`style`: String | If the [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is LTR (default): `end` sets the width (`width`), color (`color`) and style (`style`) of the right-hand border.<br><br>If the [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is RTL: `end` sets the width (`width`), color (`color`) and style (`style`) of the left-hand border. |
+     * | `top`    | `width`<br>`color`<br>`style` | `width`: Number<br>`color`: String<br>`style`: String | Sets the width (`width`), color (`color`) and style (`style`) of the top border. |
+     * | `bottom` | `width`<br>`color`<br>`style` | `width`: Number<br>`color`: String<br>`style`: String | Sets the width (`width`), color (`color`) and style (`style`) of the bottom border. |
      *
      * To enable the [`CustomBorders`](@/api/customBorders.md) plugin
      * and add a predefined border around a range of cells,
@@ -1471,10 +1471,10 @@ export default () => {
      * | Property | Sub-properties                               | Types                                                            | Description                                                                                  |
      * | -------- | -------------------------------------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
      * | `range`  | `from` {`row`, `col`}<br>`to` {`row`, `col`} | `from`: Object<br>`to`: Object<br>`row`: Number<br>`col`: Number | If the [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is LTR (default):<br>- `from` selects the range's top-left corner.<br>- `to` selects the range's bottom-right corner.<br><br>If the [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is RTL: <br>- `from` selects the range's top-right corner.<br>- `to` selects the range's bottom-left corner. |
-     * | `start`  | `width`<br>`color` | `width`: Number<br>`color`: String | If the [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is LTR (default): `start` sets the width (`width`) and color (`color`) of the left-hand border.<br><br>If the [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is RTL: `start` sets the width (`width`) and color (`color`) of the right-hand border. |
-     * | `end`    | `width`<br>`color` | `width`: Number<br>`color`: String | If the [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is LTR (default): `end` sets the width (`width`) and color (`color`) of the right-hand border.<br><br>If the [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is RTL: `end` sets the width (`width`) and color (`color`) of the left-hand border. |
-     * | `top`    | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the width (`width`) and color (`color`) of the top border. |
-     * | `bottom` | `width`<br>`color`                           | `width`: Number<br>`color`: String                               | Sets the width (`width`) and color (`color`) of the bottom border. |
+     * | `start`  | `width`<br>`color`<br>`style` | `width`: Number<br>`color`: String<br>`style`: String | If the [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is LTR (default): `start` sets the width (`width`), color (`color`) and style (`style`) of the left-hand border.<br><br>If the [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is RTL: `start` sets the width (`width`), color (`color`) and style (`style`) of the right-hand border. |
+     * | `end`    | `width`<br>`color`<br>`style` | `width`: Number<br>`color`: String<br>`style`: String | If the [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is LTR (default): `end` sets the width (`width`), color (`color`) and style (`style`) of the right-hand border.<br><br>If the [layout direction](@/guides/internationalization/layout-direction/layout-direction.md) is RTL: `end` sets the width (`width`), color (`color`) and style (`style`) of the left-hand border. |
+     * | `top`    | `width`<br>`color`<br>`style` | `width`: Number<br>`color`: String<br>`style`: String | Sets the width (`width`), color (`color`) and style (`style`) of the top border. |
+     * | `bottom` | `width`<br>`color`<br>`style` | `width`: Number<br>`color`: String<br>`style`: String | Sets the width (`width`), color (`color`) and style (`style`) of the bottom border. |
      *
      * Read more:
      * - [Formatting cells: Custom cell borders](@/guides/cell-features/formatting-cells/formatting-cells.md#custom-cell-borders)
@@ -1507,10 +1507,11 @@ export default () => {
      *       width: 2,
      *       color: 'red'
      *     },
-     *     // set the right/left border's width and color
+     *     // set the right/left border's width, color and style
      *     end: {
      *       width: 1,
-     *       color: 'green'
+     *       color: 'green',
+     *       style: 'dashed'
      *     },
      *     // set the top border's width and color
      *     top: '',
@@ -1537,10 +1538,11 @@ export default () => {
      *         col: 4
      *       }
      *     },
-     *     // set the left/right border's width and color
+     *     // set the left/right border's width, color and style
      *     start: {
      *       width: 2,
-     *       color: 'red'
+     *       color: 'red',
+     *       style: 'dashed'
      *     },
      *     // set the right/left border's width and color
      *     end: {},
@@ -1855,6 +1857,14 @@ export default () => {
      *
      * | Option                   | Possible settings                                                                                                               | Description                             |
      * | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------|
+     * | `template`               | Object with the template configuration (default: `null`).                                                                       | The template of the dialog allows to use prebuild templates |
+     * | `template.type`          | The type of the template ('confirm')                                                                                            | The type of the template                |
+     * | `template.title`         | The title of the template                                                                                                       | The title of the template               |
+     * | `template.description`   | The description of the template                                                                                                 | The description of the template         |
+     * | `template.buttons`       | Array of objects with the buttons configuration (default: `[]`)                                                                 | The buttons of the template             |
+     * | `template.buttons.text`  | The text of the button                                                                                                          | The text of the button                  |
+     * | `template.buttons.type`  | The type of the button ('primary' | 'secondary')                                                                                | The type of the button                  |
+     * | `template.buttons.callback` | The callback function to trigger when the button is clicked                                                                  | The callback function to trigger when the button is clicked |
      * | `content`                | A string, HTMLElement or DocumentFragment (default: `''`)                                                                       | The content of the dialog               |
      * | `customClassName`        | A string (default: `''`)                                                                                                        | The custom class name of the dialog     |
      * | `background`             | One of the options: `'solid'` or `'semi-transparent'` (default: `'solid'`)                                                      | The background of the dialog            |
@@ -1862,6 +1872,10 @@ export default () => {
      * | `animation`              | Boolean (default: `true`)                                                                                                       | Whether to show the animation           |
      * | `closable`               | Boolean (default: `false`)                                                                                                      | Whether to make the dialog closable     |
      * | `a11y`                   | Object with accessibility options (default: `{ role: 'dialog', ariaLabel: 'Dialog', ariaLabelledby: '', ariaDescribedby: '' }`) | Accessibility options for the dialog    |
+     * | `a11y.role`              | The role of the dialog ('dialog' | 'alertdialog')                                                                               | The role of the dialog                  |
+     * | `a11y.ariaLabel`         | The label of the dialog                                                                                                         | The label of the dialog                 |
+     * | `a11y.ariaLabelledby`    | The ID of the element that labels the dialog                                                                                    | The ID of the element that labels the dialog |
+     * | `a11y.ariaDescribedby`   | The ID of the element that describes the dialog                                                                                 | The ID of the element that describes the dialog |
      *
      * Read more:
      * - [Plugins: `Dialog`](@/api/dialog.md)
@@ -1893,6 +1907,24 @@ export default () => {
      *     ariaDescribedby: 'descriptionID',
      *   }
      * }
+     *
+     * // enable the Dialog plugin using a template
+     * dialog: {
+     *   template: {
+     *     type: 'confirm',
+     *     title: 'Confirm',
+     *     description: 'Do you want change the value?',
+     *     buttons: [
+     *       {
+     *         text: 'Ok',
+     *         type: 'primary',
+     *         callback: () => {
+     *           console.log('Ok');
+     *         }
+     *       },
+     *     ],
+     *   },
+     * }
      * ```
      * :::
      *
@@ -1921,6 +1953,17 @@ export default () => {
      *   }
      *   }}
      * />
+     *
+     * // enable the Dialog plugin using a template
+     * <HotTable
+     *   dialog={{
+     *     template: {
+     *       type: 'confirm',
+     *       title: 'Confirm',
+     *       description: 'Do you want change the value?',
+     *     }
+     *   }}
+     * />
      * ```
      * :::
      *
@@ -1939,6 +1982,17 @@ export default () => {
      *       ariaLabel: 'Dialog',
      *       ariaLabelledby: 'titleID',
      *       ariaDescribedby: 'descriptionID',
+     *     }
+     *   }
+     * };
+     *
+     * // enable the Dialog plugin using a template
+     * settings = {
+     *   dialog: {
+     *     template: {
+     *       type: 'confirm',
+     *       title: 'Confirm',
+     *       description: 'Do you want change the value?',
      *     }
      *   }
      * };
@@ -2096,6 +2150,90 @@ export default () => {
      * ```
      */
     editor: undefined,
+
+    /**
+     * @description
+     * The `emptyDataState` option configures the [`EmptyDataState`](@/api/emptyDataState.md) plugin.
+     *
+     * You can set the `emptyDataState` option to one of the following:
+     *
+     * | Setting   | Description                                                                        |
+     * | --------- | ---------------------------------------------------------------------------------- |
+     * | `false`   | Disable the [`EmptyDataState`](@/api/emptyDataState.md) plugin                     |
+     * | `true`    | Enable the [`EmptyDataState`](@/api/emptyDataState.md) plugin                      |
+     * | An object | Enable the [`EmptyDataState`](@/api/emptyDataState.md) plugin with custom settings |
+     *
+     * If you set the `emptyDataState` option to an object, you can configure the following settings:
+     *
+     * | Property  | Possible values                    | Description                                         |
+     * | --------  | ---------------------------------- | --------------------------------------------------- |
+     * | `message` | `string` \| `object` \| `function` | Message to display in the empty data state overlay. |
+     *
+     * If you set the `message` option to an object, it have following properties:
+     *
+     * | Property      | Possible values | Description                                             |
+     * | ------------- | --------------- | ------------------------------------------------------- |
+     * | `title`       | `string`        | Title to display in the empty data state overlay.       |
+     * | `description` | `string`        | Description to display in the empty data state overlay. |
+     * | `buttons`     | `array`         | Buttons to display in the empty data state overlay.     |
+     *
+     * If you set the `buttons` option to an array, each item requires following properties:
+     *
+     * | Property   | Possible values          | Description                                                  |
+     * | ---------- | ------------------------ | ------------------------------------------------------------ |
+     * | `text`     | `string`                 | Text to display in the button.                        |
+     * | `type`     | 'primary' \| 'secondary' | Type of the button.                                   |
+     * | `callback` | `function`               | Callback function to call when the button is clicked. |
+     *
+     * Read more:
+     * - [Plugins: `EmptyDataState`](@/api/emptyDataState.md)
+     *
+     * @since 16.2.0
+     * @memberof Options#
+     * @type {boolean|object}
+     * @default false
+     * @category EmptyDataState
+     *
+     * @example
+     * ```js
+     * // Enable empty data state plugin with default messages
+     * emptyDataState: true,
+     *
+     * // Enable empty data state plugin with custom message
+     * emptyDataState: {
+     *   message: 'No data available',
+     * },
+     *
+     * // Enable empty data state plugin with custom message and buttons for any source
+     * emptyDataState: {
+     *   message: {
+     *     title: 'No data available',
+     *     description: 'There’s nothing to display yet.',
+     *     buttons: [{ text: 'Reset filters', type: 'secondary', callback: () => {} }],
+     *   },
+     * },
+     *
+     * // Enable empty data state plugin with custom message and buttons for specific source
+     * emptyDataState: {
+     *   message: (source) => {
+     *     switch (source) {
+     *       case "filters":
+     *         return {
+     *           title: 'No data available',
+     *           description: 'There’s nothing to display yet.',
+     *           buttons: [{ text: 'Reset filters', type: 'secondary', callback: () => {} }],
+     *         };
+     *       default:
+     *         return {
+     *           title: 'No data available',
+     *           description: 'There’s nothing to display yet.',
+     *         };
+     *     }
+     *   },
+     * },
+     * ```
+     */
+    emptyDataState: false,
 
     /**
      * The `enterBeginsEditing` option configures the action of the <kbd>**Enter**</kbd> key.
@@ -2305,10 +2443,19 @@ export default () => {
      *
      * You can set the `filters` option to one of the following:
      *
-     * | Setting | Description                                      |
-     * | ------- | ------------------------------------------------ |
-     * | `false` | Disable the [`Filters`](@/api/filters.md) plugin |
-     * | `true`  | Enable the [`Filters`](@/api/filters.md) plugin  |
+     * | Setting   | Description                                                          |
+     * | --------- | -------------------------------------------------------------------- |
+     * | `false`   | Disable the [`Filters`](@/api/filters.md) plugin                     |
+     * | `true`    | Enable the [`Filters`](@/api/filters.md) plugin                      |
+     * | An object | Enable the [`Filters`](@/api/filters.md) plugin with custom settings |
+     *
+     * If you set the `filters` option to an object, you can configure the following settings:
+     *
+     * | Property                 | Possible values   | Description                            |
+     * | ------------------------ | ----------------- | -------------------------------------- |
+     * | `searchMode` | `'show'` \| `'apply'` | Enable filtering only visible elements |
+     *
+     * If filers is set to `true`, the `searchMode` option is set to `'show'` by default.
      *
      * Read more:
      * - [Column filter](@/guides/columns/column-filter/column-filter.md)
@@ -3369,6 +3516,38 @@ export default () => {
      * ```
      */
     minCols: 0,
+
+    /**
+     * Alias for the [`rowHeights`](#rowHeights) option.
+     *
+     * See the [`rowHeights`](#rowHeights) option description for more information.
+     *
+     * @since 16.2.0
+     * @memberof Options#
+     * @type {number|number[]|string|string[]|Array<undefined>|Function}
+     * @default undefined
+     * @category Core
+     *
+     * @example
+     * ```js
+     * // set every row's minimum height to 100px
+     * minRowHeights: 100,
+     *
+     * // set every row's minimum height to 100px
+     * minRowHeights: '100px',
+     *
+     * // set the first (by visual index) row's minimum height to 100
+     * // set the second (by visual index) row's minimum height to 120
+     * // set any other row's minimum height to the default height value
+     * minRowHeights: [100, 120],
+     *
+     * // set each row's minimum height individually, using a function
+     * minRowHeights(visualRowIndex) {
+     *   return visualRowIndex * 10;
+     * },
+     * ```
+     */
+    minRowHeights: undefined,
 
     /**
      * The `minRows` option sets a minimum number of rows.

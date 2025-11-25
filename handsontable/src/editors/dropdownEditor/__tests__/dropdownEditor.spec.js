@@ -694,6 +694,64 @@ describe('DropdownEditor', () => {
 
       expect($(dropdown).is(':visible')).toBe(true);
     });
+
+    it('should not save the value, when closing the editor by clicking on the table', async() => {
+      handsontable({
+        columns: [
+          {
+            editor: 'dropdown',
+            source: choices
+          },
+          {},
+          {}
+        ]
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+      await sleep(50);
+
+      const editor = $('.handsontableInput');
+
+      editor.val('ora');
+      await keyDownUp('o');
+      await keyDownUp('r');
+      await keyDownUp('a');
+
+      await sleep(50);
+
+      spec().$container.find('tbody tr:eq(1) td:eq(2)').simulate('mousedown');
+
+      expect(getDataAtCell(0, 0)).toEqual(null);
+    });
+
+    it('should not save the value, when closing the editor by clicking outside of the table', async() => {
+      const syncSources = jasmine.createSpy('syncSources');
+
+      syncSources.and.callFake((query, process) => {
+        process(choices);
+      });
+
+      handsontable({
+        columns: [
+          {
+            editor: 'dropdown',
+            source: syncSources
+          }
+        ]
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+      await sleep(50);
+
+      const editor = $('.handsontableInput');
+
+      editor.val('foo');
+      $('body').simulate('mousedown');
+
+      expect(getDataAtCell(0, 0)).toEqual(null);
+    });
   });
 
   it('should mark all invalid values as invalid, after pasting them into dropdown-type cells', async() => {
@@ -771,6 +829,24 @@ describe('DropdownEditor', () => {
 
     await keyDownUp('o');
 
+    expect(document.activeElement).toBe(activeElement);
+  });
+
+  it('should keep the focus on the input when editor value is empty', async() => {
+    handsontable({
+      columns: [
+        { type: 'dropdown', source: choices }
+      ],
+    });
+
+    await selectCell(0, 0);
+    await keyDownUp('enter');
+    await sleep(10);
+
+    const editor = getActiveEditor();
+    const activeElement = getActiveEditor().TEXTAREA;
+
+    expect(editor.htEditor.getSelectedLast()).toBe(undefined);
     expect(document.activeElement).toBe(activeElement);
   });
 

@@ -7,12 +7,9 @@ import { announce } from '../../utils/a11yAnnouncer';
 import { createPaginatorStrategy } from './strategies';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
-import { createPaginationFocusController } from './focusController';
-import { installFocusDetector } from '../../utils/focusDetector';
 
 export const PLUGIN_KEY = 'pagination';
 export const PLUGIN_PRIORITY = 900;
-const SHORTCUTS_GROUP = PLUGIN_KEY;
 const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
 
 const AUTO_PAGE_SIZE_WARNING = toSingleLine`The \`auto\` page size setting requires the \`autoRowSize\`\x20
@@ -161,19 +158,6 @@ export class Pagination extends BasePlugin {
    */
   #internalRenderCall = false;
   /**
-   * Pagination focus controller instance.
-   *
-   * @type {PaginationController}
-   */
-  #focusController = null;
-  /**
-   * Pagination focus detector instance.
-   *
-   * @type {object}
-   */
-  #focusDetector = null;
-
-  /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` than the {@link Pagination#enablePlugin} method is called.
    *
@@ -231,42 +215,9 @@ export class Pagination extends BasePlugin {
         .addLocalHook('prevPageClick', () => this.prevPage())
         .addLocalHook('nextPageClick', () => this.nextPage())
         .addLocalHook('lastPageClick', () => this.lastPage())
-        .addLocalHook('pageSizeChange', pageSize => this.setPageSize(pageSize))
-        .addLocalHook('focus', (element) => {
-          this.#focusController
-            .setCurrentPage(this.#ui.getFocusableElements().indexOf(element));
-          this.hot.unlisten();
-          this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
-          this.hot.listen();
-          this.#focusDetector.deactivate();
-        });
+        .addLocalHook('pageSizeChange', pageSize => this.setPageSize(pageSize));
+
     }
-
-    if (!this.#focusController) {
-      this.#focusController = createPaginationFocusController({
-        focusableElements: () => this.#ui.getFocusableElements(),
-      });
-    }
-
-    if (!this.#focusDetector) {
-      this.#focusDetector = installFocusDetector(this.hot, this.#ui.getContainer(), {
-        onFocus: (from) => {
-          this.hot.getShortcutManager().setActiveContextName(SHORTCUTS_CONTEXT_NAME);
-          this.hot.listen();
-
-          if (from === 'from_above') {
-            this.#focusController.toFirstItem();
-          } else {
-            this.#focusController.toLastItem();
-          }
-
-          this.#focusDetector.deactivate();
-        },
-      });
-    }
-
-    this.#registerEvents();
-    this.#registerShortcuts();
 
     // Place the onInit hook before others to make sure that the pagination state is computed
     // and applied to the index mapper before AutoColumnSize plugin begins calculate the column sizes.
@@ -280,13 +231,12 @@ export class Pagination extends BasePlugin {
     this.addHook('afterRender', (...args) => this.#onAfterRender(...args));
     this.addHook('afterScrollVertically', (...args) => this.#onAfterScrollVertically(...args));
     this.addHook('afterLanguageChange', (...args) => this.#onAfterLanguageChange(...args));
-    this.addHook('modifyRowHeight', (...args) => this.#onModifyRowHeight(...args));
     this.addHook('beforeHeightChange', (...args) => this.#onBeforeHeightChange(...args));
     this.addHook('afterSetTheme', (...args) => this.#onAfterSetTheme(...args));
-    this.addHook('afterDialogShow', (...args) => this.#onAfterDialogShow(...args));
-    this.addHook('beforeDialogHide', (...args) => this.#onAfterDialogHide(...args));
 
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onIndexCacheUpdate);
+
+    this.#registerFocusScope();
 
     super.enablePlugin();
   }
@@ -311,86 +261,12 @@ export class Pagination extends BasePlugin {
       .removeLocalHook('cacheUpdated', this.#onIndexCacheUpdate)
       .unregisterMap(this.pluginName);
 
+    this.#unregisterFocusScope();
+
     this.#ui.destroy();
     this.#ui = null;
-    this.#unregisterShortcuts();
 
     super.disablePlugin();
-  }
-
-  /**
-   * Bind the events used by the plugin.
-   */
-  #registerEvents() {
-    // TODO: move to general focus manager module
-    this.eventManager.addEventListener(this.hot.rootDocument, 'mouseup', (event) => {
-      const container = this.#ui.getContainer();
-
-      if (
-        !container.contains(event.target) &&
-        this.hot.getShortcutManager().getActiveContextName() === SHORTCUTS_CONTEXT_NAME
-      ) {
-        this.#focusDetector.activate();
-        this.#focusController.clear();
-        this.hot.getShortcutManager().setActiveContextName('grid');
-      }
-    });
-  }
-
-  /**
-   * Register shortcuts responsible for navigating through the pagination.
-   */
-  #registerShortcuts() {
-    const manager = this.hot.getShortcutManager();
-    const pluginContext = manager.getContext(SHORTCUTS_CONTEXT_NAME) ??
-      manager.addContext(SHORTCUTS_CONTEXT_NAME, 'global');
-
-    pluginContext.addShortcut({
-      keys: [['Shift', 'Tab'], ['Tab']],
-      preventDefault: false,
-      callback: (event) => {
-        let previousIndex = this.#focusController.getCurrentPage();
-
-        if (event.shiftKey) {
-          this.#focusController.toPreviousItem();
-
-          const currentPage = this.#focusController.getCurrentPage();
-
-          if (currentPage >= previousIndex) {
-            this.#unFocusPagination();
-
-            return;
-          }
-
-          previousIndex = currentPage;
-        } else {
-          this.#focusController.toNextItem();
-
-          const currentPage = this.#focusController.getCurrentPage();
-
-          if (currentPage <= previousIndex) {
-            this.#unFocusPagination();
-
-            return;
-          }
-
-          previousIndex = currentPage;
-        }
-
-        event.preventDefault();
-      },
-      group: SHORTCUTS_GROUP,
-    });
-  }
-
-  /**
-   * Unregister shortcuts responsible for navigating through the pagination.
-   */
-  #unregisterShortcuts() {
-    const shortcutManager = this.hot.getShortcutManager();
-    const pluginContext = shortcutManager.getContext(SHORTCUTS_CONTEXT_NAME);
-
-    pluginContext.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   /**
@@ -720,11 +596,14 @@ export class Pagination extends BasePlugin {
         return view.getViewportHeight() - scrollbarWidth;
       },
       itemsSizeProvider: () => {
-        const defaultRowHeight = stylesHandler.getDefaultRowHeight();
         const rowHeights = this.hot.rowIndexMapper
           .getRenderableIndexes()
-          .map(physicalIndex => this.hot
-            .getRowHeight(this.hot.toVisualRow(physicalIndex)) ?? defaultRowHeight);
+          .map((physicalIndex) => {
+            const visualRowIndex = this.hot.toVisualRow(physicalIndex);
+
+            return this.hot
+              .getRowHeight(visualRowIndex) ?? stylesHandler.getDefaultRowHeight(visualRowIndex);
+          });
 
         return rowHeights;
       },
@@ -759,15 +638,6 @@ export class Pagination extends BasePlugin {
       ...paginationData,
       totalRenderedRows: renderableRowsLength,
     });
-
-    if (
-      (this.getSetting('showPageSize') || this.getSetting('showNavigation')) &&
-      paginationData.totalPages > 1
-    ) {
-      this.#focusDetector.activate();
-    } else {
-      this.#focusDetector.deactivate();
-    }
   }
 
   /**
@@ -796,6 +666,36 @@ export class Pagination extends BasePlugin {
     } = this.getPaginationData();
 
     return view.getLastFullyVisibleRow() !== lastVisibleRowIndex;
+  }
+
+  /**
+   * Registers the focus scope for the pagination plugin.
+   */
+  #registerFocusScope() {
+    this.hot.getFocusScopeManager()
+      .registerScope(PLUGIN_KEY, this.#ui.getContainer(), {
+        shortcutsContextName: SHORTCUTS_CONTEXT_NAME,
+        runOnlyIf: () => this.getSetting('showPageSize') || this.getSetting('showNavigation'),
+        onActivate: (focusSource) => {
+          const focusableElements = this.#ui.getFocusableElements();
+
+          if (focusableElements.length > 0) {
+            if (focusSource === 'tab_from_above') {
+              focusableElements.at(0).focus();
+
+            } else if (focusSource === 'tab_from_below') {
+              focusableElements.at(-1).focus();
+            }
+          }
+        },
+      });
+  }
+
+  /**
+   * Unregisters the focus scope for the pagination plugin.
+   */
+  #unregisterFocusScope() {
+    this.hot.getFocusScopeManager().unregisterScope(PLUGIN_KEY);
   }
 
   /**
@@ -881,31 +781,6 @@ export class Pagination extends BasePlugin {
 
       pastedData.splice(0, rowsToRemove);
     });
-  }
-
-  /**
-   * Called when the row height is modified. It adds 1px border top compensation for
-   * the first row of the each page to make sure that the table's hider element
-   * height is correctly calculated.
-   *
-   * @param {number | undefined} height Row height.
-   * @param {number} row Visual row index.
-   * @returns {number}
-   */
-  #onModifyRowHeight(height, row) {
-    if (height === undefined || !this.#calcStrategy.getState(this.#currentPage)) {
-      return;
-    }
-
-    const {
-      firstVisibleRowIndex,
-    } = this.getPaginationData();
-
-    if (row !== 0 && row === firstVisibleRowIndex) {
-      height += 1; // 1px border top compensation for the first row of the page.
-    }
-
-    return height;
   }
 
   /**
@@ -1019,30 +894,6 @@ export class Pagination extends BasePlugin {
     if (!this.#internalExecutionCall && this.hot?.view) {
       this.#computeAndApplyState();
     }
-  }
-
-  /**
-   * Unfocuses the pagination and sets the active context for the shortcuts.
-   */
-  #unFocusPagination() {
-    this.#focusDetector.activate();
-    this.#focusController.clear();
-    this.hot.unlisten();
-    this.hot.getShortcutManager().setActiveContextName('grid');
-  }
-
-  /**
-   * Called after the dialog is shown. It sets the active context for the shortcuts.
-   */
-  #onAfterDialogShow() {
-    this.#focusDetector.deactivate();
-  }
-
-  /**
-   * Called after the dialog is hidden. It sets the active context for the shortcuts.
-   */
-  #onAfterDialogHide() {
-    this.#focusDetector.activate();
   }
 
   /**

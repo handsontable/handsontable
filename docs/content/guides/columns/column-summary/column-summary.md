@@ -21,6 +21,7 @@ angular:
   metaTitle: Column summary - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
+menuTag: updated
 ---
 
 # Column summary
@@ -799,8 +800,9 @@ The [`roundFloat`](@/api/columnSummary.md) option accepts the following values:
 | Integer 0-100 (n) | Round the result to n digits after the decimal point.   |
 | Integer < 0       | Round the result to 0 digits after the decimal point.   |
 | Integer > 100     | Round the result to 100 digits after the decimal point. |
+| `'auto'`          | Automatically adjust the number of digits after the decimal point so the entire number fits into 8 digits. |
 
-If you enable [`roundFloat`](@/api/columnSummary.md), the data type returned by Handsontable's data-retrieving methods 
+If you enable [`roundFloat`](@/api/columnSummary.md), the data type returned by Handsontable's data-retrieving methods
 (like [`getDataAtCell()`](@/api/core.md#getdataatcell)) changes from `number` to `string`.
 
 ## Handle non-numeric values

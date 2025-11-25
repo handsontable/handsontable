@@ -29,7 +29,9 @@
     if ( this[ method ] ) {
       this[ method ]();
     } else {
-      this.simulateEvent( elem, type, options );
+      const event = this.simulateEvent( elem, type, options );
+
+      $(elem).data("simulate-event", event);
     }
   };
 
@@ -71,7 +73,10 @@
 
     simulateEvent: function( elem, type, options ) {
       var event = this.createEvent( type, options );
+
       this.dispatchEvent( elem, type, event, options );
+
+      return event;
     },
 
     createEvent: function( type, options ) {

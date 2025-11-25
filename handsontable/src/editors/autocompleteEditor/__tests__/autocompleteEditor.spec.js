@@ -1824,7 +1824,7 @@ describe('AutocompleteEditor', () => {
       expect(getDataAtCell(0, 0)).toEqual('foo');
     });
 
-    it('should allow any value in non strict mode (close editor by clicking on table)', async() => {
+    it('should not save the value in non strict mode, when closing the editor by clicking on the table', async() => {
       const syncSources = jasmine.createSpy('syncSources');
 
       syncSources.and.callFake((query, process) => {
@@ -1842,14 +1842,42 @@ describe('AutocompleteEditor', () => {
 
       await selectCell(0, 0);
       await keyDownUp('enter');
-      await sleep(200);
+      await sleep(50);
 
       const editor = $('.handsontableInput');
 
       editor.val('foo');
       spec().$container.find('tbody tr:eq(1) td:eq(0)').simulate('mousedown');
 
-      expect(getDataAtCell(0, 0)).toEqual('foo');
+      expect(getDataAtCell(0, 0)).toEqual(null);
+    });
+
+    it('should not save the value in non strict mode, when closing the editor by clicking outside of the table', async() => {
+      const syncSources = jasmine.createSpy('syncSources');
+
+      syncSources.and.callFake((query, process) => {
+        process(choices);
+      });
+
+      handsontable({
+        columns: [
+          {
+            editor: 'autocomplete',
+            source: syncSources
+          }
+        ]
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+      await sleep(50);
+
+      const editor = $('.handsontableInput');
+
+      editor.val('foo');
+      $('body').simulate('mousedown');
+
+      expect(getDataAtCell(0, 0)).toEqual(null);
     });
 
     it('should save the value from textarea after hitting ENTER', async() => {
@@ -2708,7 +2736,7 @@ describe('AutocompleteEditor', () => {
 
     spec().$container.simulate('mousedown');
 
-    expect(getDataAtCell(0, 0)).toEqual('');
+    expect(getDataAtCell(0, 0)).toEqual(null);
   });
 
   it('should be able to use empty value ("")', async() => {

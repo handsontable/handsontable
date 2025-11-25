@@ -56,7 +56,8 @@ describe('Dialog - afterDialogFocus hook', () => {
     expect(afterDialogFocusSpy).toHaveBeenCalledWith('show');
 
     input.focus();
-    triggerTabNavigationFromTop();
+
+    await keyDownUp('tab');
 
     document.body.removeChild(input);
 
@@ -89,7 +90,8 @@ describe('Dialog - afterDialogFocus hook', () => {
     expect(afterDialogFocusSpy).toHaveBeenCalledWith('show');
 
     input.focus();
-    triggerTabNavigationFromBottom();
+
+    await keyDownUp(['shift', 'tab']);
 
     document.body.removeChild(input);
 

@@ -101,6 +101,8 @@
     // Wrapper
     &.ht-wrapper {
       border-radius: var(--ht-wrapper-border-radius, 0);
+      height: 100%;
+      width: 100%;
 
       &:not(.htFirstDatasetColumnNotRendered) {
         td {
@@ -152,19 +154,6 @@
               height: calc(
                 var(--ht-cell-vertical-padding) * 2 + var(--ht-line-height) + 1px
               )
-            }
-          }
-        }
-
-        &.htGhostTableFirstRow tbody {
-          tr {
-            th,
-            td {
-              border-top-width: 1px;
-              height: calc(
-                var(--ht-cell-vertical-padding) * 2 + var(--ht-line-height) +
-                  2px
-              );
             }
           }
         }
@@ -324,14 +313,15 @@
           }
         }
 
-        // compensates the top border width of the first row
+        // Prevents the first row from "jumping" by adding a pseudo-element
+        // that maintains the minimum height when the cell is empty
         &:first-of-type {
           th,
           td {
-            &:first-child {
-              height: calc(
-                var(--ht-cell-vertical-padding) * 2 + var(--ht-line-height) + 2px
-              );
+            &:first-child:empty::after {
+              content: "";
+              display: block;
+              min-height: var(--ht-line-height);
             }
           }
         }
@@ -348,7 +338,7 @@
           .relative {
             padding: var(--ht-cell-vertical-padding)
               var(--ht-cell-horizontal-padding);
-            height: 100%;
+            min-height: 100%;
           }
         }
 
@@ -385,10 +375,11 @@
               max-width: calc(100% + 1px);
             }
 
+            // compensates the icon + gap + 1px border size
             &:has(.collapsibleIndicator, .changeType) {
               .colHeader {
                 max-width: calc(
-                  100% - (var(--ht-icon-size) + var(--ht-gap-size))
+                  100% - (var(--ht-icon-size) + var(--ht-gap-size)) - 1px
                 );
               }
             }
@@ -612,22 +603,24 @@
       }
     }
 
-    .ht_master.innerBorderTop {
-      tbody {
-        tr:first-child {
-          th,
-          td {
-            border-top-width: 0;
-          }
-        }
-      }
-
-      & ~ .ht_clone_inline_start {
+    &.htAutoRowSize {
+      .ht_master.innerBorderTop {
         tbody {
           tr:first-child {
             th,
             td {
               border-top-width: 0;
+            }
+          }
+        }
+
+        & ~ .ht_clone_inline_start {
+          tbody {
+            tr:first-child {
+              th,
+              td {
+                border-top-width: 0;
+              }
             }
           }
         }

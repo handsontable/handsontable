@@ -176,14 +176,6 @@ export class HotTableWrapperComponent {
 }
 ```
 
-::: tip
-
-`@handsontable/angular-wrapper` requires at least Angular@16. If you use a lower version of Angular, you can use the `@handsontable/angular` package instead.
-
-For more information on `@handsontable/angular`, see the [15.3 documentation](https://handsontable.com/docs/15.3/javascript-data-grid/angular-installation/).
-
-:::
-
 ### Preview the result
 
 ::: example :angular --ts 1 --html 2
@@ -192,6 +184,19 @@ For more information on `@handsontable/angular`, see the [15.3 documentation](ht
 @[code](@/content/guides/getting-started/installation/angular/example1.html)
 
 :::
+
+## Supported versions of Angular
+`@handsontable/angular-wrapper` requires at least Angular@16. If you use a lower version of Angular, you can use the `@handsontable/angular` package instead.
+
+For more information on `@handsontable/angular`, see the [15.3 documentation](https://handsontable.com/docs/15.3/javascript-data-grid/angular-installation/).
+
+| Angular version | Handsontable wrapper                              |
+| ---------------- | ------------------------------------------------ |
+| Older than 16   | [@handsontable/angular](https://www.npmjs.com/package/@handsontable/angular) (deprecated)   |
+| 16 and newer    | [@handsontable/angular-wrapper](https://www.npmjs.com/package/@handsontable/angular-wrapper)        |
+
+### Troubleshooting
+If you're using Angular 21 or newer, please note that older versions of `@handsontable/angular-wrapper` are incompatible due to recent breaking changes in Angular. To ensure smooth integration, upgrade to `@handsontable/angular-wrapper@16.2` or later.
 
 :::
 

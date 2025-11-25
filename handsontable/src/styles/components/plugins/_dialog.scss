@@ -41,7 +41,7 @@
 
     &--background {
       &-solid {
-      background-color: var(--ht-dialog-solid-background-color);
+        background-color: var(--ht-dialog-solid-background-color);
       }
 
       &-semi-transparent {
@@ -66,7 +66,7 @@
       padding: calc(var(--ht-gap-size) * 4);
       border-radius: var(--ht-wrapper-border-radius);
     }
-    
+
     &__content {
       position: relative;
       padding: var(--ht-dialog-content-padding-horizontal) var(--ht-dialog-content-padding-vertical);
@@ -78,6 +78,72 @@
 
         border-radius: var(--ht-dialog-content-border-radius);
         background-color: var(--ht-dialog-content-background-color);
+      }
+    }
+
+    &--confirm {
+      .ht-dialog {
+        &__content-wrapper {
+          text-align: center;
+          padding: calc(var(--ht-gap-size) * 2);
+
+          &-inner {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            max-width: 480px;
+            padding: calc(var(--ht-gap-size) * 2);
+            border-radius: var(--ht-wrapper-border-radius);
+
+            &--background {
+              @include mixins.box-shadow;
+
+              border-radius: var(--ht-dialog-content-border-radius);
+              background-color: var(--ht-dialog-content-background-color);
+            }
+
+            &:focus {
+              outline: none;
+              box-shadow: 0 0 0 1px var(--ht-accent-color);
+            }
+          }
+        }
+
+        &__content {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: var(--ht-gap-size);
+
+          &:has(.ht-dialog__buttons) {
+            gap: calc(var(--ht-gap-size) * 2);
+          }
+        }
+
+        &__title {
+          margin: 0;
+          font-size: var(--ht-font-size);
+          font-weight: var(--ht-font-weight);
+          line-height: var(--ht-line-height);
+        }
+
+        &__description {
+          margin: 0;
+          color: var(--ht-foreground-secondary-color);
+          font-size: var(--ht-font-size-small);
+          line-height: var(--ht-line-height-small);
+          font-weight: var(--ht-font-weight);
+        }
+
+        &__buttons {
+          display: flex;
+          justify-content: center;
+          flex-direction: row;
+          flex-wrap: wrap;
+          gap: calc(var(--ht-gap-size) * 2);
+        }
       }
     }
   }

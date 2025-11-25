@@ -150,6 +150,7 @@ export const getFirstPartiallyVisibleRow = handsontableMethodFactory('getFirstPa
 export const getFirstRenderedVisibleColumn = handsontableMethodFactory('getFirstRenderedVisibleColumn');
 export const getFirstRenderedVisibleRow = handsontableMethodFactory('getFirstRenderedVisibleRow');
 export const getFocusManager = handsontableMethodFactory('getFocusManager');
+export const getFocusScopeManager = handsontableMethodFactory('getFocusScopeManager');
 export const getInstance = handsontableMethodFactory('getInstance');
 export const getLastFullyVisibleColumn = handsontableMethodFactory('getLastFullyVisibleColumn');
 export const getLastFullyVisibleRow = handsontableMethodFactory('getLastFullyVisibleRow');
@@ -233,8 +234,19 @@ export function getDefaultRowHeight() {
     case 'horizon':
       return 37;
     default:
-      return 23; // classic
+      return 23;
   }
+}
+
+/**
+ * @returns {number} Returns the default row height for the first rendered row.
+ */
+export function getFirstRenderedRowDefaultHeight() {
+  if (typeof __ENV_ARGS__.HOT_THEME !== 'undefined' && __ENV_ARGS__.HOT_THEME !== '') {
+    return getDefaultRowHeight() + 1; // 1px for border compensation for the first rendered row
+  }
+
+  return getDefaultRowHeight();
 }
 
 /**
@@ -540,24 +552,6 @@ export function getBottomClone() {
  */
 export function getBottomInlineStartClone() {
   return $(hot().rootElement).find('.ht_clone_bottom_inline_start_corner');
-}
-
-/**
- * Emulates the browser's TAB navigation to the Handsontable (from element above).
- *
- * @param {Handsontable} hotInstance The Handsontable instance to apply the event.
- */
-export function triggerTabNavigationFromTop(hotInstance = hot()) {
-  $(hotInstance.rootWrapperElement).find('.htFocusCatcher').first().focus();
-}
-
-/**
- * Emulates the browser's Shift+TAB navigation to the Handsontable (from element below).
- *
- * @param {Handsontable} hotInstance The Handsontable instance to apply the event.
- */
-export function triggerTabNavigationFromBottom(hotInstance = hot()) {
-  $(hotInstance.rootWrapperElement).find('.htFocusCatcher').last().focus();
 }
 
 /**

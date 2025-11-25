@@ -58,13 +58,9 @@ const ExampleComponent = () => {
       autoWrapCol={true}
       autoRowSize={true}
       dialog={{
-        content: '<h2 id="example6-title">Title</h2><p id="example6-description">Description</p>',
-        a11y: {
-          role: 'alertdialog',
-          ariaLabel: 'Title',
-          ariaLabelledby: 'example6-title',
-          ariaDescribedby: 'example6-description',
-        },
+        content: 'This dialog uses a semi-transparent and content background.',
+        contentBackground: true,
+        background: 'semi-transparent',
         closable: true,
       }}
       licenseKey="non-commercial-and-evaluation"
@@ -83,7 +79,7 @@ const ExampleComponent = () => {
         title="Date"
         type="date"
         data="sellDate"
-        width={130}
+        width={131}
         dateFormat="MMM D, YYYY"
         correctFormat={true}
         className="htRight"

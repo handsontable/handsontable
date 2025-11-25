@@ -7,7 +7,7 @@ import 'handsontable/styles/ht-theme-main.css';
 // register Handsontable's modules
 registerAllModules();
 
-const Table = React.memo(({ hotTableRef, data }) => {
+const Table = ({ hotTableRef, data }) => {
   return (
     <>
       <HotTable
@@ -60,9 +60,9 @@ const Table = React.memo(({ hotTableRef, data }) => {
       </HotTable>
     </>
   );
-});
+};
 
-const ExampleComponent = React.memo(() => {
+const ExampleComponent = () => {
   const hotTableRef = useRef(null);
   const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -112,7 +112,7 @@ const ExampleComponent = React.memo(() => {
 
   return (
     <>
-      <div style={{ marginBottom: '16px', display: 'flex', gaap: '10px' }}>
+      <div style={{ marginBottom: '16px' }}>
         <button id="loadData" onClick={loadData} disabled={isLoading}>
           {data.length > 0 ? 'Reload Data' : 'Load Data'}
         </button>
@@ -120,6 +120,6 @@ const ExampleComponent = React.memo(() => {
       <Table hotTableRef={hotTableRef} data={data} />
     </>
   );
-});
+};
 
 export default ExampleComponent;

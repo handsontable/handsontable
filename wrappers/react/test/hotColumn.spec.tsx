@@ -370,7 +370,7 @@ describe('Dynamic HotColumn configuration changes', () => {
 
 describe('Miscellaneous scenarios with `HotColumn` config', () => {
   it('should validate all cells correctly in a `dropdown`-typed column after populating data through it', async () => {
-    const onAfterValidate = jasmine.createSpy('warn');
+    const onAfterValidate = jest.fn();
     const hotInstance = mountComponentWithRef((
       <HotTable licenseKey="non-commercial-and-evaluation"
                 data={[['yellow'], ['white'], ['orange']]}

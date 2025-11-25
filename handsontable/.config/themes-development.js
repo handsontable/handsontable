@@ -34,7 +34,7 @@ module.exports.create = function create(envArgs) {
     c.plugins.push(
       new RemoveEmptyScriptsPlugin(),
       new MiniCssExtractPlugin({
-        filename: '../styles/ht-theme-[name].css',
+        filename: '../styles/ht-[name].css',
       }),
     );
   });

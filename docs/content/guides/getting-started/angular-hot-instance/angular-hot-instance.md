@@ -24,7 +24,7 @@ Reference a Handsontable instance from within a Angular component, to programmat
 
 ## Use Handsontable's API
 
-You can programmatically change the internal state of Handsontable beyond what's possible with props. To do this, call the API methods of the relevant Handsontable instance associated with your instance of the [`HotTable`](@/guides/getting-started/installation/installation.md#use-the-hottable-component) component. Access to the Handsontable instance can be obtained as early as in the `ngAfterViewInit()` lifecycle hook by using the `@ViewChild` decorator, which holds a reference to the wrapper component.
+You can programmatically change the internal state of Handsontable beyond what's possible with props. To do this, call the API methods of the relevant Handsontable instance associated with your instance of the [`HotTableComponent`](@/guides/getting-started/installation/installation.md#use-the-hottable-component). Access to the Handsontable instance can be obtained as early as in the `ngAfterViewInit()` lifecycle hook by using the `@ViewChild` decorator, which holds a reference to the wrapper component.
 
 The following example implements the [`HotTable`](@/guides/getting-started/installation/installation.md#use-the-hottable-component) component showing how to reference the Handsontable instance from the wrapper component.
 

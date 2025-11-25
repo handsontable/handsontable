@@ -77,6 +77,8 @@ var _handsontable = _interopRequireDefault(__webpack_require__(2));
 const C = _handsontable.default.languages.dictionaryKeys;
 const dictionary = {
   languageCode: 'pl-PL',
+  [C.OK]: 'OK',
+  [C.CANCEL]: 'Anuluj',
   [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'Brak dostępnych opcji',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Wstaw wiersz powyżej',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Wstaw wiersz poniżej',
@@ -164,7 +166,12 @@ const dictionary = {
   [C.PAGINATION_LAST_PAGE]: 'Przejdź do ostatniej strony',
   [C.CHECKBOX_CHECKED]: 'Zaznaczony',
   [C.CHECKBOX_UNCHECKED]: 'Odznaczony',
-  [C.LOADING_TITLE]: 'Ładowanie...'
+  [C.LOADING_TITLE]: 'Ładowanie...',
+  [C.EMPTY_DATA_STATE_TITLE]: 'Brak dostępnych danych',
+  [C.EMPTY_DATA_STATE_DESCRIPTION]: 'Nie ma jeszcze nic do wyświetlenia.',
+  [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'Nie znaleziono wyników',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'Wygląda na to, że Twoje obecne filtry ukrywają wszystkie wyniki.',
+  [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Resetuj filtry'
 };
 _handsontable.default.languages.registerLanguageDictionary(dictionary);
 var _default = exports["default"] = dictionary;

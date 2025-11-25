@@ -9,6 +9,10 @@ import * as C from '../constants';
 
 const dictionary = {
   languageCode: 'lv-LV',
+
+  [C.OK]: 'Labi',
+  [C.CANCEL]: 'Atcelt',
+
   [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'Nav pieejamu opciju',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Ievietot rindu augšā',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Ievietot rindu apakšā',
@@ -112,6 +116,12 @@ const dictionary = {
   [C.PAGINATION_LAST_PAGE]: 'Pāriet uz pēdējo lapu',
 
   [C.LOADING_TITLE]: 'Ielādē...',
+
+  [C.EMPTY_DATA_STATE_TITLE]: 'Nav pieejamu datu',
+  [C.EMPTY_DATA_STATE_DESCRIPTION]: 'Vēl nav ko rādīt.',
+  [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'Rezultāti nav atrasti',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'Šķiet, ka jūsu pašreizējie filtri paslēpj visus rezultātus.',
+  [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Atiestatīt filtrus',
 };
 
 export default dictionary;

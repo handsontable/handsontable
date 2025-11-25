@@ -24,6 +24,7 @@ angular:
   metaTitle: Theme Customization - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Styling
+menuTag: updated
 ---
 
 # Theme Customization
@@ -32,7 +33,7 @@ Customize Handsontable's appearance using CSS variables to create consistent the
 
 [[toc]]
 
-CSS variables provide a powerful and flexible way to customize Handsontable's appearance by adjusting design elements such as colors, spacing, borders, and typography to match your application's design system. Those variables gives you granular control over every visual aspect of the data grid, from basic styling to advanced component customization.
+CSS variables provide a powerful and flexible way to customize Handsontable's appearance by adjusting design elements such as colors, spacing, borders, and typography to match your application's design system. These variables give you granular control over every visual aspect of the data grid, from basic styling to advanced component customization.
 
 We provide multiple approaches for leveraging CSS variables to create any look that your designer can imagine. From quick theme modifications to completely custom designs, your options include:
 
@@ -44,7 +45,7 @@ The data grid's styling system is built entirely on CSS variables, with over 200
 
 ## Usage Examples
 
-### Basic theme customization by overriding css variables
+### Basic theme customization by overriding CSS variables
 
 Follow these [steps](@/guides/styling/themes/themes.md#use-a-theme) to apply a theme, then override the variables for your chosen theme.
 
@@ -84,9 +85,11 @@ Creating a custom theme is straightforward. You just need a local clone of the [
 
 #### 1. Create a new SCSS file
 
-Start by copying one of the SCSS files in the `handsontable/src/styles/themes` directory, such as [`main.scss`](https://github.com/handsontable/handsontable/blob/develop/handsontable/src/styles/themes/main.scss). Rename it to something unique for your project. For this example, let's name the new theme `falcon.scss`.
+Start by copying one of the existing SCSS theme files from `handsontable/src/styles/themes`, for example [`theme-main.scss`](https://github.com/handsontable/handsontable/blob/develop/handsontable/src/styles/themes/theme-main.scss). Rename the copied file to something unique for your project — in this example, call it `theme-falcon.scss`. The theme filename must include the `theme-` prefix (e.g., `theme-falcon.scss`). The prefix is required for proper theme recognition.
 
-Next, customize the existing variables to match your design requirements. If you need icons, you can use the ones already declared such as the `main` theme icons in this example or create your own icons in the `handsontable/src/styles/themes/utils/[theme]/_icons.scss` directory. To use your custom icons, update the `@use "utils/[theme]/icons";` directive accordingly.
+Next, create a variables file at `utils/falcon/_variables.scss`, based on the existing [`main/_variables.scss`](https://github.com/handsontable/handsontable/blob/develop/handsontable/src/styles/themes/utils/main/_variables.scss) file. Adjust it to match your design requirements.
+
+If your theme needs custom icons, you can either reuse the icons from the main theme or create your own in `utils/falcon/_icons.scss`. To use your custom icons, update the import path in your theme file with `@use "utils/falcon/icons";`.
 
 #### 2. Compile your SCSS file
 
@@ -149,6 +152,51 @@ To create a new theme or modify an existing one in Figma, visit the [Handsontabl
 
 Handsontable provides a comprehensive set of CSS variables that allow you to customize the appearance of every component. These variables are organized into logical categories for easy reference.
 
+### Color Variables
+
+| Variable                                | Description                                    |
+|-----------------------------------------|------------------------------------------------|
+| `--ht-color-transparent-0`              | Fully transparent background (light mode)      |
+| `--ht-color-transparent-80`             | 80% transparent background (light mode)        |
+| `--ht-color-gray-100`                   | Main white background                          |
+| `--ht-color-gray-200`                   | Lightest gray background                       |
+| `--ht-color-gray-250`                   | Very light gray background                     |
+| `--ht-color-gray-300`                   | Light gray border                              |
+| `--ht-color-gray-350`                   | Soft gray                                      |
+| `--ht-color-gray-400`                   | Placeholder and disabled text                  |
+| `--ht-color-gray-500`                   | Read-only or secondary text                    |
+| `--ht-color-gray-800`                   | Main text and icon color                       |
+| `--ht-color-gray-900`                   | Strongest black text                           |
+| `--ht-color-gray-800-40`                | Shadow, overlays - 40% opacity                 |
+| `--ht-color-gray-800-8`                 | Subtle divider or shadow - 8% opacity          |
+| `--ht-color-gray-800-4`                 | Subtle border or background highlight - 4%     |
+| `--ht-color-accent-300`                 | Light accent color                             |
+| `--ht-color-accent-350`                 | Lighter primary accent                         |
+| `--ht-color-accent-400`                 | Main accent color                              |
+| `--ht-color-accent-500`                 | Strong accent color                            |
+| `--ht-color-accent-400-40`              | Accent color at 40% opacity                    |
+| `--ht-color-notification-search`        | Background for search highlights               |
+| `--ht-color-notification-error`         | Background for error notifications             |
+| `--ht-color-notification-success`       | Background for success messages                |
+| `--ht-color-notification-warning`       | Background for warning messages                |
+| `--ht-color-notification-informational` | Background for informational messages          |
+
+### Common Color Variables
+
+| Variable                                | Description                                    |
+|-----------------------------------------|------------------------------------------------|
+| `--ht-common-accent`                    | Reference to accent color                      |
+| `--ht-common-background`                | Main background                                |
+| `--ht-common-foreground`                | Main foreground (text/icons)                   |
+| `--ht-common-border`                    | Default border color                           |
+| `--ht-common-disabled`                  | Disabled color                                 |
+| `--ht-common-read-only`                 | Read-only coloring                             |
+| `--ht-common-placeholder`               | Placeholder text color                         |
+| `--ht-common-shadow`                    | Shadow effect color                            |
+| `--ht-common-background-secondary`      | Secondary background                           |
+| `--ht-common-overlay`                   | Overlay color                                  |
+| `--ht-common-foreground-secondary`      | Secondary foreground (subtle text/icons)       |
+
 ### Typography Variables
 
 | Variable | Description |
@@ -189,6 +237,15 @@ Handsontable provides a comprehensive set of CSS variables that allow you to cus
 | `--ht-shadow-x` | Horizontal offset of shadows |
 | `--ht-shadow-y` | Vertical offset of shadows |
 | `--ht-shadow-blur` | Blur radius of shadows |
+
+### Bar Variables
+
+| Variable | Description |
+|----------|-------------|
+| `--ht-bar-foreground-color` | Foreground color of bar elements |
+| `--ht-bar-background-color` | Background color of bar elements |
+| `--ht-bar-horizontal-padding` | Horizontal padding inside bar elements |
+| `--ht-bar-vertical-padding` | Vertical padding inside bar elements |
 
 ### Cell Border Variables
 

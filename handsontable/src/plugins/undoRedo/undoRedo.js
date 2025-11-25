@@ -1,3 +1,4 @@
+/* eslint-disable jsdoc/require-description-complete-sentence */
 import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
 import { deepClone } from '../../helpers/object';
@@ -332,9 +333,8 @@ export class UndoRedo extends BasePlugin {
     };
 
     /**
-     * {@link UndoRedo#undo}.
-     *
      * @alias undo
+     * @deprecated This method is deprecated and it will be removed from the Core API in the future. Please use the method from the [`UndoRedo`](@/api/undoRedo.md#undo-2) plugin.
      * @memberof! Core#
      */
     this.hot.undo = () => {
@@ -342,9 +342,8 @@ export class UndoRedo extends BasePlugin {
       this.undo();
     };
     /**
-     * {@link UndoRedo#redo}.
-     *
      * @alias redo
+     * @deprecated This method is deprecated and it will be removed from the Core API in the future. Please use the method from the [`UndoRedo`](@/api/undoRedo.md#redo) plugin.
      * @memberof! Core#
      */
     this.hot.redo = () => {
@@ -352,9 +351,8 @@ export class UndoRedo extends BasePlugin {
       this.redo();
     };
     /**
-     * {@link UndoRedo#isUndoAvailable}.
-     *
      * @alias isUndoAvailable
+     * @deprecated This method is deprecated and it will be removed from the Core API in the future. Please use the method from the [`UndoRedo`](@/api/undoRedo.md#isundoavailable) plugin.
      * @memberof! Core#
      * @returns {boolean}
      */
@@ -364,9 +362,8 @@ export class UndoRedo extends BasePlugin {
       return this.isUndoAvailable();
     };
     /**
-     * {@link UndoRedo#isRedoAvailable}.
-     *
      * @alias isRedoAvailable
+     * @deprecated This method is deprecated and it will be removed from the Core API in the future. Please use the method from the [`UndoRedo`](@/api/undoRedo.md#isredoavailable) plugin.
      * @memberof! Core#
      * @returns {boolean}
      */
@@ -376,9 +373,8 @@ export class UndoRedo extends BasePlugin {
       return this.isRedoAvailable();
     };
     /**
-     * {@link UndoRedo#clear}.
-     *
      * @alias clearUndo
+     * @deprecated This method is deprecated and it will be removed from the Core API in the future. Please use the method from the [`UndoRedo`](@/api/undoRedo.md#clear) plugin.
      * @memberof! Core#
      */
     this.hot.clearUndo = () => {
