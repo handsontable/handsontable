@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Stabilize the height of the first row when it's empty",
-  "type": "fixed",
-  "issueOrPR": 11918,
-  "breaking": false,
-  "framework": "none"
-}
