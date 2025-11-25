@@ -68,7 +68,7 @@ For more information about this release see:
 - Fixed an issue with TouchEvent on Firefox. [#11928](https://github.com/handsontable/handsontable/pull/11928)
 - React: Fixed and issue with Collapsible Columns being reset in React wrapper. [#11923](https://github.com/handsontable/handsontable/pull/11923)
 
-### Security
+#### Security
 - Updated dev dependencies to address high-severity vulnerabilities. [#11895](https://github.com/handsontable/handsontable/pull/11895)
 
 ## 16.1.1
