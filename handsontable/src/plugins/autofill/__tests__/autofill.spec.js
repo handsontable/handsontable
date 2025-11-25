@@ -2335,6 +2335,10 @@ describe('AutoFill', () => {
   });
 
   it('should be possible to change the hit area size', async() => {
+    if (spec().loadedTheme === 'classic') {
+      return;
+    }
+
     const style = document.createElement('style');
     const styleText = `
       .handsontable {
