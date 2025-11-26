@@ -1,3 +1,5 @@
+import { isFirefox } from '../../../../helpers/browser';
+
 /**
  * Factory for newly created DOM elements.
  *
@@ -38,6 +40,13 @@ export class NodesPool {
    * @returns {HTMLElement}
    */
   obtain(rowIndex, columnIndex) {
+    // Firefox requires creating new DOM elements instead of reusing pooled nodes to avoid
+    // rendering issues. This bypasses the pooling mechanism and is consistent with the
+    // Firefox-specific renderer adapter used in OrderView.
+    if (isFirefox()) {
+      return this.rootDocument.createElement(this.nodeType);
+    }
+
     const hasColumnIndex = typeof columnIndex === 'number';
     const key = hasColumnIndex ? `${rowIndex}x${columnIndex}` : rowIndex.toString();
 

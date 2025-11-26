@@ -46,6 +46,7 @@ export class RowsRenderer extends BaseRenderer {
     this.orderView = new OrderView(
       rootNode,
       sourceRowIndex => this.nodesPool.obtain(sourceRowIndex),
+      this.nodeType,
     );
   }
 

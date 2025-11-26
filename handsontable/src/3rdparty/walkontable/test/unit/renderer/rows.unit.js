@@ -19,7 +19,7 @@ describe('RowsRenderer', () => {
     const { renderer, rootNode } = createRenderer();
 
     expect(renderer.nodeType).toBe('TR');
-    expect(renderer.orderView.constructor).toHaveBeenCalledWith(rootNode, jasmine.any(Function));
+    expect(renderer.orderView.constructor).toHaveBeenCalledWith(rootNode, jasmine.any(Function), 'TR');
   });
 
   it('should get rendered node through orderView method', () => {
