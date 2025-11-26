@@ -172,10 +172,11 @@ class Overlays {
     // TODO refactoring: probably invalid place to this logic
     this.scrollbarSize = getScrollbarWidth(rootDocument);
 
-    const isOverflowHidden = rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode)
-      .getPropertyValue('overflow') === 'hidden';
+    const computedOverflow = rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode)
+      .getPropertyValue('overflow');
+    const isOverflowClip = computedOverflow === 'hidden' || computedOverflow === 'clip';
 
-    this.scrollableElement = isOverflowHidden ? wtTable.holder : getScrollableElement(wtTable.TABLE);
+    this.scrollableElement = isOverflowClip ? wtTable.holder : getScrollableElement(wtTable.TABLE);
 
     this.initOverlays();
 
@@ -609,8 +610,11 @@ class Overlays {
     }
     const { wtTable } = this;
     const { rootWindow } = this.domBindings;
+    const computedOverflow = rootWindow
+      .getComputedStyle(wtTable.wtRootElement.parentNode)
+      .getPropertyValue('overflow');
 
-    if (rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode).getPropertyValue('overflow') === 'hidden') {
+    if (computedOverflow === 'hidden' || computedOverflow === 'clip') {
       this.scrollableElement = wtTable.holder;
     } else {
       this.scrollableElement = getScrollableElement(wtTable.TABLE);

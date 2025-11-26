@@ -96,6 +96,20 @@ describe('WalkontableInFlexContainer', () => {
     expect($('.ht_master').height()).not.toBe(0);
   });
 
+  it('should display walkontable properly (`overflow` property set to `clip` for some container) #10005', async() => {
+    spec().$cardBody.css({ overflow: 'clip' });
+
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns
+    });
+
+    wt.draw();
+
+    expect($('.ht_master').height()).not.toBe(0);
+  });
+
   it('should display walkontable properly (`overflow` property set to `scroll` for some container) #10005', async() => {
     spec().$cardBody.css({ overflow: 'scroll' });
 
