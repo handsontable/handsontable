@@ -1,6 +1,7 @@
 import { SharedOrderView } from 'walkontable/utils/orderView/sharedView';
 import { ViewSizeSet } from 'walkontable/utils/orderView/viewSizeSet';
 import { ViewDiffer } from 'walkontable/utils/orderView/viewDiffer';
+import { StandardRendererAdapter } from 'walkontable/utils/orderView/rendererAdapter/standardRendererAdapter';
 
 function createOrderView() {
   const rootNode = document.createElement('tr');
@@ -19,7 +20,8 @@ describe('SharedOrderView', () => {
     expect(orderView.sizeSet).toBeInstanceOf(ViewSizeSet);
     expect(orderView.collectedNodes).toEqual([]);
     expect(orderView.viewDiffer).toBeInstanceOf(ViewDiffer);
-    expect(orderView.leads).toEqual([]);
+    expect(orderView.rendererAdapter).toBeInstanceOf(StandardRendererAdapter);
+    expect(orderView.rendererAdapter.leads).toEqual([]);
   });
 
   it('should correctly prepend another OrderView to this instance', () => {
