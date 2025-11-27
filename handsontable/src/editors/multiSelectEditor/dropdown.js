@@ -1,8 +1,8 @@
-import { mixin } from '../../helpers/object';
+import { hasOwnProperty, isObject, mixin } from '../../helpers/object';
 import localHooks from '../../mixins/localHooks';
 import { addClass, removeClass } from '../../helpers/dom/element';
-import { getCheckboxElement } from './utils/utils';
-
+import { getCheckboxElement, includesValue } from './utils/utils';
+import EventManager from '../../eventManager';
 /**
  * Renders and manages the dropdown list used by the `MultiSelectEditor`.
  * Responsible for rendering checkbox rows and emitting hooks when values change.
@@ -32,6 +32,13 @@ export class DropdownElement {
   #rootDocument = null;
 
   /**
+   * Event manager for handling checkbox change events.
+   *
+   * @type {EventManager}
+   */
+  #eventManager = new EventManager(this);
+
+  /**
    * Creates a dropdown renderer attached to the provided container.
    *
    * @param {HTMLDivElement} containerElement Host element created by the editor.
@@ -56,11 +63,11 @@ export class DropdownElement {
   /**
    * Populates the dropdown with provided entries and marks selected ones.
    *
-   * @param {Array<*>|Array<Array<*>>} entries Collection of primitive values or `[value, label]` tuples.
+   * @param {string[]|{key: string, value: string}[]} entries Collection of primitive values or `[value, label]` tuples.
    * @param {Array<*>} [checkedValues=[]] Values that should be rendered as checked.
    */
   fillDropdown(entries, checkedValues = []) {
-    this.#removeAllDropdownItems();
+    this.removeAllDropdownItems();
 
     if (!Array.isArray(checkedValues)) {
       checkedValues = [];
@@ -70,16 +77,16 @@ export class DropdownElement {
       let itemValue = null;
       let itemLabel = null;
 
-      if (Array.isArray(elem)) {
-        itemValue = elem[0];
-        itemLabel = elem[1];
+      if (isObject(elem) && hasOwnProperty(elem, 'key') && hasOwnProperty(elem, 'value')) {
+        itemValue = elem.key;
+        itemLabel = elem.value;
 
       } else {
         itemValue = elem;
         itemLabel = elem;
       }
 
-      this.#addDropdownItem(itemValue, itemLabel, checkedValues.includes(itemValue));
+      this.#addDropdownItem(itemValue, itemLabel, includesValue(checkedValues, elem));
     });
   }
 
@@ -120,11 +127,11 @@ export class DropdownElement {
   /**
    * Creates a single dropdown row with a checkbox and label.
    *
-   * @param {*} itemValue Value passed back to the editor when toggled.
-   * @param {*} itemLabel Text shown next to the checkbox.
+   * @param {*} itemKey Key stored in the associated checkbox dataset.
+   * @param {*} itemValue Text shown next to the checkbox.
    * @returns {HTMLLIElement}
    */
-  #createListItemElement(itemValue, itemLabel) {
+  #createListItemElement(itemKey, itemValue) {
     const itemElement = this.#rootDocument.createElement('li');
     const innerContainer = this.#rootDocument.createElement('div');
     const checkboxElement = this.#rootDocument.createElement('input');
@@ -132,10 +139,11 @@ export class DropdownElement {
 
     checkboxElement.id = `htMultiSelectItem-${itemValue}`;
     checkboxElement.type = 'checkbox';
+    checkboxElement.dataset.key = itemKey;
     checkboxElement.dataset.value = itemValue;
 
     labelElement.htmlFor = checkboxElement.id;
-    labelElement.textContent = itemLabel;
+    labelElement.textContent = itemValue;
 
     innerContainer.appendChild(checkboxElement);
     innerContainer.appendChild(labelElement);
@@ -147,15 +155,15 @@ export class DropdownElement {
   /**
    * Adds a single row to the dropdown and optionally marks it as checked.
    *
-   * @param {*} itemValue Value stored in the associated checkbox dataset.
-   * @param {*} itemLabel Text content rendered next to the checkbox.
+   * @param {*} itemKey Key stored in the associated checkbox dataset.
+   * @param {*} itemValue Text content rendered next to the checkbox.
    * @param {boolean} [checked=false] Flag indicating whether the checkbox starts selected.
    */
-  #addDropdownItem(itemValue, itemLabel, checked = false) {
-    const itemElement = this.#createListItemElement(itemValue, itemLabel);
+  #addDropdownItem(itemKey, itemValue, checked = false) {
+    const itemElement = this.#createListItemElement(itemKey, itemValue);
 
     if (checked) {
-      this.#selectItem(itemElement);
+      this.selectItem(itemElement);
     }
 
     this.#registerEvents(itemElement);
@@ -166,7 +174,7 @@ export class DropdownElement {
   /**
    * Removes all dropdown rows.
    */
-  #removeAllDropdownItems() {
+  removeAllDropdownItems() {
     this.dropdownListElement.innerHTML = '';
   }
 
@@ -175,7 +183,7 @@ export class DropdownElement {
    *
    * @param {HTMLLIElement} itemElement Dropdown row element.
    */
-  #selectItem(itemElement) {
+  selectItem(itemElement) {
     const checkbox = getCheckboxElement(itemElement);
 
     addClass(itemElement, 'htItemSelected');
@@ -190,7 +198,7 @@ export class DropdownElement {
    *
    * @param {HTMLLIElement} itemElement Dropdown row element.
    */
-  #deselectItem(itemElement) {
+  deselectItem(itemElement) {
     const checkbox = getCheckboxElement(itemElement);
 
     removeClass(itemElement, 'htItemSelected');
@@ -201,6 +209,15 @@ export class DropdownElement {
   }
 
   /**
+   * Deselects all items in the dropdown.
+   */
+  deselectAllItems() {
+    this.dropdownListElement.querySelectorAll('.htItemSelected').forEach(itemElement => {
+      this.deselectItem(itemElement);
+    });
+  }
+
+  /**
    * Wires checkbox change events to toggle selection and emit hooks.
    *
    * @param {HTMLLIElement} itemElement Dropdown row element.
@@ -208,16 +225,16 @@ export class DropdownElement {
   #registerEvents(itemElement) {
     const checkbox = getCheckboxElement(itemElement);
 
-    checkbox.addEventListener('change', (event) => {
+    this.#eventManager.addEventListener(checkbox, 'change', (event) => {
       if (checkbox.checked) {
-        this.#selectItem(itemElement);
+        this.selectItem(itemElement);
 
-        this.runLocalHooks('dropdownItemChecked', checkbox.dataset.value);
+        this.runLocalHooks('dropdownItemChecked', checkbox.dataset.key, checkbox.dataset.value);
 
       } else {
-        this.#deselectItem(itemElement);
+        this.deselectItem(itemElement);
 
-        this.runLocalHooks('dropdownItemUnchecked', checkbox.dataset.value);
+        this.runLocalHooks('dropdownItemUnchecked', checkbox.dataset.key, checkbox.dataset.value);
       }
     });
   }

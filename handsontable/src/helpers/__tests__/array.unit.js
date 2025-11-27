@@ -345,6 +345,28 @@ describe('Array helper', () => {
         )).toStrictEqual(['class-3']);
       });
     });
+
+    describe('works with arrays of objects and comparator as last argument', () => {
+      it('should return intersecting objects using a custom comparator for two arrays.', () => {
+        const array1 = [{ id: 1 }, { id: 2 }, { id: 3 }];
+        const array2 = [{ id: 2 }, { id: 3 }, { id: 4 }];
+        const comparator = (a, b) => a.id === b.id;
+
+        const result = getIntersectionOfArrays(array1, array2, comparator);
+        expect(result).toEqual([{ id: 2 }, { id: 3 }]);
+      });
+
+      it('should return intersecting objects using a custom comparator for more than two arrays.', () => {
+        const array1 = [{ id: 1, name: 'A' }, { id: 2, name: 'B' }, { id: 3, name: 'C' }, { id: 4, name: 'D' }];
+        const array2 = [{ id: 3, name: 'C' }, { id: 4, name: 'D' }];
+        const array3 = [{ id: 3, name: 'C' }, { id: 4, name: 'D' }, { id: 5, name: 'E' }];
+        const comparator = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+
+        const result = getIntersectionOfArrays(array1, array2, array3, comparator);
+
+        expect(result).toEqual([{ id: 3, name: 'C' }, { id: 4, name: 'D' }]);
+      });
+    });
   });
 
   //

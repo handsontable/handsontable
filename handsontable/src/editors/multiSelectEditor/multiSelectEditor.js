@@ -1,7 +1,13 @@
 import { TextEditor } from '../textEditor';
 import { DropdownElement } from './dropdown';
-import { isJSON } from '../../helpers/string';
-import { arrayToString } from '../../helpers/array';
+import { SelectedItemsController } from './utils/selectedItemsController';
+import {
+  getValuesFromTextarea,
+  getItemElementByValue,
+  getValuesIntersection,
+  parseStringifiedValue,
+  getSourceItemByValue,
+} from './utils/utils';
 
 const EDITOR_TYPE = 'multiSelect';
 const DROPDOWN_ELEMENT_CSS_CLASSNAME = 'htMultiSelectEditor';
@@ -31,7 +37,7 @@ export class MultiSelectEditor extends TextEditor {
    * @private
    * @type {Set<*>}
    */
-  selectedValues = new Set();
+  selectedItems = new SelectedItemsController();
 
   /**
    * Returns the editor type.
@@ -55,8 +61,8 @@ export class MultiSelectEditor extends TextEditor {
 
     this.dropdown = new DropdownElement(this.dropdownContainerElement);
 
-    this.dropdown.addLocalHook('dropdownItemChecked', (selectedValue) => this.#addSelectedValue(selectedValue));
-    this.dropdown.addLocalHook('dropdownItemUnchecked', (deselectedValue) => this.#removeSelectedValue(deselectedValue));
+    this.dropdown.addLocalHook('dropdownItemChecked', (selectedKey, selectedValue) => this.#addSelectedValue(selectedKey, selectedValue));
+    this.dropdown.addLocalHook('dropdownItemUnchecked', (deselectedKey, deselectedValue) => this.#removeSelectedValue(deselectedKey, deselectedValue));
   }
 
   /**
@@ -72,11 +78,13 @@ export class MultiSelectEditor extends TextEditor {
   prepare(row, col, prop, td, value, cellProperties) {
     super.prepare(row, col, prop, td, value, cellProperties);
 
-    const valuesArray = isJSON(value) ? JSON.parse(value) : [];
+    const parsedValue = parseStringifiedValue(value);
+    const valuesArray = Array.isArray(parsedValue) ? parsedValue : [parsedValue];
+    const valuesIntersection = getValuesIntersection(valuesArray, this.cellProperties.source);
 
-    this.#syncSelectedValues(valuesArray);
+    this.#syncSelectedValues(valuesIntersection);
 
-    this.dropdown.fillDropdown(this.cellProperties.source, valuesArray);
+    this.dropdown.fillDropdown(this.cellProperties.source, valuesIntersection);
     this.dropdown.updateDimensions(this.cellProperties.source.length, this.#getEditorSetting('visibleRows'));
   }
 
@@ -89,12 +97,53 @@ export class MultiSelectEditor extends TextEditor {
    */
   finishEditing(restoreOriginalValue, ctrlDown, callback) {
     if (!restoreOriginalValue) {
-      this.setValue(JSON.stringify(Array.from(this.selectedValues)));
+      this.setValue(this.selectedItems.stringifyValues());
     }
 
     return super.finishEditing(restoreOriginalValue, ctrlDown, callback);
   }
 
+  /**
+   * Binds events to the editor.
+   *
+   * @private
+   */
+  bindEvents() {
+    super.bindEvents();
+
+    this.eventManager.addEventListener(this.TEXTAREA, 'keyup', (event) => this.#handleTextareaChange(event));
+  }
+
+
+  /**
+   * Returns the editor's value.
+   *
+   * @returns {string} The editor's value.
+   */
+  getValue() {
+    return this.selectedItems.stringifyItems();
+  }
+  /**
+   * Handles textarea change event.
+   *
+   * @private
+   * @param {*} event The textarea change event.
+   */
+  #handleTextareaChange(event) {
+    const values = getValuesFromTextarea(this.TEXTAREA.value);
+
+    this.selectedItems.clear();
+    this.dropdown.deselectAllItems();
+
+    values?.forEach(value => {
+      const itemElement = getItemElementByValue(value, this.dropdown.dropdownListElement);
+
+      if (itemElement) {
+        this.dropdown.selectItem(itemElement);
+        this.selectedItems.add(getSourceItemByValue(value, this.cellProperties.source));
+      }
+    });
+  }
   // /**
   //  * Register shortcuts responsible for handling editor.
   //  *
@@ -119,10 +168,10 @@ export class MultiSelectEditor extends TextEditor {
    * @private
    * @param {*} selectedValue Value emitted when a dropdown checkbox becomes checked.
    */
-  #addSelectedValue(selectedValue) {
-    this.selectedValues.add(selectedValue);
+  #addSelectedValue(selectedKey, selectedValue) {
+    this.selectedItems.add({ key: selectedKey, value: selectedValue });
 
-    this.setValue(arrayToString(Array.from(this.selectedValues), ', '));
+    this.setValue(this.selectedItems.stringifyValues());
     this.refreshDimensions();
   }
 
@@ -132,10 +181,10 @@ export class MultiSelectEditor extends TextEditor {
    * @private
    * @param {*} deselectedValue Value emitted when a dropdown checkbox becomes unchecked.
    */
-  #removeSelectedValue(deselectedValue) {
-    this.selectedValues.delete(deselectedValue);
+  #removeSelectedValue(deselectedKey, deselectedValue) {
+    this.selectedItems.remove({ key: deselectedKey, value: deselectedValue });
 
-    this.setValue(arrayToString(Array.from(this.selectedValues), ', '));
+    this.setValue(this.selectedItems.stringifyValues());
     this.refreshDimensions();
   }
 
@@ -147,9 +196,10 @@ export class MultiSelectEditor extends TextEditor {
    */
   #syncSelectedValues(valuesArray) {
     if (valuesArray.length > 0) {
-      this.selectedValues = new Set(valuesArray);
+      this.selectedItems = new SelectedItemsController(valuesArray);
+
     } else {
-      this.selectedValues = new Set();
+      this.selectedItems = new SelectedItemsController();
     }
   }
 

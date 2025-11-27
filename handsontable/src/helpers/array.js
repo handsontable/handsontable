@@ -282,14 +282,28 @@ export function getDifferenceOfArrays(...arrays) {
  * Intersection of two or more arrays.
  *
  * @param {...Array} arrays Array of strings or array of numbers.
+ * @param {Function} [comparator] Optional comparator used to match values across arrays.
  * @returns {Array} Returns elements that exists in every array.
  */
-export function getIntersectionOfArrays(...arrays) {
-  const [first, ...rest] = [...arrays];
+export function getIntersectionOfArrays(...args) {
+  const lastArgument = args[args.length - 1];
+  let comparator;
+  let arrays = args;
+
+  if (typeof lastArgument === 'function') {
+    comparator = lastArgument;
+    arrays = arrays.slice(0, -1);
+  }
+
+  const isMatch = comparator
+    ? (value, array) => array.some(item => comparator(value, item))
+    : (value, array) => array.includes(value);
+  const [first, ...rest] = arrays;
   let filteredFirstArray = first;
 
+
   arrayEach(rest, (array) => {
-    filteredFirstArray = filteredFirstArray.filter(value => array.includes(value));
+    filteredFirstArray = filteredFirstArray.filter(value => isMatch(value, array));
   });
 
   return filteredFirstArray;

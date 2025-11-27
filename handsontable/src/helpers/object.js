@@ -428,3 +428,13 @@ export function assignObjectDefaults(target, defaults) {
 
   return result;
 }
+
+/**
+ * Checks if the value is a key/value object.
+ *
+ * @param {*} value The value to check.
+ * @returns {boolean}
+ */
+export function isKeyValueObject(value) {
+  return isObject(value) && isDefined(value.key) && isDefined(value.value);
+}

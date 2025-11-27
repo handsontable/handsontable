@@ -10,7 +10,7 @@ import { arrayToString } from '../../../helpers/array';
  */
 export function valueGetter(value) {
   if (isJSON(value)) {
-    const parsedValue = JSON.parse(value);
+    const parsedValue = JSON.parse(value).map(value => value.value);
 
     if (Array.isArray(parsedValue)) {
       value = arrayToString(parsedValue, ', ');

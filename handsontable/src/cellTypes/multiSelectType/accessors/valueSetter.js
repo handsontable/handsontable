@@ -14,9 +14,8 @@ export function valueSetter(newValue, row, column) {
   const sourceDataAtCell = this.getSourceDataAtCell(this.toPhysicalRow(row), this.toPhysicalColumn(column));
   const isKeyValueObject = obj => isObject(obj) && isDefined(obj.key) && isDefined(obj.value);
 
-  if (isKeyValueObject(sourceDataAtCell)) {
-    return isKeyValueObject(newValue) ? newValue : { key: newValue, value: newValue };
-
+  if (Array.isArray(newValue)) {
+    return newValue.map(value => isKeyValueObject(value) ? value : { key: value, value: value });
   }
 
   return newValue;

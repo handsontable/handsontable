@@ -1,6 +1,6 @@
 import { HandsontableEditor } from '../handsontableEditor';
 import { pivot } from '../../helpers/array';
-import { isObject } from '../../helpers/object';
+import { isKeyValueObject } from '../../helpers/object';
 import {
   addClass,
   getCaretPosition,
@@ -79,7 +79,7 @@ export class AutocompleteEditor extends HandsontableEditor {
     const selectedValue = this.rawChoices.find((value) => {
       const strippedValue = this.stripValueIfNeeded(value);
 
-      return (this.#isKeyValueObject(strippedValue) ? strippedValue.value : strippedValue) === this.TEXTAREA.value;
+      return (isKeyValueObject(strippedValue) ? strippedValue.value : strippedValue) === this.TEXTAREA.value;
     });
 
     if (isDefined(selectedValue)) {
@@ -130,7 +130,7 @@ export class AutocompleteEditor extends HandsontableEditor {
 
     this.htOptions = {
       ...this.htOptions,
-      valueGetter: cellValue => (this.#isKeyValueObject(cellValue) ? cellValue.value : cellValue),
+      valueGetter: cellValue => (isKeyValueObject(cellValue) ? cellValue.value : cellValue),
     };
   }
 
@@ -320,7 +320,7 @@ export class AutocompleteEditor extends HandsontableEditor {
     const sortByRelevanceSetting = this.cellProperties.sortByRelevance;
     const filterSetting = this.cellProperties.filter;
     const value = this.stripValueIfNeeded(this.getValue());
-    const comparableValue = this.#isKeyValueObject(value) ? value.value : value;
+    const comparableValue = isKeyValueObject(value) ? value.value : value;
 
     let highlightIndex = null;
     let choices = choicesList;
@@ -336,7 +336,7 @@ export class AutocompleteEditor extends HandsontableEditor {
 
     for (let i = 0; i < choices.length; i++) {
       const currentItem =
-        this.#isKeyValueObject(choices[i]) ?
+        isKeyValueObject(choices[i]) ?
           stripTags(stringify(choices[i].value)) :
           stripTags(stringify(choices[i]));
       const itemToMatch = filteringCaseSensitive ? currentItem : currentItem.toLocaleLowerCase(locale);
@@ -549,7 +549,7 @@ export class AutocompleteEditor extends HandsontableEditor {
     const { allowHtml } = this.cellProperties;
     const processValue = value => stringify(allowHtml ? value : stripTags(value));
 
-    if (values.every(value => this.#isKeyValueObject(value))) {
+    if (values.every(value => isKeyValueObject(value))) {
       return values.map((value) => {
         return {
           key: processValue(value.key),
@@ -577,16 +577,6 @@ export class AutocompleteEditor extends HandsontableEditor {
         width: this.getTargetEditorWidth() + getScrollbarWidth(this.hot.rootDocument),
       });
     }
-  }
-
-  /**
-   * Checks if the value is a key/value object.
-   *
-   * @param {*} value The value to check.
-   * @returns {boolean}
-   */
-  #isKeyValueObject(value) {
-    return isObject(value) && isDefined(value.key) && isDefined(value.value);
   }
 
   /**
