@@ -863,11 +863,13 @@ To keep the previous behavior you need to use the following workaround:
 ```js
 // manipulate the event that happens before the click on cells
 beforeOnCellMouseDown(event, coords) {
-  // apply only for coordinates that are top left corner outside the grid
+  // apply only for coordinates that are top left corner outside the
+  // grid
   if (coords.col === -1 && coords.row === -1) {
     // stop other event listeners of the same event from being called
     event.stopImmediatePropagation();
-    // use the index mapper method - getVisualFromRenderableIndex on both row and column to choose visual indexes
+    // use the index mapper method - getVisualFromRenderableIndex on
+    // both row and column to choose visual indexes
     // this will result in selecting the first cell in the corner
     const visualRow = this.rowIndexMapper.getVisualFromRenderableIndex(0);
     const visualColumn = this.columnIndexMapper.getVisualFromRenderableIndex(0);

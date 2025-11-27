@@ -130,7 +130,8 @@ hot.batch(() => {
   filters.addCondition(2, 'contains', ['3']);
   filters.filter();
   hot.getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
-  // The table cache will be recalculated and table render will be called once after executing the callback
+  // The table cache will be recalculated and table render will be
+  // called once after executing the callback
 });
 ```
 

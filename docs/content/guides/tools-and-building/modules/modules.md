@@ -150,7 +150,6 @@ Each cell type module contains a different cell type:
     } from 'handsontable/cellTypes';
     ```
 3. Register your cell type module, to let Handsontable recognize it. For example:
-
     ```js
     registerCellType(NumericCellType);
     ```
@@ -749,7 +748,8 @@ import {
   zhTW,
 } from 'handsontable/i18n';
 
-// registering functions that let you quickly register all modules at once
+// registering functions that let you quickly register all modules at
+// once
 import {
   registerAllCellTypes,
   registerAllRenderers,
