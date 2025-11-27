@@ -61,16 +61,6 @@ export class RowsRenderer extends BaseRenderer {
   }
 
   /**
-   * Checks if the the row is marked as "stale" and has to be rerendered.
-   *
-   * @param {number} visualIndex Visual index of the rendered node (it always goeas from 0 to N).
-   * @returns {boolean}
-   */
-  hasStaleContent(visualIndex) {
-    return this.orderView.hasStaleContent(visualIndex);
-  }
-
-  /**
    * Renders the cells.
    */
   render() {
