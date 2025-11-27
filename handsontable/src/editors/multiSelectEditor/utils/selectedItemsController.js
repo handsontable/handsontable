@@ -1,4 +1,4 @@
-import { isObjectEqual } from '../../../helpers/object';
+import { isObjectEqual, isKeyValueObject } from '../../../helpers/object';
 import { arrayToString } from '../../../helpers/array';
 
 /**
@@ -36,12 +36,17 @@ export class SelectedItemsController {
    * @param {string|{key: string, value: string}} selectedItem
    */
   remove(item) {
-    for (const selectedItem of this.selectedItems) {
-      if (isObjectEqual(selectedItem, item)) {
-        this.selectedItems.delete(selectedItem);
-
-        return true;
+    if (isKeyValueObject(item)) {
+      for (const selectedItem of this.selectedItems) {
+        if (isObjectEqual(selectedItem, item)) {
+          this.selectedItems.delete(selectedItem);
+  
+          return true;
+        }
       }
+
+    } else {
+      this.selectedItems.delete(item);
     }
 
     return false;
@@ -69,7 +74,7 @@ export class SelectedItemsController {
    * @returns {string}
    */
   stringifyValues() {
-    return arrayToString(this.getItemsArray().map(item => item.value), ', ');
+    return arrayToString(this.getItemsArray().map(item => isKeyValueObject(item) ? item.value : item), ', ');
   }
 
   /**

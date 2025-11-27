@@ -169,7 +169,12 @@ export class MultiSelectEditor extends TextEditor {
    * @param {*} selectedValue Value emitted when a dropdown checkbox becomes checked.
    */
   #addSelectedValue(selectedKey, selectedValue) {
-    this.selectedItems.add({ key: selectedKey, value: selectedValue });
+    if (selectedKey) {
+      this.selectedItems.add({ key: selectedKey, value: selectedValue });
+
+    } else {
+      this.selectedItems.add(selectedValue);
+    }
 
     this.setValue(this.selectedItems.stringifyValues());
     this.refreshDimensions();
@@ -182,7 +187,12 @@ export class MultiSelectEditor extends TextEditor {
    * @param {*} deselectedValue Value emitted when a dropdown checkbox becomes unchecked.
    */
   #removeSelectedValue(deselectedKey, deselectedValue) {
-    this.selectedItems.remove({ key: deselectedKey, value: deselectedValue });
+    if (deselectedKey) {
+      this.selectedItems.remove({ key: deselectedKey, value: deselectedValue });
+      
+    } else {
+      this.selectedItems.remove(deselectedValue);
+    }
 
     this.setValue(this.selectedItems.stringifyValues());
     this.refreshDimensions();

@@ -1,4 +1,4 @@
-import { isObject } from '../../../helpers/object';
+import { isKeyValueObject } from '../../../helpers/object';
 import { isJSON } from '../../../helpers/string';
 import { arrayToString } from '../../../helpers/array';
 
@@ -10,12 +10,12 @@ import { arrayToString } from '../../../helpers/array';
  */
 export function valueGetter(value) {
   if (isJSON(value)) {
-    const parsedValue = JSON.parse(value).map(value => value.value);
+    const parsedValue = JSON.parse(value).map(value => isKeyValueObject(value) ? value.value : value);
 
     if (Array.isArray(parsedValue)) {
       value = arrayToString(parsedValue, ', ');
     }
   }
 
-  return isObject(value) && value.value !== undefined ? value.value : value;
+  return isKeyValueObject(value) && value.value !== undefined ? value.value : value;
 }

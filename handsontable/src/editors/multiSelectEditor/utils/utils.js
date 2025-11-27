@@ -1,5 +1,5 @@
-import { stringToArray, getIntersectionOfArrays, arrayToString } from '../../../helpers/array';
-import { isObjectEqual } from '../../../helpers/object';
+import { stringToArray, getIntersectionOfArrays } from '../../../helpers/array';
+import { isObjectEqual, isKeyValueObject } from '../../../helpers/object';
 import { isJSON } from '../../../helpers/string';
 
 /**
@@ -68,7 +68,7 @@ export function getValuesIntersection(valuesArray, source) {
  * @returns {*|undefined}
  */
 export function getSourceItemByValue(value, source) {
-  return source.find(item => item.value === value);
+  return source.find(item => isKeyValueObject(item) ? item.value === value : item === value);
 }
 
 /**
@@ -79,5 +79,12 @@ export function getSourceItemByValue(value, source) {
  * @returns {boolean}
  */
 export function includesValue(array, element) {
-  return Array.isArray(array) && array.some(value => isObjectEqual(value, element));
+  if (isKeyValueObject(element)) {
+    return Array.isArray(array) && array.some(
+      value => isKeyValueObject(value) ? isObjectEqual(value, element) : value === element
+    );
+
+  } else {
+    return array.includes(element);
+  }
 }

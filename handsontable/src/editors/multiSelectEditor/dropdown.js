@@ -1,4 +1,4 @@
-import { hasOwnProperty, isObject, mixin } from '../../helpers/object';
+import { hasOwnProperty, isKeyValueObject, isObject, mixin } from '../../helpers/object';
 import localHooks from '../../mixins/localHooks';
 import { addClass, removeClass } from '../../helpers/dom/element';
 import { getCheckboxElement, includesValue } from './utils/utils';
@@ -74,19 +74,7 @@ export class DropdownElement {
     }
 
     entries.forEach((elem) => {
-      let itemValue = null;
-      let itemLabel = null;
-
-      if (isObject(elem) && hasOwnProperty(elem, 'key') && hasOwnProperty(elem, 'value')) {
-        itemValue = elem.key;
-        itemLabel = elem.value;
-
-      } else {
-        itemValue = elem;
-        itemLabel = elem;
-      }
-
-      this.#addDropdownItem(itemValue, itemLabel, includesValue(checkedValues, elem));
+      this.#addDropdownItem(elem?.key, elem?.value ?? elem, includesValue(checkedValues, elem));
     });
   }
 
@@ -139,8 +127,11 @@ export class DropdownElement {
 
     checkboxElement.id = `htMultiSelectItem-${itemValue}`;
     checkboxElement.type = 'checkbox';
-    checkboxElement.dataset.key = itemKey;
-    checkboxElement.dataset.value = itemValue;
+    checkboxElement.dataset.value = itemValue;    
+    
+    if (itemKey) {
+      checkboxElement.dataset.key = itemKey;
+    }
 
     labelElement.htmlFor = checkboxElement.id;
     labelElement.textContent = itemValue;
