@@ -138,6 +138,10 @@ export class Autofill extends BasePlugin {
     super.disablePlugin();
   }
 
+  isFillHandleInProgress() {
+    return this.mouseDownOnCellCorner;
+  }
+
   /**
    * Gets selection data.
    *

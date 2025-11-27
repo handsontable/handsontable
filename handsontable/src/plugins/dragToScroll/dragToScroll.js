@@ -1,6 +1,6 @@
 import { BasePlugin } from '../base';
 import { isRightClick } from '../../helpers/dom/event';
-import { getParentWindow } from '../../helpers/dom/element';
+import { getParentWindow, getScrollbarWidth } from '../../helpers/dom/element';
 
 export const PLUGIN_KEY = 'dragToScroll';
 export const PLUGIN_PRIORITY = 100;
@@ -24,6 +24,18 @@ export class DragToScroll extends BasePlugin {
     return PLUGIN_PRIORITY;
   }
 
+  static get DEFAULT_SETTINGS() {
+    return {
+      autoScroll: {
+        interval: {
+          min: 50,
+          max: 500,
+        },
+        rampDistance: 100,
+      },
+    };
+  }
+
   /**
    * Size of an element and its position relative to the viewport,
    * e.g. {bottom: 449, height: 441, left: 8, right: 814, top: 8, width: 806, x: 8, y:8}.
@@ -45,6 +57,20 @@ export class DragToScroll extends BasePlugin {
    * @type {boolean}
    */
   listening = false;
+  /**
+   * Timer for extending selection.
+   *
+   * @private
+   * @type {number}
+   */
+  timer = null;
+  /**
+   * Current interval value to avoid unnecessary restarts.
+   *
+   * @private
+   * @type {number}
+   */
+  currentInterval = null;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -64,8 +90,9 @@ export class DragToScroll extends BasePlugin {
       return;
     }
 
-    this.addHook('afterOnCellMouseDown', event => this.#setupListening(event));
-    this.addHook('afterOnCellCornerMouseDown', event => this.#setupListening(event));
+    this.addHook('beforeOnCellMouseDown', (...args) => this.#setupListening(...args));
+    this.addHook('afterOnCellCornerMouseDown', (...args) => this.#setupListening(...args));
+    this.addHook('afterSelection', (...args) => this.#onAfterSelection(...args));
 
     this.registerEvents();
 
@@ -147,6 +174,8 @@ export class DragToScroll extends BasePlugin {
       diffX = x - this.boundaries.right;
     }
 
+    this.isOutOfTheViewport = diffY > 0 || diffX > 0;
+
     this.callback(diffX, diffY);
   }
 
@@ -166,6 +195,11 @@ export class DragToScroll extends BasePlugin {
    */
   unlisten() {
     this.listening = false;
+    if (this.timer !== null) {
+      clearTimeout(this.timer);
+      this.timer = null;
+    }
+    this.currentInterval = null;
   }
 
   /**
@@ -191,7 +225,7 @@ export class DragToScroll extends BasePlugin {
     while (frame) {
       this.eventManager.addEventListener(frame.document, 'contextmenu', () => this.unlisten());
       this.eventManager.addEventListener(frame.document, 'mouseup', () => this.unlisten());
-      this.eventManager.addEventListener(frame.document, 'mousemove', event => this.onMouseMove(event));
+      this.eventManager.addEventListener(frame.document, 'mousemove', event => this.#onMouseMove(event));
 
       frame = getParentWindow(frame);
     }
@@ -218,19 +252,87 @@ export class DragToScroll extends BasePlugin {
 
     const scrollHandler = this.hot.view._wt.wtOverlays.topOverlay.mainTableScrollableElement;
 
-    this.setBoundaries(scrollHandler !== this.hot.rootWindow ? scrollHandler.getBoundingClientRect() : undefined);
+    if (scrollHandler === this.hot.rootWindow) {
+      this.setBoundaries();
+    } else {
+      const boundaries = scrollHandler.getBoundingClientRect();
 
-    this.setCallback((scrollX, scrollY) => {
-      const horizontalScrollValue = scrollHandler.scrollLeft ?? scrollHandler.scrollX;
-      const verticalScrollValue = scrollHandler.scrollTop ?? scrollHandler.scrollY;
+      this.setBoundaries({
+        left: boundaries.left + this.hot.view.getRowHeaderWidth(),
+        right: boundaries.right - getScrollbarWidth(),
+        top: boundaries.top + this.hot.view.getColumnHeaderHeight(),
+        bottom: boundaries.bottom - getScrollbarWidth(),
+      });
+    }
 
-      scrollHandler.scroll(
-        horizontalScrollValue + (Math.sign(scrollX) * 50),
-        verticalScrollValue + (Math.sign(scrollY) * 20)
+    this.setCallback((diffX, diffY) => {
+      if (diffX === 0) {
+        if (this.timer !== null) {
+          clearTimeout(this.timer);
+
+          this.timer = null;
+          this.currentInterval = null;
+        }
+
+        return;
+      }
+
+      const intervalConfig = this.getSetting('autoScroll.interval');
+      const rampDistance = this.getSetting('autoScroll.rampDistance');
+
+      const absDiffX = Math.abs(diffX);
+      const clampedDiffX = Math.min(absDiffX, rampDistance);
+      const distanceRatio = clampedDiffX / rampDistance;
+      const intervalRangeSize = intervalConfig.max - intervalConfig.min;
+
+      // logarithmic interpolation (higher = steeper initial drop)
+      const logScale = 200;
+      const interval = Math.round(
+        intervalConfig.max - (Math.log(1 + distanceRatio * logScale) / Math.log(1 + logScale)) * intervalRangeSize
       );
+
+      if (this.timer === null) {
+        this.currentInterval = interval;
+
+        const selectionLogic = () => {
+          const col = this.hot.getLastFullyVisibleColumn() + 1;
+
+          if (this.hot?.getPlugin('autofill')?.isFillHandleInProgress()) {
+            const coords = this.hot.getSelectedRangeLast().to.clone();
+
+            coords.col = col;
+            this.hot.getPlugin('autofill').redrawBorders(coords);
+          } else {
+            const coords = this.hot.getSelectedRangeActive().to.clone();
+
+            coords.col = col;
+            this.hot.selection.setRangeEnd(coords);
+          }
+
+          this.hot.scrollViewportTo({
+            // row: 0,
+            col,
+          });
+
+          this.timer = setTimeout(selectionLogic, this.currentInterval);
+        };
+
+        if (this.timer === null) {
+          selectionLogic();
+        }
+
+      } else if (this.currentInterval !== interval) {
+        this.currentInterval = interval;
+      }
     });
 
     this.listen();
+  }
+
+  #onAfterSelection(row, column, endRow, endColumn, preventScrolling) {
+    if (this.isOutOfTheViewport) {
+      preventScrolling.value = true;
+    }
   }
 
   /**
@@ -239,7 +341,7 @@ export class DragToScroll extends BasePlugin {
    * @private
    * @param {MouseEvent} event `mousemove` event properties.
    */
-  onMouseMove(event) {
+  #onMouseMove(event) {
     if (!this.isListening()) {
       return;
     }
