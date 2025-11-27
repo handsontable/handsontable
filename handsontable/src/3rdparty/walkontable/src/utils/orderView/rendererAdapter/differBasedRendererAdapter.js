@@ -1,10 +1,10 @@
 /**
- * Standard renderer adapter that uses ViewDiffer for efficient DOM manipulation.
+ * Differ based renderer adapter that uses ViewDiffer for efficient DOM manipulation.
  * This is the default implementation for most browsers.
  *
- * @class {StandardRendererAdapter}
+ * @class {DifferBasedRendererAdapter}
  */
-export class StandardRendererAdapter {
+export class DifferBasedRendererAdapter {
   /**
    * The list of render commands to execute. The command is an array with the following
    * structure: [

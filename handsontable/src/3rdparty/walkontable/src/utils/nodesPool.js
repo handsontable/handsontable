@@ -42,7 +42,7 @@ export class NodesPool {
   obtain(rowIndex, columnIndex) {
     // Firefox requires creating new DOM elements instead of reusing pooled nodes to avoid
     // rendering issues. This bypasses the pooling mechanism and is consistent with the
-    // Firefox-specific renderer adapter used in OrderView.
+    // Direct DOM renderer adapter used in OrderView.
     if (isFirefox()) {
       return this.rootDocument.createElement(this.nodeType);
     }

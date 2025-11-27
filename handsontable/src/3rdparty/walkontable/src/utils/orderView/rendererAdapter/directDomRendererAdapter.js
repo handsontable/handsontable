@@ -1,12 +1,11 @@
 import { WORKING_SPACE_TOP, WORKING_SPACE_BOTTOM } from '../constants';
 
 /**
- * Firefox-specific renderer adapter that uses direct DOM manipulation.
- * Firefox requires a different approach due to browser-specific DOM behavior.
+ * Direct DOM renderer adapter that uses direct DOM manipulation.
  *
- * @class {FirefoxRendererAdapter}
+ * @class {DirectDomRendererAdapter}
  */
-export class FirefoxRendererAdapter {
+export class DirectDomRendererAdapter {
   /**
    * The visual index of currently processed row.
    *
