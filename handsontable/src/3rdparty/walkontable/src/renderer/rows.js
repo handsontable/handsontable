@@ -46,6 +46,7 @@ export class RowsRenderer extends BaseRenderer {
     this.orderView = new OrderView(
       rootNode,
       sourceRowIndex => this.nodesPool.obtain(sourceRowIndex),
+      this.nodeType,
     );
   }
 
@@ -57,16 +58,6 @@ export class RowsRenderer extends BaseRenderer {
    */
   getRenderedNode(visualIndex) {
     return this.orderView.getNode(visualIndex);
-  }
-
-  /**
-   * Checks if the the row is marked as "stale" and has to be rerendered.
-   *
-   * @param {number} visualIndex Visual index of the rendered node (it always goeas from 0 to N).
-   * @returns {boolean}
-   */
-  hasStaleContent(visualIndex) {
-    return this.orderView.hasStaleContent(visualIndex);
   }
 
   /**
