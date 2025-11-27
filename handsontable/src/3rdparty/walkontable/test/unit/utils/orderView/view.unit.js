@@ -1,7 +1,7 @@
 import { OrderView } from 'walkontable/utils/orderView/view';
 import { ViewSizeSet } from 'walkontable/utils/orderView/viewSizeSet';
 import { ViewDiffer } from 'walkontable/utils/orderView/viewDiffer';
-import { StandardRendererAdapter } from 'walkontable/utils/orderView/rendererAdapter/standardRendererAdapter';
+import { DifferBasedRendererAdapter } from 'walkontable/utils/orderView/rendererAdapter/differBasedRendererAdapter';
 
 function createOrderView() {
   const rootNode = document.createElement('tr');
@@ -20,7 +20,7 @@ describe('OrderView', () => {
     expect(orderView.sizeSet).toBeInstanceOf(ViewSizeSet);
     expect(orderView.collectedNodes).toEqual([]);
     expect(orderView.viewDiffer).toBeInstanceOf(ViewDiffer);
-    expect(orderView.rendererAdapter).toBeInstanceOf(StandardRendererAdapter);
+    expect(orderView.rendererAdapter).toBeInstanceOf(DifferBasedRendererAdapter);
     expect(orderView.rendererAdapter.leads).toEqual([]);
   });
 
