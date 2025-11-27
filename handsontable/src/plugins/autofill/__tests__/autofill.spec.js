@@ -2271,16 +2271,6 @@ describe('AutoFill', () => {
       document.getElementById('autofill-handler-size-style').remove();
     });
 
-    const getExpectedHitAreaSize = (handlerSize) => {
-      const sizes = {
-        classic: 6,
-        main: 14,
-        horizon: 12,
-      };
-
-      return `${Math.max(sizes[spec().loadedTheme], handlerSize)}px`;
-    };
-
     it('should render corner hit area with a proper size', async() => {
       if (spec().loadedTheme === 'classic') {
         return;
@@ -2297,9 +2287,10 @@ describe('AutoFill', () => {
 
       const corner = hot.rootElement.querySelector('.ht_master .htBorders .corner');
       const hitAreaStyle = getComputedStyle(corner, '::after');
+      const expectedHitAreaSize = Math.max(autofillHandlerSize, 14);
 
-      expect(hitAreaStyle.width).toBe(getExpectedHitAreaSize(autofillHandlerSize));
-      expect(hitAreaStyle.height).toBe(getExpectedHitAreaSize(autofillHandlerSize));
+      expect(hitAreaStyle.width).toBe(`${expectedHitAreaSize}px`);
+      expect(hitAreaStyle.height).toBe(`${expectedHitAreaSize}px`);
     });
 
     it('should cut the hit area at the bottom of the table when the last row is selected', async() => {
