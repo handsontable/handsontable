@@ -1,6 +1,7 @@
 import { BasePlugin } from '../base';
 import { isRightClick } from '../../helpers/dom/event';
 import { getParentWindow, getScrollbarWidth } from '../../helpers/dom/element';
+import { calculateScrollInterval } from './utils';
 
 export const PLUGIN_KEY = 'dragToScroll';
 export const PLUGIN_PRIORITY = 100;
@@ -58,19 +59,29 @@ export class DragToScroll extends BasePlugin {
    */
   listening = false;
   /**
-   * Timer for extending selection.
+   * Timer for scrolling the viewport looper.
    *
-   * @private
    * @type {number}
    */
-  timer = null;
+  #timer = null;
   /**
-   * Current interval value to avoid unnecessary restarts.
+   * Current interval value for the viewport looper.
    *
-   * @private
    * @type {number}
    */
-  currentInterval = null;
+  #currentInterval = null;
+  /**
+   * Coords of the cell that is being dragged.
+   *
+   * @type {CellCoords}
+   */
+  #autofillBorderCoords = null;
+  /**
+   * Flag indicates if the mouse is outside the viewport.
+   *
+   * @type {boolean}
+   */
+  #isOutsideViewport = false;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -93,6 +104,7 @@ export class DragToScroll extends BasePlugin {
     this.addHook('beforeOnCellMouseDown', (...args) => this.#setupListening(...args));
     this.addHook('afterOnCellCornerMouseDown', (...args) => this.#setupListening(...args));
     this.addHook('afterSelection', (...args) => this.#onAfterSelection(...args));
+    this.addHook('beforeAutofillRedrawBorders', (...args) => this.#onBeforeAutofillRedrawBorders(...args));
 
     this.registerEvents();
 
@@ -174,7 +186,7 @@ export class DragToScroll extends BasePlugin {
       diffX = x - this.boundaries.right;
     }
 
-    this.isOutOfTheViewport = diffY > 0 || diffX > 0;
+    this.#isOutsideViewport = diffY !== 0 || diffX !== 0;
 
     this.callback(diffX, diffY);
   }
@@ -195,11 +207,7 @@ export class DragToScroll extends BasePlugin {
    */
   unlisten() {
     this.listening = false;
-    if (this.timer !== null) {
-      clearTimeout(this.timer);
-      this.timer = null;
-    }
-    this.currentInterval = null;
+    this.#stopScrollViewportLooper();
   }
 
   /**
@@ -266,73 +274,96 @@ export class DragToScroll extends BasePlugin {
     }
 
     this.setCallback((diffX, diffY) => {
-      if (diffX === 0) {
-        if (this.timer !== null) {
-          clearTimeout(this.timer);
-
-          this.timer = null;
-          this.currentInterval = null;
-        }
+      if (diffX === 0 && diffY === 0) {
+        this.#stopScrollViewportLooper();
 
         return;
       }
 
-      const intervalConfig = this.getSetting('autoScroll.interval');
+      const intervalRange = this.getSetting('autoScroll.interval');
       const rampDistance = this.getSetting('autoScroll.rampDistance');
+      const diff = Math.min(diffX === 0 ? Infinity : diffX, diffY === 0 ? Infinity : diffY);
+      const interval = calculateScrollInterval(diff, intervalRange, rampDistance);
 
-      const absDiffX = Math.abs(diffX);
-      const clampedDiffX = Math.min(absDiffX, rampDistance);
-      const distanceRatio = clampedDiffX / rampDistance;
-      const intervalRangeSize = intervalConfig.max - intervalConfig.min;
-
-      // logarithmic interpolation (higher = steeper initial drop)
-      const logScale = 200;
-      const interval = Math.round(
-        intervalConfig.max - (Math.log(1 + distanceRatio * logScale) / Math.log(1 + logScale)) * intervalRangeSize
-      );
-
-      if (this.timer === null) {
-        this.currentInterval = interval;
-
-        const selectionLogic = () => {
-          const col = this.hot.getLastFullyVisibleColumn() + 1;
-
-          if (this.hot?.getPlugin('autofill')?.isFillHandleInProgress()) {
-            const coords = this.hot.getSelectedRangeLast().to.clone();
-
-            coords.col = col;
-            this.hot.getPlugin('autofill').redrawBorders(coords);
-          } else {
-            const coords = this.hot.getSelectedRangeActive().to.clone();
-
-            coords.col = col;
-            this.hot.selection.setRangeEnd(coords);
-          }
-
-          this.hot.scrollViewportTo({
-            // row: 0,
-            col,
-          });
-
-          this.timer = setTimeout(selectionLogic, this.currentInterval);
-        };
-
-        if (this.timer === null) {
-          selectionLogic();
-        }
-
-      } else if (this.currentInterval !== interval) {
-        this.currentInterval = interval;
-      }
+      this.#runScrollViewportLooper(interval, {
+        diffX: () => diffX,
+        diffY: () => diffY,
+      });
     });
 
     this.listen();
   }
 
+  #runScrollViewportLooper(interval, { diffX, diffY }) {
+    this.#currentInterval = interval;
+
+    if (this.#timer !== null) {
+      return;
+    }
+
+    const scrollViewport = () => {
+      let coords;
+
+      if (!this.hot.selection.highlight.getFill().isEmpty()) {
+        coords = this.hot.selection.highlight.getFill().visualCellRange.to.clone();
+
+        if (diffX()) {
+          coords.col = diffX() > 0 ? coords.col + 1 : coords.col - 1;
+        }
+
+        if (diffY()) {
+          coords.row = diffY() > 0 ? coords.row + 1 : coords.row - 1;
+        }
+
+        this.hot.selection.highlight.getFill()
+          .clear()
+          .add(this.hot.getSelectedRangeLast().from)
+          .add(coords)
+          .commit();
+
+      } else {
+        coords = this.hot.getSelectedRangeActive().to.clone();
+
+        if (diffX()) {
+          coords.col = diffX() > 0 ? coords.col + 1 : coords.col - 1;
+        }
+
+        if (diffY()) {
+          coords.row = diffY() > 0 ? coords.row + 1 : coords.row - 1;
+        }
+
+        this.hot.selection.setRangeEnd(coords);
+      }
+
+      // this.hot.scrollViewportTo({
+      //   row: coords.row,
+      //   col: coords.col,
+      //   verticalSnap: diffY() !== 0 ? (diffY() > 0 ? 'bottom' : 'top') : undefined,
+      //   horizontalSnap: diffX() !== 0 ? (diffX() > 0 ? 'end' : 'start') : undefined,
+      // });
+
+      this.#timer = this.hot._registerTimeout(scrollViewport, this.#currentInterval);
+    };
+
+    scrollViewport();
+  }
+
+  #stopScrollViewportLooper() {
+    if (this.#timer !== null) {
+      clearTimeout(this.#timer);
+      this.#timer = null;
+      this.#currentInterval = null;
+    }
+  }
+
   #onAfterSelection(row, column, endRow, endColumn, preventScrolling) {
-    if (this.isOutOfTheViewport) {
+    if (this.#isOutsideViewport) {
       preventScrolling.value = true;
     }
+  }
+
+  #onBeforeAutofillRedrawBorders(coords) {
+    this.#autofillBorderCoords = coords;
   }
 
   /**

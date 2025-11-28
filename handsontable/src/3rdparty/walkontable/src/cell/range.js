@@ -356,10 +356,27 @@ class CellRange {
 
     if (cellCoords.row < topStart.row || cellCoords.col < topStart.col ||
         cellCoords.row > bottomEnd.row || cellCoords.col > bottomEnd.col) {
+      const verticalDirection = this.getVerticalDirection();
+      const horizontalDirection = this.getHorizontalDirection();
+
       this.from = this._createCellCoords(Math.min(topStart.row, cellCoords.row),
         Math.min(topStart.col, cellCoords.col));
       this.to = this._createCellCoords(Math.max(bottomEnd.row, cellCoords.row),
         Math.max(bottomEnd.col, cellCoords.col));
+
+      if (cellCoords.row < topStart.row && verticalDirection === 'N-S') {
+        this.flipDirectionVertically();
+
+      } else if (cellCoords.row > bottomEnd.row && verticalDirection === 'S-N') {
+        this.flipDirectionVertically();
+      }
+
+      if (cellCoords.col < topStart.col && horizontalDirection === (this.#isRtl ? 'E-W' : 'W-E')) {
+        this.flipDirectionHorizontally();
+
+      } else if (cellCoords.col > bottomEnd.col && horizontalDirection === (this.#isRtl ? 'W-E' : 'E-W')) {
+        this.flipDirectionHorizontally();
+      }
 
       return true;
     }

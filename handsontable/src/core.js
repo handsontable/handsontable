@@ -5350,6 +5350,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * @param {number|Function} handle Handler returned from setTimeout or function to execute (it will be automatically wraped
    *                                 by setTimeout function).
    * @param {number} [delay=0] If first argument is passed as a function this argument set delay of the execution of that function.
+   * @returns {number|Function} The timeout handler or the function if the first argument was a function.
    * @private
    */
   this._registerTimeout = function(handle, delay = 0) {
@@ -5360,6 +5361,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     }
 
     this.timeouts.push(handleFunc);
+
+    return handleFunc;
   };
 
   /**
