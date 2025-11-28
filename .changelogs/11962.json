@@ -1,8 +1,8 @@
 {
   "issuesOrigin": "private",
-  "title": "Improve column widths calculations for checkbox cell types",
+  "title": "Fixed an issue with scrolling in Firefox",
   "type": "fixed",
-  "issueOrPR": 11891,
+  "issueOrPR": 11962,
   "breaking": false,
   "framework": "none"
 }

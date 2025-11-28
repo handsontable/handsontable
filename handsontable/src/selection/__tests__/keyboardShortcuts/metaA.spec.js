@@ -81,6 +81,21 @@ describe('Selection extending', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: -1,0 from: -1,0 to: -1,0']);
     });
 
+    it('should do nothing when pressing the shortcut when no selection is present', async() => {
+      handsontable({
+        rowHeaders: true,
+        colHeaders: true,
+        navigableHeaders: true,
+        startRows: 5,
+        startCols: 5
+      });
+
+      await listen();
+      await keyDownUp(['control/meta', 'a']);
+
+      expect(getSelectedRange()).toBeUndefined();
+    });
+
     it('should not throw an error when there is no selection', async() => {
       const spy = jasmine.createSpyObj('error', ['test']);
       const prevError = window.onerror;

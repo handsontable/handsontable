@@ -1,8 +1,8 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed an issue with datepicker icon size on iPad",
+  "title": "Fixed errors that could happen on some keyboard shortcuts",
   "type": "fixed",
-  "issueOrPR": 11860,
+  "issueOrPR": 11951,
   "breaking": false,
   "framework": "none"
 }

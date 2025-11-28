@@ -48,6 +48,7 @@ const integrateWithVue3Items = [
   { path: 'guides/integrate-with-vue3/vue3-language-change-example/vue3-language-change-example' },
   { path: 'guides/integrate-with-vue3/vue3-vuex-example/vue3-vuex-example' },
   { path: 'guides/integrate-with-vue3/vue3-hot-reference/vue3-hot-reference' },
+  { path: 'guides/integrate-with-vue3/vue3-formulas-example/vue3-formulas-example' },
 ];
 
 const columnsItems = [

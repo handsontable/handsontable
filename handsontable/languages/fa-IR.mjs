@@ -9,6 +9,8 @@ import Handsontable from "handsontable";
 const C = Handsontable.languages.dictionaryKeys;
 const dictionary = {
   languageCode: 'fa-IR',
+  [C.OK]: 'تایید',
+  [C.CANCEL]: 'لغو',
   [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'هیچ گزینه ای در دسترس نیست',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'درج ردیف در بالا',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'درج ردیف در پایین',
@@ -96,7 +98,12 @@ const dictionary = {
   [C.PAGINATION_LAST_PAGE]: 'به آخرین صفحه بروید',
   [C.CHECKBOX_CHECKED]: 'چک شده',
   [C.CHECKBOX_UNCHECKED]: 'چک نشده',
-  [C.LOADING_TITLE]: 'در حال بارگذاری...'
+  [C.LOADING_TITLE]: 'در حال بارگذاری...',
+  [C.EMPTY_DATA_STATE_TITLE]: 'هیچ داده‌ای در دسترس نیست',
+  [C.EMPTY_DATA_STATE_DESCRIPTION]: 'هنوز چیزی برای نمایش وجود ندارد.',
+  [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'هیچ نتیجه‌ای یافت نشد',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'به نظر می‌رسد فیلترهای فعلی شما همه نتایج را پنهان می‌کنند.',
+  [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'بازنشانی فیلترها'
 };
 Handsontable.languages.registerLanguageDictionary(dictionary);
 export default dictionary;

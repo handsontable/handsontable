@@ -185,7 +185,7 @@ module.exports = function(docsVersion, base) {
         const isAngular = preset.includes('angular');
         const newTokens = [
           ...tab('Code', tsToken && jsToken ? getCodeToken(jsToken, tsToken) : (tsToken ?? jsToken), id),
-          ...tab('HTML', isAngular ? undefined : htmlToken, id),
+          ...tab('HTML', htmlToken, id),
           ...tab('CSS', cssToken, id),
         ];
 

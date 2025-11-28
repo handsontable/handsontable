@@ -1,8 +1,8 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed dialog overlay stuck on rapid show/hide calls",
+  "title": "Fix unwanted layout shifts caused by the editor",
   "type": "fixed",
-  "issueOrPR": 11925,
+  "issueOrPR": 11955,
   "breaking": false,
   "framework": "none"
 }
