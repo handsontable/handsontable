@@ -144,7 +144,6 @@ const hotInstance = new Handsontable(example, {
     {
       data: 4,
       type: 'date',
-      allowInvalid: false,
       dateFormat: 'DD/MM/YYYY',
       headerClassName: 'htLeft',
     },

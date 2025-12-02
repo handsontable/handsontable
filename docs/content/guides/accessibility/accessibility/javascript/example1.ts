@@ -508,7 +508,6 @@ const hotOptions: Handsontable.GridSettings = {
       data: 'sellDate',
       type: 'date',
       dateFormat: 'DD/MM/YYYY',
-      allowInvalid: false,
     },
     {
       data: 'inStock',
