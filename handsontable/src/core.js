@@ -1367,7 +1367,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     };
 
     if (isRootInstance(instance) && tableMeta.theme) {
-      const themeObject = tableMeta.theme.getThemeConfig();
+      const themeObject = tableMeta.theme;
 
       (async() => {
         const { ThemeAPI } = await import(/* webpackChunkName: "ThemeAPI" */ './themes/themeAPI');

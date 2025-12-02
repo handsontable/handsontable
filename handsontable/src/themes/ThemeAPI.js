@@ -2,6 +2,7 @@ import baseStyles from './styles';
 import { addClass } from '../helpers/dom/element';
 import { iconsMap } from './utils/icons';
 import { mainTheme } from './index';
+import { isObject } from '../helpers/object';
 
 /**
  * ThemeAPI class.
@@ -55,7 +56,7 @@ export class ThemeAPI {
 
   injectThemeStyles(rootDocument, rootWrapperElement, rootPortalElement, themeObject, stringInstanceID) {
     const inlineThemeClassName = `ht-inline-theme-${stringInstanceID}`;
-    const themeObj = themeObject || mainTheme.getThemeConfig();
+    const themeObj = isObject(themeObject) ? themeObject.getThemeConfig() : mainTheme.getThemeConfig();
 
     addClass(rootWrapperElement, inlineThemeClassName);
     addClass(rootPortalElement, inlineThemeClassName);
