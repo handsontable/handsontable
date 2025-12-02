@@ -12,6 +12,44 @@ const isProcessableModule = (moduleName) => {
   return !hasExtension(moduleName) && (isCoreJSPolyfill(moduleName) || isLocalModule(moduleName));
 };
 
+const resolveModulePath = (moduleName, filename, extension) => {
+  const absoluteFilePath = resolve(dirname(filename), moduleName);
+  const finalExtension = isCoreJSPolyfill(moduleName) ? 'js' : extension;
+
+  let newModulePath;
+
+  // Resolves a case where "import" points to a module name which exists as a file and
+  // as a directory. For example in this case:
+  // ```
+  // import { registerPlugin } from 'plugins';
+  // ```
+  // and with this directory structure:
+  //   |- editors
+  //   |- plugins
+  //     |- filters/
+  //     |- ...
+  //     +- index.js
+  //   |- plugins.js
+  //   |- ...
+  //   +- index.js
+  //
+  // the plugin will rename import declaration to point to the `plugins.js` file.
+  if (existsSync(`${absoluteFilePath}.js`)) {
+    newModulePath = `${moduleName}.${finalExtension}`;
+
+  // In a case when the file doesn't exist and the module is a directory it will
+  // rename to `plugins/index.js`.
+  } else if (existsSync(absoluteFilePath) && lstatSync(absoluteFilePath).isDirectory()) {
+    newModulePath = `${moduleName}/index.${finalExtension}`;
+
+  // And for other cases it simply put the extension on the end of the module path
+  } else {
+    newModulePath = `${moduleName}.${finalExtension}`;
+  }
+
+  return newModulePath;
+};
+
 const createVisitor = ({ declaration, origArgs, extension = 'js' }) => {
   return (path, { file }) => {
     const { node: { source, exportKind, importKind } } = path;
@@ -23,39 +61,7 @@ const createVisitor = ({ declaration, origArgs, extension = 'js' }) => {
     }
 
     const { value: moduleName } = source;
-    const absoluteFilePath = resolve(dirname(filename), moduleName);
-    const finalExtension = isCoreJSPolyfill(moduleName) ? 'js' : extension;
-
-    let newModulePath;
-
-    // Resolves a case where "import" points to a module name which exists as a file and
-    // as a directory. For example in this case:
-    // ```
-    // import { registerPlugin } from 'plugins';
-    // ```
-    // and with this directory structure:
-    //   |- editors
-    //   |- plugins
-    //     |- filters/
-    //     |- ...
-    //     +- index.js
-    //   |- plugins.js
-    //   |- ...
-    //   +- index.js
-    //
-    // the plugin will rename import declaration to point to the `plugins.js` file.
-    if (existsSync(`${absoluteFilePath}.js`)) {
-      newModulePath = `${moduleName}.${finalExtension}`;
-
-    // In a case when the file doesn't exist and the module is a directory it will
-    // rename to `plugins/index.js`.
-    } else if (existsSync(absoluteFilePath) && lstatSync(absoluteFilePath).isDirectory()) {
-      newModulePath = `${moduleName}/index.${finalExtension}`;
-
-    // And for other cases it simply put the extension on the end of the module path
-    } else {
-      newModulePath = `${moduleName}.${finalExtension}`;
-    }
+    const newModulePath = resolveModulePath(moduleName, filename, extension);
 
     path.replaceWith(declaration(...origArgs(path), types.stringLiteral(newModulePath)));
   };
@@ -83,6 +89,28 @@ module.exports = declare((api, options) => {
         declaration: types.exportAllDeclaration,
         origArgs: () => [],
       }),
+      // Handle dynamic imports: import('./module')
+      CallExpression(path, { file }) {
+        const { node } = path;
+        const { opts: { filename } } = file;
+
+        // Check if this is a dynamic import() call
+        if (types.isImport(node.callee) && node.arguments.length === 1) {
+          const arg = node.arguments[0];
+
+          // Check if the argument is a string literal
+          if (types.isStringLiteral(arg)) {
+            const moduleName = arg.value;
+
+            if (isProcessableModule(moduleName)) {
+              const newModulePath = resolveModulePath(moduleName, filename, options.extension);
+
+              // Replace the string literal argument with the new path
+              path.node.arguments[0] = types.stringLiteral(newModulePath);
+            }
+          }
+        }
+      },
     }
   };
 });
