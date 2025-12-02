@@ -54,20 +54,21 @@ For more information, see the [Instance access](@/guides/getting-started/angular
 :::
 
 1. Access the [`FocusScopeManager`](@/api/focusScopeManager.md) API:
-   ```js
-   hot.getFocusScopeManager();
-   ```
+  ```js
+  hot.getFocusScopeManager();
+  ```
 2. Register a focus scope with a container element:
-   ```js
-   const focusScopeManager = hot.getFocusScopeManager();
+  ```js
+  const focusScopeManager = hot.getFocusScopeManager();
 
-   focusScopeManager.registerScope('customScope', containerElement, {
-     shortcutsContextName: 'plugin:customScope',
-     onActivate: (focusSource) => {
-       // Focus the first focusable element in your plugin's UI container
-     },
-   });
-   ```
+  focusScopeManager.registerScope('customScope', containerElement, {
+    shortcutsContextName: 'plugin:customScope',
+    onActivate: (focusSource) => {
+      // Focus the first focusable element in your plugin's UI
+      // container
+    },
+  });
+  ```
 
 ## Focus scope types
 
@@ -179,14 +180,14 @@ appears after the inline scope elements in the DOM.
 To register a focus scope:
 
 1. Access the [`FocusScopeManager`](@/api/focusScopeManager.md) API:
-   ```js
-   const focusScopeManager = hot.getFocusScopeManager();
-   ```
+  ```js
+  const focusScopeManager = hot.getFocusScopeManager();
+  ```
 2. Use the [`registerScope()`](@/api/focusScopeManager.md#registerscope) method:
 
-   ```js
-   focusScopeManager.registerScope('customScope', containerElement);
-   ```
+  ```js
+  focusScopeManager.registerScope('customScope', containerElement);
+  ```
 
 ### Connect a scope with a shortcuts context
 
@@ -233,7 +234,8 @@ const focusScopeManager = hot.getFocusScopeManager();
 
 focusScopeManager.registerScope('myPlugin', containerElement, {
   contains: (target) => {
-    // check if the target is within the scope's container element or if its parent has the 'my-plugin' class
+    // check if the target is within the scope's container element or
+    // if its parent has the 'my-plugin' class
     return containerElement.contains(target) || target.closest('.my-plugin');
   },
   onActivate: (focusSource) => {

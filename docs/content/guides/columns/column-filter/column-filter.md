@@ -721,17 +721,20 @@ handsontableInstance.updateSettings({
   // enable filtering, for all columns
   filters: true,
   // enable the column menu, for all columns
-  // but display only the 'Filter by value' list and the 'OK' and 'Cancel' buttons
+  // but display only the 'Filter by value' list and the 'OK' and
+  // 'Cancel' buttons
   dropdownMenu: {
     items: {
       filter_by_value: {
-        // hide the 'Filter by value' list from all columns but the first one
+        // hide the 'Filter by value' list from all columns but the
+        // first one
         hidden() {
           return this.getSelectedRangeLast().to.col > 0;
         },
       },
       filter_action_bar: {
-        // hide the 'OK' and 'Cancel' buttons from all columns but the first one
+        // hide the 'OK' and 'Cancel' buttons from all columns but the
+        // first one
         hidden() {
           return this.getSelectedRangeLast().to.col > 0;
         },
@@ -752,17 +755,20 @@ hotTableComponentRef.current.hotInstance.updateSettings({
   // enable filtering for all columns
   filters: true,
   // enable the column menu for all columns
-  // but display only the 'Filter by value' list and the 'OK' and 'Cancel' buttons
+  // but display only the 'Filter by value' list and the 'OK' and
+  // 'Cancel' buttons
   dropdownMenu: {
     items: {
       filter_by_value: {
-        // hide the 'Filter by value' list from all columns but the first one
+        // hide the 'Filter by value' list from all columns but the
+        // first one
         hidden() {
           return this.getSelectedRangeLast().to.col > 0;
         },
       },
       filter_action_bar: {
-        // hide the 'OK' and 'Cancel' buttons from all columns but the first one
+        // hide the 'OK' and 'Cancel' buttons from all columns but the
+        // first one
         hidden() {
           return this.getSelectedRangeLast().to.col > 0;
         },

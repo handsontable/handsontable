@@ -407,7 +407,8 @@ CustomEditor.prototype.beginEditing = function () {};
 const CustomTextEditor = Handsontable.editors.TextEditor.prototype.extend();
 
 // CustomTextEditor uses all methods implemented by TextEditor.
-// You can safely override any method without affecting original TextEditor.
+// You can safely override any method without affecting original
+// TextEditor.
 ```
 
 **Note:** This is an utility method not related to the process of editing cell.
@@ -571,7 +572,8 @@ const hot = new Handsontable(container, {
     {
       editor: PasswordEditor,
       // If you want to use string 'password' instead of passing
-      // the actual editor class check out section "Registering editor"
+      // the actual editor class check out section "Registering
+      // editor"
     },
   ],
 });
@@ -590,7 +592,8 @@ const hot = new Handsontable(container, {
     {
       editor: PasswordEditor,
       // If you want to use string 'password' instead of passing
-      // the actual editor class check out section "Registering editor"
+      // the actual editor class check out section "Registering
+      // editor"
     },
   ]}
 />
@@ -677,12 +680,14 @@ class SelectEditor extends Handsontable.editors.BaseEditor {
    * Initializes editor instance, DOM Element and mount hooks.
    */
   init() {
-    // Create detached node, add CSS class and make sure its not visible
+    // Create detached node, add CSS class and make sure its not
+    // visible
     this.select = this.hot.rootDocument.createElement("SELECT");
     this.select.classList.add("htSelectEditor");
     this.select.style.display = "none";
 
-    // Attach node to DOM, by appending it to the container holding the table
+    // Attach node to DOM, by appending it to the container holding
+    // the table
     this.hot.rootElement.appendChild(this.select);
   }
 }
