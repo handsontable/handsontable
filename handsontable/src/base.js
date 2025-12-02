@@ -1,5 +1,3 @@
-import './styles/handsontable.scss';
-
 import Core from './core';
 import { rootInstanceSymbol } from './utils/rootInstance';
 import { metaSchemaFactory } from './dataMap';

@@ -1,25 +1,22 @@
 /**
  * Config responsible for building Handsontable `dist/` files:
  *  - handsontable.js
- *  - handsontable.css
  *  - handsontable.full.js
  */
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const path = require('path');
 const configFactory = require('./base');
-const InjectCssPlugin = require('./plugin/webpack/inject-css-plugin');
 
 const PACKAGE_FILENAME = process.env.HOT_FILENAME;
 
 module.exports.create = function create(envArgs) {
   const configBase = configFactory.create(envArgs);
   const configFull = configFactory.create(envArgs);
-  const configStyles = configFactory.create(envArgs);
 
   configBase.forEach(function (c) {
     c.output.filename = PACKAGE_FILENAME + '.js';
+    c.output.chunkFilename = PACKAGE_FILENAME + '.chunk.[name].js';
     c.devtool = 'source-map';
-    // Exclude all external dependencies from 'base' bundle (handsontable.js and handsontable.css files)
+    // Exclude all external dependencies from 'base' bundle (handsontable.js)
     c.externals = {
       numbro: {
         root: 'numbro',
@@ -46,92 +43,12 @@ module.exports.create = function create(envArgs) {
         amd: 'dompurify',
       },
     };
-
-    c.plugins.push(
-      new MiniCssExtractPlugin({ filename: `../styles/${PACKAGE_FILENAME}.css` }),
-    );
   });
 
   configFull.forEach(function (c) {
-    c.entry = ['hyperformula', ...c.entry];
     c.output.filename = PACKAGE_FILENAME + '.full.js';
-
-    // Remove all 'MiniCssExtractPlugin' instances
-    c.plugins = c.plugins.filter(function (plugin) {
-      return !(plugin instanceof MiniCssExtractPlugin);
-    });
-
-    // Export these dependencies to the window object. So they can be custom configured
-    // before the Handsontable initializiation.
-    c.module.rules.unshift({
-      test: /numbro/,
-      use: [
-        {
-          loader: path.resolve(__dirname, 'loader/exports-to-window-loader.js'),
-          options: {
-            globals: {
-              numbro: 'numbro',
-            },
-            defaultExport: true
-          }
-        }
-      ]
-    });
-    c.module.rules.unshift({
-      test: /moment/,
-      use: [
-        {
-          loader: path.resolve(__dirname, 'loader/exports-to-window-loader.js'),
-          options: {
-            globals: {
-              moment: 'moment',
-            }
-          }
-        }
-      ]
-    });
-    c.module.rules.unshift({
-      test: /dompurify/,
-      use: [
-        {
-          loader: path.resolve(__dirname, 'loader/exports-to-window-loader.js'),
-          options: {
-            globals: {
-              DOMPurify: 'dompurify',
-            }
-          }
-        }
-      ]
-    });
-    c.module.rules.unshift({
-      test: /hyperformula/,
-      use: [
-        {
-          loader: path.resolve(__dirname, 'loader/exports-to-window-loader-esm.js'),
-          options: {
-            globals: {
-              moduleToExport: 'HyperFormula',
-              moduleName: 'hyperformula',
-            }
-          }
-        }
-      ]
-    });
-    c.module.rules.unshift({
-      test: /\.(scss|css)$/,
-      loader: path.resolve(__dirname, 'loader/empty-loader.js'),
-    });
-  });
-
-  configStyles.forEach(function (c) {
+    c.output.chunkFilename = PACKAGE_FILENAME + '.chunk.[name].full.js';
     c.entry = ['hyperformula', ...c.entry];
-    c.output.filename = PACKAGE_FILENAME + '.styles.js';
-
-    // Remove all 'MiniCssExtractPlugin' instances
-    c.plugins = c.plugins.filter(function (plugin) {
-      return !(plugin instanceof MiniCssExtractPlugin);
-    });
-
     // Export these dependencies to the window object. So they can be custom configured
     // before the Handsontable initializiation.
     c.module.rules.unshift({
@@ -192,15 +109,7 @@ module.exports.create = function create(envArgs) {
       test: /\.(scss|css)$/,
       loader: path.resolve(__dirname, 'loader/empty-loader.js'),
     });
-
-    // Add CSS injection plugin for full build
-    c.plugins.push(
-      new InjectCssPlugin({
-        cssPath: path.resolve(__dirname, '../styles/handsontable.min.css'),
-        id: 'handsontable-styles'
-      }),
-    );
   });
 
-  return [].concat(configBase, configFull, configStyles);
+  return [].concat(configBase, configFull);
 }

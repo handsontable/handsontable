@@ -59,9 +59,8 @@ import {
   uninstall as uninstallAccessibilityAnnouncer,
 } from './utils/a11yAnnouncer';
 import { getValueSetterValue } from './utils/valueAccessors';
-import { injectThemeStyles } from './themes/injectThemeStyles';
-import { mainTheme } from './themes';
 
+const stringInstanceID = randomString();
 let activeGuid = null;
 
 /**
@@ -376,6 +375,14 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     }
   });
 
+  /**
+   * ThemeAPI instance.
+   *
+   * @private
+   * @type {ThemeAPI|null}
+   */
+  this.themeAPI = null;
+
   mergedUserSettings.language = getValidLanguageCode(mergedUserSettings.language);
 
   const settingsWithoutHooks = Object.fromEntries(
@@ -396,24 +403,9 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
   this.rootElement.insertBefore(this.container, this.rootElement.firstChild);
 
-  const stringInstanceID = randomString();
-
   this.guid = `ht_${stringInstanceID}`; // this is the namespace for global events
 
   foreignHotInstances.set(this.guid, this);
-
-  if (isRootInstance(this) && !tableMeta?.themeName) {
-    const themeObject = tableMeta?.theme?.getThemeConfig() || mainTheme.getThemeConfig();
-
-    if (themeObject) {
-      const inlineThemeClassName = `ht-inline-theme-${stringInstanceID}`;
-
-      addClass(this.rootWrapperElement, inlineThemeClassName);
-      addClass(this.rootPortalElement, inlineThemeClassName);
-
-      injectThemeStyles(this.rootDocument, this.rootWrapperElement, inlineThemeClassName, themeObject);
-    }
-  }
 
   /**
    * Instance of index mapper which is responsible for managing the column indexes.
@@ -1333,42 +1325,64 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     dataSource.setData(tableMeta.data);
     instance.runHooks('beforeInit');
 
-    if (isMobileBrowser() || isIpadOS()) {
-      addClass(instance.rootElement, 'mobile');
-    }
+    const initFunction = () => {
+      if (isMobileBrowser() || isIpadOS()) {
+        addClass(instance.rootElement, 'mobile');
+      }
 
-    this.updateSettings(mergedUserSettings, true);
+      this.updateSettings(mergedUserSettings, true);
 
-    this.view = new TableView(this);
+      this.view = new TableView(this);
 
-    editorManager = EditorManager.getInstance(instance, tableMeta, selection);
-    viewportScroller = createViewportScroller(instance);
+      editorManager = EditorManager.getInstance(instance, tableMeta, selection);
+      viewportScroller = createViewportScroller(instance);
 
-    focusGridManager.init();
+      focusGridManager.init();
 
-    if (isRootInstance(this)) {
-      installAccessibilityAnnouncer(instance.rootPortalElement);
-      _injectProductInfo(mergedUserSettings.licenseKey, this.rootWrapperElement);
-    }
+      if (isRootInstance(this)) {
+        installAccessibilityAnnouncer(instance.rootPortalElement);
+        _injectProductInfo(mergedUserSettings.licenseKey, this.rootWrapperElement);
+      }
 
-    instance.runHooks('init');
+      instance.runHooks('init');
 
-    this.render();
+      this.render();
 
-    // Run the logic only if it's the table's initialization and the root element is not visible.
-    if (!!firstRun && instance.rootElement.offsetParent === null) {
-      observeVisibilityChangeOnce(instance.rootElement, () => {
-        // Update the spreader size cache before rendering.
-        instance.view._wt.wtOverlays.updateLastSpreaderSize();
-        instance.view.adjustElementsSize();
-        instance.render();
-      });
-    }
+      // Run the logic only if it's the table's initialization and the root element is not visible.
+      if (!!firstRun && instance.rootElement.offsetParent === null) {
+        observeVisibilityChangeOnce(instance.rootElement, () => {
+          // Update the spreader size cache before rendering.
+          instance.view._wt.wtOverlays.updateLastSpreaderSize();
+          instance.view.adjustElementsSize();
+          instance.render();
+        });
+      }
 
-    if (typeof firstRun === 'object') {
-      instance.runHooks('afterChange', firstRun[0], firstRun[1]);
+      if (typeof firstRun === 'object') {
+        instance.runHooks('afterChange', firstRun[0], firstRun[1]);
 
-      firstRun = false;
+        firstRun = false;
+      }
+    };
+
+    if (isRootInstance(instance) && !tableMeta.themeName) {
+      const themeObject = tableMeta?.theme?.getThemeConfig();
+
+      (async() => {
+        const { ThemeAPI } = await import(/* webpackChunkName: "ThemeAPI" */ './themes/ThemeAPI');
+
+        instance.themeAPI = new ThemeAPI(
+          instance.rootDocument,
+          instance.rootWrapperElement,
+          instance.rootPortalElement,
+          themeObject,
+          stringInstanceID
+        );
+
+        initFunction();
+      })();
+    } else {
+      initFunction();
     }
 
     instance.runHooks('afterInit');
