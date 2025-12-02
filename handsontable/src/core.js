@@ -60,7 +60,6 @@ import {
 } from './utils/a11yAnnouncer';
 import { getValueSetterValue } from './utils/valueAccessors';
 
-const stringInstanceID = randomString();
 let activeGuid = null;
 
 /**
@@ -402,6 +401,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   this.container = this.rootDocument.createElement('div');
 
   this.rootElement.insertBefore(this.container, this.rootElement.firstChild);
+
+  const stringInstanceID = randomString();
 
   this.guid = `ht_${stringInstanceID}`; // this is the namespace for global events
 
@@ -1365,11 +1366,11 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       }
     };
 
-    if (isRootInstance(instance) && !tableMeta.themeName) {
-      const themeObject = tableMeta?.theme?.getThemeConfig();
+    if (isRootInstance(instance) && tableMeta.theme) {
+      const themeObject = tableMeta.theme.getThemeConfig();
 
       (async() => {
-        const { ThemeAPI } = await import(/* webpackChunkName: "ThemeAPI" */ './themes/ThemeAPI');
+        const { ThemeAPI } = await import(/* webpackChunkName: "ThemeAPI" */ './themes/themeAPI');
 
         instance.themeAPI = new ThemeAPI(
           instance.rootDocument,

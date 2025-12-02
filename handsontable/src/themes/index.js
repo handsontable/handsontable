@@ -3,7 +3,7 @@ import mainIconsData from './icons/main';
 import horizonThemeVariables from './variables/horizon';
 import horizonIconsData from './icons/horizon';
 import classicThemeVariables from './variables/classic';
-import { ThemeBuilder } from './ThemeBuilder';
+import { ThemeBuilder } from './themeBuilder';
 
 // Export icon sets
 export const mainIcons = mainIconsData;
