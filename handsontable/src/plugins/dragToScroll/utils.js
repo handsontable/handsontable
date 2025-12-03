@@ -15,7 +15,7 @@ export function calculateScrollInterval(diff, intervalRange, rampDistance, logSc
 
   // Logarithmic interpolation (higher = steeper initial drop)
   const interval = Math.round(
-    intervalRange.max - (Math.log(1 + distanceRatio * logScale) / Math.log(1 + logScale)) * intervalRangeSize
+    intervalRange.max - ((Math.log(1 + (distanceRatio * logScale)) / Math.log(1 + logScale)) * intervalRangeSize)
   );
 
   return interval;

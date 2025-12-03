@@ -348,9 +348,11 @@ class CellRange {
    * The `cellCoords` coordinates must exceed a corner of your range.
    *
    * @param {CellCoords} cellCoords A new cell's coordinates.
+   * @param {boolean} [changeDirection=true] If `true`, the direction of your range is changed to the direction
+   * of the `cellCoords` coordinates.
    * @returns {boolean}
    */
-  expand(cellCoords) {
+  expand(cellCoords, changeDirection = true) {
     const topStart = this.getOuterTopStartCorner();
     const bottomEnd = this.getOuterBottomEndCorner();
 
@@ -364,18 +366,20 @@ class CellRange {
       this.to = this._createCellCoords(Math.max(bottomEnd.row, cellCoords.row),
         Math.max(bottomEnd.col, cellCoords.col));
 
-      if (cellCoords.row < topStart.row && verticalDirection === 'N-S') {
-        this.flipDirectionVertically();
+      if (changeDirection) {
+        if (cellCoords.row < topStart.row && verticalDirection === 'N-S') {
+          this.flipDirectionVertically();
 
-      } else if (cellCoords.row > bottomEnd.row && verticalDirection === 'S-N') {
-        this.flipDirectionVertically();
-      }
+        } else if (cellCoords.row > bottomEnd.row && verticalDirection === 'S-N') {
+          this.flipDirectionVertically();
+        }
 
-      if (cellCoords.col < topStart.col && horizontalDirection === (this.#isRtl ? 'E-W' : 'W-E')) {
-        this.flipDirectionHorizontally();
+        if (cellCoords.col < topStart.col && horizontalDirection === 'W-E') {
+          this.flipDirectionHorizontally();
 
-      } else if (cellCoords.col > bottomEnd.col && horizontalDirection === (this.#isRtl ? 'W-E' : 'E-W')) {
-        this.flipDirectionHorizontally();
+        } else if (cellCoords.col > bottomEnd.col && horizontalDirection === 'E-W') {
+          this.flipDirectionHorizontally();
+        }
       }
 
       return true;
@@ -490,6 +494,15 @@ class CellRange {
    */
   getHorizontalDirection() {
     return ['NW-SE', 'SW-NE'].indexOf(this.getDirection()) > -1 ? 'W-E' : 'E-W';
+  }
+
+  /**
+   * Gets the inline (horizontal) direction of the selection.
+   *
+   * @returns {string} Returns one of the values: `start-end`, `end-start`.
+   */
+  getInlineDirection() {
+    return this.getHorizontalDirection() === (this.#isRtl ? 'E-W' : 'W-E') ? 'start-end' : 'end-start';
   }
 
   /**

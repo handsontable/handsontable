@@ -1,7 +1,6 @@
 import { BasePlugin } from '../base';
 import { isRightClick } from '../../helpers/dom/event';
 import { getParentWindow, getScrollbarWidth } from '../../helpers/dom/element';
-import { calculateScrollInterval } from './utils';
 
 export const PLUGIN_KEY = 'dragToScroll';
 export const PLUGIN_PRIORITY = 100;
@@ -91,6 +90,7 @@ export class DragToScroll extends BasePlugin {
    */
   isEnabled() {
     return !!this.hot.getSettings()[PLUGIN_KEY];
+    // return false;
   }
 
   /**
@@ -274,21 +274,29 @@ export class DragToScroll extends BasePlugin {
     }
 
     this.setCallback((diffX, diffY) => {
-      if (diffX === 0 && diffY === 0) {
-        this.#stopScrollViewportLooper();
+      const horizontalScrollValue = scrollHandler.scrollLeft ?? scrollHandler.scrollX;
+      const verticalScrollValue = scrollHandler.scrollTop ?? scrollHandler.scrollY;
 
-        return;
-      }
+      scrollHandler.scroll(
+        horizontalScrollValue + (Math.sign(diffX) * 50),
+        verticalScrollValue + (Math.sign(diffY) * 20)
+      );
 
-      const intervalRange = this.getSetting('autoScroll.interval');
-      const rampDistance = this.getSetting('autoScroll.rampDistance');
-      const diff = Math.min(diffX === 0 ? Infinity : diffX, diffY === 0 ? Infinity : diffY);
-      const interval = calculateScrollInterval(diff, intervalRange, rampDistance);
+      // if (diffX === 0 && diffY === 0) {
+      //   this.#stopScrollViewportLooper();
 
-      this.#runScrollViewportLooper(interval, {
-        diffX: () => diffX,
-        diffY: () => diffY,
-      });
+      //   return;
+      // }
+
+      // const intervalRange = this.getSetting('autoScroll.interval');
+      // const rampDistance = this.getSetting('autoScroll.rampDistance');
+      // const diff = Math.min(diffX === 0 ? Infinity : diffX, diffY === 0 ? Infinity : diffY);
+      // const interval = calculateScrollInterval(diff, intervalRange, rampDistance);
+
+      // this.#runScrollViewportLooper(interval, {
+      //   diffX: () => diffX,
+      //   diffY: () => diffY,
+      // });
     });
 
     this.listen();

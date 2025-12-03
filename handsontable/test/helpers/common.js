@@ -1270,6 +1270,82 @@ export function simulateTouch(target) {
 }
 
 /**
+ * Simulates dragging the fill handle from corner to a target element.
+ *
+ * @param {jQuery|HTMLElement|string} targetElement The target cell element to drag to.
+ * @param {object} [options] Additional options for the drag simulation.
+ * @param {number} [options.finish] Finish the drag simulation (default: true).
+ * @param {number} [options.offsetX] X offset from the center of the target element (default: 0).
+ * @param {number} [options.offsetY] Y offset from the center of the target element (default: 0).
+ */
+export function simulateFillHandleDrag(targetElement, options = {}) {
+  const {
+    offsetX = 0,
+    offsetY = 0,
+    finish = true,
+    container = spec().$container,
+  } = options;
+  const $source = container.find('.ht_master .wtBorder.current.corner');
+  const $target = targetElement instanceof HTMLElement ? $(targetElement) : targetElement;
+
+  if ($target.length === 0) {
+    throw new Error('Target element not found');
+  }
+
+  const targetDomElement = $target[0];
+  const sourceDomElement = $source[0];
+  const targetRect = targetDomElement.getBoundingClientRect();
+  const sourceRect = sourceDomElement.getBoundingClientRect();
+  const clientX = targetRect.left + (targetRect.width / 2) + offsetX;
+  const clientY = targetRect.top + (targetRect.height / 2) + offsetY;
+  const screenX = clientX;
+  const screenY = clientY;
+  const sourceClientX = sourceRect.left + (sourceRect.width / 2);
+  const sourceClientY = sourceRect.top + (sourceRect.height / 2);
+  const eventArgs = {
+    clientX,
+    clientY,
+    screenX,
+    screenY,
+  };
+
+  $source.simulate('mousedown', {
+    clientX: sourceClientX,
+    clientY: sourceClientY,
+    screenX: sourceClientX,
+    screenY: sourceClientY,
+    button: 0
+  });
+  $(document.documentElement).simulate('mousemove', {
+    ...eventArgs,
+    button: 0
+  });
+  $target.simulate('mouseenter', {
+    ...eventArgs,
+    relatedTarget: sourceDomElement
+  });
+  $target.simulate('mouseover', {
+    ...eventArgs,
+    relatedTarget: sourceDomElement
+  });
+
+  if (finish) {
+    $(document.documentElement).simulate('mouseup', {
+      ...eventArgs,
+      button: 0
+    });
+    $target.simulate('mouseup', {
+      ...eventArgs,
+      button: 0
+    });
+    $target.simulate('mouseleave', {
+      ...eventArgs,
+      relatedTarget: sourceDomElement
+    });
+  }
+}
+
+/**
  * Simulates the application of modern theme styles to a Handsontable context.
  *
  * @param {HTMLElement|jQuery} container - The container element to which the styles will be applied.
