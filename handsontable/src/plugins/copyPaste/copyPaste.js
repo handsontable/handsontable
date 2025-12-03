@@ -373,7 +373,9 @@ export class CopyPaste extends BasePlugin {
               this.hot.getCopyableSourceData(row, column) :
               this.hot.getCopyableData(row, column);
 
-          if (useSourceData && isObject(copyableCellData)) {
+          if (useSourceData &&
+            (isObject(copyableCellData) || Array.isArray(copyableCellData))
+          ) {
             copyableCellData = JSON.stringify(copyableCellData);
           }
 
@@ -596,7 +598,11 @@ export class CopyPaste extends BasePlugin {
         if (sourceInputArray && isJSON(sourceCellValue)) {
           const parsedCellValue = JSON.parse(sourceCellValue);
 
-          if (isObject(sourceDataAtTarget) || sourceDataAtTarget === null) {
+          if (
+            Array.isArray(sourceDataAtTarget) ||
+            isObject(sourceDataAtTarget) ||
+            sourceDataAtTarget === null
+          ) {
             cellValue = parsedCellValue;
           }
         }

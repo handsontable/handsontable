@@ -40,7 +40,7 @@ export class SelectedItemsController {
       for (const selectedItem of this.selectedItems) {
         if (isObjectEqual(selectedItem, item)) {
           this.selectedItems.delete(selectedItem);
-  
+
           return true;
         }
       }

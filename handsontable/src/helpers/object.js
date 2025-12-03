@@ -1,4 +1,5 @@
 import { arrayEach } from './array';
+import { isDefined } from './mixed';
 
 /**
  * Generate schema for passed object.

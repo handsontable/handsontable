@@ -39,6 +39,14 @@ export class DropdownElement {
   #eventManager = new EventManager(this);
 
   /**
+   * TODO: docs
+   */
+  #cache = {
+    visibleRowsNumber: null,
+    entriesCount: 0,
+  };
+
+  /**
    * Creates a dropdown renderer attached to the provided container.
    *
    * @param {HTMLDivElement} containerElement Host element created by the editor.
@@ -61,6 +69,14 @@ export class DropdownElement {
   }
 
   /**
+   * Sets the number of visible rows in the dropdown.
+   *
+   * @param {number} visibleRowsNumber Number of visible rows.
+   */
+  setVisibleRowsNumber(visibleRowsNumber) {
+    this.#cache.visibleRowsNumber = visibleRowsNumber;
+  }
+  /**
    * Populates the dropdown with provided entries and marks selected ones.
    *
    * @param {string[]|{key: string, value: string}[]} entries Collection of primitive values or `[value, label]` tuples.
@@ -76,31 +92,97 @@ export class DropdownElement {
     entries.forEach((elem) => {
       this.#addDropdownItem(elem?.key, elem?.value ?? elem, includesValue(checkedValues, elem));
     });
+
+    this.#cache.entriesCount = entries.length;
   }
 
   /**
    * Controls dropdown height based on entry count and configured visible rows.
    *
-   * @param {number} entriesCount Total number of rendered entries.
-   * @param {number} visibleRowsNumber Maximum rows that should stay visible before scrolling.
    */
-  updateDimensions(entriesCount, visibleRowsNumber) {
-    if (visibleRowsNumber && entriesCount > visibleRowsNumber) {
-      const computedStyle = this.#rootDocument.defaultView.getComputedStyle(this.containerElement);
-      const entryHeight =
-        (2 * parseInt(computedStyle.getPropertyValue('--ht-menu-item-vertical-padding'))) +
-        parseInt(computedStyle.getPropertyValue('--ht-line-height'));
+  updateDimensions(availableSpace) {
+    const computedStyle = this.#rootDocument.defaultView.getComputedStyle(this.containerElement);
+    const entryHeight =
+      (2 * parseInt(computedStyle.getPropertyValue('--ht-menu-item-vertical-padding'))) +
+      parseInt(computedStyle.getPropertyValue('--ht-line-height'));
+    const requiresFlippingVertically = this.#requiresFlippingVertically(availableSpace);
+    const availableHeight = requiresFlippingVertically ? availableSpace.spaceAbove : availableSpace.spaceBelow;
 
-      this.containerElement.style.height = `${
-        visibleRowsNumber * entryHeight +
+    if (availableHeight < (this.#cache.visibleRowsNumber ? this.#cache.visibleRowsNumber : this.#cache.entriesCount) * entryHeight) {
+      this.#cache.visibleRowsNumber = Math.max(Math.floor(availableHeight / entryHeight) - 1, 1);
+    }
+
+    if (this.#cache.visibleRowsNumber && this.#cache.entriesCount > this.#cache.visibleRowsNumber) {
+      this.containerElement.style.height = `${this.#cache.visibleRowsNumber * entryHeight +
         2 * parseInt(computedStyle.getPropertyValue('--ht-gap-size'))
-      }px`;
+        }px`;
 
     } else {
       this.containerElement.style.height = '';
     }
 
+    this.#toggleVerticalFlip(requiresFlippingVertically);
+
     this.containerElement.scrollTop = 0;
+  }
+
+  /**
+   * TODO: docs
+   */
+  reset() {
+    this.#resetCache();
+    this.containerElement.style.position = '';
+    this.containerElement.style.top = '';
+    this.containerElement.style.height = '';
+    this.containerElement.scrollTop = 0;
+  }
+
+  /**
+   * TODO: docs
+   * 
+   */
+  #resetCache() {
+    this.#cache.visibleRowsNumber = null;
+    this.#cache.entriesCount = 0;
+  }
+
+  /**
+   * TODO: docs
+   * @param {*} availableSpace 
+   * @returns 
+   */
+  #requiresFlippingVertically(availableSpace) {
+    const { spaceAbove, spaceBelow, cellHeight } = availableSpace;
+
+    return this.getHeight() > spaceBelow && spaceAbove > spaceBelow + cellHeight;
+  }
+
+  /**
+   * TODO: docs
+   */
+  #toggleVerticalFlip(flipNeeded) {
+    if (flipNeeded) {
+      this.containerElement.style.position = 'absolute';
+      this.containerElement.style.top = `${-this.getHeight()}px`;
+
+    } else {
+      this.containerElement.style.position = '';
+      this.containerElement.style.top = '';
+    }
+  }
+
+  /**
+   * TODO: docs
+   */
+  getHeight() {
+    const visibleRowsNumber = this.#cache.visibleRowsNumber ?? this.#cache.entriesCount;
+    const computedStyle = this.#rootDocument.defaultView.getComputedStyle(this.containerElement);
+    const entryHeight =
+      (2 * parseInt(computedStyle.getPropertyValue('--ht-menu-item-vertical-padding'))) +
+      parseInt(computedStyle.getPropertyValue('--ht-line-height'));
+
+    return visibleRowsNumber * entryHeight +
+      2 * parseInt(computedStyle.getPropertyValue('--ht-gap-size'))
   }
 
   /**
@@ -127,8 +209,8 @@ export class DropdownElement {
 
     checkboxElement.id = `htMultiSelectItem-${itemValue}`;
     checkboxElement.type = 'checkbox';
-    checkboxElement.dataset.value = itemValue;    
-    
+    checkboxElement.dataset.value = itemValue;
+
     if (itemKey) {
       checkboxElement.dataset.key = itemKey;
     }

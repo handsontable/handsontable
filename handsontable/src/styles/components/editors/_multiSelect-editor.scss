@@ -8,6 +8,7 @@
       border: var(--ht-menu-border-width) solid var(--ht-menu-border-color);
       background: var(--ht-background-color);
       box-shadow: var(--ht-menu-shadow-x) var(--ht-menu-shadow-y) var(--ht-menu-shadow-blur) 0 var(--ht-menu-shadow-color);
+      width: 100%;
 
       ul {
         list-style: none;

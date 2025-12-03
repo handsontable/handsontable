@@ -55,7 +55,7 @@ export class MultiSelectEditor extends TextEditor {
     super.createElements();
 
     this.dropdownContainerElement = this.hot.rootDocument.createElement('div');
-    this.dropdownContainerElement.className = DROPDOWN_ELEMENT_CSS_CLASSNAME;
+    this.dropdownContainerElement.className = `${DROPDOWN_ELEMENT_CSS_CLASSNAME} handsontableEditor`;
 
     this.TEXTAREA_PARENT.appendChild(this.dropdownContainerElement);
 
@@ -85,7 +85,8 @@ export class MultiSelectEditor extends TextEditor {
     this.#syncSelectedValues(valuesIntersection);
 
     this.dropdown.fillDropdown(this.cellProperties.source, valuesIntersection);
-    this.dropdown.updateDimensions(this.cellProperties.source.length, this.#getEditorSetting('visibleRows'));
+
+    this.dropdown.setVisibleRowsNumber(this.#getEditorSetting('visibleRows'));
   }
 
   /**
@@ -114,6 +115,23 @@ export class MultiSelectEditor extends TextEditor {
     this.eventManager.addEventListener(this.TEXTAREA, 'keyup', (event) => this.#handleTextareaChange(event));
   }
 
+  /**
+   * TODO: docs
+   */
+  open() {
+    super.open();
+
+    this.dropdown.updateDimensions(this.getAvailableSpace());
+  }
+
+  /**
+   * TODO: docs
+   */
+  close() {
+    super.close();
+
+    this.dropdown.reset();
+  }
 
   /**
    * Returns the editor's value.
@@ -121,8 +139,34 @@ export class MultiSelectEditor extends TextEditor {
    * @returns {string} The editor's value.
    */
   getValue() {
-    return this.selectedItems.stringifyItems();
+    return this.selectedItems.getItemsArray();
   }
+
+  /**
+   * TODO: docs
+   */
+  getAvailableSpace() {
+    const cellRect = this.getEditedCellRect();
+    const isVerticallyScrollableByWindow = this.hot.view.isVerticallyScrollableByWindow();
+    const workspaceHeight = this.hot.view.getWorkspaceHeight();
+
+    let spaceAbove = cellRect.top;
+
+    if (isVerticallyScrollableByWindow) {
+      const topOffset = this.hot.view.getTableOffset().top - this.hot.rootWindow.scrollY;
+
+      spaceAbove = Math.max(spaceAbove + topOffset, 0);
+    }
+
+    const spaceBelow = workspaceHeight - spaceAbove - cellRect.height;
+
+    return {
+      spaceAbove,
+      spaceBelow,
+      cellHeight: cellRect.height,
+    };
+  }
+
   /**
    * Handles textarea change event.
    *
@@ -189,7 +233,7 @@ export class MultiSelectEditor extends TextEditor {
   #removeSelectedValue(deselectedKey, deselectedValue) {
     if (deselectedKey) {
       this.selectedItems.remove({ key: deselectedKey, value: deselectedValue });
-      
+
     } else {
       this.selectedItems.remove(deselectedValue);
     }

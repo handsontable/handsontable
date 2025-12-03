@@ -9,13 +9,9 @@ import { arrayToString } from '../../../helpers/array';
  * @returns {*} The final value of the cell.
  */
 export function valueGetter(value) {
-  if (isJSON(value)) {
-    const parsedValue = JSON.parse(value).map(value => isKeyValueObject(value) ? value.value : value);
-
-    if (Array.isArray(parsedValue)) {
-      value = arrayToString(parsedValue, ', ');
-    }
+  if (Array.isArray(value)) {
+    return arrayToString(value.map(value => isKeyValueObject(value) ? value.value : value), ', ');
   }
 
-  return isKeyValueObject(value) && value.value !== undefined ? value.value : value;
+  return value;
 }
