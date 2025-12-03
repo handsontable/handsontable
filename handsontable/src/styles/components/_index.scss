@@ -76,6 +76,7 @@
   @include dropdown-menu.output();
   @include filters.output();
   @include comments.output();
+  @include custom-borders.output();
   @include column-sorting.output();
   @include multi-column-sorting.output();
   @include manual-column-freeze.output();

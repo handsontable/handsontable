@@ -374,6 +374,14 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     }
   });
 
+  /**
+   * ThemeAPI instance.
+   *
+   * @private
+   * @type {ThemeAPI|null}
+   */
+  this.themeAPI = null;
+
   mergedUserSettings.language = getValidLanguageCode(mergedUserSettings.language);
 
   const settingsWithoutHooks = Object.fromEntries(
@@ -394,7 +402,9 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
   this.rootElement.insertBefore(this.container, this.rootElement.firstChild);
 
-  this.guid = `ht_${randomString()}`; // this is the namespace for global events
+  const stringInstanceID = randomString();
+
+  this.guid = `ht_${stringInstanceID}`; // this is the namespace for global events
 
   foreignHotInstances.set(this.guid, this);
 
@@ -1313,48 +1323,70 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   }
 
   this.init = function() {
-    dataSource.setData(tableMeta.data);
-    instance.runHooks('beforeInit');
+    const initFunction = () => {
+      dataSource.setData(tableMeta.data);
+      instance.runHooks('beforeInit');
 
-    if (isMobileBrowser() || isIpadOS()) {
-      addClass(instance.rootElement, 'mobile');
+      if (isMobileBrowser() || isIpadOS()) {
+        addClass(instance.rootElement, 'mobile');
+      }
+
+      this.updateSettings(mergedUserSettings, true);
+
+      this.view = new TableView(this);
+
+      editorManager = EditorManager.getInstance(instance, tableMeta, selection);
+      viewportScroller = createViewportScroller(instance);
+
+      focusGridManager.init();
+
+      if (isRootInstance(this)) {
+        installAccessibilityAnnouncer(instance.rootPortalElement);
+        _injectProductInfo(mergedUserSettings.licenseKey, this.rootWrapperElement);
+      }
+
+      instance.runHooks('init');
+
+      this.render();
+
+      // Run the logic only if it's the table's initialization and the root element is not visible.
+      if (!!firstRun && instance.rootElement.offsetParent === null) {
+        observeVisibilityChangeOnce(instance.rootElement, () => {
+          // Update the spreader size cache before rendering.
+          instance.view._wt.wtOverlays.updateLastSpreaderSize();
+          instance.view.adjustElementsSize();
+          instance.render();
+        });
+      }
+
+      if (typeof firstRun === 'object') {
+        instance.runHooks('afterChange', firstRun[0], firstRun[1]);
+
+        firstRun = false;
+      }
+
+      instance.runHooks('afterInit');
+    };
+
+    if (isRootInstance(instance) && tableMeta.theme) {
+      const themeObject = tableMeta.theme;
+
+      (async() => {
+        const { ThemeAPI } = await import(/* webpackChunkName: "ThemeAPI" */ './themes/themeAPI');
+
+        instance.themeAPI = new ThemeAPI(
+          instance.rootDocument,
+          instance.rootWrapperElement,
+          instance.rootPortalElement,
+          themeObject,
+          stringInstanceID
+        );
+
+        initFunction();
+      })();
+    } else {
+      initFunction();
     }
-
-    this.updateSettings(mergedUserSettings, true);
-
-    this.view = new TableView(this);
-
-    editorManager = EditorManager.getInstance(instance, tableMeta, selection);
-    viewportScroller = createViewportScroller(instance);
-
-    focusGridManager.init();
-
-    if (isRootInstance(this)) {
-      installAccessibilityAnnouncer(instance.rootPortalElement);
-      _injectProductInfo(mergedUserSettings.licenseKey, this.rootWrapperElement);
-    }
-
-    instance.runHooks('init');
-
-    this.render();
-
-    // Run the logic only if it's the table's initialization and the root element is not visible.
-    if (!!firstRun && instance.rootElement.offsetParent === null) {
-      observeVisibilityChangeOnce(instance.rootElement, () => {
-        // Update the spreader size cache before rendering.
-        instance.view._wt.wtOverlays.updateLastSpreaderSize();
-        instance.view.adjustElementsSize();
-        instance.render();
-      });
-    }
-
-    if (typeof firstRun === 'object') {
-      instance.runHooks('afterChange', firstRun[0], firstRun[1]);
-
-      firstRun = false;
-    }
-
-    instance.runHooks('afterInit');
   };
 
   /**
@@ -4279,7 +4311,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * @returns {number} Returns -1 if table is not visible.
    */
   this.countRenderedRows = function() {
-    return instance.view._wt.drawn ? instance.view._wt.wtTable.getRenderedRowsCount() : -1;
+    return instance?.view?._wt?.drawn ? instance.view._wt.wtTable.getRenderedRowsCount() : -1;
   };
 
   /**
