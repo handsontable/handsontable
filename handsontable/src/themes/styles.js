@@ -1,22 +1,5 @@
 /* eslint-disable max-len */
-export default `.htBorders .wtBorder.ht-border-style-dashed-vertical {
-  background-image: repeating-linear-gradient(to bottom, var(--ht-custom-border-color) 0 5px, transparent 0 10px);
-}
-.htBorders .wtBorder.ht-border-style-dashed-horizontal {
-  background-image: repeating-linear-gradient(to right, var(--ht-custom-border-color) 0 5px, transparent 0 10px);
-}
-.htBorders .wtBorder.ht-border-style-dotted-horizontal {
-  background-image: radial-gradient(circle, var(--ht-custom-border-color) calc(var(--ht-custom-border-size) / 2), transparent 0);
-  background-size: calc(var(--ht-custom-border-size) * 2) var(--ht-custom-border-size);
-  background-repeat: repeat-x;
-}
-.htBorders .wtBorder.ht-border-style-dotted-vertical {
-  background-image: radial-gradient(circle, var(--ht-custom-border-color) calc(var(--ht-custom-border-size) / 2), transparent 0);
-  background-size: var(--ht-custom-border-size) calc(var(--ht-custom-border-size) * 2);
-  background-repeat: repeat-y;
-}
-
-.ht-root-wrapper {
+export default `.ht-root-wrapper {
   font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Helvetica Neue, Arial, sans-serif;
   position: relative;
   display: flex;
@@ -25,6 +8,7 @@ export default `.htBorders .wtBorder.ht-border-style-dashed-vertical {
 }
 
 .htFocusCatcher {
+  display: block !important;
   position: absolute;
   width: 0;
   height: 0;
@@ -2056,6 +2040,23 @@ export default `.htBorders .wtBorder.ht-border-style-dashed-vertical {
   border: var(--ht-comments-textarea-focus-border-width, 1px) solid var(--ht-comments-textarea-focus-border-color, #1a42e8);
   color: var(--ht-comments-textarea-focus-foreground-color);
   background-color: var(--ht-comments-textarea-focus-background-color, #ffffff);
+}
+
+.htBorders .wtBorder.ht-border-style-dashed-vertical {
+  background-image: repeating-linear-gradient(to bottom, var(--ht-custom-border-color) 0 5px, transparent 0 10px);
+}
+.htBorders .wtBorder.ht-border-style-dashed-horizontal {
+  background-image: repeating-linear-gradient(to right, var(--ht-custom-border-color) 0 5px, transparent 0 10px);
+}
+.htBorders .wtBorder.ht-border-style-dotted-horizontal {
+  background-image: radial-gradient(circle, var(--ht-custom-border-color) calc(var(--ht-custom-border-size) / 2), transparent 0);
+  background-size: calc(var(--ht-custom-border-size) * 2) var(--ht-custom-border-size);
+  background-repeat: repeat-x;
+}
+.htBorders .wtBorder.ht-border-style-dotted-vertical {
+  background-image: radial-gradient(circle, var(--ht-custom-border-color) calc(var(--ht-custom-border-size) / 2), transparent 0);
+  background-size: var(--ht-custom-border-size) calc(var(--ht-custom-border-size) * 2);
+  background-repeat: repeat-y;
 }
 
 .handsontable .columnSorting:not(.indicatorDisabled) {

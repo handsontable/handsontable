@@ -1323,10 +1323,10 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   }
 
   this.init = function() {
-    dataSource.setData(tableMeta.data);
-    instance.runHooks('beforeInit');
-
     const initFunction = () => {
+      dataSource.setData(tableMeta.data);
+      instance.runHooks('beforeInit');
+
       if (isMobileBrowser() || isIpadOS()) {
         addClass(instance.rootElement, 'mobile');
       }
@@ -1364,6 +1364,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
         firstRun = false;
       }
+
+      instance.runHooks('afterInit');
     };
 
     if (isRootInstance(instance) && tableMeta.theme) {
@@ -1385,8 +1387,6 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     } else {
       initFunction();
     }
-
-    instance.runHooks('afterInit');
   };
 
   /**
@@ -4311,7 +4311,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * @returns {number} Returns -1 if table is not visible.
    */
   this.countRenderedRows = function() {
-    return instance.view._wt.drawn ? instance.view._wt.wtTable.getRenderedRowsCount() : -1;
+    return instance?.view?._wt?.drawn ? instance.view._wt.wtTable.getRenderedRowsCount() : -1;
   };
 
   /**
