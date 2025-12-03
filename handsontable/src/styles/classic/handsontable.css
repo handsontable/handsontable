@@ -440,6 +440,7 @@ innerBorderBottom - Property controlled by bottom overlay
 }
 
 .htFocusCatcher {
+  display: block !important;
   position: absolute;
   z-index: -1;
   opacity: 0;
