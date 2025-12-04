@@ -159,10 +159,10 @@ const buildDependencyGetter = (version) => {
       vue3: ['https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js', [/* todo */], null, 'vue'],
       vuex4: ['https://cdn.jsdelivr.net/npm/vuex@4/dist/vuex.global.min.js', [/* todo */], null, 'vuex'],
       languages: [getPackageUrls('handsontable', version, 'dist/languages/all.js'), [/* todo */]],
-      'moment': ['https://cdn.jsdelivr.net/npm/moment@2.30.1/moment.min.js', [/* todo */]],
+      moment: ['https://cdn.jsdelivr.net/npm/moment@2.30.1/moment.min.js', [/* todo */]],
       'date-fns': ['https://cdnjs.cloudflare.com/ajax/libs/date-fns/4.1.0/cdn.min.js', [/* todo */]],
       coloris: ['https://cdn.jsdelivr.net/npm/@melloware/coloris/dist/umd/coloris.min.js', [/* todo */], 'https://cdn.jsdelivr.net/npm/@melloware/coloris/dist/coloris.min.css'],
-      'pikaday': ['https://cdn.jsdelivr.net/npm/@handsontable/pikaday/pikaday.js', [/* todo */], /*'https://cdn.jsdelivr.net/npm/@handsontable/pikaday/css/pikaday.css'*/],
+      pikaday: ['https://cdn.jsdelivr.net/npm/@handsontable/pikaday/pikaday.js', [/* todo */]],
       flatpickr: ['https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.js', [/* todo */], 'https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css'],
       'multiple-select-vanilla': ['https://cdn.jsdelivr.net/npm/multiple-select-vanilla/dist/browser/multiple-select.min.js', [/* todo */], 'https://cdn.jsdelivr.net/npm/multiple-select-vanilla/dist/styles/css/multiple-select.min.css', false, true]
     };
