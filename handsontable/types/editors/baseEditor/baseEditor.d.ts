@@ -1,7 +1,6 @@
 import Core from '../../core';
 import { CellProperties } from '../../settings';
 import { Context } from '../../shortcuts/context';
-import { CellProperties } from '../../settings';
 
 type Shortcut = Parameters<Context['addShortcut']>[0];
 
