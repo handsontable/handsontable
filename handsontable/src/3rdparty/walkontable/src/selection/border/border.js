@@ -322,13 +322,19 @@ class Border {
   isSouthEastOfAreaSelection(row, col) {
     const areaSelection = this.wot.selectionManager.getAreaSelection();
 
+    if (!areaSelection) {
+      return false;
+    }
+
     // If the area selection is empty, that means only one cell is selected.
     // In this case, the fill handler should be visible.
-    if (areaSelection.isEmpty()) {
+    if (!areaSelection.cellRange) {
       return true;
     }
 
-    return areaSelection.cellRange.isSouthEastOf(this.wot.createCellCoords(row, col));
+    const bottomEndCorner = areaSelection.cellRange.getBottomEndCorner();
+
+    return bottomEndCorner.row === row && bottomEndCorner.col === col;
   }
 
   /**
