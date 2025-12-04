@@ -7,136 +7,7 @@ import multipleSelect from 'multiple-select-vanilla';
 // Register all Handsontable's modules.
 registerAllModules();
 
-export const editorFactory = ({
-  init,
-  afterOpen,
-  afterInit,
-  beforeOpen,
-  getValue,
-  setValue,
-  onFocus,
-  shortcuts,
-  value,
-  // valueObject,
-  render,
-  config,
-  ...args
-}) => {
-  // TODO: This should be a unique id for the editor
-  const SHORTCUTS_GROUP = 'ee';
-  const registerShortcuts = (editor) => {
-    const shortcutManager = editor.hot.getShortcutManager();
-    const editorContext = shortcutManager.getContext('editor');
-    const contextConfig = {
-      group: SHORTCUTS_GROUP,
-    };
-
-    if (shortcuts) {
-      editorContext.addShortcuts(
-        shortcuts.map((shortcut) => ({
-          ...shortcut,
-          callback: (event) => shortcut.callback(editor, event),
-        })),
-        // @ts-ignore
-        contextConfig
-      );
-    }
-  };
-
-  return Handsontable.editors.BaseEditor.factory({
-    init(editor) {
-      Object.assign(editor, { value, config, render, ...args });
-      // create the input element on init. This is a text input that color picker will be attached to.
-      editor._open = false;
-      editor.container = editor.hot.rootDocument.createElement('DIV');
-      editor.container.style.display = 'none';
-      editor.container.classList.add('htSelectEditor');
-      editor.hot.rootElement.appendChild(editor.container);
-      init(editor);
-
-      if (!editor.input) {
-        console.error('input not found');
-      }
-
-      editor.container.appendChild(editor.input);
-
-      if (typeof afterInit === 'function') {
-        afterInit(editor);
-      }
-    },
-    getValue(editor) {
-      if (typeof getValue === 'function') {
-        return getValue(editor);
-      }
-
-      return editor.value;
-    },
-    setValue(editor, value) {
-      if (typeof setValue === 'function') {
-        setValue(editor, value);
-      } else {
-        editor.value = value;
-      }
-
-      if (typeof render === 'function') {
-        render(editor);
-      }
-    },
-    open(editor) {
-      const rect = editor.getEditedCellRect();
-
-      editor.container.style = `display: block; border:none; box-sizing: border-box; margin:0; padding:0px; position: absolute; top: ${rect.top}px; left: ${rect.start}px; width: ${rect.width}px; height: ${rect.height}px;`;
-      editor.container.classList.add('ht_editor_visible');
-
-      if (afterOpen) {
-        window.requestAnimationFrame(() => {
-          afterOpen(editor);
-        });
-      }
-
-      editor._open = true;
-      editor.hot.getShortcutManager().setActiveContextName('editor');
-      registerShortcuts(editor);
-    },
-    focus(editor) {
-      if (typeof onFocus === 'function') {
-        onFocus(editor);
-      } else {
-        editor.container
-          .querySelector(
-            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-            // @ts-ignore
-          )
-          ?.focus();
-      }
-    },
-    close(editor) {
-      editor._open = false;
-      editor.container.style.display = 'none';
-      editor.container.classList.remove('ht_editor_visible');
-
-      const shortcutManager = editor.hot.getShortcutManager();
-      const editorContext = shortcutManager.getContext('editor');
-
-      editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP);
-    },
-    prepare(editor, row, col, prop, td, originalValue, cellProperties) {
-      if (typeof beforeOpen === 'function') {
-        beforeOpen(editor, {
-          row,
-          col,
-          prop,
-          td,
-          originalValue,
-          cellProperties,
-        });
-      } else {
-        editor.setValue(originalValue);
-      }
-    },
-  });
-};
-
+/* start:skip-in-preview */
 const components = [
   { value: '1', label: 'Component 1' },
   { value: '2', label: 'Component 2' },
@@ -771,7 +642,7 @@ const cellDefinition = {
 
     return td;
   }),
-  editor: editorFactory({
+  editor: Handsontable.editors.BaseEditor.factory({
     init(editor) {
       editor.input = editor.hot.rootDocument.createElement('SELECT');
       editor.input.setAttribute('multiple', 'multiple');

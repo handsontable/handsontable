@@ -260,7 +260,7 @@ init(editor) {
 2. Set `multiple` attribute to allow multiple selections
 3. Set custom `data-multi-select` attribute for CSS targeting
 4. Initialize the multiple-select plugin on the select element
-5. The `editorFactory` helper handles container creation and DOM insertion
+5. The `Handsontable.editors.BaseEditor.factory` helper handles container creation and DOM insertion
 
 **Key concepts:**
 
@@ -341,9 +341,9 @@ afterOpen(editor) {
 **Why `afterOpen` instead of `open`?**
 - `afterOpen` runs after positioning is complete
 - Ensures the select element is ready before opening
-- The `editorFactory` helper handles positioning in `open`
+- The `Handsontable.editors.BaseEditor.factory` helper handles positioning in `open`
 
-**Note:** The `editorFactory` helper automatically positions the editor container over the cell, so we only need to open the dropdown.
+**Note:** The `Handsontable.editors.BaseEditor.factory` helper automatically positions the editor container over the cell, so we only need to open the dropdown.
 
 ## Step 8: Editor - Get Value (`getValue`)
 
@@ -494,7 +494,7 @@ const cellDefinition = {
       : 'No elements';
     return td;
   }),
-  editor: editorFactory<{input: HTMLSelectElement, multiselect: MultipleSelectInstance}>({
+  editor: Handsontable.editors.BaseEditor.factory<{input: HTMLSelectElement, multiselect: MultipleSelectInstance}>({
     init(editor) {
       editor.input = editor.hot.rootDocument.createElement("SELECT") as HTMLSelectElement;
       editor.input.setAttribute("multiple", "multiple");
@@ -531,14 +531,14 @@ const cellDefinition = {
 
 **What's happening:**
 - **renderer**: Displays selected items as comma-separated text
-- **editor**: Uses `editorFactory` helper with:
+- **editor**: Uses `Handsontable.editors.BaseEditor.factory` helper with:
   - `init`: Creates select element and initializes multiple-select plugin
   - `beforeOpen`: Populates options from column config and refreshes plugin
   - `afterOpen`: Opens the multiselect dropdown
   - `getValue`: Returns selected options as array of objects
   - `setValue`: Sets selected state, handles Handsontable bug, refreshes plugin
 
-**Note:** The `editorFactory` helper handles container creation, positioning, and lifecycle management automatically.
+**Note:** The `Handsontable.editors.BaseEditor.factory` helper handles container creation, positioning, and lifecycle management automatically.
 
 ## Step 11: Use in Handsontable
 

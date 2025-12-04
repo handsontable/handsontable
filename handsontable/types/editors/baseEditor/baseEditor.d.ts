@@ -1,5 +1,20 @@
 import Core from '../../core';
 import { CellProperties } from '../../settings';
+import { Context } from '../../shortcuts/context';
+import { CellProperties } from '../../settings';
+
+type Shortcut = Parameters<Context['addShortcut']>[0];
+
+type ExtendedEditor<T> = BaseEditor & {
+  render: (editor: ExtendedEditor<T>) => void;
+  value?: T extends {
+    value: any;
+  } ? T["value"] : any;
+  config?: T extends {
+      config: any;
+  } ? T["config"] : any;
+  container: HTMLDivElement;
+} & T;
 
 export const EDITOR_TYPE: 'base';
 export const EDITOR_STATE: Readonly<{
@@ -43,34 +58,36 @@ export abstract class BaseEditor {
   prepare(row: number, column: number, prop: string | number, TD: HTMLTableCellElement, originalValue: any, cellProperties: CellProperties): void;
   saveValue(value?: any, ctrlDown?: boolean): void;
   abstract setValue(newValue?: any): void;
-  static factory : <T>(params: {
-    prepare?: (editor: BaseEditor & T, ...args: Parameters<typeof BaseEditor.prototype.prepare>) => void;
-    beginEditing?: (editor: BaseEditor & T, ...args: Parameters<typeof BaseEditor.prototype.beginEditing>) => void;
-    finishEditing?: (editor: BaseEditor & T, ...args: Parameters<typeof BaseEditor.prototype.finishEditing>) => void;
-    discardEditor?: (editor: BaseEditor & T, ...args: Parameters<typeof BaseEditor.prototype.discardEditor>) => void;
-    saveValue?: (editor: BaseEditor & T, ...args: Parameters<typeof BaseEditor.prototype.saveValue>) => void;
-    getValue?: (editor: BaseEditor & T, ...args: Parameters<typeof BaseEditor.prototype.getValue>) => any;
-    setValue?: (editor: BaseEditor & T, ...args: Parameters<typeof BaseEditor.prototype.saveValue>) => void;
-    open?: (editor: BaseEditor & T, ...args: Parameters<typeof BaseEditor.prototype.open>) => void;
-    close?: (editor: BaseEditor & T, ...args: Parameters<typeof BaseEditor.prototype.close>) => void;
-    focus?: (editor: BaseEditor & T, ...args: Parameters<typeof BaseEditor.prototype.focus>) => void;
-    cancelChanges?: (editor: BaseEditor & T, ...args: Parameters<typeof BaseEditor.prototype.cancelChanges>) => void;
-    checkEditorSection?: (editor: BaseEditor & T, ...args: Parameters<typeof BaseEditor.prototype.checkEditorSection>) => "top-left-corner" | "top" | "bottom-left-corner" | "bottom" | "left" | "";
-    enableFullEditMode?: (editor: BaseEditor & T, ...args: Parameters<typeof BaseEditor.prototype.enableFullEditMode>) => void;
-    extend?(...args: Parameters<typeof BaseEditor.prototype.extend>): BaseEditor;
-    getEditedCell?: (editor: BaseEditor & T, ...args: Parameters<typeof BaseEditor.prototype.getEditedCell>) => HTMLTableCellElement | null;
-    getEditedCellRect?: (editor: BaseEditor & T, ...args: Parameters<typeof BaseEditor.prototype.getEditedCellRect>) => {
-        top: number;
-        start: number;
-        width: number;
-        maxWidth: number;
-        height: number;
-        maxHeight: number;
-    } | undefined;
-    getEditedCellsZIndex?: (editor: BaseEditor & T, ...args: Parameters<typeof BaseEditor.prototype.getEditedCellsZIndex>) => string;
-    init?: (editor: BaseEditor & T, ...args: Parameters<typeof BaseEditor.prototype.init>) => void;
-    isInFullEditMode?: (editor: BaseEditor & T, ...args: Parameters<typeof BaseEditor.prototype.isInFullEditMode>) => boolean;
-    isOpened?: (editor: BaseEditor & T, ...args: Parameters<typeof BaseEditor.prototype.isOpened>) => boolean;
-    isWaiting?: (editor: BaseEditor & T, ...args: Parameters<typeof BaseEditor.prototype.isWaiting>) => boolean;
-  } & Record<string, (editor: BaseEditor & T, ...args: any[]) => void>) => BaseEditor;
+
+  static factory: <TProperties, TMethods>({ init, afterOpen, afterInit, afterClose, beforeOpen, getValue, setValue, onFocus, shortcuts, value, render, config, shortcutsGroup, ...args }: {
+    value?: TProperties extends {
+        value: any;
+    } ? TProperties["value"] : any;
+    config?: TProperties extends {
+        config: any;
+    } ? TProperties["config"] : any;
+    render?: (editor: ExtendedEditor<TProperties & TMethods>) => void;
+    init: (editor: ExtendedEditor<TProperties & TMethods>) => void;
+    afterOpen?: (editor: ExtendedEditor<TProperties & TMethods>, event?: Event) => void;
+    afterClose?: (editor: ExtendedEditor<TProperties & TMethods>) => void;
+    afterInit?: (editor: ExtendedEditor<TProperties & TMethods>) => void;
+    beforeOpen?: (editor: ExtendedEditor<TProperties & TMethods>, { row, col, prop, td, originalValue, cellProperties, }: {
+        row: number;
+        col: number;
+        prop: string | number;
+        td: HTMLTableCellElement;
+        originalValue: any;
+        cellProperties: CellProperties;
+    }) => void;
+    getValue?: (editor: ExtendedEditor<TProperties & TMethods>) => any;
+    setValue?: (editor: ExtendedEditor<TProperties & TMethods>, value: any) => void;
+    onFocus?: (editor: ExtendedEditor<TProperties & TMethods>) => void;
+    shortcutsGroup?: string;
+    shortcuts?: (Omit<Shortcut, 'callback' | 'group'> & { 
+      callback: (editor: ExtendedEditor<TProperties & TMethods>, event: Event) => boolean | void; 
+      group?: string;
+    })[];
+    position?: 'container' | 'portal';
+  } & TMethods & Record<string, any>) => ExtendedEditor<TProperties>;
+
 }

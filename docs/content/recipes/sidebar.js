@@ -4,7 +4,7 @@ const cellsItems = [
   { path: 'cells/guide-color-picker/guide-color-picker', title: 'Color picker' },
   { path: 'cells/guide-flatpickr/guide-flatpickr', title: 'Datetime `flatpickr` picker' },
   { path: 'cells/guide-select-multiple/guide-select-multiple', title: 'Multiple Select Dropdown' },
-  { path: 'cells/guide-input-date/guide-input-date', title: 'Native Date Input' },
+  { path: 'cells/guide-pikaday/guide-pikaday', title: 'Date picker pikaday' },
 ];
 
 module.exports = {

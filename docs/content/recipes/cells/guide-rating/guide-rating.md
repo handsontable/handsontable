@@ -214,7 +214,7 @@ render(editor) {
 
 **Dynamic rendering:**
 - Updates whenever `editor.setValue()` is called
-- Automatically called by `editorFactory` when value changes
+- Automatically called by `Handsontable.editors.BaseEditor.factory` when value changes
 - Provides live preview as user interacts
 
 ## Step 7: Editor - Keyboard Shortcuts
@@ -282,7 +282,7 @@ const cellDefinition = {
     callback(value >= 1 && value <= 5);
   },
   
-  editor: editorFactory<{ input: HTMLDivElement }>({
+  editor: Handsontable.editors.BaseEditor.factory<{ input: HTMLDivElement }>({
     shortcuts: [
       {
         keys: [['1'], ['2'], ['3'], ['4'], ['5']],
@@ -336,7 +336,7 @@ const cellDefinition = {
 **What's happening:**
 - **renderer**: Displays 5 stars with opacity based on rating
 - **validator**: Ensures rating is between 1-5
-- **editor**: Uses `editorFactory` helper with:
+- **editor**: Uses `Handsontable.editors.BaseEditor.factory` helper with:
   - Keyboard shortcuts for 1-5 keys and arrow keys
   - Container initialization
   - Mouse events for hover preview and click

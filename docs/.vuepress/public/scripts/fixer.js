@@ -170,6 +170,10 @@
         ns = 'Coloris';
       } else if (key === 'flatpickr') {
         ns = 'flatpickr';
+      } if (key === 'moment') {
+        ns = 'moment';
+      } else if (key === '@handsontable/pikaday') {
+        ns = 'Pikaday';
       } else if (key === 'multiple-select-vanilla') {
         ns = 'multipleSelect';
       }

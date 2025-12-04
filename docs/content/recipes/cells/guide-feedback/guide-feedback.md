@@ -223,7 +223,7 @@ beforeOpen(editor, { originalValue }) {
 
 ```typescript
 const cellDefinition = {
-  editor: editorFactory<{input: HTMLDivElement, value: string, config: string[]}>({
+  editor: Handsontable.editors.BaseEditor.factory<{input: HTMLDivElement, value: string, config: string[]}>({
     config: ['👍', '👎', '🤷‍♂️'],
     value: '👍',
     shortcuts: [

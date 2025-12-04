@@ -351,6 +351,7 @@ declare namespace Handsontable {
     export { timeRenderer as TimeRenderer };
     export { registerRenderer };
     export { getRenderer };
+    export { factory } from './renderers';
   }
 
   export namespace validators {
