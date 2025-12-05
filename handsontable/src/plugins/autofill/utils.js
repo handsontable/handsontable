@@ -1,10 +1,4 @@
-import { isObject } from '../../helpers/object';
-import { isDefined } from '../../helpers/mixed';
-
-export const DIRECTIONS = {
-  horizontal: 'horizontal',
-  vertical: 'vertical'
-};
+import { offset } from '../../helpers/dom/element';
 
 /**
  * Get direction between positions and cords of selections difference (drag area).
@@ -62,51 +56,115 @@ export function getDragDirectionAndRange(startSelection, endSelection, cellCoord
 }
 
 /**
- * Get mapped FillHandle setting containing information about
- * allowed FillHandle directions and if allowed is automatic insertion of rows on drag.
+ * Get the cell coordinates from the mouse position. When the mouse is outside of the table,
+ * the nearest cell is returned.
  *
- * @param {boolean|object} fillHandle Property of Handsontable settings.
- * @returns {{directions: Array, autoInsertRow: boolean}} Object allowing access to information
- * about FillHandle in more useful way.
+ * @param {Handsontable} hotInstance The Handsontable instance.
+ * @param {number} mouseX The x coordinate of the mouse.
+ * @param {number} mouseY The y coordinate of the mouse.
+ * @returns {CellCoords} The cell coordinates.
  */
-export function getMappedFillHandleSetting(fillHandle) {
-  const mappedSettings = {};
+export function getCellCoordsFromMousePosition(hotInstance, mouseX, mouseY) {
+  const { view, rootWindow } = hotInstance;
+  const firstPartiallyVisibleRow = hotInstance.getFirstPartiallyVisibleRow();
+  const lastPartiallyVisibleRow = hotInstance.getLastPartiallyVisibleRow();
+  const firstPartiallyVisibleColumn = hotInstance.getFirstPartiallyVisibleColumn();
+  const lastPartiallyVisibleColumn = hotInstance.getLastPartiallyVisibleColumn();
+  const tableOffset = offset(hotInstance.table);
+  const scrollX = view.isHorizontallyScrollableByWindow() ? rootWindow.scrollX : view.getTableScrollPosition().left;
+  const scrollY = view.isVerticallyScrollableByWindow() ? rootWindow.scrollY : view.getTableScrollPosition().top;
 
-  if (fillHandle === true) {
-    mappedSettings.directions = Object.keys(DIRECTIONS);
-    mappedSettings.autoInsertRow = true;
+  const tableViewportLeft = tableOffset.left - scrollX;
+  const tableViewportTop = tableOffset.top - scrollY;
+  const tableViewportRight = tableViewportLeft + view.getTableWidth();
+  const tableViewportBottom = tableViewportTop + view.getTableHeight();
 
-  } else if (isObject(fillHandle)) {
-    if (isDefined(fillHandle.autoInsertRow)) {
+  // TODO: use clamp helper
+  const clampedX = Math.max(tableViewportLeft, Math.min(tableViewportRight - 1, mouseX));
+  const clampedY = Math.max(tableViewportTop, Math.min(tableViewportBottom - 1, mouseY));
 
-      // autoInsertRow for horizontal direction will be always false
+  const firstCell = hotInstance.getCell(firstPartiallyVisibleRow, firstPartiallyVisibleColumn, true);
+  const firstCellRect = firstCell.getBoundingClientRect();
 
-      if (fillHandle.direction === DIRECTIONS.horizontal) {
-        mappedSettings.autoInsertRow = false;
+  const relativeX = clampedX - firstCellRect.left;
+  let foundColumn = firstPartiallyVisibleColumn;
+  let accumulatedX = 0;
 
-      } else {
-        mappedSettings.autoInsertRow = fillHandle.autoInsertRow;
-      }
+  for (let col = firstPartiallyVisibleColumn; col <= lastPartiallyVisibleColumn; col++) {
+    const cellElement = hotInstance.getCell(firstPartiallyVisibleRow, col, true);
 
-    } else {
-      mappedSettings.autoInsertRow = false;
+    if (!cellElement) {
+      // eslint-disable-next-line no-continue
+      continue;
     }
 
-    if (isDefined(fillHandle.direction)) {
-      mappedSettings.directions = [fillHandle.direction];
+    const width = cellElement.offsetWidth;
 
-    } else {
-      mappedSettings.directions = Object.keys(DIRECTIONS);
+    if (relativeX >= accumulatedX && relativeX < accumulatedX + width) {
+      foundColumn = col;
+      break;
     }
 
-  } else if (typeof fillHandle === 'string') {
-    mappedSettings.directions = [fillHandle];
-    mappedSettings.autoInsertRow = true;
+    accumulatedX += width;
+    foundColumn = col;
 
-  } else {
-    mappedSettings.directions = [];
-    mappedSettings.autoInsertRow = false;
+    if (relativeX < accumulatedX) {
+      break;
+    }
+
+    const { colspan } = hotInstance.getCellMeta(firstPartiallyVisibleRow, col);
+
+    if (colspan && colspan > 1) {
+      col += colspan - 1;
+    }
   }
 
-  return mappedSettings;
+  if (mouseX < tableViewportLeft) {
+    foundColumn = firstPartiallyVisibleColumn;
+
+  } else if (mouseX >= tableViewportRight) {
+    foundColumn = lastPartiallyVisibleColumn;
+  }
+
+  const relativeY = clampedY - firstCellRect.top;
+  let foundRow = firstPartiallyVisibleRow;
+  let accumulatedY = 0;
+
+  for (let row = firstPartiallyVisibleRow; row <= lastPartiallyVisibleRow; row++) {
+    const cellElement = hotInstance.getCell(row, firstPartiallyVisibleColumn, true);
+
+    if (!cellElement) {
+      // eslint-disable-next-line no-continue
+      continue;
+    }
+
+    const height = cellElement.offsetHeight;
+
+    if (relativeY >= accumulatedY && relativeY < accumulatedY + height) {
+      foundRow = row;
+      break;
+    }
+
+    accumulatedY += height;
+    foundRow = row;
+
+    if (relativeY < accumulatedY) {
+      break;
+    }
+
+    const { rowspan } = hotInstance.getCellMeta(row, firstPartiallyVisibleColumn);
+
+    if (rowspan && rowspan > 1) {
+      row += rowspan - 1;
+    }
+  }
+
+  if (mouseY < tableViewportTop) {
+    foundRow = firstPartiallyVisibleRow;
+
+  } else if (mouseY >= tableViewportBottom) {
+    foundRow = lastPartiallyVisibleRow;
+  }
+
+  return hotInstance._createCellCoords(foundRow, foundColumn);
 }

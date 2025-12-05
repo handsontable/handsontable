@@ -370,24 +370,97 @@ describe('CellRange', () => {
   });
 
   describe('expand()', () => {
-    it('should expand the range correctly', () => {
-      const range = createRange(-1, -1, 2, 2, 5, 5);
+    it('should expand the range correctly and change the range direction if needed', () => {
+      {
+        const range = createRange(-1, -1, 2, 2, 5, 5);
 
-      // expend to top-left
-      expect(range.expand(createCoords(1, 1))).toBe(true);
-      expect(range).toEqualCellRange('highlight: -1,-1 from: 1,1 to: 5,5');
+        // expend to top-left
+        expect(range.expand(createCoords(1, 1))).toBe(true);
+        expect(range).toEqualCellRange('highlight: -1,-1 from: 5,5 to: 1,1');
+      }
+      {
+        const range = createRange(-1, -1, 2, 2, 5, 5);
 
-      // expend to top-right
-      expect(range.expand(createCoords(0, 6))).toBe(true);
-      expect(range).toEqualCellRange('highlight: -1,-1 from: 0,1 to: 5,6');
+        // expend to top-right
+        expect(range.expand(createCoords(0, 6))).toBe(true);
+        expect(range).toEqualCellRange('highlight: -1,-1 from: 5,2 to: 0,6');
+      }
+      {
+        const range = createRange(-1, -1, 2, 2, 5, 5);
 
-      // expend to bottom-right
-      expect(range.expand(createCoords(6, 7))).toBe(true);
-      expect(range).toEqualCellRange('highlight: -1,-1 from: 0,1 to: 6,7');
+        // expend to bottom-right
+        expect(range.expand(createCoords(6, 7))).toBe(true);
+        expect(range).toEqualCellRange('highlight: -1,-1 from: 2,2 to: 6,7');
+      }
+      {
+        const range = createRange(-1, -1, 2, 2, 5, 5);
 
-      // expend to bottom-left
-      expect(range.expand(createCoords(7, 0))).toBe(true);
-      expect(range).toEqualCellRange('highlight: -1,-1 from: 0,0 to: 7,7');
+        // expend to bottom-left
+        expect(range.expand(createCoords(7, 0))).toBe(true);
+        expect(range).toEqualCellRange('highlight: -1,-1 from: 2,5 to: 7,0');
+      }
+    });
+
+    it('should expand the range correctly and not change the range direction', () => {
+      {
+        const range = createRange(-1, -1, 2, 2, 5, 5);
+
+        // expend to top-left
+        expect(range.expand(createCoords(1, 1), false)).toBe(true);
+        expect(range).toEqualCellRange('highlight: -1,-1 from: 1,1 to: 5,5');
+      }
+      {
+        const range = createRange(-1, -1, 2, 2, 5, 5);
+
+        // expend to top-right
+        expect(range.expand(createCoords(0, 6), false)).toBe(true);
+        expect(range).toEqualCellRange('highlight: -1,-1 from: 0,2 to: 5,6');
+      }
+      {
+        const range = createRange(-1, -1, 2, 2, 5, 5);
+
+        // expend to bottom-right
+        expect(range.expand(createCoords(6, 7), false)).toBe(true);
+        expect(range).toEqualCellRange('highlight: -1,-1 from: 2,2 to: 6,7');
+      }
+      {
+        const range = createRange(-1, -1, 2, 2, 5, 5);
+
+        // expend to bottom-left
+        expect(range.expand(createCoords(7, 0), false)).toBe(true);
+        expect(range).toEqualCellRange('highlight: -1,-1 from: 2,0 to: 7,5');
+      }
+    });
+
+    it('should expand the range as a single cell correctly and change the range direction if needed', () => {
+      {
+        const range = createRange(-1, -1, 2, 2, 2, 2);
+
+        // expend to top-left
+        expect(range.expand(createCoords(1, 1))).toBe(true);
+        expect(range).toEqualCellRange('highlight: -1,-1 from: 2,2 to: 1,1');
+      }
+      {
+        const range = createRange(-1, -1, 2, 2, 2, 2);
+
+        // expend to top-right
+        expect(range.expand(createCoords(1, 3))).toBe(true);
+        expect(range).toEqualCellRange('highlight: -1,-1 from: 2,2 to: 1,3');
+      }
+      {
+        const range = createRange(-1, -1, 2, 2, 2, 2);
+
+        // expend to bottom-right
+        expect(range.expand(createCoords(3, 3))).toBe(true);
+        expect(range).toEqualCellRange('highlight: -1,-1 from: 2,2 to: 3,3');
+      }
+      {
+        const range = createRange(-1, -1, 2, 2, 2, 2);
+
+        // expend to bottom-left
+        expect(range.expand(createCoords(3, 1))).toBe(true);
+        expect(range).toEqualCellRange('highlight: -1,-1 from: 2,2 to: 3,1');
+      }
     });
   });
 
@@ -462,6 +535,17 @@ describe('CellRange', () => {
 
       expect(createRange(-1, -1, 2, 3, 2, 2).getHorizontalDirection()).toBe('E-W');
       expect(createRange(-1, -1, 2, -1, 2, -2).getHorizontalDirection()).toBe('E-W');
+    });
+  });
+
+  describe('getInlineDirection()', () => {
+    it('should return correct direction', () => {
+      expect(createRange(-1, -1, 2, 2, 2, 2).getInlineDirection()).toBe('start-end');
+      expect(createRange(-1, -1, 2, 1, 2, 2).getInlineDirection()).toBe('start-end');
+      expect(createRange(-1, -1, 2, -2, 2, -1).getInlineDirection()).toBe('start-end');
+
+      expect(createRange(-1, -1, 2, 3, 2, 2).getInlineDirection()).toBe('end-start');
+      expect(createRange(-1, -1, 2, -1, 2, -2).getInlineDirection()).toBe('end-start');
     });
   });
 

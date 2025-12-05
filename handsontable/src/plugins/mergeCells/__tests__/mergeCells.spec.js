@@ -1311,9 +1311,7 @@ describe('MergeCells', () => {
       await selectCell(0, 0);
 
       // Dragging merged cell one level down.
-      spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
-      spec().$container.find('tr:eq(2) td:eq(0)').simulate('mouseover');
-      spec().$container.find('tr:eq(2) td:eq(0)').simulate('mouseup');
+      simulateFillHandleDrag(getCell(2, 0));
 
       // First merged cell.
       expect(spec().$container.find('tr:eq(0) td:eq(0)')[0].offsetWidth).toBe(100);
@@ -1337,9 +1335,7 @@ describe('MergeCells', () => {
       await selectCell(0, 0);
 
       // Dragging merged cell one level right.
-      spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
-      spec().$container.find('tr:eq(0) td:eq(2)').simulate('mouseover');
-      spec().$container.find('tr:eq(0) td:eq(2)').simulate('mouseup');
+      simulateFillHandleDrag(getCell(0, 2));
 
       // First merged cell.
       expect(spec().$container.find('tr:eq(0) td:eq(0)')[0].offsetWidth).toBe(100);

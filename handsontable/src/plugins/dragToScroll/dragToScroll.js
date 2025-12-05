@@ -1,6 +1,6 @@
 import { BasePlugin } from '../base';
 import { isRightClick } from '../../helpers/dom/event';
-import { getParentWindow } from '../../helpers/dom/element';
+import { getParentWindow, getScrollbarWidth } from '../../helpers/dom/element';
 
 export const PLUGIN_KEY = 'dragToScroll';
 export const PLUGIN_PRIORITY = 100;
@@ -24,6 +24,18 @@ export class DragToScroll extends BasePlugin {
     return PLUGIN_PRIORITY;
   }
 
+  static get DEFAULT_SETTINGS() {
+    return {
+      autoScroll: {
+        interval: {
+          min: 50,
+          max: 500,
+        },
+        rampDistance: 100,
+      },
+    };
+  }
+
   /**
    * Size of an element and its position relative to the viewport,
    * e.g. {bottom: 449, height: 441, left: 8, right: 814, top: 8, width: 806, x: 8, y:8}.
@@ -45,6 +57,30 @@ export class DragToScroll extends BasePlugin {
    * @type {boolean}
    */
   listening = false;
+  /**
+   * Timer for scrolling the viewport looper.
+   *
+   * @type {number}
+   */
+  #timer = null;
+  /**
+   * Current interval value for the viewport looper.
+   *
+   * @type {number}
+   */
+  #currentInterval = null;
+  /**
+   * Coords of the cell that is being dragged.
+   *
+   * @type {CellCoords}
+   */
+  #autofillBorderCoords = null;
+  /**
+   * Flag indicates if the mouse is outside the viewport.
+   *
+   * @type {boolean}
+   */
+  #isOutsideViewport = false;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -54,6 +90,7 @@ export class DragToScroll extends BasePlugin {
    */
   isEnabled() {
     return !!this.hot.getSettings()[PLUGIN_KEY];
+    // return false;
   }
 
   /**
@@ -64,8 +101,10 @@ export class DragToScroll extends BasePlugin {
       return;
     }
 
-    this.addHook('afterOnCellMouseDown', event => this.#setupListening(event));
-    this.addHook('afterOnCellCornerMouseDown', event => this.#setupListening(event));
+    this.addHook('beforeOnCellMouseDown', (...args) => this.#setupListening(...args));
+    this.addHook('afterOnCellCornerMouseDown', (...args) => this.#setupListening(...args));
+    this.addHook('afterSelection', (...args) => this.#onAfterSelection(...args));
+    this.addHook('beforeAutofillRedrawBorders', (...args) => this.#onBeforeAutofillRedrawBorders(...args));
 
     this.registerEvents();
 
@@ -147,6 +186,8 @@ export class DragToScroll extends BasePlugin {
       diffX = x - this.boundaries.right;
     }
 
+    this.#isOutsideViewport = diffY !== 0 || diffX !== 0;
+
     this.callback(diffX, diffY);
   }
 
@@ -166,6 +207,7 @@ export class DragToScroll extends BasePlugin {
    */
   unlisten() {
     this.listening = false;
+    this.#stopScrollViewportLooper();
   }
 
   /**
@@ -191,7 +233,7 @@ export class DragToScroll extends BasePlugin {
     while (frame) {
       this.eventManager.addEventListener(frame.document, 'contextmenu', () => this.unlisten());
       this.eventManager.addEventListener(frame.document, 'mouseup', () => this.unlisten());
-      this.eventManager.addEventListener(frame.document, 'mousemove', event => this.onMouseMove(event));
+      this.eventManager.addEventListener(frame.document, 'mousemove', event => this.#onMouseMove(event));
 
       frame = getParentWindow(frame);
     }
@@ -218,19 +260,118 @@ export class DragToScroll extends BasePlugin {
 
     const scrollHandler = this.hot.view._wt.wtOverlays.topOverlay.mainTableScrollableElement;
 
-    this.setBoundaries(scrollHandler !== this.hot.rootWindow ? scrollHandler.getBoundingClientRect() : undefined);
+    if (scrollHandler === this.hot.rootWindow) {
+      this.setBoundaries();
+    } else {
+      const boundaries = scrollHandler.getBoundingClientRect();
 
-    this.setCallback((scrollX, scrollY) => {
+      this.setBoundaries({
+        left: boundaries.left + this.hot.view.getRowHeaderWidth(),
+        right: boundaries.right - getScrollbarWidth(),
+        top: boundaries.top + this.hot.view.getColumnHeaderHeight(),
+        bottom: boundaries.bottom - getScrollbarWidth(),
+      });
+    }
+
+    this.setCallback((diffX, diffY) => {
       const horizontalScrollValue = scrollHandler.scrollLeft ?? scrollHandler.scrollX;
       const verticalScrollValue = scrollHandler.scrollTop ?? scrollHandler.scrollY;
 
       scrollHandler.scroll(
-        horizontalScrollValue + (Math.sign(scrollX) * 50),
-        verticalScrollValue + (Math.sign(scrollY) * 20)
+        horizontalScrollValue + (Math.sign(diffX) * 50),
+        verticalScrollValue + (Math.sign(diffY) * 20)
       );
+
+      // if (diffX === 0 && diffY === 0) {
+      //   this.#stopScrollViewportLooper();
+
+      //   return;
+      // }
+
+      // const intervalRange = this.getSetting('autoScroll.interval');
+      // const rampDistance = this.getSetting('autoScroll.rampDistance');
+      // const diff = Math.min(diffX === 0 ? Infinity : diffX, diffY === 0 ? Infinity : diffY);
+      // const interval = calculateScrollInterval(diff, intervalRange, rampDistance);
+
+      // this.#runScrollViewportLooper(interval, {
+      //   diffX: () => diffX,
+      //   diffY: () => diffY,
+      // });
     });
 
     this.listen();
+  }
+
+  #runScrollViewportLooper(interval, { diffX, diffY }) {
+    this.#currentInterval = interval;
+
+    if (this.#timer !== null) {
+      return;
+    }
+
+    const scrollViewport = () => {
+      let coords;
+
+      if (!this.hot.selection.highlight.getFill().isEmpty()) {
+        coords = this.hot.selection.highlight.getFill().visualCellRange.to.clone();
+
+        if (diffX()) {
+          coords.col = diffX() > 0 ? coords.col + 1 : coords.col - 1;
+        }
+
+        if (diffY()) {
+          coords.row = diffY() > 0 ? coords.row + 1 : coords.row - 1;
+        }
+
+        this.hot.selection.highlight.getFill()
+          .clear()
+          .add(this.hot.getSelectedRangeLast().from)
+          .add(coords)
+          .commit();
+
+      } else {
+        coords = this.hot.getSelectedRangeActive().to.clone();
+
+        if (diffX()) {
+          coords.col = diffX() > 0 ? coords.col + 1 : coords.col - 1;
+        }
+
+        if (diffY()) {
+          coords.row = diffY() > 0 ? coords.row + 1 : coords.row - 1;
+        }
+
+        this.hot.selection.setRangeEnd(coords);
+      }
+
+      // this.hot.scrollViewportTo({
+      //   row: coords.row,
+      //   col: coords.col,
+      //   verticalSnap: diffY() !== 0 ? (diffY() > 0 ? 'bottom' : 'top') : undefined,
+      //   horizontalSnap: diffX() !== 0 ? (diffX() > 0 ? 'end' : 'start') : undefined,
+      // });
+
+      this.#timer = this.hot._registerTimeout(scrollViewport, this.#currentInterval);
+    };
+
+    scrollViewport();
+  }
+
+  #stopScrollViewportLooper() {
+    if (this.#timer !== null) {
+      clearTimeout(this.#timer);
+      this.#timer = null;
+      this.#currentInterval = null;
+    }
+  }
+
+  #onAfterSelection(row, column, endRow, endColumn, preventScrolling) {
+    if (this.#isOutsideViewport) {
+      preventScrolling.value = true;
+    }
+  }
+
+  #onBeforeAutofillRedrawBorders(coords) {
+    this.#autofillBorderCoords = coords;
   }
 
   /**
@@ -239,7 +380,7 @@ export class DragToScroll extends BasePlugin {
    * @private
    * @param {MouseEvent} event `mousemove` event properties.
    */
-  onMouseMove(event) {
+  #onMouseMove(event) {
     if (!this.isListening()) {
       return;
     }

@@ -46,6 +46,15 @@ export class BasePlugin {
   }
 
   /**
+   * The `PLUGIN_OPTION_KEY` getter defines the key that, when present in the config object, trigger the plugin update.
+   *
+   * @returns {string}
+   */
+  static get PLUGIN_OPTION_KEY() {
+    return this.PLUGIN_KEY;
+  }
+
+  /**
    * The `DEFAULT_SETTINGS` getter defines the plugin default settings.
    *
    * @returns {object}
@@ -122,7 +131,7 @@ export class BasePlugin {
 
   init() {
     this.pluginName = this.hot.getPluginName(this);
-    this.updatePluginSettings(this.hot.getSettings()[this.constructor.PLUGIN_KEY]);
+    this.updatePluginSettings(this.hot.getSettings()[this.constructor.PLUGIN_OPTION_KEY]);
 
     const pluginDeps = this.constructor.PLUGIN_DEPS;
     const deps = Array.isArray(pluginDeps) ? pluginDeps : [];
@@ -454,7 +463,7 @@ export class BasePlugin {
         this.isEnabled() &&
         relevantToSettings
       ) {
-        this.updatePluginSettings(newSettings[this.constructor.PLUGIN_KEY]);
+        this.updatePluginSettings(newSettings[this.constructor.PLUGIN_OPTION_KEY]);
         this.updatePlugin(newSettings);
       }
     }
