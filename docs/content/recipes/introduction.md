@@ -1,7 +1,7 @@
 ---
 id: 5a27e806
 title: Recipes 
-metaTitle: ARecipes - JavaScript Data Grid | Handsontable
+metaTitle: Recipes - JavaScript Data Grid | Handsontable
 description: Developer recipes and step-by-step tutorials for building with Handsontable
 permalink: /recipes/
 canonicalUrl: /recipes/

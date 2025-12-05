@@ -337,14 +337,14 @@ editor: Handsontable.editors.BaseEditor.factory<{input: HTMLInputElement}>({
       keys: [['ArrowLeft']],
       callback: (editor, event) => {
         // Custom action for ArrowLeft
-        return false; // Don't prevent default
+        return false; // Prevent default
       }
     },
     {
       keys: [['1'], ['2'], ['3']],
       callback: (editor, event) => {
         // Handle number keys
-        return true; // Prevent default
+        return true; // Don't  Prevent default
       }
     }
   ]
