@@ -882,18 +882,18 @@ class DataMap {
    * @returns {number}
    */
   visualRowsToPhysical(index, amount) {
-    const totalRows = this.hot.countSourceRows();
+    const totalRows = this.hot.countRows();
     const logicRows = [];
-    let physicRow = (totalRows + index) % totalRows;
+    let visualRow = (totalRows + index) % totalRows;
     let rowsToRemove = amount;
     let row;
 
-    while (physicRow < totalRows && rowsToRemove) {
-      row = this.hot.toPhysicalRow(physicRow);
+    while (visualRow < totalRows && rowsToRemove) {
+      row = this.hot.toPhysicalRow(visualRow);
       logicRows.push(row);
 
       rowsToRemove -= 1;
-      physicRow += 1;
+      visualRow += 1;
     }
 
     return logicRows;
