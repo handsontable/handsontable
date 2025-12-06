@@ -51,3 +51,4 @@ export {
   hasRenderer,
   registerRenderer,
 } from './registry';
+

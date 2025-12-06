@@ -24,7 +24,12 @@ module.exports = (options, context) => {
       }
 
       if (pageIdsMap.has(pageId)) {
-        throw new Error(`The pageId (${pageId}) is already taken!`);
+        if (process.env.WATCH_MODE === '1') {
+          // eslint-disable-next-line no-console
+          console.error(`The pageId (${pageId}) is already taken!`);
+        } else {
+          throw new Error(`The pageId (${pageId}) is already taken!`);
+        }
       }
 
       pageIdsMap.set(pageId, `/${$page.frontmatter.permalink}/`.replace(/(\/)+/g, '$1'));
