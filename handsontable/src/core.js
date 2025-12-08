@@ -1384,7 +1384,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
           rootDocument: instance.rootDocument,
           rootWrapperElement: instance.rootWrapperElement,
           rootPortalElement: instance.rootPortalElement,
-          stringInstanceID: instance.stringInstanceID,
+          stringInstanceID,
           themeObject,
         });
 
