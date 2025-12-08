@@ -1013,7 +1013,7 @@ export default `.ht-root-wrapper {
 }
 
 .handsontable.listbox {
-  box-shadow: var(--ht-menu-shadow-x, 0) var(--ht-menu-shadow-y, 0) var(--ht-menu-shadow-blur, 8px) var(--ht-menu-shadow-color, rgba(0, 0, 0, 0.08));
+  box-shadow: var(--ht-menu-shadow-x, 0) var(--ht-menu-shadow-y, 0) var(--ht-menu-shadow-blur, 8px) color-mix(in srgb, var(--ht-menu-shadow-color, rgb(0, 0, 0)) var(--ht-menu-shadow-opacity, 100%), transparent);
   margin: 0;
   border: var(--ht-menu-border-width, 1px) solid var(--ht-menu-border-color, #e5e5e9);
 }
@@ -1052,7 +1052,7 @@ export default `.ht-root-wrapper {
   color: inherit;
 }
 .handsontable.listbox table tr td:hover td {
-  background: var(--ht-menu-item-hover-color, #e5e5e9) !important;
+  background: color-mix(in srgb, var(--ht-menu-item-hover-color) var(--ht-menu-item-hover-color-opacity, 100%), transparent) !important;
   cursor: pointer;
   box-shadow: none !important;
 }
@@ -1060,7 +1060,7 @@ export default `.ht-root-wrapper {
   transition: var(--ht-table-transition) background ease-in-out;
 }
 .handsontable.listbox table td:hover {
-  background-color: var(--ht-menu-item-hover-color, #e5e5e9) !important;
+  background-color: color-mix(in srgb, var(--ht-menu-item-hover-color) var(--ht-menu-item-hover-color-opacity, 100%), transparent) !important;
   cursor: pointer;
 }
 .handsontable.listbox table td.current:not([aria-expanded=true]) {
@@ -1106,7 +1106,7 @@ export default `.ht-root-wrapper {
 
 .pika-single {
   font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Helvetica Neue, Arial, sans-serif;
-  box-shadow: var(--ht-menu-shadow-x, 0) var(--ht-menu-shadow-y, 0) var(--ht-menu-shadow-blur, 8px) var(--ht-menu-shadow-color, rgba(0, 0, 0, 0.08));
+  box-shadow: var(--ht-menu-shadow-x, 0) var(--ht-menu-shadow-y, 0) var(--ht-menu-shadow-blur, 8px) color-mix(in srgb, var(--ht-menu-shadow-color, rgb(0, 0, 0)) var(--ht-menu-shadow-opacity, 100%), transparent);
   position: relative;
   display: block;
   padding: 10px;
@@ -1184,7 +1184,7 @@ export default `.ht-root-wrapper {
   opacity: 0.5;
 }
 .pika-single .pika-table td.is-today .pika-button {
-  background: var(--ht-menu-item-hover-color);
+  background: color-mix(in srgb, var(--ht-menu-item-hover-color) var(--ht-menu-item-hover-color-opacity, 100%), transparent);
 }
 .pika-single .pika-table td.is-selected .pika-button {
   background: var(--ht-accent-color, #1a42e8);
@@ -1207,7 +1207,7 @@ export default `.ht-root-wrapper {
   font-size: inherit;
 }
 .pika-single .pika-table .pika-button:hover {
-  background: var(--ht-menu-item-hover-color);
+  background: color-mix(in srgb, var(--ht-menu-item-hover-color) var(--ht-menu-item-hover-color-opacity, 100%), transparent);
 }
 
 [dir=rtl].htDatepickerHolder .pika-single .pika-next {
@@ -1726,7 +1726,7 @@ export default `.ht-root-wrapper {
   background-color: var(--ht-header-active-foreground-color);
 }
 .handsontable.htDropdownMenu > .ht_master, .handsontable.htContextMenu > .ht_master, .handsontable.htFiltersConditionsMenu > .ht_master {
-  box-shadow: var(--ht-menu-shadow-x, 0) var(--ht-menu-shadow-y, 0) var(--ht-menu-shadow-blur, 8px) var(--ht-menu-shadow-color, rgba(0, 0, 0, 0.08));
+  box-shadow: var(--ht-menu-shadow-x, 0) var(--ht-menu-shadow-y, 0) var(--ht-menu-shadow-blur, 8px) color-mix(in srgb, var(--ht-menu-shadow-color, rgb(0, 0, 0)) var(--ht-menu-shadow-opacity, 100%), transparent);
   border: var(--ht-menu-border-width, 1px) solid var(--ht-menu-border-color, #e5e5e9);
   border-radius: var(--ht-menu-border-radius);
   overflow: hidden;
@@ -1792,7 +1792,7 @@ export default `.ht-root-wrapper {
   background-color: inherit !important;
 }
 .handsontable.htDropdownMenu table tbody tr td:not(.handsontable.htDropdownMenu table tbody tr td.htCustomMenuRenderer, .handsontable.htDropdownMenu table tbody tr td.htDisabled, .handsontable.htContextMenu table tbody tr td.htCustomMenuRenderer, .handsontable.htContextMenu table tbody tr td.htDisabled, .handsontable.htFiltersConditionsMenu table tbody tr td.htCustomMenuRenderer, .handsontable.htFiltersConditionsMenu table tbody tr td.htDisabled):hover, .handsontable.htContextMenu table tbody tr td:not(.handsontable.htDropdownMenu table tbody tr td.htCustomMenuRenderer, .handsontable.htDropdownMenu table tbody tr td.htDisabled, .handsontable.htContextMenu table tbody tr td.htCustomMenuRenderer, .handsontable.htContextMenu table tbody tr td.htDisabled, .handsontable.htFiltersConditionsMenu table tbody tr td.htCustomMenuRenderer, .handsontable.htFiltersConditionsMenu table tbody tr td.htDisabled):hover, .handsontable.htFiltersConditionsMenu table tbody tr td:not(.handsontable.htDropdownMenu table tbody tr td.htCustomMenuRenderer, .handsontable.htDropdownMenu table tbody tr td.htDisabled, .handsontable.htContextMenu table tbody tr td.htCustomMenuRenderer, .handsontable.htContextMenu table tbody tr td.htDisabled, .handsontable.htFiltersConditionsMenu table tbody tr td.htCustomMenuRenderer, .handsontable.htFiltersConditionsMenu table tbody tr td.htDisabled):hover {
-  background: var(--ht-menu-item-hover-color, #e5e5e9) !important;
+  background: color-mix(in srgb, var(--ht-menu-item-hover-color) var(--ht-menu-item-hover-color-opacity, 100%), transparent) !important;
   cursor: pointer;
 }
 .handsontable.htDropdownMenu table tbody tr td:not(.handsontable.htDropdownMenu table tbody tr td.htCustomMenuRenderer, .handsontable.htDropdownMenu table tbody tr td.htDisabled, .handsontable.htContextMenu table tbody tr td.htCustomMenuRenderer, .handsontable.htContextMenu table tbody tr td.htDisabled, .handsontable.htFiltersConditionsMenu table tbody tr td.htCustomMenuRenderer, .handsontable.htFiltersConditionsMenu table tbody tr td.htDisabled).current:not([aria-expanded=true]), .handsontable.htContextMenu table tbody tr td:not(.handsontable.htDropdownMenu table tbody tr td.htCustomMenuRenderer, .handsontable.htDropdownMenu table tbody tr td.htDisabled, .handsontable.htContextMenu table tbody tr td.htCustomMenuRenderer, .handsontable.htContextMenu table tbody tr td.htDisabled, .handsontable.htFiltersConditionsMenu table tbody tr td.htCustomMenuRenderer, .handsontable.htFiltersConditionsMenu table tbody tr td.htDisabled).current:not([aria-expanded=true]), .handsontable.htFiltersConditionsMenu table tbody tr td:not(.handsontable.htDropdownMenu table tbody tr td.htCustomMenuRenderer, .handsontable.htDropdownMenu table tbody tr td.htDisabled, .handsontable.htContextMenu table tbody tr td.htCustomMenuRenderer, .handsontable.htContextMenu table tbody tr td.htDisabled, .handsontable.htFiltersConditionsMenu table tbody tr td.htCustomMenuRenderer, .handsontable.htFiltersConditionsMenu table tbody tr td.htDisabled).current:not([aria-expanded=true]) {
@@ -1827,7 +1827,7 @@ export default `.ht-root-wrapper {
   display: none;
 }
 .handsontable.htDropdownMenu table tbody tr td:has(.htItemWrapper .selected), .handsontable.htContextMenu table tbody tr td:has(.htItemWrapper .selected), .handsontable.htFiltersConditionsMenu table tbody tr td:has(.htItemWrapper .selected) {
-  background-color: var(--ht-menu-item-active-color);
+  background-color: color-mix(in srgb, var(--ht-menu-item-active-color) var(--ht-menu-item-active-color-opacity, 100%), transparent);
 }
 .handsontable.htDropdownMenu table tbody tr td .htItemWrapper, .handsontable.htContextMenu table tbody tr td .htItemWrapper, .handsontable.htFiltersConditionsMenu table tbody tr td .htItemWrapper {
   margin-inline: calc(2 * var(--ht-gap-size, 4px));
@@ -2020,7 +2020,7 @@ export default `.ht-root-wrapper {
 }
 .htCommentsContainer .htCommentTextArea {
   font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Helvetica Neue, Arial, sans-serif;
-  box-shadow: var(--ht-menu-shadow-x, 0) var(--ht-menu-shadow-y, 0) var(--ht-menu-shadow-blur, 8px) var(--ht-menu-shadow-color, rgba(0, 0, 0, 0.08));
+  box-shadow: var(--ht-menu-shadow-x, 0) var(--ht-menu-shadow-y, 0) var(--ht-menu-shadow-blur, 8px) color-mix(in srgb, var(--ht-menu-shadow-color, rgb(0, 0, 0)) var(--ht-menu-shadow-opacity, 100%), transparent);
   width: 240px;
   height: 88px;
   font-size: var(--ht-font-size);
@@ -2356,7 +2356,7 @@ export default `.ht-root-wrapper {
   display: none;
   z-index: 205;
   pointer-events: none;
-  background: var(--ht-move-backlight-color);
+  background: color-mix(in srgb, var(--ht-move-backlight-color) var(--ht-move-backlight-opacity, 100%), transparent);
 }
 .handsontable .on-moving--columns.show-ui .ht__manualColumnMove--guideline,
 .handsontable .on-moving--columns .ht__manualColumnMove--backlight, .handsontable.on-moving--columns.show-ui .ht__manualColumnMove--guideline,
@@ -2398,7 +2398,7 @@ export default `.ht-root-wrapper {
   display: none;
   z-index: 205;
   pointer-events: none;
-  background: var(--ht-move-backlight-color);
+  background: color-mix(in srgb, var(--ht-move-backlight-color) var(--ht-move-backlight-opacity, 100%), transparent);
 }
 .handsontable .on-moving--rows.show-ui .ht__manualRowMove--guideline,
 .handsontable .on-moving--rows .ht__manualRowMove--backlight, .handsontable.on-moving--rows.show-ui .ht__manualRowMove--guideline,
@@ -2442,7 +2442,7 @@ export default `.ht-root-wrapper {
   background-color: var(--ht-dialog-solid-background-color);
 }
 .ht-dialog--background-semi-transparent {
-  background-color: var(--ht-dialog-semi-transparent-background-color);
+  background-color: color-mix(in srgb, var(--ht-dialog-semi-transparent-background-color) var(--ht-dialog-semi-transparent-background-opacity, 100%), transparent);
 }
 .ht-dialog--animation {
   transition: opacity var(--ht-table-transition) ease-in-out;
@@ -2466,7 +2466,7 @@ export default `.ht-root-wrapper {
   color: var(--ht-foreground-color);
 }
 .ht-dialog__content--background {
-  box-shadow: var(--ht-shadow-x, 0) var(--ht-shadow-y, 0) var(--ht-shadow-blur, 8px) var(--ht-shadow-color, rgba(0, 0, 0, 0.08));
+  box-shadow: var(--ht-shadow-x, 0) var(--ht-shadow-y, 0) var(--ht-shadow-blur, 8px) color-mix(in srgb, var(--ht-shadow-color, rgb(0, 0, 0)) var(--ht-shadow-opacity, 100%), transparent);
   border-radius: var(--ht-dialog-content-border-radius);
   background-color: var(--ht-dialog-content-background-color);
 }
@@ -2484,7 +2484,7 @@ export default `.ht-root-wrapper {
   border-radius: var(--ht-wrapper-border-radius);
 }
 .ht-dialog--confirm .ht-dialog__content-wrapper-inner--background {
-  box-shadow: var(--ht-shadow-x, 0) var(--ht-shadow-y, 0) var(--ht-shadow-blur, 8px) var(--ht-shadow-color, rgba(0, 0, 0, 0.08));
+  box-shadow: var(--ht-shadow-x, 0) var(--ht-shadow-y, 0) var(--ht-shadow-blur, 8px) color-mix(in srgb, var(--ht-shadow-color, rgb(0, 0, 0)) var(--ht-shadow-opacity, 100%), transparent);
   border-radius: var(--ht-dialog-content-border-radius);
   background-color: var(--ht-dialog-content-background-color);
 }

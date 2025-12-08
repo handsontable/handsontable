@@ -1,0 +1,53 @@
+export default {
+  "default": {
+    "cell-vertical": "sizing.size-1",
+    "cell-horizontal": "sizing.size-2",
+    "bars-horizontal": "sizing.size-4",
+    "bars-vertical": "sizing.size-2",
+    "gap": "sizing.size-1",
+    "button-horizontal": "sizing.size-3",
+    "button-vertical": "sizing.size-1_5",
+    "dialog-horizontal": "sizing.size-2",
+    "dialog-vertical": "sizing.size-2",
+    "input-horizontal": "sizing.size-3",
+    "input-vertical": "sizing.size-1_5",
+    "menu-vertical": "sizing.size-2",
+    "menu-horizontal": "sizing.size-0",
+    "menu-item-vertical": "sizing.size-1",
+    "menu-item-horizontal": "sizing.size-3"
+  },
+  "compact": {
+    "cell-vertical": "sizing.size-0_5",
+    "cell-horizontal": "sizing.size-1_5",
+    "bars-horizontal": "sizing.size-2",
+    "bars-vertical": "sizing.size-1",
+    "gap": "sizing.size-0_5",
+    "button-horizontal": "sizing.size-2",
+    "button-vertical": "sizing.size-0_5",
+    "dialog-horizontal": "sizing.size-1_5",
+    "dialog-vertical": "sizing.size-1_5",
+    "input-horizontal": "sizing.size-2",
+    "input-vertical": "sizing.size-0_5",
+    "menu-vertical": "sizing.size-2",
+    "menu-horizontal": "sizing.size-0",
+    "menu-item-vertical": "sizing.size-0_5",
+    "menu-item-horizontal": "sizing.size-2"
+  },
+  "comfortable": {
+    "cell-vertical": "sizing.size-2",
+    "cell-horizontal": "sizing.size-3",
+    "bars-horizontal": "sizing.size-4",
+    "bars-vertical": "sizing.size-2",
+    "gap": "sizing.size-1_5",
+    "button-horizontal": "sizing.size-4",
+    "button-vertical": "sizing.size-2",
+    "dialog-horizontal": "sizing.size-3",
+    "dialog-vertical": "sizing.size-3",
+    "input-horizontal": "sizing.size-4",
+    "input-vertical": "sizing.size-2",
+    "menu-vertical": "sizing.size-3",
+    "menu-horizontal": "sizing.size-0",
+    "menu-item-vertical": "sizing.size-2",
+    "menu-item-horizontal": "sizing.size-2"
+  }
+}

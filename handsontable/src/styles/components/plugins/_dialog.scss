@@ -45,7 +45,7 @@
       }
 
       &-semi-transparent {
-        background-color: var(--ht-dialog-semi-transparent-background-color);
+        background-color: color-mix(in srgb, var(--ht-dialog-semi-transparent-background-color) var(--ht-dialog-semi-transparent-background-opacity, 100%), transparent);
       }
     }
 

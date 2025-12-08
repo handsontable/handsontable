@@ -33,12 +33,12 @@
     "test:walkontable.watch": "node ./test/scripts/run-puppeteer-on-watchers-change.mjs --cmdToListen \"npm run build:walkontable -- --watch\" --cmdToListen \"npm run test:walkontable.dump -- --watch\" --runnerFile \"src/3rdparty/walkontable/test/SpecRunner.html\"",
     "test:walkontable.dump": "cross-env-shell BABEL_ENV=commonjs_e2e NODE_ENV=test-walkontable env-cmd -f ../hot.config.js webpack ./src/3rdparty/walkontable/test/helpers/index.js ./src/3rdparty/walkontable/test/spec/index.js",
     "test:walkontable.puppeteer": "node test/scripts/run-puppeteer.mjs src/3rdparty/walkontable/test/SpecRunner.html",
-    "test:production": "npm run build:umd.min && npm run build:languages.min && npm run test:production.dump && npm run test:e2e.puppeteer",
-    "test:production.random": "npm run build:umd.min && npm run build:languages.min && npm run test:production.dump && npm run test:e2e.puppeteer -- --random",
+    "test:production": "npm run build:all.styles.min && npm run build:umd.min && npm run build:languages.min && npm run build:themes-umd.min && npm run test:production.dump && npm run test:e2e.puppeteer",
+    "test:production.random": "npm run build:all.styles.min && npm run build:umd.min && npm run build:languages.min && npm run build:themes-umd.min && npm run test:production.dump && npm run test:e2e.puppeteer -- --random",
     "test:production.dump": "cross-env-shell BABEL_ENV=commonjs_e2e NODE_ENV=test-production env-cmd -f ../hot.config.js webpack ./test/helpers/index.js ./test/e2e/index.js",
-    "test:e2e": "npm run build:umd && npm run build:languages && npm run test:e2e.dump && npm run test:e2e.puppeteer",
-    "test:e2e.random": "npm run build:umd && npm run build:languages && npm run test:e2e.dump && npm run test:e2e.puppeteer -- --random",
-    "test:e2e.verbose": "npm run build:umd && npm run build:languages && npm run test:e2e.dump && npm run test:e2e.puppeteer -- --verbose",
+    "test:e2e": "npm run build:all.styles && npm run build:umd && npm run build:languages && npm run build:themes-umd && npm run test:e2e.dump && npm run test:e2e.puppeteer",
+    "test:e2e.random": "npm run build:all.styles && npm run build:umd && npm run build:languages && npm run build:themes-umd && npm run test:e2e.dump && npm run test:e2e.puppeteer -- --random",
+    "test:e2e.verbose": "npm run build:all.styles && npm run build:umd && npm run build:languages && npm run build:themes-umd && npm run test:e2e.dump && npm run test:e2e.puppeteer -- --verbose",
     "test:e2e.watch": "node ./test/scripts/run-puppeteer-on-watchers-change.mjs --cmdToListen \"npm run watch\" --cmdToListen \"npm run test:e2e.dump -- --watch\" --runnerFile \"test/E2ERunner.html\"",
     "test:e2e.dump": "cross-env-shell BABEL_ENV=commonjs_e2e NODE_ENV=test-e2e env-cmd -f ../hot.config.js webpack ./test/helpers/index.js ./test/e2e/index.js",
     "test:e2e.dump.esm-cjs": "cross-env-shell BABEL_ENV=commonjs_e2e NODE_ENV=test-e2e-esm-cjs env-cmd -f ../hot.config.js webpack ./test/helpers/index.js ./test/e2e/index.js",
@@ -48,19 +48,21 @@
     "test:mobile.dump": "cross-env-shell BABEL_ENV=commonjs_e2e NODE_ENV=test-mobile env-cmd --no-override -f ../hot.config.js webpack ./test/helpers/index.js ./test/e2e/mobile/index.js",
     "test:types": "tsc -p ./test/types -t es2015",
     "watch": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=watch env-cmd -f ../hot.config.js webpack --watch ./src/index.js",
-    "build": "npm run clean && npm run build:commonjs && npm run build:es && npm run build:umd && npm run build:umd.min && npm run build:languages && npm run build:languages.es && npm run build:languages.min",
+    "build": "npm run clean && npm run build:commonjs && npm run build:all.styles && npm run build:all.styles.min && npm run build:es && npm run build:umd && npm run build:umd.min && npm run build:languages && npm run build:languages.es && npm run build:languages.min && npm run build:themes-umd && npm run build:themes-umd.min",
     "build:commonjs": "cross-env-shell BABEL_ENV=commonjs_dist env-cmd -f ../hot.config.js babel src --out-dir tmp",
     "build:es": "cross-env-shell BABEL_ENV=es env-cmd -f ../hot.config.js babel src --out-file-extension .mjs --out-dir tmp",
-    "build:umd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=development env-cmd -f ../hot.config.js webpack ./src/index.js && npm run build:umd.styles",
+    "build:umd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=development env-cmd -f ../hot.config.js webpack ./src/index.js",
     "build:umd-from-esm": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=development env-cmd -f ../hot.config.js webpack ./tmp/index.mjs",
     "build:umd-from-cjs": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=development env-cmd -f ../hot.config.js webpack ./tmp/index.js",
-    "build:umd.min": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=production env-cmd -f ../hot.config.js webpack ./src/index.js && npm run build:umd.styles.min",
-    "build:umd.styles": "npm run build:styles && npm run build:themes && npm run build:classic-css",
-    "build:umd.styles.min": "npm run build:styles.min && npm run build:themes.min && npm run build:classic-css.min",
+    "build:umd.min": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=production env-cmd -f ../hot.config.js webpack ./src/index.js",
+    "build:all.styles": "npm run build:styles && npm run build:themes && npm run build:classic-css",
+    "build:all.styles.min": "npm run build:styles.min && npm run build:themes.min && npm run build:classic-css.min",
     "build:styles": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=styles-development env-cmd -f ../hot.config.js webpack",
     "build:styles.min": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=styles-production env-cmd -f ../hot.config.js webpack",
     "build:themes": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=themes-development env-cmd -f ../hot.config.js webpack",
     "build:themes.min": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=themes-production env-cmd -f ../hot.config.js webpack",
+    "build:themes-umd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=themes-umd-development env-cmd -f ../hot.config.js webpack",
+    "build:themes-umd.min": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=themes-umd-production env-cmd -f ../hot.config.js webpack",
     "build:classic-css": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=styles-classic-development env-cmd -f ../hot.config.js webpack",
     "build:classic-css.min": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=styles-classic-production env-cmd -f ../hot.config.js webpack",
     "build:walkontable": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=walkontable env-cmd -f ../hot.config.js webpack ./src/3rdparty/walkontable/css/walkontable.scss ./src/3rdparty/walkontable/src/index.js",
@@ -178,6 +180,7 @@
       "dist/handsontable.min.css",
       "dist/handsontable.min.js",
       "dist/languages",
+      "dist/themes",
       "dist/README.md",
       "styles",
       "languages",
@@ -206,6 +209,7 @@
       "./i18n/languages/*",
       "./dist/**/*.+(js|css)",
       "./styles/**/*.+(css)",
+      "./themes/*",
       {
         ".": {
           "types": "./index.d.ts",
@@ -241,12 +245,6 @@
           "types": "./registry.d.ts",
           "import": "./registry.mjs",
           "require": "./registry.js"
-        }
-      },
-      {
-        "./themes": {
-          "import": "./themes/index.mjs",
-          "require": "./themes/index.js"
         }
       }
     ],

@@ -47,7 +47,7 @@ export class StylesHandler {
    *
    * @type {boolean}
    */
-  #isClassicTheme = true;
+  #isClassicTheme = false;
 
   /**
    * An object to store CSS variable values.
@@ -177,7 +177,6 @@ export class StylesHandler {
     if (!themeName) {
 
       this.#themeName = undefined;
-      this.#isClassicTheme = true;
       this.#onThemeChange(this.#themeName);
       this.#cacheStylesheetValues();
 
@@ -329,6 +328,6 @@ export class StylesHandler {
   #clearCachedValues() {
     this.#computedStyles = {};
     this.#cssVars = {};
-    this.#isClassicTheme = true;
+    this.#isClassicTheme = false;
   }
 }

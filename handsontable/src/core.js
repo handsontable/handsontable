@@ -1369,18 +1369,24 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     };
 
     if (isRootInstance(instance) && tableMeta.theme) {
-      const themeObject = tableMeta.theme;
+      let themeObject = tableMeta.theme;
 
       (async() => {
-        const { ThemeAPI } = await import(/* webpackChunkName: "ThemeAPI" */ './themes/themeAPI');
+        const { ThemeAPI } = await import(/* webpackChunkName: "ThemeAPI" */ './utils/themeAPI');
 
-        instance.themeAPI = new ThemeAPI(
-          instance.rootDocument,
-          instance.rootWrapperElement,
-          instance.rootPortalElement,
+        if (!isObject(themeObject)) {
+          const mainTheme = await import(/* webpackChunkName: "mainTheme" */ './themes/mainTheme');
+
+          themeObject = mainTheme.default;
+        }
+
+        instance.themeAPI = new ThemeAPI({
+          rootDocument: instance.rootDocument,
+          rootWrapperElement: instance.rootWrapperElement,
+          rootPortalElement: instance.rootPortalElement,
+          stringInstanceID: instance.stringInstanceID,
           themeObject,
-          stringInstanceID
-        );
+        });
 
         initFunction();
       })();

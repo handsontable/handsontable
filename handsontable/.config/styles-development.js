@@ -42,7 +42,7 @@ module.exports.create = function create(envArgs) {
       new SCSSToESModulePlugin({
         scssPath: path.resolve(__dirname, '../src/styles/handsontable.scss'),
         outputPath: path.resolve(__dirname, '../src/themes'),
-        outputFilename: 'styles.js',
+        outputFilename: 'utils/styles.js',
       })
     );
   });

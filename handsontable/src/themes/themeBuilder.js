@@ -1,11 +1,12 @@
-import { isObject } from '../helpers/object';
+import sizing from './variables/sizing';
+import density from './variables/density';
 
 /**
  * ThemeBuilder class provides methods to build and configure themes.
  *
  * @class ThemeBuilder
  */
-export class ThemeBuilder {
+export default class ThemeBuilder {
   /**
    * Theme configuration object.
    *
@@ -26,17 +27,35 @@ export class ThemeBuilder {
    * @param {object} baseTheme The base theme object with light, dark, theme, and icons properties.
    */
   constructor(baseTheme) {
-    if (!isObject(baseTheme)) {
+    if (typeof baseTheme !== 'object' || baseTheme === null) {
       throw new Error('baseTheme must be an object');
     }
 
     // Deep clone the theme to avoid mutating the original
     this.#themeConfig = {
-      light: baseTheme.light ? { ...baseTheme.light } : {},
-      dark: baseTheme.dark ? { ...baseTheme.dark } : {},
-      theme: baseTheme.theme ? { ...baseTheme.theme } : {},
       icons: baseTheme.icons ? { ...baseTheme.icons } : {},
+      colors: baseTheme.colors ? { ...baseTheme.colors } : {},
+      tokens: baseTheme.tokens ? { ...baseTheme.tokens } : {},
     };
+
+    if (
+      typeof baseTheme.density === 'object'
+      && baseTheme.density !== null
+      && typeof baseTheme.density.sizes === 'object'
+      && typeof baseTheme.density.type === 'string'
+    ) {
+      const densitySizes = { ...density, ...baseTheme.density.sizes };
+
+      this.#themeConfig.density = { ...densitySizes[baseTheme.density.type] };
+    } else if (typeof baseTheme.density === 'string') {
+      if (density[baseTheme.density]) {
+        this.#themeConfig.density = density[baseTheme.density];
+      } else {
+        throw new Error(`Invalid density: ${baseTheme.density}. Must be one of ${Object.keys(density).join(', ')}.`);
+      }
+    } else {
+      this.#themeConfig.density = density.default;
+    }
   }
 
   /**
@@ -47,14 +66,25 @@ export class ThemeBuilder {
    *
    */
   params(paramsObject) {
-    if (!isObject(paramsObject)) {
+    if (typeof paramsObject !== 'object' || paramsObject === null) {
       throw new Error('paramsObject must be an object');
     }
 
-    this.#themeConfig = {
-      ...this.#themeConfig,
-      ...paramsObject,
+    const mergeObject = (obj1, obj2) => {
+      Object.keys(obj2).forEach((key) => {
+        if (typeof obj2[key] === 'object' && obj2[key] !== null) {
+          obj1[key] = mergeObject(obj1[key], obj2[key]);
+        } else {
+          obj1[key] = obj2[key];
+        }
+      });
+
+      return obj1;
     };
+
+    Object.keys(paramsObject).forEach((key) => {
+      this.#themeConfig[key] = mergeObject(this.#themeConfig[key], paramsObject[key]);
+    });
 
     return this;
   }
@@ -67,10 +97,10 @@ export class ThemeBuilder {
    *
    * @example
    * ```js
-   * const myTheme = mainTheme.setColorMode('dark');
+   * const myTheme = mainTheme.setColorScheme('dark');
    * ```
    */
-  setColorMode(mode) {
+  setColorScheme(mode) {
     if (mode !== 'light' && mode !== 'dark' && mode !== 'auto') {
       throw new Error(`Invalid color mode: ${mode}. Must be 'light', 'dark', or 'auto'.`);
     }
@@ -87,6 +117,7 @@ export class ThemeBuilder {
    */
   getThemeConfig() {
     return {
+      sizing,
       ...this.#themeConfig,
       colorScheme: this.#colorScheme,
     };
