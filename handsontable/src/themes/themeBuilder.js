@@ -72,6 +72,11 @@ export default class ThemeBuilder {
 
     const mergeObject = (obj1, obj2) => {
       Object.keys(obj2).forEach((key) => {
+        // Prevent prototype pollution
+        if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+          return;
+        }
+
         if (typeof obj2[key] === 'object' && obj2[key] !== null) {
           obj1[key] = mergeObject(obj1[key], obj2[key]);
         } else {
