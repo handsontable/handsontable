@@ -5,7 +5,7 @@ import { isJSON } from '../../../helpers/string';
 /**
  * Retrieves checkbox element from the item element.
  *
- * @param {HTMLLIElement} itemElement
+ * @param {HTMLLIElement} itemElement Parent element.
  * @returns {HTMLInputElement|null}
  */
 export function getCheckboxElement(itemElement) {
@@ -15,17 +15,17 @@ export function getCheckboxElement(itemElement) {
 /**
  * Retrieves values from the textarea value.
  *
- * @param {string} textareaValue The value of the textarea.
+ * @param {string} stringValue The value of the textarea.
  * @returns {string[]} The values from the textarea.
  */
-export function getValuesFromTextarea(textareaValue) {
-  return stringToArray(textareaValue, ',').map(value => value.trim());
+export function getValuesFromString(stringValue) {
+  return stringToArray(stringValue, ',').map(value => value.trim()).filter(value => value !== '');
 }
 
 /**
  * Retrieves the list item element that belongs to a checkbox with a given value.
  *
- * @param {string} value Value used in the checkbox id suffix.
+ * @param {string} value Value used in the checkbox id.
  * @param {HTMLUListElement} listElement List element that contains the options.
  * @returns {HTMLLIElement|null} Matching list item or null when nothing matches.
  */
@@ -68,23 +68,55 @@ export function getValuesIntersection(valuesArray, source) {
  * @returns {*|undefined}
  */
 export function getSourceItemByValue(value, source) {
-  return source.find(item => isKeyValueObject(item) ? item.value === value : item === value);
+  return source.find((item) => {
+    return isKeyValueObject(item) ? item.value === value : item === value;
+  });
+}
+
+/**
+ * Checks if a value is represented in the source.
+ *
+ * @param {string|object} value Value to check.
+ * @param {Array} source Array of source items.
+ * @returns {boolean}
+ */
+export function valueIsInSource(value, source) {
+  return source.some((item) => {
+    return isKeyValueObject(item) ? item.value === value : item === value;
+  });
 }
 
 /**
  * Checks if an array contains a value using JSON.stringify for comparison.
  *
- * @param {Array} array
- * @param {*} element
+ * @param {Array} array Array of values.
+ * @param {string|object} element Value to check.
  * @returns {boolean}
  */
 export function includesValue(array, element) {
   if (isKeyValueObject(element)) {
     return Array.isArray(array) && array.some(
-      value => isKeyValueObject(value) ? isObjectEqual(value, element) : value === element
+      (value) => {
+        return isKeyValueObject(value) ? isObjectEqual(value, element) : value === element;
+      }
     );
 
   } else {
     return array.includes(element);
   }
+}
+
+/**
+ * Retrieves the word at the caret position.
+ *
+ * @param {HTMLTextAreaElement} textarea Textarea element.
+ * @returns {string}
+ */
+export function getWordAtCaret(textarea) {
+  const upToCaret = textarea.value.slice(0, textarea.selectionStart);
+  const match = upToCaret.match(/([^,]*)$/);
+  const leftOfItem = match ? match[1] : '';
+  const rightOfItem = textarea.value.slice(textarea.selectionEnd).split(',')[0] ?? '';
+
+  return `${leftOfItem}${rightOfItem}`.trim();
 }

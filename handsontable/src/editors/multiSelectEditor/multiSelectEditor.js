@@ -1,16 +1,17 @@
 import { TextEditor } from '../textEditor';
-import { DropdownElement } from './dropdown';
-import { SelectedItemsController } from './utils/selectedItemsController';
+import { DropdownController } from './controllers/dropdownController';
+import { SelectedItemsController } from './controllers/selectedItemsController';
+import { InputController } from './controllers/inputController';
 import {
-  getValuesFromTextarea,
-  getItemElementByValue,
   getValuesIntersection,
   parseStringifiedValue,
   getSourceItemByValue,
 } from './utils/utils';
 
-const EDITOR_TYPE = 'multiSelect';
+export const EDITOR_TYPE = 'multiSelect';
 const DROPDOWN_ELEMENT_CSS_CLASSNAME = 'htMultiSelectEditor';
+const SHORTCUTS_GROUP = 'multiSelectEditor';
+
 /**
  * @private
  * @class MultiSelectEditor
@@ -27,9 +28,9 @@ export class MultiSelectEditor extends TextEditor {
    * Dropdown controller responsible for rendering and syncing option states.
    *
    * @private
-   * @type {DropdownElement|null}
+   * @type {DropdownController|null}
    */
-  dropdown = this.dropdown ?? null;
+  dropdownController = this.dropdownController ?? null;
 
   /**
    * Set of values that are currently checked in the dropdown.
@@ -40,9 +41,27 @@ export class MultiSelectEditor extends TextEditor {
   selectedItems = new SelectedItemsController();
 
   /**
+   * Input controller responsible for managing the input.
+   *
+   * @private
+   * @type {InputController}
+   */
+  inputController = this.inputController ?? null;
+
+  /**
+   * Cache for the editor.
+   *
+   * @private
+   * @type {object}
+   */
+  #cache = {
+    lastTextareaValue: null,
+  };
+
+  /**
    * Returns the editor type.
    *
-   * @returns {string} Returns `'multiSelect'`.
+   * @returns {string} The editor type.
    */
   static get EDITOR_TYPE() {
     return EDITOR_TYPE;
@@ -59,10 +78,9 @@ export class MultiSelectEditor extends TextEditor {
 
     this.TEXTAREA_PARENT.appendChild(this.dropdownContainerElement);
 
-    this.dropdown = new DropdownElement(this.dropdownContainerElement);
+    this.dropdownController = new DropdownController(this.dropdownContainerElement);
 
-    this.dropdown.addLocalHook('dropdownItemChecked', (selectedKey, selectedValue) => this.#addSelectedValue(selectedKey, selectedValue));
-    this.dropdown.addLocalHook('dropdownItemUnchecked', (deselectedKey, deselectedValue) => this.#removeSelectedValue(deselectedKey, deselectedValue));
+    this.inputController = new InputController({ input: this.TEXTAREA, eventManager: this.eventManager });
   }
 
   /**
@@ -84,9 +102,9 @@ export class MultiSelectEditor extends TextEditor {
 
     this.#syncSelectedValues(valuesIntersection);
 
-    this.dropdown.fillDropdown(this.cellProperties.source, valuesIntersection);
+    this.dropdownController.fillDropdown(this.cellProperties.source, valuesIntersection);
 
-    this.dropdown.setVisibleRowsNumber(this.#getEditorSetting('visibleRows'));
+    this.dropdownController.setVisibleRowsNumber(this.#getEditorSetting('visibleRows'));
   }
 
   /**
@@ -101,7 +119,7 @@ export class MultiSelectEditor extends TextEditor {
       this.setValue(this.selectedItems.stringifyValues());
     }
 
-    return super.finishEditing(restoreOriginalValue, ctrlDown, callback);
+    super.finishEditing(restoreOriginalValue, ctrlDown, callback);
   }
 
   /**
@@ -112,25 +130,36 @@ export class MultiSelectEditor extends TextEditor {
   bindEvents() {
     super.bindEvents();
 
-    this.eventManager.addEventListener(this.TEXTAREA, 'keyup', (event) => this.#handleTextareaChange(event));
+    this.dropdownController.addLocalHook('dropdownItemChecked',
+      (selectedKey, selectedValue) => this.#addSelectedValue(selectedKey, selectedValue)
+    );
+    this.dropdownController.addLocalHook('dropdownItemUnchecked',
+      (deselectedKey, deselectedValue) => this.#removeSelectedValue(deselectedKey, deselectedValue)
+    );
+    this.dropdownController.addLocalHook('dropdownFocus', () => this.#onDropdownFocus());
+    this.dropdownController.addLocalHook('dropdownDefocus', () => this.#onDropdownDefocus());
+
+    this.inputController.addLocalHook('commit', (...args) => this.#onTextareaCommit(...args));
+    this.inputController.addLocalHook('triggerFilter', wordAtCaret => this.filterEntries(wordAtCaret));
   }
 
   /**
-   * TODO: docs
+   * Opens the editor.
    */
   open() {
     super.open();
 
-    this.dropdown.updateDimensions(this.getAvailableSpace());
+    this.dropdownController.updateDimensions(this.getAvailableSpace());
   }
 
   /**
-   * TODO: docs
+   * Closes the editor.
    */
   close() {
     super.close();
 
-    this.dropdown.reset();
+    this.dropdownController.reset();
+    this.#cache = {};
   }
 
   /**
@@ -143,7 +172,30 @@ export class MultiSelectEditor extends TextEditor {
   }
 
   /**
-   * TODO: docs
+   * Filters the dropdown entries.
+   *
+   * @param {string} wordAtCaret The word at the caret position.
+   * @param {boolean} keepSelectedItems If true, the selected items will be kept in the dropdown.
+   */
+  filterEntries(wordAtCaret, keepSelectedItems = true) {
+    const filteredItems = this.cellProperties.source.filter((item) => {
+      const value = item?.value ?? item;
+
+      if (keepSelectedItems && this.selectedItems.has(item)) {
+        return true;
+      }
+
+      return value.toLowerCase().includes(wordAtCaret.toLowerCase());
+    });
+
+    this.dropdownController.fillDropdown(filteredItems, this.selectedItems.getItemsArray());
+    this.dropdownController.updateDimensions(this.getAvailableSpace(), true);
+  }
+
+  /**
+   * Gets the available space for the dropdown.
+   *
+   * @returns {{spaceAbove: number, spaceBelow: number, cellHeight: number}} The available space.
    */
   getAvailableSpace() {
     const cellRect = this.getEditedCellRect();
@@ -168,49 +220,98 @@ export class MultiSelectEditor extends TextEditor {
   }
 
   /**
-   * Handles textarea change event.
+   * Called when the editor is destroyed.
    *
    * @private
-   * @param {*} event The textarea change event.
    */
-  #handleTextareaChange(event) {
-    const values = getValuesFromTextarea(this.TEXTAREA.value);
+  destroy() {
+    this.super.destroy();
 
-    this.selectedItems.clear();
-    this.dropdown.deselectAllItems();
-
-    values?.forEach(value => {
-      const itemElement = getItemElementByValue(value, this.dropdown.dropdownListElement);
-
-      if (itemElement) {
-        this.dropdown.selectItem(itemElement);
-        this.selectedItems.add(getSourceItemByValue(value, this.cellProperties.source));
-      }
-    });
+    this.inputController = null;
   }
-  // /**
-  //  * Register shortcuts responsible for handling editor.
-  //  *
-  //  * @private
-  //  */
-  // registerShortcuts() {
-  //   return super.registerShortcuts();
-  // }
-  //
-  // /**
-  //  * Unregister shortcuts responsible for handling editor.
-  //  *
-  //  * @private
-  //  */
-  // unregisterShortcuts() {
-  //   return super.unregisterShortcuts();
-  // }
+
+  /**
+   * Handles textarea commit event.
+   *
+   * @private
+   * @param {string[]} values The values from the textarea.
+   */
+  #onTextareaCommit(values) {
+    this.selectedItems.clear();
+    this.selectedItems.add(values.map(value => getSourceItemByValue(value, this.cellProperties.source)));
+    this.dropdownController.removeAllDropdownItems();
+    this.dropdownController.fillDropdown(this.cellProperties.source, this.selectedItems.getItemsArray());
+    this.dropdownController.updateDimensions(this.getAvailableSpace(), true);
+  }
+
+  /**
+   * Called when the dropdown is focused.
+   *
+   * @private
+   */
+  #onDropdownFocus() {
+    this.TEXTAREA.blur();
+  }
+
+  /**
+   * Called when the dropdown is defocused.
+   *
+   * @private
+   */
+  #onDropdownDefocus() {
+    this.TEXTAREA.focus();
+  }
+
+  /**
+   * Register shortcuts responsible for handling editor.
+   *
+   * @private
+   */
+  registerShortcuts() {
+    super.registerShortcuts();
+
+    const shortcutManager = this.hot.getShortcutManager();
+    const editorContext = shortcutManager.getContext('editor');
+
+    editorContext.addShortcuts([{
+      keys: [['ArrowUp']],
+      callback: () => {
+        this.dropdownController.focusPreviousItem();
+      },
+    }, {
+      keys: [['ArrowDown']],
+      callback: () => {
+        this.dropdownController.focusNextItem();
+      },
+    }], {
+      group: SHORTCUTS_GROUP,
+    });
+
+    this.inputController.listen();
+  }
+
+  /**
+   * Unregister shortcuts responsible for handling editor.
+   *
+   * @private
+   */
+  unregisterShortcuts() {
+    super.unregisterShortcuts();
+
+    const shortcutManager = this.hot.getShortcutManager();
+    const editorContext = shortcutManager.getContext('editor');
+
+    editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP);
+
+    this.inputController.unlisten();
+  }
 
   /**
    * Adds a value reported by the dropdown to the selection set and mirrors it in the textarea.
    *
    * @private
-   * @param {*} selectedValue Value emitted when a dropdown checkbox becomes checked.
+   * @param {string} selectedKey Key of the selected value.
+   * @param {string} selectedValue Value of the selected value.
    */
   #addSelectedValue(selectedKey, selectedValue) {
     if (selectedKey) {
@@ -228,7 +329,8 @@ export class MultiSelectEditor extends TextEditor {
    * Removes a deselected dropdown value from the selection set and updates the textarea.
    *
    * @private
-   * @param {*} deselectedValue Value emitted when a dropdown checkbox becomes unchecked.
+   * @param {string} deselectedKey Key of the deselected value.
+   * @param {string} deselectedValue Value of the deselected value.
    */
   #removeSelectedValue(deselectedKey, deselectedValue) {
     if (deselectedKey) {

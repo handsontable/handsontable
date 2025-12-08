@@ -1,15 +1,18 @@
-import { hasOwnProperty, isKeyValueObject, isObject, mixin } from '../../helpers/object';
-import localHooks from '../../mixins/localHooks';
-import { addClass, removeClass } from '../../helpers/dom/element';
-import { getCheckboxElement, includesValue } from './utils/utils';
-import EventManager from '../../eventManager';
+import { mixin } from '../../../helpers/object';
+import localHooks from '../../../mixins/localHooks';
+import { addClass, removeClass } from '../../../helpers/dom/element';
+import { getCheckboxElement, includesValue } from '../utils/utils';
+import EventManager from '../../../eventManager';
+
+const SELECTED_ITEM_CLASS = 'htItemSelected';
+
 /**
  * Renders and manages the dropdown list used by the `MultiSelectEditor`.
  * Responsible for rendering checkbox rows and emitting hooks when values change.
  *
  * @private
  */
-export class DropdownElement {
+export class DropdownController {
   /**
    * Element that wraps the dropdown list inside the editor UI.
    *
@@ -39,11 +42,16 @@ export class DropdownElement {
   #eventManager = new EventManager(this);
 
   /**
-   * TODO: docs
+   * Cache for the dropdown controller.
+   *
+   * @private
+   * @type {object}
    */
   #cache = {
     visibleRowsNumber: null,
     entriesCount: 0,
+    flippedVertically: false,
+    currentlySelectedItemIndex: null,
   };
 
   /**
@@ -79,7 +87,7 @@ export class DropdownElement {
   /**
    * Populates the dropdown with provided entries and marks selected ones.
    *
-   * @param {string[]|{key: string, value: string}[]} entries Collection of primitive values or `[value, label]` tuples.
+   * @param {string[]|object[]} entries Collection of primitive values or `[value, label]` tuples.
    * @param {Array<*>} [checkedValues=[]] Values that should be rendered as checked.
    */
   fillDropdown(entries, checkedValues = []) {
@@ -99,35 +107,82 @@ export class DropdownElement {
   /**
    * Controls dropdown height based on entry count and configured visible rows.
    *
+   * @param {object} availableSpace Available space object.
+   * @param {boolean} noFlip If true, the dropdown will not be flipped vertically.
    */
-  updateDimensions(availableSpace) {
+  updateDimensions(availableSpace, noFlip = false) {
     const computedStyle = this.#rootDocument.defaultView.getComputedStyle(this.containerElement);
     const entryHeight =
-      (2 * parseInt(computedStyle.getPropertyValue('--ht-menu-item-vertical-padding'))) +
-      parseInt(computedStyle.getPropertyValue('--ht-line-height'));
+      (2 * parseInt(computedStyle.getPropertyValue('--ht-menu-item-vertical-padding'), 10)) +
+      parseInt(computedStyle.getPropertyValue('--ht-line-height'), 10);
     const requiresFlippingVertically = this.#requiresFlippingVertically(availableSpace);
     const availableHeight = requiresFlippingVertically ? availableSpace.spaceAbove : availableSpace.spaceBelow;
 
-    if (availableHeight < (this.#cache.visibleRowsNumber ? this.#cache.visibleRowsNumber : this.#cache.entriesCount) * entryHeight) {
+    if (!noFlip && requiresFlippingVertically) {
+      this.#cache.flippedVertically = true;
+    }
+
+    if (
+      this.#cache.entriesCount > 0 &&
+      availableHeight < (
+        this.#cache.visibleRowsNumber ? this.#cache.visibleRowsNumber : this.#cache.entriesCount
+      ) * entryHeight
+    ) {
       this.#cache.visibleRowsNumber = Math.max(Math.floor(availableHeight / entryHeight) - 1, 1);
     }
 
     if (this.#cache.visibleRowsNumber && this.#cache.entriesCount > this.#cache.visibleRowsNumber) {
-      this.containerElement.style.height = `${this.#cache.visibleRowsNumber * entryHeight +
-        2 * parseInt(computedStyle.getPropertyValue('--ht-gap-size'))
-        }px`;
+      this.containerElement.style.height = `${(this.#cache.visibleRowsNumber * entryHeight) +
+        (2 * parseInt(computedStyle.getPropertyValue('--ht-gap-size'), 10))}px`;
 
     } else {
       this.containerElement.style.height = '';
     }
 
-    this.#toggleVerticalFlip(requiresFlippingVertically);
+    this.#toggleVerticalFlip();
 
     this.containerElement.scrollTop = 0;
   }
 
   /**
-   * TODO: docs
+   * Selects the previous item in the dropdown.
+   */
+  focusPreviousItem() {
+    if (this.#cache.currentlySelectedItemIndex === null) {
+      // eslint-disable-next-line no-useless-return
+      return;
+    }
+
+    this.#defocusItem(this.#cache.currentlySelectedItemIndex);
+
+    if (this.#cache.currentlySelectedItemIndex === 0) {
+      this.#focusItem(null);
+
+    } else if (this.#cache.currentlySelectedItemIndex !== null) {
+      this.#focusItem(this.#cache.currentlySelectedItemIndex - 1);
+    }
+  }
+
+  /**
+   * Selects the next item in the dropdown.
+   */
+  focusNextItem() {
+    if (this.#cache.currentlySelectedItemIndex === this.#cache.entriesCount - 1) {
+      // eslint-disable-next-line no-useless-return
+      return;
+
+    } else if (this.#cache.currentlySelectedItemIndex !== null) {
+      this.#defocusItem(this.#cache.currentlySelectedItemIndex);
+
+      this.#focusItem(this.#cache.currentlySelectedItemIndex + 1);
+
+    } else if (this.#cache.currentlySelectedItemIndex === null) {
+      this.#focusItem(0);
+    }
+  }
+
+  /**
+   * Resets the cache and the dropdown position and height.
    */
   reset() {
     this.#resetCache();
@@ -138,18 +193,71 @@ export class DropdownElement {
   }
 
   /**
-   * TODO: docs
-   * 
+   * Checks if the dropdown is flipped vertically.
+   *
+   * @returns {boolean}
+   */
+  isFlippedVertically() {
+    return this.#cache.flippedVertically;
+  }
+
+  /**
+   * Selects the item at the given index.
+   *
+   * @param {number} index Index of the item to focus.
+   */
+  #focusItem(index) {
+    if (this.#cache.currentlySelectedItemIndex === null && index === 0) {
+      this.runLocalHooks('dropdownFocus');
+    } else if (index === null) {
+      this.runLocalHooks('dropdownDefocus');
+    }
+
+    this.#cache.currentlySelectedItemIndex = index;
+
+    const itemElement = this.dropdownListElement.children[index];
+
+    if (itemElement) {
+      const checkbox = getCheckboxElement(itemElement);
+
+      if (checkbox) {
+        checkbox.focus();
+      }
+    }
+  }
+
+  /**
+   * Defocuses the item at the given index.
+   *
+   * @param {number} index Index of the item to defocus.
+   */
+  #defocusItem(index) {
+    const itemElement = this.dropdownListElement.children[index];
+
+    if (itemElement) {
+      const checkbox = getCheckboxElement(itemElement);
+
+      if (checkbox) {
+        checkbox.blur();
+      }
+    }
+  }
+
+  /**
+   * Resets the cache.
    */
   #resetCache() {
     this.#cache.visibleRowsNumber = null;
     this.#cache.entriesCount = 0;
+    this.#cache.flippedVertically = false;
+    this.#cache.currentlySelectedItemIndex = null;
   }
 
   /**
-   * TODO: docs
-   * @param {*} availableSpace 
-   * @returns 
+   * Checks if the dropdown requires flipping vertically.
+   *
+   * @param {object} availableSpace Available space object.
+   * @returns {boolean}
    */
   #requiresFlippingVertically(availableSpace) {
     const { spaceAbove, spaceBelow, cellHeight } = availableSpace;
@@ -158,9 +266,11 @@ export class DropdownElement {
   }
 
   /**
-   * TODO: docs
+   * Toggles the vertical flip.
    */
-  #toggleVerticalFlip(flipNeeded) {
+  #toggleVerticalFlip() {
+    const flipNeeded = this.#cache.flippedVertically;
+
     if (flipNeeded) {
       this.containerElement.style.position = 'absolute';
       this.containerElement.style.top = `${-this.getHeight()}px`;
@@ -172,17 +282,21 @@ export class DropdownElement {
   }
 
   /**
-   * TODO: docs
+   * Gets the height of the dropdown.
+   *
+   * @returns {number} Height of the dropdown.
    */
   getHeight() {
-    const visibleRowsNumber = this.#cache.visibleRowsNumber ?? this.#cache.entriesCount;
+    const visibleRowsNumber =
+      this.#cache.visibleRowsNumber ?
+        Math.min(this.#cache.visibleRowsNumber, this.#cache.entriesCount) : this.#cache.entriesCount;
     const computedStyle = this.#rootDocument.defaultView.getComputedStyle(this.containerElement);
     const entryHeight =
-      (2 * parseInt(computedStyle.getPropertyValue('--ht-menu-item-vertical-padding'))) +
-      parseInt(computedStyle.getPropertyValue('--ht-line-height'));
+      (2 * parseInt(computedStyle.getPropertyValue('--ht-menu-item-vertical-padding'), 10)) +
+      parseInt(computedStyle.getPropertyValue('--ht-line-height'), 10);
 
-    return visibleRowsNumber * entryHeight +
-      2 * parseInt(computedStyle.getPropertyValue('--ht-gap-size'))
+    return (visibleRowsNumber * entryHeight) +
+      (2 * parseInt(computedStyle.getPropertyValue('--ht-gap-size'), 10));
   }
 
   /**
@@ -197,8 +311,8 @@ export class DropdownElement {
   /**
    * Creates a single dropdown row with a checkbox and label.
    *
-   * @param {*} itemKey Key stored in the associated checkbox dataset.
-   * @param {*} itemValue Text shown next to the checkbox.
+   * @param {string} itemKey Key stored in the associated checkbox dataset.
+   * @param {string} itemValue Text shown next to the checkbox.
    * @returns {HTMLLIElement}
    */
   #createListItemElement(itemKey, itemValue) {
@@ -228,8 +342,8 @@ export class DropdownElement {
   /**
    * Adds a single row to the dropdown and optionally marks it as checked.
    *
-   * @param {*} itemKey Key stored in the associated checkbox dataset.
-   * @param {*} itemValue Text content rendered next to the checkbox.
+   * @param {string} itemKey Key stored in the associated checkbox dataset.
+   * @param {string} itemValue Text content rendered next to the checkbox.
    * @param {boolean} [checked=false] Flag indicating whether the checkbox starts selected.
    */
   #addDropdownItem(itemKey, itemValue, checked = false) {
@@ -259,7 +373,7 @@ export class DropdownElement {
   selectItem(itemElement) {
     const checkbox = getCheckboxElement(itemElement);
 
-    addClass(itemElement, 'htItemSelected');
+    addClass(itemElement, SELECTED_ITEM_CLASS);
 
     if (!checkbox.checked) {
       checkbox.checked = true;
@@ -274,7 +388,7 @@ export class DropdownElement {
   deselectItem(itemElement) {
     const checkbox = getCheckboxElement(itemElement);
 
-    removeClass(itemElement, 'htItemSelected');
+    removeClass(itemElement, SELECTED_ITEM_CLASS);
 
     if (checkbox.checked) {
       checkbox.checked = false;
@@ -285,9 +399,9 @@ export class DropdownElement {
    * Deselects all items in the dropdown.
    */
   deselectAllItems() {
-    this.dropdownListElement.querySelectorAll('.htItemSelected').forEach(itemElement => {
-      this.deselectItem(itemElement);
-    });
+    this.dropdownListElement.querySelectorAll(SELECTED_ITEM_CLASS).forEach(
+      itemElement => this.deselectItem(itemElement)
+    );
   }
 
   /**
@@ -298,7 +412,7 @@ export class DropdownElement {
   #registerEvents(itemElement) {
     const checkbox = getCheckboxElement(itemElement);
 
-    this.#eventManager.addEventListener(checkbox, 'change', (event) => {
+    this.#eventManager.addEventListener(checkbox, 'change', () => {
       if (checkbox.checked) {
         this.selectItem(itemElement);
 
@@ -313,4 +427,4 @@ export class DropdownElement {
   }
 }
 
-mixin(DropdownElement, localHooks);
+mixin(DropdownController, localHooks);

@@ -281,8 +281,7 @@ export function getDifferenceOfArrays(...arrays) {
 /**
  * Intersection of two or more arrays.
  *
- * @param {...Array} arrays Array of strings or array of numbers.
- * @param {Function} [comparator] Optional comparator used to match values across arrays.
+ * @param {...Array<*|Function>} args Array of elements followed by a comparator function.
  * @returns {Array} Returns elements that exists in every array.
  */
 export function getIntersectionOfArrays(...args) {
@@ -300,7 +299,6 @@ export function getIntersectionOfArrays(...args) {
     : (value, array) => array.includes(value);
   const [first, ...rest] = arrays;
   let filteredFirstArray = first;
-
 
   arrayEach(rest, (array) => {
     filteredFirstArray = filteredFirstArray.filter(value => isMatch(value, array));
@@ -344,10 +342,10 @@ export function stringToArray(value, delimiter = ' ') {
 /**
  * Convert an array of strings to a single string.
  *
- * @param {string[]} arr
- * @param {string} separator
+ * @param {string[]} array Array of strings.
+ * @param {string} separator Separator string.
  * @returns {string} Returns a string made by joining all array elements with a separator.
  */
-export function arrayToString(arr, separator = ' ') {
-  return arr.join(separator);
+export function arrayToString(array, separator = ' ') {
+  return array.join(separator);
 }
