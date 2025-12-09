@@ -61,7 +61,7 @@ export abstract class BaseEditor {
   
 }
 
-export declare const editorFactory: <TProperties, TMethods = {}>({ init, afterOpen, afterInit, afterClose, beforeOpen, getValue, setValue, onFocus, shortcuts, value, render, config, shortcutsGroup, ...args }: {static factory: <TProperties, TMethods = {}>({ init, afterOpen, afterInit, afterClose, beforeOpen, getValue, setValue, onFocus, shortcuts, value, render, config, shortcutsGroup, ...args }: {
+export declare const editorFactory: <TProperties, TMethods = {}>({ init, afterOpen, afterInit, afterClose, beforeOpen, getValue, setValue, onFocus, shortcuts, value, render, config, shortcutsGroup, ...args }:{
   value?: TProperties extends {
       value: any;
   } ? TProperties["value"] : any;
