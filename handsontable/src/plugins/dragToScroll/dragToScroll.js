@@ -1,6 +1,7 @@
 import { BasePlugin } from '../base';
 import { isRightClick } from '../../helpers/dom/event';
 import { getParentWindow, getScrollbarWidth } from '../../helpers/dom/element';
+// import { calculateScrollInterval } from './utils';
 
 export const PLUGIN_KEY = 'dragToScroll';
 export const PLUGIN_PRIORITY = 100;
@@ -310,45 +311,29 @@ export class DragToScroll extends BasePlugin {
     }
 
     const scrollViewport = () => {
-      let coords;
+      const firstVisibleRow = this.hot.getFirstFullyVisibleRow();
+      const firstVisibleColumn = this.hot.getFirstFullyVisibleColumn();
+      const lastVisibleRow = this.hot.getLastFullyVisibleRow();
+      const lastVisibleColumn = this.hot.getLastFullyVisibleColumn();
+      const highlight = this.hot.getSelectedRangeActive().highlight;
 
-      if (!this.hot.selection.highlight.getFill().isEmpty()) {
-        coords = this.hot.selection.highlight.getFill().visualCellRange.to.clone();
+      let scrollRow = highlight.row;
+      let scrollColumn = highlight.col;
 
-        if (diffX()) {
-          coords.col = diffX() > 0 ? coords.col + 1 : coords.col - 1;
-        }
-
-        if (diffY()) {
-          coords.row = diffY() > 0 ? coords.row + 1 : coords.row - 1;
-        }
-
-        this.hot.selection.highlight.getFill()
-          .clear()
-          .add(this.hot.getSelectedRangeLast().from)
-          .add(coords)
-          .commit();
-
-      } else {
-        coords = this.hot.getSelectedRangeActive().to.clone();
-
-        if (diffX()) {
-          coords.col = diffX() > 0 ? coords.col + 1 : coords.col - 1;
-        }
-
-        if (diffY()) {
-          coords.row = diffY() > 0 ? coords.row + 1 : coords.row - 1;
-        }
-
-        this.hot.selection.setRangeEnd(coords);
+      if (diffX() !== 0) {
+        scrollColumn = diffX() > 0 ? lastVisibleColumn + 1 : firstVisibleColumn - 1;
       }
 
-      // this.hot.scrollViewportTo({
-      //   row: coords.row,
-      //   col: coords.col,
-      //   verticalSnap: diffY() !== 0 ? (diffY() > 0 ? 'bottom' : 'top') : undefined,
-      //   horizontalSnap: diffX() !== 0 ? (diffX() > 0 ? 'end' : 'start') : undefined,
-      // });
+      if (diffY() !== 0) {
+        scrollRow = diffY() > 0 ? lastVisibleRow + 1 : firstVisibleRow - 1;
+      }
+
+      this.hot.scrollViewportTo({
+        row: scrollRow,
+        col: scrollColumn,
+        // verticalSnap: diffY() !== 0 ? (diffY() > 0 ? 'bottom' : 'top') : undefined,
+        // horizontalSnap: diffX() !== 0 ? (diffX() > 0 ? 'end' : 'start') : undefined,
+      });
 
       this.#timer = this.hot._registerTimeout(scrollViewport, this.#currentInterval);
     };

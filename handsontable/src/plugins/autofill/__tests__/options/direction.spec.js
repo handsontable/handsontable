@@ -178,7 +178,8 @@ describe('AutoFill direction option', () => {
     await selectCell(0, 0);
 
     simulateFillHandleDrag(getCell(1, 0), { finish: false });
-    simulateFillHandleDrag(getCell(0, 0), { finish: true });
+    simulateFillHandleDragMove(getCell(0, 0));
+    simulateFillHandleDragFinish(getCell(0, 0));
 
     expect(getDataAtCell(0, 0)).toEqual(1);
     expect(getDataAtCell(1, 0)).toEqual(7);

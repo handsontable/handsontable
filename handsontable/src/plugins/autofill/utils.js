@@ -1,4 +1,4 @@
-import { offset } from '../../helpers/dom/element';
+import { clamp } from '../../helpers/number';
 
 /**
  * Get direction between positions and cords of selections difference (drag area).
@@ -65,28 +65,28 @@ export function getDragDirectionAndRange(startSelection, endSelection, cellCoord
  * @returns {CellCoords} The cell coordinates.
  */
 export function getCellCoordsFromMousePosition(hotInstance, mouseX, mouseY) {
-  const { view, rootWindow } = hotInstance;
+  const { view } = hotInstance;
+  const isRtl = hotInstance.isRtl();
   const firstPartiallyVisibleRow = hotInstance.getFirstPartiallyVisibleRow();
   const lastPartiallyVisibleRow = hotInstance.getLastPartiallyVisibleRow();
   const firstPartiallyVisibleColumn = hotInstance.getFirstPartiallyVisibleColumn();
   const lastPartiallyVisibleColumn = hotInstance.getLastPartiallyVisibleColumn();
-  const tableOffset = offset(hotInstance.table);
-  const scrollX = view.isHorizontallyScrollableByWindow() ? rootWindow.scrollX : view.getTableScrollPosition().left;
-  const scrollY = view.isVerticallyScrollableByWindow() ? rootWindow.scrollY : view.getTableScrollPosition().top;
+  const tableOffset = hotInstance.rootElement.getBoundingClientRect();
 
-  const tableViewportLeft = tableOffset.left - scrollX;
-  const tableViewportTop = tableOffset.top - scrollY;
-  const tableViewportRight = tableViewportLeft + view.getTableWidth();
-  const tableViewportBottom = tableViewportTop + view.getTableHeight();
+  const tableViewportLeft = tableOffset.left;
+  const tableViewportTop = tableOffset.top;
+  const columnHeaderHeight = hotInstance.hasColHeaders() ? view.getColumnHeaderHeight() : 0;
+  const rowHeaderWidth = hotInstance.hasRowHeaders() ? view.getRowHeaderWidth() : 0;
+  const tableViewportRight = tableViewportLeft + view.getViewportWidth() + rowHeaderWidth;
+  const tableViewportBottom = tableViewportTop + view.getViewportHeight() + columnHeaderHeight;
 
-  // TODO: use clamp helper
-  const clampedX = Math.max(tableViewportLeft, Math.min(tableViewportRight - 1, mouseX));
-  const clampedY = Math.max(tableViewportTop, Math.min(tableViewportBottom - 1, mouseY));
+  const clampedX = clamp(mouseX, tableViewportLeft, tableViewportRight);
+  const clampedY = clamp(mouseY, tableViewportTop, tableViewportBottom);
 
   const firstCell = hotInstance.getCell(firstPartiallyVisibleRow, firstPartiallyVisibleColumn, true);
   const firstCellRect = firstCell.getBoundingClientRect();
 
-  const relativeX = clampedX - firstCellRect.left;
+  const relativeX = isRtl ? firstCellRect.right - clampedX : clampedX - firstCellRect.left;
   let foundColumn = firstPartiallyVisibleColumn;
   let accumulatedX = 0;
 
@@ -120,10 +120,10 @@ export function getCellCoordsFromMousePosition(hotInstance, mouseX, mouseY) {
   }
 
   if (mouseX < tableViewportLeft) {
-    foundColumn = firstPartiallyVisibleColumn;
+    foundColumn = isRtl ? lastPartiallyVisibleColumn : firstPartiallyVisibleColumn;
 
   } else if (mouseX >= tableViewportRight) {
-    foundColumn = lastPartiallyVisibleColumn;
+    foundColumn = isRtl ? firstPartiallyVisibleColumn : lastPartiallyVisibleColumn;
   }
 
   const relativeY = clampedY - firstCellRect.top;

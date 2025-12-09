@@ -33,7 +33,7 @@ describe('AutoFill autoInsertRow option', () => {
 
     expect(countRows()).toBe(5);
 
-    simulateFillHandleDrag(getCell(4, 2), { finish: false });
+    simulateFillHandleDragMove(getCell(4, 2));
 
     await sleep(300);
 
@@ -71,7 +71,7 @@ describe('AutoFill autoInsertRow option', () => {
 
     expect(countRows()).toBe(5);
 
-    simulateFillHandleDrag(getCell(4, 2), { finish: false });
+    simulateFillHandleDragMove(getCell(4, 2));
 
     await sleep(300);
 
@@ -111,7 +111,7 @@ describe('AutoFill autoInsertRow option', () => {
 
     expect(countRows()).toBe(5);
 
-    simulateFillHandleDrag(getCell(4, 2), { finish: false });
+    simulateFillHandleDragMove(getCell(4, 2));
 
     await sleep(300);
 
@@ -167,7 +167,7 @@ describe('AutoFill autoInsertRow option', () => {
 
     expect(countRows()).toBe(5);
 
-    simulateFillHandleDrag(getCell(4, 2), { finish: false });
+    simulateFillHandleDragMove(getCell(4, 2));
 
     await sleep(200);
 

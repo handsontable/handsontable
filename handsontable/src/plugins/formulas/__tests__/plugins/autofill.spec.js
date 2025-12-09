@@ -35,13 +35,17 @@ describe('Formulas with Autofill integration', () => {
 
     await sleep(300);
 
-    simulateFillHandleDrag(getCell(3, 2), { finish: false });
+    simulateFillHandleDragMove(getCell(3, 2));
 
     await sleep(300);
 
     expect(countRows()).toBe(5);
 
-    simulateFillHandleDrag(getCell(4, 2), { finish: true });
+    simulateFillHandleDragMove(getCell(4, 2));
+
+    await sleep(300);
+
+    simulateFillHandleDragFinish(getCell(5, 2));
 
     await sleep(300);
 

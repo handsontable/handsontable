@@ -113,10 +113,15 @@ export class Autofill extends BasePlugin {
   /**
    * Specifies the current drag direction ('vertical', 'horizontal', or null).
    *
-   * @private
    * @type {string|null}
    */
   #currentDragDirection = null;
+  /**
+   * Last mouse client position.
+   *
+   * @type {{ clientX: number, clientY: number }}
+   */
+  #lastMouseClientPosition = { clientX: 0, clientY: 0 };
 
   /**
    * Checks if the plugin is enabled in the Handsontable settings.
@@ -161,6 +166,7 @@ export class Autofill extends BasePlugin {
     this.addHook('afterOnCellCornerMouseDown', event => this.#onAfterCellCornerMouseDown(event));
     this.addHook('afterOnCellCornerDblClick', event => this.#onCellCornerDblClick(event));
     this.addHook('beforeOnCellMouseOver', (_, coords) => this.#onBeforeCellMouseOver(coords));
+    this.addHook('afterScroll', () => this.#onAfterScroll());
 
     super.enablePlugin();
   }
@@ -182,7 +188,6 @@ export class Autofill extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    this.clearMappedSettings();
     super.disablePlugin();
   }
 
@@ -564,8 +569,6 @@ export class Autofill extends BasePlugin {
 
     const to = this.hot._createCellCoords(toRow, toCol);
 
-    // console.log('to', to);
-
     this.hot.selection.highlight.getFill()
       .clear()
       .add(lastRange.from)
@@ -706,6 +709,8 @@ export class Autofill extends BasePlugin {
       const { clientX, clientY } = event;
       const cellCoords = getCellCoordsFromMousePosition(this.hot, clientX, clientY);
 
+      this.#lastMouseClientPosition = { clientX, clientY };
+
       this.redrawBorders(cellCoords);
     }
 
@@ -725,13 +730,12 @@ export class Autofill extends BasePlugin {
   }
 
   /**
-   * Clears mapped settings.
-   *
-   * @private
+   * Refreshes the autofill borders using the last mouse client position after scroll.
    */
-  clearMappedSettings() {
-    this.directions.length = 0;
-    this.autoInsertRow = false;
+  #onAfterScroll() {
+    if (this.mouseDownOnCellCorner) {
+      this.#onMouseMove(this.#lastMouseClientPosition);
+    }
   }
 
   /**

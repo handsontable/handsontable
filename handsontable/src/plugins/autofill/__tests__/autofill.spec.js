@@ -22,6 +22,27 @@ describe('AutoFill', () => {
     expect(isFillHandleVisible()).toBe(true);
   });
 
+  it('should not appear when fillHandle equals false', async() => {
+    handsontable({
+      fillHandle: false
+    });
+    await selectCell(2, 2);
+
+    expect(isFillHandleVisible()).toBe(false);
+  });
+
+  it('should appear when fillHandle is enabled as `object` value', async() => {
+    handsontable({
+      fillHandle: {
+        allowInsertRow: true
+      }
+    });
+
+    await selectCell(2, 2);
+
+    expect(isFillHandleVisible()).toBe(true);
+  });
+
   it('should appear when fillHandle is enabled as `string` value', async() => {
     handsontable({
       fillHandle: 'horizontal'
@@ -124,28 +145,7 @@ describe('AutoFill', () => {
     expect(getDataAtCell(0, 1)).toEqual(2);
   });
 
-  it('should appear when fillHandle is enabled as `object` value', async() => {
-    handsontable({
-      fillHandle: {
-        allowInsertRow: true
-      }
-    });
-
-    await selectCell(2, 2);
-
-    expect(isFillHandleVisible()).toBe(true);
-  });
-
-  it('should not appear when fillHandle equals false', async() => {
-    handsontable({
-      fillHandle: false
-    });
-    await selectCell(2, 2);
-
-    expect(isFillHandleVisible()).toBe(false);
-  });
-
-  it('should disappear when beginediting is triggered', async() => {
+  it('should disappear when editor is opened', async() => {
     handsontable({
       fillHandle: true
     });
@@ -156,7 +156,7 @@ describe('AutoFill', () => {
     expect(isFillHandleVisible()).toBe(false);
   });
 
-  it('should appear when finishediting is triggered', async() => {
+  it('should appear when editor is closed', async() => {
     handsontable({
       fillHandle: true
     });
@@ -168,7 +168,7 @@ describe('AutoFill', () => {
     expect(isFillHandleVisible()).toBe(true);
   });
 
-  it('should not appear when fillHandle equals false and finishediting is triggered', async() => {
+  it('should not appear when fillHandle equals false and editor is opened', async() => {
     handsontable({
       fillHandle: false
     });
@@ -218,7 +218,7 @@ describe('AutoFill', () => {
     document.body.removeChild($table[0]);
   });
 
-  it('should fill empty cells below until the end of content in the neighbouring column with current cell\'s data', async() => {
+  it('should fill empty cells below until the end of content in the neighboring column with current cell\'s data', async() => {
     handsontable({
       data: [
         [1, 2, 3, 4, 5, 6],
@@ -245,7 +245,7 @@ describe('AutoFill', () => {
   });
 
   // https://github.com/handsontable/dev-handsontable/issues/1757
-  it('should fill empty cells below until the end of content in the neighbouring column with current cell\'s data' +
+  it('should fill empty cells below until the end of content in the neighboring column with current cell\'s data' +
     'and NOT treat cells filled with 0s as empty', async() => {
     handsontable({
       data: [
@@ -276,7 +276,7 @@ describe('AutoFill', () => {
     expect(getDataAtCell(4, 3)).toEqual(null);
   });
 
-  it('should fill cells below until the end of content in the neighbouring column with the currently selected area\'s data', async() => {
+  it('should fill cells below until the end of content in the neighboring column with the currently selected area\'s data', async() => {
     handsontable({
       data: [
         [1, 2, 3, 4, 5, 6],
@@ -741,62 +741,45 @@ describe('AutoFill', () => {
     ]); // Extra test for checking wrong data propagation.
   });
 
-  describe('should works properly when two or more instances of Handsontable was initialized with ' +
-           'other settings (#3257)', () => {
-    let getData;
-    let $container1;
-    let $container2;
+  it('should work properly when two instances are initialized with different fillHandle settings (#3257)', async() => {
+    const $container2 = $(`<div id="${id}2"></div>`).appendTo('body');
 
-    beforeAll(() => {
-      getData = () => [
-        [1, 2, 3, 4, 5, 6],
-        [7, 8, 9, 1, 2, 3],
-        [4, 5, 6, 7, 8, 9],
-        [1, 2, 3, 4, 5, 6]
-      ];
-
-      $container1 = $('<div id="hot1"></div>').appendTo('body').handsontable({
-        data: getData(),
-        fillHandle: true
-      });
-
-      $container2 = $('<div id="hot2"></div>').appendTo('body').handsontable({
-        data: getData(),
-        fillHandle: 'horizontal'
-      });
+    handsontable({
+      data: createSpreadsheetData(3, 3),
+      fillHandle: {
+        autoInsertRow: false,
+      },
     });
 
-    it('checking drag vertically on 1. instance of Handsontable - should change cell value', async() => {
-      $container1.handsontable('selectCell', 0, 0);
+    const hot2 = $container2.handsontable({
+      data: createSpreadsheetData(3, 3),
+      fillHandle: {
+        direction: 'horizontal',
+      },
+    }).handsontable('getInstance');
 
-      simulateFillHandleDrag($container1.handsontable('getCell', 1, 0), { container: $container1 });
+    await selectCell(0, 0);
 
-      expect($container1.handsontable('getDataAtCell', 1, 0)).toEqual(1);
-    });
+    simulateFillHandleDrag(getCell(2, 0));
 
-    describe('-> updating settings on 2. instance of Handsontable', () => {
-      beforeAll(() => {
-        $container2.handsontable('updateSettings', { fillHandle: 'vertical' });
-      });
+    expect(getData()).toEqual([
+      ['A1', 'B1', 'C1'],
+      ['A1', 'B2', 'C2'],
+      ['A1', 'B3', 'C3'],
+    ]);
 
-      it('checking drag vertically on 2. instance of Handsontable - should change cell value', async() => {
-        $container2.handsontable('selectCell', 0, 2);
+    hot2.selectCell(0, 0);
 
-        simulateFillHandleDrag($container2.handsontable('getCell', 1, 2), { container: $container2 });
+    simulateFillHandleDrag(hot2.getCell(0, 2), { container: $container2 });
 
-        expect($container2.handsontable('getDataAtCell', 1, 2)).toEqual(3);
-      });
-    });
+    expect(hot2.getData()).toEqual([
+      ['A1', 'A1', 'A1'],
+      ['A2', 'B2', 'C2'],
+      ['A3', 'B3', 'C3'],
+    ]);
 
-    afterAll(() => {
-      // destroing containers
-
-      $container1.handsontable('destroy');
-      $container1.remove();
-
-      $container2.handsontable('destroy');
-      $container2.remove();
-    });
+    $container2.handsontable('destroy');
+    $container2.remove();
   });
 
   it('should autofill the appropriate cells, when performing the action over date-typed cells', async() => {
@@ -1113,74 +1096,74 @@ describe('AutoFill', () => {
       expect(Handsontable.dom.hasClass(getCell(2, 4), 'fill')).toBe(true);
       expect(Handsontable.dom.hasClass(getCell(2, 5), 'fill')).toBe(true);
 
-      simulateFillHandleDrag(getCell(2, 4), { finish: false });
+      simulateFillHandleDragMove(getCell(2, 4));
 
       expect(Handsontable.dom.hasClass(getCell(2, 3), 'fill')).toBe(true);
       expect(Handsontable.dom.hasClass(getCell(2, 4), 'fill')).toBe(true);
       expect(Handsontable.dom.hasClass(getCell(2, 5), 'fill')).toBe(true);
 
-      simulateFillHandleDrag(getCell(2, 5), { finish: false });
+      simulateFillHandleDragMove(getCell(2, 5));
 
       expect(Handsontable.dom.hasClass(getCell(2, 3), 'fill')).toBe(true);
       expect(Handsontable.dom.hasClass(getCell(2, 4), 'fill')).toBe(true);
       expect(Handsontable.dom.hasClass(getCell(2, 5), 'fill')).toBe(true);
 
-      simulateFillHandleDrag(getCell(3, 2), { finish: false });
+      simulateFillHandleDragMove(getCell(3, 2));
 
       expect(Handsontable.dom.hasClass(getCell(3, 2), 'fill')).toBe(true);
       expect(Handsontable.dom.hasClass(getCell(4, 2), 'fill')).toBe(true);
       expect(Handsontable.dom.hasClass(getCell(5, 2), 'fill')).toBe(true);
 
-      simulateFillHandleDrag(getCell(4, 2), { finish: false });
+      simulateFillHandleDragMove(getCell(4, 2));
 
       expect(Handsontable.dom.hasClass(getCell(3, 2), 'fill')).toBe(true);
       expect(Handsontable.dom.hasClass(getCell(4, 2), 'fill')).toBe(true);
       expect(Handsontable.dom.hasClass(getCell(5, 2), 'fill')).toBe(true);
 
-      simulateFillHandleDrag(getCell(5, 2), { finish: false });
+      simulateFillHandleDragMove(getCell(5, 2));
 
       expect(Handsontable.dom.hasClass(getCell(3, 2), 'fill')).toBe(true);
       expect(Handsontable.dom.hasClass(getCell(4, 2), 'fill')).toBe(true);
       expect(Handsontable.dom.hasClass(getCell(5, 2), 'fill')).toBe(true);
 
-      simulateFillHandleDrag(getCell(6, 3), { finish: false });
+      simulateFillHandleDragMove(getCell(6, 3));
 
       expect(Handsontable.dom.hasClass(getCell(6, 3), 'fill')).toBe(true);
       expect(Handsontable.dom.hasClass(getCell(6, 4), 'fill')).toBe(true);
       expect(Handsontable.dom.hasClass(getCell(6, 5), 'fill')).toBe(true);
 
-      simulateFillHandleDrag(getCell(6, 4), { finish: false });
+      simulateFillHandleDragMove(getCell(6, 4));
 
       expect(Handsontable.dom.hasClass(getCell(5, 3), 'fill')).toBe(true);
       expect(Handsontable.dom.hasClass(getCell(5, 4), 'fill')).toBe(true);
       expect(Handsontable.dom.hasClass(getCell(6, 5), 'fill')).toBe(true);
 
-      simulateFillHandleDrag(getCell(6, 5), { finish: false });
+      simulateFillHandleDragMove(getCell(6, 5));
 
       expect(Handsontable.dom.hasClass(getCell(5, 3), 'fill')).toBe(true);
       expect(Handsontable.dom.hasClass(getCell(5, 4), 'fill')).toBe(true);
       expect(Handsontable.dom.hasClass(getCell(6, 5), 'fill')).toBe(true);
 
-      simulateFillHandleDrag(getCell(3, 6), { finish: false });
+      simulateFillHandleDragMove(getCell(3, 6));
 
       expect(Handsontable.dom.hasClass(getCell(3, 6), 'fill')).toBe(true);
       expect(Handsontable.dom.hasClass(getCell(4, 6), 'fill')).toBe(true);
       expect(Handsontable.dom.hasClass(getCell(5, 6), 'fill')).toBe(true);
 
-      simulateFillHandleDrag(getCell(4, 6), { finish: false });
+      simulateFillHandleDragMove(getCell(4, 6));
 
       expect(Handsontable.dom.hasClass(getCell(3, 6), 'fill')).toBe(true);
       expect(Handsontable.dom.hasClass(getCell(4, 6), 'fill')).toBe(true);
       expect(Handsontable.dom.hasClass(getCell(5, 6), 'fill')).toBe(true);
 
-      simulateFillHandleDrag(getCell(5, 6), { finish: false });
+      simulateFillHandleDragMove(getCell(5, 6));
 
       expect(Handsontable.dom.hasClass(getCell(3, 6), 'fill')).toBe(true);
       expect(Handsontable.dom.hasClass(getCell(4, 6), 'fill')).toBe(true);
       expect(Handsontable.dom.hasClass(getCell(5, 6), 'fill')).toBe(true);
 
       // Inside of the selection
-      simulateFillHandleDrag(getCell(5, 4), { finish: false });
+      simulateFillHandleDragMove(getCell(5, 4));
 
       expect(Handsontable.dom.hasClass(getCell(3, 3), 'fill')).toBe(true);
       expect(Handsontable.dom.hasClass(getCell(3, 4), 'fill')).toBe(true);

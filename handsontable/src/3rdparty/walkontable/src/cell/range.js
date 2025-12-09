@@ -356,8 +356,10 @@ class CellRange {
     const topStart = this.getOuterTopStartCorner();
     const bottomEnd = this.getOuterBottomEndCorner();
 
-    if (cellCoords.row < topStart.row || cellCoords.col < topStart.col ||
-        cellCoords.row > bottomEnd.row || cellCoords.col > bottomEnd.col) {
+    if (
+      cellCoords.row < topStart.row || cellCoords.col < topStart.col ||
+      cellCoords.row > bottomEnd.row || cellCoords.col > bottomEnd.col
+    ) {
       const verticalDirection = this.getVerticalDirection();
       const horizontalDirection = this.getHorizontalDirection();
 
