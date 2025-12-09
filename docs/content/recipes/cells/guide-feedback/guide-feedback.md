@@ -223,7 +223,7 @@ beforeOpen(editor, { originalValue }) {
 
 ```typescript
 const cellDefinition = {
-  editor: Handsontable.editors.BaseEditor.factory<{input: HTMLDivElement, value: string, config: string[]}>({
+  editor: editorFactory<{input: HTMLDivElement, value: string, config: string[]}>({
     config: ['👍', '👎', '🤷‍♂️'],
     value: '👍',
     shortcuts: [
@@ -341,7 +341,7 @@ const hot = new Handsontable(container, hotOptions);
 Add a custom renderer to style the emoji display:
 
 ```typescript
-renderer: Handsontable.renderers.factory(({ td, value }) => {
+renderer: rendererFactory(({ td, value }) => {
   td.innerHTML = `
     <div style="text-align: center; font-size: 1.5em; padding: 4px;">
       ${value || '🤷‍♂️'}
@@ -600,7 +600,7 @@ init(editor) {
 ### Custom Cell Renderer Styling
 
 ```typescript
-renderer: Handsontable.renderers.factory(({ td, value }) => {
+renderer: rendererFactory(({ td, value }) => {
   td.innerHTML = `
     <div style="
       text-align: center;

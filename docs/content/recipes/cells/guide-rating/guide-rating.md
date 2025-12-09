@@ -80,7 +80,7 @@ registerAllModules();
 The renderer displays 5 stars with filled stars (opacity 1.0) and unfilled stars (opacity 0.4).
 
 ```typescript
-renderer: Handsontable.renderers.factory(({ td, value }) => {
+renderer: rendererFactory(({ td, value }) => {
   td.innerHTML = Array.from({ length: 5 }, (_, index) => 
     `<span style="opacity: ${index < value ? '1' : '0.4'}">⭐</span>`
   ).join('');
@@ -214,7 +214,7 @@ render(editor) {
 
 **Dynamic rendering:**
 - Updates whenever `editor.setValue()` is called
-- Automatically called by `Handsontable.editors.BaseEditor.factory` when value changes
+- Automatically called by `editorFactory` when value changes
 - Provides live preview as user interacts
 
 ## Step 7: Editor - Keyboard Shortcuts
@@ -270,7 +270,7 @@ shortcuts: [
 
 ```typescript
 const cellDefinition = {
-  renderer: Handsontable.renderers.factory(({ td, value }) => {
+  renderer: rendererFactory(({ td, value }) => {
     td.innerHTML = Array.from({ length: 5 }, (_, index) => 
       `<span style="opacity: ${index < value ? '1' : '0.4'}">⭐</span>`
     ).join('');
@@ -282,7 +282,7 @@ const cellDefinition = {
     callback(value >= 1 && value <= 5);
   },
   
-  editor: Handsontable.editors.BaseEditor.factory<{ input: HTMLDivElement }>({
+  editor: editorFactory<{ input: HTMLDivElement }>({
     shortcuts: [
       {
         keys: [['1'], ['2'], ['3'], ['4'], ['5']],
@@ -336,7 +336,7 @@ const cellDefinition = {
 **What's happening:**
 - **renderer**: Displays 5 stars with opacity based on rating
 - **validator**: Ensures rating is between 1-5
-- **editor**: Uses `Handsontable.editors.BaseEditor.factory` helper with:
+- **editor**: Uses `editorFactory` helper with:
   - Keyboard shortcuts for 1-5 keys and arrow keys
   - Container initialization
   - Mouse events for hover preview and click
@@ -397,7 +397,7 @@ const hot = new Handsontable(container, hotOptions);
 Display the numeric rating alongside stars:
 
 ```typescript
-renderer: Handsontable.renderers.factory(({ td, value }) => {
+renderer: rendererFactory(({ td, value }) => {
   const stars = Array.from({ length: 5 }, (_, index) => 
     `<span style="opacity: ${index < value ? '1' : '0.4'}">⭐</span>`
   ).join('');
@@ -416,7 +416,7 @@ renderer: Handsontable.renderers.factory(({ td, value }) => {
 Change star color based on rating value:
 
 ```typescript
-renderer: Handsontable.renderers.factory(({ td, value }) => {
+renderer: rendererFactory(({ td, value }) => {
   let color = '#ffd700'; // Gold for high ratings
   
   if (value <= 2) color = '#f44336'; // Red for low ratings
@@ -434,7 +434,7 @@ renderer: Handsontable.renderers.factory(({ td, value }) => {
 Support half-star ratings (0.5 increments):
 
 ```typescript
-renderer: Handsontable.renderers.factory(({ td, value }) => {
+renderer: rendererFactory(({ td, value }) => {
   const fullStars = Math.floor(value);
   const hasHalfStar = value % 1 >= 0.5;
   
@@ -463,7 +463,7 @@ Configurable number of stars per column:
 
 ```typescript
 // Make star count configurable
-renderer: Handsontable.renderers.factory(({ td, value, cellProperties }) => {
+renderer: rendererFactory(({ td, value, cellProperties }) => {
   const maxStars = cellProperties.maxStars || 5;
   td.innerHTML = Array.from({ length: maxStars }, (_, index) => 
     `<span style="opacity: ${index < value ? '1' : '0.4'}">⭐</span>`
@@ -484,7 +484,7 @@ columns: [{
 Add text labels like "Excellent", "Good", etc.:
 
 ```typescript
-renderer: Handsontable.renderers.factory(({ td, value }) => {
+renderer: rendererFactory(({ td, value }) => {
   const labels = ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
   const label = labels[value] || '';
   
@@ -625,7 +625,7 @@ render(editor) {
 ### Custom Cell Renderer Styling
 
 ```typescript
-renderer: Handsontable.renderers.factory(({ td, value }) => {
+renderer: rendererFactory(({ td, value }) => {
   td.innerHTML = `
     <div style="
       text-align: center;
@@ -655,7 +655,7 @@ renderer: Handsontable.renderers.factory(({ td, value }) => {
 Add smooth transitions when rating changes:
 
 ```typescript
-renderer: Handsontable.renderers.factory(({ td, value }) => {
+renderer: rendererFactory(({ td, value }) => {
   td.innerHTML = Array.from({ length: 5 }, (_, index) => 
     `<span style="
       opacity: ${index < value ? '1' : '0.4'};

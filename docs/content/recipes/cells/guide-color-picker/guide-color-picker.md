@@ -82,7 +82,7 @@ registerAllModules();
 The renderer controls how the cell looks when not being edited.
 
 ```typescript
-renderer: Handsontable.renderers.factory(({ td, value }) => {
+renderer: rendererFactory(({ td, value }) => {
   td.style.backgroundColor = `${value}`;
   td.innerHTML = `<b>${value}</b>`;
   return td;
@@ -136,13 +136,13 @@ init(editor) {
 **What's happening:**
 1. Create an `input` element using `editor.hot.rootDocument.createElement()`
 2. Set `data-coloris` attribute to tell Coloris to attach to this input
-3. The `Handsontable.editors.BaseEditor.factory` helper will handle container creation and DOM insertion
+3. The `editorFactory` helper will handle container creation and DOM insertion
 
 **Key points:**
 - Use `editor.hot.rootDocument.createElement()` (not `document.createElement()`)
 - This ensures compatibility with shadow DOM and iframes
 - `data-coloris` attribute tells Coloris to activate on this input
-- Container and DOM insertion are handled by `Handsontable.editors.BaseEditor.factory`
+- Container and DOM insertion are handled by `editorFactory`
 
 **Why not `document.createElement()`?**
 - Handsontable might be in an iframe or shadow DOM
@@ -199,7 +199,7 @@ afterOpen(editor) {
 **Why `afterOpen` instead of `open`?**
 - `afterOpen` runs after positioning is complete
 - Ensures the input is ready before triggering Coloris
-- The `Handsontable.editors.BaseEditor.factory` helper handles positioning in `open`
+- The `editorFactory` helper handles positioning in `open`
 
 ## Step 7: Editor - Get Value (`getValue`)
 
@@ -237,7 +237,7 @@ Put it all together:
 
 ```typescript
 const cellDefinition = {
-  renderer: Handsontable.renderers.factory(({ td, value }) => {
+  renderer: rendererFactory(({ td, value }) => {
     td.style.backgroundColor = `${value}`;
     td.innerHTML = `<b>${value}</b>`;
     return td;
@@ -245,7 +245,7 @@ const cellDefinition = {
   validator: (value, callback) => {
     callback(value.length === 7 && value[0] == '#'); // validate color format
   },
-  editor: Handsontable.editors.BaseEditor.factory<{input: HTMLInputElement}>({
+  editor: editorFactory<{input: HTMLInputElement}>({
     init(editor) {
       // create the input element on init. This is a text input that color picker will be attached to.
       editor.input = editor.hot.rootDocument.createElement("INPUT") as HTMLInputElement;
@@ -273,13 +273,13 @@ const cellDefinition = {
 **What's happening:**
 - **renderer**: Displays hex color code with colored background
 - **validator**: Ensures hex color format (# followed by 6 characters)
-- **editor**: Uses `Handsontable.editors.BaseEditor.factory` helper with:
+- **editor**: Uses `editorFactory` helper with:
   - `init`: Creates input element and sets `data-coloris` attribute
   - `afterInit`: Configures Coloris and sets up close event handler
   - `afterOpen`: Triggers color picker to open
   - `getValue` and `setValue`: Standard value management
 
-**Note:** The `Handsontable.editors.BaseEditor.factory` helper handles container creation, positioning, and lifecycle management automatically.
+**Note:** The `editorFactory` helper handles container creation, positioning, and lifecycle management automatically.
 
 ## Step 10: Use in Handsontable
 
@@ -391,7 +391,7 @@ beforeOpen(editor, { originalValue }) {
 }
 ```
 
-This ensures Coloris displays the current color when opened. The `Handsontable.editors.BaseEditor.factory` helper calls this automatically if not specified.
+This ensures Coloris displays the current color when opened. The `editorFactory` helper calls this automatically if not specified.
 
 ### 5. Custom Color Formats
 
@@ -414,6 +414,6 @@ validator: (value, callback) => {
 
 ---
 
-**Congratulations!** You've created a fully functional color picker cell using the Coloris library with the `Handsontable.editors.BaseEditor.factory` helper, providing an intuitive color selection experience in your data grid!
+**Congratulations!** You've created a fully functional color picker cell using the Coloris library with the `editorFactory` helper, providing an intuitive color selection experience in your data grid!
 
 

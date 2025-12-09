@@ -98,7 +98,7 @@ const DATE_FORMAT_EU = "dd/MM/yyyy";
 The renderer displays the date in a human-readable format.
 
 ```typescript
-renderer: Handsontable.renderers.factory(({ td, value, cellProperties }) => {
+renderer: rendererFactory(({ td, value, cellProperties }) => {
   td.innerText = format(new Date(value), cellProperties.renderFormat);
   return td;
 })
@@ -117,7 +117,7 @@ renderer: Handsontable.renderers.factory(({ td, value, cellProperties }) => {
 
 **Error handling for production:**
 ```typescript
-renderer: Handsontable.renderers.factory(({ td, value, cellProperties }) => {
+renderer: rendererFactory(({ td, value, cellProperties }) => {
   if (!value) {
     td.innerText = '';
     return td;
@@ -189,7 +189,7 @@ init(editor) {
 2. Initialize Flatpickr on the input with default settings
 3. Set up `onChange` handler to finish editing when date is selected
 4. Create event manager to prevent clicks on calendar from closing editor
-5. The `Handsontable.editors.BaseEditor.factory` helper handles container creation and DOM insertion
+5. The `editorFactory` helper handles container creation and DOM insertion
 
 **Key concepts:**
 
@@ -225,7 +225,7 @@ editor.eventManager.addEventListener(document.body, 'mousedown', (event) => {
 - Proper cleanup when editor is destroyed
 - Consistent with Handsontable's event handling
 - Prevents memory leaks
-- `editor.container` is provided by `Handsontable.editors.BaseEditor.factory` helper
+- `editor.container` is provided by `editorFactory` helper
 
 ## Step 6: Editor - Before Open Hook (`beforeOpen`)
 
@@ -297,11 +297,11 @@ const cellDefinition = {
   validator: (value, callback) => {
     callback(isDate(new Date(value)));
   },
-  renderer: Handsontable.renderers.factory(({ td, value, cellProperties }) => {
+  renderer: rendererFactory(({ td, value, cellProperties }) => {
     td.innerText = format(new Date(value), cellProperties.renderFormat);
     return td;
   }),
-  editor: Handsontable.editors.BaseEditor.factory<{
+  editor: editorFactory<{
     input: HTMLInputElement,
     flatpickr: flatpickr.Instance,
     eventManager: Handsontable.EventManager,
@@ -347,13 +347,13 @@ const cellDefinition = {
 **What's happening:**
 - **validator**: Ensures date is valid using `isDate` from date-fns
 - **renderer**: Displays formatted date using `cellProperties.renderFormat`
-- **editor**: Uses `Handsontable.editors.BaseEditor.factory` helper with:
+- **editor**: Uses `editorFactory` helper with:
   - `init`: Creates input, initializes Flatpickr, sets up event manager
   - `beforeOpen`: Sets value and updates Flatpickr settings from column config
   - `getValue`: Returns the input's current value
   - `setValue`: Sets input value and updates Flatpickr date
 
-**Note:** The `Handsontable.editors.BaseEditor.factory` helper handles container creation, positioning, and lifecycle management automatically.
+**Note:** The `editorFactory` helper handles container creation, positioning, and lifecycle management automatically.
 
 ## Step 10: Use in Handsontable with Different Formats
 

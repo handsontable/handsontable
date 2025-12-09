@@ -637,12 +637,12 @@ export const data = inputData.map((el) => ({
 // Get the DOM element with the ID 'example1' where the Handsontable will be rendered
 const container = document.querySelector('#example1');
 const cellDefinition = {
-  renderer: Handsontable.renderers.factory(({ td, value }) => {
+  renderer: rendererFactory(({ td, value }) => {
     td.innerHTML = value.length > 0 ? value.map((el) => el.label).join(', ') : 'No elements';
 
     return td;
   }),
-  editor: Handsontable.editors.BaseEditor.factory({
+  editor: editorFactory({
     init(editor) {
       editor.input = editor.hot.rootDocument.createElement('SELECT');
       editor.input.setAttribute('multiple', 'multiple');

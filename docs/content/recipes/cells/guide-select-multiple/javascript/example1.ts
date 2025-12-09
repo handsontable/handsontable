@@ -5,6 +5,8 @@ import 'handsontable/styles/ht-theme-main.css';
 import multipleSelect from 'multiple-select-vanilla';
 import type { MultipleSelectInstance } from 'multiple-select-vanilla';
 import type { CellProperties } from 'handsontable/settings';
+import  { editorFactory }  from 'handsontable/editors/baseEditor';
+import  { rendererFactory }  from 'handsontable/renderers';
 // Register all Handsontable's modules.
 registerAllModules();
 
@@ -644,12 +646,12 @@ export const data = inputData.map((el) => ({
 const container = document.querySelector('#example1')!;
 
 const cellDefinition: Pick<CellProperties, 'renderer' | 'validator' | 'editor'> = {
-  renderer: Handsontable.renderers.factory(({ td, value }) => {
+  renderer: rendererFactory(({ td, value }) => {
     td.innerHTML = value.length > 0 ? value.map((el: { label: string }) => el.label).join(', ') : 'No elements';
 
     return td;
   }),
-  editor: Handsontable.editors.BaseEditor.factory<{ input: HTMLSelectElement; multiselect: MultipleSelectInstance }>({
+  editor: editorFactory<{ input: HTMLSelectElement; multiselect: MultipleSelectInstance }>({
     init(editor) {
       editor.input = editor.hot.rootDocument.createElement('SELECT') as HTMLSelectElement;
       editor.input.setAttribute('multiple', 'multiple');

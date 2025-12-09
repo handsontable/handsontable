@@ -358,7 +358,7 @@ export const data = inputData.map((el) => ({
 // Get the DOM element with the ID 'example1' where the Handsontable will be rendered
 const container = document.querySelector('#example1');
 const cellDefinition = {
-  editor: Handsontable.editors.BaseEditor.factory({
+  editor: editorFactory({
     config: ['👍', '👎', '🤷‍♂️'],
     value: '👍',
     shortcuts: [

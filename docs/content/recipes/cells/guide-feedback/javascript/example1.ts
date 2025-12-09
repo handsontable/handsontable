@@ -3,6 +3,8 @@ import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
 import { CellProperties } from 'handsontable/settings';
+import  { editorFactory }  from 'handsontable/editors/baseEditor';
+import  { rendererFactory }  from 'handsontable/renderers';
 // Register all Handsontable's modules.
 registerAllModules();
 
@@ -362,7 +364,7 @@ export const data = inputData.map((el) => ({
 const container = document.querySelector('#example1')!;
 
 const cellDefinition: Pick<CellProperties, 'renderer' | 'validator' | 'editor'> = {
-  editor: Handsontable.editors.BaseEditor.factory<{ input: HTMLDivElement; value: string; config: string[] }>({
+  editor: editorFactory<{ input: HTMLDivElement; value: string; config: string[] }>({
     config: ['👍', '👎', '🤷‍♂️'],
     value: '👍',       
     shortcuts: [

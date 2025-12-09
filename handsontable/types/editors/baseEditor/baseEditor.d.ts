@@ -1,6 +1,7 @@
 import Core from '../../core';
 import { CellProperties } from '../../settings';
 import { Context } from '../../shortcuts/context';
+import { CellProperties } from '../../settings';
 
 type Shortcut = Parameters<Context['addShortcut']>[0];
 
@@ -57,36 +58,36 @@ export abstract class BaseEditor {
   prepare(row: number, column: number, prop: string | number, TD: HTMLTableCellElement, originalValue: any, cellProperties: CellProperties): void;
   saveValue(value?: any, ctrlDown?: boolean): void;
   abstract setValue(newValue?: any): void;
-
-  static factory: <TProperties, TMethods>({ init, afterOpen, afterInit, afterClose, beforeOpen, getValue, setValue, onFocus, shortcuts, value, render, config, shortcutsGroup, ...args }: {
-    value?: TProperties extends {
-        value: any;
-    } ? TProperties["value"] : any;
-    config?: TProperties extends {
-        config: any;
-    } ? TProperties["config"] : any;
-    render?: (editor: ExtendedEditor<TProperties & TMethods>) => void;
-    init: (editor: ExtendedEditor<TProperties & TMethods>) => void;
-    afterOpen?: (editor: ExtendedEditor<TProperties & TMethods>, event?: Event) => void;
-    afterClose?: (editor: ExtendedEditor<TProperties & TMethods>) => void;
-    afterInit?: (editor: ExtendedEditor<TProperties & TMethods>) => void;
-    beforeOpen?: (editor: ExtendedEditor<TProperties & TMethods>, { row, col, prop, td, originalValue, cellProperties, }: {
-        row: number;
-        col: number;
-        prop: string | number;
-        td: HTMLTableCellElement;
-        originalValue: any;
-        cellProperties: CellProperties;
-    }) => void;
-    getValue?: (editor: ExtendedEditor<TProperties & TMethods>) => any;
-    setValue?: (editor: ExtendedEditor<TProperties & TMethods>, value: any) => void;
-    onFocus?: (editor: ExtendedEditor<TProperties & TMethods>) => void;
-    shortcutsGroup?: string;
-    shortcuts?: (Omit<Shortcut, 'callback' | 'group'> & { 
-      callback: (editor: ExtendedEditor<TProperties & TMethods>, event: Event) => boolean | void; 
-      group?: string;
-    })[];
-    position?: 'container' | 'portal';
-  } & TMethods & Record<string, any>) => ExtendedEditor<TProperties>;
-
+  
 }
+
+export declare const editorFactory: <TProperties, TMethods = {}>({ init, afterOpen, afterInit, afterClose, beforeOpen, getValue, setValue, onFocus, shortcuts, value, render, config, shortcutsGroup, ...args }: {static factory: <TProperties, TMethods = {}>({ init, afterOpen, afterInit, afterClose, beforeOpen, getValue, setValue, onFocus, shortcuts, value, render, config, shortcutsGroup, ...args }: {
+  value?: TProperties extends {
+      value: any;
+  } ? TProperties["value"] : any;
+  config?: TProperties extends {
+      config: any;
+  } ? TProperties["config"] : any;
+  render?: (editor: ExtendedEditor<TProperties & TMethods>) => void;
+  init: (editor: ExtendedEditor<TProperties & TMethods>) => void;
+  afterOpen?: (editor: ExtendedEditor<TProperties & TMethods>, event?: Event) => void;
+  afterClose?: (editor: ExtendedEditor<TProperties & TMethods>) => void;
+  afterInit?: (editor: ExtendedEditor<TProperties & TMethods>) => void;
+  beforeOpen?: (editor: ExtendedEditor<TProperties & TMethods>, { row, col, prop, td, originalValue, cellProperties, }: {
+      row: number;
+      col: number;
+      prop: string | number;
+      td: HTMLTableCellElement;
+      originalValue: any;
+      cellProperties: CellProperties;
+  }) => void;
+  getValue?: (editor: ExtendedEditor<TProperties & TMethods>) => any;
+  setValue?: (editor: ExtendedEditor<TProperties & TMethods>, value: any) => void;
+  onFocus?: (editor: ExtendedEditor<TProperties & TMethods>) => void;
+  shortcutsGroup?: string;
+  shortcuts?: (Omit<Shortcut, 'callback' | 'group'> & { 
+    callback: (editor: ExtendedEditor<TProperties & TMethods>, event: Event) => boolean | void; 
+    group?: string;
+  })[];
+  position?: 'container' | 'portal';
+} & TMethods & Record<string, any>) => ExtendedEditor<TProperties>;

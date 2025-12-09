@@ -1,5 +1,7 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
+import  { editorFactory }  from 'handsontable/editors/baseEditor';
+import  { rendererFactory }  from 'handsontable/renderers';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
 // CSS must be imported for the color picker to work in production
@@ -373,7 +375,7 @@ export const data = inputData.map((el) => ({
 const container = document.querySelector('#example1')!;
 
 const cellDefinition: Pick<CellProperties, 'renderer' | 'validator' | 'editor'> = {
-  renderer: Handsontable.renderers.factory(({ td, value }) => {
+  renderer: rendererFactory(({ td, value }) => {
     td.style.backgroundColor = `${value}`;
     td.innerHTML = `<b>${value}</b>`;
 
@@ -382,7 +384,7 @@ const cellDefinition: Pick<CellProperties, 'renderer' | 'validator' | 'editor'> 
   validator: (value, callback) => {
     callback(value.length === 7 && value[0] == '#'); // validate color format
   },
-  editor: Handsontable.editors.BaseEditor.factory<{ input: HTMLInputElement }>({
+  editor: editorFactory<{ input: HTMLInputElement }>({
     init(editor) {
       // create the input element on init. This is a text input that color picker will be attached to.
       editor.input = editor.hot.rootDocument.createElement('INPUT') as HTMLInputElement;

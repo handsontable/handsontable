@@ -5,6 +5,8 @@ import "handsontable/styles/ht-theme-main.css";
 import moment from "moment";
 import Pikaday from "@handsontable/pikaday";
 import { CellProperties } from "handsontable/settings";
+import  { editorFactory }  from 'handsontable/editors/baseEditor';
+import  { rendererFactory }  from 'handsontable/renderers';
 // Register all Handsontable's modules.
 registerAllModules();
 
@@ -409,7 +411,7 @@ type EditorPropertiesType = {
 // Helper type to extract the editor type from factory callbacks
 type FactoryEditorType<TProps, TMethods> = Parameters<
   Parameters<
-    typeof Handsontable.editors.BaseEditor.factory<TProps, TMethods>
+    typeof editorFactory<TProps, TMethods>
   >[0]["init"]
 >[0];
 
@@ -433,14 +435,14 @@ const cellDefinition: Pick<
   CellProperties,
   "renderer" | "validator" | "editor"
 > = {
-  renderer: Handsontable.renderers.factory(({ td, value, cellProperties }) => {
+  renderer: rendererFactory(({ td, value, cellProperties }) => {
     td.innerText = moment(new Date(value), cellProperties.renderFormat).format(
       cellProperties.renderFormat,
     );
     return td;
   }),
 
-  editor: Handsontable.editors.BaseEditor.factory<
+  editor: editorFactory<
     EditorPropertiesType,
     EditorMethodsType
   >({

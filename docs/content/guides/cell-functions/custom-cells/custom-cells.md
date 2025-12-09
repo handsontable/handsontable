@@ -45,7 +45,7 @@ A simplified way to create cell renderers.
 
 **Signature:**
 ```typescript
-Handsontable.renderers.factory((params) => {
+rendererFactory((params) => {
   // params.instance - Handsontable instance
   // params.td - Table cell element
   // params.row - Row index
@@ -58,7 +58,7 @@ Handsontable.renderers.factory((params) => {
 
 **Example:**
 ```typescript
-const renderer = Handsontable.renderers.factory(({ td, value }) => {
+const renderer = rendererFactory(({ td, value }) => {
   td.style.backgroundColor = value;
   td.innerHTML = `<b>${value}</b>`;
 });
@@ -68,13 +68,13 @@ Just use the parameters you need.
 
 ---
 
-# Using `BaseEditor.factory` 
+# Using `editorFactory` 
 
 The `factory` helper is the **recommended approach** for creating custom editors. It handles container creation, positioning, lifecycle management, and shortcuts automatically, allowing you to focus on your editor's unique functionality.
 
-## What is `BaseEditor.factory`?
+## What is `editorFactory`?
 
-`Handsontable.editors.BaseEditor.factory` is a high-level helper that wraps `BaseEditor` class construction and handles common patterns automatically. It provides:
+`editorFactoryy` is a high-level helper that wraps `BaseEditor` class construction and handles common patterns automatically. It provides:
 
 - Automatic container creation (`editor.container`)
 - Automatic positioning in `open()`
@@ -91,8 +91,13 @@ The `factory` helper is the **recommended approach** for creating custom editors
 A complete cell definition includes three components:
 
 ```typescript
+
+import { rendererFactory } from 'handsontable/renderers';
+import { editorFactory } from 'handsontable/editors/baseEditor';
+import { registerCellType } from 'handsontable/cellTypes';
+
 const cellDefinition = {
-  renderer: Handsontable.renderers.factory(({ td, value }) => {
+  renderer: rendererFactory(({ td, value }) => {
     // Display the cell value
     td.innerText = value;
   }),
@@ -102,7 +107,7 @@ const cellDefinition = {
     callback(!isNaN(parseInt(value)));
   },
   
-  editor: Handsontable.editors.BaseEditor.factory<{input: HTMLInputElement}>({
+  editor: editorFactoryy<{input: HTMLInputElement}>({
     init(editor) {
       editor.input = document.createElement('INPUT') as HTMLInputElement;
       // Container is created automatically and `input` is attached automatically 
@@ -115,12 +120,16 @@ const cellDefinition = {
     }
   })
 };
+
+registerCellType('myCellType', cellDefinition);
+// then in Handsontable you can use `"myCellType"` to `type` option to use your cell type.
+
 ```
 
 ### Signature
 
 ```typescript
-Handsontable.editors.BaseEditor.factory<CustomProperties, CustomMethods = {}>({
+editorFactoryy<CustomProperties, CustomMethods = {}>({
   init(editor) { /* Required: Create input element */ },
   beforeOpen?(editor, { row, col, prop, td, originalValue, cellProperties }) { /* Per-cell setup */ },
   afterOpen?(editor, event?) { /* After editor is positioned and visible */ },
@@ -157,7 +166,7 @@ Understanding when each method is called:
    - Set editor value from `originalValue`
    - Update settings from `cellProperties`
    - Prepare editor state for the current cell
-   - ⚠️ This replaces `prepare()` when using `Handsontable.editors.BaseEditor.factory`
+   - ⚠️ This replaces `prepare()` when using `editorFactoryy`
 
 4. **`afterOpen(editor, event?)`** - Called after editor is positioned and visible
    - Open dropdowns, pickers, or other UI elements
@@ -209,11 +218,11 @@ Define custom properties for your editor using generics:
 ```typescript
 type MyEditorProps = {
   input: HTMLInputElement; // You create this
-  container: HTMLDivElement; // Provided automatically by Handsontable.editors.BaseEditor.factory
+  container: HTMLDivElement; // Provided automatically by editorFactoryy
   myLibraryInstance: any;
 };
 
-const editor = Handsontable.editors.BaseEditor.factory<MyEditorProps>({
+const editor = editorFactoryy<MyEditorProps>({
   init(editor) {
     // TypeScript knows about editor.input, editor.container, etc.
     editor.input = document.createElement('INPUT') as HTMLInputElement;
@@ -233,7 +242,7 @@ const editor = Handsontable.editors.BaseEditor.factory<MyEditorProps>({
 For wrapping HTML5 inputs:
 
 ```typescript
-editor: Handsontable.editors.BaseEditor.factory<{input: HTMLInputElement}>({
+editor: editorFactoryy<{input: HTMLInputElement}>({
   init(editor) {
     editor.input = document.createElement('INPUT') as HTMLInputElement;
     editor.input.type = 'date'; // or 'text', 'color', etc.
@@ -257,7 +266,7 @@ editor: Handsontable.editors.BaseEditor.factory<{input: HTMLInputElement}>({
 For integrating libraries like date pickers, color pickers, etc.:
 
 ```typescript
-editor: Handsontable.editors.BaseEditor.factory<{input: HTMLInputElement, picker: PickerInstance}>({
+editor: editorFactoryy<{input: HTMLInputElement, picker: PickerInstance}>({
   init(editor) {
     editor.input = document.createElement('INPUT') as HTMLInputElement;
     editor.picker = initPicker(editor.input);
@@ -327,7 +336,7 @@ This is crucial for users who rely on keyboard navigation, require a screen read
 
 **Example usage:**
 ```typescript
-editor: Handsontable.editors.BaseEditor.factory<{input: HTMLInputElement}>({
+editor: editorFactoryy<{input: HTMLInputElement}>({
   init(editor) {
     editor.input = document.createElement('DIV') as HTMLDivElement;
     // ... setup
@@ -371,7 +380,7 @@ Sometimes you want to override these default behaviors. For example, you might w
 **Example: Overriding Tab Key Behavior**
 
 ```typescript
-editor: Handsontable.editors.BaseEditor.factory<{input: HTMLDivElement, value: string, config: string[]}>({
+editor: editorFactoryy<{input: HTMLDivElement, value: string, config: string[]}>({
   config: ['👍', '👎', '🤷‍♂️'],
   init(editor) {
     editor.input = editor.hot.rootDocument.createElement("DIV") as HTMLDivElement;
@@ -411,7 +420,7 @@ Instead of managing state through `setValue` and `getValue`, you can define `val
 
 **Example:**
 ```typescript
-editor: Handsontable.editors.BaseEditor.factory<{
+editor: editorFactoryy<{
   input: HTMLInputElement,
   value: string,
   config: string[]
@@ -438,7 +447,7 @@ By default, the editor container is positioned using the `'container'` strategy,
 
 **Example:**
 ```typescript
-editor: Handsontable.editors.BaseEditor.factory<{input: HTMLInputElement}>({
+editor: editorFactoryy<{input: HTMLInputElement}>({
   position: 'portal', // Render outside normal container hierarchy
   init(editor) {
     editor.input = document.createElement('INPUT') as HTMLInputElement;
@@ -454,7 +463,7 @@ When you have multiple editors or complex shortcut configurations, organizing sh
 
 **Example:**
 ```typescript
-editor: Handsontable.editors.BaseEditor.factory<{input: HTMLInputElement}>({
+editor: editorFactoryy<{input: HTMLInputElement}>({
   shortcutsGroup: 'myCustomEditor',
   init(editor) {
     editor.input = document.createElement('INPUT') as HTMLInputElement;
@@ -491,7 +500,7 @@ new Handsontable(container, {
 });
 ```
 
-## Best Practices with `Handsontable.editors.BaseEditor.factory`
+## Best Practices with `editorFactoryy`
 
 ### 1. Performance
 
@@ -530,7 +539,7 @@ validator: (value, callback) => {
 
 👉 **[Browse All Recipes](@/recipes/introduction.md)** - Find recipes by use case, difficulty, or technology
 
-We provide complete working examples for common use cases. All examples use the `Handsontable.editors.BaseEditor.factory` helper:
+We provide complete working examples for common use cases. All examples use the `editorFactoryy` helper:
 
 1. **[Color Picker](@/recipes/cells/guide-color-picker/guide-color-picker.md)** - Integrate a color picker library using `factory`
 2. **[Flatpickr Date Picker](@/recipes/cells/guide-flatpickr/guide-flatpickr.md)** - Advanced date picker with options using `factory`
@@ -541,7 +550,7 @@ We provide complete working examples for common use cases. All examples use the 
 
 ## Migration from Traditional Approach
 
-If you have existing custom editors, migrating to this approach is optional. The `Handsontable.editors.BaseEditor.factory` method is simply a helper built on top of the existing Editor classes. Your previous custom editors remain fully backward compatible, so you can continue using them as-is or migrate at your convenience.
+If you have existing custom editors, migrating to this approach is optional. The `editorFactoryy` method is simply a helper built on top of the existing Editor classes. Your previous custom editors remain fully backward compatible, so you can continue using them as-is or migrate at your convenience.
 
 **Before (Traditional):**
 ```javascript
@@ -570,9 +579,9 @@ class CustomEditor extends Handsontable.editors.BaseEditor {
 }
 ```
 
-**After (Using `Handsontable.editors.BaseEditor.factory`):**
+**After (Using `editorFactoryy`):**
 ```typescript
-const editor = Handsontable.editors.BaseEditor.factory<{input: HTMLInputElement}>({
+const editor = editorFactoryy<{input: HTMLInputElement}>({
   init(editor) {
     editor.input = document.createElement('INPUT') as HTMLInputElement;
   },
@@ -585,7 +594,7 @@ const editor = Handsontable.editors.BaseEditor.factory<{input: HTMLInputElement}
 });
 ```
 
-## Troubleshooting with `Handsontable.editors.BaseEditor.factory`
+## Troubleshooting with `editorFactoryy`
 
 ### Editor Not Showing
 

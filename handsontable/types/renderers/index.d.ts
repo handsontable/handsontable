@@ -58,7 +58,8 @@ export {
 } from './registry';
 export { BaseRenderer } from './base';
 
-export declare const factory: (callback: ({ instance, td, row, column, prop, value, cellProperties }: {
+
+export declare const rendererFactory: (callback: ({ instance, td, row, column, prop, value, cellProperties }: {
   instance: Core;
   td: HTMLTableCellElement;
   row: number;

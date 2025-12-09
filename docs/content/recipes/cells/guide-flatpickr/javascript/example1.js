@@ -364,12 +364,12 @@ const cellDefinition = {
   validator: (value, callback) => {
     callback(isDate(new Date(value)));
   },
-  renderer: Handsontable.renderers.factory(({ td, value, cellProperties }) => {
+  renderer: rendererFactory(({ td, value, cellProperties }) => {
     td.innerText = format(new Date(value), cellProperties.renderFormat);
 
     return td;
   }),
-  editor: Handsontable.editors.BaseEditor.factory({
+  editor: editorFactory({
     init(editor) {
       // create the input element on init. This is a text input that color picker will be attached to.
       editor.input = editor.hot.rootDocument.createElement('INPUT');

@@ -391,12 +391,12 @@ const data = inputData.map((item) => ({
 // Get the DOM element with the ID 'example1' where the Handsontable will be rendered
 const container = document.querySelector('#example1');
 const cellDefinition = {
-  renderer: Handsontable.renderers.factory(({ td, value, cellProperties }) => {
+  renderer: rendererFactory(({ td, value, cellProperties }) => {
     td.innerText = moment(new Date(value), cellProperties.renderFormat).format(cellProperties.renderFormat);
 
     return td;
   }),
-  editor: Handsontable.editors.BaseEditor.factory({
+  editor: editorFactory({
     position: 'portal',
     shortcuts: [
       {

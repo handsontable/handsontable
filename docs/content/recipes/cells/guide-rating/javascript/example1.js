@@ -358,7 +358,7 @@ export const data = inputData.map((el) => ({
 // Get the DOM element with the ID 'example1' where the Handsontable will be rendered
 const container = document.querySelector('#example1');
 const cellDefinition = {
-  renderer: Handsontable.renderers.factory(({ td, value }) => {
+  renderer: rendererFactory(({ td, value }) => {
     td.innerHTML = Array.from(
       { length: 5 },
       (_, index) => `<span style="opacity: ${index < value ? '1' : '0.4'}">⭐</span>`
@@ -370,7 +370,7 @@ const cellDefinition = {
     value = parseInt(value);
     callback(value >= 0 && value <= 100);
   },
-  editor: Handsontable.editors.BaseEditor.factory({
+  editor: editorFactory({
     shortcuts: [
       {
         keys: [['1'], ['2'], ['3'], ['4'], ['5']],

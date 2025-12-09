@@ -149,7 +149,7 @@ components: [
 Display selected items as comma-separated text.
 
 ```typescript
-renderer: Handsontable.renderers.factory(({ td, value }) => {
+renderer: rendererFactory(({ td, value }) => {
   td.innerHTML = value.length > 0
     ? value.map((el: { label: string }) => el.label).join(", ")
     : "No elements";
@@ -260,7 +260,7 @@ init(editor) {
 2. Set `multiple` attribute to allow multiple selections
 3. Set custom `data-multi-select` attribute for CSS targeting
 4. Initialize the multiple-select plugin on the select element
-5. The `Handsontable.editors.BaseEditor.factory` helper handles container creation and DOM insertion
+5. The `editorFactory` helper handles container creation and DOM insertion
 
 **Key concepts:**
 
@@ -341,9 +341,9 @@ afterOpen(editor) {
 **Why `afterOpen` instead of `open`?**
 - `afterOpen` runs after positioning is complete
 - Ensures the select element is ready before opening
-- The `Handsontable.editors.BaseEditor.factory` helper handles positioning in `open`
+- The `editorFactory` helper handles positioning in `open`
 
-**Note:** The `Handsontable.editors.BaseEditor.factory` helper automatically positions the editor container over the cell, so we only need to open the dropdown.
+**Note:** The `editorFactory` helper automatically positions the editor container over the cell, so we only need to open the dropdown.
 
 ## Step 8: Editor - Get Value (`getValue`)
 
@@ -488,13 +488,13 @@ Put it all together:
 
 ```typescript
 const cellDefinition = {
-  renderer: Handsontable.renderers.factory(({ td, value }) => {
+  renderer: rendererFactory(({ td, value }) => {
     td.innerHTML = value.length > 0
       ? value.map((el: { label: string }) => el.label).join(', ')
       : 'No elements';
     return td;
   }),
-  editor: Handsontable.editors.BaseEditor.factory<{input: HTMLSelectElement, multiselect: MultipleSelectInstance}>({
+  editor: editorFactory<{input: HTMLSelectElement, multiselect: MultipleSelectInstance}>({
     init(editor) {
       editor.input = editor.hot.rootDocument.createElement("SELECT") as HTMLSelectElement;
       editor.input.setAttribute("multiple", "multiple");
@@ -531,14 +531,14 @@ const cellDefinition = {
 
 **What's happening:**
 - **renderer**: Displays selected items as comma-separated text
-- **editor**: Uses `Handsontable.editors.BaseEditor.factory` helper with:
+- **editor**: Uses `editorFactory` helper with:
   - `init`: Creates select element and initializes multiple-select plugin
   - `beforeOpen`: Populates options from column config and refreshes plugin
   - `afterOpen`: Opens the multiselect dropdown
   - `getValue`: Returns selected options as array of objects
   - `setValue`: Sets selected state, handles Handsontable bug, refreshes plugin
 
-**Note:** The `Handsontable.editors.BaseEditor.factory` helper handles container creation, positioning, and lifecycle management automatically.
+**Note:** The `editorFactory` helper handles container creation, positioning, and lifecycle management automatically.
 
 ## Step 11: Use in Handsontable
 

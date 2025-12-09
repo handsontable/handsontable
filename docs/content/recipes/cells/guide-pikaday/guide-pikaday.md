@@ -159,7 +159,7 @@ type EditorPropertiesType = {
 // Helper type to extract the editor type from factory callbacks
 type FactoryEditorType<TProps, TMethods> = Parameters<
   Parameters<
-    typeof Handsontable.editors.BaseEditor.factory<TProps, TMethods>
+    typeof editorFactory<TProps, TMethods>
   >[0]["init"]
 >[0];
 
@@ -195,7 +195,7 @@ type EditorMethodsType = {
 The renderer controls how the cell looks when not being edited.
 
 ```typescript
-renderer: Handsontable.renderers.factory(({ td, value, cellProperties }) => {
+renderer: rendererFactory(({ td, value, cellProperties }) => {
   td.innerText = moment(new Date(value), cellProperties.renderFormat).format(
     cellProperties.renderFormat,
   );
@@ -216,7 +216,7 @@ renderer: Handsontable.renderers.factory(({ td, value, cellProperties }) => {
 
 **Error handling for production:**
 ```typescript
-renderer: Handsontable.renderers.factory(({ td, value, cellProperties }) => {
+renderer: rendererFactory(({ td, value, cellProperties }) => {
   if (!value) {
     td.innerText = '';
     return td;
@@ -272,7 +272,7 @@ init(editor) {
 2. Create an `input` element using `editor.hot.rootDocument.createElement()`
 3. Use the editor container as the Pikaday container
 4. Create event manager to handle clicks on datepicker days
-5. The `Handsontable.editors.BaseEditor.factory` helper handles container creation and DOM insertion
+5. The `editorFactory` helper handles container creation and DOM insertion
 
 **Key concepts:**
 
@@ -298,7 +298,7 @@ editor.eventManager.addEventListener(document.body, "mousedown", (event) => {
 - Proper cleanup when editor is destroyed
 - Consistent with Handsontable's event handling
 - Prevents memory leaks
-- `editor.container` is provided by `Handsontable.editors.BaseEditor.factory` helper
+- `editor.container` is provided by `editorFactory` helper
 
 ### Why `editor.hot.rootDocument.createElement()`?
 - Handsontable might be in an iframe or shadow DOM
@@ -528,7 +528,7 @@ afterOpen(editor, event) {
 **Why `afterOpen` instead of `open`?**
 - `afterOpen` runs after positioning is complete
 - Ensures the input is ready before styling
-- The `Handsontable.editors.BaseEditor.factory` helper handles positioning in `open`
+- The `editorFactory` helper handles positioning in `open`
 
 ## Step 11: Editor - After Close Hook (`afterClose`)
 
@@ -672,14 +672,14 @@ const cellDefinition: Pick<
   CellProperties,
   "renderer" | "validator" | "editor"
 > = {
-  renderer: Handsontable.renderers.factory(({ td, value, cellProperties }) => {
+  renderer: rendererFactory(({ td, value, cellProperties }) => {
     td.innerText = moment(new Date(value), cellProperties.renderFormat).format(
       cellProperties.renderFormat,
     );
     return td;
   }),
 
-  editor: Handsontable.editors.BaseEditor.factory<
+  editor: editorFactory<
     EditorPropertiesType,
     EditorMethodsType
   >({
@@ -720,11 +720,11 @@ const cellDefinition: Pick<
 
 **What's happening:**
 - **renderer**: Displays formatted date using `cellProperties.renderFormat`
-- **editor**: Uses `Handsontable.editors.BaseEditor.factory` helper with all lifecycle methods
+- **editor**: Uses `editorFactory` helper with all lifecycle methods
 - **position**: Portal positioning for better z-index
 - **shortcuts**: Keyboard navigation for date selection
 
-**Note:** The `Handsontable.editors.BaseEditor.factory` helper handles container creation, positioning, and lifecycle management automatically.
+**Note:** The `editorFactory` helper handles container creation, positioning, and lifecycle management automatically.
 
 ## Step 17: Use in Handsontable
 
@@ -872,7 +872,7 @@ Replace Moment.js with another library:
 import { format, parse } from 'date-fns';
 
 // In renderer
-renderer: Handsontable.renderers.factory(({ td, value, cellProperties }) => {
+renderer: rendererFactory(({ td, value, cellProperties }) => {
   td.innerText = format(new Date(value), cellProperties.renderFormat);
   return td;
 })

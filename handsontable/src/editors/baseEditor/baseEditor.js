@@ -712,7 +712,7 @@ const editorBaseFactory = (params) => {
   return CustomBaseEditor;
 };
 
-/** ............................
+/** 
  * Factory function to create a custom Handsontable editor.
  *
  * `editorFactory` helps you create modular, reusable, and fully custom editors
@@ -738,7 +738,7 @@ const editorBaseFactory = (params) => {
  *
  * @returns {BaseEditor} A custom editor class extending Handsontable's BaseEditor.
  */
-const editorFactory = ({
+export const editorFactory = ({
   /**
    * Called when this editor is constructed by the Handsontable grid.
    * Assigns value/config/render/etc, creates UI container, initializes with provided init.
@@ -866,7 +866,6 @@ const editorFactory = ({
       editor._open = false;
       editor.container = editor.hot.rootDocument.createElement('DIV');
       editor.container.style.display = 'none';
-      editor.container.classList.add('htSelectEditor');
 
       if (position === 'portal') {
         editor.hot.rootPortalElement.appendChild(editor.container);
@@ -931,12 +930,12 @@ const editorFactory = ({
         const _offset = editor.TD.getBoundingClientRect();
 
         editor.container.style.top = `${editor.hot.rootWindow.pageYOffset + _offset.top}px`;
-        editor.container.style.left = `${editor.hot.rootWindow.pageXOffset + _offset.left}px`;
+        editor.container.style[editor.hot.isRtl() ? 'right' : 'left'] = `${editor.hot.rootWindow.pageXOffset + _offset[editor.hot.isRtl() ? 'right' : 'left']}px`;
       } else {
         const rect = editor.getEditedCellRect();
 
         editor.container.style.top = `${rect.top}px`;
-        editor.container.style.left = `${rect.start}px`;
+        editor.container.style[editor.hot.isRtl() ? 'right' : 'left'] = `${rect.start}px`;
         editor.container.style.width = `${rect.width}px`;
         editor.container.style.height = `${rect.height}px`;
       }
@@ -1012,4 +1011,3 @@ const editorFactory = ({
   });
 };
 
-BaseEditor.factory = editorFactory;

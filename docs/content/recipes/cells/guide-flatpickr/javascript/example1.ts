@@ -5,6 +5,8 @@ import 'handsontable/styles/ht-theme-main.css';
 import { format, isDate } from 'date-fns';
 import flatpickr from 'flatpickr';
 import { CellProperties } from 'handsontable/settings';
+import  { editorFactory }  from 'handsontable/editors/baseEditor';
+import  { rendererFactory }  from 'handsontable/renderers';
 // Register all Handsontable's modules.
 registerAllModules();
 
@@ -370,12 +372,12 @@ const cellDefinition: Pick<CellProperties, 'renderer' | 'validator' | 'editor'> 
   validator: (value, callback) => {
     callback(isDate(new Date(value)));
   },
-  renderer: Handsontable.renderers.factory(({ td, value, cellProperties }) => {
+  renderer: rendererFactory(({ td, value, cellProperties }) => {
     td.innerText = format(new Date(value), cellProperties.renderFormat);
 
     return td;
   }),
-  editor: Handsontable.editors.BaseEditor.factory<{
+  editor: editorFactory<{
     input: HTMLInputElement;
     flatpickr: flatpickr.Instance;
     eventManager: Handsontable.EventManager;
