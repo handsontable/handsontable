@@ -1,6 +1,5 @@
 /**
  * Config responsible for building Handsontable theme UMD modules (minified):
- *  - dist/themes/themeBuilder.min.js
  *  - dist/themes/mainTheme.min.js
  *  - dist/themes/horizonTheme.min.js
  *  - dist/themes/classicTheme.min.js

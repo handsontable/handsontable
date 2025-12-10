@@ -1,6 +1,5 @@
 /**
  * Config responsible for building Handsontable theme UMD modules:
- *  - dist/themes/themeBuilder.js
  *  - dist/themes/mainTheme.js
  *  - dist/themes/horizonTheme.js
  *  - dist/themes/classicTheme.js
@@ -72,15 +71,6 @@ function createConfig(entryName, entryPath, libraryName, envArgs) {
   };
 }
 
-function getLibraryName(fileName) {
-  // Special case: themeBuilder -> ThemeBuilder
-  if (fileName === 'themeBuilder') {
-    return 'ThemeBuilder';
-  }
-  // Convert camelCase to camelCase (already correct)
-  return fileName;
-}
-
 function scanThemesDirectory() {
   const themesDir = path.resolve(__dirname, '../src/themes');
   const entryConfigs = {};
@@ -94,7 +84,7 @@ function scanThemesDirectory() {
   // Add root theme files
   themeFiles.forEach(fileName => {
     const entryName = fileName;
-    const libraryName = getLibraryName(fileName);
+    const libraryName = fileName;
     const entryPath = path.resolve(themesDir, `${fileName}.js`);
     entryConfigs[entryName] = {
       entryPath: entryPath,

@@ -1,9 +1,9 @@
-import ThemeBuilder from './themeBuilder';
+import { createTheme } from './utils/themeBuilder';
 import mainIcons from './icons/main';
 import mainColors from './variables/colors/main';
 import mainTokens from './variables/tokens/main';
 
-const mainTheme = new ThemeBuilder({
+const mainTheme = createTheme({
   icons: mainIcons,
   density: 'default',
   colors: mainColors,

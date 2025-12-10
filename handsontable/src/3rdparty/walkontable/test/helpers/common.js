@@ -367,9 +367,6 @@ export function createStylesHandler() {
     getDefaultRowHeight() {
       return 23;
     },
-    isClassicTheme() {
-      return true;
-    },
     areCellsBorderBox() {
       return false;
     },

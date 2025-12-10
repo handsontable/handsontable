@@ -1,4 +1,4 @@
-import Handsontable, { CellCoords, CellRange } from './base';
+import Handsontable, { CellCoords, CellRange, createTheme } from './base';
 import { registerAllModules } from './registry';
 import EventManager, { getListenersCounter } from './eventManager';
 import { getRegisteredMapsCounter } from './translations';
@@ -165,5 +165,6 @@ Handsontable.plugins.getPlugin = getPlugin;
 export {
   CellCoords,
   CellRange,
+  createTheme,
 };
 export default Handsontable;

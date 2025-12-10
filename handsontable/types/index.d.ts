@@ -14,6 +14,22 @@ import {
   CellMeta,
   CellProperties,
 } from './settings';
+import {
+  ThemeConfig,
+  ThemeColorScheme,
+  ThemeColorsConfig,
+  ThemeDensityConfig,
+  ThemeDensitySizes,
+  ThemeIconsConfig,
+  ThemeLightDarkValue,
+  ThemeSizingConfig,
+  ThemeTokenValue,
+  ThemeTokensConfig,
+  ThemeBuilder,
+  ThemeParams,
+  BaseTheme,
+  createTheme,
+} from './themes';
 import * as RecordTranslation from './translations';
 import {
   AutocompleteCellType,
@@ -286,6 +302,21 @@ declare namespace Handsontable {
     ColumnSettings,
     GridSettings,
     NumericFormatOptions,
+    // themes
+    ThemeConfig,
+    ThemeColorScheme,
+    ThemeColorsConfig,
+    ThemeDensityConfig,
+    ThemeDensitySizes,
+    ThemeIconsConfig,
+    ThemeLightDarkValue,
+    ThemeSizingConfig,
+    ThemeTokenValue,
+    ThemeTokensConfig,
+    ThemeBuilder,
+    ThemeParams,
+    BaseTheme,
+    createTheme,
     // coords
     CellCoords,
     CellRange,
@@ -591,5 +622,6 @@ export {
   CellCoords,
   CellRange,
   Events,
+  createTheme,
 };
 export default Handsontable;

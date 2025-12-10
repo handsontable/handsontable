@@ -53,7 +53,7 @@ import { createShortcutManager } from './shortcuts';
 import { registerAllShortcutContexts } from './shortcutContexts';
 import { getThemeClassName } from './helpers/themes';
 import { StylesHandler } from './utils/stylesHandler';
-import { deprecatedWarn, warn } from './helpers/console';
+import { warn } from './helpers/console';
 import {
   install as installAccessibilityAnnouncer,
   uninstall as uninstallAccessibilityAnnouncer,
@@ -1381,11 +1381,9 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
         }
 
         instance.themeAPI = new ThemeAPI({
-          rootDocument: instance.rootDocument,
-          rootWrapperElement: instance.rootWrapperElement,
-          rootPortalElement: instance.rootPortalElement,
+          instance,
           stringInstanceID,
-          themeObject,
+          themeObject
         });
 
         initFunction();
@@ -2799,20 +2797,16 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       ) {
         instance.useTheme(settings.themeName);
       }
+
+      const theme = settings.theme;
+
+      if (theme) {
+        instance.themeAPI.updateTheme(theme);
+      }
     }
 
     if (deprecatedWarnInstances.has(instance) && instance.stylesHandler.getThemeName() !== undefined) {
       deprecatedWarnInstances.delete(instance);
-    }
-
-    if (
-      isRootInstance(instance) &&
-      !deprecatedWarnInstances.has(instance) &&
-      instance.stylesHandler.isClassicTheme()
-    ) {
-      // eslint-disable-next-line max-len
-      deprecatedWarn('The stylesheet you are using is deprecated and will be removed in version 17.0. Please update your theme configuration to ensure compatibility with future releases.');
-      deprecatedWarnInstances.add(instance);
     }
 
     // Load data or create data map

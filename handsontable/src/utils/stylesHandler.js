@@ -43,13 +43,6 @@ export class StylesHandler {
   #rootDocument;
 
   /**
-   * `true` if the classic theme is enabled, `false` otherwise.
-   *
-   * @type {boolean}
-   */
-  #isClassicTheme = false;
-
-  /**
    * An object to store CSS variable values.
    *
    * @type {object}
@@ -87,25 +80,12 @@ export class StylesHandler {
   }
 
   /**
-   * Gets the value indicating whether the classic theme is enabled.
-   *
-   * @returns {boolean} `true` if the classic theme is enabled, `false` otherwise.
-   */
-  isClassicTheme() {
-    return this.#isClassicTheme;
-  }
-
-  /**
    * Retrieves the value of a specified CSS variable.
    *
    * @param {string} variableName - The name of the CSS variable to retrieve.
    * @returns {number|null|undefined} The value of the specified CSS variable, or `undefined` if not found.
    */
   getCSSVariableValue(variableName) {
-    if (this.#isClassicTheme) {
-      return null;
-    }
-
     if (this.#cssVars[`--ht-${variableName}`]) {
       return this.#cssVars[`--ht-${variableName}`];
     }
@@ -138,10 +118,6 @@ export class StylesHandler {
    * @returns {number} The calculated row height.
    */
   getDefaultRowHeight(visualRowIndex) {
-    if (this.#isClassicTheme) {
-      return CLASSIC_THEME_DEFAULT_HEIGHT;
-    }
-
     const rowHeight = this.#calculateRowHeight();
 
     if (!rowHeight) {
@@ -188,7 +164,6 @@ export class StylesHandler {
         warn(`Invalid theme name: ${themeName}. Please provide a valid theme name.`);
 
         this.#themeName = undefined;
-        this.#isClassicTheme = false;
         this.#onThemeChange(this.#themeName);
         this.#cacheStylesheetValues();
 
@@ -200,7 +175,6 @@ export class StylesHandler {
       }
 
       this.#themeName = themeName;
-      this.#isClassicTheme = false;
       this.#onThemeChange(this.#themeName);
       this.#cacheStylesheetValues();
     }
@@ -240,9 +214,7 @@ export class StylesHandler {
    * Caches the computed style values for the root element and `td` element.
    */
   #cacheStylesheetValues() {
-    if (!this.isClassicTheme()) {
-      this.#rootComputedStyle = getComputedStyle(this.#rootElement);
-    }
+    this.#rootComputedStyle = getComputedStyle(this.#rootElement);
 
     const stylesForTD = this.#getStylesForTD([
       'box-sizing',
@@ -328,6 +300,14 @@ export class StylesHandler {
   #clearCachedValues() {
     this.#computedStyles = {};
     this.#cssVars = {};
-    this.#isClassicTheme = false;
+  }
+
+  /**
+   * Clears all cached CSS variable values and computed styles.
+   * This should be called when theme CSS variables are dynamically updated.
+   */
+  clearCache() {
+    this.#clearCachedValues();
+    this.#cacheStylesheetValues();
   }
 }

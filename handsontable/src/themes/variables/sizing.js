@@ -12,5 +12,5 @@ export default {
   "size-8": "32px",
   "size-9": "36px",
   "size-10": "40px",
-  "size-0_25": "1px",
-};
+  "size-0_25": "1px"
+}

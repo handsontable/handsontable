@@ -37,8 +37,8 @@ export default {
     "dark": "colors.palette.500"
   },
   "read-only-color": {
-    "light": "colors.palette.700",
-    "dark": "colors.palette.400"
+    "light": "colors.palette.600",
+    "dark": "colors.palette.300"
   },
   "disabled-color": {
     "light": "colors.palette.400",
@@ -61,9 +61,9 @@ export default {
   "wrapper-border-width": "0px",
   "wrapper-border-radius": "sizing.size-3",
   "wrapper-border-color": "themes.border-color",
-  "row-header-odd-background-color": "colors.transparent",
+  "row-header-odd-background-color": "themes.background-color",
   "row-header-even-background-color": "themes.background-secondary-color",
-  "row-cell-odd-background-color": "colors.transparent",
+  "row-cell-odd-background-color": "themes.background-color",
   "row-cell-even-background-color": "themes.background-secondary-color",
   "cell-horizontal-padding": "density.cell-horizontal",
   "cell-vertical-padding": "density.cell-vertical",
