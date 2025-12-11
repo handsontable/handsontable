@@ -151,7 +151,6 @@ Define types for editor properties and methods to ensure type safety.
 type EditorPropertiesType = {
   input: HTMLInputElement;
   pickaday: Pikaday;
-  eventManager: Handsontable.EventManager;
   datePicker: HTMLDivElement;
   parentDestroyed: boolean;
 };
@@ -251,11 +250,7 @@ init(editor) {
   /**
    * Prevent recognizing clicking on datepicker as clicking outside of table.
    */
-  editor.eventManager = new Handsontable.EventManager(editor.container);
-  editor.eventManager.addEventListener(
-    document.body,
-    "mousedown",
-    (event) => {
+  editor.hot.rootDocument.addEventListener('mousedown', (event) => {   
       if (
         event.target &&
         (event.target as HTMLElement).classList.contains("pika-day")
@@ -276,7 +271,7 @@ init(editor) {
 
 **Key concepts:**
 
-### The `eventManager` pattern
+### The `Event Listener` pattern
 This is crucial! Without it:
 1. User clicks cell to edit
 2. Pikaday calendar opens
@@ -286,19 +281,13 @@ This is crucial! Without it:
 
 **Solution:**
 ```typescript
-editor.eventManager = new Handsontable.EventManager(editor.container);
-editor.eventManager.addEventListener(document.body, "mousedown", (event) => {
+editor.hot.rootDocument.addEventListener('mousedown', (event) => {   
   if ((event.target as HTMLElement).classList.contains("pika-day")) {
     editor.hideDatepicker(editor);
   }
 });
 ```
 
-**Why use `Handsontable.EventManager`?**
-- Proper cleanup when editor is destroyed
-- Consistent with Handsontable's event handling
-- Prevents memory leaks
-- `editor.container` is provided by `editorFactory` helper
 
 ### Why `editor.hot.rootDocument.createElement()`?
 - Handsontable might be in an iframe or shadow DOM

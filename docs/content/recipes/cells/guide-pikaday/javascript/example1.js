@@ -4,6 +4,8 @@ import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
 import moment from 'moment';
 import Pikaday from '@handsontable/pikaday';
+import { editorFactory } from 'handsontable/editors/baseEditor';
+import { rendererFactory } from 'handsontable/renderers';
 
 // Register all Handsontable's modules.
 registerAllModules();
@@ -441,8 +443,7 @@ const cellDefinition = {
       /**
        * Prevent recognizing clicking on datepicker as clicking outside of table.
        */
-      editor.eventManager = new Handsontable.EventManager(editor.container);
-      editor.eventManager.addEventListener(document.body, 'mousedown', (event) => {
+      editor.hot.rootDocument.addEventListener('mousedown', (event) => {
         if (event.target && event.target.classList.contains('pika-day')) {
           editor.hideDatepicker(editor);
         }

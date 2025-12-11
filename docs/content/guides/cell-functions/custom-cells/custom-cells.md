@@ -297,8 +297,7 @@ init(editor) {
   editor.input = document.createElement('SELECT') as HTMLSelectElement;
   // ...dropdown setup, create dropdown DOM as needed
 
-  editor.eventManager = new Handsontable.EventManager(editor.container);
-  editor.eventManager.addEventListener(document.body, 'mousedown', (event) => {
+  editor.hot.rootDocument.addEventListener('mousedown', (event) => {   
     // If the click occurs inside the dropdown, don't let Handsontable close the editor
     if (editor.dropdown?.contains(event.target as Node)) {
       event.stopPropagation(); // Prevents editor from closing
@@ -610,7 +609,7 @@ const editor = editorFactory<{input: HTMLInputElement}>({
 
 ### Click Outside Closes Immediately
 
-- Use `EventManager` to stop propagation
+- Use `Event Listener` to stop propagation
 - See Pattern 3 above
 - Use `editor.container` (not `editor.wrapper`)
 

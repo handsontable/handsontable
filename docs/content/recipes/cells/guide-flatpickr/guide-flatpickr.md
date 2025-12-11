@@ -175,8 +175,7 @@ init(editor) {
   /**
    * Prevent recognizing clicking on datepicker as clicking outside of table.
    */
-  editor.eventManager = new Handsontable.EventManager(editor.container);
-  editor.eventManager.addEventListener(document.body, 'mousedown', (event) => {             
+  editor.hot.rootDocument.addEventListener('mousedown', (event) => {              
     if (editor.flatpickr.calendarContainer.contains(event.target as Node)) {
       event.stopPropagation();
     }        
@@ -203,7 +202,7 @@ onChange: () => {
 - Automatically saves the value and closes the editor
 - Provides smooth UX - no need to press Enter
 
-### The `eventManager` pattern
+### The `Event Listener` pattern
 This is crucial! Without it:
 1. User clicks cell to edit
 2. Flatpickr calendar opens
@@ -213,19 +212,13 @@ This is crucial! Without it:
 
 **Solution:**
 ```typescript
-editor.eventManager = new Handsontable.EventManager(editor.container);
-editor.eventManager.addEventListener(document.body, 'mousedown', (event) => {
+editor.hot.rootDocument.addEventListener('mousedown', (event) => {   
   if (editor.flatpickr.calendarContainer.contains(event.target as Node)) {
     event.stopPropagation(); // Tell Handsontable: "This click is part of editing!"
   }
 });
 ```
 
-**Why use `Handsontable.EventManager`?**
-- Proper cleanup when editor is destroyed
-- Consistent with Handsontable's event handling
-- Prevents memory leaks
-- `editor.container` is provided by `editorFactory` helper
 
 ## Step 6: Editor - Before Open Hook (`beforeOpen`)
 
@@ -304,7 +297,6 @@ const cellDefinition = {
   editor: editorFactory<{
     input: HTMLInputElement,
     flatpickr: flatpickr.Instance,
-    eventManager: Handsontable.EventManager,
     flatpickrSettings: flatpickr.Options.Options
   }>({
     init(editor) {
@@ -320,8 +312,7 @@ const cellDefinition = {
       /**
        * Prevent recognizing clicking on datepicker as clicking outside of table.
        */
-      editor.eventManager = new Handsontable.EventManager(editor.container);
-      editor.eventManager.addEventListener(document.body, 'mousedown', (event) => {
+      editor.hot.rootDocument.addEventListener('mousedown', (event) => {   
         if (editor.flatpickr.calendarContainer.contains(event.target as Node)) {
           event.stopPropagation();
         }

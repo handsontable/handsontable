@@ -380,7 +380,6 @@ const cellDefinition: Pick<CellProperties, 'renderer' | 'validator' | 'editor'> 
   editor: editorFactory<{
     input: HTMLInputElement;
     flatpickr: flatpickr.Instance;
-    eventManager: Handsontable.EventManager;
     flatpickrSettings: flatpickr.Options.Options;
   }>({
     init(editor) {
@@ -396,8 +395,7 @@ const cellDefinition: Pick<CellProperties, 'renderer' | 'validator' | 'editor'> 
       /**
        * Prevent recognizing clicking on datepicker as clicking outside of table.
        */
-      editor.eventManager = new Handsontable.EventManager(editor.container);
-      editor.eventManager.addEventListener(document.body, 'mousedown', (event) => {
+      editor.hot.rootDocument.addEventListener('mousedown', (event) => {   
         if (editor.flatpickr.calendarContainer.contains(event.target as Node)) {
           event.stopPropagation();
         }

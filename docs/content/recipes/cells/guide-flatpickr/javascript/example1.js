@@ -4,6 +4,8 @@ import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
 import { format, isDate } from 'date-fns';
 import flatpickr from 'flatpickr';
+import { editorFactory } from 'handsontable/editors/baseEditor';
+import { rendererFactory } from 'handsontable/renderers';
 
 // Register all Handsontable's modules.
 registerAllModules();
@@ -383,8 +385,7 @@ const cellDefinition = {
       /**
        * Prevent recognizing clicking on datepicker as clicking outside of table.
        */
-      editor.eventManager = new Handsontable.EventManager(editor.container);
-      editor.eventManager.addEventListener(document.body, 'mousedown', (event) => {
+      editor.hot.rootDocument.addEventListener('mousedown', (event) => {
         if (editor.flatpickr.calendarContainer.contains(event.target)) {
           event.stopPropagation();
         }
