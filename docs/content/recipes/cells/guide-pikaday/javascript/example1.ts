@@ -5,8 +5,8 @@ import "handsontable/styles/ht-theme-main.css";
 import moment from "moment";
 import Pikaday from "@handsontable/pikaday";
 import { CellProperties } from "handsontable/settings";
-import  { editorFactory }  from 'handsontable/editors/baseEditor';
-import  { rendererFactory }  from 'handsontable/renderers';
+import { editorFactory } from "handsontable/editors/baseEditor";
+import { rendererFactory } from "handsontable/renderers";
 // Register all Handsontable's modules.
 registerAllModules();
 
@@ -488,15 +488,14 @@ const cellDefinition: Pick<
       /**
        * Prevent recognizing clicking on datepicker as clicking outside of table.
        */
-      editor.hot.rootDocument.addEventListener('mousedown', (event) => {   
-          if (
-            event.target &&
-            (event.target as HTMLElement).classList.contains("pika-day")
-          ) {
-            editor.hideDatepicker(editor);
-          }
-        },
-      );
+      editor.hot.rootDocument.addEventListener("mousedown", (event) => {
+        if (
+          event.target &&
+          (event.target as HTMLElement).classList.contains("pika-day")
+        ) {
+          editor.hideDatepicker(editor);
+        }
+      });
 
       // TODO: fix this https://github.com/handsontable/dev-handsontable/issues/3004
       // @ts-ignore
