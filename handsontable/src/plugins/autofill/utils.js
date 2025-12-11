@@ -56,6 +56,84 @@ export function getDragDirectionAndRange(startSelection, endSelection, cellCoord
 }
 
 /**
+ * Finds which column the mouse is over within a given column range.
+ *
+ * @param {Handsontable} hotInstance The Handsontable instance.
+ * @param {number} row Row to use for measuring cell widths.
+ * @param {number} startColumn First column in the range.
+ * @param {number} endColumn Last column in the range (inclusive).
+ * @param {number} relativeX Mouse X position relative to the first cell's edge.
+ * @returns {number | null} Column index, or null if mouse is outside the range.
+ */
+function findColumnAtX(hotInstance, row, startColumn, endColumn, relativeX) {
+  let accumulatedX = 0;
+
+  for (let column = startColumn; column <= endColumn; column++) {
+    const cellElement = hotInstance.getCell(row, column, true);
+
+    if (!cellElement) {
+      // eslint-disable-next-line no-continue
+      continue;
+    }
+
+    const width = cellElement.offsetWidth;
+
+    if (relativeX < accumulatedX + width) {
+      return column;
+    }
+
+    accumulatedX += width;
+
+    const { colspan } = hotInstance.getCellMeta(row, column);
+
+    if (colspan > 1) {
+      column += colspan - 1;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Finds which row the mouse is over within a given row range.
+ *
+ * @param {Handsontable} hotInstance The Handsontable instance.
+ * @param {number} column Column to use for measuring cell heights.
+ * @param {number} startRow First row in the range.
+ * @param {number} endRow Last row in the range (inclusive).
+ * @param {number} relativeY Mouse Y position relative to the first cell's edge.
+ * @returns {number | null} Row index, or null if mouse is outside the range.
+ */
+function findRowAtY(hotInstance, column, startRow, endRow, relativeY) {
+  let accumulatedY = 0;
+
+  for (let row = startRow; row <= endRow; row++) {
+    const cellElement = hotInstance.getCell(row, column, true);
+
+    if (!cellElement) {
+      // eslint-disable-next-line no-continue
+      continue;
+    }
+
+    const height = cellElement.offsetHeight;
+
+    if (relativeY < accumulatedY + height) {
+      return row;
+    }
+
+    accumulatedY += height;
+
+    const { rowspan } = hotInstance.getCellMeta(row, column);
+
+    if (rowspan > 1) {
+      row += rowspan - 1;
+    }
+  }
+
+  return null;
+}
+
+/**
  * Get the cell coordinates from the mouse position. When the mouse is outside of the table,
  * the nearest cell is returned.
  *
@@ -67,6 +145,10 @@ export function getDragDirectionAndRange(startSelection, endSelection, cellCoord
 export function getCellCoordsFromMousePosition(hotInstance, mouseX, mouseY) {
   const { view } = hotInstance;
   const isRtl = hotInstance.isRtl();
+  const numberOfFixedColumnsStart = view.countNotHiddenFixedColumnsStart();
+  const numberOfFixedRowsTop = view.countNotHiddenFixedRowsTop();
+  const numberOfFixedRowsBottom = view.countNotHiddenFixedRowsBottom();
+
   const firstPartiallyVisibleRow = hotInstance.getFirstPartiallyVisibleRow();
   const lastPartiallyVisibleRow = hotInstance.getLastPartiallyVisibleRow();
   const firstPartiallyVisibleColumn = hotInstance.getFirstPartiallyVisibleColumn();
@@ -83,87 +165,101 @@ export function getCellCoordsFromMousePosition(hotInstance, mouseX, mouseY) {
   const clampedX = clamp(mouseX, tableViewportLeft, tableViewportRight);
   const clampedY = clamp(mouseY, tableViewportTop, tableViewportBottom);
 
-  const firstCell = hotInstance.getCell(firstPartiallyVisibleRow, firstPartiallyVisibleColumn, true);
-  const firstCellRect = firstCell.getBoundingClientRect();
+  let foundColumn = null;
 
-  const relativeX = isRtl ? firstCellRect.right - clampedX : clampedX - firstCellRect.left;
-  let foundColumn = firstPartiallyVisibleColumn;
-  let accumulatedX = 0;
+  // Check fixed columns first
+  if (numberOfFixedColumnsStart > 0) {
+    const fixedCell = hotInstance.getCell(firstPartiallyVisibleRow, 0, true); // TODO: `0` is ok?
+    const fixedCellRect = fixedCell.getBoundingClientRect();
+    const fixedRelativeX = isRtl ? fixedCellRect.right - clampedX : clampedX - fixedCellRect.left;
 
-  for (let col = firstPartiallyVisibleColumn; col <= lastPartiallyVisibleColumn; col++) {
-    const cellElement = hotInstance.getCell(firstPartiallyVisibleRow, col, true);
+    foundColumn = findColumnAtX(
+      hotInstance,
+      firstPartiallyVisibleRow,
+      0, // TODO: `0` is ok?
+      numberOfFixedColumnsStart - 1,
+      fixedRelativeX,
+    );
+  }
 
-    if (!cellElement) {
-      // eslint-disable-next-line no-continue
-      continue;
-    }
+  // If not in fixed columns, check scrollable columns (main table)
+  if (foundColumn === null) {
+    const scrollCell = hotInstance.getCell(firstPartiallyVisibleRow, firstPartiallyVisibleColumn, true);
+    const scrollCellRect = scrollCell.getBoundingClientRect();
+    const scrollRelativeX = isRtl ? scrollCellRect.right - clampedX : clampedX - scrollCellRect.left;
 
-    const width = cellElement.offsetWidth;
+    foundColumn = findColumnAtX(
+      hotInstance,
+      firstPartiallyVisibleRow,
+      firstPartiallyVisibleColumn,
+      lastPartiallyVisibleColumn,
+      scrollRelativeX,
+    );
 
-    if (relativeX >= accumulatedX && relativeX < accumulatedX + width) {
-      foundColumn = col;
-      break;
-    }
-
-    accumulatedX += width;
-    foundColumn = col;
-
-    if (relativeX < accumulatedX) {
-      break;
-    }
-
-    const { colspan } = hotInstance.getCellMeta(firstPartiallyVisibleRow, col);
-
-    if (colspan && colspan > 1) {
-      col += colspan - 1;
+    // Fallback to edge columns if still not found
+    if (foundColumn === null) {
+      foundColumn = scrollRelativeX < 0 ? firstPartiallyVisibleColumn : lastPartiallyVisibleColumn;
     }
   }
 
-  if (mouseX < tableViewportLeft) {
-    foundColumn = isRtl ? lastPartiallyVisibleColumn : firstPartiallyVisibleColumn;
+  let foundRow = null;
 
-  } else if (mouseX >= tableViewportRight) {
-    foundColumn = isRtl ? firstPartiallyVisibleColumn : lastPartiallyVisibleColumn;
+  // Check fixed top rows first
+  if (numberOfFixedRowsTop > 0) {
+    const fixedCell = hotInstance.getCell(0, firstPartiallyVisibleColumn, true); // TODO: `0` is ok?
+    const fixedCellRect = fixedCell.getBoundingClientRect();
+    const fixedRelativeY = clampedY - fixedCellRect.top;
+
+    foundRow = findRowAtY(
+      hotInstance,
+      firstPartiallyVisibleColumn,
+      0, // TODO: `0` is ok?
+      numberOfFixedRowsTop - 1,
+      fixedRelativeY,
+    );
   }
 
-  const relativeY = clampedY - firstCellRect.top;
-  let foundRow = firstPartiallyVisibleRow;
-  let accumulatedY = 0;
+  // Check fixed bottom rows if not found in fixed top rows
+  if (foundRow === null && numberOfFixedRowsBottom > 0) {
+    const totalRows = hotInstance.countRows();
+    const bottomStartRow = totalRows - numberOfFixedRowsBottom;
+    const fixedBottomCell = hotInstance.getCell(bottomStartRow, firstPartiallyVisibleColumn, true);
+    const fixedBottomCellRect = fixedBottomCell.getBoundingClientRect();
+    const fixedBottomRelativeY = clampedY - fixedBottomCellRect.top;
 
-  for (let row = firstPartiallyVisibleRow; row <= lastPartiallyVisibleRow; row++) {
-    const cellElement = hotInstance.getCell(row, firstPartiallyVisibleColumn, true);
+    if (fixedBottomRelativeY >= 0) {
+      foundRow = findRowAtY(
+        hotInstance,
+        firstPartiallyVisibleColumn,
+        bottomStartRow,
+        totalRows - 1,
+        fixedBottomRelativeY
+      );
 
-    if (!cellElement) {
-      // eslint-disable-next-line no-continue
-      continue;
-    }
-
-    const height = cellElement.offsetHeight;
-
-    if (relativeY >= accumulatedY && relativeY < accumulatedY + height) {
-      foundRow = row;
-      break;
-    }
-
-    accumulatedY += height;
-    foundRow = row;
-
-    if (relativeY < accumulatedY) {
-      break;
-    }
-
-    const { rowspan } = hotInstance.getCellMeta(row, firstPartiallyVisibleColumn);
-
-    if (rowspan && rowspan > 1) {
-      row += rowspan - 1;
+      if (foundRow === null) {
+        foundRow = totalRows - 1; // TODO: should be last visible non-hidden row
+      }
     }
   }
 
-  if (mouseY < tableViewportTop) {
-    foundRow = firstPartiallyVisibleRow;
+  // Check scrollable rows (main table)
+  if (foundRow === null) {
+    const scrollCell = hotInstance.getCell(firstPartiallyVisibleRow, firstPartiallyVisibleColumn, true);
+    const scrollCellRect = scrollCell.getBoundingClientRect();
+    const scrollRelativeY = clampedY - scrollCellRect.top;
 
-  } else if (mouseY >= tableViewportBottom) {
-    foundRow = lastPartiallyVisibleRow;
+    foundRow = findRowAtY(
+      hotInstance,
+      firstPartiallyVisibleColumn,
+      firstPartiallyVisibleRow,
+      lastPartiallyVisibleRow,
+      scrollRelativeY,
+    );
+
+    // Fallback to edge rows if still not found
+    if (foundRow === null) {
+      foundRow = lastPartiallyVisibleRow;
+    }
   }
 
   return hotInstance._createCellCoords(foundRow, foundColumn);

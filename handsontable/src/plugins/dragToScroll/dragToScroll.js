@@ -1,7 +1,7 @@
 import { BasePlugin } from '../base';
 import { isRightClick } from '../../helpers/dom/event';
 import { getParentWindow, getScrollbarWidth } from '../../helpers/dom/element';
-// import { calculateScrollInterval } from './utils';
+import { AutoScroller } from './autoScroller';
 
 export const PLUGIN_KEY = 'dragToScroll';
 export const PLUGIN_PRIORITY = 100;
@@ -29,10 +29,10 @@ export class DragToScroll extends BasePlugin {
     return {
       autoScroll: {
         interval: {
-          min: 50,
+          min: 20,
           max: 500,
         },
-        rampDistance: 100,
+        rampDistance: 120,
       },
     };
   }
@@ -59,23 +59,11 @@ export class DragToScroll extends BasePlugin {
    */
   listening = false;
   /**
-   * Timer for scrolling the viewport looper.
+   * Auto scroller for managing independent horizontal and vertical scroll timers.
    *
-   * @type {number}
+   * @type {AutoScroller}
    */
-  #timer = null;
-  /**
-   * Current interval value for the viewport looper.
-   *
-   * @type {number}
-   */
-  #currentInterval = null;
-  /**
-   * Coords of the cell that is being dragged.
-   *
-   * @type {CellCoords}
-   */
-  #autofillBorderCoords = null;
+  #autoScroller = new AutoScroller((...args) => this.hot._registerTimeout(...args));
   /**
    * Flag indicates if the mouse is outside the viewport.
    *
@@ -91,7 +79,6 @@ export class DragToScroll extends BasePlugin {
    */
   isEnabled() {
     return !!this.hot.getSettings()[PLUGIN_KEY];
-    // return false;
   }
 
   /**
@@ -102,10 +89,17 @@ export class DragToScroll extends BasePlugin {
       return;
     }
 
+    this.#autoScroller.configure({
+      intervalRange: this.getSetting('autoScroll.interval'),
+      rampDistance: this.getSetting('autoScroll.rampDistance'),
+    });
+    this.#autoScroller
+      .addLocalHook('scrollHorizontal', distance => this.#scrollHorizontal(distance))
+      .addLocalHook('scrollVertical', distance => this.#scrollVertical(distance));
+
     this.addHook('beforeOnCellMouseDown', (...args) => this.#setupListening(...args));
     this.addHook('afterOnCellCornerMouseDown', (...args) => this.#setupListening(...args));
     this.addHook('afterSelection', (...args) => this.#onAfterSelection(...args));
-    this.addHook('beforeAutofillRedrawBorders', (...args) => this.#onBeforeAutofillRedrawBorders(...args));
 
     this.registerEvents();
 
@@ -129,6 +123,7 @@ export class DragToScroll extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    this.#autoScroller.stop();
     this.unregisterEvents();
 
     super.disablePlugin();
@@ -208,7 +203,7 @@ export class DragToScroll extends BasePlugin {
    */
   unlisten() {
     this.listening = false;
-    this.#stopScrollViewportLooper();
+    this.#autoScroller.stop();
   }
 
   /**
@@ -275,88 +270,53 @@ export class DragToScroll extends BasePlugin {
     }
 
     this.setCallback((diffX, diffY) => {
-      const horizontalScrollValue = scrollHandler.scrollLeft ?? scrollHandler.scrollX;
-      const verticalScrollValue = scrollHandler.scrollTop ?? scrollHandler.scrollY;
-
-      scrollHandler.scroll(
-        horizontalScrollValue + (Math.sign(diffX) * 50),
-        verticalScrollValue + (Math.sign(diffY) * 20)
-      );
-
-      // if (diffX === 0 && diffY === 0) {
-      //   this.#stopScrollViewportLooper();
-
-      //   return;
-      // }
-
-      // const intervalRange = this.getSetting('autoScroll.interval');
-      // const rampDistance = this.getSetting('autoScroll.rampDistance');
-      // const diff = Math.min(diffX === 0 ? Infinity : diffX, diffY === 0 ? Infinity : diffY);
-      // const interval = calculateScrollInterval(diff, intervalRange, rampDistance);
-
-      // this.#runScrollViewportLooper(interval, {
-      //   diffX: () => diffX,
-      //   diffY: () => diffY,
-      // });
+      this.#autoScroller.update({ x: diffX, y: diffY });
     });
 
     this.listen();
   }
 
-  #runScrollViewportLooper(interval, { diffX, diffY }) {
-    this.#currentInterval = interval;
+  /**
+   * Scrolls the viewport horizontally by one column.
+   *
+   * @param {number} distance Horizontal distance from viewport edge (positive = right, negative = left).
+   */
+  #scrollHorizontal(distance) {
+    const firstVisibleColumn = this.hot.getFirstFullyVisibleColumn();
+    const lastVisibleColumn = this.hot.getLastFullyVisibleColumn();
+    const scrollColumn = distance > 0 ? lastVisibleColumn + 1 : firstVisibleColumn - 1;
 
-    if (this.#timer !== null) {
-      return;
-    }
-
-    const scrollViewport = () => {
-      const firstVisibleRow = this.hot.getFirstFullyVisibleRow();
-      const firstVisibleColumn = this.hot.getFirstFullyVisibleColumn();
-      const lastVisibleRow = this.hot.getLastFullyVisibleRow();
-      const lastVisibleColumn = this.hot.getLastFullyVisibleColumn();
-      const highlight = this.hot.getSelectedRangeActive().highlight;
-
-      let scrollRow = highlight.row;
-      let scrollColumn = highlight.col;
-
-      if (diffX() !== 0) {
-        scrollColumn = diffX() > 0 ? lastVisibleColumn + 1 : firstVisibleColumn - 1;
-      }
-
-      if (diffY() !== 0) {
-        scrollRow = diffY() > 0 ? lastVisibleRow + 1 : firstVisibleRow - 1;
-      }
-
-      this.hot.scrollViewportTo({
-        row: scrollRow,
-        col: scrollColumn,
-        // verticalSnap: diffY() !== 0 ? (diffY() > 0 ? 'bottom' : 'top') : undefined,
-        // horizontalSnap: diffX() !== 0 ? (diffX() > 0 ? 'end' : 'start') : undefined,
-      });
-
-      this.#timer = this.hot._registerTimeout(scrollViewport, this.#currentInterval);
-    };
-
-    scrollViewport();
+    this.hot.scrollViewportTo({ col: scrollColumn });
   }
 
-  #stopScrollViewportLooper() {
-    if (this.#timer !== null) {
-      clearTimeout(this.#timer);
-      this.#timer = null;
-      this.#currentInterval = null;
-    }
+  /**
+   * Scrolls the viewport vertically by one row.
+   *
+   * @param {number} distance Vertical distance from viewport edge (positive = down, negative = up).
+   */
+  #scrollVertical(distance) {
+    const firstVisibleRow = this.hot.getFirstFullyVisibleRow();
+    const lastVisibleRow = this.hot.getLastFullyVisibleRow();
+    const scrollRow = distance > 0 ? lastVisibleRow + 1 : firstVisibleRow - 1;
+
+    this.hot.scrollViewportTo({ row: scrollRow });
   }
 
+  /**
+   * Prevents viewport scroll when the cursor is outside the viewport.
+   *
+   * @param {number} row Selection start visual row index.
+   * @param {number} column Selection start visual column index.
+   * @param {number} endRow Selection end visual row index.
+   * @param {number} endColumn Selection end visual column index.
+   * @param {object} preventScrolling A reference to the observable object with the `value` property.
+   *                                  Property `preventScrolling.value` expects a boolean value that
+   *                                  Handsontable uses to control scroll behavior after selection.
+   */
   #onAfterSelection(row, column, endRow, endColumn, preventScrolling) {
     if (this.#isOutsideViewport) {
       preventScrolling.value = true;
     }
-  }
-
-  #onBeforeAutofillRedrawBorders(coords) {
-    this.#autofillBorderCoords = coords;
   }
 
   /**
@@ -377,6 +337,9 @@ export class DragToScroll extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
+    this.#autoScroller.destroy();
+    this.#autoScroller = null;
+
     super.destroy();
   }
 }
