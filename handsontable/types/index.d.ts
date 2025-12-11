@@ -62,7 +62,7 @@ import {
   timeRenderer,
   getRenderer,
   registerRenderer,
-  factory as rendererFactory,
+  rendererFactory,
 } from './renderers';
 import {
   ValidatorType,
@@ -352,7 +352,7 @@ declare namespace Handsontable {
     export { timeRenderer as TimeRenderer };
     export { registerRenderer };
     export { getRenderer };
-    export { rendererFactory as factory };
+    export { rendererFactory };
   }
 
   export namespace validators {
