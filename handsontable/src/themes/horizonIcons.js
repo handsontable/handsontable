@@ -1,3 +1,3 @@
-import horizonIconsData from './icons/horizon';
+import horizonIconsData from './variables/icons/horizon';
 
 export default horizonIconsData;

@@ -56,8 +56,11 @@ class ThemeBuilder {
         type: 'default',
         sizes: densitySizes,
       },
-      colorScheme: this.#colorScheme,
     };
+
+    if (baseTheme.colorScheme !== undefined) {
+      this.setColorScheme(baseTheme.colorScheme);
+    }
 
     this.params(baseTheme);
   }
@@ -170,7 +173,10 @@ class ThemeBuilder {
    * @returns {object} The theme configuration object.
    */
   getThemeConfig() {
-    return this.#themeConfig;
+    return {
+      ...this.#themeConfig,
+      colorScheme: this.#colorScheme,
+    };
   }
 }
 

@@ -1,489 +1,489 @@
 export default {
-  "font-size": "13px",
-  "font-size-small": "11px",
-  "line-height": "21px",
-  "line-height-small": "16px",
-  "font-weight": "400",
-  "letter-spacing": "0px",
-  "gap-size": "density.gap",
-  "icon-size": "sizing.size-3",
-  "table-transition": "0s",
-  "border-color": {
-    "light": "colors.palette.200",
-    "dark": "colors.palette.700"
-  },
-  "accent-color": {
-    "light": "colors.primary.500",
-    "dark": "colors.primary.100"
-  },
-  "foreground-color": {
-    "light": "colors.palette.800",
-    "dark": "colors.palette.100"
-  },
-  "foreground-secondary-color": {
-    "light": "colors.palette.500",
-    "dark": "colors.palette.400"
-  },
-  "background-color": {
-    "light": "colors.white",
-    "dark": "colors.palette.950"
-  },
-  "background-secondary-color": {
-    "light": "colors.palette.50",
-    "dark": "colors.palette.900"
-  },
-  "placeholder-color": {
-    "light": "colors.palette.400",
-    "dark": "colors.palette.500"
-  },
-  "read-only-color": {
-    "light": "colors.palette.500",
-    "dark": "colors.palette.400"
-  },
-  "disabled-color": {
-    "light": "colors.palette.400",
-    "dark": "colors.palette.500"
-  },
-  "shadow-color": {
-    "light": "colors.palette.800",
-    "dark": "colors.palette.100"
-  },
-  "shadow-x": "sizing.size-0_25",
-  "shadow-y": "sizing.size-0_25",
-  "shadow-blur": "sizing.size-0",
-  "shadow-opacity": "8%",
-  "bar-foreground-color": "themes.foreground-color",
-  "bar-background-color": "themes.background-secondary-color",
-  "bar-horizontal-padding": "density.bars-horizontal",
-  "bar-vertical-padding": "density.bars-vertical",
-  "cell-horizontal-border-color": "themes.border-color",
-  "cell-vertical-border-color": "themes.border-color",
-  "wrapper-border-width": "0px",
-  "wrapper-border-radius": "sizing.size-0",
-  "wrapper-border-color": "themes.border-color",
-  "row-header-odd-background-color": "themes.background-secondary-color",
-  "row-header-even-background-color": "themes.background-secondary-color",
-  "row-cell-odd-background-color": "themes.background-color",
-  "row-cell-even-background-color": "themes.background-color",
-  "cell-horizontal-padding": "density.cell-horizontal",
-  "cell-vertical-padding": "density.cell-vertical",
-  "cell-editor-border-width": "2px",
-  "cell-editor-border-color": "themes.accent-color",
-  "cell-editor-foreground-color": {
-    "light": "colors.palette.950",
-    "dark": "colors.white"
-  },
-  "cell-editor-background-color": "themes.background-color",
-  "cell-editor-shadow-blur-radius": "0px",
-  "cell-editor-shadow-color": "themes.accent-color",
-  "cell-success-background-color": "#37bc6c33",
-  "cell-error-background-color": "#fa4d3233",
-  "cell-read-only-background-color": "colors.transparent",
-  "cell-selection-border-color": "themes.accent-color",
-  "cell-selection-background-color": "themes.accent-color",
-  "cell-autofill-size": "sizing.size-1_5",
-  "cell-autofill-border-width": "sizing.size-0_25",
-  "cell-autofill-border-radius": "sizing.size-0",
-  "cell-autofill-border-color": "themes.background-color",
-  "cell-autofill-background-color": "themes.accent-color",
-  "cell-autofill-fill-border-color": "themes.foreground-color",
-  "cell-mobile-handle-size": "sizing.size-3",
-  "cell-mobile-handle-border-width": "sizing.size-0_25",
-  "cell-mobile-handle-border-radius": "sizing.size-3",
-  "cell-mobile-handle-background-opacity": "40%",
-  "resize-indicator-color": {
-    "light": "colors.palette.400",
-    "dark": "colors.palette.500"
-  },
-  "move-backlight-color": {
-    "light": "colors.palette.800",
-    "dark": "colors.palette.100"
-  },
-  "move-backlight-opacity": "25%",
-  "move-indicator-color": {
-    "light": "colors.palette.400",
-    "dark": "colors.palette.500"
-  },
-  "hidden-indicator-color": {
-    "light": "colors.palette.400",
-    "dark": "colors.palette.500"
-  },
-  "scrollbar-border-radius": "sizing.size-2",
-  "scrollbar-track-color": "themes.background-secondary-color",
-  "scrollbar-thumb-color": {
-    "light": "colors.palette.400",
-    "dark": "colors.palette.500"
-  },
-  "header-font-weight": "themes.font-weight",
-  "header-foreground-color": "themes.foreground-color",
-  "header-background-color": "themes.background-secondary-color",
-  "header-highlighted-shadow-size": "0px",
-  "header-highlighted-foreground-color": "themes.foreground-color",
-  "header-highlighted-background-color": {
-    "light": "colors.palette.100",
-    "dark": "colors.palette.800"
-  },
-  "header-active-border-color": "themes.border-color",
-  "header-active-foreground-color": {
-    "light": "colors.palette.950",
-    "dark": "colors.white"
-  },
-  "header-active-background-color": {
-    "light": "colors.primary.400",
-    "dark": "colors.primary.300"
-  },
-  "header-filter-background-color": "themes.cell-success-background-color",
-  "header-row-foreground-color": "themes.foreground-color",
-  "header-row-background-color": "themes.background-secondary-color",
-  "header-row-highlighted-foreground-color": "themes.foreground-color",
-  "header-row-highlighted-background-color": {
-    "light": "colors.palette.100",
-    "dark": "colors.palette.800"
-  },
-  "header-row-active-foreground-color": {
-    "light": "colors.palette.950",
-    "dark": "colors.white"
-  },
-  "header-row-active-background-color": {
-    "light": "colors.primary.400",
-    "dark": "colors.primary.300"
-  },
-  "checkbox-size": "themes.icon-size",
-  "checkbox-border-radius": "sizing.size-0_5",
-  "checkbox-border-color": {
-    "light": "colors.palette.400",
-    "dark": "colors.palette.500"
-  },
-  "checkbox-background-color": "themes.background-color",
-  "checkbox-icon-color": "colors.transparent",
-  "checkbox-focus-border-color": {
-    "light": "colors.palette.400",
-    "dark": "colors.palette.500"
-  },
-  "checkbox-focus-background-color": "themes.background-color",
-  "checkbox-focus-icon-color": "colors.transparent",
-  "checkbox-focus-ring-color": "themes.accent-color",
-  "checkbox-disabled-border-color": {
-    "light": "colors.palette.300",
-    "dark": "colors.palette.600"
-  },
-  "checkbox-disabled-background-color": {
-    "light": "colors.palette.100",
-    "dark": "colors.palette.800"
-  },
-  "checkbox-disabled-icon-color": "colors.transparent",
-  "checkbox-checked-border-color": {
-    "light": "colors.primary.600",
-    "dark": "colors.primary.200"
-  },
-  "checkbox-checked-background-color": "themes.accent-color",
-  "checkbox-checked-icon-color": "themes.background-color",
-  "checkbox-checked-focus-border-color": "themes.background-color",
-  "checkbox-checked-focus-background-color": "themes.accent-color",
-  "checkbox-checked-focus-icon-color": "themes.background-color",
-  "checkbox-checked-disabled-border-color": {
-    "light": "colors.palette.300",
-    "dark": "colors.palette.600"
-  },
-  "checkbox-checked-disabled-background-color": {
-    "light": "colors.palette.100",
-    "dark": "colors.palette.800"
-  },
-  "checkbox-checked-disabled-icon-color": {
-    "light": "colors.palette.300",
-    "dark": "colors.palette.600"
-  },
-  "checkbox-indeterminate-border-color": {
-    "light": "colors.primary.600",
-    "dark": "colors.primary.200"
-  },
-  "checkbox-indeterminate-background-color": "themes.accent-color",
-  "checkbox-indeterminate-icon-color": "themes.background-color",
-  "checkbox-indeterminate-focus-border-color": "themes.background-color",
-  "checkbox-indeterminate-focus-background-color": "themes.accent-color",
-  "checkbox-indeterminate-focus-icon-color": "themes.background-color",
-  "checkbox-indeterminate-disabled-border-color": {
-    "light": "colors.palette.300",
-    "dark": "colors.palette.600"
-  },
-  "checkbox-indeterminate-disabled-background-color": {
-    "light": "colors.palette.100",
-    "dark": "colors.palette.800"
-  },
-  "checkbox-indeterminate-disabled-icon-color": {
-    "light": "colors.palette.300",
-    "dark": "colors.palette.600"
-  },
-  "radio-size": "themes.icon-size",
-  "radio-border-color": {
-    "light": "colors.palette.400",
-    "dark": "colors.palette.500"
-  },
-  "radio-background-color": "themes.background-color",
-  "radio-icon-color": "colors.transparent",
-  "radio-focus-border-color": {
-    "light": "colors.palette.400",
-    "dark": "colors.palette.500"
-  },
-  "radio-focus-background-color": "themes.background-color",
-  "radio-focus-icon-color": "colors.transparent",
-  "radio-focus-ring-color": "themes.accent-color",
-  "radio-disabled-border-color": {
-    "light": "colors.palette.300",
-    "dark": "colors.palette.600"
-  },
-  "radio-disabled-background-color": {
-    "light": "colors.palette.100",
-    "dark": "colors.palette.800"
-  },
-  "radio-disabled-icon-color": "colors.transparent",
-  "radio-checked-border-color": "themes.accent-color",
-  "radio-checked-background-color": "themes.background-color",
-  "radio-checked-icon-color": "themes.accent-color",
-  "radio-checked-focus-border-color": {
-    "light": "colors.primary.600",
-    "dark": "colors.primary.200"
-  },
-  "radio-checked-focus-background-color": "themes.background-color",
-  "radio-checked-focus-icon-color": "themes.accent-color",
-  "radio-checked-disabled-border-color": {
-    "light": "colors.palette.300",
-    "dark": "colors.palette.600"
-  },
-  "radio-checked-disabled-background-color": {
-    "light": "colors.palette.100",
-    "dark": "colors.palette.800"
-  },
-  "radio-checked-disabled-icon-color": {
-    "light": "colors.palette.300",
-    "dark": "colors.palette.600"
-  },
-  "icon-button-border-radius": "sizing.size-0_5",
-  "icon-button-large-border-radius": "sizing.size-0_5",
-  "icon-button-large-padding": "sizing.size-1",
-  "icon-button-border-color": {
-    "light": "colors.palette.300",
-    "dark": "colors.palette.600"
-  },
-  "icon-button-background-color": "themes.background-secondary-color",
-  "icon-button-icon-color": {
-    "light": "colors.palette.400",
-    "dark": "colors.palette.500"
-  },
-  "icon-button-hover-border-color": {
-    "light": "colors.palette.400",
-    "dark": "colors.palette.500"
-  },
-  "icon-button-hover-background-color": {
-    "light": "colors.palette.50",
-    "dark": "colors.palette.900"
-  },
-  "icon-button-hover-icon-color": {
-    "light": "colors.palette.400",
-    "dark": "colors.palette.500"
-  },
-  "icon-button-active-border-color": {
-    "light": "colors.palette.300",
-    "dark": "colors.palette.600"
-  },
-  "icon-button-active-background-color": "themes.background-secondary-color",
-  "icon-button-active-icon-color": {
-    "light": "colors.palette.400",
-    "dark": "colors.palette.500"
-  },
-  "icon-button-active-hover-border-color": {
-    "light": "colors.palette.400",
-    "dark": "colors.palette.500"
-  },
-  "icon-button-active-hover-background-color": "themes.background-secondary-color",
-  "icon-button-active-hover-icon-color": {
-    "light": "colors.palette.400",
-    "dark": "colors.palette.500"
-  },
-  "collapse-button-border-radius": "sizing.size-4",
-  "collapse-button-open-border-color": {
-    "light": "colors.palette.300",
-    "dark": "colors.palette.600"
-  },
-  "collapse-button-open-background-color": {
-    "light": "colors.white",
-    "dark": "colors.palette.950"
-  },
-  "collapse-button-open-icon-color": {
-    "light": "colors.palette.400",
-    "dark": "colors.palette.500"
-  },
-  "collapse-button-open-icon-active-color": {
-    "light": "colors.palette.400",
-    "dark": "colors.palette.500"
-  },
-  "collapse-button-open-hover-border-color": {
-    "light": "colors.palette.300",
-    "dark": "colors.palette.600"
-  },
-  "collapse-button-open-hover-background-color": {
-    "light": "colors.white",
-    "dark": "colors.palette.950"
-  },
-  "collapse-button-open-hover-icon-color": {
-    "light": "colors.palette.400",
-    "dark": "colors.palette.500"
-  },
-  "collapse-button-open-hover-icon-active-color": {
-    "light": "colors.palette.400",
-    "dark": "colors.palette.500"
-  },
-  "collapse-button-close-border-color": {
-    "light": "colors.palette.300",
-    "dark": "colors.palette.600"
-  },
-  "collapse-button-close-background-color": {
-    "light": "colors.palette.50",
-    "dark": "colors.palette.900"
-  },
-  "collapse-button-close-icon-color": {
-    "light": "colors.palette.400",
-    "dark": "colors.palette.500"
-  },
-  "collapse-button-close-icon-active-color": {
-    "light": "colors.palette.400",
-    "dark": "colors.palette.500"
-  },
-  "collapse-button-close-hover-border-color": {
-    "light": "colors.palette.300",
-    "dark": "colors.palette.600"
-  },
-  "collapse-button-close-hover-background-color": {
-    "light": "colors.palette.50",
-    "dark": "colors.palette.900"
-  },
-  "collapse-button-close-hover-icon-color": {
-    "light": "colors.palette.400",
-    "dark": "colors.palette.500"
-  },
-  "collapse-button-close-hover-icon-active-color": {
-    "light": "colors.palette.400",
-    "dark": "colors.palette.500"
-  },
-  "button-border-radius": "sizing.size-0_5",
-  "button-horizontal-padding": "density.button-horizontal",
-  "button-vertical-padding": "density.button-vertical",
-  "primary-button-border-color": "colors.transparent",
-  "primary-button-foreground-color": "themes.background-color",
-  "primary-button-background-color": "themes.accent-color",
-  "primary-button-disabled-border-color": "colors.transparent",
-  "primary-button-disabled-foreground-color": "themes.disabled-color",
-  "primary-button-disabled-background-color": {
-    "light": "colors.palette.100",
-    "dark": "colors.palette.800"
-  },
-  "primary-button-hover-border-color": "colors.transparent",
-  "primary-button-hover-foreground-color": "themes.background-color",
-  "primary-button-hover-background-color": {
-    "light": "colors.primary.600",
-    "dark": "colors.primary.200"
-  },
-  "primary-button-focus-border-color": "themes.background-color",
-  "primary-button-focus-foreground-color": "themes.background-color",
-  "primary-button-focus-background-color": "themes.accent-color",
-  "secondary-button-border-color": "colors.transparent",
-  "secondary-button-foreground-color": "themes.foreground-color",
-  "secondary-button-background-color": "themes.background-color",
-  "secondary-button-disabled-border-color": "colors.transparent",
-  "secondary-button-disabled-foreground-color": "themes.disabled-color",
-  "secondary-button-disabled-background-color": {
-    "light": "colors.palette.100",
-    "dark": "colors.palette.800"
-  },
-  "secondary-button-hover-border-color": "colors.transparent",
-  "secondary-button-hover-foreground-color": "themes.foreground-color",
-  "secondary-button-hover-background-color": {
-    "light": "colors.palette.50",
-    "dark": "colors.palette.900"
-  },
-  "secondary-button-focus-border-color": "colors.transparent",
-  "secondary-button-focus-foreground-color": "themes.foreground-color",
-  "secondary-button-focus-background-color": "themes.background-secondary-color",
-  "comments-textarea-horizontal-padding": "density.cell-horizontal",
-  "comments-textarea-vertical-padding": "density.cell-vertical",
-  "comments-textarea-border-width": "1px",
-  "comments-textarea-border-color": "themes.border-color",
-  "comments-textarea-foreground-color": "themes.foreground-color",
-  "comments-textarea-background-color": "themes.background-secondary-color",
-  "comments-textarea-focus-border-width": "1px",
-  "comments-textarea-focus-border-color": "themes.accent-color",
-  "comments-textarea-focus-foreground-color": "themes.foreground-color",
-  "comments-textarea-focus-background-color": "themes.background-color",
-  "comments-indicator-size": "sizing.size-1_5",
-  "comments-indicator-color": "themes.accent-color",
-  "license-horizontal-padding": "themes.bar-horizontal-padding",
-  "license-vertical-padding": "themes.bar-vertical-padding",
-  "license-foreground-color": "themes.bar-foreground-color",
-  "license-background-color": "themes.bar-background-color",
-  "link-color": {
-    "light": "colors.primary.600",
-    "dark": "colors.primary.200"
-  },
-  "link-hover-color": {
-    "light": "colors.primary.600",
-    "dark": "colors.primary.200"
-  },
-  "input-border-width": "1px",
-  "input-border-radius": "themes.checkbox-border-radius",
-  "input-horizontal-padding": "density.input-horizontal",
-  "input-vertical-padding": "density.input-vertical",
-  "input-border-color": "themes.border-color",
-  "input-foreground-color": "themes.foreground-color",
-  "input-background-color": "themes.background-secondary-color",
-  "input-hover-border-color": "themes.border-color",
-  "input-hover-foreground-color": "themes.foreground-color",
-  "input-hover-background-color": "themes.background-secondary-color",
-  "input-disabled-border-color": "themes.border-color",
-  "input-disabled-foreground-color": "themes.disabled-color",
-  "input-disabled-background-color": {
-    "light": "colors.palette.300",
-    "dark": "colors.palette.600"
-  },
-  "input-focus-border-color": "themes.accent-color",
-  "input-focus-foreground-color": "themes.foreground-color",
-  "input-focus-background-color": "themes.background-secondary-color",
-  "menu-border-width": "1px",
-  "menu-border-radius": "0px",
-  "menu-horizontal-padding": "density.menu-horizontal",
-  "menu-vertical-padding": "density.menu-vertical",
-  "menu-item-horizontal-padding": "density.menu-item-horizontal",
-  "menu-item-vertical-padding": "density.menu-item-vertical",
-  "menu-border-color": "themes.border-color",
-  "menu-shadow-x": "themes.shadow-x",
-  "menu-shadow-y": "themes.shadow-y",
-  "menu-shadow-blur": "themes.shadow-blur",
-  "menu-shadow-color": "themes.border-color",
-  "menu-shadow-opacity": "100%",
-  "menu-item-hover-color": {
-    "light": "colors.palette.950",
-    "dark": "colors.white"
-  },
-  "menu-item-hover-color-opacity": "4%",
-  "menu-item-active-color": {
-    "light": "colors.palette.800",
-    "dark": "colors.palette.100"
-  },
-  "menu-item-active-color-opacity": "8%",
-  "dialog-semi-transparent-background-color": {
-    "light": "colors.white",
-    "dark": "colors.palette.950"
-  },
-  "dialog-semi-transparent-background-opacity": "80%",
-  "dialog-solid-background-color": {
-    "light": "colors.white",
-    "dark": "colors.palette.950"
-  },
-  "dialog-content-padding-horizontal": "density.dialog-horizontal",
-  "dialog-content-padding-vertical": "density.dialog-vertical",
-  "dialog-content-border-radius": "sizing.size-2",
-  "dialog-content-background-color": "themes.background-secondary-color",
-  "pagination-bar-foreground-color": "themes.bar-foreground-color",
-  "pagination-bar-background-color": "themes.bar-background-color",
-  "pagination-bar-horizontal-padding": "themes.bar-horizontal-padding",
-  "pagination-bar-vertical-padding": "themes.bar-vertical-padding"
+  font_size: "13px",
+  font_size_small: "11px",
+  line_height: "21px",
+  line_height_small: "16px",
+  font_weight: "400",
+  letter_spacing: "0px",
+  gap_size: "density.gap",
+  icon_size: "sizing.size_3",
+  table_transition: "0s",
+  border_color: {
+    light: "colors.palette.200",
+    dark: "colors.palette.700"
+  },
+  accent_color: {
+    light: "colors.primary.500",
+    dark: "colors.primary.100"
+  },
+  foreground_color: {
+    light: "colors.palette.800",
+    dark: "colors.palette.100"
+  },
+  foreground_secondary_color: {
+    light: "colors.palette.500",
+    dark: "colors.palette.400"
+  },
+  background_color: {
+    light: "colors.white",
+    dark: "colors.palette.950"
+  },
+  background_secondary_color: {
+    light: "colors.palette.50",
+    dark: "colors.palette.900"
+  },
+  placeholder_color: {
+    light: "colors.palette.400",
+    dark: "colors.palette.500"
+  },
+  read_only_color: {
+    light: "colors.palette.500",
+    dark: "colors.palette.400"
+  },
+  disabled_color: {
+    light: "colors.palette.400",
+    dark: "colors.palette.500"
+  },
+  shadow_color: {
+    light: "colors.palette.800",
+    dark: "colors.palette.100"
+  },
+  shadow_x: "sizing.size_0_25",
+  shadow_y: "sizing.size_0_25",
+  shadow_blur: "sizing.size_0",
+  shadow_opacity: "8%",
+  bar_foreground_color: "themes.foreground_color",
+  bar_background_color: "themes.background_secondary_color",
+  bar_horizontal_padding: "density.bars_horizontal",
+  bar_vertical_padding: "density.bars_vertical",
+  cell_horizontal_border_color: "themes.border_color",
+  cell_vertical_border_color: "themes.border_color",
+  wrapper_border_width: "0px",
+  wrapper_border_radius: "sizing.size_0",
+  wrapper_border_color: "themes.border_color",
+  row_header_odd_background_color: "themes.background_secondary_color",
+  row_header_even_background_color: "themes.background_secondary_color",
+  row_cell_odd_background_color: "themes.background_color",
+  row_cell_even_background_color: "themes.background_color",
+  cell_horizontal_padding: "density.cell_horizontal",
+  cell_vertical_padding: "density.cell_vertical",
+  cell_editor_border_width: "2px",
+  cell_editor_border_color: "themes.accent_color",
+  cell_editor_foreground_color: {
+    light: "colors.palette.950",
+    dark: "colors.white"
+  },
+  cell_editor_background_color: "themes.background_color",
+  cell_editor_shadow_blur_radius: "0px",
+  cell_editor_shadow_color: "themes.accent_color",
+  cell_success_background_color: "#37bc6c33",
+  cell_error_background_color: "#fa4d3233",
+  cell_read_only_background_color: "colors.transparent",
+  cell_selection_border_color: "themes.accent_color",
+  cell_selection_background_color: "themes.accent_color",
+  cell_autofill_size: "sizing.size_1_5",
+  cell_autofill_border_width: "sizing.size_0_25",
+  cell_autofill_border_radius: "sizing.size_0",
+  cell_autofill_border_color: "themes.background_color",
+  cell_autofill_background_color: "themes.accent_color",
+  cell_autofill_fill_border_color: "themes.foreground_color",
+  cell_mobile_handle_size: "sizing.size_3",
+  cell_mobile_handle_border_width: "sizing.size_0_25",
+  cell_mobile_handle_border_radius: "sizing.size_3",
+  cell_mobile_handle_background_opacity: "40%",
+  resize_indicator_color: {
+    light: "colors.palette.400",
+    dark: "colors.palette.500"
+  },
+  move_backlight_color: {
+    light: "colors.palette.800",
+    dark: "colors.palette.100"
+  },
+  move_backlight_opacity: "25%",
+  move_indicator_color: {
+    light: "colors.palette.400",
+    dark: "colors.palette.500"
+  },
+  hidden_indicator_color: {
+    light: "colors.palette.400",
+    dark: "colors.palette.500"
+  },
+  scrollbar_border_radius: "sizing.size_2",
+  scrollbar_track_color: "themes.background_secondary_color",
+  scrollbar_thumb_color: {
+    light: "colors.palette.400",
+    dark: "colors.palette.500"
+  },
+  header_font_weight: "themes.font_weight",
+  header_foreground_color: "themes.foreground_color",
+  header_background_color: "themes.background_secondary_color",
+  header_highlighted_shadow_size: "0px",
+  header_highlighted_foreground_color: "themes.foreground_color",
+  header_highlighted_background_color: {
+    light: "colors.palette.100",
+    dark: "colors.palette.800"
+  },
+  header_active_border_color: "themes.border_color",
+  header_active_foreground_color: {
+    light: "colors.palette.950",
+    dark: "colors.white"
+  },
+  header_active_background_color: {
+    light: "colors.primary.400",
+    dark: "colors.primary.300"
+  },
+  header_filter_background_color: "themes.cell_success_background_color",
+  header_row_foreground_color: "themes.foreground_color",
+  header_row_background_color: "themes.background_secondary_color",
+  header_row_highlighted_foreground_color: "themes.foreground_color",
+  header_row_highlighted_background_color: {
+    light: "colors.palette.100",
+    dark: "colors.palette.800"
+  },
+  header_row_active_foreground_color: {
+    light: "colors.palette.950",
+    dark: "colors.white"
+  },
+  header_row_active_background_color: {
+    light: "colors.primary.400",
+    dark: "colors.primary.300"
+  },
+  checkbox_size: "themes.icon_size",
+  checkbox_border_radius: "sizing.size_0_5",
+  checkbox_border_color: {
+    light: "colors.palette.400",
+    dark: "colors.palette.500"
+  },
+  checkbox_background_color: "themes.background_color",
+  checkbox_icon_color: "colors.transparent",
+  checkbox_focus_border_color: {
+    light: "colors.palette.400",
+    dark: "colors.palette.500"
+  },
+  checkbox_focus_background_color: "themes.background_color",
+  checkbox_focus_icon_color: "colors.transparent",
+  checkbox_focus_ring_color: "themes.accent_color",
+  checkbox_disabled_border_color: {
+    light: "colors.palette.300",
+    dark: "colors.palette.600"
+  },
+  checkbox_disabled_background_color: {
+    light: "colors.palette.100",
+    dark: "colors.palette.800"
+  },
+  checkbox_disabled_icon_color: "colors.transparent",
+  checkbox_checked_border_color: {
+    light: "colors.primary.600",
+    dark: "colors.primary.200"
+  },
+  checkbox_checked_background_color: "themes.accent_color",
+  checkbox_checked_icon_color: "themes.background_color",
+  checkbox_checked_focus_border_color: "themes.background_color",
+  checkbox_checked_focus_background_color: "themes.accent_color",
+  checkbox_checked_focus_icon_color: "themes.background_color",
+  checkbox_checked_disabled_border_color: {
+    light: "colors.palette.300",
+    dark: "colors.palette.600"
+  },
+  checkbox_checked_disabled_background_color: {
+    light: "colors.palette.100",
+    dark: "colors.palette.800"
+  },
+  checkbox_checked_disabled_icon_color: {
+    light: "colors.palette.300",
+    dark: "colors.palette.600"
+  },
+  checkbox_indeterminate_border_color: {
+    light: "colors.primary.600",
+    dark: "colors.primary.200"
+  },
+  checkbox_indeterminate_background_color: "themes.accent_color",
+  checkbox_indeterminate_icon_color: "themes.background_color",
+  checkbox_indeterminate_focus_border_color: "themes.background_color",
+  checkbox_indeterminate_focus_background_color: "themes.accent_color",
+  checkbox_indeterminate_focus_icon_color: "themes.background_color",
+  checkbox_indeterminate_disabled_border_color: {
+    light: "colors.palette.300",
+    dark: "colors.palette.600"
+  },
+  checkbox_indeterminate_disabled_background_color: {
+    light: "colors.palette.100",
+    dark: "colors.palette.800"
+  },
+  checkbox_indeterminate_disabled_icon_color: {
+    light: "colors.palette.300",
+    dark: "colors.palette.600"
+  },
+  radio_size: "themes.icon_size",
+  radio_border_color: {
+    light: "colors.palette.400",
+    dark: "colors.palette.500"
+  },
+  radio_background_color: "themes.background_color",
+  radio_icon_color: "colors.transparent",
+  radio_focus_border_color: {
+    light: "colors.palette.400",
+    dark: "colors.palette.500"
+  },
+  radio_focus_background_color: "themes.background_color",
+  radio_focus_icon_color: "colors.transparent",
+  radio_focus_ring_color: "themes.accent_color",
+  radio_disabled_border_color: {
+    light: "colors.palette.300",
+    dark: "colors.palette.600"
+  },
+  radio_disabled_background_color: {
+    light: "colors.palette.100",
+    dark: "colors.palette.800"
+  },
+  radio_disabled_icon_color: "colors.transparent",
+  radio_checked_border_color: "themes.accent_color",
+  radio_checked_background_color: "themes.background_color",
+  radio_checked_icon_color: "themes.accent_color",
+  radio_checked_focus_border_color: {
+    light: "colors.primary.600",
+    dark: "colors.primary.200"
+  },
+  radio_checked_focus_background_color: "themes.background_color",
+  radio_checked_focus_icon_color: "themes.accent_color",
+  radio_checked_disabled_border_color: {
+    light: "colors.palette.300",
+    dark: "colors.palette.600"
+  },
+  radio_checked_disabled_background_color: {
+    light: "colors.palette.100",
+    dark: "colors.palette.800"
+  },
+  radio_checked_disabled_icon_color: {
+    light: "colors.palette.300",
+    dark: "colors.palette.600"
+  },
+  icon_button_border_radius: "sizing.size_0_5",
+  icon_button_large_border_radius: "sizing.size_0_5",
+  icon_button_large_padding: "sizing.size_1",
+  icon_button_border_color: {
+    light: "colors.palette.300",
+    dark: "colors.palette.600"
+  },
+  icon_button_background_color: "themes.background_secondary_color",
+  icon_button_icon_color: {
+    light: "colors.palette.400",
+    dark: "colors.palette.500"
+  },
+  icon_button_hover_border_color: {
+    light: "colors.palette.400",
+    dark: "colors.palette.500"
+  },
+  icon_button_hover_background_color: {
+    light: "colors.palette.50",
+    dark: "colors.palette.900"
+  },
+  icon_button_hover_icon_color: {
+    light: "colors.palette.400",
+    dark: "colors.palette.500"
+  },
+  icon_button_active_border_color: {
+    light: "colors.palette.300",
+    dark: "colors.palette.600"
+  },
+  icon_button_active_background_color: "themes.background_secondary_color",
+  icon_button_active_icon_color: {
+    light: "colors.palette.400",
+    dark: "colors.palette.500"
+  },
+  icon_button_active_hover_border_color: {
+    light: "colors.palette.400",
+    dark: "colors.palette.500"
+  },
+  icon_button_active_hover_background_color: "themes.background_secondary_color",
+  icon_button_active_hover_icon_color: {
+    light: "colors.palette.400",
+    dark: "colors.palette.500"
+  },
+  collapse_button_border_radius: "sizing.size_4",
+  collapse_button_open_border_color: {
+    light: "colors.palette.300",
+    dark: "colors.palette.600"
+  },
+  collapse_button_open_background_color: {
+    light: "colors.white",
+    dark: "colors.palette.950"
+  },
+  collapse_button_open_icon_color: {
+    light: "colors.palette.400",
+    dark: "colors.palette.500"
+  },
+  collapse_button_open_icon_active_color: {
+    light: "colors.palette.400",
+    dark: "colors.palette.500"
+  },
+  collapse_button_open_hover_border_color: {
+    light: "colors.palette.300",
+    dark: "colors.palette.600"
+  },
+  collapse_button_open_hover_background_color: {
+    light: "colors.white",
+    dark: "colors.palette.950"
+  },
+  collapse_button_open_hover_icon_color: {
+    light: "colors.palette.400",
+    dark: "colors.palette.500"
+  },
+  collapse_button_open_hover_icon_active_color: {
+    light: "colors.palette.400",
+    dark: "colors.palette.500"
+  },
+  collapse_button_close_border_color: {
+    light: "colors.palette.300",
+    dark: "colors.palette.600"
+  },
+  collapse_button_close_background_color: {
+    light: "colors.palette.50",
+    dark: "colors.palette.900"
+  },
+  collapse_button_close_icon_color: {
+    light: "colors.palette.400",
+    dark: "colors.palette.500"
+  },
+  collapse_button_close_icon_active_color: {
+    light: "colors.palette.400",
+    dark: "colors.palette.500"
+  },
+  collapse_button_close_hover_border_color: {
+    light: "colors.palette.300",
+    dark: "colors.palette.600"
+  },
+  collapse_button_close_hover_background_color: {
+    light: "colors.palette.50",
+    dark: "colors.palette.900"
+  },
+  collapse_button_close_hover_icon_color: {
+    light: "colors.palette.400",
+    dark: "colors.palette.500"
+  },
+  collapse_button_close_hover_icon_active_color: {
+    light: "colors.palette.400",
+    dark: "colors.palette.500"
+  },
+  button_border_radius: "sizing.size_0_5",
+  button_horizontal_padding: "density.button_horizontal",
+  button_vertical_padding: "density.button_vertical",
+  primary_button_border_color: "colors.transparent",
+  primary_button_foreground_color: "themes.background_color",
+  primary_button_background_color: "themes.accent_color",
+  primary_button_disabled_border_color: "colors.transparent",
+  primary_button_disabled_foreground_color: "themes.disabled_color",
+  primary_button_disabled_background_color: {
+    light: "colors.palette.100",
+    dark: "colors.palette.800"
+  },
+  primary_button_hover_border_color: "colors.transparent",
+  primary_button_hover_foreground_color: "themes.background_color",
+  primary_button_hover_background_color: {
+    light: "colors.primary.600",
+    dark: "colors.primary.200"
+  },
+  primary_button_focus_border_color: "themes.background_color",
+  primary_button_focus_foreground_color: "themes.background_color",
+  primary_button_focus_background_color: "themes.accent_color",
+  secondary_button_border_color: "colors.transparent",
+  secondary_button_foreground_color: "themes.foreground_color",
+  secondary_button_background_color: "themes.background_color",
+  secondary_button_disabled_border_color: "colors.transparent",
+  secondary_button_disabled_foreground_color: "themes.disabled_color",
+  secondary_button_disabled_background_color: {
+    light: "colors.palette.100",
+    dark: "colors.palette.800"
+  },
+  secondary_button_hover_border_color: "colors.transparent",
+  secondary_button_hover_foreground_color: "themes.foreground_color",
+  secondary_button_hover_background_color: {
+    light: "colors.palette.50",
+    dark: "colors.palette.900"
+  },
+  secondary_button_focus_border_color: "colors.transparent",
+  secondary_button_focus_foreground_color: "themes.foreground_color",
+  secondary_button_focus_background_color: "themes.background_secondary_color",
+  comments_textarea_horizontal_padding: "density.cell_horizontal",
+  comments_textarea_vertical_padding: "density.cell_vertical",
+  comments_textarea_border_width: "1px",
+  comments_textarea_border_color: "themes.border_color",
+  comments_textarea_foreground_color: "themes.foreground_color",
+  comments_textarea_background_color: "themes.background_secondary_color",
+  comments_textarea_focus_border_width: "1px",
+  comments_textarea_focus_border_color: "themes.accent_color",
+  comments_textarea_focus_foreground_color: "themes.foreground_color",
+  comments_textarea_focus_background_color: "themes.background_color",
+  comments_indicator_size: "sizing.size_1_5",
+  comments_indicator_color: "themes.accent_color",
+  license_horizontal_padding: "themes.bar_horizontal_padding",
+  license_vertical_padding: "themes.bar_vertical_padding",
+  license_foreground_color: "themes.bar_foreground_color",
+  license_background_color: "themes.bar_background_color",
+  link_color: {
+    light: "colors.primary.600",
+    dark: "colors.primary.200"
+  },
+  link_hover_color: {
+    light: "colors.primary.600",
+    dark: "colors.primary.200"
+  },
+  input_border_width: "1px",
+  input_border_radius: "themes.checkbox_border_radius",
+  input_horizontal_padding: "density.input_horizontal",
+  input_vertical_padding: "density.input_vertical",
+  input_border_color: "themes.border_color",
+  input_foreground_color: "themes.foreground_color",
+  input_background_color: "themes.background_secondary_color",
+  input_hover_border_color: "themes.border_color",
+  input_hover_foreground_color: "themes.foreground_color",
+  input_hover_background_color: "themes.background_secondary_color",
+  input_disabled_border_color: "themes.border_color",
+  input_disabled_foreground_color: "themes.disabled_color",
+  input_disabled_background_color: {
+    light: "colors.palette.300",
+    dark: "colors.palette.600"
+  },
+  input_focus_border_color: "themes.accent_color",
+  input_focus_foreground_color: "themes.foreground_color",
+  input_focus_background_color: "themes.background_secondary_color",
+  menu_border_width: "1px",
+  menu_border_radius: "0px",
+  menu_horizontal_padding: "density.menu_horizontal",
+  menu_vertical_padding: "density.menu_vertical",
+  menu_item_horizontal_padding: "density.menu_item_horizontal",
+  menu_item_vertical_padding: "density.menu_item_vertical",
+  menu_border_color: "themes.border_color",
+  menu_shadow_x: "themes.shadow_x",
+  menu_shadow_y: "themes.shadow_y",
+  menu_shadow_blur: "themes.shadow_blur",
+  menu_shadow_color: "themes.border_color",
+  menu_shadow_opacity: "100%",
+  menu_item_hover_color: {
+    light: "colors.palette.950",
+    dark: "colors.white"
+  },
+  menu_item_hover_color_opacity: "4%",
+  menu_item_active_color: {
+    light: "colors.palette.800",
+    dark: "colors.palette.100"
+  },
+  menu_item_active_color_opacity: "8%",
+  dialog_semi_transparent_background_color: {
+    light: "colors.white",
+    dark: "colors.palette.950"
+  },
+  dialog_semi_transparent_background_opacity: "80%",
+  dialog_solid_background_color: {
+    light: "colors.white",
+    dark: "colors.palette.950"
+  },
+  dialog_content_padding_horizontal: "density.dialog_horizontal",
+  dialog_content_padding_vertical: "density.dialog_vertical",
+  dialog_content_border_radius: "sizing.size_2",
+  dialog_content_background_color: "themes.background_secondary_color",
+  pagination_bar_foreground_color: "themes.bar_foreground_color",
+  pagination_bar_background_color: "themes.bar_background_color",
+  pagination_bar_horizontal_padding: "themes.bar_horizontal_padding",
+  pagination_bar_vertical_padding: "themes.bar_vertical_padding"
 }

@@ -1,3 +1,3 @@
-import mainIconsData from './icons/main';
+import mainIconsData from './variables/icons/main';
 
 export default mainIconsData;

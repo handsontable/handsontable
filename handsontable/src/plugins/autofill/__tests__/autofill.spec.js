@@ -2287,7 +2287,7 @@ describe('AutoFill', () => {
 
       const corner = hot.rootElement.querySelector('.ht_master .htBorders .corner');
       const hitAreaStyle = getComputedStyle(corner, '::after');
-      const expectedHitAreaSize = Math.max(autofillHandlerSize, 14);
+      const expectedHitAreaSize = Math.max(autofillHandlerSize, 12);
 
       expect(hitAreaStyle.width).toBe(`${expectedHitAreaSize}px`);
       expect(hitAreaStyle.height).toBe(`${expectedHitAreaSize}px`);

@@ -6,6 +6,16 @@
 const VAR_REFERENCE_PREFIXES = ['themes.', 'colors.', 'sizing.', 'density.'];
 
 /**
+ * Converts underscores to hyphens in a string.
+ *
+ * @param {string} str - The string to convert.
+ * @returns {string} - The converted string.
+ */
+export function toHyphen(str) {
+  return str.replace(/_/g, '-');
+}
+
+/**
  * Checks if the given object is an object.
  *
  * @param {object} object - The object to check.
@@ -34,10 +44,10 @@ export function isVarReference(value) {
  */
 function toVarReference(path) {
   if (path.includes('themes.')) {
-    return `var(--ht-${path.split('.').slice(1).join('-')})`;
+    return `var(--ht-${toHyphen(path.split('.').slice(1).join('-'))})`;
   }
 
-  return `var(--ht-${path.split('.').join('-')})`;
+  return `var(--ht-${toHyphen(path.split('.').join('-'))})`;
 }
 
 /**
@@ -68,7 +78,7 @@ export function toCssValue(value) {
     return '';
   }
 
-  return value;
+  return typeof value === 'string' ? toHyphen(value) : value;
 }
 
 /**
@@ -83,15 +93,17 @@ export function flattenColors(obj, prefix = 'colors', parentKey = '') {
   let cssVars = '';
 
   Object.entries(obj).forEach(([key, value]) => {
-    const fullKey = parentKey ? `${parentKey}-${key}` : key;
+    const normalizedKey = toHyphen(key);
+    const fullKey = parentKey ? `${parentKey}-${normalizedKey}` : normalizedKey;
 
     if (isObject(value) && value !== null && !Array.isArray(value)) {
       // Recursively process nested objects
       cssVars += flattenColors(value, prefix, fullKey);
     } else {
       const cssKey = `--ht-${prefix}-${fullKey}`;
+      const cssValue = typeof value === 'string' ? toHyphen(value) : value;
 
-      cssVars += `${cssKey}: ${value};\n`;
+      cssVars += `${cssKey}: ${cssValue};\n`;
     }
   });
 

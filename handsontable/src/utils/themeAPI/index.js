@@ -1,7 +1,7 @@
 import baseStyles from '../../themes/utils/styles';
 import { addClass } from '../../helpers/dom/element';
-import { iconsMap } from '../../themes/utils/icons';
-import { toCssValue, flattenColors } from './helpers';
+import { iconsMap } from '../../themes/variables/helpers/iconsMap';
+import { toCssValue, flattenColors, toHyphen } from './helpers';
 
 /**
  * ThemeAPI class.
@@ -131,18 +131,18 @@ export class ThemeAPI {
     this.themeStyles.textContent = `:where(.${inlineThemeClassName}) {\n`;
     this.themeStyles.textContent += `color-scheme: ${colorScheme};\n`;
     this.themeStyles.textContent += Object.entries(this.themeConfig.sizing || {}).map(
-      ([key, value]) => `--ht-sizing-${key}: ${value};`
+      ([key, value]) => `--ht-sizing-${toHyphen(key)}: ${value};`
     ).join('\n');
     this.themeStyles.textContent += '\n';
     this.themeStyles.textContent += Object.entries(
       this.themeConfig.density.sizes[this.themeConfig.density.type] || {}
     ).map(
-      ([key, value]) => `--ht-density-${key}: ${toCssValue(value)};`
+      ([key, value]) => `--ht-density-${toHyphen(key)}: ${toCssValue(value)};`
     ).join('\n');
     this.themeStyles.textContent += '\n';
     this.themeStyles.textContent += flattenColors(this.themeConfig.colors || {});
     this.themeStyles.textContent += Object.entries(this.themeConfig.tokens || {}).map(
-      ([key, value]) => `--ht-${key}: ${toCssValue(value)};`
+      ([key, value]) => `--ht-${toHyphen(key)}: ${toCssValue(value)};`
     ).join('\n');
     this.themeStyles.textContent += iconsMap(this.themeConfig.icons || {});
     this.themeStyles.textContent += '}';

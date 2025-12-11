@@ -1,5 +1,5 @@
 import { createTheme } from './utils/themeBuilder';
-import mainIcons from './icons/main';
+import mainIcons from './variables/icons/main';
 import mainColors from './variables/colors/main';
 import mainTokens from './variables/tokens/main';
 
