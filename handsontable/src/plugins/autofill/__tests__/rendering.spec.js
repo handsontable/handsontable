@@ -13,8 +13,12 @@ describe('AutoFill borders rendering', () => {
       // forces the browser window to have scrollbars
       styleElement.textContent = `
         body {
-          margin: 1000px 0 500px 1000px;
-          padding-right: 500px;
+          margin-bottom: 2000px;
+        }
+        #${id} {
+          position: absolute;
+          top: 1000px;
+          left: 1000px;
         }
       `;
       document.head.appendChild(styleElement);
@@ -32,7 +36,7 @@ describe('AutoFill borders rendering', () => {
 
   it('should render borders when dragging down (not defined table size, window viewport is scrolled)', async() => {
     handsontable({
-      data: createSpreadsheetData(5, 5),
+      data: createEmptySpreadsheetData(5, 5),
       fillHandle: {
         autoInsertRow: false,
       },
@@ -76,7 +80,7 @@ describe('AutoFill borders rendering', () => {
     const viewportSize = 6;
 
     handsontable({
-      data: createSpreadsheetData(20, 20),
+      data: createEmptySpreadsheetData(20, 20),
       width: getDefaultColumnWidth() * viewportSize,
       height: getDefaultRowHeight() * viewportSize,
       dragToScroll: false,
@@ -122,7 +126,7 @@ describe('AutoFill borders rendering', () => {
 
   it('should render borders when dragging up (not defined table size, window viewport is scrolled)', async() => {
     handsontable({
-      data: createSpreadsheetData(5, 5),
+      data: createEmptySpreadsheetData(5, 5),
       fillHandle: {
         autoInsertRow: false,
       },
@@ -166,7 +170,7 @@ describe('AutoFill borders rendering', () => {
     const viewportSize = 6;
 
     handsontable({
-      data: createSpreadsheetData(20, 20),
+      data: createEmptySpreadsheetData(20, 20),
       width: getDefaultColumnWidth() * viewportSize,
       height: getDefaultRowHeight() * viewportSize,
       dragToScroll: false,
@@ -212,7 +216,7 @@ describe('AutoFill borders rendering', () => {
 
   it('should render borders when dragging right (not defined table size, window viewport is scrolled)', async() => {
     handsontable({
-      data: createSpreadsheetData(5, 5),
+      data: createEmptySpreadsheetData(5, 5),
       fillHandle: {
         autoInsertRow: false,
       },
@@ -256,7 +260,7 @@ describe('AutoFill borders rendering', () => {
     const viewportSize = 6;
 
     handsontable({
-      data: createSpreadsheetData(20, 20),
+      data: createEmptySpreadsheetData(20, 20),
       width: getDefaultColumnWidth() * viewportSize,
       height: getDefaultRowHeight() * viewportSize,
       dragToScroll: false,
@@ -302,7 +306,7 @@ describe('AutoFill borders rendering', () => {
 
   it('should render borders when dragging left (not defined table size, window viewport is scrolled)', async() => {
     handsontable({
-      data: createSpreadsheetData(5, 5),
+      data: createEmptySpreadsheetData(5, 5),
       fillHandle: {
         autoInsertRow: false,
       },
@@ -346,7 +350,7 @@ describe('AutoFill borders rendering', () => {
     const viewportSize = 6;
 
     handsontable({
-      data: createSpreadsheetData(20, 20),
+      data: createEmptySpreadsheetData(20, 20),
       width: getDefaultColumnWidth() * viewportSize,
       height: getDefaultRowHeight() * viewportSize,
       dragToScroll: false,
@@ -392,7 +396,7 @@ describe('AutoFill borders rendering', () => {
 
   it('should render borders when dragging vertically (hidden rows, different row heights)', async() => {
     handsontable({
-      data: createSpreadsheetData(10, 10),
+      data: createEmptySpreadsheetData(10, 10),
       dragToScroll: false,
       fillHandle: {
         autoInsertRow: false,
@@ -444,7 +448,7 @@ describe('AutoFill borders rendering', () => {
 
   it('should render borders when dragging horizontally (hidden columns, different column widths)', async() => {
     handsontable({
-      data: createSpreadsheetData(10, 10),
+      data: createEmptySpreadsheetData(10, 10),
       dragToScroll: false,
       fillHandle: {
         autoInsertRow: false,
@@ -496,7 +500,7 @@ describe('AutoFill borders rendering', () => {
 
   it('should properly render borders when mouse is moving outside the table viewport (not defined table size, window viewport is scrolled)', async() => {
     handsontable({
-      data: createSpreadsheetData(5, 5),
+      data: createEmptySpreadsheetData(5, 5),
       fillHandle: {
         autoInsertRow: false,
       },
@@ -630,7 +634,7 @@ describe('AutoFill borders rendering', () => {
     const viewportSize = 6;
 
     handsontable({
-      data: createSpreadsheetData(20, 20),
+      data: createEmptySpreadsheetData(20, 20),
       width: getDefaultColumnWidth() * viewportSize,
       height: getDefaultRowHeight() * viewportSize,
       dragToScroll: false,

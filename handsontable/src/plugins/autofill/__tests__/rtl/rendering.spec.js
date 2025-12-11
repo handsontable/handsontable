@@ -39,7 +39,7 @@ describe('AutoFill (RTL mode) borders rendering', () => {
 
   it('should render borders when dragging left (not defined table size, window viewport is scrolled)', async() => {
     handsontable({
-      data: createSpreadsheetData(5, 5),
+      data: createEmptySpreadsheetData(5, 5),
       fillHandle: {
         autoInsertRow: false,
       },
@@ -80,7 +80,7 @@ describe('AutoFill (RTL mode) borders rendering', () => {
     const viewportSize = 6;
 
     handsontable({
-      data: createSpreadsheetData(20, 20),
+      data: createEmptySpreadsheetData(20, 20),
       width: getDefaultColumnWidth() * viewportSize,
       height: getDefaultRowHeight() * viewportSize,
       dragToScroll: false,
@@ -126,7 +126,7 @@ describe('AutoFill (RTL mode) borders rendering', () => {
 
   it('should render borders when dragging right (not defined table size, window viewport is scrolled)', async() => {
     handsontable({
-      data: createSpreadsheetData(5, 5),
+      data: createEmptySpreadsheetData(5, 5),
       fillHandle: {
         autoInsertRow: false,
       },
@@ -170,7 +170,7 @@ describe('AutoFill (RTL mode) borders rendering', () => {
     const viewportSize = 6;
 
     handsontable({
-      data: createSpreadsheetData(20, 20),
+      data: createEmptySpreadsheetData(20, 20),
       width: getDefaultColumnWidth() * viewportSize,
       height: getDefaultRowHeight() * viewportSize,
       dragToScroll: false,
@@ -216,7 +216,7 @@ describe('AutoFill (RTL mode) borders rendering', () => {
 
   it('should properly render borders when mouse is moving outside the table viewport (not defined table size, window viewport is scrolled)', async() => {
     handsontable({
-      data: createSpreadsheetData(5, 5),
+      data: createEmptySpreadsheetData(5, 5),
       fillHandle: {
         autoInsertRow: false,
       },
@@ -336,7 +336,7 @@ describe('AutoFill (RTL mode) borders rendering', () => {
     const viewportSize = 6;
 
     handsontable({
-      data: createSpreadsheetData(20, 20),
+      data: createEmptySpreadsheetData(20, 20),
       width: getDefaultColumnWidth() * viewportSize,
       height: getDefaultRowHeight() * viewportSize,
       dragToScroll: false,
