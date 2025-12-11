@@ -3,8 +3,10 @@ import { registerAllModules } from "handsontable/registry";
 import "handsontable/styles/handsontable.css";
 import "handsontable/styles/ht-theme-main.css";
 import { CellProperties } from "handsontable/settings";
-import { editorFactory } from "handsontable/editors/baseEditor";
+import { BaseEditor } from "handsontable/editors/baseEditor";
+import { editorFactory } from "handsontable/editors/factory";
 import { rendererFactory } from "handsontable/renderers";
+import { registerCellType } from 'handsontable/cellTypes';
 // Register all Handsontable's modules.
 registerAllModules();
 
@@ -421,6 +423,8 @@ const cellDefinition: Pick<
   }),
 };
 
+registerCellType('feedback', cellDefinition as BaseEditor);
+
 // Define configuration options for the Handsontable
 const hotOptions: Handsontable.GridSettings = {
   themeName: "ht-theme-main",
@@ -439,7 +443,7 @@ const hotOptions: Handsontable.GridSettings = {
     {
       data: "feedback",
       width: 150,
-      ...cellDefinition,
+      type: "feedback",
     },
   ],
   licenseKey: "non-commercial-and-evaluation",

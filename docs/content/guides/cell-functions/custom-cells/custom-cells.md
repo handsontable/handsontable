@@ -315,10 +315,14 @@ Handsontable columns can share the same editor, but sometimes you want different
 Use `beforeOpen` to read cell-specific settings:
 
 ```typescript
+updateOptions(editor, options) { 
+  // update visual state 
+},
 beforeOpen(editor, { originalValue, cellProperties }) {
   // Access custom cell properties
   const options = cellProperties.customOptions;
-  editor.updateOptions(options);
+  
+  editor.updateOptions(editor, options);
 
   // Set initial value
   editor.setValue(originalValue);
@@ -484,6 +488,30 @@ editor: editorFactory<{input: HTMLInputElement}>({
 
 Apply your cell definition to columns:
 
+
+### Registering custom cell with `registerCellType`
+
+```typescript
+
+import { registerCellType } from 'handsontable/cellTypes';
+
+registerCellType('my-type', cellDefinition)
+
+new Handsontable(container, {
+  data: myData,
+  columns: [
+    { data: 'id', type: 'numeric' },
+    { 
+      data: 'customField',
+      type: 'my-type',
+      // Any custom properties
+      customOptions: { /* ... */ }
+    }
+  ]
+});
+```
+
+### Using spread `...` operator
 ```typescript
 new Handsontable(container, {
   data: myData,

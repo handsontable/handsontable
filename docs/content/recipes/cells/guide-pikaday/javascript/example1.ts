@@ -5,7 +5,7 @@ import "handsontable/styles/ht-theme-main.css";
 import moment from "moment";
 import Pikaday from "@handsontable/pikaday";
 import { CellProperties } from "handsontable/settings";
-import { editorFactory } from "handsontable/editors/baseEditor";
+import { editorFactory } from "handsontable/editors/factory";
 import { rendererFactory } from "handsontable/renderers";
 // Register all Handsontable's modules.
 registerAllModules();

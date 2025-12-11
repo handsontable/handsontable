@@ -3,7 +3,7 @@ import { registerAllModules } from "handsontable/registry";
 import "handsontable/styles/handsontable.css";
 import "handsontable/styles/ht-theme-main.css";
 import { CellProperties } from "handsontable/settings";
-import { editorFactory } from "handsontable/editors/baseEditor";
+import { editorFactory } from "handsontable/editors/factory";
 import { rendererFactory } from "handsontable/renderers";
 // Register all Handsontable's modules.
 registerAllModules();

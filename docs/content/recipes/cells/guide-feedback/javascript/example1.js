@@ -2,7 +2,8 @@ import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
-import { editorFactory } from 'handsontable/editors/baseEditor';
+import { editorFactory } from 'handsontable/editors/factory';
+import { registerCellType } from 'handsontable/cellTypes';
 
 // Register all Handsontable's modules.
 registerAllModules();
@@ -412,6 +413,8 @@ const cellDefinition = {
   }),
 };
 
+registerCellType('feedback', cellDefinition);
+
 // Define configuration options for the Handsontable
 const hotOptions = {
   themeName: 'ht-theme-main',
@@ -430,7 +433,7 @@ const hotOptions = {
     {
       data: 'feedback',
       width: 150,
-      ...cellDefinition,
+      type: 'feedback',
     },
   ],
   licenseKey: 'non-commercial-and-evaluation',
