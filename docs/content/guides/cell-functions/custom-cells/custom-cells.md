@@ -74,7 +74,7 @@ The `factory` helper is the **recommended approach** for creating custom editors
 
 ## What is `editorFactory`?
 
-`editorFactoryy` is a high-level helper that wraps `BaseEditor` class construction and handles common patterns automatically. It provides:
+`editorFactory` is a high-level helper that wraps `BaseEditor` class construction and handles common patterns automatically. It provides:
 
 - Automatic container creation (`editor.container`)
 - Automatic positioning in `open()`
@@ -107,7 +107,7 @@ const cellDefinition = {
     callback(!isNaN(parseInt(value)));
   },
   
-  editor: editorFactoryy<{input: HTMLInputElement}>({
+  editor: editorFactory<{input: HTMLInputElement}>({
     init(editor) {
       editor.input = document.createElement('INPUT') as HTMLInputElement;
       // Container is created automatically and `input` is attached automatically 
@@ -129,7 +129,7 @@ registerCellType('myCellType', cellDefinition);
 ### Signature
 
 ```typescript
-editorFactoryy<CustomProperties, CustomMethods = {}>({
+editorFactory<CustomProperties, CustomMethods = {}>({
   init(editor) { /* Required: Create input element */ },
   beforeOpen?(editor, { row, col, prop, td, originalValue, cellProperties }) { /* Per-cell setup */ },
   afterOpen?(editor, event?) { /* After editor is positioned and visible */ },
@@ -166,7 +166,7 @@ Understanding when each method is called:
    - Set editor value from `originalValue`
    - Update settings from `cellProperties`
    - Prepare editor state for the current cell
-   - ⚠️ This replaces `prepare()` when using `editorFactoryy`
+   - ⚠️ This replaces `prepare()` when using `editorFactory`
 
 4. **`afterOpen(editor, event?)`** - Called after editor is positioned and visible
    - Open dropdowns, pickers, or other UI elements
@@ -218,11 +218,11 @@ Define custom properties for your editor using generics:
 ```typescript
 type MyEditorProps = {
   input: HTMLInputElement; // You create this
-  container: HTMLDivElement; // Provided automatically by editorFactoryy
+  container: HTMLDivElement; // Provided automatically by editorFactory
   myLibraryInstance: any;
 };
 
-const editor = editorFactoryy<MyEditorProps>({
+const editor = editorFactory<MyEditorProps>({
   init(editor) {
     // TypeScript knows about editor.input, editor.container, etc.
     editor.input = document.createElement('INPUT') as HTMLInputElement;
@@ -242,7 +242,7 @@ const editor = editorFactoryy<MyEditorProps>({
 For wrapping HTML5 inputs:
 
 ```typescript
-editor: editorFactoryy<{input: HTMLInputElement}>({
+editor: editorFactory<{input: HTMLInputElement}>({
   init(editor) {
     editor.input = document.createElement('INPUT') as HTMLInputElement;
     editor.input.type = 'date'; // or 'text', 'color', etc.
@@ -266,7 +266,7 @@ editor: editorFactoryy<{input: HTMLInputElement}>({
 For integrating libraries like date pickers, color pickers, etc.:
 
 ```typescript
-editor: editorFactoryy<{input: HTMLInputElement, picker: PickerInstance}>({
+editor: editorFactory<{input: HTMLInputElement, picker: PickerInstance}>({
   init(editor) {
     editor.input = document.createElement('INPUT') as HTMLInputElement;
     editor.picker = initPicker(editor.input);
@@ -336,7 +336,7 @@ This is crucial for users who rely on keyboard navigation, require a screen read
 
 **Example usage:**
 ```typescript
-editor: editorFactoryy<{input: HTMLInputElement}>({
+editor: editorFactory<{input: HTMLInputElement}>({
   init(editor) {
     editor.input = document.createElement('DIV') as HTMLDivElement;
     // ... setup
@@ -380,7 +380,7 @@ Sometimes you want to override these default behaviors. For example, you might w
 **Example: Overriding Tab Key Behavior**
 
 ```typescript
-editor: editorFactoryy<{input: HTMLDivElement, value: string, config: string[]}>({
+editor: editorFactory<{input: HTMLDivElement, value: string, config: string[]}>({
   config: ['👍', '👎', '🤷‍♂️'],
   init(editor) {
     editor.input = editor.hot.rootDocument.createElement("DIV") as HTMLDivElement;
@@ -420,7 +420,7 @@ Instead of managing state through `setValue` and `getValue`, you can define `val
 
 **Example:**
 ```typescript
-editor: editorFactoryy<{
+editor: editorFactory<{
   input: HTMLInputElement,
   value: string,
   config: string[]
@@ -447,7 +447,7 @@ By default, the editor container is positioned using the `'container'` strategy,
 
 **Example:**
 ```typescript
-editor: editorFactoryy<{input: HTMLInputElement}>({
+editor: editorFactory<{input: HTMLInputElement}>({
   position: 'portal', // Render outside normal container hierarchy
   init(editor) {
     editor.input = document.createElement('INPUT') as HTMLInputElement;
@@ -463,7 +463,7 @@ When you have multiple editors or complex shortcut configurations, organizing sh
 
 **Example:**
 ```typescript
-editor: editorFactoryy<{input: HTMLInputElement}>({
+editor: editorFactory<{input: HTMLInputElement}>({
   shortcutsGroup: 'myCustomEditor',
   init(editor) {
     editor.input = document.createElement('INPUT') as HTMLInputElement;
@@ -500,7 +500,7 @@ new Handsontable(container, {
 });
 ```
 
-## Best Practices with `editorFactoryy`
+## Best Practices with `editorFactory`
 
 ### 1. Performance
 
@@ -539,7 +539,7 @@ validator: (value, callback) => {
 
 👉 **[Browse All Recipes](@/recipes/introduction.md)** - Find recipes by use case, difficulty, or technology
 
-We provide complete working examples for common use cases. All examples use the `editorFactoryy` helper:
+We provide complete working examples for common use cases. All examples use the `editorFactory` helper:
 
 1. **[Color Picker](@/recipes/cells/guide-color-picker/guide-color-picker.md)** - Integrate a color picker library using `factory`
 2. **[Flatpickr Date Picker](@/recipes/cells/guide-flatpickr/guide-flatpickr.md)** - Advanced date picker with options using `factory`
@@ -550,7 +550,7 @@ We provide complete working examples for common use cases. All examples use the 
 
 ## Migration from Traditional Approach
 
-If you have existing custom editors, migrating to this approach is optional. The `editorFactoryy` method is simply a helper built on top of the existing Editor classes. Your previous custom editors remain fully backward compatible, so you can continue using them as-is or migrate at your convenience.
+If you have existing custom editors, migrating to this approach is optional. The `editorFactory` method is simply a helper built on top of the existing Editor classes. Your previous custom editors remain fully backward compatible, so you can continue using them as-is or migrate at your convenience.
 
 **Before (Traditional):**
 ```javascript
@@ -579,9 +579,9 @@ class CustomEditor extends Handsontable.editors.BaseEditor {
 }
 ```
 
-**After (Using `editorFactoryy`):**
+**After (Using `editorFactory`):**
 ```typescript
-const editor = editorFactoryy<{input: HTMLInputElement}>({
+const editor = editorFactory<{input: HTMLInputElement}>({
   init(editor) {
     editor.input = document.createElement('INPUT') as HTMLInputElement;
   },
@@ -594,7 +594,7 @@ const editor = editorFactoryy<{input: HTMLInputElement}>({
 });
 ```
 
-## Troubleshooting with `editorFactoryy`
+## Troubleshooting with `editorFactory`
 
 ### Editor Not Showing
 
