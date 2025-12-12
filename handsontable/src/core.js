@@ -53,12 +53,13 @@ import { createShortcutManager } from './shortcuts';
 import { registerAllShortcutContexts } from './shortcutContexts';
 import { getThemeClassName } from './helpers/themes';
 import { StylesHandler } from './utils/stylesHandler';
-import { deprecatedWarn, warn } from './helpers/console';
+import { warn } from './helpers/console';
 import {
   install as installAccessibilityAnnouncer,
   uninstall as uninstallAccessibilityAnnouncer,
 } from './utils/a11yAnnouncer';
 import { getValueSetterValue } from './utils/valueAccessors';
+import { createTheme } from './utils/themeBuilder';
 
 let activeGuid = null;
 
@@ -374,6 +375,14 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     }
   });
 
+  /**
+   * ThemeAPI instance.
+   *
+   * @private
+   * @type {ThemeAPI|null}
+   */
+  this.themeAPI = null;
+
   mergedUserSettings.language = getValidLanguageCode(mergedUserSettings.language);
 
   const settingsWithoutHooks = Object.fromEntries(
@@ -394,7 +403,9 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
   this.rootElement.insertBefore(this.container, this.rootElement.firstChild);
 
-  this.guid = `ht_${randomString()}`; // this is the namespace for global events
+  const stringInstanceID = randomString();
+
+  this.guid = `ht_${stringInstanceID}`; // this is the namespace for global events
 
   foreignHotInstances.set(this.guid, this);
 
@@ -1313,48 +1324,74 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
   }
 
   this.init = function() {
-    dataSource.setData(tableMeta.data);
-    instance.runHooks('beforeInit');
+    const initFunction = () => {
+      dataSource.setData(tableMeta.data);
+      instance.runHooks('beforeInit');
 
-    if (isMobileBrowser() || isIpadOS()) {
-      addClass(instance.rootElement, 'mobile');
+      if (isMobileBrowser() || isIpadOS()) {
+        addClass(instance.rootElement, 'mobile');
+      }
+
+      this.updateSettings(mergedUserSettings, true);
+
+      this.view = new TableView(this);
+
+      editorManager = EditorManager.getInstance(instance, tableMeta, selection);
+      viewportScroller = createViewportScroller(instance);
+
+      focusGridManager.init();
+
+      if (isRootInstance(this)) {
+        installAccessibilityAnnouncer(instance.rootPortalElement);
+        _injectProductInfo(mergedUserSettings.licenseKey, this.rootWrapperElement);
+      }
+
+      instance.runHooks('init');
+
+      this.render();
+
+      // Run the logic only if it's the table's initialization and the root element is not visible.
+      if (!!firstRun && instance.rootElement.offsetParent === null) {
+        observeVisibilityChangeOnce(instance.rootElement, () => {
+          // Update the spreader size cache before rendering.
+          instance.view._wt.wtOverlays.updateLastSpreaderSize();
+          instance.view.adjustElementsSize();
+          instance.render();
+        });
+      }
+
+      if (typeof firstRun === 'object') {
+        instance.runHooks('afterChange', firstRun[0], firstRun[1]);
+
+        firstRun = false;
+      }
+
+      instance.runHooks('afterInit');
+    };
+
+    if (isRootInstance(instance) && tableMeta.theme) {
+      let themeObject = tableMeta.theme;
+
+      if (isObject(themeObject) || typeof themeObject === 'boolean') {
+        (async() => {
+          const { ThemeAPI } = await import(/* webpackChunkName: "ThemeAPI" */ './utils/themeAPI');
+
+          if (typeof themeObject === 'boolean') {
+            themeObject = createTheme();
+          }
+
+          instance.themeAPI = new ThemeAPI({
+            instance,
+            stringInstanceID,
+            themeObject
+          });
+
+          initFunction();
+        })();
+      }
+    } else {
+      initFunction();
     }
-
-    this.updateSettings(mergedUserSettings, true);
-
-    this.view = new TableView(this);
-
-    editorManager = EditorManager.getInstance(instance, tableMeta, selection);
-    viewportScroller = createViewportScroller(instance);
-
-    focusGridManager.init();
-
-    if (isRootInstance(this)) {
-      installAccessibilityAnnouncer(instance.rootPortalElement);
-      _injectProductInfo(mergedUserSettings.licenseKey, this.rootWrapperElement);
-    }
-
-    instance.runHooks('init');
-
-    this.render();
-
-    // Run the logic only if it's the table's initialization and the root element is not visible.
-    if (!!firstRun && instance.rootElement.offsetParent === null) {
-      observeVisibilityChangeOnce(instance.rootElement, () => {
-        // Update the spreader size cache before rendering.
-        instance.view._wt.wtOverlays.updateLastSpreaderSize();
-        instance.view.adjustElementsSize();
-        instance.render();
-      });
-    }
-
-    if (typeof firstRun === 'object') {
-      instance.runHooks('afterChange', firstRun[0], firstRun[1]);
-
-      firstRun = false;
-    }
-
-    instance.runHooks('afterInit');
   };
 
   /**
@@ -2761,20 +2798,16 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       ) {
         instance.useTheme(settings.themeName);
       }
+
+      const theme = settings.theme;
+
+      if (theme) {
+        instance.themeAPI.updateTheme(theme);
+      }
     }
 
     if (deprecatedWarnInstances.has(instance) && instance.stylesHandler.getThemeName() !== undefined) {
       deprecatedWarnInstances.delete(instance);
-    }
-
-    if (
-      isRootInstance(instance) &&
-      !deprecatedWarnInstances.has(instance) &&
-      instance.stylesHandler.isClassicTheme()
-    ) {
-      // eslint-disable-next-line max-len
-      deprecatedWarn('The stylesheet you are using is deprecated and will be removed in version 17.0. Please update your theme configuration to ensure compatibility with future releases.');
-      deprecatedWarnInstances.add(instance);
     }
 
     // Load data or create data map
@@ -4279,7 +4312,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * @returns {number} Returns -1 if table is not visible.
    */
   this.countRenderedRows = function() {
-    return instance.view._wt.drawn ? instance.view._wt.wtTable.getRenderedRowsCount() : -1;
+    return instance?.view?._wt?.drawn ? instance.view._wt.wtTable.getRenderedRowsCount() : -1;
   };
 
   /**

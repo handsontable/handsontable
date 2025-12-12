@@ -316,11 +316,7 @@ export class Menu {
       themeName: this.hot.getCurrentThemeName(),
       beforeRefreshDimensions: () => false,
       beforeOnCellMouseOver: (event, coords) => {
-        if (this.hotMenu.stylesHandler.isClassicTheme()) {
-          this.#navigator.setCurrentPage(coords.row);
-        } else {
-          this.#navigator.setPageCursorAt(coords.row);
-        }
+        this.#navigator.setPageCursorAt(coords.row);
       },
       afterOnCellMouseOver: (event, coords) => {
         if (this.isAllSubMenusClosed()) {
@@ -650,14 +646,8 @@ export class Menu {
         return accumulator + (value.name === SEPARATOR ? 1 : currentRowHeight);
       }, 0);
 
-    if (this.hotMenu.stylesHandler.isClassicTheme()) {
-      // Additional 3px to menu's size because of additional border around its `table.htCore`.
-      holderStyle.width = `${currentHiderWidth + 3}px`;
-      holderStyle.height = `${realHeight + 3}px`;
-    } else {
-      holderStyle.width = `${currentHiderWidth}px`;
-      holderStyle.height = `${realHeight}px`;
-    }
+    holderStyle.width = `${currentHiderWidth}px`;
+    holderStyle.height = `${realHeight}px`;
 
     hiderStyle.height = holderStyle.height;
   }

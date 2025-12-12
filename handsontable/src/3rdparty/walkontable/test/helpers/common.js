@@ -367,11 +367,17 @@ export function createStylesHandler() {
     getDefaultRowHeight() {
       return 23;
     },
-    isClassicTheme() {
-      return true;
-    },
     areCellsBorderBox() {
       return false;
+    },
+    getCSSVariableValue(variableName) {
+      const cssVariables = {
+        'cell-autofill-size': 6,
+        'cell-autofill-border-width': 1,
+        'cell-autofill-border-color': '#FFF',
+      };
+
+      return cssVariables[variableName];
     },
   };
 }

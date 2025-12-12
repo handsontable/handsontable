@@ -1,0 +1,53 @@
+export default {
+  default: {
+    cell_vertical: "sizing.size_1",
+    cell_horizontal: "sizing.size_2",
+    bars_horizontal: "sizing.size_4",
+    bars_vertical: "sizing.size_2",
+    gap: "sizing.size_1",
+    button_horizontal: "sizing.size_3",
+    button_vertical: "sizing.size_1_5",
+    dialog_horizontal: "sizing.size_2",
+    dialog_vertical: "sizing.size_2",
+    input_horizontal: "sizing.size_3",
+    input_vertical: "sizing.size_1_5",
+    menu_vertical: "sizing.size_2",
+    menu_horizontal: "sizing.size_0",
+    menu_item_vertical: "sizing.size_1",
+    menu_item_horizontal: "sizing.size_3"
+  },
+  compact: {
+    cell_vertical: "sizing.size_0_5",
+    cell_horizontal: "sizing.size_1_5",
+    bars_horizontal: "sizing.size_2",
+    bars_vertical: "sizing.size_1",
+    gap: "sizing.size_0_5",
+    button_horizontal: "sizing.size_2",
+    button_vertical: "sizing.size_0_5",
+    dialog_horizontal: "sizing.size_1_5",
+    dialog_vertical: "sizing.size_1_5",
+    input_horizontal: "sizing.size_2",
+    input_vertical: "sizing.size_0_5",
+    menu_vertical: "sizing.size_2",
+    menu_horizontal: "sizing.size_0",
+    menu_item_vertical: "sizing.size_0_5",
+    menu_item_horizontal: "sizing.size_2"
+  },
+  comfortable: {
+    cell_vertical: "sizing.size_2",
+    cell_horizontal: "sizing.size_3",
+    bars_horizontal: "sizing.size_4",
+    bars_vertical: "sizing.size_2",
+    gap: "sizing.size_1_5",
+    button_horizontal: "sizing.size_4",
+    button_vertical: "sizing.size_2",
+    dialog_horizontal: "sizing.size_3",
+    dialog_vertical: "sizing.size_3",
+    input_horizontal: "sizing.size_4",
+    input_vertical: "sizing.size_2",
+    menu_vertical: "sizing.size_3",
+    menu_horizontal: "sizing.size_0",
+    menu_item_vertical: "sizing.size_2",
+    menu_item_horizontal: "sizing.size_2"
+  }
+}

@@ -56,7 +56,7 @@
           td {
             &:hover {
               td {
-                background: var(--ht-menu-item-hover-color, #e5e5e9) !important;
+                background: color-mix(in srgb, var(--ht-menu-item-hover-color) var(--ht-menu-item-hover-color-opacity, 100%), transparent) !important;
                 cursor: pointer;
                 box-shadow: none !important;
               }
@@ -68,7 +68,7 @@
           transition: var(--ht-table-transition) background ease-in-out;
 
           &:hover {
-            background-color: var(--ht-menu-item-hover-color, #e5e5e9) !important;
+            background-color: color-mix(in srgb, var(--ht-menu-item-hover-color) var(--ht-menu-item-hover-color-opacity, 100%), transparent) !important;
             cursor: pointer;
           }
 

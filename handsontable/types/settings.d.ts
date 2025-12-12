@@ -45,6 +45,7 @@ import { Settings as DialogSettings } from './plugins/dialog';
 import { Settings as LoadingSettings } from './plugins/loading';
 import { Settings as EmptyDataStateSettings } from './plugins/emptyDataState';
 import { Settings as UndoRedoSettings } from './plugins/undoRedo';
+import { ThemeBuilder } from './themes';
 import { EditorType, BaseEditor } from './editors';
 import { RendererType } from './renderers';
 import { BaseRenderer } from './renderers/base';
@@ -222,6 +223,7 @@ export interface GridSettings extends Events {
   tableClassName?: string | string[];
   tabMoves?: CellCoords | SimpleCellCoords | ((event: KeyboardEvent) => CellCoords | SimpleCellCoords);
   textEllipsis?: boolean;
+  theme?: ThemeBuilder | string;
   themeName?: string;
   title?: string;
   trimDropdown?: boolean;

@@ -349,7 +349,7 @@ describe('WalkontableBorder (RTL mode)', () => {
     expect($corner.css('width')).toBe('6px');
     expect($corner.css('height')).toBe('6px');
     expect($corner.css('top')).toBe('88px');
-    expect($corner.css('right')).toBe('193px');
+    expect($corner.css('right')).toBe('192px');
     expect(spec().$wrapper[0].clientWidth === spec().$wrapper[0].scrollWidth).toBe(true);
 
     $td3.simulate('mousedown');
@@ -403,7 +403,7 @@ describe('WalkontableBorder (RTL mode)', () => {
     expect($corner.css('width')).toBe('6px');
     expect($corner.css('height')).toBe('6px');
     expect(spec().$table.css('height')).toBe('116px');
-    expect($corner.css('top')).toBe('109px'); // table.height - corner.height - corner.borderTop
+    expect($corner.css('top')).toBe('108px'); // table.height - corner.height - corner.borderTop
     expect($corner.css('right')).toBe('45px');
     expect(spec().$wrapper[0].clientHeight === spec().$wrapper[0].scrollHeight).toBe(true);
   });
@@ -452,8 +452,8 @@ describe('WalkontableBorder (RTL mode)', () => {
     expect($corner.css('width')).toBe('6px');
     expect($corner.css('height')).toBe('6px');
     expect(spec().$table.css('height')).toBe('24px');
-    expect($corner.css('top')).toBe('17px'); // table.height - corner.height - corner.borderTop
-    expect($corner.css('right')).toBe('43px');
+    expect($corner.css('top')).toBe('16px'); // table.height - corner.height - corner.borderTop
+    expect($corner.css('right')).toBe('42px');
     expect(spec().$wrapper[0].clientHeight === spec().$wrapper[0].scrollHeight).toBe(true);
     expect(spec().$wrapper[0].clientWidth === spec().$wrapper[0].scrollWidth).toBe(true);
   });

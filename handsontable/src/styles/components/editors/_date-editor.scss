@@ -101,7 +101,7 @@
 
         &.is-today {
           .pika-button {
-            background: var(--ht-menu-item-hover-color);
+            background: color-mix(in srgb, var(--ht-menu-item-hover-color) var(--ht-menu-item-hover-color-opacity, 100%), transparent);
           }
         }
 
@@ -131,7 +131,7 @@
         font-size: inherit;
 
         &:hover {
-          background: var(--ht-menu-item-hover-color);
+          background: color-mix(in srgb, var(--ht-menu-item-hover-color) var(--ht-menu-item-hover-color-opacity, 100%), transparent);
         }
       }
     }

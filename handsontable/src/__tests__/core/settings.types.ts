@@ -238,6 +238,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   tabMoves: oneOf({ col: 1, row: 1 }, (event: KeyboardEvent) => ({row: 2, col: 2})),
   textEllipsis: false,
   themeName: 'ht-theme-some-theme',
+  theme: '',
   title: 'foo',
   trimDropdown: true,
   trimRows: true,

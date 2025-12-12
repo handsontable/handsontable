@@ -3,34 +3,6 @@
 // Handsontable Base Row and Col
 
 @mixin output {
-  // Required variables for bare theme
-  .ht-root-wrapper:not([class*="ht-theme"]),
-  .ht-portal:not([class*="ht-theme"]) {
-    --ht-gap-size: 4px;
-    --ht-checkbox-size: 16px;
-    --ht-cell-horizontal-padding: 8px;
-    --ht-cell-vertical-padding: 4px;
-    --ht-font-size: 14px;
-    --ht-line-height: 20px;
-    --ht-letter-spacing: 0;
-    --ht-border-color: #222222;
-    --ht-foreground-color: #222222;
-    --ht-background-color: #ffffff;
-    --ht-header-foreground-color: #222222;
-    --ht-header-background-color: #f7f7f9;
-    --ht-header-row-foreground-color: #222222;
-    --ht-header-row-background-color: #f7f7f9;
-    --ht-cell-horizontal-border-color: #222222;
-    --ht-cell-vertical-border-color: #222222;
-    --ht-header-active-border-color: #1a42e8;
-    --ht-header-active-foreground-color: #ffffff;
-    --ht-header-active-background-color: #1a42e8;
-    --ht-header-row-active-foreground-color: #fff;
-    --ht-header-row-active-background-color: #1a42e8;
-    --ht-cell-selection-border-color: #1a42e8;
-    --ht-scrollbar-track-color: #f7f7f9;
-    --ht-scrollbar-thumb-color: #a3a3a3;
-  }
 
   // Root wrapper
   .ht-root-wrapper {
@@ -43,6 +15,7 @@
   }
 
   .htFocusCatcher {
+    display: block !important;
     position: absolute;
     width: 0;
     height: 0;
@@ -186,7 +159,7 @@
         }
 
         td {
-          background-color: var(--ht-row-cell-even-background-color);
+          background-color: var(--ht-row-cell-even-background-color); 
         }
       }
 

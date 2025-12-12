@@ -1,6 +1,7 @@
 module.exports = {
   extends: ['../.eslintrc.js'],
   parser: '@babel/eslint-parser',
+  ignorePatterns: ['src/themes/variables/**'],
   plugins: [
     'handsontable',
   ],

@@ -167,7 +167,7 @@
 
         &:not(&.htCustomMenuRenderer, &.htDisabled) {
           &:hover {
-            background: var(--ht-menu-item-hover-color, #e5e5e9) !important;
+            background: color-mix(in srgb, var(--ht-menu-item-hover-color) var(--ht-menu-item-hover-color-opacity, 100%), transparent) !important;
             cursor: pointer;
           }
 
@@ -217,7 +217,7 @@
         }
 
         &:has(.htItemWrapper .selected) {
-          background-color: var(--ht-menu-item-active-color);
+          background-color: color-mix(in srgb, var(--ht-menu-item-active-color) var(--ht-menu-item-active-color-opacity, 100%), transparent);
         }
 
         .htItemWrapper {
