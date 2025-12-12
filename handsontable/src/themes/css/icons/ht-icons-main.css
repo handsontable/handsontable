@@ -1,7 +1,7 @@
-[class*=ht-theme-main] .htDropdownMenu table tbody tr td.htSubmenu .htItemWrapper::after,
-[class*=ht-theme-main] .htContextMenu table tbody tr td.htSubmenu .htItemWrapper::after,
-[class*=ht-theme-main] .htFiltersConditionsMenu table tbody tr td.htSubmenu .htItemWrapper::after,
-[class*=ht-theme-main] .pika-single .pika-next {
+.htDropdownMenu table tbody tr td.htSubmenu .htItemWrapper::after,
+.htContextMenu table tbody tr td.htSubmenu .htItemWrapper::after,
+.htFiltersConditionsMenu table tbody tr td.htSubmenu .htItemWrapper::after,
+.pika-single .pika-next {
   width: var(--ht-icon-size);
   height: var(--ht-icon-size);
   -webkit-mask-size: contain;
@@ -9,7 +9,7 @@
   background-color: currentColor;
 }
 
-[class*=ht-theme-main] .pika-single .pika-prev {
+.pika-single .pika-prev {
   width: var(--ht-icon-size);
   height: var(--ht-icon-size);
   -webkit-mask-size: contain;
@@ -17,7 +17,7 @@
   background-color: currentColor;
 }
 
-[class*=ht-theme-main] .ht-page-size-section__select-wrapper::after {
+.ht-page-size-section__select-wrapper::after {
   width: var(--ht-icon-size);
   height: var(--ht-icon-size);
   -webkit-mask-size: contain;
@@ -25,7 +25,7 @@
   background-color: currentColor;
 }
 
-[class*=ht-theme-main] .changeType::before {
+.changeType::before {
   width: var(--ht-icon-size);
   height: var(--ht-icon-size);
   -webkit-mask-size: contain;
@@ -33,7 +33,7 @@
   background-color: currentColor;
 }
 
-[class*=ht-theme-main] .htUISelectCaption::after,
+.htUISelectCaption::after,
 .htAutocompleteArrow::after {
   width: var(--ht-icon-size);
   height: var(--ht-icon-size);
@@ -42,7 +42,7 @@
   background-color: currentColor;
 }
 
-[class*=ht-theme-main] .columnSorting.sortAction.ascending::before {
+.columnSorting.sortAction.ascending::before {
   width: var(--ht-icon-size);
   height: var(--ht-icon-size);
   -webkit-mask-size: contain;
@@ -50,7 +50,7 @@
   background-color: currentColor;
 }
 
-[class*=ht-theme-main] .columnSorting.sortAction.descending::before {
+.columnSorting.sortAction.descending::before {
   width: var(--ht-icon-size);
   height: var(--ht-icon-size);
   -webkit-mask-size: contain;
@@ -58,7 +58,7 @@
   background-color: currentColor;
 }
 
-[class*=ht-theme-main] .ht-page-navigation-section .ht-page-first::before {
+.ht-page-navigation-section .ht-page-first::before {
   width: var(--ht-icon-size);
   height: var(--ht-icon-size);
   -webkit-mask-size: contain;
@@ -66,7 +66,7 @@
   background-color: currentColor;
 }
 
-[class*=ht-theme-main] [dir="rtl"] .ht-page-navigation-section .ht-page-first::before {
+[dir="rtl"] .ht-page-navigation-section .ht-page-first::before {
   width: var(--ht-icon-size);
   height: var(--ht-icon-size);
   -webkit-mask-size: contain;
@@ -74,7 +74,7 @@
   background-color: currentColor;
 }
 
-[class*=ht-theme-main] .ht-page-navigation-section .ht-page-prev::before {
+.ht-page-navigation-section .ht-page-prev::before {
   width: var(--ht-icon-size);
   height: var(--ht-icon-size);
   -webkit-mask-size: contain;
@@ -82,7 +82,7 @@
   background-color: currentColor;
 }
 
-[class*=ht-theme-main] [dir="rtl"] .ht-page-navigation-section .ht-page-prev::before {
+[dir="rtl"] .ht-page-navigation-section .ht-page-prev::before {
   width: var(--ht-icon-size);
   height: var(--ht-icon-size);
   -webkit-mask-size: contain;
@@ -90,7 +90,7 @@
   background-color: currentColor;
 }
 
-[class*=ht-theme-main] .ht-page-navigation-section .ht-page-next::before {
+.ht-page-navigation-section .ht-page-next::before {
   width: var(--ht-icon-size);
   height: var(--ht-icon-size);
   -webkit-mask-size: contain;
@@ -98,7 +98,7 @@
   background-color: currentColor;
 }
 
-[class*=ht-theme-main] [dir="rtl"] .ht-page-navigation-section .ht-page-next::before {
+[dir="rtl"] .ht-page-navigation-section .ht-page-next::before {
   width: var(--ht-icon-size);
   height: var(--ht-icon-size);
   -webkit-mask-size: contain;
@@ -106,7 +106,7 @@
   background-color: currentColor;
 }
 
-[class*=ht-theme-main] .ht-page-navigation-section .ht-page-last::before {
+.ht-page-navigation-section .ht-page-last::before {
   width: var(--ht-icon-size);
   height: var(--ht-icon-size);
   -webkit-mask-size: contain;
@@ -114,7 +114,7 @@
   background-color: currentColor;
 }
 
-[class*=ht-theme-main] [dir="rtl"] .ht-page-navigation-section .ht-page-last::before {
+[dir="rtl"] .ht-page-navigation-section .ht-page-last::before {
   width: var(--ht-icon-size);
   height: var(--ht-icon-size);
   -webkit-mask-size: contain;
@@ -122,9 +122,9 @@
   background-color: currentColor;
 }
 
-[class*=ht-theme-main] .htDropdownMenu table tbody tr td .htItemWrapper span.selected::after,
-[class*=ht-theme-main] .htContextMenu table tbody tr td .htItemWrapper span.selected::after,
-[class*=ht-theme-main] .htFiltersConditionsMenu table tbody tr td .htItemWrapper span.selected::after {
+.htDropdownMenu table tbody tr td .htItemWrapper span.selected::after,
+.htContextMenu table tbody tr td .htItemWrapper span.selected::after,
+.htFiltersConditionsMenu table tbody tr td .htItemWrapper span.selected::after {
   width: var(--ht-icon-size);
   height: var(--ht-icon-size);
   -webkit-mask-size: contain;
@@ -132,11 +132,11 @@
   background-color: currentColor;
 }
 
-[class*=ht-theme-main] .htCheckboxRendererInput {
+.htCheckboxRendererInput {
   appearance: none;
 }
 
-[class*=ht-theme-main] .htCheckboxRendererInput::after {
+.htCheckboxRendererInput::after {
   width: var(--ht-icon-size);
   height: var(--ht-icon-size);
   -webkit-mask-size: contain;
@@ -144,7 +144,7 @@
   background-color: currentColor;
 }
 
-[class*=ht-theme-main] th.beforeHiddenColumn::after {
+th.beforeHiddenColumn::after {
   width: var(--ht-icon-size);
   height: var(--ht-icon-size);
   -webkit-mask-size: contain;
@@ -152,7 +152,7 @@
   background-color: currentColor;
 }
 
-[class*=ht-theme-main] th.afterHiddenColumn::before {
+th.afterHiddenColumn::before {
   width: var(--ht-icon-size);
   height: var(--ht-icon-size);
   -webkit-mask-size: contain;
@@ -160,7 +160,7 @@
   background-color: currentColor;
 }
 
-[class*=ht-theme-main] th.beforeHiddenRow::after {
+th.beforeHiddenRow::after {
   width: var(--ht-icon-size);
   height: var(--ht-icon-size);
   -webkit-mask-size: contain;
@@ -168,7 +168,7 @@
   background-color: currentColor;
 }
 
-[class*=ht-theme-main] th.afterHiddenRow::before {
+th.afterHiddenRow::before {
   width: var(--ht-icon-size);
   height: var(--ht-icon-size);
   -webkit-mask-size: contain;
@@ -176,8 +176,8 @@
   background-color: currentColor;
 }
 
-[class*=ht-theme-main] .collapsibleIndicator::before,
-[class*=ht-theme-main] .ht_nestingButton::before {
+.collapsibleIndicator::before,
+.ht_nestingButton::before {
   width: var(--ht-icon-size);
   height: var(--ht-icon-size);
   -webkit-mask-size: contain;
@@ -185,8 +185,8 @@
   background-color: currentColor;
 }
 
-[class*=ht-theme-main] .collapsibleIndicator.collapsed::before,
-[class*=ht-theme-main] .ht_nestingButton.ht_nestingExpand::before {
+.collapsibleIndicator.collapsed::before,
+.ht_nestingButton.ht_nestingExpand::before {
   width: var(--ht-icon-size);
   height: var(--ht-icon-size);
   -webkit-mask-size: contain;
@@ -194,7 +194,7 @@
   background-color: currentColor;
 }
 
-[class*=ht-theme-main] .htUIRadio > input[type="radio"]::after {
+.htUIRadio > input[type="radio"]::after {
   width: var(--ht-icon-size);
   height: var(--ht-icon-size);
   -webkit-mask-size: contain;

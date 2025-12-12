@@ -1,4 +1,4 @@
-import { createTheme } from './utils/themeBuilder';
+import { createTheme } from '../utils/themeBuilder';
 import mainIcons from './variables/icons/main';
 import classicColors from './variables/colors/classic';
 import classicTokens from './variables/tokens/classic';

@@ -1,4 +1,4 @@
-import { createTheme } from './utils/themeBuilder';
+import { createTheme } from '../utils/themeBuilder';
 import mainIcons from './variables/icons/main';
 import horizonColors from './variables/colors/horizon';
 import horizonTokens from './variables/tokens/horizon';

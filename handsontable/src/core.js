@@ -59,6 +59,7 @@ import {
   uninstall as uninstallAccessibilityAnnouncer,
 } from './utils/a11yAnnouncer';
 import { getValueSetterValue } from './utils/valueAccessors';
+import { createTheme } from './utils/themeBuilder';
 
 let activeGuid = null;
 
@@ -1371,23 +1372,23 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     if (isRootInstance(instance) && tableMeta.theme) {
       let themeObject = tableMeta.theme;
 
-      (async() => {
-        const { ThemeAPI } = await import(/* webpackChunkName: "ThemeAPI" */ './utils/themeAPI');
+      if (isObject(themeObject) || typeof themeObject === 'boolean') {
+        (async() => {
+          const { ThemeAPI } = await import(/* webpackChunkName: "ThemeAPI" */ './utils/themeAPI');
 
-        if (!isObject(themeObject)) {
-          const mainTheme = await import(/* webpackChunkName: "mainTheme" */ './themes/mainTheme');
+          if (typeof themeObject === 'boolean') {
+            themeObject = createTheme();
+          }
 
-          themeObject = mainTheme.default;
-        }
+          instance.themeAPI = new ThemeAPI({
+            instance,
+            stringInstanceID,
+            themeObject
+          });
 
-        instance.themeAPI = new ThemeAPI({
-          instance,
-          stringInstanceID,
-          themeObject
-        });
-
-        initFunction();
-      })();
+          initFunction();
+        })();
+      }
     } else {
       initFunction();
     }

@@ -737,7 +737,7 @@ export default `.ht-root-wrapper {
   content: "";
   position: absolute;
   border-radius: var(--ht-cell-autofill-border-radius);
-  inset: calc(max(0px, (var(--ht-cell-autofill-hit-area-size) - var(--ht-cell-autofill-size)) / 2) * -1);
+  inset: min(0px, (var(--ht-cell-autofill-size) - var(--ht-cell-autofill-hit-area-size)) / 2);
   background: transparent;
 }
 .handsontable .wtBorder.corner.wtCornerInlineEndEdge::after {

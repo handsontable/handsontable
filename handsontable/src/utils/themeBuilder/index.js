@@ -1,13 +1,14 @@
-import sizing from '../variables/sizing';
-import densitySizes from '../variables/density';
+import sizing from '../../themes/variables/sizing';
+import densitySizes from '../../themes/variables/density';
+import mainIcons from '../../themes/variables/icons/main';
+import mainColors from '../../themes/variables/colors/main';
+import mainTokens from '../../themes/variables/tokens/main';
 import {
-  isObject,
-  deepMerge,
-  validateInput,
+  validateParams,
   validateDensityType,
   validateColorScheme,
-  cloneObject,
 } from './helpers';
+import { isObject, deepClone, deepMerge } from '../../helpers/object';
 
 /**
  * ThemeBuilder class provides methods to build and configure themes.
@@ -47,20 +48,28 @@ class ThemeBuilder {
   #colorScheme = 'auto';
 
   /**
-   * @param {object} baseTheme The base theme object with light, dark, theme, and icons properties.
+   * Current density type ('compact', 'default', or 'comfortable').
+   *
+   * @private
+   * @type {string}
+   */
+  #densityType = 'default';
+
+  /**
+   * @param {object} baseTheme The base theme object with sizing, icons, density, colors, and tokens properties.
    */
   constructor(baseTheme) {
     this.#themeConfig = {
       sizing,
       density: {
-        type: 'default',
+        type: this.#densityType,
         sizes: densitySizes,
       },
+      icons: mainIcons,
+      colors: mainColors,
+      tokens: mainTokens,
+      colorScheme: this.#colorScheme,
     };
-
-    if (baseTheme.colorScheme !== undefined) {
-      this.setColorScheme(baseTheme.colorScheme);
-    }
 
     this.params(baseTheme);
   }
@@ -76,21 +85,6 @@ class ThemeBuilder {
     this.#listeners.forEach((listener) => {
       listener(config);
     });
-  }
-
-  /**
-   * Applies a density parameter to the configuration.
-   *
-   * @param {object} config The configuration object to modify.
-   * @param {string|object} value The density value (string type or object with type/sizes).
-   * @private
-   */
-  #applyDensityParam(config, value) {
-    if (typeof value === 'string') {
-      config.density.type = validateDensityType(value, config.density.sizes);
-    } else if (isObject(value) && value.type && value.sizes) {
-      config.density = deepMerge(config.density, value);
-    }
   }
 
   /**
@@ -119,12 +113,18 @@ class ThemeBuilder {
    *
    */
   params(paramsObject) {
-    validateInput(paramsObject, 'params');
+    validateParams(paramsObject, 'params');
 
-    const config = cloneObject(this.#initThemeConfig || this.#themeConfig);
+    const config = deepClone(this.#initThemeConfig || this.#themeConfig);
 
     if (paramsObject.density !== undefined) {
-      this.#applyDensityParam(config, paramsObject.density);
+      if (isObject(paramsObject.density)) {
+        config.density = deepMerge(config.density, paramsObject.density);
+        this.#densityType = config.density.type;
+      } else if (typeof paramsObject.density === 'string') {
+        this.#densityType = config.density;
+        config.density.type = config.densityType;
+      }
     }
 
     ['sizing', 'icons', 'colors', 'tokens'].forEach((key) => {
@@ -133,8 +133,9 @@ class ThemeBuilder {
       }
     });
 
-    if (!config.icons || !config.colors || !config.tokens) {
-      throw new Error('[ThemeBuilder] icons, colors and tokens are required.');
+    if (paramsObject.colorScheme !== undefined) {
+      this.#colorScheme = paramsObject.colorScheme;
+      config.colorScheme = paramsObject.colorScheme;
     }
 
     this.#themeConfig = config;
@@ -161,6 +162,27 @@ class ThemeBuilder {
    */
   setColorScheme(mode) {
     this.#colorScheme = validateColorScheme(mode);
+    this.#themeConfig.colorScheme = this.#colorScheme;
+
+    this.#notifyChange();
+
+    return this;
+  }
+
+  /**
+   * Sets the density type (compact, default, or comfortable).
+   *
+   * @param {string} type The density type ('compact', 'default', or 'comfortable').
+   * @returns {ThemeBuilder} Returns the ThemeBuilder instance for chaining.
+   *
+   * @example
+   * ```js
+   * const myTheme = mainTheme.setDensity('compact');
+   * ```
+   */
+  setDensityType(type) {
+    this.#densityType = validateDensityType(type);
+    this.#themeConfig.density.type = this.#densityType;
 
     this.#notifyChange();
 
@@ -173,10 +195,7 @@ class ThemeBuilder {
    * @returns {object} The theme configuration object.
    */
   getThemeConfig() {
-    return {
-      ...this.#themeConfig,
-      colorScheme: this.#colorScheme,
-    };
+    return this.#themeConfig;
   }
 }
 
@@ -186,6 +205,6 @@ class ThemeBuilder {
  * @param {object} baseTheme The base theme object with light, dark, theme, and icons properties.
  * @returns {ThemeBuilder} The ThemeBuilder instance.
  */
-export function createTheme(baseTheme) {
+export function createTheme(baseTheme = {}) {
   return new ThemeBuilder(baseTheme);
 }

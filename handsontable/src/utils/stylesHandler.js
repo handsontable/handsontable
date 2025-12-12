@@ -1,5 +1,7 @@
 import { warn } from '../helpers/console';
 
+// TODO: Update this file to use the new theme builder.
+
 const CLASSIC_THEME_DEFAULT_HEIGHT = 23;
 
 /**

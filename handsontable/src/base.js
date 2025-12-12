@@ -17,7 +17,7 @@ import { registerCellType } from './cellTypes/registry';
 import { TextCellType } from './cellTypes/textType';
 import { BaseEditor } from './editors/baseEditor';
 import { CellCoords, CellRange } from './3rdparty/walkontable/src';
-import { createTheme } from './themes/utils/themeBuilder';
+import { createTheme } from './utils/themeBuilder';
 
 // register default mandatory cell type for the Base package
 registerCellType(TextCellType);
