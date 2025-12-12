@@ -182,8 +182,6 @@ jobs:
           npm run build:es
           npm run build:commonjs
           npm run build:languages.es
-          npm run build:classic-css
-          npm run build:classic-css.min
           npm run postbuild
       - run: tar -zcf tmp.tar.gz ./handsontable/tmp
 
@@ -831,8 +829,6 @@ jobs:
             npm run in handsontable build:es
             npm run in handsontable build:commonjs
             npm run in handsontable build:languages.es
-            npm run in handsontable build:classic-css
-            npm run in handsontable build:classic-css.min
           fi
       - run: |
           if test -f "handsontable-build-umd/dist.tar.gz"; then
