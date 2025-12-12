@@ -16,7 +16,7 @@ type ExtendedEditor<T> = BaseEditor & {
   container: HTMLDivElement;
 } & T;
 
-export declare const editorFactory: <TProperties, TMethods = Record<string, function>>({ init, afterOpen, afterInit, afterClose, beforeOpen, getValue, setValue, onFocus, shortcuts, value, render, config, shortcutsGroup, ...args }:{
+export declare const editorFactory: <TProperties, TMethods = Record<string, Function>>({ init, afterOpen, afterInit, afterClose, beforeOpen, getValue, setValue, onFocus, shortcuts, value, render, config, shortcutsGroup, ...args }:{
     value?: TProperties extends {
         value: any;
     } ? TProperties['value'] : any;
