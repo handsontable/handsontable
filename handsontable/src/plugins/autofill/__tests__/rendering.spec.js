@@ -17,8 +17,8 @@ describe('AutoFill borders rendering', () => {
         }
         #${id} {
           position: absolute;
-          top: 1000px;
-          left: 1000px;
+          top: 1500px;
+          left: 1500px;
         }
       `;
       document.head.appendChild(styleElement);
@@ -96,7 +96,7 @@ describe('AutoFill borders rendering', () => {
     // center the viewport on the middle cell
     await selectCell(8, 8);
 
-    // mouse points 1px above the next row (no border change)
+    // mouse points 1px above the bottom edge of the current row (no border change)
     simulateFillHandleDrag(getCell(9, 8), {
       finish: false,
       offsetY: -Math.floor(getDefaultRowHeight() / 2) - 1,
@@ -124,6 +124,85 @@ describe('AutoFill borders rendering', () => {
     expect(getFillHandleBorderRange()).toEqualCellRange('highlight: 8,8 from: 8,8 to: 10,8');
   });
 
+  it('should render borders when dragging down (defined table size with scrolled viewport, window viewport is scrolled, enabled overlays)', async() => {
+    const viewportSize = 14;
+
+    handsontable({
+      data: createEmptySpreadsheetData(20, 20),
+      width: getDefaultColumnWidth() * viewportSize,
+      height: getDefaultRowHeight() * viewportSize,
+      dragToScroll: false,
+      fixedColumnsStart: 4,
+      fixedRowsTop: 4,
+      fixedRowsBottom: 4,
+      rowHeights(rowIndex) {
+        if (rowIndex === 1 || rowIndex === 18) {
+          return 55;
+
+        } else if (rowIndex === 2 || rowIndex === 17) {
+          return 60;
+        }
+      },
+      colWidths(columnIndex) {
+        if (columnIndex === 1) {
+          return 60;
+        } else if (columnIndex === 2) {
+          return 70;
+        }
+      },
+      fillHandle: {
+        autoInsertRow: false,
+      },
+    });
+
+    const hidingRowsMap = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
+    const hidingColumnsMap = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+    hidingRowsMap.setValueAtIndex(0, true);
+    hidingRowsMap.setValueAtIndex(3, true);
+    hidingRowsMap.setValueAtIndex(16, true);
+    hidingRowsMap.setValueAtIndex(19, true);
+    hidingColumnsMap.setValueAtIndex(0, true);
+    hidingColumnsMap.setValueAtIndex(3, true);
+
+    await render();
+
+    await scrollViewportTo({
+      row: countRows() / 2,
+      col: countCols() / 2,
+    });
+    // center the viewport on the middle cell
+    await selectCell(8, 8);
+
+    simulateFillHandleDrag(getCell(9, 8), {
+      finish: false,
+    });
+
+    expect(getFillHandleBorderRange()).toEqualCellRange('highlight: 8,8 from: 8,8 to: 9,8');
+
+    simulateFillHandleDragMove(getCell(10, 8));
+
+    expect(getFillHandleBorderRange()).toEqualCellRange('highlight: 8,8 from: 8,8 to: 10,8');
+
+    simulateFillHandleDragMove(getCell(11, 8));
+
+    expect(getFillHandleBorderRange()).toEqualCellRange('highlight: 8,8 from: 8,8 to: 17,8');
+
+    simulateFillHandleDragMove(getCell(17, 8, true));
+
+    expect(getFillHandleBorderRange()).toEqualCellRange('highlight: 8,8 from: 8,8 to: 17,8');
+
+    simulateFillHandleDragMove(getCell(18, 8, true));
+
+    expect(getFillHandleBorderRange()).toEqualCellRange('highlight: 8,8 from: 8,8 to: 18,8');
+
+    simulateFillHandleDragMove(getCell(18, 8, true), {
+      offsetY: 100,
+    });
+
+    expect(getFillHandleBorderRange()).toEqualCellRange('highlight: 8,8 from: 8,8 to: 18,8');
+  });
+
   it('should render borders when dragging up (not defined table size, window viewport is scrolled)', async() => {
     handsontable({
       data: createEmptySpreadsheetData(5, 5),
@@ -138,7 +217,7 @@ describe('AutoFill borders rendering', () => {
     });
     await selectCell(3, 1);
 
-    // mouse points 1px below the current row (no border change)
+    // mouse points 1px below the top edge of the current row (no border change)
     simulateFillHandleDrag(getCell(3, 1), {
       finish: false,
       offsetY: -Math.floor(getDefaultRowHeight() / 2),
@@ -186,7 +265,7 @@ describe('AutoFill borders rendering', () => {
     // center the viewport on the middle cell
     await selectCell(8, 8);
 
-    // mouse points 1px below the current row (no border change)
+    // mouse points 1px below the top edge of the current row (no border change)
     simulateFillHandleDrag(getCell(8, 8), {
       finish: false,
       offsetY: -Math.floor(getDefaultRowHeight() / 2),
@@ -212,6 +291,85 @@ describe('AutoFill borders rendering', () => {
     });
 
     expect(getFillHandleBorderRange()).toEqualCellRange('highlight: 8,8 from: 8,8 to: 6,8');
+  });
+
+  it('should render borders when dragging up (defined table size with scrolled viewport, window viewport is scrolled, enabled overlays)', async() => {
+    const viewportSize = 14;
+
+    handsontable({
+      data: createEmptySpreadsheetData(20, 20),
+      width: getDefaultColumnWidth() * viewportSize,
+      height: getDefaultRowHeight() * viewportSize,
+      dragToScroll: false,
+      fixedColumnsStart: 4,
+      fixedRowsTop: 4,
+      fixedRowsBottom: 4,
+      rowHeights(rowIndex) {
+        if (rowIndex === 1 || rowIndex === 18) {
+          return 55;
+
+        } else if (rowIndex === 2 || rowIndex === 17) {
+          return 60;
+        }
+      },
+      colWidths(columnIndex) {
+        if (columnIndex === 1) {
+          return 60;
+        } else if (columnIndex === 2) {
+          return 70;
+        }
+      },
+      fillHandle: {
+        autoInsertRow: false,
+      },
+    });
+
+    const hidingRowsMap = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
+    const hidingColumnsMap = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+    hidingRowsMap.setValueAtIndex(0, true);
+    hidingRowsMap.setValueAtIndex(3, true);
+    hidingRowsMap.setValueAtIndex(16, true);
+    hidingRowsMap.setValueAtIndex(19, true);
+    hidingColumnsMap.setValueAtIndex(0, true);
+    hidingColumnsMap.setValueAtIndex(3, true);
+
+    await render();
+
+    await scrollViewportTo({
+      row: countRows() / 2,
+      col: countCols() / 2,
+    });
+    // center the viewport on the middle cell
+    await selectCell(8, 8);
+
+    simulateFillHandleDrag(getCell(7, 8), {
+      finish: false,
+    });
+
+    expect(getFillHandleBorderRange()).toEqualCellRange('highlight: 8,8 from: 8,8 to: 7,8');
+
+    simulateFillHandleDragMove(getCell(6, 8));
+
+    expect(getFillHandleBorderRange()).toEqualCellRange('highlight: 8,8 from: 8,8 to: 6,8');
+
+    simulateFillHandleDragMove(getCell(5, 8));
+
+    expect(getFillHandleBorderRange()).toEqualCellRange('highlight: 8,8 from: 8,8 to: 5,8');
+
+    simulateFillHandleDragMove(getCell(2, 8, true));
+
+    expect(getFillHandleBorderRange()).toEqualCellRange('highlight: 8,8 from: 8,8 to: 2,8');
+
+    simulateFillHandleDragMove(getCell(1, 8, true));
+
+    expect(getFillHandleBorderRange()).toEqualCellRange('highlight: 8,8 from: 8,8 to: 1,8');
+
+    simulateFillHandleDragMove(getCell(1, 8, true), {
+      offsetY: -100,
+    });
+
+    expect(getFillHandleBorderRange()).toEqualCellRange('highlight: 8,8 from: 8,8 to: 1,8');
   });
 
   it('should render borders when dragging right (not defined table size, window viewport is scrolled)', async() => {
@@ -392,6 +550,85 @@ describe('AutoFill borders rendering', () => {
     });
 
     expect(getFillHandleBorderRange()).toEqualCellRange('highlight: 8,8 from: 8,8 to: 8,6');
+  });
+
+  it('should render borders when dragging left (defined table size with scrolled viewport, window viewport is scrolled, enabled overlays)', async() => {
+    const viewportSize = 14;
+
+    handsontable({
+      data: createEmptySpreadsheetData(20, 20),
+      width: getDefaultColumnWidth() * viewportSize,
+      height: getDefaultRowHeight() * viewportSize,
+      dragToScroll: false,
+      fixedColumnsStart: 4,
+      fixedRowsTop: 4,
+      fixedRowsBottom: 4,
+      rowHeights(rowIndex) {
+        if (rowIndex === 1 || rowIndex === 18) {
+          return 55;
+
+        } else if (rowIndex === 2 || rowIndex === 17) {
+          return 60;
+        }
+      },
+      colWidths(columnIndex) {
+        if (columnIndex === 1) {
+          return 60;
+        } else if (columnIndex === 2) {
+          return 70;
+        }
+      },
+      fillHandle: {
+        autoInsertRow: false,
+      },
+    });
+
+    const hidingRowsMap = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
+    const hidingColumnsMap = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+    hidingRowsMap.setValueAtIndex(0, true);
+    hidingRowsMap.setValueAtIndex(3, true);
+    hidingRowsMap.setValueAtIndex(16, true);
+    hidingRowsMap.setValueAtIndex(19, true);
+    hidingColumnsMap.setValueAtIndex(0, true);
+    hidingColumnsMap.setValueAtIndex(3, true);
+
+    await render();
+
+    await scrollViewportTo({
+      row: countRows() / 2,
+      col: countCols() / 2,
+    });
+    // center the viewport on the middle cell
+    await selectCell(8, 8);
+
+    simulateFillHandleDrag(getCell(8, 7), {
+      finish: false,
+    });
+
+    expect(getFillHandleBorderRange()).toEqualCellRange('highlight: 8,8 from: 8,8 to: 8,7');
+
+    simulateFillHandleDragMove(getCell(8, 5));
+
+    expect(getFillHandleBorderRange()).toEqualCellRange('highlight: 8,8 from: 8,8 to: 8,5');
+
+    simulateFillHandleDragMove(getCell(8, 4));
+
+    expect(getFillHandleBorderRange()).toEqualCellRange('highlight: 8,8 from: 8,8 to: 8,4');
+
+    simulateFillHandleDragMove(getCell(8, 2, true));
+
+    expect(getFillHandleBorderRange()).toEqualCellRange('highlight: 8,8 from: 8,8 to: 8,2');
+
+    simulateFillHandleDragMove(getCell(8, 1, true));
+
+    expect(getFillHandleBorderRange()).toEqualCellRange('highlight: 8,8 from: 8,8 to: 8,1');
+
+    simulateFillHandleDragMove(getCell(8, 1, true), {
+      offsetX: -100,
+    });
+
+    expect(getFillHandleBorderRange()).toEqualCellRange('highlight: 8,8 from: 8,8 to: 8,1');
   });
 
   it('should render borders when dragging vertically (hidden rows, different row heights)', async() => {

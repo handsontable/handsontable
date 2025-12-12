@@ -143,7 +143,11 @@ function findRowAtY(hotInstance, column, startRow, endRow, relativeY) {
  * @returns {CellCoords} The cell coordinates.
  */
 export function getCellCoordsFromMousePosition(hotInstance, mouseX, mouseY) {
-  const { view } = hotInstance;
+  const {
+    view,
+    columnIndexMapper,
+    rowIndexMapper,
+  } = hotInstance;
   const isRtl = hotInstance.isRtl();
   const numberOfFixedColumnsStart = view.countNotHiddenFixedColumnsStart();
   const numberOfFixedRowsTop = view.countNotHiddenFixedRowsTop();
@@ -169,15 +173,17 @@ export function getCellCoordsFromMousePosition(hotInstance, mouseX, mouseY) {
 
   // Check fixed columns first
   if (numberOfFixedColumnsStart > 0) {
-    const fixedCell = hotInstance.getCell(firstPartiallyVisibleRow, 0, true); // TODO: `0` is ok?
+    const firstFixedColumn = columnIndexMapper.getVisualFromRenderableIndex(0);
+    const firstNonHiddenColumn = columnIndexMapper.getNearestNotHiddenIndex(firstFixedColumn, 1);
+    const fixedCell = hotInstance.getCell(firstPartiallyVisibleRow, firstNonHiddenColumn, true);
     const fixedCellRect = fixedCell.getBoundingClientRect();
     const fixedRelativeX = isRtl ? fixedCellRect.right - clampedX : clampedX - fixedCellRect.left;
 
     foundColumn = findColumnAtX(
       hotInstance,
       firstPartiallyVisibleRow,
-      0, // TODO: `0` is ok?
-      numberOfFixedColumnsStart - 1,
+      firstNonHiddenColumn,
+      columnIndexMapper.getVisualFromRenderableIndex(numberOfFixedColumnsStart - 1),
       fixedRelativeX,
     );
   }
@@ -206,24 +212,29 @@ export function getCellCoordsFromMousePosition(hotInstance, mouseX, mouseY) {
 
   // Check fixed top rows first
   if (numberOfFixedRowsTop > 0) {
-    const fixedCell = hotInstance.getCell(0, firstPartiallyVisibleColumn, true); // TODO: `0` is ok?
+    const firstFixedRow = rowIndexMapper.getVisualFromRenderableIndex(0);
+    const firstNonHiddenRow = rowIndexMapper.getNearestNotHiddenIndex(firstFixedRow, 1);
+    const fixedCell = hotInstance.getCell(firstNonHiddenRow, firstPartiallyVisibleColumn, true);
     const fixedCellRect = fixedCell.getBoundingClientRect();
     const fixedRelativeY = clampedY - fixedCellRect.top;
 
     foundRow = findRowAtY(
       hotInstance,
       firstPartiallyVisibleColumn,
-      0, // TODO: `0` is ok?
-      numberOfFixedRowsTop - 1,
+      firstNonHiddenRow,
+      rowIndexMapper.getVisualFromRenderableIndex(numberOfFixedRowsTop - 1),
       fixedRelativeY,
     );
   }
 
   // Check fixed bottom rows if not found in fixed top rows
   if (foundRow === null && numberOfFixedRowsBottom > 0) {
-    const totalRows = hotInstance.countRows();
-    const bottomStartRow = totalRows - numberOfFixedRowsBottom;
-    const fixedBottomCell = hotInstance.getCell(bottomStartRow, firstPartiallyVisibleColumn, true);
+    const totalSourceRows = rowIndexMapper.getNotHiddenIndexesLength();
+    const bottomStartRow = rowIndexMapper.getVisualFromRenderableIndex(totalSourceRows - numberOfFixedRowsBottom);
+    const bottomEndRow = rowIndexMapper.getVisualFromRenderableIndex(totalSourceRows - 1);
+    const bottomStartNonHiddenRow = rowIndexMapper.getNearestNotHiddenIndex(bottomStartRow, 1);
+    const bottomEndNonHiddenRow = rowIndexMapper.getNearestNotHiddenIndex(bottomEndRow, -1);
+    const fixedBottomCell = hotInstance.getCell(bottomStartNonHiddenRow, firstPartiallyVisibleColumn, true);
     const fixedBottomCellRect = fixedBottomCell.getBoundingClientRect();
     const fixedBottomRelativeY = clampedY - fixedBottomCellRect.top;
 
@@ -231,13 +242,13 @@ export function getCellCoordsFromMousePosition(hotInstance, mouseX, mouseY) {
       foundRow = findRowAtY(
         hotInstance,
         firstPartiallyVisibleColumn,
-        bottomStartRow,
-        totalRows - 1,
+        bottomStartNonHiddenRow,
+        bottomEndNonHiddenRow,
         fixedBottomRelativeY
       );
 
       if (foundRow === null) {
-        foundRow = totalRows - 1; // TODO: should be last visible non-hidden row
+        foundRow = bottomEndNonHiddenRow;
       }
     }
   }

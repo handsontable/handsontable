@@ -10,6 +10,7 @@ const specContext = {};
 
 beforeEach(function() {
   specContext.spec = this;
+  cleanupDebugUI(true);
 
   if (!process.env.JEST_WORKER_ID) {
     this.loadedTheme = __ENV_ARGS__.HOT_THEME || 'classic';
@@ -38,7 +39,20 @@ afterAll(() => {
   if (!process.env.JEST_WORKER_ID) {
     $('.jasmine_html-reporter').show();
   }
+
+  cleanupDebugUI();
 });
+
+/**
+ * Cleans up the debug UI elements if there are any.
+ *
+ * @param {boolean} force If true, the debug UI elements will be cleaned up even if DEBUG is false.
+ */
+function cleanupDebugUI(force = false) {
+  if (!DEBUG || force) {
+    document.querySelectorAll('.debug-ui').forEach(ui => ui.remove());
+  }
+}
 
 /**
  * @param {number} [delay=100] The delay in ms after which the Promise is resolved.

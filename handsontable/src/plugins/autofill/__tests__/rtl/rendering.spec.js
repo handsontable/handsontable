@@ -18,8 +18,8 @@ describe('AutoFill (RTL mode) borders rendering', () => {
         }
         #${id} {
           position: absolute;
-          top: 1000px;
-          left: -1000px;
+          top: 1500px;
+          left: -1500px;
         }
       `;
       document.head.appendChild(styleElement);
