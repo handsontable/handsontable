@@ -3,7 +3,6 @@ import {
   getScrollbarWidth,
   getScrollLeft,
   getMaximumScrollLeft,
-  getWindowScrollTop,
   hasClass,
   outerWidth,
   removeClass,
@@ -93,25 +92,28 @@ export class InlineStartOverlay extends Overlay {
    */
   setScrollPosition(pos) {
     const { rootWindow } = this.domBindings;
-    let result = false;
+    const scrollableElement = this.mainTableScrollableElement;
+    const getScrollPosition = () => {
+      return scrollableElement === rootWindow ? rootWindow.scrollX : scrollableElement.scrollLeft;
+    };
+    const setScrollPosition = (newPosition) => {
+      if (scrollableElement === rootWindow) {
+        rootWindow.scrollTo(newPosition, rootWindow.scrollY);
+      } else {
+        scrollableElement.scrollLeft = newPosition;
+      }
+    };
 
     if (this.isRtl()) {
       pos = -pos;
     }
 
-    const scrollableElement = this.mainTableScrollableElement;
+    const oldScrollPosition = getScrollPosition();
+    let result = false;
 
-    if (scrollableElement === rootWindow && pos !== rootWindow.scrollX) {
-      const oldScrollX = rootWindow.scrollX;
-
-      rootWindow.scrollTo(pos, getWindowScrollTop(rootWindow));
-      result = oldScrollX !== rootWindow.scrollX;
-
-    } else if (pos !== scrollableElement.scrollLeft) {
-      const oldScrollLeft = scrollableElement.scrollLeft;
-
-      scrollableElement.scrollLeft = pos;
-      result = oldScrollLeft !== scrollableElement.scrollLeft;
+    if (pos !== oldScrollPosition) {
+      setScrollPosition(pos);
+      result = oldScrollPosition !== getScrollPosition();
     }
 
     return result;

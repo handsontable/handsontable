@@ -4,7 +4,11 @@ import { offset, outerHeight, outerWidth } from '../../helpers/dom/element';
 import { isObject } from '../../helpers/object';
 import { arrayEach, arrayMap } from '../../helpers/array';
 import { isEmpty } from '../../helpers/mixed';
-import { getDragDirectionAndRange, DIRECTIONS, getMappedFillHandleSetting } from './utils';
+import {
+  getDragDirectionAndRange,
+  getCellCoordsFromMousePosition,
+} from './utils';
+import { DIRECTIONS } from './constants';
 
 Hooks.getSingleton().register('modifyAutofillRange');
 Hooks.getSingleton().register('beforeAutofill');
@@ -12,7 +16,7 @@ Hooks.getSingleton().register('afterAutofill');
 
 export const PLUGIN_KEY = 'autofill';
 export const PLUGIN_PRIORITY = 20;
-const SETTING_KEYS = ['fillHandle'];
+const SETTING_KEY = 'fillHandle';
 const INSERT_ROW_ALTER_ACTION_NAME = 'insert_row_below';
 const INTERVAL_FOR_ADDING_ROW = 200;
 
@@ -42,9 +46,26 @@ export class Autofill extends BasePlugin {
 
   static get SETTING_KEYS() {
     return [
-      PLUGIN_KEY,
-      ...SETTING_KEYS
+      SETTING_KEY,
     ];
+  }
+
+  static get PLUGIN_OPTION_KEY() {
+    return SETTING_KEY;
+  }
+
+  static get DEFAULT_SETTINGS() {
+    return {
+      direction: undefined,
+      autoInsertRow: true,
+    };
+  }
+
+  static get SETTINGS_VALIDATORS() {
+    return {
+      direction: value => value === undefined || Object.values(DIRECTIONS).includes(value),
+      autoInsertRow: value => typeof value === 'boolean',
+    };
   }
 
   /**
@@ -89,6 +110,18 @@ export class Autofill extends BasePlugin {
    * @type {boolean}
    */
   autoInsertRow = false;
+  /**
+   * Specifies the current drag direction ('vertical', 'horizontal', or null).
+   *
+   * @type {string|null}
+   */
+  #currentDragDirection = null;
+  /**
+   * Last mouse client position.
+   *
+   * @type {{ clientX: number, clientY: number }}
+   */
+  #lastMouseClientPosition = { clientX: 0, clientY: 0 };
 
   /**
    * Checks if the plugin is enabled in the Handsontable settings.
@@ -96,7 +129,7 @@ export class Autofill extends BasePlugin {
    * @returns {boolean}
    */
   isEnabled() {
-    return this.hot.getSettings().fillHandle;
+    return this.hot.getSettings()[SETTING_KEY];
   }
 
   /**
@@ -107,12 +140,33 @@ export class Autofill extends BasePlugin {
       return;
     }
 
-    this.mapSettings();
+    const settings = this.hot.getSettings()[SETTING_KEY];
+    const pluginSettings = {};
+
+    if (typeof settings === 'string') {
+      pluginSettings.direction = settings;
+    }
+
+    this.updatePluginSettings(pluginSettings);
+
+    if (this.getSetting('direction')) {
+      this.directions = [this.getSetting('direction')];
+    } else {
+      this.directions = Object.values(DIRECTIONS);
+    }
+
+    this.autoInsertRow = this.getSetting('autoInsertRow');
+
+    if (this.directions.length === 1 && this.directions.includes('horizontal')) {
+      this.autoInsertRow = false;
+    }
+
     this.registerEvents();
 
     this.addHook('afterOnCellCornerMouseDown', event => this.#onAfterCellCornerMouseDown(event));
     this.addHook('afterOnCellCornerDblClick', event => this.#onCellCornerDblClick(event));
     this.addHook('beforeOnCellMouseOver', (_, coords) => this.#onBeforeCellMouseOver(coords));
+    this.addHook('afterScroll', () => this.#onAfterScroll());
 
     super.enablePlugin();
   }
@@ -134,7 +188,6 @@ export class Autofill extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    this.clearMappedSettings();
     super.disablePlugin();
   }
 
@@ -341,76 +394,6 @@ export class Autofill extends BasePlugin {
   }
 
   /**
-   * Reduces the selection area if the handle was dragged outside of the table or on headers.
-   *
-   * @private
-   * @param {CellCoords} coords Indexes of selection corners.
-   * @returns {CellCoords}
-   */
-  reduceSelectionAreaIfNeeded(coords) {
-    if (coords.row < 0) {
-      coords.row = 0;
-    }
-
-    if (coords.col < 0) {
-      coords.col = 0;
-    }
-
-    return coords;
-  }
-
-  /**
-   * Gets the coordinates of the drag & drop borders.
-   *
-   * @private
-   * @param {CellCoords} coordsOfSelection `CellCoords` coord object.
-   * @returns {CellCoords}
-   */
-  getCoordsOfDragAndDropBorders(coordsOfSelection) {
-    const currentSelection = this.hot.getSelectedRangeLast();
-    const bottomRightCorner = currentSelection.getBottomEndCorner();
-    let coords = coordsOfSelection;
-
-    if (this.directions.includes(DIRECTIONS.vertical) && this.directions.includes(DIRECTIONS.horizontal)) {
-      const topStartCorner = currentSelection.getTopStartCorner();
-
-      if (bottomRightCorner.col <= coordsOfSelection.col || topStartCorner.col >= coordsOfSelection.col) {
-        coords = this.hot._createCellCoords(bottomRightCorner.row, coordsOfSelection.col);
-      }
-
-      if (bottomRightCorner.row < coordsOfSelection.row || topStartCorner.row > coordsOfSelection.row) {
-        coords = this.hot._createCellCoords(coordsOfSelection.row, bottomRightCorner.col);
-      }
-
-    } else if (this.directions.includes(DIRECTIONS.vertical)) {
-      coords = this.hot._createCellCoords(coordsOfSelection.row, bottomRightCorner.col);
-
-    } else if (this.directions.includes(DIRECTIONS.horizontal)) {
-      coords = this.hot._createCellCoords(bottomRightCorner.row, coordsOfSelection.col);
-
-    } else {
-      // wrong direction
-      return;
-    }
-
-    return this.reduceSelectionAreaIfNeeded(coords);
-  }
-
-  /**
-   * Show the fill border.
-   *
-   * @private
-   * @param {CellCoords} coordsOfSelection `CellCoords` coord object.
-   */
-  showBorder(coordsOfSelection) {
-    const coordsOfDragAndDropBorders = this.getCoordsOfDragAndDropBorders(coordsOfSelection);
-
-    if (coordsOfDragAndDropBorders) {
-      this.redrawBorders(coordsOfDragAndDropBorders);
-    }
-  }
-
-  /**
    * Add new row.
    *
    * @private
@@ -535,14 +518,62 @@ export class Autofill extends BasePlugin {
    * Redraws borders.
    *
    * @private
-   * @param {CellCoords} coords `CellCoords` coord object.
+   * @param {CellCoords} cellCoords `CellCoords` coord object.
    */
-  redrawBorders(coords) {
+  redrawBorders(cellCoords) {
+    const allowedDirections = this.directions;
+    const lastRange = this.hot.getSelectedRangeLast();
+    const highlight = lastRange.getBottomEndCorner();
+    const topStartCorner = lastRange.getTopStartCorner();
+    const bottomEndCorner = lastRange.getBottomEndCorner();
+
+    const rowChanged = cellCoords.row < topStartCorner.row || cellCoords.row > bottomEndCorner.row;
+    const colChanged = cellCoords.col < topStartCorner.col || cellCoords.col > bottomEndCorner.col;
+    const isAtHighlightPosition = lastRange.includes(cellCoords);
+
+    if (isAtHighlightPosition) {
+      this.#currentDragDirection = null;
+    }
+
+    if (this.#currentDragDirection === 'vertical' && !rowChanged && colChanged) {
+      if (allowedDirections.includes('horizontal')) {
+        this.#currentDragDirection = 'horizontal';
+      }
+
+    } else if (this.#currentDragDirection === 'horizontal' && !colChanged && rowChanged) {
+      if (allowedDirections.includes('vertical')) {
+        this.#currentDragDirection = 'vertical';
+      }
+    }
+
+    let toRow = highlight.row;
+    let toCol = highlight.col;
+
+    if (this.#currentDragDirection === null) {
+      if (rowChanged && !colChanged && allowedDirections.includes('vertical')) {
+        this.#currentDragDirection = 'vertical';
+
+      } else if (colChanged && !rowChanged && allowedDirections.includes('horizontal')) {
+        this.#currentDragDirection = 'horizontal';
+      }
+    }
+
+    if (this.#currentDragDirection === 'vertical' && allowedDirections.includes('vertical')) {
+      toRow = cellCoords.row;
+      toCol = topStartCorner.col;
+
+    } else if (this.#currentDragDirection === 'horizontal' && allowedDirections.includes('horizontal')) {
+      toRow = topStartCorner.row;
+      toCol = cellCoords.col;
+    }
+
+    const to = this.hot._createCellCoords(toRow, toCol);
+
     this.hot.selection.highlight.getFill()
       .clear()
-      .add(this.hot.getSelectedRangeLast().from)
-      .add(this.hot.getSelectedRangeLast().to)
-      .add(coords)
+      .add(lastRange.from)
+      .add(lastRange.to)
+      .add(to)
       .commit();
 
     this.hot.view.render();
@@ -639,18 +670,16 @@ export class Autofill extends BasePlugin {
   #onAfterCellCornerMouseDown() {
     this.handleDraggedCells = 1;
     this.mouseDownOnCellCorner = true;
+    this.#currentDragDirection = null;
   }
 
   /**
    * On before cell mouse over listener.
-   *
-   * @param {CellCoords} coords `CellCoords` coord object.
    */
-  #onBeforeCellMouseOver(coords) {
+  #onBeforeCellMouseOver() {
     if (this.mouseDownOnCellCorner && !this.hot.view.isMouseDown() && this.handleDraggedCells) {
       this.handleDraggedCells += 1;
 
-      this.showBorder(coords);
       this.addNewRowIfNeeded();
     }
   }
@@ -666,6 +695,7 @@ export class Autofill extends BasePlugin {
 
       this.handleDraggedCells = 0;
       this.mouseDownOnCellCorner = false;
+      this.#currentDragDirection = null;
     }
   }
 
@@ -675,6 +705,15 @@ export class Autofill extends BasePlugin {
    * @param {MouseEvent} event `mousemove` event properties.
    */
   #onMouseMove(event) {
+    if (this.mouseDownOnCellCorner) {
+      const { clientX, clientY } = event;
+      const cellCoords = getCellCoordsFromMousePosition(this.hot, clientX, clientY);
+
+      this.#lastMouseClientPosition = { clientX, clientY };
+
+      this.redrawBorders(cellCoords);
+    }
+
     const mouseWasDraggedOutside = this.getIfMouseWasDraggedOutside(event);
 
     if (this.addingStarted === false && this.handleDraggedCells > 0 && mouseWasDraggedOutside) {
@@ -691,25 +730,12 @@ export class Autofill extends BasePlugin {
   }
 
   /**
-   * Clears mapped settings.
-   *
-   * @private
+   * Refreshes the autofill borders using the last mouse client position after scroll.
    */
-  clearMappedSettings() {
-    this.directions.length = 0;
-    this.autoInsertRow = false;
-  }
-
-  /**
-   * Map settings.
-   *
-   * @private
-   */
-  mapSettings() {
-    const mappedSettings = getMappedFillHandleSetting(this.hot.getSettings().fillHandle);
-
-    this.directions = mappedSettings.directions;
-    this.autoInsertRow = mappedSettings.autoInsertRow;
+  #onAfterScroll() {
+    if (this.mouseDownOnCellCorner) {
+      this.#onMouseMove(this.#lastMouseClientPosition);
+    }
   }
 
   /**

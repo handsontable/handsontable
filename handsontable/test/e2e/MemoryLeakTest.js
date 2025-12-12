@@ -16,7 +16,11 @@ describe('MemoryLeakTest', () => {
     let leftoverNodesCount = 0;
 
     Array.from(document.body.children).forEach((child) => {
-      if (child.nodeName !== 'SCRIPT' && !child.className.includes('jasmine')) {
+      if (
+        child.nodeName !== 'SCRIPT' &&
+        !child.className.includes('jasmine') &&
+        !child.className.includes('debug-ui')
+      ) {
         leftoverNodesCount += 1;
       }
     });

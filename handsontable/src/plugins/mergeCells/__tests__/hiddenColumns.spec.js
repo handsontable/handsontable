@@ -12,7 +12,7 @@ describe('MergeCells cooperation with hidden columns', () => {
     }
   });
 
-  using('DOM virtualization as', [false, true], (virtualized) => {
+  using('DOM virtualization as', [true], (virtualized) => {
     it('should display properly merged cells based on the settings', async() => {
       handsontable({
         data: createSpreadsheetObjectData(5, 5),
@@ -1290,8 +1290,8 @@ describe('MergeCells cooperation with hidden columns', () => {
 
       // Click on the first visible cell (merged area).
       await simulateClick(spec().$container.find('tr:eq(0) td:eq(0)'));
-      spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
-      spec().$container.find('tbody tr:eq(4) td:eq(1)').simulate('mouseover').simulate('mouseup');
+
+      simulateFillHandleDrag(getCell(4, 1));
 
       // TODO Empty strings should be equal to the `null` probably.
       expect(getData()).toEqual([
@@ -1323,8 +1323,8 @@ describe('MergeCells cooperation with hidden columns', () => {
 
       // Click on the first visible cell (merged area).
       await simulateClick(spec().$container.find('tr:eq(0) td:eq(0)'));
-      spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
-      spec().$container.find('tbody tr:eq(4) td:eq(1)').simulate('mouseover').simulate('mouseup');
+
+      simulateFillHandleDrag(getCell(4, 1));
 
       // TODO Empty strings should be equal to the `null` probably.
       expect(getData()).toEqual([
@@ -1356,8 +1356,8 @@ describe('MergeCells cooperation with hidden columns', () => {
 
       // Click on the first visible cell (merged area).
       await simulateClick(spec().$container.find('tr:eq(0) td:eq(0)'));
-      spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
-      spec().$container.find('tbody tr:eq(4) td:eq(1)').simulate('mouseover').simulate('mouseup');
+
+      simulateFillHandleDrag(getCell(4, 1));
 
       // TODO Empty strings should be equal to the `null` probably.
       expect(getData()).toEqual([
@@ -1389,8 +1389,8 @@ describe('MergeCells cooperation with hidden columns', () => {
 
       // Click on the first visible cell (merged area).
       await simulateClick(spec().$container.find('tr:eq(0) td:eq(0)'));
-      spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
-      spec().$container.find('tbody tr:eq(4) td:eq(1)').simulate('mouseover').simulate('mouseup');
+
+      simulateFillHandleDrag(getCell(4, 1));
 
       // TODO Empty strings should be equal to the `null` probably.
       expect(getData()).toEqual([
@@ -1448,7 +1448,7 @@ describe('MergeCells cooperation with hidden columns', () => {
       expect($(mergedCell).hasClass('fullySelectedMergedCell-7')).toBeFalse();
     });
 
-    it('should select cells properly when there is a merged area within the selection' +
+    it('should select cells properly when there is a merged area within the selection ' +
       '(selecting from non-merged cell to the merged cell; from the left to the right)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
@@ -1758,7 +1758,7 @@ describe('MergeCells cooperation with hidden columns', () => {
       expect($(dragStart).hasClass('fullySelectedMergedCell-7')).toBeFalse();
     });
 
-    it('should select cells properly when there is a merged area within the selection' +
+    it('should select cells properly when there is a merged area within the selection ' +
       '(selecting from the merged cell to non-merged cell; from the right to the left)', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),

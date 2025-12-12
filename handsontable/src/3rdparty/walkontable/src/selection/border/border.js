@@ -312,20 +312,29 @@ class Border {
   }
 
   /**
+   * Checks if the given coordinates are south-east of the area selection. If `true` then
+   * the fill handler should be visible.
+   *
    * @param {number} row The visual row index.
    * @param {number} col The visual column index.
    * @returns {boolean}
    */
-  isPartRange(row, col) {
+  isSouthEastOfAreaSelection(row, col) {
     const areaSelection = this.wot.selectionManager.getAreaSelection();
 
-    if (areaSelection.cellRange) {
-      if (row !== areaSelection.cellRange.to.row || col !== areaSelection.cellRange.to.col) {
-        return true;
-      }
+    if (!areaSelection) {
+      return false;
     }
 
-    return false;
+    // If the area selection is empty, that means only one cell is selected.
+    // In this case, the fill handler should be visible.
+    if (!areaSelection.cellRange) {
+      return true;
+    }
+
+    const bottomEndCorner = areaSelection.cellRange.getBottomEndCorner();
+
+    return bottomEndCorner.row === row && bottomEndCorner.col === col;
   }
 
   /**
@@ -386,12 +395,12 @@ class Border {
       topStyles.display = 'block';
       topHitAreaStyles.display = 'block';
 
-      if (this.isPartRange(row, col)) {
-        bottomStyles.display = 'none';
-        bottomHitAreaStyles.display = 'none';
-      } else {
+      if (this.isSouthEastOfAreaSelection(row, col)) {
         bottomStyles.display = 'block';
         bottomHitAreaStyles.display = 'block';
+      } else {
+        bottomStyles.display = 'none';
+        bottomHitAreaStyles.display = 'none';
       }
     } else {
       topStyles.display = 'none';
@@ -574,7 +583,7 @@ class Border {
       [,, checkRow, checkCol] = hookResult;
     }
 
-    if (isMobileBrowser() || !cornerVisibleSetting || this.isPartRange(checkRow, checkCol)) {
+    if (isMobileBrowser() || !cornerVisibleSetting || !this.isSouthEastOfAreaSelection(checkRow, checkCol)) {
       this.cornerStyle.display = 'none';
 
     } else {
