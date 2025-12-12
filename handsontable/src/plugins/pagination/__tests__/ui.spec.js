@@ -203,16 +203,17 @@ describe('Pagination UI', () => {
     });
 
     const height = (getDefaultRowHeight() * 10) + 1;
+    const borderCompensation = spec().loadedTheme === 'classic' ? 1 : 0;
 
-    expect(hot().rootElement.offsetHeight).toBe(height - (spec().loadedTheme === 'classic' ? 1 : 0));
+    expect(hot().rootElement.offsetHeight).toBe(height - borderCompensation);
 
     getPlugin('pagination').setPage(2);
 
-    expect(hot().rootElement.offsetHeight).toBe(height);
+    expect(hot().rootElement.offsetHeight).toBe(height - borderCompensation);
 
     getPlugin('pagination').setPage(3);
 
-    expect(hot().rootElement.offsetHeight).toBe(height);
+    expect(hot().rootElement.offsetHeight).toBe(height - borderCompensation);
   });
 
   it('should adjust the table height to fit the pagination container in declared height (all sections are visible)', async() => {

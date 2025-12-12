@@ -123,7 +123,9 @@ const HotTableInner = forwardRef<
       }
     );
 
-    newSettings.columns = context.columnsSettings.length ? context.columnsSettings : newSettings.columns;
+    if (context.columnsSettings.length) {
+      newSettings.columns = context.columnsSettings;
+    }
 
     if (props.renderer) {
       newSettings.renderer = context.getRendererWrapper(props.renderer);

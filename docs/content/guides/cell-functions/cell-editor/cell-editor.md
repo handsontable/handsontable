@@ -221,6 +221,12 @@ When editor is prepared the [`EditorManager`](@/api/baseEditor.md) waits for use
 
 If any of those events is triggered, [`EditorManager`](@/api/baseEditor.md) calls editor's [`beginEditing()`](@/api/baseEditor.md#beginediting) method, which should display the editor.
 
+::: tip
+
+**IME support:** When using languages that require IME (Input Method Editor), such as Chinese, Japanese, or Korean, the editor opens through the standard edit mode (pressing Enter, F2, or double-clicking). To enable immediate typing into a selected cell without explicitly opening the editor, enable the [`imeFastEdit`](@/api/options.md#imefastedit) option. For more information, see the [IME support](@/guides/internationalization/ime-support/ime-support.md) guide.
+
+:::
+
 ##### Close editor
 
 When editor is opened the [`EditorManager`](@/api/baseEditor.md) waits for user event that should end cell edition. Those events are:
@@ -401,7 +407,8 @@ CustomEditor.prototype.beginEditing = function () {};
 const CustomTextEditor = Handsontable.editors.TextEditor.prototype.extend();
 
 // CustomTextEditor uses all methods implemented by TextEditor.
-// You can safely override any method without affecting original TextEditor.
+// You can safely override any method without affecting original
+// TextEditor.
 ```
 
 **Note:** This is an utility method not related to the process of editing cell.
@@ -565,7 +572,8 @@ const hot = new Handsontable(container, {
     {
       editor: PasswordEditor,
       // If you want to use string 'password' instead of passing
-      // the actual editor class check out section "Registering editor"
+      // the actual editor class check out section "Registering
+      // editor"
     },
   ],
 });
@@ -584,7 +592,8 @@ const hot = new Handsontable(container, {
     {
       editor: PasswordEditor,
       // If you want to use string 'password' instead of passing
-      // the actual editor class check out section "Registering editor"
+      // the actual editor class check out section "Registering
+      // editor"
     },
   ]}
 />
@@ -671,12 +680,14 @@ class SelectEditor extends Handsontable.editors.BaseEditor {
    * Initializes editor instance, DOM Element and mount hooks.
    */
   init() {
-    // Create detached node, add CSS class and make sure its not visible
+    // Create detached node, add CSS class and make sure its not
+    // visible
     this.select = this.hot.rootDocument.createElement("SELECT");
     this.select.classList.add("htSelectEditor");
     this.select.style.display = "none";
 
-    // Attach node to DOM, by appending it to the container holding the table
+    // Attach node to DOM, by appending it to the container holding
+    // the table
     this.hot.rootElement.appendChild(this.select);
   }
 }
@@ -1275,6 +1286,7 @@ From now on, you can use `CustomEditor` like so:
 - Configuration options:
   - [`editor`](@/api/options.md#editor)
   - [`enterBeginsEditing`](@/api/options.md#enterbeginsediting)
+  - [`imeFastEdit`](@/api/options.md#imefastedit)
 - Core methods:
   - [`destroyEditor()`](@/api/core.md#destroyeditor)
   - [`getActiveEditor()`](@/api/core.md#getactiveeditor)

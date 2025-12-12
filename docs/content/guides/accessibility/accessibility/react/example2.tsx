@@ -552,7 +552,7 @@ const ExampleComponent = () => {
         {/* Define HotColumns for the data */}
         <HotColumn data="companyName" type="text" />
         <HotColumn data="productName" type="text" />
-        <HotColumn data="sellDate" dateFormat="DD/MM/YYYY" correctFormat type="date" allowInvalid={false} />
+        <HotColumn data="sellDate" dateFormat="DD/MM/YYYY" correctFormat type="date" />
         <HotColumn data="inStock" type="checkbox" className="htCenter" headerClassName="htCenter" />
         <HotColumn data="qty" type="numeric" headerClassName="htRight" />
         <HotColumn data="orderId" type="text" />

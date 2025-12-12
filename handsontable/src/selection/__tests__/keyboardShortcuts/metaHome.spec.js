@@ -251,5 +251,17 @@ describe('Selection navigation', () => {
         });
       });
     });
+
+    it('should do nothing when no selection is present', async() => {
+      handsontable({
+        startRows: 5,
+        startCols: 5
+      });
+
+      await listen();
+      await keyDownUp(['control/meta', 'home']);
+
+      expect(getSelectedRange()).toBeUndefined();
+    });
   });
 });

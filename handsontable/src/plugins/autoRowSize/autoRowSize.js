@@ -537,7 +537,7 @@ export class AutoRowSize extends BasePlugin {
    * @param {number} [defaultHeight] If no height is found, `defaultHeight` is returned instead.
    * @returns {number} The height of the specified row, in pixels.
    */
-  getRowHeight(row, defaultHeight = this.hot.stylesHandler.getDefaultRowHeight()) {
+  getRowHeight(row, defaultHeight = this.hot.stylesHandler.getDefaultRowHeight(row)) {
     if (row < 0) {
       return this.headerHeight ?? defaultHeight;
     }
@@ -553,6 +553,14 @@ export class AutoRowSize extends BasePlugin {
 
     if (cachedHeight !== null && cachedHeight > defaultHeight) {
       height = cachedHeight;
+
+      if (
+        !this.hot.stylesHandler.isClassicTheme() &&
+        row === this.hot.view.getFirstRenderedVisibleRow()
+      ) {
+        // add 1px border-top-width compensation for the first rendered row
+        height += 1;
+      }
     }
 
     return height;

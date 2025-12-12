@@ -150,7 +150,6 @@ Each cell type module contains a different cell type:
     } from 'handsontable/cellTypes';
     ```
 3. Register your cell type module, to let Handsontable recognize it. For example:
-
     ```js
     registerCellType(NumericCellType);
     ```
@@ -252,8 +251,8 @@ registerCellType(NumericCellType);
 @Component({
   standalone: true,
   imports: [HotTableModule],
-  template: ` <div>
-    <hot-table themeName="ht-theme-main" [settings]="gridSettings" />
+  template: `<div>
+    <hot-table [settings]="gridSettings" />
   </div>`,
 })
 export class ExampleComponent {
@@ -261,6 +260,7 @@ export class ExampleComponent {
   readonly hotTable!: HotTableComponent;
 
   readonly gridSettings = <GridSettings>{
+    themeName: "ht-theme-main",
     columns: [
       {
         type: "numeric",
@@ -367,8 +367,8 @@ registerValidator(numericValidator);
 @Component({
   standalone: true,
   imports: [HotTableModule],
-  template: ` <div>
-    <hot-table themeName="ht-theme-main" [settings]="gridSettings" />
+  template: `<div>
+    <hot-table [settings]="gridSettings" />
   </div>`,
 })
 export class ExampleComponent {
@@ -376,13 +376,13 @@ export class ExampleComponent {
   readonly hotTable!: HotTableComponent;
 
   readonly gridSettings = <GridSettings>{
+    themeName: "ht-theme-main",
     columns: [
       {
         renderer: "numeric",
         editor: "numeric",
         validator: "numeric",
         dataType: "number",
-        type: "numeric",
       },
     ],
   };
@@ -748,7 +748,8 @@ import {
   zhTW,
 } from 'handsontable/i18n';
 
-// registering functions that let you quickly register all modules at once
+// registering functions that let you quickly register all modules at
+// once
 import {
   registerAllCellTypes,
   registerAllRenderers,

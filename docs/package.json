@@ -79,7 +79,7 @@
     "inquirer": "^8.1.1",
     "jsdoc-to-markdown": "^7.0.1",
     "prettier": "^2.8.8",
-    "puppeteer": "^23.5.3",
+    "puppeteer": "^24.2.1",
     "replace-in-files": "^3.0.0",
     "rimraf": "^3.0.2",
     "semver": "^5.7.1",

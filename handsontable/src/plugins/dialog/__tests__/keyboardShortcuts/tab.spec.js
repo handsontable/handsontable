@@ -133,5 +133,84 @@ describe('Dialog keyboard shortcut', () => {
       expect(getShortcutManager().getActiveContextName()).toBe('plugin:dialog');
       expect(document.activeElement).toBe(bottomInput[0]);
     });
+
+    it('should move the focus through the `confirm` modal type (no buttons)', async() => {
+      const { topInput, bottomInput } = createTestInputs();
+
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        dialog: {
+          template: {
+            type: 'confirm',
+            title: 'Confirm',
+            description: 'This is a confirm',
+          },
+        },
+      });
+
+      getPlugin('dialog').show();
+
+      await keyDownUp('tab');
+
+      expect(getShortcutManager().getActiveContextName()).toBe('plugin:dialog');
+      expect(document.activeElement).toBe(topInput[0]);
+
+      await keyDownUp('tab');
+
+      expect(getShortcutManager().getActiveContextName()).toBe('plugin:dialog');
+      expect(document.activeElement).toBe(getDialogInnerWrapperElement());
+
+      await keyDownUp('tab');
+
+      expect(getShortcutManager().getActiveContextName()).toBe('plugin:dialog');
+      expect(document.activeElement).toBe(bottomInput[0]);
+    });
+
+    it('should move the focus through the `confirm` modal type (with buttons)', async() => {
+      const { topInput, bottomInput } = createTestInputs();
+
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        dialog: {
+          template: {
+            type: 'confirm',
+            title: 'Confirm',
+            description: 'This is a confirm',
+            buttons: [
+              {
+                text: 'OK',
+                type: 'primary',
+              },
+              {
+                text: 'Cancel',
+                type: 'secondary',
+              },
+            ],
+          },
+        },
+      });
+
+      getPlugin('dialog').show();
+
+      await keyDownUp('tab');
+
+      expect(getShortcutManager().getActiveContextName()).toBe('plugin:dialog');
+      expect(document.activeElement).toBe(topInput[0]);
+
+      await keyDownUp('tab');
+
+      expect(getShortcutManager().getActiveContextName()).toBe('plugin:dialog');
+      expect(document.activeElement).toBe(getDialogPrimaryButtonElement());
+
+      await keyDownUp('tab');
+
+      expect(getShortcutManager().getActiveContextName()).toBe('plugin:dialog');
+      expect(document.activeElement).toBe(getDialogSecondaryButtonElement());
+
+      await keyDownUp('tab');
+
+      expect(getShortcutManager().getActiveContextName()).toBe('plugin:dialog');
+      expect(document.activeElement).toBe(bottomInput[0]);
+    });
   });
 });

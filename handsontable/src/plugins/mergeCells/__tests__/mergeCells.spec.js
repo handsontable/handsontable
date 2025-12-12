@@ -1611,13 +1611,13 @@ describe('MergeCells', () => {
 
     expect(getTopInlineStartClone().height()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(111);
-      main.toBe(129);
-      horizon.toBe(153);
+      main.toBe(128);
+      horizon.toBe(152);
     });
     expect(getTopClone().height()).forThemes(({ classic, main, horizon }) => {
       classic.toBe(111);
-      main.toBe(129);
-      horizon.toBe(153);
+      main.toBe(128);
+      horizon.toBe(152);
     });
     expect(getInlineStartClone().height()).toBe(400);
   });
@@ -1731,7 +1731,11 @@ describe('MergeCells', () => {
       mergeCells: [{ row: 0, col: 0, rowspan: 6, colspan: 1 }],
     });
 
-    expect(getCell(0, 0).offsetHeight).toBe(301);
+    expect(getCell(0, 0).offsetHeight).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(301);
+      main.toBe(300);
+      horizon.toBe(300);
+    });
   });
 
   it('should correctly calculate the height of the merged cell for custom defined height (the second column as merged cell)', async() => {
@@ -1772,7 +1776,16 @@ describe('MergeCells', () => {
       mergeCells: [{ row: 0, col: 0, rowspan: 4, colspan: 1 }],
     });
 
-    expect(getCell(0, 0).offsetHeight).toBe(201);
+    expect(getCell(0, 0).offsetHeight).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(201);
+      main.toBe(200);
+      horizon.toBe(200);
+    });
+    expect(getCell(0, 1).offsetHeight).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(51);
+      main.toBe(50);
+      horizon.toBe(50);
+    });
     expect(getCell(0, 1).offsetHeight).forThemes(({ classic, main, horizon }) => {
       classic.toBe(51);
       main.toBe(50);
@@ -1791,7 +1804,11 @@ describe('MergeCells', () => {
       mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 1 }],
     });
 
-    expect(getCell(0, 0).offsetHeight).toBe(261);
+    expect(getCell(0, 0).offsetHeight).forThemes(({ classic, main, horizon }) => {
+      classic.toBe(261);
+      main.toBe(260);
+      horizon.toBe(260);
+    });
     expect(getCell(0, 1).offsetHeight).forThemes(({ classic, main, horizon }) => {
       classic.toBe(81);
       main.toBe(80);
@@ -1799,8 +1816,8 @@ describe('MergeCells', () => {
     });
     expect(getCell(1, 1).offsetHeight).forThemes(({ classic, main, horizon }) => {
       classic.toBe(180);
-      main.toBe(181);
-      horizon.toBe(181);
+      main.toBe(180);
+      horizon.toBe(180);
     });
     expect(getCell(2, 1).offsetHeight).toBe(60);
   });

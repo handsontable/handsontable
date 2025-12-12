@@ -48,6 +48,7 @@ const integrateWithVue3Items = [
   { path: 'guides/integrate-with-vue3/vue3-language-change-example/vue3-language-change-example' },
   { path: 'guides/integrate-with-vue3/vue3-vuex-example/vue3-vuex-example' },
   { path: 'guides/integrate-with-vue3/vue3-hot-reference/vue3-hot-reference' },
+  { path: 'guides/integrate-with-vue3/vue3-formulas-example/vue3-formulas-example' },
 ];
 
 const columnsItems = [
@@ -131,6 +132,7 @@ const accessoriesAndMenusItems = [
   { path: 'guides/accessories-and-menus/undo-redo/undo-redo' },
   { path: 'guides/accessories-and-menus/icon-pack/icon-pack' },
   { path: 'guides/accessories-and-menus/export-to-csv/export-to-csv' },
+  { path: 'guides/accessories-and-menus/empty-data-state/empty-data-state' },
   // TODO { path: 'guides/accessories-and-menus/export-to-excel/export-to-excel' },
 ];
 

@@ -124,7 +124,7 @@ describe('Updating the Handsontable settings', () => {
   });
 
   it('should throw an error when trying to update init-only settings after inializing the component', async () => {
-    console.error = jasmine.createSpy('error');
+    console.error = jest.fn();
 
     let updateState = null;
 
@@ -159,7 +159,7 @@ describe('Updating the Handsontable settings', () => {
 
   it('should NOT throw an error when trying to update settings after inializing the component if the other settings' +
   'contain init-only entries', async () => {
-    console.error = jasmine.createSpy('error');
+    console.error = jest.fn();
 
     let updateState = null;
 
@@ -192,7 +192,7 @@ describe('Updating the Handsontable settings', () => {
   });
 
   it('should NOT throw an error when definiting init-only settings, without updating them afterwards', async () => {
-    console.error = jasmine.createSpy('error');
+    console.error = jest.fn();
 
     function ExampleComponent() {
       return (
@@ -357,7 +357,7 @@ describe('Renderer configuration using React components', () => {
   });
 
   it('should issue a warning when the renderer component is nested under HotTable and assigned the \'hot-renderer\' attribute', async () => {
-    console.warn = jasmine.createSpy('warn');
+    console.warn = jest.fn();
 
     const hotInstance = mountComponentWithRef<HotTableRef>((
       <HotTable licenseKey="non-commercial-and-evaluation"
@@ -641,7 +641,7 @@ describe('Editor configuration using React components', () => {
   });
 
   it('should issue a warning when the editor component is nested under HotTable and assigned the \'hot-editor\' attribute', async () => {
-    console.warn = jasmine.createSpy('warn');
+    console.warn = jest.fn();
 
     mountComponentWithRef((
         <HotTable licenseKey="non-commercial-and-evaluation"
@@ -667,7 +667,7 @@ describe('Editor configuration using React components', () => {
 
 describe('Passing children', () => {
   it('should not issue a warning when only HotColumn components are nested under HotTable', async () => {
-    console.warn = jasmine.createSpy('warn');
+    console.warn = jest.fn();
 
     mountComponentWithRef((
         <HotTable licenseKey="non-commercial-and-evaluation"
@@ -689,7 +689,7 @@ describe('Passing children', () => {
   });
 
   it('should issue a warning when the unknown component is nested under HotTable', async () => {
-    console.warn = jasmine.createSpy('warn');
+    console.warn = jest.fn();
 
     mountComponentWithRef((
         <HotTable licenseKey="non-commercial-and-evaluation"

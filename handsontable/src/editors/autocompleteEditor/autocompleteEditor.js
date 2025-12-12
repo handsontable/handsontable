@@ -11,7 +11,7 @@ import {
   setAttribute,
   setCaretPosition,
 } from '../../helpers/dom/element';
-import { isDefined, stringify } from '../../helpers/mixed';
+import { isUndefined, isDefined, stringify } from '../../helpers/mixed';
 import { stripTags } from '../../helpers/string';
 import { KEY_CODES, isPrintableChar } from '../../helpers/unicode';
 import { textRenderer } from '../../renderers/textRenderer';
@@ -268,8 +268,14 @@ export class AutocompleteEditor extends HandsontableEditor {
     if (this.isOpened()) {
       const lastSelectedRange = this.hot.getSelectedRangeActive();
 
-      if (lastSelectedRange && !lastSelectedRange.includes(this.hot._createCellCoords(this.row, this.col))) {
-        // Method was triggered by selecting a different cell.
+      if (
+        isUndefined(lastSelectedRange) ||
+        (
+          isDefined(lastSelectedRange) &&
+          !lastSelectedRange.includes(this.hot._createCellCoords(this.row, this.col))
+        )
+      ) {
+        // Method was triggered by selecting a different cell or deselecting cells.
         restoreOriginalValue = true;
       }
     }
@@ -305,7 +311,6 @@ export class AutocompleteEditor extends HandsontableEditor {
   /**
    * Updates list of the possible completions to choose.
    *
-   * @private
    * @param {Array} choicesList The choices list to process.
    */
   updateChoicesList(choicesList) {

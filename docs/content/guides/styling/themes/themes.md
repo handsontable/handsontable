@@ -27,6 +27,7 @@ angular:
   metaTitle: Themes - Angular Data Grid | Handsontable
 searchCategory: Guides
 category: Styling
+menuTag: updated
 ---
 
 # Themes
@@ -90,7 +91,30 @@ Each theme comes with three modes:
 
 The light and dark modes ignore the parent container's color scheme and remain either light or dark regardless the `prefers-color-scheme` media query value. The auto-dark mode automatically follow the preferred color of the parent container.
 
-Here's a summary of each available theme, mode, and their corresponding file names.
+## Available CSS files
+
+Handsontable provides CSS files needed to style your data grid. Here's an overview of what's available:
+
+### Base CSS file
+
+- **`handsontable.css`** / **`handsontable.min.css`** - The base stylesheet containing all structural styles, layout rules, and core functionality. This file is required and must be loaded before any theme file. It includes border styles, cell rendering rules, and other fundamental grid components.
+
+### Theme files
+
+All themes are available in two variants:
+
+- **`ht-theme-{name}.css`** / **`ht-theme-{name}.min.css`** - Complete theme with icons included (where `{name}` is `main`, `horizon`, or `classic`).
+- **`ht-theme-{name}-no-icons.css`** / **`ht-theme-{name}-no-icons.min.css`** - Theme without icon styles.
+
+### Icon files
+
+If you're using a theme without icons (`*-no-icons.css`), you can optionally load separate icon files:
+
+- **`ht-icons-{name}.css`** / **`ht-icons-{name}.min.css`** - Icon styles for the theme (where `{name}` is `main` or `horizon`).
+
+### Recommended usage
+
+For production, use the minified versions (`.min.css`) to reduce file size and improve load times. For development, you may prefer the unminified versions (`.css`) for easier debugging.
 
 ## Use a theme
 

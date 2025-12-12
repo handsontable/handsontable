@@ -30,7 +30,7 @@ module.exports = {
       }
     },
     {
-      files: ['SvgFrameworkIcons.vue', 'Navbar.vue'],
+      files: ['SvgFrameworkIcons.vue', 'Navbar.vue', '.vuepress/3rdparty-scripts.js'],
       rules: {
         'max-len': 'off'
       }

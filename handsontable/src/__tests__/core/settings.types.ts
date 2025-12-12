@@ -177,6 +177,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   maxRows: 123,
   mergeCells: true,
   minCols: 123,
+  minRowHeights: oneOf(100, '100px', [100, 120, 90], (index: number) => index * 10),
   minRows: 123,
   minSpareCols: 123,
   minSpareRows: 123,
@@ -246,14 +247,26 @@ const allSettings: Required<Handsontable.GridSettings> = {
   uncheckedTemplate: oneOf(true, 'foo', 123),
   undo: true,
   dialog: oneOf(true, {
-    closable: true,
+    template: {
+      type: 'confirm' as const,
+      title: 'Confirm',
+      description: 'This is a confirm',
+      buttons: [
+        {
+          text: 'OK',
+          type: 'primary' as const,
+          callback: (event: MouseEvent) => {},
+        },
+      ],
+    },
     content: 'foo',
+    closable: true,
     customClassName: 'foo',
     animation: true,
     background: 'solid' as const,
     contentBackground: true,
     a11y: {
-      role: 'dialog',
+      role: 'dialog' as const,
       ariaLabel: 'Dialog',
       ariaLabelledby: '',
       ariaDescribedby: '',
@@ -263,6 +276,43 @@ const allSettings: Required<Handsontable.GridSettings> = {
     icon: '<svg />',
     title: 'Loading...',
     description: 'Loading...',
+  }),
+  emptyDataState: oneOf(true, {
+    message: 'No data available',
+  }, {
+    message: {
+      title: 'No data available',
+      description: 'There\'s nothing to display yet.',
+      buttons: [
+        {
+          text: 'Reset filters',
+          type: 'secondary' as const,
+          callback: () => {},
+        },
+      ],
+    },
+  }, {
+    message: (source: string) => {
+      switch (source) {
+        case 'filters':
+          return {
+            title: 'No data available',
+            description: 'There\'s nothing to display yet.',
+            buttons: [
+              {
+                text: 'Reset filters',
+                type: 'secondary' as const,
+                callback: () => {},
+              },
+            ],
+          };
+        default:
+          return {
+            title: 'No data available',
+            description: 'There\'s nothing to display yet.',
+          };
+      }
+    },
   }),
   validator: oneOf(
     (value: any, callback: (valid: boolean) => void) => callback(true),
@@ -325,6 +375,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterColumnMove: (columns, target) => {},
   afterColumnResize: (newSize, column, isDoubleClick) => {},
   afterColumnSequenceChange: (source) => {},
+  afterColumnSequenceCacheUpdate: (indexesChangesState) => {},
   afterColumnSort: (currentSortConfig, destinationSortConfigs) => {},
   afterColumnUnfreeze: (columnIndex, isFreezingPerformed) => {},
   beforeCompositionStart: (event) => {
@@ -354,6 +405,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterDropdownMenuDefaultOptions: (predefinedItems) => {},
   afterDropdownMenuHide: (instance) => {},
   afterDropdownMenuShow: (instance) => {},
+  afterEmptyDataStateShow: () => {},
+  afterEmptyDataStateHide: () => {},
   afterFilter: (conditionsStack) => conditionsStack[0].column,
   afterFormulasValuesUpdate: (changes) => {},
   afterGetCellMeta: (row, col, cellProperties) => {},
@@ -432,6 +485,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     orderChanged) => movedRows.forEach(row => row.toFixed(1) === finalIndex.toFixed(1)),
   afterRowResize: (newSize, row, isDoubleClick) => {},
   afterRowSequenceChange: (source) => {},
+  afterRowSequenceCacheUpdate: (indexesChangesState) => {},
   afterScrollHorizontally: () => {},
   afterScrollVertically: () => {},
   afterScroll: () => {},
@@ -513,6 +567,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeDrawBorders: (corners, borderClassName) => {},
   beforeDropdownMenuSetItems: (menuItems) => {},
   beforeDropdownMenuShow: (instance) => {},
+  beforeEmptyDataStateShow: () => {},
+  beforeEmptyDataStateHide: () => {},
   beforeFilter: (conditionsStack, previousConditionStack) => { conditionsStack[0].conditions[0].name === 'begins_with'; },
   beforeGetCellMeta: (row, col, cellProperties) => {},
   beforeHeightChange: (height) => {

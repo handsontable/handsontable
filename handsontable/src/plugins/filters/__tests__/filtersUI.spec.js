@@ -1316,8 +1316,7 @@ describe('Filters UI', () => {
       expect(getData().length).toBe(3);
     });
 
-    it.forTheme('classic')('Two conditionals chosen & unchecked value which won\'t be filtered ' +
-      'by conditions -> filter operation', async() => {
+    it('Two conditionals chosen & unchecked value which won\'t be filtered by conditions -> filter operation', async() => {
       handsontable({
         data: getDataForFilters(),
         columns: getColumnsForFilters(),
@@ -1344,134 +1343,10 @@ describe('Filters UI', () => {
 
       await keyUp('e');
 
-      let $multipleSelectElements = $(byValueMultipleSelect().element
-        .querySelectorAll('.htUIMultipleSelectHot td input'));
-
-      $multipleSelectElements.get(4).scrollIntoView();
-
-      $multipleSelectElements = $(byValueMultipleSelect().element.querySelectorAll('.htUIMultipleSelectHot td input'));
-      $multipleSelectElements.get(8).scrollIntoView();
-
-      $multipleSelectElements = $(byValueMultipleSelect().element.querySelectorAll('.htUIMultipleSelectHot td input'));
-      $multipleSelectElements.get(12).scrollIntoView();
-
-      $multipleSelectElements = $(byValueMultipleSelect().element.querySelectorAll('.htUIMultipleSelectHot td input'));
-      $multipleSelectElements.get(13).scrollIntoView();
-
-      $multipleSelectElements = $(byValueMultipleSelect().element.querySelectorAll('.htUIMultipleSelectHot td input'));
+      byValueMultipleSelect().getItemsBox().selectCell(23, 0);
 
       // Mathis Boone, 23th element
-      $multipleSelectElements.eq(9).simulate('click');
-
-      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
-
-      await sleep(10);
-
-      expect(getData().length).toBe(2);
-    });
-
-    it.forTheme('main')('Two conditionals chosen & unchecked value which won\'t be filtered ' +
-      'by conditions -> filter operation', async() => {
-      handsontable({
-        data: getDataForFilters(),
-        columns: getColumnsForFilters(),
-        dropdownMenu: true,
-        filters: true,
-        width: 500,
-        height: 300
-      });
-
-      await dropdownMenu(1);
-      await openDropdownByConditionMenu();
-      await selectDropdownByConditionMenuOption('Begins with');
-      await sleep(200);
-
-      document.activeElement.value = 'm';
-
-      await keyUp('m');
-      await openDropdownByConditionMenu('second');
-      await selectDropdownByConditionMenuOption('Ends with', 'second');
-      await sleep(200);
-
-      document.activeElement.value = 'e';
-
-      await keyUp('e');
-
-      let $multipleSelectElements = $(byValueMultipleSelect().element
-        .querySelectorAll('.htUIMultipleSelectHot td input'));
-
-      $multipleSelectElements.get(4).scrollIntoView();
-
-      $multipleSelectElements = $(byValueMultipleSelect().element.querySelectorAll('.htUIMultipleSelectHot td input'));
-      $multipleSelectElements.get(8).scrollIntoView();
-
-      $multipleSelectElements = $(byValueMultipleSelect().element.querySelectorAll('.htUIMultipleSelectHot td input'));
-      $multipleSelectElements.get(12).scrollIntoView();
-
-      $multipleSelectElements = $(byValueMultipleSelect().element.querySelectorAll('.htUIMultipleSelectHot td input'));
-      $multipleSelectElements.get(13).scrollIntoView();
-
-      $multipleSelectElements = $(byValueMultipleSelect().element.querySelectorAll('.htUIMultipleSelectHot td input'));
-
-      // Mathis Boone, 23th element
-      $multipleSelectElements.eq(9).simulate('click');
-
-      $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
-
-      await sleep(10);
-
-      expect(getData().length).toBe(2);
-    });
-
-    it.forTheme('horizon')('Two conditionals chosen & unchecked value which won\'t be filtered ' +
-      'by conditions -> filter operation', async() => {
-      handsontable({
-        data: getDataForFilters(),
-        columns: getColumnsForFilters(),
-        dropdownMenu: true,
-        filters: true,
-        width: 500,
-        height: 300
-      });
-
-      await dropdownMenu(1);
-      await openDropdownByConditionMenu();
-      await selectDropdownByConditionMenuOption('Begins with');
-      await sleep(200);
-
-      document.activeElement.value = 'm';
-
-      await keyUp('m');
-      await openDropdownByConditionMenu('second');
-      await selectDropdownByConditionMenuOption('Ends with', 'second');
-
-      await sleep(200);
-
-      document.activeElement.value = 'e';
-
-      await keyUp('e');
-
-      let $multipleSelectElements = $(byValueMultipleSelect().element
-        .querySelectorAll('.htUIMultipleSelectHot td input'));
-
-      $multipleSelectElements.get(3).scrollIntoView();
-
-      $multipleSelectElements = $(byValueMultipleSelect().element.querySelectorAll('.htUIMultipleSelectHot td input'));
-      $multipleSelectElements.get(6).scrollIntoView();
-
-      $multipleSelectElements = $(byValueMultipleSelect().element.querySelectorAll('.htUIMultipleSelectHot td input'));
-      $multipleSelectElements.get(9).scrollIntoView();
-
-      $multipleSelectElements = $(byValueMultipleSelect().element.querySelectorAll('.htUIMultipleSelectHot td input'));
-      $multipleSelectElements.get(10).scrollIntoView();
-
-      $multipleSelectElements = $(byValueMultipleSelect().element.querySelectorAll('.htUIMultipleSelectHot td input'));
-      $multipleSelectElements.get(13).scrollIntoView();
-
-      $multipleSelectElements = $(byValueMultipleSelect().element.querySelectorAll('.htUIMultipleSelectHot td input'));
-
-      // Mathis Boone, 23th element
-      $multipleSelectElements.eq(12).simulate('click');
+      await simulateClick(byValueBoxRootElement().querySelector('[aria-rowindex="24"] input'));
 
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
@@ -1963,5 +1838,41 @@ describe('Filters UI', () => {
 
     expect(byValueScrollableElement.scrollTop).toBe(100);
     expect(byValueScrollableElement.scrollLeft).toBe(100);
+  });
+
+  it('should return the focus to the grid after clicking "OK" button', async() => {
+    handsontable({
+      data: getDataForFilters(),
+      columns: getColumnsForFilters(),
+      filters: true,
+      dropdownMenu: true,
+      width: 500,
+      height: 300
+    });
+
+    await dropdownMenu(1);
+    await sleep(100);
+    await simulateClick(getFilterDropdownMenuOKButton());
+
+    expect(isListening()).toBe(true);
+    expect(getShortcutManager().getActiveContextName()).toBe('grid');
+  });
+
+  it('should return the focus to the grid after clicking "Cancel" button', async() => {
+    handsontable({
+      data: getDataForFilters(),
+      columns: getColumnsForFilters(),
+      filters: true,
+      dropdownMenu: true,
+      width: 500,
+      height: 300
+    });
+
+    await dropdownMenu(1);
+    await sleep(100);
+    await simulateClick(getFilterDropdownMenuCancelButton());
+
+    expect(isListening()).toBe(true);
+    expect(getShortcutManager().getActiveContextName()).toBe('grid');
   });
 });

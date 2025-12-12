@@ -191,14 +191,18 @@ You can configure the following options:
 ```js
 const configurationOptions = {
   columnSorting: {
-    // let the end user sort data by clicking on the column name (set by default)
+    // let the end user sort data by clicking on the column name (set
+    // by default)
     headerAction: true,
-    // don't sort empty cells – move rows that contain empty cells to the bottom (set by default)
+    // don't sort empty cells – move rows that contain empty cells to
+    // the bottom (set by default)
     sortEmptyCells: false,
-    // enable the sort order icon that appears next to the column name (set by default)
+    // enable the sort order icon that appears next to the column name
+    // (set by default)
     indicator: true,
 
-    // at initialization, sort data by the first column, in descending order
+    // at initialization, sort data by the first column, in descending
+    // order
     initialConfig: {
       column: 1,
       sortOrder: 'desc',
@@ -222,14 +226,18 @@ const configurationOptions = {
 ```jsx
 <HotTable
   columnSorting={{
-    // let the end user sort data by clicking on the column name (set by default)
+    // let the end user sort data by clicking on the column name (set
+    // by default)
     headerAction: true,
-    // don't sort empty cells – move rows that contain empty cells to the bottom (set by default)
+    // don't sort empty cells – move rows that contain empty cells to
+    // the bottom (set by default)
     sortEmptyCells: false,
-    // enable the sort order icon that appears next to the column name (set by default)
+    // enable the sort order icon that appears next to the column name
+    // (set by default)
     indicator: true,
 
-    // at initialization, sort data by the first column, in descending order
+    // at initialization, sort data by the first column, in descending
+    // order
     initialConfig: {
       column: 1,
       sortOrder: 'desc',
@@ -538,7 +546,8 @@ To set an initial sort order, use the [`initialConfig`](@/api/options.md#columns
 ```js
 const configurationOptions = {
   columnSorting: {
-    // at initialization, sort data by the first column, in ascending order
+    // at initialization, sort data by the first column, in ascending
+    // order
     initialConfig: {
       column: 0,
       sortOrder: 'asc', // for descending order, use `'desc'`
@@ -553,7 +562,8 @@ const configurationOptions = {
 ```jsx
 <HotTable
   columnSorting={{
-    // at initialization, sort data by the first column, in ascending order
+    // at initialization, sort data by the first column, in ascending
+    // order
     initialConfig: {
       column: 0,
       sortOrder: 'asc', // for descending order, use `'desc'`
@@ -594,12 +604,14 @@ const configurationOptions = {
   // enable sorting by multiple columns
   multiColumnSorting: {
     initialConfig: [
-      // at initialization, sort data by the first column, in ascending order
+      // at initialization, sort data by the first column, in
+      // ascending order
       {
         column: 0,
         sortOrder: 'asc',
       },
-      // at initialization, sort data by the second column, in descending order
+      // at initialization, sort data by the second column, in
+      // descending order
       {
         column: 1,
         sortOrder: 'desc',
@@ -617,12 +629,14 @@ const configurationOptions = {
   // enable sorting by multiple columns
   multiColumnSorting={{
     initialConfig: [
-      // at initialization, sort data by the first column, in ascending order
+      // at initialization, sort data by the first column, in
+      // ascending order
       {
         column: 0,
         sortOrder: 'asc',
       },
-      // at initialization, sort data by the second column, in descending order
+      // at initialization, sort data by the second column, in
+      // descending order
       {
         column: 1,
         sortOrder: 'desc',

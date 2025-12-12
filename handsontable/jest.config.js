@@ -12,6 +12,7 @@ module.exports = {
   testPathIgnorePatterns: [
     '<rootDir>/node_modules/'
   ],
+  testRunner: 'jest-jasmine2',
   moduleNameMapper: {
     '^handsontable(.*)$': '<rootDir>/src$1',
     '^walkontable(.*)$': '<rootDir>/src/3rdparty/walkontable/src$1',

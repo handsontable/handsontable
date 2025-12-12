@@ -7,6 +7,13 @@ const CLASSIC_THEME_DEFAULT_HEIGHT = 23;
  */
 export class StylesHandler {
   /**
+   * The instance of the Handsontable.
+   *
+   * @type {Core}
+   */
+  #hot;
+
+  /**
    * The name of the theme.
    *
    * @type {string|undefined}
@@ -67,11 +74,13 @@ export class StylesHandler {
    * Initializes a new instance of the `StylesHandler` class.
    *
    * @param {object} options The options for the `StylesHandler` instance.
+   * @param {Core} options.hot The instance of the Handsontable.
    * @param {HTMLElement} options.rootElement The root element of the instance.
    * @param {Document} options.rootDocument The root document of the instance.
    * @param {function(string)} options.onThemeChange The callback function to be called when the theme changes.
    */
-  constructor({ rootElement, rootDocument, onThemeChange = () => {} }) {
+  constructor({ hot, rootElement, rootDocument, onThemeChange = () => {} }) {
+    this.#hot = hot;
     this.#rootElement = rootElement;
     this.#rootDocument = rootDocument;
     this.#onThemeChange = onThemeChange;
@@ -125,20 +134,29 @@ export class StylesHandler {
   /**
    * Calculates the row height based on the current theme and CSS variables.
    *
+   * @param {number} [visualRowIndex] The visual row index.
    * @returns {number} The calculated row height.
    */
-  getDefaultRowHeight() {
+  getDefaultRowHeight(visualRowIndex) {
     if (this.#isClassicTheme) {
       return CLASSIC_THEME_DEFAULT_HEIGHT;
     }
 
-    const calculatedRowHeight = this.#calculateRowHeight();
+    const rowHeight = this.#calculateRowHeight();
 
-    if (!calculatedRowHeight) {
+    if (!rowHeight) {
       return CLASSIC_THEME_DEFAULT_HEIGHT;
     }
 
-    return calculatedRowHeight;
+    if (
+      visualRowIndex !== undefined &&
+      visualRowIndex === this.#hot.view.getFirstRenderedVisibleRow()
+    ) {
+      // add 1px border-top-width compensation for the first rendered row
+      return rowHeight + 1;
+    }
+
+    return rowHeight;
   }
 
   /**

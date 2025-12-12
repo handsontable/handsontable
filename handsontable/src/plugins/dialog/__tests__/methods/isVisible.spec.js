@@ -21,6 +21,7 @@ describe('Dialog - isVisible method', () => {
     const dialogPlugin = getPlugin('dialog');
 
     expect(dialogPlugin.isVisible()).toBe(false);
+    expect(getDialogContainerElement()).not.toBeVisible();
   });
 
   it('should return true when dialog is shown', async() => {
@@ -34,6 +35,7 @@ describe('Dialog - isVisible method', () => {
     dialogPlugin.show();
 
     expect(dialogPlugin.isVisible()).toBe(true);
+    expect(getDialogContainerElement()).toBeVisible();
   });
 
   it('should return false when dialog is hidden', async() => {
@@ -49,10 +51,12 @@ describe('Dialog - isVisible method', () => {
     dialogPlugin.show();
 
     expect(dialogPlugin.isVisible()).toBe(true);
+    expect(getDialogContainerElement()).toBeVisible();
 
     dialogPlugin.hide();
 
     expect(dialogPlugin.isVisible()).toBe(false);
+    expect(getDialogContainerElement()).not.toBeVisible();
   });
 
   it('should return false when plugin is disabled', async() => {
@@ -64,5 +68,6 @@ describe('Dialog - isVisible method', () => {
     const dialogPlugin = getPlugin('dialog');
 
     expect(dialogPlugin.isVisible()).toBe(false);
+    expect(getDialogContainerElement()).toBe(null);
   });
 });

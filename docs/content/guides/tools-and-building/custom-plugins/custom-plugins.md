@@ -107,7 +107,8 @@ export class CustomPlugin extends BasePlugin {
      */
     super(hotInstance);
 
-    // Initialize all your public properties in the class' constructor.
+    // Initialize all your public properties in the class'
+    // constructor.
     this.configuration = {
       enabled: false,
       msg: ''
@@ -174,11 +175,13 @@ export class CustomPlugin extends BasePlugin {
     // Get the plugin's configuration from the initialization object.
     this.configuration = this.getUnifiedConfig();
 
-    // Add all your plugin hooks here. It's a good idea to use arrow functions to keep the plugin as a context.
+    // Add all your plugin hooks here. It's a good idea to use arrow
+    // functions to keep the plugin as a context.
     this.addHook('afterChange', (changes, source) => this.onAfterChange(changes, source));
 
     // The `super` method sets the `this.enabled` property to `true`.
-    // It is a necessary step to update the plugin's settings properly.
+    // It is a necessary step to update the plugin's settings
+    // properly.
     super.enablePlugin();
   }
 
@@ -186,10 +189,12 @@ export class CustomPlugin extends BasePlugin {
    * The `disablePlugin` method disables the plugin.
    */
   disablePlugin() {
-    // Reset all of your plugin class properties to their default values here.
+    // Reset all of your plugin class properties to their default
+    // values here.
     this.configuration = null;
 
-    // The `BasePlugin.disablePlugin` method takes care of clearing the hook connections
+    // The `BasePlugin.disablePlugin` method takes care of clearing
+    // the hook connections
     // and assigning the 'false' value to the 'this.enabled' property.
     super.disablePlugin();
   }
@@ -204,11 +209,14 @@ export class CustomPlugin extends BasePlugin {
    * after updating the Handsontable instance settings.
    */
   updatePlugin() {
-    // The `updatePlugin` method needs to contain all the code needed to properly re-enable the plugin.
-    // In most cases simply disabling and enabling the plugin should do the trick.
+    // The `updatePlugin` method needs to contain all the code needed
+    // to properly re-enable the plugin.
+    // In most cases simply disabling and enabling the plugin should
+    // do the trick.
     const { enabled, msg } = this.getUnifiedConfig();
 
-    // You can decide if updating the settings triggers the the disable->enable routine or not.
+    // You can decide if updating the settings triggers the the
+    // disable->enable routine or not.
     if (enabled === false && this.enabled === true) {
       this.disablePlugin();
     } else if (enabled === true && this.enabled === false) {
@@ -250,7 +258,8 @@ export class CustomPlugin extends BasePlugin {
    * objects or index mappers created during the plugin's lifecycle.
    */
   destroy() {
-    // The `super` method cleans up the plugin's event callbacks, hook connections, and properties.
+    // The `super` method cleans up the plugin's event callbacks, hook
+    // connections, and properties.
     super.destroy();
   }
 }
@@ -264,7 +273,8 @@ There are two ways to register a plugin:
 
 - **Option 1**: Define a static getter named `PLUGIN_KEY` that the `registerPlugin` utility uses as the plugin's alias. Check the example in the code snippet above.
   ```js
-  // You need to register your plugin in order to use it within Handsontable.
+  // You need to register your plugin in order to use it within
+  // Handsontable.
   registerPlugin(CustomPlugin);
   ```
 - **Option 2**: Use a custom alias. Put a string in the first argument. The registerer uses that string as an alias, instead of the `PLUGIN_KEY` getter from `CustomPlugin`.
@@ -289,7 +299,8 @@ const hotInstance = new Handsontable(container, {
   [CustomPlugin.PLUGIN_KEY]: {
     msg: 'user-defined message',
   },
-  // You can also initialize the plugin without enabling it at the beginning.
+  // You can also initialize the plugin without enabling it at the
+  // beginning.
   [CustomPlugin.PLUGIN_KEY]: false,
 });
 ```
@@ -309,7 +320,8 @@ import { CustomPlugin } from './customPlugin';
   customPlugin={{
     msg: 'user-defined message',
   }}
-  // You can also initialize the plugin without enabling it at the beginning.
+  // You can also initialize the plugin without enabling it at the
+  // beginning.
   customPlugin={false}
 />
 ```

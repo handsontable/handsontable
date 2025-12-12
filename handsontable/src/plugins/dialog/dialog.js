@@ -1,6 +1,7 @@
 import { BasePlugin } from '../base';
 import { DialogUI } from './ui';
 import { isObject } from '../../helpers/object';
+import * as C from '../../i18n/constants';
 
 export const PLUGIN_KEY = 'dialog';
 export const PLUGIN_PRIORITY = 360;
@@ -19,6 +20,15 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
  * In order to enable the dialog mechanism, {@link Options#dialog} option must be set to `true`.
  *
  * The plugin provides several configuration options to customize the dialog behavior and appearance:
+ * - `template`: The template to use for the dialog (default: `null`). The error will be thrown when
+ * the template is provided together with the `content` option.
+ *   - `type`: The type of the template ('confirm')
+ *   - `title`: The title of the dialog
+ *   - `description`: The description of the dialog (default: '')
+ *   - `buttons`: The buttons to display in the dialog (default: [])
+ *     - `text`: The text of the button
+ *     - `type`: The type of the button ('primary' | 'secondary')
+ *     - `callback`: The callback to trigger when the button is clicked
  * - `content`: The string or HTMLElement content to display in the dialog (default: '')
  * - `customClassName`: Custom class name to apply to the dialog (default: '')
  * - `background`: Dialog background variant 'solid' | 'semi-transparent' (default: 'solid')
@@ -26,14 +36,10 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
  * - `animation`: Whether to enable animations (default: true)
  * - `closable`: Whether the dialog can be closed (default: false)
  * - `a11y`: Object with accessibility options (default object below)
- * ```js
- * {
- *   role: 'dialog', // Role of the dialog 'dialog' | 'alertdialog' (default: 'dialog')
- *   ariaLabel: 'Dialog', // Label for the dialog (default: 'Dialog')
- *   ariaLabelledby: '', // ID of the element that labels the dialog (default: '')
- *   ariaDescribedby: '', // ID of the element that describes the dialog (default: ''),
- * }
- * ```
+ *   - `role`: The role of the dialog ('dialog' | 'alertdialog') (default: 'dialog')
+ *   - `ariaLabel`: The label of the dialog (default: 'Dialog')
+ *   - `ariaLabelledby`: The ID of the element that labels the dialog (default: '')
+ *   - `ariaDescribedby`: The ID of the element that describes the dialog (default: ''),
  *
  * @example
  *
@@ -56,6 +62,31 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
  *     ariaLabelledby: 'titleID',
  *     ariaDescribedby: 'descriptionID',
  *   }
+ * }
+ *
+ * // Enable dialog plugin using prebuild templates
+ * dialog: {
+ *   template: {
+ *     type: 'confirm',
+ *     title: 'Confirm',
+ *     description: 'This is a confirm',
+ *     buttons: [
+ *       {
+ *         text: 'Ok',
+ *         type: 'primary',
+ *         callback: () => {
+ *           console.log('Ok');
+ *         }
+ *       },
+ *       {
+ *         text: 'Cancel',
+ *         type: 'secondary',
+ *         callback: () => {
+ *           console.log('Cancel');
+ *         }
+ *       },
+ *     ],
+ *   },
  * }
  *
  * // Access to dialog plugin instance:
@@ -139,6 +170,7 @@ export class Dialog extends BasePlugin {
 
   static get DEFAULT_SETTINGS() {
     return {
+      template: null,
       content: '',
       customClassName: '',
       background: 'solid',
@@ -156,6 +188,16 @@ export class Dialog extends BasePlugin {
 
   static get SETTINGS_VALIDATORS() {
     return {
+      template: value => isObject(value) &&
+        (typeof ['alert', 'confirm'].includes(value.type)) &&
+        (typeof value.title === 'string') &&
+        (typeof value?.description === 'undefined' || typeof value?.description === 'string') &&
+        (typeof value?.buttons === 'undefined' || Array.isArray(value?.buttons) && value.buttons.every(item =>
+          typeof item === 'object' &&
+          typeof item.text === 'string' &&
+          ['primary', 'secondary'].includes(item.type) &&
+          (typeof item.callback === 'undefined' || typeof item.callback === 'function')
+        )),
       content: value => typeof value === 'string' ||
         (typeof HTMLElement !== 'undefined' && value instanceof HTMLElement) ||
         (typeof DocumentFragment !== 'undefined' && value instanceof DocumentFragment),
@@ -220,7 +262,7 @@ export class Dialog extends BasePlugin {
     this.#registerShortcuts();
     this.#registerFocusScope();
 
-    this.addHook('afterViewRender', () => this.#onAfterRender());
+    this.addHook('afterViewRender', () => this.#onAfterViewRender());
 
     super.enablePlugin();
   }
@@ -260,6 +302,15 @@ export class Dialog extends BasePlugin {
    * Displays the dialog with the specified content and options.
    *
    * @param {object} options Dialog configuration object containing content and display options.
+   * @param {object} options.template The template to use for the dialog (default: `null`). The error will be thrown when
+   * the template is provided together with the `content` option.
+   * @param {'confirm'} options.template.type The type of the template ('confirm').
+   * @param {string} options.template.title The title of the dialog.
+   * @param {string} options.template.description The description of the dialog. Default: ''.
+   * @param {object[]} options.template.buttons The buttons to display in the dialog. Default: [].
+   * @param {string} options.template.buttons.text The text of the button.
+   * @param {'primary' | 'secondary'} options.template.buttons.type The type of the button.
+   * @param {function(MouseEvent)} options.template.buttons.callback The callback to trigger when the button is clicked.
    * @param {string|HTMLElement|DocumentFragment} options.content The content to display in the dialog. Can be a string, HTMLElement, or DocumentFragment. Default: ''
    * @param {string} options.customClassName Custom CSS class name to apply to the dialog container. Default: ''
    * @param {'solid'|'semi-transparent'} options.background Dialog background variant. Default: 'solid'.
@@ -329,6 +380,15 @@ export class Dialog extends BasePlugin {
    * Update the dialog configuration.
    *
    * @param {object} options Dialog configuration object containing content and display options.
+   * @param {object} options.template The template to use for the dialog (default: `null`). The error will be thrown when
+   * the template is provided together with the `content` option.
+   * @param {'confirm'} options.template.type The type of the template ('confirm').
+   * @param {string} options.template.title The title of the dialog.
+   * @param {string} options.template.description The description of the dialog. Default: ''.
+   * @param {object[]} options.template.buttons The buttons to display in the dialog. Default: [].
+   * @param {string} options.template.buttons.text The text of the button.
+   * @param {'primary' | 'secondary'} options.template.buttons.type The type of the button.
+   * @param {function(MouseEvent)} options.template.buttons.callback The callback to trigger when the button is clicked.
    * @param {string|HTMLElement|DocumentFragment} options.content The content to display in the dialog. Can be a string, HTMLElement, or DocumentFragment. Default: ''
    * @param {string} options.customClassName Custom CSS class name to apply to the dialog container. Default: ''
    * @param {'solid'|'semi-transparent'} options.background Dialog background variant. Default: 'solid'.
@@ -348,6 +408,24 @@ export class Dialog extends BasePlugin {
 
     this.updatePluginSettings(options);
 
+    const templateValue = this.getSetting('template');
+
+    if (
+      templateValue !== Dialog.DEFAULT_SETTINGS.template &&
+      this.getSetting('content') !== Dialog.DEFAULT_SETTINGS.content
+    ) {
+      throw new Error('The `template` option cannot be used together with the `content` option.');
+    }
+
+    if (templateValue) {
+      this.#ui.useTemplate(templateValue.type, {
+        id: this.hot.guid,
+        ...templateValue,
+      });
+    } else {
+      this.#ui.useDefaultTemplate();
+    }
+
     this.#ui.updateDialog({
       isVisible: this.isVisible(),
       content: this.getSetting('content'),
@@ -356,6 +434,78 @@ export class Dialog extends BasePlugin {
       contentBackground: this.getSetting('contentBackground'),
       animation: this.getSetting('animation'),
       a11y: this.getSetting('a11y'),
+    });
+  }
+
+  /**
+   * Displays the alert dialog with the specified content.
+   *
+   * @param {string | { title: string, description: string }} message The message to display in the dialog.
+   * Can be a string or an object with `title` and `description` properties.
+   * @param {function(MouseEvent): void} [callback] The callback to trigger when the button is clicked.
+   */
+  showAlert(message, callback) {
+    const {
+      title = 'Alert',
+      description,
+    } = isObject(message) ? message : { title: message };
+
+    this.show({
+      template: {
+        type: 'confirm',
+        title,
+        description,
+        buttons: [
+          {
+            text: this.hot.getTranslatedPhrase(C.OK),
+            type: 'primary',
+            callback: (...args) => callback?.(...args),
+          }
+        ],
+      },
+      contentBackground: false,
+      background: 'solid',
+      animation: true,
+      closable: false,
+    });
+  }
+
+  /**
+   * Displays the confirm dialog with the specified content and options.
+   *
+   * @param {string | { title: string, description: string }} message The message to display in the dialog.
+   * Can be a string or an object with `title` and `description` properties.
+   * @param {function(MouseEvent): void} [onOk] The callback to trigger when the OK button is clicked.
+   * @param {function(MouseEvent): void} [onCancel] The callback to trigger when the Cancel button is clicked.
+   */
+  showConfirm(message, onOk, onCancel) {
+    const {
+      title = 'Confirm',
+      description,
+    } = isObject(message) ? message : { title: message };
+
+    this.show({
+      template: {
+        type: 'confirm',
+        title,
+        description,
+        buttons: [
+          {
+            text: this.hot.getTranslatedPhrase(C.CANCEL),
+            type: 'secondary',
+            callback: (...args) => onCancel?.(...args),
+          },
+          {
+            text: this.hot.getTranslatedPhrase(C.OK),
+            type: 'primary',
+            callback: (...args) => onOk?.(...args),
+          },
+        ],
+      },
+      contentBackground: true,
+      background: 'semi-transparent',
+      animation: true,
+      closable: false,
     });
   }
 
@@ -420,8 +570,17 @@ export class Dialog extends BasePlugin {
         runOnlyIf: () => this.isVisible(),
         onActivate: (focusSource) => {
           const isListening = this.hot.isListening();
+          const focusableElements = this.#ui.getFocusableElements();
 
-          if (
+          if (focusableElements.length > 0) {
+            if (focusSource === 'tab_from_above') {
+              focusableElements.at(0).focus();
+
+            } else if (focusSource === 'tab_from_below') {
+              focusableElements.at(-1).focus();
+            }
+
+          } else if (
             focusSource !== 'tab_from_above' &&
             focusSource !== 'tab_from_below' &&
             isListening &&
@@ -448,7 +607,7 @@ export class Dialog extends BasePlugin {
    * Called after the rendering of the table is completed. It updates the width and
    * height of the dialog container to the same size as the table.
    */
-  #onAfterRender() {
+  #onAfterViewRender() {
     const { view, rootWrapperElement, rootWindow } = this.hot;
     const width = view.isHorizontallyScrollableByWindow()
       ? view.getTotalTableWidth() : view.getWorkspaceWidth();
@@ -459,7 +618,7 @@ export class Dialog extends BasePlugin {
 
     if (dialogInfo) {
       const height = dialogInfo.offsetHeight;
-      const marginTop = parseFloat(rootWindow.getComputedStyle(dialogInfo).marginTop);
+      const marginTop = Number.parseFloat(rootWindow.getComputedStyle(dialogInfo).marginTop);
 
       this.#ui.updateHeight(height + marginTop);
     }

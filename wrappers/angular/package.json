@@ -1,6 +1,6 @@
 {
   "name": "@handsontable/angular",
-  "version": "16.1.0",
+  "version": "16.2.0",
   "description": "Best Data Grid for Angular with Spreadsheet Look and Feel.",
   "author": "Handsoncode <hello@handsoncode.net> (https://handsoncode.net)",
   "license": "SEE LICENSE IN LICENSE.txt",
@@ -80,7 +80,6 @@
     "@types/node": "12.20.7",
     "jasmine": "3.7.0",
     "jasmine-console-reporter": "3.1.0",
-    "puppeteer": "14.3.0",
     "ts-node": "8.3.0",
     "typescript": "5.2.2",
     "@angular-eslint/builder": "~17.3.0",

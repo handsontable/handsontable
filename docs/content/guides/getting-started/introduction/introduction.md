@@ -50,7 +50,7 @@ Use Handsontable with plain JavaScript, TypeScript, or your favorite framework. 
 - [Angular](https://handsontable.com/stackblitz?example-dir=angular&handsontable-version={{$currentVersion}})
 - [Vanilla JS](https://handsontable.com/stackblitz?example-dir=javascript&handsontable-version={{$currentVersion}})
 - [React TS](https://handsontable.com/stackblitz?example-dir=react&handsontable-version={{$currentVersion}})
-- [React JS](https://handsontable.com/stackblitz?example-dir=react-js&handsontable-version={{$currentVersion}})
+- [React JS](https://handsontable.com/codesandbox?example-dir=react-js&handsontable-version={{$currentVersion}})
 - [TypeScript](https://handsontable.com/stackblitz?example-dir=typescript&handsontable-version={{$currentVersion}})
 - [Vue 3](https://handsontable.com/stackblitz?example-dir=vue&handsontable-version={{$currentVersion}})
 

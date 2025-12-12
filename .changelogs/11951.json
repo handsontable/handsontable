@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed errors that could happen on some keyboard shortcuts",
+  "type": "fixed",
+  "issueOrPR": 11951,
+  "breaking": false,
+  "framework": "none"
+}

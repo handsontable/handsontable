@@ -542,7 +542,10 @@ export function hasZeroHeight(element) {
 
   while (currentElement.parentNode) {
     if (currentElement.style.height === '0px' || currentElement.style.height === '0') {
-      return rootWindow.getComputedStyle(currentElement).overflow === 'hidden';
+      const computedOverflow = rootWindow.getComputedStyle(currentElement)
+        .getPropertyValue('overflow');
+
+      return computedOverflow === 'hidden' || computedOverflow === 'clip';
     }
 
     currentElement = currentElement.parentNode;
@@ -737,7 +740,7 @@ export function getTrimmingContainer(base) {
     }
 
     const computedStyle = rootWindow.getComputedStyle(el);
-    const allowedProperties = ['scroll', 'hidden', 'auto'];
+    const allowedProperties = ['scroll', 'hidden', 'auto', 'clip'];
     const property = computedStyle.getPropertyValue('overflow');
     const propertyY = computedStyle.getPropertyValue('overflow-y');
     const propertyX = computedStyle.getPropertyValue('overflow-x');

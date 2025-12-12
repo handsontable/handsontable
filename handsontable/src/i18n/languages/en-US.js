@@ -9,6 +9,10 @@ import * as C from '../constants';
 
 const dictionary = {
   languageCode: 'en-US',
+
+  [C.OK]: 'OK',
+  [C.CANCEL]: 'Cancel',
+
   [C.CONTEXTMENU_ITEMS_NO_ITEMS]: 'No available options',
   [C.CONTEXTMENU_ITEMS_ROW_ABOVE]: 'Insert row above',
   [C.CONTEXTMENU_ITEMS_ROW_BELOW]: 'Insert row below',
@@ -115,6 +119,12 @@ const dictionary = {
   [C.CHECKBOX_UNCHECKED]: 'Unchecked',
 
   [C.LOADING_TITLE]: 'Loading...',
+
+  [C.EMPTY_DATA_STATE_TITLE]: 'No data available',
+  [C.EMPTY_DATA_STATE_DESCRIPTION]: 'There’s nothing to display yet.',
+  [C.EMPTY_DATA_STATE_TITLE_FILTERS]: 'No results found',
+  [C.EMPTY_DATA_STATE_DESCRIPTION_FILTERS]: 'It looks like your current filters are hiding all results.',
+  [C.EMPTY_DATA_STATE_BUTTONS_FILTERS_RESET]: 'Reset filters',
 };
 
 export default dictionary;

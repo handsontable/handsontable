@@ -353,6 +353,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * @type {StylesHandler}
    */
   this.stylesHandler = new StylesHandler({
+    hot: instance,
     rootElement: instance.rootElement,
     rootDocument: instance.rootDocument,
     onThemeChange: (validThemeName) => {
@@ -525,8 +526,17 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     }
   };
 
-  this.columnIndexMapper.addLocalHook('cacheUpdated', onIndexMapperCacheUpdate);
-  this.rowIndexMapper.addLocalHook('cacheUpdated', onIndexMapperCacheUpdate);
+  this.columnIndexMapper.addLocalHook('cacheUpdated', (indexesChangesState) => {
+    onIndexMapperCacheUpdate(indexesChangesState);
+
+    this.runHooks('afterColumnSequenceCacheUpdate', indexesChangesState);
+  });
+
+  this.rowIndexMapper.addLocalHook('cacheUpdated', (indexesChangesState) => {
+    onIndexMapperCacheUpdate(indexesChangesState);
+
+    this.runHooks('afterRowSequenceCacheUpdate', indexesChangesState);
+  });
 
   this.selection.addLocalHook('afterSetRangeEnd', (cellCoords, isLastSelectionLayer) => {
     const preventScrolling = createObjectPropListener(false);
@@ -2701,6 +2711,12 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       throw new Error('Since 8.0.0 the "ganttChart" setting is no longer supported.');
     }
 
+    if (isDefined(settings.rowHeights) && isDefined(settings.minRowHeights)) {
+      warn('Both `rowHeights` and `minRowHeights` are defined in your configuration. ' +
+        'As one is the alias of the other, only one of them can be used at a time. ' +
+        '`rowHeights` will be used as the row height configuration.');
+    }
+
     // eslint-disable-next-line no-restricted-syntax
     for (i in settings) {
       if (i === 'data' || i === 'language') {
@@ -2757,7 +2773,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       instance.stylesHandler.isClassicTheme()
     ) {
       // eslint-disable-next-line max-len
-      deprecatedWarn('Handsontable classic styles are considered legacy and will be removed in version 17.0. Please update your theme configuration to ensure compatibility with future releases.');
+      deprecatedWarn('The stylesheet you are using is deprecated and will be removed in version 17.0. Please update your theme configuration to ensure compatibility with future releases.');
       deprecatedWarnInstances.add(instance);
     }
 
@@ -2851,7 +2867,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
       } else if (height !== undefined) {
         instance.rootElement.style.height = isNaN(height) ? `${height}` : `${height}px`;
-        instance.rootElement.style.overflow = 'hidden';
+        instance.rootElement.style.overflow = 'clip';
       }
     }
 
@@ -4108,7 +4124,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
           break;
       }
       if (typeof width === 'string') {
-        width = parseInt(width, 10);
+        width = Number.parseInt(width, 10);
       }
     }
 
@@ -4147,8 +4163,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * @returns {number}
    */
   this._getRowHeightFromSettings = function(row) {
-    const defaultRowHeight = instance.stylesHandler.getDefaultRowHeight();
-    let height = tableMeta.rowHeights;
+    const defaultRowHeight = instance.stylesHandler.getDefaultRowHeight(row);
+    let height = tableMeta.rowHeights ?? tableMeta.minRowHeights;
 
     if (height !== undefined && height !== null) {
       switch (typeof height) {
@@ -4165,7 +4181,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       }
 
       if (typeof height === 'string') {
-        height = parseInt(height, 10);
+        height = Number.parseInt(height, 10);
       }
     }
 
@@ -4830,10 +4846,10 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
     if (isRootInstance(this)) {
       uninstallAccessibilityAnnouncer();
+      this.getFocusScopeManager().destroy();
     }
 
     this.getShortcutManager().destroy();
-    this.getFocusScopeManager().destroy();
     moduleRegisterer.clear();
     metaManager.clearCache();
     foreignHotInstances.delete(this.guid);
@@ -5443,7 +5459,7 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
   focusGridManager = new FocusGridManager(instance);
 
-  const focusScopeManager = createFocusScopeManager(instance);
+  const focusScopeManager = isRootInstance(this) ? createFocusScopeManager(instance) : null;
 
   /**
    * Return the Focus Manager responsible for managing the browser's focus in the table.
@@ -5478,6 +5494,10 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
    * ```
    */
   this.getFocusScopeManager = function() {
+    if (!isRootInstance(instance)) {
+      throw new Error('The FocusScopeManager is only available for the main Handsontable instance.');
+    }
+
     return focusScopeManager;
   };
 

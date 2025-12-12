@@ -25,6 +25,7 @@ describe('Dialog - show method', () => {
     expect(dialogPlugin.isVisible()).toBe(true);
     expect(getDialogContainerElement()).toBeDefined();
     expect(dialogPlugin.getSetting()).toEqual({
+      template: null,
       content: '',
       customClassName: '',
       background: 'solid',

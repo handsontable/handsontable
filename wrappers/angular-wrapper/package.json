@@ -1,6 +1,6 @@
 {
   "name": "@handsontable/angular-wrapper",
-  "version": "16.1.1",
+  "version": "16.2.0",
   "description": "Best Data Grid for Angular with Spreadsheet Look and Feel.",
   "author": "Handsoncode <hello@handsoncode.net> (https://handsoncode.net)",
   "license": "SEE LICENSE IN LICENSE.txt",
@@ -101,7 +101,6 @@
     "jest-preset-angular": "^14.3.0",
     "moment": "2.29.4",
     "ng-packagr": "^16.0.0",
-    "puppeteer": "14.3.0",
     "resize-observer-polyfill": "^1.5.1",
     "ts-jest": "^29.1.1",
     "ts-node": "8.3.0",

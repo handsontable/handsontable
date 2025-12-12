@@ -265,4 +265,5 @@ const trimRows: BasePlugin = hot.getPlugin('trimRows');
 const undoRedo: BasePlugin = hot.getPlugin('undoRedo');
 const dialog: BasePlugin = hot.getPlugin('dialog');
 const loading: BasePlugin = hot.getPlugin('loading');
+const emptyDataState: BasePlugin = hot.getPlugin('emptyDataState');
 const custom: BasePlugin = hot.getPlugin('custom');

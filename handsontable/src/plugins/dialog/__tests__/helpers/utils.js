@@ -17,7 +17,52 @@ export function getDialogContentContainerElement() {
 }
 
 /**
- * Returns the content (HTML string) of the dialog container element.
+ * Returns the dialog title element.
+ *
+ * @returns {HTMLElement}
+ */
+export function getDialogTitleElement() {
+  return getDialogContainerElement().querySelector('.ht-dialog__title');
+}
+
+/**
+ * Returns the dialog description element.
+ *
+ * @returns {HTMLElement}
+ */
+export function getDialogDescriptionElement() {
+  return getDialogContainerElement().querySelector('.ht-dialog__description');
+}
+
+/**
+ * Returns the dialog inner wrapper element.
+ *
+ * @returns {HTMLElement}
+ */
+export function getDialogInnerWrapperElement() {
+  return getDialogContainerElement().querySelector('.ht-dialog__content-wrapper-inner');
+}
+
+/**
+ * Returns the dialog primary button element.
+ *
+ * @returns {HTMLElement}
+ */
+export function getDialogPrimaryButtonElement() {
+  return getDialogContainerElement().querySelector('.ht-dialog__buttons .ht-button--primary');
+}
+
+/**
+ * Returns the dialog secondary button element.
+ *
+ * @returns {HTMLElement}
+ */
+export function getDialogSecondaryButtonElement() {
+  return getDialogContainerElement().querySelector('.ht-dialog__buttons .ht-button--secondary');
+}
+
+/**
+ * Returns the content (HTML string) of the dialog content element.
  *
  * @returns {string}
  */

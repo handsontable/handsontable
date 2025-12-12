@@ -125,7 +125,7 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 0)).forThemes(({ classic, main, horizon }) => {
       classic.toEqual(31);
       main.toEqual(30);
-      horizon.toEqual(37);
+      horizon.toEqual(38);
     });
     expect(rowHeight(spec().$container, 1)).toEqual(80);
     expect(rowHeight(spec().$container, 2)).toEqual(100);
