@@ -117,7 +117,7 @@ const getPrebuiltUmdUrl = (scriptName) => {
  *
  * @param {string} version The current selected documentation version.
  * @returns {Function} Returns a function factory with the signature
- *                     `{function(dependency: string): [string,string[],string]} [jsUrl, dependentVars[]?, cssUrl?]`.
+ *                     `{function(dependency: string): [string,string[],string],string,boolean} [jsUrl, dependentVars[]?, cssUrl?, globalVarSharedDependency, isModule]`.
  */
 const buildDependencyGetter = (version) => {
   const fixer = getCommonScript('fixer', version);
@@ -159,6 +159,12 @@ const buildDependencyGetter = (version) => {
       vue3: ['https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js', [/* todo */], null, 'vue'],
       vuex4: ['https://cdn.jsdelivr.net/npm/vuex@4/dist/vuex.global.min.js', [/* todo */], null, 'vuex'],
       languages: [getPackageUrls('handsontable', version, 'dist/languages/all.js'), [/* todo */]],
+      moment: ['https://cdn.jsdelivr.net/npm/moment@2.30.1/moment.min.js', [/* todo */]],
+      'date-fns': ['https://cdnjs.cloudflare.com/ajax/libs/date-fns/4.1.0/cdn.min.js', [/* todo */]],
+      coloris: ['https://cdn.jsdelivr.net/npm/@melloware/coloris/dist/umd/coloris.min.js', [/* todo */], 'https://cdn.jsdelivr.net/npm/@melloware/coloris/dist/coloris.min.css'],
+      pikaday: ['https://cdn.jsdelivr.net/npm/@handsontable/pikaday/pikaday.js', [/* todo */]],
+      flatpickr: ['https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.js', [/* todo */], 'https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css'],
+      'multiple-select-vanilla': ['https://cdn.jsdelivr.net/npm/multiple-select-vanilla/dist/browser/multiple-select.min.js', [/* todo */], 'https://cdn.jsdelivr.net/npm/multiple-select-vanilla/dist/styles/css/multiple-select.min.css', false, true]
     };
     /* eslint-enable max-len */
 
@@ -169,6 +175,7 @@ const buildDependencyGetter = (version) => {
 
 const presetMap = {
   /* eslint-disable max-len */
+  'hot-recipe': ['hot', 'moment', 'pikaday', 'date-fns', 'fixer', 'coloris', 'flatpickr', 'multiple-select-vanilla'],
   hot: ['hot', 'fixer'],
   'hot-lang': ['hot', 'languages', 'fixer'],
   'hot-numbro': ['hot', 'numbro', 'fixer'],
@@ -189,6 +196,7 @@ const presetMap = {
   'vue3-numbro': ['hot', 'numbro', 'vue3', 'hot-vue3', 'fixer'],
   'vue3-languages': ['hot', 'languages', 'vue3', 'hot-vue3', 'fixer'],
   'vue3-vuex': ['hot', 'vue3', 'vuex4', 'hot-vue3', 'fixer'],
+
   /* eslint-enable max-len */
 };
 

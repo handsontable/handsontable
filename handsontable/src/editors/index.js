@@ -9,9 +9,7 @@ import { PasswordEditor, EDITOR_TYPE as PASSWORD_EDITOR } from './passwordEditor
 import { SelectEditor, EDITOR_TYPE as SELECT_EDITOR } from './selectEditor';
 import { TextEditor, EDITOR_TYPE as TEXT_EDITOR } from './textEditor';
 import { TimeEditor, EDITOR_TYPE as TIME_EDITOR } from './timeEditor';
-import {
-  registerEditor,
-} from './registry';
+import { registerEditor } from './registry';
 
 /**
  * Registers all available editors.
@@ -54,3 +52,4 @@ export {
   hasEditor,
   registerEditor,
 } from './registry';
+export { editorFactory } from './factory';

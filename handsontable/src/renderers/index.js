@@ -9,9 +9,7 @@ import { passwordRenderer, RENDERER_TYPE as PASSWORD_RENDERER } from './password
 import { selectRenderer, RENDERER_TYPE as SELECT_RENDERER } from './selectRenderer';
 import { textRenderer, RENDERER_TYPE as TEXT_RENDERER } from './textRenderer';
 import { timeRenderer, RENDERER_TYPE as TIME_RENDERER } from './timeRenderer';
-import {
-  registerRenderer,
-} from './registry';
+import { registerRenderer } from './registry';
 
 /**
  * Registers all available renderers.
@@ -51,3 +49,4 @@ export {
   hasRenderer,
   registerRenderer,
 } from './registry';
+export { rendererFactory } from './factory';

@@ -11,8 +11,9 @@ const jsfiddle = (_id, html, code, css, version, preset, lang) => {
 
   const imports = getDependencies(version, preset).reduce(
     (previous, current) => {
+
       // If the example uses only one theme, skip importing the css files for the other themes.
-      if (current[2]?.length && uniqueThemeReferences.length === 1) {
+      if (Array.isArray(current[2]) && current[2]?.length && uniqueThemeReferences.length === 1) {
         current[2] = current[2].filter(
           href => !href.includes('ht-theme-') || href.includes(`ht-theme-${uniqueThemeReferences[0]}`)
         );

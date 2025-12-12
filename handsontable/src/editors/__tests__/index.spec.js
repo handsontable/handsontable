@@ -3,6 +3,7 @@ describe('editors', () => {
   const {
     registerEditor,
     getEditor,
+    editorFactory,
   } = Handsontable.editors;
 
   beforeEach(function() {
@@ -113,5 +114,11 @@ describe('editors', () => {
     await sleep(50);
 
     expect(getCell(1, 0).innerHTML).not.toEqual('Cup');
+  });
+
+  it('should create a custom editor using the editorFactory', async() => {
+    const myEditor = editorFactory({});
+
+    expect(myEditor).toBeFunction();
   });
 });

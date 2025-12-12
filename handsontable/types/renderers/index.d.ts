@@ -55,3 +55,4 @@ export {
   registerRenderer
 } from './registry';
 export { BaseRenderer } from './base';
+export { rendererFactory } from './factory';

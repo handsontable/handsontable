@@ -3,6 +3,7 @@ describe('renderers', () => {
   const {
     registerRenderer,
     getRenderer,
+    rendererFactory,
   } = Handsontable.renderers;
 
   beforeEach(function() {
@@ -56,5 +57,30 @@ describe('renderers', () => {
     getRenderer('myRenderer')(1, 2, 3, 4, 5, 6);
 
     expect(spy).toHaveBeenCalledWith(1, 2, 3, 4, 5, 6);
+  });
+
+  it('should create a custom renderer using the rendererFactory', async() => {
+    const hotMock = {};
+    const tdMock = document.createElement('td');
+    const rowMock = 0;
+    const columnMock = 0;
+    const propMock = 'prop';
+    const valueMock = 1.235;
+    const cellPropertiesMock = {
+      row: 0,
+      col: 0,
+      instance: hotMock,
+    };
+    const myRenderer = rendererFactory(({ instance, td, row, column, prop, value, cellProperties }) => {
+      expect(instance).toBe(hotMock);
+      expect(td).toBe(tdMock);
+      expect(value).toBe(valueMock);
+      expect(row).toBe(rowMock);
+      expect(column).toBe(columnMock);
+      expect(prop).toBe(propMock);
+      expect(cellProperties).toBe(cellPropertiesMock);
+    });
+
+    myRenderer(hotMock, tdMock, rowMock, columnMock, propMock, valueMock, cellPropertiesMock);
   });
 });

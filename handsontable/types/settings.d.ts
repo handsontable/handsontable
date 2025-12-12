@@ -146,7 +146,7 @@ export interface GridSettings extends Events {
   disableVisualSelection?: boolean | 'current' | 'area' | 'header' | Array<'current' | 'area' | 'header'>;
   dragToScroll?: DragToScrollSettings;
   dropdownMenu?: DropdownMenuSettings;
-  editor?: EditorType | typeof BaseEditor | boolean | string;
+  editor?: EditorType | typeof BaseEditor | BaseEditor | boolean | string;
   enterBeginsEditing?: boolean;
   enterMoves?: CellCoords | SimpleCellCoords | ((event: KeyboardEvent) => CellCoords | SimpleCellCoords);
   fillHandle?: AutofillSettings;

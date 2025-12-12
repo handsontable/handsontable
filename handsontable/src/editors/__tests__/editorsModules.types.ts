@@ -13,6 +13,7 @@ import {
   getEditor,
   registerAllEditors,
   registerEditor,
+  editorFactory,
 } from 'handsontable/editors';
 
 registerAllEditors();
@@ -41,3 +42,32 @@ const SelectEditorClass: typeof SelectEditor = getEditor('select');
 const TextEditorClass: typeof TextEditor = getEditor('text');
 const TimeEditorClass: typeof TimeEditor = getEditor('time');
 const CustomEditorClass: typeof BaseEditor = getEditor('custom-editor');
+
+editorFactory({
+  init(editor) {},
+  afterInit(editor) {},
+  afterOpen(editor) {},
+  afterClose(editor) {},
+  beforeOpen(editor) {},
+  getValue(editor) {},
+  setValue(editor, value) {},
+  onFocus(editor) {},
+  render(editor) {},
+  position: 'container',
+  value: 'test',
+  config: {
+    test: 'test',
+  },
+  shortcutsGroup: 'custom-shortcuts',
+  shortcuts: [
+    {
+      keys: [['Enter']],
+      callback: (editor) => {
+        return false;
+      },
+    },
+  ],
+  args: {
+    test: 'test',
+  },
+});
