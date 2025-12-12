@@ -308,3 +308,32 @@ class CustomEditor extends Handsontable.editors.getEditor('text') {
   focus() {}
 }
 Handsontable.editors.registerEditor('custom', CustomEditor);
+
+Handsontable.editors.editorFactory({
+  init(editor) {},
+  afterInit(editor) {},
+  afterOpen(editor) {},
+  afterClose(editor) {},
+  beforeOpen(editor) {},
+  getValue(editor) {},
+  setValue(editor, value) {},
+  onFocus(editor) {},
+  render(editor) {},
+  position: 'container',
+  value: 'test',
+  config: {
+    test: 'test',
+  },
+  shortcutsGroup: 'custom-shortcuts',
+  shortcuts: [
+    {
+      keys: [['Enter']],
+      callback: (editor) => {
+        return false;
+      },
+    },
+  ],
+  args: {
+    test: 'test',
+  },
+})

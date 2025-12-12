@@ -45,6 +45,7 @@ import {
   EditorType,
   getEditor,
   registerEditor,
+  editorFactory,
 } from './editors';
 import {
   RendererType,
@@ -334,6 +335,7 @@ declare namespace Handsontable {
     export { TimeEditor };
     export { registerEditor };
     export { getEditor };
+    export { editorFactory };
   }
 
   export namespace renderers {

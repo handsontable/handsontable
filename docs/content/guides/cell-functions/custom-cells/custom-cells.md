@@ -39,7 +39,7 @@ Our goal: **Make custom cell creation so simple that any developer can create a 
 
 Before diving into editors, here's how to create custom renderers:
 
-### `renderers.factory`
+### `rendererFactory`
 
 A simplified way to create cell renderers.
 
@@ -58,6 +58,8 @@ rendererFactory((params) => {
 
 **Example:**
 ```typescript
+import { rendererFactory } from 'handsontable/renderers';
+
 const renderer = rendererFactory(({ td, value }) => {
   td.style.backgroundColor = value;
   td.innerHTML = `<b>${value}</b>`;
@@ -68,9 +70,9 @@ Just use the parameters you need.
 
 ---
 
-# Using `editorFactory` 
+# Using `editorFactory`
 
-The `factory` helper is the **recommended approach** for creating custom editors. It handles container creation, positioning, lifecycle management, and shortcuts automatically, allowing you to focus on your editor's unique functionality.
+The `editorFactory` helper is the **recommended approach** for creating custom editors. It handles container creation, positioning, lifecycle management, and shortcuts automatically, allowing you to focus on your editor's unique functionality.
 
 ## What is `editorFactory`?
 
@@ -91,9 +93,8 @@ The `factory` helper is the **recommended approach** for creating custom editors
 A complete cell definition includes three components:
 
 ```typescript
-
 import { rendererFactory } from 'handsontable/renderers';
-import { editorFactory } from 'handsontable/editors/baseEditor';
+import { editorFactory } from 'handsontable/editors';
 import { registerCellType } from 'handsontable/cellTypes';
 
 const cellDefinition = {
@@ -101,16 +102,16 @@ const cellDefinition = {
     // Display the cell value
     td.innerText = value;
   }),
-  
+
   validator: (value, callback) => {
     // Validate the value (optional)
     callback(!isNaN(parseInt(value)));
   },
-  
+
   editor: editorFactory<{input: HTMLInputElement}>({
     init(editor) {
       editor.input = document.createElement('INPUT') as HTMLInputElement;
-      // Container is created automatically and `input` is attached automatically 
+      // Container is created automatically and `input` is attached automatically
     },
     getValue(editor) {
       return editor.input.value;
@@ -123,7 +124,6 @@ const cellDefinition = {
 
 registerCellType('myCellType', cellDefinition);
 // then in Handsontable you can use `"myCellType"` to `type` option to use your cell type.
-
 ```
 
 ### Signature
@@ -208,7 +208,7 @@ Understanding when each method is called:
 
 13. **`shortcutsGroup`** - Shortcut group name
     - Optional - string identifier for grouping keyboard shortcuts
-    - Useful for organizing shortcuts in complex editors 
+    - Useful for organizing shortcuts in complex editors
 
 
 ## Custom Properties with TypeScript
@@ -225,7 +225,7 @@ type MyEditorProps = {
 const editor = editorFactory<MyEditorProps>({
   init(editor) {
     // TypeScript knows about editor.input, editor.container, etc.
-    editor.input = document.createElement('INPUT') as HTMLInputElement;
+    editor.input = document.createElement('input') as HTMLInputElement;
     // editor.container is created automatically
     editor.myLibraryInstance = {/***/};
   },
@@ -244,7 +244,7 @@ For wrapping HTML5 inputs:
 ```typescript
 editor: editorFactory<{input: HTMLInputElement}>({
   init(editor) {
-    editor.input = document.createElement('INPUT') as HTMLInputElement;
+    editor.input = document.createElement('input') as HTMLInputElement;
     editor.input.type = 'date'; // or 'text', 'color', etc.
     // Container is created automatically
   },
@@ -252,11 +252,11 @@ editor: editorFactory<{input: HTMLInputElement}>({
     // Open native picker if needed
     editor.input.showPicker();
   },
-  getValue(editor) { 
-    return editor.input.value; 
+  getValue(editor) {
+    return editor.input.value;
   },
-  setValue(editor, value) { 
-    editor.input.value = value; 
+  setValue(editor, value) {
+    editor.input.value = value;
   }
 })
 ```
@@ -268,9 +268,9 @@ For integrating libraries like date pickers, color pickers, etc.:
 ```typescript
 editor: editorFactory<{input: HTMLInputElement, picker: PickerInstance}>({
   init(editor) {
-    editor.input = document.createElement('INPUT') as HTMLInputElement;
+    editor.input = document.createElement('input') as HTMLInputElement;
     editor.picker = initPicker(editor.input);
-    
+
     // Handle picker events
     editor.picker.on('change', () => {
       editor.finishEditing();
@@ -294,10 +294,10 @@ Use this pattern for editors that display dropdowns, popovers, or similar UI ele
 **Example:**
 ```typescript
 init(editor) {
-  editor.input = document.createElement('SELECT') as HTMLSelectElement;
+  editor.input = document.createElement('select') as HTMLSelectElement;
   // ...dropdown setup, create dropdown DOM as needed
 
-  editor.hot.rootDocument.addEventListener('mousedown', (event) => {   
+  editor.hot.rootDocument.addEventListener('mousedown', (event) => {
     // If the click occurs inside the dropdown, don't let Handsontable close the editor
     if (editor.dropdown?.contains(event.target as Node)) {
       event.stopPropagation(); // Prevents editor from closing
@@ -315,14 +315,9 @@ Handsontable columns can share the same editor, but sometimes you want different
 Use `beforeOpen` to read cell-specific settings:
 
 ```typescript
-updateOptions(editor, options) { 
-  // update visual state 
-},
 beforeOpen(editor, { originalValue, cellProperties }) {
   // Access custom cell properties
   const options = cellProperties.customOptions;
-  
-  editor.updateOptions(editor, options);
 
   // Set initial value
   editor.setValue(originalValue);
@@ -341,7 +336,7 @@ This is crucial for users who rely on keyboard navigation, require a screen read
 ```typescript
 editor: editorFactory<{input: HTMLInputElement}>({
   init(editor) {
-    editor.input = document.createElement('DIV') as HTMLDivElement;
+    editor.input = document.createElement('div') as HTMLDivElement;
     // ... setup
   },
   shortcuts: [
@@ -391,12 +386,14 @@ editor: editorFactory<{input: HTMLDivElement, value: string, config: string[]}>(
   },
   shortcuts: [
     {
-      keys: [["Tab"]],
+      keys: [['Tab']],
       callback: (editor, _event) => {
         let index = editor.config.indexOf(editor.value);
+
         index = index === editor.config.length - 1 ? 0 : index + 1;
         editor.setValue(editor.config[index]);
-        return false; // Prevents default action 
+
+        return false; // Prevents default action
       }
     }
   ]
@@ -453,7 +450,7 @@ By default, the editor container is positioned using the `'container'` strategy,
 editor: editorFactory<{input: HTMLInputElement}>({
   position: 'portal', // Render outside normal container hierarchy
   init(editor) {
-    editor.input = document.createElement('INPUT') as HTMLInputElement;
+    editor.input = document.createElement('input') as HTMLInputElement;
   }
 })
 ```
@@ -469,7 +466,7 @@ When you have multiple editors or complex shortcut configurations, organizing sh
 editor: editorFactory<{input: HTMLInputElement}>({
   shortcutsGroup: 'myCustomEditor',
   init(editor) {
-    editor.input = document.createElement('INPUT') as HTMLInputElement;
+    editor.input = document.createElement('input') as HTMLInputElement;
   },
   shortcuts: [
     {
@@ -492,8 +489,13 @@ Apply your cell definition to columns:
 ### Registering custom cell with `registerCellType`
 
 ```typescript
-
 import { registerCellType } from 'handsontable/cellTypes';
+
+const cellDefinition = {
+  renderer: /* ... */,
+  editor: /* ... */,
+  customOptions: { /* ... */ }
+};
 
 registerCellType('my-type', cellDefinition)
 
@@ -501,23 +503,22 @@ new Handsontable(container, {
   data: myData,
   columns: [
     { data: 'id', type: 'numeric' },
-    { 
+    {
       data: 'customField',
       type: 'my-type',
-      // Any custom properties
-      customOptions: { /* ... */ }
     }
   ]
 });
 ```
 
 ### Using spread `...` operator
+
 ```typescript
 new Handsontable(container, {
   data: myData,
   columns: [
     { data: 'id', type: 'numeric' },
-    { 
+    {
       data: 'customField',
       ...cellDefinition, // Spread renderer, validator, editor
       // Any custom properties
@@ -537,7 +538,7 @@ new Handsontable(container, {
 
 ### 2. Positioning
 
-Positioning is handled automatically by `factory`. You don't need to position the editor manually. The container is automatically positioned over the cell when `open()` is called.
+Positioning is handled automatically by `editorFactory`. You don't need to position the editor manually. The container is automatically positioned over the cell when `open()` is called.
 
 ### 3. Cleanup
 
@@ -568,12 +569,12 @@ validator: (value, callback) => {
 
 We provide complete working examples for common use cases. All examples use the `editorFactory` helper:
 
-1. **[Color Picker](@/recipes/cells/guide-color-picker/guide-color-picker.md)** - Integrate a color picker library using `factory`
-2. **[Flatpickr Date Picker](@/recipes/cells/guide-flatpickr/guide-flatpickr.md)** - Advanced date picker with options using `factory`
-3. **[Native Date Input](@/recipes/cells/guide-input-date/guide-input-date.md)** - HTML5 date input using `factory`
-4. **[Feedback Editor](@/recipes/cells/guide-feedback/guide-feedback.md)** - Emoji feedback buttons using `factory`
-5. **[Star Rating](@/recipes/cells/guide-rating/guide-rating.md)** - Interactive star rating using `factory`
-6. **[Multiple Select](@/recipes/cells/guide-select-multiple/guide-select-multiple.md)** - Multi-select dropdown using `factory`
+1. **[Color Picker](@/recipes/cells/guide-color-picker/guide-color-picker.md)** - Integrate a color picker library using `factoryEditor`
+2. **[Flatpickr Date Picker](@/recipes/cells/guide-flatpickr/guide-flatpickr.md)** - Advanced date picker with options using `factoryEditor`
+3. **[Native Date Input](@/recipes/cells/guide-input-date/guide-input-date.md)** - HTML5 date input using `factoryEditor`
+4. **[Feedback Editor](@/recipes/cells/guide-feedback/guide-feedback.md)** - Emoji feedback buttons using `factoryEditor`
+5. **[Star Rating](@/recipes/cells/guide-rating/guide-rating.md)** - Interactive star rating using `factoryEditor`
+6. **[Multiple Select](@/recipes/cells/guide-select-multiple/guide-select-multiple.md)** - Multi-select dropdown using `factoryEditor`
 
 ## Migration from Traditional Approach
 
@@ -585,15 +586,15 @@ class CustomEditor extends Handsontable.editors.BaseEditor {
   constructor(instance) {
     super(instance);
   }
-  
+
   init() {
-    this.wrapper = this.hot.document.root.createElement('DIV');
-    this.input = this.hot.document.root.createElement('INPUT');
+    this.wrapper = this.hot.document.root.createElement('div');
+    this.input = this.hot.document.root.createElement('input');
     this.hot.document.appendChild(this.wrapper);
     this.wrapper.appendChild(this.input);
     // ...
   }
-  
+
   getValue() {
     return this.input.value;
   }
@@ -601,7 +602,7 @@ class CustomEditor extends Handsontable.editors.BaseEditor {
   setValue(value) {
     this.input.value = value;
   }
-  
+
   // ... many more methods
 }
 ```
@@ -610,7 +611,7 @@ class CustomEditor extends Handsontable.editors.BaseEditor {
 ```typescript
 const editor = editorFactory<{input: HTMLInputElement}>({
   init(editor) {
-    editor.input = document.createElement('INPUT') as HTMLInputElement;
+    editor.input = document.createElement('input') as HTMLInputElement;
   },
   getValue(editor) {
     return editor.input.value;

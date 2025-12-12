@@ -4,7 +4,7 @@ import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
 import { format, isDate } from 'date-fns';
 import flatpickr from 'flatpickr';
-import { editorFactory } from 'handsontable/editors/factory';
+import { editorFactory } from 'handsontable/editors';
 import { rendererFactory } from 'handsontable/renderers';
 
 // Register all Handsontable's modules.

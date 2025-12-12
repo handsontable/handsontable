@@ -8,14 +8,14 @@ canonicalUrl: /recipes/flatpickr
 tags:
   - guides
   - tutorial
-  - recipies
+  - recipes
 react:
   id: 580a2104
   metaTitle: Custom builds - React Data Grid | Handsontable
 angular:
   id: 8748f2d9
   metaTitle: Custom builds - Angular Data Grid | Handsontable
-searchCategory: Recepies
+searchCategory: Recipes
 category: Cells
 ---
 
@@ -29,8 +29,8 @@ category: Cells
 
 This guide shows how to create a custom date picker cell using [Flatpickr](https://flatpickr.js.org/), a powerful and flexible date picker library. This is more advanced than using native HTML5 date inputs, offering better cross-browser consistency and extensive customization options.
 
-**Difficulty:** Intermediate  
-**Time:** ~20 minutes  
+**Difficulty:** Intermediate
+**Time:** ~20 minutes
 **Libraries:** `flatpickr`, `date-fns`
 
 ## What You'll Build
@@ -84,8 +84,8 @@ registerAllModules();
 ## Step 2: Define Date Formats
 
 ```typescript
-const DATE_FORMAT_US = "MM/dd/yyyy";
-const DATE_FORMAT_EU = "dd/MM/yyyy";
+const DATE_FORMAT_US = 'MM/dd/yyyy';
+const DATE_FORMAT_EU = 'dd/MM/yyyy';
 ```
 
 **Why constants?**
@@ -100,6 +100,7 @@ The renderer displays the date in a human-readable format.
 ```typescript
 renderer: rendererFactory(({ td, value, cellProperties }) => {
   td.innerText = format(new Date(value), cellProperties.renderFormat);
+
   return td;
 })
 ```
@@ -120,14 +121,17 @@ renderer: rendererFactory(({ td, value, cellProperties }) => {
 renderer: rendererFactory(({ td, value, cellProperties }) => {
   if (!value) {
     td.innerText = '';
+
     return td;
   }
+
   try {
     td.innerText = format(new Date(value), cellProperties.renderFormat || 'MM/dd/yyyy');
   } catch (e) {
     td.innerText = 'Invalid date';
     td.style.color = 'red';
   }
+
   return td;
 })
 ```
@@ -135,7 +139,7 @@ renderer: rendererFactory(({ td, value, cellProperties }) => {
 ## Step 4: Create the Validator
 
 ```typescript
-validator: (value, callback) => {    
+validator: (value, callback) => {
   callback(isDate(new Date(value)));
 }
 ```
@@ -150,6 +154,7 @@ validator: (value, callback) => {
 // Using native JavaScript
 validator: (value, callback) => {
   const date = new Date(value);
+
   callback(!isNaN(date.getTime()));
 }
 ```
@@ -161,24 +166,24 @@ Create the input element and initialize Flatpickr.
 ```typescript
 init(editor) {
   // Create the input element on init. This is a text input that date picker will be attached to.
-  editor.input = editor.hot.rootDocument.createElement("INPUT") as HTMLInputElement;
-  
+  editor.input = editor.hot.rootDocument.createElement('input') as HTMLInputElement;
+
   // Initialize Flatpickr
   editor.flatpickr = flatpickr(editor.input, {
-    dateFormat: "Y-m-d",
+    dateFormat: 'Y-m-d',
     enableTime: false,
     onChange: () => {
       editor.finishEditing();
     },
   });
-  
+
   /**
    * Prevent recognizing clicking on datepicker as clicking outside of table.
    */
-  editor.hot.rootDocument.addEventListener('mousedown', (event) => {              
+  editor.hot.rootDocument.addEventListener('mousedown', (event) => {
     if (editor.flatpickr.calendarContainer.contains(event.target as Node)) {
       event.stopPropagation();
-    }        
+    }
   });
 }
 ```
@@ -212,7 +217,7 @@ This is crucial! Without it:
 
 **Solution:**
 ```typescript
-editor.hot.rootDocument.addEventListener('mousedown', (event) => {   
+editor.hot.rootDocument.addEventListener('mousedown', (event) => {
   if (editor.flatpickr.calendarContainer.contains(event.target as Node)) {
     event.stopPropagation(); // Tell Handsontable: "This click is part of editing!"
   }
@@ -227,6 +232,7 @@ Initialize the editor with the cell's current value and update Flatpickr setting
 ```typescript
 beforeOpen(editor, { originalValue, cellProperties }) {
   editor.setValue(originalValue);
+
   for (const key in cellProperties.flatpickrSettings) {
     editor.flatpickr.set(key as keyof flatpickr.Options.Options, cellProperties.flatpickrSettings[key]);
   }
@@ -292,6 +298,7 @@ const cellDefinition = {
   },
   renderer: rendererFactory(({ td, value, cellProperties }) => {
     td.innerText = format(new Date(value), cellProperties.renderFormat);
+
     return td;
   }),
   editor: editorFactory<{
@@ -301,9 +308,9 @@ const cellDefinition = {
   }>({
     init(editor) {
       // Create the input element on init. This is a text input that date picker will be attached to.
-      editor.input = editor.hot.rootDocument.createElement("INPUT") as HTMLInputElement;
+      editor.input = editor.hot.rootDocument.createElement('input') as HTMLInputElement;
       editor.flatpickr = flatpickr(editor.input, {
-        dateFormat: "Y-m-d",
+        dateFormat: 'Y-m-d',
         enableTime: false,
         onChange: () => {
           editor.finishEditing();
@@ -312,7 +319,7 @@ const cellDefinition = {
       /**
        * Prevent recognizing clicking on datepicker as clicking outside of table.
        */
-      editor.hot.rootDocument.addEventListener('mousedown', (event) => {   
+      editor.hot.rootDocument.addEventListener('mousedown', (event) => {
         if (editor.flatpickr.calendarContainer.contains(event.target as Node)) {
           event.stopPropagation();
         }
@@ -320,6 +327,7 @@ const cellDefinition = {
     },
     beforeOpen(editor, { originalValue, cellProperties }) {
       editor.setValue(originalValue);
+
       for (const key in cellProperties.flatpickrSettings) {
         editor.flatpickr.set(key as keyof flatpickr.Options.Options, cellProperties.flatpickrSettings[key]);
       }
@@ -349,33 +357,33 @@ const cellDefinition = {
 ## Step 10: Use in Handsontable with Different Formats
 
 ```typescript
-const container = document.querySelector("#example1")!;
+const container = document.querySelector('#example1')!;
 
 const hotOptions: Handsontable.GridSettings = {
   themeName: 'ht-theme-main',
   data: [
-    { id: 1, itemName: "Lunar Core", restockDate: "2025-08-01" },
-    { id: 2, itemName: "Zero Thrusters", restockDate: "2025-09-15" },
+    { id: 1, itemName: 'Lunar Core', restockDate: '2025-08-01' },
+    { id: 2, itemName: 'Zero Thrusters', restockDate: '2025-09-15' },
   ],
   colHeaders: [
-    "ID",
-    "Item Name",
-    "Restock Date UE",
-    "Restock Date US",
+    'ID',
+    'Item Name',
+    'Restock Date UE',
+    'Restock Date US',
   ],
   autoRowSize: true,
   rowHeaders: true,
   height: 'auto',
   columns: [
-    { data: "id", type: "numeric", width: 150 },
+    { data: 'id', type: 'numeric', width: 150 },
     {
-      data: "itemName",
-      type: "text",
+      data: 'itemName',
+      type: 'text',
       width: 150,
     },
     // European format column
     {
-      data: "restockDate",
+      data: 'restockDate',
       width: 150,
       allowInvalid: false,
       ...cellDefinition,
@@ -388,7 +396,7 @@ const hotOptions: Handsontable.GridSettings = {
     },
     // US format column
     {
-      data: "restockDate",
+      data: 'restockDate',
       width: 150,
       allowInvalid: false,
       ...cellDefinition,
@@ -400,7 +408,7 @@ const hotOptions: Handsontable.GridSettings = {
       },
     }
   ],
-  licenseKey: "non-commercial-and-evaluation",
+  licenseKey: 'non-commercial-and-evaluation',
 };
 
 const hot = new Handsontable(container, hotOptions);
@@ -432,12 +440,12 @@ Add time selection:
 ```typescript
 flatpickrSettings: {
   enableTime: true,
-  dateFormat: "Y-m-d H:i",
+  dateFormat: 'Y-m-d H:i',
   time_24hr: true
 }
 
 // Update renderer
-renderFormat: "dd/MM/yyyy HH:mm"
+renderFormat: 'dd/MM/yyyy HH:mm'
 ```
 
 ### 2. Date Range Restrictions
@@ -446,8 +454,8 @@ Limit selectable dates:
 
 ```typescript
 flatpickrSettings: {
-  minDate: "2024-01-01",
-  maxDate: "2024-12-31",
+  minDate: '2024-01-01',
+  maxDate: '2024-12-31',
   disable: [
     // Disable weekends
     function(date) {
@@ -476,11 +484,11 @@ editor.container.style.height = '300px';
 Use Flatpickr locales:
 
 ```typescript
-import { French } from "flatpickr/dist/l10n/fr.js";
+import { French } from 'flatpickr/dist/l10n/fr.js';
 
 flatpickrSettings: {
   locale: French,
-  dateFormat: "d/m/Y"
+  dateFormat: 'd/m/Y'
 }
 ```
 
@@ -490,22 +498,26 @@ Add shortcuts:
 
 ```typescript
 // Requires flatpickr shortcutButtonsPlugin
-import ShortcutButtonsPlugin from "flatpickr/dist/plugins/shortcutButtons/shortcutButtons.js";
+import ShortcutButtonsPlugin from 'flatpickr/dist/plugins/shortcutButtons/shortcutButtons.js';
 
 flatpickrSettings: {
   plugins: [
     ShortcutButtonsPlugin({
       button: [
-        { label: "Today" },
-        { label: "Next Week" },
+        { label: 'Today' },
+        { label: 'Next Week' },
       ],
       onClick: (index, fp) => {
         let date;
-        if (index === 0) date = new Date();
-        if (index === 1) {
+
+        if (index === 0) {
+          date = new Date();
+
+        } else if (index === 1) {
           date = new Date();
           date.setDate(date.getDate() + 7);
         }
+
         fp.setDate(date);
       }
     })
@@ -516,4 +528,3 @@ flatpickrSettings: {
 ---
 
 **Congratulations!** You've created a production-ready date picker with full localization support and advanced configuration.
-

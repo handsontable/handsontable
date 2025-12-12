@@ -2,7 +2,7 @@ import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
-import { editorFactory } from 'handsontable/editors/factory';
+import { editorFactory } from 'handsontable/editors';
 import { registerCellType } from 'handsontable/cellTypes';
 
 // Register all Handsontable's modules.

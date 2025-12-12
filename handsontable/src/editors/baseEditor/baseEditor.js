@@ -622,4 +622,3 @@ export class BaseEditor {
 }
 
 mixin(BaseEditor, hooksRefRegisterer);
-

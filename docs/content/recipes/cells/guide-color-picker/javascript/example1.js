@@ -1,6 +1,6 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import { editorFactory } from 'handsontable/editors/baseEditor';
+import { editorFactory } from 'handsontable/editors';
 import { rendererFactory } from 'handsontable/renderers';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';

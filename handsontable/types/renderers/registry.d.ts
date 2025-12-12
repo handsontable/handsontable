@@ -1,6 +1,5 @@
 import { BaseRenderer } from './base';
 import { Renderers } from './index';
-import { rendererFactory } from './index';
 
 declare function _register(name: string, renderer: BaseRenderer): void;
 declare function _register(renderer: BaseRenderer): void;
@@ -16,5 +15,4 @@ export {
   hasItem as hasRenderer,
   getNames as getRegisteredRendererNames,
   getValues as getRegisteredRenderers,
-  rendererFactory
 };

@@ -3,4 +3,3 @@ export {
   EDITOR_TYPE,
   BaseEditor,
 } from './baseEditor';
-

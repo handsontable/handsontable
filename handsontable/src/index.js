@@ -26,15 +26,13 @@ import {
   getEditor,
   registerEditor,
 } from './editors/registry';
-import {
-  editorFactory,
-} from './editors/factory';
+import { editorFactory } from './editors/factory';
 import {
   getRegisteredRendererNames,
   getRenderer,
   registerRenderer,
-
-  rendererFactory } from './renderers/registry';
+} from './renderers/registry';
+import { rendererFactory } from './renderers/factory';
 import {
   getRegisteredValidatorNames,
   getValidator,

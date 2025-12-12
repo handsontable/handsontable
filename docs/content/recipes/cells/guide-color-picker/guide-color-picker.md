@@ -27,8 +27,8 @@ category: Cells
 
 This guide shows how to create a custom color picker cell using the [Coloris](https://github.com/melloware/coloris-npm) library. Users can click a cell to open a color picker, select a color, and see it rendered with a colored background.
 
-**Difficulty:** Beginner  
-**Time:** ~15 minutes  
+**Difficulty:** Beginner
+**Time:** ~15 minutes
 **Libraries:** `@melloware/coloris`
 
 ## Complete Example
@@ -65,7 +65,7 @@ import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
-import "@melloware/coloris/dist/coloris.css";
+import '@melloware/coloris/dist/coloris.css';
 import Coloris from '@melloware/coloris';
 
 Coloris.init();
@@ -128,7 +128,7 @@ Create the input element that Coloris will attach to.
 ```typescript
 init(editor) {
   // Create the input element on init. This is a text input that color picker will be attached to.
-  editor.input = editor.hot.rootDocument.createElement("INPUT") as HTMLInputElement;
+  editor.input = editor.hot.rootDocument.createElement('input') as HTMLInputElement;
   editor.input.setAttribute('data-coloris', '');
 }
 ```
@@ -155,11 +155,11 @@ Configure Coloris and set up the close event handler.
 ```typescript
 afterInit(editor) {
   Coloris({
-    el: editor.input, 
-    closeButton: true, 
-    closeLabel: "Apply Colour", 
-    // We don't want alpha channel 
-    alpha: false, 
+    el: editor.input,
+    closeButton: true,
+    closeLabel: 'Apply Colour',
+    // We don't want alpha channel
+    alpha: false,
     // Hide Coloris additional input UI
     wrap: false
   });
@@ -240,6 +240,7 @@ const cellDefinition = {
   renderer: rendererFactory(({ td, value }) => {
     td.style.backgroundColor = `${value}`;
     td.innerHTML = `<b>${value}</b>`;
+
     return td;
   }),
   validator: (value, callback) => {
@@ -248,11 +249,12 @@ const cellDefinition = {
   editor: editorFactory<{input: HTMLInputElement}>({
     init(editor) {
       // create the input element on init. This is a text input that color picker will be attached to.
-      editor.input = editor.hot.rootDocument.createElement("INPUT") as HTMLInputElement;
+      editor.input = editor.hot.rootDocument.createElement('input') as HTMLInputElement;
       editor.input.setAttribute('data-coloris', '');
     },
     afterInit(editor) {
-      Coloris({el: editor.input, closeButton:true, closeLabel:"Apply Colour",  alpha: false, wrap: false});
+      Coloris({el: editor.input, closeButton:true, closeLabel:'Apply Colour',  alpha: false, wrap: false});
+
       editor.input.addEventListener('close', (event) => {
         editor.finishEditing(); // close the color picker and save value on pressing "Apply Colour"
       });
@@ -284,32 +286,32 @@ const cellDefinition = {
 ## Step 10: Use in Handsontable
 
 ```typescript
-const container = document.querySelector("#example1")!;
+const container = document.querySelector('#example1')!;
 
 const hotOptions: Handsontable.GridSettings = {
   themeName: 'ht-theme-main',
   data: [
-    { id: 1, itemName: "Lunar Core", color: "#FF5733" },
-    { id: 2, itemName: "Zero Thrusters", color: "#33FF57" },
-    { id: 3, itemName: "EVA Suits", color: "#3357FF" },
+    { id: 1, itemName: 'Lunar Core', color: '#FF5733' },
+    { id: 2, itemName: 'Zero Thrusters', color: '#33FF57' },
+    { id: 3, itemName: 'EVA Suits', color: '#3357FF' },
   ],
   colHeaders: [
-    "ID",
-    "Item Name",
-    "Item Color",
+    'ID',
+    'Item Name',
+    'Item Color',
   ],
   autoRowSize: true,
   rowHeaders: true,
   height: 'auto',
   columns: [
-    { data: "id", type: "numeric" },
-    { data: "itemName", type: "text" },
+    { data: 'id', type: 'numeric' },
+    { data: 'itemName', type: 'text' },
     {
-      data: "color",
+      data: 'color',
       ...cellDefinition,
     }
   ],
-  licenseKey: "non-commercial-and-evaluation",
+  licenseKey: 'non-commercial-and-evaluation',
 };
 
 const hot = new Handsontable(container, hotOptions);
@@ -407,6 +409,7 @@ Coloris({
 // Update validator
 validator: (value, callback) => {
   const rgbaRegex = /^rgba?\(\d+,\s*\d+,\s*\d+(?:,\s*[\d.]+)?\)$/;
+
   callback(rgbaRegex.test(value));
 }
 ```
@@ -415,5 +418,3 @@ validator: (value, callback) => {
 ---
 
 **Congratulations!** You've created a fully functional color picker cell using the Coloris library with the `editorFactory` helper, providing an intuitive color selection experience in your data grid!
-
-

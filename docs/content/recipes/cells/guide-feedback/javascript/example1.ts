@@ -4,8 +4,7 @@ import "handsontable/styles/handsontable.css";
 import "handsontable/styles/ht-theme-main.css";
 import { CellProperties } from "handsontable/settings";
 import { BaseEditor } from "handsontable/editors/baseEditor";
-import { editorFactory } from "handsontable/editors/factory";
-import { rendererFactory } from "handsontable/renderers";
+import { editorFactory } from "handsontable/editors";
 import { registerCellType } from 'handsontable/cellTypes';
 // Register all Handsontable's modules.
 registerAllModules();

@@ -8,14 +8,14 @@ canonicalUrl: /recipes/stars-rating
 tags:
   - guides
   - tutorial
-  - recipies
+  - recipes
 react:
   id: dd56fc85
   metaTitle: "Recipe: Star Rating Editor - React Data Grid | Handsontable"
 angular:
   id: e51f625c
   metaTitle: "Recipe: Star Rating Editor - Angular Data Grid | Handsontable"
-searchCategory: Recepies
+searchCategory: Recipes
 category: Cells
 ---
 
@@ -27,8 +27,8 @@ category: Cells
 
 This guide shows how to create an interactive star rating cell using emoji stars. Perfect for product ratings, review scores, or any scenario where users need to provide a 1-5 star rating.
 
-**Difficulty:** Beginner  
-**Time:** ~15 minutes  
+**Difficulty:** Beginner
+**Time:** ~15 minutes
 **Libraries:** None (pure HTML and JavaScript)
 
 ## What You'll Build
@@ -81,9 +81,10 @@ The renderer displays 5 stars with filled stars (opacity 1.0) and unfilled stars
 
 ```typescript
 renderer: rendererFactory(({ td, value }) => {
-  td.innerHTML = Array.from({ length: 5 }, (_, index) => 
+  td.innerHTML = Array.from({ length: 5 }, (_, index) =>
     `<span style="opacity: ${index < value ? '1' : '0.4'}">⭐</span>`
   ).join('');
+
   return td;
 })
 ```
@@ -111,8 +112,9 @@ renderer: rendererFactory(({ td, value }) => {
 Ensure values are within the 1-5 star range.
 
 ```typescript
-validator: (value, callback) => {    
+validator: (value, callback) => {
   value = parseInt(value);
+
   callback(value >= 1 && value <= 5);
 }
 ```
@@ -129,7 +131,7 @@ Create the container div for the star rating editor.
 ```typescript
 init(editor) {
   // Create container div for stars
-  editor.input = editor.hot.rootDocument.createElement("DIV") as HTMLDivElement;
+  editor.input = editor.hot.rootDocument.createElement('div') as HTMLDivElement;
   editor.input.style = 'background: #eee; padding: 5px 8px; border:1px solid blue; cursor: pointer; border-radius: 4px; font-size: 16px;';
 }
 ```
@@ -157,12 +159,13 @@ afterInit(editor) {
   editor.input.addEventListener('mouseover', (event) => {
     if (event.target instanceof HTMLSpanElement && event.target.dataset.value) {
       const hoverValue = parseInt(event.target.dataset.value);
+
       if (parseInt(editor.value) !== hoverValue) {
         editor.setValue(hoverValue);
       }
     }
   });
-  
+
   // Mousedown: select rating and finish editing
   editor.input.addEventListener('mousedown', () => {
     editor.finishEditing();
@@ -195,7 +198,7 @@ Generate the HTML for the 5 star buttons based on current rating.
 
 ```typescript
 render(editor) {
-  editor.input.innerHTML = Array.from({ length: 5 }, (_, index) => 
+  editor.input.innerHTML = Array.from({ length: 5 }, (_, index) =>
     `<span data-value="${index + 1}" style="opacity: ${index < editor.value ? '1' : '0.4'}">⭐</span>`
   ).join('');
 }
@@ -271,17 +274,19 @@ shortcuts: [
 ```typescript
 const cellDefinition = {
   renderer: rendererFactory(({ td, value }) => {
-    td.innerHTML = Array.from({ length: 5 }, (_, index) => 
+    td.innerHTML = Array.from({ length: 5 }, (_, index) =>
       `<span style="opacity: ${index < value ? '1' : '0.4'}">⭐</span>`
     ).join('');
+
     return td;
   }),
-  
-  validator: (value, callback) => {    
+
+  validator: (value, callback) => {
     value = parseInt(value);
+
     callback(value >= 1 && value <= 5);
   },
-  
+
   editor: editorFactory<{ input: HTMLDivElement }>({
     shortcuts: [
       {
@@ -308,13 +313,14 @@ const cellDefinition = {
       }
     ],
     init(editor) {
-      editor.input = editor.hot.rootDocument.createElement("DIV") as HTMLDivElement;
+      editor.input = editor.hot.rootDocument.createElement('div') as HTMLDivElement;
       editor.input.style = 'background: #eee; padding: 5px 8px; border:1px solid blue; cursor: pointer; border-radius: 4px; font-size: 16px;';
     },
     afterInit(editor) {
       editor.input.addEventListener('mouseover', (event) => {
         if (event.target instanceof HTMLSpanElement && event.target.dataset.value) {
           const hoverValue = parseInt(event.target.dataset.value);
+
           if (parseInt(editor.value) !== hoverValue) {
             editor.setValue(hoverValue);
           }
@@ -325,7 +331,7 @@ const cellDefinition = {
       });
     },
     render(editor) {
-      editor.input.innerHTML = Array.from({ length: 5 }, (_, index) => 
+      editor.input.innerHTML = Array.from({ length: 5 }, (_, index) =>
         `<span data-value="${index + 1}" style="opacity: ${index < editor.value ? '1' : '0.4'}">⭐</span>`
       ).join('');
     },
@@ -345,34 +351,34 @@ const cellDefinition = {
 ## Step 9: Use in Handsontable
 
 ```typescript
-const container = document.querySelector("#example1")!;
+const container = document.querySelector('#example1')!;
 
 const hotOptions: Handsontable.GridSettings = {
   themeName: 'ht-theme-main',
   data: [
-    { id: 1, itemName: "Lunar Core", stars: 4 },
-    { id: 2, itemName: "Zero Thrusters", stars: 2 },
-    { id: 3, itemName: "EVA Suits", stars: 5 },
-    { id: 4, itemName: "Solar Panels", stars: 3 },
+    { id: 1, itemName: 'Lunar Core', stars: 4 },
+    { id: 2, itemName: 'Zero Thrusters', stars: 2 },
+    { id: 3, itemName: 'EVA Suits', stars: 5 },
+    { id: 4, itemName: 'Solar Panels', stars: 3 },
   ],
   colHeaders: [
-    "ID",
-    "Item Name",
-    "Rating",
+    'ID',
+    'Item Name',
+    'Rating',
   ],
   autoRowSize: true,
   rowHeaders: true,
   height: 'auto',
   columns: [
-    { data: "id", type: "numeric" },
-    { data: "itemName", type: "text" },
+    { data: 'id', type: 'numeric' },
+    { data: 'itemName', type: 'text' },
     {
-      data: "stars",
+      data: 'stars',
       width: 100,
       ...cellDefinition,
     }
   ],
-  licenseKey: "non-commercial-and-evaluation",
+  licenseKey: 'non-commercial-and-evaluation',
 };
 
 const hot = new Handsontable(container, hotOptions);
@@ -398,15 +404,17 @@ Display the numeric rating alongside stars:
 
 ```typescript
 renderer: rendererFactory(({ td, value }) => {
-  const stars = Array.from({ length: 5 }, (_, index) => 
+  const stars = Array.from({ length: 5 }, (_, index) =>
     `<span style="opacity: ${index < value ? '1' : '0.4'}">⭐</span>`
   ).join('');
+
   td.innerHTML = `
     <div style="display: flex; align-items: center; gap: 8px;">
       <span>${stars}</span>
       <span style="font-weight: bold; color: #666;">${value}/5</span>
     </div>
   `;
+
   return td;
 })
 ```
@@ -418,13 +426,14 @@ Change star color based on rating value:
 ```typescript
 renderer: rendererFactory(({ td, value }) => {
   let color = '#ffd700'; // Gold for high ratings
-  
+
   if (value <= 2) color = '#f44336'; // Red for low ratings
   else if (value === 3) color = '#ff9800'; // Orange for medium
-  
-  td.innerHTML = Array.from({ length: 5 }, (_, index) => 
+
+  td.innerHTML = Array.from({ length: 5 }, (_, index) =>
     `<span style="opacity: ${index < value ? '1' : '0.4'}; color: ${color};">⭐</span>`
   ).join('');
+
   return td;
 })
 ```
@@ -437,22 +446,25 @@ Support half-star ratings (0.5 increments):
 renderer: rendererFactory(({ td, value }) => {
   const fullStars = Math.floor(value);
   const hasHalfStar = value % 1 >= 0.5;
-  
+
   td.innerHTML = Array.from({ length: 5 }, (_, index) => {
     if (index < fullStars) {
       return '<span style="opacity: 1;">⭐</span>';
+
     } else if (index === fullStars && hasHalfStar) {
       return '<span style="opacity: 0.5;">⭐</span>';
-    } else {
-      return '<span style="opacity: 0.4;">⭐</span>';
     }
+
+    return '<span style="opacity: 0.4;">⭐</span>';
   }).join('');
+
   return td;
 })
 
 // Update validator
 validator: (value, callback) => {
   value = parseFloat(value);
+
   callback(value >= 0.5 && value <= 5 && value % 0.5 === 0);
 }
 ```
@@ -465,9 +477,11 @@ Configurable number of stars per column:
 // Make star count configurable
 renderer: rendererFactory(({ td, value, cellProperties }) => {
   const maxStars = cellProperties.maxStars || 5;
-  td.innerHTML = Array.from({ length: maxStars }, (_, index) => 
+
+  td.innerHTML = Array.from({ length: maxStars }, (_, index) =>
     `<span style="opacity: ${index < value ? '1' : '0.4'}">⭐</span>`
   ).join('');
+
   return td;
 })
 
@@ -487,17 +501,18 @@ Add text labels like "Excellent", "Good", etc.:
 renderer: rendererFactory(({ td, value }) => {
   const labels = ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
   const label = labels[value] || '';
-  
-  const stars = Array.from({ length: 5 }, (_, index) => 
+
+  const stars = Array.from({ length: 5 }, (_, index) =>
     `<span style="opacity: ${index < value ? '1' : '0.4'}">⭐</span>`
   ).join('');
-  
+
   td.innerHTML = `
     <div style="display: flex; align-items: center; gap: 8px;">
       <span>${stars}</span>
       <span style="font-size: 0.9em; color: #666;">${label}</span>
     </div>
   `;
+
   return td;
 })
 ```
@@ -512,8 +527,9 @@ render(editor) {
   editor.input.innerHTML = Array.from({ length: 5 }, (_, index) => {
     const rating = index + 1;
     const isSelected = index < editor.value;
-    return `<span 
-      data-value="${rating}" 
+
+    return `<span
+      data-value="${rating}"
       role="button"
       aria-label="${rating} star${rating > 1 ? 's' : ''}"
       aria-pressed="${isSelected}"
@@ -550,7 +566,7 @@ render(editor) {
 
 ```typescript
 render(editor) {
-  editor.input.innerHTML = Array.from({ length: 5 }, (_, index) => 
+  editor.input.innerHTML = Array.from({ length: 5 }, (_, index) =>
     `<span data-value="${index + 1}" style="opacity: ${index < editor.value ? '1' : '0.4'}">⭐</span>`
   ).join('');
 }
@@ -574,12 +590,14 @@ init(editor) {
   // Create stars once
   editor.stars = Array.from({ length: 5 }, (_, index) => {
     const star = document.createElement('span');
+
     star.setAttribute('data-value', String(index + 1));
     star.textContent = '⭐';
     star.style.opacity = '0.4';
+
     return star;
   });
-  
+
   editor.stars.forEach(star => editor.input.appendChild(star));
 }
 
@@ -599,7 +617,7 @@ render(editor) {
 /* Style the editor container */
 .htSelectEditor {
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* Style stars */
@@ -631,8 +649,8 @@ renderer: rendererFactory(({ td, value }) => {
       text-align: center;
       font-size: 1.5em;
       padding: 8px;
-      background: linear-gradient(to right, 
-        ${value >= 1 ? '#ffd700' : '#e0e0e0'} 0%, 
+      background: linear-gradient(to right,
+        ${value >= 1 ? '#ffd700' : '#e0e0e0'} 0%,
         ${value >= 2 ? '#ffd700' : '#e0e0e0'} 20%,
         ${value >= 3 ? '#ffd700' : '#e0e0e0'} 40%,
         ${value >= 4 ? '#ffd700' : '#e0e0e0'} 60%,
@@ -641,11 +659,12 @@ renderer: rendererFactory(({ td, value }) => {
       );
       border-radius: 4px;
     ">
-      ${Array.from({ length: 5 }, (_, index) => 
+      ${Array.from({ length: 5 }, (_, index) =>
         `<span style="opacity: ${index < value ? '1' : '0.4'}">⭐</span>`
       ).join('')}
     </div>
   `;
+
   return td;
 })
 ```
@@ -656,13 +675,14 @@ Add smooth transitions when rating changes:
 
 ```typescript
 renderer: rendererFactory(({ td, value }) => {
-  td.innerHTML = Array.from({ length: 5 }, (_, index) => 
+  td.innerHTML = Array.from({ length: 5 }, (_, index) =>
     `<span style="
       opacity: ${index < value ? '1' : '0.4'};
       transition: opacity 0.3s ease;
       display: inline-block;
     ">⭐</span>`
   ).join('');
+
   return td;
 })
 ```
@@ -671,4 +691,3 @@ renderer: rendererFactory(({ td, value }) => {
 ---
 
 **Congratulations!** You've created an interactive star rating editor with hover preview and keyboard support using only native HTML and JavaScript, perfect for intuitive 1-5 star ratings in your data grid!
-

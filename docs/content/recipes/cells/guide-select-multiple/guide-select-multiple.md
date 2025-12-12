@@ -8,14 +8,14 @@ canonicalUrl: /recipes/select-multiple
 tags:
   - guides
   - tutorial
-  - recipies
+  - recipes
 react:
   id: 44c6adde
   metaTitle: "Recipe: Multiple Select Dropdown - React Data Grid | Handsontable"
 angular:
   id: 9b00d73d
   metaTitle: "Recipe: Multiple Select Dropdown - Angular Data Grid | Handsontable"
-searchCategory: Recepies
+searchCategory: Recipes
 category: Cells
 ---
 
@@ -29,8 +29,8 @@ category: Cells
 
 This guide shows how to create a custom multi-select dropdown cell using the [multiple-select-vanilla](https://github.com/leviwheatcroft/multiple-select-vanilla) library. Users can select multiple items from a dropdown list, with a clean, searchable interface.
 
-**Difficulty:** Intermediate  
-**Time:** ~25 minutes  
+**Difficulty:** Intermediate
+**Time:** ~25 minutes
 **Libraries:** `multiple-select-vanilla`
 
 ## What You'll Build
@@ -86,30 +86,30 @@ Define the data structure with arrays of objects for multi-select values:
 
 ```typescript
 const data = [
-  { 
-    id: 1, 
-    itemName: "Product A", 
+  {
+    id: 1,
+    itemName: 'Product A',
     components: [
-      { value: "cpu", label: "CPU" },
-      { value: "ram", label: "RAM" }
+      { value: 'cpu', label: 'CPU' },
+      { value: 'ram', label: 'RAM' }
     ]
   },
-  { 
-    id: 2, 
-    itemName: "Product B", 
+  {
+    id: 2,
+    itemName: 'Product B',
     components: [
-      { value: "gpu", label: "GPU" }
+      { value: 'gpu', label: 'GPU' }
     ]
   },
 ];
 
 // Define available options
 const components = [
-  { value: "cpu", label: "CPU" },
-  { value: "ram", label: "RAM" },
-  { value: "gpu", label: "GPU" },
-  { value: "ssd", label: "SSD" },
-  { value: "hdd", label: "HDD" },
+  { value: 'cpu', label: 'CPU' },
+  { value: 'ram', label: 'RAM' },
+  { value: 'gpu', label: 'GPU' },
+  { value: 'ssd', label: 'SSD' },
+  { value: 'hdd', label: 'HDD' },
 ];
 ```
 
@@ -123,20 +123,20 @@ const components = [
 **Example scenarios:**
 ```typescript
 // IDs vs Names
-{ value: "123", label: "John Smith" }
+{ value: '123', label: 'John Smith' }
 
 // Codes vs Descriptions
-{ value: "US", label: "United States" }
+{ value: 'US', label: 'United States' }
 
 // Keys vs Localized Text
-{ value: "save", label: "Сохранить" } // Russian
+{ value: 'save', label: 'Ušetřit peníze' } // Czech
 ```
 
 ### Why arrays in data?
 ```typescript
 components: [
-  { value: "cpu", label: "CPU" },
-  { value: "ram", label: "RAM" }
+  { value: 'cpu', label: 'CPU' },
+  { value: 'ram', label: 'RAM' }
 ]
 ```
 
@@ -151,8 +151,9 @@ Display selected items as comma-separated text.
 ```typescript
 renderer: rendererFactory(({ td, value }) => {
   td.innerHTML = value.length > 0
-    ? value.map((el: { label: string }) => el.label).join(", ")
-    : "No elements";
+    ? value.map((el: { label: string }) => el.label).join(', ')
+    : 'No elements';
+
   return td;
 })
 ```
@@ -171,24 +172,25 @@ value.length > 0
 value.map((el: { label: string }) => el.label)
 ```
 - Get only the label from each object
-- Example: `[{value: "cpu", label: "CPU"}]` → `["CPU"]`
+- Example: `[{value: 'cpu', label: 'CPU'}]` → `['CPU']`
 
 ### Join with commas
 ```typescript
-.join(", ")
+.join(', ')
 ```
-- Convert array to string: `["CPU", "RAM"]` → `"CPU, RAM"`
+- Convert array to string: `['CPU', 'RAM']` → `'CPU, RAM'`
 
 **Enhanced renderer with badges:**
 ```typescript
 renderer: Handsontable.renderers.factor(({ td, value }) => {
   if (!value || value.length === 0) {
     td.innerHTML = '<span style="color: #999;">No selection</span>';
+
     return td;
   }
-  
+
   const badges = value
-    .map((el: { label: string }) => 
+    .map((el: { label: string }) =>
       `<span style="
         display: inline-block;
         padding: 2px 8px;
@@ -199,9 +201,10 @@ renderer: Handsontable.renderers.factor(({ td, value }) => {
         color: #1976d2;
       ">${el.label}</span>`
     )
-    .join("");
-  
+    .join('');
+
   td.innerHTML = badges;
+
   return td;
 })
 ```
@@ -235,6 +238,7 @@ validator: (value, callback) => {
 ```typescript
 validator: (value, callback) => {
   const hasRequired = value.some(el => el.value === 'cpu');
+
   callback(hasRequired);
 }
 ```
@@ -246,10 +250,10 @@ Create the select element and initialize the multiple-select plugin.
 ```typescript
 init(editor) {
   // Create select element
-  editor.input = editor.hot.rootDocument.createElement("SELECT") as HTMLSelectElement;
-  editor.input.setAttribute("multiple", "multiple");
-  editor.input.setAttribute("data-multi-select", "");
-  
+  editor.input = editor.hot.rootDocument.createElement('select') as HTMLSelectElement;
+  editor.input.setAttribute('multiple', 'multiple');
+  editor.input.setAttribute('data-multi-select', '');
+
   // Initialize multiple select plugin
   editor.multiselect = multipleSelect(editor.input) as MultipleSelectInstance;
 }
@@ -266,7 +270,7 @@ init(editor) {
 
 ### The `multiple` attribute
 ```typescript
-editor.input.setAttribute("multiple", "multiple");
+editor.input.setAttribute('multiple', 'multiple');
 ```
 - Allows selecting multiple options
 - Native HTML5 feature
@@ -274,7 +278,7 @@ editor.input.setAttribute("multiple", "multiple");
 
 ### Custom data attribute
 ```typescript
-editor.input.setAttribute("data-multi-select", "");
+editor.input.setAttribute('data-multi-select', '');
 ```
 - Optional marker for CSS targeting
 - Helps identify multi-select elements
@@ -299,8 +303,8 @@ beforeOpen(editor, { cellProperties }) {
   // Get options for this cell
   editor.input.innerHTML = cellProperties?.selectMultipleOptions?.map((
     el: { value: string; label: string },
-  ) => `<option value="${el.value}">${el.label}</option>`).join("");
-  
+  ) => `<option value="${el.value}">${el.label}</option>`).join('');
+
   // Tell plugin to refresh with new options
   editor.multiselect.refresh();
 }
@@ -398,8 +402,8 @@ HTML state:
 
 getValue() returns:
 [
-  { value: "cpu", label: "CPU" },
-  { value: "ram", label: "RAM" }
+  { value: 'cpu', label: 'CPU' },
+  { value: 'ram', label: 'RAM' }
 ]
 ```
 
@@ -411,15 +415,15 @@ Set which items are selected when editor opens.
 setValue(editor, value) {
   // Handle Handsontable bug where value might be string
   // https://github.com/handsontable/handsontable/issues/3510
-  value = typeof value === "string" ? editor.originalValue : value;
-  
+  value = typeof value === 'string' ? editor.originalValue : value;
+
   // Set selected state for each option
   Array.from(editor.input.options).forEach((option) =>
     option.selected = value.some((el: { value: string }) =>
       el.value === option.value
     )
   );
-  
+
   // Update plugin UI
   editor.multiselect.refresh();
 }
@@ -435,7 +439,7 @@ setValue(editor, value) {
 
 ### The Handsontable quirk
 ```typescript
-value = typeof value === "string" ? editor.originalValue : value;
+value = typeof value === 'string' ? editor.originalValue : value;
 ```
 
 **Why is this needed?**
@@ -446,9 +450,9 @@ value = typeof value === "string" ? editor.originalValue : value;
 
 **Without this fix:**
 ```typescript
-// Cell value: [{ value: "cpu", label: "CPU" }]
-// Renderer shows: "CPU"
-// setValue gets: "CPU" (string) ❌ should be array
+// Cell value: [{ value: 'cpu', label: 'CPU' }]
+// Renderer shows: 'CPU'
+// setValue gets: 'CPU' (string) ❌ should be array
 // Fix: Use editor.originalValue instead
 ```
 
@@ -465,8 +469,8 @@ option.selected = value.some((el: { value: string }) =>
 **Flow example:**
 ```
 Cell value: [
-  { value: "cpu", label: "CPU" },
-  { value: "ram", label: "RAM" }
+  { value: 'cpu', label: 'CPU' },
+  { value: 'ram', label: 'RAM' }
 ]
 
 For each <option>:
@@ -496,15 +500,15 @@ const cellDefinition = {
   }),
   editor: editorFactory<{input: HTMLSelectElement, multiselect: MultipleSelectInstance}>({
     init(editor) {
-      editor.input = editor.hot.rootDocument.createElement("SELECT") as HTMLSelectElement;
-      editor.input.setAttribute("multiple", "multiple");
-      editor.input.setAttribute("data-multi-select", "");
+      editor.input = editor.hot.rootDocument.createElement('select') as HTMLSelectElement;
+      editor.input.setAttribute('multiple', 'multiple');
+      editor.input.setAttribute('data-multi-select', '');
       editor.multiselect = multipleSelect(editor.input) as MultipleSelectInstance;
     },
     beforeOpen(editor, { cellProperties }) {
       editor.input.innerHTML = cellProperties?.selectMultipleOptions?.map((
         el: { value: string; label: string },
-      ) => `<option value="${el.value}">${el.label}</option>`).join("");
+      ) => `<option value="${el.value}">${el.label}</option>`).join('');
       editor.multiselect.refresh();
     },
     afterOpen(editor) {
@@ -518,11 +522,13 @@ const cellDefinition = {
     setValue(editor, value) {
       // https://github.com/handsontable/handsontable/issues/3510
       value = typeof value === "string" ? editor.originalValue : value;
+
       Array.from(editor.input.options).forEach((option) =>
         option.selected = value.some((el: { value: string }) =>
           el.value === option.value
         )
       );
+
       editor.multiselect.refresh();
     },
   }),
@@ -543,54 +549,54 @@ const cellDefinition = {
 ## Step 11: Use in Handsontable
 
 ```typescript
-const container = document.querySelector("#example1")!;
+const container = document.querySelector('#example1')!;
 
 const hotOptions: Handsontable.GridSettings = {
   themeName: 'ht-theme-main',
   data: [
-    { 
-      id: 1, 
-      itemName: "Lunar Core",
+    {
+      id: 1,
+      itemName: 'Lunar Core',
       components: [
-        { value: "1", label: "Component 1" },
-        { value: "2", label: "Component 2" }
+        { value: '1', label: 'Component 1' },
+        { value: '2', label: 'Component 2' }
       ],
       countries: [
-        { value: "US", label: "United States of America (the)" }
+        { value: 'US', label: 'United States of America (the)' }
       ]
     },
   ],
   colHeaders: [
-    "ID",
-    "Item Name",
-    "Components",
-    "Countries",
+    'ID',
+    'Item Name',
+    'Components',
+    'Countries',
   ],
   autoRowSize: true,
   rowHeaders: true,
   height: 'auto',
   columns: [
-    { data: "id", type: "numeric" },
+    { data: 'id', type: 'numeric' },
     {
-      data: "countries",
+      data: 'countries',
       width: 150,
       allowInvalid: false,
       ...cellDefinition,
-      selectMultipleOptions: coutries, // Custom property
+      selectMultipleOptions: countries, // Custom property
     },
     {
-      data: "itemName",
-      type: "text",
+      data: 'itemName',
+      type: 'text',
     },
     {
-      data: "components",
+      data: 'components',
       width: 150,
       allowInvalid: false,
       ...cellDefinition,
       selectMultipleOptions: components, // Different options!
     },
   ],
-  licenseKey: "non-commercial-and-evaluation",
+  licenseKey: 'non-commercial-and-evaluation',
 };
 
 const hot = new Handsontable(container, hotOptions);
@@ -610,7 +616,7 @@ const hot = new Handsontable(container, hotOptions);
 5. **Current Values Selected**: Previously selected items are checked in the dropdown
 6. **User Changes Selection**: User checks/unchecks options
 7. **User Clicks Away or Presses Enter**: Editor closes
-8. **GetValue Called**: Returns array of selected objects `[{value: "1", label: "Component 1"}, ...]`
+8. **GetValue Called**: Returns array of selected objects `[{value: '1', label: 'Component 1'}, ...]`
 9. **Validation**: Validator runs (optional, if defined)
 10. **Save**: New array saved to cell data
 11. **Re-render**: Cell displays updated comma-separated labels
@@ -666,19 +672,20 @@ editor.multiselect = multipleSelect(editor.input, {
 beforeOpen(editor, { row, cellProperties }) {
   const rowData = editor.hot.getDataAtRow(row);
   const category = rowData.category; // Category column
-  
+
   // Different options based on category
   let options = cellProperties.selectMultipleOptions;
+
   if (category === 'Electronics') {
     options = electronicsComponents;
   } else if (category === 'Furniture') {
     options = furnitureComponents;
   }
-  
+
   editor.input.innerHTML = options.map((el) =>
     `<option value="${el.value}">${el.label}</option>`
-  ).join("");
-  
+  ).join('');
+
   editor.multiselect.refresh();
 }
 ```
@@ -687,7 +694,7 @@ beforeOpen(editor, { row, cellProperties }) {
 
 ```typescript
 const groupedOptions = [
-  { 
+  {
     label: 'Hardware',
     children: [
       { value: 'cpu', label: 'CPU' },
@@ -706,12 +713,12 @@ const groupedOptions = [
 beforeOpen(editor, { cellProperties }) {
   editor.input.innerHTML = groupedOptions.map(group =>
     `<optgroup label="${group.label}">
-      ${group.children.map(opt => 
+      ${group.children.map(opt =>
         `<option value="${opt.value}">${opt.label}</option>`
       ).join('')}
     </optgroup>`
   ).join('');
-  
+
   editor.multiselect.refresh();
 }
 ```
@@ -731,34 +738,34 @@ beforeOpen(editor, { cellProperties }) {
       ${opt.icon} ${opt.label}
     </option>`
   ).join('');
-  
+
   editor.multiselect.refresh();
 }
 ```
 
-<!-- 
+<!--
 
 ### 4. Async Options Loading
 
-TODO: prepare actual example how to make this async. 
+TODO: prepare actual example how to make this async.
 
 ```typescript
 async prepare(editor, row, col, prop, td, originalValue, cellProperties) {
   // Show loading state
   editor.input.innerHTML = '<option>Loading...</option>';
   editor.multiselect.refresh();
-  
+
   // Fetch options from API
   const options = await fetchOptionsFromAPI(cellProperties.optionsEndpoint);
-  
+
   // Update with real options
   editor.input.innerHTML = options.map(el =>
     `<option value="${el.value}">${el.label}</option>`
   ).join('');
-  
+
   editor.multiselect.refresh();
 }
-``` 
+```
 
 -->
 
@@ -822,4 +829,3 @@ editor.multiselect = multipleSelect(editor.input, {
 ---
 
 **Congratulations!** You've created a powerful multi-select cell with search, keyboard navigation, and full customization options!
-

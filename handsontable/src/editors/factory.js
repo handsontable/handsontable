@@ -1,4 +1,5 @@
 import { BaseEditor } from './baseEditor/baseEditor';
+
 /**
  * Factory function for creating custom Handsontable editors by extending BaseEditor.
  *
@@ -6,28 +7,28 @@ import { BaseEditor } from './baseEditor/baseEditor';
  * editor lifecycle methods. It handles the prototype chain setup and method delegation to
  * the BaseEditor superclass automatically.
  *
- * @param {object} params - Configuration object containing editor lifecycle methods and custom methods.
- * @param {Function} params.prepare - Called before editing begins to initialize the editor.
- * @param {Function} params.beginEditing - Called when editing starts.
- * @param {Function} params.finishEditing - Called when editing ends.
- * @param {Function} params.discardEditor - Called to discard editor changes.
- * @param {Function} params.saveValue - Called to save the edited value.
- * @param {Function} params.getValue - Called to retrieve the current editor value.
- * @param {Function} params.setValue - Called to set the editor value.
- * @param {Function} params.open - Called to open/show the editor UI.
- * @param {Function} params.close - Called to close/hide the editor UI.
- * @param {Function} params.focus - Called to focus the editor.
- * @param {Function} params.cancelChanges - Called to cancel editing changes.
- * @param {Function} params.checkEditorSection - Called to determine which section the editor belongs to.
- * @param {Function} params.enableFullEditMode - Called to enable full edit mode.
- * @param {Function} params.extend - Called to extend the editor class.
- * @param {Function} params.getEditedCell - Called to get the currently edited cell element.
- * @param {Function} params.getEditedCellRect - Called to get the edited cell's position and dimensions.
- * @param {Function} params.getEditedCellsZIndex - Called to get the z-index for the edited cell.
- * @param {Function} params.init - Called during editor initialization.
- * @param {Function} params.isInFullEditMode - Called to check if editor is in full edit mode.
- * @param {Function} params.isOpened - Called to check if editor is currently open.
- * @param {Function} params.isWaiting - Called to check if editor is waiting for input.
+ * @param {object} params Configuration object containing editor lifecycle methods and custom methods.
+ * @param {Function} params.prepare Called before editing begins to initialize the editor.
+ * @param {Function} params.beginEditing Called when editing starts.
+ * @param {Function} params.finishEditing Called when editing ends.
+ * @param {Function} params.discardEditor Called to discard editor changes.
+ * @param {Function} params.saveValue Called to save the edited value.
+ * @param {Function} params.getValue Called to retrieve the current editor value.
+ * @param {Function} params.setValue Called to set the editor value.
+ * @param {Function} params.open Called to open/show the editor UI.
+ * @param {Function} params.close Called to close/hide the editor UI.
+ * @param {Function} params.focus Called to focus the editor.
+ * @param {Function} params.cancelChanges Called to cancel editing changes.
+ * @param {Function} params.checkEditorSection Called to determine which section the editor belongs to.
+ * @param {Function} params.enableFullEditMode Called to enable full edit mode.
+ * @param {Function} params.extend Called to extend the editor class.
+ * @param {Function} params.getEditedCell Called to get the currently edited cell element.
+ * @param {Function} params.getEditedCellRect Called to get the edited cell's position and dimensions.
+ * @param {Function} params.getEditedCellsZIndex Called to get the z-index for the edited cell.
+ * @param {Function} params.init Called during editor initialization.
+ * @param {Function} params.isInFullEditMode Called to check if editor is in full edit mode.
+ * @param {Function} params.isOpened Called to check if editor is currently open.
+ * @param {Function} params.isWaiting Called to check if editor is waiting for input.
  *
  * @returns {Function} A custom editor class extending Handsontable's BaseEditor.
  *
@@ -51,7 +52,7 @@ import { BaseEditor } from './baseEditor/baseEditor';
  */
 const editorBaseFactory = (params) => {
   const CustomBaseEditor = BaseEditor.prototype.extend();
-  // Skip super in abstract funtions
+  // Skip super in abstract functions
   const skipSuperApply = [
     'close',
     'focus',
@@ -95,22 +96,22 @@ const editorBaseFactory = (params) => {
  * for Handsontable grid cells. The factory handles lifecycle, DOM structure, and
  * keyboard shortcuts, allowing you to focus on business-specific UI and value logic.
  *
- * @param {object} options - Configuration and lifecycle methods for the editor.
- * @param {Function} options.init - Called when this editor is constructed by the Handsontable grid.
- * @param {Function} options.afterOpen - Called after the editor is opened and made visible.
- * @param {Function} options.afterInit - Called immediately after init, useful for event binding, etc.
- * @param {Function} options.afterClose - Called when the editor is closed and made invisible.
- * @param {Function} options.beforeOpen - Called before the editor is opened so you can set its value/state.
- * @param {Function} options.getValue - Called to retrieve the current editor value.
- * @param {Function} options.setValue - Called to set the editor's value and update any UI as needed.
- * @param {Function} options.onFocus - Called to focus the editor.
- * @param {Array<object>} [options.shortcuts] - Called to register all configured keyboard shortcuts for this editor instance.
- * @param {any} options.value - The initial value for the editor input/state.
- * @param {Function} options.render - Called to render the editor UI.
- * @param {any} options.config - The configuration for the editor.
- * @param {string} options.shortcutsGroup - The group for the keyboard shortcuts.
- * @param {string} options.position - The position of the editor. Either 'container' (default) or 'portal' (for elements outside of the table container viewport).
- * @param {...object} [options.args] - Any additional custom fields or helpers you want mixed into the editor instance.
+ * @param {object} options Configuration and lifecycle methods for the editor.
+ * @param {Function} options.init Called when this editor is constructed by the Handsontable grid.
+ * @param {Function} options.afterOpen Called after the editor is opened and made visible.
+ * @param {Function} options.afterInit Called immediately after init, useful for event binding, etc.
+ * @param {Function} options.afterClose Called when the editor is closed and made invisible.
+ * @param {Function} options.beforeOpen Called before the editor is opened so you can set its value/state.
+ * @param {Function} options.getValue Called to retrieve the current editor value.
+ * @param {Function} options.setValue Called to set the editor's value and update any UI as needed.
+ * @param {Function} options.onFocus Called to focus the editor.
+ * @param {Array<object>} [options.shortcuts] Called to register all configured keyboard shortcuts for this editor instance.
+ * @param {any} options.value The initial value for the editor input/state.
+ * @param {Function} options.render Called to render the editor UI.
+ * @param {any} options.config The configuration for the editor.
+ * @param {string} options.shortcutsGroup The group for the keyboard shortcuts.
+ * @param {string} options.position The position of the editor. Either 'container' (default) or 'portal' (for elements outside of the table container viewport).
+ * @param {...object} [options.args] Any additional custom fields or helpers you want mixed into the editor instance.
  *
  * @returns {BaseEditor} A custom editor class extending Handsontable's BaseEditor.
  */
@@ -205,7 +206,7 @@ export const editorFactory = ({
   /**
    * Register all configured keyboard shortcuts for this editor instance.
    *
-   * @param {BaseEditor} editor - The editor instance.
+   * @param {BaseEditor} editor The editor instance.
    * @returns {void}
    * @private
    */
@@ -234,7 +235,7 @@ export const editorFactory = ({
      * Called when this editor is constructed by the Handsontable grid.
      * Assigns value/config/render/etc, creates UI container, initializes with provided init.
      *
-     * @param {BaseEditor} editor - The editor instance.
+     * @param {BaseEditor} editor The editor instance.
      * @returns {void}
      */
     init(editor) {
@@ -248,6 +249,7 @@ export const editorFactory = ({
       } else {
         editor.hot.rootElement.appendChild(editor.container);
       }
+
       init(editor);
 
       if (!editor.input) {
@@ -263,7 +265,7 @@ export const editorFactory = ({
     /**
      * Retrieve the value from the editor UI.
      *
-     * @param {BaseEditor} editor - The editor instance.
+     * @param {BaseEditor} editor The editor instance.
      * @returns {any}
      */
     getValue(editor) {
@@ -276,8 +278,8 @@ export const editorFactory = ({
     /**
      * Set the editor's value and update any UI as needed.
      *
-     * @param {BaseEditor} editor - The editor instance.
-     * @param {any} _value - The value to set.
+     * @param {BaseEditor} editor The editor instance.
+     * @param {any} _value The value to set.
      * @returns {void}
      */
     setValue(editor, _value) {
@@ -286,6 +288,7 @@ export const editorFactory = ({
       } else {
         editor.value = _value;
       }
+
       if (typeof render === 'function') {
         render(editor);
       }
@@ -293,28 +296,29 @@ export const editorFactory = ({
     /**
      * Opens the editor, making the container visible and binding shortcuts.
      *
-     * @param {BaseEditor} editor - The editor instance.
-     * @param {Event} event - The event that triggered the editor opening.
+     * @param {BaseEditor} editor The editor instance.
+     * @param {Event} event The event that triggered the editor opening.
      * @returns {void}
      */
     open(editor, event = undefined) {
+      const containerStyle = editor.container.style;
 
-      editor.container.style.display = 'block';
-      editor.container.style.position = 'absolute';
+      containerStyle.display = 'block';
+      containerStyle.position = 'absolute';
 
       if (editor.position === 'portal') {
         const _offset = editor.TD.getBoundingClientRect();
 
-        editor.container.style.top = `${editor.hot.rootWindow.pageYOffset + _offset.top}px`;
-        editor.container.style[editor.hot.isRtl() ? 'right' : 'left'] =
+        containerStyle.top = `${editor.hot.rootWindow.pageYOffset + _offset.top}px`;
+        containerStyle[editor.hot.isRtl() ? 'right' : 'left'] =
             `${editor.hot.rootWindow.pageXOffset + _offset[editor.hot.isRtl() ? 'right' : 'left']}px`;
       } else {
         const rect = editor.getEditedCellRect();
 
-        editor.container.style.top = `${rect.top}px`;
-        editor.container.style[editor.hot.isRtl() ? 'right' : 'left'] = `${rect.start}px`;
-        editor.container.style.width = `${rect.width}px`;
-        editor.container.style.height = `${rect.height}px`;
+        containerStyle.top = `${rect.top}px`;
+        containerStyle[editor.hot.isRtl() ? 'right' : 'left'] = `${rect.start}px`;
+        containerStyle.width = `${rect.width}px`;
+        containerStyle.height = `${rect.height}px`;
       }
 
       editor.container.classList.add('ht_editor_visible');
@@ -329,7 +333,7 @@ export const editorFactory = ({
     /**
      * Focus on the correct UI element within your editor.
      *
-     * @param {BaseEditor} editor - The editor instance.
+     * @param {BaseEditor} editor The editor instance.
      * @returns {void}
      */
     focus(editor) {
@@ -343,13 +347,14 @@ export const editorFactory = ({
     /**
      * Close the editor UI and cleanup active shortcuts.
      *
-     * @param {BaseEditor} editor - The editor instance.
+     * @param {BaseEditor} editor The editor instance.
      * @returns {void}
      */
     close(editor) {
       editor._open = false;
       editor.container.style.display = 'none';
       editor.container.classList.remove('ht_editor_visible');
+
       const shortcutManager = editor.hot.getShortcutManager();
       const editorContext = shortcutManager.getContext('editor');
 
@@ -362,13 +367,13 @@ export const editorFactory = ({
     /**
      * Prepare the editor to start editing a new value. Invokes beforeOpen or falls back.
      *
-     * @param {BaseEditor} editor - The editor instance.
-     * @param {number} row - The row index.
-     * @param {number} col - The column index.
-     * @param {number|string} prop - The property name or index.
-     * @param {HTMLTableCellElement} td - The table cell element.
-     * @param {any} originalValue - The original value.
-     * @param {object} cellProperties - The cell properties.
+     * @param {BaseEditor} editor The editor instance.
+     * @param {number} row The row index.
+     * @param {number} col The column index.
+     * @param {number|string} prop The property name or index.
+     * @param {HTMLTableCellElement} td The table cell element.
+     * @param {any} originalValue The original value.
+     * @param {object} cellProperties The cell properties.
      * @returns {void}
      */
     prepare(editor, row, col, prop, td, originalValue, cellProperties) {
@@ -387,4 +392,3 @@ export const editorFactory = ({
     },
   });
 };
-

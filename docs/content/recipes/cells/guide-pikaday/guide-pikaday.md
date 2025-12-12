@@ -8,14 +8,14 @@ canonicalUrl: /recipes/pikaday
 tags:
   - guides
   - tutorial
-  - recipies
+  - recipes
 react:
   id: 9ac52da1
   metaTitle: Custom builds - React Data Grid | Handsontable
 angular:
   id: b83502de
   metaTitle: Custom builds - Angular Data Grid | Handsontable
-searchCategory: Recepies
+searchCategory: Recipes
 category: Cells
 ---
 
@@ -27,8 +27,8 @@ category: Cells
 
 This guide shows how to create a custom date picker cell using [Pikaday](https://github.com/Pikaday/Pikaday), a lightweight, no-dependencies date picker library. **This guide is essential for migration** - the built-in `date` cell type with Pikaday will be removed in the next Handsontable release. Use this recipe to maintain Pikaday functionality in your application.
 
-**Difficulty:** Intermediate  
-**Time:** ~25 minutes  
+**Difficulty:** Intermediate
+**Time:** ~25 minutes
 **Libraries:** `@handsontable/pikaday`, `moment`
 
 ## What You'll Build
@@ -67,13 +67,13 @@ npm install @handsontable/pikaday moment
 ## Step 1: Import Dependencies
 
 ```typescript
-import Handsontable from "handsontable/base";
-import { registerAllModules } from "handsontable/registry";
-import "handsontable/styles/handsontable.css";
-import "handsontable/styles/ht-theme-main.css";
-import moment from "moment";
-import Pikaday from "@handsontable/pikaday";
-import { CellProperties } from "handsontable/settings";
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+import 'handsontable/styles/handsontable.css';
+import 'handsontable/styles/ht-theme-main.css';
+import moment from 'moment';
+import Pikaday from '@handsontable/pikaday';
+import { CellProperties } from 'handsontable/settings';
 
 registerAllModules();
 ```
@@ -86,7 +86,7 @@ registerAllModules();
 ## Step 2: Define Date Formats
 
 ```typescript
-const DATE_FORMAT_US = "MM/DD/YYYY";
+const DATE_FORMAT_US = 'MM/DD/YYYY';
 const DEFAULT_DATE_FORMAT = DATE_FORMAT_US;
 ```
 
@@ -97,7 +97,7 @@ const DEFAULT_DATE_FORMAT = DATE_FORMAT_US;
 
 ## Step 3: Create Style Copy Helper
 
-This helper function copies styles from the cell to the input element for visual consistency. The input will looks the same regardless of theme you use. 
+This helper function copies styles from the cell to the input element for visual consistency. The input will looks the same regardless of theme you use.
 
 ```typescript
 const copyStyleFromElements = (
@@ -107,21 +107,25 @@ const copyStyleFromElements = (
   keysStartsWith: string[] = [],
 ) => {
   const computedStyle = getComputedStyle(source);
+
   Array.from(computedStyle)
     .filter((key) => {
       if (keys.length === 0 && keysStartsWith.length === 0) {
         return true;
       }
+
       if (keys.length > 0) {
         if (keys.includes(key)) {
           return true;
         }
       }
+
       if (keysStartsWith.length > 0) {
         if (keysStartsWith.some((startsWith) => key.startsWith(startsWith))) {
           return true;
         }
       }
+
       return false;
     }).forEach((key) =>
       target.style.setProperty(
@@ -198,6 +202,7 @@ renderer: rendererFactory(({ td, value, cellProperties }) => {
   td.innerText = moment(new Date(value), cellProperties.renderFormat).format(
     cellProperties.renderFormat,
   );
+
   return td;
 })
 ```
@@ -218,6 +223,7 @@ renderer: rendererFactory(({ td, value, cellProperties }) => {
 renderer: rendererFactory(({ td, value, cellProperties }) => {
   if (!value) {
     td.innerText = '';
+
     return td;
   }
   try {
@@ -228,6 +234,7 @@ renderer: rendererFactory(({ td, value, cellProperties }) => {
     td.innerText = 'Invalid date';
     td.style.color = 'red';
   }
+
   return td;
 })
 ```
@@ -241,7 +248,7 @@ init(editor) {
   editor.parentDestroyed = false;
   // Create the input element on init. This is a text input that date picker will be attached to.
   editor.input = editor.hot.rootDocument.createElement(
-    "INPUT",
+    'input',
   ) as HTMLInputElement;
 
   // Use the container as the date picker container
@@ -250,10 +257,10 @@ init(editor) {
   /**
    * Prevent recognizing clicking on datepicker as clicking outside of table.
    */
-  editor.hot.rootDocument.addEventListener('mousedown', (event) => {   
+  editor.hot.rootDocument.addEventListener('mousedown', (event) => {
       if (
         event.target &&
-        (event.target as HTMLElement).classList.contains("pika-day")
+        (event.target as HTMLElement).classList.contains('pika-day')
       ) {
         editor.hideDatepicker(editor);
       }
@@ -281,8 +288,8 @@ This is crucial! Without it:
 
 **Solution:**
 ```typescript
-editor.hot.rootDocument.addEventListener('mousedown', (event) => {   
-  if ((event.target as HTMLElement).classList.contains("pika-day")) {
+editor.hot.rootDocument.addEventListener('mousedown', (event) => {
+  if ((event.target as HTMLElement).classList.contains('pika-day')) {
     editor.hideDatepicker(editor);
   }
 });
@@ -321,7 +328,7 @@ getDatePickerConfig(editor) {
   // Set the RTL to `false`. Due to the https://github.com/Pikaday/Pikaday/issues/647 bug, the layout direction
   // of the date picker is controlled by juggling the "dir" attribute of the root date picker element.
   options.isRTL = false;
-  
+
   // Handle date selection
   options.onSelect = function (date) {
     let dateStr;
@@ -341,7 +348,7 @@ getDatePickerConfig(editor) {
       editor.hideDatepicker(editor);
     }
   };
-  
+
   // Handle date picker close
   options.onClose = () => {
     if (!editor.parentDestroyed) {
@@ -387,12 +394,12 @@ showDatepicker(editor, event) {
   // TODO: view is not exported in the handsontable library d.ts, so we need to use @ts-ignore
   // @ts-ignore
   const isMouseDown = editor.hot.view.isMouseDown();
-  const isMeta = event && "keyCode" in event
+  const isMeta = event && 'keyCode' in event
     ? Handsontable.helper.isFunctionKey((event as KeyboardEvent).keyCode)
     : false;
   let dateStr;
 
-  editor.datePicker.style.display = "block";
+  editor.datePicker.style.display = 'block';
 
   // Create new Pikaday instance
   editor.pickaday = new Pikaday(editor.getDatePickerConfig(editor));
@@ -400,7 +407,7 @@ showDatepicker(editor, event) {
   // Configure Moment.js integration if available
   // TODO: useMoment is not exported in the pikaday library d.ts, so we need to use @ts-ignore
   // @ts-ignore
-  if (typeof editor.pickaday.useMoment === "function") {
+  if (typeof editor.pickaday.useMoment === 'function') {
     // @ts-ignore
     editor.pickaday.useMoment(moment);
   }
@@ -422,7 +429,7 @@ showDatepicker(editor, event) {
     }
 
     if (!isMeta && !isMouseDown) {
-      editor.setValue("");
+      editor.setValue('');
     }
   } else if (editor.cellProperties.defaultDate) {
     dateStr = editor.cellProperties.defaultDate;
@@ -432,7 +439,7 @@ showDatepicker(editor, event) {
     }
 
     if (!isMeta && !isMouseDown) {
-      editor.setValue("");
+      editor.setValue('');
     }
   } else {
     // if a default date is not defined, set a soft-default-date: display the current day and month in the
@@ -489,16 +496,17 @@ Copy styles from cell to input and show the datepicker.
 ```typescript
 afterOpen(editor, event) {
   copyStyleFromElements(editor.TD, editor.input, [
-    "width",
-    "height",
-    "background",
-    "font-family",
-    "font-size",
-    "font-weight",
-    "line-height",
-    "color",
-    "box-sizing",
-  ], ["border-", "padding-", "margin-"]);
+    'width',
+    'height',
+    'background',
+    'font-family',
+    'font-size',
+    'font-weight',
+    'line-height',
+    'color',
+    'box-sizing',
+  ], ['border-', 'padding-', 'margin-']);
+
   editor.showDatepicker(editor, event);
 }
 ```
@@ -588,34 +596,34 @@ Add keyboard navigation for date selection.
 ```typescript
 shortcuts: [
   {
-    keys: [["ArrowLeft"]],
+    keys: [['ArrowLeft']],
     callback: (editor, _event) => {
       //@ts-ignore
-      editor.pickaday.adjustDate("subtract", 1);
+      editor.pickaday.adjustDate('subtract', 1);
       _event.preventDefault();
     },
   },
   {
-    keys: [["ArrowRight"]],
+    keys: [['ArrowRight']],
     callback: (editor, _event) => {
       //@ts-ignore
-      editor.pickaday.adjustDate("add", 1);
+      editor.pickaday.adjustDate('add', 1);
       _event.preventDefault();
     },
   },
   {
-    keys: [["ArrowUp"]],
+    keys: [['ArrowUp']],
     callback: (editor, _event) => {
       //@ts-ignore
-      editor.pickaday.adjustDate("subtract", 7);
+      editor.pickaday.adjustDate('subtract', 7);
       _event.preventDefault();
     },
   },
   {
-    keys: [["ArrowDown"]],
+    keys: [['ArrowDown']],
     callback: (editor, _event) => {
       //@ts-ignore
-      editor.pickaday.adjustDate("add", 7);
+      editor.pickaday.adjustDate('add', 7);
       _event.preventDefault();
     },
   }
@@ -639,7 +647,7 @@ shortcuts: [
 Use portal positioning for better z-index handling.
 
 ```typescript
-position: "portal",
+position: 'portal',
 ```
 
 **What's happening:**
@@ -659,7 +667,7 @@ Put it all together:
 ```typescript
 const cellDefinition: Pick<
   CellProperties,
-  "renderer" | "validator" | "editor"
+  'renderer' | 'validator' | 'editor'
 > = {
   renderer: rendererFactory(({ td, value, cellProperties }) => {
     td.innerText = moment(new Date(value), cellProperties.renderFormat).format(
@@ -672,7 +680,7 @@ const cellDefinition: Pick<
     EditorPropertiesType,
     EditorMethodsType
   >({
-    position: "portal",
+    position: 'portal',
     shortcuts: [
       // ... keyboard shortcuts from Step 14
     ],
@@ -718,36 +726,36 @@ const cellDefinition: Pick<
 ## Step 17: Use in Handsontable
 
 ```typescript
-const container = document.querySelector("#example1")!;
+const container = document.querySelector('#example1')!;
 
 const hotOptions: Handsontable.GridSettings = {
   data: [
-    { id: 1, itemName: "Lunar Core", restockDate: "2025-08-01" },
-    { id: 2, itemName: "Zero Thrusters", restockDate: "2025-09-15" },
+    { id: 1, itemName: 'Lunar Core', restockDate: '2025-08-01' },
+    { id: 2, itemName: 'Zero Thrusters', restockDate: '2025-09-15' },
   ],
   colHeaders: [
-    "ID",
-    "Item Name",
-    "Restock Date",
+    'ID',
+    'Item Name',
+    'Restock Date',
   ],
   autoRowSize: true,
   rowHeaders: true,
   columns: [
-    { data: "id", type: "numeric", width: 150 },
+    { data: 'id', type: 'numeric', width: 150 },
     {
-      data: "itemName",
-      type: "text",
+      data: 'itemName',
+      type: 'text',
       width: 150,
     },
     {
-      data: "restockDate",
+      data: 'restockDate',
       width: 150,
       allowInvalid: false,
       ...cellDefinition,
       renderFormat: DATE_FORMAT_US, // Custom property for renderer
       dateFormat: DATE_FORMAT_US,  // Custom property for editor
       correctFormat: true,
-      defaultDate: "01/01/2020",
+      defaultDate: '01/01/2020',
       // datePicker additional options
       // (see https://github.com/dbushell/Pikaday#configuration)
       datePickerConfig: {
@@ -761,7 +769,7 @@ const hotOptions: Handsontable.GridSettings = {
       },
     },
   ],
-  licenseKey: "non-commercial-and-evaluation",
+  licenseKey: 'non-commercial-and-evaluation',
 };
 
 const hot = new Handsontable(container, hotOptions);
@@ -792,9 +800,9 @@ If you're currently using the built-in `date` cell type with Pikaday, here's how
 ### Before (Built-in):
 ```typescript
 columns: [{
-  data: "restockDate",
-  type: "date",
-  dateFormat: "MM/DD/YYYY",
+  data: 'restockDate',
+  type: 'date',
+  dateFormat: 'MM/DD/YYYY',
   datePickerConfig: {
     firstDay: 0,
   }
@@ -804,10 +812,10 @@ columns: [{
 ### After (Custom Editor):
 ```typescript
 columns: [{
-  data: "restockDate",
+  data: 'restockDate',
   ...cellDefinition,  // Add the custom cell definition
-  dateFormat: "MM/DD/YYYY",
-  renderFormat: "MM/DD/YYYY",  // Add render format
+  dateFormat: 'MM/DD/YYYY',
+  renderFormat: 'MM/DD/YYYY',  // Add render format
   datePickerConfig: {
     firstDay: 0,
   }
@@ -826,16 +834,16 @@ columns: [{
 ```typescript
 columns: [
   {
-    data: "restockDate",
+    data: 'restockDate',
     ...cellDefinition,
-    renderFormat: "MM/DD/YYYY",  // US format
-    dateFormat: "MM/DD/YYYY",
+    renderFormat: 'MM/DD/YYYY',  // US format
+    dateFormat: 'MM/DD/YYYY',
   },
   {
-    data: "restockDate",
+    data: 'restockDate',
     ...cellDefinition,
-    renderFormat: "DD/MM/YYYY",  // EU format
-    dateFormat: "DD/MM/YYYY",
+    renderFormat: 'DD/MM/YYYY',  // EU format
+    dateFormat: 'DD/MM/YYYY',
   }
 ]
 ```
@@ -844,8 +852,8 @@ columns: [
 
 ```typescript
 datePickerConfig: {
-  minDate: new Date("2024-01-01"),
-  maxDate: new Date("2024-12-31"),
+  minDate: new Date('2024-01-01'),
+  maxDate: new Date('2024-12-31'),
   disableDayFn(date) {
     // Disable weekends
     return date.getDay() === 0 || date.getDay() === 6;
@@ -863,6 +871,7 @@ import { format, parse } from 'date-fns';
 // In renderer
 renderer: rendererFactory(({ td, value, cellProperties }) => {
   td.innerText = format(new Date(value), cellProperties.renderFormat);
+
   return td;
 })
 
@@ -876,15 +885,16 @@ Pikaday doesn't support time, but you can combine with a time input:
 
 ```typescript
 init(editor) {
-  editor.input = editor.hot.rootDocument.createElement("INPUT") as HTMLInputElement;
-  editor.timeInput = editor.hot.rootDocument.createElement("INPUT") as HTMLInputElement;
-  editor.timeInput.type = "time";
+  editor.input = editor.hot.rootDocument.createElement('input') as HTMLInputElement;
+  editor.timeInput = editor.hot.rootDocument.createElement('input') as HTMLInputElement;
+  editor.timeInput.type = 'time';
   // ... rest of init
 }
 
 getValue(editor) {
   const date = editor.input.value;
   const time = editor.timeInput.value;
+
   return `${date} ${time}`;
 }
 ```
@@ -914,21 +924,21 @@ datePickerConfig: {
 ```typescript
 afterOpen(editor, event) {
   copyStyleFromElements(editor.TD, editor.input, [
-    "width",
-    "height",
-    "background",
-    "font-family",
-    "font-size",
-    "font-weight",
-    "line-height",
-    "color",
-    "box-sizing",
-  ], ["border-", "padding-", "margin-"]);
-  
+    'width',
+    'height',
+    'background',
+    'font-family',
+    'font-size',
+    'font-weight',
+    'line-height',
+    'color',
+    'box-sizing',
+  ], ['border-', 'padding-', 'margin-']);
+
   // Add custom styles
-  editor.input.style.border = "2px solid #007bff";
-  editor.input.style.borderRadius = "4px";
-  
+  editor.input.style.border = '2px solid #007bff';
+  editor.input.style.borderRadius = '4px';
+
   editor.showDatepicker(editor, event);
 }
 ```
