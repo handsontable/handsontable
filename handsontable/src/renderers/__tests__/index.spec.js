@@ -60,7 +60,7 @@ describe('renderers', () => {
   });
 
   it('should create a custom renderer using the rendererFactory', async() => {
-    const hotMock = {}
+    const hotMock = {};
     const tdMock = document.createElement('td');
     const rowMock = 0;
     const columnMock = 0;
