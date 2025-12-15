@@ -389,6 +389,8 @@ export interface ThemeParams {
   colorScheme?: ThemeColorScheme;
 }
 
+export type BaseTheme = ThemeParams;
+
 export interface ThemeBuilder {
   subscribe(listener: (config: ThemeConfig) => void): () => void;
   params(paramsObject: ThemeParams): ThemeBuilder;
@@ -397,4 +399,4 @@ export interface ThemeBuilder {
   getThemeConfig(): ThemeConfig;
 }
 
-export function createTheme(baseTheme?: ThemeParams): ThemeBuilder;
+export function createTheme(baseTheme?: BaseTheme): ThemeBuilder;
