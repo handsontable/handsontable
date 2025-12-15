@@ -137,17 +137,17 @@ describe('AutoFill borders rendering', () => {
       fixedRowsBottom: 4,
       rowHeights(rowIndex) {
         if (rowIndex === 1 || rowIndex === 18) {
-          return 55;
+          return (getDefaultRowHeight() * 2) - 5;
 
         } else if (rowIndex === 2 || rowIndex === 17) {
-          return 60;
+          return getDefaultRowHeight() * 2;
         }
       },
       colWidths(columnIndex) {
         if (columnIndex === 1) {
-          return 60;
+          return (getDefaultColumnWidth() * 2) - 5;
         } else if (columnIndex === 2) {
-          return 70;
+          return getDefaultColumnWidth() * 2;
         }
       },
       fillHandle: {
