@@ -266,38 +266,6 @@ jobs:
           cd handsontable
           npm run test:walkontable
 
-  test-handsontable-e2e:
-    name: "[TEST] Handsontable: UMD (theme: classic)"
-    runs-on: ubuntu-latest
-    needs: [ build-handsontable-umd ]
-    if: |
-      needs.check-scope.outputs.run-all == 'true' ||
-      needs.check-scope.outputs.test-handsontable-e2e == 'true'
-    steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
-
-      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
-        name: Install pnpm
-
-      - name: Use Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # https://github.com/actions/setup-node/releases/tag/v4.4.0
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'pnpm'
-      - run: pnpm install && pnpm -r rebuild
-
-      - name: Download the Handsontable build artifact
-        uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # https://github.com/actions/download-artifact/releases/tag/v4.1.3
-        with:
-          name: handsontable-build-umd
-          path: ./
-      - run: tar -zxf dist.tar.gz ./handsontable/dist && rm dist.tar.gz
-
-      - name: Test
-        run: |
-          cd handsontable
-          npm run test:e2e.dump && npm run test:e2e.puppeteer
-
   test-handsontable-e2e-main:
     name: "[TEST] Handsontable: UMD (theme: main)"
     runs-on: ubuntu-latest
@@ -361,38 +329,6 @@ jobs:
         run: |
           cd handsontable
           npm run test:e2e.dump --theme=horizon && npm run test:e2e.puppeteer
-
-  test-handsontable-e2e-min:
-    name: "[TEST] Handsontable: UMD.min (theme: classic)"
-    runs-on: ubuntu-latest
-    needs: [ build-handsontable-umd ]
-    if: |
-      needs.check-scope.outputs.run-all == 'true' ||
-      needs.check-scope.outputs.test-handsontable-e2e-min == 'true'
-    steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # https://github.com/actions/checkout/releases/tag/v4.1.1
-
-      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
-        name: Install pnpm
-
-      - name: Use Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # https://github.com/actions/setup-node/releases/tag/v4.4.0
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'pnpm'
-      - run: pnpm install && pnpm -r rebuild
-
-      - name: Download the Handsontable build artifact
-        uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # https://github.com/actions/download-artifact/releases/tag/v4.1.3
-        with:
-          name: handsontable-build-umd
-          path: ./
-      - run: tar -zxf dist.tar.gz ./handsontable/dist && rm dist.tar.gz
-
-      - name: Test
-        run: |
-          cd handsontable
-          npm run test:production.dump && npm run test:e2e.puppeteer
 
   test-handsontable-e2e-min-main:
     name: "[TEST] Handsontable: UMD.min (theme: main)"
@@ -775,10 +711,8 @@ jobs:
     name: "[TEST] Visual tests"
     runs-on: ubuntu-latest
     needs:
-      - test-handsontable-e2e
       - test-handsontable-e2e-main
       - test-handsontable-e2e-horizon
-      - test-handsontable-e2e-min
       - test-handsontable-e2e-min-main
       - test-handsontable-e2e-min-horizon
       - test-angular
@@ -789,8 +723,8 @@ jobs:
       - test-vue3
     if: |
       !failure() && !cancelled() && (
-        needs.test-handsontable-e2e.result == 'success' ||
-        needs.test-handsontable-e2e-min.result == 'success' ||
+        needs.test-handsontable-e2e-main.result == 'success' ||
+        needs.test-handsontable-e2e-min-main.result == 'success' ||
         needs.test-angular.result == 'success' ||
         needs.test-angular-wrapper.result == 'success' ||
         needs.test-react.result == 'success' ||
