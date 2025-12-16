@@ -33,7 +33,7 @@ const isProduction = buildMode === 'production';
 const environmentHead = isProduction
   ? [
     // Google Tag Manager, an extra element within the `ssr.html` file.
-    thirdPartyScripts.productionOnly,
+    ...thirdPartyScripts.productionOnly,
   ]
   : [];
 
