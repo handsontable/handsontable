@@ -4957,12 +4957,12 @@ export default () => {
      *
      * @memberof Options#
      * @type {object|undefined}
-     * @default undefined
+     * @default true
      * @category Core
      * @since 17.0.0
      */
 
-    theme: undefined,
+    theme: true,
 
     /**
      * The `tabMoves` option configures the action of the <kbd>**Tab**</kbd> key.

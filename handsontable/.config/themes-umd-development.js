@@ -1,14 +1,12 @@
 /**
  * Config responsible for building Handsontable theme UMD modules:
- *  - dist/themes/mainTheme.js
- *  - dist/themes/horizonTheme.js
- *  - dist/themes/classicTheme.js
- *  - dist/themes/mainIcons.js
- *  - dist/themes/horizonIcons.js
+ *  - dist/themes/*.js
+ *  - dist/themes/variables/*.js
  */
 const path = require('path');
 const fs = require('fs');
 const webpack = require('webpack');
+const TerserPlugin = require('terser-webpack-plugin');
 const compilationDoneMarker = require('./plugin/webpack/compilation-done-marker');
 
 let licenseBody = fs.readFileSync(path.resolve(__dirname, '../../LICENSE.txt'), 'utf8');
@@ -31,15 +29,52 @@ function createConfig(entryName, entryPath, libraryName, envArgs) {
       umdNamedDefine: true,
     },
     devtool: 'source-map',
-    externals: {},
+    resolve: {
+      alias: {
+        // Redirect to minimal stubs that only export what's actually used
+        [path.resolve(__dirname, '../src/helpers/mixed.js')]: path.resolve(__dirname, './stubs/theme-mixed.js'),
+        [path.resolve(__dirname, '../src/helpers/console.js')]: path.resolve(__dirname, './stubs/theme-console.js'),
+        [path.resolve(__dirname, '../src/helpers/object.js')]: path.resolve(__dirname, './stubs/theme-object.js'),
+      },
+    },
+    optimization: {
+      usedExports: true,
+      sideEffects: true,
+      minimize: true,
+      minimizer: [
+        new TerserPlugin({
+          terserOptions: {
+            compress: {
+              dead_code: true,
+              unused: true,
+              drop_debugger: true,
+            },
+            mangle: false,
+            format: {
+              beautify: true,
+            },
+          },
+          extractComments: false,
+        }),
+      ],
+    },
     module: {
       rules: [
+        {
+          test: /\.js$/,
+          include: [
+            path.resolve(__dirname, '../src/helpers'),
+            path.resolve(__dirname, '../src/utils'),
+            path.resolve(__dirname, '../src/themes'),
+            path.resolve(__dirname, './stubs'),
+          ],
+          sideEffects: false,
+        },
         {
           test: /\.js$/,
           loader: 'babel-loader',
           exclude: /node_modules/,
           options: {
-            cacheDirectory: false,
             presets: [
               ['@babel/preset-env', {
                 targets: {
@@ -50,7 +85,6 @@ function createConfig(entryName, entryPath, libraryName, envArgs) {
                 },
                 modules: false,
                 useBuiltIns: false,
-                corejs: false,
               }]
             ],
             plugins: [
@@ -67,7 +101,6 @@ function createConfig(entryName, entryPath, libraryName, envArgs) {
       }),
       compilationDoneMarker(),
     ],
-    node: false,
   };
 }
 
@@ -78,7 +111,7 @@ function scanThemesDirectory() {
   // Scan root theme files (excluding directories and non-theme files)
   const rootFiles = fs.readdirSync(themesDir, { withFileTypes: true });
   const themeFiles = rootFiles
-    .filter(dirent => dirent.isFile() && dirent.name.endsWith('.js') && dirent.name !== 'styles.js')
+    .filter(dirent => dirent.isFile() && dirent.name.endsWith('.js') && dirent.name !== 'index.js')
     .map(dirent => dirent.name.replace('.js', ''));
 
   // Add root theme files
@@ -108,6 +141,31 @@ function scanThemesDirectory() {
         libraryName: libraryName,
       };
     });
+  }
+
+  // Scan variables directory recursively
+  const variablesDir = path.join(themesDir, 'variables');
+  if (fs.existsSync(variablesDir)) {
+    const scanVariablesDir = (dir, prefix = 'variables') => {
+      const entries = fs.readdirSync(dir, { withFileTypes: true });
+
+      entries.forEach(entry => {
+        if (entry.isFile() && entry.name.endsWith('.js')) {
+          const fileName = entry.name.replace('.js', '');
+          const entryName = `${prefix}/${fileName}`;
+          const libraryName = fileName;
+          const entryPath = path.resolve(dir, entry.name);
+          entryConfigs[entryName] = {
+            entryPath: entryPath,
+            libraryName: libraryName,
+          };
+        } else if (entry.isDirectory()) {
+          scanVariablesDir(path.join(dir, entry.name), `${prefix}/${entry.name}`);
+        }
+      });
+    };
+
+    scanVariablesDir(variablesDir);
   }
 
   return entryConfigs;

@@ -357,8 +357,8 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     hot: instance,
     rootElement: instance.rootElement,
     rootDocument: instance.rootDocument,
-    onThemeChange: (validThemeName) => {
-      if (isRootInstance(this)) {
+    onThemeChange: (validThemeName, isInlineStyles) => {
+      if (isRootInstance(this) && !isInlineStyles) {
         removeClass(this.rootWrapperElement, /ht-theme-.*/g);
         removeClass(this.rootPortalElement, /ht-theme-.*/g);
 
@@ -1369,27 +1369,27 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
       instance.runHooks('afterInit');
     };
 
-    if (isRootInstance(instance) && tableMeta.theme) {
-      let themeObject = tableMeta.theme;
+    const theme = tableMeta.theme;
 
-      if (isObject(themeObject) || typeof themeObject === 'boolean') {
-        (async() => {
-          const { ThemeAPI } = await import(/* webpackChunkName: "ThemeAPI" */ './utils/themeAPI');
+    if (isRootInstance(instance) && !tableMeta.themeName && (isObject(theme) || typeof theme === 'boolean')) {
 
-          if (typeof themeObject === 'boolean') {
-            themeObject = createTheme();
-          }
+      instance.stylesHandler.setIsInlineStyles(true);
 
-          instance.themeAPI = new ThemeAPI({
-            instance,
-            stringInstanceID,
-            themeObject
-          });
+      (async() => {
+        const { ThemeAPI } = await import(/* webpackChunkName: "ThemeAPI" */ './utils/themeAPI');
 
-          initFunction();
-        })();
-      }
+        const themeObject = typeof theme === 'boolean' ? createTheme() : theme;
+
+        instance.themeAPI = new ThemeAPI({
+          instance,
+          stringInstanceID,
+          themeObject
+        });
+
+        initFunction();
+      })();
     } else {
+      instance.stylesHandler.setIsInlineStyles(false);
       initFunction();
     }
   };
@@ -2785,9 +2785,17 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     }
 
     if (init) {
-      // Use the theme defined in the settings object or set as a root container class name (in that order).
-      instance.useTheme(tableMeta.themeName || getThemeClassName(instance.rootContainer));
+      const rootContainerThemeClassName = getThemeClassName(instance.rootContainer);
 
+      if (typeof tableMeta.theme === 'string') {
+        instance.useTheme(tableMeta.theme);
+      } else if (tableMeta.themeName) {
+        instance.useTheme(tableMeta.themeName);
+      } else if (rootContainerThemeClassName) {
+        instance.useTheme(rootContainerThemeClassName);
+      } else {
+        instance.useTheme();
+      }
     } else {
       const currentThemeName = instance.getCurrentThemeName();
       const themeNameOptionExists = hasOwnProperty(settings, 'themeName');
@@ -5322,6 +5330,12 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
     const isFirstRun = !!firstRun;
 
     this.stylesHandler.useTheme(themeName);
+
+    const isInlineStyles = this.stylesHandler.getIsInlineStyles();
+
+    if (isInlineStyles) {
+      return;
+    }
 
     const validThemeName = this.stylesHandler.getThemeName();
 

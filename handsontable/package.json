@@ -244,6 +244,13 @@
           "import": "./registry.mjs",
           "require": "./registry.js"
         }
+      },
+      {
+        "./themes": {
+          "types": "./themes.d.ts",
+          "import": "./themes/index.mjs",
+          "require": "./themes/index.js"
+        }
       }
     ],
     "fields": [

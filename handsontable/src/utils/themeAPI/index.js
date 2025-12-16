@@ -115,7 +115,7 @@ export class ThemeAPI {
       return;
     }
 
-    const inlineThemeClassName = `ht-inline-theme-${this.stringInstanceID}`;
+    const inlineThemeClassName = `ht-theme-${this.stringInstanceID}`;
 
     addClass(this.instance.rootWrapperElement, inlineThemeClassName);
     addClass(this.instance.rootPortalElement, inlineThemeClassName);

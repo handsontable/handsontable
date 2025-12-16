@@ -6,13 +6,13 @@
 const VAR_REFERENCE_PREFIXES = ['themes.', 'colors.', 'sizing.', 'density.'];
 
 /**
- * Converts underscores to hyphens in a string.
+ * Converts camel case to hyphens in a string.
  *
  * @param {string} str - The string to convert.
  * @returns {string} - The converted string.
  */
 export function toHyphen(str) {
-  return str.replace(/_/g, '-');
+  return str.replace(/([A-Z])/g, '-$1').replace(/_/g, '-').toLowerCase();
 }
 
 /**

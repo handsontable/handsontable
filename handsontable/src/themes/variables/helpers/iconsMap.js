@@ -13,15 +13,15 @@ export const iconsMap = (icons, themePrefix) => {
 ${prefix}.htContextMenu table tbody tr td.htSubmenu .htItemWrapper::after,
 ${prefix}.htFiltersConditionsMenu table tbody tr td.htSubmenu .htItemWrapper::after,
 ${prefix}.pika-single .pika-next {
-  ${icon(icons, "arrow_right")}
+  ${icon(icons, "arrowRight")}
 }
 
 ${prefix}.pika-single .pika-prev {
-  ${icon(icons, "arrow_left")}
+  ${icon(icons, "arrowLeft")}
 }
 
 ${prefix}.ht-page-size-section__select-wrapper::after {
-  ${icon(icons, "arrow_down")}
+  ${icon(icons, "arrowDown")}
 }
 
 ${prefix}.changeType::before {
@@ -30,47 +30,47 @@ ${prefix}.changeType::before {
 
 ${prefix}.htUISelectCaption::after,
 .htAutocompleteArrow::after {
-  ${icon(icons, "select_arrow")}
+  ${icon(icons, "selectArrow")}
 }
 
 ${prefix}.columnSorting.sortAction.ascending::before {
-  ${icon(icons, "arrow_narrow_up")}
+  ${icon(icons, "arrowNarrowUp")}
 }
 
 ${prefix}.columnSorting.sortAction.descending::before {
-  ${icon(icons, "arrow_narrow_down")}
+  ${icon(icons, "arrowNarrowDown")}
 }
 
 ${prefix}.ht-page-navigation-section .ht-page-first::before {
-  ${icon(icons, "arrow_left_with_bar")}
+  ${icon(icons, "arrowLeftWithBar")}
 }
 
 ${prefix}[dir="rtl"] .ht-page-navigation-section .ht-page-first::before {
-  ${icon(icons, "arrow_right_with_bar")}
+  ${icon(icons, "arrowRightWithBar")}
 }
 
 ${prefix}.ht-page-navigation-section .ht-page-prev::before {
-  ${icon(icons, "arrow_left")}
+  ${icon(icons, "arrowLeft")}
 }
 
 ${prefix}[dir="rtl"] .ht-page-navigation-section .ht-page-prev::before {
-  ${icon(icons, "arrow_right")}
+  ${icon(icons, "arrowRight")}
 }
 
 ${prefix}.ht-page-navigation-section .ht-page-next::before {
-  ${icon(icons, "arrow_right")}
+  ${icon(icons, "arrowRight")}
 }
 
 ${prefix}[dir="rtl"] .ht-page-navigation-section .ht-page-next::before {
-  ${icon(icons, "arrow_left")}
+  ${icon(icons, "arrowLeft")}
 }
 
 ${prefix}.ht-page-navigation-section .ht-page-last::before {
-  ${icon(icons, "arrow_right_with_bar")}
+  ${icon(icons, "arrowRightWithBar")}
 }
 
 ${prefix}[dir="rtl"] .ht-page-navigation-section .ht-page-last::before {
-  ${icon(icons, "arrow_left_with_bar")}
+  ${icon(icons, "arrowLeftWithBar")}
 }
 
 ${prefix}.htDropdownMenu table tbody tr td .htItemWrapper span.selected::after,
@@ -88,29 +88,29 @@ ${prefix}.htCheckboxRendererInput::after {
 }
 
 ${prefix}th.beforeHiddenColumn::after {
-  ${icon(icons, "caret_hidden_left")}
+  ${icon(icons, "caretHiddenLeft")}
 }
 
 ${prefix}th.afterHiddenColumn::before {
-  ${icon(icons, "caret_hidden_right")}
+  ${icon(icons, "caretHiddenRight")}
 }
 
 ${prefix}th.beforeHiddenRow::after {
-  ${icon(icons, "caret_hidden_up")}
+  ${icon(icons, "caretHiddenUp")}
 }
 
 ${prefix}th.afterHiddenRow::before {
-  ${icon(icons, "caret_hidden_down")}
+  ${icon(icons, "caretHiddenDown")}
 }
 
 ${prefix}.collapsibleIndicator::before,
 ${prefix}.ht_nestingButton::before {
-  ${icon(icons, "collapse_off")}
+  ${icon(icons, "collapseOff")}
 }
 
 ${prefix}.collapsibleIndicator.collapsed::before,
 ${prefix}.ht_nestingButton.ht_nestingExpand::before {
-  ${icon(icons, "collapse_on")}
+  ${icon(icons, "collapseOn")}
 }
 
 ${prefix}.htUIRadio > input[type="radio"]::after {

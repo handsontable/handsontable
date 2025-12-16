@@ -1,489 +1,490 @@
 export default {
-  font_size: "13px",
-  font_size_small: "11px",
-  line_height: "21px",
-  line_height_small: "16px",
-  font_weight: "400",
-  letter_spacing: "0px",
-  gap_size: "density.gap",
-  icon_size: "sizing.size_3",
-  table_transition: "0s",
-  border_color: {
+  fontSize: "13px",
+  fontSizeSmall: "11px",
+  lineHeight: "21px",
+  lineHeightSmall: "16px",
+  fontWeight: "400",
+  letterSpacing: "0px",
+  gapSize: "density.gap",
+  iconSize: "sizing.size_3",
+  tableTransition: "0s",
+  borderColor: {
     light: "colors.palette.200",
     dark: "colors.palette.700"
   },
-  accent_color: {
+  accentColor: {
     light: "colors.primary.500",
     dark: "colors.primary.100"
   },
-  foreground_color: {
+  foregroundColor: {
     light: "colors.palette.800",
     dark: "colors.palette.100"
   },
-  foreground_secondary_color: {
+  foregroundSecondaryColor: {
     light: "colors.palette.500",
     dark: "colors.palette.400"
   },
-  background_color: {
+  backgroundColor: {
     light: "colors.white",
     dark: "colors.palette.950"
   },
-  background_secondary_color: {
+  backgroundSecondaryColor: {
     light: "colors.palette.50",
     dark: "colors.palette.900"
   },
-  placeholder_color: {
+  placeholderColor: {
     light: "colors.palette.400",
     dark: "colors.palette.500"
   },
-  read_only_color: {
+  readOnlyColor: {
     light: "colors.palette.500",
     dark: "colors.palette.400"
   },
-  disabled_color: {
+  disabledColor: {
     light: "colors.palette.400",
     dark: "colors.palette.500"
   },
-  shadow_color: {
+  shadowColor: {
     light: "colors.palette.800",
     dark: "colors.palette.100"
   },
-  shadow_x: "sizing.size_0_25",
-  shadow_y: "sizing.size_0_25",
-  shadow_blur: "sizing.size_0",
-  shadow_opacity: "8%",
-  bar_foreground_color: "themes.foreground_color",
-  bar_background_color: "themes.background_secondary_color",
-  bar_horizontal_padding: "density.bars_horizontal",
-  bar_vertical_padding: "density.bars_vertical",
-  cell_horizontal_border_color: "themes.border_color",
-  cell_vertical_border_color: "themes.border_color",
-  wrapper_border_width: "0px",
-  wrapper_border_radius: "sizing.size_0",
-  wrapper_border_color: "themes.border_color",
-  row_header_odd_background_color: "themes.background_secondary_color",
-  row_header_even_background_color: "themes.background_secondary_color",
-  row_cell_odd_background_color: "themes.background_color",
-  row_cell_even_background_color: "themes.background_color",
-  cell_horizontal_padding: "density.cell_horizontal",
-  cell_vertical_padding: "density.cell_vertical",
-  cell_editor_border_width: "2px",
-  cell_editor_border_color: "themes.accent_color",
-  cell_editor_foreground_color: {
+  shadowX: "sizing.size_0_25",
+  shadowY: "sizing.size_0_25",
+  shadowBlur: "sizing.size_0",
+  shadowOpacity: "8%",
+  barForegroundColor: "themes.foregroundColor",
+  barBackgroundColor: "themes.backgroundSecondaryColor",
+  barHorizontalPadding: "density.barsHorizontal",
+  barVerticalPadding: "density.barsVertical",
+  cellHorizontalBorderColor: "themes.borderColor",
+  cellVerticalBorderColor: "themes.borderColor",
+  wrapperBorderWidth: "0px",
+  wrapperBorderRadius: "sizing.size_0",
+  wrapperBorderColor: "themes.borderColor",
+  rowHeaderOddBackgroundColor: "themes.backgroundSecondaryColor",
+  rowHeaderEvenBackgroundColor: "themes.backgroundSecondaryColor",
+  rowCellOddBackgroundColor: "themes.backgroundColor",
+  rowCellEvenBackgroundColor: "themes.backgroundColor",
+  cellHorizontalPadding: "density.cellHorizontal",
+  cellVerticalPadding: "density.cellVertical",
+  cellEditorBorderWidth: "2px",
+  cellEditorBorderColor: "themes.accentColor",
+  cellEditorForegroundColor: {
     light: "colors.palette.950",
     dark: "colors.white"
   },
-  cell_editor_background_color: "themes.background_color",
-  cell_editor_shadow_blur_radius: "0px",
-  cell_editor_shadow_color: "themes.accent_color",
-  cell_success_background_color: "#37bc6c33",
-  cell_error_background_color: "#fa4d3233",
-  cell_read_only_background_color: "colors.transparent",
-  cell_selection_border_color: "themes.accent_color",
-  cell_selection_background_color: "themes.accent_color",
-  cell_autofill_size: "sizing.size_1_5",
-  cell_autofill_border_width: "sizing.size_0_25",
-  cell_autofill_border_radius: "sizing.size_0",
-  cell_autofill_border_color: "themes.background_color",
-  cell_autofill_background_color: "themes.accent_color",
-  cell_autofill_fill_border_color: "themes.foreground_color",
-  cell_mobile_handle_size: "sizing.size_3",
-  cell_mobile_handle_border_width: "sizing.size_0_25",
-  cell_mobile_handle_border_radius: "sizing.size_3",
-  cell_mobile_handle_background_opacity: "40%",
-  resize_indicator_color: {
+  cellEditorBackgroundColor: "themes.backgroundColor",
+  cellEditorShadowBlurRadius: "0px",
+  cellEditorShadowColor: "themes.accentColor",
+  cellSuccessBackgroundColor: "#37bc6c33",
+  cellErrorBackgroundColor: "#fa4d3233",
+  cellReadOnlyBackgroundColor: "colors.transparent",
+  cellSelectionBorderColor: "themes.accentColor",
+  cellSelectionBackgroundColor: "themes.accentColor",
+  cellAutofillSize: "sizing.size_1_5",
+  cellAutofillHitAreaSize: "sizing.size_3",
+  cellAutofillBorderWidth: "sizing.size_0_25",
+  cellAutofillBorderRadius: "sizing.size_0",
+  cellAutofillBorderColor: "themes.backgroundColor",
+  cellAutofillBackgroundColor: "themes.accentColor",
+  cellAutofillFillBorderColor: "themes.foregroundColor",
+  cellMobileHandleSize: "sizing.size_3",
+  cellMobileHandleBorderWidth: "sizing.size_0_25",
+  cellMobileHandleBorderRadius: "sizing.size_3",
+  cellMobileHandleBackgroundOpacity: "40%",
+  resizeIndicatorColor: {
     light: "colors.palette.400",
     dark: "colors.palette.500"
   },
-  move_backlight_color: {
+  moveBacklightColor: {
     light: "colors.palette.800",
     dark: "colors.palette.100"
   },
-  move_backlight_opacity: "25%",
-  move_indicator_color: {
+  moveBacklightOpacity: "25%",
+  moveIndicatorColor: {
     light: "colors.palette.400",
     dark: "colors.palette.500"
   },
-  hidden_indicator_color: {
+  hiddenIndicatorColor: {
     light: "colors.palette.400",
     dark: "colors.palette.500"
   },
-  scrollbar_border_radius: "sizing.size_2",
-  scrollbar_track_color: "themes.background_secondary_color",
-  scrollbar_thumb_color: {
+  scrollbarBorderRadius: "sizing.size_2",
+  scrollbarTrackColor: "themes.backgroundSecondaryColor",
+  scrollbarThumbColor: {
     light: "colors.palette.400",
     dark: "colors.palette.500"
   },
-  header_font_weight: "themes.font_weight",
-  header_foreground_color: "themes.foreground_color",
-  header_background_color: "themes.background_secondary_color",
-  header_highlighted_shadow_size: "0px",
-  header_highlighted_foreground_color: "themes.foreground_color",
-  header_highlighted_background_color: {
+  headerFontWeight: "themes.fontWeight",
+  headerForegroundColor: "themes.foregroundColor",
+  headerBackgroundColor: "themes.backgroundSecondaryColor",
+  headerHighlightedShadowSize: "0px",
+  headerHighlightedForegroundColor: "themes.foregroundColor",
+  headerHighlightedBackgroundColor: {
     light: "colors.palette.100",
     dark: "colors.palette.800"
   },
-  header_active_border_color: "themes.border_color",
-  header_active_foreground_color: {
+  headerActiveBorderColor: "themes.borderColor",
+  headerActiveForegroundColor: {
     light: "colors.palette.950",
     dark: "colors.white"
   },
-  header_active_background_color: {
+  headerActiveBackgroundColor: {
     light: "colors.primary.400",
     dark: "colors.primary.300"
   },
-  header_filter_background_color: "themes.cell_success_background_color",
-  header_row_foreground_color: "themes.foreground_color",
-  header_row_background_color: "themes.background_secondary_color",
-  header_row_highlighted_foreground_color: "themes.foreground_color",
-  header_row_highlighted_background_color: {
+  headerFilterBackgroundColor: "themes.cellSuccessBackgroundColor",
+  headerRowForegroundColor: "themes.foregroundColor",
+  headerRowBackgroundColor: "themes.backgroundSecondaryColor",
+  headerRowHighlightedForegroundColor: "themes.foregroundColor",
+  headerRowHighlightedBackgroundColor: {
     light: "colors.palette.100",
     dark: "colors.palette.800"
   },
-  header_row_active_foreground_color: {
+  headerRowActiveForegroundColor: {
     light: "colors.palette.950",
     dark: "colors.white"
   },
-  header_row_active_background_color: {
+  headerRowActiveBackgroundColor: {
     light: "colors.primary.400",
     dark: "colors.primary.300"
   },
-  checkbox_size: "themes.icon_size",
-  checkbox_border_radius: "sizing.size_0_5",
-  checkbox_border_color: {
+  checkboxSize: "themes.iconSize",
+  checkboxBorderRadius: "sizing.size_0_5",
+  checkboxBorderColor: {
     light: "colors.palette.400",
     dark: "colors.palette.500"
   },
-  checkbox_background_color: "themes.background_color",
-  checkbox_icon_color: "colors.transparent",
-  checkbox_focus_border_color: {
+  checkboxBackgroundColor: "themes.backgroundColor",
+  checkboxIconColor: "colors.transparent",
+  checkboxFocusBorderColor: {
     light: "colors.palette.400",
     dark: "colors.palette.500"
   },
-  checkbox_focus_background_color: "themes.background_color",
-  checkbox_focus_icon_color: "colors.transparent",
-  checkbox_focus_ring_color: "themes.accent_color",
-  checkbox_disabled_border_color: {
+  checkboxFocusBackgroundColor: "themes.backgroundColor",
+  checkboxFocusIconColor: "colors.transparent",
+  checkboxFocusRingColor: "themes.accentColor",
+  checkboxDisabledBorderColor: {
     light: "colors.palette.300",
     dark: "colors.palette.600"
   },
-  checkbox_disabled_background_color: {
+  checkboxDisabledBackgroundColor: {
     light: "colors.palette.100",
     dark: "colors.palette.800"
   },
-  checkbox_disabled_icon_color: "colors.transparent",
-  checkbox_checked_border_color: {
+  checkboxDisabledIconColor: "colors.transparent",
+  checkboxCheckedBorderColor: {
     light: "colors.primary.600",
     dark: "colors.primary.200"
   },
-  checkbox_checked_background_color: "themes.accent_color",
-  checkbox_checked_icon_color: "themes.background_color",
-  checkbox_checked_focus_border_color: "themes.background_color",
-  checkbox_checked_focus_background_color: "themes.accent_color",
-  checkbox_checked_focus_icon_color: "themes.background_color",
-  checkbox_checked_disabled_border_color: {
+  checkboxCheckedBackgroundColor: "themes.accentColor",
+  checkboxCheckedIconColor: "themes.backgroundColor",
+  checkboxCheckedFocusBorderColor: "themes.backgroundColor",
+  checkboxCheckedFocusBackgroundColor: "themes.accentColor",
+  checkboxCheckedFocusIconColor: "themes.backgroundColor",
+  checkboxCheckedDisabledBorderColor: {
     light: "colors.palette.300",
     dark: "colors.palette.600"
   },
-  checkbox_checked_disabled_background_color: {
+  checkboxCheckedDisabledBackgroundColor: {
     light: "colors.palette.100",
     dark: "colors.palette.800"
   },
-  checkbox_checked_disabled_icon_color: {
+  checkboxCheckedDisabledIconColor: {
     light: "colors.palette.300",
     dark: "colors.palette.600"
   },
-  checkbox_indeterminate_border_color: {
+  checkboxIndeterminateBorderColor: {
     light: "colors.primary.600",
     dark: "colors.primary.200"
   },
-  checkbox_indeterminate_background_color: "themes.accent_color",
-  checkbox_indeterminate_icon_color: "themes.background_color",
-  checkbox_indeterminate_focus_border_color: "themes.background_color",
-  checkbox_indeterminate_focus_background_color: "themes.accent_color",
-  checkbox_indeterminate_focus_icon_color: "themes.background_color",
-  checkbox_indeterminate_disabled_border_color: {
+  checkboxIndeterminateBackgroundColor: "themes.accentColor",
+  checkboxIndeterminateIconColor: "themes.backgroundColor",
+  checkboxIndeterminateFocusBorderColor: "themes.backgroundColor",
+  checkboxIndeterminateFocusBackgroundColor: "themes.accentColor",
+  checkboxIndeterminateFocusIconColor: "themes.backgroundColor",
+  checkboxIndeterminateDisabledBorderColor: {
     light: "colors.palette.300",
     dark: "colors.palette.600"
   },
-  checkbox_indeterminate_disabled_background_color: {
+  checkboxIndeterminateDisabledBackgroundColor: {
     light: "colors.palette.100",
     dark: "colors.palette.800"
   },
-  checkbox_indeterminate_disabled_icon_color: {
+  checkboxIndeterminateDisabledIconColor: {
     light: "colors.palette.300",
     dark: "colors.palette.600"
   },
-  radio_size: "themes.icon_size",
-  radio_border_color: {
+  radioSize: "themes.iconSize",
+  radioBorderColor: {
     light: "colors.palette.400",
     dark: "colors.palette.500"
   },
-  radio_background_color: "themes.background_color",
-  radio_icon_color: "colors.transparent",
-  radio_focus_border_color: {
+  radioBackgroundColor: "themes.backgroundColor",
+  radioIconColor: "colors.transparent",
+  radioFocusBorderColor: {
     light: "colors.palette.400",
     dark: "colors.palette.500"
   },
-  radio_focus_background_color: "themes.background_color",
-  radio_focus_icon_color: "colors.transparent",
-  radio_focus_ring_color: "themes.accent_color",
-  radio_disabled_border_color: {
+  radioFocusBackgroundColor: "themes.backgroundColor",
+  radioFocusIconColor: "colors.transparent",
+  radioFocusRingColor: "themes.accentColor",
+  radioDisabledBorderColor: {
     light: "colors.palette.300",
     dark: "colors.palette.600"
   },
-  radio_disabled_background_color: {
+  radioDisabledBackgroundColor: {
     light: "colors.palette.100",
     dark: "colors.palette.800"
   },
-  radio_disabled_icon_color: "colors.transparent",
-  radio_checked_border_color: "themes.accent_color",
-  radio_checked_background_color: "themes.background_color",
-  radio_checked_icon_color: "themes.accent_color",
-  radio_checked_focus_border_color: {
+  radioDisabledIconColor: "colors.transparent",
+  radioCheckedBorderColor: "themes.accentColor",
+  radioCheckedBackgroundColor: "themes.backgroundColor",
+  radioCheckedIconColor: "themes.accentColor",
+  radioCheckedFocusBorderColor: {
     light: "colors.primary.600",
     dark: "colors.primary.200"
   },
-  radio_checked_focus_background_color: "themes.background_color",
-  radio_checked_focus_icon_color: "themes.accent_color",
-  radio_checked_disabled_border_color: {
+  radioCheckedFocusBackgroundColor: "themes.backgroundColor",
+  radioCheckedFocusIconColor: "themes.accentColor",
+  radioCheckedDisabledBorderColor: {
     light: "colors.palette.300",
     dark: "colors.palette.600"
   },
-  radio_checked_disabled_background_color: {
+  radioCheckedDisabledBackgroundColor: {
     light: "colors.palette.100",
     dark: "colors.palette.800"
   },
-  radio_checked_disabled_icon_color: {
+  radioCheckedDisabledIconColor: {
     light: "colors.palette.300",
     dark: "colors.palette.600"
   },
-  icon_button_border_radius: "sizing.size_0_5",
-  icon_button_large_border_radius: "sizing.size_0_5",
-  icon_button_large_padding: "sizing.size_1",
-  icon_button_border_color: {
+  iconButtonBorderRadius: "sizing.size_0_5",
+  iconButtonLargeBorderRadius: "sizing.size_0_5",
+  iconButtonLargePadding: "sizing.size_1",
+  iconButtonBorderColor: {
     light: "colors.palette.300",
     dark: "colors.palette.600"
   },
-  icon_button_background_color: "themes.background_secondary_color",
-  icon_button_icon_color: {
+  iconButtonBackgroundColor: "themes.backgroundSecondaryColor",
+  iconButtonIconColor: {
     light: "colors.palette.400",
     dark: "colors.palette.500"
   },
-  icon_button_hover_border_color: {
+  iconButtonHoverBorderColor: {
     light: "colors.palette.400",
     dark: "colors.palette.500"
   },
-  icon_button_hover_background_color: {
+  iconButtonHoverBackgroundColor: {
     light: "colors.palette.50",
     dark: "colors.palette.900"
   },
-  icon_button_hover_icon_color: {
+  iconButtonHoverIconColor: {
     light: "colors.palette.400",
     dark: "colors.palette.500"
   },
-  icon_button_active_border_color: {
+  iconButtonActiveBorderColor: {
     light: "colors.palette.300",
     dark: "colors.palette.600"
   },
-  icon_button_active_background_color: "themes.background_secondary_color",
-  icon_button_active_icon_color: {
+  iconButtonActiveBackgroundColor: "themes.backgroundSecondaryColor",
+  iconButtonActiveIconColor: {
     light: "colors.palette.400",
     dark: "colors.palette.500"
   },
-  icon_button_active_hover_border_color: {
+  iconButtonActiveHoverBorderColor: {
     light: "colors.palette.400",
     dark: "colors.palette.500"
   },
-  icon_button_active_hover_background_color: "themes.background_secondary_color",
-  icon_button_active_hover_icon_color: {
+  iconButtonActiveHoverBackgroundColor: "themes.backgroundSecondaryColor",
+  iconButtonActiveHoverIconColor: {
     light: "colors.palette.400",
     dark: "colors.palette.500"
   },
-  collapse_button_border_radius: "sizing.size_4",
-  collapse_button_open_border_color: {
+  collapseButtonBorderRadius: "sizing.size_4",
+  collapseButtonOpenBorderColor: {
     light: "colors.palette.300",
     dark: "colors.palette.600"
   },
-  collapse_button_open_background_color: {
+  collapseButtonOpenBackgroundColor: {
     light: "colors.white",
     dark: "colors.palette.950"
   },
-  collapse_button_open_icon_color: {
+  collapseButtonOpenIconColor: {
     light: "colors.palette.400",
     dark: "colors.palette.500"
   },
-  collapse_button_open_icon_active_color: {
+  collapseButtonOpenIconActiveColor: {
     light: "colors.palette.400",
     dark: "colors.palette.500"
   },
-  collapse_button_open_hover_border_color: {
+  collapseButtonOpenHoverBorderColor: {
     light: "colors.palette.300",
     dark: "colors.palette.600"
   },
-  collapse_button_open_hover_background_color: {
+  collapseButtonOpenHoverBackgroundColor: {
     light: "colors.white",
     dark: "colors.palette.950"
   },
-  collapse_button_open_hover_icon_color: {
+  collapseButtonOpenHoverIconColor: {
     light: "colors.palette.400",
     dark: "colors.palette.500"
   },
-  collapse_button_open_hover_icon_active_color: {
+  collapseButtonOpenHoverIconActiveColor: {
     light: "colors.palette.400",
     dark: "colors.palette.500"
   },
-  collapse_button_close_border_color: {
+  collapseButtonCloseBorderColor: {
     light: "colors.palette.300",
     dark: "colors.palette.600"
   },
-  collapse_button_close_background_color: {
+  collapseButtonCloseBackgroundColor: {
     light: "colors.palette.50",
     dark: "colors.palette.900"
   },
-  collapse_button_close_icon_color: {
+  collapseButtonCloseIconColor: {
     light: "colors.palette.400",
     dark: "colors.palette.500"
   },
-  collapse_button_close_icon_active_color: {
+  collapseButtonCloseIconActiveColor: {
     light: "colors.palette.400",
     dark: "colors.palette.500"
   },
-  collapse_button_close_hover_border_color: {
+  collapseButtonCloseHoverBorderColor: {
     light: "colors.palette.300",
     dark: "colors.palette.600"
   },
-  collapse_button_close_hover_background_color: {
+  collapseButtonCloseHoverBackgroundColor: {
     light: "colors.palette.50",
     dark: "colors.palette.900"
   },
-  collapse_button_close_hover_icon_color: {
+  collapseButtonCloseHoverIconColor: {
     light: "colors.palette.400",
     dark: "colors.palette.500"
   },
-  collapse_button_close_hover_icon_active_color: {
+  collapseButtonCloseHoverIconActiveColor: {
     light: "colors.palette.400",
     dark: "colors.palette.500"
   },
-  button_border_radius: "sizing.size_0_5",
-  button_horizontal_padding: "density.button_horizontal",
-  button_vertical_padding: "density.button_vertical",
-  primary_button_border_color: "colors.transparent",
-  primary_button_foreground_color: "themes.background_color",
-  primary_button_background_color: "themes.accent_color",
-  primary_button_disabled_border_color: "colors.transparent",
-  primary_button_disabled_foreground_color: "themes.disabled_color",
-  primary_button_disabled_background_color: {
+  buttonBorderRadius: "sizing.size_0_5",
+  buttonHorizontalPadding: "density.buttonHorizontal",
+  buttonVerticalPadding: "density.buttonVertical",
+  primaryButtonBorderColor: "colors.transparent",
+  primaryButtonForegroundColor: "themes.backgroundColor",
+  primaryButtonBackgroundColor: "themes.accentColor",
+  primaryButtonDisabledBorderColor: "colors.transparent",
+  primaryButtonDisabledForegroundColor: "themes.disabledColor",
+  primaryButtonDisabledBackgroundColor: {
     light: "colors.palette.100",
     dark: "colors.palette.800"
   },
-  primary_button_hover_border_color: "colors.transparent",
-  primary_button_hover_foreground_color: "themes.background_color",
-  primary_button_hover_background_color: {
+  primaryButtonHoverBorderColor: "colors.transparent",
+  primaryButtonHoverForegroundColor: "themes.backgroundColor",
+  primaryButtonHoverBackgroundColor: {
     light: "colors.primary.600",
     dark: "colors.primary.200"
   },
-  primary_button_focus_border_color: "themes.background_color",
-  primary_button_focus_foreground_color: "themes.background_color",
-  primary_button_focus_background_color: "themes.accent_color",
-  secondary_button_border_color: "colors.transparent",
-  secondary_button_foreground_color: "themes.foreground_color",
-  secondary_button_background_color: "themes.background_color",
-  secondary_button_disabled_border_color: "colors.transparent",
-  secondary_button_disabled_foreground_color: "themes.disabled_color",
-  secondary_button_disabled_background_color: {
+  primaryButtonFocusBorderColor: "themes.backgroundColor",
+  primaryButtonFocusForegroundColor: "themes.backgroundColor",
+  primaryButtonFocusBackgroundColor: "themes.accentColor",
+  secondaryButtonBorderColor: "colors.transparent",
+  secondaryButtonForegroundColor: "themes.foregroundColor",
+  secondaryButtonBackgroundColor: "themes.backgroundColor",
+  secondaryButtonDisabledBorderColor: "colors.transparent",
+  secondaryButtonDisabledForegroundColor: "themes.disabledColor",
+  secondaryButtonDisabledBackgroundColor: {
     light: "colors.palette.100",
     dark: "colors.palette.800"
   },
-  secondary_button_hover_border_color: "colors.transparent",
-  secondary_button_hover_foreground_color: "themes.foreground_color",
-  secondary_button_hover_background_color: {
+  secondaryButtonHoverBorderColor: "colors.transparent",
+  secondaryButtonHoverForegroundColor: "themes.foregroundColor",
+  secondaryButtonHoverBackgroundColor: {
     light: "colors.palette.50",
     dark: "colors.palette.900"
   },
-  secondary_button_focus_border_color: "colors.transparent",
-  secondary_button_focus_foreground_color: "themes.foreground_color",
-  secondary_button_focus_background_color: "themes.background_secondary_color",
-  comments_textarea_horizontal_padding: "density.cell_horizontal",
-  comments_textarea_vertical_padding: "density.cell_vertical",
-  comments_textarea_border_width: "1px",
-  comments_textarea_border_color: "themes.border_color",
-  comments_textarea_foreground_color: "themes.foreground_color",
-  comments_textarea_background_color: "themes.background_secondary_color",
-  comments_textarea_focus_border_width: "1px",
-  comments_textarea_focus_border_color: "themes.accent_color",
-  comments_textarea_focus_foreground_color: "themes.foreground_color",
-  comments_textarea_focus_background_color: "themes.background_color",
-  comments_indicator_size: "sizing.size_1_5",
-  comments_indicator_color: "themes.accent_color",
-  license_horizontal_padding: "themes.bar_horizontal_padding",
-  license_vertical_padding: "themes.bar_vertical_padding",
-  license_foreground_color: "themes.bar_foreground_color",
-  license_background_color: "themes.bar_background_color",
-  link_color: {
+  secondaryButtonFocusBorderColor: "colors.transparent",
+  secondaryButtonFocusForegroundColor: "themes.foregroundColor",
+  secondaryButtonFocusBackgroundColor: "themes.backgroundSecondaryColor",
+  commentsTextareaHorizontalPadding: "density.cellHorizontal",
+  commentsTextareaVerticalPadding: "density.cellVertical",
+  commentsTextareaBorderWidth: "1px",
+  commentsTextareaBorderColor: "themes.borderColor",
+  commentsTextareaForegroundColor: "themes.foregroundColor",
+  commentsTextareaBackgroundColor: "themes.backgroundSecondaryColor",
+  commentsTextareaFocusBorderWidth: "1px",
+  commentsTextareaFocusBorderColor: "themes.accentColor",
+  commentsTextareaFocusForegroundColor: "themes.foregroundColor",
+  commentsTextareaFocusBackgroundColor: "themes.backgroundColor",
+  commentsIndicatorSize: "sizing.size_1_5",
+  commentsIndicatorColor: "themes.accentColor",
+  licenseHorizontalPadding: "themes.barHorizontalPadding",
+  licenseVerticalPadding: "themes.barVerticalPadding",
+  licenseForegroundColor: "themes.barForegroundColor",
+  licenseBackgroundColor: "themes.barBackgroundColor",
+  linkColor: {
     light: "colors.primary.600",
     dark: "colors.primary.200"
   },
-  link_hover_color: {
+  linkHoverColor: {
     light: "colors.primary.600",
     dark: "colors.primary.200"
   },
-  input_border_width: "1px",
-  input_border_radius: "themes.checkbox_border_radius",
-  input_horizontal_padding: "density.input_horizontal",
-  input_vertical_padding: "density.input_vertical",
-  input_border_color: "themes.border_color",
-  input_foreground_color: "themes.foreground_color",
-  input_background_color: "themes.background_secondary_color",
-  input_hover_border_color: "themes.border_color",
-  input_hover_foreground_color: "themes.foreground_color",
-  input_hover_background_color: "themes.background_secondary_color",
-  input_disabled_border_color: "themes.border_color",
-  input_disabled_foreground_color: "themes.disabled_color",
-  input_disabled_background_color: {
+  inputBorderWidth: "1px",
+  inputBorderRadius: "themes.checkboxBorderRadius",
+  inputHorizontalPadding: "density.inputHorizontal",
+  inputVerticalPadding: "density.inputVertical",
+  inputBorderColor: "themes.borderColor",
+  inputForegroundColor: "themes.foregroundColor",
+  inputBackgroundColor: "themes.backgroundSecondaryColor",
+  inputHoverBorderColor: "themes.borderColor",
+  inputHoverForegroundColor: "themes.foregroundColor",
+  inputHoverBackgroundColor: "themes.backgroundSecondaryColor",
+  inputDisabledBorderColor: "themes.borderColor",
+  inputDisabledForegroundColor: "themes.disabledColor",
+  inputDisabledBackgroundColor: {
     light: "colors.palette.300",
     dark: "colors.palette.600"
   },
-  input_focus_border_color: "themes.accent_color",
-  input_focus_foreground_color: "themes.foreground_color",
-  input_focus_background_color: "themes.background_secondary_color",
-  menu_border_width: "1px",
-  menu_border_radius: "0px",
-  menu_horizontal_padding: "density.menu_horizontal",
-  menu_vertical_padding: "density.menu_vertical",
-  menu_item_horizontal_padding: "density.menu_item_horizontal",
-  menu_item_vertical_padding: "density.menu_item_vertical",
-  menu_border_color: "themes.border_color",
-  menu_shadow_x: "themes.shadow_x",
-  menu_shadow_y: "themes.shadow_y",
-  menu_shadow_blur: "themes.shadow_blur",
-  menu_shadow_color: "themes.border_color",
-  menu_shadow_opacity: "100%",
-  menu_item_hover_color: {
+  inputFocusBorderColor: "themes.accentColor",
+  inputFocusForegroundColor: "themes.foregroundColor",
+  inputFocusBackgroundColor: "themes.backgroundSecondaryColor",
+  menuBorderWidth: "1px",
+  menuBorderRadius: "0px",
+  menuHorizontalPadding: "density.menuHorizontal",
+  menuVerticalPadding: "density.menuVertical",
+  menuItemHorizontalPadding: "density.menuItemHorizontal",
+  menuItemVerticalPadding: "density.menuItemVertical",
+  menuBorderColor: "themes.borderColor",
+  menuShadowX: "themes.shadowX",
+  menuShadowY: "themes.shadowY",
+  menuShadowBlur: "themes.shadowBlur",
+  menuShadowColor: "themes.borderColor",
+  menuShadowOpacity: "100%",
+  menuItemHoverColor: {
     light: "colors.palette.950",
     dark: "colors.white"
   },
-  menu_item_hover_color_opacity: "4%",
-  menu_item_active_color: {
+  menuItemHoverColorOpacity: "4%",
+  menuItemActiveColor: {
     light: "colors.palette.800",
     dark: "colors.palette.100"
   },
-  menu_item_active_color_opacity: "8%",
-  dialog_semi_transparent_background_color: {
+  menuItemActiveColorOpacity: "8%",
+  dialogSemiTransparentBackgroundColor: {
     light: "colors.white",
     dark: "colors.palette.950"
   },
-  dialog_semi_transparent_background_opacity: "80%",
-  dialog_solid_background_color: {
+  dialogSemiTransparentBackgroundOpacity: "80%",
+  dialogSolidBackgroundColor: {
     light: "colors.white",
     dark: "colors.palette.950"
   },
-  dialog_content_padding_horizontal: "density.dialog_horizontal",
-  dialog_content_padding_vertical: "density.dialog_vertical",
-  dialog_content_border_radius: "sizing.size_2",
-  dialog_content_background_color: "themes.background_secondary_color",
-  pagination_bar_foreground_color: "themes.bar_foreground_color",
-  pagination_bar_background_color: "themes.bar_background_color",
-  pagination_bar_horizontal_padding: "themes.bar_horizontal_padding",
-  pagination_bar_vertical_padding: "themes.bar_vertical_padding"
+  dialogContentPaddingHorizontal: "density.dialogHorizontal",
+  dialogContentPaddingVertical: "density.dialogVertical",
+  dialogContentBorderRadius: "sizing.size_2",
+  dialogContentBackgroundColor: "themes.backgroundSecondaryColor",
+  paginationBarForegroundColor: "themes.barForegroundColor",
+  paginationBarBackgroundColor: "themes.barBackgroundColor",
+  paginationBarHorizontalPadding: "themes.barHorizontalPadding",
+  paginationBarVerticalPadding: "themes.barVerticalPadding"
 }

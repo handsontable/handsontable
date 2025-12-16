@@ -117,21 +117,21 @@ class ThemeBuilder {
 
     const config = deepClone(this.#initThemeConfig || this.#themeConfig);
 
-    if (paramsObject.density !== undefined) {
-      if (isObject(paramsObject.density)) {
-        config.density = deepMerge(config.density, paramsObject.density);
-        this.#densityType = config.density.type;
-      } else if (typeof paramsObject.density === 'string') {
-        this.#densityType = config.density;
-        config.density.type = config.densityType;
-      }
-    }
-
     ['sizing', 'icons', 'colors', 'tokens'].forEach((key) => {
       if (paramsObject[key] !== undefined && isObject(paramsObject[key])) {
         config[key] = deepMerge(config[key], paramsObject[key]);
       }
     });
+
+    if (paramsObject.density !== undefined) {
+      if (isObject(paramsObject.density)) {
+        config.density = deepMerge(config.density, paramsObject.density);
+        this.#densityType = paramsObject.density.type;
+      } else if (typeof paramsObject.density === 'string') {
+        this.#densityType = paramsObject.density;
+        config.density.type = paramsObject.density;
+      }
+    }
 
     if (paramsObject.colorScheme !== undefined) {
       this.#colorScheme = paramsObject.colorScheme;

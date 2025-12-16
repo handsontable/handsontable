@@ -45,6 +45,13 @@ export class StylesHandler {
   #rootDocument;
 
   /**
+   * Whether the theme is inline styles.
+   *
+   * @type {boolean}
+   */
+  #isInlineStyles = false;
+
+  /**
    * An object to store CSS variable values.
    *
    * @type {object}
@@ -79,6 +86,24 @@ export class StylesHandler {
     this.#rootElement = rootElement;
     this.#rootDocument = rootDocument;
     this.#onThemeChange = onThemeChange;
+  }
+
+  /**
+   * Sets the value of the `isInlineStyles` property.
+   *
+   * @param {boolean} isInlineStyles - The value to set for the `isInlineStyles` property.
+   */
+  setIsInlineStyles(isInlineStyles) {
+    this.#isInlineStyles = isInlineStyles;
+  }
+
+  /**
+   * Retrieves the value of the `isInlineStyles` property.
+   *
+   * @returns {boolean} The value of the `isInlineStyles` property.
+   */
+  getIsInlineStyles() {
+    return this.#isInlineStyles;
   }
 
   /**
@@ -152,21 +177,21 @@ export class StylesHandler {
    * @param {string|undefined|boolean} [themeName] - The name of the theme to apply.
    */
   useTheme(themeName) {
-    if (!themeName) {
+    if (!themeName || this.#isInlineStyles) {
 
       this.#themeName = undefined;
-      this.#onThemeChange(this.#themeName);
+      this.#onThemeChange(this.#themeName, this.#isInlineStyles);
       this.#cacheStylesheetValues();
 
       return;
     }
 
-    if (themeName && themeName !== this.#themeName) {
+    if (themeName && themeName !== this.#themeName && !this.#isInlineStyles) {
       if (!/ht-theme-.*/.test(themeName)) {
         warn(`Invalid theme name: ${themeName}. Please provide a valid theme name.`);
 
         this.#themeName = undefined;
-        this.#onThemeChange(this.#themeName);
+        this.#onThemeChange(this.#themeName, this.#isInlineStyles);
         this.#cacheStylesheetValues();
 
         return;
@@ -177,7 +202,7 @@ export class StylesHandler {
       }
 
       this.#themeName = themeName;
-      this.#onThemeChange(this.#themeName);
+      this.#onThemeChange(this.#themeName, this.#isInlineStyles);
       this.#cacheStylesheetValues();
     }
   }
