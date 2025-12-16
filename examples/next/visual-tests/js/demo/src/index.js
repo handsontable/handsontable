@@ -66,7 +66,8 @@ function loadThemeCSS() {
     themeLink.href = `/assets/handsontable/styles/ht-theme-horizon.css`;
 
   } else {
-    baseLink.href = `/assets/handsontable/dist/handsontable.full.css`;
+    baseLink.href = `/assets/handsontable/styles/handsontable.css`;
+    themeLink.href = `/assets/handsontable/styles/ht-theme-classic.css`;
   }
 
   const baseLinkPromise = new Promise((resolve, reject) => {
