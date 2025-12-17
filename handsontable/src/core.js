@@ -60,6 +60,9 @@ import {
 } from './utils/a11yAnnouncer';
 import { getValueSetterValue } from './utils/valueAccessors';
 import { createTheme } from './utils/themeBuilder';
+import mainIcons from './themes/variables/icons/main';
+import mainColors from './themes/variables/colors/main';
+import mainTokens from './themes/variables/tokens/main';
 
 let activeGuid = null;
 
@@ -1371,14 +1374,22 @@ export default function Core(rootContainer, userSettings, rootInstanceSymbol = f
 
     const theme = tableMeta.theme;
 
-    if (isRootInstance(instance) && !tableMeta.themeName && (isObject(theme) || typeof theme === 'boolean')) {
+    if (
+      isRootInstance(instance) &&
+      !tableMeta.themeName && (isObject(theme) ||
+      (typeof theme === 'boolean' && theme === true))
+    ) {
 
       instance.stylesHandler.setIsInlineStyles(true);
 
       (async() => {
         const { ThemeAPI } = await import(/* webpackChunkName: "ThemeAPI" */ './utils/themeAPI');
 
-        const themeObject = typeof theme === 'boolean' ? createTheme() : theme;
+        const themeObject = typeof theme === 'boolean' ? createTheme({
+          icons: mainIcons,
+          colors: mainColors,
+          tokens: mainTokens,
+        }) : theme;
 
         instance.themeAPI = new ThemeAPI({
           instance,
