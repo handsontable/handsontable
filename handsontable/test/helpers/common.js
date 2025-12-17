@@ -483,6 +483,8 @@ export function handsontable(options, explicitOptions = false, container = spec(
       options = {};
     }
 
+    options.theme = undefined;
+
     if (
       !options.themeName &&
       loadedTheme &&
