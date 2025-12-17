@@ -35,6 +35,348 @@ The traditional OOP approach to creating custom cells has several challenges:
 
 Our goal: **Make custom cell creation so simple that any developer can create a custom cell in minutes with AI assistance.**
 
+::: only-for react
+
+## React 
+
+For React applications, Handsontable provides `EditorComponent`, a high-level React component that simplifies creating custom editors. It handles container creation, positioning, lifecycle management, and shortcuts automatically, allowing you to focus on your editor's UI and logic.
+
+### What is `EditorComponent`?
+
+`EditorComponent` is a React component that wraps the editor functionality and provides:
+
+- Automatic container creation and positioning
+- Lifecycle hooks: `onPrepare`, `onOpen`, `onClose`, `onFocus`
+- Built-in keyboard shortcut support
+- Render prop pattern for flexible UI composition
+- Type-safe editor state management
+
+### Basic Usage
+
+`EditorComponent` uses a [**render prop pattern**](https://legacy.reactjs.org/docs/render-props.html) where you pass a function as `children` that receives editor state and methods:
+
+```tsx
+import { EditorComponent } from '@handsontable/react-wrapper';
+import { HotTable, HotColumn } from '@handsontable/react-wrapper';
+
+const MyCustomEditor = () => {
+  return (
+    <EditorComponent>
+      {({ value, setValue, finishEditing, isOpen, row, col, mainElementRef }) => (
+        <div>
+          <input
+            type="text"
+            value={value || ''}
+            onChange={(e) => setValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                finishEditing();
+              }
+            }}
+          />
+        </div>
+      )}
+    </EditorComponent>
+  );
+};
+
+const App = () => {
+  return (
+    <HotTable data={data} licenseKey="non-commercial-and-evaluation">
+      <HotColumn editor={MyCustomEditor} />
+    </HotTable>
+  );
+};
+```
+
+### Component Props
+
+`EditorComponent` accepts the following props:
+
+```typescript
+<EditorComponent
+  onPrepare={(row, column, prop, TD, originalValue, cellProperties) => {
+    // Called before editor opens - use for positioning or setup
+  }}
+  onOpen={() => {
+    // Called when editor becomes visible
+  }}
+  onClose={() => {
+    // Called when editor closes
+  }}
+  onFocus={() => {
+    // Called when editor receives focus
+  }}
+  shortcutsGroup="custom-editor" // Optional: group name for shortcuts
+  shortcuts={[
+    // Optional: keyboard shortcuts
+    {
+      keys: [['Enter']],
+      callback: ({ value, setValue, finishEditing }, event) => {
+        // Custom shortcut handler
+        return false; // Return false to prevent default behavior
+      }
+    }
+  ]}
+>
+  {({ value, setValue, finishEditing, isOpen, row, col, mainElementRef }) => (
+    // Your editor UI
+  )}
+</EditorComponent>
+```
+
+### Children Function Props
+
+The render prop function receives the following props:
+
+- **`value: T`** - Current editor value
+- **`setValue: (newValue: T) => void`** - Update the editor value
+- **`finishEditing: () => void`** - Save changes and close the editor
+- **`isOpen: boolean`** - Whether the editor is currently open
+- **`row: number | undefined`** - Current row index
+- **`col: number | undefined`** - Current column index
+- **`mainElementRef: React.RefObject<HTMLDivElement>`** - Reference to the editor container element
+
+### Lifecycle Hooks
+
+1. **`onPrepare(row, column, prop, TD, originalValue, cellProperties)`** - Called before the editor opens
+   - Use for per-cell setup, reading custom properties, or positioning
+   - The container is automatically positioned, but you can override if needed
+
+2. **`onOpen()`** - Called after the editor is positioned and visible
+   - Use to open dropdowns, trigger animations, or focus elements
+
+3. **`onClose()`** - Called when the editor closes
+   - Use for cleanup actions
+
+4. **`onFocus()`** - Called when the editor receives focus
+   - Use for custom focus management
+
+### Common Patterns
+
+#### Pattern 1: Simple Input Editor
+
+```tsx
+const TextEditor = () => {
+  return (
+    <EditorComponent>
+      {({ value, setValue, finishEditing }) => (
+        <input
+          type="text"
+          value={value || ''}
+          onChange={(e) => setValue(e.target.value)}
+          onBlur={finishEditing}
+          autoFocus
+        />
+      )}
+    </EditorComponent>
+  );
+};
+```
+
+#### Pattern 2: Dropdown Select Editor
+
+```tsx
+const SelectEditor = () => {
+  return (
+    <EditorComponent
+      onPrepare={(row, col, prop, TD, originalValue, cellProperties) => {
+        // Access per-cell options
+        const options = cellProperties.options || [];
+      }}
+    >
+      {({ value, setValue, finishEditing }) => {
+        const options = ['Option 1', 'Option 2', 'Option 3'];
+        
+        return (
+          <select
+            value={value || ''}
+            onChange={(e) => {
+              setValue(e.target.value);
+              finishEditing();
+            }}
+            autoFocus
+          >
+            {options.map(opt => (
+              <option key={opt} value={opt}>{opt}</option>
+            ))}
+          </select>
+        );
+      }}
+    </EditorComponent>
+  );
+};
+```
+
+#### Pattern 3: Custom UI with Buttons
+
+```tsx
+const ButtonEditor = () => {
+  return (
+    <EditorComponent>
+      {({ value, setValue, finishEditing }) => (
+        <div style={{ display: 'flex', gap: '8px', padding: '8px' }}>
+          <button onClick={() => { setValue('Yes'); finishEditing(); }}>
+            Yes
+          </button>
+          <button onClick={() => { setValue('No'); finishEditing(); }}>
+            No
+          </button>
+          <button onClick={() => { setValue('Maybe'); finishEditing(); }}>
+            Maybe
+          </button>
+        </div>
+      )}
+    </EditorComponent>
+  );
+};
+```
+
+#### Pattern 4: Keyboard Shortcuts
+
+```tsx
+const ShortcutEditor = () => {
+  return (
+    <EditorComponent
+      shortcuts={[
+        {
+          keys: [['Tab']],
+          callback: ({ value, setValue, finishEditing }, event) => {
+            // Cycle through options on Tab
+            const options = ['A', 'B', 'C'];
+            const currentIndex = options.indexOf(value);
+            const nextIndex = (currentIndex + 1) % options.length;
+            setValue(options[nextIndex]);
+            return false; // Prevent default Tab behavior
+          }
+        },
+        {
+          keys: [['Escape']],
+          callback: ({ finishEditing }, event) => {
+            finishEditing();
+            return false; // Prevent default Escape behavior
+          }
+        }
+      ]}
+    >
+      {({ value, setValue }) => (
+        <div>
+          <input value={value || ''} onChange={(e) => setValue(e.target.value)} />
+          <p>Press Tab to cycle options, Escape to close</p>
+        </div>
+      )}
+    </EditorComponent>
+  );
+};
+```
+
+#### Pattern 5: Third-Party Library Integration
+
+```tsx
+import { useEffect, useRef } from 'react';
+import SomePickerLibrary from 'some-picker-library';
+
+const PickerEditor = () => {
+  const pickerRef = useRef(null);
+  
+  return (
+    <EditorComponent
+      onOpen={() => {
+        // Open picker when editor opens
+        pickerRef.current?.open();
+      }}
+      onClose={() => {
+        // Close picker when editor closes
+        pickerRef.current?.close();
+      }}
+    >
+      {({ value, setValue, finishEditing, mainElementRef }) => {
+        useEffect(() => {
+          // Initialize picker library
+          pickerRef.current = new SomePickerLibrary(mainElementRef.current, {
+            value: value,
+            onChange: (newValue) => {
+              setValue(newValue);
+              finishEditing();
+            }
+          });
+          
+          return () => {
+            pickerRef.current?.destroy();
+          };
+        }, []);
+        
+        return <div ref={mainElementRef} />;
+      }}
+    </EditorComponent>
+  );
+};
+```
+
+### Using with `editorFactory` in React
+
+You can also use the `editorFactory` approach (described below) in React applications. Both approaches are compatible:
+
+- **`EditorComponent`** - Best for React-first workflows, uses render props, fully React-integrated
+- **`editorFactory`** - Best for shared code between React and vanilla JS, or when you prefer a more functional approach
+
+Both approaches work seamlessly with React and provide the same level of functionality.
+
+### TypeScript Support
+
+`EditorComponent` is fully typed. You can specify the value type:
+
+```tsx
+const NumberEditor = () => {
+  return (
+    <EditorComponent<number>
+      onPrepare={(row, col, prop, TD, originalValue, cellProperties) => {
+        // TypeScript knows originalValue is number | undefined
+      }}
+    >
+      {({ value, setValue, finishEditing }) => {
+        // TypeScript knows value is number | undefined
+        return (
+          <input
+            type="number"
+            value={value ?? 0}
+            onChange={(e) => setValue(parseFloat(e.target.value))}
+            onBlur={finishEditing}
+          />
+        );
+      }}
+    </EditorComponent>
+  );
+};
+```
+
+### Best Practices
+
+1. **Use `onPrepare` for per-cell configuration** - Access `cellProperties` to read custom options
+2. **Handle keyboard events properly** - Use shortcuts or handle `onKeyDown` events
+3. **Call `finishEditing()` appropriately** - When user confirms changes (Enter, blur, button click)
+4. **Use `mainElementRef` for third-party libraries** - Attach libraries to the container element
+5. **Keep render prop function simple** - Extract complex logic into separate components or hooks
+
+### Comparison: `EditorComponent` vs `useHotEditor` Hook
+
+Handsontable also provides a lower-level `useHotEditor` hook if you need more control:
+
+- **`EditorComponent`** - Higher-level, handles container and positioning automatically
+- **`useHotEditor`** - Lower-level, gives you full control over container creation and positioning
+
+For most use cases, `EditorComponent` is recommended as it handles common patterns automatically.
+
+::: tip
+
+All the sections below describe how to utilize the features available for the Handsontable factory based editors.
+This information is applicable in React when using the non-component editor approach.
+
+:::
+
+
+:::
+
 ## Renderers
 
 Before diving into editors, here's how to create custom renderers:

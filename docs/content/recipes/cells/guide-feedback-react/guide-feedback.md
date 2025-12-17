@@ -19,35 +19,37 @@ searchCategory: Recipes
 category: Cells
 ---
 
-# Feedback Editor Cell - Step-by-Step Guide
+# Feedback Editor Cell - Step-by-Step Guide (React)
 
 [[toc]]
 
 ## Overview
 
-This guide shows how to create a simple feedback editor cell using emoji buttons. Perfect for quick feedback selection, status indicators, or any scenario where users need to choose from a small set of visual options.
+This guide shows how to create a simple feedback editor cell using emoji buttons with React's `EditorComponent`. Perfect for quick feedback selection, status indicators, or any scenario where users need to choose from a small set of visual options.
 
 **Difficulty:** Beginner
 **Time:** ~15 minutes
-**Libraries:** None (pure HTML)
+**Libraries:** None
 
 ## What You'll Build
 
 A cell that:
 - Displays emoji feedback buttons when editing
 - Shows the selected emoji when viewing
-- Supports keyboard navigation (arrow keys)
+- Supports keyboard navigation (arrow keys and Tab)
 - Provides click-to-select functionality
-- Works without any external libraries
+- Works with React's component-based architecture
+- Supports per-column configuration
 
 ## Complete Example
 
-::: only-for javascript vue
+::: only-for react
 
-::: example #example1 :hot-recipe --js 1 --ts 2
+::: example #example1 :react --css 1 --js 2 --ts 3
 
-@[code](@/content/recipes/cells/guide-feedback/javascript/example1.js)
-@[code](@/content/recipes/cells/guide-feedback/javascript/example1.ts)
+@[code](@/content/recipes/cells/guide-feedback-react/react/example1.css)
+@[code](@/content/recipes/cells/guide-feedback-react/react/example1.jsx)
+@[code](@/content/recipes/cells/guide-feedback-react/react/example1.tsx)
 
 :::
 
@@ -55,12 +57,20 @@ A cell that:
 
 ## Prerequisites
 
-None! This uses only native HTML and JavaScript features.
+```bash
+npm install @handsontable/react-wrapper
+```
+
+**What you need:**
+- React 16.8+ (hooks support)
+- `@handsontable/react-wrapper` package
+- Basic React knowledge (hooks, JSX)
 
 ## Step 1: Import Dependencies
 
-```typescript
-import Handsontable from 'handsontable/base';
+```tsx
+import { useState, useEffect, useCallback, ComponentProps } from 'react';
+import { HotTable, HotColumn, EditorComponent } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import 'handsontable/styles/handsontable.css';
 import 'handsontable/styles/ht-theme-main.css';
@@ -68,279 +78,423 @@ import 'handsontable/styles/ht-theme-main.css';
 registerAllModules();
 ```
 
-**What we're NOT importing:**
-- No date libraries
-- No UI component libraries
-- No external emoji libraries
-- Just Handsontable.
+**What we're importing:**
+- `EditorComponent` - React component for creating custom editors
+- `HotTable` and `HotColumn` - React wrapper components
+- React hooks for state management
+- Handsontable styles
 
+## Step 2: Create the Editor Component
 
-## Step 2: Editor - Initialize (`init`)
+Create a React component that uses `EditorComponent` with the render prop pattern.
 
-Create the DOM structure with emoji buttons, this function will be called only once.
+```tsx
+type EditorComponentProps = ComponentProps<typeof EditorComponent<string>>;
 
-```typescript
-init(editor) {
-  // Create container for buttons
-  editor.input = editor.hot.rootDocument.createElement('div') as HTMLDivElement;
-  editor.input.style = 'display: flex; gap: 4px; padding: 5px; background:#eee; border: 1px solid #ccc; border-radius: 4px;';
-
-  // Set up click handler for buttons
-  editor.input.addEventListener('click', (event) => {
-    if (event.target instanceof HTMLButtonElement) {
-      editor.setValue(event.target.innerText);
-      editor.finishEditing();
-    }
-  });
-
-  // Initial render
-  editor.render(editor);
-}
+const FeedbackEditor = () => {
+  const [config, setConfig] = useState<string[]>(['👍', '👎', '🤷‍♂️']);
+  
+  return (
+    <EditorComponent<string>>
+      {({ value, setValue, finishEditing }) => (
+        <div className="editor">
+          {config.map((item) => (
+            <button
+              key={item}
+              className={`button ${value === item ? 'active' : ''}`}
+              onClick={() => {
+                setValue(item);
+                finishEditing();
+              }}
+            >
+              {item}
+            </button>
+          ))}
+        </div>
+      )}
+    </EditorComponent>
+  );
+};
 ```
 
 **What's happening:**
-1. Create a `div` container for the buttons
-2. Style it with flexbox for horizontal layout
-3. Add click handler to detect button clicks
-4. When a button is clicked, set the value and finish editing
-5. Call `render` to create the initial button layout
+1. `EditorComponent` wraps your editor UI
+2. The `children` prop is a function that receives editor state
+3. `value` - Current editor value
+4. `setValue` - Function to update the value
+5. `finishEditing` - Function to save and close the editor
+6. Render buttons for each option in the config
+7. Highlight the active button based on current value
+
+**Key concepts:**
+- **Render prop pattern**: `EditorComponent` uses a function as children
+- **State management**: `value` and `setValue` are provided by `EditorComponent`
+- **React components**: Use standard React patterns (JSX, className, onClick)
+
+## Step 3: Add Styling
+
+Style the editor container and buttons using CSS or inline styles.
+
+```tsx
+const FeedbackEditor = () => {
+  const [config, setConfig] = useState<string[]>(['👍', '👎', '🤷‍♂️']);
+  
+  return (
+    <EditorComponent<string>>
+      {({ value, setValue, finishEditing }) => (
+        <>
+          <style>{`
+            .editor {
+              box-sizing: border-box;
+              display: flex;
+              gap: 3px;
+              padding: 3px;
+              background: rgb(238, 238, 238);
+              border: 1px solid rgb(204, 204, 204);
+              border-radius: 4px;
+              height: 100%;
+              width: 100%;
+            }
+            .button.active {
+              background: #007bff;
+              color: white;
+            }
+            .button:hover {
+              background: #f0f0f0;
+            }
+            .button {
+              background: #fff;
+              color: black;
+              border: none;
+              padding: 0;
+              margin: 0;
+              height: 100%;
+              width: 100%;
+              font-size: 16px;
+              font-weight: bold;
+              text-align: center;
+              cursor: pointer;
+            }
+          `}</style>
+          <div className="editor">
+            {config.map((item, _index, _array) => (
+              <button
+                key={item}
+                className={`button ${value === item ? 'active' : ''}`}
+                onClick={() => {
+                  setValue(item);
+                  finishEditing();
+                }}
+                style={{
+                  width: `${100 / _array.length}%`
+                }}
+              >
+                {item}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </EditorComponent>
+  );
+};
+```
+
+**What's happening:**
+- Container uses flexbox for horizontal button layout
+- Buttons dynamically size based on config length
+- Active button has blue background
+- Hover effects for better UX
 
 **Key styling:**
 - `display: flex` - Horizontal button layout
-- `gap: 4px` - Space between buttons
-- `padding: 5px` - Internal spacing
-- `border-radius: 4px` - Rounded corners
+- `gap: 3px` - Space between buttons
+- `width: ${100 / _array.length}%` - Dynamic button width
+- `.active` class - Highlights selected button
 
-## Step 3: Editor - Render Function
+## Step 4: Read Config from Cell Properties
 
-Create buttons dynamically based on the config.
+Use `onPrepare` to read per-column configuration.
 
-```typescript
-render(editor) {
-  editor.input.innerHTML = editor.config
-    .map((option) => {
-      const isSelected = editor.value === option;
-      const selectedStyle = isSelected
-        ? 'background: #007bff; color: white;'
-        : '';
-      return `<button style="width:33%; ${selectedStyle}">${option}</button>`;
-    })
-    .join('');
-}
+```tsx
+const FeedbackEditor = () => {
+  const [config, setConfig] = useState<string[]>(['👍', '👎', '🤷‍♂️']);
+  
+  const onPrepare: EditorComponentProps['onPrepare'] = (
+    _row,
+    _column,
+    _prop,
+    _TD,
+    _originalValue,
+    cellProperties
+  ) => {
+    // Read config from column definition
+    if (cellProperties.config) {
+      setConfig(cellProperties.config as string[]);
+    }
+  };
+  
+  return (
+    <EditorComponent<string> onPrepare={onPrepare}>
+      {({ value, setValue, finishEditing }) => (
+        // ... editor UI
+      )}
+    </EditorComponent>
+  );
+};
 ```
 
 **What's happening:**
-- Generate HTML for each button from `config` array
-- Highlight the currently selected button
-- Each button takes 33% width (for 3 options)
-- Selected button has blue background
+- `onPrepare` is called before the editor opens
+- `cellProperties` contains column-specific configuration
+- Read `config` from `cellProperties.config`
+- Update state to reflect column-specific options
 
-**Dynamic button creation:**
-- Uses `map` to iterate through config options
-- Conditional styling for selected state
-- `join('')` concatenates into single HTML string
+**Why this matters:**
+- Different columns can have different options
+- One editor component, multiple configurations
+- Dynamic options based on column settings
 
-## Step 4: Editor - Keyboard Shortcuts
+## Step 5: Add Keyboard Shortcuts
 
-Add arrow key navigation to cycle through options.
+Add keyboard navigation using the `shortcuts` prop.
 
-```typescript
-shortcuts: [
-  {
-    keys: [['ArrowRight']],
-    callback: (editor, _event) => {
-      let index = editor.config.indexOf(editor.value);
-
-      index = index === editor.config.length - 1 ? 0 : index + 1;
-      editor.setValue(editor.config[index]);
-    }
-  },
-  {
-    keys: [['ArrowLeft']],
-    callback: (editor, _event) => {
-      let index = editor.config.indexOf(editor.value);
-
-      index = index === 0 ? editor.config.length - 1 : index - 1;
-      editor.setValue(editor.config[index]);
-    }
-  }
-]
+```tsx
+const FeedbackEditor = () => {
+  const [config, setConfig] = useState<string[]>(['👍', '👎', '🤷‍♂️']);
+  const [shortcuts, setShortcuts] = useState<EditorComponentProps['shortcuts']>([]);
+  
+  const getNextValue = useCallback((value: string) => {
+    const index = config.indexOf(value);
+    return index === config.length - 1 ? config[0] : config[index + 1];
+  }, [config]);
+  
+  const getPrevValue = useCallback((value: string) => {
+    const index = config.indexOf(value);
+    return index === 0 ? config[config.length - 1] : config[index - 1];
+  }, [config]);
+  
+  useEffect(() => {
+    setShortcuts([
+      {
+        keys: [['ArrowRight'], ['Tab']],
+        callback: ({ value, setValue }, _event) => {
+          setValue(getNextValue(value));
+          return false; // Prevent default Tab behavior
+        }
+      },
+      {
+        keys: [['ArrowLeft']],
+        callback: ({ value, setValue }, _event) => {
+          setValue(getPrevValue(value));
+        }
+      }
+    ]);
+  }, [config, getNextValue, getPrevValue]);
+  
+  return (
+    <EditorComponent<string> shortcuts={shortcuts}>
+      {({ value, setValue, finishEditing }) => (
+        // ... editor UI
+      )}
+    </EditorComponent>
+  );
+};
 ```
 
 **What's happening:**
-- **ArrowRight**: Move to next option (wraps to first if at end)
+- **ArrowRight/Tab**: Move to next option (wraps to first if at end)
 - **ArrowLeft**: Move to previous option (wraps to last if at start)
-- Finds current index in config array
-- Updates value and triggers render automatically
+- `callback` receives `{ value, setValue, finishEditing }` as first parameter
+- Return `false` to prevent default behavior (e.g., Tab moving to next cell)
 
 **Keyboard navigation benefits:**
 - Fast selection without mouse
 - Accessible for keyboard-only users
 - Intuitive left/right navigation
+- Tab cycles through options instead of moving cells
 
-## Step 5: Editor – Custom Tab Key Behavior
+## Step 6: Complete Editor Component
 
-By default, pressing <kbd>Tab</kbd> in Handsontable saves the cell and moves the selection horizontally, following your [layout direction](@/guides/internationalization/layout-direction/layout-direction.md#elements-affected-by-layout-direction).
-In this example, we want <kbd>Tab</kbd> to cycle through feedback options—just like the arrow keys—without moving to another cell.
-To achieve this, we use the editor's `shortcuts`  and return `false` in callback to prevent the default action (saving and moving to the next cell).
+Put it all together:
 
-```typescript
-shortcuts: [
-  {
-    keys: [['ArrowRight'],[ 'Tab']],
-    callback: (editor, _event) => {
-      let index = editor.config.indexOf(editor.value);
+```tsx
+type EditorComponentProps = ComponentProps<typeof EditorComponent<string>>;
 
-      index = index === editor.config.length - 1 ? 0 : index + 1;
-      editor.setValue(editor.config[index]);
-
-      return false; // Prevent default tabbing behavior
-    },
-  },
-]
-```
-
-**How it works:**
-- Listens for <kbd>Tab</kbd> when the editor is active
-- Moves to the next option in `config` (wraps around at the end)
-- Updates the editor's value and button highlight
-- Returning `false` blocks Handsontable's built-in tab handler, so editing stays in place
-
-
-## Step 6: Editor - Before Open Hook
-
-Initialize the editor with the current cell value when editing starts.
-
-```typescript
-beforeOpen(editor, { originalValue }) {
-  editor.setValue(originalValue);
-}
-```
-
-**What's happening:**
-- Called when editor is about to open
-- Receives the current cell value as `originalValue`
-- Sets the editor's value to match the cell
-- This ensures the correct button is highlighted when editing starts
-
-## Step 7: Complete Cell Definition
-
-```typescript
-const cellDefinition = {
-  editor: editorFactory<{input: HTMLDivElement, value: string, config: string[]}>({
-    config: ['👍', '👎', '🤷‍♂️'],
-    value: '👍',
-    shortcuts: [
+const FeedbackEditor = () => {
+  const [config, setConfig] = useState<string[]>(['👍', '👎', '🤷‍♂️']);
+  const [shortcuts, setShortcuts] = useState<EditorComponentProps['shortcuts']>([]);
+  
+  const onPrepare: EditorComponentProps['onPrepare'] = (
+    _row,
+    _column,
+    _prop,
+    _TD,
+    _originalValue,
+    cellProperties
+  ) => {
+    if (cellProperties.config) {
+      setConfig(cellProperties.config as string[]);
+    }
+  };
+  
+  const getNextValue = useCallback((value: string) => {
+    const index = config.indexOf(value);
+    return index === config.length - 1 ? config[0] : config[index + 1];
+  }, [config]);
+  
+  const getPrevValue = useCallback((value: string) => {
+    const index = config.indexOf(value);
+    return index === 0 ? config[config.length - 1] : config[index - 1];
+  }, [config]);
+  
+  useEffect(() => {
+    setShortcuts([
       {
         keys: [['ArrowRight'], ['Tab']],
-        callback: (editor, _event) => {
-          let index = editor.config.indexOf(editor.value);
-
-          index = index === editor.config.length - 1 ? 0 : index + 1;
-          editor.setValue(editor.config[index]);
-
+        callback: ({ value, setValue }, _event) => {
+          setValue(getNextValue(value));
           return false;
         }
       },
       {
         keys: [['ArrowLeft']],
-        callback: (editor, _event) => {
-          let index = editor.config.indexOf(editor.value);
-
-          index = index === 0 ? editor.config.length - 1 : index - 1;
-
-          editor.setValue(editor.config[index]);
+        callback: ({ value, setValue }, _event) => {
+          setValue(getPrevValue(value));
         }
       }
-    ],
-    render: (editor) => {
-      editor.input.innerHTML = editor.config
-        .map((option) => {
-          const isSelected = editor.value === option;
-          const selectedStyle = isSelected
-            ? 'background: #007bff; color: white;'
-            : '';
-          return `<button style="width:33%; ${selectedStyle}">${option}</button>`;
-        })
-        .join('');
-    },
-    init: (editor) => {
-      editor.input = editor.hot.rootDocument.createElement('div') as HTMLDivElement;
-      editor.input.style = 'display: flex; gap: 4px; padding: 5px; background:#eee; border: 1px solid #ccc; border-radius: 4px;';
-      editor.input.addEventListener('click', (event) => {
-        if (event.target instanceof HTMLButtonElement) {
-          editor.setValue(event.target.innerText);
-          editor.finishEditing();
-        }
-      });
-      editor.render(editor);
-    },
-    beforeOpen: (editor, { originalValue }) => {
-      editor.setValue(originalValue);
-    },
-  })
+    ]);
+  }, [config, getNextValue, getPrevValue]);
+  
+  return (
+    <EditorComponent<string> onPrepare={onPrepare} shortcuts={shortcuts}>
+      {({ value, setValue, finishEditing }) => (
+        <>
+          <style>{`
+            .editor {
+              box-sizing: border-box;
+              display: flex;
+              gap: 3px;
+              padding: 3px;
+              background: rgb(238, 238, 238);
+              border: 1px solid rgb(204, 204, 204);
+              border-radius: 4px;
+              height: 100%;
+              width: 100%;
+            }
+            .button.active:hover,
+            .button.active {
+              background: #007bff;
+              color: white;
+            }
+            .button:hover {
+              background: #f0f0f0;
+            }
+            .button {
+              background: #fff;
+              color: black;
+              border: none;
+              padding: 0;
+              margin: 0;
+              height: 100%;
+              width: 100%;
+              font-size: 16px;
+              font-weight: bold;
+              text-align: center;
+              cursor: pointer;
+            }
+          `}</style>
+          <div className="editor">
+            {config.map((item, _index, _array) => (
+              <button
+                key={item}
+                className={`button ${value === item ? 'active' : ''}`}
+                onClick={() => {
+                  setValue(item);
+                  finishEditing();
+                }}
+                style={{
+                  width: `${100 / _array.length}%`
+                }}
+              >
+                {item}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </EditorComponent>
+  );
 };
 ```
 
 **What's happening:**
-- **config**: Array of emoji options
-- **value**: Default/initial value. This is optional for better readability.
+- **State management**: `config` and `shortcuts` managed with React hooks
+- **onPrepare**: Reads column-specific config
 - **shortcuts**: Keyboard navigation handlers
-- **render**: Function to create button HTML
-- **init**: Sets up DOM and event handlers
-- **beforeOpen**: Initializes editor with cell value
+- **Render prop**: Renders buttons based on config
+- **Styling**: CSS-in-JS for editor appearance
 
-**Note:** No custom renderer needed! Handsontable's default renderer will display the emoji value in the cell.
+## Step 7: Use in Handsontable
 
-## Step 8: Use in Handsontable
+Use the editor component in your `HotTable`:
 
-```typescript
-const container = document.querySelector('#example1')!;
-
-const hotOptions: Handsontable.GridSettings = {
-  themeName: 'ht-theme-main',
-  data: [
-    { id: 1, itemName: 'Lunar Core', feedback: '👍' },
-    { id: 2, itemName: 'Zero Thrusters', feedback: '👎' },
-    { id: 3, itemName: 'EVA Suits', feedback: '🤷‍♂️' },
-    { id: 4, itemName: 'Solar Panels', feedback: '👍' },
-  ],
-  colHeaders: [
-    'ID',
-    'Item Name',
-    'Item feedback',
-  ],
-  autoRowSize: true,
-  rowHeaders: true,
-  height: 'auto',
-  columns: [
-    { data: 'id', type: 'numeric' },
-    { data: 'itemName', type: 'text' },
-    {
-      data: 'feedback',
-      width: 150,
-      ...cellDefinition,
-    }
-  ],
-  licenseKey: 'non-commercial-and-evaluation',
+```tsx
+const ExampleComponent = () => {
+  return (
+    <HotTable
+      autoRowSize={true}
+      rowHeaders={true}
+      autoWrapRow={true}
+      licenseKey="non-commercial-and-evaluation"
+      height="auto"
+      themeName="ht-theme-main"
+      data={data}
+      colHeaders={true}
+    >
+      <HotColumn
+        width={250}
+        editor={FeedbackEditor}
+        config={['👍', '👎', '🤷‍♂️']}
+        data="feedback"
+        title="Feedback"
+      />
+      <HotColumn
+        width={250}
+        editor={FeedbackEditor}
+        config={['1', '2', '3', '4', '5']}
+        data="stars"
+        title="Rating (1-5)"
+      />
+    </HotTable>
+  );
 };
-
-const hot = new Handsontable(container, hotOptions);
 ```
+
+**What's happening:**
+- `editor={FeedbackEditor}` - Assigns the editor component to the column
+- `config={['👍', '👎', '🤷‍♂️']}` - Column-specific options
+- Same editor component, different configurations per column
+
+**Key features:**
+- Reusable editor component
+- Per-column configuration
+- Type-safe with TypeScript
 
 ## How It Works - Complete Flow
 
 1. **Initial Render**: Cell displays the emoji value (👍, 👎, or 🤷‍♂️)
-2. **User Double-Clicks or Enter**: Editor opens over cell showing three buttons
-3. **Button Display**: All options visible, current value highlighted
-4. **User Interaction**:
-   - Click a button → Selects value and closes editor
-   - Press ArrowLeft/Right → Cycles through options
-   - Enter key saves value and closes editor
-5. **Visual Feedback**: Selected button highlighted in blue
-6. **User Confirms**: Press Enter, click button, or click away
-7. **Save**: Value saved to cell
-8. **Editor Closes**: Cell shows selected emoji
+2. **User Double-Clicks or Enter**: Editor opens, `onPrepare` reads column config
+3. **Editor Opens**: `EditorComponent` positions container over cell
+4. **Button Display**: All options visible, current value highlighted
+5. **User Interaction**:
+   - Click a button → `setValue(item)` and `finishEditing()` called
+   - Press ArrowLeft/Right → Shortcut callback updates value
+   - Press Tab → Cycles through options (prevents default cell navigation)
+6. **Visual Feedback**: Selected button highlighted in blue
+7. **User Confirms**: Press Enter, click button, or click away
+8. **Save**: Value saved to cell
+9. **Editor Closes**: Cell shows selected emoji
 
 ## Enhancements
 
@@ -348,16 +502,27 @@ const hot = new Handsontable(container, hotOptions);
 
 Add a custom renderer to style the emoji display:
 
-```typescript
-renderer: rendererFactory(({ td, value }) => {
-  td.innerHTML = `
-    <div style="text-align: center; font-size: 1.5em; padding: 4px;">
-      ${value || '🤷‍♂️'}
-    </div>
-  `;
+```tsx
+import { rendererFactory } from 'handsontable/renderers';
 
-  return td;
-})
+const cellDefinition = {
+  renderer: rendererFactory(({ td, value }) => {
+    td.innerHTML = `
+      <div style="text-align: center; font-size: 1.5em; padding: 4px;">
+        ${value || '🤷‍♂️'}
+      </div>
+    `;
+    return td;
+  })
+};
+
+// Use in HotColumn
+<HotColumn
+  editor={FeedbackEditor}
+  renderer={cellDefinition.renderer}
+  config={['👍', '👎', '🤷‍♂️']}
+  data="feedback"
+/>
 ```
 
 **What's happening:**
@@ -369,153 +534,172 @@ renderer: rendererFactory(({ td, value }) => {
 
 Add more emoji options:
 
-```typescript
-config: ['👍', '👎', '🤷‍♂️', '❤️', '🔥', '⭐'],
+```tsx
+<HotColumn
+  editor={FeedbackEditor}
+  config={['👍', '👎', '🤷‍♂️', '❤️', '🔥', '⭐']}
+  data="feedback"
+/>
 ```
 
-**Adjust button width:**
-```typescript
-render: (editor) => {
-  const buttonWidth = `${100 / editor.config.length}%`;
-
-  editor.input.innerHTML = editor.config
-    .map((option) => {
-      const isSelected = editor.value === option;
-      const selectedStyle = isSelected
-        ? 'background: #007bff; color: white;'
-        : '';
-
-      return `<button style="width:${buttonWidth}; ${selectedStyle}">${option}</button>`;
-    })
-    .join('');
-}
-```
+The editor automatically adjusts button widths based on config length.
 
 ### 3. Custom Button Styling
 
-Enhanced button appearance:
+Enhanced button appearance with CSS:
 
-```typescript
-render: (editor) => {
-  editor.input.innerHTML = editor.config
-    .map((option) => {
-      const isSelected = editor.value === option;
-      const baseStyle = `
-        width: 33%;
-        padding: 8px;
-        border: 2px solid ${isSelected ? '#007bff' : '#ddd'};
-        background: ${isSelected ? '#007bff' : 'white'};
-        color: ${isSelected ? 'white' : '#333'};
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 1.2em;
-        transition: all 0.2s;
-      `;
-
-      return `<button style="${baseStyle}">${option}</button>`;
-    })
-    .join('');
-}
+```tsx
+<style>{`
+  .button {
+    padding: 8px;
+    border: 2px solid #ddd;
+    background: white;
+    color: #333;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1.2em;
+    transition: all 0.2s;
+  }
+  .button.active {
+    border-color: #007bff;
+    background: #007bff;
+    color: white;
+  }
+  .button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+`}</style>
 ```
 
 ### 4. Dynamic Config from Cell Properties
 
-Make options configurable per column:
+The `onPrepare` hook already handles this! Just pass different configs:
 
-```typescript
-beforeOpen: (editor, { cellProperties }) => {
-  // Override config if specified in column definition
-  if (cellProperties.feedbackOptions) {
-    editor.config = cellProperties.feedbackOptions;
-  }
-
-  editor.setValue(editor.originalValue || editor.value);
-},
-
-// Usage
-columns: [{
-  data: 'feedback',
-  ...cellDefinition,
-  feedbackOptions: ['👍', '👎', '❤️', '🔥'] // Custom options
-}]
+```tsx
+<HotColumn
+  editor={FeedbackEditor}
+  config={['👍', '👎', '❤️', '🔥']}
+  data="feedback"
+/>
 ```
 
 ### 5. Tooltip on Hover
 
 Add tooltips to buttons:
 
-```typescript
-render: (editor) => {
-  const tooltips = {
+```tsx
+{config.map((item) => {
+  const tooltips: Record<string, string> = {
     '👍': 'Positive feedback',
     '👎': 'Negative feedback',
     '🤷‍♂️': 'Neutral feedback'
   };
-
-  editor.input.innerHTML = editor.config
-    .map((option) => {
-      const isSelected = editor.value === option;
-      const selectedStyle = isSelected
-        ? 'background: #007bff; color: white;'
-        : '';
-      const tooltip = tooltips[option] || '';
-
-      return `<button
-        style="width: 33%; ${selectedStyle}"
-        title="${tooltip}"
-      >${option}</button>`;
-    })
-    .join('');
-}
+  
+  return (
+    <button
+      key={item}
+      className={`button ${value === item ? 'active' : ''}`}
+      onClick={() => {
+        setValue(item);
+        finishEditing();
+      }}
+      title={tooltips[item] || ''}
+    >
+      {item}
+    </button>
+  );
+})}
 ```
 
 ### 6. Text Labels Instead of Emojis
 
 Use text buttons for clarity:
 
-```typescript
-config: ['Positive', 'Negative', 'Neutral'],
-render: (editor) => {
-  editor.input.innerHTML = editor.config
-    .map((option) => {
-      const isSelected = editor.value === option;
-      const selectedStyle = isSelected
-        ? 'background: #007bff; color: white;'
-        : '';
+```tsx
+<HotColumn
+  editor={FeedbackEditor}
+  config={['Positive', 'Negative', 'Neutral']}
+  data="feedback"
+/>
+```
 
-      return `<button style="width: 33%; ${selectedStyle}">${option}</button>`;
-    })
-    .join('');
+The editor works with any string values, not just emojis.
+
+### 7. Using External CSS File
+
+Move styles to a separate CSS file:
+
+```css
+/* feedback-editor.css */
+.editor {
+  box-sizing: border-box;
+  display: flex;
+  gap: 3px;
+  padding: 3px;
+  background: rgb(238, 238, 238);
+  border: 1px solid rgb(204, 204, 204);
+  border-radius: 4px;
+  height: 100%;
+  width: 100%;
+}
+
+.button.active {
+  background: #007bff;
+  color: white;
+}
+
+.button:hover {
+  background: #f0f0f0;
+}
+
+.button {
+  background: #fff;
+  color: black;
+  border: none;
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  width: 100%;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  cursor: pointer;
 }
 ```
 
+```tsx
+import './feedback-editor.css';
+
+const FeedbackEditor = () => {
+  // ... component code without <style> tag
+};
+```
 
 ## Accessibility
 
-Buttons are inherently accessible:
+React buttons are inherently accessible, but you can enhance them:
 
-```typescript
-render: (editor) => {
-  editor.input.innerHTML = editor.config
-    .map((option, index) => {
-      const isSelected = editor.value === option;
-      const selectedStyle = isSelected
-        ? 'background: #007bff; color: white;'
-        : '';
-
-      return `<button
-        style="width: 33%; ${selectedStyle}"
-        aria-label="${option} feedback option"
-        aria-pressed="${isSelected}"
-        tabindex="${isSelected ? '0' : '-1'}"
-      >${option}</button>`;
-    })
-    .join('');
-}
+```tsx
+{config.map((item, index) => (
+  <button
+    key={item}
+    className={`button ${value === item ? 'active' : ''}`}
+    onClick={() => {
+      setValue(item);
+      finishEditing();
+    }}
+    aria-label={`${item} feedback option`}
+    aria-pressed={value === item}
+    tabIndex={value === item ? 0 : -1}
+  >
+    {item}
+  </button>
+))}
 ```
 
 **Keyboard navigation:**
-- **Tab**: Navigate to editor (focuses first button)
+- **Tab**: Navigate to editor (focuses active button)
 - **Arrow Left/Right**: Cycle through options (via shortcuts)
 - **Enter**: Select current option and finish editing
 - **Escape**: Cancel editing
@@ -524,136 +708,70 @@ render: (editor) => {
 **ARIA attributes:**
 - `aria-label`: Describes each button
 - `aria-pressed`: Indicates selected state
-- `tabindex`: Controls keyboard focus order
+- `tabIndex`: Controls keyboard focus order
 
 ## Performance Considerations
 
 ### Why This Is Fast
 
-1. **Simple DOM**: Just a few buttons, minimal markup
-2. **No External Libraries**: Zero overhead
-3. **Efficient Updates**: Only re-renders when value changes
+1. **React Virtual DOM**: Efficient updates only when value changes
+2. **No External Libraries**: Zero overhead beyond React
+3. **Efficient Re-renders**: Only re-renders when config or value changes
 4. **Native Events**: Browser-optimized click handlers
 
-### The Render Function
+### React Hooks Optimization
 
-```typescript
-render: (editor) => {
-  editor.input.innerHTML = editor.config
-    .map((option) => {
-      // ... create button HTML ...
-    })
-    .join('');
-}
+The `useCallback` and `useEffect` hooks ensure shortcuts are only recreated when config changes:
+
+```tsx
+const getNextValue = useCallback((value: string) => {
+  const index = config.indexOf(value);
+  return index === config.length - 1 ? config[0] : config[index + 1];
+}, [config]); // Only recreate if config changes
+
+useEffect(() => {
+  setShortcuts([...]);
+}, [config, getNextValue, getPrevValue]); // Only update when dependencies change
 ```
 
-**Is this expensive?**
-- **Fires on**: Value changes (not continuously)
-- **DOM update**: Single `innerHTML` assignment
-- **String concatenation**: Very fast in modern JS
+## TypeScript Support
 
-**Performance verdict**: Extremely fast!
-- Minimal DOM manipulation
-- No complex calculations
-- Simple string operations
+`EditorComponent` is fully typed. You can specify the value type:
 
-**Optimization (if needed):**
-For many rows, consider caching button elements:
-
-```typescript
-init(editor) {
-  // Create buttons once
-  editor.buttons = editor.config.map((option) => {
-    const button = document.createElement('button');
-
-    button.textContent = option;
-    button.style.cssText = 'width: 33%;';
-    button.addEventListener('click', () => {
-      editor.setValue(option);
-      editor.finishEditing();
-    });
-
-    return button;
-  });
-
-  // Just update classes in render
-  render: (editor) => {
-    editor.buttons.forEach((button, index) => {
-      const isSelected = editor.value === editor.config[index];
-
-      button.style.background = isSelected ? '#007bff' : '';
-      button.style.color = isSelected ? 'white' : '';
-    });
-  }
-}
+```tsx
+<EditorComponent<string>>
+  {({ value, setValue, finishEditing }) => {
+    // TypeScript knows value is string | undefined
+    // TypeScript knows setValue accepts string
+    return (
+      // ... editor UI
+    );
+  }}
+</EditorComponent>
 ```
 
-## Styling Tips
+For number-based feedback:
 
-### Custom Button Appearance (CSS)
-
-```css
-/* Style the editor container */
-.htSelectEditor {
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-/* Style buttons */
-.htSelectEditor button {
-  transition: all 0.2s ease;
-  font-weight: 500;
-}
-
-.htSelectEditor button:hover {
-  transform: scale(1.05);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-/* Style selected button */
-.htSelectEditor button[aria-pressed='true'] {
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
-}
+```tsx
+<EditorComponent<number>>
+  {({ value, setValue, finishEditing }) => {
+    // TypeScript knows value is number | undefined
+    return (
+      // ... editor UI
+    );
+  }}
+</EditorComponent>
 ```
 
-### Custom Cell Renderer Styling
+## Best Practices
 
-```typescript
-renderer: rendererFactory(({ td, value }) => {
-  td.innerHTML = `
-    <div style="
-      text-align: center;
-      font-size: 2em;
-      padding: 8px;
-      background: ${value === '👍' ? '#e8f5e9' : value === '👎' ? '#ffebee' : '#f5f5f5'};
-      border-radius: 4px;
-    ">
-      ${value || '🤷‍♂️'}
-    </div>
-  `;
-  return td;
-})
-```
-
-### Responsive Button Layout
-
-```typescript
-init: (editor) => {
-  editor.input = editor.hot.rootDocument.createElement('div') as HTMLDivElement;
-  editor.input.style.cssText = `
-    display: flex;
-    gap: 4px;
-    padding: 8px;
-    background: #f9f9f9;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  `;
-  // ... rest of init
-}
-```
-
+1. **Use `onPrepare` for per-cell configuration** - Access `cellProperties` to read custom options
+2. **Handle keyboard events properly** - Use shortcuts for navigation
+3. **Call `finishEditing()` appropriately** - When user confirms changes (Enter, blur, button click)
+4. **Keep render prop function simple** - Extract complex logic into separate components or hooks
+5. **Use `useCallback` for helper functions** - Prevents unnecessary re-renders
+6. **Update shortcuts in `useEffect`** - Ensures shortcuts match current config
 
 ---
 
-**Congratulations!** You've created a simple feedback editor with emoji buttons using only native HTML and JavaScript, perfect for quick feedback selection in your data grid!
+**Congratulations!** You've created a simple feedback editor with emoji buttons using React's `EditorComponent`, perfect for quick feedback selection in your data grid!
