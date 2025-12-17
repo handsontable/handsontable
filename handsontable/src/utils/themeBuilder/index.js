@@ -1,8 +1,5 @@
 import sizing from '../../themes/variables/sizing';
 import densitySizes from '../../themes/variables/density';
-import mainIcons from '../../themes/variables/icons/main';
-import mainColors from '../../themes/variables/colors/main';
-import mainTokens from '../../themes/variables/tokens/main';
 import {
   validateParams,
   validateDensityType,
@@ -65,9 +62,9 @@ class ThemeBuilder {
         type: this.#densityType,
         sizes: densitySizes,
       },
-      icons: mainIcons,
-      colors: mainColors,
-      tokens: mainTokens,
+      icons: {},
+      colors: {},
+      tokens: {},
       colorScheme: this.#colorScheme,
     };
 
